@@ -178,6 +178,39 @@ host.
 
 ---
 
+### OQ-36 — Tailwind v4 memakai konfigurasi berbasis CSS, bukan berkas preset
+
+**Status:** open · _non-blocking_ · **Fase:** 0e (sudah diterapkan)
+SPEC §32 menyebut `packages/config` memuat "tailwind preset", yang mengikuti pola Tailwind v3.
+Tailwind versi sekarang (v4) memakai konfigurasi berbasis CSS lewat blok `@theme`, dan tidak lagi
+memakai berkas preset JavaScript.
+
+**Yang saya lakukan:** blok `@theme inline` ditempatkan di `packages/ui/src/tokens.css`, tepat di
+bawah definisi tokennya. Hasilnya justru lebih baik daripada preset terpisah — token tetap satu
+sumber alih-alih disalin ke berkas konfigurasi yang bisa menyimpang.
+**Bila Anda tidak setuju,** ini mudah dipindahkan; tidak ada kode aplikasi yang bergantung padanya.
+
+### OQ-37 — Versi paket jauh lebih baru daripada yang diasumsikan spesifikasi
+
+**Status:** open · _non-blocking_ · **Fase:** 0e (sudah diterapkan)
+Beberapa pilihan versi perlu dicatat karena berdampak pada kode:
+
+| Paket      | Dipakai   | Catatan                                                                                                                  |
+| ---------- | --------- | ------------------------------------------------------------------------------------------------------------------------ |
+| TypeScript | **6.0.3** | v7 sudah rilis, tetapi `typescript-eslint` masih mensyaratkan `<6.1.0`                                                   |
+| NestJS     | **12**    | **ESM-only** — karena itu `apps/api` dan `apps/worker` memakai `"type": "module"` dan impor relatifnya berekstensi `.js` |
+| Next.js    | **16**    | App Router, Turbopack                                                                                                    |
+| Tailwind   | **4**     | lihat OQ-36                                                                                                              |
+| Vitest     | **5**     |                                                                                                                          |
+
+Yang paling berdampak adalah NestJS 12 yang ESM-only: itu mengubah gaya impor di seluruh backend.
+Sudah diverifikasi bekerja (typecheck, build, tes, dan health check terhadap DB sungguhan).
+
+**Drizzle belum dipasang.** Ia menyusul di Fase 1 bersama skema pertama; memasang ORM tanpa skema
+hanya menambah bobot tanpa manfaat. Rekomendasi Drizzle di `PHASE0_PROPOSAL.md` §4 tetap berlaku.
+
+---
+
 ## B. Design conflicts carried from SPEC §33h
 
 ### OQ-14 — (33h #1) Pricing shown in report vs. no price on product screens

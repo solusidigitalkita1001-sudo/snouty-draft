@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-09-30 · Current phase: **0d (menunggu review checkpoint)** · Next item: **Fase 0e — P0e-01 scaffold monorepo**
+Last updated: 2026-09-30 · Current phase: **0e (menunggu review checkpoint)** · Next item: **Fase 1 — Product Catalog** (menunggu persetujuan + OQ-07)
 
 ## Summary
 
@@ -109,18 +109,18 @@ Seluruh berkas Bagian 48 kini lengkap (28 dokumen).
 - [x] P0d-12 skill `performance-optimization`
 - [x] P0d-13 skill `testing-and-review`
 - [x] P0d-14 skill `design-implementation`
-- [ ] ✋ CHECKPOINT — reviewed by owner
+- [x] ✋ CHECKPOINT — **disetujui pemilik 2026-09-30** ("lanjut gass")
 
 ## Phase 0e — Skeleton
 
-- [ ] P0e-01 Monorepo scaffold (pnpm workspaces)
-- [ ] P0e-02 `.env.example`
-- [ ] P0e-03 Docker Compose (Redis, RabbitMQ; CI-only MySQL)
-- [ ] P0e-04 Lint / format / typecheck / test tooling
+- [x] P0e-01 Monorepo scaffold (pnpm workspaces) — 3 app + 4 paket; `packages/engineering` tanpa dependensi runtime
+- [x] P0e-02 `.env.example` — seluruh kunci SPEC §17b
+- [x] P0e-03 Docker Compose (Redis, RabbitMQ; CI-only MySQL) — compose divalidasi; `mysql-test` di balik profil
+- [x] P0e-04 Lint / format / typecheck / test tooling — + 2 skrip pagar arsitektur
 - [ ] P0e-05 CI pipeline _(provider pending OQ-09)_
-- [ ] P0e-06 `packages/ui` design tokens (light + dark) + preview page
-- [ ] P0e-07 Self-hosted IBM Plex Sans/Mono
-- [ ] P0e-08 API health check (DB connectivity, read-only)
+- [x] P0e-06 `packages/ui` design tokens (light + dark) + preview page — 74 token; `/tokens` dirender & diverifikasi
+- [x] P0e-07 Self-hosted IBM Plex Sans/Mono — diverifikasi: 0 rujukan ke gstatic
+- [x] P0e-08 API health check (DB connectivity, read-only) — diuji terhadap DB sungguhan **dan** DB mati
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phase 1 — Product Catalog
