@@ -1,13 +1,13 @@
 # SNOUTY — Progress
 
-Last updated: 2026-09-30 · Current phase: **0b (menunggu review checkpoint)** · Next item: **Fase 0c — P0c-01 PRODUCT.md**
+Last updated: 2026-09-30 · Current phase: **0c (menunggu review checkpoint)** · Next item: **Fase 0d — P0d-01 .claude/CLAUDE.md**
 
 ## Summary
 | Phase | Status | Done / Total |
 |---|---|---|
 | 0a Analysis | **approved** | 7/7 |
-| 0b Core docs | menunggu review | 9/9 |
-| 0c Remaining docs | not started | 0/18 |
+| 0b Core docs | **disetujui** | 9/9 |
+| 0c Remaining docs | menunggu review | 15/15 |
 | 0d Claude Code config | not started | 0/14 |
 | 0e Skeleton | not started | 0/8 |
 | 1 Product Catalog | not started | — |
@@ -66,24 +66,26 @@ Ditulis dalam Bahasa Indonesia (kode, identifier, enum, SQL, dan istilah teknis 
 - [x] P0b-07 API_CONTRACTS.md
 - [x] P0b-08 PRIVACY.md
 - [x] P0b-09 DESIGN_IMPLEMENTATION.md — memuat peta token terang→gelap lengkap dari kedua berkas
-- [ ] ✋ CHECKPOINT — reviewed by owner
+- [x] ✋ CHECKPOINT — **disetujui pemilik 2026-09-30** ("lanjut")
 
 ## Phase 0c — Remaining docs
-- [ ] P0c-01 PRODUCT.md
-- [ ] P0c-02 AI_BEHAVIOR.md
-- [ ] P0c-03 PRODUCT_KNOWLEDGE.md
-- [ ] P0c-04 PRODUCT_MATCHING.md
-- [ ] P0c-05 SCHEMATIC_ENGINE.md
-- [ ] P0c-06 REPORT.md
-- [ ] P0c-07 EMAIL_INTELLIGENCE.md
-- [ ] P0c-08 MARKET_INTELLIGENCE.md
-- [ ] P0c-09 BACKOFFICE.md
-- [ ] P0c-10 INFRASTRUCTURE.md
-- [ ] P0c-11 SECURITY.md
-- [ ] P0c-12 PERFORMANCE.md
-- [ ] P0c-13 EVALUATION.md
-- [ ] P0c-14 CODING_STANDARDS.md
-- [ ] P0c-15 ROADMAP.md
+Seluruh berkas Bagian 48 kini lengkap (28 dokumen).
+
+- [x] P0c-01 PRODUCT.md
+- [x] P0c-02 AI_BEHAVIOR.md
+- [x] P0c-03 PRODUCT_KNOWLEDGE.md
+- [x] P0c-04 PRODUCT_MATCHING.md
+- [x] P0c-05 SCHEMATIC_ENGINE.md
+- [x] P0c-06 REPORT.md
+- [x] P0c-07 EMAIL_INTELLIGENCE.md
+- [x] P0c-08 MARKET_INTELLIGENCE.md
+- [x] P0c-09 BACKOFFICE.md
+- [x] P0c-10 INFRASTRUCTURE.md
+- [x] P0c-11 SECURITY.md
+- [x] P0c-12 PERFORMANCE.md
+- [x] P0c-13 EVALUATION.md
+- [x] P0c-14 CODING_STANDARDS.md
+- [x] P0c-15 ROADMAP.md
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phase 0d — Claude Code configuration
@@ -176,4 +178,6 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | 2026-09-30 | P0a-01 … P0a-07 | 6 done, P0a-04 blocked | `phase-0/P0a-analysis` | Design bundle moved to `design-input/handoff/`. 33 open questions raised; 11 design conflicts found beyond SPEC §33h. |
 | 2026-09-30 | P0a-04 | done — Phase 0a now 7/7 | `phase-0/P0a-analysis` | Credentials supplied. `snouty` is empty; server is shared with 7 other databases. Raised OQ-34: the supplied account is a server-wide superuser, contrary to SPEC §17 least privilege. |
 | 2026-09-30 | Checkpoint 0a | disetujui ("ok gas") | — | Lanjut dengan proposed default untuk OQ yang belum dijawab. Bahasa dokumen baru: Indonesia. |
-| 2026-09-30 | P0b-01 … P0b-09 | 9/9 selesai | `phase-0/P0b-core-docs` | Sembilan dokumen inti ditulis dalam Bahasa Indonesia. `DATABASE.md` memuat draf SQL akun least-privilege (OQ-34); `DESIGN_IMPLEMENTATION.md` memuat peta token gelap lengkap (OQ-16). Menunggu review checkpoint. |
+| 2026-09-30 | P0b-01 … P0b-09 | 9/9 selesai | `phase-0/P0b-core-docs` | Sembilan dokumen inti ditulis dalam Bahasa Indonesia. `DATABASE.md` memuat draf SQL akun least-privilege (OQ-34); `DESIGN_IMPLEMENTATION.md` memuat peta token gelap lengkap (OQ-16). |
+| 2026-09-30 | Checkpoint 0b | disetujui ("lanjut") | — | |
+| 2026-09-30 | P0c-01 … P0c-15 | 15/15 selesai | `phase-0/P0c-remaining-docs` | Seluruh 28 dokumen Bagian 48 kini ada. Menunggu review checkpoint sebelum Fase 0d (konfigurasi Claude Code). |
