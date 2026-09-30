@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-09-30 · Current phase: **1 — Product Catalog** · Next item: **P1-01 skema + migration**
+Last updated: 2026-09-30 · Current phase: **1 — Product Catalog** · Next item: **P1-04 repository katalog**
 
 ## Summary
 
@@ -133,8 +133,8 @@ penerapan migration ke server menunggu persetujuan pemilik + backup terkonfirmas
 (`docs/DATABASE.md` §4). Sisanya tidak terhalang — kontrak impor sengaja dibuat bebas format,
 sehingga menambahkan pembaca Excel atau ERP nanti adalah menambah satu adapter, bukan merombak.
 
-- [ ] P1-01 Skema katalog (Drizzle) + berkas migration `.sql` **tidak diterapkan**
-  - [ ] P1-01a Tes: migration up/down berjalan di kontainer MySQL sekali pakai
+- [x] P1-01 Skema katalog (Drizzle) + berkas migration `.sql` — **tidak diterapkan** ke server; 7 tabel, CHECK constraint, jaminan satu versi aktif
+  - [x] P1-01a Tes: migration up/down berjalan di kontainer MySQL sekali pakai — **17 pemeriksaan lolos**
 - [x] P1-02 Tipe domain katalog di `packages/shared-types` — field spesifikasi kosong bertipe eksplisit `UNAVAILABLE`, bukan dihilangkan
 - [x] P1-03 Value object `PipeSize` (parsing kanonik, perbandingan, format tampilan)
   - [x] P1-03a Tes: `1¼"` dan `1.25"` adalah ukuran yang sama; urutan benar — 13 tes lolos

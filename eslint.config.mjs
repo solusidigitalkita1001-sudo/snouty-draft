@@ -112,7 +112,8 @@ export default tseslint.config(
   },
 
   {
-    files: ['**/*.config.{js,mjs,ts}', 'scripts/**/*.mjs'],
+    // Skrip CLI: keluaran konsol memang tujuannya.
+    files: ['**/*.config.{js,mjs,ts}', '**/scripts/**/*.mjs'],
     rules: { 'no-console': 'off' },
   },
   {

@@ -9,3 +9,6 @@ docs/SPEC.md
 
 # Dibangkitkan Next.js
 apps/web/next-env.d.ts
+
+# Dibangkitkan drizzle-kit
+apps/api/drizzle/meta/

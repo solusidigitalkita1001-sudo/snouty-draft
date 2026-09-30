@@ -9,13 +9,17 @@
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:apply": "node scripts/db-apply.mjs",
+    "test:migration": "node scripts/test-migration.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^12.1.2",
     "@nestjs/core": "^12.1.2",
     "@nestjs/platform-express": "^12.1.2",
     "@snouty/shared-types": "workspace:*",
+    "drizzle-orm": "^0.45.3",
     "mysql2": "^3.24.5",
     "pino": "^10.3.1",
     "reflect-metadata": "^0.2.2",
@@ -24,6 +28,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
+    "drizzle-kit": "^0.31.11",
     "typescript": "^6.0.3",
     "vitest": "^5.0.2"
   }

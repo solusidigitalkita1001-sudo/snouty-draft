@@ -36,7 +36,8 @@ services:
       MYSQL_DATABASE: snouty_test
       MYSQL_USER: snouty_test
       MYSQL_PASSWORD: test
-    ports: ['3307:3306']
+    # 3307 sering bentrok dengan kontainer MySQL lain di mesin pengembang.
+    ports: ['${MYSQL_TEST_PORT:-3317}:3306']
     tmpfs: ['/var/lib/mysql'] # sekali pakai — tidak ada yang bertahan
     healthcheck:
       test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
