@@ -1,0 +1,49 @@
+# SNOUTY — layanan lokal.
+#
+# MySQL SENGAJA tidak ada di sini. Database produksi ada di 192.168.1.136 dan
+# dipakai bersama tujuh aplikasi lain; menaruhnya di compose akan mengundang
+# seseorang menjalankan `docker compose down -v` dan mengira itu aman.
+# Kontainer mysql-test di bawah hanya untuk tes integrasi, di balik profil
+# tersendiri supaya tidak ikut menyala pada `docker compose up`.
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    ports: ['6379:6379']
+    volumes: ['redis-data:/data']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports: ['5672:5672', '15672:15672']
+    volumes: ['rabbitmq-data:/var/lib/rabbitmq']
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  mysql-test:
+    profiles: ['test']
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: snouty_test
+      MYSQL_USER: snouty_test
+      MYSQL_PASSWORD: test
+    ports: ['3307:3306']
+    tmpfs: ['/var/lib/mysql'] # sekali pakai — tidak ada yang bertahan
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  redis-data:
+  rabbitmq-data:
