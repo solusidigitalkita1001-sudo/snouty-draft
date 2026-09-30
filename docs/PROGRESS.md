@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-09-30 · Current phase: **0e (menunggu review checkpoint)** · Next item: **Fase 1 — Product Catalog** (menunggu persetujuan + OQ-07)
+Last updated: 2026-09-30 · Current phase: **1 — Product Catalog** · Next item: **P1-01 skema + migration**
 
 ## Summary
 
@@ -121,11 +121,41 @@ Seluruh berkas Bagian 48 kini lengkap (28 dokumen).
 - [x] P0e-06 `packages/ui` design tokens (light + dark) + preview page — 74 token; `/tokens` dirender & diverifikasi
 - [x] P0e-07 Self-hosted IBM Plex Sans/Mono — diverifikasi: 0 rujukan ke gstatic
 - [x] P0e-08 API health check (DB connectivity, read-only) — diuji terhadap DB sungguhan **dan** DB mati
-- [ ] ✋ CHECKPOINT — reviewed by owner
+- [x] ✋ CHECKPOINT — **disetujui pemilik 2026-09-30** ("lanjut ke task berikutnya")
 
 ## Phase 1 — Product Catalog
 
-(broken down when Phase 0 is approved)
+Katalog harus lebih dulu: matching, BOM, skema, dan laporan semuanya membaca darinya
+(`docs/ROADMAP.md` §2). Layar terkait: **10** (drawer detail produk) dan back-office katalog.
+
+**Yang terhalang:** parser untuk format berkas tertentu menunggu **OQ-07** (sumber katalog), dan
+penerapan migration ke server menunggu persetujuan pemilik + backup terkonfirmasi
+(`docs/DATABASE.md` §4). Sisanya tidak terhalang — kontrak impor sengaja dibuat bebas format,
+sehingga menambahkan pembaca Excel atau ERP nanti adalah menambah satu adapter, bukan merombak.
+
+- [ ] P1-01 Skema katalog (Drizzle) + berkas migration `.sql` **tidak diterapkan**
+  - [ ] P1-01a Tes: migration up/down berjalan di kontainer MySQL sekali pakai
+- [x] P1-02 Tipe domain katalog di `packages/shared-types` — field spesifikasi kosong bertipe eksplisit `UNAVAILABLE`, bukan dihilangkan
+- [x] P1-03 Value object `PipeSize` (parsing kanonik, perbandingan, format tampilan)
+  - [x] P1-03a Tes: `1¼"` dan `1.25"` adalah ukuran yang sama; urutan benar — 13 tes lolos
+- [ ] P1-04 Repository katalog (produk, ukuran, spesifikasi, kompatibilitas, versi)
+  - [ ] P1-04a Tes integrasi terhadap kontainer MySQL; tes penghitung query (tanpa N+1)
+- [ ] P1-05 Kontrak impor bebas format + validasi per baris
+  - [ ] P1-05a Tes: semua galat baris dilaporkan sekaligus, bukan satu per satu
+  - [ ] `[!]` P1-05b Adapter untuk format sebenarnya — **terhalang OQ-07**
+- [ ] P1-06 Job `catalog.ingest` (RabbitMQ, idempoten per `catalogVersionId + rowHash`, DLQ)
+  - [ ] P1-06a Tes: impor yang sama dua kali menghasilkan satu versi
+- [ ] P1-07 Promosi versi katalog + invalidasi cache
+  - [ ] P1-07a Tes: tepat satu versi `active`; promosi membatalkan cache dan menulis audit
+- [ ] P1-08 API baca katalog — `GET /products`, `/products/:id`, `/products/:id/compatible`, `/catalog/version` `[layar 10]`
+  - [ ] P1-08a Tes: field spesifikasi null dikembalikan sebagai `UNAVAILABLE`, bukan dihilangkan
+- [ ] P1-09 Pemetaan provenance untuk field katalog kosong
+  - [ ] P1-09a Tes: invarian C-1 — spesifikasi kosong tidak pernah diisi tebakan
+- [ ] P1-10 Back-office katalog: unggah, laporan validasi, pratinjau draft, promosi `[perlu desain — OQ-21]`
+  - [ ] P1-10a Tes: rute `/internal/catalog/*` menolak peran selain `catalog_admin`; setiap tulis diaudit
+- [ ] P1-11 Katalog contoh untuk pengembangan (bukan data Pralon asli)
+- [ ] P1-12 `docs/PRODUCT_KNOWLEDGE.md` diperbarui sesuai implementasi akhir
+- [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phases 2–13
 
