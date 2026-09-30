@@ -1,0 +1,15 @@
+{
+  "name": "@snouty/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tsconfig/node.json": "./tsconfig/node.json",
+    "./tsconfig/react.json": "./tsconfig/react.json",
+    "./tsconfig/lib.json": "./tsconfig/lib.json"
+  },
+  "scripts": {
+    "typecheck": "echo 'no sources' ",
+    "test": "echo 'no tests'"
+  }
+}
