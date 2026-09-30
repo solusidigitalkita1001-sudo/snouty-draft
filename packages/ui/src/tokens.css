@@ -1,0 +1,273 @@
+/**
+ * SNOUTY — design token.
+ *
+ * Satu-satunya tempat warna, tipografi, spacing, radius, bayangan, dan metrik
+ * tetap didefinisikan. Lint melarang hex mentah di apps/ supaya berkas ini
+ * benar-benar menjadi sumber tunggal (docs/DESIGN_IMPLEMENTATION.md §3).
+ *
+ * Aturan semantik — ditegakkan lewat NAMA token, bukan hanya nilainya:
+ *   --action-*    merah merek  = aksi / seleksi / jalur pipa
+ *   --verified-*  hijau        = fakta katalog terverifikasi
+ *   --assumed-*   amber        = asumsi / estimasi / data kurang
+ * Tidak pernah ada tombol hijau atau amber; tidak pernah merah untuk
+ * "terverifikasi". Tidak ada token bernama --button-green untuk diraih.
+ *
+ * Palet gelap mengikuti PROTOTIPE (#0F1213 / #171B1D), bukan board
+ * (#17191B / #1D2023) — prototipe berperingkat lebih tinggi pada urutan sumber
+ * kebenaran SPEC §33a. Lihat OQ-16.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* ── Aksi / merek ──────────────────────────────────────────────────────── */
+  --snouty-action: #df301c;
+  --snouty-action-hover: #b02414;
+  --snouty-action-text: #b02414;
+  --snouty-action-soft-bg: #fdece9;
+  --snouty-action-soft-border: #f6c3bb;
+  --snouty-action-row: #fdf1ef;
+  --snouty-action-on: #ffffff;
+
+  /* ── Jalur pipa ────────────────────────────────────────────────────────── */
+  --snouty-pipe-main: #df301c;
+  --snouty-pipe-mid: #ee7a67;
+  --snouty-pipe-light: #f4b0a3;
+  --snouty-pipe-fixture: #aeb6b7;
+
+  /* ── Teks ──────────────────────────────────────────────────────────────── */
+  --snouty-ink: #14181a;
+  --snouty-ink-2: #20262a;
+  --snouty-ink-3: #2b3134;
+  --snouty-ink-4: #42484b;
+  --snouty-muted: #5a6468;
+  --snouty-muted-2: #7a8285;
+  --snouty-caption: #8a9295;
+  --snouty-placeholder: #9aa3a5;
+  --snouty-disabled: #a8b0b2;
+
+  /* ── Permukaan ─────────────────────────────────────────────────────────── */
+  --snouty-canvas: #f7f8f7;
+  --snouty-surface: #ffffff;
+  --snouty-surface-subtle: #fbfcfb;
+  --snouty-surface-schematic: #fcfdfc;
+  --snouty-border: #dde2e1;
+  --snouty-border-soft: #e6eae9;
+  --snouty-hairline: #eff2f1;
+  --snouty-hairline-2: #f3f5f4;
+  --snouty-rule: #f1f3f2;
+  --snouty-dot-grid: #e4e8e7;
+  --snouty-grid-line: #eef1f0;
+  --snouty-floor-line: #b9c1c0;
+  --snouty-node-border: #c9d0cf;
+  --snouty-step-pending: #d5dad9;
+
+  /* ── Provenance: terverifikasi ─────────────────────────────────────────── */
+  --snouty-verified-text: #1e7a4c;
+  --snouty-verified-bg: #e8f5ec;
+  --snouty-verified-strong: #12613b;
+  --snouty-verified-soft-bg: #f1faf4;
+  --snouty-verified-soft-border: #bfe3cd;
+
+  /* ── Provenance: asumsi / estimasi ─────────────────────────────────────── */
+  --snouty-assumed-text: #8a5300;
+  --snouty-assumed-strong: #b26b00;
+  --snouty-assumed-body: #7a5518;
+  --snouty-assumed-grid: #6e4e17;
+  --snouty-assumed-bg: #fdf3e3;
+  --snouty-assumed-bg-soft: #fdf8ef;
+  --snouty-assumed-border: #f0dfc0;
+  --snouty-assumed-border-strong: #e3c894;
+
+  /* ── Placeholder gambar produk ─────────────────────────────────────────── */
+  --snouty-placeholder-a: #f3f5f4;
+  --snouty-placeholder-b: #e9edec;
+  --snouty-image-placeholder: repeating-linear-gradient(
+    135deg,
+    var(--snouty-placeholder-a) 0 6px,
+    var(--snouty-placeholder-b) 6px 12px
+  );
+
+  /* ── Bayangan & scrim ──────────────────────────────────────────────────── */
+  --snouty-shadow-card: 0 1px 2px rgb(20 24 26 / 0.04);
+  --snouty-shadow-modal: 0 24px 60px rgb(20 24 26 / 0.22);
+  --snouty-shadow-drawer: -12px 0 40px rgb(20 24 26 / 0.14);
+  --snouty-shadow-menu: 0 14px 34px rgb(20 24 26 / 0.16);
+  --snouty-scrim: rgb(20 24 26 / 0.32);
+  --snouty-scrim-strong: rgb(20 24 26 / 0.38);
+
+  /* ── Cincin fokus ──────────────────────────────────────────────────────── */
+  --snouty-focus-ring: 0 0 0 3px rgb(223 48 28 / 0.14);
+  --snouty-focus-border: var(--snouty-action);
+
+  /* ── Tipografi ─────────────────────────────────────────────────────────── */
+  --snouty-font-sans: var(--font-ibm-plex-sans), system-ui, sans-serif;
+  --snouty-font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+
+  --snouty-text-hero: 34px;
+  --snouty-text-onb-title: 27px;
+  --snouty-text-title: 23px;
+  --snouty-text-headline: 19px;
+  --snouty-text-section: 15px;
+  --snouty-text-intro: 14.5px;
+  --snouty-text-body: 14px;
+  --snouty-text-list: 13.5px;
+  --snouty-text-desc: 13px;
+  --snouty-text-helper: 12.5px;
+  --snouty-text-label: 11px;
+  --snouty-text-caption: 10px;
+  --snouty-text-micro: 9.5px;
+
+  --snouty-tracking-hero: -0.025em;
+  --snouty-tracking-onb: -0.028em;
+  --snouty-tracking-title: -0.02em;
+  --snouty-tracking-headline: -0.012em;
+  --snouty-tracking-caption: 0.07em;
+
+  /* ── Radius ────────────────────────────────────────────────────────────── */
+  --snouty-radius-tag: 4px;
+  --snouty-radius-pill: 5px;
+  --snouty-radius-control: 6px;
+  --snouty-radius-card: 8px;
+  --snouty-radius-modal: 12px;
+  --snouty-radius-chip: 20px;
+
+  /* ── Metrik tetap (nilai prototipe menang — OQ-25) ─────────────────────── */
+  --snouty-sidebar-w: 236px;
+  --snouty-nav-rail-w: 60px;
+  --snouty-panel-w: 300px;
+  --snouty-panel-rail-w: 44px;
+  --snouty-header-h: 52px;
+  --snouty-drawer-max-w: 600px;
+  --snouty-onboarding-w: 860px;
+  --snouty-onboarding-h: 580px;
+  --snouty-tap-min: 44px;
+
+  /* ── Animasi ───────────────────────────────────────────────────────────── */
+  --snouty-enter: 250ms ease;
+  --snouty-sheet: 280ms ease;
+  --snouty-indicator: 200ms ease;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --snouty-action: #df301c; /* fill saja; selalu dengan teks putih */
+  --snouty-action-hover: #b02414;
+  --snouty-action-text: #f4806e; /* teks/tautan merek di mode gelap */
+  --snouty-action-soft-bg: #3a1d19;
+  --snouty-action-soft-border: #5c2a23;
+  --snouty-action-row: #2a1a18;
+
+  --snouty-pipe-mid: #ee7a67;
+  --snouty-pipe-light: #7a3429;
+  --snouty-pipe-fixture: #5e686b;
+
+  --snouty-ink: #ecefee;
+  --snouty-ink-2: #dde2e1;
+  --snouty-ink-3: #d0d6d5;
+  --snouty-ink-4: #b4bcbe;
+  --snouty-muted: #9aa3a6;
+  --snouty-muted-2: #838c8f;
+  --snouty-caption: #7e878a;
+  --snouty-placeholder: #7e878a;
+  --snouty-disabled: #626c6f;
+
+  --snouty-canvas: #0f1213;
+  --snouty-surface: #171b1d;
+  --snouty-surface-subtle: #1b2022;
+  --snouty-surface-schematic: #131719;
+  --snouty-border: #343b3e;
+  --snouty-border-soft: #2a3033;
+  --snouty-hairline: #23292b;
+  --snouty-hairline-2: #1f2426;
+  --snouty-rule: #1f2426;
+  --snouty-dot-grid: #262c2e;
+  --snouty-grid-line: #1d2224;
+  --snouty-floor-line: #566064;
+  --snouty-node-border: #465053;
+  --snouty-step-pending: #4a5356;
+
+  --snouty-verified-text: #62c48f;
+  --snouty-verified-bg: #15291e;
+  --snouty-verified-strong: #6fd09a;
+  --snouty-verified-soft-bg: #122219;
+  --snouty-verified-soft-border: #2a4a37;
+
+  --snouty-assumed-text: #e4b56c;
+  --snouty-assumed-strong: #d69a3c;
+  --snouty-assumed-body: #e0b36a;
+  --snouty-assumed-grid: #d9ae68;
+  --snouty-assumed-bg: #2b2210;
+  --snouty-assumed-bg-soft: #261f12;
+  --snouty-assumed-border: #4a3d22;
+  --snouty-assumed-border-strong: #5a4a28;
+
+  --snouty-placeholder-a: #1f2426;
+  --snouty-placeholder-b: #262c2e;
+
+  --snouty-shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+  --snouty-shadow-modal: 0 24px 60px rgb(0 0 0 / 0.45);
+  --snouty-shadow-drawer: -12px 0 40px rgb(0 0 0 / 0.4);
+  --snouty-shadow-menu: 0 14px 34px rgb(0 0 0 / 0.4);
+}
+
+/**
+ * Prototipe tidak menghormati prefers-reduced-motion; SPEC §33c mewajibkannya.
+ * Saat aktif: animasi mascot berhenti di frame statis, animasi masuk menjadi
+ * langsung, dan titik berpikir menjadi indikator statis.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Cincin fokus selalu terlihat — jangan pernah outline:none tanpa pengganti. */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: none;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+/**
+ * Pemetaan ke utilitas Tailwind v4. Tailwind v4 memakai konfigurasi berbasis CSS,
+ * sehingga blok inilah padanan "tailwind preset" yang diminta SPEC §32 — dan
+ * keuntungannya, token tetap satu sumber alih-alih disalin ke berkas konfigurasi.
+ */
+@theme inline {
+  --color-action: var(--snouty-action);
+  --color-action-hover: var(--snouty-action-hover);
+  --color-action-text: var(--snouty-action-text);
+  --color-action-soft: var(--snouty-action-soft-bg);
+  --color-action-on: var(--snouty-action-on);
+
+  --color-ink: var(--snouty-ink);
+  --color-ink-2: var(--snouty-ink-2);
+  --color-ink-3: var(--snouty-ink-3);
+  --color-ink-4: var(--snouty-ink-4);
+  --color-muted: var(--snouty-muted);
+  --color-caption: var(--snouty-caption);
+
+  --color-canvas: var(--snouty-canvas);
+  --color-surface: var(--snouty-surface);
+  --color-surface-subtle: var(--snouty-surface-subtle);
+  --color-hairline: var(--snouty-hairline);
+
+  --color-verified: var(--snouty-verified-text);
+  --color-verified-bg: var(--snouty-verified-bg);
+  --color-assumed: var(--snouty-assumed-text);
+  --color-assumed-bg: var(--snouty-assumed-bg);
+
+  --font-sans: var(--snouty-font-sans);
+  --font-mono: var(--snouty-font-mono);
+
+  --radius-card: var(--snouty-radius-card);
+  --radius-control: var(--snouty-radius-control);
+  --radius-chip: var(--snouty-radius-chip);
+}
