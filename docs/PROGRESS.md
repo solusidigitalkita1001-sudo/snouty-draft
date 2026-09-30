@@ -1,14 +1,14 @@
 # SNOUTY — Progress
 
-Last updated: 2026-09-30 · Current phase: **0c (menunggu review checkpoint)** · Next item: **Fase 0d — P0d-01 .claude/CLAUDE.md**
+Last updated: 2026-09-30 · Current phase: **0d (menunggu review checkpoint)** · Next item: **Fase 0e — P0e-01 scaffold monorepo**
 
 ## Summary
 | Phase | Status | Done / Total |
 |---|---|---|
 | 0a Analysis | **approved** | 7/7 |
 | 0b Core docs | **disetujui** | 9/9 |
-| 0c Remaining docs | menunggu review | 15/15 |
-| 0d Claude Code config | not started | 0/14 |
+| 0c Remaining docs | **disetujui** | 15/15 |
+| 0d Claude Code config | menunggu review | 14/14 |
 | 0e Skeleton | not started | 0/8 |
 | 1 Product Catalog | not started | — |
 | 2 Product Knowledge Assistant | not started | — |
@@ -86,23 +86,23 @@ Seluruh berkas Bagian 48 kini lengkap (28 dokumen).
 - [x] P0c-13 EVALUATION.md
 - [x] P0c-14 CODING_STANDARDS.md
 - [x] P0c-15 ROADMAP.md
-- [ ] ✋ CHECKPOINT — reviewed by owner
+- [x] ✋ CHECKPOINT — **disetujui pemilik 2026-09-30** ("lanjut gass")
 
 ## Phase 0d — Claude Code configuration
-- [ ] P0d-01 `.claude/CLAUDE.md`
-- [ ] P0d-02 skill `snouty-architecture`
-- [ ] P0d-03 skill `product-knowledge`
-- [ ] P0d-04 skill `ai-orchestration`
-- [ ] P0d-05 skill `snouty-policy`
-- [ ] P0d-06 skill `engineering-rule-engine`
-- [ ] P0d-07 skill `schematic-generator`
-- [ ] P0d-08 skill `async-infrastructure`
-- [ ] P0d-09 skill `email-intelligence`
-- [ ] P0d-10 skill `market-intelligence`
-- [ ] P0d-11 skill `security-guardrails`
-- [ ] P0d-12 skill `performance-optimization`
-- [ ] P0d-13 skill `testing-and-review`
-- [ ] P0d-14 skill `design-implementation`
+- [x] P0d-01 `.claude/CLAUDE.md` — 67 baris, aturan saja
+- [x] P0d-02 skill `snouty-architecture`
+- [x] P0d-03 skill `product-knowledge`
+- [x] P0d-04 skill `ai-orchestration`
+- [x] P0d-05 skill `snouty-policy`
+- [x] P0d-06 skill `engineering-rule-engine`
+- [x] P0d-07 skill `schematic-generator`
+- [x] P0d-08 skill `async-infrastructure`
+- [x] P0d-09 skill `email-intelligence`
+- [x] P0d-10 skill `market-intelligence`
+- [x] P0d-11 skill `security-guardrails`
+- [x] P0d-12 skill `performance-optimization`
+- [x] P0d-13 skill `testing-and-review`
+- [x] P0d-14 skill `design-implementation`
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phase 0e — Skeleton
@@ -180,4 +180,6 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | 2026-09-30 | Checkpoint 0a | disetujui ("ok gas") | — | Lanjut dengan proposed default untuk OQ yang belum dijawab. Bahasa dokumen baru: Indonesia. |
 | 2026-09-30 | P0b-01 … P0b-09 | 9/9 selesai | `phase-0/P0b-core-docs` | Sembilan dokumen inti ditulis dalam Bahasa Indonesia. `DATABASE.md` memuat draf SQL akun least-privilege (OQ-34); `DESIGN_IMPLEMENTATION.md` memuat peta token gelap lengkap (OQ-16). |
 | 2026-09-30 | Checkpoint 0b | disetujui ("lanjut") | — | |
-| 2026-09-30 | P0c-01 … P0c-15 | 15/15 selesai | `phase-0/P0c-remaining-docs` | Seluruh 28 dokumen Bagian 48 kini ada. Menunggu review checkpoint sebelum Fase 0d (konfigurasi Claude Code). |
+| 2026-09-30 | P0c-01 … P0c-15 | 15/15 selesai | `phase-0/P0c-remaining-docs` | Seluruh 28 dokumen Bagian 48 kini ada. |
+| 2026-09-30 | Checkpoint 0c | disetujui ("lanjut gass") | — | |
+| 2026-09-30 | P0d-01 … P0d-14 | 14/14 selesai | `phase-0/P0d-claude-config` | `.claude/CLAUDE.md` + 13 skill; frontmatter divalidasi, nama cocok dengan folder. Skill merujuk ke `docs/*.md`, tidak menduplikasinya. Menunggu review sebelum Fase 0e. |
