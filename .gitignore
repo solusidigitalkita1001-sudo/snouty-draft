@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# env & secrets — never commit
+.env
+.env.*
+!.env.example
+
+# logs & runtime
+*.log
+npm-debug.log*
+pnpm-debug.log*
+coverage/
+.turbo/
+
+# local uploads / generated artifacts
+storage/
+uploads/
+*.pdf
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

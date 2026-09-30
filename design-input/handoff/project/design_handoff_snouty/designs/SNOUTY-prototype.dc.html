@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F7F8F7; font-family:"IBM Plex Sans", system-ui, sans-serif; color:#14181A; -webkit-font-smoothing:antialiased; }
+  * { box-sizing:border-box; }
+  a { color:#DF301C; text-decoration:none; }
+  a:hover { color:#B02414; text-decoration:underline; }
+  input { font-family:inherit; }
+  @keyframes snoutyPulse { 0%,100% { opacity:.35 } 50% { opacity:1 } }
+  @keyframes snoutyIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+</style>
+</helmet>
+
+<div style="height:100vh;display:flex;flex-direction:column;background:#F7F8F7;position:relative;overflow:hidden">
+
+  <div style="flex:1;display:flex;min-height:0">
+
+    <sc-if value="{{ showSidebar }}" hint-placeholder-val="{{ true }}">
+      <aside style="width:236px;flex:none;background:#FFFFFF;border-right:1px solid #E6EAE9;display:flex;flex-direction:column;padding:18px 14px;gap:18px">
+        <div style="display:flex;align-items:center;gap:9px;padding:0 4px">
+          <div style="width:24px;height:24px;border-radius:6px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;border:1px solid #F6C3BB;flex:none"></div>
+          <div style="display:flex;flex-direction:column">
+            <div style="font-size:14px;font-weight:600;letter-spacing:.02em">SNOUTY</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8A9295;letter-spacing:.06em">PRALON ASSISTANT</div>
+          </div>
+        </div>
+
+        <div onClick="{{ reset }}" style="display:flex;align-items:center;justify-content:center;gap:7px;background:#DF301C;color:#FFFFFF;font-size:13px;font-weight:500;padding:9px 12px;border-radius:6px;cursor:pointer" style-hover="background:#B02414">
+          <span style="font-size:15px;line-height:1">+</span><span>Konsultasi Baru</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em;padding:6px 9px">RIWAYAT</div>
+          <sc-if value="{{ hasActive }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:5px;background:#FDF1EF;border-left:2px solid #DF301C;padding:8px 9px;border-radius:0 5px 5px 0">
+              <div style="font-size:12.5px;font-weight:500;line-height:1.35">{{ activeTitle }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#B02414">{{ activeStatus }}</div>
+            </div>
+          </sc-if>
+          <sc-for list="{{ history }}" as="h" hint-placeholder-count="2">
+            <div onClick="{{ h.open }}" style="display:flex;flex-direction:column;gap:3px;padding:8px 9px;border-radius:5px;cursor:pointer" style-hover="background:#FBFCFB">
+              <div style="font-size:12.5px;color:#42484B;line-height:1.35">{{ h.title }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#A8B0B2">{{ h.meta }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:5px;font-size:13px;color:#42484B;cursor:pointer" style-hover="background:#FBFCFB"><div style="width:14px;height:14px;border:1.5px solid #A8B0B2;border-radius:3px"></div>Solusi Tersimpan</div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:5px;font-size:13px;color:#42484B;cursor:pointer" style-hover="background:#FBFCFB"><div style="width:14px;height:14px;border:1.5px solid #A8B0B2;border-radius:3px;border-left-width:4px"></div>Pengetahuan Produk</div>
+        </div>
+
+        <div style="margin-top:auto;display:flex;align-items:center;gap:9px;padding:9px;border-top:1px solid #EFF2F1">
+          <div style="width:26px;height:26px;border-radius:50%;background:#FDECE9;color:#B02414;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">BS</div>
+          <div style="display:flex;flex-direction:column"><span style="font-size:12.5px;font-weight:500">Budi Santoso</span><span style="font-size:10.5px;color:#8A9295">Pelanggan</span></div>
+        </div>
+      </aside>
+    </sc-if>
+
+    <main style="flex:1;display:flex;flex-direction:column;min-width:0;min-height:0">
+      <div style="height:52px;flex:none;border-bottom:1px solid #E6EAE9;background:#FFFFFF;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0">
+          <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:8px;flex:none;position:relative">
+              <div onClick="{{ reset }}" style="display:flex;align-items:center;gap:5px;background:#DF301C;color:#FFFFFF;font-size:12.5px;font-weight:500;padding:6px 11px;border-radius:6px;cursor:pointer" style-hover="background:#B02414"><span style="font-size:14px;line-height:1">+</span>Baru</div>
+              <div onClick="{{ toggleMenu }}" style="font-size:12.5px;color:#42484B;border:1px solid #DDE2E1;border-radius:5px;padding:6px 10px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">Riwayat</div>
+              <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:36px;left:0;width:260px;background:#FFFFFF;border:1px solid #DDE2E1;border-radius:8px;box-shadow:0 14px 34px rgba(20,24,26,.16);padding:8px;display:flex;flex-direction:column;gap:2px;z-index:40">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em;padding:6px 8px">RIWAYAT KONSULTASI</div>
+                  <sc-for list="{{ history }}" as="h" hint-placeholder-count="2">
+                    <div onClick="{{ h.open }}" style="display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:5px;cursor:pointer" style-hover="background:#FBFCFB">
+                      <span style="font-size:12.5px;color:#20262A">{{ h.title }}</span>
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#A8B0B2">{{ h.meta }}</span>
+                    </div>
+                  </sc-for>
+                  <div style="border-top:1px solid #EFF2F1;margin-top:4px;padding-top:6px;display:flex;flex-direction:column;gap:2px">
+                    <div style="padding:8px;border-radius:5px;font-size:12.5px;color:#42484B;cursor:pointer" style-hover="background:#FBFCFB">Solusi Tersimpan</div>
+                    <div style="padding:8px;border-radius:5px;font-size:12.5px;color:#42484B;cursor:pointer" style-hover="background:#FBFCFB">Pengetahuan Produk</div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ headerTitle }}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468;border:1px solid #E6EAE9;border-radius:4px;padding:3px 6px;flex:none">{{ headerStatus }}</div>
+          <sc-if value="{{ showStages }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:12px;margin-left:8px;flex:none">
+              <sc-for list="{{ stages }}" as="st" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div style="width:6px;height:6px;border-radius:50%;background:{{ st.tone }}"></div>
+                  <span style="font-size:11.5px;color:{{ st.color }};font-weight:{{ st.weight }}">{{ st.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:8px;flex:none">
+          <sc-if value="{{ isSolution }}" hint-placeholder-val="{{ true }}">
+            <div onClick="{{ openReport }}" style="font-size:12.5px;color:#FFFFFF;background:#DF301C;border-radius:5px;padding:5px 11px;cursor:pointer" style-hover="background:#B02414">Buat laporan</div>
+            <div onClick="{{ save }}" style="font-size:12.5px;color:#42484B;border:1px solid #DDE2E1;border-radius:5px;padding:5px 11px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">{{ saveLabel }}</div>
+          </sc-if>
+          <div onClick="{{ restartFlow }}" style="font-size:12.5px;color:#42484B;border:1px solid #DDE2E1;border-radius:5px;padding:5px 11px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414" title="Demo: ulang alur dari onboarding">↺ Ulang alur</div>
+          <sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
+            <div onClick="{{ demoFull }}" style="font-size:12.5px;color:#42484B;border:1px solid #DDE2E1;border-radius:5px;padding:5px 11px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414" title="Demo: isi contoh lengkap">Contoh lengkap</div>
+          </sc-if>
+          <sc-if value="{{ showPanelToggle }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ togglePanel }}" style="font-size:12.5px;color:#42484B;border:1px solid #DDE2E1;border-radius:5px;padding:5px 11px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">{{ panelLabel }}</div>
+          </sc-if>
+        </div>
+      </div>
+
+      <!-- WELCOME -->
+      <sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;display:flex;align-items:flex-start;justify-content:center;padding:24px 40px;overflow:auto">
+          <div style="width:100%;max-width:700px;margin-block:auto;display:flex;flex-direction:column;gap:26px"><img src="assets/snouty-mascot.png" alt="SNOUTY" style="width:84px;height:84px;object-fit:contain;margin-bottom:-6px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:34px;font-weight:600;letter-spacing:-0.025em;line-height:1.15;text-wrap:balance">Temukan solusi perpipaan yang tepat untuk kebutuhan Anda.</div>
+              <div style="font-size:15px;line-height:1.55;color:#5A6468;max-width:600px;text-wrap:pretty">Ceritakan kebutuhan bangunan atau instalasi Anda. SNOUTY akan membantu menganalisis kebutuhan dan merekomendasikan solusi produk Pralon.</div>
+            </div>
+            <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 2px rgba(20,24,26,.04)">
+              <input value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKey }}" placeholder="Contoh: Saya bangun rumah 2 lantai, 3 kamar mandi, toren di atap…" style="border:none;outline:none;font-size:15px;color:#14181A;background:transparent;width:100%;padding:4px 0">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#5A6468;border:1px solid #E6EAE9;border-radius:5px;padding:5px 9px;cursor:pointer"><div style="width:11px;height:11px;border:1.5px solid #A8B0B2;border-radius:2px"></div>Lampirkan denah</div>
+                <div onClick="{{ submit }}" style="background:#DF301C;color:#FFFFFF;font-size:13px;font-weight:500;padding:8px 18px;border-radius:6px;cursor:pointer" style-hover="background:#B02414">Kirim</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">COBA SALAH SATU</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <sc-for list="{{ examples }}" as="e" hint-placeholder-count="4">
+                  <div onClick="{{ e.pick }}" style="border:1px solid #DDE2E1;background:#FFFFFF;border-radius:6px;padding:9px 13px;font-size:13px;color:#2B3134;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">{{ e.label }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:9px;font-size:12px;color:#7A8285;line-height:1.5;border-top:1px solid #E6EAE9;padding-top:14px">
+              <div style="width:13px;height:13px;border:1.5px solid #A8B0B2;border-radius:50%;flex:none;margin-top:1px"></div>
+              <div style="max-width:560px;text-wrap:pretty">SNOUTY memberi panduan perencanaan berbasis katalog Pralon. Untuk instalasi industri atau bangunan besar, hasilnya sebaiknya divalidasi oleh tim teknis.</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- CHAT -->
+      <sc-if value="{{ isChat }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+          <div style="flex:1;overflow:auto;padding:24px 32px;display:flex;flex-direction:column;gap:20px">
+            <sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
+              <div style="display:flex;flex-direction:column;gap:14px;animation:snoutyIn .25s ease both">
+                <sc-if value="{{ m.isUser }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;justify-content:flex-end">
+                    <div style="max-width:520px;background:#14181A;color:#FFFFFF;font-size:14px;line-height:1.55;padding:13px 16px;border-radius:10px 10px 2px 10px">{{ m.text }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ m.isAi }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;gap:12px">
+                    <div style="width:26px;height:26px;flex:none;border-radius:6px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;border:1px solid #F6C3BB;margin-top:2px"></div>
+                    <div style="display:flex;flex-direction:column;gap:13px;max-width:660px;width:100%;min-width:0">
+                      <div style="font-size:14px;line-height:1.6;color:#20262A;text-wrap:pretty">{{ m.text }}</div>
+
+                      <sc-if value="{{ m.showSummary }}" hint-placeholder-val="{{ false }}">
+                        <div style="border:1px solid #E6EAE9;background:#FFFFFF;border-radius:8px;overflow:hidden">
+                          <div style="padding:11px 14px;border-bottom:1px solid #EFF2F1;display:flex;align-items:center;justify-content:space-between">
+                            <div style="font-size:12.5px;font-weight:600">Yang sudah saya pahami</div>
+                            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#1E7A4C;background:#E8F5EC;border-radius:4px;padding:3px 6px">{{ readCount }} DATA TERBACA</div>
+                          </div>
+                          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr))">
+                            <div style="padding:11px 14px;border-right:1px solid #EFF2F1;border-bottom:1px solid #EFF2F1"><div style="font-size:10.5px;color:#8A9295">Tipe bangunan</div><div style="font-size:13px;font-weight:500">{{ req.type }}</div></div>
+                            <div style="padding:11px 14px;border-right:1px solid #EFF2F1;border-bottom:1px solid #EFF2F1"><div style="font-size:10.5px;color:#8A9295">Jumlah lantai</div><div style="font-size:13px;font-weight:500">{{ req.floors }}</div></div>
+                            <div style="padding:11px 14px;border-bottom:1px solid #EFF2F1"><div style="font-size:10.5px;color:#8A9295">Kamar mandi</div><div style="font-size:13px;font-weight:500">{{ req.bath }}</div></div>
+                            <div style="padding:11px 14px;border-right:1px solid #EFF2F1"><div style="font-size:10.5px;color:#8A9295">Wastafel</div><div style="font-size:13px;font-weight:500">{{ req.basin }}</div></div>
+                            <div style="padding:11px 14px;border-right:1px solid #EFF2F1"><div style="font-size:10.5px;color:#8A9295">Dapur</div><div style="font-size:13px;font-weight:500">{{ req.kitchen }}</div></div>
+                            <div style="padding:11px 14px"><div style="font-size:10.5px;color:#8A9295">Sumber air</div><div style="font-size:13px;font-weight:500">{{ req.source }}</div></div>
+                          </div>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ m.showCriteria }}" hint-placeholder-val="{{ false }}">
+                        <div style="border:1px solid #E6EAE9;background:#FFFFFF;border-radius:8px;overflow:hidden">
+                          <div style="padding:11px 14px;border-bottom:1px solid #EFF2F1;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">KRITERIA YANG SEBAIKNYA DIPERIKSA</div>
+                          <div style="padding:11px 14px;border-bottom:1px solid #F3F5F4;display:flex;gap:12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#B02414;margin-top:2px">01</span><div><div style="font-size:13px;font-weight:500">Kelas tekanan</div><div style="font-size:12.5px;color:#5A6468;line-height:1.5">AW untuk air bersih bertekanan, D untuk pembuangan.</div></div></div>
+                          <div style="padding:11px 14px;border-bottom:1px solid #F3F5F4;display:flex;gap:12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#B02414;margin-top:2px">02</span><div><div style="font-size:13px;font-weight:500">Kesesuaian standar SNI</div><div style="font-size:12.5px;color:#5A6468;line-height:1.5">Pastikan tercantum pada badan pipa, bukan hanya pada kemasan.</div></div></div>
+                          <div style="padding:11px 14px;display:flex;gap:12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#B02414;margin-top:2px">03</span><div><div style="font-size:13px;font-weight:500">Ketersediaan fitting sepadan</div><div style="font-size:12.5px;color:#5A6468;line-height:1.5">Satu ekosistem fitting mengurangi risiko sambungan bocor.</div></div></div>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ m.showUnsupported }}" hint-placeholder-val="{{ false }}">
+                        <div style="border:1px solid #E6EAE9;background:#FFFFFF;border-radius:8px;overflow:hidden">
+                          <div style="padding:18px 20px;border-bottom:1px solid #EFF2F1;display:flex;flex-direction:column;gap:9px">
+                            <div style="display:flex;align-items:center;gap:9px"><div style="width:14px;height:14px;border-radius:50%;border:1.5px solid #DF301C"></div><div style="font-size:15px;font-weight:600">Kebutuhan ini membutuhkan pengecekan teknis lebih lanjut</div></div>
+                            <div style="font-size:13.5px;line-height:1.6;color:#42484B;text-wrap:pretty">Saya bisa membantu perencanaan hunian dan komersial ringan. Untuk kebutuhan industri, pemilihan material harus dihitung tim teknis — bukan diperkirakan.</div>
+                          </div>
+                          <div style="padding:16px 20px;background:#FBFCFB;display:flex;flex-direction:column;gap:10px">
+                            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">YANG SUDAH SAYA CATAT</div>
+                            <div style="font-size:13px;color:#42484B;line-height:1.55">{{ noteLine }}</div>
+                            <div style="display:flex;gap:9px;flex-wrap:wrap">
+                              <div style="background:#DF301C;color:#FFFFFF;font-size:12.5px;font-weight:500;padding:9px 15px;border-radius:6px;cursor:pointer" style-hover="background:#B02414">Kirim ke tim teknis Pralon</div>
+                              <div style="border:1px solid #DDE2E1;background:#FFFFFF;font-size:12.5px;color:#2B3134;padding:9px 15px;border-radius:6px;cursor:pointer">Unduh ringkasan kebutuhan</div>
+                            </div>
+                          </div>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ m.showChips }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;flex-wrap:wrap;gap:8px">
+                          <sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="3">
+                            <div onClick="{{ c.pick }}" style="border:1px solid #DDE2E1;background:#FFFFFF;color:#2B3134;border-radius:20px;padding:7px 14px;font-size:13px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">{{ c.label }}</div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+
+                      <sc-if value="{{ m.showCta }}" hint-placeholder-val="{{ false }}">
+                        <div onClick="{{ analyze }}" style="align-self:flex-start;background:#DF301C;color:#FFFFFF;font-size:13.5px;font-weight:500;padding:10px 18px;border-radius:6px;cursor:pointer" style-hover="background:#B02414">Susun rekomendasi</div>
+                      </sc-if>
+
+                      <sc-if value="{{ m.showProduct }}" hint-placeholder-val="{{ false }}">
+                        <div onClick="{{ openFirst }}" style="background:#FFFFFF;border:1px solid #E6EAE9;border-radius:8px;padding:14px;display:flex;gap:13px;cursor:pointer" style-hover="border-color:#DF301C">
+                          <div style="width:62px;height:62px;flex:none;border-radius:6px;border:1px solid #E6EAE9;background:repeating-linear-gradient(135deg,#F3F5F4 0 6px,#E9EDEC 6px 12px)"></div>
+                          <div style="flex:1;display:flex;flex-direction:column;gap:5px;min-width:0">
+                            <div style="display:flex;justify-content:space-between;gap:10px"><div><div style="font-size:13.5px;font-weight:600">Pralon PVC AW</div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295">PIPA AIR BERSIH · SNI</div></div><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#B02414;background:#FDECE9;border-radius:4px;padding:3px 7px;flex:none">3/4"</div></div>
+                            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#1E7A4C">✓ MEMENUHI 3 KRITERIA</span><span style="font-size:12px;color:#B02414;font-weight:500">Lihat Detail</span></div>
+                          </div>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{ thinking }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:12px;align-items:center">
+                <div style="width:26px;height:26px;flex:none;border-radius:6px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;border:1px solid #F6C3BB"></div>
+                <div style="display:flex;gap:5px">
+                  <div style="width:6px;height:6px;border-radius:50%;background:#DF301C;animation:snoutyPulse 1s ease-in-out infinite"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:#DF301C;animation:snoutyPulse 1s ease-in-out .2s infinite"></div>
+                  <div style="width:6px;height:6px;border-radius:50%;background:#DF301C;animation:snoutyPulse 1s ease-in-out .4s infinite"></div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="flex:none;padding:0 32px 22px">
+            <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 2px rgba(20,24,26,.04)">
+              <input value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKey }}" placeholder="Tulis jawaban atau tambahan detail…" style="flex:1;border:none;outline:none;font-size:14px;background:transparent;color:#14181A">
+              <div onClick="{{ submit }}" style="background:#DF301C;color:#FFFFFF;font-size:13px;font-weight:500;padding:7px 16px;border-radius:6px;cursor:pointer;flex:none" style-hover="background:#B02414">Kirim</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- SOLUTION -->
+      <sc-if value="{{ isSolution }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;min-height:0;display:flex;flex-direction:column">
+          <div style="flex:none;border-bottom:1px solid #E6EAE9;background:#FFFFFF;padding:0 20px;display:flex;gap:4px">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+              <div onClick="{{ t.pick }}" style="padding:12px 12px 10px;font-size:13px;cursor:pointer;color:{{ t.color }};border-bottom:2px solid {{ t.line }};font-weight:{{ t.weight }}">{{ t.label }}</div>
+            </sc-for>
+          </div>
+
+          <div style="flex:1;overflow:auto;padding:22px 24px 28px;display:flex;flex-direction:column;gap:18px">
+
+            <sc-if value="{{ tabRingkasan }}" hint-placeholder-val="{{ true }}">
+              <div style="background:#FFFFFF;border:1px solid #E6EAE9;border-radius:8px;padding:22px 24px;display:flex;flex-direction:column;gap:13px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.07em;color:#8A9295">RINGKASAN</div>
+                <div style="font-size:19px;font-weight:600;line-height:1.4;letter-spacing:-0.012em;max-width:760px;text-wrap:pretty">{{ solutionHeadline }}</div>
+                <div style="font-size:14px;line-height:1.6;color:#42484B;max-width:780px;text-wrap:pretty">{{ solutionBody }}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:26px;border-top:1px solid #F3F5F4;padding-top:13px">
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:#8A9295">Titik air</span><span style="font-size:15px;font-weight:600">{{ fixtures }}</span></div>
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:#8A9295">Jalur utama</span><span style="font-size:15px;font-weight:600;font-family:'IBM Plex Mono',monospace">{{ mainSize }}</span></div>
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:#8A9295">Cabang</span><span style="font-size:15px;font-weight:600;font-family:'IBM Plex Mono',monospace">3/4"</span></div>
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:#8A9295">Sambungan fixture</span><span style="font-size:15px;font-weight:600;font-family:'IBM Plex Mono',monospace">1/2"</span></div>
+                  <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:#8A9295">Produk Pralon</span><span style="font-size:15px;font-weight:600">4 item</span></div>
+                </div>
+              </div>
+
+              <div style="background:#FFFFFF;border:1px solid #E6EAE9;border-radius:8px;overflow:hidden">
+                <div style="padding:15px 24px;border-bottom:1px solid #EFF2F1;display:flex;align-items:center;justify-content:space-between;gap:12px">
+                  <div style="font-size:15px;font-weight:600">Rekomendasi Sistem</div>
+                  <div onClick="{{ toggleTech }}" style="font-size:12.5px;color:#B02414;cursor:pointer;flex:none">{{ techLabel }}</div>
+                </div>
+                <sc-for list="{{ systemRows }}" as="r" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid #F3F5F4;flex-wrap:wrap">
+                    <div style="width:4px;height:34px;border-radius:2px;flex:none;background:{{ r.tone }}"></div>
+                    <div style="width:190px;flex:none;display:flex;flex-direction:column;gap:2px"><span style="font-size:13.5px;font-weight:500">{{ r.name }}</span><span style="font-size:11.5px;color:#8A9295">{{ r.path }}</span></div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;width:64px;flex:none">{{ r.size }}</div>
+                    <div style="flex:1;min-width:200px;font-size:13px;color:#42484B;line-height:1.5">{{ r.why }}</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;flex:none;border-radius:3px;padding:3px 6px;color:{{ r.badgeColor }};background:{{ r.badgeBg }}">{{ r.badge }}</div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ showTech }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:16px 24px;background:#FBFCFB;display:flex;flex-direction:column;gap:8px">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">DETAIL TEKNIS</div>
+                    <div style="font-size:13px;color:#42484B;line-height:1.6;max-width:760px">Perhitungan memakai unit beban fixture sederhana: kamar mandi 2 unit, wastafel 1 unit, dapur 1 unit. Total beban menentukan diameter jalur utama; cabang dibatasi maksimal 4 titik air agar penurunan tekanan tetap wajar. Kecepatan aliran target 1–2 m/s.</div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ tabProduk }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                <div style="font-size:15px;font-weight:600">Produk Pralon</div>
+                <div style="font-size:12.5px;color:#8A9295">Hanya produk dari katalog Pralon</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px">
+                <sc-for list="{{ products }}" as="p" hint-placeholder-count="4">
+                  <div onClick="{{ p.open }}" style="background:#FFFFFF;border:1px solid #E6EAE9;border-radius:8px;padding:16px;display:flex;gap:14px;cursor:pointer" style-hover="border-color:#DF301C">
+                    <div style="width:82px;height:82px;flex:none;border-radius:6px;border:1px solid #E6EAE9;background:repeating-linear-gradient(135deg,#F3F5F4 0 6px,#E9EDEC 6px 12px);display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8A9295">product shot</span></div>
+                    <div style="flex:1;display:flex;flex-direction:column;gap:7px;min-width:0">
+                      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+                        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">{{ p.name }}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.05em">{{ p.cat }}</span></div>
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:#B02414;background:#FDECE9;border-radius:4px;padding:3px 7px;flex:none">{{ p.size }}</div>
+                      </div>
+                      <div style="font-size:12.5px;line-height:1.5;color:#42484B">{{ p.why }}</div>
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:4px">
+                        <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:{{ p.badgeColor }}">{{ p.badge }}</span>
+                        <span style="font-size:12px;color:#B02414;font-weight:500">Lihat Detail</span>
+                      </div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ tabSkema }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#FFFFFF;border:1px solid #E6EAE9;border-radius:8px;overflow:hidden">
+                <div style="padding:14px 20px;border-bottom:1px solid #EFF2F1;display:flex;align-items:center;justify-content:space-between;gap:12px">
+                  <div style="font-size:15px;font-weight:600">Skema instalasi — air bersih</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468;border:1px solid #E6EAE9;border-radius:4px;padding:3px 6px;flex:none">SKEMATIK · BUKAN GAMBAR KERJA</div>
+                </div>
+                <div style="padding:30px 24px;background-image:radial-gradient(#E4E8E7 1px,transparent 1px);background-size:22px 22px;display:flex;justify-content:center">
+                  <div style="display:flex;flex-direction:column;font-family:'IBM Plex Mono',monospace">
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <div style="border:2px solid #14181A;background:#FFFFFF;border-radius:5px;padding:11px 16px;display:flex;flex-direction:column;gap:3px"><span style="font-size:12px;font-weight:500;letter-spacing:.04em">{{ tankLabel }}</span><span style="font-size:10px;color:#8A9295">GRAVITASI</span></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-left:48px"><div style="width:3px;height:30px;background:#DF301C"></div><span style="font-size:10.5px;color:#B02414;font-weight:500">{{ mainSize }} · PVC AW</span></div>
+                    <div style="border:1.5px solid #DF301C;background:#FDECE9;border-radius:5px;padding:10px 15px;display:flex;flex-direction:column;gap:3px;align-self:flex-start"><span style="font-size:11.5px;font-weight:500;color:#B02414;letter-spacing:.04em">PIPA UTAMA</span><span style="font-size:10px;color:#B44030">dari toren ke riser</span></div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-left:48px"><div style="width:3px;height:30px;background:#DF301C"></div><span style="font-size:10.5px;color:#B02414;font-weight:500">{{ mainSize }}</span></div>
+                    <div style="border:1.5px solid #DF301C;background:#FDECE9;border-radius:5px;padding:10px 15px;display:flex;flex-direction:column;gap:3px;align-self:flex-start"><span style="font-size:11.5px;font-weight:500;color:#B02414;letter-spacing:.04em">RISER VERTIKAL</span><span style="font-size:10px;color:#B44030">{{ riserNote }}</span></div>
+                    <div style="display:flex;margin-left:48px">
+                      <div style="width:3px;background:#C3CACB"></div>
+                      <div style="flex:1;display:flex;flex-direction:column">
+                        <sc-for list="{{ floors }}" as="f" hint-placeholder-count="2">
+                          <div style="padding:20px 0 0 0;display:flex;flex-direction:column;gap:10px">
+                            <div style="display:flex;align-items:center">
+                              <div style="width:28px;height:3px;background:#DF301C"></div>
+                              <div style="border:1.5px solid #14181A;background:#FFFFFF;border-radius:5px;padding:8px 13px;display:flex;align-items:center;gap:10px"><span style="font-size:11.5px;font-weight:500">{{ f.name }}</span><span style="font-size:10px;color:#B02414">3/4" cabang</span></div>
+                            </div>
+                            <div style="display:flex;margin-left:56px">
+                              <div style="width:2px;background:#D5DAD9"></div>
+                              <div style="flex:1;display:flex;flex-direction:column;gap:8px;padding-top:4px">
+                                <sc-for list="{{ f.nodes }}" as="n" hint-placeholder-count="2">
+                                  <div style="display:flex;align-items:center"><div style="width:20px;height:2px;background:#D5DAD9"></div><div style="border:1px solid #DDE2E1;background:#FFFFFF;border-radius:4px;padding:7px 12px;display:flex;align-items:center;gap:10px"><span style="font-size:11px;color:#20262A">{{ n.label }}</span><span style="font-size:9.5px;color:#8A9295">1/2"</span></div></div>
+                                </sc-for>
+                              </div>
+                            </div>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="padding:14px 20px;border-top:1px solid #EFF2F1;display:flex;flex-wrap:wrap;gap:18px">
+                  <div style="display:flex;align-items:center;gap:9px"><div style="width:24px;height:3px;background:#DF301C"></div><span style="font-size:12.5px;color:#42484B">Jalur utama &amp; riser</span></div>
+                  <div style="display:flex;align-items:center;gap:9px"><div style="width:24px;height:3px;background:#EE7A67"></div><span style="font-size:12.5px;color:#42484B">Cabang per lantai</span></div>
+                  <div style="display:flex;align-items:center;gap:9px"><div style="width:24px;height:2px;background:#D5DAD9"></div><span style="font-size:12.5px;color:#42484B">Sambungan fixture</span></div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ tabMaterial }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#FFFFFF;border:1px solid #E6EAE9;border-radius:8px;overflow:hidden">
+                <div style="padding:15px 20px;border-bottom:1px solid #EFF2F1;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                  <div style="font-size:15px;font-weight:600">Estimasi Material</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A5300;background:#FDF3E3;border-radius:4px;padding:3px 6px">ESTIMASI · DIMENSI BELUM LENGKAP</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1.4fr .8fr .8fr 1.6fr">
+                  <div style="padding:10px 20px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.06em;border-bottom:1px solid #EFF2F1">MATERIAL</div>
+                  <div style="padding:10px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.06em;border-bottom:1px solid #EFF2F1">UKURAN</div>
+                  <div style="padding:10px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.06em;border-bottom:1px solid #EFF2F1">PERKIRAAN</div>
+                  <div style="padding:10px 20px 10px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.06em;border-bottom:1px solid #EFF2F1">DASAR PERHITUNGAN</div>
+                  <sc-for list="{{ bom }}" as="b" hint-placeholder-count="5">
+                    <div style="padding:12px 20px;font-size:13.5px;border-bottom:1px solid #F3F5F4">{{ b.item }}</div>
+                    <div style="padding:12px 10px;font-size:13px;font-family:'IBM Plex Mono',monospace;border-bottom:1px solid #F3F5F4">{{ b.size }}</div>
+                    <div style="padding:12px 10px;font-size:13.5px;font-weight:500;border-bottom:1px solid #F3F5F4">{{ b.qty }}</div>
+                    <div style="padding:12px 20px 12px 10px;font-size:12.5px;color:#5A6468;border-bottom:1px solid #F3F5F4">{{ b.basis }}</div>
+                  </sc-for>
+                </div>
+                <div style="padding:12px 20px;background:#FBFCFB;font-size:12.5px;color:#5A6468;line-height:1.5">Jumlah dihitung dari jumlah titik air dan asumsi panjang jalur. Selisih terhadap kondisi lapangan biasanya 10–15%.</div>
+              </div>
+
+              <div style="border:1px solid #F0DFC0;background:#FDF8EF;border-radius:8px;padding:18px 20px;display:flex;flex-direction:column;gap:11px">
+                <div style="display:flex;align-items:center;gap:9px"><div style="width:13px;height:13px;border-radius:50%;border:1.5px solid #B26B00"></div><div style="font-size:14px;font-weight:600;color:#8A5300">Asumsi yang digunakan</div></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:9px 24px;font-size:13px;line-height:1.55;color:#6E4E17">
+                  <sc-for list="{{ assumptions }}" as="a" hint-placeholder-count="4">
+                    <div>{{ a.text }}</div>
+                  </sc-for>
+                </div>
+                <div onClick="{{ fixAssumptions }}" style="font-size:12.5px;color:#B02414;font-weight:500;cursor:pointer;border-top:1px solid #F0E2C6;padding-top:11px">Perbaiki asumsi ini →</div>
+              </div>
+            </sc-if>
+
+            <div style="display:flex;flex-direction:column;gap:10px;border-top:1px solid #E6EAE9;padding-top:18px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">LANJUTKAN PERCAKAPAN</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="3">
+                  <div onClick="{{ s.ask }}" style="border:1px solid #DDE2E1;background:#FFFFFF;border-radius:20px;padding:8px 14px;font-size:12.5px;color:#2B3134;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">{{ s.label }}</div>
+                </sc-for>
+              </div>
+            </div>
+
+            <sc-if value="{{ hasFollowUps }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:14px;border-top:1px solid #E6EAE9;padding-top:18px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">PERCAKAPAN LANJUTAN</div>
+                <sc-for list="{{ followUps }}" as="f" hint-placeholder-count="1">
+                  <div style="display:flex;flex-direction:column;gap:11px;animation:snoutyIn .25s ease both">
+                    <div style="display:flex;justify-content:flex-end"><div style="max-width:520px;background:#14181A;color:#FFFFFF;font-size:13.5px;line-height:1.5;padding:11px 14px;border-radius:10px 10px 2px 10px">{{ f.q }}</div></div>
+                    <div style="display:flex;gap:11px">
+                      <div style="width:24px;height:24px;flex:none;border-radius:6px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;border:1px solid #F6C3BB;margin-top:2px"></div>
+                      <div style="font-size:13.5px;line-height:1.6;color:#20262A;max-width:660px;text-wrap:pretty">{{ f.a }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="flex:none;padding:0 24px 20px">
+            <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:12px">
+              <input value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onKey }}" placeholder="Tanya lanjutan — misal: kalau torennya di lantai 3?" style="flex:1;border:none;outline:none;font-size:14px;background:transparent;color:#14181A">
+              <div onClick="{{ submit }}" style="background:#DF301C;color:#FFFFFF;font-size:13px;font-weight:500;padding:7px 16px;border-radius:6px;cursor:pointer;flex:none" style-hover="background:#B02414">Kirim</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </main>
+
+    <sc-if value="{{ showPanel }}" hint-placeholder-val="{{ true }}">
+      <aside style="width:{{ panelWidth }};flex:none;background:#FFFFFF;border-left:1px solid #E6EAE9;display:flex;flex-direction:column;min-height:0;position:{{ panelPos }};top:0;right:0;bottom:0;z-index:30;box-shadow:{{ panelShadow }}">
+        <div style="height:52px;flex:none;border-bottom:1px solid #E6EAE9;display:flex;align-items:center;justify-content:space-between;padding:0 16px">
+          <div style="font-size:12.5px;font-weight:600">Panel Solusi</div>
+          <div onClick="{{ togglePanel }}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;cursor:pointer" style-hover="color:#B02414">SEMBUNYIKAN</div>
+        </div>
+        <div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">KEBUTUHAN ANDA</div>
+              <div onClick="{{ toggleEdit }}" style="font-size:11.5px;color:#B02414;cursor:pointer">{{ editLabel }}</div>
+            </div>
+            <sc-for list="{{ reqRows }}" as="r" hint-placeholder-count="6">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px">
+                <span style="color:{{ r.labelColor }}">{{ r.label }}</span>
+                <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+                  <input value="{{ r.value }}" onChange="{{ r.onChange }}" style="width:120px;border:1px solid #DDE2E1;border-radius:5px;padding:4px 8px;font-size:12.5px;outline:none;text-align:right;color:#14181A">
+                </sc-if>
+                <sc-if value="{{ notEditing }}" hint-placeholder-val="{{ true }}">
+                  <span style="font-weight:500;color:{{ r.valueColor }};text-align:right">{{ r.value }}</span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:9px;border-top:1px solid #EFF2F1;padding-top:15px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">KELENGKAPAN DATA</div>
+            <div style="display:flex;gap:4px">
+              <sc-for list="{{ meter }}" as="b" hint-placeholder-count="4">
+                <div style="height:4px;flex:1;border-radius:2px;background:{{ b.tone }}"></div>
+              </sc-for>
+            </div>
+            <div style="font-size:12.5px;color:#5A6468;line-height:1.5">{{ completenessNote }}</div>
+          </div>
+
+          <sc-if value="{{ isSolution }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:9px;border-top:1px solid #EFF2F1;padding-top:15px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">LANJUTKAN PERCAKAPAN</div>
+              <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="3">
+                <div onClick="{{ s.ask }}" style="border:1px solid #DDE2E1;border-radius:6px;padding:9px 12px;font-size:12.5px;color:#2B3134;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">{{ s.label }}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <div style="border-top:1px solid #EFF2F1;padding-top:15px;display:flex;flex-direction:column;gap:7px">
+            <div style="font-size:13px;font-weight:600">Batas rekomendasi</div>
+            <div style="font-size:12.5px;line-height:1.55;color:#5A6468;text-wrap:pretty">Solusi ini panduan perencanaan, bukan sertifikasi teknis. Untuk pelaksanaan, rencana akhir sebaiknya diperiksa bersama instalatur atau tim teknis Pralon.</div>
+          </div>
+        </div>
+      </aside>
+    </sc-if>
+  </div>
+
+  <!-- ANALYSIS OVERLAY -->
+  <sc-if value="{{ analyzing }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(20,24,26,.34);display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="width:100%;max-width:470px;background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;padding:26px 28px;display:flex;flex-direction:column;gap:20px;box-shadow:0 24px 60px rgba(20,24,26,.22)">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <img src="assets/snouty-mascot.png" alt="" style="width:60px;height:60px;object-fit:contain;margin-bottom:6px"><div style="font-size:18px;font-weight:600;letter-spacing:-0.015em">Menyusun solusi Anda</div>
+          <div style="font-size:13px;color:#5A6468">Biasanya selesai dalam beberapa detik.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:16px;height:16px;flex:none;border-radius:50%;border:2px solid {{ s.ring }};background:{{ s.fill }}"></div>
+              <div style="font-size:13.5px;color:{{ s.color }};font-weight:{{ s.weight }}">{{ s.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="border-top:1px solid #EFF2F1;padding-top:14px;font-size:12px;color:#7A8285;line-height:1.5">SNOUTY hanya mencocokkan dengan katalog Pralon. Nilai yang tidak tersedia ditandai sebagai estimasi.</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- PRODUCT DETAIL -->
+  <sc-if value="{{ hasProduct }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;display:flex;justify-content:flex-end">
+      <div onClick="{{ closeProduct }}" style="position:absolute;inset:0;background:rgba(20,24,26,.32)"></div>
+      <div style="position:relative;width:100%;max-width:600px;background:#FFFFFF;border-left:1px solid #DDE2E1;display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(20,24,26,.14)">
+        <div style="height:56px;flex:none;border-bottom:1px solid #EFF2F1;display:flex;align-items:center;justify-content:space-between;padding:0 22px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">PENGETAHUAN PRODUK</div>
+          <div onClick="{{ closeProduct }}" style="font-size:17px;color:#5A6468;cursor:pointer;line-height:1">×</div>
+        </div>
+        <div style="flex:1;overflow:auto;padding:24px 22px;display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;gap:18px;flex-wrap:wrap;flex:none">
+            <div style="width:140px;height:140px;flex:none;border-radius:8px;border:1px solid #E6EAE9;background:repeating-linear-gradient(135deg,#F3F5F4 0 7px,#E9EDEC 7px 14px);display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:#8A9295">product shot</span></div>
+            <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.06em">{{ product.cat }}</div>
+              <div style="font-size:23px;font-weight:600;letter-spacing:-0.018em">{{ product.name }}</div>
+              <div style="font-size:13.5px;line-height:1.55;color:#42484B;text-wrap:pretty">{{ product.desc }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#B02414;background:#FDECE9;border-radius:4px;padding:4px 7px;align-self:flex-start">DIPAKAI DI SOLUSI INI · {{ product.size }}</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px;flex:none">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">UKURAN TERSEDIA</div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:12px">
+              <sc-for list="{{ productSizes }}" as="s" hint-placeholder-count="6">
+                <div style="border:1px solid {{ s.border }};background:{{ s.bg }};color:{{ s.color }};border-radius:5px;padding:6px 11px">{{ s.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border:1px solid #E6EAE9;border-radius:8px;overflow:hidden;flex:none">
+            <sc-for list="{{ productSpecs }}" as="s" hint-placeholder-count="6">
+              <div style="padding:13px 15px;border-bottom:1px solid #F3F5F4"><div style="font-size:11px;color:#8A9295">{{ s.k }}</div><div style="font-size:13.5px;font-weight:500;color:{{ s.tone }}">{{ s.v }}</div></div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px;flex:none">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">FITTING YANG SEPADAN</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <sc-for list="{{ fittings }}" as="f" hint-placeholder-count="4">
+                <div style="width:120px;border:1px solid #E6EAE9;border-radius:6px;padding:11px;display:flex;flex-direction:column;gap:6px"><div style="height:44px;border-radius:4px;background:repeating-linear-gradient(135deg,#F3F5F4 0 6px,#E9EDEC 6px 12px)"></div><span style="font-size:12px;font-weight:500">{{ f.label }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="border-top:1px solid #EFF2F1;padding-top:15px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;flex:none">
+            <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:12px;color:#5A6468">Sumber data</span><span style="font-size:12.5px;font-weight:500">Katalog produk Pralon 2026 · hal. 14</span></div>
+            <div onClick="{{ closeProduct }}" style="font-size:12.5px;color:#FFFFFF;background:#DF301C;border-radius:5px;padding:8px 14px;cursor:pointer" style-hover="background:#B02414">Kembali ke solusi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- REPORT PREVIEW -->
+  <sc-if value="{{ reportOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(20,24,26,.38);display:flex;align-items:center;justify-content:center;padding:24px;z-index:60">
+      <div style="width:100%;max-width:640px;max-height:92vh;background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;box-shadow:0 24px 64px rgba(20,24,26,.24);display:flex;flex-direction:column;overflow:hidden;animation:snoutyIn .25s ease both">
+        <div style="flex:none;padding:18px 24px;border-bottom:1px solid #EFF2F1;display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <div style="font-size:15px;font-weight:600">Laporan Rekomendasi &amp; Estimasi Material</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">{{ reportNo }}</div>
+          </div>
+          <div onClick="{{ closeReport }}" style="font-size:18px;line-height:1;color:#8A9295;cursor:pointer;padding:2px 4px" style-hover="color:#B02414">×</div>
+        </div>
+        <div style="flex:1;overflow:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px;min-height:0">
+          <div style="flex:none;display:flex;align-items:center;gap:10px;border:1px dashed #E3C894;background:#FDF8EF;border-radius:8px;padding:11px 13px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A5300;border:1px solid #E3C894;border-radius:4px;padding:3px 6px;flex:none">ESTIMASI</div>
+            <div style="font-size:12.5px;line-height:1.5;color:#7A5518">Perkiraan perencanaan, bukan penawaran resmi. Harga final mengikuti daftar harga distributor Pralon.</div>
+          </div>
+          <div style="flex:none;display:flex;flex-direction:column;gap:7px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#8A9295;letter-spacing:.07em">RINGKASAN</div>
+            <div style="font-size:14px;line-height:1.55;color:#20262A">{{ solutionHeadline }}</div>
+          </div>
+          <div style="flex:none;border:1px solid #E6EAE9;border-radius:8px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:1.8fr .7fr .8fr 1fr;background:#FBFCFB;border-bottom:1px solid #E6EAE9">
+              <div style="padding:9px 14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468;letter-spacing:.06em">MATERIAL</div>
+              <div style="padding:9px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468;letter-spacing:.06em">UKURAN</div>
+              <div style="padding:9px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468;letter-spacing:.06em">QTY</div>
+              <div style="padding:9px 14px 9px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468;letter-spacing:.06em;text-align:right">SUBTOTAL</div>
+            </div>
+            <sc-for list="{{ priced }}" as="p" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:1.8fr .7fr .8fr 1fr;border-bottom:1px solid #F3F5F4">
+                <div style="padding:10px 14px;font-size:13px">{{ p.item }}</div>
+                <div style="padding:10px 8px;font-size:12.5px;font-family:'IBM Plex Mono',monospace">{{ p.size }}</div>
+                <div style="padding:10px 8px;font-size:12.5px">{{ p.qty }}</div>
+                <div style="padding:10px 14px 10px 8px;font-size:12.5px;font-family:'IBM Plex Mono',monospace;text-align:right;font-weight:500">{{ p.sub }}</div>
+              </div>
+            </sc-for>
+            <div style="display:flex;justify-content:flex-end;padding:13px 14px;background:#FBFCFB">
+              <div style="width:250px;display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#5A6468">Subtotal material</span><span style="font-family:'IBM Plex Mono',monospace">{{ subtotal }}</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#5A6468">PPN 11%</span><span style="font-family:'IBM Plex Mono',monospace">{{ tax }}</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid #DDE2E1;padding-top:7px"><span style="font-size:13px;font-weight:600">Total estimasi</span><span style="font-size:15px;font-weight:600;font-family:'IBM Plex Mono',monospace">{{ total }}</span></div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;font-size:12.5px;color:#5A6468;line-height:1.5">Belum termasuk jasa instalasi, aksesori non-pipa, dan pengiriman. Laporan lengkap 2 halaman berisi rekomendasi sistem, asumsi, dan blok tanda tangan.</div>
+        </div>
+        <div style="flex:none;padding:15px 24px;border-top:1px solid #EFF2F1;background:#FBFCFB;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div onClick="{{ closeReport }}" style="font-size:12.5px;color:#5A6468;cursor:pointer" style-hover="color:#B02414">Kembali ke solusi</div>
+          <div style="display:flex;gap:9px">
+            <div onClick="{{ closeReport }}" style="font-size:13px;color:#2B3134;border:1px solid #DDE2E1;background:#FFFFFF;border-radius:6px;padding:9px 15px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">Kirim ke email</div>
+            <div onClick="{{ closeReport }}" style="font-size:13px;font-weight:500;color:#FFFFFF;background:#DF301C;border-radius:6px;padding:9px 18px;cursor:pointer" style-hover="background:#B02414">Unduh PDF</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ONBOARDING (langkah 1 dari alur) -->
+  <sc-if value="{{ onbOpen }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0;background:rgba(20,24,26,.38);display:flex;align-items:{{ sheetAlign }};justify-content:center;padding:{{ sheetPad }};z-index:70">
+      <div style="width:100%;max-width:{{ sheetMax }};max-height:94vh;background:#FFFFFF;border:1px solid #DDE2E1;border-radius:{{ sheetRadius }};box-shadow:0 24px 64px rgba(20,24,26,.24);display:flex;flex-direction:column;overflow:hidden;animation:snoutyIn .28s ease both">
+
+        <div style="flex:none;padding:18px 24px 0;display:flex;align-items:center;justify-content:space-between;gap:14px">
+          <div style="display:flex;align-items:center;gap:9px">
+            <div style="width:26px;height:26px;border-radius:7px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;border:1px solid #F6C3BB;flex:none"></div>
+            <div style="display:flex;flex-direction:column">
+              <div style="font-size:13px;font-weight:600;letter-spacing:.02em">SNOUTY</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#5A6468;letter-spacing:.06em">PRALON ASSISTANT</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <sc-for list="{{ dots }}" as="d" hint-placeholder-count="5">
+                <div onClick="{{ d.go }}" style="width:{{ d.w }};height:7px;border-radius:4px;cursor:pointer;background:{{ d.tone }};transition:width .2s ease"></div>
+              </sc-for>
+            </div>
+            <div onClick="{{ skipOnb }}" style="font-size:18px;line-height:1;color:#8A9295;cursor:pointer;padding:2px 4px" style-hover="color:#B02414">×</div>
+          </div>
+        </div>
+
+        <div style="flex:1;overflow:auto;padding:22px 24px 4px;min-height:0">
+          <sc-if value="{{ onb1 }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:18px;animation:snoutyIn .25s ease both">
+              <div style="height:170px;border-radius:9px;background:#FDF1EF;display:flex;align-items:center;justify-content:center"><img src="assets/snouty-mascot.png" alt="SNOUTY, maskot Pralon" style="width:150px;height:150px;object-fit:contain"></div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;line-height:1.25">Kenalan dengan SNOUTY</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#5A6468;max-width:460px;text-wrap:pretty">Asisten pintar Pralon yang membantu Anda mencari informasi produk dan solusi perpipaan sesuai kebutuhan.</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ onb2 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;animation:snoutyIn .25s ease both">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;line-height:1.25">Ceritakan kebutuhan Anda dengan cara biasa</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#5A6468;max-width:470px;text-wrap:pretty">Anda tidak perlu memahami istilah teknis perpipaan. Ceritakan kondisi rumah atau bangunan Anda seperti sedang berbicara dengan konsultan.</div>
+              </div>
+              <div style="background:#FBFCFB;border:1px solid #E6EAE9;border-radius:9px;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468;letter-spacing:.07em">CONTOH PERTANYAAN</div>
+                <div style="display:flex;justify-content:flex-end"><div style="max-width:400px;background:#14181A;color:#FFFFFF;font-size:13.5px;line-height:1.55;padding:12px 15px;border-radius:10px 10px 2px 10px">Saya mau bangun rumah 2 lantai, ada 3 kamar mandi dan 4 wastafel. Pipa apa yang saya butuhkan?</div></div>
+                <div style="display:flex;gap:10px;align-items:center"><div style="width:24px;height:24px;flex:none;border-radius:6px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;border:1px solid #F6C3BB"></div><div style="font-size:13px;color:#5A6468">SNOUTY akan bertanya balik bila ada detail yang belum jelas.</div></div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ onb3 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;animation:snoutyIn .25s ease both">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;line-height:1.25">Temukan produk Pralon yang sesuai</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#5A6468;max-width:470px;text-wrap:pretty">SNOUTY akan membantu memahami kebutuhan Anda dan mencocokkannya dengan produk Pralon yang relevan.</div>
+              </div>
+              <div style="border:1px solid #E6EAE9;border-radius:9px;overflow:hidden">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+                  <div style="padding:16px;border-right:1px solid #EFF2F1;display:flex;flex-direction:column;gap:6px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468;letter-spacing:.06em">01 · CERITA ANDA</div><div style="font-size:13.5px;font-weight:500">Kebutuhan</div><div style="font-size:12.5px;color:#5A6468;line-height:1.5">Rumah 2 lantai, 3 kamar mandi, toren atap.</div></div>
+                  <div style="padding:16px;border-right:1px solid #EFF2F1;display:flex;flex-direction:column;gap:6px;background:#FBFCFB"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468;letter-spacing:.06em">02 · SNOUTY</div><div style="font-size:13.5px;font-weight:500">Analisis</div><div style="font-size:12.5px;color:#5A6468;line-height:1.5">Titik air, jalur utama, cabang, dan ukuran pipa.</div></div>
+                  <div style="padding:16px;display:flex;flex-direction:column;gap:6px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#B02414;letter-spacing:.06em">03 · HASIL</div><div style="font-size:13.5px;font-weight:500">Produk Pralon</div><div style="font-size:12.5px;color:#5A6468;line-height:1.5">PVC AW 1" &amp; 3/4", fitting sepadan, alasannya jelas.</div></div>
+                </div>
+                <div style="padding:11px 16px;border-top:1px solid #EFF2F1;font-size:12.5px;color:#5A6468;line-height:1.5">Rekomendasi hanya diambil dari katalog Pralon, dan setiap saran disertai alasan teknisnya.</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ onb4 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;animation:snoutyIn .25s ease both">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;line-height:1.25">Bantu kami memahami kebutuhan di wilayah Anda</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#5A6468;max-width:480px;text-wrap:pretty">Dengan mengaktifkan lokasi, SNOUTY dapat membantu Pralon memahami pola kebutuhan produk berdasarkan wilayah dan meningkatkan analisis pasar.</div>
+              </div>
+              <sc-if value="{{ locAsk }}" hint-placeholder-val="{{ true }}">
+                <div style="border:1px solid #E6EAE9;border-radius:9px;padding:16px;display:flex;flex-direction:column;gap:11px;background:#FBFCFB">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468;letter-spacing:.07em">YANG PERLU ANDA TAHU</div>
+                  <div style="display:flex;gap:10px;font-size:13px;color:#42484B;line-height:1.55"><span style="color:#B02414">·</span>Berbagi lokasi bersifat opsional.</div>
+                  <div style="display:flex;gap:10px;font-size:13px;color:#42484B;line-height:1.55"><span style="color:#B02414">·</span>SNOUTY tetap bisa digunakan tanpa lokasi.</div>
+                  <div style="display:flex;gap:10px;font-size:13px;color:#42484B;line-height:1.55"><span style="color:#B02414">·</span>Data wilayah dipakai untuk analisis kebutuhan pasar, bukan untuk menentukan rekomendasi.</div>
+                  <div style="display:flex;gap:10px;font-size:13px;color:#42484B;line-height:1.55"><span style="color:#B02414">·</span>Tingkat detail cukup di level kota/kabupaten.</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ locGranted }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid #BFE3CD;background:#F1FAF4;border-radius:9px;padding:16px;display:flex;flex-direction:column;gap:7px">
+                  <div style="display:flex;align-items:center;gap:9px"><div style="width:16px;height:16px;border-radius:50%;background:#1E7A4C;color:#FFFFFF;font-size:10px;display:flex;align-items:center;justify-content:center">✓</div><div style="font-size:14px;font-weight:600;color:#12613B">Lokasi berhasil diaktifkan</div></div>
+                  <div style="font-size:13px;line-height:1.55;color:#2E6C4C">Terima kasih. Informasi wilayah membantu meningkatkan insight kebutuhan pasar. Bisa dinonaktifkan kapan saja dari pengaturan.</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ locDenied }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid #E6EAE9;background:#FBFCFB;border-radius:9px;padding:16px;display:flex;flex-direction:column;gap:7px">
+                  <div style="font-size:14px;font-weight:600">Tidak masalah, kita lanjut saja</div>
+                  <div style="font-size:13px;line-height:1.55;color:#5A6468">SNOUTY tetap bekerja penuh tanpa lokasi. Anda bisa mengaktifkannya nanti dari menu bantuan.</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ locBlocked }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid #F0DFC0;background:#FDF8EF;border-radius:9px;padding:16px;display:flex;flex-direction:column;gap:7px">
+                  <div style="font-size:14px;font-weight:600;color:#8A5300">Izin lokasi diblokir oleh browser</div>
+                  <div style="font-size:13px;line-height:1.55;color:#7A5518">Anda tetap dapat menggunakan SNOUTY. Bila ingin mengaktifkannya, ubah izin lokasi untuk situs ini pada pengaturan browser.</div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ onb5 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;animation:snoutyIn .25s ease both">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;line-height:1.25">Ingin pengalaman yang lebih lengkap?</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#5A6468;max-width:470px;text-wrap:pretty">Daftar akun untuk menyimpan percakapan, melihat kembali konsultasi, dan mencoba analisis studi kasus yang lebih lengkap.</div>
+              </div>
+              <div style="border:1px solid #E6EAE9;border-radius:9px;overflow:hidden">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">
+                  <sc-for list="{{ benefits }}" as="b" hint-placeholder-count="6">
+                    <div style="padding:12px 15px;border-bottom:1px solid #F3F5F4;display:flex;align-items:center;gap:10px"><span style="font-size:11px;color:{{ b.tone }};flex:none">✓</span><span style="font-size:13px;color:#20262A">{{ b.label }}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#5A6468;margin-left:auto;flex:none">{{ b.tag }}</span></div>
+                  </sc-for>
+                </div>
+                <div style="padding:12px 15px;background:#FBFCFB;font-size:12.5px;color:#5A6468;line-height:1.5">Analisis studi kasus dan pembuatan skema tersedia pada pengalaman terdaftar. Tanpa akun, Anda tetap bisa berkonsultasi dan melihat rekomendasi produk.</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="flex:none;padding:16px 24px;border-top:1px solid #EFF2F1;background:#FBFCFB;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div onClick="{{ skipOnb }}" style="font-size:12.5px;color:#5A6468;cursor:pointer;padding:6px 2px" style-hover="color:#B02414">{{ skipLabel }}</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-left:auto">
+            <sc-if value="{{ canBack }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ prevOnb }}" style="font-size:13px;color:#2B3134;border:1px solid #DDE2E1;background:#FFFFFF;border-radius:6px;padding:9px 15px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">Kembali</div>
+            </sc-if>
+            <sc-if value="{{ hasSecondary }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ secondary }}" style="font-size:13px;color:#2B3134;border:1px solid #DDE2E1;background:#FFFFFF;border-radius:6px;padding:9px 15px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">{{ secondaryLabel }}</div>
+            </sc-if>
+            <div onClick="{{ primary }}" style="font-size:13px;font-weight:500;color:#FFFFFF;background:#DF301C;border-radius:6px;padding:9px 20px;cursor:pointer" style-hover="background:#B02414">{{ primaryLabel }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+const PRODUCTS = [
+  { id:'aw1', name:'Pralon PVC AW', cat:'PIPA AIR BERSIH · SNI', size:'1"', why:'Jalur utama dan riser. Kelas AW tahan tekanan distribusi gravitasi bertingkat.', badge:'✓ SPESIFIKASI TERVERIFIKASI', verified:true,
+    desc:'Pipa PVC kelas AW untuk jalur air bersih bertekanan pada bangunan hunian dan komersial ringan.',
+    sizes:['1/2"','3/4"','1"','1¼"','1½"','2"','3"','4"'],
+    specs:[['Material','uPVC'],['Standar','SNI 03-6419 / ISO 1452'],['Panjang batang','4 m'],['Sambungan','Solvent cement'],['Aplikasi','Air bersih bertekanan'],['Tekanan kerja','Lihat dokumen teknis']] },
+  { id:'aw34', name:'Pralon PVC AW', cat:'PIPA CABANG · SNI', size:'3/4"', why:'Cabang per lantai menuju kamar mandi, wastafel, dan dapur.', badge:'✓ SPESIFIKASI TERVERIFIKASI', verified:true,
+    desc:'Ukuran cabang standar untuk melayani maksimal empat titik air per jalur.',
+    sizes:['1/2"','3/4"','1"','1¼"','1½"','2"'],
+    specs:[['Material','uPVC'],['Standar','SNI 03-6419'],['Panjang batang','4 m'],['Sambungan','Solvent cement'],['Aplikasi','Cabang air bersih'],['Tekanan kerja','Lihat dokumen teknis']] },
+  { id:'tee', name:'Fitting Tee PVC', cat:'PERCABANGAN', size:'3/4"', why:'Titik percabangan dari riser ke jalur tiap lantai. Jumlah menyesuaikan tata letak akhir.', badge:'JUMLAH DIESTIMASI', verified:false,
+    desc:'Fitting percabangan satu ekosistem dengan pipa Pralon PVC untuk mengurangi risiko sambungan bocor.',
+    sizes:['1/2"','3/4"','1"','1½"','2"'],
+    specs:[['Material','uPVC'],['Standar','Mengikuti pipa induk'],['Sudut','90°'],['Sambungan','Solvent cement'],['Aplikasi','Percabangan air bersih'],['Jumlah di solusi','Estimasi']] },
+  { id:'elb', name:'Elbow 90° PVC', cat:'PERUBAHAN ARAH', size:'1/2"–1"', why:'Naik-turun jalur di riser dan masuk ke area basah.', badge:'JUMLAH DIESTIMASI', verified:false,
+    desc:'Fitting perubahan arah untuk jalur vertikal ke horizontal pada instalasi air bersih.',
+    sizes:['1/2"','3/4"','1"','1¼"'],
+    specs:[['Material','uPVC'],['Standar','Mengikuti pipa induk'],['Sudut','90°'],['Sambungan','Solvent cement'],['Aplikasi','Perubahan arah jalur'],['Jumlah di solusi','Estimasi']] }
+];
+
+const UNIT_PRICE = { 'Pipa PVC AW|1"':95000, 'Pipa PVC AW|3/4"':68000, 'Tee|3/4"':9500, 'Elbow 90°|3/4"':7000 };
+const priceOf = (item, size) => UNIT_PRICE[item + '|' + size] || (item === 'Reducer' ? 8500 : (item === 'Pipa PVC AW' ? 68000 : 9000));
+
+const BENEFITS = [
+  { label:'Riwayat percakapan', tag:'AKUN' },
+  { label:'Simpan hasil konsultasi', tag:'AKUN' },
+  { label:'Analisis studi kasus', tag:'LANJUTAN' },
+  { label:'Estimasi kebutuhan material', tag:'LANJUTAN' },
+  { label:'Rekomendasi produk Pralon', tag:'TAMU JUGA' },
+  { label:'Visualisasi skema perpipaan', tag:'LANJUTAN' }
+];
+
+const STEP_LABELS = ['Memahami kebutuhan','Menganalisis instalasi','Mencocokkan produk Pralon','Menyusun rekomendasi','Menyiapkan skema'];
+
+const EXAMPLES = [
+  'Rumah 2 lantai dengan 3 kamar mandi, 4 wastafel, 1 dapur, toren di atap',
+  'Instalasi air bersih untuk rumah baru 1 lantai',
+  'Saya punya toren di lantai 2, pipa apa yang cocok?',
+  'Lebih bagus Pralon atau brand lain?',
+  'Jalur air proses pabrik, suhu 70°C, panjang 200 meter'
+];
+
+const FIELDS = [
+  { key:'type',    label:'Tipe bangunan' },
+  { key:'floors',  label:'Jumlah lantai' },
+  { key:'bath',    label:'Kamar mandi' },
+  { key:'basin',   label:'Wastafel' },
+  { key:'kitchen', label:'Dapur' },
+  { key:'source',  label:'Sumber air' },
+  { key:'install', label:'Jenis instalasi' }
+];
+
+class Component extends DCLogic {
+  state = {
+    onb: 1, onbOpen: true, loc: 'ask', reportOpen: false,
+    screen: 'welcome', draft: '', messages: [], thinking: false,
+    req: { type:'', floors:'', bath:'', basin:'', kitchen:'', source:'', install:'' },
+    analyzing: false, stepIdx: 0,
+    tab: 'ringkasan', showTech: false, editing: false,
+    productId: null, followUps: [], saved: false,
+    panelOpen: true, narrow: false, menuOpen: false,
+    history: [
+      { title:'Renovasi kamar mandi lantai 1', meta:'12 SEP' },
+      { title:'Saluran pembuangan ruko', meta:'4 SEP' }
+    ],
+    activeTitle: '', activeStatus: ''
+  };
+
+  componentDidMount() {
+    try { if (localStorage.getItem('snouty_onboarding_state')) this.setState({ onbOpen:false }); } catch (e) {}
+    this.onKeyNav = e => {
+      if (!this.state.onbOpen) return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); this.nextOnb(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); this.prevOnb(); }
+      else if (e.key === 'Escape') { e.preventDefault(); this.finishOnb('skip'); }
+    };
+    window.addEventListener('keydown', this.onKeyNav);
+    this.onResize = () => {
+      const narrow = window.innerWidth < 1080;
+      this.setState(st => ({ narrow, panelOpen: narrow ? false : (st.narrow ? true : st.panelOpen) }));
+    };
+    this.onResize();
+    window.addEventListener('resize', this.onResize);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('keydown', this.onKeyNav);
+    if (this.timer) clearInterval(this.timer);
+  }
+
+  // ---------- helpers ----------
+  num(text, words) {
+    for (const w of words) {
+      const m = text.match(new RegExp('(\\d+)\\s*(?:buah\\s*)?' + w));
+      if (m) return m[1];
+    }
+    return '';
+  }
+  extract(text) {
+    const t = text.toLowerCase();
+    const req = { ...this.state.req };
+    const floors = this.num(t, ['lantai', 'tingkat']);
+    if (floors && !/toren di lantai/.test(t)) req.floors = floors;
+    const bath = this.num(t, ['kamar mandi', 'km mandi', 'bathroom']);
+    if (bath) req.bath = bath;
+    const basin = this.num(t, ['wastafel', 'washbasin']);
+    if (basin) req.basin = basin;
+    const kitchen = this.num(t, ['dapur', 'kitchen']);
+    if (kitchen) req.kitchen = kitchen;
+    if (/toren|tandon|tangki/.test(t)) req.source = /atap|atas|rooftop/.test(t) ? 'Toren atap' : 'Toren';
+    else if (/pompa/.test(t)) req.source = 'Pompa';
+    else if (/pdam/.test(t)) req.source = 'PDAM';
+    if (/rumah|hunian|kos/.test(t)) req.type = /kos/.test(t) ? 'Rumah kos' : 'Rumah tinggal';
+    else if (/ruko|kantor|toko/.test(t)) req.type = 'Komersial ringan';
+    if (/air bersih/.test(t) && !/buang|kotor/.test(t)) req.install = 'Air bersih';
+    else if (/buang|kotor/.test(t) && !/air bersih/.test(t)) req.install = 'Pembuangan';
+    return req;
+  }
+  missingKey(req) {
+    const order = ['source', 'install', 'floors', 'bath'];
+    for (const k of order) if (!req[k]) return k;
+    return null;
+  }
+  question(key) {
+    if (key === 'source') return {
+      text: 'Untuk memberikan rekomendasi yang lebih tepat, saya perlu tahu sumber air yang digunakan.',
+      chips: [['source','Toren atap'],['source','Toren'],['source','Pompa'],['source','PDAM'],['source','Belum tahu']] };
+    if (key === 'install') return {
+      text: 'Instalasi ini untuk air bersih saja, atau termasuk saluran pembuangan?',
+      chips: [['install','Air bersih'],['install','Air bersih + pembuangan'],['install','Belum tahu']] };
+    if (key === 'floors') return {
+      text: 'Bangunannya berapa lantai?',
+      chips: [['floors','1'],['floors','2'],['floors','3']] };
+    return {
+      text: 'Ada berapa kamar mandi yang akan dilayani?',
+      chips: [['bath','1'],['bath','2'],['bath','3'],['bath','4']] };
+  }
+  push(msg) { this.setState(s => ({ messages: s.messages.concat([{ id: Date.now() + Math.random(), ...msg }]) })); }
+  reply(msg, delay) {
+    this.setState({ thinking:true });
+    setTimeout(() => { this.setState({ thinking:false }); this.push({ role:'ai', ...msg }); }, delay || 750);
+  }
+
+  // ---------- onboarding ----------
+  nextOnb = () => {
+    if (this.state.onb >= 5) { this.finishOnb('done'); return; }
+    this.setState(s => ({ onb: Math.min(s.onb + 1, 5) }));
+  };
+  prevOnb = () => this.setState(s => ({ onb: Math.max(s.onb - 1, 1) }));
+  finishOnb = (why) => {
+    try { localStorage.setItem('snouty_onboarding_state', why); } catch (e) {}
+    this.setState({ onbOpen:false });
+  };
+  askLocation = () => {
+    if (!navigator.geolocation) { this.setState({ loc:'blocked' }); return; }
+    this.setState({ loc:'pending' });
+    navigator.geolocation.getCurrentPosition(
+      () => this.setState({ loc:'granted' }),
+      err => this.setState({ loc: err && err.code === 1 ? 'blocked' : 'denied' }),
+      { timeout: 6000, maximumAge: 600000 }
+    );
+  };
+
+  // ---------- flow ----------
+  send = (raw) => {
+    const text = (raw || '').trim();
+    if (!text) return;
+    const t = text.toLowerCase();
+
+    if (this.state.screen === 'solution') {
+      this.setState({ draft:'' });
+      this.addFollowUp(text);
+      return;
+    }
+
+    this.setState({ draft:'', screen:'chat', activeTitle: this.state.activeTitle || this.titleFrom(text), activeStatus:'SEDANG BERLANGSUNG' });
+    this.push({ role:'user', text });
+
+    if (/brand|merek|merk|lebih bagus|dibanding/.test(t)) {
+      this.reply({
+        text: 'Saya tidak membandingkan merek lain — yang bisa saya bantu adalah kriteria teknis untuk menilai pipa air bersih, lalu menunjukkan produk Pralon yang memenuhinya.',
+        showCriteria: true, showProduct: true
+      });
+      return;
+    }
+    if (/pabrik|industri|air proses|kimia|70|80|90/.test(t)) {
+      this.reply({
+        text: 'Terima kasih detailnya. Untuk kebutuhan seperti ini saya tidak akan menebak spesifikasi.',
+        showUnsupported: true
+      });
+      return;
+    }
+
+    const req = this.extract(text);
+    this.setState({ req });
+    const missing = this.missingKey(req);
+    if (missing) {
+      const q = this.question(missing);
+      this.reply({ text: 'Baik, sudah saya catat. ' + q.text, showSummary:true, chips: q.chips });
+    } else {
+      this.reply({ text: 'Data kebutuhan Anda sudah cukup lengkap. Saya siap menyusun rekomendasi sistem, produk, skema, dan estimasi materialnya.', showSummary:true, cta:true });
+    }
+  };
+
+  answer = (key, value) => {
+    const clean = value === 'Belum tahu' ? (key === 'source' ? 'Toren atap' : 'Air bersih') : value;
+    const req = { ...this.state.req, [key]: clean };
+    this.setState({ req });
+    this.push({ role:'user', text: value });
+    const missing = this.missingKey(req);
+    if (missing) {
+      const q = this.question(missing);
+      const note = value === 'Belum tahu' ? 'Tidak masalah — saya pakai asumsi umum dan menandainya. ' : 'Tercatat. ';
+      this.reply({ text: note + q.text, chips: q.chips });
+    } else {
+      this.reply({ text: 'Lengkap. Saya siap menyusun rekomendasi sistem, produk Pralon, skema instalasi, dan estimasi materialnya.', showSummary:true, cta:true });
+    }
+  };
+
+  analyze = () => {
+    this.setState({ analyzing:true, stepIdx:0 });
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      const next = this.state.stepIdx + 1;
+      if (next >= STEP_LABELS.length) {
+        clearInterval(this.timer);
+        setTimeout(() => this.setState({ analyzing:false, screen:'solution', tab:'ringkasan', activeStatus:'SOLUSI SIAP' }), 450);
+      }
+      this.setState({ stepIdx: Math.min(next, STEP_LABELS.length) });
+    }, 620);
+  };
+
+  addFollowUp = (q) => {
+    const t = q.toLowerCase();
+    let a;
+    if (/tambah/.test(t) && /kamar mandi/.test(t)) {
+      const bath = String(parseInt(this.state.req.bath || '3', 10) + 1);
+      this.setState(s => ({ req: { ...s.req, bath } }));
+      a = 'Dengan ' + bath + ' kamar mandi, cabang 3/4" masih memadai — beban tambahannya 2 unit fixture. Yang berubah: 1 tee 3/4" dan sekitar 1 batang pipa 1/2" tambahan. Estimasi material sudah saya sesuaikan.';
+    } else if (/lantai 3|lantai tiga/.test(t)) {
+      a = 'Kalau toren naik ke lantai 3, tekanan gravitasi justru naik dan riser tetap 1". Yang perlu diperhatikan adalah penopang toren serta penambahan panjang riser sekitar satu tinggi lantai. Asumsi tinggi antar lantai 3,5 m saya pakai untuk hitungan ini.';
+    } else if (/kenapa|mengapa/.test(t)) {
+      a = 'Jalur utama dibuat 1" karena menampung beban semua titik air sekaligus, sementara cabang 3/4" hanya melayani maksimal 4 titik. Satu tingkat lebih besar di jalur utama menjaga tekanan tetap stabil saat beberapa titik dipakai bersamaan.';
+    } else if (/ukuran|tersedia/.test(t)) {
+      a = 'Pralon PVC AW tersedia 1/2", 3/4", 1", 1¼", 1½", 2", 3", dan 4". Untuk solusi Anda yang dipakai 1", 3/4", dan 1/2".';
+    } else if (/brand|merek|merk|lebih bagus/.test(t)) {
+      a = 'Saya tidak membandingkan merek lain. Kriteria yang sebaiknya Anda periksa: kelas tekanan (AW untuk air bersih), pencantuman SNI pada badan pipa, dan ketersediaan fitting sepadan. Produk Pralon di solusi ini memenuhi ketiganya.';
+    } else if (/pabrik|industri|proses/.test(t)) {
+      a = 'Kebutuhan industri seperti itu membutuhkan pengecekan teknis lebih lanjut — saya tidak menebak spesifikasinya. Saya bisa meneruskan catatan kebutuhan Anda ke tim teknis Pralon.';
+    } else {
+      a = 'Untuk pertanyaan itu data di katalog belum cukup untuk saya jawab pasti. Supaya tidak salah arah, sebaiknya dicek bersama tim teknis Pralon — saya bisa meneruskan ringkasan kebutuhan Anda.';
+    }
+    this.setState(s => ({ followUps: s.followUps.concat([{ id: Date.now(), q, a }]) }));
+  };
+
+  titleFrom(text) {
+    const t = text.toLowerCase();
+    if (/pabrik|industri/.test(t)) return 'Pabrik — jalur air proses';
+    if (/kos/.test(t)) return 'Rumah kos — instalasi air bersih';
+    const f = this.num(t, ['lantai']);
+    return f ? 'Rumah ' + f + ' lantai — konsultasi baru' : 'Konsultasi baru';
+  }
+
+  reset = () => {
+    if (this.timer) clearInterval(this.timer);
+    this.setState({
+      screen:'welcome', draft:'', messages:[], thinking:false, followUps:[], saved:false,
+      req:{ type:'', floors:'', bath:'', basin:'', kitchen:'', source:'', install:'' },
+      analyzing:false, stepIdx:0, tab:'ringkasan', productId:null, editing:false, showTech:false, menuOpen:false, reportOpen:false,
+      activeTitle:'', activeStatus:''
+    });
+  };
+
+  // ---------- render values ----------
+  renderVals() {
+    const s = this.state;
+    const req = s.req;
+    const dash = v => v || '—';
+    const filled = ['source','install','floors','bath'].filter(k => req[k]).length;
+    const readCount = FIELDS.filter(f => req[f.key]).length;
+    const fixtures = parseInt(req.bath || '0', 10) + parseInt(req.basin || '0', 10) + parseInt(req.kitchen || '0', 10);
+    const loadUnits = (parseInt(req.bath || '0', 10) * 2) + parseInt(req.basin || '0', 10) + parseInt(req.kitchen || '0', 10);
+    const mainSize = loadUnits >= 8 ? '1"' : '3/4"';
+    const multi = parseInt(req.floors || '1', 10) > 1;
+
+    const floors = [];
+    const nFloors = Math.max(1, Math.min(parseInt(req.floors || '1', 10), 3));
+    const bath = Math.max(1, parseInt(req.bath || '1', 10));
+    const basin = parseInt(req.basin || '0', 10);
+    for (let i = nFloors; i >= 1; i--) {
+      const nodes = [];
+      const bathHere = i === nFloors ? Math.ceil(bath / nFloors) : Math.floor(bath / nFloors);
+      if (bathHere > 0) nodes.push({ label: bathHere > 1 ? 'Kamar mandi ×' + bathHere : 'Kamar mandi' });
+      if (basin > 0) nodes.push({ label: 'Wastafel ×' + Math.max(1, Math.round(basin / nFloors)) });
+      if (i === 1 && parseInt(req.kitchen || '0', 10) > 0) nodes.push({ label: 'Dapur' });
+      floors.push({ name: 'LANTAI ' + i, nodes });
+    }
+
+    const bom = [
+      { item:'Pipa PVC AW', size:mainSize, qty:(2 + nFloors) + ' batang', basis:'Jalur utama + riser, tinggi lantai 3,5 m (asumsi)' },
+      { item:'Pipa PVC AW', size:'3/4"', qty:(3 + bath) + ' batang', basis:'Cabang ' + nFloors + ' lantai ke ' + fixtures + ' titik air' },
+      { item:'Tee', size:'3/4"', qty:(bath + 2) + ' pcs', basis:'Satu percabangan per area basah' },
+      { item:'Elbow 90°', size:'3/4"', qty:(bath * 3) + ' pcs', basis:'Perubahan arah di riser dan cabang' },
+      { item:'Reducer', size:mainSize + ' → 3/4"', qty:nFloors + ' pcs', basis:'Transisi riser ke cabang tiap lantai' }
+    ];
+
+    const assumptions = [
+      { text:'Tiap kamar mandi berisi 1 shower dan 1 kloset.' },
+      { text:'Sumber distribusi adalah ' + (req.source || 'toren atap').toLowerCase() + ', tanpa pompa pendorong.' },
+      { text:'Panjang pipa diestimasi karena dimensi bangunan belum diberikan.' },
+      { text:'Tinggi antar lantai diasumsikan 3,5 meter.' }
+    ];
+
+    const rupiah = n => 'Rp ' + n.toLocaleString('id-ID');
+    let subtotal = 0;
+    const priced = bom.map(b => {
+      const unit = priceOf(b.item, b.size);
+      const sub = (parseInt(b.qty, 10) || 0) * unit;
+      subtotal += sub;
+      return { item:b.item, size:b.size, qty:b.qty, sub: rupiah(sub) };
+    });
+    const taxVal = Math.round(subtotal * 0.11);
+
+    const stageIdx = s.screen === 'welcome' ? 0 : (s.screen === 'chat' ? (s.analyzing ? 1 : 0) : (s.reportOpen ? 3 : 2));
+    const stages = ['Kebutuhan','Analisis','Solusi','Laporan'].map((label, i) => ({
+      label,
+      color: i === stageIdx ? '#B02414' : (i < stageIdx ? '#42484B' : '#A8B0B2'),
+      weight: i === stageIdx ? '600' : '400',
+      tone: i === stageIdx ? '#DF301C' : (i < stageIdx ? '#F6C3BB' : '#E6EAE9')
+    }));
+
+    const tabDefs = [['ringkasan','Ringkasan'],['produk','Produk Pralon'],['skema','Skema'],['material','Estimasi Material']];
+    const product = PRODUCTS.find(p => p.id === s.productId) || null;
+
+    const locResolved = s.loc !== 'ask' && s.loc !== 'pending';
+    let onbPrimaryLabel = 'Lanjut', onbPrimary = this.nextOnb;
+    let onbSecondaryLabel = '', onbSecondary = null, onbHasSecondary = false;
+    if (s.onb === 4 && !locResolved) {
+      onbPrimaryLabel = s.loc === 'pending' ? 'Meminta izin…' : 'Aktifkan Lokasi';
+      onbPrimary = s.loc === 'pending' ? (() => {}) : this.askLocation;
+      onbSecondaryLabel = 'Nanti Saja'; onbHasSecondary = true;
+      onbSecondary = () => { this.setState({ loc:'denied' }); setTimeout(this.nextOnb, 450); };
+    } else if (s.onb === 5) {
+      onbPrimaryLabel = 'Daftar Akun'; onbPrimary = () => this.finishOnb('done');
+      onbSecondaryLabel = 'Lanjut sebagai Tamu'; onbHasSecondary = true;
+      onbSecondary = () => this.finishOnb('guest');
+    }
+
+    return {
+      // shell
+      onbOpen: s.onbOpen,
+      onb1: s.onb === 1, onb2: s.onb === 2, onb3: s.onb === 3, onb4: s.onb === 4, onb5: s.onb === 5,
+      dots: [1,2,3,4,5].map(i => ({
+        w: i === s.onb ? '22px' : '7px',
+        tone: i === s.onb ? '#DF301C' : (i < s.onb ? '#F6C3BB' : '#E6EAE9'),
+        go: () => this.setState({ onb:i })
+      })),
+      canBack: s.onb > 1,
+      skipLabel: s.onb === 5 ? 'Lewati untuk sekarang' : 'Lewati',
+      skipOnb: () => this.finishOnb('skip'),
+      prevOnb: this.prevOnb,
+      primary: onbPrimary, primaryLabel: onbPrimaryLabel,
+      secondary: onbSecondary, secondaryLabel: onbSecondaryLabel, hasSecondary: onbHasSecondary,
+      locAsk: s.loc === 'ask' || s.loc === 'pending',
+      locGranted: s.loc === 'granted',
+      locDenied: s.loc === 'denied',
+      locBlocked: s.loc === 'blocked',
+      benefits: BENEFITS.map(b => ({ ...b, tone: b.tag === 'TAMU JUGA' ? '#1E7A4C' : '#DF301C' })),
+      sheetAlign: s.narrow ? 'flex-end' : 'center',
+      sheetPad: s.narrow ? '0' : '24px',
+      sheetMax: s.narrow ? '100%' : '580px',
+      sheetRadius: s.narrow ? '14px 14px 0 0' : '12px',
+
+      // report
+      reportOpen: s.reportOpen,
+      openReport: () => this.setState({ reportOpen:true }),
+      closeReport: () => this.setState({ reportOpen:false }),
+      reportNo: 'NO. SNTY-2026-09-0148 · ESTIMASI PERENCANAAN',
+      priced, subtotal: rupiah(subtotal), tax: rupiah(taxVal), total: rupiah(subtotal + taxVal),
+
+      // stage rail
+      stages,
+      stageHint: s.onbOpen ? 'Langkah 0 · Onboarding' : 'Langkah ' + (stageIdx + 1) + ' dari 4 · ' + stages[stageIdx].label,
+      restartFlow: () => {
+        try { localStorage.removeItem('snouty_onboarding_state'); } catch (e) {}
+        if (this.timer) clearInterval(this.timer);
+        this.setState({
+          onb:1, onbOpen:true, loc:'ask', reportOpen:false,
+          screen:'welcome', draft:'', messages:[], thinking:false, followUps:[], saved:false,
+          req:{ type:'', floors:'', bath:'', basin:'', kitchen:'', source:'', install:'' },
+          analyzing:false, stepIdx:0, tab:'ringkasan', productId:null, editing:false, showTech:false, menuOpen:false,
+          activeTitle:'', activeStatus:''
+        });
+      },
+      demoFull: () => this.send('Rumah 2 lantai dengan 3 kamar mandi, 4 wastafel, 1 dapur, air bersih, toren di atap'),
+      showSidebar: !s.narrow,
+      narrow: s.narrow,
+      menuOpen: s.menuOpen,
+      toggleMenu: () => this.setState({ menuOpen: !s.menuOpen }),
+      showPanel: s.panelOpen && s.screen !== 'welcome',
+      showPanelToggle: s.screen !== 'welcome',
+      showStages: !s.narrow && s.screen !== 'welcome',
+      panelWidth: s.narrow ? 'min(330px,88%)' : '330px',
+      panelPos: s.narrow ? 'absolute' : 'relative',
+      panelShadow: s.narrow ? '-14px 0 40px rgba(20,24,26,.18)' : 'none',
+      panelLabel: s.panelOpen ? 'Tutup panel' : (s.narrow ? 'Kebutuhan & solusi' : 'Tampilkan panel'),
+      togglePanel: () => this.setState({ panelOpen: !s.panelOpen }),
+      headerTitle: s.screen === 'welcome' ? 'Konsultasi Baru' : (s.activeTitle || 'Konsultasi'),
+      headerStatus: s.screen === 'solution' ? 'SOLUSI SIAP' : (s.screen === 'chat' ? 'LANGKAH ' + Math.min(filled + 1, 4) + ' DARI 4' : 'KATALOG PRALON · v2.4'),
+      saveLabel: s.saved ? 'Tersimpan ✓' : 'Simpan solusi',
+      save: () => this.setState({ saved:true, history:[{ title:s.activeTitle || 'Solusi tersimpan', meta:'BARU SAJA' }].concat(s.history) }),
+      isWelcome: s.screen === 'welcome',
+      isChat: s.screen === 'chat',
+      isSolution: s.screen === 'solution',
+      hasActive: s.screen !== 'welcome',
+      activeTitle: s.activeTitle,
+      activeStatus: s.activeStatus,
+      history: s.history.map((h, i) => ({ ...h, open: () => this.setState({ menuOpen:false, screen:'chat', activeTitle:h.title, activeStatus:'DIBUKA KEMBALI', messages:[
+        { id:'h' + i, role:'user', text:h.title },
+        { id:'h' + i + 'a', role:'ai', text:'Ini konsultasi sebelumnya. Lanjutkan saja dengan detail baru, atau tanya apa pun tentang solusi lama ini.' }
+      ] }) })),
+      reset: this.reset,
+
+      // input
+      draft: s.draft,
+      onDraft: e => this.setState({ draft: e.target.value }),
+      onKey: e => { if (e.key === 'Enter') this.send(this.state.draft); },
+      submit: () => this.send(this.state.draft),
+      examples: EXAMPLES.map(label => ({ label, pick: () => this.send(label) })),
+
+      // chat
+      messages: s.messages.map(m => ({
+        id: m.id, text: m.text,
+        isUser: m.role === 'user', isAi: m.role === 'ai',
+        showSummary: !!m.showSummary, showCriteria: !!m.showCriteria,
+        showUnsupported: !!m.showUnsupported, showProduct: !!m.showProduct,
+        showCta: !!m.cta, showChips: !!(m.chips && m.chips.length),
+        chips: (m.chips || []).map(c => ({ label: c[1], pick: () => this.answer(c[0], c[1]) }))
+      })),
+      thinking: s.thinking,
+      readCount,
+      req: { type:dash(req.type), floors:dash(req.floors), bath:dash(req.bath), basin:dash(req.basin), kitchen:dash(req.kitchen), source:dash(req.source) },
+      noteLine: 'Tipe: industri · media: air proses · yang Anda sebutkan akan dikirim bersama permintaan, jadi tidak perlu menjelaskan ulang.',
+      openFirst: () => this.setState({ productId:'aw34' }),
+      analyze: this.analyze,
+
+      // analysis
+      analyzing: s.analyzing,
+      steps: STEP_LABELS.map((label, i) => ({
+        label,
+        ring: i <= s.stepIdx ? '#DF301C' : '#D5DAD9',
+        fill: i < s.stepIdx ? '#DF301C' : '#FFFFFF',
+        color: i < s.stepIdx ? '#14181A' : (i === s.stepIdx ? '#B02414' : '#A8B0B2'),
+        weight: i === s.stepIdx ? '600' : '400'
+      })),
+
+      // solution
+      tabs: tabDefs.map(([id, label]) => ({
+        label,
+        color: s.tab === id ? '#B02414' : '#5A6468',
+        line: s.tab === id ? '#DF301C' : 'transparent',
+        weight: s.tab === id ? '600' : '400',
+        pick: () => this.setState({ tab:id })
+      })),
+      tabRingkasan: s.tab === 'ringkasan', tabProduk: s.tab === 'produk',
+      tabSkema: s.tab === 'skema', tabMaterial: s.tab === 'material',
+      solutionHeadline: 'Sistem distribusi gravitasi dari ' + (req.source || 'toren atap').toLowerCase() + ', dengan riser ' + mainSize + ' dan cabang 3/4" ke ' + fixtures + ' titik air di ' + nFloors + ' lantai.',
+      solutionBody: 'Untuk ' + (req.bath || '3') + ' kamar mandi, ' + (req.basin || '4') + ' wastafel, dan ' + (req.kitchen || '1') + ' dapur, tekanan gravitasi umumnya cukup tanpa pompa pendorong. Pipa utama dibuat satu ukuran lebih besar dari cabang agar tekanan tetap stabil saat beberapa titik dipakai bersamaan.',
+      fixtures: String(fixtures), mainSize,
+      tankLabel: (req.source || 'TOREN ATAP').toUpperCase(),
+      riserNote: multi ? 'melayani ' + nFloors + ' lantai' : 'distribusi satu lantai',
+      floors,
+      systemRows: [
+        { name:'Pipa distribusi utama', path:'Sumber → riser', size:mainSize, why:'Menampung beban ' + loadUnits + ' unit fixture dari ' + fixtures + ' titik air sekaligus.', tone:'#DF301C', badge:'TERVERIFIKASI', badgeColor:'#1E7A4C', badgeBg:'#E8F5EC' },
+        { name:'Riser vertikal', path:'Lantai 1 → atas', size:mainSize, why:'Satu riser cukup; percabangan dilakukan di tiap lantai.', tone:'#DF301C', badge:'TERVERIFIKASI', badgeColor:'#1E7A4C', badgeBg:'#E8F5EC' },
+        { name:'Pipa cabang per lantai', path:'Riser → area basah', size:'3/4"', why:'Melayani maksimal 4 titik air per cabang.', tone:'#EE7A67', badge:'TERVERIFIKASI', badgeColor:'#1E7A4C', badgeBg:'#E8F5EC' },
+        { name:'Sambungan fixture', path:'Cabang → kran / shower', size:'1/2"', why:'Ukuran standar untuk kran, shower, dan wastafel.', tone:'#F4B0A3', badge:'ASUMSI', badgeColor:'#8A5300', badgeBg:'#FDF3E3' }
+      ],
+      showTech: s.showTech,
+      techLabel: s.showTech ? 'Sembunyikan detail teknis' : 'Tampilkan detail teknis',
+      toggleTech: () => this.setState({ showTech: !s.showTech }),
+      products: PRODUCTS.map(p => ({
+        name:p.name, cat:p.cat, size:p.size, why:p.why, badge:p.badge,
+        badgeColor: p.verified ? '#1E7A4C' : '#8A5300',
+        open: () => this.setState({ productId:p.id })
+      })),
+      bom, assumptions,
+      fixAssumptions: () => this.setState({ editing:true, panelOpen:true }),
+      followUps: s.followUps, hasFollowUps: s.followUps.length > 0,
+      suggestions: [
+        'Kalau kamar mandi saya tambah satu?',
+        'Kenapa pakai ukuran ' + mainSize + ' di jalur utama?',
+        'Kalau torennya di lantai 3?',
+        'Produknya tersedia ukuran apa saja?'
+      ].map(label => ({ label, ask: () => this.addFollowUp(label) })),
+
+      // right panel
+      editing: s.editing, notEditing: !s.editing,
+      editLabel: s.editing ? 'Selesai' : 'Ubah',
+      toggleEdit: () => this.setState({ editing: !s.editing }),
+      reqRows: FIELDS.map(f => ({
+        label: f.label,
+        value: req[f.key] || 'Belum diisi',
+        labelColor: req[f.key] ? '#5A6468' : '#B26B00',
+        valueColor: req[f.key] ? '#14181A' : '#B26B00',
+        onChange: e => this.setState(st => ({ req: { ...st.req, [f.key]: e.target.value } }))
+      })),
+      meter: [0,1,2,3].map(i => ({ tone: i < filled ? '#DF301C' : '#E6EAE9' })),
+      completenessNote: filled >= 4
+        ? 'Data inti sudah lengkap. Nilai yang tidak diberikan tetap ditandai sebagai asumsi.'
+        : (4 - filled) + ' kelompok data lagi sebelum SNOUTY dapat menyusun rekomendasi.',
+
+      // product drawer
+      hasProduct: !!product,
+      closeProduct: () => this.setState({ productId:null }),
+      product: product ? { name:product.name, cat:product.cat, desc:product.desc, size:product.size } : { name:'', cat:'', desc:'', size:'' },
+      productSizes: (product ? product.sizes : []).map(label => ({
+        label,
+        border: label === (product && product.size) ? '#DF301C' : '#E6EAE9',
+        bg: label === (product && product.size) ? '#FDECE9' : '#FFFFFF',
+        color: label === (product && product.size) ? '#B02414' : '#42484B'
+      })),
+      productSpecs: (product ? product.specs : []).map(([k, v]) => ({ k, v, tone: /dokumen|Estimasi/.test(v) ? '#8A5300' : '#14181A' })),
+      fittings: [{ label:'Tee PVC' },{ label:'Elbow 90°' },{ label:'Reducer' },{ label:'Socket' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#F7F8F7; font-family:"IBM Plex Sans", system-ui, sans-serif; color:#14181A; -webkit-font-smoothing:antialiased; }
+  * { box-sizing:border-box; }
+  a { color:#DF301C; text-decoration:none; }
+  a:hover { color:#B02414; text-decoration:underline; }
+  @keyframes snoutyStep { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:none } }
+  @keyframes snoutySheet { from { opacity:0; transform:translateY(28px) } to { opacity:1; transform:none } }
+</style>
+</helmet>
+
+<div style="min-height:100vh;position:relative;background:#F7F8F7;overflow:hidden">
+
+  <!-- dimmed app behind the modal (context only) -->
+  <div style="position:absolute;inset:0;display:flex;filter:saturate(.6)">
+    <div style="width:236px;flex:none;background:#FFFFFF;border-right:1px solid #E6EAE9;padding:18px 14px;display:flex;flex-direction:column;gap:18px;opacity:.5">
+      <div style="display:flex;align-items:center;gap:9px"><div style="width:24px;height:24px;border-radius:6px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;border:1px solid #F6C3BB;flex:none"></div><div style="font-size:14px;font-weight:600;letter-spacing:.02em">SNOUTY</div></div>
+      <div style="height:34px;border:1px solid #DDE2E1;border-radius:6px"></div>
+      <div style="display:flex;flex-direction:column;gap:9px"><div style="height:11px;background:#F1F3F2;border-radius:3px"></div><div style="height:11px;width:72%;background:#F1F3F2;border-radius:3px"></div><div style="height:11px;width:84%;background:#F1F3F2;border-radius:3px"></div></div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;opacity:.4">
+      <div style="height:52px;flex:none;border-bottom:1px solid #E6EAE9;background:#FFFFFF"></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:0 90px">
+        <div style="height:28px;width:100%;max-width:560px;background:#EDEFEE;border-radius:5px"></div>
+        <div style="height:28px;width:62%;background:#EDEFEE;border-radius:5px;align-self:flex-start;margin-left:70px"></div>
+        <div style="height:82px;width:100%;max-width:620px;background:#FFFFFF;border:1px solid #E6EAE9;border-radius:10px"></div>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0;background:rgba(20,24,26,.38);display:flex;align-items:{{ sheetAlign }};justify-content:center;padding:{{ sheetPad }}">
+      <div style="width:100%;max-width:{{ sheetMax }};background:#FFFFFF;border:1px solid #DDE2E1;border-radius:{{ sheetRadius }};box-shadow:0 24px 64px rgba(20,24,26,.24);display:flex;flex-direction:column;overflow:hidden;animation:snoutySheet .28s ease both;max-height:94vh">
+
+        <!-- head -->
+        <div style="flex:none;padding:18px 24px 0;display:flex;align-items:center;justify-content:space-between;gap:14px">
+          <div style="display:flex;align-items:center;gap:9px">
+            <div style="width:26px;height:26px;border-radius:7px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;border:1px solid #F6C3BB;flex:none"></div>
+            <div style="display:flex;flex-direction:column">
+              <div style="font-size:13px;font-weight:600;letter-spacing:.02em">SNOUTY</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8A9295;letter-spacing:.06em">PRALON ASSISTANT</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <sc-for list="{{ dots }}" as="d" hint-placeholder-count="5">
+                <div onClick="{{ d.go }}" style="width:{{ d.w }};height:7px;border-radius:4px;cursor:pointer;background:{{ d.tone }};transition:width .2s ease"></div>
+              </sc-for>
+            </div>
+            <div onClick="{{ dismiss }}" style="font-size:18px;line-height:1;color:#8A9295;cursor:pointer;padding:2px 4px" style-hover="color:#B02414">×</div>
+          </div>
+        </div>
+
+        <!-- body -->
+        <div style="flex:1;overflow:auto;padding:22px 24px 4px;min-height:0">
+
+          <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:18px;animation:snoutyStep .25s ease both">
+              <div style="height:170px;border-radius:9px;background:#FDF1EF;display:flex;align-items:center;justify-content:center"><img src="assets/snouty-mascot.png" alt="SNOUTY, maskot Pralon" style="width:150px;height:150px;object-fit:contain"></div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;line-height:1.25">Kenalan dengan SNOUTY</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#5A6468;max-width:460px;text-wrap:pretty">Asisten pintar Pralon yang membantu Anda mencari informasi produk dan solusi perpipaan sesuai kebutuhan.</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;animation:snoutyStep .25s ease both">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;line-height:1.25">Ceritakan kebutuhan Anda dengan cara biasa</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#5A6468;max-width:470px;text-wrap:pretty">Anda tidak perlu memahami istilah teknis perpipaan. Ceritakan kondisi rumah atau bangunan Anda seperti sedang berbicara dengan konsultan.</div>
+              </div>
+              <div style="background:#FBFCFB;border:1px solid #E6EAE9;border-radius:9px;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8A9295;letter-spacing:.07em">CONTOH PERTANYAAN</div>
+                <div style="display:flex;justify-content:flex-end">
+                  <div style="max-width:400px;background:#14181A;color:#FFFFFF;font-size:13.5px;line-height:1.55;padding:12px 15px;border-radius:10px 10px 2px 10px">Saya mau bangun rumah 2 lantai, ada 3 kamar mandi dan 4 wastafel. Pipa apa yang saya butuhkan?</div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center">
+                  <div style="width:24px;height:24px;flex:none;border-radius:6px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;border:1px solid #F6C3BB"></div>
+                  <div style="font-size:13px;color:#5A6468">SNOUTY akan bertanya balik bila ada detail yang belum jelas.</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;animation:snoutyStep .25s ease both">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;line-height:1.25">Temukan produk Pralon yang sesuai</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#5A6468;max-width:470px;text-wrap:pretty">SNOUTY akan membantu memahami kebutuhan Anda dan mencocokkannya dengan produk Pralon yang relevan.</div>
+              </div>
+              <div style="border:1px solid #E6EAE9;border-radius:9px;overflow:hidden">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+                  <div style="padding:16px;border-right:1px solid #EFF2F1;display:flex;flex-direction:column;gap:6px">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8A9295;letter-spacing:.06em">01 · CERITA ANDA</div>
+                    <div style="font-size:13.5px;font-weight:500">Kebutuhan</div>
+                    <div style="font-size:12.5px;color:#5A6468;line-height:1.5">Rumah 2 lantai, 3 kamar mandi, toren atap.</div>
+                  </div>
+                  <div style="padding:16px;border-right:1px solid #EFF2F1;display:flex;flex-direction:column;gap:6px;background:#FBFCFB">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8A9295;letter-spacing:.06em">02 · SNOUTY</div>
+                    <div style="font-size:13.5px;font-weight:500">Analisis</div>
+                    <div style="font-size:12.5px;color:#5A6468;line-height:1.5">Titik air, jalur utama, cabang, dan ukuran pipa.</div>
+                  </div>
+                  <div style="padding:16px;display:flex;flex-direction:column;gap:6px">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#B02414;letter-spacing:.06em">03 · HASIL</div>
+                    <div style="font-size:13.5px;font-weight:500">Produk Pralon</div>
+                    <div style="font-size:12.5px;color:#5A6468;line-height:1.5">PVC AW 1" &amp; 3/4", fitting sepadan, alasannya jelas.</div>
+                  </div>
+                </div>
+                <div style="padding:11px 16px;border-top:1px solid #EFF2F1;font-size:12.5px;color:#5A6468;line-height:1.5">Rekomendasi hanya diambil dari katalog Pralon, dan setiap saran disertai alasan teknisnya.</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isStep4 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;animation:snoutyStep .25s ease both">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;line-height:1.25">Bantu kami memahami kebutuhan di wilayah Anda</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#5A6468;max-width:480px;text-wrap:pretty">Dengan mengaktifkan lokasi, SNOUTY dapat membantu Pralon memahami pola kebutuhan produk berdasarkan wilayah dan meningkatkan analisis pasar.</div>
+              </div>
+
+              <sc-if value="{{ locAsk }}" hint-placeholder-val="{{ true }}">
+                <div style="border:1px solid #E6EAE9;border-radius:9px;padding:16px;display:flex;flex-direction:column;gap:11px;background:#FBFCFB">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8A9295;letter-spacing:.07em">YANG PERLU ANDA TAHU</div>
+                  <div style="display:flex;gap:10px;font-size:13px;color:#42484B;line-height:1.55"><span style="color:#B02414">·</span>Berbagi lokasi bersifat opsional.</div>
+                  <div style="display:flex;gap:10px;font-size:13px;color:#42484B;line-height:1.55"><span style="color:#B02414">·</span>SNOUTY tetap bisa digunakan tanpa lokasi.</div>
+                  <div style="display:flex;gap:10px;font-size:13px;color:#42484B;line-height:1.55"><span style="color:#B02414">·</span>Data wilayah dipakai untuk analisis kebutuhan pasar, bukan untuk menentukan rekomendasi.</div>
+                  <div style="display:flex;gap:10px;font-size:13px;color:#42484B;line-height:1.55"><span style="color:#B02414">·</span>Tingkat detail cukup di level kota/kabupaten.</div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ locGranted }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid #BFE3CD;background:#F1FAF4;border-radius:9px;padding:16px;display:flex;flex-direction:column;gap:7px">
+                  <div style="display:flex;align-items:center;gap:9px"><div style="width:16px;height:16px;border-radius:50%;background:#1E7A4C;color:#FFFFFF;font-size:10px;display:flex;align-items:center;justify-content:center">✓</div><div style="font-size:14px;font-weight:600;color:#12613B">Lokasi berhasil diaktifkan</div></div>
+                  <div style="font-size:13px;line-height:1.55;color:#2E6C4C">Terima kasih. Informasi wilayah dapat membantu meningkatkan insight kebutuhan pasar. Anda bisa menonaktifkannya kapan saja dari pengaturan.</div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ locDenied }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid #E6EAE9;background:#FBFCFB;border-radius:9px;padding:16px;display:flex;flex-direction:column;gap:7px">
+                  <div style="font-size:14px;font-weight:600">Tidak masalah, kita lanjut saja</div>
+                  <div style="font-size:13px;line-height:1.55;color:#5A6468">SNOUTY tetap bekerja penuh tanpa lokasi. Anda bisa mengaktifkannya nanti dari menu bantuan.</div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ locBlocked }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1px solid #F0DFC0;background:#FDF8EF;border-radius:9px;padding:16px;display:flex;flex-direction:column;gap:7px">
+                  <div style="font-size:14px;font-weight:600;color:#8A5300">Izin lokasi diblokir oleh browser</div>
+                  <div style="font-size:13px;line-height:1.55;color:#7A5518">Anda tetap dapat menggunakan SNOUTY. Bila ingin mengaktifkannya, ubah izin lokasi untuk situs ini pada pengaturan browser Anda.</div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isStep5 }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:18px;animation:snoutyStep .25s ease both">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="font-size:23px;font-weight:600;letter-spacing:-0.02em;line-height:1.25">Ingin pengalaman yang lebih lengkap?</div>
+                <div style="font-size:14.5px;line-height:1.6;color:#5A6468;max-width:470px;text-wrap:pretty">Daftar akun untuk menyimpan percakapan, melihat kembali konsultasi, dan mencoba analisis studi kasus yang lebih lengkap.</div>
+              </div>
+              <div style="border:1px solid #E6EAE9;border-radius:9px;overflow:hidden">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">
+                  <sc-for list="{{ benefits }}" as="b" hint-placeholder-count="6">
+                    <div style="padding:12px 15px;border-bottom:1px solid #F3F5F4;display:flex;align-items:center;gap:10px">
+                      <span style="font-size:11px;color:{{ b.tone }};flex:none">✓</span>
+                      <span style="font-size:13px;color:#20262A">{{ b.label }}</span>
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8A9295;margin-left:auto;flex:none">{{ b.tag }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="padding:12px 15px;background:#FBFCFB;font-size:12.5px;color:#5A6468;line-height:1.5">Analisis studi kasus dan pembuatan skema perpipaan tersedia pada pengalaman terdaftar. Tanpa akun, Anda tetap bisa berkonsultasi dan melihat rekomendasi produk.</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <!-- actions -->
+        <div style="flex:none;padding:16px 24px;border-top:1px solid #EFF2F1;background:#FBFCFB;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div onClick="{{ dismiss }}" style="font-size:12.5px;color:#5A6468;cursor:pointer;padding:6px 2px" style-hover="color:#B02414">{{ skipLabel }}</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-left:auto">
+            <sc-if value="{{ canBack }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ prev }}" style="font-size:13px;color:#2B3134;border:1px solid #DDE2E1;background:#FFFFFF;border-radius:6px;padding:9px 15px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">Kembali</div>
+            </sc-if>
+            <sc-if value="{{ hasSecondary }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ secondary }}" style="font-size:13px;color:#2B3134;border:1px solid #DDE2E1;background:#FFFFFF;border-radius:6px;padding:9px 15px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">{{ secondaryLabel }}</div>
+            </sc-if>
+            <div onClick="{{ primary }}" style="font-size:13px;font-weight:500;color:#FFFFFF;background:#DF301C;border-radius:6px;padding:9px 20px;cursor:pointer" style-hover="background:#B02414">{{ primaryLabel }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ closed }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:10px;padding:22px 24px;display:flex;flex-direction:column;gap:11px;max-width:420px;box-shadow:0 10px 30px rgba(20,24,26,.1)">
+        <div style="font-size:15px;font-weight:600">{{ closedTitle }}</div>
+        <div style="font-size:13.5px;line-height:1.6;color:#5A6468">Onboarding tidak akan muncul lagi otomatis pada kunjungan berikutnya. Nanti dapat dibuka manual dari menu bantuan.</div>
+        <div onClick="{{ reopen }}" style="align-self:flex-start;font-size:12.5px;font-weight:500;color:#FFFFFF;background:#DF301C;border-radius:6px;padding:8px 14px;cursor:pointer" style-hover="background:#B02414">Tampilkan onboarding lagi</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showDemo }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;left:16px;bottom:16px;display:flex;align-items:center;gap:8px;background:#FFFFFF;border:1px solid #DDE2E1;border-radius:8px;padding:8px 10px;box-shadow:0 6px 18px rgba(20,24,26,.1);z-index:50;flex-wrap:wrap;max-width:calc(100% - 32px)">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8A9295;letter-spacing:.07em">DEMO</span>
+      <div onClick="{{ simGrant }}" style="font-size:11.5px;color:#2B3134;border:1px solid #DDE2E1;border-radius:5px;padding:5px 9px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">Izin diterima</div>
+      <div onClick="{{ simBlock }}" style="font-size:11.5px;color:#2B3134;border:1px solid #DDE2E1;border-radius:5px;padding:5px 9px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">Izin diblokir</div>
+      <div onClick="{{ resetDemo }}" style="font-size:11.5px;color:#2B3134;border:1px solid #DDE2E1;border-radius:5px;padding:5px 9px;cursor:pointer" style-hover="border-color:#DF301C;color:#B02414">Reset first-visit</div>
+      <span style="font-size:11px;color:#8A9295">Keyboard: ← → Esc</span>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:820}}">
+const KEY = 'snouty_onboarding_state';
+
+const BENEFITS = [
+  { label:'Riwayat percakapan', tag:'AKUN' },
+  { label:'Simpan hasil konsultasi', tag:'AKUN' },
+  { label:'Analisis studi kasus', tag:'LANJUTAN' },
+  { label:'Estimasi kebutuhan material', tag:'LANJUTAN' },
+  { label:'Rekomendasi produk Pralon', tag:'TAMU JUGA' },
+  { label:'Visualisasi skema perpipaan', tag:'LANJUTAN' }
+];
+
+class Component extends DCLogic {
+  state = { step: 1, open: true, closed: false, closedWhy: '', loc: 'ask', narrow: false };
+
+  componentDidMount() {
+    try {
+      const saved = localStorage.getItem(KEY);
+      if (saved) this.setState({ open:false, closed:true, closedWhy: saved });
+    } catch (e) {}
+    this.onResize = () => this.setState({ narrow: window.innerWidth < 720 });
+    this.onResize();
+    window.addEventListener('resize', this.onResize);
+    this.onKey = e => {
+      if (!this.state.open) return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); this.next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); this.prev(); }
+      else if (e.key === 'Enter') { e.preventDefault(); this.next(); }
+      else if (e.key === 'Escape') { e.preventDefault(); this.finish('skip'); }
+    };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('keydown', this.onKey);
+  }
+
+  next = () => {
+    if (this.state.step >= 5) { this.finish('done'); return; }
+    this.setState(s => ({ step: Math.min(s.step + 1, 5) }));
+  };
+  prev = () => this.setState(s => ({ step: Math.max(s.step - 1, 1) }));
+
+  finish = (why) => {
+    try { localStorage.setItem(KEY, why); } catch (e) {}
+    this.setState({ open:false, closed:true, closedWhy: why });
+  };
+
+  askLocation = () => {
+    if (!navigator.geolocation) { this.setState({ loc:'blocked' }); return; }
+    this.setState({ loc:'pending' });
+    navigator.geolocation.getCurrentPosition(
+      () => this.setState({ loc:'granted' }),
+      err => this.setState({ loc: err && err.code === 1 ? 'blocked' : 'denied' }),
+      { timeout: 6000, maximumAge: 600000 }
+    );
+  };
+
+  renderVals() {
+    const s = this.state;
+    const step = s.step;
+    const locResolved = s.loc !== 'ask' && s.loc !== 'pending';
+
+    let primaryLabel = 'Lanjut', primary = this.next;
+    let secondaryLabel = '', secondary = null, hasSecondary = false;
+
+    if (step === 4 && !locResolved) {
+      primaryLabel = s.loc === 'pending' ? 'Meminta izin…' : 'Aktifkan Lokasi';
+      primary = s.loc === 'pending' ? (() => {}) : this.askLocation;
+      secondaryLabel = 'Nanti Saja'; hasSecondary = true;
+      secondary = () => { this.setState({ loc:'denied' }); setTimeout(this.next, 450); };
+    } else if (step === 5) {
+      primaryLabel = 'Daftar Akun'; primary = () => this.finish('done');
+      secondaryLabel = 'Lanjut sebagai Tamu'; hasSecondary = true;
+      secondary = () => this.finish('guest');
+    }
+
+    return {
+      open: s.open, closed: s.closed,
+      closedTitle: s.closedWhy === 'done' ? 'Onboarding selesai' : (s.closedWhy === 'guest' ? 'Lanjut sebagai tamu' : 'Onboarding dilewati'),
+      reopen: () => { try { localStorage.removeItem(KEY); } catch (e) {} this.setState({ open:true, closed:false, step:1, loc:'ask' }); },
+
+      isStep1: step === 1, isStep2: step === 2, isStep3: step === 3, isStep4: step === 4, isStep5: step === 5,
+      dots: [1,2,3,4,5].map(i => ({
+        w: i === step ? '22px' : '7px',
+        tone: i === step ? '#DF301C' : (i < step ? '#F6C3BB' : '#E6EAE9'),
+        go: () => this.setState({ step:i })
+      })),
+
+      canBack: step > 1,
+      skipLabel: step === 5 ? 'Lewati untuk sekarang' : 'Lewati',
+      dismiss: () => this.finish('skip'),
+      prev: this.prev,
+      primary, primaryLabel, secondary, secondaryLabel, hasSecondary,
+
+      locAsk: s.loc === 'ask' || s.loc === 'pending',
+      locGranted: s.loc === 'granted',
+      locDenied: s.loc === 'denied',
+      locBlocked: s.loc === 'blocked',
+
+      benefits: BENEFITS.map(b => ({ ...b, tone: b.tag === 'TAMU JUGA' ? '#1E7A4C' : '#DF301C' })),
+
+      sheetAlign: s.narrow ? 'flex-end' : 'center',
+      sheetPad: s.narrow ? '0' : '24px',
+      sheetMax: s.narrow ? '100%' : '580px',
+      sheetRadius: s.narrow ? '14px 14px 0 0' : '12px',
+
+      showDemo: true,
+      simGrant: () => this.setState({ step:4, loc:'granted', open:true, closed:false }),
+      simBlock: () => this.setState({ step:4, loc:'blocked', open:true, closed:false }),
+      resetDemo: () => { try { localStorage.removeItem(KEY); } catch (e) {} this.setState({ open:true, closed:false, step:1, loc:'ask' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

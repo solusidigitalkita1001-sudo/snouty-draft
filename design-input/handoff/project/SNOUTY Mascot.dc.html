@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  body { margin:0; background:#EDEFEE; font-family:"IBM Plex Sans", system-ui, sans-serif; color:#14181A; -webkit-font-smoothing:antialiased; }
+  * { box-sizing:border-box; }
+  a { color:#DF301C; text-decoration:none; }
+  a:hover { color:#B02414; text-decoration:underline; }
+
+  @keyframes mkWriteLong { 0.00% { transform:translate(-17.22%,-0.16%) rotate(0deg) } 1.72% { transform:translate(-18.05%,-0.94%) rotate(-2deg) } 3.44% { transform:translate(-17.42%,-1.98%) rotate(0deg) } 5.17% { transform:translate(-16.26%,-2.47%) rotate(-2deg) } 6.89% { transform:translate(-15.00%,-2.52%) rotate(0deg) } 8.61% { transform:translate(-13.80%,-2.12%) rotate(-2deg) } 10.33% { transform:translate(-12.99%,-1.19%) rotate(0deg) } 12.06% { transform:translate(-13.53%,-0.19%) rotate(-2deg) } 13.78% { transform:translate(-14.57%,-0.69%) rotate(0deg) } 15.50% { transform:translate(-14.17%,-1.82%) rotate(-2deg) } 17.22% { transform:translate(-13.06%,-2.42%) rotate(0deg) } 18.94% { transform:translate(-11.80%,-2.54%) rotate(-2deg) } 20.67% { transform:translate(-10.58%,-2.24%) rotate(0deg) } 22.39% { transform:translate(-9.64%,-1.43%) rotate(-2deg) } 24.11% { transform:translate(-9.85%,-0.30%) rotate(0deg) } 25.83% { transform:translate(-11.00%,-0.47%) rotate(-2deg) } 27.56% { transform:translate(-10.89%,-1.64%) rotate(0deg) } 29.28% { transform:translate(-9.86%,-2.34%) rotate(-2deg) } 31.00% { transform:translate(-8.61%,-2.55%) rotate(0deg) } 32.72% { transform:translate(-7.37%,-2.34%) rotate(-2deg) } 34.44% { transform:translate(-6.33%,-1.64%) rotate(0deg) } 36.17% { transform:translate(-6.22%,-0.47%) rotate(-2deg) } 37.89% { transform:translate(-7.37%,-0.30%) rotate(0deg) } 39.61% { transform:translate(-7.59%,-1.43%) rotate(-2deg) } 41.33% { transform:translate(-6.64%,-2.24%) rotate(0deg) } 43.06% { transform:translate(-5.42%,-2.54%) rotate(-2deg) } 44.78% { transform:translate(-4.17%,-2.42%) rotate(0deg) } 46.50% { transform:translate(-3.06%,-1.82%) rotate(-2deg) } 48.22% { transform:translate(-2.66%,-0.69%) rotate(0deg) } 49.94% { transform:translate(-3.70%,-0.19%) rotate(-2deg) } 51.67% { transform:translate(-4.24%,-1.19%) rotate(0deg) } 53.39% { transform:translate(-3.42%,-2.12%) rotate(-2deg) } 55.11% { transform:translate(-2.23%,-2.52%) rotate(0deg) } 56.83% { transform:translate(-0.97%,-2.47%) rotate(-2deg) } 58.56% { transform:translate(0.19%,-1.98%) rotate(0deg) } 60.28% { transform:translate(0.83%,-0.94%) rotate(-2deg) } 62.00% { transform:translate(0.00%,-0.16%) rotate(0deg) } 66% { transform:translate(1.91%,-3.6%) rotate(3deg) } 70% { transform:translate(1.91%,-2.07%) rotate(0) } 74% { transform:translate(3.51%,-0.32%) rotate(-2deg) } 78% { transform:translate(6.7%,-4.15%) rotate(0) } 82% { transform:translate(4%,-5%) rotate(5deg) } 86%,89% { transform:translate(0,0) rotate(0) } 94% { transform:translate(-8%,-3.5%) rotate(5deg) } 100% { transform:translate(-17.22%,-0.16%) rotate(0) } }
+  @keyframes mkInkLong { 0% { stroke-dashoffset:1; opacity:1 } 62% { stroke-dashoffset:0; opacity:1 } 88% { stroke-dashoffset:0; opacity:1 } 96%,100% { stroke-dashoffset:0; opacity:0 } }
+  @keyframes mkTickLong { 0%,69% { stroke-dashoffset:1; opacity:0 } 70% { stroke-dashoffset:1; opacity:1 } 78% { stroke-dashoffset:0; opacity:1 } 88% { stroke-dashoffset:0; opacity:1 } 96%,100% { stroke-dashoffset:0; opacity:0 } }
+  @keyframes mkLookWrite { 0% { transform:translate(-24%,18%) } 62% { transform:translate(20%,18%) } 78%,88% { transform:translate(24%,14%) } 100% { transform:translate(-24%,18%) } }
+  @keyframes mkTap { 0%,78%,100% { transform:rotate(0) } 82% { transform:rotate(-7deg) } 85% { transform:rotate(0) } 88% { transform:rotate(-7deg) } 91% { transform:rotate(0) } }
+  @keyframes mkNod { 0%,100% { transform:translateY(0) rotate(0) } 25% { transform:translateY(.6%) rotate(-1.2deg) } 50% { transform:translateY(0) rotate(0) } 75% { transform:translateY(.6%) rotate(1.2deg) } }
+
+  @keyframes mkStartle { 0%,58%,100% { transform:translateY(0) scale(1) } 62% { transform:translateY(-4%) scale(.97,1.05) } 68% { transform:translateY(0) scale(1.03,.97) } 74% { transform:translateY(0) scale(1) } }
+  @keyframes mkEyePop { 0%,58%,100% { transform:scale(1) } 62% { transform:scale(1.45) } 70%,90% { transform:scale(1.3) } }
+  @keyframes mkBang { 0%,58% { transform:translateY(20%) scale(.3); opacity:0 } 64% { transform:translateY(-10%) scale(1.2); opacity:1 } 70%,90% { transform:translateY(0) scale(1); opacity:1 } 96%,100% { opacity:0 } }
+  @keyframes mkQ { 0%,100% { transform:translateY(0) rotate(-8deg) } 50% { transform:translateY(-14%) rotate(8deg) } }
+  @keyframes mkSquint { 0%,40%,100% { transform:scaleY(.35) } 50%,90% { transform:scaleY(.55) } }
+  @keyframes mkSweat { 0%,10% { transform:translateY(0) scale(0); opacity:0 } 20% { transform:translateY(0) scale(1); opacity:1 } 75% { transform:translateY(260%) scale(.9,1.1); opacity:1 } 85%,100% { transform:translateY(300%) scale(.8); opacity:0 } }
+  @keyframes mkSlump { 0%,100% { transform:translateY(0) } 50% { transform:translateY(1.2%) } }
+  @keyframes mkWinkSpark { 0%,30%,100% { transform:scale(0) rotate(45deg) } 42% { transform:scale(1.2) rotate(45deg) } 56% { transform:scale(.9) rotate(45deg) } 70% { transform:scale(0) rotate(45deg) } }
+  @keyframes mkWinkEye { 0%,26%,74%,100% { transform:scaleY(1) } 32%,68% { transform:scaleY(.08) } }
+  @keyframes mkWinkArc { 0%,28%,72%,100% { opacity:0 } 32%,68% { opacity:1 } }
+  @keyframes mkHeart { 0% { transform:translate(0,0) scale(.3); opacity:0 } 15% { transform:translate(0,-20%) scale(1.1); opacity:1 } 100% { transform:translate(30%,-240%) scale(.8); opacity:0 } }
+  @keyframes mkBlush { 0%,100% { opacity:.55 } 50% { opacity:.95 } }
+  @keyframes mkSway { 0%,100% { transform:rotate(-2.5deg) } 50% { transform:rotate(2.5deg) } }
+  @keyframes mkScan { 0%,100% { transform:translateX(-30%) } 50% { transform:translateX(30%) } }
+  @keyframes mkBeam { 0%,100% { transform:translateY(-40%); opacity:0 } 10%,90% { opacity:.9 } 50% { transform:translateY(40%); opacity:.9 } }
+
+  @keyframes mkShake { 0%,100% { transform:translateX(0) rotate(0) } 4% { transform:translateX(-2%) rotate(-2deg) } 8% { transform:translateX(2%) rotate(2deg) } 12% { transform:translateX(-1.5%) rotate(-1.5deg) } 16% { transform:translateX(1%) rotate(1deg) } 20% { transform:translateX(0) rotate(0) } 60% { transform:translateY(0) } 70% { transform:translateY(1%) } 80% { transform:translateY(0) } }
+  @keyframes mkSprayA { 0%,18% { transform:translate(0,0) scale(0); opacity:0 } 22% { transform:translate(0,0) scale(1); opacity:1 } 55% { transform:translate(-300%,-360%) scale(1); opacity:1 } 85% { transform:translate(-520%,-60%) scale(.8); opacity:0 } 100% { opacity:0 } }
+  @keyframes mkSprayB { 0%,22% { transform:translate(0,0) scale(0); opacity:0 } 26% { transform:translate(0,0) scale(1); opacity:1 } 58% { transform:translate(-120%,-470%) scale(1); opacity:1 } 90% { transform:translate(-220%,-160%) scale(.8); opacity:0 } 100% { opacity:0 } }
+  @keyframes mkSprayC { 0%,26% { transform:translate(0,0) scale(0); opacity:0 } 30% { transform:translate(0,0) scale(1); opacity:1 } 60% { transform:translate(-460%,-200%) scale(1); opacity:1 } 92% { transform:translate(-700%,60%) scale(.8); opacity:0 } 100% { opacity:0 } }
+  @keyframes mkCrack { 0%,14% { stroke-dashoffset:1 } 22%,100% { stroke-dashoffset:0 } }
+  @keyframes mkXeye { 0%,18% { transform:scale(.6) rotate(0) } 24% { transform:scale(1.15) rotate(0) } 30%,100% { transform:scale(1) rotate(0) } }
+  @keyframes mkPuddle { 0%,40% { transform:scaleX(0); opacity:0 } 70%,90% { transform:scaleX(1); opacity:1 } 100% { transform:scaleX(1); opacity:0 } }
+  @keyframes mkBob { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-2.6%) } }
+  @keyframes mkBreath { 0%,100% { transform:scaleY(1) } 50% { transform:scaleY(1.018) } }
+  @keyframes mkTilt { 0%,100% { transform:rotate(-4deg) } 50% { transform:rotate(4deg) } }
+  @keyframes mkHop { 0%,62%,100% { transform:translateY(0) scale(1) } 70% { transform:translateY(-7%) scale(1.03,.98) } 78% { transform:translateY(0) scale(1.04,.95) } 84% { transform:translateY(-2%) scale(.99,1.02) } 90% { transform:translateY(0) scale(1) } }
+  @keyframes mkBlink { 0%,91%,97%,100% { transform:scaleY(1) } 94% { transform:scaleY(.08) } }
+  @keyframes mkBlink2 { 0%,84%,100% { transform:scaleY(1) } 86% { transform:scaleY(.08) } 88% { transform:scaleY(1) } 90% { transform:scaleY(.08) } 92% { transform:scaleY(1) } }
+  @keyframes mkLook { 0%,28%,100% { transform:translate(0,0) } 34%,50% { transform:translate(-24%,2%) } 56%,72% { transform:translate(22%,4%) } 78%,94% { transform:translate(0,0) } }
+  @keyframes mkLookDown { 0%,100% { transform:translate(18%,16%) } 50% { transform:translate(8%,20%) } }
+  @keyframes mkLookUp { 0%,100% { transform:translate(-20%,-18%) } 50% { transform:translate(18%,-20%) } }
+  @keyframes mkLookDrip { 0%,18% { transform:translate(-28%,10%) } 30%,58% { transform:translate(-28%,28%) } 72%,100% { transform:translate(-28%,10%) } }
+  @keyframes mkShine { 0% { background-position:170% 0 } 30%,100% { background-position:-70% 0 } }
+  @keyframes mkWrite { 0% { transform:translate(-5%,.6%) rotate(0) } 12% { transform:translate(-4.2%,-.3%) rotate(-1.5deg) } 24% { transform:translate(-3.4%,.6%) rotate(0) } 36% { transform:translate(-2.6%,-.3%) rotate(-1.5deg) } 48% { transform:translate(-1.8%,.6%) rotate(0) } 60% { transform:translate(-1%,-.3%) rotate(-1.5deg) } 72%,84% { transform:translate(0,0) rotate(0) } 92% { transform:translate(-2.5%,-3%) rotate(3deg) } 100% { transform:translate(-5%,.6%) rotate(0) } }
+  @keyframes mkInk { 0% { stroke-dashoffset:1; opacity:1 } 72% { stroke-dashoffset:0; opacity:1 } 86% { stroke-dashoffset:0; opacity:1 } 96%,100% { stroke-dashoffset:0; opacity:0 } }
+  @keyframes mkDrop { 0% { transform:translateY(0) scale(0); opacity:1 } 16% { transform:translateY(0) scale(1); opacity:1 } 24% { transform:translateY(20%) scale(.95,1.08); opacity:1 } 58% { transform:translateY(470%) scale(.9,1.12); opacity:1 } 64%,100% { transform:translateY(520%) scale(1.5,.2); opacity:0 } }
+  @keyframes mkZ { 0% { transform:translate(0,0) scale(.6); opacity:0 } 20% { opacity:1 } 100% { transform:translate(60%,-160%) scale(1.15); opacity:0 } }
+  @keyframes mkThought { 0%,100% { transform:scale(.85); opacity:.5 } 50% { transform:scale(1); opacity:1 } }
+  @keyframes mkSpark { 0%,55%,100% { transform:scale(0) rotate(45deg) } 70% { transform:scale(1.15) rotate(45deg) } 85% { transform:scale(.9) rotate(45deg) } }
+  @keyframes snBob { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-10px) } }
+  @keyframes snShadow { 0%,100% { transform:scaleX(1); opacity:.22 } 50% { transform:scaleX(.82); opacity:.12 } }
+  @keyframes snWave { 0%,60%,100% { transform:rotate(0) } 10% { transform:rotate(-9deg) } 22% { transform:rotate(7deg) } 34% { transform:rotate(-6deg) } 46% { transform:rotate(3deg) } }
+  @keyframes snTilt { 0%,100% { transform:rotate(-5deg) } 50% { transform:rotate(5deg) } }
+  @keyframes snPop { 0%,70%,100% { transform:translateY(0) scale(1) } 78% { transform:translateY(-22px) scale(1.06) } 86% { transform:translateY(0) scale(.96,1.04) } 92% { transform:translateY(-6px) scale(1.01) } }
+  @keyframes snPeek { 0%,15% { transform:translateY(70%) } 30%,75% { transform:translateY(22%) } 90%,100% { transform:translateY(70%) } }
+  @keyframes snDot { 0%,100% { opacity:.25; transform:translateY(0) } 50% { opacity:1; transform:translateY(-3px) } }
+  @keyframes snFlow { from { background-position:0 0 } to { background-position:40px 0 } }
+  @keyframes snBubble { 0%,8% { opacity:0; transform:translateY(6px) scale(.96) } 14%,88% { opacity:1; transform:none } 96%,100% { opacity:0; transform:translateY(-4px) } }
+  @keyframes snStamp { 0%,70% { opacity:0; transform:scale(1.6) rotate(-12deg) } 78% { opacity:1; transform:scale(.92) rotate(-12deg) } 84%,100% { opacity:1; transform:scale(1) rotate(-12deg) } }
+</style>
+</helmet>
+
+<section style="padding:64px 72px 0;display:flex;flex-direction:column;gap:14px">
+  <div id="4a" style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#B02414;border:1px solid #F6C3BB;background:#FDECE9;padding:4px 8px;border-radius:4px">4a</div>
+      <div style="font-size:13px;font-weight:500">Gagal — pipa bocor, mata silang</div>
+    </div>
+    <div style="width:1440px;display:grid;grid-template-columns:460px minmax(0,1fr);gap:20px">
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:360px;background:#FFF4F2;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.fail }}</div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span style="font-size:16px;font-weight:600">Gagal</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">SHAKE · X EYES · CRACK · SPRAY</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Badan tersentak, mata silang, pipa retak dan menyemprot air, lalu genangan kecil di bawah. Lucu, tapi tetap jelas ada yang salah.</div>
+        </div>
+      </div>
+
+      <div style="background:#F7F8F7;border:1px solid #DDE2E1;border-radius:12px;padding:28px;display:flex;flex-direction:column;gap:18px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468;letter-spacing:.07em">DI DALAM PRODUK</div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+          <div style="background:#FFFFFF;border:1px solid #E6EAE9;border-radius:10px;padding:20px;display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+            <div style="width:120px;height:120px;margin:-6px 0 -4px -8px">{{ failSmall }}</div>
+            <div style="font-size:16px;font-weight:600">Gagal menyusun rekomendasi</div>
+            <div style="font-size:13.5px;line-height:1.55;color:#5A6468;text-wrap:pretty">Koneksi ke katalog Pralon terputus di tengah analisis. Kebutuhan Anda tetap tersimpan, jadi tidak perlu mengetik ulang.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <div style="background:#DF301C;color:#FFFFFF;font-size:13px;font-weight:500;padding:9px 16px;border-radius:6px">Coba lagi</div>
+              <div style="border:1px solid #DDE2E1;background:#FFFFFF;font-size:13px;color:#2B3134;padding:9px 16px;border-radius:6px">Kembali ke percakapan</div>
+            </div>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #E6EAE9;border-radius:10px;padding:20px;display:flex;flex-direction:column;align-items:flex-start;gap:12px">
+            <div style="width:120px;height:120px;margin:-6px 0 -4px -8px">{{ failSmall2 }}</div>
+            <div style="font-size:16px;font-weight:600">Laporan gagal diunduh</div>
+            <div style="font-size:13.5px;line-height:1.55;color:#5A6468;text-wrap:pretty">File PDF belum berhasil dibuat. Coba unduh ulang, atau kirim laporan ke email Anda.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <div style="background:#DF301C;color:#FFFFFF;font-size:13px;font-weight:500;padding:9px 16px;border-radius:6px">Unduh ulang</div>
+              <div style="border:1px solid #DDE2E1;background:#FFFFFF;font-size:13px;color:#2B3134;padding:9px 16px;border-radius:6px">Kirim ke email</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:#FFFFFF;border:1px solid #E6EAE9;border-radius:10px;padding:10px 14px 10px 10px">
+          <div style="width:44px;height:44px;flex:none">{{ failTiny }}</div>
+          <div style="flex:1;font-size:13.5px;color:#20262A">Pesan belum terkirim. Periksa koneksi internet Anda.</div>
+          <div style="font-size:13px;font-weight:500;color:#B02414">Kirim ulang</div>
+        </div>
+        <div style="font-size:12.5px;line-height:1.55;color:#5A6468;text-wrap:pretty">Aturan pakai: animasi gagal diputar sekali saat error muncul, lalu diam di frame akhir. Jangan dipakai untuk kasus "di luar cakupan" (gunakan Fokus) atau data kurang (gunakan Bingung). Gagal hanya untuk error sistem.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding:64px 72px 0;display:flex;flex-direction:column;gap:14px">
+  <div id="3a" style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#B02414;border:1px solid #F6C3BB;background:#FDECE9;padding:4px 8px;border-radius:4px">3a</div>
+      <div style="font-size:13px;font-weight:500">Ekspresi tambahan — alis, pipi merona, keringat, tanda baca</div>
+    </div>
+    <div style="width:1440px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#FDF1EF;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.surprised }}</div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span style="font-size:15.5px;font-weight:600">Kaget</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468">EYE POP · STARTLE · !</span></div>
+          <div style="font-size:13px;line-height:1.55;color:#5A6468">Saat user menyebut skenario tak terduga, atau hasil berubah drastis setelah edit.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#FDF8EF;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.confused }}</div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span style="font-size:15.5px;font-weight:600">Bingung</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468">SQUINT · BROW · ?</span></div>
+          <div style="font-size:13px;line-height:1.55;color:#5A6468">Kalimat user belum bisa dipahami. Dipasangkan dengan pertanyaan klarifikasi.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#EEF6FB;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.sorry }}</div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span style="font-size:15.5px;font-weight:600">Maaf</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468">SAD BROWS · SWEAT</span></div>
+          <div style="font-size:13px;line-height:1.55;color:#5A6468">Error, koneksi putus, atau data produk belum tersedia di katalog.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#FFFFFF;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.wink }}</div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span style="font-size:15.5px;font-weight:600">Kedip</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468">WINK · SPARK</span></div>
+          <div style="font-size:13px;line-height:1.55;color:#5A6468">Tips kecil, shortcut, atau "tahukah Anda" soal produk Pralon.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#FDECE9;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.thanks }}</div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span style="font-size:15.5px;font-weight:600">Terima kasih</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468">HAPPY EYES · BLUSH · ♥</span></div>
+          <div style="font-size:13px;line-height:1.55;color:#5A6468">Setelah feedback, solusi disimpan, atau pendaftaran akun berhasil.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#F7F8F7;background-image:radial-gradient(#DDE2E1 1px,transparent 1px);background-size:20px 20px;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.focus }}</div>
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span style="font-size:15.5px;font-weight:600">Fokus</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A6468">NARROW EYES · SCAN</span></div>
+          <div style="font-size:13px;line-height:1.55;color:#5A6468">Validasi teknis atau pengecekan detail. Mata menyipit, garis pindai menyapu pipa.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding:64px 72px 0;display:flex;flex-direction:column;gap:14px">
+  <div id="2a" style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#B02414;border:1px solid #F6C3BB;background:#FDECE9;padding:4px 8px;border-radius:4px">2a</div>
+      <div style="font-size:13px;font-weight:500">Snouty hidup — mata, pensil, dan pipa bisa bergerak sendiri-sendiri</div>
+    </div>
+    <div style="width:1440px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;position:relative;background:#FDF1EF;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.idle }}</div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:16px;font-weight:600">Siaga</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">BLINK · GLANCE · SHINE</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Default di welcome dan sidebar. Berkedip, melirik kiri-kanan, helm berkilau sesekali.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;position:relative;background:#F7F8F7;background-image:radial-gradient(#DDE2E1 1px,transparent 1px);background-size:20px 20px;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.write }}</div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:16px;font-weight:600">Menulis</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">PENCIL · INK · EYES DOWN</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Saat menyusun rekomendasi. Pensil bergerak menulis di pipa, mata mengikuti ujung pensil.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;position:relative;background:#FFFFFF;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.think }}</div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:16px;font-weight:600">Berpikir</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">TILT · DOUBLE BLINK</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Menganalisis kebutuhan. Mata melirik ke atas, gelembung pikiran berdenyut.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;position:relative;background:#F1FAF4;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.happy }}</div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:16px;font-weight:600">Senang</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">HOP · HAPPY EYES · SPARK</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Solusi siap atau laporan terunduh. Mata tersenyum, melompat, kilau kecil.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;position:relative;background:#EEF6FB;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.drip }}</div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:16px;font-weight:600">Cek kebocoran</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">DRIP · EYES FOLLOW</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Loading ringan atau tips perawatan. Tetes air jatuh dari pipa, mata mengikutinya.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:300px;position:relative;background:#F1F3F2;display:flex;align-items:center;justify-content:center;overflow:hidden">{{ live.sleep }}</div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:16px;font-weight:600">Istirahat</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">BREATH · ZZZ</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Empty state, sesi idle, atau offline. Mata terpejam, bernapas pelan.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding:64px 72px 120px;display:flex;flex-direction:column;gap:64px">
+
+  <!-- HERO -->
+  <div id="1a" style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#B02414;border:1px solid #F6C3BB;background:#FDECE9;padding:4px 8px;border-radius:4px">1a</div>
+      <div style="font-size:13px;font-weight:500">Kenalan dengan maskot</div>
+    </div>
+    <div style="width:1440px;height:620px;border-radius:14px;overflow:hidden;position:relative;background:#FDF1EF;background-image:radial-gradient(#F4CFC7 1.2px,transparent 1.2px);background-size:26px 26px;display:flex;align-items:center">
+      <div style="position:absolute;left:0;right:0;bottom:0;height:150px;background:#DF301C"></div>
+      <div style="position:absolute;left:0;right:0;bottom:150px;height:6px;background:#B02414"></div>
+
+      <div style="position:relative;flex:1;padding:0 0 110px 88px;display:flex;flex-direction:column;gap:22px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#B02414;letter-spacing:.1em">MASKOT RESMI · PRALON PIPE SOLUTION ASSISTANT</div>
+        <div style="font-size:124px;font-weight:700;letter-spacing:-0.045em;line-height:.88;color:#14181A">Snouty.</div>
+        <div style="font-size:22px;line-height:1.45;color:#42484B;max-width:520px;text-wrap:pretty">Anjing laut insinyur yang selalu pakai helm proyek. Tenang, teliti, dan tidak pernah menebak ukuran pipa.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="background:#FFFFFF;border:1.5px solid #14181A;border-radius:22px;padding:8px 16px;font-size:14px;font-weight:500">Ramah</div>
+          <div style="background:#FFFFFF;border:1.5px solid #14181A;border-radius:22px;padding:8px 16px;font-size:14px;font-weight:500">Teliti</div>
+          <div style="background:#FFFFFF;border:1.5px solid #14181A;border-radius:22px;padding:8px 16px;font-size:14px;font-weight:500">Jujur soal batas</div>
+          <div style="background:#FFFFFF;border:1.5px solid #14181A;border-radius:22px;padding:8px 16px;font-size:14px;font-weight:500">Selalu Pralon</div>
+        </div>
+      </div>
+
+      <div style="position:relative;width:620px;height:100%;flex:none">
+        <div style="position:absolute;left:110px;top:70px;background:#FFFFFF;border:2px solid #14181A;border-radius:18px 18px 18px 4px;padding:14px 18px;font-size:17px;font-weight:500;max-width:270px;line-height:1.4;box-shadow:4px 4px 0 #14181A;animation:snBubble 6s ease-in-out infinite;z-index:2">Halo! Ceritakan rumahmu, biar aku hitung pipanya.</div>
+        <div style="position:absolute;left:185px;bottom:124px;width:300px;height:26px;border-radius:50%;background:#14181A;animation:snShadow 3.2s ease-in-out infinite"></div>
+        <div style="position:absolute;left:150px;bottom:132px;width:380px;height:380px">{{ heroMascot }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOTION STATES -->
+  <div id="1b" style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#B02414;border:1px solid #F6C3BB;background:#FDECE9;padding:4px 8px;border-radius:4px">1b</div>
+      <div style="font-size:13px;font-weight:500">Gerak & ekspresi — bisa dipakai sekarang dengan ilustrasi yang ada</div>
+    </div>
+    <div style="width:1440px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#FDF1EF;display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
+          <div style="position:absolute;top:34px;left:50%;margin-left:14px;background:#FFFFFF;border:1.5px solid #14181A;border-radius:14px 14px 14px 3px;padding:9px 13px;font-size:14px;font-weight:500;box-shadow:3px 3px 0 #14181A;animation:snBubble 4s ease-in-out infinite">Halo, Budi!</div>
+          <img src="assets/snouty-mascot.png" alt="" style="width:200px;height:200px;object-fit:contain;margin-bottom:26px;transform-origin:50% 90%;animation:snWave 2.6s ease-in-out infinite">
+        </div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:16px;font-weight:600">Menyapa</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">WAVE · 2.6s</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Welcome screen, onboarding langkah 1, user kembali setelah lama.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#F7F8F7;background-image:radial-gradient(#DDE2E1 1px,transparent 1px);background-size:20px 20px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;overflow:hidden;gap:14px;padding-bottom:26px">
+          <div style="position:absolute;top:40px;right:70px;display:flex;gap:6px">
+            <div style="width:9px;height:9px;border-radius:50%;background:#DF301C;animation:snDot 1.1s ease-in-out infinite"></div>
+            <div style="width:9px;height:9px;border-radius:50%;background:#DF301C;animation:snDot 1.1s ease-in-out .18s infinite"></div>
+            <div style="width:9px;height:9px;border-radius:50%;background:#DF301C;animation:snDot 1.1s ease-in-out .36s infinite"></div>
+          </div>
+          <img src="assets/snouty-mascot.png" alt="" style="width:170px;height:170px;object-fit:contain;transform-origin:50% 85%;animation:snTilt 2.4s ease-in-out infinite">
+          <div style="width:220px;height:14px;border-radius:7px;border:2px solid #14181A;overflow:hidden;background:#FFFFFF">
+            <div style="width:64%;height:100%;background-color:#DF301C;background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 10px,transparent 10px 20px);animation:snFlow .8s linear infinite"></div>
+          </div>
+        </div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:16px;font-weight:600">Berpikir</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">TILT + FLOW · LOOP</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Analisis/processing. Progress bar-nya dibuat seperti air mengalir di pipa.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#F1FAF4;display:flex;align-items:flex-end;justify-content:center;overflow:hidden">
+          <div style="position:absolute;top:36px;right:64px;border:2.5px solid #1E7A4C;color:#1E7A4C;border-radius:8px;padding:6px 11px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;letter-spacing:.06em;background:#FFFFFF;animation:snStamp 2.8s ease-out infinite">SOLUSI SIAP</div>
+          <img src="assets/snouty-mascot.png" alt="" style="width:190px;height:190px;object-fit:contain;margin-bottom:26px;transform-origin:50% 100%;animation:snPop 2.8s ease-out infinite">
+        </div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:16px;font-weight:600">Berhasil</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">HOP + STAMP · 1×</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Sekali saat solusi selesai disusun atau laporan berhasil diunduh.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#FFFFFF;display:flex;align-items:center;justify-content:center;overflow:hidden">
+          <div style="width:300px;border:1px solid #E6EAE9;border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:8px;position:relative;z-index:2;background:#FFFFFF;margin-bottom:60px">
+            <div style="font-size:14px;font-weight:600">Belum ada solusi tersimpan</div>
+            <div style="font-size:12.5px;color:#5A6468;line-height:1.5">Simpan hasil konsultasi untuk dibandingkan nanti.</div>
+          </div>
+          <div style="position:absolute;bottom:0;left:0;right:0;height:120px;display:flex;justify-content:center;overflow:hidden">
+            <img src="assets/snouty-mascot.png" alt="" style="width:170px;height:170px;object-fit:contain;animation:snPeek 5s ease-in-out infinite">
+          </div>
+        </div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:16px;font-weight:600">Mengintip</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">PEEK · 5s</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Empty state: riwayat kosong, solusi tersimpan kosong, hasil pencarian nihil.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#FDF8EF;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;gap:0">
+          <div style="position:absolute;top:34px;left:36px;background:#FFFFFF;border:1.5px solid #14181A;border-radius:14px 14px 3px 14px;padding:9px 13px;font-size:13.5px;font-weight:500;max-width:190px;line-height:1.4;box-shadow:3px 3px 0 #14181A">Sumber airnya dari mana, ya?</div>
+          <div style="position:absolute;top:104px;left:44px;display:flex;gap:6px">
+            <div style="border:1.5px solid #14181A;background:#FFFFFF;border-radius:16px;padding:5px 11px;font-size:12px">Toren</div>
+            <div style="border:1.5px solid #14181A;background:#FFFFFF;border-radius:16px;padding:5px 11px;font-size:12px">PDAM</div>
+          </div>
+          <img src="assets/snouty-mascot.png" alt="" style="width:170px;height:170px;object-fit:contain;margin:0 20px 26px auto;transform:scaleX(-1) rotate(4deg)">
+        </div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:16px;font-weight:600">Bertanya</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">STATIC · MIRROR</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">Clarification: data belum lengkap. Tone amber, ramah, tidak menyalahkan.</div>
+        </div>
+      </div>
+
+      <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="height:280px;position:relative;background:#14181A;display:flex;align-items:center;justify-content:center;overflow:hidden;gap:26px">
+          <div style="width:128px;height:128px;border-radius:32px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;box-shadow:0 10px 30px rgba(0,0,0,.4)"></div>
+          <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+            <div style="width:56px;height:56px;border-radius:14px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%"></div>
+            <div style="width:32px;height:32px;border-radius:8px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%"></div>
+            <div style="width:24px;height:24px;border-radius:6px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%"></div>
+          </div>
+        </div>
+        <div style="padding:18px 20px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:16px;font-weight:600">Ikon & avatar</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5A6468">128 · 56 · 32 · 24</span></div>
+          <div style="font-size:13.5px;line-height:1.55;color:#5A6468">App icon, favicon, avatar chat. Di bawah 32px perlu versi garis lebih tebal.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSE LIBRARY -->
+  <div id="1c" style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#B02414;border:1px solid #F6C3BB;background:#FDECE9;padding:4px 8px;border-radius:4px">1c</div>
+      <div style="font-size:13px;font-weight:500">Pose library — drop hasil generate ke tiap slot</div>
+    </div>
+    <div style="width:1440px;background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;padding:22px 24px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div style="font-size:15px;font-weight:600">Prompt dasar (tempel di depan setiap prompt pose)</div>
+        <div onClick="{{ copyBase }}" style="font-size:12.5px;color:#FFFFFF;background:#DF301C;border-radius:6px;padding:7px 13px;cursor:pointer" style-hover="background:#B02414">{{ baseLabel }}</div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.6;color:#20262A;background:#F7F8F7;border:1px solid #E6EAE9;border-radius:8px;padding:12px 14px">{{ basePrompt }}</div>
+      <div style="font-size:12.5px;color:#5A6468;line-height:1.5">Lampirkan ilustrasi asli sebagai referensi saat generate, supaya bentuk kepala, helm, dan ketebalan garis tetap sama. Setelah jadi, drag PNG transparan ke slot yang sesuai di bawah.</div>
+    </div>
+
+    <div style="width:1440px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px">
+      <sc-for list="{{ poses }}" as="p" hint-placeholder-count="8">
+        <div style="background:#FFFFFF;border:1px solid #DDE2E1;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="height:250px;position:relative;background:#FDF1EF">
+            <image-slot id="{{ p.slot }}" shape="rect" fit="contain" placeholder="{{ p.placeholder }}" style="width:100%;height:100%"></image-slot>
+            <div style="position:absolute;top:10px;left:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#B02414;background:#FFFFFF;border:1px solid #F6C3BB;border-radius:4px;padding:3px 6px;pointer-events:none">{{ p.code }}</div>
+          </div>
+          <div style="padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex:1">
+            <div style="font-size:15.5px;font-weight:600">{{ p.name }}</div>
+            <div style="font-size:12.5px;color:#5A6468;line-height:1.5"><span style="font-weight:500;color:#20262A">Dipakai di:</span> {{ p.use }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.55;color:#42484B;background:#F7F8F7;border-radius:6px;padding:9px 10px;flex:1">{{ p.prompt }}</div>
+            <div onClick="{{ p.copy }}" style="align-self:flex-start;font-size:12px;color:#B02414;font-weight:500;cursor:pointer">{{ p.copyLabel }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- IN CONTEXT -->
+  <div id="1d" style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#B02414;border:1px solid #F6C3BB;background:#FDECE9;padding:4px 8px;border-radius:4px">1d</div>
+      <div style="font-size:13px;font-weight:500">Di dalam produk — welcome baru</div>
+    </div>
+    <div style="width:1440px;height:760px;border:1px solid #DDE2E1;border-radius:10px;overflow:hidden;display:flex;background:#F7F8F7">
+      <div style="width:236px;flex:none;background:#FFFFFF;border-right:1px solid #E6EAE9;padding:18px 14px;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;align-items:center;gap:9px;padding:0 4px">
+          <div style="width:28px;height:28px;border-radius:7px;background:#FFFFFF url(assets/snouty-mascot.png) no-repeat 50% 21% / 180%;border:1px solid #F6C3BB;flex:none"></div>
+          <div style="display:flex;flex-direction:column"><div style="font-size:14px;font-weight:600;letter-spacing:.02em">SNOUTY</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#5A6468;letter-spacing:.06em">PRALON ASSISTANT</div></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:7px;background:#DF301C;color:#FFFFFF;font-size:13px;font-weight:500;padding:9px 12px;border-radius:6px"><span style="font-size:15px;line-height:1">+</span>Konsultasi Baru</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column">
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:56px;padding:0 70px">
+          <div style="position:relative;width:300px;height:360px;flex:none">
+            <div style="position:absolute;inset:40px 10px 30px;border-radius:50%;background:#FDECE9"></div>
+            <div style="position:absolute;left:62px;bottom:34px;width:180px;height:18px;border-radius:50%;background:#14181A;animation:snShadow 3.2s ease-in-out infinite"></div>
+            <div style="position:absolute;left:30px;bottom:44px;width:240px;height:240px">{{ welcomeMascot }}</div>
+            <div style="position:absolute;top:0;left:120px;background:#FFFFFF;border:2px solid #14181A;border-radius:16px 16px 16px 4px;padding:11px 15px;font-size:15px;font-weight:500;width:200px;line-height:1.4;box-shadow:3px 3px 0 #14181A">Selamat pagi, Budi. Mau bangun apa hari ini?</div>
+          </div>
+          <div style="flex:1;max-width:620px;display:flex;flex-direction:column;gap:22px">
+            <div style="font-size:36px;font-weight:600;letter-spacing:-0.025em;line-height:1.15;text-wrap:balance">Temukan solusi perpipaan yang tepat untuk kebutuhan Anda.</div>
+            <div style="font-size:15.5px;line-height:1.55;color:#5A6468;text-wrap:pretty">Ceritakan kebutuhan bangunan atau instalasi Anda. Snouty akan membantu menganalisis kebutuhan dan merekomendasikan solusi produk Pralon.</div>
+            <div style="background:#FFFFFF;border:2px solid #14181A;border-radius:12px;padding:15px 16px;display:flex;flex-direction:column;gap:14px;box-shadow:4px 4px 0 #14181A">
+              <div style="font-size:15px;color:#7A8285">Rumah 2 lantai, 3 kamar mandi, toren di atap…</div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-size:12px;color:#5A6468;border:1px solid #E6EAE9;border-radius:5px;padding:5px 9px">Lampirkan denah</div>
+                <div style="background:#DF301C;color:#FFFFFF;font-size:13.5px;font-weight:600;padding:9px 20px;border-radius:7px">Tanya Snouty</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="height:60px;flex:none;background:#DF301C;border-top:5px solid #B02414;display:flex;align-items:center;padding:0 32px;gap:28px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#FFFFFF;letter-spacing:.08em">HANYA PRODUK PRALON</span>
+          <span style="width:5px;height:5px;border-radius:50%;background:#FFFFFF;opacity:.7"></span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#FFFFFF;letter-spacing:.08em">ASUMSI SELALU DITANDAI</span>
+          <span style="width:5px;height:5px;border-radius:50%;background:#FFFFFF;opacity:.7"></span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#FFFFFF;letter-spacing:.08em">PANDUAN PERENCANAAN, BUKAN SERTIFIKASI</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const BASE = 'Flat vector mascot illustration of "Snouty", a friendly white seal engineer wearing a glossy red-orange construction hard hat (#DF301C) with two white highlight stripes. Thick uniform black outlines (~3% of width), simple black oval eyes, small black triangle nose, zigzag whisker mouth. Clean flat fills, no gradients, no texture, no background, transparent PNG, centered, full body visible, 1:1.';
+
+const POSES = [
+  { code:'P01', name:'Menyapa', use:'Welcome, onboarding langkah 1', prompt:'Pose: raising one flipper high in a cheerful wave, head tilted slightly, small smile, sitting upright on a short red Pralon pipe.' },
+  { code:'P02', name:'Berpikir', use:'Analisis / processing', prompt:'Pose: one flipper on chin, eyes looking up, holding a magnifying glass over a small red pipe elbow fitting, curious expression.' },
+  { code:'P03', name:'Membaca denah', use:'Menyusun skema, laporan', prompt:'Pose: holding an unrolled blue-white blueprint with simple pipe lines drawn on it, pencil behind ear, focused expression.' },
+  { code:'P04', name:'Berhasil', use:'Solusi siap, laporan terunduh', prompt:'Pose: thumbs-up with one flipper, eyes closed in a happy squint, tiny sparkle marks near the helmet, standing next to a neat stack of red pipes.' },
+  { code:'P05', name:'Menunjuk', use:'Tooltip, highlight produk, tur fitur', prompt:'Pose: pointing to the right with one flipper, body turned three-quarters, confident smile, clipboard tucked under the other flipper.' },
+  { code:'P06', name:'Butuh info', use:'Clarification / data belum lengkap', prompt:'Pose: holding up a small white card with a bold black question mark, head slightly tilted, eyebrows raised, friendly not worried.' },
+  { code:'P07', name:'Validasi teknis', use:'Skenario industri / di luar cakupan', prompt:'Pose: wearing a simple headset with microphone, one flipper raised as if saying "let me connect you", calm reassuring expression, holding a clipboard.' },
+  { code:'P08', name:'Istirahat', use:'Empty state, offline, error ringan', prompt:'Pose: sitting relaxed on a long red pipe, helmet slightly tipped, holding a small cup, eyes half closed and content.' }
+];
+
+
+const MASCOT_W = 1254;
+function snoutyMascot(size, mode, key) {
+  const h = React.createElement, u = size / MASCOT_W;
+  const at = (x, y, w, hh, extra) => Object.assign({ position:'absolute', left:x*u, top:y*u, width:w*u, height:hh*u }, extra || {});
+  const bodyAnim = { idle:'mkBob 3.2s ease-in-out infinite', write:'mkNod 2.2s ease-in-out infinite', think:'mkTilt 2.8s ease-in-out infinite', happy:'mkHop 2.8s ease-out infinite', drip:'none', fail:'mkShake 3.4s ease-out infinite', surprised:'mkStartle 3s ease-out infinite', confused:'mkTilt 3.4s ease-in-out infinite', sorry:'mkSlump 3s ease-in-out infinite', wink:'mkBob 3.2s ease-in-out infinite', thanks:'mkSway 2.4s ease-in-out infinite', focus:'none', sleep:'mkBreath 4s ease-in-out infinite' }[mode] || 'none';
+  const origin = (mode === 'think' || mode === 'confused') ? '50% 88%' : '50% 100%';
+  const kids = [];
+  kids.push(h('img', { key:'b', src:'assets/snouty-base.png', alt:'Snouty', draggable:false, style:{ position:'absolute', inset:0, width:'100%', height:'100%' } }));
+
+  const eyes = [[465, 508], [735, 508]];
+  if (mode === 'happy') {
+    eyes.forEach(([x], i) => kids.push(h('div', { key:'e'+i, style: at(x-4, 526, 60, 34, { border:(15*u)+'px solid #000', borderBottom:'none', borderRadius:'50% 50% 0 0 / 100% 100% 0 0', boxSizing:'border-box' }) })));
+  } else if (mode === 'sleep') {
+    eyes.forEach(([x], i) => kids.push(h('div', { key:'e'+i, style: at(x-4, 540, 60, 26, { border:(14*u)+'px solid #000', borderTop:'none', borderRadius:'0 0 50% 50% / 0 0 100% 100%', boxSizing:'border-box' }) })));
+  } else if (mode === 'fail') {
+    eyes.forEach(([x, y], i) => kids.push(h('div', { key:'e'+i, style: at(x - 8, y + 4, 68, 68, { animation:'mkXeye 3.4s ease-out infinite' }) },
+      h('div', { style:{ position:'absolute', left:'-4%', right:'-4%', top:'40%', height:'20%', background:'#000', borderRadius:99, transform:'rotate(45deg)' } }),
+      h('div', { style:{ position:'absolute', left:'-4%', right:'-4%', top:'40%', height:'20%', background:'#000', borderRadius:99, transform:'rotate(-45deg)' } }))));
+  } else if (mode === 'surprised') {
+    eyes.forEach(([x, y], i) => kids.push(h('div', { key:'e'+i, style: at(x, y, 52, 70, { animation:'mkEyePop 3s ease-out infinite', transformOrigin:'50% 50%' }) }, h('div', { style:{ width:'100%', height:'100%', borderRadius:'50%', background:'#000' } }))));
+  } else if (mode === 'confused') {
+    kids.push(h('div', { key:'e0', style: at(465, 508, 52, 70, { animation:'mkBlink 4.2s ease-in-out infinite' }) }, h('div', { style:{ width:'100%', height:'100%', borderRadius:'50%', background:'#000', transform:'translate(-10%,-6%)' } })));
+    kids.push(h('div', { key:'e1', style: at(735, 516, 52, 70, { animation:'mkSquint 3s ease-in-out infinite', transformOrigin:'50% 55%' }) }, h('div', { style:{ width:'100%', height:'100%', borderRadius:'50%', background:'#000' } })));
+    kids.push(h('div', { key:'b1', style: at(730, 498, 64, 12, { background:'#000', borderRadius:99, transform:'rotate(12deg)' }) }));
+  } else if (mode === 'sorry') {
+    eyes.forEach(([x, y], i) => kids.push(h('div', { key:'e'+i, style: at(x + 2, y + 14, 48, 62, { animation:'mkBlink 5s ease-in-out infinite' }) }, h('div', { style:{ width:'100%', height:'100%', borderRadius:'50%', background:'#000', transform:'translateY(8%)' } }))));
+    kids.push(h('div', { key:'b0', style: at(462, 496, 60, 12, { background:'#000', borderRadius:99, transform:'rotate(-16deg)', transformOrigin:'100% 50%' }) }));
+    kids.push(h('div', { key:'b1', style: at(732, 496, 60, 12, { background:'#000', borderRadius:99, transform:'rotate(16deg)', transformOrigin:'0% 50%' }) }));
+  } else if (mode === 'wink') {
+    kids.push(h('div', { key:'e0', style: at(465, 508, 52, 70, { animation:'mkBlink 4.2s ease-in-out infinite' }) }, h('div', { style:{ width:'100%', height:'100%', borderRadius:'50%', background:'#000' } })));
+    kids.push(h('div', { key:'e1', style: at(735, 508, 52, 70, { animation:'mkWinkEye 3.2s ease-in-out infinite', transformOrigin:'50% 55%' }) }, h('div', { style:{ width:'100%', height:'100%', borderRadius:'50%', background:'#000' } })));
+    kids.push(h('div', { key:'e1a', style: at(731, 526, 60, 34, { border:(15*u)+'px solid #000', borderBottom:'none', borderRadius:'50% 50% 0 0 / 100% 100% 0 0', boxSizing:'border-box', animation:'mkWinkArc 3.2s ease-in-out infinite' }) }));
+  } else if (mode === 'thanks') {
+    eyes.forEach(([x], i) => kids.push(h('div', { key:'e'+i, style: at(x-4, 526, 60, 34, { border:(15*u)+'px solid #000', borderBottom:'none', borderRadius:'50% 50% 0 0 / 100% 100% 0 0', boxSizing:'border-box' }) })));
+  } else if (mode === 'focus') {
+    eyes.forEach(([x, y], i) => kids.push(h('div', { key:'e'+i, style: at(x - 4, y + 18, 60, 46, { overflow:'hidden', borderRadius:'18% 18% 50% 50% / 18% 18% 80% 80%' }) }, h('div', { style:{ width:'80%', height:'100%', margin:'0 auto', borderRadius:'50%', background:'#000', animation:'mkScan 3.2s ease-in-out infinite' } }))));
+    kids.push(h('div', { key:'b0', style: at(456, 500, 70, 13, { background:'#000', borderRadius:99, transform:'rotate(10deg)' }) }));
+    kids.push(h('div', { key:'b1', style: at(728, 500, 70, 13, { background:'#000', borderRadius:99, transform:'rotate(-10deg)' }) }));
+  } else {
+    const look = { idle:'mkLook 7s ease-in-out infinite', write:'mkLookWrite 4.4s linear infinite', think:'mkLookUp 3s ease-in-out infinite', drip:'mkLookDrip 2.6s ease-in-out infinite' }[mode];
+    const blink = mode === 'think' ? 'mkBlink2 5.5s ease-in-out infinite' : 'mkBlink 4.2s ease-in-out infinite';
+    eyes.forEach(([x, y], i) => kids.push(
+      h('div', { key:'e'+i, style: at(x, y, 52, 70, { animation: blink, transformOrigin:'50% 55%' }) },
+        h('div', { style:{ width:'100%', height:'100%', borderRadius:'50%', background:'#000', animation: look } }))
+    ));
+  }
+
+  if (mode === 'idle' || mode === 'happy') {
+    kids.push(h('div', { key:'sh', style:{ position:'absolute', inset:0, clipPath:'inset(8% 22% 61% 22%)', WebkitMaskImage:'url(assets/snouty-base.png)', maskImage:'url(assets/snouty-base.png)', WebkitMaskSize:'100% 100%', maskSize:'100% 100%', backgroundImage:'linear-gradient(110deg, transparent 42%, rgba(255,255,255,.75) 50%, transparent 58%)', backgroundSize:'260% 100%', backgroundRepeat:'no-repeat', animation:'mkShine 5s ease-in-out infinite', pointerEvents:'none' } }));
+  }
+
+  kids.push(h('img', { key:'p', src:'assets/snouty-pencil.png', alt:'', draggable:false, style:{ position:'absolute', inset:0, width:'100%', height:'100%', transformOrigin:'64.8% 82.6%', animation: mode === 'write' ? 'mkWriteLong 4.4s linear infinite' : (mode === 'idle' ? 'mkTap 6s ease-in-out infinite' : (mode === 'think' ? 'mkTap 3s ease-in-out 1s infinite' : (mode === 'fail' ? 'mkTap 3.4s ease-out infinite' : 'none'))) } }));
+
+  if (mode === 'write') {
+    kids.push(h('svg', { key:'ink', viewBox:'0 0 1254 1254', style:{ position:'absolute', inset:0, width:'100%', height:'100%', overflow:'visible', pointerEvents:'none' } },
+      h('path', { d:'M 596.0 1028.0 L 592.0 1027.3 L 588.6 1025.1 L 586.3 1021.8 L 585.6 1017.6 L 586.8 1013.0 L 589.9 1008.4 L 594.9 1004.2 L 601.5 1000.9 L 609.3 998.7 L 617.6 998.0 L 625.9 998.7 L 633.7 1000.9 L 640.3 1004.2 L 645.3 1008.4 L 648.4 1013.0 L 649.6 1017.6 L 648.9 1021.8 L 646.6 1025.1 L 643.2 1027.3 L 639.2 1028.0 L 635.2 1027.3 L 631.8 1025.1 L 629.5 1021.8 L 628.8 1017.6 L 630.0 1013.0 L 633.1 1008.4 L 638.1 1004.2 L 644.7 1000.9 L 652.5 998.7 L 660.8 998.0 L 669.1 998.7 L 676.9 1000.9 L 683.5 1004.2 L 688.5 1008.4 L 691.6 1013.0 L 692.8 1017.6 L 692.1 1021.8 L 689.8 1025.1 L 686.4 1027.3 L 682.4 1028.0 L 678.4 1027.3 L 675.0 1025.1 L 672.7 1021.8 L 672.0 1017.6 L 673.2 1013.0 L 676.3 1008.4 L 681.3 1004.2 L 687.9 1000.9 L 695.7 998.7 L 704.0 998.0 L 712.3 998.7 L 720.1 1000.9 L 726.7 1004.2 L 731.7 1008.4 L 734.8 1013.0 L 736.0 1017.6 L 735.3 1021.8 L 733.0 1025.1 L 729.6 1027.3 L 725.6 1028.0 L 721.6 1027.3 L 718.2 1025.1 L 715.9 1021.8 L 715.2 1017.6 L 716.4 1013.0 L 719.5 1008.4 L 724.5 1004.2 L 731.1 1000.9 L 738.9 998.7 L 747.2 998.0 L 755.5 998.7 L 763.3 1000.9 L 769.9 1004.2 L 774.9 1008.4 L 778.0 1013.0 L 779.2 1017.6 L 778.5 1021.8 L 776.2 1025.1 L 772.8 1027.3 L 768.8 1028.0 L 764.8 1027.3 L 761.4 1025.1 L 759.1 1021.8 L 758.4 1017.6 L 759.6 1013.0 L 762.7 1008.4 L 767.7 1004.2 L 774.3 1000.9 L 782.1 998.7 L 790.4 998.0 L 798.7 998.7 L 806.5 1000.9 L 813.1 1004.2 L 818.1 1008.4 L 821.2 1013.0 L 822.4 1017.6 L 821.7 1021.8 L 819.4 1025.1 L 816.0 1027.3 L 812.0 1028.0', pathLength:1, fill:'none', stroke:'#FFFFFF', strokeWidth:9, strokeLinecap:'round', strokeLinejoin:'round', strokeDasharray:1, style:{ animation:'mkInkLong 4.4s linear infinite' } }),
+      h('path', { d:'M 836 1004 L 856 1026 L 896 978', pathLength:1, fill:'none', stroke:'#FFFFFF', strokeWidth:11, strokeLinecap:'round', strokeLinejoin:'round', strokeDasharray:1, style:{ animation:'mkTickLong 4.4s linear infinite' } })));
+  }
+  if (mode === 'drip') {
+    kids.push(h('div', { key:'d', style: at(196, 1040, 34, 44, { background:'#6CC3EE', border:(7*u)+'px solid #000', boxSizing:'border-box', borderRadius:'50% 50% 50% 50% / 62% 62% 38% 38%', transformOrigin:'50% 0', animation:'mkDrop 2.6s ease-in infinite' }) }));
+  }
+  if (mode === 'think') {
+    [[980, 420, 26, 0], [1036, 346, 40, .25], [1112, 250, 60, .5]].forEach(([x, y, s, d], i) =>
+      kids.push(h('div', { key:'t'+i, style: at(x, y, s, s, { borderRadius:'50%', background:'#FFFFFF', border:(8*u)+'px solid #000', boxSizing:'border-box', animation:'mkThought 1.6s ease-in-out '+d+'s infinite' }) })));
+  }
+  if (mode === 'happy') {
+    [[230, 170, 46, '#DF301C', 0], [1030, 140, 36, '#14181A', .12], [1090, 430, 52, '#DF301C', .24], [150, 560, 30, '#14181A', .36]].forEach(([x, y, s, c, d], i) =>
+      kids.push(h('div', { key:'s'+i, style: at(x, y, s, s, { background:c, borderRadius:(6*u)+'px', animation:'mkSpark 2.8s ease-out '+d+'s infinite' }) })));
+  }
+  if (mode === 'sleep') {
+    [[990, 330, 70, 0], [1060, 250, 54, .9], [1120, 180, 40, 1.8]].forEach(([x, y, s, d], i) =>
+      kids.push(h('div', { key:'z'+i, style: at(x, y, s, s, { fontFamily:"'IBM Plex Mono', monospace", fontWeight:600, fontSize:s*u, lineHeight:1, color:'#14181A', animation:'mkZ 2.7s ease-out '+d+'s infinite', opacity:0 }) }, 'z')));
+  }
+
+  if (mode === 'fail') {
+    kids.push(h('svg', { key:'crack', viewBox:'0 0 1254 1254', style:{ position:'absolute', inset:0, width:'100%', height:'100%', overflow:'visible', pointerEvents:'none' } },
+      h('path', { d:'M 330 888 L 348 926 L 318 952 L 352 992 L 330 1026', pathLength:1, fill:'none', stroke:'#000', strokeWidth:14, strokeLinecap:'round', strokeLinejoin:'round', strokeDasharray:1, style:{ animation:'mkCrack 3.4s ease-out infinite' } })));
+    [['mkSprayA', 312], ['mkSprayB', 330], ['mkSprayC', 344]].forEach(([a, x], i) =>
+      kids.push(h('div', { key:'sp'+i, style: at(x, 876, 34, 44, { background:'#6CC3EE', border:(7*u)+'px solid #000', boxSizing:'border-box', borderRadius:'50% 50% 50% 50% / 62% 62% 38% 38%', animation:a+' 3.4s ease-out infinite', opacity:0 }) })));
+    kids.push(h('div', { key:'pd', style: at(120, 1110, 360, 40, { background:'#6CC3EE', border:(7*u)+'px solid #000', boxSizing:'border-box', borderRadius:'50%', transformOrigin:'50% 50%', animation:'mkPuddle 3.4s ease-out infinite', opacity:0 }) }));
+  }
+  if (mode === 'surprised') {
+    kids.push(h('div', { key:'bang', style: at(1000, 250, 110, 190, { fontFamily:"'IBM Plex Sans', sans-serif", fontWeight:700, fontSize:190*u, lineHeight:1, color:'#DF301C', WebkitTextStroke:(10*u)+'px #000', paintOrder:'stroke fill', textAlign:'center', animation:'mkBang 3s ease-out infinite', opacity:0 }) }, '!'));
+  }
+  if (mode === 'confused') {
+    kids.push(h('div', { key:'q', style: at(990, 230, 140, 190, { fontFamily:"'IBM Plex Sans', sans-serif", fontWeight:700, fontSize:190*u, lineHeight:1, color:'#14181A', textAlign:'center', animation:'mkQ 2.4s ease-in-out infinite' }) }, '?'));
+  }
+  if (mode === 'sorry') {
+    kids.push(h('div', { key:'sw', style: at(900, 470, 40, 54, { background:'#6CC3EE', border:(7*u)+'px solid #000', boxSizing:'border-box', borderRadius:'50% 50% 50% 50% / 62% 62% 38% 38%', transformOrigin:'50% 0', animation:'mkSweat 2.8s ease-in infinite' }) }));
+  }
+  if (mode === 'wink') {
+    kids.push(h('div', { key:'ws', style: at(860, 470, 54, 54, { background:'#DF301C', borderRadius:(8*u)+'px', border:(6*u)+'px solid #000', boxSizing:'border-box', animation:'mkWinkSpark 3.2s ease-out infinite' }) }));
+  }
+  if (mode === 'thanks') {
+    [[420, 612], [764, 612]].forEach(([x, y], i) => kids.push(h('div', { key:'bl'+i, style: at(x, y, 70, 34, { borderRadius:'50%', background:'#F7A39A', animation:'mkBlush 2.4s ease-in-out infinite' }) })));
+    [[960, 380, 90, 0], [1050, 300, 64, .8], [890, 280, 54, 1.6]].forEach(([x, y, s, d], i) =>
+      kids.push(h('div', { key:'ht'+i, style: at(x, y, s, s, { fontSize:s*u, lineHeight:1, color:'#DF301C', WebkitTextStroke:(5*u)+'px #000', paintOrder:'stroke fill', animation:'mkHeart 2.4s ease-out '+d+'s infinite', opacity:0 }) }, '♥')));
+  }
+  if (mode === 'focus') {
+    kids.push(h('div', { key:'beam', style:{ position:'absolute', left:'12%', right:'12%', top:'70%', height:'22%', overflow:'hidden', pointerEvents:'none' } },
+      h('div', { style:{ position:'absolute', left:0, right:0, top:'45%', height:6*u+2, background:'#DF301C', boxShadow:'0 0 '+(18*u)+'px rgba(223,48,28,.9)', animation:'mkBeam 2.2s ease-in-out infinite' } })));
+  }
+
+  return h('div', { key: key || mode, style:{ position:'relative', width:size, height:size, flex:'none' } },
+    h('div', { style:{ position:'absolute', inset:0, animation: bodyAnim, transformOrigin: origin } }, kids));
+}
+
+class Component extends DCLogic {
+  state = { copied: null };
+
+  copy(text, key) {
+    try { navigator.clipboard.writeText(text); } catch (e) {}
+    this.setState({ copied: key });
+    clearTimeout(this.t);
+    this.t = setTimeout(() => this.setState({ copied: null }), 1600);
+  }
+
+  renderVals() {
+    const c = this.state.copied;
+    return {
+      heroMascot: snoutyMascot(380, 'idle', 'hero'),
+      welcomeMascot: snoutyMascot(240, 'idle', 'wel'),
+      live: { idle: snoutyMascot(230, 'idle'), write: snoutyMascot(230, 'write'), think: snoutyMascot(230, 'think'), happy: snoutyMascot(230, 'happy'), drip: snoutyMascot(230, 'drip'), sleep: snoutyMascot(230, 'sleep'), surprised: snoutyMascot(220, 'surprised'), confused: snoutyMascot(220, 'confused'), sorry: snoutyMascot(220, 'sorry'), wink: snoutyMascot(220, 'wink'), thanks: snoutyMascot(220, 'thanks'), focus: snoutyMascot(220, 'focus'), fail: snoutyMascot(280, 'fail') },
+      failSmall: snoutyMascot(120, 'fail', 'fs1'),
+      failSmall2: snoutyMascot(120, 'fail', 'fs2'),
+      failTiny: snoutyMascot(44, 'fail', 'ft'),
+      basePrompt: BASE,
+      baseLabel: c === 'base' ? 'Tersalin ✓' : 'Salin prompt dasar',
+      copyBase: () => this.copy(BASE, 'base'),
+      poses: POSES.map(p => ({
+        ...p,
+        slot: 'snouty-pose-' + p.code.toLowerCase(),
+        placeholder: 'Drop pose ' + p.name,
+        copyLabel: c === p.code ? 'Tersalin ✓' : 'Salin prompt lengkap',
+        copy: () => this.copy(BASE + ' ' + p.prompt, p.code)
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>
