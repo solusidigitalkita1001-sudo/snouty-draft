@@ -8,16 +8,16 @@ Sumbernya SPEC §23. Intinya satu kalimat: **jangan menjalankan seluruh pipeline
 
 ## 1. Anggaran
 
-| Operasi | Target p95 | Terikat oleh |
-|---|---|---|
-| Token pertama (jawaban streaming) | < 1,5 s | LLM |
-| Rekomendasi lengkap (welcome → solusi) | < 8 s | 2–3 panggilan LLM + katalog |
+| Operasi                                 | Target p95   | Terikat oleh                  |
+| --------------------------------------- | ------------ | ----------------------------- |
+| Token pertama (jawaban streaming)       | < 1,5 s      | LLM                           |
+| Rekomendasi lengkap (welcome → solusi)  | < 8 s        | 2–3 panggilan LLM + katalog   |
 | **Hitung ulang setelah edit kebutuhan** | **< 300 ms** | murni CPU, **tanpa jaringan** |
-| Lookup produk | < 200 ms | MySQL + cache |
-| Drawer detail produk | < 250 ms | MySQL + cache |
-| Daftar riwayat | < 300 ms | MySQL |
-| Pembuatan PDF (asinkron) | < 20 s | Chromium |
-| Health check | < 50 ms | `SELECT 1` |
+| Lookup produk                           | < 200 ms     | MySQL + cache                 |
+| Drawer detail produk                    | < 250 ms     | MySQL + cache                 |
+| Daftar riwayat                          | < 300 ms     | MySQL                         |
+| Pembuatan PDF (asinkron)                | < 20 s       | Chromium                      |
+| Health check                            | < 50 ms      | `SELECT 1`                    |
 
 Baris hitung ulang adalah yang paling bisa dijamin, karena tidak ada panggilan keluar sama sekali —
 dan juga yang paling sering dipakai setelah pengguna melihat solusinya.
@@ -28,13 +28,13 @@ dan juga yang paling sering dipakai setelah pengguna melihat solusinya.
 
 Lima jalur; intent router memilih satu.
 
-| Permintaan | Jalur | Panggilan LLM | Query DB |
-|---|---|---|---|
-| FAQ produk | policy → retrieval → jelaskan | 1 cepat | 0–1 |
-| Lookup produk | policy → MySQL → jelaskan | 1 cepat | 1 |
-| Rekomendasi | ekstraksi → context → engineering → matcher → jelaskan | 2 seimbang | 1–2 |
-| Kasus lanjutan | + klarifikasi, BOM, skema | 2–3 | 1–2 |
-| **Edit / mutasi** | context → engineering → matcher → BOM → skema | **0** | **1** |
+| Permintaan        | Jalur                                                  | Panggilan LLM | Query DB |
+| ----------------- | ------------------------------------------------------ | ------------- | -------- |
+| FAQ produk        | policy → retrieval → jelaskan                          | 1 cepat       | 0–1      |
+| Lookup produk     | policy → MySQL → jelaskan                              | 1 cepat       | 1        |
+| Rekomendasi       | ekstraksi → context → engineering → matcher → jelaskan | 2 seimbang    | 1–2      |
+| Kasus lanjutan    | + klarifikasi, BOM, skema                              | 2–3           | 1–2      |
+| **Edit / mutasi** | context → engineering → matcher → BOM → skema          | **0**         | **1**    |
 
 Perhatikan bahwa jumlah query tidak naik seiring kerumitan jalur. Itu disengaja: produk untuk satu
 rekomendasi diambil dalam satu query, bukan satu per peran.
@@ -53,14 +53,14 @@ dan snapshot append-only ada di lapisan bawah desain, bukan sebagai penyempurnaa
 
 ## 3. Sumber kelambatan
 
-| Sumber | Besaran | Penanganan |
-|---|---|---|
-| Panggilan LLM | 0,5–5 s | hindari; routing model; streaming |
-| Retrieval (bila diadopsi) | 50–300 ms | hanya saat benar-benar perlu |
-| Query katalog | 5–50 ms | indeks + cache Redis |
-| Engineering Engine | < 5 ms | murni CPU |
-| Pembentukan skema | < 10 ms | murni CPU |
-| Rendering PDF | 5–20 s | asinkron, di worker |
+| Sumber                    | Besaran   | Penanganan                        |
+| ------------------------- | --------- | --------------------------------- |
+| Panggilan LLM             | 0,5–5 s   | hindari; routing model; streaming |
+| Retrieval (bila diadopsi) | 50–300 ms | hanya saat benar-benar perlu      |
+| Query katalog             | 5–50 ms   | indeks + cache Redis              |
+| Engineering Engine        | < 5 ms    | murni CPU                         |
+| Pembentukan skema         | < 10 ms   | murni CPU                         |
+| Rendering PDF             | 5–20 s    | asinkron, di worker               |
 
 Perbandingannya jelas: satu panggilan LLM yang dihindari sepadan dengan ratusan optimasi query.
 Karena itu urutan prioritas optimasi selalu — kurangi panggilan model dulu, baru yang lain.
@@ -82,13 +82,13 @@ seluruh manfaat streaming hilang tanpa jejak galat.
 
 ## 5. Cache
 
-| Apa | Di mana | TTL | Invalidasi |
-|---|---|---|---|
-| Produk per ID | Redis | 1 jam | promosi versi katalog |
-| Versi katalog aktif | Redis | 1 jam | sama |
-| Snapshot kebutuhan aktif | Redis | 24 jam | write-through |
-| Aset statis | Nginx | panjang, ber-hash | rebuild |
-| Font | di-host sendiri, immutable | 1 tahun | — |
+| Apa                      | Di mana                    | TTL               | Invalidasi            |
+| ------------------------ | -------------------------- | ----------------- | --------------------- |
+| Produk per ID            | Redis                      | 1 jam             | promosi versi katalog |
+| Versi katalog aktif      | Redis                      | 1 jam             | sama                  |
+| Snapshot kebutuhan aktif | Redis                      | 24 jam            | write-through         |
+| Aset statis              | Nginx                      | panjang, ber-hash | rebuild               |
+| Font                     | di-host sendiri, immutable | 1 tahun           | —                     |
 
 Katalog jarang berubah dan sangat sering dibaca — rasio yang ideal. Invalidasinya dipicu peristiwa
 promosi versi, bukan sekadar menunggu TTL habis, agar katalog baru langsung terlihat.
@@ -100,14 +100,14 @@ kebutuhan yang berbeda, jadi cache jawaban akan salah lebih sering daripada bena
 
 ## 6. Database
 
-| Praktik | |
-|---|---|
+| Praktik                                                                               |     |
+| ------------------------------------------------------------------------------------- | --- |
 | Indeks dibuat berdasarkan bentuk query nyata, bukan setelah lambat (`DATABASE.md` §6) |
-| Tidak ada N+1 — diuji dengan penghitung query, bukan diperiksa manual |
-| Paginasi berbasis cursor, bukan `OFFSET` |
-| Pool kecil (API 10, worker 5) — server ini melayani delapan aplikasi |
-| Hanya kolom yang dipakai yang diambil |
-| Semua akses lewat repository berparameter |
+| Tidak ada N+1 — diuji dengan penghitung query, bukan diperiksa manual                 |
+| Paginasi berbasis cursor, bukan `OFFSET`                                              |
+| Pool kecil (API 10, worker 5) — server ini melayani delapan aplikasi                  |
+| Hanya kolom yang dipakai yang diambil                                                 |
+| Semua akses lewat repository berparameter                                             |
 
 Ukuran pool layak ditegaskan: membuka koneksi besar "untuk jaga-jaga" di host bersama berarti
 mengambil kapasitas dari tim lain. Naikkan hanya dengan bukti antrean koneksi.
@@ -116,14 +116,14 @@ mengambil kapasitas dari tim lain. Naikkan hanya dengan bukti antrean koneksi.
 
 ## 7. Frontend
 
-| | |
-|---|---|
-| Font IBM Plex di-host sendiri via `next/font`, `display: swap` | |
-| Komponen berat (skema, drawer produk, overlay laporan) dimuat lambat | |
-| Panel kanan dan sidebar dirender di server bila memungkinkan | |
-| Gambar produk 1:1 dengan dimensi eksplisit — mencegah layout shift | |
-| SVG skema dirender dari topologi, tidak ada library diagram besar | |
-| Tidak ada permintaan ke host eksternal (CSP ketat) | |
+|                                                                      |     |
+| -------------------------------------------------------------------- | --- |
+| Font IBM Plex di-host sendiri via `next/font`, `display: swap`       |     |
+| Komponen berat (skema, drawer produk, overlay laporan) dimuat lambat |     |
+| Panel kanan dan sidebar dirender di server bila memungkinkan         |     |
+| Gambar produk 1:1 dengan dimensi eksplisit — mencegah layout shift   |     |
+| SVG skema dirender dari topologi, tidak ada library diagram besar    |     |
+| Tidak ada permintaan ke host eksternal (CSP ketat)                   |     |
 
 Anggaran: LCP < 2,0 s, CLS < 0,1, bundel awal < 200 KB terkompresi.
 
@@ -168,16 +168,16 @@ keputusan pemilik server, bukan proyek ini.
 
 ## 11. Pengujian
 
-| # | Tes |
-|---|---|
-| 1 | Edit kebutuhan tidak memicu satu pun panggilan LLM |
-| 2 | Satu rekomendasi tidak melebihi N query (penghitung query) |
-| 3 | Tidak ada N+1 di daftar riwayat maupun product matching |
-| 4 | Engineering Engine menyelesaikan kasus tipikal < 5 ms |
-| 5 | Stream SSE mengirim token pertama sebelum pipeline selesai |
-| 6 | Cache katalog batal saat versi dipromosikan |
-| 7 | Chat tetap responsif saat RabbitMQ mati |
-| 8 | Chat tetap berfungsi saat Redis dikosongkan |
+| #   | Tes                                                        |
+| --- | ---------------------------------------------------------- |
+| 1   | Edit kebutuhan tidak memicu satu pun panggilan LLM         |
+| 2   | Satu rekomendasi tidak melebihi N query (penghitung query) |
+| 3   | Tidak ada N+1 di daftar riwayat maupun product matching    |
+| 4   | Engineering Engine menyelesaikan kasus tipikal < 5 ms      |
+| 5   | Stream SSE mengirim token pertama sebelum pipeline selesai |
+| 6   | Cache katalog batal saat versi dipromosikan                |
+| 7   | Chat tetap responsif saat RabbitMQ mati                    |
+| 8   | Chat tetap berfungsi saat Redis dikosongkan                |
 
 Tes 7 dan 8 menguji hal yang sama dari dua sisi: kegagalan komponen sekunder harus menurunkan
 kemampuan, bukan menghentikan konsultasi.

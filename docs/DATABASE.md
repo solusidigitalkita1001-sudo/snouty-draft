@@ -9,25 +9,25 @@ mengikat: aturan di sini berlaku untuk saya maupun untuk siapa pun yang mengerja
 
 ## 1. Kondisi server (hasil inspeksi read-only P0a-04, 2026-09-30)
 
-| | |
-|---|---|
-| Versi | MySQL **8.0.46**-0ubuntu0.22.04.4 |
-| `sql_mode` | `ONLY_FULL_GROUP_BY, STRICT_TRANS_TABLES, NO_ZERO_IN_DATE, NO_ZERO_DATE, ERROR_FOR_DIVISION_BY_ZERO, NO_ENGINE_SUBSTITUTION` |
-| Charset server | `utf8mb4` / `utf8mb4_0900_ai_ci` |
-| Database `snouty` | **ada, benar-benar kosong** — 0 tabel, view, routine, trigger, event |
-| `snouty_dev`, `snouty_staging` | belum ada |
+|                                |                                                                                                                              |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| Versi                          | MySQL **8.0.46**-0ubuntu0.22.04.4                                                                                            |
+| `sql_mode`                     | `ONLY_FULL_GROUP_BY, STRICT_TRANS_TABLES, NO_ZERO_IN_DATE, NO_ZERO_DATE, ERROR_FOR_DIVISION_BY_ZERO, NO_ENGINE_SUBSTITUTION` |
+| Charset server                 | `utf8mb4` / `utf8mb4_0900_ai_ci`                                                                                             |
+| Database `snouty`              | **ada, benar-benar kosong** — 0 tabel, view, routine, trigger, event                                                         |
+| `snouty_dev`, `snouty_staging` | belum ada                                                                                                                    |
 
 Database lain yang berbagi host ini:
 
-| Database | Tabel | Ukuran |
-|---|---|---|
-| `partner_db` | 57 | 39,7 MB |
-| `digital_book` | 20 | 26,1 MB |
-| `work_order` | 86 | 19,2 MB |
-| `wo_dev` | 46 | 15,6 MB |
-| `asset` | 37 | 4,7 MB |
-| `bagspace` | 12 | 4,1 MB |
-| `bagspace_dev` | 43 | 1,1 MB |
+| Database       | Tabel | Ukuran  |
+| -------------- | ----- | ------- |
+| `partner_db`   | 57    | 39,7 MB |
+| `digital_book` | 20    | 26,1 MB |
+| `work_order`   | 86    | 19,2 MB |
+| `wo_dev`       | 46    | 15,6 MB |
+| `asset`        | 37    | 4,7 MB  |
+| `bagspace`     | 12    | 4,1 MB  |
+| `bagspace_dev` | 43    | 1,1 MB  |
 
 Total 301 tabel milik aplikasi lain. Inilah alasan konkret SPEC §17 menyebut server ini "not
 disposable": kesalahan di SNOUTY bisa merusak data tim lain.
@@ -43,12 +43,12 @@ valid ditolak, bukan dipotong diam-diam).
 Konvensi yang sudah dipakai host ini adalah `<nama>` untuk produksi dengan `<nama>_dev` di
 sebelahnya (`work_order`/`wo_dev`, `bagspace`/`bagspace_dev`) — **tidak ada preseden staging** (OQ-35).
 
-| Lingkungan | Database | Host | Status |
-|---|---|---|---|
-| dev | `snouty_dev` | `192.168.1.136` | belum dibuat — Anda yang membuat |
-| staging | `snouty_staging` | `192.168.1.136` | hanya bila Anda mau tier staging (OQ-35) |
-| produksi | `snouty` | `192.168.1.136` | ada, kosong |
-| CI / tes integrasi | `snouty_test` | **kontainer sekali pakai** | tidak pernah menyentuh host di atas |
+| Lingkungan         | Database         | Host                       | Status                                   |
+| ------------------ | ---------------- | -------------------------- | ---------------------------------------- |
+| dev                | `snouty_dev`     | `192.168.1.136`            | belum dibuat — Anda yang membuat         |
+| staging            | `snouty_staging` | `192.168.1.136`            | hanya bila Anda mau tier staging (OQ-35) |
+| produksi           | `snouty`         | `192.168.1.136`            | ada, kosong                              |
+| CI / tes integrasi | `snouty_test`    | **kontainer sekali pakai** | tidak pernah menyentuh host di atas      |
 
 Aturan CI ditegakkan di kode, bukan di konfigurasi: bootstrap tes memeriksa `DB_HOST` dan menolak
 berjalan bila mengarah ke `192.168.1.136`. Konfigurasi bisa salah, assertion tidak.
@@ -149,7 +149,7 @@ Langkah 7 sengaja dibuat merepotkan. Perintahnya menolak berjalan bila `MIGRATIO
 diset, mencetak SQL lengkap dan host tujuan, lalu meminta konfirmasi ketik ulang nama database. Tidak
 ada perintah "migrate dev" yang mengarang dan menerapkan sekaligus.
 
-**Alasan memilih Drizzle** (usulan, `PHASE0_PROPOSAL.md` §4): Prisma membutuhkan *shadow database* —
+**Alasan memilih Drizzle** (usulan, `PHASE0_PROPOSAL.md` §4): Prisma membutuhkan _shadow database_ —
 membuat dan menghapus database di server — untuk `migrate dev`, dan menyediakan `migrate reset`.
 TypeORM punya `synchronize: true` yang mengubah skema diam-diam. Di host yang memuat 301 tabel milik
 orang lain, alat yang **tidak punya kemampuan** merusak lebih baik daripada alat yang punya kemampuan
@@ -178,18 +178,18 @@ Dengan cara ini rollback rilis N tidak pernah kehilangan data.
 
 ## 5. Konvensi skema
 
-| Aspek | Ketentuan |
-|---|---|
-| Nama tabel | `snake_case`, jamak (`conversations`, `bom_items`) |
-| Primary key | `id` — `CHAR(26)` ULID. Terurut waktu (baik untuk indeks) sekaligus tidak mudah ditebak |
-| Foreign key | `<entity>_id`, dengan constraint dalam satu konteks; lintas konteks cukup kolom pemilik tanpa FK |
-| Waktu | `DATETIME(3)` UTC. Konversi zona waktu di lapisan tampilan, bukan di database |
-| Uang | `DECIMAL(18,2)` — tidak pernah float |
-| Enum | `VARCHAR` + `CHECK`, bukan tipe `ENUM` MySQL, supaya penambahan nilai tidak memerlukan `ALTER` tabel besar |
-| Boolean | `TINYINT(1)` |
-| JSON | `JSON` hanya untuk struktur yang memang tidak perlu di-query (mis. topologi skema) |
-| Soft delete | `deleted_at NULL` — hanya pada tabel milik pengguna, demi hak penghapusan data |
-| Provenance | kolom `*_provenance` + `*_source` di samping nilainya, **bukan** di dalam blob JSON |
+| Aspek       | Ketentuan                                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| Nama tabel  | `snake_case`, jamak (`conversations`, `bom_items`)                                                         |
+| Primary key | `id` — `CHAR(26)` ULID. Terurut waktu (baik untuk indeks) sekaligus tidak mudah ditebak                    |
+| Foreign key | `<entity>_id`, dengan constraint dalam satu konteks; lintas konteks cukup kolom pemilik tanpa FK           |
+| Waktu       | `DATETIME(3)` UTC. Konversi zona waktu di lapisan tampilan, bukan di database                              |
+| Uang        | `DECIMAL(18,2)` — tidak pernah float                                                                       |
+| Enum        | `VARCHAR` + `CHECK`, bukan tipe `ENUM` MySQL, supaya penambahan nilai tidak memerlukan `ALTER` tabel besar |
+| Boolean     | `TINYINT(1)`                                                                                               |
+| JSON        | `JSON` hanya untuk struktur yang memang tidak perlu di-query (mis. topologi skema)                         |
+| Soft delete | `deleted_at NULL` — hanya pada tabel milik pengguna, demi hak penghapusan data                             |
+| Provenance  | kolom `*_provenance` + `*_source` di samping nilainya, **bukan** di dalam blob JSON                        |
 
 Alasan provenance berupa kolom: invarian P-1 ("`REQUIRES_DOMAIN_VALIDATION` tidak pernah menghasilkan
 `VERIFIED`") jadi bisa dibuktikan lewat query SQL, bukan hanya lewat tes unit. Audit data nyata
@@ -201,19 +201,19 @@ mengalahkan audit kode.
 
 Rincian kolom menyusul bersama implementasi tiap fase; yang ditetapkan sekarang adalah batasnya.
 
-| Konteks | Tabel | Fase |
-|---|---|---|
-| identity | `users`, `user_roles`, `refresh_tokens`, `guest_sessions`, `consents` | 3 |
-| conversation | `conversations`, `messages`, `requirement_snapshots`, `conversation_events` | 3–4 |
-| catalog | `catalog_versions`, `products`, `product_sizes`, `product_specs`, `product_compatibility`, `product_documents`, `product_images` | 1 |
-| pricing | `price_lists`, `price_list_items` | 8, bersyarat |
-| engineering | `engineering_rules`, `engineering_rule_versions`, `rule_validations`, `calculation_traces` | 6 |
-| recommendation | `recommendations`, `recommendation_systems`, `recommendation_products`, `bom_items`, `assumptions`, `schematics` | 7–9 |
-| report | `reports`, `report_jobs`, `report_number_counters` | 10 |
-| handoff | `technical_handoffs`, `handoff_events` | 10 |
-| ops | `audit_logs`, `llm_calls`, `job_runs`, `feedback` | 3+ |
-| email | `emails`, `email_analyses`, `email_drafts`, `leads` | 11 |
-| market | `market_events`, `market_aggregates` | 12 |
+| Konteks        | Tabel                                                                                                                            | Fase         |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| identity       | `users`, `user_roles`, `refresh_tokens`, `guest_sessions`, `consents`                                                            | 3            |
+| conversation   | `conversations`, `messages`, `requirement_snapshots`, `conversation_events`                                                      | 3–4          |
+| catalog        | `catalog_versions`, `products`, `product_sizes`, `product_specs`, `product_compatibility`, `product_documents`, `product_images` | 1            |
+| pricing        | `price_lists`, `price_list_items`                                                                                                | 8, bersyarat |
+| engineering    | `engineering_rules`, `engineering_rule_versions`, `rule_validations`, `calculation_traces`                                       | 6            |
+| recommendation | `recommendations`, `recommendation_systems`, `recommendation_products`, `bom_items`, `assumptions`, `schematics`                 | 7–9          |
+| report         | `reports`, `report_jobs`, `report_number_counters`                                                                               | 10           |
+| handoff        | `technical_handoffs`, `handoff_events`                                                                                           | 10           |
+| ops            | `audit_logs`, `llm_calls`, `job_runs`, `feedback`                                                                                | 3+           |
+| email          | `emails`, `email_analyses`, `email_drafts`, `leads`                                                                              | 11           |
+| market         | `market_events`, `market_aggregates`                                                                                             | 12           |
 
 ### Indeks yang direncanakan sejak awal
 
@@ -240,11 +240,11 @@ report_number_counters (year_month) UNIQUE           -- alokasi SNTY-YYYY-MM-NNN
 Satu pool per proses, dibuat di satu `DatabaseModule` dan di-inject. Tidak ada modul yang membuka
 koneksinya sendiri.
 
-| Parameter | API | Worker |
-|---|---|---|
-| `DB_POOL_MAX` | 10 | 5 |
-| connect timeout | 5 s | 10 s |
-| idle timeout | 60 s | 60 s |
+| Parameter       | API  | Worker |
+| --------------- | ---- | ------ |
+| `DB_POOL_MAX`   | 10   | 5      |
+| connect timeout | 5 s  | 10 s   |
+| idle timeout    | 60 s | 60 s   |
 
 Ukuran pool sengaja sederhana. Server ini melayani delapan aplikasi; membuka pool besar "untuk
 jaga-jaga" mengambil kapasitas dari tetangga. Naikkan hanya bila ada bukti antrean koneksi.
@@ -260,12 +260,12 @@ menjalankan `SELECT 1` — tidak menghitung baris, tidak membaca tabel.
 **Kepemilikan belum ditetapkan.** SPEC §17 mewajibkan dokumen ini mencatatnya, jadi ini dicatat
 sebagai lubang yang harus ditutup, bukan diisi asumsi.
 
-| Pertanyaan | Jawaban |
-|---|---|
+| Pertanyaan                                     | Jawaban             |
+| ---------------------------------------------- | ------------------- |
 | Siapa yang menjalankan backup `192.168.1.136`? | **belum diketahui** |
-| Frekuensi dan retensi? | **belum diketahui** |
-| Kapan restore terakhir diuji? | **belum diketahui** |
-| Di mana backup disimpan? | **belum diketahui** |
+| Frekuensi dan retensi?                         | **belum diketahui** |
+| Kapan restore terakhir diuji?                  | **belum diketahui** |
+| Di mana backup disimpan?                       | **belum diketahui** |
 
 Tiga dari empat pertanyaan itu harus terjawab **sebelum** migration pertama dijalankan, karena
 prosedur di §4 langkah 6 mensyaratkan backup yang terkonfirmasi. Pertanyaan keempat — kapan restore
@@ -286,14 +286,14 @@ mysqldump --single-transaction --routines --triggers \
 
 ## 9. Kredensial
 
-| Aturan | |
-|---|---|
-| Sumber | hanya variabel environment |
-| `.env` | di `.gitignore`, tidak pernah di-commit |
-| `.env.example` | daftar kunci dengan nilai kosong (SPEC §17b) |
-| Log | tidak pernah memuat kredensial atau connection string lengkap |
-| Dokumen | tidak pernah memuat password — termasuk dokumen ini |
-| Rotasi | bila kredensial pernah masuk ke riwayat Git, ia dianggap bocor dan wajib dirotasi |
+| Aturan         |                                                                                   |
+| -------------- | --------------------------------------------------------------------------------- |
+| Sumber         | hanya variabel environment                                                        |
+| `.env`         | di `.gitignore`, tidak pernah di-commit                                           |
+| `.env.example` | daftar kunci dengan nilai kosong (SPEC §17b)                                      |
+| Log            | tidak pernah memuat kredensial atau connection string lengkap                     |
+| Dokumen        | tidak pernah memuat password — termasuk dokumen ini                               |
+| Rotasi         | bila kredensial pernah masuk ke riwayat Git, ia dianggap bocor dan wajib dirotasi |
 
 Baris terakhir bukan formalitas: menghapus commit tidak menghapus kredensial dari klon yang sudah
 tersebar.

@@ -26,10 +26,10 @@ struktural: matcher hanya bisa mengembalikan baris yang sudah ada di tabel.
 interface MatchRequest {
   role: 'main' | 'riser' | 'branch' | 'fixture_connection' | 'fitting';
   size: PipeSize | PipeSizeRange;
-  pressureClass?: 'AW' | 'D';      // ENG-013
+  pressureClass?: 'AW' | 'D'; // ENG-013
   application: 'air_bersih' | 'pembuangan';
   fittingKind?: 'tee' | 'elbow' | 'reducer' | 'socket';
-  catalogVersionId: string;        // dibekukan per rekomendasi
+  catalogVersionId: string; // dibekukan per rekomendasi
 }
 ```
 
@@ -121,12 +121,12 @@ kebetulan ada.
 
 ## 6. Provenance keluaran
 
-| Keadaan | Provenance baris sistem |
-|---|---|
-| Produk `VERIFIED_SELECTED` **dan** aturan ukuran sudah `VALIDATED` | `VERIFIED` |
-| Produk `VERIFIED_SELECTED` tetapi aturan ukuran belum divalidasi | `ASSUMED` |
-| `SIZE_NEEDS_VALIDATION` | `UNAVAILABLE` untuk ukuran |
-| `INFORMATION_UNAVAILABLE` | `UNAVAILABLE` |
+| Keadaan                                                            | Provenance baris sistem    |
+| ------------------------------------------------------------------ | -------------------------- |
+| Produk `VERIFIED_SELECTED` **dan** aturan ukuran sudah `VALIDATED` | `VERIFIED`                 |
+| Produk `VERIFIED_SELECTED` tetapi aturan ukuran belum divalidasi   | `ASSUMED`                  |
+| `SIZE_NEEDS_VALIDATION`                                            | `UNAVAILABLE` untuk ukuran |
+| `INFORMATION_UNAVAILABLE`                                          | `UNAVAILABLE`              |
 
 Baris kedua adalah kondisi hari ini untuk hampir semua kasus: produknya nyata dan terverifikasi,
 tetapi **ukuran yang direkomendasikan** berasal dari aturan yang belum divalidasi ahli (OQ-06).
@@ -140,11 +140,11 @@ terverifikasi**. Yang pertama fakta katalog, yang kedua hasil aturan teknik.
 
 ## 7. Kebijakan yang berlaku di sini
 
-| Kebijakan | Penegakan di matcher |
-|---|---|
-| Hanya Pralon | matcher hanya membaca `products`, yang hanya berisi produk Pralon (invarian C-2) |
-| Tanpa halusinasi | tidak ada jalur menghasilkan SKU yang tidak ada barisnya |
-| Provenance | keluaran melewati gerbang provenance yang sama |
+| Kebijakan        | Penegakan di matcher                                                             |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Hanya Pralon     | matcher hanya membaca `products`, yang hanya berisi produk Pralon (invarian C-2) |
+| Tanpa halusinasi | tidak ada jalur menghasilkan SKU yang tidak ada barisnya                         |
+| Provenance       | keluaran melewati gerbang provenance yang sama                                   |
 
 Filter terakhir tetap ada di perakitan respons: bila sesuatu yang bukan dari matcher mencoba masuk
 sebagai kartu produk, ia gugur karena `productId`-nya tidak ditemukan.
@@ -153,12 +153,12 @@ sebagai kartu produk, ia gugur karena `productId`-nya tidak ditemukan.
 
 ## 8. Kinerja
 
-| | |
-|---|---|
-| Baca katalog di-cache Redis per versi | |
+|                                                                                   |              |
+| --------------------------------------------------------------------------------- | ------------ |
+| Baca katalog di-cache Redis per versi                                             |              |
 | Semua produk untuk satu rekomendasi diambil dalam **satu** query, bukan per peran | mencegah N+1 |
-| Indeks: `products(family, category, status)`, `product_sizes(product_id, size)` | |
-| Matcher murni sinkron; tanpa panggilan jaringan keluar | |
+| Indeks: `products(family, category, status)`, `product_sizes(product_id, size)`   |              |
+| Matcher murni sinkron; tanpa panggilan jaringan keluar                            |              |
 
 Target: < 50 ms untuk satu rekomendasi lengkap. Realistis, karena pekerjaannya satu query dan
 penyaringan di memori.
@@ -167,16 +167,16 @@ penyaringan di memori.
 
 ## 9. Pengujian
 
-| # | Tes |
-|---|---|
-| 1 | Produk terpilih selalu ada di katalog versi yang dibekukan |
-| 2 | Ukuran terpilih selalu ada di `product_sizes` |
-| 3 | Fitting hanya berasal dari `product_compatibility` |
-| 4 | Pengurutan stabil: masukan sama → hasil sama |
-| 5 | `SIZE_NEEDS_VALIDATION` tidak pernah memilih satu ukuran dari rentang |
-| 6 | `INFORMATION_UNAVAILABLE` menyebut alternatif yang benar-benar ada |
-| 7 | Aturan ukuran belum divalidasi → baris sistem `ASSUMED`, bukan `VERIFIED` |
-| 8 | Contoh kerja board (2 lantai, 3 kamar mandi, 4 wastafel, 1 dapur) menghasilkan 4 produk |
-| 9 | Tidak ada query per peran (tes penghitung query) |
+| #   | Tes                                                                                     |
+| --- | --------------------------------------------------------------------------------------- |
+| 1   | Produk terpilih selalu ada di katalog versi yang dibekukan                              |
+| 2   | Ukuran terpilih selalu ada di `product_sizes`                                           |
+| 3   | Fitting hanya berasal dari `product_compatibility`                                      |
+| 4   | Pengurutan stabil: masukan sama → hasil sama                                            |
+| 5   | `SIZE_NEEDS_VALIDATION` tidak pernah memilih satu ukuran dari rentang                   |
+| 6   | `INFORMATION_UNAVAILABLE` menyebut alternatif yang benar-benar ada                      |
+| 7   | Aturan ukuran belum divalidasi → baris sistem `ASSUMED`, bukan `VERIFIED`               |
+| 8   | Contoh kerja board (2 lantai, 3 kamar mandi, 4 wastafel, 1 dapur) menghasilkan 4 produk |
+| 9   | Tidak ada query per peran (tes penghitung query)                                        |
 
 Tes 8 mengunci perilaku ke satu-satunya contoh yang sudah digambar dan ditinjau manusia.

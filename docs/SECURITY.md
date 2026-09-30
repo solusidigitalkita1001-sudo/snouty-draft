@@ -8,16 +8,16 @@ Sumbernya SPEC §30. Aspek privasi ada di `PRIVACY.md`.
 
 ## 1. Model ancaman
 
-| Ancaman | Dampak | Mitigasi utama |
-|---|---|---|
-| Tamu menembus entitlement lewat API | akses fitur berbayar | guard di API + tes release blocker |
-| Prompt injection lewat dokumen/email | rekomendasi menyimpang, kebocoran | filter katalog di perakitan respons |
-| Kebocoran kredensial database | **database tim lain ikut terancam** | lihat §2 |
-| Unggahan berbahaya | RCE, penyimpanan malware | pembatasan MIME/ukuran, di luar web root |
-| Pencurian token | pengambilalihan akun | cookie `httpOnly`, rotasi refresh |
-| Penyalahgunaan endpoint LLM | biaya membengkak | rate limit per tier |
-| Akses data pelanggan oleh internal | pelanggaran privasi | RBAC + audit setiap akses |
-| Kebocoran system prompt | pemetaan untuk jailbreak | prompt tidak pernah dikirim ke klien |
+| Ancaman                              | Dampak                              | Mitigasi utama                           |
+| ------------------------------------ | ----------------------------------- | ---------------------------------------- |
+| Tamu menembus entitlement lewat API  | akses fitur berbayar                | guard di API + tes release blocker       |
+| Prompt injection lewat dokumen/email | rekomendasi menyimpang, kebocoran   | filter katalog di perakitan respons      |
+| Kebocoran kredensial database        | **database tim lain ikut terancam** | lihat §2                                 |
+| Unggahan berbahaya                   | RCE, penyimpanan malware            | pembatasan MIME/ukuran, di luar web root |
+| Pencurian token                      | pengambilalihan akun                | cookie `httpOnly`, rotasi refresh        |
+| Penyalahgunaan endpoint LLM          | biaya membengkak                    | rate limit per tier                      |
+| Akses data pelanggan oleh internal   | pelanggaran privasi                 | RBAC + audit setiap akses                |
+| Kebocoran system prompt              | pemetaan untuk jailbreak            | prompt tidak pernah dikirim ke klien     |
 
 Baris ketiga adalah yang paling serius di proyek ini, dan penyebabnya bukan kode SNOUTY.
 
@@ -50,14 +50,14 @@ Ini dicatat sebagai **release blocker** di `PROGRESS.md`.
 
 ## 3. Autentikasi
 
-| Aspek | Ketentuan |
-|---|---|
-| Password | Argon2id, tidak pernah dicatat, tidak pernah dikembalikan |
-| Access token | JWT berumur pendek (`JWT_ACCESS_TTL`), di memori klien |
-| Refresh token | cookie `httpOnly` + `Secure` + `SameSite=Lax`, **dirotasi setiap pemakaian** |
-| Deteksi pemakaian ulang | refresh token lama yang dipakai lagi → seluruh rantai dicabut |
-| Sesi tamu | cookie `httpOnly`, ULID, TTL dari config |
-| Logout | mencabut refresh token di sisi server, bukan hanya menghapus cookie |
+| Aspek                   | Ketentuan                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| Password                | Argon2id, tidak pernah dicatat, tidak pernah dikembalikan                    |
+| Access token            | JWT berumur pendek (`JWT_ACCESS_TTL`), di memori klien                       |
+| Refresh token           | cookie `httpOnly` + `Secure` + `SameSite=Lax`, **dirotasi setiap pemakaian** |
+| Deteksi pemakaian ulang | refresh token lama yang dipakai lagi → seluruh rantai dicabut                |
+| Sesi tamu               | cookie `httpOnly`, ULID, TTL dari config                                     |
+| Logout                  | mencabut refresh token di sisi server, bukan hanya menghapus cookie          |
 
 Rotasi dengan deteksi pemakaian ulang adalah pertahanan yang berbayar: bila token dicuri, pemakaian
 oleh penyerang **atau** oleh pengguna asli akan membuat keduanya ter-logout — terlihat, bukan diam.
@@ -71,13 +71,13 @@ tidak boleh meninggalkan percakapan tanpa pemilik.
 
 Tiga lapis (`POLICY.md` §2): UI menyembunyikan, API guard menolak, perakitan respons menyaring.
 
-| Sumber daya | Aturan |
-|---|---|
-| Percakapan | hanya pemilik (user atau guest session) |
-| Rekomendasi, BOM, skema | pemilik + entitlement tier |
-| Laporan | pemilik + peran internal berwenang, setiap akses diaudit |
-| Rute `/internal/*` | peran spesifik, setiap tulis diaudit |
-| Katalog (baca) | publik bagi pengguna terautentikasi maupun tamu |
+| Sumber daya             | Aturan                                                   |
+| ----------------------- | -------------------------------------------------------- |
+| Percakapan              | hanya pemilik (user atau guest session)                  |
+| Rekomendasi, BOM, skema | pemilik + entitlement tier                               |
+| Laporan                 | pemilik + peran internal berwenang, setiap akses diaudit |
+| Rute `/internal/*`      | peran spesifik, setiap tulis diaudit                     |
+| Katalog (baca)          | publik bagi pengguna terautentikasi maupun tamu          |
 
 Pemeriksaan kepemilikan dilakukan di lapisan application, bukan hanya lewat filter query. Perbedaan
 ini mencegah kelas bug IDOR: menghilangkan klausa `WHERE owner_id = ?` di satu repository seharusnya
@@ -87,13 +87,13 @@ tidak cukup untuk membocorkan data.
 
 ## 5. Validasi masukan
 
-| Titik | Alat |
-|---|---|
-| DTO HTTP | zod, `strict()` — properti tak dikenal ditolak |
-| Keluaran terstruktur LLM | zod, enum tertutup, batas numerik |
-| Berkas unggahan | MIME + magic bytes + ukuran |
-| Parameter query | diketik, dibatasi, paginasi dibatasi maksimum |
-| Payload webhook n8n | verifikasi tanda tangan HMAC |
+| Titik                    | Alat                                           |
+| ------------------------ | ---------------------------------------------- |
+| DTO HTTP                 | zod, `strict()` — properti tak dikenal ditolak |
+| Keluaran terstruktur LLM | zod, enum tertutup, batas numerik              |
+| Berkas unggahan          | MIME + magic bytes + ukuran                    |
+| Parameter query          | diketik, dibatasi, paginasi dibatasi maksimum  |
+| Payload webhook n8n      | verifikasi tanda tangan HMAC                   |
 
 `strict()` disengaja: mengabaikan field asing terasa longgar sampai suatu hari ada field asing yang
 berfungsi.
@@ -126,15 +126,15 @@ tidak bisa ditembus adalah kenyataan bahwa produk tanpa baris di tabel `products
 
 Fitur "Lampirkan denah" adalah satu-satunya tempat pengguna mengirim berkas.
 
-| Kontrol | |
-|---|---|
-| Tipe | hanya PDF, PNG, JPG, WEBP — diperiksa MIME **dan** magic bytes |
-| Ukuran | `UPLOAD_MAX_MB`, diselaraskan dengan `client_max_body_size` Nginx |
-| Penyimpanan | `STORAGE_PATH` di luar web root, nama file dibangkitkan (ULID), nama asli hanya metadata |
-| Penyajian | lewat endpoint terautentikasi, tidak pernah sebagai berkas statis |
-| Pemindaian | kait antivirus bila tersedia; tanpa itu, tipe dibatasi ketat |
-| `Content-Disposition` | `attachment` untuk semua unduhan |
-| Retensi | 180 hari (`PRIVACY.md`) |
+| Kontrol               |                                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| Tipe                  | hanya PDF, PNG, JPG, WEBP — diperiksa MIME **dan** magic bytes                           |
+| Ukuran                | `UPLOAD_MAX_MB`, diselaraskan dengan `client_max_body_size` Nginx                        |
+| Penyimpanan           | `STORAGE_PATH` di luar web root, nama file dibangkitkan (ULID), nama asli hanya metadata |
+| Penyajian             | lewat endpoint terautentikasi, tidak pernah sebagai berkas statis                        |
+| Pemindaian            | kait antivirus bila tersedia; tanpa itu, tipe dibatasi ketat                             |
+| `Content-Disposition` | `attachment` untuk semua unduhan                                                         |
+| Retensi               | 180 hari (`PRIVACY.md`)                                                                  |
 
 Nama file dibangkitkan bukan demi kerapian: nama asli dari pengguna adalah vektor path traversal dan
 XSS yang klasik.
@@ -155,14 +155,14 @@ Endpoint autentikasi punya batas ketat berdasarkan IP untuk menghambat credentia
 
 ## 9. Header dan CORS
 
-| Header | Nilai |
-|---|---|
-| `Strict-Transport-Security` | aktif dengan `preload` |
-| `X-Content-Type-Options` | `nosniff` |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` |
-| `Content-Security-Policy` | `default-src 'self'`; font di-host sendiri sehingga tidak perlu izin eksternal |
-| `X-Frame-Options` | `DENY` |
-| `Permissions-Policy` | `geolocation=(self)` — hanya untuk onboarding |
+| Header                      | Nilai                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| `Strict-Transport-Security` | aktif dengan `preload`                                                         |
+| `X-Content-Type-Options`    | `nosniff`                                                                      |
+| `Referrer-Policy`           | `strict-origin-when-cross-origin`                                              |
+| `Content-Security-Policy`   | `default-src 'self'`; font di-host sendiri sehingga tidak perlu izin eksternal |
+| `X-Frame-Options`           | `DENY`                                                                         |
+| `Permissions-Policy`        | `geolocation=(self)` — hanya untuk onboarding                                  |
 
 CORS dibatasi ke origin aplikasi; API tidak ditujukan untuk dipakai pihak ketiga. CSRF ditangani
 oleh `SameSite=Lax` pada cookie refresh plus kenyataan bahwa access token dikirim lewat header
@@ -175,14 +175,14 @@ Google Fonts.
 
 ## 10. Secret
 
-| | |
-|---|---|
-| Hanya dari environment; `.env` di `.gitignore` |
-| `.env.example` berisi kunci dengan nilai kosong |
-| Tidak pernah di log, dokumen, atau pesan commit |
+|                                                                            |     |
+| -------------------------------------------------------------------------- | --- |
+| Hanya dari environment; `.env` di `.gitignore`                             |
+| `.env.example` berisi kunci dengan nilai kosong                            |
+| Tidak pernah di log, dokumen, atau pesan commit                            |
 | Secret yang pernah masuk riwayat Git dianggap bocor dan **wajib dirotasi** |
-| Secret JWT berbeda untuk access dan refresh |
-| Pemindaian secret berjalan di CI |
+| Secret JWT berbeda untuk access dan refresh                                |
+| Pemindaian secret berjalan di CI                                           |
 
 Aturan rotasi bukan formalitas: menghapus commit tidak menghapus secret dari klon yang sudah
 tersebar.
@@ -205,17 +205,17 @@ Galat yang sampai ke klien hanya berisi kode stabil dan pesan aman. Stack trace 
 
 ## 12. Daftar periksa sebelum produksi
 
-| | Status |
-|---|---|
-| Akun database least-privilege dibuat | **belum** — OQ-34 |
+|                                                       | Status                       |
+| ----------------------------------------------------- | ---------------------------- |
+| Akun database least-privilege dibuat                  | **belum** — OQ-34            |
 | Pemilik backup teridentifikasi & restore pernah diuji | **belum** — `DATABASE.md` §8 |
-| Enkripsi at-rest MySQL dikonfirmasi | **belum** |
-| Perjanjian pemrosesan data dengan penyedia LLM | **belum** |
-| Redaksi email sebelum Fase 11 | direncanakan |
-| Pemindaian dependensi di CI | direncanakan Fase 0e |
-| Pemindaian secret di CI | direncanakan Fase 0e |
-| Uji penetrasi | Fase 13 |
-| Prosedur pemberitahuan insiden | **belum** — `PRIVACY.md` §10 |
+| Enkripsi at-rest MySQL dikonfirmasi                   | **belum**                    |
+| Perjanjian pemrosesan data dengan penyedia LLM        | **belum**                    |
+| Redaksi email sebelum Fase 11                         | direncanakan                 |
+| Pemindaian dependensi di CI                           | direncanakan Fase 0e         |
+| Pemindaian secret di CI                               | direncanakan Fase 0e         |
+| Uji penetrasi                                         | Fase 13                      |
+| Prosedur pemberitahuan insiden                        | **belum** — `PRIVACY.md` §10 |
 
 Empat baris pertama semuanya bermuara pada satu hal: SNOUTY menumpang pada infrastruktur yang
 kepemilikan operasionalnya belum jelas. Itu perlu diselesaikan sebelum ada data pelanggan nyata di
@@ -225,15 +225,15 @@ dalamnya.
 
 ## 13. Pengujian
 
-| # | Tes |
-|---|---|
-| 1 | Tamu tidak bisa mengakses kapabilitas lanjutan lewat API (**release blocker**) |
-| 2 | IDOR: pengguna A tidak bisa membaca percakapan pengguna B |
-| 3 | Refresh token yang dipakai ulang mencabut seluruh rantai |
-| 4 | Unggahan dengan MIME palsu ditolak oleh pemeriksaan magic bytes |
-| 5 | Dokumen yang memuat instruksi injeksi tidak mengubah daftar produk |
-| 6 | SKU di luar katalog tidak pernah dirender sebagai kartu |
-| 7 | Rate limit ditegakkan lintas instans (Redis, bukan memori proses) |
-| 8 | Galat tidak pernah membocorkan stack trace atau nama tabel |
-| 9 | Rute `/internal/*` menolak peran yang tidak sesuai |
-| 10 | Tidak ada secret di keluaran log (uji dengan pencocokan pola) |
+| #   | Tes                                                                            |
+| --- | ------------------------------------------------------------------------------ |
+| 1   | Tamu tidak bisa mengakses kapabilitas lanjutan lewat API (**release blocker**) |
+| 2   | IDOR: pengguna A tidak bisa membaca percakapan pengguna B                      |
+| 3   | Refresh token yang dipakai ulang mencabut seluruh rantai                       |
+| 4   | Unggahan dengan MIME palsu ditolak oleh pemeriksaan magic bytes                |
+| 5   | Dokumen yang memuat instruksi injeksi tidak mengubah daftar produk             |
+| 6   | SKU di luar katalog tidak pernah dirender sebagai kartu                        |
+| 7   | Rate limit ditegakkan lintas instans (Redis, bukan memori proses)              |
+| 8   | Galat tidak pernah membocorkan stack trace atau nama tabel                     |
+| 9   | Rute `/internal/*` menolak peran yang tidak sesuai                             |
+| 10  | Tidak ada secret di keluaran log (uji dengan pencocokan pola)                  |

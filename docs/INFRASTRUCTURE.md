@@ -8,17 +8,17 @@ Bagaimana SNOUTY dijalankan. Sumbernya SPEC §16–§21.
 
 ## 1. Komponen
 
-| Komponen | Peran | Di mana |
-|---|---|---|
-| Nginx | reverse proxy, TLS, terminasi SSE | kontainer |
-| `apps/web` | Next.js | kontainer |
-| `apps/api` | NestJS, HTTP + SSE | kontainer, stateless, bisa N× |
-| `apps/worker` | konsumer RabbitMQ + Chromium | kontainer |
-| MySQL 8 | sumber kebenaran | **`192.168.1.136` — bersama, di luar compose** |
-| Redis | cache, sesi, rate limit, lock | kontainer |
-| RabbitMQ | antrean asinkron | kontainer |
-| n8n | integrasi (email, notifikasi, CRM) | kontainer atau instans yang sudah ada |
-| Qdrant | vektor — **belum diadopsi** | — |
+| Komponen      | Peran                              | Di mana                                        |
+| ------------- | ---------------------------------- | ---------------------------------------------- |
+| Nginx         | reverse proxy, TLS, terminasi SSE  | kontainer                                      |
+| `apps/web`    | Next.js                            | kontainer                                      |
+| `apps/api`    | NestJS, HTTP + SSE                 | kontainer, stateless, bisa N×                  |
+| `apps/worker` | konsumer RabbitMQ + Chromium       | kontainer                                      |
+| MySQL 8       | sumber kebenaran                   | **`192.168.1.136` — bersama, di luar compose** |
+| Redis         | cache, sesi, rate limit, lock      | kontainer                                      |
+| RabbitMQ      | antrean asinkron                   | kontainer                                      |
+| n8n           | integrasi (email, notifikasi, CRM) | kontainer atau instans yang sudah ada          |
+| Qdrant        | vektor — **belum diadopsi**        | —                                              |
 
 MySQL sengaja **tidak** ada di `docker-compose.yml`. Menaruhnya di sana akan mengundang seseorang
 menjalankan `docker compose down -v` dan mengira itu aman. Yang bersama tetap di luar.
@@ -86,10 +86,10 @@ aplikasi — kalau tidak, pengguna mendapat galat Nginx mentah alih-alih pesan y
 
 ```yaml
 services:
-  redis:      # 7-alpine, appendonly, port 6379
-  rabbitmq:   # 3-management-alpine, port 5672 + 15672
+  redis: # 7-alpine, appendonly, port 6379
+  rabbitmq: # 3-management-alpine, port 5672 + 15672
   mysql-test: # 8, HANYA profil "test" — untuk tes integrasi, bukan pengembangan
-  n8n:        # opsional, profil "integrations"
+  n8n: # opsional, profil "integrations"
 ```
 
 `mysql-test` berada di balik profil Compose sehingga tidak ikut menyala pada `docker compose up`
@@ -102,10 +102,10 @@ Volume bernama untuk Redis dan RabbitMQ agar data lokal bertahan antar restart.
 
 ## 5. Image
 
-| Image | Basis | Catatan |
-|---|---|---|
-| `api` | `node:22-alpine` | multi-stage, non-root, kecil |
-| `web` | `node:22-alpine` | build standalone Next.js |
+| Image    | Basis                   | Catatan                                |
+| -------- | ----------------------- | -------------------------------------- |
+| `api`    | `node:22-alpine`        | multi-stage, non-root, kecil           |
+| `web`    | `node:22-alpine`        | build standalone Next.js               |
 | `worker` | `node:22-bookworm-slim` | **memuat Chromium** — jauh lebih besar |
 
 Worker memakai basis Debian karena Chromium di Alpine merepotkan. Ini alasan konkret memisahkan
@@ -118,15 +118,15 @@ mengecualikan `node_modules`, `.env`, dan `design-input/`.
 
 ## 6. Redis
 
-| Kunci | Isi | TTL |
-|---|---|---|
-| `snouty:ctx:{conversationId}` | snapshot kebutuhan aktif | 24 jam |
-| `snouty:guest:{sessionId}` | sesi tamu + flag consent | `GUEST_SESSION_TTL` |
-| `snouty:rl:{tier}:{actorId}:{window}` | penghitung rate limit | jendela |
-| `snouty:job:{jobId}` | status job untuk polling UI | 1 jam setelah selesai |
-| `snouty:idem:{key}` | penjaga idempotensi | 24 jam |
-| `snouty:lock:{resource}` | lock terdistribusi | 60 s, diperbarui otomatis |
-| `snouty:cache:product:{id}` | cache katalog | 1 jam |
+| Kunci                                 | Isi                         | TTL                       |
+| ------------------------------------- | --------------------------- | ------------------------- |
+| `snouty:ctx:{conversationId}`         | snapshot kebutuhan aktif    | 24 jam                    |
+| `snouty:guest:{sessionId}`            | sesi tamu + flag consent    | `GUEST_SESSION_TTL`       |
+| `snouty:rl:{tier}:{actorId}:{window}` | penghitung rate limit       | jendela                   |
+| `snouty:job:{jobId}`                  | status job untuk polling UI | 1 jam setelah selesai     |
+| `snouty:idem:{key}`                   | penjaga idempotensi         | 24 jam                    |
+| `snouty:lock:{resource}`              | lock terdistribusi          | 60 s, diperbarui otomatis |
+| `snouty:cache:product:{id}`           | cache katalog               | 1 jam                     |
 
 `appendonly yes` untuk bertahan dari restart, tetapi **Redis tidak pernah menjadi sumber kebenaran**
 (SPEC §18). Kehilangan seluruh isi Redis berarti kehilangan kecepatan, bukan data.
@@ -141,15 +141,15 @@ dua instansnya bersamaan akan menghasilkan kekacauan.
 Topic exchange `snouty.events`, satu queue durable per konsumer, masing-masing dengan DLQ dan queue
 retry berbackoff eksponensial (maksimum 5 percobaan).
 
-| Queue | Pemicu | Kunci idempotensi |
-|---|---|---|
-| `report.generate` | permintaan PDF | `reportId` |
-| `handoff.deliver` | "Kirim ke tim teknis Pralon" | `handoffId` |
-| `catalog.ingest` | impor katalog | `catalogVersionId + rowHash` |
-| `document.embed` | dokumen teknis baru (bila Qdrant diadopsi) | `documentId + chunkIndex` |
-| `email.process` | webhook n8n | `messageId` |
-| `market.aggregate` | terjadwal + saat percakapan selesai | `eventId` |
-| `notification.send` | dari job mana pun | `notificationId` |
+| Queue               | Pemicu                                     | Kunci idempotensi            |
+| ------------------- | ------------------------------------------ | ---------------------------- |
+| `report.generate`   | permintaan PDF                             | `reportId`                   |
+| `handoff.deliver`   | "Kirim ke tim teknis Pralon"               | `handoffId`                  |
+| `catalog.ingest`    | impor katalog                              | `catalogVersionId + rowHash` |
+| `document.embed`    | dokumen teknis baru (bila Qdrant diadopsi) | `documentId + chunkIndex`    |
+| `email.process`     | webhook n8n                                | `messageId`                  |
+| `market.aggregate`  | terjadwal + saat percakapan selesai        | `eventId`                    |
+| `notification.send` | dari job mana pun                          | `notificationId`             |
 
 Setiap konsumer idempoten dan menulis `job_runs` agar statusnya bisa ditanyakan UI.
 
@@ -222,13 +222,13 @@ rilis, rollback satu rilis tidak pernah kehilangan data.
 
 ## 12. Ketergantungan eksternal
 
-| Layanan | Kegagalan berarti | Penanganan |
-|---|---|---|
-| MySQL | sistem berhenti | `/health` down, galat aman |
-| Redis | lebih lambat, bukan mati | state dipulihkan dari MySQL |
-| RabbitMQ | job tertunda | chat tetap jalan |
-| OpenRouter | tidak ada jawaban baru | `LLM_UNAVAILABLE`, mood `sorry` |
-| n8n | integrasi tertunda | job mengantre |
+| Layanan    | Kegagalan berarti        | Penanganan                      |
+| ---------- | ------------------------ | ------------------------------- |
+| MySQL      | sistem berhenti          | `/health` down, galat aman      |
+| Redis      | lebih lambat, bukan mati | state dipulihkan dari MySQL     |
+| RabbitMQ   | job tertunda             | chat tetap jalan                |
+| OpenRouter | tidak ada jawaban baru   | `LLM_UNAVAILABLE`, mood `sorry` |
+| n8n        | integrasi tertunda       | job mengantre                   |
 
 Hanya MySQL yang benar-benar fatal. Sisanya menurunkan kemampuan tanpa menghentikan konsultasi — dan
 itu memang tujuan pembagian tanggung jawabnya.

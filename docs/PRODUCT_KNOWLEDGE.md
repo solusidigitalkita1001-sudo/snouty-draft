@@ -8,10 +8,10 @@ Dari mana fakta produk berasal, bagaimana ia masuk, dan bagaimana ia dijawab. Su
 
 ## 1. Dua jenis pengetahuan
 
-| Jenis | Tempat | Contoh pertanyaan |
-|---|---|---|
-| **Terstruktur** | MySQL | "Ada ukuran 3/4 inch?" · "Standarnya apa?" · "Fitting apa yang cocok?" |
-| **Tak terstruktur** | dokumen (Qdrant, bila diadopsi) | "Bagaimana cara menyambung pipa yang benar?" |
+| Jenis               | Tempat                          | Contoh pertanyaan                                                      |
+| ------------------- | ------------------------------- | ---------------------------------------------------------------------- |
+| **Terstruktur**     | MySQL                           | "Ada ukuran 3/4 inch?" · "Standarnya apa?" · "Fitting apa yang cocok?" |
+| **Tak terstruktur** | dokumen (Qdrant, bila diadopsi) | "Bagaimana cara menyambung pipa yang benar?"                           |
 
 Pembedaan ini menentukan biaya dan ketepatan. Pertanyaan terstruktur dijawab dengan `SELECT` —
 cepat, murah, dan pasti benar. Menjalankan pencarian vektor untuk "ada ukuran 3/4 inch?" lebih
@@ -25,12 +25,12 @@ Aturannya: **bila jawabannya ada di kolom, jangan mencarinya di dokumen.**
 
 ### `CatalogVersion`
 
-| Field | |
-|---|---|
-| `label` | mis. `v2.4` — tampil sebagai "KATALOG PRALON · v2.4" |
-| `sourceDocument` | mis. "Katalog produk Pralon 2026" |
-| `effectiveFrom`, `importedBy` | |
-| `status` | `draft` \| `active` \| `archived` |
+| Field                         |                                                      |
+| ----------------------------- | ---------------------------------------------------- |
+| `label`                       | mis. `v2.4` — tampil sebagai "KATALOG PRALON · v2.4" |
+| `sourceDocument`              | mis. "Katalog produk Pralon 2026"                    |
+| `effectiveFrom`, `importedBy` |                                                      |
+| `status`                      | `draft` \| `active` \| `archived`                    |
 
 Tepat satu versi `active`. Impor masuk sebagai `draft`, divalidasi, lalu dipromosikan. Rekomendasi
 membekukan `catalogVersionId` saat dibuat, sehingga laporan lama tetap konsisten meski katalog
@@ -38,18 +38,18 @@ berubah.
 
 ### `Product`
 
-| Field | Wajib | Bila kosong |
-|---|---|---|
-| `sku`, `name`, `family`, `category` | ya | impor ditolak |
-| `sourceDocument`, `sourcePage` | ya | impor ditolak |
-| `material` | tidak | `UNAVAILABLE` |
-| `standard` | tidak | `UNAVAILABLE` |
-| `pressureClass` (tekanan kerja) | tidak | `UNAVAILABLE` → "Lihat dokumen teknis" |
-| `rodLength` (panjang batang) | tidak | `UNAVAILABLE` |
-| `jointType` (sambungan) | tidak | `UNAVAILABLE` |
-| `application` | tidak | `UNAVAILABLE` |
-| `status` | ya | `active` \| `discontinued` |
-| `imageUrl` | tidak | placeholder bergaris |
+| Field                               | Wajib | Bila kosong                            |
+| ----------------------------------- | ----- | -------------------------------------- |
+| `sku`, `name`, `family`, `category` | ya    | impor ditolak                          |
+| `sourceDocument`, `sourcePage`      | ya    | impor ditolak                          |
+| `material`                          | tidak | `UNAVAILABLE`                          |
+| `standard`                          | tidak | `UNAVAILABLE`                          |
+| `pressureClass` (tekanan kerja)     | tidak | `UNAVAILABLE` → "Lihat dokumen teknis" |
+| `rodLength` (panjang batang)        | tidak | `UNAVAILABLE`                          |
+| `jointType` (sambungan)             | tidak | `UNAVAILABLE`                          |
+| `application`                       | tidak | `UNAVAILABLE`                          |
+| `status`                            | ya    | `active` \| `discontinued`             |
+| `imageUrl`                          | tidak | placeholder bergaris                   |
 
 `sourceDocument` dan `sourcePage` wajib karena UI menampilkannya: "Katalog produk Pralon 2026 ·
 hal. 14". Baris itu adalah janji bahwa data ini bisa dicek — jadi tidak boleh ada produk yang tidak
@@ -61,13 +61,13 @@ kosong.
 
 ### Tabel pendamping
 
-| Tabel | Isi |
-|---|---|
-| `product_sizes` | `PipeSize` kanonik + ketersediaan |
-| `product_specs` | pasangan kunci-nilai tambahan dengan provenance sendiri |
+| Tabel                   | Isi                                                         |
+| ----------------------- | ----------------------------------------------------------- |
+| `product_sizes`         | `PipeSize` kanonik + ketersediaan                           |
+| `product_specs`         | pasangan kunci-nilai tambahan dengan provenance sendiri     |
 | `product_compatibility` | pipa ↔ fitting sepadan — sumber blok "FITTING YANG SEPADAN" |
-| `product_documents` | tautan datasheet / dokumen teknis |
-| `product_images` | foto produk 1:1 |
+| `product_documents`     | tautan datasheet / dokumen teknis                           |
+| `product_images`        | foto produk 1:1                                             |
 
 `product_compatibility` penting: daftar fitting di drawer produk berasal dari tabel ini, **bukan**
 dari tebakan model. Salah satu janji produk adalah "satu ekosistem fitting mengurangi risiko
@@ -96,14 +96,14 @@ Berjalan sebagai job RabbitMQ (`catalog.ingest`), idempoten dengan kunci
 
 Aturan validasi:
 
-| | |
-|---|---|
-| `sku` unik dalam satu versi | |
-| Field wajib terisi | |
-| Ukuran dapat diurai ke `PipeSize` kanonik | |
-| Referensi kompatibilitas menunjuk SKU yang ada | |
-| `sourcePage` berupa bilangan positif | |
-| **Baris gagal tidak memblokir baris lain** — semua galat dilaporkan sekaligus | |
+|                                                                               |     |
+| ----------------------------------------------------------------------------- | --- |
+| `sku` unik dalam satu versi                                                   |     |
+| Field wajib terisi                                                            |     |
+| Ukuran dapat diurai ke `PipeSize` kanonik                                     |     |
+| Referensi kompatibilitas menunjuk SKU yang ada                                |     |
+| `sourcePage` berupa bilangan positif                                          |     |
+| **Baris gagal tidak memblokir baris lain** — semua galat dilaporkan sekaligus |     |
 
 Poin terakhir berdasarkan pengalaman umum impor: memperbaiki 40 galat satu per satu, masing-masing
 menunggu satu putaran impor, adalah cara tercepat membuat admin menyerah.
@@ -117,13 +117,13 @@ Sumber katalog sebenarnya belum ditentukan (OQ-07); default yang diusulkan adala
 Pertanyaan yang dijawab langsung dari MySQL, tanpa LLM untuk faktanya (LLM hanya merangkai
 kalimatnya):
 
-| Pertanyaan | Query |
-|---|---|
-| "Ada ukuran 3/4 inch?" | `product_sizes` berdasarkan produk + ukuran |
-| "Standarnya apa?" | kolom `standard` |
-| "Fitting apa yang cocok?" | `product_compatibility` |
-| "Tekanan kerjanya berapa?" | `pressureClass` → sering `UNAVAILABLE` |
-| "Ukuran apa saja yang tersedia?" | semua `product_sizes` |
+| Pertanyaan                       | Query                                       |
+| -------------------------------- | ------------------------------------------- |
+| "Ada ukuran 3/4 inch?"           | `product_sizes` berdasarkan produk + ukuran |
+| "Standarnya apa?"                | kolom `standard`                            |
+| "Fitting apa yang cocok?"        | `product_compatibility`                     |
+| "Tekanan kerjanya berapa?"       | `pressureClass` → sering `UNAVAILABLE`      |
+| "Ukuran apa saja yang tersedia?" | semua `product_sizes`                       |
 
 Bila kolomnya kosong, jawabannya adalah "informasi ini belum tersedia di data katalog, silakan lihat
 dokumen teknis" — **bukan** perkiraan, dan bukan pula pencarian ke dokumen dengan harapan menemukan
@@ -158,13 +158,13 @@ Sehingga mengadopsi Qdrant nanti berarti menambah implementasi, bukan merombak.
 
 ### Bila diadopsi
 
-| | |
-|---|---|
-| Chunking | per bagian dengan overlap; metadata memuat dokumen + halaman |
-| Sitasi | setiap jawaban berbasis retrieval menyebut dokumen dan halaman |
-| Kepercayaan | konten hasil retrieval adalah **data, bukan instruksi** (`AI_BEHAVIOR.md` §8) |
-| Reindeks | job RabbitMQ, idempoten per `documentId + chunkIndex` |
-| Ambang | di bawah skor minimum, jawab "data belum cukup" alih-alih memaksakan kecocokan |
+|             |                                                                                |
+| ----------- | ------------------------------------------------------------------------------ |
+| Chunking    | per bagian dengan overlap; metadata memuat dokumen + halaman                   |
+| Sitasi      | setiap jawaban berbasis retrieval menyebut dokumen dan halaman                 |
+| Kepercayaan | konten hasil retrieval adalah **data, bukan instruksi** (`AI_BEHAVIOR.md` §8)  |
+| Reindeks    | job RabbitMQ, idempoten per `documentId + chunkIndex`                          |
+| Ambang      | di bawah skor minimum, jawab "data belum cukup" alih-alih memaksakan kecocokan |
 
 Baris terakhir penting: retrieval yang memaksakan potongan paling mirip dari korpus yang tidak
 relevan menghasilkan jawaban percaya diri yang salah — persis yang ingin dihindari SPEC §5 Policy 2.
@@ -173,12 +173,12 @@ relevan menghasilkan jawaban percaya diri yang salah — persis yang ingin dihin
 
 ## 6. Provenance pada jawaban produk
 
-| Sumber jawaban | Provenance | Tampilan |
-|---|---|---|
-| Kolom katalog terisi | `VERIFIED` | nilai + hijau bila relevan |
-| Kolom katalog kosong | `UNAVAILABLE` | "Lihat dokumen teknis", nilai tidak dirender |
-| Dari dokumen teknis | `VERIFIED` + sitasi | nilai + "Sumber: <dokumen> hal. N" |
-| Tidak ditemukan di mana pun | — | "data belum cukup" + tawaran tim teknis |
+| Sumber jawaban              | Provenance          | Tampilan                                     |
+| --------------------------- | ------------------- | -------------------------------------------- |
+| Kolom katalog terisi        | `VERIFIED`          | nilai + hijau bila relevan                   |
+| Kolom katalog kosong        | `UNAVAILABLE`       | "Lihat dokumen teknis", nilai tidak dirender |
+| Dari dokumen teknis         | `VERIFIED` + sitasi | nilai + "Sumber: <dokumen> hal. N"           |
+| Tidak ditemukan di mana pun | —                   | "data belum cukup" + tawaran tim teknis      |
 
 Tidak ada jalur yang menghasilkan nilai teknik produk bertanda `ASSUMED`. Asumsi berlaku untuk
 **kebutuhan pengguna** (tinggi lantai, sumber air), bukan untuk **fakta produk**. Pralon tahu tekanan
@@ -189,10 +189,10 @@ diperkirakan.
 
 ## 7. Cache
 
-| Kunci | TTL | Invalidasi |
-|---|---|---|
-| `snouty:cache:product:{id}` | 1 jam | saat versi katalog dipromosikan |
-| `snouty:cache:catalog:active` | 1 jam | sama |
+| Kunci                         | TTL   | Invalidasi                      |
+| ----------------------------- | ----- | ------------------------------- |
+| `snouty:cache:product:{id}`   | 1 jam | saat versi katalog dipromosikan |
+| `snouty:cache:catalog:active` | 1 jam | sama                            |
 
 Katalog berubah jarang dan dibaca sangat sering — rasio yang ideal untuk cache. Invalidasi dipicu
 peristiwa promosi versi, bukan hanya menunggu TTL, agar katalog baru langsung terlihat.
@@ -201,11 +201,11 @@ peristiwa promosi versi, bukan hanya menunggu TTL, agar katalog baru langsung te
 
 ## 8. Yang tidak boleh terjadi
 
-| | Ditegakkan oleh |
-|---|---|
-| Produk kompetitor menjadi record atau kartu | filter katalog di perakitan respons (release blocker) |
-| Spesifikasi kosong diisi tebakan | invarian C-1, tes komponen |
-| Nama produk atau SKU dikarang LLM | matcher hanya memilih dari katalog |
-| Jawaban berbasis dokumen tanpa sitasi | pemeriksaan di perakitan respons |
-| Produk tanpa `sourceDocument`/`sourcePage` | validasi impor |
-| Pencarian vektor untuk pertanyaan terstruktur | intent router |
+|                                               | Ditegakkan oleh                                       |
+| --------------------------------------------- | ----------------------------------------------------- |
+| Produk kompetitor menjadi record atau kartu   | filter katalog di perakitan respons (release blocker) |
+| Spesifikasi kosong diisi tebakan              | invarian C-1, tes komponen                            |
+| Nama produk atau SKU dikarang LLM             | matcher hanya memilih dari katalog                    |
+| Jawaban berbasis dokumen tanpa sitasi         | pemeriksaan di perakitan respons                      |
+| Produk tanpa `sourceDocument`/`sourcePage`    | validasi impor                                        |
+| Pencarian vektor untuk pertanyaan terstruktur | intent router                                         |

@@ -39,11 +39,11 @@ tanpa biaya, dan tes "tamu tidak bisa menembus API" cukup beberapa baris.
 Kebijakan ditegakkan di **tiga** tempat, bukan satu. Ini disengaja: UI bisa dilewati, prompt bisa
 dijailbreak, jadi lapisan terakhir harus struktural.
 
-| Lapisan | Peran | Contoh |
-|---|---|---|
-| **UI** | kenyamanan — menyembunyikan yang tidak tersedia | tombol "Estimasi material" tidak dirender untuk tamu |
-| **API guard** | otorisasi — menolak permintaan | `POST /recommendations/:id/bom` → `403 NOT_ENTITLED` |
-| **Perakitan respons** | kebenaran — menyaring hasil | daftar produk difilter terhadap katalog; SKU non-Pralon gugur meski model menghasilkannya |
+| Lapisan               | Peran                                           | Contoh                                                                                    |
+| --------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **UI**                | kenyamanan — menyembunyikan yang tidak tersedia | tombol "Estimasi material" tidak dirender untuk tamu                                      |
+| **API guard**         | otorisasi — menolak permintaan                  | `POST /recommendations/:id/bom` → `403 NOT_ENTITLED`                                      |
+| **Perakitan respons** | kebenaran — menyaring hasil                     | daftar produk difilter terhadap katalog; SKU non-Pralon gugur meski model menghasilkannya |
 
 Lapisan ketiga yang membuat Policy 1 dan Policy 2 benar-benar mengikat. Model boleh saja mengarang
 nama produk; jika SKU-nya tidak ada di `products`, ia tidak pernah menjadi kartu.
@@ -84,11 +84,11 @@ ketersediaan, aturan teknik, nilai teknik, harga.
 
 Ketika informasi tidak cukup, tepat tiga keluaran yang sah:
 
-| Keluaran | Kapan | Tampilan |
-|---|---|---|
+| Keluaran               | Kapan                                      | Tampilan                             |
+| ---------------------- | ------------------------------------------ | ------------------------------------ |
 | Pertanyaan klarifikasi | field kebutuhan kurang dan bisa ditanyakan | kartu klarifikasi, maks 4 pertanyaan |
-| "Data belum cukup" | katalog memang tidak memuatnya | teks jujur + tawaran tim teknis |
-| Validasi teknis | di luar cakupan | layar 11 |
+| "Data belum cukup"     | katalog memang tidak memuatnya             | teks jujur + tawaran tim teknis      |
+| Validasi teknis        | di luar cakupan                            | layar 11                             |
 
 Penegakan:
 
@@ -107,12 +107,12 @@ di panel kanan, dan mengikat perilaku:
 
 > **PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS**
 
-| Kondisi | Hasil |
-|---|---|
-| Skenario industri, pabrik, bangunan besar | `TECHNICAL_VALIDATION_REQUIRED` → layar 11 |
-| Kondisi kerja di luar rentang material (mis. 70 °C untuk PVC) | `TECHNICAL_VALIDATION_REQUIRED` |
-| Data tidak cukup dan tidak bisa diasumsikan dengan aman | `TECHNICAL_VALIDATION_REQUIRED` |
-| Aturan teknik belum divalidasi ahli | tetap jalan, tetapi output `ASSUMED`, tidak pernah `VERIFIED` |
+| Kondisi                                                       | Hasil                                                         |
+| ------------------------------------------------------------- | ------------------------------------------------------------- |
+| Skenario industri, pabrik, bangunan besar                     | `TECHNICAL_VALIDATION_REQUIRED` → layar 11                    |
+| Kondisi kerja di luar rentang material (mis. 70 °C untuk PVC) | `TECHNICAL_VALIDATION_REQUIRED`                               |
+| Data tidak cukup dan tidak bisa diasumsikan dengan aman       | `TECHNICAL_VALIDATION_REQUIRED`                               |
+| Aturan teknik belum divalidasi ahli                           | tetap jalan, tetapi output `ASSUMED`, tidak pernah `VERIFIED` |
 
 Layar 11 **bukan layar error**, dan bedanya penting. Ia memberi tiga hal: alasan bernomor mengapa
 perlu divalidasi, ringkasan "YANG SUDAH SAYA CATAT" supaya pengguna tidak mengulang cerita, dan jalan
@@ -133,7 +133,7 @@ Satu gerbang yang dilalui **semua** output engine:
 
 ```ts
 function gateProvenance(value: EngineOutput, rule: RuleVersion): Provenance {
-  if (rule.validationStatus !== 'VALIDATED') return 'ASSUMED';   // invarian P-1
+  if (rule.validationStatus !== 'VALIDATED') return 'ASSUMED'; // invarian P-1
   return value.hasRealDimensions ? 'VERIFIED' : 'ESTIMATED';
 }
 ```
@@ -153,11 +153,11 @@ ahli domain menandatangani aturannya.
 
 ## 7. Policy 5 — Scope routing
 
-| Cakupan | Perilaku |
-|---|---|
-| Air bersih, hunian & komersial ringan | didukung penuh |
-| Pembuangan / air kotor | **dicatat**, dinyatakan belum didukung untuk rekomendasi penuh, ditawarkan tim teknis (OQ-17) |
-| Industri / pabrik / bangunan besar | `TECHNICAL_VALIDATION_REQUIRED` |
+| Cakupan                               | Perilaku                                                                                      |
+| ------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Air bersih, hunian & komersial ringan | didukung penuh                                                                                |
+| Pembuangan / air kotor                | **dicatat**, dinyatakan belum didukung untuk rekomendasi penuh, ditawarkan tim teknis (OQ-17) |
+| Industri / pabrik / bangunan besar    | `TECHNICAL_VALIDATION_REQUIRED`                                                               |
 
 Penanganan air kotor perlu penjelasan, karena UI justru menawarkannya: chip klarifikasi memuat "Air
 bersih + pembuangan", riwayat memuat "Saluran pembuangan ruko", dan layar 07 menampilkan kartu
@@ -179,16 +179,16 @@ Satu tabel yang menjadi sumber **API guard sekaligus daftar manfaat di onboardin
 type Tier = 'guest' | 'registered' | 'advanced';
 
 const ENTITLEMENTS: Record<Capability, Tier[]> = {
-  PRODUCT_QA:           ['guest', 'registered', 'advanced'],
-  RECOMMENDATION:       ['guest', 'registered', 'advanced'],
-  CLARIFICATION:        ['guest', 'registered', 'advanced'],
-  TECHNICAL_HANDOFF:    ['guest', 'registered', 'advanced'],
+  PRODUCT_QA: ['guest', 'registered', 'advanced'],
+  RECOMMENDATION: ['guest', 'registered', 'advanced'],
+  CLARIFICATION: ['guest', 'registered', 'advanced'],
+  TECHNICAL_HANDOFF: ['guest', 'registered', 'advanced'],
   CONVERSATION_HISTORY: ['registered', 'advanced'],
-  SAVE_SOLUTION:        ['registered', 'advanced'],
-  CASE_ANALYSIS:        ['advanced'],
-  MATERIAL_BOM:         ['advanced'],
-  SCHEMATIC:            ['advanced'],
-  REPORT_PDF:           ['advanced'],
+  SAVE_SOLUTION: ['registered', 'advanced'],
+  CASE_ANALYSIS: ['advanced'],
+  MATERIAL_BOM: ['advanced'],
+  SCHEMATIC: ['advanced'],
+  REPORT_PDF: ['advanced'],
 };
 ```
 
@@ -220,15 +220,15 @@ Menghadang di langkah 1 adalah kesalahan yang paling mudah terjadi dan paling me
 
 Stabil, dapat dirender klien, dipetakan ke mood mascot dan salinan Bahasa Indonesia di satu tabel.
 
-| Kode | Arti | Mood | HTTP |
-|---|---|---|---|
-| `NOT_ENTITLED` | tier tidak mencukupi | `confused` | 403 |
-| `COMPETITOR_COMPARISON_REFUSED` | diminta membandingkan merek | `wink` | 200 (jawaban netral) |
-| `INSUFFICIENT_DATA` | katalog tidak memuatnya | `sorry` | 200 |
-| `TECHNICAL_VALIDATION_REQUIRED` | di luar cakupan | `focus` | 200 |
-| `SCOPE_NOT_YET_SUPPORTED` | pembuangan | `focus` | 200 |
-| `RATE_LIMITED` | melewati kuota | `sorry` | 429 |
-| `VALIDATION_FAILED` | DTO/output tidak valid | `confused` | 400 |
+| Kode                            | Arti                        | Mood       | HTTP                 |
+| ------------------------------- | --------------------------- | ---------- | -------------------- |
+| `NOT_ENTITLED`                  | tier tidak mencukupi        | `confused` | 403                  |
+| `COMPETITOR_COMPARISON_REFUSED` | diminta membandingkan merek | `wink`     | 200 (jawaban netral) |
+| `INSUFFICIENT_DATA`             | katalog tidak memuatnya     | `sorry`    | 200                  |
+| `TECHNICAL_VALIDATION_REQUIRED` | di luar cakupan             | `focus`    | 200                  |
+| `SCOPE_NOT_YET_SUPPORTED`       | pembuangan                  | `focus`    | 200                  |
+| `RATE_LIMITED`                  | melewati kuota              | `sorry`    | 429                  |
+| `VALIDATION_FAILED`             | DTO/output tidak valid      | `confused` | 400                  |
 
 Perhatikan bahwa sebagian besar berstatus 200: penolakan kebijakan adalah **jawaban**, bukan error.
 Hanya `NOT_ENTITLED`, `RATE_LIMITED`, dan `VALIDATION_FAILED` yang benar-benar menolak permintaan.
@@ -239,12 +239,12 @@ Hanya `NOT_ENTITLED`, `RATE_LIMITED`, dan `VALIDATION_FAILED` yang benar-benar m
 
 Bagian dari kebijakan karena batasnya berbeda per tier (SPEC §22). Penghitung di Redis.
 
-| Tier | Pesan/jam | Kasus lanjutan/hari | Skema/hari | Laporan/hari | Unggahan/hari |
-|---|---|---|---|---|---|
-| guest | rendah | — | — | — | 2 |
-| registered | sedang | 5 | 10 | 5 | 10 |
-| advanced | tinggi | 20 | 40 | 20 | 30 |
-| internal | terpisah | — | — | — | — |
+| Tier       | Pesan/jam | Kasus lanjutan/hari | Skema/hari | Laporan/hari | Unggahan/hari |
+| ---------- | --------- | ------------------- | ---------- | ------------ | ------------- |
+| guest      | rendah    | —                   | —          | —            | 2             |
+| registered | sedang    | 5                   | 10         | 5            | 10            |
+| advanced   | tinggi    | 20                  | 40         | 20           | 30            |
+| internal   | terpisah  | —                   | —          | —            | —             |
 
 Angka pastinya dikonfigurasi, bukan literal. Pelanggaran mengembalikan `RATE_LIMITED` beserta
 `retryAfterSec`, dirender dengan mood `sorry`.
@@ -255,17 +255,17 @@ Angka pastinya dikonfigurasi, bukan literal. Pelanggaran mengembalikan `RATE_LIM
 
 Tiga pertama adalah **release blocker** (SPEC §31).
 
-| # | Tes | Berkas |
-|---|---|---|
-| 1 | Pertanyaan kompetitor tidak pernah menghasilkan kartu produk kompetitor | `policy/competitor.spec.ts` |
-| 2 | Aturan `REQUIRES_DOMAIN_VALIDATION` tidak pernah menghasilkan `VERIFIED` | `policy/provenance-gate.spec.ts` |
-| 3 | Tamu tidak bisa mengakses kapabilitas lanjutan lewat API meski UI dilewati | `policy/entitlement.spec.ts` |
-| 4 | Skenario industri selalu ter-route ke `TECHNICAL_VALIDATION_REQUIRED` | `policy/scope-routing.spec.ts` |
-| 5 | Kebutuhan pembuangan tercatat, tidak ditolak, dan ditandai belum didukung | `policy/scope-routing.spec.ts` |
-| 6 | Setiap `ASSUMED` punya `reason` yang muncul di kartu asumsi | `policy/assumption.spec.ts` |
-| 7 | Daftar manfaat onboarding sama persis dengan `ENTITLEMENTS` | `policy/entitlement-ui-sync.spec.ts` |
-| 8 | Field spesifikasi null tidak pernah merender nilai | `ui/provenance-tag.spec.tsx` |
-| 9 | Laporan hanya dapat diunduh pemilik dan peran berwenang | `policy/report-access.spec.ts` |
+| #   | Tes                                                                        | Berkas                               |
+| --- | -------------------------------------------------------------------------- | ------------------------------------ |
+| 1   | Pertanyaan kompetitor tidak pernah menghasilkan kartu produk kompetitor    | `policy/competitor.spec.ts`          |
+| 2   | Aturan `REQUIRES_DOMAIN_VALIDATION` tidak pernah menghasilkan `VERIFIED`   | `policy/provenance-gate.spec.ts`     |
+| 3   | Tamu tidak bisa mengakses kapabilitas lanjutan lewat API meski UI dilewati | `policy/entitlement.spec.ts`         |
+| 4   | Skenario industri selalu ter-route ke `TECHNICAL_VALIDATION_REQUIRED`      | `policy/scope-routing.spec.ts`       |
+| 5   | Kebutuhan pembuangan tercatat, tidak ditolak, dan ditandai belum didukung  | `policy/scope-routing.spec.ts`       |
+| 6   | Setiap `ASSUMED` punya `reason` yang muncul di kartu asumsi                | `policy/assumption.spec.ts`          |
+| 7   | Daftar manfaat onboarding sama persis dengan `ENTITLEMENTS`                | `policy/entitlement-ui-sync.spec.ts` |
+| 8   | Field spesifikasi null tidak pernah merender nilai                         | `ui/provenance-tag.spec.tsx`         |
+| 9   | Laporan hanya dapat diunduh pemilik dan peran berwenang                    | `policy/report-access.spec.ts`       |
 
 Tes nomor 7 layak diperhatikan: ia mencegah kelas bug yang tidak terlihat sampai pengguna mengeluh —
 UI menjanjikan sesuatu yang API tolak.

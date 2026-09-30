@@ -9,13 +9,13 @@ Rujukan lengkap: `docs/EVALUATION.md` dan `docs/CODING_STANDARDS.md` §7, §11.
 
 ## Piramida
 
-| Lapisan | Cakupan |
-|---|---|
-| Unit | setiap aturan teknik, setiap policy object, `ContextMerger`, `moodFor`, gerbang provenance |
-| Kontrak | setiap skema zod, bentuk event SSE |
-| Integrasi | repository + orkestrasi, terhadap **kontainer MySQL sekali pakai** |
-| Komponen | rendering provenance di kedua tema, mood mascot, reduced motion |
-| E2E | alur konsultasi: welcome → klarifikasi → analisis → solusi → laporan |
+| Lapisan   | Cakupan                                                                                    |
+| --------- | ------------------------------------------------------------------------------------------ |
+| Unit      | setiap aturan teknik, setiap policy object, `ContextMerger`, `moodFor`, gerbang provenance |
+| Kontrak   | setiap skema zod, bentuk event SSE                                                         |
+| Integrasi | repository + orkestrasi, terhadap **kontainer MySQL sekali pakai**                         |
+| Komponen  | rendering provenance di kedua tema, mood mascot, reduced motion                            |
+| E2E       | alur konsultasi: welcome → klarifikasi → analisis → solusi → laporan                       |
 
 Cakupan: `packages/engineering` dan `policy` **≥ 95%**; sisanya seperlunya. Angka tidak seragam
 disengaja — mengejar 95% di kode glue infrastruktur menghasilkan tes yang menguji mock.
@@ -50,13 +50,13 @@ pengguna kita". Keluaran model bisa berubah tanpa satu baris kode berubah.
 Golden dataset di `evals/`, kasus awal diambil dari alur contoh di desain — perilaku yang sudah
 ditinjau manusia.
 
-| Metrik | Ambang |
-|---|---|
-| Akurasi intent | ≥ 95% |
-| Akurasi per field | ≥ 90% |
-| **Laju halusinasi** | **0%** |
+| Metrik                   | Ambang   |
+| ------------------------ | -------- |
+| Akurasi intent           | ≥ 95%    |
+| Akurasi per field        | ≥ 90%    |
+| **Laju halusinasi**      | **0%**   |
 | **Kesesuaian kebijakan** | **100%** |
-| Kelolosan validasi skema | ≥ 95% |
+| Kelolosan validasi skema | ≥ 95%    |
 
 Dua ambang mutlak: model yang **mengisi** `floors: 2` dari kalimat yang tidak menyebut lantai lebih
 berbahaya daripada yang mengosongkannya (yang kosong akan ditanyakan, yang salah akan dihitung); dan

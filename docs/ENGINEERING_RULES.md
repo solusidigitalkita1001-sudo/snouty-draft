@@ -29,18 +29,18 @@ tetapi selisihnya nyata dan sebaiknya diketahui sekarang, bukan saat demo Fase 7
 
 ```ts
 interface RuleVersion<I, O> {
-  ruleId: string;              // 'ENG-002'
-  version: number;             // naik saat formula berubah, tidak pernah diedit di tempat
+  ruleId: string; // 'ENG-002'
+  version: number; // naik saat formula berubah, tidak pernah diedit di tempat
   category: RuleCategory;
-  inputSchema:  ZodSchema<I>;
+  inputSchema: ZodSchema<I>;
   outputSchema: ZodSchema<O>;
-  compute: (input: I) => O;    // murni: tanpa I/O, tanpa jam, tanpa acak
-  sourceReference?: string;    // standar / dokumen / hasil wawancara ahli
+  compute: (input: I) => O; // murni: tanpa I/O, tanpa jam, tanpa acak
+  sourceReference?: string; // standar / dokumen / hasil wawancara ahli
   validationStatus: 'REQUIRES_DOMAIN_VALIDATION' | 'VALIDATED' | 'REJECTED';
   validatedBy?: string;
   validatedAt?: string;
   testCases: TestCase<I, O>[]; // minimal satu — aturan tanpa tes tidak bisa didaftarkan
-  explain: (input: I, output: O) => string;  // teks kolom "DASAR PERHITUNGAN"
+  explain: (input: I, output: O) => string; // teks kolom "DASAR PERHITUNGAN"
 }
 ```
 
@@ -63,7 +63,9 @@ berbeda karena keduanya keluar dari sumber yang sama.
 Setiap eksekusi menulis satu `CalculationTrace`:
 
 ```ts
-{ recommendationId, ruleId, ruleVersion, inputs, output, provenance, explanation }
+{
+  (recommendationId, ruleId, ruleVersion, inputs, output, provenance, explanation);
+}
 ```
 
 Inilah yang membuat auditabilitas SPEC §8 terlihat oleh pengguna dan bukan sekadar tersimpan di log.
@@ -251,22 +253,22 @@ sebagai asumsi, jadi harus melewati proses validasi yang sama.
 
 Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja.
 
-| ID | Deskripsi | Asal | Status | Prioritas validasi |
-|---|---|---|---|---|
-| ENG-001 | Unit beban + jumlah titik air | prototipe baru | REQUIRES_DOMAIN_VALIDATION | **tinggi** |
-| ENG-002 | Ambang ukuran jalur utama (≥ 8 unit → 1") | prototipe baru | REQUIRES_DOMAIN_VALIDATION | **tertinggi** |
-| ENG-003 | Maks 4 titik air per cabang | keduanya | REQUIRES_DOMAIN_VALIDATION | tinggi |
-| ENG-004 | Tinggi lantai default 3,5 m | keduanya | REQUIRES_DOMAIN_VALIDATION | sedang |
-| ENG-005 | Sambungan fixture 1/2" | keduanya | REQUIRES_DOMAIN_VALIDATION | sedang |
-| ENG-006 | Selisih lapangan 10–15% | keduanya | REQUIRES_DOMAIN_VALIDATION | rendah |
-| ENG-007 | Urutan klarifikasi | prototipe | REQUIRES_DOMAIN_VALIDATION | rendah |
-| ENG-008 | Distribusi titik air antar lantai | prototipe | REQUIRES_DOMAIN_VALIDATION | sedang |
-| ENG-009 | Formula kuantitas BOM | prototipe | REQUIRES_DOMAIN_VALIDATION | tinggi |
-| ENG-010 | Kecepatan aliran 1–2 m/s | prototipe | REQUIRES_DOMAIN_VALIDATION | sedang |
-| ENG-011 | Gravitasi toren cukup tanpa pompa | prototipe | REQUIRES_DOMAIN_VALIDATION | **tinggi** |
-| ENG-012 | 1 kamar mandi = shower + kloset | prototipe | REQUIRES_DOMAIN_VALIDATION | tinggi |
-| ENG-013 | Kelas AW / D | board 08 | REQUIRES_DOMAIN_VALIDATION | sedang |
-| ENG-014 | Default "Belum tahu" | prototipe | REQUIRES_DOMAIN_VALIDATION | sedang |
+| ID      | Deskripsi                                 | Asal           | Status                     | Prioritas validasi |
+| ------- | ----------------------------------------- | -------------- | -------------------------- | ------------------ |
+| ENG-001 | Unit beban + jumlah titik air             | prototipe baru | REQUIRES_DOMAIN_VALIDATION | **tinggi**         |
+| ENG-002 | Ambang ukuran jalur utama (≥ 8 unit → 1") | prototipe baru | REQUIRES_DOMAIN_VALIDATION | **tertinggi**      |
+| ENG-003 | Maks 4 titik air per cabang               | keduanya       | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-004 | Tinggi lantai default 3,5 m               | keduanya       | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-005 | Sambungan fixture 1/2"                    | keduanya       | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-006 | Selisih lapangan 10–15%                   | keduanya       | REQUIRES_DOMAIN_VALIDATION | rendah             |
+| ENG-007 | Urutan klarifikasi                        | prototipe      | REQUIRES_DOMAIN_VALIDATION | rendah             |
+| ENG-008 | Distribusi titik air antar lantai         | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-009 | Formula kuantitas BOM                     | prototipe      | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-010 | Kecepatan aliran 1–2 m/s                  | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-011 | Gravitasi toren cukup tanpa pompa         | prototipe      | REQUIRES_DOMAIN_VALIDATION | **tinggi**         |
+| ENG-012 | 1 kamar mandi = shower + kloset           | prototipe      | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-013 | Kelas AW / D                              | board 08       | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-014 | Default "Belum tahu"                      | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
 
 Bila waktu ahli terbatas, empat yang bertanda tinggi/tertinggi memberi hasil terbesar: ENG-002
 menentukan angka utama, ENG-001 dan ENG-012 memberinya masukan, ENG-011 menentukan apakah pompa perlu
@@ -293,13 +295,13 @@ siapa.
 
 ## 6. Pengujian
 
-| Lapisan | Cakupan |
-|---|---|
-| Test case per aturan | wajib, minimal satu, tersimpan bersama aturan |
-| Properti | monotonisitas: menambah titik air tidak pernah **mengecilkan** ukuran pipa |
-| Regresi | contoh kerja board (3 kamar mandi, 4 wastafel, 1 dapur, 2 lantai, toren atap) harus tetap menghasilkan 8 titik air, jalur utama 1", cabang 3/4", 5 baris BOM |
-| Gerbang provenance | aturan belum tervalidasi tidak pernah menghasilkan `VERIFIED` (release blocker) |
-| Kemurnian | `compute` dipanggil 1.000 kali dengan masukan sama menghasilkan keluaran identik |
+| Lapisan              | Cakupan                                                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Test case per aturan | wajib, minimal satu, tersimpan bersama aturan                                                                                                                |
+| Properti             | monotonisitas: menambah titik air tidak pernah **mengecilkan** ukuran pipa                                                                                   |
+| Regresi              | contoh kerja board (3 kamar mandi, 4 wastafel, 1 dapur, 2 lantai, toren atap) harus tetap menghasilkan 8 titik air, jalur utama 1", cabang 3/4", 5 baris BOM |
+| Gerbang provenance   | aturan belum tervalidasi tidak pernah menghasilkan `VERIFIED` (release blocker)                                                                              |
+| Kemurnian            | `compute` dipanggil 1.000 kali dengan masukan sama menghasilkan keluaran identik                                                                             |
 
 Target cakupan `packages/engineering`: **≥ 95%**. Paket ini tidak punya I/O, jadi tidak ada alasan
 teknis untuk cakupan rendah.

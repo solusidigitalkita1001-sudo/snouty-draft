@@ -18,10 +18,10 @@ policy.evaluate(actor, capability, ctx?) → PolicyDecision
 
 ## Tiga titik penegakan
 
-| Lapisan | Peran |
-|---|---|
-| UI | kenyamanan — menyembunyikan yang tidak tersedia |
-| API guard | otorisasi — menolak permintaan |
+| Lapisan               | Peran                                            |
+| --------------------- | ------------------------------------------------ |
+| UI                    | kenyamanan — menyembunyikan yang tidak tersedia  |
+| API guard             | otorisasi — menolak permintaan                   |
 | **Perakitan respons** | kebenaran — **menyaring hasil terhadap katalog** |
 
 Lapisan ketiga yang mengikat. Prompt bisa dijailbreak; produk tanpa baris di `products` tetap tidak
@@ -60,7 +60,7 @@ pengguna tidak mengulang cerita, tawarkan tim teknis + SLA. Mood mascot `focus`,
 Satu gerbang untuk semua keluaran engine:
 
 ```ts
-if (rule.validationStatus !== 'VALIDATED') return 'ASSUMED';   // invarian P-1
+if (rule.validationStatus !== 'VALIDATED') return 'ASSUMED'; // invarian P-1
 return out.hasRealDimensions ? 'VERIFIED' : 'ESTIMATED';
 ```
 

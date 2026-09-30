@@ -24,12 +24,12 @@ Contoh perilaku benar dari desain: Pralon PVC AW punya `Tekanan kerja` = "Lihat 
 
 ## Provenance jawaban produk
 
-| Sumber | Provenance |
-|---|---|
-| Kolom katalog terisi | `VERIFIED` |
-| Kolom katalog kosong | `UNAVAILABLE` |
-| Dari dokumen teknis | `VERIFIED` + sitasi dokumen & halaman |
-| Tidak ditemukan | "data belum cukup" + tawaran tim teknis |
+| Sumber               | Provenance                              |
+| -------------------- | --------------------------------------- |
+| Kolom katalog terisi | `VERIFIED`                              |
+| Kolom katalog kosong | `UNAVAILABLE`                           |
+| Dari dokumen teknis  | `VERIFIED` + sitasi dokumen & halaman   |
+| Tidak ditemukan      | "data belum cukup" + tawaran tim teknis |
 
 Tidak ada jalur yang menghasilkan fakta produk bertanda `ASSUMED`. Asumsi berlaku untuk **kebutuhan
 pengguna**, bukan untuk **fakta produk** — Pralon tahu spesifikasi pipanya; kalau belum ada di

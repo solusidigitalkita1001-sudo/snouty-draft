@@ -20,11 +20,20 @@ layar 06 menampilkan tiga baris TERVERIFIKASI; produk sebenarnya akan menampilka
 ## Anatomi aturan
 
 ```ts
-{ ruleId, version, category, inputSchema, outputSchema,
-  compute,            // MURNI: tanpa I/O, tanpa Date.now(), tanpa acak
-  sourceReference, validationStatus, validatedBy, validatedAt,
-  testCases,          // WAJIB minimal satu — tanpa tes, tidak bisa didaftarkan
-  explain }           // teks kolom "DASAR PERHITUNGAN"
+{
+  (ruleId,
+    version,
+    category,
+    inputSchema,
+    outputSchema,
+    compute, // MURNI: tanpa I/O, tanpa Date.now(), tanpa acak
+    sourceReference,
+    validationStatus,
+    validatedBy,
+    validatedAt,
+    testCases, // WAJIB minimal satu — tanpa tes, tidak bisa didaftarkan
+    explain);
+} // teks kolom "DASAR PERHITUNGAN"
 ```
 
 Empat sifat yang wajib dijaga:
@@ -53,22 +62,22 @@ trace**, bukan dari prosa LLM.
 
 ## Registry ringkas
 
-| ID | Isi |
-|---|---|
-| ENG-001 | `outletCount = bath+basin+kitchen`; `loadUnits = bath×2+basin+kitchen` |
+| ID      | Isi                                                                                             |
+| ------- | ----------------------------------------------------------------------------------------------- |
+| ENG-001 | `outletCount = bath+basin+kitchen`; `loadUnits = bath×2+basin+kitchen`                          |
 | ENG-002 | `mainSize = loadUnits >= 8 ? '1"' : '3/4"'` — ⚠ prototipe lama & SPEC §33b bilang `>= 6`, OQ-22 |
-| ENG-003 | maks 4 titik air per cabang |
-| ENG-004 | tinggi lantai default 3,5 m |
-| ENG-005 | sambungan fixture 1/2" |
-| ENG-006 | selisih lapangan 10–15% |
-| ENG-007 | urutan klarifikasi `source → install → floors → bath` |
-| ENG-008 | distribusi titik air antar lantai (**tanpa batas 3 lantai** — itu batas rendering) |
-| ENG-009 | formula kuantitas BOM |
-| ENG-010 | kecepatan aliran 1–2 m/s |
-| ENG-011 | gravitasi toren cukup tanpa pompa |
-| ENG-012 | 1 kamar mandi = 1 shower + 1 kloset |
-| ENG-013 | kelas AW air bersih, D pembuangan |
-| ENG-014 | default "Belum tahu" |
+| ENG-003 | maks 4 titik air per cabang                                                                     |
+| ENG-004 | tinggi lantai default 3,5 m                                                                     |
+| ENG-005 | sambungan fixture 1/2"                                                                          |
+| ENG-006 | selisih lapangan 10–15%                                                                         |
+| ENG-007 | urutan klarifikasi `source → install → floors → bath`                                           |
+| ENG-008 | distribusi titik air antar lantai (**tanpa batas 3 lantai** — itu batas rendering)              |
+| ENG-009 | formula kuantitas BOM                                                                           |
+| ENG-010 | kecepatan aliran 1–2 m/s                                                                        |
+| ENG-011 | gravitasi toren cukup tanpa pompa                                                               |
+| ENG-012 | 1 kamar mandi = 1 shower + 1 kloset                                                             |
+| ENG-013 | kelas AW air bersih, D pembuangan                                                               |
+| ENG-014 | default "Belum tahu"                                                                            |
 
 Prioritas validasi tertinggi: **ENG-002**, lalu ENG-001, ENG-012, ENG-011.
 

@@ -10,17 +10,17 @@ menjadi galat kompilasi, bukan bug runtime.
 
 ## 1. Konvensi
 
-| Aspek | Ketentuan |
-|---|---|
-| Base path | `/api/v1` |
-| Format | JSON, `utf-8` |
-| Waktu | ISO-8601 UTC |
-| ID | ULID 26 karakter |
-| Autentikasi | `Authorization: Bearer <access>`; refresh token di cookie `httpOnly` |
-| Guest | cookie `snouty_guest` `httpOnly`, dibuat otomatis pada permintaan pertama |
-| Correlation | `X-Correlation-Id` diterima atau dibangkitkan, selalu dikembalikan |
-| Idempotensi | `Idempotency-Key` pada POST yang memicu job |
-| Paginasi | berbasis cursor: `?cursor=&limit=` |
+| Aspek       | Ketentuan                                                                 |
+| ----------- | ------------------------------------------------------------------------- |
+| Base path   | `/api/v1`                                                                 |
+| Format      | JSON, `utf-8`                                                             |
+| Waktu       | ISO-8601 UTC                                                              |
+| ID          | ULID 26 karakter                                                          |
+| Autentikasi | `Authorization: Bearer <access>`; refresh token di cookie `httpOnly`      |
+| Guest       | cookie `snouty_guest` `httpOnly`, dibuat otomatis pada permintaan pertama |
+| Correlation | `X-Correlation-Id` diterima atau dibangkitkan, selalu dikembalikan        |
+| Idempotensi | `Idempotency-Key` pada POST yang memicu job                               |
+| Paginasi    | berbasis cursor: `?cursor=&limit=`                                        |
 
 Bentuk error tunggal untuk seluruh API:
 
@@ -44,14 +44,14 @@ Bentuk error tunggal untuk seluruh API:
 
 ### Auth & sesi
 
-| Metode | Path | Keterangan |
-|---|---|---|
+| Metode | Path             | Keterangan                                                            |
+| ------ | ---------------- | --------------------------------------------------------------------- |
 | `POST` | `/auth/register` | membuat akun; bila ada cookie guest, sesinya ditautkan (invarian G-1) |
-| `POST` | `/auth/login` | |
-| `POST` | `/auth/refresh` | rotasi refresh token |
-| `POST` | `/auth/logout` | mencabut refresh token |
-| `GET` | `/auth/me` | profil + `tier` + `roles` + `entitlements` |
-| `POST` | `/guest/session` | membuat sesi tamu (biasanya implisit) |
+| `POST` | `/auth/login`    |                                                                       |
+| `POST` | `/auth/refresh`  | rotasi refresh token                                                  |
+| `POST` | `/auth/logout`   | mencabut refresh token                                                |
+| `GET`  | `/auth/me`       | profil + `tier` + `roles` + `entitlements`                            |
+| `POST` | `/guest/session` | membuat sesi tamu (biasanya implisit)                                 |
 
 `POST /auth/register` mengembalikan `resumedConversationId` bila ada percakapan tamu yang berpindah
 kepemilikan. Inilah yang membuat alur register-gate melanjutkan kasus yang sama alih-alih membuang
@@ -59,104 +59,104 @@ konteks.
 
 ### Onboarding & consent
 
-| Metode | Path | Keterangan |
-|---|---|---|
-| `GET` | `/onboarding/state` | `done` \| `guest` \| `skip` \| `pending` — dari server, bukan localStorage |
-| `POST` | `/onboarding/complete` | body `{ outcome }` |
-| `GET` | `/onboarding/benefits` | dibangkitkan dari `ENTITLEMENTS`, bukan ditulis tangan |
-| `POST` | `/consents` | `{ kind, granted, policyVersion }` |
-| `GET` | `/consents` | |
+| Metode | Path                   | Keterangan                                                                 |
+| ------ | ---------------------- | -------------------------------------------------------------------------- |
+| `GET`  | `/onboarding/state`    | `done` \| `guest` \| `skip` \| `pending` — dari server, bukan localStorage |
+| `POST` | `/onboarding/complete` | body `{ outcome }`                                                         |
+| `GET`  | `/onboarding/benefits` | dibangkitkan dari `ENTITLEMENTS`, bukan ditulis tangan                     |
+| `POST` | `/consents`            | `{ kind, granted, policyVersion }`                                         |
+| `GET`  | `/consents`            |                                                                            |
 
 `GET /onboarding/benefits` mengembalikan enam manfaat beserta tag `AKUN` / `LANJUTAN` / `TAMU JUGA`
 yang diturunkan dari tabel entitlement (SPEC §33e). UI tidak pernah menuliskannya sendiri.
 
 ### Percakapan
 
-| Metode | Path | Keterangan |
-|---|---|---|
-| `GET` | `/conversations` | daftar riwayat; `?status=&q=&cursor=` — mendukung pencarian & filter layar 12 |
-| `POST` | `/conversations` | |
-| `GET` | `/conversations/:id` | percakapan + snapshot terbaru + ringkasan rekomendasi |
-| `PATCH` | `/conversations/:id` | ubah judul |
-| `DELETE` | `/conversations/:id` | soft delete |
-| **`POST`** | **`/conversations/:id/messages`** | **mengembalikan `text/event-stream` — lihat §3** |
-| `POST` | `/conversations/:id/save` | "Simpan solusi" → status `SAVED`, memicu toast |
+| Metode     | Path                              | Keterangan                                                                    |
+| ---------- | --------------------------------- | ----------------------------------------------------------------------------- |
+| `GET`      | `/conversations`                  | daftar riwayat; `?status=&q=&cursor=` — mendukung pencarian & filter layar 12 |
+| `POST`     | `/conversations`                  |                                                                               |
+| `GET`      | `/conversations/:id`              | percakapan + snapshot terbaru + ringkasan rekomendasi                         |
+| `PATCH`    | `/conversations/:id`              | ubah judul                                                                    |
+| `DELETE`   | `/conversations/:id`              | soft delete                                                                   |
+| **`POST`** | **`/conversations/:id/messages`** | **mengembalikan `text/event-stream` — lihat §3**                              |
+| `POST`     | `/conversations/:id/save`         | "Simpan solusi" → status `SAVED`, memicu toast                                |
 
 ### Kebutuhan
 
-| Metode | Path | Keterangan |
-|---|---|---|
-| `GET` | `/conversations/:id/requirement` | snapshot terbaru |
-| `PATCH` | `/conversations/:id/requirement` | edit inline panel kanan — **tanpa panggilan LLM** |
-| `GET` | `/conversations/:id/requirement/history` | semua snapshot |
-| `POST` | `/conversations/:id/requirement/skip-clarification` | "lewati dan gunakan asumsi standar" |
+| Metode  | Path                                                | Keterangan                                        |
+| ------- | --------------------------------------------------- | ------------------------------------------------- |
+| `GET`   | `/conversations/:id/requirement`                    | snapshot terbaru                                  |
+| `PATCH` | `/conversations/:id/requirement`                    | edit inline panel kanan — **tanpa panggilan LLM** |
+| `GET`   | `/conversations/:id/requirement/history`            | semua snapshot                                    |
+| `POST`  | `/conversations/:id/requirement/skip-clarification` | "lewati dan gunakan asumsi standar"               |
 
 `PATCH` mengembalikan snapshot baru **beserta** rekomendasi yang sudah dihitung ulang bila solusi
 sudah ada. Satu permintaan, satu respons — UI tidak perlu mengorkestrasi ulang.
 
 ### Katalog
 
-| Metode | Path | Keterangan |
-|---|---|---|
-| `GET` | `/products` | `?family=&category=&size=&q=&cursor=` |
-| `GET` | `/products/:id` | drawer produk: spesifikasi, ukuran, fitting sepadan, sumber |
-| `GET` | `/products/:id/compatible` | |
-| `GET` | `/catalog/version` | versi aktif — dirender "KATALOG PRALON · v2.4" |
+| Metode | Path                       | Keterangan                                                  |
+| ------ | -------------------------- | ----------------------------------------------------------- |
+| `GET`  | `/products`                | `?family=&category=&size=&q=&cursor=`                       |
+| `GET`  | `/products/:id`            | drawer produk: spesifikasi, ukuran, fitting sepadan, sumber |
+| `GET`  | `/products/:id/compatible` |                                                             |
+| `GET`  | `/catalog/version`         | versi aktif — dirender "KATALOG PRALON · v2.4"              |
 
 Field spesifikasi kosong dikembalikan sebagai `{ "value": null, "provenance": "UNAVAILABLE" }`, bukan
 dihilangkan dari respons. UI perlu tahu bedanya antara "tidak ada datanya" dan "field tidak berlaku".
 
 ### Rekomendasi
 
-| Metode | Path | Entitlement |
-|---|---|---|
-| `GET` | `/recommendations/:id` | pemilik |
-| `GET` | `/recommendations/:id/bom` | `MATERIAL_BOM` |
-| `GET` | `/recommendations/:id/schematic` | `SCHEMATIC` |
-| `GET` | `/recommendations/:id/traces` | pemilik — sumber "Tampilkan detail teknis" |
-| `POST` | `/recommendations/:id/recalculate` | pemilik — dipakai skenario layar 09 |
+| Metode | Path                               | Entitlement                                |
+| ------ | ---------------------------------- | ------------------------------------------ |
+| `GET`  | `/recommendations/:id`             | pemilik                                    |
+| `GET`  | `/recommendations/:id/bom`         | `MATERIAL_BOM`                             |
+| `GET`  | `/recommendations/:id/schematic`   | `SCHEMATIC`                                |
+| `GET`  | `/recommendations/:id/traces`      | pemilik — sumber "Tampilkan detail teknis" |
+| `POST` | `/recommendations/:id/recalculate` | pemilik — dipakai skenario layar 09        |
 
 ### Laporan
 
-| Metode | Path | Keterangan |
-|---|---|---|
-| `POST` | `/reports` | `{ recommendationId }` → `202` + `reportId`, job masuk antrean |
-| `GET` | `/reports/:id` | `PENDING` \| `READY` \| `FAILED` |
-| `GET` | `/reports/:id/download` | hanya pemilik & peran berwenang (invarian RP-2) |
-| `POST` | `/reports/:id/email` | "Kirim ke email" |
+| Metode | Path                    | Keterangan                                                     |
+| ------ | ----------------------- | -------------------------------------------------------------- |
+| `POST` | `/reports`              | `{ recommendationId }` → `202` + `reportId`, job masuk antrean |
+| `GET`  | `/reports/:id`          | `PENDING` \| `READY` \| `FAILED`                               |
+| `GET`  | `/reports/:id/download` | hanya pemilik & peran berwenang (invarian RP-2)                |
+| `POST` | `/reports/:id/email`    | "Kirim ke email"                                               |
 
 ### Handoff teknis
 
-| Metode | Path | Keterangan |
-|---|---|---|
-| `POST` | `/handoffs` | "Kirim ke tim teknis Pralon" — membawa snapshot kebutuhan |
-| `GET` | `/handoffs/:id` | status + SLA |
-| `GET` | `/conversations/:id/requirement/summary.pdf` | "Unduh ringkasan kebutuhan" |
+| Metode | Path                                         | Keterangan                                                |
+| ------ | -------------------------------------------- | --------------------------------------------------------- |
+| `POST` | `/handoffs`                                  | "Kirim ke tim teknis Pralon" — membawa snapshot kebutuhan |
+| `GET`  | `/handoffs/:id`                              | status + SLA                                              |
+| `GET`  | `/conversations/:id/requirement/summary.pdf` | "Unduh ringkasan kebutuhan"                               |
 
 ### Unggahan & umpan balik
 
-| Metode | Path | Keterangan |
-|---|---|---|
-| `POST` | `/uploads` | multipart; denah bangunan; MIME + ukuran dibatasi |
-| `POST` | `/feedback` | `{ messageId, rating, reason? }` |
+| Metode | Path        | Keterangan                                        |
+| ------ | ----------- | ------------------------------------------------- |
+| `POST` | `/uploads`  | multipart; denah bangunan; MIME + ukuran dibatasi |
+| `POST` | `/feedback` | `{ messageId, rating, reason? }`                  |
 
 ### Internal (semua butuh peran + audit)
 
-| Path | Peran |
-|---|---|
-| `/internal/catalog/*` | `catalog_admin` |
-| `/internal/rules/*` | `domain_expert` |
-| `/internal/handoffs/*` | `technical_team` |
-| `/internal/emails/*` | `sales_reviewer` |
+| Path                    | Peran                     |
+| ----------------------- | ------------------------- |
+| `/internal/catalog/*`   | `catalog_admin`           |
+| `/internal/rules/*`     | `domain_expert`           |
+| `/internal/handoffs/*`  | `technical_team`          |
+| `/internal/emails/*`    | `sales_reviewer`          |
 | `/internal/dashboard/*` | `sales_reviewer`, `admin` |
-| `/internal/users/*` | `admin` |
+| `/internal/users/*`     | `admin`                   |
 
 ### Kesehatan
 
-| Path | Isi |
-|---|---|
-| `GET /health` | `{ status, db, redis, rabbitmq, version }` — DB hanya `SELECT 1` |
-| `GET /health/ready` | untuk load balancer |
+| Path                | Isi                                                              |
+| ------------------- | ---------------------------------------------------------------- |
+| `GET /health`       | `{ status, db, redis, rabbitmq, version }` — DB hanya `SELECT 1` |
+| `GET /health/ready` | untuk load balancer                                              |
 
 ---
 
@@ -177,27 +177,27 @@ add_header X-Accel-Buffering no;
 
 ```ts
 type SseEvent =
-  | { type: 'message.start';       messageId: string }
-  | { type: 'stage';               stage: AnalysisStage; status: 'active'|'done'|'failed'; detail?: string }
-  | { type: 'token';               text: string }
+  | { type: 'message.start'; messageId: string }
+  | { type: 'stage'; stage: AnalysisStage; status: 'active' | 'done' | 'failed'; detail?: string }
+  | { type: 'token'; text: string }
   | { type: 'requirement.updated'; state: RequirementState }
-  | { type: 'card';                card: AssistantCard }
-  | { type: 'solution.ready';      recommendationId: string }
-  | { type: 'error';               code: ErrorCode; retryable: boolean; retryAfterSec?: number }
-  | { type: 'message.end';         messageId: string; usage: TokenUsage };
+  | { type: 'card'; card: AssistantCard }
+  | { type: 'solution.ready'; recommendationId: string }
+  | { type: 'error'; code: ErrorCode; retryable: boolean; retryAfterSec?: number }
+  | { type: 'message.end'; messageId: string; usage: TokenUsage };
 ```
 
 ### Lima tahap analisis
 
 Label dirender apa adanya, persis `STEP_LABELS` prototipe:
 
-| `AnalysisStage` | Label | Dipancarkan saat |
-|---|---|---|
-| `UNDERSTANDING` | Memahami kebutuhan | ekstraksi + merge selesai |
-| `ANALYZING_INSTALLATION` | Menganalisis instalasi | aturan teknik selesai dievaluasi |
-| `MATCHING_PRODUCTS` | Mencocokkan produk Pralon | pencocokan katalog selesai |
-| `COMPOSING` | Menyusun rekomendasi | rekomendasi dirakit & disimpan |
-| `PREPARING_SCHEMATIC` | Menyiapkan skema | topologi terbentuk |
+| `AnalysisStage`          | Label                     | Dipancarkan saat                 |
+| ------------------------ | ------------------------- | -------------------------------- |
+| `UNDERSTANDING`          | Memahami kebutuhan        | ekstraksi + merge selesai        |
+| `ANALYZING_INSTALLATION` | Menganalisis instalasi    | aturan teknik selesai dievaluasi |
+| `MATCHING_PRODUCTS`      | Mencocokkan produk Pralon | pencocokan katalog selesai       |
+| `COMPOSING`              | Menyusun rekomendasi      | rekomendasi dirakit & disimpan   |
+| `PREPARING_SCHEMATIC`    | Menyiapkan skema          | topologi terbentuk               |
 
 Ini **batas pipeline nyata**, bukan timer. Field `detail` mengisi sub-label board layar 05, seperti
 "6 DATA · SELESAI" dan "RISER + 2 LANTAI · SELESAI".
@@ -208,12 +208,12 @@ Union tertutup — balasan asisten tidak pernah berisi HTML atau markdown bebas.
 
 ```ts
 type AssistantCard =
-  | { kind: 'summary';       fields: SummaryField[]; readCount: number }
-  | { kind: 'clarification'; questions: ClarificationQuestion[] }   // maks 4
-  | { kind: 'criteria';      items: CriteriaItem[] }                // layar 08
-  | { kind: 'unsupported';   reasons: string[]; captured: KeyValue[]; slaHours: number }
-  | { kind: 'product';       products: ProductCardDto[] }
-  | { kind: 'cta';           action: 'ANALYZE' | 'REGISTER' | 'CONTACT_TECHNICAL' };
+  | { kind: 'summary'; fields: SummaryField[]; readCount: number }
+  | { kind: 'clarification'; questions: ClarificationQuestion[] } // maks 4
+  | { kind: 'criteria'; items: CriteriaItem[] } // layar 08
+  | { kind: 'unsupported'; reasons: string[]; captured: KeyValue[]; slaHours: number }
+  | { kind: 'product'; products: ProductCardDto[] }
+  | { kind: 'cta'; action: 'ANALYZE' | 'REGISTER' | 'CONTACT_TECHNICAL' };
 ```
 
 Membatasi kartu pada union tertutup sekaligus menutup satu jalur prompt injection: dokumen atau email
@@ -261,19 +261,19 @@ ditulis ke MySQL sebelum tahap `MATCHING_PRODUCTS` dimulai.
 
 ## 4. Kode error
 
-| Kode | HTTP | Retryable | Mood | Salinan UI |
-|---|---|---|---|---|
-| `VALIDATION_FAILED` | 400 | tidak | `confused` | "Ada isian yang belum sesuai." |
-| `UNAUTHENTICATED` | 401 | tidak | `idle` | "Silakan masuk terlebih dahulu." |
-| `NOT_ENTITLED` | 403 | tidak | `confused` | "Fitur ini tersedia untuk pengguna terdaftar." |
-| `NOT_FOUND` | 404 | tidak | `confused` | "Data tidak ditemukan." |
-| `RATE_LIMITED` | 429 | ya | `sorry` | "Terlalu banyak permintaan. Coba lagi sebentar." |
-| `LLM_UNAVAILABLE` | 503 | ya | `sorry` | "Layanan sedang sibuk. Coba lagi." |
-| `CATALOG_UNAVAILABLE` | 503 | ya | `fail` | "Koneksi ke katalog Pralon terputus…" |
-| `SERVICE_UNAVAILABLE` | 503 | ya | `fail` | "Layanan sedang tidak tersedia." |
-| `REPORT_GENERATION_FAILED` | 500 | ya | `fail` | "Laporan gagal diunduh." → "Unduh ulang" / "Kirim ke email" |
-| `MESSAGE_NOT_SENT` | — (klien) | ya | `fail` | "Pesan belum terkirim. Periksa koneksi internet Anda." |
-| `UPLOAD_REJECTED` | 400 | tidak | `sorry` | "Berkas tidak dapat diterima." |
+| Kode                       | HTTP      | Retryable | Mood       | Salinan UI                                                  |
+| -------------------------- | --------- | --------- | ---------- | ----------------------------------------------------------- |
+| `VALIDATION_FAILED`        | 400       | tidak     | `confused` | "Ada isian yang belum sesuai."                              |
+| `UNAUTHENTICATED`          | 401       | tidak     | `idle`     | "Silakan masuk terlebih dahulu."                            |
+| `NOT_ENTITLED`             | 403       | tidak     | `confused` | "Fitur ini tersedia untuk pengguna terdaftar."              |
+| `NOT_FOUND`                | 404       | tidak     | `confused` | "Data tidak ditemukan."                                     |
+| `RATE_LIMITED`             | 429       | ya        | `sorry`    | "Terlalu banyak permintaan. Coba lagi sebentar."            |
+| `LLM_UNAVAILABLE`          | 503       | ya        | `sorry`    | "Layanan sedang sibuk. Coba lagi."                          |
+| `CATALOG_UNAVAILABLE`      | 503       | ya        | `fail`     | "Koneksi ke katalog Pralon terputus…"                       |
+| `SERVICE_UNAVAILABLE`      | 503       | ya        | `fail`     | "Layanan sedang tidak tersedia."                            |
+| `REPORT_GENERATION_FAILED` | 500       | ya        | `fail`     | "Laporan gagal diunduh." → "Unduh ulang" / "Kirim ke email" |
+| `MESSAGE_NOT_SENT`         | — (klien) | ya        | `fail`     | "Pesan belum terkirim. Periksa koneksi internet Anda."      |
+| `UPLOAD_REJECTED`          | 400       | tidak     | `sorry`    | "Berkas tidak dapat diterima."                              |
 
 Keputusan kebijakan **bukan** error dan mengembalikan `200` beserta kartu:
 `COMPETITOR_COMPARISON_REFUSED`, `INSUFFICIENT_DATA`, `TECHNICAL_VALIDATION_REQUIRED`,

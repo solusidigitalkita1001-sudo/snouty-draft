@@ -42,8 +42,8 @@ satu konsultasi bulan itu, "Rumah 3 lantai di <kota>" praktis menunjuk satu oran
 
 ## Lokasi — janji yang mengikat kode
 
-Onboarding menjanjikan: *"Data wilayah dipakai untuk analisis kebutuhan pasar, **bukan untuk
-menentukan rekomendasi**."*
+Onboarding menjanjikan: _"Data wilayah dipakai untuk analisis kebutuhan pasar, **bukan untuk
+menentukan rekomendasi**."_
 
 Penegakannya struktural:
 

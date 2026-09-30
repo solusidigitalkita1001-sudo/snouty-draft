@@ -120,29 +120,29 @@ Aturannya: **empat lapis hanya untuk modul yang punya aturan domain sendiri** �
 
 ## 6. Katalog modul dan kepemilikan
 
-| Modul | Milik | Tanggung jawab | Fase |
-|---|---|---|---|
-| `auth` | identity | JWT access+refresh, guest session, penautan guest → akun | 3 |
-| `users` | identity | akun, peran internal | 3 |
-| `onboarding-consent` | identity | catatan consent + versi kebijakan | 3 |
-| `conversation` | conversation | percakapan, pesan, status, judul | 3 |
-| `context` | conversation | Requirement State Manager | 4 |
-| `policy` | — (leaf) | entitlement, Pralon-only, scope routing, gerbang provenance | 5 |
-| `ai` | — (service) | abstraksi LLM, prompt, ekstraksi terstruktur, routing model | 4 |
-| `product-catalog` | catalog | produk, ukuran, spesifikasi, versi katalog, impor | 1 |
-| `product-knowledge` | catalog | lookup terstruktur + orkestrasi retrieval | 2 |
-| `pricing` | catalog | daftar harga berversi (hanya bila OQ-03 = ya) | 8 |
-| `engineering` | engineering | adapter tipis di atas `packages/engineering`, registry + trace | 6 |
-| `recommendation` | recommendation | orkestrasi pipeline, persistensi hasil | 7 |
-| `material-estimator` | recommendation | baris BOM + dasar perhitungan | 8 |
-| `schematic` | recommendation | pembentukan topologi | 9 |
-| `report` | report | perakitan laporan + dispatch job PDF | 10 |
-| `technical-handoff` | handoff | "Kirim ke tim teknis Pralon" + antrean internal | 10 |
-| `uploads` | ops | lampiran denah | 3 |
-| `feedback` | ops | thumbs up/down per jawaban | 13 |
-| `email-intelligence` | email | parsing, analisis, klasifikasi lead | 11 |
-| `market-intelligence` | market | event, agregasi, anonimisasi | 12 |
-| `admin` | ops | agregasi back-office | 1+ |
+| Modul                 | Milik          | Tanggung jawab                                                 | Fase |
+| --------------------- | -------------- | -------------------------------------------------------------- | ---- |
+| `auth`                | identity       | JWT access+refresh, guest session, penautan guest → akun       | 3    |
+| `users`               | identity       | akun, peran internal                                           | 3    |
+| `onboarding-consent`  | identity       | catatan consent + versi kebijakan                              | 3    |
+| `conversation`        | conversation   | percakapan, pesan, status, judul                               | 3    |
+| `context`             | conversation   | Requirement State Manager                                      | 4    |
+| `policy`              | — (leaf)       | entitlement, Pralon-only, scope routing, gerbang provenance    | 5    |
+| `ai`                  | — (service)    | abstraksi LLM, prompt, ekstraksi terstruktur, routing model    | 4    |
+| `product-catalog`     | catalog        | produk, ukuran, spesifikasi, versi katalog, impor              | 1    |
+| `product-knowledge`   | catalog        | lookup terstruktur + orkestrasi retrieval                      | 2    |
+| `pricing`             | catalog        | daftar harga berversi (hanya bila OQ-03 = ya)                  | 8    |
+| `engineering`         | engineering    | adapter tipis di atas `packages/engineering`, registry + trace | 6    |
+| `recommendation`      | recommendation | orkestrasi pipeline, persistensi hasil                         | 7    |
+| `material-estimator`  | recommendation | baris BOM + dasar perhitungan                                  | 8    |
+| `schematic`           | recommendation | pembentukan topologi                                           | 9    |
+| `report`              | report         | perakitan laporan + dispatch job PDF                           | 10   |
+| `technical-handoff`   | handoff        | "Kirim ke tim teknis Pralon" + antrean internal                | 10   |
+| `uploads`             | ops            | lampiran denah                                                 | 3    |
+| `feedback`            | ops            | thumbs up/down per jawaban                                     | 13   |
+| `email-intelligence`  | email          | parsing, analisis, klasifikasi lead                            | 11   |
+| `market-intelligence` | market         | event, agregasi, anonimisasi                                   | 12   |
+| `admin`               | ops            | agregasi back-office                                           | 1+   |
 
 ---
 
@@ -183,13 +183,13 @@ Kalau sebuah aturan penting, ia hidup di `policy` atau `packages/engineering`, b
 
 Pipeline ini bukan satu pipeline. Intent router memilih **satu** dari lima jalur (SPEC §23):
 
-| Permintaan | Jalur | Panggilan LLM |
-|---|---|---|
-| FAQ produk | policy → MySQL/retrieval → penjelasan → SSE | 1 (fast) |
-| Lookup produk | policy → MySQL → penjelasan | 1 (fast) |
-| Rekomendasi | ekstraksi → context → engineering → matcher → penjelasan | 2 (balanced) |
-| Kasus lanjutan | ekstraksi → klarifikasi → engineering → matching → BOM → skema → penjelasan | 2–3 |
-| **Edit kebutuhan / mutasi follow-up** | **context → engineering → matching → BOM → skema** | **0** |
+| Permintaan                            | Jalur                                                                       | Panggilan LLM |
+| ------------------------------------- | --------------------------------------------------------------------------- | ------------- |
+| FAQ produk                            | policy → MySQL/retrieval → penjelasan → SSE                                 | 1 (fast)      |
+| Lookup produk                         | policy → MySQL → penjelasan                                                 | 1 (fast)      |
+| Rekomendasi                           | ekstraksi → context → engineering → matcher → penjelasan                    | 2 (balanced)  |
+| Kasus lanjutan                        | ekstraksi → klarifikasi → engineering → matching → BOM → skema → penjelasan | 2–3           |
+| **Edit kebutuhan / mutasi follow-up** | **context → engineering → matching → BOM → skema**                          | **0**         |
 
 Baris terakhir adalah penghematan terbesar di sistem ini. Ketika pengguna menekan "Ubah" di panel
 kanan (layar 04) atau bertanya "kalau kamar mandi saya tambah satu?", nilainya sudah terstruktur —
@@ -229,14 +229,14 @@ Setiap `stage` adalah batas pipeline nyata yang dipancarkan sebagai event SSE, *
 
 ## 9. Batas sinkron vs asinkron
 
-| Sinkron (jalur permintaan) | Asinkron (RabbitMQ) |
-|---|---|
-| pesan chat, streaming jawaban | pembuatan PDF laporan |
-| ekstraksi kebutuhan | pengiriman handoff teknis |
-| perhitungan teknik | ingest & validasi katalog |
-| product matching | embedding dokumen (bila Qdrant diadopsi) |
-| BOM & topologi skema | pemrosesan email masuk |
-| | agregasi market intelligence, notifikasi |
+| Sinkron (jalur permintaan)    | Asinkron (RabbitMQ)                      |
+| ----------------------------- | ---------------------------------------- |
+| pesan chat, streaming jawaban | pembuatan PDF laporan                    |
+| ekstraksi kebutuhan           | pengiriman handoff teknis                |
+| perhitungan teknik            | ingest & validasi katalog                |
+| product matching              | embedding dokumen (bila Qdrant diadopsi) |
+| BOM & topologi skema          | pemrosesan email masuk                   |
+|                               | agregasi market intelligence, notifikasi |
 
 Aturannya: **chat tidak pernah lewat RabbitMQ** (SPEC §19). Antrean dipakai untuk pekerjaan yang boleh
 selesai belakangan dan boleh gagal lalu diulang. Jawaban chat tidak termasuk keduanya.
@@ -245,15 +245,15 @@ selesai belakangan dan boleh gagal lalu diulang. Jawaban chat tidak termasuk ked
 
 ## 10. Hal lintas-potong
 
-| Aspek | Penanganan |
-|---|---|
-| Correlation ID | dibuat di middleware, ikut ke log, ke `llm_calls`, ke pesan RabbitMQ, dan ke header respons |
-| Logging | Pino terstruktur. Dilarang mencatat secret dan data pribadi (SPEC §26, §30) |
-| Error | exception domain → mapper → kode error stabil. Stack trace tidak pernah keluar ke klien |
-| Validasi | zod di batas: setiap DTO masuk, setiap output LLM. Tidak ada data tak tervalidasi masuk ke domain |
-| Transaksi | dimulai di lapisan application, tidak pernah di repository |
-| Konfigurasi | hanya dari env, divalidasi saat boot. Proses menolak start bila config wajib hilang |
-| Audit | setiap tulis oleh peran internal menulis `audit_logs` |
+| Aspek          | Penanganan                                                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------- |
+| Correlation ID | dibuat di middleware, ikut ke log, ke `llm_calls`, ke pesan RabbitMQ, dan ke header respons       |
+| Logging        | Pino terstruktur. Dilarang mencatat secret dan data pribadi (SPEC §26, §30)                       |
+| Error          | exception domain → mapper → kode error stabil. Stack trace tidak pernah keluar ke klien           |
+| Validasi       | zod di batas: setiap DTO masuk, setiap output LLM. Tidak ada data tak tervalidasi masuk ke domain |
+| Transaksi      | dimulai di lapisan application, tidak pernah di repository                                        |
+| Konfigurasi    | hanya dari env, divalidasi saat boot. Proses menolak start bila config wajib hilang               |
+| Audit          | setiap tulis oleh peran internal menulis `audit_logs`                                             |
 
 ---
 
@@ -275,13 +275,13 @@ Arsitektur yang hanya ada di dokumen akan luntur dalam tiga bulan. Yang menjagan
 
 ## 12. Yang sengaja belum dibangun
 
-| Ditunda | Alasan | Kapan ditinjau |
-|---|---|---|
-| Microservices | batas domain belum stabil | tidak dalam roadmap |
-| Qdrant / RAG | pertanyaan produk masih terjawab oleh query MySQL | kriteria di `PHASE0_PROPOSAL.md` §13 |
-| Python | belum ada kebutuhan ML/numerik yang nyata (SPEC §16) | bila muncul kebutuhan konkret |
-| OpenTelemetry / Prometheus | belum ada trafik untuk diamati | Fase 13 |
-| Read replica | satu instance MySQL masih jauh dari jenuh | bila baca > 70% kapasitas |
-| Multi-region | tidak relevan | — |
+| Ditunda                    | Alasan                                               | Kapan ditinjau                       |
+| -------------------------- | ---------------------------------------------------- | ------------------------------------ |
+| Microservices              | batas domain belum stabil                            | tidak dalam roadmap                  |
+| Qdrant / RAG               | pertanyaan produk masih terjawab oleh query MySQL    | kriteria di `PHASE0_PROPOSAL.md` §13 |
+| Python                     | belum ada kebutuhan ML/numerik yang nyata (SPEC §16) | bila muncul kebutuhan konkret        |
+| OpenTelemetry / Prometheus | belum ada trafik untuk diamati                       | Fase 13                              |
+| Read replica               | satu instance MySQL masih jauh dari jenuh            | bila baca > 70% kapasitas            |
+| Multi-region               | tidak relevan                                        | —                                    |
 
 Menuliskan ini eksplisit supaya penundaan terbaca sebagai keputusan, bukan kelalaian.

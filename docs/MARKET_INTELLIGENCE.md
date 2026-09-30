@@ -25,15 +25,15 @@ wilayah dipakai untuk analisis pasar, **bukan** untuk menentukan rekomendasi.
 
 ### Chat
 
-| Data | Catatan |
-|---|---|
-| Wilayah | tingkat kota/kabupaten, **opsional**, hanya bila ada consent |
-| Tipe bangunan | hunian / komersial ringan / industri |
-| Jumlah titik air, lantai | ukuran kebutuhan |
-| Produk yang direkomendasikan | keluarga + ukuran |
-| Jenis instalasi | air bersih / pembuangan — termasuk yang **belum didukung** |
-| Minat kasus lanjutan | apakah pengguna sampai ke solusi lengkap |
-| Ter-route ke validasi teknis | sinyal cakupan |
+| Data                         | Catatan                                                      |
+| ---------------------------- | ------------------------------------------------------------ |
+| Wilayah                      | tingkat kota/kabupaten, **opsional**, hanya bila ada consent |
+| Tipe bangunan                | hunian / komersial ringan / industri                         |
+| Jumlah titik air, lantai     | ukuran kebutuhan                                             |
+| Produk yang direkomendasikan | keluarga + ukuran                                            |
+| Jenis instalasi              | air bersih / pembuangan — termasuk yang **belum didukung**   |
+| Minat kasus lanjutan         | apakah pengguna sampai ke solusi lengkap                     |
+| Ter-route ke validasi teknis | sinyal cakupan                                               |
 
 Dua baris terakhir bernilai khusus. Kebutuhan **pembuangan** yang hari ini ditolak tetap dicatat
 (`POLICY.md` §7) — dan volumenya adalah bukti paling jujur apakah fitur itu layak dibangun. Begitu
@@ -54,14 +54,14 @@ Satu bentuk untuk kedua sumber.
 interface MarketEvent {
   id: string;
   source: 'chat' | 'email';
-  occurredAt: string;                 // presisi hari, bukan detik
-  region: string | null;              // "Bekasi" — kota/kabupaten
+  occurredAt: string; // presisi hari, bukan detik
+  region: string | null; // "Bekasi" — kota/kabupaten
   buildingType: BuildingType | null;
   projectScale: 'kecil' | 'sedang' | 'besar' | null;
   installationType: 'air_bersih' | 'pembuangan' | 'keduanya' | null;
   outletCount: number | null;
   floors: number | null;
-  productInterest: string[];          // kunci keluarga+ukuran, bukan SKU
+  productInterest: string[]; // kunci keluarga+ukuran, bukan SKU
   quotationIntent: boolean;
   reachedSolution: boolean;
   routedToTechnical: boolean;
@@ -109,14 +109,14 @@ lewat log atau bug serialisasi.
 
 ## 5. Agregasi
 
-| Agregat | Dimensi | Kegunaan |
-|---|---|---|
-| Permintaan regional | wilayah × bulan | di mana kebutuhan tumbuh |
-| Tren minat produk | keluarga produk × ukuran × bulan | apa yang dicari |
-| Pola tipe proyek | tipe bangunan × skala × wilayah | siapa yang membangun apa |
-| Sinyal cakupan | rasio ter-route ke validasi teknis | apakah cakupan terlalu sempit |
-| Permintaan pembuangan | volume `installationType` pembuangan | bukti kelayakan fitur |
-| Corong konsultasi | mulai → klarifikasi → solusi → laporan | di mana pengguna berhenti |
+| Agregat               | Dimensi                                | Kegunaan                      |
+| --------------------- | -------------------------------------- | ----------------------------- |
+| Permintaan regional   | wilayah × bulan                        | di mana kebutuhan tumbuh      |
+| Tren minat produk     | keluarga produk × ukuran × bulan       | apa yang dicari               |
+| Pola tipe proyek      | tipe bangunan × skala × wilayah        | siapa yang membangun apa      |
+| Sinyal cakupan        | rasio ter-route ke validasi teknis     | apakah cakupan terlalu sempit |
+| Permintaan pembuangan | volume `installationType` pembuangan   | bukti kelayakan fitur         |
+| Corong konsultasi     | mulai → klarifikasi → solusi → laporan | di mana pengguna berhenti     |
 
 **Ambang k-anonimitas: kelompok dengan < 5 kejadian tidak dipublikasikan.** Di kota kecil dengan satu
 konsultasi bulan itu, "Rumah 3 lantai di <kota>" praktis menunjuk satu orang. Ambang ini yang
@@ -150,14 +150,14 @@ bertahan setelah berbulan-bulan perubahan kode.
 
 Peran `sales_reviewer` dan `admin`. Belum ada desain (OQ-21); dibangun dengan token yang ada.
 
-| Panel | Isi |
-|---|---|
+| Panel                    | Isi                                         |
+| ------------------------ | ------------------------------------------- |
 | Peta permintaan regional | volume per kota, rentang waktu bisa dipilih |
-| Minat produk | keluarga × ukuran, tren dari waktu ke waktu |
-| Corong konsultasi | di mana pengguna berhenti |
-| Sinyal cakupan | validasi teknis & permintaan pembuangan |
-| Lead (Fase 11) | dari email intelligence |
-| Biaya LLM | token dan biaya per periode (SPEC §31b) |
+| Minat produk             | keluarga × ukuran, tren dari waktu ke waktu |
+| Corong konsultasi        | di mana pengguna berhenti                   |
+| Sinyal cakupan           | validasi teknis & permintaan pembuangan     |
+| Lead (Fase 11)           | dari email intelligence                     |
+| Biaya LLM                | token dan biaya per periode (SPEC §31b)     |
 
 Panel biaya diletakkan di sini karena pemirsanya sama: orang yang perlu tahu apakah produk ini
 memberi hasil sepadan dengan ongkosnya.
@@ -169,14 +169,14 @@ kesimpulan yang salah dari 3 kejadian.
 
 ## 8. Yang tidak dilakukan
 
-| | Alasan |
-|---|---|
-| Profil per pengguna | bukan tujuan, dan melanggar dasar anonimisasi |
-| Penargetan ulang individu | sama |
-| Menyimpan teks percakapan mentah di tabel market | risiko data pribadi |
-| Analitik real-time | tidak ada nilainya di sini; harian sudah cukup |
-| Berbagi data lintas pelanggan | tidak ada dasar hukum |
-| Memakai sinyal pasar untuk mengubah rekomendasi | melanggar janji di onboarding |
+|                                                  | Alasan                                         |
+| ------------------------------------------------ | ---------------------------------------------- |
+| Profil per pengguna                              | bukan tujuan, dan melanggar dasar anonimisasi  |
+| Penargetan ulang individu                        | sama                                           |
+| Menyimpan teks percakapan mentah di tabel market | risiko data pribadi                            |
+| Analitik real-time                               | tidak ada nilainya di sini; harian sudah cukup |
+| Berbagi data lintas pelanggan                    | tidak ada dasar hukum                          |
+| Memakai sinyal pasar untuk mengubah rekomendasi  | melanggar janji di onboarding                  |
 
 Baris terakhir menutup godaan yang paling masuk akal secara komersial: "kalau di Bekasi banyak yang
 pakai ukuran X, sarankan X". Itu tetap dilarang — rekomendasi mengikuti teknik, bukan popularitas.
@@ -185,16 +185,16 @@ pakai ukuran X, sarankan X". Itu tetap dilarang — rekomendasi mengikuti teknik
 
 ## 9. Pengujian
 
-| # | Tes |
-|---|---|
-| 1 | `MarketEvent` tidak pernah memuat pengenal atau teks bebas |
-| 2 | Agregat dengan ukuran kelompok < 5 tidak dipublikasikan |
-| 3 | Kegagalan pipeline market tidak memengaruhi respons chat |
-| 4 | Koordinat mentah tidak pernah tersimpan |
-| 5 | Modul `recommendation` tidak bisa mengimpor `market-intelligence` (tes boundary) |
-| 6 | Konsumer idempoten per `eventId` |
-| 7 | Kebutuhan pembuangan tetap menghasilkan event meski rekomendasinya ditolak |
-| 8 | `occurredAt` berpresisi hari, bukan detik |
+| #   | Tes                                                                              |
+| --- | -------------------------------------------------------------------------------- |
+| 1   | `MarketEvent` tidak pernah memuat pengenal atau teks bebas                       |
+| 2   | Agregat dengan ukuran kelompok < 5 tidak dipublikasikan                          |
+| 3   | Kegagalan pipeline market tidak memengaruhi respons chat                         |
+| 4   | Koordinat mentah tidak pernah tersimpan                                          |
+| 5   | Modul `recommendation` tidak bisa mengimpor `market-intelligence` (tes boundary) |
+| 6   | Konsumer idempoten per `eventId`                                                 |
+| 7   | Kebutuhan pembuangan tetap menghasilkan event meski rekomendasinya ditolak       |
+| 8   | `occurredAt` berpresisi hari, bukan detik                                        |
 
 Tes 7 menjaga hal yang mudah hilang saat refactor: cakupan yang ditolak tetap merupakan data pasar
 yang berharga.

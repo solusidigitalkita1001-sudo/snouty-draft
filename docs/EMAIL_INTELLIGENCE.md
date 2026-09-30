@@ -49,15 +49,15 @@ kali tidak menghasilkan dua lead.
 
 Bagian yang paling tidak glamor dan paling menentukan kualitas hasil.
 
-| Langkah | Catatan |
-|---|---|
-| Header | pengirim, penerima, subjek, tanggal, `Message-ID`, `In-Reply-To` |
-| Badan | prefer `text/plain`; bila hanya HTML, konversi dengan menjaga struktur daftar |
-| **Bersihkan kutipan** | buang riwayat balasan (`>`, "Pada … menulis:", "From: … Sent: …") |
-| **Tanda tangan** | deteksi dan pisahkan — sering memuat telepon dan alamat |
-| Bahasa | deteksi; Indonesia dan Inggris didukung |
-| Lampiran | simpan di luar web root; PDF/gambar/spreadsheet; pindai ukuran & MIME |
-| Threading | kelompokkan berdasarkan `In-Reply-To` agar satu percakapan = satu lead |
+| Langkah               | Catatan                                                                       |
+| --------------------- | ----------------------------------------------------------------------------- |
+| Header                | pengirim, penerima, subjek, tanggal, `Message-ID`, `In-Reply-To`              |
+| Badan                 | prefer `text/plain`; bila hanya HTML, konversi dengan menjaga struktur daftar |
+| **Bersihkan kutipan** | buang riwayat balasan (`>`, "Pada … menulis:", "From: … Sent: …")             |
+| **Tanda tangan**      | deteksi dan pisahkan — sering memuat telepon dan alamat                       |
+| Bahasa                | deteksi; Indonesia dan Inggris didukung                                       |
+| Lampiran              | simpan di luar web root; PDF/gambar/spreadsheet; pindai ukuran & MIME         |
+| Threading             | kelompokkan berdasarkan `In-Reply-To` agar satu percakapan = satu lead        |
 
 Pembersihan kutipan penting melebihi kesannya: tanpa itu, balasan kesepuluh dalam satu rantai
 mengirim seluruh riwayat ke model — mahal, dan membuat analisis tertuju pada pesan lama alih-alih
@@ -74,20 +74,32 @@ Skema tervalidasi zod, sama disiplinnya dengan ekstraksi chat.
 
 ```ts
 const EmailAnalysis = z.object({
-  intent: z.enum(['permintaan_penawaran','pertanyaan_produk','pertanyaan_teknis',
-                  'keluhan','kemitraan','lainnya']),
-  leadType: z.enum(['kontraktor','developer','distributor','pemilik_bangunan',
-                    'konsultan','tidak_diketahui']),
+  intent: z.enum([
+    'permintaan_penawaran',
+    'pertanyaan_produk',
+    'pertanyaan_teknis',
+    'keluhan',
+    'kemitraan',
+    'lainnya',
+  ]),
+  leadType: z.enum([
+    'kontraktor',
+    'developer',
+    'distributor',
+    'pemilik_bangunan',
+    'konsultan',
+    'tidak_diketahui',
+  ]),
   company: z.string().nullable(),
-  projectType: z.enum(['hunian','komersial','industri','infrastruktur']).nullable(),
-  projectLocation: z.string().nullable(),          // tingkat kota
-  projectScale: z.enum(['kecil','sedang','besar']).nullable(),
+  projectType: z.enum(['hunian', 'komersial', 'industri', 'infrastruktur']).nullable(),
+  projectLocation: z.string().nullable(), // tingkat kota
+  projectScale: z.enum(['kecil', 'sedang', 'besar']).nullable(),
   unitCount: z.number().int().nullable(),
   buildingInfo: z.string().nullable(),
   requestedProducts: z.array(z.string()),
   quotationIntent: z.boolean(),
   missingTechnicalInfo: z.array(z.string()),
-  urgency: z.enum(['rendah','sedang','tinggi']).nullable(),
+  urgency: z.enum(['rendah', 'sedang', 'tinggi']).nullable(),
 });
 ```
 
@@ -111,13 +123,13 @@ pernah menyetujui isinya diproses model pihak ketiga.**
 
 Karena itu, sebelum dikirim ke LLM:
 
-| Diredaksi | Menjadi |
-|---|---|
-| Nomor telepon | `[TELEPON]` |
-| Alamat lengkap | `[ALAMAT]` |
-| NPWP, nomor rekening | `[NOMOR]` |
-| Blok tanda tangan | dibuang |
-| Alamat email selain domain | `[EMAIL]` |
+| Diredaksi                  | Menjadi     |
+| -------------------------- | ----------- |
+| Nomor telepon              | `[TELEPON]` |
+| Alamat lengkap             | `[ALAMAT]`  |
+| NPWP, nomor rekening       | `[NOMOR]`   |
+| Blok tanda tangan          | dibuang     |
+| Alamat email selain domain | `[EMAIL]`   |
 
 Teks asli tetap di MySQL untuk ditinjau manusia; nilai asli hanya muncul kembali saat ditampilkan
 kepada peninjau internal yang berwenang.
@@ -157,14 +169,14 @@ bisa diubah** tanpa menyentuh AI.
 
 AI membuat draf; manusia yang memutuskan.
 
-| Aturan | |
-|---|---|
-| Draf hanya memakai fakta katalog — tidak pernah mengarang spesifikasi | |
-| **Tidak pernah memuat harga** kecuali `PRICING_ENABLED` dan harga diambil dari tabel | |
-| Menanyakan hal di `missingTechnicalInfo` | |
-| Kebutuhan industri diarahkan ke tim teknis, sama seperti di chat | |
-| Nada mengikuti panduan di `AI_BEHAVIOR.md` §6 | |
-| Setiap draf menyimpan `llmCallId` untuk audit | |
+| Aturan                                                                               |     |
+| ------------------------------------------------------------------------------------ | --- |
+| Draf hanya memakai fakta katalog — tidak pernah mengarang spesifikasi                |     |
+| **Tidak pernah memuat harga** kecuali `PRICING_ENABLED` dan harga diambil dari tabel |     |
+| Menanyakan hal di `missingTechnicalInfo`                                             |     |
+| Kebutuhan industri diarahkan ke tim teknis, sama seperti di chat                     |     |
+| Nada mengikuti panduan di `AI_BEHAVIOR.md` §6                                        |     |
+| Setiap draf menyimpan `llmCallId` untuk audit                                        |     |
 
 Kebijakan produk berlaku identik di sini: hanya Pralon, tanpa halusinasi, batas rekomendasi. Email
 bukan celah untuk melewati kebijakan yang berlaku di chat.
@@ -175,14 +187,14 @@ bukan celah untuk melewati kebijakan yang berlaku di chat.
 
 Peran `sales_reviewer`. Layar belum didesain (OQ-21).
 
-| Kemampuan | |
-|---|---|
-| Kotak masuk dengan filter skor lead, intent, tanggal | |
-| Tampilan email asli **berdampingan** dengan analisis terstruktur | |
-| Sunting draf sebelum kirim | |
-| Setujui & kirim (lewat n8n) | |
-| Tandai analisis salah — menjadi umpan balik untuk evaluasi | |
-| Tautkan ke konsultasi SNOUTY bila pengirimnya pelanggan yang sama | |
+| Kemampuan                                                         |     |
+| ----------------------------------------------------------------- | --- |
+| Kotak masuk dengan filter skor lead, intent, tanggal              |     |
+| Tampilan email asli **berdampingan** dengan analisis terstruktur  |     |
+| Sunting draf sebelum kirim                                        |     |
+| Setujui & kirim (lewat n8n)                                       |     |
+| Tandai analisis salah — menjadi umpan balik untuk evaluasi        |     |
+| Tautkan ke konsultasi SNOUTY bila pengirimnya pelanggan yang sama |     |
 
 Setiap tindakan menulis `audit_logs`. Tombol "tandai analisis salah" bernilai khusus: ia mengubah
 kesalahan menjadi data latih untuk golden dataset alih-alih keluhan yang menguap.
@@ -191,12 +203,12 @@ kesalahan menjadi data latih untuk golden dataset alih-alih keluhan yang menguap
 
 ## 9. Model data
 
-| Tabel | Isi |
-|---|---|
-| `emails` | header, badan bersih, badan asli, lampiran, thread |
-| `email_analyses` | hasil ekstraksi, skor, versi model, `llmCallId` |
-| `email_drafts` | draf, versi suntingan, status, siapa yang mengirim |
-| `leads` | entitas gabungan per thread: perusahaan, proyek, skor, tahap |
+| Tabel            | Isi                                                          |
+| ---------------- | ------------------------------------------------------------ |
+| `emails`         | header, badan bersih, badan asli, lampiran, thread           |
+| `email_analyses` | hasil ekstraksi, skor, versi model, `llmCallId`              |
+| `email_drafts`   | draf, versi suntingan, status, siapa yang mengirim           |
+| `leads`          | entitas gabungan per thread: perusahaan, proyek, skor, tahap |
 
 `leads` per thread, bukan per email. Lima email bolak-balik tentang satu proyek adalah satu peluang,
 dan dashboard yang menghitungnya sebagai lima akan menyesatkan.
@@ -213,17 +225,17 @@ skala, produk yang diminat, `quotationIntent`. Tanpa identitas pengirim, tanpa n
 
 ## 11. Pengujian
 
-| # | Tes |
-|---|---|
-| 1 | Pembersihan kutipan menghapus riwayat balasan di format Gmail, Outlook, dan Apple Mail |
-| 2 | Redaksi menghapus telepon, alamat, dan tanda tangan sebelum dikirim ke model |
-| 3 | Konsumer idempoten: `messageId` sama diproses dua kali → satu lead |
-| 4 | Ekstraksi yang gagal validasi tidak pernah membuat lead |
-| 5 | Draf tidak pernah memuat harga saat `PRICING_ENABLED=false` |
-| 6 | Draf tidak pernah memuat produk di luar katalog |
-| 7 | Tidak ada jalur kode yang mengirim email tanpa persetujuan manusia |
-| 8 | Skor lead deterministik untuk analisis yang sama |
-| 9 | Event market tidak memuat identitas pengirim |
+| #   | Tes                                                                                    |
+| --- | -------------------------------------------------------------------------------------- |
+| 1   | Pembersihan kutipan menghapus riwayat balasan di format Gmail, Outlook, dan Apple Mail |
+| 2   | Redaksi menghapus telepon, alamat, dan tanda tangan sebelum dikirim ke model           |
+| 3   | Konsumer idempoten: `messageId` sama diproses dua kali → satu lead                     |
+| 4   | Ekstraksi yang gagal validasi tidak pernah membuat lead                                |
+| 5   | Draf tidak pernah memuat harga saat `PRICING_ENABLED=false`                            |
+| 6   | Draf tidak pernah memuat produk di luar katalog                                        |
+| 7   | Tidak ada jalur kode yang mengirim email tanpa persetujuan manusia                     |
+| 8   | Skor lead deterministik untuk analisis yang sama                                       |
+| 9   | Event market tidak memuat identitas pengirim                                           |
 
 Tes 7 sebaiknya ditulis sebagai pemeriksaan arsitektur, bukan hanya tes unit: tidak ada pemanggil
 `sendEmail` selain use case yang memerlukan `approvedBy`.

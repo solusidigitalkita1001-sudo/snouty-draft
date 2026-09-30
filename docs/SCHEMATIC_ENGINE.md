@@ -31,25 +31,26 @@ interface Schematic {
 }
 
 interface Floor {
-  level: number;                      // 1 = lantai dasar
-  label: string;                      // "LANTAI 2"
-  shortLabel: string;                 // "LT 2"
-  elevation: TrackedValue<number>;    // (level-1) × floorHeight — ASSUMED bila tinggi default
-  elevationLabel: string;             // "+3.50" / "±0.00"
+  level: number; // 1 = lantai dasar
+  label: string; // "LANTAI 2"
+  shortLabel: string; // "LT 2"
+  elevation: TrackedValue<number>; // (level-1) × floorHeight — ASSUMED bila tinggi default
+  elevationLabel: string; // "+3.50" / "±0.00"
 }
 
 interface Node {
   id: string;
   type: 'water_source' | 'riser' | 'branch' | 'fixture' | 'fitting';
   floorLevel: number | 'roof';
-  code?: string;                      // "KM-2A", "WF-1", "DP-1"
-  label?: string;                     // "Kamar mandi", "Wastafel ×2"
+  code?: string; // "KM-2A", "WF-1", "DP-1"
+  label?: string; // "Kamar mandi", "Wastafel ×2"
   size?: PipeSize;
   provenance: Provenance;
 }
 
 interface Segment {
-  from: string; to: string;
+  from: string;
+  to: string;
   role: 'main' | 'riser' | 'branch' | 'fixture_connection';
   size: PipeSize;
   productId?: string;
@@ -60,8 +61,8 @@ interface Segment {
 interface TitleBlock {
   drawing: 'SK-01 AIR BERSIH';
   scale: 'NTS';
-  floorHeight: string;                // "3,50 M · ASUMSI" — provenance ikut tampil di gambar
-  source: string;                     // "KATALOG v2.4"
+  floorHeight: string; // "3,50 M · ASUMSI" — provenance ikut tampil di gambar
+  source: string; // "KATALOG v2.4"
 }
 ```
 
@@ -110,19 +111,19 @@ dirancang untuk graf yang bisa digeser pengguna, dan itu bukan yang dibutuhkan d
 
 Tata letak mengikuti prototipe:
 
-| Elemen | Spesifikasi |
-|---|---|
-| Kanvas | latar `#FCFDFC`, kisi 24×24 px garis `#EEF1F0` |
-| Kolom label lantai | 84 px — "LT 2" mono 13px + elevasi 9,5px |
-| Kolom riser | 76 px, batang merah 4 px |
-| Garis lantai | border bawah 3 px `#B9C1C0` |
-| Jalur utama & riser | 4 px `#DF301C` |
-| Cabang | 3 px `#EE7A67` |
-| Sambungan fixture | 2 px `#AEB6B7` |
-| Titik tee/reducer | lingkaran 14 px, border 3 px `#DF301C`, isi putih |
-| Node fixture | kotak 96 px, border 1 px, kode + ukuran mono, label 11,5px |
-| Muka tanah | garis arsir 135° + "±0.00 MUKA TANAH" |
-| Lebar minimum | 500 px, dengan `overflow-x: auto` |
+| Elemen              | Spesifikasi                                                |
+| ------------------- | ---------------------------------------------------------- |
+| Kanvas              | latar `#FCFDFC`, kisi 24×24 px garis `#EEF1F0`             |
+| Kolom label lantai  | 84 px — "LT 2" mono 13px + elevasi 9,5px                   |
+| Kolom riser         | 76 px, batang merah 4 px                                   |
+| Garis lantai        | border bawah 3 px `#B9C1C0`                                |
+| Jalur utama & riser | 4 px `#DF301C`                                             |
+| Cabang              | 3 px `#EE7A67`                                             |
+| Sambungan fixture   | 2 px `#AEB6B7`                                             |
+| Titik tee/reducer   | lingkaran 14 px, border 3 px `#DF301C`, isi putih          |
+| Node fixture        | kotak 96 px, border 1 px, kode + ukuran mono, label 11,5px |
+| Muka tanah          | garis arsir 135° + "±0.00 MUKA TANAH"                      |
+| Lebar minimum       | 500 px, dengan `overflow-x: auto`                          |
 
 Panel kanan memuat **DAFTAR JALUR** (nama, ukuran, catatan per segmen) dan blok judul 2×2:
 GAMBAR / SKALA / TINGGI LANTAI / SUMBER.
@@ -147,8 +148,8 @@ sistem memang tahu. Sistem tidak punya denah, jadi tidak tahu posisi fisik apa p
 
 ## 6. Skenario "bagaimana kalau"
 
-Layar 09 menawarkan tiga tombol skenario: *Toren dipindah ke lantai 3*, *Tambah 1 kamar mandi*,
-*Pakai pompa pendorong*.
+Layar 09 menawarkan tiga tombol skenario: _Toren dipindah ke lantai 3_, _Tambah 1 kamar mandi_,
+_Pakai pompa pendorong_.
 
 Ketiganya adalah **mutasi requirement**, bukan gambar terpisah:
 
@@ -180,13 +181,13 @@ Skema **memang** tampil di laporan PDF, dirender dari SVG yang sama.
 
 ## 8. Aksesibilitas
 
-| | |
-|---|---|
-| SVG punya `role="img"` dan `aria-label` yang merangkum sistem |
-| Padanan tekstual tersedia: DAFTAR JALUR sudah merupakan versi teks dari gambar |
+|                                                                                                           |     |
+| --------------------------------------------------------------------------------------------------------- | --- |
+| SVG punya `role="img"` dan `aria-label` yang merangkum sistem                                             |
+| Padanan tekstual tersedia: DAFTAR JALUR sudah merupakan versi teks dari gambar                            |
 | Warna bukan satu-satunya pembeda — setiap jalur juga berbeda ketebalan (4/3/2 px) dan berlabel di legenda |
-| Kontras garis diverifikasi di kedua tema |
-| Di mode gelap: kisi `#1D2224`, garis lantai `#566064`, node `#4A5356`, merah merek tetap `#DF301C` |
+| Kontras garis diverifikasi di kedua tema                                                                  |
+| Di mode gelap: kisi `#1D2224`, garis lantai `#566064`, node `#4A5356`, merah merek tetap `#DF301C`        |
 
 Poin ketebalan garis penting: bagi pengguna dengan buta warna merah-hijau, merah `#DF301C` dan salmon
 `#EE7A67` nyaris tidak terbedakan. Perbedaan 4 px vs 3 px, ditambah label di DAFTAR JALUR, yang
@@ -196,15 +197,15 @@ membawa maknanya.
 
 ## 9. Pengujian
 
-| # | Tes |
-|---|---|
-| 1 | Topologi deterministik: state sama → topologi identik |
-| 2 | Setiap segmen menunjuk node yang ada |
-| 3 | Jumlah node fixture = `outletCount` |
-| 4 | Elevasi = (level−1) × floorHeight, dan `ASSUMED` bila tinggi lantai default |
-| 5 | Tinggi lantai default membuat seluruh elevasi `ASSUMED` |
-| 6 | Bangunan > 3 lantai menghasilkan > 3 lantai (tanpa batas prototipe) |
-| 7 | Mutasi skenario mengubah topologi, tabel, dan BOM secara konsisten |
-| 8 | Catatan "bukan gambar kerja" selalu ada |
-| 9 | Contoh kerja board menghasilkan: toren atap, riser 1", 2 lantai, cabang 3/4", 8 node fixture |
-| 10 | Pembentukan topologi tidak memanggil LLM maupun jaringan |
+| #   | Tes                                                                                          |
+| --- | -------------------------------------------------------------------------------------------- |
+| 1   | Topologi deterministik: state sama → topologi identik                                        |
+| 2   | Setiap segmen menunjuk node yang ada                                                         |
+| 3   | Jumlah node fixture = `outletCount`                                                          |
+| 4   | Elevasi = (level−1) × floorHeight, dan `ASSUMED` bila tinggi lantai default                  |
+| 5   | Tinggi lantai default membuat seluruh elevasi `ASSUMED`                                      |
+| 6   | Bangunan > 3 lantai menghasilkan > 3 lantai (tanpa batas prototipe)                          |
+| 7   | Mutasi skenario mengubah topologi, tabel, dan BOM secara konsisten                           |
+| 8   | Catatan "bukan gambar kerja" selalu ada                                                      |
+| 9   | Contoh kerja board menghasilkan: toren atap, riser 1", 2 lantai, cabang 3/4", 8 node fixture |
+| 10  | Pembentukan topologi tidak memanggil LLM maupun jaringan                                     |

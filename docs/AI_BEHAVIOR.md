@@ -9,16 +9,16 @@ gagal. Sumbernya SPEC §7, §24, §25.
 
 ## 1. Pembagian tugas
 
-| LLM mengerjakan | LLM **tidak** mengerjakan |
-|---|---|
-| memahami bahasa alami | perhitungan teknik |
-| deteksi intent | kebenaran produk |
-| ekstraksi kebutuhan terstruktur | kelayakan produk |
-| mendeteksi informasi yang kurang | penegakan kebijakan |
-| menyusun kalimat klarifikasi | aturan sizing |
-| merangkum | harga |
+| LLM mengerjakan                     | LLM **tidak** mengerjakan |
+| ----------------------------------- | ------------------------- |
+| memahami bahasa alami               | perhitungan teknik        |
+| deteksi intent                      | kebenaran produk          |
+| ekstraksi kebutuhan terstruktur     | kelayakan produk          |
+| mendeteksi informasi yang kurang    | penegakan kebijakan       |
+| menyusun kalimat klarifikasi        | aturan sizing             |
+| merangkum                           | harga                     |
 | menjelaskan dengan bahasa sederhana | penetapan flag provenance |
-| membuat judul percakapan | |
+| membuat judul percakapan            |                           |
 
 Kolom kanan bukan imbauan. Modul `engineering` tidak punya `ai` pada grafik dependensinya, jadi
 memanggil LLM dari sana adalah galat kompilasi, bukan pelanggaran etiket.
@@ -49,12 +49,12 @@ dan menyimpan yang tidak diperlukan hanya menambah risiko.
 
 ## 3. Routing model
 
-| Tugas | Tingkat | Env |
-|---|---|---|
-| FAQ produk, judul percakapan | cepat | `LLM_MODEL_FAST` |
-| Jawaban pengetahuan produk, ekstraksi kebutuhan, kalimat klarifikasi | seimbang | `LLM_MODEL_BALANCED` |
-| Masukan ambigu atau kompleks; percobaan ulang setelah validasi gagal | kuat | `LLM_MODEL_STRONG` |
-| **Perhitungan teknik** | **tidak ada panggilan** | — |
+| Tugas                                                                | Tingkat                 | Env                  |
+| -------------------------------------------------------------------- | ----------------------- | -------------------- |
+| FAQ produk, judul percakapan                                         | cepat                   | `LLM_MODEL_FAST`     |
+| Jawaban pengetahuan produk, ekstraksi kebutuhan, kalimat klarifikasi | seimbang                | `LLM_MODEL_BALANCED` |
+| Masukan ambigu atau kompleks; percobaan ulang setelah validasi gagal | kuat                    | `LLM_MODEL_STRONG`   |
+| **Perhitungan teknik**                                               | **tidak ada panggilan** | —                    |
 
 Routing adalah fungsi murni dari intent + satu sinyal kompleksitas (panjang masukan, jumlah entitas
 terdeteksi, apakah percobaan sebelumnya gagal validasi). Karena murni, ia bisa diuji, dan
@@ -68,17 +68,17 @@ ID model tidak pernah ditulis di kode.
 
 Langkah pertama setiap pesan; menentukan jalur mana yang dijalankan (`ARCHITECTURE.md` §8).
 
-| Intent | Contoh | Jalur |
-|---|---|---|
-| `PRODUCT_FAQ` | "Apa bedanya AW dan D?" | FAQ |
-| `PRODUCT_LOOKUP` | "Ada ukuran 3/4 inch?" | **query MySQL**, bukan pencarian vektor |
-| `RECOMMENDATION_REQUEST` | "Rumah 2 lantai, 3 kamar mandi…" | rekomendasi |
-| `CLARIFICATION_ANSWER` | "Toren atap" | merge, tanpa ekstraksi penuh |
-| `REQUIREMENT_MUTATION` | "Tambah satu kamar mandi" | merge + hitung ulang, **tanpa LLM** |
-| `EXPLANATION_REQUEST` | "Kenapa ukurannya 1 inci?" | jawab dari trace |
-| `COMPETITOR_QUESTION` | "Lebih bagus Pralon atau X?" | kebijakan → kriteria netral |
-| `OUT_OF_SCOPE` | "Jalur air proses pabrik 70 °C" | validasi teknis |
-| `UNCLEAR` | — | klarifikasi, mood `confused` |
+| Intent                   | Contoh                           | Jalur                                   |
+| ------------------------ | -------------------------------- | --------------------------------------- |
+| `PRODUCT_FAQ`            | "Apa bedanya AW dan D?"          | FAQ                                     |
+| `PRODUCT_LOOKUP`         | "Ada ukuran 3/4 inch?"           | **query MySQL**, bukan pencarian vektor |
+| `RECOMMENDATION_REQUEST` | "Rumah 2 lantai, 3 kamar mandi…" | rekomendasi                             |
+| `CLARIFICATION_ANSWER`   | "Toren atap"                     | merge, tanpa ekstraksi penuh            |
+| `REQUIREMENT_MUTATION`   | "Tambah satu kamar mandi"        | merge + hitung ulang, **tanpa LLM**     |
+| `EXPLANATION_REQUEST`    | "Kenapa ukurannya 1 inci?"       | jawab dari trace                        |
+| `COMPETITOR_QUESTION`    | "Lebih bagus Pralon atau X?"     | kebijakan → kriteria netral             |
+| `OUT_OF_SCOPE`           | "Jalur air proses pabrik 70 °C"  | validasi teknis                         |
+| `UNCLEAR`                | —                                | klarifikasi, mood `confused`            |
 
 Dua pembedaan yang paling menentukan biaya dan kebenaran:
 
@@ -98,15 +98,15 @@ Satu-satunya tempat keluaran LLM menjadi data sistem, jadi di sinilah pertahanan
 
 ```ts
 const ExtractedRequirement = z.object({
-  buildingType: z.enum(['rumah_tinggal','rumah_kos','komersial_ringan','industri']).optional(),
-  floors:       z.number().int().min(1).max(50).optional(),
-  bathrooms:    z.number().int().min(0).max(100).optional(),
-  basins:       z.number().int().min(0).max(100).optional(),
-  kitchens:     z.number().int().min(0).max(50).optional(),
-  outletCount:  z.number().int().min(0).max(500).optional(),
-  waterSource:  z.enum(['toren_atap','toren','pompa','pdam']).optional(),
-  installationType: z.enum(['air_bersih','pembuangan','keduanya']).optional(),
-  boosterPump:  z.boolean().optional(),
+  buildingType: z.enum(['rumah_tinggal', 'rumah_kos', 'komersial_ringan', 'industri']).optional(),
+  floors: z.number().int().min(1).max(50).optional(),
+  bathrooms: z.number().int().min(0).max(100).optional(),
+  basins: z.number().int().min(0).max(100).optional(),
+  kitchens: z.number().int().min(0).max(50).optional(),
+  outletCount: z.number().int().min(0).max(500).optional(),
+  waterSource: z.enum(['toren_atap', 'toren', 'pompa', 'pdam']).optional(),
+  installationType: z.enum(['air_bersih', 'pembuangan', 'keduanya']).optional(),
+  boosterPump: z.boolean().optional(),
   floorHeightM: z.number().min(2).max(10).optional(),
 });
 ```
@@ -152,13 +152,13 @@ token, membuat hasil stabil, dan mencegah model "mengingat" hal yang sudah dikor
 
 ### Aturan
 
-| | |
-|---|---|
-| System prompt tidak pernah diekspos ke klien | |
-| Kebijakan **juga** ditegakkan di kode — prompt hanya lapisan pertama | |
+|                                                                                 |          |
+| ------------------------------------------------------------------------------- | -------- |
+| System prompt tidak pernah diekspos ke klien                                    |          |
+| Kebijakan **juga** ditegakkan di kode — prompt hanya lapisan pertama            |          |
 | Konten hasil retrieval dan email diperlakukan sebagai **data, bukan instruksi** | lihat §8 |
-| Prompt versinya dilacak; perubahan memicu evaluasi di CI | |
-| Tidak ada aturan bisnis yang **hanya** hidup di prompt (SPEC §47) | |
+| Prompt versinya dilacak; perubahan memicu evaluasi di CI                        |          |
+| Tidak ada aturan bisnis yang **hanya** hidup di prompt (SPEC §47)               |          |
 
 ### Nada
 
@@ -212,14 +212,14 @@ Lapisan 3 yang paling menentukan. Jailbreak pada prompt tidak cukup: produk yang
 
 ## 9. Kegagalan dan fallback
 
-| Kegagalan | Perilaku |
-|---|---|
-| Penyedia LLM timeout | ulangi sekali dengan backoff; gagal → `LLM_UNAVAILABLE`, mood `sorry` |
-| Rate limit dari penyedia | antre singkat; gagal → `LLM_UNAVAILABLE` |
-| Validasi skema gagal 2× | jatuh ke pertanyaan klarifikasi |
-| Model mengarang SKU | tersaring di perakitan respons; dicatat sebagai anomali |
-| Prosa memuat angka asing | prosa diminta ulang, lalu templat deterministik |
-| Stream putus di tengah | klien menyambung ulang dengan `Last-Event-ID` |
+| Kegagalan                | Perilaku                                                              |
+| ------------------------ | --------------------------------------------------------------------- |
+| Penyedia LLM timeout     | ulangi sekali dengan backoff; gagal → `LLM_UNAVAILABLE`, mood `sorry` |
+| Rate limit dari penyedia | antre singkat; gagal → `LLM_UNAVAILABLE`                              |
+| Validasi skema gagal 2×  | jatuh ke pertanyaan klarifikasi                                       |
+| Model mengarang SKU      | tersaring di perakitan respons; dicatat sebagai anomali               |
+| Prosa memuat angka asing | prosa diminta ulang, lalu templat deterministik                       |
+| Stream putus di tengah   | klien menyambung ulang dengan `Last-Event-ID`                         |
 
 Yang **tidak pernah** dilakukan: menampilkan jawaban dari keluaran yang gagal validasi, atau diam-diam
 menurunkan kualitas tanpa memberi tahu pengguna.

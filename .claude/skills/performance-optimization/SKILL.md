@@ -11,13 +11,13 @@ Rujukan lengkap: `docs/PERFORMANCE.md`.
 
 **Jangan jalankan seluruh pipeline untuk setiap pesan.** Intent router memilih satu dari lima jalur.
 
-| Permintaan | Panggilan LLM | Query DB |
-|---|---|---|
-| FAQ produk | 1 cepat | 0–1 |
-| Lookup produk | 1 cepat | 1 |
-| Rekomendasi | 2 seimbang | 1–2 |
-| Kasus lanjutan | 2–3 | 1–2 |
-| **Edit / mutasi kebutuhan** | **0** | **1** |
+| Permintaan                  | Panggilan LLM | Query DB |
+| --------------------------- | ------------- | -------- |
+| FAQ produk                  | 1 cepat       | 0–1      |
+| Lookup produk               | 1 cepat       | 1        |
+| Rekomendasi                 | 2 seimbang    | 1–2      |
+| Kasus lanjutan              | 2–3           | 1–2      |
+| **Edit / mutasi kebutuhan** | **0**         | **1**    |
 
 Jumlah query tidak naik seiring kerumitan jalur — produk untuk satu rekomendasi diambil dalam
 **satu** query, bukan satu per peran.
@@ -33,14 +33,14 @@ LLM ke jalur ini.**
 
 ## Anggaran
 
-| Operasi | p95 |
-|---|---|
-| Token pertama | < 1,5 s |
-| Rekomendasi lengkap | < 8 s |
+| Operasi                       | p95          |
+| ----------------------------- | ------------ |
+| Token pertama                 | < 1,5 s      |
+| Rekomendasi lengkap           | < 8 s        |
 | **Hitung ulang setelah edit** | **< 300 ms** |
-| Lookup produk | < 200 ms |
-| Daftar riwayat | < 300 ms |
-| PDF (asinkron) | < 20 s |
+| Lookup produk                 | < 200 ms     |
+| Daftar riwayat                | < 300 ms     |
+| PDF (asinkron)                | < 20 s       |
 
 ## Urutan prioritas optimasi
 

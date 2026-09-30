@@ -42,13 +42,13 @@ n8n **hanya** integrasi. Tidak ada logika bisnis di dalamnya.
 Pengirim email **tidak pernah menyetujui** isinya diproses model pihak ketiga. Ini berbeda dari
 pelanggan chat yang memang meminta layanan.
 
-| Diredaksi | Menjadi |
-|---|---|
-| Nomor telepon | `[TELEPON]` |
-| Alamat lengkap | `[ALAMAT]` |
-| NPWP, nomor rekening | `[NOMOR]` |
-| Alamat email | `[EMAIL]` |
-| Blok tanda tangan | dibuang |
+| Diredaksi            | Menjadi     |
+| -------------------- | ----------- |
+| Nomor telepon        | `[TELEPON]` |
+| Alamat lengkap       | `[ALAMAT]`  |
+| NPWP, nomor rekening | `[NOMOR]`   |
+| Alamat email         | `[EMAIL]`   |
+| Blok tanda tangan    | dibuang     |
 
 Teks asli tetap di MySQL untuk ditinjau manusia; nilai asli hanya muncul kembali di layar peninjau
 berwenang. Lokasi proyek dipertahankan **di tingkat kota** — itu nilai analitiknya.

@@ -34,12 +34,12 @@ Penghematan terbesar bukan memilih model murah, melainkan **tidak memanggil mode
 
 ## Routing
 
-| Tugas | Tingkat |
-|---|---|
-| FAQ produk, judul percakapan | `LLM_MODEL_FAST` |
-| Jawaban produk, ekstraksi, kalimat klarifikasi | `LLM_MODEL_BALANCED` |
-| Masukan ambigu; percobaan ulang setelah validasi gagal | `LLM_MODEL_STRONG` |
-| Perhitungan teknik | **tidak ada panggilan** |
+| Tugas                                                  | Tingkat                 |
+| ------------------------------------------------------ | ----------------------- |
+| FAQ produk, judul percakapan                           | `LLM_MODEL_FAST`        |
+| Jawaban produk, ekstraksi, kalimat klarifikasi         | `LLM_MODEL_BALANCED`    |
+| Masukan ambigu; percobaan ulang setelah validasi gagal | `LLM_MODEL_STRONG`      |
+| Perhitungan teknik                                     | **tidak ada panggilan** |
 
 ID model tidak pernah ditulis di kode. Routing adalah fungsi murni — bisa diuji, dan perubahannya
 muncul di hasil evaluasi.

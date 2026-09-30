@@ -30,14 +30,14 @@ ditampilkan dan diaudit, tetapi bukan itu yang dibaca sistem saat berpikir.
 Setiap field adalah `TrackedValue`, tidak pernah skalar telanjang.
 
 ```ts
-type Provenance  = 'VERIFIED' | 'ASSUMED' | 'ESTIMATED' | 'UNAVAILABLE';
+type Provenance = 'VERIFIED' | 'ASSUMED' | 'ESTIMATED' | 'UNAVAILABLE';
 type FieldSource = 'user_stated' | 'user_edited' | 'default_applied' | 'inferred';
 
 interface TrackedValue<T> {
   value: T | null;
   provenance: Provenance;
   source: FieldSource;
-  reason?: string;    // WAJIB bila ASSUMED — kalimat inilah yang muncul di kartu asumsi
+  reason?: string; // WAJIB bila ASSUMED — kalimat inilah yang muncul di kartu asumsi
   ruleId?: string;
   updatedAt: string;
 }
@@ -47,27 +47,27 @@ interface RequirementState {
   intent: Intent;
 
   building: {
-    type:         TrackedValue<BuildingType>;   // rumah tinggal | rumah kos | komersial ringan | industri
-    floors:       TrackedValue<number>;
-    floorHeightM: TrackedValue<number>;         // default 3,5 → ASSUMED, ENG-004
-    dimensions:   TrackedValue<Dimensions>;     // panjang jalur; kosong → BOM jadi ESTIMATED
+    type: TrackedValue<BuildingType>; // rumah tinggal | rumah kos | komersial ringan | industri
+    floors: TrackedValue<number>;
+    floorHeightM: TrackedValue<number>; // default 3,5 → ASSUMED, ENG-004
+    dimensions: TrackedValue<Dimensions>; // panjang jalur; kosong → BOM jadi ESTIMATED
   };
 
   fixtures: {
-    bathrooms:   TrackedValue<number>;
-    basins:      TrackedValue<number>;
-    kitchens:    TrackedValue<number>;
-    outletCount: TrackedValue<number>;          // board 03 menanyakan ini langsung
+    bathrooms: TrackedValue<number>;
+    basins: TrackedValue<number>;
+    kitchens: TrackedValue<number>;
+    outletCount: TrackedValue<number>; // board 03 menanyakan ini langsung
   };
 
   water: {
-    source:           TrackedValue<WaterSource>;        // toren atap | toren | pompa | PDAM
-    installationType: TrackedValue<InstallationType>;   // air bersih | pembuangan | keduanya
-    boosterPump:      TrackedValue<boolean>;            // board 03 menanyakan ini langsung
+    source: TrackedValue<WaterSource>; // toren atap | toren | pompa | PDAM
+    installationType: TrackedValue<InstallationType>; // air bersih | pembuangan | keduanya
+    boosterPump: TrackedValue<boolean>; // board 03 menanyakan ini langsung
   };
 
-  missingInformation: FieldPath[];                       // turunan, tidak disimpan
-  completeness: { filled: number; required: 4 };         // menggerakkan meter 4 segmen
+  missingInformation: FieldPath[]; // turunan, tidak disimpan
+  completeness: { filled: number; required: 4 }; // menggerakkan meter 4 segmen
 }
 ```
 
@@ -115,13 +115,13 @@ Presedensi sumber, dari paling kuat:
 user_edited  >  user_stated  >  inferred  >  default_applied
 ```
 
-| Situasi | Hasil |
-|---|---|
+| Situasi                                                          | Hasil                                                                                                        |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | Pengguna menyebut nilai baru untuk field yang sebelumnya default | nilai pengguna menang, provenance berubah ke `VERIFIED`, `reason` dihapus, asumsi terkait dicabut dari kartu |
-| Pengguna menyebut nilai baru untuk field yang sudah dia sebut | nilai terbaru menang |
-| Sistem punya default untuk field yang sudah diisi pengguna | **default tidak pernah menimpa** |
-| Ekstraksi menghasilkan `null` untuk field yang sudah terisi | diabaikan — `null` berarti "tidak disebut di pesan ini", bukan "dihapus" |
-| Pengguna menyatakan ketiadaan ("tidak ada dapur") | `value: 0`, `source: user_stated` — berbeda dari belum diisi |
+| Pengguna menyebut nilai baru untuk field yang sudah dia sebut    | nilai terbaru menang                                                                                         |
+| Sistem punya default untuk field yang sudah diisi pengguna       | **default tidak pernah menimpa**                                                                             |
+| Ekstraksi menghasilkan `null` untuk field yang sudah terisi      | diabaikan — `null` berarti "tidak disebut di pesan ini", bukan "dihapus"                                     |
+| Pengguna menyatakan ketiadaan ("tidak ada dapur")                | `value: 0`, `source: user_stated` — berbeda dari belum diisi                                                 |
 
 Baris keempat dan kelima adalah sumber bug paling halus di sistem semacam ini. "Tidak disebutkan"
 dan "dinyatakan tidak ada" terlihat sama di JSON bila keduanya jadi `null`. Skema ekstraksi karena itu
@@ -153,16 +153,16 @@ tetapi tidak menahan rekomendasi.
 
 Teks di bawah meter mengikuti salinan desain persis:
 
-- belum lengkap: "*n* kelompok data lagi sebelum SNOUTY dapat menyusun rekomendasi."
+- belum lengkap: "_n_ kelompok data lagi sebelum SNOUTY dapat menyusun rekomendasi."
 - lengkap: "Data inti sudah lengkap. Nilai yang tidak diberikan tetap ditandai sebagai asumsi."
 
 ### Dua bentuk klarifikasi
 
 Desain memuat dua bentuk berbeda (OQ-23), dan keduanya dilayani oleh satu engine:
 
-| Bentuk | Kapan | Sumber desain |
-|---|---|---|
-| Satu pertanyaan per giliran + chip jawaban cepat | 1–2 field kurang | prototipe |
+| Bentuk                                                                          | Kapan            | Sumber desain  |
+| ------------------------------------------------------------------------------- | ---------------- | -------------- |
+| Satu pertanyaan per giliran + chip jawaban cepat                                | 1–2 field kurang | prototipe      |
 | Kartu berisi hingga 4 pertanyaan bernomor + "lewati dan gunakan asumsi standar" | ≥ 3 field kurang | board layar 03 |
 
 Aturannya: **jangan pernah menumpahkan kuesioner panjang** (SPEC §33d), maksimum empat pertanyaan,
@@ -179,12 +179,12 @@ water.source → water.installationType → building.floors → fixtures.bathroo
 Menjawab "Belum tahu" bukan jalan buntu. Sistem menerapkan default, menandainya `ASSUMED`, dan
 **selalu** memunculkannya di kartu asumsi dengan alasan yang terbaca manusia (ENG-014):
 
-| Field | Default | Kalimat asumsi |
-|---|---|---|
-| `water.source` | Toren atap | "Sumber distribusi adalah toren atap, tanpa pompa pendorong." |
-| `water.installationType` | Air bersih | "Instalasi diasumsikan untuk air bersih saja." |
-| `building.floorHeightM` | 3,5 | "Tinggi antar lantai diasumsikan 3,5 meter." |
-| `building.dimensions` | — | "Panjang pipa diestimasi karena dimensi bangunan belum diberikan." |
+| Field                    | Default    | Kalimat asumsi                                                     |
+| ------------------------ | ---------- | ------------------------------------------------------------------ |
+| `water.source`           | Toren atap | "Sumber distribusi adalah toren atap, tanpa pompa pendorong."      |
+| `water.installationType` | Air bersih | "Instalasi diasumsikan untuk air bersih saja."                     |
+| `building.floorHeightM`  | 3,5        | "Tinggi antar lantai diasumsikan 3,5 meter."                       |
+| `building.dimensions`    | —          | "Panjang pipa diestimasi karena dimensi bangunan belum diberikan." |
 
 Nada balasannya mengikuti prototipe: "Tidak masalah — saya pakai asumsi umum dan menandainya."
 Menerapkan default tanpa mengatakannya akan melanggar SPEC §5 Policy 4, dan lebih buruk lagi, membuat
@@ -196,11 +196,11 @@ pengguna percaya pada angka yang sebetulnya tebakan.
 
 Tiga cara pengguna mengubah kebutuhan setelah solusi tersusun:
 
-| Pemicu | Contoh | Yang berjalan |
-|---|---|---|
-| Edit inline panel kanan ("Ubah") | ubah Kamar mandi 3 → 4 | merge → hitung ulang |
-| "Perbaiki asumsi ini →" | membuka field yang jadi sumber asumsi | merge → hitung ulang |
-| Follow-up yang memutasi | "Kalau kamar mandi saya tambah satu?" | parse ringan → merge → hitung ulang |
+| Pemicu                           | Contoh                                | Yang berjalan                       |
+| -------------------------------- | ------------------------------------- | ----------------------------------- |
+| Edit inline panel kanan ("Ubah") | ubah Kamar mandi 3 → 4                | merge → hitung ulang                |
+| "Perbaiki asumsi ini →"          | membuka field yang jadi sumber asumsi | merge → hitung ulang                |
+| Follow-up yang memutasi          | "Kalau kamar mandi saya tambah satu?" | parse ringan → merge → hitung ulang |
 
 Baris ketiga perlu kehati-hatian. "Tambah satu kamar mandi" **memutasi** state; "Kenapa ukuran ini?"
 **tidak**. Klasifikasi ini dilakukan intent router, dan bila ragu sistem bertanya balik alih-alih
@@ -218,10 +218,10 @@ tunduk pada invarian REC-1 (tidak boleh memuat angka di luar hasil hitungan).
 
 ## 7. Penyimpanan
 
-| Lapisan | Isi | TTL | Peran |
-|---|---|---|---|
-| Redis `snouty:ctx:{conversationId}` | snapshot aktif | 24 jam | cache baca cepat |
-| MySQL `requirement_snapshots` | **semua** snapshot, append-only | permanen | sumber kebenaran |
+| Lapisan                             | Isi                             | TTL      | Peran            |
+| ----------------------------------- | ------------------------------- | -------- | ---------------- |
+| Redis `snouty:ctx:{conversationId}` | snapshot aktif                  | 24 jam   | cache baca cepat |
+| MySQL `requirement_snapshots`       | **semua** snapshot, append-only | permanen | sumber kebenaran |
 
 Pola tulisnya **write-through**: setiap snapshot ditulis ke MySQL lebih dulu, baru Redis diperbarui.
 Redis boleh di-flush kapan saja tanpa kehilangan data; cache miss dilayani dengan membaca snapshot
@@ -246,20 +246,20 @@ tidak pernah diambil lewat pencarian kemiripan. Ia terstruktur, tepat, dan dibac
 
 ## 9. Daftar tes
 
-| # | Tes |
-|---|---|
-| 1 | Merge tidak pernah membiarkan `default_applied` menimpa `user_stated` |
-| 2 | Field `ASSUMED` selalu punya `reason` dan muncul di kartu asumsi |
-| 3 | "Tidak ada dapur" menghasilkan `value: 0` `user_stated`, bukan `null` |
-| 4 | Ekstraksi yang menghasilkan `undefined` tidak menghapus field yang sudah terisi |
-| 5 | Snapshot bersifat append-only; `version` naik monoton |
-| 6 | Kelengkapan menghitung tepat empat field inti |
-| 7 | Klarifikasi mengikuti urutan prioritas dan tidak pernah > 4 pertanyaan |
-| 8 | "Belum tahu" menerapkan default, menandai `ASSUMED`, dan menambah kartu asumsi |
-| 9 | Edit inline tidak memicu satu pun panggilan LLM |
-| 10 | Follow-up yang memutasi memperbarui state; follow-up yang bertanya tidak |
-| 11 | Registrasi tamu memindahkan seluruh snapshot tanpa duplikasi `version` |
-| 12 | Flush Redis tidak menghilangkan data — state dipulihkan dari MySQL |
+| #   | Tes                                                                             |
+| --- | ------------------------------------------------------------------------------- |
+| 1   | Merge tidak pernah membiarkan `default_applied` menimpa `user_stated`           |
+| 2   | Field `ASSUMED` selalu punya `reason` dan muncul di kartu asumsi                |
+| 3   | "Tidak ada dapur" menghasilkan `value: 0` `user_stated`, bukan `null`           |
+| 4   | Ekstraksi yang menghasilkan `undefined` tidak menghapus field yang sudah terisi |
+| 5   | Snapshot bersifat append-only; `version` naik monoton                           |
+| 6   | Kelengkapan menghitung tepat empat field inti                                   |
+| 7   | Klarifikasi mengikuti urutan prioritas dan tidak pernah > 4 pertanyaan          |
+| 8   | "Belum tahu" menerapkan default, menandai `ASSUMED`, dan menambah kartu asumsi  |
+| 9   | Edit inline tidak memicu satu pun panggilan LLM                                 |
+| 10  | Follow-up yang memutasi memperbarui state; follow-up yang bertanya tidak        |
+| 11  | Registrasi tamu memindahkan seluruh snapshot tanpa duplikasi `version`          |
+| 12  | Flush Redis tidak menghilangkan data — state dipulihkan dari MySQL              |
 
 Tes 9 adalah tes performa sekaligus tes kebenaran: bila edit memicu ekstraksi, biaya token melonjak
 dan hasilnya bisa berubah untuk masukan yang sama.

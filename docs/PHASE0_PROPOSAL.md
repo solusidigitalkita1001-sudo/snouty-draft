@@ -59,7 +59,7 @@ domain modules by importing them; only the transport differs.
 
 **Why `packages/engineering` is a package, not an API module.** SPEC §8 requires the engine to be
 deterministic, unit-testable, versioned, and auditable. Making it a framework-free package with no
-database access makes that structurally true rather than merely intended: it *cannot* call the LLM or
+database access makes that structurally true rather than merely intended: it _cannot_ call the LLM or
 the catalog, because neither is on its dependency graph. `apps/api` composes it with data; the eval
 runner and the future rule-validation back-office import the same package.
 
@@ -118,19 +118,19 @@ forget.
 One database per environment, one logical schema, table prefixes by bounded context. No cross-context
 foreign keys except through explicitly named owner columns.
 
-| Context | Tables |
-|---|---|
-| identity | `users`, `user_roles`, `refresh_tokens`, `guest_sessions`, `consents` |
-| conversation | `conversations`, `messages`, `requirement_snapshots`, `conversation_events` |
-| catalog | `catalog_versions`, `products`, `product_sizes`, `product_specs`, `product_compatibility`, `product_documents`, `product_images` |
-| pricing *(conditional)* | `price_lists`, `price_list_items` |
-| engineering | `engineering_rules`, `engineering_rule_versions`, `rule_validations`, `calculation_traces` |
-| recommendation | `recommendations`, `recommendation_systems`, `recommendation_products`, `bom_items`, `assumptions`, `schematics` |
-| report | `reports`, `report_jobs` |
-| handoff | `technical_handoffs`, `handoff_events` |
-| ops | `audit_logs`, `llm_calls`, `job_runs`, `feedback` |
-| email *(Phase 11)* | `emails`, `email_analyses`, `email_drafts`, `leads` |
-| market *(Phase 12)* | `market_events`, `market_aggregates` |
+| Context                 | Tables                                                                                                                           |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| identity                | `users`, `user_roles`, `refresh_tokens`, `guest_sessions`, `consents`                                                            |
+| conversation            | `conversations`, `messages`, `requirement_snapshots`, `conversation_events`                                                      |
+| catalog                 | `catalog_versions`, `products`, `product_sizes`, `product_specs`, `product_compatibility`, `product_documents`, `product_images` |
+| pricing _(conditional)_ | `price_lists`, `price_list_items`                                                                                                |
+| engineering             | `engineering_rules`, `engineering_rule_versions`, `rule_validations`, `calculation_traces`                                       |
+| recommendation          | `recommendations`, `recommendation_systems`, `recommendation_products`, `bom_items`, `assumptions`, `schematics`                 |
+| report                  | `reports`, `report_jobs`                                                                                                         |
+| handoff                 | `technical_handoffs`, `handoff_events`                                                                                           |
+| ops                     | `audit_logs`, `llm_calls`, `job_runs`, `feedback`                                                                                |
+| email _(Phase 11)_      | `emails`, `email_analyses`, `email_drafts`, `leads`                                                                              |
+| market _(Phase 12)_     | `market_events`, `market_aggregates`                                                                                             |
 
 Three schema decisions worth flagging now:
 
@@ -141,7 +141,7 @@ Three schema decisions worth flagging now:
 code.
 
 **`calculation_traces` is the backing store for the UI.** The "DASAR PERHITUNGAN" column in the BOM and
-the "Tampilkan detail teknis" disclosure on screen 06 are rendered *from* trace rows
+the "Tampilkan detail teknis" disclosure on screen 06 are rendered _from_ trace rows
 (`rule_id`, `rule_version`, inputs, output, provenance), never from prose an LLM wrote. That is what
 makes SPEC §8's auditability visible to the user instead of merely logged.
 
@@ -155,16 +155,16 @@ path, and gives evals a real corpus of state transitions.
 
 **Recommendation: Drizzle ORM + drizzle-kit.** Runner-up: Prisma.
 
-SPEC §17 asks me to weight this decision toward *migration safety on a shared database*. That single
+SPEC §17 asks me to weight this decision toward _migration safety on a shared database_. That single
 constraint decides it:
 
-| Concern on a shared, non-disposable MySQL | Drizzle | Prisma | TypeORM |
-|---|---|---|---|
-| Migrations are plain reviewable `.sql` you read before applying | **yes, always** | generated, but `migrate dev` authors and applies in one step | TS files; SQL not obvious |
-| Requires a **shadow database** (creating/dropping a DB on the server) | **no** | yes for `migrate dev` — must be redirected to a throwaway container | no |
-| Has a command that can reset/drop the schema | **no** | yes (`migrate reset`) | `synchronize: true` silently alters schema |
-| Read-only introspection of an existing schema | `drizzle-kit pull` | `db pull` | `schema:log` |
-| Runtime overhead / query transparency | thin, SQL-shaped | heavier engine | moderate |
+| Concern on a shared, non-disposable MySQL                             | Drizzle            | Prisma                                                              | TypeORM                                    |
+| --------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------- | ------------------------------------------ |
+| Migrations are plain reviewable `.sql` you read before applying       | **yes, always**    | generated, but `migrate dev` authors and applies in one step        | TS files; SQL not obvious                  |
+| Requires a **shadow database** (creating/dropping a DB on the server) | **no**             | yes for `migrate dev` — must be redirected to a throwaway container | no                                         |
+| Has a command that can reset/drop the schema                          | **no**             | yes (`migrate reset`)                                               | `synchronize: true` silently alters schema |
+| Read-only introspection of an existing schema                         | `drizzle-kit pull` | `db pull`                                                           | `schema:log`                               |
+| Runtime overhead / query transparency                                 | thin, SQL-shaped   | heavier engine                                                      | moderate                                   |
 
 Prisma's shadow-database requirement is the disqualifier. On infrastructure explicitly described as
 "shared — not disposable", a default workflow that wants to create and drop a database is the wrong
@@ -196,12 +196,12 @@ Confirmed state of the host (P0a-04): `snouty` exists and is empty; `snouty_dev`
 do not exist; the host's own convention is `<name>` for production with `<name>_dev` beside it
 (`work_order`/`wo_dev`, `bagspace`/`bagspace_dev`) and **no staging tier anywhere** — hence OQ-35.
 
-| Environment | Database | Host |
-|---|---|---|
-| local dev | `snouty_dev` *(does not exist yet — you create it)* | `192.168.1.136` (shared) |
-| staging | `snouty_staging` *(only if you want a staging tier — OQ-35)* | `192.168.1.136` (shared) |
-| production | `snouty` *(exists, empty)* | `192.168.1.136` (shared) |
-| CI / integration tests | `snouty_test` | **disposable container only**, never the shared host |
+| Environment            | Database                                                     | Host                                                 |
+| ---------------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
+| local dev              | `snouty_dev` _(does not exist yet — you create it)_          | `192.168.1.136` (shared)                             |
+| staging                | `snouty_staging` _(only if you want a staging tier — OQ-35)_ | `192.168.1.136` (shared)                             |
+| production             | `snouty` _(exists, empty)_                                   | `192.168.1.136` (shared)                             |
+| CI / integration tests | `snouty_test`                                                | **disposable container only**, never the shared host |
 
 Schema defaults will match the server: `utf8mb4` / `utf8mb4_0900_ai_ci`. The server already runs
 `STRICT_TRANS_TABLES` with `NO_ZERO_DATE`, so the schema can rely on strict semantics.
@@ -217,11 +217,11 @@ Least-privilege users I propose, scoped to the SNOUTY databases only. **I will w
 review; I will not create users or grant privileges myself** — that is a change to shared
 infrastructure (OQ-34):
 
-| User | Grants |
-|---|---|
-| `snouty_app` | `SELECT, INSERT, UPDATE, DELETE` on `snouty*` — **no DDL, no DROP** |
+| User              | Grants                                                                                              |
+| ----------------- | --------------------------------------------------------------------------------------------------- |
+| `snouty_app`      | `SELECT, INSERT, UPDATE, DELETE` on `snouty*` — **no DDL, no DROP**                                 |
 | `snouty_migrator` | `CREATE, ALTER, INDEX, REFERENCES` + the above on `snouty*`; used only by an approved migration run |
-| `snouty_ro` | `SELECT` only on `snouty*` — for inspection, dashboards, and read replicas later |
+| `snouty_ro`       | `SELECT` only on `snouty*` — for inspection, dashboards, and read replicas later                    |
 
 Connection: a single pooled connection per process (`DB_POOL_MAX`, default 10 for API, 5 for worker),
 created in one `DatabaseModule` and injected. No module opens its own connection. On connection
@@ -252,33 +252,33 @@ interface TrackedValue<T> {
   value: T | null;
   provenance: Provenance;
   source: FieldSource;
-  reason?: string;        // required when provenance is ASSUMED — this is the assumptions-card copy
-  ruleId?: string;        // set when a default came from a rule, for traceability
+  reason?: string; // required when provenance is ASSUMED — this is the assumptions-card copy
+  ruleId?: string; // set when a default came from a rule, for traceability
   updatedAt: string;
 }
 
 interface RequirementState {
-  version: number;                       // increments per snapshot; append-only
+  version: number; // increments per snapshot; append-only
   intent: Intent;
   building: {
     type: TrackedValue<BuildingType>;
     floors: TrackedValue<number>;
-    floorHeightM: TrackedValue<number>;  // 3.5 default → ASSUMED, rule ENG-004
+    floorHeightM: TrackedValue<number>; // 3.5 default → ASSUMED, rule ENG-004
     dimensions: TrackedValue<Dimensions>;
   };
   fixtures: {
     bathrooms: TrackedValue<number>;
     basins: TrackedValue<number>;
     kitchens: TrackedValue<number>;
-    outletCount: TrackedValue<number>;   // board screen 03 asks this directly
+    outletCount: TrackedValue<number>; // board screen 03 asks this directly
   };
   water: {
     source: TrackedValue<WaterSource>;
     installationType: TrackedValue<InstallationType>;
-    boosterPump: TrackedValue<boolean>;  // board screen 03 asks this directly
+    boosterPump: TrackedValue<boolean>; // board screen 03 asks this directly
   };
-  missingInformation: FieldPath[];       // derived, never stored
-  completeness: { filled: number; required: 4 };  // drives the 4-segment meter
+  missingInformation: FieldPath[]; // derived, never stored
+  completeness: { filled: number; required: 4 }; // drives the 4-segment meter
 }
 ```
 
@@ -328,7 +328,7 @@ policy.evaluate(actor: Actor, capability: Capability, ctx?: RequirementState): P
 
 Five policies from SPEC §5, each a separate object with its own test file:
 
-1. **PralonOnlyPolicy** — competitor mentions are allowed as context; competitor *products* can never
+1. **PralonOnlyPolicy** — competitor mentions are allowed as context; competitor _products_ can never
    enter a recommendation. Enforced at the response-assembly boundary, not only in the prompt: the
    product list is filtered against the catalog, so a hallucinated competitor SKU cannot survive even
    if a prompt is jailbroken.
@@ -348,16 +348,16 @@ drift):
 
 ```ts
 const ENTITLEMENTS: Record<Capability, Tier[]> = {
-  PRODUCT_QA:            ['guest', 'registered', 'advanced'],
-  RECOMMENDATION:        ['guest', 'registered', 'advanced'],
-  CLARIFICATION:         ['guest', 'registered', 'advanced'],
-  TECHNICAL_HANDOFF:     ['guest', 'registered', 'advanced'],
-  CONVERSATION_HISTORY:  ['registered', 'advanced'],
-  SAVE_SOLUTION:         ['registered', 'advanced'],
-  CASE_ANALYSIS:         ['advanced'],
-  MATERIAL_BOM:          ['advanced'],
-  SCHEMATIC:             ['advanced'],
-  REPORT_PDF:            ['advanced'],
+  PRODUCT_QA: ['guest', 'registered', 'advanced'],
+  RECOMMENDATION: ['guest', 'registered', 'advanced'],
+  CLARIFICATION: ['guest', 'registered', 'advanced'],
+  TECHNICAL_HANDOFF: ['guest', 'registered', 'advanced'],
+  CONVERSATION_HISTORY: ['registered', 'advanced'],
+  SAVE_SOLUTION: ['registered', 'advanced'],
+  CASE_ANALYSIS: ['advanced'],
+  MATERIAL_BOM: ['advanced'],
+  SCHEMATIC: ['advanced'],
+  REPORT_PDF: ['advanced'],
 };
 ```
 
@@ -371,16 +371,16 @@ flagship screen 06 is reachable without an account.
 
 `Provenance` lives in `packages/shared-types` and is the only vocabulary the UI understands.
 
-| Value | May be produced by | Renders as |
-|---|---|---|
-| `VERIFIED` | a catalog record, or a rule whose validation status is `VALIDATED` | green "TERVERIFIKASI" `#1E7A4C` on `#E8F5EC` |
-| `ASSUMED` | a default rule, a "Belum tahu" answer | amber "ASUMSI" + a mandatory entry in the assumptions card |
-| `ESTIMATED` | a quantity derived without real dimensions | amber "DIESTIMASI" / "ESTIMASI · DIMENSI BELUM LENGKAP" |
-| `UNAVAILABLE` | a null catalog field | grey dashed, "Lihat dokumen teknis", **no value rendered** |
+| Value         | May be produced by                                                 | Renders as                                                 |
+| ------------- | ------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `VERIFIED`    | a catalog record, or a rule whose validation status is `VALIDATED` | green "TERVERIFIKASI" `#1E7A4C` on `#E8F5EC`               |
+| `ASSUMED`     | a default rule, a "Belum tahu" answer                              | amber "ASUMSI" + a mandatory entry in the assumptions card |
+| `ESTIMATED`   | a quantity derived without real dimensions                         | amber "DIESTIMASI" / "ESTIMASI · DIMENSI BELUM LENGKAP"    |
+| `UNAVAILABLE` | a null catalog field                                               | grey dashed, "Lihat dokumen teknis", **no value rendered** |
 
 Two rules make this structural rather than aspirational:
 
-- The shared `<ProvenanceTag>` component is the *only* way to render a status tag, and it takes a
+- The shared `<ProvenanceTag>` component is the _only_ way to render a status tag, and it takes a
   `Provenance` — there is no prop that lets a caller pass the string "TERVERIFIKASI" directly.
 - Per SPEC §33i, the tag always carries text, never colour alone.
 
@@ -396,7 +396,7 @@ rules. I would rather show you that now than have it surprise you at the Phase 6
 interface LLMService {
   chat(req: ChatRequest): Promise<ChatResponse>;
   stream(req: ChatRequest): AsyncIterable<ChatChunk>;
-  extractStructured<T>(req: ExtractRequest<T>): Promise<T>;   // schema-validated, retries once
+  extractStructured<T>(req: ExtractRequest<T>): Promise<T>; // schema-validated, retries once
 }
 ```
 
@@ -405,12 +405,12 @@ writes an `llm_calls` row: model, tokens in/out, latency, estimated cost, correl
 id, and the routing reason. That is what funds the cost dashboard in SPEC §31b and lets us answer "why
 did this conversation cost 4× the median".
 
-| Task | Tier | Env var |
-|---|---|---|
-| Product FAQ, conversation title | fast | `LLM_MODEL_FAST` |
-| Product knowledge answers, requirement extraction, clarification wording | balanced | `LLM_MODEL_BALANCED` |
-| Ambiguous or complex input, retry after a validation failure | strong | `LLM_MODEL_STRONG` |
-| **Any engineering calculation** | **none — no LLM call is made** | — |
+| Task                                                                     | Tier                           | Env var              |
+| ------------------------------------------------------------------------ | ------------------------------ | -------------------- |
+| Product FAQ, conversation title                                          | fast                           | `LLM_MODEL_FAST`     |
+| Product knowledge answers, requirement extraction, clarification wording | balanced                       | `LLM_MODEL_BALANCED` |
+| Ambiguous or complex input, retry after a validation failure             | strong                         | `LLM_MODEL_STRONG`   |
+| **Any engineering calculation**                                          | **none — no LLM call is made** | —                    |
 
 Routing is a pure function of intent + a complexity signal, so it is unit-testable and shows up in
 evals when it changes. Model IDs are never hardcoded.
@@ -424,26 +424,26 @@ One endpoint, `POST /api/conversations/:id/messages` returning `text/event-strea
 
 ```ts
 type SseEvent =
-  | { type: 'message.start';    messageId: string }
-  | { type: 'stage';            stage: AnalysisStage; status: 'active'|'done'|'failed'; detail?: string }
-  | { type: 'token';            text: string }
+  | { type: 'message.start'; messageId: string }
+  | { type: 'stage'; stage: AnalysisStage; status: 'active' | 'done' | 'failed'; detail?: string }
+  | { type: 'token'; text: string }
   | { type: 'requirement.updated'; state: RequirementState }
-  | { type: 'card';             card: AssistantCard }   // summary | criteria | unsupported | product | clarification
-  | { type: 'solution.ready';   recommendationId: string }
-  | { type: 'error';            code: ErrorCode; retryable: boolean; retryAfterSec?: number }
-  | { type: 'message.end';      messageId: string; usage: TokenUsage };
+  | { type: 'card'; card: AssistantCard } // summary | criteria | unsupported | product | clarification
+  | { type: 'solution.ready'; recommendationId: string }
+  | { type: 'error'; code: ErrorCode; retryable: boolean; retryAfterSec?: number }
+  | { type: 'message.end'; messageId: string; usage: TokenUsage };
 ```
 
 The five analysis stages are the literal `STEP_LABELS` from the prototype and are emitted as real
 pipeline boundaries, not timers:
 
-| `AnalysisStage` | Label (rendered verbatim) | Emitted when |
-|---|---|---|
-| `UNDERSTANDING` | Memahami kebutuhan | extraction + merge complete |
-| `ANALYZING_INSTALLATION` | Menganalisis instalasi | engineering rules evaluated |
-| `MATCHING_PRODUCTS` | Mencocokkan produk Pralon | catalog matching complete |
-| `COMPOSING` | Menyusun rekomendasi | recommendation assembled + persisted |
-| `PREPARING_SCHEMATIC` | Menyiapkan skema | topology built |
+| `AnalysisStage`          | Label (rendered verbatim) | Emitted when                         |
+| ------------------------ | ------------------------- | ------------------------------------ |
+| `UNDERSTANDING`          | Memahami kebutuhan        | extraction + merge complete          |
+| `ANALYZING_INSTALLATION` | Menganalisis instalasi    | engineering rules evaluated          |
+| `MATCHING_PRODUCTS`      | Mencocokkan produk Pralon | catalog matching complete            |
+| `COMPOSING`              | Menyusun rekomendasi      | recommendation assembled + persisted |
+| `PREPARING_SCHEMATIC`    | Menyiapkan skema          | topology built                       |
 
 `stage: failed` is what drives the design's failure card ("Gagal menyusun rekomendasi" + "Coba lagi" /
 "Kembali ke percakapan"); because the requirement snapshot is already persisted, the design's promise
@@ -462,15 +462,15 @@ one table, so no component invents an error message.
 Everything async and nothing else. Topic exchange `snouty.events`, one durable queue per consumer,
 each with a DLQ and a retry queue (exponential backoff, max 5 attempts).
 
-| Queue | Trigger | Idempotency key |
-|---|---|---|
-| `report.generate` | user requests a PDF | `reportId` |
-| `handoff.deliver` | "Kirim ke tim teknis Pralon" | `handoffId` |
-| `catalog.ingest` | catalog import uploaded | `catalogVersionId + rowHash` |
-| `document.embed` | a technical document is added (only once Qdrant is adopted) | `documentId + chunkIndex` |
-| `email.process` | n8n webhook (Phase 11) | `messageId` |
-| `market.aggregate` | scheduled + on conversation close (Phase 12) | `eventId` |
-| `notification.send` | any of the above | `notificationId` |
+| Queue               | Trigger                                                     | Idempotency key              |
+| ------------------- | ----------------------------------------------------------- | ---------------------------- |
+| `report.generate`   | user requests a PDF                                         | `reportId`                   |
+| `handoff.deliver`   | "Kirim ke tim teknis Pralon"                                | `handoffId`                  |
+| `catalog.ingest`    | catalog import uploaded                                     | `catalogVersionId + rowHash` |
+| `document.embed`    | a technical document is added (only once Qdrant is adopted) | `documentId + chunkIndex`    |
+| `email.process`     | n8n webhook (Phase 11)                                      | `messageId`                  |
+| `market.aggregate`  | scheduled + on conversation close (Phase 12)                | `eventId`                    |
+| `notification.send` | any of the above                                            | `notificationId`             |
 
 Every consumer is idempotent (insert-or-ignore on the key), every job writes a `job_runs` row so the UI
 can poll status, and no consumer is on the chat request path. Explicitly **not** queued: chat
@@ -483,15 +483,15 @@ streamed.
 
 Cache and coordination only. Never the source of truth (SPEC §18).
 
-| Key | Purpose | TTL |
-|---|---|---|
-| `snouty:ctx:{conversationId}` | active requirement snapshot | 24 h |
-| `snouty:guest:{sessionId}` | guest session + consent flags | `GUEST_SESSION_TTL` |
-| `snouty:rl:{tier}:{actorId}:{window}` | rate-limit counters | window |
-| `snouty:job:{jobId}` | job status for UI polling | 1 h after completion |
-| `snouty:idem:{key}` | idempotency guard | 24 h |
-| `snouty:lock:{resource}` | distributed lock (catalog import, report generation) | 60 s, auto-renew |
-| `snouty:cache:product:{id}` | catalog read cache, invalidated on catalog version bump | 1 h |
+| Key                                   | Purpose                                                 | TTL                  |
+| ------------------------------------- | ------------------------------------------------------- | -------------------- |
+| `snouty:ctx:{conversationId}`         | active requirement snapshot                             | 24 h                 |
+| `snouty:guest:{sessionId}`            | guest session + consent flags                           | `GUEST_SESSION_TTL`  |
+| `snouty:rl:{tier}:{actorId}:{window}` | rate-limit counters                                     | window               |
+| `snouty:job:{jobId}`                  | job status for UI polling                               | 1 h after completion |
+| `snouty:idem:{key}`                   | idempotency guard                                       | 24 h                 |
+| `snouty:lock:{resource}`              | distributed lock (catalog import, report generation)    | 60 s, auto-renew     |
+| `snouty:cache:product:{id}`           | catalog read cache, invalidated on catalog version bump | 1 h                  |
 
 Rate limits per SPEC §22 — guest low, registered medium, advanced high, internal separate; limited
 dimensions are messages/hour, tokens/day, concurrent streams, and advanced-case / schematic / report /
@@ -506,6 +506,7 @@ renders with the "Maaf" mascot mood.
 is actually needed", so here is the concrete test I propose for "needed":
 
 Adopt Qdrant when **all** of these hold:
+
 1. There are ≥ 50 unstructured technical documents (datasheets, manuals, SOPs) that are not
    representable as catalog columns.
 2. A measured ≥ 10% of real product questions cannot be answered by a deterministic MySQL query.
@@ -552,21 +553,21 @@ I extracted the complete light→dark mapping programmatically from both dark fi
 transcribing it. Sample of the 60-entry prototype map (full table goes into `DESIGN_IMPLEMENTATION.md`
 in Phase 0b):
 
-| Light | Dark (prototype) | Role |
-|---|---|---|
-| `#F7F8F7` | `#0F1213` | app canvas |
-| `#FFFFFF` | `#171B1D` | surface |
-| `#FBFCFB` | `#1B2022` | subtle surface |
-| `#DDE2E1` | `#343B3E` | input/button border |
-| `#E6EAE9` | `#2A3033` | card border |
-| `#EFF2F1` | `#23292B` | hairline |
-| `#14181A` | `#ECEFEE` (text) / `#2B3236` (user bubble bg) | ink |
-| `#1E7A4C` / `#E8F5EC` | `#62C48F` / `#15291E` | verified |
-| `#8A5300` / `#FDF3E3` | `#E4B56C` / `#2B2210` | assumption |
-| `#B02414` | `#F4806E` | brand text |
-| `#DF301C` | `#DF301C` (**fill only**, unchanged) | brand action |
+| Light                 | Dark (prototype)                              | Role                |
+| --------------------- | --------------------------------------------- | ------------------- |
+| `#F7F8F7`             | `#0F1213`                                     | app canvas          |
+| `#FFFFFF`             | `#171B1D`                                     | surface             |
+| `#FBFCFB`             | `#1B2022`                                     | subtle surface      |
+| `#DDE2E1`             | `#343B3E`                                     | input/button border |
+| `#E6EAE9`             | `#2A3033`                                     | card border         |
+| `#EFF2F1`             | `#23292B`                                     | hairline            |
+| `#14181A`             | `#ECEFEE` (text) / `#2B3236` (user bubble bg) | ink                 |
+| `#1E7A4C` / `#E8F5EC` | `#62C48F` / `#15291E`                         | verified            |
+| `#8A5300` / `#FDF3E3` | `#E4B56C` / `#2B2210`                         | assumption          |
+| `#B02414`             | `#F4806E`                                     | brand text          |
+| `#DF301C`             | `#DF301C` (**fill only**, unchanged)          | brand action        |
 
-Semantic guard rails encoded as token *names*, not just values, so misuse is visible in review:
+Semantic guard rails encoded as token _names_, not just values, so misuse is visible in review:
 `--action-*` (brand red), `--verified-*` (green), `--assumed-*` (amber). There is no `--button-green`
 token to reach for.
 
@@ -584,26 +585,26 @@ One pure function, unit-tested, with the mood derived from system state only —
 mood (SPEC §33f).
 
 ```ts
-function moodFor(s: SystemState): Mood
+function moodFor(s: SystemState): Mood;
 ```
 
-| Condition (evaluated in order) | Mood |
-|---|---|
-| a system error is showing | `fail` — once, then hold the final frame |
-| rate limited, connection lost, or data absent from the catalog | `sorry` |
-| the message was not understood → clarification | `confused` |
-| technical validation / out of scope | `focus` |
-| an edit caused a large change, or an unexpected scenario | `surprised` |
-| analysis stage ∈ {UNDERSTANDING, ANALYZING_INSTALLATION} | `think` |
-| analysis stage ∈ {MATCHING_PRODUCTS, COMPOSING, PREPARING_SCHEMATIC}, or recalculating after an edit | `write` |
-| solution ready, report downloaded | `happy` |
-| feedback given, solution saved, registration succeeded | `thanks` |
-| showing a tip or the neutral-criteria card | `wink` |
-| light loading / maintenance tip | `drip` |
-| welcome idle ≥ 15 s with an empty composer, or offline | `sleep` |
-| greeting a returning named user | `greet` |
-| an empty list (history, saved solutions, no results) | `peek` |
-| otherwise | `idle` |
+| Condition (evaluated in order)                                                                       | Mood                                     |
+| ---------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| a system error is showing                                                                            | `fail` — once, then hold the final frame |
+| rate limited, connection lost, or data absent from the catalog                                       | `sorry`                                  |
+| the message was not understood → clarification                                                       | `confused`                               |
+| technical validation / out of scope                                                                  | `focus`                                  |
+| an edit caused a large change, or an unexpected scenario                                             | `surprised`                              |
+| analysis stage ∈ {UNDERSTANDING, ANALYZING_INSTALLATION}                                             | `think`                                  |
+| analysis stage ∈ {MATCHING_PRODUCTS, COMPOSING, PREPARING_SCHEMATIC}, or recalculating after an edit | `write`                                  |
+| solution ready, report downloaded                                                                    | `happy`                                  |
+| feedback given, solution saved, registration succeeded                                               | `thanks`                                 |
+| showing a tip or the neutral-criteria card                                                           | `wink`                                   |
+| light loading / maintenance tip                                                                      | `drip`                                   |
+| welcome idle ≥ 15 s with an empty composer, or offline                                               | `sleep`                                  |
+| greeting a returning named user                                                                      | `greet`                                  |
+| an empty list (history, saved solutions, no results)                                                 | `peek`                                   |
+| otherwise                                                                                            | `idle`                                   |
 
 The two rules the mascot sheet states explicitly are encoded as tests: `fail` is **never** returned for
 out-of-scope (that is `focus`) or for missing data (that is `confused`). `greet` and `peek` come from
@@ -616,13 +617,13 @@ mood resolves to its static frame.
 
 **Test pyramid, weighted where SPEC §31 says the risk is:**
 
-| Layer | Scope | Target |
-|---|---|---|
-| unit | `packages/engineering` (every rule, every version), policy objects, `ContextMerger`, `moodFor`, provenance gate | ≥ 95% on engineering + policy |
-| contract | zod schemas for every LLM structured output; SSE event shapes | every schema |
-| integration | repositories + pipeline orchestration against a **disposable MySQL container** | main paths |
-| component | provenance rendering in both themes, mascot moods, reduced motion | every provenance state |
-| e2e | the consultation flow: welcome → clarification → analysis → solution → report | 1 happy path + 3 failure paths |
+| Layer       | Scope                                                                                                           | Target                         |
+| ----------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| unit        | `packages/engineering` (every rule, every version), policy objects, `ContextMerger`, `moodFor`, provenance gate | ≥ 95% on engineering + policy  |
+| contract    | zod schemas for every LLM structured output; SSE event shapes                                                   | every schema                   |
+| integration | repositories + pipeline orchestration against a **disposable MySQL container**                                  | main paths                     |
+| component   | provenance rendering in both themes, mascot moods, reduced motion                                               | every provenance state         |
+| e2e         | the consultation flow: welcome → clarification → analysis → solution → report                                   | 1 happy path + 3 failure paths |
 
 Three policy tests SPEC §31 names explicitly get their own file and are treated as release blockers: a
 competitor question never yields a competitor card; a `REQUIRES_DOMAIN_VALIDATION` rule never produces
@@ -645,13 +646,14 @@ test bootstrap, not just by configuration.
 ## 18. Security and privacy strategy
 
 **Security (SPEC §30).** Every DTO and every LLM output validated with zod at the boundary; JWT access
-+ refresh with refresh tokens in `httpOnly`, `Secure`, `SameSite=Lax` cookies and rotation on use;
-role-based guards on all `/internal/*` routes with every write audit-logged; Redis-backed distributed
-rate limiting; uploads (the "Lampirkan denah" flow) restricted by MIME type and size, stored outside
-the web root with generated names, never served from the app origin. Retrieved documents and inbound
-emails are treated as untrusted data — delimited, labelled as data, never as instructions — and system
-prompts are never echoed to the client. Secrets come from env only; `.env` is gitignored and
-`.env.example` carries empty values.
+
+- refresh with refresh tokens in `httpOnly`, `Secure`, `SameSite=Lax` cookies and rotation on use;
+  role-based guards on all `/internal/*` routes with every write audit-logged; Redis-backed distributed
+  rate limiting; uploads (the "Lampirkan denah" flow) restricted by MIME type and size, stored outside
+  the web root with generated names, never served from the app origin. Retrieved documents and inbound
+  emails are treated as untrusted data — delimited, labelled as data, never as instructions — and system
+  prompts are never echoed to the client. Secrets come from env only; `.env` is gitignored and
+  `.env.example` carries empty values.
 
 **Privacy (SPEC §30b / UU No. 27/2022).** Consent is a server-side row with a timestamp and a policy
 version, not a `localStorage` flag (OQ-19). Location is city-level, optional, and used only for
@@ -669,13 +671,13 @@ endpoints for registered users ship with Phase 3.
 Selective execution is the whole strategy (SPEC §23). The pipeline is not a pipeline — it is five
 independent paths chosen by the intent router:
 
-| Request | Path | LLM calls |
-|---|---|---|
-| product FAQ | policy → MySQL/retrieval → explain → SSE | 1 (fast) |
-| product lookup | policy → MySQL → explain | 1 (fast) |
-| recommendation | extract → context → engineering → match → explain | 2 (balanced) |
-| advanced case | extract → clarify → engineering → match → BOM → schematic → explain | 2–3 |
-| **requirement edit / mutation** | **context → engineering → match → BOM → schematic** | **0** |
+| Request                         | Path                                                                | LLM calls    |
+| ------------------------------- | ------------------------------------------------------------------- | ------------ |
+| product FAQ                     | policy → MySQL/retrieval → explain → SSE                            | 1 (fast)     |
+| product lookup                  | policy → MySQL → explain                                            | 1 (fast)     |
+| recommendation                  | extract → context → engineering → match → explain                   | 2 (balanced) |
+| advanced case                   | extract → clarify → engineering → match → BOM → schematic → explain | 2–3          |
+| **requirement edit / mutation** | **context → engineering → match → BOM → schematic**                 | **0**        |
 
 Supporting measures: stream the first token before the pipeline finishes; cache catalog reads in Redis
 keyed by catalog version; batch product lookups to kill N+1 in the matcher; index on the real query
@@ -707,15 +709,15 @@ database inspected, none of them now carries a blocking gap.
 
 ## 21. Summary of what I need from you
 
-| Need | Why | Question |
-|---|---|---|
-| ~~Read-only MySQL credentials~~ | ~~finishes P0a-04~~ — **answered**; `snouty` is empty | ~~OQ-02~~ |
-| Approval to draft least-privilege DB users for you to run | `ict` can drop seven other databases | **OQ-34** |
-| Guest vs. registered entitlement decision | decides whether screen 06 needs an account | **OQ-15** |
-| Pricing in or out of scope | decides BOM and report shape | **OQ-03** |
-| Name of the Pralon domain expert | without it nothing is ever TERVERIFIKASI | **OQ-06** |
-| Catalog source | Phase 1 cannot start without it | **OQ-07** |
-| Git remote | decides the CI pipeline file | **OQ-09** |
-| Approval of the Drizzle recommendation | shapes every migration from here on | §4 above |
+| Need                                                      | Why                                                   | Question  |
+| --------------------------------------------------------- | ----------------------------------------------------- | --------- |
+| ~~Read-only MySQL credentials~~                           | ~~finishes P0a-04~~ — **answered**; `snouty` is empty | ~~OQ-02~~ |
+| Approval to draft least-privilege DB users for you to run | `ict` can drop seven other databases                  | **OQ-34** |
+| Guest vs. registered entitlement decision                 | decides whether screen 06 needs an account            | **OQ-15** |
+| Pricing in or out of scope                                | decides BOM and report shape                          | **OQ-03** |
+| Name of the Pralon domain expert                          | without it nothing is ever TERVERIFIKASI              | **OQ-06** |
+| Catalog source                                            | Phase 1 cannot start without it                       | **OQ-07** |
+| Git remote                                                | decides the CI pipeline file                          | **OQ-09** |
+| Approval of the Drizzle recommendation                    | shapes every migration from here on                   | §4 above  |
 
 Everything else has a proposed default in `docs/OPEN_QUESTIONS.md` and will not block progress.

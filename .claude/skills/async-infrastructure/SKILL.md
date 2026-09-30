@@ -11,13 +11,13 @@ Rujukan lengkap: `docs/INFRASTRUCTURE.md` §6–§7.
 
 Satu pertanyaan: **apakah pengguna sedang menunggunya di layar?**
 
-| Sinkron | Antrean |
-|---|---|
-| pesan chat, ekstraksi | pembuatan PDF |
-| perhitungan teknik | pengiriman handoff |
-| product matching | impor katalog |
-| BOM, topologi skema | embedding dokumen |
-| | pemrosesan email, agregasi pasar, notifikasi |
+| Sinkron               | Antrean                                      |
+| --------------------- | -------------------------------------------- |
+| pesan chat, ekstraksi | pembuatan PDF                                |
+| perhitungan teknik    | pengiriman handoff                           |
+| product matching      | impor katalog                                |
+| BOM, topologi skema   | embedding dokumen                            |
+|                       | pemrosesan email, agregasi pasar, notifikasi |
 
 **Chat tidak pernah lewat RabbitMQ.** Antrean menambah latensi dan kerumitan; itu sepadan hanya
 untuk pekerjaan yang boleh selesai belakangan **dan** boleh gagal lalu diulang. Jawaban chat bukan
@@ -30,15 +30,15 @@ Jangan membuat sesuatu asinkron hanya karena terdengar lebih baik.
 Topic exchange `snouty.events`, satu queue durable per konsumer, masing-masing dengan **DLQ** dan
 queue retry backoff eksponensial (maks 5 percobaan).
 
-| Queue | Kunci idempotensi |
-|---|---|
-| `report.generate` | `reportId` |
-| `handoff.deliver` | `handoffId` |
-| `catalog.ingest` | `catalogVersionId + rowHash` |
-| `document.embed` | `documentId + chunkIndex` |
-| `email.process` | `messageId` |
-| `market.aggregate` | `eventId` |
-| `notification.send` | `notificationId` |
+| Queue               | Kunci idempotensi            |
+| ------------------- | ---------------------------- |
+| `report.generate`   | `reportId`                   |
+| `handoff.deliver`   | `handoffId`                  |
+| `catalog.ingest`    | `catalogVersionId + rowHash` |
+| `document.embed`    | `documentId + chunkIndex`    |
+| `email.process`     | `messageId`                  |
+| `market.aggregate`  | `eventId`                    |
+| `notification.send` | `notificationId`             |
 
 ## Checklist konsumer baru
 
@@ -55,15 +55,15 @@ Baris terakhir sering terlewat: job yang gagal diam-diam sama saja dengan pekerj
 
 ## Redis — cache, bukan kebenaran
 
-| Kunci | TTL |
-|---|---|
-| `snouty:ctx:{conversationId}` | 24 jam |
-| `snouty:guest:{sessionId}` | `GUEST_SESSION_TTL` |
-| `snouty:rl:{tier}:{actorId}:{window}` | jendela |
-| `snouty:job:{jobId}` | 1 jam setelah selesai |
-| `snouty:idem:{key}` | 24 jam |
-| `snouty:lock:{resource}` | 60 s, diperbarui otomatis |
-| `snouty:cache:product:{id}` | 1 jam |
+| Kunci                                 | TTL                       |
+| ------------------------------------- | ------------------------- |
+| `snouty:ctx:{conversationId}`         | 24 jam                    |
+| `snouty:guest:{sessionId}`            | `GUEST_SESSION_TTL`       |
+| `snouty:rl:{tier}:{actorId}:{window}` | jendela                   |
+| `snouty:job:{jobId}`                  | 1 jam setelah selesai     |
+| `snouty:idem:{key}`                   | 24 jam                    |
+| `snouty:lock:{resource}`              | 60 s, diperbarui otomatis |
+| `snouty:cache:product:{id}`           | 1 jam                     |
 
 **Redis tidak pernah menjadi sumber kebenaran.** Requirement state ditulis **write-through**: MySQL
 dulu, baru Redis. Mengosongkan Redis harus kehilangan kecepatan, bukan data — dan itu wajib ada
@@ -93,10 +93,10 @@ Webhook diautentikasi dengan `N8N_WEBHOOK_SECRET` + verifikasi tanda tangan.
 
 ## Degradasi
 
-| Mati | Akibat |
-|---|---|
-| RabbitMQ | job tertunda — **chat tetap jalan** |
-| Redis | lebih lambat — state dipulihkan dari MySQL |
-| MySQL | sistem berhenti; `/health` down, galat aman |
+| Mati     | Akibat                                      |
+| -------- | ------------------------------------------- |
+| RabbitMQ | job tertunda — **chat tetap jalan**         |
+| Redis    | lebih lambat — state dipulihkan dari MySQL  |
+| MySQL    | sistem berhenti; `/health` down, galat aman |
 
 Hanya MySQL yang fatal. Pertahankan sifat ini saat menambah ketergantungan baru.

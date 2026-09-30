@@ -27,13 +27,13 @@ Kalimat pembuka yang menjadi patokan seluruh desain:
 
 ## 2. Apa SNOUTY, dan apa bukan
 
-| SNOUTY adalah | SNOUTY bukan |
-|---|---|
-| asisten pengetahuan produk | chatbot umum |
-| asisten penjualan teknis | toko online (tidak ada keranjang, tidak ada checkout) |
-| asisten solusi perpipaan | perangkat lunak desain teknik |
-| mesin rekomendasi produk | penerbit sertifikasi |
-| sumber intelijen pasar | pembanding merek |
+| SNOUTY adalah              | SNOUTY bukan                                          |
+| -------------------------- | ----------------------------------------------------- |
+| asisten pengetahuan produk | chatbot umum                                          |
+| asisten penjualan teknis   | toko online (tidak ada keranjang, tidak ada checkout) |
+| asisten solusi perpipaan   | perangkat lunak desain teknik                         |
+| mesin rekomendasi produk   | penerbit sertifikasi                                  |
+| sumber intelijen pasar     | pembanding merek                                      |
 
 Batas di kolom kanan bukan kekurangan yang akan ditutup nanti. Semuanya adalah keputusan yang
 membentuk produk, dan sebagian besar justru yang membuatnya bisa dipercaya.
@@ -47,12 +47,12 @@ selalu Pralon, dan **tidak pernah menebak ukuran pipa**.
 
 Empat sifat itu diambil apa adanya dari lembar mascot, dan masing-masing punya wujud teknis:
 
-| Sifat | Wujud di sistem |
-|---|---|
-| Ramah | bahasa sehari-hari, tanpa jargon kecuali diminta |
-| Teliti | setiap nilai membawa provenance; asumsi selalu dinyatakan |
+| Sifat            | Wujud di sistem                                             |
+| ---------------- | ----------------------------------------------------------- |
+| Ramah            | bahasa sehari-hari, tanpa jargon kecuali diminta            |
+| Teliti           | setiap nilai membawa provenance; asumsi selalu dinyatakan   |
 | Jujur soal batas | "data belum cukup" adalah jawaban yang sah, bukan kegagalan |
-| Selalu Pralon | rekomendasi tidak pernah keluar dari ekosistem Pralon |
+| Selalu Pralon    | rekomendasi tidak pernah keluar dari ekosistem Pralon       |
 
 Nada bicara: seperti konsultan yang sabar, bukan seperti brosur. Tidak berlebihan memuji produk,
 tidak meminta maaf berlebihan, tidak memakai tanda seru beruntun.
@@ -62,21 +62,26 @@ tidak meminta maaf berlebihan, tidak memakai tanda seru beruntun.
 ## 4. Pengguna
 
 ### Tamu pertama kali
+
 Mendapat onboarding 5 langkah. Bisa langsung bercerita tanpa mendaftar.
 
 ### Tamu kembali
+
 Bisa memakai kapabilitas standar. Percakapannya boleh disimpan untuk analitik dan kualitas
 **sepanjang ada persetujuan** (`PRIVACY.md`). Tamu tidak melihat riwayat persisten — dan tidak
 ditunjukkan bagian riwayat palsu yang dinonaktifkan.
 
 ### Pengguna terdaftar
+
 Riwayat, penyimpanan solusi, unduh laporan, melanjutkan konsultasi lama.
 
 ### Lanjutan
+
 Analisis studi kasus, estimasi material, skema. Untuk MVP, `registered` dan `advanced` setara
 (OQ-05); Policy Engine tetap memodelkannya terpisah agar pemisahan nanti cukup ubah konfigurasi.
 
 ### Pengguna internal
+
 `catalog_admin`, `domain_expert`, `technical_team`, `sales_reviewer`, `admin`. Rincian di
 `BACKOFFICE.md`.
 
@@ -108,20 +113,20 @@ Empat tab workspace solusi: **Ringkasan · Produk Pralon · Skema · Estimasi Ma
 
 ## 6. Kapabilitas per fase
 
-| Kapabilitas | Fase | Layar |
-|---|---|---|
-| Tanya jawab produk | 2 | 01, 02, 10 |
-| Rekomendasi produk Pralon | 7 | 06, 07 |
-| Alur klarifikasi | 5 | 03 |
-| Tinjau & edit kebutuhan | 5–6 | 04 |
-| Analisis teknik | 6 | 05 |
-| Estimasi material / BOM | 8 | 06 |
-| Skema instalasi | 9 | 09 |
-| Laporan PDF | 10 | — |
-| Riwayat & solusi tersimpan | 10 | 12 |
-| Kirim ke tim teknis | 10 | 11 |
-| Intelijen email | 11 | back-office |
-| Intelijen pasar | 12 | back-office |
+| Kapabilitas                | Fase | Layar       |
+| -------------------------- | ---- | ----------- |
+| Tanya jawab produk         | 2    | 01, 02, 10  |
+| Rekomendasi produk Pralon  | 7    | 06, 07      |
+| Alur klarifikasi           | 5    | 03          |
+| Tinjau & edit kebutuhan    | 5–6  | 04          |
+| Analisis teknik            | 6    | 05          |
+| Estimasi material / BOM    | 8    | 06          |
+| Skema instalasi            | 9    | 09          |
+| Laporan PDF                | 10   | —           |
+| Riwayat & solusi tersimpan | 10   | 12          |
+| Kirim ke tim teknis        | 10   | 11          |
+| Intelijen email            | 11   | back-office |
+| Intelijen pasar            | 12   | back-office |
 
 ---
 
@@ -146,16 +151,16 @@ lalu menawarkan tim teknis dengan SLA. Menolak sambil tetap berguna adalah fitur
 
 Belum ada target angka dari Anda (OQ-10). Yang diusulkan untuk dipantau sejak Fase 4:
 
-| Metrik | Mengapa penting |
-|---|---|
-| Konsultasi selesai (welcome → solusi) | ukuran kegunaan paling jujur |
-| Rata-rata pertanyaan klarifikasi per konsultasi | naik = ekstraksi memburuk |
-| Proporsi field `ASSUMED` vs `VERIFIED` | turun seiring aturan divalidasi dan katalog diperkaya |
-| Konsultasi ter-route ke validasi teknis | terlalu tinggi = cakupan terlalu sempit |
-| Laporan diunduh | ukuran nilai yang dirasakan |
-| Konversi tamu → daftar | menguji alur register-gate |
-| Biaya token per konsultasi | menguji apakah eksekusi selektif bekerja |
-| Umpan balik jempol atas/bawah | ukuran kualitas langsung |
+| Metrik                                          | Mengapa penting                                       |
+| ----------------------------------------------- | ----------------------------------------------------- |
+| Konsultasi selesai (welcome → solusi)           | ukuran kegunaan paling jujur                          |
+| Rata-rata pertanyaan klarifikasi per konsultasi | naik = ekstraksi memburuk                             |
+| Proporsi field `ASSUMED` vs `VERIFIED`          | turun seiring aturan divalidasi dan katalog diperkaya |
+| Konsultasi ter-route ke validasi teknis         | terlalu tinggi = cakupan terlalu sempit               |
+| Laporan diunduh                                 | ukuran nilai yang dirasakan                           |
+| Konversi tamu → daftar                          | menguji alur register-gate                            |
+| Biaya token per konsultasi                      | menguji apakah eksekusi selektif bekerja              |
+| Umpan balik jempol atas/bawah                   | ukuran kualitas langsung                              |
 
 Satu yang perlu diperhatikan sejak awal: **proporsi `ASSUMED` hari ini akan mendekati 100%** untuk
 nilai teknik, karena belum ada aturan yang divalidasi. Metrik ini baru bermakna setelah OQ-06
@@ -165,28 +170,28 @@ terjawab.
 
 ## 9. Di luar cakupan MVP
 
-| | Alasan |
-|---|---|
-| Sizing pembuangan | butuh kemiringan, ventilasi, unit beban drainase (OQ-17) |
-| Perhitungan pompa | butuh kurva pompa dan data tekanan |
-| Instalasi industri | selalu ke validasi teknis |
-| Pemesanan / pembayaran | SNOUTY bukan toko |
-| Perbandingan merek | kebijakan produk |
-| Gambar kerja | skema bukan gambar konstruksi |
-| Aplikasi mobile native | web responsif sudah mencakup 390×844 |
+|                        | Alasan                                                   |
+| ---------------------- | -------------------------------------------------------- |
+| Sizing pembuangan      | butuh kemiringan, ventilasi, unit beban drainase (OQ-17) |
+| Perhitungan pompa      | butuh kurva pompa dan data tekanan                       |
+| Instalasi industri     | selalu ke validasi teknis                                |
+| Pemesanan / pembayaran | SNOUTY bukan toko                                        |
+| Perbandingan merek     | kebijakan produk                                         |
+| Gambar kerja           | skema bukan gambar konstruksi                            |
+| Aplikasi mobile native | web responsif sudah mencakup 390×844                     |
 
 ---
 
 ## 10. Yang masih terbuka di sisi produk
 
-| OQ | Pertanyaan |
-|---|---|
+| OQ    | Pertanyaan                                                    |
+| ----- | ------------------------------------------------------------- |
 | OQ-15 | apakah tamu melihat solusi lengkap, atau BOM/skema butuh akun |
-| OQ-03 | harga masuk lingkup atau tidak |
-| OQ-05 | apakah tier lanjutan berbayar |
-| OQ-07 | sumber katalog produk |
-| OQ-08 | tujuan handoff teknis dan SLA resmi |
-| OQ-17 | perilaku untuk kebutuhan pembuangan |
+| OQ-03 | harga masuk lingkup atau tidak                                |
+| OQ-05 | apakah tier lanjutan berbayar                                 |
+| OQ-07 | sumber katalog produk                                         |
+| OQ-08 | tujuan handoff teknis dan SLA resmi                           |
+| OQ-17 | perilaku untuk kebutuhan pembuangan                           |
 
 OQ-15 yang paling berpengaruh: ia menentukan apakah layar unggulan produk ini bisa dilihat tanpa
 mendaftar.
