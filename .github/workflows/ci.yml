@@ -1,0 +1,117 @@
+# SNOUTY — CI.
+#
+# Provider masih menunggu OQ-09. Definisi job-nya netral, jadi pindah ke GitLab
+# nanti berarti menukar satu berkas, bukan menulis ulang pipeline.
+#
+# CI TIDAK PERNAH terhubung ke MySQL bersama di 192.168.1.136 (SPEC §31c).
+# Ditegakkan oleh scripts/check-ci-db-host.mjs, bukan hanya oleh konfigurasi.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  guards:
+    name: Pagar arsitektur
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      # packages/engineering harus tetap tanpa dependensi runtime (SPEC §8, §25).
+      - run: node scripts/check-engineering-isolation.mjs
+
+      # DB_HOST tidak boleh mengarah ke server bersama.
+      - run: node scripts/check-ci-db-host.mjs
+
+      # Secret tidak pernah masuk repositori (docs/SECURITY.md §10).
+      - name: Pindai secret
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  quality:
+    name: Format, lint, typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+
+  test:
+    name: Tes
+    runs-on: ubuntu-latest
+    services:
+      # MySQL sekali pakai untuk tes integrasi — bukan server bersama.
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: snouty_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: '3306'
+      DB_DATABASE: snouty_test
+      DB_USERNAME: root
+      DB_PASSWORD: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/check-ci-db-host.mjs
+      - run: pnpm test
+
+  build:
+    name: Build web + api
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+  # Evaluasi AI berjalan HANYA saat berkas terkait AI berubah: panggilan model
+  # berbiaya, dan perubahan CSS tidak mengubah akurasi ekstraksi
+  # (docs/EVALUATION.md §4). Diaktifkan di Fase 4 saat dataset pertama ada.
+  evals:
+    name: Evaluasi AI
+    if: false # aktifkan di Fase 4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo 'pnpm eval'
