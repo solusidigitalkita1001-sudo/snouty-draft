@@ -1,0 +1,11 @@
+pnpm-lock.yaml
+design-input/
+.next/
+dist/
+coverage/
+
+# Dokumen milik pemilik proyek — disimpan apa adanya (SPEC §0).
+docs/SPEC.md
+
+# Dibangkitkan Next.js
+apps/web/next-env.d.ts
