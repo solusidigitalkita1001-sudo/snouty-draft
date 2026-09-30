@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+@import '@snouty/ui/tokens.css';
+
+/* Reset minimal. Seluruh warna berasal dari token — lint melarang hex mentah di apps/. */
+html {
+  background: var(--snouty-canvas);
+  color: var(--snouty-ink);
+  font-family: var(--snouty-font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
