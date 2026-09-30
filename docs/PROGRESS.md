@@ -1,12 +1,12 @@
 # SNOUTY — Progress
 
-Last updated: 2026-09-30 · Current phase: **0a (awaiting checkpoint review)** · Next item: **Phase 0b — P0b-01 ARCHITECTURE.md**
+Last updated: 2026-09-30 · Current phase: **0b (menunggu review checkpoint)** · Next item: **Fase 0c — P0c-01 PRODUCT.md**
 
 ## Summary
 | Phase | Status | Done / Total |
 |---|---|---|
-| 0a Analysis | awaiting review | 7/7 |
-| 0b Core docs | not started | 0/9 |
+| 0a Analysis | **approved** | 7/7 |
+| 0b Core docs | menunggu review | 9/9 |
 | 0c Remaining docs | not started | 0/18 |
 | 0d Claude Code config | not started | 0/14 |
 | 0e Skeleton | not started | 0/8 |
@@ -52,18 +52,20 @@ Last updated: 2026-09-30 · Current phase: **0a (awaiting checkpoint review)** �
 - [x] P0a-06 Write PHASE0_PROPOSAL.md
 - [x] P0a-07 Write OPEN_QUESTIONS.md — 33 questions raised (OQ-01…OQ-33), including 11 design conflicts
       found beyond the 8 listed in SPEC §33h.
-- [ ] ✋ CHECKPOINT — reviewed by owner
+- [x] ✋ CHECKPOINT — **disetujui pemilik 2026-09-30** ("ok gas"); berjalan dengan proposed default untuk OQ yang belum dijawab
 
 ## Phase 0b — Core docs
-- [ ] P0b-01 ARCHITECTURE.md
-- [ ] P0b-02 DOMAIN_MODEL.md
-- [ ] P0b-03 POLICY.md
-- [ ] P0b-04 DATABASE.md
-- [ ] P0b-05 CONTEXT_ENGINE.md
-- [ ] P0b-06 ENGINEERING_RULES.md
-- [ ] P0b-07 API_CONTRACTS.md
-- [ ] P0b-08 PRIVACY.md
-- [ ] P0b-09 DESIGN_IMPLEMENTATION.md *(includes the full extracted light→dark token maps)*
+Ditulis dalam Bahasa Indonesia (kode, identifier, enum, SQL, dan istilah teknis baku tetap Inggris).
+
+- [x] P0b-01 ARCHITECTURE.md
+- [x] P0b-02 DOMAIN_MODEL.md
+- [x] P0b-03 POLICY.md
+- [x] P0b-04 DATABASE.md — memuat draf SQL akun least-privilege untuk ditinjau (OQ-34)
+- [x] P0b-05 CONTEXT_ENGINE.md
+- [x] P0b-06 ENGINEERING_RULES.md
+- [x] P0b-07 API_CONTRACTS.md
+- [x] P0b-08 PRIVACY.md
+- [x] P0b-09 DESIGN_IMPLEMENTATION.md — memuat peta token terang→gelap lengkap dari kedua berkas
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phase 0c — Remaining docs
@@ -172,4 +174,6 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | Date | Items worked on | Result | Branch / commits | Notes |
 |---|---|---|---|---|
 | 2026-09-30 | P0a-01 … P0a-07 | 6 done, P0a-04 blocked | `phase-0/P0a-analysis` | Design bundle moved to `design-input/handoff/`. 33 open questions raised; 11 design conflicts found beyond SPEC §33h. |
-| 2026-09-30 | P0a-04 | done — Phase 0a now 7/7 | `phase-0/P0a-analysis` | Credentials supplied. `snouty` is empty; server is shared with 7 other databases. Raised OQ-34: the supplied account is a server-wide superuser, contrary to SPEC §17 least privilege. Awaiting checkpoint review. |
+| 2026-09-30 | P0a-04 | done — Phase 0a now 7/7 | `phase-0/P0a-analysis` | Credentials supplied. `snouty` is empty; server is shared with 7 other databases. Raised OQ-34: the supplied account is a server-wide superuser, contrary to SPEC §17 least privilege. |
+| 2026-09-30 | Checkpoint 0a | disetujui ("ok gas") | — | Lanjut dengan proposed default untuk OQ yang belum dijawab. Bahasa dokumen baru: Indonesia. |
+| 2026-09-30 | P0b-01 … P0b-09 | 9/9 selesai | `phase-0/P0b-core-docs` | Sembilan dokumen inti ditulis dalam Bahasa Indonesia. `DATABASE.md` memuat draf SQL akun least-privilege (OQ-34); `DESIGN_IMPLEMENTATION.md` memuat peta token gelap lengkap (OQ-16). Menunggu review checkpoint. |
