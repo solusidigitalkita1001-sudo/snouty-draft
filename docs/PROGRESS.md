@@ -1,11 +1,11 @@
 # SNOUTY — Progress
 
-Last updated: 2026-09-30 · Current phase: **0a (awaiting checkpoint review)** · Next item: **P0a-04** (blocked on OQ-02), then Phase 0b
+Last updated: 2026-09-30 · Current phase: **0a (awaiting checkpoint review)** · Next item: **Phase 0b — P0b-01 ARCHITECTURE.md**
 
 ## Summary
 | Phase | Status | Done / Total |
 |---|---|---|
-| 0a Analysis | awaiting review | 6/7 (P0a-04 blocked) |
+| 0a Analysis | awaiting review | 7/7 |
 | 0b Core docs | not started | 0/9 |
 | 0c Remaining docs | not started | 0/18 |
 | 0d Claude Code config | not started | 0/14 |
@@ -25,10 +25,12 @@ Last updated: 2026-09-30 · Current phase: **0a (awaiting checkpoint review)** �
 | 13 Hardening & audit | not started | — |
 
 ## Blockers
-- `[!]` **P0a-04** — read-only MySQL inspection not performed. The server at `192.168.1.136:3306` is
-  reachable, but no database name or credentials were supplied and SPEC §17 forbids guessing them.
-  Waiting on **OQ-02**.
-- `[!]` **P1 (all)** — cannot start without OQ-02 (DB access) and OQ-07 (catalog source).
+- ~~`[!]` **P0a-04** — read-only MySQL inspection not performed.~~ Resolved 2026-09-30: credentials
+  supplied, inspection done. The `snouty` database exists and is **completely empty**.
+- `[!]` **P1 (all)** — cannot start without OQ-07 (catalog source).
+- `[!]` **Security, before any deployment** — the only non-system account on the shared server is
+  `ict`, which holds `ALL PRIVILEGES ON *.* WITH GRANT OPTION` over seven other databases. SPEC §17
+  requires least privilege and forbids the app user holding DROP. Waiting on **OQ-34**.
 - `[!]` **P6 (validation)** — every engineering rule stays `REQUIRES_DOMAIN_VALIDATION` until a Pralon
   domain expert is named. Waiting on **OQ-06**.
 - Decision needed before Phase 5/10 design work: **OQ-15** (guest entitlement) — it determines whether
@@ -41,8 +43,11 @@ Last updated: 2026-09-30 · Current phase: **0a (awaiting checkpoint review)** �
 - [x] P0a-03 Read design-input (newer prototype first) — bundle relocated to `design-input/handoff/`
       per §33a; prototype, handoff README, mascot sheet, report, both board themes, and the standalone
       onboarding wizard all read; both dark palettes extracted programmatically.
-- [!] P0a-04 Inspect `snouty` DB schema (read-only) — **blocked on OQ-02**. TCP reachability confirmed;
-      nothing was read from or written to the server.
+- [x] P0a-04 Inspect `snouty` DB schema (read-only) — MySQL 8.0.46 (Ubuntu 22.04). `snouty` exists,
+      `utf8mb4` / `utf8mb4_0900_ai_ci`, and is **empty**: 0 tables, views, routines, triggers, events.
+      `snouty_dev` and `snouty_staging` do not exist. Seven other databases share the server (~110 MB,
+      301 tables). Only `SELECT`/`SHOW`/`information_schema` statements were issued. New finding
+      raised as OQ-34 (privileges).
 - [x] P0a-05 Create PROGRESS.md
 - [x] P0a-06 Write PHASE0_PROPOSAL.md
 - [x] P0a-07 Write OPEN_QUESTIONS.md — 33 questions raised (OQ-01…OQ-33), including 11 design conflicts
@@ -53,7 +58,7 @@ Last updated: 2026-09-30 · Current phase: **0a (awaiting checkpoint review)** �
 - [ ] P0b-01 ARCHITECTURE.md
 - [ ] P0b-02 DOMAIN_MODEL.md
 - [ ] P0b-03 POLICY.md
-- [ ] P0b-04 DATABASE.md *(will carry a gap until OQ-02 is answered)*
+- [ ] P0b-04 DATABASE.md
 - [ ] P0b-05 CONTEXT_ENGINE.md
 - [ ] P0b-06 ENGINEERING_RULES.md
 - [ ] P0b-07 API_CONTRACTS.md
@@ -104,7 +109,7 @@ Last updated: 2026-09-30 · Current phase: **0a (awaiting checkpoint review)** �
 - [ ] P0e-05 CI pipeline *(provider pending OQ-09)*
 - [ ] P0e-06 `packages/ui` design tokens (light + dark) + preview page
 - [ ] P0e-07 Self-hosted IBM Plex Sans/Mono
-- [ ] P0e-08 API health check (DB connectivity, read-only) *(pending OQ-02)*
+- [ ] P0e-08 API health check (DB connectivity, read-only)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phase 1 — Product Catalog
@@ -166,4 +171,5 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 ## Session Log
 | Date | Items worked on | Result | Branch / commits | Notes |
 |---|---|---|---|---|
-| 2026-09-30 | P0a-01 … P0a-07 | 6 done, P0a-04 blocked | `phase-0/P0a-analysis` | Design bundle moved to `design-input/handoff/`. 33 open questions raised; 11 design conflicts found beyond SPEC §33h. Awaiting checkpoint review. |
+| 2026-09-30 | P0a-01 … P0a-07 | 6 done, P0a-04 blocked | `phase-0/P0a-analysis` | Design bundle moved to `design-input/handoff/`. 33 open questions raised; 11 design conflicts found beyond SPEC §33h. |
+| 2026-09-30 | P0a-04 | done — Phase 0a now 7/7 | `phase-0/P0a-analysis` | Credentials supplied. `snouty` is empty; server is shared with 7 other databases. Raised OQ-34: the supplied account is a server-wide superuser, contrary to SPEC §17 least privilege. Awaiting checkpoint review. |

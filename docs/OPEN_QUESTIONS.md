@@ -24,16 +24,32 @@ bundle. I found no previous SNOUTY source anywhere under `/Users/f/Documents/pra
 **Question:** Is there an old SNOUTY codebase elsewhere (another machine, a Git remote), and are there
 existing users, conversations, or catalog rows to migrate?
 **Proposed default:** Greenfield build, no migration. No legacy data is imported.
+**Partially answered 2026-09-30:** the `snouty` database on the shared server is confirmed **empty**
+(0 tables, views, routines, triggers, events), so the "Existing `snouty` DB contents" blank in
+Section 1 is resolved. Whether an old codebase exists elsewhere is still open.
 
 ### OQ-02 — MySQL database name, user, and password
-**Status:** open · **Blocks:** 0a (P0a-04), 0e (P0e-08 health check), 1
-The shared MySQL server at `192.168.1.136:3306` **is reachable** from this machine (TCP connect
-succeeded), but Section 17 forbids assuming the database name, username, or password, and none were
-supplied. I therefore could **not** perform the read-only schema inspection required by P0a-04.
-**Question:** Please provide (or point me at) a **read-only** credential and the database name(s) so I
-can inventory the existing `snouty` schema without touching it.
-**Proposed default:** Assume the `snouty` database is empty and that three databases will be created
-later by you: `snouty_dev`, `snouty_staging`, `snouty`. No migration is run until you approve.
+**Status:** **answered** (2026-09-30) · unblocked P0a-04
+Credentials supplied: database `snouty` on `192.168.1.136:3306`, user `ict`. Inspection performed with
+read-only statements only (`SELECT` / `SHOW` / `information_schema`); nothing was written.
+
+Findings:
+
+| | |
+|---|---|
+| Server | MySQL **8.0.46**-0ubuntu0.22.04.4 |
+| `sql_mode` | `ONLY_FULL_GROUP_BY, STRICT_TRANS_TABLES, NO_ZERO_IN_DATE, NO_ZERO_DATE, ERROR_FOR_DIVISION_BY_ZERO, NO_ENGINE_SUBSTITUTION` (strict — good) |
+| Server charset | `utf8mb4` / `utf8mb4_0900_ai_ci` |
+| `snouty` database | **exists and is completely empty** — 0 tables, 0 views, 0 routines, 0 triggers, 0 events |
+| `snouty_dev`, `snouty_staging` | do not exist |
+| Other databases on the host | `partner_db` (57 tables, 39.7 MB), `work_order` (86, 19.2 MB), `digital_book` (20, 26.1 MB), `wo_dev` (46, 15.6 MB), `asset` (37, 4.7 MB), `bagspace` (12, 4.1 MB), `bagspace_dev` (43, 1.1 MB) |
+
+Two consequences worth carrying forward: the server is genuinely multi-tenant (301 tables of other
+people's data), which is exactly why SPEC §17 treats it as non-disposable; and the existing naming
+convention here is `<name>` for production with `<name>_dev` alongside it (`work_order`/`wo_dev`,
+`bagspace`/`bagspace_dev`) — there is **no `_staging` precedent on this host**. See OQ-35.
+
+This finding also raised **OQ-34** (privileges).
 
 ### OQ-03 — Pricing in scope
 **Status:** open · **Blocks:** 8 (BOM), 10 (report) · also drives 33h #1
@@ -115,6 +131,35 @@ recorded in consent rows; swapped before any real launch.
 **Proposed default:** guest conversations 90 days → then anonymised to aggregate market data only;
 registered conversations retained until the user deletes them; uploads 180 days; generated reports 12
 months; email intelligence 24 months. All values as config, not literals.
+
+### OQ-34 — The supplied account is a server-wide superuser
+**Status:** open · **Blocks:** any deployment · **Severity: high**
+The only non-system account on `192.168.1.136` is `ict@%` / `ict@localhost`, and it holds
+`ALL PRIVILEGES ON *.* WITH GRANT OPTION` — including `DROP`, `SHUTDOWN`, `CREATE USER`, `FILE`,
+`SUPER`, `BACKUP_ADMIN`, and `SYSTEM_VARIABLES_ADMIN` — across **all eight databases on the host**.
+There is no least-privilege pattern here at all; every application on this server appears to connect
+as `ict`.
+
+SPEC §17 requires the opposite: separate least-privilege users per environment, and explicitly "the
+app user must not have DROP privileges". As it stands, a bug, a bad migration, or a compromised
+`.env` in SNOUTY could drop `partner_db` or `work_order` — other teams' production data.
+
+**Question:** May I write the SQL for three dedicated SNOUTY users (`snouty_app`, `snouty_migrator`,
+`snouty_ro`) scoped to the SNOUTY databases only, for **you** to review and run? I will not create
+users or grant privileges myself — that is a change to shared infrastructure.
+**Proposed default until then:** development continues against `snouty` using `ict`, but the
+credential is treated as production-grade: `.env` only, never committed, never in logs or docs. No
+migration is executed against the server by me under any account. This is recorded as a release
+blocker in `docs/PROGRESS.md`.
+
+### OQ-35 — Environment database naming
+**Status:** open · *non-blocking* · **Blocks:** 0e
+My Phase 0 proposal assumed `snouty_dev` / `snouty_staging` / `snouty`. The host's existing convention
+is `<name>` + `<name>_dev` with no staging tier anywhere.
+**Question:** Do you want a staging database, and should I follow the host convention?
+**Proposed default:** Follow the host convention — `snouty_dev` and `snouty` — and add
+`snouty_staging` only if you want a staging tier. CI keeps using a disposable container, never this
+host.
 
 ---
 
@@ -362,4 +407,5 @@ These are tracked in the Domain Validation Tracker in `docs/PROGRESS.md`. Listed
 
 | ID | Decision | Decided by | Date |
 |---|---|---|---|
-| — | — | — | — |
+| OQ-02 | Database `snouty` on `192.168.1.136`, user `ict`. Read-only inspection completed; `snouty` is empty. Raised OQ-34 and OQ-35 as follow-ups. | owner | 2026-09-30 |
+| OQ-01 | Partially answered — `snouty` DB confirmed empty; existence of an old codebase elsewhere still open. | owner | 2026-09-30 |

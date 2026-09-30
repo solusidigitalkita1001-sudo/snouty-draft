@@ -16,9 +16,11 @@ recorded in `docs/OPEN_QUESTIONS.md` rather than assumed silently.
   `SNOUTY Mascot.dc.html`, `SNOUTY Laporan Rekomendasi.dc.html`, the 14-screen board in both themes,
   and the standalone onboarding wizard. I extracted the complete light→dark token mappings from both
   dark files programmatically rather than by eye.
-- MySQL at `192.168.1.136:3306`: **reachable** (TCP connect succeeded) but **not inspected** — no
-  database name or credentials were supplied, and SPEC §17 forbids guessing them. P0a-04 is therefore
-  blocked on **OQ-02**; nothing was written to or read from the server.
+- MySQL at `192.168.1.136:3306`, inspected read-only after credentials were supplied (`SELECT` /
+  `SHOW` / `information_schema` only; nothing written). **MySQL 8.0.46**, strict `sql_mode`, server
+  charset `utf8mb4` / `utf8mb4_0900_ai_ci`. The **`snouty` database exists and is completely empty** —
+  0 tables, views, routines, triggers, or events. Seven other databases share the host (~110 MB, 301
+  tables), and the only non-system account is `ict`, a server-wide superuser — see **OQ-34**.
 
 ---
 
@@ -190,20 +192,36 @@ local container, say so and I will switch — the schema design above is ORM-ind
 
 ## 5. Database environments and connection strategy
 
+Confirmed state of the host (P0a-04): `snouty` exists and is empty; `snouty_dev` and `snouty_staging`
+do not exist; the host's own convention is `<name>` for production with `<name>_dev` beside it
+(`work_order`/`wo_dev`, `bagspace`/`bagspace_dev`) and **no staging tier anywhere** — hence OQ-35.
+
 | Environment | Database | Host |
 |---|---|---|
-| local dev | `snouty_dev` | `192.168.1.136` (shared) |
-| staging | `snouty_staging` | `192.168.1.136` (shared) |
-| production | `snouty` | `192.168.1.136` (shared) |
+| local dev | `snouty_dev` *(does not exist yet — you create it)* | `192.168.1.136` (shared) |
+| staging | `snouty_staging` *(only if you want a staging tier — OQ-35)* | `192.168.1.136` (shared) |
+| production | `snouty` *(exists, empty)* | `192.168.1.136` (shared) |
 | CI / integration tests | `snouty_test` | **disposable container only**, never the shared host |
 
-Least-privilege users, to be created by you (I will not create them):
+Schema defaults will match the server: `utf8mb4` / `utf8mb4_0900_ai_ci`. The server already runs
+`STRICT_TRANS_TABLES` with `NO_ZERO_DATE`, so the schema can rely on strict semantics.
+
+**Privileges are the one genuinely urgent finding.** The only non-system account on this host is
+`ict@%`, holding `ALL PRIVILEGES ON *.* WITH GRANT OPTION` — `DROP`, `SHUTDOWN`, `CREATE USER`,
+`FILE`, `SUPER`, `BACKUP_ADMIN` and the rest — over all eight databases including `partner_db`,
+`work_order`, and `digital_book`. SPEC §17 requires the opposite, explicitly stating the app user must
+not hold DROP. Running SNOUTY as `ict` means a bad migration or a leaked `.env` could destroy other
+teams' production data.
+
+Least-privilege users I propose, scoped to the SNOUTY databases only. **I will write the SQL for your
+review; I will not create users or grant privileges myself** — that is a change to shared
+infrastructure (OQ-34):
 
 | User | Grants |
 |---|---|
-| `snouty_app` | `SELECT, INSERT, UPDATE, DELETE` on its database — **no DDL, no DROP** |
-| `snouty_migrator` | `CREATE, ALTER, INDEX, REFERENCES` + the above; used only by an approved migration run |
-| `snouty_ro` | `SELECT` only — for the P0a-04 inspection and for read replicas later |
+| `snouty_app` | `SELECT, INSERT, UPDATE, DELETE` on `snouty*` — **no DDL, no DROP** |
+| `snouty_migrator` | `CREATE, ALTER, INDEX, REFERENCES` + the above on `snouty*`; used only by an approved migration run |
+| `snouty_ro` | `SELECT` only on `snouty*` — for inspection, dashboards, and read replicas later |
 
 Connection: a single pooled connection per process (`DB_POOL_MAX`, default 10 for API, 5 for worker),
 created in one `DatabaseModule` and injected. No module opens its own connection. On connection
@@ -211,8 +229,10 @@ failure the API returns a stable `SERVICE_UNAVAILABLE` error code and `/health` 
 `{ db: "down" }` rather than throwing raw driver errors at the client. All access goes through
 repositories; no raw SQL outside `infrastructure/mysql`.
 
-**To unblock P0a-04 I need `snouty_ro` credentials and the database name (OQ-02).** I will run only
-`SHOW TABLES` / `SHOW CREATE TABLE` / `information_schema` queries and report what exists.
+Until those users exist, development connects as `ict` with the credential treated as
+production-grade: `.env` only, never committed, never logged, never written into these docs. No
+migration is run against this host by me under any account without your explicit approval and a
+confirmed backup (SPEC §17).
 
 ---
 
@@ -671,7 +691,7 @@ recommendation < 8 s p95, requirement-edit recalculation < 300 ms p95 (it makes 
 Unchanged from SPEC §49 with three sequencing notes:
 
 1. **Phase 1 (Catalog) genuinely must be first.** Every later phase needs real product rows; matching,
-   BOM, schematic, and report all read from it. Phase 1 cannot start without OQ-02 (DB access) and
+   BOM, schematic, and report all read from it. DB access is now resolved, so Phase 1 waits only on
    OQ-07 (catalog source).
 2. **Phase 6 (Engineering rules) is gated on OQ-06,** the domain expert. The engine can be built and
    tested without them — but until someone validates the rules, nothing renders as TERVERIFIKASI and
@@ -680,8 +700,8 @@ Unchanged from SPEC §49 with three sequencing notes:
 3. **Dark mode, mobile, and accessibility are built inside each phase,** never deferred to Phase 13.
    Phase 13 is an audit, not a construction phase.
 
-Immediately after your approval of this checkpoint, Phase 0b writes the nine core docs; the only one
-that will contain a real gap is `DATABASE.md`, pending OQ-02.
+Immediately after your approval of this checkpoint, Phase 0b writes the nine core docs. With the
+database inspected, none of them now carries a blocking gap.
 
 ---
 
@@ -689,7 +709,8 @@ that will contain a real gap is `DATABASE.md`, pending OQ-02.
 
 | Need | Why | Question |
 |---|---|---|
-| Read-only MySQL credentials + database name | to finish P0a-04 at all | **OQ-02** |
+| ~~Read-only MySQL credentials~~ | ~~finishes P0a-04~~ — **answered**; `snouty` is empty | ~~OQ-02~~ |
+| Approval to draft least-privilege DB users for you to run | `ict` can drop seven other databases | **OQ-34** |
 | Guest vs. registered entitlement decision | decides whether screen 06 needs an account | **OQ-15** |
 | Pricing in or out of scope | decides BOM and report shape | **OQ-03** |
 | Name of the Pralon domain expert | without it nothing is ever TERVERIFIKASI | **OQ-06** |
