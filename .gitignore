@@ -20,6 +20,7 @@ npm-debug.log*
 pnpm-debug.log*
 coverage/
 .turbo/
+.vitest/
 
 # local uploads / generated artifacts
 storage/

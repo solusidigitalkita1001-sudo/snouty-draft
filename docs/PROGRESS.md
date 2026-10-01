@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-09-30 · Current phase: **1 — Product Catalog** · Next item: **P1-04 repository katalog**
+Last updated: 2026-10-01 · Current phase: **1 — Product Catalog** · Next item: **P1-05 kontrak impor katalog**
 
 ## Summary
 
@@ -117,7 +117,7 @@ Seluruh berkas Bagian 48 kini lengkap (28 dokumen).
 - [x] P0e-02 `.env.example` — seluruh kunci SPEC §17b
 - [x] P0e-03 Docker Compose (Redis, RabbitMQ; CI-only MySQL) — compose divalidasi; `mysql-test` di balik profil
 - [x] P0e-04 Lint / format / typecheck / test tooling — + 2 skrip pagar arsitektur
-- [ ] P0e-05 CI pipeline _(provider pending OQ-09)_
+- [ ] P0e-05 CI pipeline — berkas `.github/workflows/ci.yml` sudah ada (commit `f467a03`); masih `[ ]` karena pipeline belum pernah benar-benar dijalankan, _provider menunggu OQ-09_
 - [x] P0e-06 `packages/ui` design tokens (light + dark) + preview page — 74 token; `/tokens` dirender & diverifikasi
 - [x] P0e-07 Self-hosted IBM Plex Sans/Mono — diverifikasi: 0 rujukan ke gstatic
 - [x] P0e-08 API health check (DB connectivity, read-only) — diuji terhadap DB sungguhan **dan** DB mati
@@ -138,8 +138,8 @@ sehingga menambahkan pembaca Excel atau ERP nanti adalah menambah satu adapter, 
 - [x] P1-02 Tipe domain katalog di `packages/shared-types` — field spesifikasi kosong bertipe eksplisit `UNAVAILABLE`, bukan dihilangkan
 - [x] P1-03 Value object `PipeSize` (parsing kanonik, perbandingan, format tampilan)
   - [x] P1-03a Tes: `1¼"` dan `1.25"` adalah ukuran yang sama; urutan benar — 13 tes lolos
-- [ ] P1-04 Repository katalog (produk, ukuran, spesifikasi, kompatibilitas, versi)
-  - [ ] P1-04a Tes integrasi terhadap kontainer MySQL; tes penghitung query (tanpa N+1)
+- [x] P1-04 Repository katalog (produk, ukuran, spesifikasi, kompatibilitas, versi) — port di `domain`, implementasi MySQL di `infrastructure`; pagination cursor atas `sku`, bukan `OFFSET`
+  - [x] P1-04a Tes integrasi terhadap kontainer MySQL; tes penghitung query (tanpa N+1) — **25 tes lolos**; `listProducts` tetap 3 query untuk 1 maupun 20 produk
 - [ ] P1-05 Kontrak impor bebas format + validasi per baris
   - [ ] P1-05a Tes: semua galat baris dilaporkan sekaligus, bukan satu per satu
   - [ ] `[!]` P1-05b Adapter untuk format sebenarnya — **terhalang OQ-07**
@@ -215,13 +215,16 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 
 ## Session Log
 
-| Date       | Items worked on | Result                    | Branch / commits             | Notes                                                                                                                                                                                  |
-| ---------- | --------------- | ------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-09-30 | P0a-01 … P0a-07 | 6 done, P0a-04 blocked    | `phase-0/P0a-analysis`       | Design bundle moved to `design-input/handoff/`. 33 open questions raised; 11 design conflicts found beyond SPEC §33h.                                                                  |
-| 2026-09-30 | P0a-04          | done — Phase 0a now 7/7   | `phase-0/P0a-analysis`       | Credentials supplied. `snouty` is empty; server is shared with 7 other databases. Raised OQ-34: the supplied account is a server-wide superuser, contrary to SPEC §17 least privilege. |
-| 2026-09-30 | Checkpoint 0a   | disetujui ("ok gas")      | —                            | Lanjut dengan proposed default untuk OQ yang belum dijawab. Bahasa dokumen baru: Indonesia.                                                                                            |
-| 2026-09-30 | P0b-01 … P0b-09 | 9/9 selesai               | `phase-0/P0b-core-docs`      | Sembilan dokumen inti ditulis dalam Bahasa Indonesia. `DATABASE.md` memuat draf SQL akun least-privilege (OQ-34); `DESIGN_IMPLEMENTATION.md` memuat peta token gelap lengkap (OQ-16).  |
-| 2026-09-30 | Checkpoint 0b   | disetujui ("lanjut")      | —                            |                                                                                                                                                                                        |
-| 2026-09-30 | P0c-01 … P0c-15 | 15/15 selesai             | `phase-0/P0c-remaining-docs` | Seluruh 28 dokumen Bagian 48 kini ada.                                                                                                                                                 |
-| 2026-09-30 | Checkpoint 0c   | disetujui ("lanjut gass") | —                            |                                                                                                                                                                                        |
-| 2026-09-30 | P0d-01 … P0d-14 | 14/14 selesai             | `phase-0/P0d-claude-config`  | `.claude/CLAUDE.md` + 13 skill; frontmatter divalidasi, nama cocok dengan folder. Skill merujuk ke `docs/*.md`, tidak menduplikasinya. Menunggu review sebelum Fase 0e.                |
+| Date       | Items worked on | Result                       | Branch / commits                   | Notes                                                                                                                                                                                                                                                                                                                                   |
+| ---------- | --------------- | ---------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-09-30 | P0a-01 … P0a-07 | 6 done, P0a-04 blocked       | `phase-0/P0a-analysis`             | Design bundle moved to `design-input/handoff/`. 33 open questions raised; 11 design conflicts found beyond SPEC §33h.                                                                                                                                                                                                                   |
+| 2026-09-30 | P0a-04          | done — Phase 0a now 7/7      | `phase-0/P0a-analysis`             | Credentials supplied. `snouty` is empty; server is shared with 7 other databases. Raised OQ-34: the supplied account is a server-wide superuser, contrary to SPEC §17 least privilege.                                                                                                                                                  |
+| 2026-09-30 | Checkpoint 0a   | disetujui ("ok gas")         | —                                  | Lanjut dengan proposed default untuk OQ yang belum dijawab. Bahasa dokumen baru: Indonesia.                                                                                                                                                                                                                                             |
+| 2026-09-30 | P0b-01 … P0b-09 | 9/9 selesai                  | `phase-0/P0b-core-docs`            | Sembilan dokumen inti ditulis dalam Bahasa Indonesia. `DATABASE.md` memuat draf SQL akun least-privilege (OQ-34); `DESIGN_IMPLEMENTATION.md` memuat peta token gelap lengkap (OQ-16).                                                                                                                                                   |
+| 2026-09-30 | Checkpoint 0b   | disetujui ("lanjut")         | —                                  |                                                                                                                                                                                                                                                                                                                                         |
+| 2026-09-30 | P0c-01 … P0c-15 | 15/15 selesai                | `phase-0/P0c-remaining-docs`       | Seluruh 28 dokumen Bagian 48 kini ada.                                                                                                                                                                                                                                                                                                  |
+| 2026-09-30 | Checkpoint 0c   | disetujui ("lanjut gass")    | —                                  |                                                                                                                                                                                                                                                                                                                                         |
+| 2026-09-30 | P0d-01 … P0d-14 | 14/14 selesai                | `phase-0/P0d-claude-config`        | `.claude/CLAUDE.md` + 13 skill; frontmatter divalidasi, nama cocok dengan folder. Skill merujuk ke `docs/*.md`, tidak menduplikasinya. Menunggu review sebelum Fase 0e.                                                                                                                                                                 |
+| 2026-09-30 | P0e-01 … P0e-08 | 7/8 selesai, P0e-05 tertunda | `phase-0/P0e-skeleton`             | Monorepo, token, font self-hosted, health check. CI ditulis tetapi provider masih OQ-09.                                                                                                                                                                                                                                                |
+| 2026-09-30 | P1-01 … P1-03   | 3/3 selesai                  | `phase-1/P1-01-catalog-foundation` | Skema katalog + migration reversibel (17 pemeriksaan), tipe domain, value object `PipeSize` (13 tes). Migration **tidak** diterapkan ke `192.168.1.136`.                                                                                                                                                                                |
+| 2026-10-01 | P1-04, P1-04a   | 2/2 selesai                  | `phase-1/P1-01-catalog-foundation` | Repository katalog + 16 tes integrasi terhadap kontainer MySQL sekali pakai; total 25 tes `@snouty/api` lolos. Ditambahkan `tsconfig.spec.json` karena berkas `*.spec.ts` sebelumnya tidak pernah di-typecheck. Redis/RabbitMQ lokal tidak bisa menyala: port 6379 dan 5672 sudah dipakai kontainer proyek lain (bukan blocker Fase 1). |
