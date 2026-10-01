@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-01 · Current phase: **1 — Product Catalog** · **10/12 selesai; menunggu ✋ CHECKPOINT pemilik**
+Last updated: 2026-10-01 · Current phase: **2 — Asisten pengetahuan produk** · Next item: **P2-01 modul `product-knowledge`**
 
 ## Summary
 
@@ -168,12 +168,42 @@ menambah satu adapter — bukan merombak validasi, job, maupun layar.
   - [ ] `[!]` P1-10c Endpoint unggah berkas — **terhalang OQ-07** (butuh adapter P1-05b)
 - [x] P1-11 Katalog contoh untuk pengembangan (bukan data Pralon asli) — `pnpm seed:sample`; disemai lewat jalur impor sungguhan, bukan `INSERT` mentah, jadi contohnya tidak bisa menyimpang dari hasil importer nyata
 - [x] P1-12 `docs/PRODUCT_KNOWLEDGE.md` diperbarui sesuai implementasi akhir — nama berkas dan nama constraint disebutkan; yang masih menunggu ditandai nomor OQ-nya
-- [ ] ✋ CHECKPOINT — reviewed by owner
+- [x] ✋ CHECKPOINT — **disetujui pemilik 2026-10-01** ("gass")
 
 Fase 1 selesai sejauh yang bisa dikerjakan tanpa jawaban. Yang tersisa — P1-05b, P1-06b, P1-10b,
 P1-10c — semuanya menunggu **OQ-07**, **OQ-21**, dan **OQ-40**.
 
-## Phases 2–13
+## Phase 2 — Asisten pengetahuan produk
+
+Modul `product-knowledge` (`docs/ARCHITECTURE.md` §6): lookup terstruktur + orkestrasi retrieval.
+Layar terkait: **01**, **02**, dan **10**.
+
+Aturan yang membentuk seluruh fase ini: **bila jawabannya ada di kolom, jangan mencarinya di dokumen.**
+LLM hanya merangkai kalimatnya, tidak pernah menjadi sumber faktanya.
+
+**Yang perlu diketahui sejak awal:** permukaan tempat tanya jawab ini terlihat pengguna adalah chat,
+dan chat baru ada di Fase 3–4. Jadi Fase 2 menghasilkan service yang matang dan teruji, bukan layar —
+"tanya jawab produk yang jujur" di `docs/ROADMAP.md` §4 baru bisa didemokan setelah Fase 4. Ini
+bukan penundaan; urutan di roadmap memang begitu.
+
+- [ ] P2-01 Modul `product-knowledge` + arah dependensi — membaca katalog lewat port yang diekspor `product-catalog`, tidak pernah MySQL langsung
+  - [ ] P2-01a Tes: pagar lint menolak impor MySQL dari modul ini
+- [ ] P2-02 Kosakata `ProductAspect` + pemetaan deterministik ke data katalog
+  - [ ] P2-02a Tes: setiap aspek punya jalur data; tidak ada aspek yang jatuh ke LLM
+- [ ] P2-03 Perakitan jawaban produk dengan provenance — kolom kosong → "Lihat dokumen teknis"
+  - [ ] P2-03a Tes: kolom kosong tidak pernah ditambal hasil pencarian dokumen
+- [ ] P2-04 Jawaban "data belum cukup" + tawaran tim teknis
+  - [ ] P2-04a Tes: tidak ada jalur yang mengembalikan angka tanpa sumber
+- [ ] P2-05 `AssistantCard` union tertutup + `ProductCardDto` di `packages/shared-types`
+  - [ ] P2-05a Tes: tidak ada varian kartu yang menerima HTML atau markdown bebas
+- [ ] P2-06 Port `KnowledgeRetriever` + implementasi MySQL atas `product_documents`
+  - [ ] P2-06a Tes: setiap potongan membawa dokumen + halaman; di bawah ambang → "data belum cukup"
+- [ ] P2-07 Logger terstruktur + penghitung pertanyaan tak terjawab — membuat kriteria adopsi RAG #2 **terukur**, bukan perkiraan
+  - [ ] P2-07a Tes: log tidak pernah memuat isi pertanyaan pengguna (`docs/PRIVACY.md`)
+- [ ] P2-08 `docs/PRODUCT_KNOWLEDGE.md` §4–§5 diperbarui + keputusan "Qdrant belum diadopsi" dicatat beserta cara mengukurnya
+- [ ] ✋ CHECKPOINT — reviewed by owner
+
+## Phases 3–13
 
 (headings only; broken down at the start of each phase)
 
@@ -250,3 +280,4 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | 2026-10-01 | P1-08, P1-08a                     | 2/2 selesai                                | `phase-1/P1-01-catalog-foundation` | Empat endpoint katalog + cache read-through; 130 tes `@snouty/api` lolos dan keempat endpoint diverifikasi terhadap API yang berjalan. Tiga temuan di luar item: (1) `packages/shared-types` tidak punya build sehingga tidak bisa dipakai saat runtime — ketahuan hanya setelah API dijalankan sungguhan, bukan oleh tes; (2) dua spec berbagi satu keyspace Redis dan saling menghapus kunci saat vitest berjalan paralel; (3) `packages/engineering` masih punya masalah paketisasi yang sama dan akan menabraknya di Fase 6.                                                                                                                                                                                                         |
 | 2026-10-01 | P1-09, P1-09a                     | 2/2 selesai                                | `phase-1/P1-01-catalog-foundation` | Provenance spesifikasi sebelumnya disusun di tiga tempat terpisah dengan salinan aturan yang sama; kini satu konstruktor, dan tipenya menolak `UNAVAILABLE` yang membawa nilai maupun fakta produk bertanda `ASSUMED`. 155 tes `@snouty/api` lolos. Jalur "nilai dari dokumen teknis" ditutup sekaligus: sitasi tidak lengkap menurunkan nilainya menjadi `UNAVAILABLE`, bukan menampilkannya tanpa sumber. `apps/api/vitest.config.ts` kini mengarahkan `@snouty/shared-types` ke sumbernya supaya `dist` usang tidak lagi menggagalkan tes dengan pesan menyesatkan.                                                                                                                                                                   |
 | 2026-10-01 | P1-10 (API), P1-10a, P1-11, P1-12 | Fase 1 10/12; sisanya terhalang OQ         | `phase-1/P1-01-catalog-foundation` | Rute `/internal/catalog/*` dengan guard yang **gagal tertutup** — tanpa modul `auth`, seluruhnya menjawab `401`, dan itu keadaan yang benar. Katalog contoh disemai lewat jalur impor sungguhan; skripnya menolak host bersama dan menolak berjalan tanpa `SEED_SAMPLE_CATALOG=1`. 173 tes `@snouty/api` dan 24 pemeriksaan migration lolos. Dua temuan: berkas `*.spec.ts` dikecualikan `tsconfig.json` sehingga oxc tidak tahu dekorator diizinkan (struktur tsconfig dirapikan: `tsconfig.json` mencakup tes, `tsconfig.build.json` yang memancarkan); dan kunci cache katalog tidak memuat nama database, jadi satu Redis untuk dua database pengembangan menyajikan katalog yang salah — skrip semai kini membuang cache sungguhan. |
+| 2026-10-01 | Checkpoint Fase 1                 | disetujui ("gass")                         | —                                  | Fase 1 10/12. Empat item tertunda semuanya menunggu jawaban OQ, bukan menunggu kode. Fase 2 dipecah menjadi 8 item.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
