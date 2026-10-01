@@ -10,6 +10,8 @@ import { loadEnv } from '../../config/env.js';
  * kunci tidak perlu memegang `FLUSHALL`.
  */
 export interface RedisCommands {
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string, expiryToken: 'EX', seconds: number): Promise<'OK' | null>;
   del(...keys: string[]): Promise<number>;
   scan(
     cursor: string,

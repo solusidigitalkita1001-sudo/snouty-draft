@@ -17,15 +17,25 @@ export interface TestRedis {
   close(): Promise<void>;
 }
 
-export async function createTestRedis(): Promise<TestRedis> {
+/**
+ * `database` memilih **logical database** Redis, dan setiap berkas spec wajib
+ * memakai angka yang berbeda.
+ *
+ * Alasannya ditemukan dengan cara yang mahal: vitest menjalankan berkas spec
+ * secara paralel, jadi dua spec yang berbagi satu keyspace akan saling menghapus
+ * kunci lewat `clear()`. Kegagalannya muncul sebagai invalidasi cache yang
+ * "tidak berfungsi" di satu spec, padahal spec lain yang membersihkannya. Ini
+ * padanan Redis dari satu database MySQL per spec.
+ */
+export async function createTestRedis(database: number): Promise<TestRedis> {
   const url = process.env.REDIS_URL ?? 'redis://127.0.0.1:6380';
-  const client = new Redis(url, { maxRetriesPerRequest: 1, lazyConnect: true });
+  const client = new Redis(url, { db: database, maxRetriesPerRequest: 1, lazyConnect: true });
 
   try {
     await client.connect();
   } catch (cause) {
     throw new Error(
-      `Tidak bisa terhubung ke Redis tes di ${url}. ` +
+      `Tidak bisa terhubung ke Redis tes di ${url} (db ${database}). ` +
         'Jalankan `docker compose up -d redis` lebih dulu.',
       { cause },
     );

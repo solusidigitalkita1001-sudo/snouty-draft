@@ -3,6 +3,7 @@ import { RedisService, type RedisCommands } from '../../../shared/redis/redis.se
 import {
   CATALOG_ACTIVE_VERSION_KEY,
   CATALOG_CACHE,
+  CATALOG_CACHE_TTL_SECONDS,
   CATALOG_PRODUCT_KEY_PREFIX,
   type CatalogCache,
 } from '../domain/catalog-cache.port.js';
@@ -17,6 +18,22 @@ const SCAN_BATCH = 500;
 @Injectable()
 export class RedisCatalogCache implements CatalogCache {
   constructor(private readonly redis: RedisCommands) {}
+
+  /**
+   * Adapter ini sengaja TIDAK menelan galat Redis.
+   *
+   * Keputusan "lanjutkan tanpa cache" adalah keputusan lapisan application, dan
+   * di sana ia bisa diuji. Kalau ditelan di sini, Redis yang mati akan terlihat
+   * sebagai cache yang selalu kosong — tenang di log, dan mustahil disadari.
+   */
+  async read<T>(key: string): Promise<T | null> {
+    const raw = await this.redis.get(key);
+    return raw === null ? null : (JSON.parse(raw) as T);
+  }
+
+  async write(key: string, value: unknown): Promise<void> {
+    await this.redis.set(key, JSON.stringify(value), 'EX', CATALOG_CACHE_TTL_SECONDS);
+  }
 
   async invalidateAll(): Promise<number> {
     let removed = await this.redis.del(CATALOG_ACTIVE_VERSION_KEY);

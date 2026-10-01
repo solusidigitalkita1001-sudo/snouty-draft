@@ -32,7 +32,7 @@ let service: CatalogPromotionService;
 
 beforeAll(async () => {
   fixture = await createTestDatabase('promotion');
-  redis = await createTestRedis();
+  redis = await createTestRedis(1);
   service = new CatalogPromotionService(
     new MysqlCatalogRepository({ db: fixture.db }),
     new MysqlCatalogWriter({ db: fixture.db }),

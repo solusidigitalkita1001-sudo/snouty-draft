@@ -9,6 +9,16 @@ build/
 out/
 *.tsbuildinfo
 
+# Keluaran tsc TIDAK PERNAH tinggal di dalam src/. Pernah terjadi sekali: satu
+# tsconfig mewarisi `outDir` relatif dari direktori lain, TypeScript melaporkan
+# rootDir yang dilanggar tetapi tetap memancarkan berkasnya di samping sumbernya.
+# Perbaikan sebenarnya ada di tsconfig masing-masing paket; baris ini jaring pengaman,
+# karena galat itu lolos review dengan mudah (semuanya terlihat seperti berkas baru).
+packages/*/src/**/*.js
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.d.ts.map
+
 # env & secrets — never commit
 .env
 .env.*

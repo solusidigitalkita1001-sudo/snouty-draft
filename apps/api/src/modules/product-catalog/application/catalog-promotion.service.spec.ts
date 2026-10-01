@@ -58,6 +58,13 @@ class Recorder {
       this.calls.push('invalidateAll');
       return 7;
     },
+    // Promosi tidak membaca maupun mengisi cache; ia hanya membuangnya.
+    read: async () => {
+      throw new Error('promosi tidak membaca cache');
+    },
+    write: async () => {
+      throw new Error('promosi tidak mengisi cache');
+    },
   };
 
   service(): CatalogPromotionService {

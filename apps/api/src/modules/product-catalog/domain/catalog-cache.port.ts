@@ -17,7 +17,15 @@ export function catalogProductKey(productId: string): string {
   return `${CATALOG_PRODUCT_KEY_PREFIX}${productId}`;
 }
 
+/** TTL cache katalog: 1 jam (docs/PRODUCT_KNOWLEDGE.md §7). */
+export const CATALOG_CACHE_TTL_SECONDS = 3600;
+
 export interface CatalogCache {
+  /** `null` berarti belum ada di cache — bukan berarti datanya tidak ada. */
+  read<T>(key: string): Promise<T | null>;
+
+  write(key: string, value: unknown): Promise<void>;
+
   /**
    * Membuang seluruh entri katalog dan mengembalikan jumlah kunci yang terhapus.
    *

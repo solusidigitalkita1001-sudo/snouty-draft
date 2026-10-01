@@ -8,12 +8,13 @@
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
+    "build:types": "pnpm --filter @snouty/shared-types build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
+    "test": "pnpm build:types && pnpm -r test",
     "test:watch": "pnpm -r test:watch",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test"
   },
