@@ -190,7 +190,7 @@ P1-10c — semuanya menunggu **OQ-07**, **OQ-21**, dan **OQ-40**.
 | 07     | Product card states                                       | 7                   | [ ]                               |
 | 08     | Competitor question                                       | 5                   | [ ]                               |
 | 09     | Schematic                                                 | 9                   | [ ]                               |
-| 10     | Product detail drawer                                     | 1–2                 | [ ]                               |
+| 10     | Product detail drawer                                     | 1–2                 | [ ] _API siap (P1-08); UI Fase 2_ |
 | 11     | Technical validation                                      | 5, 10               | [ ]                               |
 | 12     | History & saved                                           | 10                  | [ ]                               |
 | 13     | Mobile (13a/13b/13c)                                      | all                 | [ ]                               |
