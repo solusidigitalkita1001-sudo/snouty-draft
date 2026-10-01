@@ -60,7 +60,7 @@ async function tableCount() {
      WHERE TABLE_SCHEMA = ? AND TABLE_NAME IN
      ('catalog_versions','products','product_sizes','product_specs',
       'product_compatibility','product_documents','product_images',
-      'catalog_import_runs')`,
+      'catalog_import_runs','audit_logs')`,
     [cfg.database],
   );
   return Number(rows[0].n);
@@ -80,9 +80,13 @@ const ulid = (n) => String(n).padStart(26, 'A');
 const rowHash = (n) => String(n).padStart(64, '0');
 
 /** Seluruh migration naik, berurutan; dipakai juga untuk membuktikan rollback bersih. */
-const UP = ['0000_catalog.sql', '0001_catalog_import_runs.sql'];
-const DOWN = ['0001_catalog_import_runs.down.sql', '0000_catalog.down.sql'];
-const TABLES = 8;
+const UP = ['0000_catalog.sql', '0001_catalog_import_runs.sql', '0002_audit_logs.sql'];
+const DOWN = [
+  '0002_audit_logs.down.sql',
+  '0001_catalog_import_runs.down.sql',
+  '0000_catalog.down.sql',
+];
+const TABLES = 9;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
 

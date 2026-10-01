@@ -16,6 +16,7 @@ import {
   type CatalogImportRun,
   type CatalogWriter,
   type FinishRunInput,
+  type PromotedVersion,
 } from '../domain/catalog-writer.repository.js';
 import { CatalogIngestService } from './catalog-ingest.service.js';
 
@@ -89,6 +90,12 @@ class RecordingWriter implements CatalogWriter {
   async finishRun(input: FinishRunInput): Promise<void> {
     this.calls.push('finishRun');
     this.finished = input;
+  }
+
+  async promoteVersion(): Promise<PromotedVersion> {
+    // Impor tidak pernah mempromosikan. Versinya masuk sebagai draft, dan
+    // mengaktifkannya adalah keputusan manusia di back-office (P1-07).
+    throw new Error('promoteVersion tidak dipakai oleh jalur impor');
   }
 }
 

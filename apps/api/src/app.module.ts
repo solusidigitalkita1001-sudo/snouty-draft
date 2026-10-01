@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from './shared/database/database.module.js';
+import { RedisModule } from './shared/redis/redis.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { ProductCatalogModule } from './modules/product-catalog/product-catalog.module.js';
 
@@ -9,6 +10,6 @@ import { ProductCatalogModule } from './modules/product-catalog/product-catalog.
  * tetapi sudah didaftarkan supaya kesalahan wiring DI muncul saat boot, bukan nanti.
  */
 @Module({
-  imports: [DatabaseModule, HealthModule, ProductCatalogModule],
+  imports: [DatabaseModule, RedisModule, HealthModule, ProductCatalogModule],
 })
 export class AppModule {}

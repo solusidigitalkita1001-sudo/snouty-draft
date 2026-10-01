@@ -75,12 +75,26 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
+      # Redis sekali pakai: tes invalidasi cache katalog (P1-07a) menyentuh Redis
+      # sungguhan, karena invalidasi yang diuji terhadap mock hanya membuktikan
+      # mock-nya dipanggil.
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=3s
+          --health-retries=5
     env:
       DB_HOST: 127.0.0.1
       DB_PORT: '3306'
       DB_DATABASE: snouty_test
       DB_USERNAME: root
       DB_PASSWORD: test
+      # Di CI port standar tidak bentrok dengan apa pun, jadi 6379 — bukan 6380
+      # seperti di docker-compose lokal.
+      REDIS_URL: redis://127.0.0.1:6379
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

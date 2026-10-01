@@ -54,11 +54,16 @@ export interface TestDatabase {
 }
 
 /** Seluruh migration naik, berurutan; turunnya dibalik. */
-const UP = ['0000_catalog.sql', '0001_catalog_import_runs.sql'];
-const DOWN = ['0001_catalog_import_runs.down.sql', '0000_catalog.down.sql'];
+const UP = ['0000_catalog.sql', '0001_catalog_import_runs.sql', '0002_audit_logs.sql'];
+const DOWN = [
+  '0002_audit_logs.down.sql',
+  '0001_catalog_import_runs.down.sql',
+  '0000_catalog.down.sql',
+];
 
 /** Urutan penghapusan dibalik dari urutan pembuatan, mengikuti arah rujukan. */
 const TABLES = [
+  'audit_logs',
   'catalog_import_runs',
   'product_images',
   'product_documents',

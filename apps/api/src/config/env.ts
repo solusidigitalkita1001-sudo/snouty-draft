@@ -16,6 +16,9 @@ const EnvSchema = z.object({
   DB_USERNAME: z.string().min(1),
   DB_PASSWORD: z.string(),
   DB_POOL_MAX: z.coerce.number().int().positive().max(50).default(10),
+
+  // Port baku docker-compose adalah 6380, bukan 6379 — lihat docker-compose.yml.
+  REDIS_URL: z.string().min(1).default('redis://127.0.0.1:6380'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

@@ -24,6 +24,12 @@ import {
   productSizes,
   productSpecs,
 } from '../../../infrastructure/mysql/schema/catalog.js';
+import { auditLogs } from '../../../infrastructure/mysql/schema/ops.js';
+import {
+  AUDIT_ACTIONS,
+  AUDIT_ENTITIES,
+  type AuditActor,
+} from '../../../shared/audit/audit.types.js';
 import { DatabaseService, type QueryRunner } from '../../../shared/database/database.service.js';
 import { ulid } from '../../../shared/ulid.js';
 import type { ValidatedCatalogRow } from '../domain/catalog-import.contract.js';
@@ -33,6 +39,7 @@ import {
   type CatalogImportRunStatus,
   type CatalogWriter,
   type FinishRunInput,
+  type PromotedVersion,
 } from '../domain/catalog-writer.repository.js';
 
 /** Sekitar 200 baris per statement: cukup besar untuk hemat, cukup kecil untuk dibaca di log lambat. */
@@ -186,6 +193,53 @@ export class MysqlCatalogWriter implements CatalogWriter {
     });
   }
 
+  async promoteVersion(input: {
+    readonly catalogVersionId: string;
+    readonly actor: AuditActor;
+  }): Promise<PromotedVersion> {
+    return this.database.db.transaction(async (tx) => {
+      const current = await tx
+        .select({ id: catalogVersions.id })
+        .from(catalogVersions)
+        .where(eq(catalogVersions.status, 'active'))
+        .limit(1);
+      const previousActiveId = current[0]?.id ?? null;
+
+      // Mengarsipkan LEBIH DULU. Bukan pilihan gaya: unique index
+      // `uq_catalog_versions_single_active` akan menolak versi aktif kedua, jadi
+      // urutan sebaliknya membuat promosi gagal setiap kali sudah ada versi aktif.
+      if (previousActiveId !== null) {
+        await tx
+          .update(catalogVersions)
+          .set({ status: 'archived' })
+          .where(eq(catalogVersions.id, previousActiveId));
+        await tx.insert(auditLogs).values(
+          auditRow(input.actor, {
+            action: AUDIT_ACTIONS.catalogVersionArchive,
+            entityId: previousActiveId,
+            before: { status: 'active' },
+            after: { status: 'archived' },
+          }),
+        );
+      }
+
+      await tx
+        .update(catalogVersions)
+        .set({ status: 'active' })
+        .where(eq(catalogVersions.id, input.catalogVersionId));
+      await tx.insert(auditLogs).values(
+        auditRow(input.actor, {
+          action: AUDIT_ACTIONS.catalogVersionPromote,
+          entityId: input.catalogVersionId,
+          before: { status: 'draft' },
+          after: { status: 'active' },
+        }),
+      );
+
+      return { catalogVersionId: input.catalogVersionId, previousActiveId };
+    });
+  }
+
   async finishRun(input: FinishRunInput): Promise<void> {
     await this.database.db
       .update(catalogImportRuns)
@@ -198,6 +252,38 @@ export class MysqlCatalogWriter implements CatalogWriter {
       })
       .where(eq(catalogImportRuns.id, input.importRunId));
   }
+}
+
+/**
+ * `before_json` dan `after_json` memuat **hanya field yang berubah**
+ * (docs/BACKOFFICE.md §6).
+ *
+ * Versi mana yang digantikan tidak ikut di sini: ia tercatat sebagai baris audit
+ * `catalog.version.archive` tersendiri, ditulis dalam transaksi yang sama.
+ * Menempelkannya ke `after_json` akan mengubah "field yang berubah" menjadi
+ * "apa pun yang terasa berguna saat itu", dan aturan seperti itu selalu melebar.
+ */
+function auditRow(
+  actor: AuditActor,
+  change: {
+    action: string;
+    entityId: string;
+    before: Record<string, unknown>;
+    after: Record<string, unknown>;
+  },
+) {
+  return {
+    id: ulid(),
+    actorId: actor.id,
+    actorRole: actor.role,
+    action: change.action,
+    entityType: AUDIT_ENTITIES.catalogVersion,
+    entityId: change.entityId,
+    beforeJson: change.before,
+    afterJson: change.after,
+    correlationId: actor.correlationId ?? null,
+    ip: actor.ip ?? null,
+  };
 }
 
 function toRunStatus(raw: string): CatalogImportRunStatus {

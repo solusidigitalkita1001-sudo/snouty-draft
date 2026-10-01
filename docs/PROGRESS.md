@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-01 · Current phase: **1 — Product Catalog** · Next item: **P1-07 promosi versi katalog**
+Last updated: 2026-10-01 · Current phase: **1 — Product Catalog** · Next item: **P1-08 API baca katalog**
 
 ## Summary
 
@@ -147,8 +147,8 @@ sehingga menambahkan pembaca Excel atau ERP nanti adalah menambah satu adapter, 
   - [x] P1-06 inti: migration 0001 (`products.row_hash` + `catalog_import_runs`), `CatalogIngestService`, `MysqlCatalogWriter` — idempotensi berlapis tiga, lapisan terdalamnya `uq_products_version_row_hash`
   - [x] P1-06a Tes: impor yang sama dua kali menghasilkan satu versi — **72 tes lolos**; migration 24 pemeriksaan
   - [ ] `[!]` P1-06b Transport RabbitMQ (publisher, konsumer, retry berbackoff, DLQ) — **terhalang OQ-40**: `apps/worker` belum punya jalan memakai kode domain `apps/api`
-- [ ] P1-07 Promosi versi katalog + invalidasi cache
-  - [ ] P1-07a Tes: tepat satu versi `active`; promosi membatalkan cache dan menulis audit
+- [x] P1-07 Promosi versi katalog + invalidasi cache — migration 0002 (`audit_logs`), `CatalogPromotionService`, cache Redis dengan SCAN (bukan `KEYS`)
+  - [x] P1-07a Tes: tepat satu versi `active`; promosi membatalkan cache dan menulis audit — **87 tes lolos**, 11 di antaranya terhadap MySQL **dan** Redis sungguhan
 - [ ] P1-08 API baca katalog — `GET /products`, `/products/:id`, `/products/:id/compatible`, `/catalog/version` `[layar 10]`
   - [ ] P1-08a Tes: field spesifikasi null dikembalikan sebagai `UNAVAILABLE`, bukan dihilangkan
 - [ ] P1-09 Pemetaan provenance untuk field katalog kosong
@@ -232,3 +232,4 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | 2026-10-01 | P1-04, P1-04a        | 2/2 selesai                                | `phase-1/P1-01-catalog-foundation` | Repository katalog + 16 tes integrasi terhadap kontainer MySQL sekali pakai; total 25 tes `@snouty/api` lolos. Ditambahkan `tsconfig.spec.json` karena berkas `*.spec.ts` sebelumnya tidak pernah di-typecheck. Redis/RabbitMQ lokal tidak bisa menyala: port 6379 dan 5672 sudah dipakai kontainer proyek lain (bukan blocker Fase 1).                                                                                                  |
 | 2026-10-01 | P1-05, P1-05a        | 2/2 selesai (P1-05b tetap terhalang OQ-07) | `phase-1/P1-01-catalog-foundation` | Kontrak impor bebas format + validator murni; total 53 tes `@snouty/api` lolos. Dua ambiguitas dicatat: **OQ-38** (dokumen memuat dua model impor yang bertentangan — seluruhnya atau sebagian) dan **OQ-39** (konvensi sel untuk nilai jamak). Definisi kunci spesifikasi dipindahkan ke `domain/` supaya validator impor dan mapper pembacaan memakai satu daftar.                                                                     |
 | 2026-10-01 | P1-06 (inti), P1-06a | inti selesai; P1-06b terhalang OQ-40       | `phase-1/P1-01-catalog-foundation` | Migration 0001 + use case ingest idempoten; 72 tes `@snouty/api` dan 24 pemeriksaan migration lolos. Migration **tidak** diterapkan ke `192.168.1.136`. Port Redis/RabbitMQ lokal digeser ke 6380/5673 karena 6379 dan 5672 dipakai kontainer proyek lain. Dicatat **OQ-40**: konsumer RabbitMQ tinggal di `apps/worker` tetapi kode domain di `apps/api`, dan belum ada jalan di antaranya — menyangkut semua job, bukan hanya katalog. |
+| 2026-10-01 | P1-07, P1-07a        | 2/2 selesai                                | `phase-1/P1-01-catalog-foundation` | Promosi `draft` → `active` dengan pengarsipan, audit, dan invalidasi cache dalam urutan yang mengikat; 87 tes `@snouty/api` dan 24 pemeriksaan migration lolos. Migration 0002 menambah `audit_logs`; **tidak** diterapkan ke `192.168.1.136`. `ioredis` dipasang sebagai klien Redis pertama (dokumen tidak menyebut klien tertentu); CI mendapat service Redis karena tes invalidasi menyentuh Redis sungguhan.                        |
