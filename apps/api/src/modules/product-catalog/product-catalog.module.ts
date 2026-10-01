@@ -1,5 +1,15 @@
 import { Module } from '@nestjs/common';
+import { CatalogIngestService } from './application/catalog-ingest.service.js';
+import { CATALOG_WRITER, type CatalogWriter } from './domain/catalog-writer.repository.js';
 import { catalogRepositoryProvider } from './infrastructure/catalog.mysql.repository.js';
+import { catalogWriterProvider } from './infrastructure/catalog.mysql.writer.js';
+
+/** Service-nya hanya bergantung pada port tulis, bukan pada MySQL. */
+const catalogIngestProvider = {
+  provide: CatalogIngestService,
+  inject: [CATALOG_WRITER],
+  useFactory: (writer: CatalogWriter) => new CatalogIngestService(writer),
+};
 
 /**
  * Konteks katalog produk (docs/ARCHITECTURE.md §6).
@@ -9,7 +19,7 @@ import { catalogRepositoryProvider } from './infrastructure/catalog.mysql.reposi
  * `material-estimator`, `report`) tidak pernah bergantung pada MySQL langsung.
  */
 @Module({
-  providers: [catalogRepositoryProvider],
-  exports: [catalogRepositoryProvider],
+  providers: [catalogRepositoryProvider, catalogWriterProvider, catalogIngestProvider],
+  exports: [catalogRepositoryProvider, catalogIngestProvider],
 })
 export class ProductCatalogModule {}

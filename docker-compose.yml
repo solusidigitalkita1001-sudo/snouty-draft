@@ -6,11 +6,17 @@
 # Kontainer mysql-test di bawah hanya untuk tes integrasi, di balik profil
 # tersendiri supaya tidak ikut menyala pada `docker compose up`.
 
+# Port baku digeser dari angka standar, dengan alasan yang sama seperti mysql-test
+# di 3317: mesin pengembang di proyek ini sudah menjalankan Redis di 6379 dan
+# RabbitMQ di 5672 untuk aplikasi lain, dan `docker compose up` yang gagal bind
+# adalah gangguan harian. Semuanya bisa ditimpa lewat environment, jadi menyamakan
+# kembali ke angka standar cukup satu variabel.
+
 services:
   redis:
     image: redis:7-alpine
     command: ['redis-server', '--appendonly', 'yes']
-    ports: ['6379:6379']
+    ports: ['${REDIS_PORT:-6380}:6379']
     volumes: ['redis-data:/data']
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
@@ -20,7 +26,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    ports: ['5672:5672', '15672:15672']
+    ports: ['${RABBITMQ_PORT:-5673}:5672', '${RABBITMQ_UI_PORT:-15673}:15672']
     volumes: ['rabbitmq-data:/var/lib/rabbitmq']
     healthcheck:
       test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']

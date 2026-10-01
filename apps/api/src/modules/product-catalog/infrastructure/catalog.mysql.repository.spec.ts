@@ -60,6 +60,7 @@ function product(id: string, sku: string, overrides: Record<string, unknown> = {
     category: 'PIPA AIR BERSIH · SNI',
     sourceDocument: SOURCE,
     sourcePage: 14,
+    rowHash: sku.toLowerCase().padEnd(64, '0'),
     ...overrides,
   };
 }

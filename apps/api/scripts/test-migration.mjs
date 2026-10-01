@@ -59,7 +59,8 @@ async function tableCount() {
     `SELECT COUNT(*) AS n FROM information_schema.TABLES
      WHERE TABLE_SCHEMA = ? AND TABLE_NAME IN
      ('catalog_versions','products','product_sizes','product_specs',
-      'product_compatibility','product_documents','product_images')`,
+      'product_compatibility','product_documents','product_images',
+      'catalog_import_runs')`,
     [cfg.database],
   );
   return Number(rows[0].n);
@@ -76,15 +77,21 @@ async function mustReject(sql, params = []) {
 }
 
 const ulid = (n) => String(n).padStart(26, 'A');
+const rowHash = (n) => String(n).padStart(64, '0');
+
+/** Seluruh migration naik, berurutan; dipakai juga untuk membuktikan rollback bersih. */
+const UP = ['0000_catalog.sql', '0001_catalog_import_runs.sql'];
+const DOWN = ['0001_catalog_import_runs.down.sql', '0000_catalog.down.sql'];
+const TABLES = 8;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
 
 // ── Naik ────────────────────────────────────────────────────────────────────
 console.log('up:');
-await check('membuat tujuh tabel katalog', async () => {
-  await run('0000_catalog.sql');
+await check(`membuat ${TABLES} tabel katalog`, async () => {
+  for (const file of UP) await run(file);
   const n = await tableCount();
-  if (n !== 7) throw new Error(`tabel terbentuk: ${n}, diharapkan 7`);
+  if (n !== TABLES) throw new Error(`tabel terbentuk: ${n}, diharapkan ${TABLES}`);
 });
 
 await check('bisa dijalankan pada database kosong tanpa galat', async () => {
@@ -132,8 +139,8 @@ await check('mengizinkan banyak versi draft berdampingan', async () => {
 
 await check('menerima produk yang sah', async () => {
   await conn.query(
-    `INSERT INTO products (id,catalog_version_id,sku,name,family,category,status,source_document,source_page)
-     VALUES (?,?,?,?,?,?,?,?,?)`,
+    `INSERT INTO products (id,catalog_version_id,sku,name,family,category,status,source_document,source_page,row_hash)
+     VALUES (?,?,?,?,?,?,?,?,?,?)`,
     [
       P1,
       V1,
@@ -144,23 +151,24 @@ await check('menerima produk yang sah', async () => {
       'active',
       'Katalog produk Pralon 2026',
       14,
+      rowHash(1),
     ],
   );
 });
 
 await check('menolak produk tanpa rujukan halaman yang masuk akal', () =>
   mustReject(
-    `INSERT INTO products (id,catalog_version_id,sku,name,family,category,status,source_document,source_page)
-     VALUES (?,?,?,?,?,?,?,?,?)`,
-    [ulid(5), V1, 'PVC-AW-2', 'x', 'PVC AW', 'c', 'active', 'doc', 0],
+    `INSERT INTO products (id,catalog_version_id,sku,name,family,category,status,source_document,source_page,row_hash)
+     VALUES (?,?,?,?,?,?,?,?,?,?)`,
+    [ulid(5), V1, 'PVC-AW-2', 'x', 'PVC AW', 'c', 'active', 'doc', 0, rowHash(5)],
   ),
 );
 
 await check('menolak SKU ganda dalam satu versi katalog', () =>
   mustReject(
-    `INSERT INTO products (id,catalog_version_id,sku,name,family,category,status,source_document,source_page)
-     VALUES (?,?,?,?,?,?,?,?,?)`,
-    [ulid(6), V1, 'PVC-AW-1', 'x', 'PVC AW', 'c', 'active', 'doc', 14],
+    `INSERT INTO products (id,catalog_version_id,sku,name,family,category,status,source_document,source_page,row_hash)
+     VALUES (?,?,?,?,?,?,?,?,?,?)`,
+    [ulid(6), V1, 'PVC-AW-1', 'x', 'PVC AW', 'c', 'active', 'doc', 14, rowHash(6)],
   ),
 );
 
@@ -208,19 +216,82 @@ await check('menolak jenis fitting di luar daftar', () =>
   ),
 );
 
+await check('menolak row_hash ganda dalam satu versi — idempotensi dijamin database', () =>
+  mustReject(
+    `INSERT INTO products (id,catalog_version_id,sku,name,family,category,status,source_document,source_page,row_hash)
+     VALUES (?,?,?,?,?,?,?,?,?,?)`,
+    [ulid(10), V1, 'PVC-AW-9', 'x', 'PVC AW', 'c', 'active', 'doc', 14, rowHash(1)],
+  ),
+);
+
+await check('mengizinkan row_hash yang sama di versi katalog yang berbeda', async () => {
+  await conn.query(
+    `INSERT INTO products (id,catalog_version_id,sku,name,family,category,status,source_document,source_page,row_hash)
+     VALUES (?,?,?,?,?,?,?,?,?,?)`,
+    [ulid(11), V2, 'PVC-AW-1', 'x', 'PVC AW', 'c', 'active', 'doc', 14, rowHash(1)],
+  );
+});
+
+await check('menerima run impor yang masih menunggu', async () => {
+  await conn.query(
+    `INSERT INTO catalog_import_runs (id,label,source_document,status,requested_by)
+     VALUES (?,?,?,?,?)`,
+    [ulid(12), 'v2.7', 'Katalog produk Pralon 2026', 'pending', ulid(9)],
+  );
+});
+
+await check('menolak status run di luar pending/rejected/ingested/failed', () =>
+  mustReject(
+    `INSERT INTO catalog_import_runs (id,label,source_document,status,requested_by)
+     VALUES (?,?,?,?,?)`,
+    [ulid(13), 'v2.8', 'doc', 'running', ulid(9)],
+  ),
+);
+
+await check('mengizinkan run menautkan versi katalog sebelum ditandai selesai', async () => {
+  // Penautan lebih awal itu yang membuat job idempoten: percobaan kedua memakai
+  // ulang versi yang sama alih-alih membuat versi draft kedua.
+  await conn.query(
+    `INSERT INTO catalog_import_runs (id,label,source_document,status,catalog_version_id,requested_by)
+     VALUES (?,?,?,?,?,?)`,
+    [ulid(14), 'v2.9', 'doc', 'pending', ulid(4), ulid(9)],
+  );
+});
+
+await check('menolak dua run yang mengaku melahirkan versi katalog yang sama', async () => {
+  await conn.query(
+    `INSERT INTO catalog_import_runs (id,label,source_document,status,catalog_version_id,requested_by)
+     VALUES (?,?,?,?,?,?)`,
+    [ulid(15), 'v3.0', 'doc', 'ingested', V1, ulid(9)],
+  );
+  await mustReject(
+    `INSERT INTO catalog_import_runs (id,label,source_document,status,catalog_version_id,requested_by)
+     VALUES (?,?,?,?,?,?)`,
+    [ulid(16), 'v3.1', 'doc', 'ingested', V1, ulid(9)],
+  );
+});
+
+await check('mengizinkan banyak run yang belum melahirkan versi apa pun', async () => {
+  await conn.query(
+    `INSERT INTO catalog_import_runs (id,label,source_document,status,requested_by)
+     VALUES (?,?,?,?,?), (?,?,?,?,?)`,
+    [ulid(17), 'v3.2', 'doc', 'rejected', ulid(9), ulid(18), 'v3.3', 'doc', 'failed', ulid(9)],
+  );
+});
+
 // ── Turun ───────────────────────────────────────────────────────────────────
 console.log('\ndown:');
 await check('menghapus seluruh tabel katalog', async () => {
-  await run('0000_catalog.down.sql');
+  for (const file of DOWN) await run(file);
   const n = await tableCount();
   if (n !== 0) throw new Error(`masih tersisa ${n} tabel`);
 });
 
 await check('bisa dijalankan naik lagi setelah turun (rollback benar-benar bersih)', async () => {
-  await run('0000_catalog.sql');
+  for (const file of UP) await run(file);
   const n = await tableCount();
-  if (n !== 7) throw new Error(`tabel terbentuk: ${n}`);
-  await run('0000_catalog.down.sql');
+  if (n !== TABLES) throw new Error(`tabel terbentuk: ${n}`);
+  for (const file of DOWN) await run(file);
 });
 
 await conn.end();

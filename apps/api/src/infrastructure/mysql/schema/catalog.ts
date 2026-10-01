@@ -5,6 +5,7 @@ import {
   datetime,
   index,
   int,
+  json,
   mysqlTable,
   primaryKey,
   text,
@@ -101,11 +102,24 @@ export const products = mysqlTable(
     sourcePage: int('source_page').notNull(),
 
     imageUrl: varchar('image_url', { length: 512 }),
+
+    /**
+     * Sidik jari baris impor yang melahirkan produk ini
+     * (`catalog-import.contract.ts`).
+     *
+     * Unik bersama `catalog_version_id`, sehingga idempotensi job
+     * `catalog.ingest` menjadi jaminan database: memproses ulang pesan yang sama
+     * — hal yang pasti terjadi pada antrean dengan retry — tidak bisa
+     * menduplikasi produk, bukan sekadar "sebaiknya tidak".
+     */
+    rowHash: char('row_hash', { length: 64 }).notNull(),
+
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
     uniqueIndex('uq_products_version_sku').on(t.catalogVersionId, t.sku),
+    uniqueIndex('uq_products_version_row_hash').on(t.catalogVersionId, t.rowHash),
     // Bentuk query nyata matcher: saring keluarga + kategori + status.
     index('ix_products_family_category_status').on(t.family, t.category, t.status),
     index('ix_products_catalog_version').on(t.catalogVersionId),
@@ -220,4 +234,59 @@ export const productImages = mysqlTable(
     sortOrder: int('sort_order').notNull().default(0),
   },
   (t) => [index('ix_product_images_product').on(t.productId)],
+);
+
+/**
+ * Satu kali upaya impor katalog.
+ *
+ * Ada karena idempotensi job membutuhkan identitas yang terbit **sebelum**
+ * pekerjaannya dimulai. Kunci baris adalah `catalogVersionId + rowHash`, tetapi
+ * versi katalog sendiri baru dibuat setelah validasi lolos — jadi tanpa tabel
+ * ini, menjalankan ulang satu pesan akan membuat versi draft kedua yang terlihat
+ * sah. Dengan tabel ini, pesan membawa `catalogImportRunId`, dan versi yang sudah
+ * terpaut pada run itu dipakai kembali, bukan dibuat lagi.
+ *
+ * Laporan galat disimpan apa adanya dari validator: admin katalog melihat
+ * laporan yang sama persis dengan yang dipakai job untuk menolak impor.
+ */
+export const catalogImportRuns = mysqlTable(
+  'catalog_import_runs',
+  {
+    id: id().primaryKey(),
+    label: varchar('label', { length: 32 }).notNull(),
+    sourceDocument: varchar('source_document', { length: 255 }).notNull(),
+    status: varchar('status', { length: 16 }).notNull().default('pending'),
+
+    /**
+     * Terisi begitu validasi lolos dan versi draft dibuat — **sebelum** run
+     * ditandai selesai, dan itu memang disengaja.
+     *
+     * Godaannya adalah memaksa kolom ini hanya terisi saat `status = 'ingested'`.
+     * Itu justru mematikan idempotensi: proses yang mati setelah versi terbentuk
+     * tetapi sebelum run ditandai selesai akan kehilangan jejak versinya, dan
+     * pengiriman ulang pesan — hal yang pasti terjadi pada antrean dengan retry —
+     * membuat versi draft KEDUA yang terlihat sah. Dengan penautan lebih awal,
+     * percobaan berikutnya memakai ulang versi yang sama.
+     */
+    catalogVersionId: char('catalog_version_id', { length: 26 }),
+
+    rowsAccepted: int('rows_accepted').notNull().default(0),
+    rowsRejected: int('rows_rejected').notNull().default(0),
+    /** `CatalogImportIssue[]` apa adanya — nomor baris, kolom, dan pesannya. */
+    issues: json('issues'),
+
+    requestedBy: char('requested_by', { length: 26 }).notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+    finishedAt: datetime('finished_at', { fsp: 3 }),
+  },
+  (t) => [
+    /** Satu versi katalog tidak pernah lahir dari dua run. */
+    uniqueIndex('uq_catalog_import_runs_version').on(t.catalogVersionId),
+    index('ix_catalog_import_runs_status').on(t.status),
+    check(
+      'ck_catalog_import_runs_status',
+      sql`\`status\` IN ('pending','rejected','ingested','failed')`,
+    ),
+  ],
 );

@@ -250,6 +250,35 @@ merangkainya menjadi string lebih dulu, jadi konvensi pemisah hanya berlaku untu
 **Bila Anda ingin pemisah lain** (`|` misalnya, kalau katalog Pralon memakai `;` di dalam nilai),
 ini satu konstanta di `catalog-import.contract.ts`.
 
+### OQ-40 — Bagaimana `apps/worker` memakai kode domain backend?
+
+**Status:** open · **Blocks:** 1 (P1-06b), 10 (PDF), 11 (email), 12 (pasar)
+`docs/ARCHITECTURE.md` §4 menempatkan konsumer RabbitMQ di `apps/worker`, dan §6 menempatkan modul
+domain di `apps/api/src/modules/`. Keduanya benar sendiri-sendiri, tetapi **belum ada jalan dari yang
+pertama ke yang kedua.** `apps/worker` hanya bergantung pada `pino` dan `@snouty/shared-types`;
+`packages/` tidak memuat kode backend bersama; dan mengimpor satu app dari app lain tidak diatur §7.
+
+Ini bukan masalah khusus katalog. Setiap konsumer di tabel `docs/INFRASTRUCTURE.md` §7 — PDF,
+handoff, email, agregasi pasar — akan menabraknya.
+
+Tiga kemungkinan, dengan konsekuensinya:
+
+| Pilihan                                                                    | Konsekuensi                                                                                                           |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **A.** `apps/worker` bergantung pada `@snouty/api` sebagai paket workspace | Paling sedikit kode. Tetapi worker ikut memuat NestJS HTTP dan `apps/api` jadi punya dua pemakai yang berbeda bentuk. |
+| **B.** Modul backend bersama dipindahkan ke `packages/`                    | Paling bersih dan paling sesuai §5. Tetapi mengubah struktur yang tertulis di §4, dan harus diulang per konteks.      |
+| **C.** Worker memanggil API lewat HTTP internal                            | Tidak perlu berbagi kode, tetapi menambah lompatan jaringan di dalam satu monolith — persis yang §1 hindari.          |
+
+**Usulan default: A sekarang, B ketika konsumer kedua muncul.** Alasannya bukan kemalasan: dengan
+satu konsumer kita belum tahu batas mana yang benar untuk dipindahkan, dan memindahkan batas modul
+itu murah (`docs/ARCHITECTURE.md` §1). Memecah paket sekarang berarti menebak batasnya dari satu
+contoh. C ditolak karena alasan yang sudah tertulis di §1.
+
+**Yang sudah dikerjakan tanpa menunggu jawaban:** seluruh inti P1-06 — use case idempoten, writer
+MySQL, migration, dan tesnya — ada di `apps/api` dan **tidak menyebut RabbitMQ sama sekali**.
+`CatalogIngestService.ingest()` menerima satu perintah, jadi apa pun jawabannya, konsumer nanti
+hanya memanggil satu method. Yang tertunda murni transport-nya (P1-06b).
+
 ---
 
 ## B. Design conflicts carried from SPEC §33h

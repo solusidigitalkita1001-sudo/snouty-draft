@@ -95,7 +95,12 @@ export interface CatalogImportIssue {
 }
 
 export interface CatalogImportResult {
-  readonly catalogVersionId: string;
+  /**
+   * `null` bila impor ditolak: versi draft hanya dibuat ketika jumlah galatnya
+   * nol, sehingga tidak ada versi setengah terisi yang bisa dipromosikan
+   * (usulan default OQ-38).
+   */
+  readonly catalogVersionId: string | null;
   readonly rowsAccepted: number;
   readonly rowsRejected: number;
   readonly issues: readonly CatalogImportIssue[];

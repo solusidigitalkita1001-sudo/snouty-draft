@@ -53,8 +53,13 @@ export interface TestDatabase {
   close(): Promise<void>;
 }
 
+/** Seluruh migration naik, berurutan; turunnya dibalik. */
+const UP = ['0000_catalog.sql', '0001_catalog_import_runs.sql'];
+const DOWN = ['0001_catalog_import_runs.down.sql', '0000_catalog.down.sql'];
+
 /** Urutan penghapusan dibalik dari urutan pembuatan, mengikuti arah rujukan. */
 const TABLES = [
+  'catalog_import_runs',
   'product_images',
   'product_documents',
   'product_compatibility',
@@ -132,12 +137,20 @@ async function connect(options: {
 }
 
 /**
- * Menerapkan `0000_catalog.sql` dari nol. Turun lebih dulu supaya tes bisa
- * dijalankan berulang kali di kontainer yang sama tanpa sisa dari proses sebelumnya.
+ * Menerapkan seluruh migration dari nol. Turun lebih dulu supaya tes bisa
+ * dijalankan berulang kali di kontainer yang sama tanpa sisa proses sebelumnya.
  */
 async function applyMigration(conn: Connection): Promise<void> {
-  await run(conn, '0000_catalog.down.sql');
-  await run(conn, '0000_catalog.sql');
+  // Turun lebih dulu, mengabaikan kegagalan: pada database yang masih bersih
+  // tidak ada indeks untuk di-drop, dan MySQL 8 tidak punya DROP INDEX IF EXISTS.
+  for (const file of DOWN) {
+    try {
+      await run(conn, file);
+    } catch {
+      // Sengaja ditelan — lihat komentar di atas. Kegagalan naik tetap dilempar.
+    }
+  }
+  for (const file of UP) await run(conn, file);
 }
 
 async function run(conn: Connection, file: string): Promise<void> {
