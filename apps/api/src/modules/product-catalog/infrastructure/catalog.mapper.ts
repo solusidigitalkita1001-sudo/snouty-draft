@@ -17,9 +17,9 @@ import type {
   FittingKind,
   Product,
   ProductStatus,
-  SpecValue,
 } from '@snouty/shared-types';
 import { CATALOG_SPEC_KEYS } from '../domain/catalog-spec-keys.js';
+import { specFromStoredRow } from '../domain/spec-value.js';
 
 export interface ProductRow {
   readonly id: string;
@@ -62,29 +62,6 @@ export interface CompatibilityRow {
   readonly compatibleProductId: string;
   readonly name: string;
   readonly kind: string;
-}
-
-const UNAVAILABLE: SpecValue = Object.freeze({ value: null, provenance: 'UNAVAILABLE' });
-
-/**
- * Nilai spesifikasi beserta asal-usulnya.
- *
- * Perhatikan arah kehati-hatiannya: apa pun yang tidak jelas-jelas `VERIFIED`
- * dikembalikan sebagai `UNAVAILABLE` **tanpa nilai**. Baris yang menyimpan teks
- * tetapi bertanda `UNAVAILABLE` karena itu tidak pernah terbaca sebagai fakta
- * produk — lebih baik UI menampilkan "Lihat dokumen teknis" daripada menampilkan
- * nilai yang tidak bisa dipertanggungjawabkan.
- */
-function toSpecValue(row: SpecRow | undefined): SpecValue {
-  if (row === undefined || row.specValue === null || row.provenance !== 'VERIFIED') {
-    return UNAVAILABLE;
-  }
-  return {
-    value: row.specValue,
-    provenance: 'VERIFIED',
-    ...(row.sourceDocument !== null ? { sourceDocument: row.sourceDocument } : {}),
-    ...(row.sourcePage !== null ? { sourcePage: row.sourcePage } : {}),
-  };
 }
 
 /**
@@ -137,12 +114,12 @@ export function toProduct(
     // Urutan sudah ditentukan oleh `ORDER BY size_inches_x1000` di query:
     // mengurutkan ulang di sini atas label akan menaruh `1¼"` sebelum `1"`.
     sizes: sizes.map((size) => size.sizeLabel),
-    material: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.material)),
-    standard: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.standard)),
-    pressureClass: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.pressureClass)),
-    rodLength: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.rodLength)),
-    jointType: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.jointType)),
-    application: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.application)),
+    material: specFromStoredRow(byKey.get(CATALOG_SPEC_KEYS.material)),
+    standard: specFromStoredRow(byKey.get(CATALOG_SPEC_KEYS.standard)),
+    pressureClass: specFromStoredRow(byKey.get(CATALOG_SPEC_KEYS.pressureClass)),
+    rodLength: specFromStoredRow(byKey.get(CATALOG_SPEC_KEYS.rodLength)),
+    jointType: specFromStoredRow(byKey.get(CATALOG_SPEC_KEYS.jointType)),
+    application: specFromStoredRow(byKey.get(CATALOG_SPEC_KEYS.application)),
     sourceDocument: row.sourceDocument,
     sourcePage: row.sourcePage,
     catalogVersionId: row.catalogVersionId,

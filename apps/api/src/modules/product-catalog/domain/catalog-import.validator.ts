@@ -34,6 +34,7 @@ import {
   type ValidatedCatalogRow,
 } from './catalog-import.contract.js';
 import { CATALOG_SPEC_KEY_LIST, type CatalogSpecKey } from './catalog-spec-keys.js';
+import { specFromCatalogColumn } from './spec-value.js';
 
 /** `rowNumber` ini berarti "berlaku untuk seluruh berkas", bukan satu baris. */
 const FILE_LEVEL = 0;
@@ -57,8 +58,6 @@ const SAFE_IMAGE_URL = /^(?:https?:\/\/|\/)/i;
  * pengguna, dua baris berbeda bisa menghasilkan serialisasi yang sama.
  */
 const HASH_FIELD_SEPARATOR = '\u001f';
-
-const UNAVAILABLE: SpecValue = Object.freeze({ value: null, provenance: 'UNAVAILABLE' });
 
 /** Keadaan satu baris selama validasi. `fields` null berarti baris gugur di jalur pertama. */
 interface RowDraft {
@@ -261,15 +260,15 @@ function resolveAcrossRows(drafts: readonly RowDraft[]): void {
   }
 }
 
+/**
+ * Keenam kunci selalu diisi, bahkan untuk baris yang tidak menyebutkan satu pun.
+ * Keputusan kosong-atau-tidaknya diserahkan sepenuhnya ke `specFromCatalogColumn`,
+ * supaya impor dan pembacaan tidak bisa menjawab berbeda untuk sel yang sama.
+ */
 function readSpecs(single: (column: string) => string): Record<CatalogSpecKey, SpecValue> {
   const specs = {} as Record<CatalogSpecKey, SpecValue>;
   for (const key of CATALOG_SPEC_KEY_LIST) {
-    const value = single(key);
-    // Kolom katalog yang terisi adalah VERIFIED tanpa sitasi tambahan: sitasi
-    // dokumen teknis hanya dipakai saat nilainya datang dari dokumen, bukan kolom.
-    // Tidak ada cabang yang menghasilkan ASSUMED — Pralon tahu spesifikasi
-    // pipanya; kalau datanya belum ada, itu kekurangan data (invarian C-1).
-    specs[key] = value === '' ? UNAVAILABLE : { value, provenance: 'VERIFIED' };
+    specs[key] = specFromCatalogColumn(single(key));
   }
   return specs;
 }

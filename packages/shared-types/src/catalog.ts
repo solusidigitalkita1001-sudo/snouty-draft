@@ -8,8 +8,6 @@
  * "Lihat dokumen teknis", yang kedua tidak dirender sama sekali.
  */
 
-import type { Provenance } from './provenance.js';
-
 export type CatalogVersionStatus = 'draft' | 'active' | 'archived';
 export type ProductStatus = 'active' | 'discontinued';
 export type PressureClass = 'AW' | 'D';
@@ -27,20 +25,56 @@ export interface CatalogVersion {
 }
 
 /**
- * Nilai spesifikasi beserta asal-usulnya.
+ * Spesifikasi yang punya nilai, beserta asal-usulnya.
  *
- * Perhatikan bahwa `provenance` di sini hanya pernah `VERIFIED` atau
- * `UNAVAILABLE`. Tidak ada jalur yang menghasilkan fakta produk bertanda
- * `ASSUMED` — asumsi berlaku untuk kebutuhan pengguna, bukan untuk spesifikasi
- * pipa. Pralon tahu tekanan kerja produknya; kalau datanya belum ada di sistem,
- * itu kekurangan data, bukan sesuatu yang boleh diperkirakan.
+ * `sourceDocument` dan `sourcePage` diisi **hanya** saat nilainya berasal dari
+ * dokumen teknis, bukan dari kolom katalog. Keduanya datang sepasang: UI merender
+ * "Sumber: <dokumen> hal. N", jadi sitasi setengah tidak bisa dirender sama sekali.
  */
-export interface SpecValue {
-  readonly value: string | null;
-  readonly provenance: Extract<Provenance, 'VERIFIED' | 'UNAVAILABLE'>;
-  /** Diisi saat nilainya berasal dari dokumen teknis, bukan kolom katalog. */
+export interface VerifiedSpecValue {
+  readonly provenance: 'VERIFIED';
+  readonly value: string;
   readonly sourceDocument?: string;
   readonly sourcePage?: number;
+}
+
+/** Spesifikasi yang belum ada datanya. Dirender "Lihat dokumen teknis", tanpa nilai. */
+export interface UnavailableSpecValue {
+  readonly provenance: 'UNAVAILABLE';
+  readonly value: null;
+}
+
+/**
+ * Nilai spesifikasi beserta asal-usulnya — **union terdiskriminasi, bukan satu
+ * interface dengan dua field bebas.**
+ *
+ * Bentuk ini yang membuat dua invarian menjadi galat kompilasi alih-alih sesuatu
+ * yang harus diingat:
+ *
+ *   - **C-1**: tidak ada jalur yang menghasilkan fakta produk bertanda `ASSUMED`
+ *     atau `ESTIMATED`. Asumsi berlaku untuk kebutuhan pengguna (tinggi lantai,
+ *     sumber air), bukan untuk spesifikasi pipa. Pralon tahu tekanan kerja
+ *     produknya; kalau datanya belum ada, itu kekurangan data — bukan sesuatu
+ *     yang boleh diperkirakan.
+ *   - **P-2**: `UNAVAILABLE` tidak pernah membawa nilai. Sebelumnya
+ *     `{ value: 'mungkin 10 bar', provenance: 'UNAVAILABLE' }` adalah objek yang
+ *     sah menurut tipe dan hanya dicegah oleh kode yang kebetulan membuangnya.
+ *     Sekarang ia tidak bisa ditulis.
+ *
+ * Konstruktornya ada di `product-catalog/domain/spec-value.ts`; di sana setiap
+ * jalur yang menghasilkan nilai spesifikasi berkumpul dan bisa diuji sekali.
+ */
+export type SpecValue = VerifiedSpecValue | UnavailableSpecValue;
+
+/**
+ * Satu-satunya cara yang benar untuk bertanya "boleh dirender nilainya?".
+ *
+ * Membandingkan `spec.value !== null` juga bekerja, tetapi penjaga ini yang
+ * menyempitkan tipenya sehingga `sourceDocument` dan `sourcePage` bisa dibaca —
+ * dan itu memaksa pemanggil memeriksa provenance lebih dulu, bukan sesudahnya.
+ */
+export function specHasValue(spec: SpecValue): spec is VerifiedSpecValue {
+  return spec.provenance === 'VERIFIED';
 }
 
 export interface Product {

@@ -16,6 +16,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
+import { specHasValue } from '@snouty/shared-types';
 import {
   catalogImportRuns,
   catalogVersions,
@@ -165,8 +166,10 @@ export class MysqlCatalogWriter implements CatalogWriter {
           specKey,
           specValue: spec.value,
           provenance: spec.provenance,
-          sourceDocument: spec.sourceDocument ?? null,
-          sourcePage: spec.sourcePage ?? null,
+          // Sitasi hanya ada pada nilai yang terverifikasi; penjaga ini yang
+          // membuat tipenya cukup sempit untuk membaca kedua kolom itu.
+          sourceDocument: specHasValue(spec) ? (spec.sourceDocument ?? null) : null,
+          sourcePage: specHasValue(spec) ? (spec.sourcePage ?? null) : null,
         })),
       );
       for (const batch of chunk(specValues)) await tx.insert(productSpecs).values(batch);

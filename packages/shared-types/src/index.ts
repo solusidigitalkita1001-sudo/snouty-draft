@@ -14,5 +14,8 @@ export type {
   ProductMatchState,
   ProductStatus,
   SpecValue,
+  UnavailableSpecValue,
+  VerifiedSpecValue,
 } from './catalog.js';
+export { specHasValue } from './catalog.js';
 export { ANALYSIS_STAGE_LABELS } from './sse.js';
