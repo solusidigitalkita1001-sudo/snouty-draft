@@ -1,9 +1,11 @@
 import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
 import { DatabaseModule } from './shared/database/database.module.js';
 import { CorrelationIdMiddleware } from './shared/http/correlation-id.middleware.js';
+import { LoggingModule } from './shared/logging/logging.module.js';
 import { RedisModule } from './shared/redis/redis.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { ProductCatalogModule } from './modules/product-catalog/product-catalog.module.js';
+import { ProductKnowledgeModule } from './modules/product-knowledge/product-knowledge.module.js';
 
 /**
  * Modul domain menyusul fase demi fase (docs/ARCHITECTURE.md §6).
@@ -13,7 +15,14 @@ import { ProductCatalogModule } from './modules/product-catalog/product-catalog.
  * sendiri (docs/DATABASE.md §7).
  */
 @Module({
-  imports: [DatabaseModule, RedisModule, HealthModule, ProductCatalogModule],
+  imports: [
+    DatabaseModule,
+    RedisModule,
+    LoggingModule,
+    HealthModule,
+    ProductCatalogModule,
+    ProductKnowledgeModule,
+  ],
 })
 export class AppModule implements NestModule {
   /** Correlation ID berlaku untuk SELURUH rute, termasuk `/health`. */

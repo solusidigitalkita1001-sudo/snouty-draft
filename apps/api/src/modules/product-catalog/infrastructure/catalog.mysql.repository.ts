@@ -11,10 +11,16 @@
 
 import { Injectable } from '@nestjs/common';
 import { and, asc, desc, eq, gt, inArray, like, or, type SQL } from 'drizzle-orm';
-import type { CatalogVersion, CompatibleFitting, Product } from '@snouty/shared-types';
+import type {
+  CatalogVersion,
+  CompatibleFitting,
+  Product,
+  ProductDocument,
+} from '@snouty/shared-types';
 import {
   catalogVersions,
   productCompatibility,
+  productDocuments,
   products,
   productSizes,
   productSpecs,
@@ -169,6 +175,18 @@ export class MysqlCatalogRepository implements CatalogRepository {
       .orderBy(asc(productCompatibility.kind), asc(products.name));
 
     return rows.map(toCompatibleFitting);
+  }
+
+  async findProductDocuments(productId: string): Promise<readonly ProductDocument[]> {
+    return this.database.db
+      .select({
+        title: productDocuments.title,
+        url: productDocuments.url,
+        page: productDocuments.page,
+      })
+      .from(productDocuments)
+      .where(eq(productDocuments.productId, productId))
+      .orderBy(asc(productDocuments.title));
   }
 
   private listConditions(query: ProductListQuery): SQL[] {

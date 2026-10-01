@@ -30,6 +30,11 @@ export default tseslint.config(
     rules: {
       // docs/CODING_STANDARDS.md §5–§6
       '@typescript-eslint/no-explicit-any': 'error',
+      // Parameter berawalan `_` memang sengaja tidak dipakai — lazimnya pada
+      // implementasi port yang harus cocok dengan tanda tangan interface-nya.
+      // Tanpa pengecualian ini, satu-satunya cara lolos lint adalah menghapus
+      // parameternya, dan itu mengubah tanda tangan yang justru harus dipertahankan.
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
       'no-console': 'error',
       'no-empty': ['error', { allowEmptyCatch: false }],
@@ -81,6 +86,34 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ['apps/api/src/modules/product-knowledge/**/*.ts'],
+    rules: {
+      // `product-knowledge` membaca katalog lewat port yang diekspor
+      // `product-catalog`, bukan lewat MySQL langsung. Dua jalur ke satu tabel akan
+      // menyimpang, dan menyimpangnya terlihat sebagai jawaban produk yang berbeda
+      // tergantung siapa yang menanyakannya.
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '**/infrastructure/mysql/**',
+                'drizzle-orm',
+                'drizzle-orm/*',
+                'mysql2',
+                'mysql2/*',
+              ],
+              message:
+                'product-knowledge membaca katalog lewat port product-catalog, bukan lewat MySQL (docs/ARCHITECTURE.md §7).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   {
     files: ['apps/web/**/*.{ts,tsx}', 'apps/api/**/*.ts'],
     ignores: ['packages/ui/**'],

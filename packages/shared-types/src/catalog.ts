@@ -110,6 +110,19 @@ export interface Product {
   readonly imageUrl: string | null;
 }
 
+/**
+ * Dokumen teknis yang bisa dibuka dari drawer produk ("Buka dokumen teknis").
+ *
+ * Dipakai untuk **menawarkan** dokumen, bukan untuk mengisi nilai spesifikasi yang
+ * kosong. Membaca dokumen untuk menambal kolom kosong adalah cara halus untuk
+ * berhalusinasi (docs/PRODUCT_KNOWLEDGE.md §4).
+ */
+export interface ProductDocument {
+  readonly title: string;
+  readonly url: string;
+  readonly page: number | null;
+}
+
 /** Fitting yang sepadan, dari tabel kompatibilitas — bukan ditebak dari kesamaan ukuran. */
 export interface CompatibleFitting {
   readonly productId: string;

@@ -14,6 +14,7 @@ import type {
   CompatibleFitting,
   PipeSize,
   Product,
+  ProductDocument,
   ProductStatus,
 } from '@snouty/shared-types';
 
@@ -67,4 +68,13 @@ export interface CatalogRepository {
 
   /** Daftar "FITTING YANG SEPADAN" — dibaca dari tabel kompatibilitas, tidak ditebak dari kesamaan ukuran. */
   findCompatibleFittings(productId: string): Promise<readonly CompatibleFitting[]>;
+
+  /**
+   * Dokumen teknis milik produk ini, untuk tombol "Buka dokumen teknis".
+   *
+   * Ada di port **baca** katalog, bukan di modul `product-knowledge`, karena
+   * `product_documents` adalah tabel konteks katalog. Modul lain membacanya lewat
+   * sini supaya tidak ada dua jalur ke satu tabel yang bisa menyimpang.
+   */
+  findProductDocuments(productId: string): Promise<readonly ProductDocument[]>;
 }

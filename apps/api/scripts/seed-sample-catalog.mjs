@@ -23,7 +23,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import mysql from 'mysql2/promise';
 import { drizzle } from 'drizzle-orm/mysql2';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 const SHARED_HOST = '192.168.1.136';
 const SOURCE_DOCUMENT = 'Katalog contoh pengembangan SNOUTY (BUKAN data Pralon)';
@@ -350,6 +350,39 @@ const promoted = await promotion.promote({
   catalogVersionId: result.catalogVersionId,
   actor: { id: admin, role: 'catalog_admin' },
 });
+
+// Satu dokumen teknis disisipkan LANGSUNG, bukan lewat importer — dan itu satu-satunya
+// hal di skrip ini yang melewati jalur impor.
+//
+// Alasannya bukan kemudahan: kontrak impor belum membawa dokumen maupun gambar
+// (lihat P1-05c di docs/PROGRESS.md). Tanpa satu baris `product_documents`, jalur
+// jawaban `unavailable` — "Lihat dokumen teknis" — tidak pernah terpicu di
+// pengembangan, dan layar yang merendernya tidak bisa dikerjakan. Begitu P1-05c
+// selesai, blok ini dihapus.
+// Dibatasi versi yang BARU dibuat. Tanpa itu, `sku` saja akan mencocokkan produk
+// dari versi lama yang sudah diarsipkan — dan dokumennya menempel di produk yang
+// tidak pernah dibaca siapa pun.
+const pipe = await db
+  .select({ id: schema.products.id })
+  .from(schema.products)
+  .where(
+    and(
+      eq(schema.products.catalogVersionId, result.catalogVersionId),
+      eq(schema.products.sku, 'DEV-AW-PIPE'),
+    ),
+  )
+  .limit(1);
+
+if (pipe.length > 0) {
+  await db.insert(schema.productDocuments).values({
+    id: ulid(),
+    productId: pipe[0].id,
+    title: 'CONTOH Datasheet Pipa PVC AW (bukan dokumen Pralon)',
+    url: 'https://example.invalid/contoh-datasheet-aw.pdf',
+    page: 7,
+  });
+  console.log('✓ dokumen 1 dokumen teknis contoh (disisipkan langsung — lihat P1-05c)');
+}
 
 console.log(`✓ promosi ${promoted.catalogVersionId} → active`);
 console.log(`✓ cache  ${promoted.cacheKeysInvalidated} kunci dibuang`);

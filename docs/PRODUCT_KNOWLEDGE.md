@@ -204,6 +204,43 @@ Bila kolomnya kosong, jawabannya adalah "informasi ini belum tersedia di data ka
 dokumen teknis" — **bukan** perkiraan, dan bukan pula pencarian ke dokumen dengan harapan menemukan
 angkanya. Menambal kolom kosong dengan hasil pencarian adalah cara halus untuk berhalusinasi.
 
+### Kosakata aspek yang tertutup
+
+Pertanyaan bebas dipetakan ke salah satu dari sembilan aspek di
+`product-knowledge/domain/product-aspect.ts`; intent router di Fase 4 memetakan, bukan mengarang nama
+aspek sendiri. Setiap aspek **wajib** punya jalur data, dan kelengkapan petanya diperiksa satu tes —
+aspek yang lupa dipetakan tidak akan menimbulkan galat apa pun, ia hanya akan dijawab model dari
+ingatannya.
+
+Enam aspek spesifikasi bernama **persis** seperti `spec_key`-nya di database. Dua kosakata untuk satu
+hal akan menuntut tabel pemetaan, dan tabel pemetaan adalah tempat penyimpangan bersembunyi.
+
+Pertanyaan yang tidak memetakan ke mana pun adalah pertanyaan yang belum didukung. Jawaban yang benar
+untuk itu adalah mengakuinya, bukan menebak aspek terdekat.
+
+### Empat jalur jawaban
+
+| Keadaan                             | Jawaban            | Tampilan                        |
+| ----------------------------------- | ------------------ | ------------------------------- |
+| Kolom terisi                        | `value` / `list`   | nilai + tag provenance          |
+| Ukuran ditanyakan, katalog menjawab | `availability`     | ya / tidak                      |
+| Kolom kosong, ada dokumen teknis    | `unavailable`      | "Lihat dokumen teknis"          |
+| Kolom kosong, tidak ada dokumen     | `insufficientData` | "data belum cukup" + tim teknis |
+
+Baris ketiga adalah tempat kesalahan paling mahal menunggu: dokumennya **ditawarkan**, tidak dibaca
+untuk mengisi nilainya.
+
+Dua pembedaan yang mudah tertukar, dan keduanya dijaga tes:
+
+- **"Katalog menyatakan tidak tersedia"** bukan **"saya tidak tahu".** Produk yang punya daftar
+  ukuran tetapi tanpa ukuran yang ditanyakan sudah menjawab; produk yang daftar ukurannya kosong sama
+  sekali belum. Yang pertama `VERIFIED`, yang kedua `UNAVAILABLE`.
+- **Pertanyaan ketersediaan ukuran tanpa ukurannya ditolak**, tidak dibulatkan ke ukuran terdekat.
+  Menebak ukuran yang dimaksud berarti menjawab pertanyaan yang tidak diajukan.
+
+Seluruh jalur ini **tidak memanggil LLM sama sekali**. LLM merangkai kalimatnya memakai `ProductAnswer`
+sebagai satu-satunya bahan.
+
 ---
 
 ## 5. RAG — kriteria adopsi
@@ -230,6 +267,30 @@ interface KnowledgeRetriever {
 ```
 
 Sehingga mengadopsi Qdrant nanti berarti menambah implementasi, bukan merombak.
+
+Implementasi yang ada (`CatalogDocumentRetriever`) mencocokkan **judul** dokumen, karena hanya itu
+yang disimpan sistem ini: `product_documents` memuat judul, URL, dan halaman — tidak ada isi dokumen.
+Itu bukan kekurangan implementasi, itu keadaan korpusnya, dan sekaligus bukti langsung untuk kriteria
+#1 di atas. Satu batasan dibawa di tingkat kontrak: **hasil retrieval tidak pernah menjadi nilai
+spesifikasi**, hanya pernah menjadi tawaran "buka dokumen teknis". Ambang skor minimum ditegakkan
+walaupun pencocokannya sederhana — "kembalikan apa pun yang paling mirip" adalah perilaku baku yang
+paling sulit dicabut setelah ada yang bergantung padanya.
+
+### Cara mengukur kriteria #2
+
+Kriteria kedua berbunyi "**terukur** ≥ 10%", jadi ia butuh angka — bukan perasaan, karena perasaan
+cenderung membenarkan teknologi yang sedang ingin dipakai. Setiap pertanyaan yang tidak terjawab
+katalog menulis satu baris log terstruktur bernama `product_question.unanswered`, memuat **hanya**
+`productId`, `aspect`, `hasDocuments`, dan `catalogVersionId`.
+
+**Isi pertanyaan pengguna tidak pernah dicatat** (`docs/PRIVACY.md` §5). Untuk memutuskan ambang 10%,
+aspek sudah cukup; kalimat pengguna tidak menambah apa pun selain risiko — dan tidak ada yang perlu
+dihapus saat pengguna meminta datanya dihapus.
+
+`hasDocuments` yang ikut dicatat menjawab pertanyaan yang lebih berguna daripada rasionya: **aspek mana**
+yang paling sering kosong. Kalau jawabannya `pressure_class`, solusinya mengisi kolom — bukan
+meng-embed PDF. `catalogVersionId` ikut karena ia yang menjelaskan kenapa rasionya berubah: kolom yang
+terisi di versi berikutnya seharusnya menurunkan angkanya.
 
 ### Bila diadopsi
 

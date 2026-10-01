@@ -11,6 +11,7 @@ export type {
   FittingKind,
   PressureClass,
   Product,
+  ProductDocument,
   ProductMatchState,
   ProductStatus,
   SpecValue,
@@ -18,4 +19,14 @@ export type {
   VerifiedSpecValue,
 } from './catalog.js';
 export { specHasValue } from './catalog.js';
+export type {
+  AssistantCard,
+  AssistantCardKind,
+  ClarificationQuestion,
+  CriteriaItem,
+  KeyValue,
+  ProductCardDto,
+  SummaryField,
+} from './assistant-card.js';
+export { MAX_CLARIFICATION_QUESTIONS } from './assistant-card.js';
 export { ANALYSIS_STAGE_LABELS } from './sse.js';

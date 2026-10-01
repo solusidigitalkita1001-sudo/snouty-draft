@@ -15,7 +15,12 @@
  * bukan ditelan diam-diam di dalam adapter.
  */
 
-import type { CatalogVersion, CompatibleFitting, Product } from '@snouty/shared-types';
+import type {
+  CatalogVersion,
+  CompatibleFitting,
+  Product,
+  ProductDocument,
+} from '@snouty/shared-types';
 import {
   CATALOG_ACTIVE_VERSION_KEY,
   catalogProductKey,
@@ -86,6 +91,15 @@ export class CatalogQueryService {
   async findCompatibleFittings(productId: string): Promise<readonly CompatibleFitting[]> {
     await this.findProduct(productId);
     return this.repository.findCompatibleFittings(productId);
+  }
+
+  /**
+   * Keberadaan produk diperiksa lebih dulu, alasan yang sama dengan fitting sepadan:
+   * `product_documents` terikat versi lewat produknya, bukan lewat kolom versi.
+   */
+  async findProductDocuments(productId: string): Promise<readonly ProductDocument[]> {
+    await this.findProduct(productId);
+    return this.repository.findProductDocuments(productId);
   }
 
   private async readCache<T>(key: string): Promise<T | null> {

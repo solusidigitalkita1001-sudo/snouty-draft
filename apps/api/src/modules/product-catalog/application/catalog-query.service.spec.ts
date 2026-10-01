@@ -5,14 +5,16 @@
  * selalu terikat versi aktif, dan permintaan tetap berhasil saat Redis mati.
  */
 import { describe, expect, it } from 'vitest';
-import type { CatalogVersion, CompatibleFitting, Product } from '@snouty/shared-types';
+import type {
+  CatalogVersion,
+  CompatibleFitting,
+  Product,
+  ProductDocument,
+} from '@snouty/shared-types';
+import { FakeCatalogRepository } from '../../../../test/fakes/catalog-repository.fake.js';
 import type { CatalogCache } from '../domain/catalog-cache.port.js';
 import { CatalogUnavailableError, ProductNotFoundError } from '../domain/catalog.errors.js';
-import type {
-  CatalogRepository,
-  ProductListPage,
-  ProductListQuery,
-} from '../domain/catalog.repository.js';
+import type { ProductListPage, ProductListQuery } from '../domain/catalog.repository.js';
 import { CatalogQueryService } from './catalog-query.service.js';
 
 const ACTIVE_VERSION: CatalogVersion = {
@@ -47,43 +49,45 @@ const PRODUCT: Product = {
   imageUrl: null,
 };
 
-class FakeRepository implements CatalogRepository {
+class FakeRepository extends FakeCatalogRepository {
   readonly calls: string[] = [];
   lastListQuery: ProductListQuery | null = null;
 
   constructor(
     private readonly version: CatalogVersion | null,
     private readonly product: Product | null = PRODUCT,
-  ) {}
+  ) {
+    super();
+  }
 
-  async findActiveVersion(): Promise<CatalogVersion | null> {
+  override async findActiveVersion(): Promise<CatalogVersion | null> {
     this.calls.push('findActiveVersion');
     return this.version;
   }
 
-  async findVersionById(): Promise<CatalogVersion | null> {
+  override async findVersionById(): Promise<CatalogVersion | null> {
     return this.version;
   }
 
-  async listVersions(): Promise<readonly CatalogVersion[]> {
-    // Hanya back-office yang mendaftar versi; jalur publik tidak boleh melihat draft.
-    throw new Error('listVersions tidak dipakai jalur pembacaan publik');
-  }
-
-  async listProducts(query: ProductListQuery): Promise<ProductListPage> {
+  override async listProducts(query: ProductListQuery): Promise<ProductListPage> {
     this.calls.push('listProducts');
     this.lastListQuery = query;
     return { items: this.product === null ? [] : [this.product], nextCursor: null };
   }
 
-  async findProductById(): Promise<Product | null> {
+  override async findProductById(): Promise<Product | null> {
     this.calls.push('findProductById');
     return this.product;
   }
 
-  async findCompatibleFittings(): Promise<readonly CompatibleFitting[]> {
+  override async findCompatibleFittings(): Promise<readonly CompatibleFitting[]> {
     this.calls.push('findCompatibleFittings');
     return [{ productId: 'FITTING', name: 'Tee PVC AW', kind: 'tee' }];
+  }
+
+  override async findProductDocuments(): Promise<readonly ProductDocument[]> {
+    this.calls.push('findProductDocuments');
+    return [];
   }
 }
 

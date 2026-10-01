@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-01 · Current phase: **2 — Asisten pengetahuan produk** · Next item: **P2-01 modul `product-knowledge`**
+Last updated: 2026-10-01 · Current phase: **2 — Asisten pengetahuan produk** · **8/8 selesai; menunggu ✋ CHECKPOINT pemilik**
 
 ## Summary
 
@@ -150,6 +150,7 @@ menambah satu adapter — bukan merombak validasi, job, maupun layar.
 - [x] P1-05 Kontrak impor bebas format + validasi per baris — validator murni tanpa I/O; `rowHash` ikut dihitung di sini supaya P1-06 tidak perlu menurunkannya ulang
   - [x] P1-05a Tes: semua galat baris dilaporkan sekaligus, bukan satu per satu — **28 tes lolos**; kolom wajib yang hilang dilaporkan sekali, bukan sekali per baris
   - [ ] `[!]` P1-05b Adapter untuk format sebenarnya — **terhalang OQ-07**
+  - [ ] P1-05c Kolom dokumen & gambar pada kontrak impor — ketahuan di Fase 2: tanpa ini `product_documents` dan `product_images` tidak bisa terisi lewat impor, sehingga jalur jawaban "Lihat dokumen teknis" tidak pernah terpicu oleh data nyata. Tidak terhalang apa pun.
 - [ ] P1-06 Job `catalog.ingest` (RabbitMQ, idempoten per `catalogVersionId + rowHash`, DLQ) — **inti selesai, transport tertunda**
   - [x] P1-06 inti: migration 0001 (`products.row_hash` + `catalog_import_runs`), `CatalogIngestService`, `MysqlCatalogWriter` — idempotensi berlapis tiga, lapisan terdalamnya `uq_products_version_row_hash`
   - [x] P1-06a Tes: impor yang sama dua kali menghasilkan satu versi — **72 tes lolos**; migration 24 pemeriksaan
@@ -186,22 +187,26 @@ dan chat baru ada di Fase 3–4. Jadi Fase 2 menghasilkan service yang matang da
 "tanya jawab produk yang jujur" di `docs/ROADMAP.md` §4 baru bisa didemokan setelah Fase 4. Ini
 bukan penundaan; urutan di roadmap memang begitu.
 
-- [ ] P2-01 Modul `product-knowledge` + arah dependensi — membaca katalog lewat port yang diekspor `product-catalog`, tidak pernah MySQL langsung
-  - [ ] P2-01a Tes: pagar lint menolak impor MySQL dari modul ini
-- [ ] P2-02 Kosakata `ProductAspect` + pemetaan deterministik ke data katalog
-  - [ ] P2-02a Tes: setiap aspek punya jalur data; tidak ada aspek yang jatuh ke LLM
-- [ ] P2-03 Perakitan jawaban produk dengan provenance — kolom kosong → "Lihat dokumen teknis"
-  - [ ] P2-03a Tes: kolom kosong tidak pernah ditambal hasil pencarian dokumen
-- [ ] P2-04 Jawaban "data belum cukup" + tawaran tim teknis
-  - [ ] P2-04a Tes: tidak ada jalur yang mengembalikan angka tanpa sumber
-- [ ] P2-05 `AssistantCard` union tertutup + `ProductCardDto` di `packages/shared-types`
-  - [ ] P2-05a Tes: tidak ada varian kartu yang menerima HTML atau markdown bebas
-- [ ] P2-06 Port `KnowledgeRetriever` + implementasi MySQL atas `product_documents`
-  - [ ] P2-06a Tes: setiap potongan membawa dokumen + halaman; di bawah ambang → "data belum cukup"
-- [ ] P2-07 Logger terstruktur + penghitung pertanyaan tak terjawab — membuat kriteria adopsi RAG #2 **terukur**, bukan perkiraan
-  - [ ] P2-07a Tes: log tidak pernah memuat isi pertanyaan pengguna (`docs/PRIVACY.md`)
-- [ ] P2-08 `docs/PRODUCT_KNOWLEDGE.md` §4–§5 diperbarui + keputusan "Qdrant belum diadopsi" dicatat beserta cara mengukurnya
+- [x] P2-01 Modul `product-knowledge` + arah dependensi — **nol impor MySQL**; dokumen produk pun dibaca lewat port baca katalog
+  - [x] P2-01a Tes: pagar lint menolak impor MySQL dari modul ini — diverifikasi dengan menjalankan eslint terhadap berkas yang sengaja melanggar, bukan dengan membaca konfigurasinya
+- [x] P2-02 Kosakata `ProductAspect` + pemetaan deterministik ke data katalog — sembilan aspek; enam di antaranya bernama persis seperti `spec_key`-nya
+  - [x] P2-02a Tes: setiap aspek punya jalur data; tidak ada aspek yang jatuh ke LLM — kelengkapan peta diperiksa dua arah, jadi aspek yang dihapus pun ketahuan
+- [x] P2-03 Perakitan jawaban produk dengan provenance — empat jalur jawaban, **nol panggilan LLM**
+  - [x] P2-03a Tes: kolom kosong tidak pernah ditambal hasil pencarian dokumen — termasuk kasus dokumen berjudul "Tekanan kerja 10 bar", godaan paling langsungnya
+- [x] P2-04 Jawaban "data belum cukup" + tawaran tim teknis — dibedakan tegas dari "Lihat dokumen teknis"
+  - [x] P2-04a Tes: tidak ada jalur yang mengembalikan angka tanpa sumber — kedelapan aspek diperiksa membawa provenance, dokumen, dan halaman
+- [x] P2-05 `AssistantCard` union tertutup + `ProductCardDto` di `packages/shared-types`
+  - [x] P2-05a Tes: tidak ada varian kartu yang menerima HTML atau markdown bebas — enam tes berjalan saat **kompilasi** lewat `@ts-expect-error`
+- [x] P2-06 Port `KnowledgeRetriever` + implementasi di atas data katalog
+  - [x] P2-06a Tes: setiap potongan membawa dokumen + halaman; di bawah ambang → tidak ada potongan sama sekali
+- [x] P2-07 Logger terstruktur + penghitung pertanyaan tak terjawab — kriteria adopsi RAG #2 kini **terukur**
+  - [x] P2-07a Tes: log tidak pernah memuat isi pertanyaan pengguna — daftar field tertutup, diuji dari keluaran log sungguhan
+- [x] P2-08 `docs/PRODUCT_KNOWLEDGE.md` §4–§5 diperbarui + keputusan "Qdrant belum diadopsi" dicatat beserta cara mengukurnya
 - [ ] ✋ CHECKPOINT — reviewed by owner
+
+**Qdrant tetap tidak diadopsi.** Ketiga kriteria di `docs/PRODUCT_KNOWLEDGE.md` §5 belum terpenuhi, dan
+yang pertama terbukti langsung dari kode: sistem ini belum menyimpan isi dokumen sama sekali —
+`product_documents` memuat judul, URL, dan halaman. Tidak ada korpus untuk di-embed.
 
 ## Phases 3–13
 
@@ -281,3 +286,4 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | 2026-10-01 | P1-09, P1-09a                     | 2/2 selesai                                | `phase-1/P1-01-catalog-foundation` | Provenance spesifikasi sebelumnya disusun di tiga tempat terpisah dengan salinan aturan yang sama; kini satu konstruktor, dan tipenya menolak `UNAVAILABLE` yang membawa nilai maupun fakta produk bertanda `ASSUMED`. 155 tes `@snouty/api` lolos. Jalur "nilai dari dokumen teknis" ditutup sekaligus: sitasi tidak lengkap menurunkan nilainya menjadi `UNAVAILABLE`, bukan menampilkannya tanpa sumber. `apps/api/vitest.config.ts` kini mengarahkan `@snouty/shared-types` ke sumbernya supaya `dist` usang tidak lagi menggagalkan tes dengan pesan menyesatkan.                                                                                                                                                                   |
 | 2026-10-01 | P1-10 (API), P1-10a, P1-11, P1-12 | Fase 1 10/12; sisanya terhalang OQ         | `phase-1/P1-01-catalog-foundation` | Rute `/internal/catalog/*` dengan guard yang **gagal tertutup** — tanpa modul `auth`, seluruhnya menjawab `401`, dan itu keadaan yang benar. Katalog contoh disemai lewat jalur impor sungguhan; skripnya menolak host bersama dan menolak berjalan tanpa `SEED_SAMPLE_CATALOG=1`. 173 tes `@snouty/api` dan 24 pemeriksaan migration lolos. Dua temuan: berkas `*.spec.ts` dikecualikan `tsconfig.json` sehingga oxc tidak tahu dekorator diizinkan (struktur tsconfig dirapikan: `tsconfig.json` mencakup tes, `tsconfig.build.json` yang memancarkan); dan kunci cache katalog tidak memuat nama database, jadi satu Redis untuk dua database pengembangan menyajikan katalog yang salah — skrip semai kini membuang cache sungguhan. |
 | 2026-10-01 | Checkpoint Fase 1                 | disetujui ("gass")                         | —                                  | Fase 1 10/12. Empat item tertunda semuanya menunggu jawaban OQ, bukan menunggu kode. Fase 2 dipecah menjadi 8 item.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| 2026-10-01 | P2-01 … P2-08                     | 8/8 selesai                                | `phase-1/P1-01-catalog-foundation` | Modul `product-knowledge` tanpa satu pun impor MySQL (pagar lint diverifikasi dengan berkas yang sengaja melanggar). 231 tes lolos: 210 `@snouty/api` + 21 `shared-types`. Diuji terhadap aplikasi yang berjalan memakai katalog contoh: kedelapan aspek dijawab benar, `pressure_class` mengembalikan `unavailable` beserta dokumen yang ditawarkan **tanpa** field nilai, dan retrieval mengembalikan 0 potongan di bawah ambang alih-alih memaksakan yang paling mirip. Ketahuan satu celah nyata: kontrak impor belum membawa dokumen/gambar, dicatat sebagai **P1-05c**.                                                                                                                                                            |
