@@ -1,0 +1,13 @@
+{
+  // Satu-satunya konfigurasi yang memancarkan berkas. Tes tidak ikut ke `dist`:
+  // ia tidak dijalankan di produksi, dan menyertakannya berarti mengirim fixture
+  // ke server.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.spec.ts"]
+}

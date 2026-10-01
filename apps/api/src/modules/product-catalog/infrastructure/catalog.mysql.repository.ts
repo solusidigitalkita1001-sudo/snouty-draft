@@ -10,7 +10,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, gt, inArray, like, or, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, like, or, type SQL } from 'drizzle-orm';
 import type { CatalogVersion, CompatibleFitting, Product } from '@snouty/shared-types';
 import {
   catalogVersions,
@@ -38,6 +38,8 @@ import {
 
 const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 100;
+/** Versi katalog terbit beberapa kali setahun; 50 sudah jauh di atas kenyataan. */
+const MAX_VERSIONS = 50;
 
 /** Kolom yang dibaca; dieja agar `SELECT *` tidak diam-diam menarik kolom baru. */
 const PRODUCT_COLUMNS = {
@@ -89,6 +91,16 @@ export class MysqlCatalogRepository implements CatalogRepository {
       .limit(1);
     const row = rows[0];
     return row === undefined ? null : toCatalogVersion(row);
+  }
+
+  async listVersions(limit = MAX_VERSIONS): Promise<readonly CatalogVersion[]> {
+    const rows = await this.database.db
+      .select(VERSION_COLUMNS)
+      .from(catalogVersions)
+      .orderBy(desc(catalogVersions.effectiveFrom))
+      .limit(Math.min(Math.max(limit, 1), MAX_VERSIONS));
+
+    return rows.map(toCatalogVersion);
   }
 
   /**

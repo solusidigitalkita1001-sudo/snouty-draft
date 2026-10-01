@@ -1,11 +1,17 @@
 {
+  // Satu konfigurasi yang dilihat SEMUA pembaca: tsc, editor, dan transform
+  // vite/oxc di dalam vitest. Berkas `*.spec.ts` ikut di sini — sebelumnya mereka
+  // dikecualikan, dan akibatnya oxc tidak tahu dekorator diizinkan, sehingga satu
+  // `@Decorator` di dalam spec gagal diurai dengan pesan yang tidak menyinggung
+  // dekorator sama sekali ("Invalid or unexpected token").
+  //
+  // Pengecualian untuk build ada di tsconfig.build.json, yang memang satu-satunya
+  // tempat `dist` dibentuk.
   "extends": "../../packages/config/tsconfig/node.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
-    "noEmit": false,
+    "noEmit": true,
+    "rootDir": ".",
     "types": ["node"]
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.spec.ts"]
+  "include": ["src", "test"]
 }

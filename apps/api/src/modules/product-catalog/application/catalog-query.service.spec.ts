@@ -65,6 +65,11 @@ class FakeRepository implements CatalogRepository {
     return this.version;
   }
 
+  async listVersions(): Promise<readonly CatalogVersion[]> {
+    // Hanya back-office yang mendaftar versi; jalur publik tidak boleh melihat draft.
+    throw new Error('listVersions tidak dipakai jalur pembacaan publik');
+  }
+
   async listProducts(query: ProductListQuery): Promise<ProductListPage> {
     this.calls.push('listProducts');
     this.lastListQuery = query;

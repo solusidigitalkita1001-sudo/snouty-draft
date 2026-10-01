@@ -1,8 +1,11 @@
 # SNOUTY — Pengetahuan Produk
 
-Fase 0c · P0c-03 · Terakhir diperbarui 2026-09-30
+Fase 0c · P0c-03 · Disesuaikan dengan implementasi Fase 1 pada P1-12 · Terakhir diperbarui 2026-10-01
 
 Dari mana fakta produk berasal, bagaimana ia masuk, dan bagaimana ia dijawab. Sumbernya SPEC §9, §10.
+
+Bagian yang menyebut nama berkas atau nama constraint sudah **terlaksana**; yang masih menunggu
+jawaban ditandai nomor OQ-nya di tempatnya masing-masing.
 
 ---
 
@@ -61,17 +64,37 @@ kosong.
 
 ### Tabel pendamping
 
-| Tabel                   | Isi                                                         |
-| ----------------------- | ----------------------------------------------------------- |
-| `product_sizes`         | `PipeSize` kanonik + ketersediaan                           |
-| `product_specs`         | pasangan kunci-nilai tambahan dengan provenance sendiri     |
-| `product_compatibility` | pipa ↔ fitting sepadan — sumber blok "FITTING YANG SEPADAN" |
-| `product_documents`     | tautan datasheet / dokumen teknis                           |
-| `product_images`        | foto produk 1:1                                             |
+| Tabel                   | Isi                                                          |
+| ----------------------- | ------------------------------------------------------------ |
+| `product_sizes`         | `PipeSize` kanonik + ketersediaan                            |
+| `product_specs`         | pasangan kunci-nilai tambahan dengan provenance sendiri      |
+| `product_compatibility` | pipa ↔ fitting sepadan — sumber blok "FITTING YANG SEPADAN"  |
+| `product_documents`     | tautan datasheet / dokumen teknis                            |
+| `product_images`        | foto produk 1:1                                              |
+| `catalog_import_runs`   | satu kali upaya impor: status, hitungan baris, laporan galat |
 
 `product_compatibility` penting: daftar fitting di drawer produk berasal dari tabel ini, **bukan**
-dari tebakan model. Salah satu janji produk adalah "satu ekosistem fitting mengurangi risiko
-sambungan bocor" — janji itu hanya bermakna bila kompatibilitasnya data, bukan karangan.
+dari tebakan model. Janji produk "satu ekosistem fitting mengurangi risiko sambungan bocor" hanya
+bermakna bila kompatibilitasnya data, bukan karangan.
+
+### Jaminan yang dipegang database, bukan kode
+
+Enam aturan di dokumen ini ditegakkan oleh constraint, sehingga kode yang lupa memeriksanya tetap
+tidak bisa melanggarnya. Ini bukan sabuk-dan-bretel: constraint-lah pemeriksanya, dan kode hanya
+kenyamanan.
+
+| Jaminan                                         | Ditegakkan oleh                                           |
+| ----------------------------------------------- | --------------------------------------------------------- |
+| Tepat satu versi `active`                       | kolom terbangkitkan + `uq_catalog_versions_single_active` |
+| `sku` unik dalam satu versi                     | `uq_products_version_sku`                                 |
+| Satu baris impor tidak bisa masuk dua kali      | `uq_products_version_row_hash`                            |
+| Spesifikasi hanya `VERIFIED` atau `UNAVAILABLE` | `ck_product_specs_provenance` (invarian C-1)              |
+| Nilai kosong tidak bisa mengaku `VERIFIED`      | `ck_product_specs_empty_is_unavailable`                   |
+| `source_page` selalu bilangan positif           | `ck_products_source_page`                                 |
+
+`products.row_hash` adalah sidik jari baris impor yang melahirkan produk itu. Ia ada demi idempotensi
+job: memproses ulang pesan yang sama — hal yang pasti terjadi pada antrean dengan retry — tidak bisa
+menduplikasi produk.
 
 ### Ukuran pipa
 
@@ -94,6 +117,38 @@ unggah berkas ──► parse ──► validasi baris ──► draft CatalogVe
 Berjalan sebagai job RabbitMQ (`catalog.ingest`), idempoten dengan kunci
 `catalogVersionId + rowHash`, sehingga menjalankan ulang impor yang setengah jadi aman.
 
+### Kontrak bebas format
+
+Yang dibekukan adalah bentuk **sesudah** parsing, bukan bentuk berkasnya
+(`product-catalog/domain/catalog-import.contract.ts`). Satu adapter mengubah sumber apa pun —
+Excel, CSV, ekspor ERP — menjadi `CatalogImportSource`; validasi, job, dan layar back-office
+tidak pernah tahu formatnya.
+
+| Bagian                    | Isi                                                                               |
+| ------------------------- | --------------------------------------------------------------------------------- |
+| `label`, `sourceDocument` | metadata versi yang akan dibuat                                                   |
+| `columns`                 | kolom yang benar-benar ada — supaya kolom wajib yang hilang dilaporkan **sekali** |
+| `rows`                    | sel mentah per baris, `string` atau daftar `string`                               |
+
+Nilai jamak dalam satu sel dipisah `;` atau baris baru; rujukan fitting ditulis `SKU:jenis`
+(`DEV-FIT-TEE:tee`). Adapter yang sudah punya daftar boleh mengirimnya apa adanya, jadi konvensi
+pemisah hanya berlaku untuk sumber tabular. Konvensi ini usulan, bukan keputusan final — **OQ-39**.
+
+Adapter untuk format Pralon yang sebenarnya **belum ada**: ia menunggu **OQ-07**.
+
+### Idempotensi berlapis tiga
+
+Dari luar ke dalam, dan lapisan terdalam yang menentukan karena dua lapisan pertama adalah kode:
+
+1. Run yang sudah `ingested` mengembalikan hasil tersimpannya tanpa menyentuh database.
+2. Versi draft yang sudah tertaut pada run dipakai ulang — ini yang menyelamatkan proses yang mati
+   di tengah jalan.
+3. Penyisipan baris dikunci `uq_products_version_row_hash`.
+
+`catalog_import_runs` ada karena idempotensi membutuhkan identitas yang terbit **sebelum**
+pekerjaannya dimulai: kunci barisnya `catalogVersionId + rowHash`, tetapi versi katalognya sendiri
+baru dibuat setelah validasi lolos.
+
 Aturan validasi:
 
 |                                                                               |     |
@@ -106,9 +161,29 @@ Aturan validasi:
 | **Baris gagal tidak memblokir baris lain** — semua galat dilaporkan sekaligus |     |
 
 Poin terakhir berdasarkan pengalaman umum impor: memperbaiki 40 galat satu per satu, masing-masing
-menunggu satu putaran impor, adalah cara tercepat membuat admin menyerah.
+menunggu satu putaran impor, adalah cara tercepat membuat admin menyerah. Dua rinciannya yang
+menentukan apakah laporannya benar-benar bisa dipakai:
+
+- **Kolom wajib yang hilang dilaporkan sekali** untuk seluruh berkas (`rowNumber: 0`), bukan sekali
+  per baris. Lima ratus salinan galat yang sama menenggelamkan masalah sesungguhnya.
+- **SKU ganda dibandingkan tanpa membedakan huruf besar-kecil**, karena collation baku MySQL juga
+  begitu. Membedakannya di sini akan memindahkan kegagalan ke `uq_products_version_sku` saat job
+  berjalan — jauh dari admin yang bisa memperbaikinya.
+
+**Seluruhnya atau tidak sama sekali.** Versi `draft` hanya dibuat bila jumlah galatnya nol: versi
+setengah terisi tetap _terlihat_ lengkap di layar promosi, dan admin yang mempromosikannya akan
+mengirim katalog berlubang ke pengguna. Ini usulan default, bukan keputusan final — **OQ-38**, karena
+diagram di atas dan `CatalogImportResult` semula menyiratkan dua model berbeda.
 
 Sumber katalog sebenarnya belum ditentukan (OQ-07); default yang diusulkan adalah Excel/CSV.
+
+### Katalog contoh untuk pengembangan
+
+`pnpm --filter @snouty/api seed:sample` menyemai katalog **karangan** — setiap SKU berawalan `DEV-`,
+setiap nama berawalan "CONTOH", dan `source_document` menyatakannya dengan huruf besar. Ia disemai
+lewat jalur impor yang sungguhan, jadi contohnya tidak bisa menyimpang dari apa yang dihasilkan
+importer nyata. Dua pagar menolak secara baku: `SEED_SAMPLE_CATALOG=1` wajib diset, dan skripnya
+menolak host `192.168.1.136`.
 
 ---
 
@@ -185,6 +260,25 @@ Tidak ada jalur yang menghasilkan nilai teknik produk bertanda `ASSUMED`. Asumsi
 kerja pipanya; kalau datanya belum ada di sistem, itu kekurangan data, bukan sesuatu yang boleh
 diperkirakan.
 
+### Satu tempat, dan tipe yang menolak bentuk lain
+
+Seluruh tabel di atas dijalankan oleh satu berkas: `product-catalog/domain/spec-value.ts`. Sebelumnya
+aturannya tersebar di tiga tempat — validator impor, mapper pembacaan, dan constraint database —
+masing-masing dengan salinannya sendiri. Tiga salinan satu aturan bukan tiga lapis pertahanan,
+melainkan tiga kesempatan untuk menyimpang.
+
+`SpecValue` adalah union terdiskriminasi, bukan satu interface dengan dua field bebas, sehingga dua
+hal menjadi **galat kompilasi** alih-alih sesuatu yang harus diingat:
+
+- `{ value: 'mungkin 10 bar', provenance: 'UNAVAILABLE' }` tidak bisa ditulis (invarian P-2).
+- `provenance: 'ASSUMED'` pada fakta produk tidak bisa ditulis (invarian C-1).
+
+Nilai dari dokumen teknis **wajib** membawa dokumen dan nomor halaman. Sitasi yang tidak lengkap
+menurunkan nilainya menjadi `UNAVAILABLE`, bukan menampilkannya tanpa sumber — UI merender
+"Sumber: <dokumen> hal. N", jadi sitasi setengah memang tidak bisa dirender. Arahnya selalu
+konservatif: ragu → `UNAVAILABLE`. Kolom kosong akan ditanyakan ke tim teknis; kolom yang salah
+terisi akan dipakai menghitung.
+
 ---
 
 ## 7. Cache
@@ -197,15 +291,32 @@ diperkirakan.
 Katalog berubah jarang dan dibaca sangat sering — rasio yang ideal untuk cache. Invalidasi dipicu
 peristiwa promosi versi, bukan hanya menunggu TTL, agar katalog baru langsung terlihat.
 
+Tiga rincian implementasinya:
+
+- **`SCAN`, bukan `KEYS`.** Redis mengerjakan perintah satu per satu di satu utas, dan
+  `KEYS snouty:cache:product:*` memindai seluruh keyspace dalam satu perintah yang tidak bisa
+  diselak. Pada instans yang juga memegang sesi dan rate limit, itu berarti seluruh aplikasi menunggu.
+- **Cache dibuang setelah transaksi commit, bukan sebelumnya.** Membuangnya lebih dulu membuka jendela
+  di mana pembaca lain mengisi ulang cache dari versi lama yang masih aktif, dan isian itu bertahan
+  satu jam penuh. Urutan ini tidak menutup jendelanya sepenuhnya — pembaca yang sudah memegang data
+  lama tepat sebelum commit masih bisa menulisnya — dan yang membatasi dampaknya adalah TTL.
+- **Daftar produk tidak di-cache per kombinasi filter.** Kuncinya akan menjadi hasil kali setiap
+  filter, dan invalidasinya harus menebak kombinasi mana yang pernah ada.
+
+Kegagalan Redis **tidak** menjatuhkan permintaan: cache yang tidak terjangkau diperlakukan sama
+dengan cache yang kosong, karena MySQL tetap punya jawabannya (SPEC §18).
+
 ---
 
 ## 8. Yang tidak boleh terjadi
 
-|                                               | Ditegakkan oleh                                       |
-| --------------------------------------------- | ----------------------------------------------------- |
-| Produk kompetitor menjadi record atau kartu   | filter katalog di perakitan respons (release blocker) |
-| Spesifikasi kosong diisi tebakan              | invarian C-1, tes komponen                            |
-| Nama produk atau SKU dikarang LLM             | matcher hanya memilih dari katalog                    |
-| Jawaban berbasis dokumen tanpa sitasi         | pemeriksaan di perakitan respons                      |
-| Produk tanpa `sourceDocument`/`sourcePage`    | validasi impor                                        |
-| Pencarian vektor untuk pertanyaan terstruktur | intent router                                         |
+|                                               | Ditegakkan oleh                                              |
+| --------------------------------------------- | ------------------------------------------------------------ |
+| Produk kompetitor menjadi record atau kartu   | filter katalog di perakitan respons (release blocker)        |
+| Spesifikasi kosong diisi tebakan              | tipe `SpecValue` + `ck_product_specs_provenance` (C-1)       |
+| Nama produk atau SKU dikarang LLM             | matcher hanya memilih dari katalog                           |
+| Jawaban berbasis dokumen tanpa sitasi         | `specFromTechnicalDocument` menurunkannya ke `UNAVAILABLE`   |
+| Produk tanpa `sourceDocument`/`sourcePage`    | validasi impor + `ck_products_source_page`                   |
+| Pencarian vektor untuk pertanyaan terstruktur | intent router                                                |
+| Versi `draft` terbaca jalur publik            | pembacaan selalu terikat versi aktif (`CatalogQueryService`) |
+| Katalog ditulis dari luar modul ini           | `CATALOG_WRITER` tidak diekspor `ProductCatalogModule`       |

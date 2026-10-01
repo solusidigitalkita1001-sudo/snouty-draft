@@ -52,6 +52,15 @@ export interface CatalogRepository {
 
   findVersionById(catalogVersionId: string): Promise<CatalogVersion | null>;
 
+  /**
+   * Seluruh versi, terbaru lebih dulu — sumber layar pratinjau dan promosi.
+   *
+   * Tanpa paginasi, dan itu memang cukup: versi katalog terbit beberapa kali
+   * setahun, bukan beberapa kali sehari. Batas atas tetap ada supaya satu query
+   * tidak bisa tumbuh tanpa batas kalau suatu hari asumsi itu salah.
+   */
+  listVersions(limit?: number): Promise<readonly CatalogVersion[]>;
+
   listProducts(query: ProductListQuery): Promise<ProductListPage>;
 
   findProductById(catalogVersionId: string, productId: string): Promise<Product | null>;
