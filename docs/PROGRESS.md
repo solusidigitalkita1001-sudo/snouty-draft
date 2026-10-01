@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-01 · Current phase: **3 — Auth, sesi, percakapan, onboarding** · Fase 1 **11/12** · Fase 2 **8/8**
+Last updated: 2026-10-01 · Current phase: **3 — Auth, sesi, percakapan, onboarding** · Next item: **P3-01 skema identity**
 
 ## Summary
 
@@ -210,11 +210,50 @@ yang pertama terbukti langsung dari kode: sistem ini belum menyimpan isi dokumen
 
 ## Phase 3 — Auth, sesi tamu, percakapan, onboarding, consent, peran
 
-Dipecah saat fase dimulai. Yang sudah pasti menjadi bagiannya, karena sudah ada yang menunggunya:
+Empat modul: `auth`, `users`, `onboarding-consent` (konteks identity), dan `conversation`
+(`docs/ARCHITECTURE.md` §6). Layar terkait: **01** (welcome), **14** (onboarding), serta
+login/register.
 
-- Modul `auth` mengisi `internalActor` pada request, sehingga `/internal/catalog/*` berhenti menjawab
-  `401` (lihat P1-10a — guard-nya sengaja gagal tertutup).
-- Keputusan entitlement tamu menyentuh **OQ-15**.
+Fase ini yang pertama kali menghasilkan **layar sungguhan** — sampai sekarang yang ada hanya
+`/` dan `/tokens`. Ia juga yang melepas satu hal yang sengaja saya tinggalkan tertutup: guard
+`/internal/*` menjawab `401` untuk semua orang karena belum ada yang mengisi `internalActor`
+(lihat P1-10a). P3-07 yang mengisinya.
+
+**Yang terhalang desain:** layar login/register dan halaman privasi/ketentuan menunggu **OQ-21**
+dan **OQ-12**; register-gate menunggu **OQ-27**. Logika di baliknya tidak terhalang — API dan
+use case bisa selesai lebih dulu, dan itu urutan yang benar karena layar yang dibangun di atas
+API yang belum ada akan dibongkar lagi.
+
+**Dua keputusan produk yang akan menghadang, dan keduanya bukan milik saya:** tingkat pengguna
+`registered` vs `advanced` (**OQ-05** — untuk MVP keduanya setara), dan entitlement tamu
+(**OQ-15**, yang menggerbangi Fase 5 dan 10). Fase 3 tidak perlu menjawabnya; ia hanya tidak boleh
+memutuskannya diam-diam.
+
+- [ ] P3-01 Migration 0003: `users`, `user_roles`, `refresh_tokens`, `guest_sessions`, `consents`
+  - [ ] P3-01a Tes: migration naik/turun + setiap constraint, di kontainer MySQL sekali pakai
+- [ ] P3-02 Hash password Argon2id — port + implementasi
+  - [ ] P3-02a Tes: password tidak pernah dicatat maupun dikembalikan; hash berbeda untuk password sama
+- [ ] P3-03 Token: access JWT pendek + refresh dengan **rotasi** dan deteksi pemakaian ulang
+  - [ ] P3-03a Tes: refresh token lama yang dipakai lagi mencabut **seluruh rantai**, bukan satu token
+- [ ] P3-04 Sesi tamu — cookie `httpOnly`, ULID, TTL dari config
+  - [ ] P3-04a Tes: sesi tamu terbentuk pada permintaan pertama tanpa diminta
+- [ ] P3-05 Register / login / logout / refresh sebagai use case
+  - [ ] P3-05a Tes: logout mencabut di sisi server, bukan hanya menghapus cookie
+- [ ] P3-06 Penautan tamu → akun dalam **satu transaksi** — invarian G-1
+  - [ ] P3-06a Tes: seluruh percakapan dan snapshot berpindah tanpa kehilangan satu pun; kegagalan di tengah tidak meninggalkan percakapan tanpa pemilik
+- [ ] P3-07 `users` + peran internal; `internalActor` terisi sehingga `/internal/*` berhenti menjawab `401`
+  - [ ] P3-07a Tes: peran tidak diwariskan — `admin` tetap ditolak rute `catalog_admin`
+- [ ] P3-08 Consent sebagai baris database dengan `policyVersion`; pencabutan mengisi `revokedAt`
+  - [ ] P3-08a Tes: baris consent tidak pernah dihapus; penolakan tidak menghalangi alur
+- [ ] P3-09 Onboarding state dari **server** (`done` \| `guest` \| `skip` \| `pending`) + manfaat dibangkitkan dari `ENTITLEMENTS`
+  - [ ] P3-09a Tes: daftar manfaat diturunkan dari tabel entitlement, bukan ditulis tangan
+- [ ] P3-10 Migration 0004 + modul `conversation`: percakapan, pesan, status, judul
+  - [ ] P3-10a Tes: status hanya dari enum; daftar riwayat terurut `updated_at DESC`
+- [ ] P3-11 API auth / sesi / consent / onboarding / percakapan + guard autentikasi
+  - [ ] P3-11a Tes: tamu tidak bisa menyentuh kapabilitas khusus terdaftar lewat API meski UI dilewati
+- [ ] P3-12 Layar 01 welcome + 14 onboarding + login/register `[perlu desain — OQ-21, OQ-12, OQ-27]`
+- [ ] P3-13 `docs/SECURITY.md` §3, `docs/PRIVACY.md` §3, dan `docs/API_CONTRACTS.md` disesuaikan implementasi
+- [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phases 4–13
 
