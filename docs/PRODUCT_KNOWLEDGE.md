@@ -130,9 +130,14 @@ tidak pernah tahu formatnya.
 | `columns`                 | kolom yang benar-benar ada — supaya kolom wajib yang hilang dilaporkan **sekali** |
 | `rows`                    | sel mentah per baris, `string` atau daftar `string`                               |
 
-Nilai jamak dalam satu sel dipisah `;` atau baris baru; rujukan fitting ditulis `SKU:jenis`
-(`DEV-FIT-TEE:tee`). Adapter yang sudah punya daftar boleh mengirimnya apa adanya, jadi konvensi
-pemisah hanya berlaku untuk sumber tabular. Konvensi ini usulan, bukan keputusan final — **OQ-39**.
+Nilai jamak dalam satu sel dipisah `;` atau baris baru. Rujukan fitting ditulis `SKU:jenis`
+(`DEV-FIT-TEE:tee`); dokumen teknis `Judul|URL|halaman` dengan halaman opsional; gambar cukup URL-nya,
+dan urutan penulisannya menjadi urutan tampil. Adapter yang sudah punya daftar boleh mengirimnya apa
+adanya, jadi konvensi pemisah hanya berlaku untuk sumber tabular. Konvensi ini usulan, bukan keputusan
+final — **OQ-39**.
+
+Halaman dokumen boleh kosong — tidak setiap dokumen dirujuk per halaman. Halaman yang **disebut**
+tetapi tidak masuk akal ditolak: rujukan halaman adalah janji bahwa isinya bisa dicek di sana.
 
 Adapter untuk format Pralon yang sebenarnya **belum ada**: ia menunggu **OQ-07**.
 

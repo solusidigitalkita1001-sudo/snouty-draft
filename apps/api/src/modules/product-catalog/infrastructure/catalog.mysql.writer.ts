@@ -21,6 +21,8 @@ import {
   catalogImportRuns,
   catalogVersions,
   productCompatibility,
+  productDocuments,
+  productImages,
   products,
   productSizes,
   productSpecs,
@@ -173,6 +175,30 @@ export class MysqlCatalogWriter implements CatalogWriter {
         })),
       );
       for (const batch of chunk(specValues)) await tx.insert(productSpecs).values(batch);
+
+      const documentValues = fresh.flatMap((row) =>
+        row.documents.map((document) => ({
+          id: ulid(),
+          productId: idByRow.get(row.rowHash)!,
+          title: document.title,
+          url: document.url,
+          page: document.page,
+        })),
+      );
+      for (const batch of chunk(documentValues)) await tx.insert(productDocuments).values(batch);
+
+      // Urutan penulisan di sel menjadi `sort_order`. Tidak ada kolom nomor urut
+      // terpisah di kontrak impor: dua sumber urutan akan bertentangan, dan yang
+      // menang adalah yang kebetulan dibaca terakhir.
+      const imageValues = fresh.flatMap((row) =>
+        row.images.map((url, index) => ({
+          id: ulid(),
+          productId: idByRow.get(row.rowHash)!,
+          url,
+          sortOrder: index,
+        })),
+      );
+      for (const batch of chunk(imageValues)) await tx.insert(productImages).values(batch);
 
       // Kompatibilitas ditulis setelah SELURUH produk ada — termasuk produk dari
       // percobaan sebelumnya — karena rujukannya bisa menunjuk baris mana pun.

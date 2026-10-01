@@ -293,6 +293,103 @@ describe('validateCatalogImport — status, gambar, kompatibilitas', () => {
   });
 });
 
+describe('validateCatalogImport — dokumen teknis dan gambar (P1-05c)', () => {
+  it('mengurai dokumen lengkap dengan judul, URL, dan halaman', () => {
+    const result = validateCatalogImport(
+      source([
+        validRow({
+          documents: 'Datasheet PVC AW|https://pralon.example/aw.pdf|7',
+        }),
+      ]),
+    );
+
+    expect(result.issues).toEqual([]);
+    expect(result.rows[0]?.documents).toEqual([
+      { title: 'Datasheet PVC AW', url: 'https://pralon.example/aw.pdf', page: 7 },
+    ]);
+  });
+
+  it('menerima dokumen tanpa halaman — tidak setiap dokumen dirujuk per halaman', () => {
+    const result = validateCatalogImport(
+      source([validRow({ documents: 'Brosur umum|https://pralon.example/brosur.pdf' })]),
+    );
+
+    expect(result.rows[0]?.documents).toEqual([
+      { title: 'Brosur umum', url: 'https://pralon.example/brosur.pdf', page: null },
+    ]);
+  });
+
+  it('menolak halaman yang DISEBUT tetapi tidak masuk akal', () => {
+    // Halaman kosong sah; halaman nol adalah janji yang tidak bisa ditepati.
+    const result = validateCatalogImport(
+      source([validRow({ documents: 'Datasheet|https://pralon.example/a.pdf|0' })]),
+    );
+
+    expect(marks(result)).toEqual(['2:documents']);
+  });
+
+  it('menolak dokumen tanpa judul — tombol tanpa teks tidak bisa dirender', () => {
+    const result = validateCatalogImport(
+      source([validRow({ documents: '|https://pralon.example/a.pdf|7' })]),
+    );
+
+    expect(marks(result)).toEqual(['2:documents']);
+  });
+
+  it('menolak URL dokumen dengan skema yang tidak aman dirender', () => {
+    const result = validateCatalogImport(
+      source([validRow({ documents: 'Datasheet|javascript:alert(1)|7' })]),
+    );
+
+    expect(marks(result)).toEqual(['2:documents']);
+    expect(result.issues[0]?.message).toContain('javascript:alert(1)');
+  });
+
+  it('menolak bentuk yang tidak memuat URL sama sekali', () => {
+    const result = validateCatalogImport(source([validRow({ documents: 'Cuma judul' })]));
+
+    expect(marks(result)).toEqual(['2:documents']);
+  });
+
+  it('mengurai beberapa dokumen dalam satu sel', () => {
+    const result = validateCatalogImport(
+      source([
+        validRow({
+          documents: 'A|https://pralon.example/a.pdf|1; B|https://pralon.example/b.pdf|2',
+        }),
+      ]),
+    );
+
+    expect(result.rows[0]?.documents.map((document) => document.title)).toEqual(['A', 'B']);
+  });
+
+  it('mempertahankan urutan gambar sesuai penulisannya', () => {
+    const result = validateCatalogImport(
+      source([validRow({ images: '/img/b.png; /img/a.png; https://cdn.example/c.png' })]),
+    );
+
+    expect(result.rows[0]?.images).toEqual([
+      '/img/b.png',
+      '/img/a.png',
+      'https://cdn.example/c.png',
+    ]);
+  });
+
+  it('menolak URL gambar dengan skema yang tidak aman dirender', () => {
+    const result = validateCatalogImport(source([validRow({ images: 'data:text/html,<script>' })]));
+
+    expect(marks(result)).toEqual(['2:images']);
+  });
+
+  it('menerima baris tanpa dokumen maupun gambar', () => {
+    const result = validateCatalogImport(source([validRow()]));
+
+    expect(result.issues).toEqual([]);
+    expect(result.rows[0]?.documents).toEqual([]);
+    expect(result.rows[0]?.images).toEqual([]);
+  });
+});
+
 describe('validateCatalogImport — rowHash untuk idempotensi', () => {
   it('menghasilkan hash yang sama untuk baris yang sama, apa pun urutan kolomnya', () => {
     const a = validateCatalogImport(

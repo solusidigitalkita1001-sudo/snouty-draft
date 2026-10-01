@@ -16,6 +16,7 @@ import type {
   CatalogImportIssue,
   FittingKind,
   PipeSize,
+  ProductDocument,
   ProductStatus,
   SpecValue,
 } from '@snouty/shared-types';
@@ -81,6 +82,8 @@ export const CATALOG_IMPORT_COLUMNS = {
     'image_url',
     'sizes',
     'compatible_skus',
+    'documents',
+    'images',
     'material',
     'standard',
     'pressure_class',
@@ -92,6 +95,14 @@ export const CATALOG_IMPORT_COLUMNS = {
 
 /** Pemisah nilai jamak dalam satu sel; baris baru juga diterima. */
 export const CATALOG_IMPORT_MULTI_VALUE_SEPARATOR = ';';
+
+/**
+ * Pemisah antar-bagian **di dalam** satu nilai, mis. `Judul|https://…|7`.
+ *
+ * `|` dipilih karena ia tidak muncul di URL maupun di judul dokumen, sementara `:`
+ * muncul di setiap `https://` dan `;` sudah dipakai memisahkan nilai.
+ */
+export const CATALOG_IMPORT_FIELD_SEPARATOR = '|';
 
 /** Rujukan fitting sepadan, masih berupa SKU karena id belum terbit saat validasi. */
 export interface CatalogCompatibilityRef {
@@ -127,6 +138,18 @@ export interface ValidatedCatalogRow {
   /** Keenam kunci selalu ada; yang kosong bertanda `UNAVAILABLE`. */
   readonly specs: Readonly<Record<CatalogSpecKey, SpecValue>>;
   readonly compatibleSkus: readonly CatalogCompatibilityRef[];
+
+  /**
+   * Dokumen teknis yang bisa dibuka dari drawer produk.
+   *
+   * Ditambahkan di P1-05c, setelah Fase 2 menunjukkan akibat ketiadaannya: tanpa
+   * dokumen yang bisa diimpor, jalur jawaban "Lihat dokumen teknis" tidak pernah
+   * terpicu oleh data nyata — jalurnya ada, tetapi tidak pernah dilewati.
+   */
+  readonly documents: readonly ProductDocument[];
+
+  /** Foto produk 1:1, urut sesuai urutan penulisannya di sel. */
+  readonly images: readonly string[];
 }
 
 export interface CatalogImportValidation {

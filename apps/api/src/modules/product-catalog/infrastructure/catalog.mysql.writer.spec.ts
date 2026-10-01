@@ -7,11 +7,13 @@
  * boleh meninggalkan dua versi katalog atau produk ganda.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { count, eq } from 'drizzle-orm';
+import { asc, count, eq } from 'drizzle-orm';
 import {
   catalogImportRuns,
   catalogVersions,
   productCompatibility,
+  productDocuments,
+  productImages,
   products,
   productSizes,
   productSpecs,
@@ -92,6 +94,14 @@ async function tally(): Promise<Record<string, number>> {
 
 /** Satu produk tanpa rujukan fitting — rujukan ke SKU di luar impor memang ditolak validator. */
 const SINGLE_PRODUCT = validRow({ sku: 'AW-A', sizes: '3/4; 1', material: 'uPVC' });
+
+async function attachmentCounts(): Promise<Record<string, number>> {
+  const [documents, images] = await Promise.all([
+    fixture.db.select({ n: count() }).from(productDocuments),
+    fixture.db.select({ n: count() }).from(productImages),
+  ]);
+  return { documents: documents[0]?.n ?? 0, images: images[0]?.n ?? 0 };
+}
 
 const TWO_PRODUCTS = [
   validRow({ sku: 'AW-A', sizes: '3/4; 1', material: 'uPVC', compatible_skus: 'FIT-T:tee' }),
@@ -211,6 +221,66 @@ describe('catalog.ingest — apa yang benar-benar tersimpan', () => {
       { inches: 750, label: '3/4"' },
       { inches: 1000, label: '1"' },
     ]);
+  });
+});
+
+describe('catalog.ingest — dokumen teknis dan gambar (P1-05c)', () => {
+  const WITH_ATTACHMENTS = validRow({
+    sku: 'AW-A',
+    documents:
+      'Datasheet PVC AW|https://pralon.example/aw.pdf|7; Brosur|https://pralon.example/b.pdf',
+    images: '/img/aw-1.png; /img/aw-2.png',
+  });
+
+  it('menyimpan dokumen beserta halamannya, dan halaman kosong sebagai null', async () => {
+    await service.ingest({ importRunId: RUN_ID, source: source([WITH_ATTACHMENTS]) });
+
+    const rows = await fixture.db
+      .select({
+        title: productDocuments.title,
+        url: productDocuments.url,
+        page: productDocuments.page,
+      })
+      .from(productDocuments)
+      .orderBy(asc(productDocuments.title));
+
+    expect(rows).toEqual([
+      { title: 'Brosur', url: 'https://pralon.example/b.pdf', page: null },
+      { title: 'Datasheet PVC AW', url: 'https://pralon.example/aw.pdf', page: 7 },
+    ]);
+  });
+
+  it('menyimpan urutan gambar sesuai penulisannya di sel', async () => {
+    await service.ingest({ importRunId: RUN_ID, source: source([WITH_ATTACHMENTS]) });
+
+    const rows = await fixture.db
+      .select({ url: productImages.url, sortOrder: productImages.sortOrder })
+      .from(productImages)
+      .orderBy(asc(productImages.sortOrder));
+
+    expect(rows).toEqual([
+      { url: '/img/aw-1.png', sortOrder: 0 },
+      { url: '/img/aw-2.png', sortOrder: 1 },
+    ]);
+  });
+
+  it('tidak menduplikasi dokumen maupun gambar saat impor diulang', async () => {
+    await service.ingest({ importRunId: RUN_ID, source: source([WITH_ATTACHMENTS]) });
+    const first = await attachmentCounts();
+
+    await service.ingest({ importRunId: RUN_ID, source: source([WITH_ATTACHMENTS]) });
+
+    expect(await attachmentCounts()).toEqual(first);
+  });
+
+  it('membuat jalur jawaban "Lihat dokumen teknis" bisa dicapai dari data impor', async () => {
+    // Inilah alasan P1-05c ada: sebelum ini `product_documents` tidak bisa terisi
+    // lewat impor, jadi jalurnya ada tetapi tidak pernah dilewati data nyata.
+    await service.ingest({ importRunId: RUN_ID, source: source([WITH_ATTACHMENTS]) });
+
+    const counted = await attachmentCounts();
+
+    expect(counted.documents).toBeGreaterThan(0);
   });
 });
 

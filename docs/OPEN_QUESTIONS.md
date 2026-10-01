@@ -238,11 +238,20 @@ Kontrak impor bebas format, tetapi satu baris katalog tetap harus bisa menyebut 
 dan **beberapa** fitting sepadan. Karena format berkas sebenarnya belum ditentukan (OQ-07),
 konvensinya saya tetapkan di tingkat kontrak:
 
-| Hal                 | Konvensi                                        | Contoh                   |
-| ------------------- | ----------------------------------------------- | ------------------------ |
-| Pemisah nilai jamak | `;` atau baris baru dalam satu sel              | `3/4; 1; 1 1/4`          |
-| Rujukan fitting     | `SKU:jenis`                                     | `FIT-T:tee; FIT-E:elbow` |
-| Alternatif          | adapter boleh mengirim daftar string apa adanya | `["3/4", "1"]`           |
+| Hal                 | Konvensi                                        | Contoh                    |
+| ------------------- | ----------------------------------------------- | ------------------------- |
+| Pemisah nilai jamak | `;` atau baris baru dalam satu sel              | `3/4; 1; 1 1/4`           |
+| Rujukan fitting     | `SKU:jenis`                                     | `FIT-T:tee; FIT-E:elbow`  |
+| Dokumen teknis      | `Judul\|URL\|halaman` — halaman opsional        | `Datasheet\|https://…\|7` |
+| Gambar produk       | URL saja; urutan penulisan = urutan tampil      | `/img/a.png; /img/b.png`  |
+| Alternatif          | adapter boleh mengirim daftar string apa adanya | `["3/4", "1"]`            |
+
+`|` dipakai sebagai pemisah antar-bagian di dalam satu nilai karena ia tidak muncul di URL maupun di
+judul dokumen, sementara `:` muncul di setiap `https://` dan `;` sudah dipakai memisahkan nilai.
+
+Dua baris tengah ditambahkan di **P1-05c**, setelah Fase 2 menunjukkan akibat ketiadaannya: tanpa
+dokumen yang bisa diimpor, jalur jawaban "Lihat dokumen teknis" ada tetapi tidak pernah dilewati data
+nyata.
 
 Baris terakhir yang membuat ini tidak mengikat: adapter ERP yang sudah punya daftar tidak perlu
 merangkainya menjadi string lebih dulu, jadi konvensi pemisah hanya berlaku untuk sumber tabular.

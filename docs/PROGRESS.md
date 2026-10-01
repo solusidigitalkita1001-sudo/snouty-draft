@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-01 · Current phase: **2 — Asisten pengetahuan produk** · **8/8 selesai; menunggu ✋ CHECKPOINT pemilik**
+Last updated: 2026-10-01 · Current phase: **3 — Auth, sesi, percakapan, onboarding** · Fase 1 **11/12** · Fase 2 **8/8**
 
 ## Summary
 
@@ -150,7 +150,7 @@ menambah satu adapter — bukan merombak validasi, job, maupun layar.
 - [x] P1-05 Kontrak impor bebas format + validasi per baris — validator murni tanpa I/O; `rowHash` ikut dihitung di sini supaya P1-06 tidak perlu menurunkannya ulang
   - [x] P1-05a Tes: semua galat baris dilaporkan sekaligus, bukan satu per satu — **28 tes lolos**; kolom wajib yang hilang dilaporkan sekali, bukan sekali per baris
   - [ ] `[!]` P1-05b Adapter untuk format sebenarnya — **terhalang OQ-07**
-  - [ ] P1-05c Kolom dokumen & gambar pada kontrak impor — ketahuan di Fase 2: tanpa ini `product_documents` dan `product_images` tidak bisa terisi lewat impor, sehingga jalur jawaban "Lihat dokumen teknis" tidak pernah terpicu oleh data nyata. Tidak terhalang apa pun.
+  - [x] P1-05c Kolom dokumen & gambar pada kontrak impor — `Judul|URL|halaman` dan daftar URL gambar; jalur "Lihat dokumen teknis" kini **bisa dicapai dari data impor**, diverifikasi terhadap aplikasi yang berjalan
 - [ ] P1-06 Job `catalog.ingest` (RabbitMQ, idempoten per `catalogVersionId + rowHash`, DLQ) — **inti selesai, transport tertunda**
   - [x] P1-06 inti: migration 0001 (`products.row_hash` + `catalog_import_runs`), `CatalogIngestService`, `MysqlCatalogWriter` — idempotensi berlapis tiga, lapisan terdalamnya `uq_products_version_row_hash`
   - [x] P1-06a Tes: impor yang sama dua kali menghasilkan satu versi — **72 tes lolos**; migration 24 pemeriksaan
@@ -202,13 +202,21 @@ bukan penundaan; urutan di roadmap memang begitu.
 - [x] P2-07 Logger terstruktur + penghitung pertanyaan tak terjawab — kriteria adopsi RAG #2 kini **terukur**
   - [x] P2-07a Tes: log tidak pernah memuat isi pertanyaan pengguna — daftar field tertutup, diuji dari keluaran log sungguhan
 - [x] P2-08 `docs/PRODUCT_KNOWLEDGE.md` §4–§5 diperbarui + keputusan "Qdrant belum diadopsi" dicatat beserta cara mengukurnya
-- [ ] ✋ CHECKPOINT — reviewed by owner
+- [x] ✋ CHECKPOINT — **disetujui pemilik 2026-10-01** ("gas")
 
 **Qdrant tetap tidak diadopsi.** Ketiga kriteria di `docs/PRODUCT_KNOWLEDGE.md` §5 belum terpenuhi, dan
 yang pertama terbukti langsung dari kode: sistem ini belum menyimpan isi dokumen sama sekali —
 `product_documents` memuat judul, URL, dan halaman. Tidak ada korpus untuk di-embed.
 
-## Phases 3–13
+## Phase 3 — Auth, sesi tamu, percakapan, onboarding, consent, peran
+
+Dipecah saat fase dimulai. Yang sudah pasti menjadi bagiannya, karena sudah ada yang menunggunya:
+
+- Modul `auth` mengisi `internalActor` pada request, sehingga `/internal/catalog/*` berhenti menjawab
+  `401` (lihat P1-10a — guard-nya sengaja gagal tertutup).
+- Keputusan entitlement tamu menyentuh **OQ-15**.
+
+## Phases 4–13
 
 (headings only; broken down at the start of each phase)
 
@@ -287,3 +295,4 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | 2026-10-01 | P1-10 (API), P1-10a, P1-11, P1-12 | Fase 1 10/12; sisanya terhalang OQ         | `phase-1/P1-01-catalog-foundation` | Rute `/internal/catalog/*` dengan guard yang **gagal tertutup** — tanpa modul `auth`, seluruhnya menjawab `401`, dan itu keadaan yang benar. Katalog contoh disemai lewat jalur impor sungguhan; skripnya menolak host bersama dan menolak berjalan tanpa `SEED_SAMPLE_CATALOG=1`. 173 tes `@snouty/api` dan 24 pemeriksaan migration lolos. Dua temuan: berkas `*.spec.ts` dikecualikan `tsconfig.json` sehingga oxc tidak tahu dekorator diizinkan (struktur tsconfig dirapikan: `tsconfig.json` mencakup tes, `tsconfig.build.json` yang memancarkan); dan kunci cache katalog tidak memuat nama database, jadi satu Redis untuk dua database pengembangan menyajikan katalog yang salah — skrip semai kini membuang cache sungguhan. |
 | 2026-10-01 | Checkpoint Fase 1                 | disetujui ("gass")                         | —                                  | Fase 1 10/12. Empat item tertunda semuanya menunggu jawaban OQ, bukan menunggu kode. Fase 2 dipecah menjadi 8 item.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | 2026-10-01 | P2-01 … P2-08                     | 8/8 selesai                                | `phase-1/P1-01-catalog-foundation` | Modul `product-knowledge` tanpa satu pun impor MySQL (pagar lint diverifikasi dengan berkas yang sengaja melanggar). 231 tes lolos: 210 `@snouty/api` + 21 `shared-types`. Diuji terhadap aplikasi yang berjalan memakai katalog contoh: kedelapan aspek dijawab benar, `pressure_class` mengembalikan `unavailable` beserta dokumen yang ditawarkan **tanpa** field nilai, dan retrieval mengembalikan 0 potongan di bawah ambang alih-alih memaksakan yang paling mirip. Ketahuan satu celah nyata: kontrak impor belum membawa dokumen/gambar, dicatat sebagai **P1-05c**.                                                                                                                                                            |
+| 2026-10-01 | Checkpoint Fase 2, P1-05c         | disetujui ("gas"); P1-05c selesai          | `phase-1/P1-01-catalog-foundation` | Fase 2 8/8. P1-05c menutup celah yang ketahuan saat memverifikasi Fase 2: kontrak impor kini membawa dokumen (`Judul\|URL\|halaman`) dan gambar, jadi jalur "Lihat dokumen teknis" bisa dicapai dari data impor — bukan hanya ada di kode. Sisipan langsung di skrip semai dihapus; dokumen contoh kini lewat importer seperti data lainnya. 224 tes `@snouty/api` lolos.                                                                                                                                                                                                                                                                                                                                                                |

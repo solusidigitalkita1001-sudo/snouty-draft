@@ -21,11 +21,13 @@ import {
   PipeSize,
   type CatalogImportIssue,
   type FittingKind,
+  type ProductDocument,
   type ProductStatus,
   type SpecValue,
 } from '@snouty/shared-types';
 import {
   CATALOG_IMPORT_COLUMNS,
+  CATALOG_IMPORT_FIELD_SEPARATOR,
   CATALOG_IMPORT_MULTI_VALUE_SEPARATOR,
   type CatalogCompatibilityRef,
   type CatalogImportSource,
@@ -47,10 +49,13 @@ const MULTI_VALUE_PATTERN = new RegExp(`[${CATALOG_IMPORT_MULTI_VALUE_SEPARATOR}
 
 /**
  * Hanya URL absolut http(s) atau jalur relatif dari akar situs.
- * `image_url` berakhir di atribut `src`, jadi skema lain tidak dibiarkan lewat
- * meski katalog adalah sumber yang relatif tepercaya (docs/SECURITY.md §5).
+ *
+ * Nilai-nilai ini berakhir di atribut `src` dan `href`, jadi skema lain tidak
+ * dibiarkan lewat meski katalog adalah sumber yang relatif tepercaya
+ * (docs/SECURITY.md §5). Dipakai tiga kolom: `image_url`, `images`, dan URL di
+ * dalam `documents`.
  */
-const SAFE_IMAGE_URL = /^(?:https?:\/\/|\/)/i;
+const SAFE_URL = /^(?:https?:\/\/|\/)/i;
 
 /**
  * Pemisah antar-field saat membangun sidik jari baris: UNIT SEPARATOR, karakter
@@ -166,7 +171,7 @@ function validateRow(row: RawCatalogRow, defaultSourceDocument: string): RowDraf
   }
 
   const imageUrl = single('image_url');
-  if (imageUrl !== '' && !SAFE_IMAGE_URL.test(imageUrl)) {
+  if (imageUrl !== '' && !SAFE_URL.test(imageUrl)) {
     issues.push(
       issue(
         row.rowNumber,
@@ -186,6 +191,16 @@ function validateRow(row: RawCatalogRow, defaultSourceDocument: string): RowDraf
   const refs = parseCompatibilityRefs(multi(row.values['compatible_skus']), sku);
   if (refs.problems.length > 0) {
     issues.push(issue(row.rowNumber, 'compatible_skus', refs.problems.join(' ')));
+  }
+
+  const documents = parseDocuments(multi(row.values['documents']));
+  if (documents.problems.length > 0) {
+    issues.push(issue(row.rowNumber, 'documents', documents.problems.join(' ')));
+  }
+
+  const images = parseImages(multi(row.values['images']));
+  if (images.problems.length > 0) {
+    issues.push(issue(row.rowNumber, 'images', images.problems.join(' ')));
   }
 
   const description = single('description');
@@ -208,6 +223,8 @@ function validateRow(row: RawCatalogRow, defaultSourceDocument: string): RowDraf
           imageUrl: imageUrl === '' ? null : imageUrl,
           sizes: sizes.parsed,
           specs,
+          documents: documents.parsed,
+          images: images.parsed,
         };
 
   return { rowNumber: row.rowNumber, issues, rawSku: sku, fields, refs: refs.parsed };
@@ -326,6 +343,76 @@ function parseCompatibilityRefs(
     }
 
     parsed.push({ sku, kind: kind as FittingKind });
+  }
+
+  return { parsed, problems };
+}
+
+/**
+ * `Judul|https://…|7` — judul, URL, halaman. Halaman opsional.
+ *
+ * Judul wajib ada karena ialah yang dirender sebagai tautan; dokumen tanpa judul
+ * akan muncul sebagai tombol tanpa teks. URL diperiksa skemanya dengan aturan yang
+ * sama seperti gambar, karena keduanya sama-sama berakhir di atribut yang dirender.
+ */
+function parseDocuments(tokens: readonly string[]): {
+  parsed: ProductDocument[];
+  problems: readonly string[];
+} {
+  const parsed: ProductDocument[] = [];
+  const problems: string[] = [];
+
+  for (const token of tokens) {
+    const parts = token.split(CATALOG_IMPORT_FIELD_SEPARATOR).map((part) => part.trim());
+    const [title, url, rawPage] = parts;
+
+    if (parts.length < 2 || title === undefined || url === undefined) {
+      problems.push(`\`${token}\` tidak memakai bentuk Judul|URL|halaman.`);
+      continue;
+    }
+    if (title === '') {
+      problems.push(`\`${token}\` tidak menyebutkan judul dokumen.`);
+      continue;
+    }
+    if (!SAFE_URL.test(url)) {
+      problems.push(`\`${url}\` bukan URL http(s) maupun jalur yang dimulai dengan /.`);
+      continue;
+    }
+
+    // Halaman kosong sah: tidak setiap dokumen dirujuk per halaman. Halaman yang
+    // DISEBUT tetapi tidak masuk akal tidak sah — rujukan halaman adalah janji
+    // bahwa isinya bisa dicek di sana.
+    if (rawPage === undefined || rawPage === '') {
+      parsed.push({ title, url, page: null });
+      continue;
+    }
+    const page = parseSourcePage(rawPage);
+    if (page === null) {
+      problems.push(
+        `Halaman \`${rawPage}\` pada dokumen \`${title}\` bukan bilangan bulat positif.`,
+      );
+      continue;
+    }
+    parsed.push({ title, url, page });
+  }
+
+  return { parsed, problems };
+}
+
+/** Urutan penulisan menjadi urutan tampil; tidak ada kolom nomor urut terpisah. */
+function parseImages(tokens: readonly string[]): {
+  parsed: readonly string[];
+  problems: readonly string[];
+} {
+  const parsed: string[] = [];
+  const problems: string[] = [];
+
+  for (const token of tokens) {
+    if (!SAFE_URL.test(token)) {
+      problems.push(`\`${token}\` bukan URL http(s) maupun jalur yang dimulai dengan /.`);
+      continue;
+    }
+    parsed.push(token);
   }
 
   return { parsed, problems };
