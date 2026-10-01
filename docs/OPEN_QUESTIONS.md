@@ -209,6 +209,47 @@ Sudah diverifikasi bekerja (typecheck, build, tes, dan health check terhadap DB 
 **Drizzle belum dipasang.** Ia menyusul di Fase 1 bersama skema pertama; memasang ORM tanpa skema
 hanya menambah bobot tanpa manfaat. Rekomendasi Drizzle di `PHASE0_PROPOSAL.md` §4 tetap berlaku.
 
+### OQ-38 — Impor katalog: seluruhnya atau sebagian?
+
+**Status:** open · _non-blocking_ · **Fase:** 1 (P1-05)
+`docs/PRODUCT_KNOWLEDGE.md` §3 memuat dua pernyataan yang tidak bisa benar bersamaan. Diagramnya
+berkata **"ada galat → laporan galat per baris, tidak ada yang masuk"** (seluruhnya atau tidak sama
+sekali), sementara `CatalogImportResult` membawa `rowsAccepted` **dan** `rowsRejected`, yang
+menyiratkan baris baik tetap masuk sementara baris buruk dibuang.
+
+Perhatikan bahwa ini **bukan** pertanyaan yang sama dengan "baris gagal tidak memblokir baris lain".
+Aturan itu soal _pelaporan_: validasi tidak berhenti di galat pertama, semua galat dilaporkan
+sekaligus. Itu sudah diterapkan dan diuji.
+
+**Usulan default: seluruhnya atau tidak sama sekali.** Versi katalog `draft` hanya dibuat bila
+jumlah galatnya nol. Alasannya: versi yang setengah terisi tetap _terlihat_ lengkap di layar
+promosi, dan admin yang mempromosikannya akan mengirim katalog berlubang ke pengguna — kegagalan
+yang jauh lebih mahal daripada mengunggah ulang satu berkas. Dalam model ini `rowsAccepted` berarti
+"baris yang lolos validasi", dan nilainya tetap berguna di laporan meski tidak ada yang tersimpan.
+
+**Yang sudah dikerjakan:** validator (P1-05) mengembalikan `rows` **dan** `issues` sekaligus,
+sehingga keputusan ini sepenuhnya milik job `catalog.ingest` (P1-06). Mengubahnya nanti berarti
+mengubah satu syarat di job, bukan menulis ulang validasi.
+
+### OQ-39 — Konvensi sel untuk nilai jamak dan rujukan fitting
+
+**Status:** open · _non-blocking_ · **Fase:** 1 (P1-05, sudah diterapkan)
+Kontrak impor bebas format, tetapi satu baris katalog tetap harus bisa menyebut **beberapa** ukuran
+dan **beberapa** fitting sepadan. Karena format berkas sebenarnya belum ditentukan (OQ-07),
+konvensinya saya tetapkan di tingkat kontrak:
+
+| Hal                 | Konvensi                                        | Contoh                   |
+| ------------------- | ----------------------------------------------- | ------------------------ |
+| Pemisah nilai jamak | `;` atau baris baru dalam satu sel              | `3/4; 1; 1 1/4`          |
+| Rujukan fitting     | `SKU:jenis`                                     | `FIT-T:tee; FIT-E:elbow` |
+| Alternatif          | adapter boleh mengirim daftar string apa adanya | `["3/4", "1"]`           |
+
+Baris terakhir yang membuat ini tidak mengikat: adapter ERP yang sudah punya daftar tidak perlu
+merangkainya menjadi string lebih dulu, jadi konvensi pemisah hanya berlaku untuk sumber tabular.
+
+**Bila Anda ingin pemisah lain** (`|` misalnya, kalau katalog Pralon memakai `;` di dalam nilai),
+ini satu konstanta di `catalog-import.contract.ts`.
+
 ---
 
 ## B. Design conflicts carried from SPEC §33h

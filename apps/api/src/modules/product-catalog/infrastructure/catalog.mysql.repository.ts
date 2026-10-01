@@ -20,6 +20,7 @@ import {
   productSpecs,
 } from '../../../infrastructure/mysql/schema/catalog.js';
 import { DatabaseService, type QueryRunner } from '../../../shared/database/database.service.js';
+import { CATALOG_SPEC_KEY_LIST } from '../domain/catalog-spec-keys.js';
 import {
   CATALOG_REPOSITORY,
   type CatalogRepository,
@@ -27,7 +28,6 @@ import {
   type ProductListQuery,
 } from '../domain/catalog.repository.js';
 import {
-  SPEC_COLUMN_KEYS,
   toCatalogVersion,
   toCompatibleFitting,
   toProduct,
@@ -216,7 +216,7 @@ export class MysqlCatalogRepository implements CatalogRepository {
       .where(
         and(
           inArray(productSpecs.productId, [...productIds]),
-          inArray(productSpecs.specKey, [...SPEC_COLUMN_KEYS]),
+          inArray(productSpecs.specKey, [...CATALOG_SPEC_KEY_LIST]),
         ),
       );
   }

@@ -19,6 +19,7 @@ import type {
   ProductStatus,
   SpecValue,
 } from '@snouty/shared-types';
+import { CATALOG_SPEC_KEYS } from '../domain/catalog-spec-keys.js';
 
 export interface ProductRow {
   readonly id: string;
@@ -62,18 +63,6 @@ export interface CompatibilityRow {
   readonly name: string;
   readonly kind: string;
 }
-
-/** Nama kolom `spec_key` untuk tiap field spesifikasi pada `Product`. */
-const SPEC_KEYS = {
-  material: 'material',
-  standard: 'standard',
-  pressureClass: 'pressure_class',
-  rodLength: 'rod_length',
-  jointType: 'joint_type',
-  application: 'application',
-} as const;
-
-export const SPEC_COLUMN_KEYS: readonly string[] = Object.values(SPEC_KEYS);
 
 const UNAVAILABLE: SpecValue = Object.freeze({ value: null, provenance: 'UNAVAILABLE' });
 
@@ -148,12 +137,12 @@ export function toProduct(
     // Urutan sudah ditentukan oleh `ORDER BY size_inches_x1000` di query:
     // mengurutkan ulang di sini atas label akan menaruh `1¼"` sebelum `1"`.
     sizes: sizes.map((size) => size.sizeLabel),
-    material: toSpecValue(byKey.get(SPEC_KEYS.material)),
-    standard: toSpecValue(byKey.get(SPEC_KEYS.standard)),
-    pressureClass: toSpecValue(byKey.get(SPEC_KEYS.pressureClass)),
-    rodLength: toSpecValue(byKey.get(SPEC_KEYS.rodLength)),
-    jointType: toSpecValue(byKey.get(SPEC_KEYS.jointType)),
-    application: toSpecValue(byKey.get(SPEC_KEYS.application)),
+    material: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.material)),
+    standard: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.standard)),
+    pressureClass: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.pressureClass)),
+    rodLength: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.rodLength)),
+    jointType: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.jointType)),
+    application: toSpecValue(byKey.get(CATALOG_SPEC_KEYS.application)),
     sourceDocument: row.sourceDocument,
     sourcePage: row.sourcePage,
     catalogVersionId: row.catalogVersionId,
