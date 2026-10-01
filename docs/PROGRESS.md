@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-01 · Current phase: **3 — Auth, sesi, percakapan, onboarding** · Next item: **P3-01 skema identity**
+Last updated: 2026-10-02 · Current phase: **3 — Auth, sesi, percakapan, onboarding** · Next item: **P3-02 hash password Argon2id**
 
 ## Summary
 
@@ -142,6 +142,7 @@ menambah satu adapter — bukan merombak validasi, job, maupun layar.
 
 - [x] P1-01 Skema katalog (Drizzle) + berkas migration `.sql` — **tidak diterapkan** ke server; 7 tabel, CHECK constraint, jaminan satu versi aktif
   - [x] P1-01a Tes: migration up/down berjalan di kontainer MySQL sekali pakai — **17 pemeriksaan lolos**
+  - [ ] P1-01b Foreign key dalam konteks katalog — ketahuan saat menulis skema identity: `docs/DATABASE.md` §5 mewajibkan FK **di dalam satu konteks**, dan tujuh tabel katalog tidak punya satu pun (`products.catalog_version_id`, `product_sizes.product_id`, dst.). Akibatnya baris anak yatim mungkin terjadi. Tidak terhalang apa pun.
 - [x] P1-02 Tipe domain katalog di `packages/shared-types` — field spesifikasi kosong bertipe eksplisit `UNAVAILABLE`, bukan dihilangkan
 - [x] P1-03 Value object `PipeSize` (parsing kanonik, perbandingan, format tampilan)
   - [x] P1-03a Tes: `1¼"` dan `1.25"` adalah ukuran yang sama; urutan benar — 13 tes lolos
@@ -229,8 +230,8 @@ API yang belum ada akan dibongkar lagi.
 (**OQ-15**, yang menggerbangi Fase 5 dan 10). Fase 3 tidak perlu menjawabnya; ia hanya tidak boleh
 memutuskannya diam-diam.
 
-- [ ] P3-01 Migration 0003: `users`, `user_roles`, `refresh_tokens`, `guest_sessions`, `consents`
-  - [ ] P3-01a Tes: migration naik/turun + setiap constraint, di kontainer MySQL sekali pakai
+- [x] P3-01 Migration 0003: `users`, `user_roles`, `refresh_tokens`, `guest_sessions`, `consents` — **tidak diterapkan** ke server; memakai foreign key sungguhan, sesuai `docs/DATABASE.md` §5
+  - [x] P3-01a Tes: migration naik/turun + setiap constraint — **44 pemeriksaan lolos**, dan skripnya kini membersihkan dirinya sendiri sehingga bisa dijalankan berulang
 - [ ] P3-02 Hash password Argon2id — port + implementasi
   - [ ] P3-02a Tes: password tidak pernah dicatat maupun dikembalikan; hash berbeda untuk password sama
 - [ ] P3-03 Token: access JWT pendek + refresh dengan **rotasi** dan deteksi pemakaian ulang
@@ -335,3 +336,4 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | 2026-10-01 | Checkpoint Fase 1                 | disetujui ("gass")                         | —                                  | Fase 1 10/12. Empat item tertunda semuanya menunggu jawaban OQ, bukan menunggu kode. Fase 2 dipecah menjadi 8 item.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | 2026-10-01 | P2-01 … P2-08                     | 8/8 selesai                                | `phase-1/P1-01-catalog-foundation` | Modul `product-knowledge` tanpa satu pun impor MySQL (pagar lint diverifikasi dengan berkas yang sengaja melanggar). 231 tes lolos: 210 `@snouty/api` + 21 `shared-types`. Diuji terhadap aplikasi yang berjalan memakai katalog contoh: kedelapan aspek dijawab benar, `pressure_class` mengembalikan `unavailable` beserta dokumen yang ditawarkan **tanpa** field nilai, dan retrieval mengembalikan 0 potongan di bawah ambang alih-alih memaksakan yang paling mirip. Ketahuan satu celah nyata: kontrak impor belum membawa dokumen/gambar, dicatat sebagai **P1-05c**.                                                                                                                                                            |
 | 2026-10-01 | Checkpoint Fase 2, P1-05c         | disetujui ("gas"); P1-05c selesai          | `phase-1/P1-01-catalog-foundation` | Fase 2 8/8. P1-05c menutup celah yang ketahuan saat memverifikasi Fase 2: kontrak impor kini membawa dokumen (`Judul\|URL\|halaman`) dan gambar, jadi jalur "Lihat dokumen teknis" bisa dicapai dari data impor — bukan hanya ada di kode. Sisipan langsung di skrip semai dihapus; dokumen contoh kini lewat importer seperti data lainnya. 224 tes `@snouty/api` lolos.                                                                                                                                                                                                                                                                                                                                                                |
+| 2026-10-02 | P3-01, P3-01a                     | 2/2 selesai                                | `phase-1/P1-01-catalog-foundation` | Skema identity dengan FK dalam konteks. Tes migration menangkap **tiga** cacat sebelum migration pernah dijalankan ke mana pun: helper `createdAt()` menerbitkan `granted_at` sebagai `created_at` sehingga CHECK merujuk kolom yang tidak ada; MySQL menolak CHECK pada kolom yang dipakai FK `ON DELETE SET NULL`, dan ALTER yang gagal itu menghentikan migration sehingga FK sesudahnya tidak terpasang (dua gejala, satu penyebab); dan skrip tesnya sendiri mengandaikan database kosong, sehingga jalan keduanya melaporkan kegagalan palsu sambil menyembunyikan yang asli. Dicatat **P1-01b**: tujuh tabel katalog tidak punya FK dalam konteks, berlawanan dengan konvensi.                                                    |

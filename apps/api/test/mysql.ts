@@ -54,15 +54,31 @@ export interface TestDatabase {
 }
 
 /** Seluruh migration naik, berurutan; turunnya dibalik. */
-const UP = ['0000_catalog.sql', '0001_catalog_import_runs.sql', '0002_audit_logs.sql'];
+const UP = [
+  '0000_catalog.sql',
+  '0001_catalog_import_runs.sql',
+  '0002_audit_logs.sql',
+  '0003_identity.sql',
+];
 const DOWN = [
+  '0003_identity.down.sql',
   '0002_audit_logs.down.sql',
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
 
-/** Urutan penghapusan dibalik dari urutan pembuatan, mengikuti arah rujukan. */
+/**
+ * Urutan penghapusan dibalik dari urutan pembuatan, mengikuti arah rujukan.
+ *
+ * Sejak konteks identity punya foreign key sungguhan, urutan ini **mengikat**:
+ * `users` harus terakhir, karena `guest_sessions` merujuknya dengan `RESTRICT`.
+ */
 const TABLES = [
+  'consents',
+  'refresh_tokens',
+  'user_roles',
+  'guest_sessions',
+  'users',
   'audit_logs',
   'catalog_import_runs',
   'product_images',

@@ -60,7 +60,8 @@ async function tableCount() {
      WHERE TABLE_SCHEMA = ? AND TABLE_NAME IN
      ('catalog_versions','products','product_sizes','product_specs',
       'product_compatibility','product_documents','product_images',
-      'catalog_import_runs','audit_logs')`,
+      'catalog_import_runs','audit_logs',
+      'users','user_roles','refresh_tokens','guest_sessions','consents')`,
     [cfg.database],
   );
   return Number(rows[0].n);
@@ -80,15 +81,37 @@ const ulid = (n) => String(n).padStart(26, 'A');
 const rowHash = (n) => String(n).padStart(64, '0');
 
 /** Seluruh migration naik, berurutan; dipakai juga untuk membuktikan rollback bersih. */
-const UP = ['0000_catalog.sql', '0001_catalog_import_runs.sql', '0002_audit_logs.sql'];
+const UP = [
+  '0000_catalog.sql',
+  '0001_catalog_import_runs.sql',
+  '0002_audit_logs.sql',
+  '0003_identity.sql',
+];
 const DOWN = [
+  '0003_identity.down.sql',
   '0002_audit_logs.down.sql',
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-const TABLES = 9;
+const TABLES = 14;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
+
+/**
+ * Turun lebih dulu, mengabaikan kegagalan.
+ *
+ * Tanpa ini skrip mengandaikan databasenya kosong — dan andaian itu salah tepat
+ * ketika skrip paling dibutuhkan: setelah satu migration gagal di tengah dan
+ * meninggalkan separuh tabel. Jalannya yang kedua lalu melaporkan kegagalan palsu
+ * ("tabel sudah ada") sekaligus menyembunyikan yang asli.
+ */
+for (const file of DOWN) {
+  try {
+    await run(file);
+  } catch {
+    // Sengaja ditelan: pada database bersih memang tidak ada yang perlu diturunkan.
+  }
+}
 
 // ── Naik ────────────────────────────────────────────────────────────────────
 console.log('up:');
@@ -280,6 +303,181 @@ await check('mengizinkan banyak run yang belum melahirkan versi apa pun', async 
     `INSERT INTO catalog_import_runs (id,label,source_document,status,requested_by)
      VALUES (?,?,?,?,?), (?,?,?,?,?)`,
     [ulid(17), 'v3.2', 'doc', 'rejected', ulid(9), ulid(18), 'v3.3', 'doc', 'failed', ulid(9)],
+  );
+});
+
+// ── Constraint identity (0003) ──────────────────────────────────────────────
+console.log('\nconstraint identity:');
+
+const U1 = ulid(20);
+const U2 = ulid(21);
+const G1 = ulid(22);
+
+const insertUser = (id, email, extra = {}) =>
+  conn.query(
+    `INSERT INTO users (id,email,password_hash,name,tier,theme_preference,status)
+     VALUES (?,?,?,?,?,?,?)`,
+    [
+      id,
+      email,
+      '$argon2id$v=19$m=19456,t=2,p=1$c2FsdA$aGFzaA',
+      'Contoh',
+      extra.tier ?? 'registered',
+      extra.theme ?? 'system',
+      extra.status ?? 'active',
+    ],
+  );
+
+await check('menerima pengguna yang sah', () => insertUser(U1, 'satu@example.test'));
+
+await check('menolak email ganda — walau beda huruf besar-kecil', () =>
+  mustReject(`INSERT INTO users (id,email,password_hash,name) VALUES (?,?,?,?)`, [
+    U2,
+    'SATU@example.test',
+    'x',
+    'y',
+  ]),
+);
+
+await check('menolak tier di luar registered/advanced', () =>
+  mustReject(`INSERT INTO users (id,email,password_hash,name,tier) VALUES (?,?,?,?,?)`, [
+    U2,
+    'dua@example.test',
+    'x',
+    'y',
+    'enterprise',
+  ]),
+);
+
+await check('menolak preferensi tema di luar light/dark/system', () =>
+  mustReject(
+    `INSERT INTO users (id,email,password_hash,name,theme_preference) VALUES (?,?,?,?,?)`,
+    [U2, 'tiga@example.test', 'x', 'y', 'auto'],
+  ),
+);
+
+await check('menerima peran internal yang sah', () =>
+  conn.query(`INSERT INTO user_roles (user_id,role) VALUES (?,?)`, [U1, 'catalog_admin']),
+);
+
+await check('menolak peran yang tidak ada di daftar', () =>
+  mustReject(`INSERT INTO user_roles (user_id,role) VALUES (?,?)`, [U1, 'superadmin']),
+);
+
+await check('menolak peran untuk pengguna yang tidak ada — FK dalam satu konteks', () =>
+  mustReject(`INSERT INTO user_roles (user_id,role) VALUES (?,?)`, [ulid(99), 'admin']),
+);
+
+await check('menolak peran ganda yang sama', () =>
+  mustReject(`INSERT INTO user_roles (user_id,role) VALUES (?,?)`, [U1, 'catalog_admin']),
+);
+
+await check('menerima refresh token yang sah', () =>
+  conn.query(
+    `INSERT INTO refresh_tokens (id,user_id,token_hash,family_id,expires_at)
+     VALUES (?,?,?,?,DATE_ADD(NOW(3), INTERVAL 7 DAY))`,
+    [ulid(23), U1, 'a'.repeat(64), ulid(24)],
+  ),
+);
+
+await check('menolak hash token ganda', () =>
+  mustReject(
+    `INSERT INTO refresh_tokens (id,user_id,token_hash,family_id,expires_at)
+     VALUES (?,?,?,?,DATE_ADD(NOW(3), INTERVAL 7 DAY))`,
+    [ulid(25), U1, 'a'.repeat(64), ulid(24)],
+  ),
+);
+
+await check('menolak token yang kedaluwarsa sebelum dibuat', () =>
+  mustReject(
+    `INSERT INTO refresh_tokens (id,user_id,token_hash,family_id,created_at,expires_at)
+     VALUES (?,?,?,?,NOW(3),DATE_SUB(NOW(3), INTERVAL 1 DAY))`,
+    [ulid(26), U1, 'b'.repeat(64), ulid(24)],
+  ),
+);
+
+await check('menerima sesi tamu yang belum tertaut', () =>
+  conn.query(
+    `INSERT INTO guest_sessions (id,expires_at) VALUES (?,DATE_ADD(NOW(3), INTERVAL 1 DAY))`,
+    [G1],
+  ),
+);
+
+await check('menolak sesi tamu yang tertaut tanpa waktu penautan', () =>
+  mustReject(
+    `INSERT INTO guest_sessions (id,linked_user_id,expires_at)
+     VALUES (?,?,DATE_ADD(NOW(3), INTERVAL 1 DAY))`,
+    [ulid(27), U1],
+  ),
+);
+
+await check('menerima sesi tamu yang tertaut lengkap dengan waktunya', () =>
+  conn.query(
+    `INSERT INTO guest_sessions (id,linked_user_id,linked_at,expires_at)
+     VALUES (?,?,NOW(3),DATE_ADD(NOW(3), INTERVAL 1 DAY))`,
+    [ulid(28), U1],
+  ),
+);
+
+await check('menerima consent untuk tamu maupun pengguna', async () => {
+  await conn.query(
+    `INSERT INTO consents (id,subject_id,subject_kind,kind,granted,policy_version)
+     VALUES (?,?,?,?,?,?), (?,?,?,?,?,?)`,
+    [
+      ulid(29),
+      G1,
+      'guest',
+      'ANALYTICS_STORAGE',
+      1,
+      'v0-draft',
+      ulid(30),
+      U1,
+      'user',
+      'LOCATION',
+      1,
+      'v0-draft',
+    ],
+  );
+});
+
+await check('menolak jenis consent di luar LOCATION/ANALYTICS_STORAGE', () =>
+  mustReject(
+    `INSERT INTO consents (id,subject_id,subject_kind,kind,granted,policy_version)
+     VALUES (?,?,?,?,?,?)`,
+    [ulid(31), U1, 'user', 'MARKETING_EMAIL', 1, 'v0-draft'],
+  ),
+);
+
+await check('menolak subjek consent di luar user/guest', () =>
+  mustReject(
+    `INSERT INTO consents (id,subject_id,subject_kind,kind,granted,policy_version)
+     VALUES (?,?,?,?,?,?)`,
+    [ulid(32), U1, 'system', 'LOCATION', 1, 'v0-draft'],
+  ),
+);
+
+await check('menolak pencabutan yang mendahului pemberian', () =>
+  mustReject(
+    `INSERT INTO consents (id,subject_id,subject_kind,kind,granted,policy_version,granted_at,revoked_at)
+     VALUES (?,?,?,?,?,?,NOW(3),DATE_SUB(NOW(3), INTERVAL 1 DAY))`,
+    [ulid(33), U1, 'user', 'LOCATION', 1, 'v0-draft'],
+  ),
+);
+
+await check('menolak "pencabutan penolakan" — tidak ada hal seperti itu', () =>
+  mustReject(
+    `INSERT INTO consents (id,subject_id,subject_kind,kind,granted,policy_version,revoked_at)
+     VALUES (?,?,?,?,?,?,NOW(3))`,
+    [ulid(34), U1, 'user', 'LOCATION', 0, 'v0-draft'],
+  ),
+);
+
+await check('mengizinkan beberapa baris consent untuk subjek dan jenis yang sama', async () => {
+  // Mencabut lalu memberi lagi menghasilkan baris baru; riwayatnya yang menjadi bukti.
+  await conn.query(
+    `INSERT INTO consents (id,subject_id,subject_kind,kind,granted,policy_version)
+     VALUES (?,?,?,?,?,?)`,
+    [ulid(35), U1, 'user', 'LOCATION', 1, 'v0-draft'],
   );
 });
 

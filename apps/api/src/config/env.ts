@@ -19,6 +19,36 @@ const EnvSchema = z.object({
 
   // Port baku docker-compose adalah 6380, bukan 6379 — lihat docker-compose.yml.
   REDIS_URL: z.string().min(1).default('redis://127.0.0.1:6380'),
+
+  /**
+   * Rahasia JWT tanpa nilai baku, **sengaja**.
+   *
+   * Nilai baku untuk rahasia adalah nilai baku yang suatu hari berjalan di
+   * produksi. Proses menolak start tanpa keduanya, dan itu kegagalan yang benar:
+   * lebih baik gagal keras saat deploy daripada menandatangani token dengan
+   * rahasia yang sudah ada di repositori mana pun (docs/SECURITY.md §10).
+   *
+   * Panjang minimum 32 karakter karena rahasia pendek membuat HMAC-nya bisa
+   * ditebak, bukan karena angka 32 punya arti khusus.
+   */
+  JWT_ACCESS_SECRET: z.string().min(32),
+  JWT_REFRESH_SECRET: z.string().min(32),
+
+  /** Detik. Access token berumur pendek; umur panjang membuat pencabutan tak berarti. */
+  JWT_ACCESS_TTL: z.coerce.number().int().positive().max(3600).default(900),
+  /** Detik. 30 hari — dirotasi setiap pemakaian, jadi umur panjang tidak berarti sesi abadi. */
+  JWT_REFRESH_TTL: z.coerce.number().int().positive().default(2_592_000),
+  /** Detik. 24 jam, sesuai TTL snapshot kebutuhan di Redis. */
+  GUEST_SESSION_TTL: z.coerce.number().int().positive().default(86_400),
+
+  /**
+   * Versi kebijakan privasi yang disimpan di setiap baris consent (SPEC §30b).
+   *
+   * `v0-draft` adalah usulan default OQ-12: teksnya belum ada, tetapi catatan
+   * consent tidak boleh menunggu teks — persetujuan tanpa versi tidak bisa dijawab
+   * saat seseorang bertanya "disetujui atas dasar apa?".
+   */
+  POLICY_VERSION: z.string().min(1).default('v0-draft'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
