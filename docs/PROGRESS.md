@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-01 tipe RequirementState**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-03 CompletenessEvaluator**
 
 ## Summary
 
@@ -278,9 +278,9 @@ ditetapkan (bagian OQ-09/§17b). Strateginya sama seperti selama ini: `ai` di be
 deterministik diuji penuh tanpa model, adapter OpenRouter digerbang keberadaan kunci, dan **evaluasi
 (docs/EVALUATION.md) dijalankan saat dataset + kunci ada** — bukan sebelum.
 
-- [ ] P4-01 Tipe `RequirementState` + `Intent` di `packages/shared-types` — setiap field `TrackedValue`
-- [ ] P4-02 `ContextMerger` — presedensi sumber, `undefined` ≠ `null`, default tak menimpa
-  - [ ] P4-02a Tes CONTEXT_ENGINE §9 #1–#5 (merge, append-only, "tidak ada dapur" = 0)
+- [x] P4-01 Tipe `RequirementState` + `Intent` di `packages/shared-types` — setiap field `TrackedValue`; `CORE_REQUIREMENT_FIELDS` satu sumber angka 4
+- [x] P4-02 `ContextMerger` — fungsi murni di modul `context`; presedensi `user_edited>user_stated>inferred>default_applied`, `undefined`/`null` ≠ hapus, `now` disuntikkan
+  - [x] P4-02a Tes §9 #1, #3, #4 + presedensi penuh + kemurnian (8 tes); #5 ke P4-06a, #2/#8 ke P4-04a
 - [ ] P4-03 `CompletenessEvaluator` — tepat empat field inti + meter 4 segmen
   - [ ] P4-03a Tes §9 #6
 - [ ] P4-04 Default "Belum tahu" + kartu asumsi (ENG-014) — `ASSUMED` selalu ber-`reason`

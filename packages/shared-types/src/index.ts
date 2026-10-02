@@ -37,4 +37,19 @@ export type {
   MessageRole,
 } from './conversation.js';
 export { CONVERSATION_STATUS_LABELS } from './conversation.js';
+export type {
+  BuildingState,
+  BuildingType,
+  Dimensions,
+  FixtureState,
+  InstallationType,
+  Intent,
+  RequirementCompleteness,
+  RequirementFieldPath,
+  RequirementState,
+  SnapshotTrigger,
+  WaterSource,
+  WaterState,
+} from './requirement.js';
+export { CORE_REQUIREMENT_FIELDS } from './requirement.js';
 export { ANALYSIS_STAGE_LABELS } from './sse.js';
