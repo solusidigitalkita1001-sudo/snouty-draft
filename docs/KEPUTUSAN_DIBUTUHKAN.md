@@ -86,8 +86,8 @@ tesnya ikut — pekerjaan kecil, tetapi arahnya harus benar.
 
 Login, register, register-gate, **seluruh back-office**, umpan balik, halaman privasi/ketentuan.
 
-Ini menahan empat item di tiga fase sekaligus: back-office katalog (P1-10), layar auth (P3-12c),
-alur validasi aturan (P6-09), peninjauan email (P11-05), dan dashboard pasar (P12-03). Semua API-nya
+Ini menahan **lima** item di lima fase sekaligus: back-office katalog (P1-10), layar auth (P3-12c),
+alur validasi aturan (P6-09), peninjauan email (P11-05), dan dashboard pasar (P12-03). Seluruh API-nya
 sudah ada dan teruji — yang tidak ada hanya tampilannya.
 
 **Yang dibutuhkan:** desain, atau izin membangunnya minimal dengan token yang sama dan menandainya
@@ -141,7 +141,7 @@ Kalau waktunya terbatas, urutan ini yang membuka paling banyak per menit:
 1. **OQ-34** — setujui pembuatan akun database terbatas. Membuka deployment.
 2. **OQ-06** — sebut satu nama ahli domain. Membuka "TERVERIFIKASI" di seluruh produk.
 3. **OQ-07** — kirim satu contoh berkas katalog. Membuka data produk nyata.
-4. **OQ-21** — desain layar auth + back-office, atau izinkan versi minimal. Membuka empat item.
+4. **OQ-21** — desain layar auth + back-office, atau izinkan versi minimal. Membuka lima item.
 5. Bagian 4 — "pakai default semua" bila setuju.
 
 Setelah 1–3 terjawab, SNOUTY berhenti menjadi sistem yang berjalan di atas data karangan dengan setiap
