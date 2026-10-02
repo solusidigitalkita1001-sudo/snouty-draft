@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Fase 5: **8/8 selesai**; menunggu ✋ CHECKPOINT pemilik
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Next item: **P6-01 kerangka registry**
 
 ## Summary
 
@@ -335,7 +335,30 @@ layar 06.
 
 Fase 5: **8/8 selesai.** Policy Engine leaf tanpa I/O, dua tes release blocker hijau, empat permukaan kebijakan (03/04/08/11) hidup di layar 02. **OQ-15 masih terbuka** — ia memblokir layar 06 dan panel register-gate, bukan penegakannya.
 
-## Phases 6–13
+## Phase 6 — Engineering Rule Engine
+
+`packages/engineering` — TypeScript murni, **tanpa I/O, tanpa framework, tanpa dependensi runtime**
+(dijaga `scripts/check-engineering-isolation.mjs`). Itulah yang membuat SPEC §25 benar secara
+struktural: tidak ada apa pun untuk dipanggil.
+
+**Semua 14 aturan lahir `REQUIRES_DOMAIN_VALIDATION`** dan tetap begitu sampai ahli domain Pralon
+ditunjuk (**OQ-06**). Konsekuensinya bukan administratif: gerbang provenance (sudah ada, P5-03)
+menurunkan setiap keluaran engine menjadi `ASSUMED`, jadi **tidak ada satu pun angka teknik yang
+tampil "TERVERIFIKASI" di fase ini** — dan itu memang perilaku yang benar, bukan kekurangan.
+
+- [ ] P6-01 Kerangka `RuleVersion` + registry yang menolak aturan tanpa tes (invarian R-1)
+- [ ] P6-02 Kelompok A — ENG-001, 002, 003, 005, 010, 013 (beban, sizing, kelas tekanan)
+- [ ] P6-03 Kelompok B — ENG-004, 008, 011 (geometri, elevasi, kecukupan gravitasi)
+- [ ] P6-04 Kelompok C — ENG-009, 006, 012 (BOM, selisih lapangan, isi kamar mandi)
+- [ ] P6-05 Kelompok D — ENG-007, 014 sebagai entri registry (implementasinya sudah ada di Fase 4)
+- [ ] P6-06 `explain()` per aturan — kolom "DASAR PERHITUNGAN" dirender dari aturan, bukan prosa LLM
+- [ ] P6-07 `CalculationTrace` + gerbang provenance keluar engine (`hasRealDimensions` → ESTIMATED/VERIFIED)
+- [ ] P6-08 Orkestrator `computeSolution` — satu panggilan, satu trace per aturan, < 300 ms
+- [ ] P6-09 Back-office alur validasi aturan `[perlu desain — OQ-21]`
+- [ ] P6-10 `docs/ENGINEERING_RULES.md` disesuaikan implementasi
+- [ ] ✋ CHECKPOINT — reviewed by owner
+
+## Phases 7–13
 
 (headings only; broken down at the start of each phase)
 

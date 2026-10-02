@@ -292,6 +292,24 @@ hanya memanggil satu method. Yang tertunda murni transport-nya (P1-06b).
 
 ## B. Design conflicts carried from SPEC §33h
 
+### OQ-42 — Anatomi aturan meminta zod, isolasi engine melarang dependensi
+
+**Status:** open · _non-blocking_ · **Fase:** 6 (P6-01, sudah diterapkan mengikuti usulan default)
+`docs/ENGINEERING_RULES.md` §2 mendefinisikan `RuleVersion` dengan `inputSchema: ZodSchema<I>` dan
+`outputSchema`. Tetapi `packages/engineering` sengaja **tanpa dependensi runtime sama sekali**, dijaga
+`scripts/check-engineering-isolation.mjs` yang menggagalkan CI bila ada satu pun dependensi. Menambahkan
+zod ke paket itu akan melanggar pagar yang justru membuat "engine tidak pernah memanggil LLM" benar
+secara struktural.
+
+**Usulan default yang saya pakai:** engine tetap bebas dependensi; `RuleVersion` memakai
+`parseInput: (raw: unknown) => I` — fungsi guard TypeScript murni yang melempar bila masukan tak sah.
+Validasi zod tetap ada, tetapi di **tepi** (`apps/api`, tempat zod sudah hidup): masukan engine datang
+dari Context Engine yang sudah divalidasi skema ekstraksi, jadi zod di dalam engine akan memeriksa
+ulang apa yang sudah diperiksa — dengan harga melepas properti nol-dependensi.
+
+**Pertanyaannya:** apakah pemilik lebih memilih zod di dalam engine (dan pagar isolasi dilunakkan
+menjadi "tanpa dependensi kecuali zod"), atau guard murni seperti yang saya terapkan?
+
 ### OQ-41 — `REPORT_PDF` tidak tampil di manfaat onboarding
 
 **Status:** open · _non-blocking_ · **Fase:** 3 (P3-09/P3-12, sudah diterapkan mengikuti desain)
