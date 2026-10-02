@@ -87,6 +87,31 @@ export default tseslint.config(
     },
   },
   {
+    // Janji paling eksplisit yang dibuat produk: "Data wilayah dipakai untuk analisis
+    // kebutuhan pasar, bukan untuk menentukan rekomendasi." Penegakannya struktural —
+    // tidak ada jalur impor dari rekomendasi/engineering ke market-intelligence, jadi
+    // tidak ada jalur data dari lokasi ke rekomendasi (docs/MARKET_INTELLIGENCE.md §6).
+    files: [
+      'apps/api/src/modules/recommendation/**/*.ts',
+      'apps/api/src/modules/engineering/**/*.ts',
+      'apps/api/src/modules/context/**/*.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/market-intelligence/**'],
+              message:
+                'Lokasi tidak boleh punya jalur ke rekomendasi (docs/MARKET_INTELLIGENCE.md §6).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['apps/api/src/modules/product-knowledge/**/*.ts'],
     rules: {
       // `product-knowledge` membaca katalog lewat port yang diekspor

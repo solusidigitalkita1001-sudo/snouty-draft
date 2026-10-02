@@ -65,8 +65,10 @@ const UP = [
   '0007_llm_calls.sql',
   '0008_recommendations.sql',
   '0009_reports_handoffs.sql',
+  '0010_intelligence.sql',
 ];
 const DOWN = [
+  '0010_intelligence.down.sql',
   '0009_reports_handoffs.down.sql',
   '0008_recommendations.down.sql',
   '0007_llm_calls.down.sql',
@@ -86,6 +88,9 @@ const DOWN = [
  * `users` harus terakhir, karena `guest_sessions` merujuknya dengan `RESTRICT`.
  */
 const TABLES = [
+  'market_events',
+  'email_analyses',
+  'emails',
   'technical_handoffs',
   'reports',
   'report_number_counters',

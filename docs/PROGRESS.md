@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Current phase: **10–13** · Next item: **P11-02…04** (ekstraksi email, webhook, migration) · **P12-01**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Current phase: **10–13** · Seluruh pekerjaan yang tidak terhalang **selesai**; menunggu ✋ CHECKPOINT & jawaban OQ
 
 ## Summary
 
@@ -487,16 +487,20 @@ pihak ketiga.** Karena itu redaksi berjalan sebelum teks menyentuh LLM, bukan se
 
 - [x] P11-01 Redaktor — fungsi murni; **berlebihan, bukan presisi** (lebih baik meredaksi nomor yang bukan telepon daripada melewatkan satu yang memang telepon); pembersihan riwayat balasan dan pemisahan tanda tangan jadi satu jalur `prepareForModel`
   - [x] P11-01a Tes (22): tujuh bentuk telepon Indonesia, NPWP berpola, rekening, alamat (termasuk `RT 05 / RW 03`), tiga gaya riwayat balasan, tiga penanda tanda tangan; **dan** bahwa isi teknis + lokasi kota TETAP ada — redaksi yang membuang kebutuhan membuat modulnya tak berguna
-- [ ] P11-02 Parsing email (§3) + skema ekstraksi zod (§4) + klasifikasi lead (§6)
-- [ ] P11-03 Webhook n8n terverifikasi HMAC; email tidak pernah memicu balasan otomatis
-- [ ] P11-04 Migration `emails` + `email_analyses` — teks asli disimpan, retensi 24 bulan
+- [x] P11-02 Skema ekstraksi zod `.strict()` (§4) + **skor lead deterministik** (§6) — bukan penilaian model, jadi bisa diaudit ("kenapa 65?" punya jawaban) dan disetel tanpa menyentuh prompt; `requestedProducts` disimpan apa adanya, tidak dipaksa jadi SKU
+  - [x] P11-02a Tes (21): ambang suhu, setiap bobot, rincian skor berjumlah sama dengan skornya, skema menolak enum asing/properti tak dikenal/daftar kacau
+- [x] P11-03 Verifikasi HMAC webhook — perbandingan waktu-konstan, tanda tangan atas **badan mentah** (bukan JSON yang di-stringify ulang), timestamp ikut ditandatangani, jendela 300 s
+  - [x] P11-03a Tes (12): hilang/kedaluwarsa/salah rahasia/badan diubah/panjang beda; **memakai ulang tanda tangan dengan timestamp baru gagal**
+- [x] P11-04 Migration 0010 `emails` + `email_analyses` + `market_events`; `message_id` unik (ingest idempoten), badan asli DAN badan bersih disimpan, rincian skor ikut tersimpan
 - [ ] `[!]` P11-05 Back-office peninjauan (§8) — **terhalang OQ-21**
 - [ ] P11-06 `docs/EMAIL_INTELLIGENCE.md` disesuaikan implementasi
 
 ## Phase 12 — Market Intelligence
 
-- [ ] P12-01 Skema event (§3) + agregasi (§5) sebagai fungsi murni
-- [ ] P12-02 Lokasi tingkat kota saja (§6) — konsisten dengan `PRIVACY.md`
+- [x] P12-01 Event + enam agregat sebagai fungsi murni; **ambang k-anonimitas 5** diterapkan di lapisan agregasi (bukan di dashboard — agregat tersimpan tanpa ambang berarti datanya sudah bocor sebelum ada yang melihat), dan yang ditahan **dilaporkan** agar pembaca tidak menyimpulkan permintaan nol
+  - [x] P12-01a Tes (15): ambang menahan 4 & menerbitkan 5, kota kecil ditahan sementara kota besar terbit, sinyal cakupan sengaja tidak diambang (rasio tak bisa menunjuk orang)
+- [x] P12-02 Lokasi tingkat kota — ditegakkan **struktural**: `occurred_on` bertipe `DATE` (pembulatan ke hari oleh tipe kolom, bukan kedisiplinan), bentuk `MarketEvent` tidak punya field untuk pengenal/teks bebas, dan **pagar lint baru** melarang `recommendation`/`engineering`/`context` mengimpor `market-intelligence`
+  - [x] P12-02a Pagar dibuktikan menolak impor terlarang; tes memeriksa tidak ada field terlarang di bentuk event
 - [ ] `[!]` P12-03 Dashboard (§7) — **terhalang OQ-21**
 
 ## Phase 13 — Audit keamanan, performa, aksesibilitas, evaluasi
