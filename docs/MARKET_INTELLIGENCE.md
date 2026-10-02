@@ -198,3 +198,33 @@ pakai ukuran X, sarankan X". Itu tetap dilarang — rekomendasi mengikuti teknik
 
 Tes 7 menjaga hal yang mudah hilang saat refactor: cakupan yang ditolak tetap merupakan data pasar
 yang berharga.
+
+---
+
+## 9. Status implementasi (Fase 12)
+
+| Bagian            | Berkas                                               |
+| ----------------- | ---------------------------------------------------- |
+| Bentuk event (§3) | `modules/market-intelligence/domain/market-event.ts` |
+| Enam agregat (§5) | `modules/market-intelligence/domain/aggregate.ts`    |
+| Tabel             | migration 0010 (`market_events`)                     |
+
+Tiga penegakan yang **struktural**, bukan kedisiplinan:
+
+1. Bentuk `MarketEvent` tidak punya field untuk `userId`, `guestSessionId`, `conversationId`,
+   `emailId`, nama, alamat, telepon, atau teks bebas. Yang tidak bisa ditulis tidak bisa bocor.
+2. `occurred_on` bertipe `DATE`, jadi pembulatan ke hari ditegakkan **tipe kolomnya** — pemanggil tidak
+   bisa menyimpan presisi detik walau ingin.
+3. **Pagar lint baru**: `recommendation`, `engineering`, dan `context` dilarang mengimpor
+   `market-intelligence`. Itu yang membuat janji §6 ("data wilayah untuk analisis pasar, bukan untuk
+   menentukan rekomendasi") tidak punya jalur untuk dilanggar. Pagarnya sudah dibuktikan menolak.
+
+Ambang k-anonimitas diterapkan di **lapisan agregasi**, bukan di dashboard: agregat yang sudah
+tersimpan tanpa ambang berarti datanya bocor sebelum ada yang melihatnya. Kelompok yang ditahan
+**dilaporkan** (`suppressedGroups`, `suppressedEvents`) supaya pembaca tahu ada data yang tidak tampil
+dan tidak menyimpulkan permintaan nol. Sinyal cakupan sengaja dikecualikan — rasio atas seluruh himpunan
+tidak bisa menunjuk satu orang, dan menahannya hanya menyembunyikan sinyal yang dibutuhkan untuk tahu
+cakupan rekomendasi terlalu sempit.
+
+**Belum:** pemancar event dari chat dan email (menunggu keduanya berjalan penuh), penyimpanan agregat
+terhitung, dan dashboard (§7) yang menunggu **OQ-21**.

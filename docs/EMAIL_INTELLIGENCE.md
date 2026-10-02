@@ -239,3 +239,32 @@ skala, produk yang diminat, `quotationIntent`. Tanpa identitas pengirim, tanpa n
 
 Tes 7 sebaiknya ditulis sebagai pemeriksaan arsitektur, bukan hanya tes unit: tidak ada pemanggil
 `sendEmail` selain use case yang memerlukan `approvedBy`.
+
+---
+
+## 11. Status implementasi (Fase 11)
+
+| Bagian                                       | Berkas                                          |
+| -------------------------------------------- | ----------------------------------------------- |
+| Redaksi + pembersihan riwayat + tanda tangan | `modules/email/domain/redactor.ts`              |
+| Skema ekstraksi (§4)                         | `modules/email/domain/email-analysis.schema.ts` |
+| Skor lead (§6)                               | `modules/email/domain/lead-score.ts`            |
+| Verifikasi HMAC webhook                      | `modules/email/domain/webhook-signature.ts`     |
+| Tabel                                        | migration 0010 (`emails`, `email_analyses`)     |
+
+Catatan tentang `nullable()` di skema ekstraksi: pada chat, aturannya `optional()` karena "tidak
+disebut" harus dibedakan dari "dinyatakan tidak ada" — state di-merge bertahap, dan `null` di sana akan
+membuat sistem menanyakan ulang hal yang sudah dijawab. Analisis email dibuat **sekali untuk satu email
+utuh**, jadi `null` berarti "tidak ada di email ini" dan tidak ada giliran berikutnya yang menimpanya.
+Situasinya berbeda, jadi jawabannya berbeda.
+
+Verifikasi webhook menghindari dua jebakan yang lazim: perbandingan waktu-konstan (`a === b` keluar
+pada byte pertama yang berbeda dan membocorkan panjang prefiks yang benar), dan tanda tangan dihitung
+atas **badan mentah** — bukan JSON yang di-parse lalu di-stringify ulang, yang mengubah urutan kunci
+sehingga tanda tangan sah ditolak dan "perbaikan" yang biasa dilakukan adalah melemahkan verifikasinya.
+Timestamp ikut ditandatangani supaya tanda tangan lama tidak bisa dipakai ulang dengan timestamp baru.
+
+**Belum:** parsing MIME sungguhan (header, HTML→teks, lampiran) menunggu bentuk payload n8n yang nyata;
+pemanggilan model untuk ekstraksi menunggu **OQ-09**; back-office peninjauan (§8) menunggu **OQ-21**;
+tujuan pengiriman draf menunggu **OQ-08**. Yang sudah ada adalah seluruh bagian yang bisa benar tanpa
+jawaban itu — dan yang terpenting di antaranya, redaksi, justru tidak bergantung pada satu pun.
