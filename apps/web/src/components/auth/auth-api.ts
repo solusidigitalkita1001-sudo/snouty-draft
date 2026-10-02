@@ -3,6 +3,8 @@
  * cookie `httpOnly`, dan permintaan tanpa cookie adalah sesi baru setiap kali.
  */
 
+import { setAccessToken } from './session';
+
 const BASE = '/api/v1';
 
 export interface AuthResult {
@@ -23,7 +25,14 @@ async function post(path: string, body: Record<string, unknown>): Promise<AuthRe
     });
 
     if (response.ok) {
-      const data = (await response.json()) as { resumedConversationId?: string | null };
+      const data = (await response.json()) as {
+        accessToken?: string;
+        resumedConversationId?: string | null;
+      };
+      // Disimpan di memori supaya permintaan berikutnya dikenali sebagai pengguna, bukan
+      // tamu. Tanpa ini, login "berhasil" tetapi API tetap melihat tamu dan menolak
+      // riwayat dengan 403.
+      if (data.accessToken) setAccessToken(data.accessToken);
       return { ok: true, resumedConversationId: data.resumedConversationId ?? null };
     }
 

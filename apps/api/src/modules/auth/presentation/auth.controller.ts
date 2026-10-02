@@ -88,14 +88,23 @@ export class AuthController {
   @HttpCode(200)
   async login(
     @Body() rawBody: unknown,
-    @Req() request: Request,
+    @Req() request: Request & WithGuestSession,
     @Res({ passthrough: true }) response: Response,
   ) {
     await this.guardByIp(request, 'login');
     const body = parse(LoginDto, rawBody);
-    const session = await this.auth.login(body);
+    const session = await this.auth.login(
+      body,
+      // Dari cookie yang sudah diverifikasi middleware — bukan dari body, yang bisa
+      // menyebut sesi tamu milik orang lain.
+      request.guestSessionId,
+    );
     this.setRefreshCookie(response, session);
-    return { ...profileOf(session), accessToken: session.accessToken };
+    return {
+      ...profileOf(session),
+      accessToken: session.accessToken,
+      resumedConversationId: session.resumedConversationId,
+    };
   }
 
   @Post('refresh')

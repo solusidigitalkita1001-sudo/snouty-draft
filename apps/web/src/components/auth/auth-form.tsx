@@ -44,7 +44,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       if (result.ok) {
         // Percakapan tamu yang berpindah dibuka langsung — itu janji "tidak perlu mengulang
         // cerita" (invarian G-1), dan membiarkan pengguna mencarinya sendiri melanggarnya.
-        window.location.href = result.resumedConversationId ? '/konsultasi' : '/konsultasi';
+        window.location.href = result.resumedConversationId ? '/consultation' : '/consultation';
         return;
       }
 
@@ -129,7 +129,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           {copy.submit}
         </button>
 
-        <a className={styles.switch} href={mode === 'login' ? '/daftar' : '/masuk'}>
+        <a className={styles.switch} href={mode === 'login' ? '/register' : '/login'}>
           {mode === 'login' ? COPY.login.toRegister : COPY.register.toLogin}
         </a>
       </form>

@@ -397,14 +397,14 @@ sesi manual, bukan pemeriksaan kode.
 Aturan §11 berbunyi: layar yang belum didesain **dibangun minimal dengan token yang sama dan dicatat
 sebagai "needs design"** — karena membuatnya tampak selesai akan menyulitkan desainer nanti.
 
-Saya sempat salah membaca itu sebagai "jangan dibangun", lalu menunda layar masuk/daftar ke OQ-21.
+Saya sempat salah membaca itu sebagai "jangan dibangun", lalu menunda layar masuk/register ke OQ-21.
 Yang dilarang adalah membuatnya tampak selesai, bukan membangunnya.
 
-| Layar         | Rute      | Status                                               |
-| ------------- | --------- | ---------------------------------------------------- |
-| Masuk         | `/masuk`  | minimal, bertanda **MENUNGGU DESAIN**                |
-| Daftar akun   | `/daftar` | minimal, bertanda **MENUNGGU DESAIN**                |
-| Register-gate | —         | **tidak** dibangun: bentuknya keputusan alur (OQ-27) |
+| Layar         | Rute        | Status                                               |
+| ------------- | ----------- | ---------------------------------------------------- |
+| Masuk         | `/login`    | minimal, bertanda **MENUNGGU DESAIN**                |
+| Daftar akun   | `/register` | minimal, bertanda **MENUNGGU DESAIN**                |
+| Register-gate | —           | **tidak** dibangun: bentuknya keputusan alur (OQ-27) |
 
 Penandanya dirender **tanpa syarat**, alasan yang sama seperti catatan wajib skema: `AuthForm`
 menerima satu prop (`mode`), jadi tidak ada `hideBanner` yang bisa membuat layar sementara tampak

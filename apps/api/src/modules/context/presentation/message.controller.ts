@@ -52,13 +52,27 @@ export class MessageController {
       }
     }
 
+    /**
+     * Pekerjaan dijalankan **sebelum** satu byte header pun ditulis.
+     *
+     * Sebelumnya header SSE di-flush lebih dulu, dan akibatnya setiap galat setelah itu
+     * tidak bisa dilaporkan: filter galat mencoba `response.json()` atas respons yang
+     * headernya sudah terkirim, gagal, dan koneksi tertutup tanpa isi. Yang terlihat di
+     * browser adalah `ERR_EMPTY_RESPONSE` — tanpa petunjuk apa pun tentang sebabnya.
+     *
+     * Giliran chat tidak streaming token dari model (prosa penjelas datang di Fase 7 lewat
+     * jalur lain), jadi menunggu pekerjaan selesai tidak menghilangkan apa pun yang
+     * sebenarnya progresif — dan menukar "respons kosong yang tak bisa didiagnosis"
+     * dengan galat yang terbaca adalah pertukaran yang jelas menguntungkan.
+     */
+    const now = new Date().toISOString();
+    const events = await this.messages.handle(id, actor, text, now);
+
     res.setHeader('content-type', 'text/event-stream');
     res.setHeader('cache-control', 'no-cache, no-transform');
     res.setHeader('connection', 'keep-alive');
     res.flushHeaders?.();
 
-    const now = new Date().toISOString();
-    const events = await this.messages.handle(id, actor, text, now);
     for (const event of events) writeEvent(res, event);
     res.end();
   }

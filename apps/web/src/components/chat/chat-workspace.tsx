@@ -36,6 +36,7 @@ import {
   type ConversationSummary,
 } from './chat-api';
 import { SolutionView } from '../solution/solution-view';
+import { restoreSession } from '../auth/session';
 import { CHAT_COPY as COPY, STAGE_ORDER, stageLabel } from './chat-copy';
 import { requirementRows } from './requirement-rows';
 import styles from './chat-workspace.module.css';
@@ -67,13 +68,24 @@ export function ChatWorkspace() {
   >({ kind: 'loading' });
   const streamRef = useRef<HTMLDivElement>(null);
 
-  // Riwayat dimuat sekali. Tamu mendapat 403, dan itu jawaban yang benar — bukan error.
+  /**
+   * Memulihkan sesi LEBIH DULU, lalu memuat riwayat.
+   *
+   * Access token hidup di memori (docs/SECURITY.md §3), jadi muat ulang halaman
+   * menghapusnya. Tanpa pemulihan ini, pengguna yang sudah masuk terlihat seperti tamu
+   * setelah refresh dan riwayatnya ditolak 403 — gejala yang membingungkan karena ia
+   * merasa masih masuk.
+   */
   useEffect(() => {
     let cancelled = false;
-    void fetchHistory().then((result) => {
-      if (cancelled) return;
-      setHistory(result.kind === 'ok' ? { kind: 'list', items: result.items } : { kind: 'guest' });
-    });
+    void restoreSession()
+      .then(() => fetchHistory())
+      .then((result) => {
+        if (cancelled) return;
+        setHistory(
+          result.kind === 'ok' ? { kind: 'list', items: result.items } : { kind: 'guest' },
+        );
+      });
     return () => {
       cancelled = true;
     };

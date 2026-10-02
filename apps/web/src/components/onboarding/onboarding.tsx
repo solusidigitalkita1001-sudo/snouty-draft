@@ -165,7 +165,7 @@ export function Onboarding() {
             label: COPY.actions.register,
             onClick: () => {
               finish('done');
-              window.location.href = '/daftar';
+              window.location.href = '/register';
             },
           }
         : { label: COPY.actions.next, onClick: next };

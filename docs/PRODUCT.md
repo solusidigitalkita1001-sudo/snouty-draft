@@ -184,14 +184,14 @@ terjawab.
 
 ## 10. Yang masih terbuka di sisi produk
 
-| OQ    | Pertanyaan                                                    |
-| ----- | ------------------------------------------------------------- |
-| OQ-15 | apakah tamu melihat solusi lengkap, atau BOM/skema butuh akun |
-| OQ-03 | harga masuk lingkup atau tidak                                |
-| OQ-05 | apakah tier lanjutan berbayar                                 |
-| OQ-07 | sumber katalog produk                                         |
-| OQ-08 | tujuan handoff teknis dan SLA resmi                           |
-| OQ-17 | perilaku untuk kebutuhan pembuangan                           |
+| OQ    | Pertanyaan                                                        |
+| ----- | ----------------------------------------------------------------- |
+| OQ-15 | apakah tamu melihat solusi lengkap, atau BOM/schematic butuh akun |
+| OQ-03 | harga masuk lingkup atau tidak                                    |
+| OQ-05 | apakah tier lanjutan berbayar                                     |
+| OQ-07 | sumber katalog produk                                             |
+| OQ-08 | tujuan handoff teknis dan SLA resmi                               |
+| OQ-17 | perilaku untuk kebutuhan pembuangan                               |
 
 OQ-15 yang paling berpengaruh: ia menentukan apakah layar unggulan produk ini bisa dilihat tanpa
 mendaftar.

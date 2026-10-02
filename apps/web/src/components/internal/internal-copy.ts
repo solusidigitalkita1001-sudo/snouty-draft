@@ -14,20 +14,20 @@ export const INTERNAL_COPY = {
   brand: 'SNOUTY · INTERNAL',
 
   nav: [
-    { href: '/internal/katalog', label: 'Katalog', phase: 'P1-10b' },
-    { href: '/internal/aturan', label: 'Validasi aturan', phase: 'P6-09' },
+    { href: '/internal/catalog', label: 'Katalog', phase: 'P1-10b' },
+    { href: '/internal/rules', label: 'Validasi aturan', phase: 'P6-09' },
     { href: '/internal/email', label: 'Peninjauan email', phase: 'P11-05' },
-    { href: '/internal/pasar', label: 'Intelijen pasar', phase: 'P12-03' },
+    { href: '/internal/market', label: 'Intelijen pasar', phase: 'P12-03' },
     { href: '/internal/handoff', label: 'Antrean teknis', phase: 'P8-07' },
   ],
 
-  katalog: {
+  catalog: {
     title: 'Katalog produk',
     body: 'Unggah berkas katalog, periksa laporan validasi, pratinjau draft, lalu promosikan versinya.',
     blocked:
       'Bentuk berkas katalog yang sebenarnya belum diketahui (OQ-07), jadi formulir unggahnya belum dibuat. Daftar versi dan promosi sudah tersedia lewat API.',
   },
-  aturan: {
+  rules: {
     title: 'Validasi aturan teknik',
     body: 'Keempat belas aturan menunggu persetujuan ahli domain. Yang disetujui akan membuat nilai terhitung bisa tampil TERVERIFIKASI.',
     blocked:
@@ -39,7 +39,7 @@ export const INTERNAL_COPY = {
     blocked:
       'Pemanggilan model untuk analisis menunggu ID model (OQ-09), dan tujuan pengiriman draf menunggu OQ-08. Redaksi data pribadi sudah berjalan dan teruji.',
   },
-  pasar: {
+  market: {
     title: 'Intelijen pasar',
     body: 'Permintaan regional, tren minat produk, pola tipe proyek, dan corong konsultasi.',
     blocked:

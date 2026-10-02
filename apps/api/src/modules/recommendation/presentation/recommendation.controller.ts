@@ -40,38 +40,44 @@ export class RecommendationController {
     const actor = actorOf(req);
     await this.conversations.find(id, actor);
 
+    /**
+     * Snapshot dibaca dan analisis dijalankan **sebelum** header ditulis, alasan yang sama
+     * seperti di `message.controller`: galat setelah header terkirim menjadi
+     * `ERR_EMPTY_RESPONSE` yang tidak bisa didiagnosis siapa pun.
+     */
+    const snapshot = await this.snapshots.current(id);
+
+    let events: readonly AssistantStreamEvent[];
+    if (!snapshot) {
+      events = [{ type: 'error', code: 'VALIDATION_FAILED', retryable: false }];
+    } else {
+      try {
+        const assumptions = assumptionCardFor(snapshot.state).map((item) => ({
+          text: item.reason,
+          fieldPath: item.path,
+          ...(item.ruleId !== undefined ? { ruleId: item.ruleId } : {}),
+        }));
+        events = await this.analysis.run(
+          id,
+          snapshot.id,
+          snapshot.state,
+          assumptions,
+          new Date().toISOString(),
+        );
+      } catch (error) {
+        // Katalog tidak tersedia adalah kegagalan jujur dan bisa dicoba lagi — bukan
+        // alasan menampilkan solusi tanpa produk.
+        const code =
+          error instanceof CatalogUnavailableError ? 'CATALOG_UNAVAILABLE' : 'SERVICE_UNAVAILABLE';
+        events = [{ type: 'error', code, retryable: true }];
+      }
+    }
+
     res.setHeader('content-type', 'text/event-stream');
     res.setHeader('cache-control', 'no-cache, no-transform');
     res.flushHeaders?.();
 
-    const snapshot = await this.snapshots.current(id);
-    if (!snapshot) {
-      write(res, { type: 'error', code: 'VALIDATION_FAILED', retryable: false });
-      res.end();
-      return;
-    }
-
-    try {
-      const assumptions = assumptionCardFor(snapshot.state).map((item) => ({
-        text: item.reason,
-        fieldPath: item.path,
-        ...(item.ruleId !== undefined ? { ruleId: item.ruleId } : {}),
-      }));
-      const events = await this.analysis.run(
-        id,
-        snapshot.id,
-        snapshot.state,
-        assumptions,
-        new Date().toISOString(),
-      );
-      for (const event of events) write(res, event);
-    } catch (error) {
-      // Katalog tidak tersedia adalah kegagalan yang jujur dan bisa dicoba lagi —
-      // bukan alasan menampilkan solusi tanpa produk.
-      const code =
-        error instanceof CatalogUnavailableError ? 'CATALOG_UNAVAILABLE' : 'SERVICE_UNAVAILABLE';
-      write(res, { type: 'error', code, retryable: true });
-    }
+    for (const event of events) write(res, event);
     res.end();
   }
 

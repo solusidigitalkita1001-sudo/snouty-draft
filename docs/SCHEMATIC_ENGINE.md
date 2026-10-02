@@ -221,7 +221,7 @@ membawa maknanya.
 | Endpoint (bentuk ulang, tak disimpan) | `GET /recommendations/:id/schematic`                   |
 | Renderer SVG + catatan S-1            | `apps/web/src/components/schematic/schematic-view.tsx` |
 | Panel DAFTAR JALUR + blok judul       | `SchematicSidePanel` di berkas yang sama               |
-| Layar 09                              | `apps/web/src/app/skema/page.tsx`                      |
+| Layar 09                              | `apps/web/src/app/schematic/page.tsx`                  |
 
 **Skema tidak disimpan.** Ia diturunkan deterministik dari snapshot kebutuhan, jadi endpoint-nya
 membentuknya ulang alih-alih menyalinnya ke basis data. Itu yang membuat skenario "bagaimana kalau"

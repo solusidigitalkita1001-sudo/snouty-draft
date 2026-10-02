@@ -9,6 +9,8 @@
 
 import type { AssistantStreamEvent, Recommendation } from '@snouty/shared-types';
 
+import { authHeaders } from '../auth/session';
+
 const BASE = '/api/v1';
 
 export interface ConversationSummary {
@@ -23,6 +25,7 @@ export async function createConversation(): Promise<ConversationSummary> {
   const response = await fetch(`${BASE}/conversations`, {
     method: 'POST',
     credentials: 'include',
+    headers: authHeaders(),
   });
   if (!response.ok) throw new Error(`conversations ${response.status}`);
   return (await response.json()) as ConversationSummary;
@@ -41,7 +44,7 @@ export async function sendMessage(
   const response = await fetch(`${BASE}/conversations/${conversationId}/messages`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ text }),
     ...(signal ? { signal } : {}),
   });
@@ -89,7 +92,7 @@ export async function sendToTechnicalTeam(
   const response = await fetch(`${BASE}/conversations/${conversationId}/handoff`, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ reason }),
   });
   if (!response.ok) return null;
@@ -107,7 +110,10 @@ export type HistoryResult =
   | { readonly kind: 'error' };
 
 export async function fetchHistory(): Promise<HistoryResult> {
-  const response = await fetch(`${BASE}/conversations`, { credentials: 'include' });
+  const response = await fetch(`${BASE}/conversations`, {
+    credentials: 'include',
+    headers: authHeaders(),
+  });
   if (response.status === 403) return { kind: 'not_entitled' };
   if (!response.ok) return { kind: 'error' };
   const body = (await response.json()) as { items: readonly ConversationSummary[] };
@@ -119,6 +125,7 @@ export async function saveConversation(conversationId: string): Promise<boolean>
   const response = await fetch(`${BASE}/conversations/${conversationId}/save`, {
     method: 'POST',
     credentials: 'include',
+    headers: authHeaders(),
   });
   return response.ok;
 }
@@ -136,6 +143,7 @@ export async function runAnalysis(
   const response = await fetch(`${BASE}/conversations/${conversationId}/analyze`, {
     method: 'POST',
     credentials: 'include',
+    headers: authHeaders(),
   });
   if (!response.ok || !response.body) throw new Error(`analyze ${response.status}`);
 
@@ -166,7 +174,10 @@ export async function runAnalysis(
 
 /** Rekomendasi yang sudah tersimpan — dirender `SolutionView`. */
 export async function fetchRecommendation(id: string): Promise<Recommendation | null> {
-  const response = await fetch(`${BASE}/recommendations/${id}`, { credentials: 'include' });
+  const response = await fetch(`${BASE}/recommendations/${id}`, {
+    credentials: 'include',
+    headers: authHeaders(),
+  });
   if (!response.ok) return null;
   return (await response.json()) as Recommendation;
 }

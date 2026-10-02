@@ -110,7 +110,19 @@ export class AuthService {
     return { ...session, resumedConversationId: linked.resumedConversationId };
   }
 
-  async login(credentials: Credentials): Promise<AuthenticatedSession> {
+  /**
+   * Masuk. `guestSessionId` opsional, dan bila ada percakapan tamunya **ikut berpindah**
+   * ke akun — invarian G-1 yang sama seperti registrasi.
+   *
+   * Sebelumnya penautan hanya berjalan di `register`, dan akibatnya tamu yang sudah
+   * berkonsultasi lalu masuk ke akun lama kehilangan akses ke percakapannya sendiri: ia
+   * masih dimiliki sesi tamu, sementara aktornya kini pengguna. Yang terlihat di layar
+   * adalah percakapan yang tiba-tiba "tidak ditemukan" — padahal datanya ada.
+   */
+  async login(
+    credentials: Credentials,
+    guestSessionId?: string,
+  ): Promise<AuthenticatedSession & { resumedConversationId: string | null }> {
     const user = await this.users.findByEmail(normalizeEmail(credentials.email));
 
     if (user === null) {
@@ -128,7 +140,16 @@ export class AuthService {
     if (user.status === 'disabled') throw new AccountDisabledError();
 
     await this.users.touchLastSeen(user.id);
-    return this.openSession(user);
+
+    // Penautan setelah kredensial terbukti benar — bukan sebelumnya. Menautkan lebih dulu
+    // berarti percakapan tamu berpindah ke akun hanya karena seseorang menebak emailnya.
+    const linked =
+      guestSessionId !== undefined
+        ? await this.guestLinker.link(guestSessionId, user.id)
+        : { movedConversations: 0, resumedConversationId: null };
+
+    const session = await this.openSession(user);
+    return { ...session, resumedConversationId: linked.resumedConversationId };
   }
 
   /** Menukar refresh token: access token baru + refresh token baru (rotasi). */

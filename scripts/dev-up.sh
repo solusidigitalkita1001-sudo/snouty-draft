@@ -106,14 +106,14 @@ cat <<'INFO'
   SNOUTY siap diuji — buka http://localhost:3000
 
   /              onboarding 5 langkah (muncul sekali per sesi tamu)
-  /konsultasi    chat → klarifikasi → analisis → solusi → BOM → skema
-  /skema         skema penuh (dibuka dari solusi)
-  /masuk         masuk        ← menunggu desain
-  /daftar        daftar akun  ← menunggu desain
+  /consultation    chat → klarifikasi → analisis → solusi → BOM → skema
+  /schematic         skema penuh (dibuka dari solusi)
+  /login         masuk        ← menunggu desain
+  /register        daftar akun  ← menunggu desain
   /internal/*    back-office  ← menunggu desain
   /tokens        galeri token desain
 
-  Coba tulis di /konsultasi:
+  Coba tulis di /consultation:
     "Rumah 2 lantai, 3 kamar mandi, 4 wastafel, 1 dapur, toren di atap, air bersih"
     lalu tekan "Analisis kebutuhan".
 

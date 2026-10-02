@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
 import { INTERNAL_COPY, type InternalSection } from './internal-copy';
 import { InternalShell } from './internal-shell';
 
-const SECTIONS: readonly InternalSection[] = ['katalog', 'aturan', 'email', 'pasar', 'handoff'];
+const SECTIONS: readonly InternalSection[] = ['catalog', 'rules', 'email', 'market', 'handoff'];
 
 describe('penanda "menunggu desain"', () => {
   it('tampil di setiap bagian', () => {
@@ -41,18 +41,18 @@ describe('setiap bagian menjelaskan apa yang menunggu apa', () => {
   });
 
   it('bagian katalog menyebut OQ-07, aturan menyebut OQ-06', () => {
-    expect(INTERNAL_COPY.katalog.blocked).toContain('OQ-07');
-    expect(INTERNAL_COPY.aturan.blocked).toContain('OQ-06');
+    expect(INTERNAL_COPY.catalog.blocked).toContain('OQ-07');
+    expect(INTERNAL_COPY.rules.blocked).toContain('OQ-06');
   });
 
   it('bagian aturan menegaskan ASUMSI adalah perilaku yang benar, bukan kekurangan', () => {
-    expect(INTERNAL_COPY.aturan.blocked).toContain('perilaku yang benar');
+    expect(INTERNAL_COPY.rules.blocked).toContain('perilaku yang benar');
   });
 });
 
 describe('navigasi', () => {
   it('menautkan kelima bagian beserta nomor item fasenya', () => {
-    render(<InternalShell section="katalog" />);
+    render(<InternalShell section="catalog" />);
     for (const item of INTERNAL_COPY.nav) {
       expect(screen.getByText(item.label)).toBeDefined();
       expect(screen.getByText(item.phase)).toBeDefined();
@@ -63,7 +63,7 @@ describe('navigasi', () => {
 describe('mascot tidak dipakai di back-office', () => {
   it('tidak merender satu pun gambar', () => {
     // Aturan dari skill desain. Back-office adalah alat kerja yang dipakai berjam-jam.
-    const { container } = render(<InternalShell section="pasar" />);
+    const { container } = render(<InternalShell section="market" />);
     expect(container.querySelectorAll('img')).toHaveLength(0);
   });
 });

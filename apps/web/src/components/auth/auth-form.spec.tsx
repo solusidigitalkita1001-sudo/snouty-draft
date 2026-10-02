@@ -66,7 +66,7 @@ describe('formulir', () => {
   it('menautkan ke layar sebaliknya', () => {
     render(<AuthForm mode="login" />);
     const link = screen.getByText(AUTH_COPY.login.toRegister);
-    expect(link.getAttribute('href')).toBe('/daftar');
+    expect(link.getAttribute('href')).toBe('/register');
   });
 });
 

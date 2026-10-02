@@ -2,5 +2,5 @@
 import { InternalShell } from '../../../components/internal/internal-shell';
 
 export default function Page() {
-  return <InternalShell section="pasar" />;
+  return <InternalShell section="market" />;
 }

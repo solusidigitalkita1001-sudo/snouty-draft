@@ -41,7 +41,7 @@ export function SolutionView({
         <div className={styles.summaryFooter}>
           <span className={styles.disclaimer}>{COPY.planningDisclaimer}</span>
           {/* Skema dibentuk ulang deterministik dari snapshot — jadi tautannya cukup id. */}
-          <a className={styles.linkButton} href={`/skema?recommendation=${recommendation.id}`}>
+          <a className={styles.linkButton} href={`/schematic?recommendation=${recommendation.id}`}>
             Lihat skema instalasi →
           </a>
         </div>
