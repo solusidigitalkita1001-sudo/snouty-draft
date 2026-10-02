@@ -28,6 +28,7 @@ import { guestSessionRepositoryProvider } from './infrastructure/mysql-guest-ses
 import { userRepositoryProvider } from './infrastructure/mysql-user.repository.js';
 import { refreshTokenRepositoryProvider } from './infrastructure/mysql-refresh-token.repository.js';
 import { AccessTokenMiddleware } from './presentation/access-token.middleware.js';
+import { AuthController } from './presentation/auth.controller.js';
 import { GuestSessionMiddleware } from './presentation/guest-session.middleware.js';
 
 const guestSessionServiceProvider = {
@@ -70,6 +71,7 @@ const tokenServiceProvider = {
  * boleh menyentuh satu pun pemanggil.
  */
 @Module({
+  controllers: [AuthController],
   providers: [
     passwordHasherProvider,
     accessTokenServiceProvider,

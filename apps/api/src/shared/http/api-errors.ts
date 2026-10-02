@@ -51,3 +51,30 @@ export class InternalRouteMisconfiguredError extends Error {
     this.cause = `rute internal tanpa peran yang diminta: ${route}`;
   }
 }
+
+/**
+ * Kapabilitas tidak tersedia untuk tier aktor — pesan dan `details.capability`
+ * mengikuti contoh kontrak (docs/API_CONTRACTS.md §1).
+ */
+export class NotEntitledCapabilityError extends Error {
+  readonly code = 'NOT_ENTITLED' as const;
+  readonly details: Readonly<Record<string, unknown>>;
+
+  constructor(capability: string) {
+    super('Fitur ini tersedia untuk pengguna terdaftar.');
+    this.name = 'NotEntitledCapabilityError';
+    this.details = { capability };
+  }
+}
+
+/** Body atau parameter tidak lolos skema. `details.fields` menyebut yang bermasalah. */
+export class RequestValidationError extends Error {
+  readonly code = 'VALIDATION_FAILED' as const;
+  readonly details: Readonly<Record<string, unknown>>;
+
+  constructor(fields: readonly string[]) {
+    super('Ada isian yang belum sesuai.');
+    this.name = 'RequestValidationError';
+    this.details = { fields };
+  }
+}

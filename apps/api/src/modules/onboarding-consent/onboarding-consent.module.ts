@@ -9,6 +9,7 @@ import {
 import { CONSENT_REPOSITORY, type ConsentRepository } from './domain/consent.repository.js';
 import { consentRepositoryProvider } from './infrastructure/mysql-consent.repository.js';
 import { onboardingStateRepositoryProvider } from './infrastructure/mysql-onboarding-state.repository.js';
+import { OnboardingConsentController } from './presentation/onboarding-consent.controller.js';
 
 const onboardingServiceProvider = {
   provide: OnboardingService,
@@ -26,9 +27,9 @@ const consentServiceProvider = {
 /**
  * Konteks identity, modul `onboarding-consent` (docs/ARCHITECTURE.md §6).
  *
- * Endpoint-nya menyusul di P3-11.
  */
 @Module({
+  controllers: [OnboardingConsentController],
   providers: [
     consentRepositoryProvider,
     consentServiceProvider,

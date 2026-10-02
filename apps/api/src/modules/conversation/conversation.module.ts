@@ -5,6 +5,7 @@ import {
   type ConversationRepository,
 } from './domain/conversation.repository.js';
 import { conversationRepositoryProvider } from './infrastructure/mysql-conversation.repository.js';
+import { ConversationController } from './presentation/conversation.controller.js';
 
 const conversationServiceProvider = {
   provide: ConversationService,
@@ -17,6 +18,7 @@ const conversationServiceProvider = {
  * pesan, status, judul. Context Engine (snapshot kebutuhan) menyusul di Fase 4.
  */
 @Module({
+  controllers: [ConversationController],
   providers: [conversationRepositoryProvider, conversationServiceProvider],
   exports: [conversationServiceProvider, conversationRepositoryProvider],
 })
