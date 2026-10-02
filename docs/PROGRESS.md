@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-10 pipeline pesan + SSE**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-11 layar 02 konsultasi** (sebagian perlu pipeline) · **P4-12 docs**
 
 ## Summary
 
@@ -295,8 +295,8 @@ deterministik diuji penuh tanpa model, adapter OpenRouter digerbang keberadaan k
   - [x] P4-08a Tes §9 #10 (6, fake ai): mutasi & jawaban klarifikasi memutasi; penjelasan/lookup/pernyataan-awal tidak; ragu → bertanya
 - [x] P4-09 Adapter OpenRouter — transport (satu-satunya jaringan) di belakang port; retry 1× ke tingkat `strong` lalu **lempar** (tanpa percobaan ketiga); migration 0007 `llm_calls`; perekam biaya tanpa field isi prompt
   - [x] P4-09a Tes (7): retry-lalu-lempar, tiap percobaan tercatat, `LlmCallRecord` & tabel tak punya kolom prompt/message/content, CHECK outcome
-- [ ] P4-10 Pipeline pesan + SSE `POST /conversations/:id/messages` — lima tahap batas nyata; kegagalan di tengah
-  - [ ] P4-10a Tes: edit inline nol panggilan LLM; bentuk event SSE sesuai kontrak
+- [x] P4-10 Pipeline pesan + SSE `POST /conversations/:id/messages` — ruas UNDERSTANDING (sisanya Fase 6/7); `AssistantStreamEvent` union; tanpa kunci → `error LLM_UNAVAILABLE` (giliran tak jatuh); diverifikasi live (buat percakapan → stream event)
+  - [x] P4-10a Tes (9): bentuk event sesuai kontrak, lengkap→CTA / kurang→klarifikasi, ekstraksi gagal→klarifikasi, edit inline nol-LLM (§9 #9)
 - [ ] P4-11 Layar 02 konsultasi aktif + indikator tahap `[sebagian perlu pipeline — bertahap]`
 - [ ] P4-12 `docs/CONTEXT_ENGINE.md` + `docs/AI_BEHAVIOR.md` disesuaikan implementasi
 - [ ] ✋ CHECKPOINT — reviewed by owner

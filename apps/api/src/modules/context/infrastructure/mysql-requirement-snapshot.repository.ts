@@ -72,3 +72,12 @@ export class MysqlRequirementSnapshotRepository implements RequirementSnapshotRe
     };
   }
 }
+
+import { DatabaseService } from '../../../shared/database/database.service.js';
+import { REQUIREMENT_SNAPSHOT_REPOSITORY } from '../domain/requirement-snapshot.repository.js';
+
+export const requirementSnapshotRepositoryProvider = {
+  provide: REQUIREMENT_SNAPSHOT_REPOSITORY,
+  inject: [DatabaseService],
+  useFactory: (database: DatabaseService) => new MysqlRequirementSnapshotRepository(database),
+};

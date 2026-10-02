@@ -1,6 +1,12 @@
 export type { Provenance, FieldSource, TrackedValue } from './provenance.js';
 export type { ErrorCode, PolicyCode, ApiErrorBody } from './errors.js';
-export type { AnalysisStage, StageStatus, TokenUsage } from './sse.js';
+export type {
+  AnalysisStage,
+  AssistantStreamEvent,
+  AssistantStreamEventType,
+  StageStatus,
+  TokenUsage,
+} from './sse.js';
 export { PipeSize, PipeSizeRange, PipeSizeTransition } from './pipe-size.js';
 export type {
   CatalogVersion,

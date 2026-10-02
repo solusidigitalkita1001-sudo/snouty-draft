@@ -2,7 +2,7 @@
  * P4-09a (sebagian) — retry sekali lalu lempar; tiap percobaan tercatat;
  * `LlmCallRecord` tidak punya field isi prompt.
  */
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { AiOutputInvalidError } from '../domain/ai.errors.js';
 import type { LlmCallRecord, LlmCallRecorder } from '../domain/llm-call.recorder.js';
 import type { LlmCompletionRequest, LlmTransport } from '../domain/llm-transport.port.js';
