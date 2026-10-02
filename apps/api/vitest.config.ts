@@ -17,6 +17,10 @@ export default defineConfig({
       '@snouty/shared-types': fileURLToPath(
         new URL('../../packages/shared-types/src/index.ts', import.meta.url),
       ),
+      /** Alasan yang sama untuk `@snouty/engineering`. */
+      '@snouty/engineering': fileURLToPath(
+        new URL('../../packages/engineering/src/index.ts', import.meta.url),
+      ),
     },
   },
   test: {

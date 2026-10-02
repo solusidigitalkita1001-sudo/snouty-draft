@@ -1,0 +1,12 @@
+{
+  // Sama seperti shared-types: `outDir`/`rootDir` ditulis ulang di sini, tidak
+  // diwarisi, karena jalur relatif di lib.json diselesaikan terhadap berkas itu.
+  "extends": "../config/tsconfig/lib.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "noEmit": false
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.spec.ts"]
+}

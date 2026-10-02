@@ -12,6 +12,7 @@ import { HealthModule } from './modules/health/health.module.js';
 import { OnboardingConsentModule } from './modules/onboarding-consent/onboarding-consent.module.js';
 import { ProductCatalogModule } from './modules/product-catalog/product-catalog.module.js';
 import { ProductKnowledgeModule } from './modules/product-knowledge/product-knowledge.module.js';
+import { RecommendationModule } from './modules/recommendation/recommendation.module.js';
 
 /**
  * Modul domain menyusul fase demi fase (docs/ARCHITECTURE.md §6).
@@ -32,6 +33,7 @@ import { ProductKnowledgeModule } from './modules/product-knowledge/product-know
     ContextModule,
     ProductCatalogModule,
     ProductKnowledgeModule,
+    RecommendationModule,
   ],
 })
 export class AppModule implements NestModule {

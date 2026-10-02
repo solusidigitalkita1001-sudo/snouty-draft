@@ -420,3 +420,39 @@ Daftar ini adalah spesifikasi tes, bukan sekadar catatan.
 | S-1   | Skema selalu bertanda bukan gambar kerja                     | komponen                     |
 | RP-1  | Laporan dirakit tanpa memanggil LLM                          | report                       |
 | RP-2  | Laporan hanya untuk pemilik dan peran berwenang              | policy                       |
+
+---
+
+## 7a. Status implementasi Recommendation (Fase 7)
+
+| Bagian                            | Berkas                                                           |
+| --------------------------------- | ---------------------------------------------------------------- |
+| Tipe agregat                      | `packages/shared-types/src/recommendation.ts`                    |
+| Tabel + trace                     | migration 0008, `schema/recommendation.ts`                       |
+| Pencocokan produk (C-2)           | `modules/recommendation/domain/product-matcher.ts`               |
+| Pemeriksa prosa (REC-1)           | `modules/recommendation/domain/prose-check.ts`                   |
+| Baris sistem, BOM, asumsi (T-1)   | `modules/recommendation/domain/solution-view.ts`                 |
+| Perakitan + templat deterministik | `modules/recommendation/application/recommendation-assembler.ts` |
+| Empat tahap SSE terakhir          | `modules/recommendation/application/analysis.service.ts`         |
+| Layar 06 + kartu 07               | `apps/web/src/components/solution/`                              |
+
+Invarian yang sekarang ditegakkan kode, bukan ingatan:
+
+- **C-2** — `matchProducts` hanya bisa memilih dari daftar kandidat yang diberikan pemanggil; ia tidak
+  punya akses repository, jadi tidak ada jalur untuk mengarang produk.
+- **T-1** — `SystemLine` dan `BomItem` **mewajibkan** `traceIds` pada tipenya, dan kolom "DASAR
+  PERHITUNGAN" berisi `explanation` trace. Ada tes yang membuktikan prosa LLM yang berbeda tidak
+  mengubah kolom itu.
+- **REC-1** — angka dan label ukuran di prosa diekstrak lalu dicocokkan; gagal → minta ulang sekali →
+  templat deterministik, yang lulus pemeriksaannya sendiri (jalur terakhir yang bisa gagal bukan jalur
+  terakhir).
+
+Catatan packaging: `@snouty/engineering` semula menunjuk `main` ke `src/index.ts`, yang bekerja untuk
+`tsc` dan `vitest` tetapi **tidak bisa dimuat Node** — ketangkap saat verifikasi live, bukan oleh tes.
+Paket itu sekarang punya `tsconfig.build.json` sendiri dan ikut dalam `pnpm build:types`; `vitest`
+tetap memakai sumbernya lewat alias agar `dist` yang basi tak pernah menyesatkan tes.
+
+**Belum:** drawer produk penuh (spesifikasi + dokumen teknis + ukuran tersedia) menyusul bersama
+`product-knowledge`; `ProseWriter` belum tersambung ke LLM, jadi prosa saat ini selalu templat
+deterministik — sambungannya butuh prompt penjelas dan kunci model (OQ-09). Harga (`unitPrice`,
+`subtotal`) menunggu OQ-03.
