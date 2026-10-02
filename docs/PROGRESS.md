@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Fase 9: **8/8 selesai**; menunggu ✋ CHECKPOINT pemilik
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Current phase: **10–13** · Next item: **P11-01 redaksi email**
 
 ## Summary
 
@@ -462,9 +462,50 @@ fisik apa pun.
 
 Fase 9: **8/8 selesai.** Skema hidup sebagai topologi terstruktur yang dibentuk ulang deterministik — bukan gambar yang disimpan. Lapisan tes komponen akhirnya ada, dan utang tes dari Fase 5/7 ikut terbayar.
 
-## Phases 10–13
+## Phase 10 — Riwayat terdaftar, entitlement lanjutan, register-gate, laporan, handoff
 
-(headings only; broken down at the start of each phase)
+**Sebagian besar sudah dikerjakan di Fase 8**, karena item-itemnya memang pasangan alami dari laporan
+dan riwayat. Yang tercatat di sini adalah sisanya.
+
+- [x] P10-01 Riwayat terdaftar + solusi tersimpan → dikerjakan sebagai P8-01/P8-02
+- [x] P10-02 Entitlement lanjutan → tabel `ENTITLEMENTS` sejak Fase 3, ditegakkan di API sejak P3-11
+- [x] P10-03 Antrean handoff teknis → dikerjakan sebagai P8-07
+- [ ] `[!]` P10-04 Register-gate & resume — **terhalang OQ-27, OQ-21**; mekanisme G-1-nya sudah ada
+- [ ] `[!]` P10-05 Laporan PDF (worker) — **terhalang OQ-40**; halaman cetak sudah final
+- [ ] `[!]` P10-06 Pengiriman handoff ke tujuan sebenarnya — **terhalang OQ-08** (mailbox? CRM? tiket?)
+- [ ] ✋ CHECKPOINT — reviewed by owner
+
+## Phase 11 — Email Intelligence
+
+Aturan yang tidak bisa ditawar (`docs/EMAIL_INTELLIGENCE.md` §1): **AI menganalisis → AI membuat draf
+→ manusia meninjau → manusia mengirim.** Tidak ada balasan otomatis, dan manusia di ujung rantai bukan
+hambatan — dia bagian dari desain.
+
+**Redaksi adalah intinya.** Ini jalur paparan data pribadi terbesar di seluruh sistem, dan berbeda dari
+chat dalam satu hal yang menentukan: **pengirim email tidak pernah menyetujui isinya diproses model
+pihak ketiga.** Karena itu redaksi berjalan sebelum teks menyentuh LLM, bukan sesudahnya.
+
+- [ ] P11-01 Redaktor (telepon, alamat, NPWP/rekening, blok tanda tangan, email) — fungsi murni
+  - [ ] P11-01a Tes: tidak ada bentuk data pribadi yang lolos; teks asli tetap utuh di penyimpanan
+- [ ] P11-02 Parsing email (§3) + skema ekstraksi zod (§4) + klasifikasi lead (§6)
+- [ ] P11-03 Webhook n8n terverifikasi HMAC; email tidak pernah memicu balasan otomatis
+- [ ] P11-04 Migration `emails` + `email_analyses` — teks asli disimpan, retensi 24 bulan
+- [ ] `[!]` P11-05 Back-office peninjauan (§8) — **terhalang OQ-21**
+- [ ] P11-06 `docs/EMAIL_INTELLIGENCE.md` disesuaikan implementasi
+
+## Phase 12 — Market Intelligence
+
+- [ ] P12-01 Skema event (§3) + agregasi (§5) sebagai fungsi murni
+- [ ] P12-02 Lokasi tingkat kota saja (§6) — konsisten dengan `PRIVACY.md`
+- [ ] `[!]` P12-03 Dashboard (§7) — **terhalang OQ-21**
+
+## Phase 13 — Audit keamanan, performa, aksesibilitas, evaluasi
+
+- [ ] P13-01 Audit keamanan terhadap checklist `docs/SECURITY.md`
+- [ ] P13-02 Audit aksesibilitas (kontras kedua tema, keyboard, ARIA, reduced motion)
+- [ ] P13-03 Pipeline CI (`docs/EVALUATION.md` §CI) — lint, typecheck, unit, integrasi, build
+- [ ] `[!]` P13-04 Evaluasi AI — **terhalang OQ-09** (ID model) + golden dataset
+- [ ] ✋ CHECKPOINT akhir — reviewed by owner
 
 ## Design Coverage
 
