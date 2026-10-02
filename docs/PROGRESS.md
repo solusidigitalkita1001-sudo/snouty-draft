@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-08 intent router**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-09 adapter LLM OpenRouter**
 
 ## Summary
 
@@ -291,8 +291,8 @@ deterministik diuji penuh tanpa model, adapter OpenRouter digerbang keberadaan k
   - [x] P4-06a Tes §9 #5 (7 tes, MySQL+Redis nyata): monoton, duplikat ditolak DB, cache miss dilayani MySQL lalu diisi ulang
 - [x] P4-07 Routing model (fungsi murni, ID model dari env — tak pernah di kode) + port `ai` (layanan, tak sentuh domain) + skema ekstraksi zod `.strict()` `optional` bukan `nullable` + `extractionToUpdates`
   - [x] P4-07a Tes (13): routing deterministik & tanpa tingkat untuk teknik; skema menolak null/enum asing/batas/properti tak dikenal; intent confidence 0–1
-- [ ] P4-08 Intent router — `PRODUCT_LOOKUP` vs `REQUIREMENT_MUTATION` vs `EXPLANATION_REQUEST`; ragu → bertanya
-  - [ ] P4-08a Tes §9 #10: mutasi memperbarui state, pertanyaan tidak
+- [x] P4-08 Intent router — klasifikasi lewat port `ai`, keputusan deterministik di kode; ambang keyakinan 0,6 → `CLARIFICATION_NEEDED`; `shouldExtract`/`mutatesState` diturunkan dari intent
+  - [x] P4-08a Tes §9 #10 (6, fake ai): mutasi & jawaban klarifikasi memutasi; penjelasan/lookup/pernyataan-awal tidak; ragu → bertanya
 - [ ] P4-09 Adapter LLM OpenRouter — digerbang `OPENROUTER_API_KEY`; retry-1×-lalu-klarifikasi; `llm_calls` tanpa isi prompt
   - [ ] P4-09a Tes: tabel `llm_calls` tidak pernah memuat isi prompt (`docs/PRIVACY.md`)
 - [ ] P4-10 Pipeline pesan + SSE `POST /conversations/:id/messages` — lima tahap batas nyata; kegagalan di tengah
