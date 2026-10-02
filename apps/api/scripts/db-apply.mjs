@@ -98,12 +98,30 @@ const conn = await mysql.createConnection({
 });
 
 try {
+  // Jurnal migration: tanpa ini, jalannya yang kedua mengulang CREATE TABLE yang
+  // sudah ada dan gagal di berkas pertama — persis ketika yang dibutuhkan hanya
+  // dua berkas terbaru. Nama tabel berawalan `_` supaya jelas milik perkakas,
+  // bukan milik domain.
+  await conn.query(
+    `CREATE TABLE IF NOT EXISTS _migrations (
+       filename VARCHAR(255) NOT NULL PRIMARY KEY,
+       applied_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+     )`,
+  );
+  const [appliedRows] = await conn.query('SELECT filename FROM _migrations');
+  const applied = new Set(appliedRows.map((row) => row.filename));
+
   for (const file of files) {
+    if (applied.has(file)) {
+      console.log(`· ${file} (sudah diterapkan — lewati)`);
+      continue;
+    }
     const sql = readFileSync(join(dir, file), 'utf8');
     for (const statement of sql.split('--> statement-breakpoint')) {
       const trimmed = statement.trim();
       if (trimmed !== '') await conn.query(trimmed);
     }
+    await conn.query('INSERT INTO _migrations (filename) VALUES (?)', [file]);
     console.log(`✓ ${file}`);
   }
 } finally {

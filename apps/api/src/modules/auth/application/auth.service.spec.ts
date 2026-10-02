@@ -13,6 +13,7 @@ import {
   InvalidRefreshTokenError,
   PasswordRejectedError,
 } from '../domain/auth.errors.js';
+import type { GuestAccountLinker, LinkResult } from '../domain/guest-account-linker.port.js';
 import type { NewUser, UserRepository, UserRow } from '../domain/user.repository.js';
 import type {
   NewRefreshToken,
@@ -93,17 +94,29 @@ class FakeAccessTokens implements AccessTokenService {
   }
 }
 
+class RecordingLinker implements GuestAccountLinker {
+  readonly linked: Array<{ guestSessionId: string; userId: string }> = [];
+  result: LinkResult = { movedConversations: 0, resumedConversationId: null };
+
+  async link(guestSessionId: string, userId: string): Promise<LinkResult> {
+    this.linked.push({ guestSessionId, userId });
+    return this.result;
+  }
+}
+
 function setup() {
   const users = new MemoryUsers();
   const refreshRepo = new MemoryTokens();
   const accessTokens = new FakeAccessTokens();
+  const linker = new RecordingLinker();
   const service = new AuthService(
     users,
     new Argon2PasswordHasher(),
     new TokenService(refreshRepo, 3_600),
     accessTokens,
+    linker,
   );
-  return { users, refreshRepo, accessTokens, service };
+  return { users, refreshRepo, accessTokens, linker, service };
 }
 
 const REGISTER = { email: 'Pengguna@Example.test', password: PASSWORD, name: '  Pengguna  ' };
@@ -146,6 +159,27 @@ describe('register', () => {
     await expect(service.register({ ...REGISTER, email: 'PENGGUNA@example.TEST' })).rejects.toThrow(
       EmailAlreadyRegisteredError,
     );
+  });
+});
+
+describe('register — penautan tamu (G-1 lewat port)', () => {
+  it('menautkan sesi tamu yang dibawa dan meneruskan resumedConversationId', async () => {
+    const { linker, service } = setup();
+    linker.result = { movedConversations: 2, resumedConversationId: 'CONV' };
+
+    const session = await service.register({ ...REGISTER, guestSessionId: 'GSESSION' });
+
+    expect(linker.linked).toEqual([{ guestSessionId: 'GSESSION', userId: session.userId }]);
+    expect(session.resumedConversationId).toBe('CONV');
+  });
+
+  it('tanpa cookie tamu: tidak ada penautan, resumedConversationId null', async () => {
+    const { linker, service } = setup();
+
+    const session = await service.register(REGISTER);
+
+    expect(linker.linked).toEqual([]);
+    expect(session.resumedConversationId).toBeNull();
   });
 });
 

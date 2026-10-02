@@ -12,7 +12,7 @@
 import { readFileSync } from 'node:fs';
 import { drizzle } from 'drizzle-orm/mysql2';
 import type { Logger } from 'drizzle-orm/logger';
-import mysql, { type Connection } from 'mysql2/promise';
+import mysql, { type Pool } from 'mysql2/promise';
 import * as schema from '../src/infrastructure/mysql/schema/index.js';
 import type { SnoutyDatabase } from '../src/shared/database/database.service.js';
 
@@ -115,14 +115,19 @@ export async function createTestDatabase(suffix: string): Promise<TestDatabase> 
     throw new Error(`Tes integrasi menolak berjalan terhadap server bersama (${SHARED_HOST}).`);
   }
 
-  const connection = await connect({ host, port, user, password });
+  const admin = await connect({ host, port, user, password });
   // `IF NOT EXISTS`, dan tidak pernah DROP DATABASE — skema dibersihkan lewat
   // DROP TABLE di bawah, sehingga tidak ada jalur kode tes yang bisa menghapus
   // database milik orang lain kalau suatu hari host-nya salah diset.
-  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\``);
-  await connection.end();
+  await admin.query(`CREATE DATABASE IF NOT EXISTS \`${database}\``);
+  await admin.end();
 
-  const conn = await connect({ host, port, user, password, database });
+  // POOL, bukan koneksi tunggal — dan ini pernah menggigit: dua transaksi
+  // "paralel" di SATU koneksi saling menyelipkan statement-nya, sehingga
+  // `FOR UPDATE` tidak pernah benar-benar mengunci dan tes balapan meloloskan
+  // perilaku yang di produksi (yang memakai pool) justru dicegah. Fixture harus
+  // berbohong sesedikit mungkin tentang produksi.
+  const conn = await connectPool({ host, port, user, password, database });
   await applyMigration(conn);
 
   const counter = new QueryCounter();
@@ -141,34 +146,60 @@ export async function createTestDatabase(suffix: string): Promise<TestDatabase> 
   };
 }
 
-async function connect(options: {
+interface ConnectOptions {
   host: string;
   port: number;
   user: string;
   password: string;
   database?: string;
-}): Promise<Connection> {
+}
+
+async function connect(options: ConnectOptions): Promise<mysql.Connection> {
   try {
-    return await mysql.createConnection({
+    const conn = await mysql.createConnection({
       ...options,
       multipleStatements: true,
       timezone: 'Z',
       connectTimeout: 5_000,
     });
+    return conn;
   } catch (cause) {
-    throw new Error(
-      `Tidak bisa terhubung ke MySQL tes di ${options.host}:${options.port}. ` +
-        'Jalankan `docker compose --profile test up -d mysql-test` lebih dulu.',
-      { cause },
-    );
+    throw unreachable(options, cause);
   }
+}
+
+async function connectPool(options: ConnectOptions): Promise<Pool> {
+  const pool = mysql.createPool({
+    ...options,
+    multipleStatements: true,
+    timezone: 'Z',
+    connectTimeout: 5_000,
+    connectionLimit: 5,
+    waitForConnections: true,
+  });
+  try {
+    // Pool malas membuka koneksi; satu ping membuat kegagalan koneksi muncul di
+    // sini dengan pesan yang jelas, bukan di tengah tes pertama.
+    await pool.query('SELECT 1');
+    return pool;
+  } catch (cause) {
+    throw unreachable(options, cause);
+  }
+}
+
+function unreachable(options: ConnectOptions, cause: unknown): Error {
+  return new Error(
+    `Tidak bisa terhubung ke MySQL tes di ${options.host}:${options.port}. ` +
+      'Jalankan `docker compose --profile test up -d mysql-test` lebih dulu.',
+    { cause },
+  );
 }
 
 /**
  * Menerapkan seluruh migration dari nol. Turun lebih dulu supaya tes bisa
  * dijalankan berulang kali di kontainer yang sama tanpa sisa proses sebelumnya.
  */
-async function applyMigration(conn: Connection): Promise<void> {
+async function applyMigration(conn: Pool): Promise<void> {
   // Turun lebih dulu, mengabaikan kegagalan: pada database yang masih bersih
   // tidak ada indeks untuk di-drop, dan MySQL 8 tidak punya DROP INDEX IF EXISTS.
   for (const file of DOWN) {
@@ -181,7 +212,7 @@ async function applyMigration(conn: Connection): Promise<void> {
   for (const file of UP) await run(conn, file);
 }
 
-async function run(conn: Connection, file: string): Promise<void> {
+async function run(conn: Pool, file: string): Promise<void> {
   const sql = readFileSync(new URL(`../drizzle/${file}`, import.meta.url), 'utf8');
   for (const statement of sql.split('--> statement-breakpoint')) {
     const trimmed = statement.trim();

@@ -6,6 +6,10 @@ import {
   GUEST_SESSION_REPOSITORY,
   type GuestSessionRepository,
 } from './domain/guest-session.repository.js';
+import {
+  GUEST_ACCOUNT_LINKER,
+  type GuestAccountLinker,
+} from './domain/guest-account-linker.port.js';
 import { PASSWORD_HASHER, type PasswordHasher } from './domain/password-hasher.port.js';
 import { USER_REPOSITORY, type UserRepository } from './domain/user.repository.js';
 import {
@@ -19,6 +23,7 @@ import {
   ACCESS_TOKEN_SERVICE,
   type AccessTokenService,
 } from './infrastructure/jwt-access-token.service.js';
+import { guestAccountLinkerProvider } from './infrastructure/mysql-guest-account-linker.js';
 import { guestSessionRepositoryProvider } from './infrastructure/mysql-guest-session.repository.js';
 import { userRepositoryProvider } from './infrastructure/mysql-user.repository.js';
 import { refreshTokenRepositoryProvider } from './infrastructure/mysql-refresh-token.repository.js';
@@ -34,13 +39,20 @@ const guestSessionServiceProvider = {
 
 const authServiceProvider = {
   provide: AuthService,
-  inject: [USER_REPOSITORY, PASSWORD_HASHER, TokenService, ACCESS_TOKEN_SERVICE],
+  inject: [
+    USER_REPOSITORY,
+    PASSWORD_HASHER,
+    TokenService,
+    ACCESS_TOKEN_SERVICE,
+    GUEST_ACCOUNT_LINKER,
+  ],
   useFactory: (
     users: UserRepository,
     hasher: PasswordHasher,
     tokens: TokenService,
     accessTokens: AccessTokenService,
-  ) => new AuthService(users, hasher, tokens, accessTokens),
+    linker: GuestAccountLinker,
+  ) => new AuthService(users, hasher, tokens, accessTokens, linker),
 };
 
 const tokenServiceProvider = {
@@ -66,6 +78,7 @@ const tokenServiceProvider = {
     guestSessionRepositoryProvider,
     guestSessionServiceProvider,
     userRepositoryProvider,
+    guestAccountLinkerProvider,
     authServiceProvider,
     GuestSessionMiddleware,
     AccessTokenMiddleware,

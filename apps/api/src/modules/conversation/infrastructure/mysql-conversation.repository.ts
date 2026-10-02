@@ -111,37 +111,6 @@ export class MysqlConversationRepository implements ConversationRepository {
       .orderBy(messages.createdAt, messages.id);
     return rows.map(toMessage);
   }
-
-  async transferOwnership(
-    from: ConversationOwner,
-    to: ConversationOwner,
-  ): Promise<{ moved: number; latestConversationId: string | null }> {
-    // Dibaca dulu lalu diperbarui DALAM SATU TRANSAKSI — pemanggilnya (penautan
-    // G-1) membungkus ini bersama penandaan sesi tamu, dan `latestConversationId`
-    // harus berasal dari himpunan baris yang sama dengan yang dipindahkan.
-    return this.database.db.transaction(async (tx) => {
-      const owned = await tx
-        .select({ id: conversations.id })
-        .from(conversations)
-        .where(
-          and(
-            eq(conversations.ownerKind, from.kind),
-            eq(conversations.ownerId, from.id),
-            isNull(conversations.deletedAt),
-          ),
-        )
-        .orderBy(desc(conversations.updatedAt));
-
-      if (owned.length === 0) return { moved: 0, latestConversationId: null };
-
-      await tx
-        .update(conversations)
-        .set({ ownerKind: to.kind, ownerId: to.id })
-        .where(and(eq(conversations.ownerKind, from.kind), eq(conversations.ownerId, from.id)));
-
-      return { moved: owned.length, latestConversationId: owned[0]?.id ?? null };
-    });
-  }
 }
 
 function toConversation(row: typeof conversations.$inferSelect): ConversationRow {

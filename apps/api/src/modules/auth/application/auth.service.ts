@@ -9,10 +9,10 @@
  * pengecek keanggotaan yang bekerja walau pesannya sudah disamakan. Hash boneka
  * yang diverifikasi adalah hash Argon2id sungguhan, supaya biayanya setara.
  *
- * **Penautan sesi tamu TIDAK terjadi di sini.** Register menerima `guestSessionId`
- * dan meneruskannya ke hasil, tetapi perpindahan kepemilikan percakapan adalah
- * transaksi tersendiri dengan invariannya sendiri (G-1) — ia datang di P3-06.
- * Mencampurnya ke sini berarti use case register ikut tahu tabel percakapan.
+ * **Penautan sesi tamu terjadi lewat port `GuestAccountLinker`**, bukan lewat
+ * pengetahuan langsung tentang tabel percakapan: use case ini hanya tahu "tautkan
+ * sesi ini ke akun itu", dan satu-satunya implementasinya memegang transaksi
+ * lintas-konteks G-1.
  */
 
 import { ulid } from '../../../shared/ulid.js';
@@ -23,6 +23,7 @@ import {
   PasswordRejectedError,
 } from '../domain/auth.errors.js';
 import { checkPassword } from '../domain/password-policy.js';
+import type { GuestAccountLinker } from '../domain/guest-account-linker.port.js';
 import type { PasswordHasher } from '../domain/password-hasher.port.js';
 import type { UserRepository, UserRow } from '../domain/user.repository.js';
 import type { AccessTokenService } from '../infrastructure/jwt-access-token.service.js';
@@ -35,7 +36,7 @@ export interface Credentials {
 
 export interface RegisterInput extends Credentials {
   readonly name: string;
-  /** Diteruskan apa adanya; penautannya urusan P3-06. */
+  /** Sesi tamu yang sedang berjalan — percakapannya ikut pindah (G-1). */
   readonly guestSessionId?: string;
 }
 
@@ -46,6 +47,14 @@ export interface AuthenticatedSession {
   readonly roles: readonly string[];
   readonly accessToken: string;
   readonly refresh: IssuedRefreshToken;
+}
+
+export interface RegisteredSession extends AuthenticatedSession {
+  /**
+   * Percakapan tamu yang terakhir disentuh, bila ada yang ikut pindah — UI
+   * melanjutkan kasus yang SAMA alih-alih membuang konteks (SPEC §4.4).
+   */
+  readonly resumedConversationId: string | null;
 }
 
 /**
@@ -64,9 +73,10 @@ export class AuthService {
     private readonly hasher: PasswordHasher,
     private readonly tokens: TokenService,
     private readonly accessTokens: AccessTokenService,
+    private readonly guestLinker: GuestAccountLinker,
   ) {}
 
-  async register(input: RegisterInput): Promise<AuthenticatedSession> {
+  async register(input: RegisterInput): Promise<RegisteredSession> {
     const rejection = checkPassword(input.password);
     if (rejection !== null) throw new PasswordRejectedError(rejection);
 
@@ -80,7 +90,15 @@ export class AuthService {
     // pemeriksaan find-lalu-insert yang punya celah balapan di antaranya.
     await this.users.create(user);
 
-    return this.openSession({
+    // Penautan G-1 setelah akun ada. Ia idempoten dan tidak pernah melempar untuk
+    // sesi yang tidak bisa ditautkan — registrasi tidak boleh gagal karena cookie
+    // tamunya basi.
+    const linked =
+      input.guestSessionId !== undefined
+        ? await this.guestLinker.link(input.guestSessionId, user.id)
+        : { movedConversations: 0, resumedConversationId: null };
+
+    const session = await this.openSession({
       id: user.id,
       email: user.email,
       passwordHash: user.passwordHash,
@@ -89,6 +107,7 @@ export class AuthService {
       status: 'active',
       roles: [],
     });
+    return { ...session, resumedConversationId: linked.resumedConversationId };
   }
 
   async login(credentials: Credentials): Promise<AuthenticatedSession> {

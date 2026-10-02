@@ -12,7 +12,6 @@ import { MysqlConversationRepository } from './mysql-conversation.repository.js'
 
 const GUEST: ConversationOwner = { kind: 'guest', id: testId('CGUEST') };
 const OTHER: ConversationOwner = { kind: 'guest', id: testId('COTHER') };
-const USER: ConversationOwner = { kind: 'user', id: testId('CUSER') };
 
 let fixture: TestDatabase;
 let service: ConversationService;
@@ -129,27 +128,5 @@ describe('pesan', () => {
     expect(rows.map((row) => row.role)).toEqual(['user', 'assistant']);
     expect(rows[1]?.cards).toEqual([{ kind: 'cta', action: 'ANALYZE' }]);
     expect(rows[1]?.mood).toBe('write');
-  });
-});
-
-describe('transferOwnership — fondasi G-1 (penautannya sendiri di P3-06)', () => {
-  it('memindahkan seluruh percakapan tamu ke user dan menunjuk yang terbaru', async () => {
-    const older = await service.create(GUEST);
-    const newer = await service.create(GUEST);
-    await service.appendUserMessage(newer.id, GUEST, 'yang ini terakhir disentuh');
-
-    const result = await repository.transferOwnership(GUEST, USER);
-
-    expect(result.moved).toBe(2);
-    expect(result.latestConversationId).toBe(newer.id);
-    expect(await service.list(USER, {})).toHaveLength(2);
-    expect(await service.list(GUEST, {})).toEqual([]);
-    expect((await service.find(older.id, USER)).owner).toEqual(USER);
-  });
-
-  it('tamu tanpa percakapan: nol pindah, tanpa galat', async () => {
-    const result = await repository.transferOwnership(OTHER, USER);
-
-    expect(result).toEqual({ moved: 0, latestConversationId: null });
   });
 });

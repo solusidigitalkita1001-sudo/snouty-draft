@@ -74,14 +74,4 @@ export interface ConversationRepository {
   }): Promise<void>;
 
   listMessages(conversationId: string): Promise<readonly MessageRow[]>;
-
-  /**
-   * Memindahkan SELURUH percakapan satu sesi tamu ke seorang user — invarian G-1.
-   * Mengembalikan jumlah baris yang pindah dan id percakapan terbaru, untuk
-   * `resumedConversationId` di respons register.
-   */
-  transferOwnership(
-    from: ConversationOwner,
-    to: ConversationOwner,
-  ): Promise<{ moved: number; latestConversationId: string | null }>;
 }
