@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-07 routing + port ai + skema ekstraksi zod**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-08 intent router**
 
 ## Summary
 
@@ -289,8 +289,8 @@ deterministik diuji penuh tanpa model, adapter OpenRouter digerbang keberadaan k
   - [x] P4-05a Tes §9 #7 (7 tes)
 - [x] P4-06 Migration 0006 `requirement_snapshots` (unique `(conversation_id, version)` = monoton di DB) + repo append-only (tanpa update/delete) + store write-through (MySQL dulu, Redis menyusul; version dari MySQL bukan cache)
   - [x] P4-06a Tes §9 #5 (7 tes, MySQL+Redis nyata): monoton, duplikat ditolak DB, cache miss dilayani MySQL lalu diisi ulang
-- [ ] P4-07 Routing model (fungsi murni) + port `ai` + skema ekstraksi zod (`optional` bukan `nullable`)
-  - [ ] P4-07a Tes: routing deterministik; skema menolak enum di luar daftar & batas numerik
+- [x] P4-07 Routing model (fungsi murni, ID model dari env — tak pernah di kode) + port `ai` (layanan, tak sentuh domain) + skema ekstraksi zod `.strict()` `optional` bukan `nullable` + `extractionToUpdates`
+  - [x] P4-07a Tes (13): routing deterministik & tanpa tingkat untuk teknik; skema menolak null/enum asing/batas/properti tak dikenal; intent confidence 0–1
 - [ ] P4-08 Intent router — `PRODUCT_LOOKUP` vs `REQUIREMENT_MUTATION` vs `EXPLANATION_REQUEST`; ragu → bertanya
   - [ ] P4-08a Tes §9 #10: mutasi memperbarui state, pertanyaan tidak
 - [ ] P4-09 Adapter LLM OpenRouter — digerbang `OPENROUTER_API_KEY`; retry-1×-lalu-klarifikasi; `llm_calls` tanpa isi prompt

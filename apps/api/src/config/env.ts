@@ -49,6 +49,19 @@ const EnvSchema = z.object({
    * saat seseorang bertanya "disetujui atas dasar apa?".
    */
   POLICY_VERSION: z.string().min(1).default('v0-draft'),
+
+  /**
+   * Integrasi LLM — semuanya OPSIONAL. Tanpa `OPENROUTER_API_KEY`, adapter live
+   * tidak terdaftar dan sistem memakai jalur deterministik/klarifikasi; ini yang
+   * membuat seluruh Context Engine bisa dikembangkan dan diuji tanpa kunci maupun
+   * biaya (docs/AI_BEHAVIOR.md). ID model TIDAK PERNAH ditulis di kode — routing
+   * memetakan tingkat ke salah satu dari tiga variabel ini (docs/AI_BEHAVIOR.md).
+   */
+  OPENROUTER_API_KEY: z.string().min(1).optional(),
+  OPENROUTER_BASE_URL: z.string().url().default('https://openrouter.ai/api/v1'),
+  LLM_MODEL_FAST: z.string().min(1).optional(),
+  LLM_MODEL_BALANCED: z.string().min(1).optional(),
+  LLM_MODEL_STRONG: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
