@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Fase 6: **9/10 selesai** (P6-09 terhalang desain); menunggu ✋ CHECKPOINT pemilik
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Next item: **P7-01 tipe rekomendasi**
 
 ## Summary
 
@@ -361,7 +361,38 @@ tampil "TERVERIFIKASI" di fase ini** — dan itu memang perilaku yang benar, buk
 
 Fase 6: **9/10 selesai.** Satu sisa (P6-09) terhalang desain back-office, bukan kode. Engine hidup, 54 tes, nol dependensi runtime, dan **nol angka teknik `VERIFIED`** — tepat seperti yang seharusnya selagi OQ-06 terbuka.
 
-## Phases 7–13
+## Phase 7 — Product Matching dan perakitan rekomendasi
+
+Modul `recommendation` + `product-catalog`. Layar: **06** (workspace solusi) dan **07** (kartu & drawer
+produk). Di sinilah hasil engine bertemu katalog nyata dan menjadi sesuatu yang bisa dibaca pengguna.
+
+Yang menentukan fase ini: **invarian REC-1** — prosa LLM tidak boleh memuat angka di luar hasil
+hitungan. Diverifikasi pasca-generasi dengan mengekstrak angka dari prosa dan mencocokkannya; tidak
+cocok → minta ulang sekali → gagal lagi → templat deterministik. Tanpa pemeriksaan ini, "LLM tidak
+menghitung" hanya benar di atas kertas: model tetap bisa menyelipkan "sekitar 12 batang" di kalimat.
+
+Dan **invarian C-2**: kartu produk hanya pernah berasal dari baris `products` — penyaringnya sudah ada
+(P5-04), di sini ia dipakai sungguhan.
+
+**Catatan data:** katalog nyata terhalang **OQ-07**. Pencocokan dibangun dan diuji terhadap data seed
+lokal (`scripts/seed-sample-catalog.mjs`, jalur impor sungguhan) — bukan fixture dalam memori, supaya
+yang diuji adalah query yang benar-benar akan dipakai.
+
+- [ ] P7-01 Tipe `Recommendation`, `SystemLine`, `SelectedProduct`, `BomItem`, `Assumption` di shared-types
+- [ ] P7-02 Migration `recommendations` + `calculation_traces` + repo (append-only trace)
+- [ ] P7-03 `ProductMatcher` — ukuran engine → produk katalog; tiga `matchState` layar 07
+  - [ ] P7-03a Tes: invarian C-2 (tanpa baris katalog tidak ada kartu); ukuran tak tersedia → `SIZE_NEEDS_VALIDATION`
+- [ ] P7-04 `SystemLine` dari hasil engine + `traceIds` (invarian T-1: setiap nilai punya trace)
+- [ ] P7-05 `BomItem` dari ENG-009 + kolom "DASAR PERHITUNGAN" **dari trace**, bukan prosa
+- [ ] P7-06 Daftar `Assumption` dengan `fieldPath` — "Perbaiki asumsi ini →" membuka field yang tepat
+- [ ] P7-07 **Pemeriksa REC-1** — ekstrak angka prosa, cocokkan, retry sekali, lalu templat deterministik
+  - [ ] P7-07a Tes: prosa ber-angka asing ditolak; templat deterministik tidak pernah gagal
+- [ ] P7-08 Orkestrator `assembleRecommendation` + lima tahap SSE sisanya (ANALYZING→PREPARING)
+- [ ] P7-09 Layar 06 workspace solusi + 07 kartu produk & drawer `[sebagian: OQ-15 untuk akses tamu]`
+- [ ] P7-10 `docs/DOMAIN_MODEL.md` §7 ↔ implementasi
+- [ ] ✋ CHECKPOINT — reviewed by owner
+
+## Phases 8–13
 
 (headings only; broken down at the start of each phase)
 
