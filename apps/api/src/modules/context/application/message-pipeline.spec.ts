@@ -125,3 +125,62 @@ describe('applyEdit — nol panggilan LLM (§9 #9)', () => {
     expect(applyEdit.length).toBe(3);
   });
 });
+
+describe('gerbang kebijakan di pipeline (P5-05)', () => {
+  it('pertanyaan kompetitor: kartu kriteria netral, tanpa ekstraksi sama sekali', async () => {
+    const ai = aiExtracting({ building: { floors: 2 } });
+    const decision: RoutingDecision = {
+      intent: 'COMPETITOR_QUESTION',
+      confidence: 0.95,
+      shouldExtract: true, // sengaja true: kebijakan harus menang lebih dulu
+      mutatesState: false,
+    };
+    const { events, changed } = await runUnderstanding(ai, input({ decision }));
+
+    const card = events.find((e) => e.type === 'card') as { card: { kind: string } };
+    expect(card.card.kind).toBe('criteria');
+    expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    expect(changed).toBe(false);
+    // Tidak ada kartu produk, tak peduli apa pun kata modelnya.
+    expect(JSON.stringify(events)).not.toContain('"product"');
+  });
+
+  it('industri: kartu unsupported dengan kebutuhan terkumpul, bukan CTA analisis', async () => {
+    const ai = aiExtracting({
+      building: { type: 'industrial', floors: 2 },
+      fixtures: { bathrooms: 3 },
+      water: { source: 'pump', installationType: 'clean_water' },
+    });
+    const { events } = await runUnderstanding(ai, input());
+
+    const card = events.find((e) => e.type === 'card') as {
+      card: { kind: string; slaHours?: number; captured?: readonly unknown[] };
+    };
+    expect(card.card.kind).toBe('unsupported');
+    expect(card.card.slaHours).toBe(24);
+    // Kebutuhan dibawa serta supaya tidak diulang ke tim teknis.
+    expect((card.card.captured ?? []).length).toBeGreaterThan(0);
+  });
+
+  it('pembuangan: belum didukung penuh walaupun data inti lengkap', async () => {
+    const ai = aiExtracting({
+      building: { floors: 2 },
+      fixtures: { bathrooms: 2 },
+      water: { source: 'municipal', installationType: 'drainage' },
+    });
+    const { events } = await runUnderstanding(ai, input());
+    const card = events.find((e) => e.type === 'card') as { card: { kind: string } };
+    expect(card.card.kind).toBe('unsupported');
+  });
+
+  it('air bersih rumah tinggal lengkap: tetap CTA analisis', async () => {
+    const ai = aiExtracting({
+      building: { type: 'residential', floors: 2 },
+      fixtures: { bathrooms: 3 },
+      water: { source: 'rooftop_tank', installationType: 'clean_water' },
+    });
+    const { events } = await runUnderstanding(ai, input());
+    const card = events.find((e) => e.type === 'card') as { card: { kind: string } };
+    expect(card.card.kind).toBe('cta');
+  });
+});

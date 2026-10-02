@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Next item: **P5-05 PolicyDecision masuk pipeline**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Next item: **P5-06 layar 03 & 04** · **P5-07 layar 08 & 11**
 
 ## Summary
 
@@ -326,7 +326,8 @@ layar 06.
 - [x] P5-03 Policy 4 gerbang provenance — satu-satunya jalan nilai jadi `VERIFIED`; `REJECTED` → `UNAVAILABLE`; tidak menaikkan yang sudah rendah
   - [x] P5-03a Tes **release blocker** (7): sapuan seluruh kombinasi status × provenance — `VERIFIED` hanya dari aturan `VALIDATED`
 - [x] P5-04 Policy 2 (anti-halusinasi) — `filterToCatalog` (lapisan 3 dari 5, satu-satunya yang tak bisa ditembus prompt karena tak membaca teks); SKU yang dibuang dilaporkan; spesifikasi kosong → `UNAVAILABLE`, tidak pernah `ASSUMED`
-- [ ] P5-05 `PolicyDecision` masuk pipeline pesan (sebelum ekstraksi) + kartu `criteria`/`unsupported`
+- [x] P5-05 Kebijakan masuk pipeline: Policy 1 **sebelum ekstraksi** (kompetitor tak pernah menyentuh jalur rekomendasi), Policy 5 atas state **ter-merge** (scope dari kebutuhan nyata, bukan kata-kata pesan)
+  - [x] P5-05a Tes (4 tambahan, total 9 di pipeline): kompetitor → kriteria & nol panggilan ekstraksi; industri/pembuangan → `unsupported` + SLA + kebutuhan terkumpul; air bersih lengkap → tetap CTA
 - [ ] P5-06 Layar 03 kartu klarifikasi bernomor + 04 data kurang
 - [ ] P5-07 Layar 08 kriteria netral + 11 validasi teknis
 - [ ] P5-08 `docs/SPEC.md` §5 ↔ implementasi; catat keputusan OQ-15 bila sudah ada

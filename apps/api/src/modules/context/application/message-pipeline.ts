@@ -15,9 +15,16 @@
  *     klarifikasi (AI_BEHAVIOR).
  */
 
-import type { AssistantStreamEvent, RequirementState, SnapshotTrigger } from '@snouty/shared-types';
+import type {
+  AssistantStreamEvent,
+  KeyValue,
+  RequirementState,
+  SnapshotTrigger,
+} from '@snouty/shared-types';
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
+import { policyCard } from '../../policy/policy-cards.js';
+import { competitorPolicy, scopePolicy } from '../../policy/scope.js';
 import { assumptionCard } from '../domain/requirement-defaults.js';
 import { planClarification } from '../domain/clarification.js';
 import { mergeRequirement } from '../domain/context-merger.js';
@@ -53,6 +60,16 @@ export async function runUnderstanding(
   input: PipelineInput,
 ): Promise<PipelineResult> {
   const events: AssistantStreamEvent[] = [{ type: 'message.start', messageId: input.messageId }];
+
+  // Policy 1 DULU, sebelum apa pun: pertanyaan kompetitor dijawab kriteria netral dan
+  // tidak pernah masuk jalur rekomendasi. Memeriksanya di sini — bukan setelah
+  // ekstraksi — berarti tidak ada jalan ia tercampur dengan pencocokan produk.
+  if (input.decision.intent === 'COMPETITOR_QUESTION') {
+    const card = policyCard(competitorPolicy());
+    if (card) events.push({ type: 'card', card });
+    events.push(endEvent(input.messageId));
+    return { events, nextState: input.state, changed: false, trigger: 'extraction' };
+  }
 
   if (!input.decision.shouldExtract) {
     // Penjelasan, lookup produk, di luar cakupan: bukan milik ruas ini. Diserahkan
@@ -91,12 +108,24 @@ export async function runUnderstanding(
     detail: `${merged.completeness.filled} DATA`,
   });
 
-  if (merged.missingInformation.length > 0) {
+  // Policy 5 atas state yang SUDAH di-merge: scope diputuskan dari kebutuhan nyata,
+  // bukan dari kata-kata pesan. Industri atau pembuangan tidak boleh sampai ke CTA
+  // analisis, karena analisisnya memang belum ada untuk mereka.
+  const scope = scopePolicy({
+    buildingType: merged.building.type.value,
+    installationType: merged.water.installationType.value,
+    floors: merged.building.floors.value,
+  });
+
+  if (scope.kind === 'policy') {
+    const card = policyCard(scope, capturedFrom(merged));
+    if (card) events.push({ type: 'card', card });
+  } else if (merged.missingInformation.length > 0) {
     const plan = planClarification(merged.missingInformation);
     if (plan)
       events.push({ type: 'card', card: { kind: 'clarification', questions: plan.questions } });
   } else {
-    // Data inti lengkap — ajak lanjut ke analisis (pipeline-nya di Fase 6/7).
+    // Data inti lengkap dan dalam cakupan — ajak lanjut ke analisis (Fase 6/7).
     events.push({ type: 'card', card: { kind: 'cta', action: 'ANALYZE' } });
   }
 
@@ -104,6 +133,18 @@ export async function runUnderstanding(
 
   const trigger: SnapshotTrigger = input.decision.mutatesState ? 'user_edit' : 'extraction';
   return { events, nextState: merged, changed, trigger };
+}
+
+/**
+ * Kebutuhan yang sudah terkumpul, untuk dibawa ke kartu validasi teknis — supaya
+ * pengguna tidak mengulang ceritanya dari nol kepada tim teknis.
+ */
+function capturedFrom(state: RequirementState): readonly KeyValue[] {
+  const rows: KeyValue[] = [];
+  for (const [path, field] of fieldEntries(state)) {
+    if (field.value !== null) rows.push({ label: path, value: String(field.value) });
+  }
+  return rows;
 }
 
 function endEvent(messageId: string): AssistantStreamEvent {
