@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Fase 8: **8/10 selesai** (P8-08/09 terhalang); menunggu ✋ CHECKPOINT pemilik
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Next item: **P9-01 topologi**
 
 ## Summary
 
@@ -432,7 +432,34 @@ HTML** — sehingga yang tersisa untuk worker hanyalah "buka halaman ini, cetak 
 
 Fase 8: **8/10 selesai.** Dua sisa terhalang: P8-08 worker PDF (**OQ-40**) dan P8-09 register-gate (**OQ-27/OQ-21**). Halaman cetak sudah final sehingga worker tinggal mencetaknya.
 
-## Phases 9–13
+## Phase 9 — Schematic Engine
+
+Layar: **06** (pratinjau skema) dan **09** (skema penuh). `docs/SCHEMATIC_ENGINE.md`.
+
+Prinsipnya tegas: **tidak ada gambar hasil generasi AI yang diperlakukan sebagai kebenaran teknik.**
+Skema adalah **topologi terstruktur** yang dibentuk deterministik dari requirement state dan keluaran
+engine; renderer membacanya dan **tidak menambahkan informasi apa pun**. Pemisahan itu memberi tiga
+hal sekaligus: gambar selalu konsisten dengan tabel sistem dan BOM (sumbernya sama), skenario
+"bagaimana kalau" hanyalah perhitungan ulang, dan topologi bisa diuji tanpa merender apa pun.
+
+Invarian **S-1**: setiap tampilan skema membawa "SKEMATIK · BUKAN GAMBAR KERJA" dan catatan skema —
+tidak ada mode yang menghilangkannya. Itu bukan disclaimer yang ditempel belakangan, melainkan
+pernyataan tepat tentang apa yang sistem memang tahu: ia tidak punya denah, jadi tidak tahu posisi
+fisik apa pun.
+
+- [ ] P9-01 Tipe `Schematic` (floors, nodes, segments, titleBlock) di shared-types — elevasi `TrackedValue`
+- [ ] P9-02 Pembentukan topologi di `packages/engineering` — deterministik, 7 langkah §3, penamaan `KM-2A`/`WF-1`/`DP-1`
+  - [ ] P9-02a Tes: bangunan 5 lantai menghasilkan 5 lantai (batas 3 prototipe tidak dibawa, OQ-33); topologi konsisten dengan BOM
+- [ ] P9-03 Gerbang provenance node & segmen — elevasi dari tinggi default ikut `ASSUMED`
+- [ ] P9-04 Renderer SVG — kanvas, kolom lantai 84px, riser 76px, ketebalan 4/3/2 px, muka tanah
+- [ ] P9-05 Panel DAFTAR JALUR + blok judul 2×2 + legenda
+- [ ] P9-06 Catatan wajib S-1 di setiap tampilan — tanpa mode yang menghilangkannya
+  - [ ] P9-06a Tes: tidak ada prop/mode yang bisa menyembunyikan kedua catatan itu
+- [ ] P9-07 Aksesibilitas skema (§8): alternatif teks terstruktur, bukan gambar tanpa makna
+- [ ] P9-08 `docs/SCHEMATIC_ENGINE.md` disesuaikan implementasi
+- [ ] ✋ CHECKPOINT — reviewed by owner
+
+## Phases 10–13
 
 (headings only; broken down at the start of each phase)
 
