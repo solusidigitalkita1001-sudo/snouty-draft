@@ -3,6 +3,7 @@ import { DatabaseModule } from './shared/database/database.module.js';
 import { CorrelationIdMiddleware } from './shared/http/correlation-id.middleware.js';
 import { LoggingModule } from './shared/logging/logging.module.js';
 import { RedisModule } from './shared/redis/redis.module.js';
+import { AuthModule } from './modules/auth/auth.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { ProductCatalogModule } from './modules/product-catalog/product-catalog.module.js';
 import { ProductKnowledgeModule } from './modules/product-knowledge/product-knowledge.module.js';
@@ -20,6 +21,7 @@ import { ProductKnowledgeModule } from './modules/product-knowledge/product-know
     RedisModule,
     LoggingModule,
     HealthModule,
+    AuthModule,
     ProductCatalogModule,
     ProductKnowledgeModule,
   ],
