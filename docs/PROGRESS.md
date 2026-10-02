@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-03 CompletenessEvaluator**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-06 requirement_snapshots**
 
 ## Summary
 
@@ -281,12 +281,12 @@ deterministik diuji penuh tanpa model, adapter OpenRouter digerbang keberadaan k
 - [x] P4-01 Tipe `RequirementState` + `Intent` di `packages/shared-types` — setiap field `TrackedValue`; `CORE_REQUIREMENT_FIELDS` satu sumber angka 4
 - [x] P4-02 `ContextMerger` — fungsi murni di modul `context`; presedensi `user_edited>user_stated>inferred>default_applied`, `undefined`/`null` ≠ hapus, `now` disuntikkan
   - [x] P4-02a Tes §9 #1, #3, #4 + presedensi penuh + kemurnian (8 tes); #5 ke P4-06a, #2/#8 ke P4-04a
-- [ ] P4-03 `CompletenessEvaluator` — tepat empat field inti + meter 4 segmen
-  - [ ] P4-03a Tes §9 #6
-- [ ] P4-04 Default "Belum tahu" + kartu asumsi (ENG-014) — `ASSUMED` selalu ber-`reason`
-  - [ ] P4-04a Tes §9 #2, #8
-- [ ] P4-05 `ClarificationEngine` — urutan prioritas, maksimum 4, progresif
-  - [ ] P4-05a Tes §9 #7
+- [x] P4-03 `CompletenessEvaluator` — tepat empat field inti (`CORE_REQUIREMENT_FIELDS`), caption desain, `withCompleteness` satu-satunya penulis turunan
+  - [x] P4-03a Tes §9 #6 (6 tes; value 0 dihitung terisi, field non-inti tidak)
+- [x] P4-04 Default "Belum tahu" + kartu asumsi (ENG-014) — `reason` dari tabel (bukan LLM), `default_applied` terlemah jadi tak pernah menimpa
+  - [x] P4-04a Tes §9 #2, #8 (6 tes; kartu melempar bila ASSUMED tanpa reason)
+- [x] P4-05 `ClarificationEngine` — satu engine dua bentuk (tunggal <3, kartu ≥3), urutan prioritas ENG-007, maks 4, "Belum tahu" selalu ada
+  - [x] P4-05a Tes §9 #7 (7 tes)
 - [ ] P4-06 Migration `requirement_snapshots` + repo append-only; write-through Redis
   - [ ] P4-06a Tes §9 #5; cache miss dilayani dari MySQL
 - [ ] P4-07 Routing model (fungsi murni) + port `ai` + skema ekstraksi zod (`optional` bukan `nullable`)

@@ -58,3 +58,10 @@ export const ALL_FIELD_PATHS: readonly RequirementFieldPath[] = [
 export function isFilled(value: TrackedValue<unknown>): boolean {
   return value.value !== null;
 }
+
+/** Semua field sebagai pasangan `[path, TrackedValue]` — untuk kartu asumsi. */
+export function fieldEntries(
+  state: RequirementState,
+): ReadonlyArray<readonly [RequirementFieldPath, TrackedValue<unknown>]> {
+  return ALL_FIELD_PATHS.map((path) => [path, readField(state, path)] as const);
+}
