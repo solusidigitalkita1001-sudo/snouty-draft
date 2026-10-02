@@ -5,9 +5,11 @@ import {
   datetime,
   foreignKey,
   index,
+  int,
   json,
   mysqlTable,
   text,
+  uniqueIndex,
   varchar,
 } from 'drizzle-orm/mysql-core';
 
@@ -106,5 +108,45 @@ export const messages = mysqlTable(
       foreignColumns: [conversations.id],
     }).onDelete('cascade'),
     check('ck_messages_role', sql`\`role\` IN ('user','assistant')`),
+  ],
+);
+
+/**
+ * requirement_snapshots — SEMUA snapshot state kebutuhan, append-only.
+ * docs/CONTEXT_ENGINE.md §7 · docs/DOMAIN_MODEL.md §4.
+ *
+ * MySQL adalah sumber kebenaran; Redis hanya cache baca (write-through). Sifat
+ * append-only memberi tiga hal tanpa kerja tambahan: jalur undo "Perbaiki asumsi
+ * ini", riwayat audit siapa mengubah apa, dan korpus transisi state untuk evaluasi.
+ *
+ * `version` naik monoton per percakapan; `uq_snapshots_conversation_version`
+ * menjadikan itu invarian basis data, bukan sekadar janji kode (SPEC §9 #5).
+ * Saat tamu mendaftar snapshot TIDAK disalin — hanya `owner_id` percakapan yang
+ * berpindah — karena menyalin akan menduplikasi `version` dan merusak append-only.
+ */
+export const requirementSnapshots = mysqlTable(
+  'requirement_snapshots',
+  {
+    id: id().primaryKey(),
+    conversationId: char('conversation_id', { length: 26 }).notNull(),
+    /** Naik monoton per percakapan, mulai 1. */
+    version: int('version').notNull(),
+    /** `RequirementState` utuh — dibaca langsung, tidak pernah di-query per field. */
+    state: json('state').notNull(),
+    /** Apa yang memicu snapshot ini terbentuk. */
+    trigger: varchar('trigger', { length: 24 }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('uq_snapshots_conversation_version').on(t.conversationId, t.version),
+    foreignKey({
+      name: 'fk_snapshots_conversation',
+      columns: [t.conversationId],
+      foreignColumns: [conversations.id],
+    }).onDelete('cascade'),
+    check(
+      'ck_snapshots_trigger',
+      sql`\`trigger\` IN ('extraction','clarification_answer','user_edit','default_applied')`,
+    ),
   ],
 );

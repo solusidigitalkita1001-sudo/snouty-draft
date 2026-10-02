@@ -61,8 +61,10 @@ const UP = [
   '0003_identity.sql',
   '0004_onboarding_states.sql',
   '0005_conversation.sql',
+  '0006_requirement_snapshots.sql',
 ];
 const DOWN = [
+  '0006_requirement_snapshots.down.sql',
   '0005_conversation.down.sql',
   '0004_onboarding_states.down.sql',
   '0003_identity.down.sql',
@@ -78,6 +80,7 @@ const DOWN = [
  * `users` harus terakhir, karena `guest_sessions` merujuknya dengan `RESTRICT`.
  */
 const TABLES = [
+  'requirement_snapshots',
   'messages',
   'conversations',
   'onboarding_states',
