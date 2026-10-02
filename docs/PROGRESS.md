@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Fase 7: **10/10 selesai**; menunggu ✋ CHECKPOINT pemilik
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Next item: **P8-01 simpan solusi**
 
 ## Summary
 
@@ -397,7 +397,37 @@ yang diuji adalah query yang benar-benar akan dipakai.
 
 Fase 7: **10/10 selesai.** Rantai lengkap hidup: kebutuhan → engine → katalog → rekomendasi tersimpan → dibaca UI. Diverifikasi live terhadap katalog seed: empat tahap SSE mengalir dengan detail nyata, 4 produk `VERIFIED_SELECTED`, setiap baris punya trace, seluruhnya `ASSUMED`. Sisa: drawer produk penuh (P7-09b) dan akses tamu (OQ-15).
 
-## Phases 8–13
+## Phase 8 — Riwayat terdaftar, solusi tersimpan, laporan PDF, antrean handoff
+
+Layar: **11** (validasi teknis — permukaannya sudah ada dari Fase 5), **12** (riwayat), dan laporan dua
+halaman. Di sinilah entitlement yang sudah ada mulai benar-benar membedakan tamu dan akun.
+
+Prinsip laporan yang membentuk seluruh item di bawah (`docs/REPORT.md` §1): **laporan dirakit dari data
+`Recommendation` yang tersimpan, LLM tidak pernah dipanggil ulang.** Konsekuensinya laporan yang sama
+dibuat dua kali identik, dan laporan tahun ini tetap terbaca sama tahun depan meski katalog dan aturan
+sudah berubah.
+
+**Terhalang:** pembuatan PDF memakai Chromium di `apps/worker`, dan jalan `worker` memakai kode domain
+`apps/api` masih **OQ-40** (juga memblokir P1-06b transport RabbitMQ). Strateginya: seluruh jalur yang
+bisa dibangun di `api` dibangun sekarang — tabel `Report`, alokasi nomor, endpoint, dan **halaman cetak
+HTML** — sehingga yang tersisa untuk worker hanyalah "buka halaman ini, cetak ke PDF".
+
+- [ ] P8-01 Simpan solusi: status percakapan `SAVED`, entitlement `SAVE_SOLUTION`
+- [ ] P8-02 Layar 12 riwayat — digerbang `CONVERSATION_HISTORY` (tamu tidak melihatnya)
+- [ ] P8-03 Migration `reports` + `report_number_counters`; alokasi `SNTY-YYYY-MM-NNNN` dengan `FOR UPDATE`
+  - [ ] P8-03a Tes: dua permintaan serentak tidak pernah mendapat nomor sama; nomor tidak dipakai ulang walau gagal
+- [ ] P8-04 Perakit data laporan dari `Recommendation` + `CalculationTrace` — **tanpa panggilan LLM**
+  - [ ] P8-04a Tes: laporan yang sama dirakit dua kali identik
+- [ ] P8-05 Halaman cetak HTML dua halaman A4 (`/internal/report/:id/print`) — kop, blok, footer disclaimer
+- [ ] P8-06 `POST /reports` + status `PENDING`/`READY`/`FAILED`; akses: pemilik, `technical_team`, `admin` (teraudit)
+  - [ ] P8-06a Tes **release blocker**-adjacent: laporan hanya dapat diakses pemilik dan peran berwenang
+- [ ] P8-07 Antrean handoff teknis: tabel + enqueue dari kartu layar 11
+- [ ] `[!]` P8-08 Worker PDF (Playwright + Chromium) — **terhalang OQ-40**
+- [ ] `[!]` P8-09 Register-gate & resume — **terhalang OQ-27, OQ-21**; mekanisme G-1-nya sudah ada sejak Fase 3
+- [ ] P8-10 `docs/REPORT.md` disesuaikan implementasi
+- [ ] ✋ CHECKPOINT — reviewed by owner
+
+## Phases 9–13
 
 (headings only; broken down at the start of each phase)
 
