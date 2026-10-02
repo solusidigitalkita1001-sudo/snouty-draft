@@ -159,9 +159,15 @@ export function Onboarding() {
           onClick: location === 'pending' ? undefined : askLocation,
         }
       : step === 5
-        ? // Layar register belum ada (OQ-21); sampai itu datang, "Daftar Akun"
-          // menyelesaikan onboarding — rutenya menyusul bersama layarnya.
-          { label: COPY.actions.register, onClick: () => finish('done') }
+        ? // Layar daftar sudah ada (minimal, bertanda "menunggu desain" — OQ-21), jadi
+          // tombolnya mengarah ke sana setelah onboarding dicatat selesai.
+          {
+            label: COPY.actions.register,
+            onClick: () => {
+              finish('done');
+              window.location.href = '/daftar';
+            },
+          }
         : { label: COPY.actions.next, onClick: next };
 
   const secondary =

@@ -1,0 +1,162 @@
+/*
+ * Layar masuk/daftar — **BELUM DIDESAIN (OQ-21)**.
+ *
+ * Sengaja sederhana: satu kartu terpusat, token yang sama seperti layar lain, tanpa hero,
+ * ilustrasi, atau tata letak yang mengaku final. Tujuannya berfungsi dan jelas-jelas
+ * sementara, bukan tampak selesai.
+ */
+
+.page {
+  min-height: 100dvh;
+  background: var(--snouty-canvas);
+  color: var(--snouty-ink);
+  font-family: var(--snouty-font-sans);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+}
+
+/* Amber: ini keadaan "belum lengkap", bukan aksi dan bukan fakta terverifikasi. */
+.needsDesign {
+  font-family: var(--snouty-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+  color: var(--snouty-assumed-text);
+  background: var(--snouty-assumed-bg);
+  border: 1px solid var(--snouty-assumed-border);
+  border-radius: 3px;
+  padding: 5px 9px;
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--snouty-surface);
+  border: 1px solid var(--snouty-border);
+  border-radius: 10px;
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.brandName {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.brandKicker {
+  font-family: var(--snouty-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--snouty-muted);
+  margin-top: 2px;
+}
+
+.title {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+}
+
+.subtitle {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--snouty-muted);
+  margin-top: 4px;
+  text-wrap: pretty;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--snouty-muted);
+}
+
+.input {
+  border: 1px solid var(--snouty-border);
+  border-radius: 6px;
+  padding: 9px 11px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--snouty-ink);
+  background: var(--snouty-surface);
+  outline: none;
+}
+
+.input:focus-visible {
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.hint {
+  font-size: 11.5px;
+  color: var(--snouty-caption);
+}
+
+.resumeNote {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--snouty-muted);
+  background: var(--snouty-surface-subtle);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.error {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--snouty-assumed-text);
+}
+
+.submit {
+  background: var(--snouty-action);
+  color: var(--snouty-action-on);
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--snouty-action-hover);
+}
+
+.submit:disabled {
+  background: var(--snouty-disabled);
+  cursor: not-allowed;
+}
+
+.submit:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.switch {
+  font-size: 12.5px;
+  color: var(--snouty-action-text);
+  text-align: center;
+  text-decoration: none;
+}
+
+.switch:hover {
+  text-decoration: underline;
+}
+
+.switch:focus-visible {
+  outline: none;
+  border-radius: 4px;
+  box-shadow: var(--snouty-focus-ring);
+}

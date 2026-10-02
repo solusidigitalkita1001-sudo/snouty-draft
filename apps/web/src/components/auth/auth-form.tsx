@@ -1,0 +1,138 @@
+'use client';
+
+/**
+ * Formulir masuk dan daftar. **BELUM DIDESAIN (OQ-21)** — lihat `auth-copy.ts`.
+ *
+ * Satu komponen untuk dua layar karena bedanya hanya satu field dan satu endpoint; dua
+ * komponen yang 90% sama akan menyimpang saat desainnya datang.
+ *
+ * Banner "menunggu desain" dirender **tanpa syarat**, dengan alasan yang sama seperti catatan
+ * wajib skema: tidak ada prop yang bisa menyembunyikannya, sehingga layar ini tidak bisa
+ * dikira final hanya karena seseorang lupa.
+ */
+
+import { useCallback, useState } from 'react';
+import { AUTH_COPY as COPY } from './auth-copy';
+import { login, register } from './auth-api';
+import styles from './auth.module.css';
+
+const ERROR_TEXT: Readonly<Record<string, string>> = {
+  UNAUTHENTICATED: COPY.errors.invalid,
+  VALIDATION_FAILED: COPY.errors.weakPassword,
+  RATE_LIMITED: COPY.errors.rateLimited,
+  EMAIL_ALREADY_REGISTERED: COPY.errors.emailTaken,
+};
+
+export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
+  const copy = mode === 'login' ? COPY.login : COPY.register;
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const submit = useCallback(
+    async (event: React.FormEvent) => {
+      event.preventDefault();
+      if (busy) return;
+      setBusy(true);
+      setError(null);
+
+      const result =
+        mode === 'login' ? await login(email, password) : await register(name, email, password);
+
+      if (result.ok) {
+        // Percakapan tamu yang berpindah dibuka langsung — itu janji "tidak perlu mengulang
+        // cerita" (invarian G-1), dan membiarkan pengguna mencarinya sendiri melanggarnya.
+        window.location.href = result.resumedConversationId ? '/konsultasi' : '/konsultasi';
+        return;
+      }
+
+      setError(ERROR_TEXT[result.code ?? ''] ?? COPY.errors.generic);
+      setBusy(false);
+    },
+    [busy, email, mode, name, password],
+  );
+
+  return (
+    <main className={styles.page}>
+      {/* Tanpa syarat: layar ini tidak boleh dikira final. */}
+      <div className={styles.needsDesign}>{COPY.needsDesign}</div>
+
+      <form className={styles.card} onSubmit={submit}>
+        <div>
+          <div className={styles.brandName}>{COPY.brand.name}</div>
+          <div className={styles.brandKicker}>{COPY.brand.kicker}</div>
+        </div>
+
+        <div>
+          <h1 className={styles.title}>{copy.title}</h1>
+          <p className={styles.subtitle}>{copy.subtitle}</p>
+        </div>
+
+        {mode === 'register' && (
+          <label className={styles.field}>
+            <span className={styles.label}>{COPY.fields.name}</span>
+            <input
+              className={styles.input}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
+              required
+            />
+          </label>
+        )}
+
+        <label className={styles.field}>
+          <span className={styles.label}>{COPY.fields.email}</span>
+          <input
+            className={styles.input}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+          />
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.label}>{COPY.fields.password}</span>
+          <input
+            className={styles.input}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            minLength={12}
+            // Petunjuk lewat `aria-describedby`, BUKAN di dalam label: teks di dalam label
+            // ikut menjadi nama aksesibelnya, sehingga pembaca layar akan menyebut
+            // "Kata sandi Minimal 12 karakter" setiap kali field itu disinggung.
+            {...(mode === 'register' ? { 'aria-describedby': 'password-hint' } : {})}
+            required
+          />
+        </label>
+        {mode === 'register' && (
+          <span id="password-hint" className={styles.hint}>
+            {COPY.fields.passwordHint}
+          </span>
+        )}
+
+        {mode === 'register' && <p className={styles.resumeNote}>{COPY.register.resumeNote}</p>}
+
+        {error !== null && (
+          <p className={styles.error} role="alert">
+            {error}
+          </p>
+        )}
+
+        <button type="submit" className={styles.submit} disabled={busy}>
+          {copy.submit}
+        </button>
+
+        <a className={styles.switch} href={mode === 'login' ? '/daftar' : '/masuk'}>
+          {mode === 'login' ? COPY.login.toRegister : COPY.register.toLogin}
+        </a>
+      </form>
+    </main>
+  );
+}

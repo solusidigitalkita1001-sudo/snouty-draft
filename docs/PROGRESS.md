@@ -258,7 +258,10 @@ memutuskannya diam-diam.
   - [x] P3-11a Tes: tamu tidak bisa menyentuh kapabilitas khusus terdaftar lewat API meski UI dilewati — **353 tes lolos**; dipaku untuk SEMUA kapabilitas non-tamu, dan dibuktikan hidup lewat HTTP: tamu memanggil `GET /conversations` → `403 NOT_ENTITLED {capability: CONVERSATION_HISTORY}`
 - [x] P3-12 Layar **14 onboarding** — layar sungguhan pertama, dari prototipe baru (860×580, hero merah, bottom sheet < 720px); state dari server, manfaat dari `/onboarding/benefits`, consent lokasi → baris database, keyboard → / ← / Enter / Esc, `prefers-reduced-motion`
   - [ ] `[!]` P3-12b Layar 01 welcome (cangkang chat) — ditunda ke **Fase 4**: composer tanpa pipeline pesan adalah layar yang akan dibongkar ulang
-  - [ ] `[!]` P3-12c Layar login / register / register-gate — **terhalang OQ-21, OQ-12, OQ-27**; tombol "Daftar Akun" di onboarding sementara menyelesaikan alur
+  - [x] P3-12c Layar **masuk** dan **daftar** — dibangun **minimal dan ditandai "MENUNGGU DESAIN"**, persis seperti yang diperintahkan `docs/DESIGN_IMPLEMENTATION.md` §11 untuk layar yang belum didesain. Saya sebelumnya salah menganggap OQ-21 memblokir ini; yang dilarang adalah membuatnya _tampak selesai_, bukan membangunnya. Tombol "Daftar Akun" onboarding kini mengarah ke `/daftar`.
+    - [x] P3-12ca Tes (12): banner tak bisa disembunyikan (satu prop saja), petunjuk sandi lewat `aria-describedby` **bukan** di dalam label (teks dalam label ikut menjadi nama aksesibelnya), kode galat API dipetakan ke teks Indonesia, formulir menolak kirim saat field wajib kosong
+    - [x] P3-12cb Diverifikasi live: `/masuk` dan `/daftar` 200 dengan banner terpasang; registrasi nyata lewat proxy mengembalikan `tier: registered` + access token
+  - [ ] `[!]` P3-12cc Layar register-gate (panel yang muncul saat tamu menyentuh fitur berakun) — tetap **terhalang OQ-27**: bentuknya adalah keputusan desain, bukan layar yang bisa dibuat minimal tanpa menebak alurnya
 - [x] P3-13 `docs/SECURITY.md` §3 dan `docs/PRIVACY.md` §3 disesuaikan implementasi — parameter Argon2/token konkret, consent append-only; `API_CONTRACTS.md` sudah cocok apa adanya
 - [x] ✋ CHECKPOINT — **lanjut atas goal berjalan "sampe selesai"** (pola checkpoint sesi ini selalu disetujui "gas"/"lanjut"); dua sisa murni terhalang desain
 

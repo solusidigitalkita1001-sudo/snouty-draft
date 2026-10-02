@@ -389,3 +389,33 @@ Diperiksa terhadap kode, bukan diklaim.
 
 **Belum:** uji dengan pembaca layar sungguhan dan audit kedua tema di perangkat nyata — keduanya butuh
 sesi manual, bukan pemeriksaan kode.
+
+---
+
+## 13. Layar yang dibangun minimal dan ditandai "menunggu desain"
+
+Aturan §11 berbunyi: layar yang belum didesain **dibangun minimal dengan token yang sama dan dicatat
+sebagai "needs design"** — karena membuatnya tampak selesai akan menyulitkan desainer nanti.
+
+Saya sempat salah membaca itu sebagai "jangan dibangun", lalu menunda layar masuk/daftar ke OQ-21.
+Yang dilarang adalah membuatnya tampak selesai, bukan membangunnya.
+
+| Layar         | Rute      | Status                                               |
+| ------------- | --------- | ---------------------------------------------------- |
+| Masuk         | `/masuk`  | minimal, bertanda **MENUNGGU DESAIN**                |
+| Daftar akun   | `/daftar` | minimal, bertanda **MENUNGGU DESAIN**                |
+| Register-gate | —         | **tidak** dibangun: bentuknya keputusan alur (OQ-27) |
+
+Penandanya dirender **tanpa syarat**, alasan yang sama seperti catatan wajib skema: `AuthForm`
+menerima satu prop (`mode`), jadi tidak ada `hideBanner` yang bisa membuat layar sementara tampak
+final hanya karena seseorang lupa. Ada tes yang memeriksa jumlah propnya.
+
+Dua hal yang tetap benar apa pun desainnya nanti, dan karena itu diuji sekarang: kode galat API
+dipetakan ke teks Indonesia (bukan `RATE_LIMITED` mentah di layar), dan petunjuk kata sandi dirujuk
+`aria-describedby` alih-alih ditanam di dalam `<label>` — teks di dalam label ikut menjadi nama
+aksesibelnya, sehingga pembaca layar akan menyebut "Kata sandi Minimal 12 karakter" setiap kali field
+itu disinggung. Itu ketahuan justru karena tesnya gagal.
+
+**Register-gate sengaja tidak dibangun.** Ia bukan layar yang bisa dibuat minimal: pertanyaannya
+adalah _kapan_ ia muncul dan _apa_ yang terjadi setelah pengguna mendaftar di tengah alur — dan itu
+keputusan desain yang menebaknya akan membuat pekerjaan ulang, bukan menghemat.
