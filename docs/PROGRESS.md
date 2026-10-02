@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Fase 4: **12/12 selesai**; menunggu ✋ CHECKPOINT pemilik
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Next item: **P5-01 Policy 1 & 5**
 
 ## Summary
 
@@ -303,7 +303,36 @@ deterministik diuji penuh tanpa model, adapter OpenRouter digerbang keberadaan k
 
 Fase 4: **12/12 selesai.** Context Engine, routing intent, ekstraksi, snapshot, SSE, dan layar 02 hidup. Jalur LLM live menunggu `OPENROUTER_API_KEY` + ID model Pralon (OQ-09/§17b); tanpa itu sistem mengalirkan `LLM_UNAVAILABLE` dan jalur deterministik tetap bekerja. Evaluasi AI (`docs/EVALUATION.md`) dijalankan saat golden dataset + kunci ada.
 
-## Phases 5–13
+## Phase 5 — Policy Engine, scope routing, clarification surfaces
+
+Modul `policy` — **wajib leaf** (`docs/ARCHITECTURE.md` §7): tanpa I/O, setiap pemeriksaan fungsi
+murni. Itu yang membuat tes "tamu menembus API" murah dan mustahil terlupa. Layar: **03** (klarifikasi),
+**04** (data kurang), **08** (kriteria netral), **11** (validasi teknis).
+
+Dua dari tiga tes release blocker lahir di fase ini (`docs/EVALUATION.md`):
+pertanyaan kompetitor tidak pernah menghasilkan kartu produk kompetitor, dan aturan
+`REQUIRES_DOMAIN_VALIDATION` tidak pernah menghasilkan `VERIFIED`. Yang ketiga (tamu menembus API)
+sudah ada sejak Fase 3.
+
+**Terhalang:** **OQ-15** menentukan apakah workspace solusi (layar 06) terjangkau tanpa akun — itu
+keputusan pemilik, bukan saya. Tabel `ENTITLEMENTS` saat ini sudah mengikuti **usulan default**
+(janji onboarding: tamu dapat tanya-jawab + rekomendasi + klarifikasi; BOM, skema, simpan, laporan
+butuh akun). Penegakannya tidak terhalang; yang menunggu adalah panel register-gate (OQ-27) dan
+layar 06.
+
+- [ ] P5-01 Policy 1 (hanya Pralon) + Policy 5 (scope routing) sebagai fungsi murni
+  - [ ] P5-01a Tes **release blocker**: pertanyaan kompetitor → kriteria netral, tidak pernah kartu produk kompetitor
+- [ ] P5-02 Policy 3 (batas rekomendasi) — skenario industri/tak lazim → `TECHNICAL_VALIDATION_REQUIRED`
+- [ ] P5-03 Policy 4 gerbang provenance — `REQUIRES_DOMAIN_VALIDATION` tidak pernah `VERIFIED`
+  - [ ] P5-03a Tes **release blocker** untuk gerbang itu
+- [ ] P5-04 Policy 2 (anti-halusinasi) — daftar produk disaring terhadap katalog saat perakitan respons
+- [ ] P5-05 `PolicyDecision` masuk pipeline pesan (sebelum ekstraksi) + kartu `criteria`/`unsupported`
+- [ ] P5-06 Layar 03 kartu klarifikasi bernomor + 04 data kurang
+- [ ] P5-07 Layar 08 kriteria netral + 11 validasi teknis
+- [ ] P5-08 `docs/SPEC.md` §5 ↔ implementasi; catat keputusan OQ-15 bila sudah ada
+- [ ] ✋ CHECKPOINT — reviewed by owner
+
+## Phases 6–13
 
 (headings only; broken down at the start of each phase)
 
