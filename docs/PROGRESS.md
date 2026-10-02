@@ -157,7 +157,8 @@ menambah satu adapter — bukan merombak validasi, job, maupun layar.
 - [ ] P1-06 Job `catalog.ingest` (RabbitMQ, idempoten per `catalogVersionId + rowHash`, DLQ) — **inti selesai, transport tertunda**
   - [x] P1-06 inti: migration 0001 (`products.row_hash` + `catalog_import_runs`), `CatalogIngestService`, `MysqlCatalogWriter` — idempotensi berlapis tiga, lapisan terdalamnya `uq_products_version_row_hash`
   - [x] P1-06a Tes: impor yang sama dua kali menghasilkan satu versi — **72 tes lolos**; migration 24 pemeriksaan
-  - [ ] `[!]` P1-06b Transport RabbitMQ (publisher, konsumer, retry berbackoff, DLQ) — **terhalang OQ-40**: `apps/worker` belum punya jalan memakai kode domain `apps/api`
+  - [x] P1-06b Transport RabbitMQ — publisher di API (kegagalan antrean **tidak** menjatuhkan permintaan: laporan tetap `PENDING` dengan nomor yang sudah dialokasikan), konsumer prefetch-1 di worker, retry berbackoff lewat publikasi ulang berjeda (bukan `nack(requeue)` yang akan memutar kegagalan secepat mungkin), DLQ untuk payload tak valid **tanpa** percobaan ulang
+    - [x] P1-06a Tes kontrak (11): versi kontrak ditolak bila tak dikenal, `.strict()` menolak field asing, payload hanya membawa id
 - [x] P1-07 Promosi versi katalog + invalidasi cache — migration 0002 (`audit_logs`), `CatalogPromotionService`, cache Redis dengan SCAN (bukan `KEYS`)
   - [x] P1-07a Tes: tepat satu versi `active`; promosi membatalkan cache dan menulis audit — **87 tes lolos**, 11 di antaranya terhadap MySQL **dan** Redis sungguhan
 - [x] P1-08 API baca katalog — `GET /products`, `/products/:id`, `/products/:id/compatible`, `/catalog/version` `[layar 10]` — keempatnya dipanggil terhadap API yang benar-benar berjalan, bukan hanya lewat tes
@@ -427,7 +428,9 @@ HTML** — sehingga yang tersisa untuk worker hanyalah "buka halaman ini, cetak 
   - [x] P8-06a Tes (5) regresi keamanan — lihat catatan di bawah
 - [x] P8-07 Antrean handoff teknis — kebutuhan **disalin** ke barisnya (tim teknis melihat apa yang dilihat pengguna saat diserahkan, bukan percakapan yang sudah berubah); asumsi ikut disertakan; tombol layar 11 tersambung
   - [x] P8-07a Tes (6, MySQL nyata): salinan beku, antrean terlama-dulu, CHECK status, cascade
-- [ ] `[!]` P8-08 Worker PDF (Playwright + Chromium) — **terhalang OQ-40**
+- [x] P8-08 Worker PDF (Playwright + Chromium) — **OQ-40 diterapkan dengan usulan defaultnya**: paket `@snouty/jobs` memuat kontrak, dan worker tidak pernah mengimpor `apps/api` maupun memegang kredensial database. Rantai lengkap: `POST /reports` → antrean → worker ambil HTML dari rute internal → Chromium cetak A4 → `POST /internal/reports/:id/ready`
+  - [x] P8-08a Tes (9, browser palsu): nama berkas dari `reportId` (job diulang menimpa, bukan menumpuk), browser selalu ditutup walau cetak gagal, halaman gagal → melempar TANPA menulis berkas rusak
+  - [x] P8-08b Diverifikasi live dengan Chromium sungguhan: **PDF dua halaman A4, 251 KB**, dari data tersimpan; `/ready` memindahkan status `PENDING`→`READY`; rute internal menolak tanpa token (401) dan `fileRef` kosong (400)
 - [ ] `[!]` P8-09 Register-gate & resume — **terhalang OQ-27, OQ-21**; mekanisme G-1-nya sudah ada sejak Fase 3
 - [x] P8-10 `docs/REPORT.md` §11 — pemetaan bagian → berkas, catatan alokasi nomor, catatan keamanan rute cetak, dan apa yang menunggu OQ-40/OQ-03
 - [ ] ✋ CHECKPOINT — reviewed by owner
@@ -473,7 +476,7 @@ dan riwayat. Yang tercatat di sini adalah sisanya.
 - [x] P10-02 Entitlement lanjutan → tabel `ENTITLEMENTS` sejak Fase 3, ditegakkan di API sejak P3-11
 - [x] P10-03 Antrean handoff teknis → dikerjakan sebagai P8-07
 - [ ] `[!]` P10-04 Register-gate & resume — **terhalang OQ-27, OQ-21**; mekanisme G-1-nya sudah ada
-- [ ] `[!]` P10-05 Laporan PDF (worker) — **terhalang OQ-40**; halaman cetak sudah final
+- [x] P10-05 Laporan PDF (worker) → dikerjakan sebagai P8-08
 - [ ] `[!]` P10-06 Pengiriman handoff ke tujuan sebenarnya — **terhalang OQ-08** (mailbox? CRM? tiket?)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 

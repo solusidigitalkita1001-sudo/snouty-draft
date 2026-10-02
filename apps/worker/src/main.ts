@@ -1,17 +1,56 @@
 import pino from 'pino';
+import { QUEUES, type ReportGenerateJob } from '@snouty/jobs';
+import { launchChromium, reportPdfConsumer } from './consumers/report-pdf.js';
+import { RabbitTransport } from './transport/rabbitmq.js';
 
 /**
- * Worker RabbitMQ — terpisah dari API karena profil operasionalnya berbeda:
- * job panjang, memuat Chromium untuk PDF, dan tidak menerima trafik masuk.
- * Menggabungkannya berarti setiap replika API ikut membawa Chromium dan ikut
- * mengonsumsi antrean (docs/ARCHITECTURE.md §2).
+ * Worker RabbitMQ — terpisah dari API karena profil operasionalnya berbeda: job panjang,
+ * memuat Chromium untuk PDF, dan tidak menerima trafik masuk. Menggabungkannya berarti
+ * setiap replika API ikut membawa Chromium dan ikut mengonsumsi antrean
+ * (docs/ARCHITECTURE.md §2).
  *
- * Konsumer pertama (report.generate) menyusul di Fase 10.
+ * Worker **tidak pernah mengimpor `apps/api`** dan tidak memegang kredensial database
+ * (OQ-40). Ia meminta HTML dari API, mencetak, lalu melaporkan hasilnya lewat API.
  */
 const log = pino({ name: 'snouty-worker' });
 
-function bootstrap(): void {
-  log.info('SNOUTY worker siap — belum ada konsumer terdaftar');
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (value === undefined || value === '') {
+    // Gagal saat start, bukan saat job pertama tiba: worker yang berjalan tanpa konfigurasi
+    // akan terlihat sehat sampai ada pekerjaan, lalu gagal berulang-ulang ke DLQ.
+    throw new Error(`${name} wajib diset`);
+  }
+  return value;
 }
 
-bootstrap();
+async function bootstrap(): Promise<void> {
+  const transport = new RabbitTransport(
+    process.env['RABBITMQ_URL'] ?? 'amqp://guest:guest@127.0.0.1:5673',
+    log,
+  );
+  await transport.start();
+
+  const handler = reportPdfConsumer({
+    apiBaseUrl: requireEnv('API_URL'),
+    internalToken: requireEnv('WORKER_INTERNAL_TOKEN'),
+    storagePath: requireEnv('STORAGE_PATH'),
+    log,
+    launchBrowser: launchChromium,
+  });
+
+  await transport.consume<ReportGenerateJob>(QUEUES.reportGenerate, handler);
+  log.info('SNOUTY worker siap');
+
+  const shutdown = (signal: string): void => {
+    log.info({ signal }, 'worker berhenti');
+    void transport.stop().finally(() => process.exit(0));
+  };
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+}
+
+bootstrap().catch((err: unknown) => {
+  log.error({ err }, 'worker gagal start');
+  process.exit(1);
+});

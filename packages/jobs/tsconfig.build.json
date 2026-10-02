@@ -1,0 +1,13 @@
+{
+  // `outDir` dan `rootDir` ditulis ulang di sini, tidak diwarisi: jalur relatif di
+  // packages/config/tsconfig/lib.json diselesaikan terhadap berkas itu sendiri,
+  // sehingga mewarisinya dari direktori lain menunjuk ke tempat yang salah.
+  "extends": "../config/tsconfig/lib.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "noEmit": false
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.spec.ts"]
+}

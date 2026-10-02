@@ -261,7 +261,7 @@ ini satu konstanta di `catalog-import.contract.ts`.
 
 ### OQ-40 — Bagaimana `apps/worker` memakai kode domain backend?
 
-**Status:** open · **Blocks:** 1 (P1-06b), 10 (PDF), 11 (email), 12 (pasar)
+**Status:** open · _usulan default SUDAH DITERAPKAN (Fase 8/10)_ · **Blocks:** 1 (P1-06b), 10 (PDF), 11 (email), 12 (pasar)
 `docs/ARCHITECTURE.md` §4 menempatkan konsumer RabbitMQ di `apps/worker`, dan §6 menempatkan modul
 domain di `apps/api/src/modules/`. Keduanya benar sendiri-sendiri, tetapi **belum ada jalan dari yang
 pertama ke yang kedua.** `apps/worker` hanya bergantung pada `pino` dan `@snouty/shared-types`;
@@ -291,6 +291,16 @@ hanya memanggil satu method. Yang tertunda murni transport-nya (P1-06b).
 ---
 
 ## B. Design conflicts carried from SPEC §33h
+
+**Yang saya terapkan (mengikuti pola OQ-42/15/38 — usulan default dijalankan, bukan menunggu):**
+paket `@snouty/jobs` memuat nama antrean, skema zod per payload, versi kontrak, dan kebijakan retry.
+Keduanya mengimpornya; **`apps/worker` tidak pernah mengimpor `apps/api`**. Worker juga tidak memegang
+kredensial database sama sekali — ia meminta HTML dari rute internal, mencetak, lalu melaporkan hasilnya
+lewat `POST /internal/reports/:id/ready`. Payload hanya membawa id, sehingga data pribadi tidak pernah
+berada di dalam antrean.
+
+**Masih terbuka:** apakah pemilik setuju dengan arah ini, dan apakah token bertanda tangan berumur
+pendek (docs/REPORT.md §5) menggantikan gerbang peran `admin` yang dipakai sementara untuk rute cetak.
 
 ### OQ-43 — Token `--snouty-caption` gagal kontras WCAG AA pada ukuran pakainya
 

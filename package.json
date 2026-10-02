@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
-    "build:types": "pnpm --filter @snouty/shared-types --filter @snouty/engineering build",
+    "build:types": "pnpm --filter @snouty/shared-types --filter @snouty/engineering --filter @snouty/jobs build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

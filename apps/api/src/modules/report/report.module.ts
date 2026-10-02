@@ -20,8 +20,16 @@ import { ReportService } from './application/report.service.js';
 import { REPORT_REPOSITORY, type ReportRepository } from './domain/report.repository.js';
 import { reportRepositoryProvider } from './infrastructure/mysql-report.repository.js';
 import { InternalRoleGuard } from '../../shared/http/internal-role.guard.js';
+import { JobPublisher } from '../../shared/queue/job-publisher.js';
+import { LoggerService } from '../../shared/logging/logger.service.js';
 import { InternalReportController } from './presentation/internal-report.controller.js';
 import { ReportController } from './presentation/report.controller.js';
+
+const jobPublisherProvider = {
+  provide: JobPublisher,
+  inject: [LoggerService],
+  useFactory: (logger: LoggerService) => new JobPublisher(logger),
+};
 
 const reportServiceProvider = {
   provide: ReportService,
@@ -30,19 +38,26 @@ const reportServiceProvider = {
     RECOMMENDATION_REPOSITORY,
     ConversationService,
     RequirementSnapshotStore,
+    JobPublisher,
   ],
   useFactory: (
     reports: ReportRepository,
     recommendations: RecommendationRepository,
     conversations: ConversationService,
     snapshots: RequirementSnapshotStore,
-  ) => new ReportService(reports, recommendations, conversations, snapshots),
+    publisher: JobPublisher,
+  ) => new ReportService(reports, recommendations, conversations, snapshots, publisher),
 };
 
 @Module({
   imports: [ContextModule, ConversationModule, RecommendationModule],
   controllers: [ReportController, InternalReportController],
-  providers: [reportRepositoryProvider, reportServiceProvider, InternalRoleGuard],
+  providers: [
+    jobPublisherProvider,
+    reportRepositoryProvider,
+    reportServiceProvider,
+    InternalRoleGuard,
+  ],
   exports: [reportServiceProvider],
 })
 export class ReportModule {}

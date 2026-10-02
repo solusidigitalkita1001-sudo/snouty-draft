@@ -12,6 +12,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { QUEUES } from '@snouty/jobs';
 import type { RequirementState } from '@snouty/shared-types';
 import { loadEnv } from '../../../config/env.js';
 import { ulid } from '../../../shared/ulid.js';
@@ -25,6 +26,7 @@ import { RequirementSnapshotStore } from '../../context/application/requirement-
 import { assembleReportPayload } from './report-assembler.js';
 import { formatReportNumber, yearMonthOf } from '../domain/report-number.js';
 import { REPORT_REPOSITORY, type ReportRepository } from '../domain/report.repository.js';
+import { JobPublisher } from '../../../shared/queue/job-publisher.js';
 import type { Report, ReportIdentity } from '../domain/report.types.js';
 
 export class RecommendationNotFoundError extends Error {
@@ -43,11 +45,15 @@ export class ReportNotFoundError extends Error {
 
 @Injectable()
 export class ReportService {
+  /** Opsional: service ini juga dipakai di tes tanpa logger. */
+  private readonly log: { warn: (o: unknown, m: string) => void } | null = null;
+
   constructor(
     @Inject(REPORT_REPOSITORY) private readonly reports: ReportRepository,
     @Inject(RECOMMENDATION_REPOSITORY) private readonly recommendations: RecommendationRepository,
     private readonly conversations: ConversationService,
     private readonly snapshots: RequirementSnapshotStore,
+    private readonly publisher: JobPublisher | null = null,
   ) {}
 
   /**
@@ -90,12 +96,28 @@ export class ReportService {
       },
     });
 
-    return this.reports.create({
+    const report = await this.reports.create({
       id: ulid(),
       recommendationId,
       reportNumber,
       payload,
     });
+
+    // Antrean gagal TIDAK menjatuhkan permintaan: laporannya sudah ada sebagai `PENDING`
+    // dengan nomor yang dialokasikan, dan bisa dicoba lagi tanpa pengguna mengetik apa pun
+    // (docs/REPORT.md §6). Tanpa publisher (worker belum berjalan), perilakunya sama.
+    if (this.publisher) {
+      const queued = await this.publisher.publish(QUEUES.reportGenerate, {
+        reportId: report.id,
+        correlationId: report.id,
+      });
+      if (!queued) {
+        // Dicatat, bukan dilempar — pengguna melihat pratinjau, bukan kegagalan.
+        this.log?.warn({ reportId: report.id }, 'laporan dibuat tetapi job PDF tidak terkirim');
+      }
+    }
+
+    return report;
   }
 
   /** Membaca laporan setelah memastikan aktor berhak. */
@@ -110,6 +132,23 @@ export class ReportService {
     // dengan "tidak ada", supaya id yang ditebak tidak membocorkan keberadaan laporan.
     await this.conversations.find(recommendation.conversationId, actor);
     return report;
+  }
+
+  /**
+   * Menandai laporan selesai. Dipanggil worker lewat rute internal — jadi nomor laporan
+   * tetap sama dengan yang sudah tampil di UI sejak `PENDING`.
+   */
+  async markReady(reportId: string, fileRef: string): Promise<void> {
+    const report = await this.reports.findById(reportId);
+    if (!report) throw new ReportNotFoundError();
+    await this.reports.markStatus(reportId, 'READY', { fileRef });
+  }
+
+  /** Menandai gagal. Nomornya TIDAK dilepas — percobaan ulang memakai nomor yang sama. */
+  async markFailed(reportId: string, reason: string): Promise<void> {
+    const report = await this.reports.findById(reportId);
+    if (!report) throw new ReportNotFoundError();
+    await this.reports.markStatus(reportId, 'FAILED', { failureReason: reason });
   }
 
   /** Dipakai rute cetak internal: tanpa pemeriksaan pemilik, tetapi digerbang peran. */

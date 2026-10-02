@@ -21,6 +21,16 @@ const EnvSchema = z.object({
   REDIS_URL: z.string().min(1).default('redis://127.0.0.1:6380'),
 
   /**
+   * RabbitMQ. Port baku docker-compose adalah 5673, bukan 5672 — host ini menjalankan
+   * beberapa layanan sekaligus dan port standar sudah terpakai.
+   *
+   * Kegagalan antrean tidak menjatuhkan permintaan pengguna (lihat `JobPublisher`), jadi
+   * nilai baku yang salah muncul sebagai job yang tidak terkirim dan tercatat — bukan
+   * sebagai permintaan yang gagal.
+   */
+  RABBITMQ_URL: z.string().min(1).default('amqp://guest:guest@127.0.0.1:5673'),
+
+  /**
    * Rahasia JWT tanpa nilai baku, **sengaja**.
    *
    * Nilai baku untuk rahasia adalah nilai baku yang suatu hari berjalan di
