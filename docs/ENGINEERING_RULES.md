@@ -326,3 +326,42 @@ Setiap kali kebutuhan pengguna menyentuh daftar ini, jalurnya adalah
 `TECHNICAL_VALIDATION_REQUIRED`, bukan perkiraan. Mengetahui batas dan mengatakannya adalah bagian
 dari produk, bukan kekurangannya — persis seperti persona yang ditetapkan desain: "tidak pernah
 menebak ukuran pipa".
+
+---
+
+## 8. Status implementasi (Fase 6)
+
+Engine terbangun di `packages/engineering`, masih **tanpa satu pun dependensi runtime** — dijaga
+`scripts/check-engineering-isolation.mjs`, yang menggagalkan CI bila ada. Properti itu yang membuat
+SPEC §25 benar secara struktural.
+
+| Bagian                            | Berkas                              |
+| --------------------------------- | ----------------------------------- |
+| Anatomi `RuleVersion` + registry  | `src/rule.ts`, `src/registry.ts`    |
+| Kelompok A (beban, sizing, kelas) | `src/rules/group-a-load-sizing.ts`  |
+| Kelompok B (geometri, elevasi)    | `src/rules/group-b-geometry.ts`     |
+| Kelompok C (material)             | `src/rules/group-c-material.ts`     |
+| Kelompok D (alur percakapan)      | `src/rules/group-d-conversation.ts` |
+| Gerbang provenance                | `src/provenance.ts`                 |
+| Orkestrator + trace               | `src/compute-solution.ts`           |
+
+**Keempat belas aturan berstatus `REQUIRES_DOMAIN_VALIDATION`**, dan konsekuensinya diuji: seluruh
+keluaran engine `ASSUMED`, tidak ada satu pun angka teknik yang tampil `VERIFIED`, dan dimensi bangunan
+yang nyata pun tidak menaikkannya. Itu perilaku yang benar sampai OQ-06 menunjuk ahli domain Pralon.
+
+Tiga penyimpangan dari sumber, semuanya disengaja dan tercatat:
+
+- **ENG-002** memakai ambang prototipe baru (`loadUnits >= 8`), bukan `fixtures >= 6` dari prototipe lama
+  dan SPEC §33b (OQ-22). Contoh kerja board cocok dengan versi baru.
+- **Batas 3 lantai** prototipe tidak dibawa — keterbatasan rendering, bukan aturan teknik (OQ-33).
+- **Baris "Lem PVC, 100 gr, 2 kaleng"** dari laporan dua halaman tidak ada di BOM, karena formulanya
+  memang belum ada. Ada tes yang menjaga ketiadaannya; mengarang formula untuk melengkapi tabel adalah
+  halusinasi yang berpakaian rapi.
+
+Validasi masukan memakai guard TypeScript murni (`requireInt`, `requireNumber`) alih-alih skema zod
+seperti §2 — alasannya di **OQ-42**: zod akan menjadi dependensi runtime pertama paket ini dan merobohkan
+pagar isolasi. Validasi zod tetap ada di tepi (`apps/api`), tempat keluaran ekstraksi sudah divalidasi.
+
+**Belum:** alur validasi back-office (§5) menunggu desain layar internal (**OQ-21**). Engine sudah siap
+menerimanya — `validationStatus`, `validatedBy`, dan `validatedAt` ada di `RuleVersion` sejak sekarang,
+dan `RULE_REGISTRY.awaitingValidation()` mengembalikan daftar kerjanya.
