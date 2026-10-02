@@ -60,19 +60,20 @@ export function onboardingTag(capability: Capability): OnboardingTag {
 }
 
 /**
- * Label tampilan Bahasa Indonesia. HANYA kosmetik — keputusan boleh/tidaknya
- * selalu dari `ENTITLEMENTS`, dan tes memastikan tidak ada kapabilitas tanpa label.
+ * Label tampilan Bahasa Indonesia — **copy dari desain layar 14** untuk enam yang
+ * tampil di onboarding; sisanya mengikuti nama di SPEC §4.6. HANYA kosmetik:
+ * keputusan boleh/tidaknya selalu dari `ENTITLEMENTS`.
  */
 export const CAPABILITY_LABEL: Readonly<Record<Capability, string>> = {
   PRODUCT_QA: 'Tanya jawab produk Pralon',
-  RECOMMENDATION: 'Rekomendasi produk',
+  RECOMMENDATION: 'Rekomendasi produk Pralon',
   CLARIFICATION: 'Pertanyaan klarifikasi',
   TECHNICAL_HANDOFF: 'Kirim ke tim teknis Pralon',
-  CONVERSATION_HISTORY: 'Riwayat percakapan tersimpan',
-  SAVE_SOLUTION: 'Simpan solusi',
+  CONVERSATION_HISTORY: 'Riwayat percakapan',
+  SAVE_SOLUTION: 'Simpan hasil konsultasi',
   CASE_ANALYSIS: 'Analisis studi kasus',
-  MATERIAL_BOM: 'Estimasi material & BOM',
-  SCHEMATIC: 'Skema instalasi',
+  MATERIAL_BOM: 'Estimasi kebutuhan material',
+  SCHEMATIC: 'Visualisasi skema perpipaan',
   REPORT_PDF: 'Laporan PDF',
 };
 
@@ -83,17 +84,26 @@ export interface OnboardingBenefit {
 }
 
 /**
- * Enam manfaat onboarding langkah 5 (docs/API_CONTRACTS.md): kapabilitas yang
- * TIDAK dimiliki tamu — itulah yang layak dijual di layar "Pengalaman lebih
- * lengkap". Angka enamnya bukan konstanta yang dijaga; ia konsekuensi tabel, dan
- * berubah bila tabelnya berubah.
+ * Enam kapabilitas yang TAMPIL di onboarding langkah 5, **dalam urutan desain**
+ * (layar 14). Daftarnya kurasi desain — ia memuat satu kapabilitas tamu
+ * (`RECOMMENDATION`, bertag TAMU JUGA, sebagai sinyal bahwa tamu pun dapat
+ * banyak) dan tidak memuat `REPORT_PDF` (dicatat OQ-41). Yang DITURUNKAN dari
+ * tabel adalah **tag-nya** — dan turunan itu cocok persis dengan tag yang
+ * digambar desainer, yang justru membuktikan tabel dan desain sedang sepakat.
  */
+const ONBOARDING_DISPLAY: readonly Capability[] = [
+  'CONVERSATION_HISTORY',
+  'SAVE_SOLUTION',
+  'CASE_ANALYSIS',
+  'MATERIAL_BOM',
+  'RECOMMENDATION',
+  'SCHEMATIC',
+];
+
 export function onboardingBenefits(): readonly OnboardingBenefit[] {
-  return (Object.keys(ENTITLEMENTS) as Capability[])
-    .filter((capability) => !ENTITLEMENTS[capability].includes('guest'))
-    .map((capability) => ({
-      capability,
-      label: CAPABILITY_LABEL[capability],
-      tag: onboardingTag(capability),
-    }));
+  return ONBOARDING_DISPLAY.map((capability) => ({
+    capability,
+    label: CAPABILITY_LABEL[capability],
+    tag: onboardingTag(capability),
+  }));
 }

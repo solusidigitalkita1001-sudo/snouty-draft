@@ -67,21 +67,35 @@ describe('onboardingTag — diturunkan, bukan ditulis', () => {
 });
 
 describe('onboardingBenefits', () => {
-  it('berisi tepat kapabilitas yang tidak dimiliki tamu', () => {
-    const benefits = onboardingBenefits();
-    const fromTable = ALL.filter((capability) => !ENTITLEMENTS[capability].includes('guest'));
-
-    expect(benefits.map((benefit) => benefit.capability)).toEqual(fromTable);
+  it('mengikuti urutan dan isi kurasi desain layar 14 — enam item', () => {
+    expect(onboardingBenefits().map((benefit) => benefit.capability)).toEqual([
+      'CONVERSATION_HISTORY',
+      'SAVE_SOLUTION',
+      'CASE_ANALYSIS',
+      'MATERIAL_BOM',
+      'RECOMMENDATION',
+      'SCHEMATIC',
+    ]);
   });
 
-  it('saat ini berjumlah enam — konsekuensi tabel, berubah bila tabelnya berubah', () => {
-    expect(onboardingBenefits()).toHaveLength(6);
+  it('tag setiap manfaat DITURUNKAN dari tabel — dan cocok dengan yang digambar desainer', () => {
+    const tags = Object.fromEntries(
+      onboardingBenefits().map((benefit) => [benefit.capability, benefit.tag]),
+    );
+
+    expect(tags).toEqual({
+      CONVERSATION_HISTORY: 'AKUN',
+      SAVE_SOLUTION: 'AKUN',
+      CASE_ANALYSIS: 'LANJUTAN',
+      MATERIAL_BOM: 'LANJUTAN',
+      RECOMMENDATION: 'TAMU JUGA',
+      SCHEMATIC: 'LANJUTAN',
+    });
   });
 
-  it('setiap manfaat membawa label dan tag', () => {
+  it('setiap manfaat membawa label copy desain', () => {
     for (const benefit of onboardingBenefits()) {
       expect(benefit.label).toBeTruthy();
-      expect(['AKUN', 'LANJUTAN']).toContain(benefit.tag);
     }
   });
 });

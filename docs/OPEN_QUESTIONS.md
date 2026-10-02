@@ -292,6 +292,21 @@ hanya memanggil satu method. Yang tertunda murni transport-nya (P1-06b).
 
 ## B. Design conflicts carried from SPEC §33h
 
+### OQ-41 — `REPORT_PDF` tidak tampil di manfaat onboarding
+
+**Status:** open · _non-blocking_ · **Fase:** 3 (P3-09/P3-12, sudah diterapkan mengikuti desain)
+Layar 14 langkah 5 menampilkan **enam** manfaat, dan `REPORT_PDF` — yang ada di tabel entitlement —
+tidak termasuk. Desain juga menyertakan satu kapabilitas tamu (`RECOMMENDATION`, bertag TAMU JUGA),
+jadi daftarnya bukan sekadar "semua yang tamu tidak punya".
+
+**Yang saya lakukan:** daftar TAMPILAN mengikuti kurasi desain apa adanya; **tag**-nya tetap
+diturunkan dari tabel entitlement (SPEC §33e), dan turunannya cocok persis dengan tag yang digambar
+desainer. `REPORT_PDF` tetap ada di tabel dan tetap digerbang — ia hanya tidak diiklankan di
+onboarding.
+
+**Pertanyaannya:** apakah ketiadaan `REPORT_PDF` di layar itu disengaja (mis. karena laporan dianggap
+bagian dari "analisis studi kasus") atau kelalaian desain yang ingin diperbaiki?
+
 ### OQ-14 — (33h #1) Pricing shown in report vs. no price on product screens
 
 **Status:** open · **Blocks:** 8, 10
