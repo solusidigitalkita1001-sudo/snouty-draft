@@ -4,6 +4,7 @@ import { CorrelationIdMiddleware } from './shared/http/correlation-id.middleware
 import { LoggingModule } from './shared/logging/logging.module.js';
 import { RedisModule } from './shared/redis/redis.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { GuestSessionMiddleware } from './modules/auth/presentation/guest-session.middleware.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { ProductCatalogModule } from './modules/product-catalog/product-catalog.module.js';
 import { ProductKnowledgeModule } from './modules/product-knowledge/product-knowledge.module.js';
@@ -30,5 +31,20 @@ export class AppModule implements NestModule {
   /** Correlation ID berlaku untuk SELURUH rute, termasuk `/health`. */
   configure(consumer: MiddlewareConsumer): void {
     consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+
+    // Sesi tamu hanya pada rute publik: /health dipanggil pemeriksa infrastruktur
+    // tiap beberapa detik (satu sesi per panggilan = ribuan baris sehari), dan
+    // /internal memakai autentikasi akun, bukan sesi tamu.
+    //
+    // Polanya RELATIF terhadap prefix global: Nest menambahkan `api/v1` di depan
+    // pola middleware, jadi menuliskan `api/v1/...` di sini menghasilkan
+    // `/api/v1/api/v1/...` yang tidak pernah cocok — dan middleware yang tidak
+    // pernah berjalan, tanpa satu pun galat. Ketahuan lewat probe terhadap
+    // aplikasi yang berjalan, bukan lewat tes unit: tes unit memanggil `use()`
+    // langsung dan tidak pernah menyentuh pencocokan rute.
+    consumer
+      .apply(GuestSessionMiddleware)
+      .exclude('health', 'internal/{*rest}')
+      .forRoutes('{*rest}');
   }
 }
