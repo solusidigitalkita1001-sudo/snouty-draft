@@ -269,3 +269,33 @@ Tiga pertama adalah **release blocker** (SPEC §31).
 
 Tes nomor 7 layak diperhatikan: ia mencegah kelas bug yang tidak terlihat sampai pengguna mengeluh —
 UI menjanjikan sesuatu yang API tolak.
+
+---
+
+## 12. Status implementasi (Fase 5)
+
+Policy Engine terbangun sebagai modul leaf `apps/api/src/modules/policy` — tanpa I/O, setiap
+pemeriksaan fungsi murni, dijaga pagar lint. Pemetaan ke berkasnya:
+
+| Kebijakan                    | Berkas                         | Catatan                                                                                           |
+| ---------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Policy 1 — hanya Pralon      | `scope.ts`                     | Hasilnya tidak punya field produk untuk diisi; `NEUTRAL_CRITERIA` tanpa satu pun nama merek       |
+| Policy 2 — tanpa halusinasi  | `product-filter.ts`            | `filterToCatalog` lapis 3 dari 5; SKU yang dibuang dilaporkan; spesifikasi kosong → `UNAVAILABLE` |
+| Policy 3 — batas rekomendasi | `scope.ts` + `policy-cards.ts` | Keputusan dan permukaannya dipisah; SLA 24 jam satu tempat                                        |
+| Policy 4 — provenance        | `provenance-gate.ts`           | **Satu-satunya** jalan nilai hitungan jadi `VERIFIED`; `REJECTED` → `UNAVAILABLE`                 |
+| Policy 5 — scope routing     | `scope.ts`                     | Industri menang atas jenis instalasi; > 4 lantai → validasi teknis; pembuangan diakui & dicatat   |
+| Entitlement (§8)             | `entitlements.ts`              | Sudah ada sejak Fase 3; sumber tunggal untuk guard **dan** manfaat onboarding                     |
+
+Titik penegakan di pipeline (`context/application/message-pipeline.ts`): **Policy 1 diperiksa sebelum
+ekstraksi** — pertanyaan kompetitor tidak pernah menyentuh jalur rekomendasi — dan **Policy 5 diperiksa
+atas state yang sudah di-merge**, karena scope adalah sifat kebutuhan nyata, bukan sifat kata-kata
+pesan.
+
+Dua dari tiga tes release blocker hijau di fase ini: kompetitor tidak pernah menghasilkan kartu produk
+(`policy/scope.spec.ts`) dan `REQUIRES_DOMAIN_VALIDATION` tidak pernah `VERIFIED`
+(`policy/provenance-gate.spec.ts`, sapuan seluruh kombinasi status × provenance). Yang ketiga — tamu
+diblokir di API meski UI dilewati — hijau sejak Fase 3.
+
+Belum: tes §11 nomor 8 (field null tidak merender nilai) menunggu komponen `<ProvenanceTag>`; nomor 9
+(akses laporan) menunggu Fase 9. **OQ-15 masih terbuka** — tabel `ENTITLEMENTS` mengikuti usulan
+default (janji onboarding), dan panel register-gate (OQ-27) serta layar 06 menunggu keputusan pemilik.
