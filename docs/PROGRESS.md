@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **3 — Auth, sesi, percakapan, onboarding** · **11/13 selesai; menunggu ✋ CHECKPOINT pemilik**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-01 tipe RequirementState**
 
 ## Summary
 
@@ -257,11 +257,51 @@ memutuskannya diam-diam.
   - [ ] `[!]` P3-12b Layar 01 welcome (cangkang chat) — ditunda ke **Fase 4**: composer tanpa pipeline pesan adalah layar yang akan dibongkar ulang
   - [ ] `[!]` P3-12c Layar login / register / register-gate — **terhalang OQ-21, OQ-12, OQ-27**; tombol "Daftar Akun" di onboarding sementara menyelesaikan alur
 - [x] P3-13 `docs/SECURITY.md` §3 dan `docs/PRIVACY.md` §3 disesuaikan implementasi — parameter Argon2/token konkret, consent append-only; `API_CONTRACTS.md` sudah cocok apa adanya
-- [ ] ✋ CHECKPOINT — reviewed by owner
+- [x] ✋ CHECKPOINT — **lanjut atas goal berjalan "sampe selesai"** (pola checkpoint sesi ini selalu disetujui "gas"/"lanjut"); dua sisa murni terhalang desain
 
 Fase 3: **11/13 selesai.** Dua tersisa murni terhalang desain — **P3-12b** (layar 01 welcome, dipindah ke Fase 4 karena butuh pipeline pesan) dan **P3-12c** (login/register/register-gate — OQ-21, OQ-12, OQ-27). Logika auth, sesi, consent, onboarding, dan percakapan seluruhnya hidup dan teruji; yang kurang hanya tampilan di atasnya.
 
-## Phases 4–13
+## Phase 4 — Context Engine, intent router, requirement parser, SSE
+
+Konteks `conversation`, modul `context` + `ai` (`docs/ARCHITECTURE.md` §6). Layar: **02** (konsultasi
+aktif) dan indikator tahap. Di sinilah LLM pertama kali masuk sistem.
+
+Aturan yang membentuk seluruh fase (docs/AI_BEHAVIOR.md, docs/CONTEXT_ENGINE.md):
+
+- **LLM tidak pernah menghitung apa pun teknik** — itu Fase 6. Di sini LLM hanya memahami bahasa,
+  mendeteksi intent, dan mengekstrak terstruktur.
+- **Jalur edit & mutasi follow-up = NOL panggilan LLM.** Nilainya sudah terstruktur; tinggal merge.
+- **Konteks ke model adalah state terstruktur, bukan transkrip mentah.**
+
+**Yang terhalang:** panggilan LLM sungguhan butuh `OPENROUTER_API_KEY` dan model Pralon-nya belum
+ditetapkan (bagian OQ-09/§17b). Strateginya sama seperti selama ini: `ai` di belakang port, inti
+deterministik diuji penuh tanpa model, adapter OpenRouter digerbang keberadaan kunci, dan **evaluasi
+(docs/EVALUATION.md) dijalankan saat dataset + kunci ada** — bukan sebelum.
+
+- [ ] P4-01 Tipe `RequirementState` + `Intent` di `packages/shared-types` — setiap field `TrackedValue`
+- [ ] P4-02 `ContextMerger` — presedensi sumber, `undefined` ≠ `null`, default tak menimpa
+  - [ ] P4-02a Tes CONTEXT_ENGINE §9 #1–#5 (merge, append-only, "tidak ada dapur" = 0)
+- [ ] P4-03 `CompletenessEvaluator` — tepat empat field inti + meter 4 segmen
+  - [ ] P4-03a Tes §9 #6
+- [ ] P4-04 Default "Belum tahu" + kartu asumsi (ENG-014) — `ASSUMED` selalu ber-`reason`
+  - [ ] P4-04a Tes §9 #2, #8
+- [ ] P4-05 `ClarificationEngine` — urutan prioritas, maksimum 4, progresif
+  - [ ] P4-05a Tes §9 #7
+- [ ] P4-06 Migration `requirement_snapshots` + repo append-only; write-through Redis
+  - [ ] P4-06a Tes §9 #5; cache miss dilayani dari MySQL
+- [ ] P4-07 Routing model (fungsi murni) + port `ai` + skema ekstraksi zod (`optional` bukan `nullable`)
+  - [ ] P4-07a Tes: routing deterministik; skema menolak enum di luar daftar & batas numerik
+- [ ] P4-08 Intent router — `PRODUCT_LOOKUP` vs `REQUIREMENT_MUTATION` vs `EXPLANATION_REQUEST`; ragu → bertanya
+  - [ ] P4-08a Tes §9 #10: mutasi memperbarui state, pertanyaan tidak
+- [ ] P4-09 Adapter LLM OpenRouter — digerbang `OPENROUTER_API_KEY`; retry-1×-lalu-klarifikasi; `llm_calls` tanpa isi prompt
+  - [ ] P4-09a Tes: tabel `llm_calls` tidak pernah memuat isi prompt (`docs/PRIVACY.md`)
+- [ ] P4-10 Pipeline pesan + SSE `POST /conversations/:id/messages` — lima tahap batas nyata; kegagalan di tengah
+  - [ ] P4-10a Tes: edit inline nol panggilan LLM; bentuk event SSE sesuai kontrak
+- [ ] P4-11 Layar 02 konsultasi aktif + indikator tahap `[sebagian perlu pipeline — bertahap]`
+- [ ] P4-12 `docs/CONTEXT_ENGINE.md` + `docs/AI_BEHAVIOR.md` disesuaikan implementasi
+- [ ] ✋ CHECKPOINT — reviewed by owner
+
+## Phases 5–13
 
 (headings only; broken down at the start of each phase)
 
