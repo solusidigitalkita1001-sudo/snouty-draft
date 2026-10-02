@@ -1,0 +1,131 @@
+/*
+ * Back-office — **BELUM DIDESAIN (OQ-21)**. Sengaja datar: sidebar, judul, satu kartu status.
+ * Token yang sama seperti layar produk, tanpa mascot (ini alat kerja).
+ */
+
+.shell {
+  display: flex;
+  min-height: 100dvh;
+  background: var(--snouty-canvas);
+  color: var(--snouty-ink);
+  font-family: var(--snouty-font-sans);
+}
+
+.sidebar {
+  width: var(--snouty-sidebar-w);
+  flex: none;
+  background: var(--snouty-surface);
+  border-right: 1px solid var(--snouty-border);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.brand {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--snouty-muted);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navItem {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 9px;
+  border-radius: 5px;
+  font-size: 13px;
+  color: var(--snouty-ink);
+  text-decoration: none;
+}
+
+.navItem:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+.navActive {
+  background: var(--snouty-action-row);
+  border-left: 2px solid var(--snouty-action);
+  border-radius: 0 5px 5px 0;
+}
+
+.navItem:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
+}
+
+/* Nomor item fase: membuat jelas bagian mana yang dikerjakan di fase mana. */
+.navPhase {
+  font-family: var(--snouty-font-mono);
+  font-size: 9px;
+  color: var(--snouty-caption);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.needsDesign {
+  font-family: var(--snouty-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+  color: var(--snouty-assumed-text);
+  background: var(--snouty-assumed-bg);
+  border: 1px solid var(--snouty-assumed-border);
+  border-radius: 3px;
+  padding: 5px 9px;
+}
+
+.title {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+}
+
+.body {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--snouty-muted);
+  max-width: 640px;
+  text-wrap: pretty;
+}
+
+.blockedCard {
+  border: 1px solid var(--snouty-assumed-border);
+  background: var(--snouty-assumed-bg-soft, var(--snouty-assumed-bg));
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+}
+
+.blockedTag {
+  align-self: flex-start;
+  font-family: var(--snouty-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  color: var(--snouty-assumed-text);
+}
+
+.blockedBody {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--snouty-assumed-body);
+  text-wrap: pretty;
+}
