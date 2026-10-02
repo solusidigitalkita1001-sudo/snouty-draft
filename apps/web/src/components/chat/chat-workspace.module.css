@@ -728,3 +728,16 @@
   font-size: 13px;
   color: var(--snouty-muted);
 }
+
+/* Cincin fokus untuk seluruh elemen interaktif sidebar dan kartu. */
+.newButton:focus-visible,
+.panelToggle:focus-visible,
+.chip:focus-visible,
+.sendButton:focus-visible,
+.ctaButton:focus-visible,
+.skipDefaults:focus-visible,
+.dot:focus-visible {
+  outline: none;
+  border-radius: 4px;
+  box-shadow: var(--snouty-focus-ring);
+}

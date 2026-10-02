@@ -292,6 +292,27 @@ hanya memanggil satu method. Yang tertunda murni transport-nya (P1-06b).
 
 ## B. Design conflicts carried from SPEC §33h
 
+### OQ-43 — Token `--snouty-caption` gagal kontras WCAG AA pada ukuran pakainya
+
+**Status:** open · **Blocks:** 13 (audit a11y) · **Fase:** 13 (P13-02)
+`--snouty-caption` (`#8A9295`) berbanding **3,17:1** terhadap `surface` putih. WCAG 2.1 AA mewajibkan
+4,5:1 untuk teks di bawah 18px (atau 14px bold); 3:1 hanya cukup untuk teks besar. Token ini dipakai
+pada **10–12px** di beberapa tempat — meta riwayat, label blok judul, catatan kaki tahap — jadi di
+situ ia tidak memenuhi AA.
+
+Nilai-nilai lain lulus: amber `#8A5300` 5,76–6,33:1, hijau terverifikasi 4,74:1, merek 6,76:1, muted
+6,07:1.
+
+**Yang saya TIDAK lakukan:** mengubah nilai tokennya. Token adalah sumber kebenaran visual, dan
+menggelapkannya sendiri berarti merancang ulang (`docs/DESIGN_IMPLEMENTATION.md` §1).
+
+**Usulan default:** gelapkan `--snouty-caption` menjadi sekitar `#6E7679` (≈4,6:1) — perubahan yang
+nyaris tak terlihat pada ukuran itu, dan tetap lebih terang dari `--snouty-muted` sehingga hierarkinya
+utuh. Alternatifnya: pakai `--snouty-muted` di setiap tempat yang di bawah 14px dan sisakan `caption`
+hanya untuk teks besar, tetapi itu menghapus satu tingkat hierarki yang memang dipakai desain.
+
+**Pertanyaannya:** pemilik dan desainer memilih menggelapkan tokennya, atau membatasi pemakaiannya?
+
 ### OQ-42 — Anatomi aturan meminta zod, isolasi engine melarang dependensi
 
 **Status:** open · _non-blocking_ · **Fase:** 6 (P6-01, sudah diterapkan mengikuti usulan default)

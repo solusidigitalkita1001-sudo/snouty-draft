@@ -356,3 +356,36 @@ Kalimat yang tidak boleh diparafrase karena membawa makna kebijakan:
 
 Kalimat-kalimat itu adalah kebijakan yang menyamar sebagai teks antarmuka. Mengubahnya berarti
 mengubah janji produk.
+
+---
+
+## 12. Hasil audit aksesibilitas (Fase 13, P13-02)
+
+Diperiksa terhadap kode, bukan diklaim.
+
+**Dua temuan.**
+
+1. **Cincin fokus tidak terpasang** di `solution.module.css` dan `schematic.module.css`, padahal
+   keduanya punya elemen interaktif (tombol "Tampilkan detail teknis", "Perbaiki asumsi ini →", dan
+   `<summary>` uraian teks). WCAG 2.1 AA mewajibkan indikator fokus yang terlihat. **Ditutup** dengan
+   memakai token `--snouty-focus-ring` yang sudah ada — bukan nilai baru. Sidebar layar 02 juga ikut
+   dilengkapi.
+
+2. **`--snouty-caption` gagal AA pada ukuran pakainya** — 3,17:1 terhadap `surface`, dipakai pada
+   10–12px. Dicatat sebagai **OQ-43** dengan usulan default, **tidak diubah sendiri**: token adalah
+   sumber kebenaran visual, dan menggelapkannya tanpa desainer berarti merancang ulang (§1).
+
+**Diperiksa dan bersih:**
+
+- Kontras lain lulus AA: amber `#8A5300` 5,76–6,33:1 (yang paling dikhawatirkan ternyata aman), hijau
+  terverifikasi 4,74:1, merek 6,76:1, muted 6,07:1.
+- `prefers-reduced-motion` ada di setiap modul yang memang punya animasi (onboarding 6 animasi + guard;
+  chat guard; `solution`/`schematic` tanpa animasi sehingga tidak perlu).
+- Warna tidak pernah menjadi satu-satunya pembawa makna: `<ProvenanceTag>` selalu memuat teks, dan
+  ketebalan garis skema (4/3/2 px) membawa makna sejajar dengan warnanya.
+- Elemen tanpa teks terbaca punya `aria-label` (tombol tutup onboarding, titik progres, toggle panel);
+  skema punya `role="img"` berlabel **dan** uraian teks terstruktur per lantai.
+- Modal onboarding: `role="dialog"`, `aria-modal`, fokus masuk ke dialog, keyboard → / ← / Enter / Esc.
+
+**Belum:** uji dengan pembaca layar sungguhan dan audit kedua tema di perangkat nyata — keduanya butuh
+sesi manual, bukan pemeriksaan kode.

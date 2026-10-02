@@ -354,3 +354,15 @@
     width: 100%;
   }
 }
+
+/*
+ * Cincin fokus — WCAG 2.1 AA mewajibkan indikator fokus yang terlihat, dan SPEC §33c
+ * meminta ia selalu terlihat. Memakai token yang sudah ada, bukan nilai baru.
+ */
+.linkButton:focus-visible,
+.ctaButton:focus-visible {
+  outline: none;
+  border-radius: 4px;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
