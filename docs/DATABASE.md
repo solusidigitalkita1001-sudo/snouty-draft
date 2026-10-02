@@ -130,7 +130,45 @@ Pengembangan tetap berjalan sebagai `ict`, dengan kredensial diperlakukan setara
 
 ---
 
+## 4a. Pengembangan memakai database lokal
+
+**Keputusan pemilik, 2026-10-02.** Pengembangan berjalan di MySQL lokal; server bersama di
+`192.168.1.136` tetap tujuan akhir, tetapi bukan urusan harian.
+
+|             | Lokal (`mysql`)                     | Tes (`mysql-test`)          | Server bersama |
+| ----------- | ----------------------------------- | --------------------------- | -------------- |
+| Port baku   | `3316`                              | `3317`                      | `3306`         |
+| Penyimpanan | volume `mysql-data` — **persisten** | `tmpfs` — sekali pakai      | —              |
+| Dipakai     | pengembangan, katalog contoh        | tes integrasi, CI           | belum          |
+| Migration   | `pnpm db:apply` langsung jalan      | diterapkan ulang setiap tes | prosedur §4    |
+
+```bash
+docker compose up -d mysql
+pnpm --filter @snouty/api db:apply          # tanpa upacara: host lokal
+SEED_SAMPLE_CATALOG=1 pnpm --filter @snouty/api seed:sample
+```
+
+Dua kontainer MySQL, dan bedanya penting: tes integrasi mengosongkan tabel di setiap berkas spec.
+Satu kontainer untuk keduanya berarti tes yang berjalan ikut mengosongkan katalog contoh yang sedang
+dipakai mengembangkan layar.
+
+`scripts/db-apply.mjs` membedakan tujuan dari **alamat loopback**, bukan dari nama host: `mysql` atau
+`db` di dalam jaringan Docker bisa menunjuk ke mana saja, dan pagar yang bisa dilewati dengan menamai
+host adalah pagar yang akan dilewati. Ke host lokal ia langsung jalan; ke host lain, seluruh upacara
+§4 berlaku.
+
+Upacara itu dilepas untuk lokal bukan demi kenyamanan. Meminta `MIGRATION_APPROVED=1` dan ketik ulang
+nama database puluhan kali sehari di mesin sendiri melatih kebiasaan menggulir tanpa membaca — dan
+kebiasaan itu terbawa ke tempat yang salah. Pagar yang berarti adalah pagar yang jarang muncul.
+
+**Kondisi berpindah ke server bersama:** akun least-privilege (OQ-34) dan kepemilikan backup (§8)
+terjawab. Sampai saat itu, tidak ada jalur di repositori ini yang mengarah ke sana secara baku.
+
+---
+
 ## 4. Prosedur migration
+
+Berlaku untuk host **non-lokal**. Untuk pengembangan sehari-hari, lihat §4a.
 
 Ini bagian terpenting dokumen. Urutannya tidak boleh dipotong.
 

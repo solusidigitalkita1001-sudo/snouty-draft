@@ -1,10 +1,19 @@
 # SNOUTY — layanan lokal.
 #
-# MySQL SENGAJA tidak ada di sini. Database produksi ada di 192.168.1.136 dan
-# dipakai bersama tujuh aplikasi lain; menaruhnya di compose akan mengundang
-# seseorang menjalankan `docker compose down -v` dan mengira itu aman.
-# Kontainer mysql-test di bawah hanya untuk tes integrasi, di balik profil
-# tersendiri supaya tidak ikut menyala pada `docker compose up`.
+# **Pengembangan memakai MySQL lokal** (keputusan pemilik, 2026-10-02). Server
+# bersama di 192.168.1.136 tetap menjadi tujuan akhir, dan prosedur penerapannya ada
+# di docs/DATABASE.md §4 — tetapi ia bukan urusan harian, jadi tidak ada satu pun
+# jalur di sini yang mengarah ke sana.
+#
+# DUA MySQL, dan bedanya penting:
+#
+#   mysql       persisten, pakai volume — tempat data pengembangan tinggal
+#   mysql-test  sekali pakai, pakai tmpfs — tempat tes integrasi berjalan
+#
+# Memakai satu kontainer untuk keduanya berarti tes yang mengosongkan tabel juga
+# mengosongkan katalog contoh yang sedang dipakai mengembangkan layar. Itu sudah
+# hampir terjadi: skrip semai menulis ke kontainer tmpfs, yang isinya hilang setiap
+# kontainer restart.
 
 # Port baku digeser dari angka standar, dengan alasan yang sama seperti mysql-test
 # di 3317: mesin pengembang di proyek ini sudah menjalankan Redis di 6379 dan
@@ -34,6 +43,22 @@ services:
       timeout: 10s
       retries: 5
 
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-snouty}
+      MYSQL_DATABASE: ${DB_DATABASE:-snouty}
+      MYSQL_USER: ${DB_USERNAME:-snouty}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-snouty}
+    # 3306 dan 3307 sudah dipakai kontainer MySQL lain di mesin pengembang ini.
+    ports: ['${DB_PORT:-3316}:3306']
+    volumes: ['mysql-data:/var/lib/mysql']
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   mysql-test:
     profiles: ['test']
     image: mysql:8
@@ -52,5 +77,9 @@ services:
       retries: 10
 
 volumes:
+  # `mysql-data` memuat data pengembangan. `docker compose down -v` menghapusnya,
+  # dan itu memang artinya — tetapi sekarang yang hilang hanya katalog contoh yang
+  # bisa disemai ulang, bukan data siapa pun.
+  mysql-data:
   redis-data:
   rabbitmq-data:

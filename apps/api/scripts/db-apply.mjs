@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 /**
- * Menerapkan migration ke database — SENGAJA merepotkan.
+ * Menerapkan migration ke database.
  *
- * docs/DATABASE.md §4 langkah 7. Server di 192.168.1.136 memuat tujuh database
- * aplikasi lain; perintah yang "tinggal jalan" adalah cara paling umum merusak
- * data orang lain pada pukul dua pagi. Karena itu perintah ini:
+ * **Dua perilaku, dan yang membedakannya adalah host tujuan.**
+ *
+ * Ke database lokal: langsung jalan. Pengembangan memakai MySQL lokal
+ * (docs/DATABASE.md §4a), dan upacara persetujuan di mesin sendiri adalah gesekan
+ * tanpa imbalan — gesekan yang justru mengajari orang mengetik
+ * `MIGRATION_APPROVED=1` tanpa membacanya, sehingga pagar itu berhenti berarti
+ * apa pun ketika benar-benar dibutuhkan.
+ *
+ * Ke host lain — termasuk server bersama di 192.168.1.136 yang memuat tujuh
+ * database aplikasi lain — SENGAJA merepotkan (docs/DATABASE.md §4 langkah 7):
  *
  *   1. menolak berjalan tanpa MIGRATION_APPROVED=1
  *   2. mencetak SQL lengkap dan host tujuan sebelum apa pun dijalankan
@@ -28,14 +35,25 @@ function fail(message) {
   process.exit(1);
 }
 
-if (process.env.MIGRATION_APPROVED !== '1') {
+if (!host || !database) fail('DB_HOST dan DB_DATABASE wajib diisi.');
+
+/**
+ * Hanya alamat loopback yang dianggap lokal.
+ *
+ * Nama host yang "kedengaran lokal" seperti `mysql` atau `db` TIDAK termasuk: di
+ * dalam jaringan Docker keduanya bisa menunjuk ke mana saja, dan pagar yang bisa
+ * dilewati dengan menamai host adalah pagar yang akan dilewati.
+ */
+const LOCAL_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
+const isLocal = LOCAL_HOSTS.has(host);
+
+if (!isLocal && process.env.MIGRATION_APPROVED !== '1') {
   fail(
-    'Migration belum disetujui.\n' +
+    `Migration ke host non-lokal (${host}) belum disetujui.\n` +
       '  Jalankan ulang dengan MIGRATION_APPROVED=1 SETELAH pemilik menyetujui\n' +
       '  dan backup terbaru dikonfirmasi (docs/DATABASE.md §4 langkah 6).',
   );
 }
-if (!host || !database) fail('DB_HOST dan DB_DATABASE wajib diisi.');
 
 const files = readdirSync(dir)
   .filter((f) => f.endsWith('.sql') && !f.endsWith('.down.sql'))
@@ -43,24 +61,30 @@ const files = readdirSync(dir)
 if (files.length === 0) fail(`Tidak ada berkas migration di ${dir}`);
 
 console.log('\n─────────────────────────────────────────────────────────────');
-console.log(`  TUJUAN : ${host} / ${database}`);
+console.log(`  TUJUAN : ${host} / ${database}${isLocal ? '  (lokal)' : ''}`);
 console.log(`  BERKAS : ${files.join(', ')}`);
 if (host.includes('192.168.1.136')) {
   console.log('  ⚠  INI SERVER BERSAMA — memuat tujuh database aplikasi lain.');
 }
 console.log('─────────────────────────────────────────────────────────────\n');
 
-for (const file of files) {
-  console.log(`--- ${file} ---`);
-  console.log(readFileSync(join(dir, file), 'utf8'));
-}
+// SQL lengkap dan konfirmasi ketik-ulang hanya untuk host non-lokal. Mencetak
+// ratusan baris SQL setiap kali pengembang menerapkan migration di mesinnya sendiri
+// melatih kebiasaan menggulir tanpa membaca — dan kebiasaan itu terbawa ke tempat
+// yang salah.
+if (!isLocal) {
+  for (const file of files) {
+    console.log(`--- ${file} ---`);
+    console.log(readFileSync(join(dir, file), 'utf8'));
+  }
 
-const rl = createInterface({ input: stdin, output: stdout });
-const answer = await rl.question(
-  `Ketik ulang nama database untuk melanjutkan (${database}), atau apa pun untuk batal: `,
-);
-rl.close();
-if (answer.trim() !== database) fail('Dibatalkan — nama database tidak cocok.');
+  const rl = createInterface({ input: stdin, output: stdout });
+  const answer = await rl.question(
+    `Ketik ulang nama database untuk melanjutkan (${database}), atau apa pun untuk batal: `,
+  );
+  rl.close();
+  if (answer.trim() !== database) fail('Dibatalkan — nama database tidak cocok.');
+}
 
 // Driver baru dimuat setelah semua pagar lolos.
 const { default: mysql } = await import('mysql2/promise');

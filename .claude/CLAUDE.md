@@ -37,7 +37,11 @@ Kode, identifier, enum, SQL, dan pesan commit tetap Inggris.
 
 ## Database
 
-MySQL 8 terpusat di `192.168.1.136` — **infrastruktur bersama**, memuat tujuh database aplikasi lain.
+**Pengembangan memakai MySQL lokal** (`docker compose up -d mysql`, port 3316). Migration diterapkan
+ke sana langsung, tanpa upacara persetujuan. Prosedur: `docs/DATABASE.md` §4a.
+
+MySQL 8 di `192.168.1.136` adalah **infrastruktur bersama** yang memuat tujuh database aplikasi lain.
+Ia tujuan akhir, bukan tujuan harian — dan aturan di bawah berlaku penuh begitu ia disentuh:
 
 - **Tidak ada migration tanpa persetujuan pemilik** dan backup yang dikonfirmasi.
 - Tidak pernah `DROP DATABASE`, reset skema, `TRUNCATE` tanpa izin, atau force-reset.

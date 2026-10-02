@@ -28,12 +28,15 @@ import { eq } from 'drizzle-orm';
 const SHARED_HOST = '192.168.1.136';
 const SOURCE_DOCUMENT = 'Katalog contoh pengembangan SNOUTY (BUKAN data Pralon)';
 
+// Baku ke MySQL lokal yang PERSISTEN (compose: `mysql`, port 3316), bukan ke
+// kontainer `mysql-test` yang memakai tmpfs. Katalog contoh yang hilang setiap
+// kontainer restart bukan katalog contoh yang bisa dipakai mengembangkan layar.
 const cfg = {
   host: process.env.DB_HOST ?? '127.0.0.1',
-  port: Number(process.env.DB_PORT ?? 3317),
-  database: process.env.DB_DATABASE ?? 'snouty_dev',
+  port: Number(process.env.DB_PORT ?? 3316),
+  database: process.env.DB_DATABASE ?? 'snouty',
   user: process.env.DB_USERNAME ?? 'root',
-  password: process.env.DB_PASSWORD ?? 'test',
+  password: process.env.DB_ROOT_PASSWORD ?? 'snouty',
 };
 
 // ── Pagar ───────────────────────────────────────────────────────────────────
