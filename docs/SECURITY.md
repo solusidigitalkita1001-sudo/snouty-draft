@@ -50,20 +50,26 @@ Ini dicatat sebagai **release blocker** di `PROGRESS.md`.
 
 ## 3. Autentikasi
 
-| Aspek                   | Ketentuan                                                                    |
-| ----------------------- | ---------------------------------------------------------------------------- |
-| Password                | Argon2id, tidak pernah dicatat, tidak pernah dikembalikan                    |
-| Access token            | JWT berumur pendek (`JWT_ACCESS_TTL`), di memori klien                       |
-| Refresh token           | cookie `httpOnly` + `Secure` + `SameSite=Lax`, **dirotasi setiap pemakaian** |
-| Deteksi pemakaian ulang | refresh token lama yang dipakai lagi → seluruh rantai dicabut                |
-| Sesi tamu               | cookie `httpOnly`, ULID, TTL dari config                                     |
-| Logout                  | mencabut refresh token di sisi server, bukan hanya menghapus cookie          |
+| Aspek                   | Ketentuan                                                                                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Password                | Argon2id (19 MiB · 2 iterasi · p=1, minimum OWASP), tidak pernah dicatat/dikembalikan                                                          |
+| Access token            | JWT HS256 pendek (`JWT_ACCESS_TTL`, baku 900 s), klaim minimum `sub`/`tier`/`roles`, di memori klien                                           |
+| Refresh token           | nilai acak buram 256-bit (SHA-256 di DB), cookie `httpOnly` + `Secure` + `SameSite=Lax` ber-`path=/api/v1/auth`, **dirotasi setiap pemakaian** |
+| Deteksi pemakaian ulang | refresh token lama yang dipakai lagi → seluruh **family** dicabut                                                                              |
+| Sesi tamu               | cookie `httpOnly`, ULID, sliding TTL dari config; id dari cookie tidak pernah dipercaya tanpa baris DB (anti-fixation)                         |
+| Logout                  | mencabut family di sisi server, bukan hanya menghapus cookie                                                                                   |
+
+Semua terlaksana di Fase 3 (`apps/api/src/modules/auth`). Dua detail yang membuatnya bekerja:
 
 Rotasi dengan deteksi pemakaian ulang adalah pertahanan yang berbayar: bila token dicuri, pemakaian
 oleh penyerang **atau** oleh pengguna asli akan membuat keduanya ter-logout — terlihat, bukan diam.
+Login membayar satu verifikasi Argon2 **juga saat emailnya tidak terdaftar**, supaya waktu respons
+tidak membocorkan email mana yang punya akun; email tak dikenal, password salah, dan akun nonaktif
+menjawab dengan pesan yang sama.
 
-Penautan tamu → akun memindahkan kepemilikan percakapan dalam satu transaksi; kegagalan di tengah
-tidak boleh meninggalkan percakapan tanpa pemilik.
+Penautan tamu → akun (invarian G-1) memindahkan kepemilikan percakapan dalam **satu transaksi**
+lintas konteks; sesi dibaca `FOR UPDATE` sehingga dua registrasi serentak dengan cookie yang sama
+tidak dua-duanya menautkan, dan kegagalan di tengah tidak meninggalkan percakapan tanpa pemilik.
 
 ---
 

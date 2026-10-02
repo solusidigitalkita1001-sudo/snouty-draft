@@ -64,6 +64,12 @@ kind ∈ { LOCATION, ANALYTICS_STORAGE }
 Flag `localStorage['snouty_onboarding_state']` hanya kenyamanan render pertama supaya modal tidak
 berkedip; server tetap yang berwenang, dan keduanya direkonsiliasi saat halaman dimuat.
 
+**Terlaksana di Fase 3.** Tabel `consents` append-only: memberi/menolak/memberi-lagi adalah baris
+baru, mencabut mengisi `revoked_at` (tidak pernah `DELETE`). `policy_version` datang dari config
+server (`POLICY_VERSION`, baku `v0-draft` — OQ-12), bukan dari klien. Onboarding langkah 4 memanggil
+`POST /consents` saat pengguna memutuskan; penolakan tercatat dan **tidak** menghalangi alur. Keadaan
+"terbaru" ditentukan oleh `id` ULID (urutan total), bukan stempel waktu yang bisa seri.
+
 ---
 
 ## 4. Lokasi — janji yang mengikat kode

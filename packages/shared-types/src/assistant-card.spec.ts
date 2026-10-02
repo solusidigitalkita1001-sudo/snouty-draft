@@ -30,11 +30,11 @@ describe('AssistantCard tertutup di tingkat tipe', () => {
   });
 
   it('tidak mengizinkan field markup diselipkan ke varian yang sah', () => {
-    // @ts-expect-error `summary` tidak punya field `html`.
     const impossible: AssistantCard = {
       kind: 'summary',
       fields: [],
       readCount: 0,
+      // @ts-expect-error `summary` tidak punya field `html`.
       html: '<b>x</b>',
     };
 
