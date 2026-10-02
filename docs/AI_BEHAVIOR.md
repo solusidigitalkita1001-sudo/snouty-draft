@@ -244,3 +244,22 @@ hari dari data `llm_calls`.
 Setiap perubahan pada prompt, skema, atau routing menjalankan evaluasi di CI. Detail di
 `EVALUATION.md`. Yang diukur per field, bukan hanya keseluruhan — akurasi 90% yang selalu meleset di
 `waterSource` adalah masalah yang berbeda dari 90% yang menyebar merata.
+
+---
+
+## 12. Status implementasi (Fase 4)
+
+Yang terbangun: routing model sebagai fungsi murni (ID model dari env, tak pernah di kode); port `ai`
+yang tidak menyentuh domain; skema ekstraksi + intent zod `.strict()`; adapter OpenRouter dengan
+transport di belakang port, retry **sekali** ke tingkat `strong` lalu melempar (tanpa percobaan
+ketiga, tanpa keluaran tak tervalidasi ke engine); dan `llm_calls` (migration 0007) yang **tidak punya
+kolom** untuk isi prompt — janji "isi prompt tidak disimpan" menjadi struktural.
+
+Adapter live **digerbang `OPENROUTER_API_KEY`** dan ketiga ID model. Tanpa konfigurasi lengkap,
+`AI_SERVICE` bernilai `null` dan pipeline mengalirkan `error LLM_UNAVAILABLE` (retryable) alih-alih
+memanggil model yang tak ada — seluruh Context Engine dapat dikembangkan dan diuji tanpa kunci maupun
+biaya.
+
+Belum: penjelasan tidak-boleh-melahirkan-angka (§7, invarian REC-1) datang bersama pipeline
+rekomendasi (Fase 7); **evaluasi (§11) dijalankan saat golden dataset + kunci ada** — ID model Pralon
+belum ditetapkan (bagian OQ-09/§17b), jadi angka evaluasi belum bisa diproduksi.

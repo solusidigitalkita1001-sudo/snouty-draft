@@ -263,3 +263,26 @@ tidak pernah diambil lewat pencarian kemiripan. Ia terstruktur, tepat, dan dibac
 
 Tes 9 adalah tes performa sekaligus tes kebenaran: bila edit memicu ekstraksi, biaya token melonjak
 dan hasilnya bisa berubah untuk masukan yang sama.
+
+---
+
+## 10. Status implementasi (Fase 4)
+
+Inti deterministik Context Engine terbangun penuh dan teruji, tanpa satu pun panggilan LLM:
+
+- `ContextMerger`, `CompletenessEvaluator`, default "Belum tahu" + kartu asumsi, dan
+  `ClarificationEngine` hidup di `apps/api/src/modules/context/domain` sebagai fungsi murni dengan
+  `now` disuntikkan. Tes §9 #1–#4, #6, #7 lulus; #2/#8 (ASSUMED selalu ber-`reason`) melekat pada
+  default-applier.
+- `requirement_snapshots` (migration 0006) append-only dengan unique `(conversation_id, version)` —
+  monoton ditegakkan basis data. `RequirementSnapshotStore` write-through: MySQL dulu, Redis menyusul;
+  `version` berikutnya dari MySQL, bukan cache. Tes §9 #5, #12 lulus terhadap MySQL + Redis nyata.
+- Ekstraksi memakai skema zod `.strict()` (`optional` bukan `nullable`), dipetakan ke merge lewat
+  `extractionToUpdates`. Intent router memutuskan `shouldExtract`/`mutatesState` dari intent dan
+  bertanya saat keyakinan di bawah 0,6. Tes §9 #9, #10 lulus.
+- Pipeline pesan mengalirkan ruas `UNDERSTANDING` sebagai SSE. Tahap `ANALYZING_INSTALLATION` →
+  `PREPARING_SCHEMATIC` adalah batas nyata milik Fase 6/7 dan sengaja belum dipancarkan.
+
+Belum: §9 #11 (pemindahan snapshot saat registrasi tamu) menunggu alur register penuh — penautan
+kepemilikan percakapan (G-1) sudah ada, tetapi uji khusus snapshot menyusul bersama layar register
+(terhalang OQ-21). Prosa penjelas + invarian REC-1 datang bersama pipeline rekomendasi (Fase 7).

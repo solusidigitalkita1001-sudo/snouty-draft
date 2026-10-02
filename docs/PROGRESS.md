@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-11 layar 02 konsultasi** (sebagian perlu pipeline) · **P4-12 docs**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-11 layar 02 konsultasi** (frontend besar — satu-satunya sisa Fase 4)
 
 ## Summary
 
@@ -298,7 +298,7 @@ deterministik diuji penuh tanpa model, adapter OpenRouter digerbang keberadaan k
 - [x] P4-10 Pipeline pesan + SSE `POST /conversations/:id/messages` — ruas UNDERSTANDING (sisanya Fase 6/7); `AssistantStreamEvent` union; tanpa kunci → `error LLM_UNAVAILABLE` (giliran tak jatuh); diverifikasi live (buat percakapan → stream event)
   - [x] P4-10a Tes (9): bentuk event sesuai kontrak, lengkap→CTA / kurang→klarifikasi, ekstraksi gagal→klarifikasi, edit inline nol-LLM (§9 #9)
 - [ ] P4-11 Layar 02 konsultasi aktif + indikator tahap `[sebagian perlu pipeline — bertahap]`
-- [ ] P4-12 `docs/CONTEXT_ENGINE.md` + `docs/AI_BEHAVIOR.md` disesuaikan implementasi
+- [x] P4-12 `docs/CONTEXT_ENGINE.md` §10 + `docs/AI_BEHAVIOR.md` §12 — status implementasi Fase 4 (inti deterministik terbangun & teruji; adapter digerbang kunci; evaluasi menunggu dataset + ID model Pralon)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phases 5–13
