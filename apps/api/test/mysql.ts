@@ -59,8 +59,10 @@ const UP = [
   '0001_catalog_import_runs.sql',
   '0002_audit_logs.sql',
   '0003_identity.sql',
+  '0004_onboarding_states.sql',
 ];
 const DOWN = [
+  '0004_onboarding_states.down.sql',
   '0003_identity.down.sql',
   '0002_audit_logs.down.sql',
   '0001_catalog_import_runs.down.sql',
@@ -74,6 +76,7 @@ const DOWN = [
  * `users` harus terakhir, karena `guest_sessions` merujuknya dengan `RESTRICT`.
  */
 const TABLES = [
+  'onboarding_states',
   'consents',
   'refresh_tokens',
   'user_roles',

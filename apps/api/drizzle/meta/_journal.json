@@ -29,6 +29,13 @@
       "when": 1790874247987,
       "tag": "0003_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1790907339579,
+      "tag": "0004_onboarding_states",
+      "breakpoints": true
     }
   ]
 }

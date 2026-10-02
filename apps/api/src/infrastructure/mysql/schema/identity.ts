@@ -268,3 +268,28 @@ export const consents = mysqlTable(
     check('ck_consents_revoke_only_granted', sql`(\`revoked_at\` IS NULL) OR (\`granted\` = 1)`),
   ],
 );
+
+/**
+ * Keadaan onboarding per subjek — DARI SERVER, bukan `localStorage` (OQ-19).
+ *
+ * Tidak ada baris = `pending`. Satu baris per subjek (PK gabungan), di-upsert saat
+ * onboarding selesai: berbeda dari consent, riwayat "kapan onboarding ditutup"
+ * tidak bernilai bukti apa pun, jadi append-only di sini hanya menumpuk baris.
+ *
+ * Polimorfik user/guest seperti `consents`, dan karena itu tanpa FK.
+ */
+export const onboardingStates = mysqlTable(
+  'onboarding_states',
+  {
+    subjectKind: varchar('subject_kind', { length: 8 }).notNull(),
+    subjectId: char('subject_id', { length: 26 }).notNull(),
+    /** `done` | `guest` | `skip` — `pending` dinyatakan oleh ketiadaan baris. */
+    state: varchar('state', { length: 8 }).notNull(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.subjectKind, t.subjectId] }),
+    check('ck_onboarding_states_subject', sql`\`subject_kind\` IN ('user','guest')`),
+    check('ck_onboarding_states_state', sql`\`state\` IN ('done','guest','skip')`),
+  ],
+);

@@ -7,7 +7,7 @@
  * keadaan consent yang ambigu.
  */
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { consents } from '../../../infrastructure/mysql/schema/identity.js';
 import { DatabaseService, type QueryRunner } from '../../../shared/database/database.service.js';
 import {
@@ -82,7 +82,12 @@ export class MysqlConsentRepository implements ConsentRepository {
   async markRevoked(id: string): Promise<void> {
     await this.database.db
       .update(consents)
-      .set({ revokedAt: new Date() })
+      // Jam DATABASE, bukan `new Date()`: `granted_at` diisi CURRENT_TIMESTAMP
+      // milik server, dan CHECK `revoked_at >= granted_at` membandingkan keduanya.
+      // Dua jam yang berbeda — Node dan kontainer — berselisih milidetik, dan
+      // pencabutan yang menyusul pemberian pada milidetik yang sama kalah balapan
+      // jam itu. Satu jam untuk kedua kolom menghapus balapannya, bukan menang undi.
+      .set({ revokedAt: sql`CURRENT_TIMESTAMP(3)` })
       .where(eq(consents.id, id));
   }
 }
