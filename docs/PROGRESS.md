@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Next item: **P9-01 topologi**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Fase 9: **8/8 selesai**; menunggu ✋ CHECKPOINT pemilik
 
 ## Summary
 
@@ -447,17 +447,20 @@ tidak ada mode yang menghilangkannya. Itu bukan disclaimer yang ditempel belakan
 pernyataan tepat tentang apa yang sistem memang tahu: ia tidak punya denah, jadi tidak tahu posisi
 fisik apa pun.
 
-- [ ] P9-01 Tipe `Schematic` (floors, nodes, segments, titleBlock) di shared-types — elevasi `TrackedValue`
-- [ ] P9-02 Pembentukan topologi di `packages/engineering` — deterministik, 7 langkah §3, penamaan `KM-2A`/`WF-1`/`DP-1`
-  - [ ] P9-02a Tes: bangunan 5 lantai menghasilkan 5 lantai (batas 3 prototipe tidak dibawa, OQ-33); topologi konsisten dengan BOM
-- [ ] P9-03 Gerbang provenance node & segmen — elevasi dari tinggi default ikut `ASSUMED`
-- [ ] P9-04 Renderer SVG — kanvas, kolom lantai 84px, riser 76px, ketebalan 4/3/2 px, muka tanah
-- [ ] P9-05 Panel DAFTAR JALUR + blok judul 2×2 + legenda
-- [ ] P9-06 Catatan wajib S-1 di setiap tampilan — tanpa mode yang menghilangkannya
-  - [ ] P9-06a Tes: tidak ada prop/mode yang bisa menyembunyikan kedua catatan itu
-- [ ] P9-07 Aksesibilitas skema (§8): alternatif teks terstruktur, bukan gambar tanpa makna
-- [ ] P9-08 `docs/SCHEMATIC_ENGINE.md` disesuaikan implementasi
+- [x] P9-01 Tipe `Schematic` di shared-types — elevasi `TrackedValue`, jadi tinggi lantai default membuat seluruh elevasi `ASSUMED`
+- [x] P9-02 Pembentukan topologi di `packages/engineering` — tujuh langkah §3, penamaan desain; **tidak disimpan** (dibentuk ulang dari snapshot, sehingga "bagaimana kalau" hanya perhitungan ulang)
+  - [x] P9-02a Tes (19): 5 lantai → 5 lantai & 5 riser (OQ-33), jumlah titik air sama dengan `outletCount` engine, tidak ada segmen menggantung, determinisme
+- [x] P9-03 Provenance node & segmen mewarisi engine; elevasi dari tinggi default `ASSUMED` ber-`ruleId: ENG-004`, dan blok judul menyebut "· ASUMSI" **di dalam gambar**
+- [x] P9-04 Renderer SVG — kisi 24px, kolom lantai 84px, riser 76px, ketebalan 4/3/2 px (ketebalan membawa makna, bukan hanya warna), muka tanah berarsir, `overflow-x` dengan lebar minimum 500px
+- [x] P9-05 Panel DAFTAR JALUR + blok judul 2×2 + legenda; blok judul memakai **label** katalog, bukan ULID (ketangkap verifikasi live)
+- [x] P9-06 Catatan wajib S-1 dirender tanpa syarat
+  - [x] P9-06a Tes (11, lapisan komponen baru): kedua catatan ada untuk 1/2/5 lantai, dan `SchematicView` hanya menerima satu prop sehingga tidak ada mode untuk dimatikan
+- [x] P9-07 Aksesibilitas: `role="img"` berlabel + **uraian teks terstruktur per lantai** (bukan `alt` satu kalimat yang memberitahu ada gambar yang tak bisa dilihat)
+  - [x] P9-07b Lapisan tes komponen dibuat (jsdom + Testing Library, `fsModuleCache`: 150 s → 0,9 s); utang tes `<ProvenanceTag>` (POLICY §11 #8) dibayar — 7 tes
+- [x] P9-08 `docs/SCHEMATIC_ENGINE.md` §10 — pemetaan, alasan skema tidak disimpan, dan catatan lapisan tes komponen
 - [ ] ✋ CHECKPOINT — reviewed by owner
+
+Fase 9: **8/8 selesai.** Skema hidup sebagai topologi terstruktur yang dibentuk ulang deterministik — bukan gambar yang disimpan. Lapisan tes komponen akhirnya ada, dan utang tes dari Fase 5/7 ikut terbayar.
 
 ## Phases 10–13
 
@@ -558,3 +561,4 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | 2026-10-02 | P6 (seluruhnya)                   | Engineering Engine; 9/10                                 | `phase-1/P1-01-catalog-foundation` | 14 aturan, registry yang menolak aturan tanpa tes, trace per eksekusi, orkestrator murni. Contoh kerja desain keluar persis: 8 titik air, 11 unit beban, jalur utama 1", BOM 5 baris. Tiga kali saya menolak mengisi lubang dengan karangan: baris lem PVC (tanpa formula) dibiarkan absen dengan tes penjaga, ambang ENG-002 mengikuti prototipe baru dan ditandai prioritas validasi tertinggi, batas 3 lantai tidak dibawa karena itu batas rendering. Seluruh keluaran `ASSUMED` — diuji — sampai OQ-06 menunjuk ahli domain. OQ-42 dicatat untuk konflik zod vs isolasi paket.                                                                                                                                                      |
 | 2026-10-02 | P7 (seluruhnya)                   | pipeline rekomendasi; 10/10                              | `phase-1/P1-01-catalog-foundation` | Rantai lengkap pertama kali hidup: kebutuhan → aturan teknik → katalog → rekomendasi tersimpan → dirender. Pemeriksa REC-1 menolak prosa ber-angka asing, retry sekali, lalu templat deterministik yang lulus pemeriksaannya sendiri. Menulis pemeriksa itu memunculkan bug nyata: pola ukuran saya membaca "2 1/2" sebagai "1/2", jadi ukuran asing bisa lolos. Verifikasi live juga menangkap bug packaging: `@snouty/engineering` menunjuk `src/index.ts` sehingga Node tak bisa memuatnya — paket itu kini punya build sendiri dan masuk `build:types`.                                                                                                                                                                              |
 | 2026-10-02 | P8 (sebagian)                     | laporan, riwayat, handoff; 8/10                          | `phase-1/P1-01-catalog-foundation` | Laporan dirakit dari data tersimpan tanpa satu pun panggilan LLM, jadi dua kali perakitan identik. Alokasi nomor menyisipkan baris penghitung sebelum menguncinya — `FOR UPDATE` atas baris yang belum ada hanya mengunci gap, dan dua permintaan pertama bulan baru akan lolos berdua. **Verifikasi live menemukan lubang keamanan**: rute cetak internal berjalan tanpa gerbang (satu controller dengan rute publik, sementara guard dipasang per controller) dan mengembalikan nama + lokasi pelanggan kepada siapa pun yang menebak id. Diperbaiki dengan memisahkan controller, diverifikasi, dan dipaku 5 tes regresi.                                                                                                             |
+| 2026-10-02 | P9 (seluruhnya)                   | Schematic Engine; 8/8                                    | `phase-1/P1-01-catalog-foundation` | Topologi dibentuk deterministik dari snapshot dan **tidak disimpan** — itu yang menjamin gambar tak bisa bertentangan dengan tabel sistem dan BOM, dan membuat "bagaimana kalau" hanya perhitungan ulang. Invarian S-1 dijaga bentuk API: `SchematicView` menerima satu prop, jadi tak ada mode yang bisa menyembunyikan catatan wajib. Lapisan tes komponen (jsdom + Testing Library) lahir di sini setelah placeholder-nya lama terlewat; `fsModuleCache` memotong 150 detik menjadi 0,9. Verifikasi live memunculkan blok judul yang menampilkan ULID katalog alih-alih labelnya.                                                                                                                                                     |

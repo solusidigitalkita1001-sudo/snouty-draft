@@ -68,4 +68,13 @@ export type {
   SystemLine,
   SystemRole,
 } from './recommendation.js';
+export type {
+  Schematic,
+  SchematicFloor,
+  SchematicNode,
+  SchematicNodeType,
+  SchematicSegment,
+  SchematicTitleBlock,
+  SegmentRole,
+} from './schematic.js';
 export { ANALYSIS_STAGE_LABELS } from './sse.js';

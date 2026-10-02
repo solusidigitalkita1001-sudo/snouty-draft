@@ -209,3 +209,43 @@ membawa maknanya.
 | 8   | Catatan "bukan gambar kerja" selalu ada                                                      |
 | 9   | Contoh kerja board menghasilkan: toren atap, riser 1", 2 lantai, cabang 3/4", 8 node fixture |
 | 10  | Pembentukan topologi tidak memanggil LLM maupun jaringan                                     |
+
+---
+
+## 10. Status implementasi (Fase 9)
+
+| Bagian                                | Berkas                                                 |
+| ------------------------------------- | ------------------------------------------------------ |
+| Tipe topologi                         | `packages/shared-types/src/schematic.ts`               |
+| Pembentukan topologi (7 langkah)      | `packages/engineering/src/schematic.ts`                |
+| Endpoint (bentuk ulang, tak disimpan) | `GET /recommendations/:id/schematic`                   |
+| Renderer SVG + catatan S-1            | `apps/web/src/components/schematic/schematic-view.tsx` |
+| Panel DAFTAR JALUR + blok judul       | `SchematicSidePanel` di berkas yang sama               |
+| Layar 09                              | `apps/web/src/app/skema/page.tsx`                      |
+
+**Skema tidak disimpan.** Ia diturunkan deterministik dari snapshot kebutuhan, jadi endpoint-nya
+membentuknya ulang alih-alih menyalinnya ke basis data. Itu yang membuat skenario "bagaimana kalau"
+(§6) hanya perhitungan ulang, dan yang menjamin gambar tidak bisa bertentangan dengan tabel sistem dan
+BOM — ketiganya lahir dari sumber yang sama. Ada tes yang membandingkan jumlah titik air di topologi
+dengan `outletCount` hasil engine.
+
+Batas 3 lantai prototipe **tidak** dibawa (OQ-33): ada tes yang memastikan bangunan 5 lantai
+menghasilkan 5 lantai dan 5 riser.
+
+**Invarian S-1 dijaga bentuk API-nya, bukan kedisiplinan:** `SchematicView` menerima **satu** prop
+(`schematic`), jadi tidak ada `hideNotes`, `compact`, atau `variant` yang bisa melewati kedua catatan
+wajib. Ada tes yang memeriksa jumlah parameternya, dan tes lain yang merender ulang untuk 1, 2, dan 5
+lantai dan memastikan keduanya tetap muncul.
+
+Blok judul menampilkan **label** versi katalog, bukan ULID-nya: "KATALOG dev-0.2" berarti sesuatu bagi
+orang yang membaca gambar, sementara ULID tidak. Verifikasi live-lah yang memunculkan ini — versi
+pertama menampilkan id mentah.
+
+**Lapisan tes komponen lahir di fase ini** (`apps/web/vitest.config.ts`, jsdom + Testing Library).
+Placeholder "menyusul bersama komponen pertama" sudah lama terlewat, dan tiga tes yang menunggu lapisan
+ini akhirnya bisa ditulis: S-1, `<ProvenanceTag>` (POLICY §11 #8), dan `SpecCell`. `fsModuleCache`
+dinyalakan karena tanpa itu satu jalanan memakan 150 detik — suite yang lambat adalah suite yang mulai
+dilewati orang.
+
+**Belum:** pratinjau skema di layar 06 (§8 ekspor PNG/SVG) dan skenario "bagaimana kalau" interaktif
+(§6) menyusul; keduanya memakai topologi yang sama dan tidak menunggu jawaban siapa pun.

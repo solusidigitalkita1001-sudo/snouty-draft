@@ -15,7 +15,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import type { AssistantStreamEvent, Assumption, RequirementState } from '@snouty/shared-types';
-import { computeSolution, type SolutionInput } from '@snouty/engineering';
+import { buildSchematic, computeSolution, type SolutionInput } from '@snouty/engineering';
 import {
   CATALOG_REPOSITORY,
   type CatalogRepository,
@@ -29,6 +29,33 @@ import {
   RECOMMENDATION_REPOSITORY,
   type RecommendationRepository,
 } from '../domain/recommendation.repository.js';
+
+/**
+ * Membentuk topologi skema dari state + hasil engine. Diekspor karena **tidak disimpan**:
+ * skema diturunkan deterministik, jadi endpoint skema membentuknya ulang dari snapshot
+ * yang tersimpan alih-alih menyalinnya ke basis data. Itu juga yang membuat skenario
+ * "bagaimana kalau" hanya perhitungan ulang (docs/SCHEMATIC_ENGINE.md §1, §6).
+ */
+export function schematicFor(
+  state: RequirementState,
+  catalogVersionLabel: string,
+  now: string,
+): ReturnType<typeof buildSchematic> {
+  const solution = computeSolution(solutionInputFrom(state));
+  return buildSchematic({
+    floors: state.building.floors.value ?? 1,
+    floorHeightM: solution.floorHeightM,
+    floorHeightIsDefault: state.building.floorHeightM.source === 'default_applied',
+    waterSource: (state.water.source.value ?? 'rooftop_tank') as 'rooftop_tank',
+    branchSize: '3/4"',
+    mainSize: solution.mainSize,
+    fixtureSize: solution.fixtureConnectionSize,
+    floorsPlan: solution.floorsPlan,
+    provenance: solution.overallProvenance,
+    catalogVersionLabel,
+    now,
+  });
+}
 
 /** Keluarga produk per peran. Nilai sementara sampai katalog nyata ada (OQ-07). */
 const PIPE_FAMILY = 'PVC AW';
@@ -49,6 +76,20 @@ export class AnalysisService {
     private readonly conversations: ConversationService,
     private readonly prose: ProseWriter | null = null,
   ) {}
+
+  /**
+   * Topologi skema untuk sebuah rekomendasi. Label versi katalog **dicari**, bukan
+   * memakai id-nya: blok judul gambar berbunyi "KATALOG v2.4" (docs/SCHEMATIC_ENGINE.md
+   * §2), dan ULID di tempat itu tidak berarti apa pun bagi orang yang membaca gambarnya.
+   */
+  async schematicForRecommendation(
+    state: RequirementState,
+    catalogVersionId: string,
+    now: string,
+  ): Promise<ReturnType<typeof buildSchematic>> {
+    const version = await this.catalog.findVersionById(catalogVersionId);
+    return schematicFor(state, version?.label ?? 'TIDAK DIKETAHUI', now);
+  }
 
   /**
    * Menjalankan analisis dan mengembalikan event untuk dialirkan. Melempar
@@ -131,13 +172,15 @@ export class AnalysisService {
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
 
     // --- Tahap 5: topologi skema ---
-    // Topologinya sudah terbentuk sebagai `floorsPlan` di hasil engine; generator
-    // gambarnya milik Fase 9. Tahap ini dipancarkan karena batasnya memang terlewati.
+    // Dibentuk deterministik dari state + hasil engine (Fase 9). Karena sumbernya sama
+    // dengan tabel sistem dan BOM, gambar tidak bisa bertentangan dengan keduanya.
+    const schematic = schematicFor(state, version.label, now);
+
     events.push({
       type: 'stage',
       stage: 'PREPARING_SCHEMATIC',
       status: 'done',
-      detail: `${solution.floorsPlan.length} LANTAI`,
+      detail: `${schematic.floors.length} LANTAI`,
     });
 
     events.push({ type: 'solution.ready', recommendationId: assembled.recommendation.id });

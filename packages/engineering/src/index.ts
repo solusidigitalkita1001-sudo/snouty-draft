@@ -52,6 +52,16 @@ export type { BomInput, BomLine, BomResult } from './rules/group-c-material.js';
 
 export { ENG_007, ENG_014, GROUP_D } from './rules/group-d-conversation.js';
 
+export { buildSchematic } from './schematic.js';
+export type {
+  BuildSchematicInput,
+  SchematicFloorShape,
+  SchematicNodeShape,
+  SchematicSegmentShape,
+  SchematicShape,
+  TrackedNumber,
+} from './schematic.js';
+
 export { computeSolution } from './compute-solution.js';
 export type { CalculationTrace, SolutionInput, SolutionResult } from './compute-solution.js';
 

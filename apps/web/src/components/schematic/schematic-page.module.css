@@ -1,0 +1,35 @@
+.page {
+  min-height: 100dvh;
+  background: var(--snouty-canvas);
+  color: var(--snouty-ink);
+  font-family: var(--snouty-font-sans);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+.error {
+  font-size: 13.5px;
+  color: var(--snouty-muted);
+}
+
+/* Kanvas lebih dulu, panel di kanan; di bawah 960px panel turun ke bawah. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 959px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

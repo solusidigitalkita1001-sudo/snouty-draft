@@ -75,6 +75,29 @@ export class RecommendationController {
     res.end();
   }
 
+  /**
+   * Topologi skema. **Tidak disimpan** — dibentuk ulang deterministik dari snapshot yang
+   * tersimpan, jadi ia selalu konsisten dengan tabel sistem dan BOM yang lahir dari
+   * sumber yang sama (docs/SCHEMATIC_ENGINE.md §1).
+   */
+  @Get('recommendations/:id/schematic')
+  async schematic(@Param() params: unknown, @Req() req: PublicRequest): Promise<unknown> {
+    const id = parse(IdParam, params).id;
+    const recommendation = await this.repository.findById(id);
+    if (!recommendation) return { error: { code: 'NOT_FOUND' } };
+
+    await this.conversations.find(recommendation.conversationId, actorOf(req));
+
+    const snapshot = await this.snapshots.current(recommendation.conversationId);
+    if (!snapshot) return { error: { code: 'NOT_FOUND' } };
+
+    return this.analysis.schematicForRecommendation(
+      snapshot.state,
+      recommendation.catalogVersionId,
+      recommendation.createdAt,
+    );
+  }
+
   @Get('recommendations/:id')
   async byId(@Param() params: unknown, @Req() req: PublicRequest): Promise<unknown> {
     const id = parse(IdParam, params).id;
