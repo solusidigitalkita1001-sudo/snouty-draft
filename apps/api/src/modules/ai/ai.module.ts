@@ -15,6 +15,7 @@ import { LLM_TRANSPORT, type LlmTransport } from './domain/llm-transport.port.js
 import { MysqlLlmCallRecorder } from './infrastructure/mysql-llm-call.recorder.js';
 import { OpenRouterTransport } from './infrastructure/openrouter-transport.js';
 import { OpenRouterAiService } from './application/openrouter-ai.service.js';
+import { DevDeterministicAiService } from './infrastructure/dev-deterministic-ai.service.js';
 
 const transportProvider = { provide: LLM_TRANSPORT, useClass: OpenRouterTransport };
 
@@ -30,14 +31,31 @@ const aiServiceProvider = {
   useFactory: (
     transport: LlmTransport,
     recorder: MysqlLlmCallRecorder,
-  ): OpenRouterAiService | null => {
+  ): OpenRouterAiService | DevDeterministicAiService | null => {
     const env = loadEnv();
     const configured =
       env.OPENROUTER_API_KEY &&
       env.LLM_MODEL_FAST &&
       env.LLM_MODEL_BALANCED &&
       env.LLM_MODEL_STRONG;
-    return configured ? new OpenRouterAiService(transport, recorder) : null;
+
+    // Adapter sungguhan SELALU menang bila kuncinya ada — adapter pengembangan tidak
+    // pernah bisa menggantikan model yang sudah dikonfigurasi.
+    if (configured) return new OpenRouterAiService(transport, recorder);
+
+    /**
+     * Ekstraktor deterministik khusus pengembangan: dua syarat, bukan satu. `NODE_ENV`
+     * saja terlalu mudah salah set, dan konsekuensi adapter palsu yang aktif di produksi
+     * adalah rekomendasi yang lahir dari regex.
+     *
+     * Tanpa keduanya, `AI_SERVICE` tetap `null` dan pipeline mengalirkan `LLM_UNAVAILABLE`
+     * — jujur, dan tidak mengarang apa pun.
+     */
+    if (env.NODE_ENV === 'development' && process.env['SNOUTY_FAKE_AI'] === '1') {
+      return new DevDeterministicAiService();
+    }
+
+    return null;
   },
 };
 

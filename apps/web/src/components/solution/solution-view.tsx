@@ -38,7 +38,13 @@ export function SolutionView({
           <Stat label={COPY.statsLabels.fixture} value={stats.fixtureConnectionSize} mono />
           <Stat label={COPY.statsLabels.products} value={`${stats.productCount} item`} />
         </div>
-        <div className={styles.disclaimer}>{COPY.planningDisclaimer}</div>
+        <div className={styles.summaryFooter}>
+          <span className={styles.disclaimer}>{COPY.planningDisclaimer}</span>
+          {/* Skema dibentuk ulang deterministik dari snapshot — jadi tautannya cukup id. */}
+          <a className={styles.linkButton} href={`/skema?recommendation=${recommendation.id}`}>
+            Lihat skema instalasi →
+          </a>
+        </div>
       </section>
 
       <section className={styles.card}>

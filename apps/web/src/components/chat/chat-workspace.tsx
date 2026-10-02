@@ -18,6 +18,7 @@ import type {
   AssistantCard,
   AssistantStreamEvent,
   ClarificationQuestion,
+  Recommendation,
   RequirementState,
   StageStatus,
 } from '@snouty/shared-types';
@@ -27,11 +28,14 @@ import mascot from '../../../public/snouty-mascot.png';
 import {
   createConversation,
   fetchHistory,
+  fetchRecommendation,
+  runAnalysis,
   saveConversation,
   sendMessage,
   sendToTechnicalTeam,
   type ConversationSummary,
 } from './chat-api';
+import { SolutionView } from '../solution/solution-view';
 import { CHAT_COPY as COPY, STAGE_ORDER, stageLabel } from './chat-copy';
 import { requirementRows } from './requirement-rows';
 import styles from './chat-workspace.module.css';
@@ -54,6 +58,8 @@ export function ChatWorkspace() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
+  const [solution, setSolution] = useState<Recommendation | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
   const [history, setHistory] = useState<
     | { kind: 'loading' }
     | { kind: 'guest' }
@@ -166,6 +172,31 @@ export function ChatWorkspace() {
   );
 
   /**
+   * Menjalankan analisis. Tahap-tahapnya mengalir ke indikator yang sama seperti giliran
+   * chat, lalu solusinya diambil dan dirender — gambar, tabel, dan BOM semuanya dari
+   * rekomendasi yang tersimpan, bukan dihitung di klien.
+   */
+  const analyze = useCallback(() => {
+    if (!conversationId || analyzing) return;
+    setAnalyzing(true);
+    setStages({});
+    setError(null);
+
+    void runAnalysis(conversationId, (event) => {
+      if (event.type === 'stage') {
+        setStages((previous) => ({ ...previous, [event.stage]: event.status }));
+      } else if (event.type === 'error') {
+        setError(COPY.llmUnavailable);
+      }
+    })
+      .then(async (recommendationId) => {
+        if (recommendationId) setSolution(await fetchRecommendation(recommendationId));
+      })
+      .catch(() => setError(COPY.llmUnavailable))
+      .finally(() => setAnalyzing(false));
+  }, [analyzing, conversationId]);
+
+  /**
    * "Simpan hasil konsultasi". Digerbang `SAVE_SOLUTION` di API: tamu menerima 403 dan
    * tombolnya tetap tidak berubah — UI tidak berpura-pura berhasil.
    */
@@ -258,6 +289,8 @@ export function ChatWorkspace() {
                       handoffState={handoffState}
                       onSave={save}
                       saveState={saveState}
+                      onAnalyze={analyze}
+                      analyzing={analyzing}
                     />
                   ))}
                 </div>
@@ -266,6 +299,13 @@ export function ChatWorkspace() {
           )}
 
           {Object.keys(stages).length > 0 && <StageIndicator stages={stages} />}
+
+          {solution !== null && (
+            <SolutionView
+              recommendation={solution}
+              onFixAssumption={(fieldPath) => setDraft(`Ubah ${fieldPath}: `)}
+            />
+          )}
           {error !== null && (
             <div className={styles.errorCard} role="status">
               {error}
@@ -399,6 +439,8 @@ function CardView({
   handoffState,
   onSave,
   saveState,
+  onAnalyze,
+  analyzing,
 }: {
   card: AssistantCard;
   onChip: (question: ClarificationQuestion, option: string) => void;
@@ -406,6 +448,8 @@ function CardView({
   handoffState: 'idle' | 'sending' | 'sent';
   onSave: () => void;
   saveState: 'idle' | 'saved';
+  onAnalyze: () => void;
+  analyzing: boolean;
 }) {
   if (card.kind === 'clarification') {
     // Layar 03: pertanyaan BERNOMOR — maksimum empat, dan nomornya membuat
@@ -459,9 +503,8 @@ function CardView({
     return (
       <div className={styles.ctaCard}>
         <span>Data inti sudah lengkap.</span>
-        {/* Analisis dijalankan lewat POST /conversations/:id/analyze (Fase 7). */}
-        <button type="button" className={styles.ctaButton} disabled>
-          Analisis kebutuhan
+        <button type="button" className={styles.ctaButton} onClick={onAnalyze} disabled={analyzing}>
+          {analyzing ? 'Menganalisis…' : 'Analisis kebutuhan'}
         </button>
         <button
           type="button"

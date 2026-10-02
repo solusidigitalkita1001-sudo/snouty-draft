@@ -7,7 +7,7 @@
  * panggilan karena sesi tamu hidup di cookie `httpOnly`.
  */
 
-import type { AssistantStreamEvent } from '@snouty/shared-types';
+import type { AssistantStreamEvent, Recommendation } from '@snouty/shared-types';
 
 const BASE = '/api/v1';
 
@@ -121,4 +121,52 @@ export async function saveConversation(conversationId: string): Promise<boolean>
     credentials: 'include',
   });
   return response.ok;
+}
+
+/**
+ * Menjalankan analisis dan mengalirkan empat tahap terakhir. Dipakai tombol "Analisis
+ * kebutuhan" pada kartu CTA; kembalinya `recommendationId` bila solusi tersusun.
+ */
+export async function runAnalysis(
+  conversationId: string,
+  onEvent: (event: AssistantStreamEvent) => void,
+): Promise<string | null> {
+  let recommendationId: string | null = null;
+
+  const response = await fetch(`${BASE}/conversations/${conversationId}/analyze`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  if (!response.ok || !response.body) throw new Error(`analyze ${response.status}`);
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let boundary = buffer.indexOf('\n\n');
+    while (boundary !== -1) {
+      const frame = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
+      const parsed = parseFrame(frame);
+      if (parsed) {
+        if (parsed.type === 'solution.ready') recommendationId = parsed.recommendationId;
+        onEvent(parsed);
+      }
+      boundary = buffer.indexOf('\n\n');
+    }
+  }
+
+  return recommendationId;
+}
+
+/** Rekomendasi yang sudah tersimpan — dirender `SolutionView`. */
+export async function fetchRecommendation(id: string): Promise<Recommendation | null> {
+  const response = await fetch(`${BASE}/recommendations/${id}`, { credentials: 'include' });
+  if (!response.ok) return null;
+  return (await response.json()) as Recommendation;
 }

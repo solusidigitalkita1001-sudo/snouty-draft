@@ -45,7 +45,14 @@ export function schematicFor(
   return buildSchematic({
     floors: state.building.floors.value ?? 1,
     floorHeightM: solution.floorHeightM,
-    floorHeightIsDefault: state.building.floorHeightM.source === 'default_applied',
+    /**
+     * Asumsi bila pengguna **tidak menyatakannya**, bukan hanya bila default sudah
+     * ditulis ke state. Keduanya berbeda: field yang belum pernah disentuh bernilai
+     * `null` dengan source `inferred`, lalu engine memakai ENG-004 — tetap asumsi.
+     * Memeriksa `=== 'default_applied'` saja membuat blok judul gambar menulis
+     * "3,50 M" tanpa "· ASUMSI", yakni berbohong tentang asal angkanya.
+     */
+    floorHeightIsDefault: state.building.floorHeightM.value === null,
     waterSource: (state.water.source.value ?? 'rooftop_tank') as 'rooftop_tank',
     branchSize: '3/4"',
     mainSize: solution.mainSize,
