@@ -12,7 +12,9 @@ import { Body, Controller, Get, HttpCode, Post, Req, Res } from '@nestjs/common'
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { ENTITLEMENTS, type Capability, type Tier } from '../../policy/entitlements.js';
-import { RequestValidationError } from '../../../shared/http/api-errors.js';
+import { AUTH_IP_LIMIT } from '../../policy/rate-limits.js';
+import { RateLimiter } from '../../../shared/rate-limit/rate-limiter.js';
+import { RateLimitedError, RequestValidationError } from '../../../shared/http/api-errors.js';
 import { userOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { AuthService, type AuthenticatedSession } from '../application/auth.service.js';
 import { InvalidRefreshTokenError } from '../domain/auth.errors.js';
@@ -42,7 +44,23 @@ const LoginDto = z
 export class AuthController {
   private readonly secure = process.env['NODE_ENV'] === 'production';
 
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly rateLimiter: RateLimiter,
+  ) {}
+
+  /**
+   * Batas per IP untuk endpoint autentikasi (docs/SECURITY.md §8). **Per IP, bukan per
+   * tier:** yang dihambat adalah credential stuffing, dan penyerang tidak punya tier.
+   *
+   * Dipanggil sebelum satu pun verifikasi kata sandi berjalan — Argon2id sengaja mahal,
+   * jadi tanpa batas ini endpoint login adalah alat habiskan-CPU yang disediakan sendiri.
+   */
+  private async guardByIp(request: Request, action: string): Promise<void> {
+    const ip = request.ip ?? 'tidak-diketahui';
+    const verdict = await this.rateLimiter.consume(`auth:${action}`, ip, AUTH_IP_LIMIT);
+    if (!verdict.allowed) throw new RateLimitedError(verdict.retryAfterSec);
+  }
 
   @Post('register')
   async register(
@@ -50,6 +68,7 @@ export class AuthController {
     @Req() request: Request & WithGuestSession,
     @Res({ passthrough: true }) response: Response,
   ) {
+    await this.guardByIp(request, 'register');
     const body = parse(RegisterDto, rawBody);
     const session = await this.auth.register({
       ...body,
@@ -67,7 +86,12 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
-  async login(@Body() rawBody: unknown, @Res({ passthrough: true }) response: Response) {
+  async login(
+    @Body() rawBody: unknown,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    await this.guardByIp(request, 'login');
     const body = parse(LoginDto, rawBody);
     const session = await this.auth.login(body);
     this.setRefreshCookie(response, session);
@@ -77,6 +101,7 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(200)
   async refresh(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
+    await this.guardByIp(request, 'refresh');
     const token = readCookie(request.headers.cookie, REFRESH_COOKIE);
     if (token === undefined) throw new InvalidRefreshTokenError('unknown');
 

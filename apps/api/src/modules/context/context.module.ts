@@ -7,6 +7,7 @@
  * atas hasilnya hidup di sini.
  */
 import { Module } from '@nestjs/common';
+import { RateLimiter } from '../../shared/rate-limit/rate-limiter.js';
 import { RedisService } from '../../shared/redis/redis.service.js';
 import { AiModule } from '../ai/ai.module.js';
 import { AI_SERVICE, type AiService } from '../ai/domain/ai.port.js';
@@ -21,6 +22,12 @@ import {
 } from './domain/requirement-snapshot.repository.js';
 import { requirementSnapshotRepositoryProvider } from './infrastructure/mysql-requirement-snapshot.repository.js';
 import { MessageController } from './presentation/message.controller.js';
+
+const rateLimiterProvider = {
+  provide: RateLimiter,
+  inject: [RedisService],
+  useFactory: (redis: RedisService) => new RateLimiter(redis),
+};
 
 const storeProvider = {
   provide: RequirementSnapshotStore,
@@ -50,6 +57,7 @@ const messageServiceProvider = {
   imports: [AiModule, ConversationModule],
   controllers: [MessageController],
   providers: [
+    rateLimiterProvider,
     requirementSnapshotRepositoryProvider,
     storeProvider,
     intentRouterProvider,

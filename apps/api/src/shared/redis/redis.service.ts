@@ -11,6 +11,10 @@ import { loadEnv } from '../../config/env.js';
  */
 export interface RedisCommands {
   get(key: string): Promise<string | null>;
+  /** Dipakai penghitung batas laju — atomik, jadi dua instans tidak saling menimpa. */
+  incr(key: string): Promise<number>;
+  expire(key: string, seconds: number): Promise<number>;
+  ttl(key: string): Promise<number>;
   set(key: string, value: string, expiryToken: 'EX', seconds: number): Promise<'OK' | null>;
   del(...keys: string[]): Promise<number>;
   scan(

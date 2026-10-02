@@ -243,3 +243,36 @@ dalamnya.
 | 8   | Galat tidak pernah membocorkan stack trace atau nama tabel                     |
 | 9   | Rute `/internal/*` menolak peran yang tidak sesuai                             |
 | 10  | Tidak ada secret di keluaran log (uji dengan pencocokan pola)                  |
+
+---
+
+## 12. Hasil audit (Fase 13, P13-01)
+
+Audit dijalankan terhadap checklist §11, dengan memeriksa kode — bukan dengan mengandalkan ingatan.
+
+**Satu temuan nyata, sudah ditutup:** rate limiting (§8) belum terpasang sama sekali. Endpoint
+autentikasi tanpa batas berarti credential stuffing bisa berjalan secepat jaringan mengizinkan, dan
+karena Argon2id sengaja mahal, endpoint login juga menjadi alat habiskan-CPU yang kami sediakan
+sendiri. Sekarang: penghitung Redis (bukan memori proses — batas yang bisa dilipatgandakan dengan
+menambah instans bukan batas), batas pesan per tier dari `policy/rate-limits.ts`, dan batas **per IP**
+di `register`/`login`/`refresh`. Diverifikasi live: percobaan ke-11 dari satu IP menerima `429` dengan
+`retryAfterSec`.
+
+**Dua hal yang tampak seperti temuan, ternyata benar:**
+
+- `.env.example` memuat nilai — tetapi hanya nilai docker-compose **lokal**; seluruh rahasia asli
+  (`JWT_*`, `OPENROUTER_API_KEY`, `N8N_WEBHOOK_SECRET`) kosong. Alamat server bersama sengaja TIDAK
+  ada di sana, karena setiap `cp .env.example .env` yang mengarah ke infrastruktur bersama adalah
+  kesalahan yang cukup terjadi sekali.
+- `config/env.ts` tanpa `.strict()` — benar: `process.env` selalu memuat puluhan variabel sistem, dan
+  `.strict()` akan menolak setiap environment nyata. Semua DTO permintaan **tetap** `.strict()`.
+
+**Diperiksa dan bersih:** tidak ada SQL mentah di luar `infrastructure`; setiap DTO permintaan
+`.strict()`; tidak ada `.env` di riwayat Git; tidak ada log yang memuat kata sandi, token, isi prompt,
+atau teks pertanyaan pengguna; filter galat tidak pernah mengirim stack trace; 13 titik pemeriksaan
+kepemilikan di lapisan application; `catalog.controller` memang hanya `@Get` (katalog produk informasi
+publik), dan `auth`/`health` tanpa pemeriksaan aktor memang benar.
+
+**Belum, dan terhalang:** validasi unggahan (MIME + magic bytes) menunggu endpoint unggah (OQ-07);
+header keamanan & CORS (§9) ditetapkan reverse proxy saat deployment; akun database least-privilege
+tetap **OQ-34** dan masih yang paling berisiko di proyek ini.

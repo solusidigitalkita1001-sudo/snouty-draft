@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { RateLimiter } from '../../shared/rate-limit/rate-limiter.js';
+import { RedisService } from '../../shared/redis/redis.service.js';
 import { AuthService } from './application/auth.service.js';
 import { GuestSessionService } from './application/guest-session.service.js';
 import { TokenService } from './application/token.service.js';
@@ -70,9 +72,16 @@ const tokenServiceProvider = {
  * lain tidak perlu tahu KDF mana yang dipakai, dan menaikkan biaya KDF nanti tidak
  * boleh menyentuh satu pun pemanggil.
  */
+const rateLimiterProvider = {
+  provide: RateLimiter,
+  inject: [RedisService],
+  useFactory: (redis: RedisService) => new RateLimiter(redis),
+};
+
 @Module({
   controllers: [AuthController],
   providers: [
+    rateLimiterProvider,
     passwordHasherProvider,
     accessTokenServiceProvider,
     refreshTokenRepositoryProvider,

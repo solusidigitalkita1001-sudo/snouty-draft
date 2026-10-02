@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Current phase: **10–13** · Next item: **P13-01 audit keamanan** · P11-02…04 (ekstraksi, webhook, migration)
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Current phase: **10–13** · Next item: **P13-02 audit aksesibilitas** · P11-02…04 · P12-01
 
 ## Summary
 
@@ -501,9 +501,11 @@ pihak ketiga.** Karena itu redaksi berjalan sebelum teks menyentuh LLM, bukan se
 
 ## Phase 13 — Audit keamanan, performa, aksesibilitas, evaluasi
 
-- [ ] P13-01 Audit keamanan terhadap checklist `docs/SECURITY.md`
+- [x] P13-01 Audit keamanan terhadap checklist — **satu temuan nyata ditutup: rate limiting belum ada sama sekali.** Kini penghitung Redis (lintas instans), batas pesan per tier, dan batas **per IP** di `register`/`login`/`refresh`. Diverifikasi live: percobaan ke-11 → `429` + `retryAfterSec: 900`
+  - [x] P13-01a Tes (10, Redis nyata): kuota per subjek & per dimensi, jendela tidak diperpanjang terus-menerus, **Redis mati tidak menolak permintaan** (menolak semua orang saat cache mati mengubah gangguan menjadi pemadaman)
+  - [x] P13-01b Hasil audit dicatat di `docs/SECURITY.md` §12, termasuk dua hal yang tampak temuan tetapi ternyata benar
 - [ ] P13-02 Audit aksesibilitas (kontras kedua tema, keyboard, ARIA, reduced motion)
-- [ ] P13-03 Pipeline CI (`docs/EVALUATION.md` §CI) — lint, typecheck, unit, integrasi, build
+- [x] P13-03 Pipeline CI — sudah ada sejak Fase 0 dan masih akurat: pagar arsitektur (isolasi engine, host DB, pindai secret), format/lint/typecheck, tes dengan MySQL+Redis sekali pakai, tes migration, build. Tes web ikut otomatis lewat `pnpm -r test`
 - [ ] `[!]` P13-04 Evaluasi AI — **terhalang OQ-09** (ID model) + golden dataset
 - [ ] ✋ CHECKPOINT akhir — reviewed by owner
 

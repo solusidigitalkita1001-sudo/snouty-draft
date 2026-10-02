@@ -11,7 +11,9 @@ import type { Response } from 'express';
 import type { AssistantStreamEvent } from '@snouty/shared-types';
 import { z } from 'zod';
 import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
-import { RequestValidationError } from '../../../shared/http/api-errors.js';
+import { RateLimitedError, RequestValidationError } from '../../../shared/http/api-errors.js';
+import { limitFor } from '../../policy/rate-limits.js';
+import { RateLimiter } from '../../../shared/rate-limit/rate-limiter.js';
 import { MessageService } from '../application/message.service.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
@@ -19,7 +21,10 @@ const MessageDto = z.object({ text: z.string().trim().min(1).max(4_000) }).stric
 
 @Controller('conversations')
 export class MessageController {
-  constructor(private readonly messages: MessageService) {}
+  constructor(
+    private readonly messages: MessageService,
+    private readonly rateLimiter: RateLimiter,
+  ) {}
 
   @Post(':id/messages')
   async send(
@@ -31,6 +36,21 @@ export class MessageController {
     const id = parse(IdParam, params).id;
     const { text } = parse(MessageDto, body);
     const actor = actorOf(req);
+
+    // Batas pesan per tier (docs/POLICY.md §10). Diperiksa SEBELUM header SSE ditulis:
+    // begitu respons menjadi stream, satu-satunya cara melaporkan penolakan adalah event
+    // `error` — dan kode status 429 yang jujur lebih berguna bagi klien.
+    const limit = limitFor(actor.tier, 'messages_per_hour');
+    if (limit) {
+      const verdict = await this.rateLimiter.consume(
+        'messages',
+        `${actor.kind}:${actor.id}`,
+        limit,
+      );
+      if (!verdict.allowed) {
+        throw new RateLimitedError(verdict.retryAfterSec);
+      }
+    }
 
     res.setHeader('content-type', 'text/event-stream');
     res.setHeader('cache-control', 'no-cache, no-transform');

@@ -78,3 +78,20 @@ export class RequestValidationError extends Error {
     this.details = { fields };
   }
 }
+
+/**
+ * Batas laju terlampaui. docs/POLICY.md §10 · docs/SECURITY.md §8.
+ *
+ * Membawa `retryAfterSec` karena menolak tanpa memberi tahu kapan boleh mencoba lagi
+ * memaksa klien menebak — dan klien yang menebak akan mencoba terlalu cepat.
+ */
+export class RateLimitedError extends Error {
+  readonly code = 'RATE_LIMITED';
+  readonly details: Readonly<Record<string, unknown>>;
+
+  constructor(readonly retryAfterSec: number) {
+    super('Permintaan terlalu sering. Coba lagi sebentar.');
+    this.name = 'RateLimitedError';
+    this.details = { retryAfterSec };
+  }
+}
