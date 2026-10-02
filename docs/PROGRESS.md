@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-09 adapter LLM OpenRouter**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Next item: **P4-10 pipeline pesan + SSE**
 
 ## Summary
 
@@ -293,8 +293,8 @@ deterministik diuji penuh tanpa model, adapter OpenRouter digerbang keberadaan k
   - [x] P4-07a Tes (13): routing deterministik & tanpa tingkat untuk teknik; skema menolak null/enum asing/batas/properti tak dikenal; intent confidence 0–1
 - [x] P4-08 Intent router — klasifikasi lewat port `ai`, keputusan deterministik di kode; ambang keyakinan 0,6 → `CLARIFICATION_NEEDED`; `shouldExtract`/`mutatesState` diturunkan dari intent
   - [x] P4-08a Tes §9 #10 (6, fake ai): mutasi & jawaban klarifikasi memutasi; penjelasan/lookup/pernyataan-awal tidak; ragu → bertanya
-- [ ] P4-09 Adapter LLM OpenRouter — digerbang `OPENROUTER_API_KEY`; retry-1×-lalu-klarifikasi; `llm_calls` tanpa isi prompt
-  - [ ] P4-09a Tes: tabel `llm_calls` tidak pernah memuat isi prompt (`docs/PRIVACY.md`)
+- [x] P4-09 Adapter OpenRouter — transport (satu-satunya jaringan) di belakang port; retry 1× ke tingkat `strong` lalu **lempar** (tanpa percobaan ketiga); migration 0007 `llm_calls`; perekam biaya tanpa field isi prompt
+  - [x] P4-09a Tes (7): retry-lalu-lempar, tiap percobaan tercatat, `LlmCallRecord` & tabel tak punya kolom prompt/message/content, CHECK outcome
 - [ ] P4-10 Pipeline pesan + SSE `POST /conversations/:id/messages` — lima tahap batas nyata; kegagalan di tengah
   - [ ] P4-10a Tes: edit inline nol panggilan LLM; bentuk event SSE sesuai kontrak
 - [ ] P4-11 Layar 02 konsultasi aktif + indikator tahap `[sebagian perlu pipeline — bertahap]`

@@ -62,8 +62,10 @@ const UP = [
   '0004_onboarding_states.sql',
   '0005_conversation.sql',
   '0006_requirement_snapshots.sql',
+  '0007_llm_calls.sql',
 ];
 const DOWN = [
+  '0007_llm_calls.down.sql',
   '0006_requirement_snapshots.down.sql',
   '0005_conversation.down.sql',
   '0004_onboarding_states.down.sql',
@@ -89,6 +91,7 @@ const TABLES = [
   'user_roles',
   'guest_sessions',
   'users',
+  'llm_calls',
   'audit_logs',
   'catalog_import_runs',
   'product_images',
