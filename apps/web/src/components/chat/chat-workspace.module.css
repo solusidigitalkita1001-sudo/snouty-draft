@@ -527,3 +527,147 @@
     scroll-behavior: auto;
   }
 }
+
+/* ---------- kartu kebijakan: klarifikasi bernomor (03), kriteria (08), validasi teknis (11) ---------- */
+
+.cardKicker {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--snouty-muted);
+}
+
+.questionHead {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.questionNum,
+.criteriaNum {
+  font-family: var(--snouty-font-mono);
+  font-size: 10.5px;
+  color: var(--snouty-action-text);
+  margin-top: 3px;
+  flex: none;
+}
+
+.skipDefaults {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--snouty-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.skipDefaults:hover {
+  color: var(--snouty-action-text);
+}
+
+.criteriaCard {
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: 10px;
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  max-width: 560px;
+}
+
+.criteriaRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.criteriaDetail {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--snouty-muted);
+}
+
+.unsupportedCard {
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  max-width: 560px;
+}
+
+.unsupportedHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.unsupportedMark {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid var(--snouty-action);
+}
+
+.unsupportedTitle {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.unsupportedReason {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--snouty-ink);
+  text-wrap: pretty;
+}
+
+.capturedBlock {
+  background: var(--snouty-surface-subtle);
+  border-radius: 8px;
+  padding: 13px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.capturedList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.capturedRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12.5px;
+}
+
+.capturedLabel {
+  font-family: var(--snouty-font-mono);
+  color: var(--snouty-muted);
+}
+
+.capturedValue {
+  font-weight: 500;
+}
+
+.slaNote {
+  font-size: 12.5px;
+  color: var(--snouty-muted);
+  line-height: 1.5;
+}
+
+.unsupportedActions {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}

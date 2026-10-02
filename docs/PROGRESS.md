@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Next item: **P5-06 layar 03 & 04** · **P5-07 layar 08 & 11**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Next item: **P5-08 docs** (lalu ✋ checkpoint)
 
 ## Summary
 
@@ -328,8 +328,8 @@ layar 06.
 - [x] P5-04 Policy 2 (anti-halusinasi) — `filterToCatalog` (lapisan 3 dari 5, satu-satunya yang tak bisa ditembus prompt karena tak membaca teks); SKU yang dibuang dilaporkan; spesifikasi kosong → `UNAVAILABLE`, tidak pernah `ASSUMED`
 - [x] P5-05 Kebijakan masuk pipeline: Policy 1 **sebelum ekstraksi** (kompetitor tak pernah menyentuh jalur rekomendasi), Policy 5 atas state **ter-merge** (scope dari kebutuhan nyata, bukan kata-kata pesan)
   - [x] P5-05a Tes (4 tambahan, total 9 di pipeline): kompetitor → kriteria & nol panggilan ekstraksi; industri/pembuangan → `unsupported` + SLA + kebutuhan terkumpul; air bersih lengkap → tetap CTA
-- [ ] P5-06 Layar 03 kartu klarifikasi bernomor + 04 data kurang
-- [ ] P5-07 Layar 08 kriteria netral + 11 validasi teknis
+- [x] P5-06 Layar 03 kartu klarifikasi **bernomor** (01…04 — nomornya membuat panjangnya terbaca "ada ujungnya") + jalan pintas "gunakan asumsi standar" saat ≥3 pertanyaan; layar 04 (data kurang) dilayani kartu & meter yang sama
+- [x] P5-07 Layar 08 kartu kriteria netral bernomor + layar 11 kartu validasi teknis (judul desain, alasan, kebutuhan terkumpul, catatan SLA 24 jam; tombol handoff dinonaktifkan sampai Fase 9)
 - [ ] P5-08 `docs/SPEC.md` §5 ↔ implementasi; catat keputusan OQ-15 bila sudah ada
 - [ ] ✋ CHECKPOINT — reviewed by owner
 

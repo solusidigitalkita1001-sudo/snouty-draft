@@ -316,11 +316,17 @@ function CardView({
   onChip: (question: ClarificationQuestion, option: string) => void;
 }) {
   if (card.kind === 'clarification') {
+    // Layar 03: pertanyaan BERNOMOR — maksimum empat, dan nomornya membuat
+    // panjangnya terbaca sebagai "ada ujungnya", bukan kuesioner tanpa batas.
     return (
       <div className={styles.clarificationCard}>
-        {card.questions.map((question) => (
+        <div className={styles.cardKicker}>{COPY.clarificationTitle}</div>
+        {card.questions.map((question, index) => (
           <div key={question.id} className={styles.question}>
-            <div className={styles.questionText}>{question.question}</div>
+            <div className={styles.questionHead}>
+              <span className={styles.questionNum}>{String(index + 1).padStart(2, '0')}</span>
+              <span className={styles.questionText}>{question.question}</span>
+            </div>
             <div className={styles.chips}>
               {question.options.map((option) => (
                 <button
@@ -344,6 +350,15 @@ function CardView({
             </div>
           </div>
         ))}
+        {card.questions.length >= 3 && (
+          <button
+            type="button"
+            className={styles.skipDefaults}
+            onClick={() => onChip(card.questions[0]!, 'Belum tahu')}
+          >
+            {COPY.skipToDefaults}
+          </button>
+        )}
       </div>
     );
   }
@@ -360,6 +375,63 @@ function CardView({
     );
   }
 
-  // Kartu lain (produk, kriteria, ringkasan, unsupported) datang di Fase 5–7.
+  if (card.kind === 'criteria') {
+    // Layar 08: menolak membandingkan merek TANPA menjelaskan cara memilih akan
+    // meninggalkan pengguna tanpa jalan keluar — kartu inilah jalan keluarnya.
+    return (
+      <div className={styles.criteriaCard}>
+        <div className={styles.cardKicker}>{COPY.criteriaTitle}</div>
+        {card.items.map((item, index) => (
+          <div key={index} className={styles.criteriaRow}>
+            <span className={styles.criteriaNum}>{String(index + 1).padStart(2, '0')}</span>
+            <span className={styles.criteriaDetail}>{item.detail}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (card.kind === 'unsupported') {
+    // Layar 11: validasi teknis. Kebutuhan yang sudah terkumpul ditampilkan supaya
+    // pengguna melihat bahwa ceritanya tidak hilang.
+    return (
+      <div className={styles.unsupportedCard}>
+        <div className={styles.unsupportedHead}>
+          <span className={styles.unsupportedMark} />
+          <span className={styles.unsupportedTitle}>{COPY.unsupported.title}</span>
+        </div>
+        {card.reasons.map((reason) => (
+          <p key={reason} className={styles.unsupportedReason}>
+            {reason}
+          </p>
+        ))}
+        {card.captured.length > 0 && (
+          <div className={styles.capturedBlock}>
+            <div className={styles.cardKicker}>{COPY.unsupported.capturedLabel}</div>
+            <div className={styles.capturedList}>
+              {card.captured.map((row) => (
+                <div key={row.label} className={styles.capturedRow}>
+                  <span className={styles.capturedLabel}>{row.label}</span>
+                  <span className={styles.capturedValue}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <p className={styles.slaNote}>{COPY.unsupported.slaNote(card.slaHours)}</p>
+        <div className={styles.unsupportedActions}>
+          {/* Handoff ke tim teknis adalah Fase 9; tombolnya belum aktif. */}
+          <button type="button" className={styles.ctaButton} disabled>
+            {COPY.unsupported.sendToTechnical}
+          </button>
+          <button type="button" className={styles.chip} disabled>
+            {COPY.unsupported.downloadSummary}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Kartu produk dan ringkasan datang di Fase 6–7.
   return null;
 }

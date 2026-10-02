@@ -26,6 +26,22 @@ export const CHAT_COPY = {
   llmUnavailable:
     'Pemahaman bahasa sedang tidak tersedia. Coba lagi sebentar — percakapan Anda tetap tersimpan.',
   emptyState: 'Ceritakan kebutuhan Anda seperti berbicara dengan konsultan. Tanpa istilah teknis.',
+
+  /** Layar 08 — kriteria netral saat pertanyaan kompetitor ditolak dibandingkan. */
+  criteriaTitle: 'KRITERIA YANG SEBAIKNYA DIPERIKSA',
+
+  /** Layar 11 — validasi teknis / belum didukung. */
+  unsupported: {
+    title: 'Kebutuhan ini membutuhkan pengecekan teknis lebih lanjut',
+    capturedLabel: 'YANG SUDAH SAYA CATAT',
+    sendToTechnical: 'Kirim ke tim teknis Pralon',
+    downloadSummary: 'Unduh ringkasan kebutuhan',
+    slaNote: (hours: number) => `Tim teknis Pralon biasanya menanggapi dalam ${hours} jam kerja.`,
+  },
+
+  /** Layar 03 — kartu klarifikasi bernomor. */
+  clarificationTitle: 'AGAR SAYA TIDAK MENEBAK',
+  skipToDefaults: 'Lewati dan gunakan asumsi standar',
 } as const;
 
 /** Label lima tahap, dirender apa adanya dari `ANALYSIS_STAGE_LABELS`. */
