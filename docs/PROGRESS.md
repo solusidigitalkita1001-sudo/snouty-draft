@@ -154,7 +154,7 @@ menambah satu adapter — bukan merombak validasi, job, maupun layar.
   - [x] P1-05a Tes: semua galat baris dilaporkan sekaligus, bukan satu per satu — **28 tes lolos**; kolom wajib yang hilang dilaporkan sekali, bukan sekali per baris
   - [ ] `[!]` P1-05b Adapter untuk format sebenarnya — **terhalang OQ-07**
   - [x] P1-05c Kolom dokumen & gambar pada kontrak impor — `Judul|URL|halaman` dan daftar URL gambar; jalur "Lihat dokumen teknis" kini **bisa dicapai dari data impor**, diverifikasi terhadap aplikasi yang berjalan
-- [ ] P1-06 Job `catalog.ingest` (RabbitMQ, idempoten per `catalogVersionId + rowHash`, DLQ) — **inti selesai, transport tertunda**
+- [x] P1-06 Job `catalog.ingest` — inti selesai (Fase 1) dan **transport selesai** (P1-06b, OQ-40 diterapkan): antrean, retry berbackoff, DLQ. Konsumer ingest-nya sendiri menunggu bentuk berkas katalog (OQ-07); kontraknya sudah terdaftar di `@snouty/jobs`.
   - [x] P1-06 inti: migration 0001 (`products.row_hash` + `catalog_import_runs`), `CatalogIngestService`, `MysqlCatalogWriter` — idempotensi berlapis tiga, lapisan terdalamnya `uq_products_version_row_hash`
   - [x] P1-06a Tes: impor yang sama dua kali menghasilkan satu versi — **72 tes lolos**; migration 24 pemeriksaan
   - [x] P1-06b Transport RabbitMQ — publisher di API (kegagalan antrean **tidak** menjatuhkan permintaan: laporan tetap `PENDING` dengan nomor yang sudah dialokasikan), konsumer prefetch-1 di worker, retry berbackoff lewat publikasi ulang berjeda (bukan `nack(requeue)` yang akan memutar kegagalan secepat mungkin), DLQ untuk payload tak valid **tanpa** percobaan ulang
@@ -166,7 +166,7 @@ menambah satu adapter — bukan merombak validasi, job, maupun layar.
   - [x] Lintas-potong yang dibutuhkan kontrak: prefix `/api/v1`, correlation ID, dan bentuk galat tunggal (`ApiErrorFilter`)
 - [x] P1-09 Pemetaan provenance untuk field katalog kosong — `domain/spec-value.ts` menjadi satu-satunya tempat nilai spesifikasi dibuat; `SpecValue` kini union terdiskriminasi, sehingga C-1 dan P-2 menjadi galat kompilasi
   - [x] P1-09a Tes: invarian C-1 — spesifikasi kosong tidak pernah diisi tebakan — **155 tes lolos**; lima di antaranya berjalan saat kompilasi lewat `@ts-expect-error`
-- [ ] P1-10 Back-office katalog: unggah, laporan validasi, pratinjau draft, promosi `[layar perlu desain — OQ-21]` — **API selesai, layar tertunda**
+- [x] P1-10 Back-office katalog — API selesai (Fase 1), dan **layar minimal selesai** (P1-10b) bertanda MENUNGGU DESAIN. Formulir unggah tetap menunggu bentuk berkas sebenarnya (OQ-07), bukan menunggu desain.
   - [x] P1-10 API: `GET /internal/catalog/versions`, `GET /internal/catalog/imports/:id`, `POST /internal/catalog/versions/:id/promote` + `InternalRoleGuard`
   - [x] P1-10a Tes: rute `/internal/catalog/*` menolak peran selain `catalog_admin`; setiap tulis diaudit — **173 tes lolos**; guard **gagal tertutup**, jadi seluruh rute internal menjawab `401` sampai modul `auth` ada di Fase 3
   - [x] P1-10b Layar back-office katalog — **cangkang minimal bertanda "MENUNGGU DESAIN"** di `/internal/katalog`; menyebut bahwa formulir unggah menunggu bentuk berkas sebenarnya (OQ-07) sementara daftar versi & promosi sudah tersedia lewat API
