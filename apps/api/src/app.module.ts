@@ -4,6 +4,7 @@ import { CorrelationIdMiddleware } from './shared/http/correlation-id.middleware
 import { LoggingModule } from './shared/logging/logging.module.js';
 import { RedisModule } from './shared/redis/redis.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { AccessTokenMiddleware } from './modules/auth/presentation/access-token.middleware.js';
 import { GuestSessionMiddleware } from './modules/auth/presentation/guest-session.middleware.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { ProductCatalogModule } from './modules/product-catalog/product-catalog.module.js';
@@ -31,6 +32,10 @@ export class AppModule implements NestModule {
   /** Correlation ID berlaku untuk SELURUH rute, termasuk `/health`. */
   configure(consumer: MiddlewareConsumer): void {
     consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+
+    // Aktor diisi dari Bearer token di SEMUA rute API — termasuk /internal, yang
+    // guard-nya justru menunggu isian ini. Tidak pernah menolak; hanya mengisi.
+    consumer.apply(AccessTokenMiddleware).exclude('health').forRoutes('{*rest}');
 
     // Sesi tamu hanya pada rute publik: /health dipanggil pemeriksa infrastruktur
     // tiap beberapa detik (satu sesi per panggilan = ribuan baris sehari), dan

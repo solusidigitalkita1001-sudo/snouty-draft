@@ -22,6 +22,7 @@ import {
 import { guestSessionRepositoryProvider } from './infrastructure/mysql-guest-session.repository.js';
 import { userRepositoryProvider } from './infrastructure/mysql-user.repository.js';
 import { refreshTokenRepositoryProvider } from './infrastructure/mysql-refresh-token.repository.js';
+import { AccessTokenMiddleware } from './presentation/access-token.middleware.js';
 import { GuestSessionMiddleware } from './presentation/guest-session.middleware.js';
 
 const guestSessionServiceProvider = {
@@ -67,6 +68,7 @@ const tokenServiceProvider = {
     userRepositoryProvider,
     authServiceProvider,
     GuestSessionMiddleware,
+    AccessTokenMiddleware,
   ],
   exports: [
     passwordHasherProvider,
@@ -75,6 +77,7 @@ const tokenServiceProvider = {
     guestSessionServiceProvider,
     authServiceProvider,
     GuestSessionMiddleware,
+    AccessTokenMiddleware,
   ],
 })
 export class AuthModule {}
