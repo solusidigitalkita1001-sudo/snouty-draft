@@ -77,3 +77,21 @@ function parseFrame(frame: string): AssistantStreamEvent | null {
     return null;
   }
 }
+
+/**
+ * "Kirim ke tim teknis Pralon" (layar 11). Kebutuhan yang sudah terkumpul disalin di
+ * sisi server, jadi permintaan ini hanya perlu membawa alasannya.
+ */
+export async function sendToTechnicalTeam(
+  conversationId: string,
+  reason: string,
+): Promise<{ readonly id: string; readonly capturedCount: number } | null> {
+  const response = await fetch(`${BASE}/conversations/${conversationId}/handoff`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  });
+  if (!response.ok) return null;
+  return (await response.json()) as { id: string; capturedCount: number };
+}

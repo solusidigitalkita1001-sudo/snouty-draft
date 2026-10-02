@@ -31,6 +31,6 @@ const analysisServiceProvider = {
   imports: [ContextModule, ConversationModule, ProductCatalogModule],
   controllers: [RecommendationController],
   providers: [recommendationRepositoryProvider, analysisServiceProvider],
-  exports: [analysisServiceProvider],
+  exports: [analysisServiceProvider, recommendationRepositoryProvider],
 })
 export class RecommendationModule {}

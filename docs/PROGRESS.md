@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Next item: **P8-01 simpan solusi**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Next item: **P8-02 layar 12 riwayat** · **P8-10 docs**
 
 ## Summary
 
@@ -414,14 +414,16 @@ HTML** — sehingga yang tersisa untuk worker hanyalah "buka halaman ini, cetak 
 
 - [ ] P8-01 Simpan solusi: status percakapan `SAVED`, entitlement `SAVE_SOLUTION`
 - [ ] P8-02 Layar 12 riwayat — digerbang `CONVERSATION_HISTORY` (tamu tidak melihatnya)
-- [ ] P8-03 Migration `reports` + `report_number_counters`; alokasi `SNTY-YYYY-MM-NNNN` dengan `FOR UPDATE`
-  - [ ] P8-03a Tes: dua permintaan serentak tidak pernah mendapat nomor sama; nomor tidak dipakai ulang walau gagal
-- [ ] P8-04 Perakit data laporan dari `Recommendation` + `CalculationTrace` — **tanpa panggilan LLM**
-  - [ ] P8-04a Tes: laporan yang sama dirakit dua kali identik
-- [ ] P8-05 Halaman cetak HTML dua halaman A4 (`/internal/report/:id/print`) — kop, blok, footer disclaimer
-- [ ] P8-06 `POST /reports` + status `PENDING`/`READY`/`FAILED`; akses: pemilik, `technical_team`, `admin` (teraudit)
-  - [ ] P8-06a Tes **release blocker**-adjacent: laporan hanya dapat diakses pemilik dan peran berwenang
-- [ ] P8-07 Antrean handoff teknis: tabel + enqueue dari kartu layar 11
+- [x] P8-03 Migration 0009 `reports` + `report_number_counters` + `technical_handoffs`; alokasi nomor dalam transaksi dengan `FOR UPDATE` (baris dipastikan ada lebih dulu — `FOR UPDATE` atas baris yang belum ada tidak mengunci apa pun)
+  - [x] P8-03a Tes (7, MySQL nyata): empat permintaan serentak mendapat 1–4 tanpa tabrakan; laporan gagal tidak melepas nomornya; `payload` dibekukan
+- [x] P8-04 Perakit laporan dari `Recommendation` + `CalculationTrace`, **nol panggilan LLM**; kebutuhan yang belum diisi tidak menjadi baris kosong; harga nonaktif → nilainya nol dan bloknya tidak dirender (bukan Rp 0, yang terbaca "gratis")
+  - [x] P8-04a Tes (7): perakitan dua kali identik; DASAR PERHITUNGAN dari trace; PPN dari subtotal BOM
+- [x] P8-05 Halaman cetak HTML dua halaman A4 — kop, identitas, ringkasan, tabel sistem, asumsi, material, DASAR PERHITUNGAN, blok "Diperiksa oleh (opsional)", footer disclaimer; seluruh nilai di-escape (nama pelanggan adalah jalur injeksi)
+  - [x] P8-05a Tes (9 + 2 palet): dua halaman, disclaimer utuh ×2, harga aktif/nonaktif, escape, palet terikat `tokens.css` agar tak menyimpang
+- [x] P8-06 `POST /reports` + `GET /reports/:id` (pratinjau, alur yang dipilih desain §8); rute cetak internal di **controller terpisah** dengan guard peran
+  - [x] P8-06a Tes (5) regresi keamanan — lihat catatan di bawah
+- [x] P8-07 Antrean handoff teknis — kebutuhan **disalin** ke barisnya (tim teknis melihat apa yang dilihat pengguna saat diserahkan, bukan percakapan yang sudah berubah); asumsi ikut disertakan; tombol layar 11 tersambung
+  - [x] P8-07a Tes (6, MySQL nyata): salinan beku, antrean terlama-dulu, CHECK status, cascade
 - [ ] `[!]` P8-08 Worker PDF (Playwright + Chromium) — **terhalang OQ-40**
 - [ ] `[!]` P8-09 Register-gate & resume — **terhalang OQ-27, OQ-21**; mekanisme G-1-nya sudah ada sejak Fase 3
 - [ ] P8-10 `docs/REPORT.md` disesuaikan implementasi

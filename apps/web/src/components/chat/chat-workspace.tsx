@@ -24,7 +24,7 @@ import type {
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import mascot from '../../../public/snouty-mascot.png';
-import { createConversation, sendMessage } from './chat-api';
+import { createConversation, sendMessage, sendToTechnicalTeam } from './chat-api';
 import { CHAT_COPY as COPY, STAGE_ORDER, stageLabel } from './chat-copy';
 import { requirementRows } from './requirement-rows';
 import styles from './chat-workspace.module.css';
@@ -45,6 +45,7 @@ export function ChatWorkspace() {
   const [stages, setStages] = useState<Readonly<Partial<Record<AnalysisStage, StageStatus>>>>({});
   const [error, setError] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const streamRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -124,6 +125,21 @@ export function ChatWorkspace() {
     setDraft(`${question.question} ${option}`);
   }, []);
 
+  /**
+   * Menyerahkan kasus ke tim teknis. Kebutuhan yang sudah terkumpul disalin di sisi
+   * server, jadi pengguna tidak mengulang ceritanya — itu janji layar 11.
+   */
+  const handoff = useCallback(
+    (reason: string) => {
+      if (!conversationId || handoffState !== 'idle') return;
+      setHandoffState('sending');
+      void sendToTechnicalTeam(conversationId, reason).then((result) => {
+        setHandoffState(result ? 'sent' : 'idle');
+      });
+    },
+    [conversationId, handoffState],
+  );
+
   const rows = state ? requirementRows(state) : [];
   const filled = state?.completeness.filled ?? 0;
 
@@ -174,7 +190,13 @@ export function ChatWorkspace() {
                 <div className={styles.assistantCol}>
                   {turn.text !== '' && <div className={styles.assistantBubble}>{turn.text}</div>}
                   {turn.cards.map((card, index) => (
-                    <CardView key={index} card={card} onChip={answerChip} />
+                    <CardView
+                      key={index}
+                      card={card}
+                      onChip={answerChip}
+                      onHandoff={handoff}
+                      handoffState={handoffState}
+                    />
                   ))}
                 </div>
               </div>
@@ -311,9 +333,13 @@ const CHAT_COPY_FOOTER = COPY.analysisFooter;
 function CardView({
   card,
   onChip,
+  onHandoff,
+  handoffState,
 }: {
   card: AssistantCard;
   onChip: (question: ClarificationQuestion, option: string) => void;
+  onHandoff: (reason: string) => void;
+  handoffState: 'idle' | 'sending' | 'sent';
 }) {
   if (card.kind === 'clarification') {
     // Layar 03: pertanyaan BERNOMOR — maksimum empat, dan nomornya membuat
@@ -420,10 +446,19 @@ function CardView({
         )}
         <p className={styles.slaNote}>{COPY.unsupported.slaNote(card.slaHours)}</p>
         <div className={styles.unsupportedActions}>
-          {/* Handoff ke tim teknis adalah Fase 9; tombolnya belum aktif. */}
-          <button type="button" className={styles.ctaButton} disabled>
-            {COPY.unsupported.sendToTechnical}
+          <button
+            type="button"
+            className={styles.ctaButton}
+            onClick={() => onHandoff(card.reasons[0] ?? 'Di luar cakupan rekomendasi otomatis.')}
+            disabled={handoffState !== 'idle'}
+          >
+            {handoffState === 'sent'
+              ? COPY.unsupported.sent
+              : handoffState === 'sending'
+                ? COPY.unsupported.sending
+                : COPY.unsupported.sendToTechnical}
           </button>
+          {/* Unduhan ringkasan kebutuhan (REPORT.md §9) menyusul bersama worker PDF. */}
           <button type="button" className={styles.chip} disabled>
             {COPY.unsupported.downloadSummary}
           </button>

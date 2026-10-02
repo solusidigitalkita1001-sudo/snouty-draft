@@ -8,11 +8,13 @@ import { AccessTokenMiddleware } from './modules/auth/presentation/access-token.
 import { GuestSessionMiddleware } from './modules/auth/presentation/guest-session.middleware.js';
 import { ContextModule } from './modules/context/context.module.js';
 import { ConversationModule } from './modules/conversation/conversation.module.js';
+import { HandoffModule } from './modules/handoff/handoff.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { OnboardingConsentModule } from './modules/onboarding-consent/onboarding-consent.module.js';
 import { ProductCatalogModule } from './modules/product-catalog/product-catalog.module.js';
 import { ProductKnowledgeModule } from './modules/product-knowledge/product-knowledge.module.js';
 import { RecommendationModule } from './modules/recommendation/recommendation.module.js';
+import { ReportModule } from './modules/report/report.module.js';
 
 /**
  * Modul domain menyusul fase demi fase (docs/ARCHITECTURE.md §6).
@@ -34,6 +36,8 @@ import { RecommendationModule } from './modules/recommendation/recommendation.mo
     ProductCatalogModule,
     ProductKnowledgeModule,
     RecommendationModule,
+    ReportModule,
+    HandoffModule,
   ],
 })
 export class AppModule implements NestModule {

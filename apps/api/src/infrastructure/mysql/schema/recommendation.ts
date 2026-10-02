@@ -5,9 +5,11 @@ import {
   datetime,
   foreignKey,
   index,
+  int,
   json,
   mysqlTable,
   text,
+  uniqueIndex,
   varchar,
 } from 'drizzle-orm/mysql-core';
 import { conversations } from './conversation.js';
@@ -106,5 +108,91 @@ export const calculationTraces = mysqlTable(
       'ck_traces_provenance',
       sql`\`provenance\` IN ('VERIFIED','ASSUMED','ESTIMATED','UNAVAILABLE')`,
     ),
+  ],
+);
+
+/**
+ * Laporan dua halaman. docs/REPORT.md.
+ *
+ * `report_number` dialokasikan **saat baris ini dibuat**, bukan saat PDF selesai —
+ * supaya nomor yang sudah tampil di UI tetap sama meski pembuatan PDF gagal lalu
+ * diulang. Nomor tidak pernah dipakai ulang, bahkan untuk laporan yang gagal.
+ *
+ * `payload_json` menyimpan data laporan yang **sudah dirakit**: laporan harus terbaca
+ * sama bertahun kemudian meski katalog, aturan, dan harga sudah berubah. Merujuk
+ * ulang ke tabel lain saat mencetak akan membuat laporan lama ikut berubah.
+ */
+export const reports = mysqlTable(
+  'reports',
+  {
+    id: id().primaryKey(),
+    recommendationId: char('recommendation_id', { length: 26 }).notNull(),
+    /** `SNTY-YYYY-MM-NNNN`, unik selamanya. */
+    reportNumber: varchar('report_number', { length: 20 }).notNull(),
+    status: varchar('status', { length: 10 }).notNull().default('PENDING'),
+    /** Data laporan yang sudah dirakit — dibekukan saat pembuatan. */
+    payloadJson: json('payload_json').notNull(),
+    /** Jalur berkas PDF bila sudah jadi; `NULL` selama PENDING/FAILED. */
+    fileRef: varchar('file_ref', { length: 255 }),
+    failureReason: varchar('failure_reason', { length: 255 }),
+    createdAt: createdAt(),
+    completedAt: datetime('completed_at', { fsp: 3 }),
+  },
+  (t) => [
+    uniqueIndex('uq_reports_number').on(t.reportNumber),
+    index('ix_reports_recommendation').on(t.recommendationId),
+    index('ix_reports_status_created').on(t.status, t.createdAt),
+    foreignKey({
+      name: 'fk_reports_recommendation',
+      columns: [t.recommendationId],
+      foreignColumns: [recommendations.id],
+    }).onDelete('cascade'),
+    check('ck_reports_status', sql`\`status\` IN ('PENDING','READY','FAILED')`),
+  ],
+);
+
+/**
+ * Penghitung nomor laporan per bulan. docs/REPORT.md §3.
+ *
+ * Penambahan dilakukan dalam transaksi dengan `SELECT … FOR UPDATE`, sehingga dua
+ * permintaan bersamaan tidak pernah mendapat nomor yang sama. Tabel terpisah — bukan
+ * `MAX(report_number) + 1` — karena menghitung maksimum tidak mengunci apa pun.
+ */
+export const reportNumberCounters = mysqlTable('report_number_counters', {
+  /** `YYYY-MM`. */
+  yearMonth: char('year_month', { length: 7 }).primaryKey(),
+  lastSeq: int('last_seq').notNull().default(0),
+});
+
+/**
+ * Antrean handoff ke tim teknis Pralon (layar 11). docs/BACKOFFICE.md.
+ *
+ * Kebutuhan yang sudah terkumpul disalin ke `captured_json`: pengguna tidak boleh
+ * mengulang ceritanya, dan tim teknis harus melihat apa yang dilihat pengguna saat
+ * kasusnya diserahkan — bukan keadaan percakapan yang mungkin sudah berubah sejak itu.
+ */
+export const technicalHandoffs = mysqlTable(
+  'technical_handoffs',
+  {
+    id: id().primaryKey(),
+    conversationId: char('conversation_id', { length: 26 }).notNull(),
+    /** Alasan kebijakan yang memicu handoff (mis. instalasi industri). */
+    reason: varchar('reason', { length: 255 }).notNull(),
+    capturedJson: json('captured_json').notNull(),
+    status: varchar('status', { length: 12 }).notNull().default('QUEUED'),
+    /** Peran internal yang mengambil kasus; `NULL` selama belum diambil. */
+    assignedTo: char('assigned_to', { length: 26 }),
+    createdAt: createdAt(),
+    resolvedAt: datetime('resolved_at', { fsp: 3 }),
+  },
+  (t) => [
+    index('ix_handoffs_status_created').on(t.status, t.createdAt),
+    index('ix_handoffs_conversation').on(t.conversationId),
+    foreignKey({
+      name: 'fk_handoffs_conversation',
+      columns: [t.conversationId],
+      foreignColumns: [conversations.id],
+    }).onDelete('cascade'),
+    check('ck_handoffs_status', sql`\`status\` IN ('QUEUED','IN_REVIEW','RESOLVED','CLOSED')`),
   ],
 );

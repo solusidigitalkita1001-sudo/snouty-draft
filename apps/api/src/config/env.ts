@@ -57,6 +57,16 @@ const EnvSchema = z.object({
    * biaya (docs/AI_BEHAVIOR.md). ID model TIDAK PERNAH ditulis di kode — routing
    * memetakan tingkat ke salah satu dari tiga variabel ini (docs/AI_BEHAVIOR.md).
    */
+  /**
+   * Harga (OQ-03) — **baku nonaktif**. Saat nonaktif, kolom harga dan blok total tidak
+   * dirender sama sekali; menampilkan Rp 0 akan terbaca sebagai "gratis".
+   */
+  PRICING_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  TAX_RATE_PERCENT: z.coerce.number().int().min(0).max(100).default(11),
+
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   OPENROUTER_BASE_URL: z.string().url().default('https://openrouter.ai/api/v1'),
   LLM_MODEL_FAST: z.string().min(1).optional(),

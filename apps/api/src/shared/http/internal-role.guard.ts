@@ -24,7 +24,8 @@ import {
 } from './api-errors.js';
 import { correlationIdOf, type WithCorrelationId } from './correlation-id.middleware.js';
 
-const REQUIRED_ROLE = 'snouty:requiredRole';
+/** Kunci metadata peran — diekspor agar tes bisa memeriksa dekoratornya terpasang. */
+export const REQUIRED_ROLE = 'snouty:requiredRole';
 
 /**
  * Peran yang wajib dipegang untuk menyentuh rute ini.

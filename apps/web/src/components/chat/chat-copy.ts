@@ -35,6 +35,8 @@ export const CHAT_COPY = {
     title: 'Kebutuhan ini membutuhkan pengecekan teknis lebih lanjut',
     capturedLabel: 'YANG SUDAH SAYA CATAT',
     sendToTechnical: 'Kirim ke tim teknis Pralon',
+    sending: 'Mengirim…',
+    sent: 'Sudah dikirim ke tim teknis',
     downloadSummary: 'Unduh ringkasan kebutuhan',
     slaNote: (hours: number) => `Tim teknis Pralon biasanya menanggapi dalam ${hours} jam kerja.`,
   },
