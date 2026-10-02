@@ -13,9 +13,68 @@ export class InvalidRefreshTokenError extends Error {
 
   constructor(
     /** Untuk log server saja; `ApiErrorFilter` tidak pernah meneruskannya. */
-    readonly reason: 'unknown' | 'expired' | 'revoked' | 'reused',
+    readonly reason: 'unknown' | 'expired' | 'revoked' | 'reused' | 'user_disabled',
   ) {
     super('Silakan masuk terlebih dahulu.');
     this.name = 'InvalidRefreshTokenError';
+  }
+}
+
+/**
+ * Email atau password salah — SATU galat untuk keduanya.
+ *
+ * "Email tidak terdaftar" dan "password salah" yang dibedakan memberi siapa pun
+ * mesin pengecek keanggotaan: cukup coba login untuk tahu alamat mana yang punya
+ * akun. Satu pesan menutup kanal itu.
+ */
+export class InvalidCredentialsError extends Error {
+  readonly code = 'UNAUTHENTICATED' as const;
+
+  constructor() {
+    super('Email atau password tidak cocok.');
+    this.name = 'InvalidCredentialsError';
+  }
+}
+
+/**
+ * Akun dinonaktifkan. Pesannya sama dengan kredensial salah, dan itu disengaja:
+ * memberi tahu bahwa akunnya ada tetapi dinonaktifkan adalah informasi — dan untuk
+ * akun internal yang baru dicabut aksesnya, informasi yang sensitif.
+ */
+export class AccountDisabledError extends Error {
+  readonly code = 'UNAUTHENTICATED' as const;
+
+  constructor() {
+    super('Email atau password tidak cocok.');
+    this.name = 'AccountDisabledError';
+  }
+}
+
+/**
+ * Email sudah terdaftar.
+ *
+ * Registrasi memang membocorkan keberadaan akun — tidak ada cara menolak email
+ * ganda tanpa mengatakannya. Yang bisa dijaga adalah TEMPATNYA: hanya di sini,
+ * dengan pesan yang membantu pemilik asli ("silakan masuk"), bukan di login.
+ */
+export class EmailAlreadyRegisteredError extends Error {
+  readonly code = 'VALIDATION_FAILED' as const;
+  readonly details = { fields: ['email'] } as const;
+
+  constructor() {
+    super('Email ini sudah terdaftar. Silakan masuk.');
+    this.name = 'EmailAlreadyRegisteredError';
+  }
+}
+
+/** Password ditolak kebijakan. `details.reason` dipakai UI untuk pesan yang tepat. */
+export class PasswordRejectedError extends Error {
+  readonly code = 'VALIDATION_FAILED' as const;
+  readonly details: Readonly<Record<string, unknown>>;
+
+  constructor(reason: string) {
+    super('Password belum memenuhi syarat minimal 12 karakter.');
+    this.name = 'PasswordRejectedError';
+    this.details = { fields: ['password'], reason };
   }
 }
