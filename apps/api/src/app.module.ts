@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { AccessTokenMiddleware } from './modules/auth/presentation/access-token.middleware.js';
 import { GuestSessionMiddleware } from './modules/auth/presentation/guest-session.middleware.js';
 import { HealthModule } from './modules/health/health.module.js';
+import { OnboardingConsentModule } from './modules/onboarding-consent/onboarding-consent.module.js';
 import { ProductCatalogModule } from './modules/product-catalog/product-catalog.module.js';
 import { ProductKnowledgeModule } from './modules/product-knowledge/product-knowledge.module.js';
 
@@ -24,6 +25,7 @@ import { ProductKnowledgeModule } from './modules/product-knowledge/product-know
     LoggingModule,
     HealthModule,
     AuthModule,
+    OnboardingConsentModule,
     ProductCatalogModule,
     ProductKnowledgeModule,
   ],
