@@ -105,9 +105,31 @@
   padding: 0 20px;
 }
 
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .headerTitle {
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badge status: mono 10px, berbingkai, radius 4px — nilai prototipe. */
+.headerStatus {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  color: var(--snouty-muted);
+  border: 1px solid var(--snouty-border-soft);
+  border-radius: 4px;
+  padding: 3px 6px;
+  flex: none;
+  white-space: nowrap;
 }
 
 .panelToggle,
@@ -136,11 +158,13 @@
 
 .stream {
   flex: 1;
+  min-height: 0;
   overflow: auto;
-  padding: 22px 24px;
+  /* 24px 32px dan jarak 20px antar giliran — nilai prototipe. */
+  padding: 24px 32px;
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 20px;
 }
 
 .empty {
@@ -159,18 +183,23 @@
 }
 
 .userBubble {
-  max-width: 360px;
+  /*
+   * Nilai prototipe layar KONSULTASI: 520px, 14px, padding 13px 16px, radius
+   * 10/10/2/10. Sebelumnya saya memakai gaya gelembung ONBOARDING (360px, 14px radius) —
+   * dua komponen berbeda yang kebetulan sama-sama gelembung.
+   */
+  max-width: 520px;
   background: var(--snouty-ink);
   color: var(--snouty-action-on);
-  font-size: 13.5px;
-  line-height: 1.5;
-  padding: 11px 14px;
-  border-radius: 14px 14px 4px 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  padding: 13px 16px;
+  border-radius: 10px 10px 2px 10px;
 }
 
 .assistantRow {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-start;
 }
 
@@ -189,13 +218,14 @@
 .assistantCol {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 13px;
   min-width: 0;
   max-width: 660px;
+  width: 100%;
 }
 
 .assistantBubble {
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.6;
   color: var(--snouty-ink);
   text-wrap: pretty;
@@ -233,9 +263,9 @@
 .chip {
   border: 1px solid var(--snouty-border);
   background: var(--snouty-surface);
-  border-radius: var(--snouty-radius-chip, 20px);
-  padding: 5px 12px;
-  font-size: 12.5px;
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 13px;
   color: var(--snouty-ink);
 }
 
@@ -347,32 +377,71 @@
 
 /* ---------- composer ---------- */
 
-.composer {
+/*
+ * Composer prototipe adalah KARTU, bukan bar ber-border atas: kotak putih dengan border,
+ * radius 10px, dan bayangan sangat tipis. Di layar sambutan ia berada di tengah bersama
+ * headline; di aliran chat ia menempel di bawah dengan padding 0 32px 22px.
+ */
+.composerWrap {
   flex: none;
-  border-top: 1px solid var(--snouty-border);
+  padding: 0 32px 22px;
+}
+
+.composerCard {
   background: var(--snouty-surface);
-  padding: 12px 24px;
+  border: 1px solid var(--snouty-border);
+  border-radius: 10px;
+  padding: 11px 14px;
   display: flex;
   align-items: center;
   gap: 12px;
+  box-shadow: 0 1px 2px var(--snouty-shadow-faint, rgb(20 24 26 / 4%));
 }
 
-.composerInput {
+/* Di layar sambutan kartunya menumpuk: input di atas, baris aksi di bawah. */
+.welcome .composerCard {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 14px 16px;
+}
+
+.composerCardInput {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--snouty-border);
-  border-radius: 8px;
-  padding: 10px 13px;
-  font-size: 14px;
-  font-family: inherit;
-  color: var(--snouty-ink);
-  background: var(--snouty-surface);
+  border: none;
   outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--snouty-ink);
+  padding: 0;
 }
 
-.composerInput:focus-visible {
-  border-color: var(--snouty-focus-border);
-  box-shadow: var(--snouty-focus-ring);
+.welcome .composerCardInput {
+  font-size: 15px;
+  padding: 4px 0;
+}
+
+.composerCardInput::placeholder {
+  color: var(--snouty-caption);
+}
+
+.composerCardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.attachButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--snouty-muted);
+  border: 1px solid var(--snouty-border-soft);
+  border-radius: 5px;
+  padding: 5px 9px;
 }
 
 .sendButton {
@@ -740,4 +809,358 @@
   outline: none;
   border-radius: 4px;
   box-shadow: var(--snouty-focus-ring);
+}
+
+/* ---------- layar sambutan di dalam ruang konsultasi ---------- */
+
+.welcome {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 40px;
+  overflow: auto;
+}
+
+.welcomeInner {
+  width: 100%;
+  max-width: 700px;
+  margin-block: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.welcomeMascotRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: -4px;
+}
+
+/*
+ * Gelembung komik: border 2px ink + bayangan keras 3px 3px 0 — sama seperti onboarding,
+ * dan di sini memang benar karena prototipe memakai bentuk yang sama di kedua tempat.
+ */
+.welcomeBubble {
+  background: var(--snouty-surface);
+  border: 2px solid var(--snouty-ink);
+  border-radius: 14px 14px 14px 3px;
+  padding: 9px 13px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 3px 3px 0 var(--snouty-ink);
+  margin-bottom: 58px;
+}
+
+.welcomeText {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.welcomeHeadline {
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.welcomeBody {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--snouty-muted);
+  max-width: 600px;
+  text-wrap: pretty;
+}
+
+/* ---------- blok merek & ikon sidebar ---------- */
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-left: 4px;
+}
+
+.brandAvatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid var(--snouty-action-soft-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebarGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Tombol "Konsultasi Baru": merah penuh, plus 15px di kiri. */
+.newButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--snouty-action);
+  color: var(--snouty-action-on);
+  border: none;
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.newButton:hover {
+  background: var(--snouty-action-hover);
+}
+
+.newPlus {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* Ikon kotak kecil; varian "book" punya tepi kiri tebal, seperti prototipe. */
+.iconSquare {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border: 1.5px solid var(--snouty-muted);
+  border-radius: 3px;
+}
+
+.iconSquareBook {
+  border-left-width: 4px;
+}
+
+/* ---------- nav rail ---------- */
+
+.railNew {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background: var(--snouty-action);
+  color: var(--snouty-action-on);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.railNew:hover {
+  background: var(--snouty-action-hover);
+}
+
+.railDivider {
+  width: 28px;
+  height: 1px;
+  background: var(--snouty-hairline, var(--snouty-border-soft));
+}
+
+.railIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.railIcon:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+/* Tiga garis riwayat: dua penuh, satu pendek. */
+.railLines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.railLines::before,
+.railLines::after {
+  content: '';
+  width: 14px;
+  height: 1.5px;
+  background: var(--snouty-muted);
+}
+
+.railLines::after {
+  width: 9px;
+}
+
+/* ---------- rail panel terciut (44px) ---------- */
+
+.panelRail {
+  width: var(--snouty-panel-rail-w, 44px);
+  flex: none;
+  background: var(--snouty-surface);
+  border-left: 1px solid var(--snouty-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  gap: 14px;
+  cursor: pointer;
+}
+
+.panelRail:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+.railToggle {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--snouty-border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--snouty-muted);
+  line-height: 1;
+}
+
+/* Teks vertikal, dibaca dari atas ke bawah. */
+.railVertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--snouty-muted);
+  white-space: nowrap;
+}
+
+.railCount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border-top: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  padding-top: 12px;
+  width: 100%;
+}
+
+.railCountValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--snouty-ink);
+}
+
+.railCountUnit {
+  font-family: var(--snouty-font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.05em;
+  color: var(--snouty-caption);
+}
+
+/* ---------- kartu "Yang sudah saya pahami" ---------- */
+
+.understoodCard {
+  border: 1px solid var(--snouty-border-soft);
+  background: var(--snouty-surface);
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 660px;
+}
+
+.understoodHead {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.understoodTitle {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* Hijau: fakta yang DINYATAKAN pengguna, bukan asumsi sistem. */
+.understoodBadge {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  color: var(--snouty-verified-text);
+  background: var(--snouty-verified-bg);
+  border-radius: 4px;
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+
+.understoodGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.understoodCell {
+  padding: 11px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-right: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  border-bottom: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+}
+
+/* Kolom terakhir tiap baris tanpa garis kanan; baris terakhir tanpa garis bawah. */
+.understoodCell:nth-child(3n) {
+  border-right: none;
+}
+
+.understoodCell:nth-last-child(-n + 3) {
+  border-bottom: none;
+}
+
+.understoodLabel {
+  font-size: 10.5px;
+  color: var(--snouty-caption);
+}
+
+.understoodValue {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (max-width: 719px) {
+  .welcome {
+    padding: 20px 16px;
+  }
+
+  .welcomeHeadline {
+    font-size: 26px;
+  }
+
+  .welcomeBubble {
+    display: none;
+  }
+
+  .composerWrap {
+    padding: 0 16px 16px;
+  }
+
+  .stream {
+    padding: 18px 16px;
+  }
+
+  .understoodGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

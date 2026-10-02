@@ -10,16 +10,43 @@ import { ANALYSIS_STAGE_LABELS, type AnalysisStage } from '@snouty/shared-types'
 
 export const CHAT_COPY = {
   brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
-  newConversation: '+ Percakapan baru',
+  newConversation: 'Konsultasi Baru',
   historyTitle: 'RIWAYAT',
   savedSolutions: 'Solusi Tersimpan',
+  collapsePanel: 'Ciutkan panel',
+  expandPanel: 'Buka panel kebutuhan & solusi',
   productKnowledge: 'Pengetahuan Produk',
   /** Tamu tidak melihat riwayat — ajakan, bukan daftar kosong. */
   historyGuest: 'Daftar akun untuk menyimpan dan membuka kembali konsultasi Anda.',
   historyEmpty: 'Belum ada konsultasi lain.',
   saveSolution: 'Simpan hasil konsultasi',
   saved: 'Tersimpan',
+  /** Placeholder berbeda antara layar sambutan dan lanjutan percakapan — dari prototipe. */
   composerPlaceholder: 'Contoh: Saya bangun rumah 2 lantai, 3 kamar mandi, toren di atap…',
+  composerPlaceholderChat: 'Tulis jawaban atau tambahan detail…',
+  attachPlan: 'Lampirkan denah',
+
+  /** Layar sambutan di dalam ruang konsultasi (prototipe, state `isWelcome`). */
+  welcome: {
+    bubble: 'Ceritakan kebutuhanmu, aku bantu pilih pipanya.',
+    headline: 'Temukan solusi perpipaan yang tepat untuk kebutuhan Anda.',
+    body: 'Ceritakan kebutuhan bangunan atau instalasi Anda. SNOUTY akan membantu menganalisis kebutuhan dan merekomendasikan solusi produk Pralon.',
+  },
+
+  /** Badge status di header: "LANGKAH n DARI 4" selama mengumpulkan data. */
+  headerTitle: 'Konsultasi',
+  stepStatus: (filled: number) => `LANGKAH ${Math.min(filled + 1, 4)} DARI 4`,
+  solutionReady: 'SOLUSI SIAP',
+
+  /** Kartu "Yang sudah saya pahami" — grid 3 kolom, badge hijau jumlah data. */
+  understood: {
+    title: 'Yang sudah saya pahami',
+    readCount: (n: number) => `${n} DATA TERBACA`,
+  },
+
+  /** Rail panel terciut: teks vertikal. */
+  railLabel: 'KEBUTUHAN & SOLUSI',
+  railUnit: 'DATA',
   send: 'Kirim',
   panelTitle: 'Panel Solusi',
   requirementsLabel: 'KEBUTUHAN ANDA',

@@ -35,6 +35,8 @@ export const AUTH_COPY = {
     email: 'Email',
     password: 'Kata sandi',
     passwordHint: 'Minimal 12 karakter.',
+    showPassword: 'Tampilkan kata sandi',
+    hidePassword: 'Sembunyikan kata sandi',
   },
 
   errors: {

@@ -160,3 +160,43 @@
   border-radius: 4px;
   box-shadow: var(--snouty-focus-ring);
 }
+
+/* ---------- toggle lihat kata sandi ---------- */
+
+.passwordWrap {
+  position: relative;
+  display: flex;
+}
+
+/* Ruang untuk tombol di kanan, supaya teks panjang tidak tertutup ikonnya. */
+.passwordInput {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  padding: 0;
+  border-radius: 5px;
+  color: var(--snouty-muted);
+  cursor: pointer;
+}
+
+.passwordToggle:hover {
+  color: var(--snouty-action-text);
+}
+
+.passwordToggle:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
+}

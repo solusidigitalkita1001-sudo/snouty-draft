@@ -225,48 +225,86 @@ export function ChatWorkspace() {
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
-        <div className={styles.brand}>
-          <div className={styles.brandName}>{COPY.brand.name}</div>
-          <div className={styles.brandKicker}>{COPY.brand.kicker}</div>
+        <div className={styles.brandRow}>
+          <span className={styles.brandAvatar}>
+            <Image src={mascot} alt="" width={28} height={28} />
+          </span>
+          <div className={styles.brandText}>
+            <div className={styles.brandName}>{COPY.brand.name}</div>
+            <div className={styles.brandKicker}>{COPY.brand.kicker}</div>
+          </div>
         </div>
+
         <button type="button" className={styles.newButton}>
-          {COPY.newConversation}
+          <span className={styles.newPlus}>+</span>
+          <span>{COPY.newConversation}</span>
         </button>
-        <div className={styles.sidebarSection}>{COPY.historyTitle}</div>
 
-        {history.kind === 'guest' && <p className={styles.historyGuest}>{COPY.historyGuest}</p>}
+        <div className={styles.sidebarGroup}>
+          <div className={styles.sidebarSection}>{COPY.historyTitle}</div>
 
-        {history.kind === 'list' && history.items.length === 0 && (
-          <p className={styles.historyGuest}>{COPY.historyEmpty}</p>
-        )}
+          {history.kind === 'guest' && <p className={styles.historyGuest}>{COPY.historyGuest}</p>}
 
-        {history.kind === 'list' &&
-          history.items.map((item) => (
-            <div
-              key={item.id}
-              className={[
-                styles.historyItem,
-                item.id === conversationId ? styles.historyItemActive : '',
-              ].join(' ')}
-            >
-              <span className={styles.historyTitleText}>{item.title ?? 'Konsultasi baru'}</span>
-              <span className={styles.historyMeta}>{item.status}</span>
-            </div>
-          ))}
+          {history.kind === 'list' && history.items.length === 0 && (
+            <p className={styles.historyGuest}>{COPY.historyEmpty}</p>
+          )}
 
+          {history.kind === 'list' &&
+            history.items.map((item) => (
+              <div
+                key={item.id}
+                className={[
+                  styles.historyItem,
+                  item.id === conversationId ? styles.historyItemActive : '',
+                ].join(' ')}
+              >
+                <span className={styles.historyTitleText}>{item.title ?? 'Konsultasi baru'}</span>
+                <span className={styles.historyMeta}>{item.status}</span>
+              </div>
+            ))}
+        </div>
+
+        {/* Ikon kotak kecil mengikuti prototipe: satu garis tebal di kiri untuk pengetahuan produk. */}
         <div className={styles.sidebarLinks}>
-          <span className={styles.sidebarLink}>{COPY.savedSolutions}</span>
-          <span className={styles.sidebarLink}>{COPY.productKnowledge}</span>
+          <span className={styles.sidebarLink}>
+            <span className={styles.iconSquare} />
+            {COPY.savedSolutions}
+          </span>
+          <span className={styles.sidebarLink}>
+            <span className={[styles.iconSquare, styles.iconSquareBook].join(' ')} />
+            {COPY.productKnowledge}
+          </span>
         </div>
       </aside>
 
       <nav className={styles.navRail} aria-label="Navigasi utama">
-        <div className={styles.navDot} />
+        <span className={styles.brandAvatar}>
+          <Image src={mascot} alt="" width={28} height={28} />
+        </span>
+        <button type="button" className={styles.railNew} aria-label={COPY.newConversation}>
+          +
+        </button>
+        <span className={styles.railDivider} />
+        <span className={styles.railIcon} title={COPY.historyTitle}>
+          <span className={styles.railLines} />
+        </span>
+        <span className={styles.railIcon} title={COPY.savedSolutions}>
+          <span className={styles.iconSquare} />
+        </span>
+        <span className={styles.railIcon} title={COPY.productKnowledge}>
+          <span className={[styles.iconSquare, styles.iconSquareBook].join(' ')} />
+        </span>
       </nav>
 
       <main className={styles.main}>
         <header className={styles.header}>
-          <div className={styles.headerTitle}>Konsultasi</div>
+          <div className={styles.headerLeft}>
+            <span className={styles.headerTitle}>{COPY.headerTitle}</span>
+            {/* Badge status dari prototipe: mono, berbingkai, "LANGKAH n DARI 4". */}
+            <span className={styles.headerStatus}>
+              {solution !== null ? COPY.solutionReady : COPY.stepStatus(filled)}
+            </span>
+          </div>
           <button
             type="button"
             className={styles.panelToggle}
@@ -277,83 +315,171 @@ export function ChatWorkspace() {
           </button>
         </header>
 
-        <div className={styles.stream} ref={streamRef} aria-live="polite">
-          {turns.length === 0 && <p className={styles.empty}>{COPY.emptyState}</p>}
-
-          {turns.map((turn) =>
-            turn.role === 'user' ? (
-              <div key={turn.id} className={styles.userRow}>
-                <div className={styles.userBubble}>{turn.text}</div>
+        {/*
+          Layar sambutan di dalam ruang konsultasi (prototipe, state `isWelcome`): mascot
+          dengan gelembung komik, headline besar, lalu composer BERBENTUK KARTU di tengah —
+          bukan bar di bawah. Begitu ada giliran pertama, ia berganti menjadi aliran chat.
+        */}
+        {turns.length === 0 ? (
+          <div className={styles.welcome}>
+            <div className={styles.welcomeInner}>
+              <div className={styles.welcomeMascotRow}>
+                <Image src={mascot} alt="" width={72} height={72} />
+                <div className={styles.welcomeBubble}>{COPY.welcome.bubble}</div>
               </div>
-            ) : (
-              <div key={turn.id} className={styles.assistantRow}>
-                <div className={styles.assistantAvatar}>
-                  <Image src={mascot} alt="" width={26} height={26} />
-                </div>
-                <div className={styles.assistantCol}>
-                  {turn.text !== '' && <div className={styles.assistantBubble}>{turn.text}</div>}
-                  {turn.cards.map((card, index) => (
-                    <CardView
-                      key={index}
-                      card={card}
-                      onChip={answerChip}
-                      onHandoff={handoff}
-                      handoffState={handoffState}
-                      onSave={save}
-                      saveState={saveState}
-                      onAnalyze={analyze}
-                      analyzing={analyzing}
-                    />
-                  ))}
+
+              <div className={styles.welcomeText}>
+                <h1 className={styles.welcomeHeadline}>{COPY.welcome.headline}</h1>
+                <p className={styles.welcomeBody}>{COPY.welcome.body}</p>
+              </div>
+
+              <div className={styles.composerCard}>
+                <input
+                  className={styles.composerCardInput}
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault();
+                      void submit();
+                    }
+                  }}
+                  placeholder={COPY.composerPlaceholder}
+                  aria-label={COPY.composerPlaceholder}
+                  disabled={conversationId === null}
+                />
+                <div className={styles.composerCardFoot}>
+                  {/* Unggahan denah menunggu endpoint berkas (OQ-07). */}
+                  <span className={styles.attachButton}>
+                    <span className={styles.iconSquare} />
+                    {COPY.attachPlan}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.sendButton}
+                    onClick={() => void submit()}
+                    disabled={draft.trim() === '' || sending || conversationId === null}
+                  >
+                    {COPY.send}
+                  </button>
                 </div>
               </div>
-            ),
-          )}
-
-          {Object.keys(stages).length > 0 && <StageIndicator stages={stages} />}
-
-          {solution !== null && (
-            <SolutionView
-              recommendation={solution}
-              onFixAssumption={(fieldPath) => setDraft(`Ubah ${fieldPath}: `)}
-            />
-          )}
-          {error !== null && (
-            <div className={styles.errorCard} role="status">
-              {error}
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className={styles.stream} ref={streamRef} aria-live="polite">
+            {turns.map((turn) =>
+              turn.role === 'user' ? (
+                <div key={turn.id} className={styles.userRow}>
+                  <div className={styles.userBubble}>{turn.text}</div>
+                </div>
+              ) : (
+                <div key={turn.id} className={styles.assistantRow}>
+                  <div className={styles.assistantAvatar}>
+                    <Image src={mascot} alt="" width={26} height={26} />
+                  </div>
+                  <div className={styles.assistantCol}>
+                    {turn.text !== '' && <div className={styles.assistantBubble}>{turn.text}</div>}
+                    {turn.cards.map((card, index) => (
+                      <CardView
+                        key={index}
+                        card={card}
+                        onChip={answerChip}
+                        onHandoff={handoff}
+                        handoffState={handoffState}
+                        onSave={save}
+                        saveState={saveState}
+                        onAnalyze={analyze}
+                        analyzing={analyzing}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ),
+            )}
 
-        <div className={styles.composer}>
-          <input
-            className={styles.composerInput}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                void submit();
-              }
-            }}
-            placeholder={COPY.composerPlaceholder}
-            aria-label={COPY.composerPlaceholder}
-            disabled={conversationId === null}
-          />
-          <button
-            type="button"
-            className={styles.sendButton}
-            onClick={() => void submit()}
-            disabled={draft.trim() === '' || sending || conversationId === null}
-          >
-            {COPY.send}
-          </button>
-        </div>
+            {/* Kartu "Yang sudah saya pahami" — grid 3 kolom dengan badge hijau jumlah data. */}
+            {state !== null && filled > 0 && <UnderstoodCard rows={rows} filled={filled} />}
+
+            {Object.keys(stages).length > 0 && <StageIndicator stages={stages} />}
+
+            {solution !== null && (
+              <SolutionView
+                recommendation={solution}
+                onFixAssumption={(fieldPath) => setDraft(`Ubah ${fieldPath}: `)}
+              />
+            )}
+            {error !== null && (
+              <div className={styles.errorCard} role="status">
+                {error}
+              </div>
+            )}
+          </div>
+        )}
+
+        {turns.length > 0 && (
+          <div className={styles.composerWrap}>
+            <div className={styles.composerCard}>
+              <input
+                className={styles.composerCardInput}
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    void submit();
+                  }
+                }}
+                placeholder={COPY.composerPlaceholderChat}
+                aria-label={COPY.composerPlaceholderChat}
+              />
+              <button
+                type="button"
+                className={styles.sendButton}
+                onClick={() => void submit()}
+                disabled={draft.trim() === '' || sending}
+              >
+                {COPY.send}
+              </button>
+            </div>
+          </div>
+        )}
       </main>
+
+      {/*
+        Panel terciut menjadi rail 44px, bukan hilang: prototipe menampilkan teks vertikal
+        "KEBUTUHAN & SOLUSI" beserta jumlah data, sehingga pengguna tetap tahu panel itu ada
+        dan berapa banyak yang sudah terbaca.
+      */}
+      {!panelOpen && (
+        <aside
+          className={styles.panelRail}
+          onClick={() => setPanelOpen(true)}
+          title={COPY.expandPanel}
+        >
+          <span className={styles.railToggle}>«</span>
+          <span className={styles.railVertical}>{COPY.railLabel}</span>
+          <span className={styles.railCount}>
+            <span className={styles.railCountValue}>{filled}</span>
+            <span className={styles.railCountUnit}>{COPY.railUnit}</span>
+          </span>
+        </aside>
+      )}
 
       {panelOpen && (
         <aside className={styles.panel} aria-label={COPY.panelTitle}>
-          <div className={styles.panelHead}>{COPY.panelTitle}</div>
+          <div className={styles.panelHead}>
+            <span>{COPY.panelTitle}</span>
+            <button
+              type="button"
+              className={styles.panelToggle}
+              onClick={() => setPanelOpen(false)}
+              title={COPY.collapsePanel}
+              aria-label={COPY.collapsePanel}
+            >
+              »
+            </button>
+          </div>
           <div className={styles.panelBody}>
             <section className={styles.panelSection}>
               <div className={styles.panelKicker}>{COPY.requirementsLabel}</div>
@@ -410,6 +536,36 @@ function completenessNote(filled: number): string {
     return 'Data inti sudah lengkap. Nilai yang tidak diberikan tetap ditandai sebagai asumsi.';
   }
   return `${missing} kelompok data lagi sebelum SNOUTY dapat menyusun rekomendasi.`;
+}
+
+/**
+ * Kartu "Yang sudah saya pahami" (prototipe). Grid tiga kolom, badge hijau berisi jumlah
+ * data yang terbaca — hijau karena ini **fakta yang dinyatakan pengguna**, bukan asumsi
+ * sistem; itu pembedaan yang sama yang dijaga `<ProvenanceTag>`.
+ */
+function UnderstoodCard({
+  rows,
+  filled,
+}: {
+  rows: readonly { label: string; display: string }[];
+  filled: number;
+}) {
+  return (
+    <div className={styles.understoodCard}>
+      <div className={styles.understoodHead}>
+        <span className={styles.understoodTitle}>{COPY.understood.title}</span>
+        <span className={styles.understoodBadge}>{COPY.understood.readCount(filled)}</span>
+      </div>
+      <div className={styles.understoodGrid}>
+        {rows.map((row) => (
+          <div key={row.label} className={styles.understoodCell}>
+            <span className={styles.understoodLabel}>{row.label}</span>
+            <span className={styles.understoodValue}>{row.display}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function StageIndicator({

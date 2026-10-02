@@ -115,3 +115,53 @@ describe('pemetaan galat', () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe('toggle lihat kata sandi', () => {
+  it('bermula tersembunyi', () => {
+    render(<AuthForm mode="login" />);
+    const input = screen.getByLabelText(AUTH_COPY.fields.password) as HTMLInputElement;
+    expect(input.type).toBe('password');
+  });
+
+  it('menampilkan lalu menyembunyikan kembali', () => {
+    render(<AuthForm mode="login" />);
+    const input = screen.getByLabelText(AUTH_COPY.fields.password) as HTMLInputElement;
+
+    fireEvent.click(screen.getByRole('button', { name: AUTH_COPY.fields.showPassword }));
+    expect(input.type).toBe('text');
+
+    fireEvent.click(screen.getByRole('button', { name: AUTH_COPY.fields.hidePassword }));
+    expect(input.type).toBe('password');
+  });
+
+  it('labelnya berubah mengikuti keadaan, bukan hanya ikonnya', () => {
+    // Ikon mata tanpa label tidak terbaca pembaca layar.
+    render(<AuthForm mode="login" />);
+    const toggle = screen.getByRole('button', { name: AUTH_COPY.fields.showPassword });
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+
+    fireEvent.click(toggle);
+    expect(
+      screen
+        .getByRole('button', { name: AUTH_COPY.fields.hidePassword })
+        .getAttribute('aria-pressed'),
+    ).toBe('true');
+  });
+
+  it('TIDAK men-submit formulir saat diklik', () => {
+    // `type="button"` wajib: tanpa itu, memeriksa ketikan sendiri justru mengirim kredensial.
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<AuthForm mode="login" />);
+    fireEvent.click(screen.getByRole('button', { name: AUTH_COPY.fields.showPassword }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
+  it('ada juga di layar daftar', () => {
+    render(<AuthForm mode="register" />);
+    expect(screen.getByRole('button', { name: AUTH_COPY.fields.showPassword })).toBeDefined();
+  });
+});
