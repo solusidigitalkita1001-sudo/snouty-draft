@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Current phase: **10–13** · Next item: **P11-01 redaksi email**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Current phase: **10–13** · Next item: **P13-01 audit keamanan** · P11-02…04 (ekstraksi, webhook, migration)
 
 ## Summary
 
@@ -485,8 +485,8 @@ hambatan — dia bagian dari desain.
 chat dalam satu hal yang menentukan: **pengirim email tidak pernah menyetujui isinya diproses model
 pihak ketiga.** Karena itu redaksi berjalan sebelum teks menyentuh LLM, bukan sesudahnya.
 
-- [ ] P11-01 Redaktor (telepon, alamat, NPWP/rekening, blok tanda tangan, email) — fungsi murni
-  - [ ] P11-01a Tes: tidak ada bentuk data pribadi yang lolos; teks asli tetap utuh di penyimpanan
+- [x] P11-01 Redaktor — fungsi murni; **berlebihan, bukan presisi** (lebih baik meredaksi nomor yang bukan telepon daripada melewatkan satu yang memang telepon); pembersihan riwayat balasan dan pemisahan tanda tangan jadi satu jalur `prepareForModel`
+  - [x] P11-01a Tes (22): tujuh bentuk telepon Indonesia, NPWP berpola, rekening, alamat (termasuk `RT 05 / RW 03`), tiga gaya riwayat balasan, tiga penanda tanda tangan; **dan** bahwa isi teknis + lokasi kota TETAP ada — redaksi yang membuang kebutuhan membuat modulnya tak berguna
 - [ ] P11-02 Parsing email (§3) + skema ekstraksi zod (§4) + klasifikasi lead (§6)
 - [ ] P11-03 Webhook n8n terverifikasi HMAC; email tidak pernah memicu balasan otomatis
 - [ ] P11-04 Migration `emails` + `email_analyses` — teks asli disimpan, retensi 24 bulan
