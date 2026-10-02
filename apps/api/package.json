@@ -13,7 +13,8 @@
     "db:generate": "drizzle-kit generate",
     "db:apply": "node scripts/db-apply.mjs",
     "test:migration": "node scripts/test-migration.mjs",
-    "seed:sample": "node scripts/seed-sample-catalog.mjs"
+    "seed:sample": "node scripts/seed-sample-catalog.mjs",
+    "check:orphans": "node scripts/check-catalog-orphans.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^12.1.2",

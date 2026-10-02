@@ -62,7 +62,10 @@ async function tableCount() {
       'product_compatibility','product_documents','product_images',
       'catalog_import_runs','audit_logs',
       'users','user_roles','refresh_tokens','guest_sessions','consents',
-      'onboarding_states','conversations','messages')`,
+      'onboarding_states','conversations','messages',
+      'requirement_snapshots','llm_calls','recommendations','calculation_traces',
+      'reports','report_number_counters','technical_handoffs',
+      'emails','email_analyses','market_events')`,
     [cfg.database],
   );
   return Number(rows[0].n);
@@ -82,6 +85,12 @@ const ulid = (n) => String(n).padStart(26, 'A');
 const rowHash = (n) => String(n).padStart(64, '0');
 
 /** Seluruh migration naik, berurutan; dipakai juga untuk membuktikan rollback bersih. */
+/**
+ * SELURUH migration, berurutan. Daftar ini pernah tertinggal di 0005 selama enam
+ * migration berikutnya ditambahkan — sehingga skrip melaporkan "lolos" untuk skema yang
+ * tidak pernah ia jalankan. Menambah migration berarti menambahkannya di sini juga;
+ * `check('seluruh migration tercakup')` di bawah yang memastikan itu tidak terlupa lagi.
+ */
 const UP = [
   '0000_catalog.sql',
   '0001_catalog_import_runs.sql',
@@ -89,8 +98,20 @@ const UP = [
   '0003_identity.sql',
   '0004_onboarding_states.sql',
   '0005_conversation.sql',
+  '0006_requirement_snapshots.sql',
+  '0007_llm_calls.sql',
+  '0008_recommendations.sql',
+  '0009_reports_handoffs.sql',
+  '0010_intelligence.sql',
+  '0011_catalog_foreign_keys.sql',
 ];
 const DOWN = [
+  '0011_catalog_foreign_keys.down.sql',
+  '0010_intelligence.down.sql',
+  '0009_reports_handoffs.down.sql',
+  '0008_recommendations.down.sql',
+  '0007_llm_calls.down.sql',
+  '0006_requirement_snapshots.down.sql',
   '0005_conversation.down.sql',
   '0004_onboarding_states.down.sql',
   '0003_identity.down.sql',
@@ -98,7 +119,8 @@ const DOWN = [
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-const TABLES = 17;
+/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK). */
+const TABLES = 27;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
 
@@ -117,6 +139,25 @@ for (const file of DOWN) {
     // Sengaja ditelan: pada database bersih memang tidak ada yang perlu diturunkan.
   }
 }
+
+/**
+ * Pagar terhadap kesalahan yang sudah pernah terjadi: daftar `UP` tertinggal di 0005
+ * sementara enam migration berikutnya ditambahkan, dan skrip tetap melaporkan "lolos"
+ * untuk skema yang tidak pernah ia jalankan. Sekarang daftarnya diperiksa terhadap isi
+ * direktori.
+ */
+await check('seluruh migration tercakup daftar UP', async () => {
+  const { readdirSync } = await import('node:fs');
+  const onDisk = readdirSync(DIR)
+    .filter((f) => f.endsWith('.sql') && !f.endsWith('.down.sql'))
+    .sort();
+  const missing = onDisk.filter((f) => !UP.includes(f));
+  if (missing.length > 0) {
+    throw new Error(`tidak diuji: ${missing.join(', ')} — tambahkan ke UP dan DOWN`);
+  }
+  const extra = UP.filter((f) => !onDisk.includes(f));
+  if (extra.length > 0) throw new Error(`berkas tidak ada: ${extra.join(', ')}`);
+});
 
 // ── Naik ────────────────────────────────────────────────────────────────────
 console.log('up:');
@@ -484,6 +525,97 @@ await check('mengizinkan beberapa baris consent untuk subjek dan jenis yang sama
      VALUES (?,?,?,?,?,?)`,
     [ulid(35), U1, 'user', 'LOCATION', 1, 'v0-draft'],
   );
+});
+
+// ── Foreign key dalam konteks katalog (0011, P1-01b) ────────────────────────
+console.log('\nforeign key katalog:');
+
+/** Menghitung FK bernama tertentu — ada atau tidak, bukan "kira-kira ada". */
+async function hasForeignKey(table, name) {
+  const [rows] = await conn.query(
+    `SELECT COUNT(*) AS n FROM information_schema.TABLE_CONSTRAINTS
+     WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND CONSTRAINT_NAME = ?
+       AND CONSTRAINT_TYPE = 'FOREIGN KEY'`,
+    [cfg.database, table, name],
+  );
+  return Number(rows[0].n) === 1;
+}
+
+await check('ketujuh foreign key katalog terpasang', async () => {
+  const expected = [
+    ['products', 'fk_products_version'],
+    ['product_sizes', 'fk_product_sizes_product'],
+    ['product_specs', 'fk_product_specs_product'],
+    ['product_documents', 'fk_product_documents_product'],
+    ['product_images', 'fk_product_images_product'],
+    ['product_compatibility', 'fk_product_compatibility_product'],
+    ['product_compatibility', 'fk_product_compatibility_compatible'],
+  ];
+  for (const [table, name] of expected) {
+    if (!(await hasForeignKey(table, name))) throw new Error(`${table}.${name} tidak ada`);
+  }
+});
+
+await check('menolak produk yang menunjuk versi katalog tidak ada', async () => {
+  await mustReject(
+    `INSERT INTO products
+       (id, catalog_version_id, sku, name, family, category, description, status,
+        source_document, source_page, row_hash)
+     VALUES (?, ?, 'YATIM-1', 'Produk yatim', 'PVC AW', 'PIPA', '-', 'active', 'dok', 1, ?)`,
+    ['01JBORPHAN00000000000000AA', '01JBTIDAKADA000000000000BB', 'hash-yatim'],
+  );
+});
+
+await check('menolak ukuran yang menunjuk produk tidak ada', async () => {
+  await mustReject(
+    `INSERT INTO product_sizes (product_id, size_inches_x1000, size_label)
+     VALUES (?, 1000, '1"')`,
+    ['01JBTIDAKADA000000000000CC'],
+  );
+});
+
+await check('menolak kompatibilitas yang menunjuk produk tidak ada di KEDUA sisi', async () => {
+  // Dua FK, jadi dua jalur gagal — keduanya harus benar-benar ditutup.
+  await mustReject(
+    `INSERT INTO product_compatibility (product_id, compatible_product_id, kind)
+     VALUES (?, ?, 'tee')`,
+    ['01JBTIDAKADA000000000000DD', '01JBTIDAKADA000000000000EE'],
+  );
+});
+
+await check('menghapus versi katalog ikut menghapus produknya (cascade)', async () => {
+  const versionId = '01JBCASCADEVER0000000000AA';
+  const productId = '01JBCASCADEPRD0000000000BB';
+  await conn.query(
+    `INSERT INTO catalog_versions
+       (id, label, status, source_document, effective_from, imported_by)
+     VALUES (?, 'cascade-uji', 'draft', 'dok uji', '2026-01-01', ?)`,
+    [versionId, '01JBIMPORTEDBY00000000AA0'],
+  );
+  await conn.query(
+    `INSERT INTO products
+       (id, catalog_version_id, sku, name, family, category, description, status,
+        source_document, source_page, row_hash)
+     VALUES (?, ?, 'CASCADE-1', 'Produk cascade', 'PVC AW', 'PIPA', '-', 'active', 'dok', 1, ?)`,
+    [productId, versionId, 'hash-cascade'],
+  );
+  await conn.query(
+    `INSERT INTO product_sizes (product_id, size_inches_x1000, size_label)
+     VALUES (?, 1000, '1"')`,
+    [productId],
+  );
+
+  await conn.query('DELETE FROM catalog_versions WHERE id = ?', [versionId]);
+
+  const [products] = await conn.query('SELECT COUNT(*) AS n FROM products WHERE id = ?', [
+    productId,
+  ]);
+  const [sizes] = await conn.query('SELECT COUNT(*) AS n FROM product_sizes WHERE product_id = ?', [
+    productId,
+  ]);
+  if (Number(products[0].n) !== 0) throw new Error('produk tidak terhapus');
+  // Cascade dua tingkat: versi → produk → ukuran.
+  if (Number(sizes[0].n) !== 0) throw new Error('ukuran tidak terhapus');
 });
 
 // ── Turun ───────────────────────────────────────────────────────────────────

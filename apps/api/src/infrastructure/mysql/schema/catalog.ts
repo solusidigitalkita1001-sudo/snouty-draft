@@ -6,6 +6,7 @@ import {
   index,
   int,
   json,
+  foreignKey,
   mysqlTable,
   primaryKey,
   text,
@@ -126,6 +127,17 @@ export const products = mysqlTable(
     check('ck_products_status', sql`\`status\` IN ('active','discontinued')`),
     // Rujukan halaman wajib masuk akal: itu janji bahwa datanya bisa dicek.
     check('ck_products_source_page', sql`\`source_page\` > 0`),
+    /**
+     * FK **di dalam satu konteks** (docs/DATABASE.md §5). Tanpa ini baris anak yatim
+     * mungkin terjadi — dan katalog yatim adalah data yang tidak bisa dijelaskan asalnya.
+     * `CASCADE` karena anak-anak ini tidak punya arti tanpa induknya: ukuran tanpa produk
+     * bukan apa-apa.
+     */
+    foreignKey({
+      name: 'fk_products_version',
+      columns: [t.catalogVersionId],
+      foreignColumns: [catalogVersions.id],
+    }).onDelete('cascade'),
   ],
 );
 
@@ -148,6 +160,11 @@ export const productSizes = mysqlTable(
     primaryKey({ columns: [t.productId, t.sizeInches] }),
     index('ix_product_sizes_lookup').on(t.productId, t.sizeInches),
     check('ck_product_sizes_positive', sql`\`size_inches_x1000\` > 0`),
+    foreignKey({
+      name: 'fk_product_sizes_product',
+      columns: [t.productId],
+      foreignColumns: [products.id],
+    }).onDelete('cascade'),
   ],
 );
 
@@ -184,6 +201,11 @@ export const productSpecs = mysqlTable(
       'ck_product_specs_empty_is_unavailable',
       sql`(\`spec_value\` IS NOT NULL) OR (\`provenance\` = 'UNAVAILABLE')`,
     ),
+    foreignKey({
+      name: 'fk_product_specs_product',
+      columns: [t.productId],
+      foreignColumns: [products.id],
+    }).onDelete('cascade'),
   ],
 );
 
@@ -208,6 +230,18 @@ export const productCompatibility = mysqlTable(
     index('ix_product_compatibility_kind').on(t.productId, t.kind),
     check('ck_product_compatibility_kind', sql`\`kind\` IN ('tee','elbow','reducer','socket')`),
     check('ck_product_compatibility_not_self', sql`\`product_id\` <> \`compatible_product_id\``),
+    // Dua FK: kedua sisi relasi harus produk yang benar-benar ada, atau "kompatibel
+    // dengan" menunjuk ke ketiadaan.
+    foreignKey({
+      name: 'fk_product_compatibility_product',
+      columns: [t.productId],
+      foreignColumns: [products.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'fk_product_compatibility_compatible',
+      columns: [t.compatibleProductId],
+      foreignColumns: [products.id],
+    }).onDelete('cascade'),
   ],
 );
 
@@ -221,7 +255,14 @@ export const productDocuments = mysqlTable(
     url: varchar('url', { length: 512 }).notNull(),
     page: int('page'),
   },
-  (t) => [index('ix_product_documents_product').on(t.productId)],
+  (t) => [
+    index('ix_product_documents_product').on(t.productId),
+    foreignKey({
+      name: 'fk_product_documents_product',
+      columns: [t.productId],
+      foreignColumns: [products.id],
+    }).onDelete('cascade'),
+  ],
 );
 
 /** Foto produk 1:1. Kosong berarti placeholder bergaris — tidak pernah foto produk lain. */
@@ -233,7 +274,14 @@ export const productImages = mysqlTable(
     url: varchar('url', { length: 512 }).notNull(),
     sortOrder: int('sort_order').notNull().default(0),
   },
-  (t) => [index('ix_product_images_product').on(t.productId)],
+  (t) => [
+    index('ix_product_images_product').on(t.productId),
+    foreignKey({
+      name: 'fk_product_images_product',
+      columns: [t.productId],
+      foreignColumns: [products.id],
+    }).onDelete('cascade'),
+  ],
 );
 
 /**
