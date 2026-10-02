@@ -1,0 +1,529 @@
+/*
+ * Layar 02 — konsultasi aktif. Metrik dari prototipe baru lewat token:
+ * sidebar 236px, nav rail 60px, header 52px, panel kanan 300px.
+ * Semua warna lewat --snouty-* (lint melarang hex mentah di apps/).
+ */
+
+.shell {
+  display: flex;
+  height: 100dvh;
+  background: var(--snouty-canvas);
+  color: var(--snouty-ink);
+  font-family: var(--snouty-font-sans);
+}
+
+/* ---------- sidebar ---------- */
+
+.sidebar {
+  width: var(--snouty-sidebar-w);
+  flex: none;
+  background: var(--snouty-surface);
+  border-right: 1px solid var(--snouty-border);
+  display: flex;
+  flex-direction: column;
+  padding: 18px 14px;
+  gap: 18px;
+}
+
+.brandName {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.brandKicker {
+  font-family: var(--snouty-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--snouty-muted);
+  margin-top: 2px;
+}
+
+.newButton {
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  color: var(--snouty-ink);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.newButton:hover {
+  border-color: var(--snouty-action);
+  color: var(--snouty-action-text);
+}
+
+.sidebarSection {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--snouty-muted);
+}
+
+/* ---------- nav rail ---------- */
+
+.navRail {
+  width: var(--snouty-nav-rail-w);
+  flex: none;
+  background: var(--snouty-surface);
+  border-right: 1px solid var(--snouty-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 0;
+  gap: 12px;
+}
+
+.navDot {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--snouty-action-soft-bg);
+  border: 1px solid var(--snouty-action-soft-border);
+}
+
+/* ---------- main ---------- */
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  height: var(--snouty-header-h);
+  flex: none;
+  border-bottom: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.headerTitle {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.panelToggle,
+.sendButton,
+.chip,
+.ctaButton {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.panelToggle {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: 6px;
+  color: var(--snouty-ink-muted, var(--snouty-muted));
+  font-size: 13px;
+  line-height: 1;
+}
+
+.panelToggle:hover {
+  border-color: var(--snouty-action);
+  color: var(--snouty-action-text);
+}
+
+.stream {
+  flex: 1;
+  overflow: auto;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.empty {
+  font-size: 14px;
+  color: var(--snouty-muted);
+  line-height: 1.6;
+  max-width: 460px;
+  text-wrap: pretty;
+}
+
+/* ---------- bubbles ---------- */
+
+.userRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.userBubble {
+  max-width: 360px;
+  background: var(--snouty-ink);
+  color: var(--snouty-action-on);
+  font-size: 13.5px;
+  line-height: 1.5;
+  padding: 11px 14px;
+  border-radius: 14px 14px 4px 14px;
+}
+
+.assistantRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.assistantAvatar {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid var(--snouty-action-soft-border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.assistantCol {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  max-width: 660px;
+}
+
+.assistantBubble {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--snouty-ink);
+  text-wrap: pretty;
+}
+
+/* ---------- clarification ---------- */
+
+.clarificationCard {
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: 10px;
+  padding: 14px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.questionText {
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.chip {
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: var(--snouty-radius-chip, 20px);
+  padding: 5px 12px;
+  font-size: 12.5px;
+  color: var(--snouty-ink);
+}
+
+.chip:hover {
+  border-color: var(--snouty-action);
+  color: var(--snouty-action-text);
+}
+
+/* ---------- CTA ---------- */
+
+.ctaCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1px solid var(--snouty-verified-soft-border);
+  background: var(--snouty-verified-soft-bg);
+  border-radius: 10px;
+  padding: 13px 15px;
+  font-size: 13px;
+}
+
+.ctaButton {
+  background: var(--snouty-action);
+  color: var(--snouty-action-on);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.ctaButton:disabled {
+  background: var(--snouty-disabled);
+  cursor: not-allowed;
+}
+
+/* ---------- stage indicator ---------- */
+
+.stageCard {
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: 10px;
+  padding: 15px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  max-width: 470px;
+}
+
+.stageRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stageDot {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid var(--snouty-border);
+  background: var(--snouty-surface);
+}
+
+.stageDotActive {
+  border-color: var(--snouty-action);
+}
+
+.stageDotDone {
+  border-color: var(--snouty-verified-text);
+  background: var(--snouty-verified-text);
+}
+
+.stageDotFailed {
+  border-color: var(--snouty-assumed-border-strong);
+  background: var(--snouty-assumed-bg);
+}
+
+.stageLabel {
+  font-size: 13.5px;
+  color: var(--snouty-muted);
+}
+
+.stageLabelOn {
+  font-size: 13.5px;
+  color: var(--snouty-ink);
+  font-weight: 500;
+}
+
+.stageFooter {
+  border-top: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  padding-top: 12px;
+  font-size: 12px;
+  color: var(--snouty-caption);
+  line-height: 1.5;
+}
+
+.errorCard {
+  border: 1px solid var(--snouty-assumed-border);
+  background: var(--snouty-assumed-bg);
+  color: var(--snouty-assumed-body);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  max-width: 470px;
+}
+
+/* ---------- composer ---------- */
+
+.composer {
+  flex: none;
+  border-top: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.composerInput {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--snouty-border);
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--snouty-ink);
+  background: var(--snouty-surface);
+  outline: none;
+}
+
+.composerInput:focus-visible {
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.sendButton {
+  flex: none;
+  background: var(--snouty-action);
+  color: var(--snouty-action-on);
+  border: none;
+  border-radius: 6px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sendButton:hover:not(:disabled) {
+  background: var(--snouty-action-hover);
+}
+
+.sendButton:disabled {
+  background: var(--snouty-disabled);
+  cursor: not-allowed;
+}
+
+/* ---------- right panel ---------- */
+
+.panel {
+  width: var(--snouty-panel-w);
+  flex: none;
+  background: var(--snouty-surface);
+  border-left: 1px solid var(--snouty-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.panelHead {
+  height: var(--snouty-header-h);
+  flex: none;
+  border-bottom: 1px solid var(--snouty-border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.panelBody {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panelSection {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.panelSection + .panelSection {
+  border-top: 1px solid var(--snouty-border-soft);
+  padding-top: 15px;
+}
+
+.panelKicker {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--snouty-muted);
+}
+
+.reqRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.reqLabel {
+  color: var(--snouty-muted);
+}
+
+.reqValue {
+  font-weight: 500;
+  text-align: right;
+  color: var(--snouty-ink);
+}
+
+/* Amber = asumsi/estimasi; teks nilainya sendiri yang membawa makna, bukan warna. */
+.reqValueAssumed {
+  color: var(--snouty-assumed-text);
+}
+
+.reqValueMissing {
+  color: var(--snouty-caption);
+  font-weight: 400;
+}
+
+.meter {
+  display: flex;
+  gap: 4px;
+}
+
+.meterBar {
+  height: 4px;
+  flex: 1;
+  border-radius: 2px;
+  background: var(--snouty-border);
+}
+
+.meterBarOn {
+  background: var(--snouty-action);
+}
+
+.meterNote {
+  font-size: 12.5px;
+  color: var(--snouty-muted);
+  line-height: 1.5;
+}
+
+.boundaryTitle {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.boundaryBody {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--snouty-muted);
+  text-wrap: pretty;
+}
+
+/* ---------- responsif: < 1080px sidebar menciut, panel jadi overlay ---------- */
+
+@media (max-width: 1079px) {
+  .sidebar {
+    display: none;
+  }
+
+  .panel {
+    position: fixed;
+    inset: var(--snouty-header-h) 0 0 auto;
+    width: min(300px, 88%);
+    z-index: 40;
+    box-shadow: -12px 0 40px var(--snouty-scrim, rgb(0 0 0 / 14%));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stream {
+    scroll-behavior: auto;
+  }
+}
