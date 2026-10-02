@@ -6,6 +6,7 @@ import { RedisModule } from './shared/redis/redis.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AccessTokenMiddleware } from './modules/auth/presentation/access-token.middleware.js';
 import { GuestSessionMiddleware } from './modules/auth/presentation/guest-session.middleware.js';
+import { ConversationModule } from './modules/conversation/conversation.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { OnboardingConsentModule } from './modules/onboarding-consent/onboarding-consent.module.js';
 import { ProductCatalogModule } from './modules/product-catalog/product-catalog.module.js';
@@ -26,6 +27,7 @@ import { ProductKnowledgeModule } from './modules/product-knowledge/product-know
     HealthModule,
     AuthModule,
     OnboardingConsentModule,
+    ConversationModule,
     ProductCatalogModule,
     ProductKnowledgeModule,
   ],

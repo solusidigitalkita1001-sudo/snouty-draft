@@ -29,4 +29,12 @@ export type {
   SummaryField,
 } from './assistant-card.js';
 export { MAX_CLARIFICATION_QUESTIONS } from './assistant-card.js';
+export type {
+  ConversationMessage,
+  ConversationStage,
+  ConversationStatus,
+  ConversationSummary,
+  MessageRole,
+} from './conversation.js';
+export { CONVERSATION_STATUS_LABELS } from './conversation.js';
 export { ANALYSIS_STAGE_LABELS } from './sse.js';

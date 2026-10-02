@@ -62,7 +62,7 @@ async function tableCount() {
       'product_compatibility','product_documents','product_images',
       'catalog_import_runs','audit_logs',
       'users','user_roles','refresh_tokens','guest_sessions','consents',
-      'onboarding_states')`,
+      'onboarding_states','conversations','messages')`,
     [cfg.database],
   );
   return Number(rows[0].n);
@@ -88,15 +88,17 @@ const UP = [
   '0002_audit_logs.sql',
   '0003_identity.sql',
   '0004_onboarding_states.sql',
+  '0005_conversation.sql',
 ];
 const DOWN = [
+  '0005_conversation.down.sql',
   '0004_onboarding_states.down.sql',
   '0003_identity.down.sql',
   '0002_audit_logs.down.sql',
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-const TABLES = 15;
+const TABLES = 17;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
 
