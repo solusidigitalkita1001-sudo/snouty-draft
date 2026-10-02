@@ -8,7 +8,12 @@
  */
 import { Injectable } from '@nestjs/common';
 import { and, desc, eq, isNull, like, lt, type SQL, sql } from 'drizzle-orm';
-import type { AssistantCard, MessageRole } from '@snouty/shared-types';
+import type {
+  AssistantCard,
+  ConversationStage,
+  ConversationStatus,
+  MessageRole,
+} from '@snouty/shared-types';
 import { conversations, messages } from '../../../infrastructure/mysql/schema/conversation.js';
 import { DatabaseService, type QueryRunner } from '../../../shared/database/database.service.js';
 import {
@@ -71,6 +76,17 @@ export class MysqlConversationRepository implements ConversationRepository {
 
   async updateTitle(id: string, title: string): Promise<void> {
     await this.database.db.update(conversations).set({ title }).where(eq(conversations.id, id));
+  }
+
+  async updateStatus(
+    id: string,
+    status: ConversationStatus,
+    stage?: ConversationStage,
+  ): Promise<void> {
+    await this.database.db
+      .update(conversations)
+      .set({ status, ...(stage !== undefined ? { stage } : {}) })
+      .where(eq(conversations.id, id));
   }
 
   async softDelete(id: string): Promise<void> {

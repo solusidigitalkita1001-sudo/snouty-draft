@@ -58,6 +58,20 @@ export class ConversationService {
     await this.repository.updateTitle(id, trimmed);
   }
 
+  /**
+   * Menyimpan hasil konsultasi (layar 06 → riwayat). Entitlement `SAVE_SOLUTION`
+   * ditegakkan di controller (lapis dua); di sini yang diperiksa kepemilikannya.
+   */
+  async save(id: string, actor: ConversationOwner): Promise<void> {
+    await this.owned(id, actor);
+    await this.repository.updateStatus(id, 'SAVED', 'SOLUSI');
+  }
+
+  /** Dipakai pipeline rekomendasi saat solusi siap (Fase 7). */
+  async markSolutionReady(id: string): Promise<void> {
+    await this.repository.updateStatus(id, 'SOLUTION_READY', 'SOLUSI');
+  }
+
   async remove(id: string, actor: ConversationOwner): Promise<void> {
     await this.owned(id, actor);
     await this.repository.softDelete(id);

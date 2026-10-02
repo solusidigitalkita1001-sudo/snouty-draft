@@ -20,6 +20,7 @@ import {
   CATALOG_REPOSITORY,
   type CatalogRepository,
 } from '../../product-catalog/domain/catalog.repository.js';
+import { ConversationService } from '../../conversation/application/conversation.service.js';
 import { ulid } from '../../../shared/ulid.js';
 import { assembleRecommendation, type ProseWriter } from './recommendation-assembler.js';
 import { matchProducts, requirementsFrom } from '../domain/product-matcher.js';
@@ -45,6 +46,7 @@ export class AnalysisService {
   constructor(
     @Inject(CATALOG_REPOSITORY) private readonly catalog: CatalogRepository,
     @Inject(RECOMMENDATION_REPOSITORY) private readonly repository: RecommendationRepository,
+    private readonly conversations: ConversationService,
     private readonly prose: ProseWriter | null = null,
   ) {}
 
@@ -122,6 +124,10 @@ export class AnalysisService {
       this.prose,
     );
     await this.repository.save(assembled.recommendation, traces);
+    // Status percakapan menyusul solusinya: header layar dan daftar riwayat keduanya
+    // membaca kolom ini, jadi membiarkannya `IN_PROGRESS` akan membuat riwayat
+    // berbohong tentang konsultasi yang sudah selesai.
+    await this.conversations.markSolutionReady(conversationId);
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
 
     // --- Tahap 5: topologi skema ---

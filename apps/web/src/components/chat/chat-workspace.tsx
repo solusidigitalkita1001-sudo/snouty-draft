@@ -24,7 +24,14 @@ import type {
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import mascot from '../../../public/snouty-mascot.png';
-import { createConversation, sendMessage, sendToTechnicalTeam } from './chat-api';
+import {
+  createConversation,
+  fetchHistory,
+  saveConversation,
+  sendMessage,
+  sendToTechnicalTeam,
+  type ConversationSummary,
+} from './chat-api';
 import { CHAT_COPY as COPY, STAGE_ORDER, stageLabel } from './chat-copy';
 import { requirementRows } from './requirement-rows';
 import styles from './chat-workspace.module.css';
@@ -46,7 +53,25 @@ export function ChatWorkspace() {
   const [error, setError] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
   const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
+  const [history, setHistory] = useState<
+    | { kind: 'loading' }
+    | { kind: 'guest' }
+    | { kind: 'list'; items: readonly ConversationSummary[] }
+  >({ kind: 'loading' });
   const streamRef = useRef<HTMLDivElement>(null);
+
+  // Riwayat dimuat sekali. Tamu mendapat 403, dan itu jawaban yang benar — bukan error.
+  useEffect(() => {
+    let cancelled = false;
+    void fetchHistory().then((result) => {
+      if (cancelled) return;
+      setHistory(result.kind === 'ok' ? { kind: 'list', items: result.items } : { kind: 'guest' });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,6 +165,17 @@ export function ChatWorkspace() {
     [conversationId, handoffState],
   );
 
+  /**
+   * "Simpan hasil konsultasi". Digerbang `SAVE_SOLUTION` di API: tamu menerima 403 dan
+   * tombolnya tetap tidak berubah — UI tidak berpura-pura berhasil.
+   */
+  const save = useCallback(() => {
+    if (!conversationId || saveState === 'saved') return;
+    void saveConversation(conversationId).then((ok) => {
+      if (ok) setSaveState('saved');
+    });
+  }, [conversationId, saveState]);
+
   const rows = state ? requirementRows(state) : [];
   const filled = state?.completeness.filled ?? 0;
 
@@ -154,7 +190,31 @@ export function ChatWorkspace() {
           {COPY.newConversation}
         </button>
         <div className={styles.sidebarSection}>{COPY.historyTitle}</div>
-        {/* Daftar riwayat butuh entitlement CONVERSATION_HISTORY — layar 12, Fase 8. */}
+
+        {history.kind === 'guest' && <p className={styles.historyGuest}>{COPY.historyGuest}</p>}
+
+        {history.kind === 'list' && history.items.length === 0 && (
+          <p className={styles.historyGuest}>{COPY.historyEmpty}</p>
+        )}
+
+        {history.kind === 'list' &&
+          history.items.map((item) => (
+            <div
+              key={item.id}
+              className={[
+                styles.historyItem,
+                item.id === conversationId ? styles.historyItemActive : '',
+              ].join(' ')}
+            >
+              <span className={styles.historyTitleText}>{item.title ?? 'Konsultasi baru'}</span>
+              <span className={styles.historyMeta}>{item.status}</span>
+            </div>
+          ))}
+
+        <div className={styles.sidebarLinks}>
+          <span className={styles.sidebarLink}>{COPY.savedSolutions}</span>
+          <span className={styles.sidebarLink}>{COPY.productKnowledge}</span>
+        </div>
       </aside>
 
       <nav className={styles.navRail} aria-label="Navigasi utama">
@@ -196,6 +256,8 @@ export function ChatWorkspace() {
                       onChip={answerChip}
                       onHandoff={handoff}
                       handoffState={handoffState}
+                      onSave={save}
+                      saveState={saveState}
                     />
                   ))}
                 </div>
@@ -335,11 +397,15 @@ function CardView({
   onChip,
   onHandoff,
   handoffState,
+  onSave,
+  saveState,
 }: {
   card: AssistantCard;
   onChip: (question: ClarificationQuestion, option: string) => void;
   onHandoff: (reason: string) => void;
   handoffState: 'idle' | 'sending' | 'sent';
+  onSave: () => void;
+  saveState: 'idle' | 'saved';
 }) {
   if (card.kind === 'clarification') {
     // Layar 03: pertanyaan BERNOMOR — maksimum empat, dan nomornya membuat
@@ -393,9 +459,17 @@ function CardView({
     return (
       <div className={styles.ctaCard}>
         <span>Data inti sudah lengkap.</span>
-        {/* Analisis sungguhan menyusul bersama Engineering Engine (Fase 6). */}
+        {/* Analisis dijalankan lewat POST /conversations/:id/analyze (Fase 7). */}
         <button type="button" className={styles.ctaButton} disabled>
           Analisis kebutuhan
+        </button>
+        <button
+          type="button"
+          className={styles.chip}
+          onClick={onSave}
+          disabled={saveState === 'saved'}
+        >
+          {saveState === 'saved' ? COPY.saved : COPY.saveSolution}
         </button>
       </div>
     );

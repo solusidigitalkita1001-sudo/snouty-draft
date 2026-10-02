@@ -101,6 +101,19 @@ export class ConversationController {
     await this.conversations.rename(idOf(rawParam), ownerOf(request), body.title);
   }
 
+  /**
+   * "Simpan hasil konsultasi" (layar 06). Digerbang `SAVE_SOLUTION` — ini lapis dua
+   * dari tiga: UI menyembunyikan tombolnya bagi tamu, gerbang ini menolak tamu yang
+   * melewati UI, dan kepemilikan diperiksa di service.
+   */
+  @Post(':id/save')
+  @HttpCode(204)
+  async save(@Param() rawParam: unknown, @Req() request: PublicRequest): Promise<void> {
+    const actor = actorOf(request);
+    requireEntitled(actor.tier, 'SAVE_SOLUTION');
+    await this.conversations.save(idOf(rawParam), { kind: actor.kind, id: actor.id });
+  }
+
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param() rawParam: unknown, @Req() request: PublicRequest): Promise<void> {

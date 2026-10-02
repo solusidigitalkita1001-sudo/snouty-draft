@@ -62,6 +62,13 @@ export interface ConversationRepository {
 
   updateTitle(id: string, title: string): Promise<void>;
 
+  /**
+   * Mengubah status dan tahap percakapan. Dipakai saat solusi tersusun (Fase 7) dan
+   * saat pengguna menyimpannya (Fase 8). Keduanya bergerak bersama: status `SAVED`
+   * tanpa tahap `SOLUSI` akan membuat header layar bertentangan dengan isinya.
+   */
+  updateStatus(id: string, status: ConversationStatus, stage?: ConversationStage): Promise<void>;
+
   softDelete(id: string): Promise<void>;
 
   appendMessage(message: {

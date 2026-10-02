@@ -671,3 +671,60 @@
   gap: 9px;
   flex-wrap: wrap;
 }
+
+/* ---------- riwayat sidebar (layar 12) ---------- */
+
+.historyGuest {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--snouty-muted);
+  padding: 0 9px;
+}
+
+.historyItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 9px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.historyItem:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+/* Percakapan aktif: latar merah lembut + garis kiri merek, sesuai prototipe. */
+.historyItemActive {
+  background: var(--snouty-action-row);
+  border-left: 2px solid var(--snouty-action);
+  border-radius: 0 5px 5px 0;
+}
+
+.historyTitleText {
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--snouty-ink);
+}
+
+.historyMeta {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  color: var(--snouty-caption);
+}
+
+.sidebarLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  border-top: 1px solid var(--snouty-border-soft);
+  padding-top: 8px;
+}
+
+.sidebarLink {
+  padding: 7px 9px;
+  border-radius: 5px;
+  font-size: 13px;
+  color: var(--snouty-muted);
+}

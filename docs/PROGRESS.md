@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Next item: **P8-02 layar 12 riwayat** · **P8-10 docs**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Fase 8: **8/10 selesai** (P8-08/09 terhalang); menunggu ✋ CHECKPOINT pemilik
 
 ## Summary
 
@@ -412,8 +412,9 @@ sudah berubah.
 bisa dibangun di `api` dibangun sekarang — tabel `Report`, alokasi nomor, endpoint, dan **halaman cetak
 HTML** — sehingga yang tersisa untuk worker hanyalah "buka halaman ini, cetak ke PDF".
 
-- [ ] P8-01 Simpan solusi: status percakapan `SAVED`, entitlement `SAVE_SOLUTION`
-- [ ] P8-02 Layar 12 riwayat — digerbang `CONVERSATION_HISTORY` (tamu tidak melihatnya)
+- [x] P8-01 Simpan solusi — `POST /conversations/:id/save` digerbang `SAVE_SOLUTION`; status dan tahap bergerak bersama (`SAVED` + `SOLUSI`), dan analisis kini menandai `SOLUTION_READY` supaya riwayat tidak berbohong tentang konsultasi yang sudah selesai
+  - [x] P8-01a Tes (3, MySQL nyata); diverifikasi live: tamu ditolak 403 `NOT_ENTITLED`
+- [x] P8-02 Riwayat di sidebar layar 02 — digerbang `CONVERSATION_HISTORY`; tamu melihat **ajakan mendaftar**, bukan daftar kosong (daftar kosong terbaca "Anda belum pernah berkonsultasi"); percakapan aktif ditandai garis merek seperti prototipe
 - [x] P8-03 Migration 0009 `reports` + `report_number_counters` + `technical_handoffs`; alokasi nomor dalam transaksi dengan `FOR UPDATE` (baris dipastikan ada lebih dulu — `FOR UPDATE` atas baris yang belum ada tidak mengunci apa pun)
   - [x] P8-03a Tes (7, MySQL nyata): empat permintaan serentak mendapat 1–4 tanpa tabrakan; laporan gagal tidak melepas nomornya; `payload` dibekukan
 - [x] P8-04 Perakit laporan dari `Recommendation` + `CalculationTrace`, **nol panggilan LLM**; kebutuhan yang belum diisi tidak menjadi baris kosong; harga nonaktif → nilainya nol dan bloknya tidak dirender (bukan Rp 0, yang terbaca "gratis")
@@ -426,8 +427,10 @@ HTML** — sehingga yang tersisa untuk worker hanyalah "buka halaman ini, cetak 
   - [x] P8-07a Tes (6, MySQL nyata): salinan beku, antrean terlama-dulu, CHECK status, cascade
 - [ ] `[!]` P8-08 Worker PDF (Playwright + Chromium) — **terhalang OQ-40**
 - [ ] `[!]` P8-09 Register-gate & resume — **terhalang OQ-27, OQ-21**; mekanisme G-1-nya sudah ada sejak Fase 3
-- [ ] P8-10 `docs/REPORT.md` disesuaikan implementasi
+- [x] P8-10 `docs/REPORT.md` §11 — pemetaan bagian → berkas, catatan alokasi nomor, catatan keamanan rute cetak, dan apa yang menunggu OQ-40/OQ-03
 - [ ] ✋ CHECKPOINT — reviewed by owner
+
+Fase 8: **8/10 selesai.** Dua sisa terhalang: P8-08 worker PDF (**OQ-40**) dan P8-09 register-gate (**OQ-27/OQ-21**). Halaman cetak sudah final sehingga worker tinggal mencetaknya.
 
 ## Phases 9–13
 
@@ -527,3 +530,4 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | 2026-10-02 | P5 (seluruhnya)                   | Policy Engine + permukaan kebijakan; 8/8                 | `phase-1/P1-01-catalog-foundation` | Lima kebijakan SPEC §5 jadi fungsi murni di modul leaf. Dua tes release blocker hijau: hasil kebijakan kompetitor **tidak punya field produk untuk diisi** (bukan sekadar tidak mengisinya), dan gerbang provenance disapu seluruh kombinasi status × provenance. Policy 1 diperiksa sebelum ekstraksi, Policy 5 atas state ter-merge — scope adalah sifat kebutuhan, bukan sifat kalimat. Diverifikasi dengan probe integrasi terhadap MySQL+Redis nyata: empat jalur kebijakan menghasilkan kartu benar, snapshot hanya tertulis saat ada ekstraksi.                                                                                                                                                                                   |
 | 2026-10-02 | P6 (seluruhnya)                   | Engineering Engine; 9/10                                 | `phase-1/P1-01-catalog-foundation` | 14 aturan, registry yang menolak aturan tanpa tes, trace per eksekusi, orkestrator murni. Contoh kerja desain keluar persis: 8 titik air, 11 unit beban, jalur utama 1", BOM 5 baris. Tiga kali saya menolak mengisi lubang dengan karangan: baris lem PVC (tanpa formula) dibiarkan absen dengan tes penjaga, ambang ENG-002 mengikuti prototipe baru dan ditandai prioritas validasi tertinggi, batas 3 lantai tidak dibawa karena itu batas rendering. Seluruh keluaran `ASSUMED` — diuji — sampai OQ-06 menunjuk ahli domain. OQ-42 dicatat untuk konflik zod vs isolasi paket.                                                                                                                                                      |
 | 2026-10-02 | P7 (seluruhnya)                   | pipeline rekomendasi; 10/10                              | `phase-1/P1-01-catalog-foundation` | Rantai lengkap pertama kali hidup: kebutuhan → aturan teknik → katalog → rekomendasi tersimpan → dirender. Pemeriksa REC-1 menolak prosa ber-angka asing, retry sekali, lalu templat deterministik yang lulus pemeriksaannya sendiri. Menulis pemeriksa itu memunculkan bug nyata: pola ukuran saya membaca "2 1/2" sebagai "1/2", jadi ukuran asing bisa lolos. Verifikasi live juga menangkap bug packaging: `@snouty/engineering` menunjuk `src/index.ts` sehingga Node tak bisa memuatnya — paket itu kini punya build sendiri dan masuk `build:types`.                                                                                                                                                                              |
+| 2026-10-02 | P8 (sebagian)                     | laporan, riwayat, handoff; 8/10                          | `phase-1/P1-01-catalog-foundation` | Laporan dirakit dari data tersimpan tanpa satu pun panggilan LLM, jadi dua kali perakitan identik. Alokasi nomor menyisipkan baris penghitung sebelum menguncinya — `FOR UPDATE` atas baris yang belum ada hanya mengunci gap, dan dua permintaan pertama bulan baru akan lolos berdua. **Verifikasi live menemukan lubang keamanan**: rute cetak internal berjalan tanpa gerbang (satu controller dengan rute publik, sementara guard dipasang per controller) dan mengembalikan nama + lokasi pelanggan kepada siapa pun yang menebak id. Diperbaiki dengan memisahkan controller, diverifikasi, dan dipaku 5 tes regresi.                                                                                                             |

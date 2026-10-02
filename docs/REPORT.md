@@ -188,3 +188,36 @@ ada. Ini yang mewujudkan janji "tidak perlu menjelaskan ulang".
 | 8   | Unduhan oleh peran internal menulis audit log                                |
 | 9   | Kegagalan menghasilkan `FAILED` + kartu "Unduh ulang" / "Kirim ke email"     |
 | 10  | Footer "PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS" ada di kedua halaman |
+
+---
+
+## 11. Status implementasi (Fase 8)
+
+| Bagian                          | Berkas                                                      |
+| ------------------------------- | ----------------------------------------------------------- |
+| Tabel + penghitung nomor        | migration 0009, `schema/recommendation.ts`                  |
+| Format & alokasi nomor          | `modules/report/domain/report-number.ts`, repo MySQL        |
+| Perakit payload (nol LLM)       | `modules/report/application/report-assembler.ts`            |
+| Halaman cetak A4                | `modules/report/application/report-html.ts`                 |
+| Rute publik                     | `modules/report/presentation/report.controller.ts`          |
+| Rute cetak internal (digerbang) | `modules/report/presentation/internal-report.controller.ts` |
+
+Alokasi nomor **menyisipkan baris penghitung lebih dulu, baru menguncinya**: `SELECT … FOR UPDATE`
+atas baris yang belum ada hanya mengunci gap, sehingga dua permintaan pertama di bulan baru akan
+lolos berdua. Diuji dengan empat alokasi serentak terhadap MySQL nyata.
+
+**Catatan keamanan yang perlu diingat.** Rute cetak semula hidup di controller yang sama dengan rute
+publik. Karena `InternalRoleGuard` dipasang **per controller**, rute itu berjalan tanpa gerbang dan
+mengembalikan HTTP 200 berisi nama pelanggan dan lokasi proyek kepada siapa pun yang menebak id
+laporan — pelanggaran invarian RP-2. Ketangkap saat verifikasi live, bukan oleh tes. Sekarang ia
+controller terpisah, dan lima tes regresi menjaga dekoratornya tetap di tempatnya.
+
+Palet cetak harus literal (Chromium merender dokumen mandiri tanpa pipeline CSS), jadi ia konstanta
+bernama-token yang **diikat tes** ke `packages/ui/src/tokens.css`: perubahan token yang lupa
+dicerminkan menggagalkan tes alih-alih menghasilkan laporan berwarna lain.
+
+**Belum:** pembuatan PDF (Playwright + Chromium di `apps/worker`) terhalang **OQ-40**. Halaman cetaknya
+sudah final, jadi yang tersisa untuk worker hanyalah membuka halaman itu dan mencetaknya. Token
+bertanda tangan berumur pendek (§5) menyusul bersamanya — sampai itu ada, gerbang peran `admin`
+menjaga rutenya tertutup. "Unduh ringkasan kebutuhan" (§9) juga menunggu jalur yang sama. Harga (§4)
+menunggu OQ-03; `PRICING_ENABLED` sudah ada dan baku nonaktif.

@@ -12,6 +12,7 @@ import { ConversationModule } from '../conversation/conversation.module.js';
 import { ProductCatalogModule } from '../product-catalog/product-catalog.module.js';
 import { CATALOG_REPOSITORY } from '../product-catalog/domain/catalog.repository.js';
 import type { CatalogRepository } from '../product-catalog/domain/catalog.repository.js';
+import { ConversationService } from '../conversation/application/conversation.service.js';
 import { AnalysisService } from './application/analysis.service.js';
 import {
   RECOMMENDATION_REPOSITORY,
@@ -22,9 +23,12 @@ import { RecommendationController } from './presentation/recommendation.controll
 
 const analysisServiceProvider = {
   provide: AnalysisService,
-  inject: [CATALOG_REPOSITORY, RECOMMENDATION_REPOSITORY],
-  useFactory: (catalog: CatalogRepository, repository: RecommendationRepository) =>
-    new AnalysisService(catalog, repository, null),
+  inject: [CATALOG_REPOSITORY, RECOMMENDATION_REPOSITORY, ConversationService],
+  useFactory: (
+    catalog: CatalogRepository,
+    repository: RecommendationRepository,
+    conversations: ConversationService,
+  ) => new AnalysisService(catalog, repository, conversations, null),
 };
 
 @Module({

@@ -12,6 +12,13 @@ export const CHAT_COPY = {
   brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
   newConversation: '+ Percakapan baru',
   historyTitle: 'RIWAYAT',
+  savedSolutions: 'Solusi Tersimpan',
+  productKnowledge: 'Pengetahuan Produk',
+  /** Tamu tidak melihat riwayat — ajakan, bukan daftar kosong. */
+  historyGuest: 'Daftar akun untuk menyimpan dan membuka kembali konsultasi Anda.',
+  historyEmpty: 'Belum ada konsultasi lain.',
+  saveSolution: 'Simpan hasil konsultasi',
+  saved: 'Tersimpan',
   composerPlaceholder: 'Contoh: Saya bangun rumah 2 lantai, 3 kamar mandi, toren di atap…',
   send: 'Kirim',
   panelTitle: 'Panel Solusi',

@@ -95,3 +95,30 @@ export async function sendToTechnicalTeam(
   if (!response.ok) return null;
   return (await response.json()) as { id: string; capturedCount: number };
 }
+
+/**
+ * Riwayat percakapan (layar 12). Digerbang `CONVERSATION_HISTORY` di API — tamu
+ * menerima 403, dan itu BUKAN kegagalan: UI menampilkan ajakan mendaftar alih-alih
+ * daftar kosong, karena daftar kosong akan terbaca "Anda belum pernah berkonsultasi".
+ */
+export type HistoryResult =
+  | { readonly kind: 'ok'; readonly items: readonly ConversationSummary[] }
+  | { readonly kind: 'not_entitled' }
+  | { readonly kind: 'error' };
+
+export async function fetchHistory(): Promise<HistoryResult> {
+  const response = await fetch(`${BASE}/conversations`, { credentials: 'include' });
+  if (response.status === 403) return { kind: 'not_entitled' };
+  if (!response.ok) return { kind: 'error' };
+  const body = (await response.json()) as { items: readonly ConversationSummary[] };
+  return { kind: 'ok', items: body.items };
+}
+
+/** "Simpan hasil konsultasi" — digerbang `SAVE_SOLUTION`. */
+export async function saveConversation(conversationId: string): Promise<boolean> {
+  const response = await fetch(`${BASE}/conversations/${conversationId}/save`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  return response.ok;
+}

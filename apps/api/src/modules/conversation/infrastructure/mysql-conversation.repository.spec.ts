@@ -130,3 +130,34 @@ describe('pesan', () => {
     expect(rows[1]?.mood).toBe('write');
   });
 });
+
+describe('simpan solusi (P8-01)', () => {
+  it('menyimpan mengubah status ke SAVED dan tahap ke SOLUSI', async () => {
+    const owner = { kind: 'user' as const, id: testId('user') };
+    const created = await service.create(owner);
+    await service.save(created.id, owner);
+
+    const after = await service.find(created.id, owner);
+    expect(after.status).toBe('SAVED');
+    // Status dan tahap bergerak bersama — header layar tidak boleh bertentangan
+    // dengan isinya.
+    expect(after.stage).toBe('SOLUSI');
+  });
+
+  it('tidak bisa menyimpan percakapan orang lain', async () => {
+    const owner = { kind: 'user' as const, id: testId('user') };
+    const other = { kind: 'user' as const, id: testId('other') };
+    const created = await service.create(owner);
+    await expect(service.save(created.id, other)).rejects.toThrow();
+  });
+
+  it('markSolutionReady menandai solusi siap tanpa memeriksa pemilik (pemanggilnya sistem)', async () => {
+    const owner = { kind: 'guest' as const, id: testId('guest') };
+    const created = await service.create(owner);
+    await service.markSolutionReady(created.id);
+
+    const after = await service.find(created.id, owner);
+    expect(after.status).toBe('SOLUTION_READY');
+    expect(after.stage).toBe('SOLUSI');
+  });
+});
