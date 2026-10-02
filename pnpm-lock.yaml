@@ -44,6 +44,9 @@ importers:
       '@node-rs/argon2':
         specifier: ^2.2.1
         version: 2.2.1
+      '@snouty/engineering':
+        specifier: workspace:*
+        version: link:../../packages/engineering
       '@snouty/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types

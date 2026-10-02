@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Next item: **P5-01 Policy 1 & 5**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Next item: **P5-05 PolicyDecision masuk pipeline**
 
 ## Summary
 
@@ -320,12 +320,12 @@ keputusan pemilik, bukan saya. Tabel `ENTITLEMENTS` saat ini sudah mengikuti **u
 butuh akun). Penegakannya tidak terhalang; yang menunggu adalah panel register-gate (OQ-27) dan
 layar 06.
 
-- [ ] P5-01 Policy 1 (hanya Pralon) + Policy 5 (scope routing) sebagai fungsi murni
-  - [ ] P5-01a Tes **release blocker**: pertanyaan kompetitor → kriteria netral, tidak pernah kartu produk kompetitor
-- [ ] P5-02 Policy 3 (batas rekomendasi) — skenario industri/tak lazim → `TECHNICAL_VALIDATION_REQUIRED`
-- [ ] P5-03 Policy 4 gerbang provenance — `REQUIRES_DOMAIN_VALIDATION` tidak pernah `VERIFIED`
-  - [ ] P5-03a Tes **release blocker** untuk gerbang itu
-- [ ] P5-04 Policy 2 (anti-halusinasi) — daftar produk disaring terhadap katalog saat perakitan respons
+- [x] P5-01 Policy 1 (hanya Pralon) + Policy 5 (scope routing) — fungsi murni; industri menang atas jenis instalasi; >4 lantai → validasi teknis; pembuangan diakui & dicatat
+  - [x] P5-01a Tes **release blocker** (11): hasil kebijakan tidak punya field produk untuk diisi; kriteria netral tanpa satu pun nama merek
+- [x] P5-02 Policy 3 (batas rekomendasi) — `scopePolicy` memutuskan di luar cakupan, `policyCard` merender kartu `criteria` (layar 08) / `unsupported` + SLA (layar 11) dengan kebutuhan terkumpul dibawa serta
+- [x] P5-03 Policy 4 gerbang provenance — satu-satunya jalan nilai jadi `VERIFIED`; `REJECTED` → `UNAVAILABLE`; tidak menaikkan yang sudah rendah
+  - [x] P5-03a Tes **release blocker** (7): sapuan seluruh kombinasi status × provenance — `VERIFIED` hanya dari aturan `VALIDATED`
+- [x] P5-04 Policy 2 (anti-halusinasi) — `filterToCatalog` (lapisan 3 dari 5, satu-satunya yang tak bisa ditembus prompt karena tak membaca teks); SKU yang dibuang dilaporkan; spesifikasi kosong → `UNAVAILABLE`, tidak pernah `ASSUMED`
 - [ ] P5-05 `PolicyDecision` masuk pipeline pesan (sebelum ekstraksi) + kartu `criteria`/`unsupported`
 - [ ] P5-06 Layar 03 kartu klarifikasi bernomor + 04 data kurang
 - [ ] P5-07 Layar 08 kriteria netral + 11 validasi teknis
