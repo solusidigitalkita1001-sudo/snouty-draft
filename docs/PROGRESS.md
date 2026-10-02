@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Next item: **P6-01 kerangka registry**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Next item: **P6-09 back-office validasi** (perlu desain) · **P6-10 docs**
 
 ## Summary
 
@@ -346,14 +346,15 @@ ditunjuk (**OQ-06**). Konsekuensinya bukan administratif: gerbang provenance (su
 menurunkan setiap keluaran engine menjadi `ASSUMED`, jadi **tidak ada satu pun angka teknik yang
 tampil "TERVERIFIKASI" di fase ini** — dan itu memang perilaku yang benar, bukan kekurangan.
 
-- [ ] P6-01 Kerangka `RuleVersion` + registry yang menolak aturan tanpa tes (invarian R-1)
-- [ ] P6-02 Kelompok A — ENG-001, 002, 003, 005, 010, 013 (beban, sizing, kelas tekanan)
-- [ ] P6-03 Kelompok B — ENG-004, 008, 011 (geometri, elevasi, kecukupan gravitasi)
-- [ ] P6-04 Kelompok C — ENG-009, 006, 012 (BOM, selisih lapangan, isi kamar mandi)
-- [ ] P6-05 Kelompok D — ENG-007, 014 sebagai entri registry (implementasinya sudah ada di Fase 4)
-- [ ] P6-06 `explain()` per aturan — kolom "DASAR PERHITUNGAN" dirender dari aturan, bukan prosa LLM
-- [ ] P6-07 `CalculationTrace` + gerbang provenance keluar engine (`hasRealDimensions` → ESTIMATED/VERIFIED)
-- [ ] P6-08 Orkestrator `computeSolution` — satu panggilan, satu trace per aturan, < 300 ms
+- [x] P6-01 Kerangka `RuleVersion` + `RuleRegistry` yang menolak aturan tanpa tes (R-1) dan penulisan ulang versi yang sama; tipe payung `AnyRule` (registry memang heterogen); guard `requireInt`/`requireNumber` menggantikan zod (OQ-42)
+- [x] P6-02 Kelompok A — ENG-001/002/003/005/010/013; ENG-002 memakai ambang prototipe baru (`loadUnits >= 8`, OQ-22) dan dicatat sebagai prioritas validasi tertinggi
+- [x] P6-03 Kelompok B — ENG-004/008/011; batas 3 lantai prototipe TIDAK dibawa (keterbatasan rendering, bukan aturan teknik — OQ-33)
+- [x] P6-04 Kelompok C — ENG-009/006/012; baris "Lem PVC" dari laporan dua halaman **tidak dikarang** (formulanya belum ada — menunggu OQ-06), dan ada tes yang menjaga ketiadaannya
+- [x] P6-05 Kelompok D — ENG-007/014 terdaftar sebagai aturan yang menunggu validasi; implementasinya tetap satu di Context Engine, bukan salinan kedua
+- [x] P6-06 `explain()` per aturan; tes memastikan **setiap** aturan menghasilkan kalimat (penjelasan dan perhitungan keluar dari sumber yang sama, jadi tak bisa berbeda)
+- [x] P6-07 `CalculationTrace` per aturan + gerbang provenance keluar engine; **seluruh keluaran `ASSUMED` hari ini** dan ada tes yang menegaskan tak ada angka teknik `VERIFIED`
+- [x] P6-08 Orkestrator `computeSolution` — contoh kerja desain keluar benar (8 titik, 11 unit, jalur 1", BOM 5 baris); ENG-004 hanya berjalan bila tinggi lantai tak diberikan
+  - [x] P6-08a Tes (54 total di paket): contoh board, trace, kemurnian, batas masukan, < 300 ms
 - [ ] P6-09 Back-office alur validasi aturan `[perlu desain — OQ-21]`
 - [ ] P6-10 `docs/ENGINEERING_RULES.md` disesuaikan implementasi
 - [ ] ✋ CHECKPOINT — reviewed by owner
