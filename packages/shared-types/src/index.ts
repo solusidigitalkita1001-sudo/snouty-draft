@@ -58,4 +58,14 @@ export type {
   WaterState,
 } from './requirement.js';
 export { CORE_REQUIREMENT_FIELDS } from './requirement.js';
+export type {
+  Assumption,
+  BomItem,
+  BomUnit,
+  Recommendation,
+  RecommendationStats,
+  SelectedProduct,
+  SystemLine,
+  SystemRole,
+} from './recommendation.js';
 export { ANALYSIS_STAGE_LABELS } from './sse.js';

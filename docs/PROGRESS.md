@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Next item: **P7-01 tipe rekomendasi**
+Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Next item: **P7-09 layar 06 & 07** · **P7-10 docs**
 
 ## Summary
 
@@ -378,16 +378,17 @@ Dan **invarian C-2**: kartu produk hanya pernah berasal dari baris `products` �
 lokal (`scripts/seed-sample-catalog.mjs`, jalur impor sungguhan) — bukan fixture dalam memori, supaya
 yang diuji adalah query yang benar-benar akan dipakai.
 
-- [ ] P7-01 Tipe `Recommendation`, `SystemLine`, `SelectedProduct`, `BomItem`, `Assumption` di shared-types
-- [ ] P7-02 Migration `recommendations` + `calculation_traces` + repo (append-only trace)
-- [ ] P7-03 `ProductMatcher` — ukuran engine → produk katalog; tiga `matchState` layar 07
-  - [ ] P7-03a Tes: invarian C-2 (tanpa baris katalog tidak ada kartu); ukuran tak tersedia → `SIZE_NEEDS_VALIDATION`
-- [ ] P7-04 `SystemLine` dari hasil engine + `traceIds` (invarian T-1: setiap nilai punya trace)
-- [ ] P7-05 `BomItem` dari ENG-009 + kolom "DASAR PERHITUNGAN" **dari trace**, bukan prosa
-- [ ] P7-06 Daftar `Assumption` dengan `fieldPath` — "Perbaiki asumsi ini →" membuka field yang tepat
-- [ ] P7-07 **Pemeriksa REC-1** — ekstrak angka prosa, cocokkan, retry sekali, lalu templat deterministik
-  - [ ] P7-07a Tes: prosa ber-angka asing ditolak; templat deterministik tidak pernah gagal
-- [ ] P7-08 Orkestrator `assembleRecommendation` + lima tahap SSE sisanya (ANALYZING→PREPARING)
+- [x] P7-01 Tipe `Recommendation`, `SystemLine`, `SelectedProduct`, `BomItem`, `Assumption` di shared-types; `traceIds` wajib pada baris sistem dan BOM (invarian T-1 jadi bagian bentuk tipe)
+- [x] P7-02 Migration 0008 `recommendations` + `calculation_traces` (append-only, FK cascade); `catalog_version_id` dibekukan tanpa FK (lintas konteks); isi solusi JSON karena selalu dibaca utuh
+- [x] P7-03 `ProductMatcher` — fungsi murni yang **hanya bisa memilih dari daftar kandidat**, jadi C-2 struktural; ukuran belum terdaftar tetap menampilkan produknya dengan catatan, bukan menyembunyikannya
+  - [x] P7-03a Tes (7): katalog kosong → nol kartu; tiga `matchState`; produk nonaktif tak pernah dipilih; peran fitting tak dipaksakan ke pipa
+- [x] P7-04 `SystemLine` dari hasil engine; `reason` dan `provenance` diturunkan dari trace, bukan ditulis ulang
+- [x] P7-05 `BomItem` dari ENG-009; `basis` = `explanation` trace (ada tes yang membuktikan prosa LLM berbeda tidak mengubahnya)
+- [x] P7-06 Daftar `Assumption` ber-`fieldPath`; asumsi kebutuhan pengguna didahulukan dari asumsi aturan; ENG-004 hanya muncul bila benar-benar berjalan
+- [x] P7-07 **Pemeriksa REC-1** — ekstrak angka + label ukuran, cocokkan dengan hasil hitungan; bilangan campuran (`2 1/2`) ditangani khusus agar tak menyusut menjadi `1/2`
+  - [x] P7-07a Tes (10): angka asing ditolak, ukuran asing ditolak, 0/1/2 dianggap wajar, pecahan ukuran tak dipecah
+- [x] P7-08 Orkestrator `assembleRecommendation` — hitung dulu, baru jelaskan; REC-1 gagal → retry sekali → templat deterministik (yang lulus pemeriksaannya sendiri); LLM mati tidak menggagalkan solusi
+  - [x] P7-08a Tes (14): T-1 setiap baris punya trace, REC-1 tiga jalur prosa, provenance ASSUMED, urutan asumsi
 - [ ] P7-09 Layar 06 workspace solusi + 07 kartu produk & drawer `[sebagian: OQ-15 untuk akses tamu]`
 - [ ] P7-10 `docs/DOMAIN_MODEL.md` §7 ↔ implementasi
 - [ ] ✋ CHECKPOINT — reviewed by owner
