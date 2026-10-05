@@ -304,7 +304,7 @@ pendek (docs/REPORT.md §5) menggantikan gerbang peran `admin` yang dipakai seme
 
 ### OQ-44 — Audit biaya tidak bisa membedakan prosa yang diterima dari yang ditolak REC-1
 
-**Status:** open · _non-blocking_ · **Fase:** 7 · **usulan default diterapkan 2026-10-05** (migration 0012), menunggu konfirmasi
+**Status:** **answered** (2026-10-05, default diterima) · _non-blocking_ · **Fase:** 7 · diterapkan sebagai migration 0012
 
 Verifikasi hidup penyambungan `ProseWriter` ke LLM memperlihatkan ini. Tiga skenario dijalankan
 terhadap stub OpenRouter lokal, dan `llm_calls` mencatat kelimanya dengan cara yang sama:
@@ -408,7 +408,7 @@ pricing is switched on. With `PRICING_ENABLED=false` both render price-free.
 
 ### OQ-15 — (33h #2) Guest entitlement contradicts the prototype
 
-**Status:** open · **Blocks:** 5, 10
+**Status:** **answered** (2026-10-05, default diterima) · **Blocks:** 5, 10
 Onboarding step 5 tags BOM, schematic, and case analysis as `LANJUTAN` (account-only), but the
 prototype hands a guest the complete solution workspace including BOM and schematic. There is no
 register-gate screen, no login/register screen, and the prototype sidebar always shows a signed-in
@@ -660,15 +660,17 @@ These are tracked in the Domain Validation Tracker in `docs/PROGRESS.md`. Listed
 
 ## Answer log
 
-| ID    | Decision                                                                                                                                                                               | Decided by | Date       |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
-| OQ-02 | Database `snouty` on `192.168.1.136`, user `ict`. Read-only inspection completed; `snouty` is empty. Raised OQ-34 and OQ-35 as follow-ups.                                             | owner      | 2026-09-30 |
-| OQ-01 | Partially answered — `snouty` DB confirmed empty; existence of an old codebase elsewhere still open.                                                                                   | owner      | 2026-09-30 |
-| OQ-03 | Default diterima: harga di luar lingkup MVP, `PRICING_ENABLED=false`; kolom harga tidak dirender.                                                                                      | owner      | 2026-10-05 |
-| OQ-08 | Default diterima: handoff dikirim lewat email ke `TECH_HANDOFF_TARGET` (via n8n) + baris antrean internal; SLA "1×24 jam kerja" dari config. Alamat tujuannya sendiri belum diberikan. | owner      | 2026-10-05 |
-| OQ-09 | Default diterima: GitHub + GitHub Actions. Remote `solusidigitalkita1001-sudo/snouty-draft` sudah ada. Kunci LLM dan tiga ID model tetap belum ada.                                    | owner      | 2026-10-05 |
-| OQ-12 | Default diterima: halaman placeholder `/privasi` dan `/ketentuan`, `POLICY_VERSION=v0-draft` di setiap baris consent; diganti sebelum peluncuran.                                      | owner      | 2026-10-05 |
-| OQ-16 | Default diterima: palet gelap prototipe (`#0F1213` canvas, `#171B1D` surface).                                                                                                         | owner      | 2026-10-05 |
-| OQ-18 | Default diterima: mascot di belakang `MascotSlot` yang bisa diganti; PNG sekarang placeholder; tidak ke produksi sebelum brand menyetujui.                                             | owner      | 2026-10-05 |
-| OQ-42 | Default diterima: `packages/engineering` tetap nol dependensi; guard TS murni (`parseInput`) di dalam engine, zod di tepi `apps/api`.                                                  | owner      | 2026-10-05 |
-| OQ-43 | Default diterima: `--snouty-caption` digelapkan. Diterapkan `#6B7376` (bukan `#6E7679`, yang masih 4,35:1 di `canvas`); mode gelap tetap.                                              | owner      | 2026-10-05 |
+| ID    | Decision                                                                                                                                                                                                                                          | Decided by | Date       |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| OQ-02 | Database `snouty` on `192.168.1.136`, user `ict`. Read-only inspection completed; `snouty` is empty. Raised OQ-34 and OQ-35 as follow-ups.                                                                                                        | owner      | 2026-09-30 |
+| OQ-01 | Partially answered — `snouty` DB confirmed empty; existence of an old codebase elsewhere still open.                                                                                                                                              | owner      | 2026-09-30 |
+| OQ-03 | Default diterima: harga di luar lingkup MVP, `PRICING_ENABLED=false`; kolom harga tidak dirender.                                                                                                                                                 | owner      | 2026-10-05 |
+| OQ-08 | Default diterima: handoff dikirim lewat email ke `TECH_HANDOFF_TARGET` (via n8n) + baris antrean internal; SLA "1×24 jam kerja" dari config. Alamat tujuannya sendiri belum diberikan.                                                            | owner      | 2026-10-05 |
+| OQ-09 | Default diterima: GitHub + GitHub Actions. Remote `solusidigitalkita1001-sudo/snouty-draft` sudah ada. Kunci LLM dan tiga ID model tetap belum ada.                                                                                               | owner      | 2026-10-05 |
+| OQ-12 | Default diterima: halaman placeholder `/privasi` dan `/ketentuan`, `POLICY_VERSION=v0-draft` di setiap baris consent; diganti sebelum peluncuran.                                                                                                 | owner      | 2026-10-05 |
+| OQ-16 | Default diterima: palet gelap prototipe (`#0F1213` canvas, `#171B1D` surface).                                                                                                                                                                    | owner      | 2026-10-05 |
+| OQ-18 | Default diterima: mascot di belakang `MascotSlot` yang bisa diganti; PNG sekarang placeholder; tidak ke produksi sebelum brand menyetujui.                                                                                                        | owner      | 2026-10-05 |
+| OQ-42 | Default diterima: `packages/engineering` tetap nol dependensi; guard TS murni (`parseInput`) di dalam engine, zod di tepi `apps/api`.                                                                                                             | owner      | 2026-10-05 |
+| OQ-43 | Default diterima: `--snouty-caption` digelapkan. Diterapkan `#6B7376` (bukan `#6E7679`, yang masih 4,35:1 di `canvas`); mode gelap tetap.                                                                                                         | owner      | 2026-10-05 |
+| OQ-15 | Default diterima: ikuti janji onboarding. Tamu mendapat tanya-jawab, rekomendasi, klarifikasi; BOM, skema, simpan, laporan butuh akun. `ENTITLEMENTS` sudah begitu — tidak ada perubahan kode. Panel register-gate tetap menunggu desain (OQ-27). | owner      | 2026-10-05 |
+| OQ-44 | Default diterima: `recommendations.prose_source` (migration 0012) tetap; laju prosa yang ditolak REC-1 dihitung dari kolom itu, `ai` dan `llm_calls` tidak disentuh.                                                                              | owner      | 2026-10-05 |

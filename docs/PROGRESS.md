@@ -35,8 +35,10 @@ Last updated: 2026-10-02 · Current phase: **4 — Context Engine, intent, ekstr
   requires least privilege and forbids the app user holding DROP. Waiting on **OQ-34**.
 - `[!]` **P6 (validation)** — every engineering rule stays `REQUIRES_DOMAIN_VALIDATION` until a Pralon
   domain expert is named. Waiting on **OQ-06**.
-- Decision needed before Phase 5/10 design work: **OQ-15** (guest entitlement) — it determines whether
-  the solution workspace (screen 06) is reachable without an account.
+- ~~Decision needed before Phase 5/10 design work: **OQ-15** (guest entitlement) — it determines whether
+  the solution workspace (screen 06) is reachable without an account.~~ Resolved 2026-10-05: owner
+  accepted the default (onboarding promise); `ENTITLEMENTS` already matched it. Only the register-gate
+  screen remains, under OQ-27/OQ-21.
 
 ## Phase 0a — Analysis
 
@@ -339,7 +341,7 @@ layar 06.
 - [x] P5-08 `docs/POLICY.md` §12 — pemetaan kebijakan → berkas, titik penegakan di pipeline, status tes release blocker. (`SPEC.md` tidak diedit: ia dokumen pemilik, disalin apa adanya.)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
-Fase 5: **8/8 selesai.** Policy Engine leaf tanpa I/O, dua tes release blocker hijau, empat permukaan kebijakan (03/04/08/11) hidup di layar 02. **OQ-15 masih terbuka** — ia memblokir layar 06 dan panel register-gate, bukan penegakannya.
+Fase 5: **8/8 selesai.** Policy Engine leaf tanpa I/O, dua tes release blocker hijau, empat permukaan kebijakan (03/04/08/11) hidup di layar 02. **OQ-15 masih terbuka** — ia memblokir layar 06 dan panel register-gate, bukan penegakannya. _(OQ-15 dijawab 2026-10-05: default diterima; yang tersisa hanya panel register-gate, OQ-27.)_
 
 ## Phase 6 — Engineering Rule Engine
 

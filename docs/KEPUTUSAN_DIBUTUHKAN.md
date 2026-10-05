@@ -82,6 +82,9 @@ laporan butuh akun. Tabel `ENTITLEMENTS` sudah mengikuti ini dan ditegakkan di A
 **Yang dibutuhkan:** konfirmasi. Bila jawabannya "tamu boleh melihat semuanya", satu tabel diubah dan
 tesnya ikut — pekerjaan kecil, tetapi arahnya harus benar.
 
+**Dijawab 2026-10-05: default diterima.** Tidak ada yang berubah di kode; yang tersisa dari OQ-15
+hanya layar register-gate-nya, dan itu milik OQ-27/OQ-21.
+
 ### OQ-21 — Layar yang belum didesain
 
 Login, register, register-gate, **seluruh back-office**, umpan balik, halaman privasi/ketentuan.
