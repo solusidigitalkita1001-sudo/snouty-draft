@@ -250,8 +250,11 @@ sebagai satu-satunya bahan.
 
 _Status 2026-10-05:_ jalur ini kini tersambung ke chat (`context/application/product-question-pipeline.ts`).
 Model hanya memetakan pertanyaan ke produk + aspek (`ai.parseProductQuestion`, kosakata tertutup);
-kalimat jawabannya templat deterministik dari `ProductAnswer` — LLM sebagai perangkai kalimat belum
-dipakai. Produk yang tidak ada di katalog aktif dikatakan tidak ada, bukan dijawab dari pengetahuan umum.
+kalimat jawaban SPESIFIKASI templat deterministik dari `ProductAnswer` — model tidak menyentuhnya.
+Pertanyaan KONSEP (aspek `null`: "apa bedanya PVC dan HDPE?") lewat jalur `PRODUCT_FAQ`
+(`PRODUCT_FAQ_SYSTEM_PROMPT` + `ReplyWriter`): model menjelaskan sifat bahan secara kualitatif di atas
+DATA katalog; angka di luar DATA dan merek lain ditolak kode, dan fakta katalog tetap ikut. Nilai
+spesifikasi produk yang tidak ada di katalog aktif tetap dikatakan tidak ada, tidak dijawab dari ingatan model.
 
 ## 5. RAG — kriteria adopsi
 

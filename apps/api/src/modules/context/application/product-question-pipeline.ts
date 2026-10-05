@@ -19,6 +19,7 @@ import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { endEvent } from './message-pipeline.js';
+import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, PRODUCT_ANSWER_COPY } from './product-answer-text.js';
 
 /** Maksimal produk yang dijawab sekaligus — "bedanya A dan B" adalah dua. */
@@ -27,6 +28,7 @@ const MAX_PRODUCTS = 2;
 export interface ProductQuestionInput {
   readonly messageId: string;
   readonly message: string;
+  readonly recentTurns?: readonly ReplyTurn[];
 }
 
 export async function runProductQuestion(
@@ -34,16 +36,43 @@ export async function runProductQuestion(
   catalog: Pick<CatalogQueryService, 'listProducts'>,
   questions: Pick<ProductQuestionService, 'answer'>,
   input: ProductQuestionInput,
+  reply: ReplyWriter | null = null,
+  faqPrompt: string | null = null,
 ): Promise<readonly AssistantStreamEvent[]> {
   const events: AssistantStreamEvent[] = [{ type: 'message.start', messageId: input.messageId }];
-  // Fakta dirangkai kode dan dikirim APA ADANYA. Pernah dicoba menyerahkannya ke model
-  // untuk "dirangkai ulang" (ReplyWriter): qwen2.5:7b membuang fakta katalognya dan
-  // menawarkan "membahas perbedaan HDPE dan PVC yang umumnya kita gunakan" — tepat
-  // pengetahuan umum yang tidak boleh masuk. Kalimat yang kaku lebih baik daripada
-  // kalimat luwes yang menghilangkan sumbernya.
+  /**
+   * Dua macam pertanyaan, dua perlakuan (docs/AI_BEHAVIOR.md):
+   *   - SPESIFIKASI ("ada ukuran 3/4?", "standarnya apa?") → `PRODUCT_LOOKUP`: fakta katalog
+   *     dirangkai kode dan dikirim apa adanya. Model tidak menyentuhnya — pernah dicoba, dan
+   *     qwen2.5:7b membuang faktanya.
+   *   - KONSEP ("apa bedanya PVC dan HDPE?") → `PRODUCT_FAQ`: model boleh menjelaskan sifat
+   *     bahan secara kualitatif, dengan DATA katalog sebagai pijakan dan pagar angka
+   *     ReplyWriter (tidak ada angka di luar DATA). Tanpa model, faktanya saja.
+   */
   const facts: string[] = [];
-  const finish = (): readonly AssistantStreamEvent[] => {
-    events.splice(1, 0, { type: 'token', text: facts.join('\n\n') });
+  const finish = async (
+    conceptual: boolean,
+    products: readonly Product[],
+  ): Promise<readonly AssistantStreamEvent[]> => {
+    const factsText = facts.join('\n\n');
+    let text = factsText;
+    if (conceptual && reply && faqPrompt) {
+      const written = await reply.write({
+        intent: 'PRODUCT_LOOKUP',
+        userMessage: input.message,
+        recentTurns: input.recentTurns ?? [],
+        facts: factsText,
+        fallback: factsText,
+        systemPrompt: faqPrompt,
+      });
+      // Fakta katalog tetap tampil bila penjelasan model tidak menyebut satu pun produknya.
+      const mentionsCatalog = products.some((p) => written.text.includes(p.name));
+      text =
+        written.source === 'llm' && !mentionsCatalog && products.length > 0
+          ? `${written.text}\n\n${factsText}`
+          : written.text;
+    }
+    events.splice(1, 0, { type: 'token', text });
     events.push(endEvent(input.messageId));
     return events;
   };
@@ -58,14 +87,15 @@ export async function runProductQuestion(
 
   if (!parsed?.productQuery) {
     facts.push(PRODUCT_ANSWER_COPY.noProductNamed);
-    return finish();
+    return finish(false, []);
   }
 
   const { products, missing } = await findProducts(catalog, parsed.productQuery);
   if (products.length === 0) {
     facts.push(PRODUCT_ANSWER_COPY.notInCatalog(parsed.productQuery));
     events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } });
-    return finish();
+    // Produk tidak ada di katalog, tetapi pertanyaan konsep tetap bisa dijelaskan umum.
+    return finish(parsed.aspect === null, []);
   }
   // "PVC dan HDPE" dengan HDPE tidak ada: katakan yang tidak ada, jangan diam-diam
   // menjawab separuh seolah itu seluruh pertanyaannya.
@@ -92,7 +122,7 @@ export async function runProductQuestion(
   }
 
   events.push({ type: 'card', card: { kind: 'product', products: products.map(toCard) } });
-  return finish();
+  return finish(parsed.aspect === null, products);
 }
 
 /**

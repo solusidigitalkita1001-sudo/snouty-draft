@@ -19,6 +19,7 @@ import type {
 } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
+import { PRODUCT_FAQ_SYSTEM_PROMPT } from '../../ai/application/prompts.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
 import { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
@@ -96,10 +97,14 @@ export class MessageService {
 
     // Pertanyaan produk: ruas sendiri, nol ekstraksi, jawaban dari katalog.
     if (decision.intent === 'PRODUCT_LOOKUP') {
-      const events = await runProductQuestion(ai, this.catalog, this.productQuestions, {
-        messageId,
-        message: text,
-      });
+      const events = await runProductQuestion(
+        ai,
+        this.catalog,
+        this.productQuestions,
+        { messageId, message: text, recentTurns },
+        this.reply,
+        PRODUCT_FAQ_SYSTEM_PROMPT,
+      );
       await this.conversations.appendAssistantMessage(
         conversationId,
         textOf(events),

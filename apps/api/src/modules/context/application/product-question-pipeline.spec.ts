@@ -165,6 +165,58 @@ describe('runProductQuestion', () => {
     expect(cards(events).map((c) => c.kind)).toEqual(['cta', 'product']);
   });
 
+  it('pertanyaan KONSEP: model menjelaskan umum di atas DATA; fakta katalog tetap ikut bila tak disebut', async () => {
+    const reply = {
+      calls: [] as unknown[],
+      async write(input: { facts?: string; systemPrompt?: string }) {
+        this.calls.push(input);
+        return {
+          text: 'Secara umum PVC kaku dan disambung lem, HDPE lentur dan dilas.',
+          source: 'llm' as const,
+        };
+      },
+    };
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc aw dan hdpe', aspect: null }),
+      catalog({ 'pvc aw': [AW] }),
+      questions({} as never),
+      { messageId: 'm', message: 'apa bedanya pvc dan hdpe?' },
+      reply as never,
+      'PROMPT-FAQ',
+    );
+    const out = text(events);
+    expect(out).toContain('Secara umum PVC kaku');
+    expect(out).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)'); // fakta tetap ikut
+    expect(out).toContain('"hdpe" tidak ada di katalog');
+    expect((reply.calls[0] as { systemPrompt?: string }).systemPrompt).toBe('PROMPT-FAQ');
+    expect((reply.calls[0] as { facts?: string }).facts).toContain('"hdpe" tidak ada di katalog');
+  });
+
+  it('pertanyaan SPESIFIKASI tidak pernah lewat model — fakta katalog apa adanya', async () => {
+    const reply = {
+      write: async () => {
+        throw new Error('tidak boleh dipanggil');
+      },
+    };
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc aw', aspect: 'standard' }),
+      catalog({ 'pvc aw': [AW] }),
+      questions({
+        kind: 'value',
+        productId: AW.id,
+        aspect: 'standard',
+        provenance: 'VERIFIED',
+        value: 'SNI 06-0084',
+        sourceDocument: 'Katalog 2026',
+        sourcePage: 14,
+      }),
+      { messageId: 'm', message: 'standar pvc aw apa?' },
+      reply as never,
+      'PROMPT-FAQ',
+    );
+    expect(text(events)).toBe('Standar Pipa PVC AW: SNI 06-0084. Sumber: Katalog 2026 hal. 14.');
+  });
+
   it('parse model gagal → bertanya produk mana, tidak melempar', async () => {
     const events = await runProductQuestion(failingAi, catalog({}), questions({} as never), {
       messageId: 'm',

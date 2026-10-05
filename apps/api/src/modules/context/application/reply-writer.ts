@@ -31,6 +31,8 @@ export interface ReplyInput {
   /** Fakta yang boleh disampaikan, sudah dirangkai kode. Tanpa ini: nol angka. */
   readonly facts?: string;
   readonly fallback: string;
+  /** Prompt sistem khusus (mis. jalur FAQ produk); bawaan: prompt percakapan. */
+  readonly systemPrompt?: string;
 }
 
 export interface WrittenReply {
@@ -57,7 +59,7 @@ export class ReplyWriter {
     let raw: unknown;
     try {
       raw = await this.ai.writeProse({
-        systemPrompt: this.systemPrompt,
+        systemPrompt: input.systemPrompt ?? this.systemPrompt,
         userMessage: buildReplyContext(input),
       });
     } catch {

@@ -70,7 +70,7 @@ Langkah pertama setiap pesan; menentukan jalur mana yang dijalankan (`ARCHITECTU
 
 | Intent                   | Contoh                           | Jalur                                   |
 | ------------------------ | -------------------------------- | --------------------------------------- |
-| `PRODUCT_FAQ`            | "Apa bedanya AW dan D?"          | FAQ                                     |
+| `PRODUCT_FAQ`            | "Apa bedanya AW dan D?"          | FAQ — diwujudkan di dalam `PRODUCT_LOOKUP` dengan aspek `null`: penjelasan kualitatif model di atas DATA katalog, angka hanya dari DATA |
 | `PRODUCT_LOOKUP`         | "Ada ukuran 3/4 inch?"           | **query MySQL**, bukan pencarian vektor |
 | `RECOMMENDATION_REQUEST` | "Rumah 2 lantai, 3 kamar mandi…" | rekomendasi                             |
 | `CLARIFICATION_ANSWER`   | "Toren atap"                     | merge, tanpa ekstraksi penuh            |
