@@ -52,6 +52,12 @@ foreach ($port in 3000, 3001) {
     taskkill /PID $procId /T /F 2>$null | Out-Null
   }
 }
+# Worker tidak memegang port, jadi ia dilacak lewat berkas PID.
+$workerPid = Join-Path $logDir 'worker.pid'
+if (Test-Path $workerPid) {
+  taskkill /PID (Get-Content $workerPid) /T /F 2>$null | Out-Null
+  Remove-Item $workerPid
+}
 foreach ($port in 3000, 3001) {
   $free = $false
   for ($i = 0; $i -lt 20; $i++) {
@@ -129,6 +135,31 @@ if (-not (WaitHttp 'http://127.0.0.1:3000/' 60)) {
   Fail "web tidak merespons di :3000 setelah 60 detik. Log lengkap: $webLog.err"
 }
 
+# Worker: PDF laporan. Butuh Chromium Playwright -- sekali per mesin:
+#   pnpm --filter @snouty/worker exec playwright-core install chromium
+Step 'worker (PDF laporan)'
+Set-Location $root
+Run 'build worker' { pnpm --filter @snouty/worker build | Out-Null }
+$env:NODE_ENV = 'development'
+$env:WORKER_INTERNAL_TOKEN = (node (Join-Path $root 'apps/api/scripts/dev-worker-token.mjs'))
+if ($LASTEXITCODE -ne 0) { Fail 'token worker gagal dibuat' }
+$env:API_URL = 'http://127.0.0.1:3001'
+$env:STORAGE_PATH = Join-Path $logDir 'storage'
+$workerLog = Join-Path $logDir 'worker.log'
+$worker = Start-Process node -ArgumentList 'dist/main.js' -WorkingDirectory (Join-Path $root 'apps/worker') `
+  -WindowStyle Hidden -RedirectStandardOutput $workerLog -RedirectStandardError "$workerLog.err" -PassThru
+Set-Content $workerPid $worker.Id
+$ready = $false
+for ($i = 0; $i -lt 20; $i++) {
+  if (Select-String -Path $workerLog -Pattern 'worker siap' -Quiet -ErrorAction SilentlyContinue) { $ready = $true; break }
+  if ($worker.HasExited) { break }
+  Start-Sleep 1
+}
+if (-not $ready) {
+  Write-Host (Get-Content $workerLog, "$workerLog.err" -Tail 20 -ErrorAction SilentlyContinue | Out-String)
+  Fail "worker tidak siap setelah 20 detik. Log: $workerLog"
+}
+
 Write-Host @"
 
   SNOUTY siap diuji -- buka http://localhost:3000
@@ -149,6 +180,9 @@ Write-Host @"
     "lebih bagus Pralon atau Rucika?"   -> kartu kriteria netral, bukan rekomendasi
     "bangun pabrik 2 lantai"            -> kartu validasi teknis
     "rumah 2 lantai"                    -> kartu klarifikasi bernomor
+
+  RabbitMQ UI:   http://localhost:15673  (guest / guest)
+  PDF laporan:   $logDir\storage\reports
 
   Log server: $logDir
   Hentikan:   pnpm dev:down:win
