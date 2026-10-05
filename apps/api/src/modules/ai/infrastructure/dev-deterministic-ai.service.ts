@@ -23,9 +23,20 @@ import type { AiService, IntentInput } from '../domain/ai.port.js';
 import {
   ExtractionSchema,
   IntentSchema,
+  ProductQuestionSchema,
   type Extraction,
   type IntentClassification,
+  type ProductQuestionParse,
 } from '../domain/extraction-schema.js';
+
+/** Isyarat bahwa pesan menyatakan KEBUTUHAN — mengalahkan isyarat pertanyaan produk. */
+const REQUIREMENT_SIGNALS =
+  /\b(lantai|kamar mandi|wastafel|dapur|toren|pdam|pompa|rumah|ruko|kos|pabrik)\b/;
+/** Isyarat pertanyaan produk/pengetahuan: menyebut keluarga produk atau menanyakan sifatnya. */
+const PRODUCT_SIGNALS =
+  /\b(pvc|hdpe|ppr|pp-r|fitting|tee|elbow|reducer|socket|apa itu|apa bedanya|bedanya|perbedaan|bahan|material|standar|sni|tekanan|panjang batang|sambungan|aplikasi|kegunaan|ada ukuran|ukuran apa|harga|stok|tersedia|spesifikasi)/;
+const FAMILY_TOKENS = /\b(pvc\s*(?:aw|d|c)?|hdpe|ppr|pp-r|tee|elbow|reducer|socket)\b/g;
+const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
 
 const NUMBER_WORDS: Readonly<Record<string, number>> = {
   satu: 1,
@@ -111,7 +122,9 @@ export class DevDeterministicAiService implements AiService {
     if (/\b(kenapa|mengapa|kok|jelaskan|alasan)\b/.test(text)) {
       return this.intent('EXPLANATION_REQUEST', 0.85);
     }
-    if (/\b(ada ukuran|harga|stok|tersedia|spesifikasi|berapa harga)\b/.test(text)) {
+    // Pertanyaan produk: menyebut keluarga produk atau sifatnya, TANPA isyarat kebutuhan.
+    // "Pakai pipa PVC untuk rumah 2 lantai" tetap pernyataan kebutuhan.
+    if (PRODUCT_SIGNALS.test(text) && !REQUIREMENT_SIGNALS.test(text)) {
       return this.intent('PRODUCT_LOOKUP', 0.85);
     }
     if (input.hasExistingRequirements && /\b(tambah|ubah|ganti|jadi|kurangi)\b/.test(text)) {
@@ -119,6 +132,51 @@ export class DevDeterministicAiService implements AiService {
     }
     if (input.hasExistingRequirements) return this.intent('CLARIFICATION_ANSWER', 0.75);
     return this.intent('REQUIREMENT_STATEMENT', 0.8);
+  }
+
+  /**
+   * Pemetaan pertanyaan produk lewat kata kunci — cukup untuk mengklik alur pengetahuan
+   * produk tanpa kunci model. Aspek yang tidak dikenali tetap `null`, bukan ditebak.
+   */
+  parseProductQuestion(message: string): Promise<ProductQuestionParse> {
+    const text = message.toLowerCase();
+    const families = [...text.matchAll(FAMILY_TOKENS)].map((m) => m[1]!.replace(/\s+/g, ' '));
+    const unique = [...new Set(families)].slice(0, 2);
+    const productQuery = unique.length > 0 ? unique.join(' dan ') : null;
+
+    const availability = /ada ukuran|ukuran .* ada|tersedia ukuran|ukuran .* tersedia/.test(text);
+    const sizeMatch = availability
+      ? SIZE_TOKEN.exec(text.replace(/\b(pvc|hdpe|ppr)\b/g, ''))
+      : null;
+    const aspect: ProductQuestionParse['aspect'] =
+      availability && sizeMatch
+        ? 'size_availability'
+        : /ukuran apa|ukuran (yang )?tersedia|ukuran (yang )?ada|ukurannya/.test(text)
+          ? 'sizes'
+          : /fitting|cocok dengan|sepadan/.test(text)
+            ? 'compatible_fittings'
+            : /\b(bahan|material)\b/.test(text)
+              ? 'material'
+              : /\b(standar|sni)/.test(text)
+                ? 'standard'
+                : /tekanan/.test(text)
+                  ? 'pressure_class'
+                  : /panjang/.test(text)
+                    ? 'rod_length'
+                    : /sambungan|solvent|lem\b/.test(text)
+                      ? 'joint_type'
+                      : /aplikasi|kegunaan|dipakai untuk|untuk apa/.test(text)
+                        ? 'application'
+                        : null;
+
+    return Promise.resolve(
+      ProductQuestionSchema.parse({
+        productQuery,
+        aspect,
+        size:
+          aspect === 'size_availability' && sizeMatch ? sizeMatch[1]!.replace(/\s+/g, '') : null,
+      }),
+    );
   }
 
   titleFor(firstMessage: string): Promise<string> {

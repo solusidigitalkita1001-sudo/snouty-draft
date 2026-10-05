@@ -147,7 +147,7 @@ function capturedFrom(state: RequirementState): readonly KeyValue[] {
   return rows;
 }
 
-function endEvent(messageId: string): AssistantStreamEvent {
+export function endEvent(messageId: string): AssistantStreamEvent {
   // Usage nyata diisi pemanggil dari audit biaya; di ruas tanpa model ia nol.
   return { type: 'message.end', messageId, usage: { in: 0, out: 0, costUsd: 0 } };
 }

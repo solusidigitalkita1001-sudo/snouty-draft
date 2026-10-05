@@ -19,6 +19,14 @@ export const INTENT_SYSTEM_PROMPT = [
   'Sertakan confidence 0–1. Bila ragu antara mengubah kebutuhan dan sekadar bertanya, beri confidence rendah.',
 ].join('\n');
 
+export const PRODUCT_QUESTION_SYSTEM_PROMPT = [
+  'Pesan pengguna adalah pertanyaan tentang produk pipa. Petakan — jangan jawab.',
+  'productQuery: nama atau keluarga produk yang disebut (mis. "PVC AW", "HDPE"); null bila tidak ada.',
+  'aspect: salah satu label yang diizinkan skema, atau null bila pertanyaannya tidak menunjuk aspek tertentu.',
+  'size: ukuran yang ditanyakan (mis. "3/4") hanya untuk size_availability; selain itu null.',
+  'Jangan menebak aspek terdekat. Jangan menambahkan fakta apa pun.',
+].join('\n');
+
 export const TITLE_SYSTEM_PROMPT = [
   'Buat judul singkat (maksimum 8 kata) untuk percakapan konsultasi pipa ini, Bahasa Indonesia.',
   'Tanpa tanda kutip, tanpa tanda baca akhir.',

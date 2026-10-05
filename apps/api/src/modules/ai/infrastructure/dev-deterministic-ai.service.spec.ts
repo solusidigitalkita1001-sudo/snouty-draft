@@ -150,3 +150,51 @@ describe('writeProse di adapter pengembangan', () => {
     }
   });
 });
+
+describe('pertanyaan produk (adapter pengembangan)', () => {
+  const service = () => new DevDeterministicAiService();
+
+  it('menyebut keluarga produk tanpa isyarat kebutuhan → PRODUCT_LOOKUP', async () => {
+    const intent = await service().classifyIntent({
+      message: 'apa bedanya pvc dan hdpe?',
+      hasExistingRequirements: false,
+    });
+    expect(intent.intent).toBe('PRODUCT_LOOKUP');
+  });
+
+  it('menyebut produk DI DALAM pernyataan kebutuhan tetap REQUIREMENT_STATEMENT', async () => {
+    const intent = await service().classifyIntent({
+      message: 'pakai pipa pvc untuk rumah 2 lantai, 3 kamar mandi',
+      hasExistingRequirements: false,
+    });
+    expect(intent.intent).toBe('REQUIREMENT_STATEMENT');
+  });
+
+  it('memetakan "A dan B" menjadi satu query dua keluarga, aspek null', async () => {
+    const parsed = await service().parseProductQuestion('apa bedanya pvc aw dan hdpe?');
+    expect(parsed).toEqual({ productQuery: 'pvc aw dan hdpe', aspect: null, size: null });
+  });
+
+  it('memetakan aspek dari kata kunci, dan ukuran hanya untuk ketersediaan', async () => {
+    expect(await service().parseProductQuestion('pvc aw ada ukuran 3/4?')).toEqual({
+      productQuery: 'pvc aw',
+      aspect: 'size_availability',
+      size: '3/4',
+    });
+    expect(await service().parseProductQuestion('standar pvc d apa?')).toMatchObject({
+      aspect: 'standard',
+      size: null,
+    });
+    expect(await service().parseProductQuestion('tekanan kerja hdpe berapa?')).toMatchObject({
+      productQuery: 'hdpe',
+      aspect: 'pressure_class',
+    });
+  });
+
+  it('tanpa produk yang disebut → productQuery null, bukan tebakan', async () => {
+    expect(await service().parseProductQuestion('standarnya apa?')).toMatchObject({
+      productQuery: null,
+      aspect: 'standard',
+    });
+  });
+});

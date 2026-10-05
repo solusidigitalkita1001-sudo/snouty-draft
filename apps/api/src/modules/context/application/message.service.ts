@@ -16,8 +16,11 @@ import type { AssistantStreamEvent } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
+import { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
+import { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { IntentRouter } from './intent-router.js';
 import { runUnderstanding } from './message-pipeline.js';
+import { runProductQuestion } from './product-question-pipeline.js';
 import { RequirementSnapshotStore } from './requirement-snapshot.store.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import { ulid } from '../../../shared/ulid.js';
@@ -28,6 +31,8 @@ export class MessageService {
     private readonly conversations: ConversationService,
     private readonly store: RequirementSnapshotStore,
     private readonly router: IntentRouter,
+    private readonly catalog: CatalogQueryService,
+    private readonly productQuestions: ProductQuestionService,
     @Optional() @Inject(AI_SERVICE) private readonly ai: AiService | null = null,
   ) {}
 
@@ -60,6 +65,22 @@ export class MessageService {
     const hasExisting = (snapshot?.state.completeness.filled ?? 0) > 0;
 
     const decision = await this.router.route(text, hasExisting);
+
+    // Pertanyaan produk: ruas sendiri, nol ekstraksi, jawaban dari katalog.
+    if (decision.intent === 'PRODUCT_LOOKUP') {
+      const events = await runProductQuestion(this.ai, this.catalog, this.productQuestions, {
+        messageId,
+        message: text,
+      });
+      await this.conversations.appendAssistantMessage(
+        conversationId,
+        textOf(events),
+        cardsOf(events),
+        null,
+      );
+      return events;
+    }
+
     const result = await runUnderstanding(this.ai, {
       messageId,
       message: text,
@@ -72,11 +93,26 @@ export class MessageService {
       await this.store.append(conversationId, result.nextState, result.trigger);
     }
 
-    const cards = result.events
-      .filter((e): e is Extract<AssistantStreamEvent, { type: 'card' }> => e.type === 'card')
-      .map((e) => e.card);
-    await this.conversations.appendAssistantMessage(conversationId, '', cards, null);
+    await this.conversations.appendAssistantMessage(
+      conversationId,
+      '',
+      cardsOf(result.events),
+      null,
+    );
 
     return result.events;
   }
+}
+
+function cardsOf(events: readonly AssistantStreamEvent[]) {
+  return events
+    .filter((e): e is Extract<AssistantStreamEvent, { type: 'card' }> => e.type === 'card')
+    .map((e) => e.card);
+}
+
+function textOf(events: readonly AssistantStreamEvent[]): string {
+  return events
+    .filter((e): e is Extract<AssistantStreamEvent, { type: 'token' }> => e.type === 'token')
+    .map((e) => e.text)
+    .join('');
 }

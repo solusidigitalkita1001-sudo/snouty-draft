@@ -842,6 +842,70 @@
   color: var(--snouty-muted);
 }
 
+/* Kartu produk dari jawaban pengetahuan produk — belum ada di desain (OQ-21). */
+.lookupCards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lookupTitle {
+  font-family: var(--snouty-font-mono);
+  font-size: var(--snouty-text-caption);
+  letter-spacing: 0.07em;
+  color: var(--snouty-caption);
+}
+
+.lookupGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lookupCard {
+  width: 180px;
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: 8px;
+  padding: 12px 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.lookupCard:hover {
+  border-color: var(--snouty-node-border);
+}
+
+.lookupCard:focus-visible {
+  outline: none;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.lookupSku {
+  font-family: var(--snouty-font-mono);
+  font-size: var(--snouty-text-micro);
+  letter-spacing: 0.07em;
+  color: var(--snouty-caption);
+}
+
+.lookupName {
+  font-size: var(--snouty-text-list);
+  font-weight: 500;
+  color: var(--snouty-ink);
+}
+
+.lookupOpen {
+  font-size: var(--snouty-text-label);
+  color: var(--snouty-action-text);
+}
+
 .unsupportedCard {
   border: 1px solid var(--snouty-border);
   background: var(--snouty-surface);

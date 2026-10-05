@@ -248,6 +248,11 @@ sebagai satu-satunya bahan.
 
 ---
 
+_Status 2026-10-05:_ jalur ini kini tersambung ke chat (`context/application/product-question-pipeline.ts`).
+Model hanya memetakan pertanyaan ke produk + aspek (`ai.parseProductQuestion`, kosakata tertutup);
+kalimat jawabannya templat deterministik dari `ProductAnswer` — LLM sebagai perangkai kalimat belum
+dipakai. Produk yang tidak ada di katalog aktif dikatakan tidak ada, bukan dijawab dari pengetahuan umum.
+
 ## 5. RAG — kriteria adopsi
 
 **Belum diadopsi.** SPEC §10 mengatakan Qdrant dipakai "hanya bila retrieval semantik memang

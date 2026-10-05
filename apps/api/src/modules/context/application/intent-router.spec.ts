@@ -12,6 +12,7 @@ function aiReturning(result: IntentClassification): AiService {
     classifyIntent: (_input: IntentInput) => Promise.resolve(result),
     extract: () => Promise.resolve({} as Extraction),
     titleFor: () => Promise.resolve(''),
+    parseProductQuestion: () => Promise.resolve({ productQuery: null, aspect: null, size: null }),
     // Jalur prosa tidak dipakai di router intent; fake-nya cukup menolak.
     writeProse: () => Promise.resolve(null),
   };

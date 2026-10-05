@@ -35,9 +35,12 @@ const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1
 
 export interface DrawerSelection {
   readonly productId: string;
-  /** Ukuran yang dipakai solusi — disorot di "UKURAN TERSEDIA". */
-  readonly size: string;
-  readonly matchState: SelectedProduct['matchState'];
+  /**
+   * Ukuran yang dipakai solusi — disorot di "UKURAN TERSEDIA". Kosong untuk produk yang
+   * dibuka dari jawaban pengetahuan produk: ia tidak "dipakai di solusi" mana pun.
+   */
+  readonly size?: string;
+  readonly matchState?: SelectedProduct['matchState'];
 }
 
 export function ProductDrawer({
@@ -156,9 +159,11 @@ function ProductBody({
           <div className={styles.category}>{product.category}</div>
           <h2 className={styles.name}>{product.name}</h2>
           <p className={styles.description}>{product.description}</p>
-          <span className={styles.usedTag}>
-            {SOLUTION_COPY.matchStateLabel[selection.matchState]} · {selection.size}
-          </span>
+          {selection.size !== undefined && selection.matchState !== undefined && (
+            <span className={styles.usedTag}>
+              {SOLUTION_COPY.matchStateLabel[selection.matchState]} · {selection.size}
+            </span>
+          )}
         </div>
       </div>
 

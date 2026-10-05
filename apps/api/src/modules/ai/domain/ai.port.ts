@@ -11,7 +11,11 @@
  * dan pemanggil memilih jalur deterministik/klarifikasi.
  */
 
-import type { Extraction, IntentClassification } from './extraction-schema.js';
+import type {
+  Extraction,
+  IntentClassification,
+  ProductQuestionParse,
+} from './extraction-schema.js';
 
 export const AI_SERVICE = Symbol('AI_SERVICE');
 
@@ -31,6 +35,13 @@ export interface AiService {
   extract(message: string): Promise<Extraction>;
 
   classifyIntent(input: IntentInput): Promise<IntentClassification>;
+
+  /**
+   * Memetakan pertanyaan produk ke produk yang disebut + aspek tertutup. Faktanya TIDAK
+   * dijawab di sini — `product-knowledge` menjawab dari katalog, nol LLM
+   * (docs/PRODUCT_KNOWLEDGE.md §4).
+   */
+  parseProductQuestion(message: string): Promise<ProductQuestionParse>;
 
   /** Judul percakapan dari pesan pertama (tingkat cepat). */
   titleFor(firstMessage: string): Promise<string>;

@@ -18,6 +18,7 @@ import type {
   AssistantCard,
   AssistantStreamEvent,
   ClarificationQuestion,
+  ProductCardDto,
   Recommendation,
   RequirementState,
   StageStatus,
@@ -25,8 +26,10 @@ import type {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { moodForCards } from '../mascot/mood';
 import { Snouty, SnoutyAvatar } from '../mascot/snouty';
+import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { ReportModal } from '../report/report-modal';
 import { REPORT_COPY } from '../report/report-copy';
+import { ProductLookupCards } from './product-lookup-cards';
 import {
   createConversation,
   fetchHistory,
@@ -75,6 +78,7 @@ export function ChatWorkspace() {
   const [toastOn, setToastOn] = useState(false);
   const [sleepy, setSleepy] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [openProduct, setOpenProduct] = useState<DrawerSelection | null>(null);
   const [solution, setSolution] = useState<Recommendation | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [history, setHistory] = useState<
@@ -164,7 +168,9 @@ export function ChatWorkspace() {
           setState(event.state);
           break;
         case 'stage':
-          setStages((previous) => ({ ...previous, [event.stage]: event.status }));
+          // Tahap pesan biasa ("Memahami kebutuhan") TIDAK membuka kartu analisis —
+          // di prototipe kartu itu hanya ada saat "Analisis kebutuhan" ditekan;
+          // selama pesan berjalan yang tampil titik berpikir.
           break;
         case 'token':
           assistantText += event.text;
@@ -435,6 +441,9 @@ export function ChatWorkspace() {
                         saveState={saveState}
                         onAnalyze={analyze}
                         analyzing={analyzing}
+                        onOpenProduct={(product) =>
+                          setOpenProduct({ productId: product.productId })
+                        }
                       />
                     ))}
                   </div>
@@ -457,6 +466,10 @@ export function ChatWorkspace() {
             {state !== null && filled > 0 && <UnderstoodCard rows={rows} filled={filled} />}
 
             {Object.keys(stages).length > 0 && <StageIndicator stages={stages} />}
+
+            {openProduct && (
+              <ProductDrawer selection={openProduct} onClose={() => setOpenProduct(null)} />
+            )}
 
             {reportOpen && solution !== null && (
               <ReportModal recommendationId={solution.id} onClose={() => setReportOpen(false)} />
@@ -703,6 +716,7 @@ function CardView({
   saveState,
   onAnalyze,
   analyzing,
+  onOpenProduct,
 }: {
   card: AssistantCard;
   onChip: (question: ClarificationQuestion, option: string) => void;
@@ -712,7 +726,12 @@ function CardView({
   saveState: 'idle' | 'saved';
   onAnalyze: () => void;
   analyzing: boolean;
+  onOpenProduct: (product: ProductCardDto) => void;
 }) {
+  if (card.kind === 'product') {
+    return <ProductLookupCards products={card.products} onOpen={onOpenProduct} />;
+  }
+
   if (card.kind === 'clarification') {
     // Layar 03: pertanyaan BERNOMOR — maksimum empat, dan nomornya membuat
     // panjangnya terbaca sebagai "ada ujungnya", bukan kuesioner tanpa batas.

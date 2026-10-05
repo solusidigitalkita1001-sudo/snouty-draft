@@ -71,3 +71,34 @@ export const IntentSchema = z
   .strict();
 
 export type IntentClassification = z.infer<typeof IntentSchema>;
+
+/**
+ * Hasil parse pertanyaan produk — yang dipetakan model hanya **ke mana** pertanyaan itu
+ * menunjuk, bukan jawabannya. `aspect` adalah kosakata tertutup yang sama dengan
+ * `product-knowledge/domain/product-aspect.ts` (dijaga tes di modul itu; `ai` tidak boleh
+ * mengimpornya). `null` berarti "tidak menunjuk ke mana pun" — dan itu jawaban yang sah:
+ * aspek yang tidak dikenal diakui, bukan dibulatkan ke yang terdekat.
+ */
+export const ProductQuestionSchema = z
+  .object({
+    /** Nama/keluarga produk yang disebut, mis. "PVC AW"; `null` bila tidak menyebut. */
+    productQuery: z.string().trim().min(1).max(120).nullable(),
+    aspect: z
+      .enum([
+        'sizes',
+        'size_availability',
+        'compatible_fittings',
+        'material',
+        'standard',
+        'pressure_class',
+        'rod_length',
+        'joint_type',
+        'application',
+      ])
+      .nullable(),
+    /** Ukuran yang ditanyakan, mis. `3/4` — hanya bermakna untuk `size_availability`. */
+    size: z.string().trim().min(1).max(16).nullable(),
+  })
+  .strict();
+
+export type ProductQuestionParse = z.infer<typeof ProductQuestionSchema>;

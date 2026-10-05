@@ -20,6 +20,8 @@ import { loadEnv } from '../../../config/env.js';
 import {
   ExtractionSchema,
   IntentSchema,
+  ProductQuestionSchema,
+  type ProductQuestionParse,
   type Extraction,
   type IntentClassification,
 } from '../domain/extraction-schema.js';
@@ -32,7 +34,12 @@ import {
 import { LLM_TRANSPORT, type LlmMessage, type LlmTransport } from '../domain/llm-transport.port.js';
 import { TIER_ENV_KEY, tierForTask, type LlmTask, type LlmTier } from '../domain/model-routing.js';
 import { AiOutputInvalidError } from '../domain/ai.errors.js';
-import { EXTRACTION_SYSTEM_PROMPT, INTENT_SYSTEM_PROMPT, TITLE_SYSTEM_PROMPT } from './prompts.js';
+import {
+  EXTRACTION_SYSTEM_PROMPT,
+  INTENT_SYSTEM_PROMPT,
+  PRODUCT_QUESTION_SYSTEM_PROMPT,
+  TITLE_SYSTEM_PROMPT,
+} from './prompts.js';
 
 /** Konteks per permintaan — correlation ID mengalir ke audit biaya. */
 export interface AiCallContext {
@@ -71,6 +78,19 @@ export class OpenRouterAiService implements AiService {
       IntentSchema,
       INTENT_SYSTEM_PROMPT,
       user,
+      context,
+    );
+  }
+
+  async parseProductQuestion(
+    message: string,
+    context: AiCallContext = { correlationId: null },
+  ): Promise<ProductQuestionParse> {
+    return this.callStructured(
+      'product_question',
+      ProductQuestionSchema,
+      PRODUCT_QUESTION_SYSTEM_PROMPT,
+      message,
       context,
     );
   }

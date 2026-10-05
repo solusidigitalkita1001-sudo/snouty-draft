@@ -20,6 +20,7 @@ export type LlmTask =
   | 'extraction'
   | 'clarification_phrasing'
   | 'intent_classification'
+  | 'product_question'
   | 'explanation_prose'
   | 'ambiguous_input'
   | 'extraction_retry';
@@ -35,6 +36,8 @@ const ROUTING: Readonly<Record<LlmTask, LlmTier>> = {
   extraction: 'balanced',
   clarification_phrasing: 'balanced',
   intent_classification: 'balanced',
+  /** Memetakan "ada ukuran 3/4?" ke produk + aspek — tugas kecil, kosakata tertutup. */
+  product_question: 'fast',
   explanation_prose: 'balanced',
   ambiguous_input: 'strong',
   extraction_retry: 'strong',

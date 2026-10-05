@@ -13,6 +13,10 @@ import { AiModule } from '../ai/ai.module.js';
 import { AI_SERVICE, type AiService } from '../ai/domain/ai.port.js';
 import { ConversationModule } from '../conversation/conversation.module.js';
 import { ConversationService } from '../conversation/application/conversation.service.js';
+import { ProductCatalogModule } from '../product-catalog/product-catalog.module.js';
+import { CatalogQueryService } from '../product-catalog/application/catalog-query.service.js';
+import { ProductKnowledgeModule } from '../product-knowledge/product-knowledge.module.js';
+import { ProductQuestionService } from '../product-knowledge/application/product-question.service.js';
 import { IntentRouter } from './application/intent-router.js';
 import { MessageService } from './application/message.service.js';
 import { RequirementSnapshotStore } from './application/requirement-snapshot.store.js';
@@ -44,17 +48,27 @@ const intentRouterProvider = {
 
 const messageServiceProvider = {
   provide: MessageService,
-  inject: [ConversationService, RequirementSnapshotStore, IntentRouter, AI_SERVICE],
+  inject: [
+    ConversationService,
+    RequirementSnapshotStore,
+    IntentRouter,
+    CatalogQueryService,
+    ProductQuestionService,
+    AI_SERVICE,
+  ],
   useFactory: (
     conversations: ConversationService,
     store: RequirementSnapshotStore,
     router: IntentRouter,
+    catalog: CatalogQueryService,
+    productQuestions: ProductQuestionService,
     ai: AiService | null,
-  ) => new MessageService(conversations, store, router, ai),
+  ) => new MessageService(conversations, store, router, catalog, productQuestions, ai),
 };
 
 @Module({
-  imports: [AiModule, ConversationModule],
+  // Katalog + pengetahuan produk: ruas PRODUCT_LOOKUP menjawab dari keduanya, nol LLM.
+  imports: [AiModule, ConversationModule, ProductCatalogModule, ProductKnowledgeModule],
   controllers: [MessageController],
   providers: [
     rateLimiterProvider,

@@ -85,6 +85,11 @@ export const CHAT_COPY = {
   criteriaTitle: 'KRITERIA YANG SEBAIKNYA DIPERIKSA',
 
   /** Layar 11 — validasi teknis / belum didukung. */
+  /** Kartu produk dari jawaban pengetahuan produk — belum ada di desain (OQ-21). */
+  productCards: {
+    title: 'PRODUK PRALON TERKAIT',
+    open: 'Lihat detail',
+  },
   unsupported: {
     title: 'Kebutuhan ini membutuhkan pengecekan teknis lebih lanjut',
     capturedLabel: 'YANG SUDAH SAYA CATAT',
