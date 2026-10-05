@@ -209,7 +209,7 @@ function esc(value: string): string {
 export const PRINT_PALETTE = {
   'snouty-ink': '#14181a',
   'snouty-muted': '#5a6468',
-  'snouty-caption': '#8a9295',
+  'snouty-caption': '#6b7376',
   'snouty-border-soft': '#e6eae9',
   'snouty-action-text': '#b02414',
   'snouty-assumed-text': '#8a5300',
