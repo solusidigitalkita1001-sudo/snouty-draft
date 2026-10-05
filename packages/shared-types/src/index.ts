@@ -78,3 +78,13 @@ export type {
   SegmentRole,
 } from './schematic.js';
 export { ANALYSIS_STAGE_LABELS } from './sse.js';
+export type {
+  ReportBasisRow,
+  ReportCreated,
+  ReportIdentity,
+  ReportPayload,
+  ReportPreview,
+  ReportPricing,
+  ReportRequirementRow,
+  ReportStatus,
+} from './report.js';

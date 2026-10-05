@@ -1,0 +1,426 @@
+/* Overlay pratinjau laporan — nilai dari SNOUTY Prototype.dc.html (baris 802–856). */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--snouty-scrim-strong);
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  max-height: 92vh;
+  background: var(--snouty-surface);
+  border: 1px solid var(--snouty-border);
+  border-radius: 12px;
+  box-shadow: var(--snouty-shadow-modal);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  outline: none;
+  animation: snoutyIn var(--snouty-enter) both;
+}
+
+.header {
+  flex: none;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--snouty-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.number {
+  font-family: var(--snouty-font-mono);
+  font-size: 10.5px;
+  color: var(--snouty-muted);
+}
+
+.close {
+  min-width: 44px;
+  min-height: 44px;
+  margin-right: -12px;
+  border: none;
+  background: none;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--snouty-caption);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.close:hover {
+  color: var(--snouty-action-text);
+}
+
+.body {
+  flex: 1;
+  overflow: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.status {
+  font-size: var(--snouty-text-list);
+  color: var(--snouty-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── Formulir identitas (tidak ada di prototipe — menunggu desain) ──────────── */
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.identityHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.needsDesign {
+  font-family: var(--snouty-font-mono);
+  font-size: var(--snouty-text-micro);
+  letter-spacing: 0.06em;
+  color: var(--snouty-assumed-text);
+  background: var(--snouty-assumed-bg);
+  border: 1px solid var(--snouty-assumed-border);
+  border-radius: var(--snouty-radius-tag);
+  padding: 2px 6px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  max-width: 360px;
+  font-size: var(--snouty-text-helper);
+  color: var(--snouty-muted);
+}
+
+.input {
+  font: inherit;
+  font-size: var(--snouty-text-body);
+  color: var(--snouty-ink);
+  background: var(--snouty-surface);
+  border: 1px solid var(--snouty-border);
+  border-radius: 6px;
+  padding: 9px 11px;
+  min-height: 44px;
+}
+
+.hint {
+  font-size: var(--snouty-text-label);
+  color: var(--snouty-caption);
+  margin: 0;
+}
+
+/* ── Isi pratinjau ──────────────────────────────────────────────────────── */
+.banner {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px dashed var(--snouty-assumed-border-strong);
+  background: var(--snouty-assumed-bg-soft);
+  border-radius: 8px;
+  padding: 11px 13px;
+}
+
+.estimateTag {
+  font-family: var(--snouty-font-mono);
+  font-size: var(--snouty-text-caption);
+  color: var(--snouty-assumed-text);
+  border: 1px solid var(--snouty-assumed-border-strong);
+  border-radius: 4px;
+  padding: 3px 6px;
+  flex: none;
+}
+
+.bannerText {
+  font-size: var(--snouty-text-helper);
+  line-height: 1.5;
+  color: var(--snouty-assumed-body);
+}
+
+.section {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.kicker {
+  font-family: var(--snouty-font-mono);
+  font-size: var(--snouty-text-caption);
+  color: var(--snouty-caption);
+  letter-spacing: 0.07em;
+}
+
+.headline {
+  font-size: var(--snouty-text-body);
+  line-height: 1.55;
+  color: var(--snouty-ink-2);
+  margin: 0;
+}
+
+.table {
+  flex: none;
+  border: 1px solid var(--snouty-border-soft);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.row,
+.rowPriced {
+  display: grid;
+  border-bottom: 1px solid var(--snouty-hairline-2);
+}
+
+.row {
+  grid-template-columns: 1.8fr 0.7fr 0.8fr;
+}
+
+.rowPriced {
+  grid-template-columns: 1.8fr 0.7fr 0.8fr 1fr;
+}
+
+.row > *,
+.rowPriced > * {
+  padding: 10px 8px;
+  font-size: var(--snouty-text-helper);
+}
+
+.row > :first-child,
+.rowPriced > :first-child {
+  padding-left: 14px;
+}
+
+.row > :last-child,
+.rowPriced > :last-child {
+  padding-right: 14px;
+}
+
+.tableHead {
+  background: var(--snouty-surface-subtle);
+  border-bottom: 1px solid var(--snouty-border-soft);
+}
+
+.tableHead > * {
+  padding-top: 9px;
+  padding-bottom: 9px;
+  font-family: var(--snouty-font-mono);
+  font-size: var(--snouty-text-caption);
+  color: var(--snouty-muted);
+  letter-spacing: 0.06em;
+}
+
+.cellItem {
+  font-size: var(--snouty-text-desc);
+}
+
+.cellMono {
+  font-family: var(--snouty-font-mono);
+}
+
+.cellQty {
+  font-size: var(--snouty-text-helper);
+}
+
+.right {
+  text-align: right;
+}
+
+.strong {
+  font-weight: 500;
+}
+
+.muted {
+  color: var(--snouty-muted);
+}
+
+.totals {
+  display: flex;
+  justify-content: flex-end;
+  padding: 13px 14px;
+  background: var(--snouty-surface-subtle);
+}
+
+.totalsBox {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--snouty-text-helper);
+}
+
+.grandTotal {
+  align-items: baseline;
+  border-top: 1px solid var(--snouty-border);
+  padding-top: 7px;
+  font-size: var(--snouty-text-desc);
+  font-weight: 600;
+}
+
+.grandTotal .cellMono {
+  font-size: var(--snouty-text-section);
+}
+
+.footnote {
+  flex: none;
+  font-size: var(--snouty-text-helper);
+  color: var(--snouty-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.footer {
+  flex: none;
+  padding: 15px 24px;
+  border-top: 1px solid var(--snouty-hairline);
+  background: var(--snouty-surface-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.pdfStatus {
+  font-size: var(--snouty-text-label);
+  color: var(--snouty-caption);
+}
+
+.link {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--snouty-text-helper);
+  color: var(--snouty-muted);
+  cursor: pointer;
+  padding: 0;
+  min-height: 44px;
+}
+
+.link:hover {
+  color: var(--snouty-action-text);
+}
+
+.secondary,
+.primary {
+  font: inherit;
+  font-size: var(--snouty-text-desc);
+  border-radius: 6px;
+  padding: 9px 15px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.secondary {
+  color: var(--snouty-ink-3);
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: var(--snouty-action);
+  color: var(--snouty-action-text);
+}
+
+.primary {
+  font-weight: 500;
+  color: var(--snouty-action-on);
+  background: var(--snouty-action);
+  border: none;
+  padding: 9px 18px;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--snouty-action-hover);
+}
+
+.secondary:disabled,
+.primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.link:focus-visible,
+.secondary:focus-visible,
+.primary:focus-visible,
+.close:focus-visible,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+@keyframes snoutyIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}

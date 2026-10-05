@@ -25,6 +25,8 @@ import type {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { moodForCards } from '../mascot/mood';
 import { Snouty, SnoutyAvatar } from '../mascot/snouty';
+import { ReportModal } from '../report/report-modal';
+import { REPORT_COPY } from '../report/report-copy';
 import {
   createConversation,
   fetchHistory,
@@ -72,6 +74,7 @@ export function ChatWorkspace() {
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
   const [toastOn, setToastOn] = useState(false);
   const [sleepy, setSleepy] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [solution, setSolution] = useState<Recommendation | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [history, setHistory] = useState<
@@ -333,6 +336,18 @@ export function ChatWorkspace() {
               {solution !== null ? COPY.solutionReady : COPY.stepStatus(filled)}
             </span>
           </div>
+          {/* "Buat laporan" di header, seperti prototipe, begitu solusi ada. */}
+          {solution !== null && (
+            <div className={styles.headerActions}>
+              <button
+                type="button"
+                className={styles.headerPrimary}
+                onClick={() => setReportOpen(true)}
+              >
+                {REPORT_COPY.open}
+              </button>
+            </div>
+          )}
           <button
             type="button"
             className={styles.panelToggle}
@@ -441,6 +456,10 @@ export function ChatWorkspace() {
             {state !== null && filled > 0 && <UnderstoodCard rows={rows} filled={filled} />}
 
             {Object.keys(stages).length > 0 && <StageIndicator stages={stages} />}
+
+            {reportOpen && solution !== null && (
+              <ReportModal recommendationId={solution.id} onClose={() => setReportOpen(false)} />
+            )}
 
             {toastOn && (
               <div className={styles.toast} role="status">

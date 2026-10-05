@@ -120,6 +120,37 @@
   text-overflow: ellipsis;
 }
 
+/* Aksi header prototipe: "Buat laporan" merah merek 12.5px/500, radius 5, padding 6px 12px. */
+.headerActions {
+  display: flex;
+  gap: 8px;
+  flex: none;
+  margin-left: auto;
+  margin-right: 10px;
+}
+
+.headerPrimary {
+  font: inherit;
+  font-size: var(--snouty-text-helper);
+  font-weight: 500;
+  color: var(--snouty-action-on);
+  background: var(--snouty-action);
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.headerPrimary:hover {
+  background: var(--snouty-action-hover);
+}
+
+.headerPrimary:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
+}
+
 /* Badge status: mono 10px, berbingkai, radius 4px — nilai prototipe. */
 .headerStatus {
   font-family: var(--snouty-font-mono);
