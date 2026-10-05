@@ -14,6 +14,7 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import type { AssistantStreamEvent } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
+import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
 import { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
@@ -52,14 +53,26 @@ export class MessageService {
 
     const messageId = ulid();
 
-    if (!this.ai) {
-      return [
-        { type: 'message.start', messageId },
-        { type: 'error', code: 'LLM_UNAVAILABLE', retryable: true },
-        { type: 'message.end', messageId, usage: { in: 0, out: 0, costUsd: 0 } },
-      ];
-    }
+    if (!this.ai) return llmUnavailable(messageId);
 
+    try {
+      return await this.answer(conversationId, text, now, messageId);
+    } catch (error) {
+      // Model terkonfigurasi tetapi tidak terjangkau (kunci ditolak, limit habis,
+      // jaringan): nasibnya sama dengan "tanpa model" — jujur lewat event
+      // LLM_UNAVAILABLE yang retryable, bukan 503 generik yang membatalkan giliran.
+      if (error instanceof LlmUnavailableError) return llmUnavailable(messageId);
+      throw error;
+    }
+  }
+
+  private async answer(
+    conversationId: string,
+    text: string,
+    now: string,
+    messageId: string,
+  ): Promise<readonly AssistantStreamEvent[]> {
+    const ai = this.ai!;
     const snapshot = await this.store.current(conversationId);
     const state = snapshot?.state ?? emptyRequirementState(now);
     const hasExisting = (snapshot?.state.completeness.filled ?? 0) > 0;
@@ -68,7 +81,7 @@ export class MessageService {
 
     // Pertanyaan produk: ruas sendiri, nol ekstraksi, jawaban dari katalog.
     if (decision.intent === 'PRODUCT_LOOKUP') {
-      const events = await runProductQuestion(this.ai, this.catalog, this.productQuestions, {
+      const events = await runProductQuestion(ai, this.catalog, this.productQuestions, {
         messageId,
         message: text,
       });
@@ -81,7 +94,7 @@ export class MessageService {
       return events;
     }
 
-    const result = await runUnderstanding(this.ai, {
+    const result = await runUnderstanding(ai, {
       messageId,
       message: text,
       decision,
@@ -102,6 +115,14 @@ export class MessageService {
 
     return result.events;
   }
+}
+
+function llmUnavailable(messageId: string): readonly AssistantStreamEvent[] {
+  return [
+    { type: 'message.start', messageId },
+    { type: 'error', code: 'LLM_UNAVAILABLE', retryable: true },
+    { type: 'message.end', messageId, usage: { in: 0, out: 0, costUsd: 0 } },
+  ];
 }
 
 function cardsOf(events: readonly AssistantStreamEvent[]) {

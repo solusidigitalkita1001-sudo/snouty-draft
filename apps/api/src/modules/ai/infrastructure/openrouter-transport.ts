@@ -7,6 +7,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { loadEnv } from '../../../config/env.js';
+import { LlmUnavailableError } from '../domain/ai.errors.js';
 import type {
   LlmCompletionRequest,
   LlmCompletionResult,
@@ -29,22 +30,31 @@ export class OpenRouterTransport implements LlmTransport {
       throw new Error('OPENROUTER_API_KEY tidak diset — transport live tidak boleh dipanggil');
     }
 
-    const response = await fetch(`${env.OPENROUTER_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: request.model,
-        messages: request.messages,
-        ...(request.jsonMode ? { response_format: { type: 'json_object' } } : {}),
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${env.OPENROUTER_BASE_URL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: request.model,
+          messages: request.messages,
+          ...(request.jsonMode ? { response_format: { type: 'json_object' } } : {}),
+        }),
+      });
+    } catch {
+      // Jaringan putus / DNS gagal: tidak ada respons sama sekali.
+      throw new LlmUnavailableError(null);
+    }
 
     if (!response.ok) {
-      // Pesan aman; detail tetap di server lewat log pemanggil.
-      throw new Error(`OpenRouter ${response.status}`);
+      // Kunci ditolak (401/403), limit habis (402/429), penyedia tumbang (5xx): semuanya
+      // "model tidak terjangkau" bagi pengguna. Status disimpan untuk log; pesan aman.
+      // Sebelumnya ini `Error('OpenRouter 403')` polos — dan filter memetakannya ke 503
+      // SERVICE_UNAVAILABLE generik, bukan LLM_UNAVAILABLE yang dijanjikan kontrak.
+      throw new LlmUnavailableError(response.status);
     }
 
     const body = (await response.json()) as OpenRouterResponse;
