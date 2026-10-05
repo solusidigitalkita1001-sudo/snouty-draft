@@ -24,6 +24,7 @@ import {
 } from '../../recommendation/domain/recommendation.repository.js';
 import { RequirementSnapshotStore } from '../../context/application/requirement-snapshot.store.js';
 import { assembleReportPayload } from './report-assembler.js';
+import { reportDownloadName, resolveReportFile } from '../domain/report-file.js';
 import { formatReportNumber, yearMonthOf } from '../domain/report-number.js';
 import { REPORT_REPOSITORY, type ReportRepository } from '../domain/report.repository.js';
 import { JobPublisher } from '../../../shared/queue/job-publisher.js';
@@ -33,6 +34,33 @@ export class RecommendationNotFoundError extends Error {
   constructor() {
     super('rekomendasi tidak ditemukan');
     this.name = 'RecommendationNotFoundError';
+  }
+}
+
+export class ReportPdfNotReadyError extends Error {
+  readonly code = 'NOT_FOUND' as const;
+
+  constructor() {
+    super('PDF laporan belum siap. Coba lagi beberapa saat lagi.');
+    this.name = 'ReportPdfNotReadyError';
+  }
+}
+
+export class ReportPdfFailedError extends Error {
+  readonly code = 'REPORT_GENERATION_FAILED' as const;
+
+  constructor() {
+    super('PDF laporan gagal dibuat. Pratinjau di layar tetap bisa dipakai.');
+    this.name = 'ReportPdfFailedError';
+  }
+}
+
+export class ReportStorageUnavailableError extends Error {
+  readonly code = 'SERVICE_UNAVAILABLE' as const;
+
+  constructor() {
+    super('Penyimpanan laporan belum dikonfigurasi.');
+    this.name = 'ReportStorageUnavailableError';
   }
 }
 
@@ -122,6 +150,29 @@ export class ReportService {
     }
 
     return report;
+  }
+
+  /**
+   * Berkas PDF untuk diunduh pemilik. Status diperiksa dulu supaya pesannya jujur:
+   * PENDING berarti "belum siap", FAILED berarti "gagal" — keduanya bukan "tidak ada".
+   * Tautan bertanda tangan untuk dibagikan (§7) menyusul bersama rute email; rute ini
+   * berbasis sesi, jadi tidak ada URL berkas yang bisa ditebak.
+   */
+  async pdfFor(
+    reportId: string,
+    actor: ConversationOwner,
+  ): Promise<{ readonly absolutePath: string; readonly fileName: string }> {
+    const report = await this.findForActor(reportId, actor);
+    if (report.status === 'FAILED') throw new ReportPdfFailedError();
+    if (report.status !== 'READY' || report.fileRef === null) throw new ReportPdfNotReadyError();
+
+    const storagePath = loadEnv().STORAGE_PATH;
+    if (storagePath === undefined) throw new ReportStorageUnavailableError();
+
+    return {
+      absolutePath: resolveReportFile(storagePath, report.fileRef),
+      fileName: reportDownloadName(report.reportNumber),
+    };
   }
 
   /** Membaca laporan setelah memastikan aktor berhak. */

@@ -149,6 +149,10 @@ kewajiban UU PDP, bukan sekadar kerapian (invarian RP-2). Setiap unduhan oleh pe
 
 Tautan unduhan bertanda tangan dan berumur pendek; tidak ada URL berkas yang bisa ditebak.
 
+_Status 2026-10-05:_ unduhan pemilik lewat `GET /reports/:id/download` **berbasis sesi** — kepemilikan
+diperiksa layanan, jalur berkas dipastikan di dalam `STORAGE_PATH`. Tautan bertanda tangan (untuk
+dibagikan atau dikirim email) belum ada; ia datang bersama `POST /reports/:id/email`.
+
 ---
 
 ## 8. Pratinjau di layar

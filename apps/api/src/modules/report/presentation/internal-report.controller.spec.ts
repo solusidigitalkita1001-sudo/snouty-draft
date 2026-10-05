@@ -92,6 +92,36 @@ describe('ReportController (publik)', () => {
       ).rejects.toMatchObject({ code: 'NOT_ENTITLED' });
     });
 
+    it('unduhan mengalirkan berkas dari layanan dengan header PDF dan nama nomor laporan', async () => {
+      const { mkdtempSync, writeFileSync } = await import('node:fs');
+      const { tmpdir } = await import('node:os');
+      const { join } = await import('node:path');
+      const dir = mkdtempSync(join(tmpdir(), 'snouty-report-'));
+      const absolutePath = join(dir, 'x.pdf');
+      writeFileSync(absolutePath, '%PDF-1.4 uji');
+
+      const headers: Record<string, string> = {};
+      const res = { set: (h: Record<string, string>) => Object.assign(headers, h) };
+      const download = new ReportController({
+        async pdfFor() {
+          return { absolutePath, fileName: 'SNTY-2026-10-0001.pdf' };
+        },
+      } as never);
+
+      const file = await download.download(
+        { id: 'R'.repeat(26) },
+        { guestSessionId: 'G'.repeat(26) } as never,
+        res as never,
+      );
+
+      expect(headers['content-type']).toBe('application/pdf');
+      expect(headers['content-disposition']).toBe('attachment; filename="SNTY-2026-10-0001.pdf"');
+      expect(headers['cache-control']).toContain('no-store');
+      const chunks: Buffer[] = [];
+      for await (const chunk of file.getStream()) chunks.push(Buffer.from(chunk));
+      expect(Buffer.concat(chunks).toString()).toBe('%PDF-1.4 uji');
+    });
+
     it('tier lanjutan lolos ke layanan', async () => {
       service.created = 0;
       const response = await controller().create(body, {

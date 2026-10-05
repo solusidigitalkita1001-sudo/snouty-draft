@@ -89,6 +89,8 @@ $env:RABBITMQ_URL = 'amqp://guest:guest@127.0.0.1:5673'
 $env:JWT_ACCESS_SECRET = 'contoh-rahasia-pengembangan-32-karakter'
 $env:JWT_REFRESH_SECRET = 'contoh-rahasia-refresh-32-karakter-lagi'
 $env:POLICY_VERSION = 'v0-draft'
+# Dibaca API (rute unduh) DAN worker (penulis PDF) -- harus folder yang sama.
+$env:STORAGE_PATH = Join-Path $logDir 'storage'
 $env:NEXT_TELEMETRY_DISABLED = '1'
 
 Set-Location (Join-Path $root 'apps/api')
@@ -144,7 +146,6 @@ $env:NODE_ENV = 'development'
 $env:WORKER_INTERNAL_TOKEN = (node (Join-Path $root 'apps/api/scripts/dev-worker-token.mjs'))
 if ($LASTEXITCODE -ne 0) { Fail 'token worker gagal dibuat' }
 $env:API_URL = 'http://127.0.0.1:3001'
-$env:STORAGE_PATH = Join-Path $logDir 'storage'
 $workerLog = Join-Path $logDir 'worker.log'
 $worker = Start-Process node -ArgumentList 'dist/main.js' -WorkingDirectory (Join-Path $root 'apps/worker') `
   -WindowStyle Hidden -RedirectStandardOutput $workerLog -RedirectStandardError "$workerLog.err" -PassThru

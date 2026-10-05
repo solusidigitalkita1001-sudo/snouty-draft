@@ -77,6 +77,8 @@ const EnvSchema = z.object({
     .transform((value) => value === 'true'),
   TAX_RATE_PERCENT: z.coerce.number().int().min(0).max(100).default(11),
 
+  /** Akar penyimpanan berkas (PDF laporan dari worker). Tanpa ini, unduhan menjawab 503. */
+  STORAGE_PATH: z.string().min(1).optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   OPENROUTER_BASE_URL: z.string().url().default('https://openrouter.ai/api/v1'),
   LLM_MODEL_FAST: z.string().min(1).optional(),

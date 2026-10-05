@@ -17,7 +17,7 @@ import type { ReportPreview } from '@snouty/shared-types';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { Snouty } from '../mascot/snouty';
-import { createReport, fetchReport } from './report-api';
+import { createReport, downloadReport, fetchReport } from './report-api';
 import { REPORT_COPY as COPY, formatRupiah } from './report-copy';
 import styles from './report-modal.module.css';
 
@@ -119,6 +119,22 @@ export function ReportModal({
   );
 
   const report = step.kind === 'preview' ? step.report : null;
+  const [download, setDownload] = useState<'idle' | 'busy' | 'failed'>('idle');
+  const startDownload = useCallback(async () => {
+    if (!report || download === 'busy') return;
+    setDownload('busy');
+    const ok = await downloadReport(report.id, `${report.reportNumber}.pdf`);
+    setDownload(ok ? 'idle' : 'failed');
+  }, [download, report]);
+
+  const pdfNote =
+    download === 'busy'
+      ? COPY.downloading
+      : download === 'failed'
+        ? COPY.downloadError
+        : report
+          ? COPY.pdf[report.status]
+          : '';
 
   return (
     <div className={styles.root}>
@@ -192,7 +208,7 @@ export function ReportModal({
           {report && (
             <div className={styles.footerActions}>
               <span className={styles.pdfStatus} role="status">
-                {COPY.pdf[report.status]}
+                {pdfNote}
               </span>
               {/* `POST /reports/:id/email` belum ada di API — tombolnya tidak berpura-pura. */}
               <button
@@ -203,7 +219,12 @@ export function ReportModal({
               >
                 {COPY.email}
               </button>
-              <button type="button" className={styles.primary} disabled={report.status !== 'READY'}>
+              <button
+                type="button"
+                className={styles.primary}
+                disabled={report.status !== 'READY' || download === 'busy'}
+                onClick={() => void startDownload()}
+              >
                 {COPY.download}
               </button>
             </div>

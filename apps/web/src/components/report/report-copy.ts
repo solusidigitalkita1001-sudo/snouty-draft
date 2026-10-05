@@ -37,9 +37,11 @@ export const REPORT_COPY = {
   error: 'Laporan belum bisa dibuat. Coba lagi sebentar lagi.',
   pdf: {
     PENDING: 'PDF sedang disiapkan…',
-    READY: 'PDF siap — tautan unduhan menyusul bersama rute unduh (REPORT.md §7).',
+    READY: 'PDF siap diunduh.',
     FAILED: 'PDF gagal dibuat. Pratinjau di layar tetap bisa dipakai.',
   },
+  downloading: 'Mengunduh…',
+  downloadError: 'PDF belum bisa diunduh. Coba lagi sebentar lagi.',
   emailUnavailable: 'Belum tersedia',
 } as const;
 

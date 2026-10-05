@@ -8,7 +8,19 @@
  * rute publik atau membiarkan rute internal terbuka. Pemisahan ini yang membuat
  * pilihannya tidak pernah perlu diambil.
  */
-import { Body, Controller, Get, HttpCode, Param, Post, Req } from '@nestjs/common';
+import { createReadStream } from 'node:fs';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Req,
+  Res,
+  StreamableFile,
+} from '@nestjs/common';
+import type { Response } from 'express';
 import { z } from 'zod';
 import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { RequestValidationError } from '../../../shared/http/api-errors.js';
@@ -74,6 +86,27 @@ export class ReportController {
       fileRef: report.fileRef,
       createdAt: report.createdAt,
     };
+  }
+
+  /**
+   * Unduhan PDF oleh pemilik (docs/REPORT.md §7). Berbasis sesi, bukan URL berkas:
+   * kepemilikan diperiksa layanan, jalurnya dipastikan di dalam akar penyimpanan, dan
+   * nama berkasnya nomor laporan — bukan id internal.
+   */
+  @Get('reports/:id/download')
+  async download(
+    @Param() params: unknown,
+    @Req() req: PublicRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const id = parse(IdParam, params).id;
+    const file = await this.reports.pdfFor(id, actorOf(req));
+    res.set({
+      'content-type': 'application/pdf',
+      'content-disposition': `attachment; filename="${file.fileName}"`,
+      'cache-control': 'private, no-store',
+    });
+    return new StreamableFile(createReadStream(file.absolutePath));
   }
 }
 

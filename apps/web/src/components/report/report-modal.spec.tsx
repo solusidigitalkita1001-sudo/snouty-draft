@@ -14,9 +14,11 @@ import { ReportModal } from './report-modal';
 
 const createReport = vi.fn<(input: unknown) => Promise<ReportResult<unknown>>>();
 const fetchReport = vi.fn<(id: string) => Promise<ReportResult<ReportPreview>>>();
+const downloadReport = vi.fn<(id: string, fileName: string) => Promise<boolean>>();
 vi.mock('./report-api', () => ({
   createReport: (input: unknown) => createReport(input),
   fetchReport: (id: string) => fetchReport(id),
+  downloadReport: (id: string, fileName: string) => downloadReport(id, fileName),
 }));
 
 const REC = '01JBRECOMMEND00000000000001';
@@ -75,6 +77,7 @@ async function openPreview(report: ReportPreview, onClose = () => {}) {
 beforeEach(() => {
   createReport.mockReset();
   fetchReport.mockReset();
+  downloadReport.mockReset();
 });
 
 describe('ReportModal', () => {
@@ -145,11 +148,26 @@ describe('ReportModal', () => {
     expect(screen.getByText('PDF sedang disiapkan…')).toBeTruthy();
   });
 
-  it('READY menyalakan "Unduh PDF"', async () => {
+  it('READY menyalakan "Unduh PDF", yang mengunduh lewat fetch dengan nama nomor laporan', async () => {
+    downloadReport.mockResolvedValue(true);
     await openPreview(preview({ status: 'READY', fileRef: 'reports/x.pdf' }));
-    expect((screen.getByRole('button', { name: 'Unduh PDF' }) as HTMLButtonElement).disabled).toBe(
-      false,
+    const button = screen.getByRole('button', { name: 'Unduh PDF' }) as HTMLButtonElement;
+    expect(button.disabled).toBe(false);
+
+    fireEvent.click(button);
+    await waitFor(() =>
+      expect(downloadReport).toHaveBeenCalledWith(
+        '01JBREPORT0000000000000001',
+        'SNTY-2026-10-0001.pdf',
+      ),
     );
+  });
+
+  it('unduhan yang gagal dikatakan apa adanya', async () => {
+    downloadReport.mockResolvedValue(false);
+    await openPreview(preview({ status: 'READY', fileRef: 'reports/x.pdf' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Unduh PDF' }));
+    await screen.findByText('PDF belum bisa diunduh. Coba lagi sebentar lagi.');
   });
 
   it('Esc dan "Kembali ke solusi" menutup', async () => {

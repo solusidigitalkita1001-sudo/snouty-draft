@@ -47,6 +47,29 @@ export async function fetchReport(id: string): Promise<ReportResult<ReportPrevie
   }
 }
 
+/**
+ * Mengunduh PDF lewat `fetch`, bukan tautan `<a href>`: access token pengguna terdaftar
+ * hidup di memori dan dikirim sebagai header — tautan biasa tidak membawanya.
+ */
+export async function downloadReport(id: string, fileName: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${BASE}/reports/${encodeURIComponent(id)}/download`, {
+      credentials: 'include',
+      headers: authHeaders(),
+    });
+    if (!response.ok) return false;
+    const url = URL.createObjectURL(await response.blob());
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function resultOf<T>(response: Response): Promise<ReportResult<T>> {
   if (response.ok) return { kind: 'ok', value: (await response.json()) as T };
   if (response.status === 403) {
