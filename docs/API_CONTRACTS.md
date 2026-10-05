@@ -119,12 +119,12 @@ dihilangkan dari respons. UI perlu tahu bedanya antara "tidak ada datanya" dan "
 
 ### Laporan
 
-| Metode | Path                    | Keterangan                                                     |
-| ------ | ----------------------- | -------------------------------------------------------------- |
-| `POST` | `/reports`              | `{ recommendationId }` → `202` + `reportId`, job masuk antrean |
-| `GET`  | `/reports/:id`          | `PENDING` \| `READY` \| `FAILED`                               |
-| `GET`  | `/reports/:id/download` | hanya pemilik & peran berwenang (invarian RP-2)                |
-| `POST` | `/reports/:id/email`    | "Kirim ke email"                                               |
+| Metode | Path                    | Keterangan                                                                                                            |
+| ------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `POST` | `/reports`              | `{ recommendationId, customerName, projectLocation }` → `202` + `reportId`, job masuk antrean; digerbang `REPORT_PDF` |
+| `GET`  | `/reports/:id`          | `PENDING` \| `READY` \| `FAILED`                                                                                      |
+| `GET`  | `/reports/:id/download` | hanya pemilik & peran berwenang (invarian RP-2)                                                                       |
+| `POST` | `/reports/:id/email`    | "Kirim ke email"                                                                                                      |
 
 ### Handoff teknis
 

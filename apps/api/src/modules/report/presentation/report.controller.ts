@@ -8,10 +8,11 @@
  * rute publik atau membiarkan rute internal terbuka. Pemisahan ini yang membuat
  * pilihannya tidak pernah perlu diambil.
  */
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { RequestValidationError } from '../../../shared/http/api-errors.js';
+import { requireEntitled } from '../../../shared/http/entitlement.js';
 import { ReportService } from '../application/report.service.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
@@ -28,13 +29,22 @@ const CreateReportDto = z
 export class ReportController {
   constructor(private readonly reports: ReportService) {}
 
+  /**
+   * Digerbang `REPORT_PDF` — hanya tier yang berhak di tabel `ENTITLEMENTS`. Sebelum ini
+   * rute dibiarkan terbuka dan tamu bisa membuat laporan lewat API meski UI tidak
+   * menawarkannya; pemeriksaan di sini lapis kedua setelah UI (docs/POLICY.md §6).
+   * 202, bukan 201: laporannya ada, PDF-nya menyusul lewat antrean.
+   */
   @Post('reports')
+  @HttpCode(202)
   async create(@Body() body: unknown, @Req() req: PublicRequest): Promise<unknown> {
+    const actor = actorOf(req);
+    requireEntitled(actor.tier, 'REPORT_PDF');
     const dto = parse(CreateReportDto, body);
     const now = new Date().toISOString();
     const report = await this.reports.create(
       dto.recommendationId,
-      actorOf(req),
+      actor,
       {
         customerName: dto.customerName,
         projectLocation: dto.projectLocation,

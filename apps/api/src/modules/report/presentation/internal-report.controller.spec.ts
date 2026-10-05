@@ -54,4 +54,51 @@ describe('ReportController (publik)', () => {
     expect(typeof ReportController.prototype.create).toBe('function');
     expect(typeof ReportController.prototype.byId).toBe('function');
   });
+
+  /**
+   * `POST /reports` digerbang `REPORT_PDF` (hanya `advanced` di ENTITLEMENTS). Sebelum
+   * pemeriksaan ini ada, tamu bisa membuat laporan lewat API — dibuktikan live 2026-10-05
+   * — meski UI tidak menawarkannya. Lapis kedua ini yang membuat UI yang dilewati tidak
+   * berarti apa-apa.
+   */
+  describe('POST /reports digerbang REPORT_PDF', () => {
+    const body = {
+      recommendationId: 'A'.repeat(26),
+      customerName: 'Tamu Uji',
+      projectLocation: 'Bandung',
+    };
+    const service = {
+      created: 0,
+      async create() {
+        this.created += 1;
+        return { id: 'R', reportNumber: 'SNTY-2026-10-0001', status: 'PENDING', createdAt: 'x' };
+      },
+    };
+    const controller = () => new ReportController(service as never);
+
+    it('tamu ditolak NOT_ENTITLED sebelum layanan tersentuh', async () => {
+      service.created = 0;
+      await expect(
+        controller().create(body, { guestSessionId: 'G'.repeat(26) } as never),
+      ).rejects.toMatchObject({ code: 'NOT_ENTITLED' });
+      expect(service.created).toBe(0);
+    });
+
+    it('pengguna terdaftar biasa juga ditolak — REPORT_PDF hanya tier lanjutan', async () => {
+      await expect(
+        controller().create(body, {
+          authUser: { id: 'U'.repeat(26), tier: 'registered', roles: [] },
+        } as never),
+      ).rejects.toMatchObject({ code: 'NOT_ENTITLED' });
+    });
+
+    it('tier lanjutan lolos ke layanan', async () => {
+      service.created = 0;
+      const response = await controller().create(body, {
+        authUser: { id: 'U'.repeat(26), tier: 'advanced', roles: [] },
+      } as never);
+      expect(service.created).toBe(1);
+      expect(response).toMatchObject({ reportNumber: 'SNTY-2026-10-0001', status: 'PENDING' });
+    });
+  });
 });
