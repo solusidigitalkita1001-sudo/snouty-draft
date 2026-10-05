@@ -41,6 +41,15 @@ import { CHAT_COPY as COPY, STAGE_ORDER, stageLabel } from './chat-copy';
 import { requirementRows } from './requirement-rows';
 import styles from './chat-workspace.module.css';
 
+/** Toast "Solusi tersimpan" hilang sendiri — 2800 ms di prototipe. */
+const TOAST_MS = 2800;
+/**
+ * Jeda "Solusi siap!" dari prototipe: kartu analisis sempat terlihat selesai sebelum
+ * solusinya muncul, supaya perpindahannya terbaca alih-alih melompat. Ini irama
+ * presentasi, bukan timer pengganti latensi — yang itu sengaja tidak disalin.
+ */
+const SOLUTION_READY_HOLD_MS = 1500;
+
 interface ChatTurn {
   readonly id: string;
   readonly role: 'user' | 'assistant';
@@ -59,6 +68,7 @@ export function ChatWorkspace() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
+  const [toastOn, setToastOn] = useState(false);
   const [solution, setSolution] = useState<Recommendation | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [history, setHistory] = useState<
@@ -108,7 +118,13 @@ export function ChatWorkspace() {
   // Gulir ke bawah saat ada giliran baru — percakapan tumbuh ke bawah.
   useEffect(() => {
     streamRef.current?.scrollTo({ top: streamRef.current.scrollHeight });
-  }, [turns, stages]);
+  }, [turns, stages, sending]);
+
+  useEffect(() => {
+    if (!toastOn) return;
+    const timer = setTimeout(() => setToastOn(false), TOAST_MS);
+    return () => clearTimeout(timer);
+  }, [toastOn]);
 
   const submit = useCallback(async () => {
     const text = draft.trim();
@@ -202,7 +218,10 @@ export function ChatWorkspace() {
       }
     })
       .then(async (recommendationId) => {
-        if (recommendationId) setSolution(await fetchRecommendation(recommendationId));
+        if (!recommendationId) return;
+        const recommendation = await fetchRecommendation(recommendationId);
+        await new Promise((resolve) => setTimeout(resolve, SOLUTION_READY_HOLD_MS));
+        setSolution(recommendation);
       })
       .catch(() => setError(COPY.llmUnavailable))
       .finally(() => setAnalyzing(false));
@@ -215,7 +234,9 @@ export function ChatWorkspace() {
   const save = useCallback(() => {
     if (!conversationId || saveState === 'saved') return;
     void saveConversation(conversationId).then((ok) => {
-      if (ok) setSaveState('saved');
+      if (!ok) return;
+      setSaveState('saved');
+      setToastOn(true);
     });
   }, [conversationId, saveState]);
 
@@ -398,10 +419,33 @@ export function ChatWorkspace() {
               ),
             )}
 
+            {sending && (
+              <div className={styles.thinkingRow} role="status" aria-label={COPY.thinking}>
+                <div className={styles.thinkAvatar}>
+                  <Image src={mascot} alt="" width={30} height={30} />
+                </div>
+                <div className={styles.dots} aria-hidden="true">
+                  <span className={styles.dot} />
+                  <span className={styles.dot} />
+                  <span className={styles.dot} />
+                </div>
+              </div>
+            )}
+
             {/* Kartu "Yang sudah saya pahami" — grid 3 kolom dengan badge hijau jumlah data. */}
             {state !== null && filled > 0 && <UnderstoodCard rows={rows} filled={filled} />}
 
             {Object.keys(stages).length > 0 && <StageIndicator stages={stages} />}
+
+            {toastOn && (
+              <div className={styles.toast} role="status">
+                <Image src={mascot} alt="" width={44} height={44} />
+                <div className={styles.toastText}>
+                  <div className={styles.toastTitle}>{COPY.toast.title}</div>
+                  <div className={styles.toastSub}>{COPY.toast.sub}</div>
+                </div>
+              </div>
+            )}
 
             {solution !== null && (
               <SolutionView
@@ -573,8 +617,27 @@ function StageIndicator({
 }: {
   stages: Readonly<Partial<Record<AnalysisStage, StageStatus>>>;
 }) {
+  const statuses = STAGE_ORDER.map((stage) => stages[stage]);
+  const done = statuses.filter((status) => status === 'done').length;
+  const active = statuses.filter((status) => status === 'active').length;
+  const phase = statuses.includes('failed')
+    ? 'failed'
+    : done === STAGE_ORDER.length
+      ? 'done'
+      : 'running';
+  // Prototipe: (langkah + 1) / 5 — tahap yang sedang berjalan ikut terhitung.
+  const pct = Math.round(((done + active) / STAGE_ORDER.length) * 100);
+
   return (
     <div className={styles.stageCard} role="status" aria-live="polite">
+      <div className={styles.stageHead}>
+        <Image src={mascot} alt="" width={44} height={44} />
+        <div className={styles.progressTrack} aria-hidden="true">
+          <div className={styles.progressFill} style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+      <h3 className={styles.stageTitle}>{COPY.analysis[phase].title}</h3>
+      <p className={styles.stageSub}>{COPY.analysis[phase].sub}</p>
       {STAGE_ORDER.map((stage) => {
         const status = stages[stage];
         return (

@@ -288,15 +288,4 @@
   background: var(--snouty-action-hover);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .panel {
-    animation: slide-in 180ms ease-out;
-  }
-}
-
-@keyframes slide-in {
-  from {
-    transform: translateX(24px);
-    opacity: 0;
-  }
-}
+/* Prototipe membuka drawer tanpa animasi — tidak ditambahkan di sini. */

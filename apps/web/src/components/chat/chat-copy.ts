@@ -21,6 +21,24 @@ export const CHAT_COPY = {
   historyEmpty: 'Belum ada konsultasi lain.',
   saveSolution: 'Simpan hasil konsultasi',
   saved: 'Tersimpan',
+  /** Label aksesibel titik berpikir — tidak ada teksnya di prototipe. */
+  thinking: 'SNOUTY sedang berpikir',
+  toast: {
+    title: 'Solusi tersimpan',
+    sub: 'Terima kasih! Buka lagi kapan saja dari Riwayat.',
+  },
+  /** Judul dan sub overlay analisis prototipe, per keadaan. */
+  analysis: {
+    running: { title: 'Menyusun solusi Anda', sub: 'Biasanya selesai dalam beberapa detik.' },
+    done: {
+      title: 'Solusi siap!',
+      sub: 'Membuka rekomendasi, produk, skema, dan estimasi material.',
+    },
+    failed: {
+      title: 'Gagal menyusun rekomendasi',
+      sub: 'Koneksi ke katalog Pralon terputus di tengah analisis. Kebutuhan Anda tetap tersimpan, jadi tidak perlu mengetik ulang.',
+    },
+  },
   /** Placeholder berbeda antara layar sambutan dan lanjutan percakapan — dari prototipe. */
   composerPlaceholder: 'Contoh: Saya bangun rumah 2 lantai, 3 kamar mandi, toren di atap…',
   composerPlaceholderChat: 'Tulis jawaban atau tambahan detail…',

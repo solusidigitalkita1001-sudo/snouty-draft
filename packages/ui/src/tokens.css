@@ -147,6 +147,10 @@
   --snouty-enter: 250ms ease;
   --snouty-sheet: 280ms ease;
   --snouty-indicator: 200ms ease;
+  /* Titik berpikir, garis bar progres analisis, dan lebar bar — nilai prototipe. */
+  --snouty-pulse: 1s ease-in-out;
+  --snouty-flow: 800ms linear;
+  --snouty-progress: 500ms ease;
 }
 
 [data-theme='dark'] {

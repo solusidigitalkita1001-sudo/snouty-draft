@@ -27,7 +27,7 @@
   display: flex;
   flex-direction: row;
   overflow: hidden;
-  animation: snoutyIn 0.28s ease both;
+  animation: snoutyIn var(--snouty-sheet) both;
 }
 
 /* ── Kolom hero merah (300px, dot grid, nomor langkah, gelembung) ─────────── */
@@ -165,7 +165,7 @@
   border: 0;
   padding: 0;
   background: var(--snouty-border-soft);
-  transition: width 0.2s ease;
+  transition: width var(--snouty-indicator);
 }
 
 .dotPast {
@@ -202,7 +202,7 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  animation: snoutyIn 0.25s ease both;
+  animation: snoutyIn var(--snouty-enter) both;
 }
 
 .stepTitle {
@@ -313,7 +313,6 @@
     height: 88vh;
     flex-direction: column;
     border-radius: 14px 14px 0 0;
-    animation-name: snoutySheet;
   }
 
   .hero {
@@ -331,21 +330,15 @@
   }
 }
 
+/*
+ * 6px, mengikuti SNOUTY Prototype.dc.html (sumber kebenaran #2). Berkas onboarding
+ * tersendiri memakai 8px dan `snoutySheet` 28px untuk bottom sheet, tetapi prototipe
+ * memakai `snoutyIn` untuk keduanya — dan prototipe yang menang (§33a).
+ */
 @keyframes snoutyIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes snoutySheet {
-  from {
-    opacity: 0;
-    transform: translateY(28px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
