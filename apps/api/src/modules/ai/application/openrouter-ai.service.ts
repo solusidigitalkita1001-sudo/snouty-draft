@@ -15,7 +15,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { z } from 'zod';
+import { z } from 'zod';
 import { loadEnv } from '../../../config/env.js';
 import {
   ExtractionSchema,
@@ -146,14 +146,12 @@ export class OpenRouterAiService implements AiService {
     userMessage: string,
     context: AiCallContext,
   ): Promise<T> {
-    const first = await this.callOnce(
-      task,
-      tierForTask(task),
-      systemPrompt,
-      userMessage,
-      true,
-      context,
-    );
+    // Skema yang memvalidasi keluaran juga DIKIRIM ke model. Sebelumnya prompt hanya
+    // berkata "sesuai skema" tanpa pernah menyebutkan skemanya — model harus menebak
+    // nama field dan label, lalu gagal validasi. Satu sumber untuk keduanya.
+    const system = `${systemPrompt}\n\nSkema JSON keluaran (wajib persis, tanpa field lain):\n${JSON.stringify(z.toJSONSchema(schema))}`;
+
+    const first = await this.callOnce(task, tierForTask(task), system, userMessage, true, context);
     const parsedFirst = schema.safeParse(safeJson(first.content));
     if (parsedFirst.success) return parsedFirst.data;
 
@@ -162,7 +160,7 @@ export class OpenRouterAiService implements AiService {
     const second = await this.callOnce(
       'extraction_retry',
       'strong',
-      systemPrompt,
+      system,
       retryUser,
       true,
       context,

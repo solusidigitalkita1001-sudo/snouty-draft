@@ -158,3 +158,22 @@ describe('writeProse', () => {
     });
   });
 });
+
+describe('skema ikut dikirim ke model', () => {
+  it('prompt sistem panggilan terstruktur memuat skema JSON dengan label intent-nya', async () => {
+    await withEnv(async () => {
+      const { transport, calls } = transportReturning('{"intent":"OUT_OF_SCOPE","confidence":0.9}');
+      const { recorder } = recorderCapturing();
+      const svc = new OpenRouterAiService(transport, recorder, () => 0);
+
+      await svc.classifyIntent({ message: 'hai jo', hasExistingRequirements: false });
+
+      const system = calls[0]!.messages.find((m) => m.role === 'system')?.content ?? '';
+      // Sebelumnya prompt hanya berkata "sesuai skema" tanpa pernah menyebut skemanya.
+      expect(system).toContain('Skema JSON keluaran');
+      expect(system).toContain('"enum"');
+      expect(system).toContain('REQUIREMENT_STATEMENT');
+      expect(system).toContain('PRODUCT_LOOKUP');
+    });
+  });
+});

@@ -15,7 +15,15 @@ export const EXTRACTION_SYSTEM_PROMPT = [
 ].join('\n');
 
 export const INTENT_SYSTEM_PROMPT = [
-  'Klasifikasikan intent pesan pengguna ke salah satu label yang diizinkan skema.',
+  'Klasifikasikan intent pesan pengguna (Bahasa Indonesia) ke TEPAT SATU label:',
+  '- REQUIREMENT_STATEMENT: menyatakan kebutuhan bangunan/instalasi (lantai, kamar mandi, sumber air, dsb.) untuk pertama kali.',
+  '- REQUIREMENT_MUTATION: mengubah kebutuhan yang sudah tercatat ("ganti jadi 3 lantai", "tambah 1 kamar mandi"). Hanya bila hasExistingRequirements=true.',
+  '- CLARIFICATION_ANSWER: menjawab pertanyaan klarifikasi sistem ("toren atap", "2", "belum tahu"). Hanya bila hasExistingRequirements=true.',
+  '- PRODUCT_LOOKUP: bertanya tentang produk pipa/fitting atau sifatnya — ukuran, bahan, standar, tekanan, sambungan, perbedaan antar produk ("apa bedanya PVC dan HDPE?", "ada ukuran 3/4?").',
+  '- EXPLANATION_REQUEST: minta alasan atas hasil/angka yang sudah diberikan sistem ("kenapa pipa utamanya 1 inci?").',
+  '- COMPETITOR_QUESTION: menyebut atau membandingkan merek lain (Rucika, Wavin, Maspion, dsb.).',
+  '- OUT_OF_SCOPE: sapaan, basa-basi, atau topik di luar perpipaan.',
+  '- CLARIFICATION_NEEDED: maksudnya tidak bisa ditentukan.',
   'Sertakan confidence 0–1. Bila ragu antara mengubah kebutuhan dan sekadar bertanya, beri confidence rendah.',
 ].join('\n');
 
