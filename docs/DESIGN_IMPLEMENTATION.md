@@ -65,7 +65,7 @@ Tidak ada komponen yang menulis hex; lint melarang hex mentah di `apps/`.
 | `--ink-4`                             | `#42484B`             | isi tabel, deskripsi                                               |
 | `--muted`                             | `#5A6468`             | label, teks bantu                                                  |
 | `--muted-2`                           | `#7A8285`             | cetakan halus                                                      |
-| `--caption`                           | `#8A9295`             | label caption mono 10px kapital                                    |
+| `--caption`                           | `#6B7376`             | caption mono 10px kapital; desain `#8A9295`, lihat OQ-43           |
 | `--placeholder`                       | `#9AA3A5`             | placeholder input                                                  |
 | `--disabled`                          | `#A8B0B2`             | label langkah tertunda, timestamp                                  |
 | `--canvas`                            | `#F7F8F7`             | latar aplikasi                                                     |
@@ -374,6 +374,10 @@ Diperiksa terhadap kode, bukan diklaim.
 2. **`--snouty-caption` gagal AA pada ukuran pakainya** — 3,17:1 terhadap `surface`, dipakai pada
    10–12px. Dicatat sebagai **OQ-43** dengan usulan default, **tidak diubah sendiri**: token adalah
    sumber kebenaran visual, dan menggelapkannya tanpa desainer berarti merancang ulang (§1).
+   **Ditutup 2026-10-05** setelah pemilik menerima default: token menjadi `#6B7376` — 4,84:1 di
+   `surface`, 4,55:1 di `canvas`. Usulan awal `#6E7679` masih gagal di `canvas` (4,35:1), jadi
+   dipilih satu langkah lebih gelap; tetap lebih terang dari `--snouty-muted`. Mode gelap tidak
+   diubah — `#7E878A` sudah 4,72:1 di `surface` gelap.
 
 **Diperiksa dan bersih:**
 

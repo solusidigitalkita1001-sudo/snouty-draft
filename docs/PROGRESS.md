@@ -117,7 +117,7 @@ Seluruh berkas Bagian 48 kini lengkap (28 dokumen).
 - [x] P0e-02 `.env.example` — seluruh kunci SPEC §17b
 - [x] P0e-03 Docker Compose (Redis, RabbitMQ; CI-only MySQL) — compose divalidasi; `mysql-test` di balik profil
 - [x] P0e-04 Lint / format / typecheck / test tooling — + 2 skrip pagar arsitektur
-- [ ] `[!]` P0e-05 CI pipeline — berkas `.github/workflows/ci.yml` ada dan **sudah divalidasi** (tanpa tab ilegal, setiap job punya `runs-on` dan steps, dan setiap skrip pnpm yang dirujuk benar-benar ada di `package.json`; `pnpm eval` di job evaluasi hanya di-`echo`, bukan dijalankan). Tetap `[ ]` karena pipeline-nya **belum pernah benar-benar berjalan** — itu butuh git provider, **terhalang OQ-09**, dan tidak bisa saya jalankan dari sini.
+- [ ] `[!]` P0e-05 CI pipeline — berkas `.github/workflows/ci.yml` ada dan **sudah divalidasi** (tanpa tab ilegal, setiap job punya `runs-on` dan steps, dan setiap skrip pnpm yang dirujuk benar-benar ada di `package.json`; `pnpm eval` di job evaluasi hanya di-`echo`, bukan dijalankan). Tetap `[ ]` karena pipeline-nya **belum pernah benar-benar berjalan** — itu butuh git provider, **terhalang OQ-09**, dan tidak bisa saya jalankan dari sini. **Update 2026-10-05:** OQ-09 dijawab (GitHub + Actions) dan remote sudah ada; tinggal memastikan run pertama hijau.
 - [x] P0e-06 `packages/ui` design tokens (light + dark) + preview page — 74 token; `/tokens` dirender & diverifikasi
 - [x] P0e-07 Self-hosted IBM Plex Sans/Mono — diverifikasi: 0 rujukan ke gstatic
 - [x] P0e-08 API health check (DB connectivity, read-only) — diuji terhadap DB sungguhan **dan** DB mati
@@ -521,7 +521,7 @@ pihak ketiga.** Karena itu redaksi berjalan sebelum teks menyentuh LLM, bukan se
 - [x] P13-01 Audit keamanan terhadap checklist — **satu temuan nyata ditutup: rate limiting belum ada sama sekali.** Kini penghitung Redis (lintas instans), batas pesan per tier, dan batas **per IP** di `register`/`login`/`refresh`. Diverifikasi live: percobaan ke-11 → `429` + `retryAfterSec: 900`
   - [x] P13-01a Tes (10, Redis nyata): kuota per subjek & per dimensi, jendela tidak diperpanjang terus-menerus, **Redis mati tidak menolak permintaan** (menolak semua orang saat cache mati mengubah gangguan menjadi pemadaman)
   - [x] P13-01b Hasil audit dicatat di `docs/SECURITY.md` §12, termasuk dua hal yang tampak temuan tetapi ternyata benar
-- [x] P13-02 Audit aksesibilitas — **dua temuan**: (1) cincin fokus tidak terpasang di `solution` & `schematic` → ditutup dengan token yang sudah ada; (2) `--snouty-caption` gagal AA (3,17:1) pada ukuran pakainya 10–12px → **dicatat OQ-43, tidak diubah sendiri** karena token adalah sumber kebenaran visual
+- [x] P13-02 Audit aksesibilitas — **dua temuan**: (1) cincin fokus tidak terpasang di `solution` & `schematic` → ditutup dengan token yang sudah ada; (2) `--snouty-caption` gagal AA (3,17:1) pada ukuran pakainya 10–12px → dicatat OQ-43, tidak diubah sendiri karena token adalah sumber kebenaran visual; **ditutup 2026-10-05** setelah pemilik menerima default — token kini `#6B7376`, lulus AA di `surface` dan `canvas`
   - [x] P13-02a Hasil dicatat di `docs/DESIGN_IMPLEMENTATION.md` §12; amber yang paling dikhawatirkan ternyata lulus (5,76–6,33:1)
 - [x] P13-03 Pipeline CI — sudah ada sejak Fase 0 dan masih akurat: pagar arsitektur (isolasi engine, host DB, pindai secret), format/lint/typecheck, tes dengan MySQL+Redis sekali pakai, tes migration, build. Tes web ikut otomatis lewat `pnpm -r test`
 - [ ] `[!]` P13-04 Evaluasi AI — **terhalang OQ-09** (ID model) + golden dataset

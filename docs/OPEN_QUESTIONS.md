@@ -55,7 +55,7 @@ This finding also raised **OQ-34** (privileges).
 
 ### OQ-03 — Pricing in scope
 
-**Status:** open · **Blocks:** 8 (BOM), 10 (report) · also drives 33h #1
+**Status:** **answered** (2026-10-05, default diterima) · **Blocks:** 8 (BOM), 10 (report) · also drives 33h #1
 The report (`SNTY-2026-09-0148`) and the prototype's report overlay both show unit price, subtotal,
 PPN 11%, and total; screen 10 explicitly says the product panel carries no price. The report component
 already parameterises the tax rate (`taxRate` prop, default 11).
@@ -98,7 +98,7 @@ The design cites "Katalog produk Pralon 2026 · hal. 14" and "KATALOG PRALON v2.
 
 ### OQ-08 — Technical handoff target and SLA
 
-**Status:** open · **Blocks:** 10 (technical handoff), 11 (email)
+**Status:** **answered** (2026-10-05, default diterima) · **Blocks:** 10 (technical handoff), 11 (email)
 The design promises "Balasan biasanya 1×24 jam kerja" on screen 11.
 **Question:** Where does "Kirim ke tim teknis Pralon" deliver — mailbox, CRM, ticket system? Is 1×24
 working hours the contractual SLA we may display?
@@ -107,7 +107,7 @@ handoff queue. SLA copy stays "1×24 jam kerja" exactly as designed, driven by c
 
 ### OQ-09 — Git remote and CI provider
 
-**Status:** open · **Blocks:** 0e (P0e-05)
+**Status:** **answered** (2026-10-05, default diterima) · **Blocks:** 0e (P0e-05)
 No remote is configured on this repository.
 **Question:** GitHub, GitLab, or self-hosted?
 **Proposed default:** GitHub + GitHub Actions. If you choose GitLab I will swap the pipeline file only;
@@ -130,7 +130,7 @@ module so English can be added without touching components.
 
 ### OQ-12 — Privacy policy and terms copy
 
-**Status:** open · **Blocks:** 3 (onboarding consent), 13
+**Status:** **answered** (2026-10-05, default diterima) · **Blocks:** 3 (onboarding consent), 13
 Onboarding and registration must link to a privacy policy; Section 30b requires consent records to
 carry a policy version.
 **Question:** Who supplies the Indonesian privacy policy and terms text, and what is the version label?
@@ -340,7 +340,7 @@ kecil, satu kolom VARCHAR + CHECK), atau cukup mengandalkan log aplikasi sampai 
 
 ### OQ-43 — Token `--snouty-caption` gagal kontras WCAG AA pada ukuran pakainya
 
-**Status:** open · **Blocks:** 13 (audit a11y) · **Fase:** 13 (P13-02)
+**Status:** **answered** (2026-10-05, default diterima) · **Blocks:** 13 (audit a11y) · **Fase:** 13 (P13-02)
 `--snouty-caption` (`#8A9295`) berbanding **3,17:1** terhadap `surface` putih. WCAG 2.1 AA mewajibkan
 4,5:1 untuk teks di bawah 18px (atau 14px bold); 3:1 hanya cukup untuk teks besar. Token ini dipakai
 pada **10–12px** di beberapa tempat — meta riwayat, label blok judul, catatan kaki tahap — jadi di
@@ -361,7 +361,7 @@ hanya untuk teks besar, tetapi itu menghapus satu tingkat hierarki yang memang d
 
 ### OQ-42 — Anatomi aturan meminta zod, isolasi engine melarang dependensi
 
-**Status:** open · _non-blocking_ · **Fase:** 6 (P6-01, sudah diterapkan mengikuti usulan default)
+**Status:** **answered** (2026-10-05, default diterima) · _non-blocking_ · **Fase:** 6 (P6-01, sudah diterapkan mengikuti usulan default)
 `docs/ENGINEERING_RULES.md` §2 mendefinisikan `RuleVersion` dengan `inputSchema: ZodSchema<I>` dan
 `outputSchema`. Tetapi `packages/engineering` sengaja **tanpa dependensi runtime sama sekali**, dijaga
 `scripts/check-engineering-isolation.mjs` yang menggagalkan CI bila ada satu pun dependensi. Menambahkan
@@ -414,7 +414,7 @@ nothing is retyped.
 
 ### OQ-16 — (33h #3) Two different dark palettes
 
-**Status:** open · **Blocks:** 0e (P0e-06 tokens)
+**Status:** **answered** (2026-10-05, default diterima) · **Blocks:** 0e (P0e-06 tokens)
 The 14-screen board and the newer prototype use materially different dark surfaces. I extracted both
 mappings exactly from source:
 
@@ -446,7 +446,7 @@ The chips stay in the UI exactly as designed.
 
 ### OQ-18 — (33h #5) Mascot artwork provenance and Pralon brand assets
 
-**Status:** open · **Blocks:** 3 (mascot ships with onboarding/welcome) · _legal/brand_
+**Status:** **answered** (2026-10-05, default diterima) · **Blocks:** 3 (mascot ships with onboarding/welcome) · _legal/brand_
 `assets/snouty-mascot.png` is byte-identical to `uploads/ChatGPT Image 17 Sep 2026, 10.50.08.png`, i.e.
 the mascot in the mocks is AI-generated reference art, not approved Pralon artwork. There is also no
 official Pralon logo in the bundle — the brand mark is a placeholder, and `#DF301C` was supplied
@@ -653,7 +653,15 @@ These are tracked in the Domain Validation Tracker in `docs/PROGRESS.md`. Listed
 
 ## Answer log
 
-| ID    | Decision                                                                                                                                   | Decided by | Date       |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | ---------- |
-| OQ-02 | Database `snouty` on `192.168.1.136`, user `ict`. Read-only inspection completed; `snouty` is empty. Raised OQ-34 and OQ-35 as follow-ups. | owner      | 2026-09-30 |
-| OQ-01 | Partially answered — `snouty` DB confirmed empty; existence of an old codebase elsewhere still open.                                       | owner      | 2026-09-30 |
+| ID    | Decision                                                                                                                                                                               | Decided by | Date       |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| OQ-02 | Database `snouty` on `192.168.1.136`, user `ict`. Read-only inspection completed; `snouty` is empty. Raised OQ-34 and OQ-35 as follow-ups.                                             | owner      | 2026-09-30 |
+| OQ-01 | Partially answered — `snouty` DB confirmed empty; existence of an old codebase elsewhere still open.                                                                                   | owner      | 2026-09-30 |
+| OQ-03 | Default diterima: harga di luar lingkup MVP, `PRICING_ENABLED=false`; kolom harga tidak dirender.                                                                                      | owner      | 2026-10-05 |
+| OQ-08 | Default diterima: handoff dikirim lewat email ke `TECH_HANDOFF_TARGET` (via n8n) + baris antrean internal; SLA "1×24 jam kerja" dari config. Alamat tujuannya sendiri belum diberikan. | owner      | 2026-10-05 |
+| OQ-09 | Default diterima: GitHub + GitHub Actions. Remote `solusidigitalkita1001-sudo/snouty-draft` sudah ada. Kunci LLM dan tiga ID model tetap belum ada.                                    | owner      | 2026-10-05 |
+| OQ-12 | Default diterima: halaman placeholder `/privasi` dan `/ketentuan`, `POLICY_VERSION=v0-draft` di setiap baris consent; diganti sebelum peluncuran.                                      | owner      | 2026-10-05 |
+| OQ-16 | Default diterima: palet gelap prototipe (`#0F1213` canvas, `#171B1D` surface).                                                                                                         | owner      | 2026-10-05 |
+| OQ-18 | Default diterima: mascot di belakang `MascotSlot` yang bisa diganti; PNG sekarang placeholder; tidak ke produksi sebelum brand menyetujui.                                             | owner      | 2026-10-05 |
+| OQ-42 | Default diterima: `packages/engineering` tetap nol dependensi; guard TS murni (`parseInput`) di dalam engine, zod di tepi `apps/api`.                                                  | owner      | 2026-10-05 |
+| OQ-43 | Default diterima: `--snouty-caption` digelapkan. Diterapkan `#6B7376` (bukan `#6E7679`, yang masih 4,35:1 di `canvas`); mode gelap tetap.                                              | owner      | 2026-10-05 |

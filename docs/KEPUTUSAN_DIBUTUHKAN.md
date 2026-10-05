@@ -109,9 +109,10 @@ transaksi) sudah hidup dan teruji sejak Fase 3 — yang belum ada hanya layarnya
 
 ---
 
-## 4. Yang bisa dijawab satu baris
+## 4. Yang bisa dijawab satu baris · **dijawab 2026-10-05: pakai default semua**
 
-Semuanya sudah punya default yang diterapkan; konfirmasi saja sudah cukup.
+Kedelapannya diterima pemilik apa adanya dan tercatat di answer log `docs/OPEN_QUESTIONS.md`.
+Satu-satunya yang mengubah kode adalah OQ-43; sisanya sudah berjalan sebagai default.
 
 | OQ        | Pertanyaan                              | Default saya                                                                     |
 | --------- | --------------------------------------- | -------------------------------------------------------------------------------- |
@@ -119,7 +120,7 @@ Semuanya sudah punya default yang diterapkan; konfirmasi saja sudah cukup.
 | **OQ-08** | "Kirim ke tim teknis" mendarat di mana? | Email ke `TECH_HANDOFF_TARGET` + baris antrean; SLA "1×24 jam kerja" dari config |
 | **OQ-09** | Git remote dan provider CI?             | GitHub Actions; berkas workflow sudah ada dan tervalidasi                        |
 | **OQ-12** | Teks kebijakan privasi dan ketentuan?   | `POLICY_VERSION=v0-draft` tersimpan di setiap baris consent                      |
-| **OQ-43** | `--snouty-caption` gagal kontras AA     | Gelapkan ke ≈`#6E7679`; **tidak saya ubah sendiri** — token milik desain         |
+| **OQ-43** | `--snouty-caption` gagal kontras AA     | **Diterapkan** `#6B7376` (`#6E7679` masih gagal di `canvas`)                     |
 | **OQ-42** | zod di dalam engine, atau guard murni?  | Guard murni; engine tetap nol dependensi runtime                                 |
 | **OQ-18** | Seni mascot final                       | Placeholder satu gambar di belakang `MascotSlot` yang mudah diganti              |
 | **OQ-16** | Dua palet gelap berbeda                 | Palet prototipe (`#0F1213` canvas)                                               |
@@ -142,7 +143,7 @@ Kalau waktunya terbatas, urutan ini yang membuka paling banyak per menit:
 2. **OQ-06** — sebut satu nama ahli domain. Membuka "TERVERIFIKASI" di seluruh produk.
 3. **OQ-07** — kirim satu contoh berkas katalog. Membuka data produk nyata.
 4. **OQ-21** — desain layar auth + back-office, atau izinkan versi minimal. Membuka lima item.
-5. Bagian 4 — "pakai default semua" bila setuju.
+5. ~~Bagian 4 — "pakai default semua" bila setuju.~~ Dijawab 2026-10-05.
 
 Setelah 1–3 terjawab, SNOUTY berhenti menjadi sistem yang berjalan di atas data karangan dengan setiap
 angka bertanda asumsi, dan mulai menjadi produk.
