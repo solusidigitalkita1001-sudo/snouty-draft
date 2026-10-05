@@ -94,12 +94,13 @@ export function ChatWorkspace() {
    */
   useEffect(() => {
     let cancelled = false;
+    // Riwayat hanya untuk akun; tamu tidak perlu ditolak 403 untuk mengetahuinya.
     void restoreSession()
-      .then(() => fetchHistory())
+      .then((restored) => (restored ? fetchHistory() : null))
       .then((result) => {
         if (cancelled) return;
         setHistory(
-          result.kind === 'ok' ? { kind: 'list', items: result.items } : { kind: 'guest' },
+          result?.kind === 'ok' ? { kind: 'list', items: result.items } : { kind: 'guest' },
         );
       });
     return () => {

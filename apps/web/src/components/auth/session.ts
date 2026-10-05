@@ -13,8 +13,34 @@
 
 let accessToken: string | null = null;
 
+/**
+ * Penanda "browser ini pernah masuk" — BUKAN kredensial, hanya petunjuk bahwa cookie
+ * refresh mungkin ada. Tanpa penanda, pemulihan sesi dilewati: tamu tidak pernah punya
+ * cookie refresh, dan menembak `/auth/refresh` lalu `/conversations` untuknya hanya
+ * menghasilkan 401 dan 403 di console yang terlihat seperti kerusakan.
+ */
+const SESSION_HINT = 'snouty.session';
+
+function hintSession(present: boolean): void {
+  try {
+    if (present) localStorage.setItem(SESSION_HINT, '1');
+    else localStorage.removeItem(SESSION_HINT);
+  } catch {
+    // Mode privat / storage diblokir: tanpa penanda, pemulihan tetap dicoba.
+  }
+}
+
+export function hasSessionHint(): boolean {
+  try {
+    return localStorage.getItem(SESSION_HINT) === '1';
+  } catch {
+    return true;
+  }
+}
+
 export function setAccessToken(token: string | null): void {
   accessToken = token;
+  hintSession(token !== null);
 }
 
 export function getAccessToken(): string | null {
@@ -35,12 +61,17 @@ export function authHeaders(): Record<string, string> {
  * menolak riwayatnya dengan 403, dan itu persis gejala yang membingungkan.
  */
 export async function restoreSession(): Promise<boolean> {
+  if (!hasSessionHint()) return false;
   try {
     const response = await fetch('/api/v1/auth/refresh', {
       method: 'POST',
       credentials: 'include',
     });
-    if (!response.ok) return false;
+    if (!response.ok) {
+      // Cookie-nya sudah kedaluwarsa atau dicabut: jangan tembak lagi di muat berikutnya.
+      if (response.status === 401) hintSession(false);
+      return false;
+    }
     const body = (await response.json()) as { accessToken?: string };
     if (!body.accessToken) return false;
     setAccessToken(body.accessToken);
