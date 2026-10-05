@@ -71,6 +71,16 @@ export class LlmProseWriter implements ProseWriter {
  * jalur berasal dari aturan teknik, dan aturan teknik adalah teks — teks yang suatu
  * saat bisa diubah lewat back-office oleh orang yang tidak memikirkan prompt.
  */
+/**
+ * `1"` → `1 inci`. Tanda inci adalah tanda kutip ganda, dan model kecil menyalinnya ke
+ * dalam string JSON tanpa escape — JSON mode lalu memotong string di situ, dan prosa
+ * yang sampai hanya "Ukuran jalur utama 1". Dibuktikan live dengan qwen2.5:7b. Pemeriksa
+ * REC-1 memahami kedua bentuk, jadi hanya konteks yang diubah.
+ */
+function inci(text: string): string {
+  return text.replace(/(\d(?:\s*\/\s*\d+)?|[¼½¾])\s*["”]/g, '$1 inci');
+}
+
 export function buildContext(input: Parameters<ProseWriter['write']>[0]): string {
   const { stats, systemLines, retryReason } = input;
 
@@ -79,12 +89,14 @@ export function buildContext(input: Parameters<ProseWriter['write']>[0]): string
     'DATA TERHITUNG:',
     `- titik air: ${stats.outletCount}`,
     `- jumlah cabang: ${stats.branchCount}`,
-    `- ukuran jalur utama: ${stats.mainSize}`,
-    `- ukuran sambungan fixture: ${stats.fixtureConnectionSize}`,
+    `- ukuran jalur utama: ${inci(stats.mainSize)}`,
+    `- ukuran sambungan fixture: ${inci(stats.fixtureConnectionSize)}`,
     `- produk Pralon yang cocok: ${stats.productCount}`,
     '',
     'ALASAN TEKNIS PER JALUR:',
-    ...systemLines.map((line: SystemLine) => `- ${line.name} (${line.size}): ${line.reason}`),
+    ...systemLines.map(
+      (line: SystemLine) => `- ${line.name} (${inci(line.size)}): ${inci(line.reason)}`,
+    ),
     '--- SELESAI DATA ---',
   ];
 

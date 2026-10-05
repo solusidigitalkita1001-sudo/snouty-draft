@@ -33,6 +33,7 @@ import { fieldEntries } from '../domain/requirement-field.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
 import { replyFor } from './reply-copy.js';
+import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 
 export interface PipelineInput {
   readonly messageId: string;
@@ -41,6 +42,8 @@ export interface PipelineInput {
   readonly state: RequirementState;
   /** `now` disuntikkan demi kemurnian dan tes deterministik. */
   readonly now: string;
+  /** Giliran terakhir untuk balasan yang nyambung — hanya dipakai ruas tanpa ekstraksi. */
+  readonly recentTurns?: readonly ReplyTurn[];
 }
 
 export interface PipelineResult {
@@ -59,6 +62,7 @@ export interface PipelineResult {
 export async function runUnderstanding(
   ai: AiService | null,
   input: PipelineInput,
+  reply: ReplyWriter | null = null,
 ): Promise<PipelineResult> {
   const events: AssistantStreamEvent[] = [{ type: 'message.start', messageId: input.messageId }];
 
@@ -76,8 +80,20 @@ export async function runUnderstanding(
     // Sapaan/di luar topik, minta penjelasan, atau model ragu: bukan ruas ekstraksi,
     // tetapi tetap dijawab — giliran yang ditutup tanpa sepatah kata terbaca sebagai
     // kerusakan. (Lookup produk punya ruasnya sendiri sebelum sampai ke sini.)
-    const reply = replyFor(input.decision.intent);
-    if (reply !== null) events.push({ type: 'token', text: reply });
+    const fallback = replyFor(input.decision.intent);
+    if (fallback !== null) {
+      // Dengan model: balasan ditulis model dari konteks percakapan, tanpa fakta teknis
+      // (tidak ada DATA → nol angka). Tanpa model, atau bila pagar menolak: teks tetap.
+      const written = reply
+        ? await reply.write({
+            intent: input.decision.intent,
+            userMessage: input.message,
+            recentTurns: input.recentTurns ?? [],
+            fallback,
+          })
+        : { text: fallback };
+      events.push({ type: 'token', text: written.text });
+    }
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
   }
@@ -89,7 +105,7 @@ export async function runUnderstanding(
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
     const extraction = await ai.extract(input.message);
-    const updates = extractionToUpdates(extraction);
+    const updates = extractionToUpdates(extraction, input.message);
     const result = mergeRequirement(input.state, updates, input.now);
     merged = withCompleteness(result.state);
     changed = result.changed.length > 0;

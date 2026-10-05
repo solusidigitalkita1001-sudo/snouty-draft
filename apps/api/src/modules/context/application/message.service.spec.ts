@@ -12,6 +12,7 @@ const ACTOR = { kind: 'guest', id: 'G'.repeat(26), tier: 'guest', roles: [] } as
 function serviceWith(router: { route: () => Promise<unknown> }) {
   const conversations = {
     find: vi.fn(async () => ({})),
+    messages: vi.fn(async () => []),
     appendUserMessage: vi.fn(async () => undefined),
     appendAssistantMessage: vi.fn(async () => undefined),
   };
@@ -23,6 +24,7 @@ function serviceWith(router: { route: () => Promise<unknown> }) {
     router as never,
     {} as never,
     {} as never,
+    null,
     ai as never,
   );
   return { service, conversations, store };

@@ -22,6 +22,7 @@ import { ProductQuestionService } from '../../product-knowledge/application/prod
 import { IntentRouter } from './intent-router.js';
 import { runUnderstanding } from './message-pipeline.js';
 import { runProductQuestion } from './product-question-pipeline.js';
+import { ReplyWriter, type ReplyTurn } from './reply-writer.js';
 import { RequirementSnapshotStore } from './requirement-snapshot.store.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import { ulid } from '../../../shared/ulid.js';
@@ -34,6 +35,7 @@ export class MessageService {
     private readonly router: IntentRouter,
     private readonly catalog: CatalogQueryService,
     private readonly productQuestions: ProductQuestionService,
+    @Optional() private readonly reply: ReplyWriter | null = null,
     @Optional() @Inject(AI_SERVICE) private readonly ai: AiService | null = null,
   ) {}
 
@@ -56,7 +58,7 @@ export class MessageService {
     if (!this.ai) return llmUnavailable(messageId);
 
     try {
-      return await this.answer(conversationId, text, now, messageId);
+      return await this.answer(conversationId, actor, text, now, messageId);
     } catch (error) {
       // Model terkonfigurasi tetapi tidak terjangkau (kunci ditolak, limit habis,
       // jaringan): nasibnya sama dengan "tanpa model" — jujur lewat event
@@ -68,6 +70,7 @@ export class MessageService {
 
   private async answer(
     conversationId: string,
+    actor: ConversationOwner,
     text: string,
     now: string,
     messageId: string,
@@ -78,13 +81,18 @@ export class MessageService {
     const hasExisting = (snapshot?.state.completeness.filled ?? 0) > 0;
 
     const decision = await this.router.route(text, hasExisting);
+    // Giliran terakhir hanya diambil bila ada penulis balasan yang memakainya.
+    const recentTurns = this.reply ? await this.recentTurns(conversationId, actor) : [];
 
     // Pertanyaan produk: ruas sendiri, nol ekstraksi, jawaban dari katalog.
     if (decision.intent === 'PRODUCT_LOOKUP') {
-      const events = await runProductQuestion(ai, this.catalog, this.productQuestions, {
-        messageId,
-        message: text,
-      });
+      const events = await runProductQuestion(
+        ai,
+        this.catalog,
+        this.productQuestions,
+        { messageId, message: text, recentTurns },
+        this.reply,
+      );
       await this.conversations.appendAssistantMessage(
         conversationId,
         textOf(events),
@@ -94,13 +102,11 @@ export class MessageService {
       return events;
     }
 
-    const result = await runUnderstanding(ai, {
-      messageId,
-      message: text,
-      decision,
-      state,
-      now,
-    });
+    const result = await runUnderstanding(
+      ai,
+      { messageId, message: text, decision, state, now, recentTurns },
+      this.reply,
+    );
 
     if (result.changed) {
       await this.store.append(conversationId, result.nextState, result.trigger);
@@ -114,6 +120,22 @@ export class MessageService {
     );
 
     return result.events;
+  }
+
+  /**
+   * Enam giliran terakhir sebelum pesan yang sedang dijawab (pesan itu sendiri sudah
+   * tersimpan, jadi dibuang), hanya yang bertext — kartu tanpa teks tidak membantu model.
+   */
+  private async recentTurns(
+    conversationId: string,
+    actor: ConversationOwner,
+  ): Promise<readonly ReplyTurn[]> {
+    const rows = await this.conversations.messages(conversationId, actor);
+    return rows
+      .slice(0, -1)
+      .filter((row) => row.text.trim() !== '' && (row.role === 'user' || row.role === 'assistant'))
+      .slice(-6)
+      .map((row) => ({ role: row.role as ReplyTurn['role'], text: row.text }));
   }
 }
 

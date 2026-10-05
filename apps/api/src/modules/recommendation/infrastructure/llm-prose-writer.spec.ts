@@ -75,9 +75,15 @@ describe('buildContext', () => {
     const context = buildContext(INPUT);
     expect(context).toContain('titik air: 12');
     expect(context).toContain('jumlah cabang: 3');
-    expect(context).toContain('ukuran jalur utama: 1"');
-    expect(context).toContain('ukuran sambungan fixture: 1/2"');
+    expect(context).toContain('ukuran jalur utama: 1 inci');
+    expect(context).toContain('ukuran sambungan fixture: 1/2 inci');
     expect(context).toContain('produk Pralon yang cocok: 4');
+  });
+
+  it('tidak pernah mengirim tanda inci (") — model kecil menyalinnya ke JSON tanpa escape', () => {
+    // Dibuktikan live dengan qwen2.5:7b: `1"` di dalam string JSON memotong body menjadi
+    // "Ukuran jalur utama 1", gagal skema, dan prosa jatuh ke templat.
+    expect(buildContext(INPUT)).not.toMatch(/\d\s*"/);
   });
 
   it('mengirim alasan teknis per jalur', () => {

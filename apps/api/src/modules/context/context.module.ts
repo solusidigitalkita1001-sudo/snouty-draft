@@ -17,7 +17,9 @@ import { ProductCatalogModule } from '../product-catalog/product-catalog.module.
 import { CatalogQueryService } from '../product-catalog/application/catalog-query.service.js';
 import { ProductKnowledgeModule } from '../product-knowledge/product-knowledge.module.js';
 import { ProductQuestionService } from '../product-knowledge/application/product-question.service.js';
+import { REPLY_SYSTEM_PROMPT } from '../ai/application/prompts.js';
 import { IntentRouter } from './application/intent-router.js';
+import { ReplyWriter } from './application/reply-writer.js';
 import { MessageService } from './application/message.service.js';
 import { RequirementSnapshotStore } from './application/requirement-snapshot.store.js';
 import {
@@ -46,6 +48,14 @@ const intentRouterProvider = {
   useFactory: (ai: AiService) => new IntentRouter(ai),
 };
 
+/** Balasan percakapan ditulis model bila ada; tanpa model tetap ada teks tetapnya. */
+const replyWriterProvider = {
+  provide: ReplyWriter,
+  inject: [AI_SERVICE],
+  useFactory: (ai: AiService | null): ReplyWriter | null =>
+    ai ? new ReplyWriter(ai, REPLY_SYSTEM_PROMPT) : null,
+};
+
 const messageServiceProvider = {
   provide: MessageService,
   inject: [
@@ -54,6 +64,7 @@ const messageServiceProvider = {
     IntentRouter,
     CatalogQueryService,
     ProductQuestionService,
+    ReplyWriter,
     AI_SERVICE,
   ],
   useFactory: (
@@ -62,8 +73,9 @@ const messageServiceProvider = {
     router: IntentRouter,
     catalog: CatalogQueryService,
     productQuestions: ProductQuestionService,
+    reply: ReplyWriter | null,
     ai: AiService | null,
-  ) => new MessageService(conversations, store, router, catalog, productQuestions, ai),
+  ) => new MessageService(conversations, store, router, catalog, productQuestions, reply, ai),
 };
 
 @Module({
@@ -75,6 +87,7 @@ const messageServiceProvider = {
     requirementSnapshotRepositoryProvider,
     storeProvider,
     intentRouterProvider,
+    replyWriterProvider,
     messageServiceProvider,
   ],
   exports: [RequirementSnapshotStore],

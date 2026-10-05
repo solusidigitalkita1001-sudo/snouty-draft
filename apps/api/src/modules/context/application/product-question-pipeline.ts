@@ -19,6 +19,7 @@ import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { endEvent } from './message-pipeline.js';
+import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, PRODUCT_ANSWER_COPY } from './product-answer-text.js';
 
 /** Maksimal produk yang dijawab sekaligus — "bedanya A dan B" adalah dua. */
@@ -27,6 +28,7 @@ const MAX_PRODUCTS = 2;
 export interface ProductQuestionInput {
   readonly messageId: string;
   readonly message: string;
+  readonly recentTurns?: readonly ReplyTurn[];
 }
 
 export async function runProductQuestion(
@@ -34,10 +36,27 @@ export async function runProductQuestion(
   catalog: Pick<CatalogQueryService, 'listProducts'>,
   questions: Pick<ProductQuestionService, 'answer'>,
   input: ProductQuestionInput,
+  reply: ReplyWriter | null = null,
 ): Promise<readonly AssistantStreamEvent[]> {
   const events: AssistantStreamEvent[] = [{ type: 'message.start', messageId: input.messageId }];
-  const say = (text: string): void => {
-    events.push({ type: 'token', text });
+  // Fakta dirangkai kode lebih dulu; model (bila ada) hanya menuliskannya ulang dengan
+  // bahasa yang nyambung ke percakapan, dan ReplyWriter memastikan tidak ada angka
+  // di luar fakta itu. Tanpa model, faktanya sendiri yang dikirim.
+  const facts: string[] = [];
+  const finish = async (): Promise<readonly AssistantStreamEvent[]> => {
+    const factsText = facts.join('\n\n');
+    const written = reply
+      ? await reply.write({
+          intent: 'PRODUCT_LOOKUP',
+          userMessage: input.message,
+          recentTurns: input.recentTurns ?? [],
+          facts: factsText,
+          fallback: factsText,
+        })
+      : { text: factsText };
+    events.splice(1, 0, { type: 'token', text: written.text });
+    events.push(endEvent(input.messageId));
+    return events;
   };
 
   let parsed;
@@ -49,27 +68,24 @@ export async function runProductQuestion(
   }
 
   if (!parsed?.productQuery) {
-    say(PRODUCT_ANSWER_COPY.noProductNamed);
-    events.push(endEvent(input.messageId));
-    return events;
+    facts.push(PRODUCT_ANSWER_COPY.noProductNamed);
+    return finish();
   }
 
   const { products, missing } = await findProducts(catalog, parsed.productQuery);
   if (products.length === 0) {
-    say(PRODUCT_ANSWER_COPY.notInCatalog(parsed.productQuery));
+    facts.push(PRODUCT_ANSWER_COPY.notInCatalog(parsed.productQuery));
     events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } });
-    events.push(endEvent(input.messageId));
-    return events;
+    return finish();
   }
   // "PVC dan HDPE" dengan HDPE tidak ada: katakan yang tidak ada, jangan diam-diam
   // menjawab separuh seolah itu seluruh pertanyaannya.
-  if (missing.length > 0) say(`${PRODUCT_ANSWER_COPY.notInCatalog(missing.join(', '))}\n\n`);
+  if (missing.length > 0) facts.push(PRODUCT_ANSWER_COPY.notInCatalog(missing.join(', ')));
 
   if (parsed.aspect === null) {
-    if (products.length > 1) say(PRODUCT_ANSWER_COPY.comparisonIntro);
-    say(products.map(overviewText).join('\n\n'));
+    if (products.length > 1) facts.push(PRODUCT_ANSWER_COPY.comparisonIntro);
+    facts.push(products.map(overviewText).join('\n\n'));
   } else {
-    const texts: string[] = [];
     let needsTechnical = false;
     for (const product of products) {
       const size = parsed.size ? (PipeSize.parse(parsed.size) ?? undefined) : undefined;
@@ -78,18 +94,16 @@ export async function runProductQuestion(
         aspect: parsed.aspect,
         ...(size !== undefined ? { size } : {}),
       });
-      texts.push(answerText(product, answer));
+      facts.push(answerText(product, answer));
       if (answer.kind === 'insufficientData') needsTechnical = true;
     }
-    say(texts.join('\n\n'));
     if (needsTechnical) {
       events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } });
     }
   }
 
   events.push({ type: 'card', card: { kind: 'product', products: products.map(toCard) } });
-  events.push(endEvent(input.messageId));
-  return events;
+  return finish();
 }
 
 /**
