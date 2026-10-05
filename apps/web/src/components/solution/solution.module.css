@@ -296,7 +296,24 @@
   padding: 13px 14px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 7px;
+  /* Tombol yang membuka drawer produk (layar 10) — reset gaya bawaan tombol. */
+  background: var(--snouty-surface);
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.productCard:hover {
+  border-color: var(--snouty-node-border);
+}
+
+.productCard:focus-visible {
+  outline: none;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
 }
 
 .productRole {

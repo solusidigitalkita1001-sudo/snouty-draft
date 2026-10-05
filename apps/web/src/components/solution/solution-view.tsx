@@ -11,6 +11,7 @@
 
 import type { Recommendation, SelectedProduct } from '@snouty/shared-types';
 import { useState } from 'react';
+import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { SOLUTION_COPY as COPY } from './solution-copy';
 import { ProvenanceTag } from './provenance-tag';
 import styles from './solution.module.css';
@@ -23,6 +24,7 @@ export function SolutionView({
   onFixAssumption?: (fieldPath: string) => void;
 }) {
   const [showTechnical, setShowTechnical] = useState(false);
+  const [openProduct, setOpenProduct] = useState<DrawerSelection | null>(null);
   const { stats } = recommendation;
 
   return (
@@ -140,10 +142,18 @@ export function SolutionView({
           <h3 className={styles.cardTitle}>{COPY.productsTitle}</h3>
           <div className={styles.productGrid}>
             {recommendation.products.map((product) => (
-              <ProductCard key={`${product.productId}-${product.role}`} product={product} />
+              <ProductCard
+                key={`${product.productId}-${product.role}`}
+                product={product}
+                onOpen={() => setOpenProduct(product)}
+              />
             ))}
           </div>
         </section>
+      )}
+
+      {openProduct && (
+        <ProductDrawer selection={openProduct} onClose={() => setOpenProduct(null)} />
       )}
     </div>
   );
@@ -159,9 +169,9 @@ function Stat({ label, value, mono }: { label: string; value: string; mono?: boo
 }
 
 /** Kartu produk layar 07 — tiga keadaan, label dari desain. */
-function ProductCard({ product }: { product: SelectedProduct }) {
+function ProductCard({ product, onOpen }: { product: SelectedProduct; onOpen: () => void }) {
   return (
-    <div className={styles.productCard}>
+    <button type="button" className={styles.productCard} onClick={onOpen}>
       <div className={styles.productRole}>{product.role.toUpperCase()}</div>
       <div className={styles.productSize}>{product.size}</div>
       <p className={styles.productReason}>{product.reason}</p>
@@ -174,7 +184,7 @@ function ProductCard({ product }: { product: SelectedProduct }) {
       >
         {COPY.matchStateLabel[product.matchState]}
       </span>
-    </div>
+    </button>
   );
 }
 
