@@ -1,0 +1,9 @@
+# Baris baru LF di repo dan di working copy, apa pun core.autocrlf mesin pengembang.
+# Prettier memeriksa LF; tanpa ini checkout di Windows (autocrlf=true) membuat 391 berkas
+# gagal format:check tanpa satu pun perubahan isi.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.woff2 binary
+*.pdf binary
