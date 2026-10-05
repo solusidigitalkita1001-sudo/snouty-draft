@@ -182,20 +182,6 @@ export function ChatWorkspace() {
     });
   }, [history.kind]);
 
-  useEffect(() => {
-    let cancelled = false;
-    createConversation()
-      .then((conversation) => {
-        if (!cancelled) setConversationId(conversation.id);
-      })
-      .catch(() => {
-        if (!cancelled) setError(COPY.llmUnavailable);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   // Gulir ke bawah saat ada giliran baru — percakapan tumbuh ke bawah.
   useEffect(() => {
     streamRef.current?.scrollTo({ top: streamRef.current.scrollHeight });
@@ -219,7 +205,21 @@ export function ChatWorkspace() {
   const submitText = useCallback(
     async (raw: string) => {
       const text = raw.trim();
-      if (!text || !conversationId || sending) return;
+      if (!text || sending) return;
+
+      // Percakapan dibuat SAAT pesan pertama, bukan saat halaman dibuka — kalau tidak,
+      // setiap kunjungan meninggalkan "Konsultasi baru" kosong di riwayat.
+      let id = conversationId;
+      if (id === null) {
+        try {
+          id = (await createConversation()).id;
+          setConversationId(id);
+        } catch {
+          setError(COPY.llmUnavailable);
+          return;
+        }
+      }
+      const activeId = id;
 
       setDraft('');
       setError(null);
@@ -266,7 +266,7 @@ export function ChatWorkspace() {
       };
 
       try {
-        await sendMessage(conversationId, text, apply);
+        await sendMessage(activeId, text, apply);
       } catch {
         setError(COPY.llmUnavailable);
       } finally {
@@ -277,9 +277,11 @@ export function ChatWorkspace() {
           ]);
         }
         setSending(false);
+        // Judulnya baru ada setelah pesan pertama — muat ulang supaya riwayat ikut.
+        refreshHistory();
       }
     },
-    [conversationId, sending],
+    [conversationId, refreshHistory, sending],
   );
 
   const submit = useCallback(() => submitText(draft), [draft, submitText]);
@@ -306,10 +308,10 @@ export function ChatWorkspace() {
     setReopened(false);
     setMenuOpen(false);
     setPanelOpen(false);
+    setEditing(false);
+    setEdits({});
+    // Tidak membuat percakapan di sini — baru saat pesan pertama dikirim.
     setConversationId(null);
-    createConversation()
-      .then((conversation) => setConversationId(conversation.id))
-      .catch(() => setError(COPY.llmUnavailable));
     refreshHistory();
   }, [refreshHistory]);
 
@@ -451,8 +453,11 @@ export function ChatWorkspace() {
     : reopened
       ? COPY.activeStatus.reopened
       : COPY.activeStatus.inProgress;
+  // Tanpa judul = tanpa pesan (judul diset saat pesan pertama): tidak ada yang bisa dibuka.
   const otherHistory =
-    history.kind === 'list' ? history.items.filter((item) => item.id !== conversationId) : [];
+    history.kind === 'list'
+      ? history.items.filter((item) => item.id !== conversationId && item.title !== null)
+      : [];
 
   const historyList = (itemClass: string) =>
     otherHistory.map((item) => (
@@ -696,7 +701,6 @@ export function ChatWorkspace() {
                   }}
                   placeholder={COPY.composerPlaceholder}
                   aria-label={COPY.composerPlaceholder}
-                  disabled={conversationId === null}
                 />
                 <div className={styles.composerCardFoot}>
                   {/*
@@ -716,7 +720,7 @@ export function ChatWorkspace() {
                     type="button"
                     className={styles.sendButton}
                     onClick={() => void submit()}
-                    disabled={draft.trim() === '' || sending || conversationId === null}
+                    disabled={draft.trim() === '' || sending}
                   >
                     {COPY.send}
                   </button>

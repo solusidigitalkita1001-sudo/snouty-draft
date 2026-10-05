@@ -54,8 +54,14 @@ export class MessageService {
     now: string,
   ): Promise<readonly AssistantStreamEvent[]> {
     // Kepemilikan diperiksa di lapisan application (docs/SECURITY.md §4).
-    await this.conversations.find(conversationId, actor);
+    const row = await this.conversations.find(conversationId, actor);
     await this.conversations.appendUserMessage(conversationId, actor, text);
+
+    // Judul dari pesan pertama (tingkat cepat); tanpa model, potongan pesannya sendiri.
+    // Sebelumnya tidak pernah diset — setiap item riwayat berjudul "Konsultasi baru".
+    if (row.title === null || row.title === undefined) {
+      await this.conversations.rename(conversationId, actor, await this.titleFor(text));
+    }
 
     const messageId = ulid();
 
@@ -121,6 +127,18 @@ export class MessageService {
     );
 
     return result.events;
+  }
+
+  private async titleFor(firstMessage: string): Promise<string> {
+    const fallback = firstMessage.trim().replace(/\s+/g, ' ').slice(0, 60);
+    if (!this.ai) return fallback;
+    try {
+      const title = (await this.ai.titleFor(firstMessage)).trim();
+      return title === '' ? fallback : title;
+    } catch {
+      // Judul tidak sepadan dengan menggagalkan giliran — potongan pesan sudah cukup.
+      return fallback;
+    }
   }
 
   /**

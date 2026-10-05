@@ -11,13 +11,14 @@ const ACTOR = { kind: 'guest', id: 'G'.repeat(26), tier: 'guest', roles: [] } as
 
 function serviceWith(router: { route: () => Promise<unknown> }) {
   const conversations = {
-    find: vi.fn(async () => ({})),
+    find: vi.fn(async () => ({ title: null })),
     messages: vi.fn(async () => []),
+    rename: vi.fn(async () => undefined),
     appendUserMessage: vi.fn(async () => undefined),
     appendAssistantMessage: vi.fn(async () => undefined),
   };
   const store = { current: vi.fn(async () => null), append: vi.fn(async () => undefined) };
-  const ai = { classifyIntent: vi.fn() };
+  const ai = { classifyIntent: vi.fn(), titleFor: vi.fn(async () => 'Rumah 2 lantai') };
   const service = new MessageService(
     conversations as never,
     store as never,
@@ -27,8 +28,32 @@ function serviceWith(router: { route: () => Promise<unknown> }) {
     null,
     ai as never,
   );
-  return { service, conversations, store };
+  return { service, conversations, store, ai };
 }
+
+describe('MessageService — judul dari pesan pertama', () => {
+  it('percakapan tanpa judul diberi judul dari model saat pesan pertama', async () => {
+    const { service, conversations } = serviceWith({
+      route: () => Promise.reject(new LlmUnavailableError(503)),
+    });
+    await service.handle('C'.repeat(26), ACTOR, 'rumah 2 lantai 3 kamar mandi', 'x');
+    expect(conversations.rename).toHaveBeenCalledWith('C'.repeat(26), ACTOR, 'Rumah 2 lantai');
+  });
+
+  it('model gagal memberi judul → potongan pesannya; percakapan berjudul tidak diubah', async () => {
+    const { service, conversations, ai } = serviceWith({
+      route: () => Promise.reject(new LlmUnavailableError(503)),
+    });
+    ai.titleFor.mockRejectedValueOnce(new Error('putus'));
+    await service.handle('C'.repeat(26), ACTOR, '  rumah   2 lantai  ', 'x');
+    expect(conversations.rename).toHaveBeenCalledWith('C'.repeat(26), ACTOR, 'rumah 2 lantai');
+
+    conversations.rename.mockClear();
+    conversations.find.mockResolvedValueOnce({ title: 'Sudah ada' } as never);
+    await service.handle('C'.repeat(26), ACTOR, 'lanjut', 'x');
+    expect(conversations.rename).not.toHaveBeenCalled();
+  });
+});
 
 describe('MessageService.requirement — state untuk membuka kembali riwayat', () => {
   it('memeriksa kepemilikan lalu mengembalikan snapshot terkini (null bila belum ada)', async () => {
