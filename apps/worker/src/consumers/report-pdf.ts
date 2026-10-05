@@ -16,7 +16,7 @@
  */
 
 import { mkdir, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { dirname, join, posix } from 'node:path';
 import type { ReportGenerateJob } from '@snouty/jobs';
 import type { Logger } from 'pino';
 import type { ConsumerContext } from '../transport/rabbitmq.js';
@@ -55,7 +55,7 @@ export function reportPdfConsumer(deps: ReportPdfDeps) {
 
     // Nama berkas diturunkan dari `reportId`, bukan dibangkitkan: itu yang membuat job
     // yang diulang menimpa berkas yang sama alih-alih menumpuk duplikat.
-    const fileRef = join('reports', `${job.reportId}.pdf`);
+    const fileRef = posix.join('reports', `${job.reportId}.pdf`);
     const absolute = join(deps.storagePath, fileRef);
     await mkdir(dirname(absolute), { recursive: true });
     await writeFile(absolute, pdf);
