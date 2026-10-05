@@ -19,7 +19,6 @@ import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { endEvent } from './message-pipeline.js';
-import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, PRODUCT_ANSWER_COPY } from './product-answer-text.js';
 
 /** Maksimal produk yang dijawab sekaligus — "bedanya A dan B" adalah dua. */
@@ -28,7 +27,6 @@ const MAX_PRODUCTS = 2;
 export interface ProductQuestionInput {
   readonly messageId: string;
   readonly message: string;
-  readonly recentTurns?: readonly ReplyTurn[];
 }
 
 export async function runProductQuestion(
@@ -36,25 +34,16 @@ export async function runProductQuestion(
   catalog: Pick<CatalogQueryService, 'listProducts'>,
   questions: Pick<ProductQuestionService, 'answer'>,
   input: ProductQuestionInput,
-  reply: ReplyWriter | null = null,
 ): Promise<readonly AssistantStreamEvent[]> {
   const events: AssistantStreamEvent[] = [{ type: 'message.start', messageId: input.messageId }];
-  // Fakta dirangkai kode lebih dulu; model (bila ada) hanya menuliskannya ulang dengan
-  // bahasa yang nyambung ke percakapan, dan ReplyWriter memastikan tidak ada angka
-  // di luar fakta itu. Tanpa model, faktanya sendiri yang dikirim.
+  // Fakta dirangkai kode dan dikirim APA ADANYA. Pernah dicoba menyerahkannya ke model
+  // untuk "dirangkai ulang" (ReplyWriter): qwen2.5:7b membuang fakta katalognya dan
+  // menawarkan "membahas perbedaan HDPE dan PVC yang umumnya kita gunakan" — tepat
+  // pengetahuan umum yang tidak boleh masuk. Kalimat yang kaku lebih baik daripada
+  // kalimat luwes yang menghilangkan sumbernya.
   const facts: string[] = [];
-  const finish = async (): Promise<readonly AssistantStreamEvent[]> => {
-    const factsText = facts.join('\n\n');
-    const written = reply
-      ? await reply.write({
-          intent: 'PRODUCT_LOOKUP',
-          userMessage: input.message,
-          recentTurns: input.recentTurns ?? [],
-          facts: factsText,
-          fallback: factsText,
-        })
-      : { text: factsText };
-    events.splice(1, 0, { type: 'token', text: written.text });
+  const finish = (): readonly AssistantStreamEvent[] => {
+    events.splice(1, 0, { type: 'token', text: facts.join('\n\n') });
     events.push(endEvent(input.messageId));
     return events;
   };

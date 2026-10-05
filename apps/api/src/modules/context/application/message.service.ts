@@ -86,13 +86,10 @@ export class MessageService {
 
     // Pertanyaan produk: ruas sendiri, nol ekstraksi, jawaban dari katalog.
     if (decision.intent === 'PRODUCT_LOOKUP') {
-      const events = await runProductQuestion(
-        ai,
-        this.catalog,
-        this.productQuestions,
-        { messageId, message: text, recentTurns },
-        this.reply,
-      );
+      const events = await runProductQuestion(ai, this.catalog, this.productQuestions, {
+        messageId,
+        message: text,
+      });
       await this.conversations.appendAssistantMessage(
         conversationId,
         textOf(events),
