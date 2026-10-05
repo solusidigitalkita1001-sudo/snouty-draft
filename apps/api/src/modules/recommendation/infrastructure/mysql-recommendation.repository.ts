@@ -15,6 +15,7 @@ import {
 import { DatabaseService } from '../../../shared/database/database.service.js';
 import {
   RECOMMENDATION_REPOSITORY,
+  type ProseSource,
   type RecommendationRepository,
   type TraceToSave,
 } from '../domain/recommendation.repository.js';
@@ -23,7 +24,11 @@ import {
 export class MysqlRecommendationRepository implements RecommendationRepository {
   constructor(private readonly database: DatabaseService) {}
 
-  async save(recommendation: Recommendation, traces: readonly TraceToSave[]): Promise<void> {
+  async save(
+    recommendation: Recommendation,
+    traces: readonly TraceToSave[],
+    meta: { readonly proseSource: ProseSource },
+  ): Promise<void> {
     await this.database.db.transaction(async (tx) => {
       await tx.insert(recommendations).values({
         id: recommendation.id,
@@ -32,6 +37,7 @@ export class MysqlRecommendationRepository implements RecommendationRepository {
         catalogVersionId: recommendation.catalogVersionId,
         headline: recommendation.headline,
         body: recommendation.body,
+        proseSource: meta.proseSource,
         stats: recommendation.stats,
         systemLines: recommendation.systemLines,
         products: recommendation.products,

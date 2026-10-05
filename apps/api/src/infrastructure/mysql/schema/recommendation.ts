@@ -45,6 +45,13 @@ export const recommendations = mysqlTable(
     /** Prosa LLM yang sudah lulus pemeriksaan REC-1. */
     headline: varchar('headline', { length: 300 }).notNull(),
     body: text('body').notNull(),
+    /**
+     * Asal prosa: `llm`, `llm_retry` (percobaan pertama ditolak REC-1), atau
+     * `template` (keduanya ditolak, atau tanpa model). Dicatat di sini, bukan di
+     * `llm_calls`, karena hanya perakitan yang tahu prosa mana yang ditolak (OQ-44).
+     * NULL untuk baris sebelum 0012.
+     */
+    proseSource: varchar('prose_source', { length: 12 }),
 
     stats: json('stats').notNull(),
     systemLines: json('system_lines').notNull(),
@@ -72,6 +79,10 @@ export const recommendations = mysqlTable(
     check(
       'ck_recommendations_provenance',
       sql`\`overall_provenance\` IN ('VERIFIED','ASSUMED','ESTIMATED','UNAVAILABLE')`,
+    ),
+    check(
+      'ck_recommendations_prose_source',
+      sql`\`prose_source\` IN ('llm','llm_retry','template')`,
     ),
   ],
 );

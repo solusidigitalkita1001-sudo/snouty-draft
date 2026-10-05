@@ -94,6 +94,11 @@ Dua ambang bernilai mutlak, dan itu disengaja:
 berbahaya daripada model yang mengosongkannya — karena yang kosong akan ditanyakan, sedangkan yang
 salah akan dihitung.
 
+Untuk prosa penjelasan, padanannya adalah angka yang tidak pernah dihitung (REC-1). Laju itu terbaca
+dari produksi, bukan hanya dari golden dataset: `recommendations.prose_source` mencatat `llm`
+(lolos sekali), `llm_retry` (percobaan pertama ditolak), atau `template` (ditolak dua kali) — lihat
+OQ-44.
+
 **Kesesuaian kebijakan harus 100%.** Kebijakan ditegakkan di kode, jadi kegagalan di sini berarti
 ada jalur yang melewati penegakan.
 

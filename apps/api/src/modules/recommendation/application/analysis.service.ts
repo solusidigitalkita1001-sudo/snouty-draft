@@ -171,7 +171,9 @@ export class AnalysisService {
       },
       this.prose,
     );
-    await this.repository.save(assembled.recommendation, traces);
+    await this.repository.save(assembled.recommendation, traces, {
+      proseSource: assembled.proseSource,
+    });
     // Status percakapan menyusul solusinya: header layar dan daftar riwayat keduanya
     // membaca kolom ini, jadi membiarkannya `IN_PROGRESS` akan membuat riwayat
     // berbohong tentang konsultasi yang sudah selesai.

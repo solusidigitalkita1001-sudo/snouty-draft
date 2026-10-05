@@ -304,7 +304,7 @@ pendek (docs/REPORT.md §5) menggantikan gerbang peran `admin` yang dipakai seme
 
 ### OQ-44 — Audit biaya tidak bisa membedakan prosa yang diterima dari yang ditolak REC-1
 
-**Status:** open · _non-blocking_ · **Fase:** 7 (P7-09, sudah diterapkan tanpa perubahan)
+**Status:** open · _non-blocking_ · **Fase:** 7 · **usulan default diterapkan 2026-10-05** (migration 0012), menunggu konfirmasi
 
 Verifikasi hidup penyambungan `ProseWriter` ke LLM memperlihatkan ini. Tiga skenario dijalankan
 terhadap stub OpenRouter lokal, dan `llm_calls` mencatat kelimanya dengan cara yang sama:
@@ -337,6 +337,13 @@ memindahkan pengetahuan apa pun ke `ai`, dan angkanya terikat pada rekomendasi y
 
 **Pertanyaannya:** pemilik setuju menambah kolom `prose_source` di `recommendations` (migration
 kecil, satu kolom VARCHAR + CHECK), atau cukup mengandalkan log aplikasi sampai evaluasi berjalan?
+
+**Diterapkan 2026-10-05 mengikuti usulan default** (`0012_recommendation_prose_source.sql`):
+`recommendations.prose_source` ∈ `llm` / `llm_retry` / `template`, ditulis oleh perakitan lewat
+`RecommendationRepository.save`. Baris sebelum 0012 bernilai `NULL` — tidak diberi nilai tebakan,
+supaya metriknya jujur sejak tanggal tertentu alih-alih separuh karangan. Laju prosa yang ditolak:
+`SELECT prose_source, COUNT(*) FROM recommendations WHERE prose_source IS NOT NULL GROUP BY 1`.
+`ai` dan `llm_calls` tidak disentuh. Bila pemilik memilih mengandalkan log saja, 0012 punya rollback.
 
 ### OQ-43 — Token `--snouty-caption` gagal kontras WCAG AA pada ukuran pakainya
 

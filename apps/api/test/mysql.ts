@@ -67,8 +67,10 @@ const UP = [
   '0009_reports_handoffs.sql',
   '0010_intelligence.sql',
   '0011_catalog_foreign_keys.sql',
+  '0012_recommendation_prose_source.sql',
 ];
 const DOWN = [
+  '0012_recommendation_prose_source.down.sql',
   '0011_catalog_foreign_keys.down.sql',
   '0010_intelligence.down.sql',
   '0009_reports_handoffs.down.sql',

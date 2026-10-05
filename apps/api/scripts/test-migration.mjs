@@ -104,8 +104,10 @@ const UP = [
   '0009_reports_handoffs.sql',
   '0010_intelligence.sql',
   '0011_catalog_foreign_keys.sql',
+  '0012_recommendation_prose_source.sql',
 ];
 const DOWN = [
+  '0012_recommendation_prose_source.down.sql',
   '0011_catalog_foreign_keys.down.sql',
   '0010_intelligence.down.sql',
   '0009_reports_handoffs.down.sql',
@@ -119,7 +121,7 @@ const DOWN = [
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK). */
+/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012 satu kolom). */
 const TABLES = 27;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
@@ -540,6 +542,39 @@ async function hasForeignKey(table, name) {
   );
   return Number(rows[0].n) === 1;
 }
+
+// ── Rekomendasi (0012) ──────────────────────────────────────────────────────
+console.log('\nrekomendasi:');
+const CONV = ulid(901);
+await conn.query(`INSERT INTO conversations (id,owner_kind,owner_id) VALUES (?,'guest',?)`, [
+  CONV,
+  ulid(902),
+]);
+const insertRecommendation = (id, proseSource) =>
+  conn.query(
+    `INSERT INTO recommendations
+       (id,conversation_id,snapshot_id,catalog_version_id,headline,body,prose_source,
+        stats,system_lines,products,bom,assumptions,overall_provenance)
+     VALUES (?,?,?,?,'h','b',?,'{}','[]','[]','[]','[]','ASSUMED')`,
+    [id, CONV, ulid(903), ulid(904), proseSource],
+  );
+
+await check('menerima ketiga asal prosa dan NULL untuk baris lama', async () => {
+  await insertRecommendation(ulid(905), 'llm');
+  await insertRecommendation(ulid(906), 'llm_retry');
+  await insertRecommendation(ulid(907), 'template');
+  await insertRecommendation(ulid(908), null);
+});
+
+await check('menolak asal prosa di luar llm/llm_retry/template', () =>
+  mustReject(
+    `INSERT INTO recommendations
+       (id,conversation_id,snapshot_id,catalog_version_id,headline,body,prose_source,
+        stats,system_lines,products,bom,assumptions,overall_provenance)
+     VALUES (?,?,?,?,'h','b','rec1_rejected','{}','[]','[]','[]','[]','ASSUMED')`,
+    [ulid(909), CONV, ulid(903), ulid(904)],
+  ),
+);
 
 await check('ketujuh foreign key katalog terpasang', async () => {
   const expected = [

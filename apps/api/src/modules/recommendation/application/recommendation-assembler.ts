@@ -12,6 +12,7 @@
 import type { Assumption, Recommendation, SelectedProduct, SystemLine } from '@snouty/shared-types';
 import type { SolutionResult } from '@snouty/engineering';
 import { checkProse } from '../domain/prose-check.js';
+import type { ProseSource } from '../domain/recommendation.repository.js';
 import {
   allowedNumbersFrom,
   allowedSizesFrom,
@@ -47,7 +48,7 @@ export interface AssembleInput {
 export interface AssembleResult {
   readonly recommendation: Recommendation;
   /** Apakah prosa LLM dipakai, atau templat deterministik yang menggantikannya. */
-  readonly proseSource: 'llm' | 'llm_retry' | 'template';
+  readonly proseSource: ProseSource;
 }
 
 export async function assembleRecommendation(
