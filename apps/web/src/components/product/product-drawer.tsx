@@ -139,7 +139,7 @@ function ProductBody({
   selection: DrawerSelection;
   onClose: () => void;
 }) {
-  const { product, fittings } = load;
+  const { product, fittings, documents } = load;
 
   return (
     <>
@@ -186,6 +186,33 @@ function ProductBody({
           <SpecRow key={key} label={COPY.specLabels[key]} spec={product[key]} />
         ))}
       </dl>
+
+      {documents.length > 0 && (
+        <section className={styles.section} data-needs-design="true">
+          <div className={styles.sectionHead}>
+            <h3 className={styles.sectionTitle}>{COPY.documentsTitle}</h3>
+            <span className={styles.needsDesign}>{COPY.documentsNeedsDesign}</span>
+          </div>
+          <ul className={styles.documents}>
+            {documents.map((document) => (
+              <li key={`${document.url}#${document.page ?? ''}`}>
+                <a
+                  className={styles.document}
+                  href={document.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className={styles.documentTitle}>{document.title}</span>
+                  <span className={styles.documentMeta}>
+                    {COPY.openDocument}
+                    {document.page !== null && ` · hal. ${document.page}`}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {fittings.length > 0 && (
         <section className={styles.section}>

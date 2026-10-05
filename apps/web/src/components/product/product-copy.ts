@@ -11,6 +11,13 @@ export const PRODUCT_COPY = {
   sizesTitle: 'UKURAN TERSEDIA',
   fittingsTitle: 'FITTING YANG SEPADAN',
   imagePlaceholder: 'product shot',
+  /**
+   * Bagian dokumen teknis tidak ada di prototipe — yang ada hanya janji
+   * "Buka dokumen teknis" di docs/PRODUCT_KNOWLEDGE.md §4. Dibangun minimal (OQ-21).
+   */
+  documentsTitle: 'DOKUMEN TEKNIS',
+  documentsNeedsDesign: 'BAGIAN SEMENTARA · MENUNGGU DESAIN',
+  openDocument: 'Buka dokumen teknis',
   sourceLabel: 'Sumber data',
   back: 'Kembali ke solusi',
   specMissing: 'Lihat dokumen teknis',

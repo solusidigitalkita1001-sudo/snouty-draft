@@ -96,12 +96,13 @@ sudah ada. Satu permintaan, satu respons — UI tidak perlu mengorkestrasi ulang
 
 ### Katalog
 
-| Metode | Path                       | Keterangan                                                  |
-| ------ | -------------------------- | ----------------------------------------------------------- |
-| `GET`  | `/products`                | `?family=&category=&size=&q=&cursor=`                       |
-| `GET`  | `/products/:id`            | drawer produk: spesifikasi, ukuran, fitting sepadan, sumber |
-| `GET`  | `/products/:id/compatible` |                                                             |
-| `GET`  | `/catalog/version`         | versi aktif — dirender "KATALOG PRALON · v2.4"              |
+| Metode | Path                       | Keterangan                                                                        |
+| ------ | -------------------------- | --------------------------------------------------------------------------------- |
+| `GET`  | `/products`                | `?family=&category=&size=&q=&cursor=`                                             |
+| `GET`  | `/products/:id`            | drawer produk: spesifikasi, ukuran, fitting sepadan, sumber                       |
+| `GET`  | `/products/:id/compatible` |                                                                                   |
+| `GET`  | `/products/:id/documents`  | "Buka dokumen teknis" — ditawarkan, tidak dibaca untuk mengisi spesifikasi kosong |
+| `GET`  | `/catalog/version`         | versi aktif — dirender "KATALOG PRALON · v2.4"                                    |
 
 Field spesifikasi kosong dikembalikan sebagai `{ "value": null, "provenance": "UNAVAILABLE" }`, bukan
 dihilangkan dari respons. UI perlu tahu bedanya antara "tidak ada datanya" dan "field tidak berlaku".

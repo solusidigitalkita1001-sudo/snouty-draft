@@ -3,7 +3,7 @@
  * tetapi header auth tetap dikirim supaya pola panggilannya sama dengan klien lain.
  */
 
-import type { CompatibleFitting, Product } from '@snouty/shared-types';
+import type { CompatibleFitting, Product, ProductDocument } from '@snouty/shared-types';
 
 import { authHeaders } from '../auth/session';
 
@@ -14,30 +14,40 @@ export type ProductLoad =
       readonly kind: 'ok';
       readonly product: Product;
       readonly fittings: readonly CompatibleFitting[];
+      readonly documents: readonly ProductDocument[];
     }
   | { readonly kind: 'not-found' }
   | { readonly kind: 'error' };
 
 /**
- * Produk dan fitting sepadannya, diambil paralel. Fitting yang gagal dimuat tidak
- * menggagalkan drawer: spesifikasi tetap berguna tanpa daftar fitting.
+ * Produk, fitting sepadan, dan dokumen teknisnya, diambil paralel. Fitting atau dokumen
+ * yang gagal dimuat tidak menggagalkan drawer: spesifikasi tetap berguna tanpa keduanya.
  */
 export async function loadProduct(productId: string): Promise<ProductLoad> {
   const init = { credentials: 'include' as const, headers: authHeaders() };
+  const base = `${BASE}/products/${encodeURIComponent(productId)}`;
   try {
-    const [productRes, fittingsRes] = await Promise.all([
-      fetch(`${BASE}/products/${encodeURIComponent(productId)}`, init),
-      fetch(`${BASE}/products/${encodeURIComponent(productId)}/compatible`, init),
+    const [productRes, fittingsRes, documentsRes] = await Promise.all([
+      fetch(base, init),
+      fetch(`${base}/compatible`, init),
+      fetch(`${base}/documents`, init),
     ]);
     if (productRes.status === 404) return { kind: 'not-found' };
     if (!productRes.ok) return { kind: 'error' };
 
     const product = (await productRes.json()) as Product;
-    const fittings = fittingsRes.ok
-      ? ((await fittingsRes.json()) as { items: CompatibleFitting[] }).items
-      : [];
-    return { kind: 'ok', product, fittings };
+    return {
+      kind: 'ok',
+      product,
+      fittings: await itemsOf<CompatibleFitting>(fittingsRes),
+      documents: await itemsOf<ProductDocument>(documentsRes),
+    };
   } catch {
     return { kind: 'error' };
   }
+}
+
+async function itemsOf<T>(response: Response): Promise<readonly T[]> {
+  if (!response.ok) return [];
+  return ((await response.json()) as { items: T[] }).items;
 }

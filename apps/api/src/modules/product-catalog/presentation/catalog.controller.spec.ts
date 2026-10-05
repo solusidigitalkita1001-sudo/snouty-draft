@@ -60,6 +60,10 @@ class FakeCatalog {
   async findCompatibleFittings(): Promise<readonly CompatibleFitting[]> {
     return [{ productId: 'FITTING', name: 'Tee PVC AW 3/4"', kind: 'tee' }];
   }
+
+  async findProductDocuments() {
+    return [{ title: 'Datasheet PVC AW', url: 'https://example.invalid/aw.pdf', page: 7 }];
+  }
 }
 
 function controllerWith(fake: FakeCatalog): CatalogController {
@@ -173,6 +177,18 @@ describe('GET /products/:id/compatible', () => {
 
     expect(response).toEqual({
       items: [{ productId: 'FITTING', name: 'Tee PVC AW 3/4"', kind: 'tee' }],
+    });
+  });
+});
+
+describe('GET /products/:id/documents', () => {
+  it('mengembalikan dokumen sebagai tawaran { items }, dengan halaman untuk dibuka', async () => {
+    const response = await controllerWith(new FakeCatalog()).findProductDocuments({
+      id: PRODUCT_ID,
+    });
+
+    expect(response).toEqual({
+      items: [{ title: 'Datasheet PVC AW', url: 'https://example.invalid/aw.pdf', page: 7 }],
     });
   });
 });

@@ -77,6 +77,16 @@ export class CatalogController {
     const items = await this.catalog.findCompatibleFittings(productId(rawParam));
     return { items };
   }
+
+  /**
+   * Dokumen teknis untuk "Buka dokumen teknis" di drawer. Ditawarkan kepada pengguna,
+   * bukan dibaca untuk mengisi spesifikasi yang kosong (docs/PRODUCT_KNOWLEDGE.md §4).
+   */
+  @Get('products/:id/documents')
+  async findProductDocuments(@Param() rawParam: unknown) {
+    const items = await this.catalog.findProductDocuments(productId(rawParam));
+    return { items };
+  }
 }
 
 function productId(rawParam: unknown): string {

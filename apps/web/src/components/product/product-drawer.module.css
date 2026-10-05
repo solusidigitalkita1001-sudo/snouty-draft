@@ -230,6 +230,67 @@
   gap: 6px;
 }
 
+/* Dokumen teknis — tidak ada di prototipe; minimal dengan token yang sama (OQ-21). */
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.needsDesign {
+  font-family: var(--snouty-font-mono);
+  font-size: var(--snouty-text-micro);
+  letter-spacing: 0.06em;
+  color: var(--snouty-assumed-text);
+  background: var(--snouty-assumed-bg);
+  border: 1px solid var(--snouty-assumed-border);
+  border-radius: var(--snouty-radius-tag);
+  padding: 2px 6px;
+}
+
+.documents {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.document {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--snouty-border-soft);
+  border-radius: 6px;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.document:hover {
+  border-color: var(--snouty-action);
+}
+
+.document:focus-visible {
+  outline: none;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.documentTitle {
+  font-size: var(--snouty-text-desc);
+  font-weight: 500;
+  color: var(--snouty-ink);
+}
+
+.documentMeta {
+  font-size: var(--snouty-text-label);
+  color: var(--snouty-action-text);
+}
+
 .fitting {
   width: 120px;
   border: 1px solid var(--snouty-border-soft);

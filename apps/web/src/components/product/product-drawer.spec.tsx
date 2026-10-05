@@ -47,11 +47,12 @@ const SELECTION: DrawerSelection = {
   matchState: 'VERIFIED_SELECTED',
 };
 
-function ok(): ProductLoad {
+function ok(): Extract<ProductLoad, { kind: 'ok' }> {
   return {
     kind: 'ok',
     product: PRODUCT,
     fittings: [{ productId: '01JBFITTING000000000000001', name: 'Tee PVC 3/4"', kind: 'tee' }],
+    documents: [{ title: 'Datasheet PVC AW', url: 'https://example.invalid/aw.pdf', page: 7 }],
   };
 }
 
@@ -99,6 +100,25 @@ describe('ProductDrawer', () => {
     render(<ProductDrawer selection={SELECTION} onClose={() => {}} />);
 
     expect(await screen.findByText('Tee PVC 3/4"')).toBeTruthy();
+  });
+
+  it('menawarkan dokumen teknis sebagai tautan yang dibuka di tab baru, dengan halamannya', async () => {
+    loadProduct.mockResolvedValue(ok());
+    render(<ProductDrawer selection={SELECTION} onClose={() => {}} />);
+
+    const link = (await screen.findByText('Datasheet PVC AW')).closest('a')!;
+    expect(link.getAttribute('href')).toBe('https://example.invalid/aw.pdf');
+    expect(link.getAttribute('target')).toBe('_blank');
+    expect(link.getAttribute('rel')).toContain('noopener');
+    expect(link.textContent).toContain('Buka dokumen teknis · hal. 7');
+  });
+
+  it('tanpa dokumen, bagian dokumen tidak dirender sama sekali', async () => {
+    loadProduct.mockResolvedValue({ ...ok(), documents: [] });
+    render(<ProductDrawer selection={SELECTION} onClose={() => {}} />);
+
+    await screen.findByText('Pralon PVC AW');
+    expect(screen.queryByText('DOKUMEN TEKNIS')).toBeNull();
   });
 
   it('tidak menampilkan harga', async () => {
