@@ -22,9 +22,9 @@ import type {
   RequirementState,
   StageStatus,
 } from '@snouty/shared-types';
-import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import mascot from '../../../public/snouty-mascot.png';
+import { moodForCards } from '../mascot/mood';
+import { Snouty, SnoutyAvatar } from '../mascot/snouty';
 import {
   createConversation,
   fetchHistory,
@@ -49,6 +49,8 @@ const TOAST_MS = 2800;
  * presentasi, bukan timer pengganti latensi — yang itu sengaja tidak disalin.
  */
 const SOLUTION_READY_HOLD_MS = 1500;
+/** Welcome diam 15 detik dengan composer kosong → mascot tertidur (prototipe, §7). */
+const WELCOME_SLEEP_MS = 15_000;
 
 interface ChatTurn {
   readonly id: string;
@@ -69,6 +71,7 @@ export function ChatWorkspace() {
   const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
   const [toastOn, setToastOn] = useState(false);
+  const [sleepy, setSleepy] = useState(false);
   const [solution, setSolution] = useState<Recommendation | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [history, setHistory] = useState<
@@ -125,6 +128,14 @@ export function ChatWorkspace() {
     const timer = setTimeout(() => setToastOn(false), TOAST_MS);
     return () => clearTimeout(timer);
   }, [toastOn]);
+
+  // Mengetik atau mengirim membangunkannya; diam lagi 15 detik menidurkannya lagi.
+  useEffect(() => {
+    setSleepy(false);
+    if (turns.length > 0 || draft !== '') return;
+    const timer = setTimeout(() => setSleepy(true), WELCOME_SLEEP_MS);
+    return () => clearTimeout(timer);
+  }, [turns.length, draft]);
 
   const submit = useCallback(async () => {
     const text = draft.trim();
@@ -247,9 +258,7 @@ export function ChatWorkspace() {
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
         <div className={styles.brandRow}>
-          <span className={styles.brandAvatar}>
-            <Image src={mascot} alt="" width={28} height={28} />
-          </span>
+          <SnoutyAvatar mood="idle" size={28} />
           <div className={styles.brandText}>
             <div className={styles.brandName}>{COPY.brand.name}</div>
             <div className={styles.brandKicker}>{COPY.brand.kicker}</div>
@@ -299,9 +308,7 @@ export function ChatWorkspace() {
       </aside>
 
       <nav className={styles.navRail} aria-label="Navigasi utama">
-        <span className={styles.brandAvatar}>
-          <Image src={mascot} alt="" width={28} height={28} />
-        </span>
+        <SnoutyAvatar mood="idle" size={28} />
         <button type="button" className={styles.railNew} aria-label={COPY.newConversation}>
           +
         </button>
@@ -345,8 +352,10 @@ export function ChatWorkspace() {
           <div className={styles.welcome}>
             <div className={styles.welcomeInner}>
               <div className={styles.welcomeMascotRow}>
-                <Image src={mascot} alt="" width={72} height={72} />
-                <div className={styles.welcomeBubble}>{COPY.welcome.bubble}</div>
+                <Snouty mood={sleepy ? 'sleep' : 'idle'} size={104} />
+                <div className={styles.welcomeBubble}>
+                  {sleepy ? COPY.welcome.sleepBubble : COPY.welcome.bubble}
+                </div>
               </div>
 
               <div className={styles.welcomeText}>
@@ -396,9 +405,7 @@ export function ChatWorkspace() {
                 </div>
               ) : (
                 <div key={turn.id} className={styles.assistantRow}>
-                  <div className={styles.assistantAvatar}>
-                    <Image src={mascot} alt="" width={26} height={26} />
-                  </div>
+                  <SnoutyAvatar mood={moodForCards(turn.cards)} size={30} />
                   <div className={styles.assistantCol}>
                     {turn.text !== '' && <div className={styles.assistantBubble}>{turn.text}</div>}
                     {turn.cards.map((card, index) => (
@@ -421,9 +428,7 @@ export function ChatWorkspace() {
 
             {sending && (
               <div className={styles.thinkingRow} role="status" aria-label={COPY.thinking}>
-                <div className={styles.thinkAvatar}>
-                  <Image src={mascot} alt="" width={30} height={30} />
-                </div>
+                <SnoutyAvatar mood="think" size={30} />
                 <div className={styles.dots} aria-hidden="true">
                   <span className={styles.dot} />
                   <span className={styles.dot} />
@@ -439,7 +444,7 @@ export function ChatWorkspace() {
 
             {toastOn && (
               <div className={styles.toast} role="status">
-                <Image src={mascot} alt="" width={44} height={44} />
+                <Snouty mood="thanks" size={52} />
                 <div className={styles.toastText}>
                   <div className={styles.toastTitle}>{COPY.toast.title}</div>
                   <div className={styles.toastSub}>{COPY.toast.sub}</div>
@@ -631,7 +636,13 @@ function StageIndicator({
   return (
     <div className={styles.stageCard} role="status" aria-live="polite">
       <div className={styles.stageHead}>
-        <Image src={mascot} alt="" width={44} height={44} />
+        {/* Prototipe: think selama dua tahap pertama, lalu write; happy saat selesai, fail saat gagal. */}
+        <Snouty
+          mood={
+            phase === 'failed' ? 'fail' : phase === 'done' ? 'happy' : done < 2 ? 'think' : 'write'
+          }
+          size={84}
+        />
         <div className={styles.progressTrack} aria-hidden="true">
           <div className={styles.progressFill} style={{ width: `${pct}%` }} />
         </div>

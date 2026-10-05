@@ -35,6 +35,18 @@
   --snouty-pipe-light: #f4b0a3;
   --snouty-pipe-fixture: #aeb6b7;
 
+  /* ── Mascot ────────────────────────────────────────────────────────────── */
+  /*
+   * Warna seni mascot (garis, kertas, air, pipi) dari prototipe. Sengaja tidak punya
+   * padanan gelap: ia bagian dari gambar, bukan antarmuka — di mode gelap mascot tetap
+   * putih bergaris hitam seperti PNG-nya.
+   */
+  --snouty-mascot-line: #000000;
+  --snouty-mascot-dark: #14181a;
+  --snouty-mascot-paper: #ffffff;
+  --snouty-mascot-water: #6cc3ee;
+  --snouty-mascot-blush: #f7a39a;
+
   /* ── Teks ──────────────────────────────────────────────────────────────── */
   --snouty-ink: #14181a;
   --snouty-ink-2: #20262a;

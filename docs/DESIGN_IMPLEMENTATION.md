@@ -285,6 +285,14 @@ Dua aturan dari lembar mascot menjadi tes:
   `fail` hanya untuk error sistem.
 - `greet` dan `peek` berasal dari lembar mascot dan tidak ada di tabel SPEC §33f (OQ-30).
 
+**Diimplementasikan 2026-10-05** di `apps/web/src/components/mascot/`: `snouty.tsx` adalah port
+koordinat-demi-koordinat dari `snoutyMascot()`/`snoutyAvatar()` prototipe (13 mood, 42 keyframe
+disalin apa adanya ke `snouty-keyframes.css`), `mood.ts` memuat `moodFor(state)` dan `moodForCards`
+dengan tes untuk kedua aturan di atas. Dipakai di welcome (104px, tidur setelah 15 detik), avatar
+giliran asisten (30px, mood dari kartunya), titik berpikir, kartu analisis (84px: think → write →
+happy/fail), toast (52px, thanks), hero onboarding (210px, per langkah), dan header drawer produk
+(34px, wink). `fail` diputar sekali lalu diam — prototipe mengulanginya, lembar mascot tidak.
+
 Implementasi: komponen `<Snouty mood="…" size={n} />` yang melapisi mata, gelembung pikiran, tetesan,
 dan percikan ber-CSS di atas dua PNG (`snouty-base.png`, `snouty-pencil.png`) pada koordinat tetap di
 ruang 1254px. Ukuran yang dipakai desain: 128 / 56 / 32 / 24; di bawah 32px diperlukan varian garis

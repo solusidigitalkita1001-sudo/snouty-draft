@@ -48,6 +48,18 @@ export const TOKEN_GROUPS: readonly TokenGroup[] = [
     ],
   },
   {
+    title: 'Mascot',
+    rule: 'Warna seni mascot — bagian dari gambar, bukan antarmuka, jadi tanpa padanan gelap.',
+    kind: 'color',
+    tokens: [
+      { name: 'snouty-mascot-line', use: 'garis mata, alis, tepi properti' },
+      { name: 'snouty-mascot-dark', use: 'percikan gelap, huruf Z, tanda tanya' },
+      { name: 'snouty-mascot-paper', use: 'gelembung pikiran, goresan tinta' },
+      { name: 'snouty-mascot-water', use: 'tetesan, semburan, genangan' },
+      { name: 'snouty-mascot-blush', use: 'pipi merona (mood thanks)' },
+    ],
+  },
+  {
     title: 'Teks',
     kind: 'color',
     tokens: [

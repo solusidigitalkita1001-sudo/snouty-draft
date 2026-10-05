@@ -20,9 +20,9 @@
  * dibuat gampang diganti saat lembar mascot final datang.
  */
 
-import Image from 'next/image';
+import { type Mood } from '../mascot/mood';
+import { Snouty, SnoutyAvatar } from '../mascot/snouty';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import mascot from '../../../public/snouty-mascot.png';
 import {
   completeOnboarding,
   fetchBenefits,
@@ -288,22 +288,11 @@ export function Onboarding() {
 }
 
 /**
- * Slot mascot — seni final belum ada (OQ-18), jadi satu gambar placeholder untuk
- * semua mood. Prop `mood` sudah mengalir supaya penggantinya tinggal pasang.
+ * Slot mascot — seninya masih placeholder (OQ-18), tetapi geraknya sudah dari prototipe:
+ * `Snouty` melapisi mata dan properti ber-CSS di atas PNG, per mood langkah.
  */
-function MascotSlot({ mood, size }: { mood: string; size: number }) {
-  return (
-    <Image
-      src={mascot}
-      alt=""
-      width={size}
-      height={size}
-      style={{ objectFit: 'contain' }}
-      data-mood={mood}
-      // Next 16: `priority` usang, penggantinya `preload`.
-      preload
-    />
-  );
+function MascotSlot({ mood, size }: { mood: Mood; size: number }) {
+  return <Snouty mood={mood} size={size} />;
 }
 
 function Step1() {
@@ -337,7 +326,7 @@ function Step2() {
           </div>
           <div className={styles.assistantRow}>
             <div className={styles.assistantAvatar}>
-              <Image src={mascot} alt="" width={24} height={24} style={{ objectFit: 'cover' }} />
+              <SnoutyAvatar mood="happy" size={24} />
             </div>
             <div className={styles.assistantCol}>
               <div className={styles.assistantBubble}>{COPY.step2.assistantMessage}</div>

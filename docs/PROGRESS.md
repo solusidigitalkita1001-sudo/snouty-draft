@@ -530,6 +530,7 @@ pihak ketiga.** Karena itu redaksi berjalan sebelum teks menyentuh LLM, bukan se
   - [x] P13-02a Hasil dicatat di `docs/DESIGN_IMPLEMENTATION.md` §12; amber yang paling dikhawatirkan ternyata lulus (5,76–6,33:1)
 - [x] P13-03 Pipeline CI — sudah ada sejak Fase 0 dan masih akurat: pagar arsitektur (isolasi engine, host DB, pindai secret), format/lint/typecheck, tes dengan MySQL+Redis sekali pakai, tes migration, build. Tes web ikut otomatis lewat `pnpm -r test`
 - [ ] `[!]` P13-04 Evaluasi AI — **terhalang OQ-09** (ID model) + golden dataset
+- [x] P13-05 Kesesuaian motion dengan prototipe (2026-10-05, dari laporan pemilik "animasi belum sesuai Claude Design") — audit seluruh `@keyframes`/`animation`/`transition`/timer prototipe vs `apps/web`: (1) `snoutyIn` .25s di setiap giliran, kartu analisis, toast; titik berpikir `snoutyPulse`; bar progres bergaris `snFlow` + lebar .5s dengan judul "Menyusun solusi Anda / Solusi siap! / Gagal"; jeda 1500 ms "Solusi siap!" sebelum solusi; toast "Solusi tersimpan" 2800 ms; onboarding `snoutyIn` 6px (bukan 8px); slide-in drawer yang tidak ada di prototipe dibuang; timer latensi palsu 620/750 ms sengaja tidak disalin. (2) **Mascot animasi penuh** diport dari prototipe — 13 mood, 42 keyframe — menggantikan PNG statis di semua tempat; `moodFor(state)` murni dengan tes dua aturan lembar mascot. `prefers-reduced-motion` tetap dihormati. Tes web 59 (+10)
 - [ ] ✋ CHECKPOINT akhir — reviewed by owner
 
 ## Design Coverage
@@ -551,7 +552,7 @@ pihak ketiga.** Karena itu redaksi berjalan sebelum teks menyentuh LLM, bukan se
 | 13     | Mobile (13a/13b/13c)                                      | all                 | [ ]                               |
 | 14     | Onboarding                                                | 3                   | [ ]                               |
 | —      | Report PDF                                                | 10                  | [ ]                               |
-| —      | Mascot moods                                              | 3+                  | [ ]                               |
+| —      | Mascot moods                                              | 3+                  | [x]                               |
 | —      | Dark mode                                                 | all                 | [ ]                               |
 | —      | Stage indicator (Kebutuhan → Analisis → Solusi → Laporan) | 4                   | [ ]                               |
 | —      | Toast + error states                                      | each phase          | [ ]                               |

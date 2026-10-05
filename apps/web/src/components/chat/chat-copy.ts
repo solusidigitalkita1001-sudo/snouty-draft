@@ -46,7 +46,9 @@ export const CHAT_COPY = {
 
   /** Layar sambutan di dalam ruang konsultasi (prototipe, state `isWelcome`). */
   welcome: {
-    bubble: 'Ceritakan kebutuhanmu, aku bantu pilih pipanya.',
+    /* Teks gelembung dari prototipe (`welcomeBubble`), bukan dari board. */
+    bubble: 'Halo! Ceritakan rumahmu, biar aku hitung pipanya.',
+    sleepBubble: 'Zzz… ketik saja, aku langsung bangun.',
     headline: 'Temukan solusi perpipaan yang tepat untuk kebutuhan Anda.',
     body: 'Ceritakan kebutuhan bangunan atau instalasi Anda. SNOUTY akan membantu menganalisis kebutuhan dan merekomendasikan solusi produk Pralon.',
   },

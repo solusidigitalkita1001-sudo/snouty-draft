@@ -1,0 +1,797 @@
+/*
+ * Keyframes mascot SNOUTY — disalin apa adanya dari SNOUTY Prototype.dc.html (baris 148–200).
+ * Global (bukan CSS module) supaya nama keyframe tetap, sama seperti di prototipe; komponen
+ * Snouty memasang animasinya inline per bagian (badan, mata, pensil, properti).
+ *
+ * Lima keyframe yang didefinisikan prototipe tetapi tidak pernah dipakai tidak disalin:
+ * mkLookDown, mkWrite, mkInk, snBob, snTilt.
+ */
+
+@keyframes mkWriteLong {
+  0.00% {
+    transform: translate(-17.22%, -0.16%) rotate(0deg);
+  }
+  1.72% {
+    transform: translate(-18.05%, -0.94%) rotate(-2deg);
+  }
+  3.44% {
+    transform: translate(-17.42%, -1.98%) rotate(0deg);
+  }
+  5.17% {
+    transform: translate(-16.26%, -2.47%) rotate(-2deg);
+  }
+  6.89% {
+    transform: translate(-15%, -2.52%) rotate(0deg);
+  }
+  8.61% {
+    transform: translate(-13.8%, -2.12%) rotate(-2deg);
+  }
+  10.33% {
+    transform: translate(-12.99%, -1.19%) rotate(0deg);
+  }
+  12.06% {
+    transform: translate(-13.53%, -0.19%) rotate(-2deg);
+  }
+  13.78% {
+    transform: translate(-14.57%, -0.69%) rotate(0deg);
+  }
+  15.50% {
+    transform: translate(-14.17%, -1.82%) rotate(-2deg);
+  }
+  17.22% {
+    transform: translate(-13.06%, -2.42%) rotate(0deg);
+  }
+  18.94% {
+    transform: translate(-11.8%, -2.54%) rotate(-2deg);
+  }
+  20.67% {
+    transform: translate(-10.58%, -2.24%) rotate(0deg);
+  }
+  22.39% {
+    transform: translate(-9.64%, -1.43%) rotate(-2deg);
+  }
+  24.11% {
+    transform: translate(-9.85%, -0.3%) rotate(0deg);
+  }
+  25.83% {
+    transform: translate(-11%, -0.47%) rotate(-2deg);
+  }
+  27.56% {
+    transform: translate(-10.89%, -1.64%) rotate(0deg);
+  }
+  29.28% {
+    transform: translate(-9.86%, -2.34%) rotate(-2deg);
+  }
+  31.00% {
+    transform: translate(-8.61%, -2.55%) rotate(0deg);
+  }
+  32.72% {
+    transform: translate(-7.37%, -2.34%) rotate(-2deg);
+  }
+  34.44% {
+    transform: translate(-6.33%, -1.64%) rotate(0deg);
+  }
+  36.17% {
+    transform: translate(-6.22%, -0.47%) rotate(-2deg);
+  }
+  37.89% {
+    transform: translate(-7.37%, -0.3%) rotate(0deg);
+  }
+  39.61% {
+    transform: translate(-7.59%, -1.43%) rotate(-2deg);
+  }
+  41.33% {
+    transform: translate(-6.64%, -2.24%) rotate(0deg);
+  }
+  43.06% {
+    transform: translate(-5.42%, -2.54%) rotate(-2deg);
+  }
+  44.78% {
+    transform: translate(-4.17%, -2.42%) rotate(0deg);
+  }
+  46.50% {
+    transform: translate(-3.06%, -1.82%) rotate(-2deg);
+  }
+  48.22% {
+    transform: translate(-2.66%, -0.69%) rotate(0deg);
+  }
+  49.94% {
+    transform: translate(-3.7%, -0.19%) rotate(-2deg);
+  }
+  51.67% {
+    transform: translate(-4.24%, -1.19%) rotate(0deg);
+  }
+  53.39% {
+    transform: translate(-3.42%, -2.12%) rotate(-2deg);
+  }
+  55.11% {
+    transform: translate(-2.23%, -2.52%) rotate(0deg);
+  }
+  56.83% {
+    transform: translate(-0.97%, -2.47%) rotate(-2deg);
+  }
+  58.56% {
+    transform: translate(0.19%, -1.98%) rotate(0deg);
+  }
+  60.28% {
+    transform: translate(0.83%, -0.94%) rotate(-2deg);
+  }
+  62.00% {
+    transform: translate(0%, -0.16%) rotate(0deg);
+  }
+  66% {
+    transform: translate(1.91%, -3.6%) rotate(3deg);
+  }
+  70% {
+    transform: translate(1.91%, -2.07%) rotate(0);
+  }
+  74% {
+    transform: translate(3.51%, -0.32%) rotate(-2deg);
+  }
+  78% {
+    transform: translate(6.7%, -4.15%) rotate(0);
+  }
+  82% {
+    transform: translate(4%, -5%) rotate(5deg);
+  }
+  86%,
+  89% {
+    transform: translate(0, 0) rotate(0);
+  }
+  94% {
+    transform: translate(-8%, -3.5%) rotate(5deg);
+  }
+  100% {
+    transform: translate(-17.22%, -0.16%) rotate(0);
+  }
+}
+
+@keyframes mkInkLong {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+  62% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  88% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  96%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes mkTickLong {
+  0%,
+  69% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  70% {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+  78% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  88% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  96%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes mkLookWrite {
+  0% {
+    transform: translate(-24%, 18%);
+  }
+  62% {
+    transform: translate(20%, 18%);
+  }
+  78%,
+  88% {
+    transform: translate(24%, 14%);
+  }
+  100% {
+    transform: translate(-24%, 18%);
+  }
+}
+
+@keyframes mkTap {
+  0%,
+  78%,
+  100% {
+    transform: rotate(0);
+  }
+  82% {
+    transform: rotate(-7deg);
+  }
+  85% {
+    transform: rotate(0);
+  }
+  88% {
+    transform: rotate(-7deg);
+  }
+  91% {
+    transform: rotate(0);
+  }
+}
+
+@keyframes mkNod {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  25% {
+    transform: translateY(0.6%) rotate(-1.2deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0);
+  }
+  75% {
+    transform: translateY(0.6%) rotate(1.2deg);
+  }
+}
+
+@keyframes mkStartle {
+  0%,
+  58%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  62% {
+    transform: translateY(-4%) scale(0.97, 1.05);
+  }
+  68% {
+    transform: translateY(0) scale(1.03, 0.97);
+  }
+  74% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mkEyePop {
+  0%,
+  58%,
+  100% {
+    transform: scale(1);
+  }
+  62% {
+    transform: scale(1.45);
+  }
+  70%,
+  90% {
+    transform: scale(1.3);
+  }
+}
+
+@keyframes mkBang {
+  0%,
+  58% {
+    transform: translateY(20%) scale(0.3);
+    opacity: 0;
+  }
+  64% {
+    transform: translateY(-10%) scale(1.2);
+    opacity: 1;
+  }
+  70%,
+  90% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  96%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes mkQ {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-14%) rotate(8deg);
+  }
+}
+
+@keyframes mkSquint {
+  0%,
+  40%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50%,
+  90% {
+    transform: scaleY(0.55);
+  }
+}
+
+@keyframes mkSweat {
+  0%,
+  10% {
+    transform: translateY(0) scale(0);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(260%) scale(0.9, 1.1);
+    opacity: 1;
+  }
+  85%,
+  100% {
+    transform: translateY(300%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes mkSlump {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(1.2%);
+  }
+}
+
+@keyframes mkWinkSpark {
+  0%,
+  30%,
+  100% {
+    transform: scale(0) rotate(45deg);
+  }
+  42% {
+    transform: scale(1.2) rotate(45deg);
+  }
+  56% {
+    transform: scale(0.9) rotate(45deg);
+  }
+  70% {
+    transform: scale(0) rotate(45deg);
+  }
+}
+
+@keyframes mkWinkEye {
+  0%,
+  26%,
+  74%,
+  100% {
+    transform: scaleY(1);
+  }
+  32%,
+  68% {
+    transform: scaleY(0.08);
+  }
+}
+
+@keyframes mkWinkArc {
+  0%,
+  28%,
+  72%,
+  100% {
+    opacity: 0;
+  }
+  32%,
+  68% {
+    opacity: 1;
+  }
+}
+
+@keyframes mkHeart {
+  0% {
+    transform: translate(0, 0) scale(0.3);
+    opacity: 0;
+  }
+  15% {
+    transform: translate(0, -20%) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(30%, -240%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes mkBlush {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+@keyframes mkSway {
+  0%,
+  100% {
+    transform: rotate(-2.5deg);
+  }
+  50% {
+    transform: rotate(2.5deg);
+  }
+}
+
+@keyframes mkScan {
+  0%,
+  100% {
+    transform: translateX(-30%);
+  }
+  50% {
+    transform: translateX(30%);
+  }
+}
+
+@keyframes mkBeam {
+  0%,
+  100% {
+    transform: translateY(-40%);
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(40%);
+    opacity: 0.9;
+  }
+}
+
+@keyframes mkShake {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+  4% {
+    transform: translateX(-2%) rotate(-2deg);
+  }
+  8% {
+    transform: translateX(2%) rotate(2deg);
+  }
+  12% {
+    transform: translateX(-1.5%) rotate(-1.5deg);
+  }
+  16% {
+    transform: translateX(1%) rotate(1deg);
+  }
+  20% {
+    transform: translateX(0) rotate(0);
+  }
+  60% {
+    transform: translateY(0);
+  }
+  70% {
+    transform: translateY(1%);
+  }
+  80% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes mkSprayA {
+  0%,
+  18% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  22% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  55% {
+    transform: translate(-300%, -360%) scale(1);
+    opacity: 1;
+  }
+  85% {
+    transform: translate(-520%, -60%) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes mkSprayB {
+  0%,
+  22% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  26% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  58% {
+    transform: translate(-120%, -470%) scale(1);
+    opacity: 1;
+  }
+  90% {
+    transform: translate(-220%, -160%) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes mkSprayC {
+  0%,
+  26% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(-460%, -200%) scale(1);
+    opacity: 1;
+  }
+  92% {
+    transform: translate(-700%, 60%) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes mkCrack {
+  0%,
+  14% {
+    stroke-dashoffset: 1;
+  }
+  22%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes mkXeye {
+  0%,
+  18% {
+    transform: scale(0.6) rotate(0);
+  }
+  24% {
+    transform: scale(1.15) rotate(0);
+  }
+  30%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes mkPuddle {
+  0%,
+  40% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  70%,
+  90% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+@keyframes mkBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2.6%);
+  }
+}
+
+@keyframes mkBreath {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.018);
+  }
+}
+
+@keyframes mkTilt {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes mkHop {
+  0%,
+  62%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  70% {
+    transform: translateY(-7%) scale(1.03, 0.98);
+  }
+  78% {
+    transform: translateY(0) scale(1.04, 0.95);
+  }
+  84% {
+    transform: translateY(-2%) scale(0.99, 1.02);
+  }
+  90% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mkBlink {
+  0%,
+  91%,
+  97%,
+  100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.08);
+  }
+}
+
+@keyframes mkBlink2 {
+  0%,
+  84%,
+  100% {
+    transform: scaleY(1);
+  }
+  86% {
+    transform: scaleY(0.08);
+  }
+  88% {
+    transform: scaleY(1);
+  }
+  90% {
+    transform: scaleY(0.08);
+  }
+  92% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes mkLook {
+  0%,
+  28%,
+  100% {
+    transform: translate(0, 0);
+  }
+  34%,
+  50% {
+    transform: translate(-24%, 2%);
+  }
+  56%,
+  72% {
+    transform: translate(22%, 4%);
+  }
+  78%,
+  94% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes mkLookUp {
+  0%,
+  100% {
+    transform: translate(-20%, -18%);
+  }
+  50% {
+    transform: translate(18%, -20%);
+  }
+}
+
+@keyframes mkLookDrip {
+  0%,
+  18% {
+    transform: translate(-28%, 10%);
+  }
+  30%,
+  58% {
+    transform: translate(-28%, 28%);
+  }
+  72%,
+  100% {
+    transform: translate(-28%, 10%);
+  }
+}
+
+@keyframes mkShine {
+  0% {
+    background-position: 170% 0;
+  }
+  30%,
+  100% {
+    background-position: -70% 0;
+  }
+}
+
+@keyframes mkDrop {
+  0% {
+    transform: translateY(0) scale(0);
+    opacity: 1;
+  }
+  16% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  24% {
+    transform: translateY(20%) scale(0.95, 1.08);
+    opacity: 1;
+  }
+  58% {
+    transform: translateY(470%) scale(0.9, 1.12);
+    opacity: 1;
+  }
+  64%,
+  100% {
+    transform: translateY(520%) scale(1.5, 0.2);
+    opacity: 0;
+  }
+}
+
+@keyframes mkZ {
+  0% {
+    transform: translate(0, 0) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(60%, -160%) scale(1.15);
+    opacity: 0;
+  }
+}
+
+@keyframes mkThought {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes mkSpark {
+  0%,
+  55%,
+  100% {
+    transform: scale(0) rotate(45deg);
+  }
+  70% {
+    transform: scale(1.15) rotate(45deg);
+  }
+  85% {
+    transform: scale(0.9) rotate(45deg);
+  }
+}

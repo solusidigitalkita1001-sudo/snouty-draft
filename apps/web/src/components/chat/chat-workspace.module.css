@@ -214,18 +214,6 @@
   animation: snoutyIn var(--snouty-enter) both;
 }
 
-.thinkAvatar {
-  width: 30px;
-  height: 30px;
-  flex: none;
-  border-radius: 50%;
-  border: 1px solid var(--snouty-action-soft-border);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .dots {
   display: flex;
   gap: 5px;
@@ -245,18 +233,6 @@
 
 .dot:nth-child(3) {
   animation-delay: 0.4s;
-}
-
-.assistantAvatar {
-  width: 26px;
-  height: 26px;
-  flex: none;
-  border-radius: 50%;
-  border: 1px solid var(--snouty-action-soft-border);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .assistantCol {
@@ -1058,18 +1034,6 @@
   align-items: center;
   gap: 9px;
   padding-left: 4px;
-}
-
-.brandAvatar {
-  width: 28px;
-  height: 28px;
-  flex: none;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 1px solid var(--snouty-action-soft-border);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .brandText {

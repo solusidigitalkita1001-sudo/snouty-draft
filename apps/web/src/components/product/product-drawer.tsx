@@ -13,11 +13,10 @@
  * dan fokus kembali ke kartu yang membukanya.
  */
 
-import Image from 'next/image';
 import { specHasValue, type SelectedProduct, type SpecValue } from '@snouty/shared-types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import mascot from '../../../public/snouty-mascot.png';
+import { SnoutyAvatar } from '../mascot/snouty';
 import { SOLUTION_COPY } from '../solution/solution-copy';
 import { loadProduct, type ProductLoad } from './product-api';
 import { PRODUCT_COPY as COPY, sourceLine, specSourceLine } from './product-copy';
@@ -107,7 +106,7 @@ export function ProductDrawer({
       >
         <header className={styles.header}>
           <div className={styles.headerLeft}>
-            <Image src={mascot} alt="" width={34} height={34} />
+            <SnoutyAvatar mood="wink" size={34} />
             <div>
               <div className={styles.kicker}>{COPY.kicker}</div>
               <div className={styles.subline}>{COPY.subline}</div>
