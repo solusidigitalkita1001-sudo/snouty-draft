@@ -34,4 +34,21 @@ export interface AiService {
 
   /** Judul percakapan dari pesan pertama (tingkat cepat). */
   titleFor(firstMessage: string): Promise<string>;
+
+  /**
+   * Menulis prosa penjelas atas angka yang **sudah** dihitung engine.
+   *
+   * Satu-satunya metode yang mengembalikan keluaran **mentah dan belum tervalidasi**,
+   * dan itu disengaja. Skema prosa milik pemanggil, dan pemeriksaan REC-1 — apakah
+   * prosanya memuat angka yang tidak pernah dihitung — hanya bisa dilakukan oleh pihak
+   * yang tahu angka mana yang sah. Modul ai tidak boleh tahu itu, sebab begitu ia tahu,
+   * ia berhenti menjadi layanan dan mulai menilai kebenaran teknik (SPEC §25).
+   *
+   * Prompt dan pesan datang sebagai string buram supaya port ini tetap tidak menyentuh
+   * domain: ia mengirimkannya, mencatat biayanya, dan tidak menafsirkan isinya.
+   */
+  writeProse(input: {
+    readonly systemPrompt: string;
+    readonly userMessage: string;
+  }): Promise<unknown>;
 }

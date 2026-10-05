@@ -91,6 +91,30 @@ export class OpenRouterAiService implements AiService {
   }
 
   /**
+   * Prosa penjelas. Sengaja **tidak** lewat `callStructured`, meski ia pun keluaran
+   * JSON: skemanya milik pemanggil, dan percobaan ulangnya diatur REC-1 di perakitan
+   * rekomendasi. Dua lapis retry berarti empat percobaan dari dua tempat yang tidak
+   * saling tahu — dan yang kedua tidak akan pernah tahu alasan sebenarnya sebuah
+   * prosa ditolak, yaitu angka asing.
+   *
+   * Yang tetap dilakukan di sini: routing tingkat dan audit biaya ke `llm_calls`.
+   */
+  async writeProse(
+    input: { readonly systemPrompt: string; readonly userMessage: string },
+    context: AiCallContext = { correlationId: null },
+  ): Promise<unknown> {
+    const result = await this.callOnce(
+      'explanation_prose',
+      tierForTask('explanation_prose'),
+      input.systemPrompt,
+      input.userMessage,
+      true,
+      context,
+    );
+    return safeJson(result.content);
+  }
+
+  /**
    * Satu panggilan terstruktur dengan retry sekali. `retryTask` naik ke tingkat
    * `strong`; pesan error dari percobaan pertama dilampirkan supaya model tahu apa
    * yang harus diperbaiki.

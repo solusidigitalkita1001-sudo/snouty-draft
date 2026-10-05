@@ -135,3 +135,18 @@ describe('klasifikasi intent', () => {
     expect(result.intent).toBe('REQUIREMENT_STATEMENT');
   });
 });
+
+describe('writeProse di adapter pengembangan', () => {
+  it('mengembalikan null — tidak pernah mengarang prosa', async () => {
+    // Regex boleh mengisi ekstraksi karena hasilnya langsung terlihat salah bila salah.
+    // Prosa karangan terbaca meyakinkan, dan akan menjelaskan angka yang tidak pernah
+    // dihitung siapa pun — di layar yang justru dipakai menilai kebenaran produk.
+    const saved = process.env['NODE_ENV'];
+    process.env['NODE_ENV'] = 'development';
+    try {
+      await expect(new DevDeterministicAiService().writeProse()).resolves.toBeNull();
+    } finally {
+      process.env['NODE_ENV'] = saved;
+    }
+  });
+});

@@ -23,3 +23,28 @@ export const TITLE_SYSTEM_PROMPT = [
   'Buat judul singkat (maksimum 8 kata) untuk percakapan konsultasi pipa ini, Bahasa Indonesia.',
   'Tanpa tanda kutip, tanpa tanda baca akhir.',
 ].join('\n');
+
+/**
+ * Prosa penjelas pasca-perhitungan. Perhatikan apa yang TIDAK ada di sini: tidak ada
+ * ambang ukuran, tidak ada aturan sizing, tidak ada definisi provenance. Semuanya sudah
+ * selesai sebelum prompt ini dipanggil — model hanya menjelaskan hasilnya.
+ *
+ * Larangan "jangan tambahkan angka" ditulis di sini sebagai instruksi tugas, tetapi
+ * **penegakannya ada di kode** (`checkProse`, invarian REC-1). Kalau ia hanya hidup di
+ * prompt, ia dianggap tidak ada.
+ */
+export const PROSE_SYSTEM_PROMPT = [
+  'Anda menjelaskan hasil perhitungan sistem perpipaan yang SUDAH selesai dihitung.',
+  'Tugas Anda menulis penjelasan, bukan menghitung. Seluruh angka sudah final.',
+  '',
+  'Aturan keluaran:',
+  '- Kembalikan JSON: {"headline": string, "body": string}.',
+  '- Bahasa Indonesia, kalimat pendek, nada tenang dan praktis.',
+  '- JANGAN menambahkan angka, ukuran, panjang, tekanan, atau kuantitas apa pun yang',
+  '  tidak ada di data yang diberikan. Termasuk perkiraan, pembulatan, dan rentang.',
+  '- Jangan menyebut merek selain Pralon.',
+  '- Jangan menjanjikan kelayakan teknis atau sertifikasi.',
+  '',
+  'headline: satu kalimat ringkas. body: 2–4 kalimat yang menjelaskan mengapa ukuran',
+  'itu dipilih, memakai alasan teknis yang sudah disediakan.',
+].join('\n');

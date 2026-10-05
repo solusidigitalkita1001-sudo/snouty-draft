@@ -112,3 +112,49 @@ describe('OpenRouterAiService', () => {
     });
   });
 });
+
+describe('writeProse', () => {
+  it('memakai tingkat balanced dan mengembalikan keluaran MENTAH tanpa validasi', async () => {
+    // Mentah disengaja: skema prosa milik pemanggil, dan hanya pemanggil yang tahu
+    // angka mana yang sah (REC-1). Di sini bahkan bentuk yang salah ikut lewat.
+    await withEnv(async () => {
+      const { transport, calls } = transportReturning('{"headline":"h","tidakDikenal":1}');
+      const { recorder, records } = recorderCapturing();
+      const service = new OpenRouterAiService(transport, recorder, () => 0);
+
+      const raw = await service.writeProse({ systemPrompt: 'sys', userMessage: 'data' });
+
+      expect(raw).toEqual({ headline: 'h', tidakDikenal: 1 });
+      expect(calls).toHaveLength(1);
+      expect(calls[0]?.model).toBe('balanced-model');
+      expect(records.map((r) => r.task)).toEqual(['explanation_prose']);
+    });
+  });
+
+  it('TIDAK mencoba ulang sendiri — satu panggilan, titik', async () => {
+    // Percobaan ulang prosa diatur REC-1 di perakitan rekomendasi. Dua lapis retry
+    // berarti empat percobaan dari dua tempat yang tidak saling tahu.
+    await withEnv(async () => {
+      const { transport, calls } = transportReturning('bukan json sama sekali');
+      const { recorder } = recorderCapturing();
+      const service = new OpenRouterAiService(transport, recorder, () => 0);
+
+      await service.writeProse({ systemPrompt: 'sys', userMessage: 'data' });
+
+      expect(calls).toHaveLength(1);
+    });
+  });
+
+  it('mencatat biaya tanpa menyimpan isi prompt', async () => {
+    await withEnv(async () => {
+      const { transport } = transportReturning('{"headline":"h","body":"b"}');
+      const { recorder, records } = recorderCapturing();
+      const service = new OpenRouterAiService(transport, recorder, () => 0);
+
+      await service.writeProse({ systemPrompt: 'RAHASIA-SYS', userMessage: 'RAHASIA-USER' });
+
+      expect(JSON.stringify(records)).not.toContain('RAHASIA');
+      expect(records[0]?.promptTokens).toBe(10);
+    });
+  });
+});

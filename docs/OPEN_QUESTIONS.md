@@ -302,6 +302,42 @@ berada di dalam antrean.
 **Masih terbuka:** apakah pemilik setuju dengan arah ini, dan apakah token bertanda tangan berumur
 pendek (docs/REPORT.md §5) menggantikan gerbang peran `admin` yang dipakai sementara untuk rute cetak.
 
+### OQ-44 — Audit biaya tidak bisa membedakan prosa yang diterima dari yang ditolak REC-1
+
+**Status:** open · _non-blocking_ · **Fase:** 7 (P7-09, sudah diterapkan tanpa perubahan)
+
+Verifikasi hidup penyambungan `ProseWriter` ke LLM memperlihatkan ini. Tiga skenario dijalankan
+terhadap stub OpenRouter lokal, dan `llm_calls` mencatat kelimanya dengan cara yang sama:
+
+| Skenario                           | Panggilan | Tercatat sebagai                             |
+| ---------------------------------- | --------- | -------------------------------------------- |
+| Prosa patuh                        | 1         | `explanation_prose` · `success`              |
+| Angka asing, percobaan ulang lolos | 2         | `explanation_prose` · `success` **dua kali** |
+| Angka asing dua kali → templat     | 2         | `explanation_prose` · `success` **dua kali** |
+
+Dari sisi `ai`, kelima panggilan memang berhasil: model menjawab, HTTP 200, token terpakai.
+Penolakan terjadi **setelahnya**, di perakitan rekomendasi, dan `ai` tidak boleh mengetahuinya —
+begitu ia tahu angka mana yang sah, ia berhenti menjadi layanan dan mulai menilai kebenaran teknik
+(SPEC §25). Jadi catatan itu tidak salah; ia hanya tidak cukup.
+
+Akibat praktisnya: tidak ada cara mengetahui dari basis data **seberapa sering model mengarang
+angka**. Itu justru metrik yang paling ingin diketahui sebelum memilih model, dan metrik yang sama
+yang dipakai evaluasi (`docs/EVALUATION.md`, laju halusinasi harus 0%). Hari ini angka itu hanya
+terlihat bila seseorang membaca log aplikasi.
+
+**Yang saya TIDAK lakukan:** menambahkan `outcome` baru seperti `rec1_rejected` ke `llm_calls` dari
+perakitan rekomendasi. Itu akan membuat konteks `recommendation` menulis ke tabel milik `ai`, dan
+memberi `ai` satu field yang hanya bisa diisi pihak yang tahu aturan REC-1 — tepat batas yang
+dijaga.
+
+**Usulan default:** perakitan memancarkan metrik sendiri (`proseSource` sudah dikembalikan
+`assembleRecommendation`: `llm` / `llm_retry` / `template`), disimpan di baris `recommendations`
+sebagai kolom kecil. Dengan begitu laju "prosa ditolak" bisa dihitung dengan satu `GROUP BY` tanpa
+memindahkan pengetahuan apa pun ke `ai`, dan angkanya terikat pada rekomendasi yang terdampak.
+
+**Pertanyaannya:** pemilik setuju menambah kolom `prose_source` di `recommendations` (migration
+kecil, satu kolom VARCHAR + CHECK), atau cukup mengandalkan log aplikasi sampai evaluasi berjalan?
+
 ### OQ-43 — Token `--snouty-caption` gagal kontras WCAG AA pada ukuran pakainya
 
 **Status:** open · **Blocks:** 13 (audit a11y) · **Fase:** 13 (P13-02)

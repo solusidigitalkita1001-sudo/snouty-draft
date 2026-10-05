@@ -26,6 +26,7 @@ function aiExtracting(extraction: Extraction): AiService {
     extract: vi.fn(() => Promise.resolve(extraction)),
     classifyIntent: vi.fn(),
     titleFor: vi.fn(),
+    writeProse: vi.fn(() => Promise.resolve(null)),
   } as unknown as AiService;
 }
 
@@ -82,6 +83,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
       extract: vi.fn(() => Promise.reject(new AiOutputInvalidError('extraction', 'x'))),
       classifyIntent: vi.fn(),
       titleFor: vi.fn(),
+      writeProse: vi.fn(() => Promise.resolve(null)),
     } as unknown as AiService;
 
     const { events, changed } = await runUnderstanding(ai, input());

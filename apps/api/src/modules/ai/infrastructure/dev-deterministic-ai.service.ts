@@ -126,6 +126,20 @@ export class DevDeterministicAiService implements AiService {
     return Promise.resolve(trimmed.length > 48 ? `${trimmed.slice(0, 45)}…` : trimmed);
   }
 
+  /**
+   * Adapter pengembangan **tidak menulis prosa**. Ia mengembalikan `null`, bukan
+   * kalimat karangan, sehingga perakitan jatuh ke templat deterministik yang setiap
+   * angkanya berasal dari hasil hitungan.
+   *
+   * Pilihan ini penting: regex boleh mengisi langkah ekstraksi karena hasilnya
+   * langsung terlihat salah bila salah. Prosa karangan justru terbaca meyakinkan —
+   * ia akan menjelaskan angka yang tidak pernah dihitung siapa pun, di layar yang
+   * dipakai manusia untuk menilai apakah produknya benar.
+   */
+  writeProse(): Promise<unknown> {
+    return Promise.resolve(null);
+  }
+
   private intent(intent: IntentClassification['intent'], confidence: number) {
     return Promise.resolve(IntentSchema.parse({ intent, confidence }));
   }
