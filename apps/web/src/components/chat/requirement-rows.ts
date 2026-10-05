@@ -1,69 +1,114 @@
 /**
- * Menerjemahkan `RequirementState` ke baris panel kanan (layar 02).
- *
- * Label dan urutan dari desain. Provenance menentukan nada nilai, dan `UNAVAILABLE`
- * TIDAK merender nilai — ia menampilkan "Belum diisi", bukan angka tebakan
- * (docs/DESIGN_IMPLEMENTATION.md §6).
+ * Baris "KEBUTUHAN ANDA" di panel kanan — dari `RequirementState`, label dan nilai
+ * polos seperti prototipe. Setiap baris juga membawa cara mengeditnya (mode "Ubah"):
+ * pilihan untuk field enum, angka untuk hitungan. Kosakatanya sama dengan skema
+ * ekstraksi dan `PATCH /requirement`; UI tidak menambah pilihan sendiri.
  */
 
-import type { Provenance, RequirementState } from '@snouty/shared-types';
+import type { Provenance, RequirementFieldPath, RequirementState } from '@snouty/shared-types';
+
+export interface SelectOption {
+  readonly value: string;
+  readonly label: string;
+}
+
+export type RowEditor =
+  | { readonly kind: 'select'; readonly options: readonly SelectOption[] }
+  | { readonly kind: 'number'; readonly min: number; readonly max: number };
 
 export interface RequirementRow {
+  readonly path: RequirementFieldPath;
   readonly label: string;
   readonly display: string;
+  /** Nilai mentah untuk input edit; `null` = belum diisi. */
+  readonly raw: string | number | null;
   readonly provenance: Provenance;
   /** Alasan asumsi, bila ada — muncul sebagai judul bantuan. */
   readonly reason?: string;
+  readonly editor: RowEditor;
 }
 
-const SOURCE_LABEL: Readonly<Record<string, string>> = {
-  rooftop_tank: 'Toren atap',
-  ground_tank: 'Toren bawah',
-  pump: 'Pompa',
-  municipal: 'PDAM',
-};
+export const MISSING = 'Belum diisi';
 
-const INSTALLATION_LABEL: Readonly<Record<string, string>> = {
-  clean_water: 'Air bersih',
-  drainage: 'Pembuangan',
-  both: 'Keduanya',
-};
+const SOURCE: readonly SelectOption[] = [
+  { value: 'rooftop_tank', label: 'Toren atap' },
+  { value: 'ground_tank', label: 'Toren bawah' },
+  { value: 'pump', label: 'Pompa' },
+  { value: 'municipal', label: 'PDAM' },
+];
 
-const BUILDING_LABEL: Readonly<Record<string, string>> = {
-  residential: 'Rumah tinggal',
-  boarding_house: 'Rumah kos',
-  light_commercial: 'Komersial ringan',
-  industrial: 'Industri',
-};
+const INSTALLATION: readonly SelectOption[] = [
+  { value: 'clean_water', label: 'Air bersih' },
+  { value: 'drainage', label: 'Pembuangan' },
+  { value: 'both', label: 'Keduanya' },
+];
+
+const BUILDING: readonly SelectOption[] = [
+  { value: 'residential', label: 'Rumah tinggal' },
+  { value: 'boarding_house', label: 'Rumah kos' },
+  { value: 'light_commercial', label: 'Komersial ringan' },
+  { value: 'industrial', label: 'Industri' },
+];
+
+const labelOf = (options: readonly SelectOption[]) => (v: unknown) =>
+  options.find((o) => o.value === String(v))?.label ?? String(v);
 
 export function requirementRows(state: RequirementState): readonly RequirementRow[] {
   return [
-    // Label dan nilai polos ("2", bukan "2 lantai") — persis prototipe.
-    row('Tipe bangunan', state.building.type, (v) => BUILDING_LABEL[String(v)] ?? String(v)),
-    row('Jumlah lantai', state.building.floors, (v) => String(v)),
-    row('Kamar mandi', state.fixtures.bathrooms, (v) => String(v)),
-    row('Wastafel', state.fixtures.basins, (v) => String(v)),
-    row('Dapur', state.fixtures.kitchens, (v) => String(v)),
-    row('Sumber air', state.water.source, (v) => SOURCE_LABEL[String(v)] ?? String(v)),
+    row('building.type', 'Tipe bangunan', state.building.type, labelOf(BUILDING), {
+      kind: 'select',
+      options: BUILDING,
+    }),
+    row('building.floors', 'Jumlah lantai', state.building.floors, String, {
+      kind: 'number',
+      min: 1,
+      max: 50,
+    }),
+    row('fixtures.bathrooms', 'Kamar mandi', state.fixtures.bathrooms, String, {
+      kind: 'number',
+      min: 0,
+      max: 200,
+    }),
+    row('fixtures.basins', 'Wastafel', state.fixtures.basins, String, {
+      kind: 'number',
+      min: 0,
+      max: 200,
+    }),
+    row('fixtures.kitchens', 'Dapur', state.fixtures.kitchens, String, {
+      kind: 'number',
+      min: 0,
+      max: 100,
+    }),
+    row('water.source', 'Sumber air', state.water.source, labelOf(SOURCE), {
+      kind: 'select',
+      options: SOURCE,
+    }),
     row(
+      'water.installationType',
       'Jenis instalasi',
       state.water.installationType,
-      (v) => INSTALLATION_LABEL[String(v)] ?? String(v),
+      labelOf(INSTALLATION),
+      { kind: 'select', options: INSTALLATION },
     ),
   ];
 }
 
 function row(
+  path: RequirementFieldPath,
   label: string,
   field: { value: unknown; provenance: Provenance; reason?: string },
   format: (value: unknown) => string,
+  editor: RowEditor,
 ): RequirementRow {
   // UNAVAILABLE tidak pernah merender nilai — ketiadaan ditampilkan apa adanya.
-  const display = field.value === null ? 'Belum diisi' : format(field.value);
+  const missing = field.value === null || field.value === undefined;
   return {
+    path,
     label,
-    display,
+    display: missing ? MISSING : format(field.value),
+    raw: missing ? null : (field.value as string | number),
     provenance: field.provenance,
     ...(field.reason !== undefined ? { reason: field.reason } : {}),
+    editor,
   };
 }

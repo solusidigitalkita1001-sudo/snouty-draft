@@ -12,7 +12,11 @@
  */
 
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import type { AssistantStreamEvent, RequirementState } from '@snouty/shared-types';
+import type {
+  AssistantStreamEvent,
+  RequirementFieldPath,
+  RequirementState,
+} from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
@@ -20,7 +24,7 @@ import type { ConversationOwner } from '../../conversation/domain/conversation.r
 import { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { IntentRouter } from './intent-router.js';
-import { runUnderstanding } from './message-pipeline.js';
+import { applyEdit, runUnderstanding } from './message-pipeline.js';
 import { runProductQuestion } from './product-question-pipeline.js';
 import { ReplyWriter, type ReplyTurn } from './reply-writer.js';
 import { RequirementSnapshotStore } from './requirement-snapshot.store.js';
@@ -117,6 +121,26 @@ export class MessageService {
     );
 
     return result.events;
+  }
+
+  /**
+   * Edit inline panel kanan (docs/API_CONTRACTS.md §3): **nol panggilan LLM**. Nilai yang
+   * diketik pengguna masuk sebagai `user_edited` — presedensi tertinggi — lewat merger yang
+   * sama dengan ekstraksi, lalu disimpan sebagai snapshot `user_edit`. Bila tidak ada yang
+   * berubah, tidak ada snapshot baru. Hitung ulang solusi bukan urusan rute ini: klien
+   * memanggil `/analyze` lagi, karena itulah satu-satunya jalur yang menghasilkan trace.
+   */
+  async edit(
+    conversationId: string,
+    actor: ConversationOwner,
+    edits: ReadonlyArray<{ readonly path: RequirementFieldPath; readonly value: unknown }>,
+    now: string,
+  ): Promise<RequirementState> {
+    await this.conversations.find(conversationId, actor);
+    const snapshot = await this.store.current(conversationId);
+    const result = applyEdit(snapshot?.state ?? emptyRequirementState(now), edits, now);
+    if (result.changed) await this.store.append(conversationId, result.state, 'user_edit');
+    return result.state;
   }
 
   /**

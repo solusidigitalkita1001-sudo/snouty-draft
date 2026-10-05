@@ -226,3 +226,18 @@ export async function fetchCatalogVersion(): Promise<string | null> {
     return null;
   }
 }
+
+/** Edit inline panel kanan — PATCH tanpa LLM; `null` bila ditolak (validasi/kepemilikan). */
+export async function patchRequirement(
+  id: string,
+  edits: ReadonlyArray<{ readonly path: string; readonly value: unknown }>,
+): Promise<RequirementState | null> {
+  const response = await fetch(`${BASE}/conversations/${encodeURIComponent(id)}/requirement`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { ...authHeaders(), 'content-type': 'application/json' },
+    body: JSON.stringify({ edits }),
+  });
+  if (!response.ok) return null;
+  return ((await response.json()) as { state: RequirementState }).state;
+}

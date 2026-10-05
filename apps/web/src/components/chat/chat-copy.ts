@@ -99,6 +99,10 @@ export const CHAT_COPY = {
     ],
   },
   mobileNeeds: (n: number) => `Kebutuhan (${n})`,
+  panelEdit: 'Ubah',
+  panelDone: 'Selesai',
+  panelSaving: 'Menyimpan…',
+  panelEditFailed: 'Perubahan belum tersimpan. Coba lagi.',
   mobileSend: '→',
 
   /** Kartu "Yang sudah saya pahami" — grid 3 kolom, badge hijau jumlah data. */

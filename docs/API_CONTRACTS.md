@@ -94,6 +94,11 @@ yang diturunkan dari tabel entitlement (SPEC §33e). UI tidak pernah menuliskann
 `PATCH` mengembalikan snapshot baru **beserta** rekomendasi yang sudah dihitung ulang bila solusi
 sudah ada. Satu permintaan, satu respons — UI tidak perlu mengorkestrasi ulang.
 
+_Status 2026-10-05:_ `GET` dan `PATCH …/requirement` sudah ada (`{ state }`; body `PATCH` =
+`{ edits: [{ path, value }] }`, tujuh field panel, nol LLM). Hitung ulang **belum** disatukan di
+respons `PATCH`: klien memanggil `POST …/analyze` lagi setelah edit bila solusi sudah ada — itu
+satu-satunya jalur yang menghasilkan trace. `history` dan `skip-clarification` belum ada.
+
 ### Katalog
 
 | Metode | Path                       | Keterangan                                                                        |

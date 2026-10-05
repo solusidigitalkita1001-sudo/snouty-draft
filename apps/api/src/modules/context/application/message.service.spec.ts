@@ -40,6 +40,32 @@ describe('MessageService.requirement — state untuk membuka kembali riwayat', (
   });
 });
 
+describe('MessageService.edit — edit inline tanpa LLM', () => {
+  it('menyimpan snapshot user_edit bila ada yang berubah, tanpa menyentuh model', async () => {
+    const { service, store } = serviceWith({ route: () => Promise.resolve({}) });
+
+    const state = await service.edit(
+      'C'.repeat(26),
+      ACTOR,
+      [{ path: 'building.floors', value: 3 }],
+      '2026-10-05T00:00:00.000Z',
+    );
+
+    expect(state.building.floors.value).toBe(3);
+    expect(state.building.floors.source).toBe('user_edited');
+    expect(store.append).toHaveBeenCalledWith('C'.repeat(26), state, 'user_edit');
+  });
+
+  it('memeriksa kepemilikan sebelum menyentuh snapshot', async () => {
+    const { service, conversations } = serviceWith({ route: () => Promise.resolve({}) });
+    conversations.find.mockRejectedValueOnce(new Error('bukan milik'));
+
+    await expect(
+      service.edit('C'.repeat(26), ACTOR, [{ path: 'building.floors', value: 3 }], 'x'),
+    ).rejects.toThrow('bukan milik');
+  });
+});
+
 describe('MessageService — model tidak terjangkau', () => {
   it('LlmUnavailableError dari router → event LLM_UNAVAILABLE retryable, bukan lemparan', async () => {
     const { service, conversations } = serviceWith({

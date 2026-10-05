@@ -6,7 +6,7 @@
  * body (pesan), jadi responsnya ditulis manual sebagai `event:`/`data:`. Kepemilikan
  * percakapan diperiksa di service (lapis application).
  */
-import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import type { AssistantStreamEvent, RequirementState } from '@snouty/shared-types';
 import { z } from 'zod';
@@ -18,6 +18,52 @@ import { MessageService } from '../application/message.service.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 const MessageDto = z.object({ text: z.string().trim().min(1).max(4_000) }).strict();
+
+/**
+ * Edit inline panel kanan — hanya tujuh field yang tampil di panel, dengan nilai yang
+ * persis sama batasnya dengan skema ekstraksi. Tidak ada field bebas: path di luar
+ * daftar ini ditolak, bukan diteruskan ke merger.
+ */
+const count = (max: number) => z.number().int().min(0).max(max);
+const EditDto = z
+  .object({
+    edits: z
+      .array(
+        z.union([
+          z
+            .object({
+              path: z.literal('building.type'),
+              value: z.enum(['residential', 'boarding_house', 'light_commercial', 'industrial']),
+            })
+            .strict(),
+          z
+            .object({ path: z.literal('building.floors'), value: z.number().int().min(1).max(50) })
+            .strict(),
+          z
+            .object({
+              path: z.enum(['fixtures.bathrooms', 'fixtures.basins']),
+              value: count(200),
+            })
+            .strict(),
+          z.object({ path: z.literal('fixtures.kitchens'), value: count(100) }).strict(),
+          z
+            .object({
+              path: z.literal('water.source'),
+              value: z.enum(['rooftop_tank', 'ground_tank', 'pump', 'municipal']),
+            })
+            .strict(),
+          z
+            .object({
+              path: z.literal('water.installationType'),
+              value: z.enum(['clean_water', 'drainage', 'both']),
+            })
+            .strict(),
+        ]),
+      )
+      .min(1)
+      .max(7),
+  })
+  .strict();
 
 @Controller('conversations')
 export class MessageController {
@@ -38,6 +84,19 @@ export class MessageController {
   ): Promise<{ state: RequirementState | null }> {
     const id = parse(IdParam, params).id;
     return { state: await this.messages.requirement(id, actorOf(req)) };
+  }
+
+  /** `PATCH /conversations/:id/requirement` — edit inline panel kanan, nol LLM. */
+  @Patch(':id/requirement')
+  async edit(
+    @Param() params: unknown,
+    @Body() body: unknown,
+    @Req() req: PublicRequest,
+  ): Promise<{ state: RequirementState }> {
+    const id = parse(IdParam, params).id;
+    const { edits } = parse(EditDto, body);
+    const state = await this.messages.edit(id, actorOf(req), edits, new Date().toISOString());
+    return { state };
   }
 
   @Post(':id/messages')

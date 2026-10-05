@@ -37,6 +37,7 @@ import {
   fetchHistory,
   fetchRecommendation,
   fetchRequirement,
+  patchRequirement,
   runAnalysis,
   saveConversation,
   sendMessage,
@@ -46,7 +47,7 @@ import {
 import { SolutionView } from '../solution/solution-view';
 import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
 import { CHAT_COPY as COPY, STAGE_ORDER, stageLabel } from './chat-copy';
-import { requirementRows } from './requirement-rows';
+import { MISSING, requirementRows } from './requirement-rows';
 import styles from './chat-workspace.module.css';
 
 /** Toast "Solusi tersimpan" hilang sendiri — 2800 ms di prototipe. */
@@ -118,6 +119,10 @@ export function ChatWorkspace() {
   const [reopened, setReopened] = useState(false);
   const [catalogLabel, setCatalogLabel] = useState<string | null>(null);
   const [user, setUser] = useState<CurrentUser | null>(null);
+  // Mode "Ubah" panel: nilai sementara per field sampai "Selesai" dikirim sekaligus.
+  const [editing, setEditing] = useState(false);
+  const [edits, setEdits] = useState<Readonly<Record<string, string>>>({});
+  const [editStatus, setEditStatus] = useState<'idle' | 'saving' | 'failed'>('idle');
   const narrow = useMediaQuery(NARROW_QUERY);
   const mobile = useMediaQuery(MOBILE_QUERY);
   const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
@@ -402,6 +407,42 @@ export function ChatWorkspace() {
 
   const rows = state ? requirementRows(state) : [];
   const filled = state?.completeness.filled ?? 0;
+
+  /**
+   * "Selesai": kirim hanya field yang benar-benar diubah, nol LLM. Bila solusi sudah
+   * ada, analisis dijalankan lagi — kontrak §3 menjanjikan solusi yang dihitung ulang,
+   * dan `/analyze` adalah satu-satunya jalur yang menghasilkan trace.
+   */
+  const finishEdit = useCallback(async () => {
+    if (!conversationId) return;
+    const changes = rows
+      .filter((row) => row.path in edits)
+      .map((row) => ({
+        path: row.path,
+        value: row.editor.kind === 'number' ? Number(edits[row.path]) : edits[row.path],
+      }))
+      .filter((change) => change.value !== '' && !Number.isNaN(change.value as number))
+      .filter(
+        (change) =>
+          String(change.value) !== String(rows.find((r) => r.path === change.path)?.raw ?? ''),
+      );
+    if (changes.length === 0) {
+      setEditing(false);
+      setEdits({});
+      return;
+    }
+    setEditStatus('saving');
+    const next = await patchRequirement(conversationId, changes);
+    if (!next) {
+      setEditStatus('failed');
+      return;
+    }
+    setState(next);
+    setEditStatus('idle');
+    setEditing(false);
+    setEdits({});
+    if (solution !== null) analyze();
+  }, [analyze, conversationId, edits, rows, solution]);
   // Prototipe `readCount`: seluruh field yang terbaca (sampai 7), bukan hanya empat inti.
   const readCount = rows.filter((row) => row.display !== 'Belum diisi').length;
   const inConversation = turns.length > 0;
@@ -753,7 +794,11 @@ export function ChatWorkspace() {
             {solution !== null && (
               <SolutionView
                 recommendation={solution}
-                onFixAssumption={(fieldPath) => setDraft(`Ubah ${fieldPath}: `)}
+                // "Perbaiki asumsi ini" → panel terbuka dalam mode Ubah (prototipe).
+                onFixAssumption={() => {
+                  setPanelOpen(true);
+                  setEditing(true);
+                }}
               />
             )}
             {error !== null && (
@@ -840,30 +885,85 @@ export function ChatWorkspace() {
           </div>
           <div className={styles.panelBody}>
             <section className={styles.panelSection}>
-              <div className={styles.panelKicker}>{COPY.requirementsLabel}</div>
+              <div className={styles.panelKickerRow}>
+                <div className={styles.panelKicker}>{COPY.requirementsLabel}</div>
+                {/* "Ubah" ↔ "Selesai" — edit inline nol LLM (prototipe `editing`). */}
+                {rows.length > 0 && (
+                  <button
+                    type="button"
+                    className={styles.editToggle}
+                    disabled={editStatus === 'saving'}
+                    onClick={() => (editing ? void finishEdit() : setEditing(true))}
+                  >
+                    {editStatus === 'saving'
+                      ? COPY.panelSaving
+                      : editing
+                        ? COPY.panelDone
+                        : COPY.panelEdit}
+                  </button>
+                )}
+              </div>
               {rows.map((row) => (
                 <div
                   key={row.label}
                   className={[
                     styles.reqRow,
-                    row.display === 'Belum diisi' ? styles.reqRowMissing : '',
+                    !editing && row.display === MISSING ? styles.reqRowMissing : '',
                   ].join(' ')}
                 >
                   <span className={styles.reqLabel}>{row.label}</span>
-                  <span
-                    className={[
-                      styles.reqValue,
-                      row.provenance === 'ASSUMED' || row.provenance === 'ESTIMATED'
-                        ? styles.reqValueAssumed
-                        : '',
-                      row.provenance === 'UNAVAILABLE' ? styles.reqValueMissing : '',
-                    ].join(' ')}
-                    title={row.reason}
-                  >
-                    {row.display}
-                  </span>
+                  {editing ? (
+                    row.editor.kind === 'select' ? (
+                      <select
+                        className={styles.reqInput}
+                        aria-label={row.label}
+                        value={edits[row.path] ?? (row.raw === null ? '' : String(row.raw))}
+                        onChange={(event) =>
+                          setEdits((prev) => ({ ...prev, [row.path]: event.target.value }))
+                        }
+                      >
+                        <option value="">{MISSING}</option>
+                        {row.editor.options.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        className={styles.reqInput}
+                        type="number"
+                        inputMode="numeric"
+                        aria-label={row.label}
+                        min={row.editor.min}
+                        max={row.editor.max}
+                        value={edits[row.path] ?? (row.raw === null ? '' : String(row.raw))}
+                        onChange={(event) =>
+                          setEdits((prev) => ({ ...prev, [row.path]: event.target.value }))
+                        }
+                      />
+                    )
+                  ) : (
+                    <span
+                      className={[
+                        styles.reqValue,
+                        row.provenance === 'ASSUMED' || row.provenance === 'ESTIMATED'
+                          ? styles.reqValueAssumed
+                          : '',
+                        row.display === MISSING ? styles.reqValueMissing : '',
+                      ].join(' ')}
+                      title={row.reason}
+                    >
+                      {row.display}
+                    </span>
+                  )}
                 </div>
               ))}
+              {editStatus === 'failed' && (
+                <p className={styles.editError} role="alert">
+                  {COPY.panelEditFailed}
+                </p>
+              )}
             </section>
 
             <section className={styles.panelSection}>
