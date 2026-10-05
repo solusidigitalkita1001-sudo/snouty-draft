@@ -198,3 +198,22 @@ describe('pertanyaan produk (adapter pengembangan)', () => {
     });
   });
 });
+
+describe('sapaan (adapter pengembangan)', () => {
+  it('"hai jo" dan basa-basi sejenis → OUT_OF_SCOPE, bukan pernyataan kebutuhan', async () => {
+    const service = new DevDeterministicAiService();
+    for (const message of ['hai jo', 'Halo!', 'selamat pagi', 'makasih ya', 'testing']) {
+      const intent = await service.classifyIntent({ message, hasExistingRequirements: false });
+      expect(intent.intent, message).toBe('OUT_OF_SCOPE');
+    }
+  });
+
+  it('sapaan yang membawa kebutuhan tetap pernyataan kebutuhan', async () => {
+    const service = new DevDeterministicAiService();
+    const intent = await service.classifyIntent({
+      message: 'hai, rumah 2 lantai 3 kamar mandi',
+      hasExistingRequirements: false,
+    });
+    expect(intent.intent).toBe('REQUIREMENT_STATEMENT');
+  });
+});

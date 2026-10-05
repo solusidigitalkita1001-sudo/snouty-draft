@@ -35,6 +35,9 @@ const REQUIREMENT_SIGNALS =
 /** Isyarat pertanyaan produk/pengetahuan: menyebut keluarga produk atau menanyakan sifatnya. */
 const PRODUCT_SIGNALS =
   /\b(pvc|hdpe|ppr|pp-r|fitting|tee|elbow|reducer|socket|apa itu|apa bedanya|bedanya|perbedaan|bahan|material|standar|sni|tekanan|panjang batang|sambungan|aplikasi|kegunaan|ada ukuran|ukuran apa|harga|stok|tersedia|spesifikasi)/;
+/** Sapaan/basa-basi utuh: tanpa isi kebutuhan maupun produk, cukup pendek. */
+const GREETING =
+  /^\s*(hai|halo|hallo|hello|hi|hey|yo|pagi|siang|sore|malam|selamat\s+(pagi|siang|sore|malam)|apa kabar|terima kasih|makasih|thanks|ok|oke|sip|tes|test|testing)\b[\s!.,?]*(jo|snouty|bro|kak|min|ya|dong)?[\s!.,?]*$/;
 const FAMILY_TOKENS = /\b(pvc\s*(?:aw|d|c)?|hdpe|ppr|pp-r|tee|elbow|reducer|socket)\b/g;
 const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
 
@@ -114,6 +117,9 @@ export class DevDeterministicAiService implements AiService {
 
   classifyIntent(input: IntentInput): Promise<IntentClassification> {
     const text = input.message.toLowerCase();
+
+    // Sapaan dan basa-basi: di luar topik — dibalas sapaan, bukan formulir klarifikasi.
+    if (GREETING.test(text)) return this.intent('OUT_OF_SCOPE', 0.9);
 
     // Kompetitor diperiksa lebih dulu: Policy 1 harus menang sebelum apa pun.
     if (/\b(rucika|wavin|maspion|vinilon|merek lain|bandingkan|lebih bagus)\b/.test(text)) {

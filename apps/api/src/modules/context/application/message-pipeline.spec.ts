@@ -96,7 +96,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(changed).toBe(false);
   });
 
-  it('intent yang tidak mengekstrak: hanya start + end (diserahkan ke fase berikut)', async () => {
+  it('intent yang tidak mengekstrak: dibalas satu kalimat tetap, tanpa menyentuh ekstraksi', async () => {
     const ai = aiExtracting({});
     const decision: RoutingDecision = {
       intent: 'EXPLANATION_REQUEST',
@@ -104,9 +104,36 @@ describe('runUnderstanding — bentuk event SSE', () => {
       shouldExtract: false,
       mutatesState: false,
     };
-    const { events } = await runUnderstanding(ai, input({ decision }));
-    expect(events.map((e) => e.type)).toEqual(['message.start', 'message.end']);
+    const { events, changed } = await runUnderstanding(ai, input({ decision }));
+    expect(events.map((e) => e.type)).toEqual(['message.start', 'token', 'message.end']);
+    expect(changed).toBe(false);
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+  });
+
+  it('sapaan / di luar topik: dibalas sapaan yang mengarahkan, bukan formulir klarifikasi', async () => {
+    const decision: RoutingDecision = {
+      intent: 'OUT_OF_SCOPE',
+      confidence: 0.9,
+      shouldExtract: false,
+      mutatesState: false,
+    };
+    const { events } = await runUnderstanding(aiExtracting({}), input({ decision }));
+    const text = events.find((e) => e.type === 'token') as { text: string } | undefined;
+    expect(text?.text).toContain('Halo! Saya SNOUTY');
+    expect(events.some((e) => e.type === 'card')).toBe(false);
+  });
+
+  it('model ragu (CLARIFICATION_NEEDED): bertanya balik, tidak mengubah state', async () => {
+    const decision: RoutingDecision = {
+      intent: 'CLARIFICATION_NEEDED',
+      confidence: 0.3,
+      shouldExtract: false,
+      mutatesState: false,
+    };
+    const { events, changed } = await runUnderstanding(aiExtracting({}), input({ decision }));
+    const text = events.find((e) => e.type === 'token') as { text: string } | undefined;
+    expect(text?.text).toContain('belum menangkap maksudnya');
+    expect(changed).toBe(false);
   });
 });
 

@@ -32,6 +32,7 @@ import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
+import { replyFor } from './reply-copy.js';
 
 export interface PipelineInput {
   readonly messageId: string;
@@ -72,8 +73,11 @@ export async function runUnderstanding(
   }
 
   if (!input.decision.shouldExtract) {
-    // Penjelasan, lookup produk, di luar cakupan: bukan milik ruas ini. Diserahkan
-    // ke fase berikut; Fase 4 hanya menutup giliran dengan bersih.
+    // Sapaan/di luar topik, minta penjelasan, atau model ragu: bukan ruas ekstraksi,
+    // tetapi tetap dijawab — giliran yang ditutup tanpa sepatah kata terbaca sebagai
+    // kerusakan. (Lookup produk punya ruasnya sendiri sebelum sampai ke sini.)
+    const reply = replyFor(input.decision.intent);
+    if (reply !== null) events.push({ type: 'token', text: reply });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
   }

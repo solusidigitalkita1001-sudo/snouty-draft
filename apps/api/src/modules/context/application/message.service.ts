@@ -95,7 +95,7 @@ export class MessageService {
 
     await this.conversations.appendAssistantMessage(
       conversationId,
-      '',
+      textOf(result.events),
       cardsOf(result.events),
       null,
     );
