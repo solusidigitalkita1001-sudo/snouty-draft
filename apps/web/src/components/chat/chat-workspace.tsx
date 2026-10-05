@@ -32,8 +32,11 @@ import { REPORT_COPY } from '../report/report-copy';
 import { ProductLookupCards } from './product-lookup-cards';
 import {
   createConversation,
+  fetchCatalogVersion,
+  fetchConversation,
   fetchHistory,
   fetchRecommendation,
+  fetchRequirement,
   runAnalysis,
   saveConversation,
   sendMessage,
@@ -41,7 +44,7 @@ import {
   type ConversationSummary,
 } from './chat-api';
 import { SolutionView } from '../solution/solution-view';
-import { restoreSession } from '../auth/session';
+import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
 import { CHAT_COPY as COPY, STAGE_ORDER, stageLabel } from './chat-copy';
 import { requirementRows } from './requirement-rows';
 import styles from './chat-workspace.module.css';
@@ -56,6 +59,41 @@ const TOAST_MS = 2800;
 const SOLUTION_READY_HOLD_MS = 1500;
 /** Welcome diam 15 detik dengan composer kosong → mascot tertidur (prototipe, §7). */
 const WELCOME_SLEEP_MS = 15_000;
+/** Di bawah ini sidebar dan rail hilang, header dapat "+ Baru" + "Riwayat", panel jadi overlay. */
+const NARROW_QUERY = '(max-width: 1079px)';
+/** Di bawah ini composer jadi pil, "Kebutuhan (n)" di header (board 13a). */
+const MOBILE_QUERY = '(max-width: 719px)';
+
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGU', 'SEP', 'OKT', 'NOV', 'DES'];
+
+/** "12 SEP" — meta riwayat prototipe. */
+function historyDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${date.getDate()} ${MONTHS[date.getMonth()]}`;
+}
+
+function initialsOf(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]!.toUpperCase())
+    .join('');
+}
+
+/** `matchMedia` sebagai state React — SSR aman (false), lalu mengikuti viewport. */
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const update = (): void => setMatches(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, [query]);
+  return matches;
+}
 
 interface ChatTurn {
   readonly id: string;
@@ -72,7 +110,16 @@ export function ChatWorkspace() {
   const [state, setState] = useState<RequirementState | null>(null);
   const [stages, setStages] = useState<Readonly<Partial<Record<AnalysisStage, StageStatus>>>>({});
   const [error, setError] = useState<string | null>(null);
-  const [panelOpen, setPanelOpen] = useState(true);
+  // Prototipe: panel tertutup secara bawaan di setiap lebar; rail 44px yang membukanya.
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [navCollapsed, setNavCollapsed] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeTitle, setActiveTitle] = useState<string | null>(null);
+  const [reopened, setReopened] = useState(false);
+  const [catalogLabel, setCatalogLabel] = useState<string | null>(null);
+  const [user, setUser] = useState<CurrentUser | null>(null);
+  const narrow = useMediaQuery(NARROW_QUERY);
+  const mobile = useMediaQuery(MOBILE_QUERY);
   const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
   const [toastOn, setToastOn] = useState(false);
@@ -100,17 +147,35 @@ export function ChatWorkspace() {
     let cancelled = false;
     // Riwayat hanya untuk akun; tamu tidak perlu ditolak 403 untuk mengetahuinya.
     void restoreSession()
-      .then((restored) => (restored ? fetchHistory() : null))
+      .then((restored) => {
+        if (!cancelled) setUser(getCurrentUser());
+        return restored ? fetchHistory() : null;
+      })
       .then((result) => {
         if (cancelled) return;
         setHistory(
           result?.kind === 'ok' ? { kind: 'list', items: result.items } : { kind: 'guest' },
         );
       });
+    void fetchCatalogVersion().then((label) => {
+      if (!cancelled) setCatalogLabel(label);
+    });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Menjadi sempit menutup panel (prototipe); overlay tidak boleh tiba-tiba menutupi isi.
+  useEffect(() => {
+    if (narrow) setPanelOpen(false);
+  }, [narrow]);
+
+  const refreshHistory = useCallback(() => {
+    if (history.kind === 'guest') return;
+    void fetchHistory().then((result) => {
+      if (result.kind === 'ok') setHistory({ kind: 'list', items: result.items });
+    });
+  }, [history.kind]);
 
   useEffect(() => {
     let cancelled = false;
@@ -145,65 +210,139 @@ export function ChatWorkspace() {
     return () => clearTimeout(timer);
   }, [turns.length, draft]);
 
-  const submit = useCallback(async () => {
-    const text = draft.trim();
-    if (!text || !conversationId || sending) return;
+  /** Mengirim teks apa pun — composer, chip jawaban, maupun saran lanjutan. */
+  const submitText = useCallback(
+    async (raw: string) => {
+      const text = raw.trim();
+      if (!text || !conversationId || sending) return;
 
+      setDraft('');
+      setError(null);
+      setStages({});
+      setSending(true);
+      setTurns((previous) => [
+        ...previous,
+        { id: `u-${previous.length}`, role: 'user', text, cards: [] },
+      ]);
+
+      const assistantId = `a-${Date.now()}`;
+      let assistantCards: AssistantCard[] = [];
+      let assistantText = '';
+
+      const apply = (event: AssistantStreamEvent): void => {
+        switch (event.type) {
+          case 'requirement.updated':
+            setState(event.state);
+            // Judul aktif diturunkan dari kebutuhan, seperti `titleFrom` prototipe.
+            setActiveTitle(
+              COPY.titleFor(
+                event.state.building.type.value as string | null,
+                event.state.building.floors.value as number | null,
+              ),
+            );
+            break;
+          case 'stage':
+            // Tahap pesan biasa ("Memahami kebutuhan") TIDAK membuka kartu analisis —
+            // di prototipe kartu itu hanya ada saat "Analisis kebutuhan" ditekan;
+            // selama pesan berjalan yang tampil titik berpikir.
+            break;
+          case 'token':
+            assistantText += event.text;
+            break;
+          case 'card':
+            assistantCards = [...assistantCards, event.card];
+            break;
+          case 'error':
+            setError(COPY.llmUnavailable);
+            break;
+          default:
+            break;
+        }
+      };
+
+      try {
+        await sendMessage(conversationId, text, apply);
+      } catch {
+        setError(COPY.llmUnavailable);
+      } finally {
+        if (assistantText !== '' || assistantCards.length > 0) {
+          setTurns((previous) => [
+            ...previous,
+            { id: assistantId, role: 'assistant', text: assistantText, cards: assistantCards },
+          ]);
+        }
+        setSending(false);
+      }
+    },
+    [conversationId, sending],
+  );
+
+  const submit = useCallback(() => submitText(draft), [draft, submitText]);
+
+  // Chip jawaban langsung dikirim sebagai pesan (prototipe `answer`), bukan mengisi draft.
+  const answerChip = useCallback(
+    (_question: ClarificationQuestion, option: string) => void submitText(option),
+    [submitText],
+  );
+
+  /** "+ Konsultasi Baru" — kembali ke sambutan dengan percakapan baru (prototipe `reset`). */
+  const reset = useCallback(() => {
+    setTurns([]);
     setDraft('');
-    setError(null);
+    setState(null);
     setStages({});
-    setSending(true);
-    setTurns((previous) => [
-      ...previous,
-      { id: `u-${previous.length}`, role: 'user', text, cards: [] },
-    ]);
+    setError(null);
+    setSolution(null);
+    setSaveState('idle');
+    setHandoffState('idle');
+    setReportOpen(false);
+    setOpenProduct(null);
+    setActiveTitle(null);
+    setReopened(false);
+    setMenuOpen(false);
+    setPanelOpen(false);
+    setConversationId(null);
+    createConversation()
+      .then((conversation) => setConversationId(conversation.id))
+      .catch(() => setError(COPY.llmUnavailable));
+    refreshHistory();
+  }, [refreshHistory]);
 
-    const assistantId = `a-${Date.now()}`;
-    let assistantCards: AssistantCard[] = [];
-    let assistantText = '';
-
-    const apply = (event: AssistantStreamEvent): void => {
-      switch (event.type) {
-        case 'requirement.updated':
-          setState(event.state);
-          break;
-        case 'stage':
-          // Tahap pesan biasa ("Memahami kebutuhan") TIDAK membuka kartu analisis —
-          // di prototipe kartu itu hanya ada saat "Analisis kebutuhan" ditekan;
-          // selama pesan berjalan yang tampil titik berpikir.
-          break;
-        case 'token':
-          assistantText += event.text;
-          break;
-        case 'card':
-          assistantCards = [...assistantCards, event.card];
-          break;
-        case 'error':
-          setError(COPY.llmUnavailable);
-          break;
-        default:
-          break;
-      }
-    };
-
-    try {
-      await sendMessage(conversationId, text, apply);
-    } catch {
-      setError(COPY.llmUnavailable);
-    } finally {
-      if (assistantText !== '' || assistantCards.length > 0) {
-        setTurns((previous) => [
-          ...previous,
-          { id: assistantId, role: 'assistant', text: assistantText, cards: assistantCards },
-        ]);
-      }
-      setSending(false);
-    }
-  }, [conversationId, draft, sending]);
-
-  const answerChip = useCallback((question: ClarificationQuestion, option: string) => {
-    setDraft(`${question.question} ${option}`);
-  }, []);
+  /** Membuka kembali riwayat (layar 12): pesan dari server, panel dari snapshot terkini. */
+  const openHistory = useCallback(
+    (item: ConversationSummary) => {
+      setMenuOpen(false);
+      if (item.id === conversationId) return;
+      void Promise.all([fetchConversation(item.id), fetchRequirement(item.id)]).then(
+        ([detail, requirement]) => {
+          if (!detail) {
+            setError(COPY.llmUnavailable);
+            return;
+          }
+          setTurns(
+            detail.messages
+              .filter((m) => m.role === 'user' || m.role === 'assistant')
+              .filter((m) => m.text !== '' || m.cards.length > 0)
+              .map((m) => ({
+                id: m.id,
+                role: m.role as 'user' | 'assistant',
+                text: m.text,
+                cards: m.cards,
+              })),
+          );
+          setState(requirement);
+          setConversationId(item.id);
+          setActiveTitle(item.title ?? COPY.titleFor(null, null));
+          setReopened(true);
+          setSolution(null);
+          setStages({});
+          setError(null);
+          setSaveState(item.status === 'SAVED' ? 'saved' : 'idle');
+        },
+      );
+    },
+    [conversationId],
+  );
 
   /**
    * Menyerahkan kasus ke tim teknis. Kebutuhan yang sudah terkumpul disalin di sisi
@@ -263,89 +402,215 @@ export function ChatWorkspace() {
 
   const rows = state ? requirementRows(state) : [];
   const filled = state?.completeness.filled ?? 0;
+  // Prototipe `readCount`: seluruh field yang terbaca (sampai 7), bukan hanya empat inti.
+  const readCount = rows.filter((row) => row.display !== 'Belum diisi').length;
+  const inConversation = turns.length > 0;
+  const activeStatus = solution
+    ? COPY.activeStatus.ready
+    : reopened
+      ? COPY.activeStatus.reopened
+      : COPY.activeStatus.inProgress;
+  const otherHistory =
+    history.kind === 'list' ? history.items.filter((item) => item.id !== conversationId) : [];
+
+  const historyList = (itemClass: string) =>
+    otherHistory.map((item) => (
+      <button key={item.id} type="button" className={itemClass} onClick={() => openHistory(item)}>
+        <span className={styles.historyTitleText}>{item.title ?? COPY.titleFor(null, null)}</span>
+        <span className={styles.historyMeta}>{historyDate(item.updatedAt)}</span>
+      </button>
+    ));
+
+  const footerAvatar = (
+    <span className={styles.footerAvatar} aria-hidden="true">
+      {user ? initialsOf(user.name) : 'T'}
+    </span>
+  );
 
   return (
     <div className={styles.shell}>
-      <aside className={styles.sidebar}>
-        <div className={styles.brandRow}>
-          <SnoutyAvatar mood="idle" size={28} />
-          <div className={styles.brandText}>
-            <div className={styles.brandName}>{COPY.brand.name}</div>
-            <div className={styles.brandKicker}>{COPY.brand.kicker}</div>
+      {/* Sidebar 236px ATAU rail 60px — tidak pernah keduanya (prototipe `navCollapsed`). */}
+      {!narrow && !navCollapsed && (
+        <aside className={styles.sidebar}>
+          <div className={styles.brandRow}>
+            <SnoutyAvatar mood="idle" size={28} />
+            <div className={styles.brandText}>
+              <div className={styles.brandName}>{COPY.brand.name}</div>
+              <div className={styles.brandKicker}>{COPY.brand.kicker}</div>
+            </div>
+            <button
+              type="button"
+              className={styles.navToggle}
+              onClick={() => setNavCollapsed(true)}
+              title={COPY.collapseSidebar}
+              aria-label={COPY.collapseSidebar}
+            >
+              «
+            </button>
           </div>
-        </div>
 
-        <button type="button" className={styles.newButton}>
-          <span className={styles.newPlus}>+</span>
-          <span>{COPY.newConversation}</span>
-        </button>
+          <button type="button" className={styles.newButton} onClick={reset}>
+            <span className={styles.newPlus}>+</span>
+            <span>{COPY.newConversation}</span>
+          </button>
 
-        <div className={styles.sidebarGroup}>
-          <div className={styles.sidebarSection}>{COPY.historyTitle}</div>
+          <div className={styles.sidebarGroup}>
+            <div className={styles.sidebarSection}>{COPY.historyTitle}</div>
 
-          {history.kind === 'guest' && <p className={styles.historyGuest}>{COPY.historyGuest}</p>}
-
-          {history.kind === 'list' && history.items.length === 0 && (
-            <p className={styles.historyGuest}>{COPY.historyEmpty}</p>
-          )}
-
-          {history.kind === 'list' &&
-            history.items.map((item) => (
-              <div
-                key={item.id}
-                className={[
-                  styles.historyItem,
-                  item.id === conversationId ? styles.historyItemActive : '',
-                ].join(' ')}
-              >
-                <span className={styles.historyTitleText}>{item.title ?? 'Konsultasi baru'}</span>
-                <span className={styles.historyMeta}>{item.status}</span>
+            {/* Percakapan aktif: blok merah lembut + garis kiri merek, status mono merah. */}
+            {inConversation && (
+              <div className={styles.historyActive} aria-current="true">
+                <span className={styles.historyActiveTitle}>
+                  {activeTitle ?? COPY.titleFor(null, null)}
+                </span>
+                <span className={styles.historyActiveStatus}>{activeStatus}</span>
               </div>
-            ))}
-        </div>
+            )}
 
-        {/* Ikon kotak kecil mengikuti prototipe: satu garis tebal di kiri untuk pengetahuan produk. */}
-        <div className={styles.sidebarLinks}>
-          <span className={styles.sidebarLink}>
+            {history.kind === 'guest' && <p className={styles.historyGuest}>{COPY.historyGuest}</p>}
+            {history.kind === 'list' && otherHistory.length === 0 && !inConversation && (
+              <p className={styles.historyGuest}>{COPY.historyEmpty}</p>
+            )}
+            {historyList(styles.historyItem!)}
+          </div>
+
+          {/* Tautan ini juga tanpa aksi di prototipe (layar 12 belum ada). */}
+          <div className={styles.sidebarLinks}>
+            <span className={styles.sidebarLink} title={COPY.attachSoon}>
+              <span className={styles.iconSquare} />
+              {COPY.savedSolutions}
+            </span>
+            <span className={styles.sidebarLink}>
+              <span className={[styles.iconSquare, styles.iconSquareBook].join(' ')} />
+              {COPY.productKnowledge}
+            </span>
+          </div>
+
+          <div className={styles.sidebarFooter}>
+            {footerAvatar}
+            <div className={styles.footerText}>
+              <span className={styles.footerName}>{user?.name ?? COPY.footer.guestName}</span>
+              {user ? (
+                <span className={styles.footerRole}>{COPY.footer.role}</span>
+              ) : (
+                <span className={styles.footerRole}>
+                  <a href="/login">{COPY.footer.login}</a> ·{' '}
+                  <a href="/register">{COPY.footer.register}</a>
+                </span>
+              )}
+            </div>
+          </div>
+        </aside>
+      )}
+
+      {!narrow && navCollapsed && (
+        <nav className={styles.navRail} aria-label="Navigasi utama">
+          <SnoutyAvatar mood="idle" size={28} />
+          <button
+            type="button"
+            className={styles.navToggle}
+            onClick={() => setNavCollapsed(false)}
+            title={COPY.expandSidebar}
+            aria-label={COPY.expandSidebar}
+          >
+            »
+          </button>
+          <button
+            type="button"
+            className={styles.railNew}
+            aria-label={COPY.newConversation}
+            onClick={reset}
+          >
+            +
+          </button>
+          <span className={styles.railDivider} />
+          <button
+            type="button"
+            className={styles.railIcon}
+            title={COPY.historyTitle}
+            aria-label={COPY.historyTitle}
+            onClick={() => setNavCollapsed(false)}
+          >
+            <span className={styles.railLines} />
+          </button>
+          <span className={styles.railIcon} title={COPY.savedSolutions}>
             <span className={styles.iconSquare} />
-            {COPY.savedSolutions}
           </span>
-          <span className={styles.sidebarLink}>
+          <span className={styles.railIcon} title={COPY.productKnowledge}>
             <span className={[styles.iconSquare, styles.iconSquareBook].join(' ')} />
-            {COPY.productKnowledge}
           </span>
-        </div>
-      </aside>
-
-      <nav className={styles.navRail} aria-label="Navigasi utama">
-        <SnoutyAvatar mood="idle" size={28} />
-        <button type="button" className={styles.railNew} aria-label={COPY.newConversation}>
-          +
-        </button>
-        <span className={styles.railDivider} />
-        <span className={styles.railIcon} title={COPY.historyTitle}>
-          <span className={styles.railLines} />
-        </span>
-        <span className={styles.railIcon} title={COPY.savedSolutions}>
-          <span className={styles.iconSquare} />
-        </span>
-        <span className={styles.railIcon} title={COPY.productKnowledge}>
-          <span className={[styles.iconSquare, styles.iconSquareBook].join(' ')} />
-        </span>
-      </nav>
+          <span className={styles.railBottom}>{footerAvatar}</span>
+        </nav>
+      )}
 
       <main className={styles.main}>
         <header className={styles.header}>
           <div className={styles.headerLeft}>
-            <span className={styles.headerTitle}>{COPY.headerTitle}</span>
-            {/* Badge status dari prototipe: mono, berbingkai, "LANGKAH n DARI 4". */}
-            <span className={styles.headerStatus}>
-              {solution !== null ? COPY.solutionReady : COPY.stepStatus(filled)}
+            {/* Sempit (<1080): sidebar hilang, "+ Baru" dan menu "Riwayat" pindah ke header. */}
+            {narrow && (
+              <>
+                <button
+                  type="button"
+                  className={styles.headerNew}
+                  onClick={reset}
+                  aria-label={COPY.newConversation}
+                >
+                  <span className={styles.newPlus}>+</span>
+                  {!mobile && <span>{COPY.newShort}</span>}
+                </button>
+                <div className={styles.menuWrap}>
+                  <button
+                    type="button"
+                    className={styles.headerMenuButton}
+                    onClick={() => setMenuOpen((open) => !open)}
+                    aria-expanded={menuOpen}
+                  >
+                    {COPY.menu}
+                  </button>
+                  {menuOpen && (
+                    <div className={styles.menu} role="menu">
+                      <div className={styles.menuTitle}>{COPY.menuTitle}</div>
+                      {history.kind === 'guest' && (
+                        <p className={styles.historyGuest}>{COPY.historyGuest}</p>
+                      )}
+                      {history.kind === 'list' && otherHistory.length === 0 && (
+                        <p className={styles.historyGuest}>{COPY.historyEmpty}</p>
+                      )}
+                      {historyList(styles.menuItem!)}
+                      <div className={styles.menuDivider} />
+                      <span className={styles.menuLink}>{COPY.savedSolutions}</span>
+                      <span className={styles.menuLink}>{COPY.productKnowledge}</span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+            <span className={styles.headerTitle}>
+              {inConversation ? (activeTitle ?? COPY.headerTitle) : COPY.headerWelcomeTitle}
             </span>
+            {/* Badge mono berbingkai: versi katalog di sambutan, "LANGKAH n DARI 4" saat mengumpulkan. */}
+            {!mobile && (
+              <span className={styles.headerStatus}>
+                {solution !== null
+                  ? COPY.solutionReady
+                  : inConversation
+                    ? COPY.stepStatus(filled)
+                    : COPY.catalogBadge(catalogLabel ?? '…')}
+              </span>
+            )}
           </div>
-          {/* "Buat laporan" di header, seperti prototipe, begitu solusi ada. */}
-          {solution !== null && (
-            <div className={styles.headerActions}>
+          <div className={styles.headerActions}>
+            {/* Ponsel (board 13a): "Kebutuhan (n)" membuka panel sebagai lembar. */}
+            {mobile && inConversation && (
+              <button
+                type="button"
+                className={styles.headerNeeds}
+                onClick={() => setPanelOpen(true)}
+              >
+                {COPY.mobileNeeds(readCount)}
+              </button>
+            )}
+            {solution !== null && (
               <button
                 type="button"
                 className={styles.headerPrimary}
@@ -353,16 +618,8 @@ export function ChatWorkspace() {
               >
                 {REPORT_COPY.open}
               </button>
-            </div>
-          )}
-          <button
-            type="button"
-            className={styles.panelToggle}
-            aria-expanded={panelOpen}
-            onClick={() => setPanelOpen((open) => !open)}
-          >
-            {panelOpen ? '»' : '«'}
-          </button>
+            )}
+          </div>
         </header>
 
         {/*
@@ -401,11 +658,19 @@ export function ChatWorkspace() {
                   disabled={conversationId === null}
                 />
                 <div className={styles.composerCardFoot}>
-                  {/* Unggahan denah menunggu endpoint berkas (OQ-07). */}
-                  <span className={styles.attachButton}>
+                  {/*
+                    "Lampirkan denah" juga tanpa aksi di prototipe, dan `POST /uploads` baru ada
+                    di kontrak. Chip-nya ditandai nonaktif dengan alasannya — tidak berpura-pura.
+                  */}
+                  <button
+                    type="button"
+                    className={styles.attachButton}
+                    aria-disabled="true"
+                    title={COPY.attachSoon}
+                  >
                     <span className={styles.iconSquare} />
                     {COPY.attachPlan}
-                  </span>
+                  </button>
                   <button
                     type="button"
                     className={styles.sendButton}
@@ -499,9 +764,10 @@ export function ChatWorkspace() {
           </div>
         )}
 
-        {turns.length > 0 && (
+        {inConversation && (
           <div className={styles.composerWrap}>
-            <div className={styles.composerCard}>
+            {/* Ponsel: bidang berbentuk pil + tombol kirim bulat 40px (board 13a). */}
+            <div className={[styles.composerCard, mobile ? styles.composerPill : ''].join(' ')}>
               <input
                 className={styles.composerCardInput}
                 value={draft}
@@ -512,16 +778,17 @@ export function ChatWorkspace() {
                     void submit();
                   }
                 }}
-                placeholder={COPY.composerPlaceholderChat}
+                placeholder={mobile ? COPY.composerPlaceholderMobile : COPY.composerPlaceholderChat}
                 aria-label={COPY.composerPlaceholderChat}
               />
               <button
                 type="button"
-                className={styles.sendButton}
+                className={[styles.sendButton, mobile ? styles.sendRound : ''].join(' ')}
                 onClick={() => void submit()}
                 disabled={draft.trim() === '' || sending}
+                aria-label={COPY.send}
               >
-                {COPY.send}
+                {mobile ? COPY.mobileSend : COPY.send}
               </button>
             </div>
           </div>
@@ -533,7 +800,8 @@ export function ChatWorkspace() {
         "KEBUTUHAN & SOLUSI" beserta jumlah data, sehingga pengguna tetap tahu panel itu ada
         dan berapa banyak yang sudah terbaca.
       */}
-      {!panelOpen && (
+      {/* Panel dan rail-nya hanya ada setelah percakapan dimulai (prototipe: disembunyikan di sambutan). */}
+      {inConversation && !panelOpen && !mobile && (
         <aside
           className={styles.panelRail}
           onClick={() => setPanelOpen(true)}
@@ -542,14 +810,22 @@ export function ChatWorkspace() {
           <span className={styles.railToggle}>«</span>
           <span className={styles.railVertical}>{COPY.railLabel}</span>
           <span className={styles.railCount}>
-            <span className={styles.railCountValue}>{filled}</span>
+            <span className={styles.railCountValue}>{readCount}</span>
             <span className={styles.railCountUnit}>{COPY.railUnit}</span>
           </span>
+          {solution !== null && <span className={styles.railDot} title={COPY.solutionReady} />}
         </aside>
       )}
 
-      {panelOpen && (
-        <aside className={styles.panel} aria-label={COPY.panelTitle}>
+      {inConversation && panelOpen && narrow && (
+        <div className={styles.scrim} onClick={() => setPanelOpen(false)} aria-hidden="true" />
+      )}
+
+      {inConversation && panelOpen && (
+        <aside
+          className={[styles.panel, narrow ? styles.panelOverlay : ''].join(' ')}
+          aria-label={COPY.panelTitle}
+        >
           <div className={styles.panelHead}>
             <span>{COPY.panelTitle}</span>
             <button
@@ -566,7 +842,13 @@ export function ChatWorkspace() {
             <section className={styles.panelSection}>
               <div className={styles.panelKicker}>{COPY.requirementsLabel}</div>
               {rows.map((row) => (
-                <div key={row.label} className={styles.reqRow}>
+                <div
+                  key={row.label}
+                  className={[
+                    styles.reqRow,
+                    row.display === 'Belum diisi' ? styles.reqRowMissing : '',
+                  ].join(' ')}
+                >
                   <span className={styles.reqLabel}>{row.label}</span>
                   <span
                     className={[
@@ -596,6 +878,26 @@ export function ChatWorkspace() {
               </div>
               <p className={styles.meterNote}>{completenessNote(filled)}</p>
             </section>
+
+            {/* Layar solusi: empat saran lanjutan, masing-masing dikirim sebagai pesan. */}
+            {solution !== null && (
+              <section className={styles.panelSection}>
+                <div className={styles.panelKicker}>{COPY.followUps.title}</div>
+                <div className={styles.followUps}>
+                  {COPY.followUps.items(solution.stats.mainSize).map((question) => (
+                    <button
+                      key={question}
+                      type="button"
+                      className={styles.followUp}
+                      onClick={() => void submitText(question)}
+                      disabled={sending}
+                    >
+                      {question}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className={styles.panelSection}>
               <div className={styles.boundaryTitle}>{COPY.boundaryTitle}</div>
@@ -785,7 +1087,7 @@ function CardView({
       <div className={styles.ctaCard}>
         <span>Data inti sudah lengkap.</span>
         <button type="button" className={styles.ctaButton} onClick={onAnalyze} disabled={analyzing}>
-          {analyzing ? 'Menganalisis…' : 'Analisis kebutuhan'}
+          {analyzing ? 'Menganalisis…' : COPY.analyzeCta}
         </button>
         <button
           type="button"

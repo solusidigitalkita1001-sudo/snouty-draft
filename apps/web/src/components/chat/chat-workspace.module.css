@@ -25,33 +25,39 @@
   gap: 18px;
 }
 
+/* "SNOUTY" 14/600 ls .02em, "PRALON ASSISTANT" mono 9px — nilai prototipe. */
 .brandName {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .brandKicker {
   font-family: var(--snouty-font-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.08em;
-  color: var(--snouty-muted);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--snouty-caption);
   margin-top: 2px;
 }
 
-.newButton {
+/* Tombol « / » 28px berbingkai: menciutkan sidebar ke rail dan sebaliknya. */
+.navToggle {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  margin-left: auto;
   border: 1px solid var(--snouty-border);
   background: var(--snouty-surface);
-  color: var(--snouty-ink);
   border-radius: 6px;
-  padding: 8px 12px;
   font-size: 13px;
-  font-family: inherit;
+  color: var(--snouty-ink-4);
   cursor: pointer;
-  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.newButton:hover {
+.navToggle:hover {
   border-color: var(--snouty-action);
   color: var(--snouty-action-text);
 }
@@ -77,12 +83,8 @@
   gap: 12px;
 }
 
-.navDot {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: var(--snouty-action-soft-bg);
-  border: 1px solid var(--snouty-action-soft-border);
+.railBottom {
+  margin-top: auto;
 }
 
 /* ---------- main ---------- */
@@ -626,15 +628,50 @@
   padding: 5px 9px;
 }
 
+/* Chip lampiran tanpa layanan berkas: tampak nonaktif, alasannya di `title`. */
+.attachButton {
+  background: var(--snouty-surface);
+  font-family: inherit;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Bar chat: 7px 16px; kartu sambutan: 8px 18px (prototipe). */
 .sendButton {
   flex: none;
   background: var(--snouty-action);
   color: var(--snouty-action-on);
   border: none;
   border-radius: 6px;
-  padding: 9px 18px;
+  padding: 7px 16px;
   font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.welcome .sendButton {
+  padding: 8px 18px;
+}
+
+/* Ponsel (board 13a): bidang pil radius 20 + tombol bulat 40px "→". */
+.composerPill {
+  border-radius: 20px;
+  padding: 6px 6px 6px 14px;
+  gap: 8px;
+}
+
+.composerPill .composerCardInput {
+  font-size: 13px;
+}
+
+.sendRound {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .sendButton:hover:not(:disabled) {
@@ -718,9 +755,178 @@
   color: var(--snouty-assumed-text);
 }
 
+/* "Belum diisi": label DAN nilai amber kuat, garis atas putus-putus (prototipe + board). */
+.reqRowMissing {
+  border-top: 1px dashed var(--snouty-border-soft);
+  padding-top: 7px;
+}
+
+.reqRowMissing .reqLabel,
 .reqValueMissing {
-  color: var(--snouty-caption);
+  color: var(--snouty-assumed-strong);
+}
+
+.reqValueMissing {
   font-weight: 400;
+}
+
+/* Saran lanjutan di layar solusi — tombol berbingkai, hover merah merek. */
+.followUps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.followUp {
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: 6px;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--snouty-ink-3);
+  text-align: left;
+  cursor: pointer;
+}
+
+.followUp:hover:not(:disabled) {
+  border-color: var(--snouty-action);
+  color: var(--snouty-action-text);
+}
+
+/* Titik hijau di rail saat solusi siap. */
+.railDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--snouty-verified-text);
+}
+
+/* Sempit (<1080): panel menjadi overlay di kanan dengan scrim; rail 44px tetap pembukanya. */
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgb(20 24 26 / 0.18);
+  z-index: 29;
+}
+
+.panelOverlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(300px, 88%);
+  box-shadow: -14px 0 40px rgb(20 24 26 / 0.18);
+  z-index: 30;
+}
+
+/* Header saat sempit: "+ Baru" merah dan "Riwayat" berbingkai dengan menu 260px. */
+.headerNew {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--snouty-action);
+  color: var(--snouty-action-on);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 11px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  flex: none;
+}
+
+.headerNew:hover {
+  background: var(--snouty-action-hover);
+}
+
+.menuWrap {
+  position: relative;
+  flex: none;
+}
+
+.headerMenuButton {
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: 5px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--snouty-ink-4);
+  cursor: pointer;
+}
+
+.headerMenuButton:hover,
+.headerMenuButton[aria-expanded='true'] {
+  border-color: var(--snouty-action);
+  color: var(--snouty-action-text);
+}
+
+.menu {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  width: 260px;
+  background: var(--snouty-surface);
+  border: 1px solid var(--snouty-border);
+  border-radius: 8px;
+  box-shadow: var(--snouty-shadow-menu);
+  padding: 8px;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menuTitle {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--snouty-caption);
+  padding: 6px 8px;
+}
+
+.menuItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+.menuDivider {
+  border-top: 1px solid var(--snouty-hairline);
+  margin: 4px 0;
+}
+
+.menuLink {
+  padding: 7px 8px;
+  font-size: 13px;
+  color: var(--snouty-ink-4);
+}
+
+/* Ponsel: "Kebutuhan (n)" merah di header membuka panel sebagai lembar. */
+.headerNeeds {
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--snouty-action-text);
+  cursor: pointer;
+  padding: 6px 0;
 }
 
 .meter {
@@ -759,19 +965,11 @@
 
 /* ---------- responsif: < 1080px sidebar menciut, panel jadi overlay ---------- */
 
-@media (max-width: 1079px) {
-  .sidebar {
-    display: none;
-  }
-
-  .panel {
-    position: fixed;
-    inset: var(--snouty-header-h) 0 0 auto;
-    width: min(300px, 88%);
-    z-index: 40;
-    box-shadow: -12px 0 40px var(--snouty-scrim, rgb(0 0 0 / 14%));
-  }
-}
+/*
+ * Tidak ada aturan tata letak di @media 1079: lebar sempit ditangani JS (`matchMedia`),
+ * seperti `narrow` di prototipe — sidebar/rail tidak dirender, panel memakai
+ * `.panelOverlay` + `.scrim`, header mendapat "+ Baru" dan "Riwayat".
+ */
 
 @media (prefers-reduced-motion: reduce) {
   .stream {
@@ -996,12 +1194,19 @@
   padding: 0 9px;
 }
 
+/* Item riwayat adalah tombol: membuka kembali percakapannya (layar 12). */
 .historyItem {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 3px;
   padding: 8px 9px;
   border-radius: 5px;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  width: 100%;
   cursor: pointer;
 }
 
@@ -1009,39 +1214,108 @@
   background: var(--snouty-surface-subtle);
 }
 
-/* Percakapan aktif: latar merah lembut + garis kiri merek, sesuai prototipe. */
-.historyItemActive {
+/* Percakapan aktif: latar merah lembut + garis kiri merek + status mono merah (prototipe). */
+.historyActive {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 9px;
   background: var(--snouty-action-row);
   border-left: 2px solid var(--snouty-action);
   border-radius: 0 5px 5px 0;
 }
 
+.historyActiveTitle {
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--snouty-ink);
+}
+
+.historyActiveStatus {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  color: var(--snouty-action-text);
+}
+
 .historyTitleText {
   font-size: 12.5px;
   line-height: 1.35;
-  color: var(--snouty-ink);
+  color: var(--snouty-ink-4);
 }
 
 .historyMeta {
   font-family: var(--snouty-font-mono);
   font-size: 10px;
-  color: var(--snouty-caption);
+  color: var(--snouty-disabled);
 }
 
 .sidebarLinks {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-top: 4px;
-  border-top: 1px solid var(--snouty-border-soft);
-  padding-top: 8px;
 }
 
 .sidebarLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 7px 9px;
   border-radius: 5px;
   font-size: 13px;
-  color: var(--snouty-muted);
+  color: var(--snouty-ink-4);
+}
+
+.sidebarLink:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+/* Footer: avatar inisial 26px merah lembut + nama/peran, di dasar sidebar. */
+.sidebarFooter {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px;
+  border-top: 1px solid var(--snouty-hairline);
+}
+
+.footerAvatar {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--snouty-action-soft-bg);
+  color: var(--snouty-action-text);
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footerText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.footerName {
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.footerRole {
+  font-size: 10.5px;
+  color: var(--snouty-caption);
+}
+
+.footerRole a {
+  color: var(--snouty-action-text);
+  text-decoration: none;
 }
 
 /* Cincin fokus untuk seluruh elemen interaktif sidebar dan kartu. */
@@ -1214,6 +1488,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Ikon riwayat adalah tombol (membuka sidebar lagi); reset gaya bawaan tombol. */
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .railIcon:hover {
@@ -1396,5 +1675,25 @@
 
   .understoodGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Chip ponsel (board 13a): radius 18, 8px 13px, 12.5px; target sentuh ≥ 44px. */
+  .chip {
+    border-radius: 18px;
+    padding: 8px 13px;
+    font-size: 12.5px;
+    min-height: 44px;
+  }
+
+  .header {
+    padding: 0 16px;
+  }
+
+  .userBubble {
+    max-width: 85%;
+  }
+
+  .panelOverlay {
+    width: 100%;
   }
 }

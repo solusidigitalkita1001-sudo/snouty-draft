@@ -42,6 +42,7 @@ export const CHAT_COPY = {
   /** Placeholder berbeda antara layar sambutan dan lanjutan percakapan — dari prototipe. */
   composerPlaceholder: 'Contoh: Saya bangun rumah 2 lantai, 3 kamar mandi, toren di atap…',
   composerPlaceholderChat: 'Tulis jawaban atau tambahan detail…',
+  composerPlaceholderMobile: 'Tulis jawaban…',
   attachPlan: 'Lampirkan denah',
 
   /** Layar sambutan di dalam ruang konsultasi (prototipe, state `isWelcome`). */
@@ -55,8 +56,50 @@ export const CHAT_COPY = {
 
   /** Badge status di header: "LANGKAH n DARI 4" selama mengumpulkan data. */
   headerTitle: 'Konsultasi',
+  headerWelcomeTitle: 'Konsultasi Baru',
+  /** Badge sambutan: "KATALOG PRALON · v2.4" — label versi dari `/catalog/version`. */
+  catalogBadge: (label: string) => `KATALOG PRALON · ${label}`,
   stepStatus: (filled: number) => `LANGKAH ${Math.min(filled + 1, 4)} DARI 4`,
   solutionReady: 'SOLUSI SIAP',
+  /** Judul percakapan aktif, diturunkan dari kebutuhan (prototipe `titleFrom`). */
+  titleFor: (building: string | null, floors: number | null) => {
+    if (building === 'industrial') return 'Pabrik — jalur air proses';
+    if (building === 'boarding_house') return 'Rumah kos — instalasi air bersih';
+    if (floors !== null) return `Rumah ${floors} lantai — konsultasi baru`;
+    return 'Konsultasi baru';
+  },
+
+  collapseSidebar: 'Ciutkan sidebar',
+  expandSidebar: 'Buka sidebar',
+  newShort: 'Baru',
+  menu: 'Riwayat',
+  menuTitle: 'RIWAYAT KONSULTASI',
+  activeStatus: {
+    inProgress: 'SEDANG BERLANGSUNG',
+    ready: 'SOLUSI SIAP',
+    reopened: 'DIBUKA KEMBALI',
+  },
+  footer: {
+    guestName: 'Tamu',
+    guestRole: 'Belum masuk',
+    login: 'Masuk',
+    register: 'Daftar',
+    role: 'Pelanggan',
+  },
+  /** Belum ada endpoint berkas (`POST /uploads` baru kontrak) — chip tidak berpura-pura. */
+  attachSoon: 'Unggah denah menyusul — belum ada layanan berkas',
+  analyzeCta: 'Susun rekomendasi',
+  followUps: {
+    title: 'LANJUTKAN PERCAKAPAN',
+    items: (mainSize: string) => [
+      'Kalau kamar mandi saya tambah satu?',
+      `Kenapa pakai ukuran ${mainSize} di jalur utama?`,
+      'Kalau torennya di lantai 3?',
+      'Produknya tersedia ukuran apa saja?',
+    ],
+  },
+  mobileNeeds: (n: number) => `Kebutuhan (${n})`,
+  mobileSend: '→',
 
   /** Kartu "Yang sudah saya pahami" — grid 3 kolom, badge hijau jumlah data. */
   understood: {

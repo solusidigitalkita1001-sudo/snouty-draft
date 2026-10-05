@@ -41,6 +41,23 @@ export function hasSessionHint(): boolean {
 export function setAccessToken(token: string | null): void {
   accessToken = token;
   hintSession(token !== null);
+  if (token === null) currentUser = null;
+}
+
+/** Profil ringan dari respons login/register/refresh — untuk footer sidebar, bukan otorisasi. */
+export interface CurrentUser {
+  readonly name: string;
+  readonly tier: string;
+}
+
+let currentUser: CurrentUser | null = null;
+
+export function setCurrentUser(user: CurrentUser | null): void {
+  currentUser = user;
+}
+
+export function getCurrentUser(): CurrentUser | null {
+  return currentUser;
 }
 
 export function getAccessToken(): string | null {
@@ -72,9 +89,14 @@ export async function restoreSession(): Promise<boolean> {
       if (response.status === 401) hintSession(false);
       return false;
     }
-    const body = (await response.json()) as { accessToken?: string };
+    const body = (await response.json()) as {
+      accessToken?: string;
+      name?: string;
+      tier?: string;
+    };
     if (!body.accessToken) return false;
     setAccessToken(body.accessToken);
+    if (body.name && body.tier) setCurrentUser({ name: body.name, tier: body.tier });
     return true;
   } catch {
     return false;

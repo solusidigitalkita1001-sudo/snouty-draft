@@ -7,7 +7,12 @@
  * panggilan karena sesi tamu hidup di cookie `httpOnly`.
  */
 
-import type { AssistantStreamEvent, Recommendation } from '@snouty/shared-types';
+import type {
+  AssistantCard,
+  AssistantStreamEvent,
+  Recommendation,
+  RequirementState,
+} from '@snouty/shared-types';
 
 import { authHeaders } from '../auth/session';
 
@@ -180,4 +185,44 @@ export async function fetchRecommendation(id: string): Promise<Recommendation | 
   });
   if (!response.ok) return null;
   return (await response.json()) as Recommendation;
+}
+
+/** Satu percakapan beserta pesannya — untuk membuka kembali riwayat (layar 12). */
+export interface ConversationDetail extends ConversationSummary {
+  readonly messages: readonly {
+    readonly id: string;
+    readonly role: 'user' | 'assistant' | string;
+    readonly text: string;
+    readonly cards: readonly AssistantCard[];
+  }[];
+}
+
+export async function fetchConversation(id: string): Promise<ConversationDetail | null> {
+  const response = await fetch(`${BASE}/conversations/${encodeURIComponent(id)}`, {
+    credentials: 'include',
+    headers: authHeaders(),
+  });
+  if (!response.ok) return null;
+  return (await response.json()) as ConversationDetail;
+}
+
+/** State kebutuhan terkini — mengisi ulang panel kanan saat riwayat dibuka kembali. */
+export async function fetchRequirement(id: string): Promise<RequirementState | null> {
+  const response = await fetch(`${BASE}/conversations/${encodeURIComponent(id)}/requirement`, {
+    credentials: 'include',
+    headers: authHeaders(),
+  });
+  if (!response.ok) return null;
+  return ((await response.json()) as { state: RequirementState | null }).state;
+}
+
+/** Label versi katalog aktif — badge "KATALOG PRALON · v2.4" di layar sambutan. */
+export async function fetchCatalogVersion(): Promise<string | null> {
+  try {
+    const response = await fetch(`${BASE}/catalog/version`, { credentials: 'include' });
+    if (!response.ok) return null;
+    return ((await response.json()) as { label: string }).label;
+  } catch {
+    return null;
+  }
 }

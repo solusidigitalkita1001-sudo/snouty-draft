@@ -6,9 +6,9 @@
  * body (pesan), jadi responsnya ditulis manual sebagai `event:`/`data:`. Kepemilikan
  * percakapan diperiksa di service (lapis application).
  */
-import { Body, Controller, Param, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import type { AssistantStreamEvent } from '@snouty/shared-types';
+import type { AssistantStreamEvent, RequirementState } from '@snouty/shared-types';
 import { z } from 'zod';
 import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { RateLimitedError, RequestValidationError } from '../../../shared/http/api-errors.js';
@@ -25,6 +25,20 @@ export class MessageController {
     private readonly messages: MessageService,
     private readonly rateLimiter: RateLimiter,
   ) {}
+
+  /**
+   * `GET /conversations/:id/requirement` (docs/API_CONTRACTS.md §3) — state kebutuhan
+   * terkini, dipakai web untuk mengisi ulang panel saat riwayat dibuka kembali.
+   * `{ state: null }` untuk percakapan yang belum punya satu pun snapshot.
+   */
+  @Get(':id/requirement')
+  async requirement(
+    @Param() params: unknown,
+    @Req() req: PublicRequest,
+  ): Promise<{ state: RequirementState | null }> {
+    const id = parse(IdParam, params).id;
+    return { state: await this.messages.requirement(id, actorOf(req)) };
+  }
 
   @Post(':id/messages')
   async send(

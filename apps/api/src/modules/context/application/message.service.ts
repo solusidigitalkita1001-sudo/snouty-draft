@@ -12,7 +12,7 @@
  */
 
 import { Inject, Injectable, Optional } from '@nestjs/common';
-import type { AssistantStreamEvent } from '@snouty/shared-types';
+import type { AssistantStreamEvent, RequirementState } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
@@ -117,6 +117,20 @@ export class MessageService {
     );
 
     return result.events;
+  }
+
+  /**
+   * State kebutuhan terkini sebuah percakapan — untuk mengisi ulang panel saat riwayat
+   * dibuka kembali. Kepemilikan diperiksa lewat `conversations.find` (NOT_FOUND bila
+   * bukan milik aktor, sama seperti rute lain).
+   */
+  async requirement(
+    conversationId: string,
+    actor: ConversationOwner,
+  ): Promise<RequirementState | null> {
+    await this.conversations.find(conversationId, actor);
+    const snapshot = await this.store.current(conversationId);
+    return snapshot?.state ?? null;
   }
 
   /**

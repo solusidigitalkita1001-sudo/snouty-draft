@@ -30,6 +30,16 @@ function serviceWith(router: { route: () => Promise<unknown> }) {
   return { service, conversations, store };
 }
 
+describe('MessageService.requirement — state untuk membuka kembali riwayat', () => {
+  it('memeriksa kepemilikan lalu mengembalikan snapshot terkini (null bila belum ada)', async () => {
+    const { service, conversations, store } = serviceWith({ route: () => Promise.resolve({}) });
+
+    expect(await service.requirement('C'.repeat(26), ACTOR)).toBeNull();
+    expect(conversations.find).toHaveBeenCalledWith('C'.repeat(26), ACTOR);
+    expect(store.current).toHaveBeenCalledWith('C'.repeat(26));
+  });
+});
+
 describe('MessageService — model tidak terjangkau', () => {
   it('LlmUnavailableError dari router → event LLM_UNAVAILABLE retryable, bukan lemparan', async () => {
     const { service, conversations } = serviceWith({

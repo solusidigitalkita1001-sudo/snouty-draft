@@ -38,11 +38,12 @@ const BUILDING_LABEL: Readonly<Record<string, string>> = {
 
 export function requirementRows(state: RequirementState): readonly RequirementRow[] {
   return [
-    row('Jenis bangunan', state.building.type, (v) => BUILDING_LABEL[String(v)] ?? String(v)),
-    row('Jumlah lantai', state.building.floors, (v) => `${String(v)} lantai`),
-    row('Kamar mandi', state.fixtures.bathrooms, (v) => `${String(v)} titik`),
-    row('Wastafel', state.fixtures.basins, (v) => `${String(v)} titik`),
-    row('Dapur', state.fixtures.kitchens, (v) => `${String(v)} titik`),
+    // Label dan nilai polos ("2", bukan "2 lantai") — persis prototipe.
+    row('Tipe bangunan', state.building.type, (v) => BUILDING_LABEL[String(v)] ?? String(v)),
+    row('Jumlah lantai', state.building.floors, (v) => String(v)),
+    row('Kamar mandi', state.fixtures.bathrooms, (v) => String(v)),
+    row('Wastafel', state.fixtures.basins, (v) => String(v)),
+    row('Dapur', state.fixtures.kitchens, (v) => String(v)),
     row('Sumber air', state.water.source, (v) => SOURCE_LABEL[String(v)] ?? String(v)),
     row(
       'Jenis instalasi',
