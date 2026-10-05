@@ -37,8 +37,12 @@ export class RecommendationNotFoundError extends Error {
 }
 
 export class ReportNotFoundError extends Error {
+  // Tanpa kode ini filter memetakannya ke 503 `retryable` — worker lalu mengulang job
+  // untuk laporan yang memang tidak ada sampai masuk DLQ.
+  readonly code = 'NOT_FOUND' as const;
+
   constructor() {
-    super('laporan tidak ditemukan');
+    super('Laporan tidak ditemukan.');
     this.name = 'ReportNotFoundError';
   }
 }
