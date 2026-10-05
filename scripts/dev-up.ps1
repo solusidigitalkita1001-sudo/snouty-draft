@@ -133,7 +133,7 @@ Write-Host @"
 
   SNOUTY siap diuji -- buka http://localhost:3000
 
-  /              onboarding 5 langkah (muncul sekali per sesi tamu)
+  /              welcome + onboarding 5 langkah (onboarding sekali per sesi tamu)
   /consultation  chat -> klarifikasi -> analisis -> solusi -> BOM -> skema
   /schematic     skema penuh (dibuka dari solusi)
   /login         masuk        <- menunggu desain
