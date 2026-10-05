@@ -79,6 +79,20 @@ do {
   docker compose exec -T mysql mysqladmin ping -h localhost --silent 2>$null | Out-Null
 } until ($LASTEXITCODE -eq 0)
 
+# .env di akar repo: tempat kunci model dan ID model (tidak pernah di-commit). Dibaca
+# LEBIH DULU, lalu nilai infrastruktur di bawah menimpanya -- pengembangan selalu memakai
+# kontainer lokal, apa pun isi .env. Yang bertahan dari .env hanya yang tidak diset di sini
+# (OPENROUTER_API_KEY, LLM_MODEL_*, dan sebagainya).
+$dotenv = Join-Path $root '.env'
+if (Test-Path $dotenv) {
+  foreach ($line in Get-Content $dotenv) {
+    if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$' -and $line -notmatch '^\s*#') {
+      $name = $Matches[1]; $value = $Matches[2].Trim('"', "'")
+      if ($value -ne '') { Set-Item -Path "Env:$name" -Value $value }
+    }
+  }
+}
+
 # NODE_ENV sengaja diset per langkah, bukan sekali -- alasannya di dev-up.sh.
 $env:SNOUTY_FAKE_AI = '1'
 $env:PORT = '3001'
@@ -117,6 +131,11 @@ $env:NODE_ENV = 'production'
 Run 'next build' { pnpm exec next build | Out-Null }
 
 # --- Server ---
+# Adapter sungguhan menang bila kunci + tiga ID model ada (apps/api/src/modules/ai/ai.module.ts).
+$llmReady = $env:OPENROUTER_API_KEY -and $env:LLM_MODEL_FAST -and $env:LLM_MODEL_BALANCED -and $env:LLM_MODEL_STRONG
+if ($llmReady) { Step "LLM: OpenRouter aktif ($env:LLM_MODEL_FAST / $env:LLM_MODEL_BALANCED / $env:LLM_MODEL_STRONG)" }
+else { Step 'LLM: adapter dev (regex) -- isi OPENROUTER_API_KEY + LLM_MODEL_* di .env untuk model sungguhan' }
+
 Step 'API di :3001'
 $env:NODE_ENV = 'development'
 $apiLog = Join-Path $logDir 'api.log'
