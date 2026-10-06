@@ -97,6 +97,20 @@ services:
       rabbitmq: { condition: service_healthy }
       api: { condition: service_started }
 
+  # Nginx di compose memegang 80/443 (nginx host nonaktif di server ini) dan juga melayani
+  # bagspace.pralon.co.id — konfigurasinya menggantikan kontainer nginx proyek lama.
+  # Dinyalakan terpisah saat cut-over: `deploy/deploy.sh cutover`.
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    profiles: ['edge']
+    ports: ['80:80', '443:443']
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    depends_on: [web, api]
+
 volumes:
   mysql-data:
   redis-data:

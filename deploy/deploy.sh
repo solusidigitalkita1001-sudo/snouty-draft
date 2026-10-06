@@ -7,6 +7,8 @@
 #   deploy/deploy.sh smoke      cek health API dan halaman web
 #   deploy/deploy.sh release    = git pull → build → up → smoke   (migration TIDAK termasuk)
 #   deploy/deploy.sh logs [svc] ikuti log
+#   deploy/deploy.sh cutover    ambil alih 80/443 dari nginx proyek lama (bagspace tetap dilayani)
+#   deploy/deploy.sh rollback-edge kembalikan nginx proyek lama
 #
 # Migration dipisah dari release (docs/INFRASTRUCTURE.md §11): ia menyentuh skema, dan
 # `db-apply.mjs` hanya berjalan tanpa upacara ke host loopback — MySQL compose dipublikasikan di
@@ -57,6 +59,21 @@ case "$cmd" in
     ;;
   logs)
     "${COMPOSE[@]}" logs -f --tail 100 "${2:-}"
+    ;;
+  cutover)
+    # Mengambil alih 80/443 dari nginx proyek lama (`snouty_nginx`), yang juga melayani bagspace —
+    # konfigurasi kita memuat blok bagspace, jadi aplikasi itu tetap jalan. Kontainer lama hanya
+    # dihentikan, tidak dihapus: `deploy/deploy.sh rollback-edge` mengembalikannya.
+    docker stop snouty_nginx >/dev/null 2>&1 || true
+    "${COMPOSE[@]}" --profile edge up -d nginx
+    sleep 2
+    "${COMPOSE[@]}" --profile edge exec -T nginx nginx -t
+    curl -sk -o /dev/null -w "ai.pralon.co.id → %{http_code}\n" https://ai.pralon.co.id/health --resolve ai.pralon.co.id:443:127.0.0.1
+    curl -sk -o /dev/null -w "bagspace.pralon.co.id → %{http_code}\n" https://bagspace.pralon.co.id/ --resolve bagspace.pralon.co.id:443:127.0.0.1
+    ;;
+  rollback-edge)
+    "${COMPOSE[@]}" --profile edge stop nginx
+    docker start snouty_nginx
     ;;
   *)
     sed -n '2,12p' "$0"
