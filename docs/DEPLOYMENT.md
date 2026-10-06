@@ -71,15 +71,18 @@ deploy/deploy.sh smoke      # ✓ API health, ✓ web 200, katalog aktif (masih 
 ## 6. Impor dan promosikan katalog Pralon (sekali per versi katalog)
 
 ```bash
-# dari host; MySQL kontainer terbuka di 127.0.0.1:3316, Redis hanya di jaringan compose →
-# jalankan di dalam kontainer api dengan network host supaya cache ikut dibuang:
-docker compose --env-file .env.production -f deploy/docker-compose.prod.yml run --rm --no-deps --network host \
-  -e DB_HOST=127.0.0.1 -e DB_PORT=3316 -e DB_USERNAME=root -e DB_PASSWORD="$DB_ROOT_PASSWORD" \
-  -v "$PWD/data/catalog:/catalog:ro" api \
+# impor: MySQL kontainer terbuka di 127.0.0.1:3316 → `docker run --network host` (compose v5 tidak
+# punya flag itu). Skrip impor tidak butuh Redis.
+set -a; . ./.env.production; set +a
+docker run --rm --network host \
+  -e DB_HOST=127.0.0.1 -e DB_PORT=3316 -e DB_DATABASE=snouty -e DB_USERNAME=root -e DB_PASSWORD="$DB_ROOT_PASSWORD" \
+  -v "$PWD/data/catalog:/catalog" snouty-api:latest \
   node scripts/import-catalog-file.mjs /catalog/2026-10-06-erp/snouty_catalog_import_inch.csv \
        /catalog/2026-10-06-erp/snouty_catalog_import_mm_PENDING.csv \
        --label erp-2026-10-06 --source-document "Export ERP master_product_updated.xlsx (diunduh 2026-10-06)" \
        --exclude-rows-with-issues --excluded-out /catalog/excluded-prod.json
+
+# promosi: butuh Redis (cache katalog dibuang) → di jaringan compose; skrip hanya menolak 192.168.1.136.
 
 docker compose --env-file .env.production -f deploy/docker-compose.prod.yml run --rm --no-deps \
   -e DB_HOST=mysql -e DB_PORT=3306 -e DB_USERNAME=root -e DB_PASSWORD="$DB_ROOT_PASSWORD" \

@@ -677,6 +677,17 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       SIZE_NEEDS_VALIDATION, VERIFIED berbeda → peran kosong; kandidat ganda dipilih deterministik
       (batang 4 m → varian baku → SKU) dengan alasan dan ≤ 10 `alternatives`. OQ-48 direvisi. API 774
       tes
+- [x] P14-08h Fallback kandidat keluarga-saja (2026-10-06): bila ukuran tidak ada di katalog,
+      `matchRoles` tetap menampilkan produk keluarga itu sebagai SIZE_NEEDS_VALIDATION. Hasil matcher
+      v2 pada katalog Pralon penuh (7.681 SKU): 33 peran → 27 VERIFIED, 6 SIZE_NEEDS_VALIDATION
+      (fitting seri W). `docs/MATCHER_V2_PROPOSAL.md` §4b
+- [x] P14-09 Deploy produksi ke 192.168.1.10 / ai.pralon.co.id (2026-10-06). Paket deploy
+      (`Dockerfile`, `deploy/docker-compose.prod.yml`, `deploy/deploy.sh`, nginx compose profil
+      `edge` yang juga melayani bagspace.pralon.co.id), runbook `docs/DEPLOYMENT.md`. Di server:
+      migration 0000–0017, katalog `erp-2026-10-06` (7.681 SKU, 8 SKU panjang dibuang) aktif,
+      cut-over 80/443 dari nginx proyek lama; https://ai.pralon.co.id live. Catatan: `up
+    --remove-orphans` sempat menghapus kontainer proyek lama (image + volume `snouty_db_data`
+      tetap ada; flag dicabut). Token worker → OQ-49
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache

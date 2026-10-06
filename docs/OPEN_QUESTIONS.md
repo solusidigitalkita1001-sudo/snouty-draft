@@ -371,6 +371,19 @@ katalog yang tidak memisahkannya (katalog contoh). Fitting diterima penuh hanya 
 pemilik: **tidak ditebak AW**) menjadi `SIZE_NEEDS_VALIDATION`; kelas VERIFIED berbeda (D untuk AW)
 ditolak. Masih menunggu Pralon: arti token "W" dan fitting tanpa token (`docs/MATCHER_V2_PROPOSAL.md` §5).
 
+### OQ-49 — Token worker untuk rute internal laporan di produksi
+
+**Status:** open · **Blocks:** PDF laporan di produksi (bukan chat/analisis)
+**Pertanyaan:** Worker memanggil `GET/POST /api/v1/internal/reports/:id/print|ready` dengan
+`Bearer $WORKER_INTERNAL_TOKEN`, tetapi API hanya mengisi aktor dari **JWT access token** yang
+ditandatangani `JWT_ACCESS_SECRET` dan berumur `JWT_ACCESS_TTL` (`access-token.middleware.ts`).
+Tidak ada jalur token layanan statis. Nilai acak di `.env.production` (2026-10-06) membuat worker
+start, tetapi setiap job PDF akan berakhir 401.
+**Usulan default:** jalur **token layanan** terpisah — `WORKER_INTERNAL_TOKEN` dibandingkan
+constant-time di middleware/guard khusus untuk rute `/internal/reports/*` saja, aktor
+`{ id: 'worker', roles: ['admin'] }`, dicatat di audit sebagai layanan. Alternatif yang ditolak: JWT
+berumur panjang yang dicetak manual (kedaluwarsa diam-diam; tidak ada pencabutan).
+
 ### OQ-46 — Katalog contoh pernah mendasari klaim tentang Pralon; kini ditandai dan dipagari
 
 **Status:** open · _non-blocking_ · **Fase:** 1/4 · diterapkan sebagai default (migration 0013)
