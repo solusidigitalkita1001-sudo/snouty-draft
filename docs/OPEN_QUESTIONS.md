@@ -302,6 +302,25 @@ berada di dalam antrean.
 **Masih terbuka:** apakah pemilik setuju dengan arah ini, dan apakah token bertanda tangan berumur
 pendek (docs/REPORT.md §5) menggantikan gerbang peran `admin` yang dipakai sementara untuk rute cetak.
 
+### OQ-45 — Redaksi primer bahan pipa (jalur `PRODUCT_FAQ`) belum ditinjau tim teknis
+
+**Status:** open · _non-blocking_ · **Fase:** 4 · diterapkan sementara sebagai default
+
+"Apa bedanya PVC dan HDPE?" sebelumnya dijawab hanya dengan fakta katalog ("HDPE tidak ada di
+katalog… Pipa PVC AW: Material uPVC…"), yang terbaca sebagai bukan jawaban. Jalur `PRODUCT_FAQ`
+(docs/AI_BEHAVIOR.md) kini menjelaskannya. Percobaan pertama membiarkan model menjelaskan dari
+ingatannya; qwen2.5:7b **menukar sifatnya** (PVC disebut lentur, HDPE kaku) dalam dua dari dua
+jawaban. Itu persis "LLM bukan sumber kebenaran" — meski kualitatif.
+
+**Default yang diterapkan:** sifat umum tiap keluarga bahan ditulis di kode
+(`context/application/material-primer.ts`: PVC, HDPE, PPR, galvanis — kaku/lentur, cara sambung,
+kegunaan lazim), **tanpa angka, standar, atau merek**. Primer masuk blok DATA bersama fakta katalog;
+model hanya merangkai, pagar angka `ReplyWriter` tetap. Tanpa model, primer + fakta katalog yang tampil.
+
+**Yang dibutuhkan dari pemilik / tim teknis Pralon:** tinjau redaksi keempat primer (benar secara
+teknik? ada keluarga yang perlu ditambah — PVC-O, PE-RT?), dan tetapkan apakah primer ini dianggap
+"konten teknis" yang perlu provenance/penanggung jawab, atau cukup sebagai copy produk.
+
 ### OQ-44 — Audit biaya tidak bisa membedakan prosa yang diterima dari yang ditolak REC-1
 
 **Status:** **answered** (2026-10-05, default diterima) · _non-blocking_ · **Fase:** 7 · diterapkan sebagai migration 0012

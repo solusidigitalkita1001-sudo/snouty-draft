@@ -186,10 +186,47 @@ describe('runProductQuestion', () => {
     );
     const out = text(events);
     expect(out).toContain('Secara umum PVC kaku');
-    expect(out).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)'); // fakta tetap ikut
-    expect(out).toContain('"hdpe" tidak ada di katalog');
-    expect((reply.calls[0] as { systemPrompt?: string }).systemPrompt).toBe('PROMPT-FAQ');
-    expect((reply.calls[0] as { facts?: string }).facts).toContain('"hdpe" tidak ada di katalog');
+    expect(out).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)'); // produk tak disebut → ikut
+    expect(out).toContain('"hdpe" tidak ada di katalog'); // katalog tak disinggung → ikut
+    const call = reply.calls[0] as { systemPrompt?: string; facts?: string };
+    expect(call.systemPrompt).toBe('PROMPT-FAQ');
+    // DATA = primer bahan milik kode + fakta katalog; sifat bahan bukan dari ingatan model.
+    expect(call.facts).toContain('HDPE adalah pipa plastik yang lentur');
+    expect(call.facts).toContain('PVC (uPVC) adalah pipa plastik yang kaku');
+    expect(call.facts).toContain('"hdpe" tidak ada di katalog');
+  });
+
+  it('pertanyaan KONSEP: yang sudah disebut model tidak diulang di bawahnya', async () => {
+    const reply = {
+      write: async () => ({
+        text: 'PVC kaku, HDPE lentur. Di katalog Pralon ada Pipa PVC AW; HDPE tidak ada di katalog.',
+        source: 'llm' as const,
+      }),
+    };
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc aw dan hdpe', aspect: null }),
+      catalog({ 'pvc aw': [AW] }),
+      questions({} as never),
+      { messageId: 'm', message: 'apa bedanya pvc dan hdpe?' },
+      reply as never,
+      'PROMPT-FAQ',
+    );
+    expect(text(events)).toBe(
+      'PVC kaku, HDPE lentur. Di katalog Pralon ada Pipa PVC AW; HDPE tidak ada di katalog.',
+    );
+  });
+
+  it('pertanyaan KONSEP tanpa model: primer bahan + fakta katalog, tetap menjelaskan', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: 'hdpe', aspect: null }),
+      catalog({}),
+      questions({} as never),
+      { messageId: 'm', message: 'apa itu hdpe?' },
+    );
+    const out = text(events);
+    expect(out).toContain('HDPE adalah pipa plastik yang lentur');
+    expect(out).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
+    expect(out).not.toMatch(/\d/); // primer tanpa angka; kalimat katalog di sini juga tanpa angka
   });
 
   it('pertanyaan SPESIFIKASI tidak pernah lewat model — fakta katalog apa adanya', async () => {

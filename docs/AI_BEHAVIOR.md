@@ -68,17 +68,17 @@ ID model tidak pernah ditulis di kode.
 
 Langkah pertama setiap pesan; menentukan jalur mana yang dijalankan (`ARCHITECTURE.md` §8).
 
-| Intent                   | Contoh                           | Jalur                                   |
-| ------------------------ | -------------------------------- | --------------------------------------- |
+| Intent                   | Contoh                           | Jalur                                                                                                                                   |
+| ------------------------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `PRODUCT_FAQ`            | "Apa bedanya AW dan D?"          | FAQ — diwujudkan di dalam `PRODUCT_LOOKUP` dengan aspek `null`: penjelasan kualitatif model di atas DATA katalog, angka hanya dari DATA |
-| `PRODUCT_LOOKUP`         | "Ada ukuran 3/4 inch?"           | **query MySQL**, bukan pencarian vektor |
-| `RECOMMENDATION_REQUEST` | "Rumah 2 lantai, 3 kamar mandi…" | rekomendasi                             |
-| `CLARIFICATION_ANSWER`   | "Toren atap"                     | merge, tanpa ekstraksi penuh            |
-| `REQUIREMENT_MUTATION`   | "Tambah satu kamar mandi"        | merge + hitung ulang, **tanpa LLM**     |
-| `EXPLANATION_REQUEST`    | "Kenapa ukurannya 1 inci?"       | jawab dari trace                        |
-| `COMPETITOR_QUESTION`    | "Lebih bagus Pralon atau X?"     | kebijakan → kriteria netral             |
-| `OUT_OF_SCOPE`           | "Jalur air proses pabrik 70 °C"  | validasi teknis                         |
-| `UNCLEAR`                | —                                | klarifikasi, mood `confused`            |
+| `PRODUCT_LOOKUP`         | "Ada ukuran 3/4 inch?"           | **query MySQL**, bukan pencarian vektor                                                                                                 |
+| `RECOMMENDATION_REQUEST` | "Rumah 2 lantai, 3 kamar mandi…" | rekomendasi                                                                                                                             |
+| `CLARIFICATION_ANSWER`   | "Toren atap"                     | merge, tanpa ekstraksi penuh                                                                                                            |
+| `REQUIREMENT_MUTATION`   | "Tambah satu kamar mandi"        | merge + hitung ulang, **tanpa LLM**                                                                                                     |
+| `EXPLANATION_REQUEST`    | "Kenapa ukurannya 1 inci?"       | jawab dari trace                                                                                                                        |
+| `COMPETITOR_QUESTION`    | "Lebih bagus Pralon atau X?"     | kebijakan → kriteria netral                                                                                                             |
+| `OUT_OF_SCOPE`           | "Jalur air proses pabrik 70 °C"  | validasi teknis                                                                                                                         |
+| `UNCLEAR`                | —                                | klarifikasi, mood `confused`                                                                                                            |
 
 Dua pembedaan yang paling menentukan biaya dan kebenaran:
 

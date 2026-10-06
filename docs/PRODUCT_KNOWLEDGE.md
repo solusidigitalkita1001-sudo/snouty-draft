@@ -252,8 +252,9 @@ _Status 2026-10-05:_ jalur ini kini tersambung ke chat (`context/application/pro
 Model hanya memetakan pertanyaan ke produk + aspek (`ai.parseProductQuestion`, kosakata tertutup);
 kalimat jawaban SPESIFIKASI templat deterministik dari `ProductAnswer` — model tidak menyentuhnya.
 Pertanyaan KONSEP (aspek `null`: "apa bedanya PVC dan HDPE?") lewat jalur `PRODUCT_FAQ`
-(`PRODUCT_FAQ_SYSTEM_PROMPT` + `ReplyWriter`): model menjelaskan sifat bahan secara kualitatif di atas
-DATA katalog; angka di luar DATA dan merek lain ditolak kode, dan fakta katalog tetap ikut. Nilai
+(`PRODUCT_FAQ_SYSTEM_PROMPT` + `ReplyWriter`): sifat umum tiap keluarga bahan datang dari primer milik
+kode (`material-primer.ts`, tanpa angka — OQ-45), model hanya merangkainya bersama fakta katalog; angka
+di luar DATA dan merek lain ditolak kode, dan fakta katalog yang tidak disebut model ditempel. Nilai
 spesifikasi produk yang tidak ada di katalog aktif tetap dikatakan tidak ada, tidak dijawab dari ingatan model.
 
 ## 5. RAG — kriteria adopsi

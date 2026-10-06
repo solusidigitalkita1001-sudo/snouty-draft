@@ -18,6 +18,7 @@ import type { AiService } from '../../ai/domain/ai.port.js';
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
+import { primersFor } from './material-primer.js';
 import { endEvent } from './message-pipeline.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, PRODUCT_ANSWER_COPY } from './product-answer-text.js';
@@ -53,24 +54,26 @@ export async function runProductQuestion(
   const finish = async (
     conceptual: boolean,
     products: readonly Product[],
+    query: string | null = null,
   ): Promise<readonly AssistantStreamEvent[]> => {
-    const factsText = facts.join('\n\n');
-    let text = factsText;
-    if (conceptual && reply && faqPrompt) {
-      const written = await reply.write({
-        intent: 'PRODUCT_LOOKUP',
-        userMessage: input.message,
-        recentTurns: input.recentTurns ?? [],
-        facts: factsText,
-        fallback: factsText,
-        systemPrompt: faqPrompt,
-      });
-      // Fakta katalog tetap tampil bila penjelasan model tidak menyebut satu pun produknya.
-      const mentionsCatalog = products.some((p) => written.text.includes(p.name));
-      text =
-        written.source === 'llm' && !mentionsCatalog && products.length > 0
-          ? `${written.text}\n\n${factsText}`
-          : written.text;
+    let text = facts.join('\n\n');
+    if (conceptual) {
+      // Sifat bahan datang dari primer milik kode (material-primer.ts), bukan ingatan model —
+      // 7B pernah menukar mana yang lentur. Tanpa model, primer + fakta katalog itulah jawabannya.
+      const primer = primersFor(input.message, query);
+      const data = [...primer, ...facts].join('\n\n');
+      text = data;
+      if (reply && faqPrompt) {
+        const written = await reply.write({
+          intent: 'PRODUCT_LOOKUP',
+          userMessage: input.message,
+          recentTurns: input.recentTurns ?? [],
+          facts: data,
+          fallback: data,
+          systemPrompt: faqPrompt,
+        });
+        text = written.source === 'llm' ? withUncoveredFacts(written.text, facts, products) : data;
+      }
     }
     events.splice(1, 0, { type: 'token', text });
     events.push(endEvent(input.messageId));
@@ -94,8 +97,8 @@ export async function runProductQuestion(
   if (products.length === 0) {
     facts.push(PRODUCT_ANSWER_COPY.notInCatalog(parsed.productQuery));
     events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } });
-    // Produk tidak ada di katalog, tetapi pertanyaan konsep tetap bisa dijelaskan umum.
-    return finish(parsed.aspect === null, []);
+    // Produk tidak ada di katalog, tetapi pertanyaan konsep tetap bisa dijelaskan dari primer.
+    return finish(parsed.aspect === null, [], parsed.productQuery);
   }
   // "PVC dan HDPE" dengan HDPE tidak ada: katakan yang tidak ada, jangan diam-diam
   // menjawab separuh seolah itu seluruh pertanyaannya.
@@ -122,7 +125,26 @@ export async function runProductQuestion(
   }
 
   events.push({ type: 'card', card: { kind: 'product', products: products.map(toCard) } });
-  return finish(parsed.aspect === null, products);
+  return finish(parsed.aspect === null, products, parsed.productQuery);
+}
+
+/**
+ * Fakta katalog yang tidak tercermin di tulisan model ditempel di bawahnya: ikhtisar produk
+ * bila namanya tidak disebut, kalimat "tidak ada di katalog" bila katalog tidak disinggung.
+ * Yang sudah disebut tidak diulang — jawaban yang menyebut hal yang sama dua kali terbaca mesin.
+ */
+function withUncoveredFacts(
+  written: string,
+  facts: readonly string[],
+  products: readonly Product[],
+): string {
+  const lower = written.toLowerCase();
+  const uncovered = facts.filter((fact) => {
+    if (fact.includes('tidak ada di katalog')) return !lower.includes('katalog');
+    if (fact === PRODUCT_ANSWER_COPY.comparisonIntro) return false;
+    return !products.some((p) => fact.includes(p.name) && written.includes(p.name));
+  });
+  return [written, ...uncovered].join('\n\n');
 }
 
 /**
