@@ -87,6 +87,13 @@ function gateProvenance(out: EngineOutput, rule: RuleVersion): Provenance {
 
 Status semua: `REQUIRES_DOMAIN_VALIDATION`. Kolom "Asal" menunjukkan dari mana angkanya diambil.
 
+**Registry asumsi terpusat (Fase 14).** Angka default yang dipakai aturan — debit satuan irigasi,
+kecepatan rencana, tinggi antar lantai, ambang HDPE, jarak lateral, koefisien Hazen-Williams —
+tidak lagi hidup sebagai konstanta di dalam berkas aturan, melainkan di
+`packages/engineering/src/parameters/assumptions.ts` dengan **ID**, rujukan, keyakinan, dan kalimat
+untuk pengguna. Aturan membacanya lewat `assumption(id).value`. Mengubah satu angka = mengubah satu
+entri, dan kartu asumsi di layar solusi menampilkan ID yang sama. Rincian: `docs/CONTEXT_ENGINE.md` §11.
+
 ### Kelompok A — Beban dan sizing
 
 #### ENG-001 · Unit beban fixture dan jumlah titik air

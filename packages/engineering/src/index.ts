@@ -76,6 +76,43 @@ export type {
   SourceElevation,
 } from './rules/group-e-irrigation.js';
 
+// ── Fase 1 asisten teknik umum: registry parameter, asumsi, ketergantungan, kesiapan ──
+export { PARAMETERS, isParameterKey, parameterDefinition } from './parameters/registry.js';
+export type {
+  ParameterDefinition,
+  ParameterDomain,
+  ParameterImportance,
+  ParameterKey,
+  ParameterKind,
+} from './parameters/registry.js';
+export {
+  ASSUMPTIONS,
+  apply as applyAssumption,
+  assumption,
+  assumptionsFor,
+} from './parameters/assumptions.js';
+export type {
+  AppliedAssumption,
+  AssumptionConfidence,
+  AssumptionDefinition,
+} from './parameters/assumptions.js';
+export {
+  DEPENDENCIES,
+  improvingInputsFor,
+  isCalculatedKey,
+  missingInputsFor,
+} from './parameters/dependencies.js';
+export type { CalculatedKey, Dependency } from './parameters/dependencies.js';
+export { OUTPUT_REQUIREMENTS, resolveReadiness } from './parameters/readiness.js';
+export type {
+  OutputKey,
+  OutputRequirement,
+  Readiness,
+  ReadinessInput,
+  ReadinessReport,
+} from './parameters/readiness.js';
+
+export { HDPE_FROM_METERS, irrigationDutyAssumptionId } from './rules/group-e-irrigation.js';
 export { computeIrrigation } from './compute-irrigation.js';
 export type { IrrigationInput, IrrigationResult } from './compute-irrigation.js';
 

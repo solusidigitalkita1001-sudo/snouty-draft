@@ -286,3 +286,38 @@ Inti deterministik Context Engine terbangun penuh dan teruji, tanpa satu pun pan
 Belum: §9 #11 (pemindahan snapshot saat registrasi tamu) menunggu alur register penuh — penautan
 kepemilikan percakapan (G-1) sudah ada, tetapi uji khusus snapshot menyusul bersama layar register
 (terhalang OQ-21). Prosa penjelas + invarian REC-1 datang bersama pipeline rekomendasi (Fase 7).
+
+## 11. Kosakata parameter universal dan kesiapan per keluaran (Fase 14)
+
+`RequirementState` (§2) lahir untuk satu kasus: rumah tinggal. Asisten teknik umum (brief 2026-10-06,
+`docs/ENGINEERING_ASSISTANT_ASSESSMENT.md`) butuh satu kosakata untuk semua kasus — irigasi, transfer
+pompa, gravitasi, air hujan, gorong-gorong — dan jawaban "apa yang masih kurang" yang berbeda untuk
+tiap keluaran. Fase 14 menambah lapisan ini **tanpa mengganti** state lama:
+
+- **`ParameterRegistry`** (`packages/engineering/src/parameters/registry.ts`) — ±60 kunci universal
+  (`design_flow`, `static_head`, `route_length`, `catchment_area`, …) dengan satuan, bentuk nilai,
+  importance, alasan, dan **redaksi pertanyaan dalam bahasa pengguna** ("Sumber air kira-kira berapa
+  meter lebih rendah atau lebih tinggi dari titik tujuan?", bukan "Masukkan static head"). Tidak ada
+  nilai di registry.
+- **`EngineeringAssumptionRegistry`** (`parameters/assumptions.ts`) — setiap angka yang dipakai
+  perhitungan tanpa diberikan pengguna punya **ID**, rujukan, keyakinan, dan kalimat yang dilihat
+  pengguna: `IRRIGATION_PRELIMINARY_FLOW_SPRINKLER` (0,8 l/s/ha), `DESIGN_VELOCITY_PLASTIC` (1,5 m/s),
+  `FLOOR_HEIGHT_3_5M`, `HDPE_MAIN_FROM_200M`, `LATERAL_SPACING_25M`, `HAZEN_WILLIAMS_C_PLASTIC`, ….
+  Aturan membaca nilainya dari sini (ENG-101/104/105, `computeIrrigation`), bukan konstanta lokal.
+  Semua `confirmationRequired: true` sampai tim teknis Pralon memvalidasi.
+- **Grafik ketergantungan** (`parameters/dependencies.ts`) — keluaran kalkulasi ← masukan, transitif:
+  `pump_duty` ← `design_flow` + `total_dynamic_head` ← `static_head` + `friction_loss` ← ….
+  `missingInputsFor(output, available)` menjawab "untuk menghitung X, apa yang kurang".
+- **`ReadinessResolver`** (`parameters/readiness.ts`) — kesiapan **per keluaran**
+  (`material_selection`, `pipe_sizing`, `pump_sizing`, `network_layout`, `bom`, `product_matching`):
+  `ready` (semua masukan wajib dari pengguna/perhitungan), `partial` (lewat asumsi, atau masih ada
+  masukan yang memperbaiki), `missing_data`. Pemilihan bahan bisa `ready` saat sizing pompa masih
+  `missing_data` — tidak ada lagi satu boolean "lengkap" untuk semua.
+- **`engineeringStateFrom(RequirementState)`** (`apps/api/.../recommendation/domain/engineering-state.ts`)
+  — proyeksi murni state lama (jalur bangunan dan irigasi) ke parameter universal: nilai pengguna
+  `known`, default/rentang `assumed`, daftar asumsi registry yang akan dipakai, dan laporan kesiapan.
+  Kartu "Asumsi yang digunakan" irigasi kini memuat baris beridentitas (`assumptionId`).
+
+Yang belum (fase berikutnya): profil kasus + klasifikasi kasus (fase 2), kalkulator hidraulik umum
+(fase 3–4), pemilih pertanyaan dari grafik ketergantungan dan tampilan kesiapan di layar solusi
+(fase 6). Meter 4 segmen §5 tetap berlaku untuk jalur bangunan sampai fase 6 menggantinya.

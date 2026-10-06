@@ -7,6 +7,7 @@
  * perkiraan awal yang bisa dijelaskan baris per baris, bukan desain final.
  */
 
+import { assumption } from './parameters/assumptions.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
 import type { RuleVersion } from './rule.js';
@@ -45,7 +46,7 @@ export interface IrrigationResult {
   readonly overallProvenance: Provenance;
 }
 
-const DEFAULT_VELOCITY_MS = 1.5;
+const DEFAULT_VELOCITY_MS = assumption('DESIGN_VELOCITY_PLASTIC').value as number;
 
 export function computeIrrigation(input: IrrigationInput): IrrigationResult {
   const traces: CalculationTrace[] = [];

@@ -12,6 +12,7 @@
  * kecepatan aliran pipa plastik 1–2 m/s, rumus kontinuitas Q = v·A.
  */
 
+import { assumption } from '../parameters/assumptions.js';
 import { requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
@@ -42,12 +43,25 @@ export interface DesignFlowResult {
   readonly dutyLsPerHa: number;
 }
 
-/** Debit satuan per metode — angka kriteria umum, menunggu validasi. */
-const DUTY_LS_PER_HA: Readonly<Record<IrrigationMethod, number>> = {
-  flood: 1.5,
-  sprinkler: 0.8,
-  drip: 0.5,
+/**
+ * Debit satuan per metode — dibaca dari registry asumsi terpusat, bukan konstanta lokal:
+ * angkanya tampil ke pengguna dengan ID yang sama dan diganti di satu tempat.
+ */
+const DUTY_ASSUMPTION_ID: Readonly<Record<IrrigationMethod, string>> = {
+  flood: 'IRRIGATION_PRELIMINARY_FLOW_FLOOD',
+  sprinkler: 'IRRIGATION_PRELIMINARY_FLOW_SPRINKLER',
+  drip: 'IRRIGATION_PRELIMINARY_FLOW_DRIP',
 };
+const DUTY_LS_PER_HA: Readonly<Record<IrrigationMethod, number>> = {
+  flood: assumption(DUTY_ASSUMPTION_ID.flood).value as number,
+  sprinkler: assumption(DUTY_ASSUMPTION_ID.sprinkler).value as number,
+  drip: assumption(DUTY_ASSUMPTION_ID.drip).value as number,
+};
+
+/** ID asumsi registry yang dipakai ENG-101 untuk sebuah metode. */
+export function irrigationDutyAssumptionId(method: IrrigationMethod): string {
+  return DUTY_ASSUMPTION_ID[method];
+}
 
 const METHOD_LABEL: Readonly<Record<IrrigationMethod, string>> = {
   flood: 'genangan/gravitasi',
@@ -239,8 +253,10 @@ export interface SegmentMaterialResult {
   readonly distributionFamily: 'PVC AW';
 }
 
-/** Di atas ini jalur utama (ditanam, panjang) lazim memakai HDPE gulungan. */
-const HDPE_FROM_METERS = 200;
+/** Di atas ini jalur utama (ditanam, panjang) lazim memakai HDPE gulungan (registry asumsi). */
+export const HDPE_FROM_METERS = Number(
+  /\d+/.exec(assumption('HDPE_MAIN_FROM_200M').condition)?.[0] ?? 200,
+);
 
 export const ENG_104: RuleVersion<SegmentMaterialInput, SegmentMaterialResult> = {
   ruleId: 'ENG-104',
@@ -297,8 +313,8 @@ export interface IrrigationBomResult {
   readonly lines: readonly IrrigationBomLine[];
 }
 
-/** Satu cabang distribusi tiap sekian meter header — asumsi tata letak, bukan desain lahan. */
-const BRANCH_SPACING_M = 25;
+/** Satu cabang distribusi tiap sekian meter header — asumsi tata letak (registry), bukan desain lahan. */
+const BRANCH_SPACING_M = assumption('LATERAL_SPACING_25M').value as number;
 const ROD_METERS = 4;
 
 export const ENG_105: RuleVersion<IrrigationBomInput, IrrigationBomResult> = {

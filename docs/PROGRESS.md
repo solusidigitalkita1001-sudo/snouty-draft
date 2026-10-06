@@ -553,6 +553,33 @@ pihak ketiga.** Karena itu redaksi berjalan sebelum teks menyentuh LLM, bukan se
 - [x] P13-05 Kesesuaian motion dengan prototipe (2026-10-05, dari laporan pemilik "animasi belum sesuai Claude Design") — audit seluruh `@keyframes`/`animation`/`transition`/timer prototipe vs `apps/web`: (1) `snoutyIn` .25s di setiap giliran, kartu analisis, toast; titik berpikir `snoutyPulse`; bar progres bergaris `snFlow` + lebar .5s dengan judul "Menyusun solusi Anda / Solusi siap! / Gagal"; jeda 1500 ms "Solusi siap!" sebelum solusi; toast "Solusi tersimpan" 2800 ms; onboarding `snoutyIn` 6px (bukan 8px); slide-in drawer yang tidak ada di prototipe dibuang; timer latensi palsu 620/750 ms sengaja tidak disalin. (2) **Mascot animasi penuh** diport dari prototipe — 13 mood, 42 keyframe — menggantikan PNG statis di semua tempat; `moodFor(state)` murni dengan tes dua aturan lembar mascot. `prefers-reduced-motion` tetap dihormati. Tes web 59 (+10)
 - [ ] ✋ CHECKPOINT akhir — reviewed by owner
 
+## Phase 14 — Asisten Teknik Perpipaan Umum
+
+Brief pemilik 2026-10-06 (§1–45); penilaian dan rencana 7 fase di
+`docs/ENGINEERING_ASSISTANT_ASSESSMENT.md`. Prinsip: solusi dulu, produk kemudian; tidak ada angka
+tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
+
+- [x] P14-01 Fase 1 — State & registry (2026-10-06). `packages/engineering/src/parameters/`:
+      `ParameterRegistry` (±60 kunci universal, satuan, importance, pertanyaan bahasa pengguna),
+      `EngineeringAssumptionRegistry` (15 asumsi ber-ID + rujukan + keyakinan; ENG-101/104/105 dan
+      `computeIrrigation` membaca nilainya dari sini, bukan konstanta lokal), grafik ketergantungan
+      transitif (`missingInputsFor`), `ReadinessResolver` per keluaran (ready/partial/missing_data).
+      API: `engineeringStateFrom(RequirementState)` — proyeksi murni jalur bangunan + irigasi ke
+      parameter universal (known/assumed), asumsi yang dipakai, laporan kesiapan; kartu asumsi irigasi
+      kini membawa `assumptionId`. Tes engineering 93 (+7), API rekomendasi/context 173 (+4).
+      Docs: CONTEXT_ENGINE §11, ENGINEERING_RULES §3
+- [ ] P14-02 Fase 2 — Profil kasus, klasifikasi kasus, ekstraksi konteks teknis, pemilih pertanyaan
+      dari grafik ketergantungan
+- [ ] P14-03 Fase 3 — Kalkulator inti: konversi satuan, Hazen-Williams, kerugian minor, TDH, sizing
+      pipa multi-kriteria dengan kandidat, titik kerja pompa (Q/H, tanpa mengarang pompa)
+- [ ] P14-04 Fase 4 — Manning (gravitasi), air hujan Q = C·I·A (tanpa mengarang intensitas),
+      gorong-gorong, kebutuhan jaringan cluster, zonasi bertingkat
+- [ ] P14-05 Fase 5 — Matcher produk dari kebutuhan teknis (bahan + diameter + kelas tekanan)
+- [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
+      Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
+- [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache
+- [ ] ✋ CHECKPOINT — reviewed by owner (12 skenario uji §39 + laporan akhir §45)
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

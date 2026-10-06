@@ -80,6 +80,12 @@ export interface Assumption {
    */
   readonly fieldPath: string;
   readonly ruleId?: string;
+  /**
+   * ID di registry asumsi terpusat (`packages/engineering/src/parameters/assumptions.ts`)
+   * bila nilai ini lahir dari sana — supaya asumsi yang sama tampil dengan identitas yang
+   * sama di setiap kasus dan bisa diganti nilainya di satu tempat.
+   */
+  readonly assumptionId?: string;
 }
 
 export interface Recommendation {

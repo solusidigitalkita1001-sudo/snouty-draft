@@ -26,6 +26,11 @@ import {
   computeSolution,
   type SolutionInput,
 } from '@snouty/engineering';
+import {
+  appliedAssumptionsToView,
+  engineeringStateFrom,
+  irrigationFieldFor,
+} from '../domain/engineering-state.js';
 import { irrigationInputFrom } from '../domain/irrigation-input.js';
 import {
   irrigationAssumptionsFrom,
@@ -295,6 +300,11 @@ export class AnalysisService {
       products: match.products,
       bom: irrigationBomItemsFrom(result, traces),
       assumptions: irrigationAssumptionsFrom(traces, [
+        ...appliedAssumptionsToView(
+          engineeringStateFrom(state).appliedAssumptions,
+          irrigationFieldFor,
+          'ENG-101',
+        ),
         ...inputAssumptions,
         ...requirementAssumptions,
       ]),
