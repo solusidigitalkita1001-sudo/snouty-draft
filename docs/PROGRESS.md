@@ -622,7 +622,13 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       gorong/cluster kini "kalkulator tersedia" dan parameter yang punya asumsi (kemiringan, C,
       sumber) turun dari kritis ke penting; ekstraktor membaca timbunan. Registry 34 aturan. **Belum**:
       zonasi gedung bertingkat (profil `multistorey_building_water` tetap validasi teknis)
-- [ ] P14-05 Fase 5 — Matcher produk dari kebutuhan teknis (bahan + diameter + kelas tekanan)
+- [~] P14-05 Fase 5 — Matcher produk dari kebutuhan teknis (2026-10-06, sebagian). Peran per kasus
+      sudah dinyatakan sebagai `{ role, size, family, categoryIncludes? }` dari hasil engine (pipa
+      utama/kuras/alternatif + fitting lewat kategori, OQ-48); keluarga dipilih dari bahan yang
+      disebut atau panjang jalur. **Belum**: kelas tekanan (AW/D/PN) sebagai kriteria pencocokan —
+      menunggu field tekanan kerja di master data Pralon (`docs/PRODUCT_MASTER_DATA.md` §3); golden
+      dataset kini memuat 7 kasus teknis deterministik (`expected.technical`, metrik
+      `technicalMatch` wajib 100 %)
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache

@@ -32,6 +32,16 @@ interface EvalCase {
     missingFields?: FieldPath[];
     policyOutcome?: PolicyCode | 'ALLOWED';
     route?: 'SUPPORTED' | 'TECHNICAL_VALIDATION_REQUIRED' | 'NOT_YET_SUPPORTED';
+    /**
+     * Kasus teknis umum (Fase 14): kasus yang harus terdeteksi (`null` = bukan jalur teknis) dan
+     * parameter universal yang harus terbaca dari kalimat — dinilai deterministik, tanpa model,
+     * jadi ambangnya 100 % (`technicalMatch`). `notFilled` = parameter yang TIDAK boleh terisi.
+     */
+    technical?: {
+      caseId: CaseId | null;
+      parameters?: Record<ParameterKey, number | string | boolean>;
+      notFilled?: ParameterKey[];
+    };
   };
   tags: string[];
 }

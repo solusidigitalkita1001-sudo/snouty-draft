@@ -83,6 +83,7 @@ try {
     ...(await import('../dist/modules/context/domain/completeness.js')),
     ...(await import('../dist/modules/context/domain/requirement-state.factory.js')),
     ...(await import('../dist/modules/policy/scope.js')),
+    ...(await import('../dist/modules/context/domain/technical.js')),
   };
 } catch (cause) {
   console.error('✖ `dist` belum ada atau usang. Jalankan dulu: pnpm --filter @snouty/api build');
@@ -176,7 +177,8 @@ async function runCase(c) {
   let merged = state;
   const fieldChecks = [];
   const hallucinated = [];
-  const shouldExtract = EXTRACTING.has(c.expected.intent ?? intent.intent);
+  // Kasus teknis tidak lewat ekstraksi model (pipeline pun tidak), jadi tidak dinilai di sini.
+  const shouldExtract = !c.expected.technical && EXTRACTING.has(c.expected.intent ?? intent.intent);
   if (shouldExtract) {
     let extraction = {};
     try {
@@ -221,14 +223,18 @@ async function runCase(c) {
   // 3. Kebijakan atas state ter-merge (Policy 1 dari intent, Policy 5 dari state).
   let policy;
   if (c.expected.policy !== undefined) {
+    // Urutan persis pipeline: pesaing → guna di luar cakupan (dari pesan) → cakupan dari state.
+    const useCase = m.useCasePolicy(c.input);
     const outcome =
       intent.intent === 'COMPETITOR_QUESTION'
         ? m.competitorPolicy()
-        : m.scopePolicy({
-            buildingType: merged.building.type.value,
-            installationType: merged.water.installationType.value,
-            floors: merged.building.floors.value,
-          });
+        : useCase.kind === 'policy'
+          ? useCase
+          : m.scopePolicy({
+              buildingType: merged.building.type.value,
+              installationType: merged.water.installationType.value,
+              floors: merged.building.floors.value,
+            });
     policy = outcome.kind === 'policy' ? outcome.code : 'ALLOWED';
     observed.policy = policy;
     if (policy !== c.expected.policy)
@@ -261,6 +267,38 @@ async function runCase(c) {
     }
   }
 
+  // 4b. Kasus teknis (Fase 14): klasifikasi + ekstraksi fakta tersurat — deterministik, nol model.
+  let technicalOk = null;
+  if (c.expected.technical) {
+    const caseId = m.detectTechnicalCase(c.input, state);
+    technicalOk = caseId === c.expected.technical.caseId;
+    if (!technicalOk)
+      failures.push(`kasus teknis: ${caseId}, diharapkan ${c.expected.technical.caseId}`);
+    if (caseId) {
+      const params = m.applyTechnicalFacts(state, caseId, c.input).state.useCase.parameters;
+      observed.technical = Object.fromEntries(
+        Object.entries(params).map(([key, p]) => [key, p.value]),
+      );
+      for (const [key, expectedValue] of Object.entries(c.expected.technical.parameters ?? {})) {
+        const actual = params[key]?.value ?? null;
+        if (JSON.stringify(actual) !== JSON.stringify(expectedValue)) {
+          technicalOk = false;
+          failures.push(
+            `teknis.${key}: ${JSON.stringify(actual)}, diharapkan ${JSON.stringify(expectedValue)}`,
+          );
+        }
+      }
+      for (const key of c.expected.technical.notFilled ?? []) {
+        if (params[key] !== undefined) {
+          technicalOk = false;
+          failures.push(
+            `teknis.${key} terisi ${JSON.stringify(params[key].value)} padahal tidak disebut`,
+          );
+        }
+      }
+    }
+  }
+
   // 5. Kelolosan skema pada percobaan pertama & kesesuaian routing (deterministik).
   const myCalls = calls.slice(before);
   const retries = myCalls.filter((r) => r.task === 'extraction_retry').length;
@@ -279,6 +317,7 @@ async function runCase(c) {
       missingOk: c.expected.missing ? !failures.some((f) => f.startsWith('field kurang')) : null,
       policyOk: c.expected.policy !== undefined ? policy === c.expected.policy : null,
       productOk,
+      technicalOk,
       firstTryOk: retries === 0,
       routingOk,
       calls: myCalls.length,
@@ -324,6 +363,7 @@ const hallucinationCases = results.filter(
 const missingCases = results.filter((r) => r.metrics.missingOk !== null);
 const policyCases = results.filter((r) => r.metrics.policyOk !== null);
 const productCases = results.filter((r) => r.metrics.productOk !== null);
+const technicalCases = results.filter((r) => r.metrics.technicalOk !== null);
 const extractCases = results.filter((r) => r.metrics.calls > 0);
 
 const metrics = {
@@ -339,6 +379,10 @@ const metrics = {
   ),
   policyMatch: pct(policyCases.filter((r) => r.metrics.policyOk).length, policyCases.length),
   productParse: pct(productCases.filter((r) => r.metrics.productOk).length, productCases.length),
+  technicalMatch: pct(
+    technicalCases.filter((r) => r.metrics.technicalOk).length,
+    technicalCases.length,
+  ),
   schemaFirstTry: pct(extractCases.filter((r) => r.metrics.firstTryOk).length, extractCases.length),
   routingMatch: pct(results.filter((r) => r.metrics.routingOk).length, results.length),
 };
@@ -350,6 +394,8 @@ const THRESHOLDS = {
   policyMatch: ['==', 100],
   schemaFirstTry: ['>=', 95],
   routingMatch: ['>=', 90],
+  // Deterministik (tanpa model) — tidak ada alasan meleset.
+  technicalMatch: ['==', 100],
 };
 const LABEL = {
   intentAccuracy: 'Akurasi intent',
@@ -358,6 +404,7 @@ const LABEL = {
   missingPrecision: 'Presisi field kurang',
   policyMatch: 'Kesesuaian kebijakan',
   productParse: 'Parse pertanyaan produk',
+  technicalMatch: 'Kasus teknis (klasifikasi + fakta)',
   schemaFirstTry: 'Kelolosan skema percobaan pertama',
   routingMatch: 'Kesesuaian routing',
 };

@@ -221,6 +221,104 @@
       "input": "standar SNI pipa PVC AW apa?",
       "expected": { "intent": "PRODUCT_LOOKUP", "product": { "aspect": "standard" } },
       "tags": ["intent", "product"]
+    },
+    {
+      "id": "tambak-lele-4x4",
+      "input": "gw pengen bikin tambak lele 4 x 4 meter, produk nya apa aja",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "technical": {
+          "caseId": "fish_pond",
+          "parameters": { "pond_length": 4, "pond_width": 4 },
+          "notFilled": ["route_length", "pond_depth"]
+        }
+      },
+      "tags": ["intent", "technical", "owner-2026-10-06"]
+    },
+    {
+      "id": "gorong-gorong-jalan-desa",
+      "input": "mau pasang gorong-gorong melintasi jalan desa, lebar jalan 6 m, dilewati truk, debitnya kira-kira 20 liter/detik, timbunan 50 cm",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "technical": {
+          "caseId": "culvert",
+          "parameters": {
+            "road_width": 6,
+            "traffic_load": "Truk / berat",
+            "design_flow": 20,
+            "burial_depth": 0.5
+          }
+        }
+      },
+      "tags": ["intent", "technical"]
+    },
+    {
+      "id": "transfer-pompa-sungai-tandon",
+      "input": "mau transfer air dari sungai ke tandon, jaraknya 800 m, tandonnya 12 m lebih tinggi, debit 5 liter/detik",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "technical": {
+          "caseId": "pump_transfer",
+          "parameters": {
+            "route_length": 800,
+            "static_head": 12,
+            "design_flow": 5,
+            "source_type": "Sungai / saluran"
+          }
+        }
+      },
+      "tags": ["intent", "technical"]
+    },
+    {
+      "id": "drainase-air-kotor",
+      "input": "saluran pembuangan air kotor 20 l/s, panjang 120 m, kemiringan 1%",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "technical": {
+          "caseId": "gravity_drainage",
+          "parameters": {
+            "design_flow": 20,
+            "route_length": 120,
+            "slope": 1,
+            "fluid_type": "Air limbah"
+          }
+        }
+      },
+      "tags": ["intent", "technical"]
+    },
+    {
+      "id": "air-hujan-komplek",
+      "input": "drainase air hujan komplek, tangkapan 5000 m2, hujan 100 mm/jam, kemiringan 1%",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "technical": {
+          "caseId": "stormwater",
+          "parameters": { "catchment_area": 0.5, "rainfall_intensity": 100, "slope": 1 }
+        }
+      },
+      "tags": ["intent", "technical"]
+    },
+    {
+      "id": "cluster-120-unit",
+      "input": "jaringan air bersih cluster 120 unit rumah dari reservoir, jalur 600 m, reservoirnya 8 m lebih rendah dari rumah terjauh",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "technical": {
+          "caseId": "residential_cluster",
+          "parameters": { "number_of_connections": 120, "route_length": 600, "static_head": 8 }
+        }
+      },
+      "tags": ["intent", "technical"]
+    },
+    {
+      "id": "air-panas-boiler-tetap-kebijakan",
+      "input": "pipa buat jalur air panas boiler hotel butuh apa?",
+      "expected": {
+        "intentOneOf": ["REQUIREMENT_STATEMENT", "CLARIFICATION_NEEDED"],
+        "policy": "TECHNICAL_VALIDATION_REQUIRED",
+        "technical": { "caseId": null }
+      },
+      "tags": ["policy", "technical"]
     }
   ]
 }
