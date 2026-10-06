@@ -57,10 +57,8 @@ export const CHAT_COPY = {
   /** Badge status di header: "LANGKAH n DARI 4" selama mengumpulkan data. */
   headerTitle: 'Konsultasi',
   headerWelcomeTitle: 'Konsultasi Baru',
-  /** Badge sambutan: "KATALOG PRALON · v2.4" — label versi dari `/catalog/version`. */
-  catalogBadge: (label: string) => `KATALOG PRALON · ${label}`,
-  /** Katalog aktif adalah contoh pengembangan (`kind = sample`): jangan menyebutnya Pralon. */
-  catalogBadgeSample: (label: string) => `KATALOG CONTOH · ${label}`,
+  // Badge versi katalog ("KATALOG PRALON · erp-…") dihapus 2026-10-06 atas keputusan pemilik:
+  // label impor adalah urusan back-office, bukan teks untuk pengguna.
   stepStatus: (filled: number) => `LANGKAH ${Math.min(filled + 1, 4)} DARI 4`,
   solutionReady: 'SOLUSI SIAP',
   /** Judul percakapan aktif, diturunkan dari kebutuhan (prototipe `titleFrom`). */

@@ -35,8 +35,6 @@ import { useCaseRows } from './use-case-rows';
 import { ProductLookupCards } from './product-lookup-cards';
 import {
   createConversation,
-  fetchCatalogVersion,
-  type CatalogVersionBadge,
   fetchConversation,
   fetchHistory,
   fetchRecommendation,
@@ -122,13 +120,6 @@ export function ChatWorkspace() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
   const [reopened, setReopened] = useState(false);
-  const [catalogVersion, setCatalogVersion] = useState<CatalogVersionBadge | null>(null);
-  const catalogBadge =
-    catalogVersion === null
-      ? COPY.catalogBadge('…')
-      : catalogVersion.kind === 'sample'
-        ? COPY.catalogBadgeSample(catalogVersion.label)
-        : COPY.catalogBadge(catalogVersion.label);
   const [user, setUser] = useState<CurrentUser | null>(null);
   // Mode "Ubah" panel: nilai sementara per field sampai "Selesai" dikirim sekaligus.
   const [editing, setEditing] = useState(false);
@@ -176,9 +167,6 @@ export function ChatWorkspace() {
           result?.kind === 'ok' ? { kind: 'list', items: result.items } : { kind: 'guest' },
         );
       });
-    void fetchCatalogVersion().then((version) => {
-      if (!cancelled) setCatalogVersion(version);
-    });
     return () => {
       cancelled = true;
     };
@@ -708,14 +696,11 @@ export function ChatWorkspace() {
             <span className={styles.headerTitle}>
               {inConversation ? (activeTitle ?? COPY.headerTitle) : COPY.headerWelcomeTitle}
             </span>
-            {/* Badge mono berbingkai: versi katalog di sambutan, "LANGKAH n DARI 4" saat mengumpulkan. */}
-            {!mobile && (
+            {/* Badge mono berbingkai: "LANGKAH n DARI 4" saat mengumpulkan, "SOLUSI SIAP" setelahnya.
+                Di sambutan tidak ada badge — label versi katalog bukan teks untuk pengguna. */}
+            {!mobile && inConversation && (
               <span className={styles.headerStatus}>
-                {solution !== null
-                  ? COPY.solutionReady
-                  : inConversation
-                    ? COPY.stepStatus(filled)
-                    : catalogBadge}
+                {solution !== null ? COPY.solutionReady : COPY.stepStatus(filled)}
               </span>
             )}
           </div>

@@ -216,24 +216,6 @@ export async function fetchRequirement(id: string): Promise<RequirementState | n
   return ((await response.json()) as { state: RequirementState | null }).state;
 }
 
-export interface CatalogVersionBadge {
-  readonly label: string;
-  /** `sample` = katalog contoh pengembangan; badge-nya tidak boleh berbunyi "KATALOG PRALON". */
-  readonly kind: 'pralon' | 'sample';
-}
-
-/** Versi katalog aktif — badge "KATALOG PRALON · v2.4" (atau "KATALOG CONTOH · …") di sambutan. */
-export async function fetchCatalogVersion(): Promise<CatalogVersionBadge | null> {
-  try {
-    const response = await fetch(`${BASE}/catalog/version`, { credentials: 'include' });
-    if (!response.ok) return null;
-    const { label, kind } = (await response.json()) as CatalogVersionBadge;
-    return { label, kind: kind === 'sample' ? 'sample' : 'pralon' };
-  } catch {
-    return null;
-  }
-}
-
 export interface ClarificationResult {
   readonly state: RequirementState;
   /** Ringkasan jawaban, jadi gelembung pengguna — "Sumber air: Toren atap · …". */
