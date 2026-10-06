@@ -8,9 +8,13 @@
  * pada model mana yang sedang dipakai.
  */
 
-/** Pesan membawa isyarat kebutuhan bangunan/instalasi. */
+/**
+ * Pesan membawa isyarat kebutuhan bangunan/instalasi — termasuk jenis instalasi (drainase,
+ * irigasi, limbah) dan kata "proyek": "rekomendasi produk buat proyek drainase sawah" adalah
+ * kebutuhan (yang lalu ditolak kebijakan cakupan), bukan pertanyaan produk.
+ */
 const REQUIREMENT_SIGNALS =
-  /\b(lantai|kamar mandi|wastafel|dapur|toren|tandon|pdam|sumur|pompa|rumah|ruko|kos|kost|gedung|pabrik|titik air|keran)\b/i;
+  /\b(lantai|kamar mandi|wastafel|dapur|toren|tandon|pdam|sumur|pompa|rumah|ruko|kos|kost|gedung|pabrik|gudang|kantor|sekolah|hotel|titik air|keran|drainase|irigasi|limbah|saluran|pembuangan|air bersih|proyek|project|instalasi|sawah|kebun)\b/i;
 
 /** Pesan meminta pilihan/rekomendasi, bukan definisi. */
 const ADVICE_SIGNALS =

@@ -17,7 +17,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { Intent } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import type { IntentClassification } from '../../ai/domain/extraction-schema.js';
-import { hasRequirementSignals } from '../domain/message-signals.js';
+import { asksAdvice, hasRequirementSignals } from '../domain/message-signals.js';
 import type { ReplyTurn } from './reply-writer.js';
 
 /** Label model yang kalah oleh isyarat kebutuhan di teks — lihat `withRequirementPrecedence`. */
@@ -41,7 +41,12 @@ export function withRequirementPrecedence(
   const yields =
     YIELDS_TO_REQUIREMENT.has(classification.intent) ||
     classification.confidence < INTENT_CONFIDENCE_THRESHOLD;
-  if (!yields || !hasRequirementSignals(message)) return classification;
+  // Permintaan REKOMENDASI ("rekomendasi produk buat …") bukan lookup: tanpa kebutuhan yang
+  // diekstrak tidak ada yang bisa direkomendasikan, dan "Produk mana yang Anda maksud?" adalah
+  // jawaban yang salah untuknya (laporan pemilik 2026-10-06, "drainase sawah").
+  const recommendationAsLookup = classification.intent === 'PRODUCT_LOOKUP' && asksAdvice(message);
+  if (!recommendationAsLookup && (!yields || !hasRequirementSignals(message)))
+    return classification;
   return {
     intent: 'REQUIREMENT_STATEMENT',
     confidence: Math.max(classification.confidence, INTENT_CONFIDENCE_THRESHOLD),

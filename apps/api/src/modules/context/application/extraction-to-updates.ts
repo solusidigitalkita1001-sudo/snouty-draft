@@ -37,6 +37,14 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
 const OBVIOUS = {
   floors: (m: string) => intAfter(/\b(\d{1,2})\s*(?:lantai|lt)\b/i, m),
   bathrooms: (m: string) => intAfter(/\b(\d{1,2})\s*(?:kamar mandi|km|toilet)\b/i, m),
+  installationType: (m: string): NonNullable<Extraction['water']>['installationType'] => {
+    const drainage = /\b(drainase|pembuangan|limbah|saluran air kotor|irigasi)\b/i.test(m);
+    const clean = /\bair bersih\b/i.test(m);
+    if (drainage && clean) return 'both';
+    if (drainage) return 'drainage';
+    if (clean) return 'clean_water';
+    return undefined;
+  },
   type: (m: string): NonNullable<Extraction['building']>['type'] => {
     if (/\b(kos|kost|kos-kosan)\b/i.test(m)) return 'boarding_house';
     if (/\b(pabrik|industri|gudang)\b/i.test(m)) return 'industrial';
@@ -75,7 +83,10 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   add('fixtures.outletCount', extraction.fixtures?.outletCount);
 
   add('water.source', extraction.water?.source);
-  add('water.installationType', extraction.water?.installationType);
+  add(
+    'water.installationType',
+    extraction.water?.installationType ?? OBVIOUS.installationType(message),
+  );
   add('water.boosterPump', extraction.water?.boosterPump);
 
   return updates;
