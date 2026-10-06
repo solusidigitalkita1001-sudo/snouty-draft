@@ -232,6 +232,10 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
     expect(card.card.slaHours).toBe(24);
     // Kebutuhan dibawa serta supaya tidak diulang ke tim teknis.
     expect((card.card.captured ?? []).length).toBeGreaterThan(0);
+    // Bahasa pengguna, bukan path/enum: "Tipe bangunan: Industri", bukan "building.type: industrial".
+    expect(card.card.captured).toContainEqual({ label: 'Tipe bangunan', value: 'Industri' });
+    expect(card.card.captured).toContainEqual({ label: 'Jumlah lantai', value: '2 lantai' });
+    expect(card.card.captured).toContainEqual({ label: 'Sumber air', value: 'Pompa' });
   });
 
   it('pembuangan: belum didukung penuh walaupun data inti lengkap', async () => {

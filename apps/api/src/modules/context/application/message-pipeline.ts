@@ -32,6 +32,7 @@ import { mergeRequirement } from '../domain/context-merger.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
 import { asksAdvice } from '../domain/message-signals.js';
+import { FIELD_LABEL, requirementValueLabel } from '../domain/requirement-labels.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsIn } from './pipe-knowledge.js';
@@ -185,7 +186,9 @@ export function followUpCard(merged: RequirementState): AssistantCard | null {
 function capturedFrom(state: RequirementState): readonly KeyValue[] {
   const rows: KeyValue[] = [];
   for (const [path, field] of fieldEntries(state)) {
-    if (field.value !== null) rows.push({ label: path, value: String(field.value) });
+    if (field.value !== null) {
+      rows.push({ label: FIELD_LABEL[path], value: requirementValueLabel(path, field.value) });
+    }
   }
   return rows;
 }
