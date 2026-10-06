@@ -5,7 +5,7 @@
  * Plus Policy 5 scope routing (SPEC §5).
  */
 import { describe, expect, it } from 'vitest';
-import { competitorPolicy, NEUTRAL_CRITERIA, scopePolicy } from './scope.js';
+import { competitorPolicy, NEUTRAL_CRITERIA, scopePolicy, useCasePolicy } from './scope.js';
 
 describe('Policy 1 — hanya Pralon (RELEASE BLOCKER)', () => {
   it('pertanyaan kompetitor menghasilkan penolakan perbandingan, bukan rekomendasi', () => {
@@ -40,6 +40,15 @@ describe('Policy 5 — scope routing', () => {
     installationType: 'clean_water' as const,
     floors: 2,
   };
+
+  it('guna di luar cakupan dari pesannya (irigasi sawah, tambak, air panas) → validasi teknis; rumah → didukung', () => {
+    const irrigation = useCasePolicy(
+      'untuk bikin irigasi sawah dengan luas 1 hektar itu yang dibutuhin apa aja product nya?',
+    );
+    expect(irrigation).toMatchObject({ kind: 'policy', code: 'TECHNICAL_VALIDATION_REQUIRED' });
+    expect(useCasePolicy('jalur air panas boiler hotel').kind).toBe('policy');
+    expect(useCasePolicy('rumah 2 lantai, 3 kamar mandi, toren atap').kind).toBe('supported');
+  });
 
   it('air bersih rumah tinggal 2 lantai: didukung', () => {
     expect(scopePolicy(base).kind).toBe('supported');

@@ -27,6 +27,27 @@ export type PolicyOutcome =
  * bentuk yang membuat "tidak ada kartu produk kompetitor" mustahil dilanggar lewat
  * jalur ini.
  */
+/**
+ * Guna yang jelas-jelas di luar cakupan "air bersih bangunan" — irigasi, pertanian, tambak,
+ * kolam, air panas/uap, industri proses — dikenali dari PESANNYA, sebelum ekstraksi: tidak ada
+ * field kebutuhan yang mewakilinya, dan menanyakan "berapa kamar mandi?" kepada petani sawah
+ * adalah jawaban yang salah (laporan pemilik 2026-10-06, "irigasi sawah 1 hektar").
+ */
+const OUT_OF_SCOPE_USE =
+  /\b(irigasi|sawah|kebun|perkebunan|pertanian|tambak|kolam|peternakan|air panas|uap|boiler|air laut|kimia|gas|minyak|bahan bakar)\b/i;
+
+export function useCasePolicy(message: string): PolicyOutcome {
+  if (!OUT_OF_SCOPE_USE.test(message)) return { kind: 'supported' };
+  return {
+    kind: 'policy',
+    code: 'TECHNICAL_VALIDATION_REQUIRED',
+    reasons: [
+      'Kebutuhan ini di luar cakupan rekomendasi otomatis SNOUTY (air bersih untuk rumah tinggal dan bangunan komersial kecil).',
+      'Irigasi, pertanian, dan jalur khusus lainnya memerlukan perhitungan tim teknis Pralon — kebutuhan Anda akan diteruskan.',
+    ],
+  };
+}
+
 export function competitorPolicy(): PolicyOutcome {
   return {
     kind: 'policy',

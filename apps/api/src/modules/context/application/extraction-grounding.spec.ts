@@ -34,7 +34,7 @@ describe('extractionToUpdates — fakta tersurat yang dilewatkan model', () => {
     expect(extractionToUpdates({}, 'apa bedanya pvc sama hdpe?')).toEqual([]);
   });
 
-  it('jenis instalasi tersurat ("drainase sawah") terbaca walau model mengembalikan {}', () => {
+  it('jenis instalasi tersurat ("drainase") terbaca walau model mengembalikan {}', () => {
     expect(extractionToUpdates({}, 'rekomendasi product buat project drainase sawah')).toEqual([
       { path: 'water.installationType', value: 'drainage', source: 'user_stated' },
     ]);

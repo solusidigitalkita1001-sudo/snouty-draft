@@ -91,6 +91,23 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect((events[5] as { card: { kind: string } }).card.kind).toBe('clarification');
   });
 
+  it('guna di luar cakupan ("irigasi sawah 1 hektar"): kartu validasi teknis, TANPA ekstraksi dan tanpa klarifikasi kamar mandi', async () => {
+    const ai = aiExtracting({});
+    const { events, changed } = await runUnderstanding(
+      ai,
+      input({
+        message:
+          'untuk bikin irigasi sawah dengan luas 1 hektar itu yang dibutuhin apa aja product nya?',
+      }),
+    );
+    expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    expect(events.map((e) => e.type)).toEqual(['message.start', 'card', 'message.end']);
+    const card = (events[1] as { card: { kind: string; reasons?: string[] } }).card;
+    expect(card.kind).toBe('unsupported');
+    expect(card.reasons?.[0]).toContain('di luar cakupan rekomendasi otomatis');
+    expect(changed).toBe(false);
+  });
+
   it('pernyataan kebutuhan biasa tetap tanpa teks tambahan', async () => {
     const ai = aiExtracting({ building: { floors: 2 }, fixtures: { bathrooms: 3 } });
     const { events } = await runUnderstanding(

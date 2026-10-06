@@ -38,7 +38,9 @@ const OBVIOUS = {
   floors: (m: string) => intAfter(/\b(\d{1,2})\s*(?:lantai|lt)\b/i, m),
   bathrooms: (m: string) => intAfter(/\b(\d{1,2})\s*(?:kamar mandi|km|toilet)\b/i, m),
   installationType: (m: string): NonNullable<Extraction['water']>['installationType'] => {
-    const drainage = /\b(drainase|pembuangan|limbah|saluran air kotor|irigasi)\b/i.test(m);
+    // Irigasi/pertanian BUKAN "drainage": ia di luar cakupan dan ditangani kebijakan guna
+    // (policy/scope.ts `useCasePolicy`) sebelum ekstraksi.
+    const drainage = /\b(drainase|pembuangan|limbah|saluran air kotor)\b/i.test(m);
     const clean = /\bair bersih\b/i.test(m);
     if (drainage && clean) return 'both';
     if (drainage) return 'drainage';

@@ -25,7 +25,7 @@ import type {
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
 import { policyCard } from '../../policy/policy-cards.js';
-import { competitorPolicy, scopePolicy } from '../../policy/scope.js';
+import { competitorPolicy, scopePolicy, useCasePolicy } from '../../policy/scope.js';
 import { assumptionCard } from '../domain/requirement-defaults.js';
 import { planClarification } from '../domain/clarification.js';
 import { mergeRequirement } from '../domain/context-merger.js';
@@ -98,6 +98,17 @@ export async function runUnderstanding(
         : { text: fallback };
       events.push({ type: 'token', text: written.text });
     }
+    events.push(endEvent(input.messageId));
+    return { events, nextState: input.state, changed: false, trigger: 'extraction' };
+  }
+
+  // Guna di luar cakupan (irigasi sawah, tambak, air panas) diputuskan dari pesannya SEBELUM
+  // ekstraksi: tidak ada field yang mewakilinya, dan kartu klarifikasi "berapa kamar mandi?"
+  // adalah jawaban yang salah untuk petani. Kebijakan menang, state tidak disentuh.
+  const useCase = useCasePolicy(input.message);
+  if (useCase.kind === 'policy') {
+    const card = policyCard(useCase, capturedFrom(input.state));
+    if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
   }
