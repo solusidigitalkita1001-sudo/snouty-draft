@@ -74,6 +74,20 @@ describe('extractionToUpdates — grounding', () => {
     ).not.toContain('fixtures.outletCount');
   });
 
+  it('sumber air dan jenis instalasi butuh penanda — "rumah baru 1 lantai" tidak menyebut PDAM', () => {
+    const invented = extractionToUpdates(
+      { water: { source: 'municipal', installationType: 'clean_water' } },
+      'Instalasi air bersih untuk rumah baru 1 lantai',
+    ).map((u) => u.path);
+    expect(invented).not.toContain('water.source');
+    expect(invented).toContain('water.installationType');
+    expect(
+      extractionToUpdates({ water: { source: 'municipal' } }, 'airnya dari PDAM').map(
+        (u) => u.path,
+      ),
+    ).toContain('water.source');
+  });
+
   it('tanpa pesan (pemanggil lama) tidak ada yang dibuang', () => {
     expect(extractionToUpdates({ building: { floorHeightM: 3 } })).toHaveLength(1);
   });

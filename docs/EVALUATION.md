@@ -119,6 +119,34 @@ pnpm eval --compare <baseline> # bandingkan dengan hasil tersimpan
 Keluaran: tabel per metrik, rincian per field, dan daftar kasus yang gagal beserta keluaran
 sebenarnya. Hasil disimpan sehingga dua model atau dua versi prompt bisa dibandingkan langsung.
 
+_Status 2026-10-06 (P13-04):_ runner-nya `apps/api/scripts/eval.mjs`, dataset `apps/api/evals/cases.json`
+(18 kasus: 14 dari §2 + 4 dari laporan pemilik 5–6 Okt). Ia memakai adapter dan pipa yang **sama**
+dengan produksi dari `dist/` — `OpenRouterAiService` → presedensi kebutuhan → grounding → merge →
+kelengkapan → kebijakan — jadi yang diukur adalah model + prompt + pagar kode bersama. Butuh
+`pnpm --filter @snouty/api build` lebih dulu dan variabel LLM di `.env` (dibaca otomatis). Respons
+di-cache per hash di `apps/api/.eval-cache/` (`--no-cache` untuk memaksa), hasil ke
+`apps/api/evals/results/<waktu>-<model>.json` (keduanya di luar git). Ambang §3 ditegakkan: keluar
+dengan kode 1 bila ada yang gagal atau regresi > 2 poin terhadap `--compare`. Satu metrik
+tambahan di luar §3: **parse pertanyaan produk** (aspek/ukuran), karena jalur FAQ/lookup kini ada.
+Kasus `prior` membentuk state lewat `mergeRequirement` (deterministik), bukan lewat giliran model.
+
+**Baseline pertama — qwen2.5:7b-instruct (Ollama, CPU laptop), 2026-10-06, 18 kasus, 41 panggilan,
+501 s latensi model:** 10/18 kasus lolos. Intent 88,9% · per field 82,1% · halusinasi 14,3% ·
+presisi field kurang 50% · kebijakan 100% · parse produk 100% · skema lolos percobaan pertama
+55,6% · routing 100%. Yang terbaca dari rinciannya:
+
+- Halusinasi satu-satunya ("rumah baru 1 lantai" → `source: municipal`) ditutup di kode hari itu
+  juga: `water.source` dan `water.installationType` kini butuh penanda di pesan (grounding).
+- Kelolosan skema 55,6% adalah sifat model 7B: ekstraksi gagal validasi dua kali pada
+  "tidak ada dapur" (`kitchens: 0`) dan "kos 3 lantai … pompa dari sumur". Ini metrik pemilihan
+  model, bukan kode — model yang lebih besar (14B di server cp-1, atau model berbayar) diukur
+  dengan runner yang sama dan dibandingkan lewat `--compare`.
+- "pipa" dilabeli `REQUIREMENT_STATEMENT` dan "PDAM" (jawaban klarifikasi) `REQUIREMENT_STATEMENT`
+  — yang kedua tidak mengubah hasil (keduanya mengekstrak), yang pertama berarti pertanyaan balik
+  tidak muncul. Keduanya kandidat perbaikan prompt intent; belum disentuh supaya baseline jujur.
+
+Ambang §3 adalah ambang **rilis** — model yang tidak melewatinya tidak dipakai di produksi.
+
 ### Di CI
 
 Berjalan bila ada perubahan pada berkas terkait AI: prompt, skema ekstraksi, routing model, intent
@@ -127,6 +155,13 @@ perubahan CSS tidak mengubah akurasi ekstraksi.
 
 Menggagalkan build bila: ambang mana pun turun, atau ada regresi terhadap baseline > 2 poin
 persentase.
+
+Job `evals` di `ci.yml` dinyalakan pemilik lewat variabel repositori `EVAL_ENABLED=true` + secret
+`OPENROUTER_API_KEY` (+ variabel `OPENROUTER_BASE_URL`, `LLM_MODEL_FAST/BALANCED/STRONG`); tanpa
+itu job dilewati. Ia memeriksa sendiri apakah berkas AI berubah (`ai/`, `context/`, `policy/`,
+`evals/`, `scripts/eval.mjs`) dan mengunggah hasilnya sebagai artefak. Ollama lokal tidak bisa
+dipakai dari CI — baseline lokal disimpan dan dibandingkan manual sampai ada model yang terjangkau
+dari GitHub (OQ-09: ID model Pralon).
 
 ---
 

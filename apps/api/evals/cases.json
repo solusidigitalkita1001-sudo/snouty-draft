@@ -1,0 +1,202 @@
+{
+  "$comment": "Golden dataset evaluasi AI (docs/EVALUATION.md §2). Direview seperti kode. `prior` = pembaruan user_stated yang membentuk state sebelum pesan (kasus multi-giliran); `expected.requirement` = field yang HARUS terisi dengan nilai itu; `expected.notFilled` = field yang TIDAK BOLEH terisi (halusinasi); `expected.missing` = daftar field inti yang masih kurang setelah merge; `expected.policy` = hasil kebijakan atas state ter-merge; `expected.product` = hasil parse pertanyaan produk (hanya untuk PRODUCT_LOOKUP).",
+  "cases": [
+    {
+      "id": "rumah-2-lantai-lengkap",
+      "input": "Rumah 2 lantai dengan 3 kamar mandi, 4 wastafel, 1 dapur, air bersih, toren di atap",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "requirement": {
+          "building.type": "residential",
+          "building.floors": 2,
+          "fixtures.bathrooms": 3,
+          "fixtures.basins": 4,
+          "fixtures.kitchens": 1,
+          "water.installationType": "clean_water",
+          "water.source": "rooftop_tank"
+        },
+        "notFilled": [
+          "building.floorHeightM",
+          "building.dimensions",
+          "fixtures.outletCount",
+          "water.boosterPump"
+        ],
+        "missing": [],
+        "policy": "ALLOWED"
+      },
+      "tags": ["extraction", "design"]
+    },
+    {
+      "id": "rumah-2-lantai-sebagian",
+      "input": "Saya sedang bangun rumah 2 lantai dengan 3 kamar mandi, 4 wastafel, 1 dapur, dan toren di atap. Apa saja yang saya butuhkan?",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "requirement": {
+          "building.floors": 2,
+          "fixtures.bathrooms": 3,
+          "fixtures.basins": 4,
+          "fixtures.kitchens": 1,
+          "water.source": "rooftop_tank"
+        },
+        "notFilled": ["water.installationType", "building.floorHeightM", "building.dimensions"],
+        "missing": ["water.installationType"],
+        "policy": "ALLOWED"
+      },
+      "tags": ["extraction", "design"]
+    },
+    {
+      "id": "toren-lantai-2",
+      "input": "Saya punya toren di lantai 2, pipa apa yang cocok?",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "requirement": {},
+        "notFilled": ["building.floors", "fixtures.bathrooms", "building.floorHeightM"],
+        "policy": "ALLOWED"
+      },
+      "tags": ["extraction", "hallucination", "design"]
+    },
+    {
+      "id": "pertanyaan-merek",
+      "input": "Lebih bagus Pralon atau Rucika?",
+      "expected": { "intent": "COMPETITOR_QUESTION", "policy": "COMPETITOR_COMPARISON_REFUSED" },
+      "tags": ["intent", "policy", "design"]
+    },
+    {
+      "id": "jalur-pabrik",
+      "input": "Jalur air proses pabrik, suhu 70°C, panjang 200 meter",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "requirement": { "building.type": "industrial" },
+        "policy": "TECHNICAL_VALIDATION_REQUIRED"
+      },
+      "tags": ["extraction", "policy", "design"]
+    },
+    {
+      "id": "rumah-1-lantai",
+      "input": "Instalasi air bersih untuk rumah baru 1 lantai",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "requirement": {
+          "building.type": "residential",
+          "building.floors": 1,
+          "water.installationType": "clean_water"
+        },
+        "notFilled": ["fixtures.bathrooms", "water.source", "building.floorHeightM"],
+        "missing": ["water.source", "fixtures.bathrooms"],
+        "policy": "ALLOWED"
+      },
+      "tags": ["extraction", "design"]
+    },
+    {
+      "id": "mutasi-kebutuhan",
+      "input": "Kalau kamar mandi saya tambah satu?",
+      "prior": { "building.type": "residential", "building.floors": 2, "fixtures.bathrooms": 3 },
+      "expected": { "intent": "REQUIREMENT_MUTATION" },
+      "tags": ["intent", "design"]
+    },
+    {
+      "id": "pertanyaan-penjelasan",
+      "input": "Kenapa pakai ukuran 1 inci di jalur utama?",
+      "prior": { "building.type": "residential", "building.floors": 2, "fixtures.bathrooms": 3 },
+      "expected": { "intent": "EXPLANATION_REQUEST" },
+      "tags": ["intent", "design"]
+    },
+    {
+      "id": "pembuangan-ruko",
+      "input": "Saluran pembuangan ruko 2 lantai",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "requirement": { "building.floors": 2, "water.installationType": "drainage" },
+        "policy": "SCOPE_NOT_YET_SUPPORTED"
+      },
+      "tags": ["extraction", "policy", "design"]
+    },
+    {
+      "id": "tidak-ada-dapur",
+      "input": "Rumah 2 lantai, 2 kamar mandi, tidak ada dapur",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "requirement": { "building.floors": 2, "fixtures.bathrooms": 2, "fixtures.kitchens": 0 },
+        "policy": "ALLOWED"
+      },
+      "tags": ["extraction", "design"]
+    },
+    {
+      "id": "lookup-ukuran",
+      "input": "Ada ukuran 3/4 inch untuk PVC AW?",
+      "expected": {
+        "intent": "PRODUCT_LOOKUP",
+        "product": { "aspect": "size_availability", "size": "3/4" }
+      },
+      "tags": ["intent", "product", "design"]
+    },
+    {
+      "id": "masukan-kacau",
+      "input": "pipa",
+      "expected": { "intentOneOf": ["CLARIFICATION_NEEDED", "PRODUCT_LOOKUP", "OUT_OF_SCOPE"] },
+      "tags": ["intent", "design"]
+    },
+    {
+      "id": "sapaan",
+      "input": "hai",
+      "expected": { "intent": "OUT_OF_SCOPE" },
+      "tags": ["intent", "owner-2026-10-05"]
+    },
+    {
+      "id": "faq-pvc-vs-hdpe",
+      "input": "apa bedanya pvc sama hdpe?",
+      "expected": { "intent": "PRODUCT_LOOKUP", "product": { "aspect": null } },
+      "tags": ["intent", "product", "owner-2026-10-06"]
+    },
+    {
+      "id": "rekomendasi-bahan-rumah-2-lantai",
+      "input": "lebih bagus PVC atau HDPE buat rumah 2 lantai?",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "requirement": { "building.type": "residential", "building.floors": 2 },
+        "notFilled": [
+          "fixtures.bathrooms",
+          "water.source",
+          "building.floorHeightM",
+          "building.dimensions"
+        ],
+        "missing": ["water.source", "water.installationType", "fixtures.bathrooms"],
+        "policy": "ALLOWED"
+      },
+      "tags": ["intent", "extraction", "owner-2026-10-06"]
+    },
+    {
+      "id": "kos-3-lantai",
+      "input": "pipa rumah kos 3 lantai, 6 kamar mandi, pakai pompa dari sumur",
+      "expected": {
+        "intent": "REQUIREMENT_STATEMENT",
+        "requirement": {
+          "building.type": "boarding_house",
+          "building.floors": 3,
+          "fixtures.bathrooms": 6,
+          "water.source": "pump"
+        },
+        "notFilled": ["building.floorHeightM", "building.dimensions", "fixtures.outletCount"],
+        "policy": "ALLOWED"
+      },
+      "tags": ["extraction"]
+    },
+    {
+      "id": "jawaban-klarifikasi",
+      "input": "PDAM",
+      "prior": { "building.type": "residential", "building.floors": 2, "fixtures.bathrooms": 3 },
+      "expected": {
+        "intent": "CLARIFICATION_ANSWER",
+        "requirement": { "water.source": "municipal" },
+        "notFilled": ["building.floors", "fixtures.bathrooms"]
+      },
+      "tags": ["intent", "extraction"]
+    },
+    {
+      "id": "standar-pvc-aw",
+      "input": "standar SNI pipa PVC AW apa?",
+      "expected": { "intent": "PRODUCT_LOOKUP", "product": { "aspect": "standard" } },
+      "tags": ["intent", "product"]
+    }
+  ]
+}

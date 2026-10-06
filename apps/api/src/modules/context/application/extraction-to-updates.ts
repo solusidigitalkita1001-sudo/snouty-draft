@@ -21,6 +21,10 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
   'building.dimensions': /\b(meter|\d\s*m\b|panjang|jarak|jalur)/i,
   'fixtures.outletCount': /\b(titik|outlet|keran|kran)/i,
   'water.boosterPump': /\b(pompa|booster|pendorong)/i,
+  // Evaluasi 2026-10-06: dari "Instalasi air bersih untuk rumah baru 1 lantai" model menulis
+  // `source: municipal`. Sumber air hanya dipercaya bila pengguna menyebut sumbernya.
+  'water.source': /\b(toren|tandon|tangki|pompa|pdam|sumur|ledeng|air tanah|sumber)/i,
+  'water.installationType': /\b(air bersih|pembuangan|limbah|drainase|saluran|keduanya)\b/i,
 };
 
 /**

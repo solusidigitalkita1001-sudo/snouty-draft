@@ -106,7 +106,10 @@ describe('runUnderstanding — bentuk event SSE', () => {
       fixtures: { bathrooms: 3 },
       water: { source: 'rooftop_tank', installationType: 'clean_water' },
     });
-    const { events, nextState } = await runUnderstanding(ai, input());
+    const { events, nextState } = await runUnderstanding(
+      ai,
+      input({ message: 'rumah 2 lantai, 3 kamar mandi, toren atap, air bersih' }),
+    );
     const card = events.find((e) => e.type === 'card') as {
       card: { kind: string; action?: string };
     };
@@ -217,7 +220,10 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
       fixtures: { bathrooms: 3 },
       water: { source: 'pump', installationType: 'clean_water' },
     });
-    const { events } = await runUnderstanding(ai, input());
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'pabrik 2 lantai, 3 kamar mandi, pompa, air bersih' }),
+    );
 
     const card = events.find((e) => e.type === 'card') as {
       card: { kind: string; slaHours?: number; captured?: readonly unknown[] };
@@ -234,7 +240,10 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
       fixtures: { bathrooms: 2 },
       water: { source: 'municipal', installationType: 'drainage' },
     });
-    const { events } = await runUnderstanding(ai, input());
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'rumah 2 lantai, 2 kamar mandi, PDAM, saluran pembuangan' }),
+    );
     const card = events.find((e) => e.type === 'card') as { card: { kind: string } };
     expect(card.card.kind).toBe('unsupported');
   });
@@ -245,7 +254,10 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
       fixtures: { bathrooms: 3 },
       water: { source: 'rooftop_tank', installationType: 'clean_water' },
     });
-    const { events } = await runUnderstanding(ai, input());
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'rumah 2 lantai, 3 kamar mandi, toren atap, air bersih' }),
+    );
     const card = events.find((e) => e.type === 'card') as { card: { kind: string } };
     expect(card.card.kind).toBe('cta');
   });

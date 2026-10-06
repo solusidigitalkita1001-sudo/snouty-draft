@@ -45,3 +45,7 @@ uploads/
 
 # Dibangkitkan Next.js
 apps/web/next-env.d.ts
+
+# Evaluasi AI (docs/EVALUATION.md): cache respons model dan hasil per eksekusi
+apps/api/.eval-cache/
+apps/api/evals/results/
