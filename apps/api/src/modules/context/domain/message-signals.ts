@@ -20,6 +20,22 @@ const REQUIREMENT_SIGNALS =
 const ADVICE_SIGNALS =
   /\b(lebih (bagus|baik|cocok|tepat|pas)|bagusan|mending|mendingan|sebaiknya|cocoknya|pilih|pakai (pipa |bahan )?(apa|mana|yang mana)|rekomendasi(kan)?|saran(kan)?)\b/i;
 
+/** Merek pesaing atau rujukan ke merek lain — syarat sebuah pertanyaan menjadi COMPETITOR_QUESTION. */
+const COMPETITOR_SIGNALS =
+  /\b(rucika|wavin|maspion|vinilon|unilon|supralon|langgeng|merek lain|brand lain|merk lain|dibanding(kan)? (dengan )?merek|kompetitor|pesaing)\b/i;
+
+/** Pertanyaan tentang RAGAM produk Pralon ("produk pralon yang terkenal apa?", "jual apa saja?"). */
+const PRODUCT_RANGE_SIGNALS =
+  /\b(produk(nya)?|jenis|macam|apa saja|apa aja|terkenal|unggulan|andalan|jual|punya|ada apa|katalog|keluarga)\b/i;
+
+export function mentionsCompetitor(message: string): boolean {
+  return COMPETITOR_SIGNALS.test(message);
+}
+
+export function asksProductRange(message: string): boolean {
+  return PRODUCT_RANGE_SIGNALS.test(message);
+}
+
 export function hasRequirementSignals(message: string): boolean {
   return REQUIREMENT_SIGNALS.test(message);
 }

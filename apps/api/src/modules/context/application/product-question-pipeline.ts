@@ -33,7 +33,8 @@ import { isAnswerable, isAuthoritative } from '../../product-catalog/domain/cata
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { endEvent } from './message-pipeline.js';
-import { briefComparison, explain, materialsIn } from './pipe-knowledge.js';
+import { asksProductRange } from '../domain/message-signals.js';
+import { MATERIALS, briefComparison, explain, materialsIn } from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, PRODUCT_ANSWER_COPY } from './product-answer-text.js';
 
@@ -137,6 +138,8 @@ async function answerConcept(
   }
 
   if (knowledge === '' && support.products.length === 0) {
+    // "Produk Pralon yang terkenal apa?" — pertanyaan tentang RAGAM, bukan satu produk.
+    if (asksProductRange(input.message)) return rangeOverview(catalog);
     // Tidak ada yang dikenali: bukan bahan, bukan produk Pralon. Bertanya, bukan menebak.
     return { text: PRODUCT_ANSWER_COPY.noProductNamed, cards: [] };
   }
@@ -193,6 +196,57 @@ export function keepsStructure(written: string, knowledge: string): boolean {
   const expected = items(knowledge);
   if (expected === 0) return true;
   return items(written) * 2 >= expected && written.includes('**');
+}
+
+/**
+ * Ikhtisar ragam produk. Atas katalog Pralon (otoritatif): keluarga produk yang aktif beserta
+ * anggotanya, satu kartu per keluarga. Atas katalog contoh / katalog tak terbaca: TIDAK ada
+ * nama produk — jujur bahwa katalog Pralon belum terpasang, lalu ragam keluarga bahan secara
+ * umum dari pengetahuan milik kode, dan tim teknis untuk daftar resminya.
+ */
+async function rangeOverview(catalog: ProductCatalog): Promise<Outcome> {
+  let authoritative = false;
+  let products: readonly Product[] = [];
+  try {
+    authoritative = isAuthoritative(await catalog.activeVersion());
+    if (authoritative) {
+      const page = await catalog.listProducts({ limit: 50 });
+      products = page.items.filter(isAnswerable);
+    }
+  } catch (error) {
+    if (!(error instanceof CatalogUnavailableError)) throw error;
+  }
+
+  if (authoritative && products.length > 0) {
+    const byFamily = new Map<string, Product[]>();
+    for (const p of products) byFamily.set(p.family, [...(byFamily.get(p.family) ?? []), p]);
+    const lines = [...byFamily.entries()].map(
+      ([family, members]) => `- **${family}**: ${members.map((m) => m.name).join(', ')}`,
+    );
+    const representatives = [...byFamily.values()]
+      .slice(0, 4)
+      .map((members) => toCard(members[0]!));
+    return {
+      text: [PRODUCT_ANSWER_COPY.rangeIntro, ...lines, '', PRODUCT_ANSWER_COPY.rangeNext].join(
+        '\n',
+      ),
+      cards: [{ kind: 'product', products: representatives }],
+    };
+  }
+
+  const families = MATERIALS.map(
+    (m) => `- **${m.label}** — ${m.gist}; lazim untuk ${m.typicalUse}.`,
+  );
+  return {
+    text: [
+      PRODUCT_ANSWER_COPY.catalogNotInstalled,
+      '',
+      ...families,
+      '',
+      PRODUCT_ANSWER_COPY.askTechnicalForProducts,
+    ].join('\n'),
+    cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }],
+  };
 }
 
 // ── Jalur SPESIFIKASI ───────────────────────────────────────────────────────

@@ -48,6 +48,19 @@ describe('IntentRouter — presedensi kebutuhan (intent sadar konteks)', () => {
     expect(d.shouldExtract).toBe(true);
   });
 
+  it('COMPETITOR_QUESTION tanpa merek pesaing di pesan → PRODUCT_LOOKUP (pertanyaan tentang Pralon sendiri)', async () => {
+    const d = await router({ intent: 'COMPETITOR_QUESTION', confidence: 0.9 }).route(
+      'gw mau nanya produk pralon itu yang terkenal apa sih?',
+      false,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+    const real = await router({ intent: 'COMPETITOR_QUESTION', confidence: 0.9 }).route(
+      'lebih bagus Pralon atau Rucika?',
+      false,
+    );
+    expect(real.intent).toBe('COMPETITOR_QUESTION');
+  });
+
   it('tanpa isyarat kebutuhan, label model dipakai apa adanya', async () => {
     const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.85 }).route(
       'apa bedanya pvc sama hdpe?',

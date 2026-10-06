@@ -253,6 +253,40 @@ describe('runProductQuestion — KONSEP', () => {
   });
 });
 
+describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?")', () => {
+  it('katalog Pralon: keluarga produk beserta anggotanya, satu kartu per keluarga', async () => {
+    const D = { ...AW, id: 'B'.repeat(26), sku: 'D', name: 'Pipa PVC D', family: 'PVC D' };
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      { ...catalog({}), listProducts: async () => ({ items: [AW, D], nextCursor: null }) },
+      noQuestions,
+      { messageId: 'm', message: 'gw mau nanya produk pralon itu yang terkenal apa sih?' },
+    );
+    const out = text(events);
+    expect(out).toContain('**Keluarga produk di katalog Pralon yang aktif**');
+    expect(out).toContain('- **PVC AW**: Pipa PVC AW');
+    expect(out).toContain('- **PVC D**: Pipa PVC D');
+    expect(cards(events).map((c) => c.kind)).toEqual(['product']);
+  });
+
+  it('katalog contoh: jujur katalog belum terpasang + ragam bahan umum, tanpa "CONTOH"', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      {
+        ...catalog({}, 'sample'),
+        listProducts: async () => ({ items: [SAMPLE_AW], nextCursor: null }),
+      },
+      noQuestions,
+      { messageId: 'm', message: 'produk pralon apa aja?' },
+    );
+    const out = text(events);
+    expect(out).toContain('Katalog produk Pralon belum terpasang');
+    expect(out).toContain('- **PVC (uPVC)**');
+    expect(out).not.toContain('CONTOH');
+    expect(cards(events)).toEqual([{ kind: 'cta', action: 'CONTACT_TECHNICAL' }]);
+  });
+});
+
 describe('runProductQuestion — SPESIFIKASI', () => {
   const STANDARD: ProductAnswer = {
     kind: 'value',

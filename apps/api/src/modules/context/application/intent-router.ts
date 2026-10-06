@@ -17,7 +17,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { Intent } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import type { IntentClassification } from '../../ai/domain/extraction-schema.js';
-import { asksAdvice, hasRequirementSignals } from '../domain/message-signals.js';
+import {
+  asksAdvice,
+  hasRequirementSignals,
+  mentionsCompetitor,
+} from '../domain/message-signals.js';
 import type { ReplyTurn } from './reply-writer.js';
 
 /** Label model yang kalah oleh isyarat kebutuhan di teks — lihat `withRequirementPrecedence`. */
@@ -36,8 +40,17 @@ const YIELDS_TO_REQUIREMENT: ReadonlySet<Intent> = new Set<Intent>([
  */
 export function withRequirementPrecedence(
   message: string,
-  classification: IntentClassification,
+  classified: IntentClassification,
 ): IntentClassification {
+  let classification = classified;
+  // Policy 1 hanya untuk pesaing: pesan yang cuma menyebut Pralon ("produk Pralon yang
+  // terkenal apa?") bukan pertanyaan kompetitor walau model berkata begitu — ia pertanyaan
+  // produk. Tanpa pagar ini pengguna mendapat kartu "kriteria netral" untuk pertanyaan
+  // tentang Pralon sendiri (laporan pemilik 2026-10-06).
+  if (classification.intent === 'COMPETITOR_QUESTION' && !mentionsCompetitor(message)) {
+    classification = { intent: 'PRODUCT_LOOKUP', confidence: classification.confidence };
+  }
+
   const yields =
     YIELDS_TO_REQUIREMENT.has(classification.intent) ||
     classification.confidence < INTENT_CONFIDENCE_THRESHOLD;

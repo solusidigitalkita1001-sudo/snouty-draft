@@ -33,6 +33,11 @@ export const PRODUCT_ANSWER_COPY = {
   noProductNamed:
     'Produk mana yang Anda maksud? Sebutkan nama atau keluarganya, misalnya "PVC AW".',
   catalogSupport: 'Di katalog Pralon yang aktif:',
+  rangeIntro: '**Keluarga produk di katalog Pralon yang aktif**',
+  rangeNext:
+    'Mau saya jelaskan salah satunya, atau ceritakan bangunannya supaya saya bisa memilihkan?',
+  catalogNotInstalled:
+    'Katalog produk Pralon belum terpasang di sistem ini, jadi saya belum bisa menyebut produk Pralon yang spesifik. Secara umum, keluarga pipa air bersih yang lazim:',
   askTechnicalForProducts:
     'Untuk pilihan produk Pralon yang sesuai kebutuhan Anda, tim teknis Pralon bisa membantu.',
   comparisonIntro: 'Berikut yang tercatat di katalog Pralon untuk masing-masing:',
