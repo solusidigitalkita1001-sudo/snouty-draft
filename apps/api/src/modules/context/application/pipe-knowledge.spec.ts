@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { CONCEPTS, MATERIALS, explain, materialsIn } from './pipe-knowledge.js';
+import { keepsStructure } from './product-question-pipeline.js';
 
 describe('pipe knowledge', () => {
   it('tidak satu pun entri memuat angka, nomor standar, atau merek lain', () => {
@@ -43,6 +44,15 @@ describe('pipe knowledge', () => {
     );
     expect(explain('pipa yang ditanam di tanah enaknya apa?', 'hdpe')).toContain('Pipa tanam');
     expect(explain('apa itu fitting?', null)).toBe('');
+  });
+
+  it('keepsStructure: tanpa butir di DATA selalu lolos; dengan butir butuh butir + tebal', () => {
+    const knowledge = explain('apa bedanya pvc sama hdpe?', null); // 8 butir
+    expect(keepsStructure('satu paragraf saja', '')).toBe(true);
+    expect(keepsStructure('Secara umum **PVC** kaku dan HDPE lentur.', knowledge)).toBe(false);
+    const half = '**PVC**\n- a\n- b\n\n**HDPE**\n- c\n- d';
+    expect(keepsStructure(half, knowledge)).toBe(true);
+    expect(keepsStructure(half.replaceAll('**', ''), knowledge)).toBe(false);
   });
 
   it('kueri model ikut dicari; PE100 dikenali HDPE; galvanis dikenali', () => {

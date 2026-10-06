@@ -153,9 +153,22 @@ async function answerConcept(
     systemPrompt: faqPrompt,
     maxLength: FAQ_MAX_LENGTH,
   });
-  const text =
-    written.source === 'llm' ? withUncoveredFacts(written.text, facts, support.products) : data;
+  // Model yang meringkas DATA berstruktur menjadi satu paragraf membuang perbedaannya —
+  // persis "oversimplified" yang dikeluhkan. Struktur dijaga kode, bukan hanya diminta prompt.
+  const accepted = written.source === 'llm' && keepsStructure(written.text, knowledge);
+  const text = accepted ? withUncoveredFacts(written.text, facts, support.products) : data;
   return { text, cards };
+}
+
+/**
+ * Bila pengetahuan dirangkai sebagai butir, tulisan model harus tetap berbutir — minimal
+ * separuh jumlah butirnya — dan membawa penekanan tebal. Teks tanpa struktur → teks deterministik.
+ */
+export function keepsStructure(written: string, knowledge: string): boolean {
+  const items = (s: string) => (s.match(/^\s*(?:[-*]|\d+\.)\s/gm) ?? []).length;
+  const expected = items(knowledge);
+  if (expected === 0) return true;
+  return items(written) * 2 >= expected && written.includes('**');
 }
 
 // ── Jalur SPESIFIKASI ───────────────────────────────────────────────────────

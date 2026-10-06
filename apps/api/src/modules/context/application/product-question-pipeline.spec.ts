@@ -139,7 +139,7 @@ describe('runProductQuestion — KONSEP', () => {
       async write(input: { facts?: string; systemPrompt?: string }) {
         this.calls.push(input);
         return {
-          text: 'Secara umum PVC kaku dan dilem, HDPE lentur dan dilas.',
+          text: '**PVC**\n- Kaku, dilem.\n- Batangan.\n- Tahan korosi.\n- Bangunan.\n\n**HDPE**\n- Lentur, dilas.\n- Gulungan.\n- Tahan benturan.\n- Jalur tanam.',
           source: 'llm' as const,
         };
       },
@@ -153,7 +153,7 @@ describe('runProductQuestion — KONSEP', () => {
       'PROMPT-FAQ',
     );
     const out = text(events);
-    expect(out).toContain('Secara umum PVC kaku');
+    expect(out).toContain('**PVC**\n- Kaku, dilem.');
     expect(out).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)'); // produk tak disebut → ikut
     expect(out).toContain('"hdpe" tidak ada di katalog'); // katalog tak disinggung → ikut
     const call = reply.calls[0] as { systemPrompt?: string; facts?: string };
@@ -162,10 +162,30 @@ describe('runProductQuestion — KONSEP', () => {
     expect(call.facts).toContain('"hdpe" tidak ada di katalog');
   });
 
+  it('model yang meringkas DATA berbutir menjadi satu paragraf ditolak → teks deterministik', async () => {
+    const reply = {
+      write: async () => ({
+        text: 'Secara umum PVC kaku dan HDPE lentur; PVC untuk bangunan, HDPE untuk jalur tanam.',
+        source: 'llm' as const,
+      }),
+    };
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc dan hdpe', aspect: null }),
+      catalog({}, 'sample'),
+      noQuestions,
+      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+      reply as never,
+      'PROMPT-FAQ',
+    );
+    const out = text(events);
+    expect(out).toContain('**PVC (uPVC)**\n- Bentuk:');
+    expect(out).not.toContain('Secara umum PVC kaku dan HDPE lentur;');
+  });
+
   it('yang sudah disebut model tidak diulang di bawahnya', async () => {
     const reply = {
       write: async () => ({
-        text: 'PVC kaku, HDPE lentur. Di katalog Pralon ada Pipa PVC AW; HDPE tidak ada di katalog.',
+        text: '**PVC**\n- Kaku.\n- Dilem.\n- Batangan.\n- Bangunan.\n\n**HDPE**\n- Lentur.\n- Dilas.\n- Gulungan.\n- Tanam.\n\nDi katalog Pralon ada Pipa PVC AW; HDPE tidak ada di katalog.',
         source: 'llm' as const,
       }),
     };
@@ -178,7 +198,7 @@ describe('runProductQuestion — KONSEP', () => {
       'PROMPT-FAQ',
     );
     expect(text(events)).toBe(
-      'PVC kaku, HDPE lentur. Di katalog Pralon ada Pipa PVC AW; HDPE tidak ada di katalog.',
+      '**PVC**\n- Kaku.\n- Dilem.\n- Batangan.\n- Bangunan.\n\n**HDPE**\n- Lentur.\n- Dilas.\n- Gulungan.\n- Tanam.\n\nDi katalog Pralon ada Pipa PVC AW; HDPE tidak ada di katalog.',
     );
   });
 
