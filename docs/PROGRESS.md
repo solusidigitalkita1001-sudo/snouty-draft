@@ -661,6 +661,22 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       di katalog Pralon jendela itu 45 fitting + 5 PVC D tanpa satu pun PVC AW → semua peran "tidak
       ada". Perbaikan paling murah dan mendesak: kandidat per peran dari repository (family + ukuran
       bersatuan)
+- [x] P14-08e Batas mm 4000 + impor gabungan (2026-10-06, keputusan pemilik). Migration 0017
+      (CHECK rentang mm 4000; turun gagal sendiri bila ada baris > 3000 mm). Impor inci + mm tanpa 8
+      SKU 73 karakter (dicatat di `data/catalog/2026-10-06-erp/excluded-2026-10-06-mm.json`): **7.681
+      diterima, 0 issues** → draft `erp-2026-10-06-mm`
+- [x] P14-08f Engine memilih ukuran HDPE dalam mm (2026-10-06). `parameters/size-tables.ts`:
+      `PVC_INCH_SIZES` + `HDPE_MM_SIZES` (OD ISO 4427 20–400 mm, diameter dalam dari SDR 17 — asumsi
+      ber-ID `HDPE_SDR17_PN10`); ENG-102/ENG-205 v2 menerima `sizeTable`; `computePressurized`
+      memilih tabel dari bahan; `computeIrrigation` menentukan bahan dulu lalu ukuran utama (HDPE mm)
+      dan ukuran distribusi PVC AW (inci) terpisah (ENG-105 v2 `distributionSize`)
+- [x] P14-08g Matcher v2 (2026-10-06). Kandidat **per peran dari repository** (`candidatesFor`:
+      keluarga + ukuran bersatuan + aktif) menggantikan jendela 50 produk; keluarga fitting Pralon
+      (`FITTING PVC`/`FITTING HDPE`) dicari dulu, fallback keluarga pipa + kategori FITTING;
+      `pressure_class`: VERIFIED sama → VERIFIED_SELECTED, UNAVAILABLE (seri "W", tidak ditebak) →
+      SIZE_NEEDS_VALIDATION, VERIFIED berbeda → peran kosong; kandidat ganda dipilih deterministik
+      (batang 4 m → varian baku → SKU) dengan alasan dan ≤ 10 `alternatives`. OQ-48 direvisi. API 774
+      tes
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache

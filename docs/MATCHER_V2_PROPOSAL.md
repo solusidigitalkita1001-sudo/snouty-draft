@@ -1,6 +1,6 @@
 # Usulan Matcher v2 — mencocokkan kebutuhan teknis ke katalog Pralon asli
 
-2026-10-06 · Status: usulan, **tanpa implementasi** · Terkait: `PRODUCT_MASTER_DATA.md`,
+2026-10-06 · Status: §1–§3 **diimplementasikan 2026-10-06 malam** (commit P14-08f/g; HDPE mm di engine memakai asumsi SDR 17 sampai data OD/tebal Pralon ada) · Terkait: `PRODUCT_MASTER_DATA.md`,
 `PRODUCT_MASTER_DATA_SCHEMA.md`, `PIPE_SIZE_MM_EXTENSION.md`, OQ-48.
 
 Dasar angka: versi draft `erp-2026-10-06` (2.644 produk inci) di MySQL lokal, dan dry-run gabungan
@@ -130,6 +130,34 @@ Catatan status DB lokal setelah uji: versi `erp-2026-10-06` kini `archived` (pro
 `draft`, dan mengembalikan sample berarti mempromosikan versi sample baru `dev-restore-204426`).
 Untuk uji berikutnya, impor ulang dengan label baru. Skenario rumah gagal di ekstraksi model
 (Ollama lokal, 63 s) pada kedua katalog — bukan bagian dari perbandingan ini.
+
+### 4b. Uji ulang setelah matcher v2 + HDPE mm (2026-10-06 malam, katalog `erp-2026-10-06-mm`, 7.681 SKU)
+
+| Skenario               | Peran (ukuran engine)                                    | Katalog contoh                              | Katalog Pralon inci + mm                                                      |
+| ---------------------- | -------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- |
+| rumah-2-lantai         | main 1" · riser 1" · branch ¾" · fixture ½" · fitting ¾" | (ekstraksi model gagal di putaran ini)      | **VERIFIED ×4** · fitting SIZE_NEEDS_VALIDATION (kelas W belum terverifikasi) |
+| irigasi 1 ha sprinkler | main 1¼" AW · branch 1¼" · fitting                       | VERIFIED · VERIFIED · SIZE_NEEDS_VALIDATION | VERIFIED · VERIFIED · SIZE_NEEDS_VALIDATION                                   |
+| irigasi ≥ 200 m (HDPE) | main 2½"\* · branch 2½" · fitting                        | tidak ada (sample tanpa HDPE)               | VERIFIED · VERIFIED · SIZE_NEEDS_VALIDATION                                   |
+| tambak lele 4 × 4      | main 1½" AW · branch 3" D · fitting                      | VERIFIED · VERIFIED · (fitting kosong)      | VERIFIED · VERIFIED · SIZE_NEEDS_VALIDATION                                   |
+| transfer pompa HDPE    | main **75 mm** · fitting · alternatif **90 mm**          | tidak ada                                   | **VERIFIED ×3**                                                               |
+| transfer pompa PVC     | main 2½" AW · fitting · alternatif 3"                    | SIZE_NEEDS_VALIDATION · — · VERIFIED        | VERIFIED · SIZE_NEEDS_VALIDATION · VERIFIED                                   |
+| gorong-gorong 8" D     | main 8" · fitting                                        | tidak ada\*\*                               | **VERIFIED · VERIFIED** (fitting D terverifikasi)                             |
+| drainase 8" D          | main 8" · fitting                                        | tidak ada\*\*                               | VERIFIED · VERIFIED                                                           |
+| air hujan 12" D        | main 12" · fitting                                       | tidak ada\*\*                               | VERIFIED · VERIFIED                                                           |
+| cluster 120 unit HDPE  | main **40 mm** · fitting · alternatif **50 mm**          | tidak ada                                   | **VERIFIED ×3**                                                               |
+
+\** Skenario irigasi "≥ 200 m" di uji ini sebenarnya berjalan di PVC AW: jawaban jarak "200–500 m" dari
+skrip curl Git Bash tergarbling (en-dash) sehingga tidak terpakai — artefak skrip uji, bukan produk.
+Engine terpasang sudah memberi `HDPE 63 mm` + distribusi `2½"` untuk 2 ha, 350 m (dicek langsung
+atas `packages/engineering/dist`); jalur HDPE mm live dibuktikan skenario transfer pompa dan cluster.
+\*\* Regresi kecil di katalog contoh: query kandidat menyaring ukuran, jadi PVC D tanpa 8"/12"
+menghasilkan "tidak ada" alih-alih "produk tampil, ukuran perlu konfirmasi". Diperbaiki setelah uji
+ini: fallback query keluarga-saja bila ukuran tidak ditemukan (`matchRoles`).
+
+Simpulan: dengan kandidat per peran + keluarga fitting + tabel mm, katalog Pralon menjawab **seluruh
+skenario** (33 peran: 27 VERIFIED, 6 SIZE_NEEDS_VALIDATION — semuanya fitting seri "W" yang kelasnya
+menunggu konfirmasi Pralon). Setelah uji, sample dipromosikan kembali (`dev-restore2-211439` aktif);
+kedua versi Pralon berstatus `archived`.
 
 ## 5. Keputusan yang dibutuhkan
 

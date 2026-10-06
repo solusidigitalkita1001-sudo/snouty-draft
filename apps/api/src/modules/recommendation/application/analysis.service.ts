@@ -630,12 +630,14 @@ export class AnalysisService {
     const byId = new Map<string, Product>();
     for (const role of roles) {
       const size = PipeSize.parse(role.size);
+      const category = role.categoryIncludes ? { categoryIncludes: role.categoryIncludes } : {};
       for (const family of role.families) {
-        const found = await this.catalogQuery.candidatesFor({
-          family,
-          size,
-          ...(role.categoryIncludes ? { categoryIncludes: role.categoryIncludes } : {}),
-        });
+        let found = await this.catalogQuery.candidatesFor({ family, size, ...category });
+        // Keluarganya ada tetapi ukuran itu belum tercatat → kandidat tanpa filter ukuran, supaya
+        // matcher tetap menampilkan produknya sebagai SIZE_NEEDS_VALIDATION (bukan menghilang).
+        if (found.length === 0 && size !== null) {
+          found = await this.catalogQuery.candidatesFor({ family, size: null, ...category });
+        }
         for (const product of found) byId.set(product.id, product);
         if (found.length > 0) break;
       }

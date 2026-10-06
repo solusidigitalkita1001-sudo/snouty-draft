@@ -277,7 +277,11 @@ D_min = √(4Q / πv)   dengan v = 1,5 m/s (pipa plastik 1–2 m/s)
 mainSize = ukuran nominal terkecil dengan diameter dalam ≥ D_min
 ```
 
-Tabel diameter dalam nominal (15–150 mm) adalah pendekatan, bukan tabel produk.
+Tabel diameter dalam nominal (15–150 mm) adalah pendekatan, bukan tabel produk. **v2 (2026-10-06):**
+masukan `sizeTable` memilih tabel inci (PVC) atau mm (HDPE/MDPE: OD ISO 4427 20–400 mm, diameter
+dalam = OD − 2·OD/17, asumsi `HDPE_SDR17_PN10`) — `computeIrrigation` menentukan bahan (ENG-104)
+lebih dulu, lalu jalur utama HDPE berukuran mm dan distribusi PVC AW tetap inci (ENG-105 v2).
+ENG-205 v2 memakai tabel yang sama lewat `computePressurized` (bahan → tabel).
 
 #### ENG-103 · Kebutuhan tekanan dan pompa
 
