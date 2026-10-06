@@ -651,6 +651,16 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       **identik** (sku, label, nilai). Dry-run gabungan inci + mm: **7.680 diterima, 9 ditolak** — 8 SKU
       73 karakter (HDPE PN-10/Telkom, 1 faucet socket) + 1 ukuran "3150 mm" di luar rentang (baris 4958
       berkas mm). Impor gabungan **ditunda** menunggu keputusan pemilik atas baris ke-9 (lihat laporan)
+- [x] P14-08d Tahap D: usulan matcher v2 (2026-10-06, dokumen saja) — `docs/MATCHER_V2_PROPOSAL.md`:
+      kandidat ganda (rata-rata 11,1 SKU per keluarga+ukuran pipa, maks. 21) → himpun + pilih
+      deterministik ber-trace (panjang batang → ujung sesuai aturan → varian baku → SKU); fitting
+      lintas seri (627 D, 618 W, 675 tanpa token) → saring `pressure_class`, token W tidak ditebak;
+      HDPE mm → tabel aturan ENG-102/104/105/201/202/205 + data OD/tebal. Uji nyata 10 skenario,
+      sample vs Pralon (draft inci dipromosikan sementara, lalu sample baru dipromosikan kembali):
+      **temuan utama — analisis hanya melihat 50 produk pertama versi aktif** (`listProducts({limit:50})`),
+      di katalog Pralon jendela itu 45 fitting + 5 PVC D tanpa satu pun PVC AW → semua peran "tidak
+      ada". Perbaikan paling murah dan mendesak: kandidat per peran dari repository (family + ukuran
+      bersatuan)
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache
