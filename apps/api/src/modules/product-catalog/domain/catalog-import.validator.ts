@@ -42,6 +42,16 @@ import { specFromCatalogColumn } from './spec-value.js';
 const FILE_LEVEL = 0;
 
 const FITTING_KINDS: readonly string[] = ['tee', 'elbow', 'reducer', 'socket'];
+
+/** Panjang maksimum kolom teks, persis `varchar(n)` di `products` (catalog.ts). */
+export const COLUMN_LIMITS = {
+  sku: 64,
+  name: 160,
+  family: 80,
+  category: 120,
+  sourceDocument: 255,
+  imageUrl: 512,
+} as const;
 const PRODUCT_STATUSES: readonly string[] = ['active', 'discontinued'];
 
 /** Nilai jamak dipisah `;` atau baris baru; keduanya lazim di sel spreadsheet. */
@@ -136,6 +146,25 @@ function validateRow(row: RawCatalogRow, defaultSourceDocument: string): RowDraf
   const family = required('family');
   const category = required('category');
 
+  // Batas panjang kolom mengikuti skema `products` (catalog.ts). Tanpa pemeriksaan ini, satu SKU
+  // 70 karakter menggagalkan seluruh transaksi job jauh dari admin yang bisa memperbaikinya.
+  for (const [column, value, limit] of [
+    ['sku', sku, COLUMN_LIMITS.sku],
+    ['name', name, COLUMN_LIMITS.name],
+    ['family', family, COLUMN_LIMITS.family],
+    ['category', category, COLUMN_LIMITS.category],
+  ] as const) {
+    if (value.length > limit) {
+      issues.push(
+        issue(
+          row.rowNumber,
+          column,
+          `Kolom \`${column}\` terlalu panjang (${value.length} karakter, maksimum ${limit}).`,
+        ),
+      );
+    }
+  }
+
   const sourcePage = parseSourcePage(single('source_page'));
   if (sourcePage === null) {
     issues.push(
@@ -170,7 +199,26 @@ function validateRow(row: RawCatalogRow, defaultSourceDocument: string): RowDraf
     );
   }
 
+  if (sourceDocument.length > COLUMN_LIMITS.sourceDocument) {
+    issues.push(
+      issue(
+        row.rowNumber,
+        'source_document',
+        `Kolom \`source_document\` terlalu panjang (${sourceDocument.length} karakter, maksimum ${COLUMN_LIMITS.sourceDocument}).`,
+      ),
+    );
+  }
+
   const imageUrl = single('image_url');
+  if (imageUrl.length > COLUMN_LIMITS.imageUrl) {
+    issues.push(
+      issue(
+        row.rowNumber,
+        'image_url',
+        `Kolom \`image_url\` terlalu panjang (${imageUrl.length} karakter, maksimum ${COLUMN_LIMITS.imageUrl}).`,
+      ),
+    );
+  }
   if (imageUrl !== '' && !SAFE_URL.test(imageUrl)) {
     issues.push(
       issue(

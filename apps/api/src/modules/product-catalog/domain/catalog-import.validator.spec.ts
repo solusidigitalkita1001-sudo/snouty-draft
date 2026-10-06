@@ -420,3 +420,29 @@ describe('validateCatalogImport — rowHash untuk idempotensi', () => {
     expect(a.rows[0]?.rowHash).toBe(b.rows[0]?.rowHash);
   });
 });
+
+describe('validateCatalogImport — batas panjang kolom mengikuti skema', () => {
+  it('SKU 65 karakter ditolak dengan panjang dan batasnya; 64 karakter diterima', () => {
+    const tooLong = validateCatalogImport(source([validRow({ sku: 'X'.repeat(65) })]));
+    expect(marks(tooLong)).toEqual(['2:sku']);
+    expect(tooLong.issues[0]!.message).toContain('65 karakter, maksimum 64');
+    expect(validateCatalogImport(source([validRow({ sku: 'X'.repeat(64) })])).issues).toEqual([]);
+  });
+
+  it('name, family, category, source_document, image_url juga dibatasi sesuai varchar-nya', () => {
+    const result = validateCatalogImport(
+      source([
+        validRow({
+          name: 'N'.repeat(161),
+          family: 'F'.repeat(81),
+          category: 'C'.repeat(121),
+          source_document: 'D'.repeat(256),
+          image_url: `/${'i'.repeat(512)}`,
+        }),
+      ]),
+    );
+    expect(marks(result).sort()).toEqual(
+      ['2:category', '2:family', '2:image_url', '2:name', '2:source_document'].sort(),
+    );
+  });
+});

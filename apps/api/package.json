@@ -14,6 +14,7 @@
     "db:apply": "node scripts/db-apply.mjs",
     "test:migration": "node scripts/test-migration.mjs",
     "seed:sample": "node scripts/seed-sample-catalog.mjs",
+    "catalog:import": "node scripts/import-catalog-file.mjs",
     "check:orphans": "node scripts/check-catalog-orphans.mjs",
     "eval": "node scripts/eval.mjs"
   },

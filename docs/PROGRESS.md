@@ -623,12 +623,21 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       sumber) turun dari kritis ke penting; ekstraktor membaca timbunan. Registry 34 aturan. **Belum**:
       zonasi gedung bertingkat (profil `multistorey_building_water` tetap validasi teknis)
 - [~] P14-05 Fase 5 — Matcher produk dari kebutuhan teknis (2026-10-06, sebagian). Peran per kasus
-      sudah dinyatakan sebagai `{ role, size, family, categoryIncludes? }` dari hasil engine (pipa
-      utama/kuras/alternatif + fitting lewat kategori, OQ-48); keluarga dipilih dari bahan yang
-      disebut atau panjang jalur. **Belum**: kelas tekanan (AW/D/PN) sebagai kriteria pencocokan —
-      menunggu field tekanan kerja di master data Pralon (`docs/PRODUCT_MASTER_DATA.md` §3); golden
-      dataset kini memuat 7 kasus teknis deterministik (`expected.technical`, metrik
-      `technicalMatch` wajib 100 %)
+  sudah dinyatakan sebagai `{ role, size, family, categoryIncludes? }` dari hasil engine (pipa
+  utama/kuras/alternatif + fitting lewat kategori, OQ-48); keluarga dipilih dari bahan yang
+  disebut atau panjang jalur. **Belum**: kelas tekanan (AW/D/PN) sebagai kriteria pencocokan —
+  menunggu field tekanan kerja di master data Pralon (`docs/PRODUCT_MASTER_DATA.md` §3); golden
+  dataset kini memuat 7 kasus teknis deterministik (`expected.technical`, metrik
+  `technicalMatch` wajib 100 %)
+- [x] P14-08a Katalog Pralon asli — Tahap A: adapter CSV + impor inci (2026-10-06).
+      `CsvCatalogImportAdapter` (RFC 4180, UTF-8/BOM, CRLF, `""`, baris baru dalam sel; nilai jamak
+      dibiarkan untuk validator), 8 tes; validator memeriksa batas panjang kolom sesuai skema (SKU 64,
+      nama 160, family 80, category 120, source_document 255, image_url 512); CLI
+      `apps/api/scripts/import-catalog-file.mjs` (`--dry-run`, `--label`, `--source-document`,
+      `--issues-out`, gabung beberapa berkas, tolak host bersama, tidak pernah promosi). Dry-run
+      `snouty_catalog_import_inch.csv`: **2.644 diterima, 0 ditolak, 0 issues**; diimpor ke MySQL lokal
+      sebagai versi draft `erp-2026-10-06` (kind pralon): 2.644 produk, 3.313 ukuran, 2.631 spec
+      VERIFIED. Katalog sample tetap aktif
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache

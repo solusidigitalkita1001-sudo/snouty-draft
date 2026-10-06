@@ -139,7 +139,12 @@ final — **OQ-39**.
 Halaman dokumen boleh kosong — tidak setiap dokumen dirujuk per halaman. Halaman yang **disebut**
 tetapi tidak masuk akal ditolak: rujukan halaman adalah janji bahwa isinya bisa dicek di sana.
 
-Adapter untuk format Pralon yang sebenarnya **belum ada**: ia menunggu **OQ-07**.
+Adapter pertama ada sejak 2026-10-06: **CSV RFC 4180** (`infrastructure/csv-catalog-import.adapter.ts`)
+untuk export ERP yang sudah diratakan ke kolom kanonik (`data/catalog/2026-10-06-erp/`). Skrip
+`pnpm --filter @snouty/api catalog:import -- <berkas.csv> [--dry-run]` menjalankan jalur impor yang
+sama (adapter → validator → `CatalogIngestService`) ke MySQL lokal sebagai versi `draft`, tanpa
+promosi. Validator kini juga memeriksa batas panjang kolom sesuai skema (SKU ≤ 64, nama ≤ 160, …).
+Format ERP asli (xlsx) tetap menunggu **OQ-07**.
 
 ### Idempotensi berlapis tiga
 
