@@ -56,12 +56,20 @@ export POLICY_VERSION=v0-draft
 echo "▸ migration"
 (cd apps/api && NODE_ENV=development node scripts/db-apply.mjs >/dev/null)
 
-echo "▸ katalog contoh (bila belum ada versi aktif)"
-(cd apps/api && NODE_ENV=development SEED_SAMPLE_CATALOG=1 SAMPLE_LABEL="dev-$(date +%H%M%S)" node scripts/seed-sample-catalog.mjs >/dev/null 2>&1) || true
-
 echo "▸ build"
 pnpm build:types >/dev/null
 (cd apps/api && ./node_modules/.bin/tsc -p tsconfig.build.json)
+
+# SETELAH tsc: skrip semai memuat `dist/`. Dan hanya bila belum ada versi aktif — sebelumnya
+# setiap dev-up menerbitkan versi contoh baru dan mengarsipkan yang lama.
+echo "▸ katalog contoh (bila belum ada versi aktif)"
+active="$(cd apps/api && node scripts/has-active-catalog.mjs)"
+if [ "$active" = "0" ]; then
+  (cd apps/api && NODE_ENV=development SEED_SAMPLE_CATALOG=1 DB_ROOT_PASSWORD="$DB_PASSWORD" SAMPLE_LABEL="dev-$(date +%H%M%S)" node scripts/seed-sample-catalog.mjs >/dev/null 2>&1) || true
+  echo "  katalog contoh disemai (kind = sample)"
+else
+  echo "  versi aktif sudah ada ($active) — tidak disemai"
+fi
 
 # `next build` WAJIB berjalan dengan NODE_ENV=production.
 #

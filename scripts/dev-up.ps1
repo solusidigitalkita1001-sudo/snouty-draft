@@ -113,17 +113,27 @@ Step 'migration'
 $env:NODE_ENV = 'development'
 Run 'migration' { node scripts/db-apply.mjs | Out-Null }
 
-Step 'katalog contoh (bila belum ada versi aktif)'
-$env:SEED_SAMPLE_CATALOG = '1'
-$env:SAMPLE_LABEL = "dev-$(Get-Date -Format HHmmss)"
-node scripts/seed-sample-catalog.mjs *> $null # gagal = katalog sudah ada; sama seperti `|| true`
-Remove-Item Env:SEED_SAMPLE_CATALOG, Env:SAMPLE_LABEL
-
 Step 'build'
 Set-Location $root
 Run 'build:types' { pnpm build:types | Out-Null }
 Set-Location (Join-Path $root 'apps/api')
 Run 'tsc api' { pnpm exec tsc -p tsconfig.build.json }
+
+# SETELAH `tsc api`: skrip semai memuat `dist/` (ingest, writer), jadi sebelum build ia
+# memakai kode lama. Dan hanya bila belum ada versi aktif -- sebelumnya setiap dev-up
+# menerbitkan versi contoh baru (label berstempel waktu) dan mengarsipkan yang lama.
+Step 'katalog contoh (bila belum ada versi aktif)'
+$activeVersions = (node scripts/has-active-catalog.mjs | Out-String).Trim()
+if ($activeVersions -eq '0') {
+  $env:SEED_SAMPLE_CATALOG = '1'
+  $env:DB_ROOT_PASSWORD = $env:DB_PASSWORD
+  $env:SAMPLE_LABEL = "dev-$(Get-Date -Format HHmmss)"
+  node scripts/seed-sample-catalog.mjs *> $null
+  Remove-Item Env:SEED_SAMPLE_CATALOG, Env:SAMPLE_LABEL, Env:DB_ROOT_PASSWORD
+  Write-Host '  katalog contoh disemai (kind = sample)'
+} else {
+  Write-Host "  versi aktif sudah ada ($activeVersions) -- tidak disemai"
+}
 
 # `next build` WAJIB NODE_ENV=production -- lihat dev-up.sh.
 Set-Location (Join-Path $root 'apps/web')
