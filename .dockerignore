@@ -1,0 +1,15 @@
+node_modules
+**/node_modules
+**/dist
+apps/web/.next
+.git
+.env
+.env.*
+!.env.example
+design-input
+data
+docs
+*.md
+!README.md
+.eval-cache
+apps/api/evals/results

@@ -1,0 +1,104 @@
+# SNOUTY — produksi on-prem di balik Nginx (docs/DEPLOYMENT.md).
+#
+#   cp deploy/env.production.example .env.production   # isi rahasianya
+#   docker compose --env-file .env.production -f deploy/docker-compose.prod.yml up -d --build
+#
+# MySQL di sini adalah MySQL MILIK SNOUTY di server ini (volume `mysql-data`), bukan server
+# bersama 192.168.1.136. Memindahkan ke server bersama adalah keputusan terpisah dengan
+# persetujuan + backup (docs/DATABASE.md §4) — cukup ganti DB_HOST/DB_* di .env.production dan
+# hapus service `mysql`.
+#
+# Hanya `web` dan `api` yang membuka port, dan hanya ke 127.0.0.1 — Nginx yang menghadap dunia.
+# Migration TIDAK berjalan otomatis (docs/INFRASTRUCTURE.md §11): `deploy/deploy.sh migrate`.
+
+name: snouty
+
+services:
+  mysql:
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD wajib}
+      MYSQL_DATABASE: ${DB_DATABASE:-snouty}
+      MYSQL_USER: ${DB_USERNAME:-snouty}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD wajib}
+    command: ['--character-set-server=utf8mb4', '--collation-server=utf8mb4_0900_ai_ci']
+    ports: ['127.0.0.1:${DB_PORT:-3316}:3306'] # hanya untuk migration/impor dari host
+    volumes: ['mysql-data:/var/lib/mysql']
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-p${DB_ROOT_PASSWORD}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes: ['redis-data:/data']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-alpine
+    restart: unless-stopped
+    volumes: ['rabbitmq-data:/var/lib/rabbitmq']
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  api:
+    build: { context: .., target: api }
+    image: snouty-api:${SNOUTY_TAG:-latest}
+    restart: unless-stopped
+    env_file: ../.env.production
+    environment:
+      NODE_ENV: production
+      PORT: '3001'
+      DB_HOST: mysql
+      DB_PORT: '3306'
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      STORAGE_PATH: /data/storage
+    ports: ['127.0.0.1:${API_BIND_PORT:-3001}:3001']
+    volumes: ['storage:/data/storage']
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  web:
+    build: { context: .., target: web }
+    image: snouty-web:${SNOUTY_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:3001
+    ports: ['127.0.0.1:${WEB_BIND_PORT:-3000}:3000']
+    depends_on: [api]
+
+  worker:
+    build: { context: .., target: worker }
+    image: snouty-worker:${SNOUTY_TAG:-latest}
+    restart: unless-stopped
+    env_file: ../.env.production
+    environment:
+      NODE_ENV: production
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      STORAGE_PATH: /data/storage
+      API_URL: http://api:3001
+    volumes: ['storage:/data/storage']
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      api: { condition: service_started }
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:
+  storage:

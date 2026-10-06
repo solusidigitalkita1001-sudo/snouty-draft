@@ -106,7 +106,12 @@ async function reportReady(deps: ReportPdfDeps, reportId: string, fileRef: strin
 /** Pembuat browser sungguhan. Dipisah supaya `reportPdfConsumer` bisa diuji tanpa Chromium. */
 export async function launchChromium(): Promise<PrintableBrowser> {
   const { chromium } = await import('playwright-core');
-  const browser = await chromium.launch({ args: ['--no-sandbox'] });
+  // Di image produksi Chromium datang dari apt (`CHROMIUM_PATH`), bukan dari unduhan Playwright.
+  const executablePath = process.env['CHROMIUM_PATH'];
+  const browser = await chromium.launch({
+    args: ['--no-sandbox'],
+    ...(executablePath ? { executablePath } : {}),
+  });
   return {
     async newPage() {
       const page = await browser.newPage();
