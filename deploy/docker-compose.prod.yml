@@ -97,6 +97,19 @@ services:
       rabbitmq: { condition: service_healthy }
       api: { condition: service_started }
 
+  # Ollama di server (keputusan pemilik 2026-10-06: tanpa biaya; CPU 4 core → 30–70 s per giliran
+  # rumah). Dinyalakan lewat `COMPOSE_PROFILES=ollama` di .env.production, dan API diarahkan ke sana:
+  #   OPENROUTER_BASE_URL=http://ollama:11434/v1  OPENROUTER_API_KEY=ollama  LLM_MODEL_*=qwen2.5:7b-instruct
+  # Model diunduh sekali ke volume: docker compose … exec ollama ollama pull qwen2.5:7b-instruct
+  ollama:
+    image: ollama/ollama
+    restart: unless-stopped
+    profiles: ['ollama']
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m # model tetap di RAM antar giliran; memuat ulang 7B dari disk memakan belasan detik
+      OLLAMA_NUM_PARALLEL: '1'
+    volumes: ['ollama-data:/root/.ollama']
+
   # Nginx di compose memegang 80/443 (nginx host nonaktif di server ini) dan juga melayani
   # bagspace.pralon.co.id — konfigurasinya menggantikan kontainer nginx proyek lama.
   # Dinyalakan terpisah saat cut-over: `deploy/deploy.sh cutover`.
@@ -116,3 +129,4 @@ volumes:
   redis-data:
   rabbitmq-data:
   storage:
+  ollama-data:
