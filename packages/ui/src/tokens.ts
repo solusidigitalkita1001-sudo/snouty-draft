@@ -63,7 +63,12 @@ export const TOKEN_GROUPS: readonly TokenGroup[] = [
     title: 'Teks',
     kind: 'color',
     tokens: [
-      { name: 'snouty-ink', use: 'teks utama; latar bubble pengguna' },
+      { name: 'snouty-ink', use: 'teks utama' },
+      { name: 'snouty-ink-fill', use: 'latar bubble pengguna (teks putih) — gelap: #2B3236' },
+      {
+        name: 'snouty-ink-border',
+        use: 'bingkai & bayangan komik (gelembung sambutan, toast, bar progres) — gelap: #8E989B',
+      },
       { name: 'snouty-ink-2', use: 'isi pesan asisten' },
       { name: 'snouty-ink-3', use: 'label chip, tombol sekunder' },
       { name: 'snouty-ink-4', use: 'isi tabel, deskripsi' },

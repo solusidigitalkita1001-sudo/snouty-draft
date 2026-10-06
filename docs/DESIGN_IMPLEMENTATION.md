@@ -50,35 +50,35 @@ Tidak ada komponen yang menulis hex; lint melarang hex mentah di `apps/`.
 
 ### Terang
 
-| Token                                 | Hex                   | Pemakaian                                                          |
-| ------------------------------------- | --------------------- | ------------------------------------------------------------------ |
-| `--action`                            | `#DF301C`             | tombol primer, garis tab aktif, jalur pipa, item terpilih          |
-| `--action-hover`                      | `#B02414`             | hover tombol; juga warna **teks/tautan** merek di permukaan terang |
-| `--action-soft-bg`                    | `#FDECE9`             | pill ukuran, kotak avatar, numeral langkah                         |
-| `--action-soft-border`                | `#F6C3BB`             | border aksen lembut, titik progres selesai                         |
-| `--action-row`                        | `#FDF1EF`             | latar item sidebar aktif (dengan border kiri 2px `#DF301C`)        |
-| `--pipe-mid`                          | `#EE7A67`             | cabang per lantai                                                  |
-| `--pipe-light`                        | `#F4B0A3`             | sambungan fixture                                                  |
-| `--ink`                               | `#14181A`             | teks utama; latar bubble pengguna (teks putih)                     |
-| `--ink-2`                             | `#20262A`             | isi pesan asisten                                                  |
-| `--ink-3`                             | `#2B3134`             | label chip, teks tombol sekunder                                   |
-| `--ink-4`                             | `#42484B`             | isi tabel, deskripsi                                               |
-| `--muted`                             | `#5A6468`             | label, teks bantu                                                  |
-| `--muted-2`                           | `#7A8285`             | cetakan halus                                                      |
-| `--caption`                           | `#6B7376`             | caption mono 10px kapital; desain `#8A9295`, lihat OQ-43           |
-| `--placeholder`                       | `#9AA3A5`             | placeholder input                                                  |
-| `--disabled`                          | `#A8B0B2`             | label langkah tertunda, timestamp                                  |
-| `--canvas`                            | `#F7F8F7`             | latar aplikasi                                                     |
-| `--surface`                           | `#FFFFFF`             | kartu, panel, header                                               |
-| `--surface-subtle`                    | `#FBFCFB`             | footer tabel, baris hover                                          |
-| `--border`                            | `#DDE2E1`             | input, tombol, tepi modal                                          |
-| `--border-soft`                       | `#E6EAE9`             | border kartu, rel                                                  |
-| `--hairline`                          | `#EFF2F1` / `#F3F5F4` | pembatas dalam                                                     |
-| `--dot-grid`                          | `#E4E8E7`             | titik kanvas skema                                                 |
-| `--verified-text` / `--verified-bg`   | `#1E7A4C` / `#E8F5EC` | "TERVERIFIKASI"                                                    |
-| `--assumed-text` / `--assumed-bg`     | `#8A5300` / `#FDF3E3` | "ASUMSI", "DIESTIMASI"                                             |
-| `--assumed-strong` / `--assumed-body` | `#B26B00` / `#7A5518` | judul & isi kartu asumsi                                           |
-| `--assumed-border`                    | `#F0DFC0` / `#E3C894` | border kartu asumsi                                                |
+| Token                                 | Hex                   | Pemakaian                                                                                                                         |
+| ------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `--action`                            | `#DF301C`             | tombol primer, garis tab aktif, jalur pipa, item terpilih                                                                         |
+| `--action-hover`                      | `#B02414`             | hover tombol; juga warna **teks/tautan** merek di permukaan terang                                                                |
+| `--action-soft-bg`                    | `#FDECE9`             | pill ukuran, kotak avatar, numeral langkah                                                                                        |
+| `--action-soft-border`                | `#F6C3BB`             | border aksen lembut, titik progres selesai                                                                                        |
+| `--action-row`                        | `#FDF1EF`             | latar item sidebar aktif (dengan border kiri 2px `#DF301C`)                                                                       |
+| `--pipe-mid`                          | `#EE7A67`             | cabang per lantai                                                                                                                 |
+| `--pipe-light`                        | `#F4B0A3`             | sambungan fixture                                                                                                                 |
+| `--ink`                               | `#14181A`             | teks utama (latar bubble pengguna memakai `--ink-fill`, bingkai komik `--ink-border` — nilainya sama di terang, berbeda di gelap) |
+| `--ink-2`                             | `#20262A`             | isi pesan asisten                                                                                                                 |
+| `--ink-3`                             | `#2B3134`             | label chip, teks tombol sekunder                                                                                                  |
+| `--ink-4`                             | `#42484B`             | isi tabel, deskripsi                                                                                                              |
+| `--muted`                             | `#5A6468`             | label, teks bantu                                                                                                                 |
+| `--muted-2`                           | `#7A8285`             | cetakan halus                                                                                                                     |
+| `--caption`                           | `#6B7376`             | caption mono 10px kapital; desain `#8A9295`, lihat OQ-43                                                                          |
+| `--placeholder`                       | `#9AA3A5`             | placeholder input                                                                                                                 |
+| `--disabled`                          | `#A8B0B2`             | label langkah tertunda, timestamp                                                                                                 |
+| `--canvas`                            | `#F7F8F7`             | latar aplikasi                                                                                                                    |
+| `--surface`                           | `#FFFFFF`             | kartu, panel, header                                                                                                              |
+| `--surface-subtle`                    | `#FBFCFB`             | footer tabel, baris hover                                                                                                         |
+| `--border`                            | `#DDE2E1`             | input, tombol, tepi modal                                                                                                         |
+| `--border-soft`                       | `#E6EAE9`             | border kartu, rel                                                                                                                 |
+| `--hairline`                          | `#EFF2F1` / `#F3F5F4` | pembatas dalam                                                                                                                    |
+| `--dot-grid`                          | `#E4E8E7`             | titik kanvas skema                                                                                                                |
+| `--verified-text` / `--verified-bg`   | `#1E7A4C` / `#E8F5EC` | "TERVERIFIKASI"                                                                                                                   |
+| `--assumed-text` / `--assumed-bg`     | `#8A5300` / `#FDF3E3` | "ASUMSI", "DIESTIMASI"                                                                                                            |
+| `--assumed-strong` / `--assumed-body` | `#B26B00` / `#7A5518` | judul & isi kartu asumsi                                                                                                          |
+| `--assumed-border`                    | `#F0DFC0` / `#E3C894` | border kartu asumsi                                                                                                               |
 
 ### Gelap — dua palet, dan yang dipilih
 

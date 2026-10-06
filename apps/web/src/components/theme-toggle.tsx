@@ -19,7 +19,14 @@ const STORAGE_KEY = 'snouty-theme';
  */
 export const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('${STORAGE_KEY}');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.dataset.theme='dark';}catch(e){}})();`;
 
-export function ThemeToggle({ compact = false }: { readonly compact?: boolean }) {
+export function ThemeToggle({
+  compact = false,
+  className,
+}: {
+  readonly compact?: boolean;
+  /** Dirender sebagai tombol polos berkelas ini (mis. baris menu sidebar) — tanpa gaya bawaan. */
+  readonly className?: string;
+}) {
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
@@ -39,6 +46,21 @@ export function ThemeToggle({ compact = false }: { readonly compact?: boolean })
   }
 
   const label = theme === 'dark' ? 'Mode terang' : 'Mode gelap';
+
+  if (className !== undefined) {
+    return (
+      <button
+        type="button"
+        className={className}
+        onClick={toggle}
+        aria-pressed={theme === 'dark'}
+        aria-label={label}
+      >
+        <span aria-hidden>{theme === 'dark' ? '☀' : '☾'}</span>
+        <span>{label}</span>
+      </button>
+    );
+  }
 
   if (compact) {
     return (

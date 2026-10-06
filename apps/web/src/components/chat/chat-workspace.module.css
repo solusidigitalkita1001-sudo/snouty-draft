@@ -330,7 +330,7 @@
    * dua komponen berbeda yang kebetulan sama-sama gelembung.
    */
   max-width: 520px;
-  background: var(--snouty-ink);
+  background: var(--snouty-ink-fill);
   color: var(--snouty-action-on);
   font-size: 14px;
   line-height: 1.55;
@@ -559,7 +559,7 @@
   flex: 1;
   height: 12px;
   border-radius: 6px;
-  border: 2px solid var(--snouty-ink);
+  border: 2px solid var(--snouty-ink-border);
   overflow: hidden;
   background: var(--snouty-surface);
 }
@@ -650,9 +650,9 @@
   align-items: center;
   gap: 12px;
   background: var(--snouty-surface);
-  border: 2px solid var(--snouty-ink);
+  border: 2px solid var(--snouty-ink-border);
   border-radius: 12px;
-  box-shadow: 4px 4px 0 var(--snouty-ink);
+  box-shadow: 4px 4px 0 var(--snouty-ink-border);
   padding: 8px 18px 8px 8px;
   animation: snoutyIn var(--snouty-enter) both;
 }
@@ -1491,6 +1491,28 @@
   color: var(--snouty-ink-4);
 }
 
+/* Baris menu yang bisa diklik (pengalih tema): tampilan sama dengan .sidebarLink, semantik tombol. */
+.sidebarLinkButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 5px;
+  font-size: 13px;
+  color: var(--snouty-ink-4);
+  background: none;
+  border: 0;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sidebarLinkButton:hover {
+  background: var(--snouty-canvas);
+  color: var(--snouty-ink);
+}
+
 .sidebarLink:hover {
   background: var(--snouty-surface-subtle);
 }
@@ -1590,12 +1612,12 @@
  */
 .welcomeBubble {
   background: var(--snouty-surface);
-  border: 2px solid var(--snouty-ink);
+  border: 2px solid var(--snouty-ink-border);
   border-radius: 14px 14px 14px 3px;
   padding: 9px 13px;
   font-size: 14px;
   font-weight: 500;
-  box-shadow: 3px 3px 0 var(--snouty-ink);
+  box-shadow: 3px 3px 0 var(--snouty-ink-border);
   margin-bottom: 58px;
 }
 

@@ -592,6 +592,8 @@ export function ChatWorkspace() {
               <span className={[styles.iconSquare, styles.iconSquareBook].join(' ')} />
               {COPY.productKnowledge}
             </span>
+            {/* Pengalih tema sebagai baris menu — penempatannya belum didesain; minimal. */}
+            <ThemeToggle className={styles['sidebarLinkButton'] ?? ''} />
           </div>
 
           <div className={styles.sidebarFooter}>
@@ -607,8 +609,6 @@ export function ChatWorkspace() {
                 </span>
               )}
             </div>
-            {/* Pengalih tema — penempatannya belum didesain (prototipe hanya punya paletnya); minimal. */}
-            <ThemeToggle compact />
           </div>
         </aside>
       )}
@@ -713,6 +713,8 @@ export function ChatWorkspace() {
             )}
           </div>
           <div className={styles.headerActions}>
+            {/* Sempit: sidebar (dan pengalih tema di dalamnya) hilang — tombolnya pindah ke header. */}
+            {narrow && <ThemeToggle compact />}
             {/* Ponsel (board 13a): "Kebutuhan (n)" membuka panel sebagai lembar. */}
             {mobile && inConversation && (
               <button

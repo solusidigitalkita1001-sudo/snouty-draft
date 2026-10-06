@@ -92,13 +92,13 @@
   max-width: 230px;
   background: var(--snouty-surface);
   color: var(--snouty-ink);
-  border: 2px solid var(--snouty-ink);
+  border: 2px solid var(--snouty-ink-border);
   border-radius: 14px 14px 14px 3px;
   padding: 10px 13px;
   font-size: 13.5px;
   font-weight: 500;
   line-height: 1.4;
-  box-shadow: 3px 3px 0 var(--snouty-ink);
+  box-shadow: 3px 3px 0 var(--snouty-ink-border);
 }
 
 .heroDisc {
@@ -444,7 +444,7 @@
 
 .userBubble {
   max-width: 360px;
-  background: var(--snouty-ink);
+  background: var(--snouty-ink-fill);
   color: var(--snouty-surface);
   font-size: 13.5px;
   line-height: 1.5;

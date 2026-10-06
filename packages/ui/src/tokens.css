@@ -52,6 +52,10 @@
   --snouty-ink-2: #20262a;
   --snouty-ink-3: #2b3134;
   --snouty-ink-4: #42484b;
+  /* Ink sebagai ISIAN dan GARIS (bubble pengguna, bingkai komik): di mode gelap bukan #ecefee —
+     prototipe memetakan latar #14181A → #2B3236 dan garis → #8E989B (DESIGN_IMPLEMENTATION §3). */
+  --snouty-ink-fill: #14181a;
+  --snouty-ink-border: #14181a;
   --snouty-muted: #5a6468;
   --snouty-muted-2: #7a8285;
   --snouty-caption: #6b7376; /* desain: #8a9295 — digelapkan untuk AA, OQ-43 */
@@ -183,6 +187,8 @@
   --snouty-ink-2: #dde2e1;
   --snouty-ink-3: #d0d6d5;
   --snouty-ink-4: #b4bcbe;
+  --snouty-ink-fill: #2b3236;
+  --snouty-ink-border: #8e989b;
   --snouty-muted: #9aa3a6;
   --snouty-muted-2: #838c8f;
   --snouty-caption: #7e878a;
