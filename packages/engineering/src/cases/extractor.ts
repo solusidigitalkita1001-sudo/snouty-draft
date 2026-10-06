@@ -109,6 +109,16 @@ export function extractTechnicalContext(
       add('well_depth', num(m[1]!), m[0], 'm');
     });
 
+  // ── Timbunan / kedalaman tanam ──
+  take(
+    new RegExp(
+      `(?:timbunan|ditanam|kedalaman tanam|tanam sedalam|di bawah permukaan)\\D{0,12}?${NUM}\\s*(m|meter|cm)\\b`,
+    ),
+    (m) => {
+      add('burial_depth', m[2] === 'cm' ? num(m[1]!) / 100 : num(m[1]!), m[0], 'm');
+    },
+  );
+
   // ── Lebar jalan ──
   take(
     new RegExp(

@@ -339,6 +339,25 @@ ENG-304  BOM: pipa masuk = jalur (10 m bila tak disebut) + 2 m/kolam ; pipa kura
 
 Contoh: 4 × 4 m, air 1 m → 16 m³, 1,48 l/s, pipa masuk 1½" AW, pipa kuras 3" D.
 
+### Kelompok H — Gravitasi, air hujan, gorong-gorong, jaringan cluster (Fase 14)
+
+Asal: Manning, metode rasional, dan kebutuhan domestik baku. **Intensitas hujan tidak pernah
+dikarang** — masukan wajib dari pengguna/data setempat. Gorong-gorong hanya dihitung hidrauliknya;
+strukturnya ditandai "perlu validasi". Orkestrator `computeGravity()` (drainase | air hujan |
+gorong-gorong) dan `computeNetwork()` (cluster → Kelompok F). Semua `REQUIRES_DOMAIN_VALIDATION`.
+
+```
+ENG-401  V = (1/n) · (D/4)^(2/3) · S^(1/2) ; Q_penuh = V · A        n plastik 0,010 (registry)
+ENG-402  ukuran nominal terkecil (½"–16") dengan Q_rencana ≤ 80 % Q_penuh dan V_penuh ≥ 0,6 m/s;
+         kemiringan 0,5 % bila tak disebut
+ENG-403  Q = 2,78 · C · I (mm/jam) · A (ha) → l/s                  C perumahan 0,6 bila tak disebut
+ENG-404  timbunan minimum = max(0,6 m [1,0 m beban berat], 1 × D) → memadai / wajib validasi struktural
+ENG-405  Q_rata = sambungan × 4 orang × 150 l/hari ÷ 86 400 ; Q_puncak = Q_rata × 2,0
+```
+
+Contoh: 20 l/s pada 1 % → 8" (47 % kapasitas); 0,5 ha × 100 mm/jam → 83,4 l/s → 12";
+120 unit → 1,67 l/s puncak → 1½" bertekanan.
+
 ## 4. Tabel pelacak validasi
 
 Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja.

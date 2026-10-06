@@ -612,8 +612,16 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       teknis dirombak jadi prosa teknisi** (aturan pemilik: tanpa metatext — tidak ada judul bagian
       "Data yang diketahui", "Jawab langsung di sini", dsb.). Registry 29 aturan; tes engineering
       129, API 749, web 88; migration test 59/59
-- [ ] P14-04 Fase 4 — Manning (gravitasi), air hujan Q = C·I·A (tanpa mengarang intensitas),
-      gorong-gorong, kebutuhan jaringan cluster, zonasi bertingkat
+- [x] P14-04 Fase 4 — Gravitasi, air hujan, gorong-gorong, cluster (2026-10-06). Kelompok H ENG-401
+      Manning, ENG-402 sizing gravitasi dengan kandidat berstatus atas tabel ½"–16", ENG-403 metode
+      rasional (intensitas hujan wajib, tidak pernah dikarang), ENG-404 penanda struktural
+      gorong-gorong, ENG-405 kebutuhan puncak; `computeGravity` + `computeNetwork`; 7 asumsi registry
+      (Manning n, rasio isi 80 %, kemiringan min 0,5 %, timbunan 0,6 m, 150 l/orang/hari, 4
+      orang/unit, faktor puncak 2). API: `runGravity` (PVC D + fitting) dan `runNetwork` (puncak →
+      Kelompok F) di analysis service, `gravity-view.ts`; profil drainase/air hujan/gorong-
+      gorong/cluster kini "kalkulator tersedia" dan parameter yang punya asumsi (kemiringan, C,
+      sumber) turun dari kritis ke penting; ekstraktor membaca timbunan. Registry 34 aturan. **Belum**:
+      zonasi gedung bertingkat (profil `multistorey_building_water` tetap validasi teknis)
 - [ ] P14-05 Fase 5 — Matcher produk dari kebutuhan teknis (bahan + diameter + kelas tekanan)
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan

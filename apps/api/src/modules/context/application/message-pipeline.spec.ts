@@ -127,13 +127,10 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(after['design_flow']?.value).toBe(20);
     expect(after['slope']?.value).toBe(1);
     expect(after['road_width']?.value).toBe(6);
-    // Semua parameter kritis ada, kalkulator gorong-gorong belum tersedia → validasi teknis terstruktur.
+    // Semua parameter kritis ada dan kalkulator gorong-gorong tersedia (Fase 4) → CTA analisis.
     const card = next.events.find((e) => e.type === 'card') as
-      { card: { kind: string; captured?: { label: string }[] } } | undefined;
-    expect(card?.card.kind).toBe('unsupported');
-    expect(card?.card.captured?.map((c) => c.label)).toEqual(
-      expect.arrayContaining(['Lebar jalan', 'Debit rencana', 'Kemiringan saluran']),
-    );
+      { card: { kind: string; action?: string } } | undefined;
+    expect(card?.card).toEqual({ kind: 'cta', action: 'ANALYZE' });
   });
 
   it('jalur irigasi ("irigasi sawah 1 hektar"): arahan + kartu pertanyaan IRIGASI, nol ekstraksi, luas tercatat', async () => {

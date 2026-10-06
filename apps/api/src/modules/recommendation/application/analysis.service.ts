@@ -23,9 +23,13 @@ import type {
 import {
   buildSchematic,
   computeIrrigation,
+  computeGravity,
+  computeNetwork,
   computePond,
   computePressurized,
   computeSolution,
+  HDPE_FROM_METERS,
+  type NetworkInput,
   type PondInput,
   type SolutionInput,
 } from '@snouty/engineering';
@@ -35,6 +39,18 @@ import {
   irrigationFieldFor,
 } from '../domain/engineering-state.js';
 import { irrigationInputFrom } from '../domain/irrigation-input.js';
+import {
+  gravityAssumptionsFrom,
+  gravityBomItemsFrom,
+  gravityHighlights,
+  gravityLegacyStats,
+  gravityPlanFrom,
+  gravityProse,
+  gravitySystemLinesFrom,
+  networkHighlightsPrefix,
+  networkInputFrom,
+  type GravityPlan,
+} from '../domain/gravity-view.js';
 import {
   pressurizedAssumptionsFrom,
   pressurizedBomItemsFrom,
@@ -171,6 +187,10 @@ export class AnalysisService {
         return this.runPond(conversationId, snapshotId, state, pondInput, now);
       const plan = pressurizedPlanFrom(state);
       if (plan !== null) return this.runPressurized(conversationId, snapshotId, plan, now);
+      const gravity = gravityPlanFrom(state);
+      if (gravity !== null) return this.runGravity(conversationId, snapshotId, gravity, now);
+      const network = networkInputFrom(state);
+      if (network !== null) return this.runNetwork(conversationId, snapshotId, network, now);
       throw new TechnicalCaseNotComputableError(state.useCase.caseId);
     }
 
@@ -438,6 +458,167 @@ export class AnalysisService {
     });
     events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;
+  }
+
+  /** Drainase / air hujan / gorong-gorong: engine Kelompok H, produk PVC D + fitting, prosa deterministik. */
+  private async runGravity(
+    conversationId: string,
+    snapshotId: string,
+    plan: GravityPlan,
+    now: string,
+  ): Promise<readonly AssistantStreamEvent[]> {
+    const events: AssistantStreamEvent[] = [];
+    events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
+    const result = computeGravity(plan.input);
+    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+      ...trace,
+      id: ulid(),
+    }));
+    events.push({
+      type: 'stage',
+      stage: 'ANALYZING_INSTALLATION',
+      status: 'done',
+      detail: `${result.designFlowLs} L/S · ${result.slopePercent} %`,
+    });
+
+    const { version, page } = await this.catalogForMatching(events);
+    const match = matchProducts(
+      [
+        { role: 'main', size: result.recommendedSize, family: 'PVC D' },
+        fittingRequirement(result.recommendedSize, 'PVC D'),
+      ],
+      page.items,
+    );
+    events.push({
+      type: 'stage',
+      stage: 'MATCHING_PRODUCTS',
+      status: 'done',
+      detail: `${match.products.length} PRODUK`,
+    });
+
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
+    const prose = gravityProse(result);
+    const recommendation: Recommendation = {
+      id: ulid(),
+      conversationId,
+      snapshotId,
+      catalogVersionId: version.id,
+      kind: 'technical',
+      headline: prose.headline,
+      body: prose.body,
+      stats: gravityLegacyStats(result, match.products.length),
+      highlights: gravityHighlights(result, match.products.length),
+      systemLines: gravitySystemLinesFrom(result, traces),
+      products: match.products,
+      bom: gravityBomItemsFrom(result, plan.pipeLengthM, traces),
+      assumptions: gravityAssumptionsFrom(result, traces),
+      overallProvenance: result.overallProvenance,
+      createdAt: now,
+    };
+    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.conversations.markSolutionReady(conversationId);
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
+    events.push({
+      type: 'stage',
+      stage: 'PREPARING_SCHEMATIC',
+      status: 'done',
+      detail: 'SKEMA SALURAN MENUNGGU DESAIN',
+    });
+    events.push({ type: 'solution.ready', recommendationId: recommendation.id });
+    return events;
+  }
+
+  /** Cluster perumahan: kebutuhan puncak (ENG-405) lalu jalur bertekanan (Kelompok F). */
+  private async runNetwork(
+    conversationId: string,
+    snapshotId: string,
+    input: NetworkInput,
+    now: string,
+  ): Promise<readonly AssistantStreamEvent[]> {
+    const events: AssistantStreamEvent[] = [];
+    events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
+    const result = computeNetwork(input);
+    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+      ...trace,
+      id: ulid(),
+    }));
+    const family = input.routeLengthM >= HDPE_FROM_METERS ? 'HDPE' : 'PVC AW';
+    const extra = family === 'HDPE' ? ['HDPE_MAIN_FROM_200M'] : [];
+    events.push({
+      type: 'stage',
+      stage: 'ANALYZING_INSTALLATION',
+      status: 'done',
+      detail: `${result.connections} UNIT · ${result.peakFlowLs} L/S`,
+    });
+
+    const { version, page } = await this.catalogForMatching(events);
+    const roles = [
+      { role: 'main' as const, size: result.recommendedSize, family },
+      fittingRequirement(result.recommendedSize, family),
+    ];
+    if (result.alternativeSize)
+      roles.push({ role: 'branch' as const, size: result.alternativeSize, family });
+    const match = matchProducts(roles, page.items);
+    events.push({
+      type: 'stage',
+      stage: 'MATCHING_PRODUCTS',
+      status: 'done',
+      detail: `${match.products.length} PRODUK`,
+    });
+
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
+    const pressurizedInput = {
+      designFlowLs: result.peakFlowLs,
+      routeLengthM: input.routeLengthM,
+      staticHeadM: input.staticHeadM,
+    };
+    const prose = pressurizedProse(result, family, pressurizedInput);
+    const recommendation: Recommendation = {
+      id: ulid(),
+      conversationId,
+      snapshotId,
+      catalogVersionId: version.id,
+      kind: 'technical',
+      headline: `${result.connections} unit: ${prose.headline}`,
+      body: `Kebutuhan puncak ${String(result.peakFlowLs).replace('.', ',')} l/s untuk ${result.connections} sambungan (rata-rata ${String(result.averageFlowLs).replace('.', ',')} l/s). ${prose.body}`,
+      stats: pressurizedLegacyStats(result, match.products.length),
+      highlights: [
+        ...networkHighlightsPrefix(result),
+        ...pressurizedHighlights(result, family, match.products.length),
+      ],
+      systemLines: pressurizedSystemLinesFrom(result, family, traces),
+      products: match.products,
+      bom: pressurizedBomItemsFrom(result, family, input.routeLengthM, traces),
+      assumptions: pressurizedAssumptionsFrom(result, extra, traces),
+      overallProvenance: result.overallProvenance,
+      createdAt: now,
+    };
+    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.conversations.markSolutionReady(conversationId);
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
+    events.push({
+      type: 'stage',
+      stage: 'PREPARING_SCHEMATIC',
+      status: 'done',
+      detail: 'SKEMA JARINGAN MENUNGGU DESAIN',
+    });
+    events.push({ type: 'solution.ready', recommendationId: recommendation.id });
+    return events;
+  }
+
+  /** Versi katalog aktif + halaman produk untuk pencocokan; gagal → `CatalogUnavailableError`. */
+  private async catalogForMatching(events: AssistantStreamEvent[]) {
+    events.push({ type: 'stage', stage: 'MATCHING_PRODUCTS', status: 'active' });
+    let version;
+    try {
+      version = await this.catalogQuery.activeVersion();
+    } catch (error) {
+      events.push({ type: 'stage', stage: 'MATCHING_PRODUCTS', status: 'failed' });
+      if (error instanceof CatalogReadUnavailableError) throw new CatalogUnavailableError();
+      throw error;
+    }
+    const page = await this.catalogQuery.listProducts({ limit: 50 });
+    return { version, page };
   }
 
   private async runPond(
