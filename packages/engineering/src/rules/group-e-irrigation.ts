@@ -107,10 +107,10 @@ export const NOMINAL_SIZES: ReadonlyArray<{ readonly size: string; readonly inne
   { size: '1/2"', innerMm: 15 },
   { size: '3/4"', innerMm: 20 },
   { size: '1"', innerMm: 25 },
-  { size: '1 1/4"', innerMm: 32 },
-  { size: '1 1/2"', innerMm: 40 },
+  { size: '1¼"', innerMm: 32 },
+  { size: '1½"', innerMm: 40 },
   { size: '2"', innerMm: 50 },
-  { size: '2 1/2"', innerMm: 65 },
+  { size: '2½"', innerMm: 65 },
   { size: '3"', innerMm: 80 },
   { size: '4"', innerMm: 100 },
   { size: '6"', innerMm: 150 },
@@ -146,9 +146,9 @@ export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult>
   validationStatus: PENDING,
   testCases: [
     {
-      name: '1,5 l/s pada 1,5 m/s → 35,7 mm → 1 1/2"',
+      name: '1,5 l/s pada 1,5 m/s → 35,7 mm → 1½"',
       input: { designFlowLs: 1.5, velocityMs: 1.5 },
-      expected: { requiredInnerDiameterMm: 35.7, mainSize: '1 1/2"', innerDiameterMm: 40 },
+      expected: { requiredInnerDiameterMm: 35.7, mainSize: '1½"', innerDiameterMm: 40 },
     },
     {
       name: '0,5 l/s pada 1,5 m/s → 20,6 mm → 1"',
@@ -363,16 +363,16 @@ export const ENG_105: RuleVersion<IrrigationBomInput, IrrigationBomResult> = {
   validationStatus: PENDING,
   testCases: [
     {
-      name: '1 ha, jalur utama 350 m HDPE 1 1/2"',
-      input: { areaHa: 1, mainRunMeters: 350, mainSize: '1 1/2"', mainFamily: 'HDPE' },
+      name: '1 ha, jalur utama 350 m HDPE 1½"',
+      input: { areaHa: 1, mainRunMeters: 350, mainSize: '1½"', mainFamily: 'HDPE' },
       expected: {
         distributionMeters: 200,
         lines: [
-          { item: 'Pipa HDPE', size: '1 1/2"', quantity: 350, unit: 'meter' },
-          { item: 'Pipa PVC AW', size: '1 1/2"', quantity: 50, unit: 'batang' },
-          { item: 'Tee', size: '1 1/2"', quantity: 4, unit: 'pcs' },
-          { item: 'Elbow 90°', size: '1 1/2"', quantity: 4, unit: 'pcs' },
-          { item: 'Katup / stop kran', size: '1 1/2"', quantity: 5, unit: 'pcs' },
+          { item: 'Pipa HDPE', size: '1½"', quantity: 350, unit: 'meter' },
+          { item: 'Pipa PVC AW', size: '1½"', quantity: 50, unit: 'batang' },
+          { item: 'Tee', size: '1½"', quantity: 4, unit: 'pcs' },
+          { item: 'Elbow 90°', size: '1½"', quantity: 4, unit: 'pcs' },
+          { item: 'Katup / stop kran', size: '1½"', quantity: 5, unit: 'pcs' },
         ],
       },
     },

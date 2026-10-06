@@ -106,8 +106,10 @@ const UP = [
   '0011_catalog_foreign_keys.sql',
   '0012_recommendation_prose_source.sql',
   '0013_catalog_version_kind.sql',
+  '0014_recommendation_kind.sql',
 ];
 const DOWN = [
+  '0014_recommendation_kind.down.sql',
   '0013_catalog_version_kind.down.sql',
   '0012_recommendation_prose_source.down.sql',
   '0011_catalog_foreign_keys.down.sql',
@@ -123,7 +125,7 @@ const DOWN = [
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0013 satu kolom). */
+/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0014 satu-dua kolom). */
 const TABLES = 27;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
@@ -683,6 +685,54 @@ await check('menolak asal di luar pralon/sample', () =>
     `INSERT INTO catalog_versions (id,label,source_document,kind,status,effective_from,imported_by)
      VALUES (?,'kind-salah','dok uji','mock','draft','2026-01-01',?)`,
     [ulid(914), ulid(911)],
+  ),
+);
+
+// ── Jalur guna rekomendasi (0014) ───────────────────────────────────────────
+console.log('\njalur guna rekomendasi:');
+const CONV14 = ulid(921);
+await conn.query(`INSERT INTO conversations (id,owner_kind,owner_id) VALUES (?,'guest',?)`, [
+  CONV14,
+  ulid(922),
+]);
+const insertKind = (id, kind) =>
+  conn.query(
+    kind === undefined
+      ? `INSERT INTO recommendations
+           (id,conversation_id,snapshot_id,catalog_version_id,headline,body,
+            stats,system_lines,products,bom,assumptions,overall_provenance)
+         VALUES (?,?,?,?,'h','b','{}','[]','[]','[]','[]','ASSUMED')`
+      : `INSERT INTO recommendations
+           (id,conversation_id,snapshot_id,catalog_version_id,headline,body,kind,irrigation_stats,
+            stats,system_lines,products,bom,assumptions,overall_provenance)
+         VALUES (?,?,?,?,'h','b',?,'{"areaHa":1}','{}','[]','[]','[]','[]','ASSUMED')`,
+    kind === undefined
+      ? [id, CONV14, ulid(923), ulid(924)]
+      : [id, CONV14, ulid(923), ulid(924), kind],
+  );
+
+await check('rekomendasi tanpa `kind` adalah bangunan (bawaan)', async () => {
+  const id = ulid(925);
+  await insertKind(id, undefined);
+  const [rows] = await conn.query(
+    'SELECT kind, irrigation_stats FROM recommendations WHERE id = ?',
+    [id],
+  );
+  if (rows[0].kind !== 'building') throw new Error(`kind bawaan ${rows[0].kind}`);
+  if (rows[0].irrigation_stats !== null) throw new Error('irrigation_stats harus NULL');
+});
+
+await check('menerima `irrigation` beserta statistiknya', () =>
+  insertKind(ulid(926), 'irrigation'),
+);
+
+await check('menolak jalur guna di luar building/irrigation', () =>
+  mustReject(
+    `INSERT INTO recommendations
+       (id,conversation_id,snapshot_id,catalog_version_id,headline,body,kind,
+        stats,system_lines,products,bom,assumptions,overall_provenance)
+     VALUES (?,?,?,?,'h','b','drainage','{}','[]','[]','[]','[]','ASSUMED')`,
+    [ulid(927), CONV14, ulid(923), ulid(924)],
   ),
 );
 

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { computeIrrigation } from './compute-irrigation.js';
 
 describe('computeIrrigation', () => {
-  it('1 ha sprinkler, sumber sejajar 25 m: debit 0,8 l/s → 1 1/4", pompa, AW, PVC utama', () => {
+  it('1 ha sprinkler, sumber sejajar 25 m: debit 0,8 l/s → 1¼", pompa, AW, PVC utama', () => {
     const r = computeIrrigation({
       areaHa: 1,
       method: 'sprinkler',
@@ -14,7 +14,7 @@ describe('computeIrrigation', () => {
       elevation: 'level',
     });
     expect(r.designFlowLs).toBe(0.8);
-    expect(r.mainSize).toBe('1 1/4"');
+    expect(r.mainSize).toBe('1¼"');
     expect(r.pumpRequired).toBe(true);
     expect(r.pressureClass).toBe('AW');
     expect(r.mainFamily).toBe('PVC AW');
@@ -45,11 +45,11 @@ describe('computeIrrigation', () => {
       elevation: 'higher',
     });
     expect(r.designFlowLs).toBe(1.5);
-    expect(r.mainSize).toBe('1 1/2"');
+    expect(r.mainSize).toBe('1½"');
     expect(r.pumpRequired).toBe(false);
     expect(r.pressureClass).toBe('D');
     expect(r.mainFamily).toBe('HDPE');
-    expect(r.bom[0]).toEqual({ item: 'Pipa HDPE', size: '1 1/2"', quantity: 350, unit: 'meter' });
+    expect(r.bom[0]).toEqual({ item: 'Pipa HDPE', size: '1½"', quantity: 350, unit: 'meter' });
   });
 
   it('murni: masukan sama → keluaran identik', () => {
@@ -65,6 +65,6 @@ describe('computeIrrigation', () => {
       elevation: 'level',
     });
     expect(r.traces[0]?.explanation).toContain('0.8 l/s');
-    expect(r.traces[1]?.explanation).toContain('1 1/4"');
+    expect(r.traces[1]?.explanation).toContain('1¼"');
   });
 });
