@@ -46,6 +46,12 @@ export interface SelectedProduct {
   readonly role: SystemRole;
   readonly matchState: ProductMatchState;
   readonly reason: string;
+  /**
+   * Varian lain yang sama-sama cocok (katalog Pralon: ujung, warna, panjang batang, merek) —
+   * ≤ 10, urut kriteria pemilihan yang sama (docs/MATCHER_V2_PROPOSAL.md §1). Kartu menampilkan
+   * satu; drawer boleh menampilkan sisanya.
+   */
+  readonly alternatives?: readonly { readonly productId: string; readonly name: string }[];
 }
 
 export type BomUnit = 'batang' | 'pcs' | 'kaleng' | 'meter';

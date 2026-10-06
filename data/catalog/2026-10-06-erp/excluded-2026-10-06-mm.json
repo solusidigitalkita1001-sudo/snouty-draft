@@ -1,0 +1,78 @@
+{
+  "issues": [
+    {
+      "rowNumber": 3686,
+      "column": "sku",
+      "message": "Kolom `sku` terlalu panjang (73 karakter, maksimum 64)."
+    },
+    {
+      "rowNumber": 3765,
+      "column": "sku",
+      "message": "Kolom `sku` terlalu panjang (73 karakter, maksimum 64)."
+    },
+    {
+      "rowNumber": 3833,
+      "column": "sku",
+      "message": "Kolom `sku` terlalu panjang (73 karakter, maksimum 64)."
+    },
+    {
+      "rowNumber": 4509,
+      "column": "sku",
+      "message": "Kolom `sku` terlalu panjang (73 karakter, maksimum 64)."
+    },
+    {
+      "rowNumber": 4543,
+      "column": "sku",
+      "message": "Kolom `sku` terlalu panjang (73 karakter, maksimum 64)."
+    },
+    {
+      "rowNumber": 4569,
+      "column": "sku",
+      "message": "Kolom `sku` terlalu panjang (73 karakter, maksimum 64)."
+    },
+    {
+      "rowNumber": 4577,
+      "column": "sku",
+      "message": "Kolom `sku` terlalu panjang (73 karakter, maksimum 64)."
+    },
+    {
+      "rowNumber": 5857,
+      "column": "sku",
+      "message": "Kolom `sku` terlalu panjang (73 karakter, maksimum 64)."
+    }
+  ],
+  "excluded": [
+    {
+      "rowNumber": 3686,
+      "sku": "product:811602cc-c82e-11e2-8866-e09153253776.product_product-2CvDFkZ6fdNA"
+    },
+    {
+      "rowNumber": 3765,
+      "sku": "product:811602cc-c82e-11e2-8866-e09153253776.product_product-KG3usGOr1ZxD"
+    },
+    {
+      "rowNumber": 3833,
+      "sku": "product:811602cc-c82e-11e2-8866-e09153253776.product_product-qQDs6B2gsioX"
+    },
+    {
+      "rowNumber": 4509,
+      "sku": "product:811602cc-c82e-11e2-8866-e09153253776.product_product-4oFT6WVzsN_B"
+    },
+    {
+      "rowNumber": 4543,
+      "sku": "product:811602cc-c82e-11e2-8866-e09153253776.product_product-SNdYF-r473Oz"
+    },
+    {
+      "rowNumber": 4569,
+      "sku": "product:811602cc-c82e-11e2-8866-e09153253776.product_product-JdsoGc6tyTxW"
+    },
+    {
+      "rowNumber": 4577,
+      "sku": "product:811602cc-c82e-11e2-8866-e09153253776.product_product-FlpP-Zo7FQ-o"
+    },
+    {
+      "rowNumber": 5857,
+      "sku": "product:811602cc-c82e-11e2-8866-e09153253776.product_product-foyqRQCEY-pX"
+    }
+  ]
+}

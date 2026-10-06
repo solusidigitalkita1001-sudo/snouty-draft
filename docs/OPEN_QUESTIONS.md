@@ -362,10 +362,14 @@ dan desain skema irigasi (tab Skema untuk solusi irigasi sengaja kosong).
 pipanya ("PVC AW") dan dibedakan lewat `category`?
 **Temuan (2026-10-06):** matcher mencari `family = 'FITTING PVC'`, katalog contoh menaruh fitting di
 `family = 'PVC AW'` + `category = 'FITTING · SNI'` — peran fitting tidak pernah terisi.
-**Default yang diterapkan:** peran fitting = keluarga pipa yang sama **dan** `category` memuat
-"FITTING" (`fittingRequirement()` di `product-matcher.ts`); peran pipa menolak kategori fitting.
-Konvensi ini harus dikonfirmasi saat kamus `family`/`category` Pralon disepakati
-(`docs/PRODUCT_MASTER_DATA.md` §4).
+**Default yang diterapkan (direvisi 2026-10-06 malam, setelah export ERP dibaca):** data asli
+menaruh fitting di keluarga sendiri — `FITTING PVC` / `FITTING HDPE` / `FITTING FRP`. Matcher v2
+(`fittingRequirement()`) mencari keluarga fitting Pralon dulu (pemetaan 3 baris: PVC AW/D/C/VP/VU →
+FITTING PVC; HDPE/MDPE → FITTING HDPE), lalu fallback keluarga pipa + kategori "FITTING" untuk
+katalog yang tidak memisahkannya (katalog contoh). Fitting diterima penuh hanya bila
+`pressure_class` VERIFIED sama dengan kelas pipa; kelas `UNAVAILABLE` (seluruh seri "W", keputusan
+pemilik: **tidak ditebak AW**) menjadi `SIZE_NEEDS_VALIDATION`; kelas VERIFIED berbeda (D untuk AW)
+ditolak. Masih menunggu Pralon: arti token "W" dan fitting tanpa token (`docs/MATCHER_V2_PROPOSAL.md` §5).
 
 ### OQ-46 — Katalog contoh pernah mendasari klaim tentang Pralon; kini ditandai dan dipagari
 

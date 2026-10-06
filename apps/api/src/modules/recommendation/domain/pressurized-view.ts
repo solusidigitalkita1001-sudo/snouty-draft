@@ -98,7 +98,8 @@ export function pressurizedPlanFrom(state: RequirementState): PressurizedPlan | 
       routeLengthM,
       staticHeadM,
       ...(requiredPressureBar !== undefined ? { residualPressureBar: requiredPressureBar } : {}),
-      ...(material ? { material } : {}),
+      // Bahan ikut ke engine juga saat dipilih dari panjang jalur: HDPE memakai tabel ukuran mm.
+      ...(material ? { material } : family === 'HDPE' ? { material: 'HDPE' as const } : {}),
       ...(typeof pumpRequired === 'boolean' ? { pumpRequired } : {}),
     },
     family,

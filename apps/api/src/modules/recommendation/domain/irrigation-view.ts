@@ -55,7 +55,7 @@ export function legacyStatsFrom(
     outletCount: 0,
     mainSize: result.mainSize,
     branchCount: Math.max(1, result.bom.find((l) => l.item === 'Tee')?.quantity ?? 1),
-    fixtureConnectionSize: result.mainSize,
+    fixtureConnectionSize: result.distributionSize,
     productCount,
   };
 }
@@ -80,7 +80,7 @@ export function irrigationSystemLinesFrom(
     {
       name: `Distribusi di lahan ${result.distributionFamily}`,
       path: 'Header → lateral',
-      size: result.mainSize,
+      size: result.distributionSize,
       reason: explanationFor(traces, 'ENG-105'),
       provenance: provenanceFor(traces, distributionTraces),
       traceIds: distributionTraces,

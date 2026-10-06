@@ -20,6 +20,7 @@ import type {
   Recommendation,
   RequirementState,
 } from '@snouty/shared-types';
+import { PipeSize, type Product } from '@snouty/shared-types';
 import {
   buildSchematic,
   computeIrrigation,
@@ -87,7 +88,13 @@ import type { CatalogQueryService } from '../../product-catalog/application/cata
 import { CatalogUnavailableError as CatalogReadUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import { ulid } from '../../../shared/ulid.js';
 import { assembleRecommendation, type ProseWriter } from './recommendation-assembler.js';
-import { fittingRequirement, matchProducts, requirementsFrom } from '../domain/product-matcher.js';
+import {
+  fittingRequirement,
+  matchProducts,
+  pipeRequirement,
+  requirementsFrom,
+  type RoleRequirement,
+} from '../domain/product-matcher.js';
 import type { IdentifiedTrace } from '../domain/solution-view.js';
 import {
   RECOMMENDATION_REPOSITORY,
@@ -145,7 +152,10 @@ export class AnalysisService {
     @Inject(RECOMMENDATION_REPOSITORY) private readonly repository: RecommendationRepository,
     private readonly conversations: ConversationService,
     private readonly prose: ProseWriter | null = null,
-    private readonly catalogQuery: Pick<CatalogQueryService, 'activeVersion' | 'listProducts'>,
+    private readonly catalogQuery: Pick<
+      CatalogQueryService,
+      'activeVersion' | 'listProducts' | 'candidatesFor'
+    >,
   ) {}
 
   /**
@@ -221,15 +231,13 @@ export class AnalysisService {
       throw error;
     }
 
-    const page = await this.catalogQuery.listProducts({ limit: 50 });
-    const match = matchProducts(
+    const match = await this.matchRoles(
       requirementsFrom({
         mainSize: solution.mainSize,
         branchSize: '3/4"',
         fixtureSize: solution.fixtureConnectionSize,
         pipeFamily: PIPE_FAMILY,
       }),
-      page.items,
     );
     events.push({
       type: 'stage',
@@ -316,15 +324,11 @@ export class AnalysisService {
       if (error instanceof CatalogReadUnavailableError) throw new CatalogUnavailableError();
       throw error;
     }
-    const page = await this.catalogQuery.listProducts({ limit: 50 });
-    const match = matchProducts(
-      [
-        { role: 'main', size: result.mainSize, family: result.mainFamily },
-        { role: 'branch', size: result.mainSize, family: result.distributionFamily },
-        fittingRequirement(result.mainSize, result.distributionFamily),
-      ],
-      page.items,
-    );
+    const match = await this.matchRoles([
+      pipeRequirement('main', result.mainSize, result.mainFamily),
+      pipeRequirement('branch', result.distributionSize, result.distributionFamily),
+      fittingRequirement(result.distributionSize, result.distributionFamily),
+    ]);
     events.push({
       type: 'stage',
       stage: 'MATCHING_PRODUCTS',
@@ -412,15 +416,14 @@ export class AnalysisService {
       if (error instanceof CatalogReadUnavailableError) throw new CatalogUnavailableError();
       throw error;
     }
-    const page = await this.catalogQuery.listProducts({ limit: 50 });
     const roles = [
-      { role: 'main' as const, size: result.recommendedSize, family: plan.family },
+      pipeRequirement('main', result.recommendedSize, plan.family),
       fittingRequirement(result.recommendedSize, plan.family),
     ];
     if (result.alternativeSize) {
-      roles.push({ role: 'branch' as const, size: result.alternativeSize, family: plan.family });
+      roles.push(pipeRequirement('branch', result.alternativeSize, plan.family));
     }
-    const match = matchProducts(roles, page.items);
+    const match = await this.matchRoles(roles);
     events.push({
       type: 'stage',
       stage: 'MATCHING_PRODUCTS',
@@ -481,14 +484,11 @@ export class AnalysisService {
       detail: `${result.designFlowLs} L/S · ${result.slopePercent} %`,
     });
 
-    const { version, page } = await this.catalogForMatching(events);
-    const match = matchProducts(
-      [
-        { role: 'main', size: result.recommendedSize, family: 'PVC D' },
-        fittingRequirement(result.recommendedSize, 'PVC D'),
-      ],
-      page.items,
-    );
+    const { version } = await this.catalogForMatching(events);
+    const match = await this.matchRoles([
+      pipeRequirement('main', result.recommendedSize, 'PVC D'),
+      fittingRequirement(result.recommendedSize, 'PVC D'),
+    ]);
     events.push({
       type: 'stage',
       stage: 'MATCHING_PRODUCTS',
@@ -537,12 +537,13 @@ export class AnalysisService {
   ): Promise<readonly AssistantStreamEvent[]> {
     const events: AssistantStreamEvent[] = [];
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
-    const result = computeNetwork(input);
+    // Keluarga dulu: HDPE dijual dalam mm, jadi engine harus memilih ukuran dari tabel mm.
+    const family = input.routeLengthM >= HDPE_FROM_METERS ? 'HDPE' : 'PVC AW';
+    const result = computeNetwork(family === 'HDPE' ? { ...input, material: 'HDPE' } : input);
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
     }));
-    const family = input.routeLengthM >= HDPE_FROM_METERS ? 'HDPE' : 'PVC AW';
     const extra = family === 'HDPE' ? ['HDPE_MAIN_FROM_200M'] : [];
     events.push({
       type: 'stage',
@@ -551,14 +552,14 @@ export class AnalysisService {
       detail: `${result.connections} UNIT · ${result.peakFlowLs} L/S`,
     });
 
-    const { version, page } = await this.catalogForMatching(events);
+    const { version } = await this.catalogForMatching(events);
     const roles = [
-      { role: 'main' as const, size: result.recommendedSize, family },
+      pipeRequirement('main', result.recommendedSize, family),
       fittingRequirement(result.recommendedSize, family),
     ];
     if (result.alternativeSize)
-      roles.push({ role: 'branch' as const, size: result.alternativeSize, family });
-    const match = matchProducts(roles, page.items);
+      roles.push(pipeRequirement('branch', result.alternativeSize, family));
+    const match = await this.matchRoles(roles);
     events.push({
       type: 'stage',
       stage: 'MATCHING_PRODUCTS',
@@ -617,8 +618,29 @@ export class AnalysisService {
       if (error instanceof CatalogReadUnavailableError) throw new CatalogUnavailableError();
       throw error;
     }
-    const page = await this.catalogQuery.listProducts({ limit: 50 });
-    return { version, page };
+    return { version };
+  }
+
+  /**
+   * Kandidat per peran dari repository (keluarga + ukuran bersatuan + status aktif), lalu matcher
+   * murni memilih. Menggantikan jendela 50 produk pertama yang membuat semua peran kosong di katalog
+   * Pralon (docs/MATCHER_V2_PROPOSAL.md §4).
+   */
+  private async matchRoles(roles: readonly RoleRequirement[]) {
+    const byId = new Map<string, Product>();
+    for (const role of roles) {
+      const size = PipeSize.parse(role.size);
+      for (const family of role.families) {
+        const found = await this.catalogQuery.candidatesFor({
+          family,
+          size,
+          ...(role.categoryIncludes ? { categoryIncludes: role.categoryIncludes } : {}),
+        });
+        for (const product of found) byId.set(product.id, product);
+        if (found.length > 0) break;
+      }
+    }
+    return matchProducts(roles, [...byId.values()]);
   }
 
   private async runPond(
@@ -652,15 +674,11 @@ export class AnalysisService {
       if (error instanceof CatalogReadUnavailableError) throw new CatalogUnavailableError();
       throw error;
     }
-    const page = await this.catalogQuery.listProducts({ limit: 50 });
-    const match = matchProducts(
-      [
-        { role: 'main', size: result.inletSize, family: result.inletFamily },
-        { role: 'branch', size: result.drainSize, family: result.drainFamily },
-        fittingRequirement(result.inletSize, result.inletFamily),
-      ],
-      page.items,
-    );
+    const match = await this.matchRoles([
+      pipeRequirement('main', result.inletSize, result.inletFamily),
+      pipeRequirement('branch', result.drainSize, result.drainFamily),
+      fittingRequirement(result.inletSize, result.inletFamily),
+    ]);
     events.push({
       type: 'stage',
       stage: 'MATCHING_PRODUCTS',

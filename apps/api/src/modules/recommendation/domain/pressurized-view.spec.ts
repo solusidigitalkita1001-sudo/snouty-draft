@@ -41,7 +41,13 @@ describe('pressurizedPlanFrom', () => {
         static_head: known('Tinggi statis', 12),
       }),
     )!;
-    expect(plan.input).toEqual({ designFlowLs: 5, routeLengthM: 800, staticHeadM: 12 });
+    // Bahan ikut ke engine (tabel ukuran mm) walau dipilih dari panjang jalur, bukan disebut pengguna.
+    expect(plan.input).toEqual({
+      designFlowLs: 5,
+      routeLengthM: 800,
+      staticHeadM: 12,
+      material: 'HDPE',
+    });
     expect(plan.family).toBe('HDPE');
     expect(plan.extraAssumptionIds).toEqual(['HDPE_MAIN_FROM_200M']);
 

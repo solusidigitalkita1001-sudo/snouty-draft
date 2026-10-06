@@ -195,6 +195,9 @@ export class MysqlCatalogRepository implements CatalogRepository {
 
     if (query.family !== undefined) conditions.push(eq(products.family, query.family));
     if (query.category !== undefined) conditions.push(eq(products.category, query.category));
+    if (query.categoryIncludes !== undefined && query.categoryIncludes.trim() !== '') {
+      conditions.push(like(products.category, `%${escapeLike(query.categoryIncludes.trim())}%`));
+    }
     if (query.status !== undefined) conditions.push(eq(products.status, query.status));
     if (query.cursor !== undefined) conditions.push(gt(products.sku, query.cursor));
 

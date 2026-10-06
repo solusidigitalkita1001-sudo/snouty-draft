@@ -18,6 +18,7 @@
 import type {
   CatalogVersion,
   CompatibleFitting,
+  PipeSize,
   Product,
   ProductDocument,
 } from '@snouty/shared-types';
@@ -40,6 +41,9 @@ import type {
 
 /** Filter dari klien — tanpa `catalogVersionId`, yang memang bukan urusan klien. */
 export type PublicProductListQuery = Omit<ProductListQuery, 'catalogVersionId'>;
+
+/** Kandidat per peran: cukup untuk belasan varian per ukuran, dibatasi `MAX_LIMIT` repository. */
+const CANDIDATE_LIMIT = 100;
 
 export interface CatalogQueryOptions {
   /**
@@ -88,6 +92,30 @@ export class CatalogQueryService {
   async listProducts(filter: PublicProductListQuery): Promise<ProductListPage> {
     const version = await this.activeVersion();
     return this.repository.listProducts({ ...filter, catalogVersionId: version.id });
+  }
+
+  /**
+   * Kandidat produk untuk satu peran rekomendasi: keluarga + ukuran bersatuan + status aktif,
+   * dari versi aktif. Dulu matcher menyaring 50 produk pertama versi aktif di memori — di katalog
+   * Pralon (ribuan SKU, urut SKU) jendela itu nyaris tanpa pipa, sehingga setiap peran kosong
+   * (docs/MATCHER_V2_PROPOSAL.md §4). Query per peran memakai filter ukuran yang sudah ada.
+   */
+  async candidatesFor(input: {
+    readonly family: string;
+    readonly size: PipeSize | null;
+    readonly categoryIncludes?: string;
+    readonly limit?: number;
+  }): Promise<readonly Product[]> {
+    const version = await this.activeVersion();
+    const page = await this.repository.listProducts({
+      catalogVersionId: version.id,
+      family: input.family,
+      status: 'active',
+      ...(input.size ? { size: input.size } : {}),
+      ...(input.categoryIncludes ? { categoryIncludes: input.categoryIncludes } : {}),
+      limit: input.limit ?? CANDIDATE_LIMIT,
+    });
+    return page.items;
   }
 
   async findProduct(productId: string): Promise<Product> {

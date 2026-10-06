@@ -30,6 +30,8 @@ export interface ProductListQuery {
   readonly size?: PipeSize;
   /** Pencarian bebas pada nama dan SKU. */
   readonly q?: string;
+  /** `category` memuat teks ini (tanpa membedakan huruf) — mis. `FITTING` untuk peran fitting. */
+  readonly categoryIncludes?: string;
   readonly status?: ProductStatus;
   /** SKU terakhir dari halaman sebelumnya. */
   readonly cursor?: string;
