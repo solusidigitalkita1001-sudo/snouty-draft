@@ -686,13 +686,19 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       `edge` yang juga melayani bagspace.pralon.co.id), runbook `docs/DEPLOYMENT.md`. Di server:
       migration 0000–0017, katalog `erp-2026-10-06` (7.681 SKU, 8 SKU panjang dibuang) aktif,
       cut-over 80/443 dari nginx proyek lama; https://ai.pralon.co.id live. Catatan: `up
-  --remove-orphans` sempat menghapus kontainer proyek lama (image + volume `snouty_db_data`
+--remove-orphans` sempat menghapus kontainer proyek lama (image + volume `snouty_db_data`
       tetap ada; flag dicabut). Token worker → OQ-49
 - [x] P14-09b Token layanan worker (2026-10-06, OQ-49 disetujui pemilik): `WorkerTokenMiddleware`
       hanya pada `InternalReportController`, perbandingan waktu-tetap `WORKER_INTERNAL_TOKEN`
       (env API opsional ≥ 32 karakter), aktor `worker`/`admin` tercatat di audit; 6 tes. Kontainer
       proyek lama dibangkitkan lagi dalam keadaan stop sebagai proyek compose `snouty-old`
       (volume `snouty_db_data`, restart `no`) untuk rollback
+- [x] P14-09c Perbaikan pasca-live (2026-10-06 malam): nginx `location /api/v1/conversations/`
+      membuat `POST /conversations` dijawab 301 → browser mengulang sebagai GET riwayat → 403 untuk
+      tamu dan percakapan tak pernah dibuat (gejala "tamu kena 403", `POST …/undefined/messages`
+      400); prefix diganti `^~ /api/v1/conversations`. Badge "KATALOG PRALON · label" di header
+      sambutan dihapus (keputusan pemilik: label impor bukan teks pengguna). Keputusan pemilik:
+      aturan tamu **tetap** — konsultasi penuh tanpa riwayat tersimpan; riwayat/simpan butuh akun
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache
