@@ -32,13 +32,17 @@ case "$cmd" in
     "${COMPOSE[@]}" up -d mysql
     echo "▸ menunggu MySQL…"
     until "${COMPOSE[@]}" exec -T mysql mysqladmin ping -h localhost -p"${DB_ROOT_PASSWORD}" >/dev/null 2>&1; do sleep 2; done
-    "${COMPOSE[@]}" run --rm --no-deps --network host \
+    # `docker run`, bukan `compose run`: compose v5 tidak punya --network host, dan db-apply hanya
+    # mau berjalan ke loopback — MySQL compose dipublikasikan di 127.0.0.1:${DB_PORT}.
+    docker run --rm --network host \
       -e DB_HOST=127.0.0.1 -e DB_PORT="${DB_PORT:-3316}" -e DB_DATABASE="${DB_DATABASE:-snouty}" \
       -e DB_USERNAME=root -e DB_PASSWORD="${DB_ROOT_PASSWORD}" \
-      api node scripts/db-apply.mjs
+      "snouty-api:${SNOUTY_TAG:-latest}" node scripts/db-apply.mjs
     ;;
   up)
-    "${COMPOSE[@]}" up -d --remove-orphans
+    # Tanpa --remove-orphans: proyek lama di server memakai nama compose `snouty` juga, dan flag itu
+    # menghapus kontainernya (snouty_backend/db/frontend) — yang kita ingin simpan untuk rollback.
+    "${COMPOSE[@]}" up -d
     ;;
   smoke)
     for i in $(seq 1 40); do
