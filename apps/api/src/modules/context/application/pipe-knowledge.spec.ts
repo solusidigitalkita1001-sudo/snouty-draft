@@ -12,6 +12,7 @@ describe('pipe knowledge', () => {
       ...MATERIALS.flatMap((m) => [
         m.gist,
         m.bestFor,
+        m.notFor,
         m.form,
         m.joining,
         m.durability,
@@ -39,9 +40,11 @@ describe('pipe knowledge', () => {
   });
 
   it('satu bahan → ikhtisar; konsep yang disinggung ikut; tanpa bahan → kosong', () => {
-    expect(explain('apa itu ppr?', null)).toMatch(
-      /^\*\*PPR\*\* — kaku dan tahan air panas\.\n- Bentuk:/,
-    );
+    const ppr = explain('apa itu ppr?', null);
+    expect(ppr).toMatch(/^\*\*PPR\*\* itu kaku dan tahan air panas: /); // prosa, bukan butir
+    expect(ppr).toContain('**cocok untuk instalasi air panas dan dingin di dalam bangunan**');
+    expect(ppr).toContain('kurang cocok untuk');
+    expect(ppr).not.toContain('- Bentuk:');
     expect(explain('pipa yang ditanam di tanah enaknya apa?', 'hdpe')).toContain('Pipa tanam');
     expect(explain('apa itu fitting?', null)).toBe('');
   });

@@ -36,6 +36,9 @@ export const PRODUCT_ANSWER_COPY = {
   rangeIntro: '**Keluarga produk di katalog Pralon yang aktif**',
   rangeNext:
     'Mau saya jelaskan salah satunya, atau ceritakan bangunannya supaya saya bisa memilihkan?',
+  /** Pengguna menyebut Pralon ("HDPE di Pralon ok nggak?") tetapi katalognya belum terpasang. */
+  catalogNotInstalledShort:
+    'Soal produk Pralon-nya sendiri, katalog Pralon belum terpasang di sistem ini, jadi saya belum bisa memastikan tipe dan ukurannya — tim teknis Pralon bisa membantu.',
   catalogNotInstalled:
     'Katalog produk Pralon belum terpasang di sistem ini, jadi saya belum bisa menyebut produk Pralon yang spesifik. Secara umum, keluarga pipa air bersih yang lazim:',
   askTechnicalForProducts:

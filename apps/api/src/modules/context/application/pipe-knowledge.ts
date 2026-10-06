@@ -21,6 +21,8 @@ export interface MaterialKnowledge {
   readonly gist: string;
   /** Kondisi yang membuatnya pilihan lazim — untuk kalimat simpulan. */
   readonly bestFor: string;
+  /** Kondisi yang membuatnya kurang cocok — "ok nggak?" dijawab dua arah. */
+  readonly notFor: string;
   /** Kekakuan dan bentuk pasokan. */
   readonly form: string;
   readonly joining: string;
@@ -41,6 +43,7 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
     pattern: /\b(u?pvc|paralon)\b/i,
     gist: 'kaku dan dipasok batangan',
     bestFor: 'instalasi tetap di dalam dan sekitar bangunan',
+    notFor: 'air panas, dan jalur tanam panjang yang tanahnya bergerak',
     form: 'kaku dan ringan, dipasok batangan; belokan dan percabangan memakai fitting',
     joining:
       'lem (solvent cement) atau cincin karet (rubber ring) — cepat, tanpa alat khusus, tetapi sambungan lem tidak bisa dibongkar',
@@ -55,6 +58,8 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
     pattern: /\b(hdpe|pe\s?100|pe\s?80|polyethylene|polietilen|poly)\b/i,
     gist: 'lentur dan bisa digulung',
     bestFor: 'jalur panjang, ditanam, atau tanah yang bergerak',
+    notFor:
+      'instalasi rapi di dalam bangunan dengan banyak belokan pendek — pemasangannya butuh alat las',
     form: 'lentur dan ulet; ukuran kecil dipasok gulungan, ukuran besar batangan — bisa mengikuti kontur tanah dengan sedikit sambungan',
     joining:
       'pemanasan (butt fusion atau electrofusion) sehingga sambungan menyatu dengan pipanya; ukuran kecil bisa memakai fitting kompresi; tidak dilem',
@@ -69,6 +74,7 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
     pattern: /\b(ppr|pp-r|polypropylene|polipropilen)\b/i,
     gist: 'kaku dan tahan air panas',
     bestFor: 'instalasi air panas dan dingin di dalam bangunan',
+    notFor: 'jalur tanam panjang di luar bangunan',
     form: 'kaku, dipasok batangan, dindingnya relatif tebal',
     joining: 'pemanasan (heat fusion) dengan alat pemanas sehingga sambungan menyatu; tidak dilem',
     durability: 'tahan air panas dan korosi; perlu alat pemanas dan kerapian saat menyambung',
@@ -80,6 +86,7 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
     pattern: /\b(galvanis|gip|besi|baja)\b/i,
     gist: 'kaku, berat, dan berkarat seiring waktu',
     bestFor: 'instalasi lama yang mempertahankan sistem ulir atau las',
+    notFor: 'instalasi air bersih baru — lama-kelamaan berkarat dari dalam',
     form: 'kaku dan berat, dipasok batangan',
     joining: 'ulir atau las',
     durability:
@@ -126,7 +133,12 @@ export function conceptsIn(
  * Tanpa model, inilah yang tampil; dengan model, inilah DATA yang dirangkainya ulang.
  */
 export function describeMaterial(m: MaterialKnowledge): string {
-  return [`**${m.label}** — ${m.gist}.`, ...dimensionRows(m)].join('\n');
+  // Satu bahan dijawab sebagai PROSA, bukan lembar data: butir hanya untuk perbandingan.
+  // "Ok nggak?" dijawab dua arah — kapan cocok, kapan kurang cocok.
+  return [
+    `**${m.label}** itu ${m.gist}: ${m.form}. Sambungannya ${m.joining}. Soal ketahanan, ${m.durability}.`,
+    `Secara umum **cocok untuk ${m.bestFor}**, dan kurang cocok untuk ${m.notFor}.`,
+  ].join('\n\n');
 }
 
 /** Ringkasan → satu blok per bahan → simpulan: "bedanya" dijawab sebagai perbedaan. */

@@ -1420,6 +1420,27 @@ function CardView({
     return <ClarificationCard questions={card.questions} active={active} onSubmit={onAnswers} />;
   }
 
+  if (card.kind === 'cta' && card.action === 'CONTACT_TECHNICAL') {
+    // Jawaban produk yang menawarkan tim teknis: satu tombol handoff — bukan "Data inti sudah
+    // lengkap / Susun rekomendasi" yang tidak ada hubungannya (laporan pemilik 2026-10-06).
+    return (
+      <div className={styles.ctaCard}>
+        <button
+          type="button"
+          className={styles.ctaButton}
+          onClick={() => onHandoff(COPY.contactTechnicalReason)}
+          disabled={handoffState !== 'idle'}
+        >
+          {handoffState === 'sent'
+            ? COPY.unsupported.sent
+            : handoffState === 'sending'
+              ? COPY.unsupported.sending
+              : COPY.unsupported.sendToTechnical}
+        </button>
+      </div>
+    );
+  }
+
   if (card.kind === 'cta') {
     return (
       <div className={styles.ctaCard}>

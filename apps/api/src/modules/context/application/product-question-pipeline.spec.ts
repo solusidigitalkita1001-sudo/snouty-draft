@@ -253,6 +253,39 @@ describe('runProductQuestion — KONSEP', () => {
   });
 });
 
+describe('runProductQuestion — nada percakapan', () => {
+  it('"HDPE di Pralon ok nggak?" → prosa dua arah + MENGAPA Pralon-nya belum bisa dijawab; penutup tidak diulang', async () => {
+    const first = await runProductQuestion(
+      ai({ productQuery: 'hdpe', aspect: null }),
+      catalog({}, 'sample'),
+      noQuestions,
+      { messageId: 'm', message: 'kalo pipa HDPE di Pralon gmn? ok ngga?' },
+    );
+    const out = text(first);
+    expect(out).toMatch(/^\*\*HDPE\*\* itu lentur dan bisa digulung: /);
+    expect(out).toContain('**cocok untuk jalur panjang');
+    expect(out).toContain('kurang cocok untuk');
+    expect(out).toContain('katalog Pralon belum terpasang di sistem ini');
+    expect(out).not.toContain('- Bentuk:');
+    expect(cards(first)).toEqual([{ kind: 'cta', action: 'CONTACT_TECHNICAL' }]);
+
+    const second = await runProductQuestion(
+      ai({ productQuery: 'ppr', aspect: null }),
+      catalog({}, 'sample'),
+      noQuestions,
+      {
+        messageId: 'm',
+        message: 'kalau PPR di Pralon?',
+        recentTurns: [
+          { role: 'user', text: 'kalo pipa HDPE di Pralon gmn? ok ngga?' },
+          { role: 'assistant', text: out },
+        ],
+      },
+    );
+    expect(text(second)).not.toContain('katalog Pralon belum terpasang'); // sudah dibilang tadi
+  });
+});
+
 describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?")', () => {
   it('katalog Pralon: keluarga produk beserta anggotanya, satu kartu per keluarga', async () => {
     const D = { ...AW, id: 'B'.repeat(26), sku: 'D', name: 'Pipa PVC D', family: 'PVC D' };

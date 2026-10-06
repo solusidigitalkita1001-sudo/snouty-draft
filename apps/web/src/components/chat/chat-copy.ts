@@ -139,6 +139,8 @@ export const CHAT_COPY = {
     title: 'PRODUK PRALON TERKAIT',
     open: 'Lihat detail',
   },
+  /** Alasan handoff dari kartu CTA jawaban produk (tombol "Kirim ke tim teknis Pralon"). */
+  contactTechnicalReason: 'Pertanyaan produk Pralon dari percakapan',
   unsupported: {
     title: 'Kebutuhan ini membutuhkan pengecekan teknis lebih lanjut',
     capturedLabel: 'YANG SUDAH SAYA CATAT',

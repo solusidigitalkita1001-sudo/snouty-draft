@@ -114,6 +114,12 @@ async function answerConcept(
   reply: ReplyWriter | null,
   faqPrompt: string | null,
 ): Promise<Outcome> {
+  // "Produk Pralon yang terkenal apa?" — ragam, bukan satu bahan. Diputuskan dari pesannya,
+  // SEBELUM parse model: 7B pernah menjawab pertanyaan ini dengan productQuery "PVC".
+  if (asksProductRange(input.message) && materialsIn(input.message).length === 0) {
+    return rangeOverview(catalog);
+  }
+
   const knowledge = withoutRepeating(explain(input.message, query), input);
   // Katalog opsional: kegagalan membacanya tidak boleh mengubah penjelasan teknik.
   const support = query === null ? NO_SUPPORT : await lookup(catalog, query, { optional: true });
@@ -133,7 +139,12 @@ async function answerConcept(
     }
     if (support.missing.length > 0) cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
   } else {
-    facts.push(PRODUCT_ANSWER_COPY.askTechnicalForProducts);
+    // Penutup: bila pengguna bertanya tentang Pralon-nya ("HDPE di Pralon ok nggak?"), katakan
+    // MENGAPA belum bisa dijawab; dan jangan ulangi kalimat yang persis sama tiap giliran.
+    const closing = /\bpralon\b/i.test(input.message)
+      ? PRODUCT_ANSWER_COPY.catalogNotInstalledShort
+      : PRODUCT_ANSWER_COPY.askTechnicalForProducts;
+    if (!lastAssistantText(input).includes(closing)) facts.push(closing);
     cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
   }
 
@@ -168,10 +179,14 @@ async function answerConcept(
  * kalimat pembukanya) dan pertanyaan sekarang BUKAN pengulangan pertanyaan sebelumnya, cukup
  * satu kalimat pengingat — pengguna bertanya hal lain, bukan minta diulang.
  */
+function lastAssistantText(input: ProductQuestionInput): string {
+  return [...(input.recentTurns ?? [])].reverse().find((t) => t.role === 'assistant')?.text ?? '';
+}
+
 function withoutRepeating(knowledge: string, input: ProductQuestionInput): string {
   if (knowledge === '') return knowledge;
   const turns = input.recentTurns ?? [];
-  const lastAssistant = [...turns].reverse().find((t) => t.role === 'assistant')?.text ?? '';
+  const lastAssistant = lastAssistantText(input);
   const lastUser = [...turns].reverse().find((t) => t.role === 'user')?.text ?? '';
   const opening = knowledge.split('\n')[0] ?? '';
   const repeated = opening !== '' && lastAssistant.includes(opening);
@@ -353,7 +368,7 @@ function withUncoveredFacts(
   const lower = written.toLowerCase();
   const uncovered = facts.filter((fact) => {
     if (fact === PRODUCT_ANSWER_COPY.catalogSupport) return false;
-    if (fact === PRODUCT_ANSWER_COPY.askTechnicalForProducts) return !lower.includes('tim teknis');
+    if (fact.includes('tim teknis')) return !lower.includes('tim teknis');
     if (fact.includes('tidak ada di katalog')) return !lower.includes('katalog');
     return !products.some((p) => fact.includes(p.name) && written.includes(p.name));
   });
