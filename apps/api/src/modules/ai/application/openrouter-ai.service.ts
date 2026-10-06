@@ -31,9 +31,14 @@ import {
   type LlmCallOutcome,
   type LlmCallRecorder,
 } from '../domain/llm-call.recorder.js';
-import { LLM_TRANSPORT, type LlmMessage, type LlmTransport } from '../domain/llm-transport.port.js';
+import {
+  LLM_TRANSPORT,
+  LlmAbortedError,
+  type LlmMessage,
+  type LlmTransport,
+} from '../domain/llm-transport.port.js';
 import { TIER_ENV_KEY, tierForTask, type LlmTask, type LlmTier } from '../domain/model-routing.js';
-import { AiOutputInvalidError } from '../domain/ai.errors.js';
+import { AiOutputInvalidError, LlmUnavailableError } from '../domain/ai.errors.js';
 import { certainIntent, heuristicProductQuestion } from '../domain/heuristics.js';
 import {
   EXTRACTION_SYSTEM_PROMPT,
@@ -120,13 +125,17 @@ export class OpenRouterAiService implements AiService {
     firstMessage: string,
     context: AiCallContext = { correlationId: null },
   ): Promise<string> {
-    const result = await this.callOnce(
-      'conversation_title',
-      tierForTask('conversation_title'),
-      TITLE_SYSTEM_PROMPT,
-      firstMessage,
-      false,
-      context,
+    const result = await this.bounded((signal) =>
+      this.callOnce(
+        'conversation_title',
+        tierForTask('conversation_title'),
+        TITLE_SYSTEM_PROMPT,
+        firstMessage,
+        false,
+        context,
+        undefined,
+        signal,
+      ),
     );
     return result.content.trim().slice(0, 160);
   }
@@ -184,26 +193,69 @@ export class OpenRouterAiService implements AiService {
     // nama field dan label, lalu gagal validasi. Satu sumber untuk keduanya.
     const system = `${systemPrompt}\n\nSkema JSON keluaran (wajib persis, tanpa field lain):\n${JSON.stringify(z.toJSONSchema(schema))}`;
 
-    const first = await this.callOnce(task, tierForTask(task), system, userMessage, true, context);
+    // Setiap percobaan dibatasi waktu (LLM_CALL_TIMEOUT_MS). Percobaan pertama yang lewat batas
+    // = model tidak terjangkau (giliran jujur, retryable); percobaan ulang yang lewat batas =
+    // keluaran tidak valid (pemanggil jatuh ke klarifikasi). Keduanya lebih baik daripada
+    // menggantung — satu percobaan ulang pernah 524 detik di laptop yang kehabisan RAM.
+    let first;
+    try {
+      first = await this.bounded((signal) =>
+        this.callOnce(
+          task,
+          tierForTask(task),
+          system,
+          userMessage,
+          true,
+          context,
+          undefined,
+          signal,
+        ),
+      );
+    } catch (error) {
+      if (error instanceof LlmAbortedError) throw new LlmUnavailableError(null);
+      throw error;
+    }
     const parsedFirst = schema.safeParse(safeJson(first.content));
     if (parsedFirst.success) return parsedFirst.data;
 
     // Percobaan kedua dan TERAKHIR — tingkat kuat, error dilampirkan.
     const retryUser = `${userMessage}\n\n[Keluaran sebelumnya tidak valid: ${parsedFirst.error.message}. Kembalikan JSON yang sesuai skema.]`;
-    const second = await this.callOnce(
-      'extraction_retry',
-      'strong',
-      system,
-      retryUser,
-      true,
-      context,
-      'validation_failed',
-    );
+    let second;
+    try {
+      second = await this.bounded((signal) =>
+        this.callOnce(
+          'extraction_retry',
+          'strong',
+          system,
+          retryUser,
+          true,
+          context,
+          'validation_failed',
+          signal,
+        ),
+      );
+    } catch (error) {
+      if (error instanceof LlmAbortedError) {
+        throw new AiOutputInvalidError(task, 'percobaan ulang melewati batas waktu');
+      }
+      throw error;
+    }
     const parsedSecond = schema.safeParse(safeJson(second.content));
     if (parsedSecond.success) return parsedSecond.data;
 
     // Tidak ada percobaan ketiga. Pemanggil jatuh ke klarifikasi.
     throw new AiOutputInvalidError(task, parsedSecond.error.message);
+  }
+
+  /** Menjalankan satu panggilan dengan batas waktu `LLM_CALL_TIMEOUT_MS`; lewat → `LlmAbortedError`. */
+  private async bounded<T>(run: (signal: AbortSignal) => Promise<T>): Promise<T> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), loadEnv().LLM_CALL_TIMEOUT_MS);
+    try {
+      return await run(controller.signal);
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   private async callOnce(

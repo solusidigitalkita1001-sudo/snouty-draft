@@ -2,10 +2,14 @@
  * P4-09a (sebagian) — retry sekali lalu lempar; tiap percobaan tercatat;
  * `LlmCallRecord` tidak punya field isi prompt.
  */
-import { describe, expect, it } from 'vitest';
-import { AiOutputInvalidError } from '../domain/ai.errors.js';
+import { describe, expect, it, vi } from 'vitest';
+import { AiOutputInvalidError, LlmUnavailableError } from '../domain/ai.errors.js';
 import type { LlmCallRecord, LlmCallRecorder } from '../domain/llm-call.recorder.js';
-import type { LlmCompletionRequest, LlmTransport } from '../domain/llm-transport.port.js';
+import {
+  LlmAbortedError,
+  type LlmCompletionRequest,
+  type LlmTransport,
+} from '../domain/llm-transport.port.js';
 import { OpenRouterAiService } from './openrouter-ai.service.js';
 
 const ENV = {
@@ -133,6 +137,35 @@ describe('jalur cepat tanpa model (latensi CPU)', () => {
         'pvc dan hdpe',
       );
       expect(calls).toHaveLength(0);
+    });
+  });
+
+  it('panggilan terstruktur yang melewati LLM_CALL_TIMEOUT_MS dibatalkan → model tidak terjangkau, bukan menggantung', async () => {
+    await withEnv(async () => {
+      process.env['LLM_CALL_TIMEOUT_MS'] = '5000';
+      vi.useFakeTimers();
+      try {
+        const transport = {
+          complete: (request: { signal?: AbortSignal }) =>
+            new Promise<never>((_, reject) => {
+              request.signal?.addEventListener('abort', () => reject(new LlmAbortedError()));
+            }),
+        };
+        const { recorder } = recorderCapturing();
+        const svc = new OpenRouterAiService(transport as never, recorder, () => 0);
+        const pending = svc.classifyIntent({
+          message: 'rumah 2 lantai',
+          hasExistingRequirements: false,
+        });
+        const outcome = pending.then(
+          () => 'resolved',
+          (error: unknown) => (error instanceof LlmUnavailableError ? 'unavailable' : 'other'),
+        );
+        await vi.advanceTimersByTimeAsync(5_001);
+        expect(await outcome).toBe('unavailable');
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

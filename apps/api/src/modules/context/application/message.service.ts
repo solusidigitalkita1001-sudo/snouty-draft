@@ -161,7 +161,9 @@ export class MessageService {
     void (async () => {
       try {
         const title = (await ai.titleFor(firstMessage)).trim();
-        if (title !== '') await this.conversations.rename(conversationId, actor, title);
+        // Model kecil kadang memuntahkan token lintas aksara ("konsultasi pipaحوا incenter");
+        // judul seperti itu lebih buruk daripada potongan pesan — dibuang, bukan dipasang.
+        if (isSaneTitle(title)) await this.conversations.rename(conversationId, actor, title);
       } catch {
         // Judul tidak sepadan dengan menggagalkan apa pun — potongan pesan sudah terpasang.
       }
@@ -255,6 +257,14 @@ export class MessageService {
 
 function fallbackTitle(firstMessage: string): string {
   return firstMessage.trim().replace(/\s+/g, ' ').slice(0, 60);
+}
+
+/** 2–10 kata, aksara Latin saja, tanpa tanda kutip — bentuk yang diminta TITLE_SYSTEM_PROMPT. */
+export function isSaneTitle(title: string): boolean {
+  if (title.length < 3 || title.length > 80) return false;
+  if (!/^[\p{Script=Latin}\p{N}\s,.\-–—/()&]+$/u.test(title)) return false;
+  const words = title.split(/\s+/).filter((w) => w.length > 0);
+  return words.length >= 2 && words.length <= 10;
 }
 
 function llmUnavailable(messageId: string): readonly AssistantStreamEvent[] {

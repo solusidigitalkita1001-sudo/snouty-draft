@@ -5,7 +5,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
-import { MessageService } from './message.service.js';
+import { MessageService, isSaneTitle } from './message.service.js';
 
 const ACTOR = { kind: 'guest', id: 'G'.repeat(26), tier: 'guest', roles: [] } as const;
 
@@ -52,6 +52,17 @@ describe('MessageService — judul dari pesan pertama', () => {
     conversations.find.mockResolvedValueOnce({ title: 'Sudah ada' } as never);
     await service.handle('C'.repeat(26), ACTOR, 'lanjut', 'x');
     expect(conversations.rename).not.toHaveBeenCalled();
+  });
+});
+
+describe('isSaneTitle — judul model yang rusak dibuang', () => {
+  it('menerima judul Latin 2–10 kata; menolak aksara campur, satu kata, kosong', () => {
+    expect(isSaneTitle('Pipa rumah kos 3 lantai')).toBe(true);
+    expect(isSaneTitle('Rumah 2 lantai — toren atap')).toBe(true);
+    expect(isSaneTitle('konsultasi pipaحوا incenter')).toBe(false);
+    expect(isSaneTitle('Pipa')).toBe(false);
+    expect(isSaneTitle('')).toBe(false);
+    expect(isSaneTitle('a b c d e f g h i j k l')).toBe(false);
   });
 });
 
