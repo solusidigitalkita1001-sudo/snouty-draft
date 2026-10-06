@@ -24,6 +24,12 @@ export interface RoleRequirement {
   readonly size: string;
   /** Keluarga produk yang sesuai peran ini (mis. `PVC AW`). */
   readonly family: string;
+  /**
+   * Penyaring tambahan atas `category` (tanpa membedakan huruf besar-kecil), mis. `FITTING`:
+   * fitting Pralon hidup di keluarga yang sama dengan pipanya (PVC AW) dan dibedakan lewat
+   * kategori — menyamakan keduanya membuat matcher memilih pipa untuk peran tee (OQ-48).
+   */
+  readonly categoryIncludes?: string;
 }
 
 export interface MatchResult {
@@ -44,8 +50,14 @@ export function matchProducts(
   const unmatchedRoles: SystemRole[] = [];
 
   for (const requirement of requirements) {
+    const wanted = requirement.categoryIncludes?.toLowerCase();
     const family = candidates.filter(
-      (product) => product.family === requirement.family && product.status === 'active',
+      (product) =>
+        product.family === requirement.family &&
+        product.status === 'active' &&
+        (wanted === undefined
+          ? !product.category.toLowerCase().includes('fitting')
+          : product.category.toLowerCase().includes(wanted)),
     );
 
     if (family.length === 0) {
@@ -83,22 +95,26 @@ export function matchProducts(
 }
 
 /**
- * Peran yang perlu dicocokkan dari hasil engine. `fitting` memakai keluarga terpisah
- * karena fitting bukan pipa — menyamakan keduanya akan membuat matcher memilih pipa
- * untuk peran tee.
+ * Peran yang perlu dicocokkan dari hasil engine. `fitting` dibedakan lewat kategori
+ * (`FITTING`) di keluarga yang sama — fitting bukan pipa, dan peran tee tidak boleh
+ * terisi pipa.
  */
 export function requirementsFrom(input: {
   readonly mainSize: string;
   readonly branchSize: string;
   readonly fixtureSize: string;
   readonly pipeFamily: string;
-  readonly fittingFamily: string;
 }): readonly RoleRequirement[] {
   return [
     { role: 'main', size: input.mainSize, family: input.pipeFamily },
     { role: 'riser', size: input.mainSize, family: input.pipeFamily },
     { role: 'branch', size: input.branchSize, family: input.pipeFamily },
     { role: 'fixture', size: input.fixtureSize, family: input.pipeFamily },
-    { role: 'fitting', size: input.branchSize, family: input.fittingFamily },
+    fittingRequirement(input.branchSize, input.pipeFamily),
   ];
+}
+
+/** Peran fitting: keluarga pipa yang sama, kategori memuat "FITTING". */
+export function fittingRequirement(size: string, pipeFamily: string): RoleRequirement {
+  return { role: 'fitting', size, family: pipeFamily, categoryIncludes: 'FITTING' };
 }

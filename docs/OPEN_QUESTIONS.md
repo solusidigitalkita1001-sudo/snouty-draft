@@ -355,6 +355,18 @@ kecepatan rencana, aturan pompa/kelas, ambang HDPE, tata letak BOM) — alur val
 aturan bangunan (`docs/ENGINEERING_RULES.md` §5) — plus keluarga produk Pralon untuk irigasi (OQ-07)
 dan desain skema irigasi (tab Skema untuk solusi irigasi sengaja kosong).
 
+### OQ-48 — Cara membedakan fitting dari pipa di master data produk
+
+**Status:** open, default diterapkan · **Blocks:** impor katalog Pralon (OQ-07)
+**Pertanyaan:** Apakah fitting Pralon punya `family` sendiri ("FITTING PVC") atau hidup di keluarga
+pipanya ("PVC AW") dan dibedakan lewat `category`?
+**Temuan (2026-10-06):** matcher mencari `family = 'FITTING PVC'`, katalog contoh menaruh fitting di
+`family = 'PVC AW'` + `category = 'FITTING · SNI'` — peran fitting tidak pernah terisi.
+**Default yang diterapkan:** peran fitting = keluarga pipa yang sama **dan** `category` memuat
+"FITTING" (`fittingRequirement()` di `product-matcher.ts`); peran pipa menolak kategori fitting.
+Konvensi ini harus dikonfirmasi saat kamus `family`/`category` Pralon disepakati
+(`docs/PRODUCT_MASTER_DATA.md` §4).
+
 ### OQ-46 — Katalog contoh pernah mendasari klaim tentang Pralon; kini ditandai dan dipagari
 
 **Status:** open · _non-blocking_ · **Fase:** 1/4 · diterapkan sebagai default (migration 0013)

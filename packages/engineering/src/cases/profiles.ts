@@ -184,7 +184,7 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
       'pump_duty',
       'material_quantity',
     ],
-    calculatorStatus: 'pending',
+    calculatorStatus: 'available',
   },
   {
     id: 'gravity_drainage',
@@ -265,7 +265,7 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
     optional: ['material', 'operating_hours'],
     outputs: ['material_selection', 'pipe_sizing', 'pump_sizing', 'product_matching'],
     calculations: ['static_head_calc', 'pipe_diameter', 'pump_duty'],
-    calculatorStatus: 'pending',
+    calculatorStatus: 'available',
   },
 ];
 

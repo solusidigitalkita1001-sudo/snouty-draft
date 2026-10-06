@@ -590,9 +590,14 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
   ENG-206 titik kerja pompa (Q/H, daya hidraulik, daya poros indikatif — tanpa merek/kurva);
   `computePressurized()` orkestrator dengan trace per aturan dan `appliedAssumptionIds`; 5 asumsi
   registry baru (VELOCITY_MAX/MIN, HEADLOSS_GRADIENT_MAX, PUMP_EFFICIENCY_INDICATIVE,
-  TRANSFER_DISCHARGE_MARGIN). Docs ENGINEERING_RULES Kelompok F. **Sisa**: analysis service untuk
-  `pump_transfer`/`well_distribution` lewat jalur `kind: 'technical'` yang kini sudah ada (lihat
-  P14-03b), tampilan kandidat/opsi di layar solusi (fase 6)
+  TRANSFER_DISCHARGE_MARGIN). Docs ENGINEERING_RULES Kelompok F. **Selesai (2026-10-06)**:
+  `runPressurized` di analysis service untuk `pump_transfer` dan `well_distribution` (sumur: tinggi
+  statis = kedalaman + tinggi tandon), `pressurized-view.ts` (highlights: pipa utama, kecepatan,
+  kerugian gesek, head total, titik kerja pompa; baris sistem utama + pompa + **alternatif satu
+  ukuran di atas**; BOM; asumsi ber-ID; prosa REC-1), keluarga dari bahan yang disebut atau dari
+  panjang jalur (HDPE ≥ 200 m, asumsi ber-ID). Peran fitting kini dicocokkan lewat `category` memuat
+  "FITTING" di keluarga pipa yang sama (OQ-48) — sebelumnya tidak pernah terisi. Sisa untuk fase 6:
+  tampilan kandidat/opsi sebagai pilihan di layar solusi
 - [x] P14-03b Kasus kolam/tambak end-to-end (2026-10-06, laporan pemilik "tambak lele 4 x 4 meter,
       produknya apa aja" → masih kartu "di luar cakupan"). Kelompok G ENG-301 volume, ENG-302 debit
       pengisian, ENG-303 pipa kuras gravitasi, ENG-304 BOM + `computePond()` (pipa masuk lewat

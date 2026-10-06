@@ -35,7 +35,6 @@ const REQUIREMENTS = requirementsFrom({
   branchSize: '3/4"',
   fixtureSize: '1/2"',
   pipeFamily: 'PVC AW',
-  fittingFamily: 'FITTING PVC',
 });
 
 describe('ProductMatcher', () => {
@@ -76,7 +75,8 @@ describe('ProductMatcher', () => {
       product(),
       product({
         id: '01JBFIT00000000000000000BB',
-        family: 'FITTING PVC',
+        family: 'PVC AW',
+        category: 'FITTING · SNI',
         sku: 'FIT-1',
         name: 'Fitting Pralon',
       }),
@@ -92,7 +92,8 @@ describe('ProductMatcher', () => {
       product(),
       product({
         id: '01JBFIT00000000000000000BB',
-        family: 'FITTING PVC',
+        family: 'PVC AW',
+        category: 'FITTING · SNI',
         sku: 'FIT-1',
         name: 'Fitting Pralon',
       }),

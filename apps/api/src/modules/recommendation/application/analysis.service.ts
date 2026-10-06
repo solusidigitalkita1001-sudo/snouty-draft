@@ -24,6 +24,7 @@ import {
   buildSchematic,
   computeIrrigation,
   computePond,
+  computePressurized,
   computeSolution,
   type PondInput,
   type SolutionInput,
@@ -34,6 +35,16 @@ import {
   irrigationFieldFor,
 } from '../domain/engineering-state.js';
 import { irrigationInputFrom } from '../domain/irrigation-input.js';
+import {
+  pressurizedAssumptionsFrom,
+  pressurizedBomItemsFrom,
+  pressurizedHighlights,
+  pressurizedLegacyStats,
+  pressurizedPlanFrom,
+  pressurizedProse,
+  pressurizedSystemLinesFrom,
+  type PressurizedPlan,
+} from '../domain/pressurized-view.js';
 import {
   pondAssumptionsFrom,
   pondBomItemsFrom,
@@ -60,7 +71,7 @@ import type { CatalogQueryService } from '../../product-catalog/application/cata
 import { CatalogUnavailableError as CatalogReadUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import { ulid } from '../../../shared/ulid.js';
 import { assembleRecommendation, type ProseWriter } from './recommendation-assembler.js';
-import { matchProducts, requirementsFrom } from '../domain/product-matcher.js';
+import { fittingRequirement, matchProducts, requirementsFrom } from '../domain/product-matcher.js';
 import type { IdentifiedTrace } from '../domain/solution-view.js';
 import {
   RECOMMENDATION_REPOSITORY,
@@ -103,7 +114,6 @@ export function schematicFor(
 
 /** Keluarga produk per peran. Nilai sementara sampai katalog nyata ada (OQ-07). */
 const PIPE_FAMILY = 'PVC AW';
-const FITTING_FAMILY = 'FITTING PVC';
 
 export class CatalogUnavailableError extends Error {
   constructor() {
@@ -157,8 +167,11 @@ export class AnalysisService {
     // Kasus teknis umum (Fase 14) yang kalkulatornya ada: kolam/tambak (Kelompok G).
     if (state.useCase?.kind === 'technical') {
       const pondInput = pondInputFrom(state);
-      if (pondInput === null) throw new TechnicalCaseNotComputableError(state.useCase.caseId);
-      return this.runPond(conversationId, snapshotId, state, pondInput, now);
+      if (pondInput !== null)
+        return this.runPond(conversationId, snapshotId, state, pondInput, now);
+      const plan = pressurizedPlanFrom(state);
+      if (plan !== null) return this.runPressurized(conversationId, snapshotId, plan, now);
+      throw new TechnicalCaseNotComputableError(state.useCase.caseId);
     }
 
     // --- Tahap 2: aturan teknik ---
@@ -195,7 +208,6 @@ export class AnalysisService {
         branchSize: '3/4"',
         fixtureSize: solution.fixtureConnectionSize,
         pipeFamily: PIPE_FAMILY,
-        fittingFamily: FITTING_FAMILY,
       }),
       page.items,
     );
@@ -289,7 +301,7 @@ export class AnalysisService {
       [
         { role: 'main', size: result.mainSize, family: result.mainFamily },
         { role: 'branch', size: result.mainSize, family: result.distributionFamily },
-        { role: 'fitting', size: result.mainSize, family: FITTING_FAMILY },
+        fittingRequirement(result.mainSize, result.distributionFamily),
       ],
       page.items,
     );
@@ -346,6 +358,88 @@ export class AnalysisService {
    * Kolam/tambak: engine Kelompok G (semua `REQUIRES_DOMAIN_VALIDATION` → ASSUMED), pencocokan
    * produk per peran (pipa masuk PVC AW, pipa kuras PVC D, fitting), prosa deterministik.
    */
+  /**
+   * Transfer pompa / sumur → tandon: engine Kelompok F (sizing multi-kriteria + titik kerja
+   * pompa), produk per peran (pipa utama sesuai keluarga, alternatif, fitting), prosa deterministik.
+   */
+  private async runPressurized(
+    conversationId: string,
+    snapshotId: string,
+    plan: PressurizedPlan,
+    now: string,
+  ): Promise<readonly AssistantStreamEvent[]> {
+    const events: AssistantStreamEvent[] = [];
+
+    events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
+    const result = computePressurized(plan.input);
+    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+      ...trace,
+      id: ulid(),
+    }));
+    events.push({
+      type: 'stage',
+      stage: 'ANALYZING_INSTALLATION',
+      status: 'done',
+      detail: `${plan.input.designFlowLs} L/S · ${plan.input.routeLengthM} M`,
+    });
+
+    events.push({ type: 'stage', stage: 'MATCHING_PRODUCTS', status: 'active' });
+    let version;
+    try {
+      version = await this.catalogQuery.activeVersion();
+    } catch (error) {
+      events.push({ type: 'stage', stage: 'MATCHING_PRODUCTS', status: 'failed' });
+      if (error instanceof CatalogReadUnavailableError) throw new CatalogUnavailableError();
+      throw error;
+    }
+    const page = await this.catalogQuery.listProducts({ limit: 50 });
+    const roles = [
+      { role: 'main' as const, size: result.recommendedSize, family: plan.family },
+      fittingRequirement(result.recommendedSize, plan.family),
+    ];
+    if (result.alternativeSize) {
+      roles.push({ role: 'branch' as const, size: result.alternativeSize, family: plan.family });
+    }
+    const match = matchProducts(roles, page.items);
+    events.push({
+      type: 'stage',
+      stage: 'MATCHING_PRODUCTS',
+      status: 'done',
+      detail: `${match.products.length} PRODUK`,
+    });
+
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
+    const prose = pressurizedProse(result, plan.family, plan.input);
+    const recommendation: Recommendation = {
+      id: ulid(),
+      conversationId,
+      snapshotId,
+      catalogVersionId: version.id,
+      kind: 'technical',
+      headline: prose.headline,
+      body: prose.body,
+      stats: pressurizedLegacyStats(result, match.products.length),
+      highlights: pressurizedHighlights(result, plan.family, match.products.length),
+      systemLines: pressurizedSystemLinesFrom(result, plan.family, traces),
+      products: match.products,
+      bom: pressurizedBomItemsFrom(result, plan.family, plan.input.routeLengthM, traces),
+      assumptions: pressurizedAssumptionsFrom(result, plan.extraAssumptionIds, traces),
+      overallProvenance: result.overallProvenance,
+      createdAt: now,
+    };
+    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.conversations.markSolutionReady(conversationId);
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
+    events.push({
+      type: 'stage',
+      stage: 'PREPARING_SCHEMATIC',
+      status: 'done',
+      detail: 'SKEMA JALUR MENUNGGU DESAIN',
+    });
+    events.push({ type: 'solution.ready', recommendationId: recommendation.id });
+    return events;
+  }
+
   private async runPond(
     conversationId: string,
     snapshotId: string,
@@ -382,7 +476,7 @@ export class AnalysisService {
       [
         { role: 'main', size: result.inletSize, family: result.inletFamily },
         { role: 'branch', size: result.drainSize, family: result.drainFamily },
-        { role: 'fitting', size: result.inletSize, family: FITTING_FAMILY },
+        fittingRequirement(result.inletSize, result.inletFamily),
       ],
       page.items,
     );
