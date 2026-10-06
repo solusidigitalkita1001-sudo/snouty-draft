@@ -193,6 +193,30 @@
       "tags": ["intent", "extraction"]
     },
     {
+      "id": "rekomendasi-drainase-sawah",
+      "input": "rekomendasi product buat project drainase sawah",
+      "expected": { "intent": "REQUIREMENT_STATEMENT" },
+      "tags": ["intent", "owner-2026-10-06"]
+    },
+    {
+      "id": "ragam-produk-pralon",
+      "input": "gw mau nanya produk pralon itu yang terkenal apa sih ?",
+      "expected": { "intent": "PRODUCT_LOOKUP" },
+      "tags": ["intent", "owner-2026-10-06"]
+    },
+    {
+      "id": "irigasi-sawah-1-ha",
+      "input": "untuk bikin irigasi sawah dengan luas 1 hektar itu yang dibutuhin apa aja product nya ?",
+      "expected": { "intent": "REQUIREMENT_STATEMENT" },
+      "tags": ["intent", "owner-2026-10-06"]
+    },
+    {
+      "id": "hdpe-di-pralon",
+      "input": "kalo pipa HDPE di Pralon gmn ? ok ngga ?",
+      "expected": { "intent": "PRODUCT_LOOKUP", "product": { "aspect": null } },
+      "tags": ["intent", "product", "owner-2026-10-06"]
+    },
+    {
       "id": "standar-pvc-aw",
       "input": "standar SNI pipa PVC AW apa?",
       "expected": { "intent": "PRODUCT_LOOKUP", "product": { "aspect": "standard" } },

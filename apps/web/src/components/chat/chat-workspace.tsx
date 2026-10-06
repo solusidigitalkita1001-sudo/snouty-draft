@@ -31,6 +31,7 @@ import { ReportModal } from '../report/report-modal';
 import { REPORT_COPY } from '../report/report-copy';
 import { ThemeToggle } from '../theme-toggle';
 import { AssistantMarkdown } from './assistant-markdown';
+import { irrigationRows } from './irrigation-rows';
 import { ProductLookupCards } from './product-lookup-cards';
 import {
   createConversation,
@@ -470,6 +471,10 @@ export function ChatWorkspace() {
   }, [conversationId, saveState]);
 
   const rows = state ? requirementRows(state) : [];
+  // Percakapan irigasi (OQ-47): panel memuat jawaban irigasi, hanya dibaca — bukan field
+  // bangunan yang semuanya "Belum diisi".
+  const irrigation = state ? irrigationRows(state) : null;
+  const irrigationFilled = irrigation?.filter((row) => row.value !== null).length ?? 0;
   const filled = state?.completeness.filled ?? 0;
 
   /**
@@ -508,7 +513,9 @@ export function ChatWorkspace() {
     if (solution !== null) analyze();
   }, [analyze, conversationId, edits, rows, solution]);
   // Prototipe `readCount`: seluruh field yang terbaca (sampai 7), bukan hanya empat inti.
-  const readCount = rows.filter((row) => row.display !== 'Belum diisi').length;
+  const readCount = irrigation
+    ? irrigationFilled
+    : rows.filter((row) => row.display !== 'Belum diisi').length;
   const inConversation = turns.length > 0;
   const activeStatus = solution
     ? COPY.activeStatus.ready
@@ -856,7 +863,17 @@ export function ChatWorkspace() {
             )}
 
             {/* Kartu "Yang sudah saya pahami" — grid 3 kolom dengan badge hijau jumlah data. */}
-            {state !== null && filled > 0 && <UnderstoodCard rows={rows} filled={filled} />}
+            {state !== null && irrigation === null && filled > 0 && (
+              <UnderstoodCard rows={rows} filled={filled} />
+            )}
+            {irrigation !== null && irrigationFilled > 0 && (
+              <UnderstoodCard
+                rows={irrigation
+                  .filter((row) => row.value !== null)
+                  .map((row) => ({ label: row.label, display: row.value ?? '' }))}
+                filled={irrigationFilled}
+              />
+            )}
 
             {Object.keys(stages).length > 0 && (
               <AnalysisOverlay stages={stages} onRetry={analyze} onBack={() => setStages({})} />
@@ -1015,7 +1032,7 @@ export function ChatWorkspace() {
               <div className={styles.panelKickerRow}>
                 <div className={styles.panelKicker}>{COPY.requirementsLabel}</div>
                 {/* "Ubah" ↔ "Selesai" — edit inline nol LLM (prototipe `editing`). */}
-                {rows.length > 0 && (
+                {rows.length > 0 && irrigation === null && (
                   <button
                     type="button"
                     className={styles.editToggle}
@@ -1030,62 +1047,82 @@ export function ChatWorkspace() {
                   </button>
                 )}
               </div>
-              {rows.map((row) => (
+              {irrigation?.map((row) => (
                 <div
-                  key={row.label}
+                  key={row.field}
                   className={[
                     styles.reqRow,
-                    !editing && row.display === MISSING ? styles.reqRowMissing : '',
+                    row.value === null && row.required ? styles.reqRowMissing : '',
                   ].join(' ')}
                 >
                   <span className={styles.reqLabel}>{row.label}</span>
-                  {editing ? (
-                    row.editor.kind === 'select' ? (
-                      <select
-                        className={styles.reqInput}
-                        aria-label={row.label}
-                        value={edits[row.path] ?? (row.raw === null ? '' : String(row.raw))}
-                        onChange={(event) =>
-                          setEdits((prev) => ({ ...prev, [row.path]: event.target.value }))
-                        }
-                      >
-                        <option value="">{MISSING}</option>
-                        {row.editor.options.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        className={styles.reqInput}
-                        type="number"
-                        inputMode="numeric"
-                        aria-label={row.label}
-                        min={row.editor.min}
-                        max={row.editor.max}
-                        value={edits[row.path] ?? (row.raw === null ? '' : String(row.raw))}
-                        onChange={(event) =>
-                          setEdits((prev) => ({ ...prev, [row.path]: event.target.value }))
-                        }
-                      />
-                    )
-                  ) : (
-                    <span
-                      className={[
-                        styles.reqValue,
-                        row.provenance === 'ASSUMED' || row.provenance === 'ESTIMATED'
-                          ? styles.reqValueAssumed
-                          : '',
-                        row.display === MISSING ? styles.reqValueMissing : '',
-                      ].join(' ')}
-                      title={row.reason}
-                    >
-                      {row.display}
-                    </span>
-                  )}
+                  <span
+                    className={[
+                      styles.reqValue,
+                      row.value === null ? styles.reqValueMissing : '',
+                    ].join(' ')}
+                  >
+                    {row.value ?? MISSING}
+                  </span>
                 </div>
               ))}
+              {irrigation === null &&
+                rows.map((row) => (
+                  <div
+                    key={row.label}
+                    className={[
+                      styles.reqRow,
+                      !editing && row.display === MISSING ? styles.reqRowMissing : '',
+                    ].join(' ')}
+                  >
+                    <span className={styles.reqLabel}>{row.label}</span>
+                    {editing ? (
+                      row.editor.kind === 'select' ? (
+                        <select
+                          className={styles.reqInput}
+                          aria-label={row.label}
+                          value={edits[row.path] ?? (row.raw === null ? '' : String(row.raw))}
+                          onChange={(event) =>
+                            setEdits((prev) => ({ ...prev, [row.path]: event.target.value }))
+                          }
+                        >
+                          <option value="">{MISSING}</option>
+                          {row.editor.options.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          className={styles.reqInput}
+                          type="number"
+                          inputMode="numeric"
+                          aria-label={row.label}
+                          min={row.editor.min}
+                          max={row.editor.max}
+                          value={edits[row.path] ?? (row.raw === null ? '' : String(row.raw))}
+                          onChange={(event) =>
+                            setEdits((prev) => ({ ...prev, [row.path]: event.target.value }))
+                          }
+                        />
+                      )
+                    ) : (
+                      <span
+                        className={[
+                          styles.reqValue,
+                          row.provenance === 'ASSUMED' || row.provenance === 'ESTIMATED'
+                            ? styles.reqValueAssumed
+                            : '',
+                          row.display === MISSING ? styles.reqValueMissing : '',
+                        ].join(' ')}
+                        title={row.reason}
+                      >
+                        {row.display}
+                      </span>
+                    )}
+                  </div>
+                ))}
               {editStatus === 'failed' && (
                 <p className={styles.editError} role="alert">
                   {COPY.panelEditFailed}
