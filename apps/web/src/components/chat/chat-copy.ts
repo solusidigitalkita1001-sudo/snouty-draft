@@ -59,6 +59,8 @@ export const CHAT_COPY = {
   headerWelcomeTitle: 'Konsultasi Baru',
   /** Badge sambutan: "KATALOG PRALON · v2.4" — label versi dari `/catalog/version`. */
   catalogBadge: (label: string) => `KATALOG PRALON · ${label}`,
+  /** Katalog aktif adalah contoh pengembangan (`kind = sample`): jangan menyebutnya Pralon. */
+  catalogBadgeSample: (label: string) => `KATALOG CONTOH · ${label}`,
   stepStatus: (filled: number) => `LANGKAH ${Math.min(filled + 1, 4)} DARI 4`,
   solutionReady: 'SOLUSI SIAP',
   /** Judul percakapan aktif, diturunkan dari kebutuhan (prototipe `titleFrom`). */

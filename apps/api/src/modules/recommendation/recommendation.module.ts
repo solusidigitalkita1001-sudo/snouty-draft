@@ -16,6 +16,7 @@ import { PROSE_SYSTEM_PROMPT } from '../ai/application/prompts.js';
 import { ContextModule } from '../context/context.module.js';
 import { ConversationModule } from '../conversation/conversation.module.js';
 import { ProductCatalogModule } from '../product-catalog/product-catalog.module.js';
+import { CatalogQueryService } from '../product-catalog/application/catalog-query.service.js';
 import { CATALOG_REPOSITORY } from '../product-catalog/domain/catalog.repository.js';
 import type { CatalogRepository } from '../product-catalog/domain/catalog.repository.js';
 import { ConversationService } from '../conversation/application/conversation.service.js';
@@ -42,13 +43,20 @@ const proseWriterProvider = {
 
 const analysisServiceProvider = {
   provide: AnalysisService,
-  inject: [CATALOG_REPOSITORY, RECOMMENDATION_REPOSITORY, ConversationService, PROSE_WRITER],
+  inject: [
+    CATALOG_REPOSITORY,
+    RECOMMENDATION_REPOSITORY,
+    ConversationService,
+    PROSE_WRITER,
+    CatalogQueryService,
+  ],
   useFactory: (
     catalog: CatalogRepository,
     repository: RecommendationRepository,
     conversations: ConversationService,
     prose: ProseWriter | null,
-  ) => new AnalysisService(catalog, repository, conversations, prose),
+    catalogQuery: CatalogQueryService,
+  ) => new AnalysisService(catalog, repository, conversations, prose, catalogQuery),
 };
 
 @Module({

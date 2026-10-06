@@ -216,12 +216,19 @@ export async function fetchRequirement(id: string): Promise<RequirementState | n
   return ((await response.json()) as { state: RequirementState | null }).state;
 }
 
-/** Label versi katalog aktif — badge "KATALOG PRALON · v2.4" di layar sambutan. */
-export async function fetchCatalogVersion(): Promise<string | null> {
+export interface CatalogVersionBadge {
+  readonly label: string;
+  /** `sample` = katalog contoh pengembangan; badge-nya tidak boleh berbunyi "KATALOG PRALON". */
+  readonly kind: 'pralon' | 'sample';
+}
+
+/** Versi katalog aktif — badge "KATALOG PRALON · v2.4" (atau "KATALOG CONTOH · …") di sambutan. */
+export async function fetchCatalogVersion(): Promise<CatalogVersionBadge | null> {
   try {
     const response = await fetch(`${BASE}/catalog/version`, { credentials: 'include' });
     if (!response.ok) return null;
-    return ((await response.json()) as { label: string }).label;
+    const { label, kind } = (await response.json()) as CatalogVersionBadge;
+    return { label, kind: kind === 'sample' ? 'sample' : 'pralon' };
   } catch {
     return null;
   }

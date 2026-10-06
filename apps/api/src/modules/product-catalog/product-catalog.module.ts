@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
+import { loadEnv } from '../../config/env.js';
 import { InternalRoleGuard } from '../../shared/http/internal-role.guard.js';
 import { CatalogAdminService } from './application/catalog-admin.service.js';
 import { CatalogIngestService } from './application/catalog-ingest.service.js';
 import { CatalogPromotionService } from './application/catalog-promotion.service.js';
 import { CatalogQueryService } from './application/catalog-query.service.js';
 import { CATALOG_CACHE, type CatalogCache } from './domain/catalog-cache.port.js';
+import { sampleCatalogAllowed } from './domain/catalog-visibility.js';
 import { CATALOG_REPOSITORY, type CatalogRepository } from './domain/catalog.repository.js';
 import { CATALOG_WRITER, type CatalogWriter } from './domain/catalog-writer.repository.js';
 import { catalogRepositoryProvider } from './infrastructure/catalog.mysql.repository.js';
@@ -20,11 +22,18 @@ const catalogIngestProvider = {
   useFactory: (writer: CatalogWriter) => new CatalogIngestService(writer),
 };
 
+/**
+ * Katalog contoh (`kind = 'sample'`) hanya diterima sebagai versi aktif di development.
+ * Keputusannya diambil sekali, di sini, dari `NODE_ENV` yang sudah divalidasi — bukan di
+ * setiap pembaca katalog.
+ */
 const catalogQueryProvider = {
   provide: CatalogQueryService,
   inject: [CATALOG_REPOSITORY, CATALOG_CACHE],
   useFactory: (repository: CatalogRepository, cache: CatalogCache) =>
-    new CatalogQueryService(repository, cache),
+    new CatalogQueryService(repository, cache, {
+      allowSample: sampleCatalogAllowed(loadEnv().NODE_ENV),
+    }),
 };
 
 const catalogAdminProvider = {

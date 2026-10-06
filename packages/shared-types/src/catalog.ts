@@ -9,6 +9,16 @@
  */
 
 export type CatalogVersionStatus = 'draft' | 'active' | 'archived';
+/**
+ * Asal data sebuah versi katalog.
+ *
+ *   - `pralon`: hasil impor dokumen Pralon — satu-satunya yang boleh mendasari pernyataan
+ *     "Pralon punya / tidak punya produk X".
+ *   - `sample`: katalog contoh pengembangan (`seed:sample`, SKU `DEV-*`). Boleh menghidupkan
+ *     layar di development; **tidak pernah** menjadi versi aktif di produksi, dan tidak pernah
+ *     dipakai sebagai dasar klaim ketersediaan produk Pralon.
+ */
+export type CatalogVersionKind = 'pralon' | 'sample';
 export type ProductStatus = 'active' | 'discontinued';
 export type PressureClass = 'AW' | 'D';
 export type FittingKind = 'tee' | 'elbow' | 'reducer' | 'socket';
@@ -19,6 +29,7 @@ export interface CatalogVersion {
   readonly label: string;
   /** mis. "Katalog produk Pralon 2026" — wajib, karena UI menjanjikan data ini bisa dicek. */
   readonly sourceDocument: string;
+  readonly kind: CatalogVersionKind;
   readonly status: CatalogVersionStatus;
   readonly effectiveFrom: string;
   readonly importedBy: string;

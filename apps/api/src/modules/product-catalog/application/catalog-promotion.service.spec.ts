@@ -27,6 +27,7 @@ function version(status: CatalogVersionStatus): CatalogVersion {
     id: VERSION_ID,
     label: 'v2.4',
     sourceDocument: 'Katalog produk Pralon 2026',
+    kind: 'pralon',
     status,
     effectiveFrom: '2026-01-01T00:00:00.000Z',
     importedBy: 'ADMIN',

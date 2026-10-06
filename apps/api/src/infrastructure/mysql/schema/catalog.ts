@@ -51,6 +51,8 @@ export const catalogVersions = mysqlTable(
     label: varchar('label', { length: 32 }).notNull(),
     /** mis. "Katalog produk Pralon 2026". */
     sourceDocument: varchar('source_document', { length: 255 }).notNull(),
+    /** `pralon` | `sample` (0013) — hanya `pralon` yang boleh mendasari klaim tentang Pralon. */
+    kind: varchar('kind', { length: 8 }).notNull().default('pralon'),
     status: varchar('status', { length: 16 }).notNull().default('draft'),
     effectiveFrom: datetime('effective_from', { fsp: 3 }).notNull(),
     importedBy: char('imported_by', { length: 26 }).notNull(),

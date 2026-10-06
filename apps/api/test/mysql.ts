@@ -68,8 +68,10 @@ const UP = [
   '0010_intelligence.sql',
   '0011_catalog_foreign_keys.sql',
   '0012_recommendation_prose_source.sql',
+  '0013_catalog_version_kind.sql',
 ];
 const DOWN = [
+  '0013_catalog_version_kind.down.sql',
   '0012_recommendation_prose_source.down.sql',
   '0011_catalog_foreign_keys.down.sql',
   '0010_intelligence.down.sql',

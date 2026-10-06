@@ -105,8 +105,10 @@ const UP = [
   '0010_intelligence.sql',
   '0011_catalog_foreign_keys.sql',
   '0012_recommendation_prose_source.sql',
+  '0013_catalog_version_kind.sql',
 ];
 const DOWN = [
+  '0013_catalog_version_kind.down.sql',
   '0012_recommendation_prose_source.down.sql',
   '0011_catalog_foreign_keys.down.sql',
   '0010_intelligence.down.sql',
@@ -121,7 +123,7 @@ const DOWN = [
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012 satu kolom). */
+/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0013 satu kolom). */
 const TABLES = 27;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
@@ -652,6 +654,37 @@ await check('menghapus versi katalog ikut menghapus produknya (cascade)', async 
   // Cascade dua tingkat: versi → produk → ukuran.
   if (Number(sizes[0].n) !== 0) throw new Error('ukuran tidak terhapus');
 });
+
+// ── Asal versi katalog (0013) ───────────────────────────────────────────────
+console.log('\nasal versi katalog:');
+const insertVersionOfKind = (id, label, kind) =>
+  conn.query(
+    kind === undefined
+      ? `INSERT INTO catalog_versions (id,label,source_document,status,effective_from,imported_by)
+         VALUES (?,?,'dok uji','draft','2026-01-01',?)`
+      : `INSERT INTO catalog_versions (id,label,source_document,kind,status,effective_from,imported_by)
+         VALUES (?,?,'dok uji',?,'draft','2026-01-01',?)`,
+    kind === undefined ? [id, label, ulid(911)] : [id, label, kind, ulid(911)],
+  );
+
+await check('versi tanpa `kind` adalah impor Pralon (bawaan `pralon`)', async () => {
+  const id = ulid(912);
+  await insertVersionOfKind(id, 'kind-bawaan', undefined);
+  const [rows] = await conn.query('SELECT kind FROM catalog_versions WHERE id = ?', [id]);
+  if (rows[0].kind !== 'pralon') throw new Error(`kind bawaan ${rows[0].kind}`);
+});
+
+await check('menerima `sample` untuk katalog contoh', () =>
+  insertVersionOfKind(ulid(913), 'kind-sample', 'sample'),
+);
+
+await check('menolak asal di luar pralon/sample', () =>
+  mustReject(
+    `INSERT INTO catalog_versions (id,label,source_document,kind,status,effective_from,imported_by)
+     VALUES (?,'kind-salah','dok uji','mock','draft','2026-01-01',?)`,
+    [ulid(914), ulid(911)],
+  ),
+);
 
 // ── Turun ───────────────────────────────────────────────────────────────────
 console.log('\ndown:');

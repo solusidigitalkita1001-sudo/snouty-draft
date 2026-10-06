@@ -66,6 +66,7 @@ const VERSION_COLUMNS = {
   id: catalogVersions.id,
   label: catalogVersions.label,
   sourceDocument: catalogVersions.sourceDocument,
+  kind: catalogVersions.kind,
   status: catalogVersions.status,
   effectiveFrom: catalogVersions.effectiveFrom,
   importedBy: catalogVersions.importedBy,

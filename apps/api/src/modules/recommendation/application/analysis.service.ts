@@ -21,6 +21,8 @@ import {
   type CatalogRepository,
 } from '../../product-catalog/domain/catalog.repository.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
+import type { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
+import { CatalogUnavailableError as CatalogReadUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import { ulid } from '../../../shared/ulid.js';
 import { assembleRecommendation, type ProseWriter } from './recommendation-assembler.js';
 import { matchProducts, requirementsFrom } from '../domain/product-matcher.js';
@@ -82,6 +84,7 @@ export class AnalysisService {
     @Inject(RECOMMENDATION_REPOSITORY) private readonly repository: RecommendationRepository,
     private readonly conversations: ConversationService,
     private readonly prose: ProseWriter | null = null,
+    private readonly catalogQuery: Pick<CatalogQueryService, 'activeVersion' | 'listProducts'>,
   ) {}
 
   /**
@@ -127,17 +130,19 @@ export class AnalysisService {
     });
 
     // --- Tahap 3: pencocokan katalog ---
+    // Lewat `CatalogQueryService`, bukan repository: di sanalah pagar "katalog contoh
+    // bukan katalog Pralon" (0013) hidup, dan rekomendasi tidak boleh melewatinya.
     events.push({ type: 'stage', stage: 'MATCHING_PRODUCTS', status: 'active' });
-    const version = await this.catalog.findActiveVersion();
-    if (!version) {
+    let version;
+    try {
+      version = await this.catalogQuery.activeVersion();
+    } catch (error) {
       events.push({ type: 'stage', stage: 'MATCHING_PRODUCTS', status: 'failed' });
-      throw new CatalogUnavailableError();
+      if (error instanceof CatalogReadUnavailableError) throw new CatalogUnavailableError();
+      throw error;
     }
 
-    const page = await this.catalog.listProducts({
-      catalogVersionId: version.id,
-      limit: 50,
-    });
+    const page = await this.catalogQuery.listProducts({ limit: 50 });
     const match = matchProducts(
       requirementsFrom({
         mainSize: solution.mainSize,

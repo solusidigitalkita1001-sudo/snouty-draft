@@ -16,7 +16,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { specHasValue } from '@snouty/shared-types';
+import { specHasValue, type CatalogVersionKind } from '@snouty/shared-types';
 import {
   catalogImportRuns,
   catalogVersions,
@@ -89,7 +89,10 @@ export class MysqlCatalogWriter implements CatalogWriter {
    * Versi dibuat dan ditautkan dalam satu transaksi. Celah di antara kedua
    * statement itu adalah satu-satunya tempat impor ini bisa melahirkan dua versi.
    */
-  async createDraftVersion(run: CatalogImportRun): Promise<string> {
+  async createDraftVersion(
+    run: CatalogImportRun,
+    kind: CatalogVersionKind = 'pralon',
+  ): Promise<string> {
     const catalogVersionId = ulid();
 
     await this.database.db.transaction(async (tx) => {
@@ -97,6 +100,7 @@ export class MysqlCatalogWriter implements CatalogWriter {
         id: catalogVersionId,
         label: run.label,
         sourceDocument: run.sourceDocument,
+        kind,
         status: 'draft',
         effectiveFrom: new Date(),
         importedBy: run.requestedBy,

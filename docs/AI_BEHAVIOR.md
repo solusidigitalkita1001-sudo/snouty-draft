@@ -68,22 +68,30 @@ ID model tidak pernah ditulis di kode.
 
 Langkah pertama setiap pesan; menentukan jalur mana yang dijalankan (`ARCHITECTURE.md` §8).
 
-| Intent                   | Contoh                           | Jalur                                                                                                                                   |
-| ------------------------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `PRODUCT_FAQ`            | "Apa bedanya AW dan D?"          | FAQ — diwujudkan di dalam `PRODUCT_LOOKUP` dengan aspek `null`: penjelasan kualitatif model di atas DATA katalog, angka hanya dari DATA |
-| `PRODUCT_LOOKUP`         | "Ada ukuran 3/4 inch?"           | **query MySQL**, bukan pencarian vektor                                                                                                 |
-| `RECOMMENDATION_REQUEST` | "Rumah 2 lantai, 3 kamar mandi…" | rekomendasi                                                                                                                             |
-| `CLARIFICATION_ANSWER`   | "Toren atap"                     | merge, tanpa ekstraksi penuh                                                                                                            |
-| `REQUIREMENT_MUTATION`   | "Tambah satu kamar mandi"        | merge + hitung ulang, **tanpa LLM**                                                                                                     |
-| `EXPLANATION_REQUEST`    | "Kenapa ukurannya 1 inci?"       | jawab dari trace                                                                                                                        |
-| `COMPETITOR_QUESTION`    | "Lebih bagus Pralon atau X?"     | kebijakan → kriteria netral                                                                                                             |
-| `OUT_OF_SCOPE`           | "Jalur air proses pabrik 70 °C"  | validasi teknis                                                                                                                         |
-| `UNCLEAR`                | —                                | klarifikasi, mood `confused`                                                                                                            |
+| Intent                   | Contoh                           | Jalur                                                                                                                                                                                                        |
+| ------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PRODUCT_FAQ`            | "Apa bedanya AW dan D?"          | FAQ — diwujudkan di dalam `PRODUCT_LOOKUP` dengan aspek `null`: pengetahuan umum milik kode → katalog sebagai pendukung (opsional, hanya versi `pralon`) → model merangkai (opsional); angka hanya dari DATA |
+| `PRODUCT_LOOKUP`         | "Ada ukuran 3/4 inch?"           | **query MySQL**, bukan pencarian vektor                                                                                                                                                                      |
+| `RECOMMENDATION_REQUEST` | "Rumah 2 lantai, 3 kamar mandi…" | rekomendasi                                                                                                                                                                                                  |
+| `CLARIFICATION_ANSWER`   | "Toren atap"                     | merge, tanpa ekstraksi penuh                                                                                                                                                                                 |
+| `REQUIREMENT_MUTATION`   | "Tambah satu kamar mandi"        | merge + hitung ulang, **tanpa LLM**                                                                                                                                                                          |
+| `EXPLANATION_REQUEST`    | "Kenapa ukurannya 1 inci?"       | jawab dari trace                                                                                                                                                                                             |
+| `COMPETITOR_QUESTION`    | "Lebih bagus Pralon atau X?"     | kebijakan → kriteria netral                                                                                                                                                                                  |
+| `OUT_OF_SCOPE`           | "Jalur air proses pabrik 70 °C"  | validasi teknis                                                                                                                                                                                              |
+| `UNCLEAR`                | —                                | klarifikasi, mood `confused`                                                                                                                                                                                 |
 
 Dua pembedaan yang paling menentukan biaya dan kebenaran:
 
 **`PRODUCT_LOOKUP` tidak memanggil pencarian semantik.** "Ada ukuran 3/4 inch?" adalah `SELECT`.
 Lebih cepat, lebih murah, dan jawabannya pasti benar.
+
+**`PRODUCT_FAQ` tidak bergantung pada katalog.** "Apa bedanya PVC dan HDPE?" adalah pertanyaan
+teknik umum; jawabannya harus utuh dari `pipe-knowledge.ts` saja. Katalog menambah "yang mana di
+Pralon" **hanya** bila versinya otoritatif (`kind = 'pralon'`); katalog yang gagal dibaca, atau
+katalog contoh, tidak mengubah penjelasannya dan tidak pernah melahirkan kalimat "tidak ada di
+katalog Pralon". Pemetaan ke intent yang lebih halus (`general_education`, `product_comparison`,
+`product_lookup`, …) tidak dibuat: `PRODUCT_LOOKUP` + aspek `null` sudah membedakannya secara
+deterministik, dan intent yang lebih banyak berarti klasifikasi model yang lebih sering salah.
 
 **`REQUIREMENT_MUTATION` vs `EXPLANATION_REQUEST`.** "Tambah satu kamar mandi" mengubah state;
 "kenapa ukuran ini" tidak. Salah klasifikasi pada yang pertama berarti mengubah kebutuhan pengguna

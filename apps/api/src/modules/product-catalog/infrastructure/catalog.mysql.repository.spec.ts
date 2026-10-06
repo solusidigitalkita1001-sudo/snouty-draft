@@ -93,6 +93,7 @@ describe('MysqlCatalogRepository — versi katalog', () => {
       id: V_ACTIVE,
       label: 'v2.4',
       sourceDocument: SOURCE,
+      kind: 'pralon', // bawaan kolom (0013): versi yang disemai tanpa `kind` adalah impor Pralon
       status: 'active',
       effectiveFrom: '2026-01-01T00:00:00.000Z',
       importedBy: ADMIN,

@@ -12,6 +12,7 @@
 
 import type {
   CatalogVersion,
+  CatalogVersionKind,
   CatalogVersionStatus,
   CompatibleFitting,
   FittingKind,
@@ -53,6 +54,7 @@ export interface CatalogVersionRow {
   readonly id: string;
   readonly label: string;
   readonly sourceDocument: string;
+  readonly kind: string;
   readonly status: string;
   readonly effectiveFrom: Date;
   readonly importedBy: string;
@@ -77,6 +79,11 @@ function toProductStatus(raw: string): ProductStatus {
 function toVersionStatus(raw: string): CatalogVersionStatus {
   if (raw === 'draft' || raw === 'active' || raw === 'archived') return raw;
   throw new Error(`status versi katalog tidak dikenal di database: ${raw}`);
+}
+
+function toVersionKind(raw: string): CatalogVersionKind {
+  if (raw === 'pralon' || raw === 'sample') return raw;
+  throw new Error(`asal versi katalog tidak dikenal di database: ${raw}`);
 }
 
 function toFittingKind(raw: string): FittingKind {
@@ -142,6 +149,7 @@ export function toCatalogVersion(row: CatalogVersionRow): CatalogVersion {
     id: row.id,
     label: row.label,
     sourceDocument: row.sourceDocument,
+    kind: toVersionKind(row.kind),
     status: toVersionStatus(row.status),
     // ISO-8601 UTC; konversi zona waktu adalah urusan lapisan tampilan.
     effectiveFrom: row.effectiveFrom.toISOString(),

@@ -312,14 +312,58 @@ katalog… Pipa PVC AW: Material uPVC…"), yang terbaca sebagai bukan jawaban. 
 ingatannya; qwen2.5:7b **menukar sifatnya** (PVC disebut lentur, HDPE kaku) dalam dua dari dua
 jawaban. Itu persis "LLM bukan sumber kebenaran" — meski kualitatif.
 
-**Default yang diterapkan:** sifat umum tiap keluarga bahan ditulis di kode
-(`context/application/material-primer.ts`: PVC, HDPE, PPR, galvanis — kaku/lentur, cara sambung,
-kegunaan lazim), **tanpa angka, standar, atau merek**. Primer masuk blok DATA bersama fakta katalog;
-model hanya merangkai, pagar angka `ReplyWriter` tetap. Tanpa model, primer + fakta katalog yang tampil.
+**Default yang diterapkan (2026-10-06, direvisi hari yang sama):** pengetahuan teknik umum ditulis
+di kode sebagai basis terstruktur (`context/application/pipe-knowledge.ts`): empat keluarga bahan
+(PVC, HDPE, PPR, galvanis) masing-masing dengan **bentuk, sambungan, ketahanan, pemakaian lazim**,
+plus tiga konsep (pipa tanam, bertekanan vs gravitasi, kaku vs lentur) — **tanpa angka, standar, atau
+merek** (tes menjaganya). "Bedanya A dan B" dirakit kode sebagai perbandingan per dimensi, bukan dua
+ikhtisar; jawabannya utuh tanpa katalog dan tanpa model. Katalog dan model keduanya opsional (OQ-46).
 
-**Yang dibutuhkan dari pemilik / tim teknis Pralon:** tinjau redaksi keempat primer (benar secara
-teknik? ada keluarga yang perlu ditambah — PVC-O, PE-RT?), dan tetapkan apakah primer ini dianggap
-"konten teknis" yang perlu provenance/penanggung jawab, atau cukup sebagai copy produk.
+**Yang dibutuhkan dari pemilik / tim teknis Pralon:** tinjau redaksi basis pengetahuan (benar secara
+teknik? ada keluarga yang perlu ditambah — PVC-O, PE-RT?), dan tetapkan apakah ia dianggap "konten
+teknis" yang perlu provenance/penanggung jawab, atau cukup sebagai copy produk.
+
+### OQ-46 — Katalog contoh pernah mendasari klaim tentang Pralon; kini ditandai dan dipagari
+
+**Status:** open · _non-blocking_ · **Fase:** 1/4 · diterapkan sebagai default (migration 0013)
+
+Laporan pemilik (2026-10-06): jawaban "apa bedanya PVC sama HDPE?" memuat **"HDPE tidak ada di
+katalog Pralon yang aktif"** dan **"CONTOH Pipa PVC AW … Data contoh untuk pengembangan. Bukan produk
+Pralon."** Dua kesalahan yang berbeda akarnya:
+
+1. Katalog aktif adalah katalog contoh (`seed:sample`), karena katalog Pralon sungguhan belum pernah
+   diimpor (OQ-07). Pipeline tidak bisa membedakannya dari katalog Pralon — satu-satunya tanda ada di
+   teks (`source_document`, awalan "CONTOH") — lalu menyimpulkan "Pralon tidak punya HDPE" dari
+   ketiadaan di data karangan. Pralon punya keluarga produk PE/HDPE.
+2. Pertanyaan konsep diperlakukan sebagai lookup katalog: kegagalan retrieval mengendalikan isi
+   jawaban, dan baris contoh masuk konteks model lalu ke pengguna.
+
+**Default yang diterapkan:**
+
+- `catalog_versions.kind` (`pralon` | `sample`, bawaan `pralon`; 0013 juga menandai versi contoh yang
+  sudah ada dari `source_document`-nya, sekali saat migrasi). `seed:sample` menulis `sample` lewat
+  `CatalogIngestCommand.kind`; impor back-office tidak menyentuhnya.
+- Satu modul visibilitas (`product-catalog/domain/catalog-visibility.ts`): `isAuthoritative`,
+  `sampleCatalogAllowed` (hanya `development` — bukan `test`), `isAnswerable` (bukan `discontinued`).
+- `CatalogQueryService.activeVersion()` **gagal tertutup** atas versi `sample` di luar development
+  (`SampleCatalogRefusedError` → `CATALOG_UNAVAILABLE`), termasuk versi dari cache. `AnalysisService`
+  dipindah ke service ini (sebelumnya membaca repository langsung dan melewati pagar).
+- Pipeline pertanyaan produk: KONSEP = pengetahuan umum → katalog pendukung (hanya `pralon`) → model
+  perangkai; SPESIFIKASI = katalog aktif → `product-knowledge`. Klaim negatif tentang Pralon hanya atas
+  katalog `pralon`; atas katalog contoh kalimatnya "belum ada di data katalog yang terpasang" (jalur
+  spesifikasi, development saja) atau tidak ada klaim sama sekali (jalur konsep). Katalog yang gagal
+  dibaca tidak mengubah penjelasan teknik.
+- Badge sambutan: `kind = sample` → "KATALOG CONTOH · dev-0.1", bukan "KATALOG PRALON".
+
+**Yang saya TIDAK lakukan:** menambah `is_mock`/`is_public`/`verification_status` per produk. Satu
+kolom di versi sudah cukup karena sumber data adalah sifat versi (satu impor = satu dokumen), dan
+provenance per nilai sudah ada (`product_specs.provenance`). Intent baru (`general_education`, …)
+juga tidak dibuat — lihat docs/AI_BEHAVIOR.md §4.
+
+**Yang dibutuhkan dari pemilik:** (a) konfirmasi bahwa `development` adalah satu-satunya lingkungan
+tempat katalog contoh boleh aktif (staging dengan katalog contoh berarti staging tanpa katalog); (b)
+OQ-07 — sampai katalog Pralon diimpor, jawaban produk di lingkungan mana pun tidak bisa menyebut
+produk Pralon, hanya tim teknis.
 
 ### OQ-44 — Audit biaya tidak bisa membedakan prosa yang diterima dari yang ditolak REC-1
 

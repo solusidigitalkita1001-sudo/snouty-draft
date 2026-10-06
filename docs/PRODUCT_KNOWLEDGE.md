@@ -190,6 +190,20 @@ lewat jalur impor yang sungguhan, jadi contohnya tidak bisa menyimpang dari apa 
 importer nyata. Dua pagar menolak secara baku: `SEED_SAMPLE_CATALOG=1` wajib diset, dan skripnya
 menolak host `192.168.1.136`.
 
+Sejak 0013 tandanya dibaca kode, bukan hanya manusia: versi yang disemai berkolom
+`catalog_versions.kind = 'sample'` (impor back-office: `pralon`). Tiga akibat, semuanya di
+`product-catalog/domain/catalog-visibility.ts`:
+
+- `CatalogQueryService.activeVersion()` **menolak** versi `sample` di luar `NODE_ENV=development`
+  (`SampleCatalogRefusedError`, ke klien tampak `CATALOG_UNAVAILABLE`). Rekomendasi dan drawer
+  produk lewat service ini, jadi data contoh tidak pernah masuk konteks AI maupun kartu di produksi.
+- Pernyataan tentang Pralon — termasuk "X tidak ada di katalog Pralon" — hanya dibuat atas versi
+  `pralon` (`isAuthoritative`). Atas katalog contoh, ketiadaan sebuah produk tidak berarti apa-apa.
+- Produk `discontinued` tidak dihitung ada (`isAnswerable`).
+
+Yang belum: katalog Pralon yang sungguhan belum pernah diimpor (OQ-07), jadi di semua lingkungan
+hari ini versi aktifnya `sample`. Badge sambutan menampilkannya apa adanya: "KATALOG CONTOH · dev-0.1".
+
 ---
 
 ## 4. Lookup terstruktur
@@ -251,11 +265,14 @@ sebagai satu-satunya bahan.
 _Status 2026-10-05:_ jalur ini kini tersambung ke chat (`context/application/product-question-pipeline.ts`).
 Model hanya memetakan pertanyaan ke produk + aspek (`ai.parseProductQuestion`, kosakata tertutup);
 kalimat jawaban SPESIFIKASI templat deterministik dari `ProductAnswer` — model tidak menyentuhnya.
-Pertanyaan KONSEP (aspek `null`: "apa bedanya PVC dan HDPE?") lewat jalur `PRODUCT_FAQ`
-(`PRODUCT_FAQ_SYSTEM_PROMPT` + `ReplyWriter`): sifat umum tiap keluarga bahan datang dari primer milik
-kode (`material-primer.ts`, tanpa angka — OQ-45), model hanya merangkainya bersama fakta katalog; angka
-di luar DATA dan merek lain ditolak kode, dan fakta katalog yang tidak disebut model ditempel. Nilai
-spesifikasi produk yang tidak ada di katalog aktif tetap dikatakan tidak ada, tidak dijawab dari ingatan model.
+Pertanyaan KONSEP (aspek `null`: "apa bedanya PVC dan HDPE?") lewat jalur `PRODUCT_FAQ`, urutannya
+**pengetahuan umum → katalog (opsional, pendukung) → model (opsional, perangkai)**: perbandingan per
+dimensi (bentuk, sambungan, ketahanan, pemakaian) dirakit kode dari `pipe-knowledge.ts` (tanpa angka —
+OQ-45) dan sudah utuh tanpa katalog dan tanpa model; katalog hanya menambah "yang mana di Pralon" dan
+hanya bila versinya `pralon` (OQ-46) — katalog yang gagal dibaca tidak mengubah penjelasannya; model
+merangkai DATA itu, angka di luar DATA dan merek lain ditolak kode, fakta katalog yang tidak disebut
+ditempel. Nilai spesifikasi produk yang tidak ada di katalog Pralon tetap dikatakan tidak ada, tidak
+dijawab dari ingatan model.
 
 ## 5. RAG — kriteria adopsi
 

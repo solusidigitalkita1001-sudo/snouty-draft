@@ -27,6 +27,7 @@ const DRAFT: CatalogVersion = {
   id: VERSION_ID,
   label: 'v2.5',
   sourceDocument: 'Katalog produk Pralon 2026',
+  kind: 'pralon',
   status: 'draft',
   effectiveFrom: '2026-01-01T00:00:00.000Z',
   importedBy: 'ADMIN',

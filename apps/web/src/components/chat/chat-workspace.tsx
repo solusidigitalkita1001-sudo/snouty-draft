@@ -33,6 +33,7 @@ import { ProductLookupCards } from './product-lookup-cards';
 import {
   createConversation,
   fetchCatalogVersion,
+  type CatalogVersionBadge,
   fetchConversation,
   fetchHistory,
   fetchRecommendation,
@@ -117,7 +118,13 @@ export function ChatWorkspace() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
   const [reopened, setReopened] = useState(false);
-  const [catalogLabel, setCatalogLabel] = useState<string | null>(null);
+  const [catalogVersion, setCatalogVersion] = useState<CatalogVersionBadge | null>(null);
+  const catalogBadge =
+    catalogVersion === null
+      ? COPY.catalogBadge('…')
+      : catalogVersion.kind === 'sample'
+        ? COPY.catalogBadgeSample(catalogVersion.label)
+        : COPY.catalogBadge(catalogVersion.label);
   const [user, setUser] = useState<CurrentUser | null>(null);
   // Mode "Ubah" panel: nilai sementara per field sampai "Selesai" dikirim sekaligus.
   const [editing, setEditing] = useState(false);
@@ -162,8 +169,8 @@ export function ChatWorkspace() {
           result?.kind === 'ok' ? { kind: 'list', items: result.items } : { kind: 'guest' },
         );
       });
-    void fetchCatalogVersion().then((label) => {
-      if (!cancelled) setCatalogLabel(label);
+    void fetchCatalogVersion().then((version) => {
+      if (!cancelled) setCatalogVersion(version);
     });
     return () => {
       cancelled = true;
@@ -641,7 +648,7 @@ export function ChatWorkspace() {
                   ? COPY.solutionReady
                   : inConversation
                     ? COPY.stepStatus(filled)
-                    : COPY.catalogBadge(catalogLabel ?? '…')}
+                    : catalogBadge}
               </span>
             )}
           </div>

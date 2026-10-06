@@ -10,6 +10,7 @@ export type {
 export { PipeSize, PipeSizeRange, PipeSizeTransition } from './pipe-size.js';
 export type {
   CatalogVersion,
+  CatalogVersionKind,
   CatalogVersionStatus,
   CatalogImportIssue,
   CatalogImportResult,

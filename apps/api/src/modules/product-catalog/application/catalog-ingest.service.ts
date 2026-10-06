@@ -18,7 +18,7 @@
  * dilewati, yang ketiga tidak bisa.
  */
 
-import type { CatalogImportResult } from '@snouty/shared-types';
+import type { CatalogImportResult, CatalogVersionKind } from '@snouty/shared-types';
 import type { CatalogImportSource } from '../domain/catalog-import.contract.js';
 import { validateCatalogImport } from '../domain/catalog-import.validator.js';
 import {
@@ -29,6 +29,8 @@ import {
 export interface CatalogIngestCommand {
   readonly importRunId: string;
   readonly source: CatalogImportSource;
+  /** Bawaan `pralon`. `sample` hanya dari `seed:sample` — lihat `CatalogWriter.createDraftVersion`. */
+  readonly kind?: CatalogVersionKind;
 }
 
 export class CatalogIngestService {
@@ -67,7 +69,8 @@ export class CatalogIngestService {
       return { catalogVersionId: null, rowsAccepted, rowsRejected, issues: validation.issues };
     }
 
-    const catalogVersionId = run.catalogVersionId ?? (await this.writer.createDraftVersion(run));
+    const catalogVersionId =
+      run.catalogVersionId ?? (await this.writer.createDraftVersion(run, command.kind ?? 'pralon'));
     await this.writer.insertRows(catalogVersionId, validation.rows);
     await this.writer.finishRun({
       importRunId: run.id,

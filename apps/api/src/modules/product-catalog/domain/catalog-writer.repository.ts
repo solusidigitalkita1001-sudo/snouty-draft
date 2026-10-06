@@ -7,7 +7,11 @@
  * modul yang hanya perlu membaca ikut memegang kemampuan menulis katalog.
  */
 
-import type { CatalogImportIssue, CatalogVersionStatus } from '@snouty/shared-types';
+import type {
+  CatalogImportIssue,
+  CatalogVersionKind,
+  CatalogVersionStatus,
+} from '@snouty/shared-types';
 import type { AuditActor } from '../../../shared/audit/audit.types.js';
 import type { ValidatedCatalogRow } from './catalog-import.contract.js';
 
@@ -50,8 +54,11 @@ export interface CatalogWriter {
    *
    * Satu transaksi, bukan dua langkah, karena di antara keduanya terletak
    * satu-satunya cara job ini bisa menghasilkan dua versi katalog untuk satu impor.
+   *
+   * `kind` bawaan `pralon`: jalur impor back-office adalah dokumen Pralon. Hanya
+   * `seed:sample` yang menulis `sample`, dan ia harus memintanya secara eksplisit.
    */
-  createDraftVersion(run: CatalogImportRun): Promise<string>;
+  createDraftVersion(run: CatalogImportRun, kind?: CatalogVersionKind): Promise<string>;
 
   /**
    * Idempoten: baris yang `rowHash`-nya sudah ada pada versi ini dilewati, dan

@@ -12,8 +12,12 @@ import type {
   ProductDocument,
 } from '@snouty/shared-types';
 import { FakeCatalogRepository } from '../../../../test/fakes/catalog-repository.fake.js';
-import type { CatalogCache } from '../domain/catalog-cache.port.js';
-import { CatalogUnavailableError, ProductNotFoundError } from '../domain/catalog.errors.js';
+import { CATALOG_ACTIVE_VERSION_KEY, type CatalogCache } from '../domain/catalog-cache.port.js';
+import {
+  CatalogUnavailableError,
+  ProductNotFoundError,
+  SampleCatalogRefusedError,
+} from '../domain/catalog.errors.js';
 import type { ProductListPage, ProductListQuery } from '../domain/catalog.repository.js';
 import { CatalogQueryService } from './catalog-query.service.js';
 
@@ -21,6 +25,7 @@ const ACTIVE_VERSION: CatalogVersion = {
   id: 'VERSION',
   label: 'v2.4',
   sourceDocument: 'Katalog produk Pralon 2026',
+  kind: 'pralon',
   status: 'active',
   effectiveFrom: '2026-01-01T00:00:00.000Z',
   importedBy: 'ADMIN',
@@ -124,6 +129,35 @@ class BrokenCache implements CatalogCache {
     throw new Error('ECONNREFUSED 127.0.0.1:6380');
   }
 }
+
+describe('CatalogQueryService — katalog contoh (kind = sample)', () => {
+  const SAMPLE: CatalogVersion = { ...ACTIVE_VERSION, id: 'SAMPLE', kind: 'sample' };
+
+  it('ditolak secara baku: katalog contoh tidak pernah menjadi katalog Pralon di produksi', async () => {
+    const service = new CatalogQueryService(new FakeRepository(SAMPLE), new MemoryCache());
+
+    await expect(service.activeVersion()).rejects.toThrow(SampleCatalogRefusedError);
+    // Ke klien tampak sebagai katalog yang tidak tersedia — kodenya sama (503).
+    await expect(service.activeVersion()).rejects.toThrow(CatalogUnavailableError);
+    await expect(service.listProducts({})).rejects.toThrow(CatalogUnavailableError);
+  });
+
+  it('diterima hanya bila pemanggil mengizinkannya secara eksplisit (development)', async () => {
+    const service = new CatalogQueryService(new FakeRepository(SAMPLE), new MemoryCache(), {
+      allowSample: true,
+    });
+
+    await expect(service.activeVersion()).resolves.toEqual(SAMPLE);
+  });
+
+  it('pagar yang sama berlaku untuk versi dari cache', async () => {
+    const cache = new MemoryCache();
+    await cache.write(CATALOG_ACTIVE_VERSION_KEY, SAMPLE);
+    const service = new CatalogQueryService(new FakeRepository(null), cache);
+
+    await expect(service.activeVersion()).rejects.toThrow(SampleCatalogRefusedError);
+  });
+});
 
 describe('CatalogQueryService — katalog belum tersedia', () => {
   it('melempar CATALOG_UNAVAILABLE saat belum ada versi aktif', async () => {

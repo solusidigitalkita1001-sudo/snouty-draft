@@ -68,12 +68,28 @@ describe('toCatalogVersion', () => {
       id: 'V1',
       label: 'v2.4',
       sourceDocument: 'Katalog produk Pralon 2026',
+      kind: 'pralon',
       status: 'active',
       effectiveFrom: new Date('2026-01-01T00:00:00.000Z'),
       importedBy: 'U1',
     });
 
     expect(mapped.effectiveFrom).toBe('2026-01-01T00:00:00.000Z');
+    expect(mapped.kind).toBe('pralon');
+  });
+
+  it('melempar saat asal versi di luar pralon/sample — constraint yang hilang harus terdengar', () => {
+    expect(() =>
+      toCatalogVersion({
+        id: 'V1',
+        label: 'v2.4',
+        sourceDocument: 'dok',
+        kind: 'mock',
+        status: 'active',
+        effectiveFrom: new Date('2026-01-01T00:00:00.000Z'),
+        importedBy: 'U1',
+      }),
+    ).toThrow(/asal versi/);
   });
 });
 

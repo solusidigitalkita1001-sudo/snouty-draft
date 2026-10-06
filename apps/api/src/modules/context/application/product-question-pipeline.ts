@@ -1,15 +1,27 @@
 /**
- * Ruas PRODUCT_LOOKUP — pertanyaan produk dijawab dari katalog, bukan dari ingatan model.
- * docs/PRODUCT_KNOWLEDGE.md §4 · docs/AI_BEHAVIOR.md ("PRODUCT_LOOKUP adalah SELECT").
+ * Ruas pertanyaan produk — dua jalur dengan sumber kebenaran yang berbeda.
+ * docs/AI_BEHAVIOR.md §4 · docs/PRODUCT_KNOWLEDGE.md §1, §4.
  *
- * Satu-satunya hal yang diminta dari model: ke produk mana dan ke aspek mana pertanyaan
- * itu menunjuk. Produknya dicari di katalog aktif, jawabannya dirakit `product-knowledge`
- * dengan provenance, kalimatnya templat deterministik. Produk yang tidak ada di katalog
- * dikatakan tidak ada — tidak ada jawaban dari pengetahuan umum tentang "HDPE".
+ *   KONSEP (`PRODUCT_FAQ`, aspek `null`: "apa bedanya PVC dan HDPE?", "apa itu PPR?")
+ *     pengetahuan umum (pipe-knowledge.ts) → katalog sebagai PENDUKUNG, opsional →
+ *     model merangkai (opsional) → jawaban.
+ *     Jawaban harus utuh tanpa katalog dan tanpa model. Katalog yang gagal dibaca atau
+ *     tidak otoritatif tidak mengubah isi penjelasannya — hanya menghilangkan bagian
+ *     "yang mana di Pralon".
+ *
+ *   SPESIFIKASI (`PRODUCT_LOOKUP`, aspek terisi: "ada ukuran 3/4?", "standarnya apa?")
+ *     katalog aktif → `product-knowledge` → kalimat templat dengan sumber. Model tidak
+ *     menyentuhnya; ia hanya memetakan pertanyaan ke produk + aspek.
+ *
+ * Klaim tentang Pralon — termasuk "tidak ada di katalog Pralon" — hanya dibuat atas versi
+ * katalog `pralon` (`isAuthoritative`). Katalog contoh pengembangan tidak pernah menjadi
+ * dasar pernyataan apa pun tentang Pralon, dan produknya tidak dipakai sebagai pendukung
+ * jawaban konsep.
  */
 import {
   PipeSize,
   specHasValue,
+  type AssistantCard,
   type AssistantStreamEvent,
   type Product,
   type ProductCardDto,
@@ -17,14 +29,18 @@ import {
 import type { AiService } from '../../ai/domain/ai.port.js';
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
+import { isAnswerable, isAuthoritative } from '../../product-catalog/domain/catalog-visibility.js';
+import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
-import { primersFor } from './material-primer.js';
 import { endEvent } from './message-pipeline.js';
+import { explain } from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, PRODUCT_ANSWER_COPY } from './product-answer-text.js';
 
 /** Maksimal produk yang dijawab sekaligus — "bedanya A dan B" adalah dua. */
 const MAX_PRODUCTS = 2;
+
+export type ProductCatalog = Pick<CatalogQueryService, 'activeVersion' | 'listProducts'>;
 
 export interface ProductQuestionInput {
   readonly messageId: string;
@@ -32,54 +48,31 @@ export interface ProductQuestionInput {
   readonly recentTurns?: readonly ReplyTurn[];
 }
 
+/** Hasil pencarian katalog beserta bobot yang boleh diberikan padanya. */
+interface CatalogSupport {
+  /** Versi aktif adalah impor Pralon — boleh mendasari klaim ada/tidak ada. */
+  readonly authoritative: boolean;
+  /** Katalog tidak terbaca (belum ada versi, ditolak sebagai contoh, database). */
+  readonly unavailable: boolean;
+  readonly products: readonly Product[];
+  readonly missing: readonly string[];
+}
+
+const NO_SUPPORT: CatalogSupport = {
+  authoritative: false,
+  unavailable: false,
+  products: [],
+  missing: [],
+};
+
 export async function runProductQuestion(
   ai: AiService,
-  catalog: Pick<CatalogQueryService, 'listProducts'>,
+  catalog: ProductCatalog,
   questions: Pick<ProductQuestionService, 'answer'>,
   input: ProductQuestionInput,
   reply: ReplyWriter | null = null,
   faqPrompt: string | null = null,
 ): Promise<readonly AssistantStreamEvent[]> {
-  const events: AssistantStreamEvent[] = [{ type: 'message.start', messageId: input.messageId }];
-  /**
-   * Dua macam pertanyaan, dua perlakuan (docs/AI_BEHAVIOR.md):
-   *   - SPESIFIKASI ("ada ukuran 3/4?", "standarnya apa?") → `PRODUCT_LOOKUP`: fakta katalog
-   *     dirangkai kode dan dikirim apa adanya. Model tidak menyentuhnya — pernah dicoba, dan
-   *     qwen2.5:7b membuang faktanya.
-   *   - KONSEP ("apa bedanya PVC dan HDPE?") → `PRODUCT_FAQ`: model boleh menjelaskan sifat
-   *     bahan secara kualitatif, dengan DATA katalog sebagai pijakan dan pagar angka
-   *     ReplyWriter (tidak ada angka di luar DATA). Tanpa model, faktanya saja.
-   */
-  const facts: string[] = [];
-  const finish = async (
-    conceptual: boolean,
-    products: readonly Product[],
-    query: string | null = null,
-  ): Promise<readonly AssistantStreamEvent[]> => {
-    let text = facts.join('\n\n');
-    if (conceptual) {
-      // Sifat bahan datang dari primer milik kode (material-primer.ts), bukan ingatan model —
-      // 7B pernah menukar mana yang lentur. Tanpa model, primer + fakta katalog itulah jawabannya.
-      const primer = primersFor(input.message, query);
-      const data = [...primer, ...facts].join('\n\n');
-      text = data;
-      if (reply && faqPrompt) {
-        const written = await reply.write({
-          intent: 'PRODUCT_LOOKUP',
-          userMessage: input.message,
-          recentTurns: input.recentTurns ?? [],
-          facts: data,
-          fallback: data,
-          systemPrompt: faqPrompt,
-        });
-        text = written.source === 'llm' ? withUncoveredFacts(written.text, facts, products) : data;
-      }
-    }
-    events.splice(1, 0, { type: 'token', text });
-    events.push(endEvent(input.messageId));
-    return events;
-  };
-
   let parsed;
   try {
     parsed = await ai.parseProductQuestion(input.message);
@@ -88,44 +81,169 @@ export async function runProductQuestion(
     parsed = null;
   }
 
-  if (!parsed?.productQuery) {
-    facts.push(PRODUCT_ANSWER_COPY.noProductNamed);
-    return finish(false, []);
+  const query = parsed?.productQuery ?? null;
+  const aspect = parsed?.aspect ?? null;
+
+  const outcome =
+    aspect === null
+      ? await answerConcept(catalog, input, query, reply, faqPrompt)
+      : await answerSpec(catalog, questions, query, aspect, parsed?.size ?? null);
+
+  return [
+    { type: 'message.start', messageId: input.messageId },
+    { type: 'token', text: outcome.text },
+    ...outcome.cards.map((card) => ({ type: 'card', card }) as AssistantStreamEvent),
+    endEvent(input.messageId),
+  ];
+}
+
+interface Outcome {
+  readonly text: string;
+  readonly cards: readonly AssistantCard[];
+}
+
+// ── Jalur KONSEP ────────────────────────────────────────────────────────────
+
+async function answerConcept(
+  catalog: ProductCatalog,
+  input: ProductQuestionInput,
+  query: string | null,
+  reply: ReplyWriter | null,
+  faqPrompt: string | null,
+): Promise<Outcome> {
+  const knowledge = explain(input.message, query);
+  // Katalog opsional: kegagalan membacanya tidak boleh mengubah penjelasan teknik.
+  const support = query === null ? NO_SUPPORT : await lookup(catalog, query, { optional: true });
+
+  // Pendukung dari katalog HANYA bila otoritatif. Dari katalog contoh: tidak ada kartu,
+  // tidak ada "tidak ada di katalog Pralon" — hanya ajakan ke tim teknis.
+  const facts: string[] = [];
+  const cards: AssistantCard[] = [];
+  if (support.authoritative) {
+    if (support.missing.length > 0) {
+      facts.push(PRODUCT_ANSWER_COPY.notInCatalog(support.missing.join(', ')));
+    }
+    if (support.products.length > 0) {
+      facts.push(PRODUCT_ANSWER_COPY.catalogSupport);
+      facts.push(support.products.map(overviewText).join('\n\n'));
+      cards.push({ kind: 'product', products: support.products.map(toCard) });
+    }
+    if (support.missing.length > 0) cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
+  } else {
+    facts.push(PRODUCT_ANSWER_COPY.askTechnicalForProducts);
+    cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
   }
 
-  const { products, missing } = await findProducts(catalog, parsed.productQuery);
-  if (products.length === 0) {
-    facts.push(PRODUCT_ANSWER_COPY.notInCatalog(parsed.productQuery));
-    events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } });
-    // Produk tidak ada di katalog, tetapi pertanyaan konsep tetap bisa dijelaskan dari primer.
-    return finish(parsed.aspect === null, [], parsed.productQuery);
+  if (knowledge === '' && support.products.length === 0) {
+    // Tidak ada yang dikenali: bukan bahan, bukan produk Pralon. Bertanya, bukan menebak.
+    return { text: PRODUCT_ANSWER_COPY.noProductNamed, cards: [] };
   }
+
+  const data = [knowledge, ...facts].filter((part) => part !== '').join('\n\n');
+  if (!reply || !faqPrompt) return { text: data, cards };
+
+  const written = await reply.write({
+    intent: 'PRODUCT_LOOKUP',
+    userMessage: input.message,
+    recentTurns: input.recentTurns ?? [],
+    facts: data,
+    fallback: data,
+    systemPrompt: faqPrompt,
+  });
+  const text =
+    written.source === 'llm' ? withUncoveredFacts(written.text, facts, support.products) : data;
+  return { text, cards };
+}
+
+// ── Jalur SPESIFIKASI ───────────────────────────────────────────────────────
+
+async function answerSpec(
+  catalog: ProductCatalog,
+  questions: Pick<ProductQuestionService, 'answer'>,
+  query: string | null,
+  aspect: NonNullable<Awaited<ReturnType<AiService['parseProductQuestion']>>['aspect']>,
+  rawSize: string | null,
+): Promise<Outcome> {
+  if (query === null) return { text: PRODUCT_ANSWER_COPY.noProductNamed, cards: [] };
+
+  const support = await lookup(catalog, query, { optional: false });
+  if (support.unavailable) {
+    return {
+      text: PRODUCT_ANSWER_COPY.catalogUnavailable,
+      cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }],
+    };
+  }
+
+  const notFound = (names: string) =>
+    support.authoritative
+      ? PRODUCT_ANSWER_COPY.notInCatalog(names)
+      : PRODUCT_ANSWER_COPY.notInInstalledCatalog(names);
+
+  if (support.products.length === 0) {
+    return { text: notFound(query), cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }] };
+  }
+
+  const facts: string[] = [];
+  const cards: AssistantCard[] = [];
   // "PVC dan HDPE" dengan HDPE tidak ada: katakan yang tidak ada, jangan diam-diam
   // menjawab separuh seolah itu seluruh pertanyaannya.
-  if (missing.length > 0) facts.push(PRODUCT_ANSWER_COPY.notInCatalog(missing.join(', ')));
+  if (support.missing.length > 0) facts.push(notFound(support.missing.join(', ')));
 
-  if (parsed.aspect === null) {
-    if (products.length > 1) facts.push(PRODUCT_ANSWER_COPY.comparisonIntro);
-    facts.push(products.map(overviewText).join('\n\n'));
-  } else {
-    let needsTechnical = false;
-    for (const product of products) {
-      const size = parsed.size ? (PipeSize.parse(parsed.size) ?? undefined) : undefined;
-      const answer = await questions.answer({
-        productId: product.id,
-        aspect: parsed.aspect,
-        ...(size !== undefined ? { size } : {}),
-      });
-      facts.push(answerText(product, answer));
-      if (answer.kind === 'insufficientData') needsTechnical = true;
+  let needsTechnical = support.missing.length > 0;
+  for (const product of support.products) {
+    const size = rawSize ? (PipeSize.parse(rawSize) ?? undefined) : undefined;
+    const answer = await questions.answer({
+      productId: product.id,
+      aspect,
+      ...(size !== undefined ? { size } : {}),
+    });
+    facts.push(answerText(product, answer));
+    if (answer.kind === 'insufficientData') needsTechnical = true;
+  }
+  if (needsTechnical) cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
+  cards.push({ kind: 'product', products: support.products.map(toCard) });
+
+  return { text: facts.join('\n\n'), cards };
+}
+
+// ── Katalog ─────────────────────────────────────────────────────────────────
+
+/**
+ * "PVC AW dan HDPE" → dua pencarian; tiap pencarian memberi satu produk teratas supaya
+ * perbandingan tetap satu lawan satu, bukan daftar seluruh keluarga. Produk `discontinued`
+ * tidak dihitung ada. `optional`: kegagalan membaca katalog dilaporkan sebagai
+ * `unavailable`, bukan dilempar — jalur konsep tidak boleh jatuh karena katalog.
+ */
+async function lookup(
+  catalog: ProductCatalog,
+  query: string,
+  { optional }: { readonly optional: boolean },
+): Promise<CatalogSupport> {
+  let authoritative: boolean;
+  try {
+    authoritative = isAuthoritative(await catalog.activeVersion());
+  } catch (error) {
+    if (!(error instanceof CatalogUnavailableError) || !optional) {
+      if (error instanceof CatalogUnavailableError) return { ...NO_SUPPORT, unavailable: true };
+      throw error;
     }
-    if (needsTechnical) {
-      events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } });
-    }
+    return { ...NO_SUPPORT, unavailable: true };
   }
 
-  events.push({ type: 'card', card: { kind: 'product', products: products.map(toCard) } });
-  return finish(parsed.aspect === null, products, parsed.productQuery);
+  const terms = query
+    .split(/\s+(?:dan|sama|vs|versus|atau)\s+|,/i)
+    .map((term) => term.trim())
+    .filter((term) => term.length > 0)
+    .slice(0, MAX_PRODUCTS);
+  const products: Product[] = [];
+  const missing: string[] = [];
+  for (const term of terms) {
+    const page = await catalog.listProducts({ q: term, limit: 1 });
+    const product = page.items[0];
+    if (!product || !isAnswerable(product)) missing.push(term);
+    else if (!products.some((f) => f.id === product.id)) products.push(product);
+  }
+  return { authoritative, unavailable: false, products, missing };
 }
 
 /**
@@ -140,35 +258,12 @@ function withUncoveredFacts(
 ): string {
   const lower = written.toLowerCase();
   const uncovered = facts.filter((fact) => {
+    if (fact === PRODUCT_ANSWER_COPY.catalogSupport) return false;
+    if (fact === PRODUCT_ANSWER_COPY.askTechnicalForProducts) return !lower.includes('tim teknis');
     if (fact.includes('tidak ada di katalog')) return !lower.includes('katalog');
-    if (fact === PRODUCT_ANSWER_COPY.comparisonIntro) return false;
     return !products.some((p) => fact.includes(p.name) && written.includes(p.name));
   });
   return [written, ...uncovered].join('\n\n');
-}
-
-/**
- * "PVC AW dan HDPE" → dua pencarian; tiap pencarian memberi satu produk teratas supaya
- * perbandingan tetap satu lawan satu, bukan daftar seluruh keluarga.
- */
-async function findProducts(
-  catalog: Pick<CatalogQueryService, 'listProducts'>,
-  query: string,
-): Promise<{ readonly products: readonly Product[]; readonly missing: readonly string[] }> {
-  const terms = query
-    .split(/\s+(?:dan|vs|versus|atau)\s+|,/i)
-    .map((term) => term.trim())
-    .filter((term) => term.length > 0)
-    .slice(0, MAX_PRODUCTS);
-  const products: Product[] = [];
-  const missing: string[] = [];
-  for (const term of terms) {
-    const page = await catalog.listProducts({ q: term, limit: 1 });
-    const product = page.items[0];
-    if (!product) missing.push(term);
-    else if (!products.some((f) => f.id === product.id)) products.push(product);
-  }
-  return { products, missing };
 }
 
 /**

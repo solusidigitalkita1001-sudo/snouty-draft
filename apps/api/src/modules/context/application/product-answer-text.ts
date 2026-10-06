@@ -22,10 +22,19 @@ export const ASPECT_LABEL: Readonly<Record<ProductAspect, string>> = {
 };
 
 export const PRODUCT_ANSWER_COPY = {
+  /** Hanya atas katalog `pralon` (otoritatif) — klaim negatif tentang Pralon. */
   notInCatalog: (query: string) =>
     `"${query}" tidak ada di katalog Pralon yang aktif. Tim teknis Pralon bisa membantu bila Anda membutuhkannya.`,
+  /** Katalog aktif bukan impor Pralon (contoh pengembangan): tidak ada klaim tentang Pralon. */
+  notInInstalledCatalog: (query: string) =>
+    `"${query}" belum ada di data katalog yang terpasang di sistem ini. Tim teknis Pralon bisa membantu bila Anda membutuhkannya.`,
+  catalogUnavailable:
+    'Katalog Pralon sedang tidak terjangkau, jadi saya belum bisa memeriksa produknya. Coba lagi sebentar, atau hubungi tim teknis Pralon.',
   noProductNamed:
     'Produk mana yang Anda maksud? Sebutkan nama atau keluarganya, misalnya "PVC AW".',
+  catalogSupport: 'Di katalog Pralon yang aktif:',
+  askTechnicalForProducts:
+    'Untuk pilihan produk Pralon yang sesuai kebutuhan Anda, tim teknis Pralon bisa membantu.',
   comparisonIntro: 'Berikut yang tercatat di katalog Pralon untuk masing-masing:',
   source: (document: string, page: number) => `Sumber: ${document} hal. ${page}.`,
   seeDocuments: (titles: readonly string[]) => `Lihat dokumen teknis: ${titles.join('; ')}.`,

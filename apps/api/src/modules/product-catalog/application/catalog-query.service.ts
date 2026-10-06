@@ -26,7 +26,12 @@ import {
   catalogProductKey,
   type CatalogCache,
 } from '../domain/catalog-cache.port.js';
-import { CatalogUnavailableError, ProductNotFoundError } from '../domain/catalog.errors.js';
+import { isAuthoritative } from '../domain/catalog-visibility.js';
+import {
+  CatalogUnavailableError,
+  ProductNotFoundError,
+  SampleCatalogRefusedError,
+} from '../domain/catalog.errors.js';
 import type {
   CatalogRepository,
   ProductListPage,
@@ -36,21 +41,39 @@ import type {
 /** Filter dari klien — tanpa `catalogVersionId`, yang memang bukan urusan klien. */
 export type PublicProductListQuery = Omit<ProductListQuery, 'catalogVersionId'>;
 
+export interface CatalogQueryOptions {
+  /**
+   * Versi `sample` boleh menjadi versi aktif? Hanya development (`sampleCatalogAllowed`).
+   * Di luar itu pembacaan **gagal tertutup**: lebih baik "katalog tidak tersedia" daripada
+   * kartu produk "CONTOH …" dan klaim tentang Pralon yang lahir dari data karangan.
+   */
+  readonly allowSample: boolean;
+}
+
 export class CatalogQueryService {
   constructor(
     private readonly repository: CatalogRepository,
     private readonly cache: CatalogCache,
+    private readonly options: CatalogQueryOptions = { allowSample: false },
   ) {}
 
   /** Dirender "KATALOG PRALON · v2.4" di bawah daftar produk. */
   async activeVersion(): Promise<CatalogVersion> {
     const cached = await this.readCache<CatalogVersion>(CATALOG_ACTIVE_VERSION_KEY);
-    if (cached !== null) return cached;
+    if (cached !== null) return this.admit(cached);
 
     const version = await this.repository.findActiveVersion();
     if (version === null) throw new CatalogUnavailableError();
 
     await this.writeCache(CATALOG_ACTIVE_VERSION_KEY, version);
+    return this.admit(version);
+  }
+
+  /** Pagar yang sama untuk versi dari cache maupun dari database. */
+  private admit(version: CatalogVersion): CatalogVersion {
+    if (!isAuthoritative(version) && !this.options.allowSample) {
+      throw new SampleCatalogRefusedError(version.id);
+    }
     return version;
   }
 

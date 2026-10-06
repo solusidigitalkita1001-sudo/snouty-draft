@@ -305,7 +305,14 @@ async function runImport(label, rows) {
     status: 'pending',
     requestedBy: admin,
   });
-  const result = await ingest.ingest({ importRunId, source: sourceFrom(label, rows) });
+  // `kind: 'sample'` — tanda yang dibaca kode, bukan hanya manusia: di luar development
+  // versi ini ditolak sebagai katalog aktif, dan ia tak pernah mendasari klaim "Pralon
+  // tidak punya X" (0013, docs/PRODUCT_KNOWLEDGE.md §4).
+  const result = await ingest.ingest({
+    importRunId,
+    source: sourceFrom(label, rows),
+    kind: 'sample',
+  });
   return { importRunId, result };
 }
 

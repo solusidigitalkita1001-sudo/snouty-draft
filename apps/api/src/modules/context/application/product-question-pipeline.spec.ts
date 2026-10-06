@@ -1,15 +1,17 @@
 /**
- * Ruas PRODUCT_LOOKUP: fakta dari katalog, bukan dari model. Yang dipaku:
- *   - produk yang tidak ada di katalog dikatakan tidak ada (+ tawaran tim teknis), bukan
- *     dijawab dari pengetahuan umum;
- *   - tanpa aspek → ikhtisar dari data katalog, satu kartu per produk;
- *   - dengan aspek → `ProductQuestionService` yang menjawab, kalimatnya membawa sumber;
- *   - "A dan B" → dua pencarian, dua produk;
+ * Ruas pertanyaan produk. Yang dipaku:
+ *   - KONSEP dijawab utuh dari pengetahuan umum — tanpa katalog, tanpa model;
+ *   - katalog hanya PENDUKUNG jawaban konsep, dan hanya bila otoritatif (`pralon`);
+ *   - katalog contoh tidak pernah bocor: tidak ada "CONTOH …", tidak ada klaim tentang Pralon;
+ *   - katalog yang gagal dibaca tidak mengubah penjelasan teknik;
+ *   - SPESIFIKASI dari katalog aktif lewat `ProductQuestionService`, kalimatnya membawa sumber;
+ *   - "A dan B" → dua pencarian; produk `discontinued` tidak dihitung ada;
  *   - parse model gagal → bertanya produk mana, tidak melempar.
  */
-import type { AssistantStreamEvent, Product } from '@snouty/shared-types';
+import type { AssistantStreamEvent, CatalogVersionKind, Product } from '@snouty/shared-types';
 import { describe, expect, it } from 'vitest';
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
+import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductAnswer } from '../../product-knowledge/domain/product-answer.js';
 import { runProductQuestion } from './product-question-pipeline.js';
 
@@ -33,7 +35,7 @@ const AW: Product = {
   catalogVersionId: 'V'.repeat(26),
   imageUrl: null,
 };
-const D: Product = { ...AW, id: 'B'.repeat(26), sku: 'D', name: 'Pipa PVC D', family: 'PVC D' };
+const SAMPLE_AW: Product = { ...AW, sku: 'DEV-AW', name: 'CONTOH Pipa PVC AW' };
 
 function ai(parse: {
   productQuery: string | null;
@@ -50,19 +52,31 @@ const failingAi = {
   },
 } as never;
 
-function catalog(byTerm: Record<string, Product[]>) {
+function catalog(byTerm: Record<string, Product[]>, kind: CatalogVersionKind = 'pralon') {
   return {
+    async activeVersion() {
+      return { id: 'V', label: 'v1', sourceDocument: 'dok', kind, status: 'active' } as never;
+    },
     async listProducts({ q }: { q?: string }) {
       return { items: byTerm[q ?? ''] ?? [], nextCursor: null };
     },
   };
 }
+const brokenCatalog = {
+  async activeVersion(): Promise<never> {
+    throw new CatalogUnavailableError();
+  },
+  async listProducts(): Promise<never> {
+    throw new Error('tidak boleh sampai sini');
+  },
+};
 
 const questions = (answer: ProductAnswer) => ({
   async answer() {
     return answer;
   },
 });
+const noQuestions = questions({} as never);
 
 const text = (events: readonly AssistantStreamEvent[]) =>
   events
@@ -72,79 +86,193 @@ const text = (events: readonly AssistantStreamEvent[]) =>
 const cards = (events: readonly AssistantStreamEvent[]) =>
   events.filter((e) => e.type === 'card').map((e) => (e as { card: { kind: string } }).card);
 
-describe('runProductQuestion', () => {
-  it('produk yang tidak ada di katalog dikatakan tidak ada, dengan tawaran tim teknis', async () => {
+describe('runProductQuestion — KONSEP', () => {
+  it('"apa bedanya pvc sama hdpe" dijawab utuh tanpa katalog dan tanpa model', async () => {
     const events = await runProductQuestion(
-      ai({ productQuery: 'hdpe', aspect: null }),
-      catalog({}),
-      questions({} as never),
-      { messageId: 'm', message: 'apa itu hdpe?' },
+      ai({ productQuery: 'pvc dan hdpe', aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
     );
-    expect(text(events)).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
+    const out = text(events);
+    expect(out).toContain('Perbedaan utama PVC (uPVC) dan HDPE:');
+    expect(out).toContain('- Sambungan:');
+    // Katalog gagal dibaca → tidak ada klaim tentang Pralon, hanya ajakan ke tim teknis.
+    expect(out).not.toContain('tidak ada di katalog');
+    expect(out).toContain('tim teknis Pralon bisa membantu');
     expect(cards(events)).toEqual([{ kind: 'cta', action: 'CONTACT_TECHNICAL' }]);
     expect(events.at(-1)?.type).toBe('message.end');
   });
 
-  it('tanpa aspek: ikhtisar dari data katalog dan satu kartu per produk', async () => {
+  it('katalog CONTOH tidak pernah bocor: tanpa "CONTOH …", tanpa "tidak ada di katalog Pralon"', async () => {
     const events = await runProductQuestion(
+      ai({ productQuery: 'pvc dan hdpe', aspect: null }),
+      catalog({ pvc: [SAMPLE_AW] }, 'sample'),
+      noQuestions,
+      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+    );
+    const out = text(events);
+    expect(out).toContain('Perbedaan utama PVC (uPVC) dan HDPE:');
+    expect(out).not.toContain('CONTOH');
+    expect(out).not.toContain('tidak ada di katalog');
+    expect(cards(events).map((c) => c.kind)).toEqual(['cta']);
+  });
+
+  it('katalog Pralon (otoritatif) menjadi pendukung: produk yang ada, yang tidak ada, kartu', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc dan hdpe', aspect: null }),
+      catalog({ pvc: [AW] }),
+      noQuestions,
+      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+    );
+    const out = text(events);
+    expect(out).toContain('Perbedaan utama PVC (uPVC) dan HDPE:');
+    expect(out).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
+    expect(out).toContain('Di katalog Pralon yang aktif:');
+    expect(out).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)');
+    expect(cards(events).map((c) => c.kind)).toEqual(['product', 'cta']);
+  });
+
+  it('model merangkai di atas DATA (pengetahuan + katalog); yang tak disebut ditempel', async () => {
+    const reply = {
+      calls: [] as unknown[],
+      async write(input: { facts?: string; systemPrompt?: string }) {
+        this.calls.push(input);
+        return {
+          text: 'Secara umum PVC kaku dan dilem, HDPE lentur dan dilas.',
+          source: 'llm' as const,
+        };
+      },
+    };
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc dan hdpe', aspect: null }),
+      catalog({ pvc: [AW] }),
+      noQuestions,
+      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+      reply as never,
+      'PROMPT-FAQ',
+    );
+    const out = text(events);
+    expect(out).toContain('Secara umum PVC kaku');
+    expect(out).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)'); // produk tak disebut → ikut
+    expect(out).toContain('"hdpe" tidak ada di katalog'); // katalog tak disinggung → ikut
+    const call = reply.calls[0] as { systemPrompt?: string; facts?: string };
+    expect(call.systemPrompt).toBe('PROMPT-FAQ');
+    expect(call.facts).toContain('Perbedaan utama PVC (uPVC) dan HDPE:');
+    expect(call.facts).toContain('"hdpe" tidak ada di katalog');
+  });
+
+  it('yang sudah disebut model tidak diulang di bawahnya', async () => {
+    const reply = {
+      write: async () => ({
+        text: 'PVC kaku, HDPE lentur. Di katalog Pralon ada Pipa PVC AW; HDPE tidak ada di katalog.',
+        source: 'llm' as const,
+      }),
+    };
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc dan hdpe', aspect: null }),
+      catalog({ pvc: [AW] }),
+      noQuestions,
+      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+      reply as never,
+      'PROMPT-FAQ',
+    );
+    expect(text(events)).toBe(
+      'PVC kaku, HDPE lentur. Di katalog Pralon ada Pipa PVC AW; HDPE tidak ada di katalog.',
+    );
+  });
+
+  it('tanpa aspek dan tanpa bahan yang dikenali: ikhtisar produk Pralon bila ada, bertanya bila tidak', async () => {
+    const found = await runProductQuestion(
       ai({ productQuery: 'pvc aw', aspect: null }),
       catalog({ 'pvc aw': [AW] }),
-      questions({} as never),
+      noQuestions,
       { messageId: 'm', message: 'apa itu pvc aw?' },
     );
-    expect(text(events)).toContain(
-      'Pipa PVC AW (PIPA AIR BERSIH · SNI): Pipa untuk air bersih bertekanan.',
-    );
-    expect(text(events)).toContain('Material uPVC.');
-    const [card] = cards(events) as unknown as [
-      { kind: string; products: { productId: string }[] },
-    ];
-    expect(card.kind).toBe('product');
-    expect(card.products.map((p) => p.productId)).toEqual([AW.id]);
-  });
+    expect(text(found)).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI): Pipa untuk air bersih');
 
-  it('"A dan B" menjadi dua pencarian dan dua produk, dengan pengantar perbandingan', async () => {
-    const events = await runProductQuestion(
-      ai({ productQuery: 'pvc aw dan pvc d', aspect: null }),
-      catalog({ 'pvc aw': [AW], 'pvc d': [D] }),
-      questions({} as never),
-      { messageId: 'm', message: 'apa bedanya pvc aw dan pvc d?' },
+    const unknown = await runProductQuestion(
+      ai({ productQuery: 'xyz', aspect: null }),
+      catalog({}, 'sample'),
+      noQuestions,
+      { messageId: 'm', message: 'apa itu xyz?' },
     );
-    expect(text(events)).toContain('Berikut yang tercatat di katalog Pralon untuk masing-masing:');
-    expect(text(events)).toContain('Pipa PVC AW');
-    expect(text(events)).toContain('Pipa PVC D');
-    const [card] = cards(events) as unknown as [{ products: unknown[] }];
-    expect(card.products).toHaveLength(2);
+    expect(text(unknown)).toContain('Produk mana yang Anda maksud?');
+    expect(cards(unknown)).toEqual([]);
   });
+});
 
-  it('"A dan B" dengan B tidak ada di katalog: B dikatakan tidak ada, A tetap dijawab', async () => {
-    const events = await runProductQuestion(
-      ai({ productQuery: 'pvc aw dan hdpe', aspect: null }),
-      catalog({ 'pvc aw': [AW] }),
-      questions({} as never),
-      { messageId: 'm', message: 'apa bedanya pvc aw dan hdpe?' },
-    );
-    expect(text(events)).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
-    expect(text(events)).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)');
-    expect(text(events)).not.toContain('masing-masing');
-  });
+describe('runProductQuestion — SPESIFIKASI', () => {
+  const STANDARD: ProductAnswer = {
+    kind: 'value',
+    productId: AW.id,
+    aspect: 'standard',
+    provenance: 'VERIFIED',
+    value: 'SNI 06-0084',
+    sourceDocument: 'Katalog 2026',
+    sourcePage: 14,
+  };
 
-  it('dengan aspek: jawaban dari product-knowledge, kalimatnya membawa sumber', async () => {
+  it('jawaban dari product-knowledge, kalimatnya membawa sumber, tidak pernah lewat model', async () => {
+    const reply = {
+      write: async () => {
+        throw new Error('tidak boleh dipanggil');
+      },
+    };
     const events = await runProductQuestion(
       ai({ productQuery: 'pvc aw', aspect: 'standard' }),
       catalog({ 'pvc aw': [AW] }),
-      questions({
-        kind: 'value',
-        productId: AW.id,
-        aspect: 'standard',
-        provenance: 'VERIFIED',
-        value: 'SNI 06-0084',
-        sourceDocument: 'Katalog 2026',
-        sourcePage: 14,
-      }),
+      questions(STANDARD),
       { messageId: 'm', message: 'standar pvc aw apa?' },
+      reply as never,
+      'PROMPT-FAQ',
     );
     expect(text(events)).toBe('Standar Pipa PVC AW: SNI 06-0084. Sumber: Katalog 2026 hal. 14.');
+    expect(cards(events).map((c) => c.kind)).toEqual(['product']);
+  });
+
+  it('produk yang tidak ada: klaim "tidak ada di katalog Pralon" hanya atas katalog otoritatif', async () => {
+    const pralon = await runProductQuestion(
+      ai({ productQuery: 'hdpe', aspect: 'sizes' }),
+      catalog({}),
+      noQuestions,
+      { messageId: 'm', message: 'ukuran hdpe apa saja?' },
+    );
+    expect(text(pralon)).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
+
+    const sample = await runProductQuestion(
+      ai({ productQuery: 'hdpe', aspect: 'sizes' }),
+      catalog({}, 'sample'),
+      noQuestions,
+      { messageId: 'm', message: 'ukuran hdpe apa saja?' },
+    );
+    expect(text(sample)).toContain('"hdpe" belum ada di data katalog yang terpasang');
+    expect(text(sample)).not.toContain('tidak ada di katalog Pralon');
+    expect(cards(sample)).toEqual([{ kind: 'cta', action: 'CONTACT_TECHNICAL' }]);
+  });
+
+  it('katalog tidak terjangkau → jujur, retry disarankan, tidak melempar', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc aw', aspect: 'sizes' }),
+      brokenCatalog,
+      noQuestions,
+      { messageId: 'm', message: 'ukuran pvc aw?' },
+    );
+    expect(text(events)).toContain('Katalog Pralon sedang tidak terjangkau');
+    expect(events.at(-1)?.type).toBe('message.end');
+  });
+
+  it('"A dan B" dengan B tidak ada: B dikatakan tidak ada, A tetap dijawab; discontinued = tidak ada', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc aw dan pvc d', aspect: 'standard' }),
+      catalog({ 'pvc aw': [AW], 'pvc d': [{ ...AW, id: 'B'.repeat(26), status: 'discontinued' }] }),
+      questions(STANDARD),
+      { messageId: 'm', message: 'standar pvc aw dan pvc d?' },
+    );
+    const out = text(events);
+    expect(out).toContain('"pvc d" tidak ada di katalog Pralon yang aktif');
+    expect(out).toContain('Standar Pipa PVC AW: SNI 06-0084.');
+    expect(cards(events).map((c) => c.kind)).toEqual(['cta', 'product']);
   });
 
   it('data belum cukup → kalimatnya mengakui, plus tawaran tim teknis', async () => {
@@ -165,97 +293,8 @@ describe('runProductQuestion', () => {
     expect(cards(events).map((c) => c.kind)).toEqual(['cta', 'product']);
   });
 
-  it('pertanyaan KONSEP: model menjelaskan umum di atas DATA; fakta katalog tetap ikut bila tak disebut', async () => {
-    const reply = {
-      calls: [] as unknown[],
-      async write(input: { facts?: string; systemPrompt?: string }) {
-        this.calls.push(input);
-        return {
-          text: 'Secara umum PVC kaku dan disambung lem, HDPE lentur dan dilas.',
-          source: 'llm' as const,
-        };
-      },
-    };
-    const events = await runProductQuestion(
-      ai({ productQuery: 'pvc aw dan hdpe', aspect: null }),
-      catalog({ 'pvc aw': [AW] }),
-      questions({} as never),
-      { messageId: 'm', message: 'apa bedanya pvc dan hdpe?' },
-      reply as never,
-      'PROMPT-FAQ',
-    );
-    const out = text(events);
-    expect(out).toContain('Secara umum PVC kaku');
-    expect(out).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)'); // produk tak disebut → ikut
-    expect(out).toContain('"hdpe" tidak ada di katalog'); // katalog tak disinggung → ikut
-    const call = reply.calls[0] as { systemPrompt?: string; facts?: string };
-    expect(call.systemPrompt).toBe('PROMPT-FAQ');
-    // DATA = primer bahan milik kode + fakta katalog; sifat bahan bukan dari ingatan model.
-    expect(call.facts).toContain('HDPE adalah pipa plastik yang lentur');
-    expect(call.facts).toContain('PVC (uPVC) adalah pipa plastik yang kaku');
-    expect(call.facts).toContain('"hdpe" tidak ada di katalog');
-  });
-
-  it('pertanyaan KONSEP: yang sudah disebut model tidak diulang di bawahnya', async () => {
-    const reply = {
-      write: async () => ({
-        text: 'PVC kaku, HDPE lentur. Di katalog Pralon ada Pipa PVC AW; HDPE tidak ada di katalog.',
-        source: 'llm' as const,
-      }),
-    };
-    const events = await runProductQuestion(
-      ai({ productQuery: 'pvc aw dan hdpe', aspect: null }),
-      catalog({ 'pvc aw': [AW] }),
-      questions({} as never),
-      { messageId: 'm', message: 'apa bedanya pvc dan hdpe?' },
-      reply as never,
-      'PROMPT-FAQ',
-    );
-    expect(text(events)).toBe(
-      'PVC kaku, HDPE lentur. Di katalog Pralon ada Pipa PVC AW; HDPE tidak ada di katalog.',
-    );
-  });
-
-  it('pertanyaan KONSEP tanpa model: primer bahan + fakta katalog, tetap menjelaskan', async () => {
-    const events = await runProductQuestion(
-      ai({ productQuery: 'hdpe', aspect: null }),
-      catalog({}),
-      questions({} as never),
-      { messageId: 'm', message: 'apa itu hdpe?' },
-    );
-    const out = text(events);
-    expect(out).toContain('HDPE adalah pipa plastik yang lentur');
-    expect(out).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
-    expect(out).not.toMatch(/\d/); // primer tanpa angka; kalimat katalog di sini juga tanpa angka
-  });
-
-  it('pertanyaan SPESIFIKASI tidak pernah lewat model — fakta katalog apa adanya', async () => {
-    const reply = {
-      write: async () => {
-        throw new Error('tidak boleh dipanggil');
-      },
-    };
-    const events = await runProductQuestion(
-      ai({ productQuery: 'pvc aw', aspect: 'standard' }),
-      catalog({ 'pvc aw': [AW] }),
-      questions({
-        kind: 'value',
-        productId: AW.id,
-        aspect: 'standard',
-        provenance: 'VERIFIED',
-        value: 'SNI 06-0084',
-        sourceDocument: 'Katalog 2026',
-        sourcePage: 14,
-      }),
-      { messageId: 'm', message: 'standar pvc aw apa?' },
-      reply as never,
-      'PROMPT-FAQ',
-    );
-    expect(text(events)).toBe('Standar Pipa PVC AW: SNI 06-0084. Sumber: Katalog 2026 hal. 14.');
-  });
-
   it('parse model gagal → bertanya produk mana, tidak melempar', async () => {
-    const events = await runProductQuestion(failingAi, catalog({}), questions({} as never), {
+    const events = await runProductQuestion(failingAi, catalog({}), noQuestions, {
       messageId: 'm',
       message: '???',
     });
