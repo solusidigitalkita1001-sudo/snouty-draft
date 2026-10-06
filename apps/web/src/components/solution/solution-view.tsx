@@ -12,6 +12,7 @@
 import type { Recommendation, SelectedProduct } from '@snouty/shared-types';
 import { useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
+import { SchematicTab } from './schematic-tab';
 import { SOLUTION_COPY as COPY } from './solution-copy';
 import { ProvenanceTag } from './provenance-tag';
 import styles from './solution.module.css';
@@ -35,21 +36,7 @@ export function SolutionView({
 
   return (
     <div className={styles.workspace}>
-      {on('skema') && tab !== undefined && (
-        <section className={styles.card}>
-          <div className={styles.kicker}>{COPY.schematicKicker}</div>
-          <p className={styles.body}>{COPY.schematicNote}</p>
-          <div className={styles.summaryFooter}>
-            <span className={styles.disclaimer}>{COPY.schematicDisclaimer}</span>
-            <a
-              className={styles.linkButton}
-              href={`/schematic?recommendation=${recommendation.id}`}
-            >
-              Lihat skema instalasi →
-            </a>
-          </div>
-        </section>
-      )}
+      {on('skema') && tab !== undefined && <SchematicTab recommendationId={recommendation.id} />}
 
       {on('ringkasan') && (
         <section className={styles.card}>

@@ -7,6 +7,7 @@
  * atas hasilnya hidup di sini.
  */
 import { Module } from '@nestjs/common';
+import { loadEnv } from '../../config/env.js';
 import { RateLimiter } from '../../shared/rate-limit/rate-limiter.js';
 import { RedisService } from '../../shared/redis/redis.service.js';
 import { AiModule } from '../ai/ai.module.js';
@@ -53,7 +54,7 @@ const replyWriterProvider = {
   provide: ReplyWriter,
   inject: [AI_SERVICE],
   useFactory: (ai: AiService | null): ReplyWriter | null =>
-    ai ? new ReplyWriter(ai, REPLY_SYSTEM_PROMPT) : null,
+    ai ? new ReplyWriter(ai, REPLY_SYSTEM_PROMPT, loadEnv().LLM_REPLY_TIMEOUT_MS) : null,
 };
 
 const messageServiceProvider = {

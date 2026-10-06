@@ -113,6 +113,50 @@ describe('OpenRouterAiService', () => {
   });
 });
 
+describe('jalur cepat tanpa model (latensi CPU)', () => {
+  it('sapaan, merek pesaing, dan konsep produk tidak memanggil transport', async () => {
+    await withEnv(async () => {
+      const { transport, calls } = transportReturning(
+        '{"intent":"REQUIREMENT_STATEMENT","confidence":0.9}',
+      );
+      const { recorder } = recorderCapturing();
+      const svc = new OpenRouterAiService(transport, recorder, () => 0);
+
+      expect(
+        (await svc.classifyIntent({ message: 'hai', hasExistingRequirements: false })).intent,
+      ).toBe('OUT_OF_SCOPE');
+      expect(
+        (await svc.classifyIntent({ message: 'Pralon vs Rucika?', hasExistingRequirements: false }))
+          .intent,
+      ).toBe('COMPETITOR_QUESTION');
+      expect((await svc.parseProductQuestion('apa bedanya pvc sama hdpe?')).productQuery).toBe(
+        'pvc dan hdpe',
+      );
+      expect(calls).toHaveLength(0);
+    });
+  });
+
+  it('writeProse dengan timeoutMs membatalkan panggilan (sinyal diteruskan ke transport)', async () => {
+    await withEnv(async () => {
+      let seenSignal: AbortSignal | undefined;
+      const transport = {
+        complete: (request: { signal?: AbortSignal }) =>
+          new Promise<never>((_, reject) => {
+            seenSignal = request.signal;
+            request.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+          }),
+      };
+      const { recorder } = recorderCapturing();
+      const svc = new OpenRouterAiService(transport as never, recorder, () => 0);
+
+      await expect(
+        svc.writeProse({ systemPrompt: 's', userMessage: 'u', timeoutMs: 20 }),
+      ).rejects.toThrow();
+      expect(seenSignal?.aborted).toBe(true);
+    });
+  });
+});
+
 describe('writeProse', () => {
   it('memakai tingkat balanced dan mengembalikan keluaran MENTAH tanpa validasi', async () => {
     // Mentah disengaja: skema prosa milik pemanggil, dan hanya pemanggil yang tahu
@@ -166,7 +210,10 @@ describe('skema ikut dikirim ke model', () => {
       const { recorder } = recorderCapturing();
       const svc = new OpenRouterAiService(transport, recorder, () => 0);
 
-      await svc.classifyIntent({ message: 'hai jo', hasExistingRequirements: false });
+      await svc.classifyIntent({
+        message: 'rumah saya pakai sumur',
+        hasExistingRequirements: false,
+      });
 
       const system = calls[0]!.messages.find((m) => m.role === 'system')?.content ?? '';
       // Sebelumnya prompt hanya berkata "sesuai skema" tanpa pernah menyebut skemanya.

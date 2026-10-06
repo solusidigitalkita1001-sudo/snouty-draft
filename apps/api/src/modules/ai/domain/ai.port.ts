@@ -66,5 +66,7 @@ export interface AiService {
   writeProse(input: {
     readonly systemPrompt: string;
     readonly userMessage: string;
+    /** Batas tunggu; lewat itu panggilan DIBATALKAN (bukan hanya ditinggal) dan melempar. */
+    readonly timeoutMs?: number;
   }): Promise<unknown>;
 }

@@ -21,6 +21,7 @@ import type {
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import { PRODUCT_FAQ_SYSTEM_PROMPT } from '../../ai/application/prompts.js';
+import { loadEnv } from '../../../config/env.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
 import { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
@@ -67,10 +68,13 @@ export class MessageService {
     const row = await this.conversations.find(conversationId, actor);
     await this.conversations.appendUserMessage(conversationId, actor, text);
 
-    // Judul dari pesan pertama (tingkat cepat); tanpa model, potongan pesannya sendiri.
-    // Sebelumnya tidak pernah diset — setiap item riwayat berjudul "Konsultasi baru".
+    // Judul dari pesan pertama: potongan pesannya dipasang SEKARANG (instan), lalu model
+    // memperhalusnya di latar — judul tidak boleh menahan jawaban (di CPU, satu panggilan
+    // judul pernah 57 detik rata-rata). Riwayat memuat ulang setelah giliran selesai, jadi
+    // judul model terlihat paling lambat pada pembukaan berikutnya.
     if (row.title === null || row.title === undefined) {
-      await this.conversations.rename(conversationId, actor, await this.titleFor(text));
+      await this.conversations.rename(conversationId, actor, fallbackTitle(text));
+      this.refineTitleInBackground(conversationId, actor, text);
     }
 
     const messageId = ulid();
@@ -113,7 +117,9 @@ export class MessageService {
         this.productQuestions,
         { messageId, message: text, recentTurns },
         this.reply,
-        PRODUCT_FAQ_SYSTEM_PROMPT,
+        // Baku nonaktif: teks deterministiknya utuh; model 7B hampir selalu ditolak pagar
+        // struktur — satu menit untuk hasil yang dibuang (env LLM_FAQ_REWRITE).
+        loadEnv().LLM_FAQ_REWRITE ? PRODUCT_FAQ_SYSTEM_PROMPT : null,
       );
       await this.conversations.appendAssistantMessage(
         conversationId,
@@ -144,16 +150,22 @@ export class MessageService {
     return result.events;
   }
 
-  private async titleFor(firstMessage: string): Promise<string> {
-    const fallback = firstMessage.trim().replace(/\s+/g, ' ').slice(0, 60);
-    if (!this.ai) return fallback;
-    try {
-      const title = (await this.ai.titleFor(firstMessage)).trim();
-      return title === '' ? fallback : title;
-    } catch {
-      // Judul tidak sepadan dengan menggagalkan giliran — potongan pesan sudah cukup.
-      return fallback;
-    }
+  /** Judul model menggantikan potongan pesan bila datang; kegagalan apa pun diabaikan. */
+  private refineTitleInBackground(
+    conversationId: string,
+    actor: ConversationOwner,
+    firstMessage: string,
+  ): void {
+    if (!this.ai) return;
+    const ai = this.ai;
+    void (async () => {
+      try {
+        const title = (await ai.titleFor(firstMessage)).trim();
+        if (title !== '') await this.conversations.rename(conversationId, actor, title);
+      } catch {
+        // Judul tidak sepadan dengan menggagalkan apa pun — potongan pesan sudah terpasang.
+      }
+    })();
   }
 
   /**
@@ -239,6 +251,10 @@ export class MessageService {
       .slice(-6)
       .map((row) => ({ role: row.role as ReplyTurn['role'], text: row.text }));
   }
+}
+
+function fallbackTitle(firstMessage: string): string {
+  return firstMessage.trim().replace(/\s+/g, ' ').slice(0, 60);
 }
 
 function llmUnavailable(messageId: string): readonly AssistantStreamEvent[] {

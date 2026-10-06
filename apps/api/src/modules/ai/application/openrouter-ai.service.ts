@@ -34,6 +34,7 @@ import {
 import { LLM_TRANSPORT, type LlmMessage, type LlmTransport } from '../domain/llm-transport.port.js';
 import { TIER_ENV_KEY, tierForTask, type LlmTask, type LlmTier } from '../domain/model-routing.js';
 import { AiOutputInvalidError } from '../domain/ai.errors.js';
+import { certainIntent, heuristicProductQuestion } from '../domain/heuristics.js';
 import {
   EXTRACTION_SYSTEM_PROMPT,
   INTENT_SYSTEM_PROMPT,
@@ -72,6 +73,11 @@ export class OpenRouterAiService implements AiService {
     input: IntentInput,
     context: AiCallContext = { correlationId: null },
   ): Promise<IntentClassification> {
+    // Jalur cepat untuk bentuk yang pasti (sapaan, merek pesaing, konsep produk): nol
+    // panggilan model — di CPU, satu panggilan adalah 10–30 detik (domain/heuristics.ts).
+    const certain = certainIntent(input.message);
+    if (certain) return certain;
+
     const history = (input.recentTurns ?? [])
       .slice(-4)
       .map((t) => `${t.role === 'user' ? 'Pengguna' : 'SNOUTY'}: ${t.text.slice(0, 300)}`)
@@ -96,6 +102,11 @@ export class OpenRouterAiService implements AiService {
     message: string,
     context: AiCallContext = { correlationId: null },
   ): Promise<ProductQuestionParse> {
+    // Keluarga produk yang tersurat (PVC, HDPE, …) dipetakan dari bentuk kalimat; model hanya
+    // untuk kalimat yang tidak menyebutnya secara eksplisit (domain/heuristics.ts).
+    const heuristic = heuristicProductQuestion(message);
+    if (heuristic.productQuery !== null) return ProductQuestionSchema.parse(heuristic);
+
     return this.callStructured(
       'product_question',
       ProductQuestionSchema,
@@ -130,18 +141,30 @@ export class OpenRouterAiService implements AiService {
    * Yang tetap dilakukan di sini: routing tingkat dan audit biaya ke `llm_calls`.
    */
   async writeProse(
-    input: { readonly systemPrompt: string; readonly userMessage: string },
+    input: {
+      readonly systemPrompt: string;
+      readonly userMessage: string;
+      readonly timeoutMs?: number;
+    },
     context: AiCallContext = { correlationId: null },
   ): Promise<unknown> {
-    const result = await this.callOnce(
-      'explanation_prose',
-      tierForTask('explanation_prose'),
-      input.systemPrompt,
-      input.userMessage,
-      true,
-      context,
-    );
-    return safeJson(result.content);
+    const controller = input.timeoutMs ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), input.timeoutMs) : null;
+    try {
+      const result = await this.callOnce(
+        'explanation_prose',
+        tierForTask('explanation_prose'),
+        input.systemPrompt,
+        input.userMessage,
+        true,
+        context,
+        undefined,
+        controller?.signal,
+      );
+      return safeJson(result.content);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
 
   /**
@@ -191,6 +214,7 @@ export class OpenRouterAiService implements AiService {
     jsonMode: boolean,
     context: AiCallContext,
     priorOutcome?: LlmCallOutcome,
+    signal?: AbortSignal,
   ): Promise<{ content: string }> {
     const model = this.modelFor(tier);
     const messages: LlmMessage[] = [
@@ -200,7 +224,12 @@ export class OpenRouterAiService implements AiService {
 
     const started = this.clock();
     try {
-      const result = await this.transport.complete({ model, messages, jsonMode });
+      const result = await this.transport.complete({
+        model,
+        messages,
+        jsonMode,
+        ...(signal ? { signal } : {}),
+      });
       await this.safeRecord({
         task,
         tier,

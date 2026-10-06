@@ -18,6 +18,20 @@
   overflow: auto;
 }
 
+/* Tab Skema: gambar + panel samping, tata letak yang sama dengan halaman /schematic. */
+.schematicLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 959px) {
+  .schematicLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .card {
   background: var(--snouty-surface);
   border: 1px solid var(--snouty-border-soft);

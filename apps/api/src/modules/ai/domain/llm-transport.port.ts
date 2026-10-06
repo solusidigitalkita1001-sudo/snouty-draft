@@ -18,6 +18,20 @@ export interface LlmCompletionRequest {
   readonly messages: readonly LlmMessage[];
   /** Minta keluaran JSON bila didukung model. */
   readonly jsonMode: boolean;
+  /**
+   * Pembatalan sungguhan — bukan sekadar berhenti menunggu. Ollama melayani permintaan
+   * secara serial; generasi yang tidak ditunggu tetapi tidak dibatalkan menyumbat antrean
+   * untuk permintaan berikutnya.
+   */
+  readonly signal?: AbortSignal;
+}
+
+/** Permintaan dibatalkan pemanggil (batas waktu balasan percakapan). */
+export class LlmAbortedError extends Error {
+  constructor() {
+    super('Panggilan model dibatalkan karena melewati batas waktu.');
+    this.name = 'LlmAbortedError';
+  }
 }
 
 export interface LlmCompletionResult {

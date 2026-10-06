@@ -21,6 +21,12 @@
 
 import type { AiService, IntentInput } from '../domain/ai.port.js';
 import {
+  PRODUCT_SIGNALS,
+  REQUIREMENT_SIGNALS,
+  certainIntent,
+  heuristicProductQuestion,
+} from '../domain/heuristics.js';
+import {
   ExtractionSchema,
   IntentSchema,
   ProductQuestionSchema,
@@ -28,18 +34,6 @@ import {
   type IntentClassification,
   type ProductQuestionParse,
 } from '../domain/extraction-schema.js';
-
-/** Isyarat bahwa pesan menyatakan KEBUTUHAN — mengalahkan isyarat pertanyaan produk. */
-const REQUIREMENT_SIGNALS =
-  /\b(lantai|kamar mandi|wastafel|dapur|toren|pdam|pompa|rumah|ruko|kos|pabrik)\b/;
-/** Isyarat pertanyaan produk/pengetahuan: menyebut keluarga produk atau menanyakan sifatnya. */
-const PRODUCT_SIGNALS =
-  /\b(pvc|hdpe|ppr|pp-r|fitting|tee|elbow|reducer|socket|apa itu|apa bedanya|bedanya|perbedaan|bahan|material|standar|sni|tekanan|panjang batang|sambungan|aplikasi|kegunaan|ada ukuran|ukuran apa|harga|stok|tersedia|spesifikasi)/;
-/** Sapaan/basa-basi utuh: tanpa isi kebutuhan maupun produk, cukup pendek. */
-const GREETING =
-  /^\s*(hai|halo|hallo|hello|hi|hey|yo|pagi|siang|sore|malam|selamat\s+(pagi|siang|sore|malam)|apa kabar|terima kasih|makasih|thanks|ok|oke|sip|tes|test|testing)\b[\s!.,?]*(jo|snouty|bro|kak|min|ya|dong)?[\s!.,?]*$/;
-const FAMILY_TOKENS = /\b(pvc\s*(?:aw|d|c)?|hdpe|ppr|pp-r|tee|elbow|reducer|socket)\b/g;
-const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
 
 const NUMBER_WORDS: Readonly<Record<string, number>> = {
   satu: 1,
@@ -118,15 +112,11 @@ export class DevDeterministicAiService implements AiService {
   classifyIntent(input: IntentInput): Promise<IntentClassification> {
     const text = input.message.toLowerCase();
 
-    // Sapaan dan basa-basi: di luar topik — dibalas sapaan, bukan formulir klarifikasi.
-    if (GREETING.test(text)) return this.intent('OUT_OF_SCOPE', 0.9);
+    // Sapaan, merek pesaing (Policy 1 menang lebih dulu), konsep produk — heuristik yang sama
+    // dengan jalur cepat adapter live (domain/heuristics.ts).
+    const certain = certainIntent(input.message);
+    if (certain) return Promise.resolve(certain);
 
-    // Kompetitor diperiksa lebih dulu: Policy 1 harus menang sebelum apa pun.
-    // Hanya merek lain yang menjadi pertanyaan kompetitor. "Lebih bagus PVC atau HDPE" adalah
-    // pertanyaan bahan/kebutuhan, bukan perbandingan merek.
-    if (/\b(rucika|wavin|maspion|vinilon|merek lain)\b/.test(text)) {
-      return this.intent('COMPETITOR_QUESTION', 0.9);
-    }
     if (/\b(kenapa|mengapa|kok|jelaskan|alasan)\b/.test(text)) {
       return this.intent('EXPLANATION_REQUEST', 0.85);
     }
@@ -147,44 +137,7 @@ export class DevDeterministicAiService implements AiService {
    * produk tanpa kunci model. Aspek yang tidak dikenali tetap `null`, bukan ditebak.
    */
   parseProductQuestion(message: string): Promise<ProductQuestionParse> {
-    const text = message.toLowerCase();
-    const families = [...text.matchAll(FAMILY_TOKENS)].map((m) => m[1]!.replace(/\s+/g, ' '));
-    const unique = [...new Set(families)].slice(0, 2);
-    const productQuery = unique.length > 0 ? unique.join(' dan ') : null;
-
-    const availability = /ada ukuran|ukuran .* ada|tersedia ukuran|ukuran .* tersedia/.test(text);
-    const sizeMatch = availability
-      ? SIZE_TOKEN.exec(text.replace(/\b(pvc|hdpe|ppr)\b/g, ''))
-      : null;
-    const aspect: ProductQuestionParse['aspect'] =
-      availability && sizeMatch
-        ? 'size_availability'
-        : /ukuran apa|ukuran (yang )?tersedia|ukuran (yang )?ada|ukurannya/.test(text)
-          ? 'sizes'
-          : /fitting|cocok dengan|sepadan/.test(text)
-            ? 'compatible_fittings'
-            : /\b(bahan|material)\b/.test(text)
-              ? 'material'
-              : /\b(standar|sni)/.test(text)
-                ? 'standard'
-                : /tekanan/.test(text)
-                  ? 'pressure_class'
-                  : /panjang/.test(text)
-                    ? 'rod_length'
-                    : /sambungan|solvent|lem\b/.test(text)
-                      ? 'joint_type'
-                      : /aplikasi|kegunaan|dipakai untuk|untuk apa/.test(text)
-                        ? 'application'
-                        : null;
-
-    return Promise.resolve(
-      ProductQuestionSchema.parse({
-        productQuery,
-        aspect,
-        size:
-          aspect === 'size_availability' && sizeMatch ? sizeMatch[1]!.replace(/\s+/g, '') : null,
-      }),
-    );
+    return Promise.resolve(ProductQuestionSchema.parse(heuristicProductQuestion(message)));
   }
 
   titleFor(firstMessage: string): Promise<string> {

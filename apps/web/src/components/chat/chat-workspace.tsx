@@ -29,6 +29,7 @@ import { Snouty, SnoutyAvatar } from '../mascot/snouty';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { ReportModal } from '../report/report-modal';
 import { REPORT_COPY } from '../report/report-copy';
+import { ThemeToggle } from '../theme-toggle';
 import { AssistantMarkdown } from './assistant-markdown';
 import { ProductLookupCards } from './product-lookup-cards';
 import {
@@ -606,6 +607,8 @@ export function ChatWorkspace() {
                 </span>
               )}
             </div>
+            {/* Pengalih tema — penempatannya belum didesain (prototipe hanya punya paletnya); minimal. */}
+            <ThemeToggle compact />
           </div>
         </aside>
       )}
@@ -646,7 +649,10 @@ export function ChatWorkspace() {
           <span className={styles.railIcon} title={COPY.productKnowledge}>
             <span className={[styles.iconSquare, styles.iconSquareBook].join(' ')} />
           </span>
-          <span className={styles.railBottom}>{footerAvatar}</span>
+          <span className={styles.railBottom}>
+            <ThemeToggle compact />
+            {footerAvatar}
+          </span>
         </nav>
       )}
 

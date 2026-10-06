@@ -15,6 +15,7 @@ export interface ReplyCapableAi {
   writeProse(input: {
     readonly systemPrompt: string;
     readonly userMessage: string;
+    readonly timeoutMs?: number;
   }): Promise<unknown>;
 }
 
@@ -60,6 +61,8 @@ export class ReplyWriter {
   constructor(
     private readonly ai: ReplyCapableAi,
     private readonly systemPrompt: string,
+    /** Batas tunggu per balasan; lewat itu panggilan dibatalkan dan teks tetap dipakai. */
+    private readonly timeoutMs: number | undefined = undefined,
   ) {}
 
   async write(input: ReplyInput): Promise<WrittenReply> {
@@ -69,6 +72,7 @@ export class ReplyWriter {
       raw = await this.ai.writeProse({
         systemPrompt: input.systemPrompt ?? this.systemPrompt,
         userMessage: buildReplyContext(input),
+        ...(this.timeoutMs !== undefined ? { timeoutMs: this.timeoutMs } : {}),
       });
     } catch {
       return fallback;

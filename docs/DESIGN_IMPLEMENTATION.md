@@ -408,6 +408,11 @@ sesi manual, bukan pemeriksaan kode.
 
 ## 13. Layar yang dibangun minimal dan ditandai "menunggu desain"
 
+- **Pengalih tema (2026-10-06).** Prototipe hanya punya paletnya (`[data-theme="dark"]`), bukan
+  kontrolnya. `ThemeToggle compact` (☾/☀, 28px) ditaruh di footer sidebar dan di rail — penempatan
+  dan bentuknya **menunggu desain**. Tema awal dipasang skrip inline sebelum cat pertama: pilihan
+  tersimpan (`localStorage`) menang, tanpa itu mengikuti `prefers-color-scheme`.
+
 Aturan §11 berbunyi: layar yang belum didesain **dibangun minimal dengan token yang sama dan dicatat
 sebagai "needs design"** — karena membuatnya tampak selesai akan menyulitkan desainer nanti.
 

@@ -273,6 +273,28 @@ eksekusi selektif ditempatkan sebagai keputusan arsitektur, bukan optimasi belak
 Ketika Anda menetapkan anggaran (OQ-10), penegakannya sudah tersedia: batas per percakapan dan per
 hari dari data `llm_calls`.
 
+### Latensi (2026-10-06)
+
+Di CPU laptop, qwen2.5:7b memakan 10–60 detik per panggilan (`llm_calls`: judul 57 s rata-rata,
+prosa balasan 43 s, intent 12,6 s, ekstraksi 17,7 s). Yang dilakukan, dengan prinsip yang sama —
+**tidak memanggil model bila kalimatnya tidak butuh model**:
+
+- `ai/domain/heuristics.ts`: sapaan utuh, merek pesaing, dan konsep produk ("apa bedanya PVC dan
+  HDPE") dipetakan tanpa model; parse pertanyaan produk memakai model hanya bila keluarga produknya
+  tidak tersurat. Pesan berisyarat kebutuhan selalu ke model — lalu presedensi kebutuhan di `context`.
+- Judul percakapan: potongan pesan dipasang instan, model memperhalusnya di latar.
+- `LLM_FAQ_REWRITE=false` (baku): FAQ produk dijawab teks deterministik tanpa menunggu model.
+- `LLM_REPLY_TIMEOUT_MS` (20 s): balasan percakapan yang lewat batas **dibatalkan** (`AbortSignal`
+  sampai ke `fetch`) dan teks tetap dipakai — bukan sekadar berhenti menunggu, karena Ollama
+  melayani serial dan generasi yatim menyumbat permintaan berikutnya.
+- Jawaban klarifikasi, edit panel, dan analisis: nol panggilan (sudah sejak Fase 4/7).
+
+Yang tersisa per giliran kebutuhan: satu panggilan intent + satu ekstraksi (±30 s di CPU ini).
+Itu batas perangkat, bukan kode: 7B di CPU 4 inti memproses ±10 token/detik. Pilihannya ada di
+pemilik — GPU di cp-1, model lebih kecil (3B, diukur dulu dengan `pnpm eval`), atau API berbayar.
+`OLLAMA_KEEP_ALIVE` di server sudah 1 jam (`scripts/server-ollama-setup.sh`) supaya model tidak
+dibongkar-muat di antara giliran; di laptop pengembang setel variabel yang sama pada aplikasi Ollama.
+
 ---
 
 ## 11. Evaluasi

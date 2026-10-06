@@ -8,10 +8,11 @@
 import { Injectable } from '@nestjs/common';
 import { loadEnv } from '../../../config/env.js';
 import { LlmUnavailableError } from '../domain/ai.errors.js';
-import type {
-  LlmCompletionRequest,
-  LlmCompletionResult,
-  LlmTransport,
+import {
+  LlmAbortedError,
+  type LlmCompletionRequest,
+  type LlmCompletionResult,
+  type LlmTransport,
 } from '../domain/llm-transport.port.js';
 
 interface OpenRouterChoice {
@@ -43,8 +44,13 @@ export class OpenRouterTransport implements LlmTransport {
           messages: request.messages,
           ...(request.jsonMode ? { response_format: { type: 'json_object' } } : {}),
         }),
+        ...(request.signal ? { signal: request.signal } : {}),
       });
-    } catch {
+    } catch (error) {
+      // Dibatalkan pemanggil (batas waktu): bukan "model tidak terjangkau".
+      if (request.signal?.aborted || (error instanceof Error && error.name === 'AbortError')) {
+        throw new LlmAbortedError();
+      }
       // Jaringan putus / DNS gagal: tidak ada respons sama sekali.
       throw new LlmUnavailableError(null);
     }

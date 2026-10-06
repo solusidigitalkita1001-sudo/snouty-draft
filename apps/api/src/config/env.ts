@@ -84,6 +84,20 @@ const EnvSchema = z.object({
   LLM_MODEL_FAST: z.string().min(1).optional(),
   LLM_MODEL_BALANCED: z.string().min(1).optional(),
   LLM_MODEL_STRONG: z.string().min(1).optional(),
+  /**
+   * Latensi (2026-10-06, qwen2.5:7b di CPU: 10–60 detik per panggilan).
+   * - `LLM_FAQ_REWRITE`: biarkan model merangkai ulang jawaban FAQ produk. Baku nonaktif:
+   *   teks deterministiknya sudah utuh, dan model 7B hampir selalu ditolak pagar struktur —
+   *   satu menit untuk hasil yang dibuang.
+   * - `LLM_REPLY_TIMEOUT_MS`: batas tunggu balasan percakapan (sapaan, komplain); lewat itu
+   *   panggilan dibatalkan dan teks tetap dipakai. Pembatalan sungguhan (AbortSignal), supaya
+   *   antrean Ollama yang serial tidak tersumbat generasi yang sudah tidak ditunggu.
+   */
+  LLM_FAQ_REWRITE: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  LLM_REPLY_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(300_000).default(20_000),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

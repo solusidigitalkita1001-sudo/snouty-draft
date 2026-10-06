@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
+import { THEME_INIT_SCRIPT } from '../components/theme-toggle';
 import './globals.css';
 
 /**
@@ -28,7 +29,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="id" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Tema sebelum cat pertama — string statis milik kita, bukan keluaran model. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>{children}</body>
     </html>
   );

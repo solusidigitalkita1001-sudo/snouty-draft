@@ -34,8 +34,8 @@ export const SOLUTION_COPY = {
   schematicDisclaimer: 'SKEMATIK · BUKAN GAMBAR KERJA',
   /** Tab "Skema" di layar solusi: gambarnya hidup di halaman /schematic; tab ini pengantarnya. */
   schematicKicker: 'SKEMA',
-  schematicNote:
-    'Skema instalasi dibentuk dari kebutuhan dan rekomendasi ini: sumber air, riser, cabang per lantai, dan titik air.',
+  schematicLoading: 'Menyiapkan skema…',
+  schematicUnavailable: 'Skema belum tersedia untuk konsultasi ini.',
   priceDisclaimer: 'Perkiraan perencanaan, bukan penawaran resmi.',
 
   matchStateLabel: {

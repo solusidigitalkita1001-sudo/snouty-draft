@@ -13,21 +13,58 @@ const STORAGE_KEY = 'snouty-theme';
  * kenyamanan render pertama (OQ-19) — belum relevan karena autentikasi baru
  * ada di Fase 3.
  */
-export function ThemeToggle() {
+/**
+ * Tema awal sebelum React: skrip ini dipasang inline di `layout.tsx` supaya halaman tidak
+ * berkedip terang lalu gelap. Pilihan tersimpan menang; tanpa pilihan, ikuti sistem.
+ */
+export const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('${STORAGE_KEY}');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.dataset.theme='dark';}catch(e){}})();`;
+
+export function ThemeToggle({ compact = false }: { readonly compact?: boolean }) {
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    const initial: Theme = stored === 'dark' ? 'dark' : 'light';
-    setTheme(initial);
-    document.documentElement.dataset['theme'] = initial;
+    // Sumber kebenaran saat mount adalah atribut yang sudah dipasang skrip init.
+    setTheme(document.documentElement.dataset['theme'] === 'dark' ? 'dark' : 'light');
   }, []);
 
   function toggle() {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     document.documentElement.dataset['theme'] = next;
-    window.localStorage.setItem(STORAGE_KEY, next);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // Penyimpanan diblokir (mode privat): tema tetap berganti untuk sesi ini.
+    }
+  }
+
+  const label = theme === 'dark' ? 'Mode terang' : 'Mode gelap';
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        aria-pressed={theme === 'dark'}
+        aria-label={label}
+        title={label}
+        style={{
+          width: 28,
+          height: 28,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--snouty-muted)',
+          background: 'var(--snouty-surface)',
+          border: '1px solid var(--snouty-border)',
+          borderRadius: 6,
+          cursor: 'pointer',
+          fontSize: 13,
+        }}
+      >
+        <span aria-hidden>{theme === 'dark' ? '☀' : '☾'}</span>
+      </button>
+    );
   }
 
   return (
@@ -35,6 +72,7 @@ export function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-pressed={theme === 'dark'}
+      aria-label={label}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
