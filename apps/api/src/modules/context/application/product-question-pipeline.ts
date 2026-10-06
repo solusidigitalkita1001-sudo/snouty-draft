@@ -39,6 +39,8 @@ import { answerText, overviewText, PRODUCT_ANSWER_COPY } from './product-answer-
 
 /** Maksimal produk yang dijawab sekaligus — "bedanya A dan B" adalah dua. */
 const MAX_PRODUCTS = 2;
+/** Perbandingan per dimensi ± dukungan katalog; 700 (balasan percakapan) memotongnya. */
+const FAQ_MAX_LENGTH = 1800;
 
 export type ProductCatalog = Pick<CatalogQueryService, 'activeVersion' | 'listProducts'>;
 
@@ -149,6 +151,7 @@ async function answerConcept(
     facts: data,
     fallback: data,
     systemPrompt: faqPrompt,
+    maxLength: FAQ_MAX_LENGTH,
   });
   const text =
     written.source === 'llm' ? withUncoveredFacts(written.text, facts, support.products) : data;

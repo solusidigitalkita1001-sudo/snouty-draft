@@ -44,6 +44,13 @@ describe('ReplyWriter', () => {
     expect((await writer.write(base)).source).toBe('fallback');
   });
 
+  it('batas panjang: 700 untuk percakapan, pemanggil boleh melonggarkannya (jalur FAQ)', async () => {
+    const long = 'a'.repeat(1200);
+    const writer = new ReplyWriter(ai({ text: long }), 'sys');
+    expect((await writer.write(base)).source).toBe('fallback');
+    expect(await writer.write({ ...base, maxLength: 1800 })).toEqual({ text: long, source: 'llm' });
+  });
+
   it('bentuk salah atau model gagal → teks tetap', async () => {
     expect((await new ReplyWriter(ai({ reply: 'x' }), 'sys').write(base)).source).toBe('fallback');
     expect((await new ReplyWriter(ai(null), 'sys').write(base)).source).toBe('fallback');

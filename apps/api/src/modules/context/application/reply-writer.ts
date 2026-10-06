@@ -33,6 +33,12 @@ export interface ReplyInput {
   readonly fallback: string;
   /** Prompt sistem khusus (mis. jalur FAQ produk); bawaan: prompt percakapan. */
   readonly systemPrompt?: string;
+  /**
+   * Batas panjang teks; bawaan `DEFAULT_MAX_LENGTH` untuk balasan percakapan. Jalur FAQ
+   * memberi batas lebih longgar: perbandingan per dimensi tidak muat di 700 karakter, dan
+   * teks yang terpotong batas bukan teks yang lebih aman — ia jatuh ke fallback.
+   */
+  readonly maxLength?: number;
 }
 
 export interface WrittenReply {
@@ -40,7 +46,9 @@ export interface WrittenReply {
   readonly source: 'llm' | 'fallback';
 }
 
-const ReplySchema = z.object({ text: z.string().trim().min(1).max(700) }).strict();
+export const DEFAULT_MAX_LENGTH = 700;
+const replySchema = (maxLength: number) =>
+  z.object({ text: z.string().trim().min(1).max(maxLength) }).strict();
 
 /** Merek pesaing yang pernah muncul di percakapan uji; Policy 1 sudah menolak sebelum sampai sini. */
 const OTHER_BRANDS = /\b(rucika|wavin|maspion|vinilon|unilon|supralon|langgeng)\b/i;
@@ -65,7 +73,7 @@ export class ReplyWriter {
     } catch {
       return fallback;
     }
-    const parsed = ReplySchema.safeParse(raw);
+    const parsed = replySchema(input.maxLength ?? DEFAULT_MAX_LENGTH).safeParse(raw);
     if (!parsed.success) return fallback;
     return passesGuards(parsed.data.text, input.facts)
       ? { text: parsed.data.text, source: 'llm' }
