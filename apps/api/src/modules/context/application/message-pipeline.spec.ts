@@ -200,7 +200,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(params['pond_length']?.value).toBe(4);
     expect(params['pond_width']?.value).toBe(4);
     const text = (events.find((e) => e.type === 'token') as { text: string }).text;
-    expect(text).toContain('Oke, kolam / tambak ikan');
+    expect(text).toContain('Oke, kolam/tambak');
     expect(text).toContain('Susun rekomendasi');
     expect(text).not.toContain('di luar cakupan');
     const card = (

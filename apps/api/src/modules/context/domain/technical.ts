@@ -223,12 +223,9 @@ export function technicalGuidance(state: RequirementState): string {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return '';
   const profile = caseProfile(state.useCase.caseId);
   const known = technicalCaptured(state);
-  const scope = profile.description.replace(/\.$/, '');
   // Redaksi seperti teknisi yang membalas sendiri: tanpa judul bagian, tanpa penomoran, tanpa
   // kalimat tentang "data"/"asumsi" sebagai konsep — cukup apa yang dicatat dan apa yang ditanya.
-  const lines: string[] = [
-    `Oke, ${profile.label.toLowerCase()}. ${scope.charAt(0).toUpperCase()}${scope.slice(1)}.`,
-  ];
+  const lines: string[] = [INTRO[state.useCase.caseId]];
   if (known.length > 0) {
     lines.push(
       '',
@@ -259,6 +256,25 @@ export function technicalGuidance(state: RequirementState): string {
   }
   return lines.join('\n');
 }
+
+/** Kalimat pembuka per kasus — apa yang akan dihitung, dalam bahasa teknisi, bukan deskripsi profil. */
+const INTRO: Readonly<Record<CaseId, string>> = {
+  residential_clean_water:
+    'Oke, air bersih rumah. Saya hitung ukuran pipa utama, cabang, dan sambungan fixture-nya.',
+  multistorey_building_water:
+    'Oke, gedung bertingkat. Saya hitung riser, zonasi tekanan, dan kebutuhan pompanya.',
+  residential_cluster:
+    'Oke, jaringan cluster. Saya hitung kebutuhan puncak dan ukuran pipa distribusinya.',
+  irrigation: 'Oke, irigasi. Saya hitung debit, jalur utama, distribusi, dan pompanya.',
+  pump_transfer:
+    'Oke, transfer air dengan pompa. Saya hitung ukuran pipa, kerugian tekanan, dan titik kerja pompanya.',
+  gravity_drainage: 'Oke, saluran gravitasi. Saya hitung diameter dan kemiringan pipanya.',
+  stormwater: 'Oke, drainase air hujan. Saya hitung debit limpasan dan ukuran pipanya.',
+  culvert:
+    'Oke, gorong-gorong. Saya hitung diameter dan kelas pipanya dari debit, kemiringan, dan beban jalan.',
+  well_distribution: 'Oke, sumur ke tandon. Saya hitung pipa dan kebutuhan pompanya.',
+  fish_pond: 'Oke, kolam/tambak. Saya hitung pipa masuk, pipa kuras, dan fitting-nya.',
+};
 
 function joinNatural(items: readonly string[]): string {
   if (items.length <= 1) return items.join('');
