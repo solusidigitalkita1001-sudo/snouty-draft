@@ -373,16 +373,18 @@ ditolak. Masih menunggu Pralon: arti token "W" dan fitting tanpa token (`docs/MA
 
 ### OQ-49 — Token worker untuk rute internal laporan di produksi
 
-**Status:** open · **Blocks:** PDF laporan di produksi (bukan chat/analisis)
+**Status:** default disetujui pemilik dan diterapkan (2026-10-06) · **Blocks:** —
 **Pertanyaan:** Worker memanggil `GET/POST /api/v1/internal/reports/:id/print|ready` dengan
 `Bearer $WORKER_INTERNAL_TOKEN`, tetapi API hanya mengisi aktor dari **JWT access token** yang
 ditandatangani `JWT_ACCESS_SECRET` dan berumur `JWT_ACCESS_TTL` (`access-token.middleware.ts`).
 Tidak ada jalur token layanan statis. Nilai acak di `.env.production` (2026-10-06) membuat worker
 start, tetapi setiap job PDF akan berakhir 401.
-**Usulan default:** jalur **token layanan** terpisah — `WORKER_INTERNAL_TOKEN` dibandingkan
-constant-time di middleware/guard khusus untuk rute `/internal/reports/*` saja, aktor
-`{ id: 'worker', roles: ['admin'] }`, dicatat di audit sebagai layanan. Alternatif yang ditolak: JWT
-berumur panjang yang dicetak manual (kedaluwarsa diam-diam; tidak ada pencabutan).
+**Default yang diterapkan:** jalur **token layanan** terpisah — `WorkerTokenMiddleware`
+(`apps/api/src/modules/report/presentation/`) membandingkan `WORKER_INTERNAL_TOKEN` waktu-tetap, hanya
+dipasang pada `InternalReportController`, mengisi aktor `{ id: 'worker', roles: ['admin'] }` sehingga
+audit mencatat `worker`. Env API opsional (≥ 32 karakter); tanpa itu rutenya tetap tertutup.
+Alternatif yang ditolak: JWT berumur panjang yang dicetak manual (kedaluwarsa diam-diam; tidak ada
+pencabutan).
 
 ### OQ-46 — Katalog contoh pernah mendasari klaim tentang Pralon; kini ditandai dan dipagari
 

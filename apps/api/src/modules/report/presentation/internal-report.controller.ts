@@ -9,10 +9,11 @@
  * data pribadi — pelanggaran invarian RP-2 dan kewajiban UU PDP, bukan sekadar
  * kerapian.
  *
- * Desain finalnya **token bertanda tangan berumur pendek** (§5), bukan peran: memberi
- * worker token `admin` adalah hak akses jauh lebih besar dari yang ia butuhkan. Token
- * itu datang bersama worker-nya (terhalang OQ-40); sampai itu ada, gerbang peran
- * fail-closed menjaga rutenya tertutup.
+ * Pemanggilnya worker dengan **token layanan** `WORKER_INTERNAL_TOKEN` (OQ-49):
+ * `WorkerTokenMiddleware` — dipasang hanya pada controller ini — mengisi aktor `worker`
+ * berperan `admin` bila tokennya cocok, lalu gerbang peran yang sama memutuskan. Peran
+ * `admin` memang lebih besar dari yang worker butuhkan; cakupan middleware (controller ini
+ * saja) yang membatasinya, bukan perannya. Tanpa token di env, rutenya tetap tertutup.
  */
 import { Body, Controller, Get, Header, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
 import { z } from 'zod';

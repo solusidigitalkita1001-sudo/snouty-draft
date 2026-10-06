@@ -6,7 +6,8 @@
  * dan halaman cetaknya sudah final sehingga yang tersisa untuk worker hanyalah "buka
  * halaman ini, cetak".
  */
-import { Module } from '@nestjs/common';
+import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
+import { loadEnv } from '../../config/env.js';
 import { ContextModule } from '../context/context.module.js';
 import { ConversationModule } from '../conversation/conversation.module.js';
 import { ConversationService } from '../conversation/application/conversation.service.js';
@@ -24,6 +25,15 @@ import { JobPublisher } from '../../shared/queue/job-publisher.js';
 import { LoggerService } from '../../shared/logging/logger.service.js';
 import { InternalReportController } from './presentation/internal-report.controller.js';
 import { ReportController } from './presentation/report.controller.js';
+import {
+  WORKER_INTERNAL_TOKEN,
+  WorkerTokenMiddleware,
+} from './presentation/worker-token.middleware.js';
+
+const workerTokenProvider = {
+  provide: WORKER_INTERNAL_TOKEN,
+  useFactory: () => loadEnv().WORKER_INTERNAL_TOKEN,
+};
 
 const jobPublisherProvider = {
   provide: JobPublisher,
@@ -57,7 +67,13 @@ const reportServiceProvider = {
     reportRepositoryProvider,
     reportServiceProvider,
     InternalRoleGuard,
+    workerTokenProvider,
   ],
   exports: [reportServiceProvider],
 })
-export class ReportModule {}
+export class ReportModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // Hanya controller internal laporan: token worker tidak membuka rute internal lain (OQ-49).
+    consumer.apply(WorkerTokenMiddleware).forRoutes(InternalReportController);
+  }
+}

@@ -52,6 +52,14 @@ const EnvSchema = z.object({
   GUEST_SESSION_TTL: z.coerce.number().int().positive().default(86_400),
 
   /**
+   * Token layanan `apps/worker` untuk rute `/internal/reports/*` (OQ-49). Nilai yang sama
+   * dipasang di env worker. Opsional: tanpa ini worker tidak bisa mengambil halaman cetak
+   * dan PDF laporan tidak dibuat — tetapi API tetap boot, karena chat dan analisis tidak
+   * bergantung padanya. Panjang minimum sama dengan rahasia JWT, alasannya sama.
+   */
+  WORKER_INTERNAL_TOKEN: z.string().min(32).optional(),
+
+  /**
    * Versi kebijakan privasi yang disimpan di setiap baris consent (SPEC §30b).
    *
    * `v0-draft` adalah usulan default OQ-12: teksnya belum ada, tetapi catatan

@@ -103,14 +103,14 @@ POST /reports ──► Report (PENDING) + nomor dialokasikan ──► antrean 
                                               Report (READY) + fileRef ──► UI polling / notifikasi
 ```
 
-| Aspek       | Ketentuan                                                                      |
-| ----------- | ------------------------------------------------------------------------------ |
-| Renderer    | Playwright + headless Chromium di `apps/worker`                                |
-| Halaman     | dirender server-side dari data tersimpan; token bertanda tangan berumur pendek |
-| Format      | A4, margin dari CSS `@page`                                                    |
-| Idempotensi | kunci `reportId` — job diulang tidak membuat dua berkas                        |
-| Timeout     | 60 detik, lalu `FAILED`                                                        |
-| Retensi     | 12 bulan (`PRIVACY.md`)                                                        |
+| Aspek       | Ketentuan                                                              |
+| ----------- | ---------------------------------------------------------------------- |
+| Renderer    | Playwright + headless Chromium di `apps/worker`                        |
+| Halaman     | dirender server-side dari data tersimpan; token layanan worker (OQ-49) |
+| Format      | A4, margin dari CSS `@page`                                            |
+| Idempotensi | kunci `reportId` — job diulang tidak membuat dua berkas                |
+| Timeout     | 60 detik, lalu `FAILED`                                                |
+| Retensi     | 12 bulan (`PRIVACY.md`)                                                |
 
 **Mengapa Chromium, bukan pustaka PDF.** Laporannya sudah ada sebagai dokumen HTML/CSS yang presisi.
 Membangunnya ulang dengan pdfkit atau react-pdf berarti memelihara dua model tata letak yang akan
@@ -220,8 +220,9 @@ Palet cetak harus literal (Chromium merender dokumen mandiri tanpa pipeline CSS)
 bernama-token yang **diikat tes** ke `packages/ui/src/tokens.css`: perubahan token yang lupa
 dicerminkan menggagalkan tes alih-alih menghasilkan laporan berwarna lain.
 
-**Belum:** pembuatan PDF (Playwright + Chromium di `apps/worker`) terhalang **OQ-40**. Halaman cetaknya
-sudah final, jadi yang tersisa untuk worker hanyalah membuka halaman itu dan mencetaknya. Token
-bertanda tangan berumur pendek (§5) menyusul bersamanya — sampai itu ada, gerbang peran `admin`
-menjaga rutenya tertutup. "Unduh ringkasan kebutuhan" (§9) juga menunggu jalur yang sama. Harga (§4)
-menunggu OQ-03; `PRICING_ENABLED` sudah ada dan baku nonaktif.
+**Token worker (2026-10-06, OQ-49):** worker memanggil `/internal/reports/*` dengan
+`Bearer $WORKER_INTERNAL_TOKEN`; `WorkerTokenMiddleware` (hanya pada controller itu) membandingkannya
+waktu-tetap dan mengisi aktor `worker` berperan `admin`, sehingga gerbang peran yang sama tetap
+memutuskan dan audit mencatat `worker`. Tanpa variabel itu di env API, rutenya tetap tertutup dan PDF
+tidak dibuat. "Unduh ringkasan kebutuhan" (§9) memakai jalur yang sama. Harga (§4) menunggu OQ-03;
+`PRICING_ENABLED` sudah ada dan baku nonaktif.
