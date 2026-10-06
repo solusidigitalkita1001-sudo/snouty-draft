@@ -112,6 +112,16 @@ export type {
   ReadinessReport,
 } from './parameters/readiness.js';
 
+// ── Fase 2: profil kasus, klasifikasi, ekstraksi konteks teknis, parameter kurang ──
+export { CASE_PROFILES, activeParameters, caseProfile, isCaseId } from './cases/profiles.js';
+export type { CaseId, CaseProfile } from './cases/profiles.js';
+export { classifyCase } from './cases/classifier.js';
+export type { CaseClassification } from './cases/classifier.js';
+export { extractTechnicalContext } from './cases/extractor.js';
+export type { ExtractedParameter } from './cases/extractor.js';
+export { MAX_QUESTIONS, caseReadiness, resolveMissingParameters } from './cases/missing.js';
+export type { CaseReadinessInput, MissingParameter } from './cases/missing.js';
+
 export { HDPE_FROM_METERS, irrigationDutyAssumptionId } from './rules/group-e-irrigation.js';
 export { computeIrrigation } from './compute-irrigation.js';
 export type { IrrigationInput, IrrigationResult } from './compute-irrigation.js';

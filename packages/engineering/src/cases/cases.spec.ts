@@ -1,0 +1,138 @@
+/**
+ * Fase 2 — profil kasus, klasifikasi, ekstraksi konteks teknis, pemilih parameter kurang.
+ * Skenario dari brief §39 (A–G) dipakai sebagai kalimat uji.
+ */
+import { describe, expect, it } from 'vitest';
+import { isParameterKey } from '../parameters/registry.js';
+import { classifyCase } from './classifier.js';
+import { extractTechnicalContext } from './extractor.js';
+import { caseReadiness, resolveMissingParameters } from './missing.js';
+import { CASE_PROFILES, activeParameters, caseProfile } from './profiles.js';
+
+describe('CaseProfileRegistry', () => {
+  it('ID unik, parameter terdaftar dan tidak ganda, setiap profil punya keluaran', () => {
+    const ids = CASE_PROFILES.map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const p of CASE_PROFILES) {
+      const params = activeParameters(p);
+      expect(new Set(params).size).toBe(params.length);
+      for (const key of params) expect(isParameterKey(key)).toBe(true);
+      expect(p.outputs.length).toBeGreaterThan(0);
+      expect(p.critical.length).toBeGreaterThan(2);
+    }
+    expect(caseProfile('irrigation').calculatorStatus).toBe('available');
+    expect(caseProfile('culvert').calculatorStatus).toBe('pending');
+  });
+});
+
+describe('TechnicalCaseClassifier', () => {
+  it.each([
+    ['irigasi sawah 1 hektar pakai sprinkler', 'irrigation'],
+    ['mau pasang gorong-gorong melintasi jalan desa lebar 6 m', 'culvert'],
+    ['drainase air hujan komplek 2 hektar', 'stormwater'],
+    ['saluran pembuangan air kotor dengan kemiringan 1%', 'gravity_drainage'],
+    ['transfer air dari sungai ke tandon jarak 800 m pakai pompa', 'pump_transfer'],
+    ['sumur bor 60 m ke tandon', 'well_distribution'],
+    ['jaringan air bersih cluster 120 unit rumah', 'residential_cluster'],
+    ['gedung 8 lantai apartemen', 'multistorey_building_water'],
+    ['rumah 2 lantai 3 kamar mandi toren di atap', 'residential_clean_water'],
+  ])('"%s" → %s', (message, expected) => {
+    const c = classifyCase(message);
+    expect(c.primary).toBe(expected);
+    expect(c.confidence).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it('tanpa isyarat → null; isyarat campur memberi secondary dan keyakinan lebih rendah', () => {
+    expect(classifyCase('halo, apa kabar').primary).toBeNull();
+    const mixed = classifyCase('irigasi sawah, airnya dipompa dari sungai ke tandon dulu');
+    expect(mixed.primary).toBe('irrigation');
+    expect(mixed.secondary).toBe('pump_transfer');
+    expect(mixed.confidence).toBeLessThan(classifyCase('irigasi sawah').confidence);
+  });
+});
+
+describe('TechnicalContextExtractor', () => {
+  it('skenario A irigasi: sungai 150 m, 4 m lebih rendah, 2 hektar sprinkler', () => {
+    const facts = extractTechnicalContext(
+      'Irigasi 2 hektar pakai sprinkler, sumbernya sungai 150 m dari lahan, sungainya 4 m lebih rendah',
+      'irrigation',
+    );
+    const by = Object.fromEntries(facts.map((f) => [f.key, f.value]));
+    expect(by).toMatchObject({
+      total_area: 2,
+      irrigation_method: 'Sprinkler',
+      source_type: 'Sungai / saluran',
+      route_length: 150,
+      static_head: 4,
+      fluid_type: 'Air irigasi',
+    });
+  });
+
+  it('debit dikonversi ke l/s; km ke m; m² ke ha; sumur tidak tertukar dengan panjang', () => {
+    const by = (s: string, c: Parameters<typeof extractTechnicalContext>[1] = null) =>
+      Object.fromEntries(extractTechnicalContext(s, c).map((f) => [f.key, f.value]));
+    expect(by('debit 36 m3/jam sejauh 1,2 km')).toMatchObject({
+      design_flow: 10,
+      route_length: 1200,
+    });
+    expect(by('60 liter/menit')).toMatchObject({ design_flow: 1 });
+    expect(by('drainase hujan tangkapan 5000 m2, hujan 100 mm/jam', 'stormwater')).toMatchObject({
+      catchment_area: 0.5,
+      rainfall_intensity: 100,
+      fluid_type: 'Air hujan',
+    });
+    expect(by('sumur bor kedalaman 60 m ke tandon jarak 30 m')).toMatchObject({
+      well_depth: 60,
+      route_length: 30,
+      source_type: 'Sumur',
+    });
+    expect(by('gorong-gorong, lebar jalan 6 m, dilewati truk', 'culvert')).toMatchObject({
+      road_width: 6,
+      traffic_load: 'Truk / berat',
+    });
+  });
+
+  it('bangunan: lantai, kamar mandi, unit, diameter, bahan, pompa', () => {
+    const by = Object.fromEntries(
+      extractTechnicalContext(
+        'rumah 2 lantai 3 kamar mandi 1 dapur, pipa pvc 1 1/2" dengan pompa',
+      ).map((f) => [f.key, f.value]),
+    );
+    expect(by).toMatchObject({
+      building_floors: 2,
+      bathrooms: 3,
+      kitchens: 1,
+      nominal_diameter: '1 1/2"',
+      material: 'PVC (uPVC)',
+      pump_required: true,
+    });
+  });
+});
+
+describe('MissingParameterResolver', () => {
+  it('transfer pompa tanpa data: ≤ 4 pertanyaan, kritis dulu, bahasa pengguna, menyebut keluaran yang dibuka', () => {
+    const profile = caseProfile('pump_transfer');
+    const missing = resolveMissingParameters({ profile, known: new Set(), assumed: new Set() });
+    expect(missing.length).toBeLessThanOrEqual(4);
+    expect(missing.map((m) => m.importance)).toEqual([
+      'critical',
+      'critical',
+      'critical',
+      'critical',
+    ]);
+    expect(missing[0]!.question).not.toMatch(/static head|Q design/i);
+    expect(missing.some((m) => m.unlocks.includes('pump_sizing'))).toBe(true);
+  });
+
+  it('yang sudah diketahui/diasumsikan tidak ditanya lagi; kesiapan per keluaran ikut profil', () => {
+    const profile = caseProfile('irrigation');
+    const known = new Set(['source_type', 'total_area', 'irrigation_method', 'source_elevation']);
+    const assumed = new Set(['route_length', 'design_flow', 'material']);
+    const missing = resolveMissingParameters({ profile, known, assumed });
+    expect(missing.map((m) => m.key)).not.toContain('route_length');
+    expect(missing.map((m) => m.key)).not.toContain('total_area');
+    const readiness = caseReadiness({ profile, known, assumed });
+    expect(readiness.readiness.pump_sizing).toBe('partial'); // wajib ada, yang memperbaiki belum
+    expect(Object.keys(readiness.readiness)).toEqual([...profile.outputs]);
+  });
+});

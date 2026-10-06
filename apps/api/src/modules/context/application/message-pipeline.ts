@@ -24,8 +24,22 @@ import type {
 } from '@snouty/shared-types';
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
+import { caseProfile, isCaseId } from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
-import { competitorPolicy, scopePolicy, useCasePolicy } from '../../policy/scope.js';
+import {
+  competitorPolicy,
+  scopePolicy,
+  technicalHandoffPolicy,
+  useCasePolicy,
+} from '../../policy/scope.js';
+import {
+  applyTechnicalFacts,
+  detectTechnicalCase,
+  isTechnicalComplete,
+  planTechnicalClarification,
+  technicalCaptured,
+  technicalGuidance,
+} from '../domain/technical.js';
 import {
   applyIrrigationAnswers,
   irrigationCaptured,
@@ -129,6 +143,26 @@ export async function runUnderstanding(
     };
   }
 
+  // Jalur KASUS TEKNIS UMUM (Fase 14): transfer pompa, gravitasi, air hujan, gorong-gorong,
+  // sumur, cluster, gedung. Fakta tersurat → parameter universal; yang kurang ditanya dengan
+  // redaksi registry; kalkulator menyusul per fase — sampai ada, muaranya validasi teknis
+  // terstruktur. Nol LLM.
+  const technicalCase = detectTechnicalCase(input.message, input.state);
+  if (technicalCase !== null) {
+    const applied = applyTechnicalFacts(input.state, technicalCase, input.message);
+    events.push({ type: 'requirement.updated', state: applied.state });
+    events.push({ type: 'token', text: technicalGuidance(applied.state) });
+    const card = technicalFollowUp(applied.state);
+    if (card) events.push({ type: 'card', card });
+    events.push(endEvent(input.messageId));
+    return {
+      events,
+      nextState: applied.state,
+      changed: applied.changed,
+      trigger: 'extraction',
+    };
+  }
+
   // Guna di luar cakupan (tambak, air panas, cairan proses) diputuskan dari pesannya SEBELUM
   // ekstraksi: tidak ada field yang mewakilinya, dan kartu klarifikasi "berapa kamar mandi?"
   // adalah jawaban yang salah untuknya. Kebijakan menang, state tidak disentuh.
@@ -205,6 +239,7 @@ export async function runUnderstanding(
  */
 export function followUpCard(merged: RequirementState): AssistantCard | null {
   if (merged.useCase?.kind === 'irrigation') return irrigationFollowUp(merged);
+  if (merged.useCase?.kind === 'technical') return technicalFollowUp(merged);
   const scope = scopePolicy({
     buildingType: merged.building.type.value,
     installationType: merged.water.installationType.value,
@@ -232,6 +267,21 @@ function irrigationFollowUp(state: RequirementState): AssistantCard | null {
 }
 
 /**
+ * Kasus teknis: masih ada parameter kritis kosong → kartu pertanyaan berpilihan (angka ditanya
+ * di teks); lengkap → validasi teknis terstruktur sampai kalkulator kasusnya tersedia.
+ */
+function technicalFollowUp(state: RequirementState): AssistantCard | null {
+  if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return null;
+  if (!isTechnicalComplete(state)) {
+    const { card } = planTechnicalClarification(state);
+    return card.length > 0 ? { kind: 'clarification', questions: card } : null;
+  }
+  const profile = caseProfile(state.useCase.caseId);
+  if (profile.calculatorStatus === 'available') return { kind: 'cta', action: 'ANALYZE' };
+  return policyCard(technicalHandoffPolicy(profile.label), capturedFrom(state));
+}
+
+/**
  * Kebutuhan yang sudah terkumpul, untuk dibawa ke kartu validasi teknis dan antrean tim
  * teknis — supaya pengguna tidak mengulang ceritanya dari nol. Bahasa pengguna, bukan path.
  */
@@ -242,7 +292,7 @@ export function capturedFrom(state: RequirementState): readonly KeyValue[] {
       rows.push({ label: FIELD_LABEL[path], value: requirementValueLabel(path, field.value) });
     }
   }
-  return [...rows, ...irrigationCaptured(state)];
+  return [...rows, ...irrigationCaptured(state), ...technicalCaptured(state)];
 }
 
 /** Label bangunan untuk kalimat — mengikuti salinan laporan (`report-assembler.ts`). */

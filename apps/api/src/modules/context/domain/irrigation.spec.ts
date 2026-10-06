@@ -64,7 +64,9 @@ describe('irigasi', () => {
     });
     expect(isIrrigationComplete(state)).toBe(true);
     ({ state } = applyIrrigationAnswers(state, { 'irrigation.source': 'Belum tahu' }));
-    expect(state.useCase?.answers['irrigation.source']).toBe('Sungai / saluran');
+    expect(
+      (state.useCase?.kind === 'irrigation' ? state.useCase.answers : {})['irrigation.source'],
+    ).toBe('Sungai / saluran');
     expect(irrigationCaptured(state)).toContainEqual({
       label: 'Sumber air',
       value: 'Sungai / saluran',

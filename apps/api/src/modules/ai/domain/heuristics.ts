@@ -33,6 +33,9 @@ const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
  */
 /** Irigasi/pertanian punya jalurnya sendiri di `context` — kebutuhan, bukan pertanyaan produk. */
 const IRRIGATION = /\b(irigasi|sawah|kebun|perkebunan|pertanian|ladang)\b/;
+/** Kasus teknis umum (Fase 14): jalur kebutuhan di `context`, tanpa menunggu model. */
+const TECHNICAL_CASE =
+  /\b(gorong[- ]gorong|culvert|drainase|air hujan|limpasan|selokan|transfer air|memompa|dipompa|cluster|klaster|perumahan|komplek|apartemen|sumur bor|submersible|reservoir)\b/;
 
 export function certainIntent(message: string): IntentClassification | null {
   const text = message.toLowerCase();
@@ -44,6 +47,7 @@ export function certainIntent(message: string): IntentClassification | null {
     return { intent: 'PRODUCT_LOOKUP', confidence: 0.9 };
   }
   FAMILY_TOKENS.lastIndex = 0;
+  if (TECHNICAL_CASE.test(text)) return { intent: 'REQUIREMENT_STATEMENT', confidence: 0.9 };
   return null;
 }
 

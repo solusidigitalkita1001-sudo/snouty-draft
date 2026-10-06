@@ -91,6 +91,51 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect((events[5] as { card: { kind: string } }).card.kind).toBe('clarification');
   });
 
+  it('jalur kasus teknis ("gorong-gorong … jalan 6 m, truk"): parameter universal tercatat, pertanyaan registry, nol ekstraksi', async () => {
+    const ai = aiExtracting({});
+    const { events, nextState, changed } = await runUnderstanding(
+      ai,
+      input({
+        message: 'mau pasang gorong-gorong melintasi jalan desa, lebar jalan 6 m, dilewati truk',
+      }),
+    );
+    expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    expect(events.map((e) => e.type)).toEqual([
+      'message.start',
+      'requirement.updated',
+      'token',
+      'message.end',
+    ]);
+    const text = (events[2] as { text: string }).text;
+    expect(text).toContain('**Gorong-gorong**');
+    expect(text).toContain('Lebar jalan: 6 m');
+    expect(text).toContain('Data yang masih dibutuhkan');
+    expect(nextState.useCase).toMatchObject({ kind: 'technical', caseId: 'culvert' });
+    const params = (nextState.useCase as { parameters: Record<string, { value: unknown }> })
+      .parameters;
+    expect(params['road_width']?.value).toBe(6);
+    expect(params['traffic_load']?.value).toBe('Truk / berat');
+    expect(changed).toBe(true);
+
+    // Lanjutan: angka yang ditanya dijawab dengan kalimat; kasusnya tetap gorong-gorong.
+    const next = await runUnderstanding(
+      ai,
+      input({ message: 'debitnya kira-kira 20 l/s, kemiringan 1%', state: nextState }),
+    );
+    const after = (next.nextState.useCase as { parameters: Record<string, { value: unknown }> })
+      .parameters;
+    expect(after['design_flow']?.value).toBe(20);
+    expect(after['slope']?.value).toBe(1);
+    expect(after['road_width']?.value).toBe(6);
+    // Semua parameter kritis ada, kalkulator gorong-gorong belum tersedia → validasi teknis terstruktur.
+    const card = next.events.find((e) => e.type === 'card') as
+      { card: { kind: string; captured?: { label: string }[] } } | undefined;
+    expect(card?.card.kind).toBe('unsupported');
+    expect(card?.card.captured?.map((c) => c.label)).toEqual(
+      expect.arrayContaining(['Lebar jalan', 'Debit rencana', 'Kemiringan saluran']),
+    );
+  });
+
   it('jalur irigasi ("irigasi sawah 1 hektar"): arahan + kartu pertanyaan IRIGASI, nol ekstraksi, luas tercatat', async () => {
     const ai = aiExtracting({});
     const { events, nextState, changed } = await runUnderstanding(

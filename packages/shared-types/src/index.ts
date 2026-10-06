@@ -55,6 +55,8 @@ export type {
   RequirementFieldPath,
   IrrigationField,
   IrrigationUseCase,
+  TechnicalParameter,
+  TechnicalUseCase,
   RequirementState,
   UseCaseState,
   SnapshotTrigger,

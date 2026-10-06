@@ -114,7 +114,30 @@ export interface IrrigationUseCase {
   readonly answers: Readonly<Partial<Record<IrrigationField, string>>>;
 }
 
-export type UseCaseState = IrrigationUseCase;
+/**
+ * Jalur KASUS TEKNIS UMUM (Fase 14 — asisten teknik perpipaan umum): transfer pompa, saluran
+ * gravitasi, air hujan, gorong-gorong, sumur, cluster, gedung bertingkat. Nilai disimpan
+ * dengan kunci parameter universal (`packages/engineering` ParameterRegistry) — bukan field
+ * bangunan — dan membawa asal-usulnya: `known` disebut/dipilih pengguna, `assumed` diisi.
+ */
+export interface TechnicalParameter {
+  /** Label bahasa pengguna dari registry, disalin supaya klien tidak perlu registry. */
+  readonly label: string;
+  readonly value: number | string | boolean;
+  readonly unit?: string;
+  readonly origin: 'known' | 'assumed';
+  /** Potongan kalimat pengguna yang menjadi dasarnya. */
+  readonly evidence?: string;
+}
+
+export interface TechnicalUseCase {
+  readonly kind: 'technical';
+  /** `CaseId` profil kasus di `packages/engineering`; string supaya tipe ini tidak bergantung ke sana. */
+  readonly caseId: string;
+  readonly parameters: Readonly<Record<string, TechnicalParameter>>;
+}
+
+export type UseCaseState = IrrigationUseCase | TechnicalUseCase;
 
 export interface RequirementState {
   readonly version: number;

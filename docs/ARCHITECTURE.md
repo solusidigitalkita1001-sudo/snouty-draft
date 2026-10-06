@@ -155,7 +155,8 @@ menggagalkan CI.
 policy            → (tidak ke mana-mana)   WAJIB leaf
 engineering       → packages/engineering   TIDAK BOLEH ke ai/ atau product-catalog/
 ai                → (tidak ke domain)      ai adalah layanan, bukan pengambil keputusan
-context           → ai, policy
+context           → ai, policy, packages/engineering (hanya fungsi murni: registry parameter,
+                    klasifikasi kasus, ekstraksi konteks teknis — Fase 14; tetap tanpa I/O)
 recommendation    → context, engineering, product-catalog, material-estimator, schematic, policy
 material-estimator→ engineering, product-catalog
 schematic         → engineering

@@ -17,6 +17,15 @@ describe('certainIntent', () => {
     expect(certainIntent('untuk bikin irigasi sawah 1 hektar butuh produk apa?')?.intent).toBe(
       'REQUIREMENT_STATEMENT',
     );
+    // Kasus teknis umum (Fase 14): gorong-gorong, drainase, transfer, cluster → kebutuhan.
+    expect(certainIntent('mau pasang gorong-gorong melintasi jalan')?.intent).toBe(
+      'REQUIREMENT_STATEMENT',
+    );
+    expect(certainIntent('drainase air hujan komplek 2 hektar')?.intent).toBe(
+      'REQUIREMENT_STATEMENT',
+    );
+    // Merek pesaing tetap menang atas isyarat kasus.
+    expect(certainIntent('drainase pakai rucika bagus nggak?')?.intent).toBe('COMPETITOR_QUESTION');
   });
 
   it('tidak pasti → null: kebutuhan, rekomendasi, pertanyaan ukuran, kalimat bebas', () => {

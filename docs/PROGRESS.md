@@ -568,8 +568,20 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       parameter universal (known/assumed), asumsi yang dipakai, laporan kesiapan; kartu asumsi irigasi
       kini membawa `assumptionId`. Tes engineering 93 (+7), API rekomendasi/context 173 (+4).
       Docs: CONTEXT_ENGINE §11, ENGINEERING_RULES §3
-- [ ] P14-02 Fase 2 — Profil kasus, klasifikasi kasus, ekstraksi konteks teknis, pemilih pertanyaan
-      dari grafik ketergantungan
+- [x] P14-02 Fase 2 — Kasus & ekstraksi (2026-10-06). `packages/engineering/src/cases/`:
+      `CaseProfileRegistry` (9 profil: rumah, gedung bertingkat, cluster, irigasi, transfer pompa,
+      gravitasi/drainase, air hujan, gorong-gorong, sumur — parameter kritis/penting/opsional,
+      keluaran, kalkulasi, `calculatorStatus`), `TechnicalCaseClassifier` (isyarat berbobot,
+      primer + sekunder + keyakinan; model tidak dipanggil), `TechnicalContextExtractor` (fakta
+      tersurat → parameter universal dengan konversi satuan: l/s, m³/jam, km, m², mm/jam, %, bar,
+      tinggi statis bertanda dari subjek kalimat), `MissingParameterResolver` (≤ 4 pertanyaan
+      registry, kritis dulu, menyebut keluaran yang dibuka). API: jalur **kasus teknis umum** di
+      pipeline (`context/domain/technical.ts`, `RequirementState.useCase.kind = 'technical'`,
+      parameter universal known/assumed), lanjutan percakapan teknis tanpa model, jawaban kartu
+      berpilihan + angka lewat kalimat, muara validasi teknis terstruktur sampai kalkulator kasusnya
+      ada (fase 3–4). Web: panel kanan `use-case-rows.ts` (irigasi + teknis). Tes engineering 109
+      (+16), API 748 (+8), web 88. Docs: ARCHITECTURE §7 (`context → packages/engineering` murni),
+      CONTEXT_ENGINE §11
 - [ ] P14-03 Fase 3 — Kalkulator inti: konversi satuan, Hazen-Williams, kerugian minor, TDH, sizing
       pipa multi-kriteria dengan kandidat, titik kerja pompa (Q/H, tanpa mengarang pompa)
 - [ ] P14-04 Fase 4 — Manning (gravitasi), air hujan Q = C·I·A (tanpa mengarang intensitas),

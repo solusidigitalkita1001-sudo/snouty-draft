@@ -27,7 +27,9 @@ import { ConversationService } from '../../conversation/application/conversation
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
 import { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
-import { IntentRouter } from './intent-router.js';
+import { certainIntent } from '../../ai/domain/heuristics.js';
+import { IntentRouter, type RoutingDecision } from './intent-router.js';
+import { applyTechnicalAnswers, technicalAnswerValue } from '../domain/technical.js';
 import { applyEdit, followUpCard, runUnderstanding } from './message-pipeline.js';
 import {
   answerToUpdate,
@@ -113,7 +115,19 @@ export class MessageService {
     // Giliran terakhir dipakai klasifikasi intent (lanjutan vs pesan lepas), penulis
     // balasan, dan pagar anti-ulang — jadi selalu diambil.
     const recentTurns = await this.recentTurns(conversationId, actor);
-    const decision = await this.router.route(text, hasExisting, recentTurns);
+    // Percakapan kasus teknis yang sedang berjalan: jawaban angka ("jaraknya 150 m") adalah
+    // lanjutan kebutuhan — tanpa menunggu model menebaknya. Bentuk yang PASTI lain (produk,
+    // pesaing, sapaan) tetap lewat router, yang juga memotongnya tanpa model.
+    const continuation =
+      state.useCase?.kind === 'technical' && certainIntent(text) === null
+        ? ({
+            intent: 'REQUIREMENT_STATEMENT',
+            confidence: 1,
+            shouldExtract: true,
+            mutatesState: true,
+          } satisfies RoutingDecision)
+        : null;
+    const decision = continuation ?? (await this.router.route(text, hasExisting, recentTurns));
 
     // Pertanyaan produk: ruas sendiri, nol ekstraksi, jawaban dari katalog.
     if (decision.intent === 'PRODUCT_LOOKUP') {
@@ -222,15 +236,30 @@ export class MessageService {
       if (value !== null) irrigation[answer.id] = value;
     }
     const applied = applyIrrigationAnswers(state, irrigation);
-    const base = Object.keys(irrigation).length > 0 ? applied.state : state;
+    const afterIrrigation = Object.keys(irrigation).length > 0 ? applied.state : state;
+
+    // Jawaban kasus teknis (id = kunci parameter universal) masuk ke parameter kasusnya.
+    const technicalAnswers =
+      afterIrrigation.useCase?.kind === 'technical'
+        ? answers
+            .map((answer) => technicalAnswerValue(answer.id, answer.option))
+            .filter((value): value is NonNullable<typeof value> => value !== null)
+        : [];
+    const technical = applyTechnicalAnswers(afterIrrigation, technicalAnswers);
+    const base = technical.state;
 
     const updates = answers
       .filter((answer) => !isIrrigationField(answer.id))
+      .filter((answer) => !technicalAnswers.some((t) => t.key === answer.id))
       .map((answer) => answerToUpdate(answer, defaultUpdateFor))
       .filter((update): update is NonNullable<typeof update> => update !== null);
     const result = mergeRequirement(base, updates, now);
     const merged = withCompleteness(result.state);
-    if (result.changed.length > 0 || (Object.keys(irrigation).length > 0 && applied.changed)) {
+    if (
+      result.changed.length > 0 ||
+      (Object.keys(irrigation).length > 0 && applied.changed) ||
+      technical.changed
+    ) {
       await this.store.append(conversationId, merged, 'clarification_answer');
     }
 

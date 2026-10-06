@@ -31,7 +31,7 @@ import { ReportModal } from '../report/report-modal';
 import { REPORT_COPY } from '../report/report-copy';
 import { ThemeToggle } from '../theme-toggle';
 import { AssistantMarkdown } from './assistant-markdown';
-import { irrigationRows } from './irrigation-rows';
+import { useCaseRows } from './use-case-rows';
 import { ProductLookupCards } from './product-lookup-cards';
 import {
   createConversation,
@@ -473,8 +473,8 @@ export function ChatWorkspace() {
   const rows = state ? requirementRows(state) : [];
   // Percakapan irigasi (OQ-47): panel memuat jawaban irigasi, hanya dibaca — bukan field
   // bangunan yang semuanya "Belum diisi".
-  const irrigation = state ? irrigationRows(state) : null;
-  const irrigationFilled = irrigation?.filter((row) => row.value !== null).length ?? 0;
+  const useCase = state ? useCaseRows(state) : null;
+  const useCaseFilled = useCase?.filter((row) => row.value !== null).length ?? 0;
   const filled = state?.completeness.filled ?? 0;
 
   /**
@@ -513,8 +513,8 @@ export function ChatWorkspace() {
     if (solution !== null) analyze();
   }, [analyze, conversationId, edits, rows, solution]);
   // Prototipe `readCount`: seluruh field yang terbaca (sampai 7), bukan hanya empat inti.
-  const readCount = irrigation
-    ? irrigationFilled
+  const readCount = useCase
+    ? useCaseFilled
     : rows.filter((row) => row.display !== 'Belum diisi').length;
   const inConversation = turns.length > 0;
   const activeStatus = solution
@@ -863,15 +863,15 @@ export function ChatWorkspace() {
             )}
 
             {/* Kartu "Yang sudah saya pahami" — grid 3 kolom dengan badge hijau jumlah data. */}
-            {state !== null && irrigation === null && filled > 0 && (
+            {state !== null && useCase === null && filled > 0 && (
               <UnderstoodCard rows={rows} filled={filled} />
             )}
-            {irrigation !== null && irrigationFilled > 0 && (
+            {useCase !== null && useCaseFilled > 0 && (
               <UnderstoodCard
-                rows={irrigation
+                rows={useCase
                   .filter((row) => row.value !== null)
                   .map((row) => ({ label: row.label, display: row.value ?? '' }))}
-                filled={irrigationFilled}
+                filled={useCaseFilled}
               />
             )}
 
@@ -1032,7 +1032,7 @@ export function ChatWorkspace() {
               <div className={styles.panelKickerRow}>
                 <div className={styles.panelKicker}>{COPY.requirementsLabel}</div>
                 {/* "Ubah" ↔ "Selesai" — edit inline nol LLM (prototipe `editing`). */}
-                {rows.length > 0 && irrigation === null && (
+                {rows.length > 0 && useCase === null && (
                   <button
                     type="button"
                     className={styles.editToggle}
@@ -1047,7 +1047,7 @@ export function ChatWorkspace() {
                   </button>
                 )}
               </div>
-              {irrigation?.map((row) => (
+              {useCase?.map((row) => (
                 <div
                   key={row.field}
                   className={[
@@ -1066,7 +1066,7 @@ export function ChatWorkspace() {
                   </span>
                 </div>
               ))}
-              {irrigation === null &&
+              {useCase === null &&
                 rows.map((row) => (
                   <div
                     key={row.label}

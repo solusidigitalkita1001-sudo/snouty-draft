@@ -318,6 +318,27 @@ tiap keluaran. Fase 14 menambah lapisan ini **tanpa mengganti** state lama:
   `known`, default/rentang `assumed`, daftar asumsi registry yang akan dipakai, dan laporan kesiapan.
   Kartu "Asumsi yang digunakan" irigasi kini memuat baris beridentitas (`assumptionId`).
 
-Yang belum (fase berikutnya): profil kasus + klasifikasi kasus (fase 2), kalkulator hidraulik umum
-(fase 3–4), pemilih pertanyaan dari grafik ketergantungan dan tampilan kesiapan di layar solusi
+**Fase 2 — kasus dan ekstraksi** (`packages/engineering/src/cases/`, `context/domain/technical.ts`):
+
+- **`CaseProfileRegistry`** — sembilan profil kasus (rumah, gedung bertingkat, cluster, irigasi,
+  transfer pompa, gravitasi/drainase, air hujan, gorong-gorong, sumur): parameter kritis (urut
+  prioritas), penting, opsional; keluaran yang dijanjikan; kalkulasi; `calculatorStatus`.
+- **`TechnicalCaseClassifier`** — deterministik dari isyarat berbobot ("gorong-gorong" lebih berat
+  dari "pompa"); dua isyarat berbeda saling menguatkan; memberi kasus primer, sekunder (irigasi +
+  transfer pompa), dan keyakinan. Model tidak dipanggil untuk ini.
+- **`TechnicalContextExtractor`** — fakta tersurat → parameter universal dengan satuan: "sungai
+  150 m, 4 m lebih rendah, 2 hektar sprinkler, debit 36 m³/jam" → `source_type`, `route_length`,
+  `static_head` (+4, tanda dari subjek kalimat), `total_area`, `irrigation_method`, `design_flow`
+  (10 l/s). Hanya bentuk yang tidak bisa salah baca; sisanya ditanya.
+- **`MissingParameterResolver`** — ≤ 4 parameter berikutnya: kritis dulu, lalu yang membuka paling
+  banyak keluaran; redaksi dari registry; yang diketahui/diasumsikan tidak ditanya ulang.
+- **Jalur kasus teknis umum di pipeline** — `RequirementState.useCase = { kind: 'technical', caseId,
+parameters }` (parameter universal, `known`/`assumed`, label disalin untuk klien). Pesan baru
+  diklasifikasi; percakapan teknis yang berjalan dilanjutkan tanpa model ("jaraknya 150 m" dibaca
+  ekstraktor). Pertanyaan berpilihan jadi kartu, pertanyaan angka ditanya di teks. Kasus yang
+  kalkulatornya belum ada bermuara **validasi teknis terstruktur** dengan parameter yang sudah rapi —
+  bukan angka karangan, bukan "berapa kamar mandi?".
+
+Yang belum (fase berikutnya): kalkulator hidraulik umum (fase 3–4) yang membaca `useCase.technical`,
+pemilih pertanyaan terpadu untuk jalur bangunan/irigasi, dan tampilan kesiapan di layar solusi
 (fase 6). Meter 4 segmen §5 tetap berlaku untuk jalur bangunan sampai fase 6 menggantinya.

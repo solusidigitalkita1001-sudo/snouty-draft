@@ -51,6 +51,21 @@ export function irrigationHandoffPolicy(): PolicyOutcome {
   };
 }
 
+/**
+ * Muara kasus teknis umum yang kalkulatornya belum tersedia (Fase 14): data sudah terstruktur
+ * dalam parameter universal, perhitungannya diteruskan ke tim teknis. Bukan penolakan.
+ */
+export function technicalHandoffPolicy(caseLabel: string): PolicyOutcome {
+  return {
+    kind: 'policy',
+    code: 'TECHNICAL_VALIDATION_REQUIRED',
+    reasons: [
+      `Data ${caseLabel.toLowerCase()} Anda sudah lengkap dan tercatat dengan parameter teknisnya.`,
+      'Kalkulator otomatis untuk kasus ini sedang disiapkan — perhitungan dilakukan tim teknis Pralon dari data ini, lalu daftar produk dan ukurannya dikirim ke Anda.',
+    ],
+  };
+}
+
 export function useCasePolicy(message: string): PolicyOutcome {
   if (!OUT_OF_SCOPE_USE.test(message)) return { kind: 'supported' };
   return {
