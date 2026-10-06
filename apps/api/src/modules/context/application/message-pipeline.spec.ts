@@ -107,9 +107,9 @@ describe('runUnderstanding — bentuk event SSE', () => {
       'message.end',
     ]);
     const text = (events[2] as { text: string }).text;
-    expect(text).toContain('**Gorong-gorong**');
-    expect(text).toContain('Lebar jalan: 6 m');
-    expect(text).toContain('Data yang masih dibutuhkan');
+    expect(text).toContain('Oke, gorong-gorong');
+    expect(text).toContain('lebar jalan 6 m');
+    expect(text).toContain('tolong jawab');
     expect(nextState.useCase).toMatchObject({ kind: 'technical', caseId: 'culvert' });
     const params = (nextState.useCase as { parameters: Record<string, { value: unknown }> })
       .parameters;
@@ -173,11 +173,11 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(changed).toBe(true);
   });
 
-  it('guna di luar cakupan ("tambak udang"): kartu validasi teknis, TANPA ekstraksi dan tanpa klarifikasi kamar mandi', async () => {
+  it('guna di luar cakupan ("air panas boiler"): kartu validasi teknis, TANPA ekstraksi dan tanpa klarifikasi kamar mandi', async () => {
     const ai = aiExtracting({});
     const { events, changed } = await runUnderstanding(
       ai,
-      input({ message: 'pipa buat tambak udang 2 hektar butuh apa?' }),
+      input({ message: 'pipa buat jalur air panas boiler hotel butuh apa?' }),
     );
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
     expect(events.map((e) => e.type)).toEqual(['message.start', 'card', 'message.end']);
@@ -185,6 +185,28 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(card.kind).toBe('unsupported');
     expect(card.reasons?.[0]).toContain('di luar cakupan rekomendasi otomatis');
     expect(changed).toBe(false);
+  });
+
+  it('kasus pemilik "tambak lele 4 x 4 meter, produknya apa aja": jalur kolam, dimensi tercatat, CTA analisis — bukan kartu di luar cakupan', async () => {
+    const ai = aiExtracting({});
+    const { events, nextState } = await runUnderstanding(
+      ai,
+      input({ message: 'gw pengen bikin tambak lele 4 x 4 meter, produk nya apa aja' }),
+    );
+    expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    expect(nextState.useCase).toMatchObject({ kind: 'technical', caseId: 'fish_pond' });
+    const params = (nextState.useCase as { parameters: Record<string, { value: unknown }> })
+      .parameters;
+    expect(params['pond_length']?.value).toBe(4);
+    expect(params['pond_width']?.value).toBe(4);
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('Oke, kolam / tambak ikan');
+    expect(text).toContain('Susun rekomendasi');
+    expect(text).not.toContain('di luar cakupan');
+    const card = (
+      events.find((e) => e.type === 'card') as { card: { kind: string; action?: string } }
+    ).card;
+    expect(card).toEqual({ kind: 'cta', action: 'ANALYZE' });
   });
 
   it('pernyataan kebutuhan biasa tetap tanpa teks tambahan', async () => {

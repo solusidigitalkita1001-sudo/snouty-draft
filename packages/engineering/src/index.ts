@@ -143,6 +143,10 @@ export type {
   SizeCandidate,
   SizingResult,
 } from './rules/group-f-pressurized.js';
+export { ENG_301, ENG_302, ENG_303, ENG_304, GROUP_G } from './rules/group-g-pond.js';
+export type { PondBomLine } from './rules/group-g-pond.js';
+export { computePond } from './compute-pond.js';
+export type { PondInput, PondResult } from './compute-pond.js';
 export { computePressurized } from './compute-pressurized.js';
 export type { PipeMaterial, PressurizedInput, PressurizedResult } from './compute-pressurized.js';
 export {

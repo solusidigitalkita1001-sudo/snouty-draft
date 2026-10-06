@@ -96,8 +96,10 @@ export class RecommendationController {
 
     const snapshot = await this.snapshots.current(recommendation.conversationId);
     if (!snapshot) return { error: { code: 'NOT_FOUND' } };
-    // Skema irigasi belum didesain (OQ-47): jujur "tidak ada", bukan gambar riser bangunan.
-    if (recommendation.kind === 'irrigation') return { error: { code: 'NOT_FOUND' } };
+    // Skema irigasi/kasus teknis belum didesain (OQ-47): jujur "tidak ada", bukan gambar riser bangunan.
+    if (recommendation.kind !== undefined && recommendation.kind !== 'building') {
+      return { error: { code: 'NOT_FOUND' } };
+    }
 
     return this.analysis.schematicForRecommendation(
       snapshot.state,

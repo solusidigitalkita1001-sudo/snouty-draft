@@ -33,8 +33,10 @@ export type PolicyOutcome =
  * field kebutuhan yang mewakilinya, dan menanyakan "berapa kamar mandi?" kepada petani sawah
  * adalah jawaban yang salah (laporan pemilik 2026-10-06, "irigasi sawah 1 hektar").
  */
+// Tambak/kolam TIDAK lagi di sini: ia punya profil kasus + kalkulator sendiri (Fase 14, kasus
+// `fish_pond`). Yang tersisa adalah fluida/kondisi yang bahannya butuh validasi (panas, kimia).
 const OUT_OF_SCOPE_USE =
-  /\b(tambak|peternakan|air panas|uap|boiler|air laut|kimia|gas|minyak|bahan bakar)\b/i;
+  /\b(peternakan|air panas|uap|boiler|air laut|kimia|gas|minyak|bahan bakar)\b/i;
 
 /**
  * Muara jalur irigasi (OQ-47): data lengkap → diteruskan ke tim teknis untuk dihitung. Bukan

@@ -52,9 +52,10 @@ describe('skenario D transfer pompa', () => {
     expect(missing.map((m) => m.key)).not.toContain('route_length');
     expect(isTechnicalComplete(start.state)).toBe(true); // semua kritis sudah ada
     const text = technicalGuidance(start.state);
-    expect(text).toContain('**Transfer air dengan pompa**');
-    expect(text).toContain('Panjang jalur: 800 m');
-    expect(text).toContain('Data yang masih dibutuhkan');
+    expect(text).toContain('Oke, transfer air dengan pompa');
+    expect(text).toContain('panjang jalur 800 m');
+    expect(text).not.toMatch(/\*\*Data|Jawab langsung|asumsi awal yang ditandai/);
+    expect(text).toContain('tolong jawab');
     expect(text).not.toMatch(/\d\s*(bar|mm|inci)\b/); // tanpa angka teknik hasil hitungan
   });
 
@@ -94,6 +95,6 @@ describe('skenario E gorong-gorong tanpa angka', () => {
     expect(plan.text.map((m) => m.key)).toEqual(
       expect.arrayContaining(['design_flow', 'road_width', 'slope']),
     );
-    expect(technicalGuidance(r.state)).toContain('Jawab langsung di sini');
+    expect(technicalGuidance(r.state)).toContain('tolong jawab');
   });
 });

@@ -44,7 +44,14 @@ export function SolutionView({
           <h2 className={styles.headline}>{recommendation.headline}</h2>
           <p className={styles.body}>{recommendation.body}</p>
           <div className={styles.statsRow}>
-            {recommendation.kind === 'irrigation' && recommendation.irrigationStats ? (
+            {recommendation.kind === 'technical' && recommendation.highlights ? (
+              <>
+                {/* Kasus teknis umum (Fase 14): statistiknya berlabel dari API, per kasus. */}
+                {recommendation.highlights.map((item) => (
+                  <Stat key={item.label} label={item.label} value={item.value} />
+                ))}
+              </>
+            ) : recommendation.kind === 'irrigation' && recommendation.irrigationStats ? (
               <>
                 {/* Solusi irigasi (OQ-47): statistiknya luas, debit, jalur utama, pompa. */}
                 <Stat

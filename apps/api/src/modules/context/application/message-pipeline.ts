@@ -143,10 +143,22 @@ export async function runUnderstanding(
     };
   }
 
-  // Jalur KASUS TEKNIS UMUM (Fase 14): transfer pompa, gravitasi, air hujan, gorong-gorong,
-  // sumur, cluster, gedung. Fakta tersurat → parameter universal; yang kurang ditanya dengan
-  // redaksi registry; kalkulator menyusul per fase — sampai ada, muaranya validasi teknis
-  // terstruktur. Nol LLM.
+  // Guna di luar cakupan (air panas, cairan proses) diputuskan dari pesannya SEBELUM apa pun:
+  // tidak ada field yang mewakilinya, dan kartu klarifikasi "berapa kamar mandi?" adalah
+  // jawaban yang salah untuknya. Kebijakan menang atas klasifikasi kasus — "air panas boiler
+  // hotel" bukan kasus gedung bertingkat. State tidak disentuh.
+  const useCase = useCasePolicy(input.message);
+  if (useCase.kind === 'policy') {
+    const card = policyCard(useCase, capturedFrom(input.state));
+    if (card) events.push({ type: 'card', card });
+    events.push(endEvent(input.messageId));
+    return { events, nextState: input.state, changed: false, trigger: 'extraction' };
+  }
+
+  // Jalur KASUS TEKNIS UMUM (Fase 14): kolam/tambak, transfer pompa, gravitasi, air hujan,
+  // gorong-gorong, sumur, cluster, gedung. Fakta tersurat → parameter universal; yang kurang
+  // ditanya dengan redaksi registry; kalkulator per kasus — sampai ada, muaranya validasi
+  // teknis terstruktur. Nol LLM.
   const technicalCase = detectTechnicalCase(input.message, input.state);
   if (technicalCase !== null) {
     const applied = applyTechnicalFacts(input.state, technicalCase, input.message);
@@ -161,17 +173,6 @@ export async function runUnderstanding(
       changed: applied.changed,
       trigger: 'extraction',
     };
-  }
-
-  // Guna di luar cakupan (tambak, air panas, cairan proses) diputuskan dari pesannya SEBELUM
-  // ekstraksi: tidak ada field yang mewakilinya, dan kartu klarifikasi "berapa kamar mandi?"
-  // adalah jawaban yang salah untuknya. Kebijakan menang, state tidak disentuh.
-  const useCase = useCasePolicy(input.message);
-  if (useCase.kind === 'policy') {
-    const card = policyCard(useCase, capturedFrom(input.state));
-    if (card) events.push({ type: 'card', card });
-    events.push(endEvent(input.messageId));
-    return { events, nextState: input.state, changed: false, trigger: 'extraction' };
   }
 
   events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'active' });

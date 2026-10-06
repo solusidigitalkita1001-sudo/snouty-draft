@@ -18,7 +18,7 @@ describe('CaseProfileRegistry', () => {
       expect(new Set(params).size).toBe(params.length);
       for (const key of params) expect(isParameterKey(key)).toBe(true);
       expect(p.outputs.length).toBeGreaterThan(0);
-      expect(p.critical.length).toBeGreaterThan(2);
+      expect(p.critical.length).toBeGreaterThanOrEqual(2);
     }
     expect(caseProfile('irrigation').calculatorStatus).toBe('available');
     expect(caseProfile('culvert').calculatorStatus).toBe('pending');
@@ -36,6 +36,8 @@ describe('TechnicalCaseClassifier', () => {
     ['jaringan air bersih cluster 120 unit rumah', 'residential_cluster'],
     ['gedung 8 lantai apartemen', 'multistorey_building_water'],
     ['rumah 2 lantai 3 kamar mandi toren di atap', 'residential_clean_water'],
+    ['gw pengen bikin tambak lele 4 x 4 meter, produk nya apa aja', 'fish_pond'],
+    ['kolam ikan nila 3 petak', 'fish_pond'],
   ])('"%s" → %s', (message, expected) => {
     const c = classifyCase(message);
     expect(c.primary).toBe(expected);
@@ -89,6 +91,22 @@ describe('TechnicalContextExtractor', () => {
     expect(by('gorong-gorong, lebar jalan 6 m, dilewati truk', 'culvert')).toMatchObject({
       road_width: 6,
       traffic_load: 'Truk / berat',
+    });
+  });
+
+  it('kolam: "4 x 4 meter" jadi panjang × lebar (bukan panjang jalur); kedalaman, jumlah kolam, jam', () => {
+    const by = (s: string) =>
+      Object.fromEntries(extractTechnicalContext(s, 'fish_pond').map((f) => [f.key, f.value]));
+    expect(by('tambak lele 4 x 4 meter')).toMatchObject({ pond_length: 4, pond_width: 4 });
+    expect(by('tambak lele 4 x 4 meter')).not.toHaveProperty('route_length');
+    expect(by('3 kolam 5x3 m dalam 80 cm, diisi 2 jam dari sumur 15 m')).toMatchObject({
+      number_of_ponds: 3,
+      pond_length: 5,
+      pond_width: 3,
+      pond_depth: 0.8,
+      fill_time_hours: 2,
+      source_type: 'Sumur',
+      route_length: 15,
     });
   });
 

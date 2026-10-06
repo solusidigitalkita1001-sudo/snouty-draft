@@ -22,7 +22,8 @@ export type CaseId =
   | 'gravity_drainage'
   | 'stormwater'
   | 'culvert'
-  | 'well_distribution';
+  | 'well_distribution'
+  | 'fish_pond';
 
 export interface CaseProfile {
   readonly id: CaseId;
@@ -217,6 +218,43 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
     outputs: ['material_selection', 'pipe_sizing', 'product_matching'],
     calculations: ['culvert_size', 'gravity_capacity'],
     calculatorStatus: 'pending',
+  },
+  {
+    id: 'fish_pond',
+    label: 'Kolam / tambak ikan',
+    description: 'Pengisian dan pembuangan kolam lele/nila/udang: pipa masuk, pipa kuras, fitting.',
+    critical: ['pond_length', 'pond_width'],
+    important: ['pond_depth', 'number_of_ponds', 'source_type', 'route_length', 'fill_time_hours'],
+    optional: ['static_head', 'material', 'pump_required'],
+    outputs: ['pipe_sizing', 'material_selection', 'bom', 'product_matching'],
+    calculations: ['design_flow_calc', 'pipe_diameter', 'material_quantity'],
+    outputRequirements: [
+      {
+        output: 'pipe_sizing',
+        requires: ['pond_length', 'pond_width'],
+        calculations: [],
+        improves: ['pond_depth', 'fill_time_hours', 'number_of_ponds'],
+      },
+      {
+        output: 'material_selection',
+        requires: [],
+        calculations: [],
+        improves: ['source_type', 'pump_required'],
+      },
+      {
+        output: 'bom',
+        requires: ['pond_length', 'pond_width'],
+        calculations: [],
+        improves: ['pond_depth', 'number_of_ponds', 'route_length'],
+      },
+      {
+        output: 'product_matching',
+        requires: ['pond_length', 'pond_width'],
+        calculations: [],
+        improves: ['material'],
+      },
+    ],
+    calculatorStatus: 'available',
   },
   {
     id: 'well_distribution',

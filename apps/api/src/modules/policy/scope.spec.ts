@@ -52,7 +52,8 @@ describe('Policy 5 — scope routing', () => {
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
     });
-    expect(useCasePolicy('pipa tambak udang 2 hektar').kind).toBe('policy');
+    // Tambak/kolam kini punya jalur kasus teknis sendiri (Fase 14) — bukan ditolak di sini.
+    expect(useCasePolicy('pipa tambak udang 2 hektar').kind).toBe('supported');
     expect(useCasePolicy('rumah 2 lantai, 3 kamar mandi, toren atap').kind).toBe('supported');
     // Irigasi punya jalurnya sendiri (OQ-47) — bukan ditolak di sini.
     expect(useCasePolicy('irigasi sawah 1 hektar').kind).toBe('supported');

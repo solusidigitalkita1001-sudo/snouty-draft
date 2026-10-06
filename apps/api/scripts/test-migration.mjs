@@ -107,8 +107,10 @@ const UP = [
   '0012_recommendation_prose_source.sql',
   '0013_catalog_version_kind.sql',
   '0014_recommendation_kind.sql',
+  '0015_recommendation_technical.sql',
 ];
 const DOWN = [
+  '0015_recommendation_technical.down.sql',
   '0014_recommendation_kind.down.sql',
   '0013_catalog_version_kind.down.sql',
   '0012_recommendation_prose_source.down.sql',
@@ -125,7 +127,7 @@ const DOWN = [
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0014 satu-dua kolom). */
+/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0015 satu-dua kolom). */
 const TABLES = 27;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
@@ -726,7 +728,17 @@ await check('menerima `irrigation` beserta statistiknya', () =>
   insertKind(ulid(926), 'irrigation'),
 );
 
-await check('menolak jalur guna di luar building/irrigation', () =>
+await check('menerima `technical` beserta highlights (0015)', () =>
+  conn.query(
+    `INSERT INTO recommendations
+       (id,conversation_id,snapshot_id,catalog_version_id,headline,body,kind,highlights,
+        stats,system_lines,products,bom,assumptions,overall_provenance)
+     VALUES (?,?,?,?,'h','b','technical','[{"label":"Volume air","value":"16 m³"}]','{}','[]','[]','[]','[]','ASSUMED')`,
+    [ulid(928), CONV14, ulid(923), ulid(924)],
+  ),
+);
+
+await check('menolak jalur guna di luar building/irrigation/technical', () =>
   mustReject(
     `INSERT INTO recommendations
        (id,conversation_id,snapshot_id,catalog_version_id,headline,body,kind,

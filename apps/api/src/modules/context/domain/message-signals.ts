@@ -14,7 +14,7 @@
  * kebutuhan (yang lalu ditolak kebijakan cakupan), bukan pertanyaan produk.
  */
 const REQUIREMENT_SIGNALS =
-  /\b(lantai|kamar mandi|wastafel|dapur|toren|tandon|pdam|sumur|pompa|rumah|ruko|kos|kost|gedung|pabrik|gudang|kantor|sekolah|hotel|titik air|keran|drainase|irigasi|limbah|saluran|pembuangan|air bersih|proyek|project|instalasi|sawah|kebun)\b/i;
+  /\b(lantai|kamar mandi|wastafel|dapur|toren|tandon|pdam|sumur|pompa|rumah|ruko|kos|kost|gedung|pabrik|gudang|kantor|sekolah|hotel|titik air|keran|drainase|irigasi|limbah|saluran|pembuangan|air bersih|proyek|project|instalasi|sawah|kebun|tambak|kolam|lele)\b/i;
 
 /** Pesan meminta pilihan/rekomendasi, bukan definisi. */
 const ADVICE_SIGNALS =

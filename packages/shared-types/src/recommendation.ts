@@ -13,6 +13,7 @@
  * dirender dari trace, bukan dari prosa.
  */
 
+import type { KeyValue } from './assistant-card.js';
 import type { Provenance } from './provenance.js';
 import type { ProductMatchState } from './catalog.js';
 
@@ -96,11 +97,13 @@ export interface Recommendation {
   readonly catalogVersionId: string;
   readonly headline: string;
   readonly body: string;
-  /** Jalur guna; tidak ada = bangunan (rekomendasi lama). */
-  readonly kind?: 'building' | 'irrigation';
+  /** Jalur guna; tidak ada = bangunan (rekomendasi lama). `technical` = kasus teknis umum (Fase 14). */
+  readonly kind?: 'building' | 'irrigation' | 'technical';
   readonly stats: RecommendationStats;
   /** Hanya untuk `kind: 'irrigation'`; `stats` tetap terisi demi pembaca lama. */
   readonly irrigationStats?: IrrigationStats;
+  /** Statistik ringkasan kasus teknis umum (`kind: 'technical'`), label bahasa pengguna. */
+  readonly highlights?: readonly KeyValue[];
   readonly systemLines: readonly SystemLine[];
   readonly products: readonly SelectedProduct[];
   readonly bom: readonly BomItem[];

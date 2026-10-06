@@ -306,6 +306,39 @@ desain lahan; itulah sebabnya BOM-nya `ASSUMED`.
 
 ---
 
+### Kelompok F — Hidraulik bertekanan umum (Fase 14, 2026-10-06)
+
+Asal: rumus teknik baku (kontinuitas, Hazen-Williams, head dinamis, daya hidraulik) untuk kasus
+transfer pompa, sumur, cluster, gedung. Tidak ada kurva pompa atau tabel produk; diameter dalam
+memakai tabel pendekatan ENG-102. Orkestratornya `computePressurized()`; nilai yang tidak diberikan
+diambil dari registry asumsi dan dicatat di `appliedAssumptionIds`. Semua `REQUIRES_DOMAIN_VALIDATION`.
+
+```
+ENG-201  A = πD²/4 ; V = Q/A
+ENG-202  hf = 10,67 · L · Q^1,852 / (C^1,852 · D^4,8704)     C plastik 150, galvanis 100 (registry)
+ENG-203  kerugian minor = fraksi × hf                        fraksi 0,1 (MINOR_LOSS_FRACTION)
+ENG-204  TDH = statis + hf + minor + tekanan sisa (1 bar ≈ 10,2 m)
+ENG-205  kandidat dari tabel nominal; status ok / too_fast (> 2 m/s) / high_loss (> 10 m/100 m) /
+         too_slow (< 0,6 m/s); rekomendasi = ukuran ok terkecil; alternatif = satu ukuran di atasnya
+ENG-206  P_hidraulik = ρ·g·Q·H ; daya poros indikatif = P / η (η 0,6, bukan pemilihan pompa)
+```
+
+### Kelompok G — Kolam / tambak ikan (Fase 14, laporan pemilik "tambak lele 4 x 4 meter")
+
+Asal: geometri dan kontinuitas; tanpa aerasi/filtrasi/kualitas air. Orkestrator `computePond()`
+memakai ENG-102 untuk pipa masuk. Semua `REQUIRES_DOMAIN_VALIDATION`.
+
+```
+ENG-301  V = panjang × lebar × tinggi air × jumlah kolam        tinggi air 1 m bila tak disebut
+ENG-302  Q_isi = V / t_isi                                       t_isi 3 jam bila tak disebut
+ENG-102  D_masuk dari Q_isi pada 1,5 m/s → PVC AW
+ENG-303  Q_kuras = V_kolam / t_kuras ; D_kuras = √(4Q/πv), v 1 m/s   t_kuras 1 jam → PVC D
+ENG-304  BOM: pipa masuk = jalur (10 m bila tak disebut) + 2 m/kolam ; pipa kuras = (air + 0,3) +
+         1 + ½ panjang kolam per kolam ; elbow, tee (kolam > 1), stop kran, sok drat, lem
+```
+
+Contoh: 4 × 4 m, air 1 m → 16 m³, 1,48 l/s, pipa masuk 1½" AW, pipa kuras 3" D.
+
 ## 4. Tabel pelacak validasi
 
 Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja.

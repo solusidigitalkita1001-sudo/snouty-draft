@@ -590,9 +590,23 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
   ENG-206 titik kerja pompa (Q/H, daya hidraulik, daya poros indikatif — tanpa merek/kurva);
   `computePressurized()` orkestrator dengan trace per aturan dan `appliedAssumptionIds`; 5 asumsi
   registry baru (VELOCITY_MAX/MIN, HEADLOSS_GRADIENT_MAX, PUMP_EFFICIENCY_INDICATIVE,
-  TRANSFER_DISCHARGE_MARGIN). Registry 25 aturan, tes engineering 120 (+11). **Sisa**: analysis
-  service untuk `pump_transfer`/`well_distribution` (kind rekomendasi 'technical' + migration
-  0015), tampilan kandidat/opsi di layar solusi (fase 6), docs ENGINEERING_RULES Kelompok F
+  TRANSFER_DISCHARGE_MARGIN). Docs ENGINEERING_RULES Kelompok F. **Sisa**: analysis service untuk
+  `pump_transfer`/`well_distribution` lewat jalur `kind: 'technical'` yang kini sudah ada (lihat
+  P14-03b), tampilan kandidat/opsi di layar solusi (fase 6)
+- [x] P14-03b Kasus kolam/tambak end-to-end (2026-10-06, laporan pemilik "tambak lele 4 x 4 meter,
+      produknya apa aja" → masih kartu "di luar cakupan"). Kelompok G ENG-301 volume, ENG-302 debit
+      pengisian, ENG-303 pipa kuras gravitasi, ENG-304 BOM + `computePond()` (pipa masuk lewat
+      ENG-102); profil kasus `fish_pond` (kalkulator tersedia), klasifikasi (tambak/lele/kolam/…),
+      ekstraksi "4 x 4 meter" → panjang × lebar (bukan panjang jalur), kedalaman cm/m, jumlah kolam,
+      jam pengisian; 5 asumsi registry (tinggi air 1 m, isi 3 jam, kuras 1 jam, v kuras 1 m/s, jalur
+      10 m). API: migration 0015 (`kind` 'technical' + `highlights`), `runPond` di analysis service
+      (produk per peran: masuk PVC AW, kuras PVC D, fitting), `pond-view.ts`, skema → NOT_FOUND
+      untuk kind selain bangunan; `tambak`/`kolam` dicabut dari kebijakan di luar cakupan dan
+      kebijakan itu kini diperiksa SEBELUM klasifikasi kasus ("air panas boiler hotel" tetap
+      validasi teknis). Web: statistik `highlights` di ringkasan solusi. **Redaksi balasan jalur
+      teknis dirombak jadi prosa teknisi** (aturan pemilik: tanpa metatext — tidak ada judul bagian
+      "Data yang diketahui", "Jawab langsung di sini", dsb.). Registry 29 aturan; tes engineering
+      129, API 749, web 88; migration test 59/59
 - [ ] P14-04 Fase 4 — Manning (gravitasi), air hujan Q = C·I·A (tanpa mengarang intensitas),
       gorong-gorong, kebutuhan jaringan cluster, zonasi bertingkat
 - [ ] P14-05 Fase 5 — Matcher produk dari kebutuhan teknis (bahan + diameter + kelas tekanan)

@@ -81,10 +81,33 @@ export function extractTechnicalContext(
     add('source_elevation', /rendah/.test(m[1]!) ? 'Lebih rendah' : 'Lebih tinggi', m[0]);
   });
 
-  // ── Kedalaman sumur ──
-  take(new RegExp(`(?:sumur|kedalaman|dalamnya)\\D{0,20}?${NUM}\\s*(m|meter)\\b`), (m) => {
-    add('well_depth', num(m[1]!), m[0], 'm');
+  // ── Dimensi "4 x 4 meter" (kolam: panjang × lebar; lahan: panjang × lebar lahan) ──
+  take(new RegExp(`${NUM}\\s*[x×]\\s*${NUM}\\s*(?:[x×]\\s*${NUM}\\s*)?(m|meter)?\\b`), (m) => {
+    const pond = caseId === 'fish_pond';
+    add(pond ? 'pond_length' : 'field_length', num(m[1]!), m[0], 'm');
+    add(pond ? 'pond_width' : 'field_width', num(m[2]!), m[0], 'm');
+    if (m[3] && pond) add('pond_depth', num(m[3]), m[0], 'm');
   });
+  if (caseId === 'fish_pond') {
+    take(
+      new RegExp(
+        `(?:kedalaman|dalamnya|dalam|tinggi air|ketinggian air)\\D{0,12}?${NUM}\\s*(m|meter|cm)\\b`,
+      ),
+      (m) => {
+        add('pond_depth', m[2] === 'cm' ? num(m[1]!) / 100 : num(m[1]!), m[0], 'm');
+      },
+    );
+    take(/(\d+)\s*(kolam|petak|tambak|bak)\b/, (m) =>
+      add('number_of_ponds', Number(m[1]), m[0], 'kolam'),
+    );
+    take(new RegExp(`${NUM}\\s*jam\\b`), (m) => add('fill_time_hours', num(m[1]!), m[0], 'jam'));
+  }
+
+  // ── Kedalaman sumur (bukan untuk kolam: "dari sumur 15 m" di sana adalah jarak) ──
+  if (caseId !== 'fish_pond')
+    take(new RegExp(`(?:sumur|kedalaman|dalamnya)\\D{0,20}?${NUM}\\s*(m|meter)\\b`), (m) => {
+      add('well_depth', num(m[1]!), m[0], 'm');
+    });
 
   // ── Lebar jalan ──
   take(

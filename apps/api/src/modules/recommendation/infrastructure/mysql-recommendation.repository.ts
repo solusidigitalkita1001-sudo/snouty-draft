@@ -41,6 +41,7 @@ export class MysqlRecommendationRepository implements RecommendationRepository {
         kind: recommendation.kind ?? 'building',
         stats: recommendation.stats,
         irrigationStats: recommendation.irrigationStats ?? null,
+        highlights: recommendation.highlights ?? null,
         systemLines: recommendation.systemLines,
         products: recommendation.products,
         bom: recommendation.bom,
@@ -109,10 +110,18 @@ function toRecommendation(row: typeof recommendations.$inferSelect): Recommendat
     catalogVersionId: row.catalogVersionId,
     headline: row.headline,
     body: row.body,
-    kind: row.kind === 'irrigation' ? 'irrigation' : 'building',
+    kind:
+      row.kind === 'irrigation'
+        ? 'irrigation'
+        : row.kind === 'technical'
+          ? 'technical'
+          : 'building',
     stats: row.stats as Recommendation['stats'],
     ...(row.irrigationStats
       ? { irrigationStats: row.irrigationStats as NonNullable<Recommendation['irrigationStats']> }
+      : {}),
+    ...(row.highlights
+      ? { highlights: row.highlights as NonNullable<Recommendation['highlights']> }
       : {}),
     systemLines: row.systemLines as Recommendation['systemLines'],
     products: row.products as Recommendation['products'],

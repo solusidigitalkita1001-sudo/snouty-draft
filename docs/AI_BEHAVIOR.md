@@ -213,6 +213,15 @@ untuk semua jawaban. Teks deterministik (`pipe-knowledge.ts`, `product-answer-te
 dalam bentuk yang sama, supaya jawaban tanpa model dan dengan model tampak serupa. Prosa solusi
 (`PROSE_SYSTEM_PROMPT`) tidak: ia dirender sebagai paragraf polos di layar solusi.
 
+**Tanpa metatext (keputusan pemilik 2026-10-06).** Balasan di gelembung chat harus terbaca seperti
+ditulis teknisi Pralon sendiri: tidak ada judul bagian templat ("Data yang diketahui", "Data yang
+masih dibutuhkan"), tidak ada instruksi tentang cara menjawab ("Jawab langsung di sini — misalnya
+…"), tidak ada kalimat yang membicarakan data/asumsi/model sebagai konsep ("nilai yang belum Anda
+sebut akan diisi asumsi"). Yang boleh: kalimat mengalir ("Yang sudah saya catat: …"), butir
+pertanyaan polos, dan ajakan ke tombol yang memang ada. Bagian terstruktur (Ringkasan / Asumsi /
+Perhitungan / Produk) adalah milik layar solusi, bukan chat. Berlaku untuk teks deterministik
+(`technicalGuidance`, `irrigationGuidance`, `pipe-knowledge.ts`) dan untuk prompt model.
+
 ---
 
 ## 7. Penjelasan tidak boleh melahirkan angka

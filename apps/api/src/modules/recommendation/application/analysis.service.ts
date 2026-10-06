@@ -23,7 +23,9 @@ import type {
 import {
   buildSchematic,
   computeIrrigation,
+  computePond,
   computeSolution,
+  type PondInput,
   type SolutionInput,
 } from '@snouty/engineering';
 import {
@@ -32,6 +34,15 @@ import {
   irrigationFieldFor,
 } from '../domain/engineering-state.js';
 import { irrigationInputFrom } from '../domain/irrigation-input.js';
+import {
+  pondAssumptionsFrom,
+  pondBomItemsFrom,
+  pondHighlights,
+  pondInputFrom,
+  pondLegacyStats,
+  pondProse,
+  pondSystemLinesFrom,
+} from '../domain/pond-view.js';
 import {
   irrigationAssumptionsFrom,
   irrigationBomItemsFrom,
@@ -142,6 +153,12 @@ export class AnalysisService {
     // Jalur irigasi (OQ-47): mesin Kelompok E, perakitan sendiri, tanpa skema bangunan.
     if (state.useCase?.kind === 'irrigation') {
       return this.runIrrigation(conversationId, snapshotId, state, requirementAssumptions, now);
+    }
+    // Kasus teknis umum (Fase 14) yang kalkulatornya ada: kolam/tambak (Kelompok G).
+    if (state.useCase?.kind === 'technical') {
+      const pondInput = pondInputFrom(state);
+      if (pondInput === null) throw new TechnicalCaseNotComputableError(state.useCase.caseId);
+      return this.runPond(conversationId, snapshotId, state, pondInput, now);
     }
 
     // --- Tahap 2: aturan teknik ---
@@ -323,6 +340,98 @@ export class AnalysisService {
     });
     events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;
+  }
+
+  /**
+   * Kolam/tambak: engine Kelompok G (semua `REQUIRES_DOMAIN_VALIDATION` → ASSUMED), pencocokan
+   * produk per peran (pipa masuk PVC AW, pipa kuras PVC D, fitting), prosa deterministik.
+   */
+  private async runPond(
+    conversationId: string,
+    snapshotId: string,
+    state: RequirementState,
+    input: PondInput,
+    now: string,
+  ): Promise<readonly AssistantStreamEvent[]> {
+    const events: AssistantStreamEvent[] = [];
+
+    events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
+    const result = computePond(input);
+    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+      ...trace,
+      id: ulid(),
+    }));
+    events.push({
+      type: 'stage',
+      stage: 'ANALYZING_INSTALLATION',
+      status: 'done',
+      detail: `KOLAM ${result.volumeM3} M³`,
+    });
+
+    events.push({ type: 'stage', stage: 'MATCHING_PRODUCTS', status: 'active' });
+    let version;
+    try {
+      version = await this.catalogQuery.activeVersion();
+    } catch (error) {
+      events.push({ type: 'stage', stage: 'MATCHING_PRODUCTS', status: 'failed' });
+      if (error instanceof CatalogReadUnavailableError) throw new CatalogUnavailableError();
+      throw error;
+    }
+    const page = await this.catalogQuery.listProducts({ limit: 50 });
+    const match = matchProducts(
+      [
+        { role: 'main', size: result.inletSize, family: result.inletFamily },
+        { role: 'branch', size: result.drainSize, family: result.drainFamily },
+        { role: 'fitting', size: result.inletSize, family: FITTING_FAMILY },
+      ],
+      page.items,
+    );
+    events.push({
+      type: 'stage',
+      stage: 'MATCHING_PRODUCTS',
+      status: 'done',
+      detail: `${match.products.length} PRODUK`,
+    });
+
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
+    const prose = pondProse(result);
+    const recommendation: Recommendation = {
+      id: ulid(),
+      conversationId,
+      snapshotId,
+      catalogVersionId: version.id,
+      kind: 'technical',
+      headline: prose.headline,
+      body: prose.body,
+      stats: pondLegacyStats(result, match.products.length),
+      highlights: pondHighlights(result, match.products.length),
+      systemLines: pondSystemLinesFrom(result, traces),
+      products: match.products,
+      bom: pondBomItemsFrom(result, traces),
+      assumptions: pondAssumptionsFrom(result, traces),
+      overallProvenance: result.overallProvenance,
+      createdAt: now,
+    };
+    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.conversations.markSolutionReady(conversationId);
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
+    events.push({
+      type: 'stage',
+      stage: 'PREPARING_SCHEMATIC',
+      status: 'done',
+      detail: 'SKEMA KOLAM MENUNGGU DESAIN',
+    });
+    events.push({ type: 'solution.ready', recommendationId: recommendation.id });
+    void state;
+    return events;
+  }
+}
+
+/** Kasus teknis yang belum punya kalkulator atau datanya belum cukup — pemanggil menjawab jujur. */
+export class TechnicalCaseNotComputableError extends Error {
+  constructor(readonly caseId: string) {
+    super(`kasus teknis ${caseId} belum bisa dihitung`);
+    this.name = 'TechnicalCaseNotComputableError';
   }
 }
 

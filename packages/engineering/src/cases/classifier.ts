@@ -14,6 +14,13 @@ interface Signal {
 }
 
 const SIGNALS: Readonly<Record<CaseId, readonly Signal[]>> = {
+  fish_pond: [
+    {
+      pattern: /\btambak\b|\blele\b|\bnila\b|\bgurame\b|\bbioflok\b|budidaya|\bkoi\b|\bikan\b/i,
+      weight: 5,
+    },
+    { pattern: /\bkolam\b|\bbak\b|pengurasan|\bkuras\b/i, weight: 3 },
+  ],
   culvert: [
     { pattern: /gorong[- ]gorong|culvert|box culvert/i, weight: 5 },
     {
@@ -79,6 +86,7 @@ const SIGNALS: Readonly<Record<CaseId, readonly Signal[]>> = {
 /** Urutan pemenang bila skor seri: kasus yang lebih khas menang atas yang lebih umum. */
 const TIE_ORDER: readonly CaseId[] = [
   'culvert',
+  'fish_pond',
   'irrigation',
   'stormwater',
   'well_distribution',

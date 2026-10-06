@@ -55,6 +55,12 @@ export type ParameterKey =
   | 'building_height'
   | 'number_of_units'
   | 'total_area'
+  // pond / tank
+  | 'pond_length'
+  | 'pond_width'
+  | 'pond_depth'
+  | 'number_of_ponds'
+  | 'fill_time_hours'
   // site / geometry
   | 'route_length'
   | 'field_length'
@@ -206,6 +212,58 @@ export const PARAMETERS: readonly ParameterDefinition[] = [
     'Luas lahannya kira-kira berapa?',
     'Kebutuhan air dan panjang distribusi.',
     { unit: 'ha' },
+  ),
+
+  // ── pond / tank (kolam, tambak, bak) ──
+  P(
+    'pond_length',
+    'project',
+    'number',
+    'Panjang kolam',
+    'critical',
+    'Kolamnya berapa meter panjangnya?',
+    'Volume air yang diisi dan dibuang.',
+    { unit: 'm' },
+  ),
+  P(
+    'pond_width',
+    'project',
+    'number',
+    'Lebar kolam',
+    'critical',
+    'Lebarnya berapa meter?',
+    'Volume air yang diisi dan dibuang.',
+    { unit: 'm' },
+  ),
+  P(
+    'pond_depth',
+    'project',
+    'number',
+    'Kedalaman air',
+    'critical',
+    'Tinggi airnya kira-kira berapa meter?',
+    'Volume air; diameter pipa pembuangan.',
+    { unit: 'm' },
+  ),
+  P(
+    'number_of_ponds',
+    'project',
+    'number',
+    'Jumlah kolam',
+    'important',
+    'Ada berapa kolam?',
+    'Total debit dan jumlah cabang.',
+    { unit: 'kolam' },
+  ),
+  P(
+    'fill_time_hours',
+    'operation',
+    'number',
+    'Lama pengisian',
+    'important',
+    'Kolam mau terisi penuh dalam berapa jam?',
+    'Debit pengisian → diameter pipa masuk.',
+    { unit: 'jam' },
   ),
 
   // ── site / geometry ──

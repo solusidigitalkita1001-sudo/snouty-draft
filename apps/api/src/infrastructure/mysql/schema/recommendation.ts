@@ -53,11 +53,13 @@ export const recommendations = mysqlTable(
      */
     proseSource: varchar('prose_source', { length: 12 }),
 
-    /** `building` | `irrigation` (0014, OQ-47). */
+    /** `building` | `irrigation` (0014, OQ-47) | `technical` (0015, Fase 14). */
     kind: varchar('kind', { length: 12 }).notNull().default('building'),
     stats: json('stats').notNull(),
     /** Statistik solusi irigasi; NULL untuk bangunan. */
     irrigationStats: json('irrigation_stats'),
+    /** Statistik ringkasan kasus teknis umum (`KeyValue[]`); NULL selain `technical`. */
+    highlights: json('highlights'),
     systemLines: json('system_lines').notNull(),
     products: json('products').notNull(),
     bom: json('bom').notNull(),

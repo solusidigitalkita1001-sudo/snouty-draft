@@ -70,8 +70,10 @@ const UP = [
   '0012_recommendation_prose_source.sql',
   '0013_catalog_version_kind.sql',
   '0014_recommendation_kind.sql',
+  '0015_recommendation_technical.sql',
 ];
 const DOWN = [
+  '0015_recommendation_technical.down.sql',
   '0014_recommendation_kind.down.sql',
   '0013_catalog_version_kind.down.sql',
   '0012_recommendation_prose_source.down.sql',

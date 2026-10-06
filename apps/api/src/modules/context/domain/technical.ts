@@ -223,27 +223,44 @@ export function technicalGuidance(state: RequirementState): string {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return '';
   const profile = caseProfile(state.useCase.caseId);
   const known = technicalCaptured(state);
-  const lines: string[] = [`**${profile.label}** — ${profile.description}`, ''];
+  const scope = profile.description.replace(/\.$/, '');
+  // Redaksi seperti teknisi yang membalas sendiri: tanpa judul bagian, tanpa penomoran, tanpa
+  // kalimat tentang "data"/"asumsi" sebagai konsep — cukup apa yang dicatat dan apa yang ditanya.
+  const lines: string[] = [
+    `Oke, ${profile.label.toLowerCase()}. ${scope.charAt(0).toUpperCase()}${scope.slice(1)}.`,
+  ];
   if (known.length > 0) {
-    lines.push('**Data yang diketahui**');
-    for (const row of known) lines.push(`- ${row.label}: ${row.value}`);
-    lines.push('');
+    lines.push(
+      '',
+      `Yang sudah saya catat: ${joinNatural(known.map((r) => `${r.label.toLowerCase()} ${r.value}`))}.`,
+    );
   }
   const { text, card } = planTechnicalClarification(state);
   const missing = [...text, ...card.map((q) => ({ question: q.question }))];
   if (missing.length > 0) {
-    lines.push('**Data yang masih dibutuhkan**');
-    missing.forEach((m, i) => lines.push(`${i + 1}. ${m.question}`));
-    if (text.length > 0) {
-      lines.push('');
+    lines.push('', 'Supaya hitungannya pas, tolong jawab beberapa hal ini:');
+    for (const m of missing) lines.push(`- ${m.question}`);
+    if (isTechnicalComplete(state) && profile.calculatorStatus === 'available') {
       lines.push(
-        'Jawab langsung di sini — misalnya "jaraknya 150 meter, sumbernya 4 meter lebih rendah".',
+        '',
+        'Kalau mau langsung lihat hasilnya, tekan **Susun rekomendasi** — yang belum disebut saya pakai angka perkiraan awal dan saya tandai jelas di hasilnya.',
       );
     }
+  } else if (profile.calculatorStatus === 'available') {
+    lines.push(
+      '',
+      'Datanya sudah cukup. Tekan **Susun rekomendasi** untuk melihat ukuran pipa dan daftar produknya.',
+    );
   } else {
     lines.push(
-      'Data inti sudah tercatat. Nilai yang belum Anda sebut akan diisi asumsi awal yang ditandai jelas.',
+      '',
+      'Datanya sudah cukup; saya teruskan ke tim teknis Pralon untuk dihitung, dan hasilnya dikirim ke Anda.',
     );
   }
   return lines.join('\n');
+}
+
+function joinNatural(items: readonly string[]): string {
+  if (items.length <= 1) return items.join('');
+  return `${items.slice(0, -1).join(', ')}, dan ${items[items.length - 1]}`;
 }
