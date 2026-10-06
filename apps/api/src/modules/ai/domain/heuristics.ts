@@ -31,9 +31,13 @@ const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
  * Intent yang bisa dipastikan tanpa model; `null` bila tidak pasti. Hanya tiga kelas:
  * sapaan utuh, merek pesaing, dan konsep produk tanpa isyarat kebutuhan.
  */
+/** Irigasi/pertanian punya jalurnya sendiri di `context` — kebutuhan, bukan pertanyaan produk. */
+const IRRIGATION = /\b(irigasi|sawah|kebun|perkebunan|pertanian|ladang)\b/;
+
 export function certainIntent(message: string): IntentClassification | null {
   const text = message.toLowerCase();
   if (GREETING.test(text)) return { intent: 'OUT_OF_SCOPE', confidence: 0.95 };
+  if (IRRIGATION.test(text)) return { intent: 'REQUIREMENT_STATEMENT', confidence: 0.9 };
   if (COMPETITOR_BRANDS.test(text)) return { intent: 'COMPETITOR_QUESTION', confidence: 0.95 };
   if (PRODUCT_CONCEPT.test(text) && FAMILY_TOKENS.test(text) && !REQUIREMENT_SIGNALS.test(text)) {
     FAMILY_TOKENS.lastIndex = 0;

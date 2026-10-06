@@ -52,6 +52,7 @@ describe('irigasi', () => {
   it('jawaban chip divalidasi terhadap templat; "Belum tahu" sah tetapi tidak menimpa; lengkap → handoff', () => {
     expect(irrigationAnswerValue('irrigation.source', 'PDAM')).toBe('PDAM');
     expect(irrigationAnswerValue('irrigation.source', 'Laut')).toBeNull();
+    expect(irrigationAnswerValue('irrigation.distance', '200-500 m')).toBe('200–500 m'); // tanda pisah apa pun
     expect(irrigationAnswerValue('irrigation.source', 'Belum tahu')).toBe('Belum tahu');
 
     let { state } = applyIrrigationAnswers(emptyRequirementState(T0), {

@@ -13,6 +13,10 @@ describe('certainIntent', () => {
     expect(certainIntent('lebih bagus Pralon atau Rucika?')?.intent).toBe('COMPETITOR_QUESTION');
     expect(certainIntent('apa bedanya pvc sama hdpe?')?.intent).toBe('PRODUCT_LOOKUP');
     expect(certainIntent('apa itu PPR?')?.intent).toBe('PRODUCT_LOOKUP');
+    // Irigasi: jalur kebutuhan (OQ-47), tanpa menunggu model 40 detik untuk menebaknya.
+    expect(certainIntent('untuk bikin irigasi sawah 1 hektar butuh produk apa?')?.intent).toBe(
+      'REQUIREMENT_STATEMENT',
+    );
   });
 
   it('tidak pasti → null: kebutuhan, rekomendasi, pertanyaan ukuran, kalimat bebas', () => {

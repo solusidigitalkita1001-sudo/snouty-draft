@@ -169,7 +169,20 @@ export function planIrrigationClarification(
 /** Label pilihan yang sah untuk sebuah pertanyaan irigasi (atau "Belum tahu"); lainnya `null`. */
 export function irrigationAnswerValue(id: IrrigationField, option: string): string | null {
   if (option === UNKNOWN) return UNKNOWN;
-  return IRRIGATION_TEMPLATES[id].options.includes(option) ? option : null;
+  // Tanda pisah (– — -) dan spasi disamakan: label kanonik templat yang disimpan, bukan
+  // ejaan klien — "200-500 m" dari keyboard biasa tetap cocok dengan "200–500 m".
+  const canonical = IRRIGATION_TEMPLATES[id].options.find(
+    (candidate) => normalizeLabel(candidate) === normalizeLabel(option),
+  );
+  return canonical ?? null;
+}
+
+function normalizeLabel(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/[–—‒−-]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /** Baris "yang sudah saya catat" untuk kartu handoff dan antrean tim teknis. */
