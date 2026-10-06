@@ -332,8 +332,28 @@ export class OpenRouterAiService implements AiService {
 
 function safeJson(raw: string): unknown {
   try {
-    return JSON.parse(raw);
+    return withoutNulls(JSON.parse(raw));
   } catch {
     return raw; // biarkan zod menolaknya — error-nya lebih informatif
   }
+}
+
+/**
+ * `null` dari model berarti "tidak disebut" — sama dengan field yang dihilangkan.
+ *
+ * Skema ekstraksi memakai `optional()` dan menolak `null` (lihat `extraction-schema.ts`);
+ * prompt sudah meminta field yang tidak disebut dihilangkan, tetapi model kecil (qwen2.5 7B
+ * di server, 2026-10-06) tetap menulis `null` untuk setiap field yang ia tidak tahu, lalu
+ * dua percobaan gagal validasi dan tahap pemahaman gugur — padahal isinya benar. Membuang
+ * properti bernilai `null` sebelum validasi menyamakan keduanya tanpa melonggarkan skema:
+ * `null` di dalam array dibiarkan (bukan "tidak disebut"), dan nilai lain tidak disentuh.
+ */
+function withoutNulls(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withoutNulls);
+  if (value === null || typeof value !== 'object') return value;
+  const kept: Record<string, unknown> = {};
+  for (const [key, inner] of Object.entries(value)) {
+    if (inner !== null) kept[key] = withoutNulls(inner);
+  }
+  return kept;
 }

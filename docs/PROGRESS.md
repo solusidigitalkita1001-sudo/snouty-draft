@@ -699,6 +699,13 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       400); prefix diganti `^~ /api/v1/conversations`. Badge "KATALOG PRALON · label" di header
       sambutan dihapus (keputusan pemilik: label impor bukan teks pengguna). Keputusan pemilik:
       aturan tamu **tetap** — konsultasi penuh tanpa riwayat tersimpan; riwayat/simpan butuh akun
+- [x] P14-09d Model bahasa produksi (2026-10-06 malam). Akun OpenRouter proyek lama: kredit 0,
+      batas kunci 0, slug `:free` dihapus — semua panggilan gagal ("Pemahaman bahasa sedang tidak
+      tersedia"). Keputusan pemilik: **Ollama di server** (service compose profil `ollama`,
+      `qwen2.5:7b-instruct`, timeout 30 s/180 s). Keluaran 7B menulis `null` untuk field yang tidak
+      disebut → dua kali gagal validasi → tahap pemahaman gugur; `withoutNulls` di batas AI
+      menyamakan `null` dengan "tidak disebut" (skema tetap strict), 2 tes. `deploy.sh up` me-restart
+      nginx edge (IP kontainer api berubah → 502)
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache

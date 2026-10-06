@@ -78,6 +78,44 @@ describe('OpenRouterAiService', () => {
     });
   });
 
+  it('`null` untuk field yang tidak disebut = dihilangkan: valid tanpa percobaan ulang', async () => {
+    await withEnv(async () => {
+      // Keluaran asli qwen2.5 7B di server untuk "rumah 2 lantai, 3 kamar mandi, air dari toren atap".
+      const { transport, calls } = transportReturning(
+        '{"building":{"type":"residential","floors":2,"floorHeightM":null,"mainRunMeters":null},' +
+          '"fixtures":{"bathrooms":3,"basins":null,"kitchens":null,"outletCount":null},' +
+          '"water":{"source":"rooftop_tank","installationType":null,"boosterPump":null}}',
+      );
+      const { recorder, records } = recorderCapturing();
+      const svc = new OpenRouterAiService(transport, recorder, () => 0);
+
+      const result = await svc.extract('rumah 2 lantai, 3 kamar mandi, air dari toren atap');
+      expect(result).toEqual({
+        building: { type: 'residential', floors: 2 },
+        fixtures: { bathrooms: 3 },
+        water: { source: 'rooftop_tank' },
+      });
+      expect(calls).toHaveLength(1);
+      expect(records.map((r) => r.outcome)).toEqual(['success']);
+    });
+  });
+
+  it('`null` di tempat yang memang salah tetap ditolak — bukan pelonggaran skema', async () => {
+    await withEnv(async () => {
+      // `building: null` dibuang → `{}` valid; tetapi nilai bukan-null yang salah tetap gagal.
+      const { transport, calls } = transportReturning(
+        '{"building":{"floors":"dua"}}',
+        '{"building":null}',
+      );
+      const { recorder } = recorderCapturing();
+      const svc = new OpenRouterAiService(transport, recorder, () => 0);
+
+      const result = await svc.extract('rumah dua lantai');
+      expect(result).toEqual({});
+      expect(calls).toHaveLength(2);
+    });
+  });
+
   it('tidak valid lalu valid: retry sekali di tingkat strong, dua catatan', async () => {
     await withEnv(async () => {
       const { transport, calls } = transportReturning('bukan json', '{"building":{"floors":3}}');
