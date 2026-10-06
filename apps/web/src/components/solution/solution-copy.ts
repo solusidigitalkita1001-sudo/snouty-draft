@@ -14,6 +14,14 @@ export const SOLUTION_COPY = {
     fixture: 'Sambungan fixture',
     products: 'Produk Pralon',
   },
+  /** Statistik solusi irigasi (OQ-47) — belum didesain; label mengikuti pola bangunan. */
+  irrigationStats: {
+    area: 'Luas lahan',
+    flow: 'Debit rencana',
+    pump: 'Pompa',
+    pumpYes: 'Diperlukan',
+    pumpNo: 'Gravitasi',
+  },
   systemTitle: 'Rekomendasi Sistem',
   showTechnical: 'Tampilkan detail teknis',
   hideTechnical: 'Sembunyikan detail teknis',

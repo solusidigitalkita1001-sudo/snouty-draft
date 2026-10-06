@@ -247,6 +247,56 @@ water.installationType → 'Air bersih'
 Asal: prototipe baru. Keduanya default yang relevan secara teknik dan disajikan kepada pengguna
 sebagai asumsi, jadi harus melewati proses validasi yang sama.
 
+### Kelompok E — Irigasi (OQ-47, 2026-10-06)
+
+Asal: **bukan prototipe** (prototipe hanya mendesain bangunan) — keputusan pemilik bahwa irigasi
+dihitung seperti rumah. Rumusnya kriteria teknik umum yang terdokumentasi, bukan ingatan model;
+rujukan tertulis di `sourceReference` tiap aturan. Semua `REQUIRES_DOMAIN_VALIDATION`.
+Orkestratornya `computeIrrigation()`, terpisah dari `computeSolution()`: masukannya luas lahan,
+metode, jarak sumber, dan posisi sumber — bukan field bangunan.
+
+#### ENG-101 · Debit rencana
+
+```
+designFlowLs = areaHa × duty      duty: genangan 1,5 · sprinkler 0,8 · tetes 0,5  (l/s/ha)
+```
+
+KP-01 Kriteria Perencanaan Irigasi (padi ±1,2–1,5 l/s/ha); sprinkler/tetes praktik umum.
+
+#### ENG-102 · Diameter jalur utama dari debit
+
+```
+D_min = √(4Q / πv)   dengan v = 1,5 m/s (pipa plastik 1–2 m/s)
+mainSize = ukuran nominal terkecil dengan diameter dalam ≥ D_min
+```
+
+Tabel diameter dalam nominal (15–150 mm) adalah pendekatan, bukan tabel produk.
+
+#### ENG-103 · Kebutuhan tekanan dan pompa
+
+```
+pumpRequired = metode ≠ genangan  ATAU  sumber tidak lebih tinggi dari lahan
+pressureClass = pumpRequired ? AW : D
+```
+
+Sprinkler ±2–3 bar dan tetes ±1–1,5 bar di emitter; genangan gravitasi tanpa tekanan.
+
+#### ENG-104 · Bahan per segmen
+
+```
+mainFamily = mainRunMeters ≥ 200 ? HDPE : PVC AW ;  distributionFamily = PVC AW
+```
+
+#### ENG-105 · Panjang dan BOM estimasi
+
+```
+sisi = √(areaHa × 10 000) ; distribusi ≈ 2 × sisi ; cabang = ⌈sisi / 25⌉
+HDPE per meter ; PVC batang 4 m ; tee = cabang ; elbow 4 ; katup = cabang + 1
+```
+
+Tata letak lahan dianggap bujur sangkar dengan satu lateral tiap 25 m — asumsi tata letak, bukan
+desain lahan; itulah sebabnya BOM-nya `ASSUMED`.
+
 ---
 
 ## 4. Tabel pelacak validasi

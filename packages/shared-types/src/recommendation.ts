@@ -47,7 +47,16 @@ export interface SelectedProduct {
   readonly reason: string;
 }
 
-export type BomUnit = 'batang' | 'pcs' | 'kaleng';
+export type BomUnit = 'batang' | 'pcs' | 'kaleng' | 'meter';
+
+/** Statistik layar 06 untuk solusi IRIGASI (OQ-47) — menggantikan lima statistik bangunan. */
+export interface IrrigationStats {
+  readonly areaHa: number;
+  readonly designFlowLs: number;
+  readonly mainSize: string;
+  readonly pumpRequired: boolean;
+  readonly productCount: number;
+}
 
 export interface BomItem {
   readonly item: string;
@@ -81,7 +90,11 @@ export interface Recommendation {
   readonly catalogVersionId: string;
   readonly headline: string;
   readonly body: string;
+  /** Jalur guna; tidak ada = bangunan (rekomendasi lama). */
+  readonly kind?: 'building' | 'irrigation';
   readonly stats: RecommendationStats;
+  /** Hanya untuk `kind: 'irrigation'`; `stats` tetap terisi demi pembaca lama. */
+  readonly irrigationStats?: IrrigationStats;
   readonly systemLines: readonly SystemLine[];
   readonly products: readonly SelectedProduct[];
   readonly bom: readonly BomItem[];

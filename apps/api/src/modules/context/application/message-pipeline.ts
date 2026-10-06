@@ -25,12 +25,7 @@ import type {
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
 import { policyCard } from '../../policy/policy-cards.js';
-import {
-  competitorPolicy,
-  irrigationHandoffPolicy,
-  scopePolicy,
-  useCasePolicy,
-} from '../../policy/scope.js';
+import { competitorPolicy, scopePolicy, useCasePolicy } from '../../policy/scope.js';
 import {
   applyIrrigationAnswers,
   irrigationCaptured,
@@ -223,13 +218,17 @@ export function followUpCard(merged: RequirementState): AssistantCard | null {
   return { kind: 'cta', action: 'ANALYZE' };
 }
 
-/** Irigasi: masih ada yang kurang → kartu pertanyaan irigasi; lengkap → handoff terstruktur. */
+/**
+ * Irigasi: masih ada yang kurang → kartu pertanyaan irigasi; lengkap → CTA "Susun
+ * rekomendasi" — mesin irigasi (Kelompok E) menghitungnya, semua bertanda asumsi sampai
+ * divalidasi (OQ-47). Handoff ke tim teknis tetap tersedia dari layar solusi.
+ */
 function irrigationFollowUp(state: RequirementState): AssistantCard | null {
   if (!isIrrigationComplete(state)) {
     const questions = planIrrigationClarification(state);
     return questions.length > 0 ? { kind: 'clarification', questions } : null;
   }
-  return policyCard(irrigationHandoffPolicy(), capturedFrom(state));
+  return { kind: 'cta', action: 'ANALYZE' };
 }
 
 /**

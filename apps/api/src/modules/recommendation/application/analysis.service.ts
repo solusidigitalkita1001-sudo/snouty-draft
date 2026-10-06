@@ -14,8 +14,27 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { AssistantStreamEvent, Assumption, RequirementState } from '@snouty/shared-types';
-import { buildSchematic, computeSolution, type SolutionInput } from '@snouty/engineering';
+import type {
+  AssistantStreamEvent,
+  Assumption,
+  Recommendation,
+  RequirementState,
+} from '@snouty/shared-types';
+import {
+  buildSchematic,
+  computeIrrigation,
+  computeSolution,
+  type SolutionInput,
+} from '@snouty/engineering';
+import { irrigationInputFrom } from '../domain/irrigation-input.js';
+import {
+  irrigationAssumptionsFrom,
+  irrigationBomItemsFrom,
+  irrigationProse,
+  irrigationStatsFrom,
+  irrigationSystemLinesFrom,
+  legacyStatsFrom,
+} from '../domain/irrigation-view.js';
 import {
   CATALOG_REPOSITORY,
   type CatalogRepository,
@@ -115,6 +134,11 @@ export class AnalysisService {
   ): Promise<readonly AssistantStreamEvent[]> {
     const events: AssistantStreamEvent[] = [];
 
+    // Jalur irigasi (OQ-47): mesin Kelompok E, perakitan sendiri, tanpa skema bangunan.
+    if (state.useCase?.kind === 'irrigation') {
+      return this.runIrrigation(conversationId, snapshotId, state, requirementAssumptions, now);
+    }
+
     // --- Tahap 2: aturan teknik ---
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const solution = computeSolution(solutionInputFrom(state));
@@ -198,6 +222,96 @@ export class AnalysisService {
     });
 
     events.push({ type: 'solution.ready', recommendationId: assembled.recommendation.id });
+    return events;
+  }
+
+  /**
+   * Irigasi: engine Kelompok E (semua `REQUIRES_DOMAIN_VALIDATION` → ASSUMED), pencocokan
+   * produk per peran (jalur utama HDPE/PVC AW, distribusi PVC AW, fitting), prosa deterministik.
+   * Tahap skema ditandai selesai tanpa gambar — skema irigasi belum didesain.
+   */
+  private async runIrrigation(
+    conversationId: string,
+    snapshotId: string,
+    state: RequirementState,
+    requirementAssumptions: readonly Assumption[],
+    now: string,
+  ): Promise<readonly AssistantStreamEvent[]> {
+    const events: AssistantStreamEvent[] = [];
+
+    events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
+    const { input, assumptions: inputAssumptions } = irrigationInputFrom(state);
+    const result = computeIrrigation(input);
+    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+      ...trace,
+      id: ulid(),
+    }));
+    events.push({
+      type: 'stage',
+      stage: 'ANALYZING_INSTALLATION',
+      status: 'done',
+      detail: `IRIGASI ${input.areaHa} HA`,
+    });
+
+    events.push({ type: 'stage', stage: 'MATCHING_PRODUCTS', status: 'active' });
+    let version;
+    try {
+      version = await this.catalogQuery.activeVersion();
+    } catch (error) {
+      events.push({ type: 'stage', stage: 'MATCHING_PRODUCTS', status: 'failed' });
+      if (error instanceof CatalogReadUnavailableError) throw new CatalogUnavailableError();
+      throw error;
+    }
+    const page = await this.catalogQuery.listProducts({ limit: 50 });
+    const match = matchProducts(
+      [
+        { role: 'main', size: result.mainSize, family: result.mainFamily },
+        { role: 'branch', size: result.mainSize, family: result.distributionFamily },
+        { role: 'fitting', size: result.mainSize, family: FITTING_FAMILY },
+      ],
+      page.items,
+    );
+    events.push({
+      type: 'stage',
+      stage: 'MATCHING_PRODUCTS',
+      status: 'done',
+      detail: `${match.products.length} PRODUK`,
+    });
+
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
+    const stats = irrigationStatsFrom(result, input.areaHa, match.products.length);
+    const prose = irrigationProse(stats, result);
+    const recommendation: Recommendation = {
+      id: ulid(),
+      conversationId,
+      snapshotId,
+      catalogVersionId: version.id,
+      kind: 'irrigation',
+      headline: prose.headline,
+      body: prose.body,
+      stats: legacyStatsFrom(result, match.products.length),
+      irrigationStats: stats,
+      systemLines: irrigationSystemLinesFrom(result, traces),
+      products: match.products,
+      bom: irrigationBomItemsFrom(result, traces),
+      assumptions: irrigationAssumptionsFrom(traces, [
+        ...inputAssumptions,
+        ...requirementAssumptions,
+      ]),
+      overallProvenance: result.overallProvenance,
+      createdAt: now,
+    };
+    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.conversations.markSolutionReady(conversationId);
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
+
+    events.push({
+      type: 'stage',
+      stage: 'PREPARING_SCHEMATIC',
+      status: 'done',
+      detail: 'SKEMA IRIGASI MENUNGGU DESAIN',
+    });
+    events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;
   }
 }

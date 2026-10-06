@@ -10,12 +10,15 @@ import { GROUP_A } from './rules/group-a-load-sizing.js';
 import { GROUP_B } from './rules/group-b-geometry.js';
 import { GROUP_C } from './rules/group-c-material.js';
 import { GROUP_D } from './rules/group-d-conversation.js';
+import { GROUP_E } from './rules/group-e-irrigation.js';
 
+/** 14 aturan bangunan (A–D) + 5 aturan irigasi (E, OQ-47). */
 export const ALL_RULES: readonly AnyRule[] = [
   ...GROUP_A,
   ...GROUP_B,
   ...GROUP_C,
   ...GROUP_D,
+  ...GROUP_E,
 ] as unknown as readonly AnyRule[];
 
 export const RULE_REGISTRY = new RuleRegistry();

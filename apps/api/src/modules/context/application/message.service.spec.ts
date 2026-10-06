@@ -170,7 +170,7 @@ describe('MessageService.answerClarification — semua jawaban sekaligus, tanpa 
     );
     // Store palsu tidak menyimpan state; cukup pastikan jawabannya terbaca dan kartunya kebijakan
     // atau klarifikasi — bukan lemparan.
-    expect(['clarification', 'unsupported']).toContain(done.card?.kind);
+    expect(['clarification', 'cta']).toContain(done.card?.kind);
   });
 
   it('"Belum tahu" memakai default ASSUMED bila ada; yang tanpa default ditanya lagi', async () => {

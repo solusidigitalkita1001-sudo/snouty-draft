@@ -44,11 +44,45 @@ export function SolutionView({
           <h2 className={styles.headline}>{recommendation.headline}</h2>
           <p className={styles.body}>{recommendation.body}</p>
           <div className={styles.statsRow}>
-            <Stat label={COPY.statsLabels.outletCount} value={String(stats.outletCount)} />
-            <Stat label={COPY.statsLabels.mainSize} value={stats.mainSize} mono />
-            <Stat label={COPY.statsLabels.branch} value={String(stats.branchCount)} />
-            <Stat label={COPY.statsLabels.fixture} value={stats.fixtureConnectionSize} mono />
-            <Stat label={COPY.statsLabels.products} value={`${stats.productCount} item`} />
+            {recommendation.kind === 'irrigation' && recommendation.irrigationStats ? (
+              <>
+                {/* Solusi irigasi (OQ-47): statistiknya luas, debit, jalur utama, pompa. */}
+                <Stat
+                  label={COPY.irrigationStats.area}
+                  value={`${String(recommendation.irrigationStats.areaHa).replace('.', ',')} ha`}
+                />
+                <Stat
+                  label={COPY.irrigationStats.flow}
+                  value={`${String(recommendation.irrigationStats.designFlowLs).replace('.', ',')} l/s`}
+                  mono
+                />
+                <Stat
+                  label={COPY.statsLabels.mainSize}
+                  value={recommendation.irrigationStats.mainSize}
+                  mono
+                />
+                <Stat
+                  label={COPY.irrigationStats.pump}
+                  value={
+                    recommendation.irrigationStats.pumpRequired
+                      ? COPY.irrigationStats.pumpYes
+                      : COPY.irrigationStats.pumpNo
+                  }
+                />
+                <Stat
+                  label={COPY.statsLabels.products}
+                  value={`${recommendation.irrigationStats.productCount} item`}
+                />
+              </>
+            ) : (
+              <>
+                <Stat label={COPY.statsLabels.outletCount} value={String(stats.outletCount)} />
+                <Stat label={COPY.statsLabels.mainSize} value={stats.mainSize} mono />
+                <Stat label={COPY.statsLabels.branch} value={String(stats.branchCount)} />
+                <Stat label={COPY.statsLabels.fixture} value={stats.fixtureConnectionSize} mono />
+                <Stat label={COPY.statsLabels.products} value={`${stats.productCount} item`} />
+              </>
+            )}
           </div>
           <div className={styles.summaryFooter}>
             <span className={styles.disclaimer}>{COPY.planningDisclaimer}</span>

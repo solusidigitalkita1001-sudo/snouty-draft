@@ -342,11 +342,18 @@ menentukan kelas), lalu saat lengkap → kartu handoff dengan data terbaca dan t
 teknis. Jawabannya disimpan di `RequirementState.useCase` — terpisah dari field bangunan, supaya
 mesin teknik tidak pernah menghitung dari data yang bukan bangunan. Nol LLM di seluruh jalur.
 
-**Yang dibutuhkan dari pemilik / tim teknis Pralon untuk sizing otomatis:** aturan debit per
-hektar per jenis irigasi, kriteria kecepatan/tekanan jalur, tabel pemilihan diameter terhadap
-debit × jarak × beda tinggi, dan keluarga produk Pralon untuk irigasi (OQ-07). Dengan itu, jalur
-ini bisa bermuara di rekomendasi otomatis seperti rumah (aturan baru di `packages/engineering`,
-`REQUIRES_DOMAIN_VALIDATION` sampai divalidasi).
+**Revisi hari yang sama (pemilik: "AI-nya harusnya bisa ngitung juga"):** jalur ini kini
+**bermuara di rekomendasi otomatis** seperti rumah, dengan cara yang sama seperti aturan bangunan
+dibangun: Kelompok E di `packages/engineering` (ENG-101 debit rencana per metode, ENG-102 diameter
+dari debit pada kecepatan rencana, ENG-103 kebutuhan tekanan/pompa, ENG-104 bahan per segmen,
+ENG-105 panjang & BOM estimasi), semuanya `REQUIRES_DOMAIN_VALIDATION` → setiap keluaran `ASSUMED`,
+rujukan rumus tertulis di tiap aturan, kartu asumsi menyebutkannya sebagai asumsi pertama. Nilai
+dari rentang pilihan (titik tengah) dan "Belum tahu" dicatat sebagai asumsi per field.
+
+**Yang dibutuhkan dari tim teknis Pralon:** validasi lima aturan itu (debit satuan per metode,
+kecepatan rencana, aturan pompa/kelas, ambang HDPE, tata letak BOM) — alur validasinya sama dengan
+aturan bangunan (`docs/ENGINEERING_RULES.md` §5) — plus keluarga produk Pralon untuk irigasi (OQ-07)
+dan desain skema irigasi (tab Skema untuk solusi irigasi sengaja kosong).
 
 ### OQ-46 — Katalog contoh pernah mendasari klaim tentang Pralon; kini ditandai dan dipagari
 

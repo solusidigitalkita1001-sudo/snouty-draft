@@ -67,6 +67,7 @@ export type {
   BomItem,
   BomUnit,
   Recommendation,
+  IrrigationStats,
   RecommendationStats,
   SelectedProduct,
   SystemLine,

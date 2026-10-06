@@ -26,8 +26,8 @@ export function irrigationGuidance(state: RequirementState): string {
     '- **Pompa dan katup** menentukan tekanan yang harus ditahan pipa — kelas pipanya mengikuti itu.',
     '',
     irrigationMissing(state).length > 0
-      ? 'Supaya tim teknis Pralon bisa menghitung ukuran dan menyusun daftar produknya, saya perlu beberapa hal di bawah ini.'
-      : 'Data irigasinya sudah lengkap — perhitungan ukuran pipa irigasi dilakukan tim teknis Pralon dari data ini.',
+      ? 'Supaya saya bisa menghitung debit, ukuran pipa, dan daftar produknya, saya perlu beberapa hal di bawah ini.'
+      : 'Data irigasinya sudah lengkap — saya bisa menghitung perkiraan awalnya (bertanda asumsi sampai diperiksa tim teknis Pralon).',
   ];
   return lines.join('\n');
 }

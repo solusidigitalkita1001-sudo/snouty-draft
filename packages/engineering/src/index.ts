@@ -62,6 +62,23 @@ export type {
   TrackedNumber,
 } from './schematic.js';
 
+export {
+  ENG_101,
+  ENG_102,
+  ENG_103,
+  ENG_104,
+  ENG_105,
+  GROUP_E,
+} from './rules/group-e-irrigation.js';
+export type {
+  IrrigationBomLine,
+  IrrigationMethod,
+  SourceElevation,
+} from './rules/group-e-irrigation.js';
+
+export { computeIrrigation } from './compute-irrigation.js';
+export type { IrrigationInput, IrrigationResult } from './compute-irrigation.js';
+
 export { computeSolution } from './compute-solution.js';
 export type { CalculationTrace, SolutionInput, SolutionResult } from './compute-solution.js';
 
