@@ -20,6 +20,45 @@ function aiReturning(result: IntentClassification): AiService {
 
 const router = (result: IntentClassification) => new IntentRouter(aiReturning(result));
 
+describe('IntentRouter — presedensi kebutuhan (intent sadar konteks)', () => {
+  it('"lebih bagus PVC atau HDPE buat rumah 2 lantai?" yang dilabeli PRODUCT_LOOKUP → REQUIREMENT_STATEMENT', async () => {
+    const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.85 }).route(
+      'lebih bagus PVC atau HDPE buat rumah 2 lantai?',
+      false,
+    );
+    expect(d.intent).toBe('REQUIREMENT_STATEMENT');
+    expect(d.shouldExtract).toBe(true);
+    expect(d.mutatesState).toBe(false);
+  });
+
+  it('model ragu tetapi pesannya membawa kebutuhan → tetap diekstrak, bukan ditanya balik', async () => {
+    const d = await router({ intent: 'CLARIFICATION_NEEDED', confidence: 0.3 }).route(
+      'rumah 2 lantai 3 kamar mandi',
+      false,
+    );
+    expect(d.intent).toBe('REQUIREMENT_STATEMENT');
+  });
+
+  it('tanpa isyarat kebutuhan, label model dipakai apa adanya', async () => {
+    const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.85 }).route(
+      'apa bedanya pvc sama hdpe?',
+      false,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+  });
+
+  it('giliran terakhir diteruskan ke klasifikasi model', async () => {
+    const seen: IntentInput[] = [];
+    const ai = aiReturning({ intent: 'REQUIREMENT_STATEMENT', confidence: 0.9 });
+    ai.classifyIntent = (input) => {
+      seen.push(input);
+      return Promise.resolve({ intent: 'REQUIREMENT_STATEMENT', confidence: 0.9 });
+    };
+    await new IntentRouter(ai).route('yang mana?', false, [{ role: 'user', text: 'hai' }]);
+    expect(seen[0]?.recentTurns).toEqual([{ role: 'user', text: 'hai' }]);
+  });
+});
+
 describe('IntentRouter', () => {
   it('REQUIREMENT_MUTATION mengekstrak dan memutasi state', async () => {
     const d = await router({ intent: 'REQUIREMENT_MUTATION', confidence: 0.9 }).route(

@@ -23,6 +23,11 @@ export interface IntentInput {
   readonly message: string;
   /** Apakah percakapan sudah punya state terisi — membedakan statement vs mutation. */
   readonly hasExistingRequirements: boolean;
+  /**
+   * Giliran terakhir (tertua dulu) — supaya "yang mana?" setelah perbandingan bisa dibaca
+   * sebagai lanjutan, bukan pesan lepas. Opsional: klasifikasi tetap sah tanpanya.
+   */
+  readonly recentTurns?: readonly { readonly role: 'user' | 'assistant'; readonly text: string }[];
 }
 
 export interface AiService {

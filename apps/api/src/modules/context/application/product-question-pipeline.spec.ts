@@ -104,6 +104,37 @@ describe('runProductQuestion — KONSEP', () => {
     expect(events.at(-1)?.type).toBe('message.end');
   });
 
+  it('anti-ulang: penjelasan yang baru diberikan tidak diulang utuh untuk pertanyaan lain; pertanyaan yang sama boleh', async () => {
+    const full = await runProductQuestion(
+      ai({ productQuery: 'pvc dan hdpe', aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+    );
+    const previous = text(full);
+    const turns = [
+      { role: 'user' as const, text: 'apa bedanya pvc sama hdpe?' },
+      { role: 'assistant' as const, text: previous },
+    ];
+
+    const other = await runProductQuestion(
+      ai({ productQuery: 'pvc dan hdpe', aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      { messageId: 'm', message: 'kalau pvc vs hdpe soal harganya?', recentTurns: turns },
+    );
+    expect(text(other)).toContain('Seperti tadi: **PVC (uPVC) kaku');
+    expect(text(other)).not.toContain('- Sambungan:');
+
+    const again = await runProductQuestion(
+      ai({ productQuery: 'pvc dan hdpe', aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?', recentTurns: turns },
+    );
+    expect(text(again)).toContain('- Sambungan:');
+  });
+
   it('katalog CONTOH tidak pernah bocor: tanpa "CONTOH …", tanpa "tidak ada di katalog Pralon"', async () => {
     const events = await runProductQuestion(
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),

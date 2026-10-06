@@ -72,7 +72,17 @@ export class OpenRouterAiService implements AiService {
     input: IntentInput,
     context: AiCallContext = { correlationId: null },
   ): Promise<IntentClassification> {
-    const user = `hasExistingRequirements=${input.hasExistingRequirements}\n\n${input.message}`;
+    const history = (input.recentTurns ?? [])
+      .slice(-4)
+      .map((t) => `${t.role === 'user' ? 'Pengguna' : 'SNOUTY'}: ${t.text.slice(0, 300)}`)
+      .join('\n');
+    const user = [
+      `hasExistingRequirements=${input.hasExistingRequirements}`,
+      history === '' ? '' : `PERCAKAPAN SEBELUMNYA (tertua dulu):\n${history}`,
+      `PESAN SEKARANG: ${input.message}`,
+    ]
+      .filter((part) => part !== '')
+      .join('\n\n');
     return this.callStructured(
       'intent_classification',
       IntentSchema,

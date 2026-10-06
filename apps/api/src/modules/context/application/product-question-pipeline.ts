@@ -33,7 +33,7 @@ import { isAnswerable, isAuthoritative } from '../../product-catalog/domain/cata
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { endEvent } from './message-pipeline.js';
-import { explain } from './pipe-knowledge.js';
+import { briefComparison, explain, materialsIn } from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, PRODUCT_ANSWER_COPY } from './product-answer-text.js';
 
@@ -113,7 +113,7 @@ async function answerConcept(
   reply: ReplyWriter | null,
   faqPrompt: string | null,
 ): Promise<Outcome> {
-  const knowledge = explain(input.message, query);
+  const knowledge = withoutRepeating(explain(input.message, query), input);
   // Katalog opsional: kegagalan membacanya tidak boleh mengubah penjelasan teknik.
   const support = query === null ? NO_SUPPORT : await lookup(catalog, query, { optional: true });
 
@@ -159,6 +159,30 @@ async function answerConcept(
   const text = accepted ? withUncoveredFacts(written.text, facts, support.products) : data;
   return { text, cards };
 }
+
+/**
+ * Anti-ulang: bila penjelasan yang sama baru saja diberikan (giliran asisten terakhir memuat
+ * kalimat pembukanya) dan pertanyaan sekarang BUKAN pengulangan pertanyaan sebelumnya, cukup
+ * satu kalimat pengingat — pengguna bertanya hal lain, bukan minta diulang.
+ */
+function withoutRepeating(knowledge: string, input: ProductQuestionInput): string {
+  if (knowledge === '') return knowledge;
+  const turns = input.recentTurns ?? [];
+  const lastAssistant = [...turns].reverse().find((t) => t.role === 'assistant')?.text ?? '';
+  const lastUser = [...turns].reverse().find((t) => t.role === 'user')?.text ?? '';
+  const opening = knowledge.split('\n')[0] ?? '';
+  const repeated = opening !== '' && lastAssistant.includes(opening);
+  const sameQuestion = normalize(lastUser) === normalize(input.message);
+  if (!repeated || sameQuestion) return knowledge;
+  const materials = materialsIn(input.message, null).slice(0, 2);
+  return materials.length > 0 ? briefComparison(materials) : knowledge;
+}
+
+const normalize = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
 
 /**
  * Bila pengetahuan dirangkai sebagai butir, tulisan model harus tetap berbutir — minimal

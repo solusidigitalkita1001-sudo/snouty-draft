@@ -3,7 +3,7 @@
  * standar, atau merek lain pun ada di dalamnya — yang berangka hanya boleh datang dari katalog.
  */
 import { describe, expect, it } from 'vitest';
-import { CONCEPTS, MATERIALS, explain, materialsIn } from './pipe-knowledge.js';
+import { CONCEPTS, MATERIALS, adviseMaterials, explain, materialsIn } from './pipe-knowledge.js';
 import { keepsStructure } from './product-question-pipeline.js';
 
 describe('pipe knowledge', () => {
@@ -44,6 +44,32 @@ describe('pipe knowledge', () => {
     );
     expect(explain('pipa yang ditanam di tanah enaknya apa?', 'hdpe')).toContain('Pipa tanam');
     expect(explain('apa itu fitting?', null)).toBe('');
+  });
+
+  it('adviseMaterials: tidak memilih satu bahan sebagai yang terbaik; menyebut apa yang menentukan', () => {
+    const both = materialsIn('pvc atau hdpe', null);
+    const out = adviseMaterials(both, {
+      buildingLabel: 'rumah tinggal',
+      floors: 2,
+      needsMoreData: true,
+    });
+    expect(out).toMatch(
+      /^Untuk rumah tinggal 2 lantai, pilihan bahan \*\*tidak ditentukan dari jumlah lantai saja\*\*/,
+    );
+    expect(out).toContain('- **PVC (uPVC)** biasanya lebih cocok untuk');
+    expect(out).toContain('- **HDPE** biasanya lebih cocok untuk');
+    expect(out).not.toMatch(/\d(?!\slantai)/); // satu-satunya angka: jumlah lantai dari state
+    expect(out).toContain('saya perlu beberapa hal di bawah ini');
+
+    const complete = adviseMaterials(both, {
+      buildingLabel: null,
+      floors: null,
+      needsMoreData: false,
+    });
+    expect(complete).toMatch(
+      /^Untuk kasus ini, pilihan bahan \*\*tidak bisa ditentukan dari satu hal saja\*\*/,
+    );
+    expect(complete).not.toContain('saya perlu');
   });
 
   it('keepsStructure: tanpa butir di DATA selalu lolos; dengan butir butuh butir + tebal', () => {

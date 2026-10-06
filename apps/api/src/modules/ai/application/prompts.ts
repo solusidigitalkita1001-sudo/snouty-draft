@@ -25,6 +25,7 @@ export const INTENT_SYSTEM_PROMPT = [
   '- COMPETITOR_QUESTION: menyebut atau membandingkan merek lain (Rucika, Wavin, Maspion, dsb.).',
   '- OUT_OF_SCOPE: sapaan, basa-basi, atau topik di luar perpipaan.',
   '- CLARIFICATION_NEEDED: maksudnya tidak bisa ditentukan.',
+  'Klasifikasikan dari MAKSUD pesan dan percakapan sebelumnya, bukan dari kata kunci yang kebetulan sama. Pesan yang menyebut produk TETAPI membawa kebutuhan bangunan atau meminta rekomendasi ("lebih bagus PVC atau HDPE buat rumah 2 lantai?") adalah REQUIREMENT_STATEMENT, bukan PRODUCT_LOOKUP. PRODUCT_LOOKUP hanya untuk definisi, perbandingan umum, atau spesifikasi ("apa bedanya PVC dan HDPE?", "ada ukuran 3/4?").',
   'Sertakan confidence 0–1. Bila ragu antara mengubah kebutuhan dan sekadar bertanya, beri confidence rendah.',
 ].join('\n');
 

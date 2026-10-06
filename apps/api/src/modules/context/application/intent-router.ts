@@ -16,6 +16,37 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Intent } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
+import type { IntentClassification } from '../../ai/domain/extraction-schema.js';
+import { hasRequirementSignals } from '../domain/message-signals.js';
+import type { ReplyTurn } from './reply-writer.js';
+
+/** Label model yang kalah oleh isyarat kebutuhan di teks — lihat `withRequirementPrecedence`. */
+const YIELDS_TO_REQUIREMENT: ReadonlySet<Intent> = new Set<Intent>([
+  'PRODUCT_LOOKUP',
+  'OUT_OF_SCOPE',
+  'CLARIFICATION_NEEDED',
+]);
+
+/**
+ * Presedensi kebutuhan (docs/AI_BEHAVIOR.md §4): pesan yang membawa kebutuhan bangunan
+ * ("… buat rumah 2 lantai?") adalah pernyataan kebutuhan walaupun juga menyebut produk atau
+ * model ragu. Model 7B menyebutnya PRODUCT_LOOKUP karena kata PVC/HDPE, lalu pengguna
+ * mendapat penjelasan bahan yang sama untuk kedua kalinya. Aturannya di kode: tidak
+ * bergantung pada model mana yang sedang dipakai, dan bisa diuji tanpa model.
+ */
+export function withRequirementPrecedence(
+  message: string,
+  classification: IntentClassification,
+): IntentClassification {
+  const yields =
+    YIELDS_TO_REQUIREMENT.has(classification.intent) ||
+    classification.confidence < INTENT_CONFIDENCE_THRESHOLD;
+  if (!yields || !hasRequirementSignals(message)) return classification;
+  return {
+    intent: 'REQUIREMENT_STATEMENT',
+    confidence: Math.max(classification.confidence, INTENT_CONFIDENCE_THRESHOLD),
+  };
+}
 
 /** Di bawah ini, sistem bertanya alih-alih menebak (docs/AI_BEHAVIOR.md). */
 export const INTENT_CONFIDENCE_THRESHOLD = 0.6;
@@ -46,11 +77,15 @@ export interface RoutingDecision {
 export class IntentRouter {
   constructor(@Inject(AI_SERVICE) private readonly ai: AiService) {}
 
-  async route(message: string, hasExistingRequirements: boolean): Promise<RoutingDecision> {
-    const classification = await this.ai.classifyIntent({
+  async route(
+    message: string,
+    hasExistingRequirements: boolean,
+    recentTurns: readonly ReplyTurn[] = [],
+  ): Promise<RoutingDecision> {
+    const classification = withRequirementPrecedence(
       message,
-      hasExistingRequirements,
-    });
+      await this.ai.classifyIntent({ message, hasExistingRequirements, recentTurns }),
+    );
 
     // Ragu → bertanya. Mengubah kebutuhan tanpa diminta jauh lebih mahal daripada
     // satu pertanyaan tambahan (CONTEXT_ENGINE §6).

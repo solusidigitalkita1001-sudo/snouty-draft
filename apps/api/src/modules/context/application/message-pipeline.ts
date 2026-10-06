@@ -30,8 +30,10 @@ import { planClarification } from '../domain/clarification.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
+import { asksAdvice } from '../domain/message-signals.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
+import { adviseMaterials, materialsIn } from './pipe-knowledge.js';
 import { replyFor } from './reply-copy.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 
@@ -128,6 +130,21 @@ export async function runUnderstanding(
     detail: `${merged.completeness.filled} DATA`,
   });
 
+  // Pertanyaan REKOMENDASI bahan ("lebih bagus PVC atau HDPE buat rumah 2 lantai?"): kebutuhannya
+  // tetap diekstrak seperti biasa, tetapi pertanyaannya dijawab — bukan diam lalu menyodorkan
+  // formulir, dan bukan mengulang penjelasan bahan. Teks dari pengetahuan milik kode.
+  const materials = asksAdvice(input.message) ? materialsIn(input.message) : [];
+  if (materials.length > 0) {
+    events.push({
+      type: 'token',
+      text: adviseMaterials(materials, {
+        buildingLabel: buildingLabel(merged.building.type.value),
+        floors: merged.building.floors.value,
+        needsMoreData: merged.missingInformation.length > 0,
+      }),
+    });
+  }
+
   // Policy 5 atas state yang SUDAH di-merge: scope diputuskan dari kebutuhan nyata,
   // bukan dari kata-kata pesan. Industri atau pembuangan tidak boleh sampai ke CTA
   // analisis, karena analisisnya memang belum ada untuk mereka.
@@ -165,6 +182,22 @@ function capturedFrom(state: RequirementState): readonly KeyValue[] {
     if (field.value !== null) rows.push({ label: path, value: String(field.value) });
   }
   return rows;
+}
+
+/** Label bangunan untuk kalimat — mengikuti salinan laporan (`report-assembler.ts`). */
+function buildingLabel(type: RequirementState['building']['type']['value']): string | null {
+  switch (type) {
+    case 'residential':
+      return 'rumah tinggal';
+    case 'boarding_house':
+      return 'rumah kos';
+    case 'light_commercial':
+      return 'bangunan komersial ringan';
+    case 'industrial':
+      return 'bangunan industri';
+    default:
+      return null;
+  }
 }
 
 export function endEvent(messageId: string): AssistantStreamEvent {

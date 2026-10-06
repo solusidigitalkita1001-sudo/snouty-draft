@@ -85,6 +85,19 @@ Dua pembedaan yang paling menentukan biaya dan kebenaran:
 **`PRODUCT_LOOKUP` tidak memanggil pencarian semantik.** "Ada ukuran 3/4 inch?" adalah `SELECT`.
 Lebih cepat, lebih murah, dan jawabannya pasti benar.
 
+**Intent sadar konteks, presedensi di kode.** Klasifikasi model menerima giliran terakhir (4
+giliran) dan diminta membaca maksud, bukan kata kunci. Di atasnya, `withRequirementPrecedence`
+(`intent-router.ts`) menerapkan satu aturan deterministik: pesan yang membawa isyarat kebutuhan
+(`message-signals.ts`: lantai, kamar mandi, toren, PDAM, rumah, …) adalah `REQUIREMENT_STATEMENT`
+walaupun model menyebutnya `PRODUCT_LOOKUP`/`OUT_OF_SCOPE`/ragu. Jadi "apa bedanya PVC sama HDPE?"
+→ FAQ (menjelaskan), tetapi "lebih bagus PVC atau HDPE buat rumah 2 lantai?" → kebutuhan
+diekstrak, lalu pertanyaannya dijawab sebagai REKOMENDASI (`adviseMaterials`: apa yang
+menentukan, aturan praktis tiap bahan, keduanya bisa dipakai di bagian berbeda) dan kartu
+klarifikasi menanyakan hanya data inti yang masih kosong. Tidak ada bahan yang dinyatakan
+"paling bagus" dari jumlah lantai saja. **Anti-ulang:** bila penjelasan yang sama baru saja
+diberikan dan pertanyaan berikutnya berbeda, FAQ hanya mengingatkan satu kalimat
+("Seperti tadi: …"); pertanyaan yang persis sama boleh dijawab utuh.
+
 **`PRODUCT_FAQ` tidak bergantung pada katalog.** "Apa bedanya PVC dan HDPE?" adalah pertanyaan
 teknik umum; jawabannya harus utuh dari `pipe-knowledge.ts` saja. Katalog menambah "yang mana di
 Pralon" **hanya** bila versinya otoritatif (`kind = 'pralon'`); katalog yang gagal dibaca, atau

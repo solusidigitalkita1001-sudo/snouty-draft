@@ -144,6 +144,56 @@ export function compareMaterials(a: MaterialKnowledge, b: MaterialKnowledge): st
   ].join('\n');
 }
 
+/** Satu kalimat — untuk mengulang yang sudah dijelaskan tanpa mengulang seluruh perbandingan. */
+export function briefComparison(materials: readonly MaterialKnowledge[]): string {
+  const parts = materials.map((m) => `**${m.label} ${m.gist}**`);
+  return `Seperti tadi: ${parts.join(', sedangkan ')}.`;
+}
+
+export interface AdviceContext {
+  readonly buildingLabel: string | null;
+  readonly floors: number | null;
+  /** Masih ada data inti yang kurang — kalimat penutup mengajak mengisinya. */
+  readonly needsMoreData: boolean;
+}
+
+/**
+ * Pertanyaan REKOMENDASI ("lebih bagus PVC atau HDPE buat rumah 2 lantai?") — bukan definisi.
+ * Jawabannya bukan memilih satu bahan sebagai yang terbaik, melainkan: apa yang sebenarnya
+ * menentukan, aturan praktis tiap bahan, dan data apa yang masih perlu ditanyakan. Datanya
+ * sendiri ditanyakan kartu klarifikasi yang mengikuti teks ini — tidak diulang di sini.
+ */
+export function adviseMaterials(
+  materials: readonly MaterialKnowledge[],
+  context: AdviceContext,
+): string {
+  const where =
+    context.buildingLabel && context.floors
+      ? `Untuk ${context.buildingLabel} ${context.floors} lantai`
+      : context.buildingLabel
+        ? `Untuk ${context.buildingLabel}`
+        : 'Untuk kasus ini';
+  const basis = context.floors
+    ? 'tidak ditentukan dari jumlah lantai saja'
+    : 'tidak bisa ditentukan dari satu hal saja';
+  const lines = [
+    `${where}, pilihan bahan **${basis}** — yang menentukan adalah di mana jalurnya (di dalam bangunan, di luar, atau ditanam) dan bagaimana airnya dipasok.`,
+    '',
+    ...materials.map((m) => `- **${m.label}** biasanya lebih cocok untuk ${m.bestFor}.`),
+    '',
+    materials.length > 1
+      ? 'Keduanya bisa dipakai di bagian yang berbeda dalam satu instalasi.'
+      : 'Bahan lain bisa dipakai di bagian lain instalasi yang sama.',
+  ];
+  if (context.needsMoreData) {
+    lines.push(
+      '',
+      'Supaya saya bisa merekomendasikan bahan dan ukurannya, saya perlu beberapa hal di bawah ini.',
+    );
+  }
+  return lines.join('\n');
+}
+
 function dimensionRows(m: MaterialKnowledge): readonly string[] {
   return [
     `- Bentuk: ${m.form}.`,

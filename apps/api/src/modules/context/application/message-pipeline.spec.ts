@@ -63,6 +63,43 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(card.card.kind).toBe('clarification');
   });
 
+  it('pertanyaan rekomendasi bahan: dijawab apa yang menentukan + aturan praktis, lalu klarifikasi — bukan perbandingan ulang', async () => {
+    const ai = aiExtracting({ building: { type: 'residential', floors: 2 } });
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'lebih bagus PVC atau HDPE buat rumah 2 lantai?' }),
+    );
+
+    expect(events.map((e) => e.type)).toEqual([
+      'message.start',
+      'stage',
+      'requirement.updated',
+      'stage',
+      'token',
+      'card',
+      'message.end',
+    ]);
+    const text = (events[4] as { text: string }).text;
+    expect(text).toContain(
+      'Untuk rumah tinggal 2 lantai, pilihan bahan **tidak ditentukan dari jumlah lantai saja**',
+    );
+    expect(text).toContain('- **PVC (uPVC)** biasanya lebih cocok untuk instalasi tetap');
+    expect(text).toContain('- **HDPE** biasanya lebih cocok untuk jalur panjang');
+    expect(text).toContain('Keduanya bisa dipakai di bagian yang berbeda');
+    expect(text).toContain('saya perlu beberapa hal di bawah ini');
+    expect(text).not.toContain('Singkatnya'); // bukan perbandingan definisi
+    expect((events[5] as { card: { kind: string } }).card.kind).toBe('clarification');
+  });
+
+  it('pernyataan kebutuhan biasa tetap tanpa teks tambahan', async () => {
+    const ai = aiExtracting({ building: { floors: 2 }, fixtures: { bathrooms: 3 } });
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'pakai pvc buat rumah 2 lantai' }),
+    );
+    expect(events.some((e) => e.type === 'token')).toBe(false);
+  });
+
   it('data inti lengkap: kartu CTA ANALYZE, bukan klarifikasi', async () => {
     const ai = aiExtracting({
       building: { floors: 2 },

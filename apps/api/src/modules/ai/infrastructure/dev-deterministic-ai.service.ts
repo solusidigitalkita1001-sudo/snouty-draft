@@ -122,7 +122,9 @@ export class DevDeterministicAiService implements AiService {
     if (GREETING.test(text)) return this.intent('OUT_OF_SCOPE', 0.9);
 
     // Kompetitor diperiksa lebih dulu: Policy 1 harus menang sebelum apa pun.
-    if (/\b(rucika|wavin|maspion|vinilon|merek lain|bandingkan|lebih bagus)\b/.test(text)) {
+    // Hanya merek lain yang menjadi pertanyaan kompetitor. "Lebih bagus PVC atau HDPE" adalah
+    // pertanyaan bahan/kebutuhan, bukan perbandingan merek.
+    if (/\b(rucika|wavin|maspion|vinilon|merek lain)\b/.test(text)) {
       return this.intent('COMPETITOR_QUESTION', 0.9);
     }
     if (/\b(kenapa|mengapa|kok|jelaskan|alasan)\b/.test(text)) {

@@ -91,9 +91,10 @@ export class MessageService {
     const state = snapshot?.state ?? emptyRequirementState(now);
     const hasExisting = (snapshot?.state.completeness.filled ?? 0) > 0;
 
-    const decision = await this.router.route(text, hasExisting);
-    // Giliran terakhir hanya diambil bila ada penulis balasan yang memakainya.
-    const recentTurns = this.reply ? await this.recentTurns(conversationId, actor) : [];
+    // Giliran terakhir dipakai klasifikasi intent (lanjutan vs pesan lepas), penulis
+    // balasan, dan pagar anti-ulang — jadi selalu diambil.
+    const recentTurns = await this.recentTurns(conversationId, actor);
+    const decision = await this.router.route(text, hasExisting, recentTurns);
 
     // Pertanyaan produk: ruas sendiri, nol ekstraksi, jawaban dari katalog.
     if (decision.intent === 'PRODUCT_LOOKUP') {
