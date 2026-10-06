@@ -8,6 +8,33 @@ import { extractionToUpdates } from './extraction-to-updates.js';
 
 const MESSAGE = 'Rumah 2 lantai, 3 kamar mandi, 4 wastafel, 1 dapur, toren di atap, air bersih';
 
+describe('extractionToUpdates — fakta tersurat yang dilewatkan model', () => {
+  it('model mengembalikan {} untuk "… buat rumah 2 lantai?" → lantai dan tipe tetap terbaca dari teks', () => {
+    const updates = extractionToUpdates({}, 'lebih bagus PVC atau HDPE buat rumah 2 lantai?');
+    expect(updates).toEqual([
+      { path: 'building.type', value: 'residential', source: 'user_stated' },
+      { path: 'building.floors', value: 2, source: 'user_stated' },
+    ]);
+  });
+
+  it('nilai model menang bila ada; kamar mandi juga; tanpa angka tersurat tidak ada tebakan', () => {
+    const withModel = extractionToUpdates(
+      { building: { floors: 3 } },
+      'rumah 2 lantai, 3 kamar mandi',
+    );
+    expect(withModel).toContainEqual({ path: 'building.floors', value: 3, source: 'user_stated' });
+    expect(withModel).toContainEqual({
+      path: 'fixtures.bathrooms',
+      value: 3,
+      source: 'user_stated',
+    });
+    expect(extractionToUpdates({}, 'rumah saya ada beberapa lantai')).toEqual([
+      { path: 'building.type', value: 'residential', source: 'user_stated' },
+    ]);
+    expect(extractionToUpdates({}, 'apa bedanya pvc sama hdpe?')).toEqual([]);
+  });
+});
+
 describe('extractionToUpdates — grounding', () => {
   it('membuang tinggi lantai dan panjang jalur yang tidak pernah diucapkan', () => {
     const updates = extractionToUpdates(
@@ -34,13 +61,17 @@ describe('extractionToUpdates — grounding', () => {
   });
 
   it('booster pump dan jumlah titik juga butuh penanda', () => {
-    expect(extractionToUpdates({ water: { boosterPump: true } }, 'rumah 2 lantai')).toEqual([]);
+    expect(
+      extractionToUpdates({ water: { boosterPump: true } }, 'rumah 2 lantai').map((u) => u.path),
+    ).not.toContain('water.boosterPump');
     expect(
       extractionToUpdates({ water: { boosterPump: true } }, 'pakai pompa pendorong').map(
         (u) => u.path,
       ),
     ).toEqual(['water.boosterPump']);
-    expect(extractionToUpdates({ fixtures: { outletCount: 8 } }, 'rumah 2 lantai')).toEqual([]);
+    expect(
+      extractionToUpdates({ fixtures: { outletCount: 8 } }, 'rumah 2 lantai').map((u) => u.path),
+    ).not.toContain('fixtures.outletCount');
   });
 
   it('tanpa pesan (pemanggil lama) tidak ada yang dibuang', () => {
