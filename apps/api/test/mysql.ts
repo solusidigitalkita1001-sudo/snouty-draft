@@ -3,7 +3,7 @@
  *
  * Repository diuji terhadap MySQL sungguhan, bukan mock, karena yang ingin
  * dibuktikan justru hal-hal yang hanya database bisa jawab: apakah
- * `ORDER BY size_inches_x1000` benar-benar mengurutkan `1"` sebelum `1¼"`,
+ * `ORDER BY size_unit, size_value_x1000` benar-benar mengurutkan `1"` sebelum `1¼"`,
  * apakah CHECK constraint menolak baris yang melanggar, dan **berapa query yang
  * sebenarnya dikirim**. Mock akan menjawab semuanya "ya".
  *
@@ -71,8 +71,10 @@ const UP = [
   '0013_catalog_version_kind.sql',
   '0014_recommendation_kind.sql',
   '0015_recommendation_technical.sql',
+  '0016_product_sizes_unit.sql',
 ];
 const DOWN = [
+  '0016_product_sizes_unit.down.sql',
   '0015_recommendation_technical.down.sql',
   '0014_recommendation_kind.down.sql',
   '0013_catalog_version_kind.down.sql',

@@ -210,16 +210,21 @@ describe('catalog.ingest — apa yang benar-benar tersimpan', () => {
     expect(links).toEqual([{ productId: pipe?.id, compatibleProductId: fitting?.id, kind: 'tee' }]);
   });
 
-  it('menyimpan ukuran sebagai inci × 1000 dengan label kanonik PipeSize', async () => {
+  it('menyimpan ukuran sebagai nilai × 1000 bersatuan dengan label kanonik PipeSize', async () => {
     await service.ingest({ importRunId: RUN_ID, source: source([SINGLE_PRODUCT]) });
 
     const sizes = await fixture.db
-      .select({ inches: productSizes.sizeInches, label: productSizes.sizeLabel })
+      .select({
+        unit: productSizes.sizeUnit,
+        value: productSizes.sizeValue,
+        label: productSizes.sizeLabel,
+      })
       .from(productSizes);
 
+    // Perilaku inci tidak berubah oleh 0016: nilai dan label persis seperti sebelum migrasi.
     expect(sizes).toEqual([
-      { inches: 750, label: '3/4"' },
-      { inches: 1000, label: '1"' },
+      { unit: 'in', value: 750, label: '3/4"' },
+      { unit: 'in', value: 1000, label: '1"' },
     ]);
   });
 });

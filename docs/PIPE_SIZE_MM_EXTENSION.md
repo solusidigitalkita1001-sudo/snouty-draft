@@ -1,6 +1,6 @@
 # Rancangan: ukuran milimeter di `PipeSize` dan `product_sizes`
 
-2026-10-06 · Status: usulan · Terkait: `PRODUCT_MASTER_DATA_SCHEMA.md` §1, §4, §7
+2026-10-06 · Status: **diimplementasikan 2026-10-06** (Tahap B–C: `PipeSize` bersatuan, migration 0016, validator; matcher/engine belum — lihat `docs/MATCHER_V2_PROPOSAL.md`) · Terkait: `PRODUCT_MASTER_DATA_SCHEMA.md` §1, §4, §7
 
 ## 1. Masalah
 
@@ -27,7 +27,7 @@ export type PipeSizeUnit = 'in' | 'mm';
 export interface PipeSize {
   readonly unit: PipeSizeUnit;
   readonly valueX1000: number; // in: 0.75" → 750 · mm: 110 mm → 110000, 12.5 mm → 12500
-  readonly label: string;      // '3/4"', '1¼"', '110 mm'
+  readonly label: string; // '3/4"', '1¼"', '110 mm'
 }
 
 const LIMITS: Record<PipeSizeUnit, number> = { in: 100_000, mm: 3_000_000 }; // ≤ 100" · ≤ 3000 mm
@@ -39,7 +39,7 @@ const LIMITS: Record<PipeSizeUnit, number> = { in: 100_000, mm: 3_000_000 }; // 
 export function parsePipeSize(raw: string): PipeSize | null;
 
 export function comparePipeSize(a: PipeSize, b: PipeSize): number; // hanya untuk unit sama; beda unit → throw
-export function samePipeSize(a: PipeSize, b: PipeSize): boolean;   // unit sama && valueX1000 sama
+export function samePipeSize(a: PipeSize, b: PipeSize): boolean; // unit sama && valueX1000 sama
 ```
 
 Label kanonik mm: angka tanpa nol di belakang + ` mm` (`110 mm`, `12.5 mm`). Label inci tidak berubah.
@@ -56,7 +56,7 @@ export const productSizes = mysqlTable(
   {
     productId: char('product_id', { length: 26 }).notNull(),
     sizeUnit: varchar('size_unit', { length: 2 }).notNull().default('in'), // 'in' | 'mm'
-    sizeValue: int('size_value_x1000').notNull(),                         // dulu size_inches_x1000
+    sizeValue: int('size_value_x1000').notNull(), // dulu size_inches_x1000
     sizeLabel: varchar('size_label', { length: 16 }).notNull(),
     available: tinyint('available').notNull().default(1),
   },

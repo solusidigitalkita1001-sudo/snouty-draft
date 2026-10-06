@@ -65,13 +65,14 @@ function product(id: string, sku: string, overrides: Record<string, unknown> = {
   };
 }
 
-/** Ukuran disimpan sebagai inci × 1000; label-nya penulisan kanonik PipeSize. */
-function size(productId: string, inches: string, available = 1) {
-  const parsed = PipeSize.parse(inches);
-  if (parsed === null) throw new Error(`ukuran tes tidak terbaca: ${inches}`);
+/** Ukuran disimpan sebagai nilai × 1000 bersatuan (0016); label-nya penulisan kanonik PipeSize. */
+function size(productId: string, raw: string, available = 1) {
+  const parsed = PipeSize.parse(raw);
+  if (parsed === null) throw new Error(`ukuran tes tidak terbaca: ${raw}`);
   return {
     productId,
-    sizeInches: Math.round(parsed.inches * 1000),
+    sizeUnit: parsed.unit,
+    sizeValue: parsed.valueX1000,
     sizeLabel: parsed.label,
     available,
   };

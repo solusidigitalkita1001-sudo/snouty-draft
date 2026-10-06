@@ -118,7 +118,7 @@ export function toProduct(
     category: row.category,
     description: row.description ?? '',
     status: toProductStatus(row.status),
-    // Urutan sudah ditentukan oleh `ORDER BY size_inches_x1000` di query:
+    // Urutan sudah ditentukan oleh `ORDER BY size_unit, size_value_x1000` di query:
     // mengurutkan ulang di sini atas label akan menaruh `1¼"` sebelum `1"`.
     sizes: sizes.map((size) => size.sizeLabel),
     material: specFromStoredRow(byKey.get(CATALOG_SPEC_KEYS.material)),

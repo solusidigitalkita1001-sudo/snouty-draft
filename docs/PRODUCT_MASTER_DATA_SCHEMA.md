@@ -84,7 +84,8 @@ export const productSizes = mysqlTable(
   'product_sizes',
   {
     productId: char('product_id', { length: 26 }).notNull(),
-    sizeInches: int('size_inches_x1000').notNull(), // 0.75" → 750
+    sizeUnit: varchar('size_unit', { length: 2 }).notNull().default('in'), // 'in' | 'mm' (0016)
+    sizeValue: int('size_value_x1000').notNull(), // in: 0.75" → 750 · mm: 110 mm → 110000
     sizeLabel: varchar('size_label', { length: 16 }).notNull(), // '3/4"', '1¼"'
     available: tinyint('available').notNull().default(1),
   },
@@ -322,13 +323,14 @@ export type ProductMatchState =
 
 ## 4. Ukuran pipa (`pipe-size.ts`)
 
-- Disimpan sebagai **inci × 1000** (`size_inches_x1000`), dibandingkan numerik, ditampilkan dengan
-  label kanonik: di bawah 1" pakai garis miring (`1/2"`, `3/4"`), dari 1" ke atas pecahan unicode
-  (`1¼"`, `1½"`, `2½"`), bulat `2"`.
-- `PipeSize.parse()` menerima: `3/4`, `3/4"`, `0.75`, `1 1/4"`, `1¼`, `1.25"`, `½`. Yang tidak
-  terbaca → galat impor "Ukuran tidak terbaca", bukan default.
-- Batas: 0 < inci ≤ 100.
-- **Belum ada representasi milimeter (OD) untuk HDPE** — keputusan yang perlu diambil bersama Pralon.
+- Disimpan sebagai **(satuan, nilai × 1000)** (`size_unit` `in`|`mm`, `size_value_x1000`, migration 0016),
+  dibandingkan numerik dalam satuan yang sama, ditampilkan dengan label kanonik: inci di bawah 1" pakai
+  garis miring (`1/2"`, `3/4"`), dari 1" ke atas pecahan unicode (`1¼"`, `1½"`, `2½"`), bulat `2"`;
+  mm `110 mm`, `12.5 mm`. **Tidak ada konversi mm ↔ inci** (`docs/PIPE_SIZE_MM_EXTENSION.md`).
+- `PipeSize.parse()` menerima: `3/4`, `3/4"`, `0.75`, `1 1/4"`, `1¼`, `1.25"`, `½` (inci) dan `110 mm`,
+  `110mm`, `12,5 mm` (mm). Pecahan ambigu `11/2` ditolak. Yang tidak terbaca → galat impor, bukan default.
+- Batas: 0 < inci ≤ 100; 0 < mm ≤ 3000.
+- Padanan mm ↔ inci (mis. HDPE 63 mm ≈ 2") hanya boleh datang dari tabel ber-provenance — belum ada.
 
 ---
 

@@ -78,6 +78,7 @@ const HASH_FIELD_SEPARATOR = '\u001f';
 interface RowDraft {
   readonly rowNumber: number;
   readonly issues: CatalogImportIssue[];
+  readonly warnings: CatalogImportIssue[];
   /**
    * SKU apa adanya, juga saat barisnya gugur. Dipisahkan dari `fields` karena
    * rujukan kompatibilitas ke baris yang bergalat tetap rujukan yang sah.
@@ -102,7 +103,7 @@ export function validateCatalogImport(source: CatalogImportSource): CatalogImpor
 
   // Kolom wajib yang hilang akan menggagalkan setiap baris dengan galat yang sama.
   // Melaporkannya 500 kali menenggelamkan masalah sesungguhnya: perbaiki header dulu.
-  if (missing.length > 0) return { rows: [], issues: fileIssues };
+  if (missing.length > 0) return { rows: [], issues: fileIssues, warnings: [] };
 
   const drafts = source.rows.map((row) => validateRow(row, source.sourceDocument));
   resolveAcrossRows(drafts);
@@ -113,7 +114,11 @@ export function validateCatalogImport(source: CatalogImportSource): CatalogImpor
     rows.push({ ...draft.fields, compatibleSkus: draft.refs });
   }
 
-  return { rows, issues: [...fileIssues, ...drafts.flatMap((draft) => draft.issues)] };
+  return {
+    rows,
+    issues: [...fileIssues, ...drafts.flatMap((draft) => draft.issues)],
+    warnings: drafts.flatMap((draft) => draft.warnings),
+  };
 }
 
 function validateRow(row: RawCatalogRow, defaultSourceDocument: string): RowDraft {
@@ -229,10 +234,16 @@ function validateRow(row: RawCatalogRow, defaultSourceDocument: string): RowDraf
     );
   }
 
+  const warnings: CatalogImportIssue[] = [];
   const sizes = parseSizes(multi(row.values['sizes']));
-  if (sizes.unreadable.length > 0) {
-    issues.push(
-      issue(row.rowNumber, 'sizes', `Ukuran tidak terbaca: ${sizes.unreadable.join(', ')}.`),
+  for (const problem of sizes.problems) issues.push(issue(row.rowNumber, 'sizes', problem));
+  if (new Set(sizes.parsed.map((size) => size.unit)).size > 1) {
+    warnings.push(
+      issue(
+        row.rowNumber,
+        'sizes',
+        'Produk memakai dua satuan ukuran (inci dan mm) — biasanya tanda salah ketik; periksa.',
+      ),
     );
   }
 
@@ -275,7 +286,7 @@ function validateRow(row: RawCatalogRow, defaultSourceDocument: string): RowDraf
           images: images.parsed,
         };
 
-  return { rowNumber: row.rowNumber, issues, rawSku: sku, fields, refs: refs.parsed };
+  return { rowNumber: row.rowNumber, issues, warnings, rawSku: sku, fields, refs: refs.parsed };
 }
 
 /**
@@ -344,21 +355,54 @@ function parseSourcePage(raw: string): number | null {
   return page > 0 ? page : null;
 }
 
+/** Batas mm yang sama dengan `PipeSize`, untuk membedakan "di luar rentang" dari "tidak terbaca". */
+const MM_RANGE = { min: 0.001, max: 3000 };
+
 function parseSizes(tokens: readonly string[]): {
   parsed: readonly PipeSize[];
-  unreadable: readonly string[];
+  problems: readonly string[];
 } {
   // Kunci dedup memuat satuannya: `63 mm` dan `2"` adalah dua ukuran berbeda.
   const bySize = new Map<string, PipeSize>();
   const unreadable: string[] = [];
+  const problems: string[] = [];
 
   for (const token of tokens) {
     const size = PipeSize.parse(token);
-    if (size === null) unreadable.push(token);
-    else bySize.set(`${size.unit}:${size.valueX1000}`, size);
+    if (size !== null) {
+      bySize.set(`${size.unit}:${size.valueX1000}`, size);
+      continue;
+    }
+    const millimetres = /^(\d+(?:[.,]\d+)?)\s*mm$/i.exec(token.trim());
+    if (millimetres) {
+      const value = Number(millimetres[1]!.replace(',', '.'));
+      if (value < MM_RANGE.min || value > MM_RANGE.max) {
+        problems.push(`Ukuran mm di luar rentang (1–3000 mm): "${token}".`);
+        continue;
+      }
+    }
+    const fraction =
+      /^(\d+)\s+(\d+)\/(\d+)\s*["”″]?$/.exec(token.trim()) ??
+      /^(\d+)\/(\d+)\s*["”″]?$/.exec(token.trim());
+    if (fraction) {
+      const [n, d] =
+        fraction.length === 4 ? [fraction[2]!, fraction[3]!] : [fraction[1]!, fraction[2]!];
+      if (Number(n) >= Number(d) && Number(d) > 0) {
+        const hint =
+          String(n).length > 1
+            ? `${String(n).slice(0, -1)} ${String(n).slice(-1)}/${d}`
+            : `${n}/${d}`;
+        problems.push(
+          `Ukuran tidak terbaca: "${token}". Pecahan dengan pembilang ≥ penyebut ambigu; tulis "${hint}".`,
+        );
+        continue;
+      }
+    }
+    unreadable.push(token);
   }
+  if (unreadable.length > 0) problems.push(`Ukuran tidak terbaca: ${unreadable.join(', ')}.`);
 
-  return { parsed: PipeSize.sort([...bySize.values()]), unreadable };
+  return { parsed: PipeSize.sort([...bySize.values()]), problems };
 }
 
 function parseCompatibilityRefs(

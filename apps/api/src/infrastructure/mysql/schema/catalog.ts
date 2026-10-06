@@ -146,7 +146,7 @@ export const products = mysqlTable(
 /**
  * Ukuran yang tersedia per produk.
  *
- * `size_inches` disimpan sebagai angka supaya perbandingan dan pengurutan benar;
+ * `size_value_x1000` disimpan sebagai angka per satuan supaya perbandingan dan pengurutan benar;
  * `size_label` menyimpan penulisan kanonik (`3/4"`, `1¼"`) supaya tampilan tidak
  * perlu memformat ulang dan tidak bisa menyimpang dari value object PipeSize.
  */
@@ -154,14 +154,22 @@ export const productSizes = mysqlTable(
   'product_sizes',
   {
     productId: char('product_id', { length: 26 }).notNull(),
-    sizeInches: int('size_inches_x1000').notNull(),
+    /** `in` | `mm` (0016) — satuan adalah bagian dari ukuran; tidak ada konversi di kode. */
+    sizeUnit: varchar('size_unit', { length: 2 }).notNull().default('in'),
+    /** in: inci × 1000 (0,75" → 750) · mm: mm × 1000 (110 mm → 110000). */
+    sizeValue: int('size_value_x1000').notNull(),
     sizeLabel: varchar('size_label', { length: 16 }).notNull(),
     available: tinyint('available').notNull().default(1),
   },
   (t) => [
-    primaryKey({ columns: [t.productId, t.sizeInches] }),
-    index('ix_product_sizes_lookup').on(t.productId, t.sizeInches),
-    check('ck_product_sizes_positive', sql`\`size_inches_x1000\` > 0`),
+    primaryKey({ columns: [t.productId, t.sizeUnit, t.sizeValue] }),
+    index('ix_product_sizes_lookup').on(t.productId, t.sizeValue),
+    index('ix_product_sizes_unit_value').on(t.sizeUnit, t.sizeValue),
+    check('ck_product_sizes_unit', sql`\`size_unit\` IN ('in','mm')`),
+    check(
+      'ck_product_sizes_range',
+      sql`(\`size_unit\` = 'in' AND \`size_value_x1000\` BETWEEN 1 AND 100000) OR (\`size_unit\` = 'mm' AND \`size_value_x1000\` BETWEEN 1 AND 3000000)`,
+    ),
     foreignKey({
       name: 'fk_product_sizes_product',
       columns: [t.productId],

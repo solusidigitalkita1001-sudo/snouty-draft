@@ -37,6 +37,13 @@ const sourceDocument = option('--source-document', 'Export ERP master_product_up
 const kind = option('--kind', 'pralon');
 const issuesOut = option('--issues-out', null);
 const maxIssues = Number(option('--max-issues', '200'));
+/**
+ * Mengimpor sisa baris setelah membuang baris yang bergalat — HANYA atas keputusan eksplisit
+ * (bendera ini), karena impor baku adalah seluruhnya-atau-tidak (OQ-38). SKU yang dibuang
+ * dicetak dan bisa ditulis ke berkas (`--excluded-out`) supaya tercatat.
+ */
+const excludeIssueRows = flag('--exclude-rows-with-issues');
+const excludedOut = option('--excluded-out', null);
 
 if (files.length === 0) {
   console.error('✖ Sebutkan minimal satu berkas CSV.');
@@ -88,7 +95,29 @@ for (const file of files) {
 }
 
 // ── Validasi (selalu) ───────────────────────────────────────────────────────
-const validation = m.validateCatalogImport(source);
+let validation = m.validateCatalogImport(source);
+if (excludeIssueRows && validation.issues.length > 0) {
+  const badRows = new Set(validation.issues.map((i) => i.rowNumber).filter((n) => n > 0));
+  const excluded = source.rows
+    .filter((r) => badRows.has(r.rowNumber))
+    .map((r) => ({ rowNumber: r.rowNumber, sku: r.values.sku ?? '' }));
+  const kept = source.rows.filter((r) => !badRows.has(r.rowNumber));
+  console.log(`\nMembuang ${excluded.length} baris bergalat (--exclude-rows-with-issues):`);
+  for (const row of excluded) console.log(`  baris ${row.rowNumber} · ${row.sku}`);
+  if (excludedOut) {
+    writeFileSync(excludedOut, JSON.stringify({ issues: validation.issues, excluded }, null, 2));
+    console.log(`  (dicatat ke ${excludedOut})`);
+  }
+  // Validasi ulang: rujukan antar-baris dan SKU ganda harus dinilai atas himpunan yang tersisa.
+  source = { ...source, rows: kept };
+  validation = m.validateCatalogImport(source);
+}
+if (validation.warnings.length > 0) {
+  console.log(`\nPeringatan (${validation.warnings.length}, tidak menggagalkan):`);
+  for (const w of validation.warnings.slice(0, maxIssues)) {
+    console.log(`  baris ${w.rowNumber} · ${w.column} · ${w.message}`);
+  }
+}
 const byColumn = new Map();
 for (const issue of validation.issues) {
   byColumn.set(issue.column, (byColumn.get(issue.column) ?? 0) + 1);

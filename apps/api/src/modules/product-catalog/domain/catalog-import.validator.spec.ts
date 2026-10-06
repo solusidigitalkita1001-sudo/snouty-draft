@@ -446,3 +446,44 @@ describe('validateCatalogImport — batas panjang kolom mengikuti skema', () => 
     );
   });
 });
+
+describe('validateCatalogImport — ukuran bersatuan (docs/PIPE_SIZE_MM_EXTENSION.md §5, §7)', () => {
+  it('sel `63 mm; 110 mm` → dua ukuran mm terurut; inci tanpa satuan tetap inci', () => {
+    const result = validateCatalogImport(
+      source([
+        validRow({ sku: 'HD-1', sizes: '110 mm; 63 mm' }),
+        validRow({ sku: 'AW-1', sizes: '1; 3/4' }),
+      ]),
+    );
+    expect(result.issues).toEqual([]);
+    expect(result.warnings).toEqual([]);
+    expect(result.rows[0]!.sizes.map((s) => [s.unit, s.valueX1000, s.label])).toEqual([
+      ['mm', 63000, '63 mm'],
+      ['mm', 110000, '110 mm'],
+    ]);
+    expect(result.rows[1]!.sizes.map((s) => s.label)).toEqual(['3/4"', '1"']);
+  });
+
+  it('satuan campuran dalam satu produk → peringatan, bukan galat', () => {
+    const result = validateCatalogImport(source([validRow({ sizes: '63 mm; 2' })]));
+    expect(result.issues).toEqual([]);
+    expect(result.rows).toHaveLength(1);
+    expect(result.warnings.map((w) => `${w.rowNumber}:${w.column}`)).toEqual(['2:sizes']);
+    expect(result.warnings[0]!.message).toContain('dua satuan');
+  });
+
+  it('pesan galat khusus: mm di luar rentang dan pecahan ambigu', () => {
+    const result = validateCatalogImport(
+      source([
+        validRow({ sku: 'A', sizes: '3500 mm' }),
+        validRow({ sku: 'B', sizes: '11/2"' }),
+        validRow({ sku: 'C', sizes: 'dua inci' }),
+      ]),
+    );
+    expect(result.issues.map((i) => i.message)).toEqual([
+      'Ukuran mm di luar rentang (1–3000 mm): "3500 mm".',
+      'Ukuran tidak terbaca: "11/2"". Pecahan dengan pembilang ≥ penyebut ambigu; tulis "1 1/2".',
+      'Ukuran tidak terbaca: dua inci.',
+    ]);
+  });
+});

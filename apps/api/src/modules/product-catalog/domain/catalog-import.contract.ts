@@ -161,4 +161,11 @@ export interface CatalogImportValidation {
    * yang hilang, label versi yang kosong — bukan untuk satu baris tertentu.
    */
   readonly issues: readonly CatalogImportIssue[];
+  /**
+   * Peringatan: tidak menggagalkan baris, tetapi patut dilihat admin — mis. satu produk
+   * memakai dua satuan ukuran (inci dan mm), yang biasanya tanda salah ketik
+   * (docs/PIPE_SIZE_MM_EXTENSION.md §5). Bentuknya sama dengan `issues` supaya layar
+   * laporan bisa merendernya dengan komponen yang sama.
+   */
+  readonly warnings: readonly CatalogImportIssue[];
 }

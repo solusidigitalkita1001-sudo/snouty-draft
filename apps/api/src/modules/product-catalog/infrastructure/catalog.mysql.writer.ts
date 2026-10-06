@@ -156,8 +156,9 @@ export class MysqlCatalogWriter implements CatalogWriter {
       const sizeValues = fresh.flatMap((row) =>
         row.sizes.map((size) => ({
           productId: idByRow.get(row.rowHash)!,
-          // Inci × 1000, supaya perbandingan dan pengurutan tetap bilangan bulat.
-          sizeInches: Math.round(size.inches * 1000),
+          // Nilai × 1000 per satuan, supaya perbandingan dan pengurutan tetap bilangan bulat.
+          sizeUnit: size.unit,
+          sizeValue: size.valueX1000,
           sizeLabel: size.label,
         })),
       );

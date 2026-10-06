@@ -214,7 +214,9 @@ export class MysqlCatalogRepository implements CatalogRepository {
         .from(productSizes)
         .where(
           and(
-            eq(productSizes.sizeInches, toStoredSize(query.size.inches)),
+            // Satuan ikut dicocokkan: `2"` tidak pernah menemukan produk `50 mm` (tanpa konversi).
+            eq(productSizes.sizeUnit, query.size.unit),
+            eq(productSizes.sizeValue, query.size.valueX1000),
             eq(productSizes.available, 1),
           ),
         );
@@ -230,7 +232,11 @@ export class MysqlCatalogRepository implements CatalogRepository {
       .select({ productId: productSizes.productId, sizeLabel: productSizes.sizeLabel })
       .from(productSizes)
       .where(and(inArray(productSizes.productId, [...productIds]), eq(productSizes.available, 1)))
-      .orderBy(asc(productSizes.productId), asc(productSizes.sizeInches));
+      .orderBy(
+        asc(productSizes.productId),
+        asc(productSizes.sizeUnit),
+        asc(productSizes.sizeValue),
+      );
   }
 
   private async specsFor(productIds: readonly string[]): Promise<SpecRow[]> {
@@ -251,11 +257,6 @@ export class MysqlCatalogRepository implements CatalogRepository {
         ),
       );
   }
-}
-
-/** `size_inches_x1000` menyimpan inci × 1000, supaya perbandingan tetap bilangan bulat. */
-function toStoredSize(inches: number): number {
-  return Math.round(inches * 1000);
 }
 
 /** `%` dan `_` dari pengguna adalah karakter literal, bukan wildcard. */

@@ -638,6 +638,19 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       `snouty_catalog_import_inch.csv`: **2.644 diterima, 0 ditolak, 0 issues**; diimpor ke MySQL lokal
       sebagai versi draft `erp-2026-10-06` (kind pralon): 2.644 produk, 3.313 ukuran, 2.631 spec
       VERIFIED. Katalog sample tetap aktif
+- [x] P14-08b Tahap B: `PipeSize` bersatuan (2026-10-06). `(unit, valueX1000, label)`; `110 mm`,
+      `12,5 mm` → mm; tanpa satuan tetap inci; tanpa konversi; banding/urut hanya satuan sama; pecahan
+      ambigu `11/2` ditolak; `parsePipeSize/comparePipeSize/samePipeSize`; tes lama lulus tanpa diubah
+      (+12 tes mm)
+- [x] P14-08c Tahap C: migration 0016 + validator + impor mm (2026-10-06). `product_sizes`:
+      `size_unit` + `size_value_x1000`, PK (produk, satuan, nilai), CHECK satuan & rentang, indeks;
+      migrasi turun **gagal dengan SIGNAL** bila ada baris mm (diuji naik → turun(gagal) → turun → naik,
+      63/63). Validator: mm diterima, pesan "di luar rentang (1–3000 mm)" dan "pecahan ambigu … tulis
+      1 1/2", **peringatan** satuan campuran (`warnings` di hasil validasi). Writer/repository memakai
+      satuan; matcher/engine tidak disentuh. Sample di-seed ulang setelah migrasi: 21 baris ukuran
+      **identik** (sku, label, nilai). Dry-run gabungan inci + mm: **7.680 diterima, 9 ditolak** — 8 SKU
+      73 karakter (HDPE PN-10/Telkom, 1 faucet socket) + 1 ukuran "3150 mm" di luar rentang (baris 4958
+      berkas mm). Impor gabungan **ditunda** menunggu keputusan pemilik atas baris ke-9 (lihat laporan)
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache

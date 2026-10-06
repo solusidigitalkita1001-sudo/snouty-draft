@@ -108,8 +108,10 @@ const UP = [
   '0013_catalog_version_kind.sql',
   '0014_recommendation_kind.sql',
   '0015_recommendation_technical.sql',
+  '0016_product_sizes_unit.sql',
 ];
 const DOWN = [
+  '0016_product_sizes_unit.down.sql',
   '0015_recommendation_technical.down.sql',
   '0014_recommendation_kind.down.sql',
   '0013_catalog_version_kind.down.sql',
@@ -127,7 +129,7 @@ const DOWN = [
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0015 satu-dua kolom). */
+/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0016 satu-dua kolom). */
 const TABLES = 27;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
@@ -276,7 +278,7 @@ await check('menolak nilai kosong yang mengaku VERIFIED', () =>
 );
 
 await check('menolak ukuran pipa nol atau negatif', () =>
-  mustReject(`INSERT INTO product_sizes (product_id,size_inches_x1000,size_label) VALUES (?,?,?)`, [
+  mustReject(`INSERT INTO product_sizes (product_id,size_value_x1000,size_label) VALUES (?,?,?)`, [
     P1,
     0,
     '0"',
@@ -609,7 +611,7 @@ await check('menolak produk yang menunjuk versi katalog tidak ada', async () => 
 
 await check('menolak ukuran yang menunjuk produk tidak ada', async () => {
   await mustReject(
-    `INSERT INTO product_sizes (product_id, size_inches_x1000, size_label)
+    `INSERT INTO product_sizes (product_id, size_value_x1000, size_label)
      VALUES (?, 1000, '1"')`,
     ['01JBTIDAKADA000000000000CC'],
   );
@@ -641,7 +643,7 @@ await check('menghapus versi katalog ikut menghapus produknya (cascade)', async 
     [productId, versionId, 'hash-cascade'],
   );
   await conn.query(
-    `INSERT INTO product_sizes (product_id, size_inches_x1000, size_label)
+    `INSERT INTO product_sizes (product_id, size_value_x1000, size_label)
      VALUES (?, 1000, '1"')`,
     [productId],
   );
@@ -747,6 +749,57 @@ await check('menolak jalur guna di luar building/irrigation/technical', () =>
     [ulid(927), CONV14, ulid(923), ulid(924)],
   ),
 );
+
+// ── Ukuran bersatuan (0016) ──────────────────────────────────────────────────
+console.log('\nukuran bersatuan:');
+await check('menerima ukuran mm dan inci untuk produk yang sama (PK memuat satuan)', async () => {
+  await conn.query(
+    `INSERT INTO product_sizes (product_id, size_unit, size_value_x1000, size_label) VALUES (?,'mm',110000,'110 mm'), (?,'in',4000,'4"')`,
+    [P1, P1],
+  );
+  const [rows] = await conn.query(
+    'SELECT size_unit, size_value_x1000 FROM product_sizes WHERE product_id = ? ORDER BY size_unit, size_value_x1000',
+    [P1],
+  );
+  if (!rows.some((r) => r.size_unit === 'mm' && Number(r.size_value_x1000) === 110000)) {
+    throw new Error('baris mm tidak tersimpan');
+  }
+});
+await check('menolak satuan selain in/mm', () =>
+  mustReject(
+    `INSERT INTO product_sizes (product_id, size_unit, size_value_x1000, size_label) VALUES (?,'cm',11000,'11 cm')`,
+    [P1],
+  ),
+);
+await check('menolak mm di luar 1–3000 mm dan inci di luar 0–100"', async () => {
+  await mustReject(
+    `INSERT INTO product_sizes (product_id, size_unit, size_value_x1000, size_label) VALUES (?,'mm',3000001,'3000.001 mm')`,
+    [P1],
+  );
+  await mustReject(
+    `INSERT INTO product_sizes (product_id, size_unit, size_value_x1000, size_label) VALUES (?,'in',100001,'100.001"')`,
+    [P1],
+  );
+});
+await check('migrasi turun 0016 GAGAL selama ada baris mm, dan data tetap utuh', async () => {
+  let message = null;
+  try {
+    await run('0016_product_sizes_unit.down.sql');
+  } catch (err) {
+    message = err.message;
+  }
+  if (message === null) throw new Error('turun diterima padahal ada baris mm');
+  if (!message.includes('baris mm')) throw new Error(`pesan tidak jelas: `);
+  const [cols] = await conn.query(
+    "SELECT COUNT(*) AS n FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'product_sizes' AND COLUMN_NAME = 'size_unit'",
+    [cfg.database],
+  );
+  if (Number(cols[0].n) !== 1) throw new Error('kolom size_unit hilang — turun tidak atomik');
+  const [rows] = await conn.query("SELECT COUNT(*) AS n FROM product_sizes WHERE size_unit = 'mm'");
+  if (Number(rows[0].n) !== 1) throw new Error('baris mm hilang');
+  // Bersihkan supaya pengujian turun di bawah berjalan di keadaan yang sah.
+  await conn.query("DELETE FROM product_sizes WHERE size_unit = 'mm'");
+});
 
 // ── Turun ───────────────────────────────────────────────────────────────────
 console.log('\ndown:');
