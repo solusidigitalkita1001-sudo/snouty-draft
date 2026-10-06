@@ -204,6 +204,104 @@
   gap: 20px;
 }
 
+/*
+ * Layar solusi (prototipe `isSolution`, layar 06): MENGGANTIKAN aliran chat, bukan ditempel di
+ * dalamnya. Bar tab di atas (Ringkasan · Produk · Skema · Material + Simpan · Buat laporan), isi
+ * menggulir di bawahnya. Sebelumnya SolutionView ditaruh di dalam `.stream` (flex column) dan
+ * `overflow:auto`-nya membuatnya menciut ke sisa ruang — hasil hanya terlihat setinggi 90px.
+ */
+.solutionScreen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.solutionTabs {
+  flex: none;
+  border-bottom: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  padding: 0 20px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tabList {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 12px 12px 10px;
+  font-size: 13px;
+  white-space: nowrap;
+  color: var(--snouty-muted);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--snouty-action-text);
+}
+
+.tabOn {
+  color: var(--snouty-action-text);
+  border-bottom-color: var(--snouty-action);
+  font-weight: 600;
+}
+
+/* Jalan kembali ke percakapan — tidak ada di prototipe (lanjutan di sana dirender di layar solusi); minimal. */
+.tabBack {
+  padding: 12px 8px 10px 4px;
+  font-size: 13px;
+  white-space: nowrap;
+  color: var(--snouty-muted);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.tabBack:hover {
+  color: var(--snouty-action-text);
+}
+
+.solutionTabActions {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+
+.tabAction {
+  font-size: 12.5px;
+  color: var(--snouty-ink);
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: 5px;
+  padding: 5px 11px;
+  white-space: nowrap;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.tabAction:hover {
+  border-color: var(--snouty-action);
+  color: var(--snouty-action-text);
+}
+
+.tabAction:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
 .empty {
   font-size: 14px;
   color: var(--snouty-muted);

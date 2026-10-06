@@ -6,6 +6,9 @@
  */
 
 .workspace {
+  /* Di layar solusi (flex column) ia mengisi sisa ruang dan menggulir sendiri. */
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-auto-rows: max-content;

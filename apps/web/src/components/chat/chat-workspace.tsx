@@ -47,7 +47,7 @@ import {
   sendToTechnicalTeam,
   type ConversationSummary,
 } from './chat-api';
-import { SolutionView } from '../solution/solution-view';
+import { SolutionView, type SolutionTab } from '../solution/solution-view';
 import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
 import { CHAT_COPY as COPY, STAGE_ORDER, stageLabel } from './chat-copy';
 import { MISSING, requirementRows } from './requirement-rows';
@@ -141,6 +141,9 @@ export function ChatWorkspace() {
   const [reportOpen, setReportOpen] = useState(false);
   const [openProduct, setOpenProduct] = useState<DrawerSelection | null>(null);
   const [solution, setSolution] = useState<Recommendation | null>(null);
+  /** Prototipe `screen`: solusi adalah LAYAR sendiri yang menggantikan aliran chat. */
+  const [screen, setScreen] = useState<'chat' | 'solution'>('chat');
+  const [solutionTab, setSolutionTab] = useState<SolutionTab>('ringkasan');
   const [analyzing, setAnalyzing] = useState(false);
   const [history, setHistory] = useState<
     | { kind: 'loading' }
@@ -215,6 +218,8 @@ export function ChatWorkspace() {
     async (raw: string) => {
       const text = raw.trim();
       if (!text || sending) return;
+      // Lanjutan dari layar solusi ("LANJUTKAN PERCAKAPAN") kembali ke aliran chat.
+      setScreen('chat');
 
       // Percakapan dibuat SAAT pesan pertama, bukan saat halaman dibuka — kalau tidak,
       // setiap kunjungan meninggalkan "Konsultasi baru" kosong di riwayat.
@@ -340,6 +345,7 @@ export function ChatWorkspace() {
     setStages({});
     setError(null);
     setSolution(null);
+    setScreen('chat');
     setSaveState('idle');
     setHandoffState('idle');
     setReportOpen(false);
@@ -382,6 +388,7 @@ export function ChatWorkspace() {
           setActiveTitle(item.title ?? COPY.titleFor(null, null));
           setReopened(true);
           setSolution(null);
+          setScreen('chat');
           setStages({});
           setError(null);
           setSaveState(item.status === 'SAVED' ? 'saved' : 'idle');
@@ -437,14 +444,9 @@ export function ChatWorkspace() {
         await new Promise((resolve) => setTimeout(resolve, SOLUTION_READY_HOLD_MS));
         setSolution(recommendation);
         setStages({});
-        // Overlay menutup → solusi harus langsung terlihat, bukan tersembunyi di bawah lipatan.
-        requestAnimationFrame(() => {
-          const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-          streamRef.current?.scrollTo({
-            top: streamRef.current.scrollHeight,
-            behavior: reduced ? 'auto' : 'smooth',
-          });
-        });
+        // Prototipe: overlay menutup → `screen: 'solution'`, tab Ringkasan.
+        setSolutionTab('ringkasan');
+        setScreen('solution');
       })
       .catch(() => {
         setError(COPY.llmUnavailable);
@@ -715,6 +717,15 @@ export function ChatWorkspace() {
                 {COPY.mobileNeeds(readCount)}
               </button>
             )}
+            {solution !== null && screen === 'chat' && (
+              <button
+                type="button"
+                className={styles.tabAction}
+                onClick={() => setScreen('solution')}
+              >
+                {COPY.viewSolution}
+              </button>
+            )}
             {solution !== null && (
               <button
                 type="button"
@@ -787,7 +798,7 @@ export function ChatWorkspace() {
               </div>
             </div>
           </div>
-        ) : (
+        ) : screen === 'chat' ? (
           <div className={styles.stream} ref={streamRef} aria-live="polite">
             {turns.map((turn, turnIndex) =>
               turn.role === 'user' ? (
@@ -861,25 +872,63 @@ export function ChatWorkspace() {
               </div>
             )}
 
-            {solution !== null && (
-              <SolutionView
-                recommendation={solution}
-                // "Perbaiki asumsi ini" → panel terbuka dalam mode Ubah (prototipe).
-                onFixAssumption={() => {
-                  setPanelOpen(true);
-                  setEditing(true);
-                }}
-              />
-            )}
             {error !== null && (
               <div className={styles.errorCard} role="status">
                 {error}
               </div>
             )}
           </div>
+        ) : null}
+
+        {/*
+          Layar solusi (prototipe `isSolution`, layar 06): MENGGANTIKAN aliran chat. Tab di atas,
+          isi menggulir, tanpa composer. Sebelumnya SolutionView ditempel di dalam stream dan
+          menciut jadi strip 90px (laporan pemilik 2026-10-06: "hasilnya nggak bisa diliat").
+        */}
+        {inConversation && screen === 'solution' && solution !== null && (
+          <div className={styles.solutionScreen}>
+            <div className={styles.solutionTabs}>
+              <button type="button" className={styles.tabBack} onClick={() => setScreen('chat')}>
+                {COPY.backToChat}
+              </button>
+              <div className={styles.tabList} role="tablist" aria-label={COPY.solutionReady}>
+                {COPY.solutionTabs.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={solutionTab === t.id}
+                    className={[styles.tab, solutionTab === t.id ? styles.tabOn : ''].join(' ')}
+                    onClick={() => setSolutionTab(t.id)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <div className={styles.solutionTabActions}>
+                <button
+                  type="button"
+                  className={styles.tabAction}
+                  onClick={save}
+                  disabled={saveState === 'saved'}
+                >
+                  {saveState === 'saved' ? COPY.saved : COPY.saveSolution}
+                </button>
+              </div>
+            </div>
+            <SolutionView
+              recommendation={solution}
+              tab={solutionTab}
+              // "Perbaiki asumsi ini" → panel terbuka dalam mode Ubah (prototipe).
+              onFixAssumption={() => {
+                setPanelOpen(true);
+                setEditing(true);
+              }}
+            />
+          </div>
         )}
 
-        {inConversation && (
+        {inConversation && screen === 'chat' && (
           <div className={styles.composerWrap}>
             {/* Ponsel: bidang berbentuk pil + tombol kirim bulat 40px (board 13a). */}
             <div className={[styles.composerCard, mobile ? styles.composerPill : ''].join(' ')}>

@@ -152,6 +152,16 @@ export const CHAT_COPY = {
   /** Layar 03 — kartu klarifikasi bernomor. */
   clarificationTitle: 'AGAR SAYA TIDAK MENEBAK',
   skipToDefaults: 'Lewati dan gunakan asumsi standar',
+  /** Layar solusi (prototipe `tabDefs`): tab menggantikan aliran chat. */
+  solutionTabs: [
+    { id: 'ringkasan', label: 'Ringkasan' },
+    { id: 'produk', label: 'Produk Pralon' },
+    { id: 'skema', label: 'Skema' },
+    { id: 'material', label: 'Estimasi Material' },
+  ] as const,
+  /** Bolak-balik chat ↔ solusi — bukan dari prototipe (di sana lanjutan dirender di layar solusi); minimal. */
+  backToChat: '← Percakapan',
+  viewSolution: 'Lihat solusi',
   /** Kartu klarifikasi: jawaban ditampung, dikirim sekali (keputusan pemilik 2026-10-06). */
   sendAnswers: 'Kirim jawaban',
   clarifyFailed: 'Jawaban belum tersimpan. Coba lagi.',
