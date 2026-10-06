@@ -8,6 +8,7 @@
  */
 
 import { assumption } from './parameters/assumptions.js';
+import { sizeTableFor } from './parameters/size-tables.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
 import type { RuleVersion } from './rule.js';
@@ -35,6 +36,8 @@ export interface IrrigationInput {
 export interface IrrigationResult {
   readonly designFlowLs: number;
   readonly mainSize: string;
+  /** Ukuran distribusi PVC AW di lahan (inci); sama dengan `mainSize` bila jalur utama PVC. */
+  readonly distributionSize: string;
   readonly innerDiameterMm: number;
   readonly pumpRequired: boolean;
   readonly pressureClass: 'AW' | 'D';
@@ -70,22 +73,32 @@ export function computeIrrigation(input: IrrigationInput): IrrigationResult {
   }
 
   const flow = run(ENG_101, { areaHa: input.areaHa, method: input.method });
+  // Bahan dulu: tabel ukuran jalur utama ikut bahannya (HDPE dalam mm, PVC dalam inci).
+  const material = run(ENG_104, { mainRunMeters: input.mainRunMeters });
+  const velocityMs = input.velocityMs ?? DEFAULT_VELOCITY_MS;
   const main = run(ENG_102, {
     designFlowLs: flow.designFlowLs,
-    velocityMs: input.velocityMs ?? DEFAULT_VELOCITY_MS,
+    velocityMs,
+    sizeTable: sizeTableFor(material.mainFamily),
   });
+  // Distribusi di lahan selalu PVC AW (inci); satu trace lagi hanya bila tabelnya berbeda.
+  const distribution =
+    sizeTableFor(material.mainFamily) === 'pvc_inch'
+      ? main
+      : run(ENG_102, { designFlowLs: flow.designFlowLs, velocityMs, sizeTable: 'pvc_inch' });
   const pressure = run(ENG_103, { method: input.method, elevation: input.elevation });
-  const material = run(ENG_104, { mainRunMeters: input.mainRunMeters });
   const bom = run(ENG_105, {
     areaHa: input.areaHa,
     mainRunMeters: input.mainRunMeters,
     mainSize: main.mainSize,
+    distributionSize: distribution.mainSize,
     mainFamily: material.mainFamily,
   });
 
   return {
     designFlowLs: flow.designFlowLs,
     mainSize: main.mainSize,
+    distributionSize: distribution.mainSize,
     innerDiameterMm: main.innerDiameterMm,
     pumpRequired: pressure.pumpRequired,
     pressureClass: pressure.pressureClass,

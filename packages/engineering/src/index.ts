@@ -123,6 +123,13 @@ export { MAX_QUESTIONS, caseReadiness, resolveMissingParameters } from './cases/
 export type { CaseReadinessInput, MissingParameter } from './cases/missing.js';
 
 export { HDPE_FROM_METERS, irrigationDutyAssumptionId } from './rules/group-e-irrigation.js';
+export {
+  HDPE_MM_SIZES,
+  PVC_INCH_SIZES,
+  sizeTable,
+  sizeTableFor,
+} from './parameters/size-tables.js';
+export type { NominalSize, SizeTableId } from './parameters/size-tables.js';
 
 // ── Fase 3: hidraulik bertekanan ──
 export {

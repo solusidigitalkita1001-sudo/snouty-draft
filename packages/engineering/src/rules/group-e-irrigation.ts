@@ -13,6 +13,12 @@
  */
 
 import { assumption } from '../parameters/assumptions.js';
+import {
+  PVC_INCH_SIZES,
+  sizeTable,
+  type NominalSize,
+  type SizeTableId,
+} from '../parameters/size-tables.js';
 import { requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
@@ -109,6 +115,8 @@ export interface MainSizeFromFlowInput {
   readonly designFlowLs: number;
   /** Kecepatan aliran rencana, m/s. */
   readonly velocityMs: number;
+  /** Tabel ukuran: inci untuk PVC, mm (OD) untuk HDPE/MDPE. Bawaan inci. */
+  readonly sizeTable: SizeTableId;
 }
 export interface MainSizeFromFlowResult {
   readonly requiredInnerDiameterMm: number;
@@ -116,23 +124,12 @@ export interface MainSizeFromFlowResult {
   readonly innerDiameterMm: number;
 }
 
-/** Diameter dalam nominal (mm) per ukuran inci — pendekatan umum, bukan tabel produk. */
-export const NOMINAL_SIZES: ReadonlyArray<{ readonly size: string; readonly innerMm: number }> = [
-  { size: '1/2"', innerMm: 15 },
-  { size: '3/4"', innerMm: 20 },
-  { size: '1"', innerMm: 25 },
-  { size: '1¼"', innerMm: 32 },
-  { size: '1½"', innerMm: 40 },
-  { size: '2"', innerMm: 50 },
-  { size: '2½"', innerMm: 65 },
-  { size: '3"', innerMm: 80 },
-  { size: '4"', innerMm: 100 },
-  { size: '6"', innerMm: 150 },
-];
+/** Tabel inci — tetap diekspor untuk pemakai lama; isinya `PVC_INCH_SIZES` (size-tables.ts). */
+export const NOMINAL_SIZES: readonly NominalSize[] = PVC_INCH_SIZES;
 
 export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult> = {
   ruleId: 'ENG-102',
-  version: 1,
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -142,13 +139,15 @@ export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult>
         max: 5_000,
       }),
       velocityMs: requireNumber('ENG-102', 'velocityMs', o['velocityMs'], { min: 0.3, max: 3 }),
+      sizeTable: requireSizeTable('ENG-102', o['sizeTable']),
     };
   },
   compute: (input) => {
     const flowM3s = input.designFlowLs / 1000;
     const requiredM = Math.sqrt((4 * flowM3s) / (Math.PI * input.velocityMs));
     const requiredMm = round1(requiredM * 1000);
-    const pick = NOMINAL_SIZES.find((s) => s.innerMm >= requiredMm) ?? NOMINAL_SIZES.at(-1)!;
+    const table = sizeTable(input.sizeTable);
+    const pick = table.find((s) => s.innerMm >= requiredMm) ?? table.at(-1)!;
     return {
       requiredInnerDiameterMm: requiredMm,
       mainSize: pick.size,
@@ -161,12 +160,12 @@ export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult>
   testCases: [
     {
       name: '1,5 l/s pada 1,5 m/s → 35,7 mm → 1½"',
-      input: { designFlowLs: 1.5, velocityMs: 1.5 },
+      input: { designFlowLs: 1.5, velocityMs: 1.5, sizeTable: 'pvc_inch' },
       expected: { requiredInnerDiameterMm: 35.7, mainSize: '1½"', innerDiameterMm: 40 },
     },
     {
       name: '0,5 l/s pada 1,5 m/s → 20,6 mm → 1"',
-      input: { designFlowLs: 0.5, velocityMs: 1.5 },
+      input: { designFlowLs: 0.5, velocityMs: 1.5, sizeTable: 'pvc_inch' },
       expected: { requiredInnerDiameterMm: 20.6, mainSize: '1"', innerDiameterMm: 25 },
     },
   ],
@@ -300,6 +299,8 @@ export interface IrrigationBomInput {
   readonly areaHa: number;
   readonly mainRunMeters: number;
   readonly mainSize: string;
+  /** Ukuran distribusi PVC AW di lahan (inci) — berbeda dari jalur utama bila utamanya HDPE (mm). */
+  readonly distributionSize: string;
   readonly mainFamily: 'HDPE' | 'PVC AW';
 }
 export interface IrrigationBomLine {
@@ -319,7 +320,7 @@ const ROD_METERS = 4;
 
 export const ENG_105: RuleVersion<IrrigationBomInput, IrrigationBomResult> = {
   ruleId: 'ENG-105',
-  version: 1,
+  version: 2,
   category: 'material',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -334,6 +335,7 @@ export const ENG_105: RuleVersion<IrrigationBomInput, IrrigationBomResult> = {
         max: 20_000,
       }),
       mainSize: String(o['mainSize'] ?? ''),
+      distributionSize: String(o['distributionSize'] ?? o['mainSize'] ?? ''),
       mainFamily,
     };
   },
@@ -360,15 +362,15 @@ export const ENG_105: RuleVersion<IrrigationBomInput, IrrigationBomResult> = {
     }
     lines.push({
       item: 'Pipa PVC AW',
-      size: input.mainSize,
+      size: input.distributionSize,
       quantity: Math.ceil(distributionMeters / ROD_METERS),
       unit: 'batang',
     });
-    lines.push({ item: 'Tee', size: input.mainSize, quantity: branches, unit: 'pcs' });
-    lines.push({ item: 'Elbow 90°', size: input.mainSize, quantity: 4, unit: 'pcs' });
+    lines.push({ item: 'Tee', size: input.distributionSize, quantity: branches, unit: 'pcs' });
+    lines.push({ item: 'Elbow 90°', size: input.distributionSize, quantity: 4, unit: 'pcs' });
     lines.push({
       item: 'Katup / stop kran',
-      size: input.mainSize,
+      size: input.distributionSize,
       quantity: branches + 1,
       unit: 'pcs',
     });
@@ -380,11 +382,17 @@ export const ENG_105: RuleVersion<IrrigationBomInput, IrrigationBomResult> = {
   testCases: [
     {
       name: '1 ha, jalur utama 350 m HDPE 1½"',
-      input: { areaHa: 1, mainRunMeters: 350, mainSize: '1½"', mainFamily: 'HDPE' },
+      input: {
+        areaHa: 1,
+        mainRunMeters: 350,
+        mainSize: '50 mm',
+        distributionSize: '1½"',
+        mainFamily: 'HDPE',
+      },
       expected: {
         distributionMeters: 200,
         lines: [
-          { item: 'Pipa HDPE', size: '1½"', quantity: 350, unit: 'meter' },
+          { item: 'Pipa HDPE', size: '50 mm', quantity: 350, unit: 'meter' },
           { item: 'Pipa PVC AW', size: '1½"', quantity: 50, unit: 'batang' },
           { item: 'Tee', size: '1½"', quantity: 4, unit: 'pcs' },
           { item: 'Elbow 90°', size: '1½"', quantity: 4, unit: 'pcs' },
@@ -404,4 +412,11 @@ function round1(n: number): number {
 }
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+/** `sizeTable` opsional di masukan mentah; bawaan inci supaya pemanggil lama tidak berubah. */
+export function requireSizeTable(ruleId: string, raw: unknown): SizeTableId {
+  if (raw === undefined || raw === 'pvc_inch') return 'pvc_inch';
+  if (raw === 'hdpe_mm') return 'hdpe_mm';
+  throw new RuleInputError(ruleId, `sizeTable ${String(raw)}`);
 }

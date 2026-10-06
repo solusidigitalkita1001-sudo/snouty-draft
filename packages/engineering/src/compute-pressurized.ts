@@ -8,6 +8,7 @@
  */
 
 import { assumption } from './parameters/assumptions.js';
+import { sizeTableFor } from './parameters/size-tables.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
 import type { RuleVersion } from './rule.js';
@@ -102,6 +103,8 @@ export function computePressurized(input: PressurizedInput): PressurizedResult {
     velocityMaxMs,
     gradientMaxMPer100m,
     minorLossFraction,
+    // HDPE/MDPE dijual dalam mm (OD); PVC dalam inci — label hasil langsung cocok dengan katalog.
+    sizeTable: sizeTableFor(input.material ?? 'PVC'),
   });
   const pick = sizing.candidates.find((c) => c.size === sizing.recommended)!;
 

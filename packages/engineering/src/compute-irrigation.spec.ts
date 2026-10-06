@@ -26,11 +26,12 @@ describe('computeIrrigation', () => {
       'Elbow 90°',
       'Katup / stop kran',
     ]);
+    // Bahan (ENG-104) dihitung sebelum ukuran (ENG-102): tabel ukuran jalur utama ikut bahannya.
     expect(r.traces.map((t) => t.ruleId)).toEqual([
       'ENG-101',
+      'ENG-104',
       'ENG-102',
       'ENG-103',
-      'ENG-104',
       'ENG-105',
     ]);
     expect(r.traces.every((t) => t.provenance === 'ASSUMED')).toBe(true);
@@ -45,11 +46,15 @@ describe('computeIrrigation', () => {
       elevation: 'higher',
     });
     expect(r.designFlowLs).toBe(1.5);
-    expect(r.mainSize).toBe('1½"');
+    // Jalur utama HDPE dipilih dari tabel mm (OD, SDR 17): 35,7 mm dalam → OD 50 mm (dalam 44,1 mm);
+    // distribusi di lahan tetap PVC AW inci.
+    expect(r.mainSize).toBe('50 mm');
+    expect(r.distributionSize).toBe('1½"');
     expect(r.pumpRequired).toBe(false);
     expect(r.pressureClass).toBe('D');
     expect(r.mainFamily).toBe('HDPE');
-    expect(r.bom[0]).toEqual({ item: 'Pipa HDPE', size: '1½"', quantity: 350, unit: 'meter' });
+    expect(r.bom[0]).toEqual({ item: 'Pipa HDPE', size: '50 mm', quantity: 350, unit: 'meter' });
+    expect(r.bom[1]).toMatchObject({ item: 'Pipa PVC AW', size: '1½"' });
   });
 
   it('murni: masukan sama → keluaran identik', () => {
@@ -65,6 +70,6 @@ describe('computeIrrigation', () => {
       elevation: 'level',
     });
     expect(r.traces[0]?.explanation).toContain('0.8 l/s');
-    expect(r.traces[1]?.explanation).toContain('1¼"');
+    expect(r.traces[2]?.explanation).toContain('1¼"');
   });
 });

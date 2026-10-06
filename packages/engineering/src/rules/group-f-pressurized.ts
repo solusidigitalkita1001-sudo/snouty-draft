@@ -12,7 +12,8 @@
 
 import { requireNumber, type RuleVersion } from '../rule.js';
 import { barToHeadM, lsToM3h, round1, round2, round3 } from '../units.js';
-import { NOMINAL_SIZES } from './group-e-irrigation.js';
+import { requireSizeTable } from './group-e-irrigation.js';
+import { sizeTable, type SizeTableId } from '../parameters/size-tables.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 const G = 9.81;
@@ -253,6 +254,8 @@ export interface SizingInput {
   readonly velocityMaxMs: number;
   readonly gradientMaxMPer100m: number;
   readonly minorLossFraction: number;
+  /** Tabel ukuran kandidat: inci (PVC) atau mm (HDPE). */
+  readonly sizeTable: SizeTableId;
 }
 export type CandidateStatus = 'ok' | 'too_fast' | 'too_slow' | 'high_loss';
 export interface SizeCandidate {
@@ -369,7 +372,7 @@ const PROBE_CANDIDATES: readonly SizeCandidate[] = [
 
 export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
   ruleId: 'ENG-205',
-  version: 1,
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -385,10 +388,11 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
       velocityMaxMs: n('velocityMaxMs', 0.5, 5),
       gradientMaxMPer100m: n('gradientMaxMPer100m', 0.1, 100),
       minorLossFraction: n('minorLossFraction', 0, 1),
+      sizeTable: requireSizeTable('ENG-205', o['sizeTable']),
     };
   },
   compute: (input) => {
-    const candidates: SizeCandidate[] = NOMINAL_SIZES.map(({ size, innerMm }) => {
+    const candidates: SizeCandidate[] = sizeTable(input.sizeTable).map(({ size, innerMm }) => {
       const v = velocityOf(input.designFlowLs, innerMm);
       const f = frictionLossOf(input.designFlowLs, innerMm, input.lengthM, input.hazenWilliamsC);
       const minor = round2(f.frictionLossM * input.minorLossFraction);
@@ -448,6 +452,7 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
         velocityMaxMs: 2,
         gradientMaxMPer100m: 10,
         minorLossFraction: 0.1,
+        sizeTable: 'pvc_inch',
       },
       expected: {
         candidates: PROBE_CANDIDATES,

@@ -314,6 +314,20 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description: 'Instalasi diasumsikan untuk air bersih saja.',
   },
 
+  {
+    id: 'HDPE_SDR17_PN10',
+    parameter: 'pressure_class',
+    appliesTo: [],
+    condition: 'diameter dalam HDPE diperkirakan dari OD tanpa data tebal dinding Pralon',
+    value: 17,
+    unit: 'SDR',
+    reference: 'ISO 4427: PE100 PN 10 ≈ SDR 17 (tebal dinding = OD / 17)',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description:
+      'Diameter dalam HDPE diperkirakan untuk PE100 PN 10 (SDR 17); kelas lain mengubah diameter dalam.',
+  },
+
   // ── Bahan per segmen ──
   {
     id: 'HDPE_MAIN_FROM_200M',
