@@ -91,6 +91,67 @@ describe('MessageService.edit — edit inline tanpa LLM', () => {
   });
 });
 
+describe('MessageService.answerClarification — semua jawaban sekaligus, tanpa LLM', () => {
+  it('menggabungkan jawaban, menyimpan snapshot clarification_answer, menulis dua pesan, mengembalikan kartu lanjutan', async () => {
+    const { service, conversations, store, ai } = serviceWith({
+      route: async () => {
+        throw new Error('router tidak boleh dipanggil');
+      },
+    });
+    const result = await service.answerClarification(
+      'C'.repeat(26),
+      ACTOR,
+      [
+        { id: 'water.source', option: 'Toren atap' },
+        { id: 'water.installationType', option: 'Air bersih' },
+        { id: 'building.floors', option: '2' },
+        { id: 'fixtures.bathrooms', option: '3' },
+      ],
+      '2026-01-01T00:00:00.000Z',
+    );
+
+    expect(ai.classifyIntent).not.toHaveBeenCalled();
+    expect(result.userText).toBe(
+      'Sumber air: Toren atap · Instalasi: Air bersih · Lantai: 2 · Kamar mandi: 3',
+    );
+    expect(result.state.water.source.value).toBe('rooftop_tank');
+    expect(result.state.building.floors.value).toBe(2);
+    expect(result.state.missingInformation).toEqual([]);
+    expect(result.card).toEqual({ kind: 'cta', action: 'ANALYZE' });
+    expect(store.append).toHaveBeenCalledWith('C'.repeat(26), result.state, 'clarification_answer');
+    expect(conversations.appendUserMessage).toHaveBeenCalledWith(
+      'C'.repeat(26),
+      ACTOR,
+      result.userText,
+    );
+    expect(conversations.appendAssistantMessage).toHaveBeenCalledWith(
+      'C'.repeat(26),
+      '',
+      [result.card],
+      null,
+    );
+  });
+
+  it('"Belum tahu" memakai default ASSUMED bila ada; yang tanpa default ditanya lagi', async () => {
+    const { service } = serviceWith({ route: async () => undefined });
+    const result = await service.answerClarification(
+      'C'.repeat(26),
+      ACTOR,
+      [
+        { id: 'water.source', option: 'Belum tahu' },
+        { id: 'building.floors', option: 'Belum tahu' },
+      ],
+      '2026-01-01T00:00:00.000Z',
+    );
+    expect(result.state.water.source).toMatchObject({
+      value: 'rooftop_tank',
+      provenance: 'ASSUMED',
+    });
+    expect(result.state.building.floors.value).toBeNull();
+    expect(result.card?.kind).toBe('clarification');
+  });
+});
+
 describe('MessageService — model tidak terjangkau', () => {
   it('LlmUnavailableError dari router → event LLM_UNAVAILABLE retryable, bukan lemparan', async () => {
     const { service, conversations } = serviceWith({

@@ -13,6 +13,7 @@
 
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import type {
+  AssistantCard,
   AssistantStreamEvent,
   RequirementFieldPath,
   RequirementState,
@@ -25,7 +26,15 @@ import type { ConversationOwner } from '../../conversation/domain/conversation.r
 import { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { IntentRouter } from './intent-router.js';
-import { applyEdit, runUnderstanding } from './message-pipeline.js';
+import { applyEdit, followUpCard, runUnderstanding } from './message-pipeline.js';
+import {
+  answerToUpdate,
+  summarizeAnswers,
+  type ClarificationAnswer,
+} from '../domain/clarification.js';
+import { withCompleteness } from '../domain/completeness.js';
+import { mergeRequirement } from '../domain/context-merger.js';
+import { defaultUpdateFor } from '../domain/requirement-defaults.js';
 import { runProductQuestion } from './product-question-pipeline.js';
 import { ReplyWriter, type ReplyTurn } from './reply-writer.js';
 import { RequirementSnapshotStore } from './requirement-snapshot.store.js';
@@ -165,6 +174,40 @@ export class MessageService {
     const result = applyEdit(snapshot?.state ?? emptyRequirementState(now), edits, now);
     if (result.changed) await this.store.append(conversationId, result.state, 'user_edit');
     return result.state;
+  }
+
+  /**
+   * Jawaban kartu klarifikasi — SEMUA pertanyaan dijawab lalu dikirim sekali (keputusan
+   * pemilik 2026-10-06: jawaban ditampung, bukan satu giliran per chip). **Nol panggilan
+   * LLM**: label chip kita yang membuat, nilainya domain yang tahu (`answerToUpdate`).
+   * "Belum tahu" memakai default ASSUMED bila ada. Percakapan tetap koheren: satu gelembung
+   * pengguna berisi ringkasan jawaban, satu gelembung asisten berisi kartu lanjutan yang
+   * sama seperti setelah ekstraksi (`followUpCard`).
+   */
+  async answerClarification(
+    conversationId: string,
+    actor: ConversationOwner,
+    answers: readonly ClarificationAnswer[],
+    now: string,
+  ): Promise<{ state: RequirementState; userText: string; card: AssistantCard | null }> {
+    await this.conversations.find(conversationId, actor);
+    const snapshot = await this.store.current(conversationId);
+    const state = snapshot?.state ?? emptyRequirementState(now);
+
+    const updates = answers
+      .map((answer) => answerToUpdate(answer, defaultUpdateFor))
+      .filter((update): update is NonNullable<typeof update> => update !== null);
+    const result = mergeRequirement(state, updates, now);
+    const merged = withCompleteness(result.state);
+    if (result.changed.length > 0) {
+      await this.store.append(conversationId, merged, 'clarification_answer');
+    }
+
+    const userText = summarizeAnswers(answers);
+    await this.conversations.appendUserMessage(conversationId, actor, userText);
+    const card = followUpCard(merged);
+    await this.conversations.appendAssistantMessage(conversationId, '', card ? [card] : [], null);
+    return { state: merged, userText, card };
   }
 
   /**

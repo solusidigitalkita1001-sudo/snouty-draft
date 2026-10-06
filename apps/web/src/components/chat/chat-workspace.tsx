@@ -40,6 +40,7 @@ import {
   fetchRecommendation,
   fetchRequirement,
   patchRequirement,
+  submitClarification,
   runAnalysis,
   saveConversation,
   sendMessage,
@@ -294,10 +295,41 @@ export function ChatWorkspace() {
 
   const submit = useCallback(() => submitText(draft), [draft, submitText]);
 
-  // Chip jawaban langsung dikirim sebagai pesan (prototipe `answer`), bukan mengisi draft.
-  const answerChip = useCallback(
-    (_question: ClarificationQuestion, option: string) => void submitText(option),
-    [submitText],
+  /**
+   * Jawaban kartu klarifikasi — SEMUA pertanyaan dijawab dulu, dikirim sekali, tanpa LLM
+   * (keputusan pemilik 2026-10-06). Server mengembalikan state baru, ringkasan jawaban
+   * sebagai gelembung pengguna, dan kartu lanjutan (klarifikasi lagi / CTA / kebijakan).
+   */
+  const submitAnswers = useCallback(
+    async (answers: ReadonlyArray<{ readonly id: string; readonly option: string }>) => {
+      if (!conversationId || sending) return;
+      setSending(true);
+      setError(null);
+      const result = await submitClarification(conversationId, answers);
+      setSending(false);
+      if (!result) {
+        setError(COPY.clarifyFailed);
+        return;
+      }
+      setState(result.state);
+      setActiveTitle(
+        COPY.titleFor(
+          result.state.building.type.value as string | null,
+          result.state.building.floors.value as number | null,
+        ),
+      );
+      setTurns((previous) => [
+        ...previous,
+        { id: `u-${previous.length}`, role: 'user', text: result.userText, cards: [] },
+        {
+          id: `a-${Date.now()}`,
+          role: 'assistant',
+          text: '',
+          cards: result.card ? [result.card] : [],
+        },
+      ]);
+    },
+    [conversationId, sending],
   );
 
   /** "+ Konsultasi Baru" — kembali ke sambutan dengan percakapan baru (prototipe `reset`). */
@@ -382,7 +414,10 @@ export function ChatWorkspace() {
   const analyze = useCallback(() => {
     if (!conversationId || analyzing) return;
     setAnalyzing(true);
-    setStages({});
+    // "Memahami kebutuhan" sudah selesai di giliran chat — `/analyze` tidak memancarkannya
+    // lagi. Tanpa ini tahap pertama tetap kosong, judul tak pernah "Solusi siap!", dan bar
+    // berhenti di 80% (laporan pemilik 2026-10-06).
+    setStages({ UNDERSTANDING: 'done' });
     setError(null);
 
     void runAnalysis(conversationId, (event) => {
@@ -393,12 +428,28 @@ export function ChatWorkspace() {
       }
     })
       .then(async (recommendationId) => {
-        if (!recommendationId) return;
+        if (!recommendationId) {
+          setStages(markFailed);
+          return;
+        }
         const recommendation = await fetchRecommendation(recommendationId);
+        // "Solusi siap!" sempat terlihat sebentar, lalu overlay menutup dan solusi tampil.
         await new Promise((resolve) => setTimeout(resolve, SOLUTION_READY_HOLD_MS));
         setSolution(recommendation);
+        setStages({});
+        // Overlay menutup → solusi harus langsung terlihat, bukan tersembunyi di bawah lipatan.
+        requestAnimationFrame(() => {
+          const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+          streamRef.current?.scrollTo({
+            top: streamRef.current.scrollHeight,
+            behavior: reduced ? 'auto' : 'smooth',
+          });
+        });
       })
-      .catch(() => setError(COPY.llmUnavailable))
+      .catch(() => {
+        setError(COPY.llmUnavailable);
+        setStages(markFailed);
+      })
       .finally(() => setAnalyzing(false));
   }, [analyzing, conversationId]);
 
@@ -738,7 +789,7 @@ export function ChatWorkspace() {
           </div>
         ) : (
           <div className={styles.stream} ref={streamRef} aria-live="polite">
-            {turns.map((turn) =>
+            {turns.map((turn, turnIndex) =>
               turn.role === 'user' ? (
                 <div key={turn.id} className={styles.userRow}>
                   <div className={styles.userBubble}>{turn.text}</div>
@@ -756,7 +807,8 @@ export function ChatWorkspace() {
                       <CardView
                         key={index}
                         card={card}
-                        onChip={answerChip}
+                        active={turnIndex === turns.length - 1 && !sending}
+                        onAnswers={submitAnswers}
                         onHandoff={handoff}
                         handoffState={handoffState}
                         onSave={save}
@@ -787,7 +839,9 @@ export function ChatWorkspace() {
             {/* Kartu "Yang sudah saya pahami" — grid 3 kolom dengan badge hijau jumlah data. */}
             {state !== null && filled > 0 && <UnderstoodCard rows={rows} filled={filled} />}
 
-            {Object.keys(stages).length > 0 && <StageIndicator stages={stages} />}
+            {Object.keys(stages).length > 0 && (
+              <AnalysisOverlay stages={stages} onRetry={analyze} onBack={() => setStages({})} />
+            )}
 
             {openProduct && (
               <ProductDrawer selection={openProduct} onClose={() => setOpenProduct(null)} />
@@ -1068,11 +1122,34 @@ function UnderstoodCard({
   );
 }
 
-function StageIndicator({
+/** Tahap yang sedang berjalan (atau yang pertama belum selesai) ditandai gagal. */
+function markFailed(
+  previous: Readonly<Partial<Record<AnalysisStage, StageStatus>>>,
+): Readonly<Partial<Record<AnalysisStage, StageStatus>>> {
+  if (Object.values(previous).includes('failed')) return previous;
+  const stage =
+    STAGE_ORDER.find((s) => previous[s] === 'active') ??
+    STAGE_ORDER.find((s) => previous[s] !== 'done') ??
+    STAGE_ORDER[STAGE_ORDER.length - 1]!;
+  return { ...previous, [stage]: 'failed' };
+}
+
+/**
+ * Overlay analisis (prototipe "ANALYSIS OVERLAY"): dialog modal yang menutup ruang kerja
+ * selama solusi disusun. Tidak ada tombol tutup dan Escape diabaikan — pengguna menunggu
+ * hasilnya (keputusan pemilik 2026-10-06). Tombol hanya ada saat gagal: "Coba lagi" dan
+ * "Kembali ke percakapan", persis prototipe. Fokus dipindahkan ke dialog saat terbuka.
+ */
+function AnalysisOverlay({
   stages,
+  onRetry,
+  onBack,
 }: {
   stages: Readonly<Partial<Record<AnalysisStage, StageStatus>>>;
+  onRetry: () => void;
+  onBack: () => void;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const statuses = STAGE_ORDER.map((stage) => stages[stage]);
   const done = statuses.filter((status) => status === 'done').length;
   const active = statuses.filter((status) => status === 'active').length;
@@ -1084,50 +1161,180 @@ function StageIndicator({
   // Prototipe: (langkah + 1) / 5 — tahap yang sedang berjalan ikut terhitung.
   const pct = Math.round(((done + active) / STAGE_ORDER.length) * 100);
 
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+    return () => previous?.focus();
+  }, []);
+
   return (
-    <div className={styles.stageCard} role="status" aria-live="polite">
-      <div className={styles.stageHead}>
-        {/* Prototipe: think selama dua tahap pertama, lalu write; happy saat selesai, fail saat gagal. */}
-        <Snouty
-          mood={
-            phase === 'failed' ? 'fail' : phase === 'done' ? 'happy' : done < 2 ? 'think' : 'write'
-          }
-          size={84}
-        />
-        <div className={styles.progressTrack} aria-hidden="true">
-          <div className={styles.progressFill} style={{ width: `${pct}%` }} />
-        </div>
-      </div>
-      <h3 className={styles.stageTitle}>{COPY.analysis[phase].title}</h3>
-      <p className={styles.stageSub}>{COPY.analysis[phase].sub}</p>
-      {STAGE_ORDER.map((stage) => {
-        const status = stages[stage];
-        return (
-          <div key={stage} className={styles.stageRow}>
-            <span
-              className={[
-                styles.stageDot,
-                status === 'done' ? styles.stageDotDone : '',
-                status === 'active' ? styles.stageDotActive : '',
-                status === 'failed' ? styles.stageDotFailed : '',
-              ].join(' ')}
-            />
-            <span className={status ? styles.stageLabelOn : styles.stageLabel}>
-              {stageLabel(stage)}
-            </span>
+    <div
+      className={styles.analysisOverlay}
+      onKeyDown={(event) => {
+        // Tidak bisa ditutup dengan Escape selama berjalan; saat gagal pun lewat tombol.
+        if (event.key === 'Escape') event.preventDefault();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className={styles.stageCard}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="analysis-title"
+        aria-busy={phase === 'running'}
+        tabIndex={-1}
+      >
+        <div className={styles.stageHead}>
+          {/* Prototipe: think selama dua tahap pertama, lalu write; happy saat selesai, fail saat gagal. */}
+          <Snouty
+            mood={
+              phase === 'failed'
+                ? 'fail'
+                : phase === 'done'
+                  ? 'happy'
+                  : done < 2
+                    ? 'think'
+                    : 'write'
+            }
+            size={84}
+          />
+          <div className={styles.progressTrack} aria-hidden="true">
+            <div className={styles.progressFill} style={{ width: `${pct}%` }} />
           </div>
-        );
-      })}
-      <p className={styles.stageFooter}>{CHAT_COPY_FOOTER}</p>
+        </div>
+        <h3 id="analysis-title" className={styles.stageTitle}>
+          {COPY.analysis[phase].title}
+        </h3>
+        <p className={styles.stageSub} aria-live="polite">
+          {COPY.analysis[phase].sub}
+        </p>
+        {phase === 'failed' && (
+          <div className={styles.stageActions}>
+            <button type="button" className={styles.ctaButton} onClick={onRetry}>
+              {COPY.analysisRetry}
+            </button>
+            <button type="button" className={styles.stageBack} onClick={onBack}>
+              {COPY.analysisBack}
+            </button>
+          </div>
+        )}
+        {STAGE_ORDER.map((stage) => {
+          const status = stages[stage];
+          return (
+            <div key={stage} className={styles.stageRow}>
+              <span
+                className={[
+                  styles.stageDot,
+                  status === 'done' ? styles.stageDotDone : '',
+                  status === 'active' ? styles.stageDotActive : '',
+                  status === 'failed' ? styles.stageDotFailed : '',
+                ].join(' ')}
+              />
+              <span className={status ? styles.stageLabelOn : styles.stageLabel}>
+                {stageLabel(stage)}
+              </span>
+            </div>
+          );
+        })}
+        <p className={styles.stageFooter}>{CHAT_COPY_FOOTER}</p>
+      </div>
     </div>
   );
 }
+
+/**
+ * Kartu klarifikasi (layar 03): pertanyaan BERNOMOR, maksimum empat. Jawaban DITAMPUNG —
+ * chip menandai pilihan, "Kirim jawaban" mengirim semuanya sekali (keputusan pemilik
+ * 2026-10-06). Satu pertanyaan saja (bentuk tunggal prototipe) tetap langsung terkirim.
+ * Kartu yang bukan giliran terakhir terkunci: tetap terbaca, tidak bisa diklik.
+ */
+function ClarificationCard({
+  questions,
+  active,
+  onSubmit,
+}: {
+  questions: readonly ClarificationQuestion[];
+  active: boolean;
+  onSubmit: (answers: ReadonlyArray<{ readonly id: string; readonly option: string }>) => void;
+}) {
+  const [picked, setPicked] = useState<Readonly<Record<string, string>>>({});
+  const single = questions.length === 1;
+  const complete = questions.every((q) => picked[q.id] !== undefined);
+
+  const choose = (question: ClarificationQuestion, option: string) => {
+    if (!active) return;
+    setPicked((previous) => ({ ...previous, [question.id]: option }));
+    if (single) onSubmit([{ id: question.id, option }]);
+  };
+  const submit = () => {
+    if (!active || !complete) return;
+    onSubmit(questions.map((q) => ({ id: q.id, option: picked[q.id]! })));
+  };
+  const skip = () => {
+    if (!active) return;
+    setPicked(Object.fromEntries(questions.map((q) => [q.id, UNKNOWN_OPTION])));
+    onSubmit(questions.map((q) => ({ id: q.id, option: UNKNOWN_OPTION })));
+  };
+
+  return (
+    <div className={styles.clarificationCard}>
+      <div className={styles.cardKicker}>{COPY.clarificationTitle}</div>
+      {questions.map((question, index) => (
+        <div key={question.id} className={styles.question}>
+          <div className={styles.questionHead}>
+            <span className={styles.questionNum}>{String(index + 1).padStart(2, '0')}</span>
+            <span className={styles.questionText}>{question.question}</span>
+          </div>
+          <div className={styles.chips} role="group" aria-label={question.question}>
+            {[...question.options, ...(question.allowUnknown ? [UNKNOWN_OPTION] : [])].map(
+              (option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={[
+                    styles.chip,
+                    picked[question.id] === option ? styles.chipSelected : '',
+                  ].join(' ')}
+                  aria-pressed={picked[question.id] === option}
+                  disabled={!active}
+                  onClick={() => choose(question, option)}
+                >
+                  {option}
+                </button>
+              ),
+            )}
+          </div>
+        </div>
+      ))}
+      {!single && (
+        <div className={styles.clarifyActions}>
+          <button
+            type="button"
+            className={styles.ctaButton}
+            disabled={!active || !complete}
+            onClick={submit}
+          >
+            {COPY.sendAnswers}
+          </button>
+          {questions.length >= 3 && (
+            <button type="button" className={styles.skipDefaults} disabled={!active} onClick={skip}>
+              {COPY.skipToDefaults}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const UNKNOWN_OPTION = 'Belum tahu';
 
 const CHAT_COPY_FOOTER = COPY.analysisFooter;
 
 function CardView({
   card,
-  onChip,
+  active,
+  onAnswers,
   onHandoff,
   handoffState,
   onSave,
@@ -1137,7 +1344,9 @@ function CardView({
   onOpenProduct,
 }: {
   card: AssistantCard;
-  onChip: (question: ClarificationQuestion, option: string) => void;
+  /** Kartu di giliran terakhir — satu-satunya yang masih bisa dijawab. */
+  active: boolean;
+  onAnswers: (answers: ReadonlyArray<{ readonly id: string; readonly option: string }>) => void;
   onHandoff: (reason: string) => void;
   handoffState: 'idle' | 'sending' | 'sent';
   onSave: () => void;
@@ -1151,51 +1360,7 @@ function CardView({
   }
 
   if (card.kind === 'clarification') {
-    // Layar 03: pertanyaan BERNOMOR — maksimum empat, dan nomornya membuat
-    // panjangnya terbaca sebagai "ada ujungnya", bukan kuesioner tanpa batas.
-    return (
-      <div className={styles.clarificationCard}>
-        <div className={styles.cardKicker}>{COPY.clarificationTitle}</div>
-        {card.questions.map((question, index) => (
-          <div key={question.id} className={styles.question}>
-            <div className={styles.questionHead}>
-              <span className={styles.questionNum}>{String(index + 1).padStart(2, '0')}</span>
-              <span className={styles.questionText}>{question.question}</span>
-            </div>
-            <div className={styles.chips}>
-              {question.options.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className={styles.chip}
-                  onClick={() => onChip(question, option)}
-                >
-                  {option}
-                </button>
-              ))}
-              {question.allowUnknown && (
-                <button
-                  type="button"
-                  className={styles.chip}
-                  onClick={() => onChip(question, 'Belum tahu')}
-                >
-                  Belum tahu
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-        {card.questions.length >= 3 && (
-          <button
-            type="button"
-            className={styles.skipDefaults}
-            onClick={() => onChip(card.questions[0]!, 'Belum tahu')}
-          >
-            {COPY.skipToDefaults}
-          </button>
-        )}
-      </div>
-    );
+    return <ClarificationCard questions={card.questions} active={active} onSubmit={onAnswers} />;
   }
 
   if (card.kind === 'cta') {

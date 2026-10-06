@@ -18,6 +18,27 @@ import { MessageService } from '../application/message.service.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 const MessageDto = z.object({ text: z.string().trim().min(1).max(4_000) }).strict();
+/** Hanya field yang punya templat pertanyaan; labelnya divalidasi domain, bukan di sini. */
+const ClarificationDto = z
+  .object({
+    answers: z
+      .array(
+        z
+          .object({
+            id: z.enum([
+              'water.source',
+              'water.installationType',
+              'building.floors',
+              'fixtures.bathrooms',
+            ]),
+            option: z.string().trim().min(1).max(40),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(4),
+  })
+  .strict();
 
 /**
  * Edit inline panel kanan — hanya tujuh field yang tampil di panel, dengan nilai yang
@@ -84,6 +105,17 @@ export class MessageController {
   ): Promise<{ state: RequirementState | null }> {
     const id = parse(IdParam, params).id;
     return { state: await this.messages.requirement(id, actorOf(req)) };
+  }
+
+  /**
+   * `POST /conversations/:id/requirement/clarification` — jawaban kartu klarifikasi, semua
+   * sekaligus, nol LLM. "Lewati dan gunakan asumsi standar" = setiap jawaban "Belum tahu".
+   */
+  @Post(':id/requirement/clarification')
+  async clarify(@Param() params: unknown, @Body() body: unknown, @Req() req: PublicRequest) {
+    const id = parse(IdParam, params).id;
+    const { answers } = parse(ClarificationDto, body);
+    return this.messages.answerClarification(id, actorOf(req), answers, new Date().toISOString());
   }
 
   /** `PATCH /conversations/:id/requirement` — edit inline panel kanan, nol LLM. */

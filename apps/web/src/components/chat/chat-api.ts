@@ -234,6 +234,32 @@ export async function fetchCatalogVersion(): Promise<CatalogVersionBadge | null>
   }
 }
 
+export interface ClarificationResult {
+  readonly state: RequirementState;
+  /** Ringkasan jawaban, jadi gelembung pengguna — "Sumber air: Toren atap · …". */
+  readonly userText: string;
+  /** Kartu lanjutan: klarifikasi lagi, CTA analisis, atau kartu kebijakan. */
+  readonly card: AssistantCard | null;
+}
+
+/** Jawaban kartu klarifikasi, semua sekaligus — tanpa LLM; `null` bila ditolak. */
+export async function submitClarification(
+  id: string,
+  answers: ReadonlyArray<{ readonly id: string; readonly option: string }>,
+): Promise<ClarificationResult | null> {
+  const response = await fetch(
+    `${BASE}/conversations/${encodeURIComponent(id)}/requirement/clarification`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { ...authHeaders(), 'content-type': 'application/json' },
+      body: JSON.stringify({ answers }),
+    },
+  );
+  if (!response.ok) return null;
+  return (await response.json()) as ClarificationResult;
+}
+
 /** Edit inline panel kanan — PATCH tanpa LLM; `null` bila ditolak (validasi/kepemilikan). */
 export async function patchRequirement(
   id: string,

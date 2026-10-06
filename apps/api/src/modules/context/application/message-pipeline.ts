@@ -16,6 +16,7 @@
  */
 
 import type {
+  AssistantCard,
   AssistantStreamEvent,
   KeyValue,
   RequirementState,
@@ -145,31 +146,36 @@ export async function runUnderstanding(
     });
   }
 
-  // Policy 5 atas state yang SUDAH di-merge: scope diputuskan dari kebutuhan nyata,
-  // bukan dari kata-kata pesan. Industri atau pembuangan tidak boleh sampai ke CTA
-  // analisis, karena analisisnya memang belum ada untuk mereka.
-  const scope = scopePolicy({
-    buildingType: merged.building.type.value,
-    installationType: merged.water.installationType.value,
-    floors: merged.building.floors.value,
-  });
-
-  if (scope.kind === 'policy') {
-    const card = policyCard(scope, capturedFrom(merged));
-    if (card) events.push({ type: 'card', card });
-  } else if (merged.missingInformation.length > 0) {
-    const plan = planClarification(merged.missingInformation);
-    if (plan)
-      events.push({ type: 'card', card: { kind: 'clarification', questions: plan.questions } });
-  } else {
-    // Data inti lengkap dan dalam cakupan — ajak lanjut ke analisis (Fase 6/7).
-    events.push({ type: 'card', card: { kind: 'cta', action: 'ANALYZE' } });
-  }
+  const card = followUpCard(merged);
+  if (card) events.push({ type: 'card', card });
 
   events.push(endEvent(input.messageId));
 
   const trigger: SnapshotTrigger = input.decision.mutatesState ? 'user_edit' : 'extraction';
   return { events, nextState: merged, changed, trigger };
+}
+
+/**
+ * Kartu lanjutan atas state yang SUDAH di-merge — dipakai setelah ekstraksi maupun setelah
+ * jawaban klarifikasi, supaya keduanya bermuara di keputusan yang sama:
+ *
+ *   - Policy 5: scope diputuskan dari kebutuhan nyata, bukan dari kata-kata pesan. Industri
+ *     atau pembuangan tidak boleh sampai ke CTA analisis, karena analisisnya belum ada.
+ *   - Masih ada field inti kosong → kartu klarifikasi (maks. 4 pertanyaan).
+ *   - Lengkap dan dalam cakupan → ajak lanjut ke analisis (Fase 6/7).
+ */
+export function followUpCard(merged: RequirementState): AssistantCard | null {
+  const scope = scopePolicy({
+    buildingType: merged.building.type.value,
+    installationType: merged.water.installationType.value,
+    floors: merged.building.floors.value,
+  });
+  if (scope.kind === 'policy') return policyCard(scope, capturedFrom(merged));
+  if (merged.missingInformation.length > 0) {
+    const plan = planClarification(merged.missingInformation);
+    return plan ? { kind: 'clarification', questions: plan.questions } : null;
+  }
+  return { kind: 'cta', action: 'ANALYZE' };
 }
 
 /**

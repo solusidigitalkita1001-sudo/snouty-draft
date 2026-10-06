@@ -16,6 +16,7 @@
  */
 
 import type { ClarificationQuestion, RequirementFieldPath } from '@snouty/shared-types';
+import type { FieldUpdate } from './context-merger.js';
 
 export const MAX_CLARIFICATION_QUESTIONS = 4;
 
@@ -99,6 +100,69 @@ function orderByPriority(
     return index === -1 ? CLARIFICATION_PRIORITY.length : index;
   };
   return [...missing].sort((a, b) => rank(a) - rank(b));
+}
+
+/** Label chip yang selalu ada; jawaban ini memakai default (ASSUMED) bila field punya default. */
+export const UNKNOWN_OPTION = 'Belum tahu';
+
+/**
+ * Nilai di balik tiap label chip — klien hanya tahu labelnya, nilainya urusan domain.
+ * Pertanyaan berangka (lantai, kamar mandi) memetakan labelnya sebagai bilangan bulat.
+ */
+const OPTION_VALUES: Readonly<
+  Partial<Record<RequirementFieldPath, Readonly<Record<string, unknown>>>>
+> = {
+  'water.source': {
+    'Toren atap': 'rooftop_tank',
+    'Toren bawah': 'ground_tank',
+    Pompa: 'pump',
+    PDAM: 'municipal',
+  },
+  'water.installationType': {
+    'Air bersih': 'clean_water',
+    Pembuangan: 'drainage',
+    Keduanya: 'both',
+  },
+};
+
+/** Label singkat untuk ringkasan jawaban di gelembung pengguna. */
+const ANSWER_LABEL: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
+  'water.source': 'Sumber air',
+  'water.installationType': 'Instalasi',
+  'building.floors': 'Lantai',
+  'fixtures.bathrooms': 'Kamar mandi',
+};
+
+export interface ClarificationAnswer {
+  readonly id: string;
+  readonly option: string;
+}
+
+/**
+ * Jawaban chip → pembaruan field, **nol LLM**: labelnya kita yang membuat, jadi nilainya
+ * kita yang tahu. "Belum tahu" → default ASSUMED bila ada (`defaultUpdateFor`); field tanpa
+ * default (lantai, kamar mandi) tetap kosong dan akan ditanya lagi. Label yang bukan dari
+ * templat (klien usang, permintaan dirakit tangan) → `null`, bukan tebakan.
+ */
+export function answerToUpdate(
+  answer: ClarificationAnswer,
+  defaultFor: (path: RequirementFieldPath) => FieldUpdate | null,
+): FieldUpdate | null {
+  const path = answer.id as RequirementFieldPath;
+  if (!TEMPLATES[path]) return null;
+  if (answer.option === UNKNOWN_OPTION) return defaultFor(path);
+  if (!TEMPLATES[path]!.options.includes(answer.option)) return null;
+  const mapped = OPTION_VALUES[path]?.[answer.option];
+  const value = mapped ?? (/^\d+$/.test(answer.option) ? Number(answer.option) : null);
+  if (value === null) return null;
+  return { path, value, source: 'user_stated' };
+}
+
+/** "Sumber air: Toren atap · Instalasi: Keduanya · Kamar mandi: 3" — gelembung pengguna. */
+export function summarizeAnswers(answers: readonly ClarificationAnswer[]): string {
+  return answers
+    .map((a) => `${ANSWER_LABEL[a.id as RequirementFieldPath] ?? a.id}: ${a.option}`)
+    .join(' · ');
 }
 
 function toQuestion(path: RequirementFieldPath): ClarificationQuestion | null {

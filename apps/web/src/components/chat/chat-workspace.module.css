@@ -331,6 +331,35 @@
   color: var(--snouty-action-text);
 }
 
+/* Chip terpilih: jawaban ditampung dulu, dikirim sekali lewat "Kirim jawaban". */
+.chipSelected,
+.chipSelected:disabled {
+  border-color: var(--snouty-action);
+  color: var(--snouty-action-text);
+  font-weight: 500;
+  box-shadow: 0 0 0 1px var(--snouty-action);
+  opacity: 1;
+}
+
+/* Kartu yang sudah dijawab (bukan giliran terakhir): tetap terbaca, tidak bisa diklik. */
+.chip:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.chip:disabled:hover {
+  border-color: var(--snouty-border);
+  color: var(--snouty-ink);
+}
+
+.clarifyActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
 /* ---------- CTA ---------- */
 
 .ctaCard {
@@ -362,16 +391,58 @@
 
 /* ---------- stage indicator ---------- */
 
+/*
+ * Overlay analisis — prototipe "ANALYSIS OVERLAY": scrim gelap menutup seluruh ruang kerja,
+ * kartu 470px di tengah. Tanpa tombol tutup selama berjalan: pengguna menunggu hasilnya
+ * (keputusan pemilik 2026-10-06, sejalan dengan prototipe). Tombol hanya muncul saat gagal.
+ */
+.analysisOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--snouty-scrim-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
 .stageCard {
   border: 1px solid var(--snouty-border);
   background: var(--snouty-surface);
-  border-radius: 10px;
-  padding: 15px 16px;
+  border-radius: 12px;
+  padding: 26px 28px;
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 14px;
+  width: 100%;
   max-width: 470px;
+  box-shadow: var(--snouty-shadow-modal);
   animation: snoutyIn var(--snouty-enter) both;
+  outline: none;
+}
+
+.stageActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.stageBack {
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  color: var(--snouty-ink);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 9px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.stageBack:hover {
+  border-color: var(--snouty-action);
+  color: var(--snouty-action-text);
 }
 
 /* Kepala kartu analisis dari overlay prototipe: mascot, bar progres bergaris, judul, sub. */

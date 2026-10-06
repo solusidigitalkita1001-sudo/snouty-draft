@@ -3,7 +3,54 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { RequirementFieldPath } from '@snouty/shared-types';
-import { MAX_CLARIFICATION_QUESTIONS, planClarification } from './clarification.js';
+import {
+  MAX_CLARIFICATION_QUESTIONS,
+  answerToUpdate,
+  planClarification,
+  summarizeAnswers,
+} from './clarification.js';
+
+describe('answerToUpdate — jawaban chip tanpa LLM', () => {
+  const noDefault = () => null;
+  const withDefault = (path: string) =>
+    path === 'water.source'
+      ? ({ path, value: 'rooftop_tank', source: 'default_applied' } as never)
+      : null;
+
+  it('label templat → nilai domain; angka → bilangan bulat', () => {
+    expect(answerToUpdate({ id: 'water.source', option: 'PDAM' }, noDefault)).toEqual({
+      path: 'water.source',
+      value: 'municipal',
+      source: 'user_stated',
+    });
+    expect(answerToUpdate({ id: 'water.installationType', option: 'Keduanya' }, noDefault)).toEqual(
+      { path: 'water.installationType', value: 'both', source: 'user_stated' },
+    );
+    expect(answerToUpdate({ id: 'fixtures.bathrooms', option: '3' }, noDefault)).toEqual({
+      path: 'fixtures.bathrooms',
+      value: 3,
+      source: 'user_stated',
+    });
+  });
+
+  it('"Belum tahu" → default bila ada, kosong bila tidak; label asing → null, bukan tebakan', () => {
+    expect(answerToUpdate({ id: 'water.source', option: 'Belum tahu' }, withDefault)).toMatchObject(
+      { path: 'water.source', value: 'rooftop_tank', source: 'default_applied' },
+    );
+    expect(answerToUpdate({ id: 'building.floors', option: 'Belum tahu' }, withDefault)).toBeNull();
+    expect(answerToUpdate({ id: 'water.source', option: 'Sungai' }, noDefault)).toBeNull();
+    expect(answerToUpdate({ id: 'building.dimensions', option: '1' }, noDefault)).toBeNull();
+  });
+
+  it('ringkasan jawaban untuk gelembung pengguna', () => {
+    expect(
+      summarizeAnswers([
+        { id: 'water.source', option: 'Toren atap' },
+        { id: 'fixtures.bathrooms', option: '3' },
+      ]),
+    ).toBe('Sumber air: Toren atap · Kamar mandi: 3');
+  });
+});
 
 describe('ClarificationEngine', () => {
   it('tanpa field kurang → tidak ada rencana', () => {

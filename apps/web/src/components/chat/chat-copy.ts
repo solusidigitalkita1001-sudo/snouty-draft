@@ -152,6 +152,12 @@ export const CHAT_COPY = {
   /** Layar 03 — kartu klarifikasi bernomor. */
   clarificationTitle: 'AGAR SAYA TIDAK MENEBAK',
   skipToDefaults: 'Lewati dan gunakan asumsi standar',
+  /** Kartu klarifikasi: jawaban ditampung, dikirim sekali (keputusan pemilik 2026-10-06). */
+  sendAnswers: 'Kirim jawaban',
+  clarifyFailed: 'Jawaban belum tersimpan. Coba lagi.',
+  /** Tombol overlay analisis — hanya saat gagal (prototipe). */
+  analysisRetry: 'Coba lagi',
+  analysisBack: 'Kembali ke percakapan',
 } as const;
 
 /** Label lima tahap, dirender apa adanya dari `ANALYSIS_STAGE_LABELS`. */
