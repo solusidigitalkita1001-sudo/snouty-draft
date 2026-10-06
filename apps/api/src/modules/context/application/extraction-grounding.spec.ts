@@ -17,12 +17,16 @@ describe('extractionToUpdates — fakta tersurat yang dilewatkan model', () => {
     ]);
   });
 
-  it('nilai model menang bila ada; kamar mandi juga; tanpa angka tersurat tidak ada tebakan', () => {
+  it('angka model yang bertentangan dengan teks kalah dari teks; kamar mandi juga; tanpa angka tersurat tidak ada tebakan', () => {
+    // Sebelum 2026-10-06 angka model menang; kini "2 lantai" tersurat mengalahkan `floors: 3`.
     const withModel = extractionToUpdates(
       { building: { floors: 3 } },
       'rumah 2 lantai, 3 kamar mandi',
     );
-    expect(withModel).toContainEqual({ path: 'building.floors', value: 3, source: 'user_stated' });
+    expect(withModel).toContainEqual({ path: 'building.floors', value: 2, source: 'user_stated' });
+    expect(
+      extractionToUpdates({ building: { floors: 3 } }, 'rumah tiga lantai, 3 kamar mandi'),
+    ).toContainEqual({ path: 'building.floors', value: 3, source: 'user_stated' });
     expect(withModel).toContainEqual({
       path: 'fixtures.bathrooms',
       value: 3,
@@ -43,6 +47,71 @@ describe('extractionToUpdates — fakta tersurat yang dilewatkan model', () => {
       value: 'both',
       source: 'user_stated',
     });
+  });
+});
+
+describe('extractionToUpdates — angka dan jenis bangunan yang dikarang (produksi 2026-10-06)', () => {
+  // Keluaran asli qwen2.5 7B untuk "mau tanya soal pipa": menyalin contoh di prompt.
+  const fabricated = {
+    building: { type: 'residential' as const, floors: 2 },
+    fixtures: { bathrooms: 3, basins: 2, kitchens: 1 },
+  };
+
+  it('"mau tanya soal pipa" → tidak satu pun field dipercaya', () => {
+    expect(extractionToUpdates(fabricated, 'mau tanya soal pipa')).toEqual([]);
+  });
+
+  it('angka dipercaya hanya bila ada di pesan — digit maupun kata bilangan', () => {
+    const paths = (m: string) => extractionToUpdates(fabricated, m).map((u) => u.path);
+    // basins 2 dikarang: ada "2" di pesan, tetapi tidak di dekat "wastafel" — tetap dibuang.
+    expect(paths('rumah 2 lantai, 3 kamar mandi')).toEqual([
+      'building.type',
+      'building.floors',
+      'fixtures.bathrooms',
+    ]);
+    expect(paths('rumah 2 lantai, 3 kamar mandi, 2 wastafel')).toContain('fixtures.basins');
+    expect(paths('rumah lantai dua, sekamar mandi')).toEqual(['building.type', 'building.floors']);
+    expect(
+      extractionToUpdates({ fixtures: { bathrooms: 1 } }, 'rumah sekamar mandi'),
+    ).toContainEqual({ path: 'fixtures.bathrooms', value: 1, source: 'user_stated' });
+    expect(paths('rumah dua lantai, tiga kamar mandi, satu dapur')).toEqual([
+      'building.type',
+      'building.floors',
+      'fixtures.bathrooms',
+      'fixtures.kitchens',
+    ]);
+    // "12" bukan "2"; "23" bukan "3"
+    // "12" bukan "2" dan "23" bukan "3": angka model dibuang, angka dari teks yang dipakai.
+    const fromText = extractionToUpdates(fabricated, 'rumah 12 lantai, 23 kamar mandi');
+    expect(fromText).toEqual([
+      { path: 'building.type', value: 'residential', source: 'user_stated' },
+      { path: 'building.floors', value: 12, source: 'user_stated' },
+      { path: 'fixtures.bathrooms', value: 23, source: 'user_stated' },
+    ]);
+  });
+
+  it('nol hanya bila pesannya meniadakan; jenis bangunan hanya bila kata bendanya ada', () => {
+    expect(
+      extractionToUpdates({ fixtures: { kitchens: 0 } }, 'rumah 1 lantai tanpa dapur'),
+    ).toContainEqual({
+      path: 'fixtures.kitchens',
+      value: 0,
+      source: 'user_stated',
+    });
+    expect(extractionToUpdates({ fixtures: { kitchens: 0 } }, 'rumah 1 lantai')).toEqual([
+      { path: 'building.type', value: 'residential', source: 'user_stated' },
+      { path: 'building.floors', value: 1, source: 'user_stated' },
+    ]);
+    expect(
+      extractionToUpdates({ building: { type: 'boarding_house' } }, 'kos 3 lantai'),
+    ).toContainEqual({
+      path: 'building.type',
+      value: 'boarding_house',
+      source: 'user_stated',
+    });
+    expect(
+      extractionToUpdates({ building: { type: 'boarding_house' } }, 'bangunan 3 lantai'),
+    ).toEqual([{ path: 'building.floors', value: 3, source: 'user_stated' }]);
   });
 });
 

@@ -712,6 +712,13 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       dengan ekstraksi kosong dijawab sebagai ajakan bertanya (`OPENER_REPLY`, lewat ReplyWriter
       bila ada model), tanpa kartu dan tanpa menyentuh state; jawaban klarifikasi/mutasi kosong
       tetap jalur biasa. 2 tes; API 784 tes
+- [x] P14-09f Pagar angka dan jenis bangunan (2026-10-06 malam). Dari "mau tanya soal pipa" model 7B
+      menulis rumah 2 lantai, 3 kamar mandi, 2 wastafel, 1 dapur (menyalin contoh di prompt) dan
+      semuanya masuk state **VERIFIED**. `extractionToUpdates`: jumlah (lantai, kamar mandi,
+      wastafel, dapur, titik) hanya dipercaya bila angkanya — digit/kata bilangan/awalan "se-" —
+      berdekatan dengan kata bendanya; `0` hanya dengan peniadaan; jenis bangunan hanya bila kata
+      bendanya ada; angka model yang tidak tersurat jatuh ke angka dari teks. Contoh berangka
+      dihapus dari prompt ekstraksi. 3 tes; API 787 tes
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache

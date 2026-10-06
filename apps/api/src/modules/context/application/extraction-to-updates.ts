@@ -56,6 +56,66 @@ const OBVIOUS = {
   },
 };
 
+/**
+ * Pagar grounding untuk JUMLAH dan JENIS bangunan — ditambah setelah produksi 2026-10-06:
+ * dari "mau tanya soal pipa" qwen2.5 7B menulis rumah 2 lantai, 3 kamar mandi, 2 wastafel,
+ * 1 dapur (menyalin contoh di prompt), dan semuanya masuk state sebagai VERIFIED. Angka
+ * hanya dipercaya bila angkanya sendiri ada di pesan (digit atau kata bilangan); `0` hanya
+ * bila pesannya memuat peniadaan; jenis bangunan hanya bila kata bendanya ada.
+ */
+const NUMBER_WORDS: Readonly<Record<number, string>> = {
+  1: 'satu|sebuah',
+  2: 'dua',
+  3: 'tiga',
+  4: 'empat',
+  5: 'lima',
+  6: 'enam',
+  7: 'tujuh',
+  8: 'delapan',
+  9: 'sembilan',
+  10: 'sepuluh',
+  11: 'sebelas',
+  12: 'dua belas',
+};
+
+/** Kata benda yang harus berdekatan dengan angkanya — "2 lantai", "lantai dua", "selantai". */
+const COUNT_NOUNS: Readonly<Record<string, string>> = {
+  'building.floors': 'lantai|lt|tingkat',
+  'fixtures.bathrooms': 'kamar mandi|km|toilet|wc',
+  'fixtures.basins': 'wastafel|washtafel|westafel|basin|bak cuci',
+  'fixtures.kitchens': 'dapur|kitchen|pantry',
+  'fixtures.outletCount': 'titik|outlet|keran|kran',
+};
+
+const NEGATION = 'tidak ada|tanpa|nggak ada|gak ada|ga ada|tidak punya|belum ada|tidak pakai';
+const GAP = '\\s*(?:[a-z]+\\s+){0,2}'; // paling banyak dua kata di antaranya: "3 buah kamar mandi"
+
+/**
+ * Apakah pesan menyebut `n` buah `noun` — digit atau kata bilangan, sebelum atau sesudah kata
+ * bendanya, atau awalan "se-" ("sekamar mandi"). `0` hanya bila ada peniadaan di dekat kata benda.
+ * Angka yang jauh dari kata bendanya tidak dihitung: "rumah 2 lantai" bukan bukti untuk 2 wastafel.
+ */
+export function mentionsCount(message: string, n: number, noun: string): boolean {
+  const text = message.toLowerCase();
+  if (n === 0) return new RegExp(`\\b(?:${NEGATION})${GAP}(?:${noun})\\b`).test(text);
+  const words = NUMBER_WORDS[n];
+  const digits = `(?<![\\d.,])${n}(?![\\d.,]*\\d)`;
+  const num = words === undefined ? digits : `(?:${digits}|\\b(?:${words})\\b)`;
+  if (new RegExp(`${num}${GAP}(?:${noun})\\b`).test(text)) return true;
+  if (new RegExp(`\\b(?:${noun})${GAP}${num}`).test(text)) return true;
+  return n === 1 && new RegExp(`\\bse(?:${noun})\\b`).test(text);
+}
+
+const TYPE_MARKERS: Readonly<
+  Record<NonNullable<NonNullable<Extraction['building']>['type']>, RegExp>
+> = {
+  residential:
+    /\b(rumah|hunian|villa|vila|perumahan|apartemen|apartement|cluster|rumah tinggal)\b/i,
+  boarding_house: /\b(kos|kost|kos-kosan|kosan|asrama|kontrakan|mess)\b/i,
+  industrial: /\b(pabrik|industri|gudang|workshop|bengkel)\b/i,
+  light_commercial: /\b(ruko|toko|kantor|kafe|cafe|resto|restoran|hotel|klinik|sekolah|warung)\b/i,
+};
+
 function intAfter(pattern: RegExp, message: string): number | undefined {
   const match = pattern.exec(message);
   if (!match?.[1]) return undefined;
@@ -69,17 +129,36 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     if (value === undefined) return; // "tidak disebut di pesan ini"
     const marker = GROUNDING[path];
     if (marker && message !== '' && !marker.test(message)) return; // tidak pernah diucapkan
+    const noun = COUNT_NOUNS[path];
+    if (message !== '' && noun !== undefined && typeof value === 'number') {
+      if (!mentionsCount(message, value, noun)) return; // angka yang tidak pernah diucapkan
+    }
+    if (message !== '' && path === 'building.type' && typeof value === 'string') {
+      const typeMarker = TYPE_MARKERS[value as keyof typeof TYPE_MARKERS];
+      if (typeMarker !== undefined && !typeMarker.test(message)) return; // bangunan tak disebut
+    }
     updates.push({ path, value, source: 'user_stated' });
   };
 
   add('building.type', extraction.building?.type ?? OBVIOUS.type(message));
-  add('building.floors', extraction.building?.floors ?? OBVIOUS.floors(message));
+  // Angka model dipakai hanya bila tersurat di dekat kata bendanya; selain itu angka dari
+  // teks (bila ada). "rumah 2 lantai" + model `floors: 3` → 2, bukan 3, bukan kosong.
+  const counted = (path: string, model: number | undefined, obvious: number | undefined) =>
+    model !== undefined && mentionsCount(message, model, COUNT_NOUNS[path] ?? '') ? model : obvious;
+
+  add(
+    'building.floors',
+    counted('building.floors', extraction.building?.floors, OBVIOUS.floors(message)),
+  );
   add('building.floorHeightM', extraction.building?.floorHeightM);
   if (extraction.building?.mainRunMeters !== undefined) {
     add('building.dimensions', { mainRunMeters: extraction.building.mainRunMeters });
   }
 
-  add('fixtures.bathrooms', extraction.fixtures?.bathrooms ?? OBVIOUS.bathrooms(message));
+  add(
+    'fixtures.bathrooms',
+    counted('fixtures.bathrooms', extraction.fixtures?.bathrooms, OBVIOUS.bathrooms(message)),
+  );
   add('fixtures.basins', extraction.fixtures?.basins);
   add('fixtures.kitchens', extraction.fixtures?.kitchens);
   add('fixtures.outletCount', extraction.fixtures?.outletCount);
