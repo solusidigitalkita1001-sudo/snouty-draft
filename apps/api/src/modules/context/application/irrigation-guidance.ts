@@ -27,7 +27,7 @@ export function irrigationGuidance(state: RequirementState): string {
     '',
     irrigationMissing(state).length > 0
       ? 'Supaya saya bisa menghitung debit, ukuran pipa, dan daftar produknya, saya perlu beberapa hal di bawah ini.'
-      : 'Data irigasinya sudah lengkap — saya bisa menghitung perkiraan awalnya (bertanda asumsi sampai diperiksa tim teknis Pralon).',
+      : 'Datanya sudah cukup. Tekan **Susun rekomendasi** dan saya hitung perkiraan awalnya — angka yang saya perkirakan sendiri saya tandai jelas, supaya tim teknis Pralon tinggal memeriksanya.',
   ];
   return lines.join('\n');
 }
