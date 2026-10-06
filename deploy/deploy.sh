@@ -43,6 +43,11 @@ case "$cmd" in
     # Tanpa --remove-orphans: proyek lama di server memakai nama compose `snouty` juga, dan flag itu
     # menghapus kontainernya (snouty_backend/db/frontend) — yang kita ingin simpan untuk rollback.
     "${COMPOSE[@]}" up -d
+    # Nginx menyelesaikan nama `api`/`web` sekali saat start; kontainer yang dibuat ulang dapat IP
+    # baru dan nginx menjawab 502 sampai di-restart. Hanya bila nginx edge memang sedang jalan.
+    if docker ps --format '{{.Names}}' | grep -qx 'snouty-nginx-1'; then
+      "${COMPOSE[@]}" --profile edge restart nginx
+    fi
     ;;
   smoke)
     for i in $(seq 1 40); do
