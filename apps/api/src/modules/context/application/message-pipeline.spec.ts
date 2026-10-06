@@ -278,6 +278,34 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(events.some((e) => e.type === 'card')).toBe(false);
   });
 
+  it('pembuka tanpa fakta ("mau nanya2 dong") berlabel REQUIREMENT_STATEMENT: dijawab ajakan bertanya, bukan formulir klarifikasi', async () => {
+    // Keluaran asli qwen2.5 7B di produksi: label pernyataan kebutuhan, ekstraksi kerangka kosong.
+    const ai = aiExtracting({ building: {}, fixtures: {}, water: {} });
+    const { events, changed } = await runUnderstanding(
+      ai,
+      input({ message: 'mau nanya2 dong', decision: extractDecision }),
+    );
+    const text = events.find((e) => e.type === 'token') as { text: string } | undefined;
+    expect(text?.text).toContain('Silakan, tanyakan saja');
+    expect(events.some((e) => e.type === 'card')).toBe(false);
+    expect(events.some((e) => e.type === 'requirement.updated')).toBe(false);
+    expect(changed).toBe(false);
+  });
+
+  it('jawaban klarifikasi yang kosong TIDAK dianggap pembuka: jalur biasa tetap berjalan', async () => {
+    const decision: RoutingDecision = {
+      intent: 'CLARIFICATION_ANSWER',
+      confidence: 0.9,
+      shouldExtract: true,
+      mutatesState: true,
+    };
+    const { events } = await runUnderstanding(
+      aiExtracting({}),
+      input({ message: 'belum tahu', decision }),
+    );
+    expect(events.some((e) => e.type === 'card')).toBe(true);
+  });
+
   it('model ragu (CLARIFICATION_NEEDED): bertanya balik, tidak mengubah state', async () => {
     const decision: RoutingDecision = {
       intent: 'CLARIFICATION_NEEDED',

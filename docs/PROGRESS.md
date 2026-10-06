@@ -706,6 +706,12 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       disebut → dua kali gagal validasi → tahap pemahaman gugur; `withoutNulls` di batas AI
       menyamakan `null` dengan "tidak disebut" (skema tetap strict), 2 tes. `deploy.sh up` me-restart
       nginx edge (IP kontainer api berubah → 502)
+- [x] P14-09e Pesan pembuka (2026-10-06 malam): "mau nanya2 dong" / "boleh tanya?" diberi label
+      REQUIREMENT_STATEMENT oleh model 7B (tidak deterministik) → ekstraksi kosong → formulir
+      klarifikasi 4 pertanyaan. Aturan di kode (`runUnderstanding`): pernyataan kebutuhan pertama
+      dengan ekstraksi kosong dijawab sebagai ajakan bertanya (`OPENER_REPLY`, lewat ReplyWriter
+      bila ada model), tanpa kartu dan tanpa menyentuh state; jawaban klarifikasi/mutasi kosong
+      tetap jalur biasa. 2 tes; API 784 tes
 - [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
       Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache

@@ -20,6 +20,14 @@ export const REPLY_COPY = {
     'Maaf, saya belum menangkap maksudnya. Bisa dijelaskan sedikit lebih rinci — apakah ini tentang kebutuhan bangunan Anda, atau tentang produk tertentu?',
 } as const satisfies Partial<Record<Intent, string>>;
 
+/**
+ * Pesan pembuka tanpa satu pun fakta kebutuhan ("mau nanya2 dong", "boleh tanya?") yang model
+ * beri label pernyataan kebutuhan. Bukan intent tersendiri — ditentukan dari hasil ekstraksi
+ * yang kosong — jadi tidak masuk `REPLY_COPY` yang berkunci intent.
+ */
+export const OPENER_REPLY =
+  'Silakan, tanyakan saja. Saya bisa membantu merencanakan pipa untuk bangunan Anda — sebutkan jumlah lantai, kamar mandi, dan sumber airnya — atau menjawab pertanyaan tentang produk Pralon.';
+
 export type RepliedIntent = keyof typeof REPLY_COPY;
 
 export function replyFor(intent: Intent): string | null {

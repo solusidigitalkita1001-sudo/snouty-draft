@@ -24,6 +24,7 @@ import type {
 } from '@snouty/shared-types';
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
+import type { Extraction } from '../../ai/domain/extraction-schema.js';
 import { caseProfile, isCaseId } from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
 import {
@@ -59,7 +60,7 @@ import { FIELD_LABEL, requirementValueLabel } from '../domain/requirement-labels
 import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsIn } from './pipe-knowledge.js';
-import { replyFor } from './reply-copy.js';
+import { OPENER_REPLY, replyFor } from './reply-copy.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 
 export interface PipelineInput {
@@ -182,6 +183,27 @@ export async function runUnderstanding(
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
     const extraction = await ai.extract(input.message);
+
+    // Pesan pembuka tanpa satu pun fakta ("mau nanya2 dong", "boleh tanya?"): model kecil kerap
+    // memberinya label REQUIREMENT_STATEMENT, dan formulir klarifikasi adalah jawaban yang salah
+    // untuk orang yang baru hendak bertanya. Ekstraksi kosong berarti tidak ada yang bisa
+    // diklarifikasi dari pesan ini — dijawab seperti percakapan. Hanya untuk pernyataan pertama:
+    // jawaban klarifikasi dan mutasi yang kosong tetap lewat jalur biasa.
+    if (input.decision.intent === 'REQUIREMENT_STATEMENT' && isEmptyExtraction(extraction)) {
+      events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'done', detail: '0 DATA' });
+      const written = reply
+        ? await reply.write({
+            intent: 'OUT_OF_SCOPE',
+            userMessage: input.message,
+            recentTurns: input.recentTurns ?? [],
+            fallback: OPENER_REPLY,
+          })
+        : { text: OPENER_REPLY };
+      events.push({ type: 'token', text: written.text });
+      events.push(endEvent(input.messageId));
+      return { events, nextState: input.state, changed: false, trigger: 'extraction' };
+    }
+
     const updates = extractionToUpdates(extraction, input.message);
     const result = mergeRequirement(input.state, updates, input.now);
     merged = withCompleteness(result.state);
@@ -310,6 +332,16 @@ function buildingLabel(type: RequirementState['building']['type']['value']): str
     default:
       return null;
   }
+}
+
+/**
+ * Ekstraksi tanpa satu pun field terisi. Grup yang ada tetapi kosong (`building: {}`) dihitung
+ * kosong juga — model sering mengembalikan kerangka skema tanpa isi.
+ */
+export function isEmptyExtraction(extraction: Extraction): boolean {
+  return Object.values(extraction).every(
+    (group) => group === undefined || Object.values(group).every((value) => value === undefined),
+  );
 }
 
 export function endEvent(messageId: string): AssistantStreamEvent {
