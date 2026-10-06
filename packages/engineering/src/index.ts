@@ -148,6 +148,22 @@ export type { PondBomLine } from './rules/group-g-pond.js';
 export { computePond } from './compute-pond.js';
 export type { PondInput, PondResult } from './compute-pond.js';
 export { computePressurized } from './compute-pressurized.js';
+// ── Fase 4: gravitasi, air hujan, gorong-gorong, jaringan cluster ──
+export {
+  ENG_401,
+  ENG_402,
+  ENG_403,
+  ENG_404,
+  ENG_405,
+  GRAVITY_SIZES,
+  GROUP_H,
+  manningFullFlow,
+} from './rules/group-h-gravity.js';
+export type { GravityCandidate, GravitySizingResult } from './rules/group-h-gravity.js';
+export { GravityInputError, computeGravity } from './compute-gravity.js';
+export type { GravityInput, GravityKind, GravityResult, TrafficLoad } from './compute-gravity.js';
+export { computeNetwork } from './compute-network.js';
+export type { NetworkInput, NetworkResult } from './compute-network.js';
 export type { PipeMaterial, PressurizedInput, PressurizedResult } from './compute-pressurized.js';
 export {
   barToHeadM,
