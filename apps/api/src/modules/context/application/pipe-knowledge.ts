@@ -17,6 +17,10 @@ export interface MaterialKnowledge {
   readonly family: string;
   readonly label: string;
   readonly pattern: RegExp;
+  /** Satu frasa untuk kalimat ringkasan: "PVC kaku dan dipasok batangan". */
+  readonly gist: string;
+  /** Kondisi yang membuatnya pilihan lazim — untuk kalimat simpulan. */
+  readonly bestFor: string;
   /** Kekakuan dan bentuk pasokan. */
   readonly form: string;
   readonly joining: string;
@@ -35,6 +39,8 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
     family: 'PVC',
     label: 'PVC (uPVC)',
     pattern: /\b(u?pvc|paralon)\b/i,
+    gist: 'kaku dan dipasok batangan',
+    bestFor: 'instalasi tetap di dalam dan sekitar bangunan',
     form: 'kaku dan ringan, dipasok batangan; belokan dan percabangan memakai fitting',
     joining:
       'lem (solvent cement) atau cincin karet (rubber ring) — cepat, tanpa alat khusus, tetapi sambungan lem tidak bisa dibongkar',
@@ -47,6 +53,8 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
     family: 'HDPE',
     label: 'HDPE',
     pattern: /\b(hdpe|pe\s?100|pe\s?80|polyethylene|polietilen|poly)\b/i,
+    gist: 'lentur dan bisa digulung',
+    bestFor: 'jalur panjang, ditanam, atau tanah yang bergerak',
     form: 'lentur dan ulet; ukuran kecil dipasok gulungan, ukuran besar batangan — bisa mengikuti kontur tanah dengan sedikit sambungan',
     joining:
       'pemanasan (butt fusion atau electrofusion) sehingga sambungan menyatu dengan pipanya; ukuran kecil bisa memakai fitting kompresi; tidak dilem',
@@ -59,6 +67,8 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
     family: 'PPR',
     label: 'PPR',
     pattern: /\b(ppr|pp-r|polypropylene|polipropilen)\b/i,
+    gist: 'kaku dan tahan air panas',
+    bestFor: 'instalasi air panas dan dingin di dalam bangunan',
     form: 'kaku, dipasok batangan, dindingnya relatif tebal',
     joining: 'pemanasan (heat fusion) dengan alat pemanas sehingga sambungan menyatu; tidak dilem',
     durability: 'tahan air panas dan korosi; perlu alat pemanas dan kerapian saat menyambung',
@@ -68,6 +78,8 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
     family: 'Galvanis',
     label: 'pipa galvanis (GIP)',
     pattern: /\b(galvanis|gip|besi|baja)\b/i,
+    gist: 'kaku, berat, dan berkarat seiring waktu',
+    bestFor: 'instalasi lama yang mempertahankan sistem ulir atau las',
     form: 'kaku dan berat, dipasok batangan',
     joining: 'ulir atau las',
     durability:
@@ -108,21 +120,37 @@ export function conceptsIn(
   return CONCEPTS.filter((c) => c.pattern.test(haystack));
 }
 
+/**
+ * Teks dirangkai sebagai Markdown ringan — label tebal + butir — karena itulah bentuk yang
+ * dirender gelembung asisten (`AssistantMarkdown`) dan bentuk yang diminta dari model.
+ * Tanpa model, inilah yang tampil; dengan model, inilah DATA yang dirangkainya ulang.
+ */
 export function describeMaterial(m: MaterialKnowledge): string {
-  return `${m.label}: ${m.form}. Sambungan: ${m.joining}. Ketahanan: ${m.durability}. Lazim dipakai untuk ${m.typicalUse}.`;
+  return [`**${m.label}** — ${m.gist}.`, ...dimensionRows(m)].join('\n');
 }
 
-/** Perbandingan per dimensi — supaya "bedanya" dijawab sebagai perbedaan, bukan dua ikhtisar. */
+/** Ringkasan → satu blok per bahan → simpulan: "bedanya" dijawab sebagai perbedaan. */
 export function compareMaterials(a: MaterialKnowledge, b: MaterialKnowledge): string {
-  const row = (title: string, pick: (m: MaterialKnowledge) => string) =>
-    `- ${title}: ${a.label} ${pick(a)}; ${b.label} ${pick(b)}.`;
   return [
-    `Perbedaan utama ${a.label} dan ${b.label}:`,
-    row('Bentuk', (m) => m.form),
-    row('Sambungan', (m) => m.joining),
-    row('Ketahanan', (m) => m.durability),
-    row('Pemakaian lazim', (m) => m.typicalUse),
+    `Singkatnya, **${a.label} ${a.gist}**, sedangkan **${b.label} ${b.gist}**.`,
+    '',
+    `**${a.label}**`,
+    ...dimensionRows(a),
+    '',
+    `**${b.label}**`,
+    ...dimensionRows(b),
+    '',
+    `Jadi untuk **${a.bestFor}**, ${a.label} biasanya lebih praktis; untuk **${b.bestFor}**, ${b.label} biasanya lebih cocok.`,
   ].join('\n');
+}
+
+function dimensionRows(m: MaterialKnowledge): readonly string[] {
+  return [
+    `- Bentuk: ${m.form}.`,
+    `- Sambungan: ${m.joining}.`,
+    `- Ketahanan: ${m.durability}.`,
+    `- Pemakaian lazim: ${m.typicalUse}.`,
+  ];
 }
 
 /**

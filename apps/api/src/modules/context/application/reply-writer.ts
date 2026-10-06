@@ -89,7 +89,9 @@ export function passesGuards(text: string, facts: string | undefined): boolean {
 }
 
 function numbersIn(text: string): readonly string[] {
-  return (text.match(/\d+(?:[.,/]\d+)?/g) ?? []).map((n) => n.replace(',', '.'));
+  // Penanda daftar bernomor Markdown ("3. …" di awal baris) adalah format, bukan angka teknik.
+  const withoutListMarkers = text.replace(/^\s*\d+\.\s/gm, '');
+  return (withoutListMarkers.match(/\d+(?:[.,/]\d+)?/g) ?? []).map((n) => n.replace(',', '.'));
 }
 
 export function buildReplyContext(input: ReplyInput): string {

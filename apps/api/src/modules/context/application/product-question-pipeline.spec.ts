@@ -95,7 +95,7 @@ describe('runProductQuestion — KONSEP', () => {
       { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
     );
     const out = text(events);
-    expect(out).toContain('Perbedaan utama PVC (uPVC) dan HDPE:');
+    expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
     expect(out).toContain('- Sambungan:');
     // Katalog gagal dibaca → tidak ada klaim tentang Pralon, hanya ajakan ke tim teknis.
     expect(out).not.toContain('tidak ada di katalog');
@@ -112,7 +112,7 @@ describe('runProductQuestion — KONSEP', () => {
       { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
     );
     const out = text(events);
-    expect(out).toContain('Perbedaan utama PVC (uPVC) dan HDPE:');
+    expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
     expect(out).not.toContain('CONTOH');
     expect(out).not.toContain('tidak ada di katalog');
     expect(cards(events).map((c) => c.kind)).toEqual(['cta']);
@@ -126,7 +126,7 @@ describe('runProductQuestion — KONSEP', () => {
       { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
     );
     const out = text(events);
-    expect(out).toContain('Perbedaan utama PVC (uPVC) dan HDPE:');
+    expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
     expect(out).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
     expect(out).toContain('Di katalog Pralon yang aktif:');
     expect(out).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)');
@@ -158,7 +158,7 @@ describe('runProductQuestion — KONSEP', () => {
     expect(out).toContain('"hdpe" tidak ada di katalog'); // katalog tak disinggung → ikut
     const call = reply.calls[0] as { systemPrompt?: string; facts?: string };
     expect(call.systemPrompt).toBe('PROMPT-FAQ');
-    expect(call.facts).toContain('Perbedaan utama PVC (uPVC) dan HDPE:');
+    expect(call.facts).toContain('Singkatnya, **PVC (uPVC) kaku');
     expect(call.facts).toContain('"hdpe" tidak ada di katalog');
   });
 

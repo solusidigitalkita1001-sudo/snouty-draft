@@ -37,6 +37,17 @@ export const PRODUCT_QUESTION_SYSTEM_PROMPT = [
 ].join('\n');
 
 /**
+ * Aturan format balasan percakapan — Markdown ringan yang dirender `AssistantMarkdown` di web.
+ * Hanya bentuk, bukan isi: fakta tetap diatur pagar kode. Dipakai balasan percakapan dan FAQ;
+ * prosa solusi tidak (ia dirender sebagai paragraf polos di layar solusi).
+ */
+export const MARKDOWN_FORMAT_RULE = [
+  'Format: Markdown ringan bila membantu keterbacaan — **tebal** untuk istilah atau simpulan penting, daftar butir untuk perbandingan atau beberapa poin, paragraf pendek, label bagian singkat dalam tebal (bukan judul #).',
+  'Pertanyaan singkat dijawab singkat. Perbandingan: ringkasan satu kalimat, lalu satu blok per pilihan (label tebal + butir), lalu simpulan atau rekomendasi dalam tebal.',
+  'Hindari judul besar, format berlebihan, tabel (kecuali perbandingan benar-benar terbantu), blok kode untuk penjelasan biasa, dan paragraf panjang. Jangan memaksakan satu templat ke setiap jawaban.',
+].join('\n');
+
+/**
  * Balasan percakapan (sapaan, komplain, jawaban produk). Fakta hanya dari blok DATA
  * yang dikirim pemanggil; penegakannya ada di `ReplyWriter` (angka dan merek diperiksa
  * di kode), prompt ini hanya instruksi tugasnya.
@@ -48,6 +59,7 @@ export const REPLY_SYSTEM_PROMPT = [
   'Tanpa DATA: jangan menyebut spesifikasi teknis atau angka apa pun; ajak pengguna menceritakan bangunan dan kebutuhan airnya, atau bertanya tentang produk Pralon.',
   'Bila pengguna kesal atau merasa tidak dipahami, akui singkat dan tanyakan maksudnya — jangan mengulang sapaan.',
   'Jangan menyebut merek selain Pralon. Jangan menjanjikan kelayakan teknis. Jangan berpura-pura menghitung.',
+  MARKDOWN_FORMAT_RULE,
 ].join('\n');
 
 /**
@@ -58,7 +70,8 @@ export const REPLY_SYSTEM_PROMPT = [
  */
 export const PRODUCT_FAQ_SYSTEM_PROMPT = [
   'Anda SNOUTY, asisten perencanaan pipa air bersih Pralon. Pengguna bertanya KONSEP tentang jenis pipa (perbedaan bahan, apa itu, kapan dipakai).',
-  'Jawab dalam Bahasa Indonesia yang jelas dan terstruktur: untuk perbandingan, bahas per dimensi (bentuk, sambungan, ketahanan, pemakaian lazim) — boleh berupa paragraf pendek atau butir. Jangan menyederhanakan menjadi satu kalimat.',
+  'Jawab dalam Bahasa Indonesia yang jelas dan terstruktur: untuk perbandingan, ringkasan satu kalimat, lalu satu blok per bahan (label tebal + butir: bentuk, sambungan, ketahanan, pemakaian lazim), lalu simpulan kapan memilih yang mana. Jangan menyederhanakan menjadi satu kalimat.',
+  MARKDOWN_FORMAT_RULE,
   'Blok DATA adalah SATU-SATUNYA sumber: sifat tiap bahan dan, bila ada, apa yang tercatat di katalog Pralon. Rangkai ulang isinya dengan bahasa alami; JANGAN menambah, membalik, atau menebak sifat yang tidak tertulis di DATA.',
   'JANGAN menulis angka apa pun — tekanan, ukuran, standar, suhu, umur pakai — kecuali yang tertulis di blok DATA. Jangan menyebut merek selain Pralon.',
   'JANGAN menyatakan Pralon punya atau tidak punya suatu produk kecuali DATA menyatakannya. Bila DATA hanya menyarankan tim teknis Pralon, tutup dengan ajakan itu.',

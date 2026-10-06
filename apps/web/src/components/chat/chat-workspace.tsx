@@ -29,6 +29,7 @@ import { Snouty, SnoutyAvatar } from '../mascot/snouty';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { ReportModal } from '../report/report-modal';
 import { REPORT_COPY } from '../report/report-copy';
+import { AssistantMarkdown } from './assistant-markdown';
 import { ProductLookupCards } from './product-lookup-cards';
 import {
   createConversation,
@@ -746,7 +747,11 @@ export function ChatWorkspace() {
                 <div key={turn.id} className={styles.assistantRow}>
                   <SnoutyAvatar mood={moodForCards(turn.cards)} size={30} />
                   <div className={styles.assistantCol}>
-                    {turn.text !== '' && <div className={styles.assistantBubble}>{turn.text}</div>}
+                    {turn.text !== '' && (
+                      <div className={styles.assistantBubble}>
+                        <AssistantMarkdown text={turn.text} />
+                      </div>
+                    )}
                     {turn.cards.map((card, index) => (
                       <CardView
                         key={index}

@@ -33,6 +33,14 @@ describe('ReplyWriter', () => {
     });
   });
 
+  it('penanda daftar bernomor Markdown bukan angka teknik; angka di dalam butirnya tetap dijaga', async () => {
+    const list = '1. Kaku.\n2. Dilem.\n3. Batangan.\n4. Tanpa alat.';
+    const writer = new ReplyWriter(ai({ text: list }), 'sys');
+    expect(await writer.write(base)).toEqual({ text: list, source: 'llm' });
+    const leaky = new ReplyWriter(ai({ text: '3. Tekanan 10 bar.' }), 'sys');
+    expect((await leaky.write(base)).source).toBe('fallback');
+  });
+
   it('angka yang ada di DATA boleh', async () => {
     const writer = new ReplyWriter(ai({ text: 'Standarnya SNI 06-0084, ya.' }), 'sys');
     const result = await writer.write({ ...base, facts: 'Standar: SNI 06-0084' });

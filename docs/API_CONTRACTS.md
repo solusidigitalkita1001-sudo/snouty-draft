@@ -210,7 +210,9 @@ Ini **batas pipeline nyata**, bukan timer. Field `detail` mengisi sub-label boar
 
 ### `AssistantCard`
 
-Union tertutup — balasan asisten tidak pernah berisi HTML atau markdown bebas.
+Union tertutup — kartu tidak pernah berisi HTML. Teks balasan (`token`) adalah Markdown ringan yang
+dirender berdaftar putih di web (tebal, miring, daftar, label kecil, kode sebaris; HTML mentah,
+tautan, dan gambar tidak pernah dirender — lihat docs/AI_BEHAVIOR.md §8).
 
 ```ts
 type AssistantCard =
