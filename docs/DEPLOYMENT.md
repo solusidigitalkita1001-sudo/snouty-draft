@@ -19,31 +19,31 @@ supaya bisa kembali bila deploy baru bermasalah.
 | TLS          | `certbot --nginx` (Let's Encrypt) — port 80/443 harus terbuka dari internet.                                                                                                                                                                    |
 | Akses        | Password SSH yang pernah dikirim di chat: **ganti** setelah deploy. Untuk operasi lanjutan, pasang kunci publik operator di `~/.ssh/authorized_keys`, jangan bagikan password.                                                                  |
 
-## 1. Siapkan server
+## 1. Kenyataan server (dibaca 2026-10-06 malam)
 
-```bash
-# sebagai snouty@192.168.1.10
-sudo apt-get update && sudo apt-get install -y ca-certificates curl git nginx
-# Docker Engine + compose plugin (lewati bila sudah ada): https://docs.docker.com/engine/install/ubuntu/
-docker --version && docker compose version && nginx -v
-sudo usermod -aG docker "$USER"   # lalu logout/login
-```
+- Ubuntu 22.04, 4 CPU, 15 GB RAM; Docker 29 + Compose v5; user `snouty` ada di grup `docker`
+  tetapi **sudo butuh password** → seluruh deploy lewat Docker, tanpa menyentuh paket host.
+- Nginx host nonaktif. Port 80/443 dipegang kontainer `snouty_nginx` proyek lama, yang **juga
+  melayani `bagspace.pralon.co.id`** (aplikasi lain di server yang sama). Sertifikat Let's Encrypt
+  ada di `/etc/letsencrypt` host; `certbot.timer` host memperbaruinya lewat webroot `/var/www/certbot`
+  — dan **gagal untuk bagspace** (blok :80 lamanya me-redirect tantangan ACME; sertifikatnya
+  kedaluwarsa 2026-09-20). Sertifikat ai.pralon.co.id berlaku sampai 2026-10-12.
+- Proyek lama di `/var/www/html/project/beta/snouty` milik root: dibiarkan utuh; kontainernya hanya
+  dihentikan saat cut-over. Repo baru di-clone ke `~/snouty`.
+- Kunci OpenRouter dipakai dari `backend/.env` proyek lama (prefix berbeda dari kunci yang bocor).
 
-## 2. Matikan proyek lama (tanpa menghapus)
+## 2. Proyek lama
 
-```bash
-cd /var/www/html/project/beta
-# cek apa yang menjalankannya: pm2? systemd? docker? nginx site mana?
-pm2 list 2>/dev/null; docker ps; ls /etc/nginx/sites-enabled/
-# matikan prosesnya, lalu arsipkan folder dan site nginx lamanya
-sudo mv snouty snouty.old-$(date +%F)
-sudo mv /etc/nginx/sites-enabled/<site-lama> /etc/nginx/sites-available/<site-lama>.disabled 2>/dev/null || true
-```
+Tidak dihapus. `deploy/deploy.sh cutover` menghentikan `snouty_nginx` dan menyalakan nginx compose
+(profil `edge`) yang memuat blok ai.pralon.co.id **dan** bagspace (ditambah lokasi ACME supaya
+pembaruan sertifikat bagspace bisa berjalan lagi). Setelah ai.pralon.co.id terbukti jalan, kontainer
+`snouty_backend`/`snouty_frontend`/`snouty_db`/`snouty_redis` dihentikan dengan `docker stop`; image
+dan volume tetap ada. Rollback: `deploy/deploy.sh rollback-edge` lalu `docker start` kontainer lama.
 
 ## 3. Ambil kode
 
 ```bash
-cd /var/www/html/project/beta
+cd ~
 git clone https://github.com/solusidigitalkita1001-sudo/snouty-draft.git snouty
 cd snouty
 git checkout phase-1/P1-01-catalog-foundation      # branch yang berisi seluruh pekerjaan Fase 14
@@ -90,16 +90,19 @@ deploy/deploy.sh smoke      # katalog aktif: label erp-2026-10-06, kind pralon
 
 Promosi berikutnya lewat back-office (`/internal/catalog/versions/:id/promote`, peran `catalog_admin`).
 
-## 7. Nginx + TLS
+## 7. Cut-over 80/443 (nginx di compose, TLS dari `/etc/letsencrypt` host)
 
 ```bash
-sudo cp deploy/nginx/ai.pralon.co.id.conf /etc/nginx/sites-available/ai.pralon.co.id
-sudo ln -sf /etc/nginx/sites-available/ai.pralon.co.id /etc/nginx/sites-enabled/ai.pralon.co.id
-sudo nginx -t && sudo systemctl reload nginx
-sudo apt-get install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d ai.pralon.co.id      # menambahkan 443 + redirect
+deploy/deploy.sh cutover     # stop snouty_nginx lama → nginx compose (profil edge) → nginx -t → cek kedua domain
 curl -I https://ai.pralon.co.id/health
+curl -I https://bagspace.pralon.co.id/
+docker stop snouty_backend snouty_frontend snouty_db snouty_redis   # proyek lama, setelah yakin
 ```
+
+Sertifikat: `sudo certbot renew` (butuh sudo — pemilik) setelah cut-over memperbarui bagspace yang
+kedaluwarsa, karena nginx baru melayani `/.well-known/acme-challenge/` untuk kedua domain; setelah
+pembaruan: `docker compose --env-file .env.production -f deploy/docker-compose.prod.yml --profile edge restart nginx`.
+Varian nginx host (`deploy/nginx/ai.pralon.co.id.conf`) tetap tersedia bila suatu saat nginx host dipakai.
 
 ## 8. Release berikutnya
 
