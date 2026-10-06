@@ -289,8 +289,10 @@ Dua aturan dari lembar mascot menjadi tes:
 koordinat-demi-koordinat dari `snoutyMascot()`/`snoutyAvatar()` prototipe (13 mood, 42 keyframe
 disalin apa adanya ke `snouty-keyframes.css`), `mood.ts` memuat `moodFor(state)` dan `moodForCards`
 dengan tes untuk kedua aturan di atas. Dipakai di welcome (104px, tidur setelah 15 detik), avatar
-giliran asisten (30px, mood dari kartunya), titik berpikir, kartu analisis (84px: think → write →
-happy/fail), toast (52px, thanks), hero onboarding (210px, per langkah), dan header drawer produk
+giliran asisten (30px, mood dari kartunya), titik berpikir, overlay analisis (84px: think → write →
+happy/fail; sejak 2026-10-06 benar-benar overlay modal seperti "ANALYSIS OVERLAY" prototipe, bukan
+kartu di stream — tanpa tombol tutup selama berjalan, tombol hanya saat gagal), toast (52px,
+thanks), hero onboarding (210px, per langkah), dan header drawer produk
 (34px, wink). `fail` diputar sekali lalu diam — prototipe mengulanginya, lembar mascot tidak.
 
 Implementasi: komponen `<Snouty mood="…" size={n} />` yang melapisi mata, gelembung pikiran, tetesan,
