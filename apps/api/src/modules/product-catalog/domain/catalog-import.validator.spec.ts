@@ -475,13 +475,13 @@ describe('validateCatalogImport — ukuran bersatuan (docs/PIPE_SIZE_MM_EXTENSIO
   it('pesan galat khusus: mm di luar rentang dan pecahan ambigu', () => {
     const result = validateCatalogImport(
       source([
-        validRow({ sku: 'A', sizes: '3500 mm' }),
+        validRow({ sku: 'A', sizes: '4500 mm' }),
         validRow({ sku: 'B', sizes: '11/2"' }),
         validRow({ sku: 'C', sizes: 'dua inci' }),
       ]),
     );
     expect(result.issues.map((i) => i.message)).toEqual([
-      'Ukuran mm di luar rentang (1–3000 mm): "3500 mm".',
+      'Ukuran mm di luar rentang (1–4000 mm): "4500 mm".',
       'Ukuran tidak terbaca: "11/2"". Pecahan dengan pembilang ≥ penyebut ambigu; tulis "1 1/2".',
       'Ukuran tidak terbaca: dua inci.',
     ]);

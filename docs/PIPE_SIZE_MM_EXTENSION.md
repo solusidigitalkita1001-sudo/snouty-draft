@@ -30,7 +30,7 @@ export interface PipeSize {
   readonly label: string; // '3/4"', '1¼"', '110 mm'
 }
 
-const LIMITS: Record<PipeSizeUnit, number> = { in: 100_000, mm: 3_000_000 }; // ≤ 100" · ≤ 3000 mm
+const LIMITS: Record<PipeSizeUnit, number> = { in: 100_000, mm: 4_000_000 }; // ≤ 100" · ≤ 4000 mm
 
 // Diterima (tambahan dari hari ini): '110 mm', '110mm', '110 MM', '12.5 mm', '12,5 mm'
 // Tetap: '3/4', '3/4"', '0.75', '1 1/4"', '1¼', '1.25"', '½'  → inci
@@ -66,7 +66,7 @@ export const productSizes = mysqlTable(
     check(
       'ck_product_sizes_range',
       sql`(size_unit = 'in' AND size_value_x1000 BETWEEN 1 AND 100000)
-       OR (size_unit = 'mm' AND size_value_x1000 BETWEEN 1 AND 3000000)`,
+       OR (size_unit = 'mm' AND size_value_x1000 BETWEEN 1 AND 4000000)`,
     ),
     index('ix_product_sizes_unit_value').on(t.sizeUnit, t.sizeValue),
     foreignKey({ columns: [t.productId], foreignColumns: [products.id] }).onDelete('cascade'),
@@ -85,7 +85,7 @@ ALTER TABLE product_sizes
   ADD CONSTRAINT ck_product_sizes_unit CHECK (size_unit IN ('in','mm')),
   ADD CONSTRAINT ck_product_sizes_range CHECK (
     (size_unit = 'in' AND size_value_x1000 BETWEEN 1 AND 100000) OR
-    (size_unit = 'mm' AND size_value_x1000 BETWEEN 1 AND 3000000));
+    (size_unit = 'mm' AND size_value_x1000 BETWEEN 1 AND 4000000));
 CREATE INDEX ix_product_sizes_unit_value ON product_sizes (size_unit, size_value_x1000);
 ```
 
@@ -100,7 +100,7 @@ langkah di atas. Sesuai N-6: dites naik-turun, dan tidak dijalankan di DB bersam
 - `ValidatedCatalogRow.sizes: readonly PipeSize[]` → urut per unit lalu nilai, tanpa duplikat.
 - Pesan galat baru:
   - `Ukuran tidak terbaca: "11/2". Pecahan dengan pembilang ≥ penyebut ambigu; tulis "1 1/2".`
-  - `Ukuran mm di luar rentang (1–3000 mm): "…".`
+  - `Ukuran mm di luar rentang (1–4000 mm): "…".`
 - `CatalogImportSource` dan adapter tidak berubah.
 
 ## 6. Matcher dan mesin teknik
@@ -122,7 +122,7 @@ langkah di atas. Sesuai N-6: dites naik-turun, dan tidak dijalankan di DB bersam
 | `parsePipeSize('12,5 mm')`                    | `{ mm, 12500, '12.5 mm' }`                     |
 | `parsePipeSize('1 1/4"')`                     | `{ in, 1250, '1¼"' }` (perilaku lama tetap)    |
 | `parsePipeSize('11/2"')`                      | `null` (ambigu)                                |
-| `parsePipeSize('0 mm')`, `('3500 mm')`        | `null`                                         |
+| `parsePipeSize('0 mm')`, `('4500 mm')`        | `null`                                         |
 | `samePipeSize(63 mm, 2")`                     | `false`                                        |
 | Impor sel `63 mm; 110 mm`                     | dua baris `product_sizes`, unit `mm`, urut     |
 | Impor katalog `sample` lama setelah migrasi   | identik dengan sebelum migrasi                 |

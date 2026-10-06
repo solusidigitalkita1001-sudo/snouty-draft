@@ -22,10 +22,10 @@ describe('parsePipeSize — milimeter', () => {
     expect(parsePipeSize('63.000 mm')?.label).toBe('63 mm');
   });
 
-  it('di luar rentang (0 mm, 3500 mm) → null', () => {
+  it('di luar rentang (0 mm, 4500 mm) → null', () => {
     expect(parsePipeSize('0 mm')).toBeNull();
-    expect(parsePipeSize('3500 mm')).toBeNull();
-    expect(parsePipeSize('3000 mm')).not.toBeNull();
+    expect(parsePipeSize('4500 mm')).toBeNull();
+    expect(parsePipeSize('3150 mm')).not.toBeNull();
     expect(PipeSize.mm(-1)).toBeNull();
   });
 

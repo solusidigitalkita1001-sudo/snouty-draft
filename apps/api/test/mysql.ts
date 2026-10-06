@@ -72,8 +72,10 @@ const UP = [
   '0014_recommendation_kind.sql',
   '0015_recommendation_technical.sql',
   '0016_product_sizes_unit.sql',
+  '0017_product_sizes_mm_4000.sql',
 ];
 const DOWN = [
+  '0017_product_sizes_mm_4000.down.sql',
   '0016_product_sizes_unit.down.sql',
   '0015_recommendation_technical.down.sql',
   '0014_recommendation_kind.down.sql',

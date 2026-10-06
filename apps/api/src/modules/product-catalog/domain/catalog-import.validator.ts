@@ -356,7 +356,7 @@ function parseSourcePage(raw: string): number | null {
 }
 
 /** Batas mm yang sama dengan `PipeSize`, untuk membedakan "di luar rentang" dari "tidak terbaca". */
-const MM_RANGE = { min: 0.001, max: 3000 };
+const MM_RANGE = { min: 0.001, max: 4000 };
 
 function parseSizes(tokens: readonly string[]): {
   parsed: readonly PipeSize[];
@@ -377,7 +377,7 @@ function parseSizes(tokens: readonly string[]): {
     if (millimetres) {
       const value = Number(millimetres[1]!.replace(',', '.'));
       if (value < MM_RANGE.min || value > MM_RANGE.max) {
-        problems.push(`Ukuran mm di luar rentang (1–3000 mm): "${token}".`);
+        problems.push(`Ukuran mm di luar rentang (1–4000 mm): "${token}".`);
         continue;
       }
     }

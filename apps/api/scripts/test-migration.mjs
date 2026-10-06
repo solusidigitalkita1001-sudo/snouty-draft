@@ -109,8 +109,10 @@ const UP = [
   '0014_recommendation_kind.sql',
   '0015_recommendation_technical.sql',
   '0016_product_sizes_unit.sql',
+  '0017_product_sizes_mm_4000.sql',
 ];
 const DOWN = [
+  '0017_product_sizes_mm_4000.down.sql',
   '0016_product_sizes_unit.down.sql',
   '0015_recommendation_technical.down.sql',
   '0014_recommendation_kind.down.sql',
@@ -129,7 +131,7 @@ const DOWN = [
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0016 satu-dua kolom). */
+/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0017 satu-dua kolom). */
 const TABLES = 27;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
@@ -771,9 +773,9 @@ await check('menolak satuan selain in/mm', () =>
     [P1],
   ),
 );
-await check('menolak mm di luar 1–3000 mm dan inci di luar 0–100"', async () => {
+await check('menolak mm di luar 1–4000 mm dan inci di luar 0–100"', async () => {
   await mustReject(
-    `INSERT INTO product_sizes (product_id, size_unit, size_value_x1000, size_label) VALUES (?,'mm',3000001,'3000.001 mm')`,
+    `INSERT INTO product_sizes (product_id, size_unit, size_value_x1000, size_label) VALUES (?,'mm',4000001,'4000.001 mm')`,
     [P1],
   );
   await mustReject(

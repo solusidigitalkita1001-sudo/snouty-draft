@@ -36,8 +36,8 @@ const FRACTION_GLYPH: Readonly<Record<string, string>> = {
   '0.875': '⅞',
 };
 
-/** Batas nilai × 1000 per satuan: ≤ 100" · ≤ 3000 mm. */
-const LIMITS: Readonly<Record<PipeSizeUnit, number>> = { in: 100_000, mm: 3_000_000 };
+/** Batas nilai × 1000 per satuan: ≤ 100" · ≤ 4000 mm (PE besar sampai 3150 mm ada di katalog Pralon). */
+const LIMITS: Readonly<Record<PipeSizeUnit, number>> = { in: 100_000, mm: 4_000_000 };
 
 /** Toleransi perbandingan inci: cukup untuk membedakan 1/8", jauh dari galat floating point. */
 const EPSILON = 1e-6;
