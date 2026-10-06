@@ -7,7 +7,15 @@ export type {
   StageStatus,
   TokenUsage,
 } from './sse.js';
-export { PipeSize, PipeSizeRange, PipeSizeTransition } from './pipe-size.js';
+export {
+  PipeSize,
+  PipeSizeRange,
+  PipeSizeTransition,
+  comparePipeSize,
+  parsePipeSize,
+  samePipeSize,
+} from './pipe-size.js';
+export type { PipeSizeUnit } from './pipe-size.js';
 export type {
   CatalogVersion,
   CatalogVersionKind,

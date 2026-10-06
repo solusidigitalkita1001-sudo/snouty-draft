@@ -348,16 +348,17 @@ function parseSizes(tokens: readonly string[]): {
   parsed: readonly PipeSize[];
   unreadable: readonly string[];
 } {
-  const byInches = new Map<number, PipeSize>();
+  // Kunci dedup memuat satuannya: `63 mm` dan `2"` adalah dua ukuran berbeda.
+  const bySize = new Map<string, PipeSize>();
   const unreadable: string[] = [];
 
   for (const token of tokens) {
     const size = PipeSize.parse(token);
     if (size === null) unreadable.push(token);
-    else byInches.set(size.inches, size);
+    else bySize.set(`${size.unit}:${size.valueX1000}`, size);
   }
 
-  return { parsed: PipeSize.sort([...byInches.values()]), unreadable };
+  return { parsed: PipeSize.sort([...bySize.values()]), unreadable };
 }
 
 function parseCompatibilityRefs(
