@@ -91,14 +91,48 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect((events[5] as { card: { kind: string } }).card.kind).toBe('clarification');
   });
 
-  it('guna di luar cakupan ("irigasi sawah 1 hektar"): kartu validasi teknis, TANPA ekstraksi dan tanpa klarifikasi kamar mandi', async () => {
+  it('jalur irigasi ("irigasi sawah 1 hektar"): arahan + kartu pertanyaan IRIGASI, nol ekstraksi, luas tercatat', async () => {
     const ai = aiExtracting({});
-    const { events, changed } = await runUnderstanding(
+    const { events, nextState, changed } = await runUnderstanding(
       ai,
       input({
         message:
           'untuk bikin irigasi sawah dengan luas 1 hektar itu yang dibutuhin apa aja product nya?',
       }),
+    );
+    expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    expect(events.map((e) => e.type)).toEqual([
+      'message.start',
+      'requirement.updated',
+      'token',
+      'card',
+      'message.end',
+    ]);
+    const text = (events[2] as { text: string }).text;
+    expect(text).toContain('Untuk irigasi lahan 1 ha');
+    expect(text).toContain('**Jalur utama dari sumber ke lahan**');
+    expect(text).not.toMatch(/\d+\s*(bar|mm|inci)/); // tanpa angka teknik
+    const card = (events[3] as { card: { kind: string; questions?: { id: string }[] } }).card;
+    expect(card.kind).toBe('clarification');
+    expect(card.questions?.map((q) => q.id)).toEqual([
+      'irrigation.source',
+      'irrigation.method',
+      'irrigation.distance',
+      'irrigation.elevation',
+    ]);
+    expect(nextState.useCase).toEqual({
+      kind: 'irrigation',
+      answers: { 'irrigation.areaHa': '1 ha' },
+    });
+    expect(nextState.building.floors.value).toBeNull();
+    expect(changed).toBe(true);
+  });
+
+  it('guna di luar cakupan ("tambak udang"): kartu validasi teknis, TANPA ekstraksi dan tanpa klarifikasi kamar mandi', async () => {
+    const ai = aiExtracting({});
+    const { events, changed } = await runUnderstanding(
+      ai,
+      input({ message: 'pipa buat tambak udang 2 hektar butuh apa?' }),
     );
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
     expect(events.map((e) => e.type)).toEqual(['message.start', 'card', 'message.end']);

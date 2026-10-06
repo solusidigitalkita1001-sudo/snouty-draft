@@ -11,8 +11,7 @@ import { ulid } from '../../../shared/ulid.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
 import { RequirementSnapshotStore } from '../../context/application/requirement-snapshot.store.js';
-import { assumptionCardFor } from '../../context/application/message-pipeline.js';
-import { fieldEntries } from '../../context/domain/requirement-field.js';
+import { assumptionCardFor, capturedFrom } from '../../context/application/message-pipeline.js';
 import {
   HANDOFF_REPOSITORY,
   type HandoffRepository,
@@ -37,11 +36,9 @@ export class HandoffService {
     await this.conversations.find(conversationId, actor);
 
     const snapshot = await this.snapshots.current(conversationId);
-    const captured = snapshot
-      ? fieldEntries(snapshot.state)
-          .filter(([, field]) => field.value !== null)
-          .map(([path, field]) => ({ label: path, value: String(field.value) }))
-      : [];
+    // Bahasa pengguna (label + nilai terbaca), termasuk jawaban jalur irigasi — sama persis
+    // dengan yang dilihat pengguna di kartu "yang sudah saya catat".
+    const captured = snapshot ? capturedFrom(snapshot.state) : [];
 
     // Asumsi ikut disertakan: tim teknis perlu tahu mana angka yang ditebak sistem.
     const assumptions = snapshot

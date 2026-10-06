@@ -323,6 +323,31 @@ ikhtisar; jawabannya utuh tanpa katalog dan tanpa model. Katalog dan model kedua
 teknik? ada keluarga yang perlu ditambah — PVC-O, PE-RT?), dan tetapkan apakah ia dianggap "konten
 teknis" yang perlu provenance/penanggung jawab, atau cukup sebagai copy produk.
 
+### OQ-47 — Irigasi: aturan teknik sizing belum ada; sementara ini jalur terpandu + handoff terstruktur
+
+**Status:** open · _non-blocking_ · **Fase:** 4/6 · default diterapkan 2026-10-06 atas keputusan pemilik
+
+Pemilik (2026-10-06): "untuk bikin irigasi sawah 1 hektar butuh produk apa aja?" — jawaban "di luar
+cakupan" ditolak; "harusnya skemanya sama kek rumah". Yang bisa disamakan adalah **alurnya**
+(kumpulkan kebutuhan → arahan → langkah berikutnya). Yang tidak bisa disamakan adalah **mesinnya**:
+Engineering Engine menghitung dari unit fixture bangunan (kamar mandi, wastafel), bukan dari luas
+lahan, debit, dan beda tinggi — dan aturan sizing irigasi belum pernah diberikan Pralon. Mengisi
+celah itu dengan angka dari ingatan model melanggar "jangan mengarang nilai teknik".
+
+**Diterapkan (pilihan pemilik):** jalur guna `irrigation` (`context/domain/irrigation.ts`): fakta
+tersurat dibaca dari kalimat (luas ha, sumber, jenis, jarak, pompa), kartu klarifikasi khusus
+irigasi (sumber air, luas, jenis irigasi, jarak, beda tinggi; maks 4, "Belum tahu" selalu ada),
+arahan produk umum tanpa angka (jalur utama ditanam → HDPE; distribusi → PVC; pompa/katup
+menentukan kelas), lalu saat lengkap → kartu handoff dengan data terbaca dan tombol kirim ke tim
+teknis. Jawabannya disimpan di `RequirementState.useCase` — terpisah dari field bangunan, supaya
+mesin teknik tidak pernah menghitung dari data yang bukan bangunan. Nol LLM di seluruh jalur.
+
+**Yang dibutuhkan dari pemilik / tim teknis Pralon untuk sizing otomatis:** aturan debit per
+hektar per jenis irigasi, kriteria kecepatan/tekanan jalur, tabel pemilihan diameter terhadap
+debit × jarak × beda tinggi, dan keluarga produk Pralon untuk irigasi (OQ-07). Dengan itu, jalur
+ini bisa bermuara di rekomendasi otomatis seperti rumah (aturan baru di `packages/engineering`,
+`REQUIRES_DOMAIN_VALIDATION` sampai divalidasi).
+
 ### OQ-46 — Katalog contoh pernah mendasari klaim tentang Pralon; kini ditandai dan dipagari
 
 **Status:** open · _non-blocking_ · **Fase:** 1/4 · diterapkan sebagai default (migration 0013)

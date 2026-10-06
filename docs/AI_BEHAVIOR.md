@@ -98,6 +98,12 @@ klarifikasi menanyakan hanya data inti yang masih kosong. Tidak ada bahan yang d
 diberikan dan pertanyaan berikutnya berbeda, FAQ hanya mengingatkan satu kalimat
 ("Seperti tadi: …"); pertanyaan yang persis sama boleh dijawab utuh.
 
+**Guna di luar bangunan diputuskan dari pesannya, sebelum model.** Irigasi/pertanian masuk jalur
+`irrigation` (pertanyaan khusus, arahan umum, handoff terstruktur — OQ-47); tambak, air panas,
+cairan proses → kartu validasi teknis (`useCasePolicy`). Keduanya nol LLM: tidak ada field
+kebutuhan bangunan yang mewakilinya, dan menanyakan "berapa kamar mandi?" kepada petani adalah
+jawaban yang salah.
+
 **`PRODUCT_FAQ` tidak bergantung pada katalog.** "Apa bedanya PVC dan HDPE?" adalah pertanyaan
 teknik umum; jawabannya harus utuh dari `pipe-knowledge.ts` saja. Katalog menambah "yang mana di
 Pralon" **hanya** bila versinya otoritatif (`kind = 'pralon'`); katalog yang gagal dibaca, atau

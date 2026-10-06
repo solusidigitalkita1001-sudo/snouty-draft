@@ -17,6 +17,7 @@
 
 import type { ClarificationQuestion, RequirementFieldPath } from '@snouty/shared-types';
 import type { FieldUpdate } from './context-merger.js';
+import { IRRIGATION_TEMPLATES, isIrrigationField } from './irrigation.js';
 
 export const MAX_CLARIFICATION_QUESTIONS = 4;
 
@@ -161,7 +162,12 @@ export function answerToUpdate(
 /** "Sumber air: Toren atap · Instalasi: Keduanya · Kamar mandi: 3" — gelembung pengguna. */
 export function summarizeAnswers(answers: readonly ClarificationAnswer[]): string {
   return answers
-    .map((a) => `${ANSWER_LABEL[a.id as RequirementFieldPath] ?? a.id}: ${a.option}`)
+    .map((a) => {
+      const label = isIrrigationField(a.id)
+        ? IRRIGATION_TEMPLATES[a.id].label
+        : (ANSWER_LABEL[a.id as RequirementFieldPath] ?? a.id);
+      return `${label}: ${a.option}`;
+    })
     .join(' · ');
 }
 

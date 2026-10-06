@@ -93,6 +93,29 @@ export interface RequirementCompleteness {
   readonly required: 4;
 }
 
+/**
+ * Jalur guna IRIGASI (keputusan pemilik 2026-10-06, OQ-47): kebutuhannya dikumpulkan dengan
+ * kartu klarifikasi khusus, diberi arahan produk umum, lalu diteruskan ke tim teknis secara
+ * terstruktur. Sizing otomatisnya menunggu aturan teknik irigasi dari Pralon — field-nya
+ * sengaja terpisah dari field bangunan supaya mesin teknik tidak pernah menghitung dari
+ * data yang bukan bangunan.
+ */
+export type IrrigationField =
+  | 'irrigation.source'
+  | 'irrigation.areaHa'
+  | 'irrigation.method'
+  | 'irrigation.distance'
+  | 'irrigation.elevation'
+  | 'irrigation.pump';
+
+export interface IrrigationUseCase {
+  readonly kind: 'irrigation';
+  /** Jawaban apa adanya (label pilihan atau nilai yang disebut), `undefined` = belum ditanya/dijawab. */
+  readonly answers: Readonly<Partial<Record<IrrigationField, string>>>;
+}
+
+export type UseCaseState = IrrigationUseCase;
+
 export interface RequirementState {
   readonly version: number;
   readonly intent: Intent;
@@ -102,6 +125,8 @@ export interface RequirementState {
   /** Turunan, tidak disimpan — dihitung dari state (docs/CONTEXT_ENGINE.md §2). */
   readonly missingInformation: readonly RequirementFieldPath[];
   readonly completeness: RequirementCompleteness;
+  /** Jalur guna khusus (irigasi); tidak ada = jalur bangunan biasa. */
+  readonly useCase?: UseCaseState;
 }
 
 /** Pemicu sebuah snapshot terbentuk (kolom `requirement_snapshots.trigger`). */

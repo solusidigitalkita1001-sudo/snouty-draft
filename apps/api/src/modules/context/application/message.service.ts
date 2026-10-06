@@ -15,6 +15,7 @@ import { Inject, Injectable, Optional } from '@nestjs/common';
 import type {
   AssistantCard,
   AssistantStreamEvent,
+  IrrigationField,
   RequirementFieldPath,
   RequirementState,
 } from '@snouty/shared-types';
@@ -34,6 +35,11 @@ import {
   type ClarificationAnswer,
 } from '../domain/clarification.js';
 import { withCompleteness } from '../domain/completeness.js';
+import {
+  applyIrrigationAnswers,
+  irrigationAnswerValue,
+  isIrrigationField,
+} from '../domain/irrigation.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { defaultUpdateFor } from '../domain/requirement-defaults.js';
 import { runProductQuestion } from './product-question-pipeline.js';
@@ -208,12 +214,23 @@ export class MessageService {
     const snapshot = await this.store.current(conversationId);
     const state = snapshot?.state ?? emptyRequirementState(now);
 
+    // Jawaban irigasi (`irrigation.*`) masuk ke jalur gunanya; sisanya ke merger kebutuhan.
+    const irrigation: Partial<Record<IrrigationField, string>> = {};
+    for (const answer of answers) {
+      if (!isIrrigationField(answer.id)) continue;
+      const value = irrigationAnswerValue(answer.id, answer.option);
+      if (value !== null) irrigation[answer.id] = value;
+    }
+    const applied = applyIrrigationAnswers(state, irrigation);
+    const base = Object.keys(irrigation).length > 0 ? applied.state : state;
+
     const updates = answers
+      .filter((answer) => !isIrrigationField(answer.id))
       .map((answer) => answerToUpdate(answer, defaultUpdateFor))
       .filter((update): update is NonNullable<typeof update> => update !== null);
-    const result = mergeRequirement(state, updates, now);
+    const result = mergeRequirement(base, updates, now);
     const merged = withCompleteness(result.state);
-    if (result.changed.length > 0) {
+    if (result.changed.length > 0 || (Object.keys(irrigation).length > 0 && applied.changed)) {
       await this.store.append(conversationId, merged, 'clarification_answer');
     }
 

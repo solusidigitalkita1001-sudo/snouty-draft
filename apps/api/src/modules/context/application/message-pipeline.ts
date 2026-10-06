@@ -25,7 +25,21 @@ import type {
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
 import { policyCard } from '../../policy/policy-cards.js';
-import { competitorPolicy, scopePolicy, useCasePolicy } from '../../policy/scope.js';
+import {
+  competitorPolicy,
+  irrigationHandoffPolicy,
+  scopePolicy,
+  useCasePolicy,
+} from '../../policy/scope.js';
+import {
+  applyIrrigationAnswers,
+  irrigationCaptured,
+  irrigationFactsFrom,
+  isIrrigationComplete,
+  isIrrigationMessage,
+  planIrrigationClarification,
+} from '../domain/irrigation.js';
+import { irrigationGuidance } from './irrigation-guidance.js';
 import { assumptionCard } from '../domain/requirement-defaults.js';
 import { planClarification } from '../domain/clarification.js';
 import { mergeRequirement } from '../domain/context-merger.js';
@@ -102,9 +116,27 @@ export async function runUnderstanding(
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
   }
 
-  // Guna di luar cakupan (irigasi sawah, tambak, air panas) diputuskan dari pesannya SEBELUM
+  // Jalur IRIGASI (OQ-47): alur yang sama seperti rumah — fakta tersurat dicatat, arahan
+  // diberikan, yang kurang ditanya lewat kartu — tetapi muaranya handoff terstruktur, bukan
+  // sizing otomatis. Nol LLM: pertanyaannya tertutup, faktanya dari bentuk kalimat.
+  if (isIrrigationMessage(input.message) || input.state.useCase?.kind === 'irrigation') {
+    const applied = applyIrrigationAnswers(input.state, irrigationFactsFrom(input.message));
+    events.push({ type: 'requirement.updated', state: applied.state });
+    events.push({ type: 'token', text: irrigationGuidance(applied.state) });
+    const card = irrigationFollowUp(applied.state);
+    if (card) events.push({ type: 'card', card });
+    events.push(endEvent(input.messageId));
+    return {
+      events,
+      nextState: applied.state,
+      changed: applied.changed,
+      trigger: 'extraction',
+    };
+  }
+
+  // Guna di luar cakupan (tambak, air panas, cairan proses) diputuskan dari pesannya SEBELUM
   // ekstraksi: tidak ada field yang mewakilinya, dan kartu klarifikasi "berapa kamar mandi?"
-  // adalah jawaban yang salah untuk petani. Kebijakan menang, state tidak disentuh.
+  // adalah jawaban yang salah untuknya. Kebijakan menang, state tidak disentuh.
   const useCase = useCasePolicy(input.message);
   if (useCase.kind === 'policy') {
     const card = policyCard(useCase, capturedFrom(input.state));
@@ -177,6 +209,7 @@ export async function runUnderstanding(
  *   - Lengkap dan dalam cakupan → ajak lanjut ke analisis (Fase 6/7).
  */
 export function followUpCard(merged: RequirementState): AssistantCard | null {
+  if (merged.useCase?.kind === 'irrigation') return irrigationFollowUp(merged);
   const scope = scopePolicy({
     buildingType: merged.building.type.value,
     installationType: merged.water.installationType.value,
@@ -190,18 +223,27 @@ export function followUpCard(merged: RequirementState): AssistantCard | null {
   return { kind: 'cta', action: 'ANALYZE' };
 }
 
+/** Irigasi: masih ada yang kurang → kartu pertanyaan irigasi; lengkap → handoff terstruktur. */
+function irrigationFollowUp(state: RequirementState): AssistantCard | null {
+  if (!isIrrigationComplete(state)) {
+    const questions = planIrrigationClarification(state);
+    return questions.length > 0 ? { kind: 'clarification', questions } : null;
+  }
+  return policyCard(irrigationHandoffPolicy(), capturedFrom(state));
+}
+
 /**
- * Kebutuhan yang sudah terkumpul, untuk dibawa ke kartu validasi teknis — supaya
- * pengguna tidak mengulang ceritanya dari nol kepada tim teknis.
+ * Kebutuhan yang sudah terkumpul, untuk dibawa ke kartu validasi teknis dan antrean tim
+ * teknis — supaya pengguna tidak mengulang ceritanya dari nol. Bahasa pengguna, bukan path.
  */
-function capturedFrom(state: RequirementState): readonly KeyValue[] {
+export function capturedFrom(state: RequirementState): readonly KeyValue[] {
   const rows: KeyValue[] = [];
   for (const [path, field] of fieldEntries(state)) {
     if (field.value !== null) {
       rows.push({ label: FIELD_LABEL[path], value: requirementValueLabel(path, field.value) });
     }
   }
-  return rows;
+  return [...rows, ...irrigationCaptured(state)];
 }
 
 /** Label bangunan untuk kalimat — mengikuti salinan laporan (`report-assembler.ts`). */

@@ -34,7 +34,22 @@ export type PolicyOutcome =
  * adalah jawaban yang salah (laporan pemilik 2026-10-06, "irigasi sawah 1 hektar").
  */
 const OUT_OF_SCOPE_USE =
-  /\b(irigasi|sawah|kebun|perkebunan|pertanian|tambak|kolam|peternakan|air panas|uap|boiler|air laut|kimia|gas|minyak|bahan bakar)\b/i;
+  /\b(tambak|peternakan|air panas|uap|boiler|air laut|kimia|gas|minyak|bahan bakar)\b/i;
+
+/**
+ * Muara jalur irigasi (OQ-47): data lengkap → diteruskan ke tim teknis untuk dihitung. Bukan
+ * penolakan — kebutuhannya dicatat rapi; yang belum ada hanya aturan sizing otomatisnya.
+ */
+export function irrigationHandoffPolicy(): PolicyOutcome {
+  return {
+    kind: 'policy',
+    code: 'TECHNICAL_VALIDATION_REQUIRED',
+    reasons: [
+      'Data irigasi Anda sudah lengkap dan tercatat.',
+      'Ukuran pipa irigasi dihitung tim teknis Pralon dari debit, jarak, dan beda tinggi — daftar produk dan ukurannya akan dikirim setelah perhitungan.',
+    ],
+  };
+}
 
 export function useCasePolicy(message: string): PolicyOutcome {
   if (!OUT_OF_SCOPE_USE.test(message)) return { kind: 'supported' };

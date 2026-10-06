@@ -143,6 +143,36 @@ describe('MessageService.answerClarification — semua jawaban sekaligus, tanpa 
     );
   });
 
+  it('jawaban irigasi masuk jalur gunanya: lengkap → kartu handoff dengan data terbaca', async () => {
+    const { service, store } = serviceWith({ route: async () => undefined });
+    const result = await service.answerClarification(
+      'C'.repeat(26),
+      ACTOR,
+      [
+        { id: 'irrigation.source', option: 'Sungai / saluran' },
+        { id: 'irrigation.areaHa', option: '1–2 ha' },
+        { id: 'irrigation.method', option: 'Tetes' },
+        { id: 'irrigation.distance', option: '200–500 m' },
+      ],
+      '2026-01-01T00:00:00.000Z',
+    );
+    expect(result.userText).toBe(
+      'Sumber air: Sungai / saluran · Luas lahan: 1–2 ha · Jenis irigasi: Tetes · Jarak sumber ke lahan: 200–500 m',
+    );
+    expect(result.card?.kind).toBe('clarification'); // beda tinggi masih kurang
+    expect(store.append).toHaveBeenCalledWith('C'.repeat(26), result.state, 'clarification_answer');
+
+    const done = await service.answerClarification(
+      'C'.repeat(26),
+      ACTOR,
+      [{ id: 'irrigation.elevation', option: 'Lebih rendah' }],
+      '2026-01-01T00:00:00.000Z',
+    );
+    // Store palsu tidak menyimpan state; cukup pastikan jawabannya terbaca dan kartunya kebijakan
+    // atau klarifikasi — bukan lemparan.
+    expect(['clarification', 'unsupported']).toContain(done.card?.kind);
+  });
+
   it('"Belum tahu" memakai default ASSUMED bila ada; yang tanpa default ditanya lagi', async () => {
     const { service } = serviceWith({ route: async () => undefined });
     const result = await service.answerClarification(

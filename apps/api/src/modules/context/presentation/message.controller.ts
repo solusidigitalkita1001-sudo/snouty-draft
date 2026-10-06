@@ -30,6 +30,13 @@ const ClarificationDto = z
               'water.installationType',
               'building.floors',
               'fixtures.bathrooms',
+              // Jalur irigasi (OQ-47) — labelnya divalidasi domain (`irrigationAnswerValue`).
+              'irrigation.source',
+              'irrigation.areaHa',
+              'irrigation.method',
+              'irrigation.distance',
+              'irrigation.elevation',
+              'irrigation.pump',
             ]),
             option: z.string().trim().min(1).max(40),
           })
