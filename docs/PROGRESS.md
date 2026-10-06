@@ -582,8 +582,17 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       ada (fase 3–4). Web: panel kanan `use-case-rows.ts` (irigasi + teknis). Tes engineering 109
       (+16), API 748 (+8), web 88. Docs: ARCHITECTURE §7 (`context → packages/engineering` murni),
       CONTEXT_ENGINE §11
-- [ ] P14-03 Fase 3 — Kalkulator inti: konversi satuan, Hazen-Williams, kerugian minor, TDH, sizing
-      pipa multi-kriteria dengan kandidat, titik kerja pompa (Q/H, tanpa mengarang pompa)
+- [~] P14-03 Fase 3 — Kalkulator hidraulik bertekanan (2026-10-06, **engine selesai, integrasi API
+  belum**). `packages/engineering`: `units.ts` (l/s ↔ m³/jam ↔ l/menit, bar ↔ m, inci ↔ mm, label
+  inci), Kelompok F ENG-201 kecepatan (A = πD²/4, V = Q/A), ENG-202 Hazen-Williams, ENG-203
+  kerugian minor (fraksi), ENG-204 TDH (+ tekanan sisa), ENG-205 sizing multi-kriteria dengan
+  kandidat berstatus (ok/terlalu cepat/rugi tinggi/terlalu lambat) + rekomendasi + alternatif,
+  ENG-206 titik kerja pompa (Q/H, daya hidraulik, daya poros indikatif — tanpa merek/kurva);
+  `computePressurized()` orkestrator dengan trace per aturan dan `appliedAssumptionIds`; 5 asumsi
+  registry baru (VELOCITY_MAX/MIN, HEADLOSS_GRADIENT_MAX, PUMP_EFFICIENCY_INDICATIVE,
+  TRANSFER_DISCHARGE_MARGIN). Registry 25 aturan, tes engineering 120 (+11). **Sisa**: analysis
+  service untuk `pump_transfer`/`well_distribution` (kind rekomendasi 'technical' + migration
+  0015), tampilan kandidat/opsi di layar solusi (fase 6), docs ENGINEERING_RULES Kelompok F
 - [ ] P14-04 Fase 4 — Manning (gravitasi), air hujan Q = C·I·A (tanpa mengarang intensitas),
       gorong-gorong, kebutuhan jaringan cluster, zonasi bertingkat
 - [ ] P14-05 Fase 5 — Matcher produk dari kebutuhan teknis (bahan + diameter + kelas tekanan)

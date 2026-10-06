@@ -123,6 +123,38 @@ export { MAX_QUESTIONS, caseReadiness, resolveMissingParameters } from './cases/
 export type { CaseReadinessInput, MissingParameter } from './cases/missing.js';
 
 export { HDPE_FROM_METERS, irrigationDutyAssumptionId } from './rules/group-e-irrigation.js';
+
+// ── Fase 3: hidraulik bertekanan ──
+export {
+  ENG_201,
+  ENG_202,
+  ENG_203,
+  ENG_204,
+  ENG_205,
+  ENG_206,
+  GROUP_F,
+  frictionLossOf,
+  tdhOf,
+  velocityOf,
+} from './rules/group-f-pressurized.js';
+export type {
+  CandidateStatus,
+  PumpDutyResult,
+  SizeCandidate,
+  SizingResult,
+} from './rules/group-f-pressurized.js';
+export { computePressurized } from './compute-pressurized.js';
+export type { PipeMaterial, PressurizedInput, PressurizedResult } from './compute-pressurized.js';
+export {
+  barToHeadM,
+  headMToBar,
+  inchToMm,
+  kmToM,
+  lminToLs,
+  lsToM3h,
+  m3hToLs,
+  parseInchLabel,
+} from './units.js';
 export { computeIrrigation } from './compute-irrigation.js';
 export type { IrrigationInput, IrrigationResult } from './compute-irrigation.js';
 
