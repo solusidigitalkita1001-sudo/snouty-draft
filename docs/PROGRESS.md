@@ -803,8 +803,18 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       "Belum tahu" tampil "Not sure". 6 tes. Sekalian: estimasi material di ponsel jadi daftar
       (permintaan pemilik), favicon dari maskot (404 di konsol), tamu membuka laporan langsung ke
       ajakan mendaftar tanpa POST 403
-- [ ] P15-03b Templat deterministik API dua bahasa sisanya: panduan teknis & irigasi,
-      pipe-knowledge, product-answer-text, kartu kebijakan (scope/entitlements), handoff
+- [x] P15-03b Templat deterministik API dua bahasa (2026-10-07): pipe-knowledge (pengetahuan
+      bahan/konsep `en`, pembanding, nasihat), product-answer-text (`productAnswerCopy`,
+      `aspectLabel`, teks ikhtisar/jawaban), kebijakan (scope: alasan semua outcome +
+      `neutralCriteria`; entitlements: `capabilityLabel`, `onboardingTagLabel`,
+      `onboardingBenefits`; policy-cards), panduan teknis & irigasi, templat irigasi
+      (`optionLabels`, label tangkapan), kartu asumsi, label field/nilai. Konvensi: parameter akhir
+      `locale = 'id'`, teks Indonesia tak berubah, nilai pilihan/tag tetap protokol Indonesia.
+      Locale disambungkan dari percakapan ke pipeline, pertanyaan produk, dan kartu asumsi analisis.
+      22 tes baru; API 839. Diverifikasi di produksi (EN): perbandingan PVC/HDPE, kartu kriteria
+      pesaing, CTA rumah lengkap, kartu di luar cakupan. **Belum EN:** label/pertanyaan registry
+      parameter & asumsi engine, prosa templat per kasus, nama item BOM, label keluaran komposer
+      (P15-04), PDF (P15-05)
 - [ ] P15-04 Registry per bahasa: label/pertanyaan/opsi parameter, asumsi, label keluaran,
       catatan opsi, highlight & prosa templat per kasus, nama item BOM
 - [ ] P15-05 Laporan PDF dua bahasa
