@@ -153,6 +153,19 @@ describe('runProductQuestion — KONSEP', () => {
     expect(bestMatch([cable, fitting, pipe], 'hdpe')?.id).toBe(pipe.id);
     expect(bestMatch([cable, fitting], 'hdpe')?.id).toBe(fitting.id);
     expect(bestMatch([], 'hdpe')).toBeUndefined();
+    // Katalog Pralon sungguhan: pipa pelindung kabel Telkom dan pipa air PE 100 ada di keluarga
+    // HDPE yang SAMA — pipa air yang mewakili istilah "HDPE".
+    const telkomSameFamily: Product = {
+      ...pipe,
+      id: 'K'.repeat(26),
+      name: 'Pipa HDPE Telkom 40/33 x 182 Meter Orange Garis Biru',
+    };
+    const pe100: Product = {
+      ...pipe,
+      id: 'E'.repeat(26),
+      name: 'Pipa HDPE PE 100 PN-8 63 mm x 75 Meter',
+    };
+    expect(bestMatch([telkomSameFamily, pe100], 'hdpe')?.id).toBe(pe100.id);
   });
 
   it('"apa bedanya pvc sama hdpe" dijawab utuh tanpa katalog dan tanpa model', async () => {

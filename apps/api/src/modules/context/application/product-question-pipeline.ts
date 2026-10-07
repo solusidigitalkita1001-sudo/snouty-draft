@@ -394,11 +394,19 @@ export function bestMatch(items: readonly Product[], term: string): Product | un
     return (
       (family === needle ? 4 : family.includes(needle) ? 3 : 0) +
       (name.includes(needle) ? 1 : 0) +
-      (category.includes('pipa') ? 1 : 0)
+      (category.includes('pipa') ? 1 : 0) +
+      // Keluarga HDPE Pralon memuat pipa air (PE 100 PN-8) DAN pipa pelindung kabel (Telkom)
+      // bersebelahan. Untuk pertanyaan bahan, pipa air yang mewakili; penanda kelas tekanan/
+      // standar di nama menaikkannya, penanda saluran kabel menurunkannya.
+      (WATER_PIPE_MARKER.test(name) ? 1 : 0) -
+      (CABLE_DUCT_MARKER.test(name) ? 2 : 0)
     );
   };
   return [...items].sort((a, b) => score(b) - score(a))[0];
 }
+
+const WATER_PIPE_MARKER = /\b(pe ?100|pe ?80|pn[- ]?\d+|sni|aw|kelas|class|s-\d+)\b/i;
+const CABLE_DUCT_MARKER = /\b(telkom|kabel|cable|duct|subduct|conduit|fo|fiber)\b/i;
 
 /**
  * Fakta katalog yang tidak tercermin di tulisan model ditempel di bawahnya: ikhtisar produk
