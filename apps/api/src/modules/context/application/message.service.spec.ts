@@ -296,9 +296,11 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
     const reply = await say('produk HDPE nya gimana?');
     expect(reply).toContain('HDPE');
     expect(subject()).toMatchObject({ kind: 'product', entity: 'hdpe' });
-    // Lanjutan setelah itu tentang produk, bukan kembali ke perusahaan.
-    await say('lebih detail dong');
-    expect(subject()?.kind).toBe('product');
+    // Lanjutan setelah itu tentang produk itu — dijawab, bukan "Produk mana yang Anda maksud?".
+    const more = await say('lebih detail dong');
+    expect(more).toContain('HDPE');
+    expect(more).not.toContain('Produk mana');
+    expect(subject()).toMatchObject({ kind: 'product', entity: 'hdpe', depth: 'detailed' });
   });
 
   it('subjek yang sama tidak menulis snapshot baru; subjek baru menulis `subject_change`', async () => {

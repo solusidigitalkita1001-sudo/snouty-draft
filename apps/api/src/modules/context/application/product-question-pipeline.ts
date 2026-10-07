@@ -18,7 +18,8 @@
  * dasar pernyataan apa pun tentang Pralon, dan produknya tidak dipakai sebagai pendukung
  * jawaban konsep.
  */
-import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, type ConversationSubject, type Locale } from '@snouty/shared-types';
+import { isFollowUp, requestedDepth } from '../domain/subject.js';
 import {
   PipeSize,
   specHasValue,
@@ -52,6 +53,18 @@ export interface ProductQuestionInput {
   readonly recentTurns?: readonly ReplyTurn[];
   /** Bahasa percakapan (Fase 15) — untuk penulisan ulang FAQ oleh model. */
   readonly locale?: Locale;
+  /**
+   * Subjek percakapan aktif (Fase 16): "lebih detail dong" setelah jawaban HDPE adalah tentang
+   * HDPE — entitas subjek menjadi query bila pesannya tidak menyebut produk.
+   */
+  readonly subject?: ConversationSubject;
+}
+
+/** Pesan lanjutan atas subjek produk: entitas subjek yang ditanya, bukan pesannya. */
+function subjectQuery(input: ProductQuestionInput): string | null {
+  const subject = input.subject;
+  if (!subject || subject.kind === 'company' || subject.kind === 'case') return null;
+  return isFollowUp(input.message) ? subject.entity : null;
 }
 
 /** Hasil pencarian katalog beserta bobot yang boleh diberikan padanya. */
@@ -88,8 +101,10 @@ export async function runProductQuestion(
     parsed = null;
   }
 
-  const query = parsed?.productQuery ?? null;
-  const aspect = parsed?.aspect ?? null;
+  const continued = subjectQuery(input);
+  const query = continued ?? parsed?.productQuery ?? null;
+  // Lanjutan ("lebih detail dong") memperdalam penjelasan konsep; aspek hanya dari pesan nyata.
+  const aspect = continued !== null ? null : (parsed?.aspect ?? null);
 
   const outcome =
     aspect === null
@@ -192,6 +207,8 @@ function lastAssistantText(input: ProductQuestionInput): string {
 
 function withoutRepeating(knowledge: string, input: ProductQuestionInput): string {
   if (knowledge === '') return knowledge;
+  // Pengguna meminta LEBIH ("lebih detail", "lengkap", "lanjut"): penjelasan utuh, bukan pengingat.
+  if (isFollowUp(input.message) || requestedDepth(input.message) !== null) return knowledge;
   const turns = input.recentTurns ?? [];
   const lastAssistant = lastAssistantText(input);
   const lastUser = [...turns].reverse().find((t) => t.role === 'user')?.text ?? '';

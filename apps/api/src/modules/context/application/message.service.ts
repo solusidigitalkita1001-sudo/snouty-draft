@@ -183,7 +183,13 @@ export class MessageService {
         ai,
         this.catalog,
         this.productQuestions,
-        { messageId, message: text, recentTurns, locale },
+        {
+          messageId,
+          message: text,
+          recentTurns,
+          locale,
+          ...(state.subject ? { subject: state.subject } : {}),
+        },
         this.reply,
         // Baku nonaktif: teks deterministiknya utuh; model 7B hampir selalu ditolak pagar
         // struktur — satu menit untuk hasil yang dibuang (env LLM_FAQ_REWRITE).

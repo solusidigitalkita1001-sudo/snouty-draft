@@ -90,8 +90,11 @@ const COPY: Readonly<Record<Locale, Copy>> = {
 function sectionText(id: CompanySectionId, facts: CompanyFacts, locale: Locale): string | null {
   if (id === 'product_categories') {
     if (facts.productFamilies.size === 0) return null;
+    // Keluarga + jumlah, bukan seluruh anggotanya: profil perusahaan meringkas ragam produk;
+    // daftar lengkapnya milik pertanyaan produk.
     const lines = [...facts.productFamilies.entries()].map(
-      ([family, members]) => `- **${family}**: ${members.join(', ')}`,
+      ([family, members]) =>
+        `- **${family}** — ${members.length} ${locale === 'en' ? (members.length === 1 ? 'product' : 'products') : 'produk'}`,
     );
     return [COPY[locale].productIntro, ...lines].join('\n');
   }

@@ -39,7 +39,9 @@ describe('composeCompanyAnswer', () => {
     expect(a.text.indexOf('**Profil perusahaan**')).toBeLessThan(
       a.text.indexOf('**Produk dan solusi**'),
     );
-    expect(a.text).toContain('- **PVC AW**: Pipa PVC AW 1/2", Pipa PVC AW 3/4"');
+    // Keluarga + jumlah; anggota lengkapnya milik pertanyaan produk.
+    expect(a.text).toContain('- **PVC AW** — 2 produk');
+    expect(a.text).not.toContain('Pipa PVC AW 1/2"');
   });
 
   it('lengkap: semua bagian terverifikasi, lalu jujur tentang yang belum ada + tim Pralon', () => {
@@ -107,7 +109,7 @@ describe('composeCompanyAnswer', () => {
     });
     expect(en.text).toContain('**Company profile**');
     expect(en.text).toContain('What I cannot verify from an official source yet');
-    expect(en.text).toContain('Pipa HDPE PE100 63 mm');
+    expect(en.text).toContain('- **HDPE** — 1 product');
     expect(en.text.split('**').length).toBe(id.text.split('**').length);
   });
 });

@@ -868,7 +868,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       (tanpa MySQL, tanpa `ai`). Tes: subject 12, company-answer 7, heuristics +1, router +1,
       message.service +3 (percakapan pemilik dimainkan ulang dengan router asli dan model yang
       selalu bilang PRODUCT_LOOKUP → model tidak pernah dipanggil, tidak pernah "Produk mana").
-      Docs: AI_BEHAVIOR §4, CONTEXT_ENGINE §2, OQ-54 (data profil resmi dari pemilik)
+      Docs: AI_BEHAVIOR §4, CONTEXT_ENGINE §2, OQ-54 (data profil resmi dari pemilik). Verifikasi
+      produksi: tujuh giliran percakapan pemilik tanpa "Produk mana"; lanjutan atas subjek produk
+      ("lebih detail dong" setelah HDPE) memakai entitas subjek sebagai query; ragam produk di
+      profil perusahaan = keluarga + jumlah
 - [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
