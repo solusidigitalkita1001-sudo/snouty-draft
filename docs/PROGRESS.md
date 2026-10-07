@@ -979,6 +979,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       untuk kebutuhan yang tidak terbaca kode, intent di luar pola, pemetaan produk tanpa keluarga.
       Sekalian `docs/brainstorm/` (skema arsitektur `.md` + konteks ringkas + daftar dokumen) untuk
       brainstorming pemilik. Tes: message-pipeline +2, openrouter +1, grounding +1, service judul ×2
+- [ ] P16-11 Hapus pola kalimat hardcode (aturan pemilik 2026-10-07, `.claude/CLAUDE.md`
+      "Pemahaman pertanyaan pengguna"): ganti regex/frasa di `heuristics.ts`, `subject.ts`,
+      `social.ts`, dan pemadan konsep `pipe-knowledge` dengan mekanisme umum berbasis data —
+      contoh intent/topik/lanjutan sebagai DATA (bukan kode) + kemiripan semantik lewat model
+      embedding gratis di Ollama (milidetik di CPU), model 7B hanya untuk yang tidak mirip apa pun.
+      Kode menyisakan aturan bisnis, pagar, parser nilai terstruktur, dan jawaban bersumber.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

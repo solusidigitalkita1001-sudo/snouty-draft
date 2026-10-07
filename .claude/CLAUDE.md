@@ -27,6 +27,22 @@ Kode, identifier, enum, SQL, dan pesan commit tetap Inggris.
 - **State percakapan terstruktur**, bukan riwayat chat mentah.
 - Eksekusi selektif: jangan jalankan seluruh pipeline untuk setiap pesan.
 
+## Pemahaman pertanyaan pengguna
+
+**Pertanyaan pengguna tidak pernah di-hardcode** (keputusan pemilik 2026-10-07).
+
+- Tidak ada daftar kalimat, frasa, atau regex di kode yang menebak *apa yang ditanya* pengguna
+  ("harganya berapa", "ukuran apa aja", "boleh", "lengkap dong", "cara nyambung"). Pemahaman
+  bahasa adalah tugas model, atau mekanisme umum berbasis data (contoh intent sebagai data,
+  kemiripan semantik) yang bisa ditambah tanpa mengubah kode.
+- Yang boleh di kode: aturan bisnis dan pagar (intent mana boleh ke mana, apa yang tidak boleh
+  dikarang, presedensi), parser nilai terstruktur (angka, satuan, enum), dan jawaban yang
+  bersumber.
+- Latensi bukan alasan menambah pola kalimat. Bila model lambat, pilihannya model yang lebih
+  cepat atau mekanisme umum, bukan daftar frasa baru.
+- Pola kalimat yang sudah ada dianggap utang teknis yang harus dimigrasi, bukan contoh untuk
+  diikuti.
+
 ## Teks yang dilihat pengguna
 
 **Tidak pernah ada metatext dan AI slop.** SNOUTY tampil sebagai teknisi Pralon, bukan bot.
