@@ -928,7 +928,8 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       DTO endpoint hanya menerima field bangunan + irigasi, padahal kartu teknis memakai kunci
       parameter engine (`design_flow`, `pump_required`, …). Kini satu predikat domain
       `isClarificationAnswerId` (field inti, irigasi, kunci parameter) dipakai validasi; batas
-      `option` 80 karakter. Tes: clarification +1
+      `option` 80 karakter. Gelembung pengguna memakai label registry ("Jenis cairan: Air
+      limbah"), bukan kunci mentah; label irigasi per bahasa. Tes: clarification +2
 - [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 

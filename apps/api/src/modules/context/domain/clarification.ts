@@ -18,8 +18,13 @@
 import type { ClarificationQuestion, RequirementFieldPath } from '@snouty/shared-types';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type { FieldUpdate } from './context-merger.js';
-import { isParameterKey } from '@snouty/engineering';
-import { IRRIGATION_TEMPLATES, isIrrigationField } from './irrigation.js';
+import {
+  isParameterKey,
+  parameterDefinition,
+  parameterLabel,
+  parameterOptionLabels,
+} from '@snouty/engineering';
+import { irrigationFieldLabel, isIrrigationField } from './irrigation.js';
 
 export const MAX_CLARIFICATION_QUESTIONS = 4;
 
@@ -223,9 +228,17 @@ export function summarizeAnswers(
   const labels = locale === 'en' ? ANSWER_LABEL_EN : ANSWER_LABEL;
   return answers
     .map((a) => {
-      // Label irigasi masih Indonesia sampai registry dua bahasa (P15-04).
+      // Kunci parameter kasus teknis → label dan pilihan dari registry (bug "fluid_type: Air
+      // limbah" di gelembung pengguna, 2026-10-07); field irigasi → templat per bahasa.
+      if (isParameterKey(a.id)) {
+        const options = parameterDefinition(a.id).options ?? [];
+        const index = options.indexOf(a.option);
+        const display =
+          index >= 0 ? (parameterOptionLabels(a.id, locale)?.[index] ?? a.option) : a.option;
+        return `${parameterLabel(a.id, locale)}: ${optionLabel(display, locale)}`;
+      }
       const label = isIrrigationField(a.id)
-        ? IRRIGATION_TEMPLATES[a.id].label
+        ? irrigationFieldLabel(a.id, locale)
         : (labels[a.id as RequirementFieldPath] ?? a.id);
       return `${label}: ${optionLabel(a.option, locale)}`;
     })

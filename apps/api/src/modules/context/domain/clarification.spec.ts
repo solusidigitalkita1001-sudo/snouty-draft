@@ -110,6 +110,18 @@ describe('ClarificationEngine', () => {
     expect(plan.questions[0]!.allowUnknown).toBe(true);
   });
 
+  it('summarizeAnswers: jawaban kartu teknis memakai label registry, bukan kunci mentah ("fluid_type: …")', () => {
+    expect(summarizeAnswers([{ id: 'fluid_type', option: 'Air limbah' }])).toBe(
+      'Jenis cairan: Air limbah',
+    );
+    const en = summarizeAnswers([{ id: 'fluid_type', option: 'Air limbah' }], 'en');
+    expect(en).not.toContain('fluid_type');
+    expect(en).not.toContain('Air limbah');
+    expect(summarizeAnswers([{ id: 'irrigation.method', option: 'Tetes' }], 'en')).not.toContain(
+      'irrigation.',
+    );
+  });
+
   it('isClarificationAnswerId: field inti, field irigasi, dan kunci parameter teknis diterima; yang lain ditolak (bug 400, 2026-10-07)', () => {
     for (const id of [
       'water.source',
