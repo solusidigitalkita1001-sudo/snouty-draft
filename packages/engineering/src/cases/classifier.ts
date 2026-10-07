@@ -16,60 +16,80 @@ interface Signal {
 const SIGNALS: Readonly<Record<CaseId, readonly Signal[]>> = {
   fish_pond: [
     {
-      pattern: /\btambak\b|\blele\b|\bnila\b|\bgurame\b|\bbioflok\b|budidaya|\bkoi\b|\bikan\b/i,
+      pattern:
+        /\btambak\b|\blele\b|\bnila\b|\bgurame\b|\bbioflok\b|budidaya|\bkoi\b|\bikan\b|fish ?pond|\bpond\b|tilapia|catfish|aquaculture|biofloc/i,
       weight: 5,
     },
-    { pattern: /\bkolam\b|\bbak\b|pengurasan|\bkuras\b/i, weight: 3 },
+    { pattern: /\bkolam\b|\bbak\b|pengurasan|\bkuras\b|\bfish tank\b/i, weight: 3 },
   ],
   culvert: [
     { pattern: /gorong[- ]gorong|culvert|box culvert/i, weight: 5 },
     {
-      pattern: /melintas(i)? jalan|menyeberang(i)? jalan|lintas(an)? jalan|bawah jalan/i,
+      pattern:
+        /melintas(i)? jalan|menyeberang(i)? jalan|lintas(an)? jalan|bawah jalan|under the road|road crossing|crosses? the road|under a (?:\d+(?:[.,]\d+)? ?m )?road/i,
       weight: 3,
     },
   ],
   stormwater: [
-    { pattern: /\bair hujan\b|\bhujan\b|limpasan|curah hujan|talang|banjir/i, weight: 4 },
-    { pattern: /\bdrainase\b/i, weight: 1 },
+    {
+      pattern:
+        /\bair hujan\b|\bhujan\b|limpasan|curah hujan|talang|banjir|rain ?water|storm ?water|runoff|rainfall|\bgutters?\b|\bfloods?\b|\bflooding\b/i,
+      weight: 4,
+    },
+    { pattern: /\bdrainase\b|\bdrainage\b/i, weight: 1 },
   ],
   irrigation: [
-    { pattern: /\birigasi\b|\bsawah\b|perkebunan|\bpertanian\b|\bladang\b/i, weight: 5 },
-    { pattern: /\bkebun\b|sprinkler|springkel|\btetes\b|\bdrip\b|siram/i, weight: 3 },
+    {
+      pattern:
+        /\birigasi\b|\bsawah\b|perkebunan|\bpertanian\b|\bladang\b|irrigation|paddy|rice field|\bfarm(?:land)?\b|orchard|plantation/i,
+      weight: 5,
+    },
+    { pattern: /\bkebun\b|sprinkler|springkel|\btetes\b|\bdrip\b|siram|sprinklers?/i, weight: 3 },
   ],
   gravity_drainage: [
     {
-      pattern: /\bdrainase\b|\bselokan\b|\bgot\b|air kotor|\blimbah\b|pembuangan|septic|septik/i,
+      pattern:
+        /\bdrainase\b|\bselokan\b|\bgot\b|air kotor|\blimbah\b|pembuangan|septic|septik|(?<!rain ?water |storm ?water |rain |storm )\bdrainage\b|\bdrains?\b|\bsewer\b|\bsewage\b|wastewater/i,
       weight: 4,
     },
-    { pattern: /gravitasi|kemiringan|\bslope\b/i, weight: 2 },
+    { pattern: /gravitasi|kemiringan|\bslope\b|\bgravity\b|\bgradient\b/i, weight: 2 },
   ],
   well_distribution: [
-    { pattern: /sumur bor|sumur dalam|submersible|pompa sumur|\bsumur\b/i, weight: 4 },
-    { pattern: /kedalaman|jet ?pump/i, weight: 2 },
+    {
+      pattern:
+        /sumur bor|sumur dalam|submersible|pompa sumur|\bsumur\b|borehole|deep well|well pump|\bwell\b/i,
+      weight: 4,
+    },
+    { pattern: /kedalaman|jet ?pump|well depth/i, weight: 2 },
   ],
   pump_transfer: [
     {
       pattern:
-        /\btransfer\b|memompa|dipompa|kirim air|naikkan air|mengalirkan air|alirkan air|dorong air/i,
+        /\btransfer\b|memompa|dipompa|kirim air|naikkan air|mengalirkan air|alirkan air|dorong air|\bpumping\b|pump (?:the )?water/i,
       weight: 4,
     },
-    { pattern: /\btandon\b|\breservoir\b|\bembung\b|penampungan/i, weight: 2 },
-    { pattern: /\bpompa\b/i, weight: 1 },
+    {
+      pattern: /\btandon\b|\breservoir\b|\bembung\b|penampungan|\btanks?\b|\belevation\b/i,
+      weight: 2,
+    },
+    { pattern: /\bpompa\b|\bpump\b/i, weight: 1 },
     { pattern: /\b\d+(?:[.,]\d+)?\s*(km|m|meter)\b/i, weight: 1 },
   ],
   residential_cluster: [
     {
-      pattern: /\bcluster\b|\bklaster\b|\bperumahan\b|\bkomplek(s)?\b|\bkavling\b|town ?house/i,
+      pattern:
+        /\bcluster\b|\bklaster\b|\bperumahan\b|\bkomplek(s)?\b|\bkavling\b|town ?house|housing (?:estate|complex)|subdivision/i,
       weight: 5,
     },
-    { pattern: /\b\d+\s*(unit|rumah|kk|sambungan)\b/i, weight: 3 },
+    { pattern: /\b\d+\s*(units?|rumah|kk|sambungan|houses|homes)\b/i, weight: 3 },
   ],
   multistorey_building_water: [
     {
-      pattern: /\bgedung\b|\bapartemen\b|\bhotel\b|\brusun\b|\bbertingkat\b|high ?rise|\btower\b/i,
+      pattern:
+        /\bgedung\b|\bapartemen\b|\bhotel\b|\brusun\b|\bbertingkat\b|high ?rise|\btower\b|apartment|multi-?stor(?:ey|y)/i,
       weight: 4,
     },
-    { pattern: /\b(?:[4-9]|[1-9]\d)\s*lantai\b/i, weight: 4 },
+    { pattern: /\b(?:[4-9]|[1-9]\d)\s*-?\s*(?:lantai|floors|stor(?:eys|ies|ey|y))\b/i, weight: 4 },
     { pattern: /\bbooster\b|\briser\b|zonasi/i, weight: 2 },
   ],
   residential_clean_water: [
@@ -78,7 +98,7 @@ const SIGNALS: Readonly<Record<CaseId, readonly Signal[]>> = {
       pattern: /kamar mandi|wastafel|\bdapur\b|\btoren\b|titik air|\bkeran\b|\bshower\b/i,
       weight: 3,
     },
-    { pattern: /\b[1-3]\s*lantai\b/i, weight: 2 },
+    { pattern: /\b[1-3]\s*-?\s*(?:lantai|floors?|stor(?:eys?|ies|y))\b/i, weight: 2 },
     { pattern: /air bersih|\bpdam\b/i, weight: 1 },
   ],
 };

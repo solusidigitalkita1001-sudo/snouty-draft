@@ -74,7 +74,8 @@ describe('composeResponse — transfer pompa', () => {
     expect(composed.knownData).toEqual([
       { label: 'Debit rencana', value: '5 l/s' },
       { label: 'Panjang jalur', value: '800 m' },
-      { label: 'Beda tinggi', value: '12 m' },
+      // Label datang dari registry saat ditampilkan, bukan dari label yang tersimpan di state.
+      { label: 'Tinggi statis', value: '12 m' },
     ]);
     expect(composed.assumedData).toEqual([{ label: 'Bahan pipa', value: 'HDPE' }]);
   });
@@ -125,6 +126,94 @@ describe('composeResponse — transfer pompa', () => {
     for (const item of composed.missingData) {
       expect(item.value.endsWith('?')).toBe(true);
     }
+  });
+});
+
+describe('composeResponse — bahasa', () => {
+  const state = technical('pump_transfer', {
+    design_flow: known('Debit rencana', 5, 'l/s'),
+    route_length: known('Panjang jalur', 800, 'm'),
+    static_head: known('Beda tinggi', 12, 'm'),
+  });
+  const result = computePressurized({ designFlowLs: 5, routeLengthM: 800, staticHeadM: 12 });
+  const traces = result.traces.map((t, i) => ({ ...t, id: `T${i}` }));
+  const base = { state, traces, pressurized: result };
+
+  it("'id' eksplisit sama dengan bawaan", () => {
+    expect(composeResponse({ ...base, locale: 'id' })).toEqual(composeResponse(base));
+  });
+
+  it("'en': opsi berlabel dan bercatatan Inggris, jumlah dan angka sama", () => {
+    const id = composeResponse(base);
+    const en = composeResponse({ ...base, locale: 'en' });
+    expect(en.options).toHaveLength(id.options.length);
+    expect(en.options.map((o) => [o.size, o.status, o.recommended, o.alternative])).toEqual(
+      id.options.map((o) => [o.size, o.status, o.recommended, o.alternative]),
+    );
+    const first = result.candidates[0]!;
+    expect(en.options[0]!.metrics.map((m) => m.label)).toEqual([
+      'Inner diameter',
+      'Velocity',
+      'Friction loss',
+      'Total head',
+    ]);
+    expect(en.options[0]!.metrics.map((m) => m.value)).toEqual([
+      `${first.innerDiameterMm.toLocaleString('en-US', { maximumFractionDigits: 2 })} mm`,
+      `${first.velocityMs.toLocaleString('en-US', { maximumFractionDigits: 2 })} m/s`,
+      `${first.frictionLossM.toLocaleString('en-US', { maximumFractionDigits: 2 })} m`,
+      `${first.totalDynamicHeadM.toLocaleString('en-US', { maximumFractionDigits: 2 })} m`,
+    ]);
+    expect(en.options.find((o) => o.recommended)!.note).toBe(
+      'Meets the velocity and friction loss limits.',
+    );
+    expect(en.options.find((o) => o.alternative)!.note).toContain('One size above');
+    expect(en.options.find((o) => o.status === 'too_fast')!.note).toContain('Velocity too high');
+  });
+
+  it("'en': label kesiapan Inggris, status dan jumlah sama", () => {
+    const id = composeResponse(base);
+    const en = composeResponse({ ...base, locale: 'en' });
+    expect(en.readiness.map((r) => [r.output, r.readiness])).toEqual(
+      id.readiness.map((r) => [r.output, r.readiness]),
+    );
+    expect(en.readiness.find((r) => r.output === 'pipe_sizing')?.label).toBe('Pipe sizing');
+    expect(en.readiness.every((r) => r.label !== r.output)).toBe(true);
+    expect(en.missingData).toHaveLength(id.missingData.length);
+  });
+
+  it("'en': data diketahui, parameter kesiapan, dan data kurang berlabel registry Inggris", () => {
+    const id = composeResponse(base);
+    const en = composeResponse({ ...base, locale: 'en' });
+    expect(id.knownData.map((k) => k.label)).toContain('Debit rencana');
+    expect(en.knownData.map((k) => k.label)).toContain('Design flow');
+    expect(en.knownData.map((k) => k.value)).toContain('5 l/s');
+    en.knownData.forEach((k, i) => expect(k.label).not.toBe(id.knownData[i]!.label));
+    en.readiness.forEach((r, i) => {
+      expect(r.missing).toHaveLength(id.readiness[i]!.missing.length);
+      expect(r.improvable).toHaveLength(id.readiness[i]!.improvable.length);
+      r.improvable.forEach((label, j) => expect(label).not.toBe(id.readiness[i]!.improvable[j]));
+    });
+    en.missingData.forEach((m, i) => {
+      expect(m.label).not.toBe(id.missingData[i]!.label);
+      expect(m.value).not.toBe(id.missingData[i]!.value);
+      expect(m.value.endsWith('?')).toBe(true);
+    });
+  });
+
+  it("'en': gravitasi memakai label kapasitas Inggris", () => {
+    const gState = technical('gravity_drainage', {
+      design_flow: known('Debit rencana', 20, 'l/s'),
+      slope: known('Kemiringan', 1, '%'),
+    });
+    const g = computeGravity({ kind: 'drainage', designFlowLs: 20, slopePercent: 1 });
+    const gTraces = g.traces.map((t, i) => ({ ...t, id: `G${i}` }));
+    const en = composeResponse({ state: gState, traces: gTraces, gravity: g, locale: 'en' });
+    expect(en.options[0]!.metrics.map((m) => m.label)).toEqual([
+      'Inner diameter',
+      'Full-bore capacity',
+      'Full-bore velocity',
+      'Capacity utilisation',
+    ]);
   });
 });
 

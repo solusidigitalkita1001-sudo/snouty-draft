@@ -152,3 +152,59 @@ describe('tampilan hasil bertekanan', () => {
     for (const n of numbers) expect(allowed.has(n)).toBe(true);
   });
 });
+
+describe('tampilan hasil bertekanan: dua bahasa', () => {
+  const result = computePressurized({ designFlowLs: 5, routeLengthM: 800, staticHeadM: 12 });
+  const traces = result.traces.map((t, i) => ({ ...t, id: `T${i}` }));
+  const input = { designFlowLs: 5, routeLengthM: 800, staticHeadM: 12 };
+
+  it('highlights: id tak berubah, en berbahasa Inggris dengan angka sama', () => {
+    const idRows = pressurizedHighlights(result, 'HDPE', 3, 'id');
+    expect(idRows).toEqual(pressurizedHighlights(result, 'HDPE', 3));
+    const en = pressurizedHighlights(result, 'HDPE', 3, 'en');
+    expect(en).toHaveLength(idRows.length);
+    expect(en.map((x) => x.label)).toEqual([
+      'Main pipe',
+      'Velocity',
+      'Friction loss',
+      'Total head',
+      'Pump duty point',
+      'Pralon products',
+    ]);
+    expect(en[4]!.value).toBe('18 m³/h @ 46.12 m');
+  });
+
+  it('baris sistem dan BOM: jumlah sama, teks Inggris, trace sama', () => {
+    const idLines = pressurizedSystemLinesFrom(result, 'HDPE', traces);
+    const en = pressurizedSystemLinesFrom(result, 'HDPE', traces, 'en');
+    expect(en).toHaveLength(idLines.length);
+    expect(en.map((l) => l.traceIds)).toEqual(idLines.map((l) => l.traceIds));
+    expect(en[0]!.name).toBe('HDPE main pipe');
+    expect(en[1]!.size).toBe('18 m³/h @ 46.12 m');
+    expect(en[2]!.reason).toContain('One size up');
+
+    const idBom = pressurizedBomItemsFrom(result, 'HDPE', 800, traces, 'id');
+    const enBom = pressurizedBomItemsFrom(result, 'HDPE', 800, traces, 'en');
+    expect(enBom).toHaveLength(idBom.length);
+    expect(enBom.map((b) => b.quantity)).toEqual(idBom.map((b) => b.quantity));
+    expect(enBom[0]!.item).toBe('HDPE pipe');
+    expect(enBom.some((b) => b.item === 'Check valve')).toBe(true);
+    expect(idBom[0]!.item).toBe('Pipa HDPE');
+  });
+
+  it('asumsi dan prosa: id tak berubah, en berbahasa Inggris', () => {
+    const idA = pressurizedAssumptionsFrom(result, [], traces);
+    const enA = pressurizedAssumptionsFrom(result, [], traces, 'en');
+    expect(enA).toHaveLength(idA.length);
+    expect(enA[0]!.text).toContain('standard engineering formulas');
+    expect(idA[0]!.text).toContain('Rumus hidraulik');
+
+    const idP = pressurizedProse(result, 'HDPE', input, 'id');
+    expect(idP).toEqual(pressurizedProse(result, 'HDPE', input));
+    const enP = pressurizedProse(result, 'HDPE', input, 'en');
+    expect(enP.headline).toContain('pipe and a 18 m³/h pump at 46.12 m head');
+    expect(enP.body).toContain('46.12 m');
+    expect(enP.body).toContain('Initial estimate');
+    expect(enP.body).not.toContain(',12');
+  });
+});

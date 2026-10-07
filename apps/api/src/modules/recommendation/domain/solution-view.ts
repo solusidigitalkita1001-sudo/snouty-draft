@@ -16,11 +16,39 @@ import type {
   RecommendationStats,
   SystemLine,
 } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type { CalculationTrace, SolutionResult } from '@snouty/engineering';
 
 /** Trace yang sudah punya id basis data — pemanggil memberi id sebelum memakai ini. */
 export interface IdentifiedTrace extends CalculationTrace {
   readonly id: string;
+}
+
+const BOM_ITEMS_EN: Readonly<Record<string, string>> = {
+  'Katup / stop kran': 'Valve / stop cock',
+  'Sok drat / water mur (pipa tegak kuras)':
+    'Threaded socket / bulkhead fitting (vertical drain pipe)',
+  'Lem PVC': 'PVC solvent cement',
+};
+const BOM_UNITS_EN: Readonly<Record<string, string>> = {
+  batang: 'rods',
+  kaleng: 'cans',
+  meter: 'm',
+};
+
+/** Nama baris BOM dari engine (Indonesia) → bahasa tampilan; nama tak dikenal lewat apa adanya. */
+export function bomItemName(item: string, locale: Locale = DEFAULT_LOCALE): string {
+  if (locale === 'id') return item;
+  const pipe = /^Pipa (.+)$/.exec(item);
+  return pipe ? `${pipe[1]!} pipe` : (BOM_ITEMS_EN[item] ?? item);
+}
+
+/**
+ * Satuan BOM. `BomUnit` di shared-types masih union Indonesia — cast di sini sampai tipenya
+ * dilebarkan; klien hanya merendernya sebagai teks.
+ */
+export function bomUnitLabel(unit: string, locale: Locale = DEFAULT_LOCALE): BomUnit {
+  return (locale === 'id' ? unit : (BOM_UNITS_EN[unit] ?? unit)) as BomUnit;
 }
 
 function traceIdsFor(traces: readonly IdentifiedTrace[], ...ruleIds: string[]): readonly string[] {
@@ -56,34 +84,39 @@ export function statsFrom(solution: SolutionResult, productCount: number): Recom
 export function systemLinesFrom(
   solution: SolutionResult,
   traces: readonly IdentifiedTrace[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly SystemLine[] {
+  const en = locale === 'en';
   const mainTraces = traceIdsFor(traces, 'ENG-001', 'ENG-002');
   const branchTraces = traceIdsFor(traces, 'ENG-003');
   const fixtureTraces = traceIdsFor(traces, 'ENG-005');
 
   return [
     {
-      name: 'Pipa distribusi utama',
-      path: 'Sumber → riser',
+      name: en ? 'Main distribution pipe' : 'Pipa distribusi utama',
+      path: en ? 'Source → riser' : 'Sumber → riser',
       size: solution.mainSize,
+      // TODO(P15-04b): trace explanations EN
       reason: explanationFor(traces, 'ENG-002'),
       provenance: provenanceFor(traces, mainTraces),
       traceIds: mainTraces,
       role: 'main',
     },
     {
-      name: 'Cabang per lantai',
-      path: 'Riser → titik air',
+      name: en ? 'Branch per floor' : 'Cabang per lantai',
+      path: en ? 'Riser → water outlets' : 'Riser → titik air',
       size: '3/4"',
+      // TODO(P15-04b): trace explanations EN
       reason: explanationFor(traces, 'ENG-003'),
       provenance: provenanceFor(traces, branchTraces),
       traceIds: branchTraces,
       role: 'branch',
     },
     {
-      name: 'Sambungan fixture',
-      path: 'Cabang → fixture',
+      name: en ? 'Fixture connection' : 'Sambungan fixture',
+      path: en ? 'Branch → fixture' : 'Cabang → fixture',
       size: solution.fixtureConnectionSize,
+      // TODO(P15-04b): trace explanations EN
       reason: explanationFor(traces, 'ENG-005'),
       provenance: provenanceFor(traces, fixtureTraces),
       traceIds: fixtureTraces,
@@ -100,16 +133,18 @@ export function systemLinesFrom(
 export function bomItemsFrom(
   solution: SolutionResult,
   traces: readonly IdentifiedTrace[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly BomItem[] {
   const bomTraces = traceIdsFor(traces, 'ENG-009');
+  // TODO(P15-04b): trace explanations EN
   const basis = explanationFor(traces, 'ENG-009');
   const provenance = provenanceFor(traces, bomTraces);
 
   return solution.bom.map((line) => ({
-    item: line.item,
+    item: bomItemName(line.item, locale),
     size: line.size,
     quantity: line.quantity,
-    unit: line.unit as BomUnit,
+    unit: bomUnitLabel(line.unit, locale),
     basis,
     provenance,
     traceIds: bomTraces,
@@ -124,12 +159,14 @@ export function assumptionsFrom(
   solution: SolutionResult,
   traces: readonly IdentifiedTrace[],
   requirementAssumptions: readonly Assumption[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
   const fromRules: Assumption[] = [];
 
   // Tinggi lantai hanya menjadi asumsi bila ENG-004 benar-benar berjalan.
   if (traces.some((trace) => trace.ruleId === 'ENG-004')) {
     fromRules.push({
+      // TODO(P15-04b): trace explanations EN
       text: explanationFor(traces, 'ENG-004'),
       fieldPath: 'building.floorHeightM',
       ruleId: 'ENG-004',
@@ -138,7 +175,10 @@ export function assumptionsFrom(
 
   if (solution.overallProvenance !== 'VERIFIED') {
     fromRules.push({
-      text: 'Panjang pipa diestimasi karena dimensi bangunan belum diberikan.',
+      text:
+        locale === 'en'
+          ? 'Pipe length is estimated because the building dimensions have not been provided.'
+          : 'Panjang pipa diestimasi karena dimensi bangunan belum diberikan.',
       fieldPath: 'building.dimensions',
       ruleId: 'ENG-009',
     });

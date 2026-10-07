@@ -3,7 +3,13 @@
  * Kembaran `irrigation-view.ts` untuk kasus teknis `fish_pond`; invarian T-1 sama: setiap
  * baris membawa `traceIds`, "DASAR PERHITUNGAN" dari `explanation` aturan. **Fungsi murni.**
  */
-import { applyAssumption, type PondInput, type PondResult } from '@snouty/engineering';
+import {
+  applyAssumption,
+  assumptionDescription,
+  type PondInput,
+  type PondResult,
+} from '@snouty/engineering';
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type {
   Assumption,
   BomItem,
@@ -57,15 +63,34 @@ export function pondInputFrom(state: RequirementState): PondInput | null {
   };
 }
 
-const id = (n: number) => String(n).replace('.', ',');
+const idNum = (n: number) => String(n).replace('.', ',');
+/** Indonesia: koma desimal (tak berubah); Inggris: titik desimal tanpa pemisah ribuan. */
+const id = (n: number, locale: Locale = DEFAULT_LOCALE): string =>
+  locale === 'en'
+    ? n.toLocaleString('en-US', { maximumFractionDigits: 2, useGrouping: false })
+    : idNum(n);
 
-export function pondHighlights(result: PondResult, productCount: number): readonly KeyValue[] {
+export function pondHighlights(
+  result: PondResult,
+  productCount: number,
+  locale: Locale = DEFAULT_LOCALE,
+): readonly KeyValue[] {
+  const en = locale === 'en';
   return [
-    { label: 'Volume air', value: `${id(result.volumeM3)} m³` },
-    { label: 'Debit pengisian', value: `${id(result.designFlowLs)} l/s` },
-    { label: 'Pipa masuk', value: `${result.inletFamily} ${result.inletSize}` },
-    { label: 'Pipa kuras', value: `${result.drainFamily} ${result.drainSize}` },
-    { label: 'Produk Pralon', value: `${productCount} item` },
+    { label: en ? 'Water volume' : 'Volume air', value: `${id(result.volumeM3, locale)} m³` },
+    {
+      label: en ? 'Filling flow' : 'Debit pengisian',
+      value: `${id(result.designFlowLs, locale)} l/s`,
+    },
+    {
+      label: en ? 'Inlet pipe' : 'Pipa masuk',
+      value: `${result.inletFamily} ${result.inletSize}`,
+    },
+    {
+      label: en ? 'Drain pipe' : 'Pipa kuras',
+      value: `${result.drainFamily} ${result.drainSize}`,
+    },
+    { label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` },
   ];
 }
 
@@ -83,22 +108,25 @@ export function pondLegacyStats(result: PondResult, productCount: number): Recom
 export function pondSystemLinesFrom(
   result: PondResult,
   traces: readonly IdentifiedTrace[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly SystemLine[] {
+  const en = locale === 'en';
   const inlet = traceIdsFor(traces, 'ENG-301', 'ENG-302', 'ENG-102');
   const drain = traceIdsFor(traces, 'ENG-301', 'ENG-303');
   return [
     {
-      name: `Pipa masuk ${result.inletFamily}`,
-      path: 'Sumber air / pompa → kolam',
+      name: en ? `${result.inletFamily} inlet pipe` : `Pipa masuk ${result.inletFamily}`,
+      path: en ? 'Water source / pump → pond' : 'Sumber air / pompa → kolam',
       size: result.inletSize,
+      // TODO(P15-04): penjelasan trace dari engine masih Indonesia untuk kedua bahasa.
       reason: `${explanationFor(traces, 'ENG-302')} ${explanationFor(traces, 'ENG-102')}`.trim(),
       provenance: provenanceFor(traces, inlet),
       traceIds: inlet,
       role: 'main',
     },
     {
-      name: `Pipa kuras ${result.drainFamily}`,
-      path: 'Dasar kolam → saluran buang',
+      name: en ? `${result.drainFamily} drain pipe` : `Pipa kuras ${result.drainFamily}`,
+      path: en ? 'Pond bottom → discharge channel' : 'Dasar kolam → saluran buang',
       size: result.drainSize,
       reason: explanationFor(traces, 'ENG-303'),
       provenance: provenanceFor(traces, drain),
@@ -108,15 +136,28 @@ export function pondSystemLinesFrom(
   ];
 }
 
+/** Nama baris BOM dari engine (Indonesia) → padanan Inggris; yang tak dikenal dipakai apa adanya. */
+const BOM_ITEM_EN: Readonly<Record<string, string>> = {
+  'Pipa PVC AW': 'PVC AW pipe',
+  'Pipa PVC D': 'PVC D pipe',
+  'Elbow 90°': 'Elbow 90°',
+  Tee: 'Tee',
+  'Katup / stop kran': 'Valve / stop cock',
+  'Sok drat / water mur (pipa tegak kuras)': 'Threaded socket / bulkhead fitting (drain standpipe)',
+  'Lem PVC': 'PVC solvent cement',
+};
+
 export function pondBomItemsFrom(
   result: PondResult,
   traces: readonly IdentifiedTrace[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly BomItem[] {
   const bomTraces = traceIdsFor(traces, 'ENG-304');
+  // TODO(P15-04): penjelasan trace dari engine masih Indonesia untuk kedua bahasa.
   const basis = explanationFor(traces, 'ENG-304');
   const provenance = provenanceFor(traces, bomTraces);
   return result.bom.map((line) => ({
-    item: line.item,
+    item: locale === 'en' ? (BOM_ITEM_EN[line.item] ?? line.item) : line.item,
     size: line.size,
     quantity: line.quantity,
     unit: line.unit,
@@ -130,6 +171,7 @@ export function pondBomItemsFrom(
 export function pondAssumptionsFrom(
   result: PondResult,
   traces: readonly IdentifiedTrace[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
   const pending = [
     ...new Set(traces.filter((t) => t.provenance !== 'VERIFIED').map((t) => t.ruleId)),
@@ -144,14 +186,17 @@ export function pondAssumptionsFrom(
           : 'pond_length';
   return [
     {
-      text: `Rumus kolam (${pending}) adalah kriteria umum yang belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final.`,
+      text:
+        locale === 'en'
+          ? `The pond formulas (${pending}) are general criteria not yet validated by the Pralon technical team — the result is an initial estimate, not a final design.`
+          : `Rumus kolam (${pending}) adalah kriteria umum yang belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final.`,
       fieldPath: 'pond_length',
       ruleId: 'ENG-301',
     },
     ...result.appliedAssumptionIds.map((aid) => {
       const a = applyAssumption(aid);
       return {
-        text: a.description,
+        text: assumptionDescription(aid, locale),
         fieldPath: fieldFor(a.parameter),
         ruleId: 'ENG-301',
         assumptionId: a.id,
@@ -161,7 +206,18 @@ export function pondAssumptionsFrom(
 }
 
 /** Prosa deterministik — setiap angka dari hasil hitungan (REC-1). */
-export function pondProse(result: PondResult): { headline: string; body: string } {
+export function pondProse(
+  result: PondResult,
+  locale: Locale = DEFAULT_LOCALE,
+): { headline: string; body: string } {
+  if (locale === 'en') {
+    const l: Locale = 'en';
+    const ponds = result.ponds > 1 ? `${result.ponds} ponds` : 'a pond';
+    return {
+      headline: `${result.inletFamily} ${result.inletSize} inlet pipe and ${result.drainFamily} ${result.drainSize} drain pipe for ${ponds} of ${id(result.areaM2, l)} m²`,
+      body: `The ${id(result.volumeM3, l)} m³ of water fills within the assumed time at ${id(result.designFlowLs, l)} l/s (${id(result.flowM3h, l)} m³/h) through the ${result.inletSize} class AW inlet pipe (pressurised from the pump/source). Draining uses a ${result.drainSize} class D standpipe at the pond bottom: ${id(result.drainFlowLs, l)} l/s by gravity. The materials list and Pralon products are in the next tab; initial estimate, not a final design.`,
+    };
+  }
   const ponds = result.ponds > 1 ? `${result.ponds} kolam` : 'kolam';
   return {
     headline: `Pipa masuk ${result.inletFamily} ${result.inletSize} dan pipa kuras ${result.drainFamily} ${result.drainSize} untuk ${ponds} ${id(result.areaM2)} m²`,

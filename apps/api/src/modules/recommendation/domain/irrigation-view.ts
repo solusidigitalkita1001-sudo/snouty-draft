@@ -12,7 +12,8 @@ import type {
   SystemLine,
 } from '@snouty/shared-types';
 import type { IrrigationResult } from '@snouty/engineering';
-import type { IdentifiedTrace } from './solution-view.js';
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
+import { bomItemName, bomUnitLabel, type IdentifiedTrace } from './solution-view.js';
 
 function traceIdsFor(traces: readonly IdentifiedTrace[], ...ruleIds: string[]): readonly string[] {
   return traces.filter((trace) => ruleIds.includes(trace.ruleId)).map((trace) => trace.id);
@@ -63,33 +64,46 @@ export function legacyStatsFrom(
 export function irrigationSystemLinesFrom(
   result: IrrigationResult,
   traces: readonly IdentifiedTrace[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly SystemLine[] {
+  const en = locale === 'en';
   const mainTraces = traceIdsFor(traces, 'ENG-101', 'ENG-102', 'ENG-104');
   const distributionTraces = traceIdsFor(traces, 'ENG-102', 'ENG-105');
   const pressureTraces = traceIdsFor(traces, 'ENG-103');
   return [
     {
-      name: `Jalur utama ${result.mainFamily}`,
-      path: 'Sumber air → lahan',
+      name: en ? `Main line ${result.mainFamily}` : `Jalur utama ${result.mainFamily}`,
+      path: en ? 'Water source → field' : 'Sumber air → lahan',
       size: result.mainSize,
+      // TODO(P15-04b): trace explanations EN
       reason: `${explanationFor(traces, 'ENG-101')} ${explanationFor(traces, 'ENG-102')}`.trim(),
       provenance: provenanceFor(traces, mainTraces),
       traceIds: mainTraces,
       role: 'main',
     },
     {
-      name: `Distribusi di lahan ${result.distributionFamily}`,
-      path: 'Header → lateral',
+      name: en
+        ? `Field distribution ${result.distributionFamily}`
+        : `Distribusi di lahan ${result.distributionFamily}`,
+      path: en ? 'Header → laterals' : 'Header → lateral',
       size: result.distributionSize,
+      // TODO(P15-04b): trace explanations EN
       reason: explanationFor(traces, 'ENG-105'),
       provenance: provenanceFor(traces, distributionTraces),
       traceIds: distributionTraces,
       role: 'branch',
     },
     {
-      name: result.pumpRequired ? 'Pompa + kelas tekanan' : 'Aliran gravitasi',
-      path: 'Sumber → jalur utama',
-      size: `kelas ${result.pressureClass}`,
+      name: result.pumpRequired
+        ? en
+          ? 'Pump + pressure class'
+          : 'Pompa + kelas tekanan'
+        : en
+          ? 'Gravity flow'
+          : 'Aliran gravitasi',
+      path: en ? 'Source → main line' : 'Sumber → jalur utama',
+      size: `${en ? 'class' : 'kelas'} ${result.pressureClass}`,
+      // TODO(P15-04b): trace explanations EN
       reason: explanationFor(traces, 'ENG-103'),
       provenance: provenanceFor(traces, pressureTraces),
       traceIds: pressureTraces,
@@ -101,15 +115,17 @@ export function irrigationSystemLinesFrom(
 export function irrigationBomItemsFrom(
   result: IrrigationResult,
   traces: readonly IdentifiedTrace[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly BomItem[] {
   const bomTraces = traceIdsFor(traces, 'ENG-105');
+  // TODO(P15-04b): trace explanations EN
   const basis = explanationFor(traces, 'ENG-105');
   const provenance = provenanceFor(traces, bomTraces);
   return result.bom.map((line) => ({
-    item: line.item,
+    item: bomItemName(line.item, locale),
     size: line.size,
     quantity: line.quantity,
-    unit: line.unit,
+    unit: bomUnitLabel(line.unit, locale),
     basis,
     provenance,
     traceIds: bomTraces,
@@ -120,6 +136,7 @@ export function irrigationBomItemsFrom(
 export function irrigationAssumptionsFrom(
   traces: readonly IdentifiedTrace[],
   inputAssumptions: readonly Assumption[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
   const pending = traces
     .filter((t) => t.provenance !== 'VERIFIED')
@@ -127,7 +144,10 @@ export function irrigationAssumptionsFrom(
     .join(', ');
   return [
     {
-      text: `Rumus irigasi (${pending}) adalah kriteria umum yang belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final.`,
+      text:
+        locale === 'en'
+          ? `The irrigation formulas (${pending}) are general criteria not yet validated by the Pralon technical team — the result is a preliminary estimate, not a final design.`
+          : `Rumus irigasi (${pending}) adalah kriteria umum yang belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final.`,
       fieldPath: 'irrigation.method',
       ruleId: 'ENG-101',
     },
@@ -139,10 +159,23 @@ export function irrigationAssumptionsFrom(
 export function irrigationProse(
   stats: IrrigationStats,
   result: IrrigationResult,
+  locale: Locale = DEFAULT_LOCALE,
 ): {
   headline: string;
   body: string;
 } {
+  if (locale === 'en') {
+    return {
+      headline: `Preliminary irrigation estimate for ${stats.areaHa} ha: main line ${stats.mainSize}`,
+      body:
+        `Design flow is about ${stats.designFlowLs} litres per second. ` +
+        `The main line from the water source uses ${result.mainFamily} in size ${stats.mainSize}; field distribution uses ${result.distributionFamily} with a length of about ${result.distributionMeters} metres. ` +
+        (stats.pumpRequired
+          ? `This line is pump-pressurised, so the pipe is class ${result.pressureClass}. `
+          : `Gravity flow from a higher source; class ${result.pressureClass} pipe is sufficient. `) +
+        `${stats.productCount} Pralon products were matched. All figures are marked as assumptions until Pralon's technical team has reviewed them.`,
+    };
+  }
   return {
     headline: `Perkiraan awal irigasi lahan ${stats.areaHa} ha: jalur utama ${stats.mainSize}`,
     body:

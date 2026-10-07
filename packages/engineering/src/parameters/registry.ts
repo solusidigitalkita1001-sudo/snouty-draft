@@ -11,6 +11,9 @@
  * `assumptions.ts`, dan rumus hidup di kalkulator.
  */
 
+import { PARAMETER_ENGLISH } from './registry-en.js';
+import type { EngineeringLocale } from './locale.js';
+
 export type ParameterDomain =
   | 'project'
   | 'site'
@@ -45,7 +48,18 @@ export interface ParameterDefinition {
   readonly question: string;
   /** Mengapa parameter ini dibutuhkan — untuk metadata dan penjelasan ke pengguna. */
   readonly reason: string;
+  /** Terjemahan Inggris — wajib; `registry-en.ts` memastikan tidak ada parameter yang terlewat. */
+  readonly labelEn: string;
+  readonly questionEn: string;
+  readonly reasonEn: string;
+  /** Sejajar dengan `options` (yang tetap nilai protokol berbahasa Indonesia). */
+  readonly optionLabelsEn?: readonly string[];
 }
+
+type ParameterBase = Omit<
+  ParameterDefinition,
+  'labelEn' | 'questionEn' | 'reasonEn' | 'optionLabelsEn'
+>;
 
 export type ParameterKey =
   // project
@@ -136,9 +150,9 @@ const P = (
   question: string,
   reason: string,
   extra: { unit?: string; options?: readonly string[] } = {},
-): ParameterDefinition => ({ key, domain, kind, label, importance, question, reason, ...extra });
+): ParameterBase => ({ key, domain, kind, label, importance, question, reason, ...extra });
 
-export const PARAMETERS: readonly ParameterDefinition[] = [
+const BASE_PARAMETERS: readonly ParameterBase[] = [
   // ── project ──
   P(
     'project_type',
@@ -854,6 +868,11 @@ export const PARAMETERS: readonly ParameterDefinition[] = [
   ),
 ];
 
+export const PARAMETERS: readonly ParameterDefinition[] = BASE_PARAMETERS.map((base) => ({
+  ...base,
+  ...PARAMETER_ENGLISH[base.key],
+}));
+
 const BY_KEY: ReadonlyMap<ParameterKey, ParameterDefinition> = new Map(
   PARAMETERS.map((p) => [p.key, p]),
 );
@@ -866,4 +885,28 @@ export function parameterDefinition(key: ParameterKey): ParameterDefinition {
 
 export function isParameterKey(key: string): key is ParameterKey {
   return BY_KEY.has(key as ParameterKey);
+}
+
+export function parameterLabel(key: ParameterKey, locale: EngineeringLocale): string {
+  const d = parameterDefinition(key);
+  return locale === 'en' ? d.labelEn : d.label;
+}
+
+export function parameterQuestion(key: ParameterKey, locale: EngineeringLocale): string {
+  const d = parameterDefinition(key);
+  return locale === 'en' ? d.questionEn : d.question;
+}
+
+export function parameterReason(key: ParameterKey, locale: EngineeringLocale): string {
+  const d = parameterDefinition(key);
+  return locale === 'en' ? d.reasonEn : d.reason;
+}
+
+/** Label pilihan enum; `options` sendiri tetap nilai protokol (Indonesia). */
+export function parameterOptionLabels(
+  key: ParameterKey,
+  locale: EngineeringLocale,
+): readonly string[] | undefined {
+  const d = parameterDefinition(key);
+  return locale === 'en' ? (d.optionLabelsEn ?? d.options) : d.options;
 }

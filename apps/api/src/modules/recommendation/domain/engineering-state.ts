@@ -8,10 +8,16 @@
  * parameter mana yang diketahui vs diasumsikan, asumsi registry mana yang akan dipakai
  * perhitungan, dan keluaran mana yang sudah siap — per keluaran, bukan satu boolean.
  */
-import type { ParameterKey, ReadinessReport, AppliedAssumption } from '@snouty/engineering';
+import type {
+  AppliedAssumption,
+  EngineeringLocale,
+  ParameterKey,
+  ReadinessReport,
+} from '@snouty/engineering';
 import {
   HDPE_FROM_METERS,
   applyAssumption,
+  assumptionDescription,
   irrigationDutyAssumptionId,
   resolveReadiness,
 } from '@snouty/engineering';
@@ -229,9 +235,10 @@ export function appliedAssumptionsToView(
   applied: readonly AppliedAssumption[],
   fieldPathFor: (parameter: ParameterKey) => string,
   ruleId?: string,
+  locale: EngineeringLocale = 'id',
 ): readonly Assumption[] {
   return applied.map((a) => ({
-    text: a.description,
+    text: assumptionDescription(a.id, locale),
     fieldPath: fieldPathFor(a.parameter),
     ...(ruleId ? { ruleId } : {}),
     assumptionId: a.id,

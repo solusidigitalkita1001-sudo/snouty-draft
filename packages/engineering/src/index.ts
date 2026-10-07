@@ -77,7 +77,17 @@ export type {
 } from './rules/group-e-irrigation.js';
 
 // ── Fase 1 asisten teknik umum: registry parameter, asumsi, ketergantungan, kesiapan ──
-export { PARAMETERS, isParameterKey, parameterDefinition } from './parameters/registry.js';
+export { DEFAULT_ENGINEERING_LOCALE } from './parameters/locale.js';
+export type { EngineeringLocale } from './parameters/locale.js';
+export {
+  PARAMETERS,
+  isParameterKey,
+  parameterDefinition,
+  parameterLabel,
+  parameterOptionLabels,
+  parameterQuestion,
+  parameterReason,
+} from './parameters/registry.js';
 export type {
   ParameterDefinition,
   ParameterDomain,
@@ -89,6 +99,8 @@ export {
   ASSUMPTIONS,
   apply as applyAssumption,
   assumption,
+  assumptionCondition,
+  assumptionDescription,
   assumptionsFor,
 } from './parameters/assumptions.js';
 export type {
@@ -103,7 +115,13 @@ export {
   missingInputsFor,
 } from './parameters/dependencies.js';
 export type { CalculatedKey, Dependency } from './parameters/dependencies.js';
-export { OUTPUT_LABELS, OUTPUT_REQUIREMENTS, resolveReadiness } from './parameters/readiness.js';
+export {
+  OUTPUT_LABELS,
+  OUTPUT_LABELS_EN,
+  OUTPUT_REQUIREMENTS,
+  outputLabel,
+  resolveReadiness,
+} from './parameters/readiness.js';
 export type {
   OutputKey,
   OutputRequirement,
@@ -113,7 +131,14 @@ export type {
 } from './parameters/readiness.js';
 
 // ── Fase 2: profil kasus, klasifikasi, ekstraksi konteks teknis, parameter kurang ──
-export { CASE_PROFILES, activeParameters, caseProfile, isCaseId } from './cases/profiles.js';
+export {
+  CASE_PROFILES,
+  activeParameters,
+  caseProfile,
+  caseProfileDescription,
+  caseProfileLabel,
+  isCaseId,
+} from './cases/profiles.js';
 export type { CaseId, CaseProfile } from './cases/profiles.js';
 export { classifyCase } from './cases/classifier.js';
 export type { CaseClassification } from './cases/classifier.js';

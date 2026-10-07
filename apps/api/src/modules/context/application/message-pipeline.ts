@@ -27,7 +27,7 @@ import type { AiService } from '../../ai/domain/ai.port.js';
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
-import { caseProfile, isCaseId } from '@snouty/engineering';
+import { caseProfile, caseProfileLabel, isCaseId } from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
 import {
   competitorPolicy,
@@ -350,7 +350,7 @@ function technicalFollowUp(state: RequirementState, locale: Locale): AssistantCa
   const profile = caseProfile(state.useCase.caseId);
   if (profile.calculatorStatus === 'available') return { kind: 'cta', action: 'ANALYZE' };
   return policyCard(
-    technicalHandoffPolicy(profile.label, locale),
+    technicalHandoffPolicy(caseProfileLabel(state.useCase.caseId, locale), locale),
     capturedFrom(state, locale),
     locale,
   );

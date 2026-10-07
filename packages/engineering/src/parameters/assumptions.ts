@@ -10,6 +10,7 @@
  * Semua `confirmationRequired: true` sampai divalidasi — ini pengetahuan awal, bukan standar.
  */
 
+import type { EngineeringLocale } from './locale.js';
 import type { ParameterKey } from './registry.js';
 
 export type AssumptionConfidence = 'high' | 'medium' | 'low';
@@ -29,6 +30,9 @@ export interface AssumptionDefinition {
   readonly confirmationRequired: boolean;
   /** Kalimat yang dilihat pengguna di "Asumsi sementara". */
   readonly description: string;
+  /** Terjemahan Inggris `condition` dan `description`; `reference` mengutip dokumen dan tidak diterjemahkan. */
+  readonly conditionEn: string;
+  readonly descriptionEn: string;
 }
 
 export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
@@ -40,6 +44,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'debit rencana tidak diberikan; metode genangan/gravitasi',
     value: 1.5,
     unit: 'l/s/ha',
+    conditionEn: 'design flow not given; flood/gravity method',
+    descriptionEn:
+      'Flood irrigation water demand is assumed at 1.5 liters/second per hectare (initial).',
     reference: 'KP-01 Kriteria Perencanaan Irigasi — kebutuhan air padi ±1,2–1,5 l/s/ha',
     confidence: 'medium',
     confirmationRequired: true,
@@ -52,6 +59,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'debit rencana tidak diberikan; metode sprinkler',
     value: 0.8,
     unit: 'l/s/ha',
+    conditionEn: 'design flow not given; sprinkler method',
+    descriptionEn: 'Sprinkler water demand is assumed at 0.8 liters/second per hectare (initial).',
     reference: 'Praktik umum perancangan sprinkler (ET puncak ±5–7 mm/hari, operasi 8–12 jam)',
     confidence: 'medium',
     confirmationRequired: true,
@@ -64,6 +73,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'debit rencana tidak diberikan; metode tetes',
     value: 0.5,
     unit: 'l/s/ha',
+    conditionEn: 'design flow not given; drip method',
+    descriptionEn:
+      'Drip irrigation water demand is assumed at 0.5 liters/second per hectare (initial).',
     reference: 'Praktik umum perancangan irigasi tetes',
     confidence: 'medium',
     confirmationRequired: true,
@@ -75,6 +87,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     appliesTo: ['irrigation'],
     condition: 'panjang dan lebar lahan tidak diberikan',
     value: 'Bujur sangkar',
+    conditionEn: 'field length and width not given',
+    descriptionEn:
+      'The field is treated as square to estimate the distribution length; the actual geometry changes the BOM.',
     reference: 'Asumsi tata letak, bukan data lahan',
     confidence: 'low',
     confirmationRequired: true,
@@ -88,6 +103,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'jumlah cabang tidak diberikan',
     value: 25,
     unit: 'm',
+    conditionEn: 'number of branches not given',
+    descriptionEn: 'One distribution branch every 25 meters of header (layout assumption).',
     reference: 'Asumsi tata letak: satu lateral tiap 25 m header',
     confidence: 'low',
     confirmationRequired: true,
@@ -102,6 +119,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'tinggi air kolam tidak diberikan',
     value: 1,
     unit: 'm',
+    conditionEn: 'pond water depth not given',
+    descriptionEn: 'Pond water depth is assumed to be 1 meter.',
     reference: 'Praktik umum kolam lele/nila: tinggi air 0,8–1,2 m',
     confidence: 'medium',
     confirmationRequired: true,
@@ -114,6 +133,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'lama pengisian tidak diberikan',
     value: 3,
     unit: 'jam',
+    conditionEn: 'fill time not given',
+    descriptionEn:
+      'The pond is assumed to fill completely in 3 hours, which sets the flow rate and inlet pipe.',
     reference: 'Praktik umum: kolam kecil diisi penuh dalam 2–4 jam',
     confidence: 'low',
     confirmationRequired: true,
@@ -126,6 +148,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'lama pengurasan tidak diberikan',
     value: 1,
     unit: 'jam',
+    conditionEn: 'drain time not given',
+    descriptionEn: 'Pond draining is assumed to take 1 hour, which sets the drain pipe diameter.',
     reference: 'Praktik umum: pengurasan kolam ±1 jam untuk panen/ganti air',
     confidence: 'low',
     confirmationRequired: true,
@@ -138,6 +162,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'kecepatan aliran gravitasi di pipa pembuangan',
     value: 1,
     unit: 'm/s',
+    conditionEn: 'gravity flow velocity in the drain pipe',
+    descriptionEn: 'Flow velocity in the drain pipe is assumed to be 1 m/s (gravity).',
     reference: 'Praktik umum pipa buang gravitasi berisi penuh ±0,8–1,2 m/s',
     confidence: 'medium',
     confirmationRequired: true,
@@ -150,6 +176,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'jarak sumber air ke kolam tidak diberikan',
     value: 10,
     unit: 'm',
+    conditionEn: 'distance from water source to pond not given',
+    descriptionEn:
+      'The distance from the water source to the pond is assumed to be 10 meters to size the inlet pipe.',
     reference: 'Asumsi tata letak: sumber/pompa dekat kolam',
     confidence: 'low',
     confirmationRequired: true,
@@ -164,6 +193,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'kecepatan rencana tidak ditentukan',
     value: 1.5,
     unit: 'm/s',
+    conditionEn: 'design velocity not specified',
+    descriptionEn: 'Design flow velocity of 1.5 m/s for plastic pipe.',
     reference: 'Praktik umum pipa plastik 1–2 m/s (gesek wajar, pukulan air terkendali)',
     confidence: 'high',
     confirmationRequired: true,
@@ -176,6 +207,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'kerugian gesek dihitung untuk PVC/HDPE/PPR',
     value: 150,
     unit: 'C',
+    conditionEn: 'friction loss calculated for PVC/HDPE/PPR',
+    descriptionEn: 'Hazen-Williams roughness coefficient C = 150 for plastic pipe.',
     reference: 'Koefisien Hazen-Williams pipa plastik halus C ≈ 140–150',
     confidence: 'high',
     confirmationRequired: true,
@@ -188,6 +221,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'kerugian gesek dihitung untuk pipa galvanis',
     value: 100,
     unit: 'C',
+    conditionEn: 'friction loss calculated for galvanized pipe',
+    descriptionEn: 'Hazen-Williams roughness coefficient C = 100 for galvanized pipe.',
     reference: 'Koefisien Hazen-Williams pipa baja galvanis terpakai C ≈ 100',
     confidence: 'medium',
     confirmationRequired: true,
@@ -200,6 +235,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'batas atas kecepatan untuk menilai kandidat diameter',
     value: 2,
     unit: 'm/s',
+    conditionEn: 'upper velocity limit for judging diameter candidates',
+    descriptionEn: 'Maximum flow velocity of 2 m/s for plastic pipe.',
     reference: 'Praktik umum pipa plastik: ≤ 2 m/s untuk membatasi gesek dan pukulan air',
     confidence: 'high',
     confirmationRequired: true,
@@ -212,6 +249,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'batas bawah kecepatan untuk menilai kandidat diameter',
     value: 0.6,
     unit: 'm/s',
+    conditionEn: 'lower velocity limit for judging diameter candidates',
+    descriptionEn: 'Minimum flow velocity of 0.6 m/s so the pipe cleans itself.',
     reference: 'Praktik umum: ≥ 0,6 m/s agar endapan tidak menumpuk',
     confidence: 'medium',
     confirmationRequired: true,
@@ -224,6 +263,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'kerugian gesek yang diizinkan tidak ditentukan',
     value: 10,
     unit: 'm/100 m',
+    conditionEn: 'allowable friction loss not specified',
+    descriptionEn: 'Maximum friction loss of 10 m per 100 m of pipe for accepted candidates.',
     reference: 'Praktik umum perancangan jalur transfer: gradien ≤ 5–10 m per 100 m',
     confidence: 'low',
     confirmationRequired: true,
@@ -236,6 +277,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'daya poros indikatif dihitung tanpa kurva pompa',
     value: 0.6,
     unit: '-',
+    conditionEn: 'indicative shaft power calculated without a pump curve',
+    descriptionEn:
+      'Pump efficiency of 60 % for indicative shaft power; this is not a pump selection.',
     reference: 'Efisiensi keseluruhan pompa sentrifugal kecil ±50–70 %',
     confidence: 'low',
     confirmationRequired: true,
@@ -248,6 +292,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'tekanan sisa di titik keluar tidak ditentukan (buangan ke tandon/bak)',
     value: 0.5,
     unit: 'bar',
+    conditionEn: 'residual pressure at the outlet not specified (discharge into a tank/basin)',
+    descriptionEn: 'Residual pressure of 0.5 bar (about 5 m) at the outlet as a margin.',
     reference: 'Margin keluaran ±5 m kolom air untuk katup, meter, dan ketidakpastian jalur',
     confidence: 'low',
     confirmationRequired: true,
@@ -260,6 +306,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'tekanan sisa di fixture tidak ditentukan',
     value: 1,
     unit: 'bar',
+    conditionEn: 'residual pressure at the fixture not specified',
+    descriptionEn:
+      'Minimum residual pressure at the farthest point is assumed to be 1 bar (about 10 m of water column).',
     reference: 'Praktik umum tekanan minimum di kran/shower ±0,5–1 bar',
     confidence: 'medium',
     confirmationRequired: true,
@@ -272,6 +321,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'daftar fitting tidak diketahui',
     value: 0.1,
     unit: '-',
+    conditionEn: 'fitting list unknown',
+    descriptionEn: 'Loss in fittings is assumed to be 10 % of the straight-pipe friction loss.',
     reference: 'Praktik umum: kerugian minor ±10 % dari kerugian gesek pipa lurus',
     confidence: 'low',
     confirmationRequired: true,
@@ -286,6 +337,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'tinggi antar lantai tidak diberikan',
     value: 3.5,
     unit: 'm',
+    conditionEn: 'floor-to-floor height not given',
+    descriptionEn: 'Floor-to-floor height is assumed to be 3.5 meters.',
     reference: 'ENG-004 (prototipe): tinggi antar lantai 3,5 m',
     confidence: 'medium',
     confirmationRequired: true,
@@ -297,6 +350,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     appliesTo: ['residential_clean_water'],
     condition: 'sumber air tidak diberikan dan pengguna memilih "Belum tahu"',
     value: 'Toren atap',
+    conditionEn: 'water source not given and the user chose "Not sure"',
+    descriptionEn:
+      'The distribution source is assumed to be a rooftop tank, without a booster pump.',
     reference: 'ENG-014 (prototipe): default sumber distribusi toren atap',
     confidence: 'low',
     confirmationRequired: true,
@@ -308,6 +364,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     appliesTo: ['residential_clean_water'],
     condition: 'jenis instalasi tidak diberikan dan pengguna memilih "Belum tahu"',
     value: 'Air bersih',
+    conditionEn: 'installation type not given and the user chose "Not sure"',
+    descriptionEn: 'The installation is assumed to be for clean water only.',
     reference: 'ENG-014 (prototipe): default instalasi air bersih',
     confidence: 'low',
     confirmationRequired: true,
@@ -321,6 +379,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'diameter dalam HDPE diperkirakan dari OD tanpa data tebal dinding Pralon',
     value: 17,
     unit: 'SDR',
+    conditionEn: 'HDPE inner diameter estimated from OD without Pralon wall-thickness data',
+    descriptionEn:
+      'HDPE inner diameter is estimated for PE100 PN 10 (SDR 17); other classes change the inner diameter.',
     reference: 'ISO 4427: PE100 PN 10 ≈ SDR 17 (tebal dinding = OD / 17)',
     confidence: 'medium',
     confirmationRequired: true,
@@ -335,6 +396,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     appliesTo: ['irrigation', 'long_distance_distribution', 'underground_distribution'],
     condition: 'jalur utama ditanam ≥ 200 m dan bahan tidak ditentukan',
     value: 'HDPE',
+    conditionEn: 'buried main route of 200 m or more and material not specified',
+    descriptionEn: 'A long buried main route (200 m or more) is assumed to use HDPE.',
     reference: 'Praktik umum: jalur tanam panjang memakai HDPE (lentur, sedikit sambungan)',
     confidence: 'medium',
     confirmationRequired: true,
@@ -349,6 +412,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'koefisien limpasan tidak diberikan; kawasan perumahan',
     value: 0.6,
     unit: '-',
+    conditionEn: 'runoff coefficient not given; residential area',
+    descriptionEn: 'The runoff coefficient for a residential area is assumed to be 0.6.',
     reference: 'Rentang umum C perumahan 0,5–0,7',
     confidence: 'low',
     confirmationRequired: true,
@@ -363,6 +428,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'kapasitas gravitasi dihitung untuk pipa PVC/HDPE',
     value: 0.01,
     unit: 'n',
+    conditionEn: 'gravity capacity calculated for PVC/HDPE pipe',
+    descriptionEn: 'Manning roughness coefficient n = 0.010 for plastic pipe.',
     reference: 'Koefisien Manning pipa plastik halus n ≈ 0,009–0,011',
     confidence: 'high',
     confirmationRequired: true,
@@ -375,6 +442,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'rasio pengisian tidak ditentukan',
     value: 80,
     unit: '%',
+    conditionEn: 'fill ratio not specified',
+    descriptionEn: 'Design flow is limited to 80 % of full-pipe capacity (leaving air space).',
     reference: 'Praktik umum saluran tertutup: debit rencana ≤ 80 % kapasitas penuh',
     confidence: 'medium',
     confirmationRequired: true,
@@ -387,6 +456,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'kemiringan saluran tidak diberikan',
     value: 0.5,
     unit: '%',
+    conditionEn: 'channel slope not given',
+    descriptionEn: 'Channel slope is assumed to be 0.5 % when not stated.',
     reference: 'Kemiringan minimum lazim saluran pembuangan 0,5–1 %',
     confidence: 'low',
     confirmationRequired: true,
@@ -399,6 +470,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'kedalaman timbunan di atas gorong-gorong tidak diberikan',
     value: 0.6,
     unit: 'm',
+    conditionEn: 'cover depth above the culvert not given',
+    descriptionEn:
+      'Minimum cover above the culvert is assumed to be 0.6 m; the structure must be checked.',
     reference:
       'Praktik umum: timbunan minimum ±0,6 m (≥ 1 × diameter) untuk pipa plastik di bawah jalan',
     confidence: 'low',
@@ -415,6 +489,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'kebutuhan air per orang tidak diberikan',
     value: 150,
     unit: 'l/orang/hari',
+    conditionEn: 'water demand per person not given',
+    descriptionEn: 'Water demand of 150 liters per person per day.',
     reference: 'Kriteria umum air bersih domestik perkotaan Indonesia 120–150 l/orang/hari',
     confidence: 'medium',
     confirmationRequired: true,
@@ -427,6 +503,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'jumlah penghuni per unit tidak diberikan',
     value: 4,
     unit: 'orang/unit',
+    conditionEn: 'number of occupants per unit not given',
+    descriptionEn: 'Four occupants per house unit.',
     reference: 'Asumsi umum satu keluarga per unit rumah',
     confidence: 'medium',
     confirmationRequired: true,
@@ -439,6 +517,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     condition: 'pola pemakaian serentak tidak diberikan',
     value: 2,
     unit: '-',
+    conditionEn: 'simultaneous usage pattern not given',
+    descriptionEn: 'Peak hour factor of 2.0 relative to the average daily demand.',
     reference: 'Faktor jam puncak jaringan domestik 1,5–2,5',
     confidence: 'medium',
     confirmationRequired: true,
@@ -452,6 +532,16 @@ export function assumption(id: string): AssumptionDefinition {
   const found = BY_ID.get(id);
   if (!found) throw new Error(`asumsi tidak terdaftar: ${id}`);
   return found;
+}
+
+export function assumptionDescription(id: string, locale: EngineeringLocale): string {
+  const a = assumption(id);
+  return locale === 'en' ? a.descriptionEn : a.description;
+}
+
+export function assumptionCondition(id: string, locale: EngineeringLocale): string {
+  const a = assumption(id);
+  return locale === 'en' ? a.conditionEn : a.condition;
 }
 
 /** Asumsi yang berlaku untuk sebuah profil kasus (termasuk yang berlaku untuk semua). */

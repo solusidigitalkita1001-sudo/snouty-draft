@@ -11,17 +11,18 @@
  * jujur hanya bila pengguna melihat 1,5" di daftar dengan statusnya — bukan sekadar "pakai 2"".
  */
 import {
-  OUTPUT_LABELS,
   assumption,
   caseProfile,
   caseReadiness,
   isCaseId,
-  parameterDefinition,
   isParameterKey,
+  outputLabel,
+  parameterLabel as registryParameterLabel,
   resolveMissingParameters,
   type GravityCandidate,
   type SizeCandidate,
 } from '@snouty/engineering';
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type {
   ComposedResponse,
   KeyValue,
@@ -30,21 +31,57 @@ import type {
   RequirementState,
   SolutionOption,
 } from '@snouty/shared-types';
-import { UNKNOWN, formatTechnicalValue } from '../../context/domain/technical.js';
+import {
+  UNKNOWN,
+  formatTechnicalValue,
+  technicalParameterLabel,
+} from '../../context/domain/technical.js';
 import type { IdentifiedTrace } from './solution-view.js';
 
-const id = (n: number): string => n.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+const num = (n: number, locale: Locale): string =>
+  n.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
 
 /** Catatan tradeoff per status — bahasa pengguna, tanpa angka (angkanya di `metrics`). */
-const OPTION_NOTE: Readonly<Record<OptionStatus, string>> = {
+const OPTION_NOTE_ID: Readonly<Record<OptionStatus, string>> = {
   ok: 'Memenuhi batas kecepatan dan kerugian gesek.',
   too_fast: 'Kecepatan terlalu tinggi: aus, bising, dan hentakan air (water hammer).',
   too_slow: 'Kecepatan terlalu rendah: endapan mengendap di dalam pipa.',
   high_loss: 'Kerugian gesek terlalu besar: butuh pompa lebih kuat atau tekanan di ujung turun.',
   too_small: 'Kapasitas aliran kurang dari debit rencana.',
 };
-const ALTERNATIVE_NOTE =
-  'Satu ukuran di atas rekomendasi: kerugian lebih rendah, biaya pipa lebih tinggi.';
+const OPTION_NOTE_EN: Readonly<Record<OptionStatus, string>> = {
+  ok: 'Meets the velocity and friction loss limits.',
+  too_fast: 'Velocity too high: wear, noise, and water hammer.',
+  too_slow: 'Velocity too low: sediment settles inside the pipe.',
+  high_loss: 'Friction loss too high: needs a stronger pump or pressure at the far end drops.',
+  too_small: 'Flow capacity is below the design flow.',
+};
+const OPTION_NOTE = { id: OPTION_NOTE_ID, en: OPTION_NOTE_EN } as const;
+const ALTERNATIVE_NOTE = {
+  id: 'Satu ukuran di atas rekomendasi: kerugian lebih rendah, biaya pipa lebih tinggi.',
+  en: 'One size above the recommendation: lower loss, higher pipe cost.',
+} as const;
+
+const METRIC_LABELS = {
+  id: {
+    innerDiameter: 'Diameter dalam',
+    velocity: 'Kecepatan',
+    frictionLoss: 'Kerugian gesek',
+    totalHead: 'Head total',
+    fullFlow: 'Kapasitas penuh',
+    fullVelocity: 'Kecepatan penuh',
+    utilisation: 'Pemakaian kapasitas',
+  },
+  en: {
+    innerDiameter: 'Inner diameter',
+    velocity: 'Velocity',
+    frictionLoss: 'Friction loss',
+    totalHead: 'Total head',
+    fullFlow: 'Full-bore capacity',
+    fullVelocity: 'Full-bore velocity',
+    utilisation: 'Capacity utilisation',
+  },
+} as const;
 
 export interface ComposerInput {
   readonly state: RequirementState;
@@ -66,10 +103,13 @@ export interface ComposerInput {
    * saja dihitung dilaporkan "DATA KURANG" hanya karena bahan dipilih lewat asumsi.
    */
   readonly appliedAssumptionIds?: readonly string[];
+  /** Bahasa teks tetap (catatan, label metrik, label kesiapan); default Indonesia. */
+  readonly locale?: Locale;
 }
 
 export function composeResponse(input: ComposerInput): ComposedResponse {
-  const { known, assumed } = parametersByOrigin(input.state);
+  const locale = input.locale ?? DEFAULT_LOCALE;
+  const { known, assumed } = parametersByOrigin(input.state, locale);
   const sets = parameterSets(
     input.state,
     input.appliedAssumptionIds ?? [],
@@ -79,9 +119,9 @@ export function composeResponse(input: ComposerInput): ComposedResponse {
     knownData: known,
     assumedData: assumed,
     calculations: calculationsFrom(input.traces),
-    options: optionsFrom(input),
-    readiness: readinessFrom(input.state, sets),
-    missingData: missingDataFrom(input.state, sets),
+    options: optionsFrom(input, locale),
+    readiness: readinessFrom(input.state, sets, locale),
+    missingData: missingDataFrom(input.state, sets, locale),
   };
 }
 
@@ -117,18 +157,21 @@ function parameterSets(
   return { known, assumed };
 }
 
-function parametersByOrigin(state: RequirementState): {
+function parametersByOrigin(
+  state: RequirementState,
+  locale: Locale,
+): {
   known: readonly KeyValue[];
   assumed: readonly KeyValue[];
 } {
   if (state.useCase?.kind !== 'technical') return { known: [], assumed: [] };
   const known: KeyValue[] = [];
   const assumed: KeyValue[] = [];
-  for (const p of Object.values(state.useCase.parameters)) {
+  for (const [key, p] of Object.entries(state.useCase.parameters)) {
     if (p.value === UNKNOWN) continue; // jawaban "belum tahu" bukan data
     (p.origin === 'known' ? known : assumed).push({
-      label: p.label,
-      value: formatTechnicalValue(p),
+      label: technicalParameterLabel(key, p, locale),
+      value: formatTechnicalValue(p, locale),
     });
   }
   return { known, assumed };
@@ -142,7 +185,8 @@ function calculationsFrom(traces: readonly IdentifiedTrace[]): readonly KeyValue
   }));
 }
 
-function optionsFrom(input: ComposerInput): readonly SolutionOption[] {
+function optionsFrom(input: ComposerInput, locale: Locale): readonly SolutionOption[] {
+  const label = METRIC_LABELS[locale];
   if (input.pressurized) {
     const { candidates, recommendedSize, alternativeSize } = input.pressurized;
     return candidates.map((c) => {
@@ -153,12 +197,12 @@ function optionsFrom(input: ComposerInput): readonly SolutionOption[] {
         recommended: c.size === recommendedSize,
         alternative,
         metrics: [
-          { label: 'Diameter dalam', value: `${id(c.innerDiameterMm)} mm` },
-          { label: 'Kecepatan', value: `${id(c.velocityMs)} m/s` },
-          { label: 'Kerugian gesek', value: `${id(c.frictionLossM)} m` },
-          { label: 'Head total', value: `${id(c.totalDynamicHeadM)} m` },
+          { label: label.innerDiameter, value: `${num(c.innerDiameterMm, locale)} mm` },
+          { label: label.velocity, value: `${num(c.velocityMs, locale)} m/s` },
+          { label: label.frictionLoss, value: `${num(c.frictionLossM, locale)} m` },
+          { label: label.totalHead, value: `${num(c.totalDynamicHeadM, locale)} m` },
         ],
-        note: alternative ? ALTERNATIVE_NOTE : OPTION_NOTE[c.status],
+        note: alternative ? ALTERNATIVE_NOTE[locale] : OPTION_NOTE[locale][c.status],
       };
     });
   }
@@ -170,35 +214,43 @@ function optionsFrom(input: ComposerInput): readonly SolutionOption[] {
       recommended: c.size === recommendedSize,
       alternative: false,
       metrics: [
-        { label: 'Diameter dalam', value: `${id(c.innerDiameterMm)} mm` },
-        { label: 'Kapasitas penuh', value: `${id(c.fullFlowLs)} l/s` },
-        { label: 'Kecepatan penuh', value: `${id(c.fullVelocityMs)} m/s` },
-        { label: 'Pemakaian kapasitas', value: `${id(c.utilisationPercent)} %` },
+        { label: label.innerDiameter, value: `${num(c.innerDiameterMm, locale)} mm` },
+        { label: label.fullFlow, value: `${num(c.fullFlowLs, locale)} l/s` },
+        { label: label.fullVelocity, value: `${num(c.fullVelocityMs, locale)} m/s` },
+        { label: label.utilisation, value: `${num(c.utilisationPercent, locale)} %` },
       ],
-      note: OPTION_NOTE[c.status],
+      note: OPTION_NOTE[locale][c.status],
     }));
   }
   return [];
 }
 
-function readinessFrom(state: RequirementState, sets: ParameterSets): readonly ReadinessItem[] {
+function readinessFrom(
+  state: RequirementState,
+  sets: ParameterSets,
+  locale: Locale,
+): readonly ReadinessItem[] {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return [];
   const profile = caseProfile(state.useCase.caseId);
   const report = caseReadiness({ profile, known: sets.known, assumed: sets.assumed });
   return profile.outputs.map((output) => ({
     output,
-    label: OUTPUT_LABELS[output],
+    label: outputLabel(output, locale),
     readiness: report.readiness[output],
-    missing: (report.missing[output] ?? []).map(parameterLabel),
-    improvable: (report.improvable[output] ?? []).map(parameterLabel),
+    missing: (report.missing[output] ?? []).map((key) => parameterLabel(key, locale)),
+    improvable: (report.improvable[output] ?? []).map((key) => parameterLabel(key, locale)),
   }));
 }
 
-function parameterLabel(key: string): string {
-  return isParameterKey(key) ? parameterDefinition(key).label : key;
+function parameterLabel(key: string, locale: Locale): string {
+  return isParameterKey(key) ? registryParameterLabel(key, locale) : key;
 }
 
-function missingDataFrom(state: RequirementState, sets: ParameterSets): readonly KeyValue[] {
+function missingDataFrom(
+  state: RequirementState,
+  sets: ParameterSets,
+  locale: Locale,
+): readonly KeyValue[] {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return [];
   const profile = caseProfile(state.useCase.caseId);
   return resolveMissingParameters({
@@ -206,7 +258,7 @@ function missingDataFrom(state: RequirementState, sets: ParameterSets): readonly
     known: sets.known,
     assumed: sets.assumed,
   }).map((m) => ({
-    label: m.label,
-    value: m.question,
+    label: locale === 'en' ? m.labelEn : m.label,
+    value: locale === 'en' ? m.questionEn : m.question,
   }));
 }

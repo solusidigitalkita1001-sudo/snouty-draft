@@ -4,12 +4,14 @@
  */
 import {
   applyAssumption,
+  assumptionDescription,
   type GravityInput,
   type GravityResult,
   type NetworkInput,
   type NetworkResult,
   type TrafficLoad,
 } from '@snouty/engineering';
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type {
   Assumption,
   BomItem,
@@ -40,7 +42,12 @@ function provenanceFor(traces: readonly IdentifiedTrace[], ids: readonly string[
 function numberOf(p: TechnicalParameter | undefined): number | undefined {
   return typeof p?.value === 'number' ? p.value : undefined;
 }
-const id = (n: number) => String(n).replace('.', ',');
+const idNum = (n: number) => String(n).replace('.', ',');
+/** Indonesia: koma desimal (tak berubah); Inggris: titik desimal tanpa pemisah ribuan. */
+const id = (n: number, locale: Locale = DEFAULT_LOCALE): string =>
+  locale === 'en'
+    ? n.toLocaleString('en-US', { maximumFractionDigits: 2, useGrouping: false })
+    : idNum(n);
 
 const TRAFFIC: Readonly<Record<string, TrafficLoad>> = {
   'Pejalan kaki / motor': 'light',
@@ -125,32 +132,52 @@ export function networkInputFrom(state: RequirementState): NetworkInput | null {
   };
 }
 
-const KIND_LABEL: Readonly<Record<GravityResult['kind'], string>> = {
-  drainage: 'Saluran gravitasi',
-  stormwater: 'Drainase air hujan',
-  culvert: 'Gorong-gorong',
+const KIND_LABEL: Readonly<Record<Locale, Record<GravityResult['kind'], string>>> = {
+  id: {
+    drainage: 'Saluran gravitasi',
+    stormwater: 'Drainase air hujan',
+    culvert: 'Gorong-gorong',
+  },
+  en: {
+    drainage: 'Gravity drain',
+    stormwater: 'Stormwater drainage',
+    culvert: 'Culvert',
+  },
 };
 
 export function gravityHighlights(
   result: GravityResult,
   productCount: number,
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly KeyValue[] {
+  const en = locale === 'en';
   const rows: KeyValue[] = [
-    { label: 'Debit rencana', value: `${id(result.designFlowLs)} l/s` },
-    { label: 'Pipa', value: `PVC D ${result.recommendedSize}` },
-    { label: 'Kemiringan', value: `${id(result.slopePercent)} %` },
     {
-      label: 'Kapasitas penuh',
-      value: `${id(result.fullFlowLs)} l/s (${id(result.utilisationPercent)} % terpakai)`,
+      label: en ? 'Design flow' : 'Debit rencana',
+      value: `${id(result.designFlowLs, locale)} l/s`,
+    },
+    { label: en ? 'Pipe' : 'Pipa', value: `PVC D ${result.recommendedSize}` },
+    { label: en ? 'Slope' : 'Kemiringan', value: `${id(result.slopePercent, locale)} %` },
+    {
+      label: en ? 'Full-flow capacity' : 'Kapasitas penuh',
+      value: en
+        ? `${id(result.fullFlowLs, locale)} l/s (${id(result.utilisationPercent, locale)} % used)`
+        : `${id(result.fullFlowLs)} l/s (${id(result.utilisationPercent)} % terpakai)`,
     },
   ];
   if (result.structural) {
     rows.push({
-      label: 'Timbunan',
-      value: result.structural.coverAdequate ? 'Memadai (awal)' : 'Perlu validasi struktural',
+      label: en ? 'Cover' : 'Timbunan',
+      value: result.structural.coverAdequate
+        ? en
+          ? 'Adequate (initial)'
+          : 'Memadai (awal)'
+        : en
+          ? 'Needs structural validation'
+          : 'Perlu validasi struktural',
     });
   }
-  rows.push({ label: 'Produk Pralon', value: `${productCount} item` });
+  rows.push({ label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` });
   return rows;
 }
 
@@ -170,13 +197,23 @@ export function gravityLegacyStats(
 export function gravitySystemLinesFrom(
   result: GravityResult,
   traces: readonly IdentifiedTrace[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly SystemLine[] {
+  const en = locale === 'en';
   const main = traceIdsFor(traces, 'ENG-403', 'ENG-402', 'ENG-401');
   const lines: SystemLine[] = [
     {
-      name: `${KIND_LABEL[result.kind]} PVC D`,
-      path: result.kind === 'culvert' ? 'Hulu → hilir melintasi jalan' : 'Hulu → saluran buang',
+      name: `${KIND_LABEL[locale][result.kind]} PVC D`,
+      path:
+        result.kind === 'culvert'
+          ? en
+            ? 'Upstream → downstream across the road'
+            : 'Hulu → hilir melintasi jalan'
+          : en
+            ? 'Upstream → discharge channel'
+            : 'Hulu → saluran buang',
       size: result.recommendedSize,
+      // TODO(P15-04): penjelasan trace dari engine masih Indonesia untuk kedua bahasa.
       reason: `${explanationFor(traces, 'ENG-403')} ${explanationFor(traces, 'ENG-402')}`.trim(),
       provenance: provenanceFor(traces, main),
       traceIds: main,
@@ -186,9 +223,10 @@ export function gravitySystemLinesFrom(
   if (result.structural) {
     const ids = traceIdsFor(traces, 'ENG-404');
     lines.push({
-      name: 'Timbunan dan beban jalan',
-      path: 'Di atas gorong-gorong',
-      size: `${id(result.structural.minimumCoverM)} m min.`,
+      name: en ? 'Cover and road load' : 'Timbunan dan beban jalan',
+      path: en ? 'Above the culvert' : 'Di atas gorong-gorong',
+      size: `${id(result.structural.minimumCoverM, locale)} m min.`,
+      // TODO(P15-04): catatan struktur dari engine masih Indonesia untuk kedua bahasa.
       reason: result.structural.structuralNote,
       provenance: 'ASSUMED',
       traceIds: ids,
@@ -204,11 +242,21 @@ export function gravityBomItemsFrom(
   result: GravityResult,
   pipeLengthM: number | null,
   traces: readonly IdentifiedTrace[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly BomItem[] {
+  const en = locale === 'en';
   const ids = traceIdsFor(traces, 'ENG-402');
   const provenance = provenanceFor(traces, ids);
-  const basis =
-    `${explanationFor(traces, 'ENG-402')} ${pipeLengthM === null ? 'Panjang jalur belum disebut — kuantitas pipa menyusul.' : 'Kuantitas fitting: perkiraan tata letak.'}`.trim();
+  const note =
+    pipeLengthM === null
+      ? en
+        ? 'Route length not stated yet — pipe quantity to follow.'
+        : 'Panjang jalur belum disebut — kuantitas pipa menyusul.'
+      : en
+        ? 'Fitting quantities: layout estimate.'
+        : 'Kuantitas fitting: perkiraan tata letak.';
+  // TODO(P15-04): penjelasan trace dari engine masih Indonesia untuk kedua bahasa.
+  const basis = `${explanationFor(traces, 'ENG-402')} ${note}`.trim();
   const row = (
     item: string,
     quantity: number,
@@ -225,21 +273,34 @@ export function gravityBomItemsFrom(
   });
   const lines: BomItem[] = [];
   if (pipeLengthM !== null)
-    lines.push(row('Pipa PVC D', Math.ceil(pipeLengthM / ROD_METERS), 'batang'));
+    lines.push(
+      row(en ? 'PVC D pipe' : 'Pipa PVC D', Math.ceil(pipeLengthM / ROD_METERS), 'batang'),
+    );
   if (result.kind === 'culvert') {
-    lines.push(row('Kepala gorong-gorong / selubung beton (di luar perpipaan)', 2, 'pcs', '-'));
+    lines.push(
+      row(
+        en
+          ? 'Culvert headwall / concrete encasement (outside the piping)'
+          : 'Kepala gorong-gorong / selubung beton (di luar perpipaan)',
+        2,
+        'pcs',
+        '-',
+      ),
+    );
   } else {
     lines.push(row('Elbow 45°', 2, 'pcs'));
-    lines.push(row('Tee / bak kontrol sambungan', 1, 'pcs'));
+    lines.push(row(en ? 'Tee / junction inspection box' : 'Tee / bak kontrol sambungan', 1, 'pcs'));
   }
-  lines.push(row('Lem PVC', 1, 'kaleng', '-'));
+  lines.push(row(en ? 'PVC solvent cement' : 'Lem PVC', 1, 'kaleng', '-'));
   return lines;
 }
 
 export function gravityAssumptionsFrom(
   result: GravityResult,
   traces: readonly IdentifiedTrace[],
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
+  const en = locale === 'en';
   const pending = [
     ...new Set(traces.filter((t) => t.provenance !== 'VERIFIED').map((t) => t.ruleId)),
   ].join(', ');
@@ -253,14 +314,16 @@ export function gravityAssumptionsFrom(
           : 'design_flow';
   const rows: Assumption[] = [
     {
-      text: `Rumus saluran gravitasi (${pending}) adalah rumus teknik baku yang belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final.`,
+      text: en
+        ? `The gravity drain formulas (${pending}) are standard engineering formulas not yet validated by the Pralon technical team — the result is an initial estimate, not a final design.`
+        : `Rumus saluran gravitasi (${pending}) adalah rumus teknik baku yang belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final.`,
       fieldPath: 'design_flow',
       ruleId: 'ENG-402',
     },
     ...result.appliedAssumptionIds.map((aid) => {
       const a = applyAssumption(aid);
       return {
-        text: a.description,
+        text: assumptionDescription(aid, locale),
         fieldPath: fieldFor(a.parameter),
         ruleId: 'ENG-402',
         assumptionId: a.id,
@@ -269,7 +332,9 @@ export function gravityAssumptionsFrom(
   ];
   if (result.kind === 'culvert') {
     rows.push({
-      text: 'Gorong-gorong dihitung hidrauliknya saja; kelas kekakuan pipa, pemadatan, dan selubung beton wajib diperiksa tim teknis (struktur).',
+      text: en
+        ? 'The culvert is sized hydraulically only; pipe stiffness class, compaction and concrete encasement must be checked by the technical team (structural).'
+        : 'Gorong-gorong dihitung hidrauliknya saja; kelas kekakuan pipa, pemadatan, dan selubung beton wajib diperiksa tim teknis (struktur).',
       fieldPath: 'traffic_load',
       ruleId: 'ENG-404',
     });
@@ -277,8 +342,12 @@ export function gravityAssumptionsFrom(
   return rows;
 }
 
-export function gravityProse(result: GravityResult): { headline: string; body: string } {
-  const label = KIND_LABEL[result.kind];
+export function gravityProse(
+  result: GravityResult,
+  locale: Locale = DEFAULT_LOCALE,
+): { headline: string; body: string } {
+  if (locale === 'en') return gravityProseEn(result);
+  const label = KIND_LABEL.id[result.kind];
   const structural = result.structural
     ? result.structural.coverAdequate
       ? ` Timbunan di atas pipa memenuhi minimum awal ${id(result.structural.minimumCoverM)} m; struktur tetap diperiksa tim teknis.`
@@ -291,7 +360,19 @@ export function gravityProse(result: GravityResult): { headline: string; body: s
 }
 
 /** Cluster: highlight tambahan di depan highlight jalur bertekanan. */
-export function networkHighlightsPrefix(result: NetworkResult): readonly KeyValue[] {
+export function networkHighlightsPrefix(
+  result: NetworkResult,
+  locale: Locale = DEFAULT_LOCALE,
+): readonly KeyValue[] {
+  if (locale === 'en') {
+    return [
+      { label: 'Connections', value: `${result.connections} units` },
+      {
+        label: 'Peak demand',
+        value: `${id(result.peakFlowLs, locale)} l/s (average ${id(result.averageFlowLs, locale)} l/s)`,
+      },
+    ];
+  }
   return [
     { label: 'Sambungan', value: `${result.connections} unit` },
     {
@@ -299,4 +380,18 @@ export function networkHighlightsPrefix(result: NetworkResult): readonly KeyValu
       value: `${id(result.peakFlowLs)} l/s (rata-rata ${id(result.averageFlowLs)} l/s)`,
     },
   ];
+}
+
+function gravityProseEn(result: GravityResult): { headline: string; body: string } {
+  const l: Locale = 'en';
+  const label = KIND_LABEL.en[result.kind];
+  const structural = result.structural
+    ? result.structural.coverAdequate
+      ? ` Cover above the pipe meets the initial minimum of ${id(result.structural.minimumCoverM, l)} m; the technical team still checks the structure.`
+      : ` Cover above the pipe is below the initial minimum of ${id(result.structural.minimumCoverM, l)} m — a concrete encasement or a high-stiffness pipe class is needed, structural validation is required.`
+    : '';
+  return {
+    headline: `${label}: PVC D ${result.recommendedSize} pipe for ${id(result.designFlowLs, l)} l/s at a slope of ${id(result.slopePercent, l)} %`,
+    body: `At a slope of ${id(result.slopePercent, l)} %, the ${result.recommendedSize} pipe carries ${id(result.fullFlowLs, l)} l/s when full at a velocity of ${id(result.fullVelocityMs, l)} m/s; the design flow of ${id(result.designFlowLs, l)} l/s uses ${id(result.utilisationPercent, l)} % of its capacity, so there is still air space.${structural} Initial estimate, not a final design.`,
+  };
 }

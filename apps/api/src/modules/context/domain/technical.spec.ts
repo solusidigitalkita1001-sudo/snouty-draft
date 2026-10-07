@@ -135,4 +135,61 @@ describe('technical dwibahasa', () => {
       expect(q.optionLabels).toEqual(['Yes', 'No']);
     }
   });
+
+  it('en: pertanyaan kartu dan label pilihan enum dari registry Inggris; nilai protokol tetap Indonesia', () => {
+    const id = planTechnicalClarification(state, 'id');
+    const en = planTechnicalClarification(state, 'en');
+    expect(en.card.map((q) => q.id)).toEqual(id.card.map((q) => q.id));
+    expect(en.text.map((m) => m.key)).toEqual(id.text.map((m) => m.key));
+    en.card.forEach((q, i) => {
+      expect(q.question).not.toBe(id.card[i]!.question);
+      expect(q.options).toEqual(id.card[i]!.options);
+      expect(q.optionLabels).toHaveLength(q.options.length);
+      expect(q.optionLabels).not.toEqual(q.options);
+    });
+    for (const q of id.card) expect(q.optionLabels).toBeUndefined();
+    // Pertanyaan angka di teks panduan juga Inggris.
+    const guidance = technicalGuidance(state, 'en');
+    for (const m of en.text) expect(guidance).toContain(`- ${m.questionEn}`);
+  });
+
+  it('en: label data yang tercatat dari registry Inggris, nilai dan urutan sama', () => {
+    const captured = applyTechnicalFacts(
+      emptyRequirementState(T0),
+      'pump_transfer',
+      'transfer water from a well to a tank, 5 liters per second, 800 m, 12 m higher',
+    ).state;
+    const id = technicalCaptured(captured, 'id');
+    const en = technicalCaptured(captured, 'en');
+    expect(en).toHaveLength(id.length);
+    expect(id.map((r) => r.label)).toContain('Debit rencana');
+    expect(en.map((r) => r.label)).toContain('Design flow');
+    en.forEach((r, i) => expect(r.label).not.toBe(id[i]!.label));
+    expect(technicalGuidance(captured, 'en')).toContain('design flow 5 l/s');
+  });
+
+  it('technicalAnswerValue menerima label Inggris dan Yes/No, hasilnya nilai protokol', () => {
+    const enumQuestion = planTechnicalClarification(state, 'en').card.find(
+      (q) => q.options[0] !== 'Ya',
+    )!;
+    const protocolValue = enumQuestion.options[0]!;
+    const englishLabel = enumQuestion.optionLabels![0]!;
+    expect(englishLabel).not.toBe(protocolValue);
+    expect(technicalAnswerValue(enumQuestion.id, englishLabel)).toEqual({
+      key: enumQuestion.id,
+      value: protocolValue,
+    });
+    expect(technicalAnswerValue(enumQuestion.id, protocolValue)).toEqual({
+      key: enumQuestion.id,
+      value: protocolValue,
+    });
+    expect(technicalAnswerValue('pump_required', 'Yes')).toEqual({
+      key: 'pump_required',
+      value: true,
+    });
+    expect(technicalAnswerValue('pump_required', 'No')).toEqual({
+      key: 'pump_required',
+      value: false,
+    });
+  });
 });

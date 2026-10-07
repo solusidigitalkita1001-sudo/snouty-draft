@@ -12,6 +12,7 @@
  */
 
 import { improvingInputsFor, missingInputsFor, type CalculatedKey } from './dependencies.js';
+import type { EngineeringLocale } from './locale.js';
 import type { ParameterKey } from './registry.js';
 
 export type OutputKey =
@@ -33,6 +34,19 @@ export const OUTPUT_LABELS: Readonly<Record<OutputKey, string>> = {
   bom: 'Perkiraan material',
   product_matching: 'Produk Pralon',
 };
+
+export const OUTPUT_LABELS_EN: Readonly<Record<OutputKey, string>> = {
+  material_selection: 'Material selection',
+  pipe_sizing: 'Pipe sizing',
+  pump_sizing: 'Pump',
+  network_layout: 'Network layout',
+  bom: 'Material estimate',
+  product_matching: 'Pralon products',
+};
+
+export function outputLabel(key: OutputKey, locale: EngineeringLocale): string {
+  return (locale === 'en' ? OUTPUT_LABELS_EN : OUTPUT_LABELS)[key];
+}
 
 export interface OutputRequirement {
   readonly output: OutputKey;

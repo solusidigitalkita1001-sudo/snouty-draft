@@ -19,6 +19,10 @@ export interface MissingParameter {
   /** Redaksi bahasa pengguna dari registry, siap ditampilkan. */
   readonly question: string;
   readonly options?: readonly string[];
+  readonly labelEn: string;
+  readonly questionEn: string;
+  /** Sejajar dengan `options`; `options` tetap nilai protokol. */
+  readonly optionLabelsEn?: readonly string[];
   readonly importance: 'critical' | 'important' | 'optional';
   /** Keluaran yang masih tertahan oleh parameter ini. */
   readonly unlocks: readonly OutputKey[];
@@ -77,6 +81,9 @@ export function resolveMissingParameters(
       label: def.label,
       question: def.question,
       ...(def.options ? { options: def.options } : {}),
+      labelEn: def.labelEn,
+      questionEn: def.questionEn,
+      ...(def.optionLabelsEn ? { optionLabelsEn: def.optionLabelsEn } : {}),
       importance: importance === 0 ? 'critical' : importance === 1 ? 'important' : 'optional',
       unlocks: unlocksOf(key),
     };

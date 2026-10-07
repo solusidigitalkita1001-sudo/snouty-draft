@@ -10,6 +10,7 @@
  */
 
 import type { CalculatedKey } from '../parameters/dependencies.js';
+import type { EngineeringLocale } from '../parameters/locale.js';
 import type { ParameterKey } from '../parameters/registry.js';
 import type { OutputKey, OutputRequirement } from '../parameters/readiness.js';
 
@@ -29,6 +30,8 @@ export interface CaseProfile {
   readonly id: CaseId;
   readonly label: string;
   readonly description: string;
+  readonly labelEn: string;
+  readonly descriptionEn: string;
   /** Urutan = prioritas bertanya bila sama-sama kurang. */
   readonly critical: readonly ParameterKey[];
   readonly important: readonly ParameterKey[];
@@ -44,7 +47,10 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'residential_clean_water',
     label: 'Air bersih rumah tinggal',
+    labelEn: 'Clean water for houses',
     description: 'Distribusi air bersih di rumah/kos/ruko dari toren, pompa, atau PDAM.',
+    descriptionEn:
+      'Clean water distribution in houses/boarding houses/shophouses from a tank, pump, or municipal supply.',
     critical: ['source_type', 'fluid_type', 'building_floors', 'bathrooms'],
     important: ['basins', 'kitchens', 'number_of_outlets', 'pump_required', 'route_length'],
     optional: ['building_type', 'building_height', 'material', 'installation_method'],
@@ -87,7 +93,9 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'multistorey_building_water',
     label: 'Air bersih gedung bertingkat',
+    labelEn: 'Clean water for multi-storey buildings',
     description: 'Gedung ≥ 4 lantai: zonasi tekanan, riser, pompa transfer/booster.',
+    descriptionEn: 'Buildings of 4+ floors: pressure zoning, risers, transfer/booster pumps.',
     critical: ['building_floors', 'number_of_outlets', 'source_type', 'building_height'],
     important: [
       'bathrooms',
@@ -110,7 +118,9 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'residential_cluster',
     label: 'Jaringan cluster perumahan',
+    labelEn: 'Housing cluster network',
     description: 'Distribusi dari reservoir/sumur ke puluhan–ratusan sambungan rumah.',
+    descriptionEn: 'Distribution from a reservoir/well to tens to hundreds of house connections.',
     critical: ['number_of_connections', 'route_length', 'static_head'],
     important: [
       'source_type',
@@ -134,7 +144,9 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'irrigation',
     label: 'Irigasi lahan',
+    labelEn: 'Land irrigation',
     description: 'Sawah/kebun: debit dari luas dan metode, jalur utama, distribusi, pompa.',
+    descriptionEn: 'Paddy/farm: flow from area and method, main route, distribution, pump.',
     critical: [
       'source_type',
       'total_area',
@@ -178,7 +190,9 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'pump_transfer',
     label: 'Transfer air dengan pompa',
+    labelEn: 'Pumped water transfer',
     description: 'Memompa dari sumber ke tandon/reservoir/lahan lewat satu jalur panjang.',
+    descriptionEn: 'Pumping from a source to a tank/reservoir/field along one long route.',
     critical: ['design_flow', 'route_length', 'static_head', 'source_type'],
     important: ['required_pressure', 'material', 'operating_hours', 'pump_power'],
     optional: ['nominal_diameter', 'terrain', 'installation_location'],
@@ -195,7 +209,9 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'gravity_drainage',
     label: 'Saluran gravitasi / drainase',
+    labelEn: 'Gravity channel / drainage',
     description: 'Air kotor, limbah, atau drainase lahan mengalir dengan kemiringan.',
+    descriptionEn: 'Dirty water, wastewater, or field drainage flowing by slope.',
     critical: ['design_flow', 'route_length'],
     important: [
       'slope',
@@ -213,7 +229,9 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'stormwater',
     label: 'Drainase air hujan',
+    labelEn: 'Stormwater drainage',
     description: 'Limpasan hujan dari tangkapan ke saluran/outfall.',
+    descriptionEn: 'Rainfall runoff from the catchment to the channel/outfall.',
     critical: ['catchment_area', 'rainfall_intensity'],
     important: [
       'slope',
@@ -230,7 +248,9 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'culvert',
     label: 'Gorong-gorong',
+    labelEn: 'Culvert',
     description: 'Pipa melintasi jalan/tanggul: hidraulik + beban lalu lintas.',
+    descriptionEn: 'Pipe crossing a road/embankment: hydraulics plus traffic load.',
     critical: ['design_flow', 'road_width', 'traffic_load'],
     important: ['slope', 'burial_depth', 'upstream_level', 'downstream_level', 'catchment_area'],
     optional: ['soil_type', 'material'],
@@ -241,7 +261,10 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'fish_pond',
     label: 'Kolam / tambak ikan',
+    labelEn: 'Fish pond',
     description: 'Pengisian dan pembuangan kolam lele/nila/udang: pipa masuk, pipa kuras, fitting.',
+    descriptionEn:
+      'Filling and draining catfish/tilapia/shrimp ponds: inlet pipe, drain pipe, fittings.',
     critical: ['pond_length', 'pond_width'],
     important: ['pond_depth', 'number_of_ponds', 'source_type', 'route_length', 'fill_time_hours'],
     optional: ['static_head', 'material', 'pump_required'],
@@ -278,7 +301,9 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'well_distribution',
     label: 'Sumur dan distribusi',
+    labelEn: 'Well and distribution',
     description: 'Sumur bor/submersible ke tandon lalu distribusi.',
+    descriptionEn: 'Bored/submersible well to a tank, then distribution.',
     critical: ['well_depth', 'design_flow', 'tank_elevation', 'route_length'],
     important: ['source_flow_capacity', 'pump_power', 'number_of_outlets'],
     optional: ['material', 'operating_hours'],
@@ -294,6 +319,16 @@ export function caseProfile(id: CaseId): CaseProfile {
   const profile = BY_ID.get(id);
   if (!profile) throw new Error(`profil kasus tidak terdaftar: ${id}`);
   return profile;
+}
+
+export function caseProfileLabel(id: CaseId, locale: EngineeringLocale): string {
+  const p = caseProfile(id);
+  return locale === 'en' ? p.labelEn : p.label;
+}
+
+export function caseProfileDescription(id: CaseId, locale: EngineeringLocale): string {
+  const p = caseProfile(id);
+  return locale === 'en' ? p.descriptionEn : p.description;
 }
 
 export function isCaseId(id: string): id is CaseId {

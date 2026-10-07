@@ -21,7 +21,7 @@ import type {
   Recommendation,
   RequirementState,
 } from '@snouty/shared-types';
-import { PipeSize, type Product } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, PipeSize, type Product } from '@snouty/shared-types';
 import {
   buildSchematic,
   computeIrrigation,
@@ -187,8 +187,8 @@ export class AnalysisService {
     requirementAssumptions: readonly Assumption[],
     now: string,
     emit?: EventSink,
-    /** Bahasa percakapan (Fase 15) — prosa bangunan ditulis model dalam bahasa ini. */
-    locale?: Locale,
+    /** Bahasa percakapan (Fase 15): prosa model dan seluruh teks tampilan solusi. */
+    locale: Locale = DEFAULT_LOCALE,
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
 
@@ -201,22 +201,23 @@ export class AnalysisService {
         requirementAssumptions,
         now,
         emit,
+        locale,
       );
     }
     // Kasus teknis umum (Fase 14) yang kalkulatornya ada: kolam/tambak (Kelompok G).
     if (state.useCase?.kind === 'technical') {
       const pondInput = pondInputFrom(state);
       if (pondInput !== null)
-        return this.runPond(conversationId, snapshotId, state, pondInput, now, emit);
+        return this.runPond(conversationId, snapshotId, state, pondInput, now, emit, locale);
       const plan = pressurizedPlanFrom(state);
       if (plan !== null)
-        return this.runPressurized(conversationId, snapshotId, state, plan, now, emit);
+        return this.runPressurized(conversationId, snapshotId, state, plan, now, emit, locale);
       const gravity = gravityPlanFrom(state);
       if (gravity !== null)
-        return this.runGravity(conversationId, snapshotId, state, gravity, now, emit);
+        return this.runGravity(conversationId, snapshotId, state, gravity, now, emit, locale);
       const network = networkInputFrom(state);
       if (network !== null)
-        return this.runNetwork(conversationId, snapshotId, state, network, now, emit);
+        return this.runNetwork(conversationId, snapshotId, state, network, now, emit, locale);
       throw new TechnicalCaseNotComputableError(state.useCase.caseId);
     }
 
@@ -275,7 +276,7 @@ export class AnalysisService {
         products: match.products,
         requirementAssumptions,
         now,
-        ...(locale ? { locale } : {}),
+        locale,
       },
       this.prose,
     );
@@ -316,6 +317,7 @@ export class AnalysisService {
     requirementAssumptions: readonly Assumption[],
     now: string,
     emit?: EventSink,
+    locale: Locale = DEFAULT_LOCALE,
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
 
@@ -356,7 +358,7 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
     const stats = irrigationStatsFrom(result, input.areaHa, match.products.length);
-    const prose = irrigationProse(stats, result);
+    const prose = irrigationProse(stats, result, locale);
     const recommendation: Recommendation = {
       id: ulid(),
       conversationId,
@@ -367,18 +369,23 @@ export class AnalysisService {
       body: prose.body,
       stats: legacyStatsFrom(result, match.products.length),
       irrigationStats: stats,
-      systemLines: irrigationSystemLinesFrom(result, traces),
+      systemLines: irrigationSystemLinesFrom(result, traces, locale),
       products: match.products,
-      bom: irrigationBomItemsFrom(result, traces),
-      assumptions: irrigationAssumptionsFrom(traces, [
-        ...appliedAssumptionsToView(
-          engineeringStateFrom(state).appliedAssumptions,
-          irrigationFieldFor,
-          'ENG-101',
-        ),
-        ...inputAssumptions,
-        ...requirementAssumptions,
-      ]),
+      bom: irrigationBomItemsFrom(result, traces, locale),
+      assumptions: irrigationAssumptionsFrom(
+        traces,
+        [
+          ...appliedAssumptionsToView(
+            engineeringStateFrom(state).appliedAssumptions,
+            irrigationFieldFor,
+            'ENG-101',
+            locale,
+          ),
+          ...inputAssumptions,
+          ...requirementAssumptions,
+        ],
+        locale,
+      ),
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
@@ -411,6 +418,7 @@ export class AnalysisService {
     plan: PressurizedPlan,
     now: string,
     emit?: EventSink,
+    locale: Locale = DEFAULT_LOCALE,
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
 
@@ -452,7 +460,7 @@ export class AnalysisService {
     });
 
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
-    const prose = pressurizedProse(result, plan.family, plan.input);
+    const prose = pressurizedProse(result, plan.family, plan.input, locale);
     const recommendation: Recommendation = {
       id: ulid(),
       conversationId,
@@ -462,17 +470,18 @@ export class AnalysisService {
       headline: prose.headline,
       body: prose.body,
       stats: pressurizedLegacyStats(result, match.products.length),
-      highlights: pressurizedHighlights(result, plan.family, match.products.length),
+      highlights: pressurizedHighlights(result, plan.family, match.products.length, locale),
       composition: composeResponse({
         state,
         traces,
         pressurized: result,
         appliedAssumptionIds: [...result.appliedAssumptionIds, ...plan.extraAssumptionIds],
+        locale,
       }),
-      systemLines: pressurizedSystemLinesFrom(result, plan.family, traces),
+      systemLines: pressurizedSystemLinesFrom(result, plan.family, traces, locale),
       products: match.products,
-      bom: pressurizedBomItemsFrom(result, plan.family, plan.input.routeLengthM, traces),
-      assumptions: pressurizedAssumptionsFrom(result, plan.extraAssumptionIds, traces),
+      bom: pressurizedBomItemsFrom(result, plan.family, plan.input.routeLengthM, traces, locale),
+      assumptions: pressurizedAssumptionsFrom(result, plan.extraAssumptionIds, traces, locale),
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
@@ -497,6 +506,7 @@ export class AnalysisService {
     plan: GravityPlan,
     now: string,
     emit?: EventSink,
+    locale: Locale = DEFAULT_LOCALE,
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
@@ -525,7 +535,7 @@ export class AnalysisService {
     });
 
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
-    const prose = gravityProse(result);
+    const prose = gravityProse(result, locale);
     const recommendation: Recommendation = {
       id: ulid(),
       conversationId,
@@ -535,17 +545,18 @@ export class AnalysisService {
       headline: prose.headline,
       body: prose.body,
       stats: gravityLegacyStats(result, match.products.length),
-      highlights: gravityHighlights(result, match.products.length),
+      highlights: gravityHighlights(result, match.products.length, locale),
       composition: composeResponse({
         state,
         traces,
         gravity: result,
         appliedAssumptionIds: result.appliedAssumptionIds,
+        locale,
       }),
-      systemLines: gravitySystemLinesFrom(result, traces),
+      systemLines: gravitySystemLinesFrom(result, traces, locale),
       products: match.products,
-      bom: gravityBomItemsFrom(result, plan.pipeLengthM, traces),
-      assumptions: gravityAssumptionsFrom(result, traces),
+      bom: gravityBomItemsFrom(result, plan.pipeLengthM, traces, locale),
+      assumptions: gravityAssumptionsFrom(result, traces, locale),
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
@@ -570,6 +581,7 @@ export class AnalysisService {
     input: NetworkInput,
     now: string,
     emit?: EventSink,
+    locale: Locale = DEFAULT_LOCALE,
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
@@ -609,7 +621,7 @@ export class AnalysisService {
       routeLengthM: input.routeLengthM,
       staticHeadM: input.staticHeadM,
     };
-    const prose = pressurizedProse(result, family, pressurizedInput);
+    const prose = pressurizedProse(result, family, pressurizedInput, locale);
     const recommendation: Recommendation = {
       id: ulid(),
       conversationId,
@@ -620,19 +632,20 @@ export class AnalysisService {
       body: `Kebutuhan puncak ${String(result.peakFlowLs).replace('.', ',')} l/s untuk ${result.connections} sambungan (rata-rata ${String(result.averageFlowLs).replace('.', ',')} l/s). ${prose.body}`,
       stats: pressurizedLegacyStats(result, match.products.length),
       highlights: [
-        ...networkHighlightsPrefix(result),
-        ...pressurizedHighlights(result, family, match.products.length),
+        ...networkHighlightsPrefix(result, locale),
+        ...pressurizedHighlights(result, family, match.products.length, locale),
       ],
       composition: composeResponse({
         state,
         traces,
         pressurized: result,
         appliedAssumptionIds: [...result.appliedAssumptionIds, ...extra],
+        locale,
       }),
-      systemLines: pressurizedSystemLinesFrom(result, family, traces),
+      systemLines: pressurizedSystemLinesFrom(result, family, traces, locale),
       products: match.products,
-      bom: pressurizedBomItemsFrom(result, family, input.routeLengthM, traces),
-      assumptions: pressurizedAssumptionsFrom(result, extra, traces),
+      bom: pressurizedBomItemsFrom(result, family, input.routeLengthM, traces, locale),
+      assumptions: pressurizedAssumptionsFrom(result, extra, traces, locale),
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
@@ -694,6 +707,7 @@ export class AnalysisService {
     input: PondInput,
     now: string,
     emit?: EventSink,
+    locale: Locale = DEFAULT_LOCALE,
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
 
@@ -732,7 +746,7 @@ export class AnalysisService {
     });
 
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
-    const prose = pondProse(result);
+    const prose = pondProse(result, locale);
     const recommendation: Recommendation = {
       id: ulid(),
       conversationId,
@@ -742,17 +756,18 @@ export class AnalysisService {
       headline: prose.headline,
       body: prose.body,
       stats: pondLegacyStats(result, match.products.length),
-      highlights: pondHighlights(result, match.products.length),
+      highlights: pondHighlights(result, match.products.length, locale),
       // Kolam tidak punya kandidat ukuran (ukuran dari tabel debit) → bagian Opsi kosong.
       composition: composeResponse({
         state,
         traces,
         appliedAssumptionIds: result.appliedAssumptionIds,
+        locale,
       }),
-      systemLines: pondSystemLinesFrom(result, traces),
+      systemLines: pondSystemLinesFrom(result, traces, locale),
       products: match.products,
-      bom: pondBomItemsFrom(result, traces),
-      assumptions: pondAssumptionsFrom(result, traces),
+      bom: pondBomItemsFrom(result, traces, locale),
+      assumptions: pondAssumptionsFrom(result, traces, locale),
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };

@@ -17,6 +17,8 @@ import {
   isCaseId,
   isParameterKey,
   parameterDefinition,
+  parameterLabel,
+  parameterOptionLabels,
   resolveMissingParameters,
   type CaseId,
   type MissingParameter,
@@ -131,8 +133,8 @@ export function technicalAnswerValue(
   if (option === UNKNOWN) return { key, value: UNKNOWN };
   const def = parameterDefinition(key);
   if (def.kind === 'boolean') {
-    if (/^ya$/i.test(option)) return { key, value: true };
-    if (/^tidak$/i.test(option)) return { key, value: false };
+    if (/^(ya|yes)$/i.test(option)) return { key, value: true };
+    if (/^(tidak|no)$/i.test(option)) return { key, value: false };
     return null;
   }
   if (def.kind === 'number') {
@@ -140,8 +142,16 @@ export function technicalAnswerValue(
     return Number.isFinite(n) ? { key, value: n } : null;
   }
   if (def.kind === 'enum') {
-    const canonical = def.options?.find((o) => normalize(o) === normalize(option));
-    return canonical ? { key, value: canonical } : null;
+    // Klien mengirim nilai protokol (Indonesia); label Inggris diterima juga agar jawaban yang
+    // diketik ulang dalam bahasa percakapan tetap terpetakan ke nilai kanoniknya.
+    const options = def.options ?? [];
+    const english = parameterOptionLabels(key, 'en') ?? [];
+    const index = options.findIndex(
+      (o, i) =>
+        normalize(o) === normalize(option) ||
+        (english[i] !== undefined && normalize(english[i]) === normalize(option)),
+    );
+    return index >= 0 ? { key, value: options[index]! } : null;
   }
   return option.trim() ? { key, value: option.trim() } : null;
 }
@@ -193,13 +203,21 @@ export function planTechnicalClarification(
   const text: MissingParameter[] = [];
   for (const m of technicalMissing(state)) {
     const def = parameterDefinition(m.key);
+    const question = locale === 'en' ? m.questionEn : m.question;
     if (def.kind === 'enum' && def.options) {
-      card.push({ id: m.key, question: m.question, options: def.options, allowUnknown: true });
-    } else if (def.kind === 'boolean') {
-      // `options` tetap 'Ya'/'Tidak' (protokol); hanya label tampilannya yang mengikuti bahasa.
+      // `options` tetap nilai protokol Indonesia; label tampilannya mengikuti bahasa percakapan.
+      const optionLabels = parameterOptionLabels(m.key, locale);
       card.push({
         id: m.key,
-        question: m.question,
+        question,
+        options: def.options,
+        ...(locale === 'en' && optionLabels ? { optionLabels } : {}),
+        allowUnknown: true,
+      });
+    } else if (def.kind === 'boolean') {
+      card.push({
+        id: m.key,
+        question,
         options: ['Ya', 'Tidak'],
         ...(locale === 'en' ? { optionLabels: ['Yes', 'No'] } : {}),
         allowUnknown: true,
@@ -209,6 +227,19 @@ export function planTechnicalClarification(
     }
   }
   return { card, text };
+}
+
+/**
+ * Label parameter dalam bahasa percakapan. Label yang tersimpan di state selalu Indonesia
+ * (ditulis saat fakta dicatat); bahasa dipilih saat ditampilkan, bukan saat disimpan, supaya
+ * percakapan yang berganti bahasa tidak membawa label campuran.
+ */
+export function technicalParameterLabel(
+  key: string,
+  p: TechnicalParameter,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  return isParameterKey(key) ? parameterLabel(key, locale) : p.label;
 }
 
 export function formatTechnicalValue(
@@ -232,9 +263,12 @@ export function technicalCaptured(
   state: RequirementState,
   locale: Locale = DEFAULT_LOCALE,
 ): readonly KeyValue[] {
-  return Object.values(parametersOf(state))
-    .filter((p) => p.value !== UNKNOWN)
-    .map((p) => ({ label: p.label, value: formatTechnicalValue(p, locale) }));
+  return Object.entries(parametersOf(state))
+    .filter(([, p]) => p.value !== UNKNOWN)
+    .map(([key, p]) => ({
+      label: technicalParameterLabel(key, p, locale),
+      value: formatTechnicalValue(p, locale),
+    }));
 }
 
 /**
@@ -264,10 +298,13 @@ export function technicalGuidance(
     );
   }
   const { text, card } = planTechnicalClarification(state, locale);
-  const missing = [...text, ...card.map((q) => ({ question: q.question }))];
+  const missing = [
+    ...text.map((m) => (locale === 'en' ? m.questionEn : m.question)),
+    ...card.map((q) => q.question),
+  ];
   if (missing.length > 0) {
     lines.push('', copy.askIntro);
-    for (const m of missing) lines.push(`- ${m.question}`);
+    for (const question of missing) lines.push(`- ${question}`);
     if (isTechnicalComplete(state) && profile.calculatorStatus === 'available') {
       lines.push('', copy.proceedWithDefaults);
     }

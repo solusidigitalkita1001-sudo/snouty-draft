@@ -815,8 +815,28 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       pesaing, CTA rumah lengkap, kartu di luar cakupan. **Belum EN:** label/pertanyaan registry
       parameter & asumsi engine, prosa templat per kasus, nama item BOM, label keluaran komposer
       (P15-04), PDF (P15-05)
-- [ ] P15-04 Registry per bahasa: label/pertanyaan/opsi parameter, asumsi, label keluaran,
-      catatan opsi, highlight & prosa templat per kasus, nama item BOM
+- [x] P15-04 Engine dan tampilan solusi dua bahasa (2026-10-07). `packages/engineering`:
+      `EngineeringLocale`, `registry-en.ts` (`Record<ParameterKey, …>` — parameter baru tanpa
+      terjemahan gagal typecheck), aksesor `parameterLabel/Question/Reason/OptionLabels`,
+      `caseProfileLabel/Description`, `outputLabel`, `assumptionDescription/Condition`,
+      `MissingParameter.labelEn/questionEn/optionLabelsEn`; classifier & extractor membaca
+      kalimat Inggris (sinonim kasus, "5 liters per second", "12 m higher", "4 by 4 m", "6 m road",
+      "without a pump"). API: lima view solusi (bangunan, irigasi, bertekanan, gravitasi, kolam)
+      dan komposer menerima `locale` — prosa, highlight, baris sistem, nama & satuan item BOM
+      (`bomItemName`/`bomUnitLabel`), asumsi dari registry, label metrik/kesiapan/data kurang;
+      `AnalysisService.run` meneruskan bahasa percakapan ke semuanya. Jalur kasus teknis:
+      pertanyaan kartu/teks, label pilihan enum, label data tercatat, dan kartu handoff memakai
+      registry EN; label dipilih saat ditampilkan (`technicalParameterLabel`), state tetap
+      menyimpan label Indonesia; `technicalAnswerValue` menerima label Inggris & Yes/No → nilai
+      protokol. Tes: engineering 175 (+26), API 866 (+27). **Belum EN (P15-04b):** `explanation`
+      trace aturan engine (dasar perhitungan di detail) dan `structuralNote` gorong-gorong;
+      `BomUnit` masih union Indonesia di shared-types (dilebarkan nanti)
+- [x] P15-04c Rapi-rapi tampilan atas permintaan pemilik (2026-10-07): composer jadi textarea
+      yang tumbuh dengan cincin fokus merek (`ComposerField`), badge "LANGKAH n DARI 4" dan
+      tautan mati "Solusi Tersimpan"/"Pengetahuan Produk" dihapus (OQ-52); aturan "Teks yang
+      dilihat pengguna" (tanpa metatext/AI slop) masuk `.claude/CLAUDE.md`; halaman profil belum
+      ada → OQ-53
+- [ ] P15-04b Penjelasan trace aturan engine dua bahasa (`reason`/`basis` di detail perhitungan)
 - [ ] P15-05 Laporan PDF dua bahasa
 - [ ] ✋ CHECKPOINT — reviewed by owner
 

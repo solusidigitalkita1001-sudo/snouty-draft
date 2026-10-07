@@ -126,3 +126,69 @@ describe('tampilan gravitasi', () => {
     ]);
   });
 });
+
+describe('tampilan gravitasi: dua bahasa', () => {
+  const result = computeGravity({
+    kind: 'culvert',
+    designFlowLs: 20,
+    coverDepthM: 0.5,
+    trafficLoad: 'heavy',
+  });
+  const traces = result.traces.map((t, i) => ({ ...t, id: `T${i}` }));
+
+  it('highlights: id tak berubah, en Inggris dengan angka sama', () => {
+    const idRows = gravityHighlights(result, 1, 'id');
+    expect(idRows).toEqual(gravityHighlights(result, 1));
+    const en = gravityHighlights(result, 1, 'en');
+    expect(en).toHaveLength(idRows.length);
+    expect(en.map((x) => x.label)).toEqual([
+      'Design flow',
+      'Pipe',
+      'Slope',
+      'Full-flow capacity',
+      'Cover',
+      'Pralon products',
+    ]);
+    expect(en[4]!.value).toBe('Needs structural validation');
+    expect(en[0]!.value).toBe(`${String(result.designFlowLs)} l/s`);
+    expect(en[3]!.value).toContain('% used');
+  });
+
+  it('baris sistem, BOM, asumsi: jumlah sama, teks Inggris', () => {
+    const idL = gravitySystemLinesFrom(result, traces);
+    const enL = gravitySystemLinesFrom(result, traces, 'en');
+    expect(enL).toHaveLength(idL.length);
+    expect(enL[0]!.name).toBe('Culvert PVC D');
+    expect(enL[0]!.path).toBe('Upstream → downstream across the road');
+    expect(enL[1]!.name).toBe('Cover and road load');
+    expect(enL.map((l) => l.traceIds)).toEqual(idL.map((l) => l.traceIds));
+
+    const idB = gravityBomItemsFrom(result, 8, traces, 'id');
+    const enB = gravityBomItemsFrom(result, 8, traces, 'en');
+    expect(enB).toHaveLength(idB.length);
+    expect(enB.map((b) => b.quantity)).toEqual(idB.map((b) => b.quantity));
+    expect(enB[0]!.item).toBe('PVC D pipe');
+    expect(idB[0]!.item).toBe('Pipa PVC D');
+    expect(enB.at(-1)!.item).toBe('PVC solvent cement');
+
+    const idA = gravityAssumptionsFrom(result, traces);
+    const enA = gravityAssumptionsFrom(result, traces, 'en');
+    expect(enA).toHaveLength(idA.length);
+    expect(enA.at(-1)!.text).toContain('structural');
+    expect(enA[0]!.text).toContain('standard engineering formulas');
+  });
+
+  it('prosa dan cluster', () => {
+    expect(gravityProse(result, 'id')).toEqual(gravityProse(result));
+    const en = gravityProse(result, 'en');
+    expect(en.headline).toContain('Culvert:');
+    expect(en.body).toContain('structural validation is required');
+    expect(en.body).toContain(`${String(result.slopePercent)} %`);
+
+    const network = computeNetwork({ connections: 120, routeLengthM: 600, staticHeadM: 8 });
+    expect(networkHighlightsPrefix(network, 'en')).toEqual([
+      { label: 'Connections', value: '120 units' },
+      { label: 'Peak demand', value: '1.67 l/s (average 0.83 l/s)' },
+    ]);
+  });
+});
