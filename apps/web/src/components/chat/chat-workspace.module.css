@@ -1948,3 +1948,14 @@
     width: 100%;
   }
 }
+
+/* Kartu jawaban masuk setelah teksnya selesai diungkap (animasi transisi, 2026-10-07). */
+.cardEnter {
+  animation: snoutyIn var(--snouty-enter) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardEnter {
+    animation: none;
+  }
+}

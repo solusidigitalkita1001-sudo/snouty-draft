@@ -66,6 +66,22 @@ export function withRequirementPrecedence(
   };
 }
 
+const EXPLANATION_SIGNALS = /\b(kenapa|mengapa|kok|alasan(nya)?|dasar(nya)?)\b/i;
+
+/**
+ * Keputusan yang tidak butuh model: pesan pertama (belum ada kebutuhan) dengan isyarat
+ * kebutuhan dan bukan pertanyaan "kenapa". `null` = tanya model.
+ */
+export function fastPathIntent(
+  message: string,
+  hasExistingRequirements: boolean,
+): IntentClassification | null {
+  if (hasExistingRequirements) return null;
+  if (!hasRequirementSignals(message) || EXPLANATION_SIGNALS.test(message)) return null;
+  if (mentionsCompetitor(message)) return null;
+  return { intent: 'REQUIREMENT_STATEMENT', confidence: 0.9 };
+}
+
 /** Di bawah ini, sistem bertanya alih-alih menebak (docs/AI_BEHAVIOR.md). */
 export const INTENT_CONFIDENCE_THRESHOLD = 0.6;
 
@@ -100,9 +116,15 @@ export class IntentRouter {
     hasExistingRequirements: boolean,
     recentTurns: readonly ReplyTurn[] = [],
   ): Promise<RoutingDecision> {
+    // Jalur cepat tanpa model (P14-07): pesan PERTAMA yang membawa isyarat kebutuhan berakhir
+    // REQUIREMENT_STATEMENT apa pun kata model — `withRequirementPrecedence` menimpa
+    // PRODUCT_LOOKUP/OUT_OF_SCOPE/ragu, dan mutasi/jawaban klarifikasi tidak mungkin tanpa state.
+    // Satu-satunya label yang masih bisa menang adalah EXPLANATION_REQUEST, dan bentuknya
+    // terbaca dari kata tanya. Di CPU, panggilan yang dilewati ini 4–6 detik per giliran.
+    const fast = fastPathIntent(message, hasExistingRequirements);
     const classification = withRequirementPrecedence(
       message,
-      await this.ai.classifyIntent({ message, hasExistingRequirements, recentTurns }),
+      fast ?? (await this.ai.classifyIntent({ message, hasExistingRequirements, recentTurns })),
     );
 
     // Ragu → bertanya. Mengubah kebutuhan tanpa diminta jauh lebih mahal daripada

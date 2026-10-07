@@ -115,6 +115,31 @@ describe('extractionToUpdates — angka dan jenis bangunan yang dikarang (produk
   });
 });
 
+describe('extractionToUpdates — peniadaan tersurat yang dilewatkan model', () => {
+  it('"tidak ada dapur" dengan model yang diam → kitchens 0; tanpa peniadaan tetap kosong', () => {
+    const paths = extractionToUpdates(
+      { building: { floors: 2 } },
+      'rumah 2 lantai, tidak ada dapur',
+    );
+    expect(paths).toContainEqual({ path: 'fixtures.kitchens', value: 0, source: 'user_stated' });
+    expect(
+      extractionToUpdates({}, 'rumah 2 lantai').some((u) => u.path === 'fixtures.kitchens'),
+    ).toBe(false);
+  });
+});
+
+describe('extractionToUpdates — letak toren tersurat mengalahkan model (produksi 2026-10-07)', () => {
+  it('"toren di atap" + model ground_tank → rooftop_tank; tanpa penanda letak, model dipakai', () => {
+    const src = (m: string, model: 'ground_tank' | 'rooftop_tank' | undefined) =>
+      extractionToUpdates({ water: { source: model } }, m).find((u) => u.path === 'water.source')
+        ?.value;
+    expect(src('rumah 2 lantai, toren di atap', 'ground_tank')).toBe('rooftop_tank');
+    expect(src('tandon bawah tanah 2 m³', 'rooftop_tank')).toBe('ground_tank');
+    expect(src('air dari toren', 'ground_tank')).toBe('ground_tank');
+    expect(src('air PDAM langsung', undefined)).toBe('municipal');
+  });
+});
+
 describe('extractionToUpdates — grounding', () => {
   it('membuang tinggi lantai dan panjang jalur yang tidak pernah diucapkan', () => {
     const updates = extractionToUpdates(

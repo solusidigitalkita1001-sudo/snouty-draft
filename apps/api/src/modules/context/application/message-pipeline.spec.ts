@@ -277,6 +277,30 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
   });
 
+  it('permintaan penjelasan TIDAK ditulis ulang model — teks tetap yang menunjuk ke solusi', async () => {
+    const decision: RoutingDecision = {
+      intent: 'EXPLANATION_REQUEST',
+      confidence: 0.9,
+      shouldExtract: false,
+      mutatesState: false,
+    };
+    let writerCalls = 0;
+    const writer = {
+      write: () => {
+        writerCalls += 1;
+        return Promise.resolve({ text: 'alasan karangan model', source: 'llm' as const });
+      },
+    };
+    const { events } = await runUnderstanding(
+      aiExtracting({}),
+      input({ message: 'kenapa pakai 1 inci?', decision }),
+      writer as never,
+    );
+    const text = events.find((e) => e.type === 'token') as { text: string } | undefined;
+    expect(writerCalls).toBe(0);
+    expect(text?.text).toContain('Dasar setiap angka ada di solusi');
+  });
+
   it('sapaan / di luar topik: dibalas sapaan yang mengarahkan, bukan formulir klarifikasi', async () => {
     const decision: RoutingDecision = {
       intent: 'OUT_OF_SCOPE',

@@ -47,6 +47,16 @@ const OBVIOUS = {
     if (clean) return 'clean_water';
     return undefined;
   },
+  // Produksi 2026-10-07: "toren di atap" → model menulis `ground_tank`. Letak toren tersurat
+  // di teks mengalahkan tebakan model; tanpa penanda letak, nilai model yang dipakai.
+  source: (m: string): NonNullable<Extraction['water']>['source'] => {
+    const tank = /\b(toren|tandon|tangki)\b/i.test(m);
+    if (tank && /\b(atap|di atas|lantai atas|atas rumah|rooftop|tower|menara)\b/i.test(m))
+      return 'rooftop_tank';
+    if (tank && /\b(bawah|tanah|ground|di bawah|lantai dasar)\b/i.test(m)) return 'ground_tank';
+    if (/\b(pdam|ledeng|pam\b)/i.test(m)) return 'municipal';
+    return undefined;
+  },
   type: (m: string): NonNullable<Extraction['building']>['type'] => {
     if (/\b(kos|kost|kos-kosan)\b/i.test(m)) return 'boarding_house';
     if (/\b(pabrik|industri|gudang)\b/i.test(m)) return 'industrial';
@@ -116,6 +126,11 @@ const TYPE_MARKERS: Readonly<
   light_commercial: /\b(ruko|toko|kantor|kafe|cafe|resto|restoran|hotel|klinik|sekolah|warung)\b/i,
 };
 
+/** `0` bila pesan meniadakan kata benda itu ("tanpa dapur"); selain itu tidak ada tebakan. */
+function negatedZero(message: string, noun: string): number | undefined {
+  return mentionsCount(message, 0, noun) ? 0 : undefined;
+}
+
 function intAfter(pattern: RegExp, message: string): number | undefined {
   const match = pattern.exec(message);
   if (!match?.[1]) return undefined;
@@ -159,11 +174,27 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     'fixtures.bathrooms',
     counted('fixtures.bathrooms', extraction.fixtures?.bathrooms, OBVIOUS.bathrooms(message)),
   );
-  add('fixtures.basins', extraction.fixtures?.basins);
-  add('fixtures.kitchens', extraction.fixtures?.kitchens);
+  // Peniadaan tersurat ("tidak ada dapur") yang dilewatkan model → 0 dari teks (produksi
+  // 2026-10-07: model menghilangkan `kitchens` sama sekali, lalu sistem bertanya soal dapur).
+  add(
+    'fixtures.basins',
+    counted(
+      'fixtures.basins',
+      extraction.fixtures?.basins,
+      negatedZero(message, COUNT_NOUNS['fixtures.basins']!),
+    ),
+  );
+  add(
+    'fixtures.kitchens',
+    counted(
+      'fixtures.kitchens',
+      extraction.fixtures?.kitchens,
+      negatedZero(message, COUNT_NOUNS['fixtures.kitchens']!),
+    ),
+  );
   add('fixtures.outletCount', extraction.fixtures?.outletCount);
 
-  add('water.source', extraction.water?.source);
+  add('water.source', OBVIOUS.source(message) ?? extraction.water?.source);
   add(
     'water.installationType',
     extraction.water?.installationType ?? OBVIOUS.installationType(message),

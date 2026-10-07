@@ -735,10 +735,21 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       analisis langsung ke controller; `sseWriter` menulis header SSE pada event pertama, sehingga
       galat sebelum itu tetap JSON berstatus benar dan sesudahnya menjadi event `error`.
       **Instrumentasi tahap:** `stageTimer` — log terstruktur per giliran `{load, route, answer,
-    persist, total}` + intent. **Ekstraksi gabungan satu panggilan: dievaluasi dan DITOLAK** untuk
+  persist, total}` + intent. **Ekstraksi gabungan satu panggilan: dievaluasi dan DITOLAK** untuk
       qwen2.5 7B di CPU — prompt gabungan ±30 s saat cache prompt dingin, pesan di luar topik yang
       kini 4 s menjadi 18–30 s; keuntungan giliran kebutuhan hanya ±4 s (22 → 18 s). Judul sudah di
-      latar sejak P4; registry/profil konstanta in-memory (tanpa cache tambahan). 4 tes baru
+      latar sejak P4; registry/profil konstanta in-memory (tanpa cache tambahan). 4 tes baru.
+      **Jalur cepat tanpa model** (`fastPathIntent`): pesan pertama berisyarat kebutuhan (bukan
+      "kenapa", bukan pesaing) → REQUIREMENT_STATEMENT tanpa klasifikasi model (4–6 s per giliran)
+- [x] P14-09g Temuan 12 skenario produksi (2026-10-07, 7B/Ollama): (1) "toren di atap" ditulis
+      model `ground_tank` → letak toren tersurat mengalahkan model (`OBVIOUS.source`); (2) "tidak ada
+      dapur" dilewatkan model → 0 dari peniadaan tersurat; (3) permintaan penjelasan ditulis ulang
+      model menjadi alasan karangan → EXPLANATION_REQUEST memakai teks tetap, tanpa model. Web:
+      jawaban asisten diungkap bertahap per kata (`useRevealedText`, giliran baru saja), kartu masuk
+      setelah teks selesai, reduced-motion = utuh seketika (permintaan pemilik). Keputusan pemilik
+      2026-10-07: **tetap Ollama 7B** (biaya nol); kualitas/latensi setara ChatGPT/Claude tidak
+      tercapai dengan itu — dicatat jujur di laporan checkpoint. Bilingual ID/EN penuh disetujui →
+      P15
 - [ ] ✋ CHECKPOINT — reviewed by owner (12 skenario uji §39 + laporan akhir §45)
 
 ## Design Coverage

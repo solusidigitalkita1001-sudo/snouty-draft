@@ -69,6 +69,35 @@ describe('IntentRouter — presedensi kebutuhan (intent sadar konteks)', () => {
     expect(d.intent).toBe('PRODUCT_LOOKUP');
   });
 
+  it('jalur cepat (P14-07): pesan pertama berisyarat kebutuhan TIDAK memanggil model', async () => {
+    let calls = 0;
+    const ai = aiReturning({ intent: 'OUT_OF_SCOPE', confidence: 1 });
+    ai.classifyIntent = () => {
+      calls += 1;
+      return Promise.resolve({ intent: 'OUT_OF_SCOPE', confidence: 1 });
+    };
+    const d = await new IntentRouter(ai).route('rumah 2 lantai, 3 kamar mandi', false);
+    expect(d.intent).toBe('REQUIREMENT_STATEMENT');
+    expect(d.shouldExtract).toBe(true);
+    expect(calls).toBe(0);
+  });
+
+  it('jalur cepat tidak dipakai untuk pertanyaan "kenapa", pesaing, atau bila sudah ada kebutuhan', async () => {
+    let calls = 0;
+    const ai = aiReturning({ intent: 'EXPLANATION_REQUEST', confidence: 0.9 });
+    ai.classifyIntent = () => {
+      calls += 1;
+      return Promise.resolve({ intent: 'EXPLANATION_REQUEST', confidence: 0.9 });
+    };
+    const r = new IntentRouter(ai);
+    expect((await r.route('kenapa rumah 2 lantai butuh pipa 1 inci?', false)).intent).toBe(
+      'EXPLANATION_REQUEST',
+    );
+    await r.route('rumah 2 lantai pakai Rucika bagus nggak?', false);
+    await r.route('rumah 2 lantai, 3 kamar mandi', true);
+    expect(calls).toBe(3);
+  });
+
   it('giliran terakhir diteruskan ke klasifikasi model', async () => {
     const seen: IntentInput[] = [];
     const ai = aiReturning({ intent: 'REQUIREMENT_STATEMENT', confidence: 0.9 });

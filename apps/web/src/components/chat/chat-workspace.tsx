@@ -31,6 +31,7 @@ import { ReportModal } from '../report/report-modal';
 import { REPORT_COPY } from '../report/report-copy';
 import { ThemeToggle } from '../theme-toggle';
 import { AssistantMarkdown } from './assistant-markdown';
+import { useRevealedText } from './assistant-reveal';
 import { useCaseRows } from './use-case-rows';
 import { ProductLookupCards } from './product-lookup-cards';
 import {
@@ -104,6 +105,8 @@ interface ChatTurn {
   readonly role: 'user' | 'assistant';
   readonly text: string;
   readonly cards: readonly AssistantCard[];
+  /** Lahir di sesi ini (bukan dari riwayat) → jawabannya diungkap bertahap. */
+  readonly fresh?: boolean;
 }
 
 export function ChatWorkspace() {
@@ -127,6 +130,7 @@ export function ChatWorkspace() {
   const [editStatus, setEditStatus] = useState<'idle' | 'saving' | 'failed'>('idle');
   const narrow = useMediaQuery(NARROW_QUERY);
   const mobile = useMediaQuery(MOBILE_QUERY);
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
   const [toastOn, setToastOn] = useState(false);
@@ -277,7 +281,13 @@ export function ChatWorkspace() {
         if (assistantText !== '' || assistantCards.length > 0) {
           setTurns((previous) => [
             ...previous,
-            { id: assistantId, role: 'assistant', text: assistantText, cards: assistantCards },
+            {
+              id: assistantId,
+              role: 'assistant',
+              text: assistantText,
+              cards: assistantCards,
+              fresh: true,
+            },
           ]);
         }
         setSending(false);
@@ -321,6 +331,7 @@ export function ChatWorkspace() {
           role: 'assistant',
           text: '',
           cards: result.card ? [result.card] : [],
+          fresh: true,
         },
       ]);
     },
@@ -806,33 +817,20 @@ export function ChatWorkspace() {
                   <div className={styles.userBubble}>{turn.text}</div>
                 </div>
               ) : (
-                <div key={turn.id} className={styles.assistantRow}>
-                  <SnoutyAvatar mood={moodForCards(turn.cards)} size={30} />
-                  <div className={styles.assistantCol}>
-                    {turn.text !== '' && (
-                      <div className={styles.assistantBubble}>
-                        <AssistantMarkdown text={turn.text} />
-                      </div>
-                    )}
-                    {turn.cards.map((card, index) => (
-                      <CardView
-                        key={index}
-                        card={card}
-                        active={turnIndex === turns.length - 1 && !sending}
-                        onAnswers={submitAnswers}
-                        onHandoff={handoff}
-                        handoffState={handoffState}
-                        onSave={save}
-                        saveState={saveState}
-                        onAnalyze={analyze}
-                        analyzing={analyzing}
-                        onOpenProduct={(product) =>
-                          setOpenProduct({ productId: product.productId })
-                        }
-                      />
-                    ))}
-                  </div>
-                </div>
+                <AssistantTurn
+                  key={turn.id}
+                  turn={turn}
+                  animate={turn.fresh === true && !reducedMotion}
+                  cardsActive={turnIndex === turns.length - 1 && !sending}
+                  onAnswers={submitAnswers}
+                  onHandoff={handoff}
+                  handoffState={handoffState}
+                  onSave={save}
+                  saveState={saveState}
+                  onAnalyze={analyze}
+                  analyzing={analyzing}
+                  onOpenProduct={(product) => setOpenProduct({ productId: product.productId })}
+                />
               ),
             )}
 
@@ -1409,6 +1407,49 @@ function ClarificationCard({
 const UNKNOWN_OPTION = 'Belum tahu';
 
 const CHAT_COPY_FOOTER = COPY.analysisFooter;
+
+/**
+ * Satu giliran asisten: teks diungkap bertahap (giliran baru, tanpa reduced-motion), kartu
+ * masuk setelah teksnya selesai. Riwayat (`animate=false`) tampil utuh seketika.
+ */
+function AssistantTurn({
+  turn,
+  animate,
+  cardsActive,
+  ...cardProps
+}: {
+  turn: ChatTurn;
+  animate: boolean;
+  cardsActive: boolean;
+  onAnswers: (answers: ReadonlyArray<{ readonly id: string; readonly option: string }>) => void;
+  onHandoff: (reason: string) => void;
+  handoffState: 'idle' | 'sending' | 'sent';
+  onSave: () => void;
+  saveState: 'idle' | 'saved';
+  onAnalyze: () => void;
+  analyzing: boolean;
+  onOpenProduct: (product: ProductCardDto) => void;
+}) {
+  const { shown, done } = useRevealedText(turn.text, animate);
+  return (
+    <div className={styles.assistantRow}>
+      <SnoutyAvatar mood={moodForCards(turn.cards)} size={30} />
+      <div className={styles.assistantCol}>
+        {turn.text !== '' && (
+          <div className={styles.assistantBubble}>
+            <AssistantMarkdown text={shown} />
+          </div>
+        )}
+        {done &&
+          turn.cards.map((card, index) => (
+            <div key={index} className={animate ? styles.cardEnter : undefined}>
+              <CardView card={card} active={cardsActive} {...cardProps} />
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+}
 
 function CardView({
   card,

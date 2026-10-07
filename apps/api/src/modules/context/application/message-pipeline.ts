@@ -117,14 +117,18 @@ export async function runUnderstanding(
     if (fallback !== null) {
       // Dengan model: balasan ditulis model dari konteks percakapan, tanpa fakta teknis
       // (tidak ada DATA → nol angka). Tanpa model, atau bila pagar menolak: teks tetap.
-      const written = reply
-        ? await reply.write({
-            intent: input.decision.intent,
-            userMessage: input.message,
-            recentTurns: input.recentTurns ?? [],
-            fallback,
-          })
-        : { text: fallback };
+      // Permintaan penjelasan ("kenapa 1 inci?") TIDAK diserahkan ke model: tanpa DATA ia
+      // mengarang alasan teknik yang terdengar masuk akal (produksi 2026-10-07, 7B: "ukuran 1
+      // inci dioptimalkan untuk kebutuhan air cukup besar"). Dasarnya ada di solusi; teks tetap.
+      const written =
+        reply && input.decision.intent !== 'EXPLANATION_REQUEST'
+          ? await reply.write({
+              intent: input.decision.intent,
+              userMessage: input.message,
+              recentTurns: input.recentTurns ?? [],
+              fallback,
+            })
+          : { text: fallback };
       events.push({ type: 'token', text: written.text });
     }
     events.push(endEvent(input.messageId));
