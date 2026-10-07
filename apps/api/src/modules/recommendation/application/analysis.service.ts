@@ -96,6 +96,7 @@ import {
   type RoleRequirement,
 } from '../domain/product-matcher.js';
 import type { IdentifiedTrace } from '../domain/solution-view.js';
+import { composeResponse } from '../domain/response-composer.js';
 import {
   RECOMMENDATION_REPOSITORY,
   type RecommendationRepository,
@@ -196,11 +197,11 @@ export class AnalysisService {
       if (pondInput !== null)
         return this.runPond(conversationId, snapshotId, state, pondInput, now);
       const plan = pressurizedPlanFrom(state);
-      if (plan !== null) return this.runPressurized(conversationId, snapshotId, plan, now);
+      if (plan !== null) return this.runPressurized(conversationId, snapshotId, state, plan, now);
       const gravity = gravityPlanFrom(state);
-      if (gravity !== null) return this.runGravity(conversationId, snapshotId, gravity, now);
+      if (gravity !== null) return this.runGravity(conversationId, snapshotId, state, gravity, now);
       const network = networkInputFrom(state);
-      if (network !== null) return this.runNetwork(conversationId, snapshotId, network, now);
+      if (network !== null) return this.runNetwork(conversationId, snapshotId, state, network, now);
       throw new TechnicalCaseNotComputableError(state.useCase.caseId);
     }
 
@@ -389,6 +390,7 @@ export class AnalysisService {
   private async runPressurized(
     conversationId: string,
     snapshotId: string,
+    state: RequirementState,
     plan: PressurizedPlan,
     now: string,
   ): Promise<readonly AssistantStreamEvent[]> {
@@ -443,6 +445,7 @@ export class AnalysisService {
       body: prose.body,
       stats: pressurizedLegacyStats(result, match.products.length),
       highlights: pressurizedHighlights(result, plan.family, match.products.length),
+      composition: composeResponse({ state, traces, pressurized: result }),
       systemLines: pressurizedSystemLinesFrom(result, plan.family, traces),
       products: match.products,
       bom: pressurizedBomItemsFrom(result, plan.family, plan.input.routeLengthM, traces),
@@ -467,6 +470,7 @@ export class AnalysisService {
   private async runGravity(
     conversationId: string,
     snapshotId: string,
+    state: RequirementState,
     plan: GravityPlan,
     now: string,
   ): Promise<readonly AssistantStreamEvent[]> {
@@ -508,6 +512,7 @@ export class AnalysisService {
       body: prose.body,
       stats: gravityLegacyStats(result, match.products.length),
       highlights: gravityHighlights(result, match.products.length),
+      composition: composeResponse({ state, traces, gravity: result }),
       systemLines: gravitySystemLinesFrom(result, traces),
       products: match.products,
       bom: gravityBomItemsFrom(result, plan.pipeLengthM, traces),
@@ -532,6 +537,7 @@ export class AnalysisService {
   private async runNetwork(
     conversationId: string,
     snapshotId: string,
+    state: RequirementState,
     input: NetworkInput,
     now: string,
   ): Promise<readonly AssistantStreamEvent[]> {
@@ -587,6 +593,7 @@ export class AnalysisService {
         ...networkHighlightsPrefix(result),
         ...pressurizedHighlights(result, family, match.products.length),
       ],
+      composition: composeResponse({ state, traces, pressurized: result }),
       systemLines: pressurizedSystemLinesFrom(result, family, traces),
       products: match.products,
       bom: pressurizedBomItemsFrom(result, family, input.routeLengthM, traces),
@@ -700,6 +707,8 @@ export class AnalysisService {
       body: prose.body,
       stats: pondLegacyStats(result, match.products.length),
       highlights: pondHighlights(result, match.products.length),
+      // Kolam tidak punya kandidat ukuran (ukuran dari tabel debit) → bagian Opsi kosong.
+      composition: composeResponse({ state, traces }),
       systemLines: pondSystemLinesFrom(result, traces),
       products: match.products,
       bom: pondBomItemsFrom(result, traces),
@@ -717,7 +726,6 @@ export class AnalysisService {
       detail: 'SKEMA KOLAM MENUNGGU DESAIN',
     });
     events.push({ type: 'solution.ready', recommendationId: recommendation.id });
-    void state;
     return events;
   }
 }

@@ -110,8 +110,10 @@ const UP = [
   '0015_recommendation_technical.sql',
   '0016_product_sizes_unit.sql',
   '0017_product_sizes_mm_4000.sql',
+  '0018_recommendation_composition.sql',
 ];
 const DOWN = [
+  '0018_recommendation_composition.down.sql',
   '0017_product_sizes_mm_4000.down.sql',
   '0016_product_sizes_unit.down.sql',
   '0015_recommendation_technical.down.sql',
@@ -131,7 +133,7 @@ const DOWN = [
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0017 satu-dua kolom). */
+/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0018 satu-dua kolom). */
 const TABLES = 27;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
@@ -740,6 +742,29 @@ await check('menerima `technical` beserta highlights (0015)', () =>
      VALUES (?,?,?,?,'h','b','technical','[{"label":"Volume air","value":"16 m³"}]','{}','[]','[]','[]','[]','ASSUMED')`,
     [ulid(928), CONV14, ulid(923), ulid(924)],
   ),
+);
+
+await check(
+  'menerima `composition` JSON untuk `technical` dan NULL untuk lainnya (0018)',
+  async () => {
+    await conn.query(
+      `INSERT INTO recommendations
+       (id,conversation_id,snapshot_id,catalog_version_id,headline,body,kind,composition,
+        stats,system_lines,products,bom,assumptions,overall_provenance)
+     VALUES (?,?,?,?,'h','b','technical','{"knownData":[],"assumedData":[],"calculations":[],"options":[],"readiness":[],"missingData":[]}','{}','[]','[]','[]','[]','ASSUMED')`,
+      [ulid(929), CONV14, ulid(923), ulid(924)],
+    );
+    const [rows] = await conn.query(
+      'SELECT composition, JSON_LENGTH(composition->"$.options") AS n FROM recommendations WHERE id = ?',
+      [ulid(929)],
+    );
+    if (rows[0].composition === null || rows[0].n !== 0)
+      throw new Error('composition tidak tersimpan');
+    const [older] = await conn.query('SELECT composition FROM recommendations WHERE id = ?', [
+      ulid(928),
+    ]);
+    if (older[0].composition !== null) throw new Error('composition harus NULL bila tidak diisi');
+  },
 );
 
 await check('menolak jalur guna di luar building/irrigation/technical', () =>

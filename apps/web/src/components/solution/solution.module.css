@@ -409,3 +409,35 @@
   gap: 14px;
   flex-wrap: wrap;
 }
+
+/* ---------- Opsi ukuran (Fase 14 §28) — BELUM DIDESAIN (OQ-50), minimal dengan token yang ada ---------- */
+
+.optionRow {
+  display: grid;
+  grid-template-columns: 64px minmax(150px, 0.9fr) minmax(220px, 2fr) minmax(200px, 2fr);
+  gap: 14px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  font-size: 13px;
+}
+
+.optionTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Merah merek = seleksi (token rule): baris yang dipilih, bukan "terverifikasi". */
+.optionRecommended {
+  background: var(--snouty-action-soft-bg);
+  box-shadow: inset 3px 0 0 var(--snouty-action);
+  padding-left: 10px;
+}
+
+@media (max-width: 720px) {
+  .optionRow {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}

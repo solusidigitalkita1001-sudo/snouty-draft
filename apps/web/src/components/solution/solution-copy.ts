@@ -46,6 +46,37 @@ export const SOLUTION_COPY = {
   schematicUnavailable: 'Skema belum tersedia untuk konsultasi ini.',
   priceDisclaimer: 'Perkiraan perencanaan, bukan penawaran resmi.',
 
+  /**
+   * Bagian tetap jawaban teknis (Fase 14 §28) — BELUM DIDESAIN (OQ-50): dibangun minimal dengan
+   * token yang sama; label di sini menunggu desain, bukan sumber kebenaran visual.
+   */
+  composition: {
+    optionsTitle: 'Opsi ukuran yang dipertimbangkan',
+    optionsHint:
+      'Semua kandidat yang dihitung — bukan hanya yang dipilih — supaya tradeoff-nya terlihat.',
+    optionRecommended: 'DIREKOMENDASIKAN',
+    optionAlternative: 'ALTERNATIF',
+    optionStatus: {
+      ok: 'MEMENUHI',
+      too_fast: 'TERLALU CEPAT',
+      too_slow: 'TERLALU LAMBAT',
+      high_loss: 'KERUGIAN TINGGI',
+      too_small: 'KAPASITAS KURANG',
+    },
+    readinessTitle: 'Kesiapan hasil',
+    readinessLabel: {
+      ready: 'SIAP',
+      partial: 'SEBAGIAN',
+      missing_data: 'DATA KURANG',
+    },
+    readinessMissing: 'Masih kurang:',
+    readinessImprovable: 'Lebih akurat bila ada:',
+    knownTitle: 'Data yang diketahui',
+    assumedTitle: 'Parameter yang diasumsikan',
+    calculationsTitle: 'Perhitungan',
+    missingTitle: 'Data yang masih dibutuhkan',
+  },
+
   matchStateLabel: {
     VERIFIED_SELECTED: 'DIPAKAI DI SOLUSI INI',
     SIZE_NEEDS_VALIDATION: 'UKURAN PERLU DIKONFIRMASI',

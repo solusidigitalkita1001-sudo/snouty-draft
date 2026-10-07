@@ -719,8 +719,17 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       berdekatan dengan kata bendanya; `0` hanya dengan peniadaan; jenis bangunan hanya bila kata
       bendanya ada; angka model yang tidak tersurat jatuh ke angka dari teks. Contoh berangka
       dihapus dari prompt ekstraksi. 3 tes; API 787 tes
-- [ ] P14-06 Fase 6 — ResponseComposer (Ringkasan / Data diketahui / Asumsi / Perhitungan / Opsi /
-      Rekomendasi / Produk Pralon / Data yang masih dibutuhkan) + layar solusi Opsi & Kesiapan
+- [x] P14-06 Fase 6 — ResponseComposer (2026-10-07). `composeResponse()` (fungsi murni,
+      `recommendation/domain/response-composer.ts`): data diketahui vs parameter diasumsikan dari
+      state, perhitungan dari trace (aturan + versi + penjelasan), **opsi** = seluruh kandidat engine
+      (F: kecepatan/gesek/head; H: kapasitas/pemakaian) dengan status, penanda
+      rekomendasi/alternatif, catatan tradeoff dari kode; **kesiapan** per keluaran profil kasus
+      (`caseReadiness`, label `OUTPUT_LABELS`); data yang masih dibutuhkan = pertanyaan registry.
+      Ringkasan/Asumsi/Produk tetap di field lama. Dipasang di keempat jalur teknis; disimpan di
+      kolom `recommendations.composition` (migration 0018). Web: kartu "Opsi ukuran" + "Kesiapan
+      hasil" di tab Ringkasan, "Data diketahui / Parameter diasumsikan / Perhitungan / Data yang
+      masih dibutuhkan" di tab Material — **belum didesain (OQ-50)**, token yang ada. 7 tes
+      komposer, migration test 64, API 794, web 88
 - [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache
 - [ ] ✋ CHECKPOINT — reviewed by owner (12 skenario uji §39 + laporan akhir §45)
 

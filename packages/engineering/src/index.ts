@@ -103,7 +103,7 @@ export {
   missingInputsFor,
 } from './parameters/dependencies.js';
 export type { CalculatedKey, Dependency } from './parameters/dependencies.js';
-export { OUTPUT_REQUIREMENTS, resolveReadiness } from './parameters/readiness.js';
+export { OUTPUT_LABELS, OUTPUT_REQUIREMENTS, resolveReadiness } from './parameters/readiness.js';
 export type {
   OutputKey,
   OutputRequirement,

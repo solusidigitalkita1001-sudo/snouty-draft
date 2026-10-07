@@ -243,8 +243,9 @@ sentuh ≥ 44px.
 | —   | Toast, keadaan error                                          | kode error                        | tiap fase |
 
 Layar yang belum punya desain (OQ-21): login, register, register-gate + resume, seluruh back-office,
-umpan balik jawaban, halaman privasi/ketentuan. Dibangun minimal dengan token yang sama dan dicatat
-sebagai "needs design".
+umpan balik jawaban, halaman privasi/ketentuan; ditambah (OQ-50, Fase 14) kartu "Opsi ukuran" dan
+"Kesiapan hasil" serta daftar data diketahui/diasumsikan/perhitungan/data kurang di workspace solusi.
+Dibangun minimal dengan token yang sama dan dicatat sebagai "needs design".
 
 Dua catatan dari membaca board yang perlu diingat saat implementasi: board layar 14 sebenarnya adalah
 pop-up tiga butir yang lebih sederhana, bukan wizard 5 langkah (OQ-24 — wizard yang dipakai); dan

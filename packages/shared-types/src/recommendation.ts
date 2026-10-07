@@ -95,6 +95,57 @@ export interface Assumption {
   readonly assumptionId?: string;
 }
 
+/** Status kandidat ukuran — kosakata tertutup dari engine (Kelompok F/H), label di UI. */
+export type OptionStatus = 'ok' | 'too_fast' | 'too_slow' | 'high_loss' | 'too_small';
+
+/**
+ * Satu kandidat ukuran pipa yang DIPERTIMBANGKAN engine (brief Fase 14 §28 "Opsi"):
+ * bukan hanya yang dipilih, supaya tradeoff-nya terlihat. Angka dari engine, catatan dari kode.
+ */
+export interface SolutionOption {
+  readonly size: string;
+  readonly status: OptionStatus;
+  /** Dipilih sebagai rekomendasi utama. */
+  readonly recommended: boolean;
+  /** Satu ukuran di atas rekomendasi: kerugian lebih rendah, biaya pipa lebih tinggi. */
+  readonly alternative: boolean;
+  /** Angka kandidat berlabel bahasa pengguna (kecepatan, kerugian gesek, kapasitas, …). */
+  readonly metrics: readonly KeyValue[];
+  /** Tradeoff dalam bahasa pengguna — deterministik dari status. */
+  readonly note: string;
+}
+
+export type OutputReadiness = 'ready' | 'partial' | 'missing_data';
+
+/** Kesiapan satu keluaran (pemilihan bahan, sizing pipa, pompa, …) dari `ReadinessResolver`. */
+export interface ReadinessItem {
+  readonly output: string;
+  readonly label: string;
+  readonly readiness: OutputReadiness;
+  /** Label parameter wajib yang masih kurang. */
+  readonly missing: readonly string[];
+  /** Label parameter yang akan memperbaiki hasil. */
+  readonly improvable: readonly string[];
+}
+
+/**
+ * Bagian tetap jawaban teknis (brief §28), diisi dari state dan hasil engine — bukan dari model.
+ * Ringkasan = `headline`/`body`, Asumsi = `assumptions`, Produk = `products`; yang di sini adalah
+ * bagian yang sebelumnya tidak punya tempat: data diketahui, perhitungan, opsi, kesiapan, data kurang.
+ */
+export interface ComposedResponse {
+  /** Data yang diketahui — parameter dari pengguna (`origin: known`), label + nilai bersatuan. */
+  readonly knownData: readonly KeyValue[];
+  /** Parameter yang diisi asumsi (`origin: assumed`) — berdampingan dengan asumsi engine. */
+  readonly assumedData: readonly KeyValue[];
+  /** Perhitungan: satu baris per aturan yang dijalankan, penjelasan dari trace. */
+  readonly calculations: readonly KeyValue[];
+  readonly options: readonly SolutionOption[];
+  readonly readiness: readonly ReadinessItem[];
+  /** Data yang masih dibutuhkan: label parameter → pertanyaan bahasa pengguna (maks. 4). */
+  readonly missingData: readonly KeyValue[];
+}
+
 export interface Recommendation {
   readonly id: string;
   readonly conversationId: string;
@@ -110,6 +161,8 @@ export interface Recommendation {
   readonly irrigationStats?: IrrigationStats;
   /** Statistik ringkasan kasus teknis umum (`kind: 'technical'`), label bahasa pengguna. */
   readonly highlights?: readonly KeyValue[];
+  /** Bagian tetap jawaban teknis (Fase 14 §28); hanya `kind: 'technical'`. */
+  readonly composition?: ComposedResponse;
   readonly systemLines: readonly SystemLine[];
   readonly products: readonly SelectedProduct[];
   readonly bom: readonly BomItem[];

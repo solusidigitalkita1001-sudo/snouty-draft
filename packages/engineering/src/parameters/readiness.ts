@@ -24,6 +24,16 @@ export type OutputKey =
 
 export type Readiness = 'ready' | 'partial' | 'missing_data';
 
+/** Label keluaran dalam bahasa pengguna — untuk bagian "Kesiapan" jawaban (Fase 14 §28). */
+export const OUTPUT_LABELS: Readonly<Record<OutputKey, string>> = {
+  material_selection: 'Pemilihan bahan',
+  pipe_sizing: 'Ukuran pipa',
+  pump_sizing: 'Pompa',
+  network_layout: 'Tata letak jaringan',
+  bom: 'Perkiraan material',
+  product_matching: 'Produk Pralon',
+};
+
 export interface OutputRequirement {
   readonly output: OutputKey;
   /** Parameter yang wajib ada (langsung). */

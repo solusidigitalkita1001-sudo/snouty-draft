@@ -371,6 +371,17 @@ katalog yang tidak memisahkannya (katalog contoh). Fitting diterima penuh hanya 
 pemilik: **tidak ditebak AW**) menjadi `SIZE_NEEDS_VALIDATION`; kelas VERIFIED berbeda (D untuk AW)
 ditolak. Masih menunggu Pralon: arti token "W" dan fitting tanpa token (`docs/MATCHER_V2_PROPOSAL.md` §5).
 
+### OQ-50 — Layar "Opsi ukuran" dan "Kesiapan hasil" belum didesain
+
+**Status:** open, needs design · **Blocks:** — (dibangun minimal, P14-06)
+**Pertanyaan:** Brief Fase 14 §28 meminta jawaban teknis berbagian tetap (opsi dengan tradeoff,
+kesiapan per keluaran, data diketahui, data yang masih dibutuhkan). Prototipe desain tidak memuat
+bagian-bagian itu. Di mana tempatnya di workspace solusi, dan bagaimana bentuk tabel kandidat ukuran
+(status, penanda rekomendasi/alternatif, catatan)?
+**Default yang diterapkan:** dua kartu tambahan di tab Ringkasan (opsi, kesiapan) dan empat daftar di
+tab Material, memakai kelas/token kartu yang sudah ada; baris rekomendasi diberi penanda merah merek
+(seleksi), status memakai tag hijau/amber/abu dengan teks. Menunggu desain; jangan dianggap final.
+
 ### OQ-49 — Token worker untuk rute internal laporan di produksi
 
 **Status:** default disetujui pemilik dan diterapkan (2026-10-06) · **Blocks:** —

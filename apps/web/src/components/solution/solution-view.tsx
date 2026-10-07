@@ -9,7 +9,7 @@
  * aturan, bukan prosa — itulah yang membuat auditabilitas SPEC §8 terlihat pengguna.
  */
 
-import type { Recommendation, SelectedProduct } from '@snouty/shared-types';
+import type { ComposedResponse, Recommendation, SelectedProduct } from '@snouty/shared-types';
 import { useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { SchematicTab } from './schematic-tab';
@@ -145,6 +145,10 @@ export function SolutionView({
         </section>
       )}
 
+      {on('ringkasan') && recommendation.composition && (
+        <CompositionOptions composition={recommendation.composition} />
+      )}
+
       {on('material') && (
         <section className={styles.card}>
           <h3 className={styles.cardTitle}>{COPY.bomTitle}</h3>
@@ -196,6 +200,10 @@ export function SolutionView({
         </section>
       )}
 
+      {on('material') && recommendation.composition && (
+        <CompositionData composition={recommendation.composition} />
+      )}
+
       {on('produk') && recommendation.products.length > 0 && (
         <section className={styles.card}>
           <h3 className={styles.cardTitle}>{COPY.productsTitle}</h3>
@@ -215,6 +223,130 @@ export function SolutionView({
         <ProductDrawer selection={openProduct} onClose={() => setOpenProduct(null)} />
       )}
     </div>
+  );
+}
+
+/**
+ * Opsi ukuran + kesiapan hasil (Fase 14 §28) — layar BELUM DIDESAIN (OQ-50): dibangun minimal
+ * dengan token dan kelas yang sudah ada. Seluruh isinya dari `composition` yang dirakit server;
+ * status dan catatan tradeoff datang dari kode API, bukan dihitung di sini.
+ */
+function CompositionOptions({ composition }: { composition: ComposedResponse }) {
+  const C = COPY.composition;
+  return (
+    <>
+      {composition.options.length > 0 && (
+        <section className={styles.card}>
+          <h3 className={styles.cardTitle}>{C.optionsTitle}</h3>
+          <p className={styles.body}>{C.optionsHint}</p>
+          <div className={styles.bomTable} role="table">
+            {composition.options.map((option) => (
+              <div
+                key={option.size}
+                className={[
+                  styles.optionRow,
+                  option.recommended ? styles.optionRecommended : '',
+                ].join(' ')}
+                role="row"
+              >
+                <span className={styles.mono} role="cell">
+                  {option.size}
+                </span>
+                <span className={styles.optionTags} role="cell">
+                  <span
+                    className={[
+                      styles.tag,
+                      option.status === 'ok' ? styles.tagVerified : styles.tagAssumed,
+                    ].join(' ')}
+                  >
+                    {C.optionStatus[option.status]}
+                  </span>
+                  {option.recommended && (
+                    <span className={[styles.tag, styles.tagVerified].join(' ')}>
+                      {C.optionRecommended}
+                    </span>
+                  )}
+                  {option.alternative && (
+                    <span className={[styles.tag, styles.tagUnavailable].join(' ')}>
+                      {C.optionAlternative}
+                    </span>
+                  )}
+                </span>
+                <span className={styles.mono} role="cell">
+                  {option.metrics.map((m) => `${m.label} ${m.value}`).join(' · ')}
+                </span>
+                <span className={styles.bomBasis} role="cell">
+                  {option.note}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {composition.readiness.length > 0 && (
+        <section className={styles.card}>
+          <h3 className={styles.cardTitle}>{C.readinessTitle}</h3>
+          {composition.readiness.map((item) => (
+            <div key={item.output} className={styles.assumptionRow}>
+              <span className={styles.assumptionText}>
+                <strong>{item.label}</strong>
+                {item.missing.length > 0 && (
+                  <span className={styles.specMissing}>
+                    {' '}
+                    — {C.readinessMissing} {item.missing.join(', ')}
+                  </span>
+                )}
+                {item.missing.length === 0 && item.improvable.length > 0 && (
+                  <span className={styles.specMissing}>
+                    {' '}
+                    — {C.readinessImprovable} {item.improvable.join(', ')}
+                  </span>
+                )}
+              </span>
+              <span
+                className={[
+                  styles.tag,
+                  item.readiness === 'ready'
+                    ? styles.tagVerified
+                    : item.readiness === 'partial'
+                      ? styles.tagAssumed
+                      : styles.tagUnavailable,
+                ].join(' ')}
+              >
+                {C.readinessLabel[item.readiness]}
+              </span>
+            </div>
+          ))}
+        </section>
+      )}
+    </>
+  );
+}
+
+/** Data diketahui · parameter diasumsikan · perhitungan · data yang masih dibutuhkan (tab Material). */
+function CompositionData({ composition }: { composition: ComposedResponse }) {
+  const C = COPY.composition;
+  const list = (title: string, items: readonly { label: string; value: string }[]) =>
+    items.length > 0 && (
+      <section className={styles.card}>
+        <h3 className={styles.cardTitle}>{title}</h3>
+        {items.map((item) => (
+          <div key={`${item.label}-${item.value}`} className={styles.assumptionRow}>
+            <span className={styles.assumptionText}>
+              <strong>{item.label}</strong> {item.value}
+            </span>
+          </div>
+        ))}
+      </section>
+    );
+  return (
+    <>
+      {list(C.knownTitle, composition.knownData)}
+      {list(C.assumedTitle, composition.assumedData)}
+      {list(C.calculationsTitle, composition.calculations)}
+      {list(C.missingTitle, composition.missingData)}
+    </>
   );
 }
 

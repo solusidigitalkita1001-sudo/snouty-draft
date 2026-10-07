@@ -60,6 +60,8 @@ export const recommendations = mysqlTable(
     irrigationStats: json('irrigation_stats'),
     /** Statistik ringkasan kasus teknis umum (`KeyValue[]`); NULL selain `technical`. */
     highlights: json('highlights'),
+    /** Bagian tetap jawaban teknis (`ComposedResponse`, 0018, Fase 14 §28); NULL selain `technical`. */
+    composition: json('composition'),
     systemLines: json('system_lines').notNull(),
     products: json('products').notNull(),
     bom: json('bom').notNull(),
