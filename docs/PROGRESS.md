@@ -735,7 +735,7 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       analisis langsung ke controller; `sseWriter` menulis header SSE pada event pertama, sehingga
       galat sebelum itu tetap JSON berstatus benar dan sesudahnya menjadi event `error`.
       **Instrumentasi tahap:** `stageTimer` — log terstruktur per giliran `{load, route, answer,
-  persist, total}` + intent. **Ekstraksi gabungan satu panggilan: dievaluasi dan DITOLAK** untuk
+persist, total}` + intent. **Ekstraksi gabungan satu panggilan: dievaluasi dan DITOLAK** untuk
       qwen2.5 7B di CPU — prompt gabungan ±30 s saat cache prompt dingin, pesan di luar topik yang
       kini 4 s menjadi 18–30 s; keuntungan giliran kebutuhan hanya ±4 s (22 → 18 s). Judul sudah di
       latar sejak P4; registry/profil konstanta in-memory (tanpa cache tambahan). 4 tes baru.
@@ -750,7 +750,8 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       2026-10-07: **tetap Ollama 7B** (biaya nol); kualitas/latensi setara ChatGPT/Claude tidak
       tercapai dengan itu — dicatat jujur di laporan checkpoint. Bilingual ID/EN penuh disetujui →
       P15
-- [ ] ✋ CHECKPOINT — reviewed by owner (12 skenario uji §39 + laporan akhir §45)
+- [ ] ✋ CHECKPOINT — reviewed by owner (12 skenario uji §39 + laporan akhir §45) — laporan siap:
+      `docs/PHASE14_CHECKPOINT.md` (2026-10-07), menunggu tinjauan pemilik
 
 ## Design Coverage
 
