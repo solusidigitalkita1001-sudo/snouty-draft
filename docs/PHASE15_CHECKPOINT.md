@@ -76,7 +76,8 @@ tidak ada muat ulang model setelah jeda.
   konsep & fitting, pemilihan produk terbaik, SKU ekspor disembunyikan; **P16-05** ubah bentuk
   (tabel/poin/ringkas) + tabel Markdown di gelembung.
 - Tampilan: composer textarea yang tumbuh, drawer riwayat di ponsel, badge langkah & tautan mati
-  dihapus, **tanpa metatext** (aturan baru di `.claude/CLAUDE.md`).
+  dihapus, **tanpa metatext** (aturan baru di `.claude/CLAUDE.md`); cincin fokus composer hanya
+  di kartu, bukan dobel di textarea (P16-03c).
 
 ## 5. Risiko yang tersisa
 

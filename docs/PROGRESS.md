@@ -902,7 +902,8 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       di kaki sidebar; SATU tombol Simpan untuk nama dan kata sandi; `/akun` dihapus. Banner
       "TAMPILAN/BAGIAN SEMENTARA · MENUNGGU DESAIN" dibuang dari layar masuk/daftar, modal laporan,
       dan laci produk (status "needs design" cukup di OQ-21/OQ-53). Tes: account-modal 3,
-      auth-form disesuaikan
+      auth-form disesuaikan. P16-03c: textarea composer tidak lagi menggambar cincin fokusnya sendiri
+      di dalam kartu yang sudah berbingkai fokus (laporan pemilik)
 - [x] P16-04 "apa bedanya fitting sama hdpe?" (laporan pemilik 2026-10-07): pertanyaan konsep
       tidak pernah menjadi lookup aspek (`PRODUCT_CONCEPT` → aspek `null` di heuristik DAN di
       pipeline, apa pun kata model); pengetahuan konsep **fitting** + kalimat pembanding
