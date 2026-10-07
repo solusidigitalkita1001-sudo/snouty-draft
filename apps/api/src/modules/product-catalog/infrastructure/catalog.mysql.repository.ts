@@ -205,7 +205,13 @@ export class MysqlCatalogRepository implements CatalogRepository {
       // LIKE, bukan indeks full-text: katalognya ratusan baris, dan full-text di
       // MySQL punya daftar stopword sendiri yang akan membuang kata seperti "AW".
       const term = `%${escapeLike(query.q.trim())}%`;
-      const match = or(like(products.name, term), like(products.sku, term));
+      // Keluarga ikut dicari: di katalog ERP Pralon nama pipa adalah "Pipa (Plain End) Abu AW 1/2"",
+      // dan "PVC AW" hanya ada di `family` — tanpa ini "ada ukuran 3/4 PVC AW?" menjawab "tidak ada".
+      const match = or(
+        like(products.name, term),
+        like(products.sku, term),
+        like(products.family, term),
+      );
       if (match !== undefined) conditions.push(match);
     }
 

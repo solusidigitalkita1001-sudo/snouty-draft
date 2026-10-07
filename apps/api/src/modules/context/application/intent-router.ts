@@ -53,6 +53,16 @@ export function withRequirementPrecedence(
   if (classification.intent === 'COMPETITOR_QUESTION' && !mentionsCompetitor(message)) {
     classification = { intent: 'PRODUCT_LOOKUP', confidence: classification.confidence };
   }
+  // Pagar yang sama untuk PERUSAHAAN: label model hanya berlaku bila pesannya memang menyebut
+  // Pralon/perusahaan. Model 7B melabeli "hi, I want to ask something" sebagai COMPANY_QUESTION
+  // (checkpoint Fase 15, S4) — sapaan itu pembuka, bukan profil perusahaan.
+  if (
+    classification.intent === 'COMPANY_QUESTION' &&
+    !asksAboutCompany(message) &&
+    !/\bpralon\b/i.test(message)
+  ) {
+    classification = { intent: 'OUT_OF_SCOPE', confidence: classification.confidence };
+  }
 
   const yields =
     YIELDS_TO_REQUIREMENT.has(classification.intent) ||

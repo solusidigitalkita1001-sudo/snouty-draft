@@ -120,6 +120,19 @@ describe('IntentRouter — presedensi kebutuhan (intent sadar konteks)', () => {
     expect(calls).toBe(1);
   });
 
+  it('COMPANY_QUESTION dari model tanpa Pralon/perusahaan di pesan → OUT_OF_SCOPE (sapaan tetap pembuka)', async () => {
+    const d = await router({ intent: 'COMPANY_QUESTION', confidence: 0.9 }).route(
+      'hi, I want to ask something',
+      false,
+    );
+    expect(d.intent).toBe('OUT_OF_SCOPE');
+    const real = await router({ intent: 'COMPANY_QUESTION', confidence: 0.9 }).route(
+      'tell me about pralon as a company',
+      false,
+    );
+    expect(real.intent).toBe('COMPANY_QUESTION');
+  });
+
   it('tanpa isyarat kebutuhan, label model dipakai apa adanya', async () => {
     const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.85 }).route(
       'apa bedanya pvc sama hdpe?',

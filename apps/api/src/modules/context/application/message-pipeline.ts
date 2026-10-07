@@ -310,15 +310,24 @@ function understoodReply(
   nextCard: AssistantCard['kind'] | null,
   locale: Locale,
 ): string | null {
-  // Angka telanjang tidak bermakna ("2, 3"): angka membawa labelnya ("2 lantai", "3 kamar mandi");
-  // nilai bernama ("toren atap", "air bersih") sudah jelas sendiri.
-  const captured = capturedFrom(state, locale)
-    .filter((row) => row.value.trim() !== '')
-    .map((row) =>
-      /^\d+([.,]\d+)?$/.test(row.value.trim())
-        ? `${row.value.trim()} ${row.label.toLowerCase()}`
-        : row.value.toLowerCase(),
-    );
+  // Kalimat, bukan tabel: jumlah fixture membawa NAMA field-nya ("3 kamar mandi", bukan "3 titik"
+  // seperti di panel yang sudah berlabel); lantai dan nilai bernama memakai label nilainya.
+  const en = locale === 'en';
+  const captured: string[] = [];
+  for (const [path, field] of fieldEntries(state)) {
+    if (field.value === null || path === 'building.floorHeightM' || path === 'building.dimensions')
+      continue;
+    if (path.startsWith('fixtures.') && typeof field.value === 'number') {
+      if (field.value === 0) continue;
+      const label = requirementFieldLabel(path, locale).toLowerCase();
+      captured.push(
+        en && field.value === 1 ? `1 ${label.replace(/s$/, '')}` : `${field.value} ${label}`,
+      );
+      continue;
+    }
+    if (typeof field.value === 'boolean') continue;
+    captured.push(requirementValueLabel(path, field.value, locale).toLowerCase());
+  }
   if (captured.length === 0) return null;
   const summary = captured.join(', ');
   if (nextCard === 'cta') {
