@@ -129,13 +129,17 @@ describe('extractionToUpdates — peniadaan tersurat yang dilewatkan model', () 
 });
 
 describe('extractionToUpdates — letak toren tersurat mengalahkan model (produksi 2026-10-07)', () => {
-  it('"toren di atap" + model ground_tank → rooftop_tank; tanpa penanda letak, model dipakai', () => {
+  it('"toren di atap" + model ground_tank → rooftop_tank; toren TANPA letak → ditanya, tebakan model dibuang', () => {
     const src = (m: string, model: 'ground_tank' | 'rooftop_tank' | undefined) =>
       extractionToUpdates({ water: { source: model } }, m).find((u) => u.path === 'water.source')
         ?.value;
     expect(src('rumah 2 lantai, toren di atap', 'ground_tank')).toBe('rooftop_tank');
     expect(src('tandon bawah tanah 2 m³', 'rooftop_tank')).toBe('ground_tank');
-    expect(src('air dari toren', 'ground_tank')).toBe('ground_tank');
+    // Produksi 2026-10-07: "mau pasang 2 toren" → model menulis ground_tank → "toren bawah" tercatat.
+    expect(src('air dari toren', 'ground_tank')).toBeUndefined();
+    expect(src('rencana aku mau pasang 2 toren supaya cukup', 'ground_tank')).toBeUndefined();
+    // Tanpa kata toren, nilai model tetap dipakai (tidak ada yang bisa dibaca kode).
+    expect(src('air dari pompa sumur', 'ground_tank')).toBe('ground_tank');
     expect(src('air PDAM langsung', undefined)).toBe('municipal');
   });
 });

@@ -965,7 +965,8 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       "cara nyambung pipa pvc pakai lem" tidak lagi dijawab sebagai aspek sambungan katalog
       (pertanyaan cara = pengetahuan), "harganya berapa?" tanpa subjek langsung kebijakan harga
       (tanpa model), pertanyaan topik (penyimpanan, cara) dibuka dengan topiknya sebelum ikhtisar
-      bahan. Tes: message-pipeline +1, heuristics +1, pipe-knowledge disesuaikan
+      bahan. Toren tanpa letak ("mau pasang 2 toren") tidak lagi ditebak "toren bawah" oleh model —
+      sumber air masuk klarifikasi. Tes: message-pipeline +1, heuristics +1, grounding +1
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

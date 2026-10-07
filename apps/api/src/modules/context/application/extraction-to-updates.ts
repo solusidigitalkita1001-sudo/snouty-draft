@@ -227,7 +227,15 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   );
   add('fixtures.outletCount', extraction.fixtures?.outletCount);
 
-  add('water.source', OBVIOUS.source(message) ?? extraction.water?.source);
+  // Toren disebut tanpa letaknya ("mau pasang 2 toren", produksi 2026-10-07): model menebak
+  // `ground_tank` dan lolos. Letak toren adalah pertanyaan yang pantas ditanyakan, bukan ditebak —
+  // nilai model dibuang, sumber air masuk klarifikasi.
+  const tankWithoutLocation =
+    /\b(toren|tandon|tangki|tanks?)\b/i.test(message) && OBVIOUS.source(message) === undefined;
+  add(
+    'water.source',
+    OBVIOUS.source(message) ?? (tankWithoutLocation ? undefined : extraction.water?.source),
+  );
   add(
     'water.installationType',
     extraction.water?.installationType ?? OBVIOUS.installationType(message),
