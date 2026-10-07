@@ -10,11 +10,13 @@
  * Nilai disimpan sebagai LABEL yang dipilih/disebut pengguna, bukan enum: tidak ada mesin yang
  * membacanya selain manusia di tim teknis, dan label lebih jujur daripada enum yang dipaksakan.
  */
-import type {
-  ClarificationQuestion,
-  IrrigationField,
-  KeyValue,
-  RequirementState,
+import {
+  DEFAULT_LOCALE,
+  type ClarificationQuestion,
+  type IrrigationField,
+  type KeyValue,
+  type Locale,
+  type RequirementState,
 } from '@snouty/shared-types';
 
 export const UNKNOWN = 'Belum tahu';
@@ -68,6 +70,55 @@ export const IRRIGATION_TEMPLATES: Readonly<Record<IrrigationField, IrrigationTe
     required: false,
   },
 };
+
+/** Redaksi Inggris sebuah field; `optionLabels` sejajar dengan `options` templat Indonesia. */
+interface IrrigationTemplateEn {
+  readonly label: string;
+  readonly question: string;
+  readonly optionLabels: readonly string[];
+}
+
+/** Kembaran Inggris `IRRIGATION_TEMPLATES` — kunci sama; `options` (protokol) tetap Indonesia. */
+export const IRRIGATION_TEMPLATES_EN: Readonly<Record<IrrigationField, IrrigationTemplateEn>> = {
+  'irrigation.source': {
+    label: 'Water source',
+    question: 'Where does the water come from?',
+    optionLabels: ['River / canal', 'Well / pump', 'Reservoir / pond', 'Municipal water (PDAM)'],
+  },
+  'irrigation.areaHa': {
+    label: 'Land area',
+    question: 'Roughly how large is the land?',
+    optionLabels: ['Under 0.5 ha', '0.5–1 ha', '1–2 ha', 'Over 2 ha'],
+  },
+  'irrigation.method': {
+    label: 'Irrigation type',
+    question: 'What type of irrigation?',
+    optionLabels: ['Flood / gravity', 'Sprinkler', 'Drip'],
+  },
+  'irrigation.distance': {
+    label: 'Distance from source to land',
+    question: 'How far is the water source from the land?',
+    optionLabels: ['Under 50 m', '50–200 m', '200–500 m', 'Over 500 m'],
+  },
+  'irrigation.elevation': {
+    label: 'Height difference',
+    question: 'Where is the water source relative to the land?',
+    optionLabels: ['Lower', 'Level', 'Higher'],
+  },
+  'irrigation.pump': {
+    label: 'Pump',
+    question: 'Will a pump be used?',
+    optionLabels: ['Yes', 'No'],
+  },
+};
+
+/** Label field menurut bahasa percakapan. */
+export function irrigationFieldLabel(
+  field: IrrigationField,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  return locale === 'en' ? IRRIGATION_TEMPLATES_EN[field].label : IRRIGATION_TEMPLATES[field].label;
+}
 
 export const IRRIGATION_FIELDS = Object.keys(IRRIGATION_TEMPLATES) as readonly IrrigationField[];
 const MAX_QUESTIONS = 4;
@@ -155,15 +206,29 @@ export function isIrrigationComplete(state: RequirementState): boolean {
 /** Kartu klarifikasi irigasi: maksimum empat, urutan prioritas, selalu ada "Belum tahu". */
 export function planIrrigationClarification(
   state: RequirementState,
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly ClarificationQuestion[] {
   return irrigationMissing(state)
     .slice(0, MAX_QUESTIONS)
-    .map((id) => ({
-      id,
-      question: IRRIGATION_TEMPLATES[id].question,
-      options: IRRIGATION_TEMPLATES[id].options,
-      allowUnknown: true,
-    }));
+    .map((id): ClarificationQuestion => {
+      // `options` selalu nilai protokol Indonesia; bahasa lain hanya mengubah tampilan.
+      if (locale === 'en') {
+        const en = IRRIGATION_TEMPLATES_EN[id];
+        return {
+          id,
+          question: en.question,
+          options: IRRIGATION_TEMPLATES[id].options,
+          optionLabels: en.optionLabels,
+          allowUnknown: true,
+        };
+      }
+      return {
+        id,
+        question: IRRIGATION_TEMPLATES[id].question,
+        options: IRRIGATION_TEMPLATES[id].options,
+        allowUnknown: true,
+      };
+    });
 }
 
 /** Label pilihan yang sah untuk sebuah pertanyaan irigasi (atau "Belum tahu"); lainnya `null`. */
@@ -186,11 +251,14 @@ function normalizeLabel(label: string): string {
 }
 
 /** Baris "yang sudah saya catat" untuk kartu handoff dan antrean tim teknis. */
-export function irrigationCaptured(state: RequirementState): readonly KeyValue[] {
+export function irrigationCaptured(
+  state: RequirementState,
+  locale: Locale = DEFAULT_LOCALE,
+): readonly KeyValue[] {
   if (state.useCase?.kind !== 'irrigation') return [];
   const answers = state.useCase.answers;
   return IRRIGATION_FIELDS.filter((f) => answers[f] !== undefined).map((f) => ({
-    label: IRRIGATION_TEMPLATES[f].label,
+    label: irrigationFieldLabel(f, locale),
     value: answers[f]!,
   }));
 }

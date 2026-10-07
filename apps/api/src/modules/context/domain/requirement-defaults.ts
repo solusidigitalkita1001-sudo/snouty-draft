@@ -12,7 +12,13 @@
  * stabil dan bisa diuji.
  */
 
-import type { FieldSource, RequirementFieldPath, TrackedValue } from '@snouty/shared-types';
+import {
+  DEFAULT_LOCALE,
+  type FieldSource,
+  type Locale,
+  type RequirementFieldPath,
+  type TrackedValue,
+} from '@snouty/shared-types';
 import type { FieldUpdate } from './context-merger.js';
 
 export interface RequirementDefault {
@@ -48,6 +54,20 @@ export const REQUIREMENT_DEFAULTS: readonly RequirementDefault[] = [
     ruleId: 'ENG-014',
   },
 ];
+
+/** Kembaran Inggris `reason` tiap default — kunci sama dengan path di `REQUIREMENT_DEFAULTS`. */
+export const REQUIREMENT_DEFAULT_REASONS_EN: Readonly<
+  Partial<Record<RequirementFieldPath, string>>
+> = {
+  'water.source': 'The distribution source is a rooftop tank, with no booster pump.',
+  'water.installationType': 'The installation is assumed to be for clean water only.',
+  'building.floorHeightM': 'Floor-to-floor height is assumed to be 3.5 metres.',
+};
+
+/** Kalimat alasan default menurut bahasa; Indonesia = `reason` tabel apa adanya. */
+export function defaultReason(def: RequirementDefault, locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en' ? (REQUIREMENT_DEFAULT_REASONS_EN[def.path] ?? def.reason) : def.reason;
+}
 
 const BY_PATH: ReadonlyMap<RequirementFieldPath, RequirementDefault> = new Map(
   REQUIREMENT_DEFAULTS.map((d) => [d.path, d]),
@@ -86,6 +106,7 @@ export interface AssumptionCardItem {
  */
 export function assumptionCard(
   fields: ReadonlyArray<readonly [RequirementFieldPath, TrackedValue<unknown>]>,
+  locale: Locale = DEFAULT_LOCALE,
 ): readonly AssumptionCardItem[] {
   const items: AssumptionCardItem[] = [];
   for (const [path, value] of fields) {
@@ -93,9 +114,16 @@ export function assumptionCard(
     if (!value.reason) {
       throw new Error(`invarian TV-1: field ASSUMED '${path}' tidak punya reason`);
     }
+    // Reason tersimpan adalah kalimat Indonesia dari tabel default; di en dipakai kembarannya,
+    // dan reason lain (bukan dari tabel) ditampilkan apa adanya.
+    const def = BY_PATH.get(path);
+    const reason =
+      locale === 'en' && def !== undefined && value.reason === def.reason
+        ? defaultReason(def, locale)
+        : value.reason;
     items.push({
       path,
-      reason: value.reason,
+      reason,
       ...(value.ruleId !== undefined ? { ruleId: value.ruleId } : {}),
     });
   }

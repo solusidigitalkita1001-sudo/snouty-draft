@@ -3,7 +3,15 @@
  * standar, atau merek lain pun ada di dalamnya — yang berangka hanya boleh datang dari katalog.
  */
 import { describe, expect, it } from 'vitest';
-import { CONCEPTS, MATERIALS, adviseMaterials, explain, materialsIn } from './pipe-knowledge.js';
+import {
+  CONCEPTS,
+  MATERIALS,
+  adviseMaterials,
+  briefComparison,
+  conceptsIn,
+  explain,
+  materialsIn,
+} from './pipe-knowledge.js';
 import { keepsStructure } from './product-question-pipeline.js';
 
 describe('pipe knowledge', () => {
@@ -90,5 +98,46 @@ describe('pipe knowledge', () => {
       'PPR',
     ]);
     expect(materialsIn('pipa besi vs pvc', null).map((m) => m.family)).toEqual(['PVC', 'Galvanis']);
+  });
+
+  it('locale: Indonesia tidak berubah; Inggris berstruktur sama (jumlah butir dan label tebal)', () => {
+    const q = 'apa bedanya pvc sama hdpe?';
+    expect(explain(q, null, 'id')).toBe(explain(q, null));
+    expect(explain(q, null)).toMatch(/^Singkatnya, \*\*PVC \(uPVC\) kaku dan dipasok batangan\*\*/);
+
+    const id = explain(q, null);
+    const en = explain('what is the difference between pvc and hdpe?', null, 'en');
+    const bullets = (t: string) => t.split('\n').filter((l) => l.startsWith('- ')).length;
+    const bolds = (t: string) => (t.match(/\*\*/g) ?? []).length;
+    expect(en).toMatch(/^In short, \*\*PVC \(uPVC\) is rigid/);
+    expect(en).toContain('- Joining:');
+    expect(en).not.toMatch(/\b(dan|sambungan|bentuk)\b/i);
+    expect(bullets(en)).toBe(bullets(id));
+    expect(bolds(en)).toBe(bolds(id));
+  });
+
+  it('locale en: satu bahan, konsep, ringkasan, dan saran; kata kunci Inggris dikenali', () => {
+    expect(materialsIn('is buried steel pipe ok?', null).map((m) => m.family)).toEqual([
+      'Galvanis',
+    ]);
+    expect(conceptsIn('is buried pipe ok?').map((c) => c.topic)).toEqual(['pipa tanam']);
+    expect(explain('tell me about ppr', null, 'en')).toMatch(/^\*\*PPR\*\* is rigid/);
+    expect(explain('buried pipe', null, 'en')).toMatch(/^Buried pipe carries/);
+    const [pvc, hdpe] = MATERIALS;
+    expect(briefComparison([pvc!, hdpe!], 'en')).toBe(
+      'As above: **PVC (uPVC) is rigid and supplied in straight lengths**, while **HDPE is flexible and can be coiled**.',
+    );
+    const advice = adviseMaterials(
+      [pvc!, hdpe!],
+      {
+        buildingLabel: 'house',
+        floors: 2,
+        needsMoreData: true,
+      },
+      'en',
+    );
+    expect(advice.split('\n').filter((l) => l.startsWith('- '))).toHaveLength(2);
+    expect(advice).toMatch(/^For a house with 2 floors, the choice of material/);
+    expect(advice).toContain('I need a few things');
   });
 });

@@ -83,3 +83,31 @@ describe('irigasi', () => {
     expect(state.completeness.filled).toBe(0);
   });
 });
+
+describe('irigasi dwibahasa', () => {
+  const { state } = applyIrrigationAnswers(emptyRequirementState(T0), {
+    'irrigation.areaHa': '1–2 ha',
+  });
+
+  it('id tidak berubah; en: pertanyaan Inggris, options tetap Indonesia, optionLabels Inggris', () => {
+    expect(planIrrigationClarification(state, 'id')).toEqual(planIrrigationClarification(state));
+    const en = planIrrigationClarification(state, 'en');
+    const source = en.find((q) => q.id === 'irrigation.source')!;
+    expect(source.question).toBe('Where does the water come from?');
+    expect(source.options).toEqual(['Sungai / saluran', 'Sumur / pompa', 'Embung / kolam', 'PDAM']);
+    expect(source.optionLabels).toEqual([
+      'River / canal',
+      'Well / pump',
+      'Reservoir / pond',
+      'Municipal water (PDAM)',
+    ]);
+    for (const q of en) expect(q.optionLabels).toHaveLength(q.options.length);
+    expect(irrigationAnswerValue('irrigation.source', 'Sungai / saluran')).toBe('Sungai / saluran');
+    expect(irrigationAnswerValue('irrigation.source', 'Belum tahu')).toBe('Belum tahu');
+  });
+
+  it('irrigationCaptured: label per bahasa, nilai apa adanya', () => {
+    expect(irrigationCaptured(state, 'id')).toEqual([{ label: 'Luas lahan', value: '1–2 ha' }]);
+    expect(irrigationCaptured(state, 'en')).toEqual([{ label: 'Land area', value: '1–2 ha' }]);
+  });
+});

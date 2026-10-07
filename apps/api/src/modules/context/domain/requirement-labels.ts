@@ -4,7 +4,7 @@
  * `water.installationType: drainage` apa adanya; path dan enum adalah bahasa kode, bukan
  * bahasa pengguna. Redaksinya sama dengan laporan (`report-assembler.ts`) dan panel kanan.
  */
-import type { RequirementFieldPath } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, type Locale, type RequirementFieldPath } from '@snouty/shared-types';
 
 export const FIELD_LABEL: Readonly<Record<RequirementFieldPath, string>> = {
   'building.type': 'Tipe bangunan',
@@ -20,6 +20,28 @@ export const FIELD_LABEL: Readonly<Record<RequirementFieldPath, string>> = {
   'water.boosterPump': 'Pompa pendorong',
 };
 
+export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
+  'building.type': 'Building type',
+  'building.floors': 'Number of floors',
+  'building.floorHeightM': 'Floor-to-floor height',
+  'building.dimensions': 'Pipe run length',
+  'fixtures.bathrooms': 'Bathrooms',
+  'fixtures.basins': 'Basins',
+  'fixtures.kitchens': 'Kitchens',
+  'fixtures.outletCount': 'Water outlets',
+  'water.source': 'Water source',
+  'water.installationType': 'Installation type',
+  'water.boosterPump': 'Booster pump',
+};
+
+/** Label field menurut bahasa percakapan. */
+export function requirementFieldLabel(
+  path: RequirementFieldPath,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  return (locale === 'en' ? FIELD_LABEL_EN : FIELD_LABEL)[path];
+}
+
 const VALUE_LABEL: Readonly<Record<string, string>> = {
   residential: 'Rumah tinggal',
   boarding_house: 'Rumah kos',
@@ -34,16 +56,41 @@ const VALUE_LABEL: Readonly<Record<string, string>> = {
   both: 'Air bersih + pembuangan',
 };
 
-export function requirementValueLabel(path: RequirementFieldPath, value: unknown): string {
-  if (typeof value === 'boolean') return value ? 'Ya' : 'Tidak';
+const VALUE_LABEL_EN: Readonly<Record<string, string>> = {
+  residential: 'Residential',
+  boarding_house: 'Boarding house',
+  light_commercial: 'Light commercial',
+  industrial: 'Industrial',
+  rooftop_tank: 'Rooftop tank',
+  ground_tank: 'Ground tank',
+  pump: 'Pump',
+  municipal: 'Municipal water (PDAM)',
+  clean_water: 'Clean water',
+  drainage: 'Drainage',
+  both: 'Clean water + drainage',
+};
+
+function plural(n: number, one: string, many: string): string {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+export function requirementValueLabel(
+  path: RequirementFieldPath,
+  value: unknown,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const en = locale === 'en';
+  if (typeof value === 'boolean') return en ? (value ? 'Yes' : 'No') : value ? 'Ya' : 'Tidak';
   if (typeof value === 'number') {
-    if (path === 'building.floors') return `${value} lantai`;
+    if (path === 'building.floors')
+      return en ? plural(value, 'floor', 'floors') : `${value} lantai`;
     if (path === 'building.floorHeightM') return `${value} m`;
-    if (path.startsWith('fixtures.')) return `${value} titik`;
+    if (path.startsWith('fixtures.'))
+      return en ? plural(value, 'point', 'points') : `${value} titik`;
     return String(value);
   }
   if (typeof value === 'object' && value !== null && 'mainRunMeters' in value) {
     return `${String((value as { mainRunMeters: unknown }).mainRunMeters)} m`;
   }
-  return VALUE_LABEL[String(value)] ?? String(value);
+  return (en ? VALUE_LABEL_EN : VALUE_LABEL)[String(value)] ?? String(value);
 }

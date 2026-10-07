@@ -57,11 +57,13 @@ export class RecommendationController {
       events = [{ type: 'error', code: 'VALIDATION_FAILED', retryable: false }];
     } else {
       try {
-        const assumptions = assumptionCardFor(snapshot.state).map((item) => ({
-          text: item.reason,
-          fieldPath: item.path,
-          ...(item.ruleId !== undefined ? { ruleId: item.ruleId } : {}),
-        }));
+        const assumptions = assumptionCardFor(snapshot.state, conversation.language).map(
+          (item) => ({
+            text: item.reason,
+            fieldPath: item.path,
+            ...(item.ruleId !== undefined ? { ruleId: item.ruleId } : {}),
+          }),
+        );
         events = await this.analysis.run(
           id,
           snapshot.id,

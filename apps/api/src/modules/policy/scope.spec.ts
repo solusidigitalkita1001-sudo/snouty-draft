@@ -8,6 +8,9 @@ import { describe, expect, it } from 'vitest';
 import {
   competitorPolicy,
   irrigationHandoffPolicy,
+  neutralCriteria,
+  NEUTRAL_CRITERIA_EN,
+  technicalHandoffPolicy,
   NEUTRAL_CRITERIA,
   scopePolicy,
   useCasePolicy,
@@ -113,5 +116,58 @@ describe('Policy 5 — scope routing', () => {
     expect(scopePolicy({ buildingType: null, installationType: null, floors: null }).kind).toBe(
       'supported',
     );
+  });
+});
+
+describe('Policy teks dwibahasa (Fase 15)', () => {
+  it("'id' tidak berubah dan menjadi bawaan", () => {
+    expect(
+      scopePolicy({ buildingType: 'industrial', installationType: null, floors: null }),
+    ).toEqual({
+      kind: 'policy',
+      code: 'TECHNICAL_VALIDATION_REQUIRED',
+      reasons: ['Instalasi industri memerlukan pemeriksaan tim teknis Pralon.'],
+    });
+    expect(competitorPolicy('id')).toEqual(competitorPolicy());
+    expect(competitorPolicy('id')).toMatchObject({ reasons: NEUTRAL_CRITERIA });
+  });
+
+  it("'en' memberi teks Inggris dengan struktur dan kode yang sama", () => {
+    const industrial = scopePolicy(
+      { buildingType: 'industrial', installationType: null, floors: null },
+      'en',
+    );
+    expect(industrial).toEqual({
+      kind: 'policy',
+      code: 'TECHNICAL_VALIDATION_REQUIRED',
+      reasons: ['Industrial installations require review by the Pralon technical team.'],
+    });
+    const floors = scopePolicy({ buildingType: null, installationType: null, floors: 6 }, 'en');
+    expect(floors).toMatchObject({ reasons: [expect.stringContaining('6-storey')] });
+    const drainage = scopePolicy(
+      { buildingType: null, installationType: 'drainage', floors: null },
+      'en',
+    );
+    expect(drainage).toMatchObject({ code: 'SCOPE_NOT_YET_SUPPORTED' });
+    expect(irrigationHandoffPolicy('en')).toMatchObject({
+      code: 'TECHNICAL_VALIDATION_REQUIRED',
+      reasons: [expect.stringContaining('irrigation'), expect.stringContaining('technical team')],
+    });
+    expect(technicalHandoffPolicy('Fish Pond', 'en')).toMatchObject({
+      reasons: [expect.stringContaining('fish pond data'), expect.any(String)],
+    });
+    expect(useCasePolicy('hot water for the boiler', 'en')).toMatchObject({
+      code: 'TECHNICAL_VALIDATION_REQUIRED',
+      reasons: [expect.stringContaining('outside the scope'), expect.any(String)],
+    });
+    expect(useCasePolicy('rumah 2 lantai', 'en')).toEqual({ kind: 'supported' });
+    const competitor = competitorPolicy('en');
+    expect(competitor).toMatchObject({ code: 'COMPETITOR_COMPARISON_REFUSED' });
+  });
+
+  it('NEUTRAL_CRITERIA_EN punya jumlah butir yang sama dan selektor memilihnya', () => {
+    expect(NEUTRAL_CRITERIA_EN).toHaveLength(NEUTRAL_CRITERIA.length);
+    expect(neutralCriteria('en')).toBe(NEUTRAL_CRITERIA_EN);
+    expect(neutralCriteria('id')).toBe(NEUTRAL_CRITERIA);
   });
 });

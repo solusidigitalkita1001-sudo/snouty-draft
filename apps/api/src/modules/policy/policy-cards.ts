@@ -11,8 +11,13 @@
  * (docs/DESIGN_IMPLEMENTATION.md §10) — ia hidup di satu tempat dan tidak diparafrase.
  */
 
-import type { AssistantCard, KeyValue } from '@snouty/shared-types';
-import { NEUTRAL_CRITERIA, type PolicyOutcome } from './scope.js';
+import {
+  DEFAULT_LOCALE,
+  type AssistantCard,
+  type KeyValue,
+  type Locale,
+} from '@snouty/shared-types';
+import { neutralCriteria, type PolicyOutcome } from './scope.js';
 
 /** Janji waktu tanggap tim teknis (layar 11). Satu angka, satu tempat. */
 export const TECHNICAL_SLA_HOURS = 24;
@@ -24,6 +29,7 @@ export const TECHNICAL_SLA_HOURS = 24;
 export function policyCard(
   outcome: PolicyOutcome,
   captured: readonly KeyValue[] = [],
+  locale: Locale = DEFAULT_LOCALE,
 ): AssistantCard | null {
   if (outcome.kind === 'supported') return null;
 
@@ -32,7 +38,10 @@ export function policyCard(
     // akan meninggalkan pengguna tanpa jalan keluar — dan itu bukan jawaban.
     return {
       kind: 'criteria',
-      items: NEUTRAL_CRITERIA.map((detail) => ({ label: 'Kriteria', detail })),
+      items: neutralCriteria(locale).map((detail) => ({
+        label: locale === 'en' ? 'Criterion' : 'Kriteria',
+        detail,
+      })),
     };
   }
 

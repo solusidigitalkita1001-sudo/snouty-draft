@@ -76,3 +76,17 @@ describe('default "Belum tahu"', () => {
     expect(assumptionCard(fieldEntries(stated))).toEqual([]);
   });
 });
+
+describe('kartu asumsi dwibahasa', () => {
+  const update = defaultUpdateFor('water.source')!;
+  const { state } = mergeRequirement(emptyRequirementState(T0), [update], T1);
+
+  it('id tetap kalimat tabel; en memakai kalimat Inggris dengan path dan ruleId sama', () => {
+    expect(assumptionCard(fieldEntries(state), 'id')).toEqual(assumptionCard(fieldEntries(state)));
+    expect(assumptionCard(fieldEntries(state), 'en')).toContainEqual({
+      path: 'water.source',
+      reason: 'The distribution source is a rooftop tank, with no booster pump.',
+      ruleId: 'ENG-014',
+    });
+  });
+});

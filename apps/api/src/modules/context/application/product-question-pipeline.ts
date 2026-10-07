@@ -18,7 +18,7 @@
  * dasar pernyataan apa pun tentang Pralon, dan produknya tidak dipakai sebagai pendukung
  * jawaban konsep.
  */
-import type { Locale } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import {
   PipeSize,
   specHasValue,
@@ -37,7 +37,7 @@ import { endEvent } from './message-pipeline.js';
 import { asksProductRange } from '../domain/message-signals.js';
 import { MATERIALS, briefComparison, explain, materialsIn } from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
-import { answerText, overviewText, PRODUCT_ANSWER_COPY } from './product-answer-text.js';
+import { answerText, overviewText, productAnswerCopy } from './product-answer-text.js';
 
 /** Maksimal produk yang dijawab sekaligus — "bedanya A dan B" adalah dua. */
 const MAX_PRODUCTS = 2;
@@ -79,6 +79,7 @@ export async function runProductQuestion(
   reply: ReplyWriter | null = null,
   faqPrompt: string | null = null,
 ): Promise<readonly AssistantStreamEvent[]> {
+  const locale = input.locale ?? DEFAULT_LOCALE;
   let parsed;
   try {
     parsed = await ai.parseProductQuestion(input.message);
@@ -93,7 +94,7 @@ export async function runProductQuestion(
   const outcome =
     aspect === null
       ? await answerConcept(catalog, input, query, reply, faqPrompt)
-      : await answerSpec(catalog, questions, query, aspect, parsed?.size ?? null);
+      : await answerSpec(catalog, questions, query, aspect, parsed?.size ?? null, locale);
 
   return [
     { type: 'message.start', messageId: input.messageId },
@@ -117,13 +118,15 @@ async function answerConcept(
   reply: ReplyWriter | null,
   faqPrompt: string | null,
 ): Promise<Outcome> {
+  const locale = input.locale ?? DEFAULT_LOCALE;
+  const COPY = productAnswerCopy(locale);
   // "Produk Pralon yang terkenal apa?" — ragam, bukan satu bahan. Diputuskan dari pesannya,
   // SEBELUM parse model: 7B pernah menjawab pertanyaan ini dengan productQuery "PVC".
   if (asksProductRange(input.message) && materialsIn(input.message).length === 0) {
-    return rangeOverview(catalog);
+    return rangeOverview(catalog, locale);
   }
 
-  const knowledge = withoutRepeating(explain(input.message, query), input);
+  const knowledge = withoutRepeating(explain(input.message, query, locale), input);
   // Katalog opsional: kegagalan membacanya tidak boleh mengubah penjelasan teknik.
   const support = query === null ? NO_SUPPORT : await lookup(catalog, query, { optional: true });
 
@@ -133,11 +136,11 @@ async function answerConcept(
   const cards: AssistantCard[] = [];
   if (support.authoritative) {
     if (support.missing.length > 0) {
-      facts.push(PRODUCT_ANSWER_COPY.notInCatalog(support.missing.join(', ')));
+      facts.push(COPY.notInCatalog(support.missing.join(', ')));
     }
     if (support.products.length > 0) {
-      facts.push(PRODUCT_ANSWER_COPY.catalogSupport);
-      facts.push(support.products.map(overviewText).join('\n\n'));
+      facts.push(COPY.catalogSupport);
+      facts.push(support.products.map((p) => overviewText(p, locale)).join('\n\n'));
       cards.push({ kind: 'product', products: support.products.map(toCard) });
     }
     if (support.missing.length > 0) cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
@@ -145,17 +148,17 @@ async function answerConcept(
     // Penutup: bila pengguna bertanya tentang Pralon-nya ("HDPE di Pralon ok nggak?"), katakan
     // MENGAPA belum bisa dijawab; dan jangan ulangi kalimat yang persis sama tiap giliran.
     const closing = /\bpralon\b/i.test(input.message)
-      ? PRODUCT_ANSWER_COPY.catalogNotInstalledShort
-      : PRODUCT_ANSWER_COPY.askTechnicalForProducts;
+      ? COPY.catalogNotInstalledShort
+      : COPY.askTechnicalForProducts;
     if (!lastAssistantText(input).includes(closing)) facts.push(closing);
     cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
   }
 
   if (knowledge === '' && support.products.length === 0) {
     // "Produk Pralon yang terkenal apa?" — pertanyaan tentang RAGAM, bukan satu produk.
-    if (asksProductRange(input.message)) return rangeOverview(catalog);
+    if (asksProductRange(input.message)) return rangeOverview(catalog, locale);
     // Tidak ada yang dikenali: bukan bahan, bukan produk Pralon. Bertanya, bukan menebak.
-    return { text: PRODUCT_ANSWER_COPY.noProductNamed, cards: [] };
+    return { text: COPY.noProductNamed, cards: [] };
   }
 
   const data = [knowledge, ...facts].filter((part) => part !== '').join('\n\n');
@@ -197,7 +200,9 @@ function withoutRepeating(knowledge: string, input: ProductQuestionInput): strin
   const sameQuestion = normalize(lastUser) === normalize(input.message);
   if (!repeated || sameQuestion) return knowledge;
   const materials = materialsIn(input.message, null).slice(0, 2);
-  return materials.length > 0 ? briefComparison(materials) : knowledge;
+  return materials.length > 0
+    ? briefComparison(materials, input.locale ?? DEFAULT_LOCALE)
+    : knowledge;
 }
 
 const normalize = (s: string) =>
@@ -223,7 +228,11 @@ export function keepsStructure(written: string, knowledge: string): boolean {
  * nama produk — jujur bahwa katalog Pralon belum terpasang, lalu ragam keluarga bahan secara
  * umum dari pengetahuan milik kode, dan tim teknis untuk daftar resminya.
  */
-async function rangeOverview(catalog: ProductCatalog): Promise<Outcome> {
+async function rangeOverview(
+  catalog: ProductCatalog,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<Outcome> {
+  const COPY = productAnswerCopy(locale);
   let authoritative = false;
   let products: readonly Product[] = [];
   try {
@@ -246,9 +255,7 @@ async function rangeOverview(catalog: ProductCatalog): Promise<Outcome> {
       .slice(0, 4)
       .map((members) => toCard(members[0]!));
     return {
-      text: [PRODUCT_ANSWER_COPY.rangeIntro, ...lines, '', PRODUCT_ANSWER_COPY.rangeNext].join(
-        '\n',
-      ),
+      text: [COPY.rangeIntro, ...lines, '', COPY.rangeNext].join('\n'),
       cards: [{ kind: 'product', products: representatives }],
     };
   }
@@ -257,13 +264,7 @@ async function rangeOverview(catalog: ProductCatalog): Promise<Outcome> {
     (m) => `- **${m.label}** — ${m.gist}; lazim untuk ${m.typicalUse}.`,
   );
   return {
-    text: [
-      PRODUCT_ANSWER_COPY.catalogNotInstalled,
-      '',
-      ...families,
-      '',
-      PRODUCT_ANSWER_COPY.askTechnicalForProducts,
-    ].join('\n'),
+    text: [COPY.catalogNotInstalled, '', ...families, '', COPY.askTechnicalForProducts].join('\n'),
     cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }],
   };
 }
@@ -276,21 +277,21 @@ async function answerSpec(
   query: string | null,
   aspect: NonNullable<Awaited<ReturnType<AiService['parseProductQuestion']>>['aspect']>,
   rawSize: string | null,
+  locale: Locale = DEFAULT_LOCALE,
 ): Promise<Outcome> {
-  if (query === null) return { text: PRODUCT_ANSWER_COPY.noProductNamed, cards: [] };
+  const COPY = productAnswerCopy(locale);
+  if (query === null) return { text: COPY.noProductNamed, cards: [] };
 
   const support = await lookup(catalog, query, { optional: false });
   if (support.unavailable) {
     return {
-      text: PRODUCT_ANSWER_COPY.catalogUnavailable,
+      text: COPY.catalogUnavailable,
       cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }],
     };
   }
 
   const notFound = (names: string) =>
-    support.authoritative
-      ? PRODUCT_ANSWER_COPY.notInCatalog(names)
-      : PRODUCT_ANSWER_COPY.notInInstalledCatalog(names);
+    support.authoritative ? COPY.notInCatalog(names) : COPY.notInInstalledCatalog(names);
 
   if (support.products.length === 0) {
     return { text: notFound(query), cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }] };
@@ -310,7 +311,7 @@ async function answerSpec(
       aspect,
       ...(size !== undefined ? { size } : {}),
     });
-    facts.push(answerText(product, answer));
+    facts.push(answerText(product, answer, locale));
     if (answer.kind === 'insufficientData') needsTechnical = true;
   }
   if (needsTechnical) cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
@@ -371,7 +372,11 @@ function withUncoveredFacts(
 ): string {
   const lower = written.toLowerCase();
   const uncovered = facts.filter((fact) => {
-    if (fact === PRODUCT_ANSWER_COPY.catalogSupport) return false;
+    if (
+      fact === productAnswerCopy('id').catalogSupport ||
+      fact === productAnswerCopy('en').catalogSupport
+    )
+      return false;
     if (fact.includes('tim teknis')) return !lower.includes('tim teknis');
     if (fact.includes('tidak ada di katalog')) return !lower.includes('katalog');
     return !products.some((p) => fact.includes(p.name) && written.includes(p.name));

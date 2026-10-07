@@ -7,7 +7,13 @@
  * pun berbeda (`focus`, bukan `fail`).
  */
 
-import type { BuildingType, InstallationType, PolicyCode } from '@snouty/shared-types';
+import {
+  DEFAULT_LOCALE,
+  type BuildingType,
+  type InstallationType,
+  type Locale,
+  type PolicyCode,
+} from '@snouty/shared-types';
 
 export type PolicyOutcome =
   /** Alur yang didukung penuh — lanjut ke rekomendasi. */
@@ -44,7 +50,17 @@ const OUT_OF_SCOPE_USE =
  * Muara jalur irigasi (OQ-47): data lengkap → diteruskan ke tim teknis untuk dihitung. Bukan
  * penolakan — kebutuhannya dicatat rapi; yang belum ada hanya aturan sizing otomatisnya.
  */
-export function irrigationHandoffPolicy(): PolicyOutcome {
+export function irrigationHandoffPolicy(locale: Locale = DEFAULT_LOCALE): PolicyOutcome {
+  if (locale === 'en') {
+    return {
+      kind: 'policy',
+      code: 'TECHNICAL_VALIDATION_REQUIRED',
+      reasons: [
+        'Your irrigation data is complete and recorded.',
+        'The Pralon technical team calculates irrigation pipe sizes from flow rate, distance, and height difference — the product list and sizes will be sent after the calculation.',
+      ],
+    };
+  }
   return {
     kind: 'policy',
     code: 'TECHNICAL_VALIDATION_REQUIRED',
@@ -59,7 +75,20 @@ export function irrigationHandoffPolicy(): PolicyOutcome {
  * Muara kasus teknis umum yang kalkulatornya belum tersedia (Fase 14): data sudah terstruktur
  * dalam parameter universal, perhitungannya diteruskan ke tim teknis. Bukan penolakan.
  */
-export function technicalHandoffPolicy(caseLabel: string): PolicyOutcome {
+export function technicalHandoffPolicy(
+  caseLabel: string,
+  locale: Locale = DEFAULT_LOCALE,
+): PolicyOutcome {
+  if (locale === 'en') {
+    return {
+      kind: 'policy',
+      code: 'TECHNICAL_VALIDATION_REQUIRED',
+      reasons: [
+        `Your ${caseLabel.toLowerCase()} data is complete and recorded with its technical parameters.`,
+        'The automatic calculator for this case is being prepared — the Pralon technical team does the calculation from this data, then sends you the product list and sizes.',
+      ],
+    };
+  }
   return {
     kind: 'policy',
     code: 'TECHNICAL_VALIDATION_REQUIRED',
@@ -70,8 +99,18 @@ export function technicalHandoffPolicy(caseLabel: string): PolicyOutcome {
   };
 }
 
-export function useCasePolicy(message: string): PolicyOutcome {
+export function useCasePolicy(message: string, locale: Locale = DEFAULT_LOCALE): PolicyOutcome {
   if (!OUT_OF_SCOPE_USE.test(message)) return { kind: 'supported' };
+  if (locale === 'en') {
+    return {
+      kind: 'policy',
+      code: 'TECHNICAL_VALIDATION_REQUIRED',
+      reasons: [
+        'This need is outside the scope of SNOUTY automatic recommendations (clean water for houses and small commercial buildings).',
+        'Irrigation, agriculture, and other special lines require calculation by the Pralon technical team — your request will be forwarded.',
+      ],
+    };
+  }
   return {
     kind: 'policy',
     code: 'TECHNICAL_VALIDATION_REQUIRED',
@@ -82,11 +121,11 @@ export function useCasePolicy(message: string): PolicyOutcome {
   };
 }
 
-export function competitorPolicy(): PolicyOutcome {
+export function competitorPolicy(locale: Locale = DEFAULT_LOCALE): PolicyOutcome {
   return {
     kind: 'policy',
     code: 'COMPETITOR_COMPARISON_REFUSED',
-    reasons: NEUTRAL_CRITERIA,
+    reasons: neutralCriteria(locale),
   };
 }
 
@@ -101,6 +140,18 @@ export const NEUTRAL_CRITERIA: readonly string[] = [
   'Kemudahan pemasangan dan perawatan di lapangan.',
   'Dukungan dokumentasi teknis yang bisa diperiksa.',
 ];
+
+export const NEUTRAL_CRITERIA_EN: readonly string[] = [
+  'Pressure class suited to the installation needs.',
+  'Availability of matching sizes and fittings.',
+  'Compliance with the standards that apply to the intended use.',
+  'Ease of installation and maintenance in the field.',
+  'Technical documentation support that can be verified.',
+];
+
+export function neutralCriteria(locale: Locale = DEFAULT_LOCALE): readonly string[] {
+  return locale === 'en' ? NEUTRAL_CRITERIA_EN : NEUTRAL_CRITERIA;
+}
 
 export interface ScopeInput {
   readonly buildingType: BuildingType | null;
@@ -121,12 +172,17 @@ const LARGE_BUILDING_FLOORS = 4;
  * Urutannya penting: industri diperiksa lebih dulu karena ia menang atas apa pun
  * jenis instalasinya.
  */
-export function scopePolicy(input: ScopeInput): PolicyOutcome {
+export function scopePolicy(input: ScopeInput, locale: Locale = DEFAULT_LOCALE): PolicyOutcome {
+  const en = locale === 'en';
   if (input.buildingType === 'industrial') {
     return {
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
-      reasons: ['Instalasi industri memerlukan pemeriksaan tim teknis Pralon.'],
+      reasons: [
+        en
+          ? 'Industrial installations require review by the Pralon technical team.'
+          : 'Instalasi industri memerlukan pemeriksaan tim teknis Pralon.',
+      ],
     };
   }
 
@@ -134,7 +190,11 @@ export function scopePolicy(input: ScopeInput): PolicyOutcome {
     return {
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
-      reasons: [`Bangunan ${input.floors} lantai berada di luar cakupan rekomendasi otomatis.`],
+      reasons: [
+        en
+          ? `A ${input.floors}-storey building is outside the scope of automatic recommendations.`
+          : `Bangunan ${input.floors} lantai berada di luar cakupan rekomendasi otomatis.`,
+      ],
     };
   }
 
@@ -142,10 +202,15 @@ export function scopePolicy(input: ScopeInput): PolicyOutcome {
     return {
       kind: 'policy',
       code: 'SCOPE_NOT_YET_SUPPORTED',
-      reasons: [
-        'Kebutuhan saluran pembuangan sudah dicatat.',
-        'Rekomendasi penuh untuk pembuangan belum didukung; tim teknis Pralon dapat membantu.',
-      ],
+      reasons: en
+        ? [
+            'Your drainage need has been recorded.',
+            'Full recommendations for drainage are not supported yet; the Pralon technical team can help.',
+          ]
+        : [
+            'Kebutuhan saluran pembuangan sudah dicatat.',
+            'Rekomendasi penuh untuk pembuangan belum didukung; tim teknis Pralon dapat membantu.',
+          ],
     };
   }
 

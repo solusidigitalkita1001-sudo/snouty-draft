@@ -22,12 +22,14 @@ import {
   type MissingParameter,
   type ParameterKey,
 } from '@snouty/engineering';
-import type {
-  ClarificationQuestion,
-  KeyValue,
-  RequirementState,
-  TechnicalParameter,
-  TechnicalUseCase,
+import {
+  DEFAULT_LOCALE,
+  type ClarificationQuestion,
+  type KeyValue,
+  type Locale,
+  type RequirementState,
+  type TechnicalParameter,
+  type TechnicalUseCase,
 } from '@snouty/shared-types';
 
 export const UNKNOWN = 'Belum tahu';
@@ -180,7 +182,10 @@ export function isTechnicalComplete(state: RequirementState): boolean {
  * Pertanyaan berpilihan (enum/boolean) menjadi kartu klarifikasi; pertanyaan angka ditanya di
  * teks — pengguna menjawabnya dengan kalimat biasa dan ekstraktor membacanya.
  */
-export function planTechnicalClarification(state: RequirementState): {
+export function planTechnicalClarification(
+  state: RequirementState,
+  locale: Locale = DEFAULT_LOCALE,
+): {
   readonly card: readonly ClarificationQuestion[];
   readonly text: readonly MissingParameter[];
 } {
@@ -191,7 +196,14 @@ export function planTechnicalClarification(state: RequirementState): {
     if (def.kind === 'enum' && def.options) {
       card.push({ id: m.key, question: m.question, options: def.options, allowUnknown: true });
     } else if (def.kind === 'boolean') {
-      card.push({ id: m.key, question: m.question, options: ['Ya', 'Tidak'], allowUnknown: true });
+      // `options` tetap 'Ya'/'Tidak' (protokol); hanya label tampilannya yang mengikuti bahasa.
+      card.push({
+        id: m.key,
+        question: m.question,
+        options: ['Ya', 'Tidak'],
+        ...(locale === 'en' ? { optionLabels: ['Yes', 'No'] } : {}),
+        allowUnknown: true,
+      });
     } else {
       text.push(m);
     }
@@ -199,63 +211,104 @@ export function planTechnicalClarification(state: RequirementState): {
   return { card, text };
 }
 
-export function formatTechnicalValue(p: TechnicalParameter): string {
-  if (typeof p.value === 'boolean') return p.value ? 'Ya' : 'Tidak';
+export function formatTechnicalValue(
+  p: TechnicalParameter,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  if (typeof p.value === 'boolean') {
+    return locale === 'en' ? (p.value ? 'Yes' : 'No') : p.value ? 'Ya' : 'Tidak';
+  }
   if (typeof p.value === 'number') {
-    const n = p.value.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+    const n = p.value.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', {
+      maximumFractionDigits: 2,
+    });
     return p.unit ? `${n} ${p.unit}` : n;
   }
   return p.value;
 }
 
 /** Baris "yang sudah saya catat" untuk kartu validasi teknis dan panel. */
-export function technicalCaptured(state: RequirementState): readonly KeyValue[] {
+export function technicalCaptured(
+  state: RequirementState,
+  locale: Locale = DEFAULT_LOCALE,
+): readonly KeyValue[] {
   return Object.values(parametersOf(state))
     .filter((p) => p.value !== UNKNOWN)
-    .map((p) => ({ label: p.label, value: formatTechnicalValue(p) }));
+    .map((p) => ({ label: p.label, value: formatTechnicalValue(p, locale) }));
 }
 
 /**
  * Balasan giliran: nama kasus, data yang diketahui, dan — bila masih kurang — pertanyaan dalam
  * bahasa pengguna. Tanpa angka teknik: belum ada yang dihitung di tahap ini.
  */
-export function technicalGuidance(state: RequirementState): string {
+export function technicalGuidance(
+  state: RequirementState,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return '';
   const profile = caseProfile(state.useCase.caseId);
-  const known = technicalCaptured(state);
+  const known = technicalCaptured(state, locale);
+  const copy = GUIDANCE_COPY[locale];
   // Redaksi seperti teknisi yang membalas sendiri: tanpa judul bagian, tanpa penomoran, tanpa
   // kalimat tentang "data"/"asumsi" sebagai konsep — cukup apa yang dicatat dan apa yang ditanya.
-  const lines: string[] = [INTRO[state.useCase.caseId]];
+  const lines: string[] = [(locale === 'en' ? INTRO_EN : INTRO)[state.useCase.caseId]];
   if (known.length > 0) {
     lines.push(
       '',
-      `Yang sudah saya catat: ${joinNatural(known.map((r) => `${r.label.toLowerCase()} ${r.value}`))}.`,
+      copy.captured(
+        joinNatural(
+          known.map((r) => `${r.label.toLowerCase()} ${r.value}`),
+          locale,
+        ),
+      ),
     );
   }
-  const { text, card } = planTechnicalClarification(state);
+  const { text, card } = planTechnicalClarification(state, locale);
   const missing = [...text, ...card.map((q) => ({ question: q.question }))];
   if (missing.length > 0) {
-    lines.push('', 'Supaya hitungannya pas, tolong jawab beberapa hal ini:');
+    lines.push('', copy.askIntro);
     for (const m of missing) lines.push(`- ${m.question}`);
     if (isTechnicalComplete(state) && profile.calculatorStatus === 'available') {
-      lines.push(
-        '',
-        'Kalau mau langsung lihat hasilnya, tekan **Susun rekomendasi** — yang belum disebut saya pakai angka perkiraan awal dan saya tandai jelas di hasilnya.',
-      );
+      lines.push('', copy.proceedWithDefaults);
     }
   } else if (profile.calculatorStatus === 'available') {
-    lines.push(
-      '',
-      'Datanya sudah cukup. Tekan **Susun rekomendasi** untuk melihat ukuran pipa dan daftar produknya.',
-    );
+    lines.push('', copy.readyToCompute);
   } else {
-    lines.push(
-      '',
-      'Datanya sudah cukup; saya teruskan ke tim teknis Pralon untuk dihitung, dan hasilnya dikirim ke Anda.',
-    );
+    lines.push('', copy.readyForTeam);
   }
   return lines.join('\n');
 }
+
+interface GuidanceCopy {
+  readonly captured: (joined: string) => string;
+  readonly askIntro: string;
+  readonly proceedWithDefaults: string;
+  readonly readyToCompute: string;
+  readonly readyForTeam: string;
+}
+
+const GUIDANCE_COPY: Readonly<Record<Locale, GuidanceCopy>> = {
+  id: {
+    captured: (joined) => `Yang sudah saya catat: ${joined}.`,
+    askIntro: 'Supaya hitungannya pas, tolong jawab beberapa hal ini:',
+    proceedWithDefaults:
+      'Kalau mau langsung lihat hasilnya, tekan **Susun rekomendasi** — yang belum disebut saya pakai angka perkiraan awal dan saya tandai jelas di hasilnya.',
+    readyToCompute:
+      'Datanya sudah cukup. Tekan **Susun rekomendasi** untuk melihat ukuran pipa dan daftar produknya.',
+    readyForTeam:
+      'Datanya sudah cukup; saya teruskan ke tim teknis Pralon untuk dihitung, dan hasilnya dikirim ke Anda.',
+  },
+  en: {
+    captured: (joined) => `What I have noted so far: ${joined}.`,
+    askIntro: 'So the calculation fits, please answer a few things:',
+    proceedWithDefaults:
+      'If you want to see the result right away, press **Compose recommendation** — anything not mentioned uses an initial estimate that I mark clearly in the result.',
+    readyToCompute:
+      'That is enough data. Press **Compose recommendation** to see the pipe sizes and the product list.',
+    readyForTeam:
+      'That is enough data; I will pass it to the Pralon technical team to calculate, and the result will be sent to you.',
+  },
+};
 
 /** Kalimat pembuka per kasus — apa yang akan dihitung, dalam bahasa teknisi, bukan deskripsi profil. */
 const INTRO: Readonly<Record<CaseId, string>> = {
@@ -276,7 +329,27 @@ const INTRO: Readonly<Record<CaseId, string>> = {
   fish_pond: 'Oke, kolam/tambak. Saya hitung pipa masuk, pipa kuras, dan fitting-nya.',
 };
 
-function joinNatural(items: readonly string[]): string {
+/** Kalimat pembuka per kasus (Inggris) — kunci sama dengan `INTRO`. */
+const INTRO_EN: Readonly<Record<CaseId, string>> = {
+  residential_clean_water:
+    "Okay, clean water for a house. I'll size the main pipe, the branches, and the fixture connections.",
+  multistorey_building_water:
+    "Okay, a multi-storey building. I'll work out the risers, pressure zoning, and pump needs.",
+  residential_cluster:
+    "Okay, a cluster network. I'll work out the peak demand and the distribution pipe sizes.",
+  irrigation: "Okay, irrigation. I'll work out the flow, main line, distribution, and the pump.",
+  pump_transfer:
+    "Okay, pumped water transfer. I'll work out the pipe size, pressure losses, and the pump duty point.",
+  gravity_drainage: "Okay, a gravity drain. I'll work out the pipe diameter and slope.",
+  stormwater: "Okay, stormwater drainage. I'll work out the runoff flow and the pipe size.",
+  culvert:
+    "Okay, a culvert. I'll work out the diameter and pipe class from the flow, slope, and road load.",
+  well_distribution: "Okay, well to storage tank. I'll work out the pipe and the pump needs.",
+  fish_pond: "Okay, a fish pond. I'll work out the inlet pipe, the drain pipe, and the fittings.",
+};
+
+function joinNatural(items: readonly string[], locale: Locale = DEFAULT_LOCALE): string {
   if (items.length <= 1) return items.join('');
-  return `${items.slice(0, -1).join(', ')}, dan ${items[items.length - 1]}`;
+  const and = locale === 'en' ? 'and' : 'dan';
+  return `${items.slice(0, -1).join(', ')}, ${and} ${items[items.length - 1]}`;
 }

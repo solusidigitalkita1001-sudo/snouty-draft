@@ -3,7 +3,7 @@
  * langkah 5. docs/POLICY.md §6 · SPEC §4.6 · SPEC §33e.
  *
  * Modul `policy` wajib leaf (docs/ARCHITECTURE.md §7): berkas ini data murni dan
- * fungsi murni, tanpa satu pun impor. Pagar lint menolak I/O masuk ke sini.
+ * fungsi murni; satu-satunya impor adalah tipe/konstanta locale dari `@snouty/shared-types`. Pagar lint menolak I/O masuk ke sini.
  *
  * SPEC §4.6 menandai `REPORT_PDF` untuk `registered` dengan `?` — pertanyaan
  * terbuka (OQ-15 wilayahnya). Nilai di sini mengikuti usulan default
@@ -11,6 +11,8 @@
  * baris di tabel ini, dan guard serta onboarding ikut serentak — itulah alasan
  * keduanya dilarang menulis daftarnya sendiri.
  */
+
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 
 export type Tier = 'guest' | 'registered' | 'advanced';
 
@@ -77,6 +79,34 @@ export const CAPABILITY_LABEL: Readonly<Record<Capability, string>> = {
   REPORT_PDF: 'Laporan PDF',
 };
 
+export const CAPABILITY_LABEL_EN: Readonly<Record<Capability, string>> = {
+  PRODUCT_QA: 'Pralon product Q&A',
+  RECOMMENDATION: 'Pralon product recommendations',
+  CLARIFICATION: 'Clarification questions',
+  TECHNICAL_HANDOFF: 'Send to the Pralon technical team',
+  CONVERSATION_HISTORY: 'Conversation history',
+  SAVE_SOLUTION: 'Save consultation results',
+  CASE_ANALYSIS: 'Case study analysis',
+  MATERIAL_BOM: 'Material quantity estimate',
+  SCHEMATIC: 'Piping schematic visualization',
+  REPORT_PDF: 'PDF report',
+};
+
+export function capabilityLabel(capability: Capability, locale: Locale = DEFAULT_LOCALE): string {
+  return (locale === 'en' ? CAPABILITY_LABEL_EN : CAPABILITY_LABEL)[capability];
+}
+
+const ONBOARDING_TAG_LABEL_EN: Readonly<Record<OnboardingTag, string>> = {
+  'TAMU JUGA': 'GUESTS TOO',
+  AKUN: 'ACCOUNT',
+  LANJUTAN: 'ADVANCED',
+};
+
+/** Label tampilan tag; nilai `OnboardingTag` tetap protokol berbahasa Indonesia. */
+export function onboardingTagLabel(tag: OnboardingTag, locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en' ? ONBOARDING_TAG_LABEL_EN[tag] : tag;
+}
+
 export interface OnboardingBenefit {
   readonly capability: Capability;
   readonly label: string;
@@ -100,10 +130,10 @@ const ONBOARDING_DISPLAY: readonly Capability[] = [
   'SCHEMATIC',
 ];
 
-export function onboardingBenefits(): readonly OnboardingBenefit[] {
+export function onboardingBenefits(locale: Locale = DEFAULT_LOCALE): readonly OnboardingBenefit[] {
   return ONBOARDING_DISPLAY.map((capability) => ({
     capability,
-    label: CAPABILITY_LABEL[capability],
+    label: capabilityLabel(capability, locale),
     tag: onboardingTag(capability),
   }));
 }

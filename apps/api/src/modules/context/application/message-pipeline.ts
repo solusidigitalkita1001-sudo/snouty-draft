@@ -58,7 +58,7 @@ import { mergeRequirement } from '../domain/context-merger.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
 import { asksAdvice } from '../domain/message-signals.js';
-import { FIELD_LABEL, requirementValueLabel } from '../domain/requirement-labels.js';
+import { requirementFieldLabel, requirementValueLabel } from '../domain/requirement-labels.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsIn } from './pipe-knowledge.js';
@@ -101,12 +101,13 @@ export async function runUnderstanding(
   const events = streamedEvents(input.emit, [
     { type: 'message.start', messageId: input.messageId },
   ]);
+  const locale = input.locale ?? DEFAULT_LOCALE;
 
   // Policy 1 DULU, sebelum apa pun: pertanyaan kompetitor dijawab kriteria netral dan
   // tidak pernah masuk jalur rekomendasi. Memeriksanya di sini — bukan setelah
   // ekstraksi — berarti tidak ada jalan ia tercampur dengan pencocokan produk.
   if (input.decision.intent === 'COMPETITOR_QUESTION') {
-    const card = policyCard(competitorPolicy());
+    const card = policyCard(competitorPolicy(locale), [], locale);
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
@@ -145,8 +146,8 @@ export async function runUnderstanding(
   if (isIrrigationMessage(input.message) || input.state.useCase?.kind === 'irrigation') {
     const applied = applyIrrigationAnswers(input.state, irrigationFactsFrom(input.message));
     events.push({ type: 'requirement.updated', state: applied.state });
-    events.push({ type: 'token', text: irrigationGuidance(applied.state) });
-    const card = irrigationFollowUp(applied.state);
+    events.push({ type: 'token', text: irrigationGuidance(applied.state, locale) });
+    const card = irrigationFollowUp(applied.state, locale);
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));
     return {
@@ -161,9 +162,9 @@ export async function runUnderstanding(
   // tidak ada field yang mewakilinya, dan kartu klarifikasi "berapa kamar mandi?" adalah
   // jawaban yang salah untuknya. Kebijakan menang atas klasifikasi kasus — "air panas boiler
   // hotel" bukan kasus gedung bertingkat. State tidak disentuh.
-  const useCase = useCasePolicy(input.message);
+  const useCase = useCasePolicy(input.message, locale);
   if (useCase.kind === 'policy') {
-    const card = policyCard(useCase, capturedFrom(input.state));
+    const card = policyCard(useCase, capturedFrom(input.state, locale), locale);
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
@@ -177,8 +178,8 @@ export async function runUnderstanding(
   if (technicalCase !== null) {
     const applied = applyTechnicalFacts(input.state, technicalCase, input.message);
     events.push({ type: 'requirement.updated', state: applied.state });
-    events.push({ type: 'token', text: technicalGuidance(applied.state) });
-    const card = technicalFollowUp(applied.state);
+    events.push({ type: 'token', text: technicalGuidance(applied.state, locale) });
+    const card = technicalFollowUp(applied.state, locale);
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));
     return {
@@ -271,11 +272,15 @@ export async function runUnderstanding(
   if (materials.length > 0) {
     events.push({
       type: 'token',
-      text: adviseMaterials(materials, {
-        buildingLabel: buildingLabel(merged.building.type.value),
-        floors: merged.building.floors.value,
-        needsMoreData: merged.missingInformation.length > 0,
-      }),
+      text: adviseMaterials(
+        materials,
+        {
+          buildingLabel: buildingLabel(merged.building.type.value),
+          floors: merged.building.floors.value,
+          needsMoreData: merged.missingInformation.length > 0,
+        },
+        locale,
+      ),
     });
   }
 
@@ -301,14 +306,17 @@ export function followUpCard(
   merged: RequirementState,
   locale: Locale = DEFAULT_LOCALE,
 ): AssistantCard | null {
-  if (merged.useCase?.kind === 'irrigation') return irrigationFollowUp(merged);
-  if (merged.useCase?.kind === 'technical') return technicalFollowUp(merged);
-  const scope = scopePolicy({
-    buildingType: merged.building.type.value,
-    installationType: merged.water.installationType.value,
-    floors: merged.building.floors.value,
-  });
-  if (scope.kind === 'policy') return policyCard(scope, capturedFrom(merged));
+  if (merged.useCase?.kind === 'irrigation') return irrigationFollowUp(merged, locale);
+  if (merged.useCase?.kind === 'technical') return technicalFollowUp(merged, locale);
+  const scope = scopePolicy(
+    {
+      buildingType: merged.building.type.value,
+      installationType: merged.water.installationType.value,
+      floors: merged.building.floors.value,
+    },
+    locale,
+  );
+  if (scope.kind === 'policy') return policyCard(scope, capturedFrom(merged, locale), locale);
   if (merged.missingInformation.length > 0) {
     const plan = planClarification(merged.missingInformation, locale);
     return plan ? { kind: 'clarification', questions: plan.questions } : null;
@@ -321,9 +329,9 @@ export function followUpCard(
  * rekomendasi" — mesin irigasi (Kelompok E) menghitungnya, semua bertanda asumsi sampai
  * divalidasi (OQ-47). Handoff ke tim teknis tetap tersedia dari layar solusi.
  */
-function irrigationFollowUp(state: RequirementState): AssistantCard | null {
+function irrigationFollowUp(state: RequirementState, locale: Locale): AssistantCard | null {
   if (!isIrrigationComplete(state)) {
-    const questions = planIrrigationClarification(state);
+    const questions = planIrrigationClarification(state, locale);
     return questions.length > 0 ? { kind: 'clarification', questions } : null;
   }
   return { kind: 'cta', action: 'ANALYZE' };
@@ -333,29 +341,39 @@ function irrigationFollowUp(state: RequirementState): AssistantCard | null {
  * Kasus teknis: masih ada parameter kritis kosong → kartu pertanyaan berpilihan (angka ditanya
  * di teks); lengkap → validasi teknis terstruktur sampai kalkulator kasusnya tersedia.
  */
-function technicalFollowUp(state: RequirementState): AssistantCard | null {
+function technicalFollowUp(state: RequirementState, locale: Locale): AssistantCard | null {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return null;
   if (!isTechnicalComplete(state)) {
-    const { card } = planTechnicalClarification(state);
+    const { card } = planTechnicalClarification(state, locale);
     return card.length > 0 ? { kind: 'clarification', questions: card } : null;
   }
   const profile = caseProfile(state.useCase.caseId);
   if (profile.calculatorStatus === 'available') return { kind: 'cta', action: 'ANALYZE' };
-  return policyCard(technicalHandoffPolicy(profile.label), capturedFrom(state));
+  return policyCard(
+    technicalHandoffPolicy(profile.label, locale),
+    capturedFrom(state, locale),
+    locale,
+  );
 }
 
 /**
  * Kebutuhan yang sudah terkumpul, untuk dibawa ke kartu validasi teknis dan antrean tim
  * teknis — supaya pengguna tidak mengulang ceritanya dari nol. Bahasa pengguna, bukan path.
  */
-export function capturedFrom(state: RequirementState): readonly KeyValue[] {
+export function capturedFrom(
+  state: RequirementState,
+  locale: Locale = DEFAULT_LOCALE,
+): readonly KeyValue[] {
   const rows: KeyValue[] = [];
   for (const [path, field] of fieldEntries(state)) {
     if (field.value !== null) {
-      rows.push({ label: FIELD_LABEL[path], value: requirementValueLabel(path, field.value) });
+      rows.push({
+        label: requirementFieldLabel(path, locale),
+        value: requirementValueLabel(path, field.value, locale),
+      });
     }
   }
-  return [...rows, ...irrigationCaptured(state), ...technicalCaptured(state)];
+  return [...rows, ...irrigationCaptured(state, locale), ...technicalCaptured(state, locale)];
 }
 
 /** Label bangunan untuk kalimat — mengikuti salinan laporan (`report-assembler.ts`). */
@@ -390,8 +408,8 @@ export function endEvent(messageId: string): AssistantStreamEvent {
 }
 
 /** Kartu asumsi dari state — dipakai pemanggil saat merender ringkasan. */
-export function assumptionCardFor(state: RequirementState) {
-  return assumptionCard(fieldEntries(state));
+export function assumptionCardFor(state: RequirementState, locale: Locale = DEFAULT_LOCALE) {
+  return assumptionCard(fieldEntries(state), locale);
 }
 
 /**

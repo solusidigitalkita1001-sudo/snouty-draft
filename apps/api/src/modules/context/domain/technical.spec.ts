@@ -9,6 +9,7 @@ import {
   applyTechnicalAnswers,
   applyTechnicalFacts,
   detectTechnicalCase,
+  formatTechnicalValue,
   isTechnicalComplete,
   planTechnicalClarification,
   technicalAnswerValue,
@@ -96,5 +97,42 @@ describe('skenario E gorong-gorong tanpa angka', () => {
       expect.arrayContaining(['design_flow', 'road_width', 'slope']),
     );
     expect(technicalGuidance(r.state)).toContain('tolong jawab');
+  });
+});
+
+describe('technical dwibahasa', () => {
+  const state = applyTechnicalFacts(
+    emptyRequirementState(T0),
+    'culvert',
+    'mau pasang gorong-gorong melintasi jalan desa',
+  ).state;
+
+  it('id tidak berubah; en berbahasa Inggris dengan struktur sama', () => {
+    expect(technicalGuidance(state, 'id')).toBe(technicalGuidance(state));
+    const en = technicalGuidance(state, 'en');
+    expect(en).toContain('Okay, a culvert.');
+    expect(en).toContain('please answer a few things:');
+    expect(en).not.toContain('tolong jawab');
+    expect(en.split('\n').filter((l) => l.startsWith('- ')).length).toBe(
+      technicalGuidance(state)
+        .split('\n')
+        .filter((l) => l.startsWith('- ')).length,
+    );
+  });
+
+  it('formatTechnicalValue: Ya/Tidak menjadi Yes/No; kartu boolean membawa optionLabels', () => {
+    const p = { label: 'x', value: true, origin: 'known' as const };
+    expect(formatTechnicalValue(p)).toBe('Ya');
+    expect(formatTechnicalValue(p, 'en')).toBe('Yes');
+    expect(formatTechnicalValue({ ...p, value: false }, 'en')).toBe('No');
+    const boolQuestions = (locale: 'id' | 'en') =>
+      planTechnicalClarification(state, locale).card.filter(
+        (q) => q.options.length === 2 && q.options[0] === 'Ya',
+      );
+    for (const q of boolQuestions('id')) expect(q.optionLabels).toBeUndefined();
+    for (const q of boolQuestions('en')) {
+      expect(q.options).toEqual(['Ya', 'Tidak']);
+      expect(q.optionLabels).toEqual(['Yes', 'No']);
+    }
   });
 });
