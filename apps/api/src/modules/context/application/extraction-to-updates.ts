@@ -42,6 +42,14 @@ const OBVIOUS = {
     intAfter(/\b(\d{1,2})\s*-?\s*(?:lantai|lt|floors?|stor(?:e)?ys?|stories|levels?)\b/i, m),
   bathrooms: (m: string) =>
     intAfter(/\b(\d{1,2})\s*-?\s*(?:kamar mandi|km|toilet|bathrooms?|toilets?|restrooms?)\b/i, m),
+  // Jumlah wastafel/dapur/titik air yang tersurat juga dibaca kode (diet panggilan model,
+  // 2026-10-07): bila model dilewati, "4 wastafel, 1 dapur" tetap tercatat.
+  basins: (m: string) =>
+    intAfter(
+      /\b(\d{1,3})\s*-?\s*(?:wastafel|washtafel|westafel|bak cuci|basins?|sinks?|washbasins?)\b/i,
+      m,
+    ),
+  kitchens: (m: string) => intAfter(/\b(\d{1,2})\s*-?\s*(?:dapur|kitchens?|pantry)\b/i, m),
   installationType: (m: string): NonNullable<Extraction['water']>['installationType'] => {
     // Irigasi/pertanian BUKAN "drainage": ia di luar cakupan dan ditangani kebijakan guna
     // (policy/scope.ts `useCasePolicy`) sebelum ekstraksi.
@@ -69,6 +77,14 @@ const OBVIOUS = {
     if (tank && /\b(bawah|tanah|ground|di bawah|lantai dasar|underground|basement)\b/i.test(m))
       return 'ground_tank';
     if (/\b(pdam|ledeng|pam\b|municipal|mains|city water|town water)/i.test(m)) return 'municipal';
+    return undefined;
+  },
+  // Cadangan bila model dilewati (diet 2026-10-07): sumur atau pompa yang disebut sebagai sumber,
+  // bukan pompa pendorong ("pompa booster/pendorong/dorong" adalah `boosterPump`).
+  pumpSource: (m: string): NonNullable<Extraction['water']>['source'] => {
+    if (/\b(toren|tandon|tangki|tanks?)\b/i.test(m)) return undefined;
+    if (/\b(sumur|wells?|borehole|jet pump|pompa air|pompa sumur)\b/i.test(m)) return 'pump';
+    if (/\b(?<!booster )(pompa|pumps?)\b(?!\s*(booster|pendorong|dorong))/i.test(m)) return 'pump';
     return undefined;
   },
   type: (m: string): NonNullable<Extraction['building']>['type'] => {
@@ -214,7 +230,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     counted(
       'fixtures.basins',
       extraction.fixtures?.basins,
-      negatedZero(message, COUNT_NOUNS['fixtures.basins']!),
+      OBVIOUS.basins(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.basins']!),
     ),
   );
   add(
@@ -222,7 +238,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     counted(
       'fixtures.kitchens',
       extraction.fixtures?.kitchens,
-      negatedZero(message, COUNT_NOUNS['fixtures.kitchens']!),
+      OBVIOUS.kitchens(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.kitchens']!),
     ),
   );
   add('fixtures.outletCount', extraction.fixtures?.outletCount);
@@ -234,7 +250,9 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     /\b(toren|tandon|tangki|tanks?)\b/i.test(message) && OBVIOUS.source(message) === undefined;
   add(
     'water.source',
-    OBVIOUS.source(message) ?? (tankWithoutLocation ? undefined : extraction.water?.source),
+    OBVIOUS.source(message) ??
+      (tankWithoutLocation ? undefined : extraction.water?.source) ??
+      OBVIOUS.pumpSource(message),
   );
   add(
     'water.installationType',

@@ -13,6 +13,7 @@ import { Module } from '@nestjs/common';
 import { AiModule } from '../ai/ai.module.js';
 import { AI_SERVICE } from '../ai/domain/ai.port.js';
 import { PROSE_SYSTEM_PROMPT } from '../ai/application/prompts.js';
+import { loadEnv } from '../../config/env.js';
 import { ContextModule } from '../context/context.module.js';
 import { ConversationModule } from '../conversation/conversation.module.js';
 import { ProductCatalogModule } from '../product-catalog/product-catalog.module.js';
@@ -37,8 +38,10 @@ import { RecommendationController } from './presentation/recommendation.controll
 const proseWriterProvider = {
   provide: PROSE_WRITER,
   inject: [AI_SERVICE],
+  // Prosa solusi oleh model hanya bila diizinkan (LLM_SOLUTION_PROSE): di CPU 70 s per analisis
+  // untuk headline/body yang templat deterministiknya sudah ada (diet panggilan model, 2026-10-07).
   useFactory: (ai: ProseCapableAi | null): ProseWriter | null =>
-    ai ? new LlmProseWriter(ai, PROSE_SYSTEM_PROMPT) : null,
+    ai && loadEnv().LLM_SOLUTION_PROSE ? new LlmProseWriter(ai, PROSE_SYSTEM_PROMPT) : null,
 };
 
 const analysisServiceProvider = {

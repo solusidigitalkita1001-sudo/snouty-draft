@@ -309,7 +309,10 @@ export class MessageService {
     firstMessage: string,
     locale: Locale,
   ): void {
-    if (!this.ai) return;
+    // Judul ditulis model hanya bila diizinkan (`LLM_CHAT_REPLY`): di CPU setiap judul 17 s di
+    // antrean model yang sama dengan giliran berikutnya (40 panggilan dalam 6 jam, 2026-10-07).
+    // Tanpa itu, judul deterministik dari pesan pertama sudah terpasang sejak percakapan dibuat.
+    if (!this.ai || !loadEnv().LLM_CHAT_REPLY) return;
     const ai = this.ai;
     void (async () => {
       try {
@@ -443,8 +446,18 @@ export class MessageService {
   }
 }
 
-function fallbackTitle(firstMessage: string): string {
-  return firstMessage.trim().replace(/\s+/g, ' ').slice(0, 60);
+/**
+ * Judul deterministik dari pesan pertama: klausa pertama (sampai koma/titik/tanda tanya), huruf
+ * pertama kapital, maksimal 60 karakter dipotong di batas kata. "saya mau bangun masjid 2 lantai,
+ * besarnya…" → "Saya mau bangun masjid 2 lantai".
+ */
+export function fallbackTitle(firstMessage: string): string {
+  const flat = firstMessage.trim().replace(/\s+/g, ' ');
+  const clause = flat.split(/[,.;:!?]\s|\s[-–—]\s/)[0] ?? flat;
+  const base = clause.length >= 12 ? clause : flat;
+  const cut = base.length > 60 ? base.slice(0, 60).replace(/\s+\S*$/, '') : base;
+  const trimmed = cut.trim();
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }
 
 /** 2–10 kata, aksara Latin saja, tanpa tanda kutip — bentuk yang diminta TITLE_SYSTEM_PROMPT. */

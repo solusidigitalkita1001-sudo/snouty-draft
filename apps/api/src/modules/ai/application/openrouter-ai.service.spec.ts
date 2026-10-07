@@ -136,8 +136,9 @@ describe('OpenRouterAiService', () => {
     });
   });
 
-  it('tidak valid lalu valid: retry sekali di tingkat strong, dua catatan', async () => {
+  it('tidak valid lalu valid: retry sekali di tingkat strong, dua catatan (LLM_STRUCTURED_RETRY aktif)', async () => {
     await withEnv(async () => {
+      process.env['LLM_STRUCTURED_RETRY'] = 'true';
       const { transport, calls } = transportReturning('bukan json', '{"building":{"floors":3}}');
       const { recorder, records } = recorderCapturing();
       const svc = new OpenRouterAiService(transport, recorder, () => 0);
@@ -152,12 +153,25 @@ describe('OpenRouterAiService', () => {
 
   it('dua-duanya tidak valid: melempar, TIDAK ada percobaan ketiga', async () => {
     await withEnv(async () => {
+      process.env['LLM_STRUCTURED_RETRY'] = 'true';
       const { transport, calls } = transportReturning('bukan json', 'masih bukan json');
       const { recorder } = recorderCapturing();
       const svc = new OpenRouterAiService(transport, recorder, () => 0);
 
       await expect(svc.extract('pesan membingungkan')).rejects.toBeInstanceOf(AiOutputInvalidError);
       expect(calls).toHaveLength(2);
+    });
+  });
+
+  it('baku (diet 2026-10-07): keluaran tidak valid langsung dilempar, TANPA percobaan kedua', async () => {
+    await withEnv(async () => {
+      const { transport, calls } = transportReturning('bukan json', '{"building":{"floors":3}}');
+      const { recorder, records } = recorderCapturing();
+      const svc = new OpenRouterAiService(transport, recorder, () => 0);
+
+      await expect(svc.extract('rumah 3 lantai')).rejects.toBeInstanceOf(AiOutputInvalidError);
+      expect(calls).toHaveLength(1);
+      expect(records).toHaveLength(1);
     });
   });
 

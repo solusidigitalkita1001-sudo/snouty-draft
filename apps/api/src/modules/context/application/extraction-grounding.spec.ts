@@ -183,6 +183,18 @@ describe('extractionToUpdates — grounding', () => {
     ).not.toContain('fixtures.outletCount');
   });
 
+  it('tanpa model (diet 2026-10-07): pompa/sumur sebagai sumber dibaca kode, pompa pendorong dan wastafel/dapur juga', () => {
+    const paths = (m: string) => extractionToUpdates({}, m);
+    const value = (m: string, path: string) => paths(m).find((u) => u.path === path)?.value;
+    expect(value('pabrik 2 lantai, 3 kamar mandi, pompa, air bersih', 'water.source')).toBe('pump');
+    expect(value('air dari sumur bor', 'water.source')).toBe('pump');
+    expect(value('rumah 2 lantai pakai pompa pendorong', 'water.source')).toBeUndefined();
+    expect(value('air dari toren, pakai pompa', 'water.source')).toBeUndefined();
+    expect(value('4 wastafel, 1 dapur', 'fixtures.basins')).toBe(4);
+    expect(value('4 wastafel, 1 dapur', 'fixtures.kitchens')).toBe(1);
+    expect(value('2 sinks and a kitchen', 'fixtures.basins')).toBe(2);
+  });
+
   it('sumber air dan jenis instalasi butuh penanda — "rumah baru 1 lantai" tidak menyebut PDAM', () => {
     const invented = extractionToUpdates(
       { water: { source: 'municipal', installationType: 'clean_water' } },

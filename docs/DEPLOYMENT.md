@@ -71,6 +71,12 @@ dengan ekstraksi 7B tetap menunggu ekstraksi selesai (judul 3B terukur 99 s saat
 Tidak ada untungnya, RAM bertambah 2,5 GB; model 3B dihapus. Model lain yang tidak dipakai dihapus
 (`ollama rm`). Percepatan nyata hanya dari GPU atau model berbayar (`docs/PHASE15_CHECKPOINT.md` §3).
 
+Diet panggilan model (P16-10, 2026-10-07): tiga saklar env **baku nonaktif** dan sebaiknya tetap
+nonaktif selama model berjalan di CPU — `LLM_CHAT_REPLY` (sapaan, pembuka, judul percakapan ditulis
+model), `LLM_STRUCTURED_RETRY` (percobaan kedua bila JSON tidak valid), `LLM_SOLUTION_PROSE`
+(headline/body solusi bangunan). Nyalakan (`=true`) hanya bila model cepat (GPU atau berbayar).
+Ekstraksi kebutuhan juga dilewati otomatis bila kode sudah membaca ≥ 2 data inti dari teks.
+
 ## 5. Build, migration, nyalakan
 
 ```bash

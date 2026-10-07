@@ -967,6 +967,18 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       (tanpa model), pertanyaan topik (penyimpanan, cara) dibuka dengan topiknya sebelum ikhtisar
       bahan. Toren tanpa letak ("mau pasang 2 toren") tidak lagi ditebak "toren bawah" oleh model —
       sumber air masuk klarifikasi. Tes: message-pipeline +1, heuristics +1, grounding +1
+- [x] P16-10 Diet panggilan model (pemilik 2026-10-07: "kok masih lama bgt buat ambil jawabannya").
+      Diagnosis dari `llm_calls` 6 jam: ekstraksi rata-rata 103 s (maks 181), 9 ulang ekstraksi
+      36 s, intent 41 s, judul 40 panggilan 17 s, prosa solusi 70 s — di CPU server <1 tok/s
+      jawaban. Keputusan: (1) ekstraksi model DILEWATI bila kode sudah membaca ≥ 2 data inti dari
+      teks (pesan masjid: 0 s, bukan 100+ s); kode kini juga membaca wastafel/dapur dan pompa/sumur
+      sebagai sumber (bukan pompa pendorong); (2) tiga saklar env baku nonaktif:
+      `LLM_CHAT_REPLY` (sapaan/pembuka/judul oleh model), `LLM_STRUCTURED_RETRY` (percobaan kedua
+      JSON), `LLM_SOLUTION_PROSE` (headline/body solusi) — nyalakan hanya dengan model cepat;
+      judul dari klausa pertama pesan (`fallbackTitle`). Yang tersisa memanggil model: ekstraksi
+      untuk kebutuhan yang tidak terbaca kode, intent di luar pola, pemetaan produk tanpa keluarga.
+      Sekalian `docs/brainstorm/` (skema arsitektur `.md` + konteks ringkas + daftar dokumen) untuk
+      brainstorming pemilik. Tes: message-pipeline +2, openrouter +1, grounding +1, service judul ×2
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

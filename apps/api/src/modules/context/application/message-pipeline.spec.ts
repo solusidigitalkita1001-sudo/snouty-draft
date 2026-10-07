@@ -3,6 +3,15 @@
  * ekstraksi gagal → klarifikasi, bukan giliran jatuh.
  */
 import { describe, expect, it, vi } from 'vitest';
+
+// Diet panggilan model (2026-10-07): semua saklar baku nonaktif, persis seperti produksi.
+vi.mock('../../../config/env.js', () => ({
+  loadEnv: () => ({
+    LLM_CHAT_REPLY: false,
+    LLM_STRUCTURED_RETRY: false,
+    LLM_SOLUTION_PROSE: false,
+  }),
+}));
 import type { AiService } from '../../ai/domain/ai.port.js';
 import { AiOutputInvalidError, LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
@@ -40,6 +49,34 @@ function input(over: Partial<PipelineInput> = {}): PipelineInput {
     ...over,
   };
 }
+
+describe('runUnderstanding — diet panggilan model (2026-10-07)', () => {
+  it('≥ 2 data inti terbaca kode → model ekstraksi TIDAK dipanggil, fakta teks tetap tercatat', async () => {
+    const ai = aiExtracting({ building: { floors: 9 } });
+    const { events } = await runUnderstanding(
+      ai,
+      input({
+        message: 'masjid 2 lantai, 2 kamar mandi, 4 wastafel, 1 dapur, air dari toren di atap',
+      }),
+    );
+    expect(ai.extract).not.toHaveBeenCalled();
+    const updated = events.find((e) => e.type === 'requirement.updated') as {
+      state: ReturnType<typeof emptyRequirementState>;
+    };
+    expect(updated.state.building.type.value).toBe('light_commercial');
+    expect(updated.state.building.floors.value).toBe(2);
+    expect(updated.state.fixtures.bathrooms.value).toBe(2);
+    expect(updated.state.fixtures.basins.value).toBe(4);
+    expect(updated.state.fixtures.kitchens.value).toBe(1);
+    expect(updated.state.water.source.value).toBe('rooftop_tank');
+  });
+
+  it('< 2 data inti terbaca kode → model ekstraksi dipanggil', async () => {
+    const ai = aiExtracting({ building: { floors: 2 } });
+    await runUnderstanding(ai, input({ message: 'mau bikin instalasi buat rumah saya' }));
+    expect(ai.extract).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe('runUnderstanding — bentuk event SSE', () => {
   it('data tidak lengkap: start → stage active → requirement.updated → stage done → card clarification → end', async () => {

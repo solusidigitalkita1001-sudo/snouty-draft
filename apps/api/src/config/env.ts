@@ -107,6 +107,26 @@ const EnvSchema = z.object({
     .transform((value) => value === 'true'),
   LLM_REPLY_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(300_000).default(10_000),
   /**
+   * Diet panggilan model (2026-10-07, qwen2.5:7b di CPU server: 23 tok/s prompt, <1 tok/s
+   * jawaban). Semuanya baku nonaktif; nyalakan hanya dengan model yang cepat (GPU/berbayar):
+   * - `LLM_CHAT_REPLY`: sapaan/di luar topik/pembuka ditulis model (nonaktif: teks tetap, 0 s).
+   * - `LLM_STRUCTURED_RETRY`: percobaan kedua bila JSON terstruktur tidak valid (nonaktif:
+   *   langsung fakta tersurat dari teks + klarifikasi).
+   * - `LLM_SOLUTION_PROSE`: headline/body solusi bangunan ditulis model (nonaktif: templat).
+   */
+  LLM_CHAT_REPLY: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  LLM_STRUCTURED_RETRY: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  LLM_SOLUTION_PROSE: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  /**
    * Batas tunggu SETIAP panggilan terstruktur (intent, ekstraksi, parse produk, judul). Diukur
    * 2026-10-06: satu percobaan ulang ekstraksi di laptop yang kehabisan RAM memakan 524 detik.
    * Lewat batas → dibatalkan; giliran jatuh ke jalur jujurnya (LLM_UNAVAILABLE / klarifikasi),

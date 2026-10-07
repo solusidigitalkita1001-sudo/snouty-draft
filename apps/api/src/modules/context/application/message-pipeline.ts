@@ -25,7 +25,8 @@ import type {
 import { AiOutputInvalidError, LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
-import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
+import { CORE_REQUIREMENT_FIELDS, DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
+import { loadEnv } from '../../../config/env.js';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import { caseProfile, caseProfileLabel, isCaseId } from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
@@ -119,13 +120,13 @@ export async function runUnderstanding(
     // kerusakan. (Lookup produk punya ruasnya sendiri sebelum sampai ke sini.)
     const fallback = replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
-      // Dengan model: balasan ditulis model dari konteks percakapan, tanpa fakta teknis
-      // (tidak ada DATA → nol angka). Tanpa model, atau bila pagar menolak: teks tetap.
-      // Permintaan penjelasan ("kenapa 1 inci?") TIDAK diserahkan ke model: tanpa DATA ia
-      // mengarang alasan teknik yang terdengar masuk akal (produksi 2026-10-07, 7B: "ukuran 1
-      // inci dioptimalkan untuk kebutuhan air cukup besar"). Dasarnya ada di solusi; teks tetap.
+      // Teks tetap, tanpa model. Dulu sapaan/di luar topik diserahkan ke model (tanpa DATA → nol
+      // angka); di CPU itu 40–50 detik untuk sebuah sapaan (diet panggilan model, 2026-10-07).
+      // Permintaan penjelasan ("kenapa 1 inci?") memang tidak pernah ke model: tanpa DATA ia
+      // mengarang alasan teknik yang terdengar masuk akal. Dasarnya ada di solusi.
+      // `ReplyWriter` tetap tersedia untuk model yang lebih cepat (`LLM_CHAT_REPLY`).
       const written =
-        reply && input.decision.intent !== 'EXPLANATION_REQUEST'
+        reply && loadEnv().LLM_CHAT_REPLY && input.decision.intent !== 'EXPLANATION_REQUEST'
           ? await reply.write({
               intent: input.decision.intent,
               userMessage: input.message,
@@ -204,9 +205,17 @@ export async function runUnderstanding(
   // kartu tidak terbit, pengguna menatap layar kosong).
   let extraction: Extraction = {};
   let extractionFailed = false;
+  // Diet panggilan model (produksi 2026-10-07: ekstraksi 7B rata-rata 103 s, dan 9 dari 16 kali
+  // diulang). Bila fakta tersurat di teks sudah memberi minimal dua dari empat data inti (lantai,
+  // kamar mandi, sumber air, jenis instalasi), model tidak dipanggil: sisanya ditanya kartu
+  // klarifikasi, yang memang jalur biasa — jauh lebih cepat daripada menunggu tebakan model.
+  const quickCore = extractionToUpdates({}, input.message).filter((u) =>
+    CORE_REQUIREMENT_FIELDS.includes(u.path as (typeof CORE_REQUIREMENT_FIELDS)[number]),
+  ).length;
+  const skipModel = quickCore >= 2;
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
-    extraction = await ai.extract(input.message);
+    extraction = skipModel ? {} : await ai.extract(input.message);
   } catch (error) {
     // Model tidak terjangkau atau kehabisan waktu (produksi 2026-10-07: pesan masjid 2 lantai yang
     // panjang → 7B lewat 180 s → "Pemahaman bahasa sedang tidak tersedia") diperlakukan sama
@@ -248,15 +257,16 @@ export async function runUnderstanding(
       updates.length === 0
     ) {
       events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'done', detail: '0 DATA' });
-      const written = reply
-        ? await reply.write({
-            intent: 'OUT_OF_SCOPE',
-            userMessage: input.message,
-            recentTurns: input.recentTurns ?? [],
-            ...(input.locale ? { locale: input.locale } : {}),
-            fallback: openerReply(input.locale),
-          })
-        : { text: openerReply(input.locale) };
+      const written =
+        reply && loadEnv().LLM_CHAT_REPLY
+          ? await reply.write({
+              intent: 'OUT_OF_SCOPE',
+              userMessage: input.message,
+              recentTurns: input.recentTurns ?? [],
+              ...(input.locale ? { locale: input.locale } : {}),
+              fallback: openerReply(input.locale),
+            })
+          : { text: openerReply(input.locale) };
       events.push({ type: 'token', text: written.text });
       events.push(endEvent(input.messageId));
       return { events, nextState: input.state, changed: false, trigger: 'extraction' };

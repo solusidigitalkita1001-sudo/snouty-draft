@@ -9,7 +9,9 @@ import type { RequirementState } from '@snouty/shared-types';
 import { MessageService, isSaneTitle } from './message.service.js';
 
 // Ruas produk membaca satu saklar env (LLM_FAQ_REWRITE); tes ini tidak punya .env.
-vi.mock('../../../config/env.js', () => ({ loadEnv: () => ({ LLM_FAQ_REWRITE: false }) }));
+vi.mock('../../../config/env.js', () => ({
+  loadEnv: () => ({ LLM_FAQ_REWRITE: false, LLM_CHAT_REPLY: false }),
+}));
 
 const ACTOR = { kind: 'guest', id: 'G'.repeat(26), tier: 'guest', roles: [] } as const;
 
@@ -36,21 +38,30 @@ function serviceWith(router: { route: () => Promise<unknown> }) {
 }
 
 describe('MessageService — judul dari pesan pertama', () => {
-  it('percakapan tanpa judul diberi judul dari model saat pesan pertama', async () => {
-    const { service, conversations } = serviceWith({
-      route: () => Promise.reject(new LlmUnavailableError(503)),
-    });
-    await service.handle('C'.repeat(26), ACTOR, 'rumah 2 lantai 3 kamar mandi', 'x');
-    expect(conversations.rename).toHaveBeenCalledWith('C'.repeat(26), ACTOR, 'Rumah 2 lantai');
-  });
-
-  it('model gagal memberi judul → potongan pesannya; percakapan berjudul tidak diubah', async () => {
+  it('percakapan tanpa judul diberi judul dari klausa pertama pesan — model TIDAK dipanggil (diet 2026-10-07)', async () => {
     const { service, conversations, ai } = serviceWith({
       route: () => Promise.reject(new LlmUnavailableError(503)),
     });
-    ai.titleFor.mockRejectedValueOnce(new Error('putus'));
+    await service.handle(
+      'C'.repeat(26),
+      ACTOR,
+      'rumah 2 lantai 3 kamar mandi, air dari toren',
+      'x',
+    );
+    expect(conversations.rename).toHaveBeenCalledWith(
+      'C'.repeat(26),
+      ACTOR,
+      'Rumah 2 lantai 3 kamar mandi',
+    );
+    expect(ai.titleFor).not.toHaveBeenCalled();
+  });
+
+  it('judul dirapikan dari pesannya; percakapan berjudul tidak diubah', async () => {
+    const { service, conversations } = serviceWith({
+      route: () => Promise.reject(new LlmUnavailableError(503)),
+    });
     await service.handle('C'.repeat(26), ACTOR, '  rumah   2 lantai  ', 'x');
-    expect(conversations.rename).toHaveBeenCalledWith('C'.repeat(26), ACTOR, 'rumah 2 lantai');
+    expect(conversations.rename).toHaveBeenCalledWith('C'.repeat(26), ACTOR, 'Rumah 2 lantai');
 
     conversations.rename.mockClear();
     conversations.find.mockResolvedValueOnce({ title: 'Sudah ada' } as never);

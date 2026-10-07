@@ -234,7 +234,12 @@ export class OpenRouterAiService implements AiService {
     );
     if (pruned.success) return pruned.data;
 
-    // Percobaan kedua dan TERAKHIR — tingkat kuat, error dilampirkan.
+    // Percobaan kedua hanya bila diizinkan (`LLM_STRUCTURED_RETRY`): di CPU ia 36 detik lagi untuk
+    // keluaran yang biasanya sama rusaknya (produksi 2026-10-07: 9 dari 16 ekstraksi diulang).
+    // Tanpa izin: pemanggil langsung jatuh ke fakta tersurat dari teks + klarifikasi.
+    if (!loadEnv().LLM_STRUCTURED_RETRY) {
+      throw new AiOutputInvalidError(task, parsedFirst.error.message);
+    }
     const retryUser = `${userMessage}\n\n[Keluaran sebelumnya tidak valid: ${parsedFirst.error.message}. Kembalikan JSON yang sesuai skema.]`;
     let second;
     try {
