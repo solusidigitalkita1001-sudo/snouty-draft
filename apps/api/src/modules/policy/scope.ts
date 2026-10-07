@@ -35,8 +35,10 @@ export type PolicyOutcome =
  */
 // Tambak/kolam TIDAK lagi di sini: ia punya profil kasus + kalkulator sendiri (Fase 14, kasus
 // `fish_pond`). Yang tersisa adalah fluida/kondisi yang bahannya butuh validasi (panas, kimia).
+// "air proses" dan suhu tersurat ≥ 45° ikut: "jalur air proses pabrik, suhu 70 °C" adalah
+// kondisi fluida yang butuh validasi bahan, apa pun jenis bangunannya (skenario uji §39).
 const OUT_OF_SCOPE_USE =
-  /\b(peternakan|air panas|uap|boiler|air laut|kimia|gas|minyak|bahan bakar)\b/i;
+  /\b(peternakan|air panas|air proses|uap|boiler|air laut|kimia|gas|minyak|bahan bakar)\b|\bsuhu\s*(?:[4-9]\d|[1-9]\d{2,})\s*(?:°|derajat|c\b)/i;
 
 /**
  * Muara jalur irigasi (OQ-47): data lengkap → diteruskan ke tim teknis untuk dihitung. Bukan

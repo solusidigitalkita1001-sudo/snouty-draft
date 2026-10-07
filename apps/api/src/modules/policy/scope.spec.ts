@@ -52,6 +52,12 @@ describe('Policy 5 — scope routing', () => {
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
     });
+    // Skenario uji §39: air proses pabrik bersuhu tinggi — dikenali dari "air proses" maupun suhunya.
+    expect(useCasePolicy('Jalur air proses pabrik, suhu 70°C, panjang 200 meter').kind).toBe(
+      'policy',
+    );
+    expect(useCasePolicy('pipa untuk air suhu 60 derajat').kind).toBe('policy');
+    expect(useCasePolicy('rumah 2 lantai suhu 30 derajat di luar').kind).toBe('supported');
     // Tambak/kolam kini punya jalur kasus teknis sendiri (Fase 14) — bukan ditolak di sini.
     expect(useCasePolicy('pipa tambak udang 2 hektar').kind).toBe('supported');
     expect(useCasePolicy('rumah 2 lantai, 3 kamar mandi, toren atap').kind).toBe('supported');

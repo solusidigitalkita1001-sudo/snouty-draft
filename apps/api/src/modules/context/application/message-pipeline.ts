@@ -198,7 +198,15 @@ export async function runUnderstanding(
     // untuk orang yang baru hendak bertanya. Ekstraksi kosong berarti tidak ada yang bisa
     // diklarifikasi dari pesan ini — dijawab seperti percakapan. Hanya untuk pernyataan pertama:
     // jawaban klarifikasi dan mutasi yang kosong tetap lewat jalur biasa.
-    if (input.decision.intent === 'REQUIREMENT_STATEMENT' && isEmptyExtraction(extraction)) {
+    // Kosong dinilai SETELAH fakta tersurat dari teks ikut dihitung (`extractionToUpdates`):
+    // "rumah 2 lantai, tidak ada dapur" dengan model yang mengembalikan {} bukan pembuka
+    // (produksi 2026-10-07 — sempat dijawab "silakan tanyakan saja").
+    const updates = extractionToUpdates(extraction, input.message);
+    if (
+      input.decision.intent === 'REQUIREMENT_STATEMENT' &&
+      isEmptyExtraction(extraction) &&
+      updates.length === 0
+    ) {
       events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'done', detail: '0 DATA' });
       const written = reply
         ? await reply.write({
@@ -213,7 +221,6 @@ export async function runUnderstanding(
       return { events, nextState: input.state, changed: false, trigger: 'extraction' };
     }
 
-    const updates = extractionToUpdates(extraction, input.message);
     const result = mergeRequirement(input.state, updates, input.now);
     merged = withCompleteness(result.state);
     changed = result.changed.length > 0;

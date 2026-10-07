@@ -689,10 +689,21 @@ export function ChatWorkspace() {
                   {menuOpen && (
                     <div className={styles.menu} role="menu">
                       <div className={styles.menuTitle}>{COPY.menuTitle}</div>
+                      {/* Sama dengan sidebar: percakapan aktif tampil di atas — di ponsel ia
+                          sempat tersembunyi dan menu hanya berbunyi "belum ada konsultasi lain"
+                          (laporan pemilik 2026-10-07). */}
+                      {inConversation && (
+                        <div className={styles.historyActive} aria-current="true">
+                          <span className={styles.historyActiveTitle}>
+                            {activeTitle ?? COPY.titleFor(null, null)}
+                          </span>
+                          <span className={styles.historyActiveStatus}>{activeStatus}</span>
+                        </div>
+                      )}
                       {history.kind === 'guest' && (
                         <p className={styles.historyGuest}>{COPY.historyGuest}</p>
                       )}
-                      {history.kind === 'list' && otherHistory.length === 0 && (
+                      {history.kind === 'list' && otherHistory.length === 0 && !inConversation && (
                         <p className={styles.historyGuest}>{COPY.historyEmpty}</p>
                       )}
                       {historyList(styles.menuItem!)}

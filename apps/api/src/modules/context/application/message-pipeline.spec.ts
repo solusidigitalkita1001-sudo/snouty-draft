@@ -328,6 +328,25 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(changed).toBe(false);
   });
 
+  it('model mengembalikan {} tetapi teksnya memuat fakta ("rumah 2 lantai, tidak ada dapur") → bukan pembuka', async () => {
+    const { events, changed } = await runUnderstanding(
+      aiExtracting({}),
+      input({ message: 'rumah 2 lantai, 2 kamar mandi, tidak ada dapur' }),
+    );
+    const updated = events.find((e) => e.type === 'requirement.updated') as
+      | {
+          state: {
+            fixtures: { kitchens: { value: unknown } };
+            building: { floors: { value: unknown } };
+          };
+        }
+      | undefined;
+    expect(updated?.state.building.floors.value).toBe(2);
+    expect(updated?.state.fixtures.kitchens.value).toBe(0);
+    expect(changed).toBe(true);
+    expect(events.some((e) => e.type === 'card')).toBe(true);
+  });
+
   it('jawaban klarifikasi yang kosong TIDAK dianggap pembuka: jalur biasa tetap berjalan', async () => {
     const decision: RoutingDecision = {
       intent: 'CLARIFICATION_ANSWER',
