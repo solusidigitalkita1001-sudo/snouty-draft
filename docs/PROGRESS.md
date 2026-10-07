@@ -768,6 +768,10 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       `LocaleToggle` (localStorage, `<html lang>`), bahasa dikirim saat percakapan dibuat. Tes: locale
       5, repository 1, reply-writer 1. **Belum:** teks UI EN (P15-02), templat deterministik API EN
       (P15-03), registry parameter/asumsi EN (P15-04), laporan PDF EN (P15-05)
+- [x] P15-01b Drawer sidebar di layar sempit (2026-10-07, laporan pemilik "kok bentukannya ngga
+      sidebar kaya ChatGPT/Claude di mobile"): sidebar yang sama dirender sebagai drawer dari kiri
+      (backdrop, ×, Escape, menutup saat memilih riwayat/percakapan baru), tombol ☰ di ponsel;
+      dropdown "Riwayat" dihapus. OQ-51 (needs design)
 - [ ] P15-02 Teks UI dua bahasa: seluruh modul `*-copy.ts` web (640 baris) + `useCopy(locale)`
 - [ ] P15-03 Templat deterministik API dua bahasa: reply-copy, pembuka, panduan teknis & irigasi,
       pipe-knowledge, product-answer-text, kartu kebijakan (scope/entitlements), klarifikasi

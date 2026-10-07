@@ -371,6 +371,16 @@ katalog yang tidak memisahkannya (katalog contoh). Fitting diterima penuh hanya 
 pemilik: **tidak ditebak AW**) menjadi `SIZE_NEEDS_VALIDATION`; kelas VERIFIED berbeda (D untuk AW)
 ditolak. Masih menunggu Pralon: arti token "W" dan fitting tanpa token (`docs/MATCHER_V2_PROPOSAL.md` §5).
 
+### OQ-51 — Riwayat di layar sempit: drawer sidebar, bukan dropdown
+
+**Status:** keputusan pemilik diterapkan, needs design · **Blocks:** —
+**Pertanyaan:** Prototipe menaruh "Riwayat" sebagai menu dropdown 260 px di header saat < 1080 px.
+Pemilik (2026-10-07) meminta bentuk seperti ChatGPT/Claude di ponsel: sidebar yang menggeser masuk
+dari kiri dengan isi yang sama dengan sidebar desktop.
+**Default yang diterapkan:** sidebar yang sama dirender sebagai drawer (lebar `min(300px, 86vw)`,
+backdrop, tombol tutup ×, Escape menutup, memilih riwayat/percakapan baru menutup); tombol pembuka di
+header: "Riwayat" (< 1080) atau ☰ (< 720). Menunggu desain; jangan dianggap final.
+
 ### OQ-50 — Layar "Opsi ukuran" dan "Kesiapan hasil" belum didesain
 
 **Status:** open, needs design · **Blocks:** — (dibangun minimal, P14-06)

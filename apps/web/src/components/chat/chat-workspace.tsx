@@ -183,6 +183,19 @@ export function ChatWorkspace() {
     if (narrow) setPanelOpen(false);
   }, [narrow]);
 
+  // Drawer sidebar (layar sempit): Escape menutup; lebar yang membesar menutupnya juga.
+  useEffect(() => {
+    if (!narrow) setMenuOpen(false);
+  }, [narrow]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [menuOpen]);
+
   const refreshHistory = useCallback(() => {
     if (history.kind === 'guest') return;
     void fetchHistory().then((result) => {
@@ -531,7 +544,15 @@ export function ChatWorkspace() {
 
   const historyList = (itemClass: string) =>
     otherHistory.map((item) => (
-      <button key={item.id} type="button" className={itemClass} onClick={() => openHistory(item)}>
+      <button
+        key={item.id}
+        type="button"
+        className={itemClass}
+        onClick={() => {
+          setMenuOpen(false);
+          openHistory(item);
+        }}
+      >
         <span className={styles.historyTitleText}>{item.title ?? COPY.titleFor(null, null)}</span>
         <span className={styles.historyMeta}>{historyDate(item.updatedAt)}</span>
       </button>
@@ -545,9 +566,23 @@ export function ChatWorkspace() {
 
   return (
     <div className={styles.shell}>
-      {/* Sidebar 236px ATAU rail 60px — tidak pernah keduanya (prototipe `navCollapsed`). */}
-      {!narrow && !navCollapsed && (
-        <aside className={styles.sidebar}>
+      {/* Sidebar 236px ATAU rail 60px — tidak pernah keduanya (prototipe `navCollapsed`).
+          Di layar sempit sidebar yang SAMA menjadi drawer dari kiri (keputusan pemilik 2026-10-07:
+          seperti ChatGPT/Claude di ponsel, bukan dropdown) — OQ-51, belum didesain. */}
+      {narrow && menuOpen && (
+        <div
+          className={styles.drawerBackdrop}
+          onClick={() => setMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      {(narrow ? menuOpen : !navCollapsed) && (
+        <aside
+          className={[styles.sidebar, narrow ? styles.sidebarDrawer : ''].join(' ')}
+          role={narrow ? 'dialog' : undefined}
+          aria-modal={narrow ? true : undefined}
+          aria-label={narrow ? COPY.menuTitle : undefined}
+        >
           <div className={styles.brandRow}>
             <SnoutyAvatar mood="idle" size={28} />
             <div className={styles.brandText}>
@@ -557,15 +592,23 @@ export function ChatWorkspace() {
             <button
               type="button"
               className={styles.navToggle}
-              onClick={() => setNavCollapsed(true)}
-              title={COPY.collapseSidebar}
-              aria-label={COPY.collapseSidebar}
+              onClick={() => (narrow ? setMenuOpen(false) : setNavCollapsed(true))}
+              title={narrow ? COPY.closeDrawer : COPY.collapseSidebar}
+              aria-label={narrow ? COPY.closeDrawer : COPY.collapseSidebar}
+              autoFocus={narrow}
             >
-              «
+              {narrow ? '×' : '«'}
             </button>
           </div>
 
-          <button type="button" className={styles.newButton} onClick={reset}>
+          <button
+            type="button"
+            className={styles.newButton}
+            onClick={() => {
+              setMenuOpen(false);
+              reset();
+            }}
+          >
             <span className={styles.newPlus}>+</span>
             <span>{COPY.newConversation}</span>
           </button>
@@ -681,42 +724,16 @@ export function ChatWorkspace() {
                   <span className={styles.newPlus}>+</span>
                   {!mobile && <span>{COPY.newShort}</span>}
                 </button>
-                <div className={styles.menuWrap}>
-                  <button
-                    type="button"
-                    className={styles.headerMenuButton}
-                    onClick={() => setMenuOpen((open) => !open)}
-                    aria-expanded={menuOpen}
-                  >
-                    {COPY.menu}
-                  </button>
-                  {menuOpen && (
-                    <div className={styles.menu} role="menu">
-                      <div className={styles.menuTitle}>{COPY.menuTitle}</div>
-                      {/* Sama dengan sidebar: percakapan aktif tampil di atas — di ponsel ia
-                          sempat tersembunyi dan menu hanya berbunyi "belum ada konsultasi lain"
-                          (laporan pemilik 2026-10-07). */}
-                      {inConversation && (
-                        <div className={styles.historyActive} aria-current="true">
-                          <span className={styles.historyActiveTitle}>
-                            {activeTitle ?? COPY.titleFor(null, null)}
-                          </span>
-                          <span className={styles.historyActiveStatus}>{activeStatus}</span>
-                        </div>
-                      )}
-                      {history.kind === 'guest' && (
-                        <p className={styles.historyGuest}>{COPY.historyGuest}</p>
-                      )}
-                      {history.kind === 'list' && otherHistory.length === 0 && !inConversation && (
-                        <p className={styles.historyGuest}>{COPY.historyEmpty}</p>
-                      )}
-                      {historyList(styles.menuItem!)}
-                      <div className={styles.menuDivider} />
-                      <span className={styles.menuLink}>{COPY.savedSolutions}</span>
-                      <span className={styles.menuLink}>{COPY.productKnowledge}</span>
-                    </div>
-                  )}
-                </div>
+                {/* Membuka drawer sidebar (bukan dropdown) — di ponsel ikon hamburger. */}
+                <button
+                  type="button"
+                  className={styles.headerMenuButton}
+                  onClick={() => setMenuOpen((open) => !open)}
+                  aria-expanded={menuOpen}
+                  aria-label={COPY.menu}
+                >
+                  {mobile ? '☰' : COPY.menu}
+                </button>
               </>
             )}
             <span className={styles.headerTitle}>

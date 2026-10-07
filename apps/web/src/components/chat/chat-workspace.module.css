@@ -1959,3 +1959,41 @@
     animation: none;
   }
 }
+
+/* ---------- Drawer sidebar di layar sempit (OQ-51, keputusan pemilik 2026-10-07; belum didesain) ---------- */
+
+.drawerBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(20 24 26 / 0.32);
+  z-index: 30;
+}
+
+/* Sidebar yang sama, dipasang sebagai lembar dari kiri — isi, token, dan lebarnya tidak berubah. */
+.sidebarDrawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(300px, 86vw);
+  z-index: 31;
+  box-shadow: 14px 0 40px rgb(20 24 26 / 0.18);
+  animation: drawerIn var(--snouty-enter) both;
+}
+
+@keyframes drawerIn {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebarDrawer {
+    animation: none;
+  }
+}

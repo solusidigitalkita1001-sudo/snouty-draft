@@ -74,6 +74,8 @@ export const CHAT_COPY = {
   newShort: 'Baru',
   menu: 'Riwayat',
   menuTitle: 'RIWAYAT KONSULTASI',
+  /** Tombol tutup drawer sidebar di layar sempit (OQ-51). */
+  closeDrawer: 'Tutup menu',
   activeStatus: {
     inProgress: 'SEDANG BERLANGSUNG',
     ready: 'SOLUSI SIAP',
