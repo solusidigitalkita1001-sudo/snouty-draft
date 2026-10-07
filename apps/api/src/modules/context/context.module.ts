@@ -19,6 +19,8 @@ import { ProductCatalogModule } from '../product-catalog/product-catalog.module.
 import { CatalogQueryService } from '../product-catalog/application/catalog-query.service.js';
 import { ProductKnowledgeModule } from '../product-knowledge/product-knowledge.module.js';
 import { ProductQuestionService } from '../product-knowledge/application/product-question.service.js';
+import { CompanyKnowledgeModule } from '../company-knowledge/company-knowledge.module.js';
+import { CompanyKnowledgeService } from '../company-knowledge/application/company-knowledge.service.js';
 import { replySystemPrompt } from '../ai/application/prompts.js';
 import { IntentRouter } from './application/intent-router.js';
 import { ReplyWriter } from './application/reply-writer.js';
@@ -69,6 +71,7 @@ const messageServiceProvider = {
     ReplyWriter,
     AI_SERVICE,
     LoggerService,
+    CompanyKnowledgeService,
   ],
   useFactory: (
     conversations: ConversationService,
@@ -79,6 +82,7 @@ const messageServiceProvider = {
     reply: ReplyWriter | null,
     ai: AiService | null,
     logger: LoggerService,
+    company: CompanyKnowledgeService,
   ) =>
     new MessageService(
       conversations,
@@ -89,12 +93,20 @@ const messageServiceProvider = {
       reply,
       ai,
       logger.child({ module: 'context' }),
+      company,
     ),
 };
 
 @Module({
   // Katalog + pengetahuan produk: ruas PRODUCT_LOOKUP menjawab dari keduanya, nol LLM.
-  imports: [AiModule, ConversationModule, ProductCatalogModule, ProductKnowledgeModule],
+  // Pengetahuan perusahaan (Fase 16): ruas COMPANY_QUESTION, terpisah dari katalog.
+  imports: [
+    AiModule,
+    ConversationModule,
+    ProductCatalogModule,
+    ProductKnowledgeModule,
+    CompanyKnowledgeModule,
+  ],
   controllers: [MessageController],
   providers: [
     rateLimiterProvider,

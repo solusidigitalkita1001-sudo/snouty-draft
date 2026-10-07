@@ -148,7 +148,7 @@ export const requirementSnapshots = mysqlTable(
     }).onDelete('cascade'),
     check(
       'ck_snapshots_trigger',
-      sql`\`trigger\` IN ('extraction','clarification_answer','user_edit','default_applied')`,
+      sql`\`trigger\` IN ('extraction','clarification_answer','user_edit','default_applied','subject_change')`,
     ),
   ],
 );

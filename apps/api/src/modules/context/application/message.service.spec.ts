@@ -5,7 +5,11 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
+import type { RequirementState } from '@snouty/shared-types';
 import { MessageService, isSaneTitle } from './message.service.js';
+
+// Ruas produk membaca satu saklar env (LLM_FAQ_REWRITE); tes ini tidak punya .env.
+vi.mock('../../../config/env.js', () => ({ loadEnv: () => ({ LLM_FAQ_REWRITE: false }) }));
 
 const ACTOR = { kind: 'guest', id: 'G'.repeat(26), tier: 'guest', roles: [] } as const;
 
@@ -190,6 +194,120 @@ describe('MessageService.answerClarification — semua jawaban sekaligus, tanpa 
     });
     expect(result.state.building.floors.value).toBeNull();
     expect(result.card?.kind).toBe('clarification');
+  });
+});
+
+/**
+ * Fase 16 — percakapan yang dulu rusak, dimainkan ulang dari awal sampai akhir dengan router
+ * ASLI dan model yang selalu menjawab PRODUCT_LOOKUP (perilaku 7B yang memicu bug): subjek
+ * perusahaan bertahan melewati "boleh", "lengkap dong", "semuanya"; tidak pernah
+ * "Produk mana yang Anda maksud?"; berganti ke produk hanya saat produk disebut.
+ */
+describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)', () => {
+  async function conversation() {
+    const { IntentRouter } = await import('./intent-router.js');
+    const snapshots: { state: RequirementState }[] = [];
+    const assistant: string[] = [];
+    const conversations = {
+      find: vi.fn(async () => ({ title: 'x', language: 'id' })),
+      messages: vi.fn(async () => []),
+      rename: vi.fn(async () => undefined),
+      appendUserMessage: vi.fn(async () => undefined),
+      appendAssistantMessage: vi.fn(async (_id: string, text: string) => {
+        assistant.push(text);
+      }),
+    };
+    const store = {
+      current: vi.fn(async () => snapshots.at(-1) ?? null),
+      append: vi.fn(async (_id: string, state: RequirementState, trigger: string) => {
+        snapshots.push({ state });
+        return { state, trigger };
+      }),
+    };
+    const ai = {
+      classifyIntent: vi.fn(async () => ({ intent: 'PRODUCT_LOOKUP', confidence: 0.9 })),
+      parseProductQuestion: vi.fn(async () => ({ productQuery: 'HDPE', aspect: null, size: null })),
+      titleFor: vi.fn(async () => 'Tentang Pralon'),
+      extract: vi.fn(async () => ({})),
+      writeProse: vi.fn(async () => null),
+    };
+    const catalog = {
+      activeVersion: vi.fn(async () => ({ kind: 'sample' })),
+      listProducts: vi.fn(async () => ({ items: [] })),
+    };
+    const service = new MessageService(
+      conversations as never,
+      store as never,
+      new IntentRouter(ai as never),
+      catalog as never,
+      { answer: vi.fn() } as never,
+      null,
+      ai as never,
+    );
+    const say = async (text: string) => {
+      await service.handle('C'.repeat(26), ACTOR, text, '2026-10-07T00:00:00Z');
+      return assistant.at(-1) ?? '';
+    };
+    const subject = () => snapshots.at(-1)?.state.subject;
+    return { say, subject, ai, store };
+  }
+
+  it('percakapan pemilik: "pralon itu apa?" … "semuanya, tolong tampilin" tetap tentang PT Pralon', async () => {
+    const { say, subject, ai } = await conversation();
+
+    const first = await say('pralon itu apa?');
+    expect(first).toContain('Pralon adalah produsen sistem perpipaan');
+    expect(first).toContain('Kalau yang Anda maksud produk Pralon tertentu');
+    expect(first).not.toContain('Produk mana yang Anda maksud');
+    expect(subject()?.kind).toBe('company');
+
+    await say('PT Pralon yang gw maksud');
+    expect(subject()).toMatchObject({ kind: 'company', entity: 'PT Pralon' });
+
+    await say('gw pengen tau terkait company profile PT Pralon');
+    expect(subject()).toMatchObject({ topic: 'company_profile', depth: 'detailed' });
+
+    const ok = await say('boleh');
+    expect(ok).not.toContain('Produk mana');
+    expect(subject()?.depth).toBe('comprehensive');
+
+    const full = await say('data nya secara lengkap dong');
+    expect(full).toContain('Informasi yang dapat saya verifikasi saat ini:');
+    expect(full).toContain('**Situs resmi**');
+    expect(full).toContain('belum bisa saya verifikasi dari sumber resmi');
+    expect(full).not.toContain('Produk mana');
+
+    const all = await say('semuanya, tolong tampilin');
+    expect(all).not.toContain('Produk mana');
+    expect(all).toContain('Pralon adalah produsen');
+    expect(subject()).toMatchObject({
+      kind: 'company',
+      topic: 'company_profile',
+      depth: 'comprehensive',
+    });
+
+    // Model (yang selalu bilang PRODUCT_LOOKUP) tidak pernah ditanya untuk semua giliran di atas.
+    expect(ai.classifyIntent).not.toHaveBeenCalled();
+  });
+
+  it('TEST E: setelah profil perusahaan, "produk HDPE nya gimana?" berpindah ke subjek produk', async () => {
+    const { say, subject } = await conversation();
+    await say('company profile PT Pralon');
+    const reply = await say('produk HDPE nya gimana?');
+    expect(reply).toContain('HDPE');
+    expect(subject()).toMatchObject({ kind: 'product', entity: 'hdpe' });
+    // Lanjutan setelah itu tentang produk, bukan kembali ke perusahaan.
+    await say('lebih detail dong');
+    expect(subject()?.kind).toBe('product');
+  });
+
+  it('subjek yang sama tidak menulis snapshot baru; subjek baru menulis `subject_change`', async () => {
+    const { say, store } = await conversation();
+    await say('pralon itu apa?');
+    expect(store.append).toHaveBeenCalledTimes(1);
+    expect(store.append.mock.calls[0]![2]).toBe('subject_change');
+    await say('PT Pralon yang gw maksud');
+    expect(store.append).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -61,6 +61,39 @@ describe('IntentRouter — presedensi kebutuhan (intent sadar konteks)', () => {
     expect(real.intent).toBe('COMPETITOR_QUESTION');
   });
 
+  it('subjek PERUSAHAAN aktif (Fase 16): lanjutan "boleh"/"semuanya" tidak memanggil model, tetap perusahaan', async () => {
+    const company = {
+      kind: 'company',
+      entity: 'PT Pralon',
+      topic: 'company_profile',
+      depth: 'standard',
+    } as const;
+    let calls = 0;
+    const ai = aiReturning({ intent: 'PRODUCT_LOOKUP', confidence: 0.9 });
+    ai.classifyIntent = () => {
+      calls += 1;
+      return Promise.resolve({ intent: 'PRODUCT_LOOKUP', confidence: 0.9 });
+    };
+    const r = new IntentRouter(ai);
+    for (const message of ['boleh', 'data nya secara lengkap dong', 'semuanya, tolong tampilin']) {
+      const d = await r.route(message, false, [], company);
+      expect(d.intent).toBe('COMPANY_QUESTION');
+      expect(d.shouldExtract).toBe(false);
+    }
+    expect(calls).toBe(0);
+    // Pesan yang menyebut Pralon lagi tanpa produk: tetap perusahaan walau model bilang produk.
+    const again = await r.route('ceritain lebih jauh tentang pralon', false, [], company);
+    expect(again.intent).toBe('COMPANY_QUESTION');
+    // TEST E: menyebut produk → pindah ke produk (pergantian topik yang disengaja).
+    const product = await r.route('produk HDPE nya gimana?', false, [], company);
+    expect(product.intent).toBe('PRODUCT_LOOKUP');
+    // Tanpa subjek, "boleh" tidak dilanjutkan ke mana pun — ke model seperti biasa.
+    await r.route('boleh', false, [], undefined);
+    // Model hanya ditanya untuk "produk HDPE nya gimana?" dan "boleh" tanpa subjek;
+    // "tentang pralon" sudah pasti perusahaan di kode.
+    expect(calls).toBe(2);
+  });
+
   it('tanpa isyarat kebutuhan, label model dipakai apa adanya', async () => {
     const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.85 }).route(
       'apa bedanya pvc sama hdpe?',

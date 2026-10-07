@@ -15,11 +15,18 @@ import { Inject, Injectable, Optional } from '@nestjs/common';
 import type {
   AssistantCard,
   AssistantStreamEvent,
+  ConversationSubject,
   IrrigationField,
   RequirementFieldPath,
   RequirementState,
 } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
+import { heuristicProductQuestion } from '../../ai/domain/heuristics.js';
+import type { CompanyKnowledgeService } from '../../company-knowledge/application/company-knowledge.service.js';
+import { composeCompanyAnswer } from '../../company-knowledge/domain/company-answer.js';
+import { SECTIONS } from '../../company-knowledge/domain/company-profile.js';
+import { runCompanyQuestion } from './company-question-pipeline.js';
+import { productSubject } from '../domain/subject.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import { productFaqSystemPrompt } from '../../ai/application/prompts.js';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
@@ -66,6 +73,8 @@ export class MessageService {
     @Optional() @Inject(AI_SERVICE) private readonly ai: AiService | null = null,
     /** Log profil latensi per giliran (P14-07); opsional supaya tes lama tidak berubah. */
     @Optional() private readonly logger: Logger | null = null,
+    /** Pengetahuan perusahaan (Fase 16); tanpa ini pertanyaan perusahaan dijawab teks tetap. */
+    @Optional() private readonly company: CompanyKnowledgeService | null = null,
   ) {}
 
   /**
@@ -142,8 +151,31 @@ export class MessageService {
           } satisfies RoutingDecision)
         : null;
     timer.mark('load');
-    const decision = continuation ?? (await this.router.route(text, hasExisting, recentTurns));
+    const decision =
+      continuation ?? (await this.router.route(text, hasExisting, recentTurns, state.subject));
     timer.mark('route');
+
+    // Pertanyaan perusahaan (Fase 16): ruas sendiri — pengetahuan perusahaan, bukan katalog;
+    // subjeknya tersimpan supaya "boleh"/"lengkap dong" berikutnya tetap tentang perusahaan.
+    if (decision.intent === 'COMPANY_QUESTION') {
+      const result = await runCompanyQuestion(this.company ?? NO_COMPANY_KNOWLEDGE, {
+        messageId,
+        message: text,
+        subject: state.subject,
+        locale,
+      });
+      timer.mark('answer');
+      await this.rememberSubject(conversationId, state, result.subject);
+      await this.conversations.appendAssistantMessage(
+        conversationId,
+        textOf(result.events),
+        cardsOf(result.events),
+        null,
+      );
+      timer.mark('persist');
+      this.logTurn(conversationId, decision, timer);
+      return result.events;
+    }
 
     // Pertanyaan produk: ruas sendiri, nol ekstraksi, jawaban dari katalog.
     if (decision.intent === 'PRODUCT_LOOKUP') {
@@ -158,6 +190,12 @@ export class MessageService {
         loadEnv().LLM_FAQ_REWRITE ? productFaqSystemPrompt(locale) : null,
       );
       timer.mark('answer');
+      // Subjek berganti ke produk yang disebut — pergantian topik yang disengaja pengguna.
+      await this.rememberSubject(
+        conversationId,
+        state,
+        productSubject(heuristicProductQuestion(text).productQuery, text, state.subject),
+      );
       await this.conversations.appendAssistantMessage(
         conversationId,
         textOf(events),
@@ -186,7 +224,13 @@ export class MessageService {
     timer.mark('answer');
 
     if (result.changed) {
-      await this.store.append(conversationId, result.nextState, result.trigger);
+      // Kebutuhan yang berubah menjadikan kasusnya subjek aktif: "lanjut" setelah ini berarti
+      // melanjutkan kebutuhan, bukan kembali ke pertanyaan perusahaan/produk sebelumnya.
+      await this.store.append(
+        conversationId,
+        { ...result.nextState, subject: caseSubject(result.nextState) },
+        result.trigger,
+      );
     }
 
     await this.conversations.appendAssistantMessage(
@@ -199,6 +243,19 @@ export class MessageService {
     this.logTurn(conversationId, decision, timer);
 
     return result.events;
+  }
+
+  /**
+   * Menyimpan subjek percakapan bila berubah — snapshot `subject_change` tanpa menyentuh
+   * kebutuhan. Subjek yang sama tidak menulis apa pun.
+   */
+  private async rememberSubject(
+    conversationId: string,
+    state: RequirementState,
+    subject: ConversationSubject,
+  ): Promise<void> {
+    if (JSON.stringify(state.subject) === JSON.stringify(subject)) return;
+    await this.store.append(conversationId, { ...state, subject }, 'subject_change');
   }
 
   /** Profil latensi satu giliran: `{ load, route, answer, persist, total }` dalam ms. */
@@ -372,6 +429,28 @@ function withoutFirstStart(emit: EventSink): EventSink {
     }
     emit(event);
   };
+}
+
+/** Tanpa layanan perusahaan (tes lama, modul belum terpasang): bagian statis saja, tanpa katalog. */
+const NO_COMPANY_KNOWLEDGE: Pick<CompanyKnowledgeService, 'answer'> = {
+  answer: (question) =>
+    Promise.resolve(
+      composeCompanyAnswer({
+        facts: { sections: SECTIONS, productFamilies: new Map() },
+        ...question,
+      }),
+    ),
+};
+
+/** Subjek KASUS dari kebutuhan yang tercatat: jalur guna khusus bila ada, selain itu bangunan. */
+function caseSubject(state: RequirementState): ConversationSubject {
+  const entity =
+    state.useCase?.kind === 'technical'
+      ? state.useCase.caseId
+      : state.useCase?.kind === 'irrigation'
+        ? 'irrigation'
+        : 'building';
+  return { kind: 'case', entity, topic: 'requirement', depth: 'standard' };
 }
 
 function llmUnavailable(messageId: string): readonly AssistantStreamEvent[] {

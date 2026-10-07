@@ -14,14 +14,17 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { Intent } from '@snouty/shared-types';
+import type { ConversationSubject, Intent } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import type { IntentClassification } from '../../ai/domain/extraction-schema.js';
+import { asksAboutCompany, certainIntent } from '../../ai/domain/heuristics.js';
 import {
   asksAdvice,
   hasRequirementSignals,
   mentionsCompetitor,
 } from '../domain/message-signals.js';
+import { intentForSubject, isFollowUp } from '../domain/subject.js';
+import { materialsIn } from './pipe-knowledge.js';
 import type { ReplyTurn } from './reply-writer.js';
 
 /** Label model yang kalah oleh isyarat kebutuhan di teks — lihat `withRequirementPrecedence`. */
@@ -65,6 +68,49 @@ export function withRequirementPrecedence(
     confidence: Math.max(classification.confidence, INTENT_CONFIDENCE_THRESHOLD),
   };
 }
+
+/**
+ * Subjek percakapan yang aktif (Fase 16) menyelesaikan pesan yang tidak berdiri sendiri:
+ * "boleh", "lengkap dong", "semuanya" atas subjek PERUSAHAAN adalah pertanyaan perusahaan
+ * lanjutan — bukan pesan lepas untuk diklasifikasi ulang (yang berakhir "Produk mana yang
+ * Anda maksud?"). Subjek hanya berganti bila pengguna menyebut hal baru.
+ */
+export function subjectContinuation(
+  message: string,
+  subject: ConversationSubject | undefined,
+): RoutingDecision | null {
+  if (!subject || !isFollowUp(message)) return null;
+  const intent = intentForSubject(subject.kind);
+  return {
+    intent,
+    confidence: 1,
+    shouldExtract: intent === 'REQUIREMENT_STATEMENT',
+    mutatesState: intent === 'REQUIREMENT_STATEMENT',
+  };
+}
+
+/**
+ * Presedensi subjek: selama subjeknya perusahaan, pesan yang menyebut Pralon tanpa menyebut
+ * produk atau kebutuhan tetap pertanyaan perusahaan walau model berkata PRODUCT_LOOKUP/ragu.
+ * "Pralon" yang muncul lagi tidak mengembalikan percakapan ke mode produk.
+ */
+export function withSubjectPrecedence(
+  message: string,
+  subject: ConversationSubject | undefined,
+  classified: IntentClassification,
+): IntentClassification {
+  if (subject?.kind !== 'company') return classified;
+  if (!YIELDS_TO_SUBJECT.has(classified.intent)) return classified;
+  if (materialsIn(message).length > 0 || hasRequirementSignals(message)) return classified;
+  if (!/\bpralon\b/i.test(message) && !asksAboutCompany(message)) return classified;
+  return { intent: 'COMPANY_QUESTION', confidence: Math.max(classified.confidence, 0.9) };
+}
+
+const YIELDS_TO_SUBJECT: ReadonlySet<Intent> = new Set<Intent>([
+  'PRODUCT_LOOKUP',
+  'OUT_OF_SCOPE',
+  'CLARIFICATION_NEEDED',
+]);
 
 const EXPLANATION_SIGNALS =
   /\b(kenapa|mengapa|kok|alasan(nya)?|dasar(nya)?|why|reason|basis|how come)\b/i;
@@ -116,16 +162,36 @@ export class IntentRouter {
     message: string,
     hasExistingRequirements: boolean,
     recentTurns: readonly ReplyTurn[] = [],
+    subject: ConversationSubject | undefined = undefined,
   ): Promise<RoutingDecision> {
+    // Pesan lanjutan atas subjek aktif tidak diklasifikasi ulang (Fase 16) — nol model.
+    const continued = subjectContinuation(message, subject);
+    if (continued) return continued;
+
+    // Pralon sebagai PERUSAHAAN diputuskan di kode, bukan oleh model: "pralon itu apa?" tidak
+    // pernah menjadi pencarian produk apa pun kata model (Fase 16).
+    if (certainIntent(message)?.intent === 'COMPANY_QUESTION') {
+      return {
+        intent: 'COMPANY_QUESTION',
+        confidence: 0.9,
+        shouldExtract: false,
+        mutatesState: false,
+      };
+    }
+
     // Jalur cepat tanpa model (P14-07): pesan PERTAMA yang membawa isyarat kebutuhan berakhir
     // REQUIREMENT_STATEMENT apa pun kata model — `withRequirementPrecedence` menimpa
     // PRODUCT_LOOKUP/OUT_OF_SCOPE/ragu, dan mutasi/jawaban klarifikasi tidak mungkin tanpa state.
     // Satu-satunya label yang masih bisa menang adalah EXPLANATION_REQUEST, dan bentuknya
     // terbaca dari kata tanya. Di CPU, panggilan yang dilewati ini 4–6 detik per giliran.
     const fast = fastPathIntent(message, hasExistingRequirements);
-    const classification = withRequirementPrecedence(
+    const classification = withSubjectPrecedence(
       message,
-      fast ?? (await this.ai.classifyIntent({ message, hasExistingRequirements, recentTurns })),
+      subject,
+      withRequirementPrecedence(
+        message,
+        fast ?? (await this.ai.classifyIntent({ message, hasExistingRequirements, recentTurns })),
+      ),
     );
 
     // Ragu → bertanya. Mengubah kebutuhan tanpa diminta jauh lebih mahal daripada

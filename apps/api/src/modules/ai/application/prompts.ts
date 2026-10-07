@@ -29,6 +29,7 @@ export const INTENT_SYSTEM_PROMPT = [
   '- REQUIREMENT_MUTATION: mengubah kebutuhan yang sudah tercatat ("ganti jadi 3 lantai", "tambah 1 kamar mandi"). Hanya bila hasExistingRequirements=true.',
   '- CLARIFICATION_ANSWER: menjawab pertanyaan klarifikasi sistem ("toren atap", "2", "belum tahu"). Hanya bila hasExistingRequirements=true.',
   '- PRODUCT_LOOKUP: bertanya tentang produk pipa/fitting atau sifatnya — ukuran, bahan, standar, tekanan, sambungan, perbedaan antar produk ("apa bedanya PVC dan HDPE?", "ada ukuran 3/4?").',
+  '- COMPANY_QUESTION: bertanya tentang Pralon sebagai PERUSAHAAN/merek — profil, sejarah, pabrik, sertifikasi, visi misi, kontak, "Pralon itu apa", "PT Pralon yang saya maksud", "company profile". Bukan pertanyaan tentang satu produk.',
   '- EXPLANATION_REQUEST: minta alasan atas hasil/angka yang sudah diberikan sistem ("kenapa pipa utamanya 1 inci?").',
   '- COMPETITOR_QUESTION: menyebut atau membandingkan merek lain (Rucika, Wavin, Maspion, dsb.).',
   '- OUT_OF_SCOPE: sapaan, basa-basi, atau topik di luar perpipaan.',

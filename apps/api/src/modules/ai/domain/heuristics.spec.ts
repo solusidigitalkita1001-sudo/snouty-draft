@@ -4,7 +4,7 @@
  * (lalu ke presedensi kebutuhan di `context`).
  */
 import { describe, expect, it } from 'vitest';
-import { certainIntent, heuristicProductQuestion } from './heuristics.js';
+import { asksAboutCompany, certainIntent, heuristicProductQuestion } from './heuristics.js';
 
 describe('certainIntent', () => {
   it('sapaan utuh, merek pesaing, konsep produk — pasti', () => {
@@ -26,6 +26,29 @@ describe('certainIntent', () => {
     );
     // Merek pesaing tetap menang atas isyarat kasus.
     expect(certainIntent('drainase pakai rucika bagus nggak?')?.intent).toBe('COMPETITOR_QUESTION');
+  });
+
+  it('Pralon sebagai PERUSAHAAN (Fase 16) — pasti, tanpa model; produk Pralon tetap produk', () => {
+    // TEST A: "pralon itu apa?" tidak dipaksa jadi pencarian produk.
+    expect(certainIntent('pralon itu apa?')?.intent).toBe('COMPANY_QUESTION');
+    expect(certainIntent('Apa itu Pralon')?.intent).toBe('COMPANY_QUESTION');
+    expect(certainIntent('what is pralon?')?.intent).toBe('COMPANY_QUESTION');
+    // TEST B
+    expect(certainIntent('PT Pralon yang gw maksud')?.intent).toBe('COMPANY_QUESTION');
+    expect(certainIntent('gw pengen tau terkait company profile PT Pralon')?.intent).toBe(
+      'COMPANY_QUESTION',
+    );
+    expect(certainIntent('pabrik pralon di mana?')?.intent).toBe('COMPANY_QUESTION');
+    expect(certainIntent('sejarah pralon gimana?')?.intent).toBe('COMPANY_QUESTION');
+    // TEST G: produk tertentu → jalur produk.
+    expect(certainIntent('PVC AW Pralon itu apa?')?.intent).toBe('PRODUCT_LOOKUP');
+    expect(certainIntent('produk HDPE nya gimana?')?.intent).toBe('PRODUCT_LOOKUP');
+    expect(certainIntent('Pralon punya HDPE?')?.intent).toBe('PRODUCT_LOOKUP');
+    // Kebutuhan yang menyebut perusahaan tetap kebutuhan.
+    expect(certainIntent('rumah 2 lantai mau pakai pralon, perusahaan mana?')?.intent).not.toBe(
+      'COMPANY_QUESTION',
+    );
+    expect(asksAboutCompany('produk PVC AW Pralon')).toBe(false);
   });
 
   it('tidak pasti → null: kebutuhan, rekomendasi, pertanyaan ukuran, kalimat bebas', () => {
