@@ -22,7 +22,8 @@ import {
 export const UNKNOWN = 'Belum tahu';
 
 /** Isyarat bahwa pesan adalah soal irigasi/pertanian. */
-export const IRRIGATION_SIGNALS = /\b(irigasi|sawah|kebun|perkebunan|pertanian|ladang)\b/i;
+export const IRRIGATION_SIGNALS =
+  /\b(irigasi|sawah|kebun|perkebunan|pertanian|ladang|irrigat(?:e|ion|ing)|paddy|rice ?field|farm(?:land)?|orchard|plantation|crop ?field)\b/i;
 
 interface IrrigationTemplate {
   readonly label: string;
@@ -139,22 +140,30 @@ export function irrigationFactsFrom(message: string): Partial<Record<IrrigationF
   const m = message.toLowerCase();
   const facts: Partial<Record<IrrigationField, string>> = {};
 
-  const area = /(\d+(?:[.,]\d+)?)\s*(?:ha|hektar|hektare)\b/.exec(m);
+  // Dua bahasa (Fase 15): kalimat Inggris dibaca dengan pola yang sama; nilai yang disimpan tetap
+  // label pilihan protokol Indonesia.
+  const area = /(\d+(?:[.,]\d+)?)\s*(?:ha|hektar|hektare|hectares?)\b/.exec(m);
   if (area) facts['irrigation.areaHa'] = `${area[1]!.replace('.', ',')} ha`;
 
-  if (/\b(sungai|kali|saluran|parit)\b/.test(m)) facts['irrigation.source'] = 'Sungai / saluran';
-  else if (/\b(sumur|bor|air tanah)\b/.test(m)) facts['irrigation.source'] = 'Sumur / pompa';
-  else if (/\b(embung|kolam|waduk|danau|tandon)\b/.test(m))
+  if (/\b(sungai|kali|saluran|parit|river|creek|stream|canal|ditch)\b/.test(m))
+    facts['irrigation.source'] = 'Sungai / saluran';
+  else if (/\b(sumur|bor|air tanah|well|borehole|groundwater)\b/.test(m))
+    facts['irrigation.source'] = 'Sumur / pompa';
+  else if (/\b(embung|kolam|waduk|danau|tandon|pond|reservoir|lake|dam)\b/.test(m))
     facts['irrigation.source'] = 'Embung / kolam';
-  else if (/\bpdam\b/.test(m)) facts['irrigation.source'] = 'PDAM';
+  else if (/\b(pdam|municipal|mains)\b/.test(m)) facts['irrigation.source'] = 'PDAM';
 
-  if (/\btetes\b|drip/.test(m)) facts['irrigation.method'] = 'Tetes';
+  if (/\btetes\b|drip|trickle/.test(m)) facts['irrigation.method'] = 'Tetes';
   else if (/sprinkler|springkel|curah/.test(m)) facts['irrigation.method'] = 'Sprinkler';
-  else if (/genang|gravitasi|alirkan/.test(m)) facts['irrigation.method'] = 'Genangan / gravitasi';
+  else if (/genang|gravitasi|alirkan|flood|furrow|gravity/.test(m))
+    facts['irrigation.method'] = 'Genangan / gravitasi';
 
-  const distance = /(\d+(?:[.,]\d+)?)\s*(km|m|meter)\b/.exec(m);
+  const distance = /(\d+(?:[.,]\d+)?)\s*(km|m|meter|meters|metres|kilometers?|kilometres?)\b/.exec(
+    m,
+  );
   if (distance) {
-    const meters = Number(distance[1]!.replace(',', '.')) * (distance[2] === 'km' ? 1000 : 1);
+    const unit = distance[2]!;
+    const meters = Number(distance[1]!.replace(',', '.')) * (unit.startsWith('k') ? 1000 : 1);
     facts['irrigation.distance'] =
       meters < 50
         ? 'Di bawah 50 m'
@@ -165,12 +174,20 @@ export function irrigationFactsFrom(message: string): Partial<Record<IrrigationF
             : 'Di atas 500 m';
   }
 
-  if (/lebih tinggi|di atas lahan|dari atas/.test(m))
+  if (
+    /lebih tinggi|di atas lahan|dari atas|higher than|above the field|uphill|downhill to the field/.test(
+      m,
+    )
+  )
     facts['irrigation.elevation'] = 'Lebih tinggi';
-  else if (/lebih rendah|di bawah lahan|dari bawah|naik ke/.test(m))
+  else if (
+    /lebih rendah|di bawah lahan|dari bawah|naik ke|lower than|below the field|uphill to the field/.test(
+      m,
+    )
+  )
     facts['irrigation.elevation'] = 'Lebih rendah';
 
-  if (/\bpompa\b/.test(m)) facts['irrigation.pump'] = 'Ya';
+  if (/\b(pompa|pump|pumped|pumping)\b/.test(m)) facts['irrigation.pump'] = 'Ya';
   return facts;
 }
 

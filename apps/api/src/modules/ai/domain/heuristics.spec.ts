@@ -66,6 +66,25 @@ describe('certainIntent', () => {
 });
 
 describe('heuristicProductQuestion', () => {
+  it('en (checkpoint Fase 15, S9): ketersediaan ukuran dan aspek dari kalimat Inggris', () => {
+    expect(heuristicProductQuestion('do you have 3/4 inch PVC AW?')).toEqual({
+      productQuery: 'pvc aw',
+      aspect: 'size_availability',
+      size: '3/4',
+    });
+    expect(heuristicProductQuestion('what sizes does HDPE come in?').aspect).toBe('sizes');
+    expect(heuristicProductQuestion('what standard is PVC AW made to?').aspect).toBe('standard');
+    expect(heuristicProductQuestion('what pressure class is HDPE PE100?').aspect).toBe(
+      'pressure_class',
+    );
+    expect(heuristicProductQuestion('how long is a PVC AW rod?').aspect).toBe('rod_length');
+    expect(heuristicProductQuestion('what joint does HDPE use?').aspect).toBe('joint_type');
+    expect(heuristicProductQuestion('PVC D is suitable for which applications?').aspect).toBe('application');
+    expect(heuristicProductQuestion('which fittings go with HDPE?').aspect).toBe(
+      'compatible_fittings',
+    );
+  });
+
   it('pertanyaan konsep tidak pernah menebak aspek: "apa bedanya fitting sama hdpe?" → aspek null', () => {
     expect(heuristicProductQuestion('apa bedanya fitting sama hdpe ?')).toEqual({
       productQuery: 'hdpe',

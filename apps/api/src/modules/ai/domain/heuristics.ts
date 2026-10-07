@@ -29,6 +29,25 @@ export const PRODUCT_CONCEPT =
 const FAMILY_TOKENS = /\b(pvc\s*(?:aw|d|c)?|hdpe|ppr|pp-r|tee|elbow|reducer|socket)\b/g;
 const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
 
+/** Aspek spesifikasi dari bentuk kalimat, dua bahasa; urutan = prioritas bila beberapa cocok. */
+const ASPECT_PATTERNS: readonly (readonly [RegExp, NonNullable<ProductQuestionParse['aspect']>])[] =
+  [
+    [
+      /ukuran apa|ukuran (yang )?tersedia|ukuran (yang )?ada|ukurannya|what sizes|which sizes|sizes? (?:do you|available|are there)|size range/,
+      'sizes',
+    ],
+    [/fitting|cocok dengan|sepadan|compatible|fits? with|goes? with/, 'compatible_fittings'],
+    [/\b(bahan|material|made of)\b/, 'material'],
+    [/\b(standar|standard|sni|iso|certif)/, 'standard'],
+    [/tekanan|pressure|\bpn\b|\bbar\b/, 'pressure_class'],
+    [/panjang|length|how long/, 'rod_length'],
+    [/sambungan|solvent|lem\b|joint|joining|glue|weld|fusion/, 'joint_type'],
+    [
+      /aplikasi|kegunaan|dipakai untuk|untuk apa|application|used for|use for|suitable for/,
+      'application',
+    ],
+  ];
+
 /**
  * Intent yang bisa dipastikan tanpa model; `null` bila tidak pasti. Hanya tiga kelas:
  * sapaan utuh, merek pesaing, dan konsep produk tanpa isyarat kebutuhan.
@@ -105,28 +124,16 @@ export function heuristicProductQuestion(message: string): ProductQuestionParse 
   // "apa bedanya fitting sama HDPE?" adalah pertanyaan konsep — kata 'fitting' di dalamnya bukan
   // permintaan daftar fitting yang sepadan (laporan pemilik 2026-10-07).
   if (PRODUCT_CONCEPT.test(text)) return { productQuery, aspect: null, size: null };
-  const availability = /ada ukuran|ukuran .* ada|tersedia ukuran|ukuran .* tersedia/.test(text);
+  // Ketersediaan ukuran, dua bahasa: "ada ukuran 3/4?", "do you have 3/4 inch?", "is 63 mm available?"
+  const availability =
+    /ada ukuran|ukuran .* ada|tersedia ukuran|ukuran .* tersedia|do you (?:have|carry|sell|stock)|is there|available in|in stock|come in/.test(
+      text,
+    );
   const sizeMatch = availability ? SIZE_TOKEN.exec(text.replace(/\b(pvc|hdpe|ppr)\b/g, '')) : null;
   const aspect: ProductQuestionParse['aspect'] =
     availability && sizeMatch
       ? 'size_availability'
-      : /ukuran apa|ukuran (yang )?tersedia|ukuran (yang )?ada|ukurannya/.test(text)
-        ? 'sizes'
-        : /fitting|cocok dengan|sepadan/.test(text)
-          ? 'compatible_fittings'
-          : /\b(bahan|material)\b/.test(text)
-            ? 'material'
-            : /\b(standar|sni)/.test(text)
-              ? 'standard'
-              : /tekanan/.test(text)
-                ? 'pressure_class'
-                : /panjang/.test(text)
-                  ? 'rod_length'
-                  : /sambungan|solvent|lem\b/.test(text)
-                    ? 'joint_type'
-                    : /aplikasi|kegunaan|dipakai untuk|untuk apa/.test(text)
-                      ? 'application'
-                      : null;
+      : (ASPECT_PATTERNS.find(([pattern]) => pattern.test(text))?.[1] ?? null);
 
   return {
     productQuery,

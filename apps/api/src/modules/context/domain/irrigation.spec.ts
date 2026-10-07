@@ -34,6 +34,31 @@ describe('irigasi', () => {
     expect(irrigationFactsFrom('irigasi kebun 2,5 ha')).toEqual({ 'irrigation.areaHa': '2,5 ha' });
   });
 
+  it('en (checkpoint Fase 15, S6): "irrigate a 2 hectare paddy field from a river 150 m away, pumped" → jalur irigasi + fakta tersurat', () => {
+    expect(
+      isIrrigationMessage('I want to irrigate a 2 hectare paddy field from a river 150 m away'),
+    ).toBe(true);
+    expect(isIrrigationMessage('sprinklers for my orchard')).toBe(true);
+    expect(isIrrigationMessage('a 2-storey house with 3 bathrooms')).toBe(false);
+    expect(
+      irrigationFactsFrom(
+        'I want to irrigate a 2 hectare paddy field from a river 150 m away, pumped, drip',
+      ),
+    ).toEqual({
+      'irrigation.areaHa': '2 ha',
+      'irrigation.source': 'Sungai / saluran',
+      'irrigation.method': 'Tetes',
+      'irrigation.distance': '50–200 m',
+      'irrigation.pump': 'Ya',
+    });
+    expect(
+      irrigationFactsFrom('from a borehole 1.2 km away, the field is lower than the source'),
+    ).toMatchObject({
+      'irrigation.source': 'Sumur / pompa',
+      'irrigation.distance': 'Di atas 500 m',
+    });
+  });
+
   it('kartu: yang kurang saja, prioritas sumber → luas → jenis → jarak → beda tinggi, maks 4', () => {
     const { state } = applyIrrigationAnswers(emptyRequirementState(T0), {
       'irrigation.areaHa': '1 ha',

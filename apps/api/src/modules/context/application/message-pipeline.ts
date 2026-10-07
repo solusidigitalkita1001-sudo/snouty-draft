@@ -285,12 +285,50 @@ export async function runUnderstanding(
   }
 
   const card = followUpCard(merged, input.locale);
+  // Giliran kebutuhan bangunan tidak pernah bisu (checkpoint Fase 15, S1/S11): satu kalimat
+  // tentang apa yang tercatat, lalu kartunya. Jalur irigasi/teknis/kebijakan sudah menulis
+  // teksnya sendiri; bahan yang dinasihati di atas pun sudah.
+  const policyCardShown = card?.kind === 'unsupported' || card?.kind === 'criteria';
+  if (materials.length === 0 && merged.useCase === undefined && !policyCardShown) {
+    const text = understoodReply(merged, card?.kind ?? null, locale);
+    if (text !== null) events.push({ type: 'token', text });
+  }
   if (card) events.push({ type: 'card', card });
 
   events.push(endEvent(input.messageId));
 
   const trigger: SnapshotTrigger = input.decision.mutatesState ? 'user_edit' : 'extraction';
   return { events, nextState: merged, changed, trigger };
+}
+
+/**
+ * "Oke, rumah 2 lantai, 3 kamar mandi, toren atap, air bersih." + apa yang terjadi berikutnya:
+ * lengkap → ajakan menyusun rekomendasi; belum → pengantar kartu klarifikasi. Tanpa model.
+ */
+function understoodReply(
+  state: RequirementState,
+  nextCard: AssistantCard['kind'] | null,
+  locale: Locale,
+): string | null {
+  // Angka telanjang tidak bermakna ("2, 3"): angka membawa labelnya ("2 lantai", "3 kamar mandi");
+  // nilai bernama ("toren atap", "air bersih") sudah jelas sendiri.
+  const captured = capturedFrom(state, locale)
+    .filter((row) => row.value.trim() !== '')
+    .map((row) =>
+      /^\d+([.,]\d+)?$/.test(row.value.trim())
+        ? `${row.value.trim()} ${row.label.toLowerCase()}`
+        : row.value.toLowerCase(),
+    );
+  if (captured.length === 0) return null;
+  const summary = captured.join(', ');
+  if (nextCard === 'cta') {
+    return locale === 'en'
+      ? `Okay, I have noted: ${summary}. That is enough to size it — press **Compose recommendation** to see the pipe sizes and the product list.`
+      : `Oke, sudah saya catat: ${summary}. Datanya cukup untuk dihitung — tekan **Susun rekomendasi** untuk melihat ukuran pipa dan daftar produknya.`;
+  }
+  return locale === 'en'
+    ? `Okay, I have noted: ${summary}. A few more things so the sizing is right:`
+    : `Oke, sudah saya catat: ${summary}. Beberapa hal lagi supaya hitungannya pas:`;
 }
 
 /**

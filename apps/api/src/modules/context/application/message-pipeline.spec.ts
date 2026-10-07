@@ -46,11 +46,13 @@ describe('runUnderstanding — bentuk event SSE', () => {
     const ai = aiExtracting({ building: { floors: 2 }, fixtures: { bathrooms: 3 } });
     const { events } = await runUnderstanding(ai, input());
 
+    // 'token' sebelum 'card': satu kalimat pengantar (checkpoint Fase 15), kartunya tetap.
     expect(events.map((e) => e.type)).toEqual([
       'message.start',
       'stage',
       'requirement.updated',
       'stage',
+      'token',
       'card',
       'message.end',
     ]);
@@ -59,7 +61,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
     const done = events[3] as { status: string; detail: string };
     expect(done.status).toBe('done');
     expect(done.detail).toBe('2 DATA');
-    const card = events[4] as { card: { kind: string } };
+    const card = events[5] as { card: { kind: string } };
     expect(card.card.kind).toBe('clarification');
   });
 
@@ -218,13 +220,39 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(seen[seen.length - 1]).toBe('message.end');
   });
 
-  it('pernyataan kebutuhan biasa tetap tanpa teks tambahan', async () => {
+  it('pernyataan kebutuhan biasa: satu kalimat "sudah saya catat" sebelum kartu klarifikasi (bukan bisu)', async () => {
     const ai = aiExtracting({ building: { floors: 2 }, fixtures: { bathrooms: 3 } });
     const { events } = await runUnderstanding(
       ai,
       input({ message: 'pakai pvc buat rumah 2 lantai' }),
     );
-    expect(events.some((e) => e.type === 'token')).toBe(false);
+    const tokens = events.filter((e) => e.type === 'token') as { text: string }[];
+    expect(tokens).toHaveLength(1);
+    // Pesannya hanya menyebut lantai; kamar mandi dari model dibuang pagar grounding.
+    expect(tokens[0]!.text).toMatch(/^Oke, sudah saya catat: .*2 lantai/);
+    expect(tokens[0]!.text).toContain('Beberapa hal lagi');
+    // Teks sebelum kartu — pengantar, bukan penutup.
+    expect(events.findIndex((e) => e.type === 'token')).toBeLessThan(
+      events.findIndex((e) => e.type === 'card'),
+    );
+  });
+
+  it('en: pengantar yang sama dalam bahasa Inggris; lengkap → ajakan menyusun rekomendasi', async () => {
+    const ai = aiExtracting({
+      building: { floors: 2 },
+      fixtures: { bathrooms: 3 },
+      water: { source: 'rooftop_tank', installationType: 'clean_water' },
+    });
+    const { events } = await runUnderstanding(
+      ai,
+      input({
+        message: 'a 2-storey house with 3 bathrooms, rooftop tank, clean water',
+        locale: 'en',
+      }),
+    );
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toMatch(/^Okay, I have noted: .*rooftop tank/);
+    expect(token.text).toContain('**Compose recommendation**');
   });
 
   it('data inti lengkap: kartu CTA ANALYZE, bukan klarifikasi', async () => {
