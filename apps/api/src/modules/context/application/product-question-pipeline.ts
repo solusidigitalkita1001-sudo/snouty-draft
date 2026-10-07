@@ -26,7 +26,8 @@ import {
   requestedDepth,
   requestedFormat,
 } from '../domain/subject.js';
-import { PRODUCT_CONCEPT } from '../../ai/domain/heuristics.js';
+import { PRODUCT_CONCEPT, heuristicProductQuestion } from '../../ai/domain/heuristics.js';
+import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
 import {
   PipeSize,
   specHasValue,
@@ -138,13 +139,6 @@ export async function runProductQuestion(
   faqPrompt: string | null = null,
 ): Promise<readonly AssistantStreamEvent[]> {
   const locale = input.locale ?? DEFAULT_LOCALE;
-  let parsed;
-  try {
-    parsed = await ai.parseProductQuestion(input.message);
-  } catch (error) {
-    if (!(error instanceof AiOutputInvalidError)) throw error;
-    parsed = null;
-  }
 
   // Harga tidak ditampilkan (OQ-03): jawab jujur dan arahkan, jangan bertanya "produk mana".
   if (PRICE_QUESTION.test(input.message)) {
@@ -165,7 +159,23 @@ export async function runProductQuestion(
     ];
   }
 
+  // Model pemeta pertanyaan hanya dipanggil bila jalur deterministik tidak cukup: lanjutan subjek
+  // sudah tahu produknya, dan pertanyaan pengetahuan tanpa keluarga produk ("pipa buat air panas
+  // pake apa?") sudah terjawab dari pengetahuan milik kode. Di CPU, satu panggilan itu ±1 menit
+  // (uji proaktif 2026-10-07: 61–87 s per giliran hanya untuk memetakan).
   const continued = subjectQuery(input);
+  const heuristic = heuristicProductQuestion(input.message);
+  const knowledgeOnly =
+    heuristic.productQuery === null && explain(input.message, null, locale) !== '';
+  let parsed: ProductQuestionParse | null = null;
+  if (continued === null && !knowledgeOnly) {
+    try {
+      parsed = await ai.parseProductQuestion(input.message);
+    } catch (error) {
+      if (!(error instanceof AiOutputInvalidError)) throw error;
+      parsed = null;
+    }
+  }
   const query = continued ?? parsed?.productQuery ?? null;
   // Lanjutan ("lebih detail dong") memperdalam penjelasan konsep; aspek hanya dari pesan nyata —
   // dan tidak pernah dari pertanyaan konsep ("apa bedanya fitting sama HDPE?"), apa pun kata model.

@@ -224,7 +224,7 @@ describe('runProductQuestion — KONSEP', () => {
         },
       },
     );
-    expect(text(events)).toContain('AW dan D adalah kelas pipa PVC');
+    expect(text(events)).toContain('adalah kelas pipa PVC');
     expect(text(events)).not.toContain('Produk mana');
   });
 

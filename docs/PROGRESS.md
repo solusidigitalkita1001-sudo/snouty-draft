@@ -947,7 +947,19 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       tadinya "Produk mana"; "jalan desa lebar 6 meter" → lebar jalan, bukan panjang jalur;
       giliran teknis lanjutan tanpa mengulang kalimat pembuka kasus. Tes: social 3, heuristics +1,
       pipe-knowledge +1, pipeline +2, subject +1, router +1, extractor +1, message-pipeline +1
-- [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
+- [x] P16-02 Profil perusahaan & pengetahuan pipa dari materi internal (2026-10-07, dokumen HRGA
+      "Snouty Product Knowledge Master — uPVC PRALON" v1.0 di `data/company/`): 9 bagian profil
+      bersumber (ikhtisar, portofolio, sektor, produksi, mutu, sertifikasi tanpa nomor, tonggak
+      tanpa klaim "pelopor", kontak, situs); 11 konsep pengetahuan pipa baru (uPVC, istilah
+      dimensi, kelas AW/D/C/JIS/SNI/PIPPO, sambungan lem, rubber ring, jenis fitting, penyimpanan,
+      perawatan & gangguan, proses produksi, uji mutu, penimbunan, uji tekanan lapangan) +
+      jalur cepat intent untuk pertanyaan pengetahuan pipa tanpa model. Angka yang dokumen tandai
+      konflik tidak dibawa (OQ-54). Tes: company-answer disesuaikan, pipe-knowledge +1, heuristics +1
+- [x] P16-08b Ruas produk tidak memanggil model pemeta sebelum jalur deterministik (harga, ubah
+      bentuk, lanjutan subjek, pengetahuan tanpa keluarga produk) — tadinya 61–87 s per giliran
+      hanya untuk memetakan
+- [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
+      Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Design Coverage

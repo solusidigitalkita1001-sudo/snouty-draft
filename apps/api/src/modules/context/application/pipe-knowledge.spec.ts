@@ -31,7 +31,9 @@ describe('pipe knowledge', () => {
     ];
     for (const text of texts) {
       expect(text).not.toMatch(/\d/);
-      expect(text).not.toMatch(/\bSNI\b|\bISO\b/);
+      // Nama keluarga standar (SNI, JIS) boleh disebut sebagai kelas produk; NOMOR standar tidak —
+      // nomor hanya dari katalog/spesifikasi resmi (OQ-54).
+      expect(text).not.toMatch(/\b(?:SNI|ISO|JIS)\s*[-\s]?\d/);
       expect(text).not.toMatch(/rucika|wavin|maspion|vinilon/i);
     }
   });
@@ -82,6 +84,32 @@ describe('pipe knowledge', () => {
     expect(reformat('bullets', { previous: pvcHdpe })).toContain('**PVC (uPVC)**\n- Bentuk:');
     expect(reformat('summary', { previous: pvcHdpe })).toContain('Singkatnya');
     expect(reformat('table', { previous: 'tidak menyebut bahan apa pun' })).toBeNull();
+  });
+
+  it('materi internal Pralon (OQ-54): cara sambung lem, rubber ring, penyimpanan, gangguan, istilah, uPVC — terjawab tanpa bahan di pesan, dua bahasa', () => {
+    expect(explain('cara nyambung pipa pvc pakai lem gimana?', null)).toContain(
+      'Sambungan lem (solvent cement)',
+    );
+    expect(explain('pelumas rubber ring boleh pakai oli?', null)).toContain(
+      'Jangan memakai oli, gemuk, minyak, atau sabun',
+    );
+    expect(explain('pipa pvc disimpan di luar boleh?', null)).toContain(
+      'hindari sinar matahari langsung',
+    );
+    expect(explain('pipa bocor di sambungan kenapa ya?', null)).toContain('bocor di sambungan');
+    expect(explain('SDR itu apa?', null)).toContain(
+      'SDR perbandingan diameter luar terhadap tebal dinding',
+    );
+    expect(explain('upvc itu apa?', null)).toContain('uPVC adalah unplasticized PVC');
+    expect(explain('bedanya pralon aw sama pippo aw?', 'pvc aw')).toContain(
+      'PIPPO adalah merek kedua Pralon',
+    );
+    expect(explain('how do I join pvc pipe with glue?', null, 'en')).toContain(
+      'Solvent-cement joints',
+    );
+    expect(explain('how should I store pvc pipe?', null, 'en')).toContain(
+      'avoid prolonged direct sun',
+    );
   });
 
   it('"pipa buat air panas pake apa?" → konsep air panas: PPR, bukan PVC; tanpa bahan di pesan pun terjawab', () => {

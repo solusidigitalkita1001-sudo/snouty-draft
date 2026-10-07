@@ -325,7 +325,7 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
 
     const vsAw = await say('terus bedanya sama pipa AW apa dari product2 yang lu jelasin tadi');
     expect(vsAw).not.toContain('Produk mana');
-    expect(vsAw).toContain('AW dan D adalah kelas pipa PVC');
+    expect(vsAw).toContain('adalah kelas pipa PVC');
     expect(vsAw).toContain('**PVC (uPVC)**');
     expect(vsAw).toContain('**HDPE**');
   });

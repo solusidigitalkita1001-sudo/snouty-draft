@@ -53,7 +53,12 @@ describe('composeCompanyAnswer', () => {
     });
     expect(a.text).toContain('Informasi yang dapat saya verifikasi saat ini:');
     expect(a.text).toContain('**Situs resmi**');
-    expect(a.text).toContain('belum bisa saya verifikasi dari sumber resmi: sejarah');
+    // Sejarah, sertifikasi, kontak kini ada dari materi HRGA (OQ-54); visi/misi/distribusi belum.
+    expect(a.text).toContain('**Sejarah**');
+    expect(a.text).toContain('**Standar dan sertifikasi**');
+    expect(a.text).toContain(
+      'belum bisa saya verifikasi dari sumber resmi: distribusi, visi, misi',
+    );
     expect(a.text).toContain('Saya tidak mengarangnya.');
     expect(a.needsTeam).toBe(true);
     // Tidak pernah menanyakan produk.
@@ -72,15 +77,22 @@ describe('composeCompanyAnswer', () => {
     expect(a.text).not.toContain('Produk mana');
   });
 
-  it('topik tertentu yang belum terverifikasi (sejarah) → jujur, dengan ikhtisar sebagai pegangan', () => {
+  it('topik tertentu yang belum terverifikasi (visi misi) → jujur; sejarah kini terjawab dari materi internal', () => {
     const a = composeCompanyAnswer({
+      facts: withCatalog,
+      depth: 'standard',
+      topic: 'vision_mission',
+      locale: 'id',
+    });
+    expect(a.text).toContain('belum bisa saya verifikasi dari sumber resmi: visi, misi');
+    const history = composeCompanyAnswer({
       facts: withCatalog,
       depth: 'standard',
       topic: 'history',
       locale: 'id',
     });
-    expect(a.text).toContain('belum bisa saya verifikasi dari sumber resmi: sejarah');
-    expect(a.text).toContain('Pralon adalah produsen');
+    expect(history.text).toContain('Materi internal mencatat tonggak perusahaan');
+    expect(history.text).toContain('Pralon adalah produsen');
   });
 
   it('pertanyaan ambigu "pralon itu apa?" → jawaban perusahaan + satu kalimat pembeda produk', () => {

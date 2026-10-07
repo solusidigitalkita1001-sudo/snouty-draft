@@ -54,7 +54,8 @@ describe('certainIntent', () => {
   it('tidak pasti → null: kebutuhan, rekomendasi, pertanyaan ukuran, kalimat bebas', () => {
     expect(certainIntent('lebih bagus PVC atau HDPE buat rumah 2 lantai?')).toBeNull();
     expect(certainIntent('rumah 2 lantai 3 kamar mandi')).toBeNull();
-    expect(certainIntent('ada ukuran 3/4 untuk PVC AW?')).toBeNull();
+    // Pertanyaan ukuran produk kini pasti PRODUCT_LOOKUP (P16-08): aspeknya dipetakan terpisah.
+    expect(certainIntent('ada ukuran 3/4 untuk PVC AW?')?.intent).toBe('PRODUCT_LOOKUP');
     expect(certainIntent('hai, saya mau bangun rumah 2 lantai')).toBeNull();
     expect(certainIntent('pipa')).toBeNull();
   });
@@ -66,6 +67,16 @@ describe('certainIntent', () => {
 });
 
 describe('heuristicProductQuestion', () => {
+  it('pengetahuan pipa (OQ-54): cara sambung/simpan/rawat/istilah tentang pipa → PRODUCT_LOOKUP pasti; dengan kebutuhan → bukan', () => {
+    expect(certainIntent('cara nyambung pipa pvc pakai lem gimana?')?.intent).toBe(
+      'PRODUCT_LOOKUP',
+    );
+    expect(certainIntent('pipa pvc disimpan di luar boleh?')?.intent).toBe('PRODUCT_LOOKUP');
+    expect(certainIntent('pipa bocor di sambungan kenapa ya?')?.intent).toBe('PRODUCT_LOOKUP');
+    expect(certainIntent('ukuran hdpe ada apa aja?')?.intent).toBe('PRODUCT_LOOKUP');
+    expect(certainIntent('pipa rumah 2 lantai bocor, gimana?')).toBeNull();
+  });
+
   it('uji proaktif 2026-10-07: "pipa buat air panas pake apa?" pasti PRODUCT_LOOKUP; "ukuran hdpe ada apa aja?" → aspek sizes', () => {
     expect(certainIntent('pipa buat air panas pake apa?')?.intent).toBe('PRODUCT_LOOKUP');
     expect(certainIntent('bahan apa yang cocok buat pipa tanam?')?.intent).toBe('PRODUCT_LOOKUP');

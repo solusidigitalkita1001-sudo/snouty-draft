@@ -92,6 +92,9 @@ const BUILDING_NEED =
 const USE_QUESTION =
   /\b(pipa|bahan|material)\b.*\b(pakai apa|pake apa|pakai yang mana|pake yang mana|bahan apa|jenis apa|yang mana|apa yang cocok|cocoknya apa|sebaiknya apa|what (?:material|pipe|type)|which (?:material|pipe))\b|\b(pakai apa|pake apa|bahan apa)\b.*\b(pipa|air)\b/;
 
+const KNOWLEDGE_TOPIC =
+  /\b(cara|gimana|bagaimana|kenapa|penyebab|simpan|penyimpanan|disimpan|sambung|nyambung|menyambung|dilem|lem|solvent|rubber ring|pasang|dipasang|rawat|perawatan|bocor|retak|pecah|tersumbat|mampet|melengkung|sdr|od|wt|upvc|dibuat|diproduksi|produksi|uji|tes|pengujian|qc|penimbunan|ditimbun|galian|how to|how is|why|store|storage|join|joining|maintain|leak|crack)\b/;
+
 /** "produk HDPE-nya gimana?" — menyebut keluarga produk sebagai produk, tanpa kebutuhan. */
 const PRODUCT_MENTION = /\b(produk(?:nya)?|products?|jual|punya|sell|carry)\b/;
 
@@ -117,6 +120,24 @@ export function certainIntent(message: string): IntentClassification | null {
   if (USE_QUESTION.test(text) && !REQUIREMENT_SIGNALS.test(text)) {
     return { intent: 'PRODUCT_LOOKUP', confidence: 0.85 };
   }
+  // Pengetahuan pipa dari materi Pralon (OQ-54): cara sambung, simpan, rawat, gangguan, istilah,
+  // proses, uji — tentang pipa/PVC, tanpa kebutuhan → jawaban milik kode, bukan tebakan model.
+  if (
+    KNOWLEDGE_TOPIC.test(text) &&
+    (FAMILY_TOKENS.test(text) || /\b(pipa|pipe|upvc|fitting)\b/.test(text)) &&
+    !REQUIREMENT_SIGNALS.test(text)
+  ) {
+    FAMILY_TOKENS.lastIndex = 0;
+    return { intent: 'PRODUCT_LOOKUP', confidence: 0.85 };
+  }
+  FAMILY_TOKENS.lastIndex = 0;
+  // "ukuran hdpe ada apa aja?", "harga pvc aw?", "standar sni hdpe?": sifat produk + keluarga produk,
+  // tanpa kebutuhan — pertanyaan produk yang pasti, tak perlu 30 detik model.
+  if (PRODUCT_SIGNALS.test(text) && FAMILY_TOKENS.test(text) && !REQUIREMENT_SIGNALS.test(text)) {
+    FAMILY_TOKENS.lastIndex = 0;
+    return { intent: 'PRODUCT_LOOKUP', confidence: 0.85 };
+  }
+  FAMILY_TOKENS.lastIndex = 0;
   return null;
 }
 

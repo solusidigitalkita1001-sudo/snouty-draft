@@ -390,12 +390,18 @@ PT Pralon", "lengkap dong" dengan profil perusahaan yang utuh. Repositori ini ti
 dokumen profil perusahaan, dan situs `pralon.co.id` menolak akses otomatis (403), jadi tidak ada
 sumber yang bisa diverifikasi untuk sejarah, fokus bisnis, pabrik, sertifikasi, mutu, pasar,
 distribusi, visi, misi, keberlanjutan, afiliasi, dan kontak.
-**Default yang diterapkan:** modul `company-knowledge` hanya menampilkan bagian yang punya sumber —
-ikhtisar (produsen sistem perpipaan di Indonesia, dari katalog aktif), ragam produk (dari katalog
-Pralon aktif), situs resmi (`pralon.co.id`, dari domain layanan ini) — dan menyebut sisanya "belum
-bisa saya verifikasi", lalu menawarkan tim Pralon. Pemilik mengisi
-`apps/api/src/modules/company-knowledge/domain/company-profile.ts` (`SECTIONS`, dua bahasa, setiap
-bagian dengan `source`) dari dokumen resmi; tampilan mengikuti otomatis.
+**Status 2026-10-07 (sebagian terjawab):** pemilik memberi "Snouty Product Knowledge Master — uPVC
+PRALON" v1.0 (`data/company/Snouty_Product_Knowledge_Master.md`, disusun bersama HRGA dari deck
+product knowledge & BIMTEK). Dari sana diisi: ikhtisar, portofolio/fokus bisnis, sektor pemakaian,
+proses produksi, mutu, sertifikasi (daftar nama, tanpa nomor), tonggak sejarah (tanpa klaim
+"pelopor/pertama" yang dokumen itu tandai perlu validasi korporat), kontak kantor pusat & email, situs
+`www.pralon.com`. Pengetahuan pipa ikut bertambah: uPVC, istilah dimensi, kelas AW/D/C/JIS/SNI/PIPPO,
+sambungan lem & rubber ring, jenis fitting, penyimpanan, perawatan & gangguan, proses, uji mutu,
+penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tandai "perlu validasi"
+(tekanan kerja per kelas, tebal dinding, waktu kering lem, kedalaman galian) **tidak** dibawa.
+**Masih terbuka:** visi, misi, distribusi, keberlanjutan, afiliasi; Certificate Register (nomor &
+masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
+(tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
 ### OQ-53 — Halaman profil/pengaturan akun belum ada
 
