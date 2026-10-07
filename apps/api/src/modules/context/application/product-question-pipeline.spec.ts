@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest';
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductAnswer } from '../../product-knowledge/domain/product-answer.js';
+import { explain } from './pipe-knowledge.js';
 import { bestMatch, runProductQuestion } from './product-question-pipeline.js';
 
 const AW: Product = {
@@ -166,6 +167,29 @@ describe('runProductQuestion — KONSEP', () => {
       name: 'Pipa HDPE PE 100 PN-8 63 mm x 75 Meter',
     };
     expect(bestMatch([telkomSameFamily, pe100], 'hdpe')?.id).toBe(pe100.id);
+  });
+
+  it('"bikinin skema perbedaannya dalam bentuk table" setelah jawaban fitting vs HDPE → tabel dari jawaban terakhir, bukan "Produk mana"', async () => {
+    const previous = explain('apa bedanya fitting sama hdpe ?', 'HDPE');
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      {
+        messageId: 'm',
+        message: 'bikinin skema perbedaan nya dalam bentuk table dong biar lebih enak dibaca',
+        recentTurns: [
+          { role: 'user', text: 'apa bedanya fitting sama hdpe ?' },
+          { role: 'assistant', text: previous },
+        ],
+        subject: { kind: 'product', entity: 'hdpe', topic: 'comparison', depth: 'standard' },
+      },
+    );
+    const out = text(events);
+    expect(out).toContain('| Aspek | **HDPE** | **Fitting** |');
+    expect(out).toContain('| Apa itu | bahan pipa');
+    expect(out).not.toContain('Produk mana');
+    expect(cards(events)).toEqual([]);
   });
 
   it('"apa bedanya pvc sama hdpe" dijawab utuh tanpa katalog dan tanpa model', async () => {

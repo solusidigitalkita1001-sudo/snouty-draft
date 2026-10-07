@@ -19,7 +19,12 @@
  * jawaban konsep.
  */
 import { DEFAULT_LOCALE, type ConversationSubject, type Locale } from '@snouty/shared-types';
-import { isFollowUp, requestedDepth } from '../domain/subject.js';
+import {
+  isFollowUp,
+  isFormatFollowUp,
+  requestedDepth,
+  requestedFormat,
+} from '../domain/subject.js';
 import { PRODUCT_CONCEPT } from '../../ai/domain/heuristics.js';
 import {
   PipeSize,
@@ -37,7 +42,7 @@ import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.er
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { endEvent } from './message-pipeline.js';
 import { asksProductRange } from '../domain/message-signals.js';
-import { MATERIALS, briefComparison, explain, materialsIn } from './pipe-knowledge.js';
+import { MATERIALS, briefComparison, explain, materialsIn, reformat } from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, productAnswerCopy } from './product-answer-text.js';
 
@@ -65,7 +70,22 @@ export interface ProductQuestionInput {
 function subjectQuery(input: ProductQuestionInput): string | null {
   const subject = input.subject;
   if (!subject || subject.kind === 'company' || subject.kind === 'case') return null;
-  return isFollowUp(input.message) ? subject.entity : null;
+  return isFollowUp(input.message) || isFormatFollowUp(input.message) ? subject.entity : null;
+}
+
+/**
+ * "Bikinin skema perbedaannya dalam bentuk tabel": jawaban yang baru diberikan disajikan ulang —
+ * isinya dari jawaban asisten terakhir dan subjek, bukan dari pesan yang memang tidak menyebut apa-apa.
+ */
+function reformatted(input: ProductQuestionInput, locale: Locale): string | null {
+  const format = requestedFormat(input.message);
+  if (format === null || !isFormatFollowUp(input.message)) return null;
+  if (materialsIn(input.message).length > 0) return null; // menyebut bahan baru: pertanyaan baru
+  return reformat(
+    format,
+    { subject: input.subject?.entity ?? null, previous: lastAssistantText(input) },
+    locale,
+  );
 }
 
 /** Hasil pencarian katalog beserta bobot yang boleh diberikan padanya. */
@@ -100,6 +120,15 @@ export async function runProductQuestion(
   } catch (error) {
     if (!(error instanceof AiOutputInvalidError)) throw error;
     parsed = null;
+  }
+
+  const asTable = reformatted(input, locale);
+  if (asTable !== null) {
+    return [
+      { type: 'message.start', messageId: input.messageId },
+      { type: 'token', text: asTable },
+      endEvent(input.messageId),
+    ];
   }
 
   const continued = subjectQuery(input);

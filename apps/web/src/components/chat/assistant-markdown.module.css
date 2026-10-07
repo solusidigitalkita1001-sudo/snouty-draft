@@ -83,3 +83,36 @@
   border-top: 1px solid var(--snouty-border);
   margin: 10px 0;
 }
+
+/* Tabel perbandingan: menggulir ke samping di layar sempit, garis tipis, header tebal. */
+.tableWrap {
+  overflow-x: auto;
+  margin: 6px 0 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.45;
+  min-width: 100%;
+}
+
+.table th,
+.table td {
+  border: 1px solid var(--snouty-border);
+  padding: 7px 10px;
+  text-align: left;
+  vertical-align: top;
+  min-width: 120px;
+}
+
+.table th {
+  background: var(--snouty-surface-subtle);
+  font-weight: 600;
+}
+
+.table td:first-child {
+  color: var(--snouty-muted);
+  white-space: nowrap;
+}

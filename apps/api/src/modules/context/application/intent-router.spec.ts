@@ -94,6 +94,32 @@ describe('IntentRouter — presedensi kebutuhan (intent sadar konteks)', () => {
     expect(calls).toBe(2);
   });
 
+  it('subjek PRODUK aktif: "bikinin tabelnya dong" dilanjutkan sebagai PRODUCT_LOOKUP tanpa model; menyebut bahan baru → model', async () => {
+    const product = {
+      kind: 'product',
+      entity: 'hdpe',
+      topic: 'comparison',
+      depth: 'standard',
+    } as const;
+    let calls = 0;
+    const ai = aiReturning({ intent: 'PRODUCT_LOOKUP', confidence: 0.9 });
+    ai.classifyIntent = () => {
+      calls += 1;
+      return Promise.resolve({ intent: 'PRODUCT_LOOKUP', confidence: 0.9 });
+    };
+    const r = new IntentRouter(ai);
+    const d = await r.route(
+      'bikinin skema perbedaan nya dalam bentuk table dong biar lebih enak dibaca',
+      false,
+      [],
+      product,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+    expect(calls).toBe(0);
+    await r.route('bikinin tabel bedanya PVC sama PPR', false, [], product);
+    expect(calls).toBe(1);
+  });
+
   it('tanpa isyarat kebutuhan, label model dipakai apa adanya', async () => {
     const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.85 }).route(
       'apa bedanya pvc sama hdpe?',

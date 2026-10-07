@@ -23,7 +23,7 @@ import {
   hasRequirementSignals,
   mentionsCompetitor,
 } from '../domain/message-signals.js';
-import { intentForSubject, isFollowUp } from '../domain/subject.js';
+import { intentForSubject, isFollowUp, isFormatFollowUp } from '../domain/subject.js';
 import { materialsIn } from './pipe-knowledge.js';
 import type { ReplyTurn } from './reply-writer.js';
 
@@ -79,7 +79,14 @@ export function subjectContinuation(
   message: string,
   subject: ConversationSubject | undefined,
 ): RoutingDecision | null {
-  if (!subject || !isFollowUp(message)) return null;
+  if (!subject) return null;
+  // Permintaan ubah bentuk ("bikinin tabelnya dong") juga lanjutan — selama tidak menyebut
+  // bahan/produk atau kebutuhan baru.
+  const reformat =
+    isFormatFollowUp(message) &&
+    materialsIn(message).length === 0 &&
+    !hasRequirementSignals(message);
+  if (!isFollowUp(message) && !reformat) return null;
   const intent = intentForSubject(subject.kind);
   return {
     intent,

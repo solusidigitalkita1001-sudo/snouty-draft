@@ -65,6 +65,19 @@ describe('AssistantMarkdown', () => {
     expect(c.textContent).toContain('butir tanpa');
   });
 
+  it('tabel GFM dirender sebagai <table> di dalam pembungkus yang menggulir (P16-05)', () => {
+    const { container } = render(
+      <AssistantMarkdown
+        text={'| Aspek | **PVC** | **HDPE** |\n| --- | --- | --- |\n| Bentuk | kaku | lentur |'}
+      />,
+    );
+    const table = container.querySelector('table');
+    expect(table).not.toBeNull();
+    expect(container.querySelectorAll('th')).toHaveLength(3);
+    expect(container.querySelector('td')?.textContent).toBe('Bentuk');
+    expect(table?.parentElement?.className).toContain('tableWrap');
+  });
+
   it('blok kode tidak menjadi <pre> yang melebar', () => {
     const c = html('```\nukuran 3/4\n```');
     expect(c.querySelector('pre')).toBeNull();

@@ -8,8 +8,10 @@ import {
   companyTopicOf,
   intentForSubject,
   isFollowUp,
+  isFormatFollowUp,
   productSubject,
   requestedDepth,
+  requestedFormat,
   resolveCompanySubject,
 } from './subject.js';
 
@@ -104,6 +106,25 @@ describe('resolveCompanySubject', () => {
     expect(companyTopicOf('alamat kantornya di mana?')).toBe('contact');
     expect(companyTopicOf('pabriknya di mana?')).toBe('manufacturing');
     expect(companyTopicOf('visi misinya apa?')).toBe('vision_mission');
+  });
+});
+
+describe('requestedFormat & isFormatFollowUp — permintaan ubah bentuk jawaban', () => {
+  it('tabel / poin / ringkas dikenali; pesan yang merujuk jawaban sebelumnya adalah lanjutan', () => {
+    expect(
+      requestedFormat('bikinin skema perbedaan nya dalam bentuk table dong biar lebih enak dibaca'),
+    ).toBe('table');
+    expect(requestedFormat('poin-poinnya aja')).toBe('bullets');
+    expect(requestedFormat('ringkas dong')).toBe('summary');
+    expect(requestedFormat('apa itu PPR?')).toBeNull();
+    expect(
+      isFormatFollowUp(
+        'bikinin skema perbedaan nya dalam bentuk table dong biar lebih enak dibaca',
+      ),
+    ).toBe(true);
+    expect(isFormatFollowUp('can you put that in a table?')).toBe(true);
+    expect(isFormatFollowUp('tabel')).toBe(true);
+    expect(isFormatFollowUp('rumah 2 lantai 3 kamar mandi')).toBe(false);
   });
 });
 

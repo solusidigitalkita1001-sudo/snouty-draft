@@ -904,6 +904,14 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       bahan-vs-komponen (ID/EN); `bestMatch` memilih produk yang keluarganya sama dengan istilah
       (HDPE → keluarga HDPE, bukan pipa kabel bernama HDPE); SKU ekspor ERP disembunyikan di kartu
       (OQ-55). Tes: pipeline +2, pipe-knowledge +1, heuristics +1, lookup-cards +1
+- [x] P16-05 Permintaan ubah bentuk jawaban (laporan pemilik 2026-10-07: "bikinin skema
+      perbedaannya dalam bentuk table" → "Produk mana yang Anda maksud?"): `requestedFormat`
+      (tabel/poin/ringkas) + `isFormatFollowUp` (merujuk jawaban sebelumnya, tanpa entitas baru)
+      di domain subjek; router melanjutkan ke subjek aktif tanpa model; ruas produk menyajikan
+      ulang dari jawaban asisten terakhir + subjek (`reformat`: `materialsTable`,
+      `fittingVsMaterialTable`, butir, ringkasan — isi sama, hanya bentuk). Web: `remark-gfm`,
+      tabel diizinkan di `AssistantMarkdown` dengan pembungkus yang menggulir di layar sempit.
+      Tes: subject +1, router +1, pipeline +1, pipe-knowledge +1, message.service +1, markdown +1
 - [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 

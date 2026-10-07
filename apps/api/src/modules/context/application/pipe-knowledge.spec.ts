@@ -11,6 +11,7 @@ import {
   conceptsIn,
   explain,
   materialsIn,
+  reformat,
 } from './pipe-knowledge.js';
 import { keepsStructure } from './product-question-pipeline.js';
 
@@ -61,6 +62,26 @@ describe('pipe knowledge', () => {
     expect(en).toContain('Fittings are the connecting parts of a pipe run');
     // Tanpa kata pembanding, kalimat "bukan dua pilihan" tidak dipaksakan.
     expect(explain('fitting hdpe apa saja?', 'HDPE')).not.toContain('bukan dua pilihan');
+  });
+
+  it('reformat: tabel dua bahan, tabel fitting vs bahan, butir, ringkasan — isi sama, tanpa "|" liar; EN setara', () => {
+    const pvcHdpe = explain('apa bedanya pvc sama hdpe?', null);
+    const table = reformat('table', { previous: pvcHdpe }, 'id')!;
+    expect(table.split('\n')[0]).toBe('| Aspek | **PVC (uPVC)** | **HDPE** |');
+    expect(table).toContain('| Sambungan |');
+    expect(table.split('\n').every((line) => line.startsWith('|') && line.endsWith('|'))).toBe(
+      true,
+    );
+    const fittingAnswer = explain('apa bedanya fitting sama hdpe?', 'HDPE');
+    // Subjek menentukan bahannya: penjelasan fitting menyebut PVC dan HDPE sekaligus.
+    const fittingTable = reformat('table', { subject: 'hdpe', previous: fittingAnswer }, 'id')!;
+    expect(fittingTable).toContain('| Aspek | **HDPE** | **Fitting** |');
+    expect(reformat('table', { subject: 'hdpe', previous: fittingAnswer }, 'en')).toContain(
+      '| Aspect | **HDPE** | **Fitting** |',
+    );
+    expect(reformat('bullets', { previous: pvcHdpe })).toContain('**PVC (uPVC)**\n- Bentuk:');
+    expect(reformat('summary', { previous: pvcHdpe })).toContain('Singkatnya');
+    expect(reformat('table', { previous: 'tidak menyebut bahan apa pun' })).toBeNull();
   });
 
   it('satu bahan → ikhtisar; konsep yang disinggung ikut; tanpa bahan → kosong', () => {

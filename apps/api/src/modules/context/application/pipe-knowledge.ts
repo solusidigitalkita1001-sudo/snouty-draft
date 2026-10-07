@@ -233,6 +233,120 @@ export function describeMaterial(
   ].join('\n\n');
 }
 
+/**
+ * Penyajian ulang sebagai TABEL (permintaan "bikinin tabelnya dong"): isi yang sama dengan
+ * prosa/butir, hanya bentuknya yang berubah — tidak ada fakta baru yang lahir dari format.
+ * Sel tabel tidak boleh memuat `|`; teks pengetahuan memang tidak memuatnya.
+ */
+const TABLE_ROWS: Readonly<Record<Locale, readonly (readonly [string, keyof MaterialTexts])[]>> = {
+  id: [
+    ['Bentuk', 'form'],
+    ['Sambungan', 'joining'],
+    ['Ketahanan', 'durability'],
+    ['Pemakaian lazim', 'typicalUse'],
+    ['Cocok untuk', 'bestFor'],
+    ['Kurang cocok untuk', 'notFor'],
+  ],
+  en: [
+    ['Form', 'form'],
+    ['Joints', 'joining'],
+    ['Durability', 'durability'],
+    ['Typical use', 'typicalUse'],
+    ['Suited to', 'bestFor'],
+    ['Less suited to', 'notFor'],
+  ],
+};
+
+function cell(text: string): string {
+  return text.replace(/\|/g, '/').replace(/\n/g, ' ');
+}
+
+export function materialsTable(
+  materials: readonly MaterialKnowledge[],
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const texts = materials.map((m) => textsOf(m, locale));
+  const aspect = locale === 'en' ? 'Aspect' : 'Aspek';
+  const header = `| ${aspect} | ${texts.map((t) => `**${t.label}**`).join(' | ')} |`;
+  const divider = `| --- | ${texts.map(() => '---').join(' | ')} |`;
+  const rows = TABLE_ROWS[locale].map(
+    ([label, key]) => `| ${label} | ${texts.map((t) => cell(t[key])).join(' | ')} |`,
+  );
+  return [header, divider, ...rows].join('\n');
+}
+
+/** "Apa bedanya fitting sama HDPE?" sebagai tabel: bahan di satu kolom, komponen di kolom lain. */
+export function fittingVsMaterialTable(
+  material: MaterialKnowledge,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const m = textsOf(material, locale);
+  if (locale === 'en') {
+    return [
+      `| Aspect | **${m.label}** | **Fitting** |`,
+      '| --- | --- | --- |',
+      `| What it is | a pipe material — ${cell(m.gist)} | a connecting part: socket, tee, elbow, reducer, valve |`,
+      `| Role | carries the water along the run | changes direction, splits a branch, changes size, joins two lengths |`,
+      `| Material | ${cell(m.label)} | the same material as the pipe it joins (${cell(m.label)} fittings for ${cell(m.label)} pipe) |`,
+      `| Joints | ${cell(m.joining)} | the same joining method as the pipe |`,
+      `| Suited to | ${cell(m.bestFor)} | every run — there is no pipe run without fittings |`,
+    ].join('\n');
+  }
+  return [
+    `| Aspek | **${m.label}** | **Fitting** |`,
+    '| --- | --- | --- |',
+    `| Apa itu | bahan pipa — ${cell(m.gist)} | komponen penyambung: sok, tee, elbow, reducer, katup |`,
+    `| Peran | membawa air sepanjang jalur | mengubah arah, membagi cabang, mengubah ukuran, menyambung dua batang |`,
+    `| Bahan | ${cell(m.label)} | sama dengan pipa yang disambungnya (fitting ${cell(m.label)} untuk pipa ${cell(m.label)}) |`,
+    `| Sambungan | ${cell(m.joining)} | cara sambung yang sama dengan pipanya |`,
+    `| Cocok untuk | ${cell(m.bestFor)} | setiap jalur — tidak ada jalur pipa tanpa fitting |`,
+  ].join('\n');
+}
+
+/**
+ * Penyajian ulang jawaban produk/bahan yang BARU SAJA diberikan dalam bentuk yang diminta.
+ * Isinya diambil dari apa yang dibicarakan (jawaban asisten terakhir + subjek), bukan dari pesan
+ * "bikinin tabelnya" yang memang tidak menyebut apa-apa. `null` bila tidak ada yang bisa disajikan.
+ */
+export function reformat(
+  format: 'table' | 'bullets' | 'summary',
+  context: { readonly subject?: string | null; readonly previous?: string | null },
+  locale: Locale = DEFAULT_LOCALE,
+): string | null {
+  // Subjek dulu: penjelasan fitting menyebut "PVC untuk PVC, HDPE untuk HDPE", jadi membaca bahan
+  // dari teks jawaban saja akan mengira ada dua bahan yang dibandingkan.
+  const fromSubject = materialsIn(context.subject);
+  const materials = (fromSubject.length > 0 ? fromSubject : materialsIn(context.previous)).slice(
+    0,
+    3,
+  );
+  const fitting = conceptsIn(context.previous, context.subject).some((c) => c.topic === 'fitting');
+  if (materials.length === 0) return null;
+  if (format === 'table') {
+    if (materials.length === 1 && fitting) return fittingVsMaterialTable(materials[0]!, locale);
+    return materialsTable(materials, locale);
+  }
+  if (format === 'bullets') {
+    return materials
+      .map((m) => {
+        const t = textsOf(m, locale);
+        return [`**${t.label}**`, ...dimensionRows(t, locale)].join('\n');
+      })
+      .join('\n\n');
+  }
+  // Ringkasan: inti tiap bahan + kapan dipakai. Bukan `briefComparison` ("Seperti tadi: …"), yang
+  // nadanya pengingat anti-ulang, bukan jawaban atas permintaan "ringkas dong".
+  const texts = materials.map((m) => textsOf(m, locale));
+  if (locale === 'en') {
+    const gists = texts.map((t) => `**${t.label}** is ${t.gist}`).join(', while ');
+    const uses = texts.map((t) => `${t.label} for ${t.bestFor}`).join('; ');
+    return `In short, ${gists}. ${uses}.`;
+  }
+  const gists = texts.map((t) => `**${t.label}** ${t.gist}`).join(', sedangkan ');
+  const uses = texts.map((t) => `${t.label} untuk ${t.bestFor}`).join('; ');
+  return `Singkatnya, ${gists}. ${uses}.`;
+}
+
 /** Ringkasan → satu blok per bahan → simpulan: "bedanya" dijawab sebagai perbedaan. */
 export function compareMaterials(
   first: MaterialKnowledge,

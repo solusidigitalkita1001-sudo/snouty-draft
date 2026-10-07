@@ -290,6 +290,18 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
     expect(ai.classifyIntent).not.toHaveBeenCalled();
   });
 
+  it('percakapan pemilik #2: "apa bedanya fitting sama hdpe?" lalu "bikinin … bentuk table" → tabel, bukan "Produk mana"', async () => {
+    const { say, subject } = await conversation();
+    const first = await say('apa bedanya fitting sama hdpe ?');
+    expect(first).toContain('**HDPE** adalah bahan pipa, sedangkan **fitting**');
+    expect(subject()).toMatchObject({ kind: 'product', entity: 'hdpe' });
+    const table = await say(
+      'bikinin skema perbedaan nya dalam bentuk table dong biar lebih enak dibaca',
+    );
+    expect(table).toContain('| Aspek |');
+    expect(table).not.toContain('Produk mana');
+  });
+
   it('TEST E: setelah profil perusahaan, "produk HDPE nya gimana?" berpindah ke subjek produk', async () => {
     const { say, subject } = await conversation();
     await say('company profile PT Pralon');

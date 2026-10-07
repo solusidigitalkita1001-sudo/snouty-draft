@@ -242,6 +242,39 @@ export function isFollowUp(message: string): boolean {
   return words.every((w) => FOLLOW_UP_WORDS.has(w));
 }
 
+/** Bentuk penyajian yang diminta pengguna atas jawaban yang sudah ada. */
+export type AnswerFormat = 'table' | 'bullets' | 'summary';
+
+const FORMAT_TABLE =
+  /\b(tabel|table|tabelkan|bentuk tabel|skema perbandingan|skema|bagan|matriks|matrix|side by side)\b/i;
+const FORMAT_BULLETS = /\b(poin[- ]?poin|poin|butir|bullet(?:s)?|daftar|list(?:kan)?|poinnya)\b/i;
+const FORMAT_SUMMARY =
+  /\b(ringkas(?:kan|in)?|rangkum(?:kan|in)?|singkat(?:kan|in)?|intinya|tl;?dr|summar(?:y|ize|ise))\b/i;
+/** Rujukan ke jawaban yang baru saja diberikan: "-nya", "tadi", "di atas", "yang itu", "the above". */
+const REFERENCE =
+  /\b(nya|tadi|itu|ini|di ?atas|sebelumnya|barusan|yang tadi|yang itu|perbedaannya|bedanya|penjelasannya|jawabannya|the above|that|this|previous|earlier)\b|nya\b/i;
+
+/** Format yang diminta pesan; `null` bila tidak ada. Tabel menang atas daftar, daftar atas ringkasan. */
+export function requestedFormat(message: string): AnswerFormat | null {
+  if (FORMAT_TABLE.test(message)) return 'table';
+  if (FORMAT_BULLETS.test(message)) return 'bullets';
+  if (FORMAT_SUMMARY.test(message)) return 'summary';
+  return null;
+}
+
+/**
+ * Permintaan UBAH BENTUK atas jawaban sebelumnya: "bikinin skema perbedaannya dalam bentuk tabel",
+ * "ringkas aja", "poin-poinnya dong". Pesan seperti ini tidak membawa topik baru — maknanya hanya
+ * ada relatif terhadap apa yang baru dijawab — sehingga diperlakukan sebagai lanjutan subjek.
+ * Pemanggil tetap memeriksa bahwa pesan tidak menyebut entitas baru (bahan, produk, kebutuhan).
+ */
+export function isFormatFollowUp(message: string): boolean {
+  const format = requestedFormat(message);
+  if (format === null) return false;
+  const words = message.split(/\s+/).filter((w) => w.length > 0).length;
+  return REFERENCE.test(message) || words <= MAX_FOLLOW_UP_WORDS;
+}
+
 /** Topik perusahaan yang disebut pesan; `company_profile` bila "profil/company profile/semuanya". */
 export function companyTopicOf(message: string): CompanyTopic {
   const t = message.toLowerCase();

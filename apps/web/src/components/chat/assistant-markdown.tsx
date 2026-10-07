@@ -10,6 +10,7 @@
  */
 import type { ComponentPropsWithoutRef } from 'react';
 import Markdown, { type Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import styles from './assistant-markdown.module.css';
 
 const ALLOWED = [
@@ -29,6 +30,14 @@ const ALLOWED = [
   'br',
   'blockquote',
   'hr',
+  // Tabel GFM: perbandingan yang diminta "dalam bentuk tabel" (P16-05). Dibungkus agar
+  // menggulir ke samping di layar sempit, bukan melebarkan gelembung.
+  'table',
+  'thead',
+  'tbody',
+  'tr',
+  'th',
+  'td',
 ];
 
 const Label = (props: ComponentPropsWithoutRef<'h3'>) => <h3 className={styles.label} {...props} />;
@@ -44,12 +53,23 @@ const COMPONENTS: Components = {
   // sebagai kode sebaris — tanpa <pre> yang melebar dan menggulir horizontal.
   pre: ({ children }) => <>{children}</>,
   code: (props) => <code className={styles.code} {...props} />,
+  table: (props) => (
+    <div className={styles.tableWrap}>
+      <table className={styles.table} {...props} />
+    </div>
+  ),
 };
 
 export function AssistantMarkdown({ text }: { readonly text: string }) {
   return (
     <div className={styles.md}>
-      <Markdown allowedElements={ALLOWED} unwrapDisallowed skipHtml components={COMPONENTS}>
+      <Markdown
+        remarkPlugins={[remarkGfm]}
+        allowedElements={ALLOWED}
+        unwrapDisallowed
+        skipHtml
+        components={COMPONENTS}
+      >
         {text}
       </Markdown>
     </div>
