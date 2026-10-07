@@ -71,3 +71,36 @@ describe('computeNetwork', () => {
     );
   });
 });
+
+describe('locale penjelasan trace (P15-04b)', () => {
+  it("gorong-gorong 'en': catatan struktur dan trace berbahasa Inggris, angka dan output aturan tetap", () => {
+    const input = {
+      kind: 'culvert',
+      designFlowLs: 20,
+      coverDepthM: 0.5,
+      trafficLoad: 'heavy',
+    } as const;
+    const id = computeGravity(input);
+    const en = computeGravity(input, 'en');
+    expect(en.structural?.structuralNote).toContain('structural validation is mandatory');
+    expect(en.structural?.minimumCoverM).toBe(id.structural?.minimumCoverM);
+    expect(en.recommendedSize).toBe(id.recommendedSize);
+    // Trace menyimpan keluaran aturan apa adanya; hanya `explanation` yang ikut bahasa.
+    expect(en.traces.map((t) => t.output)).toEqual(id.traces.map((t) => t.output));
+    en.traces.forEach((trace, i) => {
+      expect(trace.explanation).not.toBe(id.traces[i]!.explanation);
+    });
+    expect(computeGravity(input, 'id')).toEqual(id);
+  });
+
+  it("jaringan 'en': trace ENG-405 dan trace bertekanan ikut bahasa Inggris", () => {
+    const input = { connections: 120, routeLengthM: 600, staticHeadM: 8 };
+    const id = computeNetwork(input);
+    const en = computeNetwork(input, 'en');
+    expect(en.traces[0]!.explanation).toContain('Peak demand');
+    expect(en.traces.map((t) => t.ruleId)).toEqual(id.traces.map((t) => t.ruleId));
+    en.traces.forEach((trace, i) => {
+      expect(trace.explanation).not.toBe(id.traces[i]!.explanation);
+    });
+  });
+});

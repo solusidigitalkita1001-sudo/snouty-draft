@@ -168,7 +168,6 @@ export function pressurizedSystemLinesFrom(
       name: en ? `${family} main pipe` : `Pipa utama ${family}`,
       path: en ? 'Source → destination' : 'Sumber → tujuan',
       size: result.recommendedSize,
-      // TODO(P15-04): penjelasan trace dari engine masih Indonesia untuk kedua bahasa.
       reason: explanationFor(traces, 'ENG-205'),
       provenance: provenanceFor(traces, main),
       traceIds: main,
@@ -221,7 +220,6 @@ export function pressurizedBomItemsFrom(
 ): readonly BomItem[] {
   const en = locale === 'en';
   const ids = traceIdsFor(traces, 'ENG-205');
-  // TODO(P15-04): penjelasan trace dari engine masih Indonesia untuk kedua bahasa.
   const basis = en
     ? `${explanationFor(traces, 'ENG-205')} Fitting quantities: layout estimate (4 bends, valves at both ends, one check valve when pumped).`
     : `${explanationFor(traces, 'ENG-205')} Kuantitas fitting: perkiraan tata letak (4 belokan, katup di kedua ujung, satu katup searah bila dipompa).`;

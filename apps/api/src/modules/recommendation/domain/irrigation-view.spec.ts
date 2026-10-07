@@ -85,3 +85,25 @@ describe('irrigation-view locale', () => {
     expect(en.body).not.toMatch(/Debit|Jalur/);
   });
 });
+
+describe('irrigation-view: penjelasan trace dua bahasa (P15-04b)', () => {
+  it("trace dihitung dengan 'en' → alasan dan dasar BOM berbahasa Inggris, ukuran sama", () => {
+    const input = {
+      areaHa: 1,
+      method: 'sprinkler',
+      mainRunMeters: 350,
+      elevation: 'level',
+    } as const;
+    const enResult = computeIrrigation(input, 'en');
+    const enTraces: readonly IdentifiedTrace[] = enResult.traces.map((t, i) => ({
+      ...t,
+      id: `I${i}`,
+    }));
+    const id = irrigationSystemLinesFrom(result, traces, 'id');
+    const en = irrigationSystemLinesFrom(enResult, enTraces, 'en');
+    expect(en.map((l) => l.traceIds)).toEqual(id.map((l) => l.traceIds));
+    en.forEach((line, i) => expect(line.reason).not.toBe(id[i]!.reason));
+    expect(en[0]!.reason).toContain('Design flow');
+    expect(irrigationBomItemsFrom(enResult, enTraces, 'en')[0]!.basis).toContain('Field 1 ha');
+  });
+});

@@ -7,7 +7,7 @@
  * penyederhanaan — validasi ahli di situ prioritas tertinggi.
  */
 
-import { requireInt, type RuleVersion } from '../rule.js';
+import { localized, requireInt, type RuleVersion } from '../rule.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 
@@ -66,9 +66,15 @@ export const ENG_001: RuleVersion<FixtureCounts, LoadResult> = {
       expected: { outletCount: 2, loadUnits: 3 },
     },
   ],
-  explain: (input, output) =>
-    `Titik air dihitung ${input.bathrooms} kamar mandi + ${input.basins} wastafel + ${input.kitchens} dapur = ${output.outletCount} titik. ` +
-    `Unit beban memakai bobot kamar mandi 2 (shower + kloset), wastafel 1, dapur 1 = ${output.loadUnits} unit.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id:
+        `Titik air dihitung ${input.bathrooms} kamar mandi + ${input.basins} wastafel + ${input.kitchens} dapur = ${output.outletCount} titik. ` +
+        `Unit beban memakai bobot kamar mandi 2 (shower + kloset), wastafel 1, dapur 1 = ${output.loadUnits} unit.`,
+      en:
+        `Water outlets counted as ${input.bathrooms} bathrooms + ${input.basins} basins + ${input.kitchens} kitchens = ${output.outletCount} outlets. ` +
+        `Load units use weights of bathroom 2 (shower + toilet), basin 1, kitchen 1 = ${output.loadUnits} units.`,
+    }),
 };
 
 export interface MainSizeResult {
@@ -99,9 +105,15 @@ export const ENG_002: RuleVersion<{ readonly loadUnits: number }, MainSizeResult
     { name: 'di bawah ambang', input: { loadUnits: 7 }, expected: { mainSize: '3/4"' } },
     { name: 'beban besar', input: { loadUnits: 24 }, expected: { mainSize: '1"' } },
   ],
-  explain: (input, output) =>
-    `Total ${input.loadUnits} unit beban ${input.loadUnits >= 8 ? 'mencapai' : 'belum mencapai'} ambang 8 unit, ` +
-    `sehingga jalur utama dan riser memakai ukuran ${output.mainSize}.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id:
+        `Total ${input.loadUnits} unit beban ${input.loadUnits >= 8 ? 'mencapai' : 'belum mencapai'} ambang 8 unit, ` +
+        `sehingga jalur utama dan riser memakai ukuran ${output.mainSize}.`,
+      en:
+        `A total of ${input.loadUnits} load units ${input.loadUnits >= 8 ? 'reaches' : 'does not reach'} the 8-unit threshold, ` +
+        `so the main line and riser use size ${output.mainSize}.`,
+    }),
 };
 
 /** ENG-003 · Maksimum titik air per cabang. */
@@ -146,9 +158,15 @@ export const ENG_003: RuleVersion<
       expected: { maxOutletsPerBranch: 4, branchCount: 0 },
     },
   ],
-  explain: (input, output) =>
-    `Cabang dibatasi maksimal 4 titik air agar penurunan tekanan tetap wajar, sehingga ${input.outletCount} titik ` +
-    `memerlukan ${output.branchCount} cabang.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id:
+        `Cabang dibatasi maksimal 4 titik air agar penurunan tekanan tetap wajar, sehingga ${input.outletCount} titik ` +
+        `memerlukan ${output.branchCount} cabang.`,
+      en:
+        `Each branch is limited to at most 4 water outlets to keep the pressure drop reasonable, so ${input.outletCount} outlets ` +
+        `require ${output.branchCount} branches.`,
+    }),
 };
 
 /**
@@ -169,7 +187,11 @@ export const ENG_005: RuleVersion<
   sourceReference: 'Kedua prototipe; sudah bertanda ASUMSI di mockup',
   validationStatus: PENDING,
   testCases: [{ name: 'selalu 1/2 inci', input: {}, expected: { fixtureConnectionSize: '1/2"' } }],
-  explain: () => 'Sambungan ke setiap fixture diasumsikan 1/2 inci.',
+  explain: (_input, _output, locale) =>
+    localized(locale, {
+      id: 'Sambungan ke setiap fixture diasumsikan 1/2 inci.',
+      en: 'The connection to each fixture is assumed to be 1/2 inch.',
+    }),
 };
 
 /**
@@ -191,7 +213,11 @@ export const ENG_010: RuleVersion<
   sourceReference: 'Teks "DETAIL TEKNIS" prototipe',
   validationStatus: PENDING,
   testCases: [{ name: 'rentang 1–2 m/s', input: {}, expected: { minMs: 1, maxMs: 2 } }],
-  explain: (_input, output) => `Kecepatan aliran target ${output.minMs}–${output.maxMs} m/s.`,
+  explain: (_input, output, locale) =>
+    localized(locale, {
+      id: `Kecepatan aliran target ${output.minMs}–${output.maxMs} m/s.`,
+      en: `Target flow velocity ${output.minMs}–${output.maxMs} m/s.`,
+    }),
 };
 
 export type PressureClass = 'AW' | 'D';
@@ -238,8 +264,11 @@ export const ENG_013: RuleVersion<
       expected: { classes: ['AW', 'D'] },
     },
   ],
-  explain: (_input, output) =>
-    `Kelas pipa yang sesuai: ${output.classes.join(' dan ')} (AW untuk air bersih bertekanan, D untuk pembuangan).`,
+  explain: (_input, output, locale) =>
+    localized(locale, {
+      id: `Kelas pipa yang sesuai: ${output.classes.join(' dan ')} (AW untuk air bersih bertekanan, D untuk pembuangan).`,
+      en: `Suitable pipe class: ${output.classes.join(' and ')} (AW for pressurized clean water, D for drainage).`,
+    }),
 };
 
 export const GROUP_A = [ENG_001, ENG_002, ENG_003, ENG_005, ENG_010, ENG_013];

@@ -10,7 +10,7 @@
  * Semua `REQUIRES_DOMAIN_VALIDATION`.
  */
 
-import { requireNumber, type RuleVersion } from '../rule.js';
+import { localized, requireNumber, type RuleVersion } from '../rule.js';
 import { barToHeadM, lsToM3h, round1, round2, round3 } from '../units.js';
 import { requireSizeTable } from './group-e-irrigation.js';
 import { sizeTable, type SizeTableId } from '../parameters/size-tables.js';
@@ -67,8 +67,11 @@ export const ENG_201: RuleVersion<VelocityInput, VelocityResult> = {
       expected: { areaMm2: 1256.6, velocityMs: 1.19 },
     },
   ],
-  explain: (input, output) =>
-    `Kecepatan ${output.velocityMs} m/s = ${input.designFlowLs} l/s ÷ luas penampang ${output.areaMm2} mm² (diameter dalam ${input.innerDiameterMm} mm).`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Kecepatan ${output.velocityMs} m/s = ${input.designFlowLs} l/s ÷ luas penampang ${output.areaMm2} mm² (diameter dalam ${input.innerDiameterMm} mm).`,
+      en: `Velocity ${output.velocityMs} m/s = ${input.designFlowLs} l/s ÷ cross-sectional area ${output.areaMm2} mm² (inner diameter ${input.innerDiameterMm} mm).`,
+    }),
 };
 
 // ── ENG-202 · Kerugian gesek Hazen-Williams ─────────────────────────────────
@@ -136,8 +139,11 @@ export const ENG_202: RuleVersion<FrictionInput, FrictionResult> = {
       expected: { frictionLossM: 26.38, gradientMPer100m: 3.3 },
     },
   ],
-  explain: (input, output) =>
-    `Kerugian gesek ${output.frictionLossM} m untuk ${input.lengthM} m pipa Ø${input.innerDiameterMm} mm pada ${input.designFlowLs} l/s (Hazen-Williams, C = ${input.hazenWilliamsC}; ${output.gradientMPer100m} m per 100 m).`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Kerugian gesek ${output.frictionLossM} m untuk ${input.lengthM} m pipa Ø${input.innerDiameterMm} mm pada ${input.designFlowLs} l/s (Hazen-Williams, C = ${input.hazenWilliamsC}; ${output.gradientMPer100m} m per 100 m).`,
+      en: `Friction loss ${output.frictionLossM} m over ${input.lengthM} m of Ø${input.innerDiameterMm} mm pipe at ${input.designFlowLs} l/s (Hazen-Williams, C = ${input.hazenWilliamsC}; ${output.gradientMPer100m} m per 100 m).`,
+    }),
 };
 
 // ── ENG-203 · Kerugian minor ────────────────────────────────────────────────
@@ -176,8 +182,11 @@ export const ENG_203: RuleVersion<MinorLossInput, MinorLossResult> = {
       expected: { minorLossM: 2.64 },
     },
   ],
-  explain: (input, output) =>
-    `Kerugian di fitting ±${output.minorLossM} m (${Math.round(input.fraction * 100)} % dari kerugian gesek).`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Kerugian di fitting ±${output.minorLossM} m (${Math.round(input.fraction * 100)} % dari kerugian gesek).`,
+      en: `Fitting losses ±${output.minorLossM} m (${Math.round(input.fraction * 100)} % of the friction loss).`,
+    }),
 };
 
 // ── ENG-204 · Head dinamis total ────────────────────────────────────────────
@@ -238,8 +247,11 @@ export const ENG_204: RuleVersion<TdhInput, TdhResult> = {
       expected: { residualHeadM: 5.1, totalDynamicHeadM: 46.12 },
     },
   ],
-  explain: (input, output) =>
-    `Head total ${output.totalDynamicHeadM} m = statis ${Math.max(0, input.staticHeadM)} m + gesek ${input.frictionLossM} m + fitting ${input.minorLossM} m + sisa ${output.residualHeadM} m (${input.residualPressureBar} bar).`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Head total ${output.totalDynamicHeadM} m = statis ${Math.max(0, input.staticHeadM)} m + gesek ${input.frictionLossM} m + fitting ${input.minorLossM} m + sisa ${output.residualHeadM} m (${input.residualPressureBar} bar).`,
+      en: `Total head ${output.totalDynamicHeadM} m = static ${Math.max(0, input.staticHeadM)} m + friction ${input.frictionLossM} m + fittings ${input.minorLossM} m + residual ${output.residualHeadM} m (${input.residualPressureBar} bar).`,
+    }),
 };
 
 // ── ENG-205 · Sizing pipa multi-kriteria dengan kandidat ────────────────────
@@ -462,9 +474,12 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
       },
     },
   ],
-  explain: (input, output) => {
+  explain: (input, output, locale) => {
     const pick = output.candidates.find((c) => c.size === output.recommended)!;
-    return `Dari ${output.candidates.length} kandidat, ${output.recommended} adalah ukuran terkecil yang memenuhi kecepatan ${input.velocityMinMs}–${input.velocityMaxMs} m/s dan gradien ≤ ${input.gradientMaxMPer100m} m/100 m: ${pick.velocityMs} m/s, kerugian ${pick.frictionLossM} m untuk ${input.lengthM} m${output.alternative ? `; alternatif ${output.alternative} menurunkan kerugian dengan biaya pipa lebih tinggi` : ''}.`;
+    return localized(locale, {
+      id: `Dari ${output.candidates.length} kandidat, ${output.recommended} adalah ukuran terkecil yang memenuhi kecepatan ${input.velocityMinMs}–${input.velocityMaxMs} m/s dan gradien ≤ ${input.gradientMaxMPer100m} m/100 m: ${pick.velocityMs} m/s, kerugian ${pick.frictionLossM} m untuk ${input.lengthM} m${output.alternative ? `; alternatif ${output.alternative} menurunkan kerugian dengan biaya pipa lebih tinggi` : ''}.`,
+      en: `Of ${output.candidates.length} candidates, ${output.recommended} is the smallest size that meets velocity ${input.velocityMinMs}–${input.velocityMaxMs} m/s and gradient ≤ ${input.gradientMaxMPer100m} m/100 m: ${pick.velocityMs} m/s, loss ${pick.frictionLossM} m over ${input.lengthM} m${output.alternative ? `; alternative ${output.alternative} lowers the loss at a higher pipe cost` : ''}.`,
+    });
   },
 };
 
@@ -525,8 +540,11 @@ export const ENG_206: RuleVersion<PumpDutyInput, PumpDutyResult> = {
       },
     },
   ],
-  explain: (input, output) =>
-    `Titik kerja pompa: ${output.flowM3h} m³/jam (${input.designFlowLs} l/s) pada head ${output.headM} m; daya hidraulik ${output.hydraulicPowerKw} kW, daya poros indikatif ±${output.indicativeShaftPowerKw} kW pada efisiensi ${Math.round(input.efficiency * 100)} % — pilih pompa dari kurva pabrikan, bukan dari angka ini saja.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Titik kerja pompa: ${output.flowM3h} m³/jam (${input.designFlowLs} l/s) pada head ${output.headM} m; daya hidraulik ${output.hydraulicPowerKw} kW, daya poros indikatif ±${output.indicativeShaftPowerKw} kW pada efisiensi ${Math.round(input.efficiency * 100)} % — pilih pompa dari kurva pabrikan, bukan dari angka ini saja.`,
+      en: `Pump duty point: ${output.flowM3h} m³/h (${input.designFlowLs} l/s) at ${output.headM} m head; hydraulic power ${output.hydraulicPowerKw} kW, indicative shaft power ±${output.indicativeShaftPowerKw} kW at ${Math.round(input.efficiency * 100)} % efficiency — select the pump from the manufacturer's curve, not from these figures alone.`,
+    }),
 };
 
 export const GROUP_F = [ENG_201, ENG_202, ENG_203, ENG_204, ENG_205, ENG_206] as const;

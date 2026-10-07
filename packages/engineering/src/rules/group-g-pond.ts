@@ -8,7 +8,7 @@
  * perpipaan. Semua `REQUIRES_DOMAIN_VALIDATION`.
  */
 
-import { requireInt, requireNumber, type RuleVersion } from '../rule.js';
+import { localized, requireInt, requireNumber, type RuleVersion } from '../rule.js';
 import { round1, round2 } from '../units.js';
 import { NOMINAL_SIZES } from './group-e-irrigation.js';
 
@@ -58,8 +58,11 @@ export const ENG_301: RuleVersion<PondVolumeInput, PondVolumeResult> = {
       expected: { areaM2: 16, volumePerPondM3: 16, volumeM3: 16 },
     },
   ],
-  explain: (input, output) =>
-    `Volume air ${output.volumeM3} m³ = ${input.lengthM} × ${input.widthM} m × tinggi air ${input.depthM} m${input.ponds > 1 ? ` × ${input.ponds} kolam` : ''}.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Volume air ${output.volumeM3} m³ = ${input.lengthM} × ${input.widthM} m × tinggi air ${input.depthM} m${input.ponds > 1 ? ` × ${input.ponds} kolam` : ''}.`,
+      en: `Water volume ${output.volumeM3} m³ = ${input.lengthM} × ${input.widthM} m × water depth ${input.depthM} m${input.ponds > 1 ? ` × ${input.ponds} ponds` : ''}.`,
+    }),
 };
 
 // ── ENG-302 · Debit pengisian ───────────────────────────────────────────────
@@ -100,8 +103,11 @@ export const ENG_302: RuleVersion<FillFlowInput, FillFlowResult> = {
       expected: { designFlowLs: 1.48, flowM3h: 5.33 },
     },
   ],
-  explain: (input, output) =>
-    `Debit pengisian ${output.designFlowLs} l/s (${output.flowM3h} m³/jam) = ${input.volumeM3} m³ ÷ ${input.fillTimeHours} jam.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Debit pengisian ${output.designFlowLs} l/s (${output.flowM3h} m³/jam) = ${input.volumeM3} m³ ÷ ${input.fillTimeHours} jam.`,
+      en: `Filling flow ${output.designFlowLs} l/s (${output.flowM3h} m³/h) = ${input.volumeM3} m³ ÷ ${input.fillTimeHours} h.`,
+    }),
 };
 
 // ── ENG-303 · Pipa pembuangan gravitasi ─────────────────────────────────────
@@ -167,8 +173,11 @@ export const ENG_303: RuleVersion<DrainSizeInput, DrainSizeResult> = {
       },
     },
   ],
-  explain: (input, output) =>
-    `Pipa kuras ${output.drainSize}: menguras ${input.volumePerPondM3} m³ dalam ${input.drainTimeHours} jam butuh ${output.drainFlowLs} l/s → diameter dalam minimum ${output.requiredInnerDiameterMm} mm pada ${input.drainVelocityMs} m/s (gravitasi).`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Pipa kuras ${output.drainSize}: menguras ${input.volumePerPondM3} m³ dalam ${input.drainTimeHours} jam butuh ${output.drainFlowLs} l/s → diameter dalam minimum ${output.requiredInnerDiameterMm} mm pada ${input.drainVelocityMs} m/s (gravitasi).`,
+      en: `Drain pipe ${output.drainSize}: draining ${input.volumePerPondM3} m³ in ${input.drainTimeHours} h needs ${output.drainFlowLs} l/s → minimum inner diameter ${output.requiredInnerDiameterMm} mm at ${input.drainVelocityMs} m/s (gravity).`,
+    }),
 };
 
 // ── ENG-304 · BOM kolam ─────────────────────────────────────────────────────
@@ -280,8 +289,11 @@ export const ENG_304: RuleVersion<PondBomInput, PondBomResult> = {
       },
     },
   ],
-  explain: (input, output) =>
-    `Pipa masuk ±${output.inletMeters} m (jalur ${input.routeLengthM} m + 2 m per kolam) PVC AW ${input.inletSize}; pipa kuras ±${output.drainMeters} m PVC D ${input.drainSize} (tegak + tembus + ½ panjang kolam) untuk ${input.ponds} kolam; batang 4 m.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Pipa masuk ±${output.inletMeters} m (jalur ${input.routeLengthM} m + 2 m per kolam) PVC AW ${input.inletSize}; pipa kuras ±${output.drainMeters} m PVC D ${input.drainSize} (tegak + tembus + ½ panjang kolam) untuk ${input.ponds} kolam; batang 4 m.`,
+      en: `Inlet pipe ±${output.inletMeters} m (route ${input.routeLengthM} m + 2 m per pond) PVC AW ${input.inletSize}; drain pipe ±${output.drainMeters} m PVC D ${input.drainSize} (standpipe + wall pass-through + ½ pond length) for ${input.ponds} ponds; 4 m pipe lengths.`,
+    }),
 };
 
 export const GROUP_G = [ENG_301, ENG_302, ENG_303, ENG_304] as const;

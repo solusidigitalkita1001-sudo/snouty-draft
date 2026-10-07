@@ -9,6 +9,7 @@
 
 import { assumption } from './parameters/assumptions.js';
 import { sizeTableFor } from './parameters/size-tables.js';
+import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
 import type { RuleVersion } from './rule.js';
@@ -51,7 +52,11 @@ export interface IrrigationResult {
 
 const DEFAULT_VELOCITY_MS = assumption('DESIGN_VELOCITY_PLASTIC').value as number;
 
-export function computeIrrigation(input: IrrigationInput): IrrigationResult {
+/** `locale` hanya memilih bahasa `explanation` di trace (P15-04b); angka tidak berubah. */
+export function computeIrrigation(
+  input: IrrigationInput,
+  locale: EngineeringLocale = DEFAULT_ENGINEERING_LOCALE,
+): IrrigationResult {
   const traces: CalculationTrace[] = [];
 
   function run<I, O>(rule: RuleVersion<I, O>, raw: unknown): O {
@@ -67,7 +72,7 @@ export function computeIrrigation(input: IrrigationInput): IrrigationResult {
         ruleStatus: rule.validationStatus,
         hasRealDimensions: false,
       }),
-      explanation: rule.explain(parsed, output),
+      explanation: rule.explain(parsed, output, locale),
     });
     return output;
   }

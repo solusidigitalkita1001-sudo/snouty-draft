@@ -8,7 +8,8 @@
  * Semua `REQUIRES_DOMAIN_VALIDATION`.
  */
 
-import { requireInt, requireNumber, type RuleVersion } from '../rule.js';
+import type { EngineeringLocale } from '../parameters/locale.js';
+import { localized, requireInt, requireNumber, type RuleVersion } from '../rule.js';
 import { round1, round2 } from '../units.js';
 import { NOMINAL_SIZES } from './group-e-irrigation.js';
 
@@ -77,8 +78,11 @@ export const ENG_401: RuleVersion<ManningInput, ManningResult> = {
       expected: { fullFlowLs: 125.71, fullVelocityMs: 1.78 },
     },
   ],
-  explain: (input, output) =>
-    `Pipa Ø${input.innerDiameterMm} mm pada kemiringan ${input.slopePercent} % mengalirkan ±${output.fullFlowLs} l/s saat penuh (${output.fullVelocityMs} m/s; Manning n = ${input.manningN}).`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Pipa Ø${input.innerDiameterMm} mm pada kemiringan ${input.slopePercent} % mengalirkan ±${output.fullFlowLs} l/s saat penuh (${output.fullVelocityMs} m/s; Manning n = ${input.manningN}).`,
+      en: `A Ø${input.innerDiameterMm} mm pipe at a ${input.slopePercent} % slope carries ±${output.fullFlowLs} l/s when full (${output.fullVelocityMs} m/s; Manning n = ${input.manningN}).`,
+    }),
 };
 
 /** Kandidat kasus uji ENG-402 (20 l/s, 1 %, n 0,010, isi 80 %, v ≥ 0,6) — diisi dari probe. */
@@ -293,9 +297,12 @@ export const ENG_402: RuleVersion<GravitySizingInput, GravitySizingResult> = {
       },
     },
   ],
-  explain: (input, output) => {
+  explain: (input, output, locale) => {
     const pick = output.candidates.find((c) => c.size === output.recommended)!;
-    return `Pipa gravitasi ${output.recommended}: kapasitas penuh ${pick.fullFlowLs} l/s pada ${input.slopePercent} %, debit rencana ${input.designFlowLs} l/s = ${pick.utilisationPercent} % (batas ${Math.round(input.fillRatio * 100)} %); kecepatan penuh ${pick.fullVelocityMs} m/s.`;
+    return localized(locale, {
+      id: `Pipa gravitasi ${output.recommended}: kapasitas penuh ${pick.fullFlowLs} l/s pada ${input.slopePercent} %, debit rencana ${input.designFlowLs} l/s = ${pick.utilisationPercent} % (batas ${Math.round(input.fillRatio * 100)} %); kecepatan penuh ${pick.fullVelocityMs} m/s.`,
+      en: `Gravity pipe ${output.recommended}: full capacity ${pick.fullFlowLs} l/s at ${input.slopePercent} %, design flow ${input.designFlowLs} l/s = ${pick.utilisationPercent} % (limit ${Math.round(input.fillRatio * 100)} %); full-bore velocity ${pick.fullVelocityMs} m/s.`,
+    });
   },
 };
 
@@ -347,8 +354,11 @@ export const ENG_403: RuleVersion<RationalInput, RationalResult> = {
       expected: { designFlowLs: 83.4 },
     },
   ],
-  explain: (input, output) =>
-    `Debit limpasan ${output.designFlowLs} l/s = 2,78 × C ${input.runoffCoefficient} × hujan ${input.rainfallMmPerHour} mm/jam × ${input.catchmentHa} ha (metode rasional).`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Debit limpasan ${output.designFlowLs} l/s = 2,78 × C ${input.runoffCoefficient} × hujan ${input.rainfallMmPerHour} mm/jam × ${input.catchmentHa} ha (metode rasional).`,
+      en: `Runoff flow ${output.designFlowLs} l/s = 2.78 × C ${input.runoffCoefficient} × rainfall ${input.rainfallMmPerHour} mm/h × ${input.catchmentHa} ha (rational method).`,
+    }),
 };
 
 // ── ENG-404 · Gorong-gorong: penanda struktural awal ────────────────────────
@@ -392,9 +402,7 @@ export const ENG_404: RuleVersion<CulvertStructuralInput, CulvertStructuralResul
     return {
       minimumCoverM,
       coverAdequate,
-      structuralNote: coverAdequate
-        ? `Timbunan ${input.coverDepthM} m memenuhi minimum awal ${minimumCoverM} m; kelas kekakuan pipa dan pemadatan tetap diperiksa tim teknis.`
-        : `Timbunan ${input.coverDepthM} m di bawah minimum awal ${minimumCoverM} m untuk beban ${input.trafficLoad === 'heavy' ? 'berat' : input.trafficLoad === 'car' ? 'mobil' : 'ringan'} — butuh selubung beton atau pipa kelas kekakuan tinggi; wajib validasi struktural.`,
+      structuralNote: culvertStructuralNote(input, { minimumCoverM, coverAdequate }, 'id'),
     };
   },
   sourceReference:
@@ -412,8 +420,35 @@ export const ENG_404: RuleVersion<CulvertStructuralInput, CulvertStructuralResul
       },
     },
   ],
-  explain: (_input, output) => output.structuralNote,
+  // Indonesia memakai `structuralNote` apa adanya (byte-identik dengan sebelum P15-04b);
+  // Inggris disusun dari angka yang sama lewat `culvertStructuralNote`.
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: output.structuralNote,
+      en: culvertStructuralNote(input, output, 'en'),
+    }),
 };
+
+/**
+ * Catatan struktur gorong-gorong dalam dua bahasa. `compute` ENG-404 menyimpan versi
+ * Indonesia di `structuralNote` (kontrak keluaran aturan, dipersistenkan di trace);
+ * orkestrator memakai fungsi ini untuk menampilkan versi bahasa percakapan.
+ */
+export function culvertStructuralNote(
+  input: CulvertStructuralInput,
+  result: Pick<CulvertStructuralResult, 'minimumCoverM' | 'coverAdequate'>,
+  locale: EngineeringLocale,
+): string {
+  const { minimumCoverM, coverAdequate } = result;
+  if (locale === 'en') {
+    return coverAdequate
+      ? `Cover of ${input.coverDepthM} m meets the preliminary minimum of ${minimumCoverM} m; the pipe stiffness class and compaction are still to be checked by the technical team.`
+      : `Cover of ${input.coverDepthM} m is below the preliminary minimum of ${minimumCoverM} m for ${input.trafficLoad === 'heavy' ? 'heavy' : input.trafficLoad === 'car' ? 'car' : 'light'} loads — needs a concrete surround or a high-stiffness-class pipe; structural validation is mandatory.`;
+  }
+  return coverAdequate
+    ? `Timbunan ${input.coverDepthM} m memenuhi minimum awal ${minimumCoverM} m; kelas kekakuan pipa dan pemadatan tetap diperiksa tim teknis.`
+    : `Timbunan ${input.coverDepthM} m di bawah minimum awal ${minimumCoverM} m untuk beban ${input.trafficLoad === 'heavy' ? 'berat' : input.trafficLoad === 'car' ? 'mobil' : 'ringan'} — butuh selubung beton atau pipa kelas kekakuan tinggi; wajib validasi struktural.`;
+}
 
 // ── ENG-405 · Kebutuhan puncak jaringan ─────────────────────────────────────
 
@@ -471,8 +506,11 @@ export const ENG_405: RuleVersion<NetworkDemandInput, NetworkDemandResult> = {
       expected: { averageFlowLs: 0.83, peakFlowLs: 1.67 },
     },
   ],
-  explain: (input, output) =>
-    `Kebutuhan puncak ${output.peakFlowLs} l/s = ${input.connections} sambungan × ${input.personsPerConnection} orang × ${input.litresPerPersonPerDay} l/hari ÷ 86 400 (= ${output.averageFlowLs} l/s rata-rata) × faktor jam puncak ${input.peakFactor}.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Kebutuhan puncak ${output.peakFlowLs} l/s = ${input.connections} sambungan × ${input.personsPerConnection} orang × ${input.litresPerPersonPerDay} l/hari ÷ 86 400 (= ${output.averageFlowLs} l/s rata-rata) × faktor jam puncak ${input.peakFactor}.`,
+      en: `Peak demand ${output.peakFlowLs} l/s = ${input.connections} connections × ${input.personsPerConnection} persons × ${input.litresPerPersonPerDay} l/day ÷ 86 400 (= ${output.averageFlowLs} l/s average) × peak-hour factor ${input.peakFactor}.`,
+    }),
 };
 
 export const GROUP_H = [ENG_401, ENG_402, ENG_403, ENG_404, ENG_405] as const;

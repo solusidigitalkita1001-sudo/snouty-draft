@@ -11,6 +11,7 @@
  * auditabilitas SPEC §8 terlihat oleh pengguna dan bukan sekadar tersimpan di log.
  */
 
+import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import {
   ENG_001,
@@ -71,7 +72,11 @@ export interface SolutionResult {
   readonly overallProvenance: Provenance;
 }
 
-export function computeSolution(input: SolutionInput): SolutionResult {
+/** `locale` hanya memilih bahasa `explanation` di trace (P15-04b); angka tidak berubah. */
+export function computeSolution(
+  input: SolutionInput,
+  locale: EngineeringLocale = DEFAULT_ENGINEERING_LOCALE,
+): SolutionResult {
   const traces: CalculationTrace[] = [];
   const hasRealDimensions = input.mainRunMeters !== null;
 
@@ -88,7 +93,7 @@ export function computeSolution(input: SolutionInput): SolutionResult {
         ruleStatus: rule.validationStatus,
         hasRealDimensions,
       }),
-      explanation: rule.explain(parsed, output),
+      explanation: rule.explain(parsed, output, locale),
     });
     return output;
   }

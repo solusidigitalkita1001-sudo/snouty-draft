@@ -24,6 +24,8 @@
  * (`apps/api`), tempat keluaran ekstraksi memang sudah divalidasi.
  */
 
+import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
+
 export type RuleValidationStatus = 'REQUIRES_DOMAIN_VALIDATION' | 'VALIDATED' | 'REJECTED';
 
 export type RuleCategory = 'load_sizing' | 'geometry' | 'material' | 'conversation';
@@ -49,8 +51,12 @@ export interface RuleVersion<I, O> {
   readonly validatedAt?: string;
   /** Minimal satu — aturan tanpa tes tidak bisa didaftarkan (invarian R-1). */
   readonly testCases: readonly TestCase<I, O>[];
-  /** Teks kolom "DASAR PERHITUNGAN". */
-  readonly explain: (input: I, output: O) => string;
+  /**
+   * Teks kolom "DASAR PERHITUNGAN" dalam bahasa percakapan (P15-04b). Tanpa `locale` →
+   * Indonesia, byte-identik dengan teks sebelum aturan dwibahasa. Teks penjelasan bukan
+   * formula, jadi menambah terjemahan tidak menaikkan `version`.
+   */
+  readonly explain: (input: I, output: O, locale?: EngineeringLocale) => string;
 }
 
 /**
@@ -63,6 +69,22 @@ export interface RuleVersion<I, O> {
  * sungguhan sesuai sebelum `compute` menyentuhnya.
  */
 export type AnyRule = RuleVersion<never, unknown>;
+
+/**
+ * Memilih teks penjelasan sesuai bahasa: `localized(locale, { id: '…', en: '…' })`.
+ *
+ * Mengapa objek `{ id, en }` alih-alih `if (locale === 'en')` di tiap aturan: kedua versi
+ * berdiri berdampingan dalam satu ekspresi sehingga peninjau langsung melihat angka dan
+ * urutannya sama, dan tipe objek memaksa setiap aturan menulis KEDUA bahasa — bahasa yang
+ * terlupa menjadi galat kompilasi, bukan teks Indonesia yang diam-diam bocor ke percakapan
+ * Inggris. Kedua string dibangun meski hanya satu dipakai; itu murah dan tetap murni.
+ */
+export function localized(
+  locale: EngineeringLocale | undefined,
+  texts: { readonly id: string; readonly en: string },
+): string {
+  return texts[locale ?? DEFAULT_ENGINEERING_LOCALE];
+}
 
 export class RuleInputError extends Error {
   constructor(

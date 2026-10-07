@@ -192,3 +192,25 @@ describe('tampilan gravitasi: dua bahasa', () => {
     ]);
   });
 });
+
+describe('tampilan gravitasi: penjelasan trace dan catatan struktur dua bahasa (P15-04b)', () => {
+  it("dihitung dengan 'en' → alasan pipa dan catatan timbunan berbahasa Inggris", () => {
+    const input = {
+      kind: 'culvert',
+      designFlowLs: 20,
+      coverDepthM: 0.5,
+      trafficLoad: 'heavy',
+    } as const;
+    const idResult = computeGravity(input);
+    const enResult = computeGravity(input, 'en');
+    const idTraces = idResult.traces.map((t, i) => ({ ...t, id: `T${i}` }));
+    const enTraces = enResult.traces.map((t, i) => ({ ...t, id: `T${i}` }));
+    const id = gravitySystemLinesFrom(idResult, idTraces, 'id');
+    const en = gravitySystemLinesFrom(enResult, enTraces, 'en');
+    expect(en.map((l) => l.size)).toEqual(id.map((l) => l.size));
+    en.forEach((line, i) => expect(line.reason).not.toBe(id[i]!.reason));
+    expect(en[0]!.reason).toContain('Gravity pipe');
+    expect(en[1]!.reason).toContain('structural validation is mandatory');
+    expect(id[1]!.reason).toContain('wajib validasi struktural');
+  });
+});

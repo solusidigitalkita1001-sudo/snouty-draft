@@ -208,3 +208,20 @@ describe('tampilan hasil bertekanan: dua bahasa', () => {
     expect(enP.body).not.toContain(',12');
   });
 });
+
+describe('tampilan hasil bertekanan: penjelasan trace dua bahasa (P15-04b)', () => {
+  it("trace dihitung dengan 'en' → alasan dan dasar BOM berbahasa Inggris, ukuran sama", () => {
+    const input = { designFlowLs: 5, routeLengthM: 800, staticHeadM: 12 };
+    const idResult = computePressurized(input);
+    const enResult = computePressurized(input, 'en');
+    const idTraces = idResult.traces.map((t, i) => ({ ...t, id: `T${i}` }));
+    const enTraces = enResult.traces.map((t, i) => ({ ...t, id: `T${i}` }));
+    const id = pressurizedSystemLinesFrom(idResult, 'HDPE', idTraces, 'id');
+    const en = pressurizedSystemLinesFrom(enResult, 'HDPE', enTraces, 'en');
+    expect(en[0]!.size).toBe(id[0]!.size);
+    expect(en[0]!.reason).not.toBe(id[0]!.reason);
+    expect(en[0]!.reason).toContain('smallest size');
+    const enBom = pressurizedBomItemsFrom(enResult, 'HDPE', 800, enTraces, 'en');
+    expect(enBom[0]!.basis).toMatch(/^Of \d+ candidates/);
+  });
+});

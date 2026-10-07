@@ -223,7 +223,7 @@ export class AnalysisService {
 
     // --- Tahap 2: aturan teknik ---
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
-    const solution = computeSolution(solutionInputFrom(state));
+    const solution = computeSolution(solutionInputFrom(state), locale);
     const traces: readonly IdentifiedTrace[] = solution.traces.map((trace) => ({
       ...trace,
       id: ulid(),
@@ -323,7 +323,7 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const { input, assumptions: inputAssumptions } = irrigationInputFrom(state);
-    const result = computeIrrigation(input);
+    const result = computeIrrigation(input, locale);
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
@@ -423,7 +423,7 @@ export class AnalysisService {
     const events = streamedEvents(emit);
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
-    const result = computePressurized(plan.input);
+    const result = computePressurized(plan.input, locale);
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
@@ -510,7 +510,7 @@ export class AnalysisService {
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
-    const result = computeGravity(plan.input);
+    const result = computeGravity(plan.input, locale);
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
@@ -587,7 +587,10 @@ export class AnalysisService {
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     // Keluarga dulu: HDPE dijual dalam mm, jadi engine harus memilih ukuran dari tabel mm.
     const family = input.routeLengthM >= HDPE_FROM_METERS ? 'HDPE' : 'PVC AW';
-    const result = computeNetwork(family === 'HDPE' ? { ...input, material: 'HDPE' } : input);
+    const result = computeNetwork(
+      family === 'HDPE' ? { ...input, material: 'HDPE' } : input,
+      locale,
+    );
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
@@ -712,7 +715,7 @@ export class AnalysisService {
     const events = streamedEvents(emit);
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
-    const result = computePond(input);
+    const result = computePond(input, locale);
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),

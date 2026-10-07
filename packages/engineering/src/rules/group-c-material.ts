@@ -8,7 +8,7 @@
  * hasilnya bisa dipertanggungjawabkan.
  */
 
-import { requireInt, type RuleVersion } from '../rule.js';
+import { localized, requireInt, type RuleVersion } from '../rule.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 
@@ -79,9 +79,15 @@ export const ENG_009: RuleVersion<BomInput, BomResult> = {
       },
     },
   ],
-  explain: (input) =>
-    `Kuantitas diperkirakan dari ${input.floors} lantai dan ${input.bathrooms} kamar mandi. ` +
-    'Panjang jalur sebenarnya belum diketahui, sehingga jumlah ini perkiraan perencanaan.',
+  explain: (input, _output, locale) =>
+    localized(locale, {
+      id:
+        `Kuantitas diperkirakan dari ${input.floors} lantai dan ${input.bathrooms} kamar mandi. ` +
+        'Panjang jalur sebenarnya belum diketahui, sehingga jumlah ini perkiraan perencanaan.',
+      en:
+        `Quantities are estimated from ${input.floors} floors and ${input.bathrooms} bathrooms. ` +
+        'The actual run lengths are not known yet, so these figures are a planning estimate.',
+    }),
 };
 
 /** ENG-006 · Selisih lapangan — catatan kaki tabel material. */
@@ -97,8 +103,11 @@ export const ENG_006: RuleVersion<
   sourceReference: 'Kedua prototipe, catatan kaki tabel material',
   validationStatus: PENDING,
   testCases: [{ name: 'selisih 10–15%', input: {}, expected: { minPercent: 10, maxPercent: 15 } }],
-  explain: (_input, output) =>
-    `Kuantitas di lapangan biasanya berbeda ${output.minPercent}–${output.maxPercent}% dari perkiraan.`,
+  explain: (_input, output, locale) =>
+    localized(locale, {
+      id: `Kuantitas di lapangan biasanya berbeda ${output.minPercent}–${output.maxPercent}% dari perkiraan.`,
+      en: `On-site quantities usually differ by ${output.minPercent}–${output.maxPercent}% from the estimate.`,
+    }),
 };
 
 /**
@@ -125,8 +134,14 @@ export const ENG_012: RuleVersion<
       expected: { fixturesPerBathroom: ['shower', 'kloset'], loadWeight: 2 },
     },
   ],
-  explain: (_input, output) =>
-    `Setiap kamar mandi diasumsikan berisi ${output.fixturesPerBathroom.join(' dan ')}, sehingga bobot bebannya ${output.loadWeight}.`,
+  explain: (_input, output, locale) =>
+    localized(locale, {
+      id: `Setiap kamar mandi diasumsikan berisi ${output.fixturesPerBathroom.join(' dan ')}, sehingga bobot bebannya ${output.loadWeight}.`,
+      en: `Each bathroom is assumed to contain a ${output.fixturesPerBathroom.map((f) => FIXTURE_EN[f] ?? f).join(' and a ')}, so its load weight is ${output.loadWeight}.`,
+    }),
 };
+
+/** Nama fixture keluaran ENG-012 (data Indonesia) untuk penjelasan Inggris. */
+const FIXTURE_EN: Readonly<Record<string, string>> = { shower: 'shower', kloset: 'toilet' };
 
 export const GROUP_C = [ENG_009, ENG_006, ENG_012];

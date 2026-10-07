@@ -74,3 +74,18 @@ describe('tampilan kolam', () => {
     expect(en.body).toContain('initial estimate');
   });
 });
+
+describe('tampilan kolam: penjelasan trace dua bahasa (P15-04b)', () => {
+  it("trace dihitung dengan 'en' → alasan dan dasar BOM berbahasa Inggris", () => {
+    const input = { lengthM: 10, widthM: 5, depthM: 1, ponds: 2, routeLengthM: 30 };
+    const idResult = computePond(input);
+    const enResult = computePond(input, 'en');
+    const idTraces = idResult.traces.map((t, i) => ({ ...t, id: `T${i}` }));
+    const enTraces = enResult.traces.map((t, i) => ({ ...t, id: `T${i}` }));
+    const id = pondSystemLinesFrom(idResult, idTraces, 'id');
+    const en = pondSystemLinesFrom(enResult, enTraces, 'en');
+    en.forEach((line, i) => expect(line.reason).not.toBe(id[i]!.reason));
+    expect(en[0]!.reason).toContain('Filling flow');
+    expect(pondBomItemsFrom(enResult, enTraces, 'en')[0]!.basis).toContain('Inlet pipe');
+  });
+});

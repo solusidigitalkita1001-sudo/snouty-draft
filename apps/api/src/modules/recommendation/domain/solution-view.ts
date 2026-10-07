@@ -96,7 +96,6 @@ export function systemLinesFrom(
       name: en ? 'Main distribution pipe' : 'Pipa distribusi utama',
       path: en ? 'Source → riser' : 'Sumber → riser',
       size: solution.mainSize,
-      // TODO(P15-04b): trace explanations EN
       reason: explanationFor(traces, 'ENG-002'),
       provenance: provenanceFor(traces, mainTraces),
       traceIds: mainTraces,
@@ -106,7 +105,6 @@ export function systemLinesFrom(
       name: en ? 'Branch per floor' : 'Cabang per lantai',
       path: en ? 'Riser → water outlets' : 'Riser → titik air',
       size: '3/4"',
-      // TODO(P15-04b): trace explanations EN
       reason: explanationFor(traces, 'ENG-003'),
       provenance: provenanceFor(traces, branchTraces),
       traceIds: branchTraces,
@@ -116,7 +114,6 @@ export function systemLinesFrom(
       name: en ? 'Fixture connection' : 'Sambungan fixture',
       path: en ? 'Branch → fixture' : 'Cabang → fixture',
       size: solution.fixtureConnectionSize,
-      // TODO(P15-04b): trace explanations EN
       reason: explanationFor(traces, 'ENG-005'),
       provenance: provenanceFor(traces, fixtureTraces),
       traceIds: fixtureTraces,
@@ -136,7 +133,6 @@ export function bomItemsFrom(
   locale: Locale = DEFAULT_LOCALE,
 ): readonly BomItem[] {
   const bomTraces = traceIdsFor(traces, 'ENG-009');
-  // TODO(P15-04b): trace explanations EN
   const basis = explanationFor(traces, 'ENG-009');
   const provenance = provenanceFor(traces, bomTraces);
 
@@ -166,7 +162,6 @@ export function assumptionsFrom(
   // Tinggi lantai hanya menjadi asumsi bila ENG-004 benar-benar berjalan.
   if (traces.some((trace) => trace.ruleId === 'ENG-004')) {
     fromRules.push({
-      // TODO(P15-04b): trace explanations EN
       text: explanationFor(traces, 'ENG-004'),
       fieldPath: 'building.floorHeightM',
       ruleId: 'ENG-004',

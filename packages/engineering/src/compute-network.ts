@@ -9,6 +9,7 @@ import {
   type PressurizedInput,
   type PressurizedResult,
 } from './compute-pressurized.js';
+import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
 import { gateEngineProvenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
 import { ENG_405 } from './rules/group-h-gravity.js';
@@ -30,7 +31,11 @@ export interface NetworkResult extends PressurizedResult {
   readonly peakFlowLs: number;
 }
 
-export function computeNetwork(input: NetworkInput): NetworkResult {
+/** `locale` hanya memilih bahasa `explanation` di trace (P15-04b); angka tidak berubah. */
+export function computeNetwork(
+  input: NetworkInput,
+  locale: EngineeringLocale = DEFAULT_ENGINEERING_LOCALE,
+): NetworkResult {
   const applied: string[] = [];
   const use = (id: string): number => {
     applied.push(id);
@@ -52,17 +57,20 @@ export function computeNetwork(input: NetworkInput): NetworkResult {
       ruleStatus: ENG_405.validationStatus,
       hasRealDimensions: false,
     }),
-    explanation: ENG_405.explain(demandInput, demand),
+    explanation: ENG_405.explain(demandInput, demand, locale),
   };
 
   const residual = input.residualPressureBar ?? use('RESIDUAL_PRESSURE_FIXTURE');
-  const pressurized = computePressurized({
-    designFlowLs: demand.peakFlowLs,
-    routeLengthM: input.routeLengthM,
-    staticHeadM: input.staticHeadM,
-    residualPressureBar: residual,
-    ...(input.material ? { material: input.material } : {}),
-  });
+  const pressurized = computePressurized(
+    {
+      designFlowLs: demand.peakFlowLs,
+      routeLengthM: input.routeLengthM,
+      staticHeadM: input.staticHeadM,
+      residualPressureBar: residual,
+      ...(input.material ? { material: input.material } : {}),
+    },
+    locale,
+  );
 
   return {
     ...pressurized,

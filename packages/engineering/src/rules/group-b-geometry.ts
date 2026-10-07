@@ -7,7 +7,7 @@
  * dan termasuk yang paling perlu ditinjau ahli.
  */
 
-import { requireInt, requireNumber, type RuleVersion } from '../rule.js';
+import { localized, requireInt, requireNumber, type RuleVersion } from '../rule.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 
@@ -22,7 +22,11 @@ export const ENG_004: RuleVersion<Record<string, never>, { readonly floorHeightM
     'Kedua prototipe; tampil di judul skema sebagai "TINGGI LANTAI · 3,50 M · ASUMSI"',
   validationStatus: PENDING,
   testCases: [{ name: 'default 3,5 meter', input: {}, expected: { floorHeightM: 3.5 } }],
-  explain: (_input, output) => `Tinggi antar lantai diasumsikan ${output.floorHeightM} meter.`,
+  explain: (_input, output, locale) =>
+    localized(locale, {
+      id: `Tinggi antar lantai diasumsikan ${output.floorHeightM} meter.`,
+      en: `Floor-to-floor height is assumed to be ${output.floorHeightM} meters.`,
+    }),
 };
 
 export interface FloorPlanInput {
@@ -111,9 +115,15 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
       },
     },
   ],
-  explain: (input, output) =>
-    `Titik air disebar ke ${input.floors} lantai sebagai perkiraan gambar — sistem tidak mengetahui denah ` +
-    `sebenarnya. Lantai teratas berada pada ${output.floorsPlan[0]?.elevationM ?? 0} meter dari lantai dasar.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id:
+        `Titik air disebar ke ${input.floors} lantai sebagai perkiraan gambar — sistem tidak mengetahui denah ` +
+        `sebenarnya. Lantai teratas berada pada ${output.floorsPlan[0]?.elevationM ?? 0} meter dari lantai dasar.`,
+      en:
+        `Water outlets are spread over ${input.floors} floors as a drawing estimate — the system does not know the actual ` +
+        `floor plan. The top floor is ${output.floorsPlan[0]?.elevationM ?? 0} meters above the ground floor.`,
+    }),
 };
 
 export interface BoosterInput {
@@ -175,10 +185,22 @@ export const ENG_011: RuleVersion<BoosterInput, { readonly boosterPumpNeeded: bo
       expected: { boosterPumpNeeded: true },
     },
   ],
-  explain: (input, output) =>
-    output.boosterPumpNeeded
-      ? `Dengan sumber ${input.waterSource === 'ground_tank' ? 'toren bawah' : input.waterSource}, distribusi diperkirakan memerlukan pompa pendorong.`
-      : 'Dengan toren di atap, tekanan gravitasi umumnya cukup tanpa pompa pendorong.',
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: output.boosterPumpNeeded
+        ? `Dengan sumber ${input.waterSource === 'ground_tank' ? 'toren bawah' : input.waterSource}, distribusi diperkirakan memerlukan pompa pendorong.`
+        : 'Dengan toren di atap, tekanan gravitasi umumnya cukup tanpa pompa pendorong.',
+      en: output.boosterPumpNeeded
+        ? `With a ${WATER_SOURCE_EN[input.waterSource]} source, distribution is expected to need a booster pump.`
+        : 'With a rooftop tank, gravity pressure is generally sufficient without a booster pump.',
+    }),
+};
+
+const WATER_SOURCE_EN: Readonly<Record<BoosterInput['waterSource'], string>> = {
+  rooftop_tank: 'rooftop tank',
+  ground_tank: 'ground tank',
+  pump: 'pump',
+  municipal: 'mains water',
 };
 
 export const GROUP_B = [ENG_004, ENG_008, ENG_011];

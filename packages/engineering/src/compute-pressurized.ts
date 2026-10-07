@@ -9,6 +9,7 @@
 
 import { assumption } from './parameters/assumptions.js';
 import { sizeTableFor } from './parameters/size-tables.js';
+import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
 import type { RuleVersion } from './rule.js';
@@ -59,7 +60,11 @@ function hazenWilliamsFor(material: PipeMaterial | undefined): { c: number; id: 
   return { c: assumption(id).value as number, id };
 }
 
-export function computePressurized(input: PressurizedInput): PressurizedResult {
+/** `locale` hanya memilih bahasa `explanation` di trace (P15-04b); angka tidak berubah. */
+export function computePressurized(
+  input: PressurizedInput,
+  locale: EngineeringLocale = DEFAULT_ENGINEERING_LOCALE,
+): PressurizedResult {
   const traces: CalculationTrace[] = [];
   const applied: string[] = [];
   const use = (id: string): number => {
@@ -80,7 +85,7 @@ export function computePressurized(input: PressurizedInput): PressurizedResult {
         ruleStatus: rule.validationStatus,
         hasRealDimensions: false,
       }),
-      explanation: rule.explain(parsed, output),
+      explanation: rule.explain(parsed, output, locale),
     });
     return output;
   }

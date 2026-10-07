@@ -19,7 +19,7 @@ import {
   type NominalSize,
   type SizeTableId,
 } from '../parameters/size-tables.js';
-import { requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
+import { localized, requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 
@@ -74,6 +74,11 @@ const METHOD_LABEL: Readonly<Record<IrrigationMethod, string>> = {
   sprinkler: 'sprinkler',
   drip: 'tetes',
 };
+const METHOD_LABEL_EN: Readonly<Record<IrrigationMethod, string>> = {
+  flood: 'flood/gravity',
+  sprinkler: 'sprinkler',
+  drip: 'drip',
+};
 
 export const ENG_101: RuleVersion<DesignFlowInput, DesignFlowResult> = {
   ruleId: 'ENG-101',
@@ -105,8 +110,11 @@ export const ENG_101: RuleVersion<DesignFlowInput, DesignFlowResult> = {
       expected: { designFlowLs: 1.2, dutyLsPerHa: 0.8 },
     },
   ],
-  explain: (input, output) =>
-    `Debit rencana ${output.designFlowLs} l/s = ${input.areaHa} ha × ${output.dutyLsPerHa} l/s/ha (irigasi ${METHOD_LABEL[input.method]}).`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Debit rencana ${output.designFlowLs} l/s = ${input.areaHa} ha × ${output.dutyLsPerHa} l/s/ha (irigasi ${METHOD_LABEL[input.method]}).`,
+      en: `Design flow ${output.designFlowLs} l/s = ${input.areaHa} ha × ${output.dutyLsPerHa} l/s/ha (${METHOD_LABEL_EN[input.method]} irrigation).`,
+    }),
 };
 
 // ── ENG-102 · Diameter jalur utama dari debit ───────────────────────────────
@@ -169,8 +177,11 @@ export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult>
       expected: { requiredInnerDiameterMm: 20.6, mainSize: '1"', innerDiameterMm: 25 },
     },
   ],
-  explain: (input, output) =>
-    `Diameter dalam minimum ${output.requiredInnerDiameterMm} mm untuk ${input.designFlowLs} l/s pada ${input.velocityMs} m/s; ukuran nominal terdekat di atasnya ${output.mainSize} (±${output.innerDiameterMm} mm).`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Diameter dalam minimum ${output.requiredInnerDiameterMm} mm untuk ${input.designFlowLs} l/s pada ${input.velocityMs} m/s; ukuran nominal terdekat di atasnya ${output.mainSize} (±${output.innerDiameterMm} mm).`,
+      en: `Minimum inner diameter ${output.requiredInnerDiameterMm} mm for ${input.designFlowLs} l/s at ${input.velocityMs} m/s; the nearest nominal size above it is ${output.mainSize} (±${output.innerDiameterMm} mm).`,
+    }),
 };
 
 // ── ENG-103 · Kebutuhan tekanan dan pompa ───────────────────────────────────
@@ -232,8 +243,13 @@ export const ENG_103: RuleVersion<PressureNeedInput, PressureNeedResult> = {
       },
     },
   ],
-  explain: (input, output) =>
-    `Irigasi ${METHOD_LABEL[input.method]} dengan sumber ${ELEVATION_LABEL[input.elevation]}: ${output.pumpRequired ? 'pompa diperlukan' : 'tanpa pompa'}; ${output.note}.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Irigasi ${METHOD_LABEL[input.method]} dengan sumber ${ELEVATION_LABEL[input.elevation]}: ${output.pumpRequired ? 'pompa diperlukan' : 'tanpa pompa'}; ${output.note}.`,
+      // `output.note` adalah data Indonesia dari `compute`; versi Inggris disusun ulang dari
+      // `pumpRequired`, sumber keputusan yang sama, alih-alih menerjemahkan string.
+      en: `${capitalize(METHOD_LABEL_EN[input.method])} irrigation with the source ${ELEVATION_LABEL_EN[input.elevation]}: ${output.pumpRequired ? 'pump required' : 'no pump'}; ${output.pumpRequired ? 'pump-pressurized line → class AW pipe' : 'gravity flow from a higher source → class D is adequate'}.`,
+    }),
 };
 
 const ELEVATION_LABEL: Readonly<Record<SourceElevation, string>> = {
@@ -241,6 +257,15 @@ const ELEVATION_LABEL: Readonly<Record<SourceElevation, string>> = {
   level: 'sejajar lahan',
   higher: 'lebih tinggi dari lahan',
 };
+const ELEVATION_LABEL_EN: Readonly<Record<SourceElevation, string>> = {
+  lower: 'lower than the field',
+  level: 'level with the field',
+  higher: 'higher than the field',
+};
+
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 // ── ENG-104 · Bahan per segmen ──────────────────────────────────────────────
 
@@ -289,8 +314,11 @@ export const ENG_104: RuleVersion<SegmentMaterialInput, SegmentMaterialResult> =
       expected: { mainFamily: 'PVC AW', distributionFamily: 'PVC AW' },
     },
   ],
-  explain: (input, output) =>
-    `Jalur utama ${input.mainRunMeters} m ${output.mainFamily === 'HDPE' ? '≥' : '<'} ${HDPE_FROM_METERS} m → ${output.mainFamily}; distribusi di lahan ${output.distributionFamily}.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Jalur utama ${input.mainRunMeters} m ${output.mainFamily === 'HDPE' ? '≥' : '<'} ${HDPE_FROM_METERS} m → ${output.mainFamily}; distribusi di lahan ${output.distributionFamily}.`,
+      en: `Main line ${input.mainRunMeters} m ${output.mainFamily === 'HDPE' ? '≥' : '<'} ${HDPE_FROM_METERS} m → ${output.mainFamily}; in-field distribution ${output.distributionFamily}.`,
+    }),
 };
 
 // ── ENG-105 · Panjang dan BOM estimasi ──────────────────────────────────────
@@ -401,8 +429,11 @@ export const ENG_105: RuleVersion<IrrigationBomInput, IrrigationBomResult> = {
       },
     },
   ],
-  explain: (input, output) =>
-    `Lahan ${input.areaHa} ha ≈ sisi ${Math.round(Math.sqrt(input.areaHa * 10_000))} m → distribusi ±${output.distributionMeters} m (header + lateral tiap ${BRANCH_SPACING_M} m); jalur utama ${input.mainRunMeters} m ${input.mainFamily}; batang PVC ${ROD_METERS} m.`,
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Lahan ${input.areaHa} ha ≈ sisi ${Math.round(Math.sqrt(input.areaHa * 10_000))} m → distribusi ±${output.distributionMeters} m (header + lateral tiap ${BRANCH_SPACING_M} m); jalur utama ${input.mainRunMeters} m ${input.mainFamily}; batang PVC ${ROD_METERS} m.`,
+      en: `Field ${input.areaHa} ha ≈ ${Math.round(Math.sqrt(input.areaHa * 10_000))} m per side → distribution ±${output.distributionMeters} m (header + one lateral every ${BRANCH_SPACING_M} m); main line ${input.mainRunMeters} m ${input.mainFamily}; PVC lengths of ${ROD_METERS} m.`,
+    }),
 };
 
 export const GROUP_E = [ENG_101, ENG_102, ENG_103, ENG_104, ENG_105] as const;

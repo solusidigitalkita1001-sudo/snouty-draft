@@ -213,7 +213,6 @@ export function gravitySystemLinesFrom(
             ? 'Upstream → discharge channel'
             : 'Hulu → saluran buang',
       size: result.recommendedSize,
-      // TODO(P15-04): penjelasan trace dari engine masih Indonesia untuk kedua bahasa.
       reason: `${explanationFor(traces, 'ENG-403')} ${explanationFor(traces, 'ENG-402')}`.trim(),
       provenance: provenanceFor(traces, main),
       traceIds: main,
@@ -226,7 +225,6 @@ export function gravitySystemLinesFrom(
       name: en ? 'Cover and road load' : 'Timbunan dan beban jalan',
       path: en ? 'Above the culvert' : 'Di atas gorong-gorong',
       size: `${id(result.structural.minimumCoverM, locale)} m min.`,
-      // TODO(P15-04): catatan struktur dari engine masih Indonesia untuk kedua bahasa.
       reason: result.structural.structuralNote,
       provenance: 'ASSUMED',
       traceIds: ids,
@@ -255,7 +253,6 @@ export function gravityBomItemsFrom(
       : en
         ? 'Fitting quantities: layout estimate.'
         : 'Kuantitas fitting: perkiraan tata letak.';
-  // TODO(P15-04): penjelasan trace dari engine masih Indonesia untuk kedua bahasa.
   const basis = `${explanationFor(traces, 'ENG-402')} ${note}`.trim();
   const row = (
     item: string,

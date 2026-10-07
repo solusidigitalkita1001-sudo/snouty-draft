@@ -5,6 +5,7 @@
  */
 
 import { assumption } from './parameters/assumptions.js';
+import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
 import type { RuleVersion } from './rule.js';
@@ -13,6 +14,7 @@ import {
   ENG_402,
   ENG_403,
   ENG_404,
+  culvertStructuralNote,
   type CulvertStructuralResult,
   type GravityCandidate,
 } from './rules/group-h-gravity.js';
@@ -58,7 +60,11 @@ export class GravityInputError extends Error {
   }
 }
 
-export function computeGravity(input: GravityInput): GravityResult {
+/** `locale` hanya memilih bahasa `explanation` di trace (P15-04b); angka tidak berubah. */
+export function computeGravity(
+  input: GravityInput,
+  locale: EngineeringLocale = DEFAULT_ENGINEERING_LOCALE,
+): GravityResult {
   const traces: CalculationTrace[] = [];
   const applied: string[] = [];
   const use = (id: string): number => {
@@ -77,7 +83,7 @@ export function computeGravity(input: GravityInput): GravityResult {
         ruleStatus: rule.validationStatus,
         hasRealDimensions: false,
       }),
-      explanation: rule.explain(parsed, output),
+      explanation: rule.explain(parsed, output, locale),
     });
     return output;
   }
@@ -110,11 +116,18 @@ export function computeGravity(input: GravityInput): GravityResult {
   let structural: CulvertStructuralResult | null = null;
   if (input.kind === 'culvert') {
     const coverDepthM = input.coverDepthM ?? use('CULVERT_COVER_MIN_0_6');
-    structural = run(ENG_404, {
+    const structuralInput = {
       innerDiameterMm: pick.innerDiameterMm,
       coverDepthM,
       trafficLoad: input.trafficLoad ?? 'car',
-    });
+    } as const;
+    const checked = run(ENG_404, structuralInput);
+    // Trace menyimpan keluaran aturan apa adanya (catatan Indonesia); hasil yang dibaca
+    // tampilan membawa catatan dalam bahasa percakapan, dari angka yang sama.
+    structural = {
+      ...checked,
+      structuralNote: culvertStructuralNote(ENG_404.parseInput(structuralInput), checked, locale),
+    };
   }
 
   return {

@@ -75,7 +75,6 @@ export function irrigationSystemLinesFrom(
       name: en ? `Main line ${result.mainFamily}` : `Jalur utama ${result.mainFamily}`,
       path: en ? 'Water source → field' : 'Sumber air → lahan',
       size: result.mainSize,
-      // TODO(P15-04b): trace explanations EN
       reason: `${explanationFor(traces, 'ENG-101')} ${explanationFor(traces, 'ENG-102')}`.trim(),
       provenance: provenanceFor(traces, mainTraces),
       traceIds: mainTraces,
@@ -87,7 +86,6 @@ export function irrigationSystemLinesFrom(
         : `Distribusi di lahan ${result.distributionFamily}`,
       path: en ? 'Header → laterals' : 'Header → lateral',
       size: result.distributionSize,
-      // TODO(P15-04b): trace explanations EN
       reason: explanationFor(traces, 'ENG-105'),
       provenance: provenanceFor(traces, distributionTraces),
       traceIds: distributionTraces,
@@ -103,7 +101,6 @@ export function irrigationSystemLinesFrom(
           : 'Aliran gravitasi',
       path: en ? 'Source → main line' : 'Sumber → jalur utama',
       size: `${en ? 'class' : 'kelas'} ${result.pressureClass}`,
-      // TODO(P15-04b): trace explanations EN
       reason: explanationFor(traces, 'ENG-103'),
       provenance: provenanceFor(traces, pressureTraces),
       traceIds: pressureTraces,
@@ -118,7 +115,6 @@ export function irrigationBomItemsFrom(
   locale: Locale = DEFAULT_LOCALE,
 ): readonly BomItem[] {
   const bomTraces = traceIdsFor(traces, 'ENG-105');
-  // TODO(P15-04b): trace explanations EN
   const basis = explanationFor(traces, 'ENG-105');
   const provenance = provenanceFor(traces, bomTraces);
   return result.bom.map((line) => ({

@@ -11,7 +11,7 @@
  * kedua yang bisa menyimpang. Nilainya sengaja sama dan diuji di kedua tempat.
  */
 
-import type { RuleVersion } from '../rule.js';
+import { localized, type RuleVersion } from '../rule.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 
@@ -35,7 +35,11 @@ export const ENG_007: RuleVersion<Record<string, never>, { readonly order: reado
       },
     },
   ],
-  explain: (_input, output) => `Urutan pertanyaan: ${output.order.join(' → ')}.`,
+  explain: (_input, output, locale) =>
+    localized(locale, {
+      id: `Urutan pertanyaan: ${output.order.join(' → ')}.`,
+      en: `Question order: ${output.order.join(' → ')}.`,
+    }),
 };
 
 /** ENG-014 · Default "Belum tahu". */
@@ -67,9 +71,15 @@ export const ENG_014: RuleVersion<
       },
     },
   ],
-  explain: () =>
-    'Bila sumber air atau jenis instalasi tidak diberikan, sistem memakai toren atap dan air bersih, ' +
-    'dan menandainya sebagai asumsi.',
+  explain: (_input, _output, locale) =>
+    localized(locale, {
+      id:
+        'Bila sumber air atau jenis instalasi tidak diberikan, sistem memakai toren atap dan air bersih, ' +
+        'dan menandainya sebagai asumsi.',
+      en:
+        'If the water source or installation type is not given, the system uses a rooftop tank and clean water, ' +
+        'and marks them as assumptions.',
+    }),
 };
 
 export const GROUP_D = [ENG_007, ENG_014];

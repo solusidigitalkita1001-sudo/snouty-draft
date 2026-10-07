@@ -13,6 +13,7 @@
 
 export type { AnyRule, RuleCategory, RuleValidationStatus, RuleVersion, TestCase } from './rule.js';
 export {
+  localized,
   requireInt,
   requireNumber,
   RuleInputError,
@@ -182,6 +183,7 @@ export type { PondInput, PondResult } from './compute-pond.js';
 export { computePressurized } from './compute-pressurized.js';
 // ── Fase 4: gravitasi, air hujan, gorong-gorong, jaringan cluster ──
 export {
+  culvertStructuralNote,
   ENG_401,
   ENG_402,
   ENG_403,

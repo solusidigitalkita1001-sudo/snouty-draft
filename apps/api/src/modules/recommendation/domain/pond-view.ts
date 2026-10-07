@@ -118,7 +118,6 @@ export function pondSystemLinesFrom(
       name: en ? `${result.inletFamily} inlet pipe` : `Pipa masuk ${result.inletFamily}`,
       path: en ? 'Water source / pump → pond' : 'Sumber air / pompa → kolam',
       size: result.inletSize,
-      // TODO(P15-04): penjelasan trace dari engine masih Indonesia untuk kedua bahasa.
       reason: `${explanationFor(traces, 'ENG-302')} ${explanationFor(traces, 'ENG-102')}`.trim(),
       provenance: provenanceFor(traces, inlet),
       traceIds: inlet,
@@ -153,7 +152,6 @@ export function pondBomItemsFrom(
   locale: Locale = DEFAULT_LOCALE,
 ): readonly BomItem[] {
   const bomTraces = traceIdsFor(traces, 'ENG-304');
-  // TODO(P15-04): penjelasan trace dari engine masih Indonesia untuk kedua bahasa.
   const basis = explanationFor(traces, 'ENG-304');
   const provenance = provenanceFor(traces, bomTraces);
   return result.bom.map((line) => ({

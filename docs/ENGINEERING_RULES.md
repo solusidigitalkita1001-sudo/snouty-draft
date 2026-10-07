@@ -40,7 +40,7 @@ interface RuleVersion<I, O> {
   validatedBy?: string;
   validatedAt?: string;
   testCases: TestCase<I, O>[]; // minimal satu — aturan tanpa tes tidak bisa didaftarkan
-  explain: (input: I, output: O) => string; // teks kolom "DASAR PERHITUNGAN"
+  explain: (input: I, output: O, locale?: EngineeringLocale) => string; // teks kolom "DASAR PERHITUNGAN", dua bahasa (P15-04b)
 }
 ```
 
