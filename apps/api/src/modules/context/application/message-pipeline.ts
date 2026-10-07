@@ -305,7 +305,7 @@ export async function runUnderstanding(
  * "Oke, rumah 2 lantai, 3 kamar mandi, toren atap, air bersih." + apa yang terjadi berikutnya:
  * lengkap → ajakan menyusun rekomendasi; belum → pengantar kartu klarifikasi. Tanpa model.
  */
-function understoodReply(
+export function understoodReply(
   state: RequirementState,
   nextCard: AssistantCard['kind'] | null,
   locale: Locale,

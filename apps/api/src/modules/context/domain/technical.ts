@@ -289,6 +289,8 @@ export function technicalCaptured(
 export function technicalGuidance(
   state: RequirementState,
   locale: Locale = DEFAULT_LOCALE,
+  /** `withIntro: false` untuk giliran lanjutan (jawaban kartu): kasusnya sudah disebut sebelumnya. */
+  options: { readonly withIntro?: boolean } = {},
 ): string {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return '';
   const profile = caseProfile(state.useCase.caseId);
@@ -296,7 +298,8 @@ export function technicalGuidance(
   const copy = GUIDANCE_COPY[locale];
   // Redaksi seperti teknisi yang membalas sendiri: tanpa judul bagian, tanpa penomoran, tanpa
   // kalimat tentang "data"/"asumsi" sebagai konsep — cukup apa yang dicatat dan apa yang ditanya.
-  const lines: string[] = [(locale === 'en' ? INTRO_EN : INTRO)[state.useCase.caseId]];
+  const lines: string[] =
+    options.withIntro === false ? [] : [(locale === 'en' ? INTRO_EN : INTRO)[state.useCase.caseId]];
   if (known.length > 0) {
     lines.push(
       '',
@@ -324,7 +327,8 @@ export function technicalGuidance(
   } else {
     lines.push('', copy.readyForTeam);
   }
-  return lines.join('\n');
+  // Tanpa pembuka, baris kosong pemisah pertama tidak diperlukan.
+  return lines.join('\n').replace(/^\n+/, '');
 }
 
 interface GuidanceCopy {

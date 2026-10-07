@@ -225,6 +225,8 @@ export interface ClarificationResult {
   readonly userText: string;
   /** Kartu lanjutan: klarifikasi lagi, CTA analisis, atau kartu kebijakan. */
   readonly card: AssistantCard | null;
+  /** Balasan asisten atas jawaban — bisa kosong hanya bila kartunya kebijakan. */
+  readonly text?: string;
 }
 
 /** Jawaban kartu klarifikasi, semua sekaligus — tanpa LLM; `null` bila ditolak. */

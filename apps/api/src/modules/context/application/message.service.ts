@@ -37,8 +37,13 @@ import { CatalogQueryService } from '../../product-catalog/application/catalog-q
 import { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { certainIntent } from '../../ai/domain/heuristics.js';
 import { IntentRouter, type RoutingDecision } from './intent-router.js';
-import { applyTechnicalAnswers, technicalAnswerValue } from '../domain/technical.js';
-import { applyEdit, followUpCard, runUnderstanding } from './message-pipeline.js';
+import {
+  applyTechnicalAnswers,
+  technicalAnswerValue,
+  technicalGuidance,
+} from '../domain/technical.js';
+import { applyEdit, followUpCard, runUnderstanding, understoodReply } from './message-pipeline.js';
+import { irrigationGuidance } from './irrigation-guidance.js';
 import {
   answerToUpdate,
   summarizeAnswers,
@@ -331,7 +336,13 @@ export class MessageService {
     actor: ConversationOwner,
     answers: readonly ClarificationAnswer[],
     now: string,
-  ): Promise<{ state: RequirementState; userText: string; card: AssistantCard | null }> {
+  ): Promise<{
+    state: RequirementState;
+    userText: string;
+    card: AssistantCard | null;
+    /** Balasan asisten atas jawaban — apa yang tercatat dan apa yang masih ditanya. */
+    text: string;
+  }> {
     const conversation = await this.conversations.find(conversationId, actor);
     const snapshot = await this.store.current(conversationId);
     const state = snapshot?.state ?? emptyRequirementState(now);
@@ -374,8 +385,11 @@ export class MessageService {
     const userText = summarizeAnswers(answers, conversation.language);
     await this.conversations.appendUserMessage(conversationId, actor, userText);
     const card = followUpCard(merged, conversation.language);
-    await this.conversations.appendAssistantMessage(conversationId, '', card ? [card] : [], null);
-    return { state: merged, userText, card };
+    // Giliran jawaban kartu tidak pernah bisu (laporan pemilik 2026-10-07: kasus teknis yang sisa
+    // pertanyaannya angka tidak punya kartu lanjutan → layar diam). Teksnya deterministik.
+    const text = clarificationReply(merged, card, conversation.language);
+    await this.conversations.appendAssistantMessage(conversationId, text, card ? [card] : [], null);
+    return { state: merged, userText, card, text };
   }
 
   /**
@@ -447,6 +461,23 @@ const NO_COMPANY_KNOWLEDGE: Pick<CompanyKnowledgeService, 'answer'> = {
       }),
     ),
 };
+
+/**
+ * Teks asisten setelah jawaban kartu, per jalur: kasus teknis → data tercatat + pertanyaan
+ * tersisa (tanpa kalimat pembuka kasus, sudah disebut); irigasi → arahan irigasi; bangunan →
+ * "sudah saya catat …" + langkah berikutnya. Kartu kebijakan membawa teksnya sendiri.
+ */
+function clarificationReply(
+  state: RequirementState,
+  card: AssistantCard | null,
+  locale: Locale,
+): string {
+  if (card?.kind === 'unsupported' || card?.kind === 'criteria') return '';
+  if (state.useCase?.kind === 'technical')
+    return technicalGuidance(state, locale, { withIntro: false });
+  if (state.useCase?.kind === 'irrigation') return irrigationGuidance(state, locale);
+  return understoodReply(state, card?.kind ?? null, locale) ?? '';
+}
 
 /** Subjek KASUS dari kebutuhan yang tercatat: jalur guna khusus bila ada, selain itu bangunan. */
 function caseSubject(state: RequirementState): ConversationSubject {

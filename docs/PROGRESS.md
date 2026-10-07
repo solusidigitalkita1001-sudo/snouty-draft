@@ -929,7 +929,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       parameter engine (`design_flow`, `pump_required`, …). Kini satu predikat domain
       `isClarificationAnswerId` (field inti, irigasi, kunci parameter) dipakai validasi; batas
       `option` 80 karakter. Gelembung pengguna memakai label registry ("Jenis cairan: Air
-      limbah"), bukan kunci mentah; label irigasi per bahasa. Tes: clarification +2
+      limbah"), bukan kunci mentah; label irigasi per bahasa. Giliran jawaban kartu tidak pernah
+      bisu: API mengembalikan `text` (teknis: data tercatat + sisa pertanyaan tanpa pembuka; irigasi:
+      arahan; bangunan: "sudah saya catat"), web merendernya. Tes: clarification +2, technical +1
 - [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 

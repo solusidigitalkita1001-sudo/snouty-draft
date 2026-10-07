@@ -139,9 +139,11 @@ describe('MessageService.answerClarification — semua jawaban sekaligus, tanpa 
       ACTOR,
       result.userText,
     );
+    // Jawaban kartu tidak bisu: teks "sudah saya catat" ikut tersimpan bersama kartunya.
+    expect(result.text).toMatch(/^Oke, sudah saya catat: .*2 lantai.*3 kamar mandi/);
     expect(conversations.appendAssistantMessage).toHaveBeenCalledWith(
       'C'.repeat(26),
-      '',
+      result.text,
       [result.card],
       null,
     );

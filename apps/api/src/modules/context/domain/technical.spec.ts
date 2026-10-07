@@ -120,6 +120,18 @@ describe('technical dwibahasa', () => {
     );
   });
 
+  it('withIntro: false (giliran jawaban kartu): tanpa kalimat pembuka kasus, langsung data tercatat + pertanyaan; tidak diawali baris kosong', () => {
+    const answered = applyTechnicalAnswers(state, [
+      { key: 'fluid_type', value: 'Air limbah' },
+    ]).state;
+    const text = technicalGuidance(answered, 'id', { withIntro: false });
+    expect(text).not.toMatch(/^\s/);
+    expect(text).not.toContain('Oke, gorong-gorong');
+    expect(text).toMatch(/^Yang sudah saya catat: .*air limbah/i);
+    expect(text).toContain('tolong jawab beberapa hal ini');
+    expect(technicalGuidance(answered, 'id')).toMatch(/^Oke, gorong-gorong/);
+  });
+
   it('formatTechnicalValue: Ya/Tidak menjadi Yes/No; kartu boolean membawa optionLabels', () => {
     const p = { label: 'x', value: true, origin: 'known' as const };
     expect(formatTechnicalValue(p)).toBe('Ya');

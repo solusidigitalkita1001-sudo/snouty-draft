@@ -357,7 +357,7 @@ export function ChatWorkspace() {
         {
           id: `a-${Date.now()}`,
           role: 'assistant',
-          text: '',
+          text: result.text ?? '',
           cards: result.card ? [result.card] : [],
           fresh: true,
         },
