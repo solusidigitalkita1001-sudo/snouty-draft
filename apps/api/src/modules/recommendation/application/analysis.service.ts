@@ -97,6 +97,7 @@ import {
 } from '../domain/product-matcher.js';
 import type { IdentifiedTrace } from '../domain/solution-view.js';
 import { composeResponse } from '../domain/response-composer.js';
+import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import {
   RECOMMENDATION_REPOSITORY,
   type RecommendationRepository,
@@ -184,24 +185,35 @@ export class AnalysisService {
     state: RequirementState,
     requirementAssumptions: readonly Assumption[],
     now: string,
+    emit?: EventSink,
   ): Promise<readonly AssistantStreamEvent[]> {
-    const events: AssistantStreamEvent[] = [];
+    const events = streamedEvents(emit);
 
     // Jalur irigasi (OQ-47): mesin Kelompok E, perakitan sendiri, tanpa skema bangunan.
     if (state.useCase?.kind === 'irrigation') {
-      return this.runIrrigation(conversationId, snapshotId, state, requirementAssumptions, now);
+      return this.runIrrigation(
+        conversationId,
+        snapshotId,
+        state,
+        requirementAssumptions,
+        now,
+        emit,
+      );
     }
     // Kasus teknis umum (Fase 14) yang kalkulatornya ada: kolam/tambak (Kelompok G).
     if (state.useCase?.kind === 'technical') {
       const pondInput = pondInputFrom(state);
       if (pondInput !== null)
-        return this.runPond(conversationId, snapshotId, state, pondInput, now);
+        return this.runPond(conversationId, snapshotId, state, pondInput, now, emit);
       const plan = pressurizedPlanFrom(state);
-      if (plan !== null) return this.runPressurized(conversationId, snapshotId, state, plan, now);
+      if (plan !== null)
+        return this.runPressurized(conversationId, snapshotId, state, plan, now, emit);
       const gravity = gravityPlanFrom(state);
-      if (gravity !== null) return this.runGravity(conversationId, snapshotId, state, gravity, now);
+      if (gravity !== null)
+        return this.runGravity(conversationId, snapshotId, state, gravity, now, emit);
       const network = networkInputFrom(state);
-      if (network !== null) return this.runNetwork(conversationId, snapshotId, state, network, now);
+      if (network !== null)
+        return this.runNetwork(conversationId, snapshotId, state, network, now, emit);
       throw new TechnicalCaseNotComputableError(state.useCase.caseId);
     }
 
@@ -299,8 +311,9 @@ export class AnalysisService {
     state: RequirementState,
     requirementAssumptions: readonly Assumption[],
     now: string,
+    emit?: EventSink,
   ): Promise<readonly AssistantStreamEvent[]> {
-    const events: AssistantStreamEvent[] = [];
+    const events = streamedEvents(emit);
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const { input, assumptions: inputAssumptions } = irrigationInputFrom(state);
@@ -393,8 +406,9 @@ export class AnalysisService {
     state: RequirementState,
     plan: PressurizedPlan,
     now: string,
+    emit?: EventSink,
   ): Promise<readonly AssistantStreamEvent[]> {
-    const events: AssistantStreamEvent[] = [];
+    const events = streamedEvents(emit);
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computePressurized(plan.input);
@@ -478,8 +492,9 @@ export class AnalysisService {
     state: RequirementState,
     plan: GravityPlan,
     now: string,
+    emit?: EventSink,
   ): Promise<readonly AssistantStreamEvent[]> {
-    const events: AssistantStreamEvent[] = [];
+    const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computeGravity(plan.input);
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
@@ -550,8 +565,9 @@ export class AnalysisService {
     state: RequirementState,
     input: NetworkInput,
     now: string,
+    emit?: EventSink,
   ): Promise<readonly AssistantStreamEvent[]> {
-    const events: AssistantStreamEvent[] = [];
+    const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     // Keluarga dulu: HDPE dijual dalam mm, jadi engine harus memilih ukuran dari tabel mm.
     const family = input.routeLengthM >= HDPE_FROM_METERS ? 'HDPE' : 'PVC AW';
@@ -673,8 +689,9 @@ export class AnalysisService {
     state: RequirementState,
     input: PondInput,
     now: string,
+    emit?: EventSink,
   ): Promise<readonly AssistantStreamEvent[]> {
-    const events: AssistantStreamEvent[] = [];
+    const events = streamedEvents(emit);
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computePond(input);

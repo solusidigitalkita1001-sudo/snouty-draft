@@ -193,6 +193,53 @@ describe('MessageService.answerClarification — semua jawaban sekaligus, tanpa 
   });
 });
 
+describe('MessageService — aliran event (P14-07)', () => {
+  it('message.start dikirim SEBELUM routing; tidak ada event ganda; urutan sink = urutan array', async () => {
+    let startedBeforeRoute = false;
+    const seen: string[] = [];
+    const { service } = serviceWith({
+      route: () => {
+        startedBeforeRoute = seen[0] === 'message.start';
+        return Promise.resolve({
+          intent: 'OUT_OF_SCOPE',
+          confidence: 1,
+          shouldExtract: false,
+          mutatesState: false,
+        });
+      },
+    });
+
+    const events = await service.handle(
+      'C'.repeat(26),
+      ACTOR,
+      'hai jo',
+      '2026-10-05T00:00:00Z',
+      (e) => seen.push(e.type),
+    );
+
+    expect(startedBeforeRoute).toBe(true);
+    expect(seen).toEqual(events.map((e) => e.type));
+    expect(seen.filter((t) => t === 'message.start')).toHaveLength(1);
+  });
+
+  it('model tidak terjangkau SETELAH message.start terkirim: sisa event (error, end) tetap sampai lewat array', async () => {
+    const seen: string[] = [];
+    const { service } = serviceWith({
+      route: () => Promise.reject(new LlmUnavailableError(403)),
+    });
+    const events = await service.handle(
+      'C'.repeat(26),
+      ACTOR,
+      'hai jo',
+      '2026-10-05T00:00:00Z',
+      (e) => seen.push(e.type),
+    );
+    // Sink hanya melihat start; controller menulis sisanya dari `events.slice(written)`.
+    expect(seen).toEqual(['message.start']);
+    expect(events.map((e) => e.type)).toEqual(['message.start', 'error', 'message.end']);
+  });
+});
+
 describe('MessageService — model tidak terjangkau', () => {
   it('LlmUnavailableError dari router → event LLM_UNAVAILABLE retryable, bukan lemparan', async () => {
     const { service, conversations } = serviceWith({

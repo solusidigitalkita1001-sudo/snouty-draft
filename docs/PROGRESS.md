@@ -730,7 +730,15 @@ tanpa asal; kesiapan per keluaran; LLM tidak pernah menghitung.
       hasil" di tab Ringkasan, "Data diketahui / Parameter diasumsikan / Perhitungan / Data yang
       masih dibutuhkan" di tab Material — **belum didesain (OQ-50)**, token yang ada. 7 tes
       komposer, migration test 64, API 794, web 88
-- [ ] P14-07 Fase 7 — Latensi: profil per tahap, jalur cepat, streaming, cache
+- [x] P14-07 Fase 7 — Latensi (2026-10-07). **Streaming per event:** `streamedEvents(emit)`
+      (`shared/sse/event-stream.ts`) — setiap `events.push` di pipeline pesan dan keempat jalur
+      analisis langsung ke controller; `sseWriter` menulis header SSE pada event pertama, sehingga
+      galat sebelum itu tetap JSON berstatus benar dan sesudahnya menjadi event `error`.
+      **Instrumentasi tahap:** `stageTimer` — log terstruktur per giliran `{load, route, answer,
+    persist, total}` + intent. **Ekstraksi gabungan satu panggilan: dievaluasi dan DITOLAK** untuk
+      qwen2.5 7B di CPU — prompt gabungan ±30 s saat cache prompt dingin, pesan di luar topik yang
+      kini 4 s menjadi 18–30 s; keuntungan giliran kebutuhan hanya ±4 s (22 → 18 s). Judul sudah di
+      latar sejak P4; registry/profil konstanta in-memory (tanpa cache tambahan). 4 tes baru
 - [ ] ✋ CHECKPOINT — reviewed by owner (12 skenario uji §39 + laporan akhir §45)
 
 ## Design Coverage

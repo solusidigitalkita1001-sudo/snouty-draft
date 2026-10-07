@@ -18,6 +18,7 @@ import { RECOMMENDATION_REPOSITORY } from '../domain/recommendation.repository.j
 import type { RecommendationRepository } from '../domain/recommendation.repository.js';
 import { Inject } from '@nestjs/common';
 import { assumptionCardFor } from '../../context/application/message-pipeline.js';
+import { sseWriter } from '../../../shared/sse/event-stream.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 
@@ -47,6 +48,10 @@ export class RecommendationController {
      */
     const snapshot = await this.snapshots.current(id);
 
+    // Event tahap mengalir saat terjadi (P14-07): header SSE baru ditulis pada event pertama,
+    // jadi galat sebelum itu tetap respons JSON berstatus benar; galat sesudahnya menjadi
+    // event `error` yang terbaca — bukan ERR_EMPTY_RESPONSE.
+    const writer = sseWriter(res);
     let events: readonly AssistantStreamEvent[];
     if (!snapshot) {
       events = [{ type: 'error', code: 'VALIDATION_FAILED', retryable: false }];
@@ -63,6 +68,7 @@ export class RecommendationController {
           snapshot.state,
           assumptions,
           new Date().toISOString(),
+          writer.emit,
         );
       } catch (error) {
         // Katalog tidak tersedia adalah kegagalan jujur dan bisa dicoba lagi — bukan
@@ -70,14 +76,15 @@ export class RecommendationController {
         const code =
           error instanceof CatalogUnavailableError ? 'CATALOG_UNAVAILABLE' : 'SERVICE_UNAVAILABLE';
         events = [{ type: 'error', code, retryable: true }];
+        if (writer.started()) {
+          writer.emit(events[0]!);
+          res.end();
+          return;
+        }
       }
     }
 
-    res.setHeader('content-type', 'text/event-stream');
-    res.setHeader('cache-control', 'no-cache, no-transform');
-    res.flushHeaders?.();
-
-    for (const event of events) write(res, event);
+    for (const event of events.slice(writer.written())) writer.emit(event);
     res.end();
   }
 
@@ -119,11 +126,6 @@ export class RecommendationController {
     await this.conversations.find(recommendation.conversationId, actorOf(req));
     return recommendation;
   }
-}
-
-function write(res: Response, event: AssistantStreamEvent): void {
-  res.write(`event: ${event.type}\n`);
-  res.write(`data: ${JSON.stringify(event)}\n\n`);
 }
 
 function parse<T>(schema: z.ZodType<T>, value: unknown): T {

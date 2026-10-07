@@ -206,6 +206,18 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(card).toEqual({ kind: 'cta', action: 'ANALYZE' });
   });
 
+  it('sink `emit` menerima setiap event saat terjadi, urutannya sama dengan array hasil (P14-07)', async () => {
+    const seen: string[] = [];
+    const { events } = await runUnderstanding(
+      aiExtracting({ building: { floors: 2 }, fixtures: { bathrooms: 3 } }),
+      input({ emit: (e) => seen.push(e.type) }),
+    );
+    expect(seen).toEqual(events.map((e) => e.type));
+    expect(seen[0]).toBe('message.start');
+    expect(seen).toContain('stage');
+    expect(seen[seen.length - 1]).toBe('message.end');
+  });
+
   it('pernyataan kebutuhan biasa tetap tanpa teks tambahan', async () => {
     const ai = aiExtracting({ building: { floors: 2 }, fixtures: { bathrooms: 3 } });
     const { events } = await runUnderstanding(

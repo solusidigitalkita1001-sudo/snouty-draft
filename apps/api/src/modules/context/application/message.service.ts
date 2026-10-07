@@ -49,6 +49,9 @@ import { ReplyWriter, type ReplyTurn } from './reply-writer.js';
 import { RequirementSnapshotStore } from './requirement-snapshot.store.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import { ulid } from '../../../shared/ulid.js';
+import { stageTimer, type StageTimer } from '../../../shared/logging/stage-timer.js';
+import type { EventSink } from '../../../shared/sse/event-stream.js';
+import type { Logger } from 'pino';
 
 @Injectable()
 export class MessageService {
@@ -60,6 +63,8 @@ export class MessageService {
     private readonly productQuestions: ProductQuestionService,
     @Optional() private readonly reply: ReplyWriter | null = null,
     @Optional() @Inject(AI_SERVICE) private readonly ai: AiService | null = null,
+    /** Log profil latensi per giliran (P14-07); opsional supaya tes lama tidak berubah. */
+    @Optional() private readonly logger: Logger | null = null,
   ) {}
 
   /**
@@ -71,6 +76,7 @@ export class MessageService {
     actor: ConversationOwner,
     text: string,
     now: string,
+    emit?: EventSink,
   ): Promise<readonly AssistantStreamEvent[]> {
     // Kepemilikan diperiksa di lapisan application (docs/SECURITY.md §4).
     const row = await this.conversations.find(conversationId, actor);
@@ -90,7 +96,7 @@ export class MessageService {
     if (!this.ai) return llmUnavailable(messageId);
 
     try {
-      return await this.answer(conversationId, actor, text, now, messageId);
+      return await this.answer(conversationId, actor, text, now, messageId, emit);
     } catch (error) {
       // Model terkonfigurasi tetapi tidak terjangkau (kunci ditolak, limit habis,
       // jaringan): nasibnya sama dengan "tanpa model" — jujur lewat event
@@ -106,8 +112,14 @@ export class MessageService {
     text: string,
     now: string,
     messageId: string,
+    emit?: EventSink,
   ): Promise<readonly AssistantStreamEvent[]> {
     const ai = this.ai!;
+    // Instrumentasi tahap (P14-07): waktu per tahap giliran, bukan hanya per panggilan model
+    // (`llm_calls`). Dicatat ke log terstruktur supaya profil latensi bisa dibaca dari produksi.
+    const timer = stageTimer();
+    // Giliran dimulai SEKARANG di mata klien — bukan setelah klasifikasi intent (5–30 s di CPU).
+    emit?.({ type: 'message.start', messageId });
     const snapshot = await this.store.current(conversationId);
     const state = snapshot?.state ?? emptyRequirementState(now);
     const hasExisting = (snapshot?.state.completeness.filled ?? 0) > 0;
@@ -127,7 +139,9 @@ export class MessageService {
             mutatesState: true,
           } satisfies RoutingDecision)
         : null;
+    timer.mark('load');
     const decision = continuation ?? (await this.router.route(text, hasExisting, recentTurns));
+    timer.mark('route');
 
     // Pertanyaan produk: ruas sendiri, nol ekstraksi, jawaban dari katalog.
     if (decision.intent === 'PRODUCT_LOOKUP') {
@@ -141,20 +155,32 @@ export class MessageService {
         // struktur — satu menit untuk hasil yang dibuang (env LLM_FAQ_REWRITE).
         loadEnv().LLM_FAQ_REWRITE ? PRODUCT_FAQ_SYSTEM_PROMPT : null,
       );
+      timer.mark('answer');
       await this.conversations.appendAssistantMessage(
         conversationId,
         textOf(events),
         cardsOf(events),
         null,
       );
+      timer.mark('persist');
+      this.logTurn(conversationId, decision, timer);
       return events;
     }
 
     const result = await runUnderstanding(
       ai,
-      { messageId, message: text, decision, state, now, recentTurns },
+      {
+        messageId,
+        message: text,
+        decision,
+        state,
+        now,
+        recentTurns,
+        ...(emit ? { emit: withoutFirstStart(emit) } : {}),
+      },
       this.reply,
     );
+    timer.mark('answer');
 
     if (result.changed) {
       await this.store.append(conversationId, result.nextState, result.trigger);
@@ -166,8 +192,23 @@ export class MessageService {
       cardsOf(result.events),
       null,
     );
+    timer.mark('persist');
+    this.logTurn(conversationId, decision, timer);
 
     return result.events;
+  }
+
+  /** Profil latensi satu giliran: `{ load, route, answer, persist, total }` dalam ms. */
+  private logTurn(conversationId: string, decision: RoutingDecision, timer: StageTimer): void {
+    this.logger?.info(
+      {
+        conversationId,
+        intent: decision.intent,
+        confidence: decision.confidence,
+        ms: timer.report(),
+      },
+      'giliran pesan',
+    );
   }
 
   /** Judul model menggantikan potongan pesan bila datang; kegagalan apa pun diabaikan. */
@@ -311,6 +352,22 @@ export function isSaneTitle(title: string): boolean {
   if (!/^[\p{Script=Latin}\p{N}\s,.\-–—/()&]+$/u.test(title)) return false;
   const words = title.split(/\s+/).filter((w) => w.length > 0);
   return words.length >= 2 && words.length <= 10;
+}
+
+/**
+ * `message.start` sudah dikirim service sebelum routing (supaya klien tahu giliran dimulai
+ * sebelum 5–30 detik klasifikasi intent); pipeline tetap menaruhnya di array hasil, tetapi
+ * salinannya tidak boleh dikirim dua kali.
+ */
+function withoutFirstStart(emit: EventSink): EventSink {
+  let skipped = false;
+  return (event) => {
+    if (!skipped && event.type === 'message.start') {
+      skipped = true;
+      return;
+    }
+    emit(event);
+  };
 }
 
 function llmUnavailable(messageId: string): readonly AssistantStreamEvent[] {

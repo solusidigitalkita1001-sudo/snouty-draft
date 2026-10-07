@@ -15,6 +15,7 @@ import { RateLimitedError, RequestValidationError } from '../../../shared/http/a
 import { limitFor } from '../../policy/rate-limits.js';
 import { RateLimiter } from '../../../shared/rate-limit/rate-limiter.js';
 import { MessageService } from '../application/message.service.js';
+import { sseWriter } from '../../../shared/sse/event-stream.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 const MessageDto = z.object({ text: z.string().trim().min(1).max(4_000) }).strict();
@@ -165,34 +166,34 @@ export class MessageController {
     }
 
     /**
-     * Pekerjaan dijalankan **sebelum** satu byte header pun ditulis.
+     * Event mengalir saat terjadi (P14-07), tetapi header SSE baru ditulis pada event
+     * PERTAMA. Dua hal yang dijaga sekaligus:
      *
-     * Sebelumnya header SSE di-flush lebih dulu, dan akibatnya setiap galat setelah itu
-     * tidak bisa dilaporkan: filter galat mencoba `response.json()` atas respons yang
-     * headernya sudah terkirim, gagal, dan koneksi tertutup tanpa isi. Yang terlihat di
-     * browser adalah `ERR_EMPTY_RESPONSE` — tanpa petunjuk apa pun tentang sebabnya.
+     *   - Galat sebelum event pertama (kepemilikan, validasi, model tidak terjangkau saat
+     *     start) tetap respons JSON berstatus benar — filter galat masih bisa menulisnya.
+     *     Dulu header di-flush lebih dulu dan setiap galat sesudahnya menjadi
+     *     `ERR_EMPTY_RESPONSE` tanpa petunjuk; itu yang dihindari di sini.
+     *   - Galat setelah event pertama dilaporkan sebagai event `error` yang terbaca,
+     *     bukan koneksi yang putus tanpa isi.
      *
-     * Giliran chat tidak streaming token dari model (prosa penjelas datang di Fase 7 lewat
-     * jalur lain), jadi menunggu pekerjaan selesai tidak menghilangkan apa pun yang
-     * sebenarnya progresif — dan menukar "respons kosong yang tak bisa didiagnosis"
-     * dengan galat yang terbaca adalah pertukaran yang jelas menguntungkan.
+     * Di CPU satu giliran kebutuhan 20–60 detik; tanpa aliran ini "UNDERSTANDING aktif"
+     * baru terlihat bersamaan dengan jawabannya.
      */
     const now = new Date().toISOString();
-    const events = await this.messages.handle(id, actor, text, now);
+    const writer = sseWriter(res);
+    let events: readonly AssistantStreamEvent[];
+    try {
+      events = await this.messages.handle(id, actor, text, now, writer.emit);
+    } catch (error) {
+      if (!writer.started()) throw error;
+      writer.emit({ type: 'error', code: 'SERVICE_UNAVAILABLE', retryable: true });
+      res.end();
+      return;
+    }
 
-    res.setHeader('content-type', 'text/event-stream');
-    res.setHeader('cache-control', 'no-cache, no-transform');
-    res.setHeader('connection', 'keep-alive');
-    res.flushHeaders?.();
-
-    for (const event of events) writeEvent(res, event);
+    for (const event of events.slice(writer.written())) writer.emit(event);
     res.end();
   }
-}
-
-function writeEvent(res: Response, event: AssistantStreamEvent): void {
-  res.write(`event: ${event.type}\n`);
-  res.write(`data: ${JSON.stringify(event)}\n\n`);
 }
 
 function parse<T>(schema: z.ZodType<T>, value: unknown): T {

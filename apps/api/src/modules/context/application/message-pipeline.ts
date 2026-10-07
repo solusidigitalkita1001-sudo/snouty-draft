@@ -25,6 +25,7 @@ import type {
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
+import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import { caseProfile, isCaseId } from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
 import {
@@ -72,6 +73,8 @@ export interface PipelineInput {
   readonly now: string;
   /** Giliran terakhir untuk balasan yang nyambung — hanya dipakai ruas tanpa ekstraksi. */
   readonly recentTurns?: readonly ReplyTurn[];
+  /** Sink SSE: setiap event dikirim saat terjadi (P14-07), array hasil tetap lengkap. */
+  readonly emit?: EventSink;
 }
 
 export interface PipelineResult {
@@ -92,7 +95,9 @@ export async function runUnderstanding(
   input: PipelineInput,
   reply: ReplyWriter | null = null,
 ): Promise<PipelineResult> {
-  const events: AssistantStreamEvent[] = [{ type: 'message.start', messageId: input.messageId }];
+  const events = streamedEvents(input.emit, [
+    { type: 'message.start', messageId: input.messageId },
+  ]);
 
   // Policy 1 DULU, sebelum apa pun: pertanyaan kompetitor dijawab kriteria netral dan
   // tidak pernah masuk jalur rekomendasi. Memeriksanya di sini — bukan setelah

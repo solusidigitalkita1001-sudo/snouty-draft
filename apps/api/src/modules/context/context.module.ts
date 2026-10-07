@@ -10,6 +10,7 @@ import { Module } from '@nestjs/common';
 import { loadEnv } from '../../config/env.js';
 import { RateLimiter } from '../../shared/rate-limit/rate-limiter.js';
 import { RedisService } from '../../shared/redis/redis.service.js';
+import { LoggerService } from '../../shared/logging/logger.service.js';
 import { AiModule } from '../ai/ai.module.js';
 import { AI_SERVICE, type AiService } from '../ai/domain/ai.port.js';
 import { ConversationModule } from '../conversation/conversation.module.js';
@@ -67,6 +68,7 @@ const messageServiceProvider = {
     ProductQuestionService,
     ReplyWriter,
     AI_SERVICE,
+    LoggerService,
   ],
   useFactory: (
     conversations: ConversationService,
@@ -76,7 +78,18 @@ const messageServiceProvider = {
     productQuestions: ProductQuestionService,
     reply: ReplyWriter | null,
     ai: AiService | null,
-  ) => new MessageService(conversations, store, router, catalog, productQuestions, reply, ai),
+    logger: LoggerService,
+  ) =>
+    new MessageService(
+      conversations,
+      store,
+      router,
+      catalog,
+      productQuestions,
+      reply,
+      ai,
+      logger.child({ module: 'context' }),
+    ),
 };
 
 @Module({
