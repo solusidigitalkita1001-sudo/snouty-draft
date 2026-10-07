@@ -23,7 +23,8 @@ export const GREETING =
   /^\s*(hai|halo|hallo|hello|hi|hey|yo|pagi|siang|sore|malam|selamat\s+(pagi|siang|sore|malam)|apa kabar|terima kasih|makasih|thanks|ok|oke|sip|tes|test|testing)\b[\s!.,?]*(jo|snouty|bro|kak|min|ya|dong)?[\s!.,?]*$/;
 export const COMPETITOR_BRANDS = /\b(rucika|wavin|maspion|vinilon|unilon|supralon|merek lain)\b/;
 /** Pertanyaan KONSEP produk: definisi/perbandingan, bukan kebutuhan. */
-const PRODUCT_CONCEPT =
+/** Pertanyaan KONSEP/definisi/perbandingan: aspek spesifikasi tidak pernah ditebak darinya. */
+export const PRODUCT_CONCEPT =
   /\b(apa itu|itu apa|apaan|apa sih|apa bedanya|bedanya|perbedaan|beda|what is|what are|difference|differences|differ|compare|comparison|versus|vs)\b/;
 const FAMILY_TOKENS = /\b(pvc\s*(?:aw|d|c)?|hdpe|ppr|pp-r|tee|elbow|reducer|socket)\b/g;
 const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
@@ -101,6 +102,9 @@ export function heuristicProductQuestion(message: string): ProductQuestionParse 
   const unique = [...new Set(families)].slice(0, 2);
   const productQuery = unique.length > 0 ? unique.join(' dan ') : null;
 
+  // "apa bedanya fitting sama HDPE?" adalah pertanyaan konsep — kata 'fitting' di dalamnya bukan
+  // permintaan daftar fitting yang sepadan (laporan pemilik 2026-10-07).
+  if (PRODUCT_CONCEPT.test(text)) return { productQuery, aspect: null, size: null };
   const availability = /ada ukuran|ukuran .* ada|tersedia ukuran|ukuran .* tersedia/.test(text);
   const sizeMatch = availability ? SIZE_TOKEN.exec(text.replace(/\b(pvc|hdpe|ppr)\b/g, '')) : null;
   const aspect: ProductQuestionParse['aspect'] =

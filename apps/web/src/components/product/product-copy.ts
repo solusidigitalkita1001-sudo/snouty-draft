@@ -19,7 +19,6 @@ export const PRODUCT_COPY = {
    * "Buka dokumen teknis" di docs/PRODUCT_KNOWLEDGE.md §4. Dibangun minimal (OQ-21).
    */
   documentsTitle: 'DOKUMEN TEKNIS',
-  documentsNeedsDesign: 'BAGIAN SEMENTARA · MENUNGGU DESAIN',
   openDocument: 'Buka dokumen teknis',
   sourceLabel: 'Sumber data',
   back: 'Kembali ke solusi',
@@ -45,7 +44,6 @@ export const PRODUCT_COPY_EN: CopyShape<typeof PRODUCT_COPY> = {
   fittingsTitle: 'MATCHING FITTINGS',
   imagePlaceholder: 'product shot',
   documentsTitle: 'TECHNICAL DOCUMENTS',
-  documentsNeedsDesign: 'TEMPORARY SECTION · AWAITING DESIGN',
   openDocument: 'Open technical document',
   sourceLabel: 'Data source',
   back: 'Back to solution',

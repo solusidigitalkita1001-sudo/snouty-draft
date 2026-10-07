@@ -95,9 +95,6 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
 
   return (
     <main className={styles.page}>
-      {/* Tanpa syarat: layar ini tidak boleh dikira final. */}
-      <div className={styles.needsDesign}>{COPY.needsDesign}</div>
-
       <form className={styles.card} onSubmit={submit}>
         <div>
           <div className={styles.brandName}>{COPY.brand.name}</div>

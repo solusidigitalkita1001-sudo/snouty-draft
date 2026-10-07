@@ -47,6 +47,22 @@ describe('pipe knowledge', () => {
     expect(out).toMatch(/Jadi untuk \*\*instalasi tetap[^\n]*HDPE biasanya lebih cocok\.$/);
   });
 
+  it('"apa bedanya fitting sama hdpe" → bahan vs komponen dulu, lalu ikhtisar HDPE dan konsep fitting; EN setara', () => {
+    const id = explain('apa bedanya fitting sama hdpe?', 'HDPE');
+    expect(id).toMatch(
+      /^\*\*HDPE\*\* adalah bahan pipa, sedangkan \*\*fitting\*\* adalah komponen penyambungnya/,
+    );
+    expect(id).toContain('**HDPE** itu lentur dan bisa digulung');
+    expect(id).toContain('Fitting adalah komponen penyambung pipa');
+    const en = explain('what is the difference between a fitting and hdpe?', 'HDPE', 'en');
+    expect(en).toMatch(
+      /^\*\*HDPE\*\* is a pipe material, while a \*\*fitting\*\* is a connecting part/,
+    );
+    expect(en).toContain('Fittings are the connecting parts of a pipe run');
+    // Tanpa kata pembanding, kalimat "bukan dua pilihan" tidak dipaksakan.
+    expect(explain('fitting hdpe apa saja?', 'HDPE')).not.toContain('bukan dua pilihan');
+  });
+
   it('satu bahan → ikhtisar; konsep yang disinggung ikut; tanpa bahan → kosong', () => {
     const ppr = explain('apa itu ppr?', null);
     expect(ppr).toMatch(/^\*\*PPR\*\* itu kaku dan tahan air panas: /); // prosa, bukan butir
@@ -54,7 +70,9 @@ describe('pipe knowledge', () => {
     expect(ppr).toContain('kurang cocok untuk');
     expect(ppr).not.toContain('- Bentuk:');
     expect(explain('pipa yang ditanam di tanah enaknya apa?', 'hdpe')).toContain('Pipa tanam');
-    expect(explain('apa itu fitting?', null)).toBe('');
+    // "Apa itu fitting?" kini punya jawaban konsep (P16-04); yang tak dikenal tetap kosong.
+    expect(explain('apa itu fitting?', null)).toContain('Fitting adalah komponen penyambung pipa');
+    expect(explain('apa itu kompresor?', null)).toBe('');
   });
 
   it('adviseMaterials: tidak memilih satu bahan sebagai yang terbaik; menyebut apa yang menentukan', () => {

@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest';
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductAnswer } from '../../product-knowledge/domain/product-answer.js';
-import { runProductQuestion } from './product-question-pipeline.js';
+import { bestMatch, runProductQuestion } from './product-question-pipeline.js';
 
 const AW: Product = {
   id: 'A'.repeat(26),
@@ -87,6 +87,74 @@ const cards = (events: readonly AssistantStreamEvent[]) =>
   events.filter((e) => e.type === 'card').map((e) => (e as { card: { kind: string } }).card);
 
 describe('runProductQuestion — KONSEP', () => {
+  it('"apa bedanya fitting sama hdpe?" adalah KONSEP walau model bilang compatible_fittings; produk pendukung = keluarga HDPE, bukan pipa kabel', async () => {
+    const telkom: Product = {
+      ...AW,
+      id: 'T'.repeat(26),
+      sku: '__export__.product_product_10197',
+      name: 'Pipa HDPE Telkom 40/33 x 182 Meter Orange Garis Biru',
+      family: 'PIPA TELKOM',
+      category: 'PIPA KABEL',
+    };
+    const hdpe: Product = {
+      ...AW,
+      id: 'H'.repeat(26),
+      sku: 'HDPE-63',
+      name: 'Pipa HDPE PE100 63 mm',
+      family: 'HDPE',
+      category: 'PIPA AIR BERSIH · HDPE',
+    };
+    let asked = 0;
+    const events = await runProductQuestion(
+      ai({ productQuery: 'HDPE', aspect: 'compatible_fittings' }),
+      catalog({ HDPE: [telkom, hdpe] }),
+      {
+        async answer() {
+          asked += 1;
+          throw new Error('aspek tidak boleh ditanyakan untuk pertanyaan konsep');
+        },
+      } as never,
+      { messageId: 'm', message: 'apa bedanya fitting sama hdpe ?' },
+    );
+    const out = text(events);
+    expect(asked).toBe(0);
+    expect(out).toContain(
+      '**HDPE** adalah bahan pipa, sedangkan **fitting** adalah komponen penyambungnya',
+    );
+    expect(out).toContain('Fitting adalah komponen penyambung pipa');
+    expect(out).not.toContain('belum cukup di katalog');
+    const productCard = cards(events).find((c) => c.kind === 'product') as
+      { kind: 'product'; products: readonly { name: string }[] } | undefined;
+    expect(productCard?.products[0]?.name).toBe('Pipa HDPE PE100 63 mm');
+  });
+
+  it('bestMatch: keluarga sama menang atas nama yang kebetulan memuat istilah; pipa menang atas fitting', () => {
+    const fitting: Product = {
+      ...AW,
+      id: 'F'.repeat(26),
+      name: 'Tee HDPE 63',
+      family: 'FITTING HDPE',
+      category: 'FITTING',
+    };
+    const pipe: Product = {
+      ...AW,
+      id: 'P'.repeat(26),
+      name: 'Pipa HDPE PE100 63 mm',
+      family: 'HDPE',
+      category: 'PIPA HDPE',
+    };
+    const cable: Product = {
+      ...AW,
+      id: 'C'.repeat(26),
+      name: 'Pipa HDPE Telkom',
+      family: 'PIPA TELKOM',
+      category: 'PIPA KABEL',
+    };
+    expect(bestMatch([cable, fitting, pipe], 'hdpe')?.id).toBe(pipe.id);
+    expect(bestMatch([cable, fitting], 'hdpe')?.id).toBe(fitting.id);
+    expect(bestMatch([], 'hdpe')).toBeUndefined();
+  });
+
   it('"apa bedanya pvc sama hdpe" dijawab utuh tanpa katalog dan tanpa model', async () => {
     const events = await runProductQuestion(
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),

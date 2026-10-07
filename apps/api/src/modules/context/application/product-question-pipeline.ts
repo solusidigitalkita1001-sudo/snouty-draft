@@ -20,6 +20,7 @@
  */
 import { DEFAULT_LOCALE, type ConversationSubject, type Locale } from '@snouty/shared-types';
 import { isFollowUp, requestedDepth } from '../domain/subject.js';
+import { PRODUCT_CONCEPT } from '../../ai/domain/heuristics.js';
 import {
   PipeSize,
   specHasValue,
@@ -103,8 +104,10 @@ export async function runProductQuestion(
 
   const continued = subjectQuery(input);
   const query = continued ?? parsed?.productQuery ?? null;
-  // Lanjutan ("lebih detail dong") memperdalam penjelasan konsep; aspek hanya dari pesan nyata.
-  const aspect = continued !== null ? null : (parsed?.aspect ?? null);
+  // Lanjutan ("lebih detail dong") memperdalam penjelasan konsep; aspek hanya dari pesan nyata —
+  // dan tidak pernah dari pertanyaan konsep ("apa bedanya fitting sama HDPE?"), apa pun kata model.
+  const conceptual = PRODUCT_CONCEPT.test(input.message.toLowerCase());
+  const aspect = continued !== null || conceptual ? null : (parsed?.aspect ?? null);
 
   const outcome =
     aspect === null
@@ -369,12 +372,32 @@ async function lookup(
   const products: Product[] = [];
   const missing: string[] = [];
   for (const term of terms) {
-    const page = await catalog.listProducts({ q: term, limit: 1 });
-    const product = page.items[0];
-    if (!product || !isAnswerable(product)) missing.push(term);
+    const page = await catalog.listProducts({ q: term, limit: 10 });
+    const product = bestMatch(page.items.filter(isAnswerable), term);
+    if (!product) missing.push(term);
     else if (!products.some((f) => f.id === product.id)) products.push(product);
   }
   return { authoritative, unavailable: false, products, missing };
+}
+
+/**
+ * Produk yang paling mewakili sebuah istilah: keluarga yang sama namanya menang atas nama yang
+ * kebetulan memuatnya ("HDPE" → keluarga HDPE, bukan pipa kabel yang kebetulan bernama HDPE), dan
+ * pipa menang atas fitting untuk istilah bahan. Pencarian LIKE memberi urutan sembarang.
+ */
+export function bestMatch(items: readonly Product[], term: string): Product | undefined {
+  const needle = term.toLowerCase();
+  const score = (p: Product): number => {
+    const family = p.family.toLowerCase();
+    const name = p.name.toLowerCase();
+    const category = p.category.toLowerCase();
+    return (
+      (family === needle ? 4 : family.includes(needle) ? 3 : 0) +
+      (name.includes(needle) ? 1 : 0) +
+      (category.includes('pipa') ? 1 : 0)
+    );
+  };
+  return [...items].sort((a, b) => score(b) - score(a))[0];
 }
 
 /**

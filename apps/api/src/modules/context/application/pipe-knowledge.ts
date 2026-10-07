@@ -164,6 +164,14 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
 
 export const CONCEPTS: readonly ConceptKnowledge[] = [
   {
+    topic: 'fitting',
+    pattern:
+      /\b(fitting|fittings|sambungan pipa|aksesoris pipa|elbow|knee|keni|tee|socket|sok|reducer|coupling)\b/i,
+    text: 'Fitting adalah komponen penyambung pipa — sok (socket), tee, elbow/knee, reducer, katup — yang mengubah arah, membagi cabang, mengubah ukuran, atau menyambung dua batang. Fitting dibuat dari bahan yang sama dengan pipanya (PVC untuk PVC, HDPE untuk HDPE) supaya sambungannya cocok.',
+    textEn:
+      'Fittings are the connecting parts of a pipe run — sockets, tees, elbows, reducers, valves — that change direction, split a branch, change size, or join two lengths. They are made of the same material as the pipe (PVC for PVC, HDPE for HDPE) so the joint matches.',
+  },
+  {
     topic: 'pipa tanam',
     pattern: /\b(tanam|ditanam|bawah tanah|timbun|urug|buried|underground|backfill)\b/i,
     text: 'Pipa tanam menanggung beban tanah dan pergerakannya. Bahan yang lentur dengan sambungan yang menyatu lebih toleran terhadap tanah yang bergerak; pipa kaku membutuhkan alas (bedding) dan urugan yang rapi agar tidak retak di sambungan.',
@@ -384,11 +392,27 @@ export function explain(
   const materials = materialsIn(question, productQuery).slice(0, 2);
   const concepts = conceptsIn(question);
   const parts: string[] = [];
+  // "Apa bedanya fitting sama HDPE?" membandingkan komponen dengan bahan — bukan dua bahan.
+  // Katakan dulu bahwa keduanya tidak setara, baru jelaskan masing-masing.
+  if (
+    materials.length === 1 &&
+    concepts.some((c) => c.topic === 'fitting') &&
+    COMPARISON.test(question)
+  ) {
+    const m = materials[0]!;
+    parts.push(
+      locale === 'en'
+        ? `**${m.en.label}** is a pipe material, while a **fitting** is a connecting part — so they are not two options to choose between. ${m.en.label} fittings exist too; they are what joins ${m.en.label} pipe.`
+        : `**${m.label}** adalah bahan pipa, sedangkan **fitting** adalah komponen penyambungnya — jadi keduanya bukan dua pilihan yang dibandingkan. Fitting ${m.label} pun ada; itulah yang menyambung pipa ${m.label}.`,
+    );
+  }
   if (materials.length === 2) parts.push(compareMaterials(materials[0]!, materials[1]!, locale));
   else if (materials.length === 1) parts.push(describeMaterial(materials[0]!, locale));
   for (const c of concepts) parts.push(locale === 'en' ? c.textEn : c.text);
   return parts.join('\n\n');
 }
+
+const COMPARISON = /\b(beda|bedanya|perbedaan|dibanding|versus|vs|difference|differ|compare)\b/i;
 
 function join(texts: readonly (string | null | undefined)[]): string {
   return texts.filter((t): t is string => typeof t === 'string').join(' ');

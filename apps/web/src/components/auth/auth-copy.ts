@@ -14,7 +14,6 @@ import type { Locale } from '@snouty/shared-types';
 import { pickCopy, type CopyShape } from '../copy';
 
 export const AUTH_COPY = {
-  needsDesign: 'TAMPILAN SEMENTARA · MENUNGGU DESAIN',
   brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
 
   login: {
@@ -52,7 +51,6 @@ export const AUTH_COPY = {
 } as const;
 
 export const AUTH_COPY_EN: CopyShape<typeof AUTH_COPY> = {
-  needsDesign: 'TEMPORARY SCREEN · AWAITING DESIGN',
   brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
 
   login: {

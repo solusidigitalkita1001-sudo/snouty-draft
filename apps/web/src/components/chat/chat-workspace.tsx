@@ -28,6 +28,7 @@ import { moodForCards } from '../mascot/mood';
 import { Snouty, SnoutyAvatar } from '../mascot/snouty';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { ReportModal } from '../report/report-modal';
+import { AccountModal } from '../account/account-modal';
 import { reportCopy } from '../report/report-copy';
 import { ThemeToggle } from '../theme-toggle';
 import { LocaleToggle, useLocale } from '../locale';
@@ -145,6 +146,7 @@ export function ChatWorkspace() {
   const [toastOn, setToastOn] = useState(false);
   const [sleepy, setSleepy] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [openProduct, setOpenProduct] = useState<DrawerSelection | null>(null);
   const [solution, setSolution] = useState<Recommendation | null>(null);
   /** Prototipe `screen`: solusi adalah LAYAR sendiri yang menggantikan aliran chat. */
@@ -654,25 +656,42 @@ export function ChatWorkspace() {
           </div>
 
           <div className={styles.sidebarFooter}>
-            {/* Pengguna masuk: kaki sidebar membuka halaman akun (OQ-53). */}
+            {/* Pengguna masuk: kaki sidebar membuka pop-up akun (OQ-53, pemilik: pop-up, bukan halaman). */}
             {user ? (
-              <a className={styles.footerLink} href="/akun" title={COPY.footer.account}>
+              <button
+                type="button"
+                className={styles.footerLink}
+                onClick={() => setAccountOpen(true)}
+                title={COPY.footer.account}
+                aria-label={COPY.footer.account}
+              >
                 {footerAvatar}
-              </a>
+              </button>
             ) : (
               footerAvatar
             )}
             <div className={styles.footerText}>
               {user ? (
-                <a className={styles.footerNameLink} href="/akun">
+                <button
+                  type="button"
+                  className={styles.footerNameLink}
+                  onClick={() => setAccountOpen(true)}
+                >
                   <span className={styles.footerName}>{user.name}</span>
-                </a>
+                </button>
               ) : (
                 <span className={styles.footerName}>{COPY.footer.guestName}</span>
               )}
               {user ? (
                 <span className={styles.footerRole}>
-                  {COPY.footer.role} · <a href="/akun">{COPY.footer.account}</a>
+                  {COPY.footer.role} ·{' '}
+                  <button
+                    type="button"
+                    className={styles.footerRoleButton}
+                    onClick={() => setAccountOpen(true)}
+                  >
+                    {COPY.footer.account}
+                  </button>
                 </span>
               ) : (
                 <span className={styles.footerRole}>
@@ -903,6 +922,13 @@ export function ChatWorkspace() {
 
             {openProduct && (
               <ProductDrawer selection={openProduct} onClose={() => setOpenProduct(null)} />
+            )}
+
+            {accountOpen && (
+              <AccountModal
+                onClose={() => setAccountOpen(false)}
+                onProfileChange={(p) => setUser({ name: p.name, tier: p.tier })}
+              />
             )}
 
             {reportOpen && solution !== null && (

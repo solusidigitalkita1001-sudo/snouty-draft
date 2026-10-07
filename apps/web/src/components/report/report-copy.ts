@@ -26,7 +26,6 @@ export const REPORT_COPY = {
   email: 'Kirim ke email',
   download: 'Unduh PDF',
 
-  needsDesign: 'BAGIAN SEMENTARA · MENUNGGU DESAIN',
   identity: {
     title: 'Untuk siapa laporan ini?',
     customerName: 'Nama pelanggan',
@@ -67,7 +66,6 @@ export const REPORT_COPY_EN: CopyShape<typeof REPORT_COPY> = {
   email: 'Send by email',
   download: 'Download PDF',
 
-  needsDesign: 'TEMPORARY SECTION · AWAITING DESIGN',
   identity: {
     title: 'Who is this report for?',
     customerName: 'Customer name',

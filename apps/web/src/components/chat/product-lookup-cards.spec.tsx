@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ProductCardDto } from '@snouty/shared-types';
 import { describe, expect, it, vi } from 'vitest';
-import { ProductLookupCards } from './product-lookup-cards';
+import { ProductLookupCards, isCustomerSku } from './product-lookup-cards';
 
 const CARD: ProductCardDto = {
   productId: '01JBPRODUCT000000000000001',
@@ -23,6 +23,19 @@ describe('ProductLookupCards', () => {
     expect(screen.getByText('AW-075')).toBeTruthy();
     expect(screen.getByText('LIHAT DOKUMEN TEKNIS')).toBeTruthy();
     expect(screen.queryByText(/DIPAKAI DI SOLUSI/)).toBeNull();
+  });
+
+  it('SKU ekspor ERP (ID internal Odoo) tidak ditampilkan — nama tetap (OQ-55)', () => {
+    render(
+      <ProductLookupCards
+        products={[{ ...CARD, sku: '__export__.product_product_10197' }]}
+        onOpen={() => {}}
+      />,
+    );
+    expect(screen.getByText('Pipa PVC AW')).toBeTruthy();
+    expect(screen.queryByText(/__export__/)).toBeNull();
+    expect(isCustomerSku('product.0_S_01_011_016004_00')).toBe(false);
+    expect(isCustomerSku('AW-075')).toBe(true);
   });
 
   it('mengklik kartu membuka produknya', () => {

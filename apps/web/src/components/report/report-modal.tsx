@@ -176,7 +176,6 @@ export function ReportModal({
             <form className={styles.identity} onSubmit={submit} data-needs-design="true">
               <div className={styles.identityHead}>
                 <span className={styles.kicker}>{COPY.identity.title}</span>
-                <span className={styles.needsDesign}>{COPY.needsDesign}</span>
               </div>
               <label className={styles.field}>
                 <span>{COPY.identity.customerName}</span>

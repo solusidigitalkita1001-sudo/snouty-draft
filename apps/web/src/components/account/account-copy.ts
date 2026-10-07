@@ -1,50 +1,40 @@
 /**
- * Teks halaman akun (OQ-53). **BELUM DIDESAIN** — dibangun minimal dengan token yang sama,
- * ditandai "menunggu desain" seperti layar masuk/daftar (docs/DESIGN_IMPLEMENTATION.md §11).
+ * Teks pop-up akun (OQ-53). Tanpa penanda "menunggu desain" di layar — pemilik tidak mau metatext;
+ * statusnya dicatat di docs/OPEN_QUESTIONS.md, bukan di depan pengguna.
  */
 import type { Locale } from '@snouty/shared-types';
 import { pickCopy, type CopyShape } from '../copy';
 
 export const ACCOUNT_COPY = {
-  needsDesign: 'TAMPILAN SEMENTARA · MENUNGGU DESAIN',
   title: 'Akun',
-  subtitle: 'Nama, email, kata sandi, dan preferensi tampilan Anda.',
-  back: '← Kembali ke konsultasi',
-  loading: 'Memuat profil…',
+  subtitle: 'Nama, kata sandi, dan tampilan.',
+  close: 'Tutup',
+  loading: 'Memuat…',
   signedOut: 'Anda belum masuk.',
   signIn: 'Masuk',
+  register: 'Daftar',
 
-  profile: {
-    heading: 'Profil',
-    name: 'Nama',
-    email: 'Email',
-    emailNote: 'Email belum bisa diganti dari sini — hubungi tim Pralon bila perlu.',
-    tier: 'Jenis akun',
-    tiers: { registered: 'Terdaftar', advanced: 'Lanjutan' } as Record<string, string>,
-    save: 'Simpan nama',
-    saved: 'Nama tersimpan.',
-  },
+  name: 'Nama',
+  email: 'Email',
+  tier: 'Jenis akun',
+  tiers: { registered: 'Terdaftar', advanced: 'Lanjutan' } as Record<string, string>,
 
-  password: {
-    heading: 'Kata sandi',
-    current: 'Kata sandi saat ini',
-    next: 'Kata sandi baru',
-    hint: 'Minimal 12 karakter.',
-    submit: 'Ganti kata sandi',
-    changed: 'Kata sandi diganti.',
-  },
+  passwordHeading: 'Ganti kata sandi',
+  passwordNote: 'Kosongkan bila tidak ingin mengganti.',
+  currentPassword: 'Kata sandi saat ini',
+  newPassword: 'Kata sandi baru',
+  passwordHint: 'Minimal 12 karakter.',
 
-  preferences: {
-    heading: 'Tampilan',
-    note: 'Tema dan bahasa tersimpan di perangkat ini.',
-  },
+  display: 'Tampilan',
 
-  session: {
-    heading: 'Sesi',
-    logout: 'Keluar',
-  },
+  save: 'Simpan',
+  saving: 'Menyimpan…',
+  saved: 'Tersimpan.',
+  nothingToSave: 'Tidak ada yang berubah.',
+  logout: 'Keluar',
 
   errors: {
+    currentPasswordRequired: 'Isi kata sandi saat ini untuk mengganti kata sandi.',
     currentPassword: 'Kata sandi saat ini tidak cocok.',
     weakPassword: 'Kata sandi baru minimal 12 karakter.',
     rateLimited: 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.',
@@ -54,45 +44,35 @@ export const ACCOUNT_COPY = {
 } as const;
 
 export const ACCOUNT_COPY_EN: CopyShape<typeof ACCOUNT_COPY> = {
-  needsDesign: 'TEMPORARY SCREEN · AWAITING DESIGN',
   title: 'Account',
-  subtitle: 'Your name, email, password, and display preferences.',
-  back: '← Back to consultation',
-  loading: 'Loading profile…',
+  subtitle: 'Name, password, and display.',
+  close: 'Close',
+  loading: 'Loading…',
   signedOut: 'You are not signed in.',
   signIn: 'Sign in',
+  register: 'Sign up',
 
-  profile: {
-    heading: 'Profile',
-    name: 'Name',
-    email: 'Email',
-    emailNote: 'Email cannot be changed here yet — contact the Pralon team if needed.',
-    tier: 'Account type',
-    tiers: { registered: 'Registered', advanced: 'Advanced' },
-    save: 'Save name',
-    saved: 'Name saved.',
-  },
+  name: 'Name',
+  email: 'Email',
+  tier: 'Account type',
+  tiers: { registered: 'Registered', advanced: 'Advanced' },
 
-  password: {
-    heading: 'Password',
-    current: 'Current password',
-    next: 'New password',
-    hint: 'At least 12 characters.',
-    submit: 'Change password',
-    changed: 'Password changed.',
-  },
+  passwordHeading: 'Change password',
+  passwordNote: 'Leave blank to keep your current password.',
+  currentPassword: 'Current password',
+  newPassword: 'New password',
+  passwordHint: 'At least 12 characters.',
 
-  preferences: {
-    heading: 'Display',
-    note: 'Theme and language are stored on this device.',
-  },
+  display: 'Display',
 
-  session: {
-    heading: 'Session',
-    logout: 'Sign out',
-  },
+  save: 'Save',
+  saving: 'Saving…',
+  saved: 'Saved.',
+  nothingToSave: 'Nothing has changed.',
+  logout: 'Sign out',
 
   errors: {
+    currentPasswordRequired: 'Enter your current password to change it.',
     currentPassword: 'The current password does not match.',
     weakPassword: 'The new password needs at least 12 characters.',
     rateLimited: 'Too many attempts. Try again in a few minutes.',

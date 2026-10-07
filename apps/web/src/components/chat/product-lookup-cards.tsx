@@ -14,6 +14,14 @@ import { useLocale } from '../locale';
 import styles from './chat-workspace.module.css';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+/**
+ * SKU dari ekspor ERP (`__export__.product_product_123`, `product.0_S_01_…`) adalah ID internal,
+ * bukan kode yang dikenal pelanggan — tidak ditampilkan sampai kolom SKU sebenarnya tersedia (OQ-55).
+ */
+export function isCustomerSku(sku: string): boolean {
+  return !/^(__export__\.|product\.)/i.test(sku) && !/\.product_product_\d+$/i.test(sku);
+}
+
 function useChatCopy() {
   return chatCopy(useLocale().locale);
 }
@@ -42,7 +50,7 @@ export function ProductLookupCards({
             className={styles.lookupCard}
             onClick={() => onOpen(product)}
           >
-            <span className={styles.lookupSku}>{product.sku}</span>
+            {isCustomerSku(product.sku) && <span className={styles.lookupSku}>{product.sku}</span>}
             <span className={styles.lookupName}>{product.name}</span>
             <ProvenanceTag provenance={product.provenance} />
             <span className={styles.lookupOpen}>{COPY.productCards.open}</span>

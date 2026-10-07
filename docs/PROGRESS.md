@@ -892,6 +892,18 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       `GET /auth/me` +`name`/`email` dari database, `PATCH /auth/me`, `POST /auth/password`
       (rate limit per IP), `UserRepository.updateName/updatePasswordHash`. Kaki sidebar menautkan
       avatar/nama ke `/akun`. Ditandai "menunggu desain". Tes: auth.service +3, account-page 3
+- [x] P16-03b Akun jadi pop-up, tanpa metatext (pemilik, 2026-10-07): `AccountModal` di dalam
+      workspace (scrim, kartu, Escape, focus trap — pola overlay laporan), dibuka dari avatar/nama
+      di kaki sidebar; SATU tombol Simpan untuk nama dan kata sandi; `/akun` dihapus. Banner
+      "TAMPILAN/BAGIAN SEMENTARA · MENUNGGU DESAIN" dibuang dari layar masuk/daftar, modal laporan,
+      dan laci produk (status "needs design" cukup di OQ-21/OQ-53). Tes: account-modal 3,
+      auth-form disesuaikan
+- [x] P16-04 "apa bedanya fitting sama hdpe?" (laporan pemilik 2026-10-07): pertanyaan konsep
+      tidak pernah menjadi lookup aspek (`PRODUCT_CONCEPT` → aspek `null` di heuristik DAN di
+      pipeline, apa pun kata model); pengetahuan konsep **fitting** + kalimat pembanding
+      bahan-vs-komponen (ID/EN); `bestMatch` memilih produk yang keluarganya sama dengan istilah
+      (HDPE → keluarga HDPE, bukan pipa kabel bernama HDPE); SKU ekspor ERP disembunyikan di kartu
+      (OQ-55). Tes: pipeline +2, pipe-knowledge +1, heuristics +1, lookup-cards +1
 - [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 

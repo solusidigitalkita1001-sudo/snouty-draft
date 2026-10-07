@@ -371,6 +371,17 @@ katalog yang tidak memisahkannya (katalog contoh). Fitting diterima penuh hanya 
 pemilik: **tidak ditebak AW**) menjadi `SIZE_NEEDS_VALIDATION`; kelas VERIFIED berbeda (D untuk AW)
 ditolak. Masih menunggu Pralon: arti token "W" dan fitting tanpa token (`docs/MATCHER_V2_PROPOSAL.md` §5).
 
+### OQ-55 — SKU katalog adalah ID ekspor ERP, bukan kode produk pelanggan
+
+**Status:** open, needs owner input · **Blocks:** tampilan SKU di kartu produk
+**Pertanyaan:** Kolom `sku` impor `erp-2026-10-06` berisi ID eksternal Odoo
+(`__export__.product_product_10197`, `product.0_S_01_011_016004_00`) — pemilik melihatnya di kartu
+produk (2026-10-07) sebagai teks yang tidak berarti. Apakah ERP punya kode produk resmi
+(`default_code`/kode internal Pralon) yang bisa diekspor sebagai `sku`?
+**Default yang diterapkan:** web menyembunyikan SKU yang berpola ID ekspor (`isCustomerSku`);
+nama produk tetap tampil. Begitu kolom kode resmi tersedia, impor ulang katalog dan SKU tampil lagi
+tanpa perubahan kode.
+
 ### OQ-54 — Data profil perusahaan resmi untuk pengetahuan perusahaan
 
 **Status:** open, needs owner input · **Blocks:** kelengkapan jawaban `COMPANY_QUESTION`

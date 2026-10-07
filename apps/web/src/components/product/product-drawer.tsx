@@ -205,7 +205,6 @@ function ProductBody({
         <section className={styles.section} data-needs-design="true">
           <div className={styles.sectionHead}>
             <h3 className={styles.sectionTitle}>{COPY.documentsTitle}</h3>
-            <span className={styles.needsDesign}>{COPY.documentsNeedsDesign}</span>
           </div>
           <ul className={styles.documents}>
             {documents.map((document) => (

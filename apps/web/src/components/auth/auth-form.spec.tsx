@@ -11,18 +11,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { AUTH_COPY } from './auth-copy';
 import { AuthForm } from './auth-form';
 
-describe('penanda "menunggu desain"', () => {
-  it('tampil di layar masuk', () => {
-    render(<AuthForm mode="login" />);
-    expect(screen.getByText(AUTH_COPY.needsDesign)).toBeDefined();
-  });
-
-  it('tampil di layar daftar', () => {
+describe('tanpa metatext', () => {
+  it('tidak ada penanda "menunggu desain" di layar masuk/daftar (keputusan pemilik 2026-10-07)', () => {
+    const { unmount, container } = render(<AuthForm mode="login" />);
+    expect(container.textContent).not.toContain('MENUNGGU DESAIN');
+    unmount();
     render(<AuthForm mode="register" />);
-    expect(screen.getByText(AUTH_COPY.needsDesign)).toBeDefined();
+    expect(screen.queryByText(/MENUNGGU DESAIN/)).toBeNull();
   });
 
-  it('tidak ada prop yang bisa menyembunyikannya — hanya `mode` yang diterima', () => {
+  it('hanya `mode` yang diterima', () => {
     expect(AuthForm.length).toBe(1);
   });
 });

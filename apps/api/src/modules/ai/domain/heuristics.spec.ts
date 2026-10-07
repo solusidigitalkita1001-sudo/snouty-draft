@@ -66,6 +66,19 @@ describe('certainIntent', () => {
 });
 
 describe('heuristicProductQuestion', () => {
+  it('pertanyaan konsep tidak pernah menebak aspek: "apa bedanya fitting sama hdpe?" → aspek null', () => {
+    expect(heuristicProductQuestion('apa bedanya fitting sama hdpe ?')).toEqual({
+      productQuery: 'hdpe',
+      aspect: null,
+      size: null,
+    });
+    expect(heuristicProductQuestion('apa itu fitting PVC?').aspect).toBeNull();
+    // Pertanyaan spesifikasi sungguhan tetap beraspek.
+    expect(heuristicProductQuestion('fitting apa yang cocok untuk pipa HDPE?').aspect).toBe(
+      'compatible_fittings',
+    );
+  });
+
   it('keluarga + aspek dari bentuk kalimat; ukuran untuk ketersediaan', () => {
     expect(heuristicProductQuestion('ada ukuran 3/4 inch untuk PVC AW?')).toEqual({
       productQuery: 'pvc aw',
