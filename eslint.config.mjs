@@ -112,6 +112,32 @@ export default tseslint.config(
     },
   },
   {
+    files: ['apps/api/src/modules/company-knowledge/**/*.ts'],
+    rules: {
+      // Pengetahuan perusahaan (Fase 16) membaca ragam produk lewat port `product-catalog`,
+      // bukan MySQL, dan tidak pernah menyentuh `ai`: jawabannya fakta terverifikasi milik kode.
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '**/infrastructure/mysql/**',
+                'drizzle-orm',
+                'drizzle-orm/*',
+                'mysql2',
+                'mysql2/*',
+                '**/modules/ai/**',
+              ],
+              message:
+                'company-knowledge membaca katalog lewat port product-catalog dan tidak memanggil model (docs/ARCHITECTURE.md §7).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['apps/api/src/modules/product-knowledge/**/*.ts'],
     rules: {
       // `product-knowledge` membaca katalog lewat port yang diekspor

@@ -68,17 +68,18 @@ ID model tidak pernah ditulis di kode.
 
 Langkah pertama setiap pesan; menentukan jalur mana yang dijalankan (`ARCHITECTURE.md` §8).
 
-| Intent                   | Contoh                           | Jalur                                                                                                                                                                                                        |
-| ------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `PRODUCT_FAQ`            | "Apa bedanya AW dan D?"          | FAQ — diwujudkan di dalam `PRODUCT_LOOKUP` dengan aspek `null`: pengetahuan umum milik kode → katalog sebagai pendukung (opsional, hanya versi `pralon`) → model merangkai (opsional); angka hanya dari DATA |
-| `PRODUCT_LOOKUP`         | "Ada ukuran 3/4 inch?"           | **query MySQL**, bukan pencarian vektor                                                                                                                                                                      |
-| `RECOMMENDATION_REQUEST` | "Rumah 2 lantai, 3 kamar mandi…" | rekomendasi                                                                                                                                                                                                  |
-| `CLARIFICATION_ANSWER`   | "Toren atap"                     | merge, tanpa ekstraksi penuh                                                                                                                                                                                 |
-| `REQUIREMENT_MUTATION`   | "Tambah satu kamar mandi"        | merge + hitung ulang, **tanpa LLM**                                                                                                                                                                          |
-| `EXPLANATION_REQUEST`    | "Kenapa ukurannya 1 inci?"       | jawab dari trace                                                                                                                                                                                             |
-| `COMPETITOR_QUESTION`    | "Lebih bagus Pralon atau X?"     | kebijakan → kriteria netral                                                                                                                                                                                  |
-| `OUT_OF_SCOPE`           | "Jalur air proses pabrik 70 °C"  | validasi teknis                                                                                                                                                                                              |
-| `UNCLEAR`                | —                                | klarifikasi, mood `confused`                                                                                                                                                                                 |
+| Intent                   | Contoh                                         | Jalur                                                                                                                                                                                                        |
+| ------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PRODUCT_FAQ`            | "Apa bedanya AW dan D?"                        | FAQ — diwujudkan di dalam `PRODUCT_LOOKUP` dengan aspek `null`: pengetahuan umum milik kode → katalog sebagai pendukung (opsional, hanya versi `pralon`) → model merangkai (opsional); angka hanya dari DATA |
+| `PRODUCT_LOOKUP`         | "Ada ukuran 3/4 inch?"                         | **query MySQL**, bukan pencarian vektor                                                                                                                                                                      |
+| `COMPANY_QUESTION`       | "Pralon itu apa?", "company profile PT Pralon" | pengetahuan PERUSAHAAN (`company-knowledge`): bagian terverifikasi + ragam produk dari katalog aktif; tidak pernah lewat pencarian produk (Fase 16)                                                          |
+| `RECOMMENDATION_REQUEST` | "Rumah 2 lantai, 3 kamar mandi…"               | rekomendasi                                                                                                                                                                                                  |
+| `CLARIFICATION_ANSWER`   | "Toren atap"                                   | merge, tanpa ekstraksi penuh                                                                                                                                                                                 |
+| `REQUIREMENT_MUTATION`   | "Tambah satu kamar mandi"                      | merge + hitung ulang, **tanpa LLM**                                                                                                                                                                          |
+| `EXPLANATION_REQUEST`    | "Kenapa ukurannya 1 inci?"                     | jawab dari trace                                                                                                                                                                                             |
+| `COMPETITOR_QUESTION`    | "Lebih bagus Pralon atau X?"                   | kebijakan → kriteria netral                                                                                                                                                                                  |
+| `OUT_OF_SCOPE`           | "Jalur air proses pabrik 70 °C"                | validasi teknis                                                                                                                                                                                              |
+| `UNCLEAR`                | —                                              | klarifikasi, mood `confused`                                                                                                                                                                                 |
 
 Dua pembedaan yang paling menentukan biaya dan kebenaran:
 
@@ -111,6 +112,23 @@ katalog contoh, tidak mengubah penjelasannya dan tidak pernah melahirkan kalimat
 katalog Pralon". Pemetaan ke intent yang lebih halus (`general_education`, `product_comparison`,
 `product_lookup`, …) tidak dibuat: `PRODUCT_LOOKUP` + aspek `null` sudah membedakannya secara
 deterministik, dan intent yang lebih banyak berarti klasifikasi model yang lebih sering salah.
+
+**Subjek percakapan aktif dan rujukan (Fase 16).** "Pralon" bisa berarti perusahaan, merek, keluarga
+produk, atau satu produk. Pesan yang menyebut Pralon sebagai perusahaan (`certainIntent` →
+`COMPANY_QUESTION`: "PT Pralon", "company profile", sejarah, pabrik, visi, kontak, atau pertanyaan
+telanjang "pralon itu apa?") diputuskan di kode, sebelum model, dan dijawab modul
+`company-knowledge` — bukan katalog. Jawabannya menetapkan **subjek aktif**
+(`RequirementState.subject`: `{ kind, entity, topic, depth }`, snapshot `subject_change`). Pesan
+berikutnya yang **tidak berdiri sendiri** — seluruh katanya persetujuan/rujukan/kedalaman/pengisi:
+"boleh", "lengkap dong", "semuanya, tolong tampilin", "yang tadi" (`isFollowUp`) — diselesaikan
+terhadap subjek itu tanpa klasifikasi ulang: entitas tetap, kedalaman naik (`brief → standard →
+detailed → comprehensive`; "semuanya"/"lengkap" langsung `comprehensive`). Selama subjeknya
+perusahaan, pesan yang menyebut Pralon lagi tanpa produk/kebutuhan tetap perusahaan walau model
+berkata `PRODUCT_LOOKUP` (`withSubjectPrecedence`). Subjek berganti hanya bila pengguna menyebut hal
+baru: produk ("produk HDPE-nya gimana?") → subjek produk; kebutuhan → subjek kasus. Kegagalan
+retrieval bukan pergantian topik: bagian yang belum terverifikasi dikatakan belum terverifikasi
+("Informasi yang dapat saya verifikasi saat ini …"), dan tidak pernah "Produk mana yang Anda
+maksud?" — kalimat itu hanya milik ruas `PRODUCT_LOOKUP` tanpa produk yang dikenali.
 
 **`REQUIREMENT_MUTATION` vs `EXPLANATION_REQUEST`.** "Tambah satu kamar mandi" mengubah state;
 "kenapa ukuran ini" tidak. Salah klasifikasi pada yang pertama berarti mengubah kebutuhan pengguna

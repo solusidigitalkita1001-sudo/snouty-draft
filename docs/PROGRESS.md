@@ -840,6 +840,38 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
 - [ ] P15-05 Laporan PDF dua bahasa
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
+## Phase 16 — Routing percakapan: subjek aktif & pengetahuan perusahaan
+
+Pemicu (pemilik, 2026-10-07): "pralon itu apa?" → "PT Pralon yang gw maksud" → "boleh" →
+"lengkap dong" → "semuanya" berakhir "Produk mana yang Anda maksud?". Akar masalah: tidak ada intent
+perusahaan (semua yang menyebut Pralon jatuh ke `PRODUCT_LOOKUP`), tidak ada subjek percakapan
+(setiap lanjutan diklasifikasi ulang sebagai pesan lepas), tidak ada sumber pengetahuan perusahaan
+(model 7B mengarang "PT Pralon adalah perusahaan…" tanpa DATA), dan teks "Produk mana…" adalah
+jalan keluar ruas produk untuk pertanyaan tanpa produk.
+
+- [x] P16-01 Intent `COMPANY_QUESTION` + subjek percakapan + modul `company-knowledge` (2026-10-07).
+      Shared-types: `Intent` +`COMPANY_QUESTION`; `ConversationSubject { kind, entity, topic, depth }`,
+      `AnswerDepth`; `RequirementState.subject`; `SnapshotTrigger` +`subject_change` (migration 0020).
+      AI: skema/prompt intent +label; `heuristics.asksAboutCompany`/`certainIntent` → perusahaan
+      ("PT Pralon", "company profile", sejarah/pabrik/visi/kontak, "pralon itu apa?"), produk
+      tetap produk ("PVC AW Pralon itu apa?", "produk HDPE nya gimana?"). Context:
+      `domain/subject.ts` (`isFollowUp` bag-of-words ≤ 8 kata, `requestedDepth`,
+      `resolveCompanySubject` naik kedalaman, `productSubject`, `intentForSubject`); router
+      `subjectContinuation` (lanjutan atas subjek → nol model), `certainIntent` perusahaan di kode,
+      `withSubjectPrecedence` (Pralon lagi tanpa produk → tetap perusahaan); `MessageService`
+      ruas `runCompanyQuestion`, `rememberSubject` (snapshot `subject_change` hanya bila berubah),
+      subjek produk setelah lookup, subjek kasus saat kebutuhan berubah. Modul
+      `company-knowledge`: `company-profile.ts` (bagian terverifikasi dengan `source`: ikhtisar,
+      situs resmi; ragam produk dari katalog Pralon aktif saat dijawab), `company-answer.ts`
+      (kedalaman mengatur jumlah bagian; yang belum terverifikasi disebut apa adanya + CTA tim;
+      pertanyaan ambigu dapat kalimat pembeda produk), `CompanyKnowledgeService`; lint boundary
+      (tanpa MySQL, tanpa `ai`). Tes: subject 12, company-answer 7, heuristics +1, router +1,
+      message.service +3 (percakapan pemilik dimainkan ulang dengan router asli dan model yang
+      selalu bilang PRODUCT_LOOKUP → model tidak pernah dipanggil, tidak pernah "Produk mana").
+      Docs: AI_BEHAVIOR §4, CONTEXT_ENGINE §2, OQ-54 (data profil resmi dari pemilik)
+- [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
+- [ ] ✋ CHECKPOINT — reviewed by owner
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

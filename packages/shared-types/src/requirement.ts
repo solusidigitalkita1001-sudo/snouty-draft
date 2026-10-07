@@ -24,11 +24,33 @@ export type Intent =
   | 'REQUIREMENT_STATEMENT'
   | 'REQUIREMENT_MUTATION'
   | 'PRODUCT_LOOKUP'
+  | 'COMPANY_QUESTION'
   | 'EXPLANATION_REQUEST'
   | 'CLARIFICATION_ANSWER'
   | 'COMPETITOR_QUESTION'
   | 'OUT_OF_SCOPE'
   | 'CLARIFICATION_NEEDED';
+
+/**
+ * Subjek percakapan yang sedang aktif (Fase 16). Pesan lanjutan yang tidak berdiri sendiri —
+ * "boleh", "lengkap dong", "semuanya", "yang tadi" — diselesaikan terhadap subjek ini, bukan
+ * diklasifikasikan ulang seolah pesan lepas. "Pralon" bisa berarti perusahaan, merek, keluarga
+ * produk, atau satu produk; begitu pengguna menetapkannya, pengertian itu bertahan sampai
+ * pengguna benar-benar berganti topik.
+ */
+export type SubjectKind = 'company' | 'product' | 'material' | 'case';
+
+/** Kedalaman jawaban yang diminta pengguna, dibaca dari bahasanya ("singkat", "lengkap", "semuanya"). */
+export type AnswerDepth = 'brief' | 'standard' | 'detailed' | 'comprehensive';
+
+export interface ConversationSubject {
+  readonly kind: SubjectKind;
+  /** Nama kanonik entitasnya: "PT Pralon", "PVC AW", "HDPE", atau `CaseId`. */
+  readonly entity: string;
+  /** Topik di dalam entitas: `company_profile`, `product_overview`, `comparison`, … */
+  readonly topic: string;
+  readonly depth: AnswerDepth;
+}
 
 export type BuildingType = 'residential' | 'boarding_house' | 'light_commercial' | 'industrial';
 export type WaterSource = 'rooftop_tank' | 'ground_tank' | 'pump' | 'municipal';
@@ -150,8 +172,10 @@ export interface RequirementState {
   readonly completeness: RequirementCompleteness;
   /** Jalur guna khusus (irigasi); tidak ada = jalur bangunan biasa. */
   readonly useCase?: UseCaseState;
+  /** Subjek percakapan aktif (Fase 16); tidak ada = belum ada topik yang ditetapkan. */
+  readonly subject?: ConversationSubject;
 }
 
 /** Pemicu sebuah snapshot terbentuk (kolom `requirement_snapshots.trigger`). */
 export type SnapshotTrigger =
-  'extraction' | 'clarification_answer' | 'user_edit' | 'default_applied';
+  'extraction' | 'clarification_answer' | 'user_edit' | 'default_applied' | 'subject_change';

@@ -371,6 +371,21 @@ katalog yang tidak memisahkannya (katalog contoh). Fitting diterima penuh hanya 
 pemilik: **tidak ditebak AW**) menjadi `SIZE_NEEDS_VALIDATION`; kelas VERIFIED berbeda (D untuk AW)
 ditolak. Masih menunggu Pralon: arti token "W" dan fitting tanpa token (`docs/MATCHER_V2_PROPOSAL.md` §5).
 
+### OQ-54 — Data profil perusahaan resmi untuk pengetahuan perusahaan
+
+**Status:** open, needs owner input · **Blocks:** kelengkapan jawaban `COMPANY_QUESTION`
+**Pertanyaan:** Pemilik (2026-10-07) meminta SNOUTY menjawab "Pralon itu apa?", "company profile
+PT Pralon", "lengkap dong" dengan profil perusahaan yang utuh. Repositori ini tidak memuat satu pun
+dokumen profil perusahaan, dan situs `pralon.co.id` menolak akses otomatis (403), jadi tidak ada
+sumber yang bisa diverifikasi untuk sejarah, fokus bisnis, pabrik, sertifikasi, mutu, pasar,
+distribusi, visi, misi, keberlanjutan, afiliasi, dan kontak.
+**Default yang diterapkan:** modul `company-knowledge` hanya menampilkan bagian yang punya sumber —
+ikhtisar (produsen sistem perpipaan di Indonesia, dari katalog aktif), ragam produk (dari katalog
+Pralon aktif), situs resmi (`pralon.co.id`, dari domain layanan ini) — dan menyebut sisanya "belum
+bisa saya verifikasi", lalu menawarkan tim Pralon. Pemilik mengisi
+`apps/api/src/modules/company-knowledge/domain/company-profile.ts` (`SECTIONS`, dua bahasa, setiap
+bagian dengan `source`) dari dokumen resmi; tampilan mengikuti otomatis.
+
 ### OQ-53 — Halaman profil/pengaturan akun belum ada
 
 **Status:** open, needs design · **Blocks:** —

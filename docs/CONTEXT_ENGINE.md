@@ -79,6 +79,15 @@ akan menyembunyikan asal-usul angka dari pengguna.
 
 ---
 
+### Subjek percakapan aktif (Fase 16)
+
+`RequirementState.subject?: { kind: 'company' | 'product' | 'material' | 'case'; entity; topic;
+depth }` — apa yang sedang dibicarakan, supaya pesan yang tidak berdiri sendiri ("boleh", "lengkap
+dong", "semuanya", "yang tadi") diselesaikan terhadapnya, bukan diklasifikasi ulang sebagai pesan
+lepas. Ditulis sebagai snapshot `subject_change` bila hanya subjeknya yang berubah; ikut snapshot
+ekstraksi bila kebutuhan berubah (kasusnya menjadi subjek). Aturannya di
+`context/domain/subject.ts`; alasannya di `docs/AI_BEHAVIOR.md` §4.
+
 ## 3. Alur pemrosesan
 
 ```
