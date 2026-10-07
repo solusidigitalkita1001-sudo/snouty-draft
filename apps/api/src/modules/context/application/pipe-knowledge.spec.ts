@@ -93,9 +93,9 @@ describe('pipe knowledge', () => {
     expect(explain('pelumas rubber ring boleh pakai oli?', null)).toContain(
       'Jangan memakai oli, gemuk, minyak, atau sabun',
     );
-    expect(explain('pipa pvc disimpan di luar boleh?', null)).toContain(
-      'hindari sinar matahari langsung',
-    );
+    // Pertanyaan topik dibuka dengan topiknya, bukan ikhtisar bahan; "apa itu pvc" tetap bahan dulu.
+    expect(explain('pipa pvc disimpan di luar boleh?', null)).toMatch(/^Penyimpanan pipa PVC/);
+    expect(explain('apa itu pvc?', null)).toMatch(/^\*\*PVC/);
     expect(explain('pipa bocor di sambungan kenapa ya?', null)).toContain('bocor di sambungan');
     expect(explain('SDR itu apa?', null)).toContain(
       'SDR perbandingan diameter luar terhadap tebal dinding',

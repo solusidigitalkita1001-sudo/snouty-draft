@@ -22,7 +22,7 @@ import type {
   RequirementState,
   SnapshotTrigger,
 } from '@snouty/shared-types';
-import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
+import { AiOutputInvalidError, LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
@@ -208,7 +208,12 @@ export async function runUnderstanding(
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
     extraction = await ai.extract(input.message);
   } catch (error) {
-    if (!(error instanceof AiOutputInvalidError)) throw error;
+    // Model tidak terjangkau atau kehabisan waktu (produksi 2026-10-07: pesan masjid 2 lantai yang
+    // panjang → 7B lewat 180 s → "Pemahaman bahasa sedang tidak tersedia") diperlakukan sama
+    // dengan keluaran tidak valid: fakta tersurat di teks tetap dicatat, giliran tidak jatuh.
+    if (!(error instanceof AiOutputInvalidError) && !(error instanceof LlmUnavailableError)) {
+      throw error;
+    }
     extractionFailed = true;
   }
 

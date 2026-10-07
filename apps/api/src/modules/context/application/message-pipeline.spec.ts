@@ -4,7 +4,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import type { AiService } from '../../ai/domain/ai.port.js';
-import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
+import { AiOutputInvalidError, LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { withCompleteness } from '../domain/completeness.js';
@@ -289,6 +289,25 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(card.card.kind).toBe('cta');
     expect(card.card.action).toBe('ANALYZE');
     expect(nextState.missingInformation).toEqual([]);
+  });
+
+  it('model kehabisan waktu (LlmUnavailableError) pada pesan masjid 2 lantai → fakta teks tetap dicatat, pengantar + klarifikasi, bukan galat', async () => {
+    const ai = {
+      extract: vi.fn(() => Promise.reject(new LlmUnavailableError(null))),
+      classifyIntent: vi.fn(),
+      titleFor: vi.fn(),
+      writeProse: vi.fn(() => Promise.resolve(null)),
+    } as unknown as AiService;
+    const message =
+      'saya mau bangun masjid 2 lantai, besarnya itu 200 meter persegi, ada 2 tempat wudhu buat pria dan wanita, ada 2 kamar mandi juga, karena kebutuhan air di masjid itu lumayan banyak, rencana aku mau pasang 2 toren supaya bs mengcover kebutuhan airnya.. kira2 rekomendasi solusi untuk pipa air nya ini gmn dan butuh berapa banyak?';
+    const { events, nextState } = await runUnderstanding(ai, input({ message }));
+    expect(events.map((e) => e.type)).not.toContain('error');
+    expect(nextState.building.floors.value).toBe(2);
+    expect(nextState.fixtures.bathrooms.value).toBe(2);
+    expect(nextState.building.type.value).toBe('light_commercial');
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toMatch(/^Oke, sudah saya catat: .*2 lantai.*2 kamar mandi/);
+    expect(events.some((e) => e.type === 'card')).toBe(true);
   });
 
   it('ekstraksi tidak valid → stage failed + klarifikasi, giliran tidak jatuh', async () => {

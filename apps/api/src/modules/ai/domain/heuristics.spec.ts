@@ -67,6 +67,19 @@ describe('certainIntent', () => {
 });
 
 describe('heuristicProductQuestion', () => {
+  it('produksi 2026-10-07: "cara nyambung pipa pvc pakai lem" bukan aspek joint_type (pengetahuan, aspek null); "harganya berapa?" pasti PRODUCT_LOOKUP', () => {
+    expect(heuristicProductQuestion('cara nyambung pipa pvc pakai lem gimana?')).toEqual({
+      productQuery: 'pvc',
+      aspect: null,
+      size: null,
+    });
+    expect(heuristicProductQuestion('how do I join pvc pipe?').aspect).toBeNull();
+    // Pertanyaan sifat sambungan yang sungguhan tetap beraspek.
+    expect(heuristicProductQuestion('sambungan pvc aw pakai apa?').aspect).toBe('joint_type');
+    expect(certainIntent('harganya berapa?')?.intent).toBe('PRODUCT_LOOKUP');
+    expect(certainIntent('harga pipa buat rumah 2 lantai berapa?')).toBeNull();
+  });
+
   it('pengetahuan pipa (OQ-54): cara sambung/simpan/rawat/istilah tentang pipa → PRODUCT_LOOKUP pasti; dengan kebutuhan → bukan', () => {
     expect(certainIntent('cara nyambung pipa pvc pakai lem gimana?')?.intent).toBe(
       'PRODUCT_LOOKUP',

@@ -958,6 +958,14 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-08b Ruas produk tidak memanggil model pemeta sebelum jalur deterministik (harga, ubah
       bentuk, lanjutan subjek, pengetahuan tanpa keluarga produk) — tadinya 61–87 s per giliran
       hanya untuk memetakan
+- [x] P16-09 Laporan pemilik 2026-10-07 malam (pesan masjid 2 lantai → "Pemahaman bahasa sedang
+      tidak tersedia"): model 7B kehabisan waktu pada pesan panjang → kini diperlakukan seperti
+      keluaran tidak valid — fakta tersurat (2 lantai, 2 kamar mandi, masjid → komersial ringan)
+      tetap dicatat, pengantar + klarifikasi, bukan galat. Sekalian dari verifikasi produksi:
+      "cara nyambung pipa pvc pakai lem" tidak lagi dijawab sebagai aspek sambungan katalog
+      (pertanyaan cara = pengetahuan), "harganya berapa?" tanpa subjek langsung kebijakan harga
+      (tanpa model), pertanyaan topik (penyimpanan, cara) dibuka dengan topiknya sebelum ikhtisar
+      bahan. Tes: message-pipeline +1, heuristics +1, pipe-knowledge disesuaikan
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

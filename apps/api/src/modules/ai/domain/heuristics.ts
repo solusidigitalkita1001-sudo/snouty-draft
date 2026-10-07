@@ -92,6 +92,12 @@ const BUILDING_NEED =
 const USE_QUESTION =
   /\b(pipa|bahan|material)\b.*\b(pakai apa|pake apa|pakai yang mana|pake yang mana|bahan apa|jenis apa|yang mana|apa yang cocok|cocoknya apa|sebaiknya apa|what (?:material|pipe|type)|which (?:material|pipe))\b|\b(pakai apa|pake apa|bahan apa)\b.*\b(pipa|air)\b/;
 
+const PRICE_SIGNALS =
+  /\b(harga|harganya|berapa duit|berapa rupiah|biaya|biayanya|price|cost|how much)\b/;
+/** Pertanyaan CARA ("cara nyambung pvc?", "how to join"): pengetahuan, bukan aspek spesifikasi katalog. */
+const HOW_TO =
+  /\b(cara|caranya|gimana cara|bagaimana cara|langkah|tahapan|how to|how do i|how should i|steps?)\b/;
+
 const KNOWLEDGE_TOPIC =
   /\b(cara|gimana|bagaimana|kenapa|penyebab|simpan|penyimpanan|disimpan|sambung|nyambung|menyambung|dilem|lem|solvent|rubber ring|pasang|dipasang|rawat|perawatan|bocor|retak|pecah|tersumbat|mampet|melengkung|sdr|od|wt|upvc|dibuat|diproduksi|produksi|uji|tes|pengujian|qc|penimbunan|ditimbun|galian|how to|how is|why|store|storage|join|joining|maintain|leak|crack)\b/;
 
@@ -118,6 +124,11 @@ export function certainIntent(message: string): IntentClassification | null {
   }
   FAMILY_TOKENS.lastIndex = 0;
   if (USE_QUESTION.test(text) && !REQUIREMENT_SIGNALS.test(text)) {
+    return { intent: 'PRODUCT_LOOKUP', confidence: 0.85 };
+  }
+  // "harganya berapa?" tanpa kebutuhan: pertanyaan produk (dijawab kebijakan harga, OQ-03) —
+  // bukan 80 detik model lalu teks pembuka.
+  if (PRICE_SIGNALS.test(text) && !REQUIREMENT_SIGNALS.test(text)) {
     return { intent: 'PRODUCT_LOOKUP', confidence: 0.85 };
   }
   // Pengetahuan pipa dari materi Pralon (OQ-54): cara sambung, simpan, rawat, gangguan, istilah,
@@ -158,7 +169,9 @@ export function heuristicProductQuestion(message: string): ProductQuestionParse 
 
   // "apa bedanya fitting sama HDPE?" adalah pertanyaan konsep — kata 'fitting' di dalamnya bukan
   // permintaan daftar fitting yang sepadan (laporan pemilik 2026-10-07).
-  if (PRODUCT_CONCEPT.test(text)) return { productQuery, aspect: null, size: null };
+  if (PRODUCT_CONCEPT.test(text) || HOW_TO.test(text)) {
+    return { productQuery, aspect: null, size: null };
+  }
   // Ketersediaan ukuran, dua bahasa: "ada ukuran 3/4?", "do you have 3/4 inch?", "is 63 mm available?"
   const availability =
     /ada ukuran|ukuran .* ada|tersedia ukuran|ukuran .* tersedia|do you (?:have|carry|sell|stock)|is there|available in|in stock|come in/.test(

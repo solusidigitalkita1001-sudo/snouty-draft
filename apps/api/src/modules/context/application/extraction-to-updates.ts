@@ -76,8 +76,10 @@ const OBVIOUS = {
       return 'boarding_house';
     if (/\b(pabrik|industri|gudang|factory|plant|industrial|warehouse)\b/i.test(m))
       return 'industrial';
+    // Tempat ibadah, sekolah, klinik: bangunan umum berpenghuni ramai — kelas komersial ringan
+    // (produksi 2026-10-07: "masjid 2 lantai" tidak dikenali, lalu model kehabisan waktu).
     if (
-      /\b(ruko|toko|kantor|kafe|cafe|resto|shophouse|shop|store|office|restaurant|hotel|clinic|school)\b/i.test(
+      /\b(ruko|toko|kantor|kafe|cafe|resto|shophouse|shop|store|office|restaurant|hotel|clinic|school|masjid|mushol+a|musala|surau|gereja|vihara|pura|sekolah|madrasah|pesantren|puskesmas|klinik|mosque|church|temple)\b/i.test(
         m,
       )
     )
@@ -154,7 +156,7 @@ const TYPE_MARKERS: Readonly<
     /\b(kos|kost|kos-kosan|kosan|asrama|kontrakan|mess|boarding house|dorm(?:itory)?|hostel)\b/i,
   industrial: /\b(pabrik|industri|gudang|workshop|bengkel|factory|plant|industrial|warehouse)\b/i,
   light_commercial:
-    /\b(ruko|toko|kantor|kafe|cafe|resto|restoran|hotel|klinik|sekolah|warung|shophouse|shop|store|office|restaurant|clinic|school)\b/i,
+    /\b(ruko|toko|kantor|kafe|cafe|resto|restoran|hotel|klinik|sekolah|warung|shophouse|shop|store|office|restaurant|clinic|school|masjid|mushol+a|musala|surau|gereja|vihara|pura|madrasah|pesantren|puskesmas|mosque|church|temple)\b/i,
 };
 
 /** `0` bila pesan meniadakan kata benda itu ("tanpa dapur"); selain itu tidak ada tebakan. */

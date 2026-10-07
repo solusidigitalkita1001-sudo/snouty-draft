@@ -627,9 +627,20 @@ export function explain(
   }
   if (materials.length === 2) parts.push(compareMaterials(materials[0]!, materials[1]!, locale));
   else if (materials.length === 1) parts.push(describeMaterial(materials[0]!, locale));
-  for (const c of concepts) parts.push(locale === 'en' ? c.textEn : c.text);
-  return parts.join('\n\n');
+  const conceptTexts = concepts.map((c) => (locale === 'en' ? c.textEn : c.text));
+  // Pertanyaan tentang TOPIK ("pvc disimpan di luar boleh?", "cara nyambung pvc?") dibuka dengan
+  // topiknya; ikhtisar bahan menyusul. Pertanyaan tentang bahannya sendiri ("apa itu PVC?",
+  // "bedanya…") tetap dibuka dengan bahan.
+  const aboutMaterialItself = materials.length === 2 || ABOUT_MATERIAL.test(question);
+  const ordered =
+    conceptTexts.length > 0 && !aboutMaterialItself
+      ? [...conceptTexts, ...parts]
+      : [...parts, ...conceptTexts];
+  return ordered.join('\n\n');
 }
+
+const ABOUT_MATERIAL =
+  /\b(apa itu|itu apa|apaan|apa sih|bedanya|perbedaan|beda|dibanding|versus|vs|what is|what are|difference|differ|compare)\b/i;
 
 const COMPARISON = /\b(beda|bedanya|perbedaan|dibanding|versus|vs|difference|differ|compare)\b/i;
 
