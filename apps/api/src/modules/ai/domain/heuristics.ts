@@ -26,7 +26,7 @@ export const COMPETITOR_BRANDS = /\b(rucika|wavin|maspion|vinilon|unilon|supralo
 /** Pertanyaan KONSEP/definisi/perbandingan: aspek spesifikasi tidak pernah ditebak darinya. */
 export const PRODUCT_CONCEPT =
   /\b(apa itu|itu apa|apaan|apa sih|apa bedanya|bedanya|perbedaan|beda|what is|what are|difference|differences|differ|compare|comparison|versus|vs)\b/;
-const FAMILY_TOKENS = /\b(pvc\s*(?:aw|d|c)?|hdpe|ppr|pp-r|tee|elbow|reducer|socket)\b/g;
+const FAMILY_TOKENS = /\b(pvc\s*(?:aw|d|c)?|aw|hdpe|ppr|pp-r|tee|elbow|reducer|socket)\b/g;
 const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
 
 /** Aspek spesifikasi dari bentuk kalimat, dua bahasa; urutan = prioritas bila beberapa cocok. */
@@ -117,7 +117,11 @@ export function certainIntent(message: string): IntentClassification | null {
  */
 export function heuristicProductQuestion(message: string): ProductQuestionParse {
   const text = message.toLowerCase();
-  const families = [...text.matchAll(FAMILY_TOKENS)].map((m) => m[1]!.replace(/\s+/g, ' ').trim());
+  // "pipa AW" adalah PVC kelas AW — kelasnya disebut, bahannya tersirat.
+  const families = [...text.matchAll(FAMILY_TOKENS)].map((m) => {
+    const token = m[1]!.replace(/\s+/g, ' ').trim();
+    return token === 'aw' ? 'pvc aw' : token;
+  });
   const unique = [...new Set(families)].slice(0, 2);
   const productQuery = unique.length > 0 ? unique.join(' dan ') : null;
 

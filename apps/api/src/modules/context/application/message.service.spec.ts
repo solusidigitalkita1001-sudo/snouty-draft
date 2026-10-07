@@ -208,13 +208,16 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
     const { IntentRouter } = await import('./intent-router.js');
     const snapshots: { state: RequirementState }[] = [];
     const assistant: string[] = [];
+    const rows: { role: 'user' | 'assistant'; text: string }[] = [];
     const conversations = {
       find: vi.fn(async () => ({ title: 'x', language: 'id' })),
-      messages: vi.fn(async () => []),
+      // Giliran sebelumnya tersedia sebagai `recentTurns` — seperti di produksi.
+      messages: vi.fn(async () => rows),
       rename: vi.fn(async () => undefined),
       appendUserMessage: vi.fn(async () => undefined),
       appendAssistantMessage: vi.fn(async (_id: string, text: string) => {
         assistant.push(text);
+        rows.push({ role: 'assistant', text });
       }),
     };
     const store = {
@@ -245,6 +248,7 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
       ai as never,
     );
     const say = async (text: string) => {
+      rows.push({ role: 'user', text });
       await service.handle('C'.repeat(26), ACTOR, text, '2026-10-07T00:00:00Z');
       return assistant.at(-1) ?? '';
     };
@@ -300,6 +304,28 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
     );
     expect(table).toContain('| Aspek |');
     expect(table).not.toContain('Produk mana');
+  });
+
+  it('percakapan pemilik #3: fitting vs HDPE → tabel → "bandingin sama PVC dalam bentuk table" → "bedanya sama pipa AW … yang lu jelasin tadi"', async () => {
+    const { say, subject } = await conversation();
+    await say('apa bedanya fitting sama hdpe ?');
+    const table = await say(
+      'bikinin skema perbedaan nya dalam bentuk table dong biar lebih enak dibaca',
+    );
+    expect(table).toContain('| Aspek | **HDPE** | **Fitting** |');
+
+    const vsPvc = await say('coba bandingin sama pipa PVC dalam bentuk table');
+    expect(vsPvc).toContain('| Aspek | **PVC (uPVC)** | **HDPE** |');
+    expect(vsPvc).not.toContain('Produk mana');
+    expect(subject()).toMatchObject({ kind: 'product', topic: 'comparison' });
+    expect(subject()?.entity).toMatch(/pvc/);
+    expect(subject()?.entity).toMatch(/hdpe/);
+
+    const vsAw = await say('terus bedanya sama pipa AW apa dari product2 yang lu jelasin tadi');
+    expect(vsAw).not.toContain('Produk mana');
+    expect(vsAw).toContain('AW dan D adalah kelas pipa PVC');
+    expect(vsAw).toContain('**PVC (uPVC)**');
+    expect(vsAw).toContain('**HDPE**');
   });
 
   it('TEST E: setelah profil perusahaan, "produk HDPE nya gimana?" berpindah ke subjek produk', async () => {

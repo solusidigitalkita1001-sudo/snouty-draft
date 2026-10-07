@@ -57,7 +57,7 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
   {
     family: 'PVC',
     label: 'PVC (uPVC)',
-    pattern: /\b(u?pvc|paralon)\b/i,
+    pattern: /\b(u?pvc|paralon|aw|kelas aw|kelas d)\b/i,
     gist: 'kaku dan dipasok batangan',
     bestFor: 'instalasi tetap di dalam dan sekitar bangunan',
     notFor: 'air panas, dan jalur tanam panjang yang tanahnya bergerak',
@@ -170,6 +170,13 @@ export const CONCEPTS: readonly ConceptKnowledge[] = [
     text: 'Fitting adalah komponen penyambung pipa — sok (socket), tee, elbow/knee, reducer, katup — yang mengubah arah, membagi cabang, mengubah ukuran, atau menyambung dua batang. Fitting dibuat dari bahan yang sama dengan pipanya (PVC untuk PVC, HDPE untuk HDPE) supaya sambungannya cocok.',
     textEn:
       'Fittings are the connecting parts of a pipe run — sockets, tees, elbows, reducers, valves — that change direction, split a branch, change size, or join two lengths. They are made of the same material as the pipe (PVC for PVC, HDPE for HDPE) so the joint matches.',
+  },
+  {
+    topic: 'kelas pvc',
+    pattern: /\b(aw|kelas aw|kelas d|pvc d|class aw|class d)\b/i,
+    text: 'AW dan D adalah kelas pipa PVC, bukan bahan yang berbeda: AW untuk jalur air bersih bertekanan (dinding lebih tebal), D untuk pembuangan dan ventilasi yang mengalir karena gravitasi (dinding lebih tipis). Jadi "pipa AW" adalah pipa PVC kelas bertekanan.',
+    textEn:
+      'AW and D are classes of PVC pipe, not different materials: AW for pressurized clean-water lines (thicker wall), D for drainage and venting that flow by gravity (thinner wall). So an "AW pipe" is PVC pipe of the pressure class.',
   },
   {
     topic: 'pipa tanam',

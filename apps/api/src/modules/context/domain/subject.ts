@@ -356,15 +356,26 @@ export function productSubject(
   if (entity === null && previous && previous.kind !== 'company' && isFollowUp(message)) {
     return { ...previous, depth: requested ?? deeper(previous.depth) };
   }
+  const comparison = COMPARISON_WORDS.test(message);
+  // "coba bandingin sama pipa PVC" saat subjeknya HDPE: yang dibandingkan adalah keduanya —
+  // entitasnya digabung supaya giliran berikutnya ("bedanya sama AW?") tahu apa yang sedang dibahas.
+  const merged =
+    comparison &&
+    entity !== null &&
+    previous?.kind === 'product' &&
+    !previous.entity.split(/\s+dan\s+/).includes(entity)
+      ? `${previous.entity} dan ${entity}`
+      : entity;
   return {
     kind: 'product',
-    entity: entity ?? previous?.entity ?? 'Pralon',
-    topic: /\b(beda|bedanya|perbedaan|differ|compare|versus|vs)\b/i.test(message)
-      ? 'comparison'
-      : 'product_overview',
+    entity: merged ?? previous?.entity ?? 'Pralon',
+    topic: comparison ? 'comparison' : 'product_overview',
     depth: requested ?? 'standard',
   };
 }
+
+const COMPARISON_WORDS =
+  /\b(beda|bedanya|perbedaan|bandingkan|bandingin|dibanding|differ|difference|compare|versus|vs)\b/i;
 
 /** Intent yang dilanjutkan sebuah pesan lanjutan atas subjek bersangkutan. */
 export function intentForSubject(kind: SubjectKind): Intent {

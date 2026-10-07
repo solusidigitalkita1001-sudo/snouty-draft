@@ -79,13 +79,29 @@ function subjectQuery(input: ProductQuestionInput): string | null {
  */
 function reformatted(input: ProductQuestionInput, locale: Locale): string | null {
   const format = requestedFormat(input.message);
-  if (format === null || !isFormatFollowUp(input.message)) return null;
-  if (materialsIn(input.message).length > 0) return null; // menyebut bahan baru: pertanyaan baru
+  if (format === null) return null;
+  const mentioned = materialsIn(input.message).length > 0;
+  // Tanpa bahan di pesan, ini harus lanjutan ("tabelnya dong"); dengan bahan ("bandingin sama PVC
+  // dalam bentuk tabel") permintaannya sudah jelas sendiri — bahan pesan digabung dengan subjek.
+  if (!mentioned && !isFormatFollowUp(input.message)) return null;
+  const subjectEntity = input.subject?.kind === 'product' ? input.subject.entity : null;
   return reformat(
     format,
-    { subject: input.subject?.entity ?? null, previous: lastAssistantText(input) },
+    {
+      subject: [input.message, subjectEntity].filter((s) => s !== null).join(' dan '),
+      previous: lastAssistantTextWithMaterial(input),
+    },
     locale,
   );
+}
+
+const COMPARISON_REQUEST =
+  /\b(beda|bedanya|perbedaan|bandingkan|bandingin|dibanding|differ|difference|compare|versus|vs)\b/i;
+
+/** Jawaban asisten terakhir yang memang membahas bahan — melewati balasan tanya-balik di antaranya. */
+function lastAssistantTextWithMaterial(input: ProductQuestionInput): string {
+  const assistant = [...(input.recentTurns ?? [])].reverse().filter((t) => t.role === 'assistant');
+  return assistant.find((t) => materialsIn(t.text).length > 0)?.text ?? lastAssistantText(input);
 }
 
 /** Hasil pencarian katalog beserta bobot yang boleh diberikan padanya. */
@@ -173,7 +189,17 @@ async function answerConcept(
     return rangeOverview(catalog, locale);
   }
 
-  const knowledge = withoutRepeating(explain(input.message, query, locale), input);
+  // "Bedanya sama pipa AW?" saat subjeknya HDPE: satu bahan di pesan dibandingkan dengan bahan
+  // yang sedang dibahas — bukan dijelaskan sendirian.
+  const subjectEntity = input.subject?.kind === 'product' ? input.subject.entity : null;
+  const comparedQuery =
+    COMPARISON_REQUEST.test(input.message) &&
+    materialsIn(input.message, query).length === 1 &&
+    subjectEntity !== null &&
+    materialsIn(subjectEntity).some((m) => !materialsIn(input.message, query).includes(m))
+      ? `${query ?? input.message} dan ${subjectEntity}`
+      : query;
+  const knowledge = withoutRepeating(explain(input.message, comparedQuery, locale), input);
   // Katalog opsional: kegagalan membacanya tidak boleh mengubah penjelasan teknik.
   const support = query === null ? NO_SUPPORT : await lookup(catalog, query, { optional: true });
 

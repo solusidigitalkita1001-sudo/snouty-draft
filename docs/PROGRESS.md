@@ -918,6 +918,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       `fittingVsMaterialTable`, butir, ringkasan — isi sama, hanya bentuk). Web: `remark-gfm`,
       tabel diizinkan di `AssistantMarkdown` dengan pembungkus yang menggulir di layar sempit.
       Tes: subject +1, router +1, pipeline +1, pipe-knowledge +1, message.service +1, markdown +1
+- [x] P16-05b Perbandingan lintas giliran (laporan pemilik 2026-10-07, "bandingin sama pipa PVC dalam
+      bentuk table", "bedanya sama pipa AW … yang lu jelasin tadi"): "AW" dikenali PVC AW (token +
+      konsep kelas AW/D), subjek perbandingan menggabungkan entitas ("hdpe dan pvc"), tabel atas
+      gabungan bahan pesan + subjek, perbandingan satu bahan dengan subjek, lookback jawaban asisten
+      yang memuat bahan (melewati tanya-balik). Tes: message.service +1 (harness kini mengembalikan
+      giliran sebelumnya)
 - [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
