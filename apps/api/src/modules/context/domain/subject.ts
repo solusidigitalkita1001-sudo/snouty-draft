@@ -275,6 +275,17 @@ export function isFormatFollowUp(message: string): boolean {
   return REFERENCE.test(message) || words <= MAX_FOLLOW_UP_WORDS;
 }
 
+/**
+ * "yang mana buat kamar mandi?", "mana yang lebih cocok?", "which one?": memilih di antara hal yang
+ * baru dibandingkan — lanjutan subjek, walau menyebut tempat pakainya.
+ */
+export function isChoiceFollowUp(message: string): boolean {
+  const words = message.split(/\s+/).filter((w) => w.length > 0).length;
+  return words <= MAX_FOLLOW_UP_WORDS && CHOICE.test(message);
+}
+const CHOICE =
+  /\b(yang mana|mana yang|pilih (?:yang )?mana|which one|which (?:is|would be)|yg mana|mana yg)\b/i;
+
 /** Topik perusahaan yang disebut pesan; `company_profile` bila "profil/company profile/semuanya". */
 export function companyTopicOf(message: string): CompanyTopic {
   const t = message.toLowerCase();

@@ -7,6 +7,7 @@ import {
   COMPANY_ENTITY,
   companyTopicOf,
   intentForSubject,
+  isChoiceFollowUp,
   isFollowUp,
   isFormatFollowUp,
   productSubject,
@@ -125,6 +126,20 @@ describe('requestedFormat & isFormatFollowUp — permintaan ubah bentuk jawaban'
     expect(isFormatFollowUp('can you put that in a table?')).toBe(true);
     expect(isFormatFollowUp('tabel')).toBe(true);
     expect(isFormatFollowUp('rumah 2 lantai 3 kamar mandi')).toBe(false);
+  });
+});
+
+describe('isChoiceFollowUp', () => {
+  it('"yang mana buat kamar mandi?", "mana yang lebih cocok?", "which one?" — ya; kalimat panjang atau tanpa kata pilihan — bukan', () => {
+    expect(isChoiceFollowUp('yang mana buat kamar mandi?')).toBe(true);
+    expect(isChoiceFollowUp('mana yang lebih cocok?')).toBe(true);
+    expect(isChoiceFollowUp('which one?')).toBe(true);
+    expect(isChoiceFollowUp('apa bedanya pvc sama hdpe?')).toBe(false);
+    expect(
+      isChoiceFollowUp(
+        'yang mana yang paling bagus untuk rumah dua lantai dengan tiga kamar mandi dan dapur',
+      ),
+    ).toBe(false);
   });
 });
 

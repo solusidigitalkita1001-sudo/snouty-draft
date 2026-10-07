@@ -192,6 +192,42 @@ describe('runProductQuestion — KONSEP', () => {
     expect(cards(events)).toEqual([]);
   });
 
+  it('"harganya berapa?" (harga nonaktif, OQ-03) → jawaban tetap + CTA, bukan "Produk mana"', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      {
+        messageId: 'm',
+        message: 'harganya berapa?',
+        subject: { kind: 'product', entity: 'hdpe', topic: 'product_overview', depth: 'standard' },
+      },
+    );
+    expect(text(events)).toContain('Harga tidak saya tampilkan di sini');
+    expect(text(events)).not.toContain('Produk mana');
+    expect(cards(events)).toEqual([{ kind: 'cta', action: 'CONTACT_TECHNICAL' }]);
+  });
+
+  it('"yang mana buat kamar mandi?" setelah PVC D vs AW → lanjutan subjek: kelas AW/D dijelaskan, bukan pembuka', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      {
+        messageId: 'm',
+        message: 'yang mana buat kamar mandi?',
+        subject: {
+          kind: 'product',
+          entity: 'pvc d dan pvc aw',
+          topic: 'comparison',
+          depth: 'standard',
+        },
+      },
+    );
+    expect(text(events)).toContain('AW dan D adalah kelas pipa PVC');
+    expect(text(events)).not.toContain('Produk mana');
+  });
+
   it('"apa bedanya pvc sama hdpe" dijawab utuh tanpa katalog dan tanpa model', async () => {
     const events = await runProductQuestion(
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),
@@ -226,7 +262,8 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),
       brokenCatalog,
       noQuestions,
-      { messageId: 'm', message: 'kalau pvc vs hdpe soal harganya?', recentTurns: turns },
+      // Pertanyaan lain yang bukan harga — harga punya jawaban tetapnya sendiri (OQ-03).
+      { messageId: 'm', message: 'kalau pvc vs hdpe soal ketahanannya?', recentTurns: turns },
     );
     expect(text(other)).toContain('Seperti tadi: **PVC (uPVC) kaku');
     expect(text(other)).not.toContain('- Sambungan:');

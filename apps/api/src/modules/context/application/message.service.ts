@@ -27,6 +27,7 @@ import { composeCompanyAnswer } from '../../company-knowledge/domain/company-ans
 import { SECTIONS } from '../../company-knowledge/domain/company-profile.js';
 import { runCompanyQuestion } from './company-question-pipeline.js';
 import { productSubject } from '../domain/subject.js';
+import { socialReply } from '../domain/social.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import { productFaqSystemPrompt } from '../../ai/application/prompts.js';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
@@ -42,7 +43,13 @@ import {
   technicalAnswerValue,
   technicalGuidance,
 } from '../domain/technical.js';
-import { applyEdit, followUpCard, runUnderstanding, understoodReply } from './message-pipeline.js';
+import {
+  applyEdit,
+  endEvent,
+  followUpCard,
+  runUnderstanding,
+  understoodReply,
+} from './message-pipeline.js';
 import { irrigationGuidance } from './irrigation-guidance.js';
 import {
   answerToUpdate,
@@ -139,6 +146,19 @@ export class MessageService {
     const snapshot = await this.store.current(conversationId);
     const state = snapshot?.state ?? emptyRequirementState(now);
     const hasExisting = (snapshot?.state.completeness.filled ?? 0) > 0;
+
+    // Pesan sosial ("ok makasih", "sip", "bye"): balasan tetap, nol model, nol state.
+    const social = socialReply(text, locale);
+    if (social !== null) {
+      const events: AssistantStreamEvent[] = [
+        { type: 'message.start', messageId },
+        { type: 'token', text: social },
+        endEvent(messageId),
+      ];
+      for (const event of events.slice(1)) emit?.(event);
+      await this.conversations.appendAssistantMessage(conversationId, social, [], null);
+      return events;
+    }
 
     // Giliran terakhir dipakai klasifikasi intent (lanjutan vs pesan lepas), penulis
     // balasan, dan pagar anti-ulang — jadi selalu diambil.

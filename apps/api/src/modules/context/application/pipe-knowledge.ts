@@ -172,6 +172,13 @@ export const CONCEPTS: readonly ConceptKnowledge[] = [
       'Fittings are the connecting parts of a pipe run — sockets, tees, elbows, reducers, valves — that change direction, split a branch, change size, or join two lengths. They are made of the same material as the pipe (PVC for PVC, HDPE for HDPE) so the joint matches.',
   },
   {
+    topic: 'air panas',
+    pattern: /\b(air panas|air hangat|hot water|warm water|water heater|pemanas air|boiler)\b/i,
+    text: 'Untuk air panas, bahan yang lazim adalah **PPR**: tahan suhu tinggi dan sambungannya dilas panas sehingga menyatu. PVC tidak untuk air panas — melunak dan sambungan lemnya melemah; HDPE pun dirancang untuk air dingin. Jalur air panas di dalam bangunan: PPR untuk pipa dan fitting-nya.',
+    textEn:
+      'For hot water the usual material is **PPR**: it withstands high temperature and its joints are heat-fused into one piece. PVC is not for hot water — it softens and its glued joints weaken; HDPE is designed for cold water too. Hot-water runs inside a building: PPR for both pipe and fittings.',
+  },
+  {
     topic: 'kelas pvc',
     pattern: /\b(aw|kelas aw|kelas d|pvc d|class aw|class d)\b/i,
     text: 'AW dan D adalah kelas pipa PVC, bukan bahan yang berbeda: AW untuk jalur air bersih bertekanan (dinding lebih tebal), D untuk pembuangan dan ventilasi yang mengalir karena gravitasi (dinding lebih tipis). Jadi "pipa AW" adalah pipa PVC kelas bertekanan.',
@@ -511,7 +518,8 @@ export function explain(
   locale: Locale = DEFAULT_LOCALE,
 ): string {
   const materials = materialsIn(question, productQuery).slice(0, 2);
-  const concepts = conceptsIn(question);
+  // Konsep dibaca dari pesan DAN query (subjek): "yang mana buat kamar mandi?" atas "pvc d dan pvc aw".
+  const concepts = conceptsIn(question, productQuery);
   const parts: string[] = [];
   // "Apa bedanya fitting sama HDPE?" membandingkan komponen dengan bahan — bukan dua bahan.
   // Katakan dulu bahwa keduanya tidak setara, baru jelaskan masing-masing.

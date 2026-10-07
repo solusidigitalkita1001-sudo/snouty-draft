@@ -40,6 +40,12 @@ describe('extractTechnicalContext — English', () => {
     ).toMatchObject({ catchment_area: 2, slope: 1, fluid_type: 'Air hujan' });
   });
 
+  it('Indonesian "jalan desa lebar 6 meter": the width belongs to the road, not the route length', () => {
+    const out = facts('mau pasang gorong-gorong lewat jalan desa lebar 6 meter', 'culvert');
+    expect(out).toMatchObject({ road_width: 6 });
+    expect(out).not.toHaveProperty('route_length');
+  });
+
   it('reads road width and traffic for a culvert', () => {
     expect(facts('culvert under a 6 m road for trucks', 'culvert')).toMatchObject({
       road_width: 6,

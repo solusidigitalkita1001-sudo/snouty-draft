@@ -938,6 +938,15 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       jadi judul 3B yang berjalan bersamaan dengan ekstraksi 7B tetap 99 s. Tidak ada untungnya →
       dikembalikan ke satu model `qwen2.5:7b-instruct` untuk ketiga tingkat, 3B dihapus dari server.
       Hanya 7B yang disimpan. `docs/DEPLOYMENT.md` §4
+- [x] P16-08 Uji proaktif percakapan Indonesia lazim (2026-10-07, 11 giliran di produksi, 7 celah):
+      "pipa buat air panas pake apa?" → konsep air panas (PPR) + jalur cepat pertanyaan guna/bahan
+      tanpa model (tadinya 121 s lalu "Produk mana"); "ok makasih"/"sip"/"bye" → balasan sosial tetap
+      tanpa model (`domain/social.ts`; tadinya 49 s lalu teks pembuka); "yang mana buat kamar mandi?"
+      → lanjutan pilihan atas subjek (kelas AW/D), tadinya pembuka; "ukuran hdpe ada apa aja?" →
+      aspek ukuran dari katalog; "harganya berapa?" → jawaban tetap harga nonaktif + CTA (OQ-03),
+      tadinya "Produk mana"; "jalan desa lebar 6 meter" → lebar jalan, bukan panjang jalur;
+      giliran teknis lanjutan tanpa mengulang kalimat pembuka kasus. Tes: social 3, heuristics +1,
+      pipe-knowledge +1, pipeline +2, subject +1, router +1, extractor +1, message-pipeline +1
 - [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 

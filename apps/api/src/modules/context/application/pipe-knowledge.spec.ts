@@ -84,6 +84,13 @@ describe('pipe knowledge', () => {
     expect(reformat('table', { previous: 'tidak menyebut bahan apa pun' })).toBeNull();
   });
 
+  it('"pipa buat air panas pake apa?" → konsep air panas: PPR, bukan PVC; tanpa bahan di pesan pun terjawab', () => {
+    const out = explain('pipa buat air panas pake apa?', null);
+    expect(out).toContain('**PPR**');
+    expect(out).toContain('PVC tidak untuk air panas');
+    expect(explain('what pipe for hot water?', null, 'en')).toContain('**PPR**');
+  });
+
   it('satu bahan → ikhtisar; konsep yang disinggung ikut; tanpa bahan → kosong', () => {
     const ppr = explain('apa itu ppr?', null);
     expect(ppr).toMatch(/^\*\*PPR\*\* itu kaku dan tahan air panas: /); // prosa, bukan butir

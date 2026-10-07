@@ -20,6 +20,7 @@
  */
 import { DEFAULT_LOCALE, type ConversationSubject, type Locale } from '@snouty/shared-types';
 import {
+  isChoiceFollowUp,
   isFollowUp,
   isFormatFollowUp,
   requestedDepth,
@@ -70,7 +71,11 @@ export interface ProductQuestionInput {
 function subjectQuery(input: ProductQuestionInput): string | null {
   const subject = input.subject;
   if (!subject || subject.kind === 'company' || subject.kind === 'case') return null;
-  return isFollowUp(input.message) || isFormatFollowUp(input.message) ? subject.entity : null;
+  return isFollowUp(input.message) ||
+    isFormatFollowUp(input.message) ||
+    isChoiceFollowUp(input.message)
+    ? subject.entity
+    : null;
 }
 
 /**
@@ -94,6 +99,9 @@ function reformatted(input: ProductQuestionInput, locale: Locale): string | null
     locale,
   );
 }
+
+const PRICE_QUESTION =
+  /\b(harga|harganya|berapa duit|berapa rupiah|biaya|biayanya|price|prices|cost|how much)\b/i;
 
 const COMPARISON_REQUEST =
   /\b(beda|bedanya|perbedaan|bandingkan|bandingin|dibanding|differ|difference|compare|versus|vs)\b/i;
@@ -136,6 +144,16 @@ export async function runProductQuestion(
   } catch (error) {
     if (!(error instanceof AiOutputInvalidError)) throw error;
     parsed = null;
+  }
+
+  // Harga tidak ditampilkan (OQ-03): jawab jujur dan arahkan, jangan bertanya "produk mana".
+  if (PRICE_QUESTION.test(input.message)) {
+    return [
+      { type: 'message.start', messageId: input.messageId },
+      { type: 'token', text: productAnswerCopy(locale).priceNotShown },
+      { type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } },
+      endEvent(input.messageId),
+    ];
   }
 
   const asTable = reformatted(input, locale);

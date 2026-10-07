@@ -30,6 +30,9 @@ export const PRODUCT_ANSWER_COPY = {
     `"${query}" belum ada di data katalog yang terpasang di sistem ini. Tim teknis Pralon bisa membantu bila Anda membutuhkannya.`,
   catalogUnavailable:
     'Katalog Pralon sedang tidak terjangkau, jadi saya belum bisa memeriksa produknya. Coba lagi sebentar, atau hubungi tim teknis Pralon.',
+  /** Harga nonaktif (OQ-03): harga mengikuti daftar distributor; tim Pralon yang memberi penawaran. */
+  priceNotShown:
+    'Harga tidak saya tampilkan di sini — harga final mengikuti daftar harga distributor Pralon yang berlaku dan bisa berbeda per wilayah. Tim Pralon bisa mengirimkan penawarannya untuk produk yang Anda butuhkan.',
   noProductNamed:
     'Produk mana yang Anda maksud? Sebutkan nama atau keluarganya, misalnya "PVC AW".',
   catalogSupport: 'Di katalog Pralon yang aktif:',
@@ -72,6 +75,7 @@ export interface ProductAnswerCopy {
   readonly notInInstalledCatalog: (query: string) => string;
   readonly catalogUnavailable: string;
   readonly noProductNamed: string;
+  readonly priceNotShown: string;
   readonly catalogSupport: string;
   readonly rangeIntro: string;
   readonly rangeNext: string;
@@ -91,6 +95,8 @@ export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
     `"${query}" is not yet in the catalog data installed in this system. Pralon's technical team can help if you need it.`,
   catalogUnavailable:
     "The Pralon catalog is unreachable right now, so I can't check the product yet. Try again in a moment, or contact Pralon's technical team.",
+  priceNotShown:
+    'Prices are not shown here — final prices follow the current Pralon distributor price list and can differ by region. The Pralon team can send a quotation for the products you need.',
   noProductNamed: 'Which product do you mean? Give the name or its family, for example "PVC AW".',
   catalogSupport: 'In the active Pralon catalog:',
   rangeIntro: '**Product families in the active Pralon catalog**',

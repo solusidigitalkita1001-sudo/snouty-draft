@@ -33,7 +33,7 @@ const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
 const ASPECT_PATTERNS: readonly (readonly [RegExp, NonNullable<ProductQuestionParse['aspect']>])[] =
   [
     [
-      /ukuran apa|ukuran (yang )?tersedia|ukuran (yang )?ada|ukurannya|what sizes|which sizes|sizes? (?:do you|available|are there)|size range/,
+      /ukuran apa|ukuran (?:\S+\s+){0,3}?(?:yang )?(?:tersedia|ada|apa)|ukurannya|ada ukuran apa|what sizes|which sizes|sizes? (?:do you|available|are there)|size range/,
       'sizes',
     ],
     [/fitting|cocok dengan|sepadan|compatible|fits? with|goes? with/, 'compatible_fittings'],
@@ -85,6 +85,13 @@ export function asksAboutCompany(message: string): boolean {
  */
 const BUILDING_NEED =
   /\b(lantai|kamar mandi|wastafel|dapur|toren|tandon|pdam|sumur|pompa|rumah|ruko|kos|kost|floors?|stor(?:e)?ys?|stories|bathrooms?|sinks?|basins?|kitchens?|tanks?|rooftop|wells?|pumps?|house|home|shophouse|boarding house|dorm(?:itory)?)\b/;
+/**
+ * "pipa buat air panas pake apa?", "bahan apa yang cocok buat tanam?": pertanyaan pengetahuan tentang
+ * bahan/pipa untuk suatu guna — dijawab pengetahuan milik kode, bukan ditebak model 2 menit.
+ */
+const USE_QUESTION =
+  /\b(pipa|bahan|material)\b.*\b(pakai apa|pake apa|pakai yang mana|pake yang mana|bahan apa|jenis apa|yang mana|apa yang cocok|cocoknya apa|sebaiknya apa|what (?:material|pipe|type)|which (?:material|pipe))\b|\b(pakai apa|pake apa|bahan apa)\b.*\b(pipa|air)\b/;
+
 /** "produk HDPE-nya gimana?" — menyebut keluarga produk sebagai produk, tanpa kebutuhan. */
 const PRODUCT_MENTION = /\b(produk(?:nya)?|products?|jual|punya|sell|carry)\b/;
 
@@ -107,6 +114,9 @@ export function certainIntent(message: string): IntentClassification | null {
     return { intent: 'PRODUCT_LOOKUP', confidence: 0.85 };
   }
   FAMILY_TOKENS.lastIndex = 0;
+  if (USE_QUESTION.test(text) && !REQUIREMENT_SIGNALS.test(text)) {
+    return { intent: 'PRODUCT_LOOKUP', confidence: 0.85 };
+  }
   return null;
 }
 

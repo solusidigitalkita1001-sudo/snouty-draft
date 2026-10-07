@@ -23,7 +23,12 @@ import {
   hasRequirementSignals,
   mentionsCompetitor,
 } from '../domain/message-signals.js';
-import { intentForSubject, isFollowUp, isFormatFollowUp } from '../domain/subject.js';
+import {
+  intentForSubject,
+  isChoiceFollowUp,
+  isFollowUp,
+  isFormatFollowUp,
+} from '../domain/subject.js';
 import { materialsIn } from './pipe-knowledge.js';
 import type { ReplyTurn } from './reply-writer.js';
 
@@ -96,7 +101,9 @@ export function subjectContinuation(
     isFormatFollowUp(message) &&
     materialsIn(message).length === 0 &&
     !hasRequirementSignals(message);
-  if (!isFollowUp(message) && !reformat) return null;
+  const choice =
+    subject.kind === 'product' && isChoiceFollowUp(message) && materialsIn(message).length === 0;
+  if (!isFollowUp(message) && !reformat && !choice) return null;
   const intent = intentForSubject(subject.kind);
   return {
     intent,

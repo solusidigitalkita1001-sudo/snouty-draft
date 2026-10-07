@@ -93,6 +93,24 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect((events[5] as { card: { kind: string } }).card.kind).toBe('clarification');
   });
 
+  it('giliran teknis kedua ("debitnya 200 liter per detik") tidak mengulang kalimat pembuka kasus', async () => {
+    const ai = aiExtracting({});
+    const first = await runUnderstanding(
+      ai,
+      input({ message: 'mau pasang gorong-gorong lewat jalan desa lebar 6 meter' }),
+    );
+    const firstText = (first.events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(firstText).toMatch(/^Oke, gorong-gorong/);
+    const second = await runUnderstanding(
+      ai,
+      input({ message: 'debitnya 200 liter per detik', state: first.nextState }),
+    );
+    const secondText = (second.events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(secondText).not.toContain('Oke, gorong-gorong');
+    expect(secondText).toMatch(/^Yang sudah saya catat: /);
+    expect(secondText).toContain('200');
+  });
+
   it('jalur kasus teknis ("gorong-gorong … jalan 6 m, truk"): parameter universal tercatat, pertanyaan registry, nol ekstraksi', async () => {
     const ai = aiExtracting({});
     const { events, nextState, changed } = await runUnderstanding(

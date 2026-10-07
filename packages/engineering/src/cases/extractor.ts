@@ -174,6 +174,10 @@ export function extractTechnicalContext(
       add('road_width', num(m[1]!), m[0], 'm');
     },
   );
+  // "jalan desa lebar 6 meter", "jalan ... selebar 6 m": kata jalan dulu, lebar menyusul.
+  take(new RegExp(`jalan\\D{0,30}?(?:lebar|selebar|lebarnya)\\D{0,6}?${NUM}\\s*${M}\\b`), (m) => {
+    add('road_width', num(m[1]!), m[0], 'm');
+  });
   // "a 6 m road", "a 6 m wide road": angka mendahului kata jalan.
   take(new RegExp(`${NUM}\\s*${M}\\s*(?:wide\\s*)?road\\b`), (m) => {
     add('road_width', num(m[1]!), m[0], 'm');

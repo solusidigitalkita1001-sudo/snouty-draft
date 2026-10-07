@@ -178,7 +178,12 @@ export async function runUnderstanding(
   if (technicalCase !== null) {
     const applied = applyTechnicalFacts(input.state, technicalCase, input.message);
     events.push({ type: 'requirement.updated', state: applied.state });
-    events.push({ type: 'token', text: technicalGuidance(applied.state, locale) });
+    // Kalimat pembuka kasus hanya di giliran pertama; giliran berikutnya langsung data + pertanyaan.
+    const firstTurn = input.state.useCase?.kind !== 'technical';
+    events.push({
+      type: 'token',
+      text: technicalGuidance(applied.state, locale, { withIntro: firstTurn }),
+    });
     const card = technicalFollowUp(applied.state, locale);
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));

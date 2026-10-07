@@ -66,6 +66,18 @@ describe('certainIntent', () => {
 });
 
 describe('heuristicProductQuestion', () => {
+  it('uji proaktif 2026-10-07: "pipa buat air panas pake apa?" pasti PRODUCT_LOOKUP; "ukuran hdpe ada apa aja?" → aspek sizes', () => {
+    expect(certainIntent('pipa buat air panas pake apa?')?.intent).toBe('PRODUCT_LOOKUP');
+    expect(certainIntent('bahan apa yang cocok buat pipa tanam?')?.intent).toBe('PRODUCT_LOOKUP');
+    // Dengan kebutuhan bangunan tetap kebutuhan.
+    expect(certainIntent('rumah 2 lantai pipa pake apa?')).toBeNull();
+    expect(heuristicProductQuestion('ukuran hdpe ada apa aja?')).toMatchObject({
+      productQuery: 'hdpe',
+      aspect: 'sizes',
+    });
+    expect(heuristicProductQuestion('pvc aw ada ukuran apa?').aspect).toBe('sizes');
+  });
+
   it('en (checkpoint Fase 15, S9): ketersediaan ukuran dan aspek dari kalimat Inggris', () => {
     expect(heuristicProductQuestion('do you have 3/4 inch PVC AW?')).toEqual({
       productQuery: 'pvc aw',
@@ -79,7 +91,9 @@ describe('heuristicProductQuestion', () => {
     );
     expect(heuristicProductQuestion('how long is a PVC AW rod?').aspect).toBe('rod_length');
     expect(heuristicProductQuestion('what joint does HDPE use?').aspect).toBe('joint_type');
-    expect(heuristicProductQuestion('PVC D is suitable for which applications?').aspect).toBe('application');
+    expect(heuristicProductQuestion('PVC D is suitable for which applications?').aspect).toBe(
+      'application',
+    );
     expect(heuristicProductQuestion('which fittings go with HDPE?').aspect).toBe(
       'compatible_fittings',
     );

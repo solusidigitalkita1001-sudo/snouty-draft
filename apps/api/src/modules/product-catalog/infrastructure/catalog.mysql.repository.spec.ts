@@ -179,15 +179,13 @@ describe('MysqlCatalogRepository — daftar produk', () => {
 
   it('pencarian `q` juga mencocokkan keluarga: "pvc aw" menemukan pipa yang namanya tidak menyebut PVC', async () => {
     await seedVersions();
-    await fixture.db
-      .insert(products)
-      .values([
-        product(testId('PA'), 'AW-A', {
-          name: 'Pipa (Plain End) Abu AW 1/2" x 4 Meter',
-          family: 'PVC AW',
-        }),
-        product(testId('PB'), 'HD-B', { name: 'Pipa HDPE PE 100 PN-8 63 mm', family: 'HDPE' }),
-      ]);
+    await fixture.db.insert(products).values([
+      product(testId('PA'), 'AW-A', {
+        name: 'Pipa (Plain End) Abu AW 1/2" x 4 Meter',
+        family: 'PVC AW',
+      }),
+      product(testId('PB'), 'HD-B', { name: 'Pipa HDPE PE 100 PN-8 63 mm', family: 'HDPE' }),
+    ]);
 
     const page = await repository.listProducts({ catalogVersionId: V_ACTIVE, q: 'pvc aw' });
 
