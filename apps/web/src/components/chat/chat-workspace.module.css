@@ -1576,6 +1576,29 @@
   justify-content: center;
 }
 
+.footerLink {
+  display: inline-flex;
+  border-radius: 50%;
+  text-decoration: none;
+}
+
+.footerLink:focus-visible,
+.footerNameLink:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.footerNameLink {
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+  display: flex;
+}
+
+.footerNameLink:hover .footerName {
+  text-decoration: underline;
+}
+
 .footerText {
   display: flex;
   flex-direction: column;

@@ -654,11 +654,26 @@ export function ChatWorkspace() {
           </div>
 
           <div className={styles.sidebarFooter}>
-            {footerAvatar}
+            {/* Pengguna masuk: kaki sidebar membuka halaman akun (OQ-53). */}
+            {user ? (
+              <a className={styles.footerLink} href="/akun" title={COPY.footer.account}>
+                {footerAvatar}
+              </a>
+            ) : (
+              footerAvatar
+            )}
             <div className={styles.footerText}>
-              <span className={styles.footerName}>{user?.name ?? COPY.footer.guestName}</span>
               {user ? (
-                <span className={styles.footerRole}>{COPY.footer.role}</span>
+                <a className={styles.footerNameLink} href="/akun">
+                  <span className={styles.footerName}>{user.name}</span>
+                </a>
+              ) : (
+                <span className={styles.footerName}>{COPY.footer.guestName}</span>
+              )}
+              {user ? (
+                <span className={styles.footerRole}>
+                  {COPY.footer.role} · <a href="/akun">{COPY.footer.account}</a>
+                </span>
               ) : (
                 <span className={styles.footerRole}>
                   <a href="/login">{COPY.footer.login}</a> ·{' '}

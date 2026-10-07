@@ -42,6 +42,14 @@ export class MysqlUserRepository implements UserRepository {
     await this.database.db.update(users).set({ lastSeenAt: new Date() }).where(eq(users.id, id));
   }
 
+  async updateName(id: string, name: string): Promise<void> {
+    await this.database.db.update(users).set({ name }).where(eq(users.id, id));
+  }
+
+  async updatePasswordHash(id: string, passwordHash: string): Promise<void> {
+    await this.database.db.update(users).set({ passwordHash }).where(eq(users.id, id));
+  }
+
   private async findOne(condition: ReturnType<typeof eq>): Promise<UserRow | null> {
     const rows = await this.database.db
       .select({

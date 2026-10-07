@@ -67,6 +67,20 @@ export class EmailAlreadyRegisteredError extends Error {
   }
 }
 
+/**
+ * Ganti sandi (OQ-53): sandi saat ini tidak cocok. 400, bukan 401 — sesinya sah, isiannya yang
+ * salah; 401 akan membuat klien mengira sesinya habis dan mengeluarkannya.
+ */
+export class CurrentPasswordMismatchError extends Error {
+  readonly code = 'VALIDATION_FAILED' as const;
+  readonly details = { fields: ['currentPassword'], reason: 'current_password' } as const;
+
+  constructor() {
+    super('Kata sandi saat ini tidak cocok.');
+    this.name = 'CurrentPasswordMismatchError';
+  }
+}
+
 /** Password ditolak kebijakan. `details.reason` dipakai UI untuk pesan yang tepat. */
 export class PasswordRejectedError extends Error {
   readonly code = 'VALIDATION_FAILED' as const;

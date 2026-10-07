@@ -388,14 +388,16 @@ bagian dengan `source`) dari dokumen resmi; tampilan mengikuti otomatis.
 
 ### OQ-53 — Halaman profil/pengaturan akun belum ada
 
-**Status:** open, needs design · **Blocks:** —
-**Pertanyaan:** Pemilik (2026-10-07) menanyakan letak "set up profile". Hari ini tidak ada layar
+**Status:** default diterapkan ("gas", 2026-10-07), needs design · **Blocks:** —
+**Pertanyaan:** Pemilik (2026-10-07) menanyakan letak "set up profile". Sebelumnya tidak ada layar
 profil: akun hanya punya login, register, dan `GET /auth/me`; avatar di kaki sidebar tidak bisa
 diklik. Prototipe juga tidak memuatnya (OQ-21).
-**Usulan default:** halaman `/akun` minimal dengan token yang sama — nama, email, ganti sandi,
-bahasa & tema pilihan, tombol keluar — dibuka dari avatar di sidebar; ditandai "needs design".
-Perlu keputusan pemilik: field apa saja (perusahaan, telepon, wilayah?) dan apakah tamu melihat
-ajakan daftar di tempat yang sama.
+**Default yang diterapkan:** halaman `/akun` minimal dengan token yang sama — nama (bisa diganti),
+email (baca saja), jenis akun, ganti sandi (sandi saat ini wajib; 400 bila salah, bukan 401),
+pengalih tema & bahasa, keluar — dibuka dari avatar/nama di kaki sidebar; ditandai "menunggu
+desain". API: `GET /auth/me` kini memuat `name`/`email`, `PATCH /auth/me { name }`,
+`POST /auth/password { currentPassword, newPassword }` (dibatasi per IP). Masih terbuka: field
+tambahan (perusahaan, telepon, wilayah?) dan ganti email.
 
 ### OQ-52 — Bidang ketik composer dan elemen header/sidebar yang dibuang
 

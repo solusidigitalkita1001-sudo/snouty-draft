@@ -51,6 +51,16 @@ class MemoryUsers implements UserRepository {
   async touchLastSeen(id: string): Promise<void> {
     this.lastSeenTouched.push(id);
   }
+
+  async updateName(id: string, name: string): Promise<void> {
+    const row = this.rows.get(id);
+    if (row) this.rows.set(id, { ...row, name });
+  }
+
+  async updatePasswordHash(id: string, passwordHash: string): Promise<void> {
+    const row = this.rows.get(id);
+    if (row) this.rows.set(id, { ...row, passwordHash });
+  }
 }
 
 class MemoryTokens implements RefreshTokenRepository {
@@ -287,6 +297,55 @@ describe('logout', () => {
     await expect(service.refresh(registered.refresh.token)).rejects.toThrow(
       InvalidRefreshTokenError,
     );
+  });
+});
+
+describe('halaman akun (OQ-53): profil, ganti nama, ganti sandi', () => {
+  it('profil tanpa hash; nama baru di-trim dan tersimpan', async () => {
+    const { service } = setup();
+    const session = await service.register(REGISTER);
+    const profile = await service.profile(session.userId);
+    expect(profile).toEqual({
+      userId: session.userId,
+      name: 'Pengguna',
+      email: 'pengguna@example.test',
+      tier: 'registered',
+    });
+    expect(Object.keys(profile)).not.toContain('passwordHash');
+
+    const renamed = await service.updateName(session.userId, '  Bagus  ');
+    expect(renamed.name).toBe('Bagus');
+    expect((await service.profile(session.userId)).name).toBe('Bagus');
+  });
+
+  it('ganti sandi: sandi saat ini salah → 400 (bukan 401); yang baru harus lolos kebijakan; lalu login dengan yang baru', async () => {
+    const { service } = setup();
+    const session = await service.register(REGISTER);
+    const NEW = 'sandi-baru-yang-juga-panjang';
+
+    await expect(service.changePassword(session.userId, 'salah', NEW)).rejects.toMatchObject({
+      code: 'VALIDATION_FAILED',
+      details: { fields: ['currentPassword'] },
+    });
+    await expect(service.changePassword(session.userId, PASSWORD, 'pendek')).rejects.toMatchObject({
+      code: 'VALIDATION_FAILED',
+      details: { fields: ['password'] },
+    });
+
+    await service.changePassword(session.userId, PASSWORD, NEW);
+    await expect(service.login({ email: REGISTER.email, password: PASSWORD })).rejects.toThrow();
+    const again = await service.login({ email: REGISTER.email, password: NEW });
+    expect(again.userId).toBe(session.userId);
+  });
+
+  it('akun yang dinonaktifkan tidak bisa membaca/mengubah profilnya', async () => {
+    const { service, users } = setup();
+    const session = await service.register(REGISTER);
+    const row = users.rows.get(session.userId)!;
+    users.rows.set(session.userId, { ...row, status: 'disabled' });
+    await expect(service.profile(session.userId)).rejects.toMatchObject({
+      code: 'UNAUTHENTICATED',
+    });
   });
 });
 

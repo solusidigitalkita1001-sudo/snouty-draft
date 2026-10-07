@@ -1,0 +1,189 @@
+/*
+ * Halaman akun — **BELUM DIDESAIN (OQ-53)**. Satu kartu, token yang sama seperti layar lain,
+ * tanpa tata letak yang mengaku final.
+ */
+
+.page {
+  min-height: 100dvh;
+  background: var(--snouty-canvas);
+  color: var(--snouty-ink);
+  font-family: var(--snouty-font-sans);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 16px;
+}
+
+.needsDesign {
+  font-family: var(--snouty-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+  color: var(--snouty-assumed-text);
+  background: var(--snouty-assumed-bg);
+  border: 1px solid var(--snouty-assumed-border);
+  border-radius: 3px;
+  padding: 5px 9px;
+}
+
+.card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--snouty-surface);
+  border: 1px solid var(--snouty-border);
+  border-radius: 10px;
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.back {
+  font-size: 12.5px;
+  color: var(--snouty-action-text);
+  text-decoration: none;
+}
+
+.back:hover {
+  text-decoration: underline;
+}
+
+.title {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+}
+
+.subtitle {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--snouty-muted);
+  margin-top: 4px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--snouty-border-soft);
+}
+
+.heading {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--snouty-muted);
+}
+
+.input {
+  border: 1px solid var(--snouty-border);
+  border-radius: 6px;
+  padding: 9px 11px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--snouty-ink);
+  background: var(--snouty-surface);
+  outline: none;
+}
+
+.input:focus-visible {
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.readonly {
+  font-size: 14px;
+  padding: 2px 0;
+}
+
+.hint,
+.muted {
+  font-size: 11.5px;
+  color: var(--snouty-caption);
+}
+
+.muted {
+  font-size: 13px;
+}
+
+.ok {
+  font-size: 13px;
+  color: var(--snouty-verified-text);
+}
+
+.error {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--snouty-assumed-text);
+}
+
+.submit,
+.secondary {
+  align-self: flex-start;
+  border-radius: 6px;
+  padding: 9px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.submit {
+  background: var(--snouty-action);
+  color: var(--snouty-action-on);
+  border: none;
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--snouty-action-hover);
+}
+
+.submit:disabled {
+  background: var(--snouty-disabled);
+  cursor: not-allowed;
+}
+
+.secondary {
+  background: var(--snouty-surface);
+  color: var(--snouty-ink);
+  border: 1px solid var(--snouty-border);
+}
+
+.secondary:hover {
+  border-color: var(--snouty-muted-2);
+}
+
+.submit:focus-visible,
+.secondary:focus-visible,
+.back:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.toggles {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toggle {
+  border: 1px solid var(--snouty-border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  background: var(--snouty-surface);
+  color: var(--snouty-ink);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}

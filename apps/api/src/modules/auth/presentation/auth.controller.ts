@@ -8,7 +8,7 @@
  * memori klien, dikirim sebagai header oleh kode, bukan otomatis oleh browser —
  * itulah yang membuat CSRF tidak mendapat apa-apa darinya.
  */
-import { Body, Controller, Get, HttpCode, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Patch, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { ENTITLEMENTS, type Capability, type Tier } from '../../policy/entitlements.js';
@@ -37,6 +37,15 @@ const LoginDto = z
   .object({
     email: z.string().trim().toLowerCase().email().max(255),
     password: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+  })
+  .strict();
+
+const UpdateProfileDto = z.object({ name: z.string().trim().min(1).max(120) }).strict();
+
+const ChangePasswordDto = z
+  .object({
+    currentPassword: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+    newPassword: z.string().min(1).max(PASSWORD_MAX_LENGTH),
   })
   .strict();
 
@@ -129,14 +138,37 @@ export class AuthController {
   }
 
   @Get('me')
-  me(@Req() request: PublicRequest) {
+  async me(@Req() request: PublicRequest) {
     const actor = userOf(request);
+    // Nama dan email dibaca dari database, bukan dari klaim token: token memuat yang dulu,
+    // halaman akun harus menampilkan yang sekarang.
+    const profile = await this.auth.profile(actor.id);
     return {
       userId: actor.id,
+      name: profile.name,
+      email: profile.email,
       tier: actor.tier,
       roles: actor.roles,
       entitlements: entitlementsOf(actor.tier),
     };
+  }
+
+  /** Halaman akun (OQ-53): ganti nama tampilan. */
+  @Patch('me')
+  async updateMe(@Body() rawBody: unknown, @Req() request: PublicRequest) {
+    const actor = userOf(request);
+    const body = parse(UpdateProfileDto, rawBody);
+    return this.auth.updateName(actor.id, body.name);
+  }
+
+  /** Halaman akun (OQ-53): ganti sandi dengan sandi saat ini sebagai bukti. */
+  @Post('password')
+  @HttpCode(204)
+  async changePassword(@Body() rawBody: unknown, @Req() request: Request & PublicRequest) {
+    await this.guardByIp(request, 'password');
+    const actor = userOf(request);
+    const body = parse(ChangePasswordDto, rawBody);
+    await this.auth.changePassword(actor.id, body.currentPassword, body.newPassword);
   }
 
   private setRefreshCookie(response: Response, session: AuthenticatedSession): void {

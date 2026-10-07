@@ -837,7 +837,13 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       dilihat pengguna" (tanpa metatext/AI slop) masuk `.claude/CLAUDE.md`; halaman profil belum
       ada → OQ-53
 - [ ] P15-04b Penjelasan trace aturan engine dua bahasa (`reason`/`basis` di detail perhitungan)
-- [ ] P15-05 Laporan PDF dua bahasa
+- [x] P15-05 Laporan PDF dua bahasa (2026-10-07): `ReportPayload.locale` diambil dari bahasa
+      percakapan saat laporan dibuat dan dibekukan bersama payload; payload tersimpan tanpa field
+      itu dibaca sebagai `'id'` (`storedReportPayload`). `report-html.ts` memakai `REPORT_COPY`
+      `{ id, en }` (`<html lang>`, judul, kolom, label status, rupiah `id-ID`/`en-US`); kalimat
+      kebijakan EN sama persis dengan web (`SOLUTION_COPY_EN`). Baris kebutuhan memakai
+      `requirement-labels`, jenis instalasi diisi service (bukan controller). HTML Indonesia
+      identik byte demi byte. Tes: API +10. **Belum EN:** dasar perhitungan (trace, P15-04b)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phase 16 — Routing percakapan: subjek aktif & pengetahuan perusahaan
@@ -872,6 +878,13 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       produksi: tujuh giliran percakapan pemilik tanpa "Produk mana"; lanjutan atas subjek produk
       ("lebih detail dong" setelah HDPE) memakai entitas subjek sebagai query; ragam produk di
       profil perusahaan = keluarga + jumlah
+- [x] P16-03 Halaman akun minimal (OQ-53, "gas" pemilik 2026-10-07): `/akun` — nama bisa diganti,
+      email & jenis akun dibaca, ganti sandi dengan sandi saat ini sebagai bukti
+      (`CurrentPasswordMismatchError` 400 `reason: current_password`, kebijakan sandi berlaku untuk
+      yang baru), pengalih tema/bahasa, keluar (cabut di server lalu buang token). API:
+      `GET /auth/me` +`name`/`email` dari database, `PATCH /auth/me`, `POST /auth/password`
+      (rate limit per IP), `UserRepository.updateName/updatePasswordHash`. Kaki sidebar menautkan
+      avatar/nama ke `/akun`. Ditandai "menunggu desain". Tes: auth.service +3, account-page 3
 - [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 

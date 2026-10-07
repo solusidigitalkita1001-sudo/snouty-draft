@@ -91,6 +91,7 @@ export const CHAT_COPY = {
     login: 'Masuk',
     register: 'Daftar',
     role: 'Pelanggan',
+    account: 'Akun',
   },
   /** Belum ada endpoint berkas (`POST /uploads` baru kontrak) — chip tidak berpura-pura. */
   attachSoon: 'Unggah denah menyusul — belum ada layanan berkas',
@@ -274,6 +275,7 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
     login: 'Sign in',
     register: 'Sign up',
     role: 'Customer',
+    account: 'Account',
   },
   attachSoon: 'Floor plan upload coming soon — no file service yet',
   analyzeCta: 'Compose recommendation',

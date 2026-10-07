@@ -18,6 +18,7 @@
 import { ulid } from '../../../shared/ulid.js';
 import {
   AccountDisabledError,
+  CurrentPasswordMismatchError,
   InvalidCredentialsError,
   InvalidRefreshTokenError,
   PasswordRejectedError,
@@ -47,6 +48,14 @@ export interface AuthenticatedSession {
   readonly roles: readonly string[];
   readonly accessToken: string;
   readonly refresh: IssuedRefreshToken;
+}
+
+/** Profil akun untuk halaman akun (OQ-53) — tanpa hash, tanpa token. */
+export interface UserProfile {
+  readonly userId: string;
+  readonly name: string;
+  readonly email: string;
+  readonly tier: 'registered' | 'advanced';
 }
 
 export interface RegisteredSession extends AuthenticatedSession {
@@ -179,6 +188,44 @@ export class AuthService {
   /** Mencabut di server. Token tak dikenal tetap sukses — sesinya memang sudah mati. */
   async logout(rawRefreshToken: string): Promise<void> {
     await this.tokens.revokeByToken(rawRefreshToken);
+  }
+
+  /** Profil untuk halaman akun (OQ-53). Hash sandi tidak pernah ikut keluar. */
+  async profile(userId: string): Promise<UserProfile> {
+    const user = await this.activeUser(userId);
+    return { userId: user.id, name: user.name, email: user.email, tier: user.tier };
+  }
+
+  async updateName(userId: string, name: string): Promise<UserProfile> {
+    const user = await this.activeUser(userId);
+    const trimmed = name.trim();
+    if (trimmed !== user.name) await this.users.updateName(user.id, trimmed);
+    return { userId: user.id, name: trimmed, email: user.email, tier: user.tier };
+  }
+
+  /**
+   * Ganti sandi: sandi saat ini diverifikasi dulu (akses token yang dicuri tidak boleh cukup
+   * untuk mengunci pemilik aslinya), lalu kebijakan sandi berlaku untuk yang baru.
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.activeUser(userId);
+    const matches = await this.hasher.verify(user.passwordHash, currentPassword);
+    if (!matches) throw new CurrentPasswordMismatchError();
+    const rejection = checkPassword(newPassword);
+    if (rejection !== null) throw new PasswordRejectedError(rejection);
+    await this.users.updatePasswordHash(user.id, await this.hasher.hash(newPassword));
+  }
+
+  private async activeUser(userId: string): Promise<UserRow> {
+    const user = await this.users.findById(userId);
+    // Akun yang hilang/dinonaktifkan setelah token terbit: perlakuannya sama dengan refresh.
+    if (user === null || user.status === 'disabled')
+      throw new InvalidRefreshTokenError('user_disabled');
+    return user;
   }
 
   private async openSession(user: UserRow): Promise<AuthenticatedSession> {

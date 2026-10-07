@@ -28,4 +28,8 @@ export interface UserRepository {
   /** Melempar `EmailAlreadyRegisteredError` pada email ganda — bukan mengembalikan flag. */
   create(user: NewUser): Promise<void>;
   touchLastSeen(id: string): Promise<void>;
+  /** Halaman akun (OQ-53): nama tampilan diganti pengguna sendiri. */
+  updateName(id: string, name: string): Promise<void>;
+  /** Hash baru menggantikan yang lama; sesi refresh lain TIDAK dicabut di sini (keputusan pemanggil). */
+  updatePasswordHash(id: string, passwordHash: string): Promise<void>;
 }

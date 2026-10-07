@@ -3,7 +3,7 @@
  * cookie `httpOnly`, dan permintaan tanpa cookie adalah sesi baru setiap kali.
  */
 
-import { setAccessToken, setCurrentUser } from './session';
+import { authHeaders, setAccessToken, setCurrentUser } from './session';
 
 const BASE = '/api/v1';
 
@@ -50,6 +50,81 @@ async function post(path: string, body: Record<string, unknown>): Promise<AuthRe
 
 export const login = (email: string, password: string): Promise<AuthResult> =>
   post('/auth/login', { email, password });
+
+// ── Halaman akun (OQ-53) ─────────────────────────────────────────────────────
+
+export interface Profile {
+  readonly name: string;
+  readonly email: string;
+  readonly tier: string;
+}
+
+export interface ProfileResult {
+  readonly ok: boolean;
+  readonly code?: string;
+  /** `details.reason` dari API: `current_password` membedakan sandi lama salah dari sandi baru lemah. */
+  readonly reason?: string;
+  readonly profile?: Profile;
+}
+
+async function call(
+  method: 'GET' | 'PATCH' | 'POST',
+  path: string,
+  body?: Record<string, unknown>,
+): Promise<ProfileResult> {
+  try {
+    const response = await fetch(`${BASE}${path}`, {
+      method,
+      credentials: 'include',
+      headers: {
+        ...authHeaders(),
+        ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+    if (response.status === 204) return { ok: true };
+    if (response.ok) {
+      const data = (await response.json()) as Partial<Profile>;
+      if (data.name && data.email && data.tier) {
+        const profile = { name: data.name, email: data.email, tier: data.tier };
+        // Nama di sidebar ikut berubah tanpa muat ulang.
+        setCurrentUser({ name: profile.name, tier: profile.tier });
+        return { ok: true, profile };
+      }
+      return { ok: true };
+    }
+    const error = (await response.json().catch(() => ({}))) as {
+      error?: { code?: string; details?: { reason?: string } };
+    };
+    return {
+      ok: false,
+      code: error.error?.code ?? 'GENERIC',
+      ...(error.error?.details?.reason ? { reason: error.error.details.reason } : {}),
+    };
+  } catch {
+    return { ok: false, code: 'GENERIC' };
+  }
+}
+
+export const fetchProfile = (): Promise<ProfileResult> => call('GET', '/auth/me');
+
+export const updateName = (name: string): Promise<ProfileResult> =>
+  call('PATCH', '/auth/me', { name });
+
+export const changePassword = (
+  currentPassword: string,
+  newPassword: string,
+): Promise<ProfileResult> => call('POST', '/auth/password', { currentPassword, newPassword });
+
+/** Keluar: cabut di server, lalu lupakan token dan profil di memori. */
+export async function logout(): Promise<void> {
+  try {
+    await fetch(`${BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+  } catch {
+    // Server tidak terjangkau: sesi lokal tetap dibuang; cookie-nya kedaluwarsa sendiri.
+  }
+  setAccessToken(null);
+}
 
 export const register = (name: string, email: string, password: string): Promise<AuthResult> =>
   post('/auth/register', { name, email, password });
