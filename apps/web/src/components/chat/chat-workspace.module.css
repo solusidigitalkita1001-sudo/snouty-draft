@@ -1947,6 +1947,34 @@
   .panelOverlay {
     width: 100%;
   }
+
+  /* Tab layar solusi di ponsel (audit 2026-10-07: hanya "Ringkasan" yang terlihat, tiga tab lain
+     terjepit). Baris pertama: kembali + simpan; baris kedua: tab selebar layar, menggulir ke samping. */
+  .solutionTabs {
+    flex-wrap: wrap;
+    padding: 0 12px;
+    row-gap: 0;
+  }
+
+  .solutionTabActions {
+    margin-left: auto;
+  }
+
+  .tabList {
+    order: 3;
+    flex-basis: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    min-height: 44px;
+  }
 }
 
 /* Kartu jawaban masuk setelah teksnya selesai diungkap (animasi transisi, 2026-10-07). */

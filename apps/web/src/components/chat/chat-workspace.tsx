@@ -759,8 +759,13 @@ export function ChatWorkspace() {
           </div>
           <div className={styles.headerActions}>
             {/* Sempit: sidebar (dan pengalih tema di dalamnya) hilang — tombolnya pindah ke header. */}
-            {narrow && <ThemeToggle compact />}
-            {narrow && <LocaleToggle compact className={styles['headerMenuButton'] ?? ''} />}
+            {/* Di ponsel, pengalih tema dan bahasa cukup di drawer: header 390 px sudah memuat
+                + ☰ judul dan "Kebutuhan (n)" — lima kontrol membuat judul terpotong dan bertumpuk
+                (audit tampilan ponsel 2026-10-07). Di layar sempit non-ponsel tetap di header. */}
+            {narrow && !mobile && <ThemeToggle compact />}
+            {narrow && !mobile && (
+              <LocaleToggle compact className={styles['headerMenuButton'] ?? ''} />
+            )}
             {/* Ponsel (board 13a): "Kebutuhan (n)" membuka panel sebagai lembar. */}
             {mobile && inConversation && (
               <button

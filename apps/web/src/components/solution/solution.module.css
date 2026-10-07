@@ -384,8 +384,29 @@
     row-gap: 6px;
   }
 
+  /* Baris sistem di ponsel: garis peran merentang di kiri, isi bertumpuk di kolom kanan
+     (sebelumnya garis sendirian di baris pertama — audit 2026-10-07). */
+  .systemRow {
+    display: grid;
+    grid-template-columns: 4px minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 6px;
+    align-items: start;
+  }
+
+  .systemRow > * {
+    grid-column: 2;
+  }
+
+  .roleBar {
+    grid-column: 1;
+    grid-row: 1 / span 4;
+    height: auto;
+    align-self: stretch;
+  }
+
   .systemName {
-    width: 100%;
+    width: auto;
   }
 }
 

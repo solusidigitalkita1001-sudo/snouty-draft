@@ -785,6 +785,10 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       (2) model gagal → fakta tersurat dari teks tetap dipakai, kartu klarifikasi dihitung dari
       state yang sudah dilengkapi; (3) web menampilkan `emptyReply` bila giliran berakhir kosong.
       3 tes
+- [x] P15-02c Audit tampilan ponsel (2026-10-07, "web ini buat branding"): header ponsel cuma + ☰ judul "Kebutuhan (n)" (tema & bahasa pindah ke drawer; judul tidak lagi terpotong/bertumpuk),
+      tab layar solusi di baris sendiri dan bisa digulir (sebelumnya hanya "Ringkasan" terlihat),
+      baris "Rekomendasi Sistem" bertumpuk rapi dengan garis peran di kiri. Alur penuh (klarifikasi →
+      susun rekomendasi → solusi → lembar kebutuhan), gelap, dan EN dicek lewat tangkapan layar 390 px
 - [ ] P15-03 Templat deterministik API dua bahasa: reply-copy, pembuka, panduan teknis & irigasi,
       pipe-knowledge, product-answer-text, kartu kebijakan (scope/entitlements), klarifikasi
 - [ ] P15-04 Registry per bahasa: label/pertanyaan/opsi parameter, asumsi, label keluaran,
