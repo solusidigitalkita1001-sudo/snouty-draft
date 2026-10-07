@@ -36,7 +36,35 @@ describe('composeResponse — transfer pompa', () => {
   });
   const result = computePressurized({ designFlowLs: 5, routeLengthM: 800, staticHeadM: 12 });
   const traces = result.traces.map((t, i) => ({ ...t, id: `T${i}` }));
-  const composed = composeResponse({ state, traces, pressurized: result });
+  const composed = composeResponse({
+    state,
+    traces,
+    pressurized: result,
+    appliedAssumptionIds: [...result.appliedAssumptionIds, 'HDPE_MAIN_FROM_200M'],
+  });
+
+  it('asumsi engine mengisi parameternya untuk kesiapan: sizing yang baru dihitung tidak "DATA KURANG"', () => {
+    // Produksi 2026-10-07: bahan tidak ada di state (dipilih engine lewat HDPE_MAIN_FROM_200M) dan
+    // ID asumsinya tidak diteruskan → `material` dianggap kurang → pipe_sizing "missing_data".
+    const withoutMaterial = Object.fromEntries(
+      Object.entries(state.useCase!.parameters).filter(([key]) => key !== 'material'),
+    );
+    const bareState = { ...state, useCase: { ...state.useCase!, parameters: withoutMaterial } };
+    const bare = composeResponse({ state: bareState, traces, pressurized: result });
+    expect(bare.readiness.find((r) => r.output === 'pipe_sizing')?.readiness).toBe('missing_data');
+    const fixed = composeResponse({
+      state: bareState,
+      traces,
+      pressurized: result,
+      appliedAssumptionIds: [...result.appliedAssumptionIds, 'HDPE_MAIN_FROM_200M'],
+    });
+    expect(fixed.readiness.find((r) => r.output === 'pipe_sizing')?.readiness).not.toBe(
+      'missing_data',
+    );
+    const sizing = composed.readiness.find((r) => r.output === 'pipe_sizing');
+    expect(sizing?.readiness).not.toBe('missing_data');
+    expect(composed.missingData.map((m) => m.label)).not.toContain('Bahan pipa');
+  });
 
   it('data diketahui = parameter known bersatuan; "Belum tahu" bukan data; asumsi terpisah', () => {
     expect(composed.knownData).toEqual([

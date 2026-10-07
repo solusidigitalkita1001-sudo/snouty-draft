@@ -117,7 +117,10 @@ Varian nginx host (`deploy/nginx/ai.pralon.co.id.conf`) tetap tersedia bila suat
 ```bash
 cd /var/www/html/project/beta/snouty
 deploy/deploy.sh release     # git pull → build → up → smoke  (migration TIDAK ikut)
-# bila ada migration baru di rilis itu (lihat changelog/PROGRESS): deploy/deploy.sh migrate dulu
+# bila ada migration baru di rilis itu (lihat changelog/PROGRESS), urutannya:
+#   git pull && deploy/deploy.sh build && deploy/deploy.sh migrate && deploy/deploy.sh up && deploy/deploy.sh smoke
+# `migrate` menjalankan db-apply DARI IMAGE api — image lama tidak memuat berkas migration baru
+# (kejadian 2026-10-07: 0018 "selesai" tanpa diterapkan karena migrate dijalankan sebelum build).
 ```
 
 Rollback: `git checkout <commit-sebelumnya> && deploy/deploy.sh build && deploy/deploy.sh up`.

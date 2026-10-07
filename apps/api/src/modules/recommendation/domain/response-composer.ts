@@ -12,6 +12,7 @@
  */
 import {
   OUTPUT_LABELS,
+  assumption,
   caseProfile,
   caseReadiness,
   isCaseId,
@@ -59,18 +60,50 @@ export interface ComposerInput {
     readonly candidates: readonly GravityCandidate[];
     readonly recommendedSize: string;
   };
+  /**
+   * Asumsi registry yang dipakai engine/perencana (`appliedAssumptionIds`, `extraAssumptionIds`).
+   * Parameter yang diisinya dihitung "diasumsikan" oleh kesiapan — tanpa ini sizing yang baru
+   * saja dihitung dilaporkan "DATA KURANG" hanya karena bahan dipilih lewat asumsi.
+   */
+  readonly appliedAssumptionIds?: readonly string[];
 }
 
 export function composeResponse(input: ComposerInput): ComposedResponse {
   const { known, assumed } = parametersByOrigin(input.state);
+  const sets = parameterSets(input.state, input.appliedAssumptionIds ?? []);
   return {
     knownData: known,
     assumedData: assumed,
     calculations: calculationsFrom(input.traces),
     options: optionsFrom(input),
-    readiness: readinessFrom(input.state),
-    missingData: missingDataFrom(input.state),
+    readiness: readinessFrom(input.state, sets),
+    missingData: missingDataFrom(input.state, sets),
   };
+}
+
+interface ParameterSets {
+  readonly known: ReadonlySet<string>;
+  readonly assumed: ReadonlySet<string>;
+}
+
+/** Parameter diketahui/diasumsikan: dari state, ditambah parameter yang diisi asumsi engine. */
+function parameterSets(
+  state: RequirementState,
+  appliedAssumptionIds: readonly string[],
+): ParameterSets {
+  const known = new Set<string>();
+  const assumed = new Set<string>();
+  if (state.useCase?.kind === 'technical') {
+    for (const [key, p] of Object.entries(state.useCase.parameters)) {
+      if (p.value === UNKNOWN) continue;
+      (p.origin === 'known' ? known : assumed).add(key);
+    }
+  }
+  for (const id of appliedAssumptionIds) {
+    const parameter = assumption(id).parameter;
+    if (!known.has(parameter)) assumed.add(parameter);
+  }
+  return { known, assumed };
 }
 
 function parametersByOrigin(state: RequirementState): {
@@ -137,16 +170,10 @@ function optionsFrom(input: ComposerInput): readonly SolutionOption[] {
   return [];
 }
 
-function readinessFrom(state: RequirementState): readonly ReadinessItem[] {
+function readinessFrom(state: RequirementState, sets: ParameterSets): readonly ReadinessItem[] {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return [];
   const profile = caseProfile(state.useCase.caseId);
-  const known = new Set<string>();
-  const assumed = new Set<string>();
-  for (const [key, p] of Object.entries(state.useCase.parameters)) {
-    if (p.value === UNKNOWN) continue;
-    (p.origin === 'known' ? known : assumed).add(key);
-  }
-  const report = caseReadiness({ profile, known, assumed });
+  const report = caseReadiness({ profile, known: sets.known, assumed: sets.assumed });
   return profile.outputs.map((output) => ({
     output,
     label: OUTPUT_LABELS[output],
@@ -160,16 +187,14 @@ function parameterLabel(key: string): string {
   return isParameterKey(key) ? parameterDefinition(key).label : key;
 }
 
-function missingDataFrom(state: RequirementState): readonly KeyValue[] {
+function missingDataFrom(state: RequirementState, sets: ParameterSets): readonly KeyValue[] {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return [];
   const profile = caseProfile(state.useCase.caseId);
-  const known = new Set<string>();
-  const assumed = new Set<string>();
-  for (const [key, p] of Object.entries(state.useCase.parameters)) {
-    if (p.value === UNKNOWN) continue;
-    (p.origin === 'known' ? known : assumed).add(key);
-  }
-  return resolveMissingParameters({ profile, known, assumed }).map((m) => ({
+  return resolveMissingParameters({
+    profile,
+    known: sets.known,
+    assumed: sets.assumed,
+  }).map((m) => ({
     label: m.label,
     value: m.question,
   }));
