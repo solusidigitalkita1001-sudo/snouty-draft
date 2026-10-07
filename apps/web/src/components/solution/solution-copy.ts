@@ -5,6 +5,9 @@
  * (docs/DESIGN_IMPLEMENTATION.md §10): disclaimer panduan perencanaan dan label skema.
  */
 
+import type { Locale } from '@snouty/shared-types';
+import { pickCopy, type CopyShape } from '../copy';
+
 export const SOLUTION_COPY = {
   summaryKicker: 'RINGKASAN',
   statsLabels: {
@@ -83,3 +86,79 @@ export const SOLUTION_COPY = {
     INFORMATION_UNAVAILABLE: 'DATA BELUM LENGKAP',
   },
 } as const;
+
+export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
+  summaryKicker: 'SUMMARY',
+  statsLabels: {
+    outletCount: 'Outlets',
+    mainSize: 'Main line',
+    branch: 'Branches',
+    fixture: 'Fixture connections',
+    products: 'Pralon products',
+  },
+  irrigationStats: {
+    area: 'Land area',
+    flow: 'Design flow',
+    pump: 'Pump',
+    pumpYes: 'Required',
+    pumpNo: 'Gravity',
+  },
+  systemTitle: 'System Recommendation',
+  showTechnical: 'Show technical details',
+  hideTechnical: 'Hide technical details',
+  technicalKicker: 'TECHNICAL DETAILS',
+  bomTitle: 'Estimated Materials',
+  bomColumns: {
+    item: 'Item',
+    size: 'Size',
+    quantity: 'Quantity',
+    basis: 'CALCULATION BASIS',
+  },
+  assumptionsTitle: 'Assumptions used',
+  fixAssumption: 'Fix this assumption →',
+  productsTitle: 'Matching Pralon products',
+
+  planningDisclaimer: 'PLANNING GUIDANCE — NOT A TECHNICAL CERTIFICATION',
+  schematicDisclaimer: 'SCHEMATIC · NOT A WORKING DRAWING',
+  schematicKicker: 'SCHEMATIC',
+  schematicLoading: 'Preparing the schematic…',
+  schematicUnavailable: 'A schematic is not available for this consultation yet.',
+  priceDisclaimer: 'A planning estimate, not an official quotation.',
+
+  composition: {
+    optionsTitle: 'Size options considered',
+    optionsHint:
+      'All calculated candidates — not just the selected one — so the tradeoffs are visible.',
+    optionRecommended: 'RECOMMENDED',
+    optionAlternative: 'ALTERNATIVE',
+    optionStatus: {
+      ok: 'MEETS REQUIREMENTS',
+      too_fast: 'TOO FAST',
+      too_slow: 'TOO SLOW',
+      high_loss: 'HIGH LOSS',
+      too_small: 'INSUFFICIENT CAPACITY',
+    },
+    readinessTitle: 'Result readiness',
+    readinessLabel: {
+      ready: 'READY',
+      partial: 'PARTIAL',
+      missing_data: 'MISSING DATA',
+    },
+    readinessMissing: 'Still missing:',
+    readinessImprovable: 'More accurate with:',
+    knownTitle: 'Known data',
+    assumedTitle: 'Assumed parameters',
+    calculationsTitle: 'Calculations',
+    missingTitle: 'Data still needed',
+  },
+
+  matchStateLabel: {
+    VERIFIED_SELECTED: 'USED IN THIS SOLUTION',
+    SIZE_NEEDS_VALIDATION: 'SIZE NEEDS CONFIRMATION',
+    INFORMATION_UNAVAILABLE: 'DATA INCOMPLETE',
+  },
+};
+
+export function solutionCopy(locale: Locale): CopyShape<typeof SOLUTION_COPY> {
+  return pickCopy(locale, SOLUTION_COPY, SOLUTION_COPY_EN);
+}

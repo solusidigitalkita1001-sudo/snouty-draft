@@ -8,10 +8,17 @@
 import type { Schematic } from '@snouty/shared-types';
 import { useEffect, useState } from 'react';
 import { SchematicSidePanel, SchematicView } from '../schematic/schematic-view';
-import { SOLUTION_COPY as COPY } from './solution-copy';
+import { solutionCopy } from './solution-copy';
+import { useLocale } from '../locale';
 import styles from './solution.module.css';
 
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useSolutionCopy() {
+  return solutionCopy(useLocale().locale);
+}
+
 export function SchematicTab({ recommendationId }: { readonly recommendationId: string }) {
+  const COPY = useSolutionCopy();
   const [schematic, setSchematic] = useState<Schematic | null>(null);
   const [failed, setFailed] = useState(false);
 

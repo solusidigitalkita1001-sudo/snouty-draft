@@ -9,11 +9,18 @@
 
 import type { Schematic } from '@snouty/shared-types';
 import { useEffect, useState } from 'react';
-import { SCHEMATIC_COPY as COPY } from './schematic-copy';
+import { schematicCopy } from './schematic-copy';
+import { useLocale } from '../locale';
 import { SchematicSidePanel, SchematicView } from './schematic-view';
 import styles from './schematic-page.module.css';
 
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useSchematicCopy() {
+  return schematicCopy(useLocale().locale);
+}
+
 export function SchematicPage() {
+  const COPY = useSchematicCopy();
   const [schematic, setSchematic] = useState<Schematic | null>(null);
   const [error, setError] = useState<string | null>(null);
 

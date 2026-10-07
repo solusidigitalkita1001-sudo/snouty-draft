@@ -9,8 +9,14 @@
 import type { ProductCardDto } from '@snouty/shared-types';
 
 import { ProvenanceTag } from '../solution/provenance-tag';
-import { CHAT_COPY as COPY } from './chat-copy';
+import { chatCopy } from './chat-copy';
+import { useLocale } from '../locale';
 import styles from './chat-workspace.module.css';
+
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useChatCopy() {
+  return chatCopy(useLocale().locale);
+}
 
 export function ProductLookupCards({
   products,
@@ -19,6 +25,7 @@ export function ProductLookupCards({
   products: readonly ProductCardDto[];
   onOpen: (product: ProductCardDto) => void;
 }) {
+  const COPY = useChatCopy();
   if (products.length === 0) return null;
   return (
     <section

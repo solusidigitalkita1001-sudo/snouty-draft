@@ -9,6 +9,9 @@
  * memperlambat orang yang memakainya berjam-jam.
  */
 
+import type { Locale } from '@snouty/shared-types';
+import { pickCopy, type CopyShape } from '../copy';
+
 export const INTERNAL_COPY = {
   needsDesign: 'BACK-OFFICE SEMENTARA · MENUNGGU DESAIN (OQ-21)',
   brand: 'SNOUTY · INTERNAL',
@@ -57,6 +60,59 @@ export const INTERNAL_COPY = {
     blocked: 'MENUNGGU JAWABAN',
   },
 } as const;
+
+export const INTERNAL_COPY_EN: CopyShape<typeof INTERNAL_COPY> = {
+  needsDesign: 'TEMPORARY BACK-OFFICE · AWAITING DESIGN (OQ-21)',
+  brand: 'SNOUTY · INTERNAL',
+
+  nav: [
+    { href: '/internal/catalog', label: 'Catalog', phase: 'P1-10b' },
+    { href: '/internal/rules', label: 'Rule validation', phase: 'P6-09' },
+    { href: '/internal/email', label: 'Email review', phase: 'P11-05' },
+    { href: '/internal/market', label: 'Market intelligence', phase: 'P12-03' },
+    { href: '/internal/handoff', label: 'Technical queue', phase: 'P8-07' },
+  ],
+
+  catalog: {
+    title: 'Product catalog',
+    body: 'Upload catalog files, review the validation report, preview drafts, then promote the version.',
+    blocked:
+      'The actual shape of the catalog file is not known yet (OQ-07), so the upload form has not been built. Version listing and promotion are already available through the API.',
+  },
+  rules: {
+    title: 'Engineering rule validation',
+    body: 'All fourteen rules await domain expert approval. Approved rules allow calculated values to be shown as VERIFIED.',
+    blocked:
+      'Waiting for a domain expert to be assigned (OQ-06). Until then, all rule output stays ASSUMPTION, and that is the correct behavior.',
+  },
+  email: {
+    title: 'Email review',
+    body: 'AI analyzes and drafts; humans review and send. There are no automatic replies.',
+    blocked:
+      'Model calls for analysis are waiting on the model ID (OQ-09), and the draft delivery destination is waiting on OQ-08. Personal data redaction is already running and tested.',
+  },
+  market: {
+    title: 'Market intelligence',
+    body: 'Regional demand, product interest trends, project type patterns, and the consultation funnel.',
+    blocked:
+      'Aggregation and the k-anonymity threshold are in place and tested; event emitters from chat and email are coming.',
+  },
+  handoff: {
+    title: 'Technical queue',
+    body: 'Cases handed off by users, oldest first, with the requirements gathered so far.',
+    blocked:
+      'The actual delivery destination is waiting on OQ-08. The queue and its contents are already stored and readable.',
+  },
+
+  statusLabel: {
+    ready: 'API READY',
+    blocked: 'AWAITING ANSWER',
+  },
+};
+
+export function internalCopy(locale: Locale): CopyShape<typeof INTERNAL_COPY> {
+  return pickCopy(locale, INTERNAL_COPY, INTERNAL_COPY_EN);
+}
 
 export type InternalSection = Exclude<
   keyof typeof INTERNAL_COPY,

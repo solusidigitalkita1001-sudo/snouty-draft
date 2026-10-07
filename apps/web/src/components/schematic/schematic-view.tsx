@@ -16,8 +16,14 @@
  */
 
 import type { Schematic, SchematicNode } from '@snouty/shared-types';
-import { MANDATORY_NOTES, SCHEMATIC_COPY as COPY } from './schematic-copy';
+import { mandatoryNotes, schematicCopy } from './schematic-copy';
+import { useLocale } from '../locale';
 import styles from './schematic.module.css';
+
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useSchematicCopy() {
+  return schematicCopy(useLocale().locale);
+}
 
 /** Metrik tata letak dari prototipe (§4). */
 const LABEL_COLUMN = 84;
@@ -31,6 +37,8 @@ const GROUND_BAND = 34;
 const MIN_WIDTH = 500;
 
 export function SchematicView({ schematic }: { schematic: Schematic }) {
+  const COPY = useSchematicCopy();
+  const NOTES = mandatoryNotes(useLocale().locale);
   const floors = schematic.floors;
   const maxFixturesPerFloor = Math.max(
     1,
@@ -53,7 +61,7 @@ export function SchematicView({ schematic }: { schematic: Schematic }) {
   return (
     <figure className={styles.wrapper}>
       {/* Invarian S-1 — dirender tanpa syarat. */}
-      <div className={styles.banner}>{MANDATORY_NOTES.banner}</div>
+      <div className={styles.banner}>{NOTES.banner}</div>
 
       <div className={styles.canvasScroll}>
         <svg
@@ -190,7 +198,12 @@ export function SchematicView({ schematic }: { schematic: Schematic }) {
       <div className={styles.legend}>
         {COPY.legend.map((item) => (
           <span key={item.role} className={styles.legendItem}>
-            <span className={[styles.legendSwatch, legendClass(item.role)].join(' ')} />
+            <span
+              className={[
+                styles.legendSwatch,
+                legendClass(item.role as Parameters<typeof legendClass>[0]),
+              ].join(' ')}
+            />
             {item.label}
           </span>
         ))}
@@ -198,8 +211,7 @@ export function SchematicView({ schematic }: { schematic: Schematic }) {
 
       {/* Invarian S-1 — catatan kedua, juga tanpa syarat. */}
       <figcaption className={styles.note}>
-        <strong className={styles.noteTitle}>{MANDATORY_NOTES.noteTitle}</strong>{' '}
-        {MANDATORY_NOTES.noteBody}
+        <strong className={styles.noteTitle}>{NOTES.noteTitle}</strong> {NOTES.noteBody}
       </figcaption>
 
       <SchematicTextAlternative schematic={schematic} />
@@ -209,6 +221,7 @@ export function SchematicView({ schematic }: { schematic: Schematic }) {
 
 /** Panel DAFTAR JALUR + blok judul 2×2 (§4). */
 export function SchematicSidePanel({ schematic }: { schematic: Schematic }) {
+  const COPY = useSchematicCopy();
   return (
     <aside className={styles.panel}>
       <div className={styles.panelKicker}>{COPY.routeListTitle}</div>

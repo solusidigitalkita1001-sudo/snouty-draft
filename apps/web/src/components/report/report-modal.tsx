@@ -18,8 +18,14 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 
 import { Snouty } from '../mascot/snouty';
 import { createReport, downloadReport, fetchReport } from './report-api';
-import { REPORT_COPY as COPY, formatRupiah } from './report-copy';
+import { reportCopy, formatRupiah } from './report-copy';
+import { useLocale } from '../locale';
 import styles from './report-modal.module.css';
+
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useReportCopy() {
+  return reportCopy(useLocale().locale);
+}
 
 /** Pratinjau PENDING ditanya ulang sampai PDF-nya selesai, lalu berhenti. */
 const POLL_MS = 3000;
@@ -42,6 +48,7 @@ export function ReportModal({
   recommendationId: string;
   onClose: () => void;
 }) {
+  const COPY = useReportCopy();
   const [step, setStep] = useState<Step>({ kind: 'identity' });
   const [customerName, setCustomerName] = useState('');
   const [projectLocation, setProjectLocation] = useState('');
@@ -236,6 +243,7 @@ export function ReportModal({
 }
 
 function Preview({ report }: { report: ReportPreview }) {
+  const COPY = useReportCopy();
   const { payload } = report;
   const priced = payload.pricing.enabled;
   const grid = priced ? styles.rowPriced : styles.row;

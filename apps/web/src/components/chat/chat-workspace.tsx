@@ -28,7 +28,7 @@ import { moodForCards } from '../mascot/mood';
 import { Snouty, SnoutyAvatar } from '../mascot/snouty';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { ReportModal } from '../report/report-modal';
-import { REPORT_COPY } from '../report/report-copy';
+import { reportCopy } from '../report/report-copy';
 import { ThemeToggle } from '../theme-toggle';
 import { LocaleToggle, useLocale } from '../locale';
 import { AssistantMarkdown } from './assistant-markdown';
@@ -51,9 +51,14 @@ import {
 } from './chat-api';
 import { SolutionView, type SolutionTab } from '../solution/solution-view';
 import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
-import { CHAT_COPY as COPY, STAGE_ORDER, stageLabel } from './chat-copy';
+import { chatCopy, STAGE_ORDER, stageLabel } from './chat-copy';
 import { MISSING, requirementRows } from './requirement-rows';
 import styles from './chat-workspace.module.css';
+
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useChatCopy() {
+  return chatCopy(useLocale().locale);
+}
 
 /** Toast "Solusi tersimpan" hilang sendiri — 2800 ms di prototipe. */
 const TOAST_MS = 2800;
@@ -111,6 +116,7 @@ interface ChatTurn {
 }
 
 export function ChatWorkspace() {
+  const COPY = useChatCopy();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [turns, setTurns] = useState<readonly ChatTurn[]>([]);
   const [draft, setDraft] = useState('');
@@ -776,7 +782,7 @@ export function ChatWorkspace() {
                 className={styles.headerPrimary}
                 onClick={() => setReportOpen(true)}
               >
-                {REPORT_COPY.open}
+                {reportCopy(locale).open}
               </button>
             )}
           </div>
@@ -940,7 +946,7 @@ export function ChatWorkspace() {
                     role="tab"
                     aria-selected={solutionTab === t.id}
                     className={[styles.tab, solutionTab === t.id ? styles.tabOn : ''].join(' ')}
-                    onClick={() => setSolutionTab(t.id)}
+                    onClick={() => setSolutionTab(t.id as SolutionTab)}
                   >
                     {t.label}
                   </button>
@@ -1156,7 +1162,7 @@ export function ChatWorkspace() {
                   />
                 ))}
               </div>
-              <p className={styles.meterNote}>{completenessNote(filled)}</p>
+              <p className={styles.meterNote}>{completenessNote(filled, COPY)}</p>
             </section>
 
             {/* Layar solusi: empat saran lanjutan, masing-masing dikirim sebagai pesan. */}
@@ -1194,12 +1200,9 @@ export function ChatWorkspace() {
  * Teks di bawah meter — salinan desain. Dihitung dari jumlah terisi, sama seperti
  * `completenessCaption` di server; keduanya mengikuti kalimat yang sama.
  */
-function completenessNote(filled: number): string {
+function completenessNote(filled: number, copy: ReturnType<typeof chatCopy>): string {
   const missing = 4 - filled;
-  if (missing <= 0) {
-    return 'Data inti sudah lengkap. Nilai yang tidak diberikan tetap ditandai sebagai asumsi.';
-  }
-  return `${missing} kelompok data lagi sebelum SNOUTY dapat menyusun rekomendasi.`;
+  return missing <= 0 ? copy.meterNote.complete : copy.meterNote.remaining(missing);
 }
 
 /**
@@ -1214,6 +1217,7 @@ function UnderstoodCard({
   rows: readonly { label: string; display: string }[];
   filled: number;
 }) {
+  const COPY = useChatCopy();
   return (
     <div className={styles.understoodCard}>
       <div className={styles.understoodHead}>
@@ -1259,6 +1263,8 @@ function AnalysisOverlay({
   onRetry: () => void;
   onBack: () => void;
 }) {
+  const COPY = useChatCopy();
+  const { locale } = useLocale();
   const dialogRef = useRef<HTMLDivElement>(null);
   const statuses = STAGE_ORDER.map((stage) => stages[stage]);
   const done = statuses.filter((status) => status === 'done').length;
@@ -1341,12 +1347,12 @@ function AnalysisOverlay({
                 ].join(' ')}
               />
               <span className={status ? styles.stageLabelOn : styles.stageLabel}>
-                {stageLabel(stage)}
+                {stageLabel(stage, locale)}
               </span>
             </div>
           );
         })}
-        <p className={styles.stageFooter}>{CHAT_COPY_FOOTER}</p>
+        <p className={styles.stageFooter}>{COPY.analysisFooter}</p>
       </div>
     </div>
   );
@@ -1367,6 +1373,7 @@ function ClarificationCard({
   active: boolean;
   onSubmit: (answers: ReadonlyArray<{ readonly id: string; readonly option: string }>) => void;
 }) {
+  const COPY = useChatCopy();
   const [picked, setPicked] = useState<Readonly<Record<string, string>>>({});
   const single = questions.length === 1;
   const complete = questions.every((q) => picked[q.id] !== undefined);
@@ -1439,8 +1446,6 @@ function ClarificationCard({
 
 const UNKNOWN_OPTION = 'Belum tahu';
 
-const CHAT_COPY_FOOTER = COPY.analysisFooter;
-
 /**
  * Satu giliran asisten: teks diungkap bertahap (giliran baru, tanpa reduced-motion), kartu
  * masuk setelah teksnya selesai. Riwayat (`animate=false`) tampil utuh seketika.
@@ -1508,6 +1513,7 @@ function CardView({
   analyzing: boolean;
   onOpenProduct: (product: ProductCardDto) => void;
 }) {
+  const COPY = useChatCopy();
   if (card.kind === 'product') {
     return <ProductLookupCards products={card.products} onOpen={onOpenProduct} />;
   }

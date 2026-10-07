@@ -11,10 +11,17 @@
  * Mascot sengaja tidak dipakai di sini (skill desain): ini alat kerja, bukan permukaan produk.
  */
 
-import { INTERNAL_COPY as COPY, type InternalSection } from './internal-copy';
+import { internalCopy, type InternalSection } from './internal-copy';
+import { useLocale } from '../locale';
 import styles from './internal.module.css';
 
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useInternalCopy() {
+  return internalCopy(useLocale().locale);
+}
+
 export function InternalShell({ section }: { section: InternalSection }) {
+  const COPY = useInternalCopy();
   const content = COPY[section];
 
   return (

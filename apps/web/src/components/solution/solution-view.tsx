@@ -13,9 +13,15 @@ import type { ComposedResponse, Recommendation, SelectedProduct } from '@snouty/
 import { useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { SchematicTab } from './schematic-tab';
-import { SOLUTION_COPY as COPY } from './solution-copy';
+import { solutionCopy } from './solution-copy';
+import { useLocale } from '../locale';
 import { ProvenanceTag } from './provenance-tag';
 import styles from './solution.module.css';
+
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useSolutionCopy() {
+  return solutionCopy(useLocale().locale);
+}
 
 /** Tab layar solusi (prototipe `tabDefs`). Tanpa `tab`, seluruh bagian dirender berurutan. */
 export type SolutionTab = 'ringkasan' | 'produk' | 'skema' | 'material';
@@ -29,6 +35,7 @@ export function SolutionView({
   onFixAssumption?: (fieldPath: string) => void;
   tab?: SolutionTab;
 }) {
+  const COPY = useSolutionCopy();
   const [showTechnical, setShowTechnical] = useState(false);
   const [openProduct, setOpenProduct] = useState<DrawerSelection | null>(null);
   const { stats } = recommendation;
@@ -232,6 +239,7 @@ export function SolutionView({
  * status dan catatan tradeoff datang dari kode API, bukan dihitung di sini.
  */
 function CompositionOptions({ composition }: { composition: ComposedResponse }) {
+  const COPY = useSolutionCopy();
   const C = COPY.composition;
   return (
     <>
@@ -326,6 +334,7 @@ function CompositionOptions({ composition }: { composition: ComposedResponse }) 
 
 /** Data diketahui · parameter diasumsikan · perhitungan · data yang masih dibutuhkan (tab Material). */
 function CompositionData({ composition }: { composition: ComposedResponse }) {
+  const COPY = useSolutionCopy();
   const C = COPY.composition;
   const list = (title: string, items: readonly { label: string; value: string }[]) =>
     items.length > 0 && (
@@ -361,6 +370,7 @@ function Stat({ label, value, mono }: { label: string; value: string; mono?: boo
 
 /** Kartu produk layar 07 — tiga keadaan, label dari desain. */
 function ProductCard({ product, onOpen }: { product: SelectedProduct; onOpen: () => void }) {
+  const COPY = useSolutionCopy();
   return (
     <button type="button" className={styles.productCard} onClick={onOpen}>
       <div className={styles.productRole}>{product.role.toUpperCase()}</div>

@@ -10,6 +10,9 @@
  * Teksnya sendiri bukan dari desain; ia ditulis sebagai penampung yang jujur dan akan diganti.
  */
 
+import type { Locale } from '@snouty/shared-types';
+import { pickCopy, type CopyShape } from '../copy';
+
 export const AUTH_COPY = {
   needsDesign: 'TAMPILAN SEMENTARA · MENUNGGU DESAIN',
   brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
@@ -47,3 +50,44 @@ export const AUTH_COPY = {
     generic: 'Tidak bisa melanjutkan sekarang. Coba lagi sebentar.',
   },
 } as const;
+
+export const AUTH_COPY_EN: CopyShape<typeof AUTH_COPY> = {
+  needsDesign: 'TEMPORARY SCREEN · AWAITING DESIGN',
+  brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
+
+  login: {
+    title: 'Sign in',
+    subtitle: 'Pick up the consultations you saved.',
+    submit: 'Sign in',
+    toRegister: "Don't have an account? Sign up",
+  },
+  register: {
+    title: 'Create an account',
+    subtitle: 'Save consultations, reopen them any time, and access advanced analysis.',
+    submit: 'Sign up',
+    toLogin: 'Already have an account? Sign in',
+    resumeNote:
+      'Your current conversation will move to your account, so you will not have to start over.',
+  },
+
+  fields: {
+    name: 'Name',
+    email: 'Email',
+    password: 'Password',
+    passwordHint: 'At least 12 characters.',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+  },
+
+  errors: {
+    invalid: 'Email or password does not match.',
+    emailTaken: 'This email is already registered.',
+    weakPassword: 'Password must be at least 12 characters.',
+    rateLimited: 'Too many attempts. Please try again in a few minutes.',
+    generic: 'Unable to continue right now. Please try again shortly.',
+  },
+};
+
+export function authCopy(locale: Locale): CopyShape<typeof AUTH_COPY> {
+  return pickCopy(locale, AUTH_COPY, AUTH_COPY_EN);
+}

@@ -17,10 +17,16 @@ import { specHasValue, type SelectedProduct, type SpecValue } from '@snouty/shar
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { SnoutyAvatar } from '../mascot/snouty';
-import { SOLUTION_COPY } from '../solution/solution-copy';
+import { solutionCopy } from '../solution/solution-copy';
 import { loadProduct, type ProductLoad } from './product-api';
-import { PRODUCT_COPY as COPY, sourceLine, specSourceLine } from './product-copy';
+import { productCopy, sourceLine, specSourceLine } from './product-copy';
+import { useLocale } from '../locale';
 import styles from './product-drawer.module.css';
+
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useProductCopy() {
+  return productCopy(useLocale().locale);
+}
 
 const SPEC_ORDER = [
   'material',
@@ -50,6 +56,7 @@ export function ProductDrawer({
   selection: DrawerSelection;
   onClose: () => void;
 }) {
+  const COPY = useProductCopy();
   const [load, setLoad] = useState<ProductLoad | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -142,6 +149,8 @@ function ProductBody({
   selection: DrawerSelection;
   onClose: () => void;
 }) {
+  const COPY = useProductCopy();
+  const { locale } = useLocale();
   const { product, fittings, documents } = load;
 
   return (
@@ -161,7 +170,7 @@ function ProductBody({
           <p className={styles.description}>{product.description}</p>
           {selection.size !== undefined && selection.matchState !== undefined && (
             <span className={styles.usedTag}>
-              {SOLUTION_COPY.matchStateLabel[selection.matchState]} · {selection.size}
+              {solutionCopy(locale).matchStateLabel[selection.matchState]} · {selection.size}
             </span>
           )}
         </div>
@@ -237,7 +246,7 @@ function ProductBody({
         <div>
           <div className={styles.sourceLabel}>{COPY.sourceLabel}</div>
           <div className={styles.source}>
-            {sourceLine(product.sourceDocument, product.sourcePage)}
+            {sourceLine(product.sourceDocument, product.sourcePage, locale)}
           </div>
         </div>
         <button type="button" className={styles.back} onClick={onClose}>
@@ -249,6 +258,8 @@ function ProductBody({
 }
 
 function SpecRow({ label, spec }: { label: string; spec: SpecValue }) {
+  const COPY = useProductCopy();
+  const { locale } = useLocale();
   return (
     <div className={styles.specCell}>
       <dt className={styles.specLabel}>{label}</dt>
@@ -257,7 +268,7 @@ function SpecRow({ label, spec }: { label: string; spec: SpecValue }) {
           {spec.value}
           {spec.sourceDocument !== undefined && spec.sourcePage !== undefined && (
             <span className={styles.specSource}>
-              {specSourceLine(spec.sourceDocument, spec.sourcePage)}
+              {specSourceLine(spec.sourceDocument, spec.sourcePage, locale)}
             </span>
           )}
         </dd>

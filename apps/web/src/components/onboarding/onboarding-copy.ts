@@ -6,6 +6,9 @@
  * kebijakan (docs/PRIVACY.md §4), bukan sekadar redaksi.
  */
 
+import type { Locale } from '@snouty/shared-types';
+import { pickCopy, type CopyShape } from '../copy';
+
 export const ONBOARDING_COPY = {
   brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
 
@@ -124,3 +127,125 @@ export const ONBOARDING_COPY = {
     close: 'Tutup onboarding',
   },
 } as const;
+
+export const ONBOARDING_COPY_EN: CopyShape<typeof ONBOARDING_COPY> = {
+  brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
+
+  steps: [
+    {
+      kicker: 'MEET',
+      bubble: "Hi! I'm Snouty, your piping consultant.",
+      title: 'Meet SNOUTY',
+      body: "Pralon's smart assistant that helps you find product information and piping solutions for your needs.",
+    },
+    {
+      kicker: 'STORY',
+      bubble: "Just tell me your story, and I'll turn it into pipe sizes.",
+      title: 'Describe your needs in your own words',
+      body: "You don't need to know any piping jargon. Describe your home or building as if you were talking to a consultant.",
+    },
+    {
+      kicker: 'PRODUCTS',
+      bubble: 'Every suggestion comes from the Pralon catalog, with the reasons included.',
+      title: 'Find the right Pralon products',
+      body: 'SNOUTY helps understand your needs and matches them with the relevant Pralon products.',
+    },
+    {
+      kicker: 'LOCATION',
+      bubble: "It's optional. Without location, I still work fully.",
+      title: 'Help us understand demand in your area',
+      body: 'By enabling location, SNOUTY can help Pralon understand product demand patterns by region and improve market analysis.',
+    },
+    {
+      kicker: 'ACCOUNT',
+      bubble: 'Save your consultation so you can continue anytime.',
+      title: 'Want a fuller experience?',
+      body: 'Sign up to save conversations, revisit consultations, and try more complete case-study analysis.',
+    },
+  ],
+
+  step1Capabilities: [
+    { n: '01', title: 'Understand your needs', detail: 'From your story, not a form.' },
+    { n: '02', title: 'Pralon recommendations', detail: 'Products, sizes, and the reasons.' },
+    { n: '03', title: 'Schematic & estimate', detail: 'An overview of routes and materials.' },
+  ],
+
+  step2: {
+    chatTitle: 'Consultation · example',
+    chatTag: 'NO TECHNICAL TERMS',
+    userMessage: 'A 2-storey house, 3 bathrooms, 4 sinks. What pipes do I need?',
+    assistantMessage: 'Sure! One thing first: where does the water come from?',
+    chips: ['Rooftop tank', 'Pump', 'Municipal supply', 'Not sure'],
+    points: [
+      { n: '01', label: 'Write freely' },
+      { n: '02', label: 'Answer with one click' },
+      { n: '03', label: 'Attach a floor plan if you have one' },
+    ],
+  },
+
+  step3: {
+    columns: [
+      {
+        kicker: '01 · YOUR STORY',
+        title: 'Requirements',
+        detail: '2-storey house, 3 bathrooms, rooftop tank.',
+      },
+      {
+        kicker: '02 · SNOUTY',
+        title: 'Analysis',
+        detail: 'Outlets, main route, branches, and pipe sizes.',
+      },
+      {
+        kicker: '03 · RESULT',
+        title: 'Pralon products',
+        detail: 'PVC AW 1" & 3/4", matching fittings, clear reasons.',
+      },
+    ],
+    footer:
+      'Recommendations come only from the Pralon catalog, and every suggestion comes with its technical reasons.',
+  },
+
+  step4: {
+    knowTitle: 'WHAT YOU SHOULD KNOW',
+    points: [
+      'Sharing your location is optional.',
+      'SNOUTY can still be used without location.',
+      'Regional data is used for market-demand analysis, not to determine recommendations.',
+      'City/regency level of detail is enough.',
+    ],
+    granted: {
+      title: 'Location enabled',
+      body: 'Thank you. Regional information helps improve market-demand insight. You can turn it off anytime in settings.',
+    },
+    denied: {
+      title: "No problem, let's continue",
+      body: 'SNOUTY works fully without location. You can enable it later from the help menu.',
+    },
+    blocked: {
+      title: 'Location permission is blocked by the browser',
+      body: 'You can still use SNOUTY. If you want to enable it, change the location permission for this site in your browser settings.',
+    },
+  },
+
+  step5: {
+    footer:
+      'Case-study analysis and schematic generation are available in the registered experience. Without an account, you can still consult and view product recommendations.',
+  },
+
+  actions: {
+    skip: 'Skip',
+    skipLast: 'Skip for now',
+    back: 'Back',
+    next: 'Next',
+    enableLocation: 'Enable Location',
+    requesting: 'Requesting permission…',
+    later: 'Maybe Later',
+    register: 'Sign Up',
+    continueAsGuest: 'Continue as Guest',
+    close: 'Close onboarding',
+  },
+};
+
+export function onboardingCopy(locale: Locale): CopyShape<typeof ONBOARDING_COPY> {
+  return pickCopy(locale, ONBOARDING_COPY, ONBOARDING_COPY_EN);
+}

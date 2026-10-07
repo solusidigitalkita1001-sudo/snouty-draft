@@ -7,6 +7,9 @@
  * punya denah bangunan, jadi ia tidak tahu posisi fisik apa pun.
  */
 
+import type { Locale } from '@snouty/shared-types';
+import { pickCopy, type CopyShape } from '../copy';
+
 export const SCHEMATIC_COPY = {
   title: 'Skema Instalasi',
   routeListTitle: 'DAFTAR JALUR',
@@ -27,6 +30,29 @@ export const SCHEMATIC_COPY = {
   ariaIntro: 'Skema instalasi air bersih, disajikan sebagai daftar jalur per lantai.',
 } as const;
 
+export const SCHEMATIC_COPY_EN: CopyShape<typeof SCHEMATIC_COPY> = {
+  title: 'Installation Schematic',
+  routeListTitle: 'ROUTE LIST',
+  titleBlockLabels: {
+    drawing: 'DRAWING',
+    scale: 'SCALE',
+    floorHeight: 'FLOOR HEIGHT',
+    source: 'SOURCE',
+  },
+  legend: [
+    { label: 'Main line & riser', role: 'main' },
+    { label: 'Branch per floor', role: 'branch' },
+    { label: 'Fixture connection', role: 'fixture_connection' },
+    { label: 'Tee + reducer', role: 'fitting' },
+  ],
+  groundLabel: '±0.00 GROUND LEVEL',
+  ariaIntro: 'Clean water installation schematic, presented as a list of routes per floor.',
+};
+
+export function schematicCopy(locale: Locale): CopyShape<typeof SCHEMATIC_COPY> {
+  return pickCopy(locale, SCHEMATIC_COPY, SCHEMATIC_COPY_EN);
+}
+
 /** Invarian S-1 — tidak ada mode yang menghilangkan keduanya. */
 export const MANDATORY_NOTES = {
   banner: 'SKEMATIK · BUKAN GAMBAR KERJA',
@@ -34,3 +60,14 @@ export const MANDATORY_NOTES = {
   noteBody:
     'Skema menunjukkan hubungan antar jalur, bukan posisi fisik pipa di bangunan. Panjang jalur dan posisi shaft ditentukan saat pelaksanaan.',
 } as const;
+
+export const MANDATORY_NOTES_EN: CopyShape<typeof MANDATORY_NOTES> = {
+  banner: 'SCHEMATIC · NOT A WORKING DRAWING',
+  noteTitle: 'SCHEMATIC NOTE',
+  noteBody:
+    'The schematic shows how routes relate to each other, not the physical position of pipes in the building. Route lengths and shaft positions are determined during construction.',
+};
+
+export function mandatoryNotes(locale: Locale): CopyShape<typeof MANDATORY_NOTES> {
+  return pickCopy(locale, MANDATORY_NOTES, MANDATORY_NOTES_EN);
+}

@@ -12,16 +12,26 @@
  */
 
 import { useCallback, useState } from 'react';
-import { AUTH_COPY as COPY } from './auth-copy';
+import { authCopy } from './auth-copy';
+import { useLocale } from '../locale';
 import { login, register } from './auth-api';
 import styles from './auth.module.css';
 
-const ERROR_TEXT: Readonly<Record<string, string>> = {
-  UNAUTHENTICATED: COPY.errors.invalid,
-  VALIDATION_FAILED: COPY.errors.weakPassword,
-  RATE_LIMITED: COPY.errors.rateLimited,
-  EMAIL_ALREADY_REGISTERED: COPY.errors.emailTaken,
-};
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useAuthCopy() {
+  return authCopy(useLocale().locale);
+}
+
+/** Teks galat per kode — dari copy bahasa aktif, maka fungsi, bukan konstanta modul. */
+function errorText(copy: ReturnType<typeof authCopy>, code: string): string | undefined {
+  const byCode: Readonly<Record<string, string>> = {
+    UNAUTHENTICATED: copy.errors.invalid,
+    VALIDATION_FAILED: copy.errors.weakPassword,
+    RATE_LIMITED: copy.errors.rateLimited,
+    EMAIL_ALREADY_REGISTERED: copy.errors.emailTaken,
+  };
+  return byCode[code];
+}
 
 /**
  * Ikon mata, SVG inline — bukan emoji dan bukan pustaka ikon.
@@ -51,6 +61,7 @@ function EyeIcon({ crossed }: { crossed: boolean }) {
 }
 
 export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
+  const COPY = useAuthCopy();
   const copy = mode === 'login' ? COPY.login : COPY.register;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -76,7 +87,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         return;
       }
 
-      setError(ERROR_TEXT[result.code ?? ''] ?? COPY.errors.generic);
+      setError(errorText(COPY, result.code ?? '') ?? COPY.errors.generic);
       setBusy(false);
     },
     [busy, email, mode, name, password],

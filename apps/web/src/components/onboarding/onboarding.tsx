@@ -32,8 +32,14 @@ import {
   type OnboardingBenefit,
   type OnboardingOutcome,
 } from './onboarding-api';
-import { ONBOARDING_COPY as COPY } from './onboarding-copy';
+import { onboardingCopy } from './onboarding-copy';
+import { useLocale } from '../locale';
 import styles from './onboarding.module.css';
+
+/** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
+function useOnboardingCopy() {
+  return onboardingCopy(useLocale().locale);
+}
 
 type LocationState = 'ask' | 'pending' | 'granted' | 'denied' | 'blocked';
 
@@ -44,6 +50,7 @@ const STEP_MOODS = ['happy', 'write', 'wink', 'focus', 'thanks'] as const;
 const DENIED_AUTO_ADVANCE_MS = 450;
 
 export function Onboarding() {
+  const COPY = useOnboardingCopy();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [location, setLocation] = useState<LocationState>('ask');
@@ -296,6 +303,7 @@ function MascotSlot({ mood, size }: { mood: Mood; size: number }) {
 }
 
 function Step1() {
+  const COPY = useOnboardingCopy();
   return (
     <div className={styles.capsGrid}>
       {COPY.step1Capabilities.map((capability) => (
@@ -310,6 +318,7 @@ function Step1() {
 }
 
 function Step2() {
+  const COPY = useOnboardingCopy();
   return (
     <>
       <div className={styles.chatCard}>
@@ -354,6 +363,7 @@ function Step2() {
 }
 
 function Step3() {
+  const COPY = useOnboardingCopy();
   return (
     <div className={styles.flowCard}>
       <div className={styles.flowGrid}>
@@ -378,6 +388,7 @@ function Step3() {
 }
 
 function Step4({ location }: { location: LocationState }) {
+  const COPY = useOnboardingCopy();
   if (location === 'granted') {
     return (
       <div className={styles.grantedCard} role="status">
@@ -419,6 +430,7 @@ function Step4({ location }: { location: LocationState }) {
 }
 
 function Step5({ benefits }: { benefits: readonly OnboardingBenefit[] }) {
+  const COPY = useOnboardingCopy();
   return (
     <div className={styles.benefitsCard}>
       <div className={styles.benefitsGrid}>

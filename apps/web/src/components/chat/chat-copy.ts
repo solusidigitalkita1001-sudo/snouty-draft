@@ -7,6 +7,8 @@
  */
 
 import { ANALYSIS_STAGE_LABELS, type AnalysisStage } from '@snouty/shared-types';
+import type { Locale } from '@snouty/shared-types';
+import { pickCopy, type CopyShape } from '../copy';
 
 export const CHAT_COPY = {
   brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
@@ -60,6 +62,12 @@ export const CHAT_COPY = {
   // Badge versi katalog ("KATALOG PRALON · erp-…") dihapus 2026-10-06 atas keputusan pemilik:
   // label impor adalah urusan back-office, bukan teks untuk pengguna.
   stepStatus: (filled: number) => `LANGKAH ${Math.min(filled + 1, 4)} DARI 4`,
+  /** Teks di bawah meter kelengkapan (salinan desain; dulu literal di komponen). */
+  meterNote: {
+    complete: 'Data inti sudah lengkap. Nilai yang tidak diberikan tetap ditandai sebagai asumsi.',
+    remaining: (missing: number) =>
+      `${missing} kelompok data lagi sebelum SNOUTY dapat menyusun rekomendasi.`,
+  },
   solutionReady: 'SOLUSI SIAP',
   /** Judul percakapan aktif, diturunkan dari kebutuhan (prototipe `titleFrom`). */
   titleFor: (building: string | null, floors: number | null) => {
@@ -181,6 +189,166 @@ export const STAGE_ORDER: readonly AnalysisStage[] = [
   'PREPARING_SCHEMATIC',
 ];
 
-export function stageLabel(stage: AnalysisStage): string {
-  return ANALYSIS_STAGE_LABELS[stage];
+const ANALYSIS_STAGE_LABELS_EN: Record<AnalysisStage, string> = {
+  UNDERSTANDING: 'Understanding your needs',
+  ANALYZING_INSTALLATION: 'Analyzing the installation',
+  MATCHING_PRODUCTS: 'Matching Pralon products',
+  COMPOSING: 'Composing the recommendation',
+  PREPARING_SCHEMATIC: 'Preparing the schematic',
+};
+
+export function stageLabel(stage: AnalysisStage, locale: Locale = 'id'): string {
+  return locale === 'en' ? ANALYSIS_STAGE_LABELS_EN[stage] : ANALYSIS_STAGE_LABELS[stage];
+}
+
+/** English twin of `CHAT_COPY` — same keys, same shape (enforced by `CopyShape`). */
+export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
+  brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
+  newConversation: 'New Consultation',
+  historyTitle: 'HISTORY',
+  savedSolutions: 'Saved Solutions',
+  collapsePanel: 'Collapse panel',
+  expandPanel: 'Open needs & solution panel',
+  productKnowledge: 'Product Knowledge',
+  historyGuest: 'Sign up to save and reopen your consultations.',
+  historyEmpty: 'No other consultations yet.',
+  saveSolution: 'Save consultation result',
+  saved: 'Saved',
+  thinking: 'SNOUTY is thinking',
+  toast: {
+    title: 'Solution saved',
+    sub: 'Thank you! Reopen it any time from History.',
+  },
+  analysis: {
+    running: { title: 'Putting your solution together', sub: 'Usually done within a few seconds.' },
+    done: {
+      title: 'Solution ready!',
+      sub: 'Opening the recommendation, products, schematic, and material estimate.',
+    },
+    failed: {
+      title: 'Could not compose the recommendation',
+      sub: 'The connection to the Pralon catalog dropped during the analysis. Your needs are still saved, so there is no need to retype them.',
+    },
+  },
+  composerPlaceholder:
+    'Example: I am building a 2-storey house, 3 bathrooms, water tank on the roof…',
+  composerPlaceholderChat: 'Type your answer or add details…',
+  composerPlaceholderMobile: 'Type your answer…',
+  attachPlan: 'Attach floor plan',
+
+  welcome: {
+    bubble: "Hi! Tell me about your house, and I'll work out the pipes.",
+    sleepBubble: "Zzz… just start typing, I'll wake right up.",
+    headline: 'Find the right piping solution for your needs.',
+    body: 'Describe your building or installation needs. SNOUTY will help analyze them and recommend Pralon product solutions.',
+  },
+
+  headerTitle: 'Consultation',
+  headerWelcomeTitle: 'New Consultation',
+  stepStatus: (filled: number) => `STEP ${Math.min(filled + 1, 4)} OF 4`,
+  meterNote: {
+    complete: 'Core data is complete. Values you did not provide are still marked as assumptions.',
+    remaining: (missing: number) =>
+      `${missing} more data group${missing > 1 ? 's' : ''} before SNOUTY can draft a recommendation.`,
+  },
+  solutionReady: 'SOLUTION READY',
+  titleFor: (building: string | null, floors: number | null) => {
+    if (building === 'industrial') return 'Factory — process water line';
+    if (building === 'boarding_house') return 'Boarding house — clean water installation';
+    if (floors !== null) return `${floors}-storey house — new consultation`;
+    return 'New consultation';
+  },
+
+  collapseSidebar: 'Collapse sidebar',
+  expandSidebar: 'Open sidebar',
+  newShort: 'New',
+  menu: 'History',
+  menuTitle: 'CONSULTATION HISTORY',
+  closeDrawer: 'Close menu',
+  activeStatus: {
+    inProgress: 'IN PROGRESS',
+    ready: 'SOLUTION READY',
+    reopened: 'REOPENED',
+  },
+  footer: {
+    guestName: 'Guest',
+    guestRole: 'Not signed in',
+    login: 'Sign in',
+    register: 'Sign up',
+    role: 'Customer',
+  },
+  attachSoon: 'Floor plan upload coming soon — no file service yet',
+  analyzeCta: 'Compose recommendation',
+  followUps: {
+    title: 'CONTINUE THE CONVERSATION',
+    items: (mainSize: string) => [
+      'What if I add one more bathroom?',
+      `Why use ${mainSize} on the main line?`,
+      'What if the tank is on the 3rd floor?',
+      'What sizes is the product available in?',
+    ],
+  },
+  mobileNeeds: (n: number) => `Needs (${n})`,
+  panelEdit: 'Edit',
+  panelDone: 'Done',
+  panelSaving: 'Saving…',
+  panelEditFailed: 'Changes were not saved. Please try again.',
+  mobileSend: '→',
+
+  understood: {
+    title: "What I've understood so far",
+    readCount: (n: number) => `${n} DATA READ`,
+  },
+
+  railLabel: 'NEEDS & SOLUTION',
+  railUnit: 'DATA',
+  send: 'Send',
+  panelTitle: 'Solution Panel',
+  requirementsLabel: 'YOUR NEEDS',
+  completenessLabel: 'DATA COMPLETENESS',
+  boundaryTitle: 'Recommendation boundary',
+  boundaryBody:
+    'This solution is planning guidance, not a technical certification. For implementation, the final plan should be reviewed with an installer or the Pralon technical team.',
+  analysisFooter:
+    'SNOUTY only matches against the Pralon catalog. Values that are not available are marked as estimates.',
+  llmUnavailable:
+    'Language understanding is temporarily unavailable. Please try again shortly — your conversation is still saved.',
+  emptyState: 'Describe your needs as if talking to a consultant. No technical terms needed.',
+
+  criteriaTitle: 'CRITERIA WORTH CHECKING',
+
+  productCards: {
+    title: 'RELATED PRALON PRODUCTS',
+    open: 'View details',
+  },
+  contactTechnicalReason: 'Pralon product question from the conversation',
+  unsupported: {
+    title: 'This need requires further technical checking',
+    capturedLabel: "WHAT I'VE NOTED",
+    sendToTechnical: 'Send to the Pralon technical team',
+    sending: 'Sending…',
+    sent: 'Sent to the technical team',
+    downloadSummary: 'Download needs summary',
+    slaNote: (hours: number) =>
+      `The Pralon technical team usually responds within ${hours} working hours.`,
+  },
+
+  clarificationTitle: "SO I DON'T HAVE TO GUESS",
+  skipToDefaults: 'Skip and use standard assumptions',
+  solutionTabs: [
+    { id: 'ringkasan', label: 'Summary' },
+    { id: 'produk', label: 'Pralon Products' },
+    { id: 'skema', label: 'Schematic' },
+    { id: 'material', label: 'Material Estimate' },
+  ],
+  backToChat: '← Conversation',
+  viewSolution: 'View solution',
+  sendAnswers: 'Send answers',
+  clarifyFailed: 'Answers were not saved. Please try again.',
+  analysisRetry: 'Try again',
+  analysisBack: 'Back to conversation',
+};
+
+export function chatCopy(locale: Locale): CopyShape<typeof CHAT_COPY> {
+  return pickCopy(locale, CHAT_COPY, CHAT_COPY_EN);
 }

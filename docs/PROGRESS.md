@@ -772,7 +772,12 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       sidebar kaya ChatGPT/Claude di mobile"): sidebar yang sama dirender sebagai drawer dari kiri
       (backdrop, ×, Escape, menutup saat memilih riwayat/percakapan baru), tombol ☰ di ponsel;
       dropdown "Riwayat" dihapus. OQ-51 (needs design)
-- [ ] P15-02 Teks UI dua bahasa: seluruh modul `*-copy.ts` web (640 baris) + `useCopy(locale)`
+- [x] P15-02 Teks UI dua bahasa (2026-10-07). Sembilan objek copy web (chat, solusi, onboarding,
+      laporan, produk, auth, skema + catatan wajib, back-office) punya kembaran `*_EN` bertipe
+      `CopyShape` (kunci sama dipaksa typecheck + tes runtime); selector `xCopy(locale)` dan hook
+      `useXCopy()` per modul; fungsi berbahasa (`stageLabel`, `sourceLine`, `specSourceLine`,
+      `completenessNote`, teks galat auth) menerima locale/copy. Kalimat kebijakan diterjemahkan
+      setia dan dikunci tes. Nilai protokol (id tab, "Belum tahu" ke API) tetap. 12 tes baru
 - [ ] P15-03 Templat deterministik API dua bahasa: reply-copy, pembuka, panduan teknis & irigasi,
       pipe-knowledge, product-answer-text, kartu kebijakan (scope/entitlements), klarifikasi
 - [ ] P15-04 Registry per bahasa: label/pertanyaan/opsi parameter, asumsi, label keluaran,
