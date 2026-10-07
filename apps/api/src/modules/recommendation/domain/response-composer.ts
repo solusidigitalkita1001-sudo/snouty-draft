@@ -171,7 +171,7 @@ function parametersByOrigin(
     if (p.value === UNKNOWN) continue; // jawaban "belum tahu" bukan data
     (p.origin === 'known' ? known : assumed).push({
       label: technicalParameterLabel(key, p, locale),
-      value: formatTechnicalValue(p, locale),
+      value: formatTechnicalValue(p, locale, key),
     });
   }
   return { known, assumed };

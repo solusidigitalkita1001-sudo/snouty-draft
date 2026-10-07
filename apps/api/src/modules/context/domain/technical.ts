@@ -242,9 +242,14 @@ export function technicalParameterLabel(
   return isParameterKey(key) ? parameterLabel(key, locale) : p.label;
 }
 
+/**
+ * Nilai parameter untuk ditampilkan. Nilai enum tersimpan sebagai nilai protokol Indonesia
+ * ("Sumur"); bila `key` diberikan, bahasa Inggris memakai label pilihan dari registry ("Well").
+ */
 export function formatTechnicalValue(
   p: TechnicalParameter,
   locale: Locale = DEFAULT_LOCALE,
+  key?: string,
 ): string {
   if (typeof p.value === 'boolean') {
     return locale === 'en' ? (p.value ? 'Yes' : 'No') : p.value ? 'Ya' : 'Tidak';
@@ -254,6 +259,12 @@ export function formatTechnicalValue(
       maximumFractionDigits: 2,
     });
     return p.unit ? `${n} ${p.unit}` : n;
+  }
+  if (locale === 'en' && key !== undefined && isParameterKey(key)) {
+    const options = parameterDefinition(key).options ?? [];
+    const labels = parameterOptionLabels(key, locale) ?? [];
+    const index = options.indexOf(p.value);
+    if (index >= 0 && labels[index] !== undefined) return labels[index];
   }
   return p.value;
 }
@@ -267,7 +278,7 @@ export function technicalCaptured(
     .filter(([, p]) => p.value !== UNKNOWN)
     .map(([key, p]) => ({
       label: technicalParameterLabel(key, p, locale),
-      value: formatTechnicalValue(p, locale),
+      value: formatTechnicalValue(p, locale, key),
     }));
 }
 

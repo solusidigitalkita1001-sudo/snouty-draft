@@ -166,6 +166,11 @@ describe('technical dwibahasa', () => {
     expect(en.map((r) => r.label)).toContain('Design flow');
     en.forEach((r, i) => expect(r.label).not.toBe(id[i]!.label));
     expect(technicalGuidance(captured, 'en')).toContain('design flow 5 l/s');
+    // Nilai enum: protokol Indonesia di state, label Inggris saat ditampilkan.
+    expect(id.find((r) => r.label === 'Sumber air')?.value).toBe('Sumur');
+    const source = en.find((r) => r.label === 'Water source');
+    expect(source?.value).not.toBe('Sumur');
+    expect(source?.value).toMatch(/well/i);
   });
 
   it('technicalAnswerValue menerima label Inggris dan Yes/No, hasilnya nilai protokol', () => {
