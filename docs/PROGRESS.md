@@ -851,7 +851,12 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       kebijakan EN sama persis dengan web (`SOLUTION_COPY_EN`). Baris kebutuhan memakai
       `requirement-labels`, jenis instalasi diisi service (bukan controller). HTML Indonesia
       identik byte demi byte. Tes: API +10. **Belum EN saat itu:** dasar perhitungan (trace; selesai di P15-04b)
-- [ ] ✋ CHECKPOINT — reviewed by owner
+- [x] P15-06 Perbaikan dari skenario checkpoint (2026-10-07): giliran kebutuhan selalu membawa kalimat
+      "sudah saya catat" (ID/EN, fixture bernama), irigasi EN (deteksi + fakta), aspek & ketersediaan
+      ukuran EN, pencarian katalog membaca keluarga ("pvc aw" menemukan pipa AW), label
+      COMPANY_QUESTION model dipagari, Ollama keep-alive 24 jam. Tes: API +8
+- [ ] ✋ CHECKPOINT — reviewed by owner — laporan siap: `docs/PHASE15_CHECKPOINT.md` (12 skenario EN
+      di produksi, pengukuran latensi Ollama, tiga pilihan model untuk pemilik)
 
 ## Phase 16 — Routing percakapan: subjek aktif & pengetahuan perusahaan
 
