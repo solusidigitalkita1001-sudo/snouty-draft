@@ -136,6 +136,9 @@ export const CHAT_COPY = {
     'SNOUTY hanya mencocokkan dengan katalog Pralon. Nilai yang tidak tersedia ditandai sebagai estimasi.',
   llmUnavailable:
     'Pemahaman bahasa sedang tidak tersedia. Coba lagi sebentar — percakapan Anda tetap tersimpan.',
+  /** Giliran berakhir tanpa teks maupun kartu (tahap gagal di server). */
+  emptyReply:
+    'Saya belum bisa membaca pesan itu. Coba tulis ulang dengan jumlah lantai, kamar mandi, dan sumber airnya.',
   emptyState: 'Ceritakan kebutuhan Anda seperti berbicara dengan konsultan. Tanpa istilah teknis.',
 
   /** Layar 08 — kriteria netral saat pertanyaan kompetitor ditolak dibandingkan. */
@@ -313,6 +316,8 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
     'SNOUTY only matches against the Pralon catalog. Values that are not available are marked as estimates.',
   llmUnavailable:
     'Language understanding is temporarily unavailable. Please try again shortly — your conversation is still saved.',
+  emptyReply:
+    'I could not read that message. Try again with the number of floors, bathrooms, and the water source.',
   emptyState: 'Describe your needs as if talking to a consultant. No technical terms needed.',
 
   criteriaTitle: 'CRITERIA WORTH CHECKING',

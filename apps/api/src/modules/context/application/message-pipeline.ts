@@ -191,12 +191,24 @@ export async function runUnderstanding(
 
   events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'active' });
 
-  let merged: RequirementState;
-  let changed: boolean;
+  // Ekstraksi model boleh gagal; giliran tidak boleh. Fakta tersurat dari teks (lantai, kamar
+  // mandi, letak toren, peniadaan) tetap terbaca lewat `extractionToUpdates({}, pesan)`, dan bila
+  // itu pun kosong, kartu klarifikasi — BUKAN giliran yang berakhir tanpa sepatah kata
+  // (produksi 2026-10-07: ekstraksi gagal dua kali, `missingInformation` state awal kosong,
+  // kartu tidak terbit, pengguna menatap layar kosong).
+  let extraction: Extraction = {};
+  let extractionFailed = false;
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
-    const extraction = await ai.extract(input.message);
+    extraction = await ai.extract(input.message);
+  } catch (error) {
+    if (!(error instanceof AiOutputInvalidError)) throw error;
+    extractionFailed = true;
+  }
 
+  let merged: RequirementState;
+  let changed: boolean;
+  {
     // Pesan pembuka tanpa satu pun fakta ("mau nanya2 dong", "boleh tanya?"): model kecil kerap
     // memberinya label REQUIREMENT_STATEMENT, dan formulir klarifikasi adalah jawaban yang salah
     // untuk orang yang baru hendak bertanya. Ekstraksi kosong berarti tidak ada yang bisa
@@ -206,6 +218,16 @@ export async function runUnderstanding(
     // "rumah 2 lantai, tidak ada dapur" dengan model yang mengembalikan {} bukan pembuka
     // (produksi 2026-10-07 — sempat dijawab "silakan tanyakan saja").
     const updates = extractionToUpdates(extraction, input.message);
+    if (extractionFailed && updates.length === 0) {
+      // Model gagal dan teksnya tidak memuat fakta yang bisa dibaca kode: tanya yang kurang.
+      events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'failed' });
+      const plan = planClarification(withCompleteness(input.state).missingInformation);
+      if (plan)
+        events.push({ type: 'card', card: { kind: 'clarification', questions: plan.questions } });
+      events.push(endEvent(input.messageId));
+      return { events, nextState: input.state, changed: false, trigger: 'extraction' };
+    }
+
     if (
       input.decision.intent === 'REQUIREMENT_STATEMENT' &&
       isEmptyExtraction(extraction) &&
@@ -229,15 +251,6 @@ export async function runUnderstanding(
     const result = mergeRequirement(input.state, updates, input.now);
     merged = withCompleteness(result.state);
     changed = result.changed.length > 0;
-  } catch (error) {
-    if (!(error instanceof AiOutputInvalidError)) throw error;
-    // Ekstraksi gagal: jangan jatuhkan giliran. Minta klarifikasi atas yang kurang.
-    events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'failed' });
-    const plan = planClarification(input.state.missingInformation);
-    if (plan)
-      events.push({ type: 'card', card: { kind: 'clarification', questions: plan.questions } });
-    events.push(endEvent(input.messageId));
-    return { events, nextState: input.state, changed: false, trigger: 'extraction' };
   }
 
   events.push({ type: 'requirement.updated', state: merged });

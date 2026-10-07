@@ -253,14 +253,27 @@ describe('runUnderstanding — bentuk event SSE', () => {
       writeProse: vi.fn(() => Promise.resolve(null)),
     } as unknown as AiService;
 
+    // Pesan memuat fakta yang terbaca kode ("rumah 2 lantai, 3 kamar mandi"): model gagal tidak
+    // membuat giliran gagal — fakta dari teks dipakai, kartu klarifikasi untuk sisanya.
     const { events, changed } = await runUnderstanding(ai, input());
     const types = events.map((e) => e.type);
     expect(types).toContain('message.end'); // tidak melempar
-    const failed = events.find(
+    expect(types).not.toContain('error');
+    const updated = events.find((e) => e.type === 'requirement.updated') as
+      { state: { building: { floors: { value: unknown } } } } | undefined;
+    expect(updated?.state.building.floors.value).toBe(2);
+    expect(changed).toBe(true);
+    expect(events.some((e) => e.type === 'card')).toBe(true);
+
+    // Pesan tanpa fakta yang terbaca kode: tahap gagal, tetapi TETAP ada kartu klarifikasi —
+    // `missingInformation` state awal kosong, jadi dihitung dulu (produksi 2026-10-07: layar kosong).
+    const bare = await runUnderstanding(ai, input({ message: 'tolong bantu saya' }));
+    const failed = bare.events.find(
       (e) => e.type === 'stage' && (e as { status: string }).status === 'failed',
     );
     expect(failed).toBeDefined();
-    expect(changed).toBe(false);
+    expect(bare.events.some((e) => e.type === 'card')).toBe(true);
+    expect(bare.changed).toBe(false);
   });
 
   it('intent yang tidak mengekstrak: dibalas satu kalimat tetap, tanpa menyentuh ekstraksi', async () => {

@@ -778,6 +778,13 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       `useXCopy()` per modul; fungsi berbahasa (`stageLabel`, `sourceLine`, `specSourceLine`,
       `completenessNote`, teks galat auth) menerima locale/copy. Kalimat kebijakan diterjemahkan
       setia dan dikunci tes. Nilai protokol (id tab, "Belum tahu" ke API) tetap. 12 tes baru
+- [x] P15-02b Giliran kosong di ponsel (2026-10-07, audit tampilan mobile): model 7B mengisi angka
+      yang tidak disebut dengan `0` (`floorHeightM: 0` < batas 2) → ekstraksi ditolak dua kali →
+      tahap gagal, `missingInformation` state awal kosong → **tanpa kartu, tanpa teks**. Tiga pagar:
+      (1) field yang gagal validasi dipangkas lalu divalidasi ulang tanpa panggilan model;
+      (2) model gagal → fakta tersurat dari teks tetap dipakai, kartu klarifikasi dihitung dari
+      state yang sudah dilengkapi; (3) web menampilkan `emptyReply` bila giliran berakhir kosong.
+      3 tes
 - [ ] P15-03 Templat deterministik API dua bahasa: reply-copy, pembuka, panduan teknis & irigasi,
       pipe-knowledge, product-answer-text, kartu kebijakan (scope/entitlements), klarifikasi
 - [ ] P15-04 Registry per bahasa: label/pertanyaan/opsi parameter, asumsi, label keluaran,

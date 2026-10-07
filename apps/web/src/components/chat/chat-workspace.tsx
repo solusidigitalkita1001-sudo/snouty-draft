@@ -310,6 +310,10 @@ export function ChatWorkspace() {
               fresh: true,
             },
           ]);
+        } else {
+          // Giliran berakhir tanpa teks maupun kartu (tahap gagal di server): jangan diam —
+          // layar kosong terbaca sebagai rusak (laporan pemilik 2026-10-07).
+          setError((current) => current ?? COPY.emptyReply);
         }
         setSending(false);
         // Judulnya baru ada setelah pesan pertama — muat ulang supaya riwayat ikut.

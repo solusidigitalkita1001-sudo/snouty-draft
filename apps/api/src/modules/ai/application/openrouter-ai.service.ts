@@ -217,8 +217,22 @@ export class OpenRouterAiService implements AiService {
       if (error instanceof LlmAbortedError) throw new LlmUnavailableError(null);
       throw error;
     }
-    const parsedFirst = schema.safeParse(safeJson(first.content));
+    const firstJson = safeJson(first.content);
+    const parsedFirst = schema.safeParse(firstJson);
     if (parsedFirst.success) return parsedFirst.data;
+
+    // Pemangkasan tanpa panggilan ulang: field yang gagal validasi dibuang, sisanya divalidasi
+    // lagi. Produksi 2026-10-07 (qwen2.5 7B): "rumah 2 lantai, 3 kamar mandi, toren atap" →
+    // `floorHeightM: 0` (di bawah batas 2) membuat SELURUH ekstraksi yang benar ditolak, lalu
+    // percobaan ulang 20 detik gagal dengan cara yang sama, dan giliran berakhir tanpa jawaban.
+    // Field opsional yang hilang berarti "tidak disebut" — persis makna yang diinginkan.
+    const pruned = schema.safeParse(
+      withoutPaths(
+        firstJson,
+        parsedFirst.error.issues.map((issue) => issue.path),
+      ),
+    );
+    if (pruned.success) return pruned.data;
 
     // Percobaan kedua dan TERAKHIR — tingkat kuat, error dilampirkan.
     const retryUser = `${userMessage}\n\n[Keluaran sebelumnya tidak valid: ${parsedFirst.error.message}. Kembalikan JSON yang sesuai skema.]`;
@@ -330,6 +344,24 @@ export class OpenRouterAiService implements AiService {
       // Kehilangan satu baris audit biaya tidak sepadan dengan menggagalkan balasan.
     }
   }
+}
+
+/** Menghapus properti pada `paths` (jalur isu zod); jalur kosong atau bukan objek dibiarkan. */
+function withoutPaths(value: unknown, paths: readonly PropertyKey[][]): unknown {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return value;
+  const copy = structuredClone(value) as Record<string, unknown>;
+  for (const path of paths) {
+    if (path.length === 0) continue;
+    let node: unknown = copy;
+    for (const key of path.slice(0, -1)) {
+      if (node === null || typeof node !== 'object') break;
+      node = (node as Record<string, unknown>)[String(key)];
+    }
+    if (node !== null && typeof node === 'object' && !Array.isArray(node)) {
+      delete (node as Record<string, unknown>)[String(path[path.length - 1])];
+    }
+  }
+  return copy;
 }
 
 function safeJson(raw: string): unknown {

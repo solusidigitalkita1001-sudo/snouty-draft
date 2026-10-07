@@ -100,9 +100,29 @@ describe('OpenRouterAiService', () => {
     });
   });
 
+  it('field di luar batas (floorHeightM 0) dibuang, sisanya dipakai — tanpa panggilan ulang', async () => {
+    await withEnv(async () => {
+      // Keluaran asli qwen2.5 7B di produksi 2026-10-07: angka yang tidak disebut ditulis 0.
+      const { transport, calls } = transportReturning(
+        '{"building":{"type":"residential","floors":2,"floorHeightM":0,"mainRunMeters":0},' +
+          '"fixtures":{"bathrooms":3,"basins":0,"kitchens":0,"outletCount":0},' +
+          '"water":{"source":"rooftop_tank","installationType":"clean_water","boosterPump":false}}',
+      );
+      const { recorder, records } = recorderCapturing();
+      const svc = new OpenRouterAiService(transport, recorder, () => 0);
+
+      const result = await svc.extract('rumah 2 lantai, 3 kamar mandi, toren atap');
+      expect(result.building).toEqual({ type: 'residential', floors: 2, mainRunMeters: 0 });
+      expect(result.fixtures?.bathrooms).toBe(3);
+      expect(calls).toHaveLength(1);
+      expect(records.map((r) => r.outcome)).toEqual(['success']);
+    });
+  });
+
   it('`null` di tempat yang memang salah tetap ditolak — bukan pelonggaran skema', async () => {
     await withEnv(async () => {
-      // `building: null` dibuang → `{}` valid; tetapi nilai bukan-null yang salah tetap gagal.
+      // `floors: "dua"` dipangkas (bukan "tidak disebut" yang bisa dibaca) → `{building:{}}` valid
+      // tanpa panggilan ulang; `building: null` di percobaan kedua tidak pernah diminta.
       const { transport, calls } = transportReturning(
         '{"building":{"floors":"dua"}}',
         '{"building":null}',
@@ -111,8 +131,8 @@ describe('OpenRouterAiService', () => {
       const svc = new OpenRouterAiService(transport, recorder, () => 0);
 
       const result = await svc.extract('rumah dua lantai');
-      expect(result).toEqual({});
-      expect(calls).toHaveLength(2);
+      expect(result).toEqual({ building: {} });
+      expect(calls).toHaveLength(1);
     });
   });
 
