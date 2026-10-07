@@ -70,7 +70,11 @@ export interface ComposerInput {
 
 export function composeResponse(input: ComposerInput): ComposedResponse {
   const { known, assumed } = parametersByOrigin(input.state);
-  const sets = parameterSets(input.state, input.appliedAssumptionIds ?? []);
+  const sets = parameterSets(
+    input.state,
+    input.appliedAssumptionIds ?? [],
+    (input.pressurized ?? input.gravity) !== undefined,
+  );
   return {
     knownData: known,
     assumedData: assumed,
@@ -86,13 +90,20 @@ interface ParameterSets {
   readonly assumed: ReadonlySet<string>;
 }
 
-/** Parameter diketahui/diasumsikan: dari state, ditambah parameter yang diisi asumsi engine. */
+/**
+ * Parameter diketahui/diasumsikan: dari state, ditambah parameter yang diisi asumsi engine.
+ * `sized` = engine sudah memilih diameter: `nominal_diameter` terhitung ("diketahui dari
+ * perhitungan", `ReadinessInput.known`) — tanpa ini kesiapan pompa dilaporkan kurang diameter
+ * padahal diameternya baru saja ditetapkan oleh engine yang sama.
+ */
 function parameterSets(
   state: RequirementState,
   appliedAssumptionIds: readonly string[],
+  sized: boolean,
 ): ParameterSets {
   const known = new Set<string>();
   const assumed = new Set<string>();
+  if (sized) known.add('nominal_diameter');
   if (state.useCase?.kind === 'technical') {
     for (const [key, p] of Object.entries(state.useCase.parameters)) {
       if (p.value === UNKNOWN) continue;

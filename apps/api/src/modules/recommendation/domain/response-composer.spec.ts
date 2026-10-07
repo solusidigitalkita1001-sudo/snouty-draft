@@ -61,6 +61,10 @@ describe('composeResponse — transfer pompa', () => {
     expect(fixed.readiness.find((r) => r.output === 'pipe_sizing')?.readiness).not.toBe(
       'missing_data',
     );
+    // Diameter sudah ditetapkan engine → kesiapan pompa tidak boleh "kurang diameter nominal".
+    const pump = fixed.readiness.find((r) => r.output === 'pump_sizing');
+    expect(pump?.missing).not.toContain('Diameter nominal');
+    expect(pump?.readiness).not.toBe('missing_data');
     const sizing = composed.readiness.find((r) => r.output === 'pipe_sizing');
     expect(sizing?.readiness).not.toBe('missing_data');
     expect(composed.missingData.map((m) => m.label)).not.toContain('Bahan pipa');
