@@ -932,6 +932,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       limbah"), bukan kunci mentah; label irigasi per bahasa. Giliran jawaban kartu tidak pernah
       bisu: API mengembalikan `text` (teknis: data tercatat + sisa pertanyaan tanpa pembuka; irigasi:
       arahan; bangunan: "sudah saya catat"), web merendernya. Tes: clarification +2, technical +1
+- [x] P16-07 Jajaran model gratis (keputusan pemilik 2026-10-07: "yang gratis aja, yang nggak kepake
+      hapus"): dicoba `qwen2.5:3b-instruct` untuk tingkat `FAST` (judul, pemetaan pertanyaan produk) —
+      benchmark ±2× lebih cepat dari 7B, tetapi di CPU Ollama melayani satu permintaan sekali waktu,
+      jadi judul 3B yang berjalan bersamaan dengan ekstraksi 7B tetap 99 s. Tidak ada untungnya →
+      dikembalikan ke satu model `qwen2.5:7b-instruct` untuk ketiga tingkat, 3B dihapus dari server.
+      Hanya 7B yang disimpan. `docs/DEPLOYMENT.md` §4
 - [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 

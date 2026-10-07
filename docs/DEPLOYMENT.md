@@ -58,10 +58,18 @@ cp deploy/env.production.example .env.production
 chmod 600 .env.production
 ```
 
-Ollama (pilihan yang dipakai): di `.env.production` set `COMPOSE_PROFILES=ollama`,
-`OPENROUTER_BASE_URL=http://ollama:11434/v1`, `OPENROUTER_API_KEY=ollama`, ketiga `LLM_MODEL_*=qwen2.5:7b-instruct`;
-lalu sekali: `docker compose --env-file .env.production -f deploy/docker-compose.prod.yml exec ollama ollama pull qwen2.5:7b-instruct`
-(4,7 GB ke volume `ollama-data`). RAM saat model dimuat ±5 GB; `OLLAMA_KEEP_ALIVE=30m` menahannya di RAM.
+Ollama (pilihan yang dipakai, gratis — keputusan pemilik 2026-10-07): di `.env.production` set
+`COMPOSE_PROFILES=ollama`, `OPENROUTER_BASE_URL=http://ollama:11434/v1`, `OPENROUTER_API_KEY=ollama`, dan
+**satu model untuk ketiga tingkat** (`FAST`/`BALANCED`/`STRONG` di `model-routing.ts`): `qwen2.5:7b-instruct`.
+Tarik sekali: `docker compose --env-file .env.production -f deploy/docker-compose.prod.yml exec ollama ollama pull qwen2.5:7b-instruct`
+(4,7 GB ke volume `ollama-data`). RAM saat model dimuat ±5 GB; `OLLAMA_KEEP_ALIVE=24h` menahannya di RAM.
+
+Mengapa hanya satu model, bukan model kecil untuk tugas ringan: diuji 2026-10-07 di server (4 CPU, tanpa
+GPU) — `qwen2.5:3b-instruct` hanya ±2× lebih cepat (prompt 43 vs 23 tok/s, jawaban 1,7 vs 0,9 tok/s), dan
+karena Ollama melayani satu permintaan sekali waktu di CPU, tugas ringan (judul) yang berjalan bersamaan
+dengan ekstraksi 7B tetap menunggu ekstraksi selesai (judul 3B terukur 99 s saat ekstraksi 95 s berjalan).
+Tidak ada untungnya, RAM bertambah 2,5 GB; model 3B dihapus. Model lain yang tidak dipakai dihapus
+(`ollama rm`). Percepatan nyata hanya dari GPU atau model berbayar (`docs/PHASE15_CHECKPOINT.md` §3).
 
 ## 5. Build, migration, nyalakan
 
