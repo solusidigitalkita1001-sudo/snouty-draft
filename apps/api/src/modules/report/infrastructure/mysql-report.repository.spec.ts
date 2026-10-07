@@ -40,6 +40,7 @@ const EMPTY_PAYLOAD = {
   pricing: { enabled: false, taxRatePercent: 11, subtotal: 0, taxAmount: 0, total: 0 },
   catalogVersionLabel: 'dev-0.2',
   overallProvenance: 'ASSUMED',
+  locale: 'id',
 } satisfies ReportPayload;
 
 async function seedRecommendation(): Promise<string> {

@@ -22,8 +22,15 @@ const LocaleContext = createContext<LocaleContextValue>({
   setLocale: () => undefined,
 });
 
-export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+export function LocaleProvider({
+  children,
+  initial = DEFAULT_LOCALE,
+}: {
+  children: React.ReactNode;
+  /** Bahasa awal sebelum localStorage dibaca — untuk tes dan pratinjau. */
+  initial?: Locale;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(initial);
 
   useEffect(() => {
     try {

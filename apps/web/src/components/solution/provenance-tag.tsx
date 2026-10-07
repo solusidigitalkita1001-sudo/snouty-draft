@@ -11,14 +11,29 @@
  * membawanya.
  */
 
-import type { Provenance } from '@snouty/shared-types';
+import type { Locale, Provenance } from '@snouty/shared-types';
+import { useLocale } from '../locale';
 import styles from './solution.module.css';
 
-const LABEL: Readonly<Record<Provenance, string>> = {
-  VERIFIED: 'TERVERIFIKASI',
-  ASSUMED: 'ASUMSI',
-  ESTIMATED: 'ESTIMASI',
-  UNAVAILABLE: 'LIHAT DOKUMEN TEKNIS',
+/** Label per bahasa (Fase 15); Inggrisnya sama persis dengan laporan PDF (REPORT_COPY). */
+const LABEL: Readonly<Record<Locale, Readonly<Record<Provenance, string>>>> = {
+  id: {
+    VERIFIED: 'TERVERIFIKASI',
+    ASSUMED: 'ASUMSI',
+    ESTIMATED: 'ESTIMASI',
+    UNAVAILABLE: 'LIHAT DOKUMEN TEKNIS',
+  },
+  en: {
+    VERIFIED: 'VERIFIED',
+    ASSUMED: 'ASSUMED',
+    ESTIMATED: 'ESTIMATED',
+    UNAVAILABLE: 'SEE TECHNICAL DOCUMENTS',
+  },
+};
+
+const MISSING: Readonly<Record<Locale, string>> = {
+  id: 'Lihat dokumen teknis',
+  en: 'See technical documents',
 };
 
 const TONE: Readonly<Record<Provenance, string>> = {
@@ -29,7 +44,10 @@ const TONE: Readonly<Record<Provenance, string>> = {
 };
 
 export function ProvenanceTag({ provenance }: { provenance: Provenance }) {
-  return <span className={[styles.tag, TONE[provenance]].join(' ')}>{LABEL[provenance]}</span>;
+  const { locale } = useLocale();
+  return (
+    <span className={[styles.tag, TONE[provenance]].join(' ')}>{LABEL[locale][provenance]}</span>
+  );
 }
 
 /**
@@ -38,8 +56,9 @@ export function ProvenanceTag({ provenance }: { provenance: Provenance }) {
  * adalah cara halus berhalusinasi (docs/PRODUCT_KNOWLEDGE.md §4).
  */
 export function SpecCell({ value, provenance }: { value: string | null; provenance: Provenance }) {
+  const { locale } = useLocale();
   if (provenance === 'UNAVAILABLE' || value === null) {
-    return <span className={styles.specMissing}>Lihat dokumen teknis</span>;
+    return <span className={styles.specMissing}>{MISSING[locale]}</span>;
   }
   return (
     <span className={styles.specValue}>

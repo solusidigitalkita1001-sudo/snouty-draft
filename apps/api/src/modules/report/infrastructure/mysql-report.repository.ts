@@ -18,7 +18,8 @@ import {
   type CreateReportInput,
   type ReportRepository,
 } from '../domain/report.repository.js';
-import type { Report, ReportPayload, ReportStatus } from '../domain/report.types.js';
+import { storedReportPayload } from '../domain/report-payload.js';
+import type { Report, ReportStatus } from '../domain/report.types.js';
 
 @Injectable()
 export class MysqlReportRepository implements ReportRepository {
@@ -103,7 +104,7 @@ function toReport(row: typeof reports.$inferSelect): Report {
     recommendationId: row.recommendationId,
     reportNumber: row.reportNumber,
     status: row.status as ReportStatus,
-    payload: row.payloadJson as ReportPayload,
+    payload: storedReportPayload(row.payloadJson),
     fileRef: row.fileRef,
     failureReason: row.failureReason,
     createdAt: row.createdAt.toISOString(),

@@ -59,6 +59,7 @@ function preview(overrides: Partial<ReportPreview> = {}): ReportPreview {
       pricing: { enabled: false, taxRatePercent: 11, subtotal: 0, taxAmount: 0, total: 0 },
       catalogVersionLabel: 'dev',
       overallProvenance: 'ASSUMED',
+      locale: 'id',
     },
     ...overrides,
   };

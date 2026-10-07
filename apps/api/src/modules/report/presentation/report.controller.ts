@@ -61,7 +61,6 @@ export class ReportController {
         customerName: dto.customerName,
         projectLocation: dto.projectLocation,
         consultationDate: now.slice(0, 10),
-        installationType: 'Air bersih',
       },
       now,
     );

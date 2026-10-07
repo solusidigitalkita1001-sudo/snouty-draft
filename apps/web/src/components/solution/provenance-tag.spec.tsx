@@ -10,6 +10,7 @@
 import { render, screen } from '@testing-library/react';
 import type { Provenance } from '@snouty/shared-types';
 import { describe, expect, it } from 'vitest';
+import { LocaleProvider } from '../locale';
 import { ProvenanceTag, SpecCell } from './provenance-tag';
 
 const ALL: readonly Provenance[] = ['VERIFIED', 'ASSUMED', 'ESTIMATED', 'UNAVAILABLE'];
@@ -30,6 +31,21 @@ describe('ProvenanceTag', () => {
     for (const provenance of ALL) {
       const { unmount, container } = render(<ProvenanceTag provenance={provenance} />);
       expect((container.textContent ?? '').length).toBeGreaterThan(3);
+      unmount();
+    }
+  });
+
+  it('en: label Inggris sama dengan laporan PDF; "VERIFIED" hanya untuk VERIFIED', () => {
+    for (const provenance of ALL) {
+      const { unmount, container } = render(
+        <LocaleProvider initial="en">
+          <ProvenanceTag provenance={provenance} />
+        </LocaleProvider>,
+      );
+      const text = container.textContent ?? '';
+      if (provenance === 'VERIFIED') expect(text).toBe('VERIFIED');
+      else expect(text).not.toContain('VERIFIED');
+      expect(text).not.toContain('TERVERIFIKASI');
       unmount();
     }
   });

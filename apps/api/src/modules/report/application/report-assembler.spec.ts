@@ -243,3 +243,110 @@ describe('renderReportHtml', () => {
     expect(html).toContain('size: A4');
   });
 });
+
+describe('laporan dua bahasa (P15-05)', () => {
+  const PRICED = {
+    ...INPUT,
+    recommendation: {
+      ...RECOMMENDATION,
+      bom: RECOMMENDATION.bom.map((item) => ({
+        ...item,
+        unitPrice: 1_250_000,
+        subtotal: 2_500_000,
+      })),
+    },
+    pricing: { enabled: true, taxRatePercent: 11 },
+  };
+  const en = renderReportHtml(assembleReportPayload({ ...PRICED, locale: 'en' }));
+  const enUnpriced = renderReportHtml(assembleReportPayload({ ...INPUT, locale: 'en' }));
+
+  it("payload membekukan bahasa; tanpa locale bakunya 'id'", () => {
+    expect(assembleReportPayload(INPUT).locale).toBe('id');
+    expect(assembleReportPayload({ ...INPUT, locale: 'en' }).locale).toBe('en');
+  });
+
+  it("'id' eksplisit identik byte demi byte dengan bawaan", () => {
+    for (const input of [INPUT, PRICED]) {
+      expect(renderReportHtml(assembleReportPayload({ ...input, locale: 'id' }))).toBe(
+        renderReportHtml(assembleReportPayload(input)),
+      );
+    }
+    expect(renderReportHtml(assembleReportPayload(INPUT))).toContain('<html lang="id">');
+  });
+
+  it("'en': lang, judul, kolom, dan label status dalam bahasa Inggris", () => {
+    expect(en).toContain('<html lang="en">');
+    expect(en).toContain('Recommendation &amp; Material Estimate Report');
+    expect(en).toContain('NO. SNTY-2026-10-0001 · PAGE 1 OF 2');
+    expect(en).toContain('NO. SNTY-2026-10-0001 · PAGE 2 OF 2');
+    expect(en).toContain('SYSTEM RECOMMENDATION');
+    expect(en).toContain('<th>UNIT PRICE</th>');
+    expect(en).toContain('Reviewed by (optional):');
+    expect(en).toContain('<td class="status">ASSUMED</td>');
+    expect(en).toContain('<td class="status">VERIFIED</td>');
+    // Baris kebutuhan dirakit dalam bahasa percakapan, bukan diterjemahkan saat mencetak.
+    expect(en).toContain('<tr><th>Number of floors</th><td>2 floors</td>');
+  });
+
+  it("'en': dua kalimat kebijakan memakai redaksi web persis", () => {
+    // SOLUTION_COPY_EN.planningDisclaimer — di kedua footer.
+    expect(en.match(/PLANNING GUIDANCE — NOT A TECHNICAL CERTIFICATION/g)).toHaveLength(2);
+    // SOLUTION_COPY_EN.priceDisclaimer — kalimat pertama banner, dengan atau tanpa harga.
+    expect(en).toContain(
+      '<div class="banner">A planning estimate, not an official quotation. Final prices follow the current Pralon distributor price list.</div>',
+    );
+    expect(enUnpriced).toContain(
+      '<div class="banner">A planning estimate, not an official quotation.</div>',
+    );
+  });
+
+  it("'en': rupiah tetap Rp dengan pemisah ribuan en-US", () => {
+    expect(en).toContain('Rp 1,250,000');
+    expect(en).toContain('<th>VAT 11%</th>');
+    expect(en).not.toContain('Rp 1.250.000');
+    expect(renderReportHtml(assembleReportPayload(PRICED))).toContain('Rp 1.250.000');
+  });
+
+  it("'en': tidak memuat teks tetap Indonesia", () => {
+    for (const label of [
+      'TERVERIFIKASI',
+      'ASUMSI',
+      'HAL. 1 DARI 2',
+      'HAL. 2 DARI 2',
+      'PANDUAN PERENCANAAN',
+      'Perkiraan perencanaan',
+      'Pelanggan',
+      'KEBUTUHAN YANG TERCATAT',
+      'HARGA SATUAN',
+      'Total estimasi',
+      'Diperiksa oleh',
+      'REF. KONSULTASI',
+      'Tipe bangunan',
+    ]) {
+      expect(en).not.toContain(label);
+    }
+  });
+
+  it("'en': nilai dari pengguna dan rekomendasi tetap di-escape", () => {
+    const evil = '<img src=x onerror="a()">&\'';
+    const escaped = '&lt;img src=x onerror=&quot;a()&quot;&gt;&amp;&#39;';
+    const html = renderReportHtml(
+      assembleReportPayload({
+        ...PRICED,
+        locale: 'en',
+        reportNumber: evil,
+        identity: { ...INPUT.identity, customerName: evil, projectLocation: evil },
+        catalogVersionLabel: evil,
+        recommendation: {
+          ...PRICED.recommendation,
+          headline: evil,
+          body: evil,
+          assumptions: [{ ...RECOMMENDATION.assumptions[0]!, text: evil }],
+        },
+      }),
+    );
+    expect(html).not.toContain('<img');
+    // nomor ×4 (title, dua kop, footer), nama, lokasi, katalog, judul, isi, asumsi.
+    expect(html.split(escaped)).toHaveLength(11);
+  });
+});

@@ -8,43 +8,199 @@
  * bulan. Chromium di worker mencetak CSS yang sudah ditulis.
  *
  * Dua kalimat **tidak diparafrase** karena membawa janji produk: "PANDUAN PERENCANAAN —
- * BUKAN SERTIFIKASI TEKNIS" dan "Perkiraan perencanaan, bukan penawaran resmi."
+ * BUKAN SERTIFIKASI TEKNIS" dan "Perkiraan perencanaan, bukan penawaran resmi." Padanan
+ * Inggrisnya sama persis dengan yang dipakai web (`SOLUTION_COPY_EN.planningDisclaimer`,
+ * `SOLUTION_COPY_EN.priceDisclaimer`) — satu janji, satu redaksi per bahasa.
+ *
+ * Dua bahasa (P15-05): seluruh teks tetap halaman hidup di `REPORT_COPY`, dipilih menurut
+ * `payload.locale` — bahasa percakapan yang dibekukan saat laporan dibuat. Isi yang datang
+ * dari rekomendasi (judul, prosa, baris sistem, item BOM, asumsi) sudah dalam bahasa itu
+ * dan tidak diterjemahkan di sini.
  *
  * Catatan keamanan: seluruh nilai di-escape (`esc`). Nama pelanggan dan lokasi proyek
  * datang dari pengguna, dan halaman ini dirender server-side lalu dicetak — tanpa escape
  * ia menjadi jalur injeksi markup ke dalam dokumen yang dibawa ke distributor.
  */
 
-import type { Provenance } from '@snouty/shared-types';
+import type { Locale, Provenance } from '@snouty/shared-types';
 import type { ReportPayload } from '../domain/report.types.js';
 
-const PROVENANCE_LABEL: Readonly<Record<Provenance, string>> = {
-  VERIFIED: 'TERVERIFIKASI',
-  ASSUMED: 'ASUMSI',
-  ESTIMATED: 'ESTIMASI',
-  UNAVAILABLE: 'LIHAT DOKUMEN TEKNIS',
+/**
+ * Teks tetap halaman cetak per bahasa. Nilainya **HTML tepercaya** (konstanta kode, sudah
+ * memuat `&amp;`), jadi disisipkan tanpa `esc` — berbeda dari nilai payload.
+ */
+interface ReportCopy {
+  readonly htmlLang: string;
+  /** Locale `Intl` untuk pemisah ribuan rupiah. */
+  readonly numberLocale: string;
+  readonly provenance: Readonly<Record<Provenance, string>>;
+  /** Janji produk — jangan diparafrase. */
+  readonly disclaimer: string;
+  /** Janji produk (kalimat pertama) — jangan diparafrase. */
+  readonly priceDisclaimer: string;
+  readonly priceDisclaimerWithList: string;
+  readonly pageOf: (page: number) => string;
+  readonly page1Title: string;
+  readonly page2Title: string;
+  readonly identity: {
+    readonly customer: string;
+    readonly consultationDate: string;
+    readonly projectLocation: string;
+    readonly installationType: string;
+  };
+  readonly summaryKicker: string;
+  readonly requirementsKicker: string;
+  readonly systemKicker: string;
+  readonly systemColumns: {
+    readonly line: string;
+    readonly size: string;
+    readonly reason: string;
+    readonly status: string;
+  };
+  readonly assumptionsKicker: string;
+  readonly page1Footer: string;
+  readonly bomColumns: {
+    readonly item: string;
+    readonly size: string;
+    readonly quantity: string;
+    readonly unitPrice: string;
+    readonly subtotal: string;
+    readonly status: string;
+  };
+  readonly subtotal: string;
+  readonly tax: (percent: number) => string;
+  readonly total: string;
+  readonly exclusions: string;
+  readonly basisKicker: string;
+  readonly nextStepsKicker: string;
+  readonly nextSteps: string;
+  readonly preparedBy: string;
+  readonly catalog: string;
+  readonly reviewedBy: string;
+  readonly reviewer: string;
+  readonly consultationRef: string;
+}
+
+export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
+  id: {
+    htmlLang: 'id',
+    numberLocale: 'id-ID',
+    provenance: {
+      VERIFIED: 'TERVERIFIKASI',
+      ASSUMED: 'ASUMSI',
+      ESTIMATED: 'ESTIMASI',
+      UNAVAILABLE: 'LIHAT DOKUMEN TEKNIS',
+    },
+    disclaimer: 'PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS',
+    priceDisclaimer: 'Perkiraan perencanaan, bukan penawaran resmi.',
+    priceDisclaimerWithList:
+      'Perkiraan perencanaan, bukan penawaran resmi. Harga final mengikuti daftar harga distributor Pralon yang berlaku.',
+    pageOf: (page) => `HAL. ${String(page)} DARI 2`,
+    page1Title: 'Laporan Rekomendasi &amp; Estimasi Material',
+    page2Title: 'Estimasi Kebutuhan Material &amp; Biaya',
+    identity: {
+      customer: 'Pelanggan',
+      consultationDate: 'Tanggal konsultasi',
+      projectLocation: 'Lokasi proyek',
+      installationType: 'Jenis instalasi',
+    },
+    summaryKicker: 'RINGKASAN SOLUSI',
+    requirementsKicker: 'KEBUTUHAN YANG TERCATAT',
+    systemKicker: 'REKOMENDASI SISTEM',
+    systemColumns: { line: 'JALUR', size: 'UKURAN', reason: 'ALASAN', status: 'STATUS' },
+    assumptionsKicker: 'ASUMSI YANG DIGUNAKAN',
+    page1Footer: 'SNOUTY · ASISTEN SOLUSI PERPIPAAN PRALON',
+    bomColumns: {
+      item: 'MATERIAL',
+      size: 'UKURAN',
+      quantity: 'QTY',
+      unitPrice: 'HARGA SATUAN',
+      subtotal: 'SUBTOTAL',
+      status: 'STATUS',
+    },
+    subtotal: 'Subtotal material',
+    tax: (percent) => `PPN ${String(percent)}%`,
+    total: 'Total estimasi',
+    exclusions: 'Belum termasuk jasa instalasi, aksesori non-pipa, dan pengiriman.',
+    basisKicker: 'DASAR PERHITUNGAN',
+    nextStepsKicker: 'LANGKAH BERIKUTNYA',
+    nextSteps:
+      'Bawa laporan ini ke toko atau distributor Pralon untuk penawaran resmi dan pemeriksaan akhir bersama instalatur.',
+    preparedBy: 'Disusun oleh:',
+    catalog: 'Katalog',
+    reviewedBy: 'Diperiksa oleh (opsional):',
+    reviewer: 'Instalatur / Tim Teknis Pralon',
+    consultationRef: 'REF. KONSULTASI',
+  },
+  en: {
+    htmlLang: 'en',
+    numberLocale: 'en-US',
+    provenance: {
+      VERIFIED: 'VERIFIED',
+      ASSUMED: 'ASSUMED',
+      ESTIMATED: 'ESTIMATED',
+      UNAVAILABLE: 'SEE TECHNICAL DOCUMENTS',
+    },
+    disclaimer: 'PLANNING GUIDANCE — NOT A TECHNICAL CERTIFICATION',
+    priceDisclaimer: 'A planning estimate, not an official quotation.',
+    priceDisclaimerWithList:
+      'A planning estimate, not an official quotation. Final prices follow the current Pralon distributor price list.',
+    pageOf: (page) => `PAGE ${String(page)} OF 2`,
+    page1Title: 'Recommendation &amp; Material Estimate Report',
+    page2Title: 'Material &amp; Cost Estimate',
+    identity: {
+      customer: 'Customer',
+      consultationDate: 'Consultation date',
+      projectLocation: 'Project location',
+      installationType: 'Installation type',
+    },
+    summaryKicker: 'SOLUTION SUMMARY',
+    requirementsKicker: 'RECORDED REQUIREMENTS',
+    systemKicker: 'SYSTEM RECOMMENDATION',
+    systemColumns: { line: 'LINE', size: 'SIZE', reason: 'REASON', status: 'STATUS' },
+    assumptionsKicker: 'ASSUMPTIONS USED',
+    page1Footer: 'SNOUTY · PRALON PIPING SOLUTION ASSISTANT',
+    bomColumns: {
+      item: 'MATERIAL',
+      size: 'SIZE',
+      quantity: 'QTY',
+      unitPrice: 'UNIT PRICE',
+      subtotal: 'SUBTOTAL',
+      status: 'STATUS',
+    },
+    subtotal: 'Material subtotal',
+    tax: (percent) => `VAT ${String(percent)}%`,
+    total: 'Estimated total',
+    exclusions: 'Excludes installation labor, non-pipe accessories, and delivery.',
+    basisKicker: 'CALCULATION BASIS',
+    nextStepsKicker: 'NEXT STEPS',
+    nextSteps:
+      'Take this report to a Pralon store or distributor for an official quotation and a final check together with your installer.',
+    preparedBy: 'Prepared by:',
+    catalog: 'Catalog',
+    reviewedBy: 'Reviewed by (optional):',
+    reviewer: 'Installer / Pralon Technical Team',
+    consultationRef: 'CONSULTATION REF.',
+  },
 };
 
-const DISCLAIMER = 'PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS';
-const PRICE_DISCLAIMER =
-  'Perkiraan perencanaan, bukan penawaran resmi. Harga final mengikuti daftar harga distributor Pralon yang berlaku.';
-
 export function renderReportHtml(payload: ReportPayload): string {
+  const copy = REPORT_COPY[payload.locale];
   return `<!doctype html>
-<html lang="id">
+<html lang="${copy.htmlLang}">
 <head>
 <meta charset="utf-8">
 <title>${esc(payload.reportNumber)}</title>
 <style>${CSS}</style>
 </head>
 <body>
-${page1(payload)}
-${page2(payload)}
+${page1(payload, copy)}
+${page2(payload, copy)}
 </body>
 </html>`;
 }
 
-function page1(p: ReportPayload): string {
+function page1(p: ReportPayload, t: ReportCopy): string {
   return `<section class="page">
   <header class="masthead">
     <div>
@@ -52,50 +208,50 @@ function page1(p: ReportPayload): string {
       <div class="brandsub">PRALON PIPE SOLUTION ASSISTANT</div>
     </div>
     <div class="docmeta">
-      <div class="doctitle">Laporan Rekomendasi &amp; Estimasi Material</div>
-      <div class="docno">NO. ${esc(p.reportNumber)} · HAL. 1 DARI 2</div>
+      <div class="doctitle">${t.page1Title}</div>
+      <div class="docno">NO. ${esc(p.reportNumber)} · ${t.pageOf(1)}</div>
     </div>
   </header>
 
   <table class="identity">
-    <tr><th>Pelanggan</th><td>${esc(p.identity.customerName)}</td>
-        <th>Tanggal konsultasi</th><td>${esc(p.identity.consultationDate)}</td></tr>
-    <tr><th>Lokasi proyek</th><td>${esc(p.identity.projectLocation)}</td>
-        <th>Jenis instalasi</th><td>${esc(p.identity.installationType)}</td></tr>
+    <tr><th>${t.identity.customer}</th><td>${esc(p.identity.customerName)}</td>
+        <th>${t.identity.consultationDate}</th><td>${esc(p.identity.consultationDate)}</td></tr>
+    <tr><th>${t.identity.projectLocation}</th><td>${esc(p.identity.projectLocation)}</td>
+        <th>${t.identity.installationType}</th><td>${esc(p.identity.installationType)}</td></tr>
   </table>
 
-  <h2 class="kicker">RINGKASAN SOLUSI</h2>
+  <h2 class="kicker">${t.summaryKicker}</h2>
   <p class="headline">${esc(p.headline)}</p>
   <p class="bodytext">${esc(p.body)}</p>
 
-  <h2 class="kicker">KEBUTUHAN YANG TERCATAT</h2>
+  <h2 class="kicker">${t.requirementsKicker}</h2>
   <table class="grid">
     ${p.requirements
       .map(
         (row) =>
           `<tr><th>${esc(row.label)}</th><td>${esc(row.value)}</td><td class="status">${esc(
-            PROVENANCE_LABEL[row.provenance],
+            t.provenance[row.provenance],
           )}</td></tr>`,
       )
       .join('\n    ')}
   </table>
 
-  <h2 class="kicker">REKOMENDASI SISTEM</h2>
+  <h2 class="kicker">${t.systemKicker}</h2>
   <table class="grid">
-    <tr><th>JALUR</th><th>UKURAN</th><th>ALASAN</th><th>STATUS</th></tr>
+    <tr><th>${t.systemColumns.line}</th><th>${t.systemColumns.size}</th><th>${t.systemColumns.reason}</th><th>${t.systemColumns.status}</th></tr>
     ${p.systemLines
       .map(
         (line) =>
           `<tr><td>${esc(line.name)}<span class="sub">${esc(line.path)}</span></td>` +
           `<td class="mono">${esc(line.size)}</td><td>${esc(line.reason)}</td>` +
-          `<td class="status">${esc(PROVENANCE_LABEL[line.provenance])}</td></tr>`,
+          `<td class="status">${esc(t.provenance[line.provenance])}</td></tr>`,
       )
       .join('\n    ')}
   </table>
 
   ${
     p.assumptions.length > 0
-      ? `<h2 class="kicker">ASUMSI YANG DIGUNAKAN</h2>
+      ? `<h2 class="kicker">${t.assumptionsKicker}</h2>
   <ul class="assumptions">
     ${p.assumptions.map((a) => `<li>${esc(a.text)}</li>`).join('\n    ')}
   </ul>`
@@ -103,14 +259,15 @@ function page1(p: ReportPayload): string {
   }
 
   <footer class="pagefoot">
-    <span>SNOUTY · ASISTEN SOLUSI PERPIPAAN PRALON</span>
-    <strong>${DISCLAIMER}</strong>
+    <span>${t.page1Footer}</span>
+    <strong>${t.disclaimer}</strong>
   </footer>
 </section>`;
 }
 
-function page2(p: ReportPayload): string {
+function page2(p: ReportPayload, t: ReportCopy): string {
   const showPrices = p.pricing.enabled;
+  const money = (value: number | undefined): string => rupiah(value, t.numberLocale);
   return `<section class="page">
   <header class="masthead">
     <div>
@@ -118,18 +275,18 @@ function page2(p: ReportPayload): string {
       <div class="brandsub">PRALON PIPE SOLUTION ASSISTANT</div>
     </div>
     <div class="docmeta">
-      <div class="doctitle">Estimasi Kebutuhan Material &amp; Biaya</div>
-      <div class="docno">NO. ${esc(p.reportNumber)} · HAL. 2 DARI 2</div>
+      <div class="doctitle">${t.page2Title}</div>
+      <div class="docno">NO. ${esc(p.reportNumber)} · ${t.pageOf(2)}</div>
     </div>
   </header>
 
-  <div class="banner">${showPrices ? PRICE_DISCLAIMER : 'Perkiraan perencanaan, bukan penawaran resmi.'}</div>
+  <div class="banner">${showPrices ? t.priceDisclaimerWithList : t.priceDisclaimer}</div>
 
   <table class="grid">
     <tr>
-      <th>MATERIAL</th><th>UKURAN</th><th>QTY</th>
-      ${showPrices ? '<th>HARGA SATUAN</th><th>SUBTOTAL</th>' : ''}
-      <th>STATUS</th>
+      <th>${t.bomColumns.item}</th><th>${t.bomColumns.size}</th><th>${t.bomColumns.quantity}</th>
+      ${showPrices ? `<th>${t.bomColumns.unitPrice}</th><th>${t.bomColumns.subtotal}</th>` : ''}
+      <th>${t.bomColumns.status}</th>
     </tr>
     ${p.bom
       .map(
@@ -139,7 +296,7 @@ function page2(p: ReportPayload): string {
           (showPrices
             ? `<td class="mono">${money(item.unitPrice)}</td><td class="mono">${money(item.subtotal)}</td>`
             : '') +
-          `<td class="status">${esc(PROVENANCE_LABEL[item.provenance])}</td></tr>`,
+          `<td class="status">${esc(t.provenance[item.provenance])}</td></tr>`,
       )
       .join('\n    ')}
   </table>
@@ -147,41 +304,45 @@ function page2(p: ReportPayload): string {
   ${
     showPrices
       ? `<table class="totals">
-    <tr><th>Subtotal material</th><td class="mono">${money(p.pricing.subtotal)}</td></tr>
-    <tr><th>PPN ${String(p.pricing.taxRatePercent)}%</th><td class="mono">${money(p.pricing.taxAmount)}</td></tr>
-    <tr class="grand"><th>Total estimasi</th><td class="mono">${money(p.pricing.total)}</td></tr>
+    <tr><th>${t.subtotal}</th><td class="mono">${money(p.pricing.subtotal)}</td></tr>
+    <tr><th>${t.tax(p.pricing.taxRatePercent)}</th><td class="mono">${money(p.pricing.taxAmount)}</td></tr>
+    <tr class="grand"><th>${t.total}</th><td class="mono">${money(p.pricing.total)}</td></tr>
   </table>`
       : ''
   }
 
-  <p class="note">Belum termasuk jasa instalasi, aksesori non-pipa, dan pengiriman.</p>
+  <p class="note">${t.exclusions}</p>
 
-  <h2 class="kicker">DASAR PERHITUNGAN</h2>
+  <h2 class="kicker">${t.basisKicker}</h2>
   <ul class="basis">
     ${p.basis.map((row) => `<li><span class="mono">${esc(row.ruleId)}</span> ${esc(row.explanation)}</li>`).join('\n    ')}
   </ul>
 
-  <h2 class="kicker">LANGKAH BERIKUTNYA</h2>
-  <p class="bodytext">Bawa laporan ini ke toko atau distributor Pralon untuk penawaran resmi dan pemeriksaan akhir bersama instalatur.</p>
+  <h2 class="kicker">${t.nextStepsKicker}</h2>
+  <p class="bodytext">${t.nextSteps}</p>
 
   <table class="signature">
     <tr>
-      <td>Disusun oleh: <strong>SNOUTY</strong><span class="sub">Katalog ${esc(p.catalogVersionLabel)}</span></td>
-      <td>Diperiksa oleh (opsional):<span class="sub">Instalatur / Tim Teknis Pralon</span></td>
+      <td>${t.preparedBy} <strong>SNOUTY</strong><span class="sub">${t.catalog} ${esc(p.catalogVersionLabel)}</span></td>
+      <td>${t.reviewedBy}<span class="sub">${t.reviewer}</span></td>
     </tr>
   </table>
 
   <footer class="pagefoot">
-    <span>REF. KONSULTASI ${esc(p.reportNumber)}</span>
-    <strong>${DISCLAIMER}</strong>
+    <span>${t.consultationRef} ${esc(p.reportNumber)}</span>
+    <strong>${t.disclaimer}</strong>
   </footer>
 </section>`;
 }
 
-/** Rupiah tanpa desimal. Nilai kosong dirender sebagai en dash, bukan Rp 0. */
-function money(value: number | undefined): string {
+/**
+ * Rupiah tanpa desimal, pemisah ribuan menurut bahasa laporan ("Rp 1.250.000" /
+ * "Rp 1,250,000") — mata uangnya tetap rupiah. Nilai kosong dirender sebagai en dash,
+ * bukan Rp 0.
+ */
+function rupiah(value: number | undefined, numberLocale: string): string {
   if (value === undefined) return '–';
-  return `Rp ${value.toLocaleString('id-ID')}`;
+  return `Rp ${value.toLocaleString(numberLocale)}`;
 }
 
 function esc(value: string): string {

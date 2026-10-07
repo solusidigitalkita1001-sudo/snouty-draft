@@ -14,7 +14,17 @@
  * memaksakan VERIFIED.
  */
 
-import type { Recommendation, RequirementState } from '@snouty/shared-types';
+import {
+  DEFAULT_LOCALE,
+  type Locale,
+  type Recommendation,
+  type RequirementFieldPath,
+  type RequirementState,
+} from '@snouty/shared-types';
+import {
+  requirementFieldLabel,
+  requirementValueLabel,
+} from '../../context/domain/requirement-labels.js';
 import type { TraceToSave } from '../../recommendation/domain/recommendation.repository.js';
 import type {
   ReportBasisRow,
@@ -23,26 +33,6 @@ import type {
   ReportPricing,
   ReportRequirementRow,
 } from '../domain/report.types.js';
-
-const BUILDING_LABEL: Readonly<Record<string, string>> = {
-  residential: 'Rumah tinggal',
-  boarding_house: 'Rumah kos',
-  light_commercial: 'Komersial ringan',
-  industrial: 'Industri',
-};
-
-const SOURCE_LABEL: Readonly<Record<string, string>> = {
-  rooftop_tank: 'Toren atap',
-  ground_tank: 'Toren bawah',
-  pump: 'Pompa',
-  municipal: 'PDAM',
-};
-
-const INSTALLATION_LABEL: Readonly<Record<string, string>> = {
-  clean_water: 'Air bersih',
-  drainage: 'Pembuangan',
-  both: 'Air bersih + pembuangan',
-};
 
 export interface AssembleReportInput {
   readonly reportNumber: string;
@@ -53,15 +43,21 @@ export interface AssembleReportInput {
   readonly catalogVersionLabel: string;
   /** Harga hanya dirender bila `PRICING_ENABLED` (OQ-03, baku nonaktif). */
   readonly pricing: { readonly enabled: boolean; readonly taxRatePercent: number };
+  /**
+   * Bahasa percakapan (P15-05). Menentukan label baris kebutuhan dan ikut dibekukan ke
+   * payload, supaya halaman cetak memakai bahasa yang sama kapan pun dicetak ulang.
+   */
+  readonly locale?: Locale;
 }
 
 export function assembleReportPayload(input: AssembleReportInput): ReportPayload {
+  const locale = input.locale ?? DEFAULT_LOCALE;
   return {
     reportNumber: input.reportNumber,
     identity: input.identity,
     headline: input.recommendation.headline,
     body: input.recommendation.body,
-    requirements: requirementRows(input.state),
+    requirements: requirementRows(input.state, locale),
     systemLines: input.recommendation.systemLines,
     assumptions: input.recommendation.assumptions,
     bom: input.recommendation.bom,
@@ -69,34 +65,37 @@ export function assembleReportPayload(input: AssembleReportInput): ReportPayload
     pricing: pricingFrom(input.recommendation, input.pricing),
     catalogVersionLabel: input.catalogVersionLabel,
     overallProvenance: input.recommendation.overallProvenance,
+    locale,
   };
 }
 
-/** Blok "KEBUTUHAN YANG TERCATAT" halaman 1. */
-function requirementRows(state: RequirementState): readonly ReportRequirementRow[] {
+/**
+ * Blok "KEBUTUHAN YANG TERCATAT" halaman 1. Label dan nilainya memakai redaksi yang sama
+ * dengan kartu kebutuhan (`requirement-labels.ts`), dalam bahasa percakapan.
+ */
+function requirementRows(state: RequirementState, locale: Locale): readonly ReportRequirementRow[] {
   const rows: ReportRequirementRow[] = [];
   const add = (
-    label: string,
+    path: RequirementFieldPath,
     field: { value: unknown; provenance: ReportRequirementRow['provenance'] },
-    format: (v: unknown) => string,
   ): void => {
     // Nilai yang belum ada tidak dirender sebagai baris kosong — ia tidak dirender
     // sama sekali, supaya laporan tidak memuat baris tanpa informasi.
     if (field.value === null) return;
-    rows.push({ label, value: format(field.value), provenance: field.provenance });
+    rows.push({
+      label: requirementFieldLabel(path, locale),
+      value: requirementValueLabel(path, field.value, locale),
+      provenance: field.provenance,
+    });
   };
 
-  add('Tipe bangunan', state.building.type, (v) => BUILDING_LABEL[String(v)] ?? String(v));
-  add('Jumlah lantai', state.building.floors, (v) => `${String(v)} lantai`);
-  add('Sumber air', state.water.source, (v) => SOURCE_LABEL[String(v)] ?? String(v));
-  add(
-    'Jenis instalasi',
-    state.water.installationType,
-    (v) => INSTALLATION_LABEL[String(v)] ?? String(v),
-  );
-  add('Kamar mandi', state.fixtures.bathrooms, (v) => `${String(v)} titik`);
-  add('Wastafel', state.fixtures.basins, (v) => `${String(v)} titik`);
-  add('Dapur', state.fixtures.kitchens, (v) => `${String(v)} titik`);
+  add('building.type', state.building.type);
+  add('building.floors', state.building.floors);
+  add('water.source', state.water.source);
+  add('water.installationType', state.water.installationType);
+  add('fixtures.bathrooms', state.fixtures.bathrooms);
+  add('fixtures.basins', state.fixtures.basins);
+  add('fixtures.kitchens', state.fixtures.kitchens);
   return rows;
 }
 

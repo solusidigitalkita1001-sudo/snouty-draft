@@ -828,7 +828,7 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       pertanyaan kartu/teks, label pilihan enum, label data tercatat, dan kartu handoff memakai
       registry EN; label dipilih saat ditampilkan (`technicalParameterLabel`), state tetap
       menyimpan label Indonesia; `technicalAnswerValue` menerima label Inggris & Yes/No → nilai
-      protokol. Tes: engineering 175 (+26), API 866 (+27). **Belum EN (P15-04b):** `explanation`
+      protokol. Tes: engineering 175 (+26), API 866 (+27). **Belum EN saat itu (selesai di P15-04b):** `explanation`
       trace aturan engine (dasar perhitungan di detail) dan `structuralNote` gorong-gorong;
       `BomUnit` masih union Indonesia di shared-types (dilebarkan nanti)
 - [x] P15-04c Rapi-rapi tampilan atas permintaan pemilik (2026-10-07): composer jadi textarea
@@ -836,14 +836,21 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       tautan mati "Solusi Tersimpan"/"Pengetahuan Produk" dihapus (OQ-52); aturan "Teks yang
       dilihat pengguna" (tanpa metatext/AI slop) masuk `.claude/CLAUDE.md`; halaman profil belum
       ada → OQ-53
-- [ ] P15-04b Penjelasan trace aturan engine dua bahasa (`reason`/`basis` di detail perhitungan)
+- [x] P15-04b Penjelasan trace aturan engine dua bahasa (`reason`/`basis` di detail perhitungan)
+      (2026-10-07): `RuleVersion.explain(input, output, locale?)`; ke-34 aturan menulis kedua
+      bahasa lewat `localized(locale, { id, en })` (bahasa yang terlupa = galat tipe). Teks
+      Indonesia byte-identik, `version` aturan tidak naik. Keenam `compute*` menerima `locale`
+      opsional terakhir (bawaan `'id'`), `AnalysisService` meneruskan bahasa percakapan;
+      `structuralNote` gorong-gorong via `culvertStructuralNote` (output trace tetap Indonesia).
+      Tes: engineering 227 (+52: setiap test case aturan — bawaan tetap, EN berbeda, himpunan
+      angka sama), API 923 (+5)
 - [x] P15-05 Laporan PDF dua bahasa (2026-10-07): `ReportPayload.locale` diambil dari bahasa
       percakapan saat laporan dibuat dan dibekukan bersama payload; payload tersimpan tanpa field
       itu dibaca sebagai `'id'` (`storedReportPayload`). `report-html.ts` memakai `REPORT_COPY`
       `{ id, en }` (`<html lang>`, judul, kolom, label status, rupiah `id-ID`/`en-US`); kalimat
       kebijakan EN sama persis dengan web (`SOLUTION_COPY_EN`). Baris kebutuhan memakai
       `requirement-labels`, jenis instalasi diisi service (bukan controller). HTML Indonesia
-      identik byte demi byte. Tes: API +10. **Belum EN:** dasar perhitungan (trace, P15-04b)
+      identik byte demi byte. Tes: API +10. **Belum EN saat itu:** dasar perhitungan (trace; selesai di P15-04b)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phase 16 — Routing percakapan: subjek aktif & pengetahuan perusahaan

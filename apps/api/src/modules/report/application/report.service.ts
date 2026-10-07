@@ -23,12 +23,19 @@ import {
   type RecommendationRepository,
 } from '../../recommendation/domain/recommendation.repository.js';
 import { RequirementSnapshotStore } from '../../context/application/requirement-snapshot.store.js';
+import { requirementValueLabel } from '../../context/domain/requirement-labels.js';
 import { assembleReportPayload } from './report-assembler.js';
 import { reportDownloadName, resolveReportFile } from '../domain/report-file.js';
 import { formatReportNumber, yearMonthOf } from '../domain/report-number.js';
 import { REPORT_REPOSITORY, type ReportRepository } from '../domain/report.repository.js';
 import { JobPublisher } from '../../../shared/queue/job-publisher.js';
 import type { Report, ReportIdentity } from '../domain/report.types.js';
+
+/**
+ * Identitas yang diisi pengguna. Jenis instalasi diisi service, bukan controller: labelnya
+ * mengikuti bahasa percakapan, yang baru diketahui setelah percakapannya dibaca.
+ */
+export type ReportIdentityInput = Omit<ReportIdentity, 'installationType'>;
 
 export class RecommendationNotFoundError extends Error {
   constructor() {
@@ -96,14 +103,16 @@ export class ReportService {
   async create(
     recommendationId: string,
     actor: ConversationOwner,
-    identity: ReportIdentity,
+    identity: ReportIdentityInput,
     now: string,
   ): Promise<Report> {
     const recommendation = await this.recommendations.findById(recommendationId);
     if (!recommendation) throw new RecommendationNotFoundError();
 
-    // Kepemilikan lewat percakapannya — melempar bila bukan milik aktor.
-    await this.conversations.find(recommendation.conversationId, actor);
+    // Kepemilikan lewat percakapannya — melempar bila bukan milik aktor. Bahasanya sekaligus
+    // bahasa laporan (P15-05): dibekukan ke payload, bukan dibaca ulang saat mencetak.
+    const conversation = await this.conversations.find(recommendation.conversationId, actor);
+    const locale = conversation.language;
 
     const traces = await this.recommendations.findTraces(recommendationId);
     const snapshot = await this.snapshots.current(recommendation.conversationId);
@@ -120,12 +129,17 @@ export class ReportService {
       recommendation,
       traces,
       state,
-      identity,
+      identity: {
+        ...identity,
+        // Laporan saat ini hanya untuk instalasi air bersih; labelnya ikut bahasa laporan.
+        installationType: requirementValueLabel('water.installationType', 'clean_water', locale),
+      },
       catalogVersionLabel: recommendation.catalogVersionId,
       pricing: {
         enabled: env.PRICING_ENABLED,
         taxRatePercent: env.TAX_RATE_PERCENT,
       },
+      locale,
     });
 
     const report = await this.reports.create({

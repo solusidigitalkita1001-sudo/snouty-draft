@@ -6,6 +6,7 @@
  * harus terbaca sama bertahun kemudian meski katalog, aturan, dan harga sudah berubah.
  */
 
+import type { Locale } from './locale.js';
 import type { Provenance } from './provenance.js';
 import type { Assumption, BomItem, SystemLine } from './recommendation.js';
 
@@ -53,6 +54,11 @@ export interface ReportPayload {
   /** Versi katalog yang dipakai — muncul di blok tanda tangan. */
   readonly catalogVersionLabel: string;
   readonly overallProvenance: Provenance;
+  /**
+   * Bahasa dokumen — bahasa percakapan saat laporan dibuat (P15-05), ikut dibekukan bersama
+   * isinya. Payload yang tersimpan sebelum field ini ada dibaca sebagai `'id'` (repository).
+   */
+  readonly locale: Locale;
 }
 
 /** Respons `POST /reports` (202): PDF-nya menyusul lewat antrean. */
