@@ -725,15 +725,8 @@ export function ChatWorkspace() {
             {/* Sempit (<1080): sidebar hilang, "+ Baru" dan menu "Riwayat" pindah ke header. */}
             {narrow && (
               <>
-                <button
-                  type="button"
-                  className={styles.headerNew}
-                  onClick={reset}
-                  aria-label={COPY.newConversation}
-                >
-                  <span className={styles.newPlus}>+</span>
-                  {!mobile && <span>{COPY.newShort}</span>}
-                </button>
+                {/* "+ Konsultasi Baru" hidup di dalam drawer (keputusan pemilik 2026-10-07: tombol
+                    plus bukan di navbar); header sempit hanya pembuka drawer, judul, dan kebutuhan. */}
                 {/* Membuka drawer sidebar (bukan dropdown) — di ponsel ikon hamburger. */}
                 <button
                   type="button"

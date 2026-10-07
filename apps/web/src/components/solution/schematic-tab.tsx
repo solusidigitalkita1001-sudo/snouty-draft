@@ -17,15 +17,23 @@ function useSolutionCopy() {
   return solutionCopy(useLocale().locale);
 }
 
-export function SchematicTab({ recommendationId }: { readonly recommendationId: string }) {
+export function SchematicTab({
+  recommendationId,
+  available = true,
+}: {
+  readonly recommendationId: string;
+  /** `false` = jenis solusi ini tidak punya skema (teknis/irigasi): tanpa permintaan ke API. */
+  readonly available?: boolean;
+}) {
   const COPY = useSolutionCopy();
   const [schematic, setSchematic] = useState<Schematic | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState(!available);
 
   useEffect(() => {
     let cancelled = false;
     setSchematic(null);
-    setFailed(false);
+    setFailed(!available);
+    if (!available) return undefined;
     void fetch(`/api/v1/recommendations/${encodeURIComponent(recommendationId)}/schematic`, {
       credentials: 'include',
     })
@@ -42,7 +50,7 @@ export function SchematicTab({ recommendationId }: { readonly recommendationId: 
     return () => {
       cancelled = true;
     };
-  }, [recommendationId]);
+  }, [recommendationId, available]);
 
   return (
     <section className={styles.card}>

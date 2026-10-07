@@ -43,7 +43,14 @@ export function SolutionView({
 
   return (
     <div className={styles.workspace}>
-      {on('skema') && tab !== undefined && <SchematicTab recommendationId={recommendation.id} />}
+      {on('skema') && tab !== undefined && (
+        <SchematicTab
+          recommendationId={recommendation.id}
+          // Skema hanya ada untuk solusi bangunan; kasus teknis/irigasi tidak punya (API 404) —
+          // jangan memintanya, tampilkan "belum tersedia" langsung tanpa galat di konsol.
+          available={recommendation.kind === undefined || recommendation.kind === 'building'}
+        />
+      )}
 
       {on('ringkasan') && (
         <section className={styles.card}>

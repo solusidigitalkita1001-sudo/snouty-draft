@@ -789,6 +789,10 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       tab layar solusi di baris sendiri dan bisa digulir (sebelumnya hanya "Ringkasan" terlihat),
       baris "Rekomendasi Sistem" bertumpuk rapi dengan garis peran di kiri. Alur penuh (klarifikasi →
       susun rekomendasi → solusi → lembar kebutuhan), gelap, dan EN dicek lewat tangkapan layar 390 px
+- [x] P15-02d Tindak lanjut pemilik (2026-10-07): tombol "+" dihapus dari header sempit (sudah ada
+      "+ Konsultasi Baru" di drawer); tab Skema tidak lagi meminta skema untuk solusi
+      teknis/irigasi (sebelumnya 404 di konsol). `POST /reports` 403 untuk tamu memang kebijakan —
+      UI menampilkan ajakan mendaftar
 - [ ] P15-03 Templat deterministik API dua bahasa: reply-copy, pembuka, panduan teknis & irigasi,
       pipe-knowledge, product-answer-text, kartu kebijakan (scope/entitlements), klarifikasi
 - [ ] P15-04 Registry per bahasa: label/pertanyaan/opsi parameter, asumsi, label keluaran,
