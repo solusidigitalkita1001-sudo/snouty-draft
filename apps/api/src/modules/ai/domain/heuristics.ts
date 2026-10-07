@@ -14,16 +14,17 @@ import type { IntentClassification, ProductQuestionParse } from './extraction-sc
 
 /** Isyarat bahwa pesan menyatakan KEBUTUHAN — mengalahkan isyarat pertanyaan produk. */
 export const REQUIREMENT_SIGNALS =
-  /\b(lantai|kamar mandi|wastafel|dapur|toren|tandon|pdam|sumur|pompa|rumah|ruko|kos|kost|gedung|pabrik)\b/;
+  /\b(lantai|kamar mandi|wastafel|dapur|toren|tandon|pdam|sumur|pompa|rumah|ruko|kos|kost|gedung|pabrik|floors?|stor(?:e)?ys?|stories|bathrooms?|sinks?|basins?|kitchens?|tanks?|rooftop|wells?|pumps?|house|home|shophouse|boarding house|dorm(?:itory)?|building|factory|warehouse)\b/;
 /** Isyarat pertanyaan produk/pengetahuan: menyebut keluarga produk atau menanyakan sifatnya. */
 export const PRODUCT_SIGNALS =
-  /\b(pvc|hdpe|ppr|pp-r|fitting|tee|elbow|reducer|socket|apa itu|apa bedanya|bedanya|perbedaan|bahan|material|standar|sni|tekanan|panjang batang|sambungan|aplikasi|kegunaan|ada ukuran|ukuran apa|harga|stok|tersedia|spesifikasi)/;
+  /\b(pvc|hdpe|ppr|pp-r|fitting|tee|elbow|reducer|socket|apa itu|apa bedanya|bedanya|perbedaan|bahan|material|standar|sni|tekanan|panjang batang|sambungan|aplikasi|kegunaan|ada ukuran|ukuran apa|harga|stok|tersedia|spesifikasi|what is|difference|differ|compare|comparison|versus|standard|pressure|rod length|joint|connection|application|uses?|sizes?|price|stock|available|specification|specs)/;
 /** Sapaan/basa-basi utuh: tanpa isi kebutuhan maupun produk, cukup pendek. */
 export const GREETING =
   /^\s*(hai|halo|hallo|hello|hi|hey|yo|pagi|siang|sore|malam|selamat\s+(pagi|siang|sore|malam)|apa kabar|terima kasih|makasih|thanks|ok|oke|sip|tes|test|testing)\b[\s!.,?]*(jo|snouty|bro|kak|min|ya|dong)?[\s!.,?]*$/;
 export const COMPETITOR_BRANDS = /\b(rucika|wavin|maspion|vinilon|unilon|supralon|merek lain)\b/;
 /** Pertanyaan KONSEP produk: definisi/perbandingan, bukan kebutuhan. */
-const PRODUCT_CONCEPT = /\b(apa itu|apa bedanya|bedanya|perbedaan|beda)\b/;
+const PRODUCT_CONCEPT =
+  /\b(apa itu|apa bedanya|bedanya|perbedaan|beda|what is|what are|difference|differences|differ|compare|comparison|versus|vs)\b/;
 const FAMILY_TOKENS = /\b(pvc\s*(?:aw|d|c)?|hdpe|ppr|pp-r|tee|elbow|reducer|socket)\b/g;
 const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
 
@@ -32,10 +33,11 @@ const SIZE_TOKEN = /(\d+(?:\s*\/\s*\d+)?(?:\s*[.,]\d+)?)\s*(?:inch|inci|in|")?/;
  * sapaan utuh, merek pesaing, dan konsep produk tanpa isyarat kebutuhan.
  */
 /** Irigasi/pertanian punya jalurnya sendiri di `context` — kebutuhan, bukan pertanyaan produk. */
-const IRRIGATION = /\b(irigasi|sawah|kebun|perkebunan|pertanian|ladang)\b/;
+const IRRIGATION =
+  /\b(irigasi|sawah|kebun|perkebunan|pertanian|ladang|irrigation|paddy|rice field|farm|farmland|orchard|plantation|garden)\b/;
 /** Kasus teknis umum (Fase 14): jalur kebutuhan di `context`, tanpa menunggu model. */
 const TECHNICAL_CASE =
-  /\b(gorong[- ]gorong|culvert|drainase|air hujan|limpasan|selokan|saluran pembuangan|air kotor|transfer air|memompa|dipompa|cluster|klaster|perumahan|komplek|apartemen|sumur bor|submersible|reservoir|tambak|kolam|lele|nila|gurame|bioflok)\b/;
+  /\b(gorong[- ]gorong|culvert|drainase|air hujan|limpasan|selokan|saluran pembuangan|air kotor|transfer air|memompa|dipompa|cluster|klaster|perumahan|komplek|apartemen|sumur bor|submersible|reservoir|tambak|kolam|lele|nila|gurame|bioflok|culvert|drainage|storm ?water|rainwater|runoff|sewer|wastewater|transfer water|water transfer|pumping|housing estate|housing complex|apartment|borehole|deep well|fish ?pond|ponds?|tilapia|catfish)\b/;
 
 export function certainIntent(message: string): IntentClassification | null {
   const text = message.toLowerCase();

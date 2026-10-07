@@ -38,7 +38,7 @@ export type PolicyOutcome =
 // "air proses" dan suhu tersurat ≥ 45° ikut: "jalur air proses pabrik, suhu 70 °C" adalah
 // kondisi fluida yang butuh validasi bahan, apa pun jenis bangunannya (skenario uji §39).
 const OUT_OF_SCOPE_USE =
-  /\b(peternakan|air panas|air proses|uap|boiler|air laut|kimia|gas|minyak|bahan bakar)\b|\bsuhu\s*(?:[4-9]\d|[1-9]\d{2,})\s*(?:°|derajat|c\b)/i;
+  /\b(peternakan|air panas|air proses|uap|boiler|air laut|kimia|gas|minyak|bahan bakar|livestock|hot water|process water|steam|seawater|sea water|chemicals?|gas|oil|fuel)\b|\b(?:suhu|temperature|temp)\s*(?:of\s*)?(?:[4-9]\d|[1-9]\d{2,})\s*(?:°|derajat|degrees?|c\b)/i;
 
 /**
  * Muara jalur irigasi (OQ-47): data lengkap → diteruskan ke tim teknis untuk dihitung. Bukan

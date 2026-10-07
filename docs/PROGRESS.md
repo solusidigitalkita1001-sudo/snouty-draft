@@ -793,8 +793,18 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       "+ Konsultasi Baru" di drawer); tab Skema tidak lagi meminta skema untuk solusi
       teknis/irigasi (sebelumnya 404 di konsol). `POST /reports` 403 untuk tamu memang kebijakan —
       UI menampilkan ajakan mendaftar
-- [ ] P15-03 Templat deterministik API dua bahasa: reply-copy, pembuka, panduan teknis & irigasi,
-      pipe-knowledge, product-answer-text, kartu kebijakan (scope/entitlements), klarifikasi
+- [x] P15-03a Pemahaman Inggris + inti percakapan dua bahasa (2026-10-07). Pola kode diperluas
+      dengan sinonim Inggris: isyarat kebutuhan/nasihat/pesaing/ragam produk, intent pasti (sapaan,
+      konsep produk, irigasi, kasus teknis), jalur cepat, penanda grounding, fakta dari teks
+      (lantai/kamar mandi/jenis instalasi/jenis bangunan/letak toren), kata bilangan one–twelve,
+      kata benda hitungan, peniadaan, "a bathroom" = 1, tanda hubung ("2-storey"), kebijakan cakupan
+      (hot water, process water, suhu). Templat: balasan tetap + pembuka EN; pertanyaan klarifikasi
+      EN dengan `optionLabels` (nilai pilihan tetap protokol Indonesia), ringkasan jawaban EN,
+      "Belum tahu" tampil "Not sure". 6 tes. Sekalian: estimasi material di ponsel jadi daftar
+      (permintaan pemilik), favicon dari maskot (404 di konsol), tamu membuka laporan langsung ke
+      ajakan mendaftar tanpa POST 403
+- [ ] P15-03b Templat deterministik API dua bahasa sisanya: panduan teknis & irigasi,
+      pipe-knowledge, product-answer-text, kartu kebijakan (scope/entitlements), handoff
 - [ ] P15-04 Registry per bahasa: label/pertanyaan/opsi parameter, asumsi, label keluaran,
       catatan opsi, highlight & prosa templat per kasus, nama item BOM
 - [ ] P15-05 Laporan PDF dua bahasa

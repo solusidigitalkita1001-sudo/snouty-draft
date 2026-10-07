@@ -25,7 +25,7 @@ import type {
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
-import type { Locale } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import { caseProfile, isCaseId } from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
@@ -62,7 +62,7 @@ import { FIELD_LABEL, requirementValueLabel } from '../domain/requirement-labels
 import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsIn } from './pipe-knowledge.js';
-import { OPENER_REPLY, replyFor } from './reply-copy.js';
+import { openerReply, replyFor } from './reply-copy.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 
 export interface PipelineInput {
@@ -116,7 +116,7 @@ export async function runUnderstanding(
     // Sapaan/di luar topik, minta penjelasan, atau model ragu: bukan ruas ekstraksi,
     // tetapi tetap dijawab — giliran yang ditutup tanpa sepatah kata terbaca sebagai
     // kerusakan. (Lookup produk punya ruasnya sendiri sebelum sampai ke sini.)
-    const fallback = replyFor(input.decision.intent);
+    const fallback = replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Dengan model: balasan ditulis model dari konteks percakapan, tanpa fakta teknis
       // (tidak ada DATA → nol angka). Tanpa model, atau bila pagar menolak: teks tetap.
@@ -221,7 +221,10 @@ export async function runUnderstanding(
     if (extractionFailed && updates.length === 0) {
       // Model gagal dan teksnya tidak memuat fakta yang bisa dibaca kode: tanya yang kurang.
       events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'failed' });
-      const plan = planClarification(withCompleteness(input.state).missingInformation);
+      const plan = planClarification(
+        withCompleteness(input.state).missingInformation,
+        input.locale,
+      );
       if (plan)
         events.push({ type: 'card', card: { kind: 'clarification', questions: plan.questions } });
       events.push(endEvent(input.messageId));
@@ -240,9 +243,9 @@ export async function runUnderstanding(
             userMessage: input.message,
             recentTurns: input.recentTurns ?? [],
             ...(input.locale ? { locale: input.locale } : {}),
-            fallback: OPENER_REPLY,
+            fallback: openerReply(input.locale),
           })
-        : { text: OPENER_REPLY };
+        : { text: openerReply(input.locale) };
       events.push({ type: 'token', text: written.text });
       events.push(endEvent(input.messageId));
       return { events, nextState: input.state, changed: false, trigger: 'extraction' };
@@ -276,7 +279,7 @@ export async function runUnderstanding(
     });
   }
 
-  const card = followUpCard(merged);
+  const card = followUpCard(merged, input.locale);
   if (card) events.push({ type: 'card', card });
 
   events.push(endEvent(input.messageId));
@@ -294,7 +297,10 @@ export async function runUnderstanding(
  *   - Masih ada field inti kosong → kartu klarifikasi (maks. 4 pertanyaan).
  *   - Lengkap dan dalam cakupan → ajak lanjut ke analisis (Fase 6/7).
  */
-export function followUpCard(merged: RequirementState): AssistantCard | null {
+export function followUpCard(
+  merged: RequirementState,
+  locale: Locale = DEFAULT_LOCALE,
+): AssistantCard | null {
   if (merged.useCase?.kind === 'irrigation') return irrigationFollowUp(merged);
   if (merged.useCase?.kind === 'technical') return technicalFollowUp(merged);
   const scope = scopePolicy({
@@ -304,7 +310,7 @@ export function followUpCard(merged: RequirementState): AssistantCard | null {
   });
   if (scope.kind === 'policy') return policyCard(scope, capturedFrom(merged));
   if (merged.missingInformation.length > 0) {
-    const plan = planClarification(merged.missingInformation);
+    const plan = planClarification(merged.missingInformation, locale);
     return plan ? { kind: 'clarification', questions: plan.questions } : null;
   }
   return { kind: 'cta', action: 'ANALYZE' };

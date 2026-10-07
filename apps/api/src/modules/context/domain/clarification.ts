@@ -16,6 +16,7 @@
  */
 
 import type { ClarificationQuestion, RequirementFieldPath } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type { FieldUpdate } from './context-merger.js';
 import { IRRIGATION_TEMPLATES, isIrrigationField } from './irrigation.js';
 
@@ -60,6 +61,34 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
   },
 };
 
+/**
+ * Dua bahasa (Fase 15): `options` tetap label Indonesia kanonik sebagai PROTOKOL (klien
+ * mengirimnya balik apa adanya, `answerToUpdate` membacanya), sedangkan pertanyaan dan label
+ * tampilan mengikuti bahasa percakapan lewat `optionLabels`.
+ */
+const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
+  'water.source': 'Where does the water come from?',
+  'water.installationType': 'What is this installation for?',
+  'building.floors': 'How many floors does the building have?',
+  'fixtures.bathrooms': 'How many bathrooms are there?',
+};
+
+/** Label tampilan Inggris per nilai pilihan kanonik; angka tampil apa adanya. */
+const OPTION_LABEL_EN: Readonly<Record<string, string>> = {
+  'Toren atap': 'Rooftop tank',
+  'Toren bawah': 'Ground tank',
+  Pompa: 'Pump',
+  PDAM: 'Municipal water',
+  'Air bersih': 'Clean water',
+  Pembuangan: 'Drainage',
+  Keduanya: 'Both',
+  'Belum tahu': 'Not sure',
+};
+
+export function optionLabel(option: string, locale: Locale): string {
+  return locale === 'en' ? (OPTION_LABEL_EN[option] ?? option) : option;
+}
+
 export type ClarificationForm = 'single' | 'card';
 
 export interface ClarificationPlan {
@@ -76,6 +105,7 @@ export interface ClarificationPlan {
  */
 export function planClarification(
   missing: readonly RequirementFieldPath[],
+  locale: Locale = DEFAULT_LOCALE,
 ): ClarificationPlan | null {
   if (missing.length === 0) return null;
 
@@ -84,7 +114,9 @@ export function planClarification(
   const selected =
     form === 'single' ? ordered.slice(0, 1) : ordered.slice(0, MAX_CLARIFICATION_QUESTIONS);
 
-  const questions = selected.map(toQuestion).filter((q): q is ClarificationQuestion => q !== null);
+  const questions = selected
+    .map((path) => toQuestion(path, locale))
+    .filter((q): q is ClarificationQuestion => q !== null);
 
   return {
     form,
@@ -133,6 +165,12 @@ const ANSWER_LABEL: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'building.floors': 'Lantai',
   'fixtures.bathrooms': 'Kamar mandi',
 };
+const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
+  'water.source': 'Water source',
+  'water.installationType': 'Installation',
+  'building.floors': 'Floors',
+  'fixtures.bathrooms': 'Bathrooms',
+};
 
 export interface ClarificationAnswer {
   readonly id: string;
@@ -160,24 +198,32 @@ export function answerToUpdate(
 }
 
 /** "Sumber air: Toren atap · Instalasi: Keduanya · Kamar mandi: 3" — gelembung pengguna. */
-export function summarizeAnswers(answers: readonly ClarificationAnswer[]): string {
+export function summarizeAnswers(
+  answers: readonly ClarificationAnswer[],
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const labels = locale === 'en' ? ANSWER_LABEL_EN : ANSWER_LABEL;
   return answers
     .map((a) => {
+      // Label irigasi masih Indonesia sampai registry dua bahasa (P15-04).
       const label = isIrrigationField(a.id)
         ? IRRIGATION_TEMPLATES[a.id].label
-        : (ANSWER_LABEL[a.id as RequirementFieldPath] ?? a.id);
-      return `${label}: ${a.option}`;
+        : (labels[a.id as RequirementFieldPath] ?? a.id);
+      return `${label}: ${optionLabel(a.option, locale)}`;
     })
     .join(' · ');
 }
 
-function toQuestion(path: RequirementFieldPath): ClarificationQuestion | null {
+function toQuestion(path: RequirementFieldPath, locale: Locale): ClarificationQuestion | null {
   const template = TEMPLATES[path];
   if (!template) return null;
   return {
     id: path,
-    question: template.question,
+    question: locale === 'en' ? (QUESTION_EN[path] ?? template.question) : template.question,
     options: template.options,
+    ...(locale === 'en'
+      ? { optionLabels: template.options.map((option) => optionLabel(option, locale)) }
+      : {}),
     allowUnknown: true, // "Belum tahu" selalu tersedia — pengguna tidak dipaksa menebak.
   };
 }

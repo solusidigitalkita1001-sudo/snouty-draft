@@ -378,10 +378,32 @@
     padding: 16px 14px 22px;
   }
 
-  .bomHeadRow,
+  /* Estimasi material di ponsel = daftar, bukan tabel (permintaan pemilik 2026-10-07):
+     nama item sebaris penuh, ukuran · jumlah di bawahnya, dasar perhitungan di bawah lagi. */
+  .bomHeadRow {
+    display: none;
+  }
+
   .bomRow {
-    grid-template-columns: minmax(0, 1fr) 70px;
-    row-gap: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding: 12px 0;
+  }
+
+  .bomRow > :nth-child(1) {
+    flex-basis: 100%;
+    font-weight: 600;
+  }
+
+  .bomRow > :nth-child(2)::after {
+    content: '·';
+    margin-left: 12px;
+    color: var(--snouty-muted);
+  }
+
+  .bomRow > :nth-child(4) {
+    flex-basis: 100%;
   }
 
   /* Baris sistem di ponsel: garis peran merentang di kiri, isi bertumpuk di kolom kanan

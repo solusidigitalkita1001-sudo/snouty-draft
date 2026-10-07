@@ -164,6 +164,8 @@ export const CHAT_COPY = {
 
   /** Layar 03 — kartu klarifikasi bernomor. */
   clarificationTitle: 'AGAR SAYA TIDAK MENEBAK',
+  /** Label chip "belum tahu"; nilai yang dikirim ke API tetap 'Belum tahu' (protokol). */
+  unknownOption: 'Belum tahu',
   skipToDefaults: 'Lewati dan gunakan asumsi standar',
   /** Layar solusi (prototipe `tabDefs`): tab menggantikan aliran chat. */
   solutionTabs: [
@@ -339,6 +341,7 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   },
 
   clarificationTitle: "SO I DON'T HAVE TO GUESS",
+  unknownOption: 'Not sure',
   skipToDefaults: 'Skip and use standard assumptions',
   solutionTabs: [
     { id: 'ringkasan', label: 'Summary' },

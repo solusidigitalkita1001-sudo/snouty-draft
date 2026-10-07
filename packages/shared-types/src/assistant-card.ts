@@ -39,7 +39,13 @@ export interface SummaryField {
 export interface ClarificationQuestion {
   readonly id: string;
   readonly question: string;
+  /** Nilai pilihan — protokol (dikirim balik apa adanya), selalu label Indonesia kanonik. */
   readonly options: readonly string[];
+  /**
+   * Label tampilan per pilihan dalam bahasa percakapan (Fase 15), sejajar dengan `options`.
+   * Tidak ada = tampilkan `options` apa adanya.
+   */
+  readonly optionLabels?: readonly string[];
   /** "Belum tahu" selalu tersedia — pengguna tidak dipaksa menebak. */
   readonly allowUnknown: boolean;
 }

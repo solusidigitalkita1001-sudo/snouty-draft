@@ -66,7 +66,8 @@ export function withRequirementPrecedence(
   };
 }
 
-const EXPLANATION_SIGNALS = /\b(kenapa|mengapa|kok|alasan(nya)?|dasar(nya)?)\b/i;
+const EXPLANATION_SIGNALS =
+  /\b(kenapa|mengapa|kok|alasan(nya)?|dasar(nya)?|why|reason|basis|how come)\b/i;
 
 /**
  * Keputusan yang tidak butuh model: pesan pertama (belum ada kebutuhan) dengan isyarat

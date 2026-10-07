@@ -908,7 +908,11 @@ export function ChatWorkspace() {
             )}
 
             {reportOpen && solution !== null && (
-              <ReportModal recommendationId={solution.id} onClose={() => setReportOpen(false)} />
+              <ReportModal
+                recommendationId={solution.id}
+                onClose={() => setReportOpen(false)}
+                guest={user === null}
+              />
             )}
 
             {toastOn && (
@@ -1406,7 +1410,7 @@ function ClarificationCard({
           </div>
           <div className={styles.chips} role="group" aria-label={question.question}>
             {[...question.options, ...(question.allowUnknown ? [UNKNOWN_OPTION] : [])].map(
-              (option) => (
+              (option, optionIndex) => (
                 <button
                   key={option}
                   type="button"
@@ -1418,7 +1422,11 @@ function ClarificationCard({
                   disabled={!active}
                   onClick={() => choose(question, option)}
                 >
-                  {option}
+                  {/* Nilai chip = protokol (label Indonesia kanonik); yang tampil label
+                      bahasa percakapan dari API, "Belum tahu" dari copy bahasa aktif. */}
+                  {option === UNKNOWN_OPTION
+                    ? COPY.unknownOption
+                    : (question.optionLabels?.[optionIndex] ?? option)}
                 </button>
               ),
             )}

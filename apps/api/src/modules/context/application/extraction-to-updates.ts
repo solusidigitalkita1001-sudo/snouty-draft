@@ -17,14 +17,17 @@ import type { FieldUpdate } from '../domain/context-merger.js';
 
 /** Penanda kata yang harus ada di pesan sebelum field ini dipercaya. */
 const GROUNDING: Readonly<Record<string, RegExp>> = {
-  'building.floorHeightM': /\b(tinggi|ketinggian|meter|\d\s*m\b)/i,
-  'building.dimensions': /\b(meter|\d\s*m\b|panjang|jarak|jalur)/i,
-  'fixtures.outletCount': /\b(titik|outlet|keran|kran)/i,
-  'water.boosterPump': /\b(pompa|booster|pendorong)/i,
+  // Penanda Indonesia DAN Inggris (Fase 15, P15-03): pemahaman dua bahasa hidup di pola kode.
+  'building.floorHeightM': /\b(tinggi|ketinggian|meter|metre|height|\d\s*m\b)/i,
+  'building.dimensions': /\b(meter|metre|\d\s*m\b|panjang|jarak|jalur|length|distance|run)/i,
+  'fixtures.outletCount': /\b(titik|outlet|keran|kran|taps?|faucets?|points?)/i,
+  'water.boosterPump': /\b(pompa|booster|pendorong|pumps?)/i,
   // Evaluasi 2026-10-06: dari "Instalasi air bersih untuk rumah baru 1 lantai" model menulis
   // `source: municipal`. Sumber air hanya dipercaya bila pengguna menyebut sumbernya.
-  'water.source': /\b(toren|tandon|tangki|pompa|pdam|sumur|ledeng|air tanah|sumber)/i,
-  'water.installationType': /\b(air bersih|pembuangan|limbah|drainase|saluran|keduanya)\b/i,
+  'water.source':
+    /\b(toren|tandon|tangki|pompa|pdam|sumur|ledeng|air tanah|sumber|tanks?|rooftop|roof|ground|municipal|mains|city water|wells?|pumps?|source)/i,
+  'water.installationType':
+    /\b(air bersih|pembuangan|limbah|drainase|saluran|keduanya|clean water|potable|drinking water|supply|drainage|waste ?water|sewer|both)\b/i,
 };
 
 /**
@@ -35,13 +38,18 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
  * dan hanya dipakai bila model tidak mengisinya.
  */
 const OBVIOUS = {
-  floors: (m: string) => intAfter(/\b(\d{1,2})\s*(?:lantai|lt)\b/i, m),
-  bathrooms: (m: string) => intAfter(/\b(\d{1,2})\s*(?:kamar mandi|km|toilet)\b/i, m),
+  floors: (m: string) =>
+    intAfter(/\b(\d{1,2})\s*-?\s*(?:lantai|lt|floors?|stor(?:e)?ys?|stories|levels?)\b/i, m),
+  bathrooms: (m: string) =>
+    intAfter(/\b(\d{1,2})\s*-?\s*(?:kamar mandi|km|toilet|bathrooms?|toilets?|restrooms?)\b/i, m),
   installationType: (m: string): NonNullable<Extraction['water']>['installationType'] => {
     // Irigasi/pertanian BUKAN "drainage": ia di luar cakupan dan ditangani kebijakan guna
     // (policy/scope.ts `useCasePolicy`) sebelum ekstraksi.
-    const drainage = /\b(drainase|pembuangan|limbah|saluran air kotor)\b/i.test(m);
-    const clean = /\bair bersih\b/i.test(m);
+    const drainage =
+      /\b(drainase|pembuangan|limbah|saluran air kotor|drainage|waste ?water|sewer|sewage)\b/i.test(
+        m,
+      );
+    const clean = /\b(air bersih|clean water|potable water|drinking water)\b/i.test(m);
     if (drainage && clean) return 'both';
     if (drainage) return 'drainage';
     if (clean) return 'clean_water';
@@ -50,18 +58,31 @@ const OBVIOUS = {
   // Produksi 2026-10-07: "toren di atap" → model menulis `ground_tank`. Letak toren tersurat
   // di teks mengalahkan tebakan model; tanpa penanda letak, nilai model yang dipakai.
   source: (m: string): NonNullable<Extraction['water']>['source'] => {
-    const tank = /\b(toren|tandon|tangki)\b/i.test(m);
-    if (tank && /\b(atap|di atas|lantai atas|atas rumah|rooftop|tower|menara)\b/i.test(m))
+    const tank = /\b(toren|tandon|tangki|tanks?)\b/i.test(m);
+    if (
+      tank &&
+      /\b(atap|di atas|lantai atas|atas rumah|rooftop|roof|tower|menara|overhead|elevated)\b/i.test(
+        m,
+      )
+    )
       return 'rooftop_tank';
-    if (tank && /\b(bawah|tanah|ground|di bawah|lantai dasar)\b/i.test(m)) return 'ground_tank';
-    if (/\b(pdam|ledeng|pam\b)/i.test(m)) return 'municipal';
+    if (tank && /\b(bawah|tanah|ground|di bawah|lantai dasar|underground|basement)\b/i.test(m))
+      return 'ground_tank';
+    if (/\b(pdam|ledeng|pam\b|municipal|mains|city water|town water)/i.test(m)) return 'municipal';
     return undefined;
   },
   type: (m: string): NonNullable<Extraction['building']>['type'] => {
-    if (/\b(kos|kost|kos-kosan)\b/i.test(m)) return 'boarding_house';
-    if (/\b(pabrik|industri|gudang)\b/i.test(m)) return 'industrial';
-    if (/\b(ruko|toko|kantor|kafe|cafe|resto)\b/i.test(m)) return 'light_commercial';
-    if (/\b(rumah|hunian)\b/i.test(m)) return 'residential';
+    if (/\b(kos|kost|kos-kosan|boarding house|dorm(?:itory)?|hostel)\b/i.test(m))
+      return 'boarding_house';
+    if (/\b(pabrik|industri|gudang|factory|plant|industrial|warehouse)\b/i.test(m))
+      return 'industrial';
+    if (
+      /\b(ruko|toko|kantor|kafe|cafe|resto|shophouse|shop|store|office|restaurant|hotel|clinic|school)\b/i.test(
+        m,
+      )
+    )
+      return 'light_commercial';
+    if (/\b(rumah|hunian|house|home|villa|residence|apartment)\b/i.test(m)) return 'residential';
     return undefined;
   },
 };
@@ -74,31 +95,34 @@ const OBVIOUS = {
  * bila pesannya memuat peniadaan; jenis bangunan hanya bila kata bendanya ada.
  */
 const NUMBER_WORDS: Readonly<Record<number, string>> = {
-  1: 'satu|sebuah',
-  2: 'dua',
-  3: 'tiga',
-  4: 'empat',
-  5: 'lima',
-  6: 'enam',
-  7: 'tujuh',
-  8: 'delapan',
-  9: 'sembilan',
-  10: 'sepuluh',
-  11: 'sebelas',
-  12: 'dua belas',
+  1: 'satu|sebuah|one|a single',
+  2: 'dua|two',
+  3: 'tiga|three',
+  4: 'empat|four',
+  5: 'lima|five',
+  6: 'enam|six',
+  7: 'tujuh|seven',
+  8: 'delapan|eight',
+  9: 'sembilan|nine',
+  10: 'sepuluh|ten',
+  11: 'sebelas|eleven',
+  12: 'dua belas|twelve',
 };
 
-/** Kata benda yang harus berdekatan dengan angkanya — "2 lantai", "lantai dua", "selantai". */
+/** Kata benda yang harus berdekatan dengan angkanya — "2 lantai", "lantai dua", "selantai", "2 floors". */
 const COUNT_NOUNS: Readonly<Record<string, string>> = {
-  'building.floors': 'lantai|lt|tingkat',
-  'fixtures.bathrooms': 'kamar mandi|km|toilet|wc',
-  'fixtures.basins': 'wastafel|washtafel|westafel|basin|bak cuci',
-  'fixtures.kitchens': 'dapur|kitchen|pantry',
-  'fixtures.outletCount': 'titik|outlet|keran|kran',
+  'building.floors': 'lantai|lt|tingkat|floors?|stor(?:e)?ys?|stories|levels?',
+  'fixtures.bathrooms': 'kamar mandi|km|toilet|wc|bathrooms?|toilets?|restrooms?',
+  'fixtures.basins': 'wastafel|washtafel|westafel|basins?|bak cuci|sinks?|washbasins?',
+  'fixtures.kitchens': 'dapur|kitchens?|pantry',
+  'fixtures.outletCount': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
 };
 
-const NEGATION = 'tidak ada|tanpa|nggak ada|gak ada|ga ada|tidak punya|belum ada|tidak pakai';
-const GAP = '\\s*(?:[a-z]+\\s+){0,2}'; // paling banyak dua kata di antaranya: "3 buah kamar mandi"
+const NEGATION =
+  'tidak ada|tanpa|nggak ada|gak ada|ga ada|tidak punya|belum ada|tidak pakai|no|without|none|zero';
+// Paling banyak dua kata di antaranya ("3 buah kamar mandi"); tanda hubung dihitung spasi
+// ("2-storey", "two-storey").
+const GAP = '[\\s-]*(?:[a-z]+[\\s-]+){0,2}';
 
 /**
  * Apakah pesan menyebut `n` buah `noun` — digit atau kata bilangan, sebelum atau sesudah kata
@@ -113,17 +137,24 @@ export function mentionsCount(message: string, n: number, noun: string): boolean
   const num = words === undefined ? digits : `(?:${digits}|\\b(?:${words})\\b)`;
   if (new RegExp(`${num}${GAP}(?:${noun})\\b`).test(text)) return true;
   if (new RegExp(`\\b(?:${noun})${GAP}${num}`).test(text)) return true;
-  return n === 1 && new RegExp(`\\bse(?:${noun})\\b`).test(text);
+  // "sekamar mandi" / "a bathroom" / "one bathroom" = 1.
+  return (
+    n === 1 &&
+    (new RegExp(`\\bse(?:${noun})\\b`).test(text) ||
+      new RegExp(`\\b(?:a|an)${GAP}(?:${noun})\\b`).test(text))
+  );
 }
 
 const TYPE_MARKERS: Readonly<
   Record<NonNullable<NonNullable<Extraction['building']>['type']>, RegExp>
 > = {
   residential:
-    /\b(rumah|hunian|villa|vila|perumahan|apartemen|apartement|cluster|rumah tinggal)\b/i,
-  boarding_house: /\b(kos|kost|kos-kosan|kosan|asrama|kontrakan|mess)\b/i,
-  industrial: /\b(pabrik|industri|gudang|workshop|bengkel)\b/i,
-  light_commercial: /\b(ruko|toko|kantor|kafe|cafe|resto|restoran|hotel|klinik|sekolah|warung)\b/i,
+    /\b(rumah|hunian|villa|vila|perumahan|apartemen|apartement|cluster|rumah tinggal|house|home|residence|apartment|flat)\b/i,
+  boarding_house:
+    /\b(kos|kost|kos-kosan|kosan|asrama|kontrakan|mess|boarding house|dorm(?:itory)?|hostel)\b/i,
+  industrial: /\b(pabrik|industri|gudang|workshop|bengkel|factory|plant|industrial|warehouse)\b/i,
+  light_commercial:
+    /\b(ruko|toko|kantor|kafe|cafe|resto|restoran|hotel|klinik|sekolah|warung|shophouse|shop|store|office|restaurant|clinic|school)\b/i,
 };
 
 /** `0` bila pesan meniadakan kata benda itu ("tanpa dapur"); selain itu tidak ada tebakan. */

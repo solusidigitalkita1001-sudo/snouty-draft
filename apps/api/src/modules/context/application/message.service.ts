@@ -269,7 +269,7 @@ export class MessageService {
     answers: readonly ClarificationAnswer[],
     now: string,
   ): Promise<{ state: RequirementState; userText: string; card: AssistantCard | null }> {
-    await this.conversations.find(conversationId, actor);
+    const conversation = await this.conversations.find(conversationId, actor);
     const snapshot = await this.store.current(conversationId);
     const state = snapshot?.state ?? emptyRequirementState(now);
 
@@ -308,9 +308,9 @@ export class MessageService {
       await this.store.append(conversationId, merged, 'clarification_answer');
     }
 
-    const userText = summarizeAnswers(answers);
+    const userText = summarizeAnswers(answers, conversation.language);
     await this.conversations.appendUserMessage(conversationId, actor, userText);
-    const card = followUpCard(merged);
+    const card = followUpCard(merged, conversation.language);
     await this.conversations.appendAssistantMessage(conversationId, '', card ? [card] : [], null);
     return { state: merged, userText, card };
   }

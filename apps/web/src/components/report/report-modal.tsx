@@ -44,12 +44,15 @@ type Step =
 export function ReportModal({
   recommendationId,
   onClose,
+  guest = false,
 }: {
   recommendationId: string;
   onClose: () => void;
+  /** Tamu tidak berhak membuat laporan (kebijakan akun): langsung ke ajakan mendaftar, tanpa POST 403. */
+  guest?: boolean;
 }) {
   const COPY = useReportCopy();
-  const [step, setStep] = useState<Step>({ kind: 'identity' });
+  const [step, setStep] = useState<Step>(guest ? { kind: 'not-entitled' } : { kind: 'identity' });
   const [customerName, setCustomerName] = useState('');
   const [projectLocation, setProjectLocation] = useState('');
   const cardRef = useRef<HTMLDivElement>(null);
