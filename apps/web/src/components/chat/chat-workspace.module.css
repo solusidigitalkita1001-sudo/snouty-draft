@@ -813,6 +813,15 @@
   padding: 4px 0 10px;
 }
 
+/* Cincin fokus milik KARTU (`:focus-within`), bukan textarea di dalamnya — tanpa ini aturan global
+   `:focus-visible` menggambar bingkai kedua di dalam bingkai (laporan pemilik 2026-10-07). */
+.composerCardInput:focus,
+.composerCardInput:focus-visible {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
 .composerCardInput::placeholder {
   color: var(--snouty-caption);
 }
