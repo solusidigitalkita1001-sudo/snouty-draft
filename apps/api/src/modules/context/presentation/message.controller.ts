@@ -15,6 +15,7 @@ import { RateLimitedError, RequestValidationError } from '../../../shared/http/a
 import { limitFor } from '../../policy/rate-limits.js';
 import { RateLimiter } from '../../../shared/rate-limit/rate-limiter.js';
 import { MessageService } from '../application/message.service.js';
+import { isClarificationAnswerId } from '../domain/clarification.js';
 import { sseWriter } from '../../../shared/sse/event-stream.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
@@ -26,20 +27,13 @@ const ClarificationDto = z
       .array(
         z
           .object({
-            id: z.enum([
-              'water.source',
-              'water.installationType',
-              'building.floors',
-              'fixtures.bathrooms',
-              // Jalur irigasi (OQ-47) — labelnya divalidasi domain (`irrigationAnswerValue`).
-              'irrigation.source',
-              'irrigation.areaHa',
-              'irrigation.method',
-              'irrigation.distance',
-              'irrigation.elevation',
-              'irrigation.pump',
-            ]),
-            option: z.string().trim().min(1).max(40),
+            // Field inti bangunan, field irigasi (OQ-47), atau kunci parameter kasus teknis
+            // (Fase 14) — satu daftar di domain (`isClarificationAnswerId`), supaya kartu yang
+            // dikirim API selalu bisa dijawab lewat API (bug 2026-10-07: kartu teknis → 400).
+            id: z.string().trim().min(1).max(64).refine(isClarificationAnswerId, {
+              message: 'id klarifikasi tidak dikenal',
+            }),
+            option: z.string().trim().min(1).max(80),
           })
           .strict(),
       )

@@ -6,6 +6,7 @@ import type { RequirementFieldPath } from '@snouty/shared-types';
 import {
   MAX_CLARIFICATION_QUESTIONS,
   answerToUpdate,
+  isClarificationAnswerId,
   planClarification,
   summarizeAnswers,
 } from './clarification.js';
@@ -107,5 +108,21 @@ describe('ClarificationEngine', () => {
   it('setiap pertanyaan selalu menawarkan "Belum tahu"', () => {
     const plan = planClarification(['water.source'])!;
     expect(plan.questions[0]!.allowUnknown).toBe(true);
+  });
+
+  it('isClarificationAnswerId: field inti, field irigasi, dan kunci parameter teknis diterima; yang lain ditolak (bug 400, 2026-10-07)', () => {
+    for (const id of [
+      'water.source',
+      'building.floors',
+      'irrigation.method',
+      'pump_required',
+      'design_flow',
+      'material',
+    ]) {
+      expect(isClarificationAnswerId(id), id).toBe(true);
+    }
+    for (const id of ['building.type', 'fixtures.outletCount', 'subject', 'DROP TABLE', '']) {
+      expect(isClarificationAnswerId(id), id).toBe(false);
+    }
   });
 });

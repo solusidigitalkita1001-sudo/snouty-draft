@@ -18,6 +18,7 @@
 import type { ClarificationQuestion, RequirementFieldPath } from '@snouty/shared-types';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type { FieldUpdate } from './context-merger.js';
+import { isParameterKey } from '@snouty/engineering';
 import { IRRIGATION_TEMPLATES, isIrrigationField } from './irrigation.js';
 
 export const MAX_CLARIFICATION_QUESTIONS = 4;
@@ -103,6 +104,23 @@ export interface ClarificationPlan {
  * menurut prioritas (yang di luar prioritas ikut di belakang, stabil), lalu
  * dipotong maksimum empat. Bentuk tunggal hanya memakai field pertama.
  */
+/** Field inti yang kartunya bisa dijawab — sama dengan yang ditanyakan `planClarification`. */
+const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath>([
+  'water.source',
+  'water.installationType',
+  'building.floors',
+  'fixtures.bathrooms',
+]);
+
+/**
+ * `id` jawaban kartu klarifikasi yang dikenal: field inti bangunan, field irigasi (OQ-47), atau
+ * kunci parameter kasus teknis (Fase 14). Satu daftar untuk validasi endpoint, supaya setiap
+ * kartu yang dikirim API memang bisa dijawab lewat API.
+ */
+export function isClarificationAnswerId(id: string): boolean {
+  return CORE_CLARIFICATION_IDS.has(id) || isIrrigationField(id) || isParameterKey(id);
+}
+
 export function planClarification(
   missing: readonly RequirementFieldPath[],
   locale: Locale = DEFAULT_LOCALE,

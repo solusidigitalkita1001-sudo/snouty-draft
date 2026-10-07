@@ -924,6 +924,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       gabungan bahan pesan + subjek, perbandingan satu bahan dengan subjek, lookback jawaban asisten
       yang memuat bahan (melewati tanya-balik). Tes: message.service +1 (harness kini mengembalikan
       giliran sebelumnya)
+- [x] P16-06 Jawaban kartu klarifikasi kasus teknis ditolak 400 (laporan pemilik 2026-10-07):
+      DTO endpoint hanya menerima field bangunan + irigasi, padahal kartu teknis memakai kunci
+      parameter engine (`design_flow`, `pump_required`, …). Kini satu predikat domain
+      `isClarificationAnswerId` (field inti, irigasi, kunci parameter) dipakai validasi; batas
+      `option` 80 karakter. Tes: clarification +1
 - [ ] P16-02 Isi profil perusahaan dari dokumen resmi (menunggu OQ-54)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
