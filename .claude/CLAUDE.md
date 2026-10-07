@@ -65,6 +65,14 @@ menjadi asumsi diam-diam**. Lanjutkan pekerjaan yang tidak terhalang.
 - Commit diawali ID item: `P1-03: add catalog import validator`.
 - Tidak pernah commit secret atau `.env`. Tidak pernah push ke `main`. Tidak pernah force-push.
 
+## Deploy
+
+**Setiap perubahan yang di-commit langsung naik ke server produksi** (keputusan pemilik 2026-10-07).
+Setelah commit + push: `git pull` di `~/snouty` pada `snouty@192.168.1.10`, lalu
+`deploy/deploy.sh release` (pull → build → up → smoke). Bila ada migration baru, urutannya
+`build → migrate → up → smoke`. Verifikasi di https://ai.pralon.co.id sebelum melapor selesai.
+Prosedur dan batasan server: `docs/DEPLOYMENT.md`.
+
 ## Batasan teknis
 
 Monolith modular — tidak ada microservices. Tidak ada Python kecuali ada kebutuhan konkret.
