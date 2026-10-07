@@ -9,7 +9,7 @@
  * dengan dua panggilan model.
  */
 import { z } from 'zod';
-import type { Intent } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, type Intent, type Locale } from '@snouty/shared-types';
 
 export interface ReplyCapableAi {
   writeProse(input: {
@@ -34,6 +34,8 @@ export interface ReplyInput {
   readonly fallback: string;
   /** Prompt sistem khusus (mis. jalur FAQ produk); bawaan: prompt percakapan. */
   readonly systemPrompt?: string;
+  /** Bahasa jawaban (Fase 15); bawaan Indonesia. Menentukan prompt dan petunjuk bahasa. */
+  readonly locale?: Locale;
   /**
    * Batas panjang teks; bawaan `DEFAULT_MAX_LENGTH` untuk balasan percakapan. Jalur FAQ
    * memberi batas lebih longgar: perbandingan per dimensi tidak muat di 700 karakter, dan
@@ -58,19 +60,29 @@ const HARMLESS = new Set(['0', '1', '2']);
 const MAX_TURNS = 6;
 
 export class ReplyWriter {
+  private readonly systemPromptFor: (locale: Locale) => string;
+
   constructor(
-    private readonly ai: ReplyCapableAi,
-    private readonly systemPrompt: string,
+    ai: ReplyCapableAi,
+    /** Satu prompt untuk semua bahasa, atau prompt per bahasa (Fase 15). */
+    systemPrompt: string | ((locale: Locale) => string),
     /** Batas tunggu per balasan; lewat itu panggilan dibatalkan dan teks tetap dipakai. */
-    private readonly timeoutMs: number | undefined = undefined,
-  ) {}
+    timeoutMs: number | undefined = undefined,
+  ) {
+    this.ai = ai;
+    this.timeoutMs = timeoutMs;
+    this.systemPromptFor = typeof systemPrompt === 'string' ? () => systemPrompt : systemPrompt;
+  }
+
+  private readonly ai: ReplyCapableAi;
+  private readonly timeoutMs: number | undefined;
 
   async write(input: ReplyInput): Promise<WrittenReply> {
     const fallback: WrittenReply = { text: input.fallback, source: 'fallback' };
     let raw: unknown;
     try {
       raw = await this.ai.writeProse({
-        systemPrompt: input.systemPrompt ?? this.systemPrompt,
+        systemPrompt: input.systemPrompt ?? this.systemPromptFor(input.locale ?? DEFAULT_LOCALE),
         userMessage: buildReplyContext(input),
         ...(this.timeoutMs !== undefined ? { timeoutMs: this.timeoutMs } : {}),
       });
@@ -101,6 +113,9 @@ function numbersIn(text: string): readonly string[] {
 export function buildReplyContext(input: ReplyInput): string {
   const turns = input.recentTurns.slice(-MAX_TURNS);
   const parts = [`INTENT: ${input.intent}`];
+  // Bahasa jawaban ditegaskan di konteks juga, bukan hanya di prompt sistem: model kecil lebih
+  // patuh pada petunjuk yang dekat dengan pesan yang harus dijawabnya.
+  if (input.locale === 'en') parts.push('ANSWER LANGUAGE: English');
   if (turns.length > 0) {
     parts.push('PERCAKAPAN SEBELUMNYA (tertua dulu):');
     for (const turn of turns) {

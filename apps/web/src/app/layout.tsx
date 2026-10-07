@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
 import { THEME_INIT_SCRIPT } from '../components/theme-toggle';
+import { LOCALE_INIT_SCRIPT, LocaleProvider } from '../components/locale';
 import './globals.css';
 
 /**
@@ -33,8 +34,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Tema sebelum cat pertama — string statis milik kita, bukan keluaran model. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* Bahasa juga sebelum cat pertama — string statis milik kita. */}
+        <script dangerouslySetInnerHTML={{ __html: LOCALE_INIT_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <LocaleProvider>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

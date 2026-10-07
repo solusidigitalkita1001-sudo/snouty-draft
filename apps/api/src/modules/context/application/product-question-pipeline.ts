@@ -18,6 +18,7 @@
  * dasar pernyataan apa pun tentang Pralon, dan produknya tidak dipakai sebagai pendukung
  * jawaban konsep.
  */
+import type { Locale } from '@snouty/shared-types';
 import {
   PipeSize,
   specHasValue,
@@ -49,6 +50,8 @@ export interface ProductQuestionInput {
   readonly messageId: string;
   readonly message: string;
   readonly recentTurns?: readonly ReplyTurn[];
+  /** Bahasa percakapan (Fase 15) — untuk penulisan ulang FAQ oleh model. */
+  readonly locale?: Locale;
 }
 
 /** Hasil pencarian katalog beserta bobot yang boleh diberikan padanya. */
@@ -166,6 +169,7 @@ async function answerConcept(
     fallback: data,
     systemPrompt: faqPrompt,
     maxLength: FAQ_MAX_LENGTH,
+    ...(input.locale ? { locale: input.locale } : {}),
   });
   // Model yang meringkas DATA berstruktur menjadi satu paragraf membuang perbedaannya —
   // persis "oversimplified" yang dikeluhkan. Struktur dijaga kode, bukan hanya diminta prompt.

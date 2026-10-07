@@ -47,6 +47,8 @@ export const conversations = mysqlTable(
     status: varchar('status', { length: 20 }).notNull().default('IN_PROGRESS'),
     /** Indikator tahap di header: KEBUTUHAN → ANALISIS → SOLUSI → LAPORAN. */
     stage: varchar('stage', { length: 12 }).notNull().default('KEBUTUHAN'),
+    /** Bahasa percakapan `id` | `en` (0019, Fase 15) — ditetapkan saat dibuat. */
+    language: varchar('language', { length: 2 }).notNull().default('id'),
 
     /** Menunjuk `requirement_snapshots` — tabelnya lahir di Fase 4. */
     currentSnapshotId: char('current_snapshot_id', { length: 26 }),

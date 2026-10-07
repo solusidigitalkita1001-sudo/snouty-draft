@@ -15,6 +15,7 @@ import type {
 } from '@snouty/shared-types';
 
 import { authHeaders } from '../auth/session';
+import type { Locale } from '@snouty/shared-types';
 
 const BASE = '/api/v1';
 
@@ -26,11 +27,13 @@ export interface ConversationSummary {
   readonly updatedAt: string;
 }
 
-export async function createConversation(): Promise<ConversationSummary> {
+/** Bahasa ditetapkan saat percakapan dibuat (Fase 15) — percakapan lama tetap dalam bahasanya. */
+export async function createConversation(language: Locale = 'id'): Promise<ConversationSummary> {
   const response = await fetch(`${BASE}/conversations`, {
     method: 'POST',
     credentials: 'include',
-    headers: authHeaders(),
+    headers: { ...authHeaders(), 'content-type': 'application/json' },
+    body: JSON.stringify({ language }),
   });
   if (!response.ok) throw new Error(`conversations ${response.status}`);
   return (await response.json()) as ConversationSummary;

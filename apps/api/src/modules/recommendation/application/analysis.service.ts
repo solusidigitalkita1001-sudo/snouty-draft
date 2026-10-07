@@ -17,6 +17,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type {
   AssistantStreamEvent,
   Assumption,
+  Locale,
   Recommendation,
   RequirementState,
 } from '@snouty/shared-types';
@@ -186,6 +187,8 @@ export class AnalysisService {
     requirementAssumptions: readonly Assumption[],
     now: string,
     emit?: EventSink,
+    /** Bahasa percakapan (Fase 15) — prosa bangunan ditulis model dalam bahasa ini. */
+    locale?: Locale,
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
 
@@ -272,6 +275,7 @@ export class AnalysisService {
         products: match.products,
         requirementAssumptions,
         now,
+        ...(locale ? { locale } : {}),
       },
       this.prose,
     );

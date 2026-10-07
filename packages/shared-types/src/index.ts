@@ -1,4 +1,6 @@
 export type { Provenance, FieldSource, TrackedValue } from './provenance.js';
+export { DEFAULT_LOCALE, LOCALES, isLocale, localeFromAcceptLanguage } from './locale.js';
+export type { Locale } from './locale.js';
 export type { ErrorCode, PolicyCode, ApiErrorBody } from './errors.js';
 export type {
   AnalysisStage,

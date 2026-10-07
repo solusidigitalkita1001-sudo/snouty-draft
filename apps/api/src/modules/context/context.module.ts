@@ -19,7 +19,7 @@ import { ProductCatalogModule } from '../product-catalog/product-catalog.module.
 import { CatalogQueryService } from '../product-catalog/application/catalog-query.service.js';
 import { ProductKnowledgeModule } from '../product-knowledge/product-knowledge.module.js';
 import { ProductQuestionService } from '../product-knowledge/application/product-question.service.js';
-import { REPLY_SYSTEM_PROMPT } from '../ai/application/prompts.js';
+import { replySystemPrompt } from '../ai/application/prompts.js';
 import { IntentRouter } from './application/intent-router.js';
 import { ReplyWriter } from './application/reply-writer.js';
 import { MessageService } from './application/message.service.js';
@@ -55,7 +55,7 @@ const replyWriterProvider = {
   provide: ReplyWriter,
   inject: [AI_SERVICE],
   useFactory: (ai: AiService | null): ReplyWriter | null =>
-    ai ? new ReplyWriter(ai, REPLY_SYSTEM_PROMPT, loadEnv().LLM_REPLY_TIMEOUT_MS) : null,
+    ai ? new ReplyWriter(ai, replySystemPrompt, loadEnv().LLM_REPLY_TIMEOUT_MS) : null,
 };
 
 const messageServiceProvider = {

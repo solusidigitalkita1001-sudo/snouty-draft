@@ -17,6 +17,27 @@ const base = {
   fallback: 'Teks tetap.',
 };
 
+describe('ReplyWriter — bahasa (Fase 15)', () => {
+  it('prompt per bahasa dipilih dari locale; konteks menegaskan bahasa Inggris', async () => {
+    const seen: { systemPrompt: string; userMessage: string }[] = [];
+    const writer = new ReplyWriter(
+      {
+        writeProse: async (input) => {
+          seen.push(input);
+          return { text: 'Sure, what would you like to know?' };
+        },
+      },
+      (locale) => (locale === 'en' ? 'SYS-EN' : 'SYS-ID'),
+    );
+    await writer.write({ ...base, locale: 'en' });
+    await writer.write(base);
+    expect(seen[0]?.systemPrompt).toBe('SYS-EN');
+    expect(seen[0]?.userMessage).toContain('ANSWER LANGUAGE: English');
+    expect(seen[1]?.systemPrompt).toBe('SYS-ID');
+    expect(seen[1]?.userMessage).not.toContain('ANSWER LANGUAGE');
+  });
+});
+
 describe('ReplyWriter', () => {
   it('memakai teks model bila bentuknya benar dan lolos pagar', async () => {
     const writer = new ReplyWriter(ai({ text: 'Maaf, maksud Anda yang mana?' }), 'sys');

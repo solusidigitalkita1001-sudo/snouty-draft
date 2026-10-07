@@ -18,6 +18,7 @@
 import { z } from 'zod';
 import type { SystemLine } from '@snouty/shared-types';
 import type { ProseWriter } from '../application/recommendation-assembler.js';
+import { proseSystemPrompt } from '../../ai/application/prompts.js';
 
 export const PROSE_WRITER = Symbol('PROSE_WRITER');
 
@@ -56,7 +57,10 @@ export class LlmProseWriter implements ProseWriter {
     readonly body: string;
   }> {
     const raw = await this.ai.writeProse({
-      systemPrompt: this.systemPrompt,
+      // Bahasa percakapan (Fase 15) memilih prompt-nya; prompt yang disuntik konstruktor
+      // tetap dipakai untuk Indonesia supaya tes lama tidak berubah.
+      systemPrompt:
+        input.locale && input.locale !== 'id' ? proseSystemPrompt(input.locale) : this.systemPrompt,
       userMessage: buildContext(input),
     });
 

@@ -11,6 +11,7 @@ import type {
   AssistantCard,
   ConversationStage,
   ConversationStatus,
+  Locale,
   MessageRole,
 } from '@snouty/shared-types';
 
@@ -27,6 +28,8 @@ export interface ConversationRow {
   readonly title: string | null;
   readonly status: ConversationStatus;
   readonly stage: ConversationStage;
+  /** Bahasa percakapan (0019): jawaban model dan teks UI mengikutinya. */
+  readonly language: Locale;
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly deletedAt: Date | null;
@@ -53,7 +56,7 @@ export interface ConversationListQuery {
 }
 
 export interface ConversationRepository {
-  create(row: { id: string; owner: ConversationOwner }): Promise<void>;
+  create(row: { id: string; owner: ConversationOwner; language: Locale }): Promise<void>;
 
   /** Termasuk yang soft-deleted TIDAK ikut — penghapusan harus terlihat terhapus. */
   findById(id: string): Promise<ConversationRow | null>;

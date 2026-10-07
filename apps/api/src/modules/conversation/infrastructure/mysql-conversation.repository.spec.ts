@@ -40,6 +40,17 @@ describe('percakapan — pembuatan dan daftar', () => {
     expect(row.title).toBeNull();
   });
 
+  it('bahasa percakapan tersimpan (0019): baku id, en bila diminta; nilai lain ditolak database', async () => {
+    const id = await service.create(GUEST);
+    expect(id.language).toBe('id');
+    const en = await service.create(GUEST, 'en');
+    expect(en.language).toBe('en');
+    expect((await service.find(en.id, GUEST)).language).toBe('en');
+    await expect(
+      repository.create({ id: 'X'.repeat(26), owner: GUEST, language: 'jv' as never }),
+    ).rejects.toThrow();
+  });
+
   it('mengurutkan riwayat dari yang terakhir diperbarui', async () => {
     const first = await service.create(GUEST);
     const second = await service.create(GUEST);

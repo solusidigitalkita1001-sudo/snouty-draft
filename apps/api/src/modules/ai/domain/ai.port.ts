@@ -11,6 +11,7 @@
  * dan pemanggil memilih jalur deterministik/klarifikasi.
  */
 
+import type { Locale } from '@snouty/shared-types';
 import type {
   Extraction,
   IntentClassification,
@@ -48,8 +49,8 @@ export interface AiService {
    */
   parseProductQuestion(message: string): Promise<ProductQuestionParse>;
 
-  /** Judul percakapan dari pesan pertama (tingkat cepat). */
-  titleFor(firstMessage: string): Promise<string>;
+  /** Judul percakapan dari pesan pertama (tingkat cepat), dalam bahasa percakapan. */
+  titleFor(firstMessage: string, locale?: Locale): Promise<string>;
 
   /**
    * Menulis prosa penjelas atas angka yang **sudah** dihitung engine.

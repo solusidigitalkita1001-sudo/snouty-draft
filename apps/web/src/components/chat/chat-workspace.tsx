@@ -30,6 +30,7 @@ import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { ReportModal } from '../report/report-modal';
 import { REPORT_COPY } from '../report/report-copy';
 import { ThemeToggle } from '../theme-toggle';
+import { LocaleToggle, useLocale } from '../locale';
 import { AssistantMarkdown } from './assistant-markdown';
 import { useRevealedText } from './assistant-reveal';
 import { useCaseRows } from './use-case-rows';
@@ -131,6 +132,7 @@ export function ChatWorkspace() {
   const narrow = useMediaQuery(NARROW_QUERY);
   const mobile = useMediaQuery(MOBILE_QUERY);
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const { locale } = useLocale();
   const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
   const [toastOn, setToastOn] = useState(false);
@@ -220,7 +222,7 @@ export function ChatWorkspace() {
       let id = conversationId;
       if (id === null) {
         try {
-          id = (await createConversation()).id;
+          id = (await createConversation(locale)).id;
           setConversationId(id);
         } catch {
           setError(COPY.llmUnavailable);
@@ -598,8 +600,9 @@ export function ChatWorkspace() {
               <span className={[styles.iconSquare, styles.iconSquareBook].join(' ')} />
               {COPY.productKnowledge}
             </span>
-            {/* Pengalih tema sebagai baris menu — penempatannya belum didesain; minimal. */}
+            {/* Pengalih tema dan bahasa sebagai baris menu — penempatannya belum didesain; minimal. */}
             <ThemeToggle className={styles['sidebarLinkButton'] ?? ''} />
+            <LocaleToggle className={styles['sidebarLinkButton'] ?? ''} />
           </div>
 
           <div className={styles.sidebarFooter}>
@@ -657,6 +660,7 @@ export function ChatWorkspace() {
           </span>
           <span className={styles.railBottom}>
             <ThemeToggle compact />
+            <LocaleToggle compact className={styles['railToggle'] ?? ''} />
             {footerAvatar}
           </span>
         </nav>
@@ -729,6 +733,7 @@ export function ChatWorkspace() {
           <div className={styles.headerActions}>
             {/* Sempit: sidebar (dan pengalih tema di dalamnya) hilang — tombolnya pindah ke header. */}
             {narrow && <ThemeToggle compact />}
+            {narrow && <LocaleToggle compact className={styles['headerMenuButton'] ?? ''} />}
             {/* Ponsel (board 13a): "Kebutuhan (n)" membuka panel sebagai lembar. */}
             {mobile && inConversation && (
               <button

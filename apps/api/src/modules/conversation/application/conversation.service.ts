@@ -12,6 +12,7 @@
  * dikonfirmasi keberadaannya.
  */
 
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type { AssistantCard, ConversationStatus } from '@snouty/shared-types';
 import { ulid } from '../../../shared/ulid.js';
 import { ConversationNotFoundError, EmptyMessageError } from '../domain/conversation.errors.js';
@@ -36,9 +37,12 @@ const MAX_MESSAGE_LENGTH = 8_000;
 export class ConversationService {
   constructor(private readonly repository: ConversationRepository) {}
 
-  async create(owner: ConversationOwner): Promise<ConversationRow> {
+  async create(
+    owner: ConversationOwner,
+    language: Locale = DEFAULT_LOCALE,
+  ): Promise<ConversationRow> {
     const id = ulid();
-    await this.repository.create({ id, owner });
+    await this.repository.create({ id, owner, language });
     return this.owned(id, owner);
   }
 

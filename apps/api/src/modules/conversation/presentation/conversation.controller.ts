@@ -12,6 +12,7 @@
  */
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Req } from '@nestjs/common';
 import { z } from 'zod';
+import { LOCALES, localeFromAcceptLanguage } from '@snouty/shared-types';
 import { RequestValidationError } from '../../../shared/http/api-errors.js';
 import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { requireEntitled } from '../../../shared/http/entitlement.js';
@@ -20,6 +21,7 @@ import type { ConversationOwner, ConversationRow } from '../domain/conversation.
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 const RenameDto = z.object({ title: z.string().trim().min(1).max(160) }).strict();
+const CreateDto = z.object({ language: z.enum(LOCALES).optional() }).strict();
 const ListQuery = z
   .object({
     status: z
@@ -44,10 +46,16 @@ const ListQuery = z
 export class ConversationController {
   constructor(private readonly conversations: ConversationService) {}
 
+  /**
+   * Bahasa percakapan (Fase 15): dari body `{ language }` bila klien menyebutnya, selain itu
+   * dari `Accept-Language`; nilai di luar `id`/`en` ditolak, bukan dibulatkan.
+   */
   @Post()
-  async create(@Req() request: PublicRequest) {
+  async create(@Req() request: PublicRequest, @Body() body: unknown) {
     const owner = ownerOf(request);
-    return summaryOf(await this.conversations.create(owner));
+    const dto = parse(CreateDto, body ?? {});
+    const language = dto.language ?? localeFromAcceptLanguage(request.headers['accept-language']);
+    return summaryOf(await this.conversations.create(owner, language));
   }
 
   @Get()
@@ -132,6 +140,7 @@ function summaryOf(row: ConversationRow) {
     title: row.title,
     status: row.status,
     stage: row.stage,
+    language: row.language,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

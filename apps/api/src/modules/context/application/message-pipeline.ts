@@ -25,6 +25,7 @@ import type {
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import type { AiService } from '../../ai/domain/ai.port.js';
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
+import type { Locale } from '@snouty/shared-types';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import { caseProfile, isCaseId } from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
@@ -75,6 +76,8 @@ export interface PipelineInput {
   readonly recentTurns?: readonly ReplyTurn[];
   /** Sink SSE: setiap event dikirim saat terjadi (P14-07), array hasil tetap lengkap. */
   readonly emit?: EventSink;
+  /** Bahasa percakapan (Fase 15) — untuk balasan model; teks deterministik menyusul per item. */
+  readonly locale?: Locale;
 }
 
 export interface PipelineResult {
@@ -126,6 +129,7 @@ export async function runUnderstanding(
               intent: input.decision.intent,
               userMessage: input.message,
               recentTurns: input.recentTurns ?? [],
+              ...(input.locale ? { locale: input.locale } : {}),
               fallback,
             })
           : { text: fallback };
@@ -213,6 +217,7 @@ export async function runUnderstanding(
             intent: 'OUT_OF_SCOPE',
             userMessage: input.message,
             recentTurns: input.recentTurns ?? [],
+            ...(input.locale ? { locale: input.locale } : {}),
             fallback: OPENER_REPLY,
           })
         : { text: OPENER_REPLY };

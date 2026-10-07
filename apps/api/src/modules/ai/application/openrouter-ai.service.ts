@@ -44,8 +44,9 @@ import {
   EXTRACTION_SYSTEM_PROMPT,
   INTENT_SYSTEM_PROMPT,
   PRODUCT_QUESTION_SYSTEM_PROMPT,
-  TITLE_SYSTEM_PROMPT,
+  titleSystemPrompt,
 } from './prompts.js';
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 
 /** Konteks per permintaan — correlation ID mengalir ke audit biaya. */
 export interface AiCallContext {
@@ -123,13 +124,14 @@ export class OpenRouterAiService implements AiService {
 
   async titleFor(
     firstMessage: string,
+    locale: Locale = DEFAULT_LOCALE,
     context: AiCallContext = { correlationId: null },
   ): Promise<string> {
     const result = await this.bounded((signal) =>
       this.callOnce(
         'conversation_title',
         tierForTask('conversation_title'),
-        TITLE_SYSTEM_PROMPT,
+        titleSystemPrompt(locale),
         firstMessage,
         false,
         context,

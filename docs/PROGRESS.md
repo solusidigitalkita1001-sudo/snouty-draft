@@ -753,6 +753,29 @@ persist, total}` + intent. **Ekstraksi gabungan satu panggilan: dievaluasi dan D
 - [ ] ✋ CHECKPOINT — reviewed by owner (12 skenario uji §39 + laporan akhir §45) — laporan siap:
       `docs/PHASE14_CHECKPOINT.md` (2026-10-07), menunggu tinjauan pemilik
 
+## Phase 15 — Bilingual (ID + EN penuh)
+
+Keputusan pemilik 2026-10-07: antarmuka DAN jawaban asisten dalam Bahasa Indonesia dan Inggris.
+Bahasa adalah atribut percakapan (ditetapkan saat dibuat); pengalih bahasa berlaku untuk percakapan
+berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan diterjemahkan model.
+
+- [x] P15-01 Infrastruktur bahasa (2026-10-07). `Locale` (`id`|`en`) di shared-types;
+      `conversations.language` (migration 0019, CHECK) ditetapkan dari body `{language}` atau
+      `Accept-Language`; `ConversationSummary.language`. Prompt per bahasa untuk keluaran model
+      (balasan, FAQ produk, judul, prosa solusi) lewat `…SystemPrompt(locale)`; `ReplyWriter`
+      memilih prompt dan menegaskan bahasa di konteks; `titleFor(…, locale)`; bahasa mengalir dari
+      `MessageService`/`AnalysisService` ke pipeline, FAQ, dan prosa. Web: `LocaleProvider` +
+      `LocaleToggle` (localStorage, `<html lang>`), bahasa dikirim saat percakapan dibuat. Tes: locale
+      5, repository 1, reply-writer 1. **Belum:** teks UI EN (P15-02), templat deterministik API EN
+      (P15-03), registry parameter/asumsi EN (P15-04), laporan PDF EN (P15-05)
+- [ ] P15-02 Teks UI dua bahasa: seluruh modul `*-copy.ts` web (640 baris) + `useCopy(locale)`
+- [ ] P15-03 Templat deterministik API dua bahasa: reply-copy, pembuka, panduan teknis & irigasi,
+      pipe-knowledge, product-answer-text, kartu kebijakan (scope/entitlements), klarifikasi
+- [ ] P15-04 Registry per bahasa: label/pertanyaan/opsi parameter, asumsi, label keluaran,
+      catatan opsi, highlight & prosa templat per kasus, nama item BOM
+- [ ] P15-05 Laporan PDF dua bahasa
+- [ ] ✋ CHECKPOINT — reviewed by owner
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

@@ -9,6 +9,7 @@
  * deterministik. Dengan begitu jalur terburuknya tetap jujur, bukan gagal.
  */
 
+import type { Locale } from '@snouty/shared-types';
 import type { Assumption, Recommendation, SelectedProduct, SystemLine } from '@snouty/shared-types';
 import type { SolutionResult } from '@snouty/engineering';
 import { checkProse } from '../domain/prose-check.js';
@@ -29,6 +30,8 @@ export interface ProseWriter {
     readonly stats: ReturnType<typeof statsFrom>;
     readonly systemLines: readonly SystemLine[];
     readonly retryReason?: string;
+    /** Bahasa prosa (Fase 15); bawaan Indonesia. */
+    readonly locale?: Locale;
   }): Promise<{ readonly headline: string; readonly body: string }>;
 }
 
@@ -43,6 +46,8 @@ export interface AssembleInput {
   readonly requirementAssumptions: readonly Assumption[];
   /** `now` disuntikkan demi determinisme pengujian. */
   readonly now: string;
+  /** Bahasa prosa (Fase 15); templat deterministik masih Indonesia sampai P15-03. */
+  readonly locale?: Locale;
 }
 
 export interface AssembleResult {
@@ -63,7 +68,13 @@ export async function assembleRecommendation(
   const allowedNumbers = allowedNumbersFrom(stats, bom, input.solution);
   const allowedSizes = allowedSizesFrom(input.solution, bom);
 
-  const written = await writeProse(prose, { stats, systemLines, allowedNumbers, allowedSizes });
+  const written = await writeProse(prose, {
+    stats,
+    systemLines,
+    allowedNumbers,
+    allowedSizes,
+    ...(input.locale ? { locale: input.locale } : {}),
+  });
 
   return {
     proseSource: written.source,
@@ -92,13 +103,19 @@ async function writeProse(
     systemLines: readonly SystemLine[];
     allowedNumbers: readonly number[];
     allowedSizes: readonly string[];
+    locale?: Locale;
   },
 ): Promise<{ headline: string; body: string; source: AssembleResult['proseSource'] }> {
   if (!prose) {
     return { ...templateProse(context.stats), source: 'template' };
   }
 
-  const first = await safeWrite(prose, { stats: context.stats, systemLines: context.systemLines });
+  const locale = context.locale ? { locale: context.locale } : {};
+  const first = await safeWrite(prose, {
+    stats: context.stats,
+    systemLines: context.systemLines,
+    ...locale,
+  });
   if (first) {
     const check = checkProse({
       ...first,
@@ -112,6 +129,7 @@ async function writeProse(
     const second = await safeWrite(prose, {
       stats: context.stats,
       systemLines: context.systemLines,
+      ...locale,
       retryReason:
         `Angka berikut tidak ada di hasil hitungan: ${check.foreignNumbers.join(', ')} ${check.foreignSizes.join(', ')}`.trim(),
     });

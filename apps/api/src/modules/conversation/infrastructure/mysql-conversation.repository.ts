@@ -12,8 +12,10 @@ import type {
   AssistantCard,
   ConversationStage,
   ConversationStatus,
+  Locale,
   MessageRole,
 } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, isLocale } from '@snouty/shared-types';
 import { conversations, messages } from '../../../infrastructure/mysql/schema/conversation.js';
 import { DatabaseService, type QueryRunner } from '../../../shared/database/database.service.js';
 import {
@@ -32,11 +34,12 @@ const MAX_LIMIT = 50;
 export class MysqlConversationRepository implements ConversationRepository {
   constructor(private readonly database: QueryRunner) {}
 
-  async create(row: { id: string; owner: ConversationOwner }): Promise<void> {
+  async create(row: { id: string; owner: ConversationOwner; language: Locale }): Promise<void> {
     await this.database.db.insert(conversations).values({
       id: row.id,
       ownerKind: row.owner.kind,
       ownerId: row.owner.id,
+      language: row.language,
     });
   }
 
@@ -136,6 +139,7 @@ function toConversation(row: typeof conversations.$inferSelect): ConversationRow
     title: row.title,
     status: row.status as ConversationRow['status'],
     stage: row.stage as ConversationRow['stage'],
+    language: isLocale(row.language) ? row.language : DEFAULT_LOCALE,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,

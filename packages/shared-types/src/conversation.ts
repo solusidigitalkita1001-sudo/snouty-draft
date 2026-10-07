@@ -3,6 +3,7 @@
  */
 
 import type { AssistantCard } from './assistant-card.js';
+import type { Locale } from './locale.js';
 
 /** Diturunkan dari tag yang benar-benar muncul di desain (termasuk OQ-28). */
 export type ConversationStatus =
@@ -38,6 +39,8 @@ export interface ConversationSummary {
   readonly title: string | null;
   readonly status: ConversationStatus;
   readonly stage: ConversationStage;
+  /** Bahasa percakapan (Fase 15), ditetapkan saat dibuat. */
+  readonly language: Locale;
   readonly createdAt: string;
   readonly updatedAt: string;
 }

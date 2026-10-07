@@ -39,7 +39,7 @@ export class RecommendationController {
   ): Promise<void> {
     const id = parse(IdParam, params).id;
     const actor = actorOf(req);
-    await this.conversations.find(id, actor);
+    const conversation = await this.conversations.find(id, actor);
 
     /**
      * Snapshot dibaca dan analisis dijalankan **sebelum** header ditulis, alasan yang sama
@@ -69,6 +69,7 @@ export class RecommendationController {
           assumptions,
           new Date().toISOString(),
           writer.emit,
+          conversation.language,
         );
       } catch (error) {
         // Katalog tidak tersedia adalah kegagalan jujur dan bisa dicoba lagi — bukan

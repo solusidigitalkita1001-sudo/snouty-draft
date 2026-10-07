@@ -21,7 +21,8 @@ import type {
 } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
-import { PRODUCT_FAQ_SYSTEM_PROMPT } from '../../ai/application/prompts.js';
+import { productFaqSystemPrompt } from '../../ai/application/prompts.js';
+import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import { loadEnv } from '../../../config/env.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
@@ -88,7 +89,7 @@ export class MessageService {
     // judul model terlihat paling lambat pada pembukaan berikutnya.
     if (row.title === null || row.title === undefined) {
       await this.conversations.rename(conversationId, actor, fallbackTitle(text));
-      this.refineTitleInBackground(conversationId, actor, text);
+      this.refineTitleInBackground(conversationId, actor, text, row.language);
     }
 
     const messageId = ulid();
@@ -96,7 +97,7 @@ export class MessageService {
     if (!this.ai) return llmUnavailable(messageId);
 
     try {
-      return await this.answer(conversationId, actor, text, now, messageId, emit);
+      return await this.answer(conversationId, actor, text, now, messageId, emit, row.language);
     } catch (error) {
       // Model terkonfigurasi tetapi tidak terjangkau (kunci ditolak, limit habis,
       // jaringan): nasibnya sama dengan "tanpa model" — jujur lewat event
@@ -113,6 +114,7 @@ export class MessageService {
     now: string,
     messageId: string,
     emit?: EventSink,
+    locale: Locale = DEFAULT_LOCALE,
   ): Promise<readonly AssistantStreamEvent[]> {
     const ai = this.ai!;
     // Instrumentasi tahap (P14-07): waktu per tahap giliran, bukan hanya per panggilan model
@@ -149,11 +151,11 @@ export class MessageService {
         ai,
         this.catalog,
         this.productQuestions,
-        { messageId, message: text, recentTurns },
+        { messageId, message: text, recentTurns, locale },
         this.reply,
         // Baku nonaktif: teks deterministiknya utuh; model 7B hampir selalu ditolak pagar
         // struktur — satu menit untuk hasil yang dibuang (env LLM_FAQ_REWRITE).
-        loadEnv().LLM_FAQ_REWRITE ? PRODUCT_FAQ_SYSTEM_PROMPT : null,
+        loadEnv().LLM_FAQ_REWRITE ? productFaqSystemPrompt(locale) : null,
       );
       timer.mark('answer');
       await this.conversations.appendAssistantMessage(
@@ -176,6 +178,7 @@ export class MessageService {
         state,
         now,
         recentTurns,
+        locale,
         ...(emit ? { emit: withoutFirstStart(emit) } : {}),
       },
       this.reply,
@@ -216,12 +219,13 @@ export class MessageService {
     conversationId: string,
     actor: ConversationOwner,
     firstMessage: string,
+    locale: Locale,
   ): void {
     if (!this.ai) return;
     const ai = this.ai;
     void (async () => {
       try {
-        const title = (await ai.titleFor(firstMessage)).trim();
+        const title = (await ai.titleFor(firstMessage, locale)).trim();
         // Model kecil kadang memuntahkan token lintas aksara ("konsultasi pipaحوا incenter");
         // judul seperti itu lebih buruk daripada potongan pesan — dibuang, bukan dipasang.
         if (isSaneTitle(title)) await this.conversations.rename(conversationId, actor, title);
