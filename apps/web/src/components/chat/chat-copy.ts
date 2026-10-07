@@ -14,10 +14,8 @@ export const CHAT_COPY = {
   brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
   newConversation: 'Konsultasi Baru',
   historyTitle: 'RIWAYAT',
-  savedSolutions: 'Solusi Tersimpan',
   collapsePanel: 'Ciutkan panel',
   expandPanel: 'Buka panel kebutuhan & solusi',
-  productKnowledge: 'Pengetahuan Produk',
   /** Tamu tidak melihat riwayat — ajakan, bukan daftar kosong. */
   historyGuest: 'Daftar akun untuk menyimpan dan membuka kembali konsultasi Anda.',
   historyEmpty: 'Belum ada konsultasi lain.',
@@ -56,12 +54,10 @@ export const CHAT_COPY = {
     body: 'Ceritakan kebutuhan bangunan atau instalasi Anda. SNOUTY akan membantu menganalisis kebutuhan dan merekomendasikan solusi produk Pralon.',
   },
 
-  /** Badge status di header: "LANGKAH n DARI 4" selama mengumpulkan data. */
   headerTitle: 'Konsultasi',
   headerWelcomeTitle: 'Konsultasi Baru',
   // Badge versi katalog ("KATALOG PRALON · erp-…") dihapus 2026-10-06 atas keputusan pemilik:
   // label impor adalah urusan back-office, bukan teks untuk pengguna.
-  stepStatus: (filled: number) => `LANGKAH ${Math.min(filled + 1, 4)} DARI 4`,
   /** Teks di bawah meter kelengkapan (salinan desain; dulu literal di komponen). */
   meterNote: {
     complete: 'Data inti sudah lengkap. Nilai yang tidak diberikan tetap ditandai sebagai asumsi.',
@@ -211,10 +207,8 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   brand: { name: 'SNOUTY', kicker: 'PRALON ASSISTANT' },
   newConversation: 'New Consultation',
   historyTitle: 'HISTORY',
-  savedSolutions: 'Saved Solutions',
   collapsePanel: 'Collapse panel',
   expandPanel: 'Open needs & solution panel',
-  productKnowledge: 'Product Knowledge',
   historyGuest: 'Sign up to save and reopen your consultations.',
   historyEmpty: 'No other consultations yet.',
   saveSolution: 'Save consultation result',
@@ -250,7 +244,6 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
 
   headerTitle: 'Consultation',
   headerWelcomeTitle: 'New Consultation',
-  stepStatus: (filled: number) => `STEP ${Math.min(filled + 1, 4)} OF 4`,
   meterNote: {
     complete: 'Core data is complete. Values you did not provide are still marked as assumptions.',
     remaining: (missing: number) =>

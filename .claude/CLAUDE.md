@@ -27,6 +27,18 @@ Kode, identifier, enum, SQL, dan pesan commit tetap Inggris.
 - **State percakapan terstruktur**, bukan riwayat chat mentah.
 - Eksekusi selektif: jangan jalankan seluruh pipeline untuk setiap pesan.
 
+## Teks yang dilihat pengguna
+
+**Tidak pernah ada metatext dan AI slop.** SNOUTY tampil sebagai teknisi Pralon, bukan bot.
+
+- Balasan chat: prosa mengalir atau pertanyaan poin biasa. Tanpa judul bagian tebal, tanpa
+  bagian bernomor "data/asumsi", tanpa kalimat tentang data, asumsi, model, atau AI sebagai
+  konsep, tanpa pembuka basa-basi ("Tentu!", "Berikut adalah…"), tanpa penutup ringkasan.
+- UI: tanpa label internal (versi katalog, ID impor, nama aturan, "langkah n dari m"), tanpa
+  tautan atau tombol yang tidak punya layar di baliknya, tanpa placeholder yang berpura-pura.
+- Struktur terstruktur milik layar solusi, bukan gelembung chat.
+- Ragu apakah sebuah teks "kelihatan bikinan AI" → anggap iya, tulis ulang seperti teknisi.
+
 ## Kode
 
 - Clean Code, keterbacaan lebih dulu. OOP hanya bila membantu. Komentar menjelaskan **mengapa**.

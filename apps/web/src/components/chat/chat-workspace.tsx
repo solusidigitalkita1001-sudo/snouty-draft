@@ -32,6 +32,7 @@ import { reportCopy } from '../report/report-copy';
 import { ThemeToggle } from '../theme-toggle';
 import { LocaleToggle, useLocale } from '../locale';
 import { AssistantMarkdown } from './assistant-markdown';
+import { ComposerField } from './composer-field';
 import { useRevealedText } from './assistant-reveal';
 import { useCaseRows } from './use-case-rows';
 import { ProductLookupCards } from './product-lookup-cards';
@@ -643,16 +644,10 @@ export function ChatWorkspace() {
             {historyList(styles.historyItem!)}
           </div>
 
-          {/* Tautan ini juga tanpa aksi di prototipe (layar 12 belum ada). */}
+          {/* Tautan "Solusi Tersimpan" dan "Pengetahuan Produk" dari prototipe dihapus: tanpa
+              layar di baliknya, tautan mati hanya menjanjikan yang tidak ada (keputusan pemilik
+              2026-10-07). Kembali bila layarnya didesain. */}
           <div className={styles.sidebarLinks}>
-            <span className={styles.sidebarLink} title={COPY.attachSoon}>
-              <span className={styles.iconSquare} />
-              {COPY.savedSolutions}
-            </span>
-            <span className={styles.sidebarLink}>
-              <span className={[styles.iconSquare, styles.iconSquareBook].join(' ')} />
-              {COPY.productKnowledge}
-            </span>
             {/* Pengalih tema dan bahasa sebagai baris menu — penempatannya belum didesain; minimal. */}
             <ThemeToggle className={styles['sidebarLinkButton'] ?? ''} />
             <LocaleToggle className={styles['sidebarLinkButton'] ?? ''} />
@@ -705,12 +700,6 @@ export function ChatWorkspace() {
           >
             <span className={styles.railLines} />
           </button>
-          <span className={styles.railIcon} title={COPY.savedSolutions}>
-            <span className={styles.iconSquare} />
-          </span>
-          <span className={styles.railIcon} title={COPY.productKnowledge}>
-            <span className={[styles.iconSquare, styles.iconSquareBook].join(' ')} />
-          </span>
           <span className={styles.railBottom}>
             <ThemeToggle compact />
             <LocaleToggle compact className={styles['railToggle'] ?? ''} />
@@ -742,12 +731,11 @@ export function ChatWorkspace() {
             <span className={styles.headerTitle}>
               {inConversation ? (activeTitle ?? COPY.headerTitle) : COPY.headerWelcomeTitle}
             </span>
-            {/* Badge mono berbingkai: "LANGKAH n DARI 4" saat mengumpulkan, "SOLUSI SIAP" setelahnya.
-                Di sambutan tidak ada badge — label versi katalog bukan teks untuk pengguna. */}
-            {!mobile && inConversation && (
-              <span className={styles.headerStatus}>
-                {solution !== null ? COPY.solutionReady : COPY.stepStatus(filled)}
-              </span>
+            {/* Badge mono berbingkai "SOLUSI SIAP" setelah solusi tersusun. Badge "LANGKAH n DARI 4"
+                dari prototipe dihapus (pemilik, 2026-10-07): hitungan langkah tidak berarti bagi
+                pengguna — meter kelengkapan di panel sudah menjawab "sudah sejauh mana". */}
+            {!mobile && inConversation && solution !== null && (
+              <span className={styles.headerStatus}>{COPY.solutionReady}</span>
             )}
           </div>
           <div className={styles.headerActions}>
@@ -811,18 +799,13 @@ export function ChatWorkspace() {
               </div>
 
               <div className={styles.composerCard}>
-                <input
-                  className={styles.composerCardInput}
+                <ComposerField
+                  className={styles.composerCardInput ?? ''}
                   value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                      event.preventDefault();
-                      void submit();
-                    }
-                  }}
+                  onChange={setDraft}
+                  onSubmit={() => void submit()}
                   placeholder={COPY.composerPlaceholder}
-                  aria-label={COPY.composerPlaceholder}
+                  ariaLabel={COPY.composerPlaceholder}
                 />
                 <div className={styles.composerCardFoot}>
                   {/*
@@ -985,18 +968,13 @@ export function ChatWorkspace() {
           <div className={styles.composerWrap}>
             {/* Ponsel: bidang berbentuk pil + tombol kirim bulat 40px (board 13a). */}
             <div className={[styles.composerCard, mobile ? styles.composerPill : ''].join(' ')}>
-              <input
-                className={styles.composerCardInput}
+              <ComposerField
+                className={styles.composerCardInput ?? ''}
                 value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault();
-                    void submit();
-                  }
-                }}
+                onChange={setDraft}
+                onSubmit={() => void submit()}
                 placeholder={mobile ? COPY.composerPlaceholderMobile : COPY.composerPlaceholderChat}
-                aria-label={COPY.composerPlaceholderChat}
+                ariaLabel={COPY.composerPlaceholderChat}
               />
               <button
                 type="button"

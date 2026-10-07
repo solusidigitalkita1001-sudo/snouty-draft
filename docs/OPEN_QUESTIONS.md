@@ -371,6 +371,28 @@ katalog yang tidak memisahkannya (katalog contoh). Fitting diterima penuh hanya 
 pemilik: **tidak ditebak AW**) menjadi `SIZE_NEEDS_VALIDATION`; kelas VERIFIED berbeda (D untuk AW)
 ditolak. Masih menunggu Pralon: arti token "W" dan fitting tanpa token (`docs/MATCHER_V2_PROPOSAL.md` §5).
 
+### OQ-53 — Halaman profil/pengaturan akun belum ada
+
+**Status:** open, needs design · **Blocks:** —
+**Pertanyaan:** Pemilik (2026-10-07) menanyakan letak "set up profile". Hari ini tidak ada layar
+profil: akun hanya punya login, register, dan `GET /auth/me`; avatar di kaki sidebar tidak bisa
+diklik. Prototipe juga tidak memuatnya (OQ-21).
+**Usulan default:** halaman `/akun` minimal dengan token yang sama — nama, email, ganti sandi,
+bahasa & tema pilihan, tombol keluar — dibuka dari avatar di sidebar; ditandai "needs design".
+Perlu keputusan pemilik: field apa saja (perusahaan, telepon, wilayah?) dan apakah tamu melihat
+ajakan daftar di tempat yang sama.
+
+### OQ-52 — Bidang ketik composer dan elemen header/sidebar yang dibuang
+
+**Status:** keputusan pemilik diterapkan, needs design · **Blocks:** —
+**Pertanyaan:** Pemilik (2026-10-07) menilai input satu baris prototipe sempit dan tidak modern,
+dan meminta membuang teks yang tidak berguna: badge "LANGKAH n DARI 4" di header serta tautan
+mati "Solusi Tersimpan" / "Pengetahuan Produk" di sidebar dan rail.
+**Default yang diterapkan:** textarea yang tumbuh (1–~6 baris, Enter kirim, Shift+Enter baris
+baru), kartu radius 14 px, tinggi minimum 56 px (pil ponsel 52 px), cincin fokus merek pada
+`:focus-within`, tombol kirim 38–40 px. Badge dan tautan mati dihapus; "SOLUSI SIAP" tetap.
+Kembalikan tautan bila layarnya didesain.
+
 ### OQ-51 — Riwayat di layar sempit: drawer sidebar, bukan dropdown
 
 **Status:** keputusan pemilik diterapkan, needs design · **Blocks:** —

@@ -53,8 +53,8 @@ describe('copy dua bahasa', () => {
   });
 
   it('pickCopy memilih per bahasa; fungsi dan label tahap ikut bahasa', () => {
-    expect(pickCopy('id', CHAT_COPY, CHAT_COPY_EN).stepStatus(1)).toBe('LANGKAH 2 DARI 4');
-    expect(pickCopy('en', CHAT_COPY, CHAT_COPY_EN).stepStatus(1)).toBe('STEP 2 OF 4');
+    expect(pickCopy('id', CHAT_COPY, CHAT_COPY_EN).mobileNeeds(2)).toBe('Kebutuhan (2)');
+    expect(pickCopy('en', CHAT_COPY, CHAT_COPY_EN).mobileNeeds(2)).toBe('Needs (2)');
     expect(stageLabel('UNDERSTANDING', 'en')).not.toBe(stageLabel('UNDERSTANDING', 'id'));
     expect(sourceLine('Katalog 2026', 14, 'en')).toBe('Katalog 2026 · p. 14');
     expect(sourceLine('Katalog 2026', 14)).toBe('Katalog 2026 · hal. 14');
