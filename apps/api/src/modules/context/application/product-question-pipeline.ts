@@ -49,6 +49,12 @@ import { MATERIALS, briefComparison, explain, materialsFor, reformat } from './p
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, productAnswerCopy } from './product-answer-text.js';
 
+/** Alias kosakata sebuah keluarga kanonis — untuk mencari katalog dengan nama yang dipakai katalog. */
+type Aliases = (family: string) => readonly string[];
+const NO_ALIASES: Aliases = () => [];
+const aliasesFrom = (lexicon: Partial<Pick<EntityLexicon, 'aliasesOf'>>): Aliases =>
+  lexicon.aliasesOf ? (family) => lexicon.aliasesOf!(family) : NO_ALIASES;
+
 /** Maksimal produk yang dijawab sekaligus — "bedanya A dan B" adalah dua. */
 const MAX_PRODUCTS = 2;
 /** Perbandingan per dimensi ± dukungan katalog; 700 (balasan percakapan) memotongnya. */
@@ -70,7 +76,10 @@ export interface ProductQuestionInput {
   /** Hasil pemahaman pesan (intent, aspek, topik, keluarga produk) — dihitung sekali per giliran. */
   readonly understanding: MessageUnderstanding;
   /** Kosakata entitas, untuk membaca keluarga produk dari teks lain (subjek, jawaban sebelumnya). */
-  readonly lexicon: Pick<EntityLexicon, 'productFamilies' | 'isCatalogFamily' | 'isFittingFamily'>;
+  readonly lexicon: Pick<
+    EntityLexicon,
+    'productFamilies' | 'isCatalogFamily' | 'isFittingFamily' | 'aliasesOf'
+  >;
 }
 
 /** Pesan lanjutan atas subjek produk: entitas subjek yang ditanya, bukan pesannya. */
@@ -232,7 +241,15 @@ export async function runProductQuestion(
   const outcome =
     aspect === null
       ? await answerConcept(catalog, input, query, reply, faqPrompt)
-      : await answerSpec(catalog, questions, query, aspect, size, locale);
+      : await answerSpec(
+          catalog,
+          questions,
+          query,
+          aspect,
+          size,
+          locale,
+          aliasesFrom(input.lexicon),
+        );
 
   return [
     { type: 'message.start', messageId: input.messageId },
@@ -299,7 +316,10 @@ async function answerConcept(
     input,
   );
   // Katalog opsional: kegagalan membacanya tidak boleh mengubah penjelasan teknik.
-  const support = query === null ? NO_SUPPORT : await lookup(catalog, query, { optional: true });
+  const support =
+    query === null
+      ? NO_SUPPORT
+      : await lookup(catalog, query, { optional: true, aliases: aliasesFrom(input.lexicon) });
 
   // Pendukung dari katalog HANYA bila otoritatif. Dari katalog contoh: tidak ada kartu,
   // tidak ada "tidak ada di katalog Pralon" — hanya ajakan ke tim teknis.
@@ -451,11 +471,12 @@ async function answerSpec(
   aspect: NonNullable<Awaited<ReturnType<AiService['parseProductQuestion']>>['aspect']>,
   rawSize: string | null,
   locale: Locale = DEFAULT_LOCALE,
+  aliases: Aliases = NO_ALIASES,
 ): Promise<Outcome> {
   const COPY = productAnswerCopy(locale);
   if (query === null) return { text: COPY.noProductNamed, cards: [] };
 
-  const support = await lookup(catalog, query, { optional: false });
+  const support = await lookup(catalog, query, { optional: false, aliases });
   if (support.unavailable) {
     return {
       text: COPY.catalogUnavailable,
@@ -504,7 +525,7 @@ async function answerSpec(
 async function lookup(
   catalog: ProductCatalog,
   query: string,
-  { optional }: { readonly optional: boolean },
+  { optional, aliases = NO_ALIASES }: { readonly optional: boolean; readonly aliases?: Aliases },
 ): Promise<CatalogSupport> {
   let authoritative: boolean;
   try {
@@ -530,13 +551,19 @@ async function lookup(
     // Istilah gabungan "elbow hdpe" jarang muncul utuh di nama produk ("Elbow 90° HDPE 63 mm"):
     // cari kata pertamanya, lalu saring yang memuat kata-kata sisanya di nama/keluarga/kategori
     // (audit live 2026-10-08: "elbow hdpe 63 ada?" → "tidak ada di katalog").
+    // Nama katalog memakai sinonimnya sendiri: elbow HDPE Pralon bernama "Bend (Segmented) 90º PE
+    // 63 mm". Setiap alias kata pertama (kosakata) dicoba, hasilnya disaring kata-kata sisanya.
     const words = term.split(/\s+/);
     if (candidates.length === 0 && words.length > 1) {
-      const wider = await catalog.listProducts({ q: words[0]!, limit: 50 });
-      candidates = wider.items.filter(isAnswerable).filter((p) => {
-        const haystack = `${p.name} ${p.family} ${p.category}`.toLowerCase();
-        return words.slice(1).every((w) => haystack.includes(w.toLowerCase()));
-      });
+      const rest = words.slice(1).map((w) => w.toLowerCase());
+      for (const alias of [words[0]!, ...aliases(words[0]!)]) {
+        const wider = await catalog.listProducts({ q: alias, limit: 50 });
+        candidates = wider.items.filter(isAnswerable).filter((p) => {
+          const haystack = `${p.name} ${p.family} ${p.category}`.toLowerCase();
+          return rest.every((w) => haystack.includes(w));
+        });
+        if (candidates.length > 0) break;
+      }
     }
     const product = bestMatch(candidates, term);
     if (!product) missing.push(term);

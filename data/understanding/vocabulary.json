@@ -31,7 +31,7 @@
       "steel"
     ],
     "tee": ["tee"],
-    "elbow": ["elbow", "knee", "keni"],
+    "elbow": ["elbow", "knee", "keni", "bend", "siku"],
     "reducer": ["reducer"],
     "socket": ["socket", "sok"]
   },

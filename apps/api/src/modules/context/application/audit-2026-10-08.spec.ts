@@ -383,6 +383,49 @@ describe('router & katalog — sisa verifikasi live', () => {
   });
 });
 
+describe('katalog — sinonim nama fitting', () => {
+  it('"elbow hdpe" menemukan "Bend (Segmented) 90º PE 63 mm" lewat alias kosakata', async () => {
+    const bend = {
+      id: 'B'.repeat(26),
+      name: 'Bend (Segmented) - 90º PE 63 mm',
+      family: 'FITTING HDPE',
+      category: 'FITTING',
+      status: 'active',
+      sizes: [],
+      material: { provenance: 'UNAVAILABLE', value: null },
+      standard: { provenance: 'UNAVAILABLE', value: null },
+      pressureClass: { provenance: 'UNAVAILABLE', value: null },
+      rodLength: { provenance: 'UNAVAILABLE', value: null },
+      jointType: { provenance: 'UNAVAILABLE', value: null },
+      application: { provenance: 'UNAVAILABLE', value: null },
+      sourceDocument: 'Katalog',
+      sourcePage: 1,
+      imageUrl: null,
+    } as unknown as Product;
+    const events = await runProductQuestion(
+      aiFor().ai,
+      {
+        activeVersion: () => Promise.resolve({ kind: 'pralon' } as never),
+        listProducts: ({ q }: { q?: string }) =>
+          Promise.resolve({ items: q === 'bend' ? [bend] : [], nextCursor: null }),
+      } as never,
+      {
+        answer: (q: { productId: string }) =>
+          Promise.resolve({
+            kind: 'insufficientData',
+            productId: q.productId,
+            aspect: 'sizes',
+            provenance: 'UNAVAILABLE',
+            sourceDocument: null,
+            sourcePage: null,
+          }),
+      } as never,
+      productInput('elbow hdpe ada?', { intent: 'product_spec', productAspect: 'sizes' }),
+    );
+    expect(text(events)).toContain('Bend (Segmented)');
+  });
+});
+
 describe('kosakata — klitik "-nya" dan keluarga non-katalog', () => {
   it('"pvcnya", "pralonnya", "rucikanya" dikenali; galvanis bukan keluarga katalog; tee adalah fitting', () => {
     expect(TEST_LEXICON.productFamilies('pvcnya gimana?')).toEqual(['pvc']);

@@ -56,6 +56,7 @@ export class EntityLexicon {
   private readonly requirements: RegExp;
   private readonly knowledgeOnly: ReadonlySet<string>;
   private readonly fittings: ReadonlySet<string>;
+  private readonly aliases: ReadonlyMap<string, readonly string[]>;
 
   constructor(vocabulary: Vocabulary) {
     this.families = Object.entries(vocabulary.productFamilies)
@@ -67,6 +68,12 @@ export class EntityLexicon {
       }));
     this.knowledgeOnly = new Set(vocabulary.knowledgeOnlyFamilies.map((f) => f.toLowerCase()));
     this.fittings = new Set(vocabulary.fittingFamilies.map((f) => f.toLowerCase()));
+    this.aliases = new Map(
+      Object.entries(vocabulary.productFamilies).map(([k, v]) => [
+        k.toLowerCase(),
+        v.map((a) => a.toLowerCase()),
+      ]),
+    );
     const competitorTerms = [...vocabulary.competitorBrands, ...vocabulary.competitorReferences];
     this.competitors = anyOf(competitorTerms);
     this.own = anyOf(vocabulary.ownBrand);
@@ -103,6 +110,12 @@ export class EntityLexicon {
   /** Keluarga yang dicari ke katalog Pralon (bukan keluarga yang hanya pengetahuan, mis. galvanis). */
   isCatalogFamily(family: string): boolean {
     return !this.knowledgeOnly.has(family.toLowerCase());
+  }
+
+  /** Alias sebuah keluarga kanonis (tanpa nama kanonisnya sendiri). */
+  aliasesOf(family: string): readonly string[] {
+    const key = family.toLowerCase();
+    return (this.aliases.get(key) ?? []).filter((a) => a !== key);
   }
 
   /** Keluarga jenis fitting (tee, elbow, …) — bukan bahan. */

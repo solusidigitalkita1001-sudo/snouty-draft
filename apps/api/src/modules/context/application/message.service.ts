@@ -306,13 +306,14 @@ export class MessageService {
   /** Kosakata entitas; tanpa layanan pemahaman, kosakata kosong (tidak ada nama yang dikenali). */
   private lexicon(): Pick<
     EntityLexicon,
-    'productFamilies' | 'isCatalogFamily' | 'isFittingFamily'
+    'productFamilies' | 'isCatalogFamily' | 'isFittingFamily' | 'aliasesOf'
   > {
     return (
       this.understanding?.entities ?? {
         productFamilies: () => [],
         isCatalogFamily: () => true,
         isFittingFamily: () => false,
+        aliasesOf: () => [],
       }
     );
   }
