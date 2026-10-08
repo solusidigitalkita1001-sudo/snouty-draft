@@ -120,6 +120,29 @@ const SPEC = (productAspect: NonNullable<MessageUnderstanding['productAspect']>)
 });
 
 describe('runProductQuestion — KONSEP', () => {
+  it('"apa bedanya fitting sama hdpe?" setelah PVC vs HDPE: subjek tidak ditarik masuk — komponen vs bahan, bukan PVC vs HDPE lagi (live 2026-10-08)', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      input(
+        'apa bedanya fitting sama hdpe?',
+        { ...COMPARISON, knowledgeTopics: ['fitting'] },
+        {
+          subject: {
+            kind: 'product',
+            entity: 'pvc dan hdpe',
+            topic: 'comparison',
+            depth: 'standard',
+          },
+        },
+      ),
+    );
+    const out = text(events);
+    expect(out).toContain('**HDPE** adalah bahan pipa, sedangkan **fitting**');
+    expect(out).not.toContain('Singkatnya, **PVC');
+  });
+
   it('"apa bedanya fitting sama hdpe?" adalah KONSEP walau model bilang compatible_fittings; produk pendukung = keluarga HDPE, bukan pipa kabel', async () => {
     const telkom: Product = {
       ...AW,

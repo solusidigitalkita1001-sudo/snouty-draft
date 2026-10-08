@@ -1013,6 +1013,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       service); spec subjek/sosial/router/pipeline produk/pengetahuan pipa/Inggris/adapter AI
       ditulis ulang atas helper `understood()` (label eksplisit + kosakata asli); 825 tes unit
       `@snouty/api` hijau.
+- [ ] P16-12 Mutasi RELATIF kebutuhan (temuan verifikasi live P16-11, 2026-10-08): "tambah satu kamar
+      mandi" atas state 3 kamar mandi menghasilkan 1, bukan 4 — ekstraksi/grounding membaca "satu kamar
+      mandi" sebagai nilai absolut. Perlu semantik tambah/kurangi di merger (nilai relatif dihitung dari
+      state, bukan dari model), dengan tes. Routing-nya sendiri sudah benar (REQUIREMENT_MUTATION, 12 s
+      karena ekstraksi model).
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

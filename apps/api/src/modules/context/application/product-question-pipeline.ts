@@ -249,8 +249,14 @@ async function answerConcept(
   const subjectFamilies = input.lexicon.productFamilies(subjectEntity);
   const named = materialsFor(messageFamilies);
   const fromSubject = materialsFor(subjectFamilies);
+  // "apa bedanya fitting sama HDPE?" sudah menyebut KEDUA hal yang dibandingkan (komponen + bahan):
+  // subjek sebelumnya (mis. PVC vs HDPE) tidak ditarik masuk — verifikasi live 2026-10-08.
+  const comparesConcept = u.knowledgeTopics.includes('fitting');
   const comparedWithSubject =
-    comparison && named.length === 1 && fromSubject.some((m) => !named.includes(m));
+    comparison &&
+    !comparesConcept &&
+    named.length === 1 &&
+    fromSubject.some((m) => !named.includes(m));
   const families =
     comparedWithSubject || named.length === 0
       ? [...messageFamilies, ...subjectFamilies]
