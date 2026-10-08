@@ -1,7 +1,7 @@
 {
   "name": "company-topic",
   "description": "Bagian profil perusahaan yang ditanyakan. Tidak cocok = ikhtisar perusahaan (company_overview, diputuskan kode).",
-  "threshold": 0.64,
+  "threshold": 0.72,
   "margin": 0.02,
   "labels": {
     "company_profile": [
@@ -23,7 +23,11 @@
       "pralon overview",
       "gambaran umum pralon",
       "pralon itu perusahaan apa?",
-      "pralon perusahaan apa?"
+      "pralon perusahaan apa?",
+      "gw pengen tau terkait company profile pt pralon",
+      "pengen tau company profile pralon",
+      "mau tau profil perusahaan pralon",
+      "i want to know pralon's company profile"
     ],
     "history": [
       "sejarah pralon",
@@ -129,6 +133,26 @@
       "distributor pralon terdekat",
       "kontaknya dong",
       "alamatnya di mana?"
+    ],
+    "none": [
+      "pralon itu apa?",
+      "pralon tuh apa sih?",
+      "apa itu pralon?",
+      "what is pralon?",
+      "PT Pralon yang gw maksud",
+      "pralon itu merek atau perusahaan?",
+      "siapa pralon?",
+      "who is pralon?",
+      "jelasin pt pralon",
+      "boleh",
+      "lengkap dong",
+      "semuanya",
+      "data nya secara lengkap dong",
+      "lebih detail dong",
+      "apa itu pvc?",
+      "produk hdpe nya gimana?",
+      "apa bedanya pvc dan hdpe?",
+      "rumah 2 lantai 3 kamar mandi"
     ]
   }
 }

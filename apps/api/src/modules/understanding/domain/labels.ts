@@ -98,6 +98,14 @@ export const KNOWLEDGE_TOPICS = [
 ] as const;
 export type KnowledgeTopicLabel = (typeof KNOWLEDGE_TOPICS)[number];
 
+/**
+ * Label CONTOH NEGATIF yang boleh ada di katalog mana pun: kalimat yang TIDAK membawa keputusan
+ * katalog itu ("apa bedanya pvc dan hdpe?" bukan permintaan tabel). Bila contoh terdekat sebuah
+ * pesan ada di label ini, katalog menjawab "tidak ada" — jadi batas antara ada/tidak ada pun
+ * dipelajari dari data, bukan hanya dari ambang.
+ */
+export const NONE_LABEL = 'none';
+
 /** Nama katalog data → label yang sah di dalamnya. */
 export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   intent: FINE_INTENTS,

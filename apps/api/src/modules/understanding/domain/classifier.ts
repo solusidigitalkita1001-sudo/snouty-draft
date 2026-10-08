@@ -6,6 +6,7 @@
  * kalimat yang gagal dikenali, dan kalimat serupa berikutnya langsung dikenali.
  */
 import type { Catalog } from './catalog.js';
+import { NONE_LABEL } from './labels.js';
 
 export interface EmbeddedExample {
   readonly label: string;
@@ -53,9 +54,12 @@ export function decide(
   catalog: Pick<Catalog, 'threshold' | 'margin'>,
   ranked: readonly LabelScore[],
 ): Verdict {
-  const matched = ranked.filter((r) => r.score >= catalog.threshold);
   const top = ranked[0];
   const second = ranked[1];
+  // Contoh negatif (`none`) yang paling mirip berarti pesan ini bukan urusan katalog ini — untuk
+  // katalog multi-label pun: label lain yang kalah dari `none` tidak dihitung cocok.
+  if (top?.label === NONE_LABEL) return { best: null, matched: [], ranked };
+  const matched = ranked.filter((r) => r.label !== NONE_LABEL && r.score >= catalog.threshold);
   const certain =
     top !== undefined &&
     top.score >= catalog.threshold &&

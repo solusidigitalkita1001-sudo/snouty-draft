@@ -150,7 +150,12 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
   klarifikasi, penjelasan, enam jenis lanjutan), `depth`, `format`, `company-topic`,
   `product-aspect`, `knowledge-topic` (multi-label). Tiap label berisi kalimat contoh dua bahasa.
   Berkas memuat `threshold` (kemiripan minimum) dan `margin` (selisih minimum atas label kedua;
-  di bawahnya "ragu").
+  di bawahnya "ragu"). Katalog faset (`depth`, `format`, `company-topic`, `product-aspect`,
+  `knowledge-topic`) juga memuat label **`none`**: kalimat biasa yang TIDAK membawa faset itu
+  ("apa bedanya pvc dan hdpe?" bukan permintaan tabel). Bila contoh terdekat ada di `none`,
+  katalog menjawab "tidak ada" — batas ada/tidak ada dipelajari dari data, bukan hanya ambang.
+  Ini perlu karena kalimat sedomain dengan `bge-m3` saling mirip 0,65–0,80: tanpa contoh negatif,
+  "apa bedanya pvc dan hdpe?" sempat terbaca sebagai permintaan tabel di produksi (2026-10-08).
 - **Kosakata entitas.** `vocabulary.json`: keluarga produk kanonis beserta aliasnya, merek sendiri,
   merek dan rujukan pesaing, hal-hal kebutuhan. Dicocokkan pada batas kata — ini pengenalan NAMA,
   bukan pola kalimat.

@@ -76,6 +76,16 @@ describe.skipIf(!ENABLED)('evaluasi pemahaman terhadap golden dataset (Ollama bg
     await service.whenReady();
     expect(service.available).toBe(true);
 
+    // Sonde: `UNDERSTANDING_PROBE="kalimat satu|kalimat dua"` mencetak pemahaman lengkap tiap
+    // kalimat — untuk menyelidiki kalimat produksi yang dikenali keliru sebelum menambah contoh.
+    const probed: string[] = [];
+    for (const text of (process.env['UNDERSTANDING_PROBE'] ?? '').split('|').filter(Boolean)) {
+      const u = await service.understand(text);
+      const { intentRanking, ...rest } = u;
+      const top = intentRanking.slice(0, 3).map((r) => `${r.label}=${r.score.toFixed(3)}`);
+      probed.push(JSON.stringify({ ...rest, top }));
+    }
+
     const golden = JSON.parse(
       readFileSync(join(process.cwd(), 'evals', 'understanding-cases.json'), 'utf8'),
     ) as { cases: GoldenCase[] };
@@ -101,6 +111,7 @@ describe.skipIf(!ENABLED)('evaluasi pemahaman terhadap golden dataset (Ollama bg
 
     const accuracy = intentChecked === 0 ? 1 : intentCorrect / intentChecked;
     const report = [
+      ...probed,
       `intent: ${intentCorrect}/${intentChecked} (${(accuracy * 100).toFixed(1)}%)`,
       ...failures,
     ].join('\n');
@@ -136,6 +147,11 @@ function compare(c: GoldenCase, u: MessageUnderstanding): string[] {
     problems.push(
       `productAspect: diharapkan ${c.productAspect}, dapat ${u.productAspect ?? 'null'}`,
     );
+  }
+  // `topics: []` berarti TIDAK BOLEH ada topik yang dikenali — kalimat produk/perusahaan biasa
+  // tidak boleh menyeret paragraf konsep yang tidak ditanya.
+  if (c.topics !== undefined && c.topics.length === 0 && u.knowledgeTopics.length > 0) {
+    problems.push(`topics: diharapkan tidak ada, dapat ${u.knowledgeTopics.join(', ')}`);
   }
   for (const topic of c.topics ?? []) {
     if (!u.knowledgeTopics.includes(topic as never)) {

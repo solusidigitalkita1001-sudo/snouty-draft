@@ -1,7 +1,7 @@
 {
   "name": "depth",
   "description": "Kedalaman jawaban yang diminta. Tidak cocok = pesan tidak menyebutnya (kedalaman baku pemanggil).",
-  "threshold": 0.66,
+  "threshold": 0.74,
   "margin": 0.02,
   "labels": {
     "brief": [
@@ -77,6 +77,46 @@
       "kasih semuanya",
       "full profile please",
       "jelasin selengkapnya"
+    ],
+    "none": [
+      "pralon itu apa?",
+      "apa itu pralon",
+      "PT Pralon yang gw maksud",
+      "company profile PT Pralon",
+      "tentang pralon dong",
+      "apa bedanya pvc dan hdpe?",
+      "apa bedanya pvc sama hdpe",
+      "apa itu pvc?",
+      "apa itu hdpe",
+      "apa itu ppr?",
+      "hdpe itu apa sih?",
+      "produk hdpe nya gimana?",
+      "pipa pvc pralon gimana?",
+      "pvc aw itu apa?",
+      "what is pvc?",
+      "what is the difference between pvc and hdpe?",
+      "rumah 2 lantai 3 kamar mandi",
+      "mau bangun rumah 2 lantai, air dari toren",
+      "saya mau pasang instalasi air",
+      "two floors three bathrooms",
+      "lebih bagus pvc atau hdpe buat rumah?",
+      "mending pvc apa hdpe?",
+      "harganya berapa?",
+      "harga pvc aw berapa?",
+      "boleh",
+      "ya",
+      "lanjut",
+      "ok",
+      "makasih",
+      "halo",
+      "hai, mau tanya",
+      "yang mana buat kamar mandi?",
+      "kenapa ukurannya segitu?",
+      "produk pralon apa aja?",
+      "pralon jual apa saja?",
+      "irigasi sawah 2 hektar",
+      "tambah satu kamar mandi",
+      "dari pdam"
     ]
   }
 }

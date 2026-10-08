@@ -1000,8 +1000,14 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       penyandi semua keputusan makna kosong (jujur, lambat). Adapter dev tanpa regex intent/produk;
       `SNOUTY_FAKE_AI` memakai penyandi trigram cadangan. Evaluasi: `evals/understanding-cases.json`
       (110 kalimat, bukan salinan contoh) lewat `understanding.eval.spec.ts` terhadap `bge-m3` lokal:
-      intent 109/110 (99,1%), kedalaman/format/topik/aspek/keluarga semua cocok; ambang intent
-      ditala 0,62 → 0,65 supaya kalimat asing dibiarkan ragu. Dockerfile menyalin `data/`;
+      intent 114/114 (100%) termasuk kasus negatif faset; ambang intent ditala 0,62 → 0,65
+      supaya kalimat asing dibiarkan ragu. Temuan produksi (verifikasi live 2026-10-08): katalog
+      faset terpicu oleh kalimat biasa ("apa bedanya pvc dan hdpe?" → format tabel; "pralon itu
+      apa?" → topik sertifikasi) karena kalimat sedomain saling mirip 0,65–0,80 — diperbaiki dengan
+      label contoh negatif `none` di tiap katalog faset (kode: `NONE_LABEL`, contoh terdekat `none`
+      = tidak ada) plus ambang faset 0,72–0,74. Pemanasan di server: 1.272 contoh ±0,4 s/kalimat
+      (±7 menit) → cache vektor dipindah ke volume compose `understanding-cache`. Per pesan di
+      server: pemahaman 31–44 ms, giliran tanpa model 40–60 ms. Dockerfile menyalin `data/`;
       `DEPLOYMENT.md` + env example: `ollama pull bge-m3`, `LLM_MODEL_EMBEDDING=bge-m3`. Tes: +6
       spec modul `understanding` (klasifikator, katalog, kosakata, data asli, penyandi cadangan,
       service); spec subjek/sosial/router/pipeline produk/pengetahuan pipa/Inggris/adapter AI

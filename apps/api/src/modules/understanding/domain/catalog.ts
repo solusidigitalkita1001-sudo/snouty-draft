@@ -4,7 +4,7 @@
  * bukan diam-diam melewatkan contoh.
  */
 import { z } from 'zod';
-import { CATALOG_LABELS } from './labels.js';
+import { CATALOG_LABELS, NONE_LABEL } from './labels.js';
 
 export const CatalogSchema = z.object({
   name: z.string().regex(/^[a-z][a-z0-9-]*$/),
@@ -45,7 +45,7 @@ export function catalogIssues(catalog: Catalog): readonly string[] {
     return issues;
   }
   for (const label of Object.keys(catalog.labels)) {
-    if (!known.includes(label))
+    if (label !== NONE_LABEL && !known.includes(label))
       issues.push(`label "${label}" tidak dikenal di katalog "${catalog.name}"`);
   }
   const seen = new Map<string, string>();

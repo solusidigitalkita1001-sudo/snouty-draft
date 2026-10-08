@@ -4,41 +4,63 @@
     {
       "text": "pralon itu apa?",
       "intent": "company_question",
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "PT Pralon yang gw maksud",
       "intent": "company_question",
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "boleh",
       "intent": "follow_up_continue",
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "lengkap dong",
       "intent": "follow_up_more",
       "depth": "comprehensive",
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "format": null
     },
     {
       "text": "semuanya, tolong tampilin",
       "intent": "follow_up_more",
       "depth": "comprehensive",
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "format": null
     },
     {
       "text": "data nya secara lengkap dong",
       "intent": "follow_up_more",
       "depth": "comprehensive",
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "format": null
     },
     {
       "text": "produk HDPE nya gimana?",
       "intent": "product_concept",
       "families": ["hdpe"],
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "apa bedanya fitting sama HDPE?",
@@ -56,12 +78,20 @@
     {
       "text": "yang mana buat kamar mandi?",
       "intent": "follow_up_choice",
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "ok makasih",
       "intent": "thanks",
-      "source": "uji proaktif 2026-10-07"
+      "source": "uji proaktif 2026-10-07",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "cara nyambung pipa pvc pakai lem",
@@ -91,7 +121,11 @@
     {
       "text": "lebih bagus PVC atau HDPE buat rumah 2 lantai?",
       "intent": "advice_request",
-      "families": ["pvc", "hdpe"]
+      "families": ["pvc", "hdpe"],
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "produk Pralon yang terkenal apa?",
@@ -163,7 +197,11 @@
     {
       "text": "company profile PT Pralon dong",
       "intent": "company_question",
-      "companyTopic": "company_profile"
+      "companyTopic": "company_profile",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "what company is pralon?",
@@ -184,12 +222,19 @@
     {
       "text": "apa itu pipa PVC AW?",
       "intent": "product_concept",
-      "families": ["pvc aw"]
+      "families": ["pvc aw"],
+      "depth": null,
+      "format": null,
+      "productAspect": null
     },
     {
       "text": "HDPE itu pipa apa sih?",
       "intent": "product_concept",
-      "families": ["hdpe"]
+      "families": ["hdpe"],
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "what exactly is PPR?",
@@ -199,7 +244,10 @@
     {
       "text": "bedanya pvc aw sama pvc d apa?",
       "intent": "product_comparison",
-      "families": ["pvc aw", "pvc d"]
+      "families": ["pvc aw", "pvc d"],
+      "depth": null,
+      "format": null,
+      "productAspect": null
     },
     {
       "text": "coba bandingin sama pipa PVC",
@@ -214,7 +262,11 @@
     {
       "text": "PVC vs HDPE, which is stronger?",
       "intent": "product_comparison",
-      "families": ["pvc", "hdpe"]
+      "families": ["pvc", "hdpe"],
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "ukuran hdpe ada apa aja?",
@@ -277,7 +329,11 @@
     },
     {
       "text": "pralon jual apa aja sih?",
-      "intent": "product_range"
+      "intent": "product_range",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "what products does pralon have?",
@@ -286,7 +342,11 @@
     {
       "text": "harga pvc aw 1 inch berapa?",
       "intent": "price_question",
-      "families": ["pvc aw"]
+      "families": ["pvc aw"],
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "how much is hdpe per rod?",
@@ -355,7 +415,11 @@
     },
     {
       "text": "rumah 2 lantai, 3 kamar mandi, air dari toren atas",
-      "intent": "requirement_building"
+      "intent": "requirement_building",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "kos 3 lantai 12 kamar mandi, sumber air sumur pakai pompa",
@@ -399,7 +463,11 @@
     },
     {
       "text": "tambah satu kamar mandi",
-      "intent": "requirement_mutation"
+      "intent": "requirement_mutation",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "ubah jadi 3 lantai",
@@ -411,7 +479,11 @@
     },
     {
       "text": "dari pdam",
-      "intent": "clarification_answer"
+      "intent": "clarification_answer",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "toren di lantai 2",
@@ -423,7 +495,11 @@
     },
     {
       "text": "kenapa ukurannya 1 inch?",
-      "intent": "explanation_request"
+      "intent": "explanation_request",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "why do i need a pump?",
@@ -431,7 +507,11 @@
     },
     {
       "text": "ya lanjut",
-      "intent": "follow_up_continue"
+      "intent": "follow_up_continue",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     },
     {
       "text": "gas",
@@ -444,12 +524,14 @@
     {
       "text": "lebih detail dong",
       "intent": "follow_up_more",
-      "depth": "detailed"
+      "depth": "detailed",
+      "format": null
     },
     {
       "text": "tell me more",
       "intent": "follow_up_more",
-      "depth": "detailed"
+      "depth": "detailed",
+      "format": null
     },
     {
       "text": "singkat aja",
@@ -526,6 +608,38 @@
     {
       "text": "pengiriman ke luar kota bisa?",
       "intent": null
+    },
+    {
+      "text": "apa bedanya pvc dan hdpe?",
+      "intent": "product_comparison",
+      "families": ["pvc", "hdpe"],
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
+    },
+    {
+      "text": "apa itu ppr?",
+      "intent": "product_concept",
+      "families": ["ppr"],
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
+    },
+    {
+      "text": "gw pengen tau terkait company profile PT Pralon",
+      "intent": "company_question",
+      "companyTopic": "company_profile",
+      "depth": null,
+      "format": null
+    },
+    {
+      "text": "jelasin PT Pralon",
+      "intent": "company_question",
+      "companyTopic": null,
+      "depth": null,
+      "format": null
     }
   ]
 }

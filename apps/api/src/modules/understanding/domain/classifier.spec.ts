@@ -47,6 +47,20 @@ describe('decide', () => {
     expect(verdict.matched.map((m) => m.label).sort()).toEqual(['a', 'b']);
   });
 
+  it('contoh negatif (`none`) yang paling mirip → tidak ada keputusan, juga untuk multi-label', () => {
+    const withNone: EmbeddedExample[] = [
+      ...EXAMPLES,
+      { label: 'none', text: 'bukan urusan katalog ini', vector: v(0.7, 0.7, 0.1) },
+    ];
+    const verdict = decide({ threshold: 0.5, margin: 0 }, rank(v(0.7, 0.7, 0.1), withNone));
+    expect(verdict.best).toBeNull();
+    expect(verdict.matched).toEqual([]);
+    // `none` yang kalah tidak pernah dihitung cocok.
+    const other = decide({ threshold: 0.5, margin: 0 }, rank(v(0, 0, 1), withNone));
+    expect(other.best?.label).toBe('c');
+    expect(other.matched.map((m) => m.label)).not.toContain('none');
+  });
+
   it('tanpa contoh sama sekali → ragu, tanpa lemparan', () => {
     expect(decide({ threshold: 0.5, margin: 0 }, [])).toEqual({
       best: null,

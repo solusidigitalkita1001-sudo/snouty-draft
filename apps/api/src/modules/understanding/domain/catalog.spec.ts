@@ -57,5 +57,15 @@ describe('catalog', () => {
         CatalogSchema.parse({ name: 'depth', threshold: 0.5, labels: { brief: ['singkat'] } }),
       ),
     ).toEqual([]);
+    // Label contoh negatif boleh di katalog mana pun.
+    expect(
+      catalogIssues(
+        CatalogSchema.parse({
+          name: 'depth',
+          threshold: 0.5,
+          labels: { brief: ['singkat'], none: ['apa itu pvc?'] },
+        }),
+      ),
+    ).toEqual([]);
   });
 });
