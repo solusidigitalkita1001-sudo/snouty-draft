@@ -1039,7 +1039,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       pemanasan penyandi yang gagal dicoba ulang setelah 60 s dan disimpan per katalog; (15) penyandi
       tidak lagi butuh kunci API; cache vektor dibulatkan 5 desimal dan dipangkas dari contoh yang
       dihapus; (16) urutan konsep mengikuti topik terdekat ("bocor di sambungan" dibuka dengan
-      gangguan). Tes: `audit-2026-10-08.spec.ts` (13), `size-parser.spec.ts`,
+      gangguan); (17) pertanyaan harga di dalam kebutuhan bangunan dikenali (data) dan dijawab; (18)
+      pencarian katalog fitting memakai alias kosakata (elbow HDPE Pralon bernama "Bend (Segmented) PE")
+      dan memilih produk yang memang berukuran yang ditanya; angka ukuran telanjang > 12 = mm; (19)
+      pesan tanpa huruf/angka dijawab tanpa model. Diverifikasi live: "tambah satu kamar mandi" 3 → 4,
+      "elbow hdpe 63 ada?" → Bend 90º PE 63 mm tersedia, "tee pvc 3/4" → tee 3/4 tersedia, semua
+      giliran tanpa model < 0,4 s. Tes: `audit-2026-10-08.spec.ts` (13), `size-parser.spec.ts`,
       `file-vector.cache.spec.ts`, mutasi relatif +3; golden set 125/125. Sisa yang BUKAN cacat kode
       (dicatat, tidak diubah): katalog Pralon aktif hampir seluruh spesifikasinya `UNAVAILABLE` (data
       impor ERP, OQ-55); irigasi belum punya field debit; jawaban "pabrik di mana" menunggu data
