@@ -649,6 +649,9 @@ export function ChatWorkspace() {
   const useCase = state ? useCaseRows(state) : null;
   const useCaseFilled = useCase?.filter((row) => row.value !== null).length ?? 0;
   const filled = state?.completeness.filled ?? 0;
+  // Kartu "Yang sudah saya pahami" dan rail menghitung hal yang sama: baris yang terisi — dulu
+  // kartu memakai empat field inti sehingga tertulis 4 sementara rail 5 (verifikasi 2026-10-08).
+  const rowsRead = rows.filter((row) => row.display !== 'Belum diisi').length;
 
   /**
    * "Selesai": kirim hanya field yang benar-benar diubah, nol LLM. Bila solusi sudah
@@ -703,7 +706,7 @@ export function ChatWorkspace() {
   );
   const understoodCard =
     state !== null && useCase === null && filled > 0 ? (
-      <UnderstoodCard rows={rows} filled={filled} />
+      <UnderstoodCard rows={rows} filled={rowsRead} />
     ) : useCase !== null && useCaseFilled > 0 ? (
       <UnderstoodCard
         rows={useCase
@@ -712,9 +715,7 @@ export function ChatWorkspace() {
         filled={useCaseFilled}
       />
     ) : null;
-  const readCount = useCase
-    ? useCaseFilled
-    : rows.filter((row) => row.display !== 'Belum diisi').length;
+  const readCount = useCase ? useCaseFilled : rowsRead;
   const inConversation = turns.length > 0;
   const activeStatus = solution
     ? COPY.activeStatus.ready
