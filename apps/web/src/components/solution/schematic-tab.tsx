@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { SchematicSidePanel, SchematicView } from '../schematic/schematic-view';
 import { solutionCopy } from './solution-copy';
 import { useLocale } from '../locale';
+import { authHeaders } from '../auth/session';
 import styles from './solution.module.css';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
@@ -36,6 +37,9 @@ export function SchematicTab({
     if (!available) return undefined;
     void fetch(`/api/v1/recommendations/${encodeURIComponent(recommendationId)}/schematic`, {
       credentials: 'include',
+      // Akun memegang access token di memori, bukan cookie — tanpa header ini pengguna yang
+      // sudah masuk selalu melihat "Skema belum tersedia" (laporan pemilik 2026-10-08).
+      headers: authHeaders(),
     })
       .then(async (response) => {
         if (!response.ok) throw new Error(String(response.status));
@@ -56,9 +60,12 @@ export function SchematicTab({
     <section className={styles.card}>
       <div className={styles.cardHead}>
         <div className={styles.kicker}>{COPY.schematicKicker}</div>
-        <a className={styles.linkButton} href={`/schematic?recommendation=${recommendationId}`}>
-          Lihat skema instalasi →
-        </a>
+        {/* Tautan hanya bila memang ada skema di baliknya. */}
+        {schematic !== null && (
+          <a className={styles.linkButton} href={`/schematic?recommendation=${recommendationId}`}>
+            {COPY.schematicOpen}
+          </a>
+        )}
       </div>
       {failed && <p className={styles.body}>{COPY.schematicUnavailable}</p>}
       {!failed && schematic === null && <p className={styles.body}>{COPY.schematicLoading}</p>}

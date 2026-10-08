@@ -47,6 +47,7 @@ export const SOLUTION_COPY = {
   schematicKicker: 'SKEMA',
   schematicLoading: 'Menyiapkan skema…',
   schematicUnavailable: 'Skema belum tersedia untuk konsultasi ini.',
+  schematicOpen: 'Lihat skema instalasi →',
   priceDisclaimer: 'Perkiraan perencanaan, bukan penawaran resmi.',
 
   /**
@@ -123,6 +124,7 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
   schematicKicker: 'SCHEMATIC',
   schematicLoading: 'Preparing the schematic…',
   schematicUnavailable: 'A schematic is not available for this consultation yet.',
+  schematicOpen: 'Open the installation schematic →',
   priceDisclaimer: 'A planning estimate, not an official quotation.',
 
   composition: {

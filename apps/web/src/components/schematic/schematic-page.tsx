@@ -11,6 +11,7 @@ import type { Schematic } from '@snouty/shared-types';
 import { useEffect, useState } from 'react';
 import { schematicCopy } from './schematic-copy';
 import { useLocale } from '../locale';
+import { authHeaders, restoreSession } from '../auth/session';
 import { SchematicSidePanel, SchematicView } from './schematic-view';
 import styles from './schematic-page.module.css';
 
@@ -34,7 +35,14 @@ export function SchematicPage() {
     }
 
     let cancelled = false;
-    void fetch(`/api/v1/recommendations/${id}/schematic`, { credentials: 'include' })
+    // Halaman baru: sesi akun dipulihkan dulu, lalu token ikut dikirim (tamu memakai cookie).
+    void restoreSession()
+      .then(() =>
+        fetch(`/api/v1/recommendations/${encodeURIComponent(id)}/schematic`, {
+          credentials: 'include',
+          headers: authHeaders(),
+        }),
+      )
       .then(async (response) => {
         if (!response.ok) throw new Error(String(response.status));
         return (await response.json()) as Schematic;

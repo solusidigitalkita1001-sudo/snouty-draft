@@ -40,6 +40,8 @@ export function SolutionView({
   const [openProduct, setOpenProduct] = useState<DrawerSelection | null>(null);
   const { stats } = recommendation;
   const on = (which: SolutionTab) => tab === undefined || tab === which;
+  // Skema hanya ada untuk solusi bangunan; kasus teknis/irigasi belum punya desain skema (OQ-47).
+  const hasSchematic = recommendation.kind === undefined || recommendation.kind === 'building';
 
   return (
     <div className={styles.workspace}>
@@ -48,7 +50,7 @@ export function SolutionView({
           recommendationId={recommendation.id}
           // Skema hanya ada untuk solusi bangunan; kasus teknis/irigasi tidak punya (API 404) —
           // jangan memintanya, tampilkan "belum tersedia" langsung tanpa galat di konsol.
-          available={recommendation.kind === undefined || recommendation.kind === 'building'}
+          available={hasSchematic}
         />
       )}
 
@@ -107,13 +109,16 @@ export function SolutionView({
           </div>
           <div className={styles.summaryFooter}>
             <span className={styles.disclaimer}>{COPY.planningDisclaimer}</span>
-            {/* Skema dibentuk ulang deterministik dari snapshot — jadi tautannya cukup id. */}
-            <a
-              className={styles.linkButton}
-              href={`/schematic?recommendation=${recommendation.id}`}
-            >
-              Lihat skema instalasi →
-            </a>
+            {/* Skema dibentuk ulang deterministik dari snapshot — jadi tautannya cukup id.
+                Hanya solusi bangunan yang punya skema; tanpa itu tautannya tidak ditampilkan. */}
+            {hasSchematic && (
+              <a
+                className={styles.linkButton}
+                href={`/schematic?recommendation=${recommendation.id}`}
+              >
+                {COPY.schematicOpen}
+              </a>
+            )}
           </div>
         </section>
       )}
