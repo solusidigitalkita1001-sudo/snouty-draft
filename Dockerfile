@@ -29,6 +29,8 @@ RUN pnpm build:types \
 FROM build AS api
 ENV NODE_ENV=production
 WORKDIR /app/apps/api
+# Volume cache vektor pemahaman harus bisa ditulis `node` — volume baru mewarisi kepemilikan ini.
+RUN mkdir -p /data/understanding-cache && chown node:node /data/understanding-cache
 USER node
 EXPOSE 3001
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 \

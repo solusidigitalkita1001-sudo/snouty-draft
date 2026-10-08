@@ -257,10 +257,10 @@ async function answerConcept(
     !comparesConcept &&
     named.length === 1 &&
     fromSubject.some((m) => !named.includes(m));
-  const families =
-    comparedWithSubject || named.length === 0
-      ? [...messageFamilies, ...subjectFamilies]
-      : messageFamilies;
+  // Bahan subjek hanya ikut saat dibandingkan; pertanyaan pengetahuan tanpa bahan ("pipa buat air
+  // panas pake apa?") dijawab topiknya, bukan perbandingan ulang bahan yang kebetulan sedang dibahas
+  // (verifikasi live 2026-10-08). Lanjutan sudah membawa entitas subjek lewat `query`.
+  const families = comparedWithSubject ? [...messageFamilies, ...subjectFamilies] : messageFamilies;
   // Topik dibaca dari pesan DAN subjek: lanjutan atas jawaban "fitting vs HDPE" tetap tentang
   // fitting (topik subjek); konsep yang terikat keluarga produk (kelas PVC) ikut lewat `families`.
   const topics = [

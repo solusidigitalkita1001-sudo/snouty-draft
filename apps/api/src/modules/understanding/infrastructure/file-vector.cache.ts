@@ -9,16 +9,19 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 export interface VectorCache {
+  /** Lokasi cache — untuk pesan log bila tidak bisa ditulis. */
+  readonly dir: string;
   get(encoderId: string, text: string): Float32Array | undefined;
   set(encoderId: string, text: string, vector: Float32Array): void;
-  flush(): Promise<void>;
+  /** `false` bila ada berkas yang gagal ditulis — pemanggil mencatatnya, boot berikutnya menyandikan ulang. */
+  flush(): Promise<boolean>;
 }
 
 export class FileVectorCache implements VectorCache {
   private readonly files = new Map<string, Map<string, number[]>>();
   private dirty = new Set<string>();
 
-  constructor(private readonly dir: string = join(tmpdir(), 'snouty-understanding')) {}
+  constructor(readonly dir: string = join(tmpdir(), 'snouty-understanding')) {}
 
   get(encoderId: string, text: string): Float32Array | undefined {
     const values = this.table(encoderId).get(hash(text));
@@ -30,7 +33,8 @@ export class FileVectorCache implements VectorCache {
     this.dirty.add(encoderId);
   }
 
-  async flush(): Promise<void> {
+  async flush(): Promise<boolean> {
+    let ok = true;
     for (const encoderId of this.dirty) {
       try {
         mkdirSync(this.dir, { recursive: true });
@@ -39,10 +43,13 @@ export class FileVectorCache implements VectorCache {
           JSON.stringify(Object.fromEntries(this.table(encoderId))),
         );
       } catch {
-        // Disk hanya-baca atau penuh: boot berikutnya menyandikan ulang. Bukan kegagalan.
+        // Disk hanya-baca, penuh, atau bukan milik pengguna proses: boot berikutnya menyandikan
+        // ulang. Bukan kegagalan — tetapi dilaporkan, karena di CPU server itu ±7 menit.
+        ok = false;
       }
     }
     this.dirty = new Set();
+    return ok;
   }
 
   private table(encoderId: string): Map<string, number[]> {

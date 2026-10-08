@@ -120,6 +120,29 @@ const SPEC = (productAspect: NonNullable<MessageUnderstanding['productAspect']>)
 });
 
 describe('runProductQuestion — KONSEP', () => {
+  it('"pipa buat air panas pake apa?" saat subjeknya HDPE vs PVC: dijawab topik air panas, bukan perbandingan ulang (live 2026-10-08)', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      input(
+        'pipa buat air panas pake apa?',
+        { intent: 'use_question', knowledgeTopics: ['air panas'] },
+        {
+          subject: {
+            kind: 'product',
+            entity: 'hdpe dan pvc',
+            topic: 'comparison',
+            depth: 'standard',
+          },
+        },
+      ),
+    );
+    const out = text(events);
+    expect(out).toMatch(/^Untuk air panas, bahan yang lazim adalah \*\*PPR\*\*/);
+    expect(out).not.toContain('Singkatnya');
+  });
+
   it('"apa bedanya fitting sama hdpe?" setelah PVC vs HDPE: subjek tidak ditarik masuk — komponen vs bahan, bukan PVC vs HDPE lagi (live 2026-10-08)', async () => {
     const events = await runProductQuestion(
       ai({ productQuery: null, aspect: null }),

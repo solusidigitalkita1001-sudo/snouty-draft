@@ -150,7 +150,13 @@ export class UnderstandingService {
           examples.map((e, i) => ({ ...e, vector: vectors[i]! })),
         );
       }
-      await this.cache?.flush();
+      const flushed = (await this.cache?.flush()) ?? true;
+      if (!flushed) {
+        this.logger?.warn(
+          { dir: this.cache?.dir },
+          'cache vektor pemahaman tidak bisa ditulis — boot berikutnya menyandikan ulang',
+        );
+      }
       this.ready = true;
       this.logger?.info(
         {

@@ -103,9 +103,10 @@ describe('UnderstandingService', () => {
   it('cache vektor: vektor yang sudah ada tidak diminta lagi ke penyandi, yang baru disimpan', async () => {
     const stored = new Map<string, Float32Array>();
     const cache: VectorCache = {
+      dir: '(memori)',
       get: (id, text) => stored.get(`${id}:${text}`),
       set: (id, text, v) => void stored.set(`${id}:${text}`, v),
-      flush: () => Promise.resolve(),
+      flush: () => Promise.resolve(true),
     };
     const first = new WordEncoder();
     await new UnderstandingService(catalogs, lexicon, first, cache).whenReady();
