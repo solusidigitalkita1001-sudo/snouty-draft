@@ -146,9 +146,13 @@ export function withRequirementPrecedence(
   // rumah saya?") tanpa satu pun data inti (lantai, kamar mandi, sumber, jenis instalasi) tetap
   // pertanyaan produk — ditarik ke ekstraksi hanya memberi formulir, bukan jawaban (audit live
   // 2026-10-08). Permintaan rekomendasi tetap jalur kebutuhan: nasihatnya memang butuh kebutuhan.
+  // Kecuali bila tempatnya disebut bersama fluida di luar cakupan ("pipa jalur air panas boiler
+  // hotel"): itu kebutuhan yang harus kena kebijakan cakupan, bukan pertanyaan produk yang berakhir
+  // "Produk mana…" (verifikasi live P16-14).
   const productOnly =
     isProductQuestion(u.intent?.label) &&
     u.intent?.label !== 'advice_request' &&
+    !u.mentionsOutOfScopeFluid &&
     coreFactsInText(u.text) === 0;
   if (!recommendationAsLookup && (!yields || !u.mentionsRequirement || productOnly)) {
     return classification;

@@ -70,7 +70,8 @@ const OBVIOUS = {
     const tank = /\b(toren|tandon|tangki|tanks?)(?:nya)?\b/i.test(m);
     if (
       tank &&
-      /\b(atap|di atas|lantai atas|atas rumah|rooftop|roof|tower|menara|overhead|elevated)\b/i.test(
+      // "toren atas" / "tandonnya atas" tanpa "di" (verifikasi live P16-14) juga letak di atas.
+      /\b(atap|di atas|atas|lantai atas|atas rumah|rooftop|roof|tower|menara|overhead|elevated)\b/i.test(
         m,
       )
     )

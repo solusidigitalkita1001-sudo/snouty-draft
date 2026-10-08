@@ -1060,7 +1060,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       batas 45 °C tetap aturan kebijakan. (4) Rujukan dokumen ke `message-signals.ts`/`heuristics.ts`
       dibersihkan; `dist` lokal dibangun ulang tanpa berkas lama. Yang sengaja tetap regex: parser nilai
       (angka, satuan, suhu, ukuran, jumlah, enum sumber air/irigasi) dan penilai nama produk katalog —
-      bukan tebakan pertanyaan. Golden set 145/145 (19 kasus jenis kasus baru); tes API 986, engineering 199.
+      bukan tebakan pertanyaan. Verifikasi live: gedung 6 lantai → kasus
+      bertingkat, kos/boarding house + sumur → jalur bangunan, sumur bor/irigasi/gorong-gorong/tambak/drainase
+      air hujan → kasusnya masing-masing. Dua temuan live ikut diperbaiki: tempat + fluida di luar cakupan
+      ("pipa jalur air panas boiler hotel") kini kena kebijakan cakupan, bukan "Produk mana"; "toren atas"
+      tercatat sebagai toren atap. Golden set 146/146; tes API 988, engineering 199.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

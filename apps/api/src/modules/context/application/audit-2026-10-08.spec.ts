@@ -261,6 +261,34 @@ describe('ruas kebutuhan — bangunan vs kasus sumur, harga, toren, di luar topi
     expect(nextState.water.source.value).toBe('pump');
   });
 
+  it('P16-14: "pipa buat jalur air panas boiler hotel" (tempat + fluida di luar cakupan) → jalur kebutuhan, bukan "Produk mana"', async () => {
+    const { ai, calls } = aiFor();
+    const d = await new IntentRouter(ai).route(
+      understood('pipa buat jalur air panas boiler hotel', { intent: 'use_question' }),
+      false,
+    );
+    expect(d.intent).toBe('REQUIREMENT_STATEMENT');
+    expect(calls.classify).toBe(0);
+    // Tanpa tempat, pertanyaan guna tetap pengetahuan (air panas → PPR).
+    const knowledge = await new IntentRouter(aiFor().ai).route(
+      understood('pipa buat air panas pake apa?', { intent: 'use_question' }),
+      false,
+    );
+    expect(knowledge.intent).toBe('PRODUCT_LOOKUP');
+  });
+
+  it('P16-14: "air dari toren atas" tercatat sebagai toren atap', async () => {
+    const message = 'rumah 2 lantai 3 kamar mandi air dari toren atas';
+    const { nextState } = await runUnderstanding(
+      aiFor().ai,
+      pipelineInput({
+        message,
+        understanding: understood(message, { intent: 'requirement_building' }),
+      }),
+    );
+    expect(nextState.water.source.value).toBe('rooftop_tank');
+  });
+
   it('P16-14: "gedung kantor 6 lantai" (kebutuhan bangunan) tetap masuk kasus gedung bertingkat', async () => {
     const message = 'gedung kantor 6 lantai, 20 toilet';
     const { nextState } = await runUnderstanding(

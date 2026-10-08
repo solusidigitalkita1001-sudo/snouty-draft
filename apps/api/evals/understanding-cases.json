@@ -797,6 +797,12 @@
     {
       "text": "boarding house with 10 bathrooms, water from a well",
       "useCase": "residential_clean_water"
+    },
+    {
+      "text": "pipa buat jalur air panas boiler hotel",
+      "intent": "use_question",
+      "topics": ["air panas"],
+      "$comment": "live P16-14"
     }
   ]
 }
