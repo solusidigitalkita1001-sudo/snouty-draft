@@ -938,6 +938,12 @@ export function ChatWorkspace() {
                   </button>
                 </div>
               </div>
+              {/* Galat di layar sambutan (mis. denah ditolak) — aliran chat belum ada untuk menampungnya. */}
+              {error !== null && (
+                <div className={styles.errorCard} role="alert">
+                  {error}
+                </div>
+              )}
             </div>
           </div>
         ) : screen === 'chat' ? (
