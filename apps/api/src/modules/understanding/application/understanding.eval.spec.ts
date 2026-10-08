@@ -27,6 +27,8 @@ interface GoldenCase {
   readonly companyTopic?: string;
   readonly productAspect?: string;
   readonly topics?: readonly string[];
+  /** Topik yang dikenali harus PERSIS `topics` — tidak ada topik lain yang ikut terseret. */
+  readonly topicsOnly?: boolean;
   readonly families?: readonly string[];
   readonly source?: string;
 }
@@ -152,6 +154,10 @@ function compare(c: GoldenCase, u: MessageUnderstanding): string[] {
   // tidak boleh menyeret paragraf konsep yang tidak ditanya.
   if (c.topics !== undefined && c.topics.length === 0 && u.knowledgeTopics.length > 0) {
     problems.push(`topics: diharapkan tidak ada, dapat ${u.knowledgeTopics.join(', ')}`);
+  }
+  if (c.topicsOnly && c.topics !== undefined) {
+    const extra = u.knowledgeTopics.filter((t) => !c.topics!.includes(t));
+    if (extra.length > 0) problems.push(`topics: ikut terseret ${extra.join(', ')}`);
   }
   for (const topic of c.topics ?? []) {
     if (!u.knowledgeTopics.includes(topic as never)) {

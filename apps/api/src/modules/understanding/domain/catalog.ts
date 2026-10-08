@@ -15,6 +15,12 @@ export const CatalogSchema = z.object({
   margin: z.number().min(0).max(1).default(0),
   /** Beberapa label boleh cocok sekaligus (topik pengetahuan). */
   multi: z.boolean().default(false),
+  /**
+   * Katalog multi-label: label lain hanya ikut cocok bila skornya tidak lebih rendah dari label
+   * teratas dikurangi `window`. "pipa buat air panas pake apa?" mirip 1,0 dengan topik air panas
+   * dan 0,75 dengan sambungan lem — yang kedua bukan topik yang ditanya. Baku 1 = tanpa batasan.
+   */
+  window: z.number().min(0).max(1).default(1),
   labels: z.record(
     z.string().regex(/^[a-z][a-z0-9_ ]*$/),
     z.array(z.string().trim().min(1)).min(1),

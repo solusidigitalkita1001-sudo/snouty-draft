@@ -51,7 +51,7 @@ export function rank(query: Float32Array, examples: readonly EmbeddedExample[]):
 }
 
 export function decide(
-  catalog: Pick<Catalog, 'threshold' | 'margin'>,
+  catalog: Pick<Catalog, 'threshold' | 'margin'> & { readonly window?: number },
   ranked: readonly LabelScore[],
 ): Verdict {
   const top = ranked[0];
@@ -59,7 +59,9 @@ export function decide(
   // Contoh negatif (`none`) yang paling mirip berarti pesan ini bukan urusan katalog ini — untuk
   // katalog multi-label pun: label lain yang kalah dari `none` tidak dihitung cocok.
   if (top?.label === NONE_LABEL) return { best: null, matched: [], ranked };
-  const matched = ranked.filter((r) => r.label !== NONE_LABEL && r.score >= catalog.threshold);
+  // Label lain ikut cocok hanya di dalam jendela di bawah label teratas (katalog multi-label).
+  const floor = Math.max(catalog.threshold, (top?.score ?? 0) - (catalog.window ?? 1));
+  const matched = ranked.filter((r) => r.label !== NONE_LABEL && r.score >= floor);
   const certain =
     top !== undefined &&
     top.score >= catalog.threshold &&

@@ -156,6 +156,9 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
   katalog menjawab "tidak ada" — batas ada/tidak ada dipelajari dari data, bukan hanya ambang.
   Ini perlu karena kalimat sedomain dengan `bge-m3` saling mirip 0,65–0,80: tanpa contoh negatif,
   "apa bedanya pvc dan hdpe?" sempat terbaca sebagai permintaan tabel di produksi (2026-10-08).
+  Katalog multi-label memakai `window`: label lain ikut cocok hanya bila skornya tidak lebih rendah
+  dari label teratas dikurangi `window` ("pipa buat air panas pake apa?" mirip 1,0 dengan air panas
+  dan 0,75 dengan sambungan lem — yang kedua tidak ditanya).
 - **Kosakata entitas.** `vocabulary.json`: keluarga produk kanonis beserta aliasnya, merek sendiri,
   merek dan rujukan pesaing, hal-hal kebutuhan. Dicocokkan pada batas kata — ini pengenalan NAMA,
   bukan pola kalimat.

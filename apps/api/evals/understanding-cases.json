@@ -67,7 +67,8 @@
       "intent": "product_comparison",
       "families": ["hdpe"],
       "topics": ["fitting"],
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "topicsOnly": true
     },
     {
       "text": "bikinin skema perbedaannya dalam bentuk tabel",
@@ -97,7 +98,8 @@
       "text": "cara nyambung pipa pvc pakai lem",
       "intent": "knowledge_question",
       "topics": ["sambungan lem"],
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "topicsOnly": true
     },
     {
       "text": "harganya berapa?",
@@ -356,52 +358,62 @@
     {
       "text": "pipa buat air panas pake apa?",
       "intent": "use_question",
-      "topics": ["air panas"]
+      "topics": ["air panas"],
+      "topicsOnly": true
     },
     {
       "text": "bahan apa yang cocok buat tanam?",
       "intent": "use_question",
-      "topics": ["pipa tanam"]
+      "topics": ["pipa tanam"],
+      "topicsOnly": true
     },
     {
       "text": "what pipe should i use for hot water?",
       "intent": "use_question",
-      "topics": ["air panas"]
+      "topics": ["air panas"],
+      "topicsOnly": true
     },
     {
       "text": "gimana cara nyambung pvc?",
       "intent": "knowledge_question",
-      "topics": ["sambungan lem"]
+      "topics": ["sambungan lem"],
+      "topicsOnly": true
     },
     {
       "text": "pvc disimpan di luar boleh?",
       "intent": "knowledge_question",
-      "topics": ["penyimpanan"]
+      "topics": ["penyimpanan"],
+      "topicsOnly": true
     },
     {
       "text": "kenapa sambungan pvc saya bocor?",
       "intent": "knowledge_question",
-      "topics": ["perawatan dan gangguan"]
+      "topics": ["perawatan dan gangguan"],
+      "topicsOnly": true
     },
     {
       "text": "sdr itu apa ya?",
       "intent": "knowledge_question",
-      "topics": ["istilah dimensi"]
+      "topics": ["istilah dimensi"],
+      "topicsOnly": true
     },
     {
       "text": "pvc aw sama d itu kelas apa?",
       "intent": "knowledge_question",
-      "topics": ["kelas pvc"]
+      "topics": ["kelas pvc"],
+      "topicsOnly": true
     },
     {
       "text": "how should pvc pipe be stored?",
       "intent": "knowledge_question",
-      "topics": ["penyimpanan"]
+      "topics": ["penyimpanan"],
+      "topicsOnly": true
     },
     {
       "text": "apa itu fitting?",
       "intent": "knowledge_question",
-      "topics": ["fitting"]
+      "topics": ["fitting"],
+      "$comment": "jenis fitting boleh ikut: definisi lalu ragam jenisnya"
     },
     {
       "text": "mending pvc apa hdpe buat rumah?",
@@ -640,6 +652,13 @@
       "companyTopic": null,
       "depth": null,
       "format": null
+    },
+    {
+      "text": "pipa buat air panas pake apa?",
+      "intent": "use_question",
+      "topics": ["air panas"],
+      "topicsOnly": true,
+      "$comment": "live 2026-10-08: sambungan lem ikut cocok (0,75) padahal tidak ditanya"
     }
   ]
 }

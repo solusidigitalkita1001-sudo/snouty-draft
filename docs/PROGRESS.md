@@ -1005,7 +1005,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       faset terpicu oleh kalimat biasa ("apa bedanya pvc dan hdpe?" → format tabel; "pralon itu
       apa?" → topik sertifikasi) karena kalimat sedomain saling mirip 0,65–0,80 — diperbaiki dengan
       label contoh negatif `none` di tiap katalog faset (kode: `NONE_LABEL`, contoh terdekat `none`
-      = tidak ada) plus ambang faset 0,72–0,74. Pemanasan di server: 1.272 contoh ±0,4 s/kalimat
+      = tidak ada) plus ambang faset 0,72–0,74 dan `window` untuk katalog multi-label (topik lain ikut hanya
+      dalam 0,12 di bawah topik teratas — "pipa buat air panas pake apa?" sempat ikut menyeret
+      sambungan lem). Dua pagar pipeline dari verifikasi live: perbandingan yang menyebut konsep
+      (fitting vs HDPE) tidak menarik bahan subjek sebelumnya; pertanyaan pengetahuan tanpa bahan
+      tidak membandingkan ulang bahan subjek. Volume cache vektor harus milik `node` (Dockerfile
+      chown; kegagalan tulis cache kini tercatat di log). Pemanasan di server: 1.272 contoh ±0,4 s/kalimat
       (±7 menit) → cache vektor dipindah ke volume compose `understanding-cache`. Per pesan di
       server: pemahaman 31–44 ms, giliran tanpa model 40–60 ms. Dockerfile menyalin `data/`;
       `DEPLOYMENT.md` + env example: `ollama pull bge-m3`, `LLM_MODEL_EMBEDDING=bge-m3`. Tes: +6

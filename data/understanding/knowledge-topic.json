@@ -1,7 +1,7 @@
 {
   "name": "knowledge-topic",
   "description": "Topik pengetahuan pipa (pipe-knowledge.ts CONCEPTS) yang disinggung pesan. Multi-label: beberapa topik boleh cocok sekaligus.",
-  "threshold": 0.72,
+  "threshold": 0.74,
   "margin": 0,
   "multi": true,
   "labels": {
@@ -322,5 +322,6 @@
       "bedanya pvc aw sama pvc d apa?",
       "beda pvc aw sama pvc d apa?"
     ]
-  }
+  },
+  "window": 0.12
 }

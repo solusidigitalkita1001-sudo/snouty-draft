@@ -61,6 +61,16 @@ describe('decide', () => {
     expect(other.matched.map((m) => m.label)).not.toContain('none');
   });
 
+  it('multi-label: label lain ikut hanya di dalam jendela di bawah label teratas', () => {
+    const ranked = rank(v(1, 0.55, 0), EXAMPLES); // a ≈ 0.88, b ≈ 0.48
+    expect(
+      decide({ threshold: 0.4, margin: 0, window: 1 }, ranked).matched.map((m) => m.label),
+    ).toEqual(['a', 'b']);
+    expect(
+      decide({ threshold: 0.4, margin: 0, window: 0.2 }, ranked).matched.map((m) => m.label),
+    ).toEqual(['a']);
+  });
+
   it('tanpa contoh sama sekali → ragu, tanpa lemparan', () => {
     expect(decide({ threshold: 0.5, margin: 0 }, [])).toEqual({
       best: null,
