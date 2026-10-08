@@ -107,6 +107,7 @@ describe('UnderstandingService', () => {
       get: (id, text) => stored.get(`${id}:${text}`),
       set: (id, text, v) => void stored.set(`${id}:${text}`, v),
       flush: () => Promise.resolve(true),
+      prune: () => Promise.resolve(true),
     };
     const first = new WordEncoder();
     await new UnderstandingService(catalogs, lexicon, first, cache).whenReady();
@@ -136,5 +137,40 @@ describe('UnderstandingService', () => {
     expect(u.available).toBe(false);
     expect(u.intent).toBeNull();
     expect(await service.knowledgeTopics('apa')).toEqual([]);
+  });
+});
+
+describe('UnderstandingService — pemanasan yang gagal dicoba lagi', () => {
+  it('penyandi tumbang saat boot → tidak tersedia; setelah jeda, pesan berikutnya memanaskan ulang', async () => {
+    const encoder = new WordEncoder();
+    const good = encoder.encode.bind(encoder);
+    let failures = 1;
+    encoder.encode = (texts) =>
+      failures-- > 0 ? Promise.reject(new Error('ollama belum siap')) : good(texts);
+    const service = new UnderstandingService(catalogs, lexicon, encoder);
+    await service.whenReady();
+    expect(service.available).toBe(false);
+    // Belum lewat jeda: tetap tanpa pemahaman, tanpa mencoba lagi.
+    expect((await service.understand('makasih')).available).toBe(false);
+    // Lewat jeda (disimulasikan dengan jam): pemanasan ulang berhasil.
+    const realNow = Date.now;
+    Date.now = () => realNow() + 61_000;
+    try {
+      const u = await service.understand('makasih');
+      expect(u.available).toBe(true);
+      expect(u.intent?.label).toBe('thanks');
+    } finally {
+      Date.now = realNow;
+    }
+  });
+
+  it('pesan tanpa huruf atau angka tidak disandikan dan tidak dikenali', async () => {
+    const encoder = new WordEncoder();
+    const service = new UnderstandingService(catalogs, lexicon, encoder);
+    await service.whenReady();
+    const calls = encoder.calls.length;
+    const u = await service.understand('   ?');
+    expect(u.intent).toBeNull();
+    expect(encoder.calls.length).toBe(calls);
   });
 });

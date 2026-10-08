@@ -66,7 +66,8 @@ const OBVIOUS = {
   // Produksi 2026-10-07: "toren di atap" → model menulis `ground_tank`. Letak toren tersurat
   // di teks mengalahkan tebakan model; tanpa penanda letak, nilai model yang dipakai.
   source: (m: string): NonNullable<Extraction['water']>['source'] => {
-    const tank = /\b(toren|tandon|tangki|tanks?)\b/i.test(m);
+    // Klitik "-nya" ikut: "torennya pindah ke bawah" (audit live 2026-10-08).
+    const tank = /\b(toren|tandon|tangki|tanks?)(?:nya)?\b/i.test(m);
     if (
       tank &&
       /\b(atap|di atas|lantai atas|atas rumah|rooftop|roof|tower|menara|overhead|elevated)\b/i.test(
@@ -82,7 +83,7 @@ const OBVIOUS = {
   // Cadangan bila model dilewati (diet 2026-10-07): sumur atau pompa yang disebut sebagai sumber,
   // bukan pompa pendorong ("pompa booster/pendorong/dorong" adalah `boosterPump`).
   pumpSource: (m: string): NonNullable<Extraction['water']>['source'] => {
-    if (/\b(toren|tandon|tangki|tanks?)\b/i.test(m)) return undefined;
+    if (/\b(toren|tandon|tangki|tanks?)(?:nya)?\b/i.test(m)) return undefined;
     if (/\b(sumur|wells?|borehole|jet pump|pompa air|pompa sumur)\b/i.test(m)) return 'pump';
     if (/\b(?<!booster )(pompa|pumps?)\b(?!\s*(booster|pendorong|dorong))/i.test(m)) return 'pump';
     return undefined;
@@ -128,7 +129,7 @@ const NUMBER_WORDS: Readonly<Record<number, string>> = {
 };
 
 /** Kata benda yang harus berdekatan dengan angkanya — "2 lantai", "lantai dua", "selantai", "2 floors". */
-const COUNT_NOUNS: Readonly<Record<string, string>> = {
+export const COUNT_NOUNS: Readonly<Record<string, string>> = {
   'building.floors': 'lantai|lt|tingkat|floors?|stor(?:e)?ys?|stories|levels?',
   'fixtures.bathrooms': 'kamar mandi|km|toilet|wc|bathrooms?|toilets?|restrooms?',
   'fixtures.basins': 'wastafel|washtafel|westafel|basins?|bak cuci|sinks?|washbasins?',
@@ -247,7 +248,8 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   // `ground_tank` dan lolos. Letak toren adalah pertanyaan yang pantas ditanyakan, bukan ditebak —
   // nilai model dibuang, sumber air masuk klarifikasi.
   const tankWithoutLocation =
-    /\b(toren|tandon|tangki|tanks?)\b/i.test(message) && OBVIOUS.source(message) === undefined;
+    /\b(toren|tandon|tangki|tanks?)(?:nya)?\b/i.test(message) &&
+    OBVIOUS.source(message) === undefined;
   add(
     'water.source',
     OBVIOUS.source(message) ??

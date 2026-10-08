@@ -27,6 +27,15 @@ import {
   isFormatFollowUp,
 } from '../domain/subject.js';
 import type { ReplyTurn } from './reply-writer.js';
+import { CORE_REQUIREMENT_FIELDS } from '@snouty/shared-types';
+import { extractionToUpdates } from './extraction-to-updates.js';
+
+/** Data inti kebutuhan yang tersurat di teks (parser nilai), tanpa model. */
+function coreFactsInText(message: string): number {
+  return extractionToUpdates({}, message).filter((u) =>
+    (CORE_REQUIREMENT_FIELDS as readonly string[]).includes(u.path),
+  ).length;
+}
 
 /** Label model yang kalah oleh isyarat kebutuhan di teks — lihat `withRequirementPrecedence`. */
 const YIELDS_TO_REQUIREMENT: ReadonlySet<Intent> = new Set<Intent>([
@@ -61,6 +70,10 @@ export function certainIntent(
   });
 
   if (fine === 'greeting' || fine === 'out_of_scope' || isSocial(fine)) return sure('OUT_OF_SCOPE');
+  // Policy 1 menang atas apa pun selain basa-basi: "rumah 2 lantai, lebih bagus Pralon atau
+  // Rucika?" adalah pertanyaan pesaing walau bentuk kalimatnya kebutuhan — mereknya tidak boleh
+  // diam-diam diekstrak lalu diabaikan (tinjauan 2026-10-08).
+  if (u.mentionsCompetitor) return sure('COMPETITOR_QUESTION');
   if (fine === 'company_question') {
     // "pabrik Pralon di mana?" menyebut Pralon → perusahaan, walau "pabrik" juga kata kebutuhan;
     // bentuk perusahaan tanpa menyebut Pralon tetapi dengan kebutuhan → biar presedensi memutuskan.
@@ -129,7 +142,17 @@ export function withRequirementPrecedence(
   // jawaban yang salah untuknya (laporan pemilik 2026-10-06, "drainase sawah").
   const recommendationAsLookup =
     classification.intent === 'PRODUCT_LOOKUP' && u.intent?.label === 'advice_request';
-  if (!recommendationAsLookup && (!yields || !u.mentionsRequirement)) return classification;
+  // Pertanyaan produk/pengetahuan yang cuma menyebut tempat ("bedanya pvc aw dan pvc d buat
+  // rumah saya?") tanpa satu pun data inti (lantai, kamar mandi, sumber, jenis instalasi) tetap
+  // pertanyaan produk — ditarik ke ekstraksi hanya memberi formulir, bukan jawaban (audit live
+  // 2026-10-08). Permintaan rekomendasi tetap jalur kebutuhan: nasihatnya memang butuh kebutuhan.
+  const productOnly =
+    isProductQuestion(u.intent?.label) &&
+    u.intent?.label !== 'advice_request' &&
+    coreFactsInText(u.text) === 0;
+  if (!recommendationAsLookup && (!yields || !u.mentionsRequirement || productOnly)) {
+    return classification;
+  }
   return {
     intent: 'REQUIREMENT_STATEMENT',
     confidence: Math.max(classification.confidence, INTENT_CONFIDENCE_THRESHOLD),
@@ -233,6 +256,22 @@ export class IntentRouter {
     // Pesan lanjutan atas subjek aktif tidak diklasifikasi ulang (Fase 16) — nol model.
     const continued = subjectContinuation(u, subject);
     if (continued) return continued;
+
+    // Subjek perusahaan aktif: "pabriknya di mana?", "alamat kantor pusatnya?" adalah pertanyaan
+    // perusahaan walau "pabrik"/"kantor" juga kata kebutuhan dan Pralon tidak disebut lagi —
+    // tanpa ini jalur cepat kebutuhan menyambarnya dan menanyakan jumlah kamar mandi.
+    if (
+      u.intent?.label === 'company_question' &&
+      subject?.kind === 'company' &&
+      u.families.length === 0
+    ) {
+      return {
+        intent: 'COMPANY_QUESTION',
+        confidence: 0.9,
+        shouldExtract: false,
+        mutatesState: false,
+      };
+    }
 
     // Bentuk yang dikenali dari contoh diputuskan di kode, bukan oleh model: "pralon itu apa?"
     // tidak pernah menjadi pencarian produk apa pun kata model (Fase 16). Pesan PERTAMA yang

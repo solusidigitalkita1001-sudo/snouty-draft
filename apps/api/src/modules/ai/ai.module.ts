@@ -22,16 +22,15 @@ import { OpenAiEmbeddingEncoder } from './infrastructure/openai-embedding.encode
 const transportProvider = { provide: LLM_TRANSPORT, useClass: OpenRouterTransport };
 
 /**
- * Penyandi teks untuk modul `understanding`. Digerbang `LLM_MODEL_EMBEDDING` + kunci; tanpa
- * keduanya `null`, dan pemahaman pertanyaan jatuh ke model generatif (lambat, tetapi jujur).
+ * Penyandi teks untuk modul `understanding`. Digerbang `LLM_MODEL_EMBEDDING` saja — Ollama tidak
+ * butuh kunci, dan kunci yang kosong tidak boleh diam-diam mematikan pemahaman (tinjauan
+ * 2026-10-08). Tanpa model: `null`, dan pemahaman jatuh ke model generatif (lambat, tetapi jujur).
  */
 const textEncoderProvider = {
   provide: TEXT_ENCODER,
   useFactory: (): OpenAiEmbeddingEncoder | null => {
     const env = loadEnv();
-    return env.OPENROUTER_API_KEY && env.LLM_MODEL_EMBEDDING
-      ? new OpenAiEmbeddingEncoder(env.LLM_MODEL_EMBEDDING)
-      : null;
+    return env.LLM_MODEL_EMBEDDING ? new OpenAiEmbeddingEncoder(env.LLM_MODEL_EMBEDDING) : null;
   },
 };
 

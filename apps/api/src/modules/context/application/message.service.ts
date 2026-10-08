@@ -244,7 +244,7 @@ export class MessageService {
       await this.rememberSubject(
         conversationId,
         state,
-        productSubject(productQueryOf(u), u, state.subject),
+        productSubject(productQueryOf(u, this.lexicon()), u, state.subject),
       );
       await this.conversations.appendAssistantMessage(
         conversationId,
@@ -304,8 +304,17 @@ export class MessageService {
   }
 
   /** Kosakata entitas; tanpa layanan pemahaman, kosakata kosong (tidak ada nama yang dikenali). */
-  private lexicon(): Pick<EntityLexicon, 'productFamilies'> {
-    return this.understanding?.entities ?? { productFamilies: () => [] };
+  private lexicon(): Pick<
+    EntityLexicon,
+    'productFamilies' | 'isCatalogFamily' | 'isFittingFamily'
+  > {
+    return (
+      this.understanding?.entities ?? {
+        productFamilies: () => [],
+        isCatalogFamily: () => true,
+        isFittingFamily: () => false,
+      }
+    );
   }
 
   /**

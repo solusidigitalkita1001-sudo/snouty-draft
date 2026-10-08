@@ -138,9 +138,12 @@ export function productSubject(
   }
   // "coba bandingin sama pipa PVC" saat subjeknya HDPE: yang dibandingkan adalah keduanya —
   // entitasnya digabung supaya giliran berikutnya ("bedanya sama AW?") tahu apa yang sedang dibahas.
+  // Hanya bila pesan menyebut SATU bahan: "apa bedanya pvc dan hdpe?" sudah lengkap sendiri —
+  // menggabungkannya dengan subjek lama menghasilkan "hdpe dan pvc dan hdpe" (tinjauan 2026-10-08).
   const merged =
     comparison &&
     entity !== null &&
+    u.families.length === 1 &&
     previous?.kind === 'product' &&
     !previous.entity.split(/\s+dan\s+/).includes(entity)
       ? `${previous.entity} dan ${entity}`

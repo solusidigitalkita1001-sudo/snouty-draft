@@ -586,3 +586,89 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
     expect(card.card.kind).toBe('cta');
   });
 });
+
+/**
+ * P16-12 — mutasi RELATIF jumlah: arah dari pemahaman (data), angka dari teks, dihitung atas state.
+ * Verifikasi live 2026-10-08: "tambah satu kamar mandi" atas 3 kamar mandi sempat menjadi 1.
+ */
+describe('runUnderstanding — mutasi relatif (P16-12)', () => {
+  const mutation: RoutingDecision = {
+    intent: 'REQUIREMENT_MUTATION',
+    confidence: 0.9,
+    shouldExtract: true,
+    mutatesState: true,
+  };
+  const withBathrooms = (n: number) =>
+    withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [
+          { path: 'building.floors', value: 2, source: 'user_stated' },
+          { path: 'fixtures.bathrooms', value: n, source: 'user_stated' },
+        ],
+        T0,
+      ).state,
+    );
+
+  it('"tambah satu kamar mandi" atas 3 → 4, tanpa memanggil model', async () => {
+    const ai = aiExtracting({ fixtures: { bathrooms: 1 } });
+    const { nextState } = await runUnderstanding(
+      ai,
+      input({
+        message: 'tambah satu kamar mandi',
+        decision: mutation,
+        state: withBathrooms(3),
+        understanding: understood('tambah satu kamar mandi', {
+          intent: 'requirement_mutation',
+          mutationOp: 'add',
+        }),
+      }),
+    );
+    expect(nextState.fixtures.bathrooms.value).toBe(4);
+    expect(ai.extract).not.toHaveBeenCalled();
+  });
+
+  it('"tambah kamar mandi" tanpa angka = +1; "kurangi 2 kamar mandi" = −2, tidak di bawah nol', async () => {
+    const plus = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'tambah kamar mandi',
+        decision: mutation,
+        state: withBathrooms(3),
+        understanding: understood('tambah kamar mandi', {
+          intent: 'requirement_mutation',
+          mutationOp: 'add',
+        }),
+      }),
+    );
+    expect(plus.nextState.fixtures.bathrooms.value).toBe(4);
+    const minus = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'kurangi 2 kamar mandi',
+        decision: mutation,
+        state: withBathrooms(1),
+        understanding: understood('kurangi 2 kamar mandi', {
+          intent: 'requirement_mutation',
+          mutationOp: 'remove',
+        }),
+      }),
+    );
+    expect(minus.nextState.fixtures.bathrooms.value).toBe(0);
+  });
+
+  it('tanpa arah mutasi ("kamar mandinya jadi 4") nilainya absolut, dan field lain tidak tersentuh', async () => {
+    const { nextState } = await runUnderstanding(
+      // Angka SESUDAH kata benda dibaca model (parser teks hanya membaca "4 kamar mandi").
+      aiExtracting({ fixtures: { bathrooms: 4 } }),
+      input({
+        message: 'kamar mandinya jadi 4',
+        decision: mutation,
+        state: withBathrooms(3),
+        understanding: understood('kamar mandinya jadi 4', { intent: 'requirement_mutation' }),
+      }),
+    );
+    expect(nextState.fixtures.bathrooms.value).toBe(4);
+    expect(nextState.building.floors.value).toBe(2);
+  });
+});

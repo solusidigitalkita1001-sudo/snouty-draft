@@ -53,3 +53,18 @@ export function replyFor(intent: Intent, locale: Locale = DEFAULT_LOCALE): strin
 export function openerReply(locale: Locale = DEFAULT_LOCALE): string {
   return locale === 'en' ? OPENER_REPLY_EN : OPENER_REPLY;
 }
+
+/**
+ * Pesan yang dikenali DI LUAR urusan pipa ("cuaca hari ini gimana?", "bisa kirim ke bandung?"):
+ * bukan sapaan, jadi pembuka "Halo! Saya SNOUTY…" terbaca seperti percakapan di-reset (audit live
+ * 2026-10-08). Katakan batasnya, lalu tawarkan yang bisa dibantu.
+ */
+const OUT_OF_TOPIC_REPLY =
+  'Itu di luar yang bisa saya bantu di sini — saya khusus soal pipa dan instalasi air Pralon. Untuk pengiriman, harga, atau urusan pesanan, tim Pralon yang bisa membantu. Kalau ada kebutuhan pipa atau pertanyaan produk, tinggal tulis.';
+
+const OUT_OF_TOPIC_REPLY_EN =
+  'That is outside what I can help with here — I cover Pralon pipes and water installations only. For delivery, pricing, or order matters, the Pralon team can help. If you have a piping need or a product question, just write it.';
+
+export function outOfTopicReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en' ? OUT_OF_TOPIC_REPLY_EN : OUT_OF_TOPIC_REPLY;
+}

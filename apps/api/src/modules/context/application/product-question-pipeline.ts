@@ -70,7 +70,7 @@ export interface ProductQuestionInput {
   /** Hasil pemahaman pesan (intent, aspek, topik, keluarga produk) — dihitung sekali per giliran. */
   readonly understanding: MessageUnderstanding;
   /** Kosakata entitas, untuk membaca keluarga produk dari teks lain (subjek, jawaban sebelumnya). */
-  readonly lexicon: Pick<EntityLexicon, 'productFamilies'>;
+  readonly lexicon: Pick<EntityLexicon, 'productFamilies' | 'isCatalogFamily' | 'isFittingFamily'>;
 }
 
 /** Pesan lanjutan atas subjek produk: entitas subjek yang ditanya, bukan pesannya. */
@@ -81,9 +81,22 @@ function subjectQuery(input: ProductQuestionInput): string | null {
   return isFollowUp(u) || isFormatFollowUp(u) || isChoiceFollowUp(u) ? subject.entity : null;
 }
 
-/** Keluarga produk kanonis yang disebut pesan — query katalog ("pvc aw dan hdpe"); `null` bila tidak ada. */
-export function productQueryOf(u: MessageUnderstanding): string | null {
-  const families = u.families.slice(0, MAX_PRODUCTS);
+/**
+ * Keluarga produk kanonis yang disebut pesan — query katalog ("pvc aw dan hdpe"); `null` bila tidak
+ * ada. Keluarga yang hanya pengetahuan (galvanis — bukan produk Pralon) tidak dicari ke katalog:
+ * "tidak ada di katalog Pralon" untuk pipa besi bukan informasi, melainkan kebingungan.
+ */
+export function productQueryOf(
+  u: MessageUnderstanding,
+  lexicon: Pick<EntityLexicon, 'isCatalogFamily' | 'isFittingFamily'>,
+): string | null {
+  const catalog = u.families.filter((f) => lexicon.isCatalogFamily(f));
+  // "tee pvc 3/4 ada?" mencari SATU produk (tee dari PVC), bukan dua pencarian "tee" dan "pvc"
+  // yang masing-masing mengembalikan produk sembarang (audit live 2026-10-08).
+  const fittings = catalog.filter((f) => lexicon.isFittingFamily(f));
+  const materials = catalog.filter((f) => !lexicon.isFittingFamily(f));
+  if (fittings.length === 1 && materials.length === 1) return `${fittings[0]} ${materials[0]}`;
+  const families = catalog.slice(0, MAX_PRODUCTS);
   return families.length > 0 ? families.join(' dan ') : null;
 }
 
@@ -179,10 +192,21 @@ export async function runProductQuestion(
   // pertanyaan pengetahuan tanpa keluarga produk ("pipa buat air panas pake apa?") sudah terjawab
   // dari pengetahuan milik kode. Di CPU, satu panggilan model ±1 menit (uji proaktif 2026-10-07).
   const continued = subjectQuery(input);
-  const named = productQueryOf(u);
+  const named = productQueryOf(u, input.lexicon);
   const knowledgeOnly = named === null && u.knowledgeTopics.length > 0;
+  // "standarnya apa?" / "ukurannya apa aja?" saat subjeknya HDPE: aspek dari contoh, produknya
+  // dari subjek — bukan "Produk mana yang Anda maksud?" setelah satu menit model (tinjauan
+  // 2026-10-08). Ragam produk ("produk Pralon apa aja?") pun sudah diputuskan intent-nya.
+  const fromSubject =
+    u.productAspect !== null && input.subject?.kind === 'product' ? input.subject.entity : null;
+  const settled =
+    continued !== null ||
+    named !== null ||
+    knowledgeOnly ||
+    fromSubject !== null ||
+    u.intent?.label === 'product_range';
   let parsed: ProductQuestionParse | null = null;
-  if (continued === null && named === null && !knowledgeOnly) {
+  if (!settled) {
     try {
       parsed = await ai.parseProductQuestion(input.message);
     } catch (error) {
@@ -190,7 +214,7 @@ export async function runProductQuestion(
       parsed = null;
     }
   }
-  const query = continued ?? named ?? parsed?.productQuery ?? null;
+  const query = continued ?? named ?? fromSubject ?? parsed?.productQuery ?? null;
   // Lanjutan ("lebih detail dong") memperdalam penjelasan konsep; aspek hanya dari pesan nyata —
   // dan tidak pernah dari pertanyaan konsep ("apa bedanya fitting sama HDPE?"), apa pun kata model.
   const conceptual = isConceptual(u.intent?.label);
@@ -252,9 +276,12 @@ async function answerConcept(
   // "apa bedanya fitting sama HDPE?" sudah menyebut KEDUA hal yang dibandingkan (komponen + bahan):
   // subjek sebelumnya (mis. PVC vs HDPE) tidak ditarik masuk — verifikasi live 2026-10-08.
   const comparesConcept = u.knowledgeTopics.includes('fitting');
+  // Hanya bila pesan menyebut SATU keluarga: "pvc aw sama pvc d bedanya apa?" menyebut dua (satu
+  // bahan) dan sudah lengkap sendiri — subjek HDPE sebelumnya tidak boleh ikut (audit 2026-10-08).
   const comparedWithSubject =
     comparison &&
     !comparesConcept &&
+    u.families.length === 1 &&
     named.length === 1 &&
     fromSubject.some((m) => !named.includes(m));
   // Bahan subjek hanya ikut saat dibandingkan; pertanyaan pengetahuan tanpa bahan ("pipa buat air

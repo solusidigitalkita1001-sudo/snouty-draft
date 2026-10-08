@@ -431,7 +431,8 @@
       "depth": null,
       "format": null,
       "productAspect": null,
-      "topics": []
+      "topics": [],
+      "mutationOp": null
     },
     {
       "text": "kos 3 lantai 12 kamar mandi, sumber air sumur pakai pompa",
@@ -479,15 +480,18 @@
       "depth": null,
       "format": null,
       "productAspect": null,
-      "topics": []
+      "topics": [],
+      "mutationOp": "add"
     },
     {
       "text": "ubah jadi 3 lantai",
-      "intent": "requirement_mutation"
+      "intent": "requirement_mutation",
+      "mutationOp": null
     },
     {
       "text": "add one more bathroom",
-      "intent": "requirement_mutation"
+      "intent": "requirement_mutation",
+      "mutationOp": "add"
     },
     {
       "text": "dari pdam",
@@ -659,6 +663,60 @@
       "topics": ["air panas"],
       "topicsOnly": true,
       "$comment": "live 2026-10-08: sambungan lem ikut cocok (0,75) padahal tidak ditanya"
+    },
+    {
+      "text": "tambahin satu wastafel lagi",
+      "intent": "requirement_mutation",
+      "mutationOp": "add"
+    },
+    {
+      "text": "kurangi satu kamar mandi",
+      "intent": "requirement_mutation",
+      "mutationOp": "remove"
+    },
+    {
+      "text": "hapus dapurnya",
+      "intent": "requirement_mutation",
+      "mutationOp": "remove"
+    },
+    {
+      "text": "kamar mandinya jadi 4",
+      "intent": "requirement_mutation",
+      "mutationOp": null
+    },
+    {
+      "text": "remove one bathroom",
+      "intent": "requirement_mutation",
+      "mutationOp": "remove"
+    },
+    {
+      "text": "pvc d ada ukuran 4 inch?",
+      "intent": "product_spec",
+      "productAspect": "size_availability",
+      "families": ["pvc d"],
+      "$comment": "audit live 2026-10-08: sempat terbaca pertanyaan harga"
+    },
+    {
+      "text": "elbow hdpe 63 ada?",
+      "intent": "product_spec",
+      "productAspect": "size_availability",
+      "families": ["elbow", "hdpe"]
+    },
+    {
+      "text": "pipa pvc kalau bocor di sambungan gimana?",
+      "intent": "knowledge_question",
+      "topics": ["perawatan dan gangguan"],
+      "$comment": "topik gangguan harus di depan sambungan lem"
+    },
+    {
+      "text": "pvcnya gimana?",
+      "intent": "product_concept",
+      "families": ["pvc"]
+    },
+    {
+      "text": "pipa galvanis masih dijual?",
+      "intent": "product_concept",
+      "families": ["galvanis"]
     }
   ]
 }

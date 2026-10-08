@@ -21,6 +21,7 @@ import type {
   FineIntent,
   FormatLabel,
   KnowledgeTopicLabel,
+  MutationOpLabel,
   ProductAspectLabel,
 } from '../domain/labels.js';
 import type { EntityLexicon } from '../domain/vocabulary.js';
@@ -28,13 +29,17 @@ import type { VectorCache } from '../infrastructure/file-vector.cache.js';
 import { unavailableUnderstanding, type MessageUnderstanding } from './message-understanding.js';
 
 const QUERY_CACHE_MAX = 500;
+/** Jeda sebelum pemanasan yang gagal dicoba lagi — cukup untuk Ollama bangun, tidak membanjirinya. */
+const RETRY_MS = 60_000;
 
 export class UnderstandingService {
   private readonly embedded = new Map<CatalogName, EmbeddedExample[]>();
   private readonly byName = new Map<CatalogName, Catalog>();
   private readonly queryCache = new Map<string, Float32Array>();
-  private readonly readiness: Promise<void>;
+  private readiness: Promise<void>;
   private ready = false;
+  /** Pemanasan gagal (Ollama belum siap, batch kehabisan waktu): dicoba lagi, bukan mati seumur proses. */
+  private failedAt: number | null = null;
 
   constructor(
     catalogs: readonly Catalog[],
@@ -63,7 +68,19 @@ export class UnderstandingService {
   }
 
   async understand(message: string): Promise<MessageUnderstanding> {
+    // Pesan tanpa huruf/angka ("   ?", "👍") tidak mirip apa pun — tanpa ini, vektor dari tanda baca
+    // saja "mirip" contoh pendek sembarang (audit live 2026-10-08: "   ?" dijawab kebijakan harga).
+    if (!/[\p{L}\p{N}]/u.test(message)) return unavailableUnderstanding(message, this.lexicon);
     await this.readiness;
+    if (
+      !this.ready &&
+      this.encoder &&
+      this.failedAt !== null &&
+      Date.now() - this.failedAt >= RETRY_MS
+    ) {
+      this.readiness = this.warmUp();
+      await this.readiness;
+    }
     if (!this.ready) return unavailableUnderstanding(message, this.lexicon);
     let query: Float32Array;
     try {
@@ -90,6 +107,8 @@ export class UnderstandingService {
         (this.verdict('product-aspect', query).best?.label as ProductAspectLabel | undefined) ??
         null,
       knowledgeTopics: knowledge.matched.map((m) => m.label as KnowledgeTopicLabel),
+      mutationOp:
+        (this.verdict('mutation-op', query).best?.label as MutationOpLabel | undefined) ?? null,
       families: this.lexicon.productFamilies(message),
       mentionsCompetitor: this.lexicon.mentionsCompetitor(message),
       mentionsOwnBrand: this.lexicon.mentionsOwnBrand(message),
@@ -141,16 +160,23 @@ export class UnderstandingService {
       return;
     }
     const started = Date.now();
+    this.failedAt = null;
     try {
+      let flushed = true;
       for (const catalog of this.byName.values()) {
+        if (this.embedded.has(catalog.name as CatalogName)) continue; // sudah dari percobaan sebelumnya
         const examples = examplesOf(catalog);
         const vectors = await this.vectorsFor(examples.map((e) => e.text.toLowerCase()));
         this.embedded.set(
           catalog.name as CatalogName,
           examples.map((e, i) => ({ ...e, vector: vectors[i]! })),
         );
+        // Disimpan per katalog: pemanasan yang gagal di tengah (±7 menit di CPU server) tidak
+        // mengulang katalog yang sudah selesai.
+        flushed = ((await this.cache?.flush()) ?? true) && flushed;
       }
-      const flushed = (await this.cache?.flush()) ?? true;
+      // Setelah SEMUA katalog: vektor contoh yang sudah dihapus dari data dibuang dari berkas.
+      flushed = ((await this.cache?.prune()) ?? true) && flushed;
       if (!flushed) {
         this.logger?.warn(
           { dir: this.cache?.dir },
@@ -168,7 +194,11 @@ export class UnderstandingService {
         'contoh pemahaman tersandi',
       );
     } catch (error) {
-      this.logger?.error({ err: error }, 'penyandian contoh pemahaman gagal');
+      this.failedAt = Date.now();
+      this.logger?.error(
+        { err: error, retryInMs: RETRY_MS },
+        'penyandian contoh pemahaman gagal — dicoba lagi pada pesan berikutnya',
+      );
     }
   }
 

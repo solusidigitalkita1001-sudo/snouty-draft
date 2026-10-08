@@ -130,7 +130,6 @@
     "tank",
     "tanks",
     "rooftop",
-    "well",
     "wells",
     "pump",
     "pumps",
@@ -148,7 +147,6 @@
     "mosque",
     "clinic",
     "hospital",
-    "tap",
     "taps",
     "faucet",
     "faucets",
@@ -183,6 +181,10 @@
     "housing complex",
     "apartment",
     "borehole",
-    "deep well"
-  ]
+    "deep well",
+    "water well",
+    "water tap"
+  ],
+  "knowledgeOnlyFamilies": ["galvanis"],
+  "fittingFamilies": ["tee", "elbow", "reducer", "socket"]
 }

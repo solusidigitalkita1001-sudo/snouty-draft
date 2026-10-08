@@ -106,6 +106,13 @@ export type KnowledgeTopicLabel = (typeof KNOWLEDGE_TOPICS)[number];
  */
 export const NONE_LABEL = 'none';
 
+/**
+ * Arah MUTASI kebutuhan (P16-12): "tambah satu kamar mandi" menambah atas state, "kurangi satu
+ * wastafel" mengurangi; tanpa label (atau `none`: "kamar mandinya jadi 4") nilainya absolut.
+ */
+export const MUTATION_OPS = ['add', 'remove'] as const;
+export type MutationOpLabel = (typeof MUTATION_OPS)[number];
+
 /** Nama katalog data → label yang sah di dalamnya. */
 export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   intent: FINE_INTENTS,
@@ -114,6 +121,7 @@ export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   'company-topic': COMPANY_TOPICS,
   'product-aspect': PRODUCT_ASPECTS,
   'knowledge-topic': KNOWLEDGE_TOPICS,
+  'mutation-op': MUTATION_OPS,
 };
 export type CatalogName = keyof typeof CATALOG_LABELS;
 

@@ -145,7 +145,7 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
 `understanding`:
 
 - **Contoh sebagai data.** `data/understanding/*.json`: satu katalog per keputusan — `intent`
-  (28 label halus: sapaan, terima kasih, pesaing, konsep/perbandingan/spesifikasi/ragam/harga produk,
+  (27 label halus: sapaan, terima kasih, pesaing, konsep/perbandingan/spesifikasi/ragam/harga produk,
   pertanyaan guna/pengetahuan/rekomendasi, kebutuhan bangunan/irigasi/teknis/mutasi/jawaban
   klarifikasi, penjelasan, enam jenis lanjutan), `depth`, `format`, `company-topic`,
   `product-aspect`, `knowledge-topic` (multi-label). Tiap label berisi kalimat contoh dua bahasa.

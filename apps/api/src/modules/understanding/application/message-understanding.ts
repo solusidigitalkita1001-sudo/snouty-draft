@@ -13,6 +13,7 @@ import type {
   FineIntent,
   FormatLabel,
   KnowledgeTopicLabel,
+  MutationOpLabel,
   ProductAspectLabel,
 } from '../domain/labels.js';
 
@@ -31,6 +32,8 @@ export interface MessageUnderstanding {
   readonly companyTopic: CompanyTopicLabel | null;
   readonly productAspect: ProductAspectLabel | null;
   readonly knowledgeTopics: readonly KnowledgeTopicLabel[];
+  /** Arah mutasi kebutuhan (P16-12): tambah/kurangi atas state; `null` = nilai absolut. */
+  readonly mutationOp: MutationOpLabel | null;
   /** Keluarga produk yang disebut (kosakata), kanonis, urut kemunculan. */
   readonly families: readonly string[];
   readonly mentionsCompetitor: boolean;
@@ -60,6 +63,7 @@ export function unavailableUnderstanding(
     companyTopic: null,
     productAspect: null,
     knowledgeTopics: [],
+    mutationOp: null,
     families: lexicon?.productFamilies(text) ?? [],
     mentionsCompetitor: lexicon?.mentionsCompetitor(text) ?? false,
     mentionsOwnBrand: lexicon?.mentionsOwnBrand(text) ?? false,

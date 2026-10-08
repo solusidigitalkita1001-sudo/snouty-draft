@@ -299,9 +299,15 @@ export function conceptsFor(
   families: readonly string[] = [],
 ): readonly ConceptKnowledge[] {
   const lower = families.map((f) => f.toLowerCase());
+  // Urutan mengikuti urutan topik yang diberikan (topik terdekat dulu): "pipa pvc kalau bocor di
+  // sambungan gimana?" dibuka dengan gangguan, bukan cara mengelem (audit live 2026-10-08).
+  const rank = (c: ConceptKnowledge): number => {
+    const index = topics.indexOf(c.topic);
+    return index >= 0 ? index : topics.length;
+  };
   return CONCEPTS.filter(
     (c) => topics.includes(c.topic) || (c.families?.some((f) => lower.includes(f)) ?? false),
-  );
+  ).sort((a, b) => rank(a) - rank(b));
 }
 
 /**

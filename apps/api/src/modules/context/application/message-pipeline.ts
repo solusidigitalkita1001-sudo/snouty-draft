@@ -60,10 +60,12 @@ import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
 import { requirementFieldLabel, requirementValueLabel } from '../domain/requirement-labels.js';
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
+import { applyRelativeCounts } from '../domain/relative-counts.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsFor } from './pipe-knowledge.js';
-import { openerReply, replyFor } from './reply-copy.js';
+import { productAnswerCopy } from './product-answer-text.js';
+import { openerReply, outOfTopicReply, replyFor } from './reply-copy.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 
 export interface PipelineInput {
@@ -123,7 +125,10 @@ export async function runUnderstanding(
     // Sapaan/di luar topik, minta penjelasan, atau model ragu: bukan ruas ekstraksi,
     // tetapi tetap dijawab — giliran yang ditutup tanpa sepatah kata terbaca sebagai
     // kerusakan. (Lookup produk punya ruasnya sendiri sebelum sampai ke sini.)
-    const fallback = replyFor(input.decision.intent, input.locale);
+    const fallback =
+      input.understanding?.intent?.label === 'out_of_scope'
+        ? outOfTopicReply(input.locale)
+        : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Teks tetap, tanpa model. Dulu sapaan/di luar topik diserahkan ke model (tanpa DATA → nol
       // angka); di CPU itu 40–50 detik untuk sebuah sapaan (diet panggilan model, 2026-10-07).
@@ -180,7 +185,13 @@ export async function runUnderstanding(
   // gorong-gorong, sumur, cluster, gedung. Fakta tersurat → parameter universal; yang kurang
   // ditanya dengan redaksi registry; kalkulator per kasus — sampai ada, muaranya validasi
   // teknis terstruktur. Nol LLM.
-  const technicalCase = detectTechnicalCase(input.message, input.state);
+  // Kebutuhan BANGUNAN yang menyebut sumur/pompa sebagai sumber air ("boarding house, 3 floors,
+  // 12 bathrooms, water from a well with a pump") bukan kasus distribusi sumur — bentuk kalimatnya
+  // dikenali pemahaman; kasus teknis yang sudah berjalan tetap dilanjutkan (audit live 2026-10-08).
+  const buildingNeed =
+    input.understanding?.intent?.label === 'requirement_building' &&
+    input.state.useCase?.kind !== 'technical';
+  const technicalCase = buildingNeed ? null : detectTechnicalCase(input.message, input.state);
   if (technicalCase !== null) {
     const applied = applyTechnicalFacts(input.state, technicalCase, input.message);
     events.push({ type: 'requirement.updated', state: applied.state });
@@ -217,7 +228,15 @@ export async function runUnderstanding(
   const quickCore = extractionToUpdates({}, input.message).filter((u) =>
     CORE_REQUIREMENT_FIELDS.includes(u.path as (typeof CORE_REQUIREMENT_FIELDS)[number]),
   ).length;
-  const skipModel = quickCore >= 2;
+  // Mutasi relatif yang arahnya dikenali ("tambah satu kamar mandi", P16-12): angkanya dari teks,
+  // arahnya dari contoh — model tidak menambah apa pun selain 10–100 detik.
+  const mutationOp = input.understanding?.mutationOp ?? null;
+  // Permintaan rekomendasi tanpa satu pun hal kebutuhan ("mending pvc apa hdpe?"): tidak ada yang
+  // bisa diekstrak — langsung nasihat bahan + kartu klarifikasi, bukan 100 detik model dulu.
+  const adviceOnly =
+    input.understanding?.intent?.label === 'advice_request' &&
+    !input.understanding.mentionsRequirement;
+  const skipModel = quickCore >= 2 || mutationOp !== null || adviceOnly;
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
     extraction = skipModel ? {} : await ai.extract(input.message);
@@ -242,7 +261,14 @@ export async function runUnderstanding(
     // Kosong dinilai SETELAH fakta tersurat dari teks ikut dihitung (`extractionToUpdates`):
     // "rumah 2 lantai, tidak ada dapur" dengan model yang mengembalikan {} bukan pembuka
     // (produksi 2026-10-07 — sempat dijawab "silakan tanyakan saja").
-    const updates = extractionToUpdates(extraction, input.message);
+    // "tambah satu kamar mandi" atas 3 kamar mandi = 4, bukan 1 (P16-12): jumlah dihitung relatif
+    // terhadap state bila arah mutasinya dikenali; field lain tetap absolut.
+    const updates = applyRelativeCounts(
+      extractionToUpdates(extraction, input.message),
+      input.message,
+      input.state,
+      mutationOp,
+    );
     if (extractionFailed && updates.length === 0) {
       // Model gagal dan teksnya tidak memuat fakta yang bisa dibaca kode: tanya yang kurang.
       events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'failed' });
@@ -259,7 +285,9 @@ export async function runUnderstanding(
     if (
       input.decision.intent === 'REQUIREMENT_STATEMENT' &&
       isEmptyExtraction(extraction) &&
-      updates.length === 0
+      updates.length === 0 &&
+      // "mending pvc apa hdpe?" bukan pembuka: nasihat bahannya ditulis di bawah.
+      !adviceOnly
     ) {
       events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'done', detail: '0 DATA' });
       const written =
@@ -293,6 +321,13 @@ export async function runUnderstanding(
   // Pertanyaan REKOMENDASI bahan ("lebih bagus PVC atau HDPE buat rumah 2 lantai?"): kebutuhannya
   // tetap diekstrak seperti biasa, tetapi pertanyaannya dijawab — bukan diam lalu menyodorkan
   // formulir, dan bukan mengulang penjelasan bahan. Teks dari pengetahuan milik kode.
+  // "harga pipa buat rumah 2 lantai berapa?": kebutuhannya dicatat, tetapi pertanyaan harganya
+  // tetap dijawab (kebijakan OQ-03) — bukan dibiarkan menguap di balik kartu (audit live 2026-10-08).
+  if (input.understanding?.intent?.label === 'price_question') {
+    events.push({ type: 'token', text: productAnswerCopy(locale).priceNotShown });
+    events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } });
+  }
+
   const materials =
     input.understanding?.intent?.label === 'advice_request'
       ? materialsFor(input.understanding.families)

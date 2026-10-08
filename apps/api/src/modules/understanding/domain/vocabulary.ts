@@ -12,6 +12,13 @@ export const VocabularySchema = z.object({
   ownBrand: z.array(z.string().trim().min(1)).min(1),
   /** Keluarga produk kanonis → alias yang dipakai pengguna. */
   productFamilies: z.record(z.string().trim().min(1), z.array(z.string().trim().min(1)).min(1)),
+  /**
+   * Keluarga yang hanya PENGETAHUAN (galvanis): dikenali untuk dijelaskan, tetapi bukan produk
+   * Pralon — tidak pernah dicari ke katalog, jadi tidak ada klaim "tidak ada di katalog".
+   */
+  knowledgeOnlyFamilies: z.array(z.string().trim().min(1)).default([]),
+  /** Keluarga yang merupakan JENIS FITTING (tee, elbow): digabung dengan bahannya saat mencari katalog. */
+  fittingFamilies: z.array(z.string().trim().min(1)).default([]),
   /** Nama merek pesaing. */
   competitorBrands: z.array(z.string().trim().min(1)),
   /** Rujukan umum ke merek lain ("merek lain", "kompetitor"). */
@@ -33,12 +40,22 @@ function escape(alias: string): string {
   return alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s*');
 }
 
+/**
+ * Nama pada batas kata, dengan klitik "-nya" yang boleh menempel ("pvcnya", "pralonnya"):
+ * tanpa ini "pvcnya gimana?" tidak mengenali PVC (tinjauan 2026-10-08).
+ */
+function bounded(alias: string): string {
+  return `(?<![a-z0-9])${escape(alias)}(?:nya)?(?![a-z0-9])`;
+}
+
 /** Pencocokan nama pada batas kata, alias terpanjang dulu supaya "pvc aw" menang atas "pvc". */
 export class EntityLexicon {
   private readonly families: readonly Alias[];
   private readonly competitors: RegExp;
   private readonly own: RegExp;
   private readonly requirements: RegExp;
+  private readonly knowledgeOnly: ReadonlySet<string>;
+  private readonly fittings: ReadonlySet<string>;
 
   constructor(vocabulary: Vocabulary) {
     this.families = Object.entries(vocabulary.productFamilies)
@@ -46,8 +63,10 @@ export class EntityLexicon {
       .sort((a, b) => b.alias.length - a.alias.length)
       .map(({ canonical, alias }) => ({
         canonical,
-        pattern: new RegExp(`(?<![a-z0-9])${escape(alias)}(?![a-z0-9])`, 'i'),
+        pattern: new RegExp(bounded(alias), 'i'),
       }));
+    this.knowledgeOnly = new Set(vocabulary.knowledgeOnlyFamilies.map((f) => f.toLowerCase()));
+    this.fittings = new Set(vocabulary.fittingFamilies.map((f) => f.toLowerCase()));
     const competitorTerms = [...vocabulary.competitorBrands, ...vocabulary.competitorReferences];
     this.competitors = anyOf(competitorTerms);
     this.own = anyOf(vocabulary.ownBrand);
@@ -80,9 +99,19 @@ export class EntityLexicon {
   mentionsRequirementEntity(text: string): boolean {
     return this.requirements.test(text);
   }
+
+  /** Keluarga yang dicari ke katalog Pralon (bukan keluarga yang hanya pengetahuan, mis. galvanis). */
+  isCatalogFamily(family: string): boolean {
+    return !this.knowledgeOnly.has(family.toLowerCase());
+  }
+
+  /** Keluarga jenis fitting (tee, elbow, …) — bukan bahan. */
+  isFittingFamily(family: string): boolean {
+    return this.fittings.has(family.toLowerCase());
+  }
 }
 
 function anyOf(terms: readonly string[]): RegExp {
   if (terms.length === 0) return /$^/;
-  return new RegExp(`(?<![a-z0-9])(?:${terms.map(escape).join('|')})(?![a-z0-9])`, 'i');
+  return new RegExp(`(?:${terms.map(bounded).join('|')})`, 'i');
 }

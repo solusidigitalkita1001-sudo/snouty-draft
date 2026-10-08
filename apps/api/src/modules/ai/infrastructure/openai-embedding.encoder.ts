@@ -34,8 +34,9 @@ export class OpenAiEmbeddingEncoder implements TextEncoder {
       response = await fetch(`${env.OPENROUTER_BASE_URL}/embeddings`, {
         method: 'POST',
         headers: {
-          authorization: `Bearer ${env.OPENROUTER_API_KEY ?? ''}`,
           'content-type': 'application/json',
+          // Ollama tidak memeriksa kunci; header hanya dikirim bila kuncinya memang ada.
+          ...(env.OPENROUTER_API_KEY ? { authorization: `Bearer ${env.OPENROUTER_API_KEY}` } : {}),
         },
         body: JSON.stringify({ model: this.id, input: texts }),
         signal: AbortSignal.timeout(env.LLM_CALL_TIMEOUT_MS),

@@ -15,6 +15,8 @@ export interface VectorCache {
   set(encoderId: string, text: string, vector: Float32Array): void;
   /** `false` bila ada berkas yang gagal ditulis — pemanggil mencatatnya, boot berikutnya menyandikan ulang. */
   flush(): Promise<boolean>;
+  /** Membuang vektor contoh yang tidak dipakai lagi (contoh dihapus dari data) lalu menulis ulang. */
+  prune(): Promise<boolean>;
 }
 
 export class FileVectorCache implements VectorCache {
@@ -23,13 +25,24 @@ export class FileVectorCache implements VectorCache {
 
   constructor(readonly dir: string = join(tmpdir(), 'snouty-understanding')) {}
 
+  /** Kunci yang dipakai proses ini — contoh yang sudah dihapus dari data tidak ditulis lagi. */
+  private readonly touched = new Map<string, Set<string>>();
+
   get(encoderId: string, text: string): Float32Array | undefined {
-    const values = this.table(encoderId).get(hash(text));
+    const key = hash(text);
+    const values = this.table(encoderId).get(key);
+    if (values) this.touch(encoderId, key);
     return values ? Float32Array.from(values) : undefined;
   }
 
   set(encoderId: string, text: string, vector: Float32Array): void {
-    this.table(encoderId).set(hash(text), Array.from(vector));
+    const key = hash(text);
+    // Lima desimal cukup untuk kosinus (selisih < 1e-5); berkasnya ±40% lebih kecil.
+    this.table(encoderId).set(
+      key,
+      Array.from(vector, (v) => Number(v.toFixed(5))),
+    );
+    this.touch(encoderId, key);
     this.dirty.add(encoderId);
   }
 
@@ -50,6 +63,28 @@ export class FileVectorCache implements VectorCache {
     }
     this.dirty = new Set();
     return ok;
+  }
+
+  async prune(): Promise<boolean> {
+    for (const [encoderId, table] of this.files) {
+      const used = this.touched.get(encoderId) ?? new Set<string>();
+      for (const key of [...table.keys()]) {
+        if (!used.has(key)) {
+          table.delete(key);
+          this.dirty.add(encoderId);
+        }
+      }
+    }
+    return this.flush();
+  }
+
+  private touch(encoderId: string, key: string): void {
+    let keys = this.touched.get(encoderId);
+    if (!keys) {
+      keys = new Set();
+      this.touched.set(encoderId, keys);
+    }
+    keys.add(key);
   }
 
   private table(encoderId: string): Map<string, number[]> {

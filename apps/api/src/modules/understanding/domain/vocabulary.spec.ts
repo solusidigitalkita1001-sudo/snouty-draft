@@ -36,7 +36,9 @@ describe('EntityLexicon', () => {
 
   it('merek sendiri, pesaing (merek atau rujukan), dan hal-hal kebutuhan', () => {
     expect(lexicon.mentionsOwnBrand('PT Pralon yang gw maksud')).toBe(true);
-    expect(lexicon.mentionsOwnBrand('pralonnya')).toBe(false);
+    // Klitik "-nya" menempel pada nama tetap nama (tinjauan 2026-10-08); "pralonx" bukan.
+    expect(lexicon.mentionsOwnBrand('pralonnya')).toBe(true);
+    expect(lexicon.mentionsOwnBrand('pralonx')).toBe(false);
     expect(lexicon.mentionsCompetitor('pralon vs rucika')).toBe(true);
     expect(lexicon.mentionsCompetitor('dibanding merek lain gimana?')).toBe(true);
     expect(lexicon.mentionsCompetitor('produk pralon yang terkenal apa?')).toBe(false);

@@ -1018,11 +1018,32 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       service); spec subjek/sosial/router/pipeline produk/pengetahuan pipa/Inggris/adapter AI
       ditulis ulang atas helper `understood()` (label eksplisit + kosakata asli); 825 tes unit
       `@snouty/api` hijau.
-- [ ] P16-12 Mutasi RELATIF kebutuhan (temuan verifikasi live P16-11, 2026-10-08): "tambah satu kamar
-      mandi" atas state 3 kamar mandi menghasilkan 1, bukan 4 — ekstraksi/grounding membaca "satu kamar
-      mandi" sebagai nilai absolut. Perlu semantik tambah/kurangi di merger (nilai relatif dihitung dari
-      state, bukan dari model), dengan tes. Routing-nya sendiri sudah benar (REQUIREMENT_MUTATION, 12 s
-      karena ekstraksi model).
+- [x] P16-12 Mutasi RELATIF kebutuhan — selesai 2026-10-08. Katalog data baru `mutation-op`
+      (`add`/`remove`/`none`): arah dari contoh, angka dari teks (tanpa angka = 1), dihitung atas
+      state (`context/domain/relative-counts.ts`), tidak di bawah nol; model ekstraksi dilewati bila
+      arahnya dikenali. "tambah satu kamar mandi" atas 3 → 4 (sebelumnya 1).
+- [x] P16-13 Audit sistem 2026-10-08 (tinjauan kode adversarial + uji hitam-kotak di produksi, ±70
+      giliran). Diperbaiki: (1) merek pesaing di kalimat kebutuhan kini selalu Policy 1; (2) subjek
+      perusahaan aktif menang atas jalur cepat kebutuhan ("pabriknya di mana?"); (3) pertanyaan
+      produk yang hanya menyebut "rumah saya" tanpa data inti tetap pertanyaan produk; (4) ragam
+      produk dan pertanyaan aspek atas subjek produk tidak lagi memanggil model pemeta (sempat 23–38
+      s; "standarnya apa?" kini dijawab dari subjek); (5) "pvc aw vs pvc d" tidak menarik HDPE dari
+      subjek; (6) "tee pvc 3/4" dicari sebagai satu istilah, galvanis tidak dicari ke katalog
+      (`knowledgeOnlyFamilies`/`fittingFamilies` di kosakata); (7) parser ukuran: kelas produk (PE
+      100, PN, SDR) dan jumlah bangunan bukan ukuran, mm tidak lagi dibaca inci, pecahan campuran;
+      (8) kebutuhan bangunan ber-sumur/pompa tidak lagi dibelokkan ke kasus distribusi sumur; (9)
+      pertanyaan harga di dalam kebutuhan tetap dijawab kebijakan harga; (10) "torennya" (klitik)
+      terbaca; "pvcnya"/"pralonnya" dikenali kosakata; (11) di luar topik dijawab batasnya, bukan
+      sapaan pembuka; (12) "mending pvc apa hdpe?" langsung nasihat tanpa ekstraksi model; (13)
+      pesan tanpa huruf/angka tidak disandikan (" ?" sempat dijawab kebijakan harga); (14)
+      pemanasan penyandi yang gagal dicoba ulang setelah 60 s dan disimpan per katalog; (15) penyandi
+      tidak lagi butuh kunci API; cache vektor dibulatkan 5 desimal dan dipangkas dari contoh yang
+      dihapus; (16) urutan konsep mengikuti topik terdekat ("bocor di sambungan" dibuka dengan
+      gangguan). Tes: `audit-2026-10-08.spec.ts` (13), `size-parser.spec.ts`,
+      `file-vector.cache.spec.ts`, mutasi relatif +3; golden set 125/125. Sisa yang BUKAN cacat kode
+      (dicatat, tidak diubah): katalog Pralon aktif hampir seluruh spesifikasinya `UNAVAILABLE` (data
+      impor ERP, OQ-55); irigasi belum punya field debit; jawaban "pabrik di mana" menunggu data
+      lokasi resmi (OQ-54); laporan untuk tamu memang terkunci (entitlement).
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
