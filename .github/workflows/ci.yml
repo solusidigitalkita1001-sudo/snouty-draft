@@ -29,11 +29,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+        with:
+          # gitleaks memindai seluruh riwayat, bukan hanya commit teratas.
+          fetch-depth: 0
+      # Skrip pagar Node murni tanpa dependensi: tanpa pnpm dan tanpa cache. Cache pnpm tanpa
+      # `pnpm install` membuat langkah penutup setup-node gagal (run pertama CI, 2026-10-08).
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
 
       # packages/engineering harus tetap tanpa dependensi runtime (SPEC §8, §25).
       - run: node scripts/check-engineering-isolation.mjs
