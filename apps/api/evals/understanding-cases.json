@@ -803,6 +803,36 @@
       "intent": "use_question",
       "topics": ["air panas"],
       "$comment": "live P16-14"
+    },
+    {
+      "text": "PT pralon product nya apa aja ?",
+      "intent": "product_range",
+      "source": "pemilik 2026-10-08",
+      "companyTopic": "products",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
+    },
+    {
+      "text": "pralon produknya apa aja ya?",
+      "intent": "product_range",
+      "source": "pemilik 2026-10-08",
+      "companyTopic": "products",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
+    },
+    {
+      "text": "produk dari pt pralon tu apa aja",
+      "intent": "product_range",
+      "source": "pemilik 2026-10-08",
+      "companyTopic": "products",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": []
     }
   ]
 }

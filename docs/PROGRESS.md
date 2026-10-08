@@ -1130,7 +1130,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-22 "PT Pralon produknya apa aja?" dibalas "Produk mana yang Anda maksud?" (laporan
       pemilik 2026-10-08) — selesai. Pertanyaan produk tanpa produk yang disebut kini dijawab ragam
       keluarga produk Pralon; nama yang disebut tetapi tidak ada di katalog dikatakan dulu, lalu
-      ragamnya. Teks bertanya-balik dihapus. Tes diperbarui.
+      ragamnya. Teks bertanya-balik dihapus. Kalimatnya juga belum dikenali dari contoh, jadi jatuh ke
+      model generatif (±25 detik): +6 contoh `product_range` di `data/understanding/intent.json`,
+      +3 kasus golden; evaluasi intent 132/132. Tes diperbarui.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
