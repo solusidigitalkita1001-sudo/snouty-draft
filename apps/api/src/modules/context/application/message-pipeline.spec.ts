@@ -485,6 +485,32 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(events.some((e) => e.type === 'card')).toBe(false);
   });
 
+  it('sapaan kedua ("hai" lalu "gw mau nanya2 nih"): tidak memperkenalkan diri lagi, mengajak bertanya', async () => {
+    const decision: RoutingDecision = {
+      intent: 'OUT_OF_SCOPE',
+      confidence: 0.9,
+      shouldExtract: false,
+      mutatesState: false,
+    };
+    const { events } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'gw mau nanya2 nih',
+        decision,
+        recentTurns: [
+          { role: 'user', text: 'hai' },
+          {
+            role: 'assistant',
+            text: 'Halo! Saya SNOUTY, asisten perencanaan pipa air bersih Pralon.',
+          },
+        ],
+      }),
+    );
+    const text = events.find((e) => e.type === 'token') as { text: string };
+    expect(text.text).not.toContain('Halo! Saya SNOUTY');
+    expect(text.text).toContain('Silakan, tanyakan saja');
+  });
+
   it('pembuka tanpa fakta ("mau nanya2 dong") berlabel REQUIREMENT_STATEMENT: dijawab ajakan bertanya, bukan formulir klarifikasi', async () => {
     // Keluaran asli qwen2.5 7B di produksi: label pernyataan kebutuhan, ekstraksi kerangka kosong.
     const ai = aiExtracting({ building: {}, fixtures: {}, water: {} });

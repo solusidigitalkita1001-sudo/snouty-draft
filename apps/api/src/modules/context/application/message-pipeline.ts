@@ -141,7 +141,13 @@ export async function runUnderstanding(
             withCompleteness(input.state).missingInformation.length > 0
           ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
             explanationBeforeSolution(input.locale)
-          : replyFor(input.decision.intent, input.locale);
+          : // Perkenalan "Halo! Saya SNOUTY…" hanya untuk giliran pertama. Sapaan atau "mau tanya"
+            // di tengah percakapan dijawab ajakan bertanya — dulu salam yang sama terulang persis
+            // (laporan pemilik 2026-10-08: "hai" lalu "gw mau nanya2 nih").
+            input.decision.intent === 'OUT_OF_SCOPE' &&
+              (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
+            ? openerReply(input.locale)
+            : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Teks tetap, tanpa model. Dulu sapaan/di luar topik diserahkan ke model (tanpa DATA → nol
       // angka); di CPU itu 40–50 detik untuk sebuah sapaan (diet panggilan model, 2026-10-07).

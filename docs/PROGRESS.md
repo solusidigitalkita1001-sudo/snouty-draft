@@ -1118,6 +1118,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       karena memakai cookie. Kini token ikut dikirim, dan halaman /schematic memulihkan sesi dulu.
       Tautan "Lihat skema instalasi" hanya tampil bila skemanya memang ada (dulu tetap tampil di
       solusi irigasi/kasus teknis yang memang belum punya desain skema, OQ-47). Tes web +2.
+- [x] P16-20 Salam yang sama terulang (laporan pemilik 2026-10-08: "hai" lalu "gw mau nanya2
+      nih" dijawab perkenalan yang persis sama) — selesai. Perkenalan "Halo! Saya SNOUTY…" kini
+      hanya untuk giliran pertama; sapaan atau ajakan bertanya di tengah percakapan dijawab ajakan
+      bertanya. Aturan di kode (riwayat giliran), bukan daftar frasa. Tes +1.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
