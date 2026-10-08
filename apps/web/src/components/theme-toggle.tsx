@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLocale } from './locale';
 
 type Theme = 'light' | 'dark';
 const STORAGE_KEY = 'snouty-theme';
@@ -45,7 +46,16 @@ export function ThemeToggle({
     }
   }
 
-  const label = theme === 'dark' ? 'Mode terang' : 'Mode gelap';
+  // Label ikut bahasa antarmuka — dulu tetap "Mode gelap" setelah beralih ke Inggris (audit UX 2026-10-08).
+  const { locale } = useLocale();
+  const label =
+    locale === 'en'
+      ? theme === 'dark'
+        ? 'Light mode'
+        : 'Dark mode'
+      : theme === 'dark'
+        ? 'Mode terang'
+        : 'Mode gelap';
 
   if (className !== undefined) {
     return (

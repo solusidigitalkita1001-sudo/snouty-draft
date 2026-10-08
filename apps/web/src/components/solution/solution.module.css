@@ -484,3 +484,12 @@
     gap: 6px;
   }
 }
+
+/* Layar sentuh: tautan teks ("Perbaiki asumsi ini", "Lihat skema instalasi") punya area tekan 44 px. */
+@media (pointer: coarse) {
+  .linkButton {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}

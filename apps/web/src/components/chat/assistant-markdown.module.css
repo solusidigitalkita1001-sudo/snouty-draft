@@ -116,3 +116,44 @@
   color: var(--snouty-muted);
   white-space: nowrap;
 }
+
+/*
+ * Ponsel (audit UX 2026-10-08): tabel perbandingan 3–4 kolom terjepit dan kolom label hilang saat
+ * digulir. Kolom pertama menempel di kiri, sel punya lebar minimum yang terbaca, dan bayangan di
+ * tepi kanan menandakan masih ada kolom di luar layar (bayangan "local" ikut bergulir dan hilang
+ * di ujung tabel).
+ */
+@media (max-width: 719px) {
+  .tableWrap {
+    background:
+      linear-gradient(to left, var(--snouty-surface) 30%, transparent) right / 24px 100% no-repeat
+        local,
+      radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.14), transparent) right / 10px 100%
+        no-repeat scroll;
+  }
+
+  .table {
+    font-size: 12.5px;
+  }
+
+  .table th,
+  .table td {
+    min-width: 140px;
+  }
+
+  .table th:first-child,
+  .table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 108px;
+    max-width: 132px;
+    white-space: normal;
+    background: var(--snouty-surface);
+    box-shadow: 1px 0 0 var(--snouty-border);
+  }
+
+  .table th:first-child {
+    background: var(--snouty-surface-subtle);
+  }
+}

@@ -4,6 +4,7 @@
  */
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { LocaleProvider } from './locale';
 import { THEME_INIT_SCRIPT, ThemeToggle } from './theme-toggle';
 
 describe('ThemeToggle', () => {
@@ -25,6 +26,15 @@ describe('ThemeToggle', () => {
   it('varian compact punya label aksesibel yang sama', () => {
     render(<ThemeToggle compact />);
     expect(screen.getByRole('button', { name: 'Mode gelap' })).toBeTruthy();
+  });
+  it('mode Inggris → label Inggris (audit UX 2026-10-08: tetap "Mode gelap" di UI Inggris)', () => {
+    render(
+      <LocaleProvider initial="en">
+        <ThemeToggle />
+      </LocaleProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Dark mode' }));
+    expect(screen.getByRole('button', { name: 'Light mode' })).toBeTruthy();
   });
 
   it('skrip init memasang tema tersimpan sebelum React', () => {

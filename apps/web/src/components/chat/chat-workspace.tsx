@@ -23,7 +23,7 @@ import type {
   RequirementState,
   StageStatus,
 } from '@snouty/shared-types';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { moodForCards } from '../mascot/mood';
 import { Snouty, SnoutyAvatar } from '../mascot/snouty';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
@@ -64,6 +64,8 @@ function useChatCopy() {
 }
 
 /** Toast "Solusi tersimpan" hilang sendiri — 2800 ms di prototipe. */
+/** Jarak dari dasar (px) yang masih dianggap "di bawah" — di atas ini pengguna sedang membaca ke atas. */
+const STICK_THRESHOLD_PX = 120;
 const TOAST_MS = 2800;
 /**
  * Jeda "Solusi siap!" dari prototipe: kartu analisis sempat terlihat selesai sebelum
@@ -116,6 +118,12 @@ interface ChatTurn {
   readonly cards: readonly AssistantCard[];
   /** Lahir di sesi ini (bukan dari riwayat) → jawabannya diungkap bertahap. */
   readonly fresh?: boolean;
+  /**
+   * Giliran ini memperbarui kebutuhan → kartu "Yang sudah saya pahami" ditempel di bawahnya,
+   * bukan di ujung aliran setelah SETIAP giliran (audit UX 2026-10-08: kartu ±420 px muncul lagi
+   * di bawah jawaban produk/perusahaan dan mendesak percakapan di ponsel).
+   */
+  readonly understood?: boolean;
 }
 
 export function ChatWorkspace() {
@@ -194,6 +202,33 @@ export function ChatWorkspace() {
     if (narrow) setPanelOpen(false);
   }, [narrow]);
 
+  /**
+   * Panel kebutuhan/solusi: Escape menutupnya dan fokus kembali ke tombol yang membukanya. Di
+   * ponsel panel menutup layar penuh, dan satu-satunya jalan keluar dulu tombol "»" 28 px tanpa
+   * label yang jelas (audit UX 2026-10-08).
+   */
+  const panelTrigger = useRef<HTMLElement | null>(null);
+  const panelCloseRef = useRef<HTMLButtonElement>(null);
+  const openPanel = useCallback((): void => {
+    panelTrigger.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setPanelOpen(true);
+  }, []);
+  const closePanel = useCallback((): void => {
+    setPanelOpen(false);
+    panelTrigger.current?.focus();
+  }, []);
+  useEffect(() => {
+    // Hanya panel overlay (layar sempit): di desktop panel menempel dan Escape milik dialog lain.
+    if (!panelOpen || !narrow) return;
+    panelCloseRef.current?.focus();
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') closePanel();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [panelOpen, narrow, closePanel]);
+
   // Drawer sidebar (layar sempit): Escape menutup; lebar yang membesar menutupnya juga.
   useEffect(() => {
     if (!narrow) setMenuOpen(false);
@@ -214,9 +249,58 @@ export function ChatWorkspace() {
     });
   }, [history.kind]);
 
-  // Gulir ke bawah saat ada giliran baru — percakapan tumbuh ke bawah.
+  /**
+   * Tempel ke bawah (pola ChatGPT/Claude): selama pengguna berada dekat dasar, aliran mengikuti
+   * isi yang tumbuh — termasuk teks yang diungkap bertahap, yang tidak mengubah `turns`. Dulu gulir
+   * hanya terjadi saat `turns` berubah, sehingga jawaban baru tumbuh di bawah layar sementara
+   * layar diam di jawaban lama (audit UX 2026-10-08). Pengguna yang sedang menggulir ke atas
+   * tidak ditarik paksa; ia mendapat tombol "pesan baru".
+   */
+  const stickRef = useRef(true);
+  const [newBelow, setNewBelow] = useState(false);
+  const scrollToBottom = useCallback(
+    (smooth: boolean) => {
+      const el = streamRef.current;
+      if (!el) return;
+      el.scrollTo({ top: el.scrollHeight, behavior: smooth && !reducedMotion ? 'smooth' : 'auto' });
+      stickRef.current = true;
+      setNewBelow(false);
+    },
+    [reducedMotion],
+  );
   useEffect(() => {
-    streamRef.current?.scrollTo({ top: streamRef.current.scrollHeight });
+    const el = streamRef.current;
+    if (!el) return;
+    const onScroll = (): void => {
+      const near = el.scrollHeight - el.scrollTop - el.clientHeight <= STICK_THRESHOLD_PX;
+      stickRef.current = near;
+      if (near) setNewBelow(false);
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    const observer = new ResizeObserver(() => {
+      if (stickRef.current) el.scrollTop = el.scrollHeight;
+      else setNewBelow(true);
+    });
+    // Mengamati setiap anak aliran: tinggi `.stream` sendiri tetap (ia yang menggulir).
+    const observeChildren = (): void => {
+      for (const child of Array.from(el.children)) observer.observe(child);
+    };
+    observeChildren();
+    const mutations = new MutationObserver(observeChildren);
+    mutations.observe(el, { childList: true });
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      observer.disconnect();
+      mutations.disconnect();
+    };
+  }, [screen, turns.length > 0]);
+  // Pesan pengguna sendiri selalu dibawa ke tampilan, di mana pun posisi gulirnya.
+  const lastRole = turns.at(-1)?.role;
+  useEffect(() => {
+    if (lastRole === 'user') scrollToBottom(true);
+  }, [turns.length, lastRole, scrollToBottom]);
+  useEffect(() => {
+    if (stickRef.current) streamRef.current?.scrollTo({ top: streamRef.current.scrollHeight });
   }, [turns, stages, sending]);
 
   useEffect(() => {
@@ -267,10 +351,12 @@ export function ChatWorkspace() {
       const assistantId = `a-${Date.now()}`;
       let assistantCards: AssistantCard[] = [];
       let assistantText = '';
+      let understood = false;
 
       const apply = (event: AssistantStreamEvent): void => {
         switch (event.type) {
           case 'requirement.updated':
+            understood = true;
             setState(event.state);
             // Judul aktif diturunkan dari kebutuhan, seperti `titleFrom` prototipe.
             setActiveTitle(
@@ -313,6 +399,7 @@ export function ChatWorkspace() {
               text: assistantText,
               cards: assistantCards,
               fresh: true,
+              understood,
             },
           ]);
         } else {
@@ -325,7 +412,7 @@ export function ChatWorkspace() {
         refreshHistory();
       }
     },
-    [conversationId, refreshHistory, sending],
+    [conversationId, refreshHistory, sending, locale, COPY],
   );
 
   const submit = useCallback(() => submitText(draft), [draft, submitText]);
@@ -374,7 +461,7 @@ export function ChatWorkspace() {
       ]);
       refreshHistory();
     },
-    [conversationId, refreshHistory, sending, uploading],
+    [conversationId, refreshHistory, sending, uploading, locale, COPY],
   );
 
   /**
@@ -409,10 +496,11 @@ export function ChatWorkspace() {
           text: result.text ?? '',
           cards: result.card ? [result.card] : [],
           fresh: true,
+          understood: true,
         },
       ]);
     },
-    [conversationId, sending],
+    [conversationId, sending, COPY],
   );
 
   /** "+ Konsultasi Baru" — kembali ke sambutan dengan percakapan baru (prototipe `reset`). */
@@ -605,6 +693,25 @@ export function ChatWorkspace() {
     if (solution !== null) startAnalysis(true);
   }, [startAnalysis, conversationId, edits, rows, solution]);
   // Prototipe `readCount`: seluruh field yang terbaca (sampai 7), bukan hanya empat inti.
+  /**
+   * Kartu "Yang sudah saya pahami" — grid dengan badge hijau jumlah data — di bawah giliran TERAKHIR
+   * yang memperbarui kebutuhan; riwayat yang dibuka kembali (tanpa penanda) menaruhnya di ujung.
+   */
+  const lastUnderstoodIndex = turns.reduce(
+    (found, turn, index) => (turn.understood === true ? index : found),
+    -1,
+  );
+  const understoodCard =
+    state !== null && useCase === null && filled > 0 ? (
+      <UnderstoodCard rows={rows} filled={filled} />
+    ) : useCase !== null && useCaseFilled > 0 ? (
+      <UnderstoodCard
+        rows={useCase
+          .filter((row) => row.value !== null)
+          .map((row) => ({ label: row.label, display: row.value ?? '' }))}
+        filled={useCaseFilled}
+      />
+    ) : null;
   const readCount = useCase
     ? useCaseFilled
     : rows.filter((row) => row.display !== 'Belum diisi').length;
@@ -848,15 +955,11 @@ export function ChatWorkspace() {
             )}
             {/* Ponsel (board 13a): "Kebutuhan (n)" membuka panel sebagai lembar. */}
             {mobile && inConversation && (
-              <button
-                type="button"
-                className={styles.headerNeeds}
-                onClick={() => setPanelOpen(true)}
-              >
+              <button type="button" className={styles.headerNeeds} onClick={openPanel}>
                 {COPY.mobileNeeds(readCount)}
               </button>
             )}
-            {solution !== null && screen === 'chat' && (
+            {!mobile && solution !== null && screen === 'chat' && (
               <button
                 type="button"
                 className={styles.tabAction}
@@ -865,7 +968,7 @@ export function ChatWorkspace() {
                 {COPY.viewSolution}
               </button>
             )}
-            {solution !== null && (
+            {!mobile && solution !== null && (
               <button
                 type="button"
                 className={styles.headerPrimary}
@@ -876,6 +979,30 @@ export function ChatWorkspace() {
             )}
           </div>
         </header>
+        {/*
+          Ponsel: "Lihat solusi" dan "Buat laporan" di baris tipis sendiri. Di header 375–390 px,
+          keduanya memakan seluruh lebar dan judul ambruk menjadi "R…" (audit UX 2026-10-08).
+        */}
+        {mobile && inConversation && solution !== null && (
+          <div className={styles.mobileActions}>
+            {screen === 'chat' && (
+              <button
+                type="button"
+                className={styles.tabAction}
+                onClick={() => setScreen('solution')}
+              >
+                {COPY.viewSolution}
+              </button>
+            )}
+            <button
+              type="button"
+              className={styles.headerPrimary}
+              onClick={() => setReportOpen(true)}
+            >
+              {reportCopy(locale).open}
+            </button>
+          </div>
+        )}
 
         {/*
           Layar sambutan di dalam ruang konsultasi (prototipe, state `isWelcome`): mascot
@@ -933,6 +1060,7 @@ export function ChatWorkspace() {
                     className={styles.sendButton}
                     onClick={() => void submit()}
                     disabled={draft.trim() === '' || sending}
+                    aria-busy={sending}
                   >
                     {COPY.send}
                   </button>
@@ -954,22 +1082,25 @@ export function ChatWorkspace() {
                   <div className={styles.userBubble}>{turn.text}</div>
                 </div>
               ) : (
-                <AssistantTurn
-                  key={turn.id}
-                  turn={turn}
-                  animate={turn.fresh === true && !reducedMotion}
-                  cardsActive={turnIndex === turns.length - 1 && !sending}
-                  onAnswers={submitAnswers}
-                  onHandoff={handoff}
-                  handoffState={handoffState}
-                  onSave={save}
-                  saveState={saveState}
-                  onAnalyze={analyze}
-                  analyzing={analyzing}
-                  onOpenProduct={(product) => setOpenProduct({ productId: product.productId })}
-                />
+                <Fragment key={turn.id}>
+                  <AssistantTurn
+                    turn={turn}
+                    animate={turn.fresh === true && !reducedMotion}
+                    cardsActive={turnIndex === turns.length - 1 && !sending}
+                    onAnswers={submitAnswers}
+                    onHandoff={handoff}
+                    handoffState={handoffState}
+                    onSave={save}
+                    saveState={saveState}
+                    onAnalyze={analyze}
+                    analyzing={analyzing}
+                    onOpenProduct={(product) => setOpenProduct({ productId: product.productId })}
+                  />
+                  {turnIndex === lastUnderstoodIndex && understoodCard}
+                </Fragment>
               ),
             )}
+            {lastUnderstoodIndex === -1 && understoodCard}
 
             {sending && (
               <div className={styles.thinkingRow} role="status" aria-label={COPY.thinking}>
@@ -980,19 +1111,6 @@ export function ChatWorkspace() {
                   <span className={styles.dot} />
                 </div>
               </div>
-            )}
-
-            {/* Kartu "Yang sudah saya pahami" — grid 3 kolom dengan badge hijau jumlah data. */}
-            {state !== null && useCase === null && filled > 0 && (
-              <UnderstoodCard rows={rows} filled={filled} />
-            )}
-            {useCase !== null && useCaseFilled > 0 && (
-              <UnderstoodCard
-                rows={useCase
-                  .filter((row) => row.value !== null)
-                  .map((row) => ({ label: row.label, display: row.value ?? '' }))}
-                filled={useCaseFilled}
-              />
             )}
 
             {Object.keys(stages).length > 0 && (
@@ -1055,7 +1173,11 @@ export function ChatWorkspace() {
                     role="tab"
                     aria-selected={solutionTab === t.id}
                     className={[styles.tab, solutionTab === t.id ? styles.tabOn : ''].join(' ')}
-                    onClick={() => setSolutionTab(t.id as SolutionTab)}
+                    onClick={(event) => {
+                      setSolutionTab(t.id as SolutionTab);
+                      // Tab di ponsel menggulir ke samping: yang dipilih selalu terlihat utuh.
+                      event.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                    }}
                   >
                     {t.label}
                   </button>
@@ -1079,7 +1201,7 @@ export function ChatWorkspace() {
               // tidak punya editor panel — nilainya diubah lewat chat — jadi kembali ke chat dengan
               // panel terbuka dan kolom ketik terfokus (laporan pemilik 2026-10-08: tombolnya diam).
               onFixAssumption={() => {
-                setPanelOpen(true);
+                openPanel();
                 if (useCase !== null) {
                   setScreen('chat');
                   setComposerFocus((n) => n + 1);
@@ -1093,6 +1215,15 @@ export function ChatWorkspace() {
 
         {inConversation && screen === 'chat' && (
           <div className={styles.composerWrap}>
+            {newBelow && (
+              <button
+                type="button"
+                className={styles.newBelow}
+                onClick={() => scrollToBottom(true)}
+              >
+                {COPY.newMessagesBelow}
+              </button>
+            )}
             {/* Ponsel: bidang berbentuk pil + tombol kirim bulat 40px (board 13a). */}
             <div className={[styles.composerCard, mobile ? styles.composerPill : ''].join(' ')}>
               <ComposerField
@@ -1109,6 +1240,7 @@ export function ChatWorkspace() {
                 className={[styles.sendButton, mobile ? styles.sendRound : ''].join(' ')}
                 onClick={() => void submit()}
                 disabled={draft.trim() === '' || sending}
+                aria-busy={sending}
                 aria-label={COPY.send}
               >
                 {mobile ? COPY.mobileSend : COPY.send}
@@ -1125,11 +1257,7 @@ export function ChatWorkspace() {
       */}
       {/* Panel dan rail-nya hanya ada setelah percakapan dimulai (prototipe: disembunyikan di sambutan). */}
       {inConversation && !panelOpen && !mobile && (
-        <aside
-          className={styles.panelRail}
-          onClick={() => setPanelOpen(true)}
-          title={COPY.expandPanel}
-        >
+        <aside className={styles.panelRail} onClick={openPanel} title={COPY.expandPanel}>
           <span className={styles.railToggle}>«</span>
           <span className={styles.railVertical}>{COPY.railLabel}</span>
           <span className={styles.railCount}>
@@ -1141,7 +1269,7 @@ export function ChatWorkspace() {
       )}
 
       {inConversation && panelOpen && narrow && (
-        <div className={styles.scrim} onClick={() => setPanelOpen(false)} aria-hidden="true" />
+        <div className={styles.scrim} onClick={closePanel} aria-hidden="true" />
       )}
 
       {inConversation && panelOpen && (
@@ -1152,13 +1280,14 @@ export function ChatWorkspace() {
           <div className={styles.panelHead}>
             <span>{COPY.panelTitle}</span>
             <button
+              ref={panelCloseRef}
               type="button"
-              className={styles.panelToggle}
-              onClick={() => setPanelOpen(false)}
-              title={COPY.collapsePanel}
-              aria-label={COPY.collapsePanel}
+              className={[styles.panelToggle, narrow ? styles.panelClose : ''].join(' ')}
+              onClick={closePanel}
+              title={narrow ? COPY.closePanel : COPY.collapsePanel}
+              aria-label={narrow ? COPY.closePanel : COPY.collapsePanel}
             >
-              »
+              {narrow ? '×' : '»'}
             </button>
           </div>
           <div className={styles.panelBody}>

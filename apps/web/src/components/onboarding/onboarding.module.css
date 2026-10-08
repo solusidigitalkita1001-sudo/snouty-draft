@@ -749,3 +749,28 @@
   color: var(--snouty-muted);
   line-height: 1.5;
 }
+
+/*
+ * Layar sentuh (audit UX 2026-10-08): titik langkah 7 px dan "×" 18 px tidak bisa ditekan dengan
+ * jempol. Area tekan diperluas lewat pseudo-elemen tak terlihat — tampilan titiknya tetap.
+ */
+@media (pointer: coarse) {
+  .dot {
+    position: relative;
+  }
+
+  .dot::before {
+    content: '';
+    position: absolute;
+    inset: -18px -3px;
+  }
+
+  .close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .skip {
+    min-height: 44px;
+  }
+}

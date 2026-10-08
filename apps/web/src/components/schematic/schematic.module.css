@@ -279,3 +279,16 @@
   border-radius: 4px;
   box-shadow: var(--snouty-focus-ring);
 }
+
+/*
+ * Ponsel (audit UX 2026-10-08): gambar selebar 700–900 px terpotong di layar 375 px dan hanya
+ * lantai kiri yang terlihat. SVG kini mengecil mengikuti lebar (viewBox sudah ada), dengan batas
+ * bawah agar label tetap terbaca; gambar yang lebih lebar dari batas itu tetap menggulir.
+ */
+@media (max-width: 719px) {
+  .canvas {
+    width: 100%;
+    min-width: 520px;
+    height: auto;
+  }
+}

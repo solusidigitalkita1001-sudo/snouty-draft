@@ -746,6 +746,37 @@
 .composerWrap {
   flex: none;
   padding: 0 32px 22px;
+  /* Jangkar tombol "Pesan baru ↓" yang melayang tepat di atas composer. */
+  position: relative;
+}
+
+/*
+ * Pengguna sedang membaca ke atas dan jawaban baru tumbuh di bawah: pil kecil di atas composer,
+ * bukan tarikan paksa ke dasar (audit UX 2026-10-08).
+ */
+.newBelow {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  min-height: 32px;
+  padding: 6px 14px;
+  border: 1px solid var(--snouty-border);
+  border-radius: 999px;
+  background: var(--snouty-surface);
+  color: var(--snouty-action-text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  cursor: pointer;
+}
+
+.newBelow:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
 }
 
 /*
@@ -2061,6 +2092,133 @@
   }
 }
 
+/*
+ * Audit UX ponsel 2026-10-08 — ukuran, bukan rancangan baru: judul header tidak lagi ambruk,
+ * panel bisa ditutup dengan jempol, grid "Yang sudah saya pahami" 2 kolom bergaris benar, dan
+ * teks mikro (9–10.5px) naik ke ukuran yang terbaca di layar 375 px.
+ */
+@media (max-width: 719px) {
+  .headerLeft {
+    flex: 1;
+  }
+
+  .headerTitle {
+    flex: 1;
+    min-width: 96px;
+    font-size: 14px;
+  }
+
+  .headerActions {
+    margin-right: 0;
+  }
+
+  .headerNeeds {
+    font-size: 13px;
+  }
+
+  /* Baris aksi solusi di bawah header (pindahan "Lihat solusi" dan "Buat laporan"). */
+  .mobileActions {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 6px 16px;
+    border-bottom: 1px solid var(--snouty-border);
+    background: var(--snouty-surface);
+  }
+
+  .mobileActions > button {
+    min-height: 36px;
+  }
+
+  /* Tutup panel layar penuh: 44×44, bukan "»" 28 px. */
+  .panelClose {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+    margin-right: -8px;
+  }
+
+  .panelKicker {
+    font-size: 12px;
+  }
+
+  .brandKicker {
+    font-size: 11px;
+  }
+
+  .headerStatus {
+    font-size: 11px;
+  }
+
+  /* Grid 2 kolom: aturan garis 3 kolom di atas salah untuk 2 kolom — sel tengah kehilangan garis. */
+  .understoodCell:nth-child(3n) {
+    border-right: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  }
+
+  .understoodCell:nth-last-child(-n + 3) {
+    border-bottom: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  }
+
+  .understoodCell:nth-child(2n) {
+    border-right: none;
+  }
+
+  .understoodCell:nth-last-child(-n + 2):nth-child(odd),
+  .understoodCell:last-child {
+    border-bottom: none;
+  }
+
+  .understoodHead,
+  .understoodCell {
+    padding: 9px 12px;
+  }
+
+  .understoodLabel {
+    font-size: 12px;
+  }
+
+  .understoodBadge {
+    font-size: 11.5px;
+  }
+
+  .understoodValue {
+    font-size: 14px;
+  }
+
+  /* Tab menggulir ke samping: tepi kanan memudar agar terlihat ada tab lain di luar layar. */
+  .tabList {
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    padding-right: 24px;
+  }
+}
+
+/*
+ * Layar sentuh: target sentuh minimal 44 px (WCAG 2.5.5) tanpa mengubah tampilan — tinggi
+ * minimum dan area tekan, bukan ukuran huruf atau warna.
+ */
+@media (pointer: coarse) {
+  .headerMenuButton,
+  .headerNeeds,
+  .attachButton,
+  .newBelow,
+  .panelClose {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .headerNeeds {
+    padding: 0 8px;
+  }
+
+  .mobileActions > button,
+  .headerPrimary,
+  .tabAction {
+    min-height: 44px;
+  }
+}
+
 /* Kartu jawaban masuk setelah teksnya selesai diungkap (animasi transisi, 2026-10-07). */
 .cardEnter {
   animation: snoutyIn var(--snouty-enter) both;
@@ -2107,5 +2265,20 @@
 @media (prefers-reduced-motion: reduce) {
   .sidebarDrawer {
     animation: none;
+  }
+}
+
+/* Layar sentuh: "Masuk · Daftar" di kaki drawer 10.5 px — area tekannya diperluas, hurufnya naik. */
+@media (pointer: coarse) {
+  .footerRole {
+    font-size: 12px;
+  }
+
+  .footerRole a,
+  .footerRoleButton {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 4px;
   }
 }

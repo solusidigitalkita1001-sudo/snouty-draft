@@ -101,6 +101,8 @@ export const CHAT_COPY = {
   /** Belum ada endpoint berkas (`POST /uploads` baru kontrak) — chip tidak berpura-pura. */
   uploading: 'Mengirim denah…',
   uploadFailed: 'Denah belum terkirim. Coba lagi sebentar.',
+  newMessagesBelow: 'Pesan baru ↓',
+  closePanel: 'Tutup panel',
   analyzeCta: 'Susun rekomendasi',
   followUps: {
     title: 'LANJUTKAN PERCAKAPAN',
@@ -289,6 +291,8 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   },
   uploading: 'Sending floor plan…',
   uploadFailed: 'The floor plan was not sent. Please try again shortly.',
+  newMessagesBelow: 'New messages ↓',
+  closePanel: 'Close panel',
   analyzeCta: 'Compose recommendation',
   followUps: {
     title: 'CONTINUE THE CONVERSATION',

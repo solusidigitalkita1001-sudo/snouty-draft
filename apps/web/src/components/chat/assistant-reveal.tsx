@@ -11,11 +11,20 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Laju pengungkapan berbasis waktu, bukan per frame: 110 karakter/detik — 160 karakter ≈ 1,5 s,
- * 600 karakter ≈ 5,5 s. Per frame terlalu cepat untuk terlihat (laptop 60 fps: 160 karakter
- * habis dalam 0,4 s) dan bergantung pada refresh rate perangkat.
+ * Laju pengungkapan berbasis waktu, bukan per frame: minimal 110 karakter/detik (160 karakter ≈
+ * 1,5 s). Per frame terlalu cepat untuk terlihat (laptop 60 fps: 160 karakter habis dalam 0,4 s)
+ * dan bergantung pada refresh rate perangkat.
+ *
+ * Jawaban panjang dipercepat supaya total animasi tidak lewat ±2,2 detik (audit UX 2026-10-08:
+ * 1.000 karakter sempat 10–12 detik, dan kartu "Susun rekomendasi" baru muncul sesudahnya).
  */
-const CHARS_PER_SECOND = 110;
+const MIN_CHARS_PER_SECOND = 110;
+export const MAX_REVEAL_SECONDS = 2.2;
+
+/** Karakter per detik untuk panjang teks tertentu — dipakai juga oleh tes. */
+export function revealRate(length: number): number {
+  return Math.max(MIN_CHARS_PER_SECOND, length / MAX_REVEAL_SECONDS);
+}
 
 export function useRevealedText(text: string, animate: boolean): { shown: string; done: boolean } {
   const [count, setCount] = useState(animate ? 0 : text.length);
@@ -27,8 +36,9 @@ export function useRevealedText(text: string, animate: boolean): { shown: string
     }
     let frame = 0;
     const startedAt = performance.now();
+    const rate = revealRate(text.length);
     const tick = (now: number): void => {
-      const target = Math.floor(((now - startedAt) / 1000) * CHARS_PER_SECOND);
+      const target = Math.floor(((now - startedAt) / 1000) * rate);
       const next = Math.min(text.length, nextWordBoundary(text, target));
       setCount(next);
       if (next < text.length) frame = requestAnimationFrame(tick);
