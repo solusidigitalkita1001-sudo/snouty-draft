@@ -322,6 +322,67 @@ describe('ruas kebutuhan — bangunan vs kasus sumur, harga, toren, di luar topi
   });
 });
 
+describe('router & katalog — sisa verifikasi live', () => {
+  it('pesan tanpa huruf/angka → OUT_OF_SCOPE tanpa model', async () => {
+    const { ai, calls } = aiFor();
+    const d = await new IntentRouter(ai).route(understood('   ?'), false);
+    expect(d.intent).toBe('OUT_OF_SCOPE');
+    expect(calls.classify).toBe(0);
+  });
+
+  it('"elbow hdpe" tanpa nama utuh di katalog: dicari lewat "elbow" lalu disaring HDPE', async () => {
+    const elbow = (name: string, family: string) =>
+      ({
+        id: name.padEnd(26, 'X').slice(0, 26),
+        name,
+        family,
+        category: 'FITTING',
+        status: 'active',
+        sizes: [],
+        material: { provenance: 'UNAVAILABLE', value: null },
+        standard: { provenance: 'UNAVAILABLE', value: null },
+        pressureClass: { provenance: 'UNAVAILABLE', value: null },
+        rodLength: { provenance: 'UNAVAILABLE', value: null },
+        jointType: { provenance: 'UNAVAILABLE', value: null },
+        application: { provenance: 'UNAVAILABLE', value: null },
+        sourceDocument: 'Katalog',
+        sourcePage: 1,
+        imageUrl: null,
+      }) as unknown as Product;
+    const events = await runProductQuestion(
+      aiFor().ai,
+      {
+        activeVersion: () => Promise.resolve({ kind: 'pralon' } as never),
+        listProducts: ({ q }: { q?: string }) =>
+          Promise.resolve({
+            items:
+              q === 'elbow'
+                ? [
+                    elbow('Elbow PVC 3/4', 'FITTING PVC'),
+                    elbow('Elbow 90 HDPE 63 mm', 'FITTING HDPE'),
+                  ]
+                : [],
+            nextCursor: null,
+          }),
+      } as never,
+      {
+        answer: (q: { productId: string }) =>
+          Promise.resolve({
+            kind: 'insufficientData',
+            productId: q.productId,
+            aspect: 'sizes',
+            provenance: 'UNAVAILABLE',
+            sourceDocument: null,
+            sourcePage: null,
+          }),
+      } as never,
+      productInput('elbow hdpe ada?', { intent: 'product_spec', productAspect: 'sizes' }),
+    );
+    expect(text(events)).toContain('Elbow 90 HDPE 63 mm');
+    expect(text(events)).not.toContain('tidak ada di katalog');
+  });
+});
+
 describe('kosakata — klitik "-nya" dan keluarga non-katalog', () => {
   it('"pvcnya", "pralonnya", "rucikanya" dikenali; galvanis bukan keluarga katalog; tee adalah fitting', () => {
     expect(TEST_LEXICON.productFamilies('pvcnya gimana?')).toEqual(['pvc']);

@@ -717,6 +717,19 @@
       "text": "pipa galvanis masih dijual?",
       "intent": "product_concept",
       "families": ["galvanis"]
+    },
+    {
+      "text": "harga pipa buat rumah 2 lantai berapa?",
+      "intent": "price_question",
+      "$comment": "audit live 2026-10-08: sempat requirement_building, harga tak dijawab"
+    },
+    {
+      "text": "kira-kira biaya pipanya berapa buat rumah 3 lantai?",
+      "intent": "price_question"
+    },
+    {
+      "text": "rumah 3 lantai 4 kamar mandi, airnya dari pdam",
+      "intent": "requirement_building"
     }
   ]
 }

@@ -526,7 +526,19 @@ async function lookup(
   const missing: string[] = [];
   for (const term of terms) {
     const page = await catalog.listProducts({ q: term, limit: 10 });
-    const product = bestMatch(page.items.filter(isAnswerable), term);
+    let candidates = page.items.filter(isAnswerable);
+    // Istilah gabungan "elbow hdpe" jarang muncul utuh di nama produk ("Elbow 90° HDPE 63 mm"):
+    // cari kata pertamanya, lalu saring yang memuat kata-kata sisanya di nama/keluarga/kategori
+    // (audit live 2026-10-08: "elbow hdpe 63 ada?" → "tidak ada di katalog").
+    const words = term.split(/\s+/);
+    if (candidates.length === 0 && words.length > 1) {
+      const wider = await catalog.listProducts({ q: words[0]!, limit: 50 });
+      candidates = wider.items.filter(isAnswerable).filter((p) => {
+        const haystack = `${p.name} ${p.family} ${p.category}`.toLowerCase();
+        return words.slice(1).every((w) => haystack.includes(w.toLowerCase()));
+      });
+    }
+    const product = bestMatch(candidates, term);
     if (!product) missing.push(term);
     else if (!products.some((f) => f.id === product.id)) products.push(product);
   }

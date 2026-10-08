@@ -254,6 +254,12 @@ export class IntentRouter {
     subject: ConversationSubject | undefined = undefined,
   ): Promise<RoutingDecision> {
     // Pesan lanjutan atas subjek aktif tidak diklasifikasi ulang (Fase 16) — nol model.
+    // Pesan tanpa satu huruf atau angka pun ("   ?", "👍") tidak membawa apa pun untuk dipahami
+    // model — dijawab pembuka tanpa 28 detik klasifikasi (audit live 2026-10-08).
+    if (!/[\p{L}\p{N}]/u.test(u.text)) {
+      return { intent: 'OUT_OF_SCOPE', confidence: 1, shouldExtract: false, mutatesState: false };
+    }
+
     const continued = subjectContinuation(u, subject);
     if (continued) return continued;
 
