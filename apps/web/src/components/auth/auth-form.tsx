@@ -15,6 +15,7 @@ import { useCallback, useState } from 'react';
 import { authCopy } from './auth-copy';
 import { useLocale } from '../locale';
 import { login, register } from './auth-api';
+import { afterAuthHref } from './resume-link';
 import styles from './auth.module.css';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
@@ -83,7 +84,11 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       if (result.ok) {
         // Percakapan tamu yang berpindah dibuka langsung — itu janji "tidak perlu mengulang
         // cerita" (invarian G-1), dan membiarkan pengguna mencarinya sendiri melanggarnya.
-        window.location.href = result.resumedConversationId ? '/consultation' : '/consultation';
+        // Datang dari register-gate (P8-09): aksi yang tadi ditekan ikut diteruskan.
+        window.location.href = afterAuthHref(
+          window.location.search,
+          result.resumedConversationId ?? null,
+        );
         return;
       }
 
@@ -183,7 +188,15 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           {copy.submit}
         </button>
 
-        <a className={styles.switch} href={mode === 'login' ? '/register' : '/login'}>
+        <a
+          className={styles.switch}
+          href={mode === 'login' ? '/register' : '/login'}
+          onClick={(event) => {
+            // Pindah daftar ↔ masuk tidak boleh menjatuhkan percakapan yang sedang dilanjutkan.
+            event.preventDefault();
+            window.location.href = event.currentTarget.pathname + window.location.search;
+          }}
+        >
           {mode === 'login' ? COPY.login.toRegister : COPY.register.toLogin}
         </a>
       </form>

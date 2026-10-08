@@ -2282,3 +2282,60 @@
     padding: 0 4px;
   }
 }
+
+/* ---------- register-gate (P8-09; belum didesain, OQ-21 — token yang ada saja) ---------- */
+
+.gateCard {
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+  border-radius: 10px;
+  padding: 15px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+}
+
+.gateTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--snouty-ink);
+}
+
+.gateBody {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--snouty-ink-muted, var(--snouty-muted));
+}
+
+.gateActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.gateActions a {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.gateLater {
+  border: none;
+  background: none;
+  padding: 7px 4px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--snouty-ink-muted, var(--snouty-muted));
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .gateActions a,
+  .gateLater {
+    min-height: 44px;
+  }
+}

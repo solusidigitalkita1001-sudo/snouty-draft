@@ -129,13 +129,17 @@ export async function fetchHistory(): Promise<HistoryResult> {
 }
 
 /** "Simpan hasil konsultasi" — digerbang `SAVE_SOLUTION`. */
-export async function saveConversation(conversationId: string): Promise<boolean> {
+/** `needs-account`: tamu — menyimpan dibuka oleh akun terdaftar (register-gate, P8-09). */
+export type SaveResult = 'saved' | 'needs-account' | 'failed';
+
+export async function saveConversation(conversationId: string): Promise<SaveResult> {
   const response = await fetch(`${BASE}/conversations/${conversationId}/save`, {
     method: 'POST',
     credentials: 'include',
     headers: authHeaders(),
   });
-  return response.ok;
+  if (response.ok) return 'saved';
+  return response.status === 401 || response.status === 403 ? 'needs-account' : 'failed';
 }
 
 /**

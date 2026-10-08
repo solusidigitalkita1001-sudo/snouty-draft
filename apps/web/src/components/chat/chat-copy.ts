@@ -21,6 +21,14 @@ export const CHAT_COPY = {
   historyEmpty: 'Belum ada konsultasi lain.',
   saveSolution: 'Simpan hasil konsultasi',
   saved: 'Tersimpan',
+  saveFailed: 'Konsultasi belum bisa disimpan. Coba lagi sebentar lagi.',
+  gate: {
+    title: 'Simpan konsultasi ini ke akun Anda',
+    body: 'Dengan akun, konsultasi ini tersimpan dan bisa dibuka lagi kapan saja dari riwayat. Percakapan dan kebutuhan yang sudah Anda isi ikut pindah, jadi tidak perlu diulang.',
+    register: 'Daftar akun',
+    login: 'Masuk',
+    later: 'Nanti saja',
+  },
   /** Label aksesibel titik berpikir — tidak ada teksnya di prototipe. */
   thinking: 'SNOUTY sedang berpikir',
   toast: {
@@ -222,6 +230,14 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   historyEmpty: 'No other consultations yet.',
   saveSolution: 'Save consultation result',
   saved: 'Saved',
+  saveFailed: "The consultation couldn't be saved. Try again in a moment.",
+  gate: {
+    title: 'Save this consultation to your account',
+    body: 'With an account, this consultation is saved and can be reopened any time from your history. The conversation and the requirements you have entered move with it, so nothing needs repeating.',
+    register: 'Sign up',
+    login: 'Log in',
+    later: 'Not now',
+  },
   thinking: 'SNOUTY is thinking',
   toast: {
     title: 'Solution saved',

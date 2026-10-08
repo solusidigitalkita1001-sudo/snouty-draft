@@ -54,6 +54,7 @@ import {
 } from './chat-api';
 import { SolutionView, type SolutionTab } from '../solution/solution-view';
 import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
+import { gateHref, parseResume } from '../auth/resume-link';
 import { chatCopy, STAGE_ORDER, stageLabel } from './chat-copy';
 import { MISSING, requirementRows } from './requirement-rows';
 import styles from './chat-workspace.module.css';
@@ -154,6 +155,9 @@ export function ChatWorkspace() {
   const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
   const [toastOn, setToastOn] = useState(false);
+  /** Register-gate (P8-09): tamu menekan aksi khusus akun — tawarkan daftar/masuk di tempat. */
+  const [gate, setGate] = useState(false);
+  const resumeHandled = useRef(false);
   const [sleepy, setSleepy] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -513,6 +517,7 @@ export function ChatWorkspace() {
     setSolution(null);
     setScreen('chat');
     setSaveState('idle');
+    setGate(false);
     setHandoffState('idle');
     setReportOpen(false);
     setOpenProduct(null);
@@ -563,6 +568,29 @@ export function ChatWorkspace() {
     },
     [conversationId],
   );
+
+  /**
+   * Kembali dari daftar/masuk (P8-09): `?c=…&then=save` membuka percakapan yang SAMA — sudah
+   * dipindahkan ke akun oleh server (G-1) — lalu meneruskan aksi yang tadi ditekan. Menunggu
+   * riwayat akun termuat, karena hanya percakapan milik akun itu yang boleh dibuka.
+   */
+  useEffect(() => {
+    if (resumeHandled.current || history.kind !== 'list') return;
+    const target = parseResume(window.location.search);
+    if (target === null) return;
+    resumeHandled.current = true;
+    window.history.replaceState(null, '', window.location.pathname);
+    const item = history.items.find((i) => i.id === target.conversationId);
+    if (item === undefined) return;
+    if (target.then !== 'save' || item.status === 'SAVED') {
+      openHistory(item);
+      return;
+    }
+    void saveConversation(item.id).then((result) => {
+      openHistory(result === 'saved' ? { ...item, status: 'SAVED' } : item);
+      if (result === 'saved') setToastOn(true);
+    });
+  }, [history, openHistory]);
 
   /**
    * Menyerahkan kasus ke tim teknis. Kebutuhan yang sudah terkumpul disalin di sisi
@@ -636,12 +664,20 @@ export function ChatWorkspace() {
    */
   const save = useCallback(() => {
     if (!conversationId || saveState === 'saved') return;
-    void saveConversation(conversationId).then((ok) => {
-      if (!ok) return;
+    void saveConversation(conversationId).then((result) => {
+      if (result === 'needs-account') {
+        setGate(true);
+        return;
+      }
+      if (result !== 'saved') {
+        setError(COPY.saveFailed);
+        return;
+      }
+      setGate(false);
       setSaveState('saved');
       setToastOn(true);
     });
-  }, [conversationId, saveState]);
+  }, [COPY, conversationId, saveState]);
 
   const rows = state ? requirementRows(state) : [];
   // Percakapan irigasi (OQ-47): panel memuat jawaban irigasi, hanya dibaca — bukan field
@@ -1147,6 +1183,10 @@ export function ChatWorkspace() {
               </div>
             )}
 
+            {gate && conversationId !== null && (
+              <RegisterGate conversationId={conversationId} onDismiss={() => setGate(false)} />
+            )}
+
             {error !== null && (
               <div className={styles.errorCard} role="status">
                 {error}
@@ -1195,6 +1235,9 @@ export function ChatWorkspace() {
                 </button>
               </div>
             </div>
+            {gate && conversationId !== null && (
+              <RegisterGate conversationId={conversationId} onDismiss={() => setGate(false)} />
+            )}
             <SolutionView
               recommendation={solution}
               tab={solutionTab}
@@ -1445,6 +1488,38 @@ export function ChatWorkspace() {
 function completenessNote(filled: number, copy: ReturnType<typeof chatCopy>): string {
   const missing = 4 - filled;
   return missing <= 0 ? copy.meterNote.complete : copy.meterNote.remaining(missing);
+}
+
+/**
+ * Register-gate (P8-09, OQ-27 usulan default; **belum didesain**, OQ-21): panel di dalam
+ * percakapan — bukan modal — yang menjelaskan apa yang dibuka akun lalu menawarkan daftar/masuk.
+ * Tautannya membawa percakapan ini, jadi setelah masuk pengguna kembali ke kasus yang sama.
+ */
+function RegisterGate({
+  conversationId,
+  onDismiss,
+}: {
+  conversationId: string;
+  onDismiss: () => void;
+}) {
+  const COPY = useChatCopy();
+  return (
+    <div className={styles.gateCard} role="region" aria-label={COPY.gate.title}>
+      <div className={styles.gateTitle}>{COPY.gate.title}</div>
+      <p className={styles.gateBody}>{COPY.gate.body}</p>
+      <div className={styles.gateActions}>
+        <a className={styles.ctaButton} href={gateHref('register', conversationId, 'save')}>
+          {COPY.gate.register}
+        </a>
+        <a className={styles.chip} href={gateHref('login', conversationId, 'save')}>
+          {COPY.gate.login}
+        </a>
+        <button type="button" className={styles.gateLater} onClick={onDismiss}>
+          {COPY.gate.later}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 /**

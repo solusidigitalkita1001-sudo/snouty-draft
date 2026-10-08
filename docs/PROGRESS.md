@@ -468,7 +468,7 @@ HTML** — sehingga yang tersisa untuk worker hanyalah "buka halaman ini, cetak 
 - [x] P8-08 Worker PDF (Playwright + Chromium) — **OQ-40 diterapkan dengan usulan defaultnya**: paket `@snouty/jobs` memuat kontrak, dan worker tidak pernah mengimpor `apps/api` maupun memegang kredensial database. Rantai lengkap: `POST /reports` → antrean → worker ambil HTML dari rute internal → Chromium cetak A4 → `POST /internal/reports/:id/ready`
   - [x] P8-08a Tes (9, browser palsu): nama berkas dari `reportId` (job diulang menimpa, bukan menumpuk), browser selalu ditutup walau cetak gagal, halaman gagal → melempar TANPA menulis berkas rusak
   - [x] P8-08b Diverifikasi live dengan Chromium sungguhan: **PDF dua halaman A4, 251 KB**, dari data tersimpan; `/ready` memindahkan status `PENDING`→`READY`; rute internal menolak tanpa token (401) dan `fileRef` kosong (400)
-- [ ] `[!]` P8-09 Register-gate & resume — **terhalang OQ-27, OQ-21**; mekanisme G-1-nya sudah ada sejak Fase 3
+- [x] P8-09 Register-gate & resume (2026-10-08) — dikerjakan dengan **usulan default OQ-27**; tampilannya **MENUNGGU DESAIN** (OQ-21). Dulu tamu yang menekan "Simpan hasil konsultasi" menerima 403 tanpa apa pun di layar. Kini muncul panel di dalam percakapan (bukan modal), juga di layar solusi: apa yang dibuka akun, "Daftar akun" / "Masuk" / "Nanti saja". Tautannya membawa percakapan dan aksinya (`?resume=…&then=save`, ULID dan aksi divalidasi). Setelah daftar/masuk, server memindahkan percakapan (G-1), lalu web membuka percakapan yang SAMA dan langsung menyimpannya, tanpa mengetik ulang. Pindah daftar ↔ masuk mempertahankan tautannya. Tes web +3 (`resume-link`)
 - [x] P8-10 `docs/REPORT.md` §11 — pemetaan bagian → berkas, catatan alokasi nomor, catatan keamanan rute cetak, dan apa yang menunggu OQ-40/OQ-03
 - [x] P8-11 **Pratinjau laporan di web** (2026-10-05) — overlay "Buat laporan" dari prototipe (REPORT.md §8): tombol di header begitu solusi ada; banner ESTIMASI dengan kalimat kebijakan utuh, ringkasan, tabel material (kolom harga dan total hanya bila `pricing.enabled`), status PDF dipantau sampai READY, "Unduh PDF" tidak menyala sebelum itu. Formulir identitas (API mewajibkan nama + lokasi untuk kop) dan pesan hak akses dibangun minimal, **MENUNGGU DESAIN**. Bentuk kawat laporan (`ReportPayload`, `ReportPreview`, …) pindah ke `@snouty/shared-types`; API memakainya ulang. Tes web +7. Belum ada: rute unduh (`/reports/:id/download`, tautan bertanda tangan §7) dan `/reports/:id/email` — tombolnya tidak berpura-pura
   - [x] P8-11b Rute unduh `GET /reports/:id/download` — berbasis sesi (pemilik lewat `findForActor`), PENDING → "belum siap", FAILED → `REPORT_GENERATION_FAILED`, `STORAGE_PATH` tidak diset → 503; `fileRef` dari database tetap diperlakukan sebagai masukan: `resolveReportFile` menolak jalur yang keluar dari akar penyimpanan (tes 4). Nama berkas = nomor laporan. Web mengunduh lewat `fetch` + blob karena access token hidup di memori, bukan cookie. `scripts/set-tier.mjs` untuk menaikkan tier akun lokal. Tautan bertanda tangan untuk dibagikan (§7) menyusul bersama rute email
@@ -515,7 +515,7 @@ dan riwayat. Yang tercatat di sini adalah sisanya.
 - [x] P10-01 Riwayat terdaftar + solusi tersimpan → dikerjakan sebagai P8-01/P8-02
 - [x] P10-02 Entitlement lanjutan → tabel `ENTITLEMENTS` sejak Fase 3, ditegakkan di API sejak P3-11
 - [x] P10-03 Antrean handoff teknis → dikerjakan sebagai P8-07
-- [ ] `[!]` P10-04 Register-gate & resume — **terhalang OQ-27, OQ-21**; mekanisme G-1-nya sudah ada
+- [x] P10-04 Register-gate & resume → dikerjakan sebagai P8-09
 - [x] P10-05 Laporan PDF (worker) → dikerjakan sebagai P8-08
 - [ ] `[!]` P10-06 Pengiriman handoff ke tujuan sebenarnya — **terhalang OQ-08** (mailbox? CRM? tiket?)
 - [ ] ✋ CHECKPOINT — reviewed by owner
@@ -1112,6 +1112,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       tabel markdown dengan kolom pertama menempel; tab solusi memudar di tepi dan menggulir ke tab
       aktif; panel bisa ditutup dengan × 44 px dan Escape; target sentuh 44 px di layar sentuh; teks
       mikro naik ukurannya di bawah 720 px. Tes web 109 hijau.
+- [x] P16-19 Tab Skema selalu "belum tersedia" untuk pengguna yang sudah masuk (laporan pemilik
+      2026-10-08, tangkapan layar) — selesai. Permintaan skema (tab dan halaman /schematic) tidak
+      membawa access token, padahal akun memegangnya di memori, bukan cookie; tamu tidak terkena
+      karena memakai cookie. Kini token ikut dikirim, dan halaman /schematic memulihkan sesi dulu.
+      Tautan "Lihat skema instalasi" hanya tampil bila skemanya memang ada (dulu tetap tampil di
+      solusi irigasi/kasus teknis yang memang belum punya desain skema, OQ-47). Tes web +2.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

@@ -778,7 +778,7 @@ This is also the safer flow because PDF generation is an async job that can fail
 
 ### OQ-27 — Register-gate and resume screen
 
-**Status:** open · **Blocks:** 10 (and OQ-15 depends on it)
+**Status:** default diterapkan (P8-09, 2026-10-08) — tampilan menunggu desain (OQ-21) · **Blocks:** 10 (and OQ-15 depends on it)
 Section 4.4 requires guest→register→resume with no retyping, but no screen exists for it.
 **Proposed default:** An inline panel in the conversation (not a modal) using existing tokens: explains
 what an account unlocks, offers "Daftar Akun" / "Masuk", and on success links the guest session's
