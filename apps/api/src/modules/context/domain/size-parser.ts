@@ -18,6 +18,8 @@ const NUMBER = String.raw`(\d+\s+\d+\s*\/\s*\d+|\d+\s*\/\s*\d+|\d+(?:[.,]\d+)?)`
 const SIZED = new RegExp(`(?<![\\w/])${NUMBER}\\s*(inch|inci|in\\b|"|mm\\b)`, 'i');
 /** Pecahan tanpa satuan ("ada ukuran 3/4?") — pecahan hampir selalu ukuran pipa inci. */
 const FRACTION = /(?<![\w/])(\d+\s+\d+\s*\/\s*\d+|\d+\s*\/\s*\d+)(?![\w/])/;
+const MAX_BARE_INCH = 12;
+
 /** Angka telanjang sebagai cadangan terakhir ("ukuran 63 ada?"). */
 const BARE = /(?<![\w/.,])(\d+(?:[.,]\d+)?)(?![\w/])/;
 
@@ -28,8 +30,14 @@ export function parseSize(text: string): string | null {
     const unit = sized[2]!.toLowerCase() === 'mm' ? ' mm' : '';
     return `${tidy(sized[1]!)}${unit}`;
   }
-  const match = FRACTION.exec(cleaned) ?? BARE.exec(cleaned);
-  return match ? tidy(match[1]!) : null;
+  const fraction = FRACTION.exec(cleaned);
+  if (fraction) return tidy(fraction[1]!);
+  const bare = BARE.exec(cleaned);
+  if (!bare) return null;
+  // Angka telanjang di atas 12 adalah milimeter: ukuran inci pipa berhenti di belasan, ukuran mm
+  // dimulai dari 16 — "elbow hdpe 63 ada?" adalah 63 mm, bukan 63 inci (audit live 2026-10-08).
+  const value = Number(bare[1]!.replace(',', '.'));
+  return value > MAX_BARE_INCH ? `${tidy(bare[1]!)} mm` : tidy(bare[1]!);
 }
 
 function tidy(value: string): string {

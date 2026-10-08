@@ -436,3 +436,63 @@ describe('kosakata — klitik "-nya" dan keluarga non-katalog', () => {
     expect(TEST_LEXICON.mentionsRequirementEntity('as well, which one?')).toBe(false);
   });
 });
+
+describe('katalog — produk wakil mengikuti ukuran yang ditanya', () => {
+  it('"tee pvc 3/4 ada?": di antara beberapa tee PVC, yang berukuran 3/4 yang menjawab', async () => {
+    const tee = (id: string, name: string, sizes: string[]) =>
+      ({
+        id: id.repeat(26),
+        name,
+        family: 'FITTING PVC',
+        category: 'FITTING',
+        status: 'active',
+        sizes,
+        material: { provenance: 'UNAVAILABLE', value: null },
+        standard: { provenance: 'UNAVAILABLE', value: null },
+        pressureClass: { provenance: 'UNAVAILABLE', value: null },
+        rodLength: { provenance: 'UNAVAILABLE', value: null },
+        jointType: { provenance: 'UNAVAILABLE', value: null },
+        application: { provenance: 'UNAVAILABLE', value: null },
+        sourceDocument: 'Katalog',
+        sourcePage: 1,
+        imageUrl: null,
+      }) as unknown as Product;
+    const asked: string[] = [];
+    const events = await runProductQuestion(
+      aiFor().ai,
+      {
+        activeVersion: () => Promise.resolve({ kind: 'pralon' } as never),
+        listProducts: ({ q }: { q?: string }) =>
+          Promise.resolve({
+            items:
+              q === 'tee'
+                ? [
+                    tee('A', 'Bell Tee TS Branch - W 6" x 2"', ['6"']),
+                    tee('B', 'Tee PVC 3/4"', ['3/4"']),
+                  ]
+                : [],
+            nextCursor: null,
+          }),
+      } as never,
+      {
+        answer: (q: { productId: string }) => {
+          asked.push(q.productId);
+          return Promise.resolve({
+            kind: 'sizeAvailable',
+            productId: q.productId,
+            aspect: 'size_availability',
+            provenance: 'VERIFIED',
+            sourceDocument: 'Katalog',
+            sourcePage: 1,
+          });
+        },
+      } as never,
+      productInput('tee pvc 3/4 ada?', {
+        intent: 'product_spec',
+        productAspect: 'size_availability',
+      }),
+    );
+    expect(asked).toEqual(['B'.repeat(26)]);
+    expect(events.length).toBeGreaterThan(0);
+  });
+});

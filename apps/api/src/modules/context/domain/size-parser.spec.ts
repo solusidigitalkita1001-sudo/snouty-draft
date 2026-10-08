@@ -20,7 +20,9 @@ describe('parseSize — ukuran pipa dari teks', () => {
   });
 
   it('angka telanjang hanya cadangan; tanpa angka → null', () => {
-    expect(parseSize('ukuran 63 ada?')).toBe('63');
+    expect(parseSize('ukuran 63 ada?')).toBe('63 mm');
+    expect(parseSize('elbow hdpe 63 ada?')).toBe('63 mm');
+    expect(parseSize('ukuran 4 ada?')).toBe('4');
     expect(parseSize('ada ukuran apa saja?')).toBeNull();
     expect(parseSize('pe 100 ada?')).toBeNull();
   });

@@ -208,9 +208,12 @@ export async function runProductQuestion(
   // 2026-10-08). Ragam produk ("produk Pralon apa aja?") pun sudah diputuskan intent-nya.
   const fromSubject =
     u.productAspect !== null && input.subject?.kind === 'product' ? input.subject.entity : null;
+  // Keluarga yang disebut tetapi bukan produk katalog (galvanis) juga sudah menjawab "produk apa" —
+  // pengetahuannya dijawab kode; model pemeta hanya menambah 40 detik (audit live 2026-10-08).
   const settled =
     continued !== null ||
     named !== null ||
+    u.families.length > 0 ||
     knowledgeOnly ||
     fromSubject !== null ||
     u.intent?.label === 'product_range';
@@ -476,7 +479,7 @@ async function answerSpec(
   const COPY = productAnswerCopy(locale);
   if (query === null) return { text: COPY.noProductNamed, cards: [] };
 
-  const support = await lookup(catalog, query, { optional: false, aliases });
+  const support = await lookup(catalog, query, { optional: false, aliases, size: rawSize });
   if (support.unavailable) {
     return {
       text: COPY.catalogUnavailable,
@@ -525,7 +528,11 @@ async function answerSpec(
 async function lookup(
   catalog: ProductCatalog,
   query: string,
-  { optional, aliases = NO_ALIASES }: { readonly optional: boolean; readonly aliases?: Aliases },
+  {
+    optional,
+    aliases = NO_ALIASES,
+    size = null,
+  }: { readonly optional: boolean; readonly aliases?: Aliases; readonly size?: string | null },
 ): Promise<CatalogSupport> {
   let authoritative: boolean;
   try {
@@ -565,7 +572,10 @@ async function lookup(
         if (candidates.length > 0) break;
       }
     }
-    const product = bestMatch(candidates, term);
+    // Pertanyaan ketersediaan ukuran: produk yang memang berukuran itu yang mewakili istilahnya —
+    // bukan wakil sembarang lalu "tidak tersedia dalam ukuran 3/4" (audit live 2026-10-08).
+    const sized = size === null ? [] : candidates.filter((p) => hasSize(p, size));
+    const product = bestMatch(sized.length > 0 ? sized : candidates, term);
     if (!product) missing.push(term);
     else if (!products.some((f) => f.id === product.id)) products.push(product);
   }
@@ -577,6 +587,15 @@ async function lookup(
  * kebetulan memuatnya ("HDPE" → keluarga HDPE, bukan pipa kabel yang kebetulan bernama HDPE), dan
  * pipa menang atas fitting untuk istilah bahan. Pencarian LIKE memberi urutan sembarang.
  */
+/** Produk berukuran `size` — dari daftar ukurannya, atau dari namanya bila daftar ukuran kosong. */
+function hasSize(product: Product, size: string): boolean {
+  const wanted = PipeSize.parse(size);
+  if (wanted === null) return false;
+  if (product.sizes.some((s) => PipeSize.parse(s)?.equals(wanted) ?? false)) return true;
+  const label = size.toLowerCase().replace(/s+/g, ' ');
+  return product.name.toLowerCase().includes(label);
+}
+
 export function bestMatch(items: readonly Product[], term: string): Product | undefined {
   const needle = term.toLowerCase();
   const score = (p: Product): number => {
