@@ -89,13 +89,23 @@ export function extractTechnicalContext(
       add('static_head', staticHead(num(m[1]!), lowerWord, before, fromTo), m[0], 'm');
     },
   );
+  // Klitik "-nya" dan kata sambung ("jadi", "menjadi", "sekitar") boleh di antara penanda dan angka:
+  // "ubah beda tingginya jadi 20 meter" adalah beda tinggi, bukan panjang jalur (laporan pemilik
+  // 2026-10-08: update teknis tidak berefek — angkanya jatuh ke route_length).
   take(
     new RegExp(
-      `(lebih rendah|lebih tinggi|naik|beda tinggi|ketinggian|elevasi|elevation difference|elevation gain|elevation|height difference|static head|lift|rise)\\s*(?:sekitar|kira-kira|sejauh|setinggi|of|about|approximately|around|roughly)?\\s*${NUM}\\s*${M}\\b`,
+      `(lebih rendah|lebih tinggi|naik|beda tinggi|perbedaan tinggi|selisih tinggi|ketinggian|elevasi|elevation difference|elevation gain|elevation|height difference|static head|lift|rise)(?:nya)?\\s*(?:(?:jadi|menjadi|diubah jadi|sekarang|sekitar|kira-kira|sejauh|setinggi|is|to|of|about|approximately|around|roughly)\\s*)*[:=]?\\s*${NUM}\\s*${M}\\b`,
     ),
     (m) => {
-      const before = text.slice(Math.max(0, m.index - 30), m.index);
-      add('static_head', staticHead(num(m[2]!), !/lebih tinggi/.test(m[1]!), before), m[0], 'm');
+      const term = m[1]!;
+      // Hanya "lebih rendah/lebih tinggi" yang membawa arah — subjek kalimat menentukan tandanya.
+      // Penanda netral ("beda tinggi 15 m", "naik 15 m") berarti air dinaikkan sejauh itu: positif.
+      if (term === 'lebih rendah' || term === 'lebih tinggi') {
+        const before = text.slice(Math.max(0, m.index - 30), m.index);
+        add('static_head', staticHead(num(m[2]!), term === 'lebih rendah', before), m[0], 'm');
+      } else {
+        add('static_head', num(m[2]!), m[0], 'm');
+      }
     },
   );
   take(

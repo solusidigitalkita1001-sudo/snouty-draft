@@ -94,3 +94,22 @@ describe('extractTechnicalContext — Indonesian unchanged', () => {
     });
   });
 });
+
+describe('extractTechnicalContext — beda tinggi (laporan pemilik 2026-10-08)', () => {
+  it('penanda netral "beda tinggi 15 m" dari sumur ke tandon → +15 (air dinaikkan), bukan −15', () => {
+    expect(
+      facts('transfer air dari sumur bor ke tandon jarak 300 m beda tinggi 15 m', 'pump_transfer'),
+    ).toMatchObject({ static_head: 15, route_length: 300 });
+  });
+
+  it('"ubah beda tingginya jadi 20 meter" mengubah beda tinggi, bukan panjang jalur', () => {
+    const f = facts('ubah beda tingginya jadi 20 meter', 'pump_transfer');
+    expect(f).toMatchObject({ static_head: 20 });
+    expect(f).not.toHaveProperty('route_length');
+  });
+
+  it('"lebih rendah/lebih tinggi" tetap menentukan arah dari subjek kalimat', () => {
+    expect(facts('sungainya 4 m lebih rendah', 'pump_transfer')).toMatchObject({ static_head: 4 });
+    expect(facts('sumbernya 6 m lebih tinggi', 'pump_transfer')).toMatchObject({ static_head: -6 });
+  });
+});

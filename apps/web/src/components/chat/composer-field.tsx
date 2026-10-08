@@ -12,6 +12,11 @@ interface ComposerFieldProps {
   readonly placeholder: string;
   readonly ariaLabel: string;
   readonly className: string;
+  /**
+   * Naik setiap kali bidang harus mendapat fokus dari luar — mis. "Perbaiki asumsi ini" pada kasus
+   * teknis, yang nilainya diubah lewat chat, bukan lewat panel.
+   */
+  readonly focusToken?: number;
 }
 
 /**
@@ -26,8 +31,13 @@ export function ComposerField({
   placeholder,
   ariaLabel,
   className,
+  focusToken = 0,
 }: ComposerFieldProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (focusToken > 0) ref.current?.focus();
+  }, [focusToken]);
 
   useEffect(() => {
     const el = ref.current;

@@ -135,6 +135,7 @@ export function ChatWorkspace() {
   const [user, setUser] = useState<CurrentUser | null>(null);
   // Mode "Ubah" panel: nilai sementara per field sampai "Selesai" dikirim sekaligus.
   const [editing, setEditing] = useState(false);
+  const [composerFocus, setComposerFocus] = useState(0);
   const [edits, setEdits] = useState<Readonly<Record<string, string>>>({});
   const [editStatus, setEditStatus] = useState<'idle' | 'saving' | 'failed'>('idle');
   const narrow = useMediaQuery(NARROW_QUERY);
@@ -996,9 +997,16 @@ export function ChatWorkspace() {
             <SolutionView
               recommendation={solution}
               tab={solutionTab}
-              // "Perbaiki asumsi ini" → panel terbuka dalam mode Ubah (prototipe).
+              // "Perbaiki asumsi ini" → panel terbuka dalam mode Ubah (prototipe). Kasus teknis/irigasi
+              // tidak punya editor panel — nilainya diubah lewat chat — jadi kembali ke chat dengan
+              // panel terbuka dan kolom ketik terfokus (laporan pemilik 2026-10-08: tombolnya diam).
               onFixAssumption={() => {
                 setPanelOpen(true);
+                if (useCase !== null) {
+                  setScreen('chat');
+                  setComposerFocus((n) => n + 1);
+                  return;
+                }
                 setEditing(true);
               }}
             />
@@ -1012,6 +1020,7 @@ export function ChatWorkspace() {
               <ComposerField
                 className={styles.composerCardInput ?? ''}
                 value={draft}
+                focusToken={composerFocus}
                 onChange={setDraft}
                 onSubmit={() => void submit()}
                 placeholder={mobile ? COPY.composerPlaceholderMobile : COPY.composerPlaceholderChat}
