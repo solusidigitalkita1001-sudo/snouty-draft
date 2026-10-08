@@ -15,6 +15,7 @@ import type {
   KnowledgeTopicLabel,
   MutationOpLabel,
   ProductAspectLabel,
+  UseCaseLabel,
 } from '../domain/labels.js';
 
 export interface Match<L extends string = string> {
@@ -34,6 +35,10 @@ export interface MessageUnderstanding {
   readonly knowledgeTopics: readonly KnowledgeTopicLabel[];
   /** Arah mutasi kebutuhan (P16-12): tambah/kurangi atas state; `null` = nilai absolut. */
   readonly mutationOp: MutationOpLabel | null;
+  /** Jenis kasus instalasi yang diceritakan (P16-14); `null` = tidak menceritakan instalasi. */
+  readonly useCase: UseCaseLabel | null;
+  /** Menyebut fluida/kondisi di luar cakupan (air panas, uap, kimia — kosakata). */
+  readonly mentionsOutOfScopeFluid: boolean;
   /** Keluarga produk yang disebut (kosakata), kanonis, urut kemunculan. */
   readonly families: readonly string[];
   readonly mentionsCompetitor: boolean;
@@ -52,6 +57,7 @@ export function unavailableUnderstanding(
     mentionsCompetitor(text: string): boolean;
     mentionsOwnBrand(text: string): boolean;
     mentionsRequirementEntity(text: string): boolean;
+    mentionsOutOfScopeFluid(text: string): boolean;
   } | null = null,
 ): MessageUnderstanding {
   return {
@@ -64,6 +70,8 @@ export function unavailableUnderstanding(
     productAspect: null,
     knowledgeTopics: [],
     mutationOp: null,
+    useCase: null,
+    mentionsOutOfScopeFluid: lexicon?.mentionsOutOfScopeFluid(text) ?? false,
     families: lexicon?.productFamilies(text) ?? [],
     mentionsCompetitor: lexicon?.mentionsCompetitor(text) ?? false,
     mentionsOwnBrand: lexicon?.mentionsOwnBrand(text) ?? false,

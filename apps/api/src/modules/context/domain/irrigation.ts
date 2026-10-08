@@ -21,10 +21,6 @@ import {
 
 export const UNKNOWN = 'Belum tahu';
 
-/** Isyarat bahwa pesan adalah soal irigasi/pertanian. */
-export const IRRIGATION_SIGNALS =
-  /\b(irigasi|sawah|kebun|perkebunan|pertanian|ladang|irrigat(?:e|ion|ing)|paddy|rice ?field|farm(?:land)?|orchard|plantation|crop ?field)\b/i;
-
 interface IrrigationTemplate {
   readonly label: string;
   readonly question: string;
@@ -126,10 +122,6 @@ const MAX_QUESTIONS = 4;
 
 export function isIrrigationField(id: string): id is IrrigationField {
   return id in IRRIGATION_TEMPLATES;
-}
-
-export function isIrrigationMessage(message: string): boolean {
-  return IRRIGATION_SIGNALS.test(message);
 }
 
 /**

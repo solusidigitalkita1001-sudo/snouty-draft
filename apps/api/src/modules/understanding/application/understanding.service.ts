@@ -23,6 +23,7 @@ import type {
   KnowledgeTopicLabel,
   MutationOpLabel,
   ProductAspectLabel,
+  UseCaseLabel,
 } from '../domain/labels.js';
 import type { EntityLexicon } from '../domain/vocabulary.js';
 import type { VectorCache } from '../infrastructure/file-vector.cache.js';
@@ -113,6 +114,8 @@ export class UnderstandingService {
       mentionsCompetitor: this.lexicon.mentionsCompetitor(message),
       mentionsOwnBrand: this.lexicon.mentionsOwnBrand(message),
       mentionsRequirement: this.lexicon.mentionsRequirementEntity(message),
+      mentionsOutOfScopeFluid: this.lexicon.mentionsOutOfScopeFluid(message),
+      useCase: (this.verdict('use-case', query).best?.label as UseCaseLabel | undefined) ?? null,
       intentRanking: intent.ranked,
     };
   }

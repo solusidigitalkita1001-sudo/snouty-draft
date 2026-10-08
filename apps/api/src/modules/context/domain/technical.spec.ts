@@ -4,6 +4,8 @@
  * lengkap = tanpa parameter kritis yang kosong.
  */
 import { describe, expect, it } from 'vitest';
+import { CASE_PROFILES } from '@snouty/engineering';
+import { USE_CASES } from '../../understanding/domain/labels.js';
 import { emptyRequirementState } from './requirement-state.factory.js';
 import {
   applyTechnicalAnswers,
@@ -21,13 +23,20 @@ import {
 const T0 = '2026-01-01T00:00:00.000Z';
 
 describe('detectTechnicalCase', () => {
-  it('rumah dan irigasi bukan jalur ini; gorong-gorong iya; percakapan teknis berlanjut apa pun pesannya', () => {
+  it('kasus dari label pemahaman: rumah dan irigasi bukan jalur ini; gorong-gorong iya; percakapan teknis berlanjut apa pun labelnya', () => {
     const empty = emptyRequirementState(T0);
-    expect(detectTechnicalCase('rumah 2 lantai 3 kamar mandi', empty)).toBeNull();
-    expect(detectTechnicalCase('irigasi sawah 1 hektar', empty)).toBeNull();
-    expect(detectTechnicalCase('mau pasang gorong-gorong melintasi jalan', empty)).toBe('culvert');
+    expect(detectTechnicalCase('residential_clean_water', empty)).toBeNull();
+    expect(detectTechnicalCase('irrigation', empty)).toBeNull();
+    expect(detectTechnicalCase(null, empty)).toBeNull();
+    expect(detectTechnicalCase('bukan-kasus', empty)).toBeNull();
+    expect(detectTechnicalCase('culvert', empty)).toBe('culvert');
     const ongoing = applyTechnicalFacts(empty, 'pump_transfer', 'transfer air dari sungai').state;
-    expect(detectTechnicalCase('jaraknya 800 meter', ongoing)).toBe('pump_transfer');
+    expect(detectTechnicalCase(null, ongoing)).toBe('pump_transfer');
+  });
+
+  it('label katalog use-case sama persis dengan CaseId engineering', () => {
+    const profiles = CASE_PROFILES.map((p) => p.id).sort();
+    expect([...USE_CASES].sort()).toEqual(profiles);
   });
 });
 

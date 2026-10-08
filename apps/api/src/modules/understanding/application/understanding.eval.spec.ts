@@ -27,6 +27,7 @@ interface GoldenCase {
   readonly companyTopic?: string;
   readonly productAspect?: string;
   readonly mutationOp?: string | null;
+  readonly useCase?: string | null;
   readonly topics?: readonly string[];
   /** Topik yang dikenali harus PERSIS `topics` — tidak ada topik lain yang ikut terseret. */
   readonly topicsOnly?: boolean;
@@ -142,6 +143,9 @@ function compare(c: GoldenCase, u: MessageUnderstanding): string[] {
   }
   if (c.format !== undefined && u.format !== c.format) {
     problems.push(`format: diharapkan ${c.format}, dapat ${u.format ?? 'null'}`);
+  }
+  if (c.useCase !== undefined && u.useCase !== c.useCase) {
+    problems.push(`useCase: diharapkan ${c.useCase}, dapat ${u.useCase ?? 'null'}`);
   }
   if (c.mutationOp !== undefined && u.mutationOp !== c.mutationOp) {
     problems.push(`mutationOp: diharapkan ${c.mutationOp}, dapat ${u.mutationOp ?? 'null'}`);

@@ -4,7 +4,6 @@
  */
 import { describe, expect, it } from 'vitest';
 import { isParameterKey } from '../parameters/registry.js';
-import { classifyCase } from './classifier.js';
 import { extractTechnicalContext } from './extractor.js';
 import { caseReadiness, resolveMissingParameters } from './missing.js';
 import { CASE_PROFILES, activeParameters, caseProfile } from './profiles.js';
@@ -25,33 +24,8 @@ describe('CaseProfileRegistry', () => {
   });
 });
 
-describe('TechnicalCaseClassifier', () => {
-  it.each([
-    ['irigasi sawah 1 hektar pakai sprinkler', 'irrigation'],
-    ['mau pasang gorong-gorong melintasi jalan desa lebar 6 m', 'culvert'],
-    ['drainase air hujan komplek 2 hektar', 'stormwater'],
-    ['saluran pembuangan air kotor dengan kemiringan 1%', 'gravity_drainage'],
-    ['transfer air dari sungai ke tandon jarak 800 m pakai pompa', 'pump_transfer'],
-    ['sumur bor 60 m ke tandon', 'well_distribution'],
-    ['jaringan air bersih cluster 120 unit rumah', 'residential_cluster'],
-    ['gedung 8 lantai apartemen', 'multistorey_building_water'],
-    ['rumah 2 lantai 3 kamar mandi toren di atap', 'residential_clean_water'],
-    ['gw pengen bikin tambak lele 4 x 4 meter, produk nya apa aja', 'fish_pond'],
-    ['kolam ikan nila 3 petak', 'fish_pond'],
-  ])('"%s" → %s', (message, expected) => {
-    const c = classifyCase(message);
-    expect(c.primary).toBe(expected);
-    expect(c.confidence).toBeGreaterThanOrEqual(0.5);
-  });
-
-  it('tanpa isyarat → null; isyarat campur memberi secondary dan keyakinan lebih rendah', () => {
-    expect(classifyCase('halo, apa kabar').primary).toBeNull();
-    const mixed = classifyCase('irigasi sawah, airnya dipompa dari sungai ke tandon dulu');
-    expect(mixed.primary).toBe('irrigation');
-    expect(mixed.secondary).toBe('pump_transfer');
-    expect(mixed.confidence).toBeLessThan(classifyCase('irigasi sawah').confidence);
-  });
-});
+// Klasifikasi kasus dari kalimat pindah ke data (data/understanding/use-case.json, P16-14) dan
+// diukur golden set pemahaman; paket ini tidak lagi membaca bahasa.
 
 describe('TechnicalContextExtractor', () => {
   it('skenario A irigasi: sungai 150 m, 4 m lebih rendah, 2 hektar sprinkler', () => {

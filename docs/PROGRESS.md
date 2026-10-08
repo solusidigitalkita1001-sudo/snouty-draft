@@ -1049,6 +1049,18 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       (dicatat, tidak diubah): katalog Pralon aktif hampir seluruh spesifikasinya `UNAVAILABLE` (data
       impor ERP, OQ-55); irigasi belum punya field debit; jawaban "pabrik di mana" menunggu data
       lokasi resmi (OQ-54); laporan untuk tamu memang terkunci (entitlement).
+- [x] P16-14 Sisa pola kalimat dipindah ke data — selesai 2026-10-08. (1) Pengklasifikasi kasus
+      regex berbobot di `packages/engineering` (`classifyCase`) dihapus; jenis kasus kini katalog data
+      `use-case` (label = `CaseId`, ±130 contoh dua bahasa + `none`), dibaca `detectTechnicalCase`;
+      kesamaan label ↔ `CaseId` dijaga tes. Sekaligus memperbaiki regresi audit P16-13: pagar
+      "kebutuhan bangunan bukan kasus sumur" ikut menutup kasus gedung bertingkat ("gedung kantor 6
+      lantai"); kini dibedakan contoh, pagar dihapus. (2) Deteksi irigasi (`IRRIGATION_SIGNALS`) diganti
+      label `use-case`/intent. (3) Kebijakan cakupan (`policy/scope.ts`) tidak membaca bahasa lagi:
+      menerima isyarat — nama fluida dari kosakata `outOfScopeFluids`, suhu dari `temperature-parser.ts`;
+      batas 45 °C tetap aturan kebijakan. (4) Rujukan dokumen ke `message-signals.ts`/`heuristics.ts`
+      dibersihkan; `dist` lokal dibangun ulang tanpa berkas lama. Yang sengaja tetap regex: parser nilai
+      (angka, satuan, suhu, ukuran, jumlah, enum sumber air/irigasi) dan penilai nama produk katalog —
+      bukan tebakan pertanyaan. Golden set 145/145 (19 kasus jenis kasus baru); tes API 986, engineering 199.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

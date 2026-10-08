@@ -148,7 +148,9 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
   (27 label halus: sapaan, terima kasih, pesaing, konsep/perbandingan/spesifikasi/ragam/harga produk,
   pertanyaan guna/pengetahuan/rekomendasi, kebutuhan bangunan/irigasi/teknis/mutasi/jawaban
   klarifikasi, penjelasan, enam jenis lanjutan), `depth`, `format`, `company-topic`,
-  `product-aspect`, `knowledge-topic` (multi-label). Tiap label berisi kalimat contoh dua bahasa.
+  `product-aspect`, `knowledge-topic` (multi-label), `mutation-op` (tambah/kurangi atas state, P16-12),
+  `use-case` (jenis kasus instalasi = `CaseId` engineering, P16-14: menggantikan pengklasifikasi
+  regex berbobot; irigasi pun dikenali dari sini). Tiap label berisi kalimat contoh dua bahasa.
   Berkas memuat `threshold` (kemiripan minimum) dan `margin` (selisih minimum atas label kedua;
   di bawahnya "ragu"). Katalog faset (`depth`, `format`, `company-topic`, `product-aspect`,
   `knowledge-topic`) juga memuat label **`none`**: kalimat biasa yang TIDAK membawa faset itu
@@ -159,7 +161,8 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
   Katalog multi-label memakai `window`: label lain ikut cocok hanya bila skornya tidak lebih rendah
   dari label teratas dikurangi `window` ("pipa buat air panas pake apa?" mirip 1,0 dengan air panas
   dan 0,75 dengan sambungan lem — yang kedua tidak ditanya).
-- **Kosakata entitas.** `vocabulary.json`: keluarga produk kanonis beserta aliasnya, merek sendiri,
+- **Kosakata entitas.** `vocabulary.json` (juga `outOfScopeFluids` untuk kebijakan cakupan; suhu ≥ 45 °C
+  dibaca parser angka di `context`, batasnya aturan `policy/scope.ts`): keluarga produk kanonis beserta aliasnya, merek sendiri,
   merek dan rujukan pesaing, hal-hal kebutuhan. Dicocokkan pada batas kata — ini pengenalan NAMA,
   bukan pola kalimat.
 - **Penyandi.** Contoh disandikan sekali saat boot (vektor di-cache di berkas) dengan model

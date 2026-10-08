@@ -141,7 +141,13 @@ describe('runUnderstanding — bentuk event SSE', () => {
     const ai = aiExtracting({});
     const first = await runUnderstanding(
       ai,
-      input({ message: 'mau pasang gorong-gorong lewat jalan desa lebar 6 meter' }),
+      input({
+        message: 'mau pasang gorong-gorong lewat jalan desa lebar 6 meter',
+        understanding: understood('mau pasang gorong-gorong lewat jalan desa lebar 6 meter', {
+          intent: 'requirement_technical',
+          useCase: 'culvert',
+        }),
+      }),
     );
     const firstText = (first.events.find((e) => e.type === 'token') as { text: string }).text;
     expect(firstText).toMatch(/^Oke, gorong-gorong/);
@@ -161,6 +167,10 @@ describe('runUnderstanding — bentuk event SSE', () => {
       ai,
       input({
         message: 'mau pasang gorong-gorong melintasi jalan desa, lebar jalan 6 m, dilewati truk',
+        understanding: understood(
+          'mau pasang gorong-gorong melintasi jalan desa, lebar jalan 6 m, dilewati truk',
+          { intent: 'requirement_technical', useCase: 'culvert' },
+        ),
       }),
     );
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
@@ -204,6 +214,10 @@ describe('runUnderstanding — bentuk event SSE', () => {
       input({
         message:
           'untuk bikin irigasi sawah dengan luas 1 hektar itu yang dibutuhin apa aja product nya?',
+        understanding: understood(
+          'untuk bikin irigasi sawah dengan luas 1 hektar itu yang dibutuhin apa aja product nya?',
+          { intent: 'requirement_irrigation', useCase: 'irrigation' },
+        ),
       }),
     );
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
@@ -238,7 +252,13 @@ describe('runUnderstanding — bentuk event SSE', () => {
     const ai = aiExtracting({});
     const { events, changed } = await runUnderstanding(
       ai,
-      input({ message: 'pipa buat jalur air panas boiler hotel butuh apa?' }),
+      input({
+        message: 'pipa buat jalur air panas boiler hotel butuh apa?',
+        // Nama fluidanya dikenali kosakata (understood membacanya dari vocabulary.json).
+        understanding: understood('pipa buat jalur air panas boiler hotel butuh apa?', {
+          intent: 'requirement_building',
+        }),
+      }),
     );
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
     expect(events.map((e) => e.type)).toEqual(['message.start', 'card', 'message.end']);
@@ -252,7 +272,13 @@ describe('runUnderstanding — bentuk event SSE', () => {
     const ai = aiExtracting({});
     const { events, nextState } = await runUnderstanding(
       ai,
-      input({ message: 'gw pengen bikin tambak lele 4 x 4 meter, produk nya apa aja' }),
+      input({
+        message: 'gw pengen bikin tambak lele 4 x 4 meter, produk nya apa aja',
+        understanding: understood('gw pengen bikin tambak lele 4 x 4 meter, produk nya apa aja', {
+          intent: 'requirement_technical',
+          useCase: 'fish_pond',
+        }),
+      }),
     );
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
     expect(nextState.useCase).toMatchObject({ kind: 'technical', caseId: 'fish_pond' });

@@ -113,6 +113,24 @@ export const NONE_LABEL = 'none';
 export const MUTATION_OPS = ['add', 'remove'] as const;
 export type MutationOpLabel = (typeof MUTATION_OPS)[number];
 
+/**
+ * Jenis KASUS instalasi (P16-14) — sama persis dengan `CaseId` di `packages/engineering`; modul ini
+ * tidak boleh mengimpor engineering, jadi daftarnya ditulis ulang dan dijaga tes `context`.
+ */
+export const USE_CASES = [
+  'residential_clean_water',
+  'multistorey_building_water',
+  'residential_cluster',
+  'irrigation',
+  'pump_transfer',
+  'gravity_drainage',
+  'stormwater',
+  'culvert',
+  'well_distribution',
+  'fish_pond',
+] as const;
+export type UseCaseLabel = (typeof USE_CASES)[number];
+
 /** Nama katalog data → label yang sah di dalamnya. */
 export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   intent: FINE_INTENTS,
@@ -122,6 +140,7 @@ export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   'product-aspect': PRODUCT_ASPECTS,
   'knowledge-topic': KNOWLEDGE_TOPICS,
   'mutation-op': MUTATION_OPS,
+  'use-case': USE_CASES,
 };
 export type CatalogName = keyof typeof CATALOG_LABELS;
 

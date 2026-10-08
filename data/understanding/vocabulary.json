@@ -186,5 +186,28 @@
     "water tap"
   ],
   "knowledgeOnlyFamilies": ["galvanis"],
-  "fittingFamilies": ["tee", "elbow", "reducer", "socket"]
+  "fittingFamilies": ["tee", "elbow", "reducer", "socket"],
+  "outOfScopeFluids": [
+    "peternakan",
+    "air panas",
+    "air proses",
+    "uap",
+    "boiler",
+    "air laut",
+    "kimia",
+    "bahan kimia",
+    "gas",
+    "minyak",
+    "bahan bakar",
+    "livestock",
+    "hot water",
+    "process water",
+    "steam",
+    "seawater",
+    "sea water",
+    "chemical",
+    "chemicals",
+    "oil",
+    "fuel"
+  ]
 }

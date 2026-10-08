@@ -261,6 +261,24 @@ describe('ruas kebutuhan — bangunan vs kasus sumur, harga, toren, di luar topi
     expect(nextState.water.source.value).toBe('pump');
   });
 
+  it('P16-14: "gedung kantor 6 lantai" (kebutuhan bangunan) tetap masuk kasus gedung bertingkat', async () => {
+    const message = 'gedung kantor 6 lantai, 20 toilet';
+    const { nextState } = await runUnderstanding(
+      aiFor().ai,
+      pipelineInput({
+        message,
+        understanding: understood(message, {
+          intent: 'requirement_building',
+          useCase: 'multistorey_building_water',
+        }),
+      }),
+    );
+    expect(nextState.useCase).toMatchObject({
+      kind: 'technical',
+      caseId: 'multistorey_building_water',
+    });
+  });
+
   it('"harga pipa buat rumah 2 lantai berapa?" mencatat kebutuhan DAN menjawab soal harga', async () => {
     const message = 'harga pipa buat rumah 2 lantai berapa?';
     const { events } = await runUnderstanding(

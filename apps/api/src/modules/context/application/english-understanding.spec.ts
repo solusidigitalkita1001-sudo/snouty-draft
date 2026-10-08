@@ -5,6 +5,7 @@
  * itu diberikan tes, dan yang diuji adalah aturan kode di atasnya.
  */
 import { describe, expect, it } from 'vitest';
+import { parseTemperature } from '../domain/temperature-parser.js';
 import { useCasePolicy } from '../../policy/scope.js';
 import { TEST_LEXICON, understood } from '../../understanding/testing/understood.js';
 import { planClarification, summarizeAnswers } from '../domain/clarification.js';
@@ -103,10 +104,19 @@ describe('pemahaman Inggris — pola kode', () => {
     ).toContainEqual({ path: 'fixtures.bathrooms', value: 1, source: 'user_stated' });
   });
 
-  it('kebijakan cakupan membaca kondisi fluida Inggris', () => {
-    expect(useCasePolicy('hot water line for a hotel boiler').kind).toBe('policy');
-    expect(useCasePolicy('process water at 70 degrees C, 200 m run').kind).toBe('policy');
-    expect(useCasePolicy('2-storey house, 3 bathrooms').kind).toBe('supported');
+  it('kebijakan cakupan membaca kondisi fluida dua bahasa (kosakata + parser suhu)', () => {
+    const signals = (text: string) => ({
+      outOfScopeFluid: TEST_LEXICON.mentionsOutOfScopeFluid(text),
+      temperatureC: parseTemperature(text),
+    });
+    expect(useCasePolicy(signals('hot water line for a hotel boiler')).kind).toBe('policy');
+    expect(useCasePolicy(signals('process water at 70 degrees C, 200 m run')).kind).toBe('policy');
+    expect(useCasePolicy(signals('2-storey house, 3 bathrooms')).kind).toBe('supported');
+    expect(useCasePolicy(signals('jalur air panas boiler hotel')).kind).toBe('policy');
+    expect(useCasePolicy(signals('pipa untuk air suhu 60 derajat')).kind).toBe('policy');
+    expect(useCasePolicy(signals('rumah 2 lantai suhu 30 derajat di luar')).kind).toBe('supported');
+    expect(useCasePolicy(signals('pipa tambak udang 2 hektar')).kind).toBe('supported');
+    expect(useCasePolicy(signals('irigasi sawah 1 hektar')).kind).toBe('supported');
   });
 
   it('templat dua bahasa: balasan tetap, pembuka, pertanyaan klarifikasi, ringkasan jawaban', () => {

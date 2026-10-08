@@ -89,8 +89,8 @@ klarifikasi tanpa LLM; evaluasi; `ReplyWriter` dengan pagar angka; heuristik int
 - **ParameterRegistry** (brief §3–4): definisi parameter universal + metadata + redaksi pertanyaan.
 - **CaseProfileRegistry** (§2, §6): profil kasus → parameter aktif, kalkulator, keluaran; dukung
   primer + sekunder.
-- **TechnicalCaseClassifier**: deterministik dari isyarat teks (sudah ada benihnya di
-  `message-signals.ts`), model hanya bila ragu.
+- **TechnicalCaseClassifier**: kini katalog data `data/understanding/use-case.json` (P16-14) —
+  jenis kasus dikenali dari contoh kalimat lewat kemiripan vektor; model hanya bila ragu.
 - **ParameterDependencyResolver** (§7) dan **ReadinessResolver** (§9).
 - **EngineeringAssumptionRegistry** (§20): satu tabel asumsi beridentitas (`IRRIGATION_PRELIMINARY_FLOW`
   …), kondisi pakai, rujukan, `confirmation_required`; menggantikan konstanta di aturan dan

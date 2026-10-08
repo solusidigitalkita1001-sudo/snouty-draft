@@ -50,22 +50,19 @@ describe('Policy 5 — scope routing', () => {
     floors: 2,
   };
 
-  it('guna di luar cakupan dari pesannya (tambak, air panas) → validasi teknis; rumah dan irigasi → bukan urusan kebijakan ini', () => {
-    expect(useCasePolicy('jalur air panas boiler hotel')).toMatchObject({
+  it('fluida di luar cakupan atau suhu ≥ 45 °C → validasi teknis; selain itu bukan urusan kebijakan ini', () => {
+    // Kebijakan leaf menerima isyarat yang sudah dibaca (P16-14): nama fluida dari kosakata data,
+    // suhu dari parser angka — pembacaannya diuji di context (english-understanding.spec).
+    expect(useCasePolicy({ outOfScopeFluid: true, temperatureC: null })).toMatchObject({
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
     });
-    // Skenario uji §39: air proses pabrik bersuhu tinggi — dikenali dari "air proses" maupun suhunya.
-    expect(useCasePolicy('Jalur air proses pabrik, suhu 70°C, panjang 200 meter').kind).toBe(
-      'policy',
-    );
-    expect(useCasePolicy('pipa untuk air suhu 60 derajat').kind).toBe('policy');
-    expect(useCasePolicy('rumah 2 lantai suhu 30 derajat di luar').kind).toBe('supported');
-    // Tambak/kolam kini punya jalur kasus teknis sendiri (Fase 14) — bukan ditolak di sini.
-    expect(useCasePolicy('pipa tambak udang 2 hektar').kind).toBe('supported');
-    expect(useCasePolicy('rumah 2 lantai, 3 kamar mandi, toren atap').kind).toBe('supported');
-    // Irigasi punya jalurnya sendiri (OQ-47) — bukan ditolak di sini.
-    expect(useCasePolicy('irigasi sawah 1 hektar').kind).toBe('supported');
+    // Skenario uji §39: air proses pabrik bersuhu tinggi.
+    expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: 70 }).kind).toBe('policy');
+    expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: 45 }).kind).toBe('policy');
+    expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: 30 }).kind).toBe('supported');
+    // Tambak, rumah, irigasi: tidak ada fluida/suhu di luar cakupan — bukan ditolak di sini.
+    expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: null }).kind).toBe('supported');
     expect(irrigationHandoffPolicy()).toMatchObject({
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
@@ -156,11 +153,13 @@ describe('Policy teks dwibahasa (Fase 15)', () => {
     expect(technicalHandoffPolicy('Fish Pond', 'en')).toMatchObject({
       reasons: [expect.stringContaining('fish pond data'), expect.any(String)],
     });
-    expect(useCasePolicy('hot water for the boiler', 'en')).toMatchObject({
+    expect(useCasePolicy({ outOfScopeFluid: true, temperatureC: null }, 'en')).toMatchObject({
       code: 'TECHNICAL_VALIDATION_REQUIRED',
       reasons: [expect.stringContaining('outside the scope'), expect.any(String)],
     });
-    expect(useCasePolicy('rumah 2 lantai', 'en')).toEqual({ kind: 'supported' });
+    expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: null }, 'en')).toEqual({
+      kind: 'supported',
+    });
     const competitor = competitorPolicy('en');
     expect(competitor).toMatchObject({ code: 'COMPETITOR_COMPARISON_REFUSED' });
   });

@@ -12,7 +12,6 @@
  */
 import {
   caseProfile,
-  classifyCase,
   extractTechnicalContext,
   isCaseId,
   isParameterKey,
@@ -38,21 +37,21 @@ export const UNKNOWN = 'Belum tahu';
 
 /** Kasus yang dilayani jalur lain — klasifikasi ke sini tidak membuka jalur teknis. */
 const OWN_TRACK: readonly CaseId[] = ['residential_clean_water', 'irrigation'];
-const MIN_CONFIDENCE = 0.5;
 
 /**
- * Kasus teknis untuk giliran ini: lanjutan percakapan teknis yang sudah berjalan, atau
- * klasifikasi pesan baru yang cukup yakin. `null` = bukan jalur ini.
+ * Kasus teknis untuk giliran ini: lanjutan percakapan teknis yang sudah berjalan, atau jenis
+ * kasus yang DIKENALI dari pesan (katalog data `use-case`, P16-14 — menggantikan pengklasifikasi
+ * regex berbobot). `null` = bukan jalur ini.
  */
-export function detectTechnicalCase(message: string, state: RequirementState): CaseId | null {
+export function detectTechnicalCase(
+  useCase: string | null,
+  state: RequirementState,
+): CaseId | null {
   if (state.useCase?.kind === 'technical' && isCaseId(state.useCase.caseId)) {
     return state.useCase.caseId;
   }
-  const c = classifyCase(message);
-  if (c.primary === null || OWN_TRACK.includes(c.primary) || c.confidence < MIN_CONFIDENCE) {
-    return null;
-  }
-  return c.primary;
+  if (useCase === null || !isCaseId(useCase) || OWN_TRACK.includes(useCase)) return null;
+  return useCase;
 }
 
 function parametersOf(state: RequirementState): Readonly<Record<string, TechnicalParameter>> {

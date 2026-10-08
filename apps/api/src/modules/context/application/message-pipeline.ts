@@ -49,7 +49,6 @@ import {
   irrigationCaptured,
   irrigationFactsFrom,
   isIrrigationComplete,
-  isIrrigationMessage,
   planIrrigationClarification,
 } from '../domain/irrigation.js';
 import { irrigationGuidance } from './irrigation-guidance.js';
@@ -61,6 +60,7 @@ import { fieldEntries } from '../domain/requirement-field.js';
 import { requirementFieldLabel, requirementValueLabel } from '../domain/requirement-labels.js';
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 import { applyRelativeCounts } from '../domain/relative-counts.js';
+import { parseTemperature } from '../domain/temperature-parser.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsFor } from './pipe-knowledge.js';
@@ -154,7 +154,11 @@ export async function runUnderstanding(
   // Jalur IRIGASI (OQ-47): alur yang sama seperti rumah — fakta tersurat dicatat, arahan
   // diberikan, yang kurang ditanya lewat kartu — tetapi muaranya handoff terstruktur, bukan
   // sizing otomatis. Nol LLM: pertanyaannya tertutup, faktanya dari bentuk kalimat.
-  if (isIrrigationMessage(input.message) || input.state.useCase?.kind === 'irrigation') {
+  // Irigasi dikenali dari pemahaman (katalog `use-case`/intent, P16-14), bukan daftar kata.
+  const irrigation =
+    input.understanding?.useCase === 'irrigation' ||
+    input.understanding?.intent?.label === 'requirement_irrigation';
+  if (irrigation || input.state.useCase?.kind === 'irrigation') {
     const applied = applyIrrigationAnswers(input.state, irrigationFactsFrom(input.message));
     events.push({ type: 'requirement.updated', state: applied.state });
     events.push({ type: 'token', text: irrigationGuidance(applied.state, locale) });
@@ -173,7 +177,13 @@ export async function runUnderstanding(
   // tidak ada field yang mewakilinya, dan kartu klarifikasi "berapa kamar mandi?" adalah
   // jawaban yang salah untuknya. Kebijakan menang atas klasifikasi kasus — "air panas boiler
   // hotel" bukan kasus gedung bertingkat. State tidak disentuh.
-  const useCase = useCasePolicy(input.message, locale);
+  const useCase = useCasePolicy(
+    {
+      outOfScopeFluid: input.understanding?.mentionsOutOfScopeFluid ?? false,
+      temperatureC: parseTemperature(input.message),
+    },
+    locale,
+  );
   if (useCase.kind === 'policy') {
     const card = policyCard(useCase, capturedFrom(input.state, locale), locale);
     if (card) events.push({ type: 'card', card });
@@ -185,13 +195,10 @@ export async function runUnderstanding(
   // gorong-gorong, sumur, cluster, gedung. Fakta tersurat → parameter universal; yang kurang
   // ditanya dengan redaksi registry; kalkulator per kasus — sampai ada, muaranya validasi
   // teknis terstruktur. Nol LLM.
-  // Kebutuhan BANGUNAN yang menyebut sumur/pompa sebagai sumber air ("boarding house, 3 floors,
-  // 12 bathrooms, water from a well with a pump") bukan kasus distribusi sumur — bentuk kalimatnya
-  // dikenali pemahaman; kasus teknis yang sudah berjalan tetap dilanjutkan (audit live 2026-10-08).
-  const buildingNeed =
-    input.understanding?.intent?.label === 'requirement_building' &&
-    input.state.useCase?.kind !== 'technical';
-  const technicalCase = buildingNeed ? null : detectTechnicalCase(input.message, input.state);
+  // Jenis kasus dari katalog `use-case` (P16-14): "kos 3 lantai, 12 kamar mandi, air dari sumur" adalah
+  // kebutuhan bangunan; "sumur bor 60 m ke tandon" adalah kasus distribusi sumur; "gedung 8 lantai"
+  // kasus gedung bertingkat — dibedakan dari contoh, bukan dari bobot kata.
+  const technicalCase = detectTechnicalCase(input.understanding?.useCase ?? null, input.state);
   if (technicalCase !== null) {
     const applied = applyTechnicalFacts(input.state, technicalCase, input.message);
     events.push({ type: 'requirement.updated', state: applied.state });

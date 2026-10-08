@@ -10,7 +10,6 @@ import {
   irrigationCaptured,
   irrigationFactsFrom,
   isIrrigationComplete,
-  isIrrigationMessage,
   planIrrigationClarification,
 } from './irrigation.js';
 
@@ -18,8 +17,6 @@ const T0 = '2026-01-01T00:00:00.000Z';
 
 describe('irigasi', () => {
   it('"irigasi sawah 1 hektar … pompa dari sungai, jarak 300 meter" → fakta tersurat', () => {
-    expect(isIrrigationMessage('untuk bikin irigasi sawah dengan luas 1 hektar')).toBe(true);
-    expect(isIrrigationMessage('rumah 2 lantai')).toBe(false);
     expect(
       irrigationFactsFrom(
         'irigasi sawah 1 hektar, pakai pompa dari sungai, jaraknya 300 meter, irigasi tetes',
@@ -35,11 +32,6 @@ describe('irigasi', () => {
   });
 
   it('en (checkpoint Fase 15, S6): "irrigate a 2 hectare paddy field from a river 150 m away, pumped" → jalur irigasi + fakta tersurat', () => {
-    expect(
-      isIrrigationMessage('I want to irrigate a 2 hectare paddy field from a river 150 m away'),
-    ).toBe(true);
-    expect(isIrrigationMessage('sprinklers for my orchard')).toBe(true);
-    expect(isIrrigationMessage('a 2-storey house with 3 bathrooms')).toBe(false);
     expect(
       irrigationFactsFrom(
         'I want to irrigate a 2 hectare paddy field from a river 150 m away, pumped, drip',

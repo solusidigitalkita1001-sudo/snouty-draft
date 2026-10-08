@@ -52,7 +52,7 @@ const OBVIOUS = {
   kitchens: (m: string) => intAfter(/\b(\d{1,2})\s*-?\s*(?:dapur|kitchens?|pantry)\b/i, m),
   installationType: (m: string): NonNullable<Extraction['water']>['installationType'] => {
     // Irigasi/pertanian BUKAN "drainage": ia di luar cakupan dan ditangani kebijakan guna
-    // (policy/scope.ts `useCasePolicy`) sebelum ekstraksi.
+    // (policy/scope.ts `useCasePolicy`, isyarat dari pemahaman) sebelum ekstraksi.
     const drainage =
       /\b(drainase|pembuangan|limbah|saluran air kotor|drainage|waste ?water|sewer|sewage)\b/i.test(
         m,

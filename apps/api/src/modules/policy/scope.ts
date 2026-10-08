@@ -43,8 +43,18 @@ export type PolicyOutcome =
 // `fish_pond`). Yang tersisa adalah fluida/kondisi yang bahannya butuh validasi (panas, kimia).
 // "air proses" dan suhu tersurat ≥ 45° ikut: "jalur air proses pabrik, suhu 70 °C" adalah
 // kondisi fluida yang butuh validasi bahan, apa pun jenis bangunannya (skenario uji §39).
-const OUT_OF_SCOPE_USE =
-  /\b(peternakan|air panas|air proses|uap|boiler|air laut|kimia|gas|minyak|bahan bakar|livestock|hot water|process water|steam|seawater|sea water|chemicals?|gas|oil|fuel)\b|\b(?:suhu|temperature|temp)\s*(?:of\s*)?(?:[4-9]\d|[1-9]\d{2,})\s*(?:°|derajat|degrees?|c\b)/i;
+/** Suhu fluida (°C) mulai dari mana bahan pipa air bersih biasa perlu divalidasi tim teknis. */
+export const MAX_SUPPORTED_TEMPERATURE_C = 45;
+
+/**
+ * Isyarat yang sudah DIBACA dari pesan oleh pemanggil — kebijakan ini leaf dan tidak membaca
+ * bahasa (P16-14): nama fluida di luar cakupan dikenali kosakata data, suhu oleh parser angka.
+ */
+export interface UseCaseSignals {
+  readonly outOfScopeFluid: boolean;
+  /** Suhu fluida yang tersurat, °C; `null` bila tidak disebut. */
+  readonly temperatureC: number | null;
+}
 
 /**
  * Muara jalur irigasi (OQ-47): data lengkap → diteruskan ke tim teknis untuk dihitung. Bukan
@@ -99,8 +109,12 @@ export function technicalHandoffPolicy(
   };
 }
 
-export function useCasePolicy(message: string, locale: Locale = DEFAULT_LOCALE): PolicyOutcome {
-  if (!OUT_OF_SCOPE_USE.test(message)) return { kind: 'supported' };
+export function useCasePolicy(
+  signals: UseCaseSignals,
+  locale: Locale = DEFAULT_LOCALE,
+): PolicyOutcome {
+  const hot = signals.temperatureC !== null && signals.temperatureC >= MAX_SUPPORTED_TEMPERATURE_C;
+  if (!signals.outOfScopeFluid && !hot) return { kind: 'supported' };
   if (locale === 'en') {
     return {
       kind: 'policy',

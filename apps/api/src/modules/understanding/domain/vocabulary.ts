@@ -19,6 +19,11 @@ export const VocabularySchema = z.object({
   knowledgeOnlyFamilies: z.array(z.string().trim().min(1)).default([]),
   /** Keluarga yang merupakan JENIS FITTING (tee, elbow): digabung dengan bahannya saat mencari katalog. */
   fittingFamilies: z.array(z.string().trim().min(1)).default([]),
+  /**
+   * Fluida/kondisi yang bahannya butuh validasi teknis (air panas, uap, kimia, air laut): kebutuhan
+   * yang menyebutnya keluar dari rekomendasi otomatis (kebijakan cakupan, `policy/scope.ts`).
+   */
+  outOfScopeFluids: z.array(z.string().trim().min(1)).default([]),
   /** Nama merek pesaing. */
   competitorBrands: z.array(z.string().trim().min(1)),
   /** Rujukan umum ke merek lain ("merek lain", "kompetitor"). */
@@ -54,6 +59,7 @@ export class EntityLexicon {
   private readonly competitors: RegExp;
   private readonly own: RegExp;
   private readonly requirements: RegExp;
+  private readonly outOfScope: RegExp;
   private readonly knowledgeOnly: ReadonlySet<string>;
   private readonly fittings: ReadonlySet<string>;
   private readonly aliases: ReadonlyMap<string, readonly string[]>;
@@ -78,6 +84,7 @@ export class EntityLexicon {
     this.competitors = anyOf(competitorTerms);
     this.own = anyOf(vocabulary.ownBrand);
     this.requirements = anyOf(vocabulary.requirementEntities);
+    this.outOfScope = anyOf(vocabulary.outOfScopeFluids);
   }
 
   /** Keluarga produk yang disebut, kanonis, urut kemunculan, tanpa duplikat. */
@@ -105,6 +112,11 @@ export class EntityLexicon {
   /** Menyebut bangunan/fixture/sumber air/jenis jalur — isyarat kebutuhan instalasi. */
   mentionsRequirementEntity(text: string): boolean {
     return this.requirements.test(text);
+  }
+
+  /** Menyebut fluida/kondisi di luar cakupan rekomendasi otomatis. */
+  mentionsOutOfScopeFluid(text: string): boolean {
+    return this.outOfScope.test(text);
   }
 
   /** Keluarga yang dicari ke katalog Pralon (bukan keluarga yang hanya pengetahuan, mis. galvanis). */

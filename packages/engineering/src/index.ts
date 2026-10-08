@@ -141,8 +141,6 @@ export {
   isCaseId,
 } from './cases/profiles.js';
 export type { CaseId, CaseProfile } from './cases/profiles.js';
-export { classifyCase } from './cases/classifier.js';
-export type { CaseClassification } from './cases/classifier.js';
 export { extractTechnicalContext } from './cases/extractor.js';
 export type { ExtractedParameter } from './cases/extractor.js';
 export { MAX_QUESTIONS, caseReadiness, resolveMissingParameters } from './cases/missing.js';

@@ -9,7 +9,8 @@
       "depth": null,
       "format": null,
       "productAspect": null,
-      "topics": []
+      "topics": [],
+      "useCase": null
     },
     {
       "text": "PT Pralon yang gw maksud",
@@ -104,7 +105,8 @@
     {
       "text": "harganya berapa?",
       "intent": "price_question",
-      "source": "pemilik 2026-10-07"
+      "source": "pemilik 2026-10-07",
+      "useCase": null
     },
     {
       "text": "mau pasang 2 toren",
@@ -632,7 +634,8 @@
       "depth": null,
       "format": null,
       "productAspect": null,
-      "topics": []
+      "topics": [],
+      "useCase": null
     },
     {
       "text": "apa itu ppr?",
@@ -730,6 +733,70 @@
     {
       "text": "rumah 3 lantai 4 kamar mandi, airnya dari pdam",
       "intent": "requirement_building"
+    },
+    {
+      "text": "tolong bantu irigasi kebun kopi 3 hektar",
+      "useCase": "irrigation"
+    },
+    {
+      "text": "watering system for a 1 hectare vegetable farm",
+      "useCase": "irrigation"
+    },
+    {
+      "text": "gorong-gorong buat lewat jalan kampung yang dilalui truk",
+      "useCase": "culvert"
+    },
+    {
+      "text": "pipe culvert beneath a farm road",
+      "useCase": "culvert"
+    },
+    {
+      "text": "saluran air hujan di halaman pabrik biar nggak banjir",
+      "useCase": "stormwater"
+    },
+    {
+      "text": "pipa limbah dapur restoran ke bak kontrol",
+      "useCase": "gravity_drainage"
+    },
+    {
+      "text": "naikin air dari sungai ke tandon di bukit 40 meter",
+      "useCase": "pump_transfer"
+    },
+    {
+      "text": "sumur bor 90 meter buat suplai air pabrik",
+      "useCase": "well_distribution"
+    },
+    {
+      "text": "instalasi air bersih untuk perumahan 75 rumah",
+      "useCase": "residential_cluster"
+    },
+    {
+      "text": "gedung kantor 6 lantai, 20 toilet",
+      "useCase": "multistorey_building_water"
+    },
+    {
+      "text": "apartemen 15 lantai pakai pompa booster",
+      "useCase": "multistorey_building_water"
+    },
+    {
+      "text": "kolam ikan mas 5 x 10 meter",
+      "useCase": "fish_pond"
+    },
+    {
+      "text": "shrimp pond water inlet piping",
+      "useCase": "fish_pond"
+    },
+    {
+      "text": "rumah 2 lantai 3 kamar mandi airnya pdam",
+      "useCase": "residential_clean_water"
+    },
+    {
+      "text": "kos 3 lantai 12 kamar mandi, air dari sumur pakai pompa",
+      "useCase": "residential_clean_water"
+    },
+    {
+      "text": "boarding house with 10 bathrooms, water from a well",
+      "useCase": "residential_clean_water"
     }
   ]
 }
