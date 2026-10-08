@@ -2339,3 +2339,88 @@
     min-height: 44px;
   }
 }
+
+/* ---------- hapus dari riwayat (soft delete + Urungkan; belum didesain, token yang ada) ---------- */
+
+.historyRow {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.historyRow > :first-child {
+  flex: 1;
+  min-width: 0;
+  padding-right: 30px;
+}
+
+.historyDelete {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--snouty-muted);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.historyRow:hover .historyDelete,
+.historyDelete:focus-visible {
+  opacity: 1;
+}
+
+.historyDelete:hover {
+  color: var(--snouty-action-text);
+  background: var(--snouty-surface-subtle);
+}
+
+/* Layar sentuh tidak punya hover: tombolnya selalu terlihat dan cukup besar untuk jari. */
+@media (pointer: coarse) {
+  .historyDelete {
+    opacity: 1;
+    width: 40px;
+    height: 40px;
+    right: 0;
+  }
+
+  .historyRow > :first-child {
+    padding-right: 44px;
+  }
+}
+
+.undoToast {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px 10px 16px;
+  border-radius: 8px;
+  background: var(--snouty-ink);
+  color: var(--snouty-surface);
+  font-size: 13px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 18%);
+  max-width: calc(100vw - 32px);
+}
+
+.undoButton {
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--snouty-surface);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px 6px;
+  min-height: 32px;
+}

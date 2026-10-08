@@ -112,6 +112,19 @@ describe('percakapan — kepemilikan di lapisan application', () => {
     await expect(service.find(mine.id, GUEST)).rejects.toThrow(ConversationNotFoundError);
     expect(await service.list(GUEST, {})).toEqual([]);
   });
+
+  it('"Urungkan": restore mengembalikan percakapan ke riwayat; hanya pemiliknya; idempoten', async () => {
+    const mine = await service.create(GUEST);
+    await service.remove(mine.id, GUEST);
+
+    await expect(service.restore(mine.id, OTHER)).rejects.toThrow(ConversationNotFoundError);
+    expect(await service.list(GUEST, {})).toEqual([]);
+
+    await service.restore(mine.id, GUEST);
+    await service.restore(mine.id, GUEST);
+    expect((await service.list(GUEST, {})).map((c) => c.id)).toEqual([mine.id]);
+    expect((await service.find(mine.id, GUEST)).id).toBe(mine.id);
+  });
 });
 
 describe('pesan', () => {

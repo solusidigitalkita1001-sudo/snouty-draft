@@ -127,6 +127,12 @@ export class ConversationController {
   async remove(@Param() rawParam: unknown, @Req() request: PublicRequest): Promise<void> {
     await this.conversations.remove(idOf(rawParam), ownerOf(request));
   }
+
+  @Post(':id/restore')
+  @HttpCode(204)
+  async restore(@Param() rawParam: unknown, @Req() request: PublicRequest): Promise<void> {
+    await this.conversations.restore(idOf(rawParam), ownerOf(request));
+  }
 }
 
 function ownerOf(request: PublicRequest): ConversationOwner {

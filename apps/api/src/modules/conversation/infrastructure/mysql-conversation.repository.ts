@@ -99,6 +99,13 @@ export class MysqlConversationRepository implements ConversationRepository {
       .where(eq(conversations.id, id));
   }
 
+  async restore(id: string): Promise<void> {
+    await this.database.db
+      .update(conversations)
+      .set({ deletedAt: null })
+      .where(eq(conversations.id, id));
+  }
+
   async appendMessage(message: {
     id: string;
     conversationId: string;

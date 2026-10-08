@@ -73,6 +73,8 @@ export interface ConversationRepository {
   updateStatus(id: string, status: ConversationStatus, stage?: ConversationStage): Promise<void>;
 
   softDelete(id: string): Promise<void>;
+  /** Membatalkan soft delete ("Urungkan" di riwayat). */
+  restore(id: string): Promise<void>;
 
   appendMessage(message: {
     id: string;

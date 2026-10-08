@@ -82,6 +82,18 @@ export class ConversationService {
   }
 
   /**
+   * "Urungkan" setelah menghapus dari riwayat. Hanya pemiliknya; baris yang tidak dihapus
+   * dibiarkan (idempoten). Datanya memang tidak pernah hilang — itu arti soft delete.
+   */
+  async restore(id: string, actor: ConversationOwner): Promise<void> {
+    const row = await this.repository.findById(id);
+    if (row === null || row.owner.kind !== actor.kind || row.owner.id !== actor.id) {
+      throw new ConversationNotFoundError(id);
+    }
+    if (row.deletedAt !== null) await this.repository.restore(id);
+  }
+
+  /**
    * Pesan pengguna. Balasan asisten TIDAK lahir di sini — ia milik pipeline Fase 4;
    * method terpisah di bawah dipakai pipeline itu nanti.
    */

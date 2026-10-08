@@ -117,6 +117,26 @@ export type HistoryResult =
   | { readonly kind: 'not_entitled' }
   | { readonly kind: 'error' };
 
+/** Soft delete dari riwayat — datanya tetap ada, jadi bisa diurungkan. */
+export async function deleteConversation(id: string): Promise<boolean> {
+  const response = await fetch(`${BASE}/conversations/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: authHeaders(),
+  });
+  return response.ok;
+}
+
+/** "Urungkan" setelah menghapus. */
+export async function restoreConversation(id: string): Promise<boolean> {
+  const response = await fetch(`${BASE}/conversations/${encodeURIComponent(id)}/restore`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: authHeaders(),
+  });
+  return response.ok;
+}
+
 export async function fetchHistory(): Promise<HistoryResult> {
   const response = await fetch(`${BASE}/conversations`, {
     credentials: 'include',

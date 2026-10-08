@@ -47,6 +47,8 @@ import {
   submitClarification,
   runAnalysis,
   saveConversation,
+  deleteConversation,
+  restoreConversation,
   sendMessage,
   sendToTechnicalTeam,
   uploadPlan,
@@ -68,6 +70,8 @@ function useChatCopy() {
 /** Jarak dari dasar (px) yang masih dianggap "di bawah" — di atas ini pengguna sedang membaca ke atas. */
 const STICK_THRESHOLD_PX = 120;
 const TOAST_MS = 2800;
+/** Berapa lama "Urungkan" tersedia setelah menghapus dari riwayat. */
+const UNDO_MS = 6000;
 /**
  * Jeda "Solusi siap!" dari prototipe: kartu analisis sempat terlihat selesai sebelum
  * solusinya muncul, supaya perpindahannya terbaca alih-alih melompat. Ini irama
@@ -158,6 +162,9 @@ export function ChatWorkspace() {
   /** Register-gate (P8-09): tamu menekan aksi khusus akun — tawarkan daftar/masuk di tempat. */
   const [gate, setGate] = useState(false);
   const resumeHandled = useRef(false);
+  /** Id percakapan yang baru dihapus — selama notifikasi "Urungkan" tampil. */
+  const [removed, setRemoved] = useState<string | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sleepy, setSleepy] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -593,6 +600,39 @@ export function ChatWorkspace() {
   }, [history, openHistory]);
 
   /**
+   * Hapus dari riwayat (soft delete, seperti ChatGPT): baris hilang seketika, lalu notifikasi
+   * "Percakapan dihapus · Urungkan" beberapa detik. Datanya tidak hilang di server, jadi
+   * "Urungkan" cukup mengembalikannya. Menghapus percakapan yang sedang dibuka kembali ke
+   * sambutan.
+   */
+  const removeConversation = useCallback(
+    (item: { id: string; title: string | null }) => {
+      if (history.kind !== 'list') return;
+      const previous = history.items;
+      setHistory({ kind: 'list', items: previous.filter((i) => i.id !== item.id) });
+      if (item.id === conversationId) reset();
+      void deleteConversation(item.id).then((ok) => {
+        if (!ok) {
+          setHistory({ kind: 'list', items: previous });
+          setError(COPY.deleteFailed);
+          return;
+        }
+        if (undoTimer.current !== null) clearTimeout(undoTimer.current);
+        setRemoved(item.id);
+        undoTimer.current = setTimeout(() => setRemoved(null), UNDO_MS);
+      });
+    },
+    [COPY, conversationId, history, reset],
+  );
+
+  const undoRemove = useCallback(() => {
+    if (removed === null) return;
+    if (undoTimer.current !== null) clearTimeout(undoTimer.current);
+    setRemoved(null);
+    void restoreConversation(removed).then(() => refreshHistory());
+  }, [refreshHistory, removed]);
+
+  /**
    * Menyerahkan kasus ke tim teknis. Kebutuhan yang sudah terkumpul disalin di sisi
    * server, jadi pengguna tidak mengulang ceritanya — itu janji layar 11.
    */
@@ -766,18 +806,23 @@ export function ChatWorkspace() {
 
   const historyList = (itemClass: string) =>
     otherHistory.map((item) => (
-      <button
-        key={item.id}
-        type="button"
-        className={itemClass}
-        onClick={() => {
-          setMenuOpen(false);
-          openHistory(item);
-        }}
-      >
-        <span className={styles.historyTitleText}>{item.title ?? COPY.titleFor(null, null)}</span>
-        <span className={styles.historyMeta}>{historyDate(item.updatedAt)}</span>
-      </button>
+      <div key={item.id} className={styles.historyRow}>
+        <button
+          type="button"
+          className={itemClass}
+          onClick={() => {
+            setMenuOpen(false);
+            openHistory(item);
+          }}
+        >
+          <span className={styles.historyTitleText}>{item.title ?? COPY.titleFor(null, null)}</span>
+          <span className={styles.historyMeta}>{historyDate(item.updatedAt)}</span>
+        </button>
+        <DeleteButton
+          label={COPY.deleteConversation(item.title ?? COPY.titleFor(null, null))}
+          onClick={() => removeConversation(item)}
+        />
+      </div>
     ));
 
   const footerAvatar = (
@@ -788,6 +833,14 @@ export function ChatWorkspace() {
 
   return (
     <div className={styles.shell}>
+      {removed !== null && (
+        <div className={styles.undoToast} role="status">
+          <span>{COPY.deleted}</span>
+          <button type="button" className={styles.undoButton} onClick={undoRemove}>
+            {COPY.undo}
+          </button>
+        </div>
+      )}
       {/* Sidebar 236px ATAU rail 60px — tidak pernah keduanya (prototipe `navCollapsed`).
           Di layar sempit sidebar yang SAMA menjadi drawer dari kiri (keputusan pemilik 2026-10-07:
           seperti ChatGPT/Claude di ponsel, bukan dropdown) — OQ-51, belum didesain. */}
@@ -840,11 +893,20 @@ export function ChatWorkspace() {
 
             {/* Percakapan aktif: blok merah lembut + garis kiri merek, status mono merah. */}
             {inConversation && (
-              <div className={styles.historyActive} aria-current="true">
-                <span className={styles.historyActiveTitle}>
-                  {activeTitle ?? COPY.titleFor(null, null)}
-                </span>
-                <span className={styles.historyActiveStatus}>{activeStatus}</span>
+              <div className={styles.historyRow}>
+                <div className={styles.historyActive} aria-current="true">
+                  <span className={styles.historyActiveTitle}>
+                    {activeTitle ?? COPY.titleFor(null, null)}
+                  </span>
+                  <span className={styles.historyActiveStatus}>{activeStatus}</span>
+                </div>
+                {/* Hanya akun yang punya riwayat; percakapan tamu tidak tercantum di mana pun. */}
+                {history.kind === 'list' && conversationId !== null && (
+                  <DeleteButton
+                    label={COPY.deleteConversation(activeTitle ?? COPY.titleFor(null, null))}
+                    onClick={() => removeConversation({ id: conversationId, title: activeTitle })}
+                  />
+                )}
               </div>
             )}
 
@@ -1488,6 +1550,30 @@ export function ChatWorkspace() {
 function completenessNote(filled: number, copy: ReturnType<typeof chatCopy>): string {
   const missing = 4 - filled;
   return missing <= 0 ? copy.meterNote.complete : copy.meterNote.remaining(missing);
+}
+
+/** Tombol hapus di baris riwayat — muncul saat diarahkan; di layar sentuh selalu terlihat. */
+function DeleteButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className={styles.historyDelete}
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
 }
 
 /**

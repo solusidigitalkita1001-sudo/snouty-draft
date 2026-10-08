@@ -79,6 +79,7 @@ yang diturunkan dari tabel entitlement (SPEC §33e). UI tidak pernah menuliskann
 | `GET`      | `/conversations/:id`              | percakapan + snapshot terbaru + ringkasan rekomendasi                         |
 | `PATCH`    | `/conversations/:id`              | ubah judul                                                                    |
 | `DELETE`   | `/conversations/:id`              | soft delete                                                                   |
+| `POST`     | `/conversations/:id/restore`      | batalkan soft delete ("Urungkan" di riwayat), hanya pemilik                     |
 | **`POST`** | **`/conversations/:id/messages`** | **mengembalikan `text/event-stream` — lihat §3**                              |
 | `POST`     | `/conversations/:id/save`         | "Simpan solusi" → status `SAVED`, memicu toast                                |
 
