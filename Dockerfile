@@ -30,7 +30,7 @@ FROM build AS api
 ENV NODE_ENV=production
 WORKDIR /app/apps/api
 # Volume cache vektor pemahaman harus bisa ditulis `node` — volume baru mewarisi kepemilikan ini.
-RUN mkdir -p /data/understanding-cache && chown node:node /data/understanding-cache
+RUN mkdir -p /data/understanding-cache /data/storage && chown node:node /data/understanding-cache /data/storage
 USER node
 EXPOSE 3001
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 \
@@ -51,6 +51,8 @@ CMD ["./node_modules/.bin/next", "start", "--port", "3000"]
 FROM build AS worker
 ENV NODE_ENV=production
 USER root
+# Volume penyimpanan (PDF laporan) harus bisa ditulis `node` — volume baru mewarisi kepemilikan ini.
+RUN mkdir -p /data/storage && chown node:node /data/storage
 RUN apt-get update \
   && apt-get install -y --no-install-recommends chromium fonts-liberation fonts-noto-color-emoji \
   && rm -rf /var/lib/apt/lists/*
