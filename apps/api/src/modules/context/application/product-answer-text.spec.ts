@@ -48,7 +48,7 @@ const AVAILABLE = {
 describe('product answer text locale', () => {
   it('Indonesia tetap persis seperti sebelumnya', () => {
     expect(overviewText(AW)).toBe(
-      'Pipa PVC AW (PIPA AIR BERSIH · SNI): Pipa untuk air bersih bertekanan. Material uPVC. Aplikasi: Air bersih. Standar SNI 06-0084.',
+      'Pipa PVC AW: Pipa untuk air bersih bertekanan. Material uPVC. Aplikasi: Air bersih. Standar SNI 06-0084.',
     );
     expect(answerText(AW, AVAILABLE)).toBe(
       'Pipa PVC AW tersedia dalam ukuran 3/4". Sumber: Katalog 2026 hal. 14.',
@@ -58,13 +58,15 @@ describe('product answer text locale', () => {
 
   it('Inggris: kalimat Inggris, angka dan sumber sama', () => {
     expect(overviewText(AW, 'en')).toBe(
-      'Pipa PVC AW (PIPA AIR BERSIH · SNI): Pipa untuk air bersih bertekanan. Material: uPVC. Application: Air bersih. Standard: SNI 06-0084.',
+      'Pipa PVC AW: Pipa untuk air bersih bertekanan. Material: uPVC. Application: Air bersih. Standard: SNI 06-0084.',
     );
     expect(answerText(AW, AVAILABLE, 'en')).toBe(
       'Pipa PVC AW is available in size 3/4". Source: Katalog 2026 p. 14.',
     );
     const insufficient = { kind: 'insufficientData', aspect: 'pressure_class' } as never;
-    expect(answerText(AW, insufficient, 'en')).toContain('working pressure data');
+    expect(answerText(AW, insufficient, 'en')).toContain(
+      'Working pressure for Pipa PVC AW is not listed',
+    );
   });
 
   it('salinan Inggris punya kunci yang sama dan label aspek lengkap', () => {

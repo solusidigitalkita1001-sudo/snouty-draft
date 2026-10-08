@@ -50,6 +50,13 @@ export function replyFor(intent: Intent, locale: Locale = DEFAULT_LOCALE): strin
   return locale === 'en' ? REPLY_COPY_EN[key] : REPLY_COPY[key];
 }
 
+/** "Kenapa 1 inci?" sebelum ada solusi: belum ada angka yang bisa dijelaskan. */
+export function explanationBeforeSolution(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en'
+    ? 'Sizes are only calculated once you press **Compose recommendation**; every figure then comes with the basis of its calculation.'
+    : 'Ukurannya baru dihitung setelah Anda menekan **Susun rekomendasi**; setiap angka nanti disertai dasar perhitungannya.';
+}
+
 export function openerReply(locale: Locale = DEFAULT_LOCALE): string {
   return locale === 'en' ? OPENER_REPLY_EN : OPENER_REPLY;
 }

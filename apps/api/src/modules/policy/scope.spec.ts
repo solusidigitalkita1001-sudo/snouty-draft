@@ -155,7 +155,10 @@ describe('Policy teks dwibahasa (Fase 15)', () => {
     });
     expect(useCasePolicy({ outOfScopeFluid: true, temperatureC: null }, 'en')).toMatchObject({
       code: 'TECHNICAL_VALIDATION_REQUIRED',
-      reasons: [expect.stringContaining('outside the scope'), expect.any(String)],
+      reasons: [
+        expect.stringContaining('special fluids need a different pipe choice'),
+        expect.any(String),
+      ],
     });
     expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: null }, 'en')).toEqual({
       kind: 'supported',

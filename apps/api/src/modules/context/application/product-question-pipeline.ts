@@ -314,13 +314,20 @@ async function answerConcept(
     ...u.knowledgeTopics,
     ...(input.subject?.topic === FITTING_VS_MATERIAL ? ['fitting'] : []),
   ];
+  // Pertanyaan TOPIK (cara sambung, penyimpanan, gangguan, istilah) dijawab topiknya saja: tanpa
+  // ikhtisar bahan, tanpa produk katalog, tanpa penutup soal produk — dulu jawabannya 3–4 kali
+  // lebih panjang dari yang ditanya (audit keterbacaan 2026-10-08).
+  const topicOnly = topics.length > 0 && !isConceptual(u.intent?.label) && !comparison;
   const knowledge = withoutRepeating(
-    explain({ families, topics, comparison, aboutMaterial: isConceptual(u.intent?.label) }, locale),
+    explain(
+      { families, topics, comparison, aboutMaterial: isConceptual(u.intent?.label), topicOnly },
+      locale,
+    ),
     input,
   );
   // Katalog opsional: kegagalan membacanya tidak boleh mengubah penjelasan teknik.
   const support =
-    query === null
+    query === null || (topicOnly && knowledge !== '')
       ? NO_SUPPORT
       : await lookup(catalog, query, { optional: true, aliases: aliasesFrom(input.lexicon) });
 
@@ -338,7 +345,7 @@ async function answerConcept(
       cards.push({ kind: 'product', products: support.products.map(toCard) });
     }
     if (support.missing.length > 0) cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
-  } else {
+  } else if (!(topicOnly && knowledge !== '')) {
     // Penutup: bila pengguna bertanya tentang Pralon-nya ("HDPE di Pralon ok nggak?"), katakan
     // MENGAPA belum bisa dijawab; dan jangan ulangi kalimat yang persis sama tiap giliran.
     const closing = /\bpralon\b/i.test(input.message)
@@ -444,14 +451,19 @@ async function rangeOverview(
   if (authoritative && products.length > 0) {
     const byFamily = new Map<string, Product[]>();
     for (const p of products) byFamily.set(p.family, [...(byFamily.get(p.family) ?? []), p]);
-    const lines = [...byFamily.entries()].map(
-      ([family, members]) => `- **${family}**: ${members.map((m) => m.name).join(', ')}`,
-    );
+    // Paling banyak tiga contoh per keluarga — daftar puluhan nama tidak terbaca di chat.
+    const lines = [...byFamily.entries()].map(([family, members]) => {
+      const names = members.slice(0, 3).map((m) => m.name);
+      const more = members.length - names.length;
+      const tail =
+        more > 0 ? (locale === 'en' ? `, and ${more} more` : `, dan ${more} lainnya`) : '';
+      return `- **${family}**: ${names.join(', ')}${tail}`;
+    });
     const representatives = [...byFamily.values()]
       .slice(0, 4)
       .map((members) => toCard(members[0]!));
     return {
-      text: [COPY.rangeIntro, ...lines, '', COPY.rangeNext].join('\n'),
+      text: [COPY.rangeIntro, '', ...lines, '', COPY.rangeNext].join('\n'),
       cards: [{ kind: 'product', products: representatives }],
     };
   }

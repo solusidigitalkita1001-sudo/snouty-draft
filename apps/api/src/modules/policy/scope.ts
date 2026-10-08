@@ -120,8 +120,8 @@ export function useCasePolicy(
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
       reasons: [
-        'This need is outside the scope of SNOUTY automatic recommendations (clean water for houses and small commercial buildings).',
-        'Irrigation, agriculture, and other special lines require calculation by the Pralon technical team — your request will be forwarded.',
+        `Hot water above ${MAX_SUPPORTED_TEMPERATURE_C}°C, steam, or special fluids need a different pipe choice and their own calculation, so the Pralon technical team works them out.`,
+        'Press “Send to the Pralon technical team” and your requirements go to them as they are recorded here.',
       ],
     };
   }
@@ -129,8 +129,8 @@ export function useCasePolicy(
     kind: 'policy',
     code: 'TECHNICAL_VALIDATION_REQUIRED',
     reasons: [
-      'Kebutuhan ini di luar cakupan rekomendasi otomatis SNOUTY (air bersih untuk rumah tinggal dan bangunan komersial kecil).',
-      'Irigasi, pertanian, dan jalur khusus lainnya memerlukan perhitungan tim teknis Pralon — kebutuhan Anda akan diteruskan.',
+      `Air panas di atas ${MAX_SUPPORTED_TEMPERATURE_C}°C, uap, atau cairan khusus perlu pilihan pipa dan perhitungan tersendiri, jadi yang menghitung tim teknis Pralon.`,
+      'Tekan “Kirim ke tim teknis Pralon” supaya kebutuhan yang sudah tercatat di sini langsung diteruskan ke mereka.',
     ],
   };
 }

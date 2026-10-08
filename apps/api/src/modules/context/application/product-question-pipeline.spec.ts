@@ -201,7 +201,7 @@ describe('runProductQuestion — KONSEP', () => {
       '**HDPE** adalah bahan pipa, sedangkan **fitting** adalah komponen penyambungnya',
     );
     expect(out).toContain('Fitting adalah komponen penyambung pipa');
-    expect(out).not.toContain('belum cukup di katalog');
+    expect(out).not.toContain('belum tercantum di katalog');
     const productCard = cards(events).find((c) => c.kind === 'product') as
       { kind: 'product'; products: readonly { name: string }[] } | undefined;
     expect(productCard?.products[0]?.name).toBe('Pipa HDPE PE100 63 mm');
@@ -401,8 +401,8 @@ describe('runProductQuestion — KONSEP', () => {
     const out = text(events);
     expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
     expect(out).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
-    expect(out).toContain('Di katalog Pralon yang aktif:');
-    expect(out).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)');
+    expect(out).toContain('Contoh produknya di katalog Pralon:');
+    expect(out).toContain('Pipa PVC AW:');
     expect(cards(events).map((c) => c.kind)).toEqual(['product', 'cta']);
   });
 
@@ -427,7 +427,7 @@ describe('runProductQuestion — KONSEP', () => {
     );
     const out = text(events);
     expect(out).toContain('**PVC**\n- Kaku, dilem.');
-    expect(out).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI)'); // produk tak disebut → ikut
+    expect(out).toContain('Pipa PVC AW:'); // produk tak disebut → ikut
     expect(out).toContain('"hdpe" tidak ada di katalog'); // katalog tak disinggung → ikut
     const call = reply.calls[0] as { systemPrompt?: string; facts?: string };
     expect(call.systemPrompt).toBe('PROMPT-FAQ');
@@ -482,7 +482,7 @@ describe('runProductQuestion — KONSEP', () => {
       noQuestions,
       input('apa itu pvc aw?', CONCEPT),
     );
-    expect(text(found)).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI): Pipa untuk air bersih');
+    expect(text(found)).toContain('Pipa PVC AW: Pipa untuk air bersih');
 
     const unknown = await runProductQuestion(
       ai({ productQuery: 'xyz', aspect: null }),
@@ -504,7 +504,7 @@ describe('runProductQuestion — nada percakapan', () => {
       input('kalo pipa HDPE di Pralon gmn? ok ngga?', CONCEPT),
     );
     const out = text(first);
-    expect(out).toMatch(/^\*\*HDPE\*\* itu lentur dan bisa digulung: /);
+    expect(out).toMatch(/^\*\*HDPE\*\* lentur dan ulet/);
     expect(out).toContain('**cocok untuk jalur panjang');
     expect(out).toContain('kurang cocok untuk');
     expect(out).toContain('katalog Pralon belum terpasang di sistem ini');
@@ -536,7 +536,9 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
       input('gw mau nanya produk pralon itu yang terkenal apa sih?', { intent: 'product_range' }),
     );
     const out = text(events);
-    expect(out).toContain('**Keluarga produk di katalog Pralon yang aktif**');
+    expect(out).toContain(
+      'Di katalog Pralon yang aktif ada keluarga produk berikut:\n\n- **PVC AW**',
+    );
     expect(out).toContain('- **PVC AW**: Pipa PVC AW');
     expect(out).toContain('- **PVC D**: Pipa PVC D');
     expect(cards(events).map((c) => c.kind)).toEqual(['product']);
@@ -647,7 +649,7 @@ describe('runProductQuestion — SPESIFIKASI', () => {
       }),
       input('tekanan kerja pvc aw?', SPEC('pressure_class')),
     );
-    expect(text(events)).toContain('belum cukup di katalog');
+    expect(text(events)).toContain('belum tercantum di katalog');
     expect(cards(events).map((c) => c.kind)).toEqual(['cta', 'product']);
   });
 

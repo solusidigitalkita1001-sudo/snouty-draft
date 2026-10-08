@@ -550,7 +550,8 @@ function clarificationReply(
   if (card?.kind === 'unsupported' || card?.kind === 'criteria') return '';
   if (state.useCase?.kind === 'technical')
     return technicalGuidance(state, locale, { withIntro: false });
-  if (state.useCase?.kind === 'irrigation') return irrigationGuidance(state, locale);
+  if (state.useCase?.kind === 'irrigation')
+    return irrigationGuidance(state, locale, { withIntro: false });
   return understoodReply(state, card?.kind ?? null, locale) ?? '';
 }
 

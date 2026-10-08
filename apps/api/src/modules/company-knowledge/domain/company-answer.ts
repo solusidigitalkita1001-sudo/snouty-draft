@@ -1,13 +1,16 @@
 /**
- * Penyusun jawaban perusahaan — fungsi murni. Kedalaman mengatur BERAPA BANYAK bagian
- * terverifikasi yang ditampilkan, bukan apa yang boleh dikarang: pada kedalaman apa pun, teks
- * hanya berisi bagian yang punya sumber, lalu satu kalimat jujur tentang yang belum ada.
+ * Penyusun jawaban perusahaan — fungsi murni. Kedalaman mengatur BERAPA BANYAK bagian yang
+ * diceritakan, bukan apa yang boleh dikarang: teks hanya berisi bagian yang punya sumber.
+ *
+ * Bentuknya obrolan, bukan dokumen (aturan teks proyek; audit keterbacaan 2026-10-08): prosa per
+ * paragraf tanpa judul tebal, tanpa kalimat tentang "verifikasi" atau "materi internal", dan
+ * lanjutan ("boleh", "lengkap dong") hanya menambah bagian yang BELUM diceritakan — lalu satu
+ * tawaran lanjutan yang wajar, seperti teknisi yang menjelaskan sambil menawarkan detail berikutnya.
  */
 import type { AnswerDepth, Locale } from '@snouty/shared-types';
 import {
   COMPANY_BRAND,
   SECTION_ORDER,
-  sectionLabel,
   type CompanySection,
   type CompanySectionId,
 } from './company-profile.js';
@@ -27,15 +30,20 @@ export interface CompanyAnswerInput {
   readonly locale: Locale;
   /** Pertanyaan pertama yang ambigu ("pralon itu apa?"): sebutkan juga pembedanya dengan produk. */
   readonly ambiguous?: boolean;
+  /**
+   * Berapa bagian topik ini yang SUDAH diceritakan di giliran sebelumnya — lanjutan hanya
+   * menambah sisanya. 0 untuk pertanyaan baru.
+   */
+  readonly alreadyShown?: number;
 }
 
 export interface CompanyAnswer {
   readonly text: string;
-  /** Ada bagian yang diminta tetapi belum terverifikasi → tawarkan tim Pralon. */
+  /** Ada bagian yang diminta tetapi belum ada sumbernya → tawarkan tim Pralon. */
   readonly needsTeam: boolean;
 }
 
-/** Bagian yang relevan untuk sebuah topik; `company_profile`/ikhtisar = semuanya. */
+/** Bagian yang relevan untuk sebuah topik; ikhtisar/profil = urutan umum (tanpa daftar katalog). */
 const TOPIC_SECTIONS: Readonly<Record<string, readonly CompanySectionId[]>> = {
   history: ['milestones', 'overview'],
   products: ['product_categories', 'business_focus'],
@@ -45,105 +53,151 @@ const TOPIC_SECTIONS: Readonly<Record<string, readonly CompanySectionId[]>> = {
   contact: ['contact', 'website', 'distribution'],
 };
 
-/** Berapa bagian yang dibuka per kedalaman; `comprehensive` membuka semuanya. */
+/** Ikhtisar perusahaan tidak memuat hitungan keluarga katalog — itu milik pertanyaan produk. */
+const PROFILE_SECTIONS = SECTION_ORDER.filter((id) => id !== 'product_categories');
+
+/** Berapa bagian yang diceritakan per kedalaman; `comprehensive` = semuanya. */
 const DEPTH_LIMIT: Readonly<Record<AnswerDepth, number>> = {
   brief: 1,
-  standard: 3,
-  detailed: 6,
+  standard: 2,
+  detailed: 4,
   comprehensive: Number.POSITIVE_INFINITY,
 };
 
-interface Copy {
-  readonly productIntro: string;
-  readonly noCatalog: string;
-  readonly unverified: (labels: string) => string;
-  readonly askTeam: string;
-  readonly ambiguousTail: string;
-  readonly verifiedIntro: string;
+export function sectionsShownAt(depth: AnswerDepth): number {
+  return DEPTH_LIMIT[depth];
 }
 
-const COPY: Readonly<Record<Locale, Copy>> = {
-  id: {
-    productIntro: 'Keluarga produk di katalog Pralon yang aktif:',
-    noCatalog:
-      'Ragam produknya belum bisa saya sebutkan — katalog resmi Pralon belum terpasang di sistem ini.',
-    unverified: (labels) =>
-      `Yang belum bisa saya verifikasi dari sumber resmi: ${labels}. Saya tidak mengarangnya.`,
-    askTeam: 'Untuk bagian itu, tim Pralon bisa mengirimkan profil perusahaan resminya.',
-    ambiguousTail:
-      'Kalau yang Anda maksud produk Pralon tertentu, sebutkan tipenya — misalnya PVC AW atau HDPE.',
-    verifiedIntro: 'Informasi yang dapat saya verifikasi saat ini:',
-  },
-  en: {
-    productIntro: 'Product families in the active Pralon catalog:',
-    noCatalog:
-      'I cannot list the product range yet — the official Pralon catalog is not installed in this system.',
-    unverified: (labels) =>
-      `What I cannot verify from an official source yet: ${labels}. I will not make it up.`,
-    askTeam: 'For those, the Pralon team can send the official company profile.',
-    ambiguousTail:
-      'If you meant a specific Pralon product, name the type — for example PVC AW or HDPE.',
-    verifiedIntro: 'What I can verify right now:',
-  },
+/** Frasa untuk tawaran lanjutan ("Mau saya lanjutkan dengan …?"), per bagian. */
+const NEXT_PHRASE: Readonly<Record<CompanySectionId, { id: string; en: string }>> = {
+  overview: { id: 'gambaran umumnya', en: 'the overview' },
+  business_focus: { id: 'ragam produknya', en: 'the product range' },
+  product_categories: { id: 'produk di katalognya', en: 'the catalogue products' },
+  markets: { id: 'pemakaiannya', en: 'where the pipes are used' },
+  manufacturing: { id: 'proses produksinya', en: 'how the pipes are made' },
+  quality: { id: 'pengendalian mutunya', en: 'quality control' },
+  certifications: { id: 'sertifikasinya', en: 'certifications' },
+  milestones: { id: 'sejarahnya', en: 'its history' },
+  distribution: { id: 'distribusinya', en: 'distribution' },
+  vision: { id: 'visinya', en: 'its vision' },
+  mission: { id: 'misinya', en: 'its mission' },
+  sustainability: { id: 'keberlanjutannya', en: 'sustainability' },
+  affiliations: { id: 'afiliasinya', en: 'affiliations' },
+  contact: { id: 'kontaknya', en: 'contact details' },
+  website: { id: 'situs resminya', en: 'the official website' },
+};
+
+/** Label untuk "yang belum saya pegang" — huruf kecil, dalam kalimat. */
+const MISSING_PHRASE: Readonly<Record<CompanySectionId, { id: string; en: string }>> = {
+  ...NEXT_PHRASE,
+  distribution: { id: 'jaringan distribusi', en: 'the distribution network' },
+  vision: { id: 'visi', en: 'vision' },
+  mission: { id: 'misi', en: 'mission' },
+  sustainability: { id: 'program keberlanjutan', en: 'sustainability programmes' },
+  affiliations: { id: 'afiliasi', en: 'affiliations' },
 };
 
 function sectionText(id: CompanySectionId, facts: CompanyFacts, locale: Locale): string | null {
   if (id === 'product_categories') {
     if (facts.productFamilies.size === 0) return null;
-    // Keluarga + jumlah, bukan seluruh anggotanya: profil perusahaan meringkas ragam produk;
-    // daftar lengkapnya milik pertanyaan produk.
-    const lines = [...facts.productFamilies.entries()].map(
-      ([family, members]) =>
-        `- **${family}** — ${members.length} ${locale === 'en' ? (members.length === 1 ? 'product' : 'products') : 'produk'}`,
-    );
-    return [COPY[locale].productIntro, ...lines].join('\n');
+    // Satu kalimat, bukan daftar hitungan: profil meringkas; daftar lengkapnya milik pertanyaan produk.
+    const families = [...facts.productFamilies.keys()];
+    const named = families.slice(0, 5).join(', ');
+    return locale === 'en'
+      ? `The active Pralon catalogue has ${families.length} product families, including ${named}.`
+      : `Di katalog Pralon yang aktif ada ${families.length} keluarga produk, antara lain ${named}.`;
   }
   return facts.sections.find((s) => s.id === id)?.text[locale] ?? null;
 }
 
+function joinPhrases(items: readonly string[], locale: Locale): string {
+  const and = locale === 'en' ? 'and' : 'dan';
+  if (items.length <= 1) return items[0] ?? '';
+  if (items.length === 2) return `${items[0]} ${and} ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, ${and} ${items.at(-1)}`;
+}
+
 export function composeCompanyAnswer(input: CompanyAnswerInput): CompanyAnswer {
   const { facts, depth, locale } = input;
-  const copy = COPY[locale];
-  const wanted = TOPIC_SECTIONS[input.topic] ?? SECTION_ORDER;
+  const en = locale === 'en';
+  const wanted = TOPIC_SECTIONS[input.topic] ?? PROFILE_SECTIONS;
   const available = wanted.filter((id) => sectionText(id, facts, locale) !== null);
   const missing = wanted.filter((id) => sectionText(id, facts, locale) === null);
 
-  // Ikhtisar selalu ikut bila ada — tanpa itu jawaban "Pralon itu apa?" mulai dari daftar produk.
+  // Ikhtisar dulu bila ada — tanpa itu "Pralon itu apa?" dimulai dari hal yang bukan intinya.
   const ordered = [
     ...available.filter((id) => id === 'overview'),
     ...available.filter((id) => id !== 'overview'),
-  ].slice(0, DEPTH_LIMIT[depth]);
+  ];
+  const limit = Math.max(DEPTH_LIMIT[depth], 1);
+  const from = Math.min(input.alreadyShown ?? 0, ordered.length);
+  const shown = ordered.slice(
+    from,
+    Math.max(from, limit === Number.POSITIVE_INFINITY ? ordered.length : limit),
+  );
+  const remaining = ordered.slice(from + shown.length);
 
   const parts: string[] = [];
-  if (depth === 'brief' || ordered.length <= 1) {
-    const only = ordered[0] ?? null;
-    if (only !== null) parts.push(sectionText(only, facts, locale)!);
-  } else {
-    if (depth === 'comprehensive') parts.push(copy.verifiedIntro);
-    for (const id of ordered) {
-      parts.push(`**${sectionLabel(id, locale)}**\n${sectionText(id, facts, locale)!}`);
-    }
+  // "Pabriknya di mana?": lokasinya belum ada di sumber — katakan dulu, lalu yang bisa diceritakan.
+  if (input.topic === 'manufacturing' && from === 0) {
+    parts.push(
+      en
+        ? "I don't have the plant locations yet; what I can tell you is how the pipes are made."
+        : 'Lokasi pabriknya belum saya pegang; yang bisa saya ceritakan adalah proses produksinya.',
+    );
   }
+  for (const id of shown) parts.push(sectionText(id, facts, locale)!);
 
-  // Yang tidak ada dikatakan tidak ada — hanya bila pengguna memang meminta lebih dari yang tersedia.
+  // Yang tidak ada dikatakan tidak ada — hanya bila pengguna memang meminta lebih atau topiknya itu.
   const asksMore =
     depth === 'detailed' || depth === 'comprehensive' || input.topic !== 'company_overview';
-  const needsTeam = asksMore && missing.length > 0;
-  if (needsTeam) {
-    const labels = missing
-      .filter((id) => id !== 'product_categories')
-      .map((id) => sectionLabel(id, locale).toLowerCase());
-    if (missing.includes('product_categories')) parts.push(copy.noCatalog);
-    if (labels.length > 0) parts.push(`${copy.unverified(labels.join(', '))} ${copy.askTeam}`);
-  }
-  if (input.ambiguous) parts.push(copy.ambiguousTail);
-
-  if (parts.length === 0) {
-    // Tidak ada satu pun bagian: tetap jujur tentang merek, bukan diam.
+  const missingLabels = missing
+    .filter((id) => id !== 'product_categories')
+    .map((id) => MISSING_PHRASE[id][locale]);
+  const needsTeam = asksMore && remaining.length === 0 && missing.length > 0;
+  if (needsTeam && missingLabels.length > 0) {
     parts.push(
-      locale === 'en'
-        ? `${COMPANY_BRAND} is the brand this assistant serves; I cannot verify more about the company yet. ${copy.askTeam}`
-        : `${COMPANY_BRAND} adalah merek yang dilayani asisten ini; lebih dari itu belum bisa saya verifikasi. ${copy.askTeam}`,
+      en
+        ? `For ${joinPhrases(missingLabels, locale)}, the Pralon team can send the official company profile.`
+        : `Untuk ${joinPhrases(missingLabels, locale)}, tim Pralon bisa mengirimkan profil perusahaan resminya.`,
+    );
+  }
+  if (needsTeam && missing.includes('product_categories') && shown.length === 0) {
+    parts.push(
+      en
+        ? 'The product list will appear here once the official Pralon catalogue is installed.'
+        : 'Daftar produknya akan bisa saya sebutkan setelah katalog resmi Pralon terpasang.',
+    );
+  }
+
+  if (input.ambiguous) {
+    parts.push(
+      en
+        ? 'If you meant a specific Pralon product, name the type — for example PVC AW or HDPE.'
+        : 'Kalau yang Anda maksud produk Pralon tertentu, sebutkan tipenya — misalnya PVC AW atau HDPE.',
+    );
+  } else if (remaining.length > 0) {
+    const next = joinPhrases(
+      remaining.slice(0, 2).map((id) => NEXT_PHRASE[id][locale]),
+      locale,
+    );
+    parts.push(en ? `Shall I go on with ${next}?` : `Mau saya lanjutkan dengan ${next}?`);
+  }
+
+  // Lanjutan setelah semuanya diceritakan: katakan begitu, jangan mengulang.
+  if (shown.length === 0 && from > 0) {
+    parts.unshift(
+      en
+        ? `That covers what I can tell you about ${COMPANY_BRAND}.`
+        : `Itu sudah semua yang bisa saya ceritakan tentang ${COMPANY_BRAND}.`,
+    );
+  }
+  // Tidak ada satu pun bagian bersumber: tetap menjawab, tidak diam.
+  if (parts.length === 0) {
+    parts.push(
+      en
+        ? `${COMPANY_BRAND} is a piping manufacturer; the Pralon team can send the official company profile.`
+        : `${COMPANY_BRAND} adalah produsen sistem perpipaan; tim Pralon bisa mengirimkan profil perusahaan resminya.`,
     );
   }
   return { text: parts.join('\n\n'), needsTeam };

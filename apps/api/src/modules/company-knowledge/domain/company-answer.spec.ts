@@ -1,9 +1,10 @@
 /**
- * Jawaban perusahaan: hanya bagian terverifikasi; yang tidak ada dikatakan tidak ada; tidak
- * pernah menjadi pertanyaan produk (TEST F).
+ * Jawaban perusahaan: hanya bagian bersumber, berbentuk obrolan (tanpa judul tebal, tanpa kalimat
+ * tentang "verifikasi"), lanjutan hanya menambah yang belum diceritakan, dan tidak pernah menjadi
+ * pertanyaan produk (TEST F). Audit keterbacaan 2026-10-08.
  */
 import { describe, expect, it } from 'vitest';
-import { composeCompanyAnswer, type CompanyFacts } from './company-answer.js';
+import { composeCompanyAnswer, sectionsShownAt, type CompanyFacts } from './company-answer.js';
 import { SECTIONS } from './company-profile.js';
 
 const withCatalog: CompanyFacts = {
@@ -15,113 +16,116 @@ const withCatalog: CompanyFacts = {
 };
 const noCatalog: CompanyFacts = { sections: SECTIONS, productFamilies: new Map() };
 
-describe('composeCompanyAnswer', () => {
-  it('singkat: satu bagian (ikhtisar), tanpa daftar yang belum terverifikasi', () => {
-    const a = composeCompanyAnswer({
-      facts: withCatalog,
-      depth: 'brief',
-      topic: 'company_overview',
-      locale: 'id',
-    });
-    expect(a.text).toContain('Pralon adalah produsen sistem perpipaan');
-    expect(a.text).not.toContain('**');
-    expect(a.text).not.toContain('belum bisa saya verifikasi');
+const answer = (over: Partial<Parameters<typeof composeCompanyAnswer>[0]> = {}) =>
+  composeCompanyAnswer({
+    facts: withCatalog,
+    depth: 'standard',
+    topic: 'company_overview',
+    locale: 'id',
+    ...over,
+  });
+
+describe('composeCompanyAnswer — bentuk obrolan', () => {
+  it('tidak ada judul tebal, metatext verifikasi, atau "materi internal" di kedalaman apa pun', () => {
+    for (const depth of ['brief', 'standard', 'detailed', 'comprehensive'] as const) {
+      for (const locale of ['id', 'en'] as const) {
+        const a = answer({ depth, locale, topic: 'company_profile' });
+        expect(a.text).not.toContain('**');
+        expect(a.text).not.toMatch(
+          /verifikasi|verify|Materi internal|Internal material|mengarang|make it up/i,
+        );
+      }
+    }
+  });
+
+  it('singkat: ikhtisar saja, lalu tawaran lanjutan', () => {
+    const a = answer({ depth: 'brief' });
+    expect(a.text).toMatch(/^PT Pralon adalah produsen sistem perpipaan/);
+    expect(a.text).toMatch(/Mau saya lanjutkan dengan ragam produknya dan pemakaiannya\?$/);
     expect(a.needsTeam).toBe(false);
   });
 
-  it('standar: ikhtisar dulu, lalu ragam produk dari katalog, berlabel tebal', () => {
-    const a = composeCompanyAnswer({
-      facts: withCatalog,
-      depth: 'standard',
-      topic: 'company_overview',
-      locale: 'id',
-    });
-    expect(a.text.indexOf('**Profil perusahaan**')).toBeLessThan(
-      a.text.indexOf('**Produk dan solusi**'),
-    );
-    // Keluarga + jumlah; anggota lengkapnya milik pertanyaan produk.
-    expect(a.text).toContain('- **PVC AW** — 2 produk');
-    expect(a.text).not.toContain('Pipa PVC AW 1/2"');
+  it('ikhtisar perusahaan tidak memuat daftar hitungan keluarga katalog', () => {
+    const a = answer({ depth: 'comprehensive', topic: 'company_profile' });
+    expect(a.text).not.toContain('2 produk');
+    expect(a.text).not.toContain('PVC AW —');
   });
 
-  it('lengkap: semua bagian terverifikasi, lalu jujur tentang yang belum ada + tim Pralon', () => {
-    const a = composeCompanyAnswer({
-      facts: withCatalog,
+  it('lanjutan hanya menambah bagian yang belum diceritakan — tidak mengulang', () => {
+    const first = answer({ depth: 'standard', topic: 'company_profile' });
+    const next = answer({
+      depth: 'detailed',
+      topic: 'company_profile',
+      alreadyShown: sectionsShownAt('standard'),
+    });
+    expect(first.text).toContain('PT Pralon adalah produsen');
+    expect(next.text).not.toContain('PT Pralon adalah produsen');
+    expect(next.text).toContain('Pipanya dipakai untuk');
+    const all = answer({
       depth: 'comprehensive',
       topic: 'company_profile',
-      locale: 'id',
+      alreadyShown: sectionsShownAt('detailed'),
     });
-    expect(a.text).toContain('Informasi yang dapat saya verifikasi saat ini:');
-    expect(a.text).toContain('**Situs resmi**');
-    // Sejarah, sertifikasi, kontak kini ada dari materi HRGA (OQ-54); visi/misi/distribusi belum.
-    expect(a.text).toContain('**Sejarah**');
-    expect(a.text).toContain('**Standar dan sertifikasi**');
-    expect(a.text).toContain(
-      'belum bisa saya verifikasi dari sumber resmi: distribusi, visi, misi',
+    expect(all.text).not.toContain('Pipanya dipakai untuk');
+    expect(all.text).toContain('Situs resminya www.pralon.com.');
+    // Yang belum punya sumber disebut sekali, dengan jalan keluarnya.
+    expect(all.text).toContain(
+      'Untuk jaringan distribusi, visi, misi, program keberlanjutan, dan afiliasi, tim Pralon bisa mengirimkan profil perusahaan resminya.',
     );
-    expect(a.text).toContain('Saya tidak mengarangnya.');
-    expect(a.needsTeam).toBe(true);
-    // Tidak pernah menanyakan produk.
-    expect(a.text).not.toContain('Produk mana yang Anda maksud');
+    expect(all.needsTeam).toBe(true);
+    const done = answer({
+      depth: 'comprehensive',
+      topic: 'company_profile',
+      alreadyShown: 99,
+    });
+    expect(done.text).toMatch(/^Itu sudah semua yang bisa saya ceritakan tentang Pralon\./);
   });
 
-  it('TEST F: katalog tidak ada → ragam produk dikatakan belum tersedia, tetap tentang perusahaan', () => {
+  it('pabrik: lokasi yang belum dipegang dikatakan dulu, lalu proses produksinya', () => {
+    const a = answer({ topic: 'manufacturing' });
+    expect(a.text).toMatch(
+      /^Lokasi pabriknya belum saya pegang; yang bisa saya ceritakan adalah proses produksinya\./,
+    );
+    expect(a.text).toContain('Pipa uPVC dibuat bertahap');
+  });
+
+  it('visi misi tanpa sumber → jalan keluarnya tim Pralon; sejarah terjawab tanpa "materi internal"', () => {
+    const vm = answer({ topic: 'vision_mission' });
+    expect(vm.text).toContain(
+      'Untuk visi dan misi, tim Pralon bisa mengirimkan profil perusahaan resminya.',
+    );
+    expect(vm.needsTeam).toBe(true);
+    const history = answer({ topic: 'history' });
+    expect(history.text).toMatch(/^PT Pralon adalah produsen/);
+    expect(history.text).toContain('Perjalanan Pralon mencakup');
+  });
+
+  it('TEST F: topik produk tanpa katalog → dikatakan belum tersedia, tetap tentang perusahaan', () => {
     const a = composeCompanyAnswer({
       facts: noCatalog,
-      depth: 'comprehensive',
-      topic: 'company_profile',
+      depth: 'standard',
+      topic: 'products',
       locale: 'id',
     });
-    expect(a.text).toContain('katalog resmi Pralon belum terpasang');
-    expect(a.text).toContain('Pralon adalah produsen');
+    expect(a.text).toContain('Produknya mencakup pipa uPVC standar PRALON');
     expect(a.text).not.toContain('Produk mana');
-  });
-
-  it('topik tertentu yang belum terverifikasi (visi misi) → jujur; sejarah kini terjawab dari materi internal', () => {
-    const a = composeCompanyAnswer({
-      facts: withCatalog,
-      depth: 'standard',
-      topic: 'vision_mission',
-      locale: 'id',
-    });
-    expect(a.text).toContain('belum bisa saya verifikasi dari sumber resmi: visi, misi');
-    const history = composeCompanyAnswer({
-      facts: withCatalog,
-      depth: 'standard',
-      topic: 'history',
-      locale: 'id',
-    });
-    expect(history.text).toContain('Materi internal mencatat tonggak perusahaan');
-    expect(history.text).toContain('Pralon adalah produsen');
+    const withProducts = answer({ topic: 'products' });
+    expect(withProducts.text).toContain(
+      'Di katalog Pralon yang aktif ada 2 keluarga produk, antara lain PVC AW, HDPE.',
+    );
   });
 
   it('pertanyaan ambigu "pralon itu apa?" → jawaban perusahaan + satu kalimat pembeda produk', () => {
-    const a = composeCompanyAnswer({
-      facts: withCatalog,
-      depth: 'standard',
-      topic: 'company_overview',
-      locale: 'id',
-      ambiguous: true,
-    });
+    const a = answer({ ambiguous: true });
     expect(a.text).toContain('Kalau yang Anda maksud produk Pralon tertentu');
+    expect(a.text).not.toContain('Mau saya lanjutkan');
   });
 
-  it('en: label dan kalimat Inggris, angka/nama produk sama', () => {
-    const id = composeCompanyAnswer({
-      facts: withCatalog,
-      depth: 'comprehensive',
-      topic: 'company_profile',
-      locale: 'id',
-    });
-    const en = composeCompanyAnswer({
-      facts: withCatalog,
-      depth: 'comprehensive',
-      topic: 'company_profile',
-      locale: 'en',
-    });
-    expect(en.text).toContain('**Company profile**');
-    expect(en.text).toContain('What I cannot verify from an official source yet');
-    expect(en.text).toContain('- **HDPE** — 1 product');
-    expect(en.text.split('**').length).toBe(id.text.split('**').length);
+  it('en: kalimat Inggris, jumlah paragraf sama dengan Indonesia', () => {
+    const id = answer({ depth: 'comprehensive', topic: 'company_profile' });
+    const en = answer({ depth: 'comprehensive', topic: 'company_profile', locale: 'en' });
+    expect(en.text).toMatch(/^PT Pralon is a piping-system manufacturer/);
+    expect(en.text).toContain('the Pralon team can send the official company profile');
+    expect(en.text.split('\n\n').length).toBe(id.text.split('\n\n').length);
   });
 });

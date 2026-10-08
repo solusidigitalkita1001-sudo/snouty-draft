@@ -73,7 +73,7 @@ describe('pipe knowledge', () => {
     expect(id).toMatch(
       /^\*\*HDPE\*\* adalah bahan pipa, sedangkan \*\*fitting\*\* adalah komponen penyambungnya/,
     );
-    expect(id).toContain('**HDPE** itu lentur dan bisa digulung');
+    expect(id).toContain('**HDPE** lentur dan ulet');
     expect(id).toContain('Fitting adalah komponen penyambung pipa');
     const en = explain(
       q('what is the difference between a fitting and hdpe?', ['fitting'], comparison),
@@ -111,21 +111,21 @@ describe('pipe knowledge', () => {
 
   it('materi internal Pralon (OQ-54): cara sambung lem, rubber ring, penyimpanan, gangguan, istilah, uPVC — terjawab tanpa bahan di pesan, dua bahasa', () => {
     expect(explain(q('cara nyambung pipa pvc pakai lem gimana?', ['sambungan lem']))).toContain(
-      'Sambungan lem (solvent cement)',
+      'menyambung pipa PVC ujung TS End dengan lem',
     );
     expect(explain(q('pelumas rubber ring boleh pakai oli?', ['sambungan rubber ring']))).toContain(
       'Jangan memakai oli, gemuk, minyak, atau sabun',
     );
     // Pertanyaan topik dibuka dengan topiknya, bukan ikhtisar bahan; "apa itu pvc" tetap bahan dulu.
     expect(explain(q('pipa pvc disimpan di luar boleh?', ['penyimpanan']))).toMatch(
-      /^Penyimpanan pipa PVC/,
+      /^Pipa PVC sebaiknya disimpan begini:/,
     );
     expect(explain(q('apa itu pvc?', [], concept))).toMatch(/^\*\*PVC/);
     expect(explain(q('pipa bocor di sambungan kenapa ya?', ['perawatan dan gangguan']))).toContain(
-      'bocor di sambungan',
+      'Bocor di sambungan',
     );
     expect(explain(q('SDR itu apa?', ['istilah dimensi']))).toContain(
-      'SDR perbandingan diameter luar terhadap tebal dinding',
+      '**SDR** — perbandingan diameter luar terhadap tebal dinding',
     );
     expect(explain(q('upvc itu apa?', ['upvc']))).toContain('uPVC adalah unplasticized PVC');
     // Kelas PVC ikut dari keluarga produknya ("pvc aw"), tanpa topik eksplisit.
@@ -133,10 +133,10 @@ describe('pipe knowledge', () => {
       'PIPPO adalah merek kedua Pralon',
     );
     expect(explain(q('how do I join pvc pipe with glue?', ['sambungan lem']), 'en')).toContain(
-      'Solvent-cement joints',
+      'with solvent cement',
     );
     expect(explain(q('how should I store pvc pipe?', ['penyimpanan']), 'en')).toContain(
-      'avoid prolonged direct sun',
+      'prolonged direct sun',
     );
   });
 
@@ -149,7 +149,7 @@ describe('pipe knowledge', () => {
 
   it('satu bahan → ikhtisar; konsep yang disinggung ikut; tanpa bahan → kosong', () => {
     const ppr = explain(q('apa itu ppr?', [], concept));
-    expect(ppr).toMatch(/^\*\*PPR\*\* itu kaku dan tahan air panas: /); // prosa, bukan butir
+    expect(ppr).toMatch(/^\*\*PPR\*\* kaku, dipasok batangan/); // prosa, bukan butir
     expect(ppr).toContain('**cocok untuk instalasi air panas dan dingin di dalam bangunan**');
     expect(ppr).toContain('kurang cocok untuk');
     expect(ppr).not.toContain('- Bentuk:');

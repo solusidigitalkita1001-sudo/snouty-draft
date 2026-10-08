@@ -319,19 +319,24 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
     await say('gw pengen tau terkait company profile PT Pralon');
     expect(subject()).toMatchObject({ topic: 'company_profile', depth: 'detailed' });
 
+    // "boleh" menambah bagian yang BELUM diceritakan, sampai situs resmi dan jalan keluar untuk
+    // yang belum ada sumbernya — tanpa mengulang ikhtisar (audit keterbacaan 2026-10-08).
     const ok = await say('boleh');
     expect(ok).not.toContain('Produk mana');
+    expect(ok).not.toContain('PT Pralon adalah produsen');
+    expect(ok).toContain('Situs resminya www.pralon.com.');
+    expect(ok).toContain('tim Pralon bisa mengirimkan profil perusahaan resminya');
+    expect(ok).not.toContain('**');
     expect(subject()?.depth).toBe('comprehensive');
 
+    // Sudah semuanya: dikatakan begitu, tidak diulang seluruhnya lagi.
     const full = await say('data nya secara lengkap dong');
-    expect(full).toContain('Informasi yang dapat saya verifikasi saat ini:');
-    expect(full).toContain('**Situs resmi**');
-    expect(full).toContain('belum bisa saya verifikasi dari sumber resmi');
+    expect(full).toMatch(/^Itu sudah semua yang bisa saya ceritakan tentang Pralon./);
     expect(full).not.toContain('Produk mana');
 
     const all = await say('semuanya, tolong tampilin');
     expect(all).not.toContain('Produk mana');
-    expect(all).toContain('Pralon adalah produsen');
+    expect(all).toContain('Pralon');
     expect(subject()).toMatchObject({
       kind: 'company',
       topic: 'company_profile',

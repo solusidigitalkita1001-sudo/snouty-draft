@@ -61,9 +61,14 @@ export async function assembleRecommendation(
   prose: ProseWriter | null,
 ): Promise<AssembleResult> {
   const stats = statsFrom(input.solution, input.products.length);
-  const systemLines = systemLinesFrom(input.solution, input.traces);
-  const bom = bomItemsFrom(input.solution, input.traces);
-  const assumptions = assumptionsFrom(input.solution, input.traces, input.requirementAssumptions);
+  const systemLines = systemLinesFrom(input.solution, input.traces, input.locale);
+  const bom = bomItemsFrom(input.solution, input.traces, input.locale);
+  const assumptions = assumptionsFrom(
+    input.solution,
+    input.traces,
+    input.requirementAssumptions,
+    input.locale,
+  );
 
   const allowedNumbers = allowedNumbersFrom(stats, bom, input.solution);
   const allowedSizes = allowedSizesFrom(input.solution, bom);
@@ -107,7 +112,7 @@ async function writeProse(
   },
 ): Promise<{ headline: string; body: string; source: AssembleResult['proseSource'] }> {
   if (!prose) {
-    return { ...templateProse(context.stats), source: 'template' };
+    return { ...templateProse(context.stats, context.locale), source: 'template' };
   }
 
   const locale = context.locale ? { locale: context.locale } : {};
@@ -145,7 +150,7 @@ async function writeProse(
 
   // Tidak ada percobaan ketiga. Templat deterministik selalu lulus REC-1 karena ia
   // hanya menyusun ulang angka yang memang dihitung.
-  return { ...templateProse(context.stats), source: 'template' };
+  return { ...templateProse(context.stats, context.locale), source: 'template' };
 }
 
 async function safeWrite(
@@ -165,10 +170,25 @@ async function safeWrite(
  * dikonfigurasi. Ia tidak pernah melanggar REC-1 karena setiap angka di dalamnya
  * berasal langsung dari `stats`.
  */
-export function templateProse(stats: ReturnType<typeof statsFrom>): {
+export function templateProse(
+  stats: ReturnType<typeof statsFrom>,
+  locale: Locale = 'id',
+): {
   headline: string;
   body: string;
 } {
+  if (locale === 'en') {
+    const branches = stats.branchCount === 1 ? '1 branch' : `${stats.branchCount} branches`;
+    const products =
+      stats.productCount === 1 ? '1 Pralon product' : `${stats.productCount} Pralon products`;
+    return {
+      headline: `Distribution system for ${stats.outletCount} water outlets`,
+      body:
+        `Your requirements cover ${stats.outletCount} water outlets served by ${branches}. ` +
+        `The main line uses size ${stats.mainSize}, and each fixture connection uses ${stats.fixtureConnectionSize}. ` +
+        `There ${stats.productCount === 1 ? 'is' : 'are'} ${products} suited to this system.`,
+    };
+  }
   return {
     headline: `Sistem distribusi untuk ${stats.outletCount} titik air`,
     body:

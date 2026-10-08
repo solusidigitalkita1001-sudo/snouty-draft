@@ -16,6 +16,7 @@ import {
 import type { CompanyKnowledgeService } from '../../company-knowledge/application/company-knowledge.service.js';
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 import { resolveCompanySubject } from '../domain/subject.js';
+import { sectionsShownAt } from '../../company-knowledge/domain/company-answer.js';
 import { endEvent } from './message-pipeline.js';
 
 export interface CompanyQuestionInput {
@@ -40,11 +41,19 @@ export async function runCompanyQuestion(
   // "pralon itu apa?" tanpa subjek dan tanpa bagian profil yang spesifik: "Pralon" bisa berarti
   // perusahaan atau produk — dijawab sebagai perusahaan, plus satu kalimat pembeda produk.
   const ambiguous = !resolvedFromPrevious && u.companyTopic === null;
+  // Lanjutan atas topik yang sama ("boleh", "lengkap dong") hanya menambah bagian yang belum
+  // diceritakan — dulu seluruh jawaban diulang lalu ditambah (audit keterbacaan 2026-10-08).
+  const previous = input.subject;
+  const alreadyShown =
+    resolvedFromPrevious && previous?.kind === 'company' && previous.topic === subject.topic
+      ? sectionsShownAt(previous.depth)
+      : 0;
   const answer = await knowledge.answer({
     depth: subject.depth,
     topic: subject.topic,
     locale,
     ambiguous,
+    alreadyShown,
   });
   return {
     subject,

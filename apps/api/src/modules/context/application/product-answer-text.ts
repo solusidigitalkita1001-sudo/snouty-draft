@@ -35,8 +35,8 @@ export const PRODUCT_ANSWER_COPY = {
     'Harga tidak saya tampilkan di sini — harga final mengikuti daftar harga distributor Pralon yang berlaku dan bisa berbeda per wilayah. Tim Pralon bisa mengirimkan penawarannya untuk produk yang Anda butuhkan.',
   noProductNamed:
     'Produk mana yang Anda maksud? Sebutkan nama atau keluarganya, misalnya "PVC AW".',
-  catalogSupport: 'Di katalog Pralon yang aktif:',
-  rangeIntro: '**Keluarga produk di katalog Pralon yang aktif**',
+  catalogSupport: 'Contoh produknya di katalog Pralon:',
+  rangeIntro: 'Di katalog Pralon yang aktif ada keluarga produk berikut:',
   rangeNext:
     'Mau saya jelaskan salah satunya, atau ceritakan bangunannya supaya saya bisa memilihkan?',
   /** Pengguna menyebut Pralon ("HDPE di Pralon ok nggak?") tetapi katalognya belum terpasang. */
@@ -50,7 +50,7 @@ export const PRODUCT_ANSWER_COPY = {
   source: (document: string, page: number) => `Sumber: ${document} hal. ${page}.`,
   seeDocuments: (titles: readonly string[]) => `Lihat dokumen teknis: ${titles.join('; ')}.`,
   insufficient: (label: string, name: string) =>
-    `Data ${label.toLowerCase()} untuk ${name} belum cukup di katalog. Tim teknis Pralon bisa membantu.`,
+    `${label} untuk ${name} belum tercantum di katalog; tim teknis Pralon bisa memastikannya.`,
 } as const;
 
 export const ASPECT_LABEL_EN: Readonly<Record<ProductAspect, string>> = {
@@ -98,8 +98,8 @@ export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
   priceNotShown:
     'Prices are not shown here — final prices follow the current Pralon distributor price list and can differ by region. The Pralon team can send a quotation for the products you need.',
   noProductNamed: 'Which product do you mean? Give the name or its family, for example "PVC AW".',
-  catalogSupport: 'In the active Pralon catalog:',
-  rangeIntro: '**Product families in the active Pralon catalog**',
+  catalogSupport: 'Examples in the Pralon catalogue:',
+  rangeIntro: 'The active Pralon catalogue has these product families:',
   rangeNext:
     'Would you like me to explain one of them, or tell me about the building so I can pick for you?',
   catalogNotInstalledShort:
@@ -112,7 +112,7 @@ export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
   source: (document, page) => `Source: ${document} p. ${page}.`,
   seeDocuments: (titles) => `See the technical documents: ${titles.join('; ')}.`,
   insufficient: (label, name) =>
-    `The ${label.toLowerCase()} data for ${name} is not yet sufficient in the catalog. Pralon's technical team can help.`,
+    `${label} for ${name} is not listed in the catalogue yet; Pralon's technical team can confirm it.`,
 };
 
 export function productAnswerCopy(locale: Locale = DEFAULT_LOCALE): ProductAnswerCopy {
@@ -122,7 +122,9 @@ export function productAnswerCopy(locale: Locale = DEFAULT_LOCALE): ProductAnswe
 /** Ikhtisar satu produk — dipakai saat pertanyaan tidak menunjuk aspek tertentu. */
 export function overviewText(product: Product, locale: Locale = DEFAULT_LOCALE): string {
   const en = locale === 'en';
-  const parts = [`${product.name} (${product.category}): ${product.description}`];
+  // Deskripsi kosong tidak boleh menyisakan "Nama (KATEGORI): " yang menggantung.
+  const description = product.description.trim();
+  const parts = [description === '' ? `${product.name}.` : `${product.name}: ${description}`];
   if (specHasValue(product.material))
     parts.push(en ? `Material: ${product.material.value}.` : `Material ${product.material.value}.`);
   if (specHasValue(product.application))

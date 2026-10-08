@@ -185,15 +185,15 @@ export const CONCEPTS: readonly ConceptKnowledge[] = [
   },
   {
     topic: 'istilah dimensi',
-    text: 'Istilah ukuran pipa: DN diameter nominal; OD diameter luar; ID diameter dalam; WT (t) tebal dinding; SDR perbandingan diameter luar terhadap tebal dinding; PN tekanan nominal; S seri pipa. Hubungannya: diameter dalam = diameter luar dikurangi dua kali tebal dinding. Ukuran inci pada pipa PVC adalah ukuran nominal — tidak selalu sama dengan diameter aktualnya.',
+    text: 'Istilah ukuran pada pipa:\n\n- **DN** — diameter nominal\n- **OD** — diameter luar\n- **ID** — diameter dalam\n- **WT (t)** — tebal dinding\n- **SDR** — perbandingan diameter luar terhadap tebal dinding\n- **PN** — tekanan nominal\n- **S** — seri pipa\n\nDiameter dalam sama dengan diameter luar dikurangi dua kali tebal dinding. Ukuran inci pada pipa PVC adalah ukuran nominal, jadi tidak selalu sama dengan diameter sebenarnya.',
     textEn:
-      'Pipe sizing terms: DN nominal diameter; OD outside diameter; ID inside diameter; WT (t) wall thickness; SDR the ratio of outside diameter to wall thickness; PN nominal pressure; S pipe series. They relate as inside diameter = outside diameter minus twice the wall thickness. Inch sizes on PVC pipe are nominal — not always the actual diameter.',
+      'Pipe sizing terms:\n\n- **DN** — nominal diameter\n- **OD** — outside diameter\n- **ID** — inside diameter\n- **WT (t)** — wall thickness\n- **SDR** — ratio of outside diameter to wall thickness\n- **PN** — nominal pressure\n- **S** — pipe series\n\nThe inside diameter equals the outside diameter minus twice the wall thickness. Inch sizes on PVC pipe are nominal, so they are not always the actual diameter.',
   },
   {
     topic: 'sambungan lem',
-    text: 'Sambungan lem (solvent cement) untuk pipa PVC ujung TS End: rapikan bekas potongan, coba dulu kecocokan pipa dengan fitting, tandai kedalaman socket, bersihkan ujung pipa, oleskan solvent cement, masukkan sampai tanda lalu tahan sebentar, bersihkan sisa lem, dan diamkan sampai mengering sebelum dialiri. Solvent cement quick dry untuk ukuran kecil, slow dry untuk ukuran besar; waktu tahan dan waktu kering resminya mengikuti lembar data solvent cement Pralon.',
+    text: 'Urutan menyambung pipa PVC ujung TS End dengan lem (solvent cement):\n\n- Rapikan bekas potongan.\n- Coba dulu kecocokan pipa dengan fitting.\n- Tandai kedalaman socket.\n- Bersihkan ujung pipa.\n- Oleskan solvent cement.\n- Masukkan sampai tanda, lalu tahan sebentar.\n- Bersihkan sisa lem.\n- Diamkan sampai kering sebelum dialiri.\n\nPakai solvent cement quick dry untuk ukuran kecil dan slow dry untuk ukuran besar; waktu tahan dan waktu keringnya ikuti lembar data solvent cement Pralon.',
     textEn:
-      'Solvent-cement joints for TS End PVC pipe: deburr the cut end, dry-fit pipe and fitting, mark the socket depth, clean the pipe end, apply solvent cement, push in to the mark and hold briefly, wipe off the excess, and let it cure before pressurising. Quick-dry cement for small sizes, slow-dry for large ones; official hold and cure times follow the Pralon solvent-cement data sheet.',
+      'How to joint TS End PVC pipe with solvent cement:\n\n- Deburr the cut end.\n- Dry-fit the pipe and fitting first.\n- Mark the socket depth.\n- Clean the pipe end.\n- Apply solvent cement.\n- Push in to the mark and hold briefly.\n- Wipe off the excess.\n- Let it cure before pressurising.\n\nUse quick-dry cement for small sizes and slow-dry for large ones; hold and cure times follow the Pralon solvent-cement data sheet.',
   },
   {
     topic: 'sambungan rubber ring',
@@ -209,15 +209,15 @@ export const CONCEPTS: readonly ConceptKnowledge[] = [
   },
   {
     topic: 'penyimpanan',
-    text: 'Penyimpanan pipa PVC: hindari sinar matahari langsung jangka panjang dan sumber panas, beri pelindung atau terpal, alasi dari batu dan benda tajam, susun stabil dengan tinggi tumpukan terbatas. Saat diangkut, pipa diangkat, diturunkan, dan dibawa dengan hati-hati — jangan dibanting, digulingkan sembarangan, atau diseret.',
+    text: 'Pipa PVC sebaiknya disimpan begini:\n\n- Hindarkan dari sinar matahari langsung dalam waktu lama dan dari sumber panas; tutup dengan pelindung atau terpal.\n- Alasi supaya tidak menyentuh batu atau benda tajam.\n- Susun stabil dengan tumpukan yang tidak terlalu tinggi.\n\nSaat diangkut, angkat, turunkan, dan bawa pipa dengan hati-hati — jangan dibanting, digulingkan sembarangan, atau diseret.',
     textEn:
-      'Storing PVC pipe: avoid prolonged direct sun and heat sources, cover it, keep it off stones and sharp objects, and stack it stably with limited height. In transport, lift, lower, and carry the pipe with care — never drop, roll carelessly, or drag it.',
+      'PVC pipe is best stored like this:\n\n- Keep it out of prolonged direct sun and away from heat sources; cover it with a sheet or tarp.\n- Keep it off stones and sharp objects.\n- Stack it stably and not too high.\n\nIn transport, lift, lower, and carry the pipe with care — never drop, roll carelessly, or drag it.',
   },
   {
     topic: 'perawatan dan gangguan',
-    text: 'Perawatan jaringan PVC: periksa visual berkala, bersihkan jalur, lindungi dari panas dan sinar UV, jaga tekanan kerja, periksa bracket dan support, bersihkan tandon, dan cegah kotoran masuk ke jaringan; jangan membersihkan pipa dengan soda api. Gangguan yang lazim: bocor di sambungan (permukaan kotor atau lem kurang merata — perbaiki sambungannya), pipa retak atau pecah (tekanan berlebih atau benturan — potong dan perbaiki), aliran tersumbat (lumpur, kerak, benda asing — bersihkan), pipa melengkung atau kendor (support kurang — tambah support), warna berubah (paparan UV — lindungi dan evaluasi). Perbaikan memakai dresser joint, gibault joint, atau bell repair socket.',
+    text: 'Bocor di sambungan biasanya karena permukaannya kotor atau lemnya kurang merata; perbaikannya dengan membuat ulang sambungan itu. Gangguan lain yang lazim:\n\n- Pipa retak atau pecah — karena tekanan berlebih atau benturan; potong bagian itu lalu perbaiki.\n- Aliran tersumbat — karena lumpur, kerak, atau benda asing; bersihkan jalurnya.\n- Pipa melengkung atau kendor — support-nya kurang; tambah support.\n- Warna berubah — karena paparan UV; lindungi pipanya dan periksa kondisinya.\n\nPerbaikan memakai dresser joint, gibault joint, atau bell repair socket. Untuk perawatan rutin, periksa jaringan secara visual, bersihkan jalur dan tandon, lindungi dari panas dan sinar UV, jaga tekanan kerja, periksa bracket dan support, dan cegah kotoran masuk — jangan membersihkan pipa dengan soda api.',
     textEn:
-      'Maintaining a PVC network: periodic visual checks, clean the run, protect from heat and UV, keep to the working pressure, check brackets and supports, clean the tank, and keep debris out of the network; never clean pipe with caustic soda. Common faults: leaking joints (dirty surface or uneven cement — remake the joint), cracked or burst pipe (over-pressure or impact — cut out and repair), blocked flow (silt, scale, foreign objects — clean), sagging or loose pipe (too few supports — add supports), discolouration (UV exposure — protect and assess). Repairs use a dresser joint, gibault joint, or bell repair socket.',
+      'A leaking joint usually comes from a dirty surface or unevenly applied cement; the fix is to remake that joint. Other common faults:\n\n- Cracked or burst pipe — from over-pressure or impact; cut out that section and repair it.\n- Blocked flow — from silt, scale, or foreign objects; clean the run.\n- Sagging or loose pipe — too few supports; add supports.\n- Discolouration — from UV exposure; protect the pipe and check its condition.\n\nRepairs use a dresser joint, gibault joint, or bell repair socket. For routine care, check the network visually, clean the run and the tank, protect it from heat and UV, keep to the working pressure, check brackets and supports, and keep debris out — never clean pipe with caustic soda.',
   },
   {
     topic: 'proses produksi',
@@ -322,15 +322,17 @@ export function describeMaterial(
   const m = textsOf(material, locale);
   // Satu bahan dijawab sebagai PROSA, bukan lembar data: butir hanya untuk perbandingan.
   // "Ok nggak?" dijawab dua arah — kapan cocok, kapan kurang cocok.
+  // Kalimat utuh tanpa pengulangan: dulu "itu kaku dan dipasok batangan: kaku dan ringan, dipasok
+  // batangan" dan "Soal ketahanan, …" terbaca seperti templat (audit keterbacaan 2026-10-08).
   if (locale === 'en') {
     return [
-      `**${m.label}** is ${m.gist}: ${m.form}. Its joints use ${m.joining}. On durability, ${m.durability}.`,
-      `In general it is **suited to ${m.bestFor}**, and less suited to ${m.notFor}.`,
+      `**${m.label}** is ${m.form}. It is joined by ${m.joining}. ${capitalize(m.durability)}.`,
+      `It is **best suited to ${m.bestFor}**, and less suited to ${m.notFor}.`,
     ].join('\n\n');
   }
   return [
-    `**${m.label}** itu ${m.gist}: ${m.form}. Sambungannya ${m.joining}. Soal ketahanan, ${m.durability}.`,
-    `Secara umum **cocok untuk ${m.bestFor}**, dan kurang cocok untuk ${m.notFor}.`,
+    `**${m.label}** ${m.form}. Disambung dengan ${m.joining}. ${capitalize(m.durability)}.`,
+    `Paling **cocok untuk ${m.bestFor}**, dan kurang cocok untuk ${m.notFor}.`,
   ].join('\n\n');
 }
 
@@ -603,6 +605,8 @@ export interface ExplainInput {
   readonly comparison: boolean;
   /** Pertanyaan tentang bahannya sendiri (definisi/perbandingan), bukan tentang cara/topik. */
   readonly aboutMaterial: boolean;
+  /** Pertanyaan topik: bila konsepnya dikenali, ikhtisar bahan tidak ditempelkan. */
+  readonly topicOnly?: boolean;
 }
 
 /**
@@ -627,6 +631,7 @@ export function explain(input: ExplainInput, locale: Locale = DEFAULT_LOCALE): s
   if (materials.length === 2) parts.push(compareMaterials(materials[0]!, materials[1]!, locale));
   else if (materials.length === 1) parts.push(describeMaterial(materials[0]!, locale));
   const conceptTexts = concepts.map((c) => (locale === 'en' ? c.textEn : c.text));
+  if (input.topicOnly && conceptTexts.length > 0) return conceptTexts.join(PARAGRAPH);
   // Pertanyaan tentang TOPIK ("pvc disimpan di luar boleh?", "cara nyambung pvc?") dibuka dengan
   // topiknya; ikhtisar bahan menyusul. Pertanyaan tentang bahannya sendiri ("apa itu PVC?",
   // "bedanya…") tetap dibuka dengan bahan.
@@ -636,4 +641,11 @@ export function explain(input: ExplainInput, locale: Locale = DEFAULT_LOCALE): s
       ? [...conceptTexts, ...parts]
       : [...parts, ...conceptTexts];
   return ordered.join('\n\n');
+}
+
+/** Pemisah paragraf Markdown. */
+const PARAGRAPH = '\n\n';
+
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }

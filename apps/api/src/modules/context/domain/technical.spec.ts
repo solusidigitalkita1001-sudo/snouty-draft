@@ -141,6 +141,16 @@ describe('technical dwibahasa', () => {
     expect(technicalGuidance(answered, 'id')).toMatch(/^Oke, gorong-gorong/);
   });
 
+  it('pertanyaan yang tampil di kartu tidak diulang di teks; persen tanpa spasi', () => {
+    const text = technicalGuidance(state, 'id');
+    for (const q of planTechnicalClarification(state, 'id').card) {
+      expect(text).not.toContain(q.question);
+    }
+    expect(
+      formatTechnicalValue({ label: 'x', value: 1, unit: '%', origin: 'known' as const }),
+    ).toBe('1%');
+  });
+
   it('formatTechnicalValue: Ya/Tidak menjadi Yes/No; kartu boolean membawa optionLabels', () => {
     const p = { label: 'x', value: true, origin: 'known' as const };
     expect(formatTechnicalValue(p)).toBe('Ya');

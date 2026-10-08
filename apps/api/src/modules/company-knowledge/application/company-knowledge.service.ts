@@ -24,6 +24,8 @@ export interface CompanyQuestion {
   readonly topic: string;
   readonly locale: Locale;
   readonly ambiguous?: boolean;
+  /** Bagian topik ini yang sudah diceritakan sebelumnya — lanjutan hanya menambah sisanya. */
+  readonly alreadyShown?: number;
 }
 
 export class CompanyKnowledgeService {

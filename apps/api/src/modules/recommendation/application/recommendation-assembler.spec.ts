@@ -180,4 +180,20 @@ describe('templateProse', () => {
     expect(result.body).toContain('8 titik air');
     expect(result.body).toContain('4 produk');
   });
+
+  it('en: kalimat Inggris, tunggal untuk satu cabang dan satu produk', () => {
+    const result = templateProse(
+      {
+        outletCount: 3,
+        mainSize: '3/4"',
+        branchCount: 1,
+        fixtureConnectionSize: '1/2"',
+        productCount: 1,
+      },
+      'en',
+    );
+    expect(result.headline).toBe('Distribution system for 3 water outlets');
+    expect(result.body).toContain('served by 1 branch.');
+    expect(result.body).toContain('There is 1 Pralon product');
+  });
 });

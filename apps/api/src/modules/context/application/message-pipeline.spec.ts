@@ -264,7 +264,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(events.map((e) => e.type)).toEqual(['message.start', 'card', 'message.end']);
     const card = (events[1] as { card: { kind: string; reasons?: string[] } }).card;
     expect(card.kind).toBe('unsupported');
-    expect(card.reasons?.[0]).toContain('di luar cakupan rekomendasi otomatis');
+    expect(card.reasons?.[0]).toContain('perlu pilihan pipa dan perhitungan tersendiri');
     expect(changed).toBe(false);
   });
 
@@ -446,7 +446,30 @@ describe('runUnderstanding — bentuk event SSE', () => {
     );
     const text = events.find((e) => e.type === 'token') as { text: string } | undefined;
     expect(writerCalls).toBe(0);
-    expect(text?.text).toContain('Dasar setiap angka ada di solusi');
+    // Kebutuhan masih kosong: belum ada solusi untuk dibuka — katakan kapan ukurannya dihitung.
+    expect(text?.text).toContain(
+      'Ukurannya baru dihitung setelah Anda menekan **Susun rekomendasi**',
+    );
+
+    const complete = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [
+          { path: 'building.type', value: 'house', source: 'user_stated' },
+          { path: 'building.floors', value: 2, source: 'user_stated' },
+          { path: 'fixtures.bathrooms', value: 2, source: 'user_stated' },
+          { path: 'water.source', value: 'rooftop_tank', source: 'user_stated' },
+          { path: 'water.installationType', value: 'clean_water', source: 'user_stated' },
+        ],
+        T0,
+      ).state,
+    );
+    const after = await runUnderstanding(
+      aiExtracting({}),
+      input({ message: 'kenapa pakai 1 inci?', decision, state: complete }),
+    );
+    const afterText = after.events.find((e) => e.type === 'token') as { text: string };
+    expect(afterText.text).toContain('Dasar setiap angka ada di solusi');
   });
 
   it('sapaan / di luar topik: dibalas sapaan yang mengarahkan, bukan formulir klarifikasi', async () => {
@@ -554,6 +577,10 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
 
     const card = events.find((e) => e.type === 'card') as { card: { kind: string } };
     expect(card.card.kind).toBe('criteria');
+    // Gelembungnya tidak kosong: satu kalimat pengantar sebelum kartu.
+    expect(events.find((e) => e.type === 'token')).toMatchObject({
+      text: expect.stringContaining('tidak membandingkan merek'),
+    });
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
     expect(changed).toBe(false);
     // Tidak ada kartu produk, tak peduli apa pun kata modelnya.
@@ -652,6 +679,24 @@ describe('runUnderstanding — mutasi relatif (P16-12)', () => {
     );
     expect(nextState.fixtures.bathrooms.value).toBe(4);
     expect(ai.extract).not.toHaveBeenCalled();
+  });
+
+  it('balasan ubahan hanya menyebut yang berubah, bukan mengulang semua kebutuhan', async () => {
+    const { events } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'tambah satu kamar mandi',
+        decision: mutation,
+        state: withBathrooms(3),
+        understanding: understood('tambah satu kamar mandi', {
+          intent: 'requirement_mutation',
+          mutationOp: 'add',
+        }),
+      }),
+    );
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toMatch(/^Oke, sudah saya ubah: 4 kamar mandi./);
+    expect(token.text).not.toContain('2 lantai');
   });
 
   it('"tambah kamar mandi" tanpa angka = +1; "kurangi 2 kamar mandi" = −2, tidak di bawah nol', async () => {

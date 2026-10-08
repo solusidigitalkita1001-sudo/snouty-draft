@@ -30,7 +30,13 @@ const MATERIAL_EN = {
 export function irrigationGuidance(
   state: RequirementState,
   locale: Locale = DEFAULT_LOCALE,
+  /**
+   * `withIntro: false` untuk giliran jawaban kartu: arahan bahannya sudah diberikan di giliran
+   * pertama — mengulangnya setiap jawaban membuat percakapan berputar (audit 2026-10-08).
+   */
+  options: { readonly withIntro?: boolean } = {},
 ): string {
+  if (options.withIntro === false) return closingLine(state, locale);
   if (locale === 'en') return irrigationGuidanceEn(state);
   const hdpe = byFamily('HDPE');
   const pvc = byFamily('PVC');
@@ -46,9 +52,7 @@ export function irrigationGuidance(
     `- **Distribusi di lahan / jalur tetap**: lazimnya ${pvc.label} — ${pvc.gist}; sambungannya ${pvc.joining}.`,
     '- **Pompa dan katup** menentukan tekanan yang harus ditahan pipa — kelas pipanya mengikuti itu.',
     '',
-    irrigationMissing(state).length > 0
-      ? 'Supaya saya bisa menghitung debit, ukuran pipa, dan daftar produknya, saya perlu beberapa hal di bawah ini.'
-      : 'Datanya sudah cukup. Tekan **Susun rekomendasi** dan saya hitung perkiraan awalnya — angka yang saya perkirakan sendiri saya tandai jelas, supaya tim teknis Pralon tinggal memeriksanya.',
+    closingLine(state, 'id'),
   ];
   return lines.join('\n');
 }
@@ -68,9 +72,19 @@ function irrigationGuidanceEn(state: RequirementState): string {
     `- **Distribution in the field / fixed lines**: typically PVC (uPVC) — ${pvc.gist}; joined with ${pvc.joining}.`,
     '- **Pumps and valves** set the pressure the pipe has to withstand — the pipe class follows from that.',
     '',
-    irrigationMissing(state).length > 0
-      ? 'So I can work out the flow, pipe sizes, and product list, I need a few details below.'
-      : 'That is enough data. Press **Compose recommendation** and I will work out an initial estimate — figures I estimate myself are marked clearly, so the Pralon technical team only has to check them.',
+    closingLine(state, 'en'),
   ];
   return lines.join('\n');
+}
+
+function closingLine(state: RequirementState, locale: Locale): string {
+  const missing = irrigationMissing(state).length > 0;
+  if (locale === 'en') {
+    return missing
+      ? 'So I can work out the flow, pipe sizes, and product list, I need a few details below.'
+      : 'Press **Compose recommendation** and I will work out an initial estimate — figures I estimate myself are marked clearly, so the Pralon technical team only has to check them.';
+  }
+  return missing
+    ? 'Supaya saya bisa menghitung debit, ukuran pipa, dan daftar produknya, saya perlu beberapa hal di bawah ini.'
+    : 'Tekan **Susun rekomendasi** dan saya hitung perkiraan awalnya — angka yang saya perkirakan sendiri saya tandai jelas, supaya tim teknis Pralon tinggal memeriksanya.';
 }

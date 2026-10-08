@@ -257,7 +257,8 @@ export function formatTechnicalValue(
     const n = p.value.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', {
       maximumFractionDigits: 2,
     });
-    return p.unit ? `${n} ${p.unit}` : n;
+    if (!p.unit) return n;
+    return p.unit === '%' ? `${n}%` : `${n} ${p.unit}`;
   }
   if (locale === 'en' && key !== undefined && isParameterKey(key)) {
     const options = parameterDefinition(key).options ?? [];
@@ -311,11 +312,10 @@ export function technicalGuidance(
     );
   }
   const { text, card } = planTechnicalClarification(state, locale);
-  const missing = [
-    ...text.map((m) => (locale === 'en' ? m.questionEn : m.question)),
-    ...card.map((q) => q.question),
-  ];
-  if (missing.length > 0) {
+  // Pertanyaan pilihan tampil sebagai kartu di bawah teks; mengulangnya di sini membuat
+  // pengguna membaca pertanyaan yang sama dua kali (audit keterbacaan 2026-10-08).
+  const missing = text.map((m) => (locale === 'en' ? m.questionEn : m.question));
+  if (missing.length > 0 || card.length > 0) {
     lines.push('', copy.askIntro);
     for (const question of missing) lines.push(`- ${question}`);
     if (isTechnicalComplete(state) && profile.calculatorStatus === 'available') {
@@ -402,5 +402,6 @@ const INTRO_EN: Readonly<Record<CaseId, string>> = {
 function joinNatural(items: readonly string[], locale: Locale = DEFAULT_LOCALE): string {
   if (items.length <= 1) return items.join('');
   const and = locale === 'en' ? 'and' : 'dan';
+  if (items.length === 2) return `${items[0]} ${and} ${items[1]}`;
   return `${items.slice(0, -1).join(', ')}, ${and} ${items[items.length - 1]}`;
 }

@@ -19,6 +19,7 @@ import type {
   AssistantCard,
   AssistantStreamEvent,
   KeyValue,
+  RequirementFieldPath,
   RequirementState,
   SnapshotTrigger,
 } from '@snouty/shared-types';
@@ -65,7 +66,7 @@ import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsFor } from './pipe-knowledge.js';
 import { productAnswerCopy } from './product-answer-text.js';
-import { openerReply, outOfTopicReply, replyFor } from './reply-copy.js';
+import { explanationBeforeSolution, openerReply, outOfTopicReply, replyFor } from './reply-copy.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 
 export interface PipelineInput {
@@ -116,6 +117,14 @@ export async function runUnderstanding(
   // ekstraksi — berarti tidak ada jalan ia tercampur dengan pencocokan produk.
   if (input.decision.intent === 'COMPETITOR_QUESTION') {
     const card = policyCard(competitorPolicy(locale), [], locale);
+    // Satu kalimat pengantar: gelembung yang hanya berisi kartu terasa seperti jawaban yang hilang.
+    events.push({
+      type: 'token',
+      text:
+        locale === 'en'
+          ? "I don't compare brands, but these are the things worth checking when choosing a pipe:"
+          : 'Saya tidak membandingkan merek, tetapi ini yang perlu diperhatikan saat memilih pipa:',
+    });
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
@@ -128,7 +137,11 @@ export async function runUnderstanding(
     const fallback =
       input.understanding?.intent?.label === 'out_of_scope'
         ? outOfTopicReply(input.locale)
-        : replyFor(input.decision.intent, input.locale);
+        : input.decision.intent === 'EXPLANATION_REQUEST' &&
+            withCompleteness(input.state).missingInformation.length > 0
+          ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
+            explanationBeforeSolution(input.locale)
+          : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Teks tetap, tanpa model. Dulu sapaan/di luar topik diserahkan ke model (tanpa DATA → nol
       // angka); di CPU itu 40–50 detik untuk sebuah sapaan (diet panggilan model, 2026-10-07).
@@ -259,6 +272,7 @@ export async function runUnderstanding(
 
   let merged: RequirementState;
   let changed: boolean;
+  let changedPaths: readonly RequirementFieldPath[];
   {
     // Pesan pembuka tanpa satu pun fakta ("mau nanya2 dong", "boleh tanya?"): model kecil kerap
     // memberinya label REQUIREMENT_STATEMENT, dan formulir klarifikasi adalah jawaban yang salah
@@ -315,6 +329,7 @@ export async function runUnderstanding(
     const result = mergeRequirement(input.state, updates, input.now);
     merged = withCompleteness(result.state);
     changed = result.changed.length > 0;
+    changedPaths = result.changed;
   }
 
   events.push({ type: 'requirement.updated', state: merged });
@@ -359,8 +374,19 @@ export async function runUnderstanding(
   // tentang apa yang tercatat, lalu kartunya. Jalur irigasi/teknis/kebijakan sudah menulis
   // teksnya sendiri; bahan yang dinasihati di atas pun sudah.
   const policyCardShown = card?.kind === 'unsupported' || card?.kind === 'criteria';
+  if (card?.kind === 'unsupported' && materials.length === 0 && merged.useCase === undefined) {
+    events.push({
+      type: 'token',
+      text:
+        locale === 'en'
+          ? 'This one needs to be worked out by the Pralon technical team.'
+          : 'Yang ini perlu dihitung oleh tim teknis Pralon.',
+    });
+  }
   if (materials.length === 0 && merged.useCase === undefined && !policyCardShown) {
-    const text = understoodReply(merged, card?.kind ?? null, locale);
+    // Ubahan ("jadi 3 lantai") cukup menyebut yang berubah, bukan mengulang semua kebutuhan.
+    const only = input.decision.mutatesState && changedPaths.length > 0 ? changedPaths : undefined;
+    const text = understoodReply(merged, card?.kind ?? null, locale, only);
     if (text !== null) events.push({ type: 'token', text });
   }
   if (card) events.push({ type: 'card', card });
@@ -379,6 +405,7 @@ export function understoodReply(
   state: RequirementState,
   nextCard: AssistantCard['kind'] | null,
   locale: Locale,
+  only?: readonly RequirementFieldPath[],
 ): string | null {
   // Kalimat, bukan tabel: jumlah fixture membawa NAMA field-nya ("3 kamar mandi", bukan "3 titik"
   // seperti di panel yang sudah berlabel); lantai dan nilai bernama memakai label nilainya.
@@ -387,6 +414,7 @@ export function understoodReply(
   for (const [path, field] of fieldEntries(state)) {
     if (field.value === null || path === 'building.floorHeightM' || path === 'building.dimensions')
       continue;
+    if (only && !only.includes(path)) continue;
     if (path.startsWith('fixtures.') && typeof field.value === 'number') {
       if (field.value === 0) continue;
       const label = requirementFieldLabel(path, locale).toLowerCase();
@@ -399,15 +427,30 @@ export function understoodReply(
     captured.push(requirementValueLabel(path, field.value, locale).toLowerCase());
   }
   if (captured.length === 0) return null;
-  const summary = captured.join(', ');
+  const summary = joinList(captured, locale);
+  const opener = only
+    ? en
+      ? `Okay, changed to ${summary}.`
+      : `Oke, sudah saya ubah: ${summary}.`
+    : en
+      ? `Okay, I have noted: ${summary}.`
+      : `Oke, sudah saya catat: ${summary}.`;
   if (nextCard === 'cta') {
-    return locale === 'en'
-      ? `Okay, I have noted: ${summary}. That is enough to size it — press **Compose recommendation** to see the pipe sizes and the product list.`
-      : `Oke, sudah saya catat: ${summary}. Datanya cukup untuk dihitung — tekan **Susun rekomendasi** untuk melihat ukuran pipa dan daftar produknya.`;
+    return en
+      ? `${opener} Press **Compose recommendation** to see the pipe sizes and the product list.`
+      : `${opener} Tekan **Susun rekomendasi** untuk melihat ukuran pipa dan daftar produknya.`;
   }
-  return locale === 'en'
-    ? `Okay, I have noted: ${summary}. A few more things so the sizing is right:`
-    : `Oke, sudah saya catat: ${summary}. Beberapa hal lagi supaya hitungannya pas:`;
+  return en
+    ? `${opener} A few more things so the sizing is right:`
+    : `${opener} Beberapa hal lagi supaya hitungannya pas:`;
+}
+
+/** "a, b, dan c" / "a dan b" — daftar dalam kalimat, bukan deretan koma. */
+function joinList(items: readonly string[], locale: Locale): string {
+  const and = locale === 'en' ? 'and' : 'dan';
+  if (items.length <= 1) return items[0] ?? '';
+  if (items.length === 2) return `${items[0]} ${and} ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, ${and} ${items.at(-1)}`;
 }
 
 /**
