@@ -65,7 +65,7 @@ async function tableCount() {
       'onboarding_states','conversations','messages',
       'requirement_snapshots','llm_calls','recommendations','calculation_traces',
       'reports','report_number_counters','technical_handoffs',
-      'emails','email_analyses','market_events')`,
+      'emails','email_analyses','market_events','uploads')`,
     [cfg.database],
   );
   return Number(rows[0].n);
@@ -113,8 +113,10 @@ const UP = [
   '0018_recommendation_composition.sql',
   '0019_conversation_language.sql',
   '0020_snapshot_subject_change.sql',
+  '0021_uploads.sql',
 ];
 const DOWN = [
+  '0021_uploads.down.sql',
   '0020_snapshot_subject_change.down.sql',
   '0019_conversation_language.down.sql',
   '0018_recommendation_composition.down.sql',
@@ -137,8 +139,8 @@ const DOWN = [
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0018 satu-dua kolom). */
-const TABLES = 27;
+/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0020 satu-dua kolom), ditambah `uploads` (0021). */
+const TABLES = 28;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
 
@@ -831,6 +833,35 @@ await check('migrasi turun 0016 GAGAL selama ada baris mm, dan data tetap utuh',
   // Bersihkan supaya pengujian turun di bawah berjalan di keadaan yang sah.
   await conn.query("DELETE FROM product_sizes WHERE size_unit = 'mm'");
 });
+
+await check(
+  'uploads (0021): MIME di luar daftar ditolak; tanpa percakapan ditolak FK',
+  async () => {
+    const conv = ulid(990);
+    await conn
+      .query(
+        "INSERT INTO conversations (id, owner_kind, owner_id, status, language) VALUES (?, 'guest', ?, 'active', 'id')",
+        [conv, ulid(991)],
+      )
+      .catch(async () => {
+        // Bentuk kolom percakapan berubah antar fase; cukup salin baris percakapan yang sudah ada.
+      });
+    const [existing] = await conn.query('SELECT id FROM conversations LIMIT 1');
+    const conversationId = existing[0]?.id ?? conv;
+    const row = (mime, convId = conversationId) => [
+      ulid(992 + Math.floor(Math.random() * 1000)),
+      convId,
+      'denah.pdf',
+      mime,
+      10,
+      'a'.repeat(64),
+    ];
+    const insert =
+      'INSERT INTO uploads (id, conversation_id, original_name, mime_type, size_bytes, sha256, expires_at) VALUES (?, ?, ?, ?, ?, ?, NOW(3))';
+    await mustReject(insert, row('text/html'));
+    await mustReject(insert, row('application/pdf', ulid(999)));
+  },
+);
 
 // ── Turun ───────────────────────────────────────────────────────────────────
 console.log('\ndown:');

@@ -15,6 +15,7 @@ import { ProductCatalogModule } from './modules/product-catalog/product-catalog.
 import { ProductKnowledgeModule } from './modules/product-knowledge/product-knowledge.module.js';
 import { RecommendationModule } from './modules/recommendation/recommendation.module.js';
 import { ReportModule } from './modules/report/report.module.js';
+import { UploadsModule } from './modules/uploads/uploads.module.js';
 
 /**
  * Modul domain menyusul fase demi fase (docs/ARCHITECTURE.md §6).
@@ -38,6 +39,7 @@ import { ReportModule } from './modules/report/report.module.js';
     RecommendationModule,
     ReportModule,
     HandoffModule,
+    UploadsModule,
   ],
 })
 export class AppModule implements NestModule {

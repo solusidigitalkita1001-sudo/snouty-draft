@@ -99,7 +99,8 @@ export const CHAT_COPY = {
     account: 'Akun',
   },
   /** Belum ada endpoint berkas (`POST /uploads` baru kontrak) — chip tidak berpura-pura. */
-  attachSoon: 'Unggah denah menyusul — belum ada layanan berkas',
+  uploading: 'Mengirim denah…',
+  uploadFailed: 'Denah belum terkirim. Coba lagi sebentar.',
   analyzeCta: 'Susun rekomendasi',
   followUps: {
     title: 'LANJUTKAN PERCAKAPAN',
@@ -286,7 +287,8 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
     role: 'Customer',
     account: 'Account',
   },
-  attachSoon: 'Floor plan upload coming soon — no file service yet',
+  uploading: 'Sending floor plan…',
+  uploadFailed: 'The floor plan was not sent. Please try again shortly.',
   analyzeCta: 'Compose recommendation',
   followUps: {
     title: 'CONTINUE THE CONVERSATION',

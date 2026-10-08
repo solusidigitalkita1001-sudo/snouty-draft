@@ -11,19 +11,22 @@ import { HandoffService } from './application/handoff.service.js';
 import { HANDOFF_REPOSITORY, type HandoffRepository } from './domain/handoff.repository.js';
 import { handoffRepositoryProvider } from './infrastructure/mysql-handoff.repository.js';
 import { HandoffController } from './presentation/handoff.controller.js';
+import { UploadsModule } from '../uploads/uploads.module.js';
+import { UploadsService } from '../uploads/application/uploads.service.js';
 
 const handoffServiceProvider = {
   provide: HandoffService,
-  inject: [HANDOFF_REPOSITORY, ConversationService, RequirementSnapshotStore],
+  inject: [HANDOFF_REPOSITORY, ConversationService, RequirementSnapshotStore, UploadsService],
   useFactory: (
     handoffs: HandoffRepository,
     conversations: ConversationService,
     snapshots: RequirementSnapshotStore,
-  ) => new HandoffService(handoffs, conversations, snapshots),
+    uploads: UploadsService,
+  ) => new HandoffService(handoffs, conversations, snapshots, uploads),
 };
 
 @Module({
-  imports: [ContextModule, ConversationModule],
+  imports: [ContextModule, ConversationModule, UploadsModule],
   controllers: [HandoffController],
   providers: [handoffRepositoryProvider, handoffServiceProvider],
   exports: [handoffServiceProvider],

@@ -34,7 +34,8 @@ coverage/
 
 # local uploads / generated artifacts
 storage/
-uploads/
+# Hanya folder artefak di akar repo — bukan modul kode `apps/api/src/modules/uploads/`.
+/uploads/
 *.pdf
 
 # OS / editor

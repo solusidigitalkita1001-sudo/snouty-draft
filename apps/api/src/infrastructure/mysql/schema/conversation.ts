@@ -152,3 +152,34 @@ export const requirementSnapshots = mysqlTable(
     ),
   ],
 );
+
+/**
+ * Lampiran denah (P13-06, docs/SECURITY.md §7). Hanya metadata — berkasnya di
+ * `STORAGE_PATH/uploads/<id>`; nama asli dari pengguna tidak pernah menjadi nama berkas.
+ */
+export const uploads = mysqlTable(
+  'uploads',
+  {
+    id: id().primaryKey(),
+    conversationId: char('conversation_id', { length: 26 }).notNull(),
+    originalName: varchar('original_name', { length: 255 }).notNull(),
+    mimeType: varchar('mime_type', { length: 32 }).notNull(),
+    sizeBytes: int('size_bytes', { unsigned: true }).notNull(),
+    sha256: char('sha256', { length: 64 }).notNull(),
+    createdAt: createdAt(),
+    expiresAt: datetime('expires_at', { fsp: 3 }).notNull(),
+  },
+  (t) => [
+    index('ix_uploads_conversation').on(t.conversationId),
+    index('ix_uploads_expires').on(t.expiresAt),
+    foreignKey({
+      name: 'fk_uploads_conversation',
+      columns: [t.conversationId],
+      foreignColumns: [conversations.id],
+    }).onDelete('cascade'),
+    check(
+      'ck_uploads_mime',
+      sql`\`mime_type\` IN ('application/pdf','image/png','image/jpeg','image/webp')`,
+    ),
+  ],
+);

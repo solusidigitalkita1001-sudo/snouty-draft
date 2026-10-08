@@ -403,6 +403,20 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-56 — Apa yang dilakukan sistem dengan denah yang dilampirkan
+
+**Status:** default diterapkan (2026-10-08, P13-06) · **Blocks:** —
+**Pertanyaan:** "Lampirkan denah" ada di desain dan onboarding, tetapi tidak ada keputusan tentang
+gunanya: apakah isinya dibaca otomatis, disimpan, atau diteruskan.
+**Default yang diterapkan:** denah DISIMPAN di percakapan (PDF/PNG/JPG/WEBP, diperiksa magic bytes;
+PDF beraksi aktif ditolak; ≤ `UPLOAD_MAX_MB` 10 MB; kuota harian per tier; retensi 180 hari) dan
+ikut tercatat di handoff ke tim teknis (`lampiran:<id>`). Isinya TIDAK dibaca model — tidak ada
+pembacaan gambar yang bisa dipertanggungjawabkan — jadi balasan meminta lantai, kamar mandi, dan
+sumber air tetap ditulis. Unduhan hanya oleh pemilik, selalu `attachment`. Tanpa pemindai
+antivirus (SECURITY.md §7: "tipe dibatasi ketat"). **Masih terbuka:** pemindai antivirus, akses tim
+teknis ke berkas lewat back-office (menunggu layar internal, OQ-21), dan apakah denah suatu saat
+dibaca otomatis.
+
 ### OQ-53 — Halaman profil/pengaturan akun belum ada
 
 **Status:** default diterapkan ("gas", 2026-10-07), needs design · **Blocks:** —

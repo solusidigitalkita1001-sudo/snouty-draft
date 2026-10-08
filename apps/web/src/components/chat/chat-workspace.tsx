@@ -49,6 +49,7 @@ import {
   saveConversation,
   sendMessage,
   sendToTechnicalTeam,
+  uploadPlan,
   type ConversationSummary,
 } from './chat-api';
 import { SolutionView, type SolutionTab } from '../solution/solution-view';
@@ -328,6 +329,53 @@ export function ChatWorkspace() {
   );
 
   const submit = useCallback(() => submitText(draft), [draft, submitText]);
+
+  /**
+   * "Lampirkan denah" (P13-06): percakapan dibuat bila belum ada, berkas dikirim, lalu gelembung
+   * pengguna ("Denah terlampir: …") dan balasannya — keduanya sudah tersimpan di server.
+   */
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const attachFile = useCallback(
+    async (file: File) => {
+      if (uploading || sending) return;
+      setError(null);
+      let id = conversationId;
+      if (id === null) {
+        try {
+          id = (await createConversation(locale)).id;
+          setConversationId(id);
+        } catch {
+          setError(COPY.llmUnavailable);
+          return;
+        }
+      }
+      setUploading(true);
+      const result = await uploadPlan(id, file);
+      setUploading(false);
+      if (result.kind === 'rejected') {
+        setError(result.message);
+        return;
+      }
+      if (result.kind === 'error') {
+        setError(COPY.uploadFailed);
+        return;
+      }
+      setTurns((previous) => [
+        ...previous,
+        { id: `u-${previous.length}`, role: 'user', text: result.userText, cards: [] },
+        {
+          id: `a-${Date.now()}`,
+          role: 'assistant',
+          text: result.replyText,
+          cards: [],
+          fresh: true,
+        },
+      ]);
+      refreshHistory();
+    },
+    [conversationId, refreshHistory, sending, uploading],
+  );
 
   /**
    * Jawaban kartu klarifikasi — SEMUA pertanyaan dijawab dulu, dikirim sekali, tanpa LLM
@@ -859,18 +907,26 @@ export function ChatWorkspace() {
                   ariaLabel={COPY.composerPlaceholder}
                 />
                 <div className={styles.composerCardFoot}>
-                  {/*
-                    "Lampirkan denah" juga tanpa aksi di prototipe, dan `POST /uploads` baru ada
-                    di kontrak. Chip-nya ditandai nonaktif dengan alasannya — tidak berpura-pura.
-                  */}
+                  {/* "Lampirkan denah" (P13-06): PDF, PNG, JPG, WEBP — diperiksa ulang di server. */}
+                  <input
+                    ref={fileInput}
+                    type="file"
+                    accept="application/pdf,image/png,image/jpeg,image/webp"
+                    hidden
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      event.target.value = '';
+                      if (file) void attachFile(file);
+                    }}
+                  />
                   <button
                     type="button"
                     className={styles.attachButton}
-                    aria-disabled="true"
-                    title={COPY.attachSoon}
+                    disabled={uploading || sending}
+                    onClick={() => fileInput.current?.click()}
                   >
                     <span className={styles.iconSquare} />
-                    {COPY.attachPlan}
+                    {uploading ? COPY.uploading : COPY.attachPlan}
                   </button>
                   <button
                     type="button"

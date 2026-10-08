@@ -141,10 +141,11 @@ dihilangkan dari respons. UI perlu tahu bedanya antara "tidak ada datanya" dan "
 
 ### Unggahan & umpan balik
 
-| Metode | Path        | Keterangan                                        |
-| ------ | ----------- | ------------------------------------------------- |
-| `POST` | `/uploads`  | multipart; denah bangunan; MIME + ukuran dibatasi |
-| `POST` | `/feedback` | `{ messageId, rating, reason? }`                  |
+| Metode | Path                    | Keterangan                                                                                                                                                                                                        |
+| ------ | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST` | `/uploads`              | multipart `file` + `conversationId`; PDF/PNG/JPG/WEBP (magic bytes), ≤ `UPLOAD_MAX_MB`; kuota `uploads_per_day`; menyimpan 2 pesan dan mengembalikan `{ id, fileName, mimeType, sizeBytes, userText, replyText }` |
+| `GET`  | `/uploads/:id/download` | pemilik saja; `Content-Disposition: attachment`; 404 setelah retensi                                                                                                                                              |
+| `POST` | `/feedback`             | `{ messageId, rating, reason? }`                                                                                                                                                                                  |
 
 ### Internal (semua butuh peran + audit)
 

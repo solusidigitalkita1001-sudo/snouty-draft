@@ -87,6 +87,10 @@ const EnvSchema = z.object({
 
   /** Akar penyimpanan berkas (PDF laporan dari worker). Tanpa ini, unduhan menjawab 503. */
   STORAGE_PATH: z.string().min(1).optional(),
+  /** Batas ukuran lampiran denah (MB) — selaras dengan `client_max_body_size` Nginx (12m). */
+  UPLOAD_MAX_MB: z.coerce.number().int().min(1).max(50).default(10),
+  /** Retensi lampiran denah (hari) — OQ-13, docs/SECURITY.md §7. */
+  UPLOAD_RETENTION_DAYS: z.coerce.number().int().min(1).max(3650).default(180),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   OPENROUTER_BASE_URL: z.string().url().default('https://openrouter.ai/api/v1'),
   LLM_MODEL_FAST: z.string().min(1).optional(),

@@ -261,3 +261,39 @@ export async function patchRequirement(
   if (!response.ok) return null;
   return ((await response.json()) as { state: RequirementState }).state;
 }
+
+export type UploadPlanResult =
+  | { readonly kind: 'ok'; readonly userText: string; readonly replyText: string }
+  /** Ditolak dengan pesan yang aman ditampilkan (tipe, ukuran, kuota). */
+  | { readonly kind: 'rejected'; readonly message: string }
+  | { readonly kind: 'error' };
+
+/** "Lampirkan denah" — `POST /uploads` multipart (P13-06). */
+export async function uploadPlan(conversationId: string, file: File): Promise<UploadPlanResult> {
+  const form = new FormData();
+  form.append('conversationId', conversationId);
+  form.append('file', file);
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}/uploads`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: authHeaders(),
+      body: form,
+    });
+  } catch {
+    return { kind: 'error' };
+  }
+  if (response.ok) {
+    const body = (await response.json()) as { userText: string; replyText: string };
+    return { kind: 'ok', userText: body.userText, replyText: body.replyText };
+  }
+  const body = (await response.json().catch(() => null)) as {
+    error?: { code?: string; message?: string };
+  } | null;
+  const code = body?.error?.code;
+  if ((code === 'UPLOAD_REJECTED' || code === 'RATE_LIMITED') && body?.error?.message) {
+    return { kind: 'rejected', message: body.error.message };
+  }
+  return { kind: 'error' };
+}

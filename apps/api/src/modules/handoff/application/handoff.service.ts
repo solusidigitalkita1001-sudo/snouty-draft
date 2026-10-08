@@ -11,6 +11,8 @@ import { ulid } from '../../../shared/ulid.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
 import { RequirementSnapshotStore } from '../../context/application/requirement-snapshot.store.js';
+import type { UploadsService } from '../../uploads/application/uploads.service.js';
+import { humanSize } from '../../uploads/domain/upload-policy.js';
 import { assumptionCardFor, capturedFrom } from '../../context/application/message-pipeline.js';
 import {
   HANDOFF_REPOSITORY,
@@ -24,6 +26,8 @@ export class HandoffService {
     @Inject(HANDOFF_REPOSITORY) private readonly handoffs: HandoffRepository,
     private readonly conversations: ConversationService,
     private readonly snapshots: RequirementSnapshotStore,
+    /** Lampiran denah (P13-06); opsional supaya tes lama tidak berubah. */
+    private readonly uploads: Pick<UploadsService, 'listForConversation'> | null = null,
   ) {}
 
   async enqueue(
@@ -48,11 +52,19 @@ export class HandoffService {
         }))
       : [];
 
+    // Denah yang dilampirkan ikut tercatat — tim teknis membukanya lewat id lampiran.
+    const attachments = this.uploads
+      ? (await this.uploads.listForConversation(conversationId)).map((upload) => ({
+          label: `lampiran:${upload.id}`,
+          value: `${upload.originalName} (${humanSize(upload.sizeBytes)})`,
+        }))
+      : [];
+
     return this.handoffs.enqueue({
       id: ulid(),
       conversationId,
       reason,
-      captured: [...captured, ...assumptions],
+      captured: [...captured, ...assumptions, ...attachments],
     });
   }
 
