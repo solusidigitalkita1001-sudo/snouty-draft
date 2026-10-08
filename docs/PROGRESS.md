@@ -119,7 +119,15 @@ Seluruh berkas Bagian 48 kini lengkap (28 dokumen).
 - [x] P0e-02 `.env.example` — seluruh kunci SPEC §17b
 - [x] P0e-03 Docker Compose (Redis, RabbitMQ; CI-only MySQL) — compose divalidasi; `mysql-test` di balik profil
 - [x] P0e-04 Lint / format / typecheck / test tooling — + 2 skrip pagar arsitektur
-- [ ] `[!]` P0e-05 CI pipeline — berkas `.github/workflows/ci.yml` ada dan **sudah divalidasi** (tanpa tab ilegal, setiap job punya `runs-on` dan steps, dan setiap skrip pnpm yang dirujuk benar-benar ada di `package.json`; `pnpm eval` di job evaluasi hanya di-`echo`, bukan dijalankan). Tetap `[ ]` karena pipeline-nya **belum pernah benar-benar berjalan** — itu butuh git provider, **terhalang OQ-09**, dan tidak bisa saya jalankan dari sini. **Update 2026-10-05:** OQ-09 dijawab (GitHub + Actions) dan remote sudah ada; tinggal memastikan run pertama hijau.
+- [x] P0e-05 CI pipeline — berkas `.github/workflows/ci.yml` ada dan **sudah divalidasi** (tanpa tab ilegal, setiap job punya `runs-on` dan steps, dan setiap skrip pnpm yang dirujuk benar-benar ada di `package.json`; `pnpm eval` di job evaluasi hanya di-`echo`, bukan dijalankan). Tetap `[ ]` karena pipeline-nya **belum pernah benar-benar berjalan** — itu butuh git provider, **terhalang OQ-09**, dan tidak bisa saya jalankan dari sini. **Update 2026-10-05:** OQ-09 dijawab (GitHub + Actions) dan remote sudah ada; tinggal memastikan run pertama hijau.
+      **Selesai 2026-10-08:** CI ternyata tidak pernah berjalan — pemicunya hanya `main` dan PR,
+      sedangkan kerja selalu di branch fase. Pemicu ditambah `phase-*/**` + `workflow_dispatch`;
+      gitleaks diberi pengecualian hanya untuk nilai dummy `rahasia-…`/`contoh-…` (3 temuan, semuanya
+      dummy, bukan secret produksi); data mentah (`data/catalog/`, `data/company/`) keluar dari
+      prettier; job pagar tanpa cache pnpm (langkah penutup setup-node gagal). Run
+      `37765988785` (commit `cf77463`): pagar arsitektur, format/lint/typecheck, tes (MySQL + Redis
+      sungguhan, termasuk 64 cek migration), build — semua hijau; evaluasi AI dilewati sampai
+      `EVAL_ENABLED` dan kunci model diset.
 - [x] P0e-06 `packages/ui` design tokens (light + dark) + preview page — 74 token; `/tokens` dirender & diverifikasi
 - [x] P0e-07 Self-hosted IBM Plex Sans/Mono — diverifikasi: 0 rujukan ke gstatic
 - [x] P0e-08 API health check (DB connectivity, read-only) — diuji terhadap DB sungguhan **dan** DB mati
@@ -1065,6 +1073,13 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       air hujan → kasusnya masing-masing. Dua temuan live ikut diperbaiki: tempat + fluida di luar cakupan
       ("pipa jalur air panas boiler hotel") kini kena kebijakan cakupan, bukan "Produk mana"; "toren atas"
       tercatat sebagai toren atap. Golden set 146/146; tes API 988, engineering 199.
+- [x] P16-15 Update kasus teknis tidak berefek (laporan pemilik 2026-10-08) — selesai. (1) "ubah beda
+      tingginya jadi 20 meter" tidak terbaca (klitik "-nya" + "jadi") dan angkanya menimpa panjang jalur;
+      kini penanda beda tinggi menerima klitik dan kata sambung. (2) Penanda netral "beda tinggi 15 m" dari
+      sumur ke tandon tercatat −15; kini positif (air dinaikkan) — arah hanya dari "lebih rendah/lebih
+      tinggi". (3) "Perbaiki asumsi ini" pada solusi kasus teknis/irigasi membuka panel mode ubah yang
+      tidak punya editor (diam); kini kembali ke chat, panel terbuka, kolom ketik terfokus. Diverifikasi
+      live: 15 → 20 m, panjang jalur tetap 500 m. Tes: extractor +3, ComposerField +1.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
