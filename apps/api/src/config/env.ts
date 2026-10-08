@@ -102,6 +102,12 @@ const EnvSchema = z.object({
   /** Folder berkas contoh pemahaman; baku: `data/understanding` di akar repo (dicari ke atas). */
   UNDERSTANDING_DATA_DIR: z.string().min(1).optional(),
   /**
+   * Folder cache vektor contoh; baku: `<tmp>/snouty-understanding`. Di produksi diarahkan ke volume
+   * (compose) supaya rilis berikutnya tidak menyandikan ulang ±1.300 contoh — di CPU server itu
+   * ±8 menit, dan selama itu pesan pertama menunggu.
+   */
+  UNDERSTANDING_CACHE_DIR: z.string().min(1).optional(),
+  /**
    * Latensi (2026-10-06, qwen2.5:7b di CPU: 10–60 detik per panggilan).
    * - `LLM_FAQ_REWRITE`: biarkan model merangkai ulang jawaban FAQ produk. Baku nonaktif:
    *   teks deterministiknya sudah utuh, dan model 7B hampir selalu ditolak pagar struktur —

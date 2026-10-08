@@ -48,7 +48,7 @@ const serviceProvider = {
       data.catalogs,
       new EntityLexicon(data.vocabulary),
       encoder ?? fallback,
-      new FileVectorCache(),
+      new FileVectorCache(env.UNDERSTANDING_CACHE_DIR),
       logger.child({ module: 'understanding' }),
     );
   },

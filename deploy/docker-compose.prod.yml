@@ -65,8 +65,10 @@ services:
       REDIS_URL: redis://redis:6379
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       STORAGE_PATH: /data/storage
+      # Cache vektor contoh pemahaman (P16-11) di volume: rilis baru tidak menyandikan ulang.
+      UNDERSTANDING_CACHE_DIR: /data/understanding-cache
     ports: ['127.0.0.1:${API_BIND_PORT:-3001}:3001']
-    volumes: ['storage:/data/storage']
+    volumes: ['storage:/data/storage', 'understanding-cache:/data/understanding-cache']
     depends_on:
       mysql: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -132,3 +134,4 @@ volumes:
   rabbitmq-data:
   storage:
   ollama-data:
+  understanding-cache:
