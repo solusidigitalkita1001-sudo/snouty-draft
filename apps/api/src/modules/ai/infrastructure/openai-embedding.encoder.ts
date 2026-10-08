@@ -29,14 +29,17 @@ export class OpenAiEmbeddingEncoder implements TextEncoder {
 
   private async encodeBatch(texts: readonly string[]): Promise<Float32Array[]> {
     const env = loadEnv();
+    // Alamat embedding terpisah: kunci penyedia chat tidak dikirim ke endpoint lain.
+    const baseUrl = env.EMBEDDING_BASE_URL ?? env.OPENROUTER_BASE_URL;
+    const key = env.EMBEDDING_BASE_URL ? env.EMBEDDING_API_KEY : env.OPENROUTER_API_KEY;
     let response: Response;
     try {
-      response = await fetch(`${env.OPENROUTER_BASE_URL}/embeddings`, {
+      response = await fetch(`${baseUrl}/embeddings`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
           // Ollama tidak memeriksa kunci; header hanya dikirim bila kuncinya memang ada.
-          ...(env.OPENROUTER_API_KEY ? { authorization: `Bearer ${env.OPENROUTER_API_KEY}` } : {}),
+          ...(key ? { authorization: `Bearer ${key}` } : {}),
         },
         body: JSON.stringify({ model: this.id, input: texts }),
         signal: AbortSignal.timeout(env.LLM_CALL_TIMEOUT_MS),

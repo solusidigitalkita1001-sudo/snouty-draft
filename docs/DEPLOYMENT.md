@@ -88,6 +88,32 @@ model), `LLM_STRUCTURED_RETRY` (percobaan kedua bila JSON tidak valid), `LLM_SOL
 (headline/body solusi bangunan). Nyalakan (`=true`) hanya bila model cepat (GPU atau berbayar).
 Ekstraksi kebutuhan juga dilewati otomatis bila kode sudah membaca ≥ 2 data inti dari teks.
 
+### 4b. Model chat di penyedia hosted (2026-10-08)
+
+qwen2.5 7B di CPU server (4 core, tanpa GPU) butuh 25–60 detik per panggilan, jadi model hampir
+tidak dipakai untuk merangkai jawaban. Model hosted yang cepat memindahkan pemahaman dan perangkaian
+ke model, sementara data produk, angka teknik, dan pagar tetap di kode. Embedding (bge-m3) tetap di
+Ollama lokal.
+
+Di `.env.production`:
+
+```
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_API_KEY=<kunci dari openrouter.ai/keys>
+LLM_MODEL_FAST=<id model, mis. google/gemma-4-31b-it:free>
+LLM_MODEL_BALANCED=<id model>
+LLM_MODEL_STRONG=<id model>
+EMBEDDING_BASE_URL=http://ollama:11434/v1
+LLM_CALL_TIMEOUT_MS=30000
+LLM_REPLY_TIMEOUT_MS=8000
+```
+
+Lalu `deploy/deploy.sh release`. Model `:free` punya batas harian kecil dan datanya bisa dipakai
+penyedia; untuk produksi pilih model berbayar murah. Saat penyedia menolak atau limit habis,
+panggilan menjadi `LLM_UNAVAILABLE` dan jawaban kembali ke teks tetap — tidak ada yang jatuh.
+Kembali ke lokal: kosongkan `OPENROUTER_API_KEY`, isi `OPENROUTER_BASE_URL=http://ollama:11434/v1`
+dan model `qwen2.5:7b-instruct`.
+
 ## 5. Build, migration, nyalakan
 
 ```bash

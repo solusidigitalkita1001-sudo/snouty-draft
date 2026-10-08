@@ -103,6 +103,15 @@ const EnvSchema = z.object({
    * tidak terbaca parser nilai jatuh ke model generatif — jujur, tetapi lambat di CPU.
    */
   LLM_MODEL_EMBEDDING: z.string().min(1).optional(),
+  /**
+   * Basis URL KHUSUS embedding. Kosong = sama dengan `OPENROUTER_BASE_URL`. Diisi saat model chat
+   * pindah ke penyedia hosted (OpenRouter/Groq/Gemini) sementara embedding tetap di Ollama lokal
+   * (`http://ollama:11434/v1`): contoh pemahaman tersandi bge-m3, dan penyedia chat belum tentu
+   * melayani `/embeddings` dengan model yang sama.
+   */
+  EMBEDDING_BASE_URL: z.string().url().optional(),
+  /** Kunci untuk `EMBEDDING_BASE_URL`; Ollama tidak memerlukannya. */
+  EMBEDDING_API_KEY: z.string().min(1).optional(),
   /** Folder berkas contoh pemahaman; baku: `data/understanding` di akar repo (dicari ke atas). */
   UNDERSTANDING_DATA_DIR: z.string().min(1).optional(),
   /**
