@@ -39,7 +39,6 @@ import {
 } from '../domain/llm-transport.port.js';
 import { TIER_ENV_KEY, tierForTask, type LlmTask, type LlmTier } from '../domain/model-routing.js';
 import { AiOutputInvalidError, LlmUnavailableError } from '../domain/ai.errors.js';
-import { certainIntent, heuristicProductQuestion } from '../domain/heuristics.js';
 import {
   EXTRACTION_SYSTEM_PROMPT,
   INTENT_SYSTEM_PROMPT,
@@ -79,11 +78,8 @@ export class OpenRouterAiService implements AiService {
     input: IntentInput,
     context: AiCallContext = { correlationId: null },
   ): Promise<IntentClassification> {
-    // Jalur cepat untuk bentuk yang pasti (sapaan, merek pesaing, konsep produk): nol
-    // panggilan model — di CPU, satu panggilan adalah 10–30 detik (domain/heuristics.ts).
-    const certain = certainIntent(input.message);
-    if (certain) return certain;
-
+    // Bentuk yang pasti sudah dipotong modul `understanding` sebelum sampai ke sini (router di
+    // `context`); adapter ini hanya menerima pesan yang tidak mirip contoh mana pun.
     const history = (input.recentTurns ?? [])
       .slice(-4)
       .map((t) => `${t.role === 'user' ? 'Pengguna' : 'SNOUTY'}: ${t.text.slice(0, 300)}`)
@@ -108,11 +104,8 @@ export class OpenRouterAiService implements AiService {
     message: string,
     context: AiCallContext = { correlationId: null },
   ): Promise<ProductQuestionParse> {
-    // Keluarga produk yang tersurat (PVC, HDPE, …) dipetakan dari bentuk kalimat; model hanya
-    // untuk kalimat yang tidak menyebutnya secara eksplisit (domain/heuristics.ts).
-    const heuristic = heuristicProductQuestion(message);
-    if (heuristic.productQuery !== null) return ProductQuestionSchema.parse(heuristic);
-
+    // Keluarga produk yang tersurat (PVC, HDPE, …) sudah dibaca kosakata `understanding` di
+    // `context`; model hanya untuk kalimat yang tidak menyebutnya secara eksplisit.
     return this.callStructured(
       'product_question',
       ProductQuestionSchema,

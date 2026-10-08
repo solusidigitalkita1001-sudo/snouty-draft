@@ -14,6 +14,7 @@
  */
 
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
+import type { KnowledgeTopicLabel } from '../../understanding/domain/labels.js';
 
 /** Teks deskriptif satu bahan; satu salinan per bahasa. */
 export interface MaterialTexts {
@@ -30,7 +31,8 @@ export interface MaterialTexts {
 export interface MaterialKnowledge {
   readonly family: string;
   readonly label: string;
-  readonly pattern: RegExp;
+  /** Keluarga produk kanonis (kosakata `data/understanding/vocabulary.json`) yang berarti bahan ini. */
+  readonly families: readonly string[];
   /** Satu frasa untuk kalimat ringkasan: "PVC kaku dan dipasok batangan". */
   readonly gist: string;
   /** Kondisi yang membuatnya pilihan lazim — untuk kalimat simpulan. */
@@ -47,8 +49,10 @@ export interface MaterialKnowledge {
 }
 
 export interface ConceptKnowledge {
-  readonly topic: string;
-  readonly pattern: RegExp;
+  /** Label katalog `knowledge-topic` di `data/understanding/` — contoh pertanyaannya hidup di sana. */
+  readonly topic: KnowledgeTopicLabel;
+  /** Keluarga produk kanonis yang dengan sendirinya menyinggung konsep ini ("pvc aw" → kelas PVC). */
+  readonly families?: readonly string[];
   readonly text: string;
   readonly textEn: string;
 }
@@ -57,7 +61,8 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
   {
     family: 'PVC',
     label: 'PVC (uPVC)',
-    pattern: /\b(u?pvc|paralon|aw|kelas aw|kelas d)\b/i,
+    // "pipa AW" adalah PVC kelas AW — kelasnya disebut, bahannya tersirat.
+    families: ['pvc', 'pvc aw', 'pvc d', 'pvc c'],
     gist: 'kaku dan dipasok batangan',
     bestFor: 'instalasi tetap di dalam dan sekitar bangunan',
     notFor: 'air panas, dan jalur tanam panjang yang tanahnya bergerak',
@@ -85,7 +90,7 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
   {
     family: 'HDPE',
     label: 'HDPE',
-    pattern: /\b(hdpe|pe\s?100|pe\s?80|polyethylene|polietilen|poly)\b/i,
+    families: ['hdpe'],
     gist: 'lentur dan bisa digulung',
     bestFor: 'jalur panjang, ditanam, atau tanah yang bergerak',
     notFor:
@@ -115,7 +120,7 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
   {
     family: 'PPR',
     label: 'PPR',
-    pattern: /\b(ppr|pp-r|polypropylene|polipropilen)\b/i,
+    families: ['ppr'],
     gist: 'kaku dan tahan air panas',
     bestFor: 'instalasi air panas dan dingin di dalam bangunan',
     notFor: 'jalur tanam panjang di luar bangunan',
@@ -138,7 +143,7 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
   {
     family: 'Galvanis',
     label: 'pipa galvanis (GIP)',
-    pattern: /\b(galvanis|galvanized|gip|besi|baja|iron|steel)\b/i,
+    families: ['galvanis'],
     gist: 'kaku, berat, dan berkarat seiring waktu',
     bestFor: 'instalasi lama yang mempertahankan sistem ulir atau las',
     notFor: 'instalasi air bersih baru — lama-kelamaan berkarat dari dalam',
@@ -165,8 +170,6 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
 export const CONCEPTS: readonly ConceptKnowledge[] = [
   {
     topic: 'fitting',
-    pattern:
-      /\b(fitting|fittings|sambungan pipa|aksesoris pipa|elbow|knee|keni|tee|socket|sok|reducer|coupling)\b/i,
     text: 'Fitting adalah komponen penyambung pipa — sok (socket), tee, elbow/knee, reducer, katup — yang mengubah arah, membagi cabang, mengubah ukuran, atau menyambung dua batang. Fitting dibuat dari bahan yang sama dengan pipanya (PVC untuk PVC, HDPE untuk HDPE) supaya sambungannya cocok.',
     textEn:
       'Fittings are the connecting parts of a pipe run — sockets, tees, elbows, reducers, valves — that change direction, split a branch, change size, or join two lengths. They are made of the same material as the pipe (PVC for PVC, HDPE for HDPE) so the joint matches.',
@@ -176,141 +179,129 @@ export const CONCEPTS: readonly ConceptKnowledge[] = [
   //    angka yang dokumen itu tandai "perlu validasi" tidak dibawa ke sini. ─────────────────
   {
     topic: 'upvc',
-    pattern: /\b(upvc|u-pvc|unplasticized|unplasticised|pvc tanpa plasticizer)\b/i,
     text: 'uPVC adalah unplasticized PVC — PVC tanpa penambahan plasticizer, sehingga kaku. Sifat yang membuatnya lazim untuk pipa: tahan karat, permukaan dalam licin, ringan, isolator listrik, tahan terhadap sejumlah bahan kimia air bersih, mudah dipasang dan dirawat. Pipa PVC Pralon (PRALON, PIPPO, JIS, SNI) semuanya uPVC.',
     textEn:
       'uPVC is unplasticized PVC — PVC without added plasticizer, hence rigid. The properties that make it common for pipe: rust-free, smooth bore, light, electrically insulating, resistant to the chemicals found in clean water, easy to install and maintain. Pralon PVC pipe (PRALON, PIPPO, JIS, SNI) is all uPVC.',
   },
   {
     topic: 'istilah dimensi',
-    pattern:
-      /\b(od|id|wt|sdr|pn|dn|diameter luar|diameter dalam|tebal dinding|diameter nominal|wall thickness|outside diameter|inside diameter|nominal diameter|ukuran inch|inci itu)\b/i,
     text: 'Istilah ukuran pipa: DN diameter nominal; OD diameter luar; ID diameter dalam; WT (t) tebal dinding; SDR perbandingan diameter luar terhadap tebal dinding; PN tekanan nominal; S seri pipa. Hubungannya: diameter dalam = diameter luar dikurangi dua kali tebal dinding. Ukuran inci pada pipa PVC adalah ukuran nominal — tidak selalu sama dengan diameter aktualnya.',
     textEn:
       'Pipe sizing terms: DN nominal diameter; OD outside diameter; ID inside diameter; WT (t) wall thickness; SDR the ratio of outside diameter to wall thickness; PN nominal pressure; S pipe series. They relate as inside diameter = outside diameter minus twice the wall thickness. Inch sizes on PVC pipe are nominal — not always the actual diameter.',
   },
   {
     topic: 'sambungan lem',
-    pattern:
-      /\b(solvent cement|lem pipa|lem pvc|ngelem|dilem|cara nyambung|cara menyambung|cara sambung|menyambung pipa|nyambung pipa|ts end|socket lem|glue|gluing|cementing|how to join|joining pvc)\b/i,
     text: 'Sambungan lem (solvent cement) untuk pipa PVC ujung TS End: rapikan bekas potongan, coba dulu kecocokan pipa dengan fitting, tandai kedalaman socket, bersihkan ujung pipa, oleskan solvent cement, masukkan sampai tanda lalu tahan sebentar, bersihkan sisa lem, dan diamkan sampai mengering sebelum dialiri. Solvent cement quick dry untuk ukuran kecil, slow dry untuk ukuran besar; waktu tahan dan waktu kering resminya mengikuti lembar data solvent cement Pralon.',
     textEn:
       'Solvent-cement joints for TS End PVC pipe: deburr the cut end, dry-fit pipe and fitting, mark the socket depth, clean the pipe end, apply solvent cement, push in to the mark and hold briefly, wipe off the excess, and let it cure before pressurising. Quick-dry cement for small sizes, slow-dry for large ones; official hold and cure times follow the Pralon solvent-cement data sheet.',
   },
   {
     topic: 'sambungan rubber ring',
-    pattern:
-      /\b(rubber ring|rubber joint|cincin karet|bell end|rrj|push[- ]?fit|spigot|pelumas|lubricant)\b/i,
     text: 'Sambungan rubber ring (Bell End): spigot dan socket harus lurus, pipa bersih, cincin karet tidak terbalik dan tidak melipat, lalu dorong dengan pelumas khusus pipa. Jangan memakai oli, gemuk, minyak, atau sabun sebagai pengganti pelumas — merusak karet dan mengganggu kedapnya sambungan.',
     textEn:
       'Rubber-ring (Bell End) joints: spigot and socket aligned straight, pipe clean, the ring neither reversed nor folded, then push home with pipe lubricant. Never substitute oil, grease, or soap for the lubricant — they damage the rubber and compromise the seal.',
   },
   {
     topic: 'jenis fitting',
-    pattern:
-      /\b(jenis fitting|macam fitting|fitting apa saja|fitting apa aja|faucet socket|valve socket|cap\b|dop\b|bend\b|knee\b|reducer|socket|sok\b|tee\b|types? of fittings?|which fittings?)\b/i,
     text: 'Jenis fitting uPVC dan fungsinya: tee membagi aliran; socket menyambung dua pipa berdiameter sama; elbow dan bend membelokkan arah; reducer menyambung diameter berbeda; cap menutup ujung; faucet socket sambungan dengan ulir dalam (ke keran); valve socket menghubungkan pipa dengan katup. Fitting Pralon dibuat dengan injection moulding dari uPVC, sama bahannya dengan pipanya.',
     textEn:
       'uPVC fitting types and roles: tee splits the flow; socket joins two pipes of the same diameter; elbow and bend change direction; reducer joins different diameters; cap closes an end; faucet socket has a female thread (for taps); valve socket connects pipe to a valve. Pralon fittings are injection-moulded from uPVC, the same material as the pipe.',
   },
   {
     topic: 'penyimpanan',
-    pattern:
-      /\b(simpan|penyimpanan|disimpan|menyimpan|gudang|stok di lapangan|ditumpuk|tumpukan|angkut|pengangkutan|transport|handling|storage|stacking|stored?|storing)\b/i,
     text: 'Penyimpanan pipa PVC: hindari sinar matahari langsung jangka panjang dan sumber panas, beri pelindung atau terpal, alasi dari batu dan benda tajam, susun stabil dengan tinggi tumpukan terbatas. Saat diangkut, pipa diangkat, diturunkan, dan dibawa dengan hati-hati — jangan dibanting, digulingkan sembarangan, atau diseret.',
     textEn:
       'Storing PVC pipe: avoid prolonged direct sun and heat sources, cover it, keep it off stones and sharp objects, and stack it stably with limited height. In transport, lift, lower, and carry the pipe with care — never drop, roll carelessly, or drag it.',
   },
   {
     topic: 'perawatan dan gangguan',
-    pattern:
-      /\b(perawatan|merawat|dirawat|maintenance|bocor|kebocoran|retak|pecah|tersumbat|mampet|melengkung|kendor|berubah warna|menguning|soda api|troubleshoot|leak(?:ing|s)?|crack(?:ed|s)?|clog(?:ged)?|sagging|discolou?r)\b/i,
     text: 'Perawatan jaringan PVC: periksa visual berkala, bersihkan jalur, lindungi dari panas dan sinar UV, jaga tekanan kerja, periksa bracket dan support, bersihkan tandon, dan cegah kotoran masuk ke jaringan; jangan membersihkan pipa dengan soda api. Gangguan yang lazim: bocor di sambungan (permukaan kotor atau lem kurang merata — perbaiki sambungannya), pipa retak atau pecah (tekanan berlebih atau benturan — potong dan perbaiki), aliran tersumbat (lumpur, kerak, benda asing — bersihkan), pipa melengkung atau kendor (support kurang — tambah support), warna berubah (paparan UV — lindungi dan evaluasi). Perbaikan memakai dresser joint, gibault joint, atau bell repair socket.',
     textEn:
       'Maintaining a PVC network: periodic visual checks, clean the run, protect from heat and UV, keep to the working pressure, check brackets and supports, clean the tank, and keep debris out of the network; never clean pipe with caustic soda. Common faults: leaking joints (dirty surface or uneven cement — remake the joint), cracked or burst pipe (over-pressure or impact — cut out and repair), blocked flow (silt, scale, foreign objects — clean), sagging or loose pipe (too few supports — add supports), discolouration (UV exposure — protect and assess). Repairs use a dresser joint, gibault joint, or bell repair socket.',
   },
   {
     topic: 'proses produksi',
-    pattern:
-      /\b(proses produksi|cara dibuat|dibuat dari|diproduksi|produksinya|ekstrusi|extrusion|manufacturing process|how (?:is|are) (?:the )?pipes? made)\b/i,
     text: 'Pipa uPVC Pralon dibuat lewat: penerimaan dan inspeksi material, formulasi oleh R&D, penimbangan, mixing, ekstrusi (bahan yang dilunakkan didorong melalui die), vacuum tank untuk menjaga dimensi, pendinginan spray, marking, haul-off, pemotongan, lalu pembentukan ujung TS End atau Bell End, dan quality control sebelum masuk gudang. Fitting dibuat dengan injection moulding.',
     textEn:
       'Pralon uPVC pipe is made through material receipt and inspection, R&D formulation, weighing, mixing, extrusion (softened material pushed through a die), a vacuum tank to hold dimensions, spray cooling, marking, haul-off, cutting, then TS End or Bell End forming, and quality control before storage. Fittings are injection-moulded.',
   },
   {
     topic: 'uji mutu',
-    pattern:
-      /\b(uji mutu|pengujian|quality control|qc\b|tes lab|uji lab|hidrostatik|hydrostatic|burst|flattening|impact test|vicat|tensile|elongation|reversion|methylene|standar mutu|quality test)\b/i,
     text: 'Pengendalian mutu pipa uPVC Pralon: setiap produk diperiksa visual (permukaan halus, tidak bergelombang, tidak cacat, warna seragam, pipa lurus) dan dimensinya (diameter luar, ovalitas, tebal dinding, panjang). Uji laboratorium: hidrostatik dan burst, ketahanan methylene chloride, longitudinal reversion, tensile dan elongation, flattening, impact, serta Vicat softening point. Tekanan uji laboratorium bukan tekanan kerja produk — tekanan kerja mengikuti kelas pipanya.',
     textEn:
       'Quality control of Pralon uPVC pipe: every product is checked visually (smooth surface, no waviness or defects, even colour, straight) and dimensionally (outside diameter, ovality, wall thickness, length). Laboratory tests: hydrostatic and burst, methylene-chloride resistance, longitudinal reversion, tensile and elongation, flattening, impact, and Vicat softening point. Laboratory test pressure is not the working pressure — that follows the pipe class.',
   },
   {
     topic: 'penimbunan',
-    pattern:
-      /\b(penimbunan|ditimbun|kedalaman galian|galian|urugan|lapisan pasir|timbun|trench|burial depth|backfill)\b/i,
     text: 'Pipa PVC yang ditanam: galian dibuat lebih dalam dari diameter pipa ditambah kedalaman timbunan dan lapisan pasir di dasar; kedalaman timbunan makin besar bila di sisi jalan dan terbesar di bawah jalan besar, dan lebar galian mengikuti diameter pipa. Angka resminya mengikuti pedoman teknik Pralon dan standar penimbunan yang berlaku.',
     textEn:
       'Buried PVC pipe: the trench is deeper than the pipe diameter plus the cover depth and a sand bed; cover is greater beside roads and greatest under major roads, and trench width follows the pipe diameter. Official figures follow Pralon engineering guidance and the applicable burial standard.',
   },
   {
     topic: 'uji tekanan lapangan',
-    pattern:
-      /\b(uji tekanan|tes tekanan|pressure test|field test|water hammer|palu air|air valve|katup udara)\b/i,
     text: 'Setelah terpasang, jaringan bertekanan diuji dengan tekanan di atas tekanan kerja selama waktu tertentu; sambungan lem diuji setelah lemnya benar-benar kering. Pada jalur panjang atau berelevasi, water hammer dihindari dan katup udara dipasang di titik yang perlu — angka dan letaknya mengikuti pedoman teknik Pralon.',
     textEn:
       'Once installed, a pressurised network is tested above its working pressure for a set period; cemented joints are tested only after the cement has fully cured. On long or elevated runs, water hammer is avoided and air valves placed where needed — figures and positions follow Pralon engineering guidance.',
   },
   {
     topic: 'air panas',
-    pattern: /\b(air panas|air hangat|hot water|warm water|water heater|pemanas air|boiler)\b/i,
     text: 'Untuk air panas, bahan yang lazim adalah **PPR**: tahan suhu tinggi dan sambungannya dilas panas sehingga menyatu. PVC tidak untuk air panas — melunak dan sambungan lemnya melemah; HDPE pun dirancang untuk air dingin. Jalur air panas di dalam bangunan: PPR untuk pipa dan fitting-nya.',
     textEn:
       'For hot water the usual material is **PPR**: it withstands high temperature and its joints are heat-fused into one piece. PVC is not for hot water — it softens and its glued joints weaken; HDPE is designed for cold water too. Hot-water runs inside a building: PPR for both pipe and fittings.',
   },
   {
     topic: 'kelas pvc',
-    pattern: /\b(aw|kelas aw|kelas d|pvc d|class aw|class d)\b/i,
+    families: ['pvc aw', 'pvc d', 'pvc c'],
     text: 'AW, D, dan C adalah kelas pipa PVC, bukan bahan yang berbeda: AW untuk jalur air bersih bertekanan (dinding paling tebal), D untuk pembuangan dan ventilasi yang mengalir karena gravitasi (dinding lebih tipis), C tanpa tekanan kerja (pelindung dan saluran tak bertekanan). Jadi "pipa AW" adalah pipa PVC kelas bertekanan. Di luar kelas PRALON, ada pipa uPVC standar JIS (VP bertekanan, VU tak bertekanan) dan SNI (seri S untuk air minum, kelas A/B untuk air buangan); PIPPO adalah merek kedua Pralon dengan kelas AW dan D. Tekanan kerja tiap kelas mengikuti spesifikasi produk Pralon.',
     textEn:
       'AW, D, and C are classes of PVC pipe, not different materials: AW for pressurized clean-water lines (thickest wall), D for drainage and venting that flow by gravity (thinner wall), C with no working pressure (sleeves and non-pressure runs). So an "AW pipe" is PVC pipe of the pressure class. Beyond the PRALON classes there is JIS-standard uPVC pipe (VP pressure, VU non-pressure) and SNI pipe (S series for drinking water, classes A/B for drainage); PIPPO is Pralon\'s second brand with AW and D classes. Working pressure per class follows the Pralon product specification.',
   },
   {
     topic: 'pipa tanam',
-    pattern: /\b(tanam|ditanam|bawah tanah|timbun|urug|buried|underground|backfill)\b/i,
     text: 'Pipa tanam menanggung beban tanah dan pergerakannya. Bahan yang lentur dengan sambungan yang menyatu lebih toleran terhadap tanah yang bergerak; pipa kaku membutuhkan alas (bedding) dan urugan yang rapi agar tidak retak di sambungan.',
     textEn:
       'Buried pipe carries the load of the soil and its movement. A flexible material with fused joints tolerates moving ground better; rigid pipe needs neat bedding and backfill so it does not crack at the joints.',
   },
   {
     topic: 'bertekanan vs gravitasi',
-    pattern:
-      /\b(bertekanan|tekanan|gravitasi|pembuangan|limbah|pressure|pressurized|gravity|drainage|wastewater)\b/i,
     text: 'Jalur air bersih bertekanan menuntut pipa dan sambungan yang menahan tekanan dari dalam, sehingga memakai kelas pipa yang lebih tebal (pada PVC: kelas AW). Jalur pembuangan mengalir karena gravitasi dan memakai kelas yang lebih tipis (kelas D).',
     textEn:
       'Pressurized clean water lines need pipe and joints that withstand internal pressure, so they use a thicker pipe class (for PVC: class AW). Drainage lines flow by gravity and use a thinner class (class D).',
   },
   {
     topic: 'kaku vs lentur',
-    pattern: /\b(kaku|lentur|fleksibel|rigid|flexible)\b/i,
     text: 'Pipa kaku mudah dipasang lurus dan rapi di dalam bangunan, tetapi setiap belokan adalah sambungan. Pipa lentur mengikuti lintasan dengan sambungan lebih sedikit — berguna di luar bangunan dan di bawah tanah.',
     textEn:
       'Rigid pipe is easy to run straight and neat inside a building, but every bend is a joint. Flexible pipe follows the route with fewer joints — useful outside buildings and underground.',
   },
 ];
 
-export function materialsIn(
-  ...texts: readonly (string | null | undefined)[]
-): readonly MaterialKnowledge[] {
-  const haystack = join(texts);
-  return MATERIALS.filter((m) => m.pattern.test(haystack));
+/**
+ * Bahan yang dimaksud sekumpulan keluarga produk kanonis (dari kosakata `understanding`):
+ * "pvc aw" dan "pvc d" sama-sama PVC. Urutan mengikuti urutan keluarga yang diberikan, tanpa
+ * duplikat — "bedanya PVC AW dan PVC D" adalah satu bahan, bukan perbandingan dua bahan.
+ */
+export function materialsFor(families: readonly string[]): readonly MaterialKnowledge[] {
+  const found: MaterialKnowledge[] = [];
+  for (const family of families) {
+    const material = MATERIALS.find((m) => m.families.includes(family.toLowerCase()));
+    if (material && !found.includes(material)) found.push(material);
+  }
+  return found;
 }
 
-export function conceptsIn(
-  ...texts: readonly (string | null | undefined)[]
+/**
+ * Konsep yang disinggung sekumpulan topik pengetahuan (label katalog `knowledge-topic`) atau
+ * keluarga produk yang terikat konsep ("pvc aw" menyinggung kelas PVC).
+ */
+export function conceptsFor(
+  topics: readonly string[],
+  families: readonly string[] = [],
 ): readonly ConceptKnowledge[] {
-  const haystack = join(texts);
-  return CONCEPTS.filter((c) => c.pattern.test(haystack));
+  const lower = families.map((f) => f.toLowerCase());
+  return CONCEPTS.filter(
+    (c) => topics.includes(c.topic) || (c.families?.some((f) => lower.includes(f)) ?? false),
+  );
 }
 
 /**
@@ -409,22 +400,22 @@ export function fittingVsMaterialTable(
 
 /**
  * Penyajian ulang jawaban produk/bahan yang BARU SAJA diberikan dalam bentuk yang diminta.
- * Isinya diambil dari apa yang dibicarakan (jawaban asisten terakhir + subjek), bukan dari pesan
- * "bikinin tabelnya" yang memang tidak menyebut apa-apa. `null` bila tidak ada yang bisa disajikan.
+ * Isinya diambil dari apa yang dibicarakan (bahan yang disebut subjek/pesan, atau jawaban asisten
+ * terakhir), bukan dari pesan "bikinin tabelnya" yang memang tidak menyebut apa-apa — pemanggil
+ * yang membaca bahan itu dari kosakata. `null` bila tidak ada yang bisa disajikan.
  */
 export function reformat(
   format: 'table' | 'bullets' | 'summary',
-  context: { readonly subject?: string | null; readonly previous?: string | null },
+  context: {
+    /** Bahan yang sedang dibicarakan, maksimal tiga dipakai. */
+    readonly materials: readonly MaterialKnowledge[];
+    /** Jawaban yang disajikan ulang membandingkan fitting dengan satu bahan. */
+    readonly fitting: boolean;
+  },
   locale: Locale = DEFAULT_LOCALE,
 ): string | null {
-  // Subjek dulu: penjelasan fitting menyebut "PVC untuk PVC, HDPE untuk HDPE", jadi membaca bahan
-  // dari teks jawaban saja akan mengira ada dua bahan yang dibandingkan.
-  const fromSubject = materialsIn(context.subject);
-  const materials = (fromSubject.length > 0 ? fromSubject : materialsIn(context.previous)).slice(
-    0,
-    3,
-  );
-  const fitting = conceptsIn(context.previous, context.subject).some((c) => c.topic === 'fitting');
+  const materials = context.materials.slice(0, 3);
+  const fitting = context.fitting;
   if (materials.length === 0) return null;
   if (format === 'table') {
     if (materials.length === 1 && fitting) return fittingVsMaterialTable(materials[0]!, locale);
@@ -597,27 +588,29 @@ function dimensionRows(m: MaterialTexts, locale: Locale): readonly string[] {
   ];
 }
 
+export interface ExplainInput {
+  /** Keluarga produk kanonis yang dibicarakan — dari pesan dan dari subjek aktif. */
+  readonly families: readonly string[];
+  /** Topik pengetahuan yang disinggung — dari pesan dan dari subjek aktif. */
+  readonly topics: readonly string[];
+  /** Pertanyaan membandingkan ("apa bedanya …"). */
+  readonly comparison: boolean;
+  /** Pertanyaan tentang bahannya sendiri (definisi/perbandingan), bukan tentang cara/topik. */
+  readonly aboutMaterial: boolean;
+}
+
 /**
  * Penjelasan deterministik untuk sebuah pertanyaan konsep: perbandingan bila dua bahan
  * disebut, ikhtisar bila satu, ditambah konsep yang disinggung. Kosong bila tidak ada yang
  * dikenali — pemanggil yang memutuskan apa yang terjadi kemudian.
  */
-export function explain(
-  question: string,
-  productQuery: string | null,
-  locale: Locale = DEFAULT_LOCALE,
-): string {
-  const materials = materialsIn(question, productQuery).slice(0, 2);
-  // Konsep dibaca dari pesan DAN query (subjek): "yang mana buat kamar mandi?" atas "pvc d dan pvc aw".
-  const concepts = conceptsIn(question, productQuery);
+export function explain(input: ExplainInput, locale: Locale = DEFAULT_LOCALE): string {
+  const materials = materialsFor(input.families).slice(0, 2);
+  const concepts = conceptsFor(input.topics, input.families);
   const parts: string[] = [];
   // "Apa bedanya fitting sama HDPE?" membandingkan komponen dengan bahan — bukan dua bahan.
   // Katakan dulu bahwa keduanya tidak setara, baru jelaskan masing-masing.
-  if (
-    materials.length === 1 &&
-    concepts.some((c) => c.topic === 'fitting') &&
-    COMPARISON.test(question)
-  ) {
+  if (materials.length === 1 && concepts.some((c) => c.topic === 'fitting') && input.comparison) {
     const m = materials[0]!;
     parts.push(
       locale === 'en'
@@ -631,19 +624,10 @@ export function explain(
   // Pertanyaan tentang TOPIK ("pvc disimpan di luar boleh?", "cara nyambung pvc?") dibuka dengan
   // topiknya; ikhtisar bahan menyusul. Pertanyaan tentang bahannya sendiri ("apa itu PVC?",
   // "bedanya…") tetap dibuka dengan bahan.
-  const aboutMaterialItself = materials.length === 2 || ABOUT_MATERIAL.test(question);
+  const aboutMaterialItself = materials.length === 2 || input.aboutMaterial;
   const ordered =
     conceptTexts.length > 0 && !aboutMaterialItself
       ? [...conceptTexts, ...parts]
       : [...parts, ...conceptTexts];
   return ordered.join('\n\n');
-}
-
-const ABOUT_MATERIAL =
-  /\b(apa itu|itu apa|apaan|apa sih|bedanya|perbedaan|beda|dibanding|versus|vs|what is|what are|difference|differ|compare)\b/i;
-
-const COMPARISON = /\b(beda|bedanya|perbedaan|dibanding|versus|vs|difference|differ|compare)\b/i;
-
-function join(texts: readonly (string | null | undefined)[]): string {
-  return texts.filter((t): t is string => typeof t === 'string').join(' ');
 }

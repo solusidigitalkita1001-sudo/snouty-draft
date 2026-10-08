@@ -21,8 +21,14 @@ import type {
   RequirementState,
 } from '@snouty/shared-types';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
-import { heuristicProductQuestion } from '../../ai/domain/heuristics.js';
 import type { CompanyKnowledgeService } from '../../company-knowledge/application/company-knowledge.service.js';
+import type { UnderstandingService } from '../../understanding/application/understanding.service.js';
+import type { EntityLexicon } from '../../understanding/domain/vocabulary.js';
+import {
+  unavailableUnderstanding,
+  type MessageUnderstanding,
+} from '../../understanding/application/message-understanding.js';
+import { isFollowUp, isRequirement } from '../../understanding/domain/labels.js';
 import { composeCompanyAnswer } from '../../company-knowledge/domain/company-answer.js';
 import { SECTIONS } from '../../company-knowledge/domain/company-profile.js';
 import { runCompanyQuestion } from './company-question-pipeline.js';
@@ -36,7 +42,6 @@ import { ConversationService } from '../../conversation/application/conversation
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
 import { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
-import { certainIntent } from '../../ai/domain/heuristics.js';
 import { IntentRouter, type RoutingDecision } from './intent-router.js';
 import {
   applyTechnicalAnswers,
@@ -64,7 +69,7 @@ import {
 } from '../domain/irrigation.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { defaultUpdateFor } from '../domain/requirement-defaults.js';
-import { runProductQuestion } from './product-question-pipeline.js';
+import { productQueryOf, runProductQuestion } from './product-question-pipeline.js';
 import { ReplyWriter, type ReplyTurn } from './reply-writer.js';
 import { RequirementSnapshotStore } from './requirement-snapshot.store.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
@@ -87,6 +92,11 @@ export class MessageService {
     @Optional() private readonly logger: Logger | null = null,
     /** Pengetahuan perusahaan (Fase 16); tanpa ini pertanyaan perusahaan dijawab teks tetap. */
     @Optional() private readonly company: CompanyKnowledgeService | null = null,
+    /**
+     * Pemahaman pesan dari contoh (P16-11). Tanpa ini setiap keputusan makna `null` — jujur:
+     * router lalu bertanya ke model generatif, dan tidak ada balasan sosial/lanjutan tanpa model.
+     */
+    @Optional() private readonly understanding: UnderstandingService | null = null,
   ) {}
 
   /**
@@ -147,8 +157,13 @@ export class MessageService {
     const state = snapshot?.state ?? emptyRequirementState(now);
     const hasExisting = (snapshot?.state.completeness.filled ?? 0) > 0;
 
+    // Satu pemahaman per giliran (P16-11): intent, kedalaman, format, topik, keluarga produk —
+    // dari contoh (data) + penyandi teks, puluhan milidetik. Semua keputusan di bawah membacanya.
+    const u = await this.understand(text);
+    timer.mark('understand');
+
     // Pesan sosial ("ok makasih", "sip", "bye"): balasan tetap, nol model, nol state.
-    const social = socialReply(text, locale);
+    const social = socialReply(u, locale);
     if (social !== null) {
       const events: AssistantStreamEvent[] = [
         { type: 'message.start', messageId },
@@ -166,8 +181,10 @@ export class MessageService {
     // Percakapan kasus teknis yang sedang berjalan: jawaban angka ("jaraknya 150 m") adalah
     // lanjutan kebutuhan — tanpa menunggu model menebaknya. Bentuk yang PASTI lain (produk,
     // pesaing, sapaan) tetap lewat router, yang juga memotongnya tanpa model.
+    const fine = u.intent?.label;
     const continuation =
-      state.useCase?.kind === 'technical' && certainIntent(text) === null
+      state.useCase?.kind === 'technical' &&
+      (fine === undefined || isRequirement(fine) || isFollowUp(fine))
         ? ({
             intent: 'REQUIREMENT_STATEMENT',
             confidence: 1,
@@ -177,7 +194,7 @@ export class MessageService {
         : null;
     timer.mark('load');
     const decision =
-      continuation ?? (await this.router.route(text, hasExisting, recentTurns, state.subject));
+      continuation ?? (await this.router.route(u, hasExisting, recentTurns, state.subject));
     timer.mark('route');
 
     // Pertanyaan perusahaan (Fase 16): ruas sendiri — pengetahuan perusahaan, bukan katalog;
@@ -185,7 +202,7 @@ export class MessageService {
     if (decision.intent === 'COMPANY_QUESTION') {
       const result = await runCompanyQuestion(this.company ?? NO_COMPANY_KNOWLEDGE, {
         messageId,
-        message: text,
+        understanding: u,
         subject: state.subject,
         locale,
       });
@@ -213,6 +230,8 @@ export class MessageService {
           message: text,
           recentTurns,
           locale,
+          understanding: u,
+          lexicon: this.lexicon(),
           ...(state.subject ? { subject: state.subject } : {}),
         },
         this.reply,
@@ -225,7 +244,7 @@ export class MessageService {
       await this.rememberSubject(
         conversationId,
         state,
-        productSubject(heuristicProductQuestion(text).productQuery, text, state.subject),
+        productSubject(productQueryOf(u), u, state.subject),
       );
       await this.conversations.appendAssistantMessage(
         conversationId,
@@ -248,6 +267,7 @@ export class MessageService {
         now,
         recentTurns,
         locale,
+        understanding: u,
         ...(emit ? { emit: withoutFirstStart(emit) } : {}),
       },
       this.reply,
@@ -274,6 +294,18 @@ export class MessageService {
     this.logTurn(conversationId, decision, timer);
 
     return result.events;
+  }
+
+  /** Pemahaman pesan; tanpa layanan pemahaman (tes lama) semua keputusan makna kosong. */
+  private understand(text: string): Promise<MessageUnderstanding> {
+    return this.understanding
+      ? this.understanding.understand(text)
+      : Promise.resolve(unavailableUnderstanding(text));
+  }
+
+  /** Kosakata entitas; tanpa layanan pemahaman, kosakata kosong (tidak ada nama yang dikenali). */
+  private lexicon(): Pick<EntityLexicon, 'productFamilies'> {
+    return this.understanding?.entities ?? { productFamilies: () => [] };
   }
 
   /**

@@ -1,35 +1,69 @@
 /**
- * P15-03 — pemahaman kalimat Inggris lewat pola deterministik: isyarat kebutuhan, jalur cepat,
- * fakta dari teks, pagar angka, kebijakan cakupan, dan templat jawaban/klarifikasi dua bahasa.
+ * P15-03 — pemahaman kalimat Inggris: kosakata entitas dua bahasa, jalur cepat, intent pasti dari
+ * pemahaman, fakta dari teks, pagar angka, kebijakan cakupan, dan templat jawaban/klarifikasi.
+ * Bentuk kalimatnya dikenali modul `understanding` (contoh dua bahasa di data); di sini label
+ * itu diberikan tes, dan yang diuji adalah aturan kode di atasnya.
  */
 import { describe, expect, it } from 'vitest';
-import { certainIntent } from '../../ai/domain/heuristics.js';
 import { useCasePolicy } from '../../policy/scope.js';
+import { TEST_LEXICON, understood } from '../../understanding/testing/understood.js';
 import { planClarification, summarizeAnswers } from '../domain/clarification.js';
-import { hasRequirementSignals, asksAdvice } from '../domain/message-signals.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
-import { fastPathIntent } from './intent-router.js';
+import { certainIntent, fastPathIntent } from './intent-router.js';
 import { openerReply, replyFor } from './reply-copy.js';
 
 describe('pemahaman Inggris — pola kode', () => {
-  it('isyarat kebutuhan, nasihat, dan jalur cepat mengenali kalimat Inggris', () => {
-    expect(hasRequirementSignals('2-storey house, 3 bathrooms, rooftop tank')).toBe(true);
-    expect(asksAdvice('which is better, PVC or HDPE for a 2-storey house?')).toBe(true);
-    expect(fastPathIntent('2-storey house, 3 bathrooms, rooftop tank', false)).toMatchObject({
-      intent: 'REQUIREMENT_STATEMENT',
-    });
-    expect(fastPathIntent('why is the main line 1 inch?', false)).toBeNull();
+  it('kosakata entitas dua bahasa dan jalur cepat mengenali kalimat Inggris', () => {
+    expect(
+      TEST_LEXICON.mentionsRequirementEntity('2-storey house, 3 bathrooms, rooftop tank'),
+    ).toBe(true);
+    expect(
+      TEST_LEXICON.productFamilies('which is better, PVC or HDPE for a 2-storey house?'),
+    ).toEqual(['pvc', 'hdpe']);
+    expect(TEST_LEXICON.mentionsCompetitor('is Pralon better than Rucika?')).toBe(true);
+    expect(
+      fastPathIntent(
+        understood('2-storey house, 3 bathrooms, rooftop tank', { intent: null }),
+        false,
+      ),
+    ).toMatchObject({ intent: 'REQUIREMENT_STATEMENT' });
+    // Pertanyaan "kenapa" yang dikenali tidak lewat jalur cepat kebutuhan.
+    expect(
+      fastPathIntent(
+        understood('why is the main line 1 inch?', { intent: 'explanation_request' }),
+        false,
+      ),
+    ).toBeNull();
   });
 
   it('intent pasti tanpa model: sapaan, pesaing, konsep produk, kasus teknis', () => {
-    expect(certainIntent('hello')?.intent).toBe('OUT_OF_SCOPE');
-    expect(certainIntent('is Pralon better than Rucika?')?.intent).toBe('COMPETITOR_QUESTION');
-    expect(certainIntent('what is the difference between PVC and HDPE?')?.intent).toBe(
-      'PRODUCT_LOOKUP',
+    expect(certainIntent(understood('hello', { intent: 'greeting' }), false)?.intent).toBe(
+      'OUT_OF_SCOPE',
     );
-    expect(certainIntent('rainwater drainage for a parking lot')?.intent).toBe(
-      'REQUIREMENT_STATEMENT',
-    );
+    expect(
+      certainIntent(
+        understood('is Pralon better than Rucika?', { intent: 'competitor_question' }),
+        false,
+      )?.intent,
+    ).toBe('COMPETITOR_QUESTION');
+    expect(
+      certainIntent(
+        understood('what is the difference between PVC and HDPE?', {
+          intent: 'product_comparison',
+        }),
+        false,
+      )?.intent,
+    ).toBe('PRODUCT_LOOKUP');
+    expect(
+      certainIntent(
+        understood('rainwater drainage for a parking lot', { intent: 'requirement_technical' }),
+        false,
+      )?.intent,
+    ).toBe('REQUIREMENT_STATEMENT');
+    // Yang tidak mirip contoh mana pun tetap ragu — model generatif yang memutuskan.
+    expect(
+      certainIntent(understood('my invoice number is 12345', { intent: null }), false),
+    ).toBeNull();
   });
 
   it('fakta tersurat dari teks Inggris, model diam', () => {

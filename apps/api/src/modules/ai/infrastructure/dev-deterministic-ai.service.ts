@@ -21,12 +21,6 @@
 
 import type { AiService, IntentInput } from '../domain/ai.port.js';
 import {
-  PRODUCT_SIGNALS,
-  REQUIREMENT_SIGNALS,
-  certainIntent,
-  heuristicProductQuestion,
-} from '../domain/heuristics.js';
-import {
   ExtractionSchema,
   IntentSchema,
   ProductQuestionSchema,
@@ -109,35 +103,25 @@ export class DevDeterministicAiService implements AiService {
     );
   }
 
+  /**
+   * Bentuk kalimat (sapaan, pesaing, produk, lanjutan, mutasi) dikenali modul `understanding`
+   * dari contoh — dalam mode pengembangan dengan penyandi cadangan — SEBELUM adapter ini ditanya.
+   * Yang sampai ke sini adalah pesan yang tidak mirip contoh mana pun; tanpa model, tebakan
+   * terjujurnya: jawaban klarifikasi bila kebutuhan sudah ada, pernyataan kebutuhan bila belum.
+   */
   classifyIntent(input: IntentInput): Promise<IntentClassification> {
-    const text = input.message.toLowerCase();
-
-    // Sapaan, merek pesaing (Policy 1 menang lebih dulu), konsep produk — heuristik yang sama
-    // dengan jalur cepat adapter live (domain/heuristics.ts).
-    const certain = certainIntent(input.message);
-    if (certain) return Promise.resolve(certain);
-
-    if (/\b(kenapa|mengapa|kok|jelaskan|alasan)\b/.test(text)) {
-      return this.intent('EXPLANATION_REQUEST', 0.85);
-    }
-    // Pertanyaan produk: menyebut keluarga produk atau sifatnya, TANPA isyarat kebutuhan.
-    // "Pakai pipa PVC untuk rumah 2 lantai" tetap pernyataan kebutuhan.
-    if (PRODUCT_SIGNALS.test(text) && !REQUIREMENT_SIGNALS.test(text)) {
-      return this.intent('PRODUCT_LOOKUP', 0.85);
-    }
-    if (input.hasExistingRequirements && /\b(tambah|ubah|ganti|jadi|kurangi)\b/.test(text)) {
-      return this.intent('REQUIREMENT_MUTATION', 0.8);
-    }
     if (input.hasExistingRequirements) return this.intent('CLARIFICATION_ANSWER', 0.75);
     return this.intent('REQUIREMENT_STATEMENT', 0.8);
   }
 
   /**
-   * Pemetaan pertanyaan produk lewat kata kunci — cukup untuk mengklik alur pengetahuan
-   * produk tanpa kunci model. Aspek yang tidak dikenali tetap `null`, bukan ditebak.
+   * Keluarga produk dan aspek yang tersurat sudah dibaca `understanding`; pertanyaan yang sampai
+   * ke sini tidak menyebut produk mana pun — adapter pengembangan tidak menebak.
    */
-  parseProductQuestion(message: string): Promise<ProductQuestionParse> {
-    return Promise.resolve(ProductQuestionSchema.parse(heuristicProductQuestion(message)));
+  parseProductQuestion(): Promise<ProductQuestionParse> {
+    return Promise.resolve(
+      ProductQuestionSchema.parse({ productQuery: null, aspect: null, size: null }),
+    );
   }
 
   titleFor(firstMessage: string): Promise<string> {

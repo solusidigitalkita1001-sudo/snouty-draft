@@ -93,6 +93,15 @@ const EnvSchema = z.object({
   LLM_MODEL_BALANCED: z.string().min(1).optional(),
   LLM_MODEL_STRONG: z.string().min(1).optional(),
   /**
+   * Model EMBEDDING untuk pemahaman pertanyaan (modul `understanding`, P16-11): contoh kalimat
+   * di `data/understanding/` disandikan dan dibandingkan dengan pesan pengguna. Dilayani endpoint
+   * `/embeddings` yang sama basis URL-nya (Ollama: `bge-m3`). Tanpa ini, setiap pesan yang
+   * tidak terbaca parser nilai jatuh ke model generatif — jujur, tetapi lambat di CPU.
+   */
+  LLM_MODEL_EMBEDDING: z.string().min(1).optional(),
+  /** Folder berkas contoh pemahaman; baku: `data/understanding` di akar repo (dicari ke atas). */
+  UNDERSTANDING_DATA_DIR: z.string().min(1).optional(),
+  /**
    * Latensi (2026-10-06, qwen2.5:7b di CPU: 10–60 detik per panggilan).
    * - `LLM_FAQ_REWRITE`: biarkan model merangkai ulang jawaban FAQ produk. Baku nonaktif:
    *   teks deterministiknya sudah utuh, dan model 7B hampir selalu ditolak pagar struktur —

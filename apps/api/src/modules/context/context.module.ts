@@ -21,6 +21,8 @@ import { ProductKnowledgeModule } from '../product-knowledge/product-knowledge.m
 import { ProductQuestionService } from '../product-knowledge/application/product-question.service.js';
 import { CompanyKnowledgeModule } from '../company-knowledge/company-knowledge.module.js';
 import { CompanyKnowledgeService } from '../company-knowledge/application/company-knowledge.service.js';
+import { UnderstandingModule } from '../understanding/understanding.module.js';
+import { UnderstandingService } from '../understanding/application/understanding.service.js';
 import { replySystemPrompt } from '../ai/application/prompts.js';
 import { IntentRouter } from './application/intent-router.js';
 import { ReplyWriter } from './application/reply-writer.js';
@@ -72,6 +74,7 @@ const messageServiceProvider = {
     AI_SERVICE,
     LoggerService,
     CompanyKnowledgeService,
+    UnderstandingService,
   ],
   useFactory: (
     conversations: ConversationService,
@@ -83,6 +86,7 @@ const messageServiceProvider = {
     ai: AiService | null,
     logger: LoggerService,
     company: CompanyKnowledgeService,
+    understanding: UnderstandingService,
   ) =>
     new MessageService(
       conversations,
@@ -94,18 +98,21 @@ const messageServiceProvider = {
       ai,
       logger.child({ module: 'context' }),
       company,
+      understanding,
     ),
 };
 
 @Module({
   // Katalog + pengetahuan produk: ruas PRODUCT_LOOKUP menjawab dari keduanya, nol LLM.
   // Pengetahuan perusahaan (Fase 16): ruas COMPANY_QUESTION, terpisah dari katalog.
+  // Pemahaman pertanyaan (P16-11): contoh sebagai data + penyandi teks, sebelum model generatif.
   imports: [
     AiModule,
     ConversationModule,
     ProductCatalogModule,
     ProductKnowledgeModule,
     CompanyKnowledgeModule,
+    UnderstandingModule,
   ],
   controllers: [MessageController],
   providers: [

@@ -16,8 +16,24 @@ import { MysqlLlmCallRecorder } from './infrastructure/mysql-llm-call.recorder.j
 import { OpenRouterTransport } from './infrastructure/openrouter-transport.js';
 import { OpenRouterAiService } from './application/openrouter-ai.service.js';
 import { DevDeterministicAiService } from './infrastructure/dev-deterministic-ai.service.js';
+import { TEXT_ENCODER } from './domain/text-encoder.port.js';
+import { OpenAiEmbeddingEncoder } from './infrastructure/openai-embedding.encoder.js';
 
 const transportProvider = { provide: LLM_TRANSPORT, useClass: OpenRouterTransport };
+
+/**
+ * Penyandi teks untuk modul `understanding`. Digerbang `LLM_MODEL_EMBEDDING` + kunci; tanpa
+ * keduanya `null`, dan pemahaman pertanyaan jatuh ke model generatif (lambat, tetapi jujur).
+ */
+const textEncoderProvider = {
+  provide: TEXT_ENCODER,
+  useFactory: (): OpenAiEmbeddingEncoder | null => {
+    const env = loadEnv();
+    return env.OPENROUTER_API_KEY && env.LLM_MODEL_EMBEDDING
+      ? new OpenAiEmbeddingEncoder(env.LLM_MODEL_EMBEDDING)
+      : null;
+  },
+};
 
 const recorderProvider = {
   provide: LLM_CALL_RECORDER,
@@ -60,7 +76,7 @@ const aiServiceProvider = {
 };
 
 @Module({
-  providers: [transportProvider, recorderProvider, aiServiceProvider],
-  exports: [AI_SERVICE],
+  providers: [transportProvider, recorderProvider, aiServiceProvider, textEncoderProvider],
+  exports: [AI_SERVICE, TEXT_ENCODER],
 })
 export class AiModule {}

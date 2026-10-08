@@ -7,14 +7,24 @@
  *   - SPESIFIKASI dari katalog aktif lewat `ProductQuestionService`, kalimatnya membawa sumber;
  *   - "A dan B" → dua pencarian; produk `discontinued` tidak dihitung ada;
  *   - parse model gagal → bertanya produk mana, tidak melempar.
+ *
+ * Pemahaman pesan (P16-11) diberikan eksplisit lewat `understood()`: yang diuji adalah aturan
+ * atas pemahaman itu, bukan pengenalan kalimatnya (itu diukur understanding.eval.spec.ts).
  */
 import type { AssistantStreamEvent, CatalogVersionKind, Product } from '@snouty/shared-types';
 import { describe, expect, it } from 'vitest';
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductAnswer } from '../../product-knowledge/domain/product-answer.js';
+import { TEST_LEXICON, understood } from '../../understanding/testing/understood.js';
+import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
+import { FITTING_VS_MATERIAL } from '../domain/subject.js';
 import { explain } from './pipe-knowledge.js';
-import { bestMatch, runProductQuestion } from './product-question-pipeline.js';
+import {
+  bestMatch,
+  runProductQuestion,
+  type ProductQuestionInput,
+} from './product-question-pipeline.js';
 
 const AW: Product = {
   id: 'A'.repeat(26),
@@ -87,6 +97,28 @@ const text = (events: readonly AssistantStreamEvent[]) =>
 const cards = (events: readonly AssistantStreamEvent[]) =>
   events.filter((e) => e.type === 'card').map((e) => (e as { card: { kind: string } }).card);
 
+type Labels = Parameters<typeof understood>[1];
+/** Masukan ruas: pesan + pemahamannya (label eksplisit, keluarga produk dari kosakata asli). */
+function input(
+  message: string,
+  labels: Labels = {},
+  over: Partial<Omit<ProductQuestionInput, 'message' | 'understanding' | 'lexicon'>> = {},
+): ProductQuestionInput {
+  return {
+    messageId: 'm',
+    message,
+    understanding: understood(message, labels) satisfies MessageUnderstanding,
+    lexicon: TEST_LEXICON,
+    ...over,
+  };
+}
+const COMPARISON: Labels = { intent: 'product_comparison' };
+const CONCEPT: Labels = { intent: 'product_concept' };
+const SPEC = (productAspect: NonNullable<MessageUnderstanding['productAspect']>): Labels => ({
+  intent: 'product_spec',
+  productAspect,
+});
+
 describe('runProductQuestion — KONSEP', () => {
   it('"apa bedanya fitting sama hdpe?" adalah KONSEP walau model bilang compatible_fittings; produk pendukung = keluarga HDPE, bukan pipa kabel', async () => {
     const telkom: Product = {
@@ -108,14 +140,14 @@ describe('runProductQuestion — KONSEP', () => {
     let asked = 0;
     const events = await runProductQuestion(
       ai({ productQuery: 'HDPE', aspect: 'compatible_fittings' }),
-      catalog({ HDPE: [telkom, hdpe] }),
+      catalog({ hdpe: [telkom, hdpe] }),
       {
         async answer() {
           asked += 1;
           throw new Error('aspek tidak boleh ditanyakan untuk pertanyaan konsep');
         },
       } as never,
-      { messageId: 'm', message: 'apa bedanya fitting sama hdpe ?' },
+      input('apa bedanya fitting sama hdpe ?', { ...COMPARISON, knowledgeTopics: ['fitting'] }),
     );
     const out = text(events);
     expect(asked).toBe(0);
@@ -170,20 +202,33 @@ describe('runProductQuestion — KONSEP', () => {
   });
 
   it('"bikinin skema perbedaannya dalam bentuk table" setelah jawaban fitting vs HDPE → tabel dari jawaban terakhir, bukan "Produk mana"', async () => {
-    const previous = explain('apa bedanya fitting sama hdpe ?', 'HDPE');
+    const previous = explain({
+      families: ['hdpe'],
+      topics: ['fitting'],
+      comparison: true,
+      aboutMaterial: true,
+    });
     const events = await runProductQuestion(
       ai({ productQuery: null, aspect: null }),
       brokenCatalog,
       noQuestions,
-      {
-        messageId: 'm',
-        message: 'bikinin skema perbedaan nya dalam bentuk table dong biar lebih enak dibaca',
-        recentTurns: [
-          { role: 'user', text: 'apa bedanya fitting sama hdpe ?' },
-          { role: 'assistant', text: previous },
-        ],
-        subject: { kind: 'product', entity: 'hdpe', topic: 'comparison', depth: 'standard' },
-      },
+      input(
+        'bikinin skema perbedaan nya dalam bentuk table dong biar lebih enak dibaca',
+        { intent: 'follow_up_reformat', format: 'table' },
+        {
+          recentTurns: [
+            { role: 'user', text: 'apa bedanya fitting sama hdpe ?' },
+            { role: 'assistant', text: previous },
+          ],
+          // Topik subjek yang disimpan productSubject setelah 'fitting vs HDPE'.
+          subject: {
+            kind: 'product',
+            entity: 'hdpe',
+            topic: FITTING_VS_MATERIAL,
+            depth: 'standard',
+          },
+        },
+      ),
     );
     const out = text(events);
     expect(out).toContain('| Aspek | **HDPE** | **Fitting** |');
@@ -197,11 +242,18 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: null, aspect: null }),
       brokenCatalog,
       noQuestions,
-      {
-        messageId: 'm',
-        message: 'harganya berapa?',
-        subject: { kind: 'product', entity: 'hdpe', topic: 'product_overview', depth: 'standard' },
-      },
+      input(
+        'harganya berapa?',
+        { intent: 'price_question' },
+        {
+          subject: {
+            kind: 'product',
+            entity: 'hdpe',
+            topic: 'product_overview',
+            depth: 'standard',
+          },
+        },
+      ),
     );
     expect(text(events)).toContain('Harga tidak saya tampilkan di sini');
     expect(text(events)).not.toContain('Produk mana');
@@ -213,16 +265,18 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: null, aspect: null }),
       brokenCatalog,
       noQuestions,
-      {
-        messageId: 'm',
-        message: 'yang mana buat kamar mandi?',
-        subject: {
-          kind: 'product',
-          entity: 'pvc d dan pvc aw',
-          topic: 'comparison',
-          depth: 'standard',
+      input(
+        'yang mana buat kamar mandi?',
+        { intent: 'follow_up_choice' },
+        {
+          subject: {
+            kind: 'product',
+            entity: 'pvc d dan pvc aw',
+            topic: 'comparison',
+            depth: 'standard',
+          },
         },
-      },
+      ),
     );
     expect(text(events)).toContain('adalah kelas pipa PVC');
     expect(text(events)).not.toContain('Produk mana');
@@ -233,7 +287,7 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),
       brokenCatalog,
       noQuestions,
-      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+      input('apa bedanya pvc sama hdpe?', COMPARISON),
     );
     const out = text(events);
     expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
@@ -250,7 +304,7 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),
       brokenCatalog,
       noQuestions,
-      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+      input('apa bedanya pvc sama hdpe?', COMPARISON),
     );
     const previous = text(full);
     const turns = [
@@ -263,7 +317,7 @@ describe('runProductQuestion — KONSEP', () => {
       brokenCatalog,
       noQuestions,
       // Pertanyaan lain yang bukan harga — harga punya jawaban tetapnya sendiri (OQ-03).
-      { messageId: 'm', message: 'kalau pvc vs hdpe soal ketahanannya?', recentTurns: turns },
+      input('kalau pvc vs hdpe soal ketahanannya?', COMPARISON, { recentTurns: turns }),
     );
     expect(text(other)).toContain('Seperti tadi: **PVC (uPVC) kaku');
     expect(text(other)).not.toContain('- Sambungan:');
@@ -272,7 +326,7 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),
       brokenCatalog,
       noQuestions,
-      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?', recentTurns: turns },
+      input('apa bedanya pvc sama hdpe?', COMPARISON, { recentTurns: turns }),
     );
     expect(text(again)).toContain('- Sambungan:');
   });
@@ -282,7 +336,7 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),
       catalog({ pvc: [SAMPLE_AW] }, 'sample'),
       noQuestions,
-      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+      input('apa bedanya pvc sama hdpe?', COMPARISON),
     );
     const out = text(events);
     expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
@@ -296,7 +350,7 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),
       catalog({ pvc: [AW] }),
       noQuestions,
-      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+      input('apa bedanya pvc sama hdpe?', COMPARISON),
     );
     const out = text(events);
     expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
@@ -321,7 +375,7 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),
       catalog({ pvc: [AW] }),
       noQuestions,
-      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+      input('apa bedanya pvc sama hdpe?', COMPARISON),
       reply as never,
       'PROMPT-FAQ',
     );
@@ -346,7 +400,7 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),
       catalog({}, 'sample'),
       noQuestions,
-      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+      input('apa bedanya pvc sama hdpe?', COMPARISON),
       reply as never,
       'PROMPT-FAQ',
     );
@@ -366,7 +420,7 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'pvc dan hdpe', aspect: null }),
       catalog({ pvc: [AW] }),
       noQuestions,
-      { messageId: 'm', message: 'apa bedanya pvc sama hdpe?' },
+      input('apa bedanya pvc sama hdpe?', COMPARISON),
       reply as never,
       'PROMPT-FAQ',
     );
@@ -380,7 +434,7 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'pvc aw', aspect: null }),
       catalog({ 'pvc aw': [AW] }),
       noQuestions,
-      { messageId: 'm', message: 'apa itu pvc aw?' },
+      input('apa itu pvc aw?', CONCEPT),
     );
     expect(text(found)).toContain('Pipa PVC AW (PIPA AIR BERSIH · SNI): Pipa untuk air bersih');
 
@@ -388,7 +442,7 @@ describe('runProductQuestion — KONSEP', () => {
       ai({ productQuery: 'xyz', aspect: null }),
       catalog({}, 'sample'),
       noQuestions,
-      { messageId: 'm', message: 'apa itu xyz?' },
+      input('apa itu xyz?', CONCEPT),
     );
     expect(text(unknown)).toContain('Produk mana yang Anda maksud?');
     expect(cards(unknown)).toEqual([]);
@@ -401,7 +455,7 @@ describe('runProductQuestion — nada percakapan', () => {
       ai({ productQuery: 'hdpe', aspect: null }),
       catalog({}, 'sample'),
       noQuestions,
-      { messageId: 'm', message: 'kalo pipa HDPE di Pralon gmn? ok ngga?' },
+      input('kalo pipa HDPE di Pralon gmn? ok ngga?', CONCEPT),
     );
     const out = text(first);
     expect(out).toMatch(/^\*\*HDPE\*\* itu lentur dan bisa digulung: /);
@@ -415,14 +469,12 @@ describe('runProductQuestion — nada percakapan', () => {
       ai({ productQuery: 'ppr', aspect: null }),
       catalog({}, 'sample'),
       noQuestions,
-      {
-        messageId: 'm',
-        message: 'kalau PPR di Pralon?',
+      input('kalau PPR di Pralon?', CONCEPT, {
         recentTurns: [
           { role: 'user', text: 'kalo pipa HDPE di Pralon gmn? ok ngga?' },
           { role: 'assistant', text: out },
         ],
-      },
+      }),
     );
     expect(text(second)).not.toContain('katalog Pralon belum terpasang'); // sudah dibilang tadi
   });
@@ -435,7 +487,7 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
       ai({ productQuery: null, aspect: null }),
       { ...catalog({}), listProducts: async () => ({ items: [AW, D], nextCursor: null }) },
       noQuestions,
-      { messageId: 'm', message: 'gw mau nanya produk pralon itu yang terkenal apa sih?' },
+      input('gw mau nanya produk pralon itu yang terkenal apa sih?', { intent: 'product_range' }),
     );
     const out = text(events);
     expect(out).toContain('**Keluarga produk di katalog Pralon yang aktif**');
@@ -452,7 +504,7 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
         listProducts: async () => ({ items: [SAMPLE_AW], nextCursor: null }),
       },
       noQuestions,
-      { messageId: 'm', message: 'produk pralon apa aja?' },
+      input('produk pralon apa aja?', { intent: 'product_range' }),
     );
     const out = text(events);
     expect(out).toContain('Katalog produk Pralon belum terpasang');
@@ -483,7 +535,7 @@ describe('runProductQuestion — SPESIFIKASI', () => {
       ai({ productQuery: 'pvc aw', aspect: 'standard' }),
       catalog({ 'pvc aw': [AW] }),
       questions(STANDARD),
-      { messageId: 'm', message: 'standar pvc aw apa?' },
+      input('standar pvc aw apa?', SPEC('standard')),
       reply as never,
       'PROMPT-FAQ',
     );
@@ -496,7 +548,7 @@ describe('runProductQuestion — SPESIFIKASI', () => {
       ai({ productQuery: 'hdpe', aspect: 'sizes' }),
       catalog({}),
       noQuestions,
-      { messageId: 'm', message: 'ukuran hdpe apa saja?' },
+      input('ukuran hdpe apa saja?', SPEC('sizes')),
     );
     expect(text(pralon)).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
 
@@ -504,7 +556,7 @@ describe('runProductQuestion — SPESIFIKASI', () => {
       ai({ productQuery: 'hdpe', aspect: 'sizes' }),
       catalog({}, 'sample'),
       noQuestions,
-      { messageId: 'm', message: 'ukuran hdpe apa saja?' },
+      input('ukuran hdpe apa saja?', SPEC('sizes')),
     );
     expect(text(sample)).toContain('"hdpe" belum ada di data katalog yang terpasang');
     expect(text(sample)).not.toContain('tidak ada di katalog Pralon');
@@ -516,7 +568,7 @@ describe('runProductQuestion — SPESIFIKASI', () => {
       ai({ productQuery: 'pvc aw', aspect: 'sizes' }),
       brokenCatalog,
       noQuestions,
-      { messageId: 'm', message: 'ukuran pvc aw?' },
+      input('ukuran pvc aw?', SPEC('sizes')),
     );
     expect(text(events)).toContain('Katalog Pralon sedang tidak terjangkau');
     expect(events.at(-1)?.type).toBe('message.end');
@@ -527,7 +579,7 @@ describe('runProductQuestion — SPESIFIKASI', () => {
       ai({ productQuery: 'pvc aw dan pvc d', aspect: 'standard' }),
       catalog({ 'pvc aw': [AW], 'pvc d': [{ ...AW, id: 'B'.repeat(26), status: 'discontinued' }] }),
       questions(STANDARD),
-      { messageId: 'm', message: 'standar pvc aw dan pvc d?' },
+      input('standar pvc aw dan pvc d?', SPEC('standard')),
     );
     const out = text(events);
     expect(out).toContain('"pvc d" tidak ada di katalog Pralon yang aktif');
@@ -547,17 +599,14 @@ describe('runProductQuestion — SPESIFIKASI', () => {
         sourceDocument: 'Katalog 2026',
         sourcePage: 14,
       }),
-      { messageId: 'm', message: 'tekanan kerja pvc aw?' },
+      input('tekanan kerja pvc aw?', SPEC('pressure_class')),
     );
     expect(text(events)).toContain('belum cukup di katalog');
     expect(cards(events).map((c) => c.kind)).toEqual(['cta', 'product']);
   });
 
   it('parse model gagal → bertanya produk mana, tidak melempar', async () => {
-    const events = await runProductQuestion(failingAi, catalog({}), noQuestions, {
-      messageId: 'm',
-      message: '???',
-    });
+    const events = await runProductQuestion(failingAi, catalog({}), noQuestions, input('???'));
     expect(text(events)).toContain('Produk mana yang Anda maksud?');
     expect(events.at(-1)?.type).toBe('message.end');
   });

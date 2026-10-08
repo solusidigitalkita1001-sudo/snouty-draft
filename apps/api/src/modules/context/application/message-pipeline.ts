@@ -58,11 +58,11 @@ import { planClarification } from '../domain/clarification.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
-import { asksAdvice } from '../domain/message-signals.js';
 import { requirementFieldLabel, requirementValueLabel } from '../domain/requirement-labels.js';
+import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
-import { adviseMaterials, materialsIn } from './pipe-knowledge.js';
+import { adviseMaterials, materialsFor } from './pipe-knowledge.js';
 import { openerReply, replyFor } from './reply-copy.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 
@@ -79,6 +79,11 @@ export interface PipelineInput {
   readonly emit?: EventSink;
   /** Bahasa percakapan (Fase 15) — untuk balasan model; teks deterministik menyusul per item. */
   readonly locale?: Locale;
+  /**
+   * Hasil pemahaman pesan (P16-11): permintaan rekomendasi bahan dan keluarga produk yang disebut
+   * dibaca dari sini, bukan dari pola kalimat. Opsional supaya jalur edit/jawaban kartu tak berubah.
+   */
+  readonly understanding?: MessageUnderstanding;
 }
 
 export interface PipelineResult {
@@ -288,7 +293,10 @@ export async function runUnderstanding(
   // Pertanyaan REKOMENDASI bahan ("lebih bagus PVC atau HDPE buat rumah 2 lantai?"): kebutuhannya
   // tetap diekstrak seperti biasa, tetapi pertanyaannya dijawab — bukan diam lalu menyodorkan
   // formulir, dan bukan mengulang penjelasan bahan. Teks dari pengetahuan milik kode.
-  const materials = asksAdvice(input.message) ? materialsIn(input.message) : [];
+  const materials =
+    input.understanding?.intent?.label === 'advice_request'
+      ? materialsFor(input.understanding.families)
+      : [];
   if (materials.length > 0) {
     events.push({
       type: 'token',

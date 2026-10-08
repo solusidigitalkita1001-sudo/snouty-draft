@@ -1,0 +1,88 @@
+/**
+ * Kosakata ENTITAS — nama keluarga produk dan merek — dari `data/understanding/vocabulary.json`.
+ *
+ * Ini pengenalan nama, bukan pemahaman pertanyaan: "hdpe" adalah nama keluarga produk apa pun
+ * kalimatnya. Nama yang baru (keluarga produk baru di katalog, merek pesaing baru) ditambah di
+ * data, bukan di kode.
+ */
+import { z } from 'zod';
+
+export const VocabularySchema = z.object({
+  /** Merek sendiri — "Pralon" di pesan bukan pesaing dan bukan pertanyaan perusahaan dengan sendirinya. */
+  ownBrand: z.array(z.string().trim().min(1)).min(1),
+  /** Keluarga produk kanonis → alias yang dipakai pengguna. */
+  productFamilies: z.record(z.string().trim().min(1), z.array(z.string().trim().min(1)).min(1)),
+  /** Nama merek pesaing. */
+  competitorBrands: z.array(z.string().trim().min(1)),
+  /** Rujukan umum ke merek lain ("merek lain", "kompetitor"). */
+  competitorReferences: z.array(z.string().trim().min(1)),
+  /**
+   * Nama hal-hal yang menandai KEBUTUHAN instalasi (bangunan, fixture, sumber air, jenis
+   * jalur): pesan yang menyebutnya membawa kebutuhan — aturan presedensinya di `context`.
+   */
+  requirementEntities: z.array(z.string().trim().min(1)),
+});
+export type Vocabulary = z.infer<typeof VocabularySchema>;
+
+interface Alias {
+  readonly canonical: string;
+  readonly pattern: RegExp;
+}
+
+function escape(alias: string): string {
+  return alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s*');
+}
+
+/** Pencocokan nama pada batas kata, alias terpanjang dulu supaya "pvc aw" menang atas "pvc". */
+export class EntityLexicon {
+  private readonly families: readonly Alias[];
+  private readonly competitors: RegExp;
+  private readonly own: RegExp;
+  private readonly requirements: RegExp;
+
+  constructor(vocabulary: Vocabulary) {
+    this.families = Object.entries(vocabulary.productFamilies)
+      .flatMap(([canonical, aliases]) => aliases.map((alias) => ({ canonical, alias })))
+      .sort((a, b) => b.alias.length - a.alias.length)
+      .map(({ canonical, alias }) => ({
+        canonical,
+        pattern: new RegExp(`(?<![a-z0-9])${escape(alias)}(?![a-z0-9])`, 'i'),
+      }));
+    const competitorTerms = [...vocabulary.competitorBrands, ...vocabulary.competitorReferences];
+    this.competitors = anyOf(competitorTerms);
+    this.own = anyOf(vocabulary.ownBrand);
+    this.requirements = anyOf(vocabulary.requirementEntities);
+  }
+
+  /** Keluarga produk yang disebut, kanonis, urut kemunculan, tanpa duplikat. */
+  productFamilies(text: string): readonly string[] {
+    const found: { canonical: string; at: number }[] = [];
+    let remaining = text.toLowerCase();
+    for (const { canonical, pattern } of this.families) {
+      const match = pattern.exec(remaining);
+      if (!match) continue;
+      found.push({ canonical, at: match.index });
+      // Alias yang sudah dipakai dihapus supaya "pvc" di dalam "pvc aw" tidak dihitung dua kali.
+      remaining = remaining.replace(pattern, (m) => ' '.repeat(m.length));
+    }
+    return [...new Set(found.sort((a, b) => a.at - b.at).map((f) => f.canonical))];
+  }
+
+  mentionsCompetitor(text: string): boolean {
+    return this.competitors.test(text);
+  }
+
+  mentionsOwnBrand(text: string): boolean {
+    return this.own.test(text);
+  }
+
+  /** Menyebut bangunan/fixture/sumber air/jenis jalur — isyarat kebutuhan instalasi. */
+  mentionsRequirementEntity(text: string): boolean {
+    return this.requirements.test(text);
+  }
+}
+
+function anyOf(terms: readonly string[]): RegExp {
+  if (terms.length === 0) return /$^/;
+  return new RegExp(`(?<![a-z0-9])(?:${terms.map(escape).join('|')})(?![a-z0-9])`, 'i');
+}

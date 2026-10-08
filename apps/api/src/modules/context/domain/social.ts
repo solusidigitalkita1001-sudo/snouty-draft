@@ -3,93 +3,23 @@
  * — lalu jatuh ke teks pembuka "Halo! Saya SNOUTY…" yang salah tempat. Ucapan terima kasih,
  * persetujuan singkat, dan pamit tidak membawa isi; jawabannya tetap, cepat, dan tidak mengubah
  * state apa pun.
+ *
+ * Bentuk kalimatnya dikenali modul `understanding` dari contoh (data). Pagar di sini: pesan yang
+ * menyebut produk atau kebutuhan membawa isi, apa pun bentuk sosialnya ("makasih, terus bedanya
+ * sama pipa AW apa?" bukan ucapan terima kasih yang berdiri sendiri).
  */
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
+import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
+import { isSocial } from '../../understanding/domain/labels.js';
 
-type SocialKind = 'thanks' | 'ack' | 'bye';
-
-const THANKS = /\b(makasih|makasi|terima kasih|trims|thanks?|thank you|thx|tq)\b/i;
-const BYE = /\b(bye|dadah|sampai jumpa|selamat tinggal|see you|good ?bye|pamit)\b/i;
-/** Seluruh kata adalah persetujuan/pengisi: "ok", "oke sip", "siap", "noted", "baik". */
-const ACK_WORDS = new Set([
-  'ok',
-  'oke',
-  'okay',
-  'okey',
-  'okeh',
-  'sip',
-  'siap',
-  'noted',
-  'baik',
-  'baiklah',
-  'mantap',
-  'mantab',
-  'keren',
-  'nice',
-  'good',
-  'great',
-  'cool',
-  'got',
-  'it',
-  'understood',
-  'paham',
-  'ngerti',
-  'mengerti',
-  'jelas',
-  'oh',
-  'ohh',
-  'ooh',
-  'ya',
-  'iya',
-  'yes',
-  'yup',
-  'yep',
-  'deh',
-  'dah',
-  'ya',
-  'ok',
-  'sudah',
-  'cukup',
-  'enough',
-  'done',
-  'selesai',
-  'jo',
-  'kak',
-  'min',
-  'bro',
-  'snouty',
-  'ya',
-  'yah',
-  'nih',
-  'aja',
-]);
-const MAX_WORDS = 5;
-
-function words(message: string): string[] {
-  return message
-    .toLowerCase()
-    .replace(/[^a-z\s]/g, ' ')
-    .split(/\s+/)
-    .filter((w) => w.length > 0);
-}
+export type SocialKind = 'thanks' | 'ack' | 'bye';
 
 /** Jenis pesan sosial; `null` bila pesan membawa isi. */
-export function socialKind(message: string): SocialKind | null {
-  const ws = words(message);
-  if (ws.length === 0 || ws.length > MAX_WORDS) return null;
-  const rest = ws.filter((w) => !ACK_WORDS.has(w));
-  if (rest.length === 0) return 'ack';
-  // Frasa dua kata ("terima kasih", "sampai jumpa") diperiksa pada kalimatnya, bukan per kata;
-  // yang tersisa setelah frasa dan penguat dibuang harus kosong — kalau tidak, pesan membawa isi.
-  const joined = rest.join(' ');
-  const leftover = (pattern: RegExp) =>
-    joined
-      .replace(pattern, ' ')
-      .replace(/\b(banyak|sekali|you|ya|yaa|lho|loh)\b/g, ' ')
-      .trim();
-  if (THANKS.test(joined) && leftover(new RegExp(THANKS.source, 'gi')) === '') return 'thanks';
-  if (BYE.test(joined) && leftover(new RegExp(BYE.source, 'gi')) === '') return 'bye';
-  return null;
+export function socialKind(u: MessageUnderstanding): SocialKind | null {
+  const intent = u.intent?.label;
+  if (!isSocial(intent)) return null;
+  if (u.families.length > 0 || u.mentionsRequirement || u.mentionsCompetitor) return null;
+  return intent;
 }
 
 const COPY: Readonly<Record<Locale, Readonly<Record<SocialKind, string>>>> = {
@@ -106,7 +36,10 @@ const COPY: Readonly<Record<Locale, Readonly<Record<SocialKind, string>>>> = {
 };
 
 /** Teks balasan sosial, atau `null` bila pesan bukan pesan sosial. */
-export function socialReply(message: string, locale: Locale = DEFAULT_LOCALE): string | null {
-  const kind = socialKind(message);
+export function socialReply(
+  u: MessageUnderstanding,
+  locale: Locale = DEFAULT_LOCALE,
+): string | null {
+  const kind = socialKind(u);
   return kind === null ? null : COPY[locale][kind];
 }

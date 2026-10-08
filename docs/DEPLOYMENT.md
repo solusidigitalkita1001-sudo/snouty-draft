@@ -64,6 +64,14 @@ Ollama (pilihan yang dipakai, gratis — keputusan pemilik 2026-10-07): di `.env
 Tarik sekali: `docker compose --env-file .env.production -f deploy/docker-compose.prod.yml exec ollama ollama pull qwen2.5:7b-instruct`
 (4,7 GB ke volume `ollama-data`). RAM saat model dimuat ±5 GB; `OLLAMA_KEEP_ALIVE=24h` menahannya di RAM.
 
+Model EMBEDDING untuk pemahaman pertanyaan (P16-11, `docs/AI_BEHAVIOR.md` §4a): `bge-m3` (±1,2 GB, 567M
+parameter; puluhan milidetik per kalimat di CPU, dan Ollama menjalankannya di runner terpisah dari 7B).
+Tarik sekali: `docker compose --env-file .env.production -f deploy/docker-compose.prod.yml exec ollama ollama pull bge-m3`,
+lalu `LLM_MODEL_EMBEDDING=bge-m3` di `.env.production`. Tanpa ini API tetap jalan, tetapi setiap pesan
+yang tidak terbaca parser nilai jatuh ke model generatif (40–170 s per klasifikasi). Contoh kalimat
+dan kosakata ada di `data/understanding/` (ikut ke image); vektor contoh di-cache di `/tmp` kontainer,
+jadi boot pertama setelah image baru menyandikan ±1.300 contoh (±40 detik), boot berikutnya gratis.
+
 Mengapa hanya satu model, bukan model kecil untuk tugas ringan: diuji 2026-10-07 di server (4 CPU, tanpa
 GPU) — `qwen2.5:3b-instruct` hanya ±2× lebih cepat (prompt 43 vs 23 tok/s, jawaban 1,7 vs 0,9 tok/s), dan
 karena Ollama melayani satu permintaan sekali waktu di CPU, tugas ringan (judul) yang berjalan bersamaan

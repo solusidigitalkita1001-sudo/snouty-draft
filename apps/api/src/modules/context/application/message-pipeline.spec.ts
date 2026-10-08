@@ -19,6 +19,7 @@ import { mergeRequirement } from '../domain/context-merger.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import { applyEdit, runUnderstanding, type PipelineInput } from './message-pipeline.js';
+import { understood } from '../../understanding/testing/understood.js';
 import type { RoutingDecision } from './intent-router.js';
 
 const T0 = '2026-01-01T00:00:00.000Z';
@@ -106,7 +107,13 @@ describe('runUnderstanding — bentuk event SSE', () => {
     const ai = aiExtracting({ building: { type: 'residential', floors: 2 } });
     const { events } = await runUnderstanding(
       ai,
-      input({ message: 'lebih bagus PVC atau HDPE buat rumah 2 lantai?' }),
+      input({
+        message: 'lebih bagus PVC atau HDPE buat rumah 2 lantai?',
+        // Bentuk "minta rekomendasi" datang dari pemahaman (data); bahannya dari kosakata.
+        understanding: understood('lebih bagus PVC atau HDPE buat rumah 2 lantai?', {
+          intent: 'advice_request',
+        }),
+      }),
     );
 
     expect(events.map((e) => e.type)).toEqual([

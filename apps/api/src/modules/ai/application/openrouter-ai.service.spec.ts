@@ -190,10 +190,14 @@ describe('OpenRouterAiService', () => {
 });
 
 describe('jalur cepat tanpa model (latensi CPU)', () => {
-  it('sapaan, merek pesaing, dan konsep produk tidak memanggil transport', async () => {
+  it('sapaan dan konsep produk kini LEWAT transport — jalur cepatnya hidup di modul understanding (P16-11)', async () => {
+    // Router di `context` memotong bentuk yang dikenali dari contoh SEBELUM adapter ini; yang
+    // sampai ke sini selalu ditanyakan ke model, tanpa daftar frasa di adapter.
     await withEnv(async () => {
       const { transport, calls } = transportReturning(
-        '{"intent":"REQUIREMENT_STATEMENT","confidence":0.9}',
+        '{"intent":"OUT_OF_SCOPE","confidence":0.9}',
+        // `null` dibuang `withoutNulls` sebelum skema ketat; jawaban model lengkap seperti ini.
+        '{"productQuery":"pvc dan hdpe","aspect":"standard","size":"3/4"}',
       );
       const { recorder } = recorderCapturing();
       const svc = new OpenRouterAiService(transport, recorder, () => 0);
@@ -201,14 +205,10 @@ describe('jalur cepat tanpa model (latensi CPU)', () => {
       expect(
         (await svc.classifyIntent({ message: 'hai', hasExistingRequirements: false })).intent,
       ).toBe('OUT_OF_SCOPE');
-      expect(
-        (await svc.classifyIntent({ message: 'Pralon vs Rucika?', hasExistingRequirements: false }))
-          .intent,
-      ).toBe('COMPETITOR_QUESTION');
       expect((await svc.parseProductQuestion('apa bedanya pvc sama hdpe?')).productQuery).toBe(
         'pvc dan hdpe',
       );
-      expect(calls).toHaveLength(0);
+      expect(calls).toHaveLength(2);
     });
   });
 

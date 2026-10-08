@@ -88,9 +88,10 @@ Lebih cepat, lebih murah, dan jawabannya pasti benar.
 
 **Intent sadar konteks, presedensi di kode.** Klasifikasi model menerima giliran terakhir (4
 giliran) dan diminta membaca maksud, bukan kata kunci. Di atasnya, `withRequirementPrecedence`
-(`intent-router.ts`) menerapkan satu aturan deterministik: pesan yang membawa isyarat kebutuhan
-(`message-signals.ts`: lantai, kamar mandi, toren, PDAM, rumah, …) adalah `REQUIREMENT_STATEMENT`
-walaupun model menyebutnya `PRODUCT_LOOKUP`/`OUT_OF_SCOPE`/ragu. Jadi "apa bedanya PVC sama HDPE?"
+(`intent-router.ts`) menerapkan satu aturan deterministik: pesan yang menyebut hal-hal kebutuhan
+(kosakata `data/understanding/vocabulary.json` → `requirementEntities`: lantai, kamar mandi, toren,
+PDAM, rumah, …) adalah `REQUIREMENT_STATEMENT` walaupun model menyebutnya
+`PRODUCT_LOOKUP`/`OUT_OF_SCOPE`/ragu. Jadi "apa bedanya PVC sama HDPE?"
 → FAQ (menjelaskan), tetapi "lebih bagus PVC atau HDPE buat rumah 2 lantai?" → kebutuhan
 diekstrak, lalu pertanyaannya dijawab sebagai REKOMENDASI (`adviseMaterials`: apa yang
 menentukan, aturan praktis tiap bahan, keduanya bisa dipakai di bagian berbeda) dan kartu
@@ -136,6 +137,39 @@ tanpa diminta — kesalahan yang jauh lebih mahal daripada satu pertanyaan konfi
 **bila ragu, bertanya**.
 
 ---
+
+## 4a. Pemahaman pertanyaan dari contoh (P16-11)
+
+Aturan proyek (2026-10-07): **pertanyaan pengguna tidak pernah di-hardcode**. Tidak ada regex atau
+daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah modul
+`understanding`:
+
+- **Contoh sebagai data.** `data/understanding/*.json`: satu katalog per keputusan — `intent`
+  (28 label halus: sapaan, terima kasih, pesaing, konsep/perbandingan/spesifikasi/ragam/harga produk,
+  pertanyaan guna/pengetahuan/rekomendasi, kebutuhan bangunan/irigasi/teknis/mutasi/jawaban
+  klarifikasi, penjelasan, enam jenis lanjutan), `depth`, `format`, `company-topic`,
+  `product-aspect`, `knowledge-topic` (multi-label). Tiap label berisi kalimat contoh dua bahasa.
+  Berkas memuat `threshold` (kemiripan minimum) dan `margin` (selisih minimum atas label kedua;
+  di bawahnya "ragu").
+- **Kosakata entitas.** `vocabulary.json`: keluarga produk kanonis beserta aliasnya, merek sendiri,
+  merek dan rujukan pesaing, hal-hal kebutuhan. Dicocokkan pada batas kata — ini pengenalan NAMA,
+  bukan pola kalimat.
+- **Penyandi.** Contoh disandikan sekali saat boot (vektor di-cache di berkas) dengan model
+  embedding di endpoint `/embeddings` yang sama basis URL-nya (`LLM_MODEL_EMBEDDING`, Ollama
+  `bge-m3`); per pesan satu penyandian lalu kosinus terhadap semua contoh. Skor label = contoh
+  terdekatnya, jadi menambah satu kalimat yang gagal dikenali langsung memperbaiki kalimat serupa.
+- **Kode memegang perilaku, bukan kalimat.** `labels.ts` adalah satu-satunya daftar label; data
+  dengan label di luar itu ditolak saat boot. `context` memetakan label ke intent kasar dan
+  menerapkan pagar: label pesaing hanya sah bila pesan menyebut pesaing; pertanyaan perusahaan
+  yang menyebut Pralon tetap perusahaan walau juga menyebut "pabrik"; lanjutan yang menyebut produk
+  atau kebutuhan baru bukan lanjutan; mutasi mustahil tanpa kebutuhan yang sudah ada.
+- **Ragu → model generatif.** Pesan yang tidak mirip contoh mana pun (`intent: null`) diserahkan ke
+  model seperti sebelumnya. Tanpa penyandi (`LLM_MODEL_EMBEDDING` kosong) semua keputusan makna
+  `null`: jujur tetapi lambat.
+- **Evaluasi.** `evals/understanding-cases.json` (kalimat yang sengaja bukan salinan contoh) diukur
+  `understanding.eval.spec.ts` terhadap `bge-m3` lokal (`UNDERSTANDING_EVAL=1`): akurasi intent
+  harus ≥ 95%. Kalimat yang gagal di produksi masuk ke contoh (dan ke golden set bila mewakili
+  bentuk baru).
 
 ## 5. Ekstraksi terstruktur
 
@@ -312,9 +346,13 @@ Di CPU laptop, qwen2.5:7b memakan 10–60 detik per panggilan (`llm_calls`: judu
 prosa balasan 43 s, intent 12,6 s, ekstraksi 17,7 s). Yang dilakukan, dengan prinsip yang sama —
 **tidak memanggil model bila kalimatnya tidak butuh model**:
 
-- `ai/domain/heuristics.ts`: sapaan utuh, merek pesaing, dan konsep produk ("apa bedanya PVC dan
-  HDPE") dipetakan tanpa model; parse pertanyaan produk memakai model hanya bila keluarga produknya
-  tidak tersurat. Pesan berisyarat kebutuhan selalu ke model — lalu presedensi kebutuhan di `context`.
+- Modul `understanding` (P16-11, menggantikan `ai/domain/heuristics.ts`): bentuk kalimat —
+  sapaan, pesaing, konsep/spesifikasi/harga produk, pengetahuan, kebutuhan, lanjutan — dikenali
+  dari CONTOH di `data/understanding/*.json` lewat kemiripan vektor (`bge-m3` di Ollama, puluhan
+  milidetik di CPU); keluarga produk, merek, dan hal-hal kebutuhan dari kosakata
+  `vocabulary.json`. Model generatif hanya untuk kalimat yang tidak mirip contoh mana pun.
+  Parse pertanyaan produk memakai model hanya bila keluarga produknya tidak tersurat dan tidak ada
+  topik pengetahuan yang dikenali. Lihat §4a.
 - Judul percakapan: potongan pesan dipasang instan, model memperhalusnya di latar.
 - `LLM_FAQ_REWRITE=false` (baku): FAQ produk dijawab teks deterministik tanpa menunggu model.
 - `LLM_REPLY_TIMEOUT_MS` (20 s): balasan percakapan yang lewat batas **dibatalkan** (`AbortSignal`

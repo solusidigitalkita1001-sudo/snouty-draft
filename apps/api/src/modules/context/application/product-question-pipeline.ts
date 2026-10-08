@@ -20,13 +20,15 @@
  */
 import { DEFAULT_LOCALE, type ConversationSubject, type Locale } from '@snouty/shared-types';
 import {
+  FITTING_VS_MATERIAL,
   isChoiceFollowUp,
   isFollowUp,
   isFormatFollowUp,
-  requestedDepth,
-  requestedFormat,
 } from '../domain/subject.js';
-import { PRODUCT_CONCEPT, heuristicProductQuestion } from '../../ai/domain/heuristics.js';
+import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
+import type { EntityLexicon } from '../../understanding/domain/vocabulary.js';
+import { isConceptual } from '../../understanding/domain/labels.js';
+import { parseSize } from '../domain/size-parser.js';
 import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
 import {
   PipeSize,
@@ -43,8 +45,7 @@ import { isAnswerable, isAuthoritative } from '../../product-catalog/domain/cata
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { endEvent } from './message-pipeline.js';
-import { asksProductRange } from '../domain/message-signals.js';
-import { MATERIALS, briefComparison, explain, materialsIn, reformat } from './pipe-knowledge.js';
+import { MATERIALS, briefComparison, explain, materialsFor, reformat } from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, productAnswerCopy } from './product-answer-text.js';
 
@@ -66,51 +67,64 @@ export interface ProductQuestionInput {
    * HDPE — entitas subjek menjadi query bila pesannya tidak menyebut produk.
    */
   readonly subject?: ConversationSubject;
+  /** Hasil pemahaman pesan (intent, aspek, topik, keluarga produk) — dihitung sekali per giliran. */
+  readonly understanding: MessageUnderstanding;
+  /** Kosakata entitas, untuk membaca keluarga produk dari teks lain (subjek, jawaban sebelumnya). */
+  readonly lexicon: Pick<EntityLexicon, 'productFamilies'>;
 }
 
 /** Pesan lanjutan atas subjek produk: entitas subjek yang ditanya, bukan pesannya. */
 function subjectQuery(input: ProductQuestionInput): string | null {
   const subject = input.subject;
   if (!subject || subject.kind === 'company' || subject.kind === 'case') return null;
-  return isFollowUp(input.message) ||
-    isFormatFollowUp(input.message) ||
-    isChoiceFollowUp(input.message)
-    ? subject.entity
-    : null;
+  const u = input.understanding;
+  return isFollowUp(u) || isFormatFollowUp(u) || isChoiceFollowUp(u) ? subject.entity : null;
+}
+
+/** Keluarga produk kanonis yang disebut pesan — query katalog ("pvc aw dan hdpe"); `null` bila tidak ada. */
+export function productQueryOf(u: MessageUnderstanding): string | null {
+  const families = u.families.slice(0, MAX_PRODUCTS);
+  return families.length > 0 ? families.join(' dan ') : null;
 }
 
 /**
  * "Bikinin skema perbedaannya dalam bentuk tabel": jawaban yang baru diberikan disajikan ulang —
- * isinya dari jawaban asisten terakhir dan subjek, bukan dari pesan yang memang tidak menyebut apa-apa.
+ * isinya dari bahan yang sedang dibicarakan (pesan + subjek, atau jawaban asisten terakhir yang
+ * membahas bahan), bukan dari pesan yang memang tidak menyebut apa-apa.
  */
 function reformatted(input: ProductQuestionInput, locale: Locale): string | null {
-  const format = requestedFormat(input.message);
+  const u = input.understanding;
+  const format = u.format;
   if (format === null) return null;
-  const mentioned = materialsIn(input.message).length > 0;
+  const mentioned = u.families.length > 0;
   // Tanpa bahan di pesan, ini harus lanjutan ("tabelnya dong"); dengan bahan ("bandingin sama PVC
   // dalam bentuk tabel") permintaannya sudah jelas sendiri — bahan pesan digabung dengan subjek.
-  if (!mentioned && !isFormatFollowUp(input.message)) return null;
-  const subjectEntity = input.subject?.kind === 'product' ? input.subject.entity : null;
-  return reformat(
-    format,
-    {
-      subject: [input.message, subjectEntity].filter((s) => s !== null).join(' dan '),
-      previous: lastAssistantTextWithMaterial(input),
-    },
-    locale,
-  );
+  if (!mentioned && !isFormatFollowUp(u)) return null;
+  const subjectEntity = input.subject?.kind === 'product' ? input.subject.entity : '';
+  // Subjek dulu: penjelasan fitting menyebut "PVC untuk PVC, HDPE untuk HDPE", jadi membaca bahan
+  // dari teks jawaban saja akan mengira ada dua bahan yang dibandingkan.
+  const fromSubject = materialsFor([
+    ...u.families,
+    ...input.lexicon.productFamilies(subjectEntity),
+  ]);
+  const materials =
+    fromSubject.length > 0
+      ? fromSubject
+      : materialsFor(input.lexicon.productFamilies(lastAssistantTextWithMaterial(input)));
+  // Lanjutan atas jawaban "fitting vs HDPE" (topik subjek, lihat `productSubject`) tetap tabel
+  // komponen-lawan-bahan, bukan tabel dua bahan.
+  const fitting =
+    u.knowledgeTopics.includes('fitting') || input.subject?.topic === FITTING_VS_MATERIAL;
+  return reformat(format, { materials, fitting }, locale);
 }
-
-const PRICE_QUESTION =
-  /\b(harga|harganya|berapa duit|berapa rupiah|biaya|biayanya|price|prices|cost|how much)\b/i;
-
-const COMPARISON_REQUEST =
-  /\b(beda|bedanya|perbedaan|bandingkan|bandingin|dibanding|differ|difference|compare|versus|vs)\b/i;
 
 /** Jawaban asisten terakhir yang memang membahas bahan — melewati balasan tanya-balik di antaranya. */
 function lastAssistantTextWithMaterial(input: ProductQuestionInput): string {
   const assistant = [...(input.recentTurns ?? [])].reverse().filter((t) => t.role === 'assistant');
-  return assistant.find((t) => materialsIn(t.text).length > 0)?.text ?? lastAssistantText(input);
+  return (
+    assistant.find((t) => input.lexicon.productFamilies(t.text).length > 0)?.text ??
+    lastAssistantText(input)
+  );
 }
 
 /** Hasil pencarian katalog beserta bobot yang boleh diberikan padanya. */
@@ -139,9 +153,10 @@ export async function runProductQuestion(
   faqPrompt: string | null = null,
 ): Promise<readonly AssistantStreamEvent[]> {
   const locale = input.locale ?? DEFAULT_LOCALE;
+  const u = input.understanding;
 
   // Harga tidak ditampilkan (OQ-03): jawab jujur dan arahkan, jangan bertanya "produk mana".
-  if (PRICE_QUESTION.test(input.message)) {
+  if (u.intent?.label === 'price_question') {
     return [
       { type: 'message.start', messageId: input.messageId },
       { type: 'token', text: productAnswerCopy(locale).priceNotShown },
@@ -159,16 +174,15 @@ export async function runProductQuestion(
     ];
   }
 
-  // Model pemeta pertanyaan hanya dipanggil bila jalur deterministik tidak cukup: lanjutan subjek
-  // sudah tahu produknya, dan pertanyaan pengetahuan tanpa keluarga produk ("pipa buat air panas
-  // pake apa?") sudah terjawab dari pengetahuan milik kode. Di CPU, satu panggilan itu ±1 menit
-  // (uji proaktif 2026-10-07: 61–87 s per giliran hanya untuk memetakan).
+  // Model pemeta pertanyaan hanya dipanggil bila pemahaman dari contoh tidak cukup: lanjutan subjek
+  // sudah tahu produknya; keluarga produk yang tersurat dibaca kosakata; aspeknya dari contoh; dan
+  // pertanyaan pengetahuan tanpa keluarga produk ("pipa buat air panas pake apa?") sudah terjawab
+  // dari pengetahuan milik kode. Di CPU, satu panggilan model ±1 menit (uji proaktif 2026-10-07).
   const continued = subjectQuery(input);
-  const heuristic = heuristicProductQuestion(input.message);
-  const knowledgeOnly =
-    heuristic.productQuery === null && explain(input.message, null, locale) !== '';
+  const named = productQueryOf(u);
+  const knowledgeOnly = named === null && u.knowledgeTopics.length > 0;
   let parsed: ProductQuestionParse | null = null;
-  if (continued === null && !knowledgeOnly) {
+  if (continued === null && named === null && !knowledgeOnly) {
     try {
       parsed = await ai.parseProductQuestion(input.message);
     } catch (error) {
@@ -176,16 +190,25 @@ export async function runProductQuestion(
       parsed = null;
     }
   }
-  const query = continued ?? parsed?.productQuery ?? null;
+  const query = continued ?? named ?? parsed?.productQuery ?? null;
   // Lanjutan ("lebih detail dong") memperdalam penjelasan konsep; aspek hanya dari pesan nyata —
   // dan tidak pernah dari pertanyaan konsep ("apa bedanya fitting sama HDPE?"), apa pun kata model.
-  const conceptual = PRODUCT_CONCEPT.test(input.message.toLowerCase());
-  const aspect = continued !== null || conceptual ? null : (parsed?.aspect ?? null);
+  const conceptual = isConceptual(u.intent?.label);
+  const askedAspect = u.productAspect ?? parsed?.aspect ?? null;
+  // Ketersediaan ukuran butuh ukurannya (parser nilai terstruktur); tanpa angka → daftar ukuran.
+  const size =
+    askedAspect === 'size_availability' ? (parsed?.size ?? parseSize(input.message)) : null;
+  const aspect =
+    continued !== null || conceptual
+      ? null
+      : askedAspect === 'size_availability' && size === null
+        ? 'sizes'
+        : askedAspect;
 
   const outcome =
     aspect === null
       ? await answerConcept(catalog, input, query, reply, faqPrompt)
-      : await answerSpec(catalog, questions, query, aspect, parsed?.size ?? null, locale);
+      : await answerSpec(catalog, questions, query, aspect, size, locale);
 
   return [
     { type: 'message.start', messageId: input.messageId },
@@ -211,23 +234,37 @@ async function answerConcept(
 ): Promise<Outcome> {
   const locale = input.locale ?? DEFAULT_LOCALE;
   const COPY = productAnswerCopy(locale);
+  const u = input.understanding;
+  const asksRange = u.intent?.label === 'product_range';
   // "Produk Pralon yang terkenal apa?" — ragam, bukan satu bahan. Diputuskan dari pesannya,
   // SEBELUM parse model: 7B pernah menjawab pertanyaan ini dengan productQuery "PVC".
-  if (asksProductRange(input.message) && materialsIn(input.message).length === 0) {
-    return rangeOverview(catalog, locale);
-  }
+  if (asksRange && u.families.length === 0) return rangeOverview(catalog, locale);
 
-  // "Bedanya sama pipa AW?" saat subjeknya HDPE: satu bahan di pesan dibandingkan dengan bahan
-  // yang sedang dibahas — bukan dijelaskan sendirian.
-  const subjectEntity = input.subject?.kind === 'product' ? input.subject.entity : null;
-  const comparedQuery =
-    COMPARISON_REQUEST.test(input.message) &&
-    materialsIn(input.message, query).length === 1 &&
-    subjectEntity !== null &&
-    materialsIn(subjectEntity).some((m) => !materialsIn(input.message, query).includes(m))
-      ? `${query ?? input.message} dan ${subjectEntity}`
-      : query;
-  const knowledge = withoutRepeating(explain(input.message, comparedQuery, locale), input);
+  // Bahan yang dibicarakan: dari pesan, dari query (subjek/model), dan — untuk perbandingan —
+  // dari subjek aktif: "bedanya sama pipa AW?" saat subjeknya HDPE membandingkan keduanya, bukan
+  // menjelaskan AW sendirian.
+  const comparison = u.intent?.label === 'product_comparison';
+  const subjectEntity = input.subject?.kind === 'product' ? input.subject.entity : '';
+  const messageFamilies = [...u.families, ...input.lexicon.productFamilies(query ?? '')];
+  const subjectFamilies = input.lexicon.productFamilies(subjectEntity);
+  const named = materialsFor(messageFamilies);
+  const fromSubject = materialsFor(subjectFamilies);
+  const comparedWithSubject =
+    comparison && named.length === 1 && fromSubject.some((m) => !named.includes(m));
+  const families =
+    comparedWithSubject || named.length === 0
+      ? [...messageFamilies, ...subjectFamilies]
+      : messageFamilies;
+  // Topik dibaca dari pesan DAN subjek: lanjutan atas jawaban "fitting vs HDPE" tetap tentang
+  // fitting (topik subjek); konsep yang terikat keluarga produk (kelas PVC) ikut lewat `families`.
+  const topics = [
+    ...u.knowledgeTopics,
+    ...(input.subject?.topic === FITTING_VS_MATERIAL ? ['fitting'] : []),
+  ];
+  const knowledge = withoutRepeating(
+    explain({ families, topics, comparison, aboutMaterial: isConceptual(u.intent?.label) }, locale),
+    input,
+  );
   // Katalog opsional: kegagalan membacanya tidak boleh mengubah penjelasan teknik.
   const support = query === null ? NO_SUPPORT : await lookup(catalog, query, { optional: true });
 
@@ -257,7 +294,7 @@ async function answerConcept(
 
   if (knowledge === '' && support.products.length === 0) {
     // "Produk Pralon yang terkenal apa?" — pertanyaan tentang RAGAM, bukan satu produk.
-    if (asksProductRange(input.message)) return rangeOverview(catalog, locale);
+    if (asksRange) return rangeOverview(catalog, locale);
     // Tidak ada yang dikenali: bukan bahan, bukan produk Pralon. Bertanya, bukan menebak.
     return { text: COPY.noProductNamed, cards: [] };
   }
@@ -294,7 +331,7 @@ function lastAssistantText(input: ProductQuestionInput): string {
 function withoutRepeating(knowledge: string, input: ProductQuestionInput): string {
   if (knowledge === '') return knowledge;
   // Pengguna meminta LEBIH ("lebih detail", "lengkap", "lanjut"): penjelasan utuh, bukan pengingat.
-  if (isFollowUp(input.message) || requestedDepth(input.message) !== null) return knowledge;
+  if (isFollowUp(input.understanding) || input.understanding.depth !== null) return knowledge;
   const turns = input.recentTurns ?? [];
   const lastAssistant = lastAssistantText(input);
   const lastUser = [...turns].reverse().find((t) => t.role === 'user')?.text ?? '';
@@ -302,7 +339,7 @@ function withoutRepeating(knowledge: string, input: ProductQuestionInput): strin
   const repeated = opening !== '' && lastAssistant.includes(opening);
   const sameQuestion = normalize(lastUser) === normalize(input.message);
   if (!repeated || sameQuestion) return knowledge;
-  const materials = materialsIn(input.message, null).slice(0, 2);
+  const materials = materialsFor(input.understanding.families).slice(0, 2);
   return materials.length > 0
     ? briefComparison(materials, input.locale ?? DEFAULT_LOCALE)
     : knowledge;

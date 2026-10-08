@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import type { RequirementState } from '@snouty/shared-types';
 import { MessageService, isSaneTitle } from './message.service.js';
+import { scriptedUnderstanding } from '../../understanding/testing/understood.js';
 
 // Ruas produk membaca satu saklar env (LLM_FAQ_REWRITE); tes ini tidak punya .env.
 vi.mock('../../../config/env.js', () => ({
@@ -251,6 +252,37 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
       activeVersion: vi.fn(async () => ({ kind: 'sample' })),
       listProducts: vi.fn(async () => ({ items: [] })),
     };
+    // Pemahaman TERSKRIP (P16-11): label yang akan diberikan penyandi untuk tiap giliran —
+    // tes ini menguji orkestrasi subjek/ruas, bukan penyandinya (itu `understanding.eval.spec`).
+    const understanding = scriptedUnderstanding({
+      'pralon itu apa?': { intent: 'company_question' },
+      'PT Pralon yang gw maksud': { intent: 'company_question' },
+      'gw pengen tau terkait company profile PT Pralon': {
+        intent: 'company_question',
+        companyTopic: 'company_profile',
+      },
+      boleh: { intent: 'follow_up_continue' },
+      'data nya secara lengkap dong': { intent: 'follow_up_more', depth: 'comprehensive' },
+      'semuanya, tolong tampilin': { intent: 'follow_up_more', depth: 'comprehensive' },
+      'apa bedanya fitting sama hdpe ?': {
+        intent: 'product_comparison',
+        knowledgeTopics: ['fitting'],
+      },
+      'bikinin skema perbedaan nya dalam bentuk table dong biar lebih enak dibaca': {
+        intent: 'follow_up_reformat',
+        format: 'table',
+      },
+      'coba bandingin sama pipa PVC dalam bentuk table': {
+        intent: 'product_comparison',
+        format: 'table',
+      },
+      'terus bedanya sama pipa AW apa dari product2 yang lu jelasin tadi': {
+        intent: 'product_comparison',
+      },
+      'company profile PT Pralon': { intent: 'company_question', companyTopic: 'company_profile' },
+      'produk HDPE nya gimana?': { intent: 'product_concept' },
+      'lebih detail dong': { intent: 'follow_up_more', depth: 'detailed' },
+    });
     const service = new MessageService(
       conversations as never,
       store as never,
@@ -259,6 +291,9 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
       { answer: vi.fn() } as never,
       null,
       ai as never,
+      null,
+      null,
+      understanding as never,
     );
     const say = async (text: string) => {
       rows.push({ role: 'user', text });

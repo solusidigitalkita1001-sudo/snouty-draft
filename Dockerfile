@@ -17,6 +17,8 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY apps ./apps
 COPY packages ./packages
+# Data runtime: contoh pemahaman pertanyaan (`data/understanding`, P16-11) dibaca API saat boot.
+COPY data ./data
 RUN pnpm install --frozen-lockfile
 RUN pnpm build:types \
   && pnpm --filter @snouty/api build \

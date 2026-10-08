@@ -14,12 +14,13 @@ import {
   type Locale,
 } from '@snouty/shared-types';
 import type { CompanyKnowledgeService } from '../../company-knowledge/application/company-knowledge.service.js';
+import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 import { resolveCompanySubject } from '../domain/subject.js';
 import { endEvent } from './message-pipeline.js';
 
 export interface CompanyQuestionInput {
   readonly messageId: string;
-  readonly message: string;
+  readonly understanding: MessageUnderstanding;
   readonly subject: ConversationSubject | undefined;
   readonly locale?: Locale;
 }
@@ -29,17 +30,16 @@ export interface CompanyQuestionResult {
   readonly subject: ConversationSubject;
 }
 
-/** "pralon itu apa?" tanpa subjek: dijawab sebagai perusahaan, plus satu kalimat pembeda produk. */
-const BARE_QUESTION =
-  /^\W*(?:pralon\W+(?:itu|tuh)?\W*apa(?:an)?|apa(?:\s+itu|\s+sih)?\W+pralon|what\W+is\W+pralon)\W*$/i;
-
 export async function runCompanyQuestion(
   knowledge: Pick<CompanyKnowledgeService, 'answer'>,
   input: CompanyQuestionInput,
 ): Promise<CompanyQuestionResult> {
   const locale = input.locale ?? DEFAULT_LOCALE;
-  const { subject, resolvedFromPrevious } = resolveCompanySubject(input.message, input.subject);
-  const ambiguous = !resolvedFromPrevious && BARE_QUESTION.test(input.message);
+  const u = input.understanding;
+  const { subject, resolvedFromPrevious } = resolveCompanySubject(u, input.subject);
+  // "pralon itu apa?" tanpa subjek dan tanpa bagian profil yang spesifik: "Pralon" bisa berarti
+  // perusahaan atau produk — dijawab sebagai perusahaan, plus satu kalimat pembeda produk.
+  const ambiguous = !resolvedFromPrevious && u.companyTopic === null;
   const answer = await knowledge.answer({
     depth: subject.depth,
     topic: subject.topic,

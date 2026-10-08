@@ -78,13 +78,18 @@ flowchart LR
     PC[product-catalog]
     REC[recommendation<br/>analysis · views · composer]
     REP[report]
-    AI[ai<br/>adapter Ollama/OpenRouter<br/>+ heuristik]
+    AI[ai<br/>adapter Ollama/OpenRouter<br/>+ port penyandi teks]
+    UND[understanding<br/>contoh sebagai data · kosakata<br/>kemiripan vektor bge-m3]
     POL[policy<br/>leaf: scope, entitlements]
     AU[auth]
   end
   ENG[packages/engineering<br/>aturan ber-ID, registry parameter,<br/>kalkulator, klasifikasi kasus]
   ST[packages/shared-types]
+  DATA[(data/understanding<br/>intent · depth · format · topik ·<br/>aspek · vocabulary)]
   CTX --> AI
+  CTX --> UND
+  UND --> AI
+  UND --> DATA
   CTX --> CO
   CTX --> PK
   CTX --> POL
@@ -159,11 +164,18 @@ Catatan panggilan enam jam sebelum diet panggilan model (tabel `llm_calls`):
 | Klasifikasi intent         |      41 s | 171 s | Makin banyak intent diputuskan di kode                                                            |
 | Prosa solusi               |      70 s | 154 s | Dimatikan (baku, `LLM_SOLUTION_PROSE`); templat deterministik                                     |
 | Judul percakapan           |      17 s |  99 s | Dimatikan (`LLM_CHAT_REPLY`); judul dari klausa pertama pesan                                     |
-| Pemetaan pertanyaan produk |      49 s | 180 s | Hanya bila heuristik tidak mengenali keluarga produk                                              |
+| Pemetaan pertanyaan produk |      49 s | 180 s | Hanya bila kosakata tidak mengenali keluarga produk dan tidak ada topik pengetahuan               |
 
 Yang tersisa setelah diet: ekstraksi untuk pesan kebutuhan yang tidak terbaca kode, klasifikasi
-untuk kalimat di luar pola, pemetaan produk untuk kalimat tanpa keluarga. Itu batas perangkat
-keras, bukan kode.
+untuk kalimat yang tidak mirip contoh mana pun, pemetaan produk untuk kalimat tanpa keluarga. Itu
+batas perangkat keras, bukan kode.
+
+Sejak P16-11 (2026-10-08), "mirip contoh" diukur, bukan ditebak pola: ±1.300 kalimat contoh di
+`data/understanding/` disandikan `bge-m3` (embedding 567M parameter, puluhan milidetik di CPU), dan
+tiap pesan dibandingkan dengan semuanya. Tidak ada lagi regex atau daftar frasa di kode yang menebak
+pertanyaan; kode hanya memegang label, kosakata nama, dan aturan atas label. Golden set 110 kalimat
+(bukan salinan contoh): akurasi intent 99%. Kalimat yang gagal di produksi tinggal ditambahkan ke
+contoh — tanpa deploy kode.
 
 ## 9. Pertanyaan untuk brainstorming
 
@@ -173,8 +185,10 @@ keras, bukan kode.
 2. **Retrieval dokumen.** Indeks dokumen HRGA dengan embedding kecil (gratis, cepat di CPU) lalu
    tampilkan kutipan bersumber untuk pertanyaan apa pun yang terjawab di dokumen, tanpa kurasi
    manual per konsep. Dengan model cepat, kutipan itu bisa dirangkai jadi jawaban utuh.
-3. **Pemahaman lanjutan.** Hari ini rujukan ("yang tadi", "bandingin sama") diselesaikan pola kata
-   plus subjek. Sampai mana pola cukup, dan kapan model yang kuat perlu mengambil alih?
+3. **Pemahaman lanjutan.** Rujukan ("yang tadi", "bandingin sama") kini dikenali dari contoh
+   (kemiripan vektor) lalu diselesaikan terhadap subjek aktif. Siapa yang merawat berkas contoh
+   (HRGA? tim teknis?), dan kapan model yang kuat perlu mengambil alih — misalnya kalimat panjang
+   yang menggabungkan dua maksud?
 4. **Validasi domain.** Semua aturan teknik masih `REQUIRES_DOMAIN_VALIDATION`. Siapa di Pralon yang
    memvalidasi, dan dalam bentuk apa (spesifikasi produk resmi, SOP instalasi)?
 5. **Data yang menunggu.** Kode produk resmi dari ERP, register sertifikat, profil korporat untuk

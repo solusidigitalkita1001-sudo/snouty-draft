@@ -90,49 +90,33 @@ describe('ekstraksi', () => {
   });
 });
 
-describe('klasifikasi intent', () => {
+describe('klasifikasi intent (adapter pengembangan)', () => {
+  // Bentuk kalimat (sapaan, pesaing, produk, mutasi) dikenali modul `understanding` dari contoh
+  // SEBELUM adapter ini ditanya (P16-11). Yang sampai ke sini tidak mirip contoh mana pun, jadi
+  // adapter tidak menebak dari kata kunci — ia memberi tebakan terjujur menurut keadaan state.
   const ai = () => new DevDeterministicAiService();
 
-  it('pertanyaan kompetitor dikenali lebih dulu dari apa pun', async () => {
-    // Policy 1 harus menang sebelum ekstraksi — termasuk ketika kalimatnya juga memuat
-    // kebutuhan ("rumah 2 lantai, Pralon atau Rucika?").
+  it('tanpa kebutuhan yang sudah ada → pernyataan kebutuhan', async () => {
     const result = await ai().classifyIntent({
-      message: 'Rumah 2 lantai, lebih bagus Pralon atau Rucika?',
+      message: 'saya dari bandung',
       hasExistingRequirements: false,
     });
-    expect(result.intent).toBe('COMPETITOR_QUESTION');
+    expect(result).toEqual({ intent: 'REQUIREMENT_STATEMENT', confidence: 0.8 });
   });
 
-  it('pertanyaan "kenapa" tidak memutasi state', async () => {
+  it('dengan kebutuhan yang sudah ada → jawaban klarifikasi, bukan mutasi', async () => {
     const result = await ai().classifyIntent({
-      message: 'kenapa ukurannya 1 inci?',
+      message: 'dari sumur bor',
       hasExistingRequirements: true,
     });
-    expect(result.intent).toBe('EXPLANATION_REQUEST');
+    expect(result).toEqual({ intent: 'CLARIFICATION_ANSWER', confidence: 0.75 });
   });
 
-  it('lookup produk dikenali', async () => {
-    const result = await ai().classifyIntent({
-      message: 'ada ukuran 3/4 inci?',
-      hasExistingRequirements: true,
-    });
-    expect(result.intent).toBe('PRODUCT_LOOKUP');
-  });
-
-  it('"tambah satu kamar mandi" adalah mutasi, bukan pernyataan baru', async () => {
-    const result = await ai().classifyIntent({
-      message: 'tambah satu kamar mandi',
-      hasExistingRequirements: true,
-    });
-    expect(result.intent).toBe('REQUIREMENT_MUTATION');
-  });
-
-  it('pesan pertama adalah pernyataan kebutuhan', async () => {
-    const result = await ai().classifyIntent({
-      message: 'rumah 2 lantai 3 kamar mandi',
-      hasExistingRequirements: false,
-    });
-    expect(result.intent).toBe('REQUIREMENT_STATEMENT');
+  it('tidak ada pola kalimat: sapaan dan nama produk tidak memengaruhi labelnya', async () => {
+    for (const message of ['hai jo', 'apa bedanya pvc dan hdpe?', 'Pralon atau Rucika?']) {
+      const result = await ai().classifyIntent({ message, hasExistingRequirements: false });
+      expect(result.intent, message).toBe('REQUIREMENT_STATEMENT');
+    }
   });
 });
 
@@ -152,68 +136,18 @@ describe('writeProse di adapter pengembangan', () => {
 });
 
 describe('pertanyaan produk (adapter pengembangan)', () => {
-  const service = () => new DevDeterministicAiService();
-
-  it('menyebut keluarga produk tanpa isyarat kebutuhan → PRODUCT_LOOKUP', async () => {
-    const intent = await service().classifyIntent({
-      message: 'apa bedanya pvc dan hdpe?',
-      hasExistingRequirements: false,
-    });
-    expect(intent.intent).toBe('PRODUCT_LOOKUP');
-  });
-
-  it('menyebut produk DI DALAM pernyataan kebutuhan tetap REQUIREMENT_STATEMENT', async () => {
-    const intent = await service().classifyIntent({
-      message: 'pakai pipa pvc untuk rumah 2 lantai, 3 kamar mandi',
-      hasExistingRequirements: false,
-    });
-    expect(intent.intent).toBe('REQUIREMENT_STATEMENT');
-  });
-
-  it('memetakan "A dan B" menjadi satu query dua keluarga, aspek null', async () => {
-    const parsed = await service().parseProductQuestion('apa bedanya pvc aw dan hdpe?');
-    expect(parsed).toEqual({ productQuery: 'pvc aw dan hdpe', aspect: null, size: null });
-  });
-
-  it('memetakan aspek dari kata kunci, dan ukuran hanya untuk ketersediaan', async () => {
-    expect(await service().parseProductQuestion('pvc aw ada ukuran 3/4?')).toEqual({
-      productQuery: 'pvc aw',
-      aspect: 'size_availability',
-      size: '3/4',
-    });
-    expect(await service().parseProductQuestion('standar pvc d apa?')).toMatchObject({
-      aspect: 'standard',
-      size: null,
-    });
-    expect(await service().parseProductQuestion('tekanan kerja hdpe berapa?')).toMatchObject({
-      productQuery: 'hdpe',
-      aspect: 'pressure_class',
-    });
-  });
-
-  it('tanpa produk yang disebut → productQuery null, bukan tebakan', async () => {
-    expect(await service().parseProductQuestion('standarnya apa?')).toMatchObject({
-      productQuery: null,
-      aspect: 'standard',
-    });
-  });
-});
-
-describe('sapaan (adapter pengembangan)', () => {
-  it('"hai jo" dan basa-basi sejenis → OUT_OF_SCOPE, bukan pernyataan kebutuhan', async () => {
+  it('tidak pernah menebak produk atau aspek — keluarga produk dibaca kosakata understanding', async () => {
     const service = new DevDeterministicAiService();
-    for (const message of ['hai jo', 'Halo!', 'selamat pagi', 'makasih ya', 'testing']) {
-      const intent = await service.classifyIntent({ message, hasExistingRequirements: false });
-      expect(intent.intent, message).toBe('OUT_OF_SCOPE');
+    for (const message of [
+      'apa bedanya pvc aw dan hdpe?',
+      'pvc aw ada ukuran 3/4?',
+      'standarnya apa?',
+    ]) {
+      expect(await service.parseProductQuestion(), message).toEqual({
+        productQuery: null,
+        aspect: null,
+        size: null,
+      });
     }
-  });
-
-  it('sapaan yang membawa kebutuhan tetap pernyataan kebutuhan', async () => {
-    const service = new DevDeterministicAiService();
-    const intent = await service.classifyIntent({
-      message: 'hai, rumah 2 lantai 3 kamar mandi',
-      hasExistingRequirements: false,
-    });
-    expect(intent.intent).toBe('REQUIREMENT_STATEMENT');
   });
 });

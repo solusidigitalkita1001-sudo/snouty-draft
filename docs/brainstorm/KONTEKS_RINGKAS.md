@@ -101,7 +101,10 @@ Daftar lengkap di `docs/OPEN_QUESTIONS.md`. Yang paling menentukan arah:
   spesifikasi produk resmi untuk angka.
 - **OQ-55** Kode produk resmi (SKU sekarang ID ekspor ERP, disembunyikan dari pengguna).
 - Validasi domain: siapa yang memvalidasi aturan ENG dan dalam bentuk apa.
-- Retrieval dokumen dengan embedding gratis untuk pertanyaan di luar konsep yang dikurasi.
+- Retrieval dokumen dengan embedding gratis untuk pertanyaan di luar konsep yang dikurasi
+  (penyandi `bge-m3` sudah terpasang untuk pemahaman pertanyaan sejak P16-11 — langkah berikutnya
+  tinggal mengindeks dokumen, bukan memasang infrastruktur baru).
+- Siapa yang merawat `data/understanding/` (contoh kalimat per maksud) setelah serah terima.
 - Cakupan berikutnya: email intelligence, market intelligence, back-office penuh.
 
 ## 9. Glosarium

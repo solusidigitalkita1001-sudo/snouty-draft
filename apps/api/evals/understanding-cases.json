@@ -1,0 +1,531 @@
+{
+  "$comment": "Golden dataset pemahaman pertanyaan (P16-11). Kalimat di sini SENGAJA bukan salinan contoh di data/understanding — yang diukur adalah generalisasi penyandi + ambang, bukan hafalan. `intent: null` berarti kode harus ragu (lalu bertanya ke model generatif). Kasus dari laporan pemilik ditandai `source`.",
+  "cases": [
+    {
+      "text": "pralon itu apa?",
+      "intent": "company_question",
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "PT Pralon yang gw maksud",
+      "intent": "company_question",
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "boleh",
+      "intent": "follow_up_continue",
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "lengkap dong",
+      "intent": "follow_up_more",
+      "depth": "comprehensive",
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "semuanya, tolong tampilin",
+      "intent": "follow_up_more",
+      "depth": "comprehensive",
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "data nya secara lengkap dong",
+      "intent": "follow_up_more",
+      "depth": "comprehensive",
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "produk HDPE nya gimana?",
+      "intent": "product_concept",
+      "families": ["hdpe"],
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "apa bedanya fitting sama HDPE?",
+      "intent": "product_comparison",
+      "families": ["hdpe"],
+      "topics": ["fitting"],
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "bikinin skema perbedaannya dalam bentuk tabel",
+      "intent": "follow_up_reformat",
+      "format": "table",
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "yang mana buat kamar mandi?",
+      "intent": "follow_up_choice",
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "ok makasih",
+      "intent": "thanks",
+      "source": "uji proaktif 2026-10-07"
+    },
+    {
+      "text": "cara nyambung pipa pvc pakai lem",
+      "intent": "knowledge_question",
+      "topics": ["sambungan lem"],
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "harganya berapa?",
+      "intent": "price_question",
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "mau pasang 2 toren",
+      "intent": "requirement_building",
+      "source": "pemilik 2026-10-07"
+    },
+    {
+      "text": "saya mau bangun masjid 2 lantai, besarnya 20x30, 4 kamar mandi",
+      "intent": "requirement_building"
+    },
+    {
+      "text": "rekomendasi produk buat proyek drainase sawah",
+      "intent": "advice_request",
+      "source": "pemilik 2026-10-06"
+    },
+    {
+      "text": "lebih bagus PVC atau HDPE buat rumah 2 lantai?",
+      "intent": "advice_request",
+      "families": ["pvc", "hdpe"]
+    },
+    {
+      "text": "produk Pralon yang terkenal apa?",
+      "intent": "product_range",
+      "source": "pemilik 2026-10-06"
+    },
+    {
+      "text": "hi, I want to ask something",
+      "intent": "greeting",
+      "source": "checkpoint Fase 15"
+    },
+    {
+      "text": "selamat pagi jo",
+      "intent": "greeting"
+    },
+    {
+      "text": "halo, boleh nanya?",
+      "intent": "greeting"
+    },
+    {
+      "text": "makasih banyak ya infonya",
+      "intent": "thanks"
+    },
+    {
+      "text": "sip, paham",
+      "intent": "ack"
+    },
+    {
+      "text": "oke deh",
+      "intent": "ack"
+    },
+    {
+      "text": "oh gitu ya",
+      "intent": "ack"
+    },
+    {
+      "text": "ok see you",
+      "intent": "bye"
+    },
+    {
+      "text": "udah dulu, makasih",
+      "intent": "thanks"
+    },
+    {
+      "text": "pralon berdiri sejak kapan?",
+      "intent": "company_question",
+      "companyTopic": "history"
+    },
+    {
+      "text": "pralon pabriknya ada di mana aja?",
+      "intent": "company_question",
+      "companyTopic": "manufacturing"
+    },
+    {
+      "text": "pralon udah ber-SNI belum?",
+      "intent": "company_question",
+      "companyTopic": "certifications"
+    },
+    {
+      "text": "visi misinya pralon apa?",
+      "intent": "company_question",
+      "companyTopic": "vision_mission"
+    },
+    {
+      "text": "nomor kontak pralon berapa?",
+      "intent": "company_question",
+      "companyTopic": "contact"
+    },
+    {
+      "text": "company profile PT Pralon dong",
+      "intent": "company_question",
+      "companyTopic": "company_profile"
+    },
+    {
+      "text": "what company is pralon?",
+      "intent": "company_question"
+    },
+    {
+      "text": "pralon dibanding rucika bagusan mana?",
+      "intent": "competitor_question"
+    },
+    {
+      "text": "kenapa pilih pralon, bukan wavin?",
+      "intent": "competitor_question"
+    },
+    {
+      "text": "is wavin better than pralon?",
+      "intent": "competitor_question"
+    },
+    {
+      "text": "apa itu pipa PVC AW?",
+      "intent": "product_concept",
+      "families": ["pvc aw"]
+    },
+    {
+      "text": "HDPE itu pipa apa sih?",
+      "intent": "product_concept",
+      "families": ["hdpe"]
+    },
+    {
+      "text": "what exactly is PPR?",
+      "intent": "product_concept",
+      "families": ["ppr"]
+    },
+    {
+      "text": "bedanya pvc aw sama pvc d apa?",
+      "intent": "product_comparison",
+      "families": ["pvc aw", "pvc d"]
+    },
+    {
+      "text": "coba bandingin sama pipa PVC",
+      "intent": "product_comparison",
+      "families": ["pvc"]
+    },
+    {
+      "text": "bedanya sama pipa AW?",
+      "intent": "product_comparison",
+      "families": ["pvc aw"]
+    },
+    {
+      "text": "PVC vs HDPE, which is stronger?",
+      "intent": "product_comparison",
+      "families": ["pvc", "hdpe"]
+    },
+    {
+      "text": "ukuran hdpe ada apa aja?",
+      "intent": "product_spec",
+      "productAspect": "sizes",
+      "families": ["hdpe"]
+    },
+    {
+      "text": "pvc aw ada ukuran 3/4?",
+      "intent": "product_spec",
+      "productAspect": "size_availability",
+      "families": ["pvc aw"]
+    },
+    {
+      "text": "standar sni hdpe apa?",
+      "intent": "product_spec",
+      "productAspect": "standard",
+      "families": ["hdpe"]
+    },
+    {
+      "text": "tekanan kerja hdpe berapa?",
+      "intent": "product_spec",
+      "productAspect": "pressure_class",
+      "families": ["hdpe"]
+    },
+    {
+      "text": "standarnya apa?",
+      "intent": "product_spec",
+      "productAspect": "standard"
+    },
+    {
+      "text": "pipa pvc satu batang panjangnya berapa?",
+      "intent": "product_spec",
+      "productAspect": "rod_length",
+      "families": ["pvc"]
+    },
+    {
+      "text": "fitting yang cocok buat pvc aw apa?",
+      "intent": "product_spec",
+      "productAspect": "compatible_fittings",
+      "families": ["pvc aw"]
+    },
+    {
+      "text": "pvc d biasanya dipakai buat apa?",
+      "intent": "product_spec",
+      "productAspect": "application",
+      "families": ["pvc d"]
+    },
+    {
+      "text": "what sizes do you have for hdpe?",
+      "intent": "product_spec",
+      "productAspect": "sizes",
+      "families": ["hdpe"]
+    },
+    {
+      "text": "do you have 3/4 inch pvc aw?",
+      "intent": "product_spec",
+      "productAspect": "size_availability",
+      "families": ["pvc aw"]
+    },
+    {
+      "text": "pralon jual apa aja sih?",
+      "intent": "product_range"
+    },
+    {
+      "text": "what products does pralon have?",
+      "intent": "product_range"
+    },
+    {
+      "text": "harga pvc aw 1 inch berapa?",
+      "intent": "price_question",
+      "families": ["pvc aw"]
+    },
+    {
+      "text": "how much is hdpe per rod?",
+      "intent": "price_question",
+      "families": ["hdpe"]
+    },
+    {
+      "text": "pipa buat air panas pake apa?",
+      "intent": "use_question",
+      "topics": ["air panas"]
+    },
+    {
+      "text": "bahan apa yang cocok buat tanam?",
+      "intent": "use_question",
+      "topics": ["pipa tanam"]
+    },
+    {
+      "text": "what pipe should i use for hot water?",
+      "intent": "use_question",
+      "topics": ["air panas"]
+    },
+    {
+      "text": "gimana cara nyambung pvc?",
+      "intent": "knowledge_question",
+      "topics": ["sambungan lem"]
+    },
+    {
+      "text": "pvc disimpan di luar boleh?",
+      "intent": "knowledge_question",
+      "topics": ["penyimpanan"]
+    },
+    {
+      "text": "kenapa sambungan pvc saya bocor?",
+      "intent": "knowledge_question",
+      "topics": ["perawatan dan gangguan"]
+    },
+    {
+      "text": "sdr itu apa ya?",
+      "intent": "knowledge_question",
+      "topics": ["istilah dimensi"]
+    },
+    {
+      "text": "pvc aw sama d itu kelas apa?",
+      "intent": "knowledge_question",
+      "topics": ["kelas pvc"]
+    },
+    {
+      "text": "how should pvc pipe be stored?",
+      "intent": "knowledge_question",
+      "topics": ["penyimpanan"]
+    },
+    {
+      "text": "apa itu fitting?",
+      "intent": "knowledge_question",
+      "topics": ["fitting"]
+    },
+    {
+      "text": "mending pvc apa hdpe buat rumah?",
+      "intent": "advice_request",
+      "families": ["pvc", "hdpe"]
+    },
+    {
+      "text": "which is better for a boarding house, pvc or hdpe?",
+      "intent": "advice_request",
+      "families": ["pvc", "hdpe"]
+    },
+    {
+      "text": "rumah 2 lantai, 3 kamar mandi, air dari toren atas",
+      "intent": "requirement_building"
+    },
+    {
+      "text": "kos 3 lantai 12 kamar mandi, sumber air sumur pakai pompa",
+      "intent": "requirement_building"
+    },
+    {
+      "text": "i'm building a 2-storey house with 3 bathrooms",
+      "intent": "requirement_building"
+    },
+    {
+      "text": "mau bikin instalasi buat rumah saya",
+      "intent": "requirement_building"
+    },
+    {
+      "text": "pakai pipa pvc untuk rumah 2 lantai",
+      "intent": "requirement_building"
+    },
+    {
+      "text": "irigasi sawah 2 hektar dari sungai",
+      "intent": "requirement_irrigation"
+    },
+    {
+      "text": "drip irrigation for my orchard",
+      "intent": "requirement_irrigation"
+    },
+    {
+      "text": "drainase air hujan komplek 40 rumah",
+      "intent": "requirement_technical"
+    },
+    {
+      "text": "transfer air dari sumur bor ke tandon jarak 300 m",
+      "intent": "requirement_technical"
+    },
+    {
+      "text": "kolam lele 8 kolam butuh pipa",
+      "intent": "requirement_technical"
+    },
+    {
+      "text": "jaraknya 150 m",
+      "intent": "requirement_technical"
+    },
+    {
+      "text": "tambah satu kamar mandi",
+      "intent": "requirement_mutation"
+    },
+    {
+      "text": "ubah jadi 3 lantai",
+      "intent": "requirement_mutation"
+    },
+    {
+      "text": "add one more bathroom",
+      "intent": "requirement_mutation"
+    },
+    {
+      "text": "dari pdam",
+      "intent": "clarification_answer"
+    },
+    {
+      "text": "toren di lantai 2",
+      "intent": "clarification_answer"
+    },
+    {
+      "text": "belum tahu",
+      "intent": "clarification_answer"
+    },
+    {
+      "text": "kenapa ukurannya 1 inch?",
+      "intent": "explanation_request"
+    },
+    {
+      "text": "why do i need a pump?",
+      "intent": "explanation_request"
+    },
+    {
+      "text": "ya lanjut",
+      "intent": "follow_up_continue"
+    },
+    {
+      "text": "gas",
+      "intent": "follow_up_continue"
+    },
+    {
+      "text": "yes please",
+      "intent": "follow_up_continue"
+    },
+    {
+      "text": "lebih detail dong",
+      "intent": "follow_up_more",
+      "depth": "detailed"
+    },
+    {
+      "text": "tell me more",
+      "intent": "follow_up_more",
+      "depth": "detailed"
+    },
+    {
+      "text": "singkat aja",
+      "intent": "follow_up_brief",
+      "depth": "brief"
+    },
+    {
+      "text": "ringkas dong",
+      "intent": "follow_up_brief",
+      "format": "summary"
+    },
+    {
+      "text": "yang tadi dong",
+      "intent": "follow_up_reference"
+    },
+    {
+      "text": "profilnya dong",
+      "intent": "follow_up_reference"
+    },
+    {
+      "text": "mana yang lebih cocok?",
+      "intent": "follow_up_choice"
+    },
+    {
+      "text": "which one?",
+      "intent": "follow_up_choice"
+    },
+    {
+      "text": "bikinin tabelnya dong",
+      "intent": "follow_up_reformat",
+      "format": "table"
+    },
+    {
+      "text": "poin-poinnya dong",
+      "intent": "follow_up_reformat",
+      "format": "bullets"
+    },
+    {
+      "text": "put it in a table",
+      "intent": "follow_up_reformat",
+      "format": "table"
+    },
+    {
+      "text": "bandingin pvc sama hdpe dalam bentuk tabel",
+      "format": "table",
+      "families": ["pvc", "hdpe"]
+    },
+    {
+      "text": "company profile pralon lengkap",
+      "intent": "company_question",
+      "depth": "comprehensive"
+    },
+    {
+      "text": "cuaca besok gimana?",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "tolong bantu saya",
+      "intent": "out_of_scope"
+    },
+    {
+      "text": "saya dari bandung",
+      "intent": "out_of_scope",
+      "$comment": "pernyataan tanpa maksud: di luar cakupan boleh, menebak maksud lain tidak"
+    },
+    {
+      "text": "kemarin saya beli di toko sebelah",
+      "intent": null
+    },
+    {
+      "text": "nomor invoice saya 12345",
+      "intent": null
+    },
+    {
+      "text": "pengiriman ke luar kota bisa?",
+      "intent": null
+    }
+  ]
+}

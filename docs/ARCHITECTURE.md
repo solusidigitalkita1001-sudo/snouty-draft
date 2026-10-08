@@ -120,29 +120,30 @@ Aturannya: **empat lapis hanya untuk modul yang punya aturan domain sendiri** �
 
 ## 6. Katalog modul dan kepemilikan
 
-| Modul                 | Milik          | Tanggung jawab                                                 | Fase |
-| --------------------- | -------------- | -------------------------------------------------------------- | ---- |
-| `auth`                | identity       | JWT access+refresh, guest session, penautan guest → akun       | 3    |
-| `users`               | identity       | akun, peran internal                                           | 3    |
-| `onboarding-consent`  | identity       | catatan consent + versi kebijakan                              | 3    |
-| `conversation`        | conversation   | percakapan, pesan, status, judul                               | 3    |
-| `context`             | conversation   | Requirement State Manager                                      | 4    |
-| `policy`              | — (leaf)       | entitlement, Pralon-only, scope routing, gerbang provenance    | 5    |
-| `ai`                  | — (service)    | abstraksi LLM, prompt, ekstraksi terstruktur, routing model    | 4    |
-| `product-catalog`     | catalog        | produk, ukuran, spesifikasi, versi katalog, impor              | 1    |
-| `product-knowledge`   | catalog        | lookup terstruktur + orkestrasi retrieval                      | 2    |
-| `pricing`             | catalog        | daftar harga berversi (hanya bila OQ-03 = ya)                  | 8    |
-| `engineering`         | engineering    | adapter tipis di atas `packages/engineering`, registry + trace | 6    |
-| `recommendation`      | recommendation | orkestrasi pipeline, persistensi hasil                         | 7    |
-| `material-estimator`  | recommendation | baris BOM + dasar perhitungan                                  | 8    |
-| `schematic`           | recommendation | pembentukan topologi                                           | 9    |
-| `report`              | report         | perakitan laporan + dispatch job PDF                           | 10   |
-| `technical-handoff`   | handoff        | "Kirim ke tim teknis Pralon" + antrean internal                | 10   |
-| `uploads`             | ops            | lampiran denah                                                 | 3    |
-| `feedback`            | ops            | thumbs up/down per jawaban                                     | 13   |
-| `email-intelligence`  | email          | parsing, analisis, klasifikasi lead                            | 11   |
-| `market-intelligence` | market         | event, agregasi, anonimisasi                                   | 12   |
-| `admin`               | ops            | agregasi back-office                                           | 1+   |
+| Modul                 | Milik          | Tanggung jawab                                                                    | Fase |
+| --------------------- | -------------- | --------------------------------------------------------------------------------- | ---- |
+| `auth`                | identity       | JWT access+refresh, guest session, penautan guest → akun                          | 3    |
+| `users`               | identity       | akun, peran internal                                                              | 3    |
+| `onboarding-consent`  | identity       | catatan consent + versi kebijakan                                                 | 3    |
+| `conversation`        | conversation   | percakapan, pesan, status, judul                                                  | 3    |
+| `context`             | conversation   | Requirement State Manager                                                         | 4    |
+| `policy`              | — (leaf)       | entitlement, Pralon-only, scope routing, gerbang provenance                       | 5    |
+| `ai`                  | — (service)    | abstraksi LLM, prompt, ekstraksi terstruktur, routing model                       | 4    |
+| `understanding`       | conversation   | pemahaman pertanyaan dari contoh (data) + penyandi teks; label & kosakata entitas | 16   |
+| `product-catalog`     | catalog        | produk, ukuran, spesifikasi, versi katalog, impor                                 | 1    |
+| `product-knowledge`   | catalog        | lookup terstruktur + orkestrasi retrieval                                         | 2    |
+| `pricing`             | catalog        | daftar harga berversi (hanya bila OQ-03 = ya)                                     | 8    |
+| `engineering`         | engineering    | adapter tipis di atas `packages/engineering`, registry + trace                    | 6    |
+| `recommendation`      | recommendation | orkestrasi pipeline, persistensi hasil                                            | 7    |
+| `material-estimator`  | recommendation | baris BOM + dasar perhitungan                                                     | 8    |
+| `schematic`           | recommendation | pembentukan topologi                                                              | 9    |
+| `report`              | report         | perakitan laporan + dispatch job PDF                                              | 10   |
+| `technical-handoff`   | handoff        | "Kirim ke tim teknis Pralon" + antrean internal                                   | 10   |
+| `uploads`             | ops            | lampiran denah                                                                    | 3    |
+| `feedback`            | ops            | thumbs up/down per jawaban                                                        | 13   |
+| `email-intelligence`  | email          | parsing, analisis, klasifikasi lead                                               | 11   |
+| `market-intelligence` | market         | event, agregasi, anonimisasi                                                      | 12   |
+| `admin`               | ops            | agregasi back-office                                                              | 1+   |
 
 ---
 
@@ -155,8 +156,10 @@ menggagalkan CI.
 policy            → (tidak ke mana-mana)   WAJIB leaf
 engineering       → packages/engineering   TIDAK BOLEH ke ai/ atau product-catalog/
 ai                → (tidak ke domain)      ai adalah layanan, bukan pengambil keputusan
-context           → ai, policy, packages/engineering (hanya fungsi murni: registry parameter,
-                    klasifikasi kasus, ekstraksi konteks teknis — Fase 14; tetap tanpa I/O)
+context           → ai, understanding, policy, packages/engineering (hanya fungsi murni: registry
+                    parameter, klasifikasi kasus, ekstraksi konteks teknis — Fase 14; tetap tanpa I/O)
+understanding     → ai (hanya port penyandi teks)   TIDAK BOLEH ke context: ia memberi label,
+                    bukan keputusan; aturan atas labelnya hidup di context
 recommendation    → context, engineering, product-catalog, material-estimator, schematic, policy
 material-estimator→ engineering, product-catalog
 schematic         → engineering

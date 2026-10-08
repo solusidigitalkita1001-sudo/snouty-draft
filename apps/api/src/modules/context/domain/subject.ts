@@ -1,5 +1,7 @@
 /**
- * Subjek percakapan aktif dan penyelesaian rujukan (Fase 16) — fungsi murni, tanpa model.
+ * Subjek percakapan aktif dan penyelesaian rujukan (Fase 16) — fungsi murni atas HASIL
+ * PEMAHAMAN pesan, tanpa pola kalimat (aturan proyek: pertanyaan pengguna tidak pernah
+ * di-hardcode; contoh kalimatnya hidup di `data/understanding/`).
  *
  * Masalah yang diselesaikan: "pralon itu apa?" → "PT Pralon yang gw maksud" → "boleh" →
  * "lengkap dong" → "semuanya, tolong tampilin". Tanpa subjek, tiap pesan lanjutan diklasifikasi
@@ -11,304 +13,56 @@
  * atau perusahaan secara eksplisit) — kegagalan retrieval bukan pergantian topik.
  */
 import type { AnswerDepth, ConversationSubject, Intent, SubjectKind } from '@snouty/shared-types';
+import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
+import {
+  isFollowUp as isFollowUpIntent,
+  isPresentationFollowUp,
+  type CompanyTopicLabel,
+} from '../../understanding/domain/labels.js';
 
 export const COMPANY_ENTITY = 'PT Pralon';
 
-/** Topik perusahaan — bagian profil yang ditanyakan; `company_profile` = seluruhnya. */
-export type CompanyTopic =
-  | 'company_profile'
-  | 'company_overview'
-  | 'history'
-  | 'products'
-  | 'manufacturing'
-  | 'certifications'
-  | 'vision_mission'
-  | 'contact';
+/** Topik perusahaan — bagian profil yang ditanyakan; `company_overview` bila tidak ada yang spesifik. */
+export type CompanyTopic = CompanyTopicLabel | 'company_overview';
 
 const DEPTH_ORDER: readonly AnswerDepth[] = ['brief', 'standard', 'detailed', 'comprehensive'];
 
-const COMPREHENSIVE =
-  /\b(semua(?:nya)?|seluruh(?:nya)?|lengkap(?:nya)?|selengkap(?:nya)?|komplit|secara lengkap|secara detail|everything|all of it|complete(?:ly)?|full(?:y)?|comprehensive|in full)\b/i;
-const DETAILED =
-  /\b(detail(?:nya|ed)?|detil|rinci(?:nya)?|terperinci|mendalam|lebih (?:jauh|dalam|banyak|lanjut)|more|elaborate|deeper|in depth|further)\b/i;
-const BRIEF =
-  /\b(singkat(?:nya)?|ringkas(?:nya)?|sekilas|garis besar|brief(?:ly)?|short(?:ly)?|summary|quick(?:ly)?|tl;?dr)\b/i;
-
-/** Kedalaman jawaban yang diminta pesan; `null` bila pesan tidak menyebutnya. */
-export function requestedDepth(message: string): AnswerDepth | null {
-  if (COMPREHENSIVE.test(message)) return 'comprehensive';
-  if (DETAILED.test(message)) return 'detailed';
-  if (BRIEF.test(message)) return 'brief';
-  return null;
+/**
+ * Pesan lanjutan yang tidak berdiri sendiri ("boleh", "lengkap dong", "yang tadi"): bentuknya
+ * dikenali pemahaman; aturan di sini adalah PAGARNYA — pesan yang menyebut produk atau kebutuhan
+ * baru membawa topik baru, apa pun bentuk kalimatnya ("lebih detail soal HDPE dong" bukan lanjutan
+ * subjek perusahaan, melainkan pertanyaan HDPE).
+ */
+export function isFollowUp(u: MessageUnderstanding): boolean {
+  return isFollowUpIntent(u.intent?.label) && u.families.length === 0 && !u.mentionsRequirement;
 }
 
 /**
- * Kata-kata yang boleh menyusun pesan LANJUTAN: persetujuan, rujukan ("yang tadi"), permintaan
- * kedalaman, dan kata pengisi. Pesan yang seluruh katanya ada di sini tidak berdiri sendiri —
- * maknanya hanya ada relatif terhadap subjek yang aktif.
+ * Permintaan UBAH BENTUK atas jawaban sebelumnya ("bikinin tabelnya dong", "ringkas aja"): tidak
+ * membawa topik baru — maknanya hanya ada relatif terhadap apa yang baru dijawab. Format yang
+ * diminta dibaca `u.format`.
  */
-const FOLLOW_UP_WORDS = new Set([
-  // persetujuan / lanjutkan
-  'ya',
-  'iya',
-  'yes',
-  'yep',
-  'yup',
-  'ok',
-  'oke',
-  'okay',
-  'okey',
-  'boleh',
-  'sure',
-  'silakan',
-  'silahkan',
-  'gas',
-  'gaskeun',
-  'lanjut',
-  'lanjutkan',
-  'lanjutin',
-  'terus',
-  'teruskan',
-  'terusin',
-  'continue',
-  'go',
-  'on',
-  'ahead',
-  'more',
-  'lagi',
-  'yuk',
-  'ayo',
-  'mau',
-  'pengen',
-  'pingin',
-  'want',
-  'need',
-  // tampilkan / jelaskan
-  'tampilkan',
-  'tampilin',
-  'tunjukkan',
-  'tunjukin',
-  'kasih',
-  'kasi',
-  'show',
-  'tell',
-  'me',
-  'jelasin',
-  'jelaskan',
-  'jelasinnya',
-  'explain',
-  'elaborate',
-  'sebutkan',
-  'sebutin',
-  'list',
-  'liat',
-  'lihat',
-  'see',
-  // kedalaman
-  'detail',
-  'detailnya',
-  'detil',
-  'rinci',
-  'rincinya',
-  'lengkap',
-  'lengkapnya',
-  'lengkapin',
-  'selengkapnya',
-  'komplit',
-  'semua',
-  'semuanya',
-  'seluruh',
-  'seluruhnya',
-  'everything',
-  'all',
-  'of',
-  'it',
-  'complete',
-  'full',
-  'fully',
-  'singkat',
-  'ringkas',
-  'brief',
-  'short',
-  'secara',
-  'lebih',
-  'jauh',
-  'dalam',
-  'banyak',
-  'mendalam',
-  'in',
-  'depth',
-  // rujukan
-  'yang',
-  'tadi',
-  'itu',
-  'tuh',
-  'ini',
-  'the',
-  'that',
-  'this',
-  'one',
-  'previous',
-  'same',
-  'sama',
-  'pertama',
-  'kedua',
-  'ketiga',
-  'first',
-  'second',
-  'third',
-  'data',
-  'datanya',
-  'nya',
-  'info',
-  'infonya',
-  'informasi',
-  'informasinya',
-  'profil',
-  'profilnya',
-  'profile',
-  'details',
-  // pengisi
-  'dong',
-  'donk',
-  'deh',
-  'dah',
-  'aja',
-  'saja',
-  'please',
-  'pls',
-  'plis',
-  'tolong',
-  'coba',
-  'bisa',
-  'bisakah',
-  'minta',
-  'gw',
-  'gue',
-  'gua',
-  'aku',
-  'saya',
-  'i',
-  'kak',
-  'min',
-  'bro',
-  'jo',
-  'snouty',
-  'ya',
-  'yah',
-  'sih',
-  'kalau',
-  'kalo',
-  'bisa',
-  'boleh',
-  'saya',
-  'tau',
-  'tahu',
-  'know',
-  'about',
-  'tentang',
-  'soal',
-  'terkait',
-  'mengenai',
-  'apa',
-  'what',
-  'else',
-  'juga',
-  'too',
-  'also',
-  'and',
-  'dan',
-  'with',
-  'dengan',
-  'so',
-  'jadi',
-]);
-const MAX_FOLLOW_UP_WORDS = 8;
-
-/**
- * Pesan lanjutan yang tidak berdiri sendiri: pendek, dan setiap katanya adalah persetujuan,
- * rujukan, permintaan kedalaman, atau pengisi. "boleh", "lengkap dong", "semuanya, tolong
- * tampilin", "data nya secara lengkap dong", "yang tadi" — ya. "produk HDPE nya gimana?" — bukan:
- * ia menyebut hal baru (HDPE, gimana).
- */
-export function isFollowUp(message: string): boolean {
-  const words = message
-    .toLowerCase()
-    .replace(/[^a-z0-9\s;]/g, ' ')
-    .replace(/\btl;dr\b/g, 'tldr')
-    .split(/\s+/)
-    .filter((w) => w.length > 0);
-  if (words.length === 0 || words.length > MAX_FOLLOW_UP_WORDS) return false;
-  return words.every((w) => FOLLOW_UP_WORDS.has(w));
-}
-
-/** Bentuk penyajian yang diminta pengguna atas jawaban yang sudah ada. */
-export type AnswerFormat = 'table' | 'bullets' | 'summary';
-
-const FORMAT_TABLE =
-  /\b(tabel|table|tabelkan|bentuk tabel|skema perbandingan|skema|bagan|matriks|matrix|side by side)\b/i;
-const FORMAT_BULLETS = /\b(poin[- ]?poin|poin|butir|bullet(?:s)?|daftar|list(?:kan)?|poinnya)\b/i;
-const FORMAT_SUMMARY =
-  /\b(ringkas(?:kan|in)?|rangkum(?:kan|in)?|singkat(?:kan|in)?|intinya|tl;?dr|summar(?:y|ize|ise))\b/i;
-/** Rujukan ke jawaban yang baru saja diberikan: "-nya", "tadi", "di atas", "yang itu", "the above". */
-const REFERENCE =
-  /\b(nya|tadi|itu|ini|di ?atas|sebelumnya|barusan|yang tadi|yang itu|perbedaannya|bedanya|penjelasannya|jawabannya|the above|that|this|previous|earlier)\b|nya\b/i;
-
-/** Format yang diminta pesan; `null` bila tidak ada. Tabel menang atas daftar, daftar atas ringkasan. */
-export function requestedFormat(message: string): AnswerFormat | null {
-  if (FORMAT_TABLE.test(message)) return 'table';
-  if (FORMAT_BULLETS.test(message)) return 'bullets';
-  if (FORMAT_SUMMARY.test(message)) return 'summary';
-  return null;
+export function isFormatFollowUp(u: MessageUnderstanding): boolean {
+  return (
+    u.format !== null &&
+    (u.intent?.label === 'follow_up_reformat' || isPresentationFollowUp(u.intent?.label)) &&
+    u.families.length === 0 &&
+    !u.mentionsRequirement
+  );
 }
 
 /**
- * Permintaan UBAH BENTUK atas jawaban sebelumnya: "bikinin skema perbedaannya dalam bentuk tabel",
- * "ringkas aja", "poin-poinnya dong". Pesan seperti ini tidak membawa topik baru — maknanya hanya
- * ada relatif terhadap apa yang baru dijawab — sehingga diperlakukan sebagai lanjutan subjek.
- * Pemanggil tetap memeriksa bahwa pesan tidak menyebut entitas baru (bahan, produk, kebutuhan).
+ * "yang mana buat kamar mandi?", "mana yang lebih cocok?": memilih di antara hal yang baru
+ * dibandingkan — lanjutan subjek walau menyebut tempat pakainya (kamar mandi adalah tempat,
+ * bukan kebutuhan baru). Yang menggugurkannya hanya bahan/produk baru di pesan.
  */
-export function isFormatFollowUp(message: string): boolean {
-  const format = requestedFormat(message);
-  if (format === null) return false;
-  const words = message.split(/\s+/).filter((w) => w.length > 0).length;
-  return REFERENCE.test(message) || words <= MAX_FOLLOW_UP_WORDS;
+export function isChoiceFollowUp(u: MessageUnderstanding): boolean {
+  return u.intent?.label === 'follow_up_choice' && u.families.length === 0;
 }
 
-/**
- * "yang mana buat kamar mandi?", "mana yang lebih cocok?", "which one?": memilih di antara hal yang
- * baru dibandingkan — lanjutan subjek, walau menyebut tempat pakainya.
- */
-export function isChoiceFollowUp(message: string): boolean {
-  const words = message.split(/\s+/).filter((w) => w.length > 0).length;
-  return words <= MAX_FOLLOW_UP_WORDS && CHOICE.test(message);
-}
-const CHOICE =
-  /\b(yang mana|mana yang|pilih (?:yang )?mana|which one|which (?:is|would be)|yg mana|mana yg)\b/i;
-
-/** Topik perusahaan yang disebut pesan; `company_profile` bila "profil/company profile/semuanya". */
-export function companyTopicOf(message: string): CompanyTopic {
-  const t = message.toLowerCase();
-  if (/\b(profil(?:e)?|company profile|selengkapnya|semua(?:nya)?|seluruh)\b/.test(t)) {
-    return 'company_profile';
-  }
-  if (/\b(sejarah|history|didirikan|berdiri|founded|milestone)/.test(t)) return 'history';
-  if (/\b(pabrik|factory|manufaktur|manufactur|produksi|production|fasilitas|facilit)/.test(t)) {
-    return 'manufacturing';
-  }
-  if (/\b(sertifikasi|sertifikat|certif|sni|iso|standar mutu|quality)/.test(t))
-    return 'certifications';
-  if (/\b(visi|misi|vision|mission|nilai|values)\b/.test(t)) return 'vision_mission';
-  if (
-    /\b(kontak|contact|alamat|address|kantor|office|telepon|phone|email|website|situs|cabang|distributor)\b/.test(
-      t,
-    )
-  ) {
-    return 'contact';
-  }
-  if (/\b(produk|products?|jual|bikin|buat|membuat|manufacture|jenis|range)\b/.test(t))
-    return 'products';
-  return 'company_overview';
+/** Topik perusahaan yang disebut pesan; `company_overview` bila tidak ada bagian spesifik. */
+export function companyTopicOf(u: MessageUnderstanding): CompanyTopic {
+  return u.companyTopic ?? 'company_overview';
 }
 
 function deeper(depth: AnswerDepth): AnswerDepth {
@@ -328,23 +82,21 @@ export interface SubjectResolution {
  * → `comprehensive`); pesan yang menyebut topik baru menggantinya.
  */
 export function resolveCompanySubject(
-  message: string,
+  u: MessageUnderstanding,
   previous: ConversationSubject | undefined,
 ): SubjectResolution {
-  const requested = requestedDepth(message);
-  const followUp = isFollowUp(message);
-  if (previous?.kind === 'company' && followUp) {
-    const mentionsTopic = companyTopicOf(message) !== 'company_overview';
+  const requested = u.depth;
+  if (previous?.kind === 'company' && isFollowUp(u)) {
     return {
       subject: {
         ...previous,
-        topic: mentionsTopic ? companyTopicOf(message) : previous.topic,
+        topic: u.companyTopic ?? previous.topic,
         depth: requested ?? deeper(previous.depth),
       },
       resolvedFromPrevious: true,
     };
   }
-  const topic = companyTopicOf(message);
+  const topic = companyTopicOf(u);
   return {
     subject: {
       kind: 'company',
@@ -357,17 +109,33 @@ export function resolveCompanySubject(
   };
 }
 
-/** Subjek PRODUK/BAHAN setelah pertanyaan produk terjawab; `entity` = query yang dipakai. */
+/** Topik subjek produk: "apa bedanya fitting sama HDPE?" — komponen dibandingkan dengan satu bahan. */
+export const FITTING_VS_MATERIAL = 'fitting_vs_material';
+
+/**
+ * Subjek PRODUK/BAHAN setelah pertanyaan produk terjawab; `entity` = query yang dipakai (keluarga
+ * produk kanonis, "pvc aw dan hdpe"), atau `null` bila pesan tidak menyebut produk.
+ */
 export function productSubject(
   entity: string | null,
-  message: string,
+  u: MessageUnderstanding,
   previous: ConversationSubject | undefined,
 ): ConversationSubject {
-  const requested = requestedDepth(message);
-  if (entity === null && previous && previous.kind !== 'company' && isFollowUp(message)) {
+  const requested = u.depth;
+  if (entity === null && previous && previous.kind !== 'company' && isFollowUp(u)) {
     return { ...previous, depth: requested ?? deeper(previous.depth) };
   }
-  const comparison = COMPARISON_WORDS.test(message);
+  const comparison = u.intent?.label === 'product_comparison';
+  // Fitting vs satu bahan: topiknya disimpan supaya "bikinin tabelnya" berikutnya tahu bahwa
+  // yang dibandingkan adalah komponen dengan bahan — bukan dua bahan.
+  if (
+    comparison &&
+    entity !== null &&
+    u.families.length === 1 &&
+    u.knowledgeTopics.includes('fitting')
+  ) {
+    return { kind: 'product', entity, topic: FITTING_VS_MATERIAL, depth: requested ?? 'standard' };
+  }
   // "coba bandingin sama pipa PVC" saat subjeknya HDPE: yang dibandingkan adalah keduanya —
   // entitasnya digabung supaya giliran berikutnya ("bedanya sama AW?") tahu apa yang sedang dibahas.
   const merged =
@@ -384,9 +152,6 @@ export function productSubject(
     depth: requested ?? 'standard',
   };
 }
-
-const COMPARISON_WORDS =
-  /\b(beda|bedanya|perbedaan|bandingkan|bandingin|dibanding|differ|difference|compare|versus|vs)\b/i;
 
 /** Intent yang dilanjutkan sebuah pesan lanjutan atas subjek bersangkutan. */
 export function intentForSubject(kind: SubjectKind): Intent {
