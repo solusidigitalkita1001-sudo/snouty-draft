@@ -22,6 +22,7 @@ export const QUEUES = {
   reportGenerate: 'snouty.report.generate',
   catalogIngest: 'snouty.catalog.ingest',
   emailAnalyze: 'snouty.email.analyze',
+  handoffDeliver: 'snouty.handoff.deliver',
 } as const;
 
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
@@ -76,11 +77,25 @@ export const EmailAnalyzeJob = z
 
 export type EmailAnalyzeJob = z.infer<typeof EmailAnalyzeJob>;
 
+/**
+ * `handoff.deliver` — kasus yang diserahkan ke tim teknis dikirim ke alamat tim lewat n8n
+ * (OQ-08). Hanya id: isi kebutuhan pengguna diambil worker dari API, tidak menginap di antrean.
+ */
+export const HandoffDeliverJob = z
+  .object({
+    ...envelope,
+    handoffId: z.string().length(26),
+  })
+  .strict();
+
+export type HandoffDeliverJob = z.infer<typeof HandoffDeliverJob>;
+
 /** Peta antrean → skema, supaya konsumer tidak memilih validator secara manual. */
 export const JOB_SCHEMA = {
   [QUEUES.reportGenerate]: ReportGenerateJob,
   [QUEUES.catalogIngest]: CatalogIngestJob,
   [QUEUES.emailAnalyze]: EmailAnalyzeJob,
+  [QUEUES.handoffDeliver]: HandoffDeliverJob,
 } as const;
 
 /**

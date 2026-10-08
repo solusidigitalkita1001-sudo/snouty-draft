@@ -7,6 +7,9 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { QUEUES } from '@snouty/jobs';
+import type { JobPublisher } from '../../../shared/queue/job-publisher.js';
+import { handoffMessage, type HandoffMessage } from '../domain/handoff-message.js';
 import { ulid } from '../../../shared/ulid.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
@@ -20,6 +23,17 @@ import {
   type HandoffRow,
 } from '../domain/handoff.repository.js';
 
+export class HandoffNotFoundError extends Error {
+  // Tanpa kode ini filter memetakannya ke 503 `retryable` — worker mengulang job untuk
+  // handoff yang memang tidak ada sampai masuk DLQ.
+  readonly code = 'NOT_FOUND' as const;
+
+  constructor() {
+    super('Handoff tidak ditemukan.');
+    this.name = 'HandoffNotFoundError';
+  }
+}
+
 @Injectable()
 export class HandoffService {
   constructor(
@@ -28,6 +42,9 @@ export class HandoffService {
     private readonly snapshots: RequirementSnapshotStore,
     /** Lampiran denah (P13-06); opsional supaya tes lama tidak berubah. */
     private readonly uploads: Pick<UploadsService, 'listForConversation'> | null = null,
+    /** Pengiriman ke tim teknis lewat worker + n8n (P10-06, OQ-08); tanpa ini hanya antrean. */
+    private readonly publisher: Pick<JobPublisher, 'publish'> | null = null,
+    private readonly log: { warn(obj: object, msg: string): void } | null = null,
   ) {}
 
   async enqueue(
@@ -60,12 +77,32 @@ export class HandoffService {
         }))
       : [];
 
-    return this.handoffs.enqueue({
+    const row = await this.handoffs.enqueue({
       id: ulid(),
       conversationId,
       reason,
       captured: [...captured, ...assumptions, ...attachments],
     });
+
+    // Antrean gagal TIDAK menggagalkan penyerahan: barisnya sudah tersimpan di antrean tim
+    // teknis (OQ-08: email + baris antrean), dan pengguna tidak boleh melihat kegagalan
+    // integrasi sebagai "kasus Anda tidak terkirim".
+    if (this.publisher) {
+      const queued = await this.publisher.publish(QUEUES.handoffDeliver, {
+        handoffId: row.id,
+        correlationId: row.id,
+      });
+      if (!queued)
+        this.log?.warn({ handoffId: row.id }, 'handoff tersimpan tetapi job kirim tidak terkirim');
+    }
+    return row;
+  }
+
+  /** Isi email untuk worker (rute internal). */
+  async messageFor(handoffId: string): Promise<HandoffMessage> {
+    const row = await this.handoffs.findById(handoffId);
+    if (!row) throw new HandoffNotFoundError();
+    return handoffMessage(row);
   }
 
   /** Antrean kerja tim teknis — dipakai back-office (layar menyusul, OQ-21). */

@@ -18,8 +18,8 @@
 import { timingSafeEqual } from 'node:crypto';
 import { Inject, Injectable, Optional, type NestMiddleware } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
-import { INTERNAL_ROLES } from '../../../shared/auth/roles.js';
-import type { InternalActor, WithInternalActor } from '../../../shared/http/internal-role.guard.js';
+import { INTERNAL_ROLES } from '../auth/roles.js';
+import type { InternalActor, WithInternalActor } from './internal-role.guard.js';
 
 export const WORKER_INTERNAL_TOKEN = Symbol('WORKER_INTERNAL_TOKEN');
 

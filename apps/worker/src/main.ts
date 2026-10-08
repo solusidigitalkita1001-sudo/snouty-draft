@@ -1,5 +1,6 @@
 import pino from 'pino';
-import { QUEUES, type ReportGenerateJob } from '@snouty/jobs';
+import { QUEUES, type HandoffDeliverJob, type ReportGenerateJob } from '@snouty/jobs';
+import { handoffDeliverConsumer } from './consumers/handoff-deliver.js';
 import { launchChromium, reportPdfConsumer } from './consumers/report-pdf.js';
 import { RabbitTransport } from './transport/rabbitmq.js';
 
@@ -40,6 +41,20 @@ async function bootstrap(): Promise<void> {
   });
 
   await transport.consume<ReportGenerateJob>(QUEUES.reportGenerate, handler);
+
+  // Pengiriman kasus ke tim teknis (P10-06, OQ-08). Konfigurasi n8n opsional: tanpa itu
+  // job dicatat lalu selesai, dan kasusnya tetap di antrean tim teknis.
+  await transport.consume<HandoffDeliverJob>(
+    QUEUES.handoffDeliver,
+    handoffDeliverConsumer({
+      apiBaseUrl: requireEnv('API_URL'),
+      internalToken: requireEnv('WORKER_INTERNAL_TOKEN'),
+      webhookUrl: process.env['N8N_HANDOFF_WEBHOOK_URL'],
+      webhookSecret: process.env['N8N_WEBHOOK_SECRET'],
+      target: process.env['TECH_HANDOFF_TARGET'],
+      log,
+    }),
+  );
   log.info('SNOUTY worker siap');
 
   const shutdown = (signal: string): void => {

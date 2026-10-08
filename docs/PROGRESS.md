@@ -517,7 +517,7 @@ dan riwayat. Yang tercatat di sini adalah sisanya.
 - [x] P10-03 Antrean handoff teknis → dikerjakan sebagai P8-07
 - [x] P10-04 Register-gate & resume → dikerjakan sebagai P8-09
 - [x] P10-05 Laporan PDF (worker) → dikerjakan sebagai P8-08
-- [ ] `[!]` P10-06 Pengiriman handoff ke tujuan sebenarnya — **terhalang OQ-08** (mailbox? CRM? tiket?)
+- [x] P10-06 Pengiriman handoff ke tim teknis (2026-10-08) — sesuai jawaban **OQ-08**: email lewat n8n + baris antrean. Penyerahan kasus menerbitkan job `snouty.handoff.deliver` (hanya id); worker mengambil isi email dari `GET /internal/handoff-messages/:id` (token worker), lalu POST ke `N8N_HANDOFF_WEBHOOK_URL` bertanda tangan HMAC (`x-snouty-signature` atas `timestamp.body`, rahasia `N8N_WEBHOOK_SECRET`) dengan `to: TECH_HANDOFF_TARGET`; n8n yang mengirim emailnya. Isi email teks polos: kebutuhan pengguna, asumsi sistem terpisah, lampiran. Antrean mati tidak menggagalkan penyerahan; konfigurasi kosong = job dicatat dan selesai, kasus tetap di antrean. `WorkerTokenMiddleware` pindah ke `shared/http` (dipakai dua modul). Tes: API +6, worker +3. **Aktif setelah pemilik mengisi tiga variabel itu di `.env.production` dan menyiapkan alur n8n**
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
 ## Phase 11 — Email Intelligence

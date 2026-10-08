@@ -104,6 +104,7 @@ The design promises "Balasan biasanya 1×24 jam kerja" on screen 11.
 working hours the contractual SLA we may display?
 **Proposed default:** Email to a `TECH_HANDOFF_TARGET` address via n8n, plus a row in the internal
 handoff queue. SLA copy stays "1×24 jam kerja" exactly as designed, driven by config not a literal.
+**Diterapkan:** P10-06 (2026-10-08) — worker → webhook n8n bertanda tangan. Menunggu pemilik: `N8N_HANDOFF_WEBHOOK_URL`, `N8N_WEBHOOK_SECRET`, `TECH_HANDOFF_TARGET` di `.env.production` dan alur n8n yang memverifikasi tanda tangan lalu mengirim email.
 
 ### OQ-09 — Git remote and CI provider
 

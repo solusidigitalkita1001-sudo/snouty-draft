@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { NextFunction, Request, Response } from 'express';
-import type { WithInternalActor } from '../../../shared/http/internal-role.guard.js';
+import type { WithInternalActor } from './internal-role.guard.js';
 import { WORKER_ACTOR, WorkerTokenMiddleware } from './worker-token.middleware.js';
 
 const TOKEN = 'token-worker-yang-cukup-panjang-untuk-skema-env';

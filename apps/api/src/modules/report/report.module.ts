@@ -28,7 +28,7 @@ import { ReportController } from './presentation/report.controller.js';
 import {
   WORKER_INTERNAL_TOKEN,
   WorkerTokenMiddleware,
-} from './presentation/worker-token.middleware.js';
+} from '../../shared/http/worker-token.middleware.js';
 
 const workerTokenProvider = {
   provide: WORKER_INTERNAL_TOKEN,

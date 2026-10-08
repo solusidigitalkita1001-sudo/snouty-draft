@@ -149,14 +149,15 @@ dihilangkan dari respons. UI perlu tahu bedanya antara "tidak ada datanya" dan "
 
 ### Internal (semua butuh peran + audit)
 
-| Path                    | Peran                     |
-| ----------------------- | ------------------------- |
-| `/internal/catalog/*`   | `catalog_admin`           |
-| `/internal/rules/*`     | `domain_expert`           |
-| `/internal/handoffs/*`  | `technical_team`          |
-| `/internal/emails/*`    | `sales_reviewer`          |
-| `/internal/dashboard/*` | `sales_reviewer`, `admin` |
-| `/internal/users/*`     | `admin`                   |
+| Path                             | Peran                                          |
+| -------------------------------- | ---------------------------------------------- |
+| `/internal/catalog/*`            | `catalog_admin`                                |
+| `/internal/rules/*`              | `domain_expert`                                |
+| `/internal/handoffs/*`           | `technical_team`                               |
+| `/internal/handoff-messages/:id` | token worker (`WORKER_INTERNAL_TOKEN`, P10-06) |
+| `/internal/emails/*`             | `sales_reviewer`                               |
+| `/internal/dashboard/*`          | `sales_reviewer`, `admin`                      |
+| `/internal/users/*`              | `admin`                                        |
 
 ### Kesehatan
 
