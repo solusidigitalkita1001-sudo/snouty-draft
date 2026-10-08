@@ -544,6 +544,13 @@ export function ChatWorkspace() {
       return;
     }
     setState(next);
+    // Judul kepala halaman mengikuti kebutuhan yang baru diedit, sama seperti dari giliran chat.
+    setActiveTitle(
+      COPY.titleFor(
+        next.building.type.value as string | null,
+        next.building.floors.value as number | null,
+      ),
+    );
     setEditStatus('idle');
     setEditing(false);
     setEdits({});
