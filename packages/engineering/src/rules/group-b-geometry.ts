@@ -188,12 +188,20 @@ export const ENG_011: RuleVersion<BoosterInput, { readonly boosterPumpNeeded: bo
   explain: (input, output, locale) =>
     localized(locale, {
       id: output.boosterPumpNeeded
-        ? `Dengan sumber ${input.waterSource === 'ground_tank' ? 'toren bawah' : input.waterSource}, distribusi diperkirakan memerlukan pompa pendorong.`
+        ? `Dengan sumber ${WATER_SOURCE_ID[input.waterSource]}, distribusi diperkirakan memerlukan pompa pendorong.`
         : 'Dengan toren di atap, tekanan gravitasi umumnya cukup tanpa pompa pendorong.',
       en: output.boosterPumpNeeded
         ? `With a ${WATER_SOURCE_EN[input.waterSource]} source, distribution is expected to need a booster pump.`
         : 'With a rooftop tank, gravity pressure is generally sufficient without a booster pump.',
     }),
+};
+
+/** Nama sumber air dalam kalimat — nilai enum mentah ("municipal") tidak pernah tampil ke pengguna. */
+const WATER_SOURCE_ID: Readonly<Record<BoosterInput['waterSource'], string>> = {
+  rooftop_tank: 'toren atap',
+  ground_tank: 'toren bawah',
+  pump: 'pompa',
+  municipal: 'PDAM',
 };
 
 const WATER_SOURCE_EN: Readonly<Record<BoosterInput['waterSource'], string>> = {

@@ -69,6 +69,11 @@ export const CHAT_COPY = {
   titleFor: (building: string | null, floors: number | null) => {
     if (building === 'industrial') return 'Pabrik — jalur air proses';
     if (building === 'boarding_house') return 'Rumah kos — instalasi air bersih';
+    // Toko, kantor, masjid, sekolah: bangunan komersial ringan, bukan "Rumah" (laporan pemilik 2026-10-08).
+    if (building === 'light_commercial')
+      return floors !== null
+        ? `Bangunan ${floors} lantai — konsultasi baru`
+        : 'Bangunan komersial — konsultasi baru';
     if (floors !== null) return `Rumah ${floors} lantai — konsultasi baru`;
     return 'Konsultasi baru';
   },
@@ -254,6 +259,10 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   titleFor: (building: string | null, floors: number | null) => {
     if (building === 'industrial') return 'Factory — process water line';
     if (building === 'boarding_house') return 'Boarding house — clean water installation';
+    if (building === 'light_commercial')
+      return floors !== null
+        ? `${floors}-storey building — new consultation`
+        : 'Commercial building — new consultation';
     if (floors !== null) return `${floors}-storey house — new consultation`;
     return 'New consultation';
   },

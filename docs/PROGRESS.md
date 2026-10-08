@@ -1080,6 +1080,16 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       tinggi". (3) "Perbaiki asumsi ini" pada solusi kasus teknis/irigasi membuka panel mode ubah yang
       tidak punya editor (diam); kini kembali ke chat, panel terbuka, kolom ketik terfokus. Diverifikasi
       live: 15 → 20 m, panjang jalur tetap 500 m. Tes: extractor +3, ComposerField +1.
+- [x] P16-16 "Ubah" di panel Kebutuhan Anda terasa tidak berefek (laporan pemilik 2026-10-08, dengan
+      tangkapan layar) — selesai. Diuji headless (Playwright) di produksi: PATCH dan analisis ulang
+      selalu berjalan, tetapi (1) hasil ENG-011 (pompa pendorong, dari tipe bangunan + sumber air) dan
+      ENG-013 (kelas pipa AW/D) dihitung lalu dibuang — mengubah tipe bangunan, sumber air, atau jenis
+      instalasi tidak mengubah apa pun di solusi; kini keduanya tampil sebagai ASUMSI yang bisa
+      diperbaiki (tanpa ukuran jalur pembuangan karangan — dihitung tim teknis); (2) analisis ulang
+      selalu memaksa tab ke Ringkasan, sehingga perubahan kuantitas di Estimasi Material/Skema (efek
+      jumlah lantai) tersembunyi — kini tab dipertahankan; (3) teks ENG-011 mencetak enum mentah
+      ("sumber municipal") — kini "PDAM"/"pompa"/"toren bawah"; (4) judul percakapan toko/kantor
+      "Rumah N lantai" — kini "Bangunan N lantai". Tes: solution-view +2, judul +1.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

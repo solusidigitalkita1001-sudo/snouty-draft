@@ -448,42 +448,51 @@ export function ChatWorkspace() {
    * chat, lalu solusinya diambil dan dirender — gambar, tabel, dan BOM semuanya dari
    * rekomendasi yang tersimpan, bukan dihitung di klien.
    */
-  const analyze = useCallback(() => {
-    if (!conversationId || analyzing) return;
-    setAnalyzing(true);
-    // "Memahami kebutuhan" sudah selesai di giliran chat — `/analyze` tidak memancarkannya
-    // lagi. Tanpa ini tahap pertama tetap kosong, judul tak pernah "Solusi siap!", dan bar
-    // berhenti di 80% (laporan pemilik 2026-10-06).
-    setStages({ UNDERSTANDING: 'done' });
-    setError(null);
+  /**
+   * `keepTab`: analisis ulang setelah edit panel tetap di tab yang sedang dibuka — dulu selalu
+   * kembali ke Ringkasan, sehingga perubahan kuantitas di Estimasi Material atau Skema tidak
+   * pernah terlihat (laporan pemilik 2026-10-08: "Ubah" terasa tidak berefek).
+   */
+  const startAnalysis = useCallback(
+    (keepTab: boolean) => {
+      if (!conversationId || analyzing) return;
+      setAnalyzing(true);
+      // "Memahami kebutuhan" sudah selesai di giliran chat — `/analyze` tidak memancarkannya
+      // lagi. Tanpa ini tahap pertama tetap kosong, judul tak pernah "Solusi siap!", dan bar
+      // berhenti di 80% (laporan pemilik 2026-10-06).
+      setStages({ UNDERSTANDING: 'done' });
+      setError(null);
 
-    void runAnalysis(conversationId, (event) => {
-      if (event.type === 'stage') {
-        setStages((previous) => ({ ...previous, [event.stage]: event.status }));
-      } else if (event.type === 'error') {
-        setError(COPY.llmUnavailable);
-      }
-    })
-      .then(async (recommendationId) => {
-        if (!recommendationId) {
-          setStages(markFailed);
-          return;
+      void runAnalysis(conversationId, (event) => {
+        if (event.type === 'stage') {
+          setStages((previous) => ({ ...previous, [event.stage]: event.status }));
+        } else if (event.type === 'error') {
+          setError(COPY.llmUnavailable);
         }
-        const recommendation = await fetchRecommendation(recommendationId);
-        // "Solusi siap!" sempat terlihat sebentar, lalu overlay menutup dan solusi tampil.
-        await new Promise((resolve) => setTimeout(resolve, SOLUTION_READY_HOLD_MS));
-        setSolution(recommendation);
-        setStages({});
-        // Prototipe: overlay menutup → `screen: 'solution'`, tab Ringkasan.
-        setSolutionTab('ringkasan');
-        setScreen('solution');
       })
-      .catch(() => {
-        setError(COPY.llmUnavailable);
-        setStages(markFailed);
-      })
-      .finally(() => setAnalyzing(false));
-  }, [analyzing, conversationId]);
+        .then(async (recommendationId) => {
+          if (!recommendationId) {
+            setStages(markFailed);
+            return;
+          }
+          const recommendation = await fetchRecommendation(recommendationId);
+          // "Solusi siap!" sempat terlihat sebentar, lalu overlay menutup dan solusi tampil.
+          await new Promise((resolve) => setTimeout(resolve, SOLUTION_READY_HOLD_MS));
+          setSolution(recommendation);
+          setStages({});
+          // Prototipe: overlay menutup → `screen: 'solution'`, tab Ringkasan.
+          if (!keepTab) setSolutionTab('ringkasan');
+          setScreen('solution');
+        })
+        .catch(() => {
+          setError(COPY.llmUnavailable);
+          setStages(markFailed);
+        })
+        .finally(() => setAnalyzing(false));
+    },
+    [analyzing, conversationId],
+  );
+  const analyze = useCallback(() => startAnalysis(false), [startAnalysis]);
 
   /**
    * "Simpan hasil konsultasi". Digerbang `SAVE_SOLUTION` di API: tamu menerima 403 dan
@@ -538,8 +547,8 @@ export function ChatWorkspace() {
     setEditStatus('idle');
     setEditing(false);
     setEdits({});
-    if (solution !== null) analyze();
-  }, [analyze, conversationId, edits, rows, solution]);
+    if (solution !== null) startAnalysis(true);
+  }, [startAnalysis, conversationId, edits, rows, solution]);
   // Prototipe `readCount`: seluruh field yang terbaca (sampai 7), bukan hanya empat inti.
   const readCount = useCase
     ? useCaseFilled

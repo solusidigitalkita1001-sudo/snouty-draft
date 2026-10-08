@@ -168,6 +168,28 @@ export function assumptionsFrom(
     });
   }
 
+  // ENG-011 (pompa pendorong) dan ENG-013 (kelas pipa) selalu dihitung, tetapi dulu hasilnya tidak
+  // pernah sampai ke solusi — mengubah tipe bangunan, sumber air, atau jenis instalasi di panel
+  // tampak "tidak berefek" (laporan pemilik 2026-10-08). Keduanya aturan yang belum divalidasi
+  // ahli, jadi tampil sebagai ASUMSI yang bisa diperbaiki, bukan sebagai baris sizing.
+  if (traces.some((trace) => trace.ruleId === 'ENG-011')) {
+    fromRules.push({
+      text: explanationFor(traces, 'ENG-011'),
+      fieldPath: 'water.source',
+      ruleId: 'ENG-011',
+    });
+  }
+  if (solution.pressureClasses.includes('D')) {
+    fromRules.push({
+      text:
+        locale === 'en'
+          ? 'The drainage line uses class D PVC pipe; its sizes are not calculated here — the Pralon technical team sizes it from the drainage fixtures.'
+          : 'Jalur pembuangan memakai pipa PVC kelas D; ukurannya belum dihitung di sini — tim teknis Pralon menghitungnya dari fixture pembuangannya.',
+      fieldPath: 'water.installationType',
+      ruleId: 'ENG-013',
+    });
+  }
+
   if (solution.overallProvenance !== 'VERIFIED') {
     fromRules.push({
       text:

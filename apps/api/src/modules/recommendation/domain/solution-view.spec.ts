@@ -95,3 +95,37 @@ describe('solution-view locale', () => {
     expect(bomItemName('Barang baru', 'en')).toBe('Barang baru');
   });
 });
+
+describe('assumptionsFrom — panel "Ubah" berefek ke solusi (laporan pemilik 2026-10-08)', () => {
+  const assumptionsFor = (over: Partial<SolutionInput>) => {
+    const s = computeSolution({ ...INPUT, ...over });
+    const t: readonly IdentifiedTrace[] = s.traces.map((x, i) => ({ ...x, id: `T${i}` }));
+    return assumptionsFrom(s, t, []);
+  };
+
+  it('sumber air dan tipe bangunan mengubah asumsi pompa pendorong (ENG-011)', () => {
+    const roof = assumptionsFor({ waterSource: 'rooftop_tank' }).find(
+      (a) => a.ruleId === 'ENG-011',
+    );
+    const pdam = assumptionsFor({ waterSource: 'municipal' }).find((a) => a.ruleId === 'ENG-011');
+    const factory = assumptionsFor({ buildingType: 'industrial' }).find(
+      (a) => a.ruleId === 'ENG-011',
+    );
+    expect(roof?.text).toContain('tanpa pompa pendorong');
+    expect(pdam?.text).toBe(
+      'Dengan sumber PDAM, distribusi diperkirakan memerlukan pompa pendorong.',
+    );
+    expect(factory?.text).toContain('memerlukan pompa pendorong');
+    expect(pdam?.fieldPath).toBe('water.source');
+  });
+
+  it('jenis instalasi "Keduanya" menambah asumsi jalur pembuangan kelas D tanpa ukuran karangan', () => {
+    expect(
+      assumptionsFor({ installationType: 'clean_water' }).some((a) => a.ruleId === 'ENG-013'),
+    ).toBe(false);
+    const drain = assumptionsFor({ installationType: 'both' }).find((a) => a.ruleId === 'ENG-013');
+    expect(drain?.text).toContain('kelas D');
+    expect(drain?.text).not.toMatch(/\d/);
+    expect(drain?.fieldPath).toBe('water.installationType');
+  });
+});
