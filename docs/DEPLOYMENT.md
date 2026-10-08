@@ -95,7 +95,9 @@ tidak dipakai untuk merangkai jawaban. Model hosted yang cepat memindahkan pemah
 ke model, sementara data produk, angka teknik, dan pagar tetap di kode. Embedding (bge-m3) tetap di
 Ollama lokal.
 
-Di `.env.production`:
+Cara singkat: `deploy/use-openrouter.sh` di server — meminta key tanpa menampilkannya, memeriksanya ke
+OpenRouter, menulis seluruh variabel di bawah (cadangan `.env.production.bak-*`), lalu release.
+`deploy/use-openrouter.sh --local` mengembalikan ke model lokal. Manual, di `.env.production`:
 
 ```
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
