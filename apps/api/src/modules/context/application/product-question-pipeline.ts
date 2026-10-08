@@ -187,6 +187,19 @@ export async function runProductQuestion(
     ];
   }
 
+  // "Bikinin tabelnya" tepat setelah daftar ragam produk: yang disajikan ulang adalah RAGAM itu,
+  // bukan perbandingan PVC vs HDPE — dulu bahan dibaca dari teks jawaban, dan daftar ragam
+  // menyebut HDPE dan PVC (laporan pemilik 2026-10-08).
+  if (isFormatFollowUp(u) && previousWasRange(input)) {
+    const range = await rangeOverview(catalog, locale, u.format);
+    return [
+      { type: 'message.start', messageId: input.messageId },
+      { type: 'token', text: range.text },
+      ...range.cards.map((card) => ({ type: 'card', card }) as const),
+      endEvent(input.messageId),
+    ];
+  }
+
   const asTable = reformatted(input, locale);
   if (asTable !== null) {
     return [
@@ -394,6 +407,32 @@ async function answerConcept(
  * kalimat pembukanya) dan pertanyaan sekarang BUKAN pengulangan pertanyaan sebelumnya, cukup
  * satu kalimat pengingat — pengguna bertanya hal lain, bukan minta diulang.
  */
+type RangeFormat = 'table' | 'bullets' | 'summary' | null;
+
+/** Jawaban asisten terakhir adalah daftar ragam produk (teks tetap milik kode, bukan kalimat pengguna). */
+function previousWasRange(input: ProductQuestionInput): boolean {
+  const last = lastAssistantText(input);
+  return (['id', 'en'] as const).some((l) => {
+    const copy = productAnswerCopy(l);
+    return last.includes(copy.rangeIntro) || last.includes(copy.catalogNotInstalled);
+  });
+}
+
+/** Tabel ragam: keluarga, jumlah produk, dua contoh. Tanda | di nama produk di-escape. */
+function rangeTable(byFamily: ReadonlyMap<string, readonly Product[]>, locale: Locale): string {
+  const en = locale === 'en';
+  const cell = (text: string) => text.replace(/\|/g, '\\|');
+  const rows = [...byFamily.entries()].map(([family, members]) => {
+    const examples = members.slice(0, 2).map((m) => cell(m.name));
+    return `| ${cell(family)} | ${members.length} | ${examples.join('; ')} |`;
+  });
+  return [
+    en ? '| Family | Products | Examples |' : '| Keluarga | Jumlah produk | Contoh |',
+    '| --- | --- | --- |',
+    ...rows,
+  ].join('\n');
+}
+
 function lastAssistantText(input: ProductQuestionInput): string {
   return [...(input.recentTurns ?? [])].reverse().find((t) => t.role === 'assistant')?.text ?? '';
 }
@@ -441,6 +480,8 @@ export function keepsStructure(written: string, knowledge: string): boolean {
 async function rangeOverview(
   catalog: ProductCatalog,
   locale: Locale = DEFAULT_LOCALE,
+  /** Bentuk yang diminta lanjutan "bikinin tabelnya" / "ringkas aja"; `null` = daftar biasa. */
+  format: RangeFormat = null,
 ): Promise<Outcome> {
   const COPY = productAnswerCopy(locale);
   let authoritative = false;
@@ -466,12 +507,24 @@ async function rangeOverview(
         more > 0 ? (locale === 'en' ? `, and ${more} more` : `, dan ${more} lainnya`) : '';
       return `- **${family}**: ${names.join(', ')}${tail}`;
     });
+    if (format === 'table') {
+      return { text: [rangeTable(byFamily, locale), '', COPY.rangeNext].join('\n'), cards: [] };
+    }
+    if (format === 'summary') {
+      const names = [...byFamily.keys()];
+      const text =
+        locale === 'en'
+          ? `The active Pralon catalogue has ${names.length} product families: ${names.join(', ')}.`
+          : `Di katalog Pralon yang aktif ada ${names.length} keluarga produk: ${names.join(', ')}.`;
+      return { text: [text, '', COPY.rangeNext].join('\n'), cards: [] };
+    }
     const representatives = [...byFamily.values()]
       .slice(0, 4)
       .map((members) => toCard(members[0]!));
     return {
       text: [COPY.rangeIntro, '', ...lines, '', COPY.rangeNext].join('\n'),
-      cards: [{ kind: 'product', products: representatives }],
+      // Kartu hanya pada jawaban pertama; sajian ulang tidak mengulang kartunya.
+      cards: format === null ? [{ kind: 'product', products: representatives }] : [],
     };
   }
 

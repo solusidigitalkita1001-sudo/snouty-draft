@@ -1133,6 +1133,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       ragamnya. Teks bertanya-balik dihapus. Kalimatnya juga belum dikenali dari contoh, jadi jatuh ke
       model generatif (±25 detik): +6 contoh `product_range` di `data/understanding/intent.json`,
       +3 kasus golden; evaluasi intent 132/132. Tes diperbarui.
+- [x] P16-23 "Bikinin dalam bentuk table" setelah daftar ragam produk menghasilkan tabel PVC vs HDPE
+      (laporan pemilik 2026-10-08) — selesai. Bahan dibaca dari teks jawaban terakhir, dan daftar ragam
+      menyebut HDPE dan PVC. Kini lanjutan ubah-bentuk tepat setelah daftar ragam menyajikan ulang
+      RAGAM itu: tabel Keluarga | Jumlah produk | Contoh, atau satu kalimat bila diminta ringkas;
+      kartu produk tidak diulang. Tes +1.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

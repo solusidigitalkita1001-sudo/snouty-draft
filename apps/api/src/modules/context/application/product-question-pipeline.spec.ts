@@ -542,6 +542,25 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
     expect(out).toContain('- **PVC AW**: Pipa PVC AW');
     expect(out).toContain('- **PVC D**: Pipa PVC D');
     expect(cards(events).map((c) => c.kind)).toEqual(['product']);
+
+    // "bikinin dalam bentuk table dong" setelah daftar itu: tabel RAGAM, bukan PVC vs HDPE
+    // (laporan pemilik 2026-10-08 — daftar ragam menyebut HDPE dan PVC, dan dulu dibaca sebagai
+    // dua bahan yang dibandingkan).
+    const table = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      { ...catalog({}), listProducts: async () => ({ items: [AW, D], nextCursor: null }) },
+      noQuestions,
+      input(
+        'bikinin dalam bentuk table dong',
+        { intent: 'follow_up_reformat', format: 'table' },
+        { recentTurns: [{ role: 'assistant', text: out }] },
+      ),
+    );
+    const tableText = text(table);
+    expect(tableText).toContain('| Keluarga | Jumlah produk | Contoh |');
+    expect(tableText).toContain('| PVC AW | 1 | Pipa PVC AW |');
+    expect(tableText).not.toContain('Aspek');
+    expect(cards(table)).toEqual([]);
   });
 
   it('katalog contoh: jujur katalog belum terpasang + ragam bahan umum, tanpa "CONTOH"', async () => {
