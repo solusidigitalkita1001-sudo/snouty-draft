@@ -7,7 +7,9 @@ apps/web/.next
 .env.*
 !.env.example
 design-input
+# data/ tidak ikut, KECUALI contoh pemahaman pertanyaan yang dibaca API saat boot (P16-11).
 data
+!data/understanding
 docs
 *.md
 !README.md
