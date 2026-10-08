@@ -509,6 +509,18 @@ describe('runUnderstanding — bentuk event SSE', () => {
     const text = events.find((e) => e.type === 'token') as { text: string };
     expect(text.text).not.toContain('Halo! Saya SNOUTY');
     expect(text.text).toContain('Silakan, tanyakan saja');
+
+    // Sapaan ketiga tepat setelah ajakan itu: kalimat pendek, bukan ajakan yang sama lagi.
+    const third = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'halo',
+        decision,
+        recentTurns: [{ role: 'assistant', text: text.text }],
+      }),
+    );
+    const thirdText = third.events.find((e) => e.type === 'token') as { text: string };
+    expect(thirdText.text).toBe('Saya di sini — silakan langsung tulis pertanyaannya.');
   });
 
   it('pembuka tanpa fakta ("mau nanya2 dong") berlabel REQUIREMENT_STATEMENT: dijawab ajakan bertanya, bukan formulir klarifikasi', async () => {

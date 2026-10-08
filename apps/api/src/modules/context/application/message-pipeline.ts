@@ -146,7 +146,7 @@ export async function runUnderstanding(
             // (laporan pemilik 2026-10-08: "hai" lalu "gw mau nanya2 nih").
             input.decision.intent === 'OUT_OF_SCOPE' &&
               (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
-            ? openerReply(input.locale)
+            ? greetingAgain(input.recentTurns ?? [], input.locale)
             : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Teks tetap, tanpa model. Dulu sapaan/di luar topik diserahkan ke model (tanpa DATA → nol
@@ -401,6 +401,19 @@ export async function runUnderstanding(
 
   const trigger: SnapshotTrigger = input.decision.mutatesState ? 'user_edit' : 'extraction';
   return { events, nextState: merged, changed, trigger };
+}
+
+/**
+ * Sapaan di tengah percakapan: ajakan bertanya, atau — bila ajakan itu baru saja dikirim —
+ * kalimat pendek, supaya tidak ada balasan tetap yang terulang persis dua kali berturut-turut.
+ */
+function greetingAgain(recentTurns: readonly ReplyTurn[], locale: Locale | undefined): string {
+  const opener = openerReply(locale);
+  const lastAssistant = [...recentTurns].reverse().find((turn) => turn.role === 'assistant');
+  if (lastAssistant?.text.trim() !== opener) return opener;
+  return locale === 'en'
+    ? "I'm here — go ahead with your question."
+    : 'Saya di sini — silakan langsung tulis pertanyaannya.';
 }
 
 /**
