@@ -356,10 +356,17 @@ async function answerConcept(
   }
 
   if (knowledge === '' && support.products.length === 0) {
-    // "Produk Pralon yang terkenal apa?" — pertanyaan tentang RAGAM, bukan satu produk.
-    if (asksRange) return rangeOverview(catalog, locale);
-    // Tidak ada yang dikenali: bukan bahan, bukan produk Pralon. Bertanya, bukan menebak.
-    return { text: COPY.noProductNamed, cards: [] };
+    // Pertanyaan produk tanpa produk yang disebut ("PT Pralon produknya apa aja?") adalah
+    // pertanyaan tentang RAGAM: jawab dengan keluarga produknya, lalu tawarkan rincian. Dulu
+    // dibalas "Produk mana yang Anda maksud?" — pengguna disuruh menjawab pertanyaannya sendiri
+    // (laporan pemilik 2026-10-08). Nama yang disebut tetapi tidak ada di katalog Pralon
+    // dikatakan dulu, lalu ragam yang memang ada.
+    const range = await rangeOverview(catalog, locale);
+    if (!support.authoritative || support.missing.length === 0) return range;
+    return {
+      ...range,
+      text: `${COPY.notInCatalog(support.missing.join(', '))}\n\n${range.text}`,
+    };
   }
 
   const data = [knowledge, ...facts].filter((part) => part !== '').join('\n\n');
@@ -489,7 +496,9 @@ async function answerSpec(
   aliases: Aliases = NO_ALIASES,
 ): Promise<Outcome> {
   const COPY = productAnswerCopy(locale);
-  if (query === null) return { text: COPY.noProductNamed, cards: [] };
+  // Aspek tanpa produk ("ukurannya apa aja?" di awal percakapan): tunjukkan ragamnya dulu,
+  // bukan bertanya balik.
+  if (query === null) return rangeOverview(catalog, locale);
 
   const support = await lookup(catalog, query, { optional: false, aliases, size: rawSize });
   if (support.unavailable) {

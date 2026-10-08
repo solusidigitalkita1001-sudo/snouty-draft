@@ -1122,6 +1122,15 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       nih" dijawab perkenalan yang persis sama) — selesai. Perkenalan "Halo! Saya SNOUTY…" kini
       hanya untuk giliran pertama; sapaan atau ajakan bertanya di tengah percakapan dijawab ajakan
       bertanya. Aturan di kode (riwayat giliran), bukan daftar frasa. Tes +1.
+- [x] P16-21 Hapus dari riwayat seperti ChatGPT (permintaan pemilik 2026-10-08) — selesai. Tombol
+      hapus per baris riwayat (muncul saat diarahkan; selalu terlihat di layar sentuh), soft delete
+      (`deleted_at` sudah ada, tanpa migration), notifikasi "Percakapan dihapus · Urungkan" 6 detik
+      lewat rute baru `POST /conversations/:id/restore` (hanya pemilik, idempoten). Menghapus
+      percakapan yang sedang dibuka kembali ke sambutan. Tes MySQL +1.
+- [x] P16-22 "PT Pralon produknya apa aja?" dibalas "Produk mana yang Anda maksud?" (laporan
+      pemilik 2026-10-08) — selesai. Pertanyaan produk tanpa produk yang disebut kini dijawab ragam
+      keluarga produk Pralon; nama yang disebut tetapi tidak ada di katalog dikatakan dulu, lalu
+      ragamnya. Teks bertanya-balik dihapus. Tes diperbarui.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

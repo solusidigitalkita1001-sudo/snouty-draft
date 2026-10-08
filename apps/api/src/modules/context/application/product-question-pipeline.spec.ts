@@ -475,7 +475,7 @@ describe('runProductQuestion — KONSEP', () => {
     );
   });
 
-  it('tanpa aspek dan tanpa bahan yang dikenali: ikhtisar produk Pralon bila ada, bertanya bila tidak', async () => {
+  it('tanpa aspek dan tanpa bahan yang dikenali: ikhtisar produk Pralon bila ada, ragam produk bila tidak — tidak bertanya balik', async () => {
     const found = await runProductQuestion(
       ai({ productQuery: 'pvc aw', aspect: null }),
       catalog({ 'pvc aw': [AW] }),
@@ -490,8 +490,8 @@ describe('runProductQuestion — KONSEP', () => {
       noQuestions,
       input('apa itu xyz?', CONCEPT),
     );
-    expect(text(unknown)).toContain('Produk mana yang Anda maksud?');
-    expect(cards(unknown)).toEqual([]);
+    expect(text(unknown)).not.toContain('Produk mana yang Anda maksud?');
+    expect(text(unknown)).toContain('Katalog produk Pralon belum terpasang');
   });
 });
 
@@ -653,9 +653,10 @@ describe('runProductQuestion — SPESIFIKASI', () => {
     expect(cards(events).map((c) => c.kind)).toEqual(['cta', 'product']);
   });
 
-  it('parse model gagal → bertanya produk mana, tidak melempar', async () => {
+  it('parse model gagal → ragam produk, tidak bertanya balik, tidak melempar', async () => {
     const events = await runProductQuestion(failingAi, catalog({}), noQuestions, input('???'));
-    expect(text(events)).toContain('Produk mana yang Anda maksud?');
+    expect(text(events)).not.toContain('Produk mana yang Anda maksud?');
+    expect(text(events)).toContain('Katalog produk Pralon belum terpasang');
     expect(events.at(-1)?.type).toBe('message.end');
   });
 });
