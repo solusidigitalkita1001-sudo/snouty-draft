@@ -31,7 +31,7 @@ Kode, identifier, enum, SQL, dan pesan commit tetap Inggris.
 
 **Pertanyaan pengguna tidak pernah di-hardcode** (keputusan pemilik 2026-10-07).
 
-- Tidak ada daftar kalimat, frasa, atau regex di kode yang menebak *apa yang ditanya* pengguna
+- Tidak ada daftar kalimat, frasa, atau regex di kode yang menebak _apa yang ditanya_ pengguna
   ("harganya berapa", "ukuran apa aja", "boleh", "lengkap dong", "cara nyambung"). Pemahaman
   bahasa adalah tugas model, atau mekanisme umum berbasis data (contoh intent sebagai data,
   kemiripan semantik) yang bisa ditambah tanpa mengubah kode.

@@ -12,3 +12,7 @@ apps/web/next-env.d.ts
 
 # Dibangkitkan drizzle-kit
 apps/api/drizzle/meta/
+
+# Data sumber mentah (ekspor ERP, dokumen HRGA) — disimpan apa adanya; data/understanding tetap diformat.
+data/catalog/
+data/company/

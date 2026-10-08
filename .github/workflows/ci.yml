@@ -1,6 +1,6 @@
 # SNOUTY — CI.
 #
-# Provider masih menunggu OQ-09. Definisi job-nya netral, jadi pindah ke GitLab
+# Provider: GitHub Actions (OQ-09, 2026-10-05). Definisi job-nya netral, jadi pindah ke GitLab
 # nanti berarti menukar satu berkas, bukan menulis ulang pipeline.
 #
 # CI TIDAK PERNAH terhubung ke MySQL bersama di 192.168.1.136 (SPEC §31c).
@@ -11,7 +11,10 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    # Kerja berjalan di branch per fase/item (`phase-<n>/<item>`), tidak pernah langsung di main —
+    # tanpa ini CI tidak pernah berjalan sama sekali (P0e-05).
+    branches: [main, 'phase-*/**']
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

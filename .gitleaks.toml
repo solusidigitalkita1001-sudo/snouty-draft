@@ -1,0 +1,11 @@
+# Pemindaian secret (docs/SECURITY.md §10): aturan bawaan gitleaks, ditambah satu pengecualian
+# untuk nilai DUMMY pengembangan/tes yang sengaja ditulis di repo ("rahasia-…", "contoh-…").
+# Secret sungguhan tidak pernah berawalan begitu; yang lain tetap ditangkap.
+title = "SNOUTY gitleaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Nilai dummy pengembangan dan tes"
+regexes = ['''^(rahasia|contoh)[-a-z0-9]*$''']
