@@ -270,6 +270,16 @@ export const PARAMETER_ENGLISH: Readonly<Record<ParameterKey, ParameterEnglish>>
     questionEn: 'Roughly how many people use the building each day (residents, staff, visitors)?',
     reasonEn: 'Daily water demand and peak flow of the building.',
   },
+  bathrooms_per_floor: {
+    labelEn: 'Bathrooms/toilets per floor',
+    questionEn: 'How many bathrooms or toilets are there on each floor?',
+    reasonEn: 'Water outlets and branch pipes on each floor.',
+  },
+  basins_per_floor: {
+    labelEn: 'Basins per floor',
+    questionEn: 'How many basins are there on each floor?',
+    reasonEn: 'Water outlets and branch pipes on each floor.',
+  },
   floor_area: {
     labelEn: 'Area per floor',
     questionEn: 'Roughly how many square metres is each floor?',

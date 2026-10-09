@@ -325,10 +325,17 @@ describe('runUnderstanding — bentuk event SSE', () => {
       aiExtracting({}),
       input({ message, understanding: understood(message, { intent: 'requirement_building' }) }),
     );
-    const cards = events.filter((e) => e.type === 'card') as { card: { kind: string } }[];
-    expect(cards.every((c) => c.card.kind !== 'unsupported')).toBe(true);
-    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
-    expect(text).toContain('berapa orang yang memakai gedungnya');
+    const card = (
+      events.find((e) => e.type === 'card') as {
+        card: { kind: string; questions: { id: string; options: string[] }[] };
+      }
+    ).card;
+    // Pertanyaan angka tampil dengan pilihan cepat; tinggi bangunan dihitung dari jumlah lantai.
+    expect(card.kind).toBe('clarification');
+    const byId = Object.fromEntries(card.questions.map((q) => [q.id, q.options]));
+    expect(byId['number_of_occupants']).toContain('300 orang');
+    expect(byId['bathrooms_per_floor']).toContain('4');
+    expect(Object.keys(byId)).toContain('basins_per_floor');
   });
 
   it('sink `emit` menerima setiap event saat terjadi, urutannya sama dengan array hasil (P14-07)', async () => {

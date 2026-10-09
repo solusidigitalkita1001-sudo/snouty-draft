@@ -257,4 +257,67 @@ export const ENG_504: RuleVersion<RiserSplitInput, { readonly flowPerRiserLs: nu
         }),
 };
 
-export const GROUP_I = [ENG_501, ENG_502, ENG_503, ENG_504] as const;
+// ── ENG-505 · Pipa induk tiap lantai ────────────────────────────────────────
+
+export interface FloorHeaderInput {
+  readonly peakMinuteLs: number;
+  readonly floors: number;
+  /** Luas satu lantai; 0 = tidak diketahui → `defaultLengthM`. */
+  readonly floorAreaM2: number;
+  readonly defaultLengthM: number;
+}
+export interface FloorHeaderResult {
+  readonly flowPerFloorLs: number;
+  readonly headerLengthM: number;
+}
+
+export const ENG_505: RuleVersion<FloorHeaderInput, FloorHeaderResult> = {
+  ruleId: 'ENG-505',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      peakMinuteLs: requireNumber('ENG-505', 'peakMinuteLs', o['peakMinuteLs'], {
+        min: 0.01,
+        max: 10_000,
+      }),
+      floors: requireInt('ENG-505', 'floors', o['floors'], { min: 1, max: 200 }),
+      floorAreaM2: requireNumber('ENG-505', 'floorAreaM2', o['floorAreaM2'], {
+        min: 0,
+        max: 1_000_000,
+      }),
+      defaultLengthM: requireNumber('ENG-505', 'defaultLengthM', o['defaultLengthM'], {
+        min: 1,
+        max: 1000,
+      }),
+    };
+  },
+  compute: (input) => ({
+    flowPerFloorLs: round2(input.peakMinuteLs / input.floors),
+    headerLengthM:
+      input.floorAreaM2 > 0 ? round1(Math.sqrt(input.floorAreaM2)) : input.defaultLengthM,
+  }),
+  sourceReference:
+    'Debit per lantai = debit menit puncak ÷ jumlah lantai (titik air sama tiap lantai); panjang induk lantai = sisi denah persegi (√luas)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '45 l/s, 12 lantai, 3 000 m² → 3,75 l/s, 54,8 m',
+      input: { peakMinuteLs: 45, floors: 12, floorAreaM2: 3000, defaultLengthM: 20 },
+      expected: { flowPerFloorLs: 3.75, headerLengthM: 54.8 },
+    },
+    {
+      name: 'luas tidak diketahui → panjang asumsi',
+      input: { peakMinuteLs: 10, floors: 20, floorAreaM2: 0, defaultLengthM: 20 },
+      expected: { flowPerFloorLs: 0.5, headerLengthM: 20 },
+    },
+  ],
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Tiap lantai menerima ${output.flowPerFloorLs} l/s (${input.peakMinuteLs} l/s ÷ ${input.floors} lantai) lewat pipa induk lantai sepanjang ${output.headerLengthM} m${input.floorAreaM2 > 0 ? ` (sisi denah ${input.floorAreaM2} m²)` : ''}.`,
+      en: `Each floor receives ${output.flowPerFloorLs} l/s (${input.peakMinuteLs} l/s ÷ ${input.floors} floors) through a floor header ${output.headerLengthM} m long${input.floorAreaM2 > 0 ? ` (side of a ${input.floorAreaM2} m² plan)` : ''}.`,
+    }),
+};
+
+export const GROUP_I = [ENG_501, ENG_502, ENG_503, ENG_504, ENG_505] as const;

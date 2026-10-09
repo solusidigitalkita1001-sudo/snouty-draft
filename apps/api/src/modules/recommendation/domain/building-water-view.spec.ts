@@ -89,3 +89,31 @@ describe('tampilan hasil gedung', () => {
     expect(ids).toEqual(expect.arrayContaining(['OCCUPANT_AREA_10M2', 'ZONE_MAX_STATIC_4BAR']));
   });
 });
+
+describe('pipa tiap lantai di layar solusi', () => {
+  it('titik air per lantai → baris induk lantai + sambungan titik, trace bagiannya sendiri', () => {
+    const input = buildingWaterInputFrom(
+      stateWith({
+        building_floors: 12,
+        floor_area: 3000,
+        bathrooms_per_floor: 6,
+        basins_per_floor: 4,
+      }),
+    )!;
+    expect(input).toMatchObject({ bathroomsPerFloor: 6, basinsPerFloor: 4 });
+    const result = computeBuildingWater(input);
+    const traces = identify(result.traces);
+    const parts = buildingTraceParts(result, traces);
+    expect(parts.floor.map((t) => t.ruleId).slice(0, 4)).toEqual([
+      'ENG-001',
+      'ENG-003',
+      'ENG-005',
+      'ENG-505',
+    ]);
+    const lines = buildingSystemLines(result, traces);
+    expect(lines.map((l) => l.name)).toEqual(
+      expect.arrayContaining(['Pipa induk lantai PVC AW', 'Sambungan titik air']),
+    );
+    expect(lines.find((l) => l.name === 'Sambungan titik air')!.size).toBe('1/2"');
+  });
+});

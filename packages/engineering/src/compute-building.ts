@@ -22,11 +22,13 @@ import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
 import type { RuleVersion } from './rule.js';
+import { ENG_001, ENG_003, ENG_005 } from './rules/group-a-load-sizing.js';
 import {
   ENG_501,
   ENG_502,
   ENG_503,
   ENG_504,
+  ENG_505,
   type BuildingDemandResult,
   type ZoningResult,
 } from './rules/group-i-building.js';
@@ -45,6 +47,30 @@ export interface BuildingWaterInput {
   /** Jalur datar tambahan untuk transfer (tangki bawah ke kaki riser); kosong → hanya tinggi gedung. */
   readonly horizontalRunM?: number;
   readonly material?: PipeMaterial;
+  /** Titik air per lantai; kosong → pipa per lantai tidak dihitung (hanya transfer dan riser). */
+  readonly bathroomsPerFloor?: number;
+  readonly basinsPerFloor?: number;
+}
+
+/** Pipa tiap lantai — dari titik air yang disebut pengguna (ENG-001/003/005 + ENG-505). */
+export interface FloorBranchResult {
+  readonly outletsPerFloor: number;
+  readonly loadUnitsPerFloor: number;
+  readonly branchesPerFloor: number;
+  readonly fixtureConnectionSize: string;
+  readonly flowPerFloorLs: number;
+  readonly headerLengthM: number;
+  /** Pipa induk satu lantai. */
+  readonly header: PressurizedResult;
+}
+
+/** Jumlah trace per bagian, berurutan — supaya tampilan menautkan baris ke trace-nya sendiri. */
+export interface BuildingTraceGroups {
+  readonly demand: number;
+  readonly transfer: number;
+  readonly split: number;
+  readonly riser: number;
+  readonly floor: number;
 }
 
 export interface BuildingWaterResult {
@@ -59,6 +85,8 @@ export interface BuildingWaterResult {
   readonly riserMaterial: PipeMaterial;
   /** Satu riser distribusi (debit per riser). */
   readonly riser: PressurizedResult;
+  readonly floorBranch: FloorBranchResult | null;
+  readonly traceGroups: BuildingTraceGroups;
   readonly appliedAssumptionIds: readonly string[];
   readonly traces: readonly CalculationTrace[];
   readonly overallProvenance: Provenance;
@@ -167,13 +195,56 @@ export function computeBuildingWater(
       locale,
     );
   }
+  const demandTraces = traces.splice(0);
   run(ENG_504, { peakFlowLs: demand.peakMinuteLs, risers });
+  const splitTraces = traces.splice(0);
+
+  // Pipa tiap lantai hanya bila titik airnya disebut — tanpa itu tidak ada yang bisa dihitung.
+  let floorBranch: FloorBranchResult | null = null;
+  let floorTraces: CalculationTrace[] = [];
+  if (input.bathroomsPerFloor !== undefined || input.basinsPerFloor !== undefined) {
+    const load = run(ENG_001, {
+      bathrooms: input.bathroomsPerFloor ?? 0,
+      basins: input.basinsPerFloor ?? 0,
+      kitchens: 0,
+    });
+    const branches = run(ENG_003, { outletCount: load.outletCount });
+    const fixture = run(ENG_005, {});
+    const share = run(ENG_505, {
+      peakMinuteLs: demand.peakMinuteLs,
+      floors: input.floors,
+      floorAreaM2: input.floorAreaM2 ?? 0,
+      defaultLengthM: input.floorAreaM2 === undefined ? use('FLOOR_HEADER_20M') : 1,
+    });
+    const header = riserOf(
+      {
+        designFlowLs: share.flowPerFloorLs,
+        routeLengthM: share.headerLengthM,
+        staticHeadM: 0,
+        residualPressureBar: residualBar,
+        pumpRequired: false,
+      },
+      input.material,
+      locale,
+    );
+    floorTraces = [...traces.splice(0), ...header.traces];
+    floorBranch = {
+      outletsPerFloor: load.outletCount,
+      loadUnitsPerFloor: load.loadUnits,
+      branchesPerFloor: branches.branchCount,
+      fixtureConnectionSize: fixture.fixtureConnectionSize,
+      flowPerFloorLs: share.flowPerFloorLs,
+      headerLengthM: share.headerLengthM,
+      header,
+    };
+  }
 
   const allTraces = [
-    ...traces.slice(0, -1),
+    ...demandTraces,
     ...transfer.traces,
-    traces[traces.length - 1]!,
+    ...splitTraces,
     ...riser.traces,
+    ...floorTraces,
   ];
   const overallProvenance: Provenance = allTraces.every((t) => t.provenance === 'VERIFIED')
     ? 'VERIFIED'
@@ -188,8 +259,21 @@ export function computeBuildingWater(
     risers,
     riserMaterial: input.material ?? 'PVC',
     riser,
+    floorBranch,
+    traceGroups: {
+      demand: demandTraces.length,
+      transfer: transfer.traces.length,
+      split: splitTraces.length,
+      riser: riser.traces.length,
+      floor: floorTraces.length,
+    },
     appliedAssumptionIds: [
-      ...new Set([...applied, ...transfer.appliedAssumptionIds, ...riser.appliedAssumptionIds]),
+      ...new Set([
+        ...applied,
+        ...transfer.appliedAssumptionIds,
+        ...riser.appliedAssumptionIds,
+        ...(floorBranch?.header.appliedAssumptionIds ?? []),
+      ]),
     ],
     traces: allTraces,
     overallProvenance,

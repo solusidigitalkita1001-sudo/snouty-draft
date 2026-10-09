@@ -51,6 +51,8 @@ export function buildingWaterInputFrom(state: RequirementState): BuildingWaterIn
   const height = numberOf(p['building_height']);
   const residual = numberOf(p['required_pressure']);
   const route = numberOf(p['route_length']);
+  const bathroomsPerFloor = numberOf(p['bathrooms_per_floor']);
+  const basinsPerFloor = numberOf(p['basins_per_floor']);
   const materialLabel = p['material']?.value;
   const material = typeof materialLabel === 'string' ? MATERIAL[materialLabel] : undefined;
   return {
@@ -63,6 +65,10 @@ export function buildingWaterInputFrom(state: RequirementState): BuildingWaterIn
     ...(residual !== undefined ? { residualPressureBar: residual } : {}),
     ...(route !== undefined ? { horizontalRunM: route } : {}),
     ...(material !== undefined ? { material } : {}),
+    ...(bathroomsPerFloor !== undefined
+      ? { bathroomsPerFloor: Math.round(bathroomsPerFloor) }
+      : {}),
+    ...(basinsPerFloor !== undefined ? { basinsPerFloor: Math.round(basinsPerFloor) } : {}),
   };
 }
 
@@ -74,14 +80,15 @@ export function buildingTraceParts(
   result: BuildingWaterResult,
   traces: readonly IdentifiedTrace[],
 ) {
-  const riserCount = result.riser.traces.length;
-  const transferCount = result.transfer.traces.length;
-  const head = traces.length - riserCount - 1 - transferCount;
+  const g = result.traceGroups;
+  let at = 0;
+  const next = (n: number) => traces.slice(at, (at += n));
   return {
-    demand: traces.slice(0, head),
-    transfer: traces.slice(head, head + transferCount),
-    split: traces.slice(head + transferCount, head + transferCount + 1),
-    riser: traces.slice(head + transferCount + 1),
+    demand: next(g.demand),
+    transfer: next(g.transfer),
+    split: next(g.split),
+    riser: next(g.riser),
+    floor: next(g.floor),
   };
 }
 
@@ -130,6 +137,16 @@ export function buildingHighlights(
       label: en ? 'Distribution risers' : 'Riser distribusi',
       value: `${result.risers} × ${result.riser.recommendedSize}`,
     },
+    ...(result.floorBranch !== null
+      ? [
+          {
+            label: en ? 'Each floor' : 'Tiap lantai',
+            value: en
+              ? `${result.floorBranch.outletsPerFloor} outlets · header ${result.floorBranch.header.recommendedSize}`
+              : `${result.floorBranch.outletsPerFloor} titik · induk ${result.floorBranch.header.recommendedSize}`,
+          },
+        ]
+      : []),
     { label: en ? 'Products matched' : 'Produk cocok', value: String(productCount) },
   ];
 }
@@ -198,6 +215,33 @@ export function buildingSystemLines(
       role: 'branch',
     },
   ];
+  const floor = result.floorBranch;
+  if (floor !== null) {
+    const fam = familyOf(result.riserMaterial);
+    lines.push(
+      {
+        name: en ? `${fam} floor header` : `Pipa induk lantai ${fam}`,
+        path: en ? 'Riser → each floor' : 'Riser → tiap lantai',
+        size: floor.header.recommendedSize,
+        reason:
+          `${explain(parts.floor, 'ENG-001')} ${explain(parts.floor, 'ENG-505')} ${explain(parts.floor, 'ENG-205')}`.trim(),
+        provenance: worst(parts.floor),
+        traceIds: ids(parts.floor),
+        role: 'branch',
+      },
+      {
+        name: en ? 'Fixture connections' : 'Sambungan titik air',
+        path: en
+          ? `${floor.outletsPerFloor} outlets per floor, ${floor.branchesPerFloor} branches`
+          : `${floor.outletsPerFloor} titik per lantai, ${floor.branchesPerFloor} cabang`,
+        size: floor.fixtureConnectionSize,
+        reason: `${explain(parts.floor, 'ENG-003')} ${explain(parts.floor, 'ENG-005')}`.trim(),
+        provenance: worst(parts.floor),
+        traceIds: ids(parts.floor),
+        role: 'fixture',
+      },
+    );
+  }
   return lines;
 }
 
@@ -252,6 +296,22 @@ export function buildingBomItems(
       traceIds: riserIds,
     },
   ];
+  const floor = result.floorBranch;
+  if (floor !== null) {
+    const fam = familyOf(result.riserMaterial);
+    const floorIds = ids(parts.floor);
+    items.push({
+      item: en ? `${fam} floor header pipe` : `Pipa induk lantai ${fam}`,
+      size: floor.header.recommendedSize,
+      quantity: Math.ceil(floor.headerLengthM / ROD_METERS) * input.floors,
+      unit: 'batang',
+      basis: en
+        ? 'One header per floor, as long as the side of the floor plan; branches to each outlet follow the layout.'
+        : 'Satu pipa induk per lantai, sepanjang sisi denah; cabang ke tiap titik mengikuti tata letak.',
+      provenance: worst(parts.floor),
+      traceIds: floorIds,
+    });
+  }
   return items;
 }
 

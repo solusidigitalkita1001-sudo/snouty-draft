@@ -722,6 +722,12 @@ export class AnalysisService {
       pipeRequirement('main', result.transfer.recommendedSize, transferFamily),
       pipeRequirement('riser', result.riser.recommendedSize, riserFamily),
       fittingRequirement(result.riser.recommendedSize, riserFamily),
+      ...(result.floorBranch !== null
+        ? [
+            pipeRequirement('branch', result.floorBranch.header.recommendedSize, riserFamily),
+            pipeRequirement('fixture', result.floorBranch.fixtureConnectionSize, riserFamily),
+          ]
+        : []),
     ]);
     events.push({
       type: 'stage',

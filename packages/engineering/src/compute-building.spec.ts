@@ -94,3 +94,60 @@ describe('ekstraksi dan pertanyaan gedung bertingkat', () => {
     expect(ask(['building_floors', 'floor_area'])).not.toContain('number_of_occupants');
   });
 });
+
+describe('pipa tiap lantai dari titik air per lantai', () => {
+  it('6 kamar mandi + 4 wastafel per lantai → titik, cabang, induk lantai', () => {
+    const r = computeBuildingWater({
+      floors: 12,
+      floorAreaM2: 3000,
+      bathroomsPerFloor: 6,
+      basinsPerFloor: 4,
+    });
+    expect(r.floorBranch).toMatchObject({
+      outletsPerFloor: 10,
+      loadUnitsPerFloor: 16,
+      branchesPerFloor: 3,
+      fixtureConnectionSize: '1/2"',
+      flowPerFloorLs: 3.75,
+      headerLengthM: 54.8,
+    });
+    expect(r.floorBranch!.header.allCriteriaMet).toBe(true);
+    expect(r.traceGroups.floor).toBe(
+      r.traces.length -
+        r.traceGroups.demand -
+        r.traceGroups.transfer -
+        r.traceGroups.split -
+        r.traceGroups.riser,
+    );
+    expect(r.appliedAssumptionIds).not.toContain('FLOOR_HEADER_20M');
+  });
+
+  it('tanpa titik air per lantai → pipa lantai tidak dihitung, bukan ditebak', () => {
+    const r = computeBuildingWater({ floors: 12, floorAreaM2: 3000 });
+    expect(r.floorBranch).toBeNull();
+    expect(r.traceGroups.floor).toBe(0);
+  });
+
+  it('"6 toilet per lantai", "tiap lantai 4 wastafel"', () => {
+    const facts = extractTechnicalContext(
+      'gedung 12 lantai, 6 toilet per lantai, tiap lantai 4 wastafel',
+      CASE,
+    );
+    expect(facts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: 'bathrooms_per_floor', value: 6 }),
+        expect.objectContaining({ key: 'basins_per_floor', value: 4 }),
+        expect.objectContaining({ key: 'building_floors', value: 12 }),
+      ]),
+    );
+  });
+
+  it('kamar mandi dan wastafel per lantai ikut ditanya', () => {
+    const asked = resolveMissingParameters({
+      profile: caseProfile(CASE),
+      known: new Set(['building_floors', 'floor_area']),
+      assumed: new Set(),
+    }).map((m) => m.key);
+    expect(asked.slice(0, 2)).toEqual(['bathrooms_per_floor', 'basins_per_floor']);
+  });
+});

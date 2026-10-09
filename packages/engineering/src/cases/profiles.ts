@@ -100,8 +100,16 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
     descriptionEn: 'Buildings of 4+ floors: pressure zoning, risers, transfer/booster pumps.',
     // Penghuni menentukan kebutuhan air; luas per lantai cukup untuk memperkirakannya (ENG-501).
     critical: ['building_floors', 'number_of_occupants'],
-    important: ['floor_area', 'building_height', 'required_pressure', 'material'],
-    optional: ['building_type', 'route_length', 'source_type', 'bathrooms', 'number_of_outlets'],
+    // Titik air per lantai menentukan pipa tiap lantai — ditanya seperti rumah (pemilik 2026-10-09).
+    important: [
+      'floor_area',
+      'bathrooms_per_floor',
+      'basins_per_floor',
+      'building_height',
+      'required_pressure',
+      'material',
+    ],
+    optional: ['building_type', 'route_length', 'source_type'],
     alternatives: { number_of_occupants: ['floor_area'] },
     outputs: [
       'material_selection',

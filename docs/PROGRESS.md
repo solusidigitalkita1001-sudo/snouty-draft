@@ -1227,6 +1227,13 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       booster, pipa transfer + titik kerja pompa, dan riser (Kelompok I ENG-501…504 + Kelompok F),
       lalu mencocokkan transfer, riser, dan fitting ke master produk. Asumsi baru OQ-57. Judul web
       jenis bangunan tak diketahui → "Bangunan N lantai", bukan "Rumah".
+- [x] P16-37 Percakapan gedung bertingkat (2026-10-09, laporan pemilik "lu belum nanya kamar mandi",
+      "kasih gw pilihan") — kamar mandi/toilet dan wastafel PER LANTAI ditanya dan dibaca ("6 toilet per
+      lantai"); pipa induk tiap lantai + sambungan titik dihitung (ENG-505 + ENG-001/003/005) dan
+      dicocokkan ke katalog. Pertanyaan angka tampil di kartu dengan pilihan cepat (data registry
+      `suggestions`; tinggi bangunan dihitung dari jumlah lantai). Pesan lanjutan tanpa data baru
+      dijawab di atas DATA kasus teknis, bukan template yang sama diulang. DATA "cara menghitung" tidak
+      lagi menyebut kolam/drainase dihitung tim teknis.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

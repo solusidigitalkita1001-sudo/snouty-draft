@@ -294,6 +294,23 @@ export function extractTechnicalContext(
     /(\d+)\s*(?:orang|penghuni|karyawan|pegawai|pekerja|people|persons?|occupants?|employees?|staff)\b/,
     (m) => add('number_of_occupants', Number(m[1]), m[0], 'orang'),
   );
+  // Titik air PER LANTAI ("4 toilet per lantai", "tiap lantai 6 kamar mandi") — diambil sebelum
+  // jumlah total supaya angka yang sama tidak terbaca dua kali.
+  const PER_FLOOR = String.raw`(?:per|tiap|setiap|each|per\s+)\s*(?:lantai|floor)`;
+  const TOILET = String.raw`(?:kamar mandi|toilet|wc|bathrooms?|toilets?)`;
+  const BASIN = String.raw`(?:wastafel|basins?|sinks?)`;
+  take(new RegExp(String.raw`(\d+)\s*${TOILET}\s*${PER_FLOOR}`), (m) =>
+    add('bathrooms_per_floor', Number(m[1]), m[0], 'titik'),
+  );
+  take(new RegExp(String.raw`${PER_FLOOR}\D{0,12}?(\d+)\s*${TOILET}`), (m) =>
+    add('bathrooms_per_floor', Number(m[1]), m[0], 'titik'),
+  );
+  take(new RegExp(String.raw`(\d+)\s*${BASIN}\s*${PER_FLOOR}`), (m) =>
+    add('basins_per_floor', Number(m[1]), m[0], 'titik'),
+  );
+  take(new RegExp(String.raw`${PER_FLOOR}\D{0,12}?(\d+)\s*${BASIN}`), (m) =>
+    add('basins_per_floor', Number(m[1]), m[0], 'titik'),
+  );
   take(/(\d+)\s*(?:kamar mandi|bathrooms?)/, (m) => add('bathrooms', Number(m[1]), m[0], 'titik'));
   take(/(\d+)\s*(?:wastafel|basins?|sinks?)/, (m) => add('basins', Number(m[1]), m[0], 'titik'));
   take(/(\d+)\s*(?:dapur|kitchens?)/, (m) => add('kitchens', Number(m[1]), m[0], 'titik'));

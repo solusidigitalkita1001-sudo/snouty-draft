@@ -243,10 +243,30 @@ export function planTechnicalClarification(
         allowUnknown: true,
       });
     } else {
-      text.push(m);
+      // Angka dengan pilihan cepat ("kasih gw pilihan", pemilik 2026-10-09) tampil di kartu;
+      // pengguna tetap boleh mengetik angka lain. Tanpa pilihan → ditanya di teks.
+      const options = numberSuggestions(state, m.key) ?? def.suggestions;
+      if (options && options.length > 0) {
+        card.push({ id: m.key, question, options, allowUnknown: true });
+      } else {
+        text.push(m);
+      }
     }
   }
   return { card, text };
+}
+
+/**
+ * Pilihan yang dihitung dari data kasus — tinggi bangunan dari jumlah lantai × tinggi lantai yang
+ * lazim (3,5 / 4 / 4,5 m), sehingga pilihannya masuk akal untuk gedung ini, bukan angka tetap.
+ */
+function numberSuggestions(state: RequirementState, key: ParameterKey): readonly string[] | null {
+  if (key !== 'building_height') return null;
+  const floors = parametersOf(state)['building_floors']?.value;
+  if (typeof floors !== 'number' || floors <= 0) return null;
+  return [3.5, 4, 4.5].map(
+    (h) => `${String(Math.round(floors * h * 10) / 10).replace('.', ',')} m`,
+  );
 }
 
 /**

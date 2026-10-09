@@ -256,11 +256,26 @@ export async function runUnderstanding(
     events.push({ type: 'requirement.updated', state: applied.state });
     // Kalimat pembuka kasus hanya di giliran pertama; giliran berikutnya langsung data + pertanyaan.
     const firstTurn = input.state.useCase?.kind !== 'technical';
-    events.push({
-      type: 'token',
-      text: technicalGuidance(applied.state, locale, { withIntro: firstTurn }),
-    });
     const card = technicalFollowUp(applied.state, locale);
+    const guidance = technicalGuidance(applied.state, locale, { withIntro: firstTurn });
+    // Pesan lanjutan tanpa data baru ("lu belum nanya kamar mandi", "kasih gw pilihan") dijawab
+    // sesuai isinya di atas DATA kasus — bukan template yang sama diulang (laporan pemilik
+    // 2026-10-09). Model gagal → teks panduan seperti biasa.
+    const chatOnly = !firstTurn && facts.captured.length === 0;
+    const text =
+      chatOnly && reply && loadEnv().LLM_CHAT_REPLY
+        ? (
+            await reply.write({
+              intent: input.decision.intent,
+              userMessage: input.message,
+              recentTurns: input.recentTurns ?? [],
+              facts: caseFacts(applied.state, locale, card),
+              locale,
+              fallback: guidance,
+            })
+          ).text
+        : guidance;
+    events.push({ type: 'token', text });
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));
     return {

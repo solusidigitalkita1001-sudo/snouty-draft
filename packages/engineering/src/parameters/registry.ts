@@ -43,6 +43,11 @@ export interface ParameterDefinition {
   readonly unit?: string;
   /** Pilihan untuk `enum` — label yang dilihat pengguna adalah nilainya (bahasa pengguna). */
   readonly options?: readonly string[];
+  /**
+   * Pilihan cepat untuk parameter angka ("kasih gw pilihan", pemilik 2026-10-09) — nilai yang
+   * bisa ditekan, bukan batas; pengguna tetap boleh mengetik angka lain atau "Belum tahu".
+   */
+  readonly suggestions?: readonly string[];
   readonly importance: ParameterImportance;
   /** Pertanyaan dalam bahasa pengguna, siap ditampilkan apa adanya. */
   readonly question: string;
@@ -115,6 +120,8 @@ export type ParameterKey =
   | 'number_of_outlets'
   | 'number_of_connections'
   | 'number_of_occupants'
+  | 'bathrooms_per_floor'
+  | 'basins_per_floor'
   | 'floor_area'
   | 'simultaneous_usage'
   | 'number_of_branches'
@@ -151,7 +158,7 @@ const P = (
   importance: ParameterImportance,
   question: string,
   reason: string,
-  extra: { unit?: string; options?: readonly string[] } = {},
+  extra: { unit?: string; options?: readonly string[]; suggestions?: readonly string[] } = {},
 ): ParameterBase => ({ key, domain, kind, label, importance, question, reason, ...extra });
 
 const BASE_PARAMETERS: readonly ParameterBase[] = [
@@ -488,7 +495,7 @@ const BASE_PARAMETERS: readonly ParameterBase[] = [
     'important',
     'Di ujung butuh tekanan berapa (bar), kalau ada ketentuannya?',
     'Tekanan sisa di titik terjauh.',
-    { unit: 'bar' },
+    { unit: 'bar', suggestions: ['1 bar', '1,5 bar', '2 bar'] },
   ),
   P(
     'tank_elevation',
@@ -647,7 +654,7 @@ const BASE_PARAMETERS: readonly ParameterBase[] = [
     'critical',
     'Kira-kira berapa orang yang memakai gedungnya setiap hari (penghuni, karyawan, tamu)?',
     'Kebutuhan air harian dan debit puncak gedung.',
-    { unit: 'orang' },
+    { unit: 'orang', suggestions: ['100 orang', '300 orang', '500 orang', '1000 orang'] },
   ),
   P(
     'floor_area',
@@ -657,7 +664,27 @@ const BASE_PARAMETERS: readonly ParameterBase[] = [
     'important',
     'Luas tiap lantainya kira-kira berapa meter persegi?',
     'Perkiraan jumlah penghuni bila belum diketahui.',
-    { unit: 'm²' },
+    { unit: 'm²', suggestions: ['500 m²', '1000 m²', '2000 m²', '3000 m²'] },
+  ),
+  P(
+    'bathrooms_per_floor',
+    'network',
+    'number',
+    'Kamar mandi/toilet per lantai',
+    'important',
+    'Tiap lantai ada berapa kamar mandi atau toilet?',
+    'Titik air dan pipa cabang tiap lantai.',
+    { unit: 'titik', suggestions: ['2', '4', '6', '8', '12'] },
+  ),
+  P(
+    'basins_per_floor',
+    'network',
+    'number',
+    'Wastafel per lantai',
+    'important',
+    'Wastafelnya per lantai ada berapa?',
+    'Titik air dan pipa cabang tiap lantai.',
+    { unit: 'titik', suggestions: ['2', '4', '6', '8', '12'] },
   ),
   P(
     'simultaneous_usage',
