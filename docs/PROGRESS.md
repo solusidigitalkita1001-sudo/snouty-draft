@@ -1269,6 +1269,14 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       (kebutuhan 1 hari) dan tangki atap ((debit menit puncak − debit pompa transfer) × 30 menit) lewat ENG-506;
       tampil di ringkasan, baris sistem "Tangki bawah dan atap", langkah hitung, dan skema. Contoh 12 lantai
       100 × 30: 540 m³ dan 27 m³. Asumsi baru di OQ-57.
+- [x] P16-45 Ganti asumsi lalu hitung ulang (2026-10-09, "kalau gw perbaiki asumsi ini SNOUTY ngitung kembali?")
+      — dulu "Perbaiki asumsi ini" pada kasus teknis hanya membuka chat dan nilai baku registry (150 l/orang,
+      10 jam, faktor puncak, 4 bar per zona, tangki 1 hari, kecepatan, kekasaran, …) tidak bisa diganti. Kini
+      setiap kalkulator menerima nilai pengganti per ID asumsi (`assumptionReader`), disimpan di kasus
+      (`assumptionOverrides`) lewat `PUT /conversations/:id/assumptions` dengan hitung coba; baris asumsi
+      membawa nilai + satuan dan bisa diubah di tempat (angka → Hitung ulang → solusi baru di tab yang sama;
+      "Kembalikan nilai awal" untuk nilai dari pengguna). Nilai dari pengguna tidak lagi ditandai asumsi.
+      Editor di tempat belum punya desain Claude Design — memakai gaya kartu solusi yang ada.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

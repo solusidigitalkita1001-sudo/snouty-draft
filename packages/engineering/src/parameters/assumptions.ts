@@ -685,6 +685,27 @@ export function assumptionCondition(id: string, locale: EngineeringLocale): stri
   return locale === 'en' ? a.conditionEn : a.condition;
 }
 
+/** Nilai asumsi yang diganti pengguna ("Perbaiki asumsi ini"), per ID registry. */
+export type AssumptionOverrides = Readonly<Record<string, number>>;
+
+/**
+ * Pembaca asumsi untuk satu perhitungan: nilai dari pengguna menang atas nilai baku registry, dan
+ * hanya nilai baku yang dicatat sebagai asumsi — nilai dari pengguna bukan lagi tebakan.
+ */
+export function assumptionReader(overrides: AssumptionOverrides = {}): {
+  readonly use: (id: string) => number;
+  readonly applied: string[];
+} {
+  const applied: string[] = [];
+  const use = (id: string): number => {
+    const own = overrides[id];
+    if (own !== undefined) return own;
+    applied.push(id);
+    return assumption(id).value as number;
+  };
+  return { use, applied };
+}
+
 /** Asumsi yang berlaku untuk sebuah profil kasus (termasuk yang berlaku untuk semua). */
 export function assumptionsFor(caseId: string): readonly AssumptionDefinition[] {
   return ASSUMPTIONS.filter((a) => a.appliesTo.length === 0 || a.appliesTo.includes(caseId));

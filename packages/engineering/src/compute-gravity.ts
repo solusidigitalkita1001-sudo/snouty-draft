@@ -4,7 +4,7 @@
  * `appliedAssumptionIds`. Intensitas hujan WAJIB dari pemanggil: tidak ada asumsinya. Murni.
  */
 
-import { assumption } from './parameters/assumptions.js';
+import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
 import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
@@ -64,13 +64,11 @@ export class GravityInputError extends Error {
 export function computeGravity(
   input: GravityInput,
   locale: EngineeringLocale = DEFAULT_ENGINEERING_LOCALE,
+  /** Nilai asumsi yang diganti pengguna, per ID registry — menggantikan nilai baku. */
+  overrides: AssumptionOverrides = {},
 ): GravityResult {
   const traces: CalculationTrace[] = [];
-  const applied: string[] = [];
-  const use = (id: string): number => {
-    applied.push(id);
-    return assumption(id).value as number;
-  };
+  const { use, applied } = assumptionReader(overrides);
   function run<I, O>(rule: RuleVersion<I, O>, raw: unknown): O {
     const parsed = rule.parseInput(raw);
     const output = rule.compute(parsed);

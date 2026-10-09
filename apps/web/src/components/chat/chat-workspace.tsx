@@ -45,6 +45,7 @@ import {
   fetchRequirement,
   patchRequirement,
   submitClarification,
+  overrideAssumption,
   runAnalysis,
   saveConversation,
   deleteConversation,
@@ -1312,6 +1313,15 @@ export function ChatWorkspace() {
             <SolutionView
               recommendation={solution}
               tab={solutionTab}
+              // Asumsi angka kasus teknis diganti di tempat, lalu langsung dihitung ulang di tab yang
+              // sama (pemilik 2026-10-09: "kalau gw perbaiki asumsi ini SNOUTY ngitung kembali?").
+              onChangeAssumption={async (assumptionId, value) => {
+                if (!conversationId) return COPY.llmUnavailable;
+                const problem = await overrideAssumption(conversationId, assumptionId, value);
+                if (problem !== null) return problem;
+                startAnalysis(true);
+                return null;
+              }}
               // "Perbaiki asumsi ini" → panel terbuka dalam mode Ubah (prototipe). Kasus teknis/irigasi
               // tidak punya editor panel — nilainya diubah lewat chat — jadi kembali ke chat dengan
               // panel terbuka dan kolom ketik terfokus (laporan pemilik 2026-10-08: tombolnya diam).

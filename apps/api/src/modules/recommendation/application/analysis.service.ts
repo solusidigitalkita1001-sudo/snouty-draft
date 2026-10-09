@@ -112,6 +112,12 @@ import type { IdentifiedTrace } from '../domain/solution-view.js';
 import { composeResponse } from '../domain/response-composer.js';
 import { flowSchematicFor, networkFamilyFor } from '../domain/flow-schematic.js';
 import { withCalculationSteps } from '../domain/calculation-steps.js';
+import {
+  AssumptionValueRejectedError,
+  overridesOf,
+  withAssumptionOverride,
+  withEditableAssumptions,
+} from '../domain/assumption-overrides.js';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import {
   RECOMMENDATION_REPOSITORY,
@@ -311,13 +317,9 @@ export class AnalysisService {
       },
       this.prose,
     );
-    await this.repository.save(
-      withCalculationSteps(assembled.recommendation, traces, locale),
-      traces,
-      {
-        proseSource: assembled.proseSource,
-      },
-    );
+    await this.repository.save(saveReady(state, assembled.recommendation, traces, locale), traces, {
+      proseSource: assembled.proseSource,
+    });
     // Status percakapan menyusul solusinya: header layar dan daftar riwayat keduanya
     // membaca kolom ini, jadi membiarkannya `IN_PROGRESS` akan membuat riwayat
     // berbohong tentang konsultasi yang sudah selesai.
@@ -424,7 +426,7 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+    await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
     await this.conversations.markSolutionReady(conversationId);
@@ -460,7 +462,7 @@ export class AnalysisService {
     const events = streamedEvents(emit);
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
-    const result = computePressurized(plan.input, locale);
+    const result = computePressurized(plan.input, locale, overridesOf(state));
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
@@ -522,7 +524,7 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+    await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
     await this.conversations.markSolutionReady(conversationId);
@@ -549,7 +551,7 @@ export class AnalysisService {
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
-    const result = computeGravity(plan.input, locale);
+    const result = computeGravity(plan.input, locale, overridesOf(state));
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
@@ -599,7 +601,7 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+    await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
     await this.conversations.markSolutionReady(conversationId);
@@ -631,6 +633,7 @@ export class AnalysisService {
     const result = computeNetwork(
       family === 'HDPE' ? { ...input, material: 'HDPE' } : input,
       locale,
+      overridesOf(state),
     );
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
@@ -693,7 +696,7 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+    await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
     await this.conversations.markSolutionReady(conversationId);
@@ -723,7 +726,7 @@ export class AnalysisService {
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
-    const result = computeBuildingWater(input, locale);
+    const result = computeBuildingWater(input, locale, overridesOf(state));
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
@@ -782,7 +785,7 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+    await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
     await this.conversations.markSolutionReady(conversationId);
@@ -847,7 +850,7 @@ export class AnalysisService {
     const events = streamedEvents(emit);
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
-    const result = computePond(input, locale);
+    const result = computePond(input, locale, overridesOf(state));
     const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
@@ -906,7 +909,7 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+    await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
     await this.conversations.markSolutionReady(conversationId);
@@ -947,4 +950,42 @@ function solutionInputFrom(state: RequirementState): SolutionInput {
     floorHeightM: state.building.floorHeightM.value,
     mainRunMeters: state.building.dimensions.value?.mainRunMeters ?? null,
   };
+}
+
+/**
+ * Ganti (atau kembalikan, `value === null`) satu asumsi kasus teknis. Nilainya diuji dengan hitung
+ * coba — angka yang membuat aturan di luar batasnya ditolak dengan pesan, bukan disimpan lalu
+ * gagal saat Susun rekomendasi.
+ */
+export function overrideAssumption(
+  state: RequirementState,
+  assumptionId: string,
+  value: number | null,
+  locale: Locale,
+): RequirementState {
+  const next = withAssumptionOverride(state, assumptionId, value);
+  try {
+    flowSchematicFor(next, 'uji', locale);
+  } catch {
+    throw new AssumptionValueRejectedError(
+      locale === 'en'
+        ? 'That value is outside what can be calculated — try a more typical number.'
+        : 'Nilai itu di luar batas hitung — coba angka yang lebih wajar.',
+    );
+  }
+  return next;
+}
+
+/** Rekomendasi siap simpan: langkah hitung per baris + baris asumsi yang bisa diubah. */
+function saveReady(
+  state: RequirementState,
+  recommendation: Recommendation,
+  traces: readonly IdentifiedTrace[],
+  locale: Locale,
+): Recommendation {
+  return withEditableAssumptions(
+    withCalculationSteps(recommendation, traces, locale),
+    state,
+    locale,
+  );
 }

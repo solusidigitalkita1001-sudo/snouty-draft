@@ -102,6 +102,11 @@ export interface Assumption {
    * sama di setiap kasus dan bisa diganti nilainya di satu tempat.
    */
   readonly assumptionId?: string;
+  /** Nilai angka asumsi saat ini — ada berarti baris ini bisa diganti nilainya di tempat. */
+  readonly value?: number;
+  readonly unit?: string;
+  /** Nilai ini dari pengguna (menggantikan asumsi baku), bukan tebakan sistem. */
+  readonly userSet?: boolean;
 }
 
 /** Status kandidat ukuran — kosakata tertutup dari engine (Kelompok F/H), label di UI. */

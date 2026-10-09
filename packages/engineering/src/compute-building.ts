@@ -12,7 +12,7 @@
  *      terbesar tidak memenuhi kriteria kecepatan/kerugian (ENG-504 + Kelompok F).
  */
 
-import { assumption } from './parameters/assumptions.js';
+import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
 import {
   computePressurized,
   type PipeMaterial,
@@ -107,13 +107,11 @@ export class BuildingOccupancyUnknownError extends Error {
 export function computeBuildingWater(
   input: BuildingWaterInput,
   locale: EngineeringLocale = DEFAULT_ENGINEERING_LOCALE,
+  /** Nilai asumsi yang diganti pengguna, per ID registry — menggantikan nilai baku. */
+  overrides: AssumptionOverrides = {},
 ): BuildingWaterResult {
   const traces: CalculationTrace[] = [];
-  const applied: string[] = [];
-  const use = (id: string): number => {
-    applied.push(id);
-    return assumption(id).value as number;
-  };
+  const { use, applied } = assumptionReader(overrides);
   function run<I, O>(rule: RuleVersion<I, O>, raw: unknown): O {
     const parsed = rule.parseInput(raw);
     const output = rule.compute(parsed);
@@ -179,6 +177,7 @@ export function computeBuildingWater(
     },
     input.material,
     locale,
+    overrides,
   );
 
   // Riser turun dari tangki atap: gravitasi, tekanan sisa di lantai terbawah zona.
@@ -193,6 +192,7 @@ export function computeBuildingWater(
     },
     input.material,
     locale,
+    overrides,
   );
   while (!riser.allCriteriaMet && risers < MAX_RISERS) {
     risers += 1;
@@ -206,6 +206,7 @@ export function computeBuildingWater(
       },
       input.material,
       locale,
+      overrides,
     );
   }
   const demandTraces = traces.splice(0);
@@ -239,6 +240,7 @@ export function computeBuildingWater(
       },
       input.material,
       locale,
+      overrides,
     );
     floorTraces = [...traces.splice(0), ...header.traces];
     floorBranch = {
@@ -302,12 +304,13 @@ function sized(
   line: Parameters<typeof computePressurized>[0],
   material: PipeMaterial | undefined,
   locale: EngineeringLocale,
+  overrides: AssumptionOverrides,
 ): { readonly result: PressurizedResult; readonly material: PipeMaterial } {
-  const first = computePressurized({ ...line, material: material ?? 'PVC' }, locale);
+  const first = computePressurized({ ...line, material: material ?? 'PVC' }, locale, overrides);
   if (first.allCriteriaMet || material !== undefined) {
     return { result: first, material: material ?? 'PVC' };
   }
-  const hdpe = computePressurized({ ...line, material: 'HDPE' }, locale);
+  const hdpe = computePressurized({ ...line, material: 'HDPE' }, locale, overrides);
   return hdpe.allCriteriaMet
     ? { result: hdpe, material: 'HDPE' }
     : { result: first, material: 'PVC' };
@@ -317,6 +320,7 @@ function riserOf(
   line: Parameters<typeof computePressurized>[0],
   material: PipeMaterial | undefined,
   locale: EngineeringLocale,
+  overrides: AssumptionOverrides,
 ): PressurizedResult {
-  return computePressurized({ ...line, material: material ?? 'PVC' }, locale);
+  return computePressurized({ ...line, material: material ?? 'PVC' }, locale, overrides);
 }

@@ -9,7 +9,12 @@
  * aturan, bukan prosa — itulah yang membuat auditabilitas SPEC §8 terlihat pengguna.
  */
 
-import type { ComposedResponse, Recommendation, SelectedProduct } from '@snouty/shared-types';
+import type {
+  Assumption,
+  ComposedResponse,
+  Recommendation,
+  SelectedProduct,
+} from '@snouty/shared-types';
 import { useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { SchematicTab } from './schematic-tab';
@@ -29,10 +34,16 @@ export type SolutionTab = 'ringkasan' | 'produk' | 'skema' | 'material';
 export function SolutionView({
   recommendation,
   onFixAssumption,
+  onChangeAssumption,
   tab,
 }: {
   recommendation: Recommendation;
   onFixAssumption?: (fieldPath: string) => void;
+  /**
+   * Ganti nilai asumsi angka lalu hitung ulang. `null` = berhasil; string = pesan untuk baris itu.
+   * Tanpa ini baris asumsi memakai `onFixAssumption` (kembali ke chat / panel Ubah).
+   */
+  onChangeAssumption?: (assumptionId: string, value: number | null) => Promise<string | null>;
   tab?: SolutionTab;
 }) {
   const COPY = useSolutionCopy();
@@ -214,21 +225,12 @@ export function SolutionView({
         <section className={styles.card}>
           <h3 className={styles.cardTitle}>{COPY.assumptionsTitle}</h3>
           {recommendation.assumptions.map((assumption) => (
-            <div
+            <AssumptionRow
               key={`${assumption.fieldPath}-${assumption.text}`}
-              className={styles.assumptionRow}
-            >
-              <span className={styles.assumptionText}>{assumption.text}</span>
-              {onFixAssumption && assumption.fieldPath !== '' && (
-                <button
-                  type="button"
-                  className={styles.linkButton}
-                  onClick={() => onFixAssumption(assumption.fieldPath)}
-                >
-                  {COPY.fixAssumption}
-                </button>
-              )}
-            </div>
+              assumption={assumption}
+              {...(onFixAssumption ? { onFix: onFixAssumption } : {})}
+              {...(onChangeAssumption ? { onChange: onChangeAssumption } : {})}
+            />
           ))}
         </section>
       )}
@@ -420,4 +422,106 @@ function roleToneClass(role: SelectedProduct['role']): string {
   if (role === 'main' || role === 'riser') return styles.roleMain!;
   if (role === 'branch') return styles.roleBranch!;
   return styles.roleFixture!;
+}
+
+/**
+ * Satu baris asumsi. Asumsi angka dari registry bisa diganti di tempat ("Perbaiki asumsi ini" →
+ * angka + satuan → Hitung ulang); yang lain memakai jalur lama (chat / panel Ubah). Baris
+ * penjelasan cara hitung (`fieldPath` kosong) tidak punya tombol.
+ */
+function AssumptionRow({
+  assumption,
+  onFix,
+  onChange,
+}: {
+  assumption: Assumption;
+  onFix?: (fieldPath: string) => void;
+  onChange?: (assumptionId: string, value: number | null) => Promise<string | null>;
+}) {
+  const COPY = useSolutionCopy();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(assumption.value ?? ''));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const editable =
+    onChange !== undefined &&
+    assumption.assumptionId !== undefined &&
+    assumption.value !== undefined;
+
+  const submit = async (value: number | null) => {
+    if (!editable) return;
+    setBusy(true);
+    setError(null);
+    const problem = await onChange(assumption.assumptionId!, value);
+    setBusy(false);
+    if (problem !== null) setError(problem);
+    else setEditing(false);
+  };
+
+  return (
+    <div className={styles.assumptionRow}>
+      <div className={styles.assumptionMain}>
+        <span className={styles.assumptionText}>{assumption.text}</span>
+        {editing && (
+          <form
+            className={styles.assumptionEditor}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const value = Number(draft.replace(',', '.'));
+              void submit(value);
+            }}
+          >
+            <input
+              className={styles.assumptionInput}
+              inputMode="decimal"
+              aria-label={COPY.assumptionValue}
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              autoFocus
+            />
+            {assumption.unit && <span className={styles.assumptionUnit}>{assumption.unit}</span>}
+            <button type="submit" className={styles.assumptionApply} disabled={busy}>
+              {busy ? COPY.recalculating : COPY.recalculate}
+            </button>
+            {assumption.userSet && (
+              <button
+                type="button"
+                className={styles.linkButton}
+                disabled={busy}
+                onClick={() => void submit(null)}
+              >
+                {COPY.resetAssumption}
+              </button>
+            )}
+            <button
+              type="button"
+              className={styles.linkButton}
+              disabled={busy}
+              onClick={() => {
+                setEditing(false);
+                setError(null);
+              }}
+            >
+              {COPY.cancel}
+            </button>
+            {error && <span className={styles.assumptionError}>{error}</span>}
+          </form>
+        )}
+      </div>
+      {!editing && assumption.fieldPath !== '' && (editable || onFix) && (
+        <button
+          type="button"
+          className={styles.linkButton}
+          onClick={() => {
+            if (editable) {
+              setDraft(String(assumption.value).replace('.', ','));
+              setEditing(true);
+            } else onFix?.(assumption.fieldPath);
+          }}
+        >
+          {COPY.fixAssumption}
+        </button>
+      )}
+    </div>
+  );
 }

@@ -5,7 +5,7 @@
  * Kepemilikan percakapan diperiksa di lapisan application (`ConversationService.find`),
  * bukan hanya lewat `WHERE` di repository (docs/SECURITY.md §4).
  */
-import { Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Req, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import type { AssistantStreamEvent } from '@snouty/shared-types';
 import { z } from 'zod';
@@ -13,7 +13,11 @@ import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { RequestValidationError } from '../../../shared/http/api-errors.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import { RequirementSnapshotStore } from '../../context/application/requirement-snapshot.store.js';
-import { AnalysisService, CatalogUnavailableError } from '../application/analysis.service.js';
+import {
+  AnalysisService,
+  CatalogUnavailableError,
+  overrideAssumption,
+} from '../application/analysis.service.js';
 import { RECOMMENDATION_REPOSITORY } from '../domain/recommendation.repository.js';
 import type { RecommendationRepository } from '../domain/recommendation.repository.js';
 import { Inject } from '@nestjs/common';
@@ -21,6 +25,10 @@ import { assumptionCardFor } from '../../context/application/message-pipeline.js
 import { sseWriter } from '../../../shared/sse/event-stream.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
+/** `value: null` = kembalikan ke nilai baku asumsi. */
+const AssumptionBody = z
+  .object({ assumptionId: z.string().min(1).max(64), value: z.number().nullable() })
+  .strict();
 
 @Controller()
 export class RecommendationController {
@@ -96,6 +104,31 @@ export class RecommendationController {
    * tersimpan, jadi ia selalu konsisten dengan tabel sistem dan BOM yang lahir dari
    * sumber yang sama (docs/SCHEMATIC_ENGINE.md §1).
    */
+  /**
+   * "Perbaiki asumsi ini" pada kasus teknis: simpan nilai pengganti satu asumsi registry di kasus.
+   * Nilainya diuji dengan hitung coba dulu; web lalu menjalankan Susun rekomendasi ulang.
+   */
+  @Put('conversations/:id/assumptions')
+  async overrideAssumption(
+    @Param() params: unknown,
+    @Body() body: unknown,
+    @Req() req: PublicRequest,
+  ): Promise<unknown> {
+    const id = parse(IdParam, params).id;
+    const input = parse(AssumptionBody, body);
+    const conversation = await this.conversations.find(id, actorOf(req));
+    const snapshot = await this.snapshots.current(id);
+    if (!snapshot) throw new RequestValidationError(['assumptionId']);
+    const next = overrideAssumption(
+      snapshot.state,
+      input.assumptionId,
+      input.value,
+      conversation.language,
+    );
+    const saved = await this.snapshots.append(id, next, 'user_edit');
+    return { state: saved.state };
+  }
+
   @Get('recommendations/:id/schematic')
   async schematic(@Param() params: unknown, @Req() req: PublicRequest): Promise<unknown> {
     const id = parse(IdParam, params).id;

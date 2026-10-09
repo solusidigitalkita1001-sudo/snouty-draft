@@ -3,7 +3,7 @@
  * (ENG-405), lalu sizing jalur distribusi utama sebagai jalur bertekanan (Kelompok F). Murni.
  */
 
-import { assumption } from './parameters/assumptions.js';
+import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
 import {
   computePressurized,
   type PressurizedInput,
@@ -35,12 +35,10 @@ export interface NetworkResult extends PressurizedResult {
 export function computeNetwork(
   input: NetworkInput,
   locale: EngineeringLocale = DEFAULT_ENGINEERING_LOCALE,
+  /** Nilai asumsi yang diganti pengguna, per ID registry — menggantikan nilai baku. */
+  overrides: AssumptionOverrides = {},
 ): NetworkResult {
-  const applied: string[] = [];
-  const use = (id: string): number => {
-    applied.push(id);
-    return assumption(id).value as number;
-  };
+  const { use, applied } = assumptionReader(overrides);
   const demandInput = ENG_405.parseInput({
     connections: input.connections,
     personsPerConnection: input.personsPerConnection ?? use('PERSONS_PER_UNIT_4'),
@@ -70,6 +68,7 @@ export function computeNetwork(
       ...(input.material ? { material: input.material } : {}),
     },
     locale,
+    overrides,
   );
 
   return {

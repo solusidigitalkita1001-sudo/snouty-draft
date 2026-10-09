@@ -7,7 +7,7 @@
  * `appliedAssumptionIds`, supaya kartu "Asumsi sementara" menampilkannya dengan ID yang sama.
  */
 
-import { assumption } from './parameters/assumptions.js';
+import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
 import { sizeTableFor } from './parameters/size-tables.js';
 import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
@@ -55,22 +55,19 @@ export interface PressurizedResult {
   readonly overallProvenance: Provenance;
 }
 
-function hazenWilliamsFor(material: PipeMaterial | undefined): { c: number; id: string } {
-  const id = material === 'Galvanis' ? 'HAZEN_WILLIAMS_C_GALVANIZED' : 'HAZEN_WILLIAMS_C_PLASTIC';
-  return { c: assumption(id).value as number, id };
+function hazenWilliamsId(material: PipeMaterial | undefined): string {
+  return material === 'Galvanis' ? 'HAZEN_WILLIAMS_C_GALVANIZED' : 'HAZEN_WILLIAMS_C_PLASTIC';
 }
 
 /** `locale` hanya memilih bahasa `explanation` di trace (P15-04b); angka tidak berubah. */
 export function computePressurized(
   input: PressurizedInput,
   locale: EngineeringLocale = DEFAULT_ENGINEERING_LOCALE,
+  /** Nilai asumsi yang diganti pengguna, per ID registry — menggantikan nilai baku. */
+  overrides: AssumptionOverrides = {},
 ): PressurizedResult {
   const traces: CalculationTrace[] = [];
-  const applied: string[] = [];
-  const use = (id: string): number => {
-    applied.push(id);
-    return assumption(id).value as number;
-  };
+  const { use, applied } = assumptionReader(overrides);
 
   function run<I, O>(rule: RuleVersion<I, O>, raw: unknown): O {
     const parsed = rule.parseInput(raw);
@@ -90,8 +87,7 @@ export function computePressurized(
     return output;
   }
 
-  const hw = hazenWilliamsFor(input.material);
-  applied.push(hw.id);
+  const hw = { c: use(hazenWilliamsId(input.material)) };
   const residualPressureBar = input.residualPressureBar ?? use('TRANSFER_DISCHARGE_MARGIN');
   const velocityMinMs = use('VELOCITY_MIN_SELF_CLEANING');
   const velocityMaxMs = use('VELOCITY_MAX_PLASTIC');

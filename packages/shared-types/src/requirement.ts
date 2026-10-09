@@ -157,6 +157,11 @@ export interface TechnicalUseCase {
   /** `CaseId` profil kasus di `packages/engineering`; string supaya tipe ini tidak bergantung ke sana. */
   readonly caseId: string;
   readonly parameters: Readonly<Record<string, TechnicalParameter>>;
+  /**
+   * Nilai asumsi registry yang diganti pengguna ("Perbaiki asumsi ini"), per ID asumsi —
+   * mis. `{ DEMAND_LPCD_150: 200 }`. Dipakai engine menggantikan nilai bakunya.
+   */
+  readonly assumptionOverrides?: Readonly<Record<string, number>>;
 }
 
 export type UseCaseState = IrrigationUseCase | TechnicalUseCase;

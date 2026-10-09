@@ -20,6 +20,7 @@ import {
   type FlowSchematicShape,
 } from '@snouty/engineering';
 import type { Locale, RequirementState } from '@snouty/shared-types';
+import { overridesOf } from './assumption-overrides.js';
 import { buildingWaterInputFrom } from './building-water-view.js';
 import { gravityPlanFrom, networkInputFrom } from './gravity-view.js';
 import { irrigationInputFrom } from './irrigation-input.js';
@@ -50,7 +51,12 @@ export function flowSchematicFor(
 
   const pond = pondInputFrom(state);
   if (pond !== null) {
-    return pondSchematic(pond, computePond(pond, locale), catalogVersionLabel, locale);
+    return pondSchematic(
+      pond,
+      computePond(pond, locale, overridesOf(state)),
+      catalogVersionLabel,
+      locale,
+    );
   }
   const plan = pressurizedPlanFrom(state);
   if (plan !== null) {
@@ -62,7 +68,7 @@ export function flowSchematicFor(
         staticHeadM: plan.input.staticHeadM,
         family: plan.family,
       },
-      computePressurized(plan.input, locale),
+      computePressurized(plan.input, locale, overridesOf(state)),
       catalogVersionLabel,
       locale,
     );
@@ -76,7 +82,7 @@ export function flowSchematicFor(
           ? { catchmentHa: gravity.input.catchmentHa }
           : {}),
       },
-      computeGravity(gravity.input, locale),
+      computeGravity(gravity.input, locale, overridesOf(state)),
       catalogVersionLabel,
       locale,
     );
@@ -87,6 +93,7 @@ export function flowSchematicFor(
     const result = computeNetwork(
       family === 'HDPE' ? { ...network, material: 'HDPE' } : network,
       locale,
+      overridesOf(state),
     );
     return networkSchematic(
       { routeLengthM: network.routeLengthM, family },
@@ -99,7 +106,7 @@ export function flowSchematicFor(
   if (building !== null) {
     return buildingWaterSchematic(
       { floors: building.floors },
-      computeBuildingWater(building, locale),
+      computeBuildingWater(building, locale, overridesOf(state)),
       catalogVersionLabel,
       locale,
     );

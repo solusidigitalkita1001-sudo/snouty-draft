@@ -156,3 +156,27 @@ describe('pipa tiap lantai dari titik air per lantai', () => {
     expect(asked.slice(0, 2)).toEqual(['bathrooms_per_floor', 'basins_per_floor']);
   });
 });
+
+describe('asumsi yang diganti pengguna', () => {
+  it('kebutuhan 200 l/orang dan tangki bawah 2 hari: hasil berubah, tidak lagi tercatat sebagai asumsi', () => {
+    const base = computeBuildingWater({ floors: 12, floorAreaM2: 3000 });
+    const own = computeBuildingWater({ floors: 12, floorAreaM2: 3000 }, 'id', {
+      DEMAND_LPCD_150: 200,
+      GROUND_TANK_1_DAY: 2,
+    });
+    expect(own.demand.dailyM3).toBe(720);
+    expect(own.tanks.groundTankM3).toBe(1440);
+    expect(own.demand.dailyM3).toBeGreaterThan(base.demand.dailyM3);
+    expect(own.appliedAssumptionIds).not.toContain('DEMAND_LPCD_150');
+    expect(own.appliedAssumptionIds).not.toContain('GROUND_TANK_1_DAY');
+    expect(base.appliedAssumptionIds).toContain('DEMAND_LPCD_150');
+  });
+
+  it('batas kecepatan pipa ikut sampai ke perhitungan pipa di dalamnya', () => {
+    const own = computeBuildingWater({ floors: 12, floorAreaM2: 3000 }, 'id', {
+      VELOCITY_MAX_PLASTIC: 1.5,
+    });
+    expect(own.appliedAssumptionIds).not.toContain('VELOCITY_MAX_PLASTIC');
+    expect(own.transfer.velocityMs).toBeLessThanOrEqual(1.5);
+  });
+});

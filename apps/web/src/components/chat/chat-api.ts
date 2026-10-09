@@ -163,6 +163,26 @@ export async function saveConversation(conversationId: string): Promise<SaveResu
 }
 
 /**
+ * Ganti nilai satu asumsi kasus teknis (`value: null` = kembali ke nilai awal). `null` bila
+ * berhasil; selain itu pesan dari server untuk ditampilkan di baris asumsinya.
+ */
+export async function overrideAssumption(
+  conversationId: string,
+  assumptionId: string,
+  value: number | null,
+): Promise<string | null> {
+  const response = await apiFetch(`${BASE}/conversations/${conversationId}/assumptions`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ assumptionId, value }),
+  });
+  if (response.ok) return null;
+  const body = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
+  return body?.error?.message ?? 'Nilai belum bisa disimpan. Coba lagi.';
+}
+
+/**
  * Menjalankan analisis dan mengalirkan empat tahap terakhir. Dipakai tombol "Analisis
  * kebutuhan" pada kartu CTA; kembalinya `recommendationId` bila solusi tersusun.
  */

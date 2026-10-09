@@ -38,6 +38,11 @@ export const SOLUTION_COPY = {
   },
   assumptionsTitle: 'Asumsi yang digunakan',
   fixAssumption: 'Perbaiki asumsi ini →',
+  assumptionValue: 'Nilai baru',
+  recalculate: 'Hitung ulang',
+  cancel: 'Batal',
+  resetAssumption: 'Kembalikan nilai awal',
+  recalculating: 'Menghitung ulang…',
   productsTitle: 'Produk Pralon yang sesuai',
 
   // Janji produk — jangan diparafrase.
@@ -117,6 +122,11 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
   },
   assumptionsTitle: 'Assumptions used',
   fixAssumption: 'Fix this assumption →',
+  assumptionValue: 'New value',
+  recalculate: 'Recalculate',
+  cancel: 'Cancel',
+  resetAssumption: 'Restore the original value',
+  recalculating: 'Recalculating…',
   productsTitle: 'Matching Pralon products',
 
   planningDisclaimer: 'PLANNING GUIDANCE — NOT A TECHNICAL CERTIFICATION',

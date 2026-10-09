@@ -66,3 +66,53 @@ describe('SolutionView — detail teknis', () => {
     expect(screen.getAllByRole('button', { name: /Perbaiki asumsi ini/ })).toHaveLength(1);
   });
 });
+
+describe('SolutionView — ganti nilai asumsi', () => {
+  const WITH_VALUES = {
+    ...RECOMMENDATION,
+    assumptions: [
+      {
+        text: 'Air dipakai selama 10 jam per hari.',
+        fieldPath: 'operating_hours',
+        assumptionId: 'USAGE_HOURS_10',
+        value: 10,
+        unit: 'jam/hari',
+      },
+      {
+        text: 'Kebutuhan air 150 liter per orang per hari — Anda ubah menjadi 200 l/orang/hari.',
+        fieldPath: 'design_flow',
+        assumptionId: 'DEMAND_LPCD_150',
+        value: 200,
+        unit: 'l/orang/hari',
+        userSet: true,
+      },
+    ],
+  } as unknown as Recommendation;
+
+  it('Perbaiki → isi angka → Hitung ulang mengirim nilai baru', async () => {
+    const change = vi.fn(async () => null);
+    render(
+      <SolutionView recommendation={WITH_VALUES} tab="material" onChangeAssumption={change} />,
+    );
+    fireEvent.click(screen.getAllByRole('button', { name: /Perbaiki asumsi ini/ })[0]!);
+    const input = screen.getByLabelText('Nilai baru') as HTMLInputElement;
+    expect(input.value).toBe('10');
+    expect(screen.getByText('jam/hari')).toBeTruthy();
+    fireEvent.change(input, { target: { value: '8' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Hitung ulang' }));
+    await vi.waitFor(() => expect(change).toHaveBeenCalledWith('USAGE_HOURS_10', 8));
+  });
+
+  it('nilai dari pengguna bisa dikembalikan; pesan penolakan tampil di barisnya', async () => {
+    const change = vi.fn(
+      async () => 'Nilai itu di luar batas hitung — coba angka yang lebih wajar.',
+    );
+    render(
+      <SolutionView recommendation={WITH_VALUES} tab="material" onChangeAssumption={change} />,
+    );
+    fireEvent.click(screen.getAllByRole('button', { name: /Perbaiki asumsi ini/ })[1]!);
+    fireEvent.click(screen.getByRole('button', { name: 'Kembalikan nilai awal' }));
+    await vi.waitFor(() => expect(change).toHaveBeenCalledWith('DEMAND_LPCD_150', null));
+    expect(await screen.findByText(/di luar batas hitung/)).toBeTruthy();
+  });
+});

@@ -115,13 +115,14 @@ dihilangkan dari respons. UI perlu tahu bedanya antara "tidak ada datanya" dan "
 
 ### Rekomendasi
 
-| Metode | Path                               | Entitlement                                                                                         |
-| ------ | ---------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `GET`  | `/recommendations/:id`             | pemilik                                                                                             |
-| `GET`  | `/recommendations/:id/bom`         | `MATERIAL_BOM`                                                                                      |
-| `GET`  | `/recommendations/:id/schematic`   | `SCHEMATIC` — bangunan: `Schematic`; kasus teknis/irigasi: `FlowSchematic` (`kind: "flow"`, P16-39) |
-| `GET`  | `/recommendations/:id/traces`      | pemilik — sumber "Tampilkan detail teknis"                                                          |
-| `POST` | `/recommendations/:id/recalculate` | pemilik — dipakai skenario layar 09                                                                 |
+| Metode | Path                               | Entitlement                                                                                                                                                                                                 |
+| ------ | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/recommendations/:id`             | pemilik                                                                                                                                                                                                     |
+| `GET`  | `/recommendations/:id/bom`         | `MATERIAL_BOM`                                                                                                                                                                                              |
+| `PUT`  | `/conversations/:id/assumptions`   | pemilik — ganti nilai satu asumsi angka kasus teknis `{ assumptionId, value }` (`value: null` = kembali ke nilai baku); diuji hitung coba, galat `VALIDATION_FAILED` berpesan; balasan `{ state }` (P16-45) |
+| `GET`  | `/recommendations/:id/schematic`   | `SCHEMATIC` — bangunan: `Schematic`; kasus teknis/irigasi: `FlowSchematic` (`kind: "flow"`, P16-39)                                                                                                         |
+| `GET`  | `/recommendations/:id/traces`      | pemilik — sumber "Tampilkan detail teknis"                                                                                                                                                                  |
+| `POST` | `/recommendations/:id/recalculate` | pemilik — dipakai skenario layar 09                                                                                                                                                                         |
 
 ### Laporan
 

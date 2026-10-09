@@ -102,12 +102,14 @@ export {
   assumption,
   assumptionCondition,
   assumptionDescription,
+  assumptionReader,
   assumptionsFor,
 } from './parameters/assumptions.js';
 export type {
   AppliedAssumption,
   AssumptionConfidence,
   AssumptionDefinition,
+  AssumptionOverrides,
 } from './parameters/assumptions.js';
 export {
   DEPENDENCIES,
