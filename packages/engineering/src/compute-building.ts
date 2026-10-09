@@ -29,7 +29,9 @@ import {
   ENG_503,
   ENG_504,
   ENG_505,
+  ENG_506,
   type BuildingDemandResult,
+  type TankResult,
   type ZoningResult,
 } from './rules/group-i-building.js';
 
@@ -78,6 +80,8 @@ export interface BuildingWaterResult {
   readonly occupantsEstimated: boolean;
   readonly demand: BuildingDemandResult;
   readonly zoning: ZoningResult;
+  /** Tangki bawah dan tangki atap (ENG-506). */
+  readonly tanks: TankResult;
   /** Pipa transfer tangki bawah → tangki atap, dengan titik kerja pompanya. */
   readonly transfer: PressurizedResult;
   readonly transferMaterial: PipeMaterial;
@@ -153,6 +157,15 @@ export function computeBuildingWater(
     floorHeightM,
     maxZoneBar: use('ZONE_MAX_STATIC_4BAR'),
     residualBar,
+  });
+
+  // Pompa transfer mengisi tangki atap pada debit jam puncak; selisih menit puncak dari tangki atap.
+  const tanks = run(ENG_506, {
+    dailyM3: demand.dailyM3,
+    peakMinuteLs: demand.peakMinuteLs,
+    pumpFlowLs: demand.peakHourLs,
+    peakDurationMin: use('PEAK_DURATION_30MIN'),
+    groundTankDays: use('GROUND_TANK_1_DAY'),
   });
 
   if (input.horizontalRunM === undefined) applied.push('TRANSFER_ROUTE_VERTICAL');
@@ -254,6 +267,7 @@ export function computeBuildingWater(
     occupantsEstimated,
     demand,
     zoning,
+    tanks,
     transfer,
     transferMaterial,
     risers,

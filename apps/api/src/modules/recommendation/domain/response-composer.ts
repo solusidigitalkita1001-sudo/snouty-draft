@@ -48,7 +48,8 @@ const OPTION_NOTE_ID: Readonly<Record<OptionStatus, string>> = {
   ok: 'Memenuhi batas kecepatan air dan kehilangan tekanan.',
   too_fast: 'Air terlalu cepat: pipa cepat aus, bising, dan bisa terjadi hentakan air.',
   too_slow: 'Air terlalu lambat: kotoran mudah mengendap di dalam pipa.',
-  high_loss: 'Kehilangan tekanan terlalu besar: butuh pompa lebih kuat, atau tekanan di ujung turun.',
+  high_loss:
+    'Kehilangan tekanan terlalu besar: butuh pompa lebih kuat, atau tekanan di ujung turun.',
   too_small: 'Kapasitas aliran kurang dari debit rencana.',
 };
 const OPTION_NOTE_EN: Readonly<Record<OptionStatus, string>> = {

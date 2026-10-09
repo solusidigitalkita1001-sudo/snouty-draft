@@ -46,6 +46,7 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-503': { id: 'Zona tekanan dan booster', en: 'Pressure zones and booster' },
   'ENG-504': { id: 'Pembagian riser', en: 'Splitting the risers' },
   'ENG-505': { id: 'Air untuk tiap lantai', en: 'Water for each floor' },
+  'ENG-506': { id: 'Volume tangki', en: 'Tank volumes' },
 };
 
 /** Judul langkah untuk sebuah aturan; aturan yang belum terdaftar → judul umum, bukan kodenya. */

@@ -375,7 +375,7 @@ export function buildingWaterSchematic(
     .node(
       'tank',
       t('TANGKI BAWAH', 'GROUND TANK'),
-      `${n(result.demand.dailyM3, locale)} ${t('m³/hari', 'm³/day')}`,
+      `${n(result.tanks.groundTankM3, locale)} m³ · ${n(result.demand.dailyM3, locale)} ${t('m³/hari', 'm³/day')}`,
     )
     .link('main', '')
     .node(
@@ -388,7 +388,11 @@ export function buildingWaterSchematic(
     .link('main', pipe(result.transfer.recommendedSize, fam(result.transferMaterial)))
     .node('pipe', t('PIPA TRANSFER', 'TRANSFER PIPE'), `${n(z.buildingHeightM, locale)} m`, true)
     .link('main', '')
-    .node('tank', t('TANGKI ATAP', 'ROOF TANK'), `+${n(z.buildingHeightM, locale)} m`)
+    .node(
+      'tank',
+      t('TANGKI ATAP', 'ROOF TANK'),
+      `${n(result.tanks.roofTankM3, locale)} m³ · +${n(z.buildingHeightM, locale)} m`,
+    )
     .link(
       'riser',
       `${result.risers} × ${pipe(result.riser.recommendedSize, fam(result.riserMaterial))}`,

@@ -413,11 +413,11 @@ gedung > 4 lantai ke tim teknis. Perhitungannya butuh nilai yang belum divalidas
 **Default yang diterapkan:** Kelompok I (ENG-501…504, docs/ENGINEERING_RULES.md) dengan asumsi dari
 buku acuan plambing Indonesia, semuanya `confirmationRequired` dan tampil di "Asumsi sementara":
 `OCCUPANT_AREA_10M2` (10 m² lantai per orang, keyakinan rendah), `USAGE_HOURS_10`,
-`PEAK_MINUTE_FACTOR_3`, `ZONE_MAX_STATIC_4BAR`, `TRANSFER_ROUTE_VERTICAL`, `FLOOR_HEADER_20M`, ditambah
+`PEAK_MINUTE_FACTOR_3`, `ZONE_MAX_STATIC_4BAR`, `TRANSFER_ROUTE_VERTICAL`, `FLOOR_HEADER_20M`, `GROUND_TANK_1_DAY`, `PEAK_DURATION_30MIN`, ditambah
 `DEMAND_LPCD_150` dan `PEAK_HOUR_FACTOR_2` yang sudah ada. Satu kebutuhan per orang untuk
 semua jenis gedung. Industri tetap ke tim teknis. **Masih terbuka:** kebutuhan air per jenis gedung
 (kantor, apartemen, hotel, rumah sakit), kepadatan hunian per jenis, batas tekanan zona per jenis,
-volume tangki bawah/atap, dan validasi keempat aturan oleh ahli.
+cadangan tangki bawah bila pasokan PDAM menerus, dan validasi aturan Kelompok I oleh ahli.
 
 ### OQ-56 — Apa yang dilakukan sistem dengan denah yang dilampirkan
 

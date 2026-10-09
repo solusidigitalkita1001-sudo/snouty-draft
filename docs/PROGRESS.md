@@ -1265,6 +1265,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       tiap jalur tampil sebagai langkah hitung bernomor (judul langkah dari engine `ruleStepTitle` + penjelasan
       aturan, `SystemLine.steps`), angka berformat Indonesia, tanpa kode aturan; penjelasan aturan bertekanan
       ditulis ulang dengan bahasa teknisi (kehilangan tekanan, tinggi angkat, pompa yang dicari).
+- [x] P16-44 Volume tangki gedung (2026-10-09, dipilih pemilik) — gedung bertingkat kini menghitung tangki bawah
+      (kebutuhan 1 hari) dan tangki atap ((debit menit puncak − debit pompa transfer) × 30 menit) lewat ENG-506;
+      tampil di ringkasan, baris sistem "Tangki bawah dan atap", langkah hitung, dan skema. Contoh 12 lantai
+      100 × 30: 540 m³ dan 27 m³. Asumsi baru di OQ-57.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

@@ -220,7 +220,15 @@ export type {
   BuildingWaterResult,
   FloorBranchResult,
 } from './compute-building.js';
-export { ENG_501, ENG_502, ENG_503, ENG_504, ENG_505, GROUP_I } from './rules/group-i-building.js';
+export {
+  ENG_501,
+  ENG_502,
+  ENG_503,
+  ENG_504,
+  ENG_505,
+  ENG_506,
+  GROUP_I,
+} from './rules/group-i-building.js';
 export type { NetworkInput, NetworkResult } from './compute-network.js';
 export type { PipeMaterial, PressurizedInput, PressurizedResult } from './compute-pressurized.js';
 export {

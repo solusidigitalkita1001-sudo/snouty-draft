@@ -21,6 +21,11 @@ describe('computeBuildingWater', () => {
       peakMinuteLs: 45,
     });
     expect(r.zoning).toEqual({ buildingHeightM: 42, zones: 2, reducedZones: 1, boosterFloors: 2 });
+    // Tangki bawah = 1 hari; tangki atap = (45 − 30 l/s) × 30 menit.
+    expect(r.tanks).toEqual({ groundTankM3: 540, roofTankM3: 27 });
+    expect(r.appliedAssumptionIds).toEqual(
+      expect.arrayContaining(['GROUND_TANK_1_DAY', 'PEAK_DURATION_30MIN']),
+    );
     expect(r.transfer.recommendedSize).toBe('6"');
     expect(r.transfer.allCriteriaMet).toBe(true);
     expect(r.transfer.pumpDuty?.flowM3h).toBe(108);

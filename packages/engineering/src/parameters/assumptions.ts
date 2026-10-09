@@ -104,7 +104,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     value: 25,
     unit: 'm',
     conditionEn: 'number of branches not given',
-    descriptionEn: 'One distribution branch every 25 meters of main line in the field (layout estimate).',
+    descriptionEn:
+      'One distribution branch every 25 meters of main line in the field (layout estimate).',
     reference: 'Asumsi tata letak: satu lateral tiap 25 m header',
     confidence: 'low',
     confirmationRequired: true,
@@ -208,11 +209,13 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     value: 150,
     unit: 'C',
     conditionEn: 'friction loss calculated for PVC/HDPE/PPR',
-    descriptionEn: 'The inside of plastic pipe is taken as smooth (roughness value 150), so it loses little pressure.',
+    descriptionEn:
+      'The inside of plastic pipe is taken as smooth (roughness value 150), so it loses little pressure.',
     reference: 'Koefisien Hazen-Williams pipa plastik halus C ≈ 140–150',
     confidence: 'high',
     confirmationRequired: true,
-    description: 'Dinding dalam pipa plastik dianggap licin (nilai kekasaran 150), jadi kehilangan tekanannya kecil.',
+    description:
+      'Dinding dalam pipa plastik dianggap licin (nilai kekasaran 150), jadi kehilangan tekanannya kecil.',
   },
   {
     id: 'HAZEN_WILLIAMS_C_GALVANIZED',
@@ -222,11 +225,13 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     value: 100,
     unit: 'C',
     conditionEn: 'friction loss calculated for galvanized pipe',
-    descriptionEn: 'The inside of galvanized pipe is taken as rougher (roughness value 100), so it loses more pressure.',
+    descriptionEn:
+      'The inside of galvanized pipe is taken as rougher (roughness value 100), so it loses more pressure.',
     reference: 'Koefisien Hazen-Williams pipa baja galvanis terpakai C ≈ 100',
     confidence: 'medium',
     confirmationRequired: true,
-    description: 'Dinding dalam pipa galvanis dianggap lebih kasar (nilai kekasaran 100), jadi kehilangan tekanannya lebih besar.',
+    description:
+      'Dinding dalam pipa galvanis dianggap lebih kasar (nilai kekasaran 100), jadi kehilangan tekanannya lebih besar.',
   },
   {
     id: 'VELOCITY_MAX_PLASTIC',
@@ -327,11 +332,13 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     value: 0.1,
     unit: '-',
     conditionEn: 'fitting list unknown',
-    descriptionEn: 'Bends, joints, and valves are taken to add 10 % to the pressure lost in straight pipe.',
+    descriptionEn:
+      'Bends, joints, and valves are taken to add 10 % to the pressure lost in straight pipe.',
     reference: 'Praktik umum: kerugian minor ±10 % dari kerugian gesek pipa lurus',
     confidence: 'low',
     confirmationRequired: true,
-    description: 'Belokan, sambungan, dan katup dianggap menambah 10 % kehilangan tekanan dari pipa lurus.',
+    description:
+      'Belokan, sambungan, dan katup dianggap menambah 10 % kehilangan tekanan dari pipa lurus.',
   },
 
   // ── Bangunan (dipindah dari ENG-004 / ENG-014) ──
@@ -418,11 +425,13 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     value: 0.6,
     unit: '-',
     conditionEn: 'runoff coefficient not given; residential area',
-    descriptionEn: 'In a residential area, 60 % of the rain is taken to run into the drain (the rest soaks in).',
+    descriptionEn:
+      'In a residential area, 60 % of the rain is taken to run into the drain (the rest soaks in).',
     reference: 'Rentang umum C perumahan 0,5–0,7',
     confidence: 'low',
     confirmationRequired: true,
-    description: 'Di kawasan perumahan, 60 % air hujan dianggap mengalir ke saluran (sisanya meresap).',
+    description:
+      'Di kawasan perumahan, 60 % air hujan dianggap mengalir ke saluran (sisanya meresap).',
   },
 
   // ── Gravitasi / drainase ──
@@ -434,11 +443,13 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     value: 0.01,
     unit: 'n',
     conditionEn: 'gravity capacity calculated for PVC/HDPE pipe',
-    descriptionEn: 'The inside of plastic pipe is taken as smooth (roughness value 0.010) for gravity drain calculations.',
+    descriptionEn:
+      'The inside of plastic pipe is taken as smooth (roughness value 0.010) for gravity drain calculations.',
     reference: 'Koefisien Manning pipa plastik halus n ≈ 0,009–0,011',
     confidence: 'high',
     confirmationRequired: true,
-    description: 'Dinding dalam pipa plastik dianggap licin (nilai kekasaran 0,010) untuk hitungan saluran gravitasi.',
+    description:
+      'Dinding dalam pipa plastik dianggap licin (nilai kekasaran 0,010) untuk hitungan saluran gravitasi.',
   },
   {
     id: 'PIPE_FILL_RATIO_GRAVITY',
@@ -593,6 +604,36 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     confirmationRequired: true,
     description:
       'Tekanan statik tiap zona dibatasi 4 bar; lantai bawah dibagi zona dengan katup penurun tekanan.',
+  },
+  {
+    id: 'GROUND_TANK_1_DAY',
+    parameter: 'design_flow',
+    appliesTo: ['multistorey_building_water'],
+    condition: 'kapasitas cadangan tangki bawah tidak ditentukan',
+    value: 1,
+    unit: 'hari',
+    conditionEn: 'ground tank reserve not specified',
+    descriptionEn: 'The ground tank holds one day of water demand.',
+    reference:
+      'Praktik umum gedung: tangki bawah menampung kebutuhan satu hari bila pasokan tidak menerus',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description: 'Tangki bawah menampung kebutuhan air satu hari.',
+  },
+  {
+    id: 'PEAK_DURATION_30MIN',
+    parameter: 'simultaneous_usage',
+    appliesTo: ['multistorey_building_water'],
+    condition: 'lama periode pemakaian puncak tidak diberikan',
+    value: 30,
+    unit: 'menit',
+    conditionEn: 'duration of peak use not given',
+    descriptionEn: 'The busiest period of water use lasts 30 minutes.',
+    reference:
+      'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing: jangka waktu kebutuhan puncak ±30 menit',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description: 'Periode pemakaian air tersibuk berlangsung 30 menit.',
   },
   {
     id: 'FLOOR_HEADER_20M',

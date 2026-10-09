@@ -19,6 +19,7 @@ describe('langkah hitung', () => {
       'Perkiraan penghuni',
       'Kebutuhan air harian dan puncak',
       'Zona tekanan dan booster',
+      'Volume tangki',
       'Pilih ukuran pipa',
       'Kecepatan air',
       'Kehilangan tekanan di pipa',
@@ -30,7 +31,8 @@ describe('langkah hitung', () => {
       expect(step.text).not.toMatch(/ENG-\d/);
       expect(step.text).not.toMatch(/\d\.\d/);
     }
-    expect(steps[3]!.text).toContain('Dicoba 10 ukuran; 6" yang terkecil');
+    expect(steps[3]!.text).toContain('Tangki atap 27 m³');
+    expect(steps[4]!.text).toContain('Dicoba 10 ukuran; 6" yang terkecil');
   });
 
   it('desimal Indonesia memakai koma; Inggris tetap titik', () => {

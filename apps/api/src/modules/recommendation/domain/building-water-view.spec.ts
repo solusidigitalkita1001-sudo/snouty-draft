@@ -62,7 +62,7 @@ describe('tampilan hasil gedung', () => {
 
   it('trace dipecah per bagian tanpa tumpang tindih', () => {
     const parts = buildingTraceParts(result, traces);
-    expect(parts.demand.map((t) => t.ruleId)).toEqual(['ENG-501', 'ENG-502', 'ENG-503']);
+    expect(parts.demand.map((t) => t.ruleId)).toEqual(['ENG-501', 'ENG-502', 'ENG-503', 'ENG-506']);
     expect(parts.transfer[0]!.ruleId).toBe('ENG-205');
     expect(parts.split.map((t) => t.ruleId)).toEqual(['ENG-504']);
     expect(parts.riser[0]!.ruleId).toBe('ENG-205');
@@ -73,7 +73,7 @@ describe('tampilan hasil gedung', () => {
 
   it('baris sistem: transfer, riser, pompa, zona — tidak ada yang VERIFIED', () => {
     const lines = buildingSystemLines(result, traces);
-    expect(lines.map((l) => l.role)).toEqual(['main', 'riser', 'fitting', 'branch']);
+    expect(lines.map((l) => l.role)).toEqual(['main', 'riser', 'fitting', 'branch', 'fitting']);
     expect(lines[0]!.size).toBe('6"');
     expect(lines[1]!.name).toBe('Riser distribusi PVC AW (2×)');
     expect(lines[2]!.size).toBe('108 m³/jam @ 47,82 m');

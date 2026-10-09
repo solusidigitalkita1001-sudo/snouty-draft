@@ -134,6 +134,10 @@ export function buildingHighlights(
         : '-',
     },
     {
+      label: en ? 'Ground / roof tank' : 'Tangki bawah / atap',
+      value: `${num(result.tanks.groundTankM3, l)} m³ / ${num(result.tanks.roofTankM3, l)} m³`,
+    },
+    {
       label: en ? 'Distribution risers' : 'Riser distribusi',
       value: `${result.risers} × ${result.riser.recommendedSize}`,
     },
@@ -213,6 +217,15 @@ export function buildingSystemLines(
       provenance: worst(parts.demand),
       traceIds: ids(parts.demand),
       role: 'branch',
+    },
+    {
+      name: en ? 'Ground and roof tanks' : 'Tangki bawah dan atap',
+      path: en ? 'Water storage' : 'Penampungan air',
+      size: `${num(result.tanks.groundTankM3, locale)} m³ · ${num(result.tanks.roofTankM3, locale)} m³`,
+      reason: explain(parts.demand, 'ENG-506'),
+      provenance: worst(parts.demand.filter((t) => t.ruleId === 'ENG-506')),
+      traceIds: ids(parts.demand.filter((t) => t.ruleId === 'ENG-506')),
+      role: 'fitting',
     },
   ];
   const floor = result.floorBranch;
@@ -355,11 +368,11 @@ export function buildingProse(
   if (locale === 'en') {
     return {
       headline: `${floors}-storey building: ${family} ${result.transfer.recommendedSize} transfer, ${result.risers} × ${result.riser.recommendedSize} risers, ${z.zones} pressure zone(s)`,
-      body: `${num(result.occupants, l)} people use about ${num(result.demand.dailyM3, l)} m³ of water a day. A ${family} ${result.transfer.recommendedSize} transfer pipe fills the roof tank at the peak-hour flow of ${num(result.demand.peakHourLs, l)} l/s${pump ? `, with a pump of ${num(pump.flowM3h, l)} m³/h at ${num(pump.headM, l)} m head` : ''}. From the roof tank, ${result.risers} ${familyOf(result.riserMaterial)} ${result.riser.recommendedSize} riser(s) carry the peak-minute flow of ${num(result.demand.peakMinuteLs, l)} l/s down through ${z.zones} pressure zone(s)${z.boosterFloors > 0 ? `; the top ${z.boosterFloors} floor(s) need a booster pump` : ''}. Initial estimate, not a final design.`,
+      body: `${num(result.occupants, l)} people use about ${num(result.demand.dailyM3, l)} m³ of water a day, stored in a ${num(result.tanks.groundTankM3, l)} m³ ground tank. A ${family} ${result.transfer.recommendedSize} transfer pipe fills a ${num(result.tanks.roofTankM3, l)} m³ roof tank at the peak-hour flow of ${num(result.demand.peakHourLs, l)} l/s${pump ? `, with a pump of ${num(pump.flowM3h, l)} m³/h with a ${num(pump.headM, l)} m lift` : ''}. From the roof tank, ${result.risers} ${familyOf(result.riserMaterial)} ${result.riser.recommendedSize} riser(s) carry the peak-minute flow of ${num(result.demand.peakMinuteLs, l)} l/s down through ${z.zones} pressure zone(s)${z.boosterFloors > 0 ? `; the top ${z.boosterFloors} floor(s) need a booster pump` : ''}. Initial estimate, not a final design.`,
     };
   }
   return {
     headline: `Gedung ${floors} lantai: transfer ${family} ${result.transfer.recommendedSize}, ${result.risers} riser ${result.riser.recommendedSize}, ${z.zones} zona tekanan`,
-    body: `${num(result.occupants, l)} orang memakai sekitar ${num(result.demand.dailyM3, l)} m³ air per hari. Pipa transfer ${family} ${result.transfer.recommendedSize} mengisi tangki atap pada debit jam puncak ${num(result.demand.peakHourLs, l)} l/s${pump ? `, dengan pompa ${num(pump.flowM3h, l)} m³/jam pada head ${num(pump.headM, l)} m` : ''}. Dari tangki atap, ${result.risers} riser ${familyOf(result.riserMaterial)} ${result.riser.recommendedSize} membawa debit menit puncak ${num(result.demand.peakMinuteLs, l)} l/s turun melalui ${z.zones} zona tekanan${z.boosterFloors > 0 ? `; ${z.boosterFloors} lantai teratas butuh pompa booster` : ''}. Perkiraan awal, bukan desain final.`,
+    body: `${num(result.occupants, l)} orang memakai sekitar ${num(result.demand.dailyM3, l)} m³ air per hari, ditampung tangki bawah ${num(result.tanks.groundTankM3, l)} m³. Pipa transfer ${family} ${result.transfer.recommendedSize} mengisi tangki atap ${num(result.tanks.roofTankM3, l)} m³ pada debit jam puncak ${num(result.demand.peakHourLs, l)} l/s${pump ? `, dengan pompa ${num(pump.flowM3h, l)} m³/jam dengan tinggi angkat ${num(pump.headM, l)} m` : ''}. Dari tangki atap, ${result.risers} riser ${familyOf(result.riserMaterial)} ${result.riser.recommendedSize} membawa debit menit puncak ${num(result.demand.peakMinuteLs, l)} l/s turun melalui ${z.zones} zona tekanan${z.boosterFloors > 0 ? `; ${z.boosterFloors} lantai teratas butuh pompa booster` : ''}. Perkiraan awal, bukan desain final.`,
   };
 }

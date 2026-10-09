@@ -320,4 +320,75 @@ export const ENG_505: RuleVersion<FloorHeaderInput, FloorHeaderResult> = {
     }),
 };
 
-export const GROUP_I = [ENG_501, ENG_502, ENG_503, ENG_504, ENG_505] as const;
+// ── ENG-506 · Volume tangki bawah dan tangki atap ───────────────────────────
+
+export interface TankInput {
+  readonly dailyM3: number;
+  readonly peakMinuteLs: number;
+  /** Debit pompa pengisi tangki atap (pompa transfer). */
+  readonly pumpFlowLs: number;
+  readonly peakDurationMin: number;
+  readonly groundTankDays: number;
+}
+export interface TankResult {
+  readonly groundTankM3: number;
+  readonly roofTankM3: number;
+}
+
+export const ENG_506: RuleVersion<TankInput, TankResult> = {
+  ruleId: 'ENG-506',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      dailyM3: requireNumber('ENG-506', 'dailyM3', o['dailyM3'], { min: 0.1, max: 1_000_000 }),
+      peakMinuteLs: requireNumber('ENG-506', 'peakMinuteLs', o['peakMinuteLs'], {
+        min: 0.01,
+        max: 10_000,
+      }),
+      pumpFlowLs: requireNumber('ENG-506', 'pumpFlowLs', o['pumpFlowLs'], {
+        min: 0.01,
+        max: 10_000,
+      }),
+      peakDurationMin: requireNumber('ENG-506', 'peakDurationMin', o['peakDurationMin'], {
+        min: 1,
+        max: 240,
+      }),
+      groundTankDays: requireNumber('ENG-506', 'groundTankDays', o['groundTankDays'], {
+        min: 0.1,
+        max: 7,
+      }),
+    };
+  },
+  compute: (input) => ({
+    groundTankM3: round1(input.dailyM3 * input.groundTankDays),
+    // Selama periode puncak, pemakaian melebihi aliran pompa; selisihnya diambil dari tangki atap.
+    roofTankM3: round1(
+      (Math.max(0, input.peakMinuteLs - input.pumpFlowLs) * input.peakDurationMin * 60) / 1000,
+    ),
+  }),
+  sourceReference:
+    'Tangki bawah = kebutuhan harian × hari cadangan; tangki atap = (debit menit puncak − debit pompa) × lama puncak',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '540 m³/hari, puncak 45 l/s, pompa 30 l/s, 30 menit, 1 hari → 540 m³ dan 27 m³',
+      input: {
+        dailyM3: 540,
+        peakMinuteLs: 45,
+        pumpFlowLs: 30,
+        peakDurationMin: 30,
+        groundTankDays: 1,
+      },
+      expected: { groundTankM3: 540, roofTankM3: 27 },
+    },
+  ],
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Tangki bawah ${output.groundTankM3} m³ menampung kebutuhan ${input.groundTankDays} hari (${input.dailyM3} m³/hari). Tangki atap ${output.roofTankM3} m³: selama ${input.peakDurationMin} menit tersibuk air dipakai ${input.peakMinuteLs} l/s sementara pompa mengisi ${input.pumpFlowLs} l/s, selisihnya diambil dari tangki atap.`,
+      en: `The ground tank of ${output.groundTankM3} m³ holds ${input.groundTankDays} day(s) of demand (${input.dailyM3} m³/day). The roof tank of ${output.roofTankM3} m³: during the busiest ${input.peakDurationMin} minutes water is used at ${input.peakMinuteLs} l/s while the pump supplies ${input.pumpFlowLs} l/s, and the difference comes from the roof tank.`,
+    }),
+};
+
+export const GROUP_I = [ENG_501, ENG_502, ENG_503, ENG_504, ENG_505, ENG_506] as const;

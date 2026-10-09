@@ -380,6 +380,7 @@ ENG-504  debit per riser = Qm-maks ÷ jumlah riser
 ENG-505  debit per lantai = Qm-maks ÷ lantai ; induk lantai = √luas lantai (20 m bila luas tak ada)
          → ukuran induk lantai lewat Kelompok F; titik per lantai ENG-001, cabang ENG-003, ½" ENG-005
          (hanya bila kamar mandi/wastafel per lantai disebut)
+ENG-506  tangki bawah = Qd × 1 hari ; tangki atap = (Qm-maks − debit pompa) × 30 menit
 ```
 
 Contoh (laporan pemilik "gedung 100 x 30, 12 lantai"): 3 600 orang → 540 m³/hari → 30 l/s jam
