@@ -39,6 +39,7 @@ import {
   productSubject,
 } from '../domain/subject.js';
 import { previousRange } from './product-range.js';
+import { conversationTitle } from '../domain/conversation-title.js';
 import { socialReply } from '../domain/social.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import { productFaqSystemPrompt } from '../../ai/application/prompts.js';
@@ -139,7 +140,17 @@ export class MessageService {
     if (!this.ai) return llmUnavailable(messageId);
 
     try {
-      return await this.answer(conversationId, actor, text, now, messageId, emit, row.language);
+      const events = await this.answer(
+        conversationId,
+        actor,
+        text,
+        now,
+        messageId,
+        emit,
+        row.language,
+      );
+      await this.retitle(conversationId, actor, row.title ?? null, row.language);
+      return events;
     } catch (error) {
       // Model terkonfigurasi tetapi tidak terjangkau (kunci ditolak, limit habis,
       // jaringan): nasibnya sama dengan "tanpa model" — jujur lewat event
@@ -468,6 +479,28 @@ export class MessageService {
       return value;
     } catch {
       return [];
+    }
+  }
+
+  /**
+   * Judul riwayat dari ISI percakapan ("Rumah 3 lantai", "Produk HDPE") begitu isinya ada — dulu
+   * judul tetap kalimat pertama, dan riwayat berisi "Hai", "Halo" (laporan pemilik 2026-10-09).
+   * Judul tidak pernah menggagalkan giliran.
+   */
+  private async retitle(
+    conversationId: string,
+    actor: ConversationOwner,
+    before: string | null,
+    locale: Locale,
+  ): Promise<void> {
+    try {
+      const snapshot = await this.store.current(conversationId);
+      const title = conversationTitle(snapshot?.state ?? null, locale);
+      if (title !== null && title !== before) {
+        await this.conversations.rename(conversationId, actor, title);
+      }
+    } catch (error) {
+      this.logger?.warn({ conversationId, error }, 'judul percakapan tidak diperbarui');
     }
   }
 

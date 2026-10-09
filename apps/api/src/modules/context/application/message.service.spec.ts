@@ -539,6 +539,8 @@ describe('MessageService — perencana giliran (P16-29)', () => {
       expect.objectContaining({ families: ['PVC AW'], message: 'paling kecil berapa?' }),
     );
     expect(snapshots.at(-1)?.state.subject).toMatchObject({ kind: 'product', entity: 'pvc aw' });
+    // Judul riwayat dari isi, bukan kalimat pertama (laporan pemilik 2026-10-09).
+    expect(conversations.rename).toHaveBeenLastCalledWith('C'.repeat(26), ACTOR, 'Produk PVC AW');
   });
 });
 

@@ -1195,6 +1195,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       perencana hanya untuk sisanya. Model: perencana qwen3.5:4b, balasan qwen3.5:9b, batas balasan
       60 s. Catatan operasi: server di-reboot untuk perawatan 08:09–08:12 (RAM 16 → 24 GB); giliran
       pemilik saat itu gagal karena server mati, bukan karena kode. Tes +2.
+- [x] P16-32 Judul riwayat dari isi percakapan (laporan pemilik 2026-10-09: riwayat berisi "Hai",
+      "Halo", "Hai") — selesai. `conversationTitle` (fungsi murni atas state + subjek tersimpan): "Rumah 3
+      lantai", "Bangunan 2 lantai", "Produk HDPE", "PVC vs HDPE", "Tentang PT Pralon", label kasus teknis;
+      dihitung ulang setelah setiap giliran, judul kalimat pertama hanya sementara. Percakapan lama
+      diperbarui sekali dari snapshot terakhir (pasangan judul lama→baru dicatat). Tes +4.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
