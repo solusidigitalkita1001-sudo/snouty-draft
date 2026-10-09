@@ -57,7 +57,14 @@ const replySchema = (maxLength: number) =>
 const OTHER_BRANDS = /\b(rucika|wavin|maspion|vinilon|unilon|supralon|langgeng)\b/i;
 /** Angka yang lazim di prosa dan tidak membawa klaim teknik. */
 const HARMLESS = new Set(['0', '1', '2']);
-const MAX_TURNS = 6;
+/**
+ * Konteks percakapan yang dikirim ke model. Di CPU server, model tidak memakai ulang cache prompt
+ * (qwen3.5, diukur 2026-10-09) dan mengevaluasi ±40 token/detik — jawaban daftar produk 1.000+
+ * karakter yang dikirim utuh di setiap giliran menambah belasan detik. Empat giliran terakhir,
+ * masing-masing dipotong, cukup untuk menyambung percakapan.
+ */
+const MAX_TURNS = 4;
+const MAX_TURN_CHARS = 260;
 
 export class ReplyWriter {
   private readonly systemPromptFor: (locale: Locale) => string;
@@ -119,7 +126,9 @@ export function buildReplyContext(input: ReplyInput): string {
   if (turns.length > 0) {
     parts.push('PERCAKAPAN SEBELUMNYA (tertua dulu):');
     for (const turn of turns) {
-      parts.push(`${turn.role === 'user' ? 'Pengguna' : 'SNOUTY'}: ${turn.text}`);
+      const text = turn.text.replace(/\s+/g, ' ').trim();
+      const short = text.length > MAX_TURN_CHARS ? `${text.slice(0, MAX_TURN_CHARS)}…` : text;
+      parts.push(`${turn.role === 'user' ? 'Pengguna' : 'SNOUTY'}: ${short}`);
     }
   }
   parts.push(`PESAN PENGGUNA SEKARANG: ${input.userMessage}`);

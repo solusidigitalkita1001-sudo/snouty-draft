@@ -14,6 +14,7 @@
 import { z } from 'zod';
 import type { Locale } from '@snouty/shared-types';
 import type { ReplyCapableAi, ReplyTurn } from './reply-writer.js';
+import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 
 export const TURN_ACTIONS = [
   'product_types',
@@ -44,21 +45,18 @@ export interface TurnPlan {
 
 /** Turn terakhir yang dikirim ke model; jawaban panjang dipotong — cukup untuk konteks. */
 const MAX_TURNS = 4;
-const MAX_TURN_CHARS = 400;
+const MAX_TURN_CHARS = 200;
 
 const SYSTEM_PROMPT = [
-  'Anda perencana untuk SNOUTY, asisten pipa Pralon. Baca percakapan dan PILIH SATU tindakan untuk pesan terakhir pengguna. Jangan menjawab pertanyaannya.',
-  'Tindakan:',
-  '- product_types: pengguna ingin tahu jenis/tipe/varian dalam satu keluarga produk ("HDPE ada tipe apa", "kalau yang pvc?" setelah membahas jenis keluarga lain). Isi family.',
-  '- product_sizes: pengguna ingin tahu ukuran yang tersedia dalam satu keluarga atau jenis, termasuk ukuran terkecil/terbesar ("yang AW ukurannya apa aja", "paling kecil berapa"). Isi family, type bila disebut, extreme = smallest/largest bila ditanya terkecil/terbesar.',
-  '- product_overview: ragam produk Pralon secara umum ("produk pralon apa aja").',
-  '- product_question: spesifikasi atau konsep produk lain (beda bahan, cocok untuk apa, standar, tekanan, apa itu X).',
-  '- requirement: pengguna memberi atau mengubah data bangunannya (lantai, kamar mandi, dapur, sumber air, jenis instalasi).',
-  '- case_question: pengguna bertanya tentang perhitungan, solusi, data yang dipakai, apakah sesuatu (mis. luas) berpengaruh, siapa yang menghitung, atau langkah berikutnya untuk kasusnya.',
-  '- company: pertanyaan tentang perusahaan PT Pralon (profil, kantor, sejarah, sertifikasi).',
-  '- chat: sapaan, siapa SNOUTY, terima kasih, keluhan, atau topik di luar pipa.',
-  'family HARUS salah satu nama di DAFTAR KELUARGA (tulis persis), atau null. Bila pengguna merujuk keluarga dari percakapan sebelumnya ("yang itu", "kalau yang AW"), pakai keluarga itu.',
-  'Kembalikan JSON saja: {"action": "...", "family": "..."|null, "type": "..."|null, "extreme": "smallest"|"largest"|null}.',
+  // Ringkas dengan sengaja: setiap token prompt ±25 ms di CPU server, tanpa cache (2026-10-09).
+  'Pilih SATU tindakan untuk pesan terakhir pengguna aplikasi pipa Pralon. Jangan menjawabnya.',
+  'product_types: jenis/tipe dalam satu keluarga ("HDPE ada tipe apa", "kalau yang pvc?").',
+  'product_sizes: ukuran dalam keluarga/jenis; extreme=smallest/largest bila ditanya terkecil/terbesar.',
+  'product_overview: ragam produk Pralon umum. product_question: spesifikasi/konsep produk lain.',
+  'requirement: memberi/mengubah data bangunan. case_question: perhitungan, solusi, pengaruh suatu data, siapa yang menghitung, langkah berikutnya.',
+  'company: perusahaan PT Pralon. chat: sapaan, siapa SNOUTY, terima kasih, keluhan, di luar pipa.',
+  'family = nama persis dari DAFTAR KELUARGA atau null; rujukan ke percakapan sebelumnya memakai keluarga itu.',
+  'JSON: {"action":"...","family":...,"type":...,"extreme":...}',
 ].join('\n');
 
 export function buildPlannerMessage(input: {
@@ -102,6 +100,29 @@ export function parsePlan(raw: unknown, families: readonly string[]): TurnPlan |
     type: parsed.data.type ?? null,
     extreme: parsed.data.extreme ?? null,
   };
+}
+
+/**
+ * Intent yang maknanya utuh tanpa konteks percakapan — bila dikenali YAKIN dari contoh, perencana
+ * dilewati (±10 s di CPU server). Lanjutan ("kalau yang…", "paling kecil…") tidak termasuk.
+ */
+const STANDALONE: ReadonlySet<string> = new Set([
+  'company_question',
+  'price_question',
+  'competitor_question',
+  'requirement_building',
+  'requirement_irrigation',
+  'requirement_technical',
+  'product_range',
+]);
+export const CONFIDENT_SCORE = 0.85;
+
+export function isConfidentStandalone(u: MessageUnderstanding): boolean {
+  const intent = u.intent;
+  if (intent === null || intent.score < CONFIDENT_SCORE) return false;
+  if (STANDALONE.has(intent.label)) return true;
+  // Ubahan kebutuhan yang menyebut bendanya ("tambah satu kamar mandi") juga utuh.
+  return intent.label === 'requirement_mutation' && u.mentionsRequirement;
 }
 
 export class TurnPlanner {

@@ -1181,6 +1181,13 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       (dari 6). Susulan: keluarga yang disebut pesan mengalahkan pilihan model ("kalau yang pvc?" →
       semua keluarga PVC, bukan FITTING PVC); jumlah sesudah kata benda terbaca ("kamar mandi 2",
       "dapur: 1").
+- [x] P16-30 Model qwen3.5:9b + waktu tanggap (permintaan pemilik 2026-10-09) — semua tier ke 9b (satu
+      model generatif di RAM). Diukur: qwen3.5 di Ollama TIDAK memakai ulang cache prompt, bahkan untuk
+      awalan identik, dan prompt dievaluasi ±40 token/s (9b) — waktu tunggu didominasi panjang prompt,
+      bukan jawaban. Maka: perencana dilewati untuk intent utuh yang yakin (skor ≥ 0,85: perusahaan,
+      harga, pesaing, kebutuhan baru, ragam produk); riwayat ke model 4 giliran × ±250 karakter (dulu
+      6 giliran utuh, termasuk daftar produk 1.000+ karakter); prompt perencana diringkas; DATA kasus
+      hanya untuk pertanyaan kasus. Dua slot Ollama dicoba dan dikembalikan (tanpa manfaat). Tes +1.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

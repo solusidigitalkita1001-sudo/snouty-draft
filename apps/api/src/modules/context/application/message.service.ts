@@ -57,7 +57,7 @@ import {
 } from './message-pipeline.js';
 import { irrigationGuidance } from './irrigation-guidance.js';
 import { executePlan } from './plan-executor.js';
-import type { TurnPlanner } from './turn-planner.js';
+import { isConfidentStandalone, type TurnPlanner } from './turn-planner.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
 import {
   answerToUpdate,
@@ -206,6 +206,7 @@ export class MessageService {
     if (
       this.planner &&
       continuation === null &&
+      !isConfidentStandalone(u) &&
       (recentTurns.some((t) => t.role === 'assistant') || u.intent === null)
     ) {
       const families = (await this.catalogFamilies()).map((f) => f.family);

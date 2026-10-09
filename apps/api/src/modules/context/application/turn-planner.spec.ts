@@ -150,3 +150,21 @@ describe('executePlan', () => {
     ).toEqual({ kind: 'none' });
   });
 });
+
+describe('isConfidentStandalone — kapan perencana dilewati', () => {
+  it('intent utuh yang yakin dilewati; lanjutan, ragu, atau tanpa label tetap direncanakan', async () => {
+    const { understood } = await import('../../understanding/testing/understood.js');
+    const { isConfidentStandalone } = await import('./turn-planner.js');
+    const sure = (label: string, score = 0.95) => ({
+      ...understood('x'),
+      intent: { label: label as never, score },
+    });
+    expect(isConfidentStandalone(sure('company_question'))).toBe(true);
+    expect(isConfidentStandalone(sure('product_range'))).toBe(true);
+    expect(isConfidentStandalone(sure('requirement_building'))).toBe(true);
+    expect(isConfidentStandalone(sure('company_question', 0.7))).toBe(false);
+    expect(isConfidentStandalone(sure('follow_up_continue'))).toBe(false);
+    expect(isConfidentStandalone(sure('product_spec'))).toBe(false);
+    expect(isConfidentStandalone(understood('x', { intent: null }))).toBe(false);
+  });
+});

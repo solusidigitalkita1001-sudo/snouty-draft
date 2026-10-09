@@ -101,10 +101,13 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
     case 'case_question':
     case 'chat': {
       const state = withCompleteness(ctx.state);
-      const facts = [
-        en ? IDENTITY_EN : IDENTITY_ID,
-        caseFacts(state, ctx.locale, followUpCard(state, ctx.locale)),
-      ].join('\n');
+      // Obrolan cukup identitas SNOUTY; DATA kasus lengkap hanya untuk pertanyaan tentang kasusnya —
+      // setiap token prompt ±25 ms di CPU server (qwen3.5 tidak memakai ulang cache prompt).
+      const identity = en ? IDENTITY_EN : IDENTITY_ID;
+      const facts =
+        plan.action === 'chat'
+          ? identity
+          : [identity, caseFacts(state, ctx.locale, followUpCard(state, ctx.locale))].join('\n');
       const fallback =
         plan.action === 'case_question'
           ? en
