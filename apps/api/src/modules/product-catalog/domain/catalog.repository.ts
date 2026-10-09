@@ -89,6 +89,17 @@ export interface CatalogRepository {
 
   /** Nama seluruh produk aktif dalam satu keluarga — bahan ringkasan jenis ("HDPE-nya apa aja?"). */
   productNamesInFamily(catalogVersionId: string, family: string): Promise<readonly string[]>;
+
+  /**
+   * Jumlah SKU aktif per KATEGORI dalam satu keluarga — taksonomi resmi katalog ERP ("FITTING ·
+   * ELBOW 45°", "FITTING · TEE"). Untuk fitting, ini sumber jenis yang otoritatif, bukan nama produk.
+   */
+  categoryCounts(catalogVersionId: string, family: string): Promise<readonly CategoryCount[]>;
+}
+
+export interface CategoryCount {
+  readonly category: string;
+  readonly count: number;
 }
 
 export interface FamilyCount {

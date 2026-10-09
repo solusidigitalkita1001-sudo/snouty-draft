@@ -123,8 +123,8 @@ export async function rangeOverview(
   const pipes = groups.filter((g) => !FITTING.test(g.label));
   const fittings = groups.filter((g) => FITTING.test(g.label));
   const intro = en
-    ? `The active Pralon catalogue has ${products(total, locale)} in ${counts.length} families.`
-    : `Katalog Pralon yang aktif memuat ${products(total, locale)} dalam ${counts.length} keluarga.`;
+    ? `The active Pralon catalogue has ${products(total, locale)} in ${counts.length} families, counted per active SKU (every size and variant counts separately).`
+    : `Katalog Pralon yang aktif memuat ${products(total, locale)} dalam ${counts.length} keluarga, dihitung per SKU aktif (tiap ukuran dan varian dihitung sendiri).`;
 
   if (format === 'summary') {
     const pipeNames = pipes.map((g) => g.label);

@@ -18,6 +18,7 @@ import type {
 } from '@snouty/shared-types';
 import type {
   CatalogRepository,
+  CategoryCount,
   FamilyCount,
   ProductListPage,
   ProductListQuery,
@@ -62,5 +63,9 @@ export class FakeCatalogRepository implements CatalogRepository {
 
   async productNamesInFamily(): Promise<readonly string[]> {
     return unused('productNamesInFamily');
+  }
+
+  async categoryCounts(): Promise<readonly CategoryCount[]> {
+    return unused('categoryCounts');
   }
 }

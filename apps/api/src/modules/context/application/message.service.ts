@@ -38,7 +38,7 @@ import {
   isFormatFollowUp,
   productSubject,
 } from '../domain/subject.js';
-import { previousRange } from './product-range.js';
+import { familiesInMessage, previousRange } from './product-range.js';
 import { conversationTitle } from '../domain/conversation-title.js';
 import { socialKind, socialReply } from '../domain/social.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
@@ -367,7 +367,13 @@ export class MessageService {
       await this.rememberSubject(
         conversationId,
         state,
-        productSubject(productQueryOf(u, this.lexicon()), u, state.subject),
+        productSubject(
+          // Keluarga katalog yang disebut ("fitting hdpe") lebih tepat dari bahan saja ("hdpe"):
+          // lanjutan "kalau ukuran 110 mm?" harus tetap tentang fitting (audit 2026-10-09).
+          catalogEntity(text, await this.catalogFamilies()) ?? productQueryOf(u, this.lexicon()),
+          u,
+          state.subject,
+        ),
       );
       await this.conversations.appendAssistantMessage(
         conversationId,
@@ -796,6 +802,15 @@ function caseSubject(state: RequirementState): ConversationSubject {
         ? 'irrigation'
         : 'building';
   return { kind: 'case', entity, topic: 'requirement', depth: 'standard' };
+}
+
+/** Keluarga katalog yang disebut pesan, sebagai entitas subjek ("fitting hdpe"); `null` bila tidak ada. */
+function catalogEntity(text: string, families: readonly FamilyCount[]): string | null {
+  const named = familiesInMessage(
+    text,
+    families.map((f) => f.family),
+  );
+  return named.length > 0 ? named.join(' dan ').toLowerCase() : null;
 }
 
 function llmUnavailable(messageId: string): readonly AssistantStreamEvent[] {

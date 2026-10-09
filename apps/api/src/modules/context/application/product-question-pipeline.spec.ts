@@ -87,6 +87,12 @@ function summaryOf(items: readonly Product[]) {
     async productNamesInFamily(family: string) {
       return unique.filter((p) => p.family === family).map((p) => p.name);
     },
+    async categoryCounts(family: string) {
+      const counts = new Map<string, number>();
+      for (const p of unique.filter((x) => x.family === family))
+        counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
+      return [...counts.entries()].map(([category, count]) => ({ category, count }));
+    },
   };
 }
 const brokenCatalog = {
@@ -100,6 +106,9 @@ const brokenCatalog = {
     throw new CatalogUnavailableError();
   },
   async productNamesInFamily(): Promise<never> {
+    throw new CatalogUnavailableError();
+  },
+  async categoryCounts(): Promise<never> {
     throw new CatalogUnavailableError();
   },
 };
@@ -576,7 +585,9 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
       input('gw mau nanya produk pralon itu yang terkenal apa sih?', { intent: 'product_range' }),
     );
     const out = text(events);
-    expect(out).toContain('Katalog Pralon yang aktif memuat 6 produk dalam 4 keluarga.');
+    expect(out).toContain(
+      'Katalog Pralon yang aktif memuat 6 produk dalam 4 keluarga, dihitung per SKU aktif (tiap ukuran dan varian dihitung sendiri).',
+    );
     expect(out).toContain('- **PVC** — 2 produk: AW, D');
     expect(out).toContain('- **HDPE** — 3 produk');
     expect(out).toContain('Fitting:\n\n- **FITTING HDPE** — 1 produk');

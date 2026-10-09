@@ -29,6 +29,7 @@ import type { MessageUnderstanding } from '../../understanding/application/messa
 import type { EntityLexicon } from '../../understanding/domain/vocabulary.js';
 import { isConceptual } from '../../understanding/domain/labels.js';
 import { parseSize } from '../domain/size-parser.js';
+import { catalogScope, fittingAnswer, type FittingOutcome } from './catalog-scope.js';
 import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
 import {
   PipeSize,
@@ -69,7 +70,7 @@ const FAQ_MAX_LENGTH = 1800;
 
 export type ProductCatalog = Pick<
   CatalogQueryService,
-  'activeVersion' | 'listProducts' | 'familyCounts' | 'productNamesInFamily'
+  'activeVersion' | 'listProducts' | 'familyCounts' | 'productNamesInFamily' | 'categoryCounts'
 >;
 
 export interface ProductQuestionInput {
@@ -193,6 +194,25 @@ export async function runProductQuestion(
       { type: 'message.start', messageId: input.messageId },
       { type: 'token', text: productAnswerCopy(locale).priceNotShown },
       { type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } },
+      endEvent(input.messageId),
+    ];
+  }
+
+  // Lingkup FITTING (audit 2026-10-09): keluarga katalog yang disebut pesan (atau subjek, untuk
+  // lanjutan ukuran/jenis), dijawab dengan filter terstruktur — keluarga, kategori resmi, ukuran.
+  const fitting = await fittingTurn(catalog, input, locale);
+  if (fitting !== null) {
+    return [
+      { type: 'message.start', messageId: input.messageId },
+      { type: 'token', text: fitting.text },
+      ...(fitting.products.length > 0
+        ? [
+            {
+              type: 'card',
+              card: { kind: 'product', products: fitting.products.map(toCard) },
+            } as const,
+          ]
+        : []),
       endEvent(input.messageId),
     ];
   }
@@ -730,4 +750,41 @@ function toCard(product: Product): ProductCardDto {
     sourcePage: product.sourcePage,
     imageUrl: product.imageUrl,
   };
+}
+
+/**
+ * Giliran berlingkup fitting: hanya atas katalog Pralon resmi, dan hanya bila lingkupnya memuat
+ * keluarga FITTING. Subjek aktif dipakai sebagai lingkup bila pesan tidak menyebut keluarga apa
+ * pun tetapi menyebut ukuran atau jenis fitting ("kalau ukuran 110 mm?").
+ */
+async function fittingTurn(
+  catalog: ProductCatalog,
+  input: ProductQuestionInput,
+  locale: Locale,
+): Promise<FittingOutcome | null> {
+  const u = input.understanding;
+  let families: string[];
+  try {
+    if (!isAuthoritative(await catalog.activeVersion())) return null;
+    families = (await catalog.familyCounts()).map((f) => f.family);
+  } catch {
+    return null;
+  }
+  const size = parseSize(input.message);
+  const kinds = u.families.filter((f) => input.lexicon.isFittingFamily(f));
+  const subjectEntity =
+    input.subject?.kind === 'product' &&
+    (size !== null || kinds.length > 0) &&
+    u.families.every((f) => input.lexicon.isFittingFamily(f))
+      ? input.subject.entity
+      : null;
+  const scope = catalogScope(input.message, subjectEntity, families);
+  if (scope.length === 0) return null;
+  const kindTerms = kinds.flatMap((k) => [k, ...input.lexicon.aliasesOf(k)]);
+  return fittingAnswer(catalog, scope, {
+    message: input.message,
+    kindTerms: [...new Set(kindTerms)],
+    size,
+    locale,
+  });
 }

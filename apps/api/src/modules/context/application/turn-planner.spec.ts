@@ -228,4 +228,26 @@ describe('nama keluarga katalog di pesan (laporan pemilik 2026-10-09)', () => {
     );
     expect(textOf(out)).toContain('FITTING PVC di katalog Pralon ada 3 produk.');
   });
+
+  it('keluarga bukan fitting yang disebut tetap dirinci di sini', async () => {
+    const out = await executePlan(
+      { action: 'product_overview', family: null, type: null, extreme: null },
+      ctx({ message: 'pvc aw ada apa aja?' }),
+    );
+    expect(textOf(out)).toContain('PVC AW');
+  });
+
+  it('perbandingan fitting, atau fitting dengan jenis/ukuran → jalur fitting sadar-kategori', async () => {
+    const route = { kind: 'route', decision: { intent: 'PRODUCT_LOOKUP' } };
+    const run = (message: string, named: string[]) =>
+      executePlan(
+        { action: 'product_question', family: null, type: null, extreme: null },
+        ctx({ message, named }),
+      );
+    expect(await run('apa bedanya fitting pvc dan fitting hdpe?', ['pvc', 'hdpe'])).toMatchObject(
+      route,
+    );
+    expect(await run('cari fitting elbow pvc', ['elbow', 'pvc'])).toMatchObject(route);
+    expect(await run('fitting hdpe untuk pipa 110 mm', ['hdpe'])).toMatchObject(route);
+  });
 });

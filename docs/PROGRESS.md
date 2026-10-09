@@ -1211,6 +1211,14 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       `pnpm install`. Dockerfile disusun ulang: `deps` hanya manifest, `build-server` (api + worker) dan
       `build-web` terpisah, Chromium di image dasar sendiri. Diukur lokal setelah ubahan satu berkas API:
       web 2 s, worker 40 s, api 4 s.
+- [x] P16-35 Pencarian fitting sadar-kategori (2026-10-09, audit akurasi) — "apa bedanya fitting pvc dan
+      fitting hdpe?" dijawab perbandingan PIPA dengan contoh produk pipa: kosakata hanya membaca bahan, lalu
+      contoh diambil dengan pencarian teks bebas tanpa filter. Kini nama keluarga katalog di pesan (atau
+      subjek aktif untuk lanjutan "kalau ukuran 110 mm?") menjadi lingkup terstruktur: filter `family`,
+      jenis fitting → `categoryIncludes` pada kategori resmi, ukuran → tabel ukuran. Tidak ada hasil →
+      dikatakan, tidak diganti kategori lain. Perbandingan memisahkan "secara umum" (cara sambung bahan)
+      dari data katalog (jumlah SKU, jenis terbanyak). Ikhtisar katalog menyebut cara hitung (per SKU
+      aktif). Tes regresi `catalog-scope.spec.ts` (8 kasus) dan rute planner.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

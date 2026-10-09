@@ -20,6 +20,7 @@ import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { openerReply } from './reply-copy.js';
 import type { TurnPlan } from './turn-planner.js';
 import { withCompleteness } from '../domain/completeness.js';
+import { parseSize } from '../domain/size-parser.js';
 
 export interface PlanContext {
   readonly catalog: RangeCatalog;
@@ -93,6 +94,12 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
       ctx.message,
       counts.map((c) => c.family),
     );
+    // Perbandingan fitting, atau fitting dengan jenis/ukuran ("elbow pvc", "fitting hdpe 110 mm"),
+    // punya jalur sadar-kategori di pipeline produk (filter keluarga, kategori resmi, ukuran).
+    // Satu keluarga fitting tanpa rincian tetap dirinci di sini (jenis, seri, ukuran).
+    if (needsFittingFilter(exact, ctx)) {
+      return { kind: 'route', decision: decisionFor('PRODUCT_LOOKUP', false, false) };
+    }
     if (exact.length > 0) {
       const range = await familyRange(ctx.catalog, exact, ctx.locale, null, ctx.message);
       if (range !== null) return answered(ctx, range.text, exact.join(' dan '));
@@ -172,4 +179,13 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
           : decisionFor('REQUIREMENT_STATEMENT', true, false),
       };
   }
+}
+
+/** Lingkup fitting yang butuh filter katalog: ≥2 keluarga fitting, ukuran, atau istilah di luar nama keluarga. */
+function needsFittingFilter(exact: readonly string[], ctx: PlanContext): boolean {
+  const fittings = exact.filter((f) => /^FITTING\b/i.test(f));
+  if (fittings.length === 0) return false;
+  if (fittings.length >= 2 || parseSize(ctx.message) !== null) return true;
+  const words = new Set(exact.flatMap((f) => f.toLowerCase().split(/\s+/)));
+  return (ctx.named ?? []).some((n) => !words.has(n.toLowerCase()));
 }

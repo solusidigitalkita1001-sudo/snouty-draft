@@ -30,6 +30,7 @@ import { CATALOG_SPEC_KEY_LIST } from '../domain/catalog-spec-keys.js';
 import {
   CATALOG_REPOSITORY,
   type CatalogRepository,
+  type CategoryCount,
   type FamilyCount,
   type ProductListPage,
   type ProductListQuery,
@@ -169,6 +170,25 @@ export class MysqlCatalogRepository implements CatalogRepository {
       )
       .orderBy(asc(products.sku));
     return rows.map((row) => row.name);
+  }
+
+  async categoryCounts(
+    catalogVersionId: string,
+    family: string,
+  ): Promise<readonly CategoryCount[]> {
+    const rows = await this.database.db
+      .select({ category: products.category, count: count() })
+      .from(products)
+      .where(
+        and(
+          eq(products.catalogVersionId, catalogVersionId),
+          eq(products.family, family),
+          eq(products.status, 'active'),
+        ),
+      )
+      .groupBy(products.category)
+      .orderBy(desc(count()), asc(products.category));
+    return rows.map((row) => ({ category: row.category, count: Number(row.count) }));
   }
 
   async findProductById(catalogVersionId: string, productId: string): Promise<Product | null> {

@@ -63,6 +63,7 @@ const brokenCatalog = {
   listProducts: () => Promise.reject(new CatalogUnavailableError()),
   familyCounts: () => Promise.reject(new CatalogUnavailableError()),
   productNamesInFamily: () => Promise.reject(new CatalogUnavailableError()),
+  categoryCounts: () => Promise.reject(new CatalogUnavailableError()),
 };
 
 const extractDecision: RoutingDecision = {
@@ -174,6 +175,7 @@ describe('ruas produk — pemeta model, subjek, istilah katalog', () => {
         listProducts: () => Promise.resolve({ items: [], nextCursor: null }),
         familyCounts: () => Promise.resolve([]),
         productNamesInFamily: () => Promise.resolve([]),
+        categoryCounts: () => Promise.resolve([]),
       },
       {} as never,
       productInput('produk pralon apa aja?', { intent: 'product_range' }),
@@ -210,6 +212,7 @@ describe('ruas produk — pemeta model, subjek, istilah katalog', () => {
         listProducts: () => Promise.resolve({ items: [hdpe], nextCursor: null }),
         familyCounts: () => Promise.resolve([{ family: 'HDPE', count: 1 }]),
         productNamesInFamily: () => Promise.resolve([hdpe.name]),
+        categoryCounts: () => Promise.resolve([]),
       },
       {
         answer: () =>

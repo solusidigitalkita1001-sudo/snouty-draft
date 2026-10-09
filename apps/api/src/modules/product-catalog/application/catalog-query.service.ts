@@ -35,6 +35,7 @@ import {
 } from '../domain/catalog.errors.js';
 import type {
   CatalogRepository,
+  CategoryCount,
   FamilyCount,
   ProductListPage,
   ProductListQuery,
@@ -99,6 +100,12 @@ export class CatalogQueryService {
   async familyCounts(): Promise<readonly FamilyCount[]> {
     const version = await this.activeVersion();
     return this.repository.familyCounts(version.id);
+  }
+
+  /** Jumlah SKU aktif per kategori resmi dalam satu keluarga, versi aktif. */
+  async categoryCounts(family: string): Promise<readonly CategoryCount[]> {
+    const version = await this.activeVersion();
+    return this.repository.categoryCounts(version.id, family);
   }
 
   /** Nama produk aktif dalam satu keluarga di versi aktif. */
