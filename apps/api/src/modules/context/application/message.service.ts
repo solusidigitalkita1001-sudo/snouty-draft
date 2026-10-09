@@ -354,7 +354,9 @@ export class MessageService {
     // Judul ditulis model hanya bila diizinkan (`LLM_CHAT_REPLY`): di CPU setiap judul 17 s di
     // antrean model yang sama dengan giliran berikutnya (40 panggilan dalam 6 jam, 2026-10-07).
     // Tanpa itu, judul deterministik dari pesan pertama sudah terpasang sejak percakapan dibuat.
-    if (!this.ai || !loadEnv().LLM_CHAT_REPLY) return;
+    // Flag sendiri (2026-10-09): dengan balasan percakapan ditulis model, judul ikut antre di CPU
+    // yang sama dan menambah ±10 s ke giliran pertama.
+    if (!this.ai || !loadEnv().LLM_TITLES) return;
     const ai = this.ai;
     void (async () => {
       try {

@@ -168,8 +168,11 @@ export async function runUnderstanding(
       // Model merangkai balasan di atas DATA kasus (P16-28): yang sudah dicatat, status kasus, dan
       // cara SNOUTY menghitung — semuanya dari kode. Angka di luar DATA ditolak `ReplyWriter`, jadi
       // "kenapa 1 inci?" tidak bisa dijawab dengan alasan karangan. Model gagal/lambat → teks tetap.
+      // Salam pertama sudah pas sebagai teks tetap — tidak perlu menunggu model.
+      const firstGreeting =
+        label === 'greeting' && !(input.recentTurns ?? []).some((t) => t.role === 'assistant');
       const written =
-        reply && loadEnv().LLM_CHAT_REPLY
+        reply && loadEnv().LLM_CHAT_REPLY && !firstGreeting
           ? await reply.write({
               intent: input.decision.intent,
               userMessage: input.message,
@@ -399,7 +402,15 @@ export async function runUnderstanding(
   // tentang apa yang tercatat, lalu kartunya. Jalur irigasi/teknis/kebijakan sudah menulis
   // teksnya sendiri; bahan yang dinasihati di atas pun sudah.
   const policyCardShown = card?.kind === 'unsupported' || card?.kind === 'criteria';
-  if (card?.kind === 'unsupported' && materials.length === 0 && merged.useCase === undefined) {
+  // Kasus yang sudah diserahkan dan tidak berubah: kartu besar dan kalimatnya tidak diulang tiap
+  // pesan — pesannya dijawab di atas DATA kasus di bawah (laporan pemilik 2026-10-09).
+  const repeatedHandoff = card?.kind === 'unsupported' && !changed;
+  if (
+    card?.kind === 'unsupported' &&
+    !repeatedHandoff &&
+    materials.length === 0 &&
+    merged.useCase === undefined
+  ) {
     events.push({
       type: 'token',
       text:
@@ -435,7 +446,7 @@ export async function runUnderstanding(
         : { text: fallback };
     events.push({ type: 'token', text: written.text });
   }
-  if (card) events.push({ type: 'card', card });
+  if (card && !repeatedHandoff) events.push({ type: 'card', card });
 
   events.push(endEvent(input.messageId));
 

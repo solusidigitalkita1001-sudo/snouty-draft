@@ -152,6 +152,11 @@ const EnvSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
+  /** Judul percakapan ditulis model (nonaktif: judul deterministik dari pesan pertama). */
+  LLM_TITLES: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
   LLM_STRUCTURED_RETRY: z
     .enum(['true', 'false'])
     .default('false')

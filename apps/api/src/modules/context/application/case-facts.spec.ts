@@ -101,5 +101,7 @@ describe('balasan percakapan yang nyambung (P16-28)', () => {
       recentTurns: [...firstTurn],
     });
     expect(token(events)).not.toBe('');
+    // Kasus tidak berubah: kartu serah-terima yang sama tidak diulang (2026-10-09).
+    expect(events.some((e) => e.type === 'card')).toBe(false);
   });
 });
