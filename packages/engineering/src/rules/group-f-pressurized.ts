@@ -184,8 +184,8 @@ export const ENG_203: RuleVersion<MinorLossInput, MinorLossResult> = {
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Kerugian di fitting ±${output.minorLossM} m (${Math.round(input.fraction * 100)} % dari kerugian gesek).`,
-      en: `Fitting losses ±${output.minorLossM} m (${Math.round(input.fraction * 100)} % of the friction loss).`,
+      id: `Belokan, sambungan, dan katup menambah kehilangan tekanan sekitar ${output.minorLossM} m — diperkirakan ${Math.round(input.fraction * 100)} % dari kehilangan di pipa lurus, karena jumlah fittingnya belum diketahui.`,
+      en: `Bends, joints, and valves add about ${output.minorLossM} m of pressure loss — estimated at ${Math.round(input.fraction * 100)} % of the loss in the straight pipe, since the number of fittings is not known yet.`,
     }),
 };
 
