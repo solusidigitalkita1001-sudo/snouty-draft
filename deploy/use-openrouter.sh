@@ -51,8 +51,16 @@ if [ "${1:-}" = "--local" ]; then
   echo "✓ kembali ke model lokal"
 else
   MODEL="${1:-google/gemma-4-31b-it:free}"
-  read -r -s -p "Tempel OpenRouter API key (tidak ditampilkan), lalu Enter: " KEY_INPUT
-  echo
+  # Dari terminal: diminta tanpa ditampilkan. Dari pipa (PowerShell `Get-Clipboard | ssh …`):
+  # dibaca dari stdin — Ctrl+V ke input tersembunyi sering tidak sampai di terminal Windows.
+  if [ -t 0 ]; then
+    read -r -s -p "Tempel OpenRouter API key (tidak ditampilkan; di PowerShell pakai klik kanan), lalu Enter: " KEY_INPUT
+    echo
+  else
+    read -r KEY_INPUT || true
+  fi
+  # CR dari clipboard Windows dan spasi di tepi bukan bagian key.
+  KEY_INPUT="$(printf '%s' "$KEY_INPUT" | tr -d '\r' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
   [ -n "$KEY_INPUT" ] || { echo "✖ key kosong — tidak ada yang diubah"; exit 1; }
   # Cek key sebelum menulis apa pun ke konfigurasi produksi.
   # Header lewat stdin (-K -), bukan argumen: key tidak terlihat di daftar proses.
