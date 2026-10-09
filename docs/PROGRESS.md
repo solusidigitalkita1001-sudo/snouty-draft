@@ -1294,6 +1294,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       didahulukan dan maks. dua, perbandingan bahan hanya untuk pertanyaan bertekanan, topik baru "sambungan rumah"
       dan "aplikasi" (jenis produk HDPE dari katalog), fakta uPVC (lini produk), lingkup fitting dari jenis + bahan
       ("elbow 90 buat uPVC 3/4" → FITTING PVC).
+- [x] P16-48 Laporan bisa dibuat pengguna terdaftar (2026-10-09, "user belum bisa melihat hasil report") — tabel
+      `reports` produksi kosong: `REPORT_PDF` hanya untuk tier `advanced`, seluruh akun `registered`. Kini
+      `registered` + `advanced` (OQ-41); pesan untuk tamu mengajak masuk/daftar; kop laporan memakai nama versi
+      katalog (bukan ID) dan jenis instalasi sesuai kasus (gedung bertingkat, kolam, irigasi, air bersih rumah).
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

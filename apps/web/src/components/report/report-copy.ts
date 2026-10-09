@@ -35,7 +35,7 @@ export const REPORT_COPY = {
   },
   loading: 'Menyusun laporan…',
   notEntitled:
-    'Laporan PDF tersedia untuk akun lanjutan. Hubungi tim Pralon untuk meningkatkan akun Anda.',
+    'Laporan PDF tersedia untuk akun terdaftar. Masuk atau daftar dulu — konsultasi ini tetap tersimpan — lalu buat laporannya.',
   error: 'Laporan belum bisa dibuat. Coba lagi sebentar lagi.',
   pdf: {
     PENDING: 'PDF sedang disiapkan…',
@@ -75,7 +75,7 @@ export const REPORT_COPY_EN: CopyShape<typeof REPORT_COPY> = {
   },
   loading: 'Preparing the report…',
   notEntitled:
-    'PDF reports are available for upgraded accounts. Contact the Pralon team to upgrade your account.',
+    'PDF reports are available for registered accounts. Sign in or register first — this consultation is kept — then create the report.',
   error: 'The report could not be created. Please try again shortly.',
   pdf: {
     PENDING: 'Preparing the PDF…',

@@ -30,7 +30,7 @@ import type { EntityLexicon } from '../../understanding/domain/vocabulary.js';
 import { isConceptual } from '../../understanding/domain/labels.js';
 import { parseSize } from '../domain/size-parser.js';
 import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from './catalog-scope.js';
-import { knowledgeAnswer } from './knowledge-answer.js';
+import { knowledgeAnswer, mentionsPressure } from './knowledge-answer.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
 import {
@@ -844,9 +844,3 @@ async function fittingTurn(
     locale,
   });
 }
-
-/** Nilai tekanan dalam bar di pesan ("10 bar", "8-12 bar") — parser nilai, bukan pola pertanyaan. */
-function mentionsPressure(message: string): boolean {
-  return PRESSURE_VALUE.test(message);
-}
-const PRESSURE_VALUE = /\d+(?:[.,]\d+)?\s*(?:(?:-|–|sampai|s\/d)\s*\d+(?:[.,]\d+)?\s*)?bar\b/i;

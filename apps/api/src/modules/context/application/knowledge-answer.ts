@@ -160,3 +160,9 @@ async function catalogLines(
   }
   return lines.length > 1 ? lines : [];
 }
+
+/** Nilai tekanan dalam bar di pesan ("10 bar", "8-12 bar") — parser nilai, bukan pola pertanyaan. */
+export function mentionsPressure(message: string): boolean {
+  return PRESSURE_VALUE.test(message);
+}
+const PRESSURE_VALUE = /\d+(?:[.,]\d+)?\s*(?:(?:-|–|sampai|s\/d)\s*\d+(?:[.,]\d+)?\s*)?bar\b/i;

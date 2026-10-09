@@ -30,6 +30,7 @@ import type { ReplyTurn } from './reply-writer.js';
 import { CORE_REQUIREMENT_FIELDS } from '@snouty/shared-types';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
+import { mentionsPressure } from './knowledge-answer.js';
 
 /** Data inti kebutuhan yang tersurat di teks (parser nilai), tanpa model. */
 function coreFactsInText(message: string): number {
@@ -344,7 +345,9 @@ const CALCULATION_TOPICS: ReadonlySet<string> = new Set(['jumlah batang']);
 /** Pesan ini punya topik dengan fakta bersumber dan bukan pernyataan kebutuhan bangunan. */
 export function answersFromKnowledge(u: MessageUnderstanding): boolean {
   const facts = factTopics();
-  const topics = u.knowledgeTopics.filter((t) => facts.has(t));
+  // Bahan + nilai tekanan ("HDPE atau uPVC untuk 8-12 bar?"): pertanyaan kelas tekanan.
+  const pressure = mentionsPressure(u.text) && u.families.length > 0 ? ['tekanan kerja'] : [];
+  const topics = [...u.knowledgeTopics, ...pressure].filter((t) => facts.has(t));
   if (topics.length === 0) return false;
   const requirement = u.intent?.label.startsWith('requirement_') ?? false;
   return !requirement || topics.some((t) => CALCULATION_TOPICS.has(t));

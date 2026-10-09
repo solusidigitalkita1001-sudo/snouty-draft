@@ -47,11 +47,12 @@ describe('onboardingTag — diturunkan, bukan ditulis', () => {
   it('menandai kapabilitas registered sebagai AKUN', () => {
     expect(onboardingTag('CONVERSATION_HISTORY')).toBe('AKUN');
     expect(onboardingTag('SAVE_SOLUTION')).toBe('AKUN');
+    // Laporan PDF untuk pengguna terdaftar (arahan pemilik 2026-10-09).
+    expect(onboardingTag('REPORT_PDF')).toBe('AKUN');
   });
 
   it('menandai kapabilitas khusus advanced sebagai LANJUTAN', () => {
     expect(onboardingTag('MATERIAL_BOM')).toBe('LANJUTAN');
-    expect(onboardingTag('REPORT_PDF')).toBe('LANJUTAN');
   });
 
   it('konsisten dengan tabel untuk SEMUA kapabilitas — bukan hanya contoh', () => {
@@ -106,7 +107,8 @@ describe('isEntitled', () => {
   it('menjawab tiga pertanyaan yang akan ditanyakan guard', () => {
     expect(isEntitled('guest', 'PRODUCT_QA')).toBe(true);
     expect(isEntitled('guest', 'MATERIAL_BOM')).toBe(false);
-    expect(isEntitled('registered', 'REPORT_PDF')).toBe(false);
+    expect(isEntitled('guest', 'REPORT_PDF')).toBe(false);
+    expect(isEntitled('registered', 'REPORT_PDF')).toBe(true);
     expect(isEntitled('advanced', 'REPORT_PDF')).toBe(true);
   });
 });

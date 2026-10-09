@@ -84,12 +84,12 @@ describe('ReportController (publik)', () => {
       expect(service.created).toBe(0);
     });
 
-    it('pengguna terdaftar biasa juga ditolak — REPORT_PDF hanya tier lanjutan', async () => {
-      await expect(
-        controller().create(body, {
-          authUser: { id: 'U'.repeat(26), tier: 'registered', roles: [] },
-        } as never),
-      ).rejects.toMatchObject({ code: 'NOT_ENTITLED' });
+    it('pengguna terdaftar boleh membuat laporan (arahan pemilik 2026-10-09); tamu tetap ditolak', async () => {
+      service.created = 0;
+      await controller().create(body, {
+        authUser: { id: 'U'.repeat(26), tier: 'registered', roles: [] },
+      } as never);
+      expect(service.created).toBe(1);
     });
 
     it('unduhan mengalirkan berkas dari layanan dengan header PDF dan nama nomor laporan', async () => {

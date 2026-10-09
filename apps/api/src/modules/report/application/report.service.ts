@@ -12,8 +12,9 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { caseProfileLabel, isCaseId } from '@snouty/engineering';
 import { QUEUES } from '@snouty/jobs';
-import type { RequirementState } from '@snouty/shared-types';
+import type { Locale, RequirementState } from '@snouty/shared-types';
 import { loadEnv } from '../../../config/env.js';
 import { ulid } from '../../../shared/ulid.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
@@ -93,6 +94,10 @@ export class ReportService {
     private readonly conversations: ConversationService,
     private readonly snapshots: RequirementSnapshotStore,
     private readonly publisher: JobPublisher | null = null,
+    /** Nama versi katalog untuk kop laporan ("erp-2026-10-06"), bukan ID-nya. */
+    private readonly catalogLabel: (
+      catalogVersionId: string,
+    ) => Promise<string | null> = async () => null,
   ) {}
 
   /**
@@ -131,10 +136,12 @@ export class ReportService {
       state,
       identity: {
         ...identity,
-        // Laporan saat ini hanya untuk instalasi air bersih; labelnya ikut bahasa laporan.
-        installationType: requirementValueLabel('water.installationType', 'clean_water', locale),
+        // Jenis instalasi mengikuti kasusnya (gedung, kolam, irigasi, …), dalam bahasa laporan.
+        installationType: installationLabel(state, locale),
       },
-      catalogVersionLabel: recommendation.catalogVersionId,
+      catalogVersionLabel:
+        (await this.catalogLabel(recommendation.catalogVersionId).catch(() => null)) ??
+        recommendation.catalogVersionId,
       pricing: {
         enabled: env.PRICING_ENABLED,
         taxRatePercent: env.TAX_RATE_PERCENT,
@@ -226,4 +233,18 @@ export class ReportService {
     if (!report) throw new ReportNotFoundError();
     return report;
   }
+}
+
+/** Jenis instalasi untuk kop laporan: kasus teknis, irigasi, atau jenis instalasi bangunan. */
+function installationLabel(state: RequirementState, locale: Locale): string {
+  if (state.useCase?.kind === 'technical' && isCaseId(state.useCase.caseId)) {
+    return caseProfileLabel(state.useCase.caseId, locale);
+  }
+  if (state.useCase?.kind === 'irrigation')
+    return locale === 'en' ? 'Land irrigation' : 'Irigasi lahan';
+  return requirementValueLabel(
+    'water.installationType',
+    state.water.installationType.value ?? 'clean_water',
+    locale,
+  );
 }

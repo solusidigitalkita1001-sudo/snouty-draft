@@ -38,7 +38,9 @@ export const ENTITLEMENTS: Readonly<Record<Capability, readonly Tier[]>> = {
   CASE_ANALYSIS: ['advanced'],
   MATERIAL_BOM: ['advanced'],
   SCHEMATIC: ['advanced'],
-  REPORT_PDF: ['advanced'],
+  // Pengguna terdaftar boleh membuat laporan PDF (arahan pemilik 2026-10-09: "user saat ini belum bisa
+  // melihat hasil report-nya" — seluruh akun produksi bertier registered, tidak ada jalur ke advanced).
+  REPORT_PDF: ['registered', 'advanced'],
 };
 
 export function isEntitled(tier: Tier, capability: Capability): boolean {

@@ -136,7 +136,7 @@ describe('ReportModal', () => {
     fireEvent.change(screen.getByLabelText('Lokasi proyek'), { target: { value: 'Bandung' } });
     fireEvent.click(screen.getByRole('button', { name: 'Lanjutkan' }));
 
-    await screen.findByText(/Laporan PDF tersedia untuk akun lanjutan/);
+    await screen.findByText(/Laporan PDF tersedia untuk akun terdaftar/);
     expect(fetchReport).not.toHaveBeenCalled();
     expect(createReport).toHaveBeenCalledTimes(1);
   });

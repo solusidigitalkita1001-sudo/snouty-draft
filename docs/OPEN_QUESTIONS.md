@@ -632,6 +632,11 @@ onboarding.
 **Pertanyaannya:** apakah ketiadaan `REPORT_PDF` di layar itu disengaja (mis. karena laporan dianggap
 bagian dari "analisis studi kasus") atau kelalaian desain yang ingin diperbaiki?
 
+**Pembaruan 2026-10-09 (arahan pemilik "user saat ini belum bisa melihat hasil report-nya"):** REPORT_PDF
+kini untuk tier registered dan advanced — sebelumnya hanya advanced, padahal seluruh akun produksi bertier
+registered dan tidak ada jalur ke advanced, sehingga tabel reports produksi kosong. Tamu tetap diajak
+masuk/daftar.
+
 ### OQ-14 — (33h #1) Pricing shown in report vs. no price on product screens
 
 **Status:** open · **Blocks:** 8, 10

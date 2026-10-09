@@ -112,3 +112,19 @@ describe('answersFromKnowledge', () => {
     ).toBe(false);
   });
 });
+
+describe('nilai tekanan di pesan', () => {
+  it('bahan + "8-12 bar" dijawab dari pengetahuan tekanan kerja; tanpa bahan tidak', () => {
+    const msg = 'lebih baik pipa HDPE atau uPVC untuk tekanan 8-12 bar?';
+    expect(
+      answersFromKnowledge(
+        understood(msg, { intent: 'advice_request', families: ['hdpe', 'pvc'] }),
+      ),
+    ).toBe(true);
+    expect(
+      answersFromKnowledge(
+        understood('pompa saya 8 bar', { intent: 'advice_request', families: [] }),
+      ),
+    ).toBe(false);
+  });
+});

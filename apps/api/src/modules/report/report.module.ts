@@ -7,6 +7,11 @@
  * halaman ini, cetak".
  */
 import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
+import { ProductCatalogModule } from '../product-catalog/product-catalog.module.js';
+import {
+  CATALOG_REPOSITORY,
+  type CatalogRepository,
+} from '../product-catalog/domain/catalog.repository.js';
 import { loadEnv } from '../../config/env.js';
 import { ContextModule } from '../context/context.module.js';
 import { ConversationModule } from '../conversation/conversation.module.js';
@@ -49,6 +54,7 @@ const reportServiceProvider = {
     ConversationService,
     RequirementSnapshotStore,
     JobPublisher,
+    CATALOG_REPOSITORY,
   ],
   useFactory: (
     reports: ReportRepository,
@@ -56,11 +62,20 @@ const reportServiceProvider = {
     conversations: ConversationService,
     snapshots: RequirementSnapshotStore,
     publisher: JobPublisher,
-  ) => new ReportService(reports, recommendations, conversations, snapshots, publisher),
+    catalog: CatalogRepository,
+  ) =>
+    new ReportService(
+      reports,
+      recommendations,
+      conversations,
+      snapshots,
+      publisher,
+      async (id) => (await catalog.findVersionById(id))?.label ?? null,
+    ),
 };
 
 @Module({
-  imports: [ContextModule, ConversationModule, RecommendationModule],
+  imports: [ContextModule, ConversationModule, RecommendationModule, ProductCatalogModule],
   controllers: [ReportController, InternalReportController],
   providers: [
     jobPublisherProvider,
