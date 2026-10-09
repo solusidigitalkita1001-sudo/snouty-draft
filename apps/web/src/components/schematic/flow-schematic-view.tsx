@@ -15,7 +15,7 @@ import { mandatoryNotes, schematicCopy } from './schematic-copy';
 import { useLocale } from '../locale';
 import styles from './schematic.module.css';
 
-const NODE_WIDTH = 260;
+const NODE_WIDTH = 330;
 const NODE_HEIGHT = 54;
 const LINK_HEIGHT = 56;
 const LEAF_WIDTH = 96;
@@ -88,7 +88,7 @@ export function FlowSchematicView({ schematic }: { schematic: FlowSchematic }) {
 
           {leaves && (
             <g>
-              <text x={left} y={lastBottom + 24} className={styles.flowLeavesTitle}>
+              <text x={centerX + 12} y={lastBottom + 24} className={styles.flowLeavesTitle}>
                 {leaves.title}
               </text>
               <line
