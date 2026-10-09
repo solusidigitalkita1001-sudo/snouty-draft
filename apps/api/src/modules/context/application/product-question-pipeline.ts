@@ -257,8 +257,11 @@ export async function runProductQuestion(
   // Ketersediaan ukuran butuh ukurannya (parser nilai terstruktur); tanpa angka → daftar ukuran.
   const size =
     askedAspect === 'size_availability' ? (parsed?.size ?? parseSize(input.message)) : null;
+  // Pertanyaan RAGAM ("HDPE jenisnya apa aja?") tidak pernah menjadi pertanyaan spesifikasi:
+  // "jenis" sempat terbaca aspek ukuran dan dijawab ukuran satu produk (live 2026-10-09).
+  const asksRange = u.intent?.label === 'product_range';
   const aspect =
-    continued !== null || conceptual
+    continued !== null || conceptual || asksRange
       ? null
       : askedAspect === 'size_availability' && size === null
         ? 'sizes'

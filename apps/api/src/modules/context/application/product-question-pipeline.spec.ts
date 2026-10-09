@@ -586,7 +586,11 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
       ai({ productQuery: 'hdpe', aspect: null }),
       full,
       noQuestions,
-      input('HDPE di pralon jenis nya apa aja ?', { intent: 'product_range' }),
+      // Aspek "ukuran" ikut terbaca dari kata "jenis" (produksi 2026-10-09) — ragam tetap menang.
+      input('HDPE di pralon jenis nya apa aja ?', {
+        intent: 'product_range',
+        productAspect: 'sizes',
+      }),
     );
     const typesText = text(types);
     expect(typesText).toContain('keluarga HDPE ada 3 produk, terbagi dalam jenis berikut:');
