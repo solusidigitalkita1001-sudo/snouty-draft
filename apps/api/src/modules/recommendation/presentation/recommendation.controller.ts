@@ -40,7 +40,7 @@ export class RecommendationController {
     private readonly snapshots: RequirementSnapshotStore,
     private readonly analysis: AnalysisService,
     @Inject(RECOMMENDATION_REPOSITORY) private readonly repository: RecommendationRepository,
-    @Optional() private readonly log: LoggerService | null = null,
+    @Optional() private readonly log?: LoggerService,
   ) {}
 
   @Post('conversations/:id/analyze')
