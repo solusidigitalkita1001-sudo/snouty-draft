@@ -1206,6 +1206,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       mengalahkan kosakata (`familiesInMessage`); satu keluarga fitting dijawab rinciannya — jumlah
       jenis, rentang ukuran, seri menurut penanda di nama produk, jenis terbanyak. Keluhan menjawab
       ulang pertanyaan terakhir lewat perencana bila hasilnya berbeda dari yang dikeluhkan. Tes +1.
+- [x] P16-34 Rilis lebih cepat (2026-10-09) — setiap rilis ±10 menit karena tahap worker dibangun di
+      atas tahap build (Chromium diunduh ulang setiap ubahan kode) dan seluruh kode disalin sebelum
+      `pnpm install`. Dockerfile disusun ulang: `deps` hanya manifest, `build-server` (api + worker) dan
+      `build-web` terpisah, Chromium di image dasar sendiri. Diukur lokal setelah ubahan satu berkas API:
+      web 2 s, worker 40 s, api 4 s.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
