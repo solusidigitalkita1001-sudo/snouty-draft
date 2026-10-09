@@ -40,7 +40,7 @@ import {
 } from '../domain/subject.js';
 import { previousRange } from './product-range.js';
 import { conversationTitle } from '../domain/conversation-title.js';
-import { socialReply } from '../domain/social.js';
+import { socialKind, socialReply } from '../domain/social.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import { productFaqSystemPrompt } from '../../ai/application/prompts.js';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
@@ -186,6 +186,17 @@ export class MessageService {
 
     // Pesan sosial ("ok makasih", "sip", "bye"): balasan tetap, nol model, nol state.
     const social = socialReply(u, locale);
+    // Keluhan ("jawab ulang", "dongo"): pertanyaan sebelumnya direncanakan ulang dengan konteks
+    // keluhannya — dulu permintaan maaf yang sama diulang (laporan pemilik 2026-10-09). Hanya bila
+    // jawabannya BERBEDA dari yang dikeluhkan; selain itu tetap minta diperjelas.
+    if (social !== null && u.intent?.label === 'complaint' && this.planner) {
+      const again = await this.reanswer(conversationId, actor, state, messageId, locale);
+      if (again !== null) {
+        for (const event of again.slice(1)) emit?.(event);
+        await this.conversations.appendAssistantMessage(conversationId, textOf(again), [], null);
+        return again;
+      }
+    }
     if (social !== null) {
       const events: AssistantStreamEvent[] = [
         { type: 'message.start', messageId },
@@ -467,6 +478,65 @@ export class MessageService {
    * setahun). Katalog tak terbaca → daftar kosong; perencana tetap bisa memilih tindakan non-katalog.
    */
   private familiesCache: { at: number; value: readonly FamilyCount[] } | null = null;
+
+  /**
+   * Jawab ulang pertanyaan terakhir yang bukan keluhan, lewat perencana. `null` bila tidak ada
+   * pertanyaan, rencananya tidak menghasilkan jawaban kode/model, atau jawabannya sama persis
+   * dengan yang dikeluhkan — mengulang jawaban yang salah lebih buruk daripada bertanya.
+   */
+  private async reanswer(
+    conversationId: string,
+    actor: ConversationOwner,
+    state: RequirementState,
+    messageId: string,
+    locale: Locale,
+  ): Promise<readonly AssistantStreamEvent[] | null> {
+    if (!this.planner) return null;
+    const turns = await this.recentTurns(conversationId, actor);
+    const lastAnswer = [...turns].reverse().find((t) => t.role === 'assistant')?.text ?? '';
+    let question: string | null = null;
+    for (const turn of [...turns].reverse()) {
+      if (turn.role !== 'user') continue;
+      const understood = await this.understand(turn.text);
+      if (socialKind(understood) === null) {
+        question = turn.text;
+        break;
+      }
+    }
+    if (question === null) return null;
+    const u = await this.understand(question);
+    const families = (await this.catalogFamilies()).map((f) => f.family);
+    const plan = await this.planner.plan({
+      message: question,
+      recentTurns: turns,
+      families,
+      subject: state.subject?.kind === 'product' ? state.subject.entity : null,
+      locale,
+    });
+    if (plan === null) return null;
+    const outcome = await executePlan(plan, {
+      catalog: this.catalog,
+      reply: this.reply,
+      messageId,
+      message: question,
+      recentTurns: turns,
+      state,
+      locale,
+      hasExisting: (state.completeness?.filled ?? 0) > 0,
+      named: u.families,
+      previousText: '',
+      asksAspect: u.productAspect !== null,
+    });
+    if (outcome.kind !== 'answered') return null;
+    const text = textOf(outcome.events);
+    if (text.trim() === lastAnswer.trim()) return null;
+    const lead = locale === 'en' ? 'Sorry, let me answer that again.' : 'Maaf, saya jawab ulang.';
+    return [
+      { type: 'message.start', messageId },
+      { type: 'token', text: `${lead}\n\n${text}` },
+      endEvent(messageId),
+    ];
+  }
 
   private async catalogFamilies(): Promise<readonly FamilyCount[]> {
     const now = Date.now();

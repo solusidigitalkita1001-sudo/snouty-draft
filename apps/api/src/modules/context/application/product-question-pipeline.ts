@@ -239,7 +239,7 @@ export async function runProductQuestion(
     // jenis, menyebut keluarga lain berarti meminta jenisnya; perbandingan tetap jalurnya sendiri.
     u.intent?.label !== 'product_comparison'
   ) {
-    const range = await familyRange(catalog, u.families, locale);
+    const range = await familyRange(catalog, u.families, locale, null, input.message);
     if (range !== null) {
       return [
         { type: 'message.start', messageId: input.messageId },
@@ -377,7 +377,7 @@ async function answerConcept(
   // "HDPE di Pralon jenisnya apa aja?" — jenis dalam keluarga itu, dari katalog. Tanpa katalog
   // Pralon (atau keluarganya tidak ada di katalog): jalur penjelasan bahan di bawah.
   if (asksRange) {
-    const range = await familyRange(catalog, u.families, locale);
+    const range = await familyRange(catalog, u.families, locale, null, input.message);
     if (range !== null) return range;
   }
 

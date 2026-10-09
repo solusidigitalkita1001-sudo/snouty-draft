@@ -83,7 +83,7 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
       const named = ctx.named ?? [];
       const mentioned = named.length > 0 ? named : plan.family !== null ? [plan.family] : [];
       if (mentioned.length === 0) return { kind: 'none' };
-      const range = await familyRange(ctx.catalog, mentioned, ctx.locale);
+      const range = await familyRange(ctx.catalog, mentioned, ctx.locale, null, ctx.message);
       return range === null
         ? { kind: 'none' }
         : answered(ctx, range.text, named.length > 0 ? named.join(' dan ') : plan.family);
@@ -137,7 +137,7 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
       // model memilih product_question, lalu dijawab penjelasan bahan PVC).
       const named = ctx.named ?? [];
       if (named.length > 0 && !ctx.asksAspect && previousRange(ctx.previousText ?? '') !== null) {
-        const range = await familyRange(ctx.catalog, named, ctx.locale);
+        const range = await familyRange(ctx.catalog, named, ctx.locale, null, ctx.message);
         if (range !== null) return answered(ctx, range.text, named.join(' dan '));
       }
       return { kind: 'route', decision: decisionFor('PRODUCT_LOOKUP', false, false) };

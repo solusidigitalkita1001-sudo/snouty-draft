@@ -179,13 +179,28 @@ export async function familyRange(
   mentioned: readonly string[],
   locale: Locale = DEFAULT_LOCALE,
   format: RangeFormat = null,
+  /** Pesan pengguna: nama keluarga katalog yang tersurat ("fitting pvc") mengalahkan kosakata. */
+  message?: string,
 ): Promise<RangeOutcome | null> {
   const COPY = productAnswerCopy(locale);
   const en = locale === 'en';
   const counts = await countsFrom(catalog);
   if (counts === null) return null;
-  const families = matchingFamilies(counts, mentioned);
+  const exact = message
+    ? familiesInMessage(
+        message,
+        counts.map((c) => c.family),
+      )
+    : [];
+  const families =
+    exact.length > 0
+      ? counts.filter((c) => exact.includes(c.family))
+      : matchingFamilies(counts, mentioned);
   if (families.length === 0) return null;
+  // Satu keluarga FITTING saja ("fitting pvc kok banyak?"): rinciannya, bukan satu baris.
+  if (families.length === 1 && FITTING.test(families[0]!.family) && format === null) {
+    return fittingBreakdown(catalog, families[0]!.family, families[0]!.count, locale);
+  }
 
   const pipes = families.filter((f) => !FITTING.test(f.family));
   const fittings = families.filter((f) => FITTING.test(f.family));
@@ -558,4 +573,72 @@ export async function overviewChoice(
         : `Siap. Mau saya jelaskan yang mana: ${options}? Atau ceritakan bangunannya — jumlah lantai, kamar mandi, dan sumber airnya — supaya saya pilihkan.`,
     cards: [],
   };
+}
+
+/**
+ * Keluarga katalog yang DISEBUT pesan, dicocokkan ke nama keluarga katalog (data): semua kata nama
+ * keluarga ada di pesan. "fitting pvc kok banyak?" → FITTING PVC — kosakata hanya mengenali "pvc"
+ * (laporan pemilik 2026-10-09). Yang paling spesifik (kata terbanyak) menang.
+ */
+export function familiesInMessage(message: string, families: readonly string[]): string[] {
+  const said = new Set(
+    message
+      .toUpperCase()
+      .split(/[^A-Z0-9.-]+/)
+      .filter(Boolean),
+  );
+  const hits = families.filter((f) => f.split(/\s+/).every((w) => said.has(w.toUpperCase())));
+  const best = Math.max(0, ...hits.map((f) => f.split(/\s+/).length));
+  return best < 2 ? [] : hits.filter((f) => f.split(/\s+/).length === best);
+}
+
+/** Penanda seri di akhir nama jenis fitting ("Red Socket - W", "TY - D"). */
+const SERIES = /\s-\s([A-Z]{1,2})$/;
+
+/**
+ * Rincian satu keluarga FITTING: kenapa jumlahnya ribuan (banyak jenis × ukuran × seri), seri
+ * menurut penanda di nama produk, dan jenis terbanyak. Angka hitungan katalog; arti huruf seri
+ * tidak ditafsirkan.
+ */
+export async function fittingBreakdown(
+  catalog: RangeCatalog,
+  family: string,
+  total: number,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<RangeOutcome> {
+  const COPY = productAnswerCopy(locale);
+  const en = locale === 'en';
+  const names = await catalog.productNamesInFamily(family);
+  const types = productTypesOf(names);
+  const sizes = [...sizesByType(names).values()].flat().sort((a, b) => a.mm - b.mm);
+  const series = new Map<string, number>();
+  for (const t of types) {
+    const s = t.type.match(SERIES)?.[1] ?? (en ? 'no series mark' : 'tanpa penanda seri');
+    series.set(s, (series.get(s) ?? 0) + t.count);
+  }
+  const seriesLine = [...series.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([s, n]) => `${s} (${products(n, locale)})`);
+  const span =
+    sizes.length > 0
+      ? en
+        ? `, from ${sizes[0]!.label} to ${sizes.at(-1)!.label}`
+        : `, dari ${sizes[0]!.label} sampai ${sizes.at(-1)!.label}`
+      : '';
+  const lines = [
+    en
+      ? `${family} in the Pralon catalogue has ${products(total, locale)}. There are so many because each of ${number(types.length, locale)} fitting types comes in many sizes${span}, and in more than one series.`
+      : `${family} di katalog Pralon ada ${products(total, locale)}. Banyak karena ada ${number(types.length, locale)} jenis fitting, dan tiap jenis dibuat dalam banyak ukuran${span} serta lebih dari satu seri.`,
+    '',
+    en
+      ? `By the series mark in the product names: ${joinNatural(seriesLine, locale)}.`
+      : `Menurut penanda seri di nama produknya: ${joinNatural(seriesLine, locale)}.`,
+    '',
+    en ? 'Most common types:' : 'Jenis terbanyak:',
+    '',
+    ...types.slice(0, MAX_TYPES).map((t) => `- **${t.type}** — ${products(t.count, locale)}`),
+    '',
+    COPY.familyNext,
+  ];
+  return { text: lines.join(NL), cards: [] };
 }

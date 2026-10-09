@@ -7,7 +7,7 @@ import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import { executePlan, type PlanContext } from './plan-executor.js';
 import { buildPlannerMessage, parsePlan, resolveFamily, TurnPlanner } from './turn-planner.js';
 
-const FAMILIES = ['HDPE', 'PVC AW', 'PVC D', 'FITTING HDPE'];
+const FAMILIES = ['HDPE', 'PVC AW', 'PVC D', 'FITTING HDPE', 'FITTING PVC'];
 const NAMES: Record<string, string[]> = {
   HDPE: ['Pipa HDPE PE 100 PN-8 160 mm x 9 Meter', 'Pipa HDPE PE 100 PN-16 63 mm x 6 Meter'],
   'PVC AW': [
@@ -17,6 +17,11 @@ const NAMES: Record<string, string[]> = {
   ],
   'PVC D': ['Pipa (TS End) Abu D 4" x 4 Meter'],
   'FITTING HDPE': ['Tee (Segmented) PE 315 x 160 mm'],
+  'FITTING PVC': [
+    'Red Socket - W 90 x 32 mm',
+    'Red Socket - W 63 x 20 mm',
+    'Red Socket - D 160 x 110 mm Coklat',
+  ],
 };
 const catalog = {
   activeVersion: async () => ({ kind: 'pralon' }) as never,
@@ -137,6 +142,24 @@ describe('executePlan', () => {
         ctx({ named: ['pvc'], previousText: 'Halo!' }),
       ),
     ).toMatchObject({ kind: 'route' });
+  });
+
+  it('"fitting pvc kok banyak, dibagi berapa kelas?" → rincian FITTING PVC (seri, jenis), bukan keluarga PVC', async () => {
+    const out = await executePlan(
+      { action: 'product_types', family: null, type: null, extreme: null },
+      ctx({
+        named: ['pvc'],
+        message: 'gw nanya produk fitting pvc kok banyak banget ? dibagi menjadi brp kelas ?',
+      }),
+    );
+    const text = textOf(out);
+    expect(text).toContain(
+      'FITTING PVC di katalog Pralon ada 3 produk. Banyak karena ada 2 jenis fitting',
+    );
+    expect(text).toContain(
+      'Menurut penanda seri di nama produknya: W (2 produk) dan D (1 produk).',
+    );
+    expect(text).not.toContain('PVC AW');
   });
 
   it('pertanyaan kasus tanpa model → dasar perhitungan (luas tidak menentukan ukuran)', async () => {

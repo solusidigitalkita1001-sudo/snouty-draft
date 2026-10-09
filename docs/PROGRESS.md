@@ -1200,6 +1200,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       lantai", "Bangunan 2 lantai", "Produk HDPE", "PVC vs HDPE", "Tentang PT Pralon", label kasus teknis;
       dihitung ulang setelah setiap giliran, judul kalimat pertama hanya sementara. Percakapan lama
       diperbarui sekali dari snapshot terakhir (pasangan judul lama→baru dicatat). Tes +4.
+- [x] P16-33 Fitting dan "jawab ulang" (laporan pemilik 2026-10-09: "fitting pvc kok sampe ada 4109,
+      dibagi berapa kelas?" dijawab penjelasan bahan PVC; "jawab ulang" dibalas permintaan maaf yang
+      sama) — selesai. Nama keluarga katalog yang tersurat di pesan ("fitting pvc" → FITTING PVC)
+      mengalahkan kosakata (`familiesInMessage`); satu keluarga fitting dijawab rinciannya — jumlah
+      jenis, rentang ukuran, seri menurut penanda di nama produk, jenis terbanyak. Keluhan menjawab
+      ulang pertanyaan terakhir lewat perencana bila hasilnya berbeda dari yang dikeluhkan. Tes +1.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
