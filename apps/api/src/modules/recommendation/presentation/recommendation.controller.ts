@@ -102,19 +102,17 @@ export class RecommendationController {
     const recommendation = await this.repository.findById(id);
     if (!recommendation) return { error: { code: 'NOT_FOUND' } };
 
-    await this.conversations.find(recommendation.conversationId, actorOf(req));
+    const conversation = await this.conversations.find(recommendation.conversationId, actorOf(req));
 
     const snapshot = await this.snapshots.current(recommendation.conversationId);
     if (!snapshot) return { error: { code: 'NOT_FOUND' } };
-    // Skema irigasi/kasus teknis belum didesain (OQ-47): jujur "tidak ada", bukan gambar riser bangunan.
-    if (recommendation.kind !== undefined && recommendation.kind !== 'building') {
-      return { error: { code: 'NOT_FOUND' } };
-    }
 
+    // Kasus teknis dan irigasi → skema aliran (rel vertikal); bangunan → skema lantai per lantai.
     return this.analysis.schematicForRecommendation(
       snapshot.state,
       recommendation.catalogVersionId,
       recommendation.createdAt,
+      conversation.language,
     );
   }
 

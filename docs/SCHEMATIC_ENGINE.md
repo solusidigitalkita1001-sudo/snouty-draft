@@ -212,6 +212,25 @@ membawa maknanya.
 
 ---
 
+## 9a. Skema aliran kasus teknis (P16-39, 2026-10-09)
+
+Permintaan pemilik: "ai ini bisa generate skemanya" untuk semua kasus, bukan hanya rumah. Kasus
+teknis dan irigasi memakai `FlowSchematic` (`packages/engineering/src/schematic-flow.ts`): deret
+simpul (sumber, pompa, tangki, pipa, kolam, zona, lahan, pembuangan) yang dihubungkan jalur berlabel
+ukuran · keluarga, plus deret titik ujung opsional (sambungan rumah, titik air per lantai). Builder
+per kasus — `pondSchematic`, `pressurizedSchematic` (transfer/sumur), `networkSchematic`,
+`irrigationSchematic`, `gravitySchematic` (drainase/air hujan/gorong-gorong),
+`buildingWaterSchematic` — membentuknya dari HASIL HITUNGAN kasus itu, jadi tidak ada gambar per
+skenario. Endpoint membentuk ulang dari snapshot dengan pemeta masukan yang sama dengan runner
+(`apps/api/.../domain/flow-schematic.ts`).
+
+Renderer `FlowSchematicView` menggambar rel vertikal desain layar 09: kotak sumber bergaris tinta
+2px, jalur merah 4/3/2 px dengan label ukuran merah, simpul pipa yang dihitung menonjol (latar
+`--snouty-action-soft-bg`, garis merah), kotak zona 1,5px, titik ujung seperti kotak fixture.
+`SchematicView` tetap satu prop dan memilih renderer dari `kind`. Invarian S-1 berlaku sama.
+Belum ada desain Claude Design khusus untuk skema aliran — bentuknya mengikuti rel kanan papan
+desain; bila desain khusus datang, renderer ini yang diganti, bukan topologinya.
+
 ## 10. Status implementasi (Fase 9)
 
 | Bagian                                | Berkas                                                 |

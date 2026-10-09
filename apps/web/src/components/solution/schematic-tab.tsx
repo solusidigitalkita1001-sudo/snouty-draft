@@ -5,7 +5,7 @@
  * menautkannya. Gambarnya renderer yang sama dengan halaman /schematic (`SchematicView`),
  * dibentuk ulang deterministik dari rekomendasi; halaman penuh tetap tersedia lewat tautan.
  */
-import type { Schematic } from '@snouty/shared-types';
+import type { AnySchematic } from '@snouty/shared-types';
 import { useEffect, useState } from 'react';
 import { SchematicSidePanel, SchematicView } from '../schematic/schematic-view';
 import { solutionCopy } from './solution-copy';
@@ -27,7 +27,7 @@ export function SchematicTab({
   readonly available?: boolean;
 }) {
   const COPY = useSolutionCopy();
-  const [schematic, setSchematic] = useState<Schematic | null>(null);
+  const [schematic, setSchematic] = useState<AnySchematic | null>(null);
   const [failed, setFailed] = useState(!available);
 
   useEffect(() => {
@@ -43,7 +43,10 @@ export function SchematicTab({
     })
       .then(async (response) => {
         if (!response.ok) throw new Error(String(response.status));
-        return (await response.json()) as Schematic;
+        const body = (await response.json()) as AnySchematic | { error: unknown };
+        // Endpoint menjawab NOT_FOUND sebagai badan 200 — bukan skema.
+        if ('error' in body) throw new Error('NOT_FOUND');
+        return body;
       })
       .then((result) => {
         if (!cancelled) setSchematic(result);

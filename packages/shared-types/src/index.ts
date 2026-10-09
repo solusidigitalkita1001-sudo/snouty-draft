@@ -93,7 +93,15 @@ export type {
   SystemLine,
   SystemRole,
 } from './recommendation.js';
+export { isFlowSchematic } from './schematic.js';
 export type {
+  AnySchematic,
+  FlowLeaves,
+  FlowLink,
+  FlowLinkRole,
+  FlowNode,
+  FlowNodeType,
+  FlowSchematic,
   Schematic,
   SchematicFloor,
   SchematicNode,

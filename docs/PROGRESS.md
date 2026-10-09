@@ -1240,6 +1240,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       kartu pertanyaan berpilihan tampil di samping Susun rekomendasi (juga setelah jawaban kartu,
       `cards` di respons jawaban), kalimat pengantar menunjuk kartunya, dan seruan pembuka model
       ("Benar sekali!") dibuang bila balasan berdasar DATA.
+- [x] P16-39 Skema untuk semua kasus (2026-10-09, permintaan pemilik "ai ini bisa generate skemanya")
+      — sebelumnya hanya rumah yang punya skema; kasus teknis dan irigasi menampilkan "Skema belum
+      tersedia". Kini kolam, transfer pompa, sumur, cluster, irigasi, drainase, air hujan,
+      gorong-gorong, dan gedung bertingkat punya skema aliran yang dibentuk dari hasil hitungannya
+      (docs/SCHEMATIC_ENGINE.md §9a), tampil di tab Skema dan halaman /schematic.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

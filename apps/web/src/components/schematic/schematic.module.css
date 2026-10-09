@@ -292,3 +292,60 @@
     height: auto;
   }
 }
+
+/* ── Skema aliran (kasus teknis) — rel vertikal layar 09: kotak sumber bergaris tinta 2px,
+   simpul pipa yang dihitung menonjol (latar merah muda, garis merah), label ukuran merah. ── */
+
+.flowNode {
+  fill: var(--snouty-surface);
+  stroke: var(--snouty-ink);
+  stroke-width: 1.5;
+}
+
+.flowNodeSource {
+  fill: var(--snouty-surface);
+  stroke: var(--snouty-ink);
+  stroke-width: 2;
+}
+
+.flowNodeHighlight {
+  fill: var(--snouty-action-soft-bg);
+  stroke: var(--snouty-pipe-main);
+  stroke-width: 1.5;
+}
+
+.flowTitle {
+  font-family: var(--snouty-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  fill: var(--snouty-ink);
+}
+
+.flowTitleHighlight {
+  font-family: var(--snouty-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  fill: var(--snouty-action-text);
+}
+
+.flowDetail {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  fill: var(--snouty-muted);
+}
+
+.flowLinkLabel {
+  font-family: var(--snouty-font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  fill: var(--snouty-action-text);
+}
+
+.flowLeavesTitle {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  fill: var(--snouty-muted);
+}

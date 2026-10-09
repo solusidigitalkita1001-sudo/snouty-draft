@@ -15,7 +15,13 @@
  * menyembunyikannya. Lihat `schematic-view.spec.tsx`.
  */
 
-import type { Schematic, SchematicNode } from '@snouty/shared-types';
+import {
+  isFlowSchematic,
+  type AnySchematic,
+  type Schematic,
+  type SchematicNode,
+} from '@snouty/shared-types';
+import { FlowSchematicView, FlowSidePanel } from './flow-schematic-view';
 import { mandatoryNotes, schematicCopy } from './schematic-copy';
 import { useLocale } from '../locale';
 import styles from './schematic.module.css';
@@ -36,7 +42,13 @@ const PADDING = 18;
 const GROUND_BAND = 34;
 const MIN_WIDTH = 500;
 
-export function SchematicView({ schematic }: { schematic: Schematic }) {
+/** Satu prop: skema bangunan (lantai per lantai) atau skema aliran kasus teknis. */
+export function SchematicView({ schematic }: { schematic: AnySchematic }) {
+  if (isFlowSchematic(schematic)) return <FlowSchematicView schematic={schematic} />;
+  return <BuildingSchematicView schematic={schematic} />;
+}
+
+function BuildingSchematicView({ schematic }: { schematic: Schematic }) {
   const COPY = useSchematicCopy();
   const NOTES = mandatoryNotes(useLocale().locale);
   const floors = schematic.floors;
@@ -220,7 +232,12 @@ export function SchematicView({ schematic }: { schematic: Schematic }) {
 }
 
 /** Panel DAFTAR JALUR + blok judul 2×2 (§4). */
-export function SchematicSidePanel({ schematic }: { schematic: Schematic }) {
+export function SchematicSidePanel({ schematic }: { schematic: AnySchematic }) {
+  if (isFlowSchematic(schematic)) return <FlowSidePanel schematic={schematic} />;
+  return <BuildingSidePanel schematic={schematic} />;
+}
+
+function BuildingSidePanel({ schematic }: { schematic: Schematic }) {
   const COPY = useSchematicCopy();
   return (
     <aside className={styles.panel}>

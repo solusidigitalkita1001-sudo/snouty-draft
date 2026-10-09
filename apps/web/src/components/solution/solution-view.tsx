@@ -40,8 +40,8 @@ export function SolutionView({
   const [openProduct, setOpenProduct] = useState<DrawerSelection | null>(null);
   const { stats } = recommendation;
   const on = (which: SolutionTab) => tab === undefined || tab === which;
-  // Skema hanya ada untuk solusi bangunan; kasus teknis/irigasi belum punya desain skema (OQ-47).
-  const hasSchematic = recommendation.kind === undefined || recommendation.kind === 'building';
+  // Semua jenis solusi punya skema: bangunan (lantai per lantai) atau aliran (kasus teknis, irigasi).
+  const hasSchematic = true;
 
   return (
     <div className={styles.workspace}>

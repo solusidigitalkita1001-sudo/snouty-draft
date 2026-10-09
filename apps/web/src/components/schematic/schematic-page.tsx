@@ -7,7 +7,7 @@
  * ulang deterministik dari snapshot tersimpan. Komponen ini tidak menghitung apa pun.
  */
 
-import type { Schematic } from '@snouty/shared-types';
+import type { AnySchematic } from '@snouty/shared-types';
 import { useEffect, useState } from 'react';
 import { schematicCopy } from './schematic-copy';
 import { useLocale } from '../locale';
@@ -22,7 +22,7 @@ function useSchematicCopy() {
 
 export function SchematicPage() {
   const COPY = useSchematicCopy();
-  const [schematic, setSchematic] = useState<Schematic | null>(null);
+  const [schematic, setSchematic] = useState<AnySchematic | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,7 +45,10 @@ export function SchematicPage() {
       )
       .then(async (response) => {
         if (!response.ok) throw new Error(String(response.status));
-        return (await response.json()) as Schematic;
+        const body = (await response.json()) as AnySchematic | { error: unknown };
+        // Endpoint menjawab NOT_FOUND sebagai badan 200 — bukan skema.
+        if ('error' in body) throw new Error('NOT_FOUND');
+        return body;
       })
       .then((result) => {
         if (!cancelled) setSchematic(result);

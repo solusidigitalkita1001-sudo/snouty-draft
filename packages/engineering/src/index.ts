@@ -196,6 +196,23 @@ export { GravityInputError, computeGravity } from './compute-gravity.js';
 export type { GravityInput, GravityKind, GravityResult, TrafficLoad } from './compute-gravity.js';
 export { computeNetwork } from './compute-network.js';
 export { BuildingOccupancyUnknownError, computeBuildingWater } from './compute-building.js';
+export {
+  buildingWaterSchematic,
+  gravitySchematic,
+  irrigationSchematic,
+  networkSchematic,
+  pondSchematic,
+  pressurizedSchematic,
+} from './schematic-flow.js';
+export type {
+  FlowLeavesShape,
+  FlowLinkRole,
+  FlowLinkShape,
+  FlowNodeShape,
+  FlowNodeType,
+  FlowSchematicShape,
+  PressurizedSchematicInput,
+} from './schematic-flow.js';
 export type {
   BuildingTraceGroups,
   BuildingWaterInput,

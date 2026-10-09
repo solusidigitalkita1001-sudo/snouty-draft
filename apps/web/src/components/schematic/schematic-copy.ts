@@ -17,6 +17,7 @@ export const SCHEMATIC_COPY = {
     drawing: 'GAMBAR',
     scale: 'SKALA',
     floorHeight: 'TINGGI LANTAI',
+    basis: 'DASAR',
     source: 'SUMBER',
   },
   legend: [
@@ -28,6 +29,20 @@ export const SCHEMATIC_COPY = {
   groundLabel: '±0.00 MUKA TANAH',
   /** Alternatif teks untuk pembaca layar (§8) — ringkasan terstruktur, bukan "gambar". */
   ariaIntro: 'Skema instalasi air bersih, disajikan sebagai daftar jalur per lantai.',
+  flowAriaIntro: 'Skema aliran instalasi, dari sumber sampai titik ujung.',
+  textAlternative: 'Uraian skema dalam teks',
+  flowLegend: [
+    { label: 'Jalur utama & riser', role: 'main' as const },
+    { label: 'Cabang', role: 'branch' as const },
+    { label: 'Sambungan titik', role: 'fixture_connection' as const },
+  ],
+  flowRoles: {
+    main: 'Jalur utama',
+    riser: 'Riser',
+    branch: 'Cabang',
+    drain: 'Saluran',
+    fixture_connection: 'Sambungan titik',
+  },
 } as const;
 
 export const SCHEMATIC_COPY_EN: CopyShape<typeof SCHEMATIC_COPY> = {
@@ -37,6 +52,7 @@ export const SCHEMATIC_COPY_EN: CopyShape<typeof SCHEMATIC_COPY> = {
     drawing: 'DRAWING',
     scale: 'SCALE',
     floorHeight: 'FLOOR HEIGHT',
+    basis: 'BASIS',
     source: 'SOURCE',
   },
   legend: [
@@ -47,6 +63,20 @@ export const SCHEMATIC_COPY_EN: CopyShape<typeof SCHEMATIC_COPY> = {
   ],
   groundLabel: '±0.00 GROUND LEVEL',
   ariaIntro: 'Clean water installation schematic, presented as a list of routes per floor.',
+  flowAriaIntro: 'Installation flow schematic, from the source to the end points.',
+  textAlternative: 'Schematic described in text',
+  flowLegend: [
+    { label: 'Main line & riser', role: 'main' },
+    { label: 'Branch', role: 'branch' },
+    { label: 'Outlet connection', role: 'fixture_connection' },
+  ],
+  flowRoles: {
+    main: 'Main line',
+    riser: 'Riser',
+    branch: 'Branch',
+    drain: 'Drain',
+    fixture_connection: 'Outlet connection',
+  },
 };
 
 export function schematicCopy(locale: Locale): CopyShape<typeof SCHEMATIC_COPY> {

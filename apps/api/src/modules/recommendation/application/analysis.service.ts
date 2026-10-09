@@ -31,8 +31,8 @@ import {
   computePond,
   computePressurized,
   computeSolution,
-  HDPE_FROM_METERS,
   type BuildingWaterInput,
+  type FlowSchematicShape,
   type NetworkInput,
   type PondInput,
   type SolutionInput,
@@ -110,6 +110,7 @@ import {
 } from '../domain/product-matcher.js';
 import type { IdentifiedTrace } from '../domain/solution-view.js';
 import { composeResponse } from '../domain/response-composer.js';
+import { flowSchematicFor, networkFamilyFor } from '../domain/flow-schematic.js';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import {
   RECOMMENDATION_REPOSITORY,
@@ -178,13 +179,19 @@ export class AnalysisService {
    * memakai id-nya: blok judul gambar berbunyi "KATALOG v2.4" (docs/SCHEMATIC_ENGINE.md
    * §2), dan ULID di tempat itu tidak berarti apa pun bagi orang yang membaca gambarnya.
    */
+  /**
+   * Skema rekomendasi: kasus teknis dan irigasi → skema aliran dari hitungan kasusnya; bangunan →
+   * skema lantai per lantai. Keduanya dibentuk ulang dari snapshot, tidak disimpan.
+   */
   async schematicForRecommendation(
     state: RequirementState,
     catalogVersionId: string,
     now: string,
-  ): Promise<ReturnType<typeof buildSchematic>> {
+    locale: Locale = DEFAULT_LOCALE,
+  ): Promise<ReturnType<typeof buildSchematic> | FlowSchematicShape> {
     const version = await this.catalog.findVersionById(catalogVersionId);
-    return schematicFor(state, version?.label ?? 'TIDAK DIKETAHUI', now);
+    const label = version?.label ?? 'TIDAK DIKETAHUI';
+    return flowSchematicFor(state, label, locale) ?? schematicFor(state, label, now);
   }
 
   /**
@@ -420,7 +427,7 @@ export class AnalysisService {
       type: 'stage',
       stage: 'PREPARING_SCHEMATIC',
       status: 'done',
-      detail: 'SKEMA IRIGASI MENUNGGU DESAIN',
+      detail: 'SKEMA ALIRAN SIAP',
     });
     events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;
@@ -515,7 +522,7 @@ export class AnalysisService {
       type: 'stage',
       stage: 'PREPARING_SCHEMATIC',
       status: 'done',
-      detail: 'SKEMA JALUR MENUNGGU DESAIN',
+      detail: 'SKEMA ALIRAN SIAP',
     });
     events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;
@@ -590,7 +597,7 @@ export class AnalysisService {
       type: 'stage',
       stage: 'PREPARING_SCHEMATIC',
       status: 'done',
-      detail: 'SKEMA SALURAN MENUNGGU DESAIN',
+      detail: 'SKEMA ALIRAN SIAP',
     });
     events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;
@@ -609,7 +616,7 @@ export class AnalysisService {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     // Keluarga dulu: HDPE dijual dalam mm, jadi engine harus memilih ukuran dari tabel mm.
-    const family = input.routeLengthM >= HDPE_FROM_METERS ? 'HDPE' : 'PVC AW';
+    const family = networkFamilyFor(input.routeLengthM);
     const result = computeNetwork(
       family === 'HDPE' ? { ...input, material: 'HDPE' } : input,
       locale,
@@ -682,7 +689,7 @@ export class AnalysisService {
       type: 'stage',
       stage: 'PREPARING_SCHEMATIC',
       status: 'done',
-      detail: 'SKEMA JARINGAN MENUNGGU DESAIN',
+      detail: 'SKEMA ALIRAN SIAP',
     });
     events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;
@@ -769,7 +776,7 @@ export class AnalysisService {
       type: 'stage',
       stage: 'PREPARING_SCHEMATIC',
       status: 'done',
-      detail: 'SKEMA GEDUNG MENUNGGU DESAIN',
+      detail: 'SKEMA ALIRAN SIAP',
     });
     events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;
@@ -891,7 +898,7 @@ export class AnalysisService {
       type: 'stage',
       stage: 'PREPARING_SCHEMATIC',
       status: 'done',
-      detail: 'SKEMA KOLAM MENUNGGU DESAIN',
+      detail: 'SKEMA ALIRAN SIAP',
     });
     events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;
