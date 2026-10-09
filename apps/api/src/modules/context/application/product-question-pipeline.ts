@@ -29,7 +29,7 @@ import type { MessageUnderstanding } from '../../understanding/application/messa
 import type { EntityLexicon } from '../../understanding/domain/vocabulary.js';
 import { isConceptual } from '../../understanding/domain/labels.js';
 import { parseSize } from '../domain/size-parser.js';
-import { catalogScope, fittingAnswer, type FittingOutcome } from './catalog-scope.js';
+import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from './catalog-scope.js';
 import { knowledgeAnswer } from './knowledge-answer.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
@@ -217,7 +217,7 @@ export async function runProductQuestion(
   if (knowledgeTopics.some((t) => factTopics().has(t))) {
     const answer = await knowledgeAnswer(knowledgeTopics, input.message, catalog, locale);
     // Dua bahan yang dibandingkan ("HDPE atau uPVC untuk 8–12 bar?"): perbandingannya di depan.
-    const compared = materialsFor(u.families);
+    const compared = mentionsPressure(input.message) ? materialsFor(u.families) : [];
     const known =
       answer !== null && compared.length >= 2
         ? {
@@ -829,7 +829,12 @@ async function fittingTurn(
     u.families.every((f) => input.lexicon.isFittingFamily(f))
       ? input.subject.entity
       : null;
-  const scope = catalogScope(input.message, subjectEntity, families);
+  const scope = fittingScope(
+    catalogScope(input.message, subjectEntity, families),
+    kinds,
+    u.families.filter((f) => !input.lexicon.isFittingFamily(f)),
+    families,
+  );
   if (scope.length === 0) return null;
   const kindTerms = kinds.flatMap((k) => [k, ...input.lexicon.aliasesOf(k)]);
   return fittingAnswer(catalog, scope, {

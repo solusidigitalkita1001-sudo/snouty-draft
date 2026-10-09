@@ -240,7 +240,10 @@
       "pvc class c meaning?",
       "difference between aw and d pipe?",
       "kelas pipa pvc apa aja?",
-      "vp dan vu itu apa?"
+      "vp dan vu itu apa?",
+      "perbedaan pipa aw dan d apa?",
+      "pipa aw sama pipa d bedanya apa?",
+      "beda pipa kelas aw, d, dan c?"
     ],
     "pipa tanam": [
       "pipa buat ditanam pakai apa?",
@@ -341,10 +344,9 @@
       "pvc aw itu apa?",
       "bedanya pvc aw sama pvc d apa?",
       "beda pvc aw sama pvc d apa?",
-      "pipa untuk sambungan rumah pakai apa?",
-      "saran pipa sambungan rumah?",
-      "pipa sr pdam pakai apa?",
-      "pvc pralon ada jenis apa saja?"
+      "pvc pralon ada jenis apa saja?",
+      "hdpe itu pipa apa?",
+      "tipe pipa hdpe apa saja?"
     ],
     "vp vu": [
       "pipa vp itu apa?",
@@ -420,7 +422,8 @@
       "pipa tahan klorin?",
       "is pvc chemical resistant?",
       "can the pipe carry chemicals?",
-      "pipa pvc tahan cairan kimia ga?"
+      "pipa pvc tahan cairan kimia ga?",
+      "pipa pralon bisa dipakai buat cairan kimia?"
     ],
     "umur pakai": [
       "berapa lama umur pipa hdpe?",
@@ -522,6 +525,22 @@
       "tips memilih pipa yang benar?",
       "common mistakes choosing pipes?",
       "how to choose the right pipe?"
+    ],
+    "sambungan rumah": [
+      "pipa untuk sambungan rumah pakai apa?",
+      "saran pipa sambungan rumah?",
+      "pipa sr pdam pakai apa?",
+      "pipa dari pipa pdam ke meteran rumah pakai apa?",
+      "sambungan rumah air minum pakai pipa apa?",
+      "house connection pipe for water supply?"
+    ],
+    "aplikasi": [
+      "kegunaan pipa hdpe selain air minum?",
+      "selain air bersih, pipa hdpe bisa dipakai untuk keperluan apa lagi?",
+      "aplikasi pipa upvc di bidang apa saja?",
+      "pipa pvc kegunaannya untuk sektor apa saja?",
+      "what else is hdpe pipe used for besides drinking water?",
+      "applications of pvc pipe by sector?"
     ]
   },
   "window": 0.04

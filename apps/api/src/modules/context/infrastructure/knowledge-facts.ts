@@ -15,6 +15,8 @@ const CatalogHookSchema = z
     lengths: z.boolean().optional(),
     pressure: z.boolean().optional(),
     rods: z.boolean().optional(),
+    /** Jenis produk per keluarga dari nama produk ("Pipa HDPE Gas", "Pipa HDPE Telkom"). */
+    types: z.boolean().optional(),
     /** Saring nama produk per keluarga: { "HDPE": "gas" }. */
     nameIncludes: z.record(z.string(), z.string().min(1)).optional(),
   })

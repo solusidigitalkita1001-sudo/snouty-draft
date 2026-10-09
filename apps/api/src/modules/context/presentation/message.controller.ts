@@ -19,7 +19,16 @@ import { isClarificationAnswerId } from '../domain/clarification.js';
 import { sseWriter } from '../../../shared/sse/event-stream.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
-const MessageDto = z.object({ text: z.string().trim().min(1).max(4_000) }).strict();
+/**
+ * `mode` (catatan pemilik 2026-10-09 "mode hemat / high quality"): hemat = jawaban langsung dari
+ * DATA, instan; kualitas = model merangkai jawaban pengetahuan untuk pertanyaan itu (±20 detik).
+ */
+const MessageDto = z
+  .object({
+    text: z.string().trim().min(1).max(4_000),
+    mode: z.enum(['hemat', 'kualitas']).optional(),
+  })
+  .strict();
 /** Hanya field yang punya templat pertanyaan; labelnya divalidasi domain, bukan di sini. */
 const ClarificationDto = z
   .object({
@@ -141,7 +150,7 @@ export class MessageController {
     @Res() res: Response,
   ): Promise<void> {
     const id = parse(IdParam, params).id;
-    const { text } = parse(MessageDto, body);
+    const { text, mode } = parse(MessageDto, body);
     const actor = actorOf(req);
 
     // Batas pesan per tier (docs/POLICY.md §10). Diperiksa SEBELUM header SSE ditulis:
@@ -177,7 +186,7 @@ export class MessageController {
     const writer = sseWriter(res);
     let events: readonly AssistantStreamEvent[];
     try {
-      events = await this.messages.handle(id, actor, text, now, writer.emit);
+      events = await this.messages.handle(id, actor, text, now, writer.emit, mode ?? 'hemat');
     } catch (error) {
       if (!writer.started()) throw error;
       writer.emit({ type: 'error', code: 'SERVICE_UNAVAILABLE', retryable: true });

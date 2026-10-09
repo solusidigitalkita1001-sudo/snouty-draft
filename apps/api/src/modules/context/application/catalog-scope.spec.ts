@@ -8,6 +8,7 @@ import type { PublicProductListQuery } from '../../product-catalog/application/c
 import {
   catalogScope,
   fittingAnswer,
+  fittingScope,
   fittingTypeLabel,
   type ScopeCatalog,
 } from './catalog-scope.js';
@@ -182,5 +183,14 @@ describe('catalog scope — fitting', () => {
   it('label jenis dari kategori resmi', () => {
     expect(fittingTypeLabel('FITTING · ELBOW 45°')).toBe('Elbow 45°');
     expect(fittingTypeLabel('FITTING · TY')).toBe('TY');
+  });
+});
+
+describe('fittingScope', () => {
+  it('"elbow 90 buat uPVC 3/4 inci": jenis + bahan → FITTING PVC dari katalog; nama keluarga yang disebut menang', () => {
+    expect(fittingScope([], ['elbow'], ['pvc'], FAMILIES)).toEqual(['FITTING PVC']);
+    expect(fittingScope([], ['elbow'], ['ppr'], FAMILIES)).toEqual([]);
+    expect(fittingScope([], [], ['pvc'], FAMILIES)).toEqual([]);
+    expect(fittingScope(['FITTING HDPE'], ['elbow'], ['pvc'], FAMILIES)).toEqual(['FITTING HDPE']);
   });
 });

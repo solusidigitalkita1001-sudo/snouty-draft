@@ -69,6 +69,12 @@ describe('knowledgeAnswer', () => {
     expect(a!.text).toContain('panjang 2,88 m');
   });
 
+  it('aplikasi: jenis produk HDPE dari nama produk katalog', async () => {
+    const a = await knowledgeAnswer(['aplikasi'], 'hdpe dipakai buat apa saja?', catalog, 'id');
+    expect(a!.text).toContain('**HDPE** — 3 produk · ukuran 63 mm–160 mm · jenis: ');
+    expect(a!.text).toContain('Pipa HDPE Gas');
+  });
+
   it('topik tanpa fakta maupun konsep → null', async () => {
     expect(await knowledgeAnswer([], 'halo', catalog, 'id')).toBeNull();
   });
@@ -101,6 +107,8 @@ describe('answersFromKnowledge', () => {
         }),
       ),
     ).toBe(true);
-    expect(answersFromKnowledge(understood('pipa pvc', { knowledgeTopics: ['upvc'] }))).toBe(false);
+    expect(
+      answersFromKnowledge(understood('pipa pvc disimpan', { knowledgeTopics: ['penyimpanan'] })),
+    ).toBe(false);
   });
 });

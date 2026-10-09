@@ -43,17 +43,21 @@ export async function createConversation(language: Locale = 'id'): Promise<Conve
  * Mengirim pesan dan memanggil `onEvent` untuk tiap event yang tiba. Mengembalikan
  * saat stream ditutup server (`message.end`).
  */
+export type AnswerMode = 'hemat' | 'kualitas';
+
 export async function sendMessage(
   conversationId: string,
   text: string,
   onEvent: (event: AssistantStreamEvent) => void,
   signal?: AbortSignal,
+  /** hemat = jawaban langsung dari data; kualitas = dirangkai lebih lengkap (±20 detik). */
+  mode: AnswerMode = 'hemat',
 ): Promise<void> {
   const response = await apiFetch(`${BASE}/conversations/${conversationId}/messages`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'content-type': 'application/json', ...authHeaders() },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, mode }),
     ...(signal ? { signal } : {}),
   });
   if (!response.ok || !response.body) throw new Error(`messages ${response.status}`);

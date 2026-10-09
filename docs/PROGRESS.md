@@ -1287,6 +1287,13 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       kebutuhan; nilai "N bar" membawa kelas tekanan katalog; jendela multi-topik 0,12 → 0,04 (topik tempelan
       hilang); pesaing "ruchika". Eval golden: intent 139/139, +15 kasus topik. Daftar pemilik disimpan di
       `apps/api/evals/owner-faq.json`.
+- [x] P16-47 Mode hemat / kualitas + perbaikan FAQ putaran 2 (2026-10-09) — saklar "Hemat | Kualitas" di kotak ketik
+      (diingat per browser; `mode` di POST pesan): hemat = jawaban pengetahuan langsung dari DATA, kualitas = model
+      merangkai jawaban untuk pertanyaan itu di atas DATA yang sama (pagar angka tetap). Uji live 52 pertanyaan
+      pemilik → perbaikan: pemilih langkah dilewati untuk topik bersumber (jacking, suhu, PIPPO), topik berfakta
+      didahulukan dan maks. dua, perbandingan bahan hanya untuk pertanyaan bertekanan, topik baru "sambungan rumah"
+      dan "aplikasi" (jenis produk HDPE dari katalog), fakta uPVC (lini produk), lingkup fitting dari jenis + bahan
+      ("elbow 90 buat uPVC 3/4" → FITTING PVC).
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

@@ -49,7 +49,7 @@ import { ConversationService } from '../../conversation/application/conversation
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
 import { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
-import { IntentRouter, type RoutingDecision } from './intent-router.js';
+import { IntentRouter, type RoutingDecision, answersFromKnowledge } from './intent-router.js';
 import {
   applyTechnicalAnswers,
   technicalAnswerValue,
@@ -122,6 +122,8 @@ export class MessageService {
     text: string,
     now: string,
     emit?: EventSink,
+    /** hemat = jawaban dari DATA langsung; kualitas = model merangkai jawaban pengetahuan. */
+    mode: 'hemat' | 'kualitas' = 'hemat',
   ): Promise<readonly AssistantStreamEvent[]> {
     // Kepemilikan diperiksa di lapisan application (docs/SECURITY.md §4).
     const row = await this.conversations.find(conversationId, actor);
@@ -149,6 +151,7 @@ export class MessageService {
         messageId,
         emit,
         row.language,
+        mode,
       );
       await this.retitle(conversationId, actor, row.title ?? null, row.language);
       return events;
@@ -169,6 +172,7 @@ export class MessageService {
     messageId: string,
     emit?: EventSink,
     locale: Locale = DEFAULT_LOCALE,
+    mode: 'hemat' | 'kualitas' = 'hemat',
   ): Promise<readonly AssistantStreamEvent[]> {
     const ai = this.ai!;
     // Instrumentasi tahap (P14-07): waktu per tahap giliran, bukan hanya per panggilan model
@@ -264,6 +268,9 @@ export class MessageService {
       continuation === null &&
       planned === null &&
       !requirementTurn &&
+      // Topik dengan fakta bersumber dijawab dari pengetahuan, bukan direncanakan model ("apa itu pipa
+      // jacking?" dulu jadi daftar jenis katalog; "maksimal suhu berapa?" 26 detik model).
+      !answersFromKnowledge(u) &&
       !isConfidentStandalone(u) &&
       (recentTurns.some((t) => t.role === 'assistant') || u.intent === null)
     ) {
@@ -364,7 +371,7 @@ export class MessageService {
         this.reply,
         // Baku nonaktif: teks deterministiknya utuh; model 7B hampir selalu ditolak pagar
         // struktur — satu menit untuk hasil yang dibuang (env LLM_FAQ_REWRITE).
-        loadEnv().LLM_FAQ_REWRITE ? productFaqSystemPrompt(locale) : null,
+        mode === 'kualitas' || loadEnv().LLM_FAQ_REWRITE ? productFaqSystemPrompt(locale) : null,
       );
       timer.mark('answer');
       // Subjek berganti ke produk yang disebut — pergantian topik yang disengaja pengguna.

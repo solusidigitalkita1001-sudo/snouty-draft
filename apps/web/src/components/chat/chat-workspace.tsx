@@ -54,6 +54,7 @@ import {
   sendToTechnicalTeam,
   uploadPlan,
   type ConversationSummary,
+  type AnswerMode,
 } from './chat-api';
 import { SolutionView, type SolutionTab } from '../solution/solution-view';
 import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
@@ -141,6 +142,7 @@ export function ChatWorkspace() {
   const [state, setState] = useState<RequirementState | null>(null);
   const [stages, setStages] = useState<Readonly<Partial<Record<AnalysisStage, StageStatus>>>>({});
   const [error, setError] = useState<string | null>(null);
+  const [answerMode, setAnswerMode] = useAnswerMode();
   /** Analisis gagal karena sesi akun berakhir (401 setelah pemulihan otomatis gagal). */
   const [sessionEnded, setSessionEnded] = useState(false);
   // Prototipe: panel tertutup secara bawaan di setiap lebar; rail 44px yang membukanya.
@@ -400,7 +402,7 @@ export function ChatWorkspace() {
       };
 
       try {
-        await sendMessage(activeId, text, apply);
+        await sendMessage(activeId, text, apply, undefined, answerMode);
       } catch {
         setError(COPY.llmUnavailable);
       } finally {
@@ -1159,6 +1161,7 @@ export function ChatWorkspace() {
                     <span className={styles.iconSquare} />
                     {uploading ? COPY.uploading : COPY.attachPlan}
                   </button>
+                  <AnswerModeSwitch mode={answerMode} onChange={setAnswerMode} />
                   <button
                     type="button"
                     className={styles.sendButton}
@@ -1349,6 +1352,7 @@ export function ChatWorkspace() {
                 {COPY.newMessagesBelow}
               </button>
             )}
+            <AnswerModeSwitch mode={answerMode} onChange={setAnswerMode} />
             {/* Ponsel: bidang berbentuk pil + tombol kirim bulat 40px (board 13a). */}
             <div className={[styles.composerCard, mobile ? styles.composerPill : ''].join(' ')}>
               <ComposerField
@@ -2060,4 +2064,55 @@ function CardView({
 
   // Kartu produk dan ringkasan datang di Fase 6–7.
   return null;
+}
+
+const ANSWER_MODE_KEY = 'snouty-answer-mode';
+
+/** Mode jawaban, diingat per browser (kenyamanan per penampil; tanpa penyimpanan → hemat). */
+function useAnswerMode(): [AnswerMode, (mode: AnswerMode) => void] {
+  const [mode, setMode] = useState<AnswerMode>('hemat');
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(ANSWER_MODE_KEY);
+      if (saved === 'hemat' || saved === 'kualitas') setMode(saved);
+    } catch {
+      // Penyimpanan diblokir: tetap hemat.
+    }
+  }, []);
+  const update = (next: AnswerMode) => {
+    setMode(next);
+    try {
+      window.localStorage.setItem(ANSWER_MODE_KEY, next);
+    } catch {
+      // Penyimpanan diblokir: pilihan berlaku untuk sesi ini saja.
+    }
+  };
+  return [mode, update];
+}
+
+/** Saklar Hemat | Kualitas di kotak ketik. */
+function AnswerModeSwitch({
+  mode,
+  onChange,
+}: {
+  mode: AnswerMode;
+  onChange: (mode: AnswerMode) => void;
+}) {
+  const COPY = useChatCopy();
+  return (
+    <div className={styles.modeSwitch} role="group" aria-label={COPY.answerMode.label}>
+      {(['hemat', 'kualitas'] as const).map((option) => (
+        <button
+          key={option}
+          type="button"
+          className={styles.modeOption}
+          aria-pressed={mode === option}
+          title={option === 'hemat' ? COPY.answerMode.hematHint : COPY.answerMode.kualitasHint}
+          onClick={() => onChange(option)}
+        >
+          {COPY.answerMode[option]}
+        </button>
+      ))}
+    </div>
+  );
 }

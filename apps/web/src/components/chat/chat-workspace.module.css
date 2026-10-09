@@ -2424,3 +2424,39 @@
   padding: 4px 6px;
   min-height: 32px;
 }
+
+/* Saklar mode jawaban (Hemat | Kualitas) di kotak ketik. */
+.modeSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--snouty-border);
+  border-radius: 8px;
+  background: var(--snouty-surface);
+  align-self: flex-start;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.modeOption {
+  border: none;
+  background: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--snouty-muted);
+  cursor: pointer;
+}
+
+.modeOption[aria-pressed='true'] {
+  background: var(--snouty-action-soft-bg);
+  color: var(--snouty-action-text);
+  font-weight: 500;
+}
+
+.modeOption:focus-visible {
+  outline: 2px solid var(--snouty-focus-ring);
+  outline-offset: 1px;
+}

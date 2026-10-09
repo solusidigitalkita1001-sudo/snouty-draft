@@ -61,6 +61,23 @@ export function catalogScope(
   return subjectEntity ? familiesInMessage(subjectEntity, families) : [];
 }
 
+/**
+ * Lingkup fitting: keluarga yang disebut pesan; bila pesan tidak menyebut nama keluarga katalog
+ * tetapi menyebut JENIS fitting dan BAHAN ("elbow 90 buat uPVC 3/4\""), keluarga "FITTING <BAHAN>"
+ * yang memang ada di katalog. Bahan = keluarga kanonis kosakata ("pvc", "hdpe").
+ */
+export function fittingScope(
+  named: readonly string[],
+  kinds: readonly string[],
+  materials: readonly string[],
+  families: readonly string[],
+): string[] {
+  if (named.length > 0 || kinds.length === 0) return [...named];
+  return families.filter((family) =>
+    materials.some((m) => family.toUpperCase() === `FITTING ${m.toUpperCase()}`),
+  );
+}
+
 /** "FITTING · ELBOW 45°" → "Elbow 45°"; singkatan pendek ("TY") tetap kapital. */
 export function fittingTypeLabel(category: string): string {
   const bare = category.replace(/^FITTING\s*[·•\-–]?\s*/i, '').trim();

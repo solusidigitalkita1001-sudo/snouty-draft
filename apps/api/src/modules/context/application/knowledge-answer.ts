@@ -6,7 +6,7 @@
  * berubah mengikuti pesan adalah topik, keluarga, dan angkanya.
  */
 import type { Locale } from '@snouty/shared-types';
-import { productSizeOf } from '../../product-catalog/domain/product-types.js';
+import { productSizeOf, productTypesOf } from '../../product-catalog/domain/product-types.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
 import { knowledgeFacts, type CatalogHook } from '../infrastructure/knowledge-facts.js';
 import { conceptsFor } from './pipe-knowledge.js';
@@ -46,7 +46,14 @@ export async function knowledgeAnswer(
   const facts = knowledgeFacts();
   const parts: string[] = [];
   const used: string[] = [];
-  for (const topic of topics) {
+  // Topik dengan fakta bersumber dulu (urutan terdekat tetap terjaga di dalamnya), lalu konsep
+  // saja; paling banyak dua topik — topik ketiga hampir selalu tempelan.
+  const withFacts: ReadonlySet<string> = new Set(facts.map((f) => f.topic));
+  const ordered = [
+    ...topics.filter((t) => withFacts.has(t)),
+    ...topics.filter((t) => !withFacts.has(t)),
+  ].slice(0, 2);
+  for (const topic of ordered) {
     const concepts = conceptsFor([topic]).filter((c) => c.topic === topic);
     const own = facts.filter((f) => f.topic === topic);
     if (concepts.length === 0 && own.length === 0) continue;
@@ -141,6 +148,13 @@ async function catalogLines(
       if (classes.length > 0) {
         details.push(en ? `classes ${classes.join(', ')}` : `kelas ${classes.join(', ')}`);
       }
+    }
+    if (hook.types) {
+      const types = productTypesOf(names)
+        .slice(0, 6)
+        .map((t) => t.type);
+      if (types.length > 0)
+        details.push(en ? `types: ${types.join(', ')}` : `jenis: ${types.join(', ')}`);
     }
     lines.push(`- **${family}** — ${details.join(' · ')}`);
   }

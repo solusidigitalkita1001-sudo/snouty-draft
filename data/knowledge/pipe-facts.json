@@ -191,6 +191,34 @@
         "families": ["HDPE"],
         "pressure": true
       }
+    },
+    {
+      "topic": "sambungan rumah",
+      "text": "Pipa sambungan rumah (dari pipa distribusi ke meteran) lazimnya HDPE — lentur, sedikit sambungan, dan tahan pergerakan tanah — atau uPVC kelas bertekanan; jenis dan ukurannya mengikuti ketentuan PDAM setempat.",
+      "textEn": "House-connection pipe (from the distribution main to the meter) is usually HDPE — flexible, few joints and tolerant of ground movement — or pressure-class uPVC; type and size follow the local water utility rules.",
+      "source": "Praktik umum jaringan air minum; katalog aktif",
+      "catalog": {
+        "families": ["HDPE", "PVC AW"]
+      }
+    },
+    {
+      "topic": "upvc",
+      "text": "Pipa PVC Pralon dibuat dalam beberapa lini: kelas PRALON (AW, D, C), PIPPO, JIS (VP, VU), SNI air minum (seri S), SNI air buangan (kelas A, B), dan High Impact Conduit.",
+      "textEn": "Pralon PVC pipe comes in several lines: PRALON classes (AW, D, C), PIPPO, JIS (VP, VU), SNI drinking water (S series), SNI wastewater (classes A, B) and High Impact Conduit.",
+      "source": "Snouty Product Knowledge Master §5–6; katalog aktif",
+      "catalog": {
+        "families": ["PVC AW", "PVC D", "PVC VP", "PVC VU"]
+      }
+    },
+    {
+      "topic": "aplikasi",
+      "text": "uPVC dipakai untuk air bersih dan air minum, air buangan dan drainase, saluran air hujan, pertanian dan irigasi, bangunan dan perumahan, pelindung kabel listrik dan telekomunikasi, serta industri. HDPE, selain air minum, dipakai untuk jalur tanam dan jaringan panjang yang lentur; di katalog Pralon jenisnya terlihat dari nama produknya.",
+      "textEn": "uPVC is used for clean and drinking water, wastewater and drainage, rainwater, agriculture and irrigation, buildings and housing, protection of electrical and telecom cables, and industry. HDPE, besides drinking water, is used for buried lines and long flexible networks; in the Pralon catalogue its types show in the product names.",
+      "source": "Snouty Product Knowledge Master §25, §30; katalog aktif",
+      "catalog": {
+        "families": ["HDPE"],
+        "types": true
+      }
     }
   ]
 }

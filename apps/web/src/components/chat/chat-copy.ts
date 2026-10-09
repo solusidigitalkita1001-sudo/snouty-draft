@@ -148,6 +148,14 @@ export const CHAT_COPY = {
   railLabel: 'KEBUTUHAN & SOLUSI',
   railUnit: 'DATA',
   send: 'Kirim',
+  /** Mode jawaban (catatan pemilik 2026-10-09 "mode hemat / high quality"). */
+  answerMode: {
+    label: 'Mode jawaban',
+    hemat: 'Hemat',
+    kualitas: 'Kualitas',
+    hematHint: 'Jawaban cepat langsung dari data katalog dan pengetahuan.',
+    kualitasHint: 'Jawaban dirangkai lebih lengkap untuk pertanyaan Anda, sekitar 20 detik.',
+  },
   panelTitle: 'Panel Solusi',
   requirementsLabel: 'KEBUTUHAN ANDA',
   completenessLabel: 'KELENGKAPAN DATA',
@@ -350,6 +358,13 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   railLabel: 'NEEDS & SOLUTION',
   railUnit: 'DATA',
   send: 'Send',
+  answerMode: {
+    label: 'Answer mode',
+    hemat: 'Fast',
+    kualitas: 'Quality',
+    hematHint: 'Quick answers straight from the catalogue and knowledge data.',
+    kualitasHint: 'Answers composed in more detail for your question, about 20 seconds.',
+  },
   panelTitle: 'Solution Panel',
   requirementsLabel: 'YOUR NEEDS',
   completenessLabel: 'DATA COMPLETENESS',
