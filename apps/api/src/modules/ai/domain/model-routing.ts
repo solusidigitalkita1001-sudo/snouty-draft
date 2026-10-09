@@ -23,7 +23,8 @@ export type LlmTask =
   | 'product_question'
   | 'explanation_prose'
   | 'ambiguous_input'
-  | 'extraction_retry';
+  | 'extraction_retry'
+  | 'turn_planning';
 
 /**
  * Tabel routing (docs/AI_BEHAVIOR.md). Percobaan ulang setelah validasi gagal dan
@@ -41,6 +42,8 @@ const ROUTING: Readonly<Record<LlmTask, LlmTier>> = {
   explanation_prose: 'balanced',
   ambiguous_input: 'strong',
   extraction_retry: 'strong',
+  /** Perencana giliran (P16-29): JSON pendek dengan daftar tertutup — model tercepat cukup. */
+  turn_planning: 'fast',
 };
 
 export function tierForTask(task: LlmTask): LlmTier {

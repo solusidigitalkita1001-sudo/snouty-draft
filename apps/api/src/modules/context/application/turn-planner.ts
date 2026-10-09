@@ -143,6 +143,7 @@ export class TurnPlanner {
         systemPrompt: SYSTEM_PROMPT,
         userMessage: buildPlannerMessage(input),
         timeoutMs: this.timeoutMs,
+        task: 'turn_planning',
       });
       return parsePlan(raw, input.families);
     } catch {

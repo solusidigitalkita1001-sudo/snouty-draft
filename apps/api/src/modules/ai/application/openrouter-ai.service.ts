@@ -149,15 +149,17 @@ export class OpenRouterAiService implements AiService {
       readonly systemPrompt: string;
       readonly userMessage: string;
       readonly timeoutMs?: number;
+      readonly task?: 'explanation_prose' | 'turn_planning';
     },
     context: AiCallContext = { correlationId: null },
   ): Promise<unknown> {
+    const task = input.task ?? 'explanation_prose';
     const controller = input.timeoutMs ? new AbortController() : null;
     const timer = controller ? setTimeout(() => controller.abort(), input.timeoutMs) : null;
     try {
       const result = await this.callOnce(
-        'explanation_prose',
-        tierForTask('explanation_prose'),
+        task,
+        tierForTask(task),
         input.systemPrompt,
         input.userMessage,
         true,

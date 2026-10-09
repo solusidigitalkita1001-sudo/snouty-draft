@@ -16,6 +16,7 @@ export interface ReplyCapableAi {
     readonly systemPrompt: string;
     readonly userMessage: string;
     readonly timeoutMs?: number;
+    readonly task?: 'explanation_prose' | 'turn_planning';
   }): Promise<unknown>;
 }
 
