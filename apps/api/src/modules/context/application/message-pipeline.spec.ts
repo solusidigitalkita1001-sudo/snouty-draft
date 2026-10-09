@@ -496,6 +496,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
       aiExtracting({}),
       input({
         message: 'gw mau nanya2 nih',
+        understanding: understood('gw mau nanya2 nih', { intent: 'greeting' }),
         decision,
         recentTurns: [
           { role: 'user', text: 'hai' },
@@ -515,6 +516,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
       aiExtracting({}),
       input({
         message: 'halo',
+        understanding: understood('halo', { intent: 'greeting' }),
         decision,
         recentTurns: [{ role: 'assistant', text: text.text }],
       }),

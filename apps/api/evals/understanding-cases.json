@@ -869,6 +869,12 @@
       "intent": "complaint",
       "source": "pemilik 2026-10-09",
       "topics": []
+    },
+    {
+      "text": "jam siang2 gini enaknya makan apa ?",
+      "intent": "out_of_scope",
+      "source": "pemilik 2026-10-09",
+      "topics": []
     }
   ]
 }

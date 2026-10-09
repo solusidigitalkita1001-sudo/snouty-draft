@@ -1161,6 +1161,14 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       (297 s vs 4,6 s untuk satu kalimat) → `LLM_REASONING_EFFORT`. qwen2.5:7b dihapus; qwen3.5:9b
       tetap di disk. Bagspace di-stop (bukan dihapus) atas permintaan pemilik. Catatan: model hanya
       cadangan pemahaman + ekstraksi; jawaban tetap dirangkai kode sampai perannya dinaikkan.
+- [x] P16-28 Balasan percakapan ditulis model di atas DATA kasus (laporan pemilik 2026-10-09: "enaknya
+      makan apa" → ajakan bertanya; "mana perhitungan teknisnya" atas kasus yang diserahkan → "dasar
+      setiap angka ada di solusi"; "itung ulang, luasnya belum gw kasih" → giliran bisu). `caseFacts`:
+      kebutuhan tercatat, yang kurang, status kasus (diserahkan/belum lengkap/lengkap), dan cara SNOUTY
+      menghitung (unit beban, lantai, sumber; luas tidak menentukan ukuran). `LLM_CHAT_REPLY` dinyalakan
+      (qwen3.5:4b ±5 s); angka di luar DATA tetap ditolak `ReplyWriter`. Teks tetap: di luar topik di
+      tengah percakapan, alasan kasus diserahkan, dan penjaga giliran bisu. +8 contoh `out_of_scope`;
+      evaluasi intent 139/139. Tes +5.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

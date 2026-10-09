@@ -66,7 +66,14 @@ import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsFor } from './pipe-knowledge.js';
 import { productAnswerCopy } from './product-answer-text.js';
-import { explanationBeforeSolution, openerReply, outOfTopicReply, replyFor } from './reply-copy.js';
+import {
+  explanationBeforeSolution,
+  explanationHandedOff,
+  openerReply,
+  outOfTopicReply,
+  replyFor,
+} from './reply-copy.js';
+import { caseFacts } from './case-facts.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 
 export interface PipelineInput {
@@ -134,32 +141,44 @@ export async function runUnderstanding(
     // Sapaan/di luar topik, minta penjelasan, atau model ragu: bukan ruas ekstraksi,
     // tetapi tetap dijawab — giliran yang ditutup tanpa sepatah kata terbaca sebagai
     // kerusakan. (Lookup produk punya ruasnya sendiri sebelum sampai ke sini.)
+    const label = input.understanding?.intent?.label;
+    const caseCard = followUpCard(withCompleteness(input.state), input.locale);
+    const handedOff = caseCard?.kind === 'unsupported';
     const fallback =
-      input.understanding?.intent?.label === 'out_of_scope'
+      label === 'out_of_scope'
         ? outOfTopicReply(input.locale)
-        : input.decision.intent === 'EXPLANATION_REQUEST' &&
-            withCompleteness(input.state).missingInformation.length > 0
-          ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
-            explanationBeforeSolution(input.locale)
-          : // Perkenalan "Halo! Saya SNOUTY…" hanya untuk giliran pertama. Sapaan atau "mau tanya"
-            // di tengah percakapan dijawab ajakan bertanya — dulu salam yang sama terulang persis
-            // (laporan pemilik 2026-10-08: "hai" lalu "gw mau nanya2 nih").
-            input.decision.intent === 'OUT_OF_SCOPE' &&
-              (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
-            ? greetingAgain(input.recentTurns ?? [], input.locale)
-            : replyFor(input.decision.intent, input.locale);
+        : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
+          ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
+            // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
+            explanationHandedOff(caseCard.reasons, input.locale)
+          : input.decision.intent === 'EXPLANATION_REQUEST' &&
+              withCompleteness(input.state).missingInformation.length > 0
+            ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
+              explanationBeforeSolution(input.locale)
+            : input.decision.intent === 'OUT_OF_SCOPE' &&
+                (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
+              ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
+                // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
+                // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
+                label === 'greeting'
+                ? greetingAgain(input.recentTurns ?? [], input.locale)
+                : outOfTopicReply(input.locale)
+              : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
-      // Teks tetap, tanpa model. Dulu sapaan/di luar topik diserahkan ke model (tanpa DATA → nol
-      // angka); di CPU itu 40–50 detik untuk sebuah sapaan (diet panggilan model, 2026-10-07).
-      // Permintaan penjelasan ("kenapa 1 inci?") memang tidak pernah ke model: tanpa DATA ia
-      // mengarang alasan teknik yang terdengar masuk akal. Dasarnya ada di solusi.
-      // `ReplyWriter` tetap tersedia untuk model yang lebih cepat (`LLM_CHAT_REPLY`).
+      // Model merangkai balasan di atas DATA kasus (P16-28): yang sudah dicatat, status kasus, dan
+      // cara SNOUTY menghitung — semuanya dari kode. Angka di luar DATA ditolak `ReplyWriter`, jadi
+      // "kenapa 1 inci?" tidak bisa dijawab dengan alasan karangan. Model gagal/lambat → teks tetap.
       const written =
-        reply && loadEnv().LLM_CHAT_REPLY && input.decision.intent !== 'EXPLANATION_REQUEST'
+        reply && loadEnv().LLM_CHAT_REPLY
           ? await reply.write({
               intent: input.decision.intent,
               userMessage: input.message,
               recentTurns: input.recentTurns ?? [],
+              facts: caseFacts(
+                withCompleteness(input.state),
+                input.locale ?? DEFAULT_LOCALE,
+                caseCard,
+              ),
               ...(input.locale ? { locale: input.locale } : {}),
               fallback,
             })
@@ -394,6 +413,27 @@ export async function runUnderstanding(
     const only = input.decision.mutatesState && changedPaths.length > 0 ? changedPaths : undefined;
     const text = understoodReply(merged, card?.kind ?? null, locale, only);
     if (text !== null) events.push({ type: 'token', text });
+  }
+  // Giliran yang tidak menghasilkan kalimat apa pun ("itung ulang, luasnya belum gw kasih" atas
+  // kasus yang tidak berubah) dulu tampil sebagai "Saya belum bisa membaca pesan itu" di web
+  // (laporan pemilik 2026-10-09). Sekarang dijawab di atas DATA kasus; model gagal → teks tetap.
+  if (!events.some((e) => e.type === 'token')) {
+    const fallback =
+      locale === 'en'
+        ? 'Your requirements are still recorded as shown in the panel. Which part would you like to change or ask about?'
+        : 'Kebutuhan Anda tetap tercatat seperti di panel. Bagian mana yang mau diubah atau ditanyakan?';
+    const written =
+      reply && loadEnv().LLM_CHAT_REPLY
+        ? await reply.write({
+            intent: input.decision.intent,
+            userMessage: input.message,
+            recentTurns: input.recentTurns ?? [],
+            facts: caseFacts(merged, locale, card),
+            locale,
+            fallback,
+          })
+        : { text: fallback };
+    events.push({ type: 'token', text: written.text });
   }
   if (card) events.push({ type: 'card', card });
 

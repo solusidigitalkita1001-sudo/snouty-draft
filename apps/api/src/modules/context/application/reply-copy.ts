@@ -57,6 +57,17 @@ export function explanationBeforeSolution(locale: Locale = DEFAULT_LOCALE): stri
     : 'Ukurannya baru dihitung setelah Anda menekan **Susun rekomendasi**; setiap angka nanti disertai dasar perhitungannya.';
 }
 
+/** "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis — alasannya dari kartu kebijakan. */
+export function explanationHandedOff(
+  reasons: readonly string[],
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const why = reasons[0] ?? '';
+  return locale === 'en'
+    ? `There is no automatic calculation for this case: ${why} The Pralon technical team works out the figures. To calculate the clean-water part yourself, change the installation type to clean water and press **Compose recommendation**.`
+    : `Untuk kasus ini belum ada hitungan otomatis: ${why} Angkanya dihitung tim teknis Pralon. Kalau mau saya hitung bagian air bersihnya saja, ubah jenis instalasinya menjadi air bersih lalu tekan **Susun rekomendasi**.`;
+}
+
 export function openerReply(locale: Locale = DEFAULT_LOCALE): string {
   return locale === 'en' ? OPENER_REPLY_EN : OPENER_REPLY;
 }
