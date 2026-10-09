@@ -19,6 +19,7 @@ import {
   outputLabel,
   parameterLabel as registryParameterLabel,
   resolveMissingParameters,
+  ruleStepTitle,
   type GravityCandidate,
   type SizeCandidate,
 } from '@snouty/engineering';
@@ -37,23 +38,24 @@ import {
   technicalParameterLabel,
 } from '../../context/domain/technical.js';
 import type { IdentifiedTrace } from './solution-view.js';
+import { readableNumbers } from './calculation-steps.js';
 
 const num = (n: number, locale: Locale): string =>
   n.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
 
 /** Catatan tradeoff per status — bahasa pengguna, tanpa angka (angkanya di `metrics`). */
 const OPTION_NOTE_ID: Readonly<Record<OptionStatus, string>> = {
-  ok: 'Memenuhi batas kecepatan dan kerugian gesek.',
-  too_fast: 'Kecepatan terlalu tinggi: aus, bising, dan hentakan air (water hammer).',
-  too_slow: 'Kecepatan terlalu rendah: endapan mengendap di dalam pipa.',
-  high_loss: 'Kerugian gesek terlalu besar: butuh pompa lebih kuat atau tekanan di ujung turun.',
+  ok: 'Memenuhi batas kecepatan air dan kehilangan tekanan.',
+  too_fast: 'Air terlalu cepat: pipa cepat aus, bising, dan bisa terjadi hentakan air.',
+  too_slow: 'Air terlalu lambat: kotoran mudah mengendap di dalam pipa.',
+  high_loss: 'Kehilangan tekanan terlalu besar: butuh pompa lebih kuat, atau tekanan di ujung turun.',
   too_small: 'Kapasitas aliran kurang dari debit rencana.',
 };
 const OPTION_NOTE_EN: Readonly<Record<OptionStatus, string>> = {
-  ok: 'Meets the velocity and friction loss limits.',
+  ok: 'Meets the limits for water speed and pressure loss.',
   too_fast: 'Velocity too high: wear, noise, and water hammer.',
   too_slow: 'Velocity too low: sediment settles inside the pipe.',
-  high_loss: 'Friction loss too high: needs a stronger pump or pressure at the far end drops.',
+  high_loss: 'Pressure loss too high: needs a stronger pump, or the pressure at the far end drops.',
   too_small: 'Flow capacity is below the design flow.',
 };
 const OPTION_NOTE = { id: OPTION_NOTE_ID, en: OPTION_NOTE_EN } as const;
@@ -66,8 +68,8 @@ const METRIC_LABELS = {
   id: {
     innerDiameter: 'Diameter dalam',
     velocity: 'Kecepatan',
-    frictionLoss: 'Kerugian gesek',
-    totalHead: 'Head total',
+    frictionLoss: 'Kehilangan tekanan',
+    totalHead: 'Tinggi angkat',
     fullFlow: 'Kapasitas penuh',
     fullVelocity: 'Kecepatan penuh',
     utilisation: 'Pemakaian kapasitas',
@@ -75,8 +77,8 @@ const METRIC_LABELS = {
   en: {
     innerDiameter: 'Inner diameter',
     velocity: 'Velocity',
-    frictionLoss: 'Friction loss',
-    totalHead: 'Total head',
+    frictionLoss: 'Pressure loss',
+    totalHead: 'Total lift',
     fullFlow: 'Full-bore capacity',
     fullVelocity: 'Full-bore velocity',
     utilisation: 'Capacity utilisation',
@@ -118,7 +120,7 @@ export function composeResponse(input: ComposerInput): ComposedResponse {
   return {
     knownData: known,
     assumedData: assumed,
-    calculations: calculationsFrom(input.traces),
+    calculations: calculationsFrom(input.traces, locale),
     options: optionsFrom(input, locale),
     readiness: readinessFrom(input.state, sets, locale),
     missingData: missingDataFrom(input.state, sets, locale),
@@ -177,11 +179,14 @@ function parametersByOrigin(
   return { known, assumed };
 }
 
-/** Satu baris per aturan, urut eksekusi; label aturan + versi supaya bisa dirujuk ke registry. */
-function calculationsFrom(traces: readonly IdentifiedTrace[]): readonly KeyValue[] {
+/**
+ * Satu baris per langkah hitung, urut eksekusi. Labelnya judul langkah yang bisa dibaca — kode dan
+ * versi aturan tetap tersimpan di trace untuk audit, tidak ditampilkan (laporan pemilik 2026-10-09).
+ */
+function calculationsFrom(traces: readonly IdentifiedTrace[], locale: Locale): readonly KeyValue[] {
   return traces.map((trace) => ({
-    label: `${trace.ruleId} v${trace.ruleVersion}`,
-    value: trace.explanation,
+    label: ruleStepTitle(trace.ruleId, locale),
+    value: readableNumbers(trace.explanation, locale),
   }));
 }
 

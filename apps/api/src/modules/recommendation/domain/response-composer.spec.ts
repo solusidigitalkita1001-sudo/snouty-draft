@@ -80,10 +80,13 @@ describe('composeResponse — transfer pompa', () => {
     expect(composed.assumedData).toEqual([{ label: 'Bahan pipa', value: 'HDPE' }]);
   });
 
-  it('perhitungan: satu baris per trace, label aturan + versi, penjelasan dari engine', () => {
+  it('perhitungan: satu baris per trace, judul langkah yang bisa dibaca (tanpa kode aturan), penjelasan dari engine berangka Indonesia', () => {
     expect(composed.calculations).toHaveLength(traces.length);
-    expect(composed.calculations[0]!.label).toMatch(/^ENG-\d{3} v\d+$/);
-    expect(composed.calculations.map((c) => c.value)).toEqual(traces.map((t) => t.explanation));
+    expect(composed.calculations[0]!.label).toBe('Pilih ukuran pipa');
+    for (const c of composed.calculations) expect(c.label).not.toMatch(/ENG-\d/);
+    expect(composed.calculations.map((c) => c.value)).toEqual(
+      traces.map((t) => t.explanation.replace(/(\d)\.(\d)/g, '$1,$2')),
+    );
   });
 
   it('opsi: seluruh kandidat engine, tepat satu rekomendasi, alternatif ditandai, catatan per status', () => {
@@ -97,7 +100,7 @@ describe('composeResponse — transfer pompa', () => {
     expect(alternative?.size).toBe(result.alternativeSize);
     expect(alternative?.note).toContain('Satu ukuran di atas');
     const tooFast = composed.options.find((o) => o.status === 'too_fast');
-    expect(tooFast?.note).toContain('terlalu tinggi');
+    expect(tooFast?.note).toContain('terlalu cepat');
     // Angka opsi persis dari kandidat engine (T-1).
     const first = result.candidates[0]!;
     expect(composed.options[0]!.metrics.map((m) => m.value)).toEqual([
@@ -154,8 +157,8 @@ describe('composeResponse — bahasa', () => {
     expect(en.options[0]!.metrics.map((m) => m.label)).toEqual([
       'Inner diameter',
       'Velocity',
-      'Friction loss',
-      'Total head',
+      'Pressure loss',
+      'Total lift',
     ]);
     expect(en.options[0]!.metrics.map((m) => m.value)).toEqual([
       `${first.innerDiameterMm.toLocaleString('en-US', { maximumFractionDigits: 2 })} mm`,
@@ -164,7 +167,7 @@ describe('composeResponse — bahasa', () => {
       `${first.totalDynamicHeadM.toLocaleString('en-US', { maximumFractionDigits: 2 })} m`,
     ]);
     expect(en.options.find((o) => o.recommended)!.note).toBe(
-      'Meets the velocity and friction loss limits.',
+      'Meets the limits for water speed and pressure loss.',
     );
     expect(en.options.find((o) => o.alternative)!.note).toContain('One size above');
     expect(en.options.find((o) => o.status === 'too_fast')!.note).toContain('Velocity too high');
