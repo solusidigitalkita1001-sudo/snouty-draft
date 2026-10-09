@@ -548,9 +548,10 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
   function setup(
     rows: { role: 'user' | 'assistant'; text: string }[],
     script: Record<string, object>,
+    stateOverride?: object,
   ) {
     // Subjek produk HDPE dari giliran sebelumnya — seperti di produksi.
-    const state = {
+    const state = stateOverride ?? {
       ...emptyRequirementState('T'),
       subject: { kind: 'product', entity: 'hdpe', topic: 'product_overview', depth: 'standard' },
     };
@@ -632,5 +633,31 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     await service.handle('C'.repeat(26), ACTOR, 'airnya dari toren bawah, kamar mandinya 4', 'T');
     expect(planner.plan).not.toHaveBeenCalled();
     expect(router.route).toHaveBeenCalled();
+  });
+
+  it('pertanyaan tentang kasus gedung yang berjalan dijawab di jalur kasus, tanpa perencana', async () => {
+    const building = {
+      ...emptyRequirementState('T'),
+      useCase: {
+        kind: 'technical',
+        caseId: 'multistorey_building_water',
+        parameters: {
+          building_floors: { label: 'Jumlah lantai', value: 12, origin: 'known' },
+          floor_area: { label: 'Luas per lantai', value: 3000, origin: 'known' },
+        },
+      },
+    };
+    const question = 'kenapa harus pakai pompa transfer?';
+    const { service, planner } = setup(
+      [
+        { role: 'user', text: 'gedung 100 x 30, 12 lantai' },
+        { role: 'assistant', text: 'Oke, gedung bertingkat.' },
+        { role: 'user', text: question },
+      ],
+      { [question]: { intent: 'explanation_request' } },
+      building,
+    );
+    await service.handle('C'.repeat(26), ACTOR, question, 'T');
+    expect(planner.plan).not.toHaveBeenCalled();
   });
 });

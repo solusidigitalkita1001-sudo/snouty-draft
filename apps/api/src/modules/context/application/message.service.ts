@@ -212,13 +212,16 @@ export class MessageService {
     // Giliran terakhir dipakai klasifikasi intent (lanjutan vs pesan lepas), penulis
     // balasan, dan pagar anti-ulang — jadi selalu diambil.
     const recentTurns = await this.recentTurns(conversationId, actor);
+    // Pertanyaan tentang kasus itu sendiri ("kenapa harus pakai pompa transfer?") juga lanjutan:
+    // dijawab di atas DATA kasus, bukan lewat perencana ke obrolan umum (uji 2026-10-09: 29 s dan
+    // jawaban "kami fokus pada ukuran pipa" padahal pompanya dihitung).
     // Percakapan kasus teknis yang sedang berjalan: jawaban angka ("jaraknya 150 m") adalah
     // lanjutan kebutuhan — tanpa menunggu model menebaknya. Bentuk yang PASTI lain (produk,
     // pesaing, sapaan) tetap lewat router, yang juga memotongnya tanpa model.
     const fine = u.intent?.label;
     const continuation =
       state.useCase?.kind === 'technical' &&
-      (fine === undefined || isRequirement(fine) || isFollowUp(fine))
+      (fine === undefined || isRequirement(fine) || isFollowUp(fine) || CASE_QUESTIONS.has(fine))
         ? ({
             intent: 'REQUIREMENT_STATEMENT',
             confidence: 1,
@@ -838,3 +841,11 @@ function textOf(events: readonly AssistantStreamEvent[]): string {
     .map((e) => e.text)
     .join('');
 }
+
+/** Maksud pertanyaan yang, di tengah kasus teknis, menanyakan kasus itu — bukan produk atau harga. */
+const CASE_QUESTIONS: ReadonlySet<string> = new Set([
+  'explanation_request',
+  'knowledge_question',
+  'use_question',
+  'advice_request',
+]);
