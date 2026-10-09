@@ -76,7 +76,7 @@ describe('tampilan hasil gedung', () => {
     expect(lines.map((l) => l.role)).toEqual(['main', 'riser', 'fitting', 'branch', 'fitting']);
     expect(lines[0]!.size).toBe('6"');
     expect(lines[1]!.name).toBe('Riser distribusi PVC AW (2×)');
-    expect(lines[2]!.size).toBe('108 m³/jam @ 47,82 m');
+    expect(lines[2]!.size).toBe('108 m³/jam @ 47,76 m');
     expect(lines.every((l) => l.provenance !== 'VERIFIED')).toBe(true);
   });
 

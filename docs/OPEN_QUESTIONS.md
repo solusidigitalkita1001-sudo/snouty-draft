@@ -404,6 +404,22 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-58 — Tebal dinding PVC, siklus pompa, dan kebutuhan per jenis gedung (audit akurasi)
+
+**Status:** default diterapkan (2026-10-09, P16-49) · **Blocks:** —
+**Pertanyaan:** Audit akurasi (docs/ENGINEERING_AUDIT.md) memperbaiki diameter dalam, zona, daya
+pompa, tangki, dan BOM, tetapi beberapa angka belum punya sumber resmi.
+**Default yang diterapkan:** (1) diameter dalam PVC = OD resmi − 2·OD/26,5 (`PVC_AW_WALL_SDR`,
+dari tebal AW 4" yang lebih tebal di Knowledge Master §7.2) — dinding pipa kecil kemungkinan lebih
+tebal dari perkiraan ini; (2) suku siklus pompa tangki atap 10 menit (`PUMP_CYCLE_10MIN`, rumus
+Noerbambang & Morimura, keyakinan rendah); (3) satu kebutuhan 150 l/orang/hari dan 10 m²/orang untuk
+semua jenis gedung; (4) kelas tekanan pipa tidak dicek otomatis — tekanan kerja transfer dan kaki
+riser ditampilkan sebagai batasan yang harus dicek. **Masih terbuka:** tabel tebal dinding resmi per
+kelas dan ukuran (Product Specification, P16-02b); kebutuhan air dan kepadatan per jenis gedung;
+kelas tekanan resmi AW/D dan HDPE per PN; metode kebutuhan serentak alat plambing (unit beban) untuk
+pipa per lantai; ekstraktor membaca "tinggi gedungnya 10 meter" sebagai panjang jalur, bukan tinggi
+gedung (kartu pilihan tinggi tetap benar).
+
 ### OQ-57 — Nilai awal perhitungan gedung bertingkat
 
 **Status:** default diterapkan (2026-10-09, P16-36) · **Blocks:** —

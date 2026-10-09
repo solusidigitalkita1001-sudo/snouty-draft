@@ -23,6 +23,7 @@ import type {
   TechnicalParameter,
 } from '@snouty/shared-types';
 import type { IdentifiedTrace } from './solution-view.js';
+import { pipePurchase, type StockLength } from './pipe-quantity.js';
 
 function traceIdsFor(traces: readonly IdentifiedTrace[], ...ruleIds: string[]): readonly string[] {
   return traces.filter((trace) => ruleIds.includes(trace.ruleId)).map((trace) => trace.id);
@@ -234,13 +235,13 @@ export function gravitySystemLinesFrom(
   return lines;
 }
 
-const ROD_METERS = 4;
-
 export function gravityBomItemsFrom(
   result: GravityResult,
   pipeLengthM: number | null,
   traces: readonly IdentifiedTrace[],
   locale: Locale = DEFAULT_LOCALE,
+  /** Panjang batang produk pipa terpilih; `null` → jumlah dalam meter. */
+  stock: StockLength | null = null,
 ): readonly BomItem[] {
   const en = locale === 'en';
   const ids = traceIdsFor(traces, 'ENG-402');
@@ -269,10 +270,18 @@ export function gravityBomItemsFrom(
     traceIds: ids,
   });
   const lines: BomItem[] = [];
-  if (pipeLengthM !== null)
-    lines.push(
-      row(en ? 'PVC D pipe' : 'Pipa PVC D', Math.ceil(pipeLengthM / ROD_METERS), 'batang'),
+  if (pipeLengthM !== null) {
+    const pipe = pipePurchase(
+      pipeLengthM,
+      en ? `route ${pipeLengthM} m` : `jalur ${pipeLengthM} m`,
+      stock,
+      locale,
     );
+    lines.push({
+      ...row(en ? 'PVC D pipe' : 'Pipa PVC D', pipe.quantity, pipe.unit),
+      basis: `${explanationFor(traces, 'ENG-402')} ${pipe.basis}`.trim(),
+    });
+  }
   if (result.kind === 'culvert') {
     lines.push(
       row(

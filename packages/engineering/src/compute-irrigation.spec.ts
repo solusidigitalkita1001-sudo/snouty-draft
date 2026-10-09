@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { computeIrrigation } from './compute-irrigation.js';
 
 describe('computeIrrigation', () => {
-  it('1 ha sprinkler, sumber sejajar 25 m: debit 0,8 l/s → 1¼", pompa, AW, PVC utama', () => {
+  it('1 ha sprinkler, sumber sejajar 25 m: debit 0,8 l/s → 1" (dalam 29,6 mm), pompa, AW, PVC utama', () => {
     const r = computeIrrigation({
       areaHa: 1,
       method: 'sprinkler',
@@ -14,7 +14,7 @@ describe('computeIrrigation', () => {
       elevation: 'level',
     });
     expect(r.designFlowLs).toBe(0.8);
-    expect(r.mainSize).toBe('1¼"');
+    expect(r.mainSize).toBe('1"');
     expect(r.pumpRequired).toBe(true);
     expect(r.pressureClass).toBe('AW');
     expect(r.mainFamily).toBe('PVC AW');
@@ -49,12 +49,12 @@ describe('computeIrrigation', () => {
     // Jalur utama HDPE dipilih dari tabel mm (OD, SDR 17): 35,7 mm dalam → OD 50 mm (dalam 44,1 mm);
     // distribusi di lahan tetap PVC AW inci.
     expect(r.mainSize).toBe('50 mm');
-    expect(r.distributionSize).toBe('1½"');
+    expect(r.distributionSize).toBe('1¼"');
     expect(r.pumpRequired).toBe(false);
     expect(r.pressureClass).toBe('D');
     expect(r.mainFamily).toBe('HDPE');
     expect(r.bom[0]).toEqual({ item: 'Pipa HDPE', size: '50 mm', quantity: 350, unit: 'meter' });
-    expect(r.bom[1]).toMatchObject({ item: 'Pipa PVC AW', size: '1½"' });
+    expect(r.bom[1]).toMatchObject({ item: 'Pipa PVC AW', size: '1¼"' });
   });
 
   it('murni: masukan sama → keluaran identik', () => {
@@ -70,6 +70,6 @@ describe('computeIrrigation', () => {
       elevation: 'level',
     });
     expect(r.traces[0]?.explanation).toContain('0.8 l/s');
-    expect(r.traces[2]?.explanation).toContain('1¼"');
+    expect(r.traces[2]?.explanation).toContain('1"');
   });
 });

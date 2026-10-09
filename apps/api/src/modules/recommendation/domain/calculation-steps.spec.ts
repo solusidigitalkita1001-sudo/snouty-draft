@@ -31,7 +31,7 @@ describe('langkah hitung', () => {
       expect(step.text).not.toMatch(/ENG-\d/);
       expect(step.text).not.toMatch(/\d\.\d/);
     }
-    expect(steps[3]!.text).toContain('Tangki atap 27 m³');
+    expect(steps[3]!.text).toContain('Tangki atap 45 m³');
     expect(steps[4]!.text).toContain('Dicoba 10 ukuran; 6" yang terkecil');
   });
 

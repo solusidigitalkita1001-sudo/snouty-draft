@@ -5,7 +5,8 @@
  * Kepemilikan percakapan diperiksa di lapisan application (`ConversationService.find`),
  * bukan hanya lewat `WHERE` di repository (docs/SECURITY.md §4).
  */
-import { Body, Controller, Get, Param, Post, Put, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Optional, Param, Post, Put, Req, Res } from '@nestjs/common';
+import { CaseInputInvalidError } from '@snouty/engineering';
 import type { Response } from 'express';
 import type { AssistantStreamEvent } from '@snouty/shared-types';
 import { z } from 'zod';
@@ -23,6 +24,8 @@ import type { RecommendationRepository } from '../domain/recommendation.reposito
 import { Inject } from '@nestjs/common';
 import { assumptionCardFor } from '../../context/application/message-pipeline.js';
 import { sseWriter } from '../../../shared/sse/event-stream.js';
+import { LoggerService } from '../../../shared/logging/logger.service.js';
+import { streamStageClock } from '../../../shared/logging/stage-timer.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 /** `value: null` = kembalikan ke nilai baku asumsi. */
@@ -37,6 +40,7 @@ export class RecommendationController {
     private readonly snapshots: RequirementSnapshotStore,
     private readonly analysis: AnalysisService,
     @Inject(RECOMMENDATION_REPOSITORY) private readonly repository: RecommendationRepository,
+    @Optional() private readonly log: LoggerService | null = null,
   ) {}
 
   @Post('conversations/:id/analyze')
@@ -60,6 +64,12 @@ export class RecommendationController {
     // jadi galat sebelum itu tetap respons JSON berstatus benar; galat sesudahnya menjadi
     // event `error` yang terbaca — bukan ERR_EMPTY_RESPONSE.
     const writer = sseWriter(res);
+    // Waktu per tahap analisis (engine, katalog, penyusunan) dari event yang memang dialirkan.
+    const clock = streamStageClock();
+    const emit = (event: AssistantStreamEvent) => {
+      clock.observe(event);
+      writer.emit(event);
+    };
     let events: readonly AssistantStreamEvent[];
     if (!snapshot) {
       events = [{ type: 'error', code: 'VALIDATION_FAILED', retryable: false }];
@@ -78,15 +88,21 @@ export class RecommendationController {
           snapshot.state,
           assumptions,
           new Date().toISOString(),
-          writer.emit,
+          emit,
           conversation.language,
         );
       } catch (error) {
         // Katalog tidak tersedia adalah kegagalan jujur dan bisa dicoba lagi — bukan
         // alasan menampilkan solusi tanpa produk.
-        const code =
-          error instanceof CatalogUnavailableError ? 'CATALOG_UNAVAILABLE' : 'SERVICE_UNAVAILABLE';
-        events = [{ type: 'error', code, retryable: true }];
+        // Masukan kasus yang bertentangan bukan gangguan layanan: mengulang tidak akan menolong,
+        // pengguna harus memperbaiki datanya (pertanyaannya sudah diajukan di chat).
+        const invalid = error instanceof CaseInputInvalidError;
+        const code = invalid
+          ? 'VALIDATION_FAILED'
+          : error instanceof CatalogUnavailableError
+            ? 'CATALOG_UNAVAILABLE'
+            : 'SERVICE_UNAVAILABLE';
+        events = [{ type: 'error', code, retryable: !invalid }];
         if (writer.started()) {
           writer.emit(events[0]!);
           res.end();
@@ -95,8 +111,9 @@ export class RecommendationController {
       }
     }
 
-    for (const event of events.slice(writer.written())) writer.emit(event);
+    for (const event of events.slice(writer.written())) emit(event);
     res.end();
+    this.log?.logger.info({ conversationId: id, ms: clock.report() }, 'analisis');
   }
 
   /**

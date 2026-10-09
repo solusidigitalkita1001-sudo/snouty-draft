@@ -284,11 +284,13 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     unit: '-',
     conditionEn: 'indicative shaft power calculated without a pump curve',
     descriptionEn:
-      'Pump efficiency of 60 % for indicative shaft power; this is not a pump selection.',
-    reference: 'Efisiensi keseluruhan pompa sentrifugal kecil ±50–70 %',
+      'Pump efficiency of 60 % (water power to shaft power) for an indicative shaft power; motor efficiency is not included and this is not a pump selection.',
+    reference:
+      'Efisiensi pompa sentrifugal kecil ±50–70 % (hidraulik → poros); efisiensi motor terpisah',
     confidence: 'low',
     confirmationRequired: true,
-    description: 'Efisiensi pompa 60 % untuk daya poros indikatif — bukan pemilihan pompa.',
+    description:
+      'Efisiensi pompa 60 % (dari daya air ke daya poros) untuk daya poros perkiraan; efisiensi motor belum termasuk dan ini bukan pemilihan pompa.',
   },
   {
     id: 'TRANSFER_DISCHARGE_MARGIN',
@@ -384,6 +386,24 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description: 'Instalasi diasumsikan untuk air bersih saja.',
   },
 
+  {
+    id: 'PVC_AW_WALL_SDR',
+    parameter: 'pressure_class',
+    appliesTo: [],
+    condition: 'diameter dalam PVC diperkirakan dari diameter luar tanpa tabel tebal dinding resmi',
+    value: 26.5,
+    unit: 'SDR',
+    conditionEn:
+      'PVC inner diameter estimated from the outside diameter without an official wall-thickness table',
+    descriptionEn:
+      'PVC inner diameter is the official outside diameter minus a wall about 1/26.5 of that diameter, until the official wall-thickness table is available.',
+    reference:
+      'Knowledge Master §7.1 (OD per ukuran) dan §7.2 (tebal AW 4" 4,1–4,3 mm, bertentangan antarsumber; dipakai yang lebih tebal: 114 ÷ 4,3 ≈ 26,5)',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Diameter dalam pipa PVC dihitung dari diameter luar resmi dikurangi tebal dinding sekitar 1/26,5 diameter luar, sampai tabel tebal dinding resmi tersedia.',
+  },
   {
     id: 'HDPE_SDR17_PN10',
     parameter: 'pressure_class',
@@ -634,6 +654,23 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Periode pemakaian air tersibuk berlangsung 30 menit.',
+  },
+  {
+    id: 'PUMP_CYCLE_10MIN',
+    parameter: 'design_flow',
+    appliesTo: ['multistorey_building_water'],
+    condition: 'lama kerja pompa pengisi tangki atap per siklus tidak diberikan',
+    value: 10,
+    unit: 'menit',
+    conditionEn: 'run time per cycle of the roof-tank filling pump not given',
+    descriptionEn:
+      'The roof tank also holds 10 minutes of pump flow so the filling pump does not start and stop too often.',
+    reference:
+      'Noerbambang & Morimura: VE = (Qp − Qmax) · Tp + Qpu · Tpu; Tpu jangka waktu kerja pompa pengisi',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Tangki atap juga menampung 10 menit aliran pompa supaya pompa pengisi tidak terlalu sering hidup-mati.',
   },
   {
     id: 'FLOOR_HEADER_20M',

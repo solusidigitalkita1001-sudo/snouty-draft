@@ -98,7 +98,7 @@ describe('tampilan hasil bertekanan', () => {
       'Produk Pralon',
     ]);
     expect(h[0]!.value).toBe('HDPE 2½"');
-    expect(h[4]!.value).toBe('18 m³/jam @ 46,12 m');
+    expect(h[4]!.value).toBe('18 m³/jam @ 36,91 m');
 
     const lines = pressurizedSystemLinesFrom(result, 'HDPE', traces);
     expect(lines.map((l) => l.role)).toEqual(['main', 'fitting', 'branch']);
@@ -128,7 +128,7 @@ describe('tampilan hasil bertekanan', () => {
     });
     expect(prose.headline).toContain('HDPE 2½"');
     expect(prose.headline).toContain('18 m³/jam');
-    expect(prose.body).toContain('46,12 m');
+    expect(prose.body).toContain('36,91 m');
     expect(prose.body).toContain('Alternatifnya 3"');
     // Label ukuran (2½", 3") dibuang dulu: digitnya bukan angka hitungan.
     const numbers = prose.body.replace(/\d+[¼½¾]?"/g, '').match(/\d+(?:,\d+)?/g) ?? [];
@@ -171,7 +171,7 @@ describe('tampilan hasil bertekanan: dua bahasa', () => {
       'Pump duty point',
       'Pralon products',
     ]);
-    expect(en[4]!.value).toBe('18 m³/h @ 46.12 m');
+    expect(en[4]!.value).toBe('18 m³/h @ 36.91 m');
   });
 
   it('baris sistem dan BOM: jumlah sama, teks Inggris, trace sama', () => {
@@ -180,7 +180,7 @@ describe('tampilan hasil bertekanan: dua bahasa', () => {
     expect(en).toHaveLength(idLines.length);
     expect(en.map((l) => l.traceIds)).toEqual(idLines.map((l) => l.traceIds));
     expect(en[0]!.name).toBe('HDPE main pipe');
-    expect(en[1]!.size).toBe('18 m³/h @ 46.12 m');
+    expect(en[1]!.size).toBe('18 m³/h @ 36.91 m');
     expect(en[2]!.reason).toContain('One size up');
 
     const idBom = pressurizedBomItemsFrom(result, 'HDPE', 800, traces, 'id');
@@ -203,8 +203,8 @@ describe('tampilan hasil bertekanan: dua bahasa', () => {
     const idP = pressurizedProse(result, 'HDPE', input, 'id');
     expect(idP).toEqual(pressurizedProse(result, 'HDPE', input));
     const enP = pressurizedProse(result, 'HDPE', input, 'en');
-    expect(enP.headline).toContain('pipe and a 18 m³/h pump at 46.12 m head');
-    expect(enP.body).toContain('46.12 m');
+    expect(enP.headline).toContain('pipe and a 18 m³/h pump at 36.91 m head');
+    expect(enP.body).toContain('36.91 m');
     expect(enP.body).toContain('Initial estimate');
     expect(enP.body).not.toContain(',12');
   });

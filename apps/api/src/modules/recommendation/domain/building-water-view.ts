@@ -23,6 +23,7 @@ import {
   type TechnicalParameter,
 } from '@snouty/shared-types';
 import type { IdentifiedTrace } from './solution-view.js';
+import { pipePurchase, type StockLength } from './pipe-quantity.js';
 
 const MATERIAL: Readonly<Record<string, PipeMaterial>> = {
   'PVC (uPVC)': 'PVC',
@@ -258,74 +259,71 @@ export function buildingSystemLines(
   return lines;
 }
 
-const ROD_METERS = 4;
+/** Panjang batang produk terpilih per peran; `null` = belum ada produk atau panjangnya belum tercatat. */
+export type StockLookup = (role: 'main' | 'riser' | 'branch' | 'fixture') => StockLength | null;
 
-/** BOM pipa tegak saja — jalur datar dan pipa cabang per lantai belum diketahui. */
+/**
+ * BOM jalur tegak saja: pipa transfer dan riser, masing-masing panjang bersih dari tinggi gedung
+ * dan jumlah beli dari panjang batang produk katalog terpilih. Pipa tiap lantai, sambungan ke
+ * titik air, fitting, katup, dan penyangga TIDAK dihitung jumlahnya: tanpa denah atau panjang
+ * jalur per lantai, angkanya akan tampak pasti padahal tebakan (audit C6 — sebelumnya √luas ×
+ * lantai menghasilkan 360 batang).
+ */
 export function buildingBomItems(
   result: BuildingWaterResult,
   input: BuildingWaterInput,
   traces: readonly IdentifiedTrace[],
   locale: Locale = DEFAULT_LOCALE,
+  stockFor: StockLookup = () => null,
 ): readonly BomItem[] {
   const en = locale === 'en';
+  const l = locale;
   const parts = buildingTraceParts(result, traces);
   const height = result.zoning.buildingHeightM;
   const transferFamily = familyOf(result.transferMaterial);
-  const transferLength = height + (input.horizontalRunM ?? 0);
-  const basis = en
-    ? 'Vertical runs only, as tall as the building; floor branches follow the floor plan.'
-    : 'Hanya jalur tegak setinggi gedung; pipa cabang tiap lantai mengikuti denah.';
-  const transferIds = ids(parts.transfer);
-  const riserIds = ids([...parts.split, ...parts.riser]);
-  const items: BomItem[] = [
-    transferFamily === 'HDPE'
-      ? {
-          item: en ? 'HDPE transfer pipe' : 'Pipa transfer HDPE',
-          size: result.transfer.recommendedSize,
-          quantity: Math.ceil(transferLength),
-          unit: 'meter',
-          basis,
-          provenance: worst(parts.transfer),
-          traceIds: transferIds,
-        }
-      : {
-          item: en ? `${transferFamily} transfer pipe` : `Pipa transfer ${transferFamily}`,
-          size: result.transfer.recommendedSize,
-          quantity: Math.ceil(transferLength / ROD_METERS),
-          unit: 'batang',
-          basis,
-          provenance: worst(parts.transfer),
-          traceIds: transferIds,
-        },
+  const horizontal = input.horizontalRunM;
+  const transfer = pipePurchase(
+    height + (horizontal ?? 0),
+    horizontal === undefined
+      ? en
+        ? `rising the building height of ${num(height, l)} m; horizontal run not stated`
+        : `naik setinggi gedung ${num(height, l)} m; jalur datar belum disebut`
+      : en
+        ? `building height ${num(height, l)} m + horizontal run ${num(horizontal, l)} m`
+        : `tinggi gedung ${num(height, l)} m + jalur datar ${num(horizontal, l)} m`,
+    stockFor('main'),
+    locale,
+  );
+  const riser = pipePurchase(
+    height * result.risers,
+    en
+      ? `${result.risers} riser(s) × ${num(height, l)} m, serving ${input.floors} floors`
+      : `${result.risers} riser × ${num(height, l)} m, melayani ${input.floors} lantai`,
+    stockFor('riser'),
+    locale,
+  );
+  return [
+    {
+      item: en ? `${transferFamily} transfer pipe` : `Pipa transfer ${transferFamily}`,
+      size: result.transfer.recommendedSize,
+      quantity: transfer.quantity,
+      unit: transfer.unit,
+      basis: transfer.basis,
+      provenance: worst(parts.transfer),
+      traceIds: ids(parts.transfer),
+    },
     {
       item: en
         ? `${familyOf(result.riserMaterial)} riser pipe`
         : `Pipa riser ${familyOf(result.riserMaterial)}`,
       size: result.riser.recommendedSize,
-      quantity: Math.ceil(height / ROD_METERS) * result.risers,
-      unit: 'batang',
-      basis,
+      quantity: riser.quantity,
+      unit: riser.unit,
+      basis: riser.basis,
       provenance: worst([...parts.split, ...parts.riser]),
-      traceIds: riserIds,
+      traceIds: ids([...parts.split, ...parts.riser]),
     },
   ];
-  const floor = result.floorBranch;
-  if (floor !== null) {
-    const fam = familyOf(result.riserMaterial);
-    const floorIds = ids(parts.floor);
-    items.push({
-      item: en ? `${fam} floor header pipe` : `Pipa induk lantai ${fam}`,
-      size: floor.header.recommendedSize,
-      quantity: Math.ceil(floor.headerLengthM / ROD_METERS) * input.floors,
-      unit: 'batang',
-      basis: en
-        ? 'One header per floor, as long as the side of the floor plan; branches to each outlet follow the layout.'
-        : 'Satu pipa induk per lantai, sepanjang sisi denah; cabang ke tiap titik mengikuti tata letak.',
-      provenance: worst(parts.floor),
-      traceIds: floorIds,
-    });
-  }
-  return items;
 }
 
 export function buildingAssumptions(
@@ -334,15 +332,36 @@ export function buildingAssumptions(
   locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
   const en = locale === 'en';
+  const pump = result.transfer.pumpDuty;
+  const pressures = [
+    ...(pump
+      ? [
+          en
+            ? `the transfer pipe up to ${num(pump.differentialPressureBar, locale)} bar`
+            : `pipa transfer sampai ${num(pump.differentialPressureBar, locale)} bar`,
+        ]
+      : []),
+    en
+      ? `the riser base ${num(result.zoning.riserBaseStaticBar, locale)} bar`
+      : `kaki riser ${num(result.zoning.riserBaseStaticBar, locale)} bar`,
+  ].join(en ? ' and ' : ' dan ');
+  const limits: Assumption = {
+    text: en
+      ? `Not counted yet: pipes on each floor, connections to the outlets, fittings, valves, supports, the booster pump, and the pressure-reducing valve settings, because they need the floor plan or the route on each floor. Working pressure on ${pressures} must be checked against the official pressure class of the pipe.`
+      : `Belum dihitung: pipa tiap lantai, sambungan ke titik air, fitting, katup, penyangga, pompa booster, dan setelan katup penurun tekanan, karena semuanya butuh denah atau jalur per lantai. Tekanan kerja di ${pressures} perlu dicek ke kelas tekanan resmi pipanya.`,
+    fieldPath: '',
+    ruleId: 'ENG-503',
+  };
   return [
     {
       text: en
-        ? 'How it is worked out: number of people × water per person gives the daily need; from that come the busiest-hour flow (for the transfer pump) and the busiest-minute flow (for the risers). The building height sets how many pressure zones are needed, and each pipe is the smallest size whose water speed stays in the safe range. This is an initial estimate not yet checked by the Pralon technical team, not a working drawing. Pumps are still chosen from the manufacturer’s curve.'
-        : 'Cara hitungnya: jumlah orang × kebutuhan air per orang memberi kebutuhan harian; dari situ keluar debit jam tersibuk (untuk pompa transfer) dan debit menit tersibuk (untuk riser). Tinggi gedung menentukan berapa zona tekanan yang perlu, dan tiap pipa dipilih ukuran terkecil yang kecepatan airnya masih aman. Ini perkiraan awal yang belum diperiksa tim teknis Pralon, bukan gambar kerja. Pompa tetap dipilih dari kurva pabrikan.',
+        ? 'How it is worked out: number of people × water per person gives the daily need; from that come the busiest-hour flow (for the transfer pump) and the busiest-minute flow (for the risers). The pressure on each floor follows its height below the roof tank: floors below the minimum pressure get a booster, floors above the zone limit go through pressure-reducing valves. Each pipe is the smallest size whose water speed stays in the safe range. This is an initial estimate not yet checked by the Pralon technical team, not a working drawing. Pumps are still chosen from the manufacturer’s curve.'
+        : 'Cara hitungnya: jumlah orang × kebutuhan air per orang memberi kebutuhan harian; dari situ keluar debit jam tersibuk (untuk pompa transfer) dan debit menit tersibuk (untuk riser). Tekanan tiap lantai mengikuti tingginya di bawah tangki atap: lantai yang tekanannya kurang dari minimum memakai booster, lantai yang melebihi batas zona lewat katup penurun tekanan. Tiap pipa dipilih ukuran terkecil yang kecepatan airnya masih aman. Ini perkiraan awal yang belum diperiksa tim teknis Pralon, bukan gambar kerja. Pompa tetap dipilih dari kurva pabrikan.',
       // Penjelasan cara hitung, bukan asumsi yang bisa diubah — tanpa tombol Perbaiki.
       fieldPath: '',
       ruleId: 'ENG-502',
     },
+    limits,
     ...result.appliedAssumptionIds.map((aid) => {
       const a = applyAssumption(aid);
       return {

@@ -23,6 +23,7 @@ import type {
   TechnicalParameter,
 } from '@snouty/shared-types';
 import type { IdentifiedTrace } from './solution-view.js';
+import { pipePurchase, type StockLength } from './pipe-quantity.js';
 
 function traceIdsFor(traces: readonly IdentifiedTrace[], ...ruleIds: string[]): readonly string[] {
   return traces.filter((trace) => ruleIds.includes(trace.ruleId)).map((trace) => trace.id);
@@ -208,8 +209,6 @@ export function pressurizedSystemLinesFrom(
   return lines;
 }
 
-const ROD_METERS = 4;
-
 /** BOM tata letak sederhana: pipa utama, elbow, katup, fitting pompa. */
 export function pressurizedBomItemsFrom(
   result: PressurizedResult,
@@ -217,6 +216,8 @@ export function pressurizedBomItemsFrom(
   routeLengthM: number,
   traces: readonly IdentifiedTrace[],
   locale: Locale = DEFAULT_LOCALE,
+  /** Panjang batang produk pipa terpilih; `null` → jumlah dalam meter. */
+  stock: StockLength | null = null,
 ): readonly BomItem[] {
   const en = locale === 'en';
   const ids = traceIdsFor(traces, 'ENG-205');
@@ -234,14 +235,17 @@ export function pressurizedBomItemsFrom(
     provenance,
     traceIds: ids,
   });
+  const pipe = pipePurchase(
+    routeLengthM,
+    en ? `route ${routeLengthM} m` : `jalur ${routeLengthM} m`,
+    stock,
+    locale,
+  );
   const lines: BomItem[] = [
-    family === 'HDPE'
-      ? row(en ? 'HDPE pipe' : 'Pipa HDPE', Math.ceil(routeLengthM), 'meter')
-      : row(
-          en ? `${family} pipe` : `Pipa ${family}`,
-          Math.ceil(routeLengthM / ROD_METERS),
-          'batang',
-        ),
+    {
+      ...row(en ? `${family} pipe` : `Pipa ${family}`, pipe.quantity, pipe.unit),
+      basis: `${explanationFor(traces, 'ENG-205')} ${pipe.basis}`.trim(),
+    },
     row('Elbow 90°', 4, 'pcs'),
     row(en ? 'Valve / stop cock' : 'Katup / stop kran', 2, 'pcs'),
   ];

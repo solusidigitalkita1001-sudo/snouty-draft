@@ -8,7 +8,7 @@
  */
 
 import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
-import { sizeTableFor } from './parameters/size-tables.js';
+import { sizeTableFor, wallSdrAssumptionId } from './parameters/size-tables.js';
 import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
@@ -93,6 +93,9 @@ export function computePressurized(
   const velocityMaxMs = use('VELOCITY_MAX_PLASTIC');
   const gradientMaxMPer100m = use('HEADLOSS_GRADIENT_MAX');
   const minorLossFraction = use('MINOR_LOSS_FRACTION');
+  // HDPE/MDPE dijual dalam mm (OD); PVC dalam inci — label hasil langsung cocok dengan katalog.
+  const table = sizeTableFor(input.material ?? 'PVC');
+  const wallSdr = use(wallSdrAssumptionId(table));
 
   const sizing = run(ENG_205, {
     designFlowLs: input.designFlowLs,
@@ -104,8 +107,8 @@ export function computePressurized(
     velocityMaxMs,
     gradientMaxMPer100m,
     minorLossFraction,
-    // HDPE/MDPE dijual dalam mm (OD); PVC dalam inci — label hasil langsung cocok dengan katalog.
-    sizeTable: sizeTableFor(input.material ?? 'PVC'),
+    sizeTable: table,
+    wallSdr,
   });
   const pick = sizing.candidates.find((c) => c.size === sizing.recommended)!;
 

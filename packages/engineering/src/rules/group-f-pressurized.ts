@@ -11,8 +11,8 @@
  */
 
 import { localized, requireNumber, type RuleVersion } from '../rule.js';
-import { barToHeadM, lsToM3h, round1, round2, round3 } from '../units.js';
-import { requireSizeTable } from './group-e-irrigation.js';
+import { barToHeadM, headMToBar, lsToM3h, round1, round2, round3 } from '../units.js';
+import { withWallSdr } from './group-e-irrigation.js';
 import { sizeTable, type SizeTableId } from '../parameters/size-tables.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
@@ -69,8 +69,8 @@ export const ENG_201: RuleVersion<VelocityInput, VelocityResult> = {
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Kecepatan ${output.velocityMs} m/s = ${input.designFlowLs} l/s ÷ luas penampang ${output.areaMm2} mm² (diameter dalam ${input.innerDiameterMm} mm).`,
-      en: `Velocity ${output.velocityMs} m/s = ${input.designFlowLs} l/s ÷ cross-sectional area ${output.areaMm2} mm² (inner diameter ${input.innerDiameterMm} mm).`,
+      id: `Kecepatan ${output.velocityMs} m/s = ${round2(input.designFlowLs)} l/s ÷ luas penampang ${output.areaMm2} mm² (diameter dalam ${input.innerDiameterMm} mm).`,
+      en: `Velocity ${output.velocityMs} m/s = ${round2(input.designFlowLs)} l/s ÷ cross-sectional area ${output.areaMm2} mm² (inner diameter ${input.innerDiameterMm} mm).`,
     }),
 };
 
@@ -141,8 +141,8 @@ export const ENG_202: RuleVersion<FrictionInput, FrictionResult> = {
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Air kehilangan tekanan ${output.frictionLossM} m sepanjang ${input.lengthM} m pipa (diameter dalam ${input.innerDiameterMm} mm, ${input.designFlowLs} l/s) — sekitar ${output.gradientMPer100m} m tiap 100 m pipa.`,
-      en: `The water loses ${output.frictionLossM} m of pressure along ${input.lengthM} m of pipe (inner diameter ${input.innerDiameterMm} mm, ${input.designFlowLs} l/s) — about ${output.gradientMPer100m} m per 100 m of pipe.`,
+      id: `Air kehilangan tekanan ${output.frictionLossM} m sepanjang ${input.lengthM} m pipa (diameter dalam ${input.innerDiameterMm} mm, ${round2(input.designFlowLs)} l/s) — sekitar ${output.gradientMPer100m} m tiap 100 m pipa.`,
+      en: `The water loses ${output.frictionLossM} m of pressure along ${input.lengthM} m of pipe (inner diameter ${input.innerDiameterMm} mm, ${round2(input.designFlowLs)} l/s) — about ${output.gradientMPer100m} m per 100 m of pipe.`,
     }),
 };
 
@@ -268,6 +268,8 @@ export interface SizingInput {
   readonly minorLossFraction: number;
   /** Tabel ukuran kandidat: inci (PVC) atau mm (HDPE). */
   readonly sizeTable: SizeTableId;
+  /** SDR untuk memperkirakan tebal dinding (diameter dalam = OD − 2·OD/SDR). */
+  readonly wallSdr: number;
 }
 export type CandidateStatus = 'ok' | 'too_fast' | 'too_slow' | 'high_loss';
 export interface SizeCandidate {
@@ -288,103 +290,103 @@ export interface SizingResult {
   readonly allCriteriaMet: boolean;
 }
 
-/** Hasil kandidat kasus uji ENG-205 (5 l/s, 800 m, statis 12 m, C 150, sisa 0,5 bar) — dari probe. */
+/** Hasil kandidat kasus uji ENG-205 (5 l/s, 800 m, statis 12 m, C 150, sisa 0,5 bar, SDR 26,5) — dari probe; diameter dalam diperiksa ulang di spec dengan hitungan acuan. */
 const PROBE_CANDIDATES: readonly SizeCandidate[] = [
   {
     size: '1/2"',
-    innerDiameterMm: 15,
-    velocityMs: 28.29,
-    frictionLossM: 33326.6,
-    gradientMPer100m: 4165.82,
-    totalDynamicHeadM: 36676.36,
+    innerDiameterMm: 20.3,
+    velocityMs: 15.45,
+    frictionLossM: 7634.79,
+    gradientMPer100m: 954.35,
+    totalDynamicHeadM: 8415.37,
     status: 'too_fast',
   },
   {
     size: '3/4"',
-    innerDiameterMm: 20,
-    velocityMs: 15.92,
-    frictionLossM: 8208.98,
-    gradientMPer100m: 1026.12,
-    totalDynamicHeadM: 9046.98,
+    innerDiameterMm: 24,
+    velocityMs: 11.05,
+    frictionLossM: 3377.89,
+    gradientMPer100m: 422.24,
+    totalDynamicHeadM: 3732.78,
     status: 'too_fast',
   },
   {
     size: '1"',
-    innerDiameterMm: 25,
-    velocityMs: 10.19,
-    frictionLossM: 2768.85,
-    gradientMPer100m: 346.11,
-    totalDynamicHeadM: 3062.84,
+    innerDiameterMm: 29.6,
+    velocityMs: 7.27,
+    frictionLossM: 1216.32,
+    gradientMPer100m: 152.04,
+    totalDynamicHeadM: 1355.05,
     status: 'too_fast',
   },
   {
     size: '1¼"',
-    innerDiameterMm: 32,
-    velocityMs: 6.22,
-    frictionLossM: 832.04,
-    gradientMPer100m: 104,
-    totalDynamicHeadM: 932.34,
+    innerDiameterMm: 38.8,
+    velocityMs: 4.23,
+    frictionLossM: 325.52,
+    gradientMPer100m: 40.69,
+    totalDynamicHeadM: 375.17,
     status: 'too_fast',
   },
   {
     size: '1½"',
-    innerDiameterMm: 40,
-    velocityMs: 3.98,
-    frictionLossM: 280.64,
-    gradientMPer100m: 35.08,
-    totalDynamicHeadM: 325.8,
+    innerDiameterMm: 44.4,
+    velocityMs: 3.23,
+    frictionLossM: 168.82,
+    gradientMPer100m: 21.1,
+    totalDynamicHeadM: 202.8,
     status: 'too_fast',
   },
   {
     size: '2"',
-    innerDiameterMm: 50,
-    velocityMs: 2.55,
-    frictionLossM: 94.66,
-    gradientMPer100m: 11.83,
-    totalDynamicHeadM: 121.23,
+    innerDiameterMm: 55.5,
+    velocityMs: 2.07,
+    frictionLossM: 56.94,
+    gradientMPer100m: 7.12,
+    totalDynamicHeadM: 79.73,
     status: 'too_fast',
   },
   {
     size: '2½"',
-    innerDiameterMm: 65,
-    velocityMs: 1.51,
-    frictionLossM: 26.38,
-    gradientMPer100m: 3.3,
-    totalDynamicHeadM: 46.12,
+    innerDiameterMm: 70.3,
+    velocityMs: 1.29,
+    frictionLossM: 18.01,
+    gradientMPer100m: 2.25,
+    totalDynamicHeadM: 36.91,
     status: 'ok',
   },
   {
     size: '3"',
-    innerDiameterMm: 80,
-    velocityMs: 0.99,
-    frictionLossM: 9.59,
-    gradientMPer100m: 1.2,
-    totalDynamicHeadM: 27.65,
+    innerDiameterMm: 82.3,
+    velocityMs: 0.94,
+    frictionLossM: 8.36,
+    gradientMPer100m: 1.04,
+    totalDynamicHeadM: 26.3,
     status: 'ok',
   },
   {
     size: '4"',
-    innerDiameterMm: 100,
-    velocityMs: 0.64,
-    frictionLossM: 3.24,
-    gradientMPer100m: 0.4,
-    totalDynamicHeadM: 20.66,
-    status: 'ok',
+    innerDiameterMm: 105.4,
+    velocityMs: 0.57,
+    frictionLossM: 2.5,
+    gradientMPer100m: 0.31,
+    totalDynamicHeadM: 19.85,
+    status: 'too_slow',
   },
   {
     size: '6"',
-    innerDiameterMm: 150,
-    velocityMs: 0.28,
-    frictionLossM: 0.45,
-    gradientMPer100m: 0.06,
-    totalDynamicHeadM: 17.6,
+    innerDiameterMm: 152.5,
+    velocityMs: 0.27,
+    frictionLossM: 0.41,
+    gradientMPer100m: 0.05,
+    totalDynamicHeadM: 17.55,
     status: 'too_slow',
   },
 ];
 
 export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
   ruleId: 'ENG-205',
-  version: 2,
+  version: 3,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -400,38 +402,40 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
       velocityMaxMs: n('velocityMaxMs', 0.5, 5),
       gradientMaxMPer100m: n('gradientMaxMPer100m', 0.1, 100),
       minorLossFraction: n('minorLossFraction', 0, 1),
-      sizeTable: requireSizeTable('ENG-205', o['sizeTable']),
+      ...withWallSdr('ENG-205', o),
     };
   },
   compute: (input) => {
-    const candidates: SizeCandidate[] = sizeTable(input.sizeTable).map(({ size, innerMm }) => {
-      const v = velocityOf(input.designFlowLs, innerMm);
-      const f = frictionLossOf(input.designFlowLs, innerMm, input.lengthM, input.hazenWilliamsC);
-      const minor = round2(f.frictionLossM * input.minorLossFraction);
-      const tdh = tdhOf({
-        staticHeadM: input.staticHeadM,
-        frictionLossM: f.frictionLossM,
-        minorLossM: minor,
-        residualPressureBar: input.residualPressureBar,
-      });
-      const status: CandidateStatus =
-        v.velocityMs > input.velocityMaxMs
-          ? 'too_fast'
-          : f.gradientMPer100m > input.gradientMaxMPer100m
-            ? 'high_loss'
-            : v.velocityMs < input.velocityMinMs
-              ? 'too_slow'
-              : 'ok';
-      return {
-        size,
-        innerDiameterMm: innerMm,
-        velocityMs: v.velocityMs,
-        frictionLossM: f.frictionLossM,
-        gradientMPer100m: f.gradientMPer100m,
-        totalDynamicHeadM: tdh.totalDynamicHeadM,
-        status,
-      };
-    });
+    const candidates: SizeCandidate[] = sizeTable(input.sizeTable, input.wallSdr).map(
+      ({ size, innerMm }) => {
+        const v = velocityOf(input.designFlowLs, innerMm);
+        const f = frictionLossOf(input.designFlowLs, innerMm, input.lengthM, input.hazenWilliamsC);
+        const minor = round2(f.frictionLossM * input.minorLossFraction);
+        const tdh = tdhOf({
+          staticHeadM: input.staticHeadM,
+          frictionLossM: f.frictionLossM,
+          minorLossM: minor,
+          residualPressureBar: input.residualPressureBar,
+        });
+        const status: CandidateStatus =
+          v.velocityMs > input.velocityMaxMs
+            ? 'too_fast'
+            : f.gradientMPer100m > input.gradientMaxMPer100m
+              ? 'high_loss'
+              : v.velocityMs < input.velocityMinMs
+                ? 'too_slow'
+                : 'ok';
+        return {
+          size,
+          innerDiameterMm: innerMm,
+          velocityMs: v.velocityMs,
+          frictionLossM: f.frictionLossM,
+          gradientMPer100m: f.gradientMPer100m,
+          totalDynamicHeadM: tdh.totalDynamicHeadM,
+          status,
+        };
+      },
+    );
     const okIndex = candidates.findIndex((c) => c.status === 'ok');
     if (okIndex >= 0) {
       const next = candidates[okIndex + 1];
@@ -453,7 +457,7 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
   validationStatus: PENDING,
   testCases: [
     {
-      name: '5 l/s, 800 m, statis 12 m → kandidat 2½" (3,3 m/100 m, 1,51 m/s) dengan alternatif 3"',
+      name: '5 l/s, 800 m, statis 12 m → kandidat 2½" (2,25 m/100 m, 1,29 m/s) dengan alternatif 3"',
       input: {
         designFlowLs: 5,
         lengthM: 800,
@@ -465,6 +469,7 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
         gradientMaxMPer100m: 10,
         minorLossFraction: 0.1,
         sizeTable: 'pvc_inch',
+        wallSdr: 26.5,
       },
       expected: {
         candidates: PROBE_CANDIDATES,
@@ -484,23 +489,33 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
 };
 
 // ── ENG-206 · Titik kerja pompa ─────────────────────────────────────────────
+//
+// Tiga daya yang sering tertukar (audit C3):
+//   daya hidraulik  P_h = ρ·g·Q·H          — energi yang benar-benar diterima air;
+//   daya poros      P_s = P_h ÷ η_pompa     — yang harus diberikan ke poros pompa;
+//   daya masuk motor     = P_s ÷ η_motor    — tidak dihitung: efisiensi motor dan cadangan daya
+//                                             datang dari pabrikan, bukan dari aturan ini.
 
 export interface PumpDutyInput {
   readonly designFlowLs: number;
   readonly totalDynamicHeadM: number;
-  /** Efisiensi keseluruhan indikatif (0–1) untuk daya poros; bukan pemilihan pompa. */
+  /** Efisiensi pompa (hidraulik → poros), 0–1. Bukan efisiensi motor, bukan pemilihan pompa. */
   readonly efficiency: number;
 }
 export interface PumpDutyResult {
   readonly flowM3h: number;
+  /** Head pompa (m kolom air) = tinggi angkat total ENG-204. */
   readonly headM: number;
+  /** Beda tekanan sisi isap–tekan yang setara dengan head itu. */
+  readonly differentialPressureBar: number;
   readonly hydraulicPowerKw: number;
+  /** Daya poros pompa = daya hidraulik ÷ efisiensi pompa. */
   readonly indicativeShaftPowerKw: number;
 }
 
 export const ENG_206: RuleVersion<PumpDutyInput, PumpDutyResult> = {
   ruleId: 'ENG-206',
-  version: 1,
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -521,20 +536,22 @@ export const ENG_206: RuleVersion<PumpDutyInput, PumpDutyResult> = {
     return {
       flowM3h: round2(lsToM3h(input.designFlowLs)),
       headM: round2(input.totalDynamicHeadM),
+      differentialPressureBar: round2(headMToBar(input.totalDynamicHeadM)),
       hydraulicPowerKw: round3(hydraulicKw),
       indicativeShaftPowerKw: round2(hydraulicKw / input.efficiency),
     };
   },
   sourceReference:
-    'Daya hidraulik P = ρ·g·Q·H; daya poros = P / η (η indikatif, tanpa kurva pompa)',
+    'Daya hidraulik P = ρ·g·Q·H; daya poros = P ÷ η pompa (η indikatif, tanpa kurva pompa); daya masuk motor tidak dihitung',
   validationStatus: PENDING,
   testCases: [
     {
-      name: '5 l/s pada 25,21 m, η 0,6',
+      name: '5 l/s pada 25,21 m, η pompa 0,6',
       input: { designFlowLs: 5, totalDynamicHeadM: 25.21, efficiency: 0.6 },
       expected: {
         flowM3h: 18,
         headM: 25.21,
+        differentialPressureBar: 2.47,
         hydraulicPowerKw: 1.237,
         indicativeShaftPowerKw: 2.06,
       },
@@ -542,8 +559,8 @@ export const ENG_206: RuleVersion<PumpDutyInput, PumpDutyResult> = {
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Pompa yang dicari: ${output.flowM3h} m³/jam (${input.designFlowLs} l/s) dengan tinggi angkat ${output.headM} m. Daya yang diterima air ${output.hydraulicPowerKw} kW; dengan efisiensi ${Math.round(input.efficiency * 100)} % motornya sekitar ${output.indicativeShaftPowerKw} kW. Pilih pompanya dari kurva pabrikan, bukan dari angka ini saja.`,
-      en: `The pump to look for: ${output.flowM3h} m³/h (${input.designFlowLs} l/s) with a lift of ${output.headM} m. The water receives ${output.hydraulicPowerKw} kW; at ${Math.round(input.efficiency * 100)} % efficiency the motor is about ${output.indicativeShaftPowerKw} kW. Choose the pump from the manufacturer's curve, not from these figures alone.`,
+      id: `Pompa yang dicari: ${output.flowM3h} m³/jam (${round2(input.designFlowLs)} l/s) dengan tinggi angkat ${output.headM} m (beda tekanan sekitar ${output.differentialPressureBar} bar). Air menerima ${output.hydraulicPowerKw} kW; dengan efisiensi pompa ${Math.round(input.efficiency * 100)} % porosnya butuh sekitar ${output.indicativeShaftPowerKw} kW. Daya motor lebih besar lagi dan ditentukan dari data pabrikan, begitu juga pilihan pompanya.`,
+      en: `The pump to look for: ${output.flowM3h} m³/h (${round2(input.designFlowLs)} l/s) with a lift of ${output.headM} m (a pressure difference of about ${output.differentialPressureBar} bar). The water receives ${output.hydraulicPowerKw} kW; at ${Math.round(input.efficiency * 100)} % pump efficiency the shaft needs about ${output.indicativeShaftPowerKw} kW. The motor rating is higher still and comes from the manufacturer, as does the pump choice.`,
     }),
 };
 

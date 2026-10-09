@@ -13,6 +13,7 @@
  */
 
 import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
+import { caseInputIssues, CaseInputInvalidError } from './cases/validation.js';
 import {
   computePressurized,
   type PipeMaterial,
@@ -110,6 +111,21 @@ export function computeBuildingWater(
   /** Nilai asumsi yang diganti pengguna, per ID registry — menggantikan nilai baku. */
   overrides: AssumptionOverrides = {},
 ): BuildingWaterResult {
+  // Masukan yang bertentangan ditolak dengan alasan, sebelum satu angka pun dihitung.
+  const issues = caseInputIssues(
+    'multistorey_building_water',
+    {
+      building_floors: input.floors,
+      building_height:
+        input.floorHeightM === undefined ? undefined : input.floorHeightM * input.floors,
+      number_of_occupants: input.occupants,
+      floor_area: input.floorAreaM2,
+      required_pressure: input.residualPressureBar,
+    },
+    overrides,
+  );
+  if (issues.length > 0) throw new CaseInputInvalidError(issues);
+
   const traces: CalculationTrace[] = [];
   const { use, applied } = assumptionReader(overrides);
   function run<I, O>(rule: RuleVersion<I, O>, raw: unknown): O {
@@ -163,6 +179,7 @@ export function computeBuildingWater(
     peakMinuteLs: demand.peakMinuteLs,
     pumpFlowLs: demand.peakHourLs,
     peakDurationMin: use('PEAK_DURATION_30MIN'),
+    pumpCycleMin: use('PUMP_CYCLE_10MIN'),
     groundTankDays: use('GROUND_TANK_1_DAY'),
   });
 

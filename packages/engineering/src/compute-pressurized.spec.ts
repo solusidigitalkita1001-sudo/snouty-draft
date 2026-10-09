@@ -9,19 +9,19 @@ import { computePressurized } from './compute-pressurized.js';
 describe('computePressurized', () => {
   const result = computePressurized({ designFlowLs: 5, routeLengthM: 800, staticHeadM: 12 });
 
-  it('memilih 2½" (1,51 m/s, 3,3 m/100 m) dengan alternatif 3"; TDH ±46 m; pompa 18 m³/jam', () => {
+  it('memilih 2½" (diameter dalam 70,3 mm: 1,29 m/s, 2,25 m/100 m) dengan alternatif 3"; TDH ±37 m; pompa 18 m³/jam', () => {
     expect(result.recommendedSize).toBe('2½"');
     expect(result.alternativeSize).toBe('3"');
     expect(result.allCriteriaMet).toBe(true);
-    expect(result.velocityMs).toBe(1.51);
-    expect(result.frictionLossM).toBe(26.38);
-    expect(result.totalDynamicHeadM).toBe(46.12);
-    expect(result.pumpDuty).toMatchObject({ flowM3h: 18, headM: 46.12 });
-    expect(result.pumpDuty!.indicativeShaftPowerKw).toBeGreaterThan(3);
+    expect(result.innerDiameterMm).toBe(70.3);
+    expect(result.velocityMs).toBe(1.29);
+    expect(result.frictionLossM).toBe(18.01);
+    expect(result.totalDynamicHeadM).toBe(36.91);
+    expect(result.pumpDuty).toMatchObject({ flowM3h: 18, headM: 36.91 });
+    expect(result.pumpDuty!.indicativeShaftPowerKw).toBeGreaterThan(2);
     expect(result.candidates.filter((c) => c.status === 'ok').map((c) => c.size)).toEqual([
       '2½"',
       '3"',
-      '4"',
     ]);
   });
 
@@ -43,6 +43,7 @@ describe('computePressurized', () => {
         'HEADLOSS_GRADIENT_MAX',
         'MINOR_LOSS_FRACTION',
         'PUMP_EFFICIENCY_INDICATIVE',
+        'PVC_AW_WALL_SDR',
       ]),
     );
     for (const t of result.traces) expect(t.explanation.length).toBeGreaterThan(20);

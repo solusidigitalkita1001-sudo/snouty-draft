@@ -5,8 +5,11 @@
  * `2"`. Engine karena itu memilih ukuran dari tabel sesuai keluarga, dan label yang keluar
  * (`1½"` atau `63 mm`) adalah label `PipeSize` kanonik yang langsung dicocokkan ke katalog.
  *
- * Diameter dalam di sini **pendekatan**, bukan tabel produk: inci dari ENG-102 (menunggu validasi),
- * mm dari OD − 2 × tebal SDR 17 (PE100 PN 10) — asumsi `HDPE_SDR17_PN10` di registry.
+ * Diameter dalam = OD − 2 × tebal dinding (Knowledge Master §2). OD PVC adalah angka yang konsisten
+ * di banyak sumber (Knowledge Master §7.1); tebal dindingnya belum ada yang resmi (§7.2 —
+ * sumbernya bertentangan), jadi tebal diperkirakan dari SDR yang ada di registry asumsi
+ * (`PVC_AW_WALL_SDR`, `HDPE_SDR17_PN10`). Ukuran nominal inci tidak pernah dipakai sebagai
+ * diameter dalam: 6" berdiameter luar 165 mm, bukan diameter dalam 150 mm (audit C1).
  */
 
 import { assumption } from './assumptions.js';
@@ -15,21 +18,24 @@ export type SizeTableId = 'pvc_inch' | 'hdpe_mm';
 
 export interface NominalSize {
   readonly size: string;
+  /** Diameter luar dari sumber produk (mm). */
+  readonly outerMm: number;
+  /** Diameter dalam perkiraan (mm) = OD − 2 × OD / SDR. */
   readonly innerMm: number;
 }
 
-/** Diameter dalam nominal (mm) per ukuran inci — pendekatan umum, bukan tabel produk. */
-export const PVC_INCH_SIZES: readonly NominalSize[] = [
-  { size: '1/2"', innerMm: 15 },
-  { size: '3/4"', innerMm: 20 },
-  { size: '1"', innerMm: 25 },
-  { size: '1¼"', innerMm: 32 },
-  { size: '1½"', innerMm: 40 },
-  { size: '2"', innerMm: 50 },
-  { size: '2½"', innerMm: 65 },
-  { size: '3"', innerMm: 80 },
-  { size: '4"', innerMm: 100 },
-  { size: '6"', innerMm: 150 },
+/** OD pipa uPVC Pralon per ukuran nominal — Knowledge Master §7.1. */
+const PVC_OUTER_DIAMETERS_MM: readonly (readonly [string, number])[] = [
+  ['1/2"', 22],
+  ['3/4"', 26],
+  ['1"', 32],
+  ['1¼"', 42],
+  ['1½"', 48],
+  ['2"', 60],
+  ['2½"', 76],
+  ['3"', 89],
+  ['4"', 114],
+  ['6"', 165],
 ];
 
 /** OD HDPE seri ISO 4427 yang ada di katalog Pralon (20–400 mm). */
@@ -37,17 +43,52 @@ const HDPE_OUTER_DIAMETERS_MM = [
   20, 25, 32, 40, 50, 63, 75, 90, 110, 125, 140, 160, 180, 200, 225, 250, 280, 315, 355, 400,
 ] as const;
 
-const SDR = assumption('HDPE_SDR17_PN10').value as number;
-
-/** HDPE: label `<OD> mm`; diameter dalam = OD − 2 × (OD / SDR), dibulatkan 0,1 mm. */
-export const HDPE_MM_SIZES: readonly NominalSize[] = HDPE_OUTER_DIAMETERS_MM.map((od) => ({
-  size: `${od} mm`,
-  innerMm: Math.round((od - (2 * od) / SDR) * 10) / 10,
-}));
-
-export function sizeTable(id: SizeTableId): readonly NominalSize[] {
-  return id === 'hdpe_mm' ? HDPE_MM_SIZES : PVC_INCH_SIZES;
+/** Diameter dalam dari OD dan SDR, dibulatkan 0,1 mm. */
+export function innerDiameterMm(outerMm: number, sdr: number): number {
+  return Math.round((outerMm - (2 * outerMm) / sdr) * 10) / 10;
 }
+
+export function defaultWallSdr(id: SizeTableId): number {
+  return assumption(id === 'hdpe_mm' ? 'HDPE_SDR17_PN10' : 'PVC_AW_WALL_SDR').value as number;
+}
+
+/** ID asumsi SDR yang dipakai sebuah tabel — dicatat sebagai asumsi terpakai oleh pemanggil. */
+export function wallSdrAssumptionId(id: SizeTableId): string {
+  return id === 'hdpe_mm' ? 'HDPE_SDR17_PN10' : 'PVC_AW_WALL_SDR';
+}
+
+export function sizeTable(
+  id: SizeTableId,
+  wallSdr: number = defaultWallSdr(id),
+): readonly NominalSize[] {
+  return id === 'hdpe_mm'
+    ? HDPE_OUTER_DIAMETERS_MM.map((od) => ({
+        size: `${od} mm`,
+        outerMm: od,
+        innerMm: innerDiameterMm(od, wallSdr),
+      }))
+    : PVC_OUTER_DIAMETERS_MM.map(([size, od]) => ({
+        size,
+        outerMm: od,
+        innerMm: innerDiameterMm(od, wallSdr),
+      }));
+}
+
+export const PVC_INCH_SIZES: readonly NominalSize[] = sizeTable('pvc_inch');
+
+/** 8"–12" (Knowledge Master §7.1) — hanya untuk saluran gravitasi; tabel bertekanan berhenti di 6". */
+export const PVC_LARGE_SIZES: readonly NominalSize[] = (
+  [
+    ['8"', 216],
+    ['10"', 267],
+    ['12"', 318],
+  ] as const
+).map(([size, od]) => ({
+  size,
+  outerMm: od,
+  innerMm: innerDiameterMm(od, defaultWallSdr('pvc_inch')),
+}));
+export const HDPE_MM_SIZES: readonly NominalSize[] = sizeTable('hdpe_mm');
 
 /** Tabel untuk sebuah keluarga/bahan: HDPE dan MDPE dalam mm, selain itu inci. */
 export function sizeTableFor(familyOrMaterial: string): SizeTableId {

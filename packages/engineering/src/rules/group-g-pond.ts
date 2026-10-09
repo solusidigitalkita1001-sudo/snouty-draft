@@ -126,7 +126,7 @@ export interface DrainSizeResult {
 
 export const ENG_303: RuleVersion<DrainSizeInput, DrainSizeResult> = {
   ruleId: 'ENG-303',
-  version: 1,
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -169,7 +169,7 @@ export const ENG_303: RuleVersion<DrainSizeInput, DrainSizeResult> = {
         drainFlowLs: 4.44,
         requiredInnerDiameterMm: 75.2,
         drainSize: '3"',
-        innerDiameterMm: 80,
+        innerDiameterMm: 82.3,
       },
     },
   ],

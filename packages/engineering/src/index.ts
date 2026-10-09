@@ -146,6 +146,8 @@ export type { CaseId, CaseProfile } from './cases/profiles.js';
 export { extractTechnicalContext } from './cases/extractor.js';
 export type { ExtractedParameter } from './cases/extractor.js';
 export { MAX_QUESTIONS, caseReadiness, resolveMissingParameters } from './cases/missing.js';
+export { caseInputIssues, CaseInputInvalidError } from './cases/validation.js';
+export type { CaseInputIssue } from './cases/validation.js';
 export type { CaseReadinessInput, MissingParameter } from './cases/missing.js';
 
 export { HDPE_FROM_METERS, irrigationDutyAssumptionId } from './rules/group-e-irrigation.js';
@@ -230,6 +232,12 @@ export {
   ENG_505,
   ENG_506,
   GROUP_I,
+} from './rules/group-i-building.js';
+export type {
+  PressureZone,
+  PressureZoneKind,
+  TankResult,
+  ZoningResult,
 } from './rules/group-i-building.js';
 export type { NetworkInput, NetworkResult } from './compute-network.js';
 export type { PipeMaterial, PressurizedInput, PressurizedResult } from './compute-pressurized.js';

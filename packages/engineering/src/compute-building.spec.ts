@@ -20,11 +20,21 @@ describe('computeBuildingWater', () => {
       peakHourLs: 30,
       peakMinuteLs: 45,
     });
-    expect(r.zoning).toEqual({ buildingHeightM: 42, zones: 2, reducedZones: 1, boosterFloors: 2 });
-    // Tangki bawah = 1 hari; tangki atap = (45 − 30 l/s) × 30 menit.
-    expect(r.tanks).toEqual({ groundTankM3: 540, roofTankM3: 27 });
+    expect(r.zoning).toMatchObject({
+      buildingHeightM: 42,
+      zones: 2,
+      reducedZones: 1,
+      boosterFloors: 2,
+    });
+    // Tangki bawah = 1 hari; tangki atap = (45 − 30 l/s) × 30 menit + 30 l/s × 10 menit.
+    expect(r.tanks).toEqual({
+      groundTankM3: 540,
+      roofPeakDeficitM3: 27,
+      roofPumpCycleM3: 18,
+      roofTankM3: 45,
+    });
     expect(r.appliedAssumptionIds).toEqual(
-      expect.arrayContaining(['GROUND_TANK_1_DAY', 'PEAK_DURATION_30MIN']),
+      expect.arrayContaining(['GROUND_TANK_1_DAY', 'PEAK_DURATION_30MIN', 'PUMP_CYCLE_10MIN']),
     );
     expect(r.transfer.recommendedSize).toBe('6"');
     expect(r.transfer.allCriteriaMet).toBe(true);
@@ -53,7 +63,7 @@ describe('computeBuildingWater', () => {
     expect(r.appliedAssumptionIds).not.toContain('OCCUPANT_AREA_10M2');
     expect(r.zoning.zones).toBe(1);
     expect(r.risers).toBe(1);
-    expect(r.transfer.recommendedSize).toBe('1¼"');
+    expect(r.transfer.recommendedSize).toBe('1"');
   });
 
   it('tanpa penghuni dan luas → minta data, tidak menebak', () => {

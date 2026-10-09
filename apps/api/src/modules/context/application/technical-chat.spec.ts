@@ -143,3 +143,27 @@ describe('kartu pertanyaan di samping Susun rekomendasi', () => {
     expect(token.text).not.toMatch(/beberapa hal ini:\n\n/);
   });
 });
+
+describe('data kasus yang saling bertentangan', () => {
+  it('12 lantai setinggi 10 m: ditanya balik, tanpa tombol Susun rekomendasi', async () => {
+    // Tinggi dari kartu pilihan/ketikan → parameter kasus; 10 m untuk 12 lantai = 0,83 m per lantai.
+    const tc = building.useCase as { kind: 'technical'; parameters: Record<string, unknown> };
+    const state = {
+      ...building,
+      useCase: {
+        ...tc,
+        parameters: {
+          ...tc.parameters,
+          building_height: { label: 'Tinggi bangunan', value: 10, origin: 'known' },
+        },
+      },
+    } as unknown as RequirementState;
+    const { events } = await runUnderstanding(null, { ...input('oke'), state });
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toContain('0,83 m per lantai');
+    const kinds = events
+      .filter((e) => e.type === 'card')
+      .map((e) => (e as unknown as { card: { kind: string } }).card.kind);
+    expect(kinds).not.toContain('cta');
+  });
+});

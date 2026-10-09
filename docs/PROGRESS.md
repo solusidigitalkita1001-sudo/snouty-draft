@@ -1298,6 +1298,14 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       `reports` produksi kosong: `REPORT_PDF` hanya untuk tier `advanced`, seluruh akun `registered`. Kini
       `registered` + `advanced` (OQ-41); pesan untuk tamu mengajak masuk/daftar; kop laporan memakai nama versi
       katalog (bukan ID) dan jenis instalasi sesuai kasus (gedung bertingkat, kolam, irigasi, air bersih rumah).
+- [x] P16-49 Audit akurasi teknik (brief "SNOUTY Engineering Accuracy", docs/ENGINEERING_AUDIT.md) —
+      diameter dalam dari OD resmi − tebal dinding (bukan 6" = 150 mm); debit tidak dibulatkan di tengah
+      rantai (pompa 300 m³/jam, bukan 299,99); daya hidraulik/poros dipisah, daya motor tidak diklaim; zona
+      tekanan dari elevasi tiap lantai dan batas min/maks dengan tabel lantai/tekanan; tangki atap + suku
+      siklus pompa, asumsi pasokan tertulis; BOM dari panjang batang produk katalog terpilih, panjang
+      bersih vs jumlah beli, pipa per lantai tidak lagi dari √luas × lantai (360 batang); data yang
+      bertentangan ditanya balik (bukan "layanan tidak tersedia"); durasi tahap analisis di log;
+      regresi 5 000 m² × 20 lantai × 90 m dengan hitungan acuan independen. Sisa → OQ-58.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

@@ -21,7 +21,7 @@ import type {
   Recommendation,
   RequirementState,
 } from '@snouty/shared-types';
-import { DEFAULT_LOCALE, PipeSize, type Product } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, PipeSize, type Product, type SystemRole } from '@snouty/shared-types';
 import {
   buildSchematic,
   computeIrrigation,
@@ -53,6 +53,7 @@ import {
   buildingWaterInputFrom,
   familyOf,
 } from '../domain/building-water-view.js';
+import { stockLengthOf, type StockLength } from '../domain/pipe-quantity.js';
 import {
   gravityAssumptionsFrom,
   gravityBomItemsFrom,
@@ -519,7 +520,14 @@ export class AnalysisService {
       }),
       systemLines: pressurizedSystemLinesFrom(result, plan.family, traces, locale),
       products: match.products,
-      bom: pressurizedBomItemsFrom(result, plan.family, plan.input.routeLengthM, traces, locale),
+      bom: pressurizedBomItemsFrom(
+        result,
+        plan.family,
+        plan.input.routeLengthM,
+        traces,
+        locale,
+        match.stockFor('main'),
+      ),
       assumptions: pressurizedAssumptionsFrom(result, plan.extraAssumptionIds, traces, locale),
       overallProvenance: result.overallProvenance,
       createdAt: now,
@@ -596,7 +604,7 @@ export class AnalysisService {
       }),
       systemLines: gravitySystemLinesFrom(result, traces, locale),
       products: match.products,
-      bom: gravityBomItemsFrom(result, plan.pipeLengthM, traces, locale),
+      bom: gravityBomItemsFrom(result, plan.pipeLengthM, traces, locale, match.stockFor('main')),
       assumptions: gravityAssumptionsFrom(result, traces, locale),
       overallProvenance: result.overallProvenance,
       createdAt: now,
@@ -691,7 +699,14 @@ export class AnalysisService {
       }),
       systemLines: pressurizedSystemLinesFrom(result, family, traces, locale),
       products: match.products,
-      bom: pressurizedBomItemsFrom(result, family, input.routeLengthM, traces, locale),
+      bom: pressurizedBomItemsFrom(
+        result,
+        family,
+        input.routeLengthM,
+        traces,
+        locale,
+        match.stockFor('main'),
+      ),
       assumptions: pressurizedAssumptionsFrom(result, extra, traces, locale),
       overallProvenance: result.overallProvenance,
       createdAt: now,
@@ -780,7 +795,7 @@ export class AnalysisService {
       }),
       systemLines: buildingSystemLines(result, traces, locale),
       products: match.products,
-      bom: buildingBomItems(result, input, traces, locale),
+      bom: buildingBomItems(result, input, traces, locale, match.stockFor),
       assumptions: buildingAssumptions(result, traces, locale),
       overallProvenance: result.overallProvenance,
       createdAt: now,
@@ -835,7 +850,14 @@ export class AnalysisService {
         if (found.length > 0) break;
       }
     }
-    return matchProducts(roles, [...byId.values()]);
+    const match = matchProducts(roles, [...byId.values()]);
+    // Panjang batang dari produk yang benar-benar terpilih per peran — dasar jumlah beli di BOM.
+    const stockFor = (role: SystemRole): StockLength | null => {
+      const selected = match.products.find((p) => p.role === role);
+      const product = selected ? byId.get(selected.productId) : undefined;
+      return product ? stockLengthOf(product) : null;
+    };
+    return { ...match, stockFor };
   }
 
   private async runPond(

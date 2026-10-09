@@ -281,7 +281,13 @@ Tabel diameter dalam nominal (15–150 mm) adalah pendekatan, bukan tabel produk
 masukan `sizeTable` memilih tabel inci (PVC) atau mm (HDPE/MDPE: OD ISO 4427 20–400 mm, diameter
 dalam = OD − 2·OD/17, asumsi `HDPE_SDR17_PN10`) — `computeIrrigation` menentukan bahan (ENG-104)
 lebih dulu, lalu jalur utama HDPE berukuran mm dan distribusi PVC AW tetap inci (ENG-105 v2).
-ENG-205 v2 memakai tabel yang sama lewat `computePressurized` (bahan → tabel).
+ENG-205 v2 memakai tabel yang sama lewat `computePressurized` (bahan → tabel). **v3 (2026-10-09,
+audit C1):** diameter dalam tidak lagi angka nominal (6" = 150 mm). PVC: OD resmi (Knowledge Master
+§7.1, ½" = 22 mm … 6" = 165 mm) − 2·OD/SDR dengan asumsi `PVC_AW_WALL_SDR` 26,5 (tebal AW 4"
+yang lebih tebal dari dua sumber yang bertentangan, §7.2); HDPE tetap SDR 17. SDR masuk sebagai
+masukan aturan (`wallSdr`) sehingga bisa diubah dari "Perbaiki asumsi" dan tercatat di trace.
+Tabel gravitasi (Kelompok H) memakai OD 8"–12" yang sama; 16" dikeluarkan karena OD-nya tidak ada
+di sumber.
 
 #### ENG-103 · Kebutuhan tekanan dan pompa
 
@@ -324,7 +330,8 @@ ENG-203  kerugian minor = fraksi × hf                        fraksi 0,1 (MINOR_
 ENG-204  TDH = statis + hf + minor + tekanan sisa (1 bar ≈ 10,2 m)
 ENG-205  kandidat dari tabel nominal; status ok / too_fast (> 2 m/s) / high_loss (> 10 m/100 m) /
          too_slow (< 0,6 m/s); rekomendasi = ukuran ok terkecil; alternatif = satu ukuran di atasnya
-ENG-206  P_hidraulik = ρ·g·Q·H ; daya poros indikatif = P / η (η 0,6, bukan pemilihan pompa)
+ENG-206  P_hidraulik = ρ·g·Q·H ; daya poros = P ÷ η_pompa (η 0,6) ; beda tekanan = H ÷ 10,197
+         daya masuk motor TIDAK dihitung (efisiensi motor dan cadangan dari pabrikan) — v2, audit C3
 ```
 
 ### Kelompok G — Kolam / tambak ikan (Fase 14, laporan pemilik "tambak lele 4 x 4 meter")
@@ -374,18 +381,29 @@ HDPE bila PVC tidak cukup. Semua `REQUIRES_DOMAIN_VALIDATION`; asumsi baru di OQ
 ```
 ENG-501  penghuni = luas lantai × lantai ÷ 10 m²/orang            (hanya bila penghuni tak disebut)
 ENG-502  Qd = penghuni × 150 l ; Qh = Qd ÷ 10 jam ; Qh-maks = 2,0 × Qh ; Qm-maks = 3,0 × Qh ÷ 60
-ENG-503  tinggi = lantai × 3,5 m ; zona = ⌈tinggi ÷ head 4 bar⌉ ; booster = lantai teratas yang
-         tinggi statiknya dari tangki atap < tekanan sisa 1 bar
+         v2: debit dalam l/s tidak dibulatkan di tengah rantai (audit C2: 300 m³/jam, bukan 299,99)
+ENG-503  v2 (audit C4): tekanan statik lantai k = (tinggi gedung − (k−1)·tinggi lantai) ÷ 10,197
+         dari muka air tangki atap setinggi atap. Dari atas: < tekanan sisa → booster; ≤ batas zona →
+         gravitasi; sisanya zona berkatup penurun tekanan, tiap zona ⌊(batas − sisa) ÷ tinggi lantai⌋ + 1
+         lantai mulai dari tekanan sisa di lantai teratasnya. Tabel zona menyebut lantai, elevasi, dan
+         tekanan atas/bawah; tekanan sisa ≥ batas zona ditolak. Kaki riser: tekanan statik total.
 ENG-504  debit per riser = Qm-maks ÷ jumlah riser
 ENG-505  debit per lantai = Qm-maks ÷ lantai ; induk lantai = √luas lantai (20 m bila luas tak ada)
          → ukuran induk lantai lewat Kelompok F; titik per lantai ENG-001, cabang ENG-003, ½" ENG-005
          (hanya bila kamar mandi/wastafel per lantai disebut)
-ENG-506  tangki bawah = Qd × 1 hari ; tangki atap = (Qm-maks − debit pompa) × 30 menit
+ENG-506  v2 (audit C5): tangki bawah = Qd × 1 hari (pasokan selama hari itu tidak dikurangkan) ;
+         tangki atap VE = (Qm-maks − Qpompa) × 30 menit + Qpompa × 10 menit (siklus pompa,
+         `PUMP_CYCLE_10MIN`) ; volume efektif
 ```
 
 Contoh (laporan pemilik "gedung 100 x 30, 12 lantai"): 3 600 orang → 540 m³/hari → 30 l/s jam
 puncak, 45 l/s menit puncak; tinggi 42 m → 2 zona, booster 2 lantai teratas; transfer PVC AW 6"
-dengan pompa 108 m³/jam @ 47,8 m; 2 riser 6".
+dengan pompa 108 m³/jam @ 47,8 m; 2 riser 6". Regresi dengan hitungan acuan independen:
+`packages/engineering/src/regression/building-reference.spec.ts` (kasus 5 000 m² × 20 lantai × 90 m).
+
+BOM gedung (audit C6) hanya jalur tegak: panjang bersih (tinggi gedung × riser, tinggi + jalur
+datar untuk transfer) ÷ panjang batang produk katalog terpilih (`pipe-quantity.ts`), dibulatkan ke
+batang utuh tanpa sisa potongan. Pipa tiap lantai tidak lagi dihitung jumlahnya dari √luas × lantai.
 
 ## 4. Tabel pelacak validasi
 

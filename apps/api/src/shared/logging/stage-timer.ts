@@ -27,3 +27,36 @@ export function stageTimer(now: () => number = Date.now): StageTimer {
     },
   };
 }
+
+/** Event tahap seperti yang dialirkan ke web (`stage`, `status`). */
+interface StageEvent {
+  readonly type: string;
+  readonly stage?: string;
+  readonly status?: string;
+}
+
+/**
+ * Durasi per tahap dari event tahap yang sudah dialirkan (`active` → `done`/`failed`): jalur
+ * analisis mengukur engine, katalog, dan penyusunan tanpa jam tambahan di setiap runner.
+ */
+export function streamStageClock(now: () => number = Date.now): {
+  observe(event: StageEvent): void;
+  report(): Readonly<Record<string, number>>;
+} {
+  const startedAt = now();
+  const open = new Map<string, number>();
+  const stages: Record<string, number> = {};
+  return {
+    observe(event) {
+      if (event.type !== 'stage' || event.stage === undefined) return;
+      if (event.status === 'active') open.set(event.stage, now());
+      else if (open.has(event.stage)) {
+        stages[event.stage] = now() - open.get(event.stage)!;
+        open.delete(event.stage);
+      }
+    },
+    report() {
+      return { ...stages, total: now() - startedAt };
+    },
+  };
+}

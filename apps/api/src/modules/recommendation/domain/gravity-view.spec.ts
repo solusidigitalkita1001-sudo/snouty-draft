@@ -106,7 +106,14 @@ describe('tampilan gravitasi', () => {
     const lines = gravitySystemLinesFrom(result, traces);
     expect(lines.map((l) => l.role)).toEqual(['main', 'fitting']);
     const bom = gravityBomItemsFrom(result, 8, traces);
-    expect(bom[0]).toMatchObject({ item: 'Pipa PVC D', quantity: 2, unit: 'batang' });
+    // Tanpa panjang batang dari produk katalog → meter, bukan batang 4 m karangan.
+    expect(bom[0]).toMatchObject({ item: 'Pipa PVC D', quantity: 8, unit: 'meter' });
+    const stocked = gravityBomItemsFrom(result, 8, traces, 'id', {
+      meters: 4,
+      productName: 'Pipa (Plain End) Abu D 8" x 4 Meter',
+    });
+    expect(stocked[0]).toMatchObject({ quantity: 2, unit: 'batang' });
+    expect(stocked[0]!.basis).toContain('Panjang bersih 8 m (jalur 8 m) ÷ 4 m per batang');
     expect(bom.some((b) => b.item.includes('selubung beton'))).toBe(true);
     const assumptions = gravityAssumptionsFrom(result, traces);
     expect(assumptions.map((a) => a.assumptionId)).toEqual(

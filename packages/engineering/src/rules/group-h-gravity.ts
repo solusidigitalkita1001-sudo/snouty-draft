@@ -12,19 +12,18 @@ import type { EngineeringLocale } from '../parameters/locale.js';
 import { localized, requireInt, requireNumber, type RuleVersion } from '../rule.js';
 import { round1, round2 } from '../units.js';
 import { NOMINAL_SIZES } from './group-e-irrigation.js';
+import { PVC_LARGE_SIZES } from '../parameters/size-tables.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 
 /**
- * Ukuran nominal untuk saluran gravitasi: tabel bertekanan (½"–6") ditambah 8"–16" yang lazim
- * untuk drainase dan gorong-gorong. Diameter dalam pendekatan, bukan tabel produk.
+ * Ukuran nominal untuk saluran gravitasi: tabel bertekanan (½"–6") ditambah 8"–12" yang lazim
+ * untuk drainase dan gorong-gorong. Diameter dalam dari OD resmi (Knowledge Master §7.1) dikurangi
+ * tebal dinding perkiraan (size-tables.ts). 16" tidak dimasukkan: OD-nya tidak ada di sumber.
  */
 export const GRAVITY_SIZES: ReadonlyArray<{ readonly size: string; readonly innerMm: number }> = [
   ...NOMINAL_SIZES,
-  { size: '8"', innerMm: 200 },
-  { size: '10"', innerMm: 250 },
-  { size: '12"', innerMm: 300 },
-  { size: '16"', innerMm: 400 },
+  ...PVC_LARGE_SIZES,
 ];
 
 // ── ENG-401 · Kapasitas pipa penuh (Manning) ───────────────────────────────
@@ -89,114 +88,106 @@ export const ENG_401: RuleVersion<ManningInput, ManningResult> = {
 const GRAVITY_PROBE: readonly GravityCandidate[] = [
   {
     size: '1/2"',
-    innerDiameterMm: 15,
-    fullFlowLs: 0.04,
-    fullVelocityMs: 0.24,
-    utilisationPercent: 50000,
+    innerDiameterMm: 20.3,
+    fullFlowLs: 0.1,
+    fullVelocityMs: 0.3,
+    utilisationPercent: 20000,
     status: 'too_small',
   },
   {
     size: '3/4"',
-    innerDiameterMm: 20,
-    fullFlowLs: 0.09,
-    fullVelocityMs: 0.29,
-    utilisationPercent: 22222.2,
+    innerDiameterMm: 24,
+    fullFlowLs: 0.15,
+    fullVelocityMs: 0.33,
+    utilisationPercent: 13333.3,
     status: 'too_small',
   },
   {
     size: '1"',
-    innerDiameterMm: 25,
-    fullFlowLs: 0.17,
-    fullVelocityMs: 0.34,
-    utilisationPercent: 11764.7,
+    innerDiameterMm: 29.6,
+    fullFlowLs: 0.26,
+    fullVelocityMs: 0.38,
+    utilisationPercent: 7692.3,
     status: 'too_small',
   },
   {
     size: '1¼"',
-    innerDiameterMm: 32,
-    fullFlowLs: 0.32,
-    fullVelocityMs: 0.4,
-    utilisationPercent: 6250,
+    innerDiameterMm: 38.8,
+    fullFlowLs: 0.54,
+    fullVelocityMs: 0.45,
+    utilisationPercent: 3703.7,
     status: 'too_small',
   },
   {
     size: '1½"',
-    innerDiameterMm: 40,
-    fullFlowLs: 0.58,
-    fullVelocityMs: 0.46,
-    utilisationPercent: 3448.3,
+    innerDiameterMm: 44.4,
+    fullFlowLs: 0.77,
+    fullVelocityMs: 0.5,
+    utilisationPercent: 2597.4,
     status: 'too_small',
   },
   {
     size: '2"',
-    innerDiameterMm: 50,
-    fullFlowLs: 1.06,
-    fullVelocityMs: 0.54,
-    utilisationPercent: 1886.8,
+    innerDiameterMm: 55.5,
+    fullFlowLs: 1.4,
+    fullVelocityMs: 0.58,
+    utilisationPercent: 1428.6,
     status: 'too_small',
   },
   {
     size: '2½"',
-    innerDiameterMm: 65,
-    fullFlowLs: 2.13,
-    fullVelocityMs: 0.64,
-    utilisationPercent: 939,
+    innerDiameterMm: 70.3,
+    fullFlowLs: 2.62,
+    fullVelocityMs: 0.68,
+    utilisationPercent: 763.4,
     status: 'too_small',
   },
   {
     size: '3"',
-    innerDiameterMm: 80,
-    fullFlowLs: 3.7,
-    fullVelocityMs: 0.74,
-    utilisationPercent: 540.5,
+    innerDiameterMm: 82.3,
+    fullFlowLs: 3.99,
+    fullVelocityMs: 0.75,
+    utilisationPercent: 501.3,
     status: 'too_small',
   },
   {
     size: '4"',
-    innerDiameterMm: 100,
-    fullFlowLs: 6.72,
-    fullVelocityMs: 0.85,
-    utilisationPercent: 297.6,
+    innerDiameterMm: 105.4,
+    fullFlowLs: 7.73,
+    fullVelocityMs: 0.89,
+    utilisationPercent: 258.7,
     status: 'too_small',
   },
   {
     size: '6"',
-    innerDiameterMm: 150,
-    fullFlowLs: 19.8,
-    fullVelocityMs: 1.12,
-    utilisationPercent: 101,
+    innerDiameterMm: 152.5,
+    fullFlowLs: 20.69,
+    fullVelocityMs: 1.13,
+    utilisationPercent: 96.7,
     status: 'too_small',
   },
   {
     size: '8"',
-    innerDiameterMm: 200,
-    fullFlowLs: 42.64,
+    innerDiameterMm: 199.7,
+    fullFlowLs: 42.47,
     fullVelocityMs: 1.36,
-    utilisationPercent: 46.9,
+    utilisationPercent: 47.1,
     status: 'ok',
   },
   {
     size: '10"',
-    innerDiameterMm: 250,
-    fullFlowLs: 77.31,
-    fullVelocityMs: 1.57,
-    utilisationPercent: 25.9,
+    innerDiameterMm: 246.8,
+    fullFlowLs: 74.7,
+    fullVelocityMs: 1.56,
+    utilisationPercent: 26.8,
     status: 'ok',
   },
   {
     size: '12"',
-    innerDiameterMm: 300,
-    fullFlowLs: 125.71,
-    fullVelocityMs: 1.78,
-    utilisationPercent: 15.9,
-    status: 'ok',
-  },
-  {
-    size: '16"',
-    innerDiameterMm: 400,
-    fullFlowLs: 270.73,
-    fullVelocityMs: 2.15,
-    utilisationPercent: 7.4,
+    innerDiameterMm: 294,
+    fullFlowLs: 119.12,
+    fullVelocityMs: 1.75,
+    utilisationPercent: 16.8,
     status: 'ok',
   },
 ];
@@ -229,7 +220,7 @@ export interface GravitySizingResult {
 
 export const ENG_402: RuleVersion<GravitySizingInput, GravitySizingResult> = {
   ruleId: 'ENG-402',
-  version: 1,
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -292,7 +283,7 @@ export const ENG_402: RuleVersion<GravitySizingInput, GravitySizingResult> = {
       expected: {
         candidates: GRAVITY_PROBE,
         recommended: '8"',
-        innerDiameterMm: 200,
+        innerDiameterMm: 199.7,
         allCriteriaMet: true,
       },
     },

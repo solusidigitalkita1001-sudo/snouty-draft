@@ -31,6 +31,7 @@ import { loadEnv } from '../../../config/env.js';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import {
   activeParameters,
+  caseInputIssues,
   caseProfile,
   caseProfileLabel,
   extractTechnicalContext,
@@ -260,7 +261,12 @@ export async function runUnderstanding(
     const firstTurn = input.state.useCase?.kind !== 'technical';
     const card = technicalFollowUp(applied.state, locale);
     const questions = technicalQuestionCard(applied.state, locale);
-    const guidance = technicalGuidance(applied.state, locale, { withIntro: firstTurn });
+    // Data yang saling bertentangan ditanyakan balik lebih dulu — sebelum panduan dan tombol hitung.
+    const issues = technicalInputIssues(applied.state, locale);
+    const guidance =
+      issues.length > 0
+        ? issues.join(' ')
+        : technicalGuidance(applied.state, locale, { withIntro: firstTurn });
     // Pesan lanjutan tanpa data baru ("lu belum nanya kamar mandi", "kasih gw pilihan") dijawab
     // sesuai isinya di atas DATA kasus — bukan template yang sama diulang (laporan pemilik
     // 2026-10-09). Model gagal → teks panduan seperti biasa.
@@ -271,22 +277,23 @@ export async function runUnderstanding(
     // Model hanya untuk pertanyaan yang butuh penjelasan; dorongan/protes/minta pilihan dijawab
     // langsung dari daftar parameter kasus — instan, tanpa model (benchmark P16-40).
     const explains = EXPLAINING_INTENTS.has(input.understanding?.intent?.label ?? '');
-    const text = !chatOnly
-      ? guidance
-      : !explains
-        ? technicalNudge(applied.state, locale)
-        : reply && loadEnv().LLM_CHAT_REPLY
-          ? (
-              await reply.write({
-                intent: input.decision.intent,
-                userMessage: input.message,
-                recentTurns: input.recentTurns ?? [],
-                facts: caseFacts(applied.state, locale, card),
-                locale,
-                fallback: guidance,
-              })
-            ).text
-          : guidance;
+    const text =
+      !chatOnly || issues.length > 0
+        ? guidance
+        : !explains
+          ? technicalNudge(applied.state, locale)
+          : reply && loadEnv().LLM_CHAT_REPLY
+            ? (
+                await reply.write({
+                  intent: input.decision.intent,
+                  userMessage: input.message,
+                  recentTurns: input.recentTurns ?? [],
+                  facts: caseFacts(applied.state, locale, card),
+                  locale,
+                  fallback: guidance,
+                })
+              ).text
+            : guidance;
     events.push({ type: 'token', text });
     if (questions) events.push({ type: 'card', card: questions });
     if (card) events.push({ type: 'card', card });
@@ -628,6 +635,20 @@ export function technicalQuestionCard(
   return card.length > 0 ? { kind: 'clarification', questions: card } : null;
 }
 
+/**
+ * Nilai kasus yang saling bertentangan (tinggi per lantai, kepadatan penghuni, tekanan di atas
+ * batas zona) sebagai kalimat tanya — dari pagar engine, bukan dari teks pesan.
+ */
+export function technicalInputIssues(state: RequirementState, locale: Locale): readonly string[] {
+  if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return [];
+  const values = Object.fromEntries(
+    Object.entries(state.useCase.parameters).map(([key, p]) => [key, p.value]),
+  );
+  return caseInputIssues(state.useCase.caseId, values, state.useCase.assumptionOverrides ?? {}).map(
+    (issue) => (locale === 'en' ? issue.messageEn : issue.message),
+  );
+}
+
 function technicalFollowUp(state: RequirementState, locale: Locale): AssistantCard | null {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return null;
   if (!isTechnicalComplete(state)) {
@@ -635,7 +656,11 @@ function technicalFollowUp(state: RequirementState, locale: Locale): AssistantCa
     return card.length > 0 ? { kind: 'clarification', questions: card } : null;
   }
   const profile = caseProfile(state.useCase.caseId);
-  if (profile.calculatorStatus === 'available') return { kind: 'cta', action: 'ANALYZE' };
+  if (profile.calculatorStatus === 'available') {
+    return technicalInputIssues(state, locale).length > 0
+      ? null
+      : { kind: 'cta', action: 'ANALYZE' };
+  }
   return policyCard(
     technicalHandoffPolicy(caseProfileLabel(state.useCase.caseId, locale), locale),
     capturedFrom(state, locale),

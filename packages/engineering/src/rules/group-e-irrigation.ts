@@ -14,6 +14,7 @@
 
 import { assumption } from '../parameters/assumptions.js';
 import {
+  defaultWallSdr,
   PVC_INCH_SIZES,
   sizeTable,
   type NominalSize,
@@ -125,6 +126,8 @@ export interface MainSizeFromFlowInput {
   readonly velocityMs: number;
   /** Tabel ukuran: inci untuk PVC, mm (OD) untuk HDPE/MDPE. Bawaan inci. */
   readonly sizeTable: SizeTableId;
+  /** SDR untuk memperkirakan tebal dinding (diameter dalam = OD − 2·OD/SDR). */
+  readonly wallSdr: number;
 }
 export interface MainSizeFromFlowResult {
   readonly requiredInnerDiameterMm: number;
@@ -137,7 +140,7 @@ export const NOMINAL_SIZES: readonly NominalSize[] = PVC_INCH_SIZES;
 
 export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult> = {
   ruleId: 'ENG-102',
-  version: 2,
+  version: 3,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -147,14 +150,14 @@ export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult>
         max: 5_000,
       }),
       velocityMs: requireNumber('ENG-102', 'velocityMs', o['velocityMs'], { min: 0.3, max: 3 }),
-      sizeTable: requireSizeTable('ENG-102', o['sizeTable']),
+      ...withWallSdr('ENG-102', o),
     };
   },
   compute: (input) => {
     const flowM3s = input.designFlowLs / 1000;
     const requiredM = Math.sqrt((4 * flowM3s) / (Math.PI * input.velocityMs));
     const requiredMm = round1(requiredM * 1000);
-    const table = sizeTable(input.sizeTable);
+    const table = sizeTable(input.sizeTable, input.wallSdr);
     const pick = table.find((s) => s.innerMm >= requiredMm) ?? table.at(-1)!;
     return {
       requiredInnerDiameterMm: requiredMm,
@@ -167,14 +170,14 @@ export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult>
   validationStatus: PENDING,
   testCases: [
     {
-      name: '1,5 l/s pada 1,5 m/s → 35,7 mm → 1½"',
-      input: { designFlowLs: 1.5, velocityMs: 1.5, sizeTable: 'pvc_inch' },
-      expected: { requiredInnerDiameterMm: 35.7, mainSize: '1½"', innerDiameterMm: 40 },
+      name: '1,5 l/s pada 1,5 m/s → 35,7 mm → 1¼" (dalam 38,8 mm)',
+      input: { designFlowLs: 1.5, velocityMs: 1.5, sizeTable: 'pvc_inch', wallSdr: 26.5 },
+      expected: { requiredInnerDiameterMm: 35.7, mainSize: '1¼"', innerDiameterMm: 38.8 },
     },
     {
-      name: '0,5 l/s pada 1,5 m/s → 20,6 mm → 1"',
-      input: { designFlowLs: 0.5, velocityMs: 1.5, sizeTable: 'pvc_inch' },
-      expected: { requiredInnerDiameterMm: 20.6, mainSize: '1"', innerDiameterMm: 25 },
+      name: '0,5 l/s pada 1,5 m/s → 20,6 mm → 3/4" (dalam 24 mm)',
+      input: { designFlowLs: 0.5, velocityMs: 1.5, sizeTable: 'pvc_inch', wallSdr: 26.5 },
+      expected: { requiredInnerDiameterMm: 20.6, mainSize: '3/4"', innerDiameterMm: 24 },
     },
   ],
   explain: (input, output, locale) =>
@@ -450,4 +453,19 @@ export function requireSizeTable(ruleId: string, raw: unknown): SizeTableId {
   if (raw === undefined || raw === 'pvc_inch') return 'pvc_inch';
   if (raw === 'hdpe_mm') return 'hdpe_mm';
   throw new RuleInputError(ruleId, `sizeTable ${String(raw)}`);
+}
+
+/** Tabel ukuran + SDR dinding; SDR kosong → nilai baku registry untuk tabel itu (tercatat di trace). */
+export function withWallSdr(
+  ruleId: string,
+  o: Record<string, unknown>,
+): { readonly sizeTable: SizeTableId; readonly wallSdr: number } {
+  const table = requireSizeTable(ruleId, o['sizeTable']);
+  return {
+    sizeTable: table,
+    wallSdr:
+      o['wallSdr'] === undefined
+        ? defaultWallSdr(table)
+        : requireNumber(ruleId, 'wallSdr', o['wallSdr'], { min: 5, max: 60 }),
+  };
 }
