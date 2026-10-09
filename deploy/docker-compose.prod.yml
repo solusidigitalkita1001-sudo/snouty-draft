@@ -111,7 +111,10 @@ services:
       # Model tetap di RAM: memuat ulang 7B dari disk setelah idle memakan 1–2 menit di CPU (checkpoint
       # Fase 15: giliran pertama setelah jeda 152 s, giliran berikutnya 10–30 s). 24 jam ≈ selalu.
       OLLAMA_KEEP_ALIVE: 24h
-      OLLAMA_NUM_PARALLEL: '1'
+      # Dua slot (2026-10-09): perencana giliran dan penulis balasan memakai prompt sistem berbeda;
+      # dengan satu slot keduanya saling menimpa cache, dan setiap panggilan mengevaluasi ulang
+      # ±300–450 token prompt (6–12 s di CPU ini). Ollama memilih slot dengan awalan terpanjang.
+      OLLAMA_NUM_PARALLEL: '2'
     volumes: ['ollama-data:/root/.ollama']
 
   # Nginx di compose memegang 80/443 (nginx host nonaktif di server ini) dan juga melayani
