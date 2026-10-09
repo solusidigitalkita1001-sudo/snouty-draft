@@ -8,6 +8,7 @@ import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import type { RequirementState } from '@snouty/shared-types';
 import { MessageService, isSaneTitle } from './message.service.js';
 import { scriptedUnderstanding } from '../../understanding/testing/understood.js';
+import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 
 // Ruas produk membaca satu saklar env (LLM_FAQ_REWRITE); tes ini tidak punya .env.
 vi.mock('../../../config/env.js', () => ({
@@ -538,5 +539,96 @@ describe('MessageService — perencana giliran (P16-29)', () => {
       expect.objectContaining({ families: ['PVC AW'], message: 'paling kecil berapa?' }),
     );
     expect(snapshots.at(-1)?.state.subject).toMatchObject({ kind: 'product', entity: 'pvc aw' });
+  });
+});
+
+describe('MessageService — kode yang terbukti didahulukan dari perencana (uji pemilik 2026-10-09)', () => {
+  function setup(
+    rows: { role: 'user' | 'assistant'; text: string }[],
+    script: Record<string, object>,
+  ) {
+    // Subjek produk HDPE dari giliran sebelumnya — seperti di produksi.
+    const state = {
+      ...emptyRequirementState('T'),
+      subject: { kind: 'product', entity: 'hdpe', topic: 'product_overview', depth: 'standard' },
+    };
+    const conversations = {
+      find: vi.fn(async () => ({ title: 'x', language: 'id' })),
+      messages: vi.fn(async () => rows),
+      rename: vi.fn(async () => undefined),
+      appendUserMessage: vi.fn(async () => undefined),
+      appendAssistantMessage: vi.fn(async () => undefined),
+    };
+    const store = { current: vi.fn(async () => ({ state })), append: vi.fn(async () => ({})) };
+    const router = {
+      route: vi.fn(async () => ({
+        intent: 'REQUIREMENT_STATEMENT',
+        confidence: 0.9,
+        shouldExtract: true,
+        mutatesState: false,
+      })),
+    };
+    const catalog = {
+      activeVersion: vi.fn(async () => ({ kind: 'pralon' })),
+      familyCounts: vi.fn(async () => [{ family: 'HDPE', count: 2 }]),
+      productNamesInFamily: vi.fn(async () => [
+        'Pipa HDPE PE 100 PN-8 160 mm x 9 Meter',
+        'Pipa HDPE PE 100 PN-16 63 mm x 6 Meter',
+      ]),
+      listProducts: vi.fn(async () => ({ items: [], nextCursor: null })),
+    };
+    const planner = {
+      plan: vi.fn(async () => ({ action: 'chat', family: null, type: null, extreme: null })),
+    };
+    const service = new MessageService(
+      conversations as never,
+      store as never,
+      router as never,
+      catalog as never,
+      { answer: vi.fn() } as never,
+      null,
+      { writeProse: vi.fn(), extract: vi.fn(async () => ({})) } as never,
+      null,
+      null,
+      scriptedUnderstanding(script) as never,
+      planner as never,
+    );
+    return { service, planner, router };
+  }
+
+  it('"boleh" tepat setelah daftar jenis: rincian ukuran dari kode, perencana tidak dipanggil', async () => {
+    const { service, planner } = setup(
+      [
+        { role: 'user', text: 'HDPE di pralon jenis nya apa aja ?' },
+        {
+          role: 'assistant',
+          text: 'Di katalog Pralon, keluarga HDPE ada 2 produk.\n\nMau saya rinci ukuran untuk salah satu jenisnya?',
+        },
+        { role: 'user', text: 'boleh' },
+      ],
+      { boleh: { intent: 'follow_up_continue' } },
+    );
+    const events = await service.handle('C'.repeat(26), ACTOR, 'boleh', 'T');
+    expect(planner.plan).not.toHaveBeenCalled();
+    expect(events.some((e) => e.type === 'token')).toBe(true);
+  });
+
+  it('pesan berisi data bangunan tidak lewat perencana', async () => {
+    const { service, planner, router } = setup(
+      [
+        { role: 'user', text: 'halo' },
+        { role: 'assistant', text: 'Halo! Saya SNOUTY.' },
+        { role: 'user', text: 'airnya dari toren bawah, kamar mandinya 4' },
+      ],
+      {
+        'airnya dari toren bawah, kamar mandinya 4': {
+          intent: 'requirement_building',
+          mentionsRequirement: true,
+        },
+      },
+    );
+    await service.handle('C'.repeat(26), ACTOR, 'airnya dari toren bawah, kamar mandinya 4', 'T');
+    expect(planner.plan).not.toHaveBeenCalled();
+    expect(router.route).toHaveBeenCalled();
   });
 });

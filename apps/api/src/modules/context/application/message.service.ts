@@ -32,7 +32,13 @@ import { isFollowUp, isRequirement } from '../../understanding/domain/labels.js'
 import { composeCompanyAnswer } from '../../company-knowledge/domain/company-answer.js';
 import { SECTIONS } from '../../company-knowledge/domain/company-profile.js';
 import { runCompanyQuestion } from './company-question-pipeline.js';
-import { productSubject } from '../domain/subject.js';
+import {
+  isChoiceFollowUp,
+  isFollowUp as isSubjectFollowUp,
+  isFormatFollowUp,
+  productSubject,
+} from '../domain/subject.js';
+import { previousRange } from './product-range.js';
 import { socialReply } from '../domain/social.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import { productFaqSystemPrompt } from '../../ai/application/prompts.js';
@@ -203,9 +209,35 @@ export class MessageService {
     // contoh), model membaca konteks dan memilih tindakan; kode menjalankannya. Lanjutan teknis
     // yang sudah pasti tidak perlu direncanakan.
     let planned: RoutingDecision | null = null;
+    // Kode yang sudah terbukti benar didahulukan; perencana hanya untuk sisanya (uji pemilik
+    // 2026-10-09: perencana di depan merusak "boleh"/"tampilin semua" setelah daftar jenis, dan
+    // pesan berisi data bangunan dijawab daftar produk).
+    const lastAssistant =
+      [...recentTurns].reverse().find((t) => t.role === 'assistant')?.text ?? '';
+    const listFollowUp =
+      previousRange(lastAssistant) !== null &&
+      (isSubjectFollowUp(u) ||
+        isFormatFollowUp(u) ||
+        isChoiceFollowUp(u) ||
+        (u.families.length > 0 && u.productAspect === null));
+    if (listFollowUp) {
+      planned = {
+        intent: 'PRODUCT_LOOKUP',
+        confidence: 1,
+        shouldExtract: false,
+        mutatesState: false,
+      };
+    }
+    const requirementTurn =
+      u.mentionsRequirement &&
+      (u.intent === null ||
+        isRequirement(u.intent.label) ||
+        u.intent.label === 'clarification_answer');
     if (
       this.planner &&
       continuation === null &&
+      planned === null &&
+      !requirementTurn &&
       !isConfidentStandalone(u) &&
       (recentTurns.some((t) => t.role === 'assistant') || u.intent === null)
     ) {

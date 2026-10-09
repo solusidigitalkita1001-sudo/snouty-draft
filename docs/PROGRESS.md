@@ -1188,6 +1188,13 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       harga, pesaing, kebutuhan baru, ragam produk); riwayat ke model 4 giliran × ±250 karakter (dulu
       6 giliran utuh, termasuk daftar produk 1.000+ karakter); prompt perencana diringkas; DATA kasus
       hanya untuk pertanyaan kasus. Dua slot Ollama dicoba dan dikembalikan (tanpa manfaat). Tes +1.
+- [x] P16-31 Urutan: kode yang terbukti dulu, perencana belakangan (laporan pemilik 2026-10-09: "makin
+      dongo" — perencana di depan merusak "boleh"/"tampilin semua" setelah daftar jenis, dan pesan
+      berisi data bangunan dijawab daftar produk). Kini: lanjutan tepat setelah daftar jenis/ragam
+      langsung ke jalur produk (kode), pesan berisi data bangunan langsung ke router kebutuhan,
+      perencana hanya untuk sisanya. Model: perencana qwen3.5:4b, balasan qwen3.5:9b, batas balasan
+      60 s. Catatan operasi: server di-reboot untuk perawatan 08:09–08:12 (RAM 16 → 24 GB); giliran
+      pemilik saat itu gagal karena server mati, bukan karena kode. Tes +2.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

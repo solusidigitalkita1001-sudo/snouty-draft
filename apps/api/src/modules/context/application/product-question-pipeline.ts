@@ -217,8 +217,9 @@ export async function runProductQuestion(
     previousRange(lastAssistantText(input)) !== null &&
     u.families.length > 0 &&
     u.productAspect === null &&
-    u.intent?.label !== 'product_comparison' &&
-    !isConceptual(u.intent?.label)
+    // "kalau yang pvc?" dikenali mirip "pvc itu apa?" (product_concept) — tepat setelah daftar
+    // jenis, menyebut keluarga lain berarti meminta jenisnya; perbandingan tetap jalurnya sendiri.
+    u.intent?.label !== 'product_comparison'
   ) {
     const range = await familyRange(catalog, u.families, locale);
     if (range !== null) {
