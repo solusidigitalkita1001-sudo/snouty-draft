@@ -1240,14 +1240,6 @@ export function ChatWorkspace() {
               />
             )}
 
-            {reportOpen && solution !== null && (
-              <ReportModal
-                recommendationId={solution.id}
-                onClose={() => setReportOpen(false)}
-                guest={user === null}
-              />
-            )}
-
             {toastOn && (
               <div className={styles.toast} role="status">
                 <Snouty mood="thanks" size={52} />
@@ -1376,6 +1368,15 @@ export function ChatWorkspace() {
               </button>
             </div>
           </div>
+        )}
+        {/* Laporan dibuka dari layar SOLUSI (tombol "Buat laporan" di header) — dulu modal ini ada di
+          cabang layar chat sehingga tidak pernah tampil (laporan pemilik 2026-10-09). */}
+        {reportOpen && solution !== null && (
+          <ReportModal
+            recommendationId={solution.id}
+            onClose={() => setReportOpen(false)}
+            guest={user === null}
+          />
         )}
       </main>
 
