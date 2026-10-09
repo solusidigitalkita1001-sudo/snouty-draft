@@ -188,8 +188,7 @@
       "textEn": "For long buried water distribution HDPE is the usual choice because it is flexible and its joints are fused; uPVC can still be buried provided the bedding and backfill are neat and the class suits the pressure.",
       "source": "Snouty Product Knowledge Master §22, §30; katalog aktif",
       "catalog": {
-        "families": ["HDPE"],
-        "pressure": true
+        "families": ["HDPE"]
       }
     },
     {

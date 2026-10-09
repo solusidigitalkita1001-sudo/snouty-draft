@@ -28,6 +28,7 @@ import {
   type CatalogCache,
 } from '../domain/catalog-cache.port.js';
 import { isAuthoritative } from '../domain/catalog-visibility.js';
+import { distinctProductNames } from '../domain/product-identity.js';
 import {
   CatalogUnavailableError,
   ProductNotFoundError,
@@ -102,16 +103,20 @@ export class CatalogQueryService {
     return this.repository.familyCounts(version.id);
   }
 
-  /** Jumlah SKU aktif per kategori resmi dalam satu keluarga, versi aktif. */
+  /** Jumlah produk aktif (nama kanonik) per kategori resmi dalam satu keluarga, versi aktif. */
   async categoryCounts(family: string): Promise<readonly CategoryCount[]> {
     const version = await this.activeVersion();
     return this.repository.categoryCounts(version.id, family);
   }
 
-  /** Nama produk aktif dalam satu keluarga di versi aktif. */
+  /**
+   * Nama produk aktif dalam satu keluarga di versi aktif, satu per produk: SKU bernama sama
+   * (salinan "(copy)", koma/titik desimal) muncul sekali — jenis, ukuran, dan kelas yang diturunkan
+   * dari nama ini sejalan dengan `familyCounts`.
+   */
   async productNamesInFamily(family: string): Promise<readonly string[]> {
     const version = await this.activeVersion();
-    return this.repository.productNamesInFamily(version.id, family);
+    return distinctProductNames(await this.repository.productNamesInFamily(version.id, family));
   }
 
   /**

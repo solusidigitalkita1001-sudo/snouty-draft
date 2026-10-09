@@ -6,6 +6,7 @@
  * berubah mengikuti pesan adalah topik, keluarga, dan angkanya.
  */
 import type { Locale } from '@snouty/shared-types';
+import { designationsOf } from '../../product-catalog/domain/product-identity.js';
 import { productSizeOf, productTypesOf } from '../../product-catalog/domain/product-types.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
 import { knowledgeFacts, type CatalogHook } from '../infrastructure/knowledge-facts.js';
@@ -26,7 +27,6 @@ const num = (n: number, locale: Locale) =>
   n.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
 
 const LENGTH = /x\s*(\d+(?:[.,]\d+)?)\s*Meter/i;
-const PRESSURE = /\b(PN[- ]?\d+(?:[.,]\d+)?|SDR[- ]?\d+(?:[.,]\d+)?)\b/gi;
 /** Panjang jalur di pesan ("27 meter", "60 m") — parser nilai, bukan pola pertanyaan. */
 const ROUTE = /(\d+(?:[.,]\d+)?)\s*(?:m|meter|metres?|meters?)\b/i;
 
@@ -138,13 +138,8 @@ async function catalogLines(
       );
     }
     if (hook.pressure) {
-      const classes = [
-        ...new Set(
-          names.flatMap((n) =>
-            [...n.matchAll(PRESSURE)].map((m) => m[1]!.toUpperCase().replace(' ', '-')),
-          ),
-        ),
-      ];
+      // Hanya kelas yang tertulis di nama produk keluarga ini, satu penulisan per kelas.
+      const classes = designationsOf(names);
       if (classes.length > 0) {
         details.push(en ? `classes ${classes.join(', ')}` : `kelas ${classes.join(', ')}`);
       }

@@ -586,7 +586,7 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
     );
     const out = text(events);
     expect(out).toContain(
-      'Katalog Pralon yang aktif memuat 6 produk dalam 4 keluarga, dihitung per SKU aktif (tiap ukuran dan varian dihitung sendiri).',
+      'Katalog Pralon yang aktif memuat 6 produk dalam 4 keluarga; tiap ukuran dan varian dihitung sendiri.',
     );
     expect(out).toContain('- **PVC** — 2 produk: AW, D');
     expect(out).toContain('- **HDPE** — 3 produk');
@@ -830,5 +830,58 @@ describe('runProductQuestion — SPESIFIKASI', () => {
     expect(text(events)).not.toContain('Produk mana yang Anda maksud?');
     expect(text(events)).toContain('Katalog produk Pralon belum terpasang');
     expect(events.at(-1)?.type).toBe('message.end');
+  });
+});
+
+describe('runProductQuestion — batas klaim (audit anti-halusinasi 2026-10-09)', () => {
+  const hdpe = (n: number, name: string): Product => ({
+    ...AW,
+    id: `H${String(n).padStart(25, '0')}`,
+    sku: `H${n}`,
+    name,
+    family: 'HDPE',
+  });
+  const HDPE = [
+    hdpe(1, 'Pipa HDPE PE 100 PN-8 160 mm x 6 Meter'),
+    hdpe(2, 'Pipa HDPE PE 100 PN-12,5 160 mm x 6 Meter'),
+    hdpe(3, 'Pipa HDPE Telkom 40/33 x 182 Meter Orange'),
+  ];
+
+  it('"dasar pemilihan HDPE dibanding uPVC" yang terbaca sebagai pipa tanam: perbandingan umum dulu, katalog tanpa daftar kelas yang tidak ditanya', async () => {
+    const message = 'Apa yang menjadi dasar pemilihan pipa HDPE dibanding uPVC?';
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({ hdpe: HDPE }),
+      noQuestions,
+      input(message, { ...COMPARISON, knowledgeTopics: ['pipa tanam'] }),
+    );
+    const out = text(events);
+    expect(out.startsWith('Singkatnya')).toBe(true);
+    expect(out).toContain('Di katalog Pralon yang aktif:');
+    expect(out).toContain('**HDPE** — 3 produk');
+    expect(out).not.toMatch(/PN-\d/);
+  });
+
+  it('kelas tekanan hanya dari nama yang menuliskannya, satu penulisan dan urut naik', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({ hdpe: [...HDPE, hdpe(4, 'Pipa HDPE PE 100 PN-12.5 200 mm x 6 Meter')] }),
+      noQuestions,
+      input('tekanan kerja pipa hdpe berapa?', { knowledgeTopics: ['tekanan kerja'] }),
+    );
+    expect(text(events)).toContain('kelas PN-8, PN-12.5');
+    expect(text(events)).not.toContain('PN-12,5');
+  });
+
+  it('keluarga tanpa penanda kelas di nama: tidak ada kelas yang dikarang', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({ hdpe: [hdpe(5, 'Pipa HDPE Telkom 40/33 x 182 Meter Orange')] }),
+      noQuestions,
+      input('tekanan kerja pipa hdpe berapa?', { knowledgeTopics: ['tekanan kerja'] }),
+    );
+    const out = text(events);
+    expect(out).toContain('**HDPE** — 1 produk');
+    expect(out).not.toMatch(/kelas (PN|SDR)/);
   });
 });

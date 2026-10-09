@@ -10,7 +10,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, desc, eq, gt, inArray, like, or, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, like, or, sql, type SQL } from 'drizzle-orm';
 import type {
   CatalogVersion,
   CompatibleFitting,
@@ -48,6 +48,15 @@ const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 100;
 /** Versi katalog terbit beberapa kali setahun; 50 sudah jauh di atas kenyataan. */
 const MAX_VERSIONS = 50;
+
+/**
+ * Nama kanonik di SQL — padanan `canonicalProductName` (product-identity.ts): tanda "(copy)" di
+ * akhir dibuang, koma desimal jadi titik, spasi dirapatkan, huruf kecil. Kelas karakter dipakai
+ * alih-alih escape supaya tidak bergantung pada aturan backslash string literal MySQL. Kesetaraan
+ * keduanya diuji terhadap MySQL sungguhan (catalog.query.spec.ts).
+ */
+const CANONICAL_NAME = sql`LOWER(TRIM(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(${products.name}, '[[:space:]]*[(]copy[)][[:space:]]*$', ''), '([0-9]),([0-9])', '$1.$2'), '[[:space:]]+', ' ')))`;
+const DISTINCT_PRODUCTS = sql<number>`COUNT(DISTINCT ${CANONICAL_NAME})`;
 
 /** Kolom yang dibaca; dieja agar `SELECT *` tidak diam-diam menarik kolom baru. */
 const PRODUCT_COLUMNS = {
@@ -149,12 +158,20 @@ export class MysqlCatalogRepository implements CatalogRepository {
 
   async familyCounts(catalogVersionId: string): Promise<readonly FamilyCount[]> {
     const rows = await this.database.db
-      .select({ family: products.family, count: count() })
+      .select({
+        family: products.family,
+        count: DISTINCT_PRODUCTS,
+        skuCount: count(),
+      })
       .from(products)
       .where(and(eq(products.catalogVersionId, catalogVersionId), eq(products.status, 'active')))
       .groupBy(products.family)
-      .orderBy(desc(count()), asc(products.family));
-    return rows.map((row) => ({ family: row.family, count: Number(row.count) }));
+      .orderBy(desc(DISTINCT_PRODUCTS), asc(products.family));
+    return rows.map((row) => ({
+      family: row.family,
+      count: Number(row.count),
+      skuCount: Number(row.skuCount),
+    }));
   }
 
   async productNamesInFamily(catalogVersionId: string, family: string): Promise<readonly string[]> {
@@ -177,7 +194,7 @@ export class MysqlCatalogRepository implements CatalogRepository {
     family: string,
   ): Promise<readonly CategoryCount[]> {
     const rows = await this.database.db
-      .select({ category: products.category, count: count() })
+      .select({ category: products.category, count: DISTINCT_PRODUCTS })
       .from(products)
       .where(
         and(
@@ -187,7 +204,7 @@ export class MysqlCatalogRepository implements CatalogRepository {
         ),
       )
       .groupBy(products.category)
-      .orderBy(desc(count()), asc(products.category));
+      .orderBy(desc(DISTINCT_PRODUCTS), asc(products.category));
     return rows.map((row) => ({ category: row.category, count: Number(row.count) }));
   }
 

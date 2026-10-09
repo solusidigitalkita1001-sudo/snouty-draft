@@ -87,3 +87,30 @@ dengan angka lama harus diperbarui bersama perubahan perilaku.
 Validasi baru: tinggi per lantai di luar 2–10 m, kepadatan < 1 m²/orang, dan tekanan sisa ≥ batas
 zona ditanyakan balik di chat; analisis yang tetap dijalankan dengan data itu berakhir dengan
 `VALIDATION_FAILED` yang tidak bisa diulang, bukan `SERVICE_UNAVAILABLE`.
+
+## 6. Audit anti-halusinasi katalog (P16-50)
+
+Ditelusuri dari dua pertanyaan di produksi, dengan angka dicek ke database produksi (read-only).
+
+**"Produk Pralon HDPE ada berapa varian?"** — jalur: pemahaman (bge-m3) → `PRODUCT_LOOKUP` →
+`familyRange` (`product-range.ts`) → `familyCounts` + `productNamesInFamily` (SQL). Tidak ada LLM
+dan tidak ada retrieval teks; angka dari SQL. Database: 7.681 SKU aktif, 24 keluarga, HDPE 1.327
+baris/SKU/nama unik, nol produk nonaktif di versi aktif, ukuran 16 mm dan 900 mm memang ada di
+nama HDPE. Cacatnya: satu salinan ERP `… SDR-13,6 50 mm … (copy)` di samping `… SDR-13.6 50 mm …`
+terhitung dua produk; 14 pasang SKU FITTING PVC bernama persis sama; kelas ditulis dua kali
+(`SDR-13.6`, `SDR-13,6`) dan tidak berurutan; jawaban menyebut "per SKU" tanpa memisahkan SKU dari
+produk.
+
+**"Apa yang menjadi dasar pemilihan pipa HDPE dibanding uPVC?"** — topik terbaca `pipa tanam`;
+perbandingan bahan (pengetahuan umum milik kode) hanya dipasang bila pesan menyebut angka bar
+(aturan P16-47), sehingga jawaban menjadi soal pipa tanam ditambah daftar kelas PN/SDR katalog
+yang tidak ditanya — data katalog yang tidak relevan tampil seolah bukti.
+
+**Pagar keluaran model** (`reply-writer.ts`): angka sudah harus ada di DATA, tetapi per token —
+"PN-16" atau "16 bar" lolos bila DATA memuat "16 mm".
+
+Perbaikan: aturan identitas produk (`product-identity.ts`) dipakai SQL hitungan (`COUNT(DISTINCT
+nama kanonik)`, diuji di MySQL sungguhan) dan daftar nama per keluarga; jumlah SKU dilaporkan bila
+berbeda; kelas hanya yang tertulis di nama, satu penulisan, urut; perbandingan umum dipasang
+setiap kali dua bahan disebut; kelas tidak lagi ditempel ke topik pipa tanam; penanda teknis dan
+angka bersatuan di keluaran model harus sama persis dengan DATA, bila tidak → teks DATA apa adanya.

@@ -1306,6 +1306,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       bersih vs jumlah beli, pipa per lantai tidak lagi dari √luas × lantai (360 batang); data yang
       bertentangan ditanya balik (bukan "layanan tidak tersedia"); durasi tahap analisis di log;
       regresi 5 000 m² × 20 lantai × 90 m dengan hitungan acuan independen. Sisa → OQ-58.
+- [x] P16-50 Audit anti-halusinasi katalog (docs/ENGINEERING_AUDIT.md §6) — produk dihitung per nama
+      kanonik (salinan ERP "(copy)", koma/titik desimal, SKU bernama sama dihitung sekali) di SQL dan di
+      daftar nama, jumlah SKU disebut bila berbeda; kelas PN/SDR hanya yang tertulis, satu penulisan, urut;
+      perbandingan umum HDPE/uPVC setiap dua bahan disebut, kelas tidak ditempel ke pipa tanam; pagar
+      keluaran model memeriksa penanda teknis dan angka bersatuan. Tes MySQL sungguhan untuk hitungan. OQ-59.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

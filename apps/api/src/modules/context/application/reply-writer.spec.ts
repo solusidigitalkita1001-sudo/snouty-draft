@@ -107,3 +107,18 @@ describe('passesGuards', () => {
     expect(passesGuards('Biasanya 3 lantai.', undefined)).toBe(false);
   });
 });
+
+describe('passesGuards — penanda teknis harus sama dengan DATA', () => {
+  const facts =
+    'Di katalog Pralon yang aktif:\n- **HDPE** — 1.326 produk · ukuran 16 mm–900 mm · kelas PN-8, PN-16';
+
+  it('angka dari "16 mm" tidak boleh menjadi kelas atau tekanan', () => {
+    expect(passesGuards('HDPE Pralon tersedia sampai SDR-16.', facts)).toBe(false);
+    expect(passesGuards('Pipanya tahan 16 bar.', facts)).toBe(false);
+    expect(passesGuards('Pipa HDPE memenuhi ISO 4427.', facts)).toBe(false);
+  });
+
+  it('penanda dan ukuran yang memang ada di DATA lolos; penulisan koma/spasi setara', () => {
+    expect(passesGuards('Kelasnya PN 8 dan PN-16, ukuran 16 mm sampai 900 mm.', facts)).toBe(true);
+  });
+});

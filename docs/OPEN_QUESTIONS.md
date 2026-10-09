@@ -404,6 +404,16 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-59 — SKU katalog bernama sama dan salinan ERP
+
+**Status:** default diterapkan (2026-10-09, P16-50) · **Blocks:** —
+**Pertanyaan:** Katalog aktif memuat 14 pasang SKU FITTING PVC bernama persis sama dengan kode ERP
+berbeda (mis. `product.0_S_06_280_110063_00` dan `product.0_S_06_297_110063_00`, "Spigot All Flange
+- D 110 x 63 mm") dan satu salinan HDPE bertanda "(copy)". Apakah pasangan itu varian berbeda
+(mis. standar flens) yang namanya belum dibedakan, atau catatan ganda?
+**Default yang diterapkan:** dihitung satu produk per nama kanonik, jumlah SKU tetap disebut bila
+berbeda. **Masih terbuka:** konfirmasi tim katalog; bila varian berbeda, namanya perlu pembeda di ERP.
+
 ### OQ-58 — Tebal dinding PVC, siklus pompa, dan kebutuhan per jenis gedung (audit akurasi)
 
 **Status:** default diterapkan (2026-10-09, P16-49) · **Blocks:** —

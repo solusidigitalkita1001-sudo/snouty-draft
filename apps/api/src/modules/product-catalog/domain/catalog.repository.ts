@@ -104,5 +104,8 @@ export interface CategoryCount {
 
 export interface FamilyCount {
   readonly family: string;
+  /** Produk berbeda: SKU yang nama kanoniknya sama dihitung sekali (`product-identity.ts`). */
   readonly count: number;
+  /** Baris SKU aktif; lebih besar dari `count` bila ada SKU bernama sama. */
+  readonly skuCount?: number;
 }

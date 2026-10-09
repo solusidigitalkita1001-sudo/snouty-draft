@@ -69,6 +69,17 @@ function products(n: number, locale: Locale): string {
   return locale === 'en' ? `${value} ${n === 1 ? 'product' : 'products'}` : `${value} produk`;
 }
 
+/**
+ * Selisih SKU dan produk berbeda, bila ada: SKU yang namanya sama dihitung sekali, dan jumlah
+ * SKU-nya tetap disebut supaya angka bisa dicocokkan dengan katalog ERP.
+ */
+function skuNote(count: number, skuCount: number | undefined, locale: Locale): string {
+  if (skuCount === undefined || skuCount <= count) return '';
+  return locale === 'en'
+    ? ` (${number(skuCount, locale)} SKUs; SKUs with the same name are counted once)`
+    : ` (${number(skuCount, locale)} SKU; SKU yang namanya sama dihitung sekali)`;
+}
+
 function joinNatural(items: readonly string[], locale: Locale): string {
   const and = locale === 'en' ? 'and' : 'dan';
   if (items.length <= 1) return items[0] ?? '';
@@ -109,6 +120,9 @@ export async function rangeOverview(
   if (counts === null) return notInstalled(locale);
 
   const total = counts.reduce((sum, c) => sum + c.count, 0);
+  const skus = counts.every((c) => c.skuCount !== undefined)
+    ? counts.reduce((sum, c) => sum + c.skuCount!, 0)
+    : undefined;
   if (format === 'table') {
     const rows = counts.map((c) => `| ${cell(c.family)} | ${number(c.count, locale)} |`);
     const table = [
@@ -123,8 +137,8 @@ export async function rangeOverview(
   const pipes = groups.filter((g) => !FITTING.test(g.label));
   const fittings = groups.filter((g) => FITTING.test(g.label));
   const intro = en
-    ? `The active Pralon catalogue has ${products(total, locale)} in ${counts.length} families, counted per active SKU (every size and variant counts separately).`
-    : `Katalog Pralon yang aktif memuat ${products(total, locale)} dalam ${counts.length} keluarga, dihitung per SKU aktif (tiap ukuran dan varian dihitung sendiri).`;
+    ? `The active Pralon catalogue has ${products(total, locale)} in ${counts.length} families${skuNote(total, skus, locale)}; every size and variant counts separately.`
+    : `Katalog Pralon yang aktif memuat ${products(total, locale)} dalam ${counts.length} keluarga${skuNote(total, skus, locale)}; tiap ukuran dan varian dihitung sendiri.`;
 
   if (format === 'summary') {
     const pipeNames = pipes.map((g) => g.label);
@@ -216,8 +230,8 @@ export async function familyRange(
     } else {
       parts.push(
         en
-          ? `The Pralon catalogue has ${products(family.count, locale)} in the ${family.family} family, in these types:`
-          : `Di katalog Pralon, keluarga ${family.family} ada ${products(family.count, locale)}, terbagi dalam jenis berikut:`,
+          ? `The Pralon catalogue has ${products(family.count, locale)} in the ${family.family} family${skuNote(family.count, family.skuCount, locale)}, in these types:`
+          : `Di katalog Pralon, keluarga ${family.family} ada ${products(family.count, locale)}${skuNote(family.count, family.skuCount, locale)}, terbagi dalam jenis berikut:`,
         '',
         ...types.slice(0, MAX_TYPES).map((t) => typeLine(t, locale)),
       );

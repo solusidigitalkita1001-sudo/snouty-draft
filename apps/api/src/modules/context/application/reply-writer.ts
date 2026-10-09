@@ -115,11 +115,34 @@ export function withoutOpener(text: string, facts: string | undefined): string {
   return stripped.trim().length > 0 ? stripped.charAt(0).toUpperCase() + stripped.slice(1) : text;
 }
 
-/** Setiap angka di balasan harus ada di DATA; tanpa DATA, hanya 0/1/2 yang boleh. */
+/**
+ * Setiap angka di balasan harus ada di DATA; tanpa DATA, hanya 0/1/2 yang boleh. Penanda teknis
+ * (PN-16, SDR 11, SNI 06-…, ISO 4427) dan angka bersatuan (16 mm, 10 bar) harus ada di DATA
+ * sebagai penanda yang SAMA: angka 16 dari "16 mm" tidak boleh menjadi "PN-16" atau "16 bar".
+ */
 export function passesGuards(text: string, facts: string | undefined): boolean {
   if (OTHER_BRANDS.test(text)) return false;
   const allowed = new Set(numbersIn(facts ?? ''));
-  return numbersIn(text).every((n) => allowed.has(n) || HARMLESS.has(n));
+  if (!numbersIn(text).every((n) => allowed.has(n) || HARMLESS.has(n))) return false;
+  const allowedClaims = new Set(technicalClaimsIn(facts ?? ''));
+  return technicalClaimsIn(text).every((c) => allowedClaims.has(c));
+}
+
+const DESIGNATION = /\b(PN|SDR|SNI|ISO|JIS|ASTM|DIN|EN|PE)\s*-?\s*(\d+(?:[.,]\d+)?(?:-\d+)*)/gi;
+const QUANTITY =
+  /(\d+(?:[.,]\d+)?)\s*(mm|cm|bar|kg\/cm²|°c|l\/s|m³\/jam|m³\/h|m³|meter|m|inci|inch|")(?![\p{L}\d])/giu;
+
+/** Penanda teknis dan angka bersatuan, dinormalkan ("PN 12,5" → "PN-12.5", "16 mm" → "16mm"). */
+export function technicalClaimsIn(text: string): readonly string[] {
+  const claims: string[] = [];
+  for (const m of text.matchAll(DESIGNATION)) {
+    claims.push(`${m[1]!.toUpperCase()}-${m[2]!.replace(',', '.')}`);
+  }
+  for (const m of text.matchAll(QUANTITY)) {
+    const unit = m[2]!.toLowerCase().replace('meter', 'm').replace('inch', 'inci');
+    claims.push(`${m[1]!.replace(',', '.')}${unit}`);
+  }
+  return claims;
 }
 
 function numbersIn(text: string): readonly string[] {

@@ -216,8 +216,9 @@ export async function runProductQuestion(
     : u.knowledgeTopics;
   if (knowledgeTopics.some((t) => factTopics().has(t))) {
     const answer = await knowledgeAnswer(knowledgeTopics, input.message, catalog, locale);
-    // Dua bahan yang dibandingkan ("HDPE atau uPVC untuk 8–12 bar?"): perbandingannya di depan.
-    const compared = mentionsPressure(input.message) ? materialsFor(u.families) : [];
+    // Dua bahan disebut ("dasar memilih HDPE dibanding uPVC?", "HDPE atau uPVC untuk 8–12 bar?"):
+    // perbandingan umum bahan di depan, lalu fakta topik dan data katalog Pralon sesudahnya.
+    const compared = materialsFor(u.families);
     const known =
       answer !== null && compared.length >= 2
         ? {
