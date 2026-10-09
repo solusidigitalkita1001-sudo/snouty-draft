@@ -9,6 +9,7 @@ import type { RoutingDecision } from './intent-router.js';
 import { caseFacts } from './case-facts.js';
 import { endEvent, followUpCard } from './message-pipeline.js';
 import {
+  familiesInMessage,
   familyRange,
   familySizeAnswer,
   previousRange,
@@ -78,6 +79,25 @@ function answered(ctx: PlanContext, text: string, family: string | null): PlanOu
 
 export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<PlanOutcome> {
   const en = ctx.locale === 'en';
+  // Pesan yang MENYEBUT nama keluarga katalog ("fitting pvc kok banyak?", juga dengan salah ketik
+  // satu huruf) dijawab tentang keluarga itu, tindakan produk apa pun yang dipilih model — model
+  // sempat memilih ikhtisar seluruh katalog untuk pertanyaan itu (laporan pemilik 2026-10-09).
+  if (
+    (plan.action === 'product_overview' ||
+      plan.action === 'product_question' ||
+      plan.action === 'product_types') &&
+    !ctx.asksAspect
+  ) {
+    const counts = await ctx.catalog.familyCounts().catch(() => []);
+    const exact = familiesInMessage(
+      ctx.message,
+      counts.map((c) => c.family),
+    );
+    if (exact.length > 0) {
+      const range = await familyRange(ctx.catalog, exact, ctx.locale, null, ctx.message);
+      if (range !== null) return answered(ctx, range.text, exact.join(' dan '));
+    }
+  }
   switch (plan.action) {
     case 'product_types': {
       const named = ctx.named ?? [];

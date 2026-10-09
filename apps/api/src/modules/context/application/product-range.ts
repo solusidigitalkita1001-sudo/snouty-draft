@@ -587,9 +587,41 @@ export function familiesInMessage(message: string, families: readonly string[]):
       .split(/[^A-Z0-9.-]+/)
       .filter(Boolean),
   );
-  const hits = families.filter((f) => f.split(/\s+/).every((w) => said.has(w.toUpperCase())));
+  // Salah ketik satu huruf pada kata panjang ("Ftitting") tetap dikenali; kata pendek ("AW", "D")
+  // harus persis — beda satu huruf di sana sudah keluarga lain.
+  const has = (word: string) => {
+    const w = word.toUpperCase();
+    if (said.has(w)) return true;
+    return w.length >= 5 && [...said].some((s) => withinOneEdit(s, w));
+  };
+  const hits = families.filter((f) => f.split(/\s+/).every(has));
   const best = Math.max(0, ...hits.map((f) => f.split(/\s+/).length));
   return best < 2 ? [] : hits.filter((f) => f.split(/\s+/).length === best);
+}
+
+/** Jarak edit ≤ 1: satu huruf disisipkan, dihapus, atau diganti. */
+function withinOneEdit(a: string, b: string): boolean {
+  if (a === b) return true;
+  if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0;
+  let j = 0;
+  let edits = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      i += 1;
+      j += 1;
+      continue;
+    }
+    edits += 1;
+    if (edits > 1) return false;
+    if (a.length > b.length) i += 1;
+    else if (a.length < b.length) j += 1;
+    else {
+      i += 1;
+      j += 1;
+    }
+  }
+  return edits + (a.length - i) + (b.length - j) <= 1;
 }
 
 /** Penanda seri di akhir nama jenis fitting ("Red Socket - W", "TY - D"). */

@@ -210,3 +210,22 @@ describe('isConfidentStandalone — kapan perencana dilewati', () => {
     expect(isConfidentStandalone(understood('x', { intent: null }))).toBe(false);
   });
 });
+
+describe('nama keluarga katalog di pesan (laporan pemilik 2026-10-09)', () => {
+  it('"Ftitting pvc" (salah ketik satu huruf) tetap FITTING PVC; kata pendek harus persis', async () => {
+    const { familiesInMessage } = await import('./product-range.js');
+    expect(familiesInMessage('jelasin product Ftitting pvc kok sampe 4109?', FAMILIES)).toEqual([
+      'FITTING PVC',
+    ]);
+    expect(familiesInMessage('pvc aw ukuran 1/2', FAMILIES)).toEqual(['PVC AW']);
+    expect(familiesInMessage('pvc ad', FAMILIES)).toEqual([]);
+  });
+
+  it('model memilih ikhtisar katalog untuk "fitting pvc kok banyak?" → tetap rincian FITTING PVC', async () => {
+    const out = await executePlan(
+      { action: 'product_overview', family: null, type: null, extreme: null },
+      ctx({ message: 'gw nanya produk fitting pvc kok banyak banget ?' }),
+    );
+    expect(textOf(out)).toContain('FITTING PVC di katalog Pralon ada 3 produk.');
+  });
+});
