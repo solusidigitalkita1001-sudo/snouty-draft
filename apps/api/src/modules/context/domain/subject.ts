@@ -150,7 +150,9 @@ export function productSubject(
       : entity;
   return {
     kind: 'product',
-    entity: merged ?? previous?.entity ?? 'Pralon',
+    // Hanya entitas PRODUK yang diwarisi: subjek kasus ("building") atau perusahaan bukan produk
+    // (judul riwayat sempat menjadi "Produk BUILDING", 2026-10-09).
+    entity: merged ?? (previous?.kind === 'product' ? previous.entity : null) ?? 'Pralon',
     topic: comparison ? 'comparison' : 'product_overview',
     depth: requested ?? 'standard',
   };

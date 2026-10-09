@@ -31,7 +31,9 @@ describe('conversationTitle (riwayat dari isi, bukan "Hai")', () => {
       conversationTitle(withSubject({ kind: 'product', entity, topic, depth: 'standard' }), 'id');
     expect(p('hdpe')).toBe('Produk HDPE');
     expect(p('pvc dan hdpe', 'comparison')).toBe('PVC vs HDPE');
-    expect(p('Pralon')).toBe('Produk Pralon');
+    // Subjek umum atau bukan produk tidak mengganti judul yang ada.
+    expect(p('Pralon')).toBeNull();
+    expect(p('building')).toBeNull();
     expect(
       conversationTitle(
         withSubject({
@@ -43,6 +45,19 @@ describe('conversationTitle (riwayat dari isi, bukan "Hai")', () => {
         'id',
       ),
     ).toBe('Tentang PT Pralon');
+  });
+
+  it('kasus bangunan menang atas subjek produk/perusahaan di tengah percakapan', () => {
+    const house = building('residential', 2);
+    expect(
+      conversationTitle(
+        {
+          ...house,
+          subject: { kind: 'company', entity: 'PT Pralon', topic: 'contact', depth: 'standard' },
+        },
+        'id',
+      ),
+    ).toBe('Rumah 2 lantai');
   });
 
   it('hanya sapaan (state kosong) → null; judul yang ada dibiarkan', () => {

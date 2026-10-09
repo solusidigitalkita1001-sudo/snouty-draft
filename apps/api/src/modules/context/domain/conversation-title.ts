@@ -12,17 +12,29 @@ export function conversationTitle(state: RequirementState | null, locale: Locale
   const en = locale === 'en';
   const subject = state.subject;
 
+  // Kasus bangunan yang sudah tercatat paling menggambarkan percakapannya — pertanyaan produk atau
+  // perusahaan di tengahnya tidak menggantinya (dry run 2026-10-09: rencana rumah 2 lantai sempat
+  // berjudul "Tentang PT Pralon").
+  const forCase = caseTitle(state, en);
+  if (forCase !== null) return forCase;
   if (subject?.kind === 'company') return en ? 'About PT Pralon' : 'Tentang PT Pralon';
   if (subject?.kind === 'product') return productTitle(subject.entity, subject.topic, en);
-  return caseTitle(state, en);
+  return null;
 }
 
-function productTitle(entity: string, topic: string, en: boolean): string {
+/** Entitas subjek yang bukan nama produk: Pralon umum, kasus, atau ID kasus teknis. */
+const NOT_A_PRODUCT = new Set(['pralon', 'pt pralon', 'building', 'irrigation']);
+
+/**
+ * `null` untuk subjek produk yang umum ("Pralon"): judul kalimat pertama ("Kalau pipa bocor di
+ * dalam tembok…") lebih jelas daripada "Produk Pralon".
+ */
+function productTitle(entity: string, topic: string, en: boolean): string | null {
   const names = entity
     .split(/\s+dan\s+/i)
     .map((e) => e.trim())
-    .filter((e) => e !== '' && e.toLowerCase() !== 'pralon');
-  if (names.length === 0) return en ? 'Pralon products' : 'Produk Pralon';
+    .filter((e) => e !== '' && !NOT_A_PRODUCT.has(e.toLowerCase()) && !isCaseId(e));
+  if (names.length === 0) return null;
   const upper = names.map((n) => n.toUpperCase());
   if (topic === 'comparison' && upper.length > 1) return upper.join(' vs ');
   return en ? `${upper.join(' and ')} products` : `Produk ${upper.join(' dan ')}`;
