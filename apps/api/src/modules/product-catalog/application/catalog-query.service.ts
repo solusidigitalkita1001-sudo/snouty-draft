@@ -35,6 +35,7 @@ import {
 } from '../domain/catalog.errors.js';
 import type {
   CatalogRepository,
+  FamilyCount,
   ProductListPage,
   ProductListQuery,
 } from '../domain/catalog.repository.js';
@@ -92,6 +93,18 @@ export class CatalogQueryService {
   async listProducts(filter: PublicProductListQuery): Promise<ProductListPage> {
     const version = await this.activeVersion();
     return this.repository.listProducts({ ...filter, catalogVersionId: version.id });
+  }
+
+  /** Jumlah produk aktif per keluarga di versi aktif, terbanyak dulu. */
+  async familyCounts(): Promise<readonly FamilyCount[]> {
+    const version = await this.activeVersion();
+    return this.repository.familyCounts(version.id);
+  }
+
+  /** Nama produk aktif dalam satu keluarga di versi aktif. */
+  async productNamesInFamily(family: string): Promise<readonly string[]> {
+    const version = await this.activeVersion();
+    return this.repository.productNamesInFamily(version.id, family);
   }
 
   /**

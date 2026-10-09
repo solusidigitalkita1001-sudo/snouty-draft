@@ -10,7 +10,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, gt, inArray, like, or, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, like, or, type SQL } from 'drizzle-orm';
 import type {
   CatalogVersion,
   CompatibleFitting,
@@ -30,6 +30,7 @@ import { CATALOG_SPEC_KEY_LIST } from '../domain/catalog-spec-keys.js';
 import {
   CATALOG_REPOSITORY,
   type CatalogRepository,
+  type FamilyCount,
   type ProductListPage,
   type ProductListQuery,
 } from '../domain/catalog.repository.js';
@@ -143,6 +144,31 @@ export class MysqlCatalogRepository implements CatalogRepository {
       items: toProducts(page, sizes, specs),
       nextCursor: hasMore ? (page[page.length - 1]?.sku ?? null) : null,
     };
+  }
+
+  async familyCounts(catalogVersionId: string): Promise<readonly FamilyCount[]> {
+    const rows = await this.database.db
+      .select({ family: products.family, count: count() })
+      .from(products)
+      .where(and(eq(products.catalogVersionId, catalogVersionId), eq(products.status, 'active')))
+      .groupBy(products.family)
+      .orderBy(desc(count()), asc(products.family));
+    return rows.map((row) => ({ family: row.family, count: Number(row.count) }));
+  }
+
+  async productNamesInFamily(catalogVersionId: string, family: string): Promise<readonly string[]> {
+    const rows = await this.database.db
+      .select({ name: products.name })
+      .from(products)
+      .where(
+        and(
+          eq(products.catalogVersionId, catalogVersionId),
+          eq(products.family, family),
+          eq(products.status, 'active'),
+        ),
+      )
+      .orderBy(asc(products.sku));
+    return rows.map((row) => row.name);
   }
 
   async findProductById(catalogVersionId: string, productId: string): Promise<Product | null> {

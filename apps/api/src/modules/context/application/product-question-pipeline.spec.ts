@@ -71,6 +71,22 @@ function catalog(byTerm: Record<string, Product[]>, kind: CatalogVersionKind = '
     async listProducts({ q }: { q?: string }) {
       return { items: byTerm[q ?? ''] ?? [], nextCursor: null };
     },
+    ...summaryOf(Object.values(byTerm).flat()),
+  };
+}
+
+/** Ringkasan katalog (jumlah per keluarga, nama per keluarga) dari daftar produk uji. */
+function summaryOf(items: readonly Product[]) {
+  const unique = [...new Map(items.map((p) => [p.id, p])).values()];
+  return {
+    async familyCounts() {
+      const counts = new Map<string, number>();
+      for (const p of unique) counts.set(p.family, (counts.get(p.family) ?? 0) + 1);
+      return [...counts.entries()].map(([family, count]) => ({ family, count }));
+    },
+    async productNamesInFamily(family: string) {
+      return unique.filter((p) => p.family === family).map((p) => p.name);
+    },
   };
 }
 const brokenCatalog = {
@@ -79,6 +95,12 @@ const brokenCatalog = {
   },
   async listProducts(): Promise<never> {
     throw new Error('tidak boleh sampai sini');
+  },
+  async familyCounts(): Promise<never> {
+    throw new CatalogUnavailableError();
+  },
+  async productNamesInFamily(): Promise<never> {
+    throw new CatalogUnavailableError();
   },
 };
 
@@ -527,28 +549,56 @@ describe('runProductQuestion — nada percakapan', () => {
 });
 
 describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?")', () => {
-  it('katalog Pralon: keluarga produk beserta anggotanya, satu kartu per keluarga', async () => {
+  it('katalog Pralon: SELURUH keluarga dengan jumlah sebenarnya; jenis per keluarga; tabel tanpa PVC vs HDPE', async () => {
+    // Verifikasi 2026-10-09: ikhtisar dulu membaca 50 produk pertama — 8 dari 24 keluarga.
     const D = { ...AW, id: 'B'.repeat(26), sku: 'D', name: 'Pipa PVC D', family: 'PVC D' };
+    const hdpe = (id: string, name: string) => ({ ...AW, id, sku: id, name, family: 'HDPE' });
+    const items = [
+      AW,
+      D,
+      hdpe('H'.repeat(26), 'Pipa HDPE PE 100 PN-8 160 mm x 9 Meter'),
+      hdpe('I'.repeat(26), 'Pipa HDPE PE 100 PN-16 63 mm x 6 Meter'),
+      hdpe('J'.repeat(26), 'Pipa HDPE Telkom 40/33 x 182 Meter Orange Garis Biru'),
+      {
+        ...AW,
+        id: 'K'.repeat(26),
+        sku: 'FH',
+        name: 'Tee (Segmented) PE 315 x 160 mm',
+        family: 'FITTING HDPE',
+      },
+    ];
+    const full = { ...catalog({ '': items }) };
+
     const events = await runProductQuestion(
       ai({ productQuery: null, aspect: null }),
-      { ...catalog({}), listProducts: async () => ({ items: [AW, D], nextCursor: null }) },
+      full,
       noQuestions,
       input('gw mau nanya produk pralon itu yang terkenal apa sih?', { intent: 'product_range' }),
     );
     const out = text(events);
-    expect(out).toContain(
-      'Di katalog Pralon yang aktif ada keluarga produk berikut:\n\n- **PVC AW**',
-    );
-    expect(out).toContain('- **PVC AW**: Pipa PVC AW');
-    expect(out).toContain('- **PVC D**: Pipa PVC D');
-    expect(cards(events).map((c) => c.kind)).toEqual(['product']);
+    expect(out).toContain('Katalog Pralon yang aktif memuat 6 produk dalam 4 keluarga.');
+    expect(out).toContain('- **PVC** — 2 produk: AW, D');
+    expect(out).toContain('- **HDPE** — 3 produk');
+    expect(out).toContain('Fitting:\n\n- **FITTING HDPE** — 1 produk');
 
-    // "bikinin dalam bentuk table dong" setelah daftar itu: tabel RAGAM, bukan PVC vs HDPE
-    // (laporan pemilik 2026-10-08 — daftar ragam menyebut HDPE dan PVC, dan dulu dibaca sebagai
-    // dua bahan yang dibandingkan).
+    // "HDPE di pralon jenisnya apa aja?" — jenis dari nama produk, dengan PN dan jumlahnya.
+    const types = await runProductQuestion(
+      ai({ productQuery: 'hdpe', aspect: null }),
+      full,
+      noQuestions,
+      input('HDPE di pralon jenis nya apa aja ?', { intent: 'product_range' }),
+    );
+    const typesText = text(types);
+    expect(typesText).toContain('keluarga HDPE ada 3 produk, terbagi dalam jenis berikut:');
+    expect(typesText).toContain('- **Pipa HDPE PE 100** — PN-8 sampai PN-16, 2 produk');
+    expect(typesText).toContain('- **Pipa HDPE Telkom** — 1 produk');
+    expect(typesText).toContain('FITTING HDPE ada 1 produk, di antaranya Tee (Segmented) PE.');
+
+    // "bikinin dalam bentuk table dong" setelah ikhtisar: tabel RAGAM, bukan PVC vs HDPE
+    // (laporan pemilik 2026-10-08 — ikhtisar menyebut HDPE dan PVC).
     const table = await runProductQuestion(
       ai({ productQuery: null, aspect: null }),
-      { ...catalog({}), listProducts: async () => ({ items: [AW, D], nextCursor: null }) },
+      full,
       noQuestions,
       input(
         'bikinin dalam bentuk table dong',
@@ -557,8 +607,8 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
       ),
     );
     const tableText = text(table);
-    expect(tableText).toContain('| Keluarga | Jumlah produk | Contoh |');
-    expect(tableText).toContain('| PVC AW | 1 | Pipa PVC AW |');
+    expect(tableText).toContain('| Keluarga | Jumlah produk |');
+    expect(tableText).toContain('| HDPE | 3 |');
     expect(tableText).not.toContain('Aspek');
     expect(cards(table)).toEqual([]);
   });

@@ -45,9 +45,10 @@ import { isAnswerable, isAuthoritative } from '../../product-catalog/domain/cata
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { endEvent } from './message-pipeline.js';
-import { MATERIALS, briefComparison, explain, materialsFor, reformat } from './pipe-knowledge.js';
+import { briefComparison, explain, materialsFor, reformat } from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, productAnswerCopy } from './product-answer-text.js';
+import { familyRange, previousRange, rangeOverview } from './product-range.js';
 
 /** Alias kosakata sebuah keluarga kanonis — untuk mencari katalog dengan nama yang dipakai katalog. */
 type Aliases = (family: string) => readonly string[];
@@ -60,7 +61,10 @@ const MAX_PRODUCTS = 2;
 /** Perbandingan per dimensi ± dukungan katalog; 700 (balasan percakapan) memotongnya. */
 const FAQ_MAX_LENGTH = 1800;
 
-export type ProductCatalog = Pick<CatalogQueryService, 'activeVersion' | 'listProducts'>;
+export type ProductCatalog = Pick<
+  CatalogQueryService,
+  'activeVersion' | 'listProducts' | 'familyCounts' | 'productNamesInFamily'
+>;
 
 export interface ProductQuestionInput {
   readonly messageId: string;
@@ -190,8 +194,14 @@ export async function runProductQuestion(
   // "Bikinin tabelnya" tepat setelah daftar ragam produk: yang disajikan ulang adalah RAGAM itu,
   // bukan perbandingan PVC vs HDPE — dulu bahan dibaca dari teks jawaban, dan daftar ragam
   // menyebut HDPE dan PVC (laporan pemilik 2026-10-08).
-  if (isFormatFollowUp(u) && previousWasRange(input)) {
-    const range = await rangeOverview(catalog, locale, u.format);
+  const previous = isFormatFollowUp(u) ? previousRange(lastAssistantText(input)) : null;
+  if (previous !== null) {
+    const subjectFamilies =
+      input.subject?.kind === 'product' ? input.lexicon.productFamilies(input.subject.entity) : [];
+    const range =
+      (previous === 'family' && subjectFamilies.length > 0
+        ? await familyRange(catalog, subjectFamilies, locale, u.format)
+        : null) ?? (await rangeOverview(catalog, locale, u.format));
     return [
       { type: 'message.start', messageId: input.messageId },
       { type: 'token', text: range.text },
@@ -296,6 +306,12 @@ async function answerConcept(
   // "Produk Pralon yang terkenal apa?" — ragam, bukan satu bahan. Diputuskan dari pesannya,
   // SEBELUM parse model: 7B pernah menjawab pertanyaan ini dengan productQuery "PVC".
   if (asksRange && u.families.length === 0) return rangeOverview(catalog, locale);
+  // "HDPE di Pralon jenisnya apa aja?" — jenis dalam keluarga itu, dari katalog. Tanpa katalog
+  // Pralon (atau keluarganya tidak ada di katalog): jalur penjelasan bahan di bawah.
+  if (asksRange) {
+    const range = await familyRange(catalog, u.families, locale);
+    if (range !== null) return range;
+  }
 
   // Bahan yang dibicarakan: dari pesan, dari query (subjek/model), dan — untuk perbandingan —
   // dari subjek aktif: "bedanya sama pipa AW?" saat subjeknya HDPE membandingkan keduanya, bukan
@@ -407,32 +423,6 @@ async function answerConcept(
  * kalimat pembukanya) dan pertanyaan sekarang BUKAN pengulangan pertanyaan sebelumnya, cukup
  * satu kalimat pengingat — pengguna bertanya hal lain, bukan minta diulang.
  */
-type RangeFormat = 'table' | 'bullets' | 'summary' | null;
-
-/** Jawaban asisten terakhir adalah daftar ragam produk (teks tetap milik kode, bukan kalimat pengguna). */
-function previousWasRange(input: ProductQuestionInput): boolean {
-  const last = lastAssistantText(input);
-  return (['id', 'en'] as const).some((l) => {
-    const copy = productAnswerCopy(l);
-    return last.includes(copy.rangeIntro) || last.includes(copy.catalogNotInstalled);
-  });
-}
-
-/** Tabel ragam: keluarga, jumlah produk, dua contoh. Tanda | di nama produk di-escape. */
-function rangeTable(byFamily: ReadonlyMap<string, readonly Product[]>, locale: Locale): string {
-  const en = locale === 'en';
-  const cell = (text: string) => text.replace(/\|/g, '\\|');
-  const rows = [...byFamily.entries()].map(([family, members]) => {
-    const examples = members.slice(0, 2).map((m) => cell(m.name));
-    return `| ${cell(family)} | ${members.length} | ${examples.join('; ')} |`;
-  });
-  return [
-    en ? '| Family | Products | Examples |' : '| Keluarga | Jumlah produk | Contoh |',
-    '| --- | --- | --- |',
-    ...rows,
-  ].join('\n');
-}
-
 function lastAssistantText(input: ProductQuestionInput): string {
   return [...(input.recentTurns ?? [])].reverse().find((t) => t.role === 'assistant')?.text ?? '';
 }
@@ -469,72 +459,6 @@ export function keepsStructure(written: string, knowledge: string): boolean {
   const expected = items(knowledge);
   if (expected === 0) return true;
   return items(written) * 2 >= expected && written.includes('**');
-}
-
-/**
- * Ikhtisar ragam produk. Atas katalog Pralon (otoritatif): keluarga produk yang aktif beserta
- * anggotanya, satu kartu per keluarga. Atas katalog contoh / katalog tak terbaca: TIDAK ada
- * nama produk — jujur bahwa katalog Pralon belum terpasang, lalu ragam keluarga bahan secara
- * umum dari pengetahuan milik kode, dan tim teknis untuk daftar resminya.
- */
-async function rangeOverview(
-  catalog: ProductCatalog,
-  locale: Locale = DEFAULT_LOCALE,
-  /** Bentuk yang diminta lanjutan "bikinin tabelnya" / "ringkas aja"; `null` = daftar biasa. */
-  format: RangeFormat = null,
-): Promise<Outcome> {
-  const COPY = productAnswerCopy(locale);
-  let authoritative = false;
-  let products: readonly Product[] = [];
-  try {
-    authoritative = isAuthoritative(await catalog.activeVersion());
-    if (authoritative) {
-      const page = await catalog.listProducts({ limit: 50 });
-      products = page.items.filter(isAnswerable);
-    }
-  } catch (error) {
-    if (!(error instanceof CatalogUnavailableError)) throw error;
-  }
-
-  if (authoritative && products.length > 0) {
-    const byFamily = new Map<string, Product[]>();
-    for (const p of products) byFamily.set(p.family, [...(byFamily.get(p.family) ?? []), p]);
-    // Paling banyak tiga contoh per keluarga — daftar puluhan nama tidak terbaca di chat.
-    const lines = [...byFamily.entries()].map(([family, members]) => {
-      const names = members.slice(0, 3).map((m) => m.name);
-      const more = members.length - names.length;
-      const tail =
-        more > 0 ? (locale === 'en' ? `, and ${more} more` : `, dan ${more} lainnya`) : '';
-      return `- **${family}**: ${names.join(', ')}${tail}`;
-    });
-    if (format === 'table') {
-      return { text: [rangeTable(byFamily, locale), '', COPY.rangeNext].join('\n'), cards: [] };
-    }
-    if (format === 'summary') {
-      const names = [...byFamily.keys()];
-      const text =
-        locale === 'en'
-          ? `The active Pralon catalogue has ${names.length} product families: ${names.join(', ')}.`
-          : `Di katalog Pralon yang aktif ada ${names.length} keluarga produk: ${names.join(', ')}.`;
-      return { text: [text, '', COPY.rangeNext].join('\n'), cards: [] };
-    }
-    const representatives = [...byFamily.values()]
-      .slice(0, 4)
-      .map((members) => toCard(members[0]!));
-    return {
-      text: [COPY.rangeIntro, '', ...lines, '', COPY.rangeNext].join('\n'),
-      // Kartu hanya pada jawaban pertama; sajian ulang tidak mengulang kartunya.
-      cards: format === null ? [{ kind: 'product', products: representatives }] : [],
-    };
-  }
-
-  const families = MATERIALS.map(
-    (m) => `- **${m.label}** — ${m.gist}; lazim untuk ${m.typicalUse}.`,
-  );
-  return {
-    text: [COPY.catalogNotInstalled, '', ...families, '', COPY.askTechnicalForProducts].join('\n'),
-    cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }],
-  };
 }
 
 // ── Jalur SPESIFIKASI ───────────────────────────────────────────────────────

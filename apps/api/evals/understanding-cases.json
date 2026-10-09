@@ -833,6 +833,24 @@
       "format": null,
       "productAspect": null,
       "topics": []
+    },
+    {
+      "text": "HDPE di pralon jenis nya apa aja ?",
+      "intent": "product_range",
+      "source": "pemilik 2026-10-09",
+      "topics": []
+    },
+    {
+      "text": "pvc di pralon ada jenis apa aja?",
+      "intent": "product_range",
+      "source": "pemilik 2026-10-09",
+      "topics": []
+    },
+    {
+      "text": "tipe pipa hdpe pralon apa saja",
+      "intent": "product_range",
+      "source": "pemilik 2026-10-09",
+      "topics": []
     }
   ]
 }

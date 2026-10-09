@@ -1138,6 +1138,16 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       menyebut HDPE dan PVC. Kini lanjutan ubah-bentuk tepat setelah daftar ragam menyajikan ulang
       RAGAM itu: tabel Keluarga | Jumlah produk | Contoh, atau satu kalimat bila diminta ringkas;
       kartu produk tidak diulang. Tes +1.
+- [x] P16-25 Ragam produk dari SELURUH katalog + jenis per keluarga (laporan pemilik 2026-10-09:
+      "HDPE di pralon jenisnya apa aja?" dijawab penjelasan bahan + satu produk) — selesai. Temuan
+      lebih besar: ikhtisar "produk Pralon apa aja" membaca 50 produk pertama — 8 dari 24 keluarga,
+      "HDPE 23 produk" padahal 1.327, PVC AW tidak muncul (katalog produksi 7.681 produk). Kini
+      repository punya `familyCounts` (GROUP BY) dan `productNamesInFamily`; ikhtisar menampilkan
+      seluruh keluarga dengan jumlah sebenarnya (keluarga sekata digabung: "PVC — AW, D, VP, …").
+      Jenis dalam keluarga dibaca dari nama produk (`productTypesOf`: jenis sebelum ukuran pertama,
+      tanpa PN dan warna; PN dikumpulkan): HDPE → PE 100 (PN-6 sampai PN-16), Telkom, Gas SDR-11, ….
+      Tabel/ringkas atas ikhtisar maupun jenis. +8 contoh `product_range`, +2 golden; evaluasi intent
+      135/135. Tes: product-types +10, pipeline diperbarui.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

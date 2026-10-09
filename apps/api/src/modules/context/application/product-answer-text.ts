@@ -34,7 +34,7 @@ export const PRODUCT_ANSWER_COPY = {
   priceNotShown:
     'Harga tidak saya tampilkan di sini — harga final mengikuti daftar harga distributor Pralon yang berlaku dan bisa berbeda per wilayah. Tim Pralon bisa mengirimkan penawarannya untuk produk yang Anda butuhkan.',
   catalogSupport: 'Contoh produknya di katalog Pralon:',
-  rangeIntro: 'Di katalog Pralon yang aktif ada keluarga produk berikut:',
+  familyNext: 'Mau saya rinci ukuran untuk salah satu jenisnya?',
   rangeNext:
     'Mau saya jelaskan salah satunya, atau ceritakan bangunannya supaya saya bisa memilihkan?',
   /** Pengguna menyebut Pralon ("HDPE di Pralon ok nggak?") tetapi katalognya belum terpasang. */
@@ -74,7 +74,7 @@ export interface ProductAnswerCopy {
   readonly catalogUnavailable: string;
   readonly priceNotShown: string;
   readonly catalogSupport: string;
-  readonly rangeIntro: string;
+  readonly familyNext: string;
   readonly rangeNext: string;
   readonly catalogNotInstalledShort: string;
   readonly catalogNotInstalled: string;
@@ -95,7 +95,7 @@ export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
   priceNotShown:
     'Prices are not shown here — final prices follow the current Pralon distributor price list and can differ by region. The Pralon team can send a quotation for the products you need.',
   catalogSupport: 'Examples in the Pralon catalogue:',
-  rangeIntro: 'The active Pralon catalogue has these product families:',
+  familyNext: 'Shall I list the sizes for one of these types?',
   rangeNext:
     'Would you like me to explain one of them, or tell me about the building so I can pick for you?',
   catalogNotInstalledShort:

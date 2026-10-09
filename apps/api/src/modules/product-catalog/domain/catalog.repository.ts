@@ -79,4 +79,19 @@ export interface CatalogRepository {
    * sini supaya tidak ada dua jalur ke satu tabel yang bisa menyimpang.
    */
   findProductDocuments(productId: string): Promise<readonly ProductDocument[]>;
+
+  /**
+   * Jumlah produk AKTIF per keluarga, terbanyak dulu — ringkasan ragam katalog ("produk Pralon apa
+   * aja?"). Satu query GROUP BY: membaca halaman produk pertama saja dulu menampilkan 8 dari 24
+   * keluarga dengan jumlah yang salah (katalog produksi 7.681 produk, verifikasi 2026-10-09).
+   */
+  familyCounts(catalogVersionId: string): Promise<readonly FamilyCount[]>;
+
+  /** Nama seluruh produk aktif dalam satu keluarga — bahan ringkasan jenis ("HDPE-nya apa aja?"). */
+  productNamesInFamily(catalogVersionId: string, family: string): Promise<readonly string[]>;
+}
+
+export interface FamilyCount {
+  readonly family: string;
+  readonly count: number;
 }
