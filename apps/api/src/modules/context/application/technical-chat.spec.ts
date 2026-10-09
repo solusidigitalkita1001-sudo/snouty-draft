@@ -14,6 +14,7 @@ import { applyTechnicalFacts } from '../domain/technical.js';
 import { runUnderstanding, type PipelineInput } from './message-pipeline.js';
 import type { ReplyWriter } from './reply-writer.js';
 import type { RoutingDecision } from './intent-router.js';
+import { understood } from '../../understanding/testing/understood.js';
 
 const T0 = '2026-10-09T00:00:00.000Z';
 const decision: RoutingDecision = {
@@ -43,20 +44,38 @@ const input = (message: string): PipelineInput => ({
 });
 
 describe('kasus teknis berjalan — pesan tanpa data baru', () => {
-  it('"lu belum nanya kamar mandi" dijawab penulis balasan di atas DATA kasus', async () => {
+  it('"lu belum nanya kamar mandi" / "kasih gw pilihan": balasan langsung dari daftar pertanyaan, tanpa model', async () => {
+    for (const message of [
+      'oi lu belum nanya nih butuh kamar mandi brp, wastafelnya,dll',
+      'kasih gw pilihan',
+    ]) {
+      const { reply, write } = writer();
+      const { events } = await runUnderstanding(
+        null,
+        { ...input(message), understanding: understood(message, { intent: 'complaint' }) },
+        reply,
+      );
+      expect(write).not.toHaveBeenCalled();
+      const token = events.find((e) => e.type === 'token') as { text: string };
+      expect(token.text).toBe(
+        'Yang masih saya perlukan: kamar mandi/toilet per lantai, wastafel per lantai, tinggi bangunan, dan tekanan yang dibutuhkan. Pilihannya ada di bawah, atau ketik angkanya langsung; kalau mau langsung lihat hitungannya, tekan **Susun rekomendasi**.',
+      );
+      expect(events.filter((e) => e.type === 'card')).toHaveLength(2);
+    }
+  });
+
+  it('pertanyaan yang butuh penjelasan tetap dijawab model di atas DATA kasus', async () => {
     const { reply, write } = writer();
-    const { events } = await runUnderstanding(
+    const message = 'kenapa harus pakai pompa transfer?';
+    await runUnderstanding(
       null,
-      input('oi lu belum nanya nih butuh kamar mandi brp, wastafelnya,dll'),
+      { ...input(message), understanding: understood(message, { intent: 'explanation_request' }) },
       reply,
     );
     expect(write).toHaveBeenCalledOnce();
     const facts = write.mock.calls[0]![0].facts;
     expect(facts).toContain('Air bersih gedung bertingkat');
     expect(facts).toContain('Tiap lantai ada berapa kamar mandi atau toilet?');
-    const token = events.find((e) => e.type === 'token') as { text: string };
-    expect(token.text).toBe('Betul, kamar mandi per lantai belum saya tanya.');
-    expect(events.some((e) => e.type === 'card')).toBe(true);
   });
 
   it('pesan yang membawa data tetap memakai panduan, tanpa model', async () => {

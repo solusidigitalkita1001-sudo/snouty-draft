@@ -1245,6 +1245,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       tersedia". Kini kolam, transfer pompa, sumur, cluster, irigasi, drainase, air hujan,
       gorong-gorong, dan gedung bertingkat punya skema aliran yang dibentuk dari hasil hitungannya
       (docs/SCHEMATIC_ENGINE.md §9a), tampil di tab Skema dan halaman /schematic.
+- [x] P16-40 Balasan lanjutan kasus teknis tanpa jeda model (2026-10-09, "balasan 30 detik") — benchmark
+      prompt produksi di server: 9B 20–25 s (memangkas prompt ~40 % tidak mempercepat), 4B 12–14 s
+      dengan kesalahan teknis; model tidak diganti. Pesan lanjutan tanpa data baru yang bukan
+      pertanyaan penjelasan (protes, "kasih pilihan", "lanjut") kini dijawab langsung dari daftar
+      pertanyaan kasus — instan; pertanyaan penjelasan (maksud konsep/kegunaan/saran/…) tetap ke 9B di
+      atas DATA kasus. "Data baru" hanya parameter milik kasus itu.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

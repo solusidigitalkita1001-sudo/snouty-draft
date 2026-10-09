@@ -30,6 +30,7 @@ import { CORE_REQUIREMENT_FIELDS, DEFAULT_LOCALE, type Locale } from '@snouty/sh
 import { loadEnv } from '../../../config/env.js';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import {
+  activeParameters,
   caseProfile,
   caseProfileLabel,
   extractTechnicalContext,
@@ -48,6 +49,7 @@ import {
   applyTechnicalFacts,
   carryBuildingFloors,
   detectTechnicalCase,
+  technicalNudge,
   isTechnicalComplete,
   planTechnicalClarification,
   technicalCaptured,
@@ -262,20 +264,29 @@ export async function runUnderstanding(
     // Pesan lanjutan tanpa data baru ("lu belum nanya kamar mandi", "kasih gw pilihan") dijawab
     // sesuai isinya di atas DATA kasus — bukan template yang sama diulang (laporan pemilik
     // 2026-10-09). Model gagal → teks panduan seperti biasa.
-    const chatOnly = !firstTurn && facts.captured.length === 0;
-    const text =
-      chatOnly && reply && loadEnv().LLM_CHAT_REPLY
-        ? (
-            await reply.write({
-              intent: input.decision.intent,
-              userMessage: input.message,
-              recentTurns: input.recentTurns ?? [],
-              facts: caseFacts(applied.state, locale, card),
-              locale,
-              fallback: guidance,
-            })
-          ).text
-        : guidance;
+    // Yang dihitung "data baru" hanya parameter kasus ini: "kenapa harus pakai pompa transfer?"
+    // menyebut pompa, tetapi kasus gedung tidak menanyakannya — itu pertanyaan, bukan jawaban.
+    const caseParameters = activeParameters(caseProfile(technicalCase));
+    const chatOnly = !firstTurn && !facts.captured.some((key) => caseParameters.includes(key));
+    // Model hanya untuk pertanyaan yang butuh penjelasan; dorongan/protes/minta pilihan dijawab
+    // langsung dari daftar parameter kasus — instan, tanpa model (benchmark P16-40).
+    const explains = EXPLAINING_INTENTS.has(input.understanding?.intent?.label ?? '');
+    const text = !chatOnly
+      ? guidance
+      : !explains
+        ? technicalNudge(applied.state, locale)
+        : reply && loadEnv().LLM_CHAT_REPLY
+          ? (
+              await reply.write({
+                intent: input.decision.intent,
+                userMessage: input.message,
+                recentTurns: input.recentTurns ?? [],
+                facts: caseFacts(applied.state, locale, card),
+                locale,
+                fallback: guidance,
+              })
+            ).text
+          : guidance;
     events.push({ type: 'token', text });
     if (questions) events.push({ type: 'card', card: questions });
     if (card) events.push({ type: 'card', card });
@@ -710,6 +721,22 @@ export function applyEdit(
   );
   return { state: withCompleteness(result.state), changed: result.changed.length > 0 };
 }
+
+/** Maksud yang butuh penjelasan model, bukan sekadar daftar yang masih ditanya. */
+const EXPLAINING_INTENTS: ReadonlySet<string> = new Set([
+  'product_concept',
+  'product_comparison',
+  'product_spec',
+  'product_range',
+  'price_question',
+  'use_question',
+  'knowledge_question',
+  'advice_request',
+  'explanation_request',
+  'company_question',
+  'competitor_question',
+  'out_of_scope',
+]);
 
 /**
  * Gedung di atas batas hitung rumah (> 4 lantai) dihitung sebagai gedung bertingkat — tangki

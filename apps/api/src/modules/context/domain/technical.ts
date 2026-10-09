@@ -372,6 +372,38 @@ export function technicalGuidance(
   return lines.join('\n').replace(/^\n+/, '');
 }
 
+/**
+ * Balasan langsung untuk pesan lanjutan tanpa data baru dalam kasus teknis ("lu belum nanya kamar
+ * mandi", "kasih gw pilihan"): apa yang masih ditanya — dari daftar parameter kasus, bukan dari
+ * kalimat pengguna — dan ke mana menjawabnya. Instan; model hanya dipakai untuk pertanyaan yang
+ * butuh penjelasan (benchmark 2026-10-09: 9B 20–25 s, 4B 12–14 s dengan kesalahan teknis).
+ */
+export function technicalNudge(state: RequirementState, locale: Locale = DEFAULT_LOCALE): string {
+  if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return '';
+  const en = locale === 'en';
+  const asked = technicalMissing(state).map((m) => (en ? m.labelEn : m.label).toLowerCase());
+  const { card } = planTechnicalClarification(state, locale);
+  const ready = isTechnicalComplete(state);
+  if (asked.length === 0) return GUIDANCE_COPY[locale].readyToCompute;
+  const list = joinNatural(asked, locale);
+  const where =
+    card.length > 0
+      ? en
+        ? 'The options are below, or type the numbers directly'
+        : 'Pilihannya ada di bawah, atau ketik angkanya langsung'
+      : en
+        ? 'Just type the numbers'
+        : 'Ketik saja angkanya';
+  const proceed = ready
+    ? en
+      ? '; to see the calculation right away, press **Compose recommendation**.'
+      : '; kalau mau langsung lihat hitungannya, tekan **Susun rekomendasi**.'
+    : '.';
+  return en
+    ? `Still to settle: ${list}. ${where}${proceed}`
+    : `Yang masih saya perlukan: ${list}. ${where}${proceed}`;
+}
+
 interface GuidanceCopy {
   readonly captured: (joined: string) => string;
   readonly pickIntro: string;
