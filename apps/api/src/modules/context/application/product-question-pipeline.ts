@@ -224,6 +224,7 @@ export async function runProductQuestion(
       input.lexicon.productFamilies(input.subject.entity),
       input.message,
       isFollowUp(u) || isChoiceFollowUp(u),
+      lastAssistantText(input),
       locale,
     );
     if (sizes !== null) {

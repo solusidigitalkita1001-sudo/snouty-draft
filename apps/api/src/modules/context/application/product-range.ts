@@ -38,6 +38,7 @@ export interface RangeOutcome {
   readonly cards: readonly AssistantCard[];
 }
 
+const NL = '\n';
 /** Jenis yang ditampilkan per keluarga pipa; sisanya disebut jumlahnya. */
 const MAX_TYPES = 8;
 /** Contoh jenis untuk keluarga fitting (ratusan jenis) dan untuk keluarga dalam grup. */
@@ -316,6 +317,8 @@ export async function familySizes(
   mentioned: readonly string[],
   message: string,
   acceptsOffer: boolean,
+  /** Jawaban asisten sebelumnya — ringkasan rentang yang sudah diberikan tidak diulang. */
+  previousText: string,
   locale: Locale = DEFAULT_LOCALE,
 ): Promise<RangeOutcome | null> {
   const COPY = productAnswerCopy(locale);
@@ -334,6 +337,31 @@ export async function familySizes(
     .filter((t) => byType.has(t));
   const chosen = chosenType(types, message);
   if (chosen === null && !acceptsOffer) return null;
+
+  // "tampilin semua" setelah ringkasan rentang: semua ukuran tiap jenis — dulu ringkasan yang
+  // sama diulang persis (laporan pemilik 2026-10-09).
+  const summarized = (['id', 'en'] as const).some((l) =>
+    previousText.includes(productAnswerCopy(l).typeNext),
+  );
+  if (chosen === null && summarized) {
+    const blocks = types.map((type) => {
+      const sizes = byType.get(type)!;
+      const count = en ? `${sizes.length} sizes` : `${sizes.length} ukuran`;
+      return [`**${type}** (${count})`, sizes.map((s) => s.label).join(', ')].join(NL);
+    });
+    return {
+      text: [
+        en
+          ? 'All sizes per type in the Pralon catalogue:'
+          : 'Semua ukuran per jenis di katalog Pralon:',
+        '',
+        blocks.join(NL + NL),
+        '',
+        COPY.sizeNext,
+      ].join(NL),
+      cards: [],
+    };
+  }
 
   if (chosen !== null) {
     const sizes = byType.get(chosen) ?? [];

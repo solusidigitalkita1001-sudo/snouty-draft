@@ -641,6 +641,23 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
       'Pipa HDPE Telkom di katalog Pralon tersedia dalam 1 ukuran:\n\n40/33',
     );
 
+    // "tampilin semua" setelah ringkasan rentang: semua ukuran tiap jenis, bukan ringkasan yang
+    // sama lagi (laporan pemilik 2026-10-09).
+    const all = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      full,
+      noQuestions,
+      input(
+        'tampilin semua',
+        { intent: 'follow_up_more' },
+        { subject, recentTurns: [{ role: 'assistant', text: bolehText }] },
+      ),
+    );
+    const allText = text(all);
+    expect(allText).toContain('Semua ukuran per jenis di katalog Pralon:');
+    expect(allText).toContain('**Pipa HDPE PE 100** (2 ukuran)\n63 mm, 160 mm');
+    expect(allText).not.toContain('Ukuran per jenis di katalog Pralon:');
+
     // "bikinin dalam bentuk table dong" setelah ikhtisar: tabel RAGAM, bukan PVC vs HDPE
     // (laporan pemilik 2026-10-08 — ikhtisar menyebut HDPE dan PVC).
     const table = await runProductQuestion(
