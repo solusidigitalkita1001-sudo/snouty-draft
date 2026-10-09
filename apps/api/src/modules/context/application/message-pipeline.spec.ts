@@ -296,6 +296,41 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(card).toEqual({ kind: 'cta', action: 'ANALYZE' });
   });
 
+  it('kasus pemilik "gedung 100 x 30, 12 lantai": dihitung sebagai gedung bertingkat — luas tercatat, CTA analisis, bukan kartu tim teknis', async () => {
+    const message = 'oi gw mau bikin gedung dengan luas 100 x 30 12 lantai, apa aja yang dibutuhin';
+    const { events, nextState } = await runUnderstanding(
+      aiExtracting({}),
+      input({ message, understanding: understood(message, { intent: 'requirement_building' }) }),
+    );
+    expect(nextState.useCase).toMatchObject({
+      kind: 'technical',
+      caseId: 'multistorey_building_water',
+    });
+    const params = (nextState.useCase as { parameters: Record<string, { value: unknown }> })
+      .parameters;
+    expect(params['building_floors']?.value).toBe(12);
+    expect(params['floor_area']?.value).toBe(3000);
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('gedung bertingkat');
+    expect(text).toContain('Susun rekomendasi');
+    const card = (
+      events.find((e) => e.type === 'card') as { card: { kind: string; action?: string } }
+    ).card;
+    expect(card).toEqual({ kind: 'cta', action: 'ANALYZE' });
+  });
+
+  it('gedung 8 lantai tanpa luas atau penghuni: ditanya jumlah penghuni, bukan diserahkan', async () => {
+    const message = 'gedung kantor 8 lantai';
+    const { events } = await runUnderstanding(
+      aiExtracting({}),
+      input({ message, understanding: understood(message, { intent: 'requirement_building' }) }),
+    );
+    const cards = events.filter((e) => e.type === 'card') as { card: { kind: string } }[];
+    expect(cards.every((c) => c.card.kind !== 'unsupported')).toBe(true);
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('berapa orang yang memakai gedungnya');
+  });
+
   it('sink `emit` menerima setiap event saat terjadi, urutannya sama dengan array hasil (P14-07)', async () => {
     const seen: string[] = [];
     const { events } = await runUnderstanding(

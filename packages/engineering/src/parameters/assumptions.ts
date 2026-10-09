@@ -288,7 +288,12 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
   {
     id: 'TRANSFER_DISCHARGE_MARGIN',
     parameter: 'required_pressure',
-    appliesTo: ['pump_transfer', 'well_distribution', 'residential_cluster'],
+    appliesTo: [
+      'pump_transfer',
+      'well_distribution',
+      'residential_cluster',
+      'multistorey_building_water',
+    ],
     condition: 'tekanan sisa di titik keluar tidak ditentukan (buangan ke tandon/bak)',
     value: 0.5,
     unit: 'bar',
@@ -523,6 +528,87 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Faktor jam puncak 2,0 terhadap kebutuhan rata-rata harian.',
+  },
+
+  // ── Gedung bertingkat (keputusan pemilik 2026-10-09: gedung > 4 lantai tetap dihitung) ──
+  // Nilai awal dari buku acuan plambing Indonesia; semuanya wajib dikonfirmasi tim teknis (OQ-57).
+  {
+    id: 'OCCUPANT_AREA_10M2',
+    parameter: 'number_of_occupants',
+    appliesTo: ['multistorey_building_water'],
+    condition: 'jumlah penghuni tidak diberikan tetapi luas lantai diketahui',
+    value: 10,
+    unit: 'm²/orang',
+    conditionEn: 'number of occupants not given but the floor area is known',
+    descriptionEn: 'One person per 10 m² of gross floor area.',
+    reference:
+      'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing: perkiraan penghuni dari luas lantai (kepadatan hunian)',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Satu orang per 10 m² luas lantai kotor.',
+  },
+  {
+    id: 'USAGE_HOURS_10',
+    parameter: 'operating_hours',
+    appliesTo: ['multistorey_building_water'],
+    condition: 'jam pemakaian air gedung tidak diberikan',
+    value: 10,
+    unit: 'jam/hari',
+    conditionEn: 'daily hours of water use not given',
+    descriptionEn: 'Water is used over 10 hours a day.',
+    reference:
+      'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing: jangka waktu pemakaian rata-rata 8–10 jam/hari',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description: 'Air dipakai selama 10 jam per hari.',
+  },
+  {
+    id: 'PEAK_MINUTE_FACTOR_3',
+    parameter: 'simultaneous_usage',
+    appliesTo: ['multistorey_building_water'],
+    condition: 'pola pemakaian serentak tidak diberikan',
+    value: 3,
+    unit: '-',
+    conditionEn: 'simultaneous usage pattern not given',
+    descriptionEn: 'Peak-minute factor of 3.0 relative to the average hourly use.',
+    reference:
+      'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing: faktor menit puncak 3,0–4,0',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description: 'Faktor menit puncak 3,0 terhadap pemakaian rata-rata per jam.',
+  },
+  {
+    id: 'ZONE_MAX_STATIC_4BAR',
+    parameter: 'required_pressure',
+    appliesTo: ['multistorey_building_water'],
+    condition: 'batas tekanan statik per zona tidak ditentukan',
+    value: 4,
+    unit: 'bar',
+    conditionEn: 'maximum static pressure per zone not specified',
+    descriptionEn:
+      'Static pressure in each zone is limited to 4 bar; lower floors are split into zones with pressure-reducing valves.',
+    reference:
+      'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing: tekanan statik maksimum per zona ±3–5 kg/cm² sesuai jenis gedung',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description:
+      'Tekanan statik tiap zona dibatasi 4 bar; lantai bawah dibagi zona dengan katup penurun tekanan.',
+  },
+  {
+    id: 'TRANSFER_ROUTE_VERTICAL',
+    parameter: 'route_length',
+    appliesTo: ['multistorey_building_water'],
+    condition: 'panjang jalur pipa tidak diberikan',
+    value: 0,
+    unit: 'm jalur datar',
+    conditionEn: 'pipe route length not given',
+    descriptionEn:
+      'The transfer and riser lines are taken as tall as the building; horizontal runs are not counted yet.',
+    reference: 'Geometri: jalur tegak = tinggi gedung; jalur datar belum diketahui',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Jalur transfer dan riser diambil setinggi gedung; jalur datar belum ikut dihitung.',
   },
 ];
 

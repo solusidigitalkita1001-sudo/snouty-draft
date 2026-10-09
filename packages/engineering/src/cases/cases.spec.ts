@@ -20,7 +20,7 @@ describe('CaseProfileRegistry', () => {
       expect(p.critical.length).toBeGreaterThanOrEqual(2);
     }
     expect(caseProfile('irrigation').calculatorStatus).toBe('available');
-    expect(caseProfile('multistorey_building_water').calculatorStatus).toBe('pending');
+    expect(caseProfile('multistorey_building_water').calculatorStatus).toBe('available');
   });
 });
 

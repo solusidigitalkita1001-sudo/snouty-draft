@@ -26,11 +26,13 @@ import {
   buildSchematic,
   computeIrrigation,
   computeGravity,
+  computeBuildingWater,
   computeNetwork,
   computePond,
   computePressurized,
   computeSolution,
   HDPE_FROM_METERS,
+  type BuildingWaterInput,
   type NetworkInput,
   type PondInput,
   type SolutionInput,
@@ -41,6 +43,16 @@ import {
   irrigationFieldFor,
 } from '../domain/engineering-state.js';
 import { irrigationInputFrom } from '../domain/irrigation-input.js';
+import {
+  buildingAssumptions,
+  buildingBomItems,
+  buildingHighlights,
+  buildingProse,
+  buildingStats,
+  buildingSystemLines,
+  buildingWaterInputFrom,
+  familyOf,
+} from '../domain/building-water-view.js';
 import {
   gravityAssumptionsFrom,
   gravityBomItemsFrom,
@@ -218,6 +230,17 @@ export class AnalysisService {
       const network = networkInputFrom(state);
       if (network !== null)
         return this.runNetwork(conversationId, snapshotId, state, network, now, emit, locale);
+      const building = buildingWaterInputFrom(state);
+      if (building !== null)
+        return this.runBuildingWater(
+          conversationId,
+          snapshotId,
+          state,
+          building,
+          now,
+          emit,
+          locale,
+        );
       throw new TechnicalCaseNotComputableError(state.useCase.caseId);
     }
 
@@ -660,6 +683,87 @@ export class AnalysisService {
       stage: 'PREPARING_SCHEMATIC',
       status: 'done',
       detail: 'SKEMA JARINGAN MENUNGGU DESAIN',
+    });
+    events.push({ type: 'solution.ready', recommendationId: recommendation.id });
+    return events;
+  }
+
+  /**
+   * Gedung bertingkat: kebutuhan, zona, pompa transfer, riser (Kelompok I + F), lalu produk dari
+   * master katalog per peran — transfer (main), riser, fitting riser.
+   */
+  private async runBuildingWater(
+    conversationId: string,
+    snapshotId: string,
+    state: RequirementState,
+    input: BuildingWaterInput,
+    now: string,
+    emit?: EventSink,
+    locale: Locale = DEFAULT_LOCALE,
+  ): Promise<readonly AssistantStreamEvent[]> {
+    const events = streamedEvents(emit);
+    events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
+    const result = computeBuildingWater(input, locale);
+    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+      ...trace,
+      id: ulid(),
+    }));
+    events.push({
+      type: 'stage',
+      stage: 'ANALYZING_INSTALLATION',
+      status: 'done',
+      detail: `${input.floors} LANTAI · ${result.demand.peakMinuteLs} L/S`,
+    });
+
+    const { version } = await this.catalogForMatching(events);
+    const transferFamily = familyOf(result.transferMaterial);
+    const riserFamily = familyOf(result.riserMaterial);
+    const match = await this.matchRoles([
+      pipeRequirement('main', result.transfer.recommendedSize, transferFamily),
+      pipeRequirement('riser', result.riser.recommendedSize, riserFamily),
+      fittingRequirement(result.riser.recommendedSize, riserFamily),
+    ]);
+    events.push({
+      type: 'stage',
+      stage: 'MATCHING_PRODUCTS',
+      status: 'done',
+      detail: `${match.products.length} PRODUK`,
+    });
+
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
+    const prose = buildingProse(result, input.floors, locale);
+    const recommendation: Recommendation = {
+      id: ulid(),
+      conversationId,
+      snapshotId,
+      catalogVersionId: version.id,
+      kind: 'technical',
+      headline: prose.headline,
+      body: prose.body,
+      stats: buildingStats(result, match.products.length),
+      highlights: buildingHighlights(result, match.products.length, locale),
+      composition: composeResponse({
+        state,
+        traces,
+        pressurized: result.riser,
+        appliedAssumptionIds: result.appliedAssumptionIds,
+        locale,
+      }),
+      systemLines: buildingSystemLines(result, traces, locale),
+      products: match.products,
+      bom: buildingBomItems(result, input, traces, locale),
+      assumptions: buildingAssumptions(result, traces, locale),
+      overallProvenance: result.overallProvenance,
+      createdAt: now,
+    };
+    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.conversations.markSolutionReady(conversationId);
+    events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
+    events.push({
+      type: 'stage',
+      stage: 'PREPARING_SCHEMATIC',
+      status: 'done',
+      detail: 'SKEMA GEDUNG MENUNGGU DESAIN',
     });
     events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;

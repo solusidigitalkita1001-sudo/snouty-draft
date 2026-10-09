@@ -121,6 +121,11 @@ export function extractTechnicalContext(
       `${NUM}\\s*(?:x|×|by)\\s*${NUM}\\s*(?:(?:x|×|by)\\s*${NUM}\\s*)?(m|meters?|metres?)?\\b`,
     ),
     (m) => {
+      // Gedung bertingkat: dua sisi adalah denah satu lantai → luas per lantai.
+      if (caseId === 'multistorey_building_water') {
+        add('floor_area', Math.round(num(m[1]!) * num(m[2]!) * 100) / 100, m[0], 'm²');
+        return;
+      }
       const pond = caseId === 'fish_pond';
       add(pond ? 'pond_length' : 'field_length', num(m[1]!), m[0], 'm');
       add(pond ? 'pond_width' : 'field_width', num(m[2]!), m[0], 'm');
@@ -192,6 +197,15 @@ export function extractTechnicalContext(
   take(new RegExp(`${NUM}\\s*${M}\\s*(?:wide\\s*)?road\\b`), (m) => {
     add('road_width', num(m[1]!), m[0], 'm');
   });
+
+  // ── Luas lantai gedung ──
+  // Gedung bertingkat: "3000 m2" adalah luas PER LANTAI (m²), bukan luas lahan (ha); "100 x 30"
+  // dibaca aturan dimensi di atas.
+  if (caseId === 'multistorey_building_water') {
+    take(new RegExp(`${NUM}\\s*(m2|m²|meter persegi|square meters?|square metres?|sqm)`), (m) => {
+      add('floor_area', num(m[1]!), m[0], 'm²');
+    });
+  }
 
   // ── Luas ──
   take(new RegExp(`${NUM}\\s*(ha|hektar|hektare|hectares?)\\b`), (m) => {
@@ -275,6 +289,10 @@ export function extractTechnicalContext(
   // ── Bangunan ──
   take(/(\d+)\s*-?\s*(lantai|floors?|stor(?:eys?|ies|y))\b/, (m) =>
     add('building_floors', Number(m[1]), m[0], 'lantai'),
+  );
+  take(
+    /(\d+)\s*(?:orang|penghuni|karyawan|pegawai|pekerja|people|persons?|occupants?|employees?|staff)\b/,
+    (m) => add('number_of_occupants', Number(m[1]), m[0], 'orang'),
   );
   take(/(\d+)\s*(?:kamar mandi|bathrooms?)/, (m) => add('bathrooms', Number(m[1]), m[0], 'titik'));
   take(/(\d+)\s*(?:wastafel|basins?|sinks?)/, (m) => add('basins', Number(m[1]), m[0], 'titik'));

@@ -7,8 +7,8 @@ import { ALL_RULES, RULE_REGISTRY, RuleRegistrationError, RuleRegistry } from '.
 
 describe('registry aturan teknik', () => {
   it('memuat keempat belas aturan', () => {
-    expect(ALL_RULES).toHaveLength(34);
-    expect(RULE_REGISTRY.all()).toHaveLength(34);
+    expect(ALL_RULES).toHaveLength(38);
+    expect(RULE_REGISTRY.all()).toHaveLength(38);
   });
 
   it('memakai ID + versi yang unik', () => {
@@ -45,8 +45,8 @@ describe('registry aturan teknik', () => {
     expect(() => registry.register(rule)).toThrow(/sudah terdaftar/);
   });
 
-  it('semua 34 aturan (14 bangunan + 5 irigasi + 6 bertekanan + 4 kolam + 5 gravitasi/jaringan) masih menunggu validasi ahli domain (OQ-06)', () => {
-    expect(RULE_REGISTRY.awaitingValidation()).toHaveLength(34);
+  it('semua 38 aturan (14 bangunan + 5 irigasi + 6 bertekanan + 4 kolam + 5 gravitasi/jaringan + 4 gedung bertingkat) masih menunggu validasi ahli domain (OQ-06)', () => {
+    expect(RULE_REGISTRY.awaitingValidation()).toHaveLength(38);
   });
 
   it('tidak ada aturan VALIDATED tanpa jejak sumber (invarian P-1)', () => {

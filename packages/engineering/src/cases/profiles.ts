@@ -41,6 +41,8 @@ export interface CaseProfile {
   /** Menimpa kebutuhan baku per keluaran (`OUTPUT_REQUIREMENTS`) untuk kasus ini. */
   readonly outputRequirements?: readonly OutputRequirement[];
   readonly calculatorStatus: 'available' | 'pending';
+  /** Parameter yang dianggap terpenuhi bila salah satu penggantinya diketahui. */
+  readonly alternatives?: Partial<Record<ParameterKey, readonly ParameterKey[]>>;
 }
 
 export const CASE_PROFILES: readonly CaseProfile[] = [
@@ -96,15 +98,11 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
     labelEn: 'Clean water for multi-storey buildings',
     description: 'Gedung ≥ 4 lantai: zonasi tekanan, riser, pompa transfer/booster.',
     descriptionEn: 'Buildings of 4+ floors: pressure zoning, risers, transfer/booster pumps.',
-    critical: ['building_floors', 'number_of_outlets', 'source_type', 'building_height'],
-    important: [
-      'bathrooms',
-      'required_pressure',
-      'tank_elevation',
-      'pump_required',
-      'simultaneous_usage',
-    ],
-    optional: ['building_type', 'material', 'route_length'],
+    // Penghuni menentukan kebutuhan air; luas per lantai cukup untuk memperkirakannya (ENG-501).
+    critical: ['building_floors', 'number_of_occupants'],
+    important: ['floor_area', 'building_height', 'required_pressure', 'material'],
+    optional: ['building_type', 'route_length', 'source_type', 'bathrooms', 'number_of_outlets'],
+    alternatives: { number_of_occupants: ['floor_area'] },
     outputs: [
       'material_selection',
       'pipe_sizing',
@@ -113,7 +111,41 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
       'product_matching',
     ],
     calculations: ['design_flow_calc', 'static_head_calc', 'pipe_diameter', 'pump_duty'],
-    calculatorStatus: 'pending',
+    // Gedung dihitung dari penghuni dan jumlah lantai; panjang jalur = tinggi gedung bila tak
+    // disebut (TRANSFER_ROUTE_VERTICAL) — kebutuhan baku per keluaran tidak berlaku di sini.
+    outputRequirements: [
+      {
+        output: 'material_selection',
+        requires: ['building_floors'],
+        calculations: [],
+        improves: ['building_height', 'required_pressure', 'material', 'route_length'],
+      },
+      {
+        output: 'pipe_sizing',
+        requires: ['building_floors', 'number_of_occupants'],
+        calculations: [],
+        improves: ['building_height', 'required_pressure', 'material', 'route_length'],
+      },
+      {
+        output: 'pump_sizing',
+        requires: ['building_floors', 'number_of_occupants'],
+        calculations: [],
+        improves: ['building_height', 'required_pressure', 'material', 'route_length'],
+      },
+      {
+        output: 'network_layout',
+        requires: ['building_floors'],
+        calculations: [],
+        improves: ['building_height', 'required_pressure', 'material', 'route_length'],
+      },
+      {
+        output: 'product_matching',
+        requires: ['building_floors', 'number_of_occupants'],
+        calculations: [],
+        improves: ['building_height', 'required_pressure', 'material', 'route_length'],
+      },
+    ],
+    calculatorStatus: 'available',
   },
   {
     id: 'residential_cluster',

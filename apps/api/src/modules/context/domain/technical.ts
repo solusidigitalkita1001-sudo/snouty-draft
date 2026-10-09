@@ -97,6 +97,27 @@ export function applyTechnicalFacts(
   return { state: withParameters(state, caseId, next), changed, captured };
 }
 
+/**
+ * Jumlah lantai yang sudah tercatat di kebutuhan bangunan ikut ke kasus gedung bertingkat —
+ * "rumah 3 lantai" lalu "jadi 12 lantai" tidak perlu ditanya lantainya lagi.
+ */
+export function carryBuildingFloors(state: RequirementState, caseId: CaseId): RequirementState {
+  const floors = state.building.floors.value;
+  if (caseId !== 'multistorey_building_water' || floors === null) return state;
+  const current = parametersOf(state);
+  if (current['building_floors'] !== undefined) return state;
+  return withParameters(state, caseId, {
+    ...current,
+    building_floors: {
+      label: parameterDefinition('building_floors').label,
+      value: floors,
+      unit: 'lantai',
+      origin: 'known',
+      evidence: `${floors} lantai`,
+    },
+  });
+}
+
 /** Jawaban kartu/klarifikasi: `UNKNOWN` tercatat sebagai `assumed` supaya tidak ditanya lagi. */
 export function applyTechnicalAnswers(
   state: RequirementState,

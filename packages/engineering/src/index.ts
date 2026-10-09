@@ -195,6 +195,9 @@ export type { GravityCandidate, GravitySizingResult } from './rules/group-h-grav
 export { GravityInputError, computeGravity } from './compute-gravity.js';
 export type { GravityInput, GravityKind, GravityResult, TrafficLoad } from './compute-gravity.js';
 export { computeNetwork } from './compute-network.js';
+export { BuildingOccupancyUnknownError, computeBuildingWater } from './compute-building.js';
+export type { BuildingWaterInput, BuildingWaterResult } from './compute-building.js';
+export { ENG_501, ENG_502, ENG_503, ENG_504, GROUP_I } from './rules/group-i-building.js';
 export type { NetworkInput, NetworkResult } from './compute-network.js';
 export type { PipeMaterial, PressurizedInput, PressurizedResult } from './compute-pressurized.js';
 export {

@@ -362,6 +362,27 @@ ENG-405  Q_rata = sambungan × 4 orang × 150 l/hari ÷ 86 400 ; Q_puncak = Q_ra
 Contoh: 20 l/s pada 1 % → 8" (47 % kapasitas); 0,5 ha × 100 mm/jam → 83,4 l/s → 12";
 120 unit → 1,67 l/s puncak → 1½" bertekanan.
 
+### Kelompok I — Air bersih gedung bertingkat (2026-10-09, keputusan pemilik)
+
+Asal: metode buku acuan plambing Indonesia (Noerbambang & Morimura). Gedung di atas 4 lantai tidak
+lagi berhenti di kartu "perlu tim teknis": susunan baku tangki bawah → pompa transfer → tangki atap →
+riser turun per zona dihitung. Orkestrator `computeBuildingWater()`: ENG-501…504 lalu Kelompok F
+untuk pipa transfer (debit jam puncak, dipompa) dan riser (debit menit puncak, gravitasi). Riser
+dibagi bila satu riser PVC terbesar tidak memenuhi kriteria kecepatan/kerugian; transfer naik ke
+HDPE bila PVC tidak cukup. Semua `REQUIRES_DOMAIN_VALIDATION`; asumsi baru di OQ-57.
+
+```
+ENG-501  penghuni = luas lantai × lantai ÷ 10 m²/orang            (hanya bila penghuni tak disebut)
+ENG-502  Qd = penghuni × 150 l ; Qh = Qd ÷ 10 jam ; Qh-maks = 2,0 × Qh ; Qm-maks = 3,0 × Qh ÷ 60
+ENG-503  tinggi = lantai × 3,5 m ; zona = ⌈tinggi ÷ head 4 bar⌉ ; booster = lantai teratas yang
+         tinggi statiknya dari tangki atap < tekanan sisa 1 bar
+ENG-504  debit per riser = Qm-maks ÷ jumlah riser
+```
+
+Contoh (laporan pemilik "gedung 100 x 30, 12 lantai"): 3 600 orang → 540 m³/hari → 30 l/s jam
+puncak, 45 l/s menit puncak; tinggi 42 m → 2 zona, booster 2 lantai teratas; transfer PVC AW 6"
+dengan pompa 108 m³/jam @ 47,8 m; 2 riser 6".
+
 ## 4. Tabel pelacak validasi
 
 Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja.

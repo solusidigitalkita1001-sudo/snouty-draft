@@ -86,7 +86,10 @@ export const CHAT_COPY = {
       return floors !== null
         ? `Bangunan ${floors} lantai — konsultasi baru`
         : 'Bangunan komersial — konsultasi baru';
-    if (floors !== null) return `Rumah ${floors} lantai — konsultasi baru`;
+    // Jenis belum diketahui → "Bangunan", bukan "Rumah" (laporan pemilik 2026-10-09: gedung 12 lantai).
+    if (floors !== null && building === 'residential')
+      return `Rumah ${floors} lantai — konsultasi baru`;
+    if (floors !== null) return `Bangunan ${floors} lantai — konsultasi baru`;
     return 'Konsultasi baru';
   },
 

@@ -37,7 +37,7 @@ export interface CaseReadinessInput {
 /** Kesiapan per keluaran yang dijanjikan profil (kebutuhan profil menimpa baku). */
 export function caseReadiness(input: CaseReadinessInput): ReadinessReport {
   const full = resolveReadiness({
-    known: input.known,
+    known: knownWithAlternatives(input),
     assumed: input.assumed,
     ...(input.profile.outputRequirements ? { overrides: input.profile.outputRequirements } : {}),
   });
@@ -57,6 +57,7 @@ export function resolveMissingParameters(
   max: number = MAX_QUESTIONS,
 ): readonly MissingParameter[] {
   const report = caseReadiness(input);
+  const known = knownWithAlternatives(input);
   const unlocksOf = (key: ParameterKey): OutputKey[] =>
     input.profile.outputs.filter((o) => report.missing[o]?.includes(key));
 
@@ -70,7 +71,7 @@ export function resolveMissingParameters(
   };
 
   const candidates = [...input.profile.critical, ...input.profile.important]
-    .filter((key) => !input.known.has(key) && !input.assumed.has(key))
+    .filter((key) => !known.has(key) && !input.assumed.has(key))
     .map((key) => ({ key, ...rank(key) }))
     .sort((a, b) => a.importance - b.importance || b.unlocks - a.unlocks);
 
@@ -88,4 +89,18 @@ export function resolveMissingParameters(
       unlocks: unlocksOf(key),
     };
   });
+}
+
+/**
+ * Yang diketahui, ditambah parameter yang penggantinya sudah diketahui (`alternatives` profil):
+ * gedung yang luas lantainya disebut tidak perlu ditanya jumlah penghuninya lagi.
+ */
+function knownWithAlternatives(input: CaseReadinessInput): ReadonlySet<string> {
+  const alternatives = input.profile.alternatives;
+  if (!alternatives) return input.known;
+  const known = new Set(input.known);
+  for (const [key, subs] of Object.entries(alternatives)) {
+    if (subs?.some((sub) => input.known.has(sub))) known.add(key);
+  }
+  return known;
 }

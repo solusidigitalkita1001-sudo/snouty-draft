@@ -29,16 +29,24 @@ import type { Extraction } from '../../ai/domain/extraction-schema.js';
 import { CORE_REQUIREMENT_FIELDS, DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import { loadEnv } from '../../../config/env.js';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
-import { caseProfile, caseProfileLabel, isCaseId } from '@snouty/engineering';
+import {
+  caseProfile,
+  caseProfileLabel,
+  extractTechnicalContext,
+  isCaseId,
+  type CaseId,
+} from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
 import {
   competitorPolicy,
+  exceedsAutomaticFloors,
   scopePolicy,
   technicalHandoffPolicy,
   useCasePolicy,
 } from '../../policy/scope.js';
 import {
   applyTechnicalFacts,
+  carryBuildingFloors,
   detectTechnicalCase,
   isTechnicalComplete,
   planTechnicalClarification,
@@ -239,9 +247,12 @@ export async function runUnderstanding(
   // Jenis kasus dari katalog `use-case` (P16-14): "kos 3 lantai, 12 kamar mandi, air dari sumur" adalah
   // kebutuhan bangunan; "sumur bor 60 m ke tandon" adalah kasus distribusi sumur; "gedung 8 lantai"
   // kasus gedung bertingkat — dibedakan dari contoh, bukan dari bobot kata.
-  const technicalCase = detectTechnicalCase(input.understanding?.useCase ?? null, input.state);
+  const technicalCase =
+    detectTechnicalCase(input.understanding?.useCase ?? null, input.state) ??
+    tallBuildingCase(input.state, input.message);
   if (technicalCase !== null) {
-    const applied = applyTechnicalFacts(input.state, technicalCase, input.message);
+    const facts = applyTechnicalFacts(input.state, technicalCase, input.message);
+    const applied = { ...facts, state: carryBuildingFloors(facts.state, technicalCase) };
     events.push({ type: 'requirement.updated', state: applied.state });
     // Kalimat pembuka kasus hanya di giliran pertama; giliran berikutnya langsung data + pertanyaan.
     const firstTurn = input.state.useCase?.kind !== 'technical';
@@ -663,4 +674,18 @@ export function applyEdit(
     now,
   );
   return { state: withCompleteness(result.state), changed: result.changed.length > 0 };
+}
+
+/**
+ * Gedung di atas batas hitung rumah (> 4 lantai) dihitung sebagai gedung bertingkat — tangki
+ * bawah, pompa transfer, zona tekanan, riser — bukan dihentikan di kartu "perlu tim teknis"
+ * (keputusan pemilik 2026-10-09). Jumlah lantai dari parser nilai atau dari kebutuhan tercatat.
+ */
+function tallBuildingCase(state: RequirementState, message: string): CaseId | null {
+  if (state.building.type.value === 'industrial') return null;
+  const said = extractTechnicalContext(message, 'multistorey_building_water').find(
+    (f) => f.key === 'building_floors',
+  )?.value;
+  const floors = typeof said === 'number' ? said : state.building.floors.value;
+  return floors !== null && exceedsAutomaticFloors(floors) ? 'multistorey_building_water' : null;
 }

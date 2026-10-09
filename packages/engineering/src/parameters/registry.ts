@@ -114,6 +114,8 @@ export type ParameterKey =
   | 'kitchens'
   | 'number_of_outlets'
   | 'number_of_connections'
+  | 'number_of_occupants'
+  | 'floor_area'
   | 'simultaneous_usage'
   | 'number_of_branches'
   // pump
@@ -636,6 +638,26 @@ const BASE_PARAMETERS: readonly ParameterBase[] = [
     'Ada berapa sambungan rumah/unit?',
     'Kebutuhan puncak jaringan.',
     { unit: 'sambungan' },
+  ),
+  P(
+    'number_of_occupants',
+    'network',
+    'number',
+    'Jumlah penghuni',
+    'critical',
+    'Kira-kira berapa orang yang memakai gedungnya setiap hari (penghuni, karyawan, tamu)?',
+    'Kebutuhan air harian dan debit puncak gedung.',
+    { unit: 'orang' },
+  ),
+  P(
+    'floor_area',
+    'project',
+    'number',
+    'Luas per lantai',
+    'important',
+    'Luas tiap lantainya kira-kira berapa meter persegi?',
+    'Perkiraan jumlah penghuni bila belum diketahui.',
+    { unit: 'm²' },
   ),
   P(
     'simultaneous_usage',

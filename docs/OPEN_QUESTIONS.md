@@ -404,6 +404,21 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-57 — Nilai awal perhitungan gedung bertingkat
+
+**Status:** default diterapkan (2026-10-09, P16-36) · **Blocks:** —
+**Pertanyaan:** Pemilik meminta gedung di atas 4 lantai tetap dihitung ("tetep itung … ai ini salah
+satunya di plot buat ngitung itungan teknis"), menggantikan Policy 5 lama yang menyerahkan semua
+gedung > 4 lantai ke tim teknis. Perhitungannya butuh nilai yang belum divalidasi tim teknis Pralon.
+**Default yang diterapkan:** Kelompok I (ENG-501…504, docs/ENGINEERING_RULES.md) dengan asumsi dari
+buku acuan plambing Indonesia, semuanya `confirmationRequired` dan tampil di "Asumsi sementara":
+`OCCUPANT_AREA_10M2` (10 m² lantai per orang, keyakinan rendah), `USAGE_HOURS_10`,
+`PEAK_MINUTE_FACTOR_3`, `ZONE_MAX_STATIC_4BAR`, `TRANSFER_ROUTE_VERTICAL`, ditambah
+`DEMAND_LPCD_150` dan `PEAK_HOUR_FACTOR_2` yang sudah ada. Satu kebutuhan per orang untuk
+semua jenis gedung. Industri tetap ke tim teknis. **Masih terbuka:** kebutuhan air per jenis gedung
+(kantor, apartemen, hotel, rumah sakit), kepadatan hunian per jenis, batas tekanan zona per jenis,
+volume tangki bawah/atap, dan validasi keempat aturan oleh ahli.
+
 ### OQ-56 — Apa yang dilakukan sistem dengan denah yang dilampirkan
 
 **Status:** default diterapkan (2026-10-08, P13-06) · **Blocks:** —

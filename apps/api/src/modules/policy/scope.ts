@@ -176,6 +176,11 @@ export interface ScopeInput {
 /** Di atas ini bangunan dianggap besar dan butuh validasi teknis (SPEC §5 Policy 5). */
 const LARGE_BUILDING_FLOORS = 4;
 
+/** Jumlah lantai di atas batas rekomendasi otomatis — gedung ini selalu ke tim teknis. */
+export function exceedsAutomaticFloors(floors: number): boolean {
+  return floors > LARGE_BUILDING_FLOORS;
+}
+
 /**
  * Policy 5 — scope routing.
  *

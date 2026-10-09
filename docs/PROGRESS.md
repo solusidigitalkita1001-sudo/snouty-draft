@@ -1219,6 +1219,14 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       dikatakan, tidak diganti kategori lain. Perbandingan memisahkan "secara umum" (cara sambung bahan)
       dari data katalog (jumlah SKU, jenis terbanyak). Ikhtisar katalog menyebut cara hitung (per SKU
       aktif). Tes regresi `catalog-scope.spec.ts` (8 kasus) dan rute planner.
+- [x] P16-36 Gedung bertingkat dihitung (2026-10-09, permintaan pemilik "tetep itung") — "gedung 100 x
+      30, 12 lantai" dulu berhenti di kartu "perlu dihitung tim teknis" (Policy 5, > 4 lantai) dan
+      kalkulator `multistorey_building_water` masih `pending`. Kini gedung > 4 lantai masuk kasus
+      gedung bertingkat; "100 x 30" tercatat sebagai luas per lantai, jumlah penghuni ditanya bila
+      luas tidak ada; "Susun rekomendasi" menghitung kebutuhan harian, jam/menit puncak, zona tekanan,
+      booster, pipa transfer + titik kerja pompa, dan riser (Kelompok I ENG-501…504 + Kelompok F),
+      lalu mencocokkan transfer, riser, dan fitting ke master produk. Asumsi baru OQ-57. Judul web
+      jenis bangunan tak diketahui → "Bangunan N lantai", bukan "Rumah".
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

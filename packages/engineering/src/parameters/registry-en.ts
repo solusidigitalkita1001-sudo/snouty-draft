@@ -265,6 +265,16 @@ export const PARAMETER_ENGLISH: Readonly<Record<ParameterKey, ParameterEnglish>>
     questionEn: 'How many house/unit connections are there?',
     reasonEn: 'Peak demand of the network.',
   },
+  number_of_occupants: {
+    labelEn: 'Number of occupants',
+    questionEn: 'Roughly how many people use the building each day (residents, staff, visitors)?',
+    reasonEn: 'Daily water demand and peak flow of the building.',
+  },
+  floor_area: {
+    labelEn: 'Area per floor',
+    questionEn: 'Roughly how many square metres is each floor?',
+    reasonEn: 'Estimate of the number of occupants when it is not known.',
+  },
   simultaneous_usage: {
     labelEn: 'Simultaneous usage',
     questionEn: 'Is usage mostly at the same time (morning/evening) or spread out?',
