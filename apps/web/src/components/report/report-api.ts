@@ -8,7 +8,7 @@
 
 import type { ApiErrorBody, ReportCreated, ReportPreview } from '@snouty/shared-types';
 
-import { authHeaders } from '../auth/session';
+import { apiFetch, authHeaders } from '../auth/session';
 
 const BASE = '/api/v1';
 
@@ -23,7 +23,7 @@ export async function createReport(input: {
   projectLocation: string;
 }): Promise<ReportResult<ReportCreated>> {
   try {
-    const response = await fetch(`${BASE}/reports`, {
+    const response = await apiFetch(`${BASE}/reports`, {
       method: 'POST',
       credentials: 'include',
       headers: { ...authHeaders(), 'content-type': 'application/json' },
@@ -37,7 +37,7 @@ export async function createReport(input: {
 
 export async function fetchReport(id: string): Promise<ReportResult<ReportPreview>> {
   try {
-    const response = await fetch(`${BASE}/reports/${encodeURIComponent(id)}`, {
+    const response = await apiFetch(`${BASE}/reports/${encodeURIComponent(id)}`, {
       credentials: 'include',
       headers: authHeaders(),
     });
@@ -53,7 +53,7 @@ export async function fetchReport(id: string): Promise<ReportResult<ReportPrevie
  */
 export async function downloadReport(id: string, fileName: string): Promise<boolean> {
   try {
-    const response = await fetch(`${BASE}/reports/${encodeURIComponent(id)}/download`, {
+    const response = await apiFetch(`${BASE}/reports/${encodeURIComponent(id)}/download`, {
       credentials: 'include',
       headers: authHeaders(),
     });

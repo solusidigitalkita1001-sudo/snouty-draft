@@ -5,6 +5,7 @@ import { LoggingModule } from './shared/logging/logging.module.js';
 import { RedisModule } from './shared/redis/redis.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AccessTokenMiddleware } from './modules/auth/presentation/access-token.middleware.js';
+import { RejectStaleTokenMiddleware } from './modules/auth/presentation/reject-stale-token.middleware.js';
 import { GuestSessionMiddleware } from './modules/auth/presentation/guest-session.middleware.js';
 import { ContextModule } from './modules/context/context.module.js';
 import { ConversationModule } from './modules/conversation/conversation.module.js';
@@ -50,6 +51,14 @@ export class AppModule implements NestModule {
     // Aktor diisi dari Bearer token di SEMUA rute API — termasuk /internal, yang
     // guard-nya justru menunggu isian ini. Tidak pernah menolak; hanya mengisi.
     consumer.apply(AccessTokenMiddleware).exclude('health').forRoutes('{*rest}');
+
+    // Token akun yang kedaluwarsa di rute publik → 401 supaya web memperbarui sesi, bukan
+    // diturunkan diam-diam menjadi tamu (404 "Susun rekomendasi", laporan pemilik 2026-10-09).
+    // Bukan di /internal (token worker bukan JWT) dan /auth (login, refresh).
+    consumer
+      .apply(RejectStaleTokenMiddleware)
+      .exclude('health', 'internal/{*rest}', 'auth/{*rest}')
+      .forRoutes('{*rest}');
 
     // Sesi tamu hanya pada rute publik: /health dipanggil pemeriksa infrastruktur
     // tiap beberapa detik (satu sesi per panggilan = ribuan baris sehari), dan

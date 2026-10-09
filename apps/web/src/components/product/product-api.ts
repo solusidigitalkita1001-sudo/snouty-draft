@@ -5,7 +5,7 @@
 
 import type { CompatibleFitting, Product, ProductDocument } from '@snouty/shared-types';
 
-import { authHeaders } from '../auth/session';
+import { apiFetch, authHeaders } from '../auth/session';
 
 const BASE = '/api/v1';
 
@@ -28,9 +28,9 @@ export async function loadProduct(productId: string): Promise<ProductLoad> {
   const base = `${BASE}/products/${encodeURIComponent(productId)}`;
   try {
     const [productRes, fittingsRes, documentsRes] = await Promise.all([
-      fetch(base, init),
-      fetch(`${base}/compatible`, init),
-      fetch(`${base}/documents`, init),
+      apiFetch(base, init),
+      apiFetch(`${base}/compatible`, init),
+      apiFetch(`${base}/documents`, init),
     ]);
     if (productRes.status === 404) return { kind: 'not-found' };
     if (!productRes.ok) return { kind: 'error' };

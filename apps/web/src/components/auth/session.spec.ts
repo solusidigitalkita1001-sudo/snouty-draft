@@ -4,7 +4,7 @@
  * dilaporkan pemilik sebagai "belum clear".
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { hasSessionHint, restoreSession, setAccessToken } from './session';
+import { apiFetch, hasSessionHint, restoreSession, setAccessToken } from './session';
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -48,5 +48,36 @@ describe('restoreSession', () => {
   it('penanda bukan kredensial: token sendiri tidak pernah masuk localStorage', () => {
     setAccessToken('rahasia');
     expect(JSON.stringify(localStorage)).not.toContain('rahasia');
+  });
+});
+
+describe('apiFetch', () => {
+  const auth = (call: unknown[]) =>
+    new Headers((call[1] as RequestInit).headers).get('authorization');
+
+  it('token kedaluwarsa (401): sesi dipulihkan sekali lalu permintaan diulang dengan token baru', async () => {
+    setAccessToken('lama');
+    fetchMock
+      .mockResolvedValueOnce(new Response('{}', { status: 401 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ accessToken: 'baru' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response('{"ok":true}', { status: 201 }));
+
+    const response = await apiFetch('/api/v1/conversations/C/analyze', { method: 'POST' });
+
+    expect(response.status).toBe(201);
+    expect(fetchMock.mock.calls.map((c) => c[0])).toEqual([
+      '/api/v1/conversations/C/analyze',
+      '/api/v1/auth/refresh',
+      '/api/v1/conversations/C/analyze',
+    ]);
+    expect(auth(fetchMock.mock.calls[0]!)).toBe('Bearer lama');
+    expect(auth(fetchMock.mock.calls[2]!)).toBe('Bearer baru');
+  });
+
+  it('tamu tanpa token: 401 diteruskan apa adanya, tanpa refresh', async () => {
+    fetchMock.mockResolvedValueOnce(new Response('{}', { status: 401 }));
+    const response = await apiFetch('/api/v1/conversations');
+    expect(response.status).toBe(401);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

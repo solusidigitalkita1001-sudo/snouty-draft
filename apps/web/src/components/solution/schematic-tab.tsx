@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { SchematicSidePanel, SchematicView } from '../schematic/schematic-view';
 import { solutionCopy } from './solution-copy';
 import { useLocale } from '../locale';
-import { authHeaders } from '../auth/session';
+import { apiFetch, authHeaders } from '../auth/session';
 import styles from './solution.module.css';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
@@ -35,7 +35,7 @@ export function SchematicTab({
     setSchematic(null);
     setFailed(!available);
     if (!available) return undefined;
-    void fetch(`/api/v1/recommendations/${encodeURIComponent(recommendationId)}/schematic`, {
+    void apiFetch(`/api/v1/recommendations/${encodeURIComponent(recommendationId)}/schematic`, {
       credentials: 'include',
       // Akun memegang access token di memori, bukan cookie — tanpa header ini pengguna yang
       // sudah masuk selalu melihat "Skema belum tersedia" (laporan pemilik 2026-10-08).

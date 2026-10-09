@@ -14,7 +14,7 @@ import type {
   RequirementState,
 } from '@snouty/shared-types';
 
-import { authHeaders } from '../auth/session';
+import { apiFetch, authHeaders } from '../auth/session';
 import type { Locale } from '@snouty/shared-types';
 
 const BASE = '/api/v1';
@@ -29,7 +29,7 @@ export interface ConversationSummary {
 
 /** Bahasa ditetapkan saat percakapan dibuat (Fase 15) — percakapan lama tetap dalam bahasanya. */
 export async function createConversation(language: Locale = 'id'): Promise<ConversationSummary> {
-  const response = await fetch(`${BASE}/conversations`, {
+  const response = await apiFetch(`${BASE}/conversations`, {
     method: 'POST',
     credentials: 'include',
     headers: { ...authHeaders(), 'content-type': 'application/json' },
@@ -49,7 +49,7 @@ export async function sendMessage(
   onEvent: (event: AssistantStreamEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  const response = await fetch(`${BASE}/conversations/${conversationId}/messages`, {
+  const response = await apiFetch(`${BASE}/conversations/${conversationId}/messages`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'content-type': 'application/json', ...authHeaders() },
@@ -97,7 +97,7 @@ export async function sendToTechnicalTeam(
   conversationId: string,
   reason: string,
 ): Promise<{ readonly id: string; readonly capturedCount: number } | null> {
-  const response = await fetch(`${BASE}/conversations/${conversationId}/handoff`, {
+  const response = await apiFetch(`${BASE}/conversations/${conversationId}/handoff`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'content-type': 'application/json', ...authHeaders() },
@@ -119,7 +119,7 @@ export type HistoryResult =
 
 /** Soft delete dari riwayat — datanya tetap ada, jadi bisa diurungkan. */
 export async function deleteConversation(id: string): Promise<boolean> {
-  const response = await fetch(`${BASE}/conversations/${encodeURIComponent(id)}`, {
+  const response = await apiFetch(`${BASE}/conversations/${encodeURIComponent(id)}`, {
     method: 'DELETE',
     credentials: 'include',
     headers: authHeaders(),
@@ -129,7 +129,7 @@ export async function deleteConversation(id: string): Promise<boolean> {
 
 /** "Urungkan" setelah menghapus. */
 export async function restoreConversation(id: string): Promise<boolean> {
-  const response = await fetch(`${BASE}/conversations/${encodeURIComponent(id)}/restore`, {
+  const response = await apiFetch(`${BASE}/conversations/${encodeURIComponent(id)}/restore`, {
     method: 'POST',
     credentials: 'include',
     headers: authHeaders(),
@@ -138,7 +138,7 @@ export async function restoreConversation(id: string): Promise<boolean> {
 }
 
 export async function fetchHistory(): Promise<HistoryResult> {
-  const response = await fetch(`${BASE}/conversations`, {
+  const response = await apiFetch(`${BASE}/conversations`, {
     credentials: 'include',
     headers: authHeaders(),
   });
@@ -153,7 +153,7 @@ export async function fetchHistory(): Promise<HistoryResult> {
 export type SaveResult = 'saved' | 'needs-account' | 'failed';
 
 export async function saveConversation(conversationId: string): Promise<SaveResult> {
-  const response = await fetch(`${BASE}/conversations/${conversationId}/save`, {
+  const response = await apiFetch(`${BASE}/conversations/${conversationId}/save`, {
     method: 'POST',
     credentials: 'include',
     headers: authHeaders(),
@@ -172,7 +172,7 @@ export async function runAnalysis(
 ): Promise<string | null> {
   let recommendationId: string | null = null;
 
-  const response = await fetch(`${BASE}/conversations/${conversationId}/analyze`, {
+  const response = await apiFetch(`${BASE}/conversations/${conversationId}/analyze`, {
     method: 'POST',
     credentials: 'include',
     headers: authHeaders(),
@@ -206,7 +206,7 @@ export async function runAnalysis(
 
 /** Rekomendasi yang sudah tersimpan — dirender `SolutionView`. */
 export async function fetchRecommendation(id: string): Promise<Recommendation | null> {
-  const response = await fetch(`${BASE}/recommendations/${id}`, {
+  const response = await apiFetch(`${BASE}/recommendations/${id}`, {
     credentials: 'include',
     headers: authHeaders(),
   });
@@ -225,7 +225,7 @@ export interface ConversationDetail extends ConversationSummary {
 }
 
 export async function fetchConversation(id: string): Promise<ConversationDetail | null> {
-  const response = await fetch(`${BASE}/conversations/${encodeURIComponent(id)}`, {
+  const response = await apiFetch(`${BASE}/conversations/${encodeURIComponent(id)}`, {
     credentials: 'include',
     headers: authHeaders(),
   });
@@ -235,7 +235,7 @@ export async function fetchConversation(id: string): Promise<ConversationDetail 
 
 /** State kebutuhan terkini — mengisi ulang panel kanan saat riwayat dibuka kembali. */
 export async function fetchRequirement(id: string): Promise<RequirementState | null> {
-  const response = await fetch(`${BASE}/conversations/${encodeURIComponent(id)}/requirement`, {
+  const response = await apiFetch(`${BASE}/conversations/${encodeURIComponent(id)}/requirement`, {
     credentials: 'include',
     headers: authHeaders(),
   });
@@ -260,7 +260,7 @@ export async function submitClarification(
   id: string,
   answers: ReadonlyArray<{ readonly id: string; readonly option: string }>,
 ): Promise<ClarificationResult | null> {
-  const response = await fetch(
+  const response = await apiFetch(
     `${BASE}/conversations/${encodeURIComponent(id)}/requirement/clarification`,
     {
       method: 'POST',
@@ -278,7 +278,7 @@ export async function patchRequirement(
   id: string,
   edits: ReadonlyArray<{ readonly path: string; readonly value: unknown }>,
 ): Promise<RequirementState | null> {
-  const response = await fetch(`${BASE}/conversations/${encodeURIComponent(id)}/requirement`, {
+  const response = await apiFetch(`${BASE}/conversations/${encodeURIComponent(id)}/requirement`, {
     method: 'PATCH',
     credentials: 'include',
     headers: { ...authHeaders(), 'content-type': 'application/json' },
@@ -301,7 +301,7 @@ export async function uploadPlan(conversationId: string, file: File): Promise<Up
   form.append('file', file);
   let response: Response;
   try {
-    response = await fetch(`${BASE}/uploads`, {
+    response = await apiFetch(`${BASE}/uploads`, {
       method: 'POST',
       credentials: 'include',
       headers: authHeaders(),

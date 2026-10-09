@@ -51,6 +51,21 @@ export class AccountDisabledError extends Error {
 }
 
 /**
+ * Access token yang DIKIRIM sudah tidak sah (biasanya kedaluwarsa — umurnya 15 menit). Dulu ia
+ * diturunkan diam-diam menjadi tamu, sehingga percakapan milik akun menjawab 404 dan web tidak
+ * pernah tahu harus memperbarui sesi (laporan pemilik 2026-10-09). Sekarang 401: web memulihkan
+ * sesi dari cookie refresh lalu mengulang permintaannya.
+ */
+export class ExpiredAccessTokenError extends Error {
+  readonly code = 'UNAUTHENTICATED' as const;
+
+  constructor() {
+    super('Sesi Anda sudah berakhir. Silakan muat ulang halaman.');
+    this.name = 'ExpiredAccessTokenError';
+  }
+}
+
+/**
  * Email sudah terdaftar.
  *
  * Registrasi memang membocorkan keberadaan akun — tidak ada cara menolak email

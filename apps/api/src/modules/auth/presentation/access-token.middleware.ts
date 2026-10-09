@@ -23,6 +23,12 @@ import type { WithInternalActor } from '../../../shared/http/internal-role.guard
 export interface WithAuthUser {
   /** Klaim access token yang terverifikasi. Kosong berarti anonim. */
   authUser?: AccessTokenClaims;
+  /**
+   * Token Bearer dikirim tetapi tidak sah. Middleware ini tetap tidak menolak (worker memakai
+   * Bearer non-JWT di `/internal/reports`); `RejectStaleTokenMiddleware` yang menolaknya di
+   * rute publik.
+   */
+  authTokenRejected?: boolean;
 }
 
 @Injectable()
@@ -43,6 +49,8 @@ export class AccessTokenMiddleware implements NestMiddleware {
         // klaim token — artinya pencabutan peran berlaku paling lambat satu umur
         // access token, jendela yang memang dibeli oleh TTL pendeknya.
         request.internalActor = { id: claims.userId, roles: claims.roles };
+      } else {
+        request.authTokenRejected = true;
       }
     }
     next();

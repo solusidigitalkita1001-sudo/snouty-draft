@@ -11,7 +11,7 @@ import type { AnySchematic } from '@snouty/shared-types';
 import { useEffect, useState } from 'react';
 import { schematicCopy } from './schematic-copy';
 import { useLocale } from '../locale';
-import { authHeaders, restoreSession } from '../auth/session';
+import { apiFetch, authHeaders, restoreSession } from '../auth/session';
 import { SchematicSidePanel, SchematicView } from './schematic-view';
 import styles from './schematic-page.module.css';
 
@@ -38,7 +38,7 @@ export function SchematicPage() {
     // Halaman baru: sesi akun dipulihkan dulu, lalu token ikut dikirim (tamu memakai cookie).
     void restoreSession()
       .then(() =>
-        fetch(`/api/v1/recommendations/${encodeURIComponent(id)}/schematic`, {
+        apiFetch(`/api/v1/recommendations/${encodeURIComponent(id)}/schematic`, {
           credentials: 'include',
           headers: authHeaders(),
         }),

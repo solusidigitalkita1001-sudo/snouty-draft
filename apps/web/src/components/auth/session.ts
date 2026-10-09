@@ -102,3 +102,34 @@ export async function restoreSession(): Promise<boolean> {
     return false;
   }
 }
+
+let refreshing: Promise<boolean> | null = null;
+
+/** Satu pembaruan sesi untuk semua permintaan yang kena 401 bersamaan. */
+function refreshOnce(): Promise<boolean> {
+  refreshing ??= restoreSession().finally(() => {
+    refreshing = null;
+  });
+  return refreshing;
+}
+
+function withAuth(init: RequestInit): RequestInit {
+  const headers = new Headers(init.headers);
+  const token = getAccessToken();
+  if (token !== null) headers.set('authorization', `Bearer ${token}`);
+  else headers.delete('authorization');
+  return { ...init, headers };
+}
+
+/**
+ * `fetch` ke API dengan token akun terbaru. Access token hanya berumur 15 menit; begitu
+ * kedaluwarsa API menjawab 401 `TOKEN_EXPIRED` — sesi dipulihkan dari cookie refresh lalu
+ * permintaannya diulang SEKALI (laporan pemilik 2026-10-09: "Susun rekomendasi" 404 setelah
+ * percakapan dibiarkan 16 menit, karena dulu token kedaluwarsa diam-diam diperlakukan sebagai tamu).
+ */
+export async function apiFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  const response = await fetch(input, withAuth(init));
+  if (response.status !== 401 || getAccessToken() === null) return response;
+  if (!(await refreshOnce())) return response;
+  return fetch(input, withAuth(init));
+}

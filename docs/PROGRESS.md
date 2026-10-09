@@ -1251,6 +1251,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       pertanyaan penjelasan (protes, "kasih pilihan", "lanjut") kini dijawab langsung dari daftar
       pertanyaan kasus — instan; pertanyaan penjelasan (maksud konsep/kegunaan/saran/…) tetap ke 9B di
       atas DATA kasus. "Data baru" hanya parameter milik kasus itu.
+- [x] P16-41 Sesi akun yang kedaluwarsa (2026-10-09, "analyze 404") — access token berumur 15 menit; token
+      kedaluwarsa dulu diturunkan diam-diam menjadi tamu, sehingga "Susun rekomendasi" pada percakapan
+      milik akun menjawab 404 dan web tidak memperbarui sesi. Kini token yang dikirim tetapi tidak sah
+      dijawab 401 di rute publik (`RejectStaleTokenMiddleware`; bukan /internal yang memakai token worker,
+      bukan /auth), dan web memakai `apiFetch`: 401 → pulihkan sesi dari cookie refresh → ulang sekali.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

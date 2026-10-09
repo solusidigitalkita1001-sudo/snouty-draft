@@ -21,7 +21,7 @@ describe('SchematicTab', () => {
     render(<SchematicTab recommendationId="01JBREC0000000000000000000" />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     const init = (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1];
-    expect(init.headers).toEqual({ authorization: 'Bearer token-akun' });
+    expect(new Headers(init.headers).get('authorization')).toBe('Bearer token-akun');
   });
 
   it('tanpa skema: pesan belum tersedia, tanpa tautan ke halaman skema', async () => {
