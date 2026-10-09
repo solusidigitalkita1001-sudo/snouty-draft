@@ -11,6 +11,7 @@ import { endEvent, followUpCard } from './message-pipeline.js';
 import {
   familyRange,
   familySizeAnswer,
+  previousRange,
   rangeOverview,
   type RangeCatalog,
 } from './product-range.js';
@@ -33,6 +34,10 @@ export interface PlanContext {
    * itu mengalahkan pilihan model (uji 2026-10-09: model memilih FITTING PVC saja).
    */
   readonly named?: readonly string[];
+  /** Jawaban SNOUTY sebelumnya — penanda daftar jenis/ragam dibaca dari teks tetap milik kode. */
+  readonly previousText?: string;
+  /** Pesan menanyakan aspek tertentu (ukuran, standar, tekanan, …) — bukan sekadar menyebut keluarga. */
+  readonly asksAspect?: boolean;
 }
 
 export type PlanOutcome =
@@ -126,8 +131,17 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
         : { text: fallback };
       return answered(ctx, written.text, null);
     }
-    case 'product_question':
+    case 'product_question': {
+      // Tepat setelah daftar jenis/ragam, pesan yang hanya menyebut keluarga lain ("kalau yang
+      // pvc?") meminta daftar jenis keluarga itu — apa pun pilihan model (uji pemilik 2026-10-09:
+      // model memilih product_question, lalu dijawab penjelasan bahan PVC).
+      const named = ctx.named ?? [];
+      if (named.length > 0 && !ctx.asksAspect && previousRange(ctx.previousText ?? '') !== null) {
+        const range = await familyRange(ctx.catalog, named, ctx.locale);
+        if (range !== null) return answered(ctx, range.text, named.join(' dan '));
+      }
       return { kind: 'route', decision: decisionFor('PRODUCT_LOOKUP', false, false) };
+    }
     case 'company':
       return { kind: 'route', decision: decisionFor('COMPANY_QUESTION', false, false) };
     case 'requirement':

@@ -210,6 +210,26 @@ export async function runProductQuestion(
     ];
   }
 
+  // Tepat setelah daftar jenis/ragam, pesan yang hanya menyebut keluarga lain tanpa aspek
+  // ("kalau yang pvc?") meminta daftar jenis keluarga itu — bukan penjelasan bahannya (uji
+  // pemilik 2026-10-09). Aturan konteks atas jawaban sebelumnya, bukan pola kalimat.
+  if (
+    previousRange(lastAssistantText(input)) !== null &&
+    u.families.length > 0 &&
+    u.productAspect === null &&
+    u.intent?.label !== 'product_comparison' &&
+    !isConceptual(u.intent?.label)
+  ) {
+    const range = await familyRange(catalog, u.families, locale);
+    if (range !== null) {
+      return [
+        { type: 'message.start', messageId: input.messageId },
+        { type: 'token', text: range.text },
+        endEvent(input.messageId),
+      ];
+    }
+  }
+
   // Lanjutan atas jawaban JENIS keluarga: "boleh" menerima tawaran rincian ukuran; "yang telkom"
   // memilih satu jenis. Dulu "boleh" dijawab penjelasan bahan HDPE (laporan pemilik 2026-10-09).
   // Pesan yang menyebut produk atau kebutuhan baru membawa topik baru — tidak dicegat di sini.

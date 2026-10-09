@@ -229,6 +229,8 @@ export class MessageService {
           locale,
           hasExisting,
           named: u.families,
+          previousText: [...recentTurns].reverse().find((t) => t.role === 'assistant')?.text ?? '',
+          asksAspect: u.productAspect !== null,
         });
         if (outcome.kind === 'answered') {
           for (const event of outcome.events.slice(1)) emit?.(event);

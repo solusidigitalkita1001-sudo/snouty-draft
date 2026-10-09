@@ -120,6 +120,25 @@ describe('executePlan', () => {
     expect(text).not.toContain('FITTING HDPE');
   });
 
+  it('"kalau yang pvc?" setelah daftar jenis: product_question dari model tetap menjadi daftar jenis PVC', async () => {
+    const out = await executePlan(
+      { action: 'product_question', family: null, type: null, extreme: null },
+      ctx({
+        named: ['pvc'],
+        previousText:
+          'Di katalog Pralon, keluarga HDPE ada 2 produk.\n\nMau saya rinci ukuran untuk salah satu jenisnya?',
+      }),
+    );
+    expect(textOf(out)).toContain('**PVC AW**');
+    // Tanpa daftar sebelumnya: tetap jalur pertanyaan produk biasa.
+    expect(
+      await executePlan(
+        { action: 'product_question', family: null, type: null, extreme: null },
+        ctx({ named: ['pvc'], previousText: 'Halo!' }),
+      ),
+    ).toMatchObject({ kind: 'route' });
+  });
+
   it('pertanyaan kasus tanpa model → dasar perhitungan (luas tidak menentukan ukuran)', async () => {
     const out = await executePlan(
       { action: 'case_question', family: null, type: null, extreme: null },
