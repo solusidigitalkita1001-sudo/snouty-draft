@@ -88,6 +88,13 @@ model), `LLM_STRUCTURED_RETRY` (percobaan kedua bila JSON tidak valid), `LLM_SOL
 (headline/body solusi bangunan). Nyalakan (`=true`) hanya bila model cepat (GPU atau berbayar).
 Ekstraksi kebutuhan juga dilewati otomatis bila kode sudah membaca ≥ 2 data inti dari teks.
 
+### 4a2. Model lokal (2026-10-09)
+
+Model generatif lokal: `qwen3.5:4b` dengan `LLM_REASONING_EFFORT=none` (tanpa itu qwen3.5 menulis
+penalaran ±5 menit per kalimat di CPU ini). Terukur di server: ekstraksi 2,3 s, intent 0,8 s, paragraf
+6 s. `qwen3.5:9b` ada di disk sebagai alternatif (±2× lebih lambat). Timeout: `LLM_CALL_TIMEOUT_MS=60000`,
+`LLM_REPLY_TIMEOUT_MS=15000`.
+
 ### 4b. Model chat di penyedia hosted (2026-10-08)
 
 qwen2.5 7B di CPU server (4 core, tanpa GPU) butuh 25–60 detik per panggilan, jadi model hampir

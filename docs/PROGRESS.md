@@ -1154,6 +1154,13 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       menyebut jenis ("yang telkom") menampilkan semua ukurannya; nama jenis dicocokkan dari katalog,
       bukan pola kalimat. Label baru `complaint` (data, 18 contoh): minta maaf dan minta diperjelas.
       Pertanyaan ragam tidak pernah masuk jalur spesifikasi. Evaluasi intent 138/138.
+- [x] P16-27 Model lokal diganti qwen3.5:4b (permintaan pemilik 2026-10-09) — selesai. Diukur di
+      server (Xeon E-2324G 4 core, 16 GB, tanpa GPU), model sudah termuat: ekstraksi 2,3 s, intent 0,8 s,
+      paragraf 6 s — lebih cepat dan sama akurat dengan qwen2.5:7b (4,4 / 1,1 / 8,7 s); qwen3.5:9b
+      4,8 / 1,6 / 10,2 s dan sekali salah label. qwen3.5 "berpikir" kecuali `reasoning_effort: none`
+      (297 s vs 4,6 s untuk satu kalimat) → `LLM_REASONING_EFFORT`. qwen2.5:7b dihapus; qwen3.5:9b
+      tetap di disk. Bagspace di-stop (bukan dihapus) atas permintaan pemilik. Catatan: model hanya
+      cadangan pemahaman + ekstraksi; jawaban tetap dirangkai kode sampai perannya dinaikkan.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
