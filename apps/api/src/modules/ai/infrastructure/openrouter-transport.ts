@@ -43,6 +43,7 @@ export class OpenRouterTransport implements LlmTransport {
           model: request.model,
           messages: request.messages,
           ...(request.jsonMode ? { response_format: { type: 'json_object' } } : {}),
+          ...(env.LLM_REASONING_EFFORT ? { reasoning_effort: env.LLM_REASONING_EFFORT } : {}),
         }),
         ...(request.signal ? { signal: request.signal } : {}),
       });

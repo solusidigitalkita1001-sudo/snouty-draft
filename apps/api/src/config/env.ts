@@ -97,6 +97,12 @@ const EnvSchema = z.object({
   LLM_MODEL_BALANCED: z.string().min(1).optional(),
   LLM_MODEL_STRONG: z.string().min(1).optional(),
   /**
+   * `reasoning_effort` yang dikirim ke endpoint chat. Model "berpikir" (qwen3.5) di Ollama menulis
+   * penalaran panjang sebelum menjawab kecuali diberi `none` — di CPU server lebih dari 5 menit
+   * untuk satu kalimat (diukur 2026-10-09). Kosong = tidak dikirim (perilaku penyedia).
+   */
+  LLM_REASONING_EFFORT: z.enum(['none', 'low', 'medium', 'high']).optional(),
+  /**
    * Model EMBEDDING untuk pemahaman pertanyaan (modul `understanding`, P16-11): contoh kalimat
    * di `data/understanding/` disandikan dan dibandingkan dengan pesan pengguna. Dilayani endpoint
    * `/embeddings` yang sama basis URL-nya (Ollama: `bge-m3`). Tanpa ini, setiap pesan yang

@@ -70,6 +70,29 @@ describe('OpenRouterTransport', () => {
     );
   });
 
+  it('LLM_REASONING_EFFORT dikirim bila diset; tanpa itu tidak ada field reasoning_effort', async () => {
+    // qwen3.5 di Ollama tanpa "none": 297 detik dan 2.690 token penalaran untuk satu kalimat
+    // (diukur di server produksi 2026-10-09); dengan "none": 4,6 detik.
+    const ok = () =>
+      new Response(JSON.stringify({ choices: [{ message: { content: 'x' } }] }), { status: 200 });
+    fetchMock.mockResolvedValueOnce(ok());
+    await new OpenRouterTransport().complete(request);
+    expect(JSON.parse(fetchMock.mock.calls[0]![1]!.body as string)).not.toHaveProperty(
+      'reasoning_effort',
+    );
+
+    process.env['LLM_REASONING_EFFORT'] = 'none';
+    try {
+      fetchMock.mockResolvedValueOnce(ok());
+      await new OpenRouterTransport().complete(request);
+      expect(JSON.parse(fetchMock.mock.calls[1]![1]!.body as string)).toMatchObject({
+        reasoning_effort: 'none',
+      });
+    } finally {
+      delete process.env['LLM_REASONING_EFFORT'];
+    }
+  });
+
   it('respons sukses dipetakan ke konten + token + biaya', async () => {
     fetchMock.mockResolvedValue(
       new Response(
