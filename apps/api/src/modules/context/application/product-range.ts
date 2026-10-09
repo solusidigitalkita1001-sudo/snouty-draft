@@ -524,10 +524,38 @@ export function previousRange(lastAssistantText: string): 'overview' | 'family' 
     }
     if (
       lastAssistantText.includes(copy.rangeNext) ||
-      lastAssistantText.includes(copy.catalogNotInstalled)
+      lastAssistantText.includes(copy.catalogNotInstalled) ||
+      // Pertanyaan pilihan atas ikhtisar (`overviewChoice`): jawaban "pvc" sesudahnya memilih keluarga.
+      lastAssistantText.includes(
+        l === 'en' ? 'Which one shall I explain:' : 'Mau saya jelaskan yang mana:',
+      )
     ) {
       return 'overview';
     }
   }
   return null;
+}
+
+/**
+ * "boleh" atas ikhtisar ragam produk. Tawarannya dua arah ("jelaskan salah satunya, atau ceritakan
+ * bangunannya"), jadi persetujuan saja belum memilih — tanyakan keluarganya dengan nama yang memang
+ * ada di katalog (dulu dibalas ajakan umum "Silakan, tanyakan saja", laporan pemilik 2026-10-09).
+ */
+export async function overviewChoice(
+  catalog: RangeCatalog,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<RangeOutcome | null> {
+  const counts = await countsFrom(catalog);
+  if (counts === null) return null;
+  const pipes = grouped(counts)
+    .filter((g) => !FITTING.test(g.label))
+    .map((g) => g.label);
+  const options = joinNatural([...pipes, locale === 'en' ? 'fittings' : 'fitting'], locale);
+  return {
+    text:
+      locale === 'en'
+        ? `Sure. Which one shall I explain: ${options}? Or tell me about the building — floors, bathrooms, and water source — and I will pick for you.`
+        : `Siap. Mau saya jelaskan yang mana: ${options}? Atau ceritakan bangunannya — jumlah lantai, kamar mandi, dan sumber airnya — supaya saya pilihkan.`,
+    cards: [],
+  };
 }

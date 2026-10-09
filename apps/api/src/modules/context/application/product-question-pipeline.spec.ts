@@ -675,6 +675,34 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
     expect(tableText).toContain('| HDPE | 3 |');
     expect(tableText).not.toContain('Aspek');
     expect(cards(table)).toEqual([]);
+
+    // "boleh" atas ikhtisar: tanyakan keluarganya (nama dari katalog), bukan ajakan umum; lalu
+    // "pvc" memilih keluarga itu (laporan pemilik 2026-10-09).
+    const accept = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      full,
+      noQuestions,
+      input(
+        'boleh',
+        { intent: 'follow_up_continue' },
+        { recentTurns: [{ role: 'assistant', text: out }] },
+      ),
+    );
+    const choice = text(accept);
+    expect(choice).toMatch(/^Siap\. Mau saya jelaskan yang mana: PVC, HDPE, dan fitting\?/);
+    expect(choice).not.toContain('Silakan, tanyakan saja');
+
+    const pvc = await runProductQuestion(
+      ai({ productQuery: 'pvc', aspect: null }),
+      full,
+      noQuestions,
+      input(
+        'pvc',
+        { intent: 'product_concept' },
+        { recentTurns: [{ role: 'assistant', text: choice }] },
+      ),
+    );
+    expect(text(pvc)).toContain('**PVC AW**');
   });
 
   it('katalog contoh: jujur katalog belum terpasang + ragam bahan umum, tanpa "CONTOH"', async () => {

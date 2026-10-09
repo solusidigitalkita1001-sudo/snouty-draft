@@ -48,7 +48,13 @@ import { endEvent } from './message-pipeline.js';
 import { briefComparison, explain, materialsFor, reformat } from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, productAnswerCopy } from './product-answer-text.js';
-import { familyRange, familySizes, previousRange, rangeOverview } from './product-range.js';
+import {
+  familyRange,
+  familySizes,
+  overviewChoice,
+  previousRange,
+  rangeOverview,
+} from './product-range.js';
 
 /** Alias kosakata sebuah keluarga kanonis — untuk mencari katalog dengan nama yang dipakai katalog. */
 type Aliases = (family: string) => readonly string[];
@@ -208,6 +214,18 @@ export async function runProductQuestion(
       ...range.cards.map((card) => ({ type: 'card', card }) as const),
       endEvent(input.messageId),
     ];
+  }
+
+  // "boleh" atas ikhtisar ragam: tanyakan keluarganya, bukan ajakan umum.
+  if (previousRange(lastAssistantText(input)) === 'overview' && isFollowUp(u)) {
+    const choice = await overviewChoice(catalog, locale);
+    if (choice !== null) {
+      return [
+        { type: 'message.start', messageId: input.messageId },
+        { type: 'token', text: choice.text },
+        endEvent(input.messageId),
+      ];
+    }
   }
 
   // Tepat setelah daftar jenis/ragam, pesan yang hanya menyebut keluarga lain tanpa aspek
