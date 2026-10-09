@@ -7,9 +7,10 @@ apps/web/.next
 .env.*
 !.env.example
 design-input
-# data/ tidak ikut, KECUALI contoh pemahaman pertanyaan yang dibaca API saat boot (P16-11).
+# data/ tidak ikut, KECUALI contoh pemahaman pertanyaan (P16-11) dan fakta pengetahuan (P16-46) yang dibaca API.
 data
 !data/understanding
+!data/knowledge
 docs
 *.md
 !README.md
