@@ -58,7 +58,7 @@ export function productTypeOf(name: string): { type: string; pressureClass: stri
 export interface ProductSize {
   /** Label seperti tertulis: "160 mm", "1 1/2\"", "40/33". */
   readonly label: string;
-  /** Nilai pembanding dalam mm (inci × 25,4; pasangan a/b memakai a). */
+  /** Nilai pembanding dalam mm (inci × 25,4; pasangan a/b: a, lalu b sebagai pemisah seri). */
   readonly mm: number;
 }
 
@@ -77,7 +77,7 @@ export function productSizeOf(name: string): ProductSize | null {
     inch && { index: inch.index!, size: { label: `${inch[1]}"`, mm: inches(inch[1]!) * 25.4 } },
     pair && {
       index: pair.index!,
-      size: { label: `${pair[1]}/${pair[2]}`, mm: Number.parseInt(pair[1]!, 10) },
+      size: { label: `${pair[1]}/${pair[2]}`, mm: Number(pair[1]) + Number(pair[2]) / 1000 },
     },
   ].filter((f): f is { index: number; size: ProductSize } => Boolean(f));
   found.sort((a, b) => a.index - b.index);
