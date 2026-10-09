@@ -141,8 +141,8 @@ export const ENG_202: RuleVersion<FrictionInput, FrictionResult> = {
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Kerugian gesek ${output.frictionLossM} m untuk ${input.lengthM} m pipa Ø${input.innerDiameterMm} mm pada ${input.designFlowLs} l/s (Hazen-Williams, C = ${input.hazenWilliamsC}; ${output.gradientMPer100m} m per 100 m).`,
-      en: `Friction loss ${output.frictionLossM} m over ${input.lengthM} m of Ø${input.innerDiameterMm} mm pipe at ${input.designFlowLs} l/s (Hazen-Williams, C = ${input.hazenWilliamsC}; ${output.gradientMPer100m} m per 100 m).`,
+      id: `Air kehilangan tekanan ${output.frictionLossM} m sepanjang ${input.lengthM} m pipa (diameter dalam ${input.innerDiameterMm} mm, ${input.designFlowLs} l/s) — sekitar ${output.gradientMPer100m} m tiap 100 m pipa.`,
+      en: `The water loses ${output.frictionLossM} m of pressure along ${input.lengthM} m of pipe (inner diameter ${input.innerDiameterMm} mm, ${input.designFlowLs} l/s) — about ${output.gradientMPer100m} m per 100 m of pipe.`,
     }),
 };
 
@@ -249,8 +249,8 @@ export const ENG_204: RuleVersion<TdhInput, TdhResult> = {
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Head total ${output.totalDynamicHeadM} m = statis ${Math.max(0, input.staticHeadM)} m + gesek ${input.frictionLossM} m + fitting ${input.minorLossM} m + sisa ${output.residualHeadM} m (${input.residualPressureBar} bar).`,
-      en: `Total head ${output.totalDynamicHeadM} m = static ${Math.max(0, input.staticHeadM)} m + friction ${input.frictionLossM} m + fittings ${input.minorLossM} m + residual ${output.residualHeadM} m (${input.residualPressureBar} bar).`,
+      id: `Tinggi angkat total ${output.totalDynamicHeadM} m = beda tinggi ${Math.max(0, input.staticHeadM)} m + kehilangan di pipa ${input.frictionLossM} m + di sambungan ${input.minorLossM} m + sisa tekanan di ujung ${output.residualHeadM} m (${input.residualPressureBar} bar).`,
+      en: `Total lift ${output.totalDynamicHeadM} m = height difference ${Math.max(0, input.staticHeadM)} m + loss in the pipe ${input.frictionLossM} m + in the fittings ${input.minorLossM} m + pressure left at the end ${output.residualHeadM} m (${input.residualPressureBar} bar).`,
     }),
 };
 
@@ -477,8 +477,8 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
   explain: (input, output, locale) => {
     const pick = output.candidates.find((c) => c.size === output.recommended)!;
     return localized(locale, {
-      id: `Dari ${output.candidates.length} kandidat, ${output.recommended} adalah ukuran terkecil yang memenuhi kecepatan ${input.velocityMinMs}–${input.velocityMaxMs} m/s dan gradien ≤ ${input.gradientMaxMPer100m} m/100 m: ${pick.velocityMs} m/s, kerugian ${pick.frictionLossM} m untuk ${input.lengthM} m${output.alternative ? `; alternatif ${output.alternative} menurunkan kerugian dengan biaya pipa lebih tinggi` : ''}.`,
-      en: `Of ${output.candidates.length} candidates, ${output.recommended} is the smallest size that meets velocity ${input.velocityMinMs}–${input.velocityMaxMs} m/s and gradient ≤ ${input.gradientMaxMPer100m} m/100 m: ${pick.velocityMs} m/s, loss ${pick.frictionLossM} m over ${input.lengthM} m${output.alternative ? `; alternative ${output.alternative} lowers the loss at a higher pipe cost` : ''}.`,
+      id: `Dicoba ${output.candidates.length} ukuran; ${output.recommended} yang terkecil dengan kecepatan air ${input.velocityMinMs}–${input.velocityMaxMs} m/s dan kehilangan tekanan paling banyak ${input.gradientMaxMPer100m} m tiap 100 m pipa. Di ukuran ini air mengalir ${pick.velocityMs} m/s dan kehilangan ${pick.frictionLossM} m sepanjang ${input.lengthM} m${output.alternative ? `; ${output.alternative} satu ukuran di atasnya lebih hemat tekanan, tetapi pipanya lebih mahal` : ''}.`,
+      en: `${output.candidates.length} sizes were tried; ${output.recommended} is the smallest with a water speed of ${input.velocityMinMs}–${input.velocityMaxMs} m/s and a pressure loss of at most ${input.gradientMaxMPer100m} m per 100 m of pipe. At this size the water flows at ${pick.velocityMs} m/s and loses ${pick.frictionLossM} m over ${input.lengthM} m${output.alternative ? `; ${output.alternative}, one size up, saves pressure but the pipe costs more` : ''}.`,
     });
   },
 };
@@ -542,8 +542,8 @@ export const ENG_206: RuleVersion<PumpDutyInput, PumpDutyResult> = {
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Titik kerja pompa: ${output.flowM3h} m³/jam (${input.designFlowLs} l/s) pada head ${output.headM} m; daya hidraulik ${output.hydraulicPowerKw} kW, daya poros indikatif ±${output.indicativeShaftPowerKw} kW pada efisiensi ${Math.round(input.efficiency * 100)} % — pilih pompa dari kurva pabrikan, bukan dari angka ini saja.`,
-      en: `Pump duty point: ${output.flowM3h} m³/h (${input.designFlowLs} l/s) at ${output.headM} m head; hydraulic power ${output.hydraulicPowerKw} kW, indicative shaft power ±${output.indicativeShaftPowerKw} kW at ${Math.round(input.efficiency * 100)} % efficiency — select the pump from the manufacturer's curve, not from these figures alone.`,
+      id: `Pompa yang dicari: ${output.flowM3h} m³/jam (${input.designFlowLs} l/s) dengan tinggi angkat ${output.headM} m. Daya yang diterima air ${output.hydraulicPowerKw} kW; dengan efisiensi ${Math.round(input.efficiency * 100)} % motornya sekitar ${output.indicativeShaftPowerKw} kW. Pilih pompanya dari kurva pabrikan, bukan dari angka ini saja.`,
+      en: `The pump to look for: ${output.flowM3h} m³/h (${input.designFlowLs} l/s) with a lift of ${output.headM} m. The water receives ${output.hydraulicPowerKw} kW; at ${Math.round(input.efficiency * 100)} % efficiency the motor is about ${output.indicativeShaftPowerKw} kW. Choose the pump from the manufacturer's curve, not from these figures alone.`,
     }),
 };
 

@@ -221,8 +221,8 @@ describe('tampilan hasil bertekanan: penjelasan trace dua bahasa (P15-04b)', () 
     const en = pressurizedSystemLinesFrom(enResult, 'HDPE', enTraces, 'en');
     expect(en[0]!.size).toBe(id[0]!.size);
     expect(en[0]!.reason).not.toBe(id[0]!.reason);
-    expect(en[0]!.reason).toContain('smallest size');
+    expect(en[0]!.reason).toContain('is the smallest with a water speed');
     const enBom = pressurizedBomItemsFrom(enResult, 'HDPE', 800, enTraces, 'en');
-    expect(enBom[0]!.basis).toMatch(/^Of \d+ candidates/);
+    expect(enBom[0]!.basis).toMatch(/^\d+ sizes were tried/);
   });
 });

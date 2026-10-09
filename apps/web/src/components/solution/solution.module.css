@@ -208,6 +208,50 @@
   max-width: 760px;
 }
 
+/* Langkah hitung per jalur: judul jalur, lalu langkah bernomor (judul tebal + penjelasan). */
+.technicalGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.technicalGroup + .technicalGroup {
+  border-top: 1px solid var(--snouty-border-soft);
+  padding-top: 12px;
+}
+
+.technicalGroupTitle {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--snouty-ink);
+}
+
+.technicalGroupSize {
+  font-family: var(--snouty-font-mono);
+  font-weight: 500;
+  color: var(--snouty-action-text);
+}
+
+.stepList {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 760px;
+}
+
+.stepItem {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--snouty-muted);
+}
+
+.stepTitle {
+  font-weight: 600;
+  color: var(--snouty-ink);
+}
+
 /* ---------- tag provenance ---------- */
 
 .tag {

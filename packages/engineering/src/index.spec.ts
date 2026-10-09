@@ -100,3 +100,13 @@ describe('kemurnian compute', () => {
     }
   });
 });
+
+describe('judul langkah hitung', () => {
+  it('setiap aturan terdaftar punya judul yang bisa dibaca pengguna', async () => {
+    const { hasStepTitle, ruleStepTitle } = await import('./index.js');
+    for (const rule of ALL_RULES) {
+      expect(hasStepTitle(rule.ruleId), rule.ruleId).toBe(true);
+      expect(ruleStepTitle(rule.ruleId, 'id')).not.toMatch(/ENG-/);
+    }
+  });
+});

@@ -153,11 +153,25 @@ export function SolutionView({
           {showTechnical && (
             <div className={styles.technicalBlock}>
               <div className={styles.kicker}>{COPY.technicalKicker}</div>
-              {/* Dirender dari trace aturan — bukan prosa LLM (invarian T-1). */}
+              {/* Dirender dari trace aturan — bukan prosa LLM (invarian T-1). Langkah bernomor per
+                  jalur; rekomendasi lama tanpa langkah memakai alasannya. */}
               {recommendation.systemLines.map((line) => (
-                <p key={line.name} className={styles.technicalLine}>
-                  {line.reason}
-                </p>
+                <div key={line.name} className={styles.technicalGroup}>
+                  <div className={styles.technicalGroupTitle}>
+                    {line.name} · <span className={styles.technicalGroupSize}>{line.size}</span>
+                  </div>
+                  {line.steps && line.steps.length > 0 ? (
+                    <ol className={styles.stepList}>
+                      {line.steps.map((step, index) => (
+                        <li key={`${step.title}-${index}`} className={styles.stepItem}>
+                          <span className={styles.stepTitle}>{step.title}.</span> {step.text}
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p className={styles.technicalLine}>{line.reason}</p>
+                  )}
+                </div>
               ))}
             </div>
           )}

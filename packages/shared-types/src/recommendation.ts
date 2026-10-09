@@ -30,6 +30,12 @@ export interface RecommendationStats {
 export type SystemRole = 'main' | 'riser' | 'branch' | 'fixture' | 'fitting';
 
 /** Satu baris tabel "Rekomendasi Sistem" (layar 06). */
+/** Satu langkah hitung yang bisa dibaca pengguna — judul + penjelasan aturan, tanpa kode aturan. */
+export interface CalculationStep {
+  readonly title: string;
+  readonly text: string;
+}
+
 export interface SystemLine {
   readonly name: string;
   readonly path: string;
@@ -38,6 +44,8 @@ export interface SystemLine {
   readonly provenance: Provenance;
   readonly traceIds: readonly string[];
   readonly role: SystemRole;
+  /** Langkah hitung jalur ini, berurutan — panel "detail teknis". Rekomendasi lama tidak punya. */
+  readonly steps?: readonly CalculationStep[];
 }
 
 export interface SelectedProduct {

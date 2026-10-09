@@ -111,6 +111,7 @@ import {
 import type { IdentifiedTrace } from '../domain/solution-view.js';
 import { composeResponse } from '../domain/response-composer.js';
 import { flowSchematicFor, networkFamilyFor } from '../domain/flow-schematic.js';
+import { withCalculationSteps } from '../domain/calculation-steps.js';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import {
   RECOMMENDATION_REPOSITORY,
@@ -310,9 +311,13 @@ export class AnalysisService {
       },
       this.prose,
     );
-    await this.repository.save(assembled.recommendation, traces, {
-      proseSource: assembled.proseSource,
-    });
+    await this.repository.save(
+      withCalculationSteps(assembled.recommendation, traces, locale),
+      traces,
+      {
+        proseSource: assembled.proseSource,
+      },
+    );
     // Status percakapan menyusul solusinya: header layar dan daftar riwayat keduanya
     // membaca kolom ini, jadi membiarkannya `IN_PROGRESS` akan membuat riwayat
     // berbohong tentang konsultasi yang sudah selesai.
@@ -419,7 +424,9 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+      proseSource: 'template',
+    });
     await this.conversations.markSolutionReady(conversationId);
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
 
@@ -515,7 +522,9 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+      proseSource: 'template',
+    });
     await this.conversations.markSolutionReady(conversationId);
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
     events.push({
@@ -590,7 +599,9 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+      proseSource: 'template',
+    });
     await this.conversations.markSolutionReady(conversationId);
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
     events.push({
@@ -682,7 +693,9 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+      proseSource: 'template',
+    });
     await this.conversations.markSolutionReady(conversationId);
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
     events.push({
@@ -769,7 +782,9 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+      proseSource: 'template',
+    });
     await this.conversations.markSolutionReady(conversationId);
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
     events.push({
@@ -891,7 +906,9 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
-    await this.repository.save(recommendation, traces, { proseSource: 'template' });
+    await this.repository.save(withCalculationSteps(recommendation, traces, locale), traces, {
+      proseSource: 'template',
+    });
     await this.conversations.markSolutionReady(conversationId);
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'done' });
     events.push({

@@ -196,6 +196,7 @@ export { GravityInputError, computeGravity } from './compute-gravity.js';
 export type { GravityInput, GravityKind, GravityResult, TrafficLoad } from './compute-gravity.js';
 export { computeNetwork } from './compute-network.js';
 export { BuildingOccupancyUnknownError, computeBuildingWater } from './compute-building.js';
+export { hasStepTitle, ruleStepTitle } from './rules/step-titles.js';
 export {
   buildingWaterSchematic,
   gravitySchematic,

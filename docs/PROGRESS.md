@@ -1260,6 +1260,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       digunakan" di gedung, pompa/sumur, cluster, drainase, kolam, dan irigasi dulu berbunyi "Rumus (ENG-501,
       ENG-502, …) …" — label internal di UI. Kini "Cara hitungnya: …" dalam bahasa teknisi (dari apa angkanya
       keluar, apa menentukan apa), tanpa tombol Perbaiki (`fieldPath` kosong = penjelasan, bukan asumsi).
+- [x] P16-43 Detail teknis yang bisa dibaca (2026-10-09, "gas yang detail teknis juga") — panel "Tampilkan detail
+      teknis" dulu mengulang alasan baris dalam paragraf padat berjargon ("gradien", "head", titik desimal). Kini
+      tiap jalur tampil sebagai langkah hitung bernomor (judul langkah dari engine `ruleStepTitle` + penjelasan
+      aturan, `SystemLine.steps`), angka berformat Indonesia, tanpa kode aturan; penjelasan aturan bertekanan
+      ditulis ulang dengan bahasa teknisi (kehilangan tekanan, tinggi angkat, pompa yang dicari).
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

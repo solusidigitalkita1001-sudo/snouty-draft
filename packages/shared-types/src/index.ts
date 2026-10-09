@@ -91,6 +91,7 @@ export type {
   RecommendationStats,
   SelectedProduct,
   SystemLine,
+  CalculationStep,
   SystemRole,
 } from './recommendation.js';
 export { isFlowSchematic } from './schematic.js';
