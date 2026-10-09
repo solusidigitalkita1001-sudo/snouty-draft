@@ -16,6 +16,7 @@ describe('productTypeOf', () => {
     ['Pipa (Plain End) Abu AW 1/2" x 1 Meter', 'Pipa (Plain End) AW', null],
     ['Bend 22 1/2° - D 110 mm Coklat', 'Bend 22 1/2° - D', null],
     ['Red Socket - W 90 x 32 mm', 'Red Socket - W', null],
+    ['Pipa HDPE Gas SDR-13,6 25 mm x 100 Meter Kuning', 'Pipa HDPE Gas SDR-13.6', null],
     ['Tee (Segmented) PE PN-12,5 315 x 160 mm', 'Tee (Segmented) PE', 'PN-12.5'],
   ])('%s → %s', (name, type, pn) => {
     expect(productTypeOf(name)).toEqual({ type, pressureClass: pn });

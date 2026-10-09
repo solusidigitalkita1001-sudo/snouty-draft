@@ -44,6 +44,8 @@ export function productTypeOf(name: string): { type: string; pressureClass: stri
     .replace(/\(\s*\)/g, '')
     .replace(/\s+/g, ' ')
     .replace(/\s-\s*$/, '')
+    // Katalog menulis desimal dengan koma dan titik ("SDR-13,6" dan "SDR-13.6"): satu jenis.
+    .replace(/(\d),(\d)/g, '$1.$2')
     .trim();
   return {
     type: head === '' ? name.trim() : head,
