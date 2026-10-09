@@ -598,6 +598,49 @@ describe('runProductQuestion — RAGAM produk ("produk Pralon yang terkenal apa?
     expect(typesText).toContain('- **Pipa HDPE Telkom** — 1 produk');
     expect(typesText).toContain('FITTING HDPE ada 1 produk, di antaranya Tee (Segmented) PE.');
 
+    // "boleh" atas tawaran rincian ukuran: ukuran per jenis, bukan penjelasan bahan HDPE
+    // (laporan pemilik 2026-10-09). "yang telkom" lalu memilih satu jenis.
+    const subject = {
+      kind: 'product',
+      entity: 'hdpe',
+      topic: 'product_overview',
+      depth: 'standard',
+    } as const;
+    const boleh = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      full,
+      noQuestions,
+      input(
+        'boleh',
+        { intent: 'follow_up_continue' },
+        {
+          subject,
+          recentTurns: [{ role: 'assistant', text: typesText }],
+        },
+      ),
+    );
+    const bolehText = text(boleh);
+    expect(bolehText).toContain('Ukuran per jenis di katalog Pralon:');
+    expect(bolehText).toContain('- **Pipa HDPE PE 100** — 63 mm dan 160 mm');
+    expect(bolehText).not.toContain('lentur dan ulet');
+
+    const telkom = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      full,
+      noQuestions,
+      input(
+        'yang telkom',
+        { intent: 'follow_up_choice' },
+        {
+          subject,
+          recentTurns: [{ role: 'assistant', text: bolehText }],
+        },
+      ),
+    );
+    expect(text(telkom)).toContain(
+      'Pipa HDPE Telkom di katalog Pralon tersedia dalam 1 ukuran:\n\n40/33',
+    );
+
     // "bikinin dalam bentuk table dong" setelah ikhtisar: tabel RAGAM, bukan PVC vs HDPE
     // (laporan pemilik 2026-10-08 — ikhtisar menyebut HDPE dan PVC).
     const table = await runProductQuestion(

@@ -31,4 +31,10 @@ describe('socialKind — pesan tanpa isi: terima kasih, persetujuan, pamit', () 
     expect(socialReply(understood('ok', { intent: 'ack' }), 'en')).toMatch(/^Noted/);
     expect(socialReply(understood('pipa apa?', { intent: null }))).toBeNull();
   });
+
+  it('keluhan ("dongo") → minta maaf dan minta diperjelas, bukan perkenalan ulang (2026-10-09)', () => {
+    const reply = socialReply(understood('dongo', { intent: 'complaint' }));
+    expect(reply).toMatch(/^Maaf, jawaban saya tadi belum pas\./);
+    expect(reply).not.toContain('Silakan, tanyakan saja');
+  });
 });

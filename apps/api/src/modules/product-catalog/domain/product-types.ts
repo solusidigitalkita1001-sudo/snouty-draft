@@ -42,6 +42,8 @@ export function productTypeOf(name: string): { type: string; pressureClass: stri
     .replace(PRESSURE_CLASS, '')
     .replace(COLOR, '')
     .replace(/\(\s*\)/g, '')
+    .replace(/\(\s+/g, '(')
+    .replace(/\s+\)/g, ')')
     .replace(/\s+/g, ' ')
     .replace(/\s-\s*$/, '')
     // Katalog menulis desimal dengan koma dan titik ("SDR-13,6" dan "SDR-13.6"): satu jenis.
@@ -51,6 +53,68 @@ export function productTypeOf(name: string): { type: string; pressureClass: stri
     type: head === '' ? name.trim() : head,
     pressureClass: pn ? `PN-${pn[1]!.replace(',', '.')}` : null,
   };
+}
+
+export interface ProductSize {
+  /** Label seperti tertulis: "160 mm", "1 1/2\"", "40/33". */
+  readonly label: string;
+  /** Nilai pembanding dalam mm (inci × 25,4; pasangan a/b memakai a). */
+  readonly mm: number;
+}
+
+const MM = /\s(\d+(?:[.,]\d+)?)\s*mm(?=\b|x)/i;
+const INCH = /\s(\d+\s\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)\s*(?:"|”|inch)/i;
+const PAIR = /\s(\d+)\/(\d+)(?![\d°º"])/;
+
+/** Ukuran utama dari nama produk (ukuran pertama setelah jenis); `null` bila tidak ada. */
+export function productSizeOf(name: string): ProductSize | null {
+  const mm = name.match(MM);
+  const inch = name.match(INCH);
+  const pair = name.match(PAIR);
+  // Yang muncul PALING AWAL adalah ukuran utama ("TY - D 12\" x 10\"" → 12").
+  const found = [
+    mm && { index: mm.index!, size: { label: `${mm[1]} mm`, mm: decimal(mm[1]!) } },
+    inch && { index: inch.index!, size: { label: `${inch[1]}"`, mm: inches(inch[1]!) * 25.4 } },
+    pair && {
+      index: pair.index!,
+      size: { label: `${pair[1]}/${pair[2]}`, mm: Number.parseInt(pair[1]!, 10) },
+    },
+  ].filter((f): f is { index: number; size: ProductSize } => Boolean(f));
+  found.sort((a, b) => a.index - b.index);
+  return found[0]?.size ?? null;
+}
+
+function decimal(text: string): number {
+  return Number.parseFloat(text.replace(',', '.'));
+}
+
+/** "1 1/2" → 1,5; "3/4" → 0,75; "6" → 6. */
+function inches(text: string): number {
+  const [whole, fraction] = text.includes(' ') ? text.split(' ') : [null, text];
+  const value = (part: string) => {
+    const [a, b] = part.split('/');
+    return b === undefined ? decimal(a!) : Number(a) / Number(b);
+  };
+  return (whole === null ? 0 : value(whole)) + value(fraction!);
+}
+
+/** Ukuran unik per jenis, urut naik. */
+export function sizesByType(names: readonly string[]): ReadonlyMap<string, readonly ProductSize[]> {
+  const byType = new Map<string, Map<string, ProductSize>>();
+  for (const name of names) {
+    const size = productSizeOf(name);
+    if (size === null) continue;
+    const { type } = productTypeOf(name);
+    const sizes = byType.get(type) ?? new Map<string, ProductSize>();
+    sizes.set(size.label, size);
+    byType.set(type, sizes);
+  }
+  return new Map(
+    [...byType.entries()].map(([type, sizes]) => [
+      type,
+      [...sizes.values()].sort((a, b) => a.mm - b.mm),
+    ]),
+  );
 }
 
 /** Jenis terbanyak dulu; kelas tekanan urut naik. */

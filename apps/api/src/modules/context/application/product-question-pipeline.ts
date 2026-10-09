@@ -48,7 +48,7 @@ import { endEvent } from './message-pipeline.js';
 import { briefComparison, explain, materialsFor, reformat } from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, productAnswerCopy } from './product-answer-text.js';
-import { familyRange, previousRange, rangeOverview } from './product-range.js';
+import { familyRange, familySizes, previousRange, rangeOverview } from './product-range.js';
 
 /** Alias kosakata sebuah keluarga kanonis — untuk mencari katalog dengan nama yang dipakai katalog. */
 type Aliases = (family: string) => readonly string[];
@@ -208,6 +208,31 @@ export async function runProductQuestion(
       ...range.cards.map((card) => ({ type: 'card', card }) as const),
       endEvent(input.messageId),
     ];
+  }
+
+  // Lanjutan atas jawaban JENIS keluarga: "boleh" menerima tawaran rincian ukuran; "yang telkom"
+  // memilih satu jenis. Dulu "boleh" dijawab penjelasan bahan HDPE (laporan pemilik 2026-10-09).
+  // Pesan yang menyebut produk atau kebutuhan baru membawa topik baru — tidak dicegat di sini.
+  if (
+    previousRange(lastAssistantText(input)) === 'family' &&
+    u.families.length === 0 &&
+    !u.mentionsRequirement &&
+    input.subject?.kind === 'product'
+  ) {
+    const sizes = await familySizes(
+      catalog,
+      input.lexicon.productFamilies(input.subject.entity),
+      input.message,
+      isFollowUp(u) || isChoiceFollowUp(u),
+      locale,
+    );
+    if (sizes !== null) {
+      return [
+        { type: 'message.start', messageId: input.messageId },
+        { type: 'token', text: sizes.text },
+        endEvent(input.messageId),
+      ];
+    }
   }
 
   const asTable = reformatted(input, locale);

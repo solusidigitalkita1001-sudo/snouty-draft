@@ -17,7 +17,11 @@ import {
 } from '@snouty/shared-types';
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
-import { productTypesOf, type ProductType } from '../../product-catalog/domain/product-types.js';
+import {
+  productTypesOf,
+  sizesByType,
+  type ProductType,
+} from '../../product-catalog/domain/product-types.js';
 import { MATERIALS } from './pipe-knowledge.js';
 import { productAnswerCopy } from './product-answer-text.js';
 
@@ -278,6 +282,100 @@ function typeTable(types: readonly ProductType[], locale: Locale): string {
   ].join('\n');
 }
 
+/**
+ * Jenis yang disebut pesan ("yang telkom", "PE 100 aja"): kata pembeda tiap jenis — kata yang
+ * tidak dimiliki SEMUA jenis keluarga itu — harus ada semua di pesan. Pencocokan atas nama jenis
+ * dari katalog (data), bukan atas pola kalimat.
+ */
+export function chosenType(types: readonly string[], message: string): string | null {
+  const words = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[()]/g, ' ')
+      .split(/[\s-]+/)
+      .filter(Boolean);
+  const said = new Set(words(message));
+  const shared = types
+    .map((t) => new Set(words(t)))
+    .reduce((acc, set) => new Set([...acc].filter((w) => set.has(w))));
+  const matches = types.filter((t) => {
+    const own = words(t).filter((w) => !shared.has(w));
+    return own.length > 0 && own.every((w) => said.has(w));
+  });
+  // Yang paling spesifik menang: "PE 100 perforated" lebih dari "PE 100".
+  return matches.sort((a, b) => words(b).length - words(a).length)[0] ?? null;
+}
+
+/**
+ * Lanjutan atas jawaban jenis keluarga: "boleh" → rentang ukuran tiap jenis; "yang telkom" →
+ * semua ukuran jenis itu. `null` bila pesan tidak memilih jenis dan bukan persetujuan
+ * (`acceptsOffer` false) — pemanggil menjawabnya lewat jalur biasa.
+ */
+export async function familySizes(
+  catalog: RangeCatalog,
+  mentioned: readonly string[],
+  message: string,
+  acceptsOffer: boolean,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<RangeOutcome | null> {
+  const COPY = productAnswerCopy(locale);
+  const en = locale === 'en';
+  const counts = await countsFrom(catalog);
+  if (counts === null) return null;
+  const pipes = matchingFamilies(counts, mentioned).filter((f) => !FITTING.test(f.family));
+  if (pipes.length === 0) return null;
+
+  const names = (
+    await Promise.all(pipes.map((f) => catalog.productNamesInFamily(f.family)))
+  ).flat();
+  const byType = sizesByType(names);
+  const types = productTypesOf(names)
+    .map((t) => t.type)
+    .filter((t) => byType.has(t));
+  const chosen = chosenType(types, message);
+  if (chosen === null && !acceptsOffer) return null;
+
+  if (chosen !== null) {
+    const sizes = byType.get(chosen) ?? [];
+    return {
+      text: [
+        en
+          ? `${chosen} in the Pralon catalogue comes in ${sizes.length} sizes:`
+          : `${chosen} di katalog Pralon tersedia dalam ${sizes.length} ukuran:`,
+        '',
+        sizes.map((s) => s.label).join(', '),
+        '',
+        COPY.sizeNext,
+      ].join('\n'),
+      cards: [],
+    };
+  }
+
+  const lines = types.slice(0, MAX_TYPES).map((type) => {
+    const sizes = byType.get(type)!;
+    const span =
+      sizes.length <= 4
+        ? joinNatural(
+            sizes.map((s) => s.label),
+            locale,
+          )
+        : en
+          ? `${sizes[0]!.label} to ${sizes.at(-1)!.label} (${sizes.length} sizes)`
+          : `${sizes[0]!.label} sampai ${sizes.at(-1)!.label} (${sizes.length} ukuran)`;
+    return `- **${type}** — ${span}`;
+  });
+  return {
+    text: [
+      en ? 'Sizes per type in the Pralon catalogue:' : 'Ukuran per jenis di katalog Pralon:',
+      '',
+      ...lines,
+      '',
+      COPY.typeNext,
+    ].join('\n'),
+    cards: [],
+  };
+}
+
 /** Katalog Pralon belum terpasang: jujur, lalu ragam bahan umum dari pengetahuan milik kode. */
 function notInstalled(locale: Locale): RangeOutcome {
   const COPY = productAnswerCopy(locale);
@@ -294,7 +392,14 @@ function notInstalled(locale: Locale): RangeOutcome {
 export function previousRange(lastAssistantText: string): 'overview' | 'family' | null {
   for (const l of ['id', 'en'] as const) {
     const copy = productAnswerCopy(l);
-    if (lastAssistantText.includes(copy.familyNext)) return 'family';
+    // Rincian ukuran juga lanjutan atas jenis keluarga: "yang telkom" sesudahnya tetap memilih jenis.
+    if (
+      lastAssistantText.includes(copy.familyNext) ||
+      lastAssistantText.includes(copy.typeNext) ||
+      lastAssistantText.includes(copy.sizeNext)
+    ) {
+      return 'family';
+    }
     if (
       lastAssistantText.includes(copy.rangeNext) ||
       lastAssistantText.includes(copy.catalogNotInstalled)

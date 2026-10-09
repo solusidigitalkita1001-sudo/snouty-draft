@@ -1148,6 +1148,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       tanpa PN dan warna; PN dikumpulkan): HDPE → PE 100 (PN-6 sampai PN-16), Telkom, Gas SDR-11, ….
       Tabel/ringkas atas ikhtisar maupun jenis. +8 contoh `product_range`, +2 golden; evaluasi intent
       135/135. Tes: product-types +10, pipeline diperbarui.
+- [x] P16-26 Lanjutan atas jawaban jenis + keluhan (laporan pemilik 2026-10-09: "boleh" setelah
+      "Mau saya rinci ukuran…?" dijawab penjelasan bahan; "dongo" dijawab ajakan bertanya) — selesai.
+      "boleh" kini memberi rentang ukuran tiap jenis (dibaca dari nama produk, `sizesByType`), dan
+      menyebut jenis ("yang telkom") menampilkan semua ukurannya; nama jenis dicocokkan dari katalog,
+      bukan pola kalimat. Label baru `complaint` (data, 18 contoh): minta maaf dan minta diperjelas.
+      Pertanyaan ragam tidak pernah masuk jalur spesifikasi. Evaluasi intent 138/138.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

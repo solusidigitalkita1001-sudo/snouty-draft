@@ -14,6 +14,8 @@ export const FINE_INTENTS = [
   'thanks',
   'ack',
   'bye',
+  // keluhan atas jawaban sebelumnya ("dongo", "ga nyambung") — minta maaf, minta diperjelas
+  'complaint',
   'out_of_scope',
   // perusahaan & pesaing
   'company_question',
@@ -178,8 +180,8 @@ export function isConceptual(intent: FineIntent | null | undefined): boolean {
 
 export function isSocial(
   intent: FineIntent | null | undefined,
-): intent is 'thanks' | 'ack' | 'bye' {
-  return intent === 'thanks' || intent === 'ack' || intent === 'bye';
+): intent is 'thanks' | 'ack' | 'bye' | 'complaint' {
+  return intent === 'thanks' || intent === 'ack' || intent === 'bye' || intent === 'complaint';
 }
 
 /** Lanjutan yang hanya mengubah BENTUK/KEDALAMAN jawaban — bukan memilih di antara pilihan. */

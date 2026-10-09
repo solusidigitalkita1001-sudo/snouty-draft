@@ -851,6 +851,24 @@
       "intent": "product_range",
       "source": "pemilik 2026-10-09",
       "topics": []
+    },
+    {
+      "text": "dongo",
+      "intent": "complaint",
+      "source": "pemilik 2026-10-09",
+      "topics": []
+    },
+    {
+      "text": "asal jawab doang",
+      "intent": "complaint",
+      "source": "pemilik 2026-10-09",
+      "topics": []
+    },
+    {
+      "text": "jawabannya ga nyambung sama pertanyaan gw",
+      "intent": "complaint",
+      "source": "pemilik 2026-10-09",
+      "topics": []
     }
   ]
 }
