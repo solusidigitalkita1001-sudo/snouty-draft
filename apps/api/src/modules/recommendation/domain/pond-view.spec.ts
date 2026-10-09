@@ -59,8 +59,9 @@ describe('tampilan kolam', () => {
     const idA = pondAssumptionsFrom(result, traces);
     const enA = pondAssumptionsFrom(result, traces, 'en');
     expect(enA).toHaveLength(idA.length);
-    expect(idA[0]!.text).toContain('Rumus kolam');
-    expect(enA[0]!.text).toContain('The pond formulas');
+    expect(idA[0]!.text).toMatch(/^Cara hitungnya: panjang × lebar × kedalaman/);
+    expect(enA[0]!.text).toMatch(/^How it is worked out: /);
+    expect(idA[0]!.text).not.toMatch(/ENG-\d/);
   });
 
   it('prosa', () => {

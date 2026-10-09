@@ -1256,6 +1256,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       milik akun menjawab 404 dan web tidak memperbarui sesi. Kini token yang dikirim tetapi tidak sah
       dijawab 401 di rute publik (`RejectStaleTokenMiddleware`; bukan /internal yang memakai token worker,
       bukan /auth), dan web memakai `apiFetch`: 401 → pulihkan sesi dari cookie refresh → ulang sekali.
+- [x] P16-42 Asumsi tanpa kode aturan (2026-10-09, "gw gak paham rumus itu") — baris pertama "Asumsi yang
+      digunakan" di gedung, pompa/sumur, cluster, drainase, kolam, dan irigasi dulu berbunyi "Rumus (ENG-501,
+      ENG-502, …) …" — label internal di UI. Kini "Cara hitungnya: …" dalam bahasa teknisi (dari apa angkanya
+      keluar, apa menentukan apa), tanpa tombol Perbaiki (`fieldPath` kosong = penjelasan, bukan asumsi).
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

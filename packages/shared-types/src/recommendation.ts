@@ -84,6 +84,7 @@ export interface Assumption {
   /**
    * Field kebutuhan yang terdampak. Inilah yang membuat "Perbaiki asumsi ini →"
    * bisa membuka field yang tepat alih-alih melempar pengguna ke awal percakapan.
+   * Kosong = baris penjelasan cara hitung, bukan asumsi yang bisa diubah (tanpa tombol).
    */
   readonly fieldPath: string;
   readonly ruleId?: string;

@@ -205,7 +205,7 @@ export function SolutionView({
               className={styles.assumptionRow}
             >
               <span className={styles.assumptionText}>{assumption.text}</span>
-              {onFixAssumption && (
+              {onFixAssumption && assumption.fieldPath !== '' && (
                 <button
                   type="button"
                   className={styles.linkButton}

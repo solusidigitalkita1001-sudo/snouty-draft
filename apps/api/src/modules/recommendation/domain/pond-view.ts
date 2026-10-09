@@ -171,9 +171,6 @@ export function pondAssumptionsFrom(
   traces: readonly IdentifiedTrace[],
   locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
-  const pending = [
-    ...new Set(traces.filter((t) => t.provenance !== 'VERIFIED').map((t) => t.ruleId)),
-  ].join(', ');
   const fieldFor = (parameter: string): string =>
     parameter === 'route_length'
       ? 'route_length'
@@ -186,9 +183,10 @@ export function pondAssumptionsFrom(
     {
       text:
         locale === 'en'
-          ? `The pond formulas (${pending}) are general criteria not yet validated by the Pralon technical team — the result is an initial estimate, not a final design.`
-          : `Rumus kolam (${pending}) adalah kriteria umum yang belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final.`,
-      fieldPath: 'pond_length',
+          ? 'How it is worked out: length × width × water depth gives the pond volume; dividing it by the filling time gives the inlet flow, and by the draining time the drain flow — each pipe is the size that carries its flow at a safe speed. This is an initial estimate not yet checked by the Pralon technical team, not a working drawing.'
+          : 'Cara hitungnya: panjang × lebar × kedalaman air memberi volume kolam; dibagi lama pengisian menjadi debit pipa masuk, dibagi lama pengurasan menjadi debit pipa kuras — tiap pipa dipilih ukuran yang mengalirkan debitnya dengan kecepatan aman. Ini perkiraan awal yang belum diperiksa tim teknis Pralon, bukan gambar kerja.',
+      // Penjelasan cara hitung, bukan asumsi yang bisa diubah — tanpa tombol Perbaiki.
+      fieldPath: '',
       ruleId: 'ENG-301',
     },
     ...result.appliedAssumptionIds.map((aid) => {

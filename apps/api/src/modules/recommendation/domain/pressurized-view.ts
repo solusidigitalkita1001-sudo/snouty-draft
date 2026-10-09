@@ -261,9 +261,6 @@ export function pressurizedAssumptionsFrom(
   locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
   const en = locale === 'en';
-  const pending = [
-    ...new Set(traces.filter((t) => t.provenance !== 'VERIFIED').map((t) => t.ruleId)),
-  ].join(', ');
   const fieldFor = (parameter: string): string =>
     parameter === 'required_pressure'
       ? 'required_pressure'
@@ -275,9 +272,10 @@ export function pressurizedAssumptionsFrom(
   return [
     {
       text: en
-        ? `The hydraulic formulas (${pending}) are standard engineering formulas not yet validated by the Pralon technical team — the result is an initial estimate, not a final design; the pump is selected from the manufacturer's curve, not from these figures alone.`
-        : `Rumus hidraulik (${pending}) adalah rumus teknik baku yang belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final; pompa dipilih dari kurva pabrikan, bukan dari angka ini saja.`,
-      fieldPath: 'design_flow',
+        ? 'How it is worked out: the flow and the pipe length give the friction loss for each pipe size; the smallest size with a safe water speed is chosen, and the height difference plus that loss is the head the pump must overcome. This is an initial estimate not yet checked by the Pralon technical team, not a working drawing. The pump is chosen from the manufacturer’s curve, not from these figures alone.'
+        : 'Cara hitungnya: debit dan panjang jalur memberi kerugian gesek untuk tiap ukuran pipa; dipilih ukuran terkecil yang kecepatan airnya aman, lalu beda tinggi ditambah kerugian itu menjadi tinggi angkat yang harus dilawan pompa. Ini perkiraan awal yang belum diperiksa tim teknis Pralon, bukan gambar kerja. Pompa dipilih dari kurva pabrikan, bukan dari angka ini saja.',
+      // Penjelasan cara hitung, bukan asumsi yang bisa diubah — tanpa tombol Perbaiki.
+      fieldPath: '',
       ruleId: 'ENG-205',
     },
     ...[...result.appliedAssumptionIds, ...extraAssumptionIds].map((aid) => {

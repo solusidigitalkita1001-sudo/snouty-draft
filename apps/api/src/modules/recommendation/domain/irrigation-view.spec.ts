@@ -66,8 +66,10 @@ describe('irrigation-view locale', () => {
   it("'en': asumsi pertama berbahasa Inggris, asumsi masukan diteruskan", () => {
     const input = [{ text: 'x', fieldPath: 'irrigation.distance' }];
     const en = irrigationAssumptionsFrom(traces, input, 'en');
-    expect(en[0]!.text).toMatch(/^The irrigation formulas \(/);
-    expect(en[0]!.fieldPath).toBe('irrigation.method');
+    expect(en[0]!.text).toMatch(/^How it is worked out: /);
+    expect(en[0]!.text).not.toMatch(/ENG-\d/);
+    // Penjelasan cara hitung, bukan asumsi yang bisa diperbaiki.
+    expect(en[0]!.fieldPath).toBe('');
     expect(en).toHaveLength(2);
     expect(en[1]).toBe(input[0]);
   });

@@ -175,7 +175,8 @@ describe('tampilan gravitasi: dua bahasa', () => {
     const enA = gravityAssumptionsFrom(result, traces, 'en');
     expect(enA).toHaveLength(idA.length);
     expect(enA.at(-1)!.text).toContain('structural');
-    expect(enA[0]!.text).toContain('standard engineering formulas');
+    expect(enA[0]!.text).toMatch(/^How it is worked out: /);
+    expect(enA[0]!.text).not.toMatch(/ENG-\d/);
   });
 
   it('prosa dan cluster', () => {

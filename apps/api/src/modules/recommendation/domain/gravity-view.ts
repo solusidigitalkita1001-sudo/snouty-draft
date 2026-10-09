@@ -298,9 +298,6 @@ export function gravityAssumptionsFrom(
   locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
   const en = locale === 'en';
-  const pending = [
-    ...new Set(traces.filter((t) => t.provenance !== 'VERIFIED').map((t) => t.ruleId)),
-  ].join(', ');
   const fieldFor = (parameter: string): string =>
     parameter === 'slope'
       ? 'slope'
@@ -312,9 +309,10 @@ export function gravityAssumptionsFrom(
   const rows: Assumption[] = [
     {
       text: en
-        ? `The gravity drain formulas (${pending}) are standard engineering formulas not yet validated by the Pralon technical team — the result is an initial estimate, not a final design.`
-        : `Rumus saluran gravitasi (${pending}) adalah rumus teknik baku yang belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final.`,
-      fieldPath: 'design_flow',
+        ? 'How it is worked out: the flow to be carried (or the rain falling on the catchment) is compared with what each pipe size can carry when it slopes; the chosen size carries it with air space left and water fast enough to keep the pipe clean. This is an initial estimate not yet checked by the Pralon technical team, not a working drawing.'
+        : 'Cara hitungnya: debit yang harus dialirkan (atau hujan yang jatuh di area tangkapan) dibandingkan dengan kemampuan tiap ukuran pipa pada kemiringannya; ukuran terpilih mengalirkannya dengan sisa ruang udara dan aliran yang cukup cepat agar pipa tetap bersih. Ini perkiraan awal yang belum diperiksa tim teknis Pralon, bukan gambar kerja.',
+      // Penjelasan cara hitung, bukan asumsi yang bisa diubah — tanpa tombol Perbaiki.
+      fieldPath: '',
       ruleId: 'ENG-402',
     },
     ...result.appliedAssumptionIds.map((aid) => {

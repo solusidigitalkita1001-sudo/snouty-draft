@@ -196,8 +196,9 @@ describe('tampilan hasil bertekanan: dua bahasa', () => {
     const idA = pressurizedAssumptionsFrom(result, [], traces);
     const enA = pressurizedAssumptionsFrom(result, [], traces, 'en');
     expect(enA).toHaveLength(idA.length);
-    expect(enA[0]!.text).toContain('standard engineering formulas');
-    expect(idA[0]!.text).toContain('Rumus hidraulik');
+    expect(enA[0]!.text).toMatch(/^How it is worked out: /);
+    expect(idA[0]!.text).toMatch(/^Cara hitungnya: debit dan panjang jalur/);
+    expect(idA[0]!.text).not.toMatch(/ENG-\d/);
 
     const idP = pressurizedProse(result, 'HDPE', input, 'id');
     expect(idP).toEqual(pressurizedProse(result, 'HDPE', input));

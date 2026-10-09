@@ -134,17 +134,14 @@ export function irrigationAssumptionsFrom(
   inputAssumptions: readonly Assumption[],
   locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
-  const pending = traces
-    .filter((t) => t.provenance !== 'VERIFIED')
-    .map((t) => t.ruleId)
-    .join(', ');
   return [
     {
       text:
         locale === 'en'
-          ? `The irrigation formulas (${pending}) are general criteria not yet validated by the Pralon technical team — the result is a preliminary estimate, not a final design.`
-          : `Rumus irigasi (${pending}) adalah kriteria umum yang belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final.`,
-      fieldPath: 'irrigation.method',
+          ? 'How it is worked out: the land area and the irrigation method give the water flow needed; the main line and the distribution pipes are then sized so the water speed stays in the safe range, and the distance and height of the source decide whether a pump is needed. This is an initial estimate not yet checked by the Pralon technical team, not a working drawing.'
+          : 'Cara hitungnya: luas lahan dan cara irigasi memberi debit air yang dibutuhkan; pipa utama dan pipa distribusi lalu dipilih ukurannya supaya kecepatan air tetap aman, dan jarak serta tinggi sumber menentukan perlu pompa atau tidak. Ini perkiraan awal yang belum diperiksa tim teknis Pralon, bukan gambar kerja.',
+      // Penjelasan cara hitung, bukan asumsi yang bisa diubah — tanpa tombol Perbaiki.
+      fieldPath: '',
       ruleId: 'ENG-101',
     },
     ...inputAssumptions,

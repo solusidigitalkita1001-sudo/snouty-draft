@@ -321,15 +321,13 @@ export function buildingAssumptions(
   locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
   const en = locale === 'en';
-  const pending = [
-    ...new Set(traces.filter((t) => t.provenance !== 'VERIFIED').map((t) => t.ruleId)),
-  ].join(', ');
   return [
     {
       text: en
-        ? `The formulas (${pending}) follow standard plumbing practice but are not yet validated by the Pralon technical team — the result is an initial estimate, not a final design; pumps are selected from the manufacturer's curve.`
-        : `Rumus (${pending}) mengikuti praktik plambing baku tetapi belum divalidasi tim teknis Pralon — hasilnya perkiraan awal, bukan desain final; pompa dipilih dari kurva pabrikan.`,
-      fieldPath: 'design_flow',
+        ? 'How it is worked out: number of people × water per person gives the daily need; from that come the busiest-hour flow (for the transfer pump) and the busiest-minute flow (for the risers). The building height sets how many pressure zones are needed, and each pipe is the smallest size whose water speed stays in the safe range. This is an initial estimate not yet checked by the Pralon technical team, not a working drawing. Pumps are still chosen from the manufacturer’s curve.'
+        : 'Cara hitungnya: jumlah orang × kebutuhan air per orang memberi kebutuhan harian; dari situ keluar debit jam tersibuk (untuk pompa transfer) dan debit menit tersibuk (untuk riser). Tinggi gedung menentukan berapa zona tekanan yang perlu, dan tiap pipa dipilih ukuran terkecil yang kecepatan airnya masih aman. Ini perkiraan awal yang belum diperiksa tim teknis Pralon, bukan gambar kerja. Pompa tetap dipilih dari kurva pabrikan.',
+      // Penjelasan cara hitung, bukan asumsi yang bisa diubah — tanpa tombol Perbaiki.
+      fieldPath: '',
       ruleId: 'ENG-502',
     },
     ...result.appliedAssumptionIds.map((aid) => {
