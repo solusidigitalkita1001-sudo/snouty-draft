@@ -152,6 +152,14 @@ const EnvSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
+  /**
+   * Perencana giliran (P16-29): model membaca percakapan dan memilih tindakan (jenis/ukuran
+   * produk, pertanyaan kasus, obrolan, kebutuhan) sebelum router contoh. Nonaktif: router saja.
+   */
+  LLM_TURN_PLANNER: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
   /** Judul percakapan ditulis model (nonaktif: judul deterministik dari pesan pertama). */
   LLM_TITLES: z
     .enum(['true', 'false'])

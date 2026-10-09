@@ -34,6 +34,7 @@ import {
 } from './domain/requirement-snapshot.repository.js';
 import { requirementSnapshotRepositoryProvider } from './infrastructure/mysql-requirement-snapshot.repository.js';
 import { MessageController } from './presentation/message.controller.js';
+import { TurnPlanner } from './application/turn-planner.js';
 
 const rateLimiterProvider = {
   provide: RateLimiter,
@@ -99,6 +100,8 @@ const messageServiceProvider = {
       logger.child({ module: 'context' }),
       company,
       understanding,
+      // Perencana giliran (P16-29): model memilih tindakan untuk pesan yang bergantung konteks.
+      ai && loadEnv().LLM_TURN_PLANNER ? new TurnPlanner(ai, loadEnv().LLM_REPLY_TIMEOUT_MS) : null,
     ),
 };
 

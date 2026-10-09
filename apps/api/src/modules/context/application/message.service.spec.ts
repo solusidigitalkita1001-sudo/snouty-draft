@@ -473,3 +473,70 @@ describe('MessageService — model tidak terjangkau', () => {
     ).rejects.toThrow('rusak');
   });
 });
+
+/**
+ * P16-29 — perencana giliran: di tengah percakapan, model memilih tindakan dan kode menjawabnya;
+ * router contoh tidak dipanggil, subjek berpindah ke keluarga yang dibicarakan.
+ */
+describe('MessageService — perencana giliran (P16-29)', () => {
+  it('"paling kecil berapa?" setelah membahas PVC AW → ukuran terkecil dari katalog, tanpa router', async () => {
+    const rows: { role: 'user' | 'assistant'; text: string }[] = [
+      { role: 'user', text: 'yang AW ukurannya apa aja?' },
+      { role: 'assistant', text: 'Ukuran per jenis PVC AW di katalog Pralon: …' },
+      { role: 'user', text: 'paling kecil berapa?' },
+    ];
+    const snapshots: { state: RequirementState }[] = [];
+    const conversations = {
+      find: vi.fn(async () => ({ title: 'x', language: 'id' })),
+      messages: vi.fn(async () => rows),
+      rename: vi.fn(async () => undefined),
+      appendUserMessage: vi.fn(async () => undefined),
+      appendAssistantMessage: vi.fn(async () => undefined),
+    };
+    const store = {
+      current: vi.fn(async () => snapshots.at(-1) ?? null),
+      append: vi.fn(async (_id: string, state: RequirementState) => {
+        snapshots.push({ state });
+        return { state };
+      }),
+    };
+    const router = { route: vi.fn() };
+    const catalog = {
+      activeVersion: vi.fn(async () => ({ kind: 'pralon' })),
+      familyCounts: vi.fn(async () => [{ family: 'PVC AW', count: 2 }]),
+      productNamesInFamily: vi.fn(async () => [
+        'Pipa (TS End) Putih AW 1/2" x 4 Meter',
+        'Pipa (TS End) Abu AW 4" x 4 Meter',
+      ]),
+    };
+    const planner = {
+      plan: vi.fn(async () => ({
+        action: 'product_sizes',
+        family: 'PVC AW',
+        type: null,
+        extreme: 'smallest',
+      })),
+    };
+    const service = new MessageService(
+      conversations as never,
+      store as never,
+      router as never,
+      catalog as never,
+      {} as never,
+      null,
+      { writeProse: vi.fn() } as never,
+      null,
+      null,
+      scriptedUnderstanding({ 'paling kecil berapa?': {} }) as never,
+      planner as never,
+    );
+    const events = await service.handle('C'.repeat(26), ACTOR, 'paling kecil berapa?', 'T');
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('Ukuran terkecil PVC AW di katalog Pralon adalah 1/2"');
+    expect(router.route).not.toHaveBeenCalled();
+    expect(planner.plan).toHaveBeenCalledWith(
+      expect.objectContaining({ families: ['PVC AW'], message: 'paling kecil berapa?' }),
+    );
+    expect(snapshots.at(-1)?.state.subject).toMatchObject({ kind: 'product', entity: 'pvc aw' });
+  });
+});

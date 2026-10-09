@@ -56,6 +56,9 @@ import {
   understoodReply,
 } from './message-pipeline.js';
 import { irrigationGuidance } from './irrigation-guidance.js';
+import { executePlan } from './plan-executor.js';
+import type { TurnPlanner } from './turn-planner.js';
+import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
 import {
   answerToUpdate,
   summarizeAnswers,
@@ -97,6 +100,8 @@ export class MessageService {
      * router lalu bertanya ke model generatif, dan tidak ada balasan sosial/lanjutan tanpa model.
      */
     @Optional() private readonly understanding: UnderstandingService | null = null,
+    /** Perencana giliran (P16-29); tanpa ini router contoh saja. */
+    @Optional() private readonly planner: TurnPlanner | null = null,
   ) {}
 
   /**
@@ -193,8 +198,68 @@ export class MessageService {
           } satisfies RoutingDecision)
         : null;
     timer.mark('load');
+
+    // Perencana giliran (P16-29): untuk pesan di tengah percakapan (atau yang tidak dikenali dari
+    // contoh), model membaca konteks dan memilih tindakan; kode menjalankannya. Lanjutan teknis
+    // yang sudah pasti tidak perlu direncanakan.
+    let planned: RoutingDecision | null = null;
+    if (
+      this.planner &&
+      continuation === null &&
+      (recentTurns.some((t) => t.role === 'assistant') || u.intent === null)
+    ) {
+      const families = (await this.catalogFamilies()).map((f) => f.family);
+      const plan = await this.planner.plan({
+        message: text,
+        recentTurns,
+        families,
+        subject: state.subject?.kind === 'product' ? state.subject.entity : null,
+        locale,
+      });
+      timer.mark('plan');
+      if (plan !== null) {
+        const outcome = await executePlan(plan, {
+          catalog: this.catalog,
+          reply: this.reply,
+          messageId,
+          message: text,
+          recentTurns,
+          state,
+          locale,
+          hasExisting,
+        });
+        if (outcome.kind === 'answered') {
+          for (const event of outcome.events.slice(1)) emit?.(event);
+          if (outcome.family !== null) {
+            await this.rememberSubject(
+              conversationId,
+              state,
+              productSubject(outcome.family.toLowerCase(), u, state.subject),
+            );
+          }
+          await this.conversations.appendAssistantMessage(
+            conversationId,
+            textOf(outcome.events),
+            [],
+            null,
+          );
+          timer.mark('persist');
+          this.logTurn(
+            conversationId,
+            { intent: 'OUT_OF_SCOPE', confidence: 1, shouldExtract: false, mutatesState: false },
+            timer,
+            plan.action,
+          );
+          return outcome.events;
+        }
+        if (outcome.kind === 'route') planned = outcome.decision;
+      }
+    }
+
     const decision =
-      continuation ?? (await this.router.route(u, hasExisting, recentTurns, state.subject));
+      continuation ??
+      planned ??
+      (await this.router.route(u, hasExisting, recentTurns, state.subject));
     timer.mark('route');
 
     // Pertanyaan perusahaan (Fase 16): ruas sendiri — pengetahuan perusahaan, bukan katalog;
@@ -332,16 +397,42 @@ export class MessageService {
   }
 
   /** Profil latensi satu giliran: `{ load, route, answer, persist, total }` dalam ms. */
-  private logTurn(conversationId: string, decision: RoutingDecision, timer: StageTimer): void {
+  private logTurn(
+    conversationId: string,
+    decision: RoutingDecision,
+    timer: StageTimer,
+    planAction?: string,
+  ): void {
     this.logger?.info(
       {
         conversationId,
         intent: decision.intent,
         confidence: decision.confidence,
+        ...(planAction ? { plan: planAction } : {}),
         ms: timer.report(),
       },
       'giliran pesan',
     );
+  }
+
+  /**
+   * Keluarga katalog aktif untuk perencana — di-cache 10 menit (katalog berganti beberapa kali
+   * setahun). Katalog tak terbaca → daftar kosong; perencana tetap bisa memilih tindakan non-katalog.
+   */
+  private familiesCache: { at: number; value: readonly FamilyCount[] } | null = null;
+
+  private async catalogFamilies(): Promise<readonly FamilyCount[]> {
+    const now = Date.now();
+    if (this.familiesCache && now - this.familiesCache.at < 10 * 60_000) {
+      return this.familiesCache.value;
+    }
+    try {
+      const value = await this.catalog.familyCounts();
+      this.familiesCache = { at: now, value };
+      return value;
+    } catch {
+      return [];
+    }
   }
 
   /** Judul model menggantikan potongan pesan bila datang; kegagalan apa pun diabaikan. */

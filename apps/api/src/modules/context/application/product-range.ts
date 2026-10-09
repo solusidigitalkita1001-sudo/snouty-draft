@@ -18,6 +18,8 @@ import {
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
 import {
+  productSizeOf,
+  productTypeOf,
   productTypesOf,
   sizesByType,
   type ProductType,
@@ -400,6 +402,98 @@ export async function familySizes(
       '',
       COPY.typeNext,
     ].join('\n'),
+    cards: [],
+  };
+}
+
+/**
+ * Ukuran dalam SATU keluarga katalog, dipilih perencana giliran (P16-29): semua ukuran satu jenis,
+ * ukuran terkecil/terbesar ("paling kecil berapa?"), atau rentang per jenis. Semua dari nama produk
+ * katalog; contoh produk disebut supaya angkanya bisa diperiksa. `null` bila katalog Pralon belum
+ * terpasang atau keluarganya tanpa ukuran terbaca.
+ */
+export async function familySizeAnswer(
+  catalog: RangeCatalog,
+  family: string,
+  type: string | null,
+  extreme: 'smallest' | 'largest' | null,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<RangeOutcome | null> {
+  const COPY = productAnswerCopy(locale);
+  const en = locale === 'en';
+  if ((await countsFrom(catalog)) === null) return null;
+  const names = await catalog.productNamesInFamily(family);
+  const byType = sizesByType(names);
+  if (byType.size === 0) return null;
+  const types = productTypesOf(names)
+    .map((t) => t.type)
+    .filter((t) => byType.has(t));
+  const chosen = type === null ? null : chosenType(types, type);
+  const subject = chosen ?? family;
+
+  if (extreme !== null) {
+    const pool = chosen !== null ? (byType.get(chosen) ?? []) : [...byType.values()].flat();
+    const sorted = [...pool].sort((a, b) => a.mm - b.mm);
+    const size = extreme === 'smallest' ? sorted[0] : sorted.at(-1);
+    if (size === undefined) return null;
+    const example = names.find(
+      (n) =>
+        productSizeOf(n)?.label === size.label &&
+        (chosen === null || productTypeOf(n).type === chosen),
+    );
+    const word =
+      extreme === 'smallest' ? (en ? 'smallest' : 'terkecil') : en ? 'largest' : 'terbesar';
+    return {
+      text: [
+        en
+          ? `The ${word} ${subject} size in the Pralon catalogue is ${size.label}${example ? `, for example ${example}` : ''}.`
+          : `Ukuran ${word} ${subject} di katalog Pralon adalah ${size.label}${example ? `, misalnya ${example}` : ''}.`,
+        '',
+        COPY.sizeNext,
+      ].join(NL),
+      cards: [],
+    };
+  }
+
+  if (chosen !== null) {
+    const sizes = byType.get(chosen) ?? [];
+    return {
+      text: [
+        en
+          ? `${chosen} in the Pralon catalogue comes in ${sizes.length} sizes:`
+          : `${chosen} di katalog Pralon tersedia dalam ${sizes.length} ukuran:`,
+        '',
+        sizes.map((s) => s.label).join(', '),
+        '',
+        COPY.sizeNext,
+      ].join(NL),
+      cards: [],
+    };
+  }
+
+  const lines = types.slice(0, MAX_TYPES).map((t) => {
+    const sizes = byType.get(t)!;
+    const span =
+      sizes.length <= 4
+        ? joinNatural(
+            sizes.map((s) => s.label),
+            locale,
+          )
+        : en
+          ? `${sizes[0]!.label} to ${sizes.at(-1)!.label} (${sizes.length} sizes)`
+          : `${sizes[0]!.label} sampai ${sizes.at(-1)!.label} (${sizes.length} ukuran)`;
+    return `- **${t}** — ${span}`;
+  });
+  return {
+    text: [
+      en
+        ? `Sizes per ${family} type in the Pralon catalogue:`
+        : `Ukuran per jenis ${family} di katalog Pralon:`,
+      '',
+      ...lines,
+      '',
+      COPY.typeNext,
+    ].join(NL),
     cards: [],
   };
 }

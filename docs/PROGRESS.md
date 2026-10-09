@@ -1169,6 +1169,15 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       (qwen3.5:4b ±5 s); angka di luar DATA tetap ditolak `ReplyWriter`. Teks tetap: di luar topik di
       tengah percakapan, alasan kasus diserahkan, dan penjaga giliran bisu. +8 contoh `out_of_scope`;
       evaluasi intent 139/139. Tes +5.
+- [x] P16-29 Perencana giliran (permintaan pemilik 2026-10-09, setelah uji 13 pertanyaan: 7 meleset —
+      "kalau yang pvc?", "paling kecil berapa?", "luasnya ngaruh ga?", "kamu siapa?") — selesai. Di tengah
+      percakapan (atau untuk pesan yang tak dikenali contoh), model membaca 4 giliran terakhir + topik
+      aktif + daftar keluarga katalog dan MEMILIH tindakan dari daftar tertutup (`product_types`,
+      `product_sizes` + terkecil/terbesar, `product_overview`, `product_question`, `requirement`,
+      `case_question`, `company`, `chat`); keluaran divalidasi skema, keluarga dicocokkan ke nama
+      katalog. Kode menjalankannya: jenis/ukuran dari katalog, pertanyaan kasus dan obrolan ditulis
+      model di atas DATA kasus + identitas SNOUTY (pagar angka), sisanya diteruskan ke jalur lama.
+      Gagal/lambat → router contoh. Flag `LLM_TURN_PLANNER`. Tes +11.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
