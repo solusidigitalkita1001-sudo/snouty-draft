@@ -50,6 +50,9 @@ export const CHAT_COPY = {
       title: 'Gagal menyusun rekomendasi',
       sub: 'Koneksi ke katalog Pralon terputus di tengah analisis. Kebutuhan Anda tetap tersimpan, jadi tidak perlu mengetik ulang.',
     },
+    /** Sesi akun berakhir dan tidak bisa dipulihkan otomatis — bukan masalah katalog. */
+    sessionExpired:
+      'Sesi Anda sudah berakhir. Masuk lagi, lalu tekan Susun rekomendasi — kebutuhan Anda tetap tersimpan.',
   },
   /** Placeholder berbeda antara layar sambutan dan lanjutan percakapan — dari prototipe. */
   composerPlaceholder: 'Contoh: Saya bangun rumah 2 lantai, 3 kamar mandi, toren di atap…',
@@ -264,6 +267,8 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
       title: 'Could not compose the recommendation',
       sub: 'The connection to the Pralon catalog dropped during the analysis. Your needs are still saved, so there is no need to retype them.',
     },
+    sessionExpired:
+      'Your session has ended. Sign in again, then press Compose recommendation — your needs are still saved.',
   },
   composerPlaceholder:
     'Example: I am building a 2-storey house, 3 bathrooms, water tank on the roof…',

@@ -140,6 +140,8 @@ export function ChatWorkspace() {
   const [state, setState] = useState<RequirementState | null>(null);
   const [stages, setStages] = useState<Readonly<Partial<Record<AnalysisStage, StageStatus>>>>({});
   const [error, setError] = useState<string | null>(null);
+  /** Analisis gagal karena sesi akun berakhir (401 setelah pemulihan otomatis gagal). */
+  const [sessionEnded, setSessionEnded] = useState(false);
   // Prototipe: panel tertutup secara bawaan di setiap lebar; rail 44px yang membukanya.
   const [panelOpen, setPanelOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(false);
@@ -666,6 +668,7 @@ export function ChatWorkspace() {
       // berhenti di 80% (laporan pemilik 2026-10-06).
       setStages({ UNDERSTANDING: 'done' });
       setError(null);
+      setSessionEnded(false);
 
       void runAnalysis(conversationId, (event) => {
         if (event.type === 'stage') {
@@ -688,7 +691,8 @@ export function ChatWorkspace() {
           if (!keepTab) setSolutionTab('ringkasan');
           setScreen('solution');
         })
-        .catch(() => {
+        .catch((failure: unknown) => {
+          setSessionEnded(failure instanceof Error && failure.message === 'analyze 401');
           setError(COPY.llmUnavailable);
           setStages(markFailed);
         })
@@ -1213,7 +1217,12 @@ export function ChatWorkspace() {
             )}
 
             {Object.keys(stages).length > 0 && (
-              <AnalysisOverlay stages={stages} onRetry={analyze} onBack={() => setStages({})} />
+              <AnalysisOverlay
+                stages={stages}
+                sessionEnded={sessionEnded}
+                onRetry={analyze}
+                onBack={() => setStages({})}
+              />
             )}
 
             {openProduct && (
@@ -1659,10 +1668,12 @@ function markFailed(
  */
 function AnalysisOverlay({
   stages,
+  sessionEnded = false,
   onRetry,
   onBack,
 }: {
   stages: Readonly<Partial<Record<AnalysisStage, StageStatus>>>;
+  sessionEnded?: boolean;
   onRetry: () => void;
   onBack: () => void;
 }) {
@@ -1725,7 +1736,9 @@ function AnalysisOverlay({
           {COPY.analysis[phase].title}
         </h3>
         <p className={styles.stageSub} aria-live="polite">
-          {COPY.analysis[phase].sub}
+          {phase === 'failed' && sessionEnded
+            ? COPY.analysis.sessionExpired
+            : COPY.analysis[phase].sub}
         </p>
         {phase === 'failed' && (
           <div className={styles.stageActions}>
