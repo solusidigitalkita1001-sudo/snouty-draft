@@ -213,3 +213,22 @@ describe('extractionToUpdates — grounding', () => {
     expect(extractionToUpdates({ building: { floorHeightM: 3 } })).toHaveLength(1);
   });
 });
+
+describe('extractionToUpdates — jumlah sesudah kata benda (uji pemilik 2026-10-09)', () => {
+  const valueOf = (message: string, path: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === path)?.value;
+
+  it('"kamar mandi 2" / "kamar mandinya 4" / "dapur: 1" terbaca seperti "2 kamar mandi"', () => {
+    expect(
+      valueOf('mau bangun ruko 2 lantai, kamar mandi 2, pake PDAM', 'fixtures.bathrooms'),
+    ).toBe(2);
+    expect(valueOf('rumah 3 lantai, kamar mandinya 4', 'fixtures.bathrooms')).toBe(4);
+    expect(valueOf('dapur: 1, wastafel 3', 'fixtures.kitchens')).toBe(1);
+    expect(valueOf('dapur: 1, wastafel 3', 'fixtures.basins')).toBe(3);
+  });
+
+  it('angka ukuran atau lantai sesudah kata benda bukan jumlah', () => {
+    expect(valueOf('kamar mandi 2x3 meter', 'fixtures.bathrooms')).toBeUndefined();
+    expect(valueOf('kamar mandi 2 lantai atas', 'fixtures.bathrooms')).toBeUndefined();
+  });
+});

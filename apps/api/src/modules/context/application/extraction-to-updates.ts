@@ -40,16 +40,12 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
 const OBVIOUS = {
   floors: (m: string) =>
     intAfter(/\b(\d{1,2})\s*-?\s*(?:lantai|lt|floors?|stor(?:e)?ys?|stories|levels?)\b/i, m),
-  bathrooms: (m: string) =>
-    intAfter(/\b(\d{1,2})\s*-?\s*(?:kamar mandi|km|toilet|bathrooms?|toilets?|restrooms?)\b/i, m),
+  bathrooms: (m: string) => countOf('kamar mandi|km|toilet|bathrooms?|toilets?|restrooms?', m),
   // Jumlah wastafel/dapur/titik air yang tersurat juga dibaca kode (diet panggilan model,
   // 2026-10-07): bila model dilewati, "4 wastafel, 1 dapur" tetap tercatat.
   basins: (m: string) =>
-    intAfter(
-      /\b(\d{1,3})\s*-?\s*(?:wastafel|washtafel|westafel|bak cuci|basins?|sinks?|washbasins?)\b/i,
-      m,
-    ),
-  kitchens: (m: string) => intAfter(/\b(\d{1,2})\s*-?\s*(?:dapur|kitchens?|pantry)\b/i, m),
+    countOf('wastafel|washtafel|westafel|bak cuci|basins?|sinks?|washbasins?', m, 3),
+  kitchens: (m: string) => countOf('dapur|kitchens?|pantry', m),
   installationType: (m: string): NonNullable<Extraction['water']>['installationType'] => {
     // Irigasi/pertanian BUKAN "drainage": ia di luar cakupan dan ditangani kebijakan guna
     // (policy/scope.ts `useCasePolicy`, isyarat dari pemahaman) sebelum ekstraksi.
@@ -141,8 +137,8 @@ export const COUNT_NOUNS: Readonly<Record<string, string>> = {
 const NEGATION =
   'tidak ada|tanpa|nggak ada|gak ada|ga ada|tidak punya|belum ada|tidak pakai|no|without|none|zero';
 // Paling banyak dua kata di antaranya ("3 buah kamar mandi"); tanda hubung dihitung spasi
-// ("2-storey", "two-storey").
-const GAP = '[\\s-]*(?:[a-z]+[\\s-]+){0,2}';
+// ("2-storey", "two-storey"). Titik dua dan sama dengan juga pemisah ("dapur: 1", 2026-10-09).
+const GAP = '[\\s:=-]*(?:[a-z]+[\\s:=-]+){0,2}';
 
 /**
  * Apakah pesan menyebut `n` buah `noun` — digit atau kata bilangan, sebelum atau sesudah kata
@@ -180,6 +176,27 @@ const TYPE_MARKERS: Readonly<
 /** `0` bila pesan meniadakan kata benda itu ("tanpa dapur"); selain itu tidak ada tebakan. */
 function negatedZero(message: string, noun: string): number | undefined {
   return mentionsCount(message, 0, noun) ? 0 : undefined;
+}
+
+/**
+ * Jumlah benda yang tersurat, dua urutan: "2 kamar mandi" dan "kamar mandi 2" / "kamar mandinya 4"
+ * (uji pemilik 2026-10-09: "ruko 2 lantai, kamar mandi 2" — kamar mandinya tidak tercatat, lalu
+ * ditanya lagi). Angka yang diikuti ukuran atau "lantai" ("kamar mandi 2x3 meter", "kamar mandi
+ * 2 lantai") bukan jumlah.
+ */
+function countOf(nouns: string, message: string, digits = 2): number | undefined {
+  const before = intAfter(
+    new RegExp(`\\b(\\d{1,${digits}})\\s*-?\\s*(?:${nouns})\\b`, 'i'),
+    message,
+  );
+  if (before !== undefined) return before;
+  return intAfter(
+    new RegExp(
+      `\\b(?:${nouns})(?:nya)?\\s*(?:ada|sebanyak|berjumlah|:|=)?\\s*(\\d{1,${digits}})(?!\\s*(?:x|×|m\\b|meter|cm|mm|lantai|lt\\b|[.,]\\d))`,
+      'i',
+    ),
+    message,
+  );
 }
 
 function intAfter(pattern: RegExp, message: string): number | undefined {

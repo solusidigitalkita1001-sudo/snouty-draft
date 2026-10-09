@@ -1177,7 +1177,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       `case_question`, `company`, `chat`); keluaran divalidasi skema, keluarga dicocokkan ke nama
       katalog. Kode menjalankannya: jenis/ukuran dari katalog, pertanyaan kasus dan obrolan ditulis
       model di atas DATA kasus + identitas SNOUTY (pagar angka), sisanya diteruskan ke jalur lama.
-      Gagal/lambat → router contoh. Flag `LLM_TURN_PLANNER`. Tes +11.
+      Gagal/lambat → router contoh. Flag `LLM_TURN_PLANNER`. Tes +11. Uji ulang 13 pertanyaan: 11 nyambung
+      (dari 6). Susulan: keluarga yang disebut pesan mengalahkan pilihan model ("kalau yang pvc?" →
+      semua keluarga PVC, bukan FITTING PVC); jumlah sesudah kata benda terbaca ("kamar mandi 2",
+      "dapur: 1").
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

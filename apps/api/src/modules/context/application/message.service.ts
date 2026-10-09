@@ -227,6 +227,7 @@ export class MessageService {
           state,
           locale,
           hasExisting,
+          named: u.families,
         });
         if (outcome.kind === 'answered') {
           for (const event of outcome.events.slice(1)) emit?.(event);

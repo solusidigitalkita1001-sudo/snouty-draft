@@ -28,6 +28,11 @@ export interface PlanContext {
   readonly state: RequirementState;
   readonly locale: Locale;
   readonly hasExisting: boolean;
+  /**
+   * Keluarga yang DISEBUT pesan ini (kosakata, `u.families`): "kalau yang pvc?" menyebut pvc —
+   * itu mengalahkan pilihan model (uji 2026-10-09: model memilih FITTING PVC saja).
+   */
+  readonly named?: readonly string[];
 }
 
 export type PlanOutcome =
@@ -70,9 +75,13 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
   const en = ctx.locale === 'en';
   switch (plan.action) {
     case 'product_types': {
-      if (plan.family === null) return { kind: 'none' };
-      const range = await familyRange(ctx.catalog, [plan.family], ctx.locale);
-      return range === null ? { kind: 'none' } : answered(ctx, range.text, plan.family);
+      const named = ctx.named ?? [];
+      const mentioned = named.length > 0 ? named : plan.family !== null ? [plan.family] : [];
+      if (mentioned.length === 0) return { kind: 'none' };
+      const range = await familyRange(ctx.catalog, mentioned, ctx.locale);
+      return range === null
+        ? { kind: 'none' }
+        : answered(ctx, range.text, named.length > 0 ? named.join(' dan ') : plan.family);
     }
     case 'product_sizes': {
       if (plan.family === null) return { kind: 'none' };

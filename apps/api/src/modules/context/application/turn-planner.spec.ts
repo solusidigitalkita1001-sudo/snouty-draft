@@ -109,6 +109,17 @@ describe('executePlan', () => {
     expect(out.kind === 'answered' && out.family).toBe('PVC AW');
   });
 
+  it('"kalau yang pvc?": keluarga yang disebut pesan mengalahkan pilihan model (FITTING PVC)', async () => {
+    const out = await executePlan(
+      { action: 'product_types', family: 'FITTING HDPE', type: null, extreme: null },
+      ctx({ named: ['pvc'] }),
+    );
+    const text = textOf(out);
+    expect(text).toContain('dalam 2 keluarga');
+    expect(text).toContain('**PVC AW**');
+    expect(text).not.toContain('FITTING HDPE');
+  });
+
   it('pertanyaan kasus tanpa model → dasar perhitungan (luas tidak menentukan ukuran)', async () => {
     const out = await executePlan(
       { action: 'case_question', family: null, type: null, extreme: null },
