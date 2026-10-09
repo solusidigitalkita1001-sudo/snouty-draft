@@ -249,6 +249,8 @@ export interface ClarificationResult {
   readonly userText: string;
   /** Kartu lanjutan: klarifikasi lagi, CTA analisis, atau kartu kebijakan. */
   readonly card: AssistantCard | null;
+  /** Semua kartu giliran ini (pertanyaan berpilihan lalu tindak lanjut); server lama hanya `card`. */
+  readonly cards?: readonly AssistantCard[];
   /** Balasan asisten atas jawaban — bisa kosong hanya bila kartunya kebijakan. */
   readonly text?: string;
 }

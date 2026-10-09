@@ -290,10 +290,11 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(text).toContain('Oke, kolam/tambak');
     expect(text).toContain('Susun rekomendasi');
     expect(text).not.toContain('di luar cakupan');
-    const card = (
-      events.find((e) => e.type === 'card') as { card: { kind: string; action?: string } }
-    ).card;
-    expect(card).toEqual({ kind: 'cta', action: 'ANALYZE' });
+    // Kartu terakhir adalah tindak lanjut; pertanyaan berpilihan (bila ada) tampil sebelumnya.
+    const cards = events.filter((e) => e.type === 'card') as {
+      card: { kind: string; action?: string };
+    }[];
+    expect(cards[cards.length - 1]!.card).toEqual({ kind: 'cta', action: 'ANALYZE' });
   });
 
   it('kasus pemilik "gedung 100 x 30, 12 lantai": dihitung sebagai gedung bertingkat — luas tercatat, CTA analisis, bukan kartu tim teknis', async () => {
@@ -313,10 +314,11 @@ describe('runUnderstanding — bentuk event SSE', () => {
     const text = (events.find((e) => e.type === 'token') as { text: string }).text;
     expect(text).toContain('gedung bertingkat');
     expect(text).toContain('Susun rekomendasi');
-    const card = (
-      events.find((e) => e.type === 'card') as { card: { kind: string; action?: string } }
-    ).card;
-    expect(card).toEqual({ kind: 'cta', action: 'ANALYZE' });
+    // Kartu terakhir adalah tindak lanjut; pertanyaan berpilihan (bila ada) tampil sebelumnya.
+    const cards = events.filter((e) => e.type === 'card') as {
+      card: { kind: string; action?: string };
+    }[];
+    expect(cards[cards.length - 1]!.card).toEqual({ kind: 'cta', action: 'ANALYZE' });
   });
 
   it('gedung 8 lantai tanpa luas atau penghuni: ditanya jumlah penghuni, bukan diserahkan', async () => {
@@ -326,7 +328,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
       input({ message, understanding: understood(message, { intent: 'requirement_building' }) }),
     );
     const card = (
-      events.find((e) => e.type === 'card') as {
+      events.find((e) => e.type === 'card') as unknown as {
         card: { kind: string; questions: { id: string; options: string[] }[] };
       }
     ).card;

@@ -59,6 +59,7 @@ import {
   applyEdit,
   endEvent,
   followUpCard,
+  technicalQuestionCard,
   runUnderstanding,
   understoodReply,
 } from './message-pipeline.js';
@@ -643,6 +644,8 @@ export class MessageService {
     state: RequirementState;
     userText: string;
     card: AssistantCard | null;
+    /** Semua kartu giliran ini, berurutan — pertanyaan berpilihan lalu tindak lanjut. */
+    cards: readonly AssistantCard[];
     /** Balasan asisten atas jawaban — apa yang tercatat dan apa yang masih ditanya. */
     text: string;
   }> {
@@ -691,8 +694,10 @@ export class MessageService {
     // Giliran jawaban kartu tidak pernah bisu (laporan pemilik 2026-10-07: kasus teknis yang sisa
     // pertanyaannya angka tidak punya kartu lanjutan → layar diam). Teksnya deterministik.
     const text = clarificationReply(merged, card, conversation.language);
-    await this.conversations.appendAssistantMessage(conversationId, text, card ? [card] : [], null);
-    return { state: merged, userText, card, text };
+    const questions = technicalQuestionCard(merged, conversation.language);
+    const cards = [questions, card].filter((c): c is AssistantCard => c !== null);
+    await this.conversations.appendAssistantMessage(conversationId, text, cards, null);
+    return { state: merged, userText, card, cards, text };
   }
 
   /**

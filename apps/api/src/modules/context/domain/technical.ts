@@ -357,7 +357,8 @@ export function technicalGuidance(
   // pengguna membaca pertanyaan yang sama dua kali (audit keterbacaan 2026-10-08).
   const missing = text.map((m) => (locale === 'en' ? m.questionEn : m.question));
   if (missing.length > 0 || card.length > 0) {
-    lines.push('', copy.askIntro);
+    // Semua pertanyaan punya pilihan → kalimat pengantar menunjuk kartunya, bukan daftar kosong.
+    lines.push('', missing.length > 0 ? copy.askIntro : copy.pickIntro);
     for (const question of missing) lines.push(`- ${question}`);
     if (isTechnicalComplete(state) && profile.calculatorStatus === 'available') {
       lines.push('', copy.proceedWithDefaults);
@@ -373,6 +374,7 @@ export function technicalGuidance(
 
 interface GuidanceCopy {
   readonly captured: (joined: string) => string;
+  readonly pickIntro: string;
   readonly askIntro: string;
   readonly proceedWithDefaults: string;
   readonly readyToCompute: string;
@@ -383,6 +385,7 @@ const GUIDANCE_COPY: Readonly<Record<Locale, GuidanceCopy>> = {
   id: {
     captured: (joined) => `Yang sudah saya catat: ${joined}.`,
     askIntro: 'Supaya hitungannya pas, tolong jawab beberapa hal ini:',
+    pickIntro: 'Supaya hitungannya pas, pilih jawabannya di bawah, atau ketik angkanya langsung.',
     proceedWithDefaults:
       'Kalau mau langsung lihat hasilnya, tekan **Susun rekomendasi** — yang belum disebut saya pakai angka perkiraan awal dan saya tandai jelas di hasilnya.',
     readyToCompute:
@@ -393,6 +396,7 @@ const GUIDANCE_COPY: Readonly<Record<Locale, GuidanceCopy>> = {
   en: {
     captured: (joined) => `What I have noted so far: ${joined}.`,
     askIntro: 'So the calculation fits, please answer a few things:',
+    pickIntro: 'So the calculation fits, pick the answers below, or type the numbers directly.',
     proceedWithDefaults:
       'If you want to see the result right away, press **Compose recommendation** — anything not mentioned uses an initial estimate that I mark clearly in the result.',
     readyToCompute:

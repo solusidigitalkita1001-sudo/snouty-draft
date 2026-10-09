@@ -257,6 +257,7 @@ export async function runUnderstanding(
     // Kalimat pembuka kasus hanya di giliran pertama; giliran berikutnya langsung data + pertanyaan.
     const firstTurn = input.state.useCase?.kind !== 'technical';
     const card = technicalFollowUp(applied.state, locale);
+    const questions = technicalQuestionCard(applied.state, locale);
     const guidance = technicalGuidance(applied.state, locale, { withIntro: firstTurn });
     // Pesan lanjutan tanpa data baru ("lu belum nanya kamar mandi", "kasih gw pilihan") dijawab
     // sesuai isinya di atas DATA kasus — bukan template yang sama diulang (laporan pemilik
@@ -276,6 +277,7 @@ export async function runUnderstanding(
           ).text
         : guidance;
     events.push({ type: 'token', text });
+    if (questions) events.push({ type: 'card', card: questions });
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));
     return {
@@ -597,6 +599,24 @@ function irrigationFollowUp(state: RequirementState, locale: Locale): AssistantC
  * Kasus teknis: masih ada parameter kritis kosong → kartu pertanyaan berpilihan (angka ditanya
  * di teks); lengkap → validasi teknis terstruktur sampai kalkulator kasusnya tersedia.
  */
+/**
+ * Pertanyaan yang masih bisa memperbaiki hitungan, sebagai kartu pilihan, di samping tombol Susun
+ * rekomendasi — kasus yang sudah bisa dihitung tetap menawarkan kamar mandi, wastafel, tinggi, dan
+ * tekanan (laporan pemilik 2026-10-09: pertanyaan dengan pilihan tidak pernah tampil karena
+ * kasusnya sudah "lengkap"). `null` bila kasus belum lengkap (kartu itu sudah jadi tindak lanjut)
+ * atau tidak ada pertanyaan berpilihan.
+ */
+export function technicalQuestionCard(
+  state: RequirementState,
+  locale: Locale,
+): AssistantCard | null {
+  if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return null;
+  if (!isTechnicalComplete(state)) return null;
+  if (caseProfile(state.useCase.caseId).calculatorStatus !== 'available') return null;
+  const { card } = planTechnicalClarification(state, locale);
+  return card.length > 0 ? { kind: 'clarification', questions: card } : null;
+}
+
 function technicalFollowUp(state: RequirementState, locale: Locale): AssistantCard | null {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return null;
   if (!isTechnicalComplete(state)) {

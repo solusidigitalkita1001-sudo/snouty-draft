@@ -99,10 +99,20 @@ export class ReplyWriter {
     }
     const parsed = replySchema(input.maxLength ?? DEFAULT_MAX_LENGTH).safeParse(raw);
     if (!parsed.success) return fallback;
-    return passesGuards(parsed.data.text, input.facts)
-      ? { text: parsed.data.text, source: 'llm' }
-      : fallback;
+    const text = withoutOpener(parsed.data.text, input.facts);
+    return passesGuards(text, input.facts) ? { text, source: 'llm' } : fallback;
   }
+}
+
+/**
+ * Seruan pembuka pendek ("Benar sekali!", "Tentu!", "Siap!") dibuang dari balasan yang menjawab
+ * di atas DATA — SNOUTY bicara seperti teknisi, langsung ke isi (CLAUDE.md, teks pengguna). Ini
+ * pagar atas keluaran model, bukan tebakan atas pertanyaan pengguna. Sapaan tanpa DATA dibiarkan.
+ */
+export function withoutOpener(text: string, facts: string | undefined): string {
+  if (facts === undefined) return text;
+  const stripped = text.replace(/^[^\s.!?,]{1,15}(?:\s+[^\s.!?,]{1,15}){0,2}!\s+/u, '');
+  return stripped.trim().length > 0 ? stripped.charAt(0).toUpperCase() + stripped.slice(1) : text;
 }
 
 /** Setiap angka di balasan harus ada di DATA; tanpa DATA, hanya 0/1/2 yang boleh. */

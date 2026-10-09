@@ -1234,6 +1234,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       `suggestions`; tinggi bangunan dihitung dari jumlah lantai). Pesan lanjutan tanpa data baru
       dijawab di atas DATA kasus teknis, bukan template yang sama diulang. DATA "cara menghitung" tidak
       lagi menyebut kolam/drainase dihitung tim teknis.
+- [x] P16-38 Pilihan tampil di kasus yang sudah bisa dihitung (2026-10-09, uji ulang percakapan pemilik) —
+      kasus gedung dengan lantai + luas dianggap lengkap, jadi hanya kartu Susun rekomendasi yang dikirim
+      dan pertanyaan berpilihan tidak pernah tampil; model lalu menanyakannya ulang dalam kalimat. Kini
+      kartu pertanyaan berpilihan tampil di samping Susun rekomendasi (juga setelah jawaban kartu,
+      `cards` di respons jawaban), kalimat pengantar menunjuk kartunya, dan seruan pembuka model
+      ("Benar sekali!") dibuang bila balasan berdasar DATA.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
