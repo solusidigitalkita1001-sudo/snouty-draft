@@ -1,6 +1,6 @@
 {
   "name": "knowledge-topic",
-  "description": "Topik pengetahuan pipa (pipe-knowledge.ts CONCEPTS) yang disinggung pesan. Multi-label: beberapa topik boleh cocok sekaligus.",
+  "description": "Topik pengetahuan pipa (CONCEPTS di pipe-knowledge.ts dan data/knowledge/pipe-facts.json) yang disinggung pesan. Multi-label: beberapa topik boleh cocok sekaligus.",
   "threshold": 0.74,
   "margin": 0,
   "multi": true,
@@ -32,7 +32,8 @@
       "what is upvc?",
       "upvc vs pvc?",
       "what does unplasticized mean?",
-      "u-pvc itu apa?"
+      "u-pvc itu apa?",
+      "pipa upvc itu apa bedanya sama pvc biasa?"
     ],
     "istilah dimensi": [
       "od dan id itu apa?",
@@ -58,20 +59,19 @@
       "gimana cara menyambung pvc?",
       "cara nyambung pvc?",
       "cara ngelem pipa pvc?",
-      "solvent cement itu apa?",
       "lem pvc yang bagus apa?",
       "cara pakai lem pipa",
       "berapa lama lem pvc kering?",
       "ngelem pipa yang benar gimana?",
       "how do i join pvc pipe?",
       "how to glue pvc?",
-      "what is solvent cement?",
       "how long does pvc cement cure?",
       "cementing pvc pipe",
       "cara sambung pipa pvc",
       "menyambung pipa pvc",
       "nyambung pipa pakai apa?",
-      "cara nyambung pipa"
+      "cara nyambung pipa",
+      "pilih sambungan lem atau cincin karet?"
     ],
     "sambungan rubber ring": [
       "cara pasang rubber ring?",
@@ -87,7 +87,9 @@
       "what lubricant for rubber ring joints?",
       "can i use soap as lubricant?",
       "rubber ring joint installation",
-      "cara sambung pipa rubber ring"
+      "cara sambung pipa rubber ring",
+      "lebih baik sambungan rubber atau lem?",
+      "rubber ring atau solvent cement?"
     ],
     "jenis fitting": [
       "jenis fitting pvc apa aja?",
@@ -218,7 +220,9 @@
       "pipa jalur air panas boiler",
       "jalur air panas hotel",
       "pipa untuk boiler air panas",
-      "hot water line for a boiler"
+      "hot water line for a boiler",
+      "pipa pralon maksimal suhu berapa?",
+      "pipa pvc tahan panas sampai berapa derajat?"
     ],
     "kelas pvc": [
       "pvc aw sama d itu kelas apa?",
@@ -250,7 +254,10 @@
       "underground pipe material?",
       "what pipe for underground runs?",
       "hdpe for buried lines?",
-      "pipa ditanam di tanah yang bergerak"
+      "pipa ditanam di tanah yang bergerak",
+      "kenapa pipa tanam disarankan hdpe?",
+      "pipa bawah tanah lebih baik hdpe atau pvc?",
+      "distribusi air ditanam pakai pipa apa?"
     ],
     "bertekanan vs gravitasi": [
       "pipa bertekanan sama gravitasi bedanya apa?",
@@ -264,7 +271,13 @@
       "which pipe for pressurized water?",
       "wastewater pipe class?",
       "pipa buat pembuangan pakai apa?",
-      "pipa gravitasi itu apa?"
+      "pipa gravitasi itu apa?",
+      "bedanya pipa drainase dan pipa air bersih?",
+      "pipa drainase sama upvc bedanya apa?",
+      "kenapa pipa buangan beda sama pipa air bersih?",
+      "pipa air buangan pakai apa?",
+      "pipa buat air buangan kloset pakai apa?",
+      "pipa floor drain pakai kelas apa?"
     ],
     "kaku vs lentur": [
       "pipa kaku dan lentur bedanya?",
@@ -327,8 +340,189 @@
       "apa itu pipa pvc aw?",
       "pvc aw itu apa?",
       "bedanya pvc aw sama pvc d apa?",
-      "beda pvc aw sama pvc d apa?"
+      "beda pvc aw sama pvc d apa?",
+      "pipa untuk sambungan rumah pakai apa?",
+      "saran pipa sambungan rumah?",
+      "pipa sr pdam pakai apa?",
+      "pvc pralon ada jenis apa saja?"
+    ],
+    "vp vu": [
+      "pipa vp itu apa?",
+      "pipa vu itu apa?",
+      "bedanya vp dan vu?",
+      "vp vu itu standar apa?",
+      "pipa jis vp vu buat apa?",
+      "kelebihan pipa vp dibanding aw?",
+      "pipa jis itu apa?",
+      "what is vp pipe?",
+      "vp vs vu pipe?",
+      "what is jis pipe?",
+      "pipa jis gold itu apa?",
+      "keunggulan vp dan vu dibanding aw dan d?",
+      "minus pipa vp apa?",
+      "pipa vp vu dipakai buat apa?",
+      "jis vp vu vs pralon aw d",
+      "vp sama vu itu apa?",
+      "pipa vp dan vu apa bedanya dengan aw dan d?",
+      "apa itu pipa vp dan pipa vu, kelebihan dan kekurangannya?"
+    ],
+    "injection fitting": [
+      "injection fitting itu apa?",
+      "apa itu fitting injeksi?",
+      "fitting ts dan dv bedanya apa?",
+      "fitting tipe ts itu apa?",
+      "fitting dv itu buat apa?",
+      "fitting buat pipa d pakai apa?",
+      "kualitas injection fitting gimana?",
+      "what is an injection fitting?",
+      "ts vs dv fittings?",
+      "fitting untuk pipa aw dan pipa d beda?"
+    ],
+    "pipa jacking": [
+      "pipa jacking itu apa?",
+      "apa itu pipe jacking?",
+      "pipa jacking buat apa?",
+      "cara pasang pipa jacking?",
+      "pipa dorong bawah tanah itu apa?",
+      "what is a jacking pipe?",
+      "pipe jacking uses?"
+    ],
+    "conduit": [
+      "conduit itu apa?",
+      "pipa conduit buat apa?",
+      "pipa buat kabel listrik pakai apa?",
+      "pipa pelindung kabel itu apa?",
+      "bedanya conduit sama pipa air?",
+      "high impact conduit itu apa?",
+      "pipa hic itu apa?",
+      "pipa listrik pralon ada?",
+      "what is a conduit pipe?",
+      "pipe for electrical cables?"
+    ],
+    "pipa gas": [
+      "pipa buat gas pakai apa?",
+      "pipa gas rumah yang cocok apa?",
+      "mdpe itu apa?",
+      "mdpe khusus gas ya?",
+      "bedanya hdpe dan mdpe?",
+      "pipa kuning buat gas itu apa?",
+      "jalur gas pakai pipa apa?",
+      "pipa gas pralon ada?",
+      "what pipe is used for gas?",
+      "mdpe vs hdpe?"
+    ],
+    "ketahanan kimia": [
+      "pipa pvc tahan bahan kimia?",
+      "pipa bisa buat cairan kimia?",
+      "pipa pralon tahan asam?",
+      "pvc kuat terhadap kimia?",
+      "pipa buat limbah kimia pakai apa?",
+      "pipa tahan klorin?",
+      "is pvc chemical resistant?",
+      "can the pipe carry chemicals?",
+      "pipa pvc tahan cairan kimia ga?"
+    ],
+    "umur pakai": [
+      "berapa lama umur pipa hdpe?",
+      "daya tahan pipa berapa tahun?",
+      "pipa pvc awet berapa lama?",
+      "umur pakai pipa pralon?",
+      "pipa hdpe tahan berapa tahun?",
+      "garansi pipa berapa lama?",
+      "how long does hdpe pipe last?",
+      "pipe service life?"
+    ],
+    "solvent cement": [
+      "solvent cement itu apa?",
+      "lem pipa pvc itu apa?",
+      "cara kerja solvent cement?",
+      "rekomendasi lem buat pipa?",
+      "lem pipa yang bagus apa?",
+      "jenis solvent cement ada berapa?",
+      "solvent cement quick dry dan slow dry bedanya?",
+      "what is solvent cement?",
+      "how does pvc glue work?",
+      "solvent cement pralon ada quick dry dan slow dry?"
+    ],
+    "ukuran inci": [
+      "ukuran 1/2 inci itu berapa mm?",
+      "3/4 inch setara berapa mm?",
+      "cara baca ukuran pipa inci?",
+      "ukuran pipa 1 inch diameter berapa?",
+      "konversi ukuran pipa inci ke mm?",
+      "kenapa ukuran pipa pakai inch tapi spek mm?",
+      "diameter luar pipa 4 inci berapa?",
+      "what is 1/2 inch pipe in mm?",
+      "pipe size inch to mm?"
+    ],
+    "panjang batang": [
+      "satu batang pipa panjangnya berapa?",
+      "panjang pipa per batang berapa meter?",
+      "pipa pralon dijual per berapa meter?",
+      "pipa 4 meter atau 6 meter?",
+      "panjang standar pipa pvc?",
+      "pipa hdpe satu gulung berapa meter?",
+      "how long is one pipe length?",
+      "standard pipe length?"
+    ],
+    "jumlah batang": [
+      "butuh berapa batang pipa untuk 27 meter?",
+      "jalur 50 meter butuh berapa batang?",
+      "hitung jumlah batang pipa dari panjang jalur",
+      "pipa 100 meter berapa batang?",
+      "berapa batang buat jalur lurus 30 meter?",
+      "how many pipe lengths for 27 metres?",
+      "how many pipes do i need for 40 m?"
+    ],
+    "tekanan kerja": [
+      "tekanan kerja pipa aw berapa?",
+      "pipa kelas d tahan tekanan berapa bar?",
+      "berapa bar tekanan pipa pvc?",
+      "tekanan maksimal pipa hdpe?",
+      "pn pada pipa hdpe artinya apa?",
+      "pipa pn 10 itu tahan berapa?",
+      "tekanan air 10 bar pakai pipa apa?",
+      "what is the working pressure of aw pipe?",
+      "what does pn mean on hdpe pipe?"
+    ],
+    "pippo": [
+      "pippo itu apa?",
+      "beda pippo dan pralon?",
+      "pipa pippo merek siapa?",
+      "pippo buatan pralon?",
+      "kualitas pippo dibanding pralon?",
+      "what is pippo pipe?"
+    ],
+    "sni": [
+      "sni di pipa artinya apa?",
+      "pipa sni itu apa?",
+      "pentingnya sni buat proyek?",
+      "pipa ber-sni wajib?",
+      "pipa sni air minum itu apa?",
+      "sni air buangan itu apa?",
+      "what does sni mean on a pipe?",
+      "pipa sni air bersih ada berapa varian?",
+      "varian pipa upvc sni air minum apa saja?",
+      "pipa seri s sni ukurannya dari berapa sampai berapa?"
+    ],
+    "jenis ujung": [
+      "plain end itu apa?",
+      "bedanya plain end dan bell end?",
+      "ts end itu apa?",
+      "ujung pipa ada berapa jenis?",
+      "pipa ujung polos itu apa?",
+      "what is a plain end pipe?",
+      "bell end vs plain end?"
+    ],
+    "kesalahan umum": [
+      "kesalahan umum memilih pipa apa?",
+      "salah pilih pipa biasanya kenapa?",
+      "apa yang harus diperhatikan memilih pipa?",
+      "faktor memilih pipa apa saja?",
+      "tips memilih pipa yang benar?",
+      "common mistakes choosing pipes?",
+      "how to choose the right pipe?"
     ]
   },
-  "window": 0.12
+  "window": 0.04
 }

@@ -30,6 +30,8 @@ import type { EntityLexicon } from '../../understanding/domain/vocabulary.js';
 import { isConceptual } from '../../understanding/domain/labels.js';
 import { parseSize } from '../domain/size-parser.js';
 import { catalogScope, fittingAnswer, type FittingOutcome } from './catalog-scope.js';
+import { knowledgeAnswer } from './knowledge-answer.js';
+import { factTopics } from '../infrastructure/knowledge-facts.js';
 import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
 import {
   PipeSize,
@@ -46,7 +48,13 @@ import { isAnswerable, isAuthoritative } from '../../product-catalog/domain/cata
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { endEvent } from './message-pipeline.js';
-import { briefComparison, explain, materialsFor, reformat } from './pipe-knowledge.js';
+import {
+  briefComparison,
+  compareMaterials,
+  explain,
+  materialsFor,
+  reformat,
+} from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import { answerText, overviewText, productAnswerCopy } from './product-answer-text.js';
 import {
@@ -196,6 +204,49 @@ export async function runProductQuestion(
       { type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } },
       endEvent(input.messageId),
     ];
+  }
+
+  // Pengetahuan bersumber (data/knowledge + konsep) untuk topik yang dikenali — sebelum jalur
+  // katalog, karena "pipa pralon bisa buat cairan kimia?" dulu dijawab ikhtisar seluruh katalog
+  // (daftar FAQ pemilik 2026-10-09). Fakta + data katalog yang dihitung saat ini adalah DATA;
+  // mode kualitas merangkainya untuk pertanyaan ini, mode hemat menampilkannya langsung.
+  // Nilai tekanan di pesan ("8-12 bar") membawa topik tekanan kerja — kelas tekanan dari katalog.
+  const knowledgeTopics = mentionsPressure(input.message)
+    ? [...new Set([...u.knowledgeTopics, 'tekanan kerja'])]
+    : u.knowledgeTopics;
+  if (knowledgeTopics.some((t) => factTopics().has(t))) {
+    const answer = await knowledgeAnswer(knowledgeTopics, input.message, catalog, locale);
+    // Dua bahan yang dibandingkan ("HDPE atau uPVC untuk 8–12 bar?"): perbandingannya di depan.
+    const compared = materialsFor(u.families);
+    const known =
+      answer !== null && compared.length >= 2
+        ? {
+            ...answer,
+            text: [compareMaterials(compared[0]!, compared[1]!, locale), answer.text].join('\n\n'),
+          }
+        : answer;
+    if (known !== null) {
+      const text =
+        reply && faqPrompt
+          ? (
+              await reply.write({
+                intent: 'PRODUCT_LOOKUP',
+                userMessage: input.message,
+                recentTurns: input.recentTurns ?? [],
+                facts: known.text,
+                locale,
+                fallback: known.text,
+                systemPrompt: faqPrompt,
+                maxLength: 2400,
+              })
+            ).text
+          : known.text;
+      return [
+        { type: 'message.start', messageId: input.messageId },
+        { type: 'token', text },
+        endEvent(input.messageId),
+      ];
+    }
   }
 
   // Lingkup FITTING (audit 2026-10-09): keluarga katalog yang disebut pesan (atau subjek, untuk
@@ -788,3 +839,9 @@ async function fittingTurn(
     locale,
   });
 }
+
+/** Nilai tekanan dalam bar di pesan ("10 bar", "8-12 bar") — parser nilai, bukan pola pertanyaan. */
+function mentionsPressure(message: string): boolean {
+  return PRESSURE_VALUE.test(message);
+}
+const PRESSURE_VALUE = /\d+(?:[.,]\d+)?\s*(?:(?:-|–|sampai|s\/d)\s*\d+(?:[.,]\d+)?\s*)?bar\b/i;

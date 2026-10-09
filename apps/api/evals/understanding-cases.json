@@ -875,6 +875,81 @@
       "intent": "out_of_scope",
       "source": "pemilik 2026-10-09",
       "topics": []
+    },
+    {
+      "text": "pipa vu itu dipakai buat apa sih?",
+      "topics": ["vp vu"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "fitting injeksi tipe dv itu buat apa?",
+      "topics": ["injection fitting"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "pipa jacking pralon itu yang kayak gimana?",
+      "topics": ["pipa jacking"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "pipa buat pelindung kabel listrik ada?",
+      "topics": ["conduit"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "jalur gas di rumah enaknya pakai pipa apa?",
+      "topics": ["pipa gas"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "pvc kuat ga buat ngalirin larutan kimia?",
+      "topics": ["ketahanan kimia"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "pipa hdpe awet sampai berapa tahun?",
+      "topics": ["umur pakai"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "lem pvc itu cara kerjanya gimana?",
+      "topics": ["solvent cement"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "pipa 3/4 inch itu diameternya berapa mm?",
+      "topics": ["ukuran inci"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "pipa pralon panjangnya per batang berapa?",
+      "topics": ["panjang batang"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "jalur lurus 45 meter perlu berapa batang pipa?",
+      "topics": ["jumlah batang"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "pipa kelas d kuat tekanan berapa bar?",
+      "topics": ["tekanan kerja"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "pippo sama pralon itu satu pabrik?",
+      "topics": ["pippo"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "pipa standar sni maksudnya apa?",
+      "topics": ["sni"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "ujung pipa plain end sama ts end bedanya?",
+      "topics": ["jenis ujung"],
+      "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
     }
   ]
 }

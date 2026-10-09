@@ -1277,6 +1277,16 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       membawa nilai + satuan dan bisa diubah di tempat (angka → Hitung ulang → solusi baru di tab yang sama;
       "Kembalikan nilai awal" untuk nilai dari pengguna). Nilai dari pengguna tidak lagi ditandai asumsi.
       Editor di tempat belum punya desain Claude Design — memakai gaya kartu solusi yang ada.
+- [x] P16-46 FAQ pemilik: pengetahuan bersumber sebagai DATA (2026-10-09) — uji live 18 pertanyaan dari daftar
+      pemilik: ±3 terjawab. Kini: 16 topik pengetahuan baru dengan contoh (VP/VU, injection fitting TS/DV, jacking,
+      conduit HIC, pipa gas MDPE, ketahanan kimia, umur pakai, solvent cement, ukuran inci→mm, panjang batang,
+      jumlah batang, tekanan kerja, PIPPO, SNI, jenis ujung, kesalahan umum); fakta bersumber di
+      `data/knowledge/pipe-facts.json` (Snouty Product Knowledge Master + katalog; angka berstatus "perlu validasi"
+      tidak dibawa) dengan data katalog yang dihitung saat itu (jumlah, rentang ukuran, panjang batang, kelas PN/SDR,
+      jumlah batang dari panjang jalur); topik bersumber didahulukan dari daftar katalog dan dari ekstraksi
+      kebutuhan; nilai "N bar" membawa kelas tekanan katalog; jendela multi-topik 0,12 → 0,04 (topik tempelan
+      hilang); pesaing "ruchika". Eval golden: intent 139/139, +15 kasus topik. Daftar pemilik disimpan di
+      `apps/api/evals/owner-faq.json`.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

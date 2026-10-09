@@ -35,7 +35,17 @@
     "reducer": ["reducer"],
     "socket": ["socket", "sok"]
   },
-  "competitorBrands": ["rucika", "wavin", "maspion", "vinilon", "unilon", "supralon", "langgeng"],
+  "competitorBrands": [
+    "rucika",
+    "ruchika",
+    "rucica",
+    "wavin",
+    "maspion",
+    "vinilon",
+    "unilon",
+    "supralon",
+    "langgeng"
+  ],
   "competitorReferences": [
     "merek lain",
     "merk lain",

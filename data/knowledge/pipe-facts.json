@@ -1,0 +1,196 @@
+{
+  "$comment": "Fakta pengetahuan pipa sebagai DATA (permintaan pemilik 2026-10-09: jawaban dinamis, bukan statis). Satu entri = satu fakta bersumber untuk satu topik `knowledge-topic`. Teks hanya kualitatif atau angka yang dokumen sumbernya tandai konsisten — angka berstatus 'perlu validasi' tidak dimasukkan. `catalog` menyebut data katalog yang dihitung SAAT ITU dari produk aktif: `families` (ringkasan jumlah + ukuran), `lengths` (panjang per batang dari nama produk), `pressure` (kelas PN/SDR/S dari nama produk), `rods` (jumlah batang dari panjang jalur di pesan), `nameIncludes` (saring nama produk per keluarga, mis. HDPE → \"gas\"). Fakta baru ditambah di sini tanpa mengubah kode.",
+  "facts": [
+    {
+      "topic": "vp vu",
+      "text": "VP dan VU adalah pipa uPVC standar JIS (Jepang, JIS K 6741): VP untuk air bertekanan, VU untuk saluran tak bertekanan seperti pembuangan dan ventilasi. AW dan D adalah kelas standar PRALON dengan pembagian fungsi yang serupa — AW bertekanan, D gravitasi. Bedanya ada di standar acuannya, sehingga ukuran dan tebal dinding mengikuti tabel standar masing-masing; pilih yang diminta spesifikasi proyek. Tekanan kerja tiap kelas mengikuti spesifikasi produk resmi Pralon.",
+      "textEn": "VP and VU are uPVC pipes to the Japanese JIS standard (JIS K 6741): VP for pressurised water, VU for non-pressure lines such as drainage and venting. AW and D are PRALON standard classes with a similar split — AW pressurised, D gravity. The difference is the reference standard, so sizes and wall thickness follow each standard's table; choose the one the project specification asks for. Working pressure per class follows the official Pralon product specification.",
+      "source": "Snouty Product Knowledge Master §6.4–6.5",
+      "catalog": {
+        "families": ["PVC VP", "PVC VU"]
+      }
+    },
+    {
+      "topic": "injection fitting",
+      "text": "Injection fitting adalah fitting uPVC yang dicetak dengan mesin injeksi, sehingga bentuk dan ukurannya seragam. Ada dua jalur: TS untuk air bertekanan (standar JIS K 6743) — dipasangkan dengan pipa kelas bertekanan seperti AW dan disambung lem — dan DV untuk drainase dan ventilasi (standar JIS K 6739) — dipasangkan dengan pipa kelas D. Setiap fitting melewati pemeriksaan visual, dimensi, dan uji fungsi sebelum dikemas.",
+      "textEn": "An injection fitting is a uPVC fitting moulded on an injection machine, so its shape and size are uniform. There are two lines: TS for pressurised water (JIS K 6743) — paired with pressure-class pipe such as AW and solvent-cemented — and DV for drainage and venting (JIS K 6739) — paired with class D pipe. Every fitting goes through visual, dimensional and function checks before packing.",
+      "source": "Snouty Product Knowledge Master §20.3",
+      "catalog": {
+        "families": ["FITTING PVC"]
+      }
+    },
+    {
+      "topic": "pipa jacking",
+      "text": "Pipa jacking dipasang dengan cara didorong di bawah tanah dari satu lubang kerja ke lubang berikutnya, tanpa menggali parit sepanjang jalur — dipakai saat jalur melintasi jalan, rel, atau bangunan yang tidak boleh dibongkar. Pipa jacking Pralon mengacu JSWAS K-6 dan JIS K 6741, dengan collar uPVC atau stainless steel di sambungannya.",
+      "textEn": "Jacking pipe is installed by pushing it underground from one working pit to the next, without trenching along the route — used where the line crosses roads, rail or buildings that cannot be dug up. Pralon jacking pipe follows JSWAS K-6 and JIS K 6741, with uPVC or stainless-steel collars at the joints.",
+      "source": "Snouty Product Knowledge Master §6.11",
+      "catalog": {
+        "families": ["PIPA JACKING"]
+      }
+    },
+    {
+      "topic": "conduit",
+      "text": "Conduit adalah pipa pelindung kabel listrik atau telekomunikasi, bukan pipa air: ia tidak menahan tekanan air, tetapi melindungi kabel dari benturan dan lembap. Pralon membuatnya sebagai High Impact Conduit (HIC), uPVC yang tahan benturan.",
+      "textEn": "A conduit is a protective pipe for electrical or telecom cables, not a water pipe: it does not hold water pressure, it protects the cable from impact and damp. Pralon makes it as High Impact Conduit (HIC), an impact-resistant uPVC.",
+      "source": "Snouty Product Knowledge Master §6.10",
+      "catalog": {
+        "families": ["PVC HIC"],
+        "lengths": true
+      }
+    },
+    {
+      "topic": "pipa gas",
+      "text": "Jalur gas memakai pipa polietilen khusus gas berwarna kuning — MDPE atau HDPE gas — yang disambung dengan las panas sehingga sambungannya menyatu; pipa PVC untuk air tidak dipakai untuk gas. MDPE (medium density) lebih lentur daripada HDPE dan lazim untuk jaringan distribusi gas serta sambungan rumah. Instalasi gas mengikuti ketentuan jaringan gas setempat dan dikerjakan pemasang yang berwenang.",
+      "textEn": "Gas lines use yellow polyethylene gas pipe — MDPE or HDPE gas grade — joined by heat fusion so the joints become one piece; PVC water pipe is not used for gas. MDPE (medium density) is more flexible than HDPE and common for gas distribution and house connections. Gas installations follow the local gas network rules and are done by an authorised installer.",
+      "source": "Katalog aktif Pralon (MDPE, HDPE Gas); praktik umum jaringan gas",
+      "catalog": {
+        "families": ["MDPE", "HDPE"],
+        "nameIncludes": {
+          "HDPE": "gas"
+        }
+      }
+    },
+    {
+      "topic": "ketahanan kimia",
+      "text": "uPVC tahan karat dan tahan terhadap sejumlah bahan kimia, tetapi ketahanannya bergantung pada jenis bahan kimia, konsentrasinya, dan suhunya. Tabel ketahanan kimia per bahan belum ada di data resmi saya, jadi untuk cairan kimia tertentu kirimkan nama bahan, konsentrasi, dan suhunya ke tim teknis Pralon untuk dipastikan.",
+      "textEn": "uPVC does not rust and resists a number of chemicals, but its resistance depends on the chemical, its concentration and its temperature. A per-chemical resistance chart is not in my official data yet, so for a specific chemical send its name, concentration and temperature to the Pralon technical team to confirm.",
+      "source": "Snouty Product Knowledge Master §3.1, §25 (tabel ketahanan kimia belum tersedia, §32.5)"
+    },
+    {
+      "topic": "umur pakai",
+      "text": "Umur pakai pipa bergantung pada cara pakainya: tekanan kerja dibanding kelas pipanya, suhu air, paparan sinar matahari, dan kualitas sambungan. Angka umur pakai resmi untuk pipa Pralon belum ada di data saya — tim teknis Pralon bisa memberikan angka resminya.",
+      "textEn": "Service life depends on how the pipe is used: working pressure against its class, water temperature, sun exposure and joint quality. An official service-life figure for Pralon pipe is not in my data yet — the Pralon technical team can give the official figure.",
+      "source": "Snouty Product Knowledge Master §32.10 (data umur pakai belum tersedia)"
+    },
+    {
+      "topic": "solvent cement",
+      "text": "Solvent cement (lem PVC) bekerja dengan melarutkan sedikit permukaan pipa dan socket fitting; saat pelarutnya menguap, kedua permukaan menyatu menjadi satu bagian — bukan sekadar menempel seperti lem biasa. Pralon membedakan dua jenis: quick dry untuk ukuran kecil dan slow dry untuk ukuran besar. Langkahnya: potong rata, bersihkan, oles di pipa dan socket, masukkan sampai batas, tahan sebentar, lalu biarkan kering sebelum dialiri; waktu tahan dan kering mengikuti lembar data solvent cement Pralon.",
+      "textEn": "Solvent cement (PVC glue) works by softening a thin layer of the pipe and the fitting socket; as the solvent evaporates the two surfaces fuse into one piece — it does not just stick like ordinary glue. Pralon has two types: quick dry for small sizes and slow dry for large sizes. Steps: cut square, clean, apply to pipe and socket, push in to the mark, hold briefly, then let it cure before filling; hold and cure times follow the Pralon solvent-cement data sheet.",
+      "source": "Snouty Product Knowledge Master §18.2, §19"
+    },
+    {
+      "topic": "ukuran inci",
+      "text": "Ukuran inci pada pipa PVC adalah ukuran nominal, bukan diameter sebenarnya. Diameter luar (OD) pipa uPVC Pralon per ukuran nominal: 1/2\" = 22 mm, 3/4\" = 26 mm, 1\" = 32 mm, 1 1/4\" = 42 mm, 1 1/2\" = 48 mm, 2\" = 60 mm, 2 1/2\" = 76 mm, 3\" = 89 mm, 4\" = 114 mm, 5\" = 140 mm, 6\" = 165 mm, 8\" = 216 mm, 10\" = 267 mm, 12\" = 318 mm. Diameter dalamnya adalah OD dikurangi dua kali tebal dinding, yang berbeda per kelas. Pipa HDPE dan pipa seri SNI memakai ukuran mm (diameter luar) langsung.",
+      "textEn": "Inch sizes on PVC pipe are nominal, not the actual diameter. Outside diameter (OD) of Pralon uPVC pipe per nominal size: 1/2\" = 22 mm, 3/4\" = 26 mm, 1\" = 32 mm, 1 1/4\" = 42 mm, 1 1/2\" = 48 mm, 2\" = 60 mm, 2 1/2\" = 76 mm, 3\" = 89 mm, 4\" = 114 mm, 5\" = 140 mm, 6\" = 165 mm, 8\" = 216 mm, 10\" = 267 mm, 12\" = 318 mm. The inside diameter is the OD minus twice the wall thickness, which differs per class. HDPE pipe and SNI series pipe are sized directly in mm (outside diameter).",
+      "source": "Snouty Product Knowledge Master §7.1 (OD konsisten di banyak sumber)"
+    },
+    {
+      "topic": "panjang batang",
+      "text": "Panjang per batang tercatat di nama setiap produk katalog Pralon dan berbeda per jenis pipa.",
+      "textEn": "The length per pipe is recorded in each Pralon catalogue product name and differs per pipe type.",
+      "source": "Katalog aktif Pralon",
+      "catalog": {
+        "families": [
+          "PVC AW",
+          "PVC D",
+          "PVC C",
+          "PVC VP",
+          "PVC VU",
+          "PVC S-10",
+          "PVC SNI KELAS B",
+          "HDPE",
+          "MDPE"
+        ],
+        "lengths": true
+      }
+    },
+    {
+      "topic": "jumlah batang",
+      "text": "Jumlah batang = panjang jalur dibagi panjang satu batang, dibulatkan ke atas; siapkan lebih untuk potongan di belokan dan sambungan.",
+      "textEn": "Number of pipes = route length divided by one pipe length, rounded up; allow extra for offcuts at bends and joints.",
+      "source": "Aritmetika atas panjang batang katalog",
+      "catalog": {
+        "families": ["PVC AW", "PVC D"],
+        "rods": true
+      }
+    },
+    {
+      "topic": "tekanan kerja",
+      "text": "Kelas pipa PVC menandai fungsinya: AW untuk air bersih bertekanan, D untuk aliran gravitasi, C tanpa tekanan kerja. Angka tekanan kerja resmi per kelas mengikuti spesifikasi produk Pralon — data saya belum memuat angka yang sudah divalidasi, jadi untuk desain dengan tekanan tertentu minta angka resminya ke tim teknis Pralon. Pada pipa HDPE dan seri SNI, kelas tekanan tertulis di produknya: PN adalah tekanan nominal dalam bar, dan makin kecil angka SDR atau S, makin tebal dindingnya.",
+      "textEn": "PVC pipe classes mark their use: AW for pressurised clean water, D for gravity flow, C with no working pressure. The official working pressure per class follows the Pralon product specification — my data does not hold validated figures yet, so for a design at a given pressure ask the Pralon technical team for the official figure. On HDPE and SNI series pipe the pressure class is written on the product: PN is the nominal pressure in bar, and the smaller the SDR or S number, the thicker the wall.",
+      "source": "Snouty Product Knowledge Master §6 (angka tekanan berstatus perlu validasi — tidak dibawa); katalog aktif",
+      "catalog": {
+        "families": ["HDPE", "MDPE"],
+        "pressure": true
+      }
+    },
+    {
+      "topic": "pippo",
+      "text": "PIPPO adalah merek kedua dari Pralon untuk pipa uPVC, dengan kelas AW dan D. Bedanya dengan pipa PRALON ada di spesifikasi masing-masing merek; angka perbandingannya mengikuti spesifikasi produk resmi Pralon.",
+      "textEn": "PIPPO is Pralon's second brand of uPVC pipe, in classes AW and D. It differs from PRALON pipe in each brand's specification; comparison figures follow the official Pralon product specification.",
+      "source": "Snouty Product Knowledge Master §6.6–6.7, §17"
+    },
+    {
+      "topic": "sni",
+      "text": "SNI (Standar Nasional Indonesia) adalah standar mutu nasional; pipa ber-SNI dibuat dan diuji menurut standar itu, dan banyak proyek pemerintah, PDAM, dan gedung mensyaratkannya. Pralon membuat pipa uPVC SNI untuk air minum (seri S) dan untuk air buangan (kelas A dan B).",
+      "textEn": "SNI (Indonesian National Standard) is the national quality standard; SNI pipe is made and tested to it, and many government, water-utility and building projects require it. Pralon makes uPVC SNI pipe for drinking water (S series) and for wastewater (classes A and B).",
+      "source": "Snouty Product Knowledge Master §6.8–6.9",
+      "catalog": {
+        "families": [
+          "PVC S-6.3",
+          "PVC S-8",
+          "PVC S-10",
+          "PVC S-12.5",
+          "PVC S-16",
+          "PVC SNI KELAS A",
+          "PVC SNI KELAS B"
+        ],
+        "lengths": true
+      }
+    },
+    {
+      "topic": "jenis ujung",
+      "text": "Ujung pipa ada tiga bentuk: plain end (ujung polos, disambung dengan fitting atau sambungan mekanis), TS end (ujung ber-socket untuk sambungan lem solvent cement), dan bell end (ujung ber-socket dengan alur cincin karet). TS end lazim untuk ukuran kecil sampai menengah di dalam bangunan; bell end untuk jaringan besar di luar bangunan karena sambungannya cepat dipasang.",
+      "textEn": "Pipe ends come in three forms: plain end (plain, joined with a fitting or mechanical coupling), TS end (socketed for solvent-cement joints) and bell end (socketed with a rubber-ring groove). TS end is common for small to medium sizes inside buildings; bell end for large networks outside buildings because the joint is quick to make.",
+      "source": "Snouty Product Knowledge Master §4.10, §18"
+    },
+    {
+      "topic": "kesalahan umum",
+      "text": "Kesalahan yang paling sering: kelas pipa tidak sesuai tekanannya (mis. kelas D untuk air bertekanan), diameter terlalu kecil untuk jumlah titik air, sambungan lem yang kotor atau kurang rata sehingga bocor, pipa PVC dibiarkan lama terkena matahari atau dipakai untuk air panas, dan penyangga yang kurang sehingga pipa melengkung. Yang menentukan pilihan: tekanan kerja, debit air, panjang instalasi, dan lokasi pemasangan.",
+      "textEn": "The most common mistakes: a pipe class that does not match the pressure (e.g. class D for pressurised water), a diameter too small for the number of outlets, dirty or uneven solvent joints that leak, PVC left in the sun for long or used for hot water, and too few supports so the pipe sags. What decides the choice: working pressure, flow, installation length and location.",
+      "source": "Snouty Product Knowledge Master §27–28"
+    },
+    {
+      "topic": "air panas",
+      "text": "Batas suhu operasi resmi untuk pipa Pralon belum ada di data saya; untuk air panas pakai bahan yang memang dirancang untuk itu.",
+      "textEn": "An official operating-temperature limit for Pralon pipe is not in my data yet; for hot water use a material designed for it.",
+      "source": "Snouty Product Knowledge Master §32.6 (rentang suhu operasi belum tersedia)"
+    },
+    {
+      "topic": "bertekanan vs gravitasi",
+      "text": "Untuk air buangan (kloset, floor drain, talang) pakai pipa kelas gravitasi — kelas D atau pipa SNI air buangan kelas A/B — dengan kemiringan yang cukup; pipa air bersih kelas AW tidak diperlukan karena salurannya tidak bertekanan.",
+      "textEn": "For wastewater (toilets, floor drains, gutters) use gravity-class pipe — class D or SNI wastewater pipe class A/B — laid with enough slope; class AW clean-water pipe is not needed because the line is not pressurised.",
+      "source": "Snouty Product Knowledge Master §6.2, §6.9; katalog aktif",
+      "catalog": {
+        "families": ["PVC D", "PVC SNI KELAS A", "PVC SNI KELAS B"],
+        "lengths": true
+      }
+    },
+    {
+      "topic": "sambungan rubber ring",
+      "text": "Memilih sambungan: solvent cement (TS end) untuk ukuran kecil sampai menengah di dalam bangunan — sambungannya menyatu, kaku, dan permanen. Rubber ring (bell end) untuk jaringan besar di luar bangunan — pemasangannya cepat, bisa menerima sedikit gerakan tanah, dan bisa dibongkar. Keduanya kedap bila dipasang sesuai langkahnya.",
+      "textEn": "Choosing the joint: solvent cement (TS end) for small to medium sizes inside buildings — the joint fuses, rigid and permanent. Rubber ring (bell end) for large networks outside buildings — quick to install, tolerates some ground movement, and can be taken apart. Both are watertight when made by the steps.",
+      "source": "Snouty Product Knowledge Master §4.10, §18"
+    },
+    {
+      "topic": "kelas pvc",
+      "text": "Panjang batang dan ukuran tiap kelas tercatat di katalog Pralon yang aktif.",
+      "textEn": "Lengths and sizes for each class are recorded in the active Pralon catalogue.",
+      "source": "Katalog aktif Pralon",
+      "catalog": {
+        "families": ["PVC AW", "PVC D", "PVC C"],
+        "lengths": true
+      }
+    },
+    {
+      "topic": "pipa tanam",
+      "text": "Untuk distribusi air yang ditanam dan panjang, HDPE lazim dipilih karena lentur dan sambungannya dilas menyatu; uPVC tetap bisa ditanam asal alas dan urugannya rapi dan kelasnya sesuai tekanan.",
+      "textEn": "For long buried water distribution HDPE is the usual choice because it is flexible and its joints are fused; uPVC can still be buried provided the bedding and backfill are neat and the class suits the pressure.",
+      "source": "Snouty Product Knowledge Master §22, §30; katalog aktif",
+      "catalog": {
+        "families": ["HDPE"],
+        "pressure": true
+      }
+    }
+  ]
+}

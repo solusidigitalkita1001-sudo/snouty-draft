@@ -1,0 +1,192 @@
+{
+  "$comment": "Pertanyaan yang sering ditanyakan (daftar pemilik 2026-10-09: Duta Endarto, Mba Angel, Mas Edo, test case product knowledge, study case). `expect` = perilaku yang diharapkan, dinilai di uji live (scratchpad pw-faq) — bukan kalimat jawaban. Angka teknik hanya dari katalog atau dokumen resmi; yang belum ada sumbernya dijawab jujur.",
+  "cases": [
+    {
+      "q": "Rekomendasi jalur pipa utama untuk air minum, lebih baik pipa HDPE atau pipa uPVC berdasarkan daya tahan dan ketidakstabilan tekanan air antara 8-12 bar?",
+      "expect": "perbandingan HDPE vs uPVC + kelas tekanan (PN) yang tersedia di katalog untuk 8–12 bar"
+    },
+    {
+      "q": "Berapa daya tahan lama pipa HDPE?",
+      "expect": "jujur: umur pakai belum ada di data resmi; tawarkan tim teknis"
+    },
+    {
+      "q": "Apa yang menjadi dasar pemilihan pipa HDPE di banding uPVC?",
+      "expect": "perbandingan bahan (kapan pilih yang mana)"
+    },
+    {
+      "q": "Apa saran pipa yang di gunakan untuk pipa sambungan rumah?",
+      "expect": "saran bahan untuk sambungan rumah (SR) + kelas"
+    },
+    {
+      "q": "Apa perbedaan pipa merek pralon dengan ruchika?",
+      "expect": "kebijakan pesaing: kriteria netral, tanpa merekomendasikan pesaing"
+    },
+    {
+      "q": "Kenapa harus memilih pipa merek pralon di banding merek vinilon?",
+      "expect": "kebijakan pesaing"
+    },
+    {
+      "q": "Selain untuk air minum dan air bersih, tolong infokan kegunaan pipa HDPE?",
+      "expect": "kegunaan HDPE (termasuk pipa gas di katalog)"
+    },
+    {
+      "q": "Apa bedanya pipa drainase dan pipa uPVC?",
+      "expect": "konsep: kelas bertekanan vs gravitasi (AW vs D / SNI air buangan)"
+    },
+    {
+      "q": "Lebih baik menggunakan sambungan pipa pvc dengan rubber atau solvent cement?",
+      "expect": "perbandingan rubber ring vs solvent cement"
+    },
+    { "q": "Apa itu pipa jacking?", "expect": "konsep pipa jacking + ada di katalog" },
+    {
+      "q": "Apakah bisa pipa PVC di gunakan untuk air panas pengganti pipa PPR?",
+      "expect": "tidak — PPR untuk air panas; tanpa tempelan topik lain"
+    },
+    {
+      "q": "Adakah jenis pipa terbaru setelah pipa HDPE dan uPVC yang di rekomendasikan untuk air bersih atau air minum?",
+      "expect": "jawab dari portofolio katalog; tanpa mengarang produk"
+    },
+    { "q": "Perbedaan pipa AW sama D apa?", "expect": "konsep kelas pvc" },
+    {
+      "q": "Fittings AW sama D bedanya apa?",
+      "expect": "fitting TS (bertekanan) vs DV (drainase)"
+    },
+    {
+      "q": "Pipa VP sama VU tuh apa? Dan keunggulannya dari Pipa AW sama D Pralon apa? Minusnya apa?",
+      "expect": "konsep VP/VU (JIS) vs AW/D"
+    },
+    {
+      "q": "Rekomendasi lem buat pipa?",
+      "expect": "solvent cement (quick dry / slow dry); tanpa tempelan topik lain"
+    },
+    {
+      "q": "Solvent cement itu apa? Cara kerja solvent cement?",
+      "expect": "konsep solvent cement"
+    },
+    {
+      "q": "Pipa Pralon bisa ga buat air panas? Maksimal di suhu berapa?",
+      "expect": "tidak untuk air panas; suhu maksimal belum ada di data resmi"
+    },
+    {
+      "q": "Pipa Pralon bisa ga buat cairan kimia?",
+      "expect": "ketahanan kimia umum; tabel per bahan kimia belum ada → tim teknis"
+    },
+    { "q": "Keunggulan Pralon dari Vinilon, Rucika dan Power apa?", "expect": "kebijakan pesaing" },
+    { "q": "Apa beda Pippo dan Pralon?", "expect": "PIPPO merek kedua Pralon (kelas AW dan D)" },
+    {
+      "q": "Apa perbedaan PIPA KELAS AW , PIPA KELAS D dan PIPA KELAS C",
+      "expect": "konsep kelas pvc"
+    },
+    {
+      "q": "Berapa tekanan kerja untuk pipa kelas AW, D dan C?",
+      "expect": "jujur: angka tekanan kerja menunggu spesifikasi resmi; jelaskan kelas"
+    },
+    {
+      "q": "Apa itu Pipa Gold JIS Pralon?",
+      "expect": "pipa JIS (VP/VU); 'Gold' belum ada di data → jujur"
+    },
+    {
+      "q": "Apa perbedaan Solvent Cement Pralon dengan LEM PVC merek lain?",
+      "expect": "kebijakan pesaing / konsep solvent cement"
+    },
+    {
+      "q": "Bagaimana Cara kerja untuk Produk Solvent Cement merek Pralon",
+      "expect": "konsep solvent cement + langkah"
+    },
+    { "q": "Ada berapa jenis Solvent Cement merek Pralon?", "expect": "quick dry dan slow dry" },
+    {
+      "q": "Ada berapa Panjang meter untuk setiap 1 batang pipa yang dijual Oleh Pralon?",
+      "expect": "panjang batang per keluarga dari katalog"
+    },
+    { "q": "Apa itu Injection Fittings?", "expect": "konsep injection fitting" },
+    {
+      "q": "Apa perbedaan Injection fiting tipe TS dan Injection fiting tipe DV?",
+      "expect": "TS bertekanan vs DV drainase"
+    },
+    {
+      "q": "Apa saja produk yang dihasilkan dari Perusahaan PT. Pralon?",
+      "expect": "portofolio produk"
+    },
+    { "q": "Pipa uPVC itu apa? Bedanya sama PVC biasa apa?", "expect": "konsep upvc" },
+    {
+      "q": "Kalau buat air bersih rumah, kapan pilih uPVC, kapan pilih HDPE?",
+      "expect": "perbandingan bahan"
+    },
+    {
+      "q": "HDPE itu bedanya apa sama MDPE? MDPE itu khusus gas ya?",
+      "expect": "HDPE vs MDPE + MDPE gas di katalog"
+    },
+    {
+      "q": "Conduit itu apa? Bedanya sama pipa air apa?",
+      "expect": "konsep conduit (HIC) — pelindung kabel, bukan air"
+    },
+    {
+      "q": "Plain End itu artinya apa? Ada tipe ujung lain nggak dan bedanya apa?",
+      "expect": "plain end vs TS end vs bell end"
+    },
+    {
+      "q": "Fitting itu apa aja contohnya? Elbow/tee/reducer/socket itu fungsinya apa?",
+      "expect": "jenis fitting dan fungsinya"
+    },
+    {
+      "q": "Ukuran pipa itu bacanya gimana sih: 1/2\", 3/4\", 1\", 1 1/2\"? Itu setara berapa mm?",
+      "expect": "ukuran nominal inci → OD mm"
+    },
+    {
+      "q": "SNI di pipa artinya apa? Pentingnya apa buat proyek rumah/gedung?",
+      "expect": "konsep SNI"
+    },
+    {
+      "q": "Kalau buat drainase/air buangan, kenapa biasanya beda pilihan sama air bersih?",
+      "expect": "bertekanan vs gravitasi"
+    },
+    {
+      "q": "Pipa untuk tanam bawah tanah: kenapa sering disaranin HDPE dibanding uPVC?",
+      "expect": "pipa tanam"
+    },
+    {
+      "q": "Apa kesalahan paling umum orang pas milih pipa?",
+      "expect": "kesalahan umum / faktor pemilihan"
+    },
+    {
+      "q": "Gue butuh pipa buat air buangan kamar mandi (kloset + floor drain). Pralon yang cocok apa?",
+      "expect": "pipa air buangan (kelas D / SNI air buangan) — bukan air bersih"
+    },
+    {
+      "q": "Untuk Pipa uPVC SNI Air Bersih, ada berapa varian? Ringkas aja range diameter + opsi panjang + kelas.",
+      "expect": "ringkasan varian dari katalog"
+    },
+    {
+      "q": "Gue butuh jalur pipa air bersih 27 meter lurus. Kira-kira butuh berapa batang?",
+      "expect": "hitung batang dari panjang batang katalog"
+    },
+    {
+      "q": "Gue butuh fitting elbow 90 derajat buat uPVC 3/4\". Ada rekomendasi Pralon?",
+      "expect": "elbow 90 3/4 dari katalog"
+    },
+    {
+      "q": "Gue butuh pipa buat jalur gas rumah. Rekomendasi Pralon yang cocok apa?",
+      "expect": "MDPE / HDPE gas dari katalog, bukan kartu tim teknis"
+    },
+    {
+      "q": "Pipa buat tanam bawah tanah untuk distribusi air, jalur 60 meter. Pralon yang cocok HDPE apa uPVC?",
+      "expect": "saran HDPE untuk tanam"
+    },
+    {
+      "q": "Butuh pipa conduit buat kabel listrik rumah. Produk Pralon yang cocok apa?",
+      "expect": "PVC HIC dari katalog"
+    },
+    {
+      "q": "Gue butuh pipa air bersih buat rumah 2 lantai. Dari toren ke kamar mandi ±15 meter. Rekomendasi Pralon yang aman gimana setup-nya?",
+      "expect": "kasus rumah (bertanya data kurang / hitung)"
+    },
+    {
+      "q": "Proyek gedung 5 lantai, kebutuhan air bersih untuk toilet per lantai. Minta arahan kelas pipa + ukuran jalur riser dan cabang.",
+      "expect": "kasus gedung bertingkat"
+    },
+    {
+      "q": "Need clean water pipe for 2-storey house, from water tank to bathroom 15m. Recommend Pralon setup dong.",
+      "expect": "kasus rumah dalam bahasa Inggris"
+    }
+  ]
+}

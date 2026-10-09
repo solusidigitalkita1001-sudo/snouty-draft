@@ -38,6 +38,8 @@ COPY apps/api ./apps/api
 COPY apps/worker ./apps/worker
 # Data runtime: contoh pemahaman pertanyaan (`data/understanding`, P16-11) dibaca API saat boot.
 COPY data/understanding ./data/understanding
+# Fakta pengetahuan pipa bersumber (`data/knowledge`, daftar FAQ pemilik 2026-10-09).
+COPY data/knowledge ./data/knowledge
 RUN pnpm build:types \
   && pnpm --filter @snouty/api build \
   && pnpm --filter @snouty/worker build

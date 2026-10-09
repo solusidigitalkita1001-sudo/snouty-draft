@@ -97,6 +97,22 @@ export const KNOWLEDGE_TOPICS = [
   'pipa tanam',
   'bertekanan vs gravitasi',
   'kaku vs lentur',
+  'vp vu',
+  'injection fitting',
+  'pipa jacking',
+  'conduit',
+  'pipa gas',
+  'ketahanan kimia',
+  'umur pakai',
+  'solvent cement',
+  'ukuran inci',
+  'panjang batang',
+  'jumlah batang',
+  'tekanan kerja',
+  'pippo',
+  'sni',
+  'jenis ujung',
+  'kesalahan umum',
 ] as const;
 export type KnowledgeTopicLabel = (typeof KNOWLEDGE_TOPICS)[number];
 

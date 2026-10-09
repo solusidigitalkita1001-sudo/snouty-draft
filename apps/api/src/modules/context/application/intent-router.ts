@@ -29,6 +29,7 @@ import {
 import type { ReplyTurn } from './reply-writer.js';
 import { CORE_REQUIREMENT_FIELDS } from '@snouty/shared-types';
 import { extractionToUpdates } from './extraction-to-updates.js';
+import { factTopics } from '../infrastructure/knowledge-facts.js';
 
 /** Data inti kebutuhan yang tersurat di teks (parser nilai), tanpa model. */
 function coreFactsInText(message: string): number {
@@ -63,17 +64,25 @@ export function certainIntent(
   hasExistingRequirements: boolean,
 ): IntentClassification | null {
   const fine = u.intent?.label;
-  if (fine === undefined) return null;
   const sure = (intent: Intent): IntentClassification => ({
     intent,
     confidence: UNDERSTOOD_CONFIDENCE,
   });
+  // Intent ragu tetapi topiknya punya fakta bersumber ("pipa VP sama VU tuh apa?"): pengetahuan.
+  if (fine === undefined) {
+    return !u.mentionsCompetitor && answersFromKnowledge(u) ? sure('PRODUCT_LOOKUP') : null;
+  }
 
   if (fine === 'greeting' || fine === 'out_of_scope' || isSocial(fine)) return sure('OUT_OF_SCOPE');
   // Policy 1 menang atas apa pun selain basa-basi: "rumah 2 lantai, lebih bagus Pralon atau
   // Rucika?" adalah pertanyaan pesaing walau bentuk kalimatnya kebutuhan — mereknya tidak boleh
   // diam-diam diekstrak lalu diabaikan (tinjauan 2026-10-08).
   if (u.mentionsCompetitor) return sure('COMPETITOR_QUESTION');
+  // Topik yang punya fakta bersumber (data/knowledge) dijawab dari pengetahuan + katalog, walau
+  // intent-nya ragu atau terbaca daftar katalog ("pipa pralon bisa buat cairan kimia?" → dulu
+  // ikhtisar seluruh katalog; daftar FAQ pemilik 2026-10-09). Pernyataan kebutuhan bangunan tetap
+  // kebutuhan — kecuali pertanyaan hitung atas panjang jalur ("27 meter butuh berapa batang?").
+  if (answersFromKnowledge(u)) return sure('PRODUCT_LOOKUP');
   if (fine === 'company_question') {
     // "pabrik Pralon di mana?" menyebut Pralon → perusahaan, walau "pabrik" juga kata kebutuhan;
     // bentuk perusahaan tanpa menyebut Pralon tetapi dengan kebutuhan → biar presedensi memutuskan.
@@ -154,7 +163,13 @@ export function withRequirementPrecedence(
     u.intent?.label !== 'advice_request' &&
     !u.mentionsOutOfScopeFluid &&
     coreFactsInText(u.text) === 0;
-  if (!recommendationAsLookup && (!yields || !u.mentionsRequirement || productOnly)) {
+  // Pertanyaan bertopik fakta ("pipa conduit buat kabel listrik rumah", "jalur gas rumah") tetap
+  // dijawab dari pengetahuan walau menyebut tempat — "rumah" di sini bukan kebutuhan bangunan.
+  const knowledge = classification.intent === 'PRODUCT_LOOKUP' && answersFromKnowledge(u);
+  if (
+    knowledge ||
+    (!recommendationAsLookup && (!yields || !u.mentionsRequirement || productOnly))
+  ) {
     return classification;
   }
   return {
@@ -321,4 +336,16 @@ export class IntentRouter {
       mutatesState: MUTATING_INTENTS.has(classification.intent),
     };
   }
+}
+
+/** Topik pertanyaan hitung yang menang atas bentuk kalimat kebutuhan. */
+const CALCULATION_TOPICS: ReadonlySet<string> = new Set(['jumlah batang']);
+
+/** Pesan ini punya topik dengan fakta bersumber dan bukan pernyataan kebutuhan bangunan. */
+export function answersFromKnowledge(u: MessageUnderstanding): boolean {
+  const facts = factTopics();
+  const topics = u.knowledgeTopics.filter((t) => facts.has(t));
+  if (topics.length === 0) return false;
+  const requirement = u.intent?.label.startsWith('requirement_') ?? false;
+  return !requirement || topics.some((t) => CALCULATION_TOPICS.has(t));
 }
