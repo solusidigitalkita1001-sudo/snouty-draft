@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import pino from 'pino';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CONTRACT_VERSION } from '@snouty/jobs';
-import { reportPdfConsumer, type PrintableBrowser } from './report-pdf.js';
+import { pdfOptions, reportPdfConsumer, type PrintableBrowser } from './report-pdf.js';
 
 const JOB = {
   contractVersion: CONTRACT_VERSION,
@@ -181,5 +181,22 @@ describe('konsumer PDF laporan', () => {
 
     const written = await readFile(join(storagePath, 'reports', `${JOB.reportId}.pdf`));
     expect(written.equals(pdf)).toBe(true);
+  });
+});
+
+describe('opsi cetak', () => {
+  it('meneruskan footer yang dibawa halaman cetak ke Chromium', () => {
+    const footer = '<div>Halaman <span class="pageNumber"></span></div>';
+    const html = `<body><p>isi</p><script type="text/plain" id="snouty-pdf-footer">${footer}</script></body>`;
+    expect(pdfOptions(html)).toMatchObject({
+      displayHeaderFooter: true,
+      footerTemplate: footer,
+      preferCSSPageSize: true,
+      printBackground: true,
+    });
+  });
+
+  it('tanpa blok footer: tidak mencetak header/footer bawaan Chromium', () => {
+    expect(pdfOptions('<body></body>')).toMatchObject({ displayHeaderFooter: false });
   });
 });

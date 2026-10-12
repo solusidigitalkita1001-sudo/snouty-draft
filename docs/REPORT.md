@@ -2,8 +2,10 @@
 
 Fase 0c · P0c-06 · Terakhir diperbarui 2026-09-30
 
-Laporan Rekomendasi & Estimasi Material — dua halaman A4. Sumbernya SPEC §33g dan
-`SNOUTY Laporan Rekomendasi.dc.html`.
+Laporan Rekomendasi & Estimasi Material — A4: sampul (logo Pralon, maskot SNOUTY) lalu empat bagian
+(ringkasan solusi, rekomendasi sistem, estimasi material, dasar perhitungan & pengesahan); tata letak
+mengikuti templat rapor yang dipilih pemilik 2026-10-12 (P16-57), awalnya SPEC §33g dan
+`SNOUTY Laporan Rekomendasi.dc.html`. Nomor halaman dicetak footer Chromium.
 
 ---
 
@@ -191,7 +193,7 @@ ada. Ini yang mewujudkan janji "tidak perlu menjelaskan ulang".
 | 7   | Non-pemilik mendapat 403                                                     |
 | 8   | Unduhan oleh peran internal menulis audit log                                |
 | 9   | Kegagalan menghasilkan `FAILED` + kartu "Unduh ulang" / "Kirim ke email"     |
-| 10  | Footer "PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS" ada di kedua halaman |
+| 10  | "PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS" ada di sampul dan penutup   |
 
 ---
 

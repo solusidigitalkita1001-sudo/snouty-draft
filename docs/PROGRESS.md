@@ -1327,6 +1327,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       versi lama; aturan mati ENG-002/009/011 dihapus; cabang per lantai (ENG-003 v2); skema memakai cabang engine,
       tee bila ukuran sama; BOM satu baris per SKU; matcher tanpa reducer berujung sama / fitting pengganti; stempel
       versi aturan di laporan, tanda versi lama + "Susun ulang" (laporan baru) dan "Hitung ulang" di layar solusi.
+- [x] P16-57 Desain ulang PDF laporan (permintaan pemilik 2026-10-12, mengikuti templat rapor dengan warna SNOUTY):
+      sampul gelap berlogo Pralon + maskot SNOUTY, empat bagian (ringkasan berupa kotak ukuran, rekomendasi sistem,
+      estimasi material, dasar perhitungan + pengesahan), footer "Halaman x dari n" dari Chromium; dasar perhitungan
+      memakai judul langkah, bukan kode aturan; penjelasan sebaran lantai tanpa kalimat tentang "sistem".
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

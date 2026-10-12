@@ -172,8 +172,20 @@ describe('assembleReportPayload', () => {
 describe('renderReportHtml', () => {
   const html = renderReportHtml(assembleReportPayload(INPUT));
 
-  it('menghasilkan dua halaman', () => {
-    expect(html.match(/class="page"/g)).toHaveLength(2);
+  it('menghasilkan sampul dan empat bagian', () => {
+    expect(html.match(/class="page( cover)?"/g)).toHaveLength(5);
+    for (const n of [1, 2, 3, 4]) expect(html).toContain(`BAGIAN ${String(n)}`);
+  });
+
+  it('memuat logo Pralon dan maskot SNOUTY sebagai gambar tersisip, footer bernomor halaman', () => {
+    expect(html.split("url('data:image/png;base64,").length - 1).toBe(2);
+    expect(html).toContain('<script type="text/plain" id="snouty-pdf-footer">');
+    expect(html).toContain('<span class="totalPages"></span>');
+  });
+
+  it('dasar perhitungan memakai judul langkah, bukan kode aturan', () => {
+    const basis = html.slice(html.indexOf('<ol class="basis">'), html.indexOf('</ol>'));
+    expect(basis).not.toMatch(/ENG-\d/);
   });
 
   it('memuat nomor laporan di kedua kop', () => {
@@ -190,14 +202,14 @@ describe('renderReportHtml', () => {
     // pernyataan mereka sendiri, bukan hasil hitungan sistem.
     expect(html).toContain('ASUMSI');
 
-    const systemSection = html.slice(html.indexOf('REKOMENDASI SISTEM'));
-    const systemRows = systemSection.slice(0, systemSection.indexOf('ASUMSI YANG DIGUNAKAN'));
+    const systemSection = html.slice(html.indexOf('Rekomendasi Sistem</h2>'));
+    const systemRows = systemSection.slice(0, systemSection.indexOf('Asumsi yang digunakan'));
     expect(systemRows).not.toContain('TERVERIFIKASI');
 
-    const requirementSection = html.slice(html.indexOf('KEBUTUHAN YANG TERCATAT'));
-    expect(requirementSection.slice(0, requirementSection.indexOf('REKOMENDASI SISTEM'))).toContain(
-      'TERVERIFIKASI',
-    );
+    const requirementSection = html.slice(html.indexOf('Kebutuhan yang tercatat'));
+    expect(
+      requirementSection.slice(0, requirementSection.indexOf('Rekomendasi Sistem</h2>')),
+    ).toContain('TERVERIFIKASI');
   });
 
   it('harga nonaktif: tidak merender kolom harga maupun blok total', () => {
@@ -279,14 +291,14 @@ describe('laporan dua bahasa (P15-05)', () => {
 
   it("'en': lang, judul, kolom, dan label status dalam bahasa Inggris", () => {
     expect(en).toContain('<html lang="en">');
-    expect(en).toContain('Recommendation &amp; Material Estimate Report');
-    expect(en).toContain('NO. SNTY-2026-10-0001 · PAGE 1 OF 2');
-    expect(en).toContain('NO. SNTY-2026-10-0001 · PAGE 2 OF 2');
-    expect(en).toContain('SYSTEM RECOMMENDATION');
+    expect(en).toContain('Piping System Recommendation');
+    expect(en).toContain('SECTION 2');
+    expect(en).toContain('System Recommendation</h2>');
     expect(en).toContain('<th>UNIT PRICE</th>');
     expect(en).toContain('Reviewed by (optional):');
-    expect(en).toContain('<td class="status">ASSUMED</td>');
-    expect(en).toContain('<td class="status">VERIFIED</td>');
+    expect(en).toContain('Page <span class="pageNumber"></span> of');
+    expect(en).toContain('<span class="pill pill-assumed">ASSUMED</span>');
+    expect(en).toContain('<span class="pill pill-verified">VERIFIED</span>');
     // Baris kebutuhan dirakit dalam bahasa percakapan, bukan diterjemahkan saat mencetak.
     expect(en).toContain('<tr><th>Number of floors</th><td>2 floors</td>');
   });
@@ -314,8 +326,8 @@ describe('laporan dua bahasa (P15-05)', () => {
     for (const label of [
       'TERVERIFIKASI',
       'ASUMSI',
-      'HAL. 1 DARI 2',
-      'HAL. 2 DARI 2',
+      'BAGIAN',
+      'Halaman',
       'PANDUAN PERENCANAAN',
       'Perkiraan perencanaan',
       'Pelanggan',
@@ -323,7 +335,7 @@ describe('laporan dua bahasa (P15-05)', () => {
       'HARGA SATUAN',
       'Total estimasi',
       'Diperiksa oleh',
-      'REF. KONSULTASI',
+      'DISUSUN UNTUK',
       'Tipe bangunan',
     ]) {
       expect(en).not.toContain(label);
@@ -349,8 +361,9 @@ describe('laporan dua bahasa (P15-05)', () => {
       }),
     );
     expect(html).not.toContain('<img');
-    // nomor ×4 (title, dua kop, footer), nama, lokasi, katalog, judul, isi, asumsi.
-    expect(html.split(escaped)).toHaveLength(11);
+    // nomor ×6 (title, sampul, empat kop bagian), nama ×6 (sampul, empat kop, footer),
+    // lokasi (sampul), katalog, judul, isi, asumsi.
+    expect(html.split(escaped)).toHaveLength(18);
   });
 });
 

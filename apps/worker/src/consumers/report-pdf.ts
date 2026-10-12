@@ -40,9 +40,18 @@ export interface PrintableBrowser {
   close(): Promise<void>;
 }
 
+export interface PdfOptions {
+  readonly format: string;
+  readonly printBackground: boolean;
+  readonly preferCSSPageSize: boolean;
+  readonly displayHeaderFooter: boolean;
+  readonly headerTemplate?: string;
+  readonly footerTemplate?: string;
+}
+
 export interface PrintablePage {
   setContent(html: string, options?: { waitUntil?: 'load' }): Promise<void>;
-  pdf(options: { format: string; printBackground: boolean }): Promise<Buffer>;
+  pdf(options: PdfOptions): Promise<Buffer>;
   close(): Promise<void>;
 }
 
@@ -82,7 +91,7 @@ async function printToPdf(deps: ReportPdfDeps, html: string): Promise<Buffer> {
       // `setContent`, bukan `goto`: HTML-nya sudah ada di tangan, dan membuat Chromium
       // meminta ulang halamannya berarti rute internal dipanggil dua kali.
       await page.setContent(html, { waitUntil: 'load' });
-      return await page.pdf({ format: 'A4', printBackground: true });
+      return await page.pdf(pdfOptions(html));
     } finally {
       await page.close();
     }
@@ -90,6 +99,25 @@ async function printToPdf(deps: ReportPdfDeps, html: string): Promise<Buffer> {
     await browser.close();
   }
 }
+
+/**
+ * Halaman cetak membawa footernya sendiri (`#snouty-pdf-footer`, berisi `pageNumber` /
+ * `totalPages`) supaya tata letaknya tetap satu sumber di API; worker hanya meneruskannya ke
+ * Chromium. Tanpa blok itu PDF tercetak tanpa footer. Ukuran dan margin datang dari `@page`.
+ */
+export function pdfOptions(html: string): PdfOptions {
+  const base = { format: 'A4', printBackground: true, preferCSSPageSize: true } as const;
+  const footer = FOOTER_BLOCK.exec(html)?.[1];
+  return footer === undefined
+    ? { ...base, displayHeaderFooter: false }
+    : {
+        ...base,
+        displayHeaderFooter: true,
+        headerTemplate: '<span></span>',
+        footerTemplate: footer,
+      };
+}
+const FOOTER_BLOCK = /<script type="text\/plain" id="snouty-pdf-footer">([\s\S]*?)<\/script>/;
 
 async function reportReady(deps: ReportPdfDeps, reportId: string, fileRef: string): Promise<void> {
   const response = await fetch(`${deps.apiBaseUrl}/api/v1/internal/reports/${reportId}/ready`, {
@@ -117,10 +145,7 @@ export async function launchChromium(): Promise<PrintableBrowser> {
       const page = await browser.newPage();
       return {
         setContent: (html, options) => page.setContent(html, options),
-        pdf: async (options) =>
-          Buffer.from(
-            await page.pdf({ format: options.format, printBackground: options.printBackground }),
-          ),
+        pdf: async (options) => Buffer.from(await page.pdf({ ...options })),
         close: () => page.close(),
       };
     },

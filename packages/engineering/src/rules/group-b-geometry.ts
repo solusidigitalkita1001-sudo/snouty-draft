@@ -117,11 +117,11 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
   explain: (input, output, locale) =>
     localized(locale, {
       id:
-        `Titik air disebar ke ${input.floors} lantai sebagai perkiraan gambar — sistem tidak mengetahui denah ` +
-        `sebenarnya. Lantai teratas berada pada ${output.floorsPlan[0]?.elevationM ?? 0} meter dari lantai dasar.`,
+        `Titik air disebar ke ${input.floors} lantai sebagai perkiraan gambar karena denahnya belum ada. ` +
+        `Lantai teratas berada pada ${output.floorsPlan[0]?.elevationM ?? 0} meter dari lantai dasar.`,
       en:
-        `Water outlets are spread over ${input.floors} floors as a drawing estimate — the system does not know the actual ` +
-        `floor plan. The top floor is ${output.floorsPlan[0]?.elevationM ?? 0} meters above the ground floor.`,
+        `Water outlets are spread over ${input.floors} floors as a drawing estimate because the floor plan is not available yet. ` +
+        `The top floor is ${output.floorsPlan[0]?.elevationM ?? 0} meters above the ground floor.`,
     }),
 };
 
