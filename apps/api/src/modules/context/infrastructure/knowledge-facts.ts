@@ -22,6 +22,15 @@ const CatalogHookSchema = z
   })
   .strict();
 
+/** Kalimat pembuka yang menjawab langsung bila pesan menyebut bahan itu ("PVC bisa buat air panas?"). */
+const LeadSchema = z
+  .object({
+    families: z.array(z.string().min(1)).min(1),
+    text: z.string().min(1),
+    textEn: z.string().min(1),
+  })
+  .strict();
+
 const FactSchema = z
   .object({
     topic: z.enum(KNOWLEDGE_TOPICS),
@@ -29,6 +38,18 @@ const FactSchema = z
     textEn: z.string().min(1),
     source: z.string().min(1),
     catalog: CatalogHookSchema.optional(),
+    /**
+     * Bahan yang dibicarakan fakta ini (keluarga kanonis kosakata, mis. "hdpe", "pvc"). Pesan yang
+     * menyebut bahan lain tidak memakai fakta ini (tes FAQ 2026-10-12: "kegunaan HDPE" dijawab
+     * kegunaan uPVC). Tanpa `subject` = berlaku untuk semua bahan.
+     */
+    subject: z.array(z.string().min(1)).min(1).optional(),
+    leads: z.array(LeadSchema).optional(),
+    /**
+     * Data resmi yang belum ada untuk topik ini (umur pakai, tabel kimia, tekanan kerja PVC). Jawaban
+     * yang memakai fakta ini menawarkan tim teknis dan tercatat di log sebagai data yang dicari.
+     */
+    gap: z.string().min(1).optional(),
   })
   .strict();
 

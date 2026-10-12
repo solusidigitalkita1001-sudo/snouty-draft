@@ -950,6 +950,45 @@
       "text": "ujung pipa plain end sama ts end bedanya?",
       "topics": ["jenis ujung"],
       "source": "daftar FAQ pemilik 2026-10-09 (parafrase)"
+    },
+    {
+      "text": "Selain untuk air minum dan air bersih, tolong infokan kegunaan pipa HDPE?",
+      "topics": ["aplikasi"],
+      "families": ["hdpe"],
+      "source": "tes FAQ sales pemilik 2026-10-12 DE-07"
+    },
+    {
+      "text": "Apa bedanya pipa drainase dan pipa uPVC?",
+      "topics": ["fungsi vs bahan"],
+      "topicsOnly": true,
+      "source": "tes FAQ sales pemilik 2026-10-12 DE-08"
+    },
+    {
+      "text": "Apakah bisa pipa PVC di gunakan untuk air panas pengganti pipa PPR?",
+      "topics": ["air panas"],
+      "topicsOnly": true,
+      "source": "tes FAQ sales pemilik 2026-10-12 DE-11"
+    },
+    {
+      "text": "Adakah jenis pipa terbaru setelah pipa HDPE dan uPVC yang di rekomendasikan untuk air bersih atau air minum?",
+      "topics": ["jenis pipa baru"],
+      "topicsOnly": true,
+      "source": "tes FAQ sales pemilik 2026-10-12 DE-12"
+    },
+    {
+      "text": "Fittings AW sama D bedanya apa?",
+      "topics": ["injection fitting"],
+      "source": "tes FAQ sales pemilik 2026-10-12 MA-02"
+    },
+    {
+      "text": "Fitting yg cocok buat proyek perumahan 50 unit yang lagi saya kerjakan apa?",
+      "useCase": "residential_cluster",
+      "source": "tes FAQ sales pemilik 2026-10-12 MA-06"
+    },
+    {
+      "text": "Pipa yg cocok buat proyek perumahan 50 unit?",
+      "useCase": "residential_cluster",
+      "source": "tes FAQ sales pemilik 2026-10-12 MA-07"
     }
   ]
 }

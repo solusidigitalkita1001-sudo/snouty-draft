@@ -367,6 +367,13 @@ export class MessageService {
           understanding: u,
           lexicon: this.lexicon(),
           ...(state.subject ? { subject: state.subject } : {}),
+          // Data resmi yang dicari tetapi belum ada (UNAVAILABLE per topik) — terbaca dari log
+          // produksi sebagai bahan OQ-54/55: `grep "data pengetahuan belum ada"`.
+          onGap: (gap) =>
+            this.logger?.info(
+              { conversationId, topic: gap.topic, gap: gap.gap },
+              'data pengetahuan belum ada',
+            ),
         },
         this.reply,
         // Baku nonaktif: teks deterministiknya utuh; model 7B hampir selalu ditolak pagar

@@ -1416,6 +1416,12 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-81 Tes FAQ 5 — pertanyaan merek pesaing, keputusan pemilik (b): merek lain tidak dinilai; jawabannya ragam
       produk, standar/sertifikasi, dan kontrol mutu Pralon dari profil perusahaan terverifikasi, lalu tombol tim teknis.
       Kartu kriteria netral (masih dipakai kebijakan lain) kini berlabel per butir.
+- [x] P16-82 Tes FAQ 1–4 (pertanyaan sales DE/MA): golden eval jawaban baru (19 kasus, skrip faq-eval); fakta punya
+      subjek (fakta HDPE untuk HDPE, uPVC untuk uPVC), kalimat pembuka per bahan ("Tidak — PVC tidak menggantikan PPR"),
+      dan penanda data yang belum ada (tombol tim teknis + log "data pengetahuan belum ada"); blok perbandingan bahan hanya
+      untuk pertanyaan perbandingan; angka tekanan di pertanyaan memilih kelas HDPE di atas tekanan tertinggi (dengan
+      selisihnya) dan PVC dirujuk ke tim teknis; topik baru "fungsi vs bahan" dan "jenis pipa baru", contoh fitting AW/D;
+      kasus perumahan + angka ("50 unit") dihitung sebagai kasus cluster; peringkat topik ikut di probe pemahaman.
 - [ ] P16-69 Temuan laporan 0009 — F: tempat ibadah (P16-76) dan sekolah/klinik (P16-78) selesai; pengesahan nilai oleh
       ahli Pralon masih → OQ-61. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").

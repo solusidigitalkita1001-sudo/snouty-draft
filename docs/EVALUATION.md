@@ -157,6 +157,21 @@ presisi field kurang 50% · kebijakan 100% · parse produk 100% · skema lolos p
 
 Ambang §3 adalah ambang **rilis** — model yang tidak melewatinya tidak dipakai di produksi.
 
+### Eval jawaban pertanyaan sales (tes FAQ 2026-10-12)
+
+`apps/api/evals/faq-sales-cases.json` memuat pertanyaan sales pemilik (DE-xx, MA-xx) dengan kriteria lolos yang
+dinilai mesin pada teks jawaban dan kartunya: pola yang wajib ada, yang dilarang, kalimat pertama, kartu, dan nilai
+di state. Kriteria menilai PERILAKU (menjawab subjeknya, angka di pertanyaan dipakai, data kosong ditawari tim
+teknis), bukan teks persis. Dijalankan terhadap API yang hidup — lokal atau produksi — tiap kasus di sesi tamu baru:
+
+```
+node apps/api/scripts/faq-eval.mjs https://ai.pralon.co.id/api/v1 --out hasil.json
+node apps/api/scripts/faq-eval.mjs http://127.0.0.1:3001/api/v1 --only DE-07,MA-02
+```
+
+Skor produksi 2026-10-12 sebelum perbaikan: 6/19. Data yang dicari tetapi belum ada (`gap` fakta) tercatat di log
+API sebagai `data pengetahuan belum ada`, dengan topik dan datanya.
+
 ### Di CI
 
 Berjalan bila ada perubahan pada berkas terkait AI: prompt, skema ekstraksi, routing model, intent

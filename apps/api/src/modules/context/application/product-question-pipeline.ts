@@ -30,7 +30,7 @@ import type { EntityLexicon } from '../../understanding/domain/vocabulary.js';
 import { isConceptual } from '../../understanding/domain/labels.js';
 import { parseSize } from '../domain/size-parser.js';
 import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from './catalog-scope.js';
-import { knowledgeAnswer, mentionsPressure } from './knowledge-answer.js';
+import { knowledgeAnswer, mentionsPressure, pressureRange } from './knowledge-answer.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
 import {
@@ -99,6 +99,8 @@ export interface ProductQuestionInput {
     EntityLexicon,
     'productFamilies' | 'isCatalogFamily' | 'isFittingFamily' | 'aliasesOf'
   >;
+  /** Dipanggil untuk tiap data resmi yang belum ada di jawaban pengetahuan (log, bukan state). */
+  readonly onGap?: (gap: { readonly topic: string; readonly gap: string }) => void;
 }
 
 /** Pesan lanjutan atas subjek produk: entitas subjek yang ditanya, bukan pesannya. */
@@ -185,6 +187,14 @@ const NO_SUPPORT: CatalogSupport = {
   missing: [],
 };
 
+/**
+ * Pertanyaan membandingkan: intent yakin `product_comparison`, atau — saat intent ragu — label
+ * teratas peringkatnya ("dasar memilih HDPE dibanding uPVC?": perbandingan 0,841 vs saran 0,837).
+ */
+function asksComparison(u: ProductQuestionInput['understanding']): boolean {
+  return (u.intent?.label ?? u.intentRanking[0]?.label) === 'product_comparison';
+}
+
 export async function runProductQuestion(
   ai: AiService,
   catalog: ProductCatalog,
@@ -215,10 +225,18 @@ export async function runProductQuestion(
     ? [...new Set([...u.knowledgeTopics, 'tekanan kerja'])]
     : u.knowledgeTopics;
   if (knowledgeTopics.some((t) => factTopics().has(t))) {
-    const answer = await knowledgeAnswer(knowledgeTopics, input.message, catalog, locale);
-    // Dua bahan disebut ("dasar memilih HDPE dibanding uPVC?", "HDPE atau uPVC untuk 8–12 bar?"):
-    // perbandingan umum bahan di depan, lalu fakta topik dan data katalog Pralon sesudahnya.
-    const compared = materialsFor(u.families);
+    const answer = await knowledgeAnswer(
+      knowledgeTopics,
+      input.message,
+      catalog,
+      locale,
+      u.families,
+    );
+    // Perbandingan umum bahan HANYA bila pertanyaannya memang perbandingan ("dasar memilih HDPE
+    // dibanding uPVC?"): tes FAQ 2026-10-12 — blok "HDPE lentur dan bisa digulung" membuka jawaban
+    // soal tekanan, air panas, dan jenis pipa baru. Pertanyaan bernilai tekanan dijawab kelasnya.
+    const compared =
+      asksComparison(u) && pressureRange(input.message) === null ? materialsFor(u.families) : [];
     const known =
       answer !== null && compared.length >= 2
         ? {
@@ -242,9 +260,20 @@ export async function runProductQuestion(
               })
             ).text
           : known.text;
+      // Data resmi yang belum ada: dicatat (bahan OQ-54/55) dan ditawarkan langkah konkret —
+      // tombol teruskan ke tim teknis, bukan kalimat saja (tes FAQ 2026-10-12 bagian 4).
+      for (const gap of known.gaps) input.onGap?.(gap);
       return [
         { type: 'message.start', messageId: input.messageId },
         { type: 'token', text },
+        ...(known.gaps.length > 0
+          ? [
+              {
+                type: 'card',
+                card: { kind: 'cta', action: 'CONTACT_TECHNICAL' },
+              } as AssistantStreamEvent,
+            ]
+          : []),
         endEvent(input.messageId),
       ];
     }

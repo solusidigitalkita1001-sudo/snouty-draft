@@ -47,6 +47,8 @@ export interface MessageUnderstanding {
   readonly mentionsRequirement: boolean;
   /** Peringkat intent lengkap — untuk log "kenapa dikenali begini". */
   readonly intentRanking: readonly LabelScore[];
+  /** Lima topik pengetahuan teratas dengan skornya — untuk diagnosis topik yang menang. */
+  readonly topicRanking?: readonly LabelScore[];
 }
 
 /** Pemahaman kosong (penyandi tidak ada) — hanya kosakata yang terisi. */

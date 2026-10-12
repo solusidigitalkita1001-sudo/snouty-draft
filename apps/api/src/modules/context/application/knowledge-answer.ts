@@ -21,6 +21,11 @@ export interface KnowledgeAnswer {
   /** Jawaban siap tampil (mode hemat) — sekaligus DATA untuk model (mode kualitas). */
   readonly text: string;
   readonly topics: readonly string[];
+  /**
+   * Data resmi yang belum ada untuk jawaban ini (`gap` fakta, atau tekanan kerja PVC yang ditanya
+   * dengan angka). Pemanggil menawarkan tim teknis dan mencatatnya — bukan angka perkiraan.
+   */
+  readonly gaps: readonly { readonly topic: string; readonly gap: string }[];
 }
 
 const num = (n: number, locale: Locale) =>
@@ -41,11 +46,28 @@ export async function knowledgeAnswer(
   message: string,
   catalog: KnowledgeCatalog,
   locale: Locale,
+  /** Bahan yang disebut pesan (keluarga kanonis kosakata) — subjek yang menentukan fakta. */
+  families: readonly string[] = [],
 ): Promise<KnowledgeAnswer | null> {
   const en = locale === 'en';
-  const facts = knowledgeFacts();
+  const named = families.map((f) => f.toLowerCase());
+  // Fakta yang subjeknya bahan lain tidak dipakai bila pesan menyebut bahannya (tes FAQ
+  // 2026-10-12: "kegunaan HDPE" dijawab kegunaan uPVC).
+  const facts = knowledgeFacts().filter(
+    (f) => named.length === 0 || !f.subject || f.subject.some((s) => named.includes(s)),
+  );
   const parts: string[] = [];
   const used: string[] = [];
+  const gaps: { topic: string; gap: string }[] = [];
+  const leads: string[] = [];
+  // Angka tekanan di pesan ("8-12 bar"): kelas tekanan dipilih dari angkanya, bukan paragraf umum.
+  const pressure = topics.includes('tekanan kerja') ? pressureRange(message) : null;
+  if (pressure !== null) {
+    const fit = await pressureFit(pressure, named, catalog, locale);
+    leads.push(fit.text);
+    used.push('tekanan kerja');
+    gaps.push(...fit.gaps);
+  }
   // Topik dengan fakta bersumber dulu (urutan terdekat tetap terjaga di dalamnya), lalu konsep
   // saja; paling banyak dua topik — topik ketiga hampir selalu tempelan.
   const withFacts: ReadonlySet<string> = new Set(facts.map((f) => f.topic));
@@ -54,10 +76,17 @@ export async function knowledgeAnswer(
     ...topics.filter((t) => !withFacts.has(t)),
   ].slice(0, 2);
   for (const topic of ordered) {
+    if (pressure !== null && topic === 'tekanan kerja') continue;
     const concepts = conceptsFor([topic]).filter((c) => c.topic === topic);
     const own = facts.filter((f) => f.topic === topic);
     if (concepts.length === 0 && own.length === 0) continue;
     used.push(topic);
+    // Jawaban langsung lebih dulu bila pesan menyebut bahan yang punya kalimat pembuka.
+    for (const f of own) {
+      const lead = f.leads?.find((l) => l.families.some((x) => named.includes(x)));
+      if (lead) leads.push(en ? lead.textEn : lead.text);
+      if (f.gap) gaps.push({ topic, gap: f.gap });
+    }
     for (const c of concepts) parts.push(en ? c.textEn : c.text);
     for (const f of own) {
       parts.push(en ? f.textEn : f.text);
@@ -67,8 +96,82 @@ export async function knowledgeAnswer(
       }
     }
   }
-  if (parts.length === 0) return null;
-  return { text: parts.join('\n\n'), topics: used };
+  if (parts.length === 0 && leads.length === 0) return null;
+  return { text: [...leads, ...parts].join('\n\n'), topics: used, gaps };
+}
+
+/** Rentang tekanan di pesan ("8-12 bar", "10 bar") — parser nilai bersatuan, bukan pola pertanyaan. */
+export function pressureRange(message: string): { min: number; max: number } | null {
+  const m = PRESSURE_VALUE.exec(message);
+  if (!m) return null;
+  const a = decimal(m[1]!);
+  const b = m[2] !== undefined ? decimal(m[2]) : a;
+  return { min: Math.min(a, b), max: Math.max(a, b) };
+}
+
+/**
+ * Kelas tekanan untuk angka yang disebut: kelas harus di atas tekanan tertinggi dan menyisakan ruang
+ * untuk lonjakan. Kelas HDPE diambil dari nama produk katalog aktif (PN-x), masing-masing dengan
+ * selisihnya — tanpa faktor lonjakan karangan. Kelas PVC belum punya angka resmi → tim teknis.
+ */
+async function pressureFit(
+  range: { min: number; max: number },
+  named: readonly string[],
+  catalog: KnowledgeCatalog,
+  locale: Locale,
+): Promise<{ text: string; gaps: { topic: string; gap: string }[] }> {
+  const en = locale === 'en';
+  const span =
+    range.min === range.max
+      ? num(range.max, locale)
+      : `${num(range.min, locale)}–${num(range.max, locale)}`;
+  const lines = [
+    en
+      ? `For ${span} bar, choose a pipe class rated above the highest pressure (${num(range.max, locale)} bar) with room left for pressure surges (water hammer) when a valve closes or a pump stops; how large the surge is depends on the run length and the water velocity.`
+      : `Untuk tekanan ${span} bar, pilih kelas pipa yang tekanan kerjanya di atas tekanan tertinggi (${num(range.max, locale)} bar) dan masih menyisakan ruang untuk lonjakan tekanan (water hammer) saat katup ditutup atau pompa berhenti; besar lonjakannya bergantung pada panjang jalur dan kecepatan air.`,
+  ];
+  const gaps: { topic: string; gap: string }[] = [];
+  const anyPvc = named.some((f) => f.startsWith('pvc'));
+  const wantsHdpe = named.length === 0 || named.includes('hdpe');
+  if (wantsHdpe) {
+    const names = await catalog.productNamesInFamily('HDPE').catch(() => [] as string[]);
+    // Label kelas ditulis seperti di katalog ("PN-12.5"); selisihnya angka biasa berlocale.
+    const above = designationsOf(names)
+      .map((label) => ({ label, m: /^PN-(\d+(?:\.\d+)?)$/.exec(label) }))
+      .filter((d): d is { label: string; m: RegExpExecArray } => d.m !== null)
+      .map((d) => ({ label: d.label, pn: Number(d.m[1]) }))
+      .filter((d) => d.pn > range.max);
+    if (above.length > 0) {
+      const classes = above
+        .map((d) =>
+          en
+            ? `${d.label} (${num(d.pn - range.max, locale)} bar above)`
+            : `${d.label} (selisih ${num(d.pn - range.max, locale)} bar)`,
+        )
+        .join(', ');
+      lines.push(
+        en
+          ? `- **HDPE** classes in the Pralon catalogue above ${num(range.max, locale)} bar: ${classes}.`
+          : `- **HDPE** di katalog Pralon yang kelasnya di atas ${num(range.max, locale)} bar: ${classes}.`,
+      );
+    } else if (names.length > 0) {
+      lines.push(
+        en
+          ? `- **HDPE**: no class in the active Pralon catalogue is rated above ${num(range.max, locale)} bar.`
+          : `- **HDPE**: belum ada kelas di katalog Pralon aktif yang di atas ${num(range.max, locale)} bar.`,
+      );
+      gaps.push({ topic: 'tekanan kerja', gap: `kelas HDPE di atas ${range.max} bar` });
+    }
+  }
+  if (anyPvc || named.length === 0) {
+    lines.push(
+      en
+        ? `- **uPVC**: the official working pressure of each PVC class is not in my data yet, so whether it suits ${span} bar needs to be confirmed by the Pralon technical team.`
+        : `- **uPVC**: angka tekanan kerja resmi tiap kelas PVC belum ada di data saya, jadi kecocokannya untuk ${span} bar perlu dipastikan tim teknis Pralon.`,
+    );
+    gaps.push({ topic: 'tekanan kerja', gap: 'tekanan kerja resmi tiap kelas PVC' });
+  }
+  return { text: lines.join('\n'), gaps };
 }
 
 async function catalogLines(
@@ -160,4 +263,5 @@ async function catalogLines(
 export function mentionsPressure(message: string): boolean {
   return PRESSURE_VALUE.test(message);
 }
-const PRESSURE_VALUE = /\d+(?:[.,]\d+)?\s*(?:(?:-|–|sampai|s\/d)\s*\d+(?:[.,]\d+)?\s*)?bar\b/i;
+const PRESSURE_VALUE =
+  /(\d+(?:[.,]\d+)?)\s*(?:(?:-|–|sampai|s\/d|hingga)\s*(\d+(?:[.,]\d+)?)\s*)?bar\b/i;

@@ -117,6 +117,7 @@ export class UnderstandingService {
       mentionsOutOfScopeFluid: this.lexicon.mentionsOutOfScopeFluid(message),
       useCase: (this.verdict('use-case', query).best?.label as UseCaseLabel | undefined) ?? null,
       intentRanking: intent.ranked,
+      topicRanking: knowledge.ranked.slice(0, 5),
     };
   }
 

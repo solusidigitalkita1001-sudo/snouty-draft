@@ -69,6 +69,10 @@ export function certainIntent(
     intent,
     confidence: UNDERSTOOD_CONFIDENCE,
   });
+  // Kasus teknis yang dikenali dari contoh DENGAN angkanya ("proyek perumahan 50 unit") adalah
+  // kebutuhan yang dihitung, bukan pertanyaan pengetahuan — tes FAQ 2026-10-12: dulu dijawab
+  // paragraf sambungan rumah, atau jatuh ke model lalu "Silakan, tanyakan saja".
+  if (!u.mentionsCompetitor && isCaseStatement(u)) return sure('REQUIREMENT_STATEMENT');
   // Intent ragu tetapi topiknya punya fakta bersumber ("pipa VP sama VU tuh apa?"): pengetahuan.
   if (fine === undefined) {
     return !u.mentionsCompetitor && answersFromKnowledge(u) ? sure('PRODUCT_LOOKUP') : null;
@@ -343,6 +347,17 @@ export class IntentRouter {
 const CALCULATION_TOPICS: ReadonlySet<string> = new Set(['jumlah batang']);
 
 /** Pesan ini punya topik dengan fakta bersumber dan bukan pernyataan kebutuhan bangunan. */
+/**
+ * Kasus teknis bernilai: jenis kasus dikenali dari contoh (`useCase`), pesan menyebut hal
+ * kebutuhan (kosakata), dan memuat angka — jumlah unit, panjang, luas. Angka di sini nilai
+ * terstruktur, bukan pola kalimat. Pertanyaan hitung atas topik pengetahuan ("27 meter butuh
+ * berapa batang?") tetap pengetahuan.
+ */
+export function isCaseStatement(u: MessageUnderstanding): boolean {
+  if (u.useCase === null || !u.mentionsRequirement || !/\d/.test(u.text)) return false;
+  return !u.knowledgeTopics.some((t) => CALCULATION_TOPICS.has(t));
+}
+
 export function answersFromKnowledge(u: MessageUnderstanding): boolean {
   const facts = factTopics();
   // Bahan + nilai tekanan ("HDPE atau uPVC untuk 8-12 bar?"): pertanyaan kelas tekanan.

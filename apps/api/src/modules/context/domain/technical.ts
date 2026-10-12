@@ -346,7 +346,7 @@ export function technicalGuidance(
       '',
       copy.captured(
         joinNatural(
-          known.map((r) => `${r.label.toLowerCase()} ${r.value}`),
+          known.map((r) => capturedPhrase(r.label, r.value)),
           locale,
         ),
       ),
@@ -402,6 +402,17 @@ export function technicalNudge(state: RequirementState, locale: Locale = DEFAULT
   return en
     ? `Still to settle: ${list}. ${where}${proceed}`
     : `Yang masih saya perlukan: ${list}. ${where}${proceed}`;
+}
+
+/**
+ * "jumlah sambungan 50 sambungan" → "50 sambungan": bila satuan nilainya sudah menyebut labelnya,
+ * nilainya berdiri sendiri (tes FAQ 2026-10-12); selain itu "jarak 150 m".
+ */
+export function capturedPhrase(label: string, value: string): string {
+  const unit = value.trim().split(/\s+/).slice(1).join(' ').toLowerCase();
+  return unit !== '' && label.toLowerCase().includes(unit)
+    ? value
+    : `${label.toLowerCase()} ${value}`;
 }
 
 interface GuidanceCopy {

@@ -873,6 +873,45 @@ describe('runProductQuestion — batas klaim (audit anti-halusinasi 2026-10-09)'
     expect(text(events)).not.toContain('PN-12,5');
   });
 
+  it('tes FAQ 2026-10-12: pertanyaan bukan perbandingan tidak dibuka blok perbandingan bahan; data yang belum ada → tombol tim teknis + log', async () => {
+    const gaps: unknown[] = [];
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({ hdpe: HDPE }),
+      noQuestions,
+      {
+        ...input('Apakah bisa pipa PVC dipakai untuk air panas pengganti PPR?', {
+          intent: 'knowledge_question',
+          knowledgeTopics: ['air panas'],
+          families: ['pvc', 'ppr'],
+        }),
+        onGap: (gap) => gaps.push(gap),
+      },
+    );
+    const out = text(events);
+    expect(out.startsWith('Tidak — pipa PVC tidak bisa menggantikan PPR')).toBe(true);
+    expect(out).not.toContain('Singkatnya');
+    expect(cards(events)).toContainEqual({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
+    expect(gaps).toEqual([{ topic: 'air panas', gap: 'batas suhu operasi resmi' }]);
+  });
+
+  it('tes FAQ 2026-10-12 DE-01: nilai tekanan + dua bahan — kelas di atas tekanan, bukan blok perbandingan', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({ hdpe: [...HDPE, hdpe(6, 'Pipa HDPE PE 100 PN-16 110 mm x 6 Meter')] }),
+      noQuestions,
+      input('lebih baik HDPE atau uPVC untuk tekanan 8-12 bar?', {
+        intent: 'advice_request',
+        families: ['hdpe', 'pvc'],
+      }),
+    );
+    const out = text(events);
+    expect(out.startsWith('Untuk tekanan 8–12 bar')).toBe(true);
+    expect(out).toContain('PN-12.5 (selisih 0,5 bar), PN-16 (selisih 4 bar)');
+    expect(out).not.toContain('Singkatnya');
+    expect(cards(events)).toContainEqual({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
+  });
+
   it('keluarga tanpa penanda kelas di nama: tidak ada kelas yang dikarang', async () => {
     const events = await runProductQuestion(
       ai({ productQuery: null, aspect: null }),

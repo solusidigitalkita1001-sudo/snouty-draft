@@ -85,9 +85,10 @@ describe.skipIf(!ENABLED)('evaluasi pemahaman terhadap golden dataset (Ollama bg
     const probed: string[] = [];
     for (const text of (process.env['UNDERSTANDING_PROBE'] ?? '').split('|').filter(Boolean)) {
       const u = await service.understand(text);
-      const { intentRanking, ...rest } = u;
+      const { intentRanking, topicRanking, ...rest } = u;
       const top = intentRanking.slice(0, 3).map((r) => `${r.label}=${r.score.toFixed(3)}`);
-      probed.push(JSON.stringify({ ...rest, top }));
+      const topics = (topicRanking ?? []).map((r) => `${r.label}=${r.score.toFixed(3)}`);
+      probed.push(JSON.stringify({ ...rest, top, topics }));
     }
 
     const golden = JSON.parse(

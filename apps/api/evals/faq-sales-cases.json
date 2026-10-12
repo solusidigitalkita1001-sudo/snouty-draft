@@ -1,0 +1,178 @@
+{
+  "$comment": "Golden eval JAWABAN untuk pertanyaan sales (tes FAQ pemilik 2026-10-12, mode Hemat). Tiap kasus: `expect` = perilaku yang diharapkan (kalimat, bukan teks jawaban); `checks` = kriteria lolos yang dinilai mesin pada teks jawaban + kartu. `all` = semua pola harus muncul; `any` = minimal satu kelompok; `none` = tidak boleh muncul; `opens` = kalimat pertama harus cocok; `cards` = jenis kartu yang harus ada; `state` = jalur kasus yang diharapkan. Pola regex tidak peka huruf besar. Dijalankan: node scripts/faq-eval.mjs <base-url>.",
+  "cases": [
+    {
+      "id": "DE-01",
+      "q": "Rekomendasi jalur pipa utama untuk air minum, lebih baik pipa HDPE atau pipa uPVC berdasarkan daya tahan dan ketidakstabilan tekanan air antara 8-12 bar?",
+      "expect": "8–12 bar dipakai: kelas pipa di atas tekanan maksimum + lonjakan; HDPE PN ≥ 16 dari katalog; uPVC: angka resmi AW belum ada → tim teknis; tidak mengarang angka PVC",
+      "checks": {
+        "all": ["12 bar", "PN ?1[6-9]|PN ?2[0-9]", "lonjakan|water hammer|surge"],
+        "any": [["tim teknis"]],
+        "none": ["AW[^.]{0,40}\\d+ ?bar", "PVC[^.]{0,40}tahan \\d+ ?bar"],
+        "cards": ["cta"]
+      }
+    },
+    {
+      "id": "DE-02",
+      "q": "Berapa daya tahan lama pipa HDPE?",
+      "expect": "jujur umur pakai belum ada di data resmi; faktor yang memengaruhi; tawarkan tim teknis (aksi, bukan kalimat saja)",
+      "checks": {
+        "all": ["belum|tidak ada", "tekanan|suhu|paparan|sinar|pemasangan"],
+        "none": ["\\d+ ?tahun"],
+        "cards": ["cta"]
+      }
+    },
+    {
+      "id": "DE-03",
+      "q": "Apa yang menjadi dasar pemilihan pipa HDPE di banding uPVC?",
+      "expect": "perbandingan bahan (kapan pilih yang mana) — sudah baik, tetap baik",
+      "checks": {
+        "all": ["HDPE", "PVC", "cocok"]
+      }
+    },
+    {
+      "id": "DE-04",
+      "q": "Apa saran pipa yang di gunakan untuk pipa sambungan rumah?",
+      "expect": "saran bahan untuk sambungan rumah + kelas — sudah baik, tetap baik",
+      "checks": {
+        "all": ["sambungan rumah"]
+      }
+    },
+    {
+      "id": "DE-05",
+      "q": "Apa perbedaan pipa merek pralon dengan ruchika?",
+      "expect": "keputusan pemilik (b): tidak membahas pesaing; keunggulan Pralon dari fakta bersumber",
+      "checks": {
+        "all": ["Pralon", "SNI|standar|JIS"],
+        "none": ["Ruchika (lebih|kurang)", "Kriteria\\s*\\n.*Kriteria\\s*\\n.*Kriteria"]
+      }
+    },
+    {
+      "id": "DE-06",
+      "q": "Kenapa harus memilih pipa merek pralon di banding merek vinilon?",
+      "expect": "keputusan pemilik (b): keunggulan Pralon bersumber, tanpa menilai Vinilon",
+      "checks": {
+        "all": ["Pralon", "SNI|standar|JIS"],
+        "none": ["Vinilon (lebih|kurang)"]
+      }
+    },
+    {
+      "id": "DE-07",
+      "q": "Selain untuk air minum dan air bersih, tolong infokan kegunaan pipa HDPE?",
+      "expect": "subjek HDPE: gas, duct/conduit, pipa berlubang, jalur tanam — dari katalog; isi utama bukan uPVC",
+      "checks": {
+        "all": ["HDPE", "gas"],
+        "any": [["duct|conduit|kabel|telkom"], ["berlubang|perforated|resapan|drainase"]],
+        "opens": "HDPE",
+        "none": ["^\\s*\\*\\*?uPVC"]
+      }
+    },
+    {
+      "id": "DE-08",
+      "q": "Apa bedanya pipa drainase dan pipa uPVC?",
+      "expect": "meluruskan: drainase = fungsi, uPVC = bahan; pipa drainase bisa uPVC kelas D / SNI A/B",
+      "checks": {
+        "all": ["fungsi|kegunaan|peruntukan", "bahan", "kelas D|SNI"],
+        "opens": "fungsi|bahan|bukan"
+      }
+    },
+    {
+      "id": "DE-09",
+      "q": "Lebih baik menggunakan sambungan pipa pvc dengan rubber atau solvent cement?",
+      "expect": "perbandingan rubber ring vs solvent cement — sudah baik, tetap baik",
+      "checks": {
+        "all": ["rubber", "solvent|lem"]
+      }
+    },
+    {
+      "id": "DE-10",
+      "q": "Apa itu pipa jacking?",
+      "expect": "konsep pipa jacking + katalog — sudah baik, tetap baik",
+      "checks": {
+        "all": ["jacking"]
+      }
+    },
+    {
+      "id": "DE-11",
+      "q": "Apakah bisa pipa PVC di gunakan untuk air panas pengganti pipa PPR?",
+      "expect": "kalimat pertama menjawab langsung (tidak), alasan singkat, lalu alternatif; tanpa blok perbandingan bahan di depan",
+      "checks": {
+        "opens": "^(tidak|bukan|jangan|no\\b)",
+        "all": ["PPR"],
+        "none": ["lentur dan bisa digulung"]
+      }
+    },
+    {
+      "id": "DE-12",
+      "q": "Adakah jenis pipa terbaru setelah pipa HDPE dan uPVC yang di rekomendasikan untuk air bersih atau air minum?",
+      "expect": "menjawab pertanyaannya: data jenis baru tidak ada → katakan dan tawarkan tim teknis; tanpa blok HDPE vs uPVC",
+      "checks": {
+        "all": ["belum|tidak ada"],
+        "none": ["lentur dan bisa digulung", "kaku dan dipasok batangan"],
+        "cards": ["cta"]
+      }
+    },
+    {
+      "id": "MA-01",
+      "q": "Perbedaan pipa AW sama D apa?",
+      "expect": "konsep kelas PVC — sudah baik, tetap baik",
+      "checks": {
+        "all": ["AW", "\\bD\\b", "tekanan|bertekanan"]
+      }
+    },
+    {
+      "id": "MA-02",
+      "q": "Fittings AW sama D bedanya apa?",
+      "expect": "membahas fitting: TS (bertekanan) vs DV (drainase), contoh dari katalog",
+      "checks": {
+        "all": ["fitting", "\\bTS\\b", "\\bDV\\b"],
+        "opens": "fitting"
+      }
+    },
+    {
+      "id": "MA-03",
+      "q": "Pipa VP sama VU tuh apa? Dan keunggulannya dari Pipa AW sama D Pralon apa? Minusnya apa?",
+      "expect": "plus-minus dari fakta (standar acuan, ketersediaan ukuran, kecocokan spesifikasi proyek)",
+      "checks": {
+        "all": ["VP", "VU", "JIS", "kelebihan|keunggulan|plus", "kekurangan|minus|kelemahan"]
+      }
+    },
+    {
+      "id": "MA-04",
+      "q": "Rekomendasi lem buat pipa?",
+      "expect": "solvent cement Pralon: quick dry / slow dry; kemasannya belum ada di katalog aktif (2026-10-12) → jujur dan tombol tim teknis, bukan kemasan karangan",
+      "checks": {
+        "all": ["solvent cement", "quick", "slow", "kemasan"],
+        "cards": ["cta"],
+        "none": ["\\d+ ?(gr|gram|kg|ml)\\b"]
+      }
+    },
+    {
+      "id": "MA-05",
+      "q": "Solvent cement itu apa? Cara kerja solvent cement?",
+      "expect": "konsep solvent cement — sudah baik, tetap baik",
+      "checks": {
+        "all": ["solvent cement"]
+      }
+    },
+    {
+      "id": "MA-06",
+      "q": "Fitting yg cocok buat proyek perumahan 50 unit yang lagi saya kerjakan apa?",
+      "expect": "kasus proyek perumahan → kartu pertanyaan (air bersih/pembuangan, lantai, kamar mandi per rumah, sumber); bukan jawaban sosial",
+      "checks": {
+        "none": ["^silakan, tanyakan saja"],
+        "cards": ["clarification"],
+        "state": "50"
+      }
+    },
+    {
+      "id": "MA-07",
+      "q": "Pipa yg cocok buat proyek perumahan 50 unit?",
+      "expect": "kasus cluster perumahan (mesin ada) → tanya data yang kurang",
+      "checks": {
+        "cards": ["clarification"],
+        "state": "50"
+      }
+    }
+  ]
+}

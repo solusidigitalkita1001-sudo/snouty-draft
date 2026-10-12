@@ -128,3 +128,100 @@ describe('nilai tekanan di pesan', () => {
     ).toBe(false);
   });
 });
+
+describe('tes FAQ sales 2026-10-12', () => {
+  it('DE-07: subjek HDPE — fakta kegunaan uPVC tidak dipakai, kegunaan HDPE dari jenis katalog', async () => {
+    const a = await knowledgeAnswer(
+      ['aplikasi'],
+      'selain air minum, kegunaan pipa hdpe apa?',
+      catalog,
+      'id',
+      ['hdpe'],
+    );
+    expect(a!.text.startsWith('Selain air minum dan air bersih, pipa HDPE Pralon')).toBe(true);
+    expect(a!.text).toContain('jalur gas');
+    expect(a!.text).not.toContain('uPVC dipakai untuk');
+  });
+
+  it('DE-11: kalimat pertama menjawab langsung bila bahannya disebut; batas suhu → data belum ada', async () => {
+    const a = await knowledgeAnswer(
+      ['air panas'],
+      'pipa pvc bisa buat air panas pengganti ppr?',
+      catalog,
+      'id',
+      ['pvc', 'ppr'],
+    );
+    expect(a!.text.split('\n')[0]).toBe(
+      'Tidak — pipa PVC tidak bisa menggantikan PPR untuk air panas.',
+    );
+    expect(a!.gaps).toEqual([{ topic: 'air panas', gap: 'batas suhu operasi resmi' }]);
+  });
+
+  it('DE-01: 8–12 bar — kelas HDPE di atas 12 bar dengan selisihnya; PVC tanpa angka → tim teknis', async () => {
+    const a = await knowledgeAnswer(
+      ['tekanan kerja'],
+      'HDPE atau uPVC untuk tekanan 8-12 bar?',
+      catalog,
+      'id',
+      ['hdpe', 'pvc'],
+    );
+    expect(a!.text).toContain('Untuk tekanan 8–12 bar');
+    expect(a!.text).toContain('lonjakan tekanan (water hammer)');
+    expect(a!.text).toContain(
+      '**HDPE** di katalog Pralon yang kelasnya di atas 12 bar: PN-16 (selisih 4 bar)',
+    );
+    expect(a!.text).not.toContain('PN-8');
+    expect(a!.text).toContain('angka tekanan kerja resmi tiap kelas PVC belum ada');
+    // Paragraf umum tekanan kerja tidak ditumpuk di atas jawaban bernilai.
+    expect(a!.text).not.toContain('Kelas pipa PVC menandai fungsinya');
+    expect(a!.gaps.map((g) => g.gap)).toEqual(['tekanan kerja resmi tiap kelas PVC']);
+  });
+
+  it('pressureRange membaca rentang dan nilai tunggal', async () => {
+    const { pressureRange } = await import('./knowledge-answer.js');
+    expect(pressureRange('antara 8-12 bar')).toEqual({ min: 8, max: 12 });
+    expect(pressureRange('tekanan 10 bar')).toEqual({ min: 10, max: 10 });
+    expect(pressureRange('8 sampai 12,5 bar')).toEqual({ min: 8, max: 12.5 });
+    expect(pressureRange('panjang 12 m')).toBeNull();
+  });
+
+  it('DE-02: umur pakai — jujur dan ditandai data belum ada', async () => {
+    const a = await knowledgeAnswer(['umur pakai'], 'berapa daya tahan pipa hdpe?', catalog, 'id', [
+      'hdpe',
+    ]);
+    expect(a!.text).toContain('belum ada di data saya');
+    expect(a!.gaps).toEqual([{ topic: 'umur pakai', gap: 'umur pakai resmi' }]);
+  });
+
+  it('DE-08 / DE-12: fakta baru fungsi vs bahan dan jenis pipa baru', async () => {
+    const f = await knowledgeAnswer(
+      ['fungsi vs bahan'],
+      'bedanya pipa drainase dan upvc?',
+      catalog,
+      'id',
+    );
+    expect(f!.text).toContain('drainase adalah fungsinya');
+    const n = await knowledgeAnswer(
+      ['jenis pipa baru'],
+      'pipa terbaru setelah hdpe?',
+      catalog,
+      'id',
+    );
+    expect(n!.text).toContain('belum memuat jenis pipa yang lebih baru');
+    expect(n!.gaps).toHaveLength(1);
+  });
+});
+
+describe('isCaseStatement (MA-06 / MA-07)', () => {
+  it('kasus dikenali + kebutuhan + angka → kasus; tanpa angka tetap pengetahuan', async () => {
+    const { isCaseStatement } = await import('./intent-router.js');
+    const base = { useCase: 'residential_cluster' as const, mentionsRequirement: true };
+    expect(isCaseStatement(understood('pipa buat proyek perumahan 50 unit?', base))).toBe(true);
+    expect(isCaseStatement(understood('saran pipa sambungan rumah?', base))).toBe(false);
+    expect(
+      isCaseStatement(
+        understood('27 meter butuh berapa batang', { ...base, knowledgeTopics: ['jumlah batang'] }),
+      ),
+    ).toBe(false);
+  });
+});
