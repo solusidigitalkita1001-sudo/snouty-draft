@@ -43,7 +43,7 @@ const PADDING = 18;
 const GROUND_BAND = 34;
 const MIN_WIDTH = 500;
 /** Jarak antar-titik paling lebar saat gambar diregangkan mengisi kotaknya. */
-const MAX_SLOT = FIXTURE_WIDTH * 2.2;
+const MAX_SLOT = FIXTURE_WIDTH * 3.4;
 
 /**
  * Gambar mengisi lebar kotaknya (laporan pemilik 2026-10-12: "keliatan strech, ngga fit"): lebar
