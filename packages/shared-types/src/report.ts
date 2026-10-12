@@ -88,6 +88,8 @@ export interface ReportPendingItem {
   readonly productId: string;
   readonly name: string;
   readonly size: string;
+  /** Pipa dihitung per batang, fitting per buah — keterangannya berbeda (laporan 0009). */
+  readonly kind?: 'pipe' | 'fitting';
 }
 
 /** Respons `POST /reports` (202): PDF-nya menyusul lewat antrean. */

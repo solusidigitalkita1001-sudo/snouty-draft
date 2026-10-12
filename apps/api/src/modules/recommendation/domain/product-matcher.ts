@@ -30,8 +30,8 @@ import {
 } from '@snouty/shared-types';
 import {
   fittingKindOf,
+  fittingSizesOf,
   isSameSizeReducer,
-  productSizeOf,
   type FittingKind,
 } from '../../product-catalog/domain/product-types.js';
 
@@ -58,6 +58,11 @@ export interface RoleRequirement {
    * tutup pipa atau reducer — barang yang ukurannya cocok tetapi fungsinya bukan.
    */
   readonly fittingKind?: FittingKind;
+  /**
+   * Ukuran kedua fitting (cabang tee, ujung kecil reducer); tidak ada = sama sisi. Kedua ukuran harus
+   * sama persis dengan jalur yang disambung — tidak ada "ukuran terdekat" (temuan laporan 0009).
+   */
+  readonly branchSize?: string;
 }
 
 export interface MatchResult {
@@ -96,6 +101,7 @@ export function fittingRequirement(
   size: string,
   pipeFamily: string,
   fittingKind?: FittingKind,
+  branchSize?: string,
 ): RoleRequirement {
   const dedicated = FITTING_FAMILY_FOR[pipeFamily];
   const pressureClass = PRESSURE_CLASS_OF[pipeFamily];
@@ -106,6 +112,7 @@ export function fittingRequirement(
     categoryIncludes: 'FITTING',
     ...(pressureClass ? { pressureClass } : {}),
     ...(fittingKind ? { fittingKind } : {}),
+    ...(branchSize !== undefined && branchSize !== size ? { branchSize } : {}),
   };
 }
 
@@ -136,13 +143,18 @@ export function matchProducts(
     }
 
     const wanted = PipeSize.parse(requirement.size);
-    // Fitting: ukuran UTAMA di namanya yang harus sama — "Long TY - D 10" x 4"" adalah fitting 10"
-    // bercabang 4", bukan fitting 4" (temuan laporan SNTY-2026-10-0007).
+    // Fitting: KEDUA ukuran di namanya harus sama dengan jalur yang disambung — "Long TY - D 10" x
+    // 4"" bukan fitting 4" (laporan 0007), "Y 4" x 2½"" bukan Y 4" sama sisi (laporan 0009).
+    const branchWanted = requirement.branchSize ?? requirement.size;
     const withSize = pool.filter((product) =>
       requirement.role === 'fitting'
-        ? primarySizeIs(product.name, wanted, requirement.size)
+        ? fittingFits(product.name, wanted, requirement.size, branchWanted)
         : product.sizes.some((label) => sameSize(label, wanted, requirement.size)),
     );
+    const sizeLabel =
+      requirement.branchSize !== undefined
+        ? `${requirement.size} × ${requirement.branchSize}`
+        : requirement.size;
     const classed = requirement.pressureClass
       ? splitByPressureClass(withSize, requirement.pressureClass)
       : { verified: withSize, unverified: [] as Product[] };
@@ -151,10 +163,10 @@ export function matchProducts(
       const pick = selectCandidate(classed.verified);
       products.push({
         productId: pick.chosen.id,
-        size: requirement.size,
+        size: sizeLabel,
         role: requirement.role,
         matchState: 'VERIFIED_SELECTED',
-        reason: `${pick.chosen.name} tersedia dalam ukuran ${requirement.size}${pick.why}.`,
+        reason: `${pick.chosen.name} tersedia dalam ukuran ${sizeLabel}${pick.why}.`,
         ...(pick.alternatives.length > 0 ? { alternatives: pick.alternatives } : {}),
       });
       continue;
@@ -164,10 +176,10 @@ export function matchProducts(
       const pick = selectCandidate(classed.unverified);
       products.push({
         productId: pick.chosen.id,
-        size: requirement.size,
+        size: sizeLabel,
         role: requirement.role,
         matchState: 'SIZE_NEEDS_VALIDATION',
-        reason: `${pick.chosen.name} ada dalam ukuran ${requirement.size}, tetapi kelas tekanannya belum terverifikasi untuk pipa kelas ${requirement.pressureClass}; perlu dikonfirmasi.`,
+        reason: `${pick.chosen.name} ada dalam ukuran ${sizeLabel}, tetapi kelas tekanannya belum terverifikasi untuk pipa kelas ${requirement.pressureClass}; perlu dikonfirmasi.`,
         ...(pick.alternatives.length > 0 ? { alternatives: pick.alternatives } : {}),
       });
       continue;
@@ -220,9 +232,18 @@ function poolFor(requirement: RoleRequirement, candidates: readonly Product[]): 
   return [];
 }
 
-function primarySizeIs(name: string, wanted: PipeSize | null, rawWanted: string): boolean {
-  const primary = productSizeOf(name);
-  return primary !== null && sameSize(primary.label, wanted, rawWanted);
+function fittingFits(
+  name: string,
+  wanted: PipeSize | null,
+  rawWanted: string,
+  rawBranch: string,
+): boolean {
+  const sizes = fittingSizesOf(name);
+  return (
+    sizes !== null &&
+    sameSize(sizes.run, wanted, rawWanted) &&
+    sameSize(sizes.branch, PipeSize.parse(rawBranch), rawBranch)
+  );
 }
 
 function sameSize(label: string, wanted: PipeSize | null, rawWanted: string): boolean {
@@ -322,7 +343,5 @@ export function requirementsFrom(input: {
       pipeRequirement('branch', size, input.pipeFamily),
     ),
     pipeRequirement('fixture', input.fixtureSize, input.pipeFamily),
-    // Tee di pipa utama/riser tempat tiap cabang keluar: ukuran pipa utama.
-    fittingRequirement(input.mainSize, input.pipeFamily, 'tee'),
   ];
 }

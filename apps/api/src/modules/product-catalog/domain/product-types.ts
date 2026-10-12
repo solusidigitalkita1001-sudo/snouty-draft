@@ -170,11 +170,29 @@ export function isSameSizeReducer(name: string): boolean {
  *
  * Parser nilai atas DATA katalog, bukan tebakan atas kalimat pengguna.
  */
-export type FittingKind = 'tee' | 'branch_y';
+export type FittingKind = 'tee' | 'branch_y' | 'reducer';
 
 export function fittingKindOf(name: string): FittingKind | null {
   const type = productTypeOf(name).type;
   if (/\bTee\b/i.test(type) && !/\bFaucet\b/i.test(type)) return 'tee';
   if (/\b(?:T?Y)\b/.test(type) && !/\bDouble\b/i.test(type)) return 'branch_y';
+  // Reducer lurus; elbow reducer dan reducer berflens bukan pengganti sambungan cabang.
+  if (/\bReducer\b/i.test(type) && !/\b(Elbow|Flange)\b/i.test(type)) return 'reducer';
   return null;
+}
+
+const SIZE_PAIR =
+  /(\d+\s\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)\s*(?:"|”)\s*x\s*(\d+\s\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)\s*(?:"|”)?/i;
+
+/**
+ * Kedua ukuran fitting dari namanya: "Tee Abu Ts 2" x 1"" → 2" dan 1" (jalur, cabang);
+ * "Long Y - D 4"" → 4" dan 4" (sama sisi). Temuan laporan 0009: fitting hanya boleh dipilih bila
+ * KEDUA ukurannya sama dengan jalur yang disambung. Parser nilai atas DATA katalog.
+ */
+export function fittingSizesOf(name: string): { run: string; branch: string } | null {
+  const pair = SIZE_PAIR.exec(name);
+  if (pair)
+    return { run: `${pair[1]!.replace(',', '.')}"`, branch: `${pair[2]!.replace(',', '.')}"` };
+  const single = productSizeOf(name);
+  return single ? { run: single.label, branch: single.label } : null;
 }

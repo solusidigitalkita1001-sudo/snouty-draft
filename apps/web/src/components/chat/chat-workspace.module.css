@@ -2209,7 +2209,13 @@
   /* Tab menggulir ke samping: tepi kanan memudar agar terlihat ada tab lain di luar layar. */
   .tabList {
     /* Kedua tepi memudar: tab yang tergulir ke kiri tidak tampil terpotong di samping panah. */
-    mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 14px,
+      #000 calc(100% - 28px),
+      transparent
+    );
     -webkit-mask-image: linear-gradient(
       to right,
       transparent,

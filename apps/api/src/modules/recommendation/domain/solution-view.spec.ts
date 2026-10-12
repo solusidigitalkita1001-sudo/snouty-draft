@@ -94,7 +94,14 @@ describe('material rumah', () => {
     const bom = bomItemsFrom(sized, sizedTraces, 'id', stock('utama'), {
       branch: stock('cabang'),
       fixture: stock('sambungan'),
-      tee: { productId: 'TEE-1' },
+      // Cabang 1" sama dengan utama → tee sama sisi; selain itu katalog uji hanya punya tee + reducer.
+      teeFor: (size) =>
+        size === sized.mainSize
+          ? [{ productId: 'TEE-1', kind: 'tee', size }]
+          : [
+              { productId: 'TEE-1', kind: 'tee', size: sized.mainSize },
+              { productId: `RED-${size}`, kind: 'reducer', size: `${sized.mainSize} × ${size}` },
+            ],
       fill: stock('pengisi'),
     });
     const layout = sized.branchLayout!;
@@ -108,15 +115,24 @@ describe('material rumah', () => {
       // Cabang per ukuran: jumlah cabang ukuran itu × 15 m.
       ...layout.bySize.map((b) => [b.size, Math.ceil((b.count * 15) / 4), 'batang']),
       [sized.fixtureConnectionSize, Math.ceil(layout.fixtureNetM / 4), 'batang'],
-      [sized.mainSize, sized.branchCount, 'pcs'],
+      // Sambungan per ukuran cabang, satu per cabang.
+      ...layout.bySize.flatMap((b) =>
+        b.size === sized.mainSize
+          ? [[sized.mainSize, b.count, 'pcs']]
+          : [
+              [sized.mainSize, b.count, 'pcs'],
+              [`${sized.mainSize} × ${b.size}`, b.count, 'pcs'],
+            ],
+      ),
     ]);
     // Tanpa ukuran tanah: halaman 0 + sisi bangunan 15 m + muka air toren (2 × 3,5 + 1 = 8 m) = 23 m.
     expect(sized.tankFill).toEqual({ netM: 23, size: '3/4"' });
-    expect(bom.at(-1)).toMatchObject({
-      item: 'Tee cabang',
+    expect(bom.find((b) => b.item === 'Tee cabang')).toMatchObject({
       productId: 'TEE-1',
+      unit: 'pcs',
       provenance: 'ASSUMED',
     });
+    expect(bom.at(-1)).toMatchObject({ item: 'Reducer cabang', unit: 'pcs' });
   });
 
   it('bomItemName: item tak dikenal lewat apa adanya; keluarga pipa tetap', () => {

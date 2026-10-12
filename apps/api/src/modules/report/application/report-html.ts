@@ -77,7 +77,9 @@ interface ReportCopy {
   readonly bomEmpty: string;
   /** Kolom jumlah produk yang panjang jalurnya belum diketahui. */
   readonly quantityPending: string;
+  readonly quantityPendingFitting: string;
   readonly pendingNote: string;
+  readonly pendingFittingNote: string;
   readonly subtotal: string;
   readonly tax: (percent: number) => string;
   readonly total: string;
@@ -162,6 +164,9 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     bomEmpty:
       'Jumlah pipa dihitung setelah panjang jalur atau ukuran bangunan diketahui. Ukuran setiap jalur ada di Bagian 2.',
     quantityPending: 'Menyusul',
+    quantityPendingFitting: '– pcs',
+    pendingFittingNote:
+      'Jumlah fitting (pcs) mengikuti titik sambungan di denah, jadi dihitung setelah denahnya ada.',
     pendingNote:
       'Jumlah batang dihitung setelah panjang jalur atau ukuran bangunan (panjang × lebar) diketahui.',
     subtotal: 'Subtotal material',
@@ -249,6 +254,9 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     bomEmpty:
       'Pipe quantities are counted once the route length or building size is known. The size of every line is in Section 2.',
     quantityPending: 'To follow',
+    quantityPendingFitting: '– pcs',
+    pendingFittingNote:
+      'Fitting counts (pcs) follow the joints on the floor plan, so they are counted once the plan is known.',
     pendingNote:
       'Pipe counts follow once the route length or the building size (length × width) is known.',
     subtotal: 'Material subtotal',
@@ -523,13 +531,14 @@ function materialTable(p: ReportPayload, t: ReportCopy, withPrices: boolean): st
         (item) =>
           `<tr><td class="strong">${esc(item.name)}</td>` +
           `<td class="mono">${esc(item.size)}</td>` +
-          `<td class="pending">${t.quantityPending}</td>` +
+          `<td class="pending">${item.kind === 'fitting' ? t.quantityPendingFitting : t.quantityPending}</td>` +
           (withPrices ? `<td class="mono">–</td><td class="mono">–</td>` : '') +
           `<td class="status"></td></tr>`,
       )
       .join('\n    ')}
   </table>
-  ${pending.length > 0 ? `<p class="bodytext">${t.pendingNote}</p>` : ''}`;
+  ${pending.some((p) => p.kind !== 'fitting') ? `<p class="bodytext">${t.pendingNote}</p>` : ''}
+  ${pending.some((p) => p.kind === 'fitting') ? `<p class="bodytext">${t.pendingFittingNote}</p>` : ''}`;
 }
 
 function systemSection(p: ReportPayload, t: ReportCopy, n: number): string {

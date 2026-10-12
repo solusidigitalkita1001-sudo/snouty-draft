@@ -91,3 +91,65 @@ describe('regresi laporan SNTY-2026-10-0009 — B: cabang air bersih dari isinya
     expect(rec.stats.branchCount).toBe(4);
   });
 });
+
+describe('regresi laporan SNTY-2026-10-0009 — C: fitting', () => {
+  let seq = 0;
+  const verified = (value: string) => ({ provenance: 'VERIFIED', value }) as never;
+  const unavailable = { provenance: 'UNAVAILABLE', value: null } as never;
+  const item = (family: string, category: string, name: string, sizes: string[]) =>
+    ({
+      id: `Q${String(++seq).padStart(25, '0')}`,
+      sku: `Q-${seq}`,
+      name,
+      family,
+      category,
+      description: '',
+      status: 'active',
+      sizes,
+      material: verified('uPVC'),
+      standard: unavailable,
+      pressureClass: unavailable,
+      rodLength: unavailable,
+      jointType: unavailable,
+      application: unavailable,
+      sourceDocument: 'Export ERP uji',
+      sourcePage: 1,
+      catalogVersionId: 'V'.repeat(26),
+      imageUrl: null,
+    }) as unknown as import('@snouty/shared-types').Product;
+  const CATALOG = [
+    item('PVC AW', 'PIPA AIR BERSIH', 'Pipa (TS End) Abu AW 1 1/4" x 4 Meter', ['1 1/4"']),
+    item('PVC AW', 'PIPA AIR BERSIH', 'Pipa (TS End) Abu AW 1" x 4 Meter', ['1"']),
+    item('PVC AW', 'PIPA AIR BERSIH', 'Pipa (TS End) Abu AW 1/2" x 4 Meter', ['1/2"']),
+    item('PVC D', 'PIPA AIR BUANGAN', 'Pipa (TS End) Abu D 4" x 4 Meter', ['4"']),
+    item('FITTING PVC', 'FITTING', 'Tee Abu Ts 1 1/4"', ['1 1/4"']),
+    item('FITTING PVC', 'FITTING', 'Bell Reducer - W 1 1/4" x 1"', ['1 1/4"', '1"']),
+    item('FITTING PVC', 'FITTING', 'Bell Reducer - W 1 1/4" x 1/2"', ['1 1/4"', '1/2"']),
+    // Laporan 0009 mencetak Y 4" × 2½" untuk jalur 4": tidak boleh lagi.
+    item('FITTING PVC', 'FITTING', 'Y - D 4" x 2 1/2"', ['4"', '2 1/2"']),
+    item('FITTING PVC', 'FITTING', 'Long Y - D 4"', ['4"']),
+  ];
+  const nameOf = (id: string | undefined) => CATALOG.find((p) => p.id === id)?.name;
+
+  it('tidak ada fitting yang ukurannya tidak cocok; Y air kotor 4" sama sisi', async () => {
+    const { rec } = await analyse0009(CATALOG);
+    const fittings = rec.products
+      .filter((p) => p.role === 'fitting')
+      .map((p) => nameOf(p.productId));
+    expect(fittings).not.toContain('Y - D 4" x 2 1/2"');
+    expect(fittings).toContain('Long Y - D 4"');
+  });
+
+  it('pipa utama 1¼" ke cabang 1" dan 1/2": tee + reducer per cabang, bukan tee sama sisi saja', async () => {
+    const { rec } = await analyse0009(CATALOG);
+    const rows = rec.bom
+      .filter((b) => b.unit === 'pcs')
+      .map((b) => `${b.item} ${b.size} ${b.quantity} ${nameOf(b.productId) ?? '-'}`);
+    expect(rows).toEqual([
+      // Satu tee sama sisi untuk keempat cabang (produk sama, digabung).
+      `Tee cabang ${rec.stats.mainSize} 4 Tee Abu Ts 1 1/4"`,
+      `Reducer cabang ${rec.stats.mainSize} × 1" 2 Bell Reducer - W 1 1/4" x 1"`,
+      `Reducer cabang ${rec.stats.mainSize} × 1/2" 2 Bell Reducer - W 1 1/4" x 1/2"`,
+    ]);
+  });
+});

@@ -247,8 +247,11 @@ export function systemLinesFrom(
 export interface HouseStocks {
   readonly branch?: StockLength | null;
   readonly fixture?: StockLength | null;
-  /** Tee cabang yang terpilih dari katalog; tanpa produk, barisnya tetap ada tanpa `productId`. */
-  readonly tee?: { readonly productId: string } | null;
+  /**
+   * Fitting tempat cabang keluar per ukuran cabang (tee sama sisi, tee reduksi, atau tee + reducer).
+   * Kosong → satu baris tee tanpa `productId` (jumlahnya tetap diketahui).
+   */
+  readonly teeFor?: (branchSize: string) => readonly TeeBom[];
   /** Produk cabang per ukuran (cabang bisa berbeda ukuran, ENG-707). */
   readonly branchFor?: (size: string) => StockLength | null;
   /** Pipa pengisi toren atap (ENG-706). */
@@ -261,6 +264,14 @@ export interface HouseStocks {
  * 2026-10-12, P16-60: dihitung dengan rumus baku bertanda asumsi, bukan "menyusul"). Jumlah beli
  * memakai panjang batang produk katalog terpilih per jalur.
  */
+/** Satu fitting cabang untuk BOM. */
+export interface TeeBom {
+  readonly productId: string;
+  readonly kind: 'tee' | 'reducing_tee' | 'reducer';
+  /** "1 1/4"" atau "1 1/4" × 3/4"". */
+  readonly size: string;
+}
+
 export function bomItemsFrom(
   solution: SolutionResult,
   traces: readonly IdentifiedTrace[],
@@ -344,19 +355,47 @@ export function bomItemsFrom(
       stocks.fixture ?? null,
       layoutIds,
     ),
-    {
-      item: en ? 'Branch tee' : 'Tee cabang',
-      size: solution.mainSize,
-      ...(stocks.tee ? { productId: stocks.tee.productId } : {}),
-      quantity: layout.teeCount,
-      unit: 'pcs',
-      basis: en
-        ? `One tee on the main line per branch: ${layout.teeCount} branches.`
-        : `Satu tee di pipa utama untuk tiap cabang: ${layout.teeCount} cabang.`,
-      provenance: provenanceFor(traces, layoutIds),
-      traceIds: layoutIds,
-    },
   );
+  // Sambungan cabang per ukuran cabang: satu tee (sama sisi atau reduksi), atau tee + reducer, per
+  // cabang (temuan laporan 0009). Tanpa produk katalog jumlahnya tetap diketahui.
+  const ITEM: Readonly<Record<TeeBom['kind'], { id: string; en: string }>> = {
+    tee: { id: 'Tee cabang', en: 'Branch tee' },
+    reducing_tee: { id: 'Tee reduksi cabang', en: 'Reducing branch tee' },
+    reducer: { id: 'Reducer cabang', en: 'Branch reducer' },
+  };
+  for (const branch of layout.bySize) {
+    const fittings = stocks.teeFor?.(branch.size) ?? [];
+    const basis = en
+      ? `One per branch on the main line: ${branch.count} branches of ${branch.size}.`
+      : `Satu per cabang di pipa utama: ${branch.count} cabang ${branch.size}.`;
+    const fitRows: BomItem[] =
+      fittings.length > 0
+        ? fittings.map((f) => ({
+            item: en ? ITEM[f.kind].en : ITEM[f.kind].id,
+            size: f.size,
+            productId: f.productId,
+            quantity: branch.count,
+            unit: 'pcs',
+            basis,
+            provenance: provenanceFor(traces, layoutIds),
+            traceIds: layoutIds,
+          }))
+        : [
+            {
+              item: en ? ITEM.tee.en : ITEM.tee.id,
+              size:
+                branch.size === solution.mainSize
+                  ? solution.mainSize
+                  : `${solution.mainSize} × ${branch.size}`,
+              quantity: branch.count,
+              unit: 'pcs',
+              basis,
+              provenance: provenanceFor(traces, layoutIds),
+              traceIds: layoutIds,
+            },
+          ];
+    rows.push(...fitRows);
+  }
   return rows;
 }
 

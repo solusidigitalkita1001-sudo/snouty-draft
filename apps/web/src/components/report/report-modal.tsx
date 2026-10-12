@@ -325,7 +325,7 @@ function Preview({ report }: { report: ReportPreview }) {
               {item.size}
             </span>
             <span role="cell" className={[styles.cellQty, styles.muted].join(' ')}>
-              {COPY.quantityPending}
+              {item.kind === 'fitting' ? COPY.quantityPendingFitting : COPY.quantityPending}
             </span>
             {priced && (
               <span role="cell" className={[styles.cellMono, styles.right].join(' ')}>
@@ -360,7 +360,8 @@ function Preview({ report }: { report: ReportPreview }) {
       </div>
 
       <p className={styles.footnote}>
-        {pending.length > 0 ? `${COPY.pendingNote} ` : ''}
+        {pending.some((p) => p.kind !== 'fitting') ? `${COPY.pendingNote} ` : ''}
+        {pending.some((p) => p.kind === 'fitting') ? `${COPY.pendingFittingNote} ` : ''}
         {COPY.footnote}
       </p>
     </>

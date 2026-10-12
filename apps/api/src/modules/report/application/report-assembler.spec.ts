@@ -142,7 +142,12 @@ describe('assembleReportPayload', () => {
       ]),
     });
     expect(payload.pendingItems).toEqual([
-      { productId: 'P-AW34', name: 'Pipa (TS End) Putih AW 3/4" x 4 Meter', size: '3/4"' },
+      {
+        productId: 'P-AW34',
+        name: 'Pipa (TS End) Putih AW 3/4" x 4 Meter',
+        size: '3/4"',
+        kind: 'pipe',
+      },
     ]);
 
     const html = renderReportHtml({ ...payload, bom: [] });
@@ -483,5 +488,34 @@ describe('skema instalasi di laporan', () => {
 
   it('tanpa skema (payload lama) tidak ada bagian skema', () => {
     expect(renderReportHtml(assembleReportPayload(INPUT))).not.toContain('Skema Instalasi');
+  });
+});
+
+describe('fitting tanpa jumlah (temuan laporan 0009)', () => {
+  it('fitting diberi "– pcs" dan keterangannya sendiri, bukan kalimat jumlah batang', () => {
+    const payload = assembleReportPayload({
+      ...INPUT,
+      recommendation: {
+        ...RECOMMENDATION,
+        bom: [],
+        products: [
+          {
+            productId: 'Y4',
+            size: '4"',
+            role: 'fitting',
+            matchState: 'VERIFIED_SELECTED',
+            reason: '',
+          },
+        ],
+      },
+      productNames: new Map([['Y4', 'Long Y - D 4"']]),
+    });
+    expect(payload.pendingItems).toEqual([
+      { productId: 'Y4', name: 'Long Y - D 4"', size: '4"', kind: 'fitting' },
+    ]);
+    const html = renderReportHtml(payload);
+    expect(html).toContain('<td class="pending">– pcs</td>');
+    expect(html).toContain('Jumlah fitting (pcs) mengikuti titik sambungan di denah');
+    expect(html).not.toContain('Jumlah batang dihitung setelah');
   });
 });

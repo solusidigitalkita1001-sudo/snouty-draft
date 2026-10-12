@@ -22,6 +22,9 @@ export const REPORT_COPY = {
   total: 'Total estimasi',
   footnote: 'Belum termasuk jasa instalasi, aksesori non-pipa, dan pengiriman.',
   quantityPending: 'Menyusul',
+  quantityPendingFitting: '– pcs',
+  pendingFittingNote:
+    'Jumlah fitting (pcs) mengikuti titik sambungan di denah, jadi dihitung setelah denahnya ada.',
   pendingNote:
     'Jumlah batang dihitung setelah panjang jalur atau ukuran bangunan (panjang × lebar) diketahui.',
   bomEmpty: 'Jumlah pipa dihitung setelah panjang jalur atau ukuran bangunan diketahui.',
@@ -67,6 +70,9 @@ export const REPORT_COPY_EN: CopyShape<typeof REPORT_COPY> = {
   total: 'Estimated total',
   footnote: 'Excludes installation labor, non-pipe accessories, and delivery.',
   quantityPending: 'To follow',
+  quantityPendingFitting: '– pcs',
+  pendingFittingNote:
+    'Fitting counts (pcs) follow the joints on the floor plan, so they are counted once the plan is known.',
   pendingNote:
     'Pipe counts follow once the route length or the building size (length × width) is known.',
   bomEmpty: 'Pipe quantities are counted once the route length or building size is known.',

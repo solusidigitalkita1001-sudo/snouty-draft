@@ -21,7 +21,13 @@ import type {
   Recommendation,
   RequirementState,
 } from '@snouty/shared-types';
-import { DEFAULT_LOCALE, PipeSize, type Product, type SystemRole } from '@snouty/shared-types';
+import {
+  DEFAULT_LOCALE,
+  PipeSize,
+  type Product,
+  type SelectedProduct,
+  type SystemRole,
+} from '@snouty/shared-types';
 import {
   buildSchematic,
   computeIrrigation,
@@ -112,7 +118,7 @@ import {
   requirementsFrom,
   type RoleRequirement,
 } from '../domain/product-matcher.js';
-import type { IdentifiedTrace } from '../domain/solution-view.js';
+import type { IdentifiedTrace, TeeBom } from '../domain/solution-view.js';
 import { composeResponse } from '../domain/response-composer.js';
 import { flowSchematicFor, networkFamilyFor } from '../domain/flow-schematic.js';
 import { withCalculationSteps } from '../domain/calculation-steps.js';
@@ -162,6 +168,12 @@ export function schematicFor(
     catalogVersionLabel,
     now,
   });
+}
+
+/** Fitting cabang terpilih: produk untuk kartu, baris material untuk BOM. */
+interface TeeFitting {
+  readonly product: SelectedProduct;
+  readonly bom: TeeBom;
 }
 
 /** Keluarga produk per peran. Nilai sementara sampai katalog nyata ada (OQ-07). */
@@ -291,7 +303,7 @@ export class AnalysisService {
       throw error;
     }
 
-    const match = await this.matchRoles(
+    const pipes = await this.matchRoles(
       requirementsFrom({
         mainSize: solution.mainSize,
         branchSizes: solution.branchGroups.map((g) => g.size),
@@ -299,6 +311,21 @@ export class AnalysisService {
         pipeFamily: PIPE_FAMILY,
       }),
     );
+    // Sambungan cabang ke pipa utama, per ukuran cabang (temuan laporan 0009).
+    const tees = new Map<string, readonly TeeFitting[]>();
+    for (const group of solution.branchGroups) {
+      tees.set(group.size, await this.matchTee(solution.mainSize, group.size, PIPE_FAMILY));
+    }
+    const teeProducts = [...tees.values()].flat().map((t) => t.product);
+    const match = {
+      ...pipes,
+      products: [
+        ...pipes.products,
+        ...teeProducts.filter(
+          (p, i) => teeProducts.findIndex((q) => q.productId === p.productId) === i,
+        ),
+      ],
+    };
     events.push({
       type: 'stage',
       stage: 'MATCHING_PRODUCTS',
@@ -323,7 +350,7 @@ export class AnalysisService {
           branch: match.stockFor('branch'),
           branchFor: (size) => match.stockForSize('branch', size),
           fixture: match.stockFor('fixture'),
-          tee: match.products.find((p) => p.role === 'fitting') ?? null,
+          teeFor: (branchSize) => (tees.get(branchSize) ?? []).map((t) => t.bom),
           // Pipa pengisi toren: produk PVC AW seukuran asumsinya (ENG-706).
           fill: solution.tankFill
             ? (
@@ -907,6 +934,36 @@ export class AnalysisService {
       throw error;
     }
     return { version };
+  }
+
+  /**
+   * Fitting tempat cabang keluar dari pipa utama (temuan laporan 0009): ukuran sama → tee sama sisi;
+   * berbeda → tee reduksi (utama × cabang) bila ada di katalog, selain itu tee sama sisi + reducer
+   * (utama × cabang). Kedua ukuran fitting harus persis; yang tidak ada dibiarkan kosong.
+   */
+  private async matchTee(
+    mainSize: string,
+    branchSize: string,
+    family: string,
+  ): Promise<readonly TeeFitting[]> {
+    const pick = async (
+      kind: 'tee' | 'reducer',
+      branch: string,
+      label: TeeFitting['bom']['kind'],
+    ) => {
+      const found = await this.matchRoles([fittingRequirement(mainSize, family, kind, branch)]);
+      const product = found.products[0];
+      return product
+        ? [{ product, bom: { productId: product.productId, kind: label, size: product.size } }]
+        : [];
+    };
+    if (mainSize === branchSize) return pick('tee', mainSize, 'tee');
+    const reducing = await pick('tee', branchSize, 'reducing_tee');
+    if (reducing.length > 0) return reducing;
+    return [
+      ...(await pick('tee', mainSize, 'tee')),
+      ...(await pick('reducer', branchSize, 'reducer')),
+    ];
   }
 
   /**

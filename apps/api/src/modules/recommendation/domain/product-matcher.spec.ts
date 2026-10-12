@@ -30,12 +30,16 @@ function product(over: Partial<Product> = {}): Product {
   };
 }
 
-const REQUIREMENTS = requirementsFrom({
-  mainSize: '1"',
-  branchSizes: ['3/4"'],
-  fixtureSize: '1/2"',
-  pipeFamily: 'PVC AW',
-});
+const REQUIREMENTS = [
+  ...requirementsFrom({
+    mainSize: '1"',
+    branchSizes: ['3/4"'],
+    fixtureSize: '1/2"',
+    pipeFamily: 'PVC AW',
+  }),
+  // Tee cabang dicocokkan terpisah per ukuran cabang (laporan 0009); di sini satu tee sama sisi.
+  fittingRequirement('1"', 'PVC AW', 'tee'),
+];
 
 describe('ProductMatcher', () => {
   it('katalog kosong: tidak ada satu pun kartu produk (invarian C-2)', () => {
@@ -285,5 +289,44 @@ describe('jenis dan ukuran utama fitting (temuan laporan SNTY-2026-10-0007)', ()
       matchProducts([fittingRequirement('4"', 'PVC D', 'branch_y')], candidates.slice(0, 2))
         .unmatchedRoles,
     ).toEqual(['fitting']);
+  });
+});
+
+describe('kedua ukuran fitting harus persis (temuan laporan 0009)', () => {
+  const fitting = (id: string, name: string, sizes: string[]) =>
+    product({ id, sku: id, name, family: 'FITTING PVC', category: 'FITTING', sizes });
+
+  it('Y 4" sama sisi: "Y 4" x 2 1/2"" ditolak, tidak ada ukuran terdekat', () => {
+    const candidates = [
+      fitting('Y-REDUCING', 'Y - D 4" x 2 1/2"', ['4"', '2 1/2"']),
+      fitting('Y-EQUAL', 'Long Y - D 4"', ['4"']),
+    ];
+    expect(
+      matchProducts([fittingRequirement('4"', 'PVC D', 'branch_y')], candidates).products.map(
+        (p) => p.productId,
+      ),
+    ).toEqual(['Y-EQUAL']);
+    expect(
+      matchProducts([fittingRequirement('4"', 'PVC D', 'branch_y')], candidates.slice(0, 1))
+        .unmatchedRoles,
+    ).toEqual(['fitting']);
+  });
+
+  it('tee reduksi 1 1/4" × 3/4" dipilih menurut kedua ukurannya; reducer dikenali sebagai reducer', () => {
+    const candidates = [
+      fitting('TEE-EQUAL', 'Tee Abu Ts 1 1/4"', ['1 1/4"']),
+      fitting('TEE-RED', 'Tee Abu Ts 1 1/4" x 3/4"', ['1 1/4"', '3/4"']),
+      fitting('RED', 'Bell Reducer - W 1 1/4" x 3/4"', ['1 1/4"', '3/4"']),
+    ];
+    const [tee] = matchProducts(
+      [fittingRequirement('1 1/4"', 'PVC AW', 'tee', '3/4"')],
+      candidates,
+    ).products;
+    expect(tee).toMatchObject({ productId: 'TEE-RED', size: '1 1/4" × 3/4"' });
+    const [reducer] = matchProducts(
+      [fittingRequirement('1 1/4"', 'PVC AW', 'reducer', '3/4"')],
+      candidates,
+    ).products;
+    expect(reducer?.productId).toBe('RED');
   });
 });

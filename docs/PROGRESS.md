@@ -1360,6 +1360,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-65 Temuan laporan 0009 — B: ukuran cabang air bersih dari isi tiap cabang (ENG-707 + ENG-102 per beban),
       bukan rata-rata; baris sistem dan material per ukuran cabang; 0009: cabang 2 KM 1", cabang 4 wastafel ½";
       rumah 0002: lantai 2 1", lantai 1 ¾".
+- [x] P16-66 Temuan laporan 0009 — C: fitting hanya dipilih bila kedua ukurannya persis sama dengan jalur yang disambung
+      (tanpa ukuran terdekat; "Y 4" × 2½"" tidak lagi untuk jalur 4"); sambungan cabang per ukuran cabang: tee sama sisi,
+      tee reduksi bila ada di katalog, selain itu tee + reducer; fitting tanpa jumlah tercetak "– pcs" dengan keterangan
+      sendiri di PDF dan pratinjau.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

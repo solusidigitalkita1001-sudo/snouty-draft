@@ -104,7 +104,12 @@ function pendingItems(
     const name = names.get(product.productId);
     if (name === undefined) continue;
     seen.add(product.productId);
-    rows.push({ productId: product.productId, name, size: product.size });
+    rows.push({
+      productId: product.productId,
+      name,
+      size: product.size,
+      kind: product.role === 'fitting' ? 'fitting' : 'pipe',
+    });
   }
   return rows;
 }
