@@ -24,6 +24,7 @@ export const CHAT_COPY = {
   undo: 'Urungkan',
   deleteFailed: 'Percakapan belum bisa dihapus. Coba lagi sebentar lagi.',
   saveSolution: 'Simpan hasil konsultasi',
+  saveShort: 'Simpan',
   saved: 'Tersimpan',
   saveFailed: 'Konsultasi belum bisa disimpan. Coba lagi sebentar lagi.',
   gate: {
@@ -252,6 +253,7 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   undo: 'Undo',
   deleteFailed: "The conversation couldn't be deleted. Try again in a moment.",
   saveSolution: 'Save consultation result',
+  saveShort: 'Save',
   saved: 'Saved',
   saveFailed: "The consultation couldn't be saved. Try again in a moment.",
   gate: {

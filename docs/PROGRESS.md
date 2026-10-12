@@ -1349,6 +1349,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       yang diketik bebas; teks chat "tanah 10x20" / "LT/LB" dibaca ke bagian yang benar; ukuran digabung per
       kelompok; halaman dari ukuran tanah masuk jalur PDAM/pompa dan buangan (ENG-705, ENG-702 v2, ENG-603 v2);
       luas bangunan = total semua lantai.
+- [x] P16-62 Ponsel setelah solusi siap (laporan pemilik 2026-10-12): tiga lapis tombol di atas (header, baris "Buat
+      laporan", baris "Simpan hasil konsultasi") diganti bilah bawah "Simpan" + "Buat laporan"; di layar chat hanya
+      baris tipis "Lihat solusi"; label kelompok isian ukuran di barisnya sendiri.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

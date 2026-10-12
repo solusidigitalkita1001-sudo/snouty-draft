@@ -2131,6 +2131,31 @@
     min-height: 36px;
   }
 
+  /* Layar solusi ponsel: tab tanpa tombol, back ringkas. */
+  .solutionTabs {
+    padding: 0 8px 0 4px;
+    gap: 4px;
+  }
+
+  /*
+   * Aksi akhir solusi di bawah (2026-10-12): "Simpan" dan "Buat laporan" berdampingan, lebar penuh,
+   * dalam jangkauan jempol; area aman iPhone dihormati.
+   */
+  .mobileSolutionBar {
+    flex: none;
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 8px;
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--snouty-border);
+    background: var(--snouty-surface);
+  }
+
+  .mobileSolutionBar > button {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
   /* Tutup panel layar penuh: 44×44, bukan "»" 28 px. */
   .panelClose {
     width: 44px;
@@ -2476,8 +2501,9 @@
   font-size: 13px;
 }
 
+/* Label kelompok di barisnya sendiri: di ponsel "Tanah (boleh dikosongkan)" tidak mematahkan isian. */
 .measureGroup {
-  min-width: 72px;
+  flex: 1 0 100%;
   font-weight: 500;
 }
 

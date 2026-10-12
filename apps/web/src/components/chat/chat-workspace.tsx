@@ -1089,26 +1089,18 @@ export function ChatWorkspace() {
           </div>
         </header>
         {/*
-          Ponsel: "Lihat solusi" dan "Buat laporan" di baris tipis sendiri. Di header 375–390 px,
-          keduanya memakan seluruh lebar dan judul ambruk menjadi "R…" (audit UX 2026-10-08).
+          Ponsel, layar chat: satu baris tipis "Lihat solusi". "Buat laporan" dan "Simpan" ada di
+          bilah bawah layar solusi — dulu tiga lapis tombol (header, baris laporan, baris simpan)
+          memakan hampir separuh layar sebelum isi solusi (laporan pemilik 2026-10-12).
         */}
-        {mobile && inConversation && solution !== null && (
+        {mobile && inConversation && solution !== null && screen === 'chat' && (
           <div className={styles.mobileActions}>
-            {screen === 'chat' && (
-              <button
-                type="button"
-                className={styles.tabAction}
-                onClick={() => setScreen('solution')}
-              >
-                {COPY.viewSolution}
-              </button>
-            )}
             <button
               type="button"
-              className={styles.headerPrimary}
-              onClick={() => setReportOpen(true)}
+              className={styles.tabAction}
+              onClick={() => setScreen('solution')}
             >
-              {reportCopy(locale).open}
+              {COPY.viewSolution}
             </button>
           </div>
         )}
@@ -1294,16 +1286,18 @@ export function ChatWorkspace() {
                   </button>
                 ))}
               </div>
-              <div className={styles.solutionTabActions}>
-                <button
-                  type="button"
-                  className={styles.tabAction}
-                  onClick={save}
-                  disabled={saveState === 'saved'}
-                >
-                  {saveState === 'saved' ? COPY.saved : COPY.saveSolution}
-                </button>
-              </div>
+              {!mobile && (
+                <div className={styles.solutionTabActions}>
+                  <button
+                    type="button"
+                    className={styles.tabAction}
+                    onClick={save}
+                    disabled={saveState === 'saved'}
+                  >
+                    {saveState === 'saved' ? COPY.saved : COPY.saveSolution}
+                  </button>
+                </div>
+              )}
             </div>
             {gate && conversationId !== null && (
               <RegisterGate conversationId={conversationId} onDismiss={() => setGate(false)} />
@@ -1334,6 +1328,26 @@ export function ChatWorkspace() {
                 setEditing(true);
               }}
             />
+            {/* Ponsel: aksi akhir di bawah, dalam jangkauan jempol — isi solusi mendapat layar atas. */}
+            {mobile && (
+              <div className={styles.mobileSolutionBar}>
+                <button
+                  type="button"
+                  className={styles.tabAction}
+                  onClick={save}
+                  disabled={saveState === 'saved'}
+                >
+                  {saveState === 'saved' ? COPY.saved : COPY.saveShort}
+                </button>
+                <button
+                  type="button"
+                  className={styles.headerPrimary}
+                  onClick={() => setReportOpen(true)}
+                >
+                  {reportCopy(locale).open}
+                </button>
+              </div>
+            )}
           </div>
         )}
 
