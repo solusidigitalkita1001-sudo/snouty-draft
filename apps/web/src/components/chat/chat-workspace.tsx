@@ -60,7 +60,7 @@ import { SolutionView, type SolutionTab } from '../solution/solution-view';
 import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
 import { gateHref, parseResume } from '../auth/resume-link';
 import { chatCopy, STAGE_ORDER, stageLabel } from './chat-copy';
-import { MISSING, requirementRows } from './requirement-rows';
+import { MISSING, planFromOption, requirementRows } from './requirement-rows';
 import styles from './chat-workspace.module.css';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
@@ -747,7 +747,12 @@ export function ChatWorkspace() {
       .filter((row) => row.path in edits)
       .map((row) => ({
         path: row.path,
-        value: row.editor.kind === 'number' ? Number(edits[row.path]) : edits[row.path],
+        value:
+          row.editor.kind === 'number'
+            ? Number(edits[row.path])
+            : row.path === 'building.dimensions'
+              ? (planFromOption(edits[row.path] ?? '') ?? '')
+              : edits[row.path],
       }))
       .filter((change) => change.value !== '' && !Number.isNaN(change.value as number))
       .filter(

@@ -182,8 +182,8 @@ export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult>
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Diameter dalam minimum ${output.requiredInnerDiameterMm} mm untuk ${input.designFlowLs} l/s pada ${input.velocityMs} m/s; ukuran nominal terdekat di atasnya ${output.mainSize} (±${output.innerDiameterMm} mm).`,
-      en: `Minimum inner diameter ${output.requiredInnerDiameterMm} mm for ${input.designFlowLs} l/s at ${input.velocityMs} m/s; the nearest nominal size above it is ${output.mainSize} (±${output.innerDiameterMm} mm).`,
+      id: `Diameter dalam minimum ${output.requiredInnerDiameterMm} mm untuk ${round2(input.designFlowLs)} l/s pada ${input.velocityMs} m/s; ukuran nominal terdekat di atasnya ${output.mainSize} (±${output.innerDiameterMm} mm).`,
+      en: `Minimum inner diameter ${output.requiredInnerDiameterMm} mm for ${round2(input.designFlowLs)} l/s at ${input.velocityMs} m/s; the nearest nominal size above it is ${output.mainSize} (±${output.innerDiameterMm} mm).`,
     }),
 };
 

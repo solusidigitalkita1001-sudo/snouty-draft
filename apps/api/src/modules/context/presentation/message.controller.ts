@@ -80,6 +80,17 @@ const EditDto = z
           z.object({ path: z.literal('fixtures.kitchens'), value: count(100) }).strict(),
           z
             .object({
+              path: z.literal('building.dimensions'),
+              value: z
+                .object({
+                  lengthM: z.number().min(2).max(200),
+                  widthM: z.number().min(2).max(200),
+                })
+                .strict(),
+            })
+            .strict(),
+          z
+            .object({
               path: z.literal('water.source'),
               value: z.enum(['rooftop_tank', 'ground_tank', 'pump', 'municipal']),
             })
@@ -93,7 +104,7 @@ const EditDto = z
         ]),
       )
       .min(1)
-      .max(7),
+      .max(8),
   })
   .strict();
 

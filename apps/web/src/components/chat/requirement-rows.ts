@@ -50,6 +50,51 @@ const BUILDING: readonly SelectOption[] = [
   { value: 'industrial', label: 'Industri' },
 ];
 
+/** Ukuran rumah: pilihan sama dengan kartu pertanyaan; nilai "PxL" dikirim sebagai panjang × lebar. */
+const PLAN: readonly SelectOption[] = [
+  { value: '6x12', label: '6 × 12 m' },
+  { value: '8x15', label: '8 × 15 m' },
+  { value: '10x20', label: '10 × 20 m' },
+];
+
+interface PlanValue {
+  readonly lengthM?: number;
+  readonly widthM?: number;
+  readonly areaM2?: number;
+  readonly mainRunMeters?: number;
+}
+
+/** "8x15" → panjang × lebar untuk PATCH; selain itu `null`. */
+export function planFromOption(value: string): { lengthM: number; widthM: number } | null {
+  const m = /^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$/.exec(value);
+  return m ? { lengthM: Number(m[1]), widthM: Number(m[2]) } : null;
+}
+
+function planRow(field: {
+  value: unknown;
+  provenance: Provenance;
+  reason?: string;
+}): RequirementRow {
+  const plan = field.value as PlanValue | null;
+  const sides = plan?.lengthM !== undefined && plan.widthM !== undefined;
+  const display = sides
+    ? `${plan!.lengthM} × ${plan!.widthM} m`
+    : plan?.areaM2 !== undefined
+      ? `luas ${plan.areaM2} m²`
+      : plan?.mainRunMeters !== undefined
+        ? `jalur ${plan.mainRunMeters} m`
+        : MISSING;
+  return {
+    path: 'building.dimensions',
+    label: 'Ukuran rumah',
+    display,
+    raw: sides ? `${plan!.lengthM}x${plan!.widthM}` : null,
+    provenance: field.provenance,
+    ...(field.reason !== undefined ? { reason: field.reason } : {}),
+    editor: { kind: 'select', options: PLAN },
+  };
+}
+
 const labelOf = (options: readonly SelectOption[]) => (v: unknown) =>
   options.find((o) => o.value === String(v))?.label ?? String(v);
 
@@ -64,6 +109,7 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
       min: 1,
       max: 50,
     }),
+    planRow(state.building.dimensions),
     row('fixtures.bathrooms', 'Kamar mandi', state.fixtures.bathrooms, String, {
       kind: 'number',
       min: 0,
