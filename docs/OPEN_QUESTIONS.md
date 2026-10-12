@@ -404,6 +404,30 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-61 — Kelompok hitung bangunan ibadah / umum (temuan laporan 0009, poin F)
+
+**Status:** terbuka — butuh keputusan pemilik (TOPIK_BRAINSTORM topik 1 & 5) · **Blocks:** perhitungan
+masjid/sekolah/klinik yang akurat
+**Temuan:** `building.type = light_commercial` (masjid, musala, gereja, sekolah, klinik, ruko, kantor
+— dikenali lewat daftar kata di `extraction-to-updates.ts`, utang teknis menurut aturan "pertanyaan
+tidak di-hardcode") **tidak mengubah hitungan apa pun**: `computeSolution` menerima `buildingType`
+tetapi memakai jalur rumah yang sama — WSFU pemakaian pribadi (IPC E103.3(2) private), kurva Hunter
+(pemakaian acak), kamar mandi = kloset + shower (ENG-012), ENG-707 untuk cabang. Kelompok I
+(`multistorey_building_water`) hanya terjangkau lewat kasus teknis, bukan lewat tipe bangunan.
+**Titik sambung paling bersih (usulan):** cabang baru di `AnalysisService.run` sebelum
+`computeSolution` — `publicAssemblyInputFrom(state)` seperti `buildingWaterInputFrom` — ke
+orkestrator engine baru `computePublicAssembly` (Kelompok L) yang memakai ulang ENG-102/201–206
+(sizing bertekanan), ENG-702/705 (jalur), ENG-707 (isi cabang, dengan bobot public), ENG-601–604
+(pembuangan, DFU public), dan ENG-506 (siklus pompa/toren dari Kelompok I). Isinya: (1) WSFU public
+(IPC E103.3(2) kolom public: kloset tangki 5, lavatory 2, dst.); (2) keran wudhu sebagai beban
+**serentak** (n keran × debit per keran, bukan Hunter) dijumlah dengan beban Hunter sisanya;
+(3) kamar mandi tanpa shower sebagai pilihan; (4) toren + pompa dari kebutuhan puncak menjelang salat.
+**Nilai yang perlu disahkan ahli Pralon sebelum dipakai:** WSFU public per alat; DFU public; debit
+per keran wudhu (±0,1 l/s?) dan jumlah keran yang dipakai serentak (semua? faktor serentak?); lama
+puncak wudhu (menit) untuk volume toren; isi kamar mandi masjid (kloset saja / + shower); tekanan
+sisa minimum di keran wudhu; apakah toilet umum memakai flush valve (beban jauh lebih besar).
+**Default sementara:** tetap jalur rumah, dengan catatan ini; tidak ada nilai baru yang dipakai.
+
 ### OQ-60 — Rumus baku panjang jalur rumah tanpa denah
 
 **Status:** default diterapkan atas keputusan pemilik (2026-10-12, P16-60) · **Blocks:** —
