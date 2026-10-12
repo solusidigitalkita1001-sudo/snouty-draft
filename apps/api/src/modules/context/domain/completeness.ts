@@ -22,14 +22,33 @@ export interface CompletenessResult {
   readonly isComplete: boolean;
 }
 
+/**
+ * Rentang tinggi tiap lantai yang dihitung — sama dengan pagar engine (ENG-702) dan skema
+ * ekstraksi. Nilai yang disebut di luar rentang tidak dihitung dan tidak diganti asumsi: ia
+ * ditanyakan balik (TC-H-02, TC-G-01).
+ */
+export const FLOOR_HEIGHT_RANGE_M = { min: 2, max: 10 } as const;
+
+/** Tinggi lantai yang disebut pengguna tetapi di luar rentang yang bisa dihitung. */
+export function floorHeightOutOfRange(state: RequirementState): number | null {
+  const value = state.building.floorHeightM.value;
+  return typeof value === 'number' &&
+    (value < FLOOR_HEIGHT_RANGE_M.min || value > FLOOR_HEIGHT_RANGE_M.max)
+    ? value
+    : null;
+}
+
 export function evaluateCompleteness(state: RequirementState): CompletenessResult {
   const missing = CORE_REQUIREMENT_FIELDS.filter((path) => !isFilled(readField(state, path)));
   const filled = CORE_REQUIREMENT_FIELDS.length - missing.length;
+  // Tinggi lantai di luar rentang menahan rekomendasi sampai dikoreksi.
+  const blocked: RequirementFieldPath[] =
+    floorHeightOutOfRange(state) !== null ? ['building.floorHeightM'] : [];
 
   return {
     completeness: { filled, required: 4 },
-    missingInformation: missing,
-    isComplete: missing.length === 0,
+    missingInformation: [...missing, ...blocked],
+    isComplete: missing.length + blocked.length === 0,
   };
 }
 

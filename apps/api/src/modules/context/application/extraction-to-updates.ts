@@ -47,6 +47,25 @@ const OBVIOUS = {
   basins: (m: string) =>
     countOf('wastafel|washtafel|westafel|bak cuci|basins?|sinks?|washbasins?', m, 3),
   kitchens: (m: string) => countOf('dapur|kitchens?|pantry', m),
+  /**
+   * Tinggi tiap lantai ("tinggi lantai 4 m", "tinggi tiap lantai 3,8 meter", "floor height 4 m")
+   * — parser nilai bersatuan seperti lantai dan ukuran: yang dibaca hanya angka bermeter yang
+   * terikat ke frasa benda "tinggi … lantai" / "floor height". Nilai apa pun dikembalikan; pagar
+   * 2–10 m ada di kelengkapan, supaya nilai di luar rentang ditanyakan balik, bukan dibuang (TC-H-02).
+   * "Plafon" tidak dibaca: tinggi plafon bukan tinggi antar lantai.
+   */
+  floorHeight: (m: string): number | undefined => {
+    const match =
+      /\b(?:tinggi|ketinggian)\s+(?:tiap|per|setiap|masing-masing|antar)?\s*lantai(?:nya)?\s*(?:[:=]|adalah|sekitar|kira-kira|±)?\s*(\d+(?:[.,]\d+)?)\s*(?:m\b|meter|metre)/i.exec(
+        m,
+      ) ??
+      /\b(?:floor(?:-to-floor)?|storey|story)\s+height\s*(?:of|is|=|:)?\s*(\d+(?:[.,]\d+)?)\s*(?:m\b|meters?|metres?)/i.exec(
+        m,
+      );
+    if (!match) return undefined;
+    const value = Number(match[1]!.replace(',', '.'));
+    return Number.isFinite(value) && value > 0 ? value : undefined;
+  },
   installationType: (m: string): NonNullable<Extraction['water']>['installationType'] => {
     // Irigasi/pertanian BUKAN "drainage": ia di luar cakupan dan ditangani kebijakan guna
     // (policy/scope.ts `useCasePolicy`, isyarat dari pemahaman) sebelum ekstraksi.
@@ -268,7 +287,9 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     'building.floors',
     counted('building.floors', extraction.building?.floors, OBVIOUS.floors(message)),
   );
-  add('building.floorHeightM', extraction.building?.floorHeightM);
+  // Tinggi lantai tersurat dari teks lebih dulu — termasuk nilai di luar 2–10 m, yang skema model
+  // buang diam-diam; kelengkapan menahannya dan menanyakannya balik (TC-H-02).
+  add('building.floorHeightM', OBVIOUS.floorHeight(message) ?? extraction.building?.floorHeightM);
   // Ukuran rumah dari teks lebih dulu (nilai tersurat); panjang jalur dari model hanya bila
   // ukuran rumah tidak disebut. Keduanya disimpan bersama bila keduanya ada.
   const plan = OBVIOUS.plan(message);

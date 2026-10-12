@@ -1374,6 +1374,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       satu-satunya WSFU ENG-701); ENG-006 (cadangan 10–15 % tanpa efek) dihapus. Dipertahankan: ENG-001/004/005/008/
       010/012/013 (dijalankan jalur rumah), ENG-003 (gedung bertingkat), ENG-007/014 (aturan di API, ID-nya catatan
       validasi).
+- [x] P16-71 TC-H-02 / TC-G-01: tinggi tiap lantai dibaca dari kalimat (parser nilai bersatuan "tinggi … lantai N m" /
+      "floor height N m"; "plafon" sengaja tidak dibaca); nilai di luar 2–10 m disimpan sebagai kata pengguna tetapi
+      menahan kelengkapan → kartu "Berapa tinggi tiap lantai?" berisian angka, analisis menolak (VALIDATION_FAILED);
+      4 m dipakai tanpa asumsi 3,5 m. Kartu kamar mandi / wastafel ikut punya isian "lebih dari …".
 - [ ] P16-69 Temuan laporan 0009 — F (hanya diselidiki): kelompok hitung bangunan ibadah/umum → OQ-61, menunggu keputusan
       pemilik dan nilai dari ahli Pralon. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").

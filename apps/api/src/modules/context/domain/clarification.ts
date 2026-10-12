@@ -25,6 +25,7 @@ import {
   parameterOptionLabels,
 } from '@snouty/engineering';
 import { irrigationFieldLabel, isIrrigationField } from './irrigation.js';
+import { FLOOR_HEIGHT_RANGE_M } from './completeness.js';
 
 export const MAX_CLARIFICATION_QUESTIONS = 4;
 
@@ -46,12 +47,15 @@ export const CLARIFICATION_PRIORITY: readonly RequirementFieldPath[] = [
 interface QuestionTemplate {
   readonly question: string;
   readonly options: readonly string[];
-  /** Isian angka bebas sebagai pengganti pilihan (ukuran bangunan dan tanah). */
+  /** Isian angka bebas sebagai pengganti atau pelengkap pilihan (ukuran, tinggi lantai, jumlah). */
   readonly inputs?: readonly TemplateInput[];
+  /** Bentuk nilai isian: objek ukuran (bawaan) atau satu angka (`value=…`). */
+  readonly inputValue?: 'dimensions' | 'number';
 }
 
 interface TemplateInput {
-  readonly key: keyof Dimensions;
+  readonly key: string;
+  readonly unit?: string;
   readonly group: { readonly id: string; readonly en: string };
   readonly label: { readonly id: string; readonly en: string };
   readonly required: boolean;
@@ -63,6 +67,35 @@ interface TemplateInput {
  * Ukuran diisi sendiri, bangunan dan tanah terpisah (permintaan pemilik 2026-10-12). Bangunan
  * wajib dan dipakai menghitung; tanah boleh dikosongkan dan hanya dicatat.
  */
+/**
+ * Tinggi tiap lantai diisi angka (TC-H-02): rentangnya sama dengan pagar engine ENG-702 dan skema
+ * ekstraksi (2–10 m). Ditanyakan bila nilai yang disebut di luar rentang itu.
+ */
+const FLOOR_HEIGHT_INPUTS: readonly TemplateInput[] = [
+  {
+    key: 'value',
+    unit: 'm',
+    group: { id: 'Tinggi tiap lantai', en: 'Floor height' },
+    label: { id: 'Tinggi', en: 'Height' },
+    required: true,
+    min: FLOOR_HEIGHT_RANGE_M.min,
+    max: FLOOR_HEIGHT_RANGE_M.max,
+  },
+];
+
+/** Jumlah di atas pilihan yang tersedia diketik sendiri (TC-H-04: 8 wastafel / keran wudhu). */
+const countInputs = (more: { id: string; en: string }): readonly TemplateInput[] => [
+  {
+    key: 'value',
+    unit: '',
+    group: more,
+    label: { id: 'Jumlah', en: 'Number' },
+    required: true,
+    min: 0,
+    max: 500,
+  },
+];
+
 const DIMENSION_INPUTS: readonly TemplateInput[] = [
   {
     key: 'lengthM',
@@ -114,6 +147,8 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
   'fixtures.bathrooms': {
     question: 'Ada berapa kamar mandi?',
     options: ['1', '2', '3', '4'],
+    inputs: countInputs({ id: 'Lebih dari 4', en: 'More than 4' }),
+    inputValue: 'number',
   },
   // Pertanyaan penyempurna (koreksi 2026-10-12): ditanya di samping tombol Susun rekomendasi.
   'building.dimensions': {
@@ -128,6 +163,14 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
   'fixtures.basins': {
     question: 'Ada berapa wastafel di luar kamar mandi?',
     options: ['0', '1', '2', '3'],
+    inputs: countInputs({ id: 'Lebih dari 3', en: 'More than 3' }),
+    inputValue: 'number',
+  },
+  'building.floorHeightM': {
+    question: 'Berapa tinggi tiap lantai (antara 2 dan 10 m)?',
+    options: [],
+    inputs: FLOOR_HEIGHT_INPUTS,
+    inputValue: 'number',
   },
 };
 
@@ -151,6 +194,7 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'building.dimensions': 'What are the building and land sizes (length × width)?',
   'fixtures.kitchens': 'How many kitchens are there?',
   'fixtures.basins': 'How many wash basins outside the bathrooms?',
+  'building.floorHeightM': 'What is the height of each floor (between 2 and 10 m)?',
 };
 
 /** Label tampilan Inggris per nilai pilihan kanonik; angka tampil apa adanya. */
@@ -189,6 +233,7 @@ const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath
   'water.installationType',
   'building.floors',
   'fixtures.bathrooms',
+  'building.floorHeightM',
   ...HOUSE_REFINEMENT_FIELDS,
 ]);
 
@@ -265,6 +310,7 @@ const ANSWER_LABEL: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'building.dimensions': 'Ukuran',
   'fixtures.kitchens': 'Dapur',
   'fixtures.basins': 'Wastafel',
+  'building.floorHeightM': 'Tinggi tiap lantai',
 };
 const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.source': 'Water source',
@@ -274,6 +320,7 @@ const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> =
   'building.dimensions': 'Size',
   'fixtures.kitchens': 'Kitchens',
   'fixtures.basins': 'Basins',
+  'building.floorHeightM': 'Floor height',
 };
 
 export interface ClarificationAnswer {
@@ -294,10 +341,12 @@ export function answerToUpdate(
   const path = answer.id as RequirementFieldPath;
   if (!TEMPLATES[path]) return null;
   if (answer.option === UNKNOWN_OPTION) return defaultFor(path);
-  const inputs = TEMPLATES[path]!.inputs;
-  if (inputs) {
-    const value = inputValues(answer.option, inputs);
-    return value === null ? null : { path, value, source: 'user_stated' };
+  const template = TEMPLATES[path]!;
+  if (template.inputs && answer.option.includes('=')) {
+    const values = inputValues(answer.option, template.inputs);
+    if (values === null) return null;
+    const value = template.inputValue === 'number' ? values['value'] : values;
+    return value === undefined ? null : { path, value, source: 'user_stated' };
   }
   if (!TEMPLATES[path]!.options.includes(answer.option)) return null;
   const mapped = OPTION_VALUES[path]?.[answer.option];
@@ -311,7 +360,10 @@ export function answerToUpdate(
  * Kunci harus dari isian templat, angka dalam batasnya; kelompok diisi lengkap atau kosong
  * seluruhnya; kelompok wajib harus ada. Selain itu `null`, bukan tebakan.
  */
-function inputValues(option: string, inputs: readonly TemplateInput[]): Dimensions | null {
+function inputValues(
+  option: string,
+  inputs: readonly TemplateInput[],
+): Readonly<Record<string, number>> | null {
   const values: Record<string, number> = {};
   for (const part of option.split(';')) {
     const [key, raw] = part.split('=');
@@ -328,15 +380,20 @@ function inputValues(option: string, inputs: readonly TemplateInput[]): Dimensio
     if (filled !== 0 && filled !== members.length) return null;
     if (filled === 0 && members.some((i) => i.required)) return null;
   }
-  return values as Dimensions;
+  return values;
 }
 
 /** "8 × 12 m (bangunan) · 10 × 20 m (tanah)" — jawaban isian untuk gelembung pengguna. */
-function inputSummary(option: string, locale: Locale): string {
-  const d = inputValues(option, DIMENSION_INPUTS);
-  if (d === null) return option;
+function inputSummary(template: QuestionTemplate, option: string, locale: Locale): string {
   const en = locale === 'en';
   const n = (x: number) => x.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
+  if (template.inputValue === 'number') {
+    const v = inputValues(option, template.inputs ?? [])?.['value'];
+    const unit = template.inputs?.[0]?.unit;
+    return v === undefined ? option : `${n(v)}${unit ? ` ${unit}` : ''}`;
+  }
+  const d = inputValues(option, DIMENSION_INPUTS) as Dimensions | null;
+  if (d === null) return option;
   const parts = [`${en ? 'building' : 'bangunan'} ${n(d.lengthM!)} × ${n(d.widthM!)} m`];
   if (d.landLengthM !== undefined && d.landWidthM !== undefined)
     parts.push(`${en ? 'land' : 'tanah'} ${n(d.landLengthM)} × ${n(d.landWidthM)} m`);
@@ -363,8 +420,9 @@ export function summarizeAnswers(
       const label = isIrrigationField(a.id)
         ? irrigationFieldLabel(a.id, locale)
         : (labels[a.id as RequirementFieldPath] ?? a.id);
-      if (TEMPLATES[a.id as RequirementFieldPath]?.inputs && a.option !== UNKNOWN_OPTION)
-        return `${label}: ${inputSummary(a.option, locale)}`;
+      const template = TEMPLATES[a.id as RequirementFieldPath];
+      if (template?.inputs && a.option.includes('='))
+        return `${label}: ${inputSummary(template, a.option, locale)}`;
       return `${label}: ${optionLabel(a.option, locale)}`;
     })
     .join(' · ');
@@ -383,7 +441,7 @@ function toQuestion(path: RequirementFieldPath, locale: Locale): ClarificationQu
             key: input.key,
             group: locale === 'en' ? input.group.en : input.group.id,
             label: locale === 'en' ? input.label.en : input.label.id,
-            unit: 'm',
+            unit: input.unit ?? 'm',
             required: input.required,
             min: input.min,
             max: input.max,

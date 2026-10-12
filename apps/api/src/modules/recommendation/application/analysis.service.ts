@@ -43,7 +43,9 @@ import {
   type NetworkInput,
   type PondInput,
   type SolutionInput,
+  CaseInputInvalidError,
 } from '@snouty/engineering';
+import { floorHeightOutOfRange } from '../../context/domain/completeness.js';
 import {
   appliedAssumptionsToView,
   engineeringStateFrom,
@@ -278,6 +280,19 @@ export class AnalysisService {
           locale,
         );
       throw new TechnicalCaseNotComputableError(state.useCase.caseId);
+    }
+
+    // Tinggi lantai yang disebut di luar 2–10 m tidak dihitung dan tidak diganti 3,5 m (TC-H-02):
+    // pertanyaannya sudah diajukan di chat; analisis menolak sampai nilainya dikoreksi.
+    const badFloorHeight = floorHeightOutOfRange(state);
+    if (badFloorHeight !== null) {
+      throw new CaseInputInvalidError([
+        {
+          parameter: 'building_height',
+          message: `Tinggi tiap lantai ${badFloorHeight} m di luar rentang 2–10 m yang bisa dihitung.`,
+          messageEn: `A floor height of ${badFloorHeight} m is outside the 2–10 m range that can be calculated.`,
+        },
+      ]);
     }
 
     // --- Tahap 2: aturan teknik ---
