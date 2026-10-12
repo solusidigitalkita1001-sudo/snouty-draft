@@ -399,6 +399,77 @@ export const ENG_705: RuleVersion<YardInput, YardResult> = {
     }),
 };
 
+// ── ENG-706 · Pipa pengisi toren atap ───────────────────────────────────────
+
+export interface TankFillInput {
+  readonly yardM: number;
+  readonly buildingSideM: number;
+  readonly tankLevelM: number;
+  /** Ukuran pipa pengisi dalam inci (asumsi TANK_FILL_PIPE_3_4IN). */
+  readonly sizeInches: number;
+}
+export interface TankFillResult {
+  readonly fillNetM: number;
+  readonly size: string;
+}
+
+const INCH_LABEL: Readonly<Record<string, string>> = {
+  '0.5': '1/2"',
+  '0.75': '3/4"',
+  '1': '1"',
+  '1.25': '1 1/4"',
+  '1.5': '1 1/2"',
+};
+
+/**
+ * Toren atap diisi dari meteran PDAM atau pompa di depan tanah (2026-10-12, P16-63): pipanya
+ * melewati halaman, menyusuri bangunan (sisi terpanjang — posisi toren belum diketahui), lalu naik
+ * ke muka air toren. Hanya bila ukuran bangunan diketahui.
+ */
+export const ENG_706: RuleVersion<TankFillInput, TankFillResult> = {
+  ruleId: 'ENG-706',
+  version: 1,
+  category: 'geometry',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const sizeInches = requireNumber('ENG-706', 'sizeInches', o['sizeInches'], {
+      min: 0.5,
+      max: 1.5,
+    });
+    if (INCH_LABEL[String(sizeInches)] === undefined) {
+      throw new RuleInputError('ENG-706', `ukuran ${sizeInches} inci tidak dikenal`);
+    }
+    return {
+      yardM: requireNumber('ENG-706', 'yardM', o['yardM'], { min: 0, max: 1000 }),
+      buildingSideM: requireNumber('ENG-706', 'buildingSideM', o['buildingSideM'], {
+        min: 1,
+        max: 500,
+      }),
+      tankLevelM: requireNumber('ENG-706', 'tankLevelM', o['tankLevelM'], { min: 1, max: 200 }),
+      sizeInches,
+    };
+  },
+  compute: (i) => ({
+    fillNetM: round1(i.yardM + i.buildingSideM + i.tankLevelM),
+    size: INCH_LABEL[String(i.sizeInches)]!,
+  }),
+  sourceReference:
+    'Perkiraan tanpa denah: pipa pengisi = halaman + sisi terpanjang bangunan + tinggi muka air toren; ukuran asumsi',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'halaman 8 m, bangunan 12 m, toren 8 m → 28 m, 3/4"',
+      input: { yardM: 8, buildingSideM: 12, tankLevelM: 8, sizeInches: 0.75 },
+      expected: { fillNetM: 28, size: '3/4"' },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Pipa pengisi toren ${o.size} dari meteran atau pompa di depan tanah: halaman ${i.yardM} m + sepanjang bangunan ${i.buildingSideM} m + naik ke toren ${i.tankLevelM} m = ${o.fillNetM} m.`,
+      en: `Tank fill pipe ${o.size} from the meter or pump at the front of the plot: yard ${i.yardM} m + along the building ${i.buildingSideM} m + up to the tank ${i.tankLevelM} m = ${o.fillNetM} m.`,
+    }),
+};
+
 // ── ENG-704 · Perkiraan panjang cabang dan sambungan dari ukuran rumah ──────
 
 export interface HouseBranchLengthInput {
@@ -456,4 +527,4 @@ export const ENG_704: RuleVersion<HouseBranchLengthInput, HouseBranchLengthResul
     }),
 };
 
-export const GROUP_K = [ENG_701, ENG_702, ENG_703, ENG_704, ENG_705] as const;
+export const GROUP_K = [ENG_701, ENG_702, ENG_703, ENG_704, ENG_705, ENG_706] as const;

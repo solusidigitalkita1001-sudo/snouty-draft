@@ -590,6 +590,23 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'Pipa dari cabang ke tiap alat diambil 1,5 m per titik air sampai denahnya diketahui.',
   },
   {
+    id: 'TANK_FILL_PIPE_3_4IN',
+    parameter: 'nominal_diameter',
+    appliesTo: [],
+    condition: 'ukuran pipa pengisi toren atap; debit pengisian tidak diketahui',
+    value: 0.75,
+    unit: 'inci',
+    conditionEn: 'roof tank fill pipe size; fill flow not known',
+    descriptionEn:
+      'The pipe filling the roof tank from the meter or pump is taken as 3/4 inch until the fill flow is known.',
+    reference:
+      'Perkiraan awal (2026-10-12, P16-63): ukuran lazim pipa pengisi toren rumah; perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Pipa pengisi toren dari meteran atau pompa diambil 3/4 inci sampai debit pengisiannya diketahui.',
+  },
+  {
     id: 'HOUSE_VENT_ABOVE_ROOF_1M',
     parameter: 'building_height',
     appliesTo: [],

@@ -323,6 +323,14 @@ export class AnalysisService {
           branch: match.stockFor('branch'),
           fixture: match.stockFor('fixture'),
           tee: match.products.find((p) => p.role === 'fitting') ?? null,
+          // Pipa pengisi toren: produk PVC AW seukuran asumsinya (ENG-706).
+          fill: solution.tankFill
+            ? (
+                await this.matchRoles([
+                  pipeRequirement('main', solution.tankFill.size, PIPE_FAMILY),
+                ])
+              ).stockFor('main')
+            : null,
         },
         now,
         locale,

@@ -151,6 +151,20 @@ export function systemLinesFrom(
     },
   ];
 
+  // Toren atap: pipa pengisi dari meteran / pompa di depan tanah (ENG-706, P16-63).
+  if (solution.tankFill !== null) {
+    const fillTraces = traceIdsFor(traces, 'ENG-706');
+    lines.push({
+      name: en ? 'Tank fill pipe' : 'Pipa pengisi toren',
+      path: en ? 'Meter / pump → roof tank' : 'Meteran / pompa → toren atap',
+      size: solution.tankFill.size,
+      reason: explanationFor(traces, 'ENG-706'),
+      provenance: provenanceFor(traces, fillTraces),
+      traceIds: fillTraces,
+      role: 'main',
+    });
+  }
+
   // Sumber air: yang perlu disiapkan supaya titik tertinggi mendapat tekanan.
   const pump = supply.main.pumpDuty;
   const source =
@@ -196,6 +210,8 @@ export interface HouseStocks {
   readonly fixture?: StockLength | null;
   /** Tee cabang yang terpilih dari katalog; tanpa produk, barisnya tetap ada tanpa `productId`. */
   readonly tee?: { readonly productId: string } | null;
+  /** Pipa pengisi toren atap (ENG-706). */
+  readonly fill?: StockLength | null;
 }
 
 /**
@@ -248,6 +264,20 @@ export function bomItemsFrom(
       ids,
     ),
   ];
+
+  if (solution.tankFill !== null) {
+    rows.push(
+      pipeRow(
+        solution.tankFill.size,
+        solution.tankFill.netM,
+        en
+          ? 'tank fill: yard + along the building + up to the tank'
+          : 'pengisi toren: halaman + sepanjang bangunan + naik ke toren',
+        stocks.fill ?? null,
+        traceIdsFor(traces, 'ENG-706'),
+      ),
+    );
+  }
 
   const layout = solution.branchLayout;
   if (layout === null) return rows;

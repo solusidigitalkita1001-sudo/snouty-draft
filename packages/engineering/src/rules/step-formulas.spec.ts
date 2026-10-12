@@ -109,6 +109,18 @@ describe('tanah dan bangunan dibedakan (2026-10-12)', () => {
     expect(r.mainRunNetM).toBe(22.5);
   });
 
+  it('toren atap: pipa pengisi dari depan tanah = halaman 8 + bangunan 12 + toren 8 = 28 m, 3/4" asumsi', () => {
+    const r = computeSolution({ ...base, waterSource: 'rooftop_tank' });
+    expect(r.tankFill).toEqual({ netM: 28, size: '3/4"' });
+    expect(r.appliedAssumptionIds).toContain('TANK_FILL_PIPE_3_4IN');
+    const trace = r.traces.find((t) => t.ruleId === 'ENG-706')!;
+    expect(stepFormula('ENG-706', trace.inputs, trace.output)).toBe(
+      'Pipa pengisi toren = 8 + 12 + 8 = 28 m',
+    );
+    // PDAM langsung: tidak ada toren atap, tidak ada pipa pengisi.
+    expect(computeSolution({ ...base, waterSource: 'municipal' }).tankFill).toBeNull();
+  });
+
   it('tanpa ukuran tanah tidak ada halaman', () => {
     const r = computeSolution({
       ...base,

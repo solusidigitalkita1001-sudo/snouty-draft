@@ -1352,6 +1352,8 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-62 Ponsel setelah solusi siap (laporan pemilik 2026-10-12): tiga lapis tombol di atas (header, baris "Buat
       laporan", baris "Simpan hasil konsultasi") diganti bilah bawah "Simpan" + "Buat laporan"; di layar chat hanya
       baris tipis "Lihat solusi"; label kelompok isian ukuran di barisnya sendiri.
+- [x] P16-63 Pipa pengisi toren atap dihitung (ENG-706, asumsi ¾" TANK_FILL_PIPE_3_4IN): baris sistem dan baris
+      material; layar solusi ponsel satu baris (panah kembali ringkas + tab).
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

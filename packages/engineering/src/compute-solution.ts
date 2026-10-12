@@ -38,6 +38,7 @@ import {
   ENG_703,
   ENG_704,
   ENG_705,
+  ENG_706,
   hunterGpm,
   minimumHeadM,
   type RouteBasis,
@@ -110,6 +111,8 @@ export interface SolutionResult {
    */
   /** Halaman dari bangunan ke depan tanah (ENG-705); `null` tanpa ukuran tanah dan bangunan. */
   readonly yardM: number | null;
+  /** Pipa pengisi toren atap (ENG-706); `null` bukan toren atap atau tanpa ukuran bangunan. */
+  readonly tankFill: { readonly netM: number; readonly size: string } | null;
   readonly branchLayout: {
     readonly branchNetM: number;
     readonly fixtureNetM: number;
@@ -274,6 +277,17 @@ export function computeSolution(
     sizeTable: 'pvc_inch',
   });
 
+  // 5b · pipa pengisi toren atap, hanya dengan ukuran bangunan (P16-63).
+  const tankFill =
+    gravity && plan !== null && route.tankLevelM !== null
+      ? run(ENG_706, {
+          yardM: yard ?? 0,
+          buildingSideM: Math.max(plan.lengthM, plan.widthM),
+          tankLevelM: route.tankLevelM,
+          sizeInches: use('TANK_FILL_PIPE_3_4IN'),
+        })
+      : null;
+
   // 6 · panjang cabang dan sambungan, hanya dari ukuran rumah (P16-60).
   const branchLayout =
     plan !== null
@@ -313,6 +327,7 @@ export function computeSolution(
     },
     mainRunNetM: hasRealDimensions ? route.routeLengthM : null,
     yardM: yard,
+    tankFill: tankFill ? { netM: tankFill.fillNetM, size: tankFill.size } : null,
     branchLayout,
     variancePercent: { min: variance.minPercent, max: variance.maxPercent },
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },

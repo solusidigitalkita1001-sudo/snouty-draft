@@ -91,6 +91,7 @@ describe('material rumah', () => {
       branch: stock('cabang'),
       fixture: stock('sambungan'),
       tee: { productId: 'TEE-1' },
+      fill: stock('pengisi'),
     });
     const layout = sized.branchLayout!;
     // Sisi terpanjang 15 m × jumlah cabang; 1,5 m per titik air; 1 tee per cabang.
@@ -98,11 +99,15 @@ describe('material rumah', () => {
     expect(layout.fixtureNetM).toBe(sized.outletCount * 1.5);
     expect(bom.map((b) => [b.size, b.quantity, b.unit])).toEqual([
       [sized.mainSize, Math.ceil(25.5 / 4), 'batang'],
+      // Toren atap: pipa pengisi = halaman (tanpa ukuran tanah 0) + 15 m + muka air toren.
+      [sized.tankFill!.size, Math.ceil(sized.tankFill!.netM / 4), 'batang'],
       [sized.branchSize, Math.ceil(layout.branchNetM / 4), 'batang'],
       [sized.fixtureConnectionSize, Math.ceil(layout.fixtureNetM / 4), 'batang'],
       [sized.mainSize, sized.branchCount, 'pcs'],
     ]);
-    expect(bom[3]).toMatchObject({ item: 'Tee cabang', productId: 'TEE-1', provenance: 'ASSUMED' });
+    // Tanpa ukuran tanah: halaman 0 + sisi bangunan 15 m + muka air toren (2 × 3,5 + 1 = 8 m) = 23 m.
+    expect(sized.tankFill).toEqual({ netM: 23, size: '3/4"' });
+    expect(bom[4]).toMatchObject({ item: 'Tee cabang', productId: 'TEE-1', provenance: 'ASSUMED' });
   });
 
   it('bomItemName: item tak dikenal lewat apa adanya; keluarga pipa tetap', () => {

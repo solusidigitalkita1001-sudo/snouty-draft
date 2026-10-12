@@ -448,6 +448,8 @@ ENG-705  halaman = sisi terpanjang tanah − sisi terpanjang bangunan (≥ 0) �
          tank, dan saluran di depan tanah, bangunan di belakang; hanya bila ukuran tanah dan
          bangunan diketahui. ENG-702 v2: jalur sumber di bawah (PDAM, pompa, toren bawah) + halaman;
          toren atap tidak. ENG-603 v2: air kotor dan air bekas + halaman.
+ENG-706  pipa pengisi toren atap (hanya toren atap + ukuran bangunan) = halaman + sisi terpanjang
+         bangunan + muka air toren; ukuran ¾" asumsi (TANK_FILL_PIPE_3_4IN)
 ENG-704  perkiraan panjang (hanya bila ukuran rumah diketahui, OQ-60): cabang = jumlah cabang × sisi
          terpanjang; sambungan = titik air × 1,5 m (HOUSE_FIXTURE_DROP_1_5M); tee = 1 per cabang
 ```

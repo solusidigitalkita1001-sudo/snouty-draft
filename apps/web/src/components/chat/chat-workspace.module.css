@@ -2064,20 +2064,9 @@
   }
 
   /* Tab layar solusi di ponsel (audit 2026-10-07: hanya "Ringkasan" yang terlihat, tiga tab lain
-     terjepit). Baris pertama: kembali + simpan; baris kedua: tab selebar layar, menggulir ke samping. */
-  .solutionTabs {
-    flex-wrap: wrap;
-    padding: 0 12px;
-    row-gap: 0;
-  }
-
-  .solutionTabActions {
-    margin-left: auto;
-  }
-
+     terjepit). Satu baris (2026-10-12): panah kembali ringkas di kiri, tab menggulir ke samping;
+     "Simpan" dan "Buat laporan" ada di bilah bawah. */
   .tabList {
-    order: 3;
-    flex-basis: 100%;
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
@@ -2131,10 +2120,16 @@
     min-height: 36px;
   }
 
-  /* Layar solusi ponsel: tab tanpa tombol, back ringkas. */
   .solutionTabs {
     padding: 0 8px 0 4px;
-    gap: 4px;
+    gap: 0;
+  }
+
+  .tabBack {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: 18px;
   }
 
   /*

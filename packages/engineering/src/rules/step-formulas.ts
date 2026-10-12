@@ -236,6 +236,13 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
       `Height difference = ${f.n(o['staticHeadM'])} m · Route length = ${f.n(vertical)} vertical + ${f.n(i['horizontalRunM'])} horizontal${yardEn} = ${f.n(o['routeLengthM'])} m`,
     );
   },
+  'ENG-706': (i, o, f) =>
+    nums(i, ['yardM', 'buildingSideM', 'tankLevelM']) && nums(o, ['fillNetM'])
+      ? f.t(
+          `Pipa pengisi toren = ${f.n(i['yardM'])} + ${f.n(i['buildingSideM'])} + ${f.n(i['tankLevelM'])} = ${f.n(o['fillNetM'])} m`,
+          `Tank fill pipe = ${f.n(i['yardM'])} + ${f.n(i['buildingSideM'])} + ${f.n(i['tankLevelM'])} = ${f.n(o['fillNetM'])} m`,
+        )
+      : null,
   'ENG-705': (i, o, f) =>
     nums(i, ['landSideM', 'buildingSideM']) && nums(o, ['yardM'])
       ? f.t(

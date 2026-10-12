@@ -1265,8 +1265,13 @@ export function ChatWorkspace() {
         {inConversation && screen === 'solution' && solution !== null && (
           <div className={styles.solutionScreen}>
             <div className={styles.solutionTabs}>
-              <button type="button" className={styles.tabBack} onClick={() => setScreen('chat')}>
-                {COPY.backToChat}
+              <button
+                type="button"
+                className={styles.tabBack}
+                onClick={() => setScreen('chat')}
+                aria-label={COPY.backToChat}
+              >
+                {mobile ? '←' : COPY.backToChat}
               </button>
               <div className={styles.tabList} role="tablist" aria-label={COPY.solutionReady}>
                 {COPY.solutionTabs.map((t) => (
