@@ -78,6 +78,7 @@ import { extractionToUpdates } from './extraction-to-updates.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsFor } from './pipe-knowledge.js';
 import { productAnswerCopy } from './product-answer-text.js';
+import { competitorAnswer } from './competitor-answer.js';
 import {
   explanationBeforeSolution,
   explanationHandedOff,
@@ -131,20 +132,13 @@ export async function runUnderstanding(
   ]);
   const locale = input.locale ?? DEFAULT_LOCALE;
 
-  // Policy 1 DULU, sebelum apa pun: pertanyaan kompetitor dijawab kriteria netral dan
-  // tidak pernah masuk jalur rekomendasi. Memeriksanya di sini — bukan setelah
-  // ekstraksi — berarti tidak ada jalan ia tercampur dengan pencocokan produk.
+  // Policy 1 DULU, sebelum apa pun: pertanyaan kompetitor tidak pernah masuk jalur rekomendasi.
+  // Memeriksanya di sini — bukan setelah ekstraksi — berarti tidak ada jalan ia tercampur dengan
+  // pencocokan produk. Isinya keputusan pemilik 2026-10-12 (b): merek lain tidak dinilai, keunggulan
+  // Pralon dari profil terverifikasi, lalu tawaran tim teknis.
   if (input.decision.intent === 'COMPETITOR_QUESTION') {
-    const card = policyCard(competitorPolicy(locale), [], locale);
-    // Satu kalimat pengantar: gelembung yang hanya berisi kartu terasa seperti jawaban yang hilang.
-    events.push({
-      type: 'token',
-      text:
-        locale === 'en'
-          ? "I don't compare brands, but these are the things worth checking when choosing a pipe:"
-          : 'Saya tidak membandingkan merek, tetapi ini yang perlu diperhatikan saat memilih pipa:',
-    });
-    if (card) events.push({ type: 'card', card });
+    events.push({ type: 'token', text: competitorAnswer(locale) });
+    events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
   }

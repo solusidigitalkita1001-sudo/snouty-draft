@@ -32,7 +32,9 @@ describe('Policy 1 — hanya Pralon (RELEASE BLOCKER)', () => {
   });
 
   it('kriteria netral tidak menyebut satu pun nama merek', () => {
-    const joined = NEUTRAL_CRITERIA.join(' ').toLowerCase();
+    const joined = NEUTRAL_CRITERIA.map((c) => `${c.label} ${c.detail}`)
+      .join(' ')
+      .toLowerCase();
     for (const brand of ['pralon', 'rucika', 'wavin', 'maspion', 'vinilon']) {
       expect(joined).not.toContain(brand);
     }
@@ -116,7 +118,9 @@ describe('Policy teks dwibahasa (Fase 15)', () => {
       reasons: ['Instalasi industri memerlukan pemeriksaan tim teknis Pralon.'],
     });
     expect(competitorPolicy('id')).toEqual(competitorPolicy());
-    expect(competitorPolicy('id')).toMatchObject({ reasons: NEUTRAL_CRITERIA });
+    expect(competitorPolicy('id')).toMatchObject({
+      reasons: NEUTRAL_CRITERIA.map((c) => c.detail),
+    });
   });
 
   it("'en' memberi teks Inggris dengan struktur dan kode yang sama", () => {

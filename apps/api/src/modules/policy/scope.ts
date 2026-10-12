@@ -139,31 +139,37 @@ export function competitorPolicy(locale: Locale = DEFAULT_LOCALE): PolicyOutcome
   return {
     kind: 'policy',
     code: 'COMPETITOR_COMPARISON_REFUSED',
-    reasons: neutralCriteria(locale),
+    reasons: neutralCriteria(locale).map((c) => c.detail),
   };
 }
 
 /**
  * Kriteria pemilihan netral (layar 08). Tidak menyebut merek apa pun — netral
  * berarti netral, termasuk tidak memuji Pralon di tempat yang seharusnya objektif.
+ * Tiap butir punya labelnya sendiri (tes FAQ 2026-10-12: kelima label tertulis "Kriteria").
  */
-export const NEUTRAL_CRITERIA: readonly string[] = [
-  'Kesesuaian kelas tekanan dengan kebutuhan instalasi.',
-  'Ketersediaan ukuran dan fitting yang sepadan.',
-  'Kesesuaian standar yang berlaku untuk penggunaannya.',
-  'Kemudahan pemasangan dan perawatan di lapangan.',
-  'Dukungan dokumentasi teknis yang bisa diperiksa.',
+export interface Criterion {
+  readonly label: string;
+  readonly detail: string;
+}
+
+export const NEUTRAL_CRITERIA: readonly Criterion[] = [
+  { label: 'Kelas tekanan', detail: 'Kesesuaian kelas tekanan dengan kebutuhan instalasi.' },
+  { label: 'Ukuran dan fitting', detail: 'Ketersediaan ukuran dan fitting yang sepadan.' },
+  { label: 'Standar', detail: 'Kesesuaian standar yang berlaku untuk penggunaannya.' },
+  { label: 'Pemasangan', detail: 'Kemudahan pemasangan dan perawatan di lapangan.' },
+  { label: 'Dokumentasi', detail: 'Dukungan dokumentasi teknis yang bisa diperiksa.' },
 ];
 
-export const NEUTRAL_CRITERIA_EN: readonly string[] = [
-  'Pressure class suited to the installation needs.',
-  'Availability of matching sizes and fittings.',
-  'Compliance with the standards that apply to the intended use.',
-  'Ease of installation and maintenance in the field.',
-  'Technical documentation support that can be verified.',
+export const NEUTRAL_CRITERIA_EN: readonly Criterion[] = [
+  { label: 'Pressure class', detail: 'Pressure class suited to the installation needs.' },
+  { label: 'Sizes and fittings', detail: 'Availability of matching sizes and fittings.' },
+  { label: 'Standards', detail: 'Compliance with the standards that apply to the intended use.' },
+  { label: 'Installation', detail: 'Ease of installation and maintenance in the field.' },
+  { label: 'Documentation', detail: 'Technical documentation support that can be verified.' },
 ];
 
-export function neutralCriteria(locale: Locale = DEFAULT_LOCALE): readonly string[] {
+export function neutralCriteria(locale: Locale = DEFAULT_LOCALE): readonly Criterion[] {
   return locale === 'en' ? NEUTRAL_CRITERIA_EN : NEUTRAL_CRITERIA;
 }
 

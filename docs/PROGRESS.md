@@ -1413,6 +1413,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-80 Tes FAQ 6 — batas pesan: pesan menyebut lama menunggu (±N menit); tamu ditawari daftar akun dengan batas
       akun terdaftar dari tabel kebijakan (60/jam) dan panel daftar/masuk. Angka batas tidak diubah: tamu 20 pesan/jam per
       sesi tamu (cookie), terdaftar 60, lanjutan 180; jendela tetap 1 jam di Redis.
+- [x] P16-81 Tes FAQ 5 — pertanyaan merek pesaing, keputusan pemilik (b): merek lain tidak dinilai; jawabannya ragam
+      produk, standar/sertifikasi, dan kontrol mutu Pralon dari profil perusahaan terverifikasi, lalu tombol tim teknis.
+      Kartu kriteria netral (masih dipakai kebijakan lain) kini berlabel per butir.
 - [ ] P16-69 Temuan laporan 0009 — F: tempat ibadah (P16-76) dan sekolah/klinik (P16-78) selesai; pengesahan nilai oleh
       ahli Pralon masih → OQ-61. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").

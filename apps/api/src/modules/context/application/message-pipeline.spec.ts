@@ -665,7 +665,7 @@ describe('applyEdit — nol panggilan LLM (§9 #9)', () => {
 });
 
 describe('gerbang kebijakan di pipeline (P5-05)', () => {
-  it('pertanyaan kompetitor: kartu kriteria netral, tanpa ekstraksi sama sekali', async () => {
+  it('pertanyaan kompetitor (pemilik 2026-10-12, b): keunggulan Pralon bersumber + tim teknis, tanpa ekstraksi', async () => {
     const ai = aiExtracting({ building: { floors: 2 } });
     const decision: RoutingDecision = {
       intent: 'COMPETITOR_QUESTION',
@@ -676,11 +676,13 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
     const { events, changed } = await runUnderstanding(ai, input({ decision }));
 
     const card = events.find((e) => e.type === 'card') as { card: { kind: string } };
-    expect(card.card.kind).toBe('criteria');
-    // Gelembungnya tidak kosong: satu kalimat pengantar sebelum kartu.
-    expect(events.find((e) => e.type === 'token')).toMatchObject({
-      text: expect.stringContaining('tidak membandingkan merek'),
-    });
+    expect(card.card).toEqual({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('Merek lain tidak bisa saya nilai');
+    // Isinya dari profil terverifikasi: ragam produk, sertifikasi (SNI), kontrol mutu.
+    expect(text).toContain('**Ragam produk**');
+    expect(text).toContain('SNI');
+    expect(text).toContain('**Kontrol mutu**');
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
     expect(changed).toBe(false);
     // Tidak ada kartu produk, tak peduli apa pun kata modelnya.

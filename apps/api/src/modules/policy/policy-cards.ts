@@ -38,10 +38,7 @@ export function policyCard(
     // akan meninggalkan pengguna tanpa jalan keluar — dan itu bukan jawaban.
     return {
       kind: 'criteria',
-      items: neutralCriteria(locale).map((detail) => ({
-        label: locale === 'en' ? 'Criterion' : 'Kriteria',
-        detail,
-      })),
+      items: neutralCriteria(locale).map((c) => ({ label: c.label, detail: c.detail })),
     };
   }
 

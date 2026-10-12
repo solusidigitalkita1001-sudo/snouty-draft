@@ -7,10 +7,10 @@ describe('policyCard', () => {
     expect(policyCard({ kind: 'supported' })).toBeNull();
   });
 
-  it("'id' tidak berubah: kartu kriteria berlabel Kriteria", () => {
+  it("'id': tiap butir kartu kriteria punya labelnya sendiri (tes FAQ 2026-10-12)", () => {
     expect(policyCard(competitorPolicy())).toEqual({
       kind: 'criteria',
-      items: NEUTRAL_CRITERIA.map((detail) => ({ label: 'Kriteria', detail })),
+      items: NEUTRAL_CRITERIA.map((c) => ({ label: c.label, detail: c.detail })),
     });
   });
 
@@ -18,7 +18,7 @@ describe('policyCard', () => {
     const card = policyCard(competitorPolicy('en'), [], 'en');
     expect(card).toEqual({
       kind: 'criteria',
-      items: NEUTRAL_CRITERIA_EN.map((detail) => ({ label: 'Criterion', detail })),
+      items: NEUTRAL_CRITERIA_EN.map((c) => ({ label: c.label, detail: c.detail })),
     });
   });
 
@@ -34,5 +34,10 @@ describe('policyCard', () => {
       captured,
       slaHours: TECHNICAL_SLA_HOURS,
     });
+  });
+
+  it('label butir kriteria tidak ada yang sama', () => {
+    const labels = NEUTRAL_CRITERIA.map((c) => c.label);
+    expect(new Set(labels).size).toBe(labels.length);
   });
 });
