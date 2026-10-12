@@ -1,124 +1,120 @@
 # SNOUTY — Konteks Ringkas untuk Brainstorming
 
 Dokumen ini berdiri sendiri: cukup untuk Claude (atau orang baru) memahami SNOUTY tanpa membaca
-seluruh `docs/`. Status per 7 Oktober 2026.
+seluruh repositori. Status per **12 Oktober 2026**.
 
 ## 1. Apa itu SNOUTY
 
-AI Pipe Solution Assistant milik PT Pralon (produsen pipa plastik Indonesia: PVC, HDPE, PPR,
-fitting, dan sistem perpipaan). Pengguna (kontraktor, pemilik rumah, konsultan, tim sales)
-menjelaskan kebutuhan dalam bahasa sehari-hari, Indonesia atau Inggris, dan SNOUTY:
+Asisten solusi pipa milik PT Pralon (produsen pipa plastik Indonesia: uPVC, HDPE, MDPE, fitting,
+pipa jacking, conduit). Pengguna — kontraktor, pemilik rumah, konsultan, sales — bercerita dalam
+bahasa sehari-hari (Indonesia atau Inggris), lalu SNOUTY:
 
-1. memahami kebutuhan (jenis bangunan, lantai, kamar mandi, sumber air; atau kasus teknis seperti
-   transfer bertekanan, gravitasi, kolam, irigasi);
-2. menanyakan data yang kurang lewat kartu klarifikasi, bukan menebak;
-3. menghitung ukuran pipa, kebutuhan pompa, dan BOM dengan aturan teknik ber-ID;
-4. memetakan hasil ke produk Pralon aktif;
-5. menjawab pertanyaan produk, pengetahuan perpipaan, dan profil perusahaan dari sumber yang
-   bisa ditelusuri;
-6. menghasilkan laporan PDF dua bahasa dan handoff terstruktur ke tim teknis Pralon.
+1. memahami kebutuhannya (rumah, gedung bertingkat, kolam/tambak, drainase, transfer pompa, sumur,
+   irigasi, air hujan, gorong-gorong, cluster perumahan);
+2. menanyakan data yang kurang lewat kartu pilihan, bukan menebak;
+3. **menghitung** ukuran pipa, pompa, tangki, zona tekanan, dan material dengan aturan teknik
+   ber-ID (tidak pernah oleh model bahasa);
+4. mencocokkan hasilnya ke produk Pralon aktif di katalog;
+5. menjawab pertanyaan produk dan pengetahuan perpipaan dari sumber yang bisa ditelusuri;
+6. menggambar skema, membuat laporan PDF, dan meneruskan kasus ke tim teknis Pralon bila perlu.
 
-Live di https://ai.pralon.co.id.
+Live di https://ai.pralon.co.id. Prinsip pemilik: **hitung dulu**; tim teknis adalah tambahan,
+bukan jalan keluar ketika sistem tidak mau menghitung.
 
 ## 2. Prinsip yang tidak bisa ditawar
 
-- LLM bukan sumber kebenaran teknik. Perhitungan tidak pernah memanggil model.
-- Tidak pernah mengarang data produk, nilai teknik, atau harga. Tidak tahu → `UNAVAILABLE`,
-  pertanyaan klarifikasi, atau rute ke validasi teknis.
-- Setiap nilai yang ditampilkan membawa provenance (`VERIFIED` / `ASSUMED` / `ESTIMATED` /
-  `UNAVAILABLE`). Aturan berstatus `REQUIRES_DOMAIN_VALIDATION` tidak pernah menghasilkan
-  `VERIFIED`.
-- Hanya produk Pralon yang direkomendasikan.
-- Aturan bisnis di kode, bukan di prompt. Aturan yang hanya ada di prompt dianggap tidak ada.
-- State percakapan terstruktur, bukan riwayat chat mentah. Eksekusi selektif per pesan.
-- Tanpa metatext dan tanpa "AI slop" di teks yang dilihat pengguna.
-- Monolith modular, tanpa microservices, tanpa Python, tanpa Qdrant sampai ada kebutuhan konkret.
+- Model bahasa bukan sumber kebenaran teknik. Perhitungan tidak pernah memanggil model.
+- Tidak mengarang data produk, nilai teknik, atau harga. Tidak tahu → `UNAVAILABLE`, pertanyaan
+  balik, atau validasi teknis.
+- Setiap nilai membawa provenance: `VERIFIED` / `ASSUMED` / `ESTIMATED` / `UNAVAILABLE`. Aturan yang
+  belum divalidasi ahli (semuanya, hari ini) tidak pernah menghasilkan `VERIFIED`.
+- Hanya produk Pralon yang direkomendasikan; pesaing hanya konteks.
+- Aturan bisnis di kode, bukan di prompt.
+- **Pertanyaan pengguna tidak pernah di-hardcode**: tidak ada regex/daftar frasa yang menebak apa
+  yang ditanya. Pemahaman dari contoh kalimat sebagai data (kemiripan vektor) atau dari model.
+- Tanpa metatext dan "AI slop": SNOUTY bicara seperti teknisi Pralon.
+- Monolith modular, tanpa microservices, tanpa Python.
 
 ## 3. Bentuk sistem
 
-- pnpm monorepo: `apps/web` (Next.js 16), `apps/api` (NestJS + Drizzle/MySQL, SSE),
-  `apps/worker` (RabbitMQ + Chromium untuk PDF), `packages/engineering` (TypeScript murni, tanpa
-  I/O), `packages/shared-types`.
-- Produksi: docker compose di satu server 4 CPU tanpa GPU (`192.168.1.10`), nginx bersama,
-  MySQL, Redis, RabbitMQ, Ollama dengan `qwen2.5:7b-instruct` (gratis, lokal).
-- Setiap commit langsung dirilis ke produksi dan diverifikasi.
-- Skema lengkap: `ARSITEKTUR_SKEMA.md` di folder ini.
+- pnpm monorepo: `apps/web` (Next.js), `apps/api` (NestJS + Drizzle/MySQL, SSE), `apps/worker`
+  (RabbitMQ + Chromium untuk PDF), `packages/engineering` (TypeScript murni tanpa I/O — semua
+  rumus), `packages/shared-types`.
+- Produksi: satu server 4 CPU tanpa GPU, docker compose: nginx, MySQL, Redis, RabbitMQ, Ollama.
+- Model lokal (gratis): `qwen3.5:4b` (cepat) dan `qwen3.5:9b` (seimbang/kuat); `bge-m3` untuk
+  embedding (pemahaman pertanyaan).
+- Setiap commit langsung dirilis ke produksi dan dicek di situs.
+- Skema lengkap: `ARSITEKTUR_SKEMA.md`. Rumus: `MESIN_HITUNG.md`.
 
-## 4. Yang sudah ada (ringkas, per fase)
+## 4. Yang sudah ada
 
-- Fase 0–9: fondasi monorepo, katalog produk (impor ERP, 7.681 SKU), auth (tamu + akun), context
-  engine (intent, ekstraksi, klarifikasi, snapshot), mesin teknik bangunan (ENG-001…009),
-  matcher katalog, tampilan solusi, laporan PDF, handoff, back-office minimal, kebijakan cakupan.
-- Fase 10–13: kasus teknis universal (bertekanan ENG-201…206, gravitasi/gorong-gorong
-  ENG-401…404, kolam ENG-301…304, irigasi ENG-101…105), registry parameter dan asumsi,
-  klasifikasi kasus dari bentuk kalimat, penjelasan per aturan dua bahasa.
-- Fase 14: evaluasi otomatis (skenario, ambang), ekstensi ukuran pipa mm, streaming SSE.
-- Fase 15: dua bahasa penuh (ID/EN) di engine, tampilan, laporan; checkpoint 12 skenario EN.
-- Fase 16 (sedang berjalan): subjek percakapan aktif dan koreferensi ("boleh", "lengkap dong",
-  "bandingin sama PVC", "yang mana buat …"), modul `company-knowledge` dari materi HRGA, modul
-  `pipe-knowledge` (bahan dan konsep tanpa angka), balasan sosial tanpa model, akun pop-up,
-  komposer baru, format tabel, diet panggilan model.
+- **Katalog**: impor ERP 2026-10-06 — 7.681 SKU aktif, 24 keluarga; dihitung sebagai 7.664 produk
+  berbeda (salinan ERP dan SKU bernama sama dihitung sekali, jumlah SKU tetap disebut).
+- **Pemahaman**: ±1.900 contoh kalimat berlabel (intent, topik pengetahuan, jenis kasus, aspek
+  produk, format, kedalaman) di `data/understanding/`, disandikan `bge-m3`. Golden eval: intent
+  139/139 + 15 kasus topik.
+- **Mesin hitung** (45 aturan ber-ID, semua menunggu validasi ahli):
+  rumah air bersih (debit puncak kurva Hunter + hidraulik), rumah pembuangan (unit beban buangan,
+  jalur air kotor/air bekas + ventilasi), gedung bertingkat (kebutuhan, zona tekanan per lantai,
+  pompa transfer, riser, tangki bawah/atap), transfer bertekanan/sumur, gravitasi/drainase/air
+  hujan/gorong-gorong, kolam, irigasi, cluster perumahan.
+- **Jawaban pengetahuan**: fakta bersumber (`data/knowledge/pipe-facts.json`, dari Knowledge Master
+  HRGA + katalog) dirangkai deterministik; saklar **Hemat | Kualitas** — hemat menampilkan DATA
+  langsung (±0,1 s), kualitas membiarkan model merangkai ulang DATA itu (angka dijaga pagar).
+- **Layar solusi**: ringkasan, baris sistem dengan langkah hitung yang bisa dibaca, material dari
+  panjang jalur × panjang batang katalog, asumsi yang bisa diubah lalu dihitung ulang, skema
+  (rumah: per lantai; kasus teknis: rel aliran), laporan PDF.
+- **Akun**: tamu + akun terdaftar (wajib nomor HP sejak 12 Okt), laporan PDF untuk akun terdaftar.
+- **Audit 9–12 Oktober**: diameter dalam dari OD resmi (bukan nominal), presisi rantai hitung, zona
+  tekanan dari elevasi, BOM tanpa angka karangan, pagar keluaran model atas penanda teknis
+  (PN/SDR/SNI) — rincian `docs/ENGINEERING_AUDIT.md`.
 
-## 5. Bagaimana satu pesan diproses
+## 5. Angka yang mengubah keputusan
 
-Urutan: sosial → lanjutan subjek aktif → intent pasti dari bentuk kalimat (perusahaan, produk,
-pengetahuan, harga, kebutuhan bangunan, irigasi, kasus teknis) → baru model untuk klasifikasi
-intent bila tidak ada yang cocok → pagar di kode (presedensi kebutuhan, pesaing, perusahaan,
-subjek). Untuk kebutuhan bangunan, fakta tersurat dibaca kode; ekstraksi model hanya bila kode
-menangkap kurang dari dua data inti. Rincian di `ARSITEKTUR_SKEMA.md` §3.
+| Hal                                                          | Nilai                                     |
+| ------------------------------------------------------------ | ----------------------------------------- |
+| Giliran pengetahuan/produk mode hemat                        | ±0,1 s di server                          |
+| Analisis "Susun rekomendasi" di server                       | ±50 ms (engine 3 ms, katalog 31 ms)       |
+| Rangkai ulang model 9B (mode kualitas)                       | 20–25 s                                   |
+| Model 4B                                                     | 12–14 s, tetapi lebih sering salah        |
+| Perencana giliran (model) bila kalimat tidak dikenali        | ±8 s                                      |
+| SKU / produk berbeda                                         | 7.681 / 7.664                             |
+| Aturan teknik ber-ID                                         | 45, semuanya `REQUIRES_DOMAIN_VALIDATION` |
+| FAQ pemilik (52 pertanyaan) dijawab layak, uji live terakhir | ±47/52                                    |
 
-## 6. Angka yang mengubah keputusan
+## 6. Keputusan pemilik yang sudah diambil
 
-| Hal                                                                             |                               Nilai |
-| ------------------------------------------------------------------------------- | ----------------------------------: |
-| Kecepatan model di server (prompt / jawaban)                                    |                23 tok/s / < 1 tok/s |
-| Giliran dengan panggilan model (sebelum diet)                                   |                            40–180 s |
-| Giliran deterministik (sosial, perusahaan, pengetahuan, harga, lanjutan subjek) |                               0–2 s |
-| Model berbayar kelas Sonnet/Haiku per giliran (perkiraan)                       |              3–6 s, kira-kira Rp 20 |
-| SKU katalog aktif                                                               |                               7.681 |
-| Aturan teknik ber-ID                                                            | ENG-001…ENG-405 (lima profil kasus) |
+- Model gratis/lokal dulu; model berbayar hanya bila terbukti perlu (bandingkan kualitas, latensi,
+  biaya dulu).
+- Setiap commit langsung naik ke produksi.
+- Harga tidak ditampilkan (OQ-03); pertanyaan harga diarahkan ke sales.
+- Gedung > 4 lantai **dihitung** (bukan dioper ke tim teknis). Pembuangan rumah **dihitung**.
+- Pertanyaan pengguna tidak di-hardcode (2026-10-07).
+- Laporan PDF tersedia untuk akun terdaftar.
+- Nomor HP wajib saat daftar (2026-10-12).
 
-Eksperimen model 3B di server yang sama: hanya 2× lebih cepat dan Ollama melayani satu permintaan
-sekaligus di CPU, jadi tidak ada keuntungan nyata. Dihapus.
+## 7. Pertanyaan terbuka yang paling menentukan arah
 
-## 7. Keputusan pemilik yang sudah diambil
+Rincian dan pilihan di `TOPIK_BRAINSTORM.md`; daftar lengkap di `docs/OPEN_QUESTIONS.md`.
 
-- Hanya model gratis (2026-10-06). Lineup: satu `qwen2.5:7b-instruct` untuk semua tingkat.
-- Setiap commit langsung naik ke produksi (2026-10-07).
-- Harga nonaktif (OQ-03): kolom harga tidak dirender; pertanyaan harga dijawab dengan arahan ke
-  tim sales.
-- Tidak ada metatext di chat maupun UI; akun berbentuk pop-up dengan satu tombol Simpan.
-- Materi HRGA "Snouty Product Knowledge Master v1.0" (DRAFT_FOR_VALIDATION) dipakai untuk fakta
-  kualitatif; angka yang ditandai "perlu validasi" tidak dibawa.
+- **Validasi domain**: siapa di Pralon memvalidasi 45 aturan dan nilai asumsinya (OQ-06, OQ-57,
+  OQ-58). Semua angka masih IPC/buku acuan, belum padanan SNI 8153.
+- **Data resmi yang belum ada**: tabel tebal dinding per kelas, tekanan kerja resmi AW/D/PN, TDS
+  solvent cement, tabel ketahanan kimia, umur pakai, kode produk pelanggan (OQ-54, OQ-55).
+- **Model**: tetap CPU lokal, GPU, atau berbayar per giliran.
+- **Denah**: pengguna sudah bisa melampirkan denah, tetapi sistem belum membacanya (OQ-56).
+- **Kebutuhan air per jenis gedung** (kantor/hotel/rumah sakit) masih satu nilai untuk semua.
+- **Lanjutan produk**: email/market intelligence, back-office, nomor HP ke tim teknis saat handoff.
 
-## 8. Pertanyaan terbuka yang relevan untuk brainstorming
+## 8. Glosarium
 
-Daftar lengkap di `docs/OPEN_QUESTIONS.md`. Yang paling menentukan arah:
-
-- **OQ-52** Latensi: tetap CPU gratis, GPU, atau model berbayar?
-- **OQ-53** Field profil akun tambahan (perusahaan, peran, telepon) perlu atau tidak?
-- **OQ-54** Sumber korporat: visi/misi, jaringan distribusi, register sertifikat, tahun tonggak,
-  spesifikasi produk resmi untuk angka.
-- **OQ-55** Kode produk resmi (SKU sekarang ID ekspor ERP, disembunyikan dari pengguna).
-- Validasi domain: siapa yang memvalidasi aturan ENG dan dalam bentuk apa.
-- Retrieval dokumen dengan embedding gratis untuk pertanyaan di luar konsep yang dikurasi
-  (penyandi `bge-m3` sudah terpasang untuk pemahaman pertanyaan sejak P16-11 — langkah berikutnya
-  tinggal mengindeks dokumen, bukan memasang infrastruktur baru).
-- Siapa yang merawat `data/understanding/` (contoh kalimat per maksud) setelah serah terima.
-- Cakupan berikutnya: email intelligence, market intelligence, back-office penuh.
-
-## 9. Glosarium
-
-- **Provenance**: label asal nilai (`VERIFIED` katalog/aturan tervalidasi, `ASSUMED` asumsi
-  registry, `ESTIMATED` hasil hitung dari asumsi, `UNAVAILABLE` tidak ada data).
-- **Data inti**: empat fakta yang wajib sebelum menghitung bangunan: jenis bangunan, jumlah lantai,
-  jumlah kamar mandi, sumber air.
-- **Kartu klarifikasi**: pertanyaan terstruktur dengan pilihan, bukan teks bebas, untuk data yang
-  kurang.
-- **Subjek aktif**: entitas yang sedang dibicarakan (perusahaan, produk/keluarga, bahan, kasus)
-  beserta topik dan kedalaman jawaban terakhir.
-- **Parameter universal**: masukan kasus teknis lintas profil (`design_flow`, `route_length`,
-  `static_head`, `slope`, …) dengan registry label dua bahasa.
-- **Snapshot**: rekaman state kebutuhan append-only per perubahan, dengan pemicu.
-- **Handoff**: paket terstruktur (state, hasil, asumsi, catatan) untuk tim teknis Pralon.
+- **Provenance**: label asal nilai (`VERIFIED`, `ASSUMED`, `ESTIMATED`, `UNAVAILABLE`).
+- **Data inti rumah**: sumber air, jenis instalasi, jumlah lantai, kamar mandi. Penyempurna: ukuran
+  rumah, dapur, wastafel.
+- **Kartu klarifikasi**: pertanyaan berpilihan untuk data yang kurang ("Belum tahu" selalu ada).
+- **Asumsi registry**: nilai yang dipakai ketika pengguna tidak menyebutnya — tampil di layar, bisa
+  diganti, lalu dihitung ulang.
+- **WSFU / DFU**: unit beban alat plambing untuk suplai / pembuangan.
+- **Subjek aktif**: hal yang sedang dibicarakan, untuk memahami "boleh", "yang tadi", "lengkap dong".
+- **Handoff**: paket terstruktur ke tim teknis Pralon.
 - **OQ-nn**: nomor pertanyaan terbuka di `docs/OPEN_QUESTIONS.md`.
