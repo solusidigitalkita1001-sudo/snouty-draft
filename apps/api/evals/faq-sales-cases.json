@@ -6,7 +6,7 @@
       "q": "Rekomendasi jalur pipa utama untuk air minum, lebih baik pipa HDPE atau pipa uPVC berdasarkan daya tahan dan ketidakstabilan tekanan air antara 8-12 bar?",
       "expect": "8–12 bar dipakai: kelas pipa di atas tekanan maksimum + lonjakan; HDPE PN ≥ 16 dari katalog; uPVC: angka resmi AW belum ada → tim teknis; tidak mengarang angka PVC",
       "checks": {
-        "all": ["12 bar", "PN ?1[6-9]|PN ?2[0-9]", "lonjakan|water hammer|surge"],
+        "all": ["12 bar", "PN[- ]?1[6-9]|PN[- ]?2[0-9]", "lonjakan|water hammer|surge"],
         "any": [["tim teknis"]],
         "none": ["AW[^.]{0,40}\\d+ ?bar", "PVC[^.]{0,40}tahan \\d+ ?bar"],
         "cards": ["cta"]
