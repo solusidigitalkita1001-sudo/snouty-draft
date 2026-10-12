@@ -209,6 +209,8 @@ export type {
   DrainageLoadInput,
   DrainageLoadResult,
 } from './rules/group-j-waste.js';
+export { ENG_801, ENG_802, ENG_803, GROUP_L } from './rules/group-l-worship.js';
+export type { WudhuDrainRow, WudhuRow } from './rules/group-l-worship.js';
 export { hasStepTitle, ruleStepTitle } from './rules/step-titles.js';
 export { stepFormula } from './rules/step-formulas.js';
 export {

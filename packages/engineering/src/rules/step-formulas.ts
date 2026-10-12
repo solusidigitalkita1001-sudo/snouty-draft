@@ -168,8 +168,8 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
     nums(i, ['dfuWaterCloset', 'dfuShower', 'dfuLavatory', 'dfuKitchenSink']) &&
     nums(o, ['soilDfu', 'wasteDfu'])
       ? f.t(
-          `Air kotor = ${f.n(i['waterClosets'])} kloset × ${f.n(i['dfuWaterCloset'])} = ${f.n(o['soilDfu'])} DFU · Air bekas = ${f.n(i['showers'])} × ${f.n(i['dfuShower'])} + ${f.n(i['lavatories'])} × ${f.n(i['dfuLavatory'])} + ${f.n(i['kitchenSinks'])} × ${f.n(i['dfuKitchenSink'])} = ${f.n(o['wasteDfu'])} DFU`,
-          `Soil = ${f.n(i['waterClosets'])} WC × ${f.n(i['dfuWaterCloset'])} = ${f.n(o['soilDfu'])} DFU · Waste = ${f.n(i['showers'])} × ${f.n(i['dfuShower'])} + ${f.n(i['lavatories'])} × ${f.n(i['dfuLavatory'])} + ${f.n(i['kitchenSinks'])} × ${f.n(i['dfuKitchenSink'])} = ${f.n(o['wasteDfu'])} DFU`,
+          `Air kotor = ${f.n(i['waterClosets'])} kloset × ${f.n(i['dfuWaterCloset'])}${isNum(i['urinals']) && i['urinals'] > 0 ? ` + ${f.n(i['urinals'])} urinoir × ${f.n(i['dfuUrinal'])}` : ''} = ${f.n(o['soilDfu'])} DFU · Air bekas = ${f.n(i['showers'])} × ${f.n(i['dfuShower'])} + ${f.n(i['lavatories'])} × ${f.n(i['dfuLavatory'])} + ${f.n(i['kitchenSinks'])} × ${f.n(i['dfuKitchenSink'])}${isNum(i['wudhuDfu']) && i['wudhuDfu'] > 0 ? ` + talang wudhu ${f.n(i['wudhuDfu'])}` : ''} = ${f.n(o['wasteDfu'])} DFU`,
+          `Soil = ${f.n(i['waterClosets'])} WC × ${f.n(i['dfuWaterCloset'])}${isNum(i['urinals']) && i['urinals'] > 0 ? ` + ${f.n(i['urinals'])} urinals × ${f.n(i['dfuUrinal'])}` : ''} = ${f.n(o['soilDfu'])} DFU · Waste = ${f.n(i['showers'])} × ${f.n(i['dfuShower'])} + ${f.n(i['lavatories'])} × ${f.n(i['dfuLavatory'])} + ${f.n(i['kitchenSinks'])} × ${f.n(i['dfuKitchenSink'])}${isNum(i['wudhuDfu']) && i['wudhuDfu'] > 0 ? ` + ablution troughs ${f.n(i['wudhuDfu'])}` : ''} = ${f.n(o['wasteDfu'])} DFU`,
         )
       : null,
   'ENG-602': (i, o, f) =>
@@ -237,6 +237,9 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
         isNum(b['kitchens']) && b['kitchens'] > 0
           ? f.t(`${b['kitchens']} dapur`, `${b['kitchens']} kitchen`)
           : '',
+        isNum(b['urinals']) && b['urinals'] > 0
+          ? f.t(`${b['urinals']} urinoir`, `${b['urinals']} urinal`)
+          : '',
       ]
         .filter(Boolean)
         .join(' + ');
@@ -292,6 +295,42 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
           `Yard = land side ${f.n(i['landSideM'])} m − building side ${f.n(i['buildingSideM'])} m = ${f.n(o['yardM'])} m`,
         )
       : null,
+  'ENG-801': (i, o, f) => {
+    if (!nums(i, ['waterClosets', 'bathroomTaps', 'lavatories', 'kitchenSinks', 'wudhuTaps']))
+      return null;
+    if (!nums(i, ['wsfuWaterCloset', 'wsfuTap', 'wsfuKitchenSink', 'wudhuTapFlowLs'])) return null;
+    if (!nums(i, ['urinals', 'wsfuUrinal'])) return null;
+    if (!nums(o, ['wsfu', 'fixtureFlowLs', 'wudhuFlowLs', 'peakFlowLs'])) return null;
+    const taps = (i['bathroomTaps'] as number) + (i['lavatories'] as number);
+    const kitchen =
+      (i['kitchenSinks'] as number) > 0
+        ? ` + ${f.n(i['kitchenSinks'])} × ${f.n(i['wsfuKitchenSink'])}`
+        : '';
+    const wudhu = (i['wudhuTaps'] as number) > 0;
+    const urinal =
+      (i['urinals'] as number) > 0 ? ` + ${f.n(i['urinals'])} × ${f.n(i['wsfuUrinal'])}` : '';
+    return f.t(
+      `Toilet = ${f.n(i['waterClosets'])} × ${f.n(i['wsfuWaterCloset'])} + ${f.n(taps)} × ${f.n(i['wsfuTap'])}${urinal}${kitchen} = ${f.n(o['wsfu'])} unit → ${f.n(o['fixtureFlowLs'])} l/s (kurva Hunter)${wudhu ? ` · Wudhu = ${f.n(i['wudhuTaps'])} × ${f.n(i['wudhuTapFlowLs'])} = ${f.n(o['wudhuFlowLs'])} l/s (serentak)` : ''} · Q = ${f.n(o['peakFlowLs'])} l/s`,
+      `Restrooms = ${f.n(i['waterClosets'])} × ${f.n(i['wsfuWaterCloset'])} + ${f.n(taps)} × ${f.n(i['wsfuTap'])}${urinal}${kitchen} = ${f.n(o['wsfu'])} units → ${f.n(o['fixtureFlowLs'])} l/s (Hunter curve)${wudhu ? ` · Ablution = ${f.n(i['wudhuTaps'])} × ${f.n(i['wudhuTapFlowLs'])} = ${f.n(o['wudhuFlowLs'])} l/s (all at once)` : ''} · Q = ${f.n(o['peakFlowLs'])} l/s`,
+    );
+  },
+  'ENG-802': (i, o, f) => {
+    if (!nums(i, ['wudhuTaps', 'areas', 'wudhuTapFlowLs', 'tapSpacingM'])) return null;
+    if (!Array.isArray(o['rows'])) return null;
+    const rows = (o['rows'] as Bag[]).map(
+      (r) =>
+        `${f.n(r['taps'])} × ${f.n(i['wudhuTapFlowLs'])} = ${f.n(r['flowLs'])} l/s, ${f.n(r['taps'])} × ${f.n(i['tapSpacingM'])} = ${f.n(r['lengthM'])} m`,
+    );
+    return f.t(`Tiap deret: ${rows.join(' · ')}`, `Each row: ${rows.join(' · ')}`);
+  },
+  'ENG-803': (i, o, f) => {
+    if (!nums(i, ['dfuPerGpm']) || !Array.isArray(o['rows'])) return null;
+    const rows = (o['rows'] as Bag[]).map(
+      (r) =>
+        `${f.n(r['gpm'])} gpm × ${f.n(i['dfuPerGpm'])} = ${f.n(r['dfu'])} DFU → ${String(r['size'])}`,
+    );
+    return f.t(`Talang tiap deret: ${rows.join(' · ')}`, `Trough per row: ${rows.join(' · ')}`);
+  },
 };
 
 export function stepFormula(

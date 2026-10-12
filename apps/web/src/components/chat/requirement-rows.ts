@@ -52,6 +52,7 @@ const BUILDING: readonly SelectOption[] = [
   { value: 'boarding_house', label: 'Rumah kos' },
   { value: 'light_commercial', label: 'Komersial ringan' },
   { value: 'industrial', label: 'Industri' },
+  { value: 'place_of_worship', label: 'Tempat ibadah' },
 ];
 
 interface PlanValue {
@@ -146,7 +147,26 @@ function sizeRows(field: {
 const labelOf = (options: readonly SelectOption[]) => (v: unknown) =>
   options.find((o) => o.value === String(v))?.label ?? String(v);
 
+/** Keran wudhu, tempat wudhu, urinoir — hanya untuk tempat ibadah; state lama boleh tanpa field. */
+function worshipRows(state: RequirementState): readonly RequirementRow[] {
+  if (state.building.type.value !== 'place_of_worship') return [];
+  const empty = { value: null, provenance: 'UNAVAILABLE' as const };
+  const count = (max: number): RowEditor => ({ kind: 'number', min: 0, max });
+  return [
+    row('fixtures.wudhuTaps', 'Keran wudhu', state.fixtures.wudhuTaps ?? empty, String, count(500)),
+    row(
+      'fixtures.wudhuAreas',
+      'Tempat wudhu',
+      state.fixtures.wudhuAreas ?? empty,
+      String,
+      count(50),
+    ),
+    row('fixtures.urinals', 'Urinoir', state.fixtures.urinals ?? empty, String, count(200)),
+  ];
+}
+
 export function requirementRows(state: RequirementState): readonly RequirementRow[] {
+  const worship = state.building.type.value === 'place_of_worship';
   return [
     row('building.type', 'Tipe bangunan', state.building.type, labelOf(BUILDING), {
       kind: 'select',
@@ -168,11 +188,17 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
       min: 0,
       max: 200,
     }),
-    row('fixtures.kitchens', 'Dapur', state.fixtures.kitchens, String, {
-      kind: 'number',
-      min: 0,
-      max: 100,
-    }),
+    ...worshipRows(state),
+    // Tempat ibadah lazimnya tanpa dapur; barisnya hanya tampil bila memang disebut.
+    ...(worship && state.fixtures.kitchens.value === null
+      ? []
+      : [
+          row('fixtures.kitchens', 'Dapur', state.fixtures.kitchens, String, {
+            kind: 'number',
+            min: 0,
+            max: 100,
+          }),
+        ]),
     row('water.source', 'Sumber air', state.water.source, labelOf(SOURCE), {
       kind: 'select',
       options: SOURCE,

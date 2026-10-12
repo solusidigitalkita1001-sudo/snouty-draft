@@ -1393,8 +1393,16 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       aturan lama kini disusun ulang dulu dengan aturan terbaru (laporan lama tidak disentuh); `ulid()` monoton dalam
       satu milidetik sehingga langkah dasar perhitungan tidak lagi tercetak acak; rumus mengikuti versi trace (ENG-603
       v1/v2 tidak ditulis dengan rumus v3).
-- [ ] P16-69 Temuan laporan 0009 — F (hanya diselidiki): kelompok hitung bangunan ibadah/umum → OQ-61, menunggu keputusan
-      pemilik dan nilai dari ahli Pralon. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
+- [x] P16-76 Kelompok hitung tempat ibadah (Kelompok L, ENG-801…803; laporan pemilik "masih nganggep kran itu
+      wastafel, pdhl masjid"): masjid/musala → `place_of_worship`; keran wudhu, tempat wudhu, dan urinoir menjadi field
+      sendiri (bukan wastafel; asumsi WUDHU_TAP_AS_BASIN dihapus). Air bersih: toilet umum lewat Hunter (IPC E103.3(2)
+      public: kloset 5, keran/wastafel 1,5, urinoir 3) + keran wudhu 0,1 l/s semua serentak; kamar mandi = kloset + keran;
+      tanpa dapur kecuali disebut. Keran dibagi per tempat wudhu (deret), pipa pembagi tiap deret dari debitnya, panjang =
+      keran × 0,8 m. Pembuangan: satu talang per deret, 2 DFU/gpm (IPC 709.3) → ukuran dari IPC 710.1(2), masuk air
+      bekas; urinoir 4 DFU ke air kotor. Skema: deret wudhu dan urinoir di lantai dasar. ENG-001 v4, ENG-601 v2,
+      ENG-707 v2. Pertanyaan penyempurna khusus tempat ibadah (keran wudhu, tempat wudhu, urinoir).
+- [ ] P16-69 Temuan laporan 0009 — F: kelompok tempat ibadah selesai di P16-76; sekolah/klinik dan nilai dari ahli
+      Pralon masih → OQ-61. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)

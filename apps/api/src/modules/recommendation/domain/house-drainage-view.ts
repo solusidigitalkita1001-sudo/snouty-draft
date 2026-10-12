@@ -40,19 +40,25 @@ function worst(traces: readonly IdentifiedTrace[]): Provenance {
 
 /** Trace per bagian, urut seperti `computeHouseDrainage` menjalankannya. */
 function parts(result: HouseDrainageResult, traces: readonly IdentifiedTrace[]) {
-  // [beban, (cabang/stack?, ukuran) air kotor?, (cabang/stack?, ukuran) air bekas?, panjang?] —
-  // urutan eksekusi `computeHouseDrainage`; ENG-604 hanya ada untuk bangunan bertingkat.
-  let at = 1;
+  // [talang wudhu?, beban, (cabang/stack?, ukuran) air kotor?, (cabang/stack?, ukuran) air bekas?,
+  // panjang?] — urutan eksekusi `computeHouseDrainage`; ENG-604 hanya ada untuk bangunan
+  // bertingkat, ENG-803 hanya untuk tempat ibadah.
+  const loadAt = Math.max(
+    0,
+    traces.findIndex((t) => t.ruleId === 'ENG-601'),
+  );
+  let at = loadAt + 1;
   const line = (): IdentifiedTrace[] => {
     const own: IdentifiedTrace[] = [];
     if (traces[at]?.ruleId === 'ENG-604') own.push(traces[at++]!);
     if (traces[at]?.ruleId === 'ENG-602') own.push(traces[at++]!);
     return own;
   };
-  const load = traces.slice(0, 1);
+  const load = traces.slice(loadAt, loadAt + 1);
   const soil = result.soil ? line() : [];
   const waste = result.waste ? line() : [];
-  return { load, soil, waste };
+  const troughs = traces.filter((t) => t.ruleId === 'ENG-803');
+  return { load, soil, waste, troughs };
 }
 
 /**
@@ -93,6 +99,7 @@ function lineReason(
 
 const FIXTURE_LABEL = {
   water_closet: { id: 'kloset', en: 'toilet' },
+  urinal: { id: 'urinoir', en: 'urinal' },
   shower: { id: 'floor drain/shower', en: 'floor drain/shower' },
   lavatory: { id: 'wastafel', en: 'basin' },
   kitchen_sink: { id: 'bak cuci dapur', en: 'kitchen sink' },
@@ -126,7 +133,13 @@ export function drainageSystemLines(
     lines.push(
       line(
         en ? `${DRAINAGE_FAMILY} soil pipe` : `Pipa air kotor ${DRAINAGE_FAMILY}`,
-        en ? 'Toilets → septic tank' : 'Kloset → septic tank',
+        result.fixtures.some((f) => f.fixture === 'urinal')
+          ? en
+            ? 'Toilets and urinals → septic tank'
+            : 'Kloset dan urinoir → septic tank'
+          : en
+            ? 'Toilets → septic tank'
+            : 'Kloset → septic tank',
         result.soil.size,
         p.soil,
         'main',
@@ -146,9 +159,13 @@ export function drainageSystemLines(
     lines.push(
       line(
         en ? `${DRAINAGE_FAMILY} waste pipe` : `Pipa air bekas ${DRAINAGE_FAMILY}`,
-        en
-          ? 'Floor drains, basins, kitchen → drain or soakaway'
-          : 'Floor drain, wastafel, dapur → saluran atau sumur resapan',
+        result.wudhuTroughs.length > 0
+          ? en
+            ? 'Floor drains, basins, ablution troughs → drain or soakaway'
+            : 'Floor drain, wastafel, talang wudhu → saluran atau sumur resapan'
+          : en
+            ? 'Floor drains, basins, kitchen → drain or soakaway'
+            : 'Floor drain, wastafel, dapur → saluran atau sumur resapan',
         result.waste.size,
         p.waste,
         'branch',
@@ -164,6 +181,23 @@ export function drainageSystemLines(
       ),
     );
   }
+  // Talang wudhu: satu per deret, keran berjejer dengan satu pembuangan (ENG-803).
+  if (result.wudhuTroughs.length > 0) {
+    const sizes = [...new Set(result.wudhuTroughs.map((t) => t.size))];
+    const count = result.wudhuTroughs.length;
+    const trough = p.troughs[0];
+    lines.push({
+      name: en ? `${DRAINAGE_FAMILY} ablution trough drain` : `Talang wudhu ${DRAINAGE_FAMILY}`,
+      path: en
+        ? `Ablution rows → waste line (${count} ${count > 1 ? 'troughs' : 'trough'})`
+        : `Deret wudhu → jalur air bekas (${count} talang)`,
+      size: sizes.length === 1 ? sizes[0]! : sizes.join(' / '),
+      reason: trough?.explanation ?? '',
+      provenance: worst(p.troughs),
+      traceIds: p.troughs.map((t) => t.id),
+      role: 'branch',
+    });
+  }
   const fixtures = result.fixtures
     .map((f) => `${f.count} ${FIXTURE_LABEL[f.fixture][en ? 'en' : 'id']} ${f.size}`)
     .join(' · ');
@@ -178,8 +212,8 @@ export function drainageSystemLines(
       'soil',
     ),
     reason: en
-      ? 'Minimum connection per fixture: toilet as its soil line, floor drain/shower 2", kitchen sink 1½", basin 1¼".'
-      : 'Sambungan minimum tiap alat: kloset mengikuti jalur air kotornya, floor drain/shower 2", bak cuci dapur 1½", wastafel 1¼".',
+      ? `Minimum connection per fixture: toilet as its soil line${result.fixtures.some((f) => f.fixture === 'urinal') ? ', urinal 2"' : ''}, floor drain/shower 2", kitchen sink 1½", basin 1¼".`
+      : `Sambungan minimum tiap alat: kloset mengikuti jalur air kotornya${result.fixtures.some((f) => f.fixture === 'urinal') ? ', urinoir 2"' : ''}, floor drain/shower 2", bak cuci dapur 1½", wastafel 1¼".`,
   });
   return lines;
 }
@@ -215,7 +249,7 @@ export function drainageAssumptions(
 /** Alat air bekas yang memang ada ("floor drain/shower dan bak cuci dapur"). */
 function wasteFixtures(result: HouseDrainageResult, lang: 'id' | 'en'): string {
   const names = result.fixtures
-    .filter((f) => f.fixture !== 'water_closet')
+    .filter((f) => f.fixture !== 'water_closet' && f.fixture !== 'urinal')
     .map((f) => FIXTURE_LABEL[f.fixture][lang]);
   const and = lang === 'en' ? 'and' : 'dan';
   return names.length <= 1
@@ -227,11 +261,12 @@ function wasteFixtures(result: HouseDrainageResult, lang: 'id' | 'en'): string {
 export function drainageSentence(result: HouseDrainageResult, locale: Locale): string {
   const en = locale === 'en';
   const parts: string[] = [];
+  const urinals = result.fixtures.some((f) => f.fixture === 'urinal');
   if (result.soil) {
     parts.push(
       en
-        ? `toilets drain to the septic tank through ${DRAINAGE_FAMILY} ${result.soil.size} (vent ${result.soil.ventSize})`
-        : `kloset dibuang ke septic tank lewat ${DRAINAGE_FAMILY} ${result.soil.size} (ventilasi ${result.soil.ventSize})`,
+        ? `toilets${urinals ? ' and urinals' : ''} drain to the septic tank through ${DRAINAGE_FAMILY} ${result.soil.size} (vent ${result.soil.ventSize})`
+        : `kloset${urinals ? ' dan urinoir' : ''} dibuang ke septic tank lewat ${DRAINAGE_FAMILY} ${result.soil.size} (ventilasi ${result.soil.ventSize})`,
     );
   }
   if (result.waste) {
@@ -241,8 +276,16 @@ export function drainageSentence(result: HouseDrainageResult, locale: Locale): s
         : `${wasteFixtures(result, 'id')} lewat ${result.waste.size} (ventilasi ${result.waste.ventSize})`,
     );
   }
+  let troughs = '';
+  if (result.wudhuTroughs.length > 0) {
+    const n = result.wudhuTroughs.length;
+    const sizes = [...new Set(result.wudhuTroughs.map((t) => t.size))].join('/');
+    troughs = en
+      ? `; each ablution row has one ${sizes} trough drain into the waste line (${n} in total)`
+      : `; tiap deret wudhu punya satu talang ${sizes} ke jalur air bekas (${n} talang)`;
+  }
   if (parts.length === 0) return '';
-  const joined = parts.join(en ? ', and ' : ', sedangkan ');
+  const joined = parts.join(en ? ', and ' : ', sedangkan ') + troughs;
   return en ? `For drainage, ${joined}.` : `Untuk pembuangan, ${joined}.`;
 }
 
@@ -252,6 +295,9 @@ export function drainageSentence(result: HouseDrainageResult, locale: Locale): s
  */
 /** Produk pipa buangan terpilih per jalur — sumber panjang batang baris material. */
 export interface DrainStocks {
+  /** Talang wudhu per ukuran dan panjang tiap deret (ENG-802, urutan sama dengan talangnya). */
+  readonly troughFor?: (size: string) => StockLength | null;
+  readonly troughLengthsM?: readonly number[];
   readonly soil?: StockLength | null;
   readonly waste?: StockLength | null;
   readonly soilVent?: StockLength | null;
@@ -268,9 +314,35 @@ export function drainageBomFrom(
   stocks: DrainStocks,
   locale: Locale = DEFAULT_LOCALE,
 ): readonly BomItem[] {
-  const lengths = result.lengths;
-  if (lengths === null) return [];
   const en = locale === 'en';
+  const troughIds = traces.filter((t) => t.ruleId === 'ENG-803').map((t) => t.id);
+  // Talang wudhu tidak bergantung ukuran bangunan: panjangnya dari jumlah keran tiap deret.
+  const troughRows: BomItem[] = [];
+  const bySize = new Map<string, number>();
+  result.wudhuTroughs.forEach((t, k) => {
+    const lengthM = stocks.troughLengthsM?.[k];
+    if (lengthM !== undefined) bySize.set(t.size, (bySize.get(t.size) ?? 0) + lengthM);
+  });
+  for (const [size, netM] of bySize) {
+    const purchase = pipePurchase(
+      Math.round(netM * 10) / 10,
+      en ? 'ablution troughs: taps × spacing per row' : 'talang wudhu: keran × jarak per deret',
+      stocks.troughFor?.(size) ?? null,
+      locale,
+    );
+    troughRows.push({
+      item: en ? `${DRAINAGE_FAMILY} pipe` : `Pipa ${DRAINAGE_FAMILY}`,
+      size,
+      ...(purchase.productId ? { productId: purchase.productId } : {}),
+      quantity: purchase.quantity,
+      unit: (en ? { batang: 'rods', meter: 'm' }[purchase.unit] : purchase.unit) as BomUnit,
+      basis: purchase.basis,
+      provenance: 'ASSUMED',
+      traceIds: troughIds,
+    });
+  }
+  const lengths = result.lengths;
+  if (lengths === null) return troughRows;
   const ids = traces.filter((t) => t.ruleId === 'ENG-603').map((t) => t.id);
   const provenance: Provenance = traces.some(
     (t) => t.ruleId === 'ENG-603' && t.provenance !== 'VERIFIED',
@@ -321,6 +393,7 @@ export function drainageBomFrom(
         en ? 'waste line vent' : 'ventilasi air bekas',
         stocks.wasteVent ?? null,
       ),
+    ...troughRows,
   ].filter((r): r is BomItem => Boolean(r));
 }
 

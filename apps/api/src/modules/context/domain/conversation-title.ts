@@ -76,6 +76,14 @@ function caseTitle(state: RequirementState, en: boolean): string | null {
           : 'Bangunan komersial';
     case 'industrial':
       return en ? 'Factory' : 'Pabrik';
+    case 'place_of_worship':
+      return floors !== null
+        ? en
+          ? `${storeys(floors)} place of worship`
+          : `Tempat ibadah ${storeys(floors)}`
+        : en
+          ? 'Place of worship'
+          : 'Tempat ibadah';
     default:
       return floors !== null
         ? en

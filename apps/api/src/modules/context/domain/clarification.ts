@@ -172,12 +172,40 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
     inputs: FLOOR_HEIGHT_INPUTS,
     inputValue: 'number',
   },
+  // Tempat ibadah (2026-10-12): keran wudhu dihitung serentak, satu talang per tempat wudhu.
+  'fixtures.wudhuTaps': {
+    question: 'Ada berapa keran wudhu (semua tempat wudhu)?',
+    options: ['4', '6', '8', '10'],
+    inputs: countInputs({ id: 'Jumlah lain', en: 'Other number' }),
+    inputValue: 'number',
+  },
+  'fixtures.wudhuAreas': {
+    question: 'Keran wudhunya dibagi di berapa tempat?',
+    options: ['1', '2', '3'],
+    inputs: countInputs({ id: 'Lebih dari 3', en: 'More than 3' }),
+    inputValue: 'number',
+  },
+  'fixtures.urinals': {
+    question: 'Ada berapa urinoir di toilet pria?',
+    options: ['0', '2', '3', '4'],
+    inputs: countInputs({ id: 'Jumlah lain', en: 'Other number' }),
+    inputValue: 'number',
+  },
 };
 
 /** Field yang memperbaiki hitungan rumah setelah data inti lengkap, urut pengaruhnya. */
 export const HOUSE_REFINEMENT_FIELDS: readonly RequirementFieldPath[] = [
   'building.dimensions',
   'fixtures.kitchens',
+  'fixtures.basins',
+];
+
+/** Tempat ibadah: wudhu dan urinoir menggantikan dapur (laporan pemilik 2026-10-12). */
+export const WORSHIP_REFINEMENT_FIELDS: readonly RequirementFieldPath[] = [
+  'building.dimensions',
+  'fixtures.wudhuTaps',
+  'fixtures.wudhuAreas',
+  'fixtures.urinals',
   'fixtures.basins',
 ];
 
@@ -195,6 +223,9 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'fixtures.kitchens': 'How many kitchens are there?',
   'fixtures.basins': 'How many wash basins outside the bathrooms?',
   'building.floorHeightM': 'What is the height of each floor (between 2 and 10 m)?',
+  'fixtures.wudhuTaps': 'How many ablution taps are there (all ablution areas)?',
+  'fixtures.wudhuAreas': 'How many ablution areas are the taps split over?',
+  'fixtures.urinals': 'How many urinals are in the men’s restroom?',
 };
 
 /** Label tampilan Inggris per nilai pilihan kanonik; angka tampil apa adanya. */
@@ -235,6 +266,7 @@ const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath
   'fixtures.bathrooms',
   'building.floorHeightM',
   ...HOUSE_REFINEMENT_FIELDS,
+  ...WORSHIP_REFINEMENT_FIELDS,
 ]);
 
 /**
@@ -311,6 +343,9 @@ const ANSWER_LABEL: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'fixtures.kitchens': 'Dapur',
   'fixtures.basins': 'Wastafel',
   'building.floorHeightM': 'Tinggi tiap lantai',
+  'fixtures.wudhuTaps': 'Keran wudhu',
+  'fixtures.wudhuAreas': 'Tempat wudhu',
+  'fixtures.urinals': 'Urinoir',
 };
 const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.source': 'Water source',
@@ -321,6 +356,9 @@ const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> =
   'fixtures.kitchens': 'Kitchens',
   'fixtures.basins': 'Basins',
   'building.floorHeightM': 'Floor height',
+  'fixtures.wudhuTaps': 'Ablution taps',
+  'fixtures.wudhuAreas': 'Ablution areas',
+  'fixtures.urinals': 'Urinals',
 };
 
 export interface ClarificationAnswer {
@@ -463,8 +501,12 @@ function toQuestion(path: RequirementFieldPath, locale: Locale): ClarificationQu
 export function houseRefinementQuestions(
   isKnown: (path: RequirementFieldPath) => boolean,
   locale: Locale = DEFAULT_LOCALE,
+  buildingType: string | null = null,
 ): readonly ClarificationQuestion[] {
-  return HOUSE_REFINEMENT_FIELDS.filter((path) => !isKnown(path))
+  const fields =
+    buildingType === 'place_of_worship' ? WORSHIP_REFINEMENT_FIELDS : HOUSE_REFINEMENT_FIELDS;
+  return fields
+    .filter((path) => !isKnown(path))
     .map((path) => toQuestion(path, locale))
     .filter((q): q is ClarificationQuestion => q !== null);
 }

@@ -634,7 +634,11 @@ export function technicalQuestionCard(
   // Rumah: ukuran, dapur, wastafel yang belum disebut — di samping tombol Susun rekomendasi.
   if (state.useCase === undefined) {
     if (followUpCard(state, locale)?.kind !== 'cta') return null;
-    const questions = houseRefinementQuestions((path) => fieldValueKnown(state, path), locale);
+    const questions = houseRefinementQuestions(
+      (path) => fieldValueKnown(state, path),
+      locale,
+      state.building.type.value,
+    );
     return questions.length > 0 ? { kind: 'clarification', questions } : null;
   }
   if (state.useCase.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return null;
@@ -708,6 +712,8 @@ function buildingLabel(type: RequirementState['building']['type']['value']): str
       return 'bangunan komersial ringan';
     case 'industrial':
       return 'bangunan industri';
+    case 'place_of_worship':
+      return 'tempat ibadah';
     default:
       return null;
   }

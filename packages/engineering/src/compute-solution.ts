@@ -31,6 +31,7 @@ import {
 import { ENG_004, ENG_008, type FloorNode } from './rules/group-b-geometry.js';
 import { ENG_012 } from './rules/group-c-material.js';
 import { ENG_102 } from './rules/group-e-irrigation.js';
+import { ENG_801, ENG_802 } from './rules/group-l-worship.js';
 import {
   ENG_701,
   ENG_702,
@@ -49,7 +50,8 @@ import { round1, round2 } from './units.js';
 import { PVC_INCH_SIZES } from './parameters/size-tables.js';
 
 export interface SolutionInput {
-  readonly buildingType: 'residential' | 'boarding_house' | 'light_commercial' | 'industrial';
+  readonly buildingType:
+    'residential' | 'boarding_house' | 'light_commercial' | 'industrial' | 'place_of_worship';
   readonly floors: number;
   readonly bathrooms: number;
   readonly basins: number;
@@ -64,9 +66,12 @@ export interface SolutionInput {
   /** Ukuran denah rumah (m); keduanya ada → jalur datar terjauh = panjang + lebar. */
   readonly planLengthM?: number | null;
   readonly planWidthM?: number | null;
+  /** Tempat ibadah (Kelompok L): keran wudhu dan jumlah tempat wudhu (deret). */
+  readonly wudhuTaps?: number | null;
+  /** Urinoir toilet pria (tempat ibadah), di lantai dasar. */
+  readonly urinals?: number | null;
+  readonly wudhuAreas?: number | null;
   /** Ukuran tanah — hanya untuk jarak halaman (ENG-705); bukan dasar panjang pipa di bangunan. */
-  /** Wastafel yang sebenarnya keran wudhu (TC-H-03) — dicatat sebagai asumsi. */
-  readonly basinsAreWudhuTaps?: boolean;
   readonly landLengthM?: number | null;
   readonly landWidthM?: number | null;
 }
@@ -134,6 +139,20 @@ export interface SolutionResult {
     }[];
   } | null;
   readonly targetVelocityMs: { readonly min: number; readonly max: number };
+  /**
+   * Tempat ibadah: deret keran wudhu (ENG-802) dan pipa pembagi tiap deret (ENG-102); `null`
+   * bukan tempat ibadah atau tanpa keran wudhu.
+   */
+  readonly wudhu: {
+    readonly taps: number;
+    readonly flowLs: number;
+    readonly rows: readonly {
+      readonly taps: number;
+      readonly flowLs: number;
+      readonly lengthM: number;
+      readonly size: string;
+    }[];
+  } | null;
   readonly appliedAssumptionIds: readonly string[];
   /** Satu trace per aturan yang dieksekusi, urut eksekusi. */
   readonly traces: readonly CalculationTrace[];
@@ -177,24 +196,39 @@ export function computeSolution(
     return output;
   }
 
+  // Tempat ibadah (Kelompok L): toilet umum, kamar mandi = kloset + keran, keran wudhu serentak.
+  const worship = input.buildingType === 'place_of_worship';
   const fixtures = {
     bathrooms: input.bathrooms,
     basins: input.basins,
-    kitchens: input.kitchens ?? use('HOUSE_KITCHEN_1'),
+    kitchens: input.kitchens ?? (worship ? use('WORSHIP_KITCHEN_0') : use('HOUSE_KITCHEN_1')),
   };
-  // Keran wudhu dihitung sebagai wastafel: asumsinya dicatat (OQ-61), angka wastafel tidak berubah.
-  const wudhu = input.basinsAreWudhuTaps === true && input.basins > 0;
-  if (wudhu) use('WUDHU_TAP_AS_BASIN');
-  const load = run(ENG_001, { ...fixtures, ...(wudhu ? { basinsAreWudhuTaps: true } : {}) });
+  if (worship && input.bathrooms > 0) use('WORSHIP_BATHROOM_WC_TAP');
+  const urinals = worship ? Math.max(0, input.urinals ?? 0) : 0;
+  const load = run(ENG_001, {
+    ...fixtures,
+    ...(worship ? { bathroomHasTap: true } : {}),
+    ...(urinals > 0 ? { urinals } : {}),
+  });
   const floorHeightM = input.floorHeightM ?? run(ENG_004, {}).floorHeightM;
   const floorPlan = run(ENG_008, { ...fixtures, floors: input.floors, floorHeightM });
   // Beban per alat (IPC E103.3(2)) — sekali dibaca, dipakai debit total dan isi tiap cabang.
-  const wsfu = {
-    waterCloset: use('WSFU_WATER_CLOSET_2_2'),
-    shower: use('WSFU_SHOWER_1'),
-    lavatory: use('WSFU_LAVATORY_0_5'),
-    kitchenSink: use('WSFU_KITCHEN_SINK_1'),
-  };
+  // Tempat ibadah memakai kolom pemakaian umum; keran kamar mandi menempati tempat shower.
+  const wsfu = worship
+    ? {
+        waterCloset: use('WSFU_PUBLIC_WATER_CLOSET_5'),
+        shower: use('WSFU_PUBLIC_TAP_1_5'),
+        lavatory: use('WSFU_PUBLIC_TAP_1_5'),
+        kitchenSink: fixtures.kitchens > 0 ? use('WSFU_KITCHEN_SINK_1') : 1,
+        urinal: urinals > 0 ? use('WSFU_PUBLIC_URINAL_3') : 0,
+      }
+    : {
+        waterCloset: use('WSFU_WATER_CLOSET_2_2'),
+        shower: use('WSFU_SHOWER_1'),
+        lavatory: use('WSFU_LAVATORY_0_5'),
+        kitchenSink: use('WSFU_KITCHEN_SINK_1'),
+        urinal: 0,
+      };
   // Isi tiap cabang per lantai (ENG-707, temuan laporan 0009): ukuran cabang dari isinya sendiri.
   const branches = run(ENG_707, {
     floors: floorPlan.floorsPlan.map((f) => ({
@@ -202,12 +236,15 @@ export function computeSolution(
       bathrooms: f.bathrooms,
       basins: f.basins,
       kitchens: f.kitchens,
+      // Urinoir di toilet pria lantai dasar.
+      urinals: f.floor === 1 ? urinals : 0,
     })),
     maxOutletsPerBranch: 4,
     wsfuWaterCloset: wsfu.waterCloset,
     wsfuShower: wsfu.shower,
     wsfuLavatory: wsfu.lavatory,
     wsfuKitchenSink: wsfu.kitchenSink,
+    wsfuUrinal: wsfu.urinal,
   });
   const connection = run(ENG_005, {});
   const velocity = run(ENG_010, {
@@ -217,17 +254,33 @@ export function computeSolution(
   });
   const classes = run(ENG_013, { installationType: input.installationType });
 
-  // 2 · debit puncak
-  const demand = run(ENG_701, {
-    waterClosets: input.bathrooms,
-    showers: input.bathrooms,
-    lavatories: input.basins,
-    kitchenSinks: fixtures.kitchens,
-    wsfuWaterCloset: wsfu.waterCloset,
-    wsfuShower: wsfu.shower,
-    wsfuLavatory: wsfu.lavatory,
-    wsfuKitchenSink: wsfu.kitchenSink,
-  });
+  // 2 · debit puncak. Tempat ibadah: keran wudhu dibuka bersamaan, ditambahkan penuh (ENG-801).
+  const wudhuTaps = worship ? Math.max(0, input.wudhuTaps ?? 0) : 0;
+  const wudhuTapFlowLs = wudhuTaps > 0 ? use('WUDHU_TAP_FLOW_0_1LS') : 0.1;
+  const demand = worship
+    ? run(ENG_801, {
+        waterClosets: input.bathrooms,
+        bathroomTaps: input.bathrooms,
+        lavatories: input.basins,
+        kitchenSinks: fixtures.kitchens,
+        urinals,
+        wudhuTaps,
+        wsfuWaterCloset: wsfu.waterCloset,
+        wsfuTap: wsfu.lavatory,
+        wsfuUrinal: wsfu.urinal,
+        wsfuKitchenSink: wsfu.kitchenSink,
+        wudhuTapFlowLs,
+      })
+    : run(ENG_701, {
+        waterClosets: input.bathrooms,
+        showers: input.bathrooms,
+        lavatories: input.basins,
+        kitchenSinks: fixtures.kitchens,
+        wsfuWaterCloset: wsfu.waterCloset,
+        wsfuShower: wsfu.shower,
+        wsfuLavatory: wsfu.lavatory,
+        wsfuKitchenSink: wsfu.kitchenSink,
+      });
 
   // 3 · jalur dan beda tinggi
   const horizontalRunM =
@@ -366,10 +419,39 @@ export function computeSolution(
         }
       : null;
 
-  run(ENG_012, {}); // dicatat sebagai asumsi yang mendasari isi kamar mandi
+  // 7 · deret wudhu: keran berjejer per tempat wudhu, satu pipa pembagi per deret (ENG-802).
+  let wudhu: SolutionResult['wudhu'] = null;
+  if (wudhuTaps > 0) {
+    const areas = Math.min(wudhuTaps, input.wudhuAreas ?? use('WUDHU_ONE_AREA'));
+    const rows = run(ENG_802, {
+      wudhuTaps,
+      areas,
+      wudhuTapFlowLs,
+      tapSpacingM: use('WUDHU_TAP_SPACING_0_8M'),
+    }).rows;
+    const sizeForFlow = new Map<number, string>();
+    for (const row of rows) {
+      if (sizeForFlow.has(row.flowLs)) continue;
+      const sized = run(ENG_102, {
+        designFlowLs: row.flowLs,
+        velocityMs: designVelocity,
+        sizeTable: 'pvc_inch',
+      });
+      sizeForFlow.set(row.flowLs, sized.mainSize);
+    }
+    wudhu = {
+      taps: wudhuTaps,
+      flowLs: round2(wudhuTaps * wudhuTapFlowLs),
+      rows: rows.map((r) => ({ ...r, size: sizeForFlow.get(r.flowLs)! })),
+    };
+  }
 
-  // ENG-012 dicatat terakhir; langkah pipa utama (Kelompok F) disisipkan sebelum catatan itu.
-  const allTraces = [...traces.slice(0, -1), ...main.traces, ...traces.slice(-1)];
+  // Catatan isi kamar mandi rumah (ENG-012) di akhir; tempat ibadah memakai asumsinya sendiri.
+  const beforeNote = traces.length;
+  if (!worship) run(ENG_012, {});
+
+  // Langkah pipa utama (Kelompok F) disisipkan sebelum catatan itu.
+  const allTraces = [...traces.slice(0, beforeNote), ...main.traces, ...traces.slice(beforeNote)];
   return {
     outletCount: load.outletCount,
     mainSize: main.recommendedSize,
@@ -396,6 +478,7 @@ export function computeSolution(
     yardM: yard,
     tankFill: tankFill ? { netM: tankFill.fillNetM, size: tankFill.size } : null,
     branchLayout,
+    wudhu,
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },
     appliedAssumptionIds: [...new Set([...applied, ...main.appliedAssumptionIds])],
     traces: allTraces,

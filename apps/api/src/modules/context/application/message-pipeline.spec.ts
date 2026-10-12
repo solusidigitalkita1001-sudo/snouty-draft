@@ -64,7 +64,7 @@ describe('runUnderstanding — diet panggilan model (2026-10-07)', () => {
     const updated = events.find((e) => e.type === 'requirement.updated') as {
       state: ReturnType<typeof emptyRequirementState>;
     };
-    expect(updated.state.building.type.value).toBe('light_commercial');
+    expect(updated.state.building.type.value).toBe('place_of_worship');
     expect(updated.state.building.floors.value).toBe(2);
     expect(updated.state.fixtures.bathrooms.value).toBe(2);
     expect(updated.state.fixtures.basins.value).toBe(4);
@@ -431,7 +431,10 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(events.map((e) => e.type)).not.toContain('error');
     expect(nextState.building.floors.value).toBe(2);
     expect(nextState.fixtures.bathrooms.value).toBe(2);
-    expect(nextState.building.type.value).toBe('light_commercial');
+    expect(nextState.building.type.value).toBe('place_of_worship');
+    // "2 tempat wudhu" = dua deret keran, bukan dua keran dan bukan wastafel.
+    expect(nextState.fixtures.wudhuAreas?.value).toBe(2);
+    expect(nextState.fixtures.basins.value).toBeNull();
     const token = events.find((e) => e.type === 'token') as { text: string };
     expect(token.text).toMatch(/^Oke, sudah saya catat: .*2 lantai.*2 kamar mandi/);
     expect(events.some((e) => e.type === 'card')).toBe(true);

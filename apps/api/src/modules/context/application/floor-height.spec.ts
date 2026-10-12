@@ -100,27 +100,65 @@ describe('TC-H-02 · tinggi lantai dari kalimat', () => {
   });
 });
 
-describe('TC-H-03 / TC-H-04 · keran wudhu dan jumlah lebih dari pilihan', () => {
-  it('TC-H-03: "8 keran wudhu" = 8 wastafel tanpa ditanya lagi; trace dan asumsi menyebutnya', async () => {
-    const state = stateOf(
-      'Masjid 2 lantai, 4 kamar mandi, 8 keran wudhu, PDAM, air bersih dan pembuangan',
-    );
-    expect(state.fixtures.basins).toMatchObject({ value: 8, ruleId: 'WUDHU_TAP_AS_BASIN' });
+describe('Tempat ibadah (pemilik 2026-10-12: "masih nganggep kran itu wastafel, pdhl masjid")', () => {
+  const MASJID =
+    'Masjid 2 lantai, 4 kamar mandi, 8 keran wudhu di 2 tempat wudhu, 3 urinoir, PDAM, air bersih dan pembuangan';
+
+  it('masjid = tempat ibadah; keran wudhu, tempat wudhu, urinoir tercatat sendiri, bukan wastafel', () => {
+    const state = stateOf(MASJID);
+    expect(state.building.type.value).toBe('place_of_worship');
+    expect(state.fixtures.wudhuTaps?.value).toBe(8);
+    expect(state.fixtures.wudhuAreas?.value).toBe(2);
+    expect(state.fixtures.urinals?.value).toBe(3);
+    expect(state.fixtures.basins.value).toBeNull();
     expect(state.missingInformation).toEqual([]);
-    const { houseRefinementQuestions } = await import('../domain/clarification.js');
-    const asked = houseRefinementQuestions(
-      (path) => path === 'fixtures.basins' || path === 'fixtures.kitchens',
-    ).map((q) => q.id);
-    expect(asked).not.toContain('fixtures.basins');
-    const { rec, traces } = await analyse(state);
-    expect(traces.find((t) => t.ruleId === 'ENG-001')!.explanation).toContain(
-      '8 keran wudhu (dihitung sebagai wastafel)',
-    );
-    expect(rec.assumptions.some((a) => a.assumptionId === 'WUDHU_TAP_AS_BASIN')).toBe(true);
   });
 
-  it('"8 wastafel" biasa tidak ditandai keran wudhu', () => {
-    expect(stateOf('rumah 2 lantai, 8 wastafel').fixtures.basins.ruleId).toBeUndefined();
+  it('pertanyaan penyempurna tempat ibadah: wudhu dan urinoir, bukan dapur', async () => {
+    const { houseRefinementQuestions } = await import('../domain/clarification.js');
+    const asked = houseRefinementQuestions(() => false, DEFAULT_LOCALE, 'place_of_worship').map(
+      (q) => q.id,
+    );
+    expect(asked).toEqual([
+      'building.dimensions',
+      'fixtures.wudhuTaps',
+      'fixtures.wudhuAreas',
+      'fixtures.urinals',
+      'fixtures.basins',
+    ]);
+    const house = houseRefinementQuestions(() => false).map((q) => q.id);
+    expect(house).not.toContain('fixtures.wudhuTaps');
+  });
+
+  it('hitungan: wudhu serentak, kamar mandi kloset + keran, deret wudhu dan talang di tabel sistem', async () => {
+    const { rec, traces } = await analyse(stateOf(MASJID));
+    const demand = traces.find((t) => t.ruleId === 'ENG-801')!;
+    expect(demand.explanation).toContain('8 × 0.1 l/s = 0.8 l/s');
+    expect(demand.explanation).toContain('3 urinoir');
+    expect(traces.some((t) => t.ruleId === 'ENG-701')).toBe(false);
+    expect(traces.find((t) => t.ruleId === 'ENG-001')!.explanation).toContain('kloset dan keran');
+    const names = rec.systemLines.map((l) => l.name);
+    expect(names).toContain('Pipa deret wudhu');
+    expect(names).toContain('Talang wudhu PVC D');
+    const soil = rec.systemLines.find((l) => l.name.startsWith('Pipa air kotor'))!;
+    expect(soil.path).toBe('Kloset dan urinoir → septic tank');
+    expect(rec.body).toContain('kloset dan urinoir dibuang ke septic tank');
+    expect(rec.body).toContain('tiap deret wudhu punya satu talang 3"');
+    expect(rec.body).not.toContain('urinoir dan floor drain');
+    expect(demand.explanation).toContain('4 keran × 1.5');
+    expect(rec.assumptions.some((a) => a.assumptionId === 'WUDHU_TAP_FLOW_0_1LS')).toBe(true);
+    expect(rec.assumptions.some((a) => a.assumptionId === 'HOUSE_KITCHEN_1')).toBe(false);
+  });
+
+  it('skema: deret wudhu dan urinoir di lantai dasar, bukan wastafel', async () => {
+    const { schematicFor } = await import('../../recommendation/application/analysis.service.js');
+    const schematic = schematicFor(stateOf(MASJID), 'x', T0);
+    const ground = schematic.nodes.filter((n) => n.type === 'fixture' && n.floorLevel === 1);
+    expect(ground.map((n) => n.label)).toEqual(
+      expect.arrayContaining(['Urinoir ×3', 'Wudhu 4 keran']),
+    );
+    expect(ground.filter((n) => n.code?.startsWith('WD-'))).toHaveLength(2);
+    expect(schematic.nodes.some((n) => n.code?.startsWith('WF-'))).toBe(false);
   });
 
   it('TC-H-04: kartu wastafel bisa diisi 8 (isian angka di samping pilihan 0–3)', async () => {

@@ -52,7 +52,12 @@ export interface ConversationSubject {
   readonly depth: AnswerDepth;
 }
 
-export type BuildingType = 'residential' | 'boarding_house' | 'light_commercial' | 'industrial';
+/**
+ * `place_of_worship` (2026-10-12): masjid, musala — dihitung dengan kelompok bangunan ibadah
+ * (beban toilet umum, keran wudhu serentak, talang wudhu), bukan dengan rumus rumah.
+ */
+export type BuildingType =
+  'residential' | 'boarding_house' | 'light_commercial' | 'industrial' | 'place_of_worship';
 export type WaterSource = 'rooftop_tank' | 'ground_tank' | 'pump' | 'municipal';
 export type InstallationType = 'clean_water' | 'drainage' | 'both';
 
@@ -94,6 +99,18 @@ export interface FixtureState {
   readonly kitchens: TrackedValue<number>;
   /** Ditanyakan langsung di board layar 03. */
   readonly outletCount: TrackedValue<number>;
+  /**
+   * Keran wudhu (tempat ibadah, 2026-10-12) — dipakai serentak menjelang salat, bukan wastafel.
+   * Opsional: state yang tersimpan sebelum field ini ada tidak memilikinya.
+   */
+  readonly wudhuTaps?: TrackedValue<number>;
+  /**
+   * Tempat wudhu — satu deret keran dengan satu talang pembuangan (2026-10-12). Opsional seperti
+   * `wudhuTaps`.
+   */
+  readonly wudhuAreas?: TrackedValue<number>;
+  /** Urinoir di toilet pria (tempat ibadah, 2026-10-12). Opsional seperti `wudhuTaps`. */
+  readonly urinals?: TrackedValue<number>;
 }
 
 export interface WaterState {
@@ -113,6 +130,9 @@ export type RequirementFieldPath =
   | 'fixtures.basins'
   | 'fixtures.kitchens'
   | 'fixtures.outletCount'
+  | 'fixtures.wudhuTaps'
+  | 'fixtures.wudhuAreas'
+  | 'fixtures.urinals'
   | 'water.source'
   | 'water.installationType'
   | 'water.boosterPump';

@@ -22,7 +22,13 @@ export const ExtractionSchema = z
     building: z
       .object({
         type: z
-          .enum(['residential', 'boarding_house', 'light_commercial', 'industrial'])
+          .enum([
+            'residential',
+            'boarding_house',
+            'light_commercial',
+            'industrial',
+            'place_of_worship',
+          ])
           .optional(),
         floors: z.number().int().min(1).max(50).optional(),
         floorHeightM: z.number().min(2).max(10).optional(),

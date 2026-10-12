@@ -89,7 +89,12 @@ export function statsFrom(solution: SolutionResult, productCount: number): Recom
 /** Baris tabel "Rekomendasi Sistem" (layar 06). */
 /** Isi satu cabang dalam kata-kata: "2 kamar mandi", "1 kamar mandi + 1 bak cuci dapur". */
 function branchContent(
-  b: { readonly bathrooms: number; readonly basins: number; readonly kitchens: number },
+  b: {
+    readonly bathrooms: number;
+    readonly basins: number;
+    readonly kitchens: number;
+    readonly urinals?: number;
+  },
   en: boolean,
 ): string {
   return [
@@ -97,6 +102,9 @@ function branchContent(
       ? `${b.bathrooms} ${en ? (b.bathrooms > 1 ? 'bathrooms' : 'bathroom') : 'kamar mandi'}`
       : '',
     b.basins > 0 ? `${b.basins} ${en ? (b.basins > 1 ? 'basins' : 'basin') : 'wastafel'}` : '',
+    (b.urinals ?? 0) > 0
+      ? `${b.urinals} ${en ? ((b.urinals ?? 0) > 1 ? 'urinals' : 'urinal') : 'urinoir'}`
+      : '',
     b.kitchens > 0 ? `${b.kitchens} ${en ? 'kitchen sink' : 'bak cuci dapur'}` : '',
   ]
     .filter(Boolean)
@@ -114,7 +122,9 @@ function branchLines(
 ): readonly SystemLine[] {
   const en = locale === 'en';
   const fill = traces.find((t) => t.ruleId === 'ENG-707');
-  const sizing = traces.filter((t) => t.ruleId === 'ENG-102');
+  // ENG-102 untuk deret wudhu (setelah ENG-802) bukan milik cabang.
+  const wudhuAt = traces.findIndex((t) => t.ruleId === 'ENG-802');
+  const sizing = traces.filter((t, k) => t.ruleId === 'ENG-102' && (wudhuAt === -1 || k < wudhuAt));
   const groups = solution.branchGroups;
   return groups.map((group) => {
     const own = sizing.filter((t) => (t.output as { mainSize?: string }).mainSize === group.size);
@@ -139,6 +149,42 @@ function branchLines(
   });
 }
 
+/** Trace ENG-102 yang mengukur deret wudhu — sesudah ENG-802. */
+function wudhuSizing(traces: readonly IdentifiedTrace[]): readonly IdentifiedTrace[] {
+  const at = traces.findIndex((t) => t.ruleId === 'ENG-802');
+  return at === -1 ? [] : traces.filter((t, k) => k > at && t.ruleId === 'ENG-102');
+}
+
+function wudhuLines(
+  solution: SolutionResult,
+  traces: readonly IdentifiedTrace[],
+  locale: Locale,
+): readonly SystemLine[] {
+  const wudhu = solution.wudhu;
+  if (wudhu === null) return [];
+  const en = locale === 'en';
+  const rows = traces.find((t) => t.ruleId === 'ENG-802');
+  const sizing = wudhuSizing(traces);
+  const sizes = [...new Set(wudhu.rows.map((r) => r.size))];
+  return sizes.map((size) => {
+    const own = wudhu.rows.filter((r) => r.size === size);
+    const taps = own.map((r) => r.taps).join(en ? ' and ' : ' dan ');
+    const sized = sizing.filter((t) => (t.output as { mainSize?: string }).mainSize === size);
+    const ids = [...(rows ? [rows.id] : []), ...sized.map((t) => t.id)];
+    return {
+      name: en ? 'Ablution row pipe' : 'Pipa deret wudhu',
+      path: en
+        ? `Main → ${own.length} ${own.length > 1 ? 'rows' : 'row'} of ${taps} taps`
+        : `Pipa utama → ${own.length} deret ${taps} keran`,
+      size,
+      reason: [rows?.explanation ?? '', sized[0]?.explanation ?? ''].filter(Boolean).join(' '),
+      provenance: provenanceFor(traces, ids),
+      traceIds: ids,
+      role: 'branch' as const,
+    };
+  });
+}
+
 export function systemLinesFrom(
   solution: SolutionResult,
   traces: readonly IdentifiedTrace[],
@@ -149,6 +195,7 @@ export function systemLinesFrom(
     traces,
     'ENG-001',
     'ENG-701',
+    'ENG-801',
     'ENG-702',
     'ENG-205',
     'ENG-201',
@@ -169,6 +216,7 @@ export function systemLinesFrom(
       size: solution.mainSize,
       reason: [
         explanationFor(traces, 'ENG-701'),
+        explanationFor(traces, 'ENG-801'),
         explanationFor(traces, 'ENG-702'),
         explanationFor(traces, 'ENG-205'),
       ]
@@ -189,6 +237,9 @@ export function systemLinesFrom(
       role: 'fixture',
     },
   ];
+
+  // Tempat ibadah: pipa pembagi tiap deret wudhu, satu baris per ukuran (ENG-802 + ENG-102).
+  lines.push(...wudhuLines(solution, traces, locale));
 
   // Toren atap: pipa pengisi dari meteran / pompa di depan tanah (ENG-706, P16-63).
   if (solution.tankFill !== null) {
@@ -256,6 +307,8 @@ export interface HouseStocks {
   readonly branchFor?: (size: string) => StockLength | null;
   /** Pipa pengisi toren atap (ENG-706). */
   readonly fill?: StockLength | null;
+  /** Pipa deret wudhu per ukuran (ENG-802). */
+  readonly wudhuFor?: (size: string) => StockLength | null;
 }
 
 /**
@@ -329,6 +382,26 @@ export function bomItemsFrom(
         traceIdsFor(traces, 'ENG-706'),
       ),
     );
+  }
+
+  // Deret wudhu: panjangnya dari jumlah keran × jarak (ENG-802), tidak menunggu denah.
+  if (solution.wudhu !== null) {
+    const wudhuIds = [...traceIdsFor(traces, 'ENG-802'), ...wudhuSizing(traces).map((t) => t.id)];
+    const bySize = new Map<string, number>();
+    for (const row of solution.wudhu.rows) {
+      bySize.set(row.size, (bySize.get(row.size) ?? 0) + row.lengthM);
+    }
+    for (const [size, netM] of bySize) {
+      rows.push(
+        pipeRow(
+          size,
+          Math.round(netM * 10) / 10,
+          en ? 'ablution rows: taps × spacing' : 'deret wudhu: keran × jarak',
+          stocks.wudhuFor?.(size) ?? null,
+          wudhuIds,
+        ),
+      );
+    }
   }
 
   const layout = solution.branchLayout;
@@ -410,11 +483,13 @@ export function assumptionsFrom(
   locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
   const en = locale === 'en';
+  // Tempat ibadah: keran wudhu justru dibuka bersamaan — kalimatnya tidak boleh bertentangan.
+  const wudhu = solution.wudhu !== null;
   const fromRules: Assumption[] = [
     {
       text: en
-        ? 'How it is worked out: every fixture adds to the supply load, the load gives the peak flow (not every tap runs at once), and the main pipe is the smallest size that keeps the water speed and pressure loss within limits over the route from the source to the highest outlet. For a roof tank the pressure left at the highest outlet is checked too.'
-        : 'Cara hitungnya: tiap alat menambah beban suplai, beban itu memberi debit puncak (tidak semua keran dibuka bersamaan), lalu pipa utama dipilih ukuran terkecil yang kecepatan air dan kehilangan tekanannya masih dalam batas sepanjang jalur dari sumber ke titik air tertinggi. Untuk toren atap, sisa tekanan di titik tertinggi ikut dicek.',
+        ? `How it is worked out: every fixture adds to the supply load, the load gives the peak flow (not every tap runs at once${wudhu ? ', except the ablution taps, which all run together before prayer' : ''}), and the main pipe is the smallest size that keeps the water speed and pressure loss within limits over the route from the source to the highest outlet. For a roof tank the pressure left at the highest outlet is checked too.`
+        : `Cara hitungnya: tiap alat menambah beban suplai, beban itu memberi debit puncak (tidak semua keran dibuka bersamaan${wudhu ? ', kecuali keran wudhu yang dipakai bersamaan menjelang salat' : ''}), lalu pipa utama dipilih ukuran terkecil yang kecepatan air dan kehilangan tekanannya masih dalam batas sepanjang jalur dari sumber ke titik air tertinggi. Untuk toren atap, sisa tekanan di titik tertinggi ikut dicek.`,
       fieldPath: '',
       ruleId: 'ENG-701',
     },
@@ -479,6 +554,14 @@ export function allowedNumbersFrom(
     ...solution.floorsPlan.map((floor) => floor.floor),
     ...solution.floorsPlan.map((floor) => floor.elevationM),
     ...bom.map((item) => item.quantity),
+    ...(solution.wudhu
+      ? [
+          solution.wudhu.taps,
+          solution.wudhu.flowLs,
+          solution.wudhu.rows.length,
+          ...solution.wudhu.rows.flatMap((r) => [r.taps, r.flowLs, r.lengthM]),
+        ]
+      : []),
   ];
 }
 
@@ -490,6 +573,7 @@ export function allowedSizesFrom(
   return [
     solution.mainSize,
     ...solution.branchGroups.map((g) => g.size),
+    ...(solution.wudhu?.rows.map((r) => r.size) ?? []),
     solution.fixtureConnectionSize,
     ...bom.map((item) => item.size),
   ];

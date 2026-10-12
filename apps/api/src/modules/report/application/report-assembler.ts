@@ -142,6 +142,9 @@ function requirementRows(state: RequirementState, locale: Locale): readonly Repo
   add('fixtures.bathrooms', state.fixtures.bathrooms);
   add('fixtures.basins', state.fixtures.basins);
   add('fixtures.kitchens', state.fixtures.kitchens);
+  if (state.fixtures.wudhuTaps) add('fixtures.wudhuTaps', state.fixtures.wudhuTaps);
+  if (state.fixtures.wudhuAreas) add('fixtures.wudhuAreas', state.fixtures.wudhuAreas);
+  if (state.fixtures.urinals) add('fixtures.urinals', state.fixtures.urinals);
   return rows;
 }
 

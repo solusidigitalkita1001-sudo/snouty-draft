@@ -76,6 +76,13 @@ export interface BuildSchematicInput {
   readonly branchSize: string;
   readonly fixtureSize: string;
   readonly floorsPlan: readonly FloorNode[];
+  /**
+   * Tempat ibadah: deret keran wudhu di lantai dasar (ENG-802), satu kotak per deret dengan ukuran
+   * pipa pembaginya — keran berjejer, bukan wastafel.
+   */
+  readonly wudhuRows?: readonly { readonly taps: number; readonly size: string }[];
+  /** Urinoir toilet pria di lantai dasar (tempat ibadah). */
+  readonly urinals?: number;
   /** Provenance keseluruhan dari engine — seluruh node mewarisinya. */
   readonly provenance: Provenance;
   readonly catalogVersionLabel: string;
@@ -209,8 +216,16 @@ export function buildSchematic(input: BuildSchematicInput): SchematicShape {
     if (plan.kitchens > 0) {
       addFixture(`DP-${level}`, plan.kitchens > 1 ? `Dapur ×${plan.kitchens}` : 'Dapur');
     }
+    if (level === 1 && (input.urinals ?? 0) > 0) {
+      addFixture(`UR-${level}`, (input.urinals ?? 0) > 1 ? `Urinoir ×${input.urinals}` : 'Urinoir');
+    }
+    if (level === 1) {
+      (input.wudhuRows ?? []).forEach((row, i) => {
+        addFixture(`WD-${ALPHABET[i] ?? String(i + 1)}`, `Wudhu ${row.taps} keran`, row.size);
+      });
+    }
 
-    function addFixture(code: string, label: string): void {
+    function addFixture(code: string, label: string, size = input.fixtureSize): void {
       const id = `fx-${code}`;
       nodes.push({
         id,
@@ -218,14 +233,14 @@ export function buildSchematic(input: BuildSchematicInput): SchematicShape {
         floorLevel: level,
         code,
         label,
-        size: input.fixtureSize,
+        size,
         provenance,
       });
       segments.push({
         from: branchId,
         to: id,
         role: 'fixture_connection',
-        size: input.fixtureSize,
+        size,
         provenance,
       });
     }

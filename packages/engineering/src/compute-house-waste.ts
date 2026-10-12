@@ -23,11 +23,14 @@ import {
   type DrainLineResult,
   type DrainSize,
 } from './rules/group-j-waste.js';
+import { ENG_803, type WudhuDrainRow } from './rules/group-l-worship.js';
 
 export interface HouseDrainageInput {
   readonly bathrooms: number;
   readonly basins: number;
   readonly kitchens: number;
+  /** Urinoir toilet umum — dibuang bersama kloset ke jalur air kotor. */
+  readonly urinals?: number;
   /**
    * Alat per lantai (sebaran yang sama dengan air bersih, ENG-008). Ada → cabang mendatar per
    * lantai dan pipa tegak ikut dicek (ENG-604); tidak ada → dianggap satu lantai.
@@ -37,6 +40,11 @@ export interface HouseDrainageInput {
     readonly basins: number;
     readonly kitchens: number;
   }[];
+  /**
+   * Tempat ibadah: debit tiap deret wudhu (ENG-802). Ada → satu talang per deret (ENG-803) yang
+   * masuk ke jalur air bekas.
+   */
+  readonly wudhuRowFlowsLs?: readonly number[];
   /** Ukuran rumah dan lantai — bila ada, panjang tiap jalur diperkirakan (ENG-603, P16-60). */
   readonly layout?: {
     readonly planLengthM: number;
@@ -48,7 +56,7 @@ export interface HouseDrainageInput {
 }
 
 export interface FixtureDrain {
-  readonly fixture: 'water_closet' | 'shower' | 'lavatory' | 'kitchen_sink';
+  readonly fixture: 'water_closet' | 'urinal' | 'shower' | 'lavatory' | 'kitchen_sink';
   readonly count: number;
   readonly size: DrainSize;
 }
@@ -60,6 +68,8 @@ export interface HouseDrainageResult {
   /** Jalur air bekas; `null` bila tidak ada alat air bekas. */
   readonly waste: DrainLineResult | null;
   readonly fixtures: readonly FixtureDrain[];
+  /** Talang wudhu per deret (ENG-803); kosong bukan tempat ibadah. */
+  readonly wudhuTroughs: readonly WudhuDrainRow[];
   /** Perkiraan panjang tiap jalur (ENG-603); `null` tanpa ukuran rumah. */
   readonly lengths: DrainLengthResult | null;
   readonly appliedAssumptionIds: readonly string[];
@@ -69,6 +79,7 @@ export interface HouseDrainageResult {
 
 /** Ukuran sambungan minimum per alat — IPC Tabel 709.1 (ukuran trap). */
 const FIXTURE_MIN: Readonly<Record<Exclude<FixtureDrain['fixture'], 'water_closet'>, DrainSize>> = {
+  urinal: '2"',
   shower: '2"',
   lavatory: '1¼"',
   kitchen_sink: '1½"',
@@ -122,8 +133,21 @@ export function computeHouseDrainage(
     lavatory: use('DFU_LAVATORY_1'),
     kitchenSink: use('DFU_KITCHEN_SINK_2'),
   };
+  // Talang wudhu dulu: bebannya masuk jalur air bekas.
+  const wudhuRows =
+    input.wudhuRowFlowsLs && input.wudhuRowFlowsLs.length > 0
+      ? run(ENG_803, {
+          rowFlowsLs: input.wudhuRowFlowsLs,
+          dfuPerGpm: use('DFU_CONTINUOUS_2_PER_GPM'),
+        })
+      : null;
+  const urinals = Math.max(0, input.urinals ?? 0);
+  const dfuUrinal = urinals > 0 ? use('DFU_URINAL_4') : 0;
   const load = run(ENG_601, {
     ...counts,
+    wudhuDfu: wudhuRows?.totalDfu ?? 0,
+    urinals,
+    dfuUrinal,
     dfuWaterCloset: dfu.waterCloset,
     dfuShower: dfu.shower,
     dfuLavatory: dfu.lavatory,
@@ -132,7 +156,12 @@ export function computeHouseDrainage(
 
   // Beban per lantai tiap jalur — untuk cabang mendatar dan pipa tegak (ENG-604, laporan 0009).
   const floors = input.floors && input.floors.length > 0 ? input.floors : [input];
-  const soilFloors = floors.map((f) => f.bathrooms * dfu.waterCloset).filter((d) => d > 0);
+  // Urinoir di lantai dasar (lantai terakhir dalam sebaran, urut dari atas).
+  const soilFloors = floors
+    .map(
+      (f, k) => f.bathrooms * dfu.waterCloset + (k === floors.length - 1 ? urinals * dfuUrinal : 0),
+    )
+    .filter((d) => d > 0);
   const wasteFloors = floors
     .map((f) => f.bathrooms * dfu.shower + f.basins * dfu.lavatory + f.kitchens * dfu.kitchenSink)
     .filter((d) => d > 0);
@@ -142,7 +171,7 @@ export function computeHouseDrainage(
     multiStorey && perFloor.length > 0 ? run(ENG_604, { floorDfu: perFloor }).size : null;
 
   const soil =
-    counts.waterClosets > 0
+    counts.waterClosets > 0 || urinals > 0
       ? run(ENG_602, {
           dfu: load.soilDfu,
           minimumSize: sizeFromInches('SOIL_LINE_MIN_4IN', use('SOIL_LINE_MIN_4IN')),
@@ -156,18 +185,35 @@ export function computeHouseDrainage(
         f
       ] > 0,
   );
+  // Ukuran minimum jalur air bekas: alat terbesarnya, termasuk talang wudhu terbesar.
+  const troughMin =
+    wudhuRows?.rows.reduce<DrainSize | null>(
+      (big, r) =>
+        big === null || DRAIN_SIZES.indexOf(r.size) > DRAIN_SIZES.indexOf(big) ? r.size : big,
+      null,
+    ) ?? null;
+  const fixtureMin = wasteFixtures.length > 0 ? FIXTURE_MIN[wasteFixtures[0]!] : null;
+  const wasteMin =
+    fixtureMin !== null && troughMin !== null
+      ? DRAIN_SIZES.indexOf(troughMin) > DRAIN_SIZES.indexOf(fixtureMin)
+        ? troughMin
+        : fixtureMin
+      : (fixtureMin ?? troughMin);
   const waste =
-    wasteFixtures.length > 0
+    wasteMin !== null
       ? run(ENG_602, {
           dfu: load.wasteDfu,
-          minimumSize: FIXTURE_MIN[wasteFixtures[0]!],
+          minimumSize: wasteMin,
           branchStackSize: branchStack(wasteFloors),
         })
       : null;
 
   const fixtures: FixtureDrain[] = [
-    ...(soil
+    ...(soil && counts.waterClosets > 0
       ? [{ fixture: 'water_closet' as const, count: counts.waterClosets, size: soil.size }]
+      : []),
+    ...(urinals > 0
+      ? [{ fixture: 'urinal' as const, count: urinals, size: FIXTURE_MIN.urinal }]
       : []),
     ...(counts.showers > 0
       ? [{ fixture: 'shower' as const, count: counts.showers, size: FIXTURE_MIN.shower }]
@@ -201,6 +247,7 @@ export function computeHouseDrainage(
     soil,
     waste,
     fixtures,
+    wudhuTroughs: wudhuRows?.rows ?? [],
     lengths,
     appliedAssumptionIds: [...new Set(applied)],
     traces,

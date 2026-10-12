@@ -45,9 +45,11 @@ const OBVIOUS = {
   // Jumlah wastafel/dapur/titik air yang tersurat juga dibaca kode (diet panggilan model,
   // 2026-10-07): bila model dilewati, "4 wastafel, 1 dapur" tetap tercatat.
   basins: (m: string) =>
-    countOf(`wastafel|washtafel|westafel|bak cuci|basins?|sinks?|washbasins?|${WUDHU}`, m, 3),
-  /** Jumlah keran wudhu yang disebut — penanda asumsi WUDHU_TAP_AS_BASIN (TC-H-03). */
+    countOf('wastafel|washtafel|westafel|bak cuci|basins?|sinks?|washbasins?', m, 3),
+  /** Keran wudhu — field sendiri (tempat ibadah, 2026-10-12), bukan wastafel. */
   wudhuTaps: (m: string) => countOf(WUDHU, m, 3),
+  wudhuAreas: (m: string) => countOf(WUDHU_AREA, m, 3),
+  urinals: (m: string) => countOf(URINAL, m, 3),
   kitchens: (m: string) => countOf('dapur|kitchens?|pantry', m),
   /**
    * Tinggi tiap lantai ("tinggi lantai 4 m", "tinggi tiap lantai 3,8 meter", "floor height 4 m")
@@ -148,8 +150,11 @@ const OBVIOUS = {
       return 'industrial';
     // Tempat ibadah, sekolah, klinik: bangunan umum berpenghuni ramai — kelas komersial ringan
     // (produksi 2026-10-07: "masjid 2 lantai" tidak dikenali, lalu model kehabisan waktu).
+    // Masjid dan musala: kelompok hitung tempat ibadah (wudhu serentak, toilet umum).
+    if (/\b(masjid|mesjid|mushol+a|musholla|musala|surau|langgar|mosque)\b/i.test(m))
+      return 'place_of_worship';
     if (
-      /\b(ruko|toko|kantor|kafe|cafe|resto|shophouse|shop|store|office|restaurant|hotel|clinic|school|masjid|mushol+a|musala|surau|gereja|vihara|pura|sekolah|madrasah|pesantren|puskesmas|klinik|mosque|church|temple)\b/i.test(
+      /\b(ruko|toko|kantor|kafe|cafe|resto|shophouse|shop|store|office|restaurant|hotel|clinic|school|gereja|vihara|pura|sekolah|madrasah|pesantren|puskesmas|klinik|church|temple)\b/i.test(
         m,
       )
     )
@@ -183,17 +188,21 @@ const NUMBER_WORDS: Readonly<Record<number, string>> = {
 
 /** Kata benda yang harus berdekatan dengan angkanya — "2 lantai", "lantai dua", "selantai", "2 floors". */
 /**
- * Sebutan keran wudhu — kata benda alat, dipetakan ke wastafel seperti sebutan wastafel lain
- * ("washtafel", "bak cuci"). Kamus kata benda, bukan pola pertanyaan pengguna.
+ * Sebutan keran wudhu — kata benda alat, field sendiri (bukan wastafel) sejak kelompok tempat ibadah
+ * (2026-10-12). Kamus kata benda, bukan pola pertanyaan pengguna.
  */
-const WUDHU =
-  'keran wudhu|kran wudhu|keran wudu|kran wudu|tempat wudhu|tempat wudu|ablution taps?|wudu taps?|wudhu taps?';
+const WUDHU = 'keran wudhu|kran wudhu|keran wudu|kran wudu|ablution taps?|wudu taps?|wudhu taps?';
+/** Tempat wudhu = satu deret keran dengan satu pembuangan (pemilik 2026-10-12). */
+const WUDHU_AREA = 'tempat wudhu|tempat wudu|area wudhu|area wudu|ablution areas?';
+const URINAL = 'urinoir|urinoar|urinal|urinals|peturasan';
 
 export const COUNT_NOUNS: Readonly<Record<string, string>> = {
   'building.floors': 'lantai|lt|tingkat|floors?|stor(?:e)?ys?|stories|levels?',
   'fixtures.bathrooms': 'kamar mandi|km|toilet|wc|bathrooms?|toilets?|restrooms?',
-  // Keran/tempat wudhu dihitung sebagai wastafel sampai ada kelompok bangunan ibadah (TC-H-03, OQ-61).
-  'fixtures.basins': `wastafel|washtafel|westafel|basins?|bak cuci|sinks?|washbasins?|${WUDHU}`,
+  'fixtures.basins': 'wastafel|washtafel|westafel|basins?|bak cuci|sinks?|washbasins?',
+  'fixtures.wudhuTaps': WUDHU,
+  'fixtures.wudhuAreas': WUDHU_AREA,
+  'fixtures.urinals': URINAL,
   'fixtures.kitchens': 'dapur|kitchens?|pantry',
   'fixtures.outletCount': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
 };
@@ -234,7 +243,8 @@ const TYPE_MARKERS: Readonly<
     /\b(kos|kost|kos-kosan|kosan|asrama|kontrakan|mess|boarding house|dorm(?:itory)?|hostel)\b/i,
   industrial: /\b(pabrik|industri|gudang|workshop|bengkel|factory|plant|industrial|warehouse)\b/i,
   light_commercial:
-    /\b(ruko|toko|kantor|kafe|cafe|resto|restoran|hotel|klinik|sekolah|warung|shophouse|shop|store|office|restaurant|clinic|school|masjid|mushol+a|musala|surau|gereja|vihara|pura|madrasah|pesantren|puskesmas|mosque|church|temple)\b/i,
+    /\b(ruko|toko|kantor|kafe|cafe|resto|restoran|hotel|klinik|sekolah|warung|shophouse|shop|store|office|restaurant|clinic|school|gereja|vihara|pura|madrasah|pesantren|puskesmas|church|temple)\b/i,
+  place_of_worship: /\b(masjid|mesjid|mushol+a|musholla|musala|surau|langgar|mosque)\b/i,
 };
 
 /** `0` bila pesan meniadakan kata benda itu ("tanpa dapur"); selain itu tidak ada tebakan. */
@@ -331,12 +341,16 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
       OBVIOUS.basins(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.basins']!),
     ),
   );
-  // Wastafel yang disebut sebagai keran wudhu: ditandai supaya engine mencatat asumsinya.
-  const wudhu = OBVIOUS.wudhuTaps(message);
-  const basins = updates.find((u) => u.path === 'fixtures.basins');
-  if (basins && wudhu !== undefined && basins.value === wudhu) {
-    updates[updates.indexOf(basins)] = { ...basins, ruleId: 'WUDHU_TAP_AS_BASIN' };
-  }
+  // Keran wudhu tercatat sendiri — dihitung serentak oleh kelompok tempat ibadah.
+  add(
+    'fixtures.wudhuTaps',
+    OBVIOUS.wudhuTaps(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.wudhuTaps']!),
+  );
+  add('fixtures.wudhuAreas', OBVIOUS.wudhuAreas(message));
+  add(
+    'fixtures.urinals',
+    OBVIOUS.urinals(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.urinals']!),
+  );
   add(
     'fixtures.kitchens',
     counted(

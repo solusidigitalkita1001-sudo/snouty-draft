@@ -408,18 +408,22 @@ export interface BranchFillInput {
     readonly bathrooms: number;
     readonly basins: number;
     readonly kitchens: number;
+    /** Urinoir toilet umum (tempat ibadah); 0 untuk rumah. */
+    readonly urinals: number;
   }[];
   readonly maxOutletsPerBranch: number;
   readonly wsfuWaterCloset: number;
   readonly wsfuShower: number;
   readonly wsfuLavatory: number;
   readonly wsfuKitchenSink: number;
+  readonly wsfuUrinal: number;
 }
 export interface FilledBranch {
   readonly floor: number;
   readonly bathrooms: number;
   readonly basins: number;
   readonly kitchens: number;
+  readonly urinals: number;
   readonly outlets: number;
   readonly wsfu: number;
 }
@@ -437,7 +441,8 @@ export interface BranchFillResult {
  */
 export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
   ruleId: 'ENG-707',
-  version: 1,
+  // v2 (2026-10-12, tempat ibadah): urinoir ikut mengisi cabang setelah wastafel.
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -456,6 +461,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
           bathrooms: c('bathrooms'),
           basins: c('basins'),
           kitchens: c('kitchens'),
+          urinals: f['urinals'] === undefined ? 0 : c('urinals'),
         };
       }),
       maxOutletsPerBranch: requireInt('ENG-707', 'maxOutletsPerBranch', o['maxOutletsPerBranch'], {
@@ -466,6 +472,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
       wsfuShower: n('wsfuShower'),
       wsfuLavatory: n('wsfuLavatory'),
       wsfuKitchenSink: n('wsfuKitchenSink'),
+      wsfuUrinal: o['wsfuUrinal'] === undefined ? 0 : n('wsfuUrinal'),
     };
   },
   compute: (i) => {
@@ -482,6 +489,11 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
           outlets: 1,
           wsfu: i.wsfuLavatory,
         })),
+        ...Array.from({ length: floor.urinals }, () => ({
+          kind: 'urinals' as const,
+          outlets: 1,
+          wsfu: i.wsfuUrinal,
+        })),
         ...Array.from({ length: floor.kitchens }, () => ({
           kind: 'kitchens' as const,
           outlets: 1,
@@ -492,6 +504,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
         bathrooms: number;
         basins: number;
         kitchens: number;
+        urinals: number;
         outlets: number;
         wsfu: number;
       } | null = null;
@@ -503,7 +516,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
       for (const item of items) {
         if (open === null || open.outlets + item.outlets > i.maxOutletsPerBranch) {
           close();
-          open = { bathrooms: 0, basins: 0, kitchens: 0, outlets: 0, wsfu: 0 };
+          open = { bathrooms: 0, basins: 0, kitchens: 0, urinals: 0, outlets: 0, wsfu: 0 };
         }
         open[item.kind] += 1;
         open.outlets += item.outlets;
@@ -514,28 +527,29 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
     return { branches, branchCount: branches.length, maxOutletsPerBranch: i.maxOutletsPerBranch };
   },
   sourceReference:
-    'Pengelompokan tanpa denah: kamar mandi (tidak dipisah), lalu wastafel, lalu bak cuci dapur, maks 4 titik per cabang, cabang per lantai; beban cabang = jumlah WSFU isinya (IPC Tabel E103.3(2))',
+    'Pengelompokan tanpa denah: kamar mandi (tidak dipisah), lalu wastafel, urinoir, lalu bak cuci dapur, maks 4 titik per cabang, cabang per lantai; beban cabang = jumlah WSFU isinya (IPC Tabel E103.3(2))',
   validationStatus: PENDING,
   testCases: [
     {
       name: 'masjid 0009: tiap lantai 2 KM + 4 wastafel → cabang 2 KM (6,4 WSFU) dan cabang 4 wastafel (2 WSFU)',
       input: {
         floors: [
-          { floor: 2, bathrooms: 2, basins: 4, kitchens: 0 },
-          { floor: 1, bathrooms: 2, basins: 4, kitchens: 0 },
+          { floor: 2, bathrooms: 2, basins: 4, kitchens: 0, urinals: 0 },
+          { floor: 1, bathrooms: 2, basins: 4, kitchens: 0, urinals: 0 },
         ],
         maxOutletsPerBranch: 4,
         wsfuWaterCloset: 2.2,
         wsfuShower: 1,
         wsfuLavatory: 0.5,
         wsfuKitchenSink: 1,
+        wsfuUrinal: 3,
       },
       expected: {
         branches: [
-          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0, outlets: 4, wsfu: 6.4 },
-          { floor: 2, bathrooms: 0, basins: 4, kitchens: 0, outlets: 4, wsfu: 2 },
-          { floor: 1, bathrooms: 2, basins: 0, kitchens: 0, outlets: 4, wsfu: 6.4 },
-          { floor: 1, bathrooms: 0, basins: 4, kitchens: 0, outlets: 4, wsfu: 2 },
+          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0, urinals: 0, outlets: 4, wsfu: 6.4 },
+          { floor: 2, bathrooms: 0, basins: 4, kitchens: 0, urinals: 0, outlets: 4, wsfu: 2 },
+          { floor: 1, bathrooms: 2, basins: 0, kitchens: 0, urinals: 0, outlets: 4, wsfu: 6.4 },
+          { floor: 1, bathrooms: 0, basins: 4, kitchens: 0, urinals: 0, outlets: 4, wsfu: 2 },
         ],
         branchCount: 4,
         maxOutletsPerBranch: 4,
@@ -545,19 +559,20 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
       name: 'rumah 0002: lantai 2 = 2 KM, lantai 1 = 1 KM + dapur → 2 cabang',
       input: {
         floors: [
-          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0 },
-          { floor: 1, bathrooms: 1, basins: 0, kitchens: 1 },
+          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0, urinals: 0 },
+          { floor: 1, bathrooms: 1, basins: 0, kitchens: 1, urinals: 0 },
         ],
         maxOutletsPerBranch: 4,
         wsfuWaterCloset: 2.2,
         wsfuShower: 1,
         wsfuLavatory: 0.5,
         wsfuKitchenSink: 1,
+        wsfuUrinal: 3,
       },
       expected: {
         branches: [
-          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0, outlets: 4, wsfu: 6.4 },
-          { floor: 1, bathrooms: 1, basins: 0, kitchens: 1, outlets: 3, wsfu: 4.2 },
+          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0, urinals: 0, outlets: 4, wsfu: 6.4 },
+          { floor: 1, bathrooms: 1, basins: 0, kitchens: 1, urinals: 0, outlets: 3, wsfu: 4.2 },
         ],
         branchCount: 2,
         maxOutletsPerBranch: 4,
@@ -569,6 +584,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
       [
         b.bathrooms > 0 ? `${b.bathrooms} ${en ? 'bathroom' : 'kamar mandi'}` : '',
         b.basins > 0 ? `${b.basins} ${en ? 'basin' : 'wastafel'}` : '',
+        b.urinals > 0 ? `${b.urinals} ${en ? 'urinal' : 'urinoir'}` : '',
         b.kitchens > 0 ? `${b.kitchens} ${en ? 'kitchen sink' : 'bak cuci dapur'}` : '',
       ]
         .filter(Boolean)

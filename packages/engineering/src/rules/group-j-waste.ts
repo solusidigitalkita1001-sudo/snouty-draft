@@ -72,6 +72,11 @@ export interface DrainageLoadInput {
   readonly dfuShower: number;
   readonly dfuLavatory: number;
   readonly dfuKitchenSink: number;
+  /** Talang wudhu (ENG-803), masuk jalur air bekas; 0 bukan tempat ibadah. */
+  readonly wudhuDfu: number;
+  /** Urinoir toilet umum — masuk jalur air kotor bersama kloset. */
+  readonly urinals: number;
+  readonly dfuUrinal: number;
 }
 export interface DrainageLoadResult {
   /** Beban jalur air kotor (kloset). */
@@ -82,7 +87,8 @@ export interface DrainageLoadResult {
 
 export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
   ruleId: 'ENG-601',
-  version: 1,
+  // v2 (2026-10-12, tempat ibadah): talang wudhu ikut beban air bekas, urinoir ikut air kotor.
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -97,12 +103,21 @@ export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
       dfuShower: dfu('dfuShower'),
       dfuLavatory: dfu('dfuLavatory'),
       dfuKitchenSink: dfu('dfuKitchenSink'),
+      wudhuDfu:
+        o['wudhuDfu'] === undefined
+          ? 0
+          : requireNumber('ENG-601', 'wudhuDfu', o['wudhuDfu'], { min: 0, max: 1000 }),
+      urinals: o['urinals'] === undefined ? 0 : count('urinals'),
+      dfuUrinal: o['dfuUrinal'] === undefined ? 0 : dfu('dfuUrinal'),
     };
   },
   compute: (i) => ({
-    soilDfu: i.waterClosets * i.dfuWaterCloset,
+    soilDfu: i.waterClosets * i.dfuWaterCloset + i.urinals * i.dfuUrinal,
     wasteDfu:
-      i.showers * i.dfuShower + i.lavatories * i.dfuLavatory + i.kitchenSinks * i.dfuKitchenSink,
+      i.showers * i.dfuShower +
+      i.lavatories * i.dfuLavatory +
+      i.kitchenSinks * i.dfuKitchenSink +
+      i.wudhuDfu,
   }),
   sourceReference:
     'Unit beban alat plambing pembuangan (DFU), IPC Tabel 709.1: kloset 4, shower 2, wastafel 1, bak cuci dapur 2',
@@ -119,8 +134,28 @@ export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
         dfuShower: 2,
         dfuLavatory: 1,
         dfuKitchenSink: 2,
+        wudhuDfu: 0,
+        urinals: 0,
+        dfuUrinal: 4,
       },
       expected: { soilDfu: 12, wasteDfu: 10 },
+    },
+    {
+      name: 'masjid: 4 KM (floor drain), 3 urinoir, 2 talang wudhu 13 + 13 → air kotor 28, air bekas 34',
+      input: {
+        waterClosets: 4,
+        showers: 4,
+        lavatories: 0,
+        kitchenSinks: 0,
+        dfuWaterCloset: 4,
+        dfuShower: 2,
+        dfuLavatory: 1,
+        dfuKitchenSink: 2,
+        wudhuDfu: 26,
+        urinals: 3,
+        dfuUrinal: 4,
+      },
+      expected: { soilDfu: 28, wasteDfu: 34 },
     },
   ],
   explain: (i, o, locale) =>
@@ -140,10 +175,12 @@ export function drainLoadSentence(
   locale?: EngineeringLocale,
 ): string {
   if (line === 'soil') {
-    if (i.waterClosets <= 0) return '';
+    if (i.waterClosets <= 0 && (i.urinals ?? 0) <= 0) return '';
+    const urinal = (label: string) =>
+      (i.urinals ?? 0) > 0 ? ` + ${i.urinals} ${label} × ${i.dfuUrinal}` : '';
     return localized(locale, {
-      id: `Beban air kotor ${o.soilDfu} = ${i.waterClosets} kloset × ${i.dfuWaterCloset}.`,
-      en: `Soil load ${o.soilDfu} = ${i.waterClosets} toilets × ${i.dfuWaterCloset}.`,
+      id: `Beban air kotor ${o.soilDfu} = ${i.waterClosets} kloset × ${i.dfuWaterCloset}${urinal('urinoir')}.`,
+      en: `Soil load ${o.soilDfu} = ${i.waterClosets} toilets × ${i.dfuWaterCloset}${urinal('urinals')}.`,
     });
   }
   // Hanya alat yang ada disebut — "0 wastafel × 1" bukan informasi.
@@ -158,11 +195,20 @@ export function drainLoadSentence(
       .filter(([n]) => n > 0)
       .map(([n, label, dfu]) => `${n} ${label} × ${dfu}`)
       .join(' + ');
-  const id = terms(['shower/floor drain', 'wastafel', 'bak cuci dapur']);
+  const wudhu = (label: string) => ((i.wudhuDfu ?? 0) > 0 ? [`${label} ${i.wudhuDfu}`] : []);
+  const id = [terms(['shower/floor drain', 'wastafel', 'bak cuci dapur']), ...wudhu('talang wudhu')]
+    .filter(Boolean)
+    .join(' + ');
   if (!id) return '';
+  const en = [
+    terms(['showers/floor drains', 'basins', 'kitchen sinks']),
+    ...wudhu('ablution troughs'),
+  ]
+    .filter(Boolean)
+    .join(' + ');
   return localized(locale, {
     id: `Beban air bekas ${o.wasteDfu} = ${id}.`,
-    en: `Waste load ${o.wasteDfu} = ${terms(['showers/floor drains', 'basins', 'kitchen sinks'])}.`,
+    en: `Waste load ${o.wasteDfu} = ${en}.`,
   });
 }
 
@@ -259,6 +305,15 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
     }),
 };
 
+const TABULATED = DRAIN_SIZES.filter((s) => BRANCH_STACK_DFU[s] !== undefined);
+
+/** Cabang mendatar terkecil untuk beban ini — IPC 710.1(2), kolom cabang (talang wudhu, ENG-803). */
+export function branchSizeForDfu(dfu: number): DrainSize {
+  return (
+    TABULATED.find((s) => BRANCH_STACK_DFU[s]!.branch >= dfu) ?? TABULATED[TABULATED.length - 1]!
+  );
+}
+
 // ── ENG-604 · Cabang mendatar per lantai dan pipa tegak ────────────────────
 
 export interface BranchStackInput {
@@ -275,8 +330,6 @@ export interface BranchStackResult {
   /** Ukuran minimum jalur dari cabang dan stack. */
   readonly size: DrainSize;
 }
-
-const TABULATED = DRAIN_SIZES.filter((s) => BRANCH_STACK_DFU[s] !== undefined);
 
 /**
  * Temuan laporan 0009: ukuran jalur hanya dicek terhadap saluran bangunan (710.1(1)); cabang

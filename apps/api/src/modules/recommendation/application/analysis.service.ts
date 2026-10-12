@@ -170,10 +170,19 @@ export function schematicFor(
     mainSize: solution.mainSize,
     fixtureSize: solution.fixtureConnectionSize,
     floorsPlan: solution.floorsPlan,
+    // Tempat ibadah: deret keran wudhu dan urinoir di lantai dasar.
+    ...(solution.wudhu
+      ? { wudhuRows: solution.wudhu.rows.map((r) => ({ taps: r.taps, size: r.size })) }
+      : {}),
+    ...(isWorship(state) ? { urinals: state.fixtures.urinals?.value ?? 0 } : {}),
     provenance: solution.overallProvenance,
     catalogVersionLabel,
     now,
   });
+}
+
+function isWorship(state: RequirementState): boolean {
+  return state.building.type.value === 'place_of_worship';
 }
 
 /**
@@ -193,6 +202,8 @@ const PURPOSE = {
   soilJoint: { id: 'Sambungan air kotor', en: 'Soil line junction' },
   soilVent: { id: 'Ventilasi air kotor', en: 'Soil vent' },
   wasteVent: { id: 'Ventilasi air bekas', en: 'Waste vent' },
+  wudhuRow: { id: 'Deret wudhu', en: 'Ablution row' },
+  wudhuTrough: { id: 'Talang wudhu', en: 'Ablution trough' },
 } as const;
 
 function withPurpose(
@@ -369,6 +380,11 @@ export class AnalysisService {
     const fillMatch = solution.tankFill
       ? await this.matchRoles([pipeRequirement('main', solution.tankFill.size, PIPE_FAMILY)])
       : null;
+    // Pipa deret wudhu per ukuran (ENG-802) — produk PVC AW seperti cabang.
+    const wudhuMatches = new Map<string, Awaited<ReturnType<typeof this.matchRoles>>>();
+    for (const size of new Set(solution.wudhu?.rows.map((r) => r.size) ?? [])) {
+      wudhuMatches.set(size, await this.matchRoles([pipeRequirement('branch', size, PIPE_FAMILY)]));
+    }
     const match = {
       ...pipes,
       products: [
@@ -377,6 +393,9 @@ export class AnalysisService {
           (p, i) => teeProducts.findIndex((q) => q.productId === p.productId) === i,
         ),
         ...(fillMatch?.products ?? []).map((p) => withPurpose(p, PURPOSE.tankFill, locale)),
+        ...[...wudhuMatches.values()]
+          .flatMap((m) => m.products)
+          .map((p) => withPurpose(p, PURPOSE.wudhuRow, locale)),
       ],
     };
     events.push({
@@ -405,6 +424,7 @@ export class AnalysisService {
           fixture: match.stockFor('fixture'),
           teeFor: (branchSize) => (tees.get(branchSize) ?? []).map((t) => t.bom),
           fill: fillMatch?.stockFor('main') ?? null,
+          wudhuFor: (size) => wudhuMatches.get(size)?.stockFor('branch') ?? null,
         },
         now,
         locale,
@@ -421,8 +441,16 @@ export class AnalysisService {
         {
           bathrooms: state.fixtures.bathrooms.value ?? 0,
           basins: state.fixtures.basins.value ?? 0,
-          // Sama dengan sisi air bersih: dapur yang belum disebut dianggap satu (HOUSE_KITCHEN_1).
-          kitchens: state.fixtures.kitchens.value ?? 1,
+          // Sama dengan sisi air bersih: dapur yang belum disebut dianggap satu (HOUSE_KITCHEN_1);
+          // tempat ibadah tanpa dapur (WORSHIP_KITCHEN_0).
+          kitchens: state.fixtures.kitchens.value ?? (isWorship(state) ? 0 : 1),
+          // Tempat ibadah: urinoir ke air kotor, satu talang per deret wudhu ke air bekas.
+          ...(isWorship(state)
+            ? {
+                urinals: state.fixtures.urinals?.value ?? 0,
+                wudhuRowFlowsLs: solution.wudhu?.rows.map((r) => r.flowLs) ?? [],
+              }
+            : {}),
           // Ukuran rumah → perkiraan panjang tiap jalur (ENG-603, P16-60); sisi terpanjang.
           layout: houseLayout(state, solution),
           // Sebaran lantai yang sama dengan air bersih — cabang per lantai dan pipa tegak (ENG-604).
@@ -454,6 +482,13 @@ export class AnalysisService {
         size !== undefined && drainage.lengths !== null
           ? await this.matchRoles([pipeRequirement('main', size, DRAINAGE_FAMILY)])
           : null;
+      const troughMatches = new Map<string, Awaited<ReturnType<typeof this.matchRoles>>>();
+      for (const size of new Set(drainage.wudhuTroughs.map((t) => t.size))) {
+        troughMatches.set(
+          size,
+          await this.matchRoles([pipeRequirement('branch', size, DRAINAGE_FAMILY)]),
+        );
+      }
       const soilVent = await ventMatch(drainage.soil?.ventSize);
       const wasteVent = await ventMatch(drainage.waste?.ventSize);
       const drainProducts = [
@@ -470,6 +505,9 @@ export class AnalysisService {
         ),
         ...(soilVent?.products ?? []).map((p) => withPurpose(p, PURPOSE.soilVent, locale)),
         ...(wasteVent?.products ?? []).map((p) => withPurpose(p, PURPOSE.wasteVent, locale)),
+        ...[...troughMatches.values()]
+          .flatMap((m) => m.products)
+          .map((p) => withPurpose(p, PURPOSE.wudhuTrough, locale)),
       ];
       recommendation = withHouseDrainage(
         recommendation,
@@ -483,6 +521,8 @@ export class AnalysisService {
           waste: drainageMatch.stockFor('branch'),
           soilVent: soilVent?.stockFor('main') ?? null,
           wasteVent: wasteVent?.stockFor('main') ?? null,
+          troughFor: (size) => troughMatches.get(size)?.stockFor('branch') ?? null,
+          troughLengthsM: solution.wudhu?.rows.map((r) => r.lengthM) ?? [],
         },
       );
       allTraces = [...traces, ...drainageTraces];
@@ -1226,8 +1266,10 @@ function solutionInputFrom(state: RequirementState): SolutionInput {
     bathrooms: state.fixtures.bathrooms.value ?? 0,
     basins: state.fixtures.basins.value ?? 0,
     kitchens: state.fixtures.kitchens.value,
-    // Wastafel yang disebut sebagai keran wudhu (TC-H-03): asumsinya dicatat engine.
-    basinsAreWudhuTaps: state.fixtures.basins.ruleId === 'WUDHU_TAP_AS_BASIN',
+    // Tempat ibadah (Kelompok L): keran wudhu, tempat wudhu, urinoir — field lama boleh tidak ada.
+    wudhuTaps: state.fixtures.wudhuTaps?.value ?? null,
+    wudhuAreas: state.fixtures.wudhuAreas?.value ?? null,
+    urinals: state.fixtures.urinals?.value ?? null,
     waterSource: (state.water.source.value ?? 'rooftop_tank') as SolutionInput['waterSource'],
     installationType: (state.water.installationType.value ??
       'clean_water') as SolutionInput['installationType'],

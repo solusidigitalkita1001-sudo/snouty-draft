@@ -65,7 +65,13 @@ const EditDto = z
           z
             .object({
               path: z.literal('building.type'),
-              value: z.enum(['residential', 'boarding_house', 'light_commercial', 'industrial']),
+              value: z.enum([
+                'residential',
+                'boarding_house',
+                'light_commercial',
+                'industrial',
+                'place_of_worship',
+              ]),
             })
             .strict(),
           z
@@ -78,6 +84,9 @@ const EditDto = z
             })
             .strict(),
           z.object({ path: z.literal('fixtures.kitchens'), value: count(100) }).strict(),
+          z.object({ path: z.literal('fixtures.wudhuTaps'), value: count(500) }).strict(),
+          z.object({ path: z.literal('fixtures.wudhuAreas'), value: count(50) }).strict(),
+          z.object({ path: z.literal('fixtures.urinals'), value: count(200) }).strict(),
           z
             .object({
               path: z.literal('building.dimensions'),

@@ -31,6 +31,8 @@ describe('versi aturan hasil hitung (temuan laporan SNTY-2026-10-0002)', () => {
       'ENG-003@1',
       'ENG-009@1',
       'ENG-011@1',
+      // ENG-601 v2 (2026-10-12): talang wudhu masuk beban air bekas.
+      'ENG-601@1',
     ]);
     expect(rulesetStamp(old)).not.toBe(rulesetStamp(current));
   });

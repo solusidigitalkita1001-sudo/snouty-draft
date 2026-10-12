@@ -26,8 +26,16 @@ export function readField(
   path: RequirementFieldPath,
 ): TrackedValue<unknown> {
   const [group, key] = split(path);
-  return (state as unknown as MutableState)[group][key]!;
+  // Field yang lebih baru dari state tersimpan (mis. `fixtures.wudhuTaps`) dibaca sebagai kosong.
+  return (state as unknown as MutableState)[group][key] ?? MISSING_FIELD;
 }
+
+const MISSING_FIELD: TrackedValue<unknown> = {
+  value: null,
+  provenance: 'UNAVAILABLE',
+  source: 'inferred',
+  updatedAt: '',
+};
 
 /** Mengembalikan state BARU dengan satu field diganti — tidak memutasi masukan. */
 export function writeField(
@@ -49,6 +57,9 @@ export const ALL_FIELD_PATHS: readonly RequirementFieldPath[] = [
   'fixtures.basins',
   'fixtures.kitchens',
   'fixtures.outletCount',
+  'fixtures.wudhuTaps',
+  'fixtures.wudhuAreas',
+  'fixtures.urinals',
   'water.source',
   'water.installationType',
   'water.boosterPump',

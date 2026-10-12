@@ -17,6 +17,7 @@ import { GROUP_H } from './rules/group-h-gravity.js';
 import { GROUP_I } from './rules/group-i-building.js';
 import { GROUP_J } from './rules/group-j-waste.js';
 import { GROUP_K } from './rules/group-k-house-supply.js';
+import { GROUP_L } from './rules/group-l-worship.js';
 
 /** 14 bangunan (A–D) + 5 irigasi (E) + 6 bertekanan (F) + 4 kolam (G) + 5 gravitasi/jaringan (H). */
 export const ALL_RULES: readonly AnyRule[] = [
@@ -31,6 +32,7 @@ export const ALL_RULES: readonly AnyRule[] = [
   ...GROUP_I,
   ...GROUP_J,
   ...GROUP_K,
+  ...GROUP_L,
 ] as unknown as readonly AnyRule[];
 
 export const RULE_REGISTRY = new RuleRegistry();
