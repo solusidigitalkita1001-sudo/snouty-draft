@@ -34,10 +34,14 @@ function worst(traces: readonly IdentifiedTrace[]): Provenance {
 
 /** Trace per bagian, urut seperti `computeHouseDrainage` menjalankannya. */
 function parts(result: HouseDrainageResult, traces: readonly IdentifiedTrace[]) {
-  let i = 1;
-  const soil = result.soil ? traces.slice(i, ++i) : [];
-  const waste = result.waste ? traces.slice(i, ++i) : [];
-  return { load: traces.slice(0, 1), soil, waste };
+  // [beban, jalur air kotor?, jalur air bekas?]
+  const soilAt = result.soil ? 1 : -1;
+  const wasteAt = result.waste ? (result.soil ? 2 : 1) : -1;
+  return {
+    load: traces.slice(0, 1),
+    soil: soilAt > 0 ? traces.slice(soilAt, soilAt + 1) : [],
+    waste: wasteAt > 0 ? traces.slice(wasteAt, wasteAt + 1) : [],
+  };
 }
 
 const FIXTURE_LABEL = {

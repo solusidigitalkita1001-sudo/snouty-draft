@@ -4,7 +4,7 @@
  * IPC yang disebut di aturan.
  */
 import { describe, expect, it } from 'vitest';
-import { computeHouseDrainage } from './compute-house-drainage.js';
+import { computeHouseDrainage } from './compute-house-waste.js';
 import { RuleInputError } from './rule.js';
 
 describe('computeHouseDrainage', () => {

@@ -19,7 +19,7 @@ import {
   type DrainageLoadResult,
   type DrainLineResult,
   type DrainSize,
-} from './rules/group-j-drainage.js';
+} from './rules/group-j-waste.js';
 
 export interface HouseDrainageInput {
   readonly bathrooms: number;
