@@ -41,7 +41,6 @@ import {
 } from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
 import {
-  competitorPolicy,
   exceedsAutomaticFloors,
   scopePolicy,
   technicalHandoffPolicy,
