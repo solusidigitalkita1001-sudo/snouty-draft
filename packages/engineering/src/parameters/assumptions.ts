@@ -573,6 +573,23 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'Jalur datar ke titik air terjauh diambil 20 m sampai ukuran bangunan disebut; hanya untuk memilih ukuran pipa, bukan untuk jumlah batang.',
   },
   {
+    id: 'WUDHU_TAP_AS_BASIN',
+    parameter: 'basins',
+    appliesTo: [],
+    condition: 'pengguna menyebut keran/tempat wudhu',
+    value: 1,
+    unit: 'wastafel per keran',
+    conditionEn: 'the user mentions ablution taps',
+    descriptionEn:
+      'Each ablution tap is counted as one basin (0.5 supply units, 1 drainage unit) until a calculation group for places of worship exists; taps used all at once are not yet accounted for.',
+    reference:
+      'Sementara (TC-H-03, 2026-10-12); kelompok bangunan ibadah dan debit wudhu serentak menunggu OQ-61',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Tiap keran wudhu dihitung sebagai satu wastafel (0,5 unit suplai, 1 unit buangan) sampai ada kelompok hitung bangunan ibadah; pemakaian serentak menjelang salat belum diperhitungkan.',
+  },
+  {
     id: 'HOUSE_FIXTURE_DROP_1_5M',
     parameter: 'route_length',
     appliesTo: [],

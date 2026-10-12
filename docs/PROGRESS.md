@@ -1378,6 +1378,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       "floor height N m"; "plafon" sengaja tidak dibaca); nilai di luar 2–10 m disimpan sebagai kata pengguna tetapi
       menahan kelengkapan → kartu "Berapa tinggi tiap lantai?" berisian angka, analisis menolak (VALIDATION_FAILED);
       4 m dipakai tanpa asumsi 3,5 m. Kartu kamar mandi / wastafel ikut punya isian "lebih dari …".
+- [x] P16-72 TC-H-03 / TC-H-04: "keran/tempat wudhu" dipetakan ke wastafel lewat kamus kata benda parser (seperti
+      "washtafel", "bak cuci"); field wastafel ditandai WUDHU_TAP_AS_BASIN sehingga trace ENG-001 menyebut "keran wudhu
+      (dihitung sebagai wastafel)" dan asumsinya tampil (sementara, OQ-61); kartu wastafel/kamar mandi punya isian angka.
 - [ ] P16-69 Temuan laporan 0009 — F (hanya diselidiki): kelompok hitung bangunan ibadah/umum → OQ-61, menunggu keputusan
       pemilik dan nilai dari ahli Pralon. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").

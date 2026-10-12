@@ -14,6 +14,11 @@ export interface FixtureCounts {
   readonly bathrooms: number;
   readonly basins: number;
   readonly kitchens: number;
+  /**
+   * Wastafel yang disebut pengguna sebagai keran wudhu (TC-H-03) — dihitung sebagai wastafel
+   * (asumsi WUDHU_TAP_AS_BASIN) sampai kelompok hitung bangunan ibadah ada (OQ-61). Hanya teks.
+   */
+  readonly basinsAreWudhuTaps?: boolean;
 }
 
 export interface LoadResult {
@@ -29,6 +34,7 @@ function parseFixtures(ruleId: string) {
       bathrooms: requireInt(ruleId, 'bathrooms', o['bathrooms'], { max: 200 }),
       basins: requireInt(ruleId, 'basins', o['basins'], { max: 200 }),
       kitchens: requireInt(ruleId, 'kitchens', o['kitchens'], { max: 100 }),
+      ...(o['basinsAreWudhuTaps'] === true ? { basinsAreWudhuTaps: true } : {}),
     };
   };
 }
@@ -68,8 +74,8 @@ export const ENG_001: RuleVersion<FixtureCounts, LoadResult> = {
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Titik air dihitung ${input.bathrooms} kamar mandi × 2 (shower dan kloset) + ${input.basins} wastafel + ${input.kitchens} dapur = ${output.outletCount} titik.`,
-      en: `Water outlets counted as ${input.bathrooms} bathrooms × 2 (shower and toilet) + ${input.basins} basins + ${input.kitchens} kitchens = ${output.outletCount} outlets.`,
+      id: `Titik air dihitung ${input.bathrooms} kamar mandi × 2 (shower dan kloset) + ${input.basins} ${input.basinsAreWudhuTaps ? 'keran wudhu (dihitung sebagai wastafel)' : 'wastafel'} + ${input.kitchens} dapur = ${output.outletCount} titik.`,
+      en: `Water outlets counted as ${input.bathrooms} bathrooms × 2 (shower and toilet) + ${input.basins} ${input.basinsAreWudhuTaps ? 'ablution taps (counted as basins)' : 'basins'} + ${input.kitchens} kitchens = ${output.outletCount} outlets.`,
     }),
 };
 

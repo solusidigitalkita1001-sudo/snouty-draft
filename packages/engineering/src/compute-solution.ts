@@ -65,6 +65,8 @@ export interface SolutionInput {
   readonly planLengthM?: number | null;
   readonly planWidthM?: number | null;
   /** Ukuran tanah — hanya untuk jarak halaman (ENG-705); bukan dasar panjang pipa di bangunan. */
+  /** Wastafel yang sebenarnya keran wudhu (TC-H-03) — dicatat sebagai asumsi. */
+  readonly basinsAreWudhuTaps?: boolean;
   readonly landLengthM?: number | null;
   readonly landWidthM?: number | null;
 }
@@ -180,7 +182,10 @@ export function computeSolution(
     basins: input.basins,
     kitchens: input.kitchens ?? use('HOUSE_KITCHEN_1'),
   };
-  const load = run(ENG_001, fixtures);
+  // Keran wudhu dihitung sebagai wastafel: asumsinya dicatat (OQ-61), angka wastafel tidak berubah.
+  const wudhu = input.basinsAreWudhuTaps === true && input.basins > 0;
+  if (wudhu) use('WUDHU_TAP_AS_BASIN');
+  const load = run(ENG_001, { ...fixtures, ...(wudhu ? { basinsAreWudhuTaps: true } : {}) });
   const floorHeightM = input.floorHeightM ?? run(ENG_004, {}).floorHeightM;
   const floorPlan = run(ENG_008, { ...fixtures, floors: input.floors, floorHeightM });
   // Beban per alat (IPC E103.3(2)) — sekali dibaca, dipakai debit total dan isi tiap cabang.

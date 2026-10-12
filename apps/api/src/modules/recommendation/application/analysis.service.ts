@@ -1183,6 +1183,8 @@ function solutionInputFrom(state: RequirementState): SolutionInput {
     bathrooms: state.fixtures.bathrooms.value ?? 0,
     basins: state.fixtures.basins.value ?? 0,
     kitchens: state.fixtures.kitchens.value,
+    // Wastafel yang disebut sebagai keran wudhu (TC-H-03): asumsinya dicatat engine.
+    basinsAreWudhuTaps: state.fixtures.basins.ruleId === 'WUDHU_TAP_AS_BASIN',
     waterSource: (state.water.source.value ?? 'rooftop_tank') as SolutionInput['waterSource'],
     installationType: (state.water.installationType.value ??
       'clean_water') as SolutionInput['installationType'],

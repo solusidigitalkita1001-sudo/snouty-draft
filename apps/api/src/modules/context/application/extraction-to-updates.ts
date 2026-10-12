@@ -45,7 +45,9 @@ const OBVIOUS = {
   // Jumlah wastafel/dapur/titik air yang tersurat juga dibaca kode (diet panggilan model,
   // 2026-10-07): bila model dilewati, "4 wastafel, 1 dapur" tetap tercatat.
   basins: (m: string) =>
-    countOf('wastafel|washtafel|westafel|bak cuci|basins?|sinks?|washbasins?', m, 3),
+    countOf(`wastafel|washtafel|westafel|bak cuci|basins?|sinks?|washbasins?|${WUDHU}`, m, 3),
+  /** Jumlah keran wudhu yang disebut — penanda asumsi WUDHU_TAP_AS_BASIN (TC-H-03). */
+  wudhuTaps: (m: string) => countOf(WUDHU, m, 3),
   kitchens: (m: string) => countOf('dapur|kitchens?|pantry', m),
   /**
    * Tinggi tiap lantai ("tinggi lantai 4 m", "tinggi tiap lantai 3,8 meter", "floor height 4 m")
@@ -180,10 +182,18 @@ const NUMBER_WORDS: Readonly<Record<number, string>> = {
 };
 
 /** Kata benda yang harus berdekatan dengan angkanya — "2 lantai", "lantai dua", "selantai", "2 floors". */
+/**
+ * Sebutan keran wudhu — kata benda alat, dipetakan ke wastafel seperti sebutan wastafel lain
+ * ("washtafel", "bak cuci"). Kamus kata benda, bukan pola pertanyaan pengguna.
+ */
+const WUDHU =
+  'keran wudhu|kran wudhu|keran wudu|kran wudu|tempat wudhu|tempat wudu|ablution taps?|wudu taps?|wudhu taps?';
+
 export const COUNT_NOUNS: Readonly<Record<string, string>> = {
   'building.floors': 'lantai|lt|tingkat|floors?|stor(?:e)?ys?|stories|levels?',
   'fixtures.bathrooms': 'kamar mandi|km|toilet|wc|bathrooms?|toilets?|restrooms?',
-  'fixtures.basins': 'wastafel|washtafel|westafel|basins?|bak cuci|sinks?|washbasins?',
+  // Keran/tempat wudhu dihitung sebagai wastafel sampai ada kelompok bangunan ibadah (TC-H-03, OQ-61).
+  'fixtures.basins': `wastafel|washtafel|westafel|basins?|bak cuci|sinks?|washbasins?|${WUDHU}`,
   'fixtures.kitchens': 'dapur|kitchens?|pantry',
   'fixtures.outletCount': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
 };
@@ -321,6 +331,12 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
       OBVIOUS.basins(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.basins']!),
     ),
   );
+  // Wastafel yang disebut sebagai keran wudhu: ditandai supaya engine mencatat asumsinya.
+  const wudhu = OBVIOUS.wudhuTaps(message);
+  const basins = updates.find((u) => u.path === 'fixtures.basins');
+  if (basins && wudhu !== undefined && basins.value === wudhu) {
+    updates[updates.indexOf(basins)] = { ...basins, ruleId: 'WUDHU_TAP_AS_BASIN' };
+  }
   add(
     'fixtures.kitchens',
     counted(

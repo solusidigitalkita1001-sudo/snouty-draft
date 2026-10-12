@@ -99,3 +99,40 @@ describe('TC-H-02 · tinggi lantai dari kalimat', () => {
     ).toBeNull();
   });
 });
+
+describe('TC-H-03 / TC-H-04 · keran wudhu dan jumlah lebih dari pilihan', () => {
+  it('TC-H-03: "8 keran wudhu" = 8 wastafel tanpa ditanya lagi; trace dan asumsi menyebutnya', async () => {
+    const state = stateOf(
+      'Masjid 2 lantai, 4 kamar mandi, 8 keran wudhu, PDAM, air bersih dan pembuangan',
+    );
+    expect(state.fixtures.basins).toMatchObject({ value: 8, ruleId: 'WUDHU_TAP_AS_BASIN' });
+    expect(state.missingInformation).toEqual([]);
+    const { houseRefinementQuestions } = await import('../domain/clarification.js');
+    const asked = houseRefinementQuestions(
+      (path) => path === 'fixtures.basins' || path === 'fixtures.kitchens',
+    ).map((q) => q.id);
+    expect(asked).not.toContain('fixtures.basins');
+    const { rec, traces } = await analyse(state);
+    expect(traces.find((t) => t.ruleId === 'ENG-001')!.explanation).toContain(
+      '8 keran wudhu (dihitung sebagai wastafel)',
+    );
+    expect(rec.assumptions.some((a) => a.assumptionId === 'WUDHU_TAP_AS_BASIN')).toBe(true);
+  });
+
+  it('"8 wastafel" biasa tidak ditandai keran wudhu', () => {
+    expect(stateOf('rumah 2 lantai, 8 wastafel').fixtures.basins.ruleId).toBeUndefined();
+  });
+
+  it('TC-H-04: kartu wastafel bisa diisi 8 (isian angka di samping pilihan 0–3)', async () => {
+    const { houseRefinementQuestions } = await import('../domain/clarification.js');
+    const basins = houseRefinementQuestions((path) => path !== 'fixtures.basins').find(
+      (q) => q.id === 'fixtures.basins',
+    )!;
+    expect(basins.options).toEqual(['0', '1', '2', '3']);
+    expect(basins.inputs![0]).toMatchObject({ key: 'value', group: 'Lebih dari 3', min: 0 });
+    const answer = (option: string) =>
+      answerToUpdate({ id: 'fixtures.basins', option }, () => null);
+    expect(answer('value=8')).toEqual({ path: 'fixtures.basins', value: 8, source: 'user_stated' });
+    expect(answer('2')).toEqual({ path: 'fixtures.basins', value: 2, source: 'user_stated' });
+  });
+});
