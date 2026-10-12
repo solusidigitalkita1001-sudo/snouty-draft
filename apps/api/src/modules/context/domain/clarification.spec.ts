@@ -6,6 +6,7 @@ import type { RequirementFieldPath } from '@snouty/shared-types';
 import {
   MAX_CLARIFICATION_QUESTIONS,
   answerToUpdate,
+  houseRefinementQuestions,
   isClarificationAnswerId,
   planClarification,
   summarizeAnswers,
@@ -136,5 +137,22 @@ describe('ClarificationEngine', () => {
     for (const id of ['building.type', 'fixtures.outletCount', 'subject', 'DROP TABLE', '']) {
       expect(isClarificationAnswerId(id), id).toBe(false);
     }
+  });
+});
+
+describe('pertanyaan penyempurna rumah (2026-10-12)', () => {
+  it('ukuran rumah, dapur, wastafel yang belum disebut; jawaban ukuran jadi panjang × lebar', () => {
+    const questions = houseRefinementQuestions((path) => path === 'fixtures.basins');
+    expect(questions.map((q) => q.id)).toEqual(['building.dimensions', 'fixtures.kitchens']);
+    expect(answerToUpdate({ id: 'building.dimensions', option: '8 x 15 m' }, () => null)).toEqual({
+      path: 'building.dimensions',
+      value: { lengthM: 8, widthM: 15 },
+      source: 'user_stated',
+    });
+    expect(answerToUpdate({ id: 'fixtures.kitchens', option: '0' }, () => null)).toEqual({
+      path: 'fixtures.kitchens',
+      value: 0,
+      source: 'user_stated',
+    });
   });
 });

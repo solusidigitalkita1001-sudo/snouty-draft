@@ -44,11 +44,12 @@ function parseFixtures(ruleId: string) {
  */
 export const ENG_001: RuleVersion<FixtureCounts, LoadResult> = {
   ruleId: 'ENG-001',
-  version: 1,
+  version: 2,
   category: 'load_sizing',
   parseInput: parseFixtures('ENG-001'),
   compute: (input) => ({
-    outletCount: input.bathrooms + input.basins + input.kitchens,
+    // Kamar mandi = shower + kloset: dua titik air (ENG-012), bukan satu (koreksi 2026-10-12).
+    outletCount: input.bathrooms * 2 + input.basins + input.kitchens,
     loadUnits: input.bathrooms * 2 + input.basins + input.kitchens,
   }),
   sourceReference:
@@ -56,23 +57,23 @@ export const ENG_001: RuleVersion<FixtureCounts, LoadResult> = {
   validationStatus: PENDING,
   testCases: [
     {
-      name: 'contoh board: 3 kamar mandi, 4 wastafel, 1 dapur',
+      name: 'contoh board: 3 kamar mandi (6 titik), 4 wastafel, 1 dapur',
       input: { bathrooms: 3, basins: 4, kitchens: 1 },
-      expected: { outletCount: 8, loadUnits: 11 },
+      expected: { outletCount: 11, loadUnits: 11 },
     },
     {
       name: 'tanpa dapur sama sekali',
       input: { bathrooms: 1, basins: 1, kitchens: 0 },
-      expected: { outletCount: 2, loadUnits: 3 },
+      expected: { outletCount: 3, loadUnits: 3 },
     },
   ],
   explain: (input, output, locale) =>
     localized(locale, {
       id:
-        `Titik air dihitung ${input.bathrooms} kamar mandi + ${input.basins} wastafel + ${input.kitchens} dapur = ${output.outletCount} titik. ` +
+        `Titik air dihitung ${input.bathrooms} kamar mandi × 2 (shower dan kloset) + ${input.basins} wastafel + ${input.kitchens} dapur = ${output.outletCount} titik. ` +
         `Unit beban memakai bobot kamar mandi 2 (shower + kloset), wastafel 1, dapur 1 = ${output.loadUnits} unit.`,
       en:
-        `Water outlets counted as ${input.bathrooms} bathrooms + ${input.basins} basins + ${input.kitchens} kitchens = ${output.outletCount} outlets. ` +
+        `Water outlets counted as ${input.bathrooms} bathrooms × 2 (shower and toilet) + ${input.basins} basins + ${input.kitchens} kitchens = ${output.outletCount} outlets. ` +
         `Load units use weights of bathroom 2 (shower + toilet), basin 1, kitchen 1 = ${output.loadUnits} units.`,
     }),
 };

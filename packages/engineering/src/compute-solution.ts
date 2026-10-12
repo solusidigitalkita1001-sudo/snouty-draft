@@ -1,43 +1,64 @@
 /**
- * Orkestrator engine: satu panggilan, satu trace per aturan.
+ * Orkestrator engine air bersih rumah/bangunan kecil: satu panggilan, satu trace per aturan.
  * docs/ENGINEERING_RULES.md §2 · SPEC §8.
  *
- * **Murni.** Tanpa I/O, tanpa jam, tanpa acak — masukan sama selalu menghasilkan
- * keluaran sama, sehingga laporan bisa dibuat ulang identik bertahun kemudian. Target
- * < 300 ms p95 dicapai bukan dengan optimasi tetapi karena tidak ada yang lambat di
- * sini: belasan operasi aritmetika tanpa satu pun panggilan jaringan.
+ * **Murni.** Tanpa I/O, tanpa jam, tanpa acak — masukan sama selalu menghasilkan keluaran sama.
  *
- * Setiap aturan yang dieksekusi menulis `CalculationTrace`. Itulah yang membuat
- * auditabilitas SPEC §8 terlihat oleh pengguna dan bukan sekadar tersimpan di log.
+ * Sejak 2026-10-12 (laporan pemilik "koreksi itungannya udh bener belom") ukuran pipa utama
+ * dihitung hidraulik, bukan dari ambang prototipe ENG-002 ("unit beban ≥ 8 → 1""):
+ *   1. titik air dan cabang (ENG-001 v2, ENG-003) — kamar mandi = shower + kloset, dua titik;
+ *   2. debit puncak dari unit beban suplai dan kurva Hunter (ENG-701);
+ *   3. jalur dan beda tinggi dari ukuran rumah, lantai, dan sumber (ENG-702);
+ *   4. ukuran pipa utama lewat kecepatan dan kehilangan tekanan (Kelompok F); untuk toren atap
+ *      dipilih ukuran terkecil yang masih menyisakan tekanan minimum di titik tertinggi (ENG-703);
+ *   5. cabang dari debit per cabang pada kecepatan rencana (ENG-102).
+ * Jumlah material TIDAK dikarang lagi (ENG-009 dulu: "2 + lantai batang"): engine hanya memberi
+ * panjang jalur utama bila ukurannya diketahui; jumlah beli dihitung API dari panjang batang
+ * produk katalog yang terpilih.
  */
 
+import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
 import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
+import { computePressurized, type PressurizedResult } from './compute-pressurized.js';
 import {
   ENG_001,
-  ENG_002,
   ENG_003,
   ENG_005,
   ENG_010,
   ENG_013,
   type PressureClass,
 } from './rules/group-a-load-sizing.js';
-import { ENG_004, ENG_008, ENG_011, type FloorNode } from './rules/group-b-geometry.js';
-import { ENG_006, ENG_009, ENG_012, type BomLine } from './rules/group-c-material.js';
+import { ENG_004, ENG_008, type FloorNode } from './rules/group-b-geometry.js';
+import { ENG_006, ENG_012 } from './rules/group-c-material.js';
+import { ENG_102 } from './rules/group-e-irrigation.js';
+import {
+  ENG_701,
+  ENG_702,
+  ENG_703,
+  hunterGpm,
+  minimumHeadM,
+  type RouteBasis,
+} from './rules/group-k-house-supply.js';
 import type { RuleVersion } from './rule.js';
+import { round2 } from './units.js';
 
 export interface SolutionInput {
   readonly buildingType: 'residential' | 'boarding_house' | 'light_commercial' | 'industrial';
   readonly floors: number;
   readonly bathrooms: number;
   readonly basins: number;
-  readonly kitchens: number;
+  /** `null` = belum disebut → asumsi satu dapur (HOUSE_KITCHEN_1), bukan nol diam-diam. */
+  readonly kitchens: number | null;
   readonly waterSource: 'rooftop_tank' | 'ground_tank' | 'pump' | 'municipal';
   readonly installationType: 'clean_water' | 'drainage' | 'both';
   /** Tinggi antar lantai bila pengguna memberikannya; `null` → ENG-004. */
   readonly floorHeightM: number | null;
-  /** Panjang jalur utama bila diketahui; `null` → BOM estimasi, bukan terverifikasi. */
+  /** Panjang jalur utama yang disebut pengguna; menang atas ukuran rumah. */
   readonly mainRunMeters: number | null;
+  /** Ukuran denah rumah (m); keduanya ada → jalur datar terjauh = panjang + lebar. */
+  readonly planLengthM?: number | null;
+  readonly planWidthM?: number | null;
 }
 
 export interface CalculationTrace {
@@ -49,10 +70,25 @@ export interface CalculationTrace {
   readonly explanation: string;
 }
 
+export interface HouseSupply {
+  readonly wsfu: number;
+  readonly peakFlowLs: number;
+  readonly routeLengthM: number;
+  readonly routeBasis: RouteBasis;
+  readonly staticHeadM: number;
+  /** Pipa utama dari sumber ke titik air tertinggi. */
+  readonly main: PressurizedResult;
+  /** Toren atap: tekanan di titik tertinggi; selain itu `null`. */
+  readonly gravityResidualBar: number | null;
+  /** PDAM: tekanan yang harus tersedia di meteran; selain itu `null`. */
+  readonly requiredSourcePressureBar: number | null;
+}
+
 export interface SolutionResult {
   readonly outletCount: number;
   readonly loadUnits: number;
-  readonly mainSize: '1"' | '3/4"';
+  readonly mainSize: string;
+  readonly branchSize: string;
   readonly fixtureConnectionSize: '1/2"';
   readonly branchCount: number;
   readonly maxOutletsPerBranch: number;
@@ -60,27 +96,37 @@ export interface SolutionResult {
   readonly floorsPlan: readonly FloorNode[];
   readonly boosterPumpNeeded: boolean;
   readonly pressureClasses: readonly PressureClass[];
-  readonly bom: readonly BomLine[];
+  readonly supply: HouseSupply;
+  /** Panjang bersih pipa utama — hanya bila jalurnya disebut atau ukuran rumahnya diketahui. */
+  readonly mainRunNetM: number | null;
   readonly variancePercent: { readonly min: number; readonly max: number };
   readonly targetVelocityMs: { readonly min: number; readonly max: number };
+  readonly appliedAssumptionIds: readonly string[];
   /** Satu trace per aturan yang dieksekusi, urut eksekusi. */
   readonly traces: readonly CalculationTrace[];
-  /**
-   * Provenance paling lemah di antara seluruh trace — yang boleh dipakai UI untuk
-   * menandai keseluruhan solusi. Satu angka asumsi membuat solusinya asumsi.
-   */
+  /** Provenance paling lemah di antara seluruh trace. */
   readonly overallProvenance: Provenance;
 }
 
-/** `locale` hanya memilih bahasa `explanation` di trace (P15-04b); angka tidak berubah. */
+/** `locale` hanya memilih bahasa `explanation` di trace; angka tidak berubah. */
 export function computeSolution(
   input: SolutionInput,
   locale: EngineeringLocale = DEFAULT_ENGINEERING_LOCALE,
+  overrides: AssumptionOverrides = {},
 ): SolutionResult {
   const traces: CalculationTrace[] = [];
-  const hasRealDimensions = input.mainRunMeters !== null;
+  const { use, applied } = assumptionReader(overrides);
+  const plan =
+    typeof input.planLengthM === 'number' &&
+    typeof input.planWidthM === 'number' &&
+    input.planLengthM > 0 &&
+    input.planWidthM > 0
+      ? { lengthM: input.planLengthM, widthM: input.planWidthM }
+      : null;
+  const routeBasis: RouteBasis =
+    input.mainRunMeters !== null ? 'stated' : plan !== null ? 'plan' : 'assumed';
+  const hasRealDimensions = routeBasis !== 'assumed';
 
-  /** Menjalankan satu aturan, mencatat trace-nya, mengembalikan keluarannya. */
   function run<I, O>(rule: RuleVersion<I, O>, raw: unknown): O {
     const parsed = rule.parseInput(raw);
     const output = rule.compute(parsed);
@@ -101,49 +147,132 @@ export function computeSolution(
   const fixtures = {
     bathrooms: input.bathrooms,
     basins: input.basins,
-    kitchens: input.kitchens,
+    kitchens: input.kitchens ?? use('HOUSE_KITCHEN_1'),
   };
-
   const load = run(ENG_001, fixtures);
-  const main = run(ENG_002, { loadUnits: load.loadUnits });
   const branches = run(ENG_003, { outletCount: load.outletCount });
   const connection = run(ENG_005, {});
   const velocity = run(ENG_010, {});
   const classes = run(ENG_013, { installationType: input.installationType });
-
-  // ENG-004 hanya berjalan bila pengguna tidak memberi tinggi lantai — menjalankannya
-  // saat nilainya ada akan mencatat asumsi yang tidak pernah dipakai.
   const floorHeightM = input.floorHeightM ?? run(ENG_004, {}).floorHeightM;
+  const floorPlan = run(ENG_008, { ...fixtures, floors: input.floors, floorHeightM });
 
-  const plan = run(ENG_008, { ...fixtures, floors: input.floors, floorHeightM });
-  const booster = run(ENG_011, {
-    buildingType: input.buildingType,
-    waterSource: input.waterSource,
+  // 2 · debit puncak
+  const demand = run(ENG_701, {
+    waterClosets: input.bathrooms,
+    showers: input.bathrooms,
+    lavatories: input.basins,
+    kitchenSinks: fixtures.kitchens,
+    wsfuWaterCloset: use('WSFU_WATER_CLOSET_2_2'),
+    wsfuShower: use('WSFU_SHOWER_1'),
+    wsfuLavatory: use('WSFU_LAVATORY_0_5'),
+    wsfuKitchenSink: use('WSFU_KITCHEN_SINK_1'),
   });
-  const bom = run(ENG_009, {
+
+  // 3 · jalur dan beda tinggi
+  const horizontalRunM =
+    routeBasis === 'stated'
+      ? input.mainRunMeters!
+      : routeBasis === 'plan'
+        ? plan!.lengthM + plan!.widthM
+        : use('HOUSE_RUN_20M');
+  const gravity = input.waterSource === 'rooftop_tank';
+  const route = run(ENG_702, {
+    source: input.waterSource,
     floors: input.floors,
-    bathrooms: input.bathrooms,
-    mainSize: main.mainSize,
+    floorHeightM,
+    horizontalRunM,
+    routeBasis,
+    outletHeightM: use('OUTLET_HEIGHT_2M'),
+    tankStandM: gravity ? use('TANK_STAND_1M') : 0,
   });
-  const variance = run(ENG_006, {});
-  run(ENG_012, {}); // dicatat sebagai asumsi yang mendasari bobot ENG-001
 
+  // 4 · pipa utama. Toren atap: ukuran terkecil yang lolos kriteria kecepatan dan masih menyisakan
+  // tekanan minimum di titik tertinggi; tidak ada yang cukup → ukuran terbaik + pompa pendorong.
+  const flowLs = Math.max(demand.peakFlowLs, 0.01);
+  const pumped = input.waterSource === 'pump' || input.waterSource === 'ground_tank';
+  const minimumBar = gravity ? use('RESIDUAL_GRAVITY_0_3BAR') : 0;
+  const availableHeadM = -route.staticHeadM;
+  // Toren atap: kehilangan yang boleh terjadi = beda tinggi − tekanan minimum. Dijadikan batas
+  // gradien untuk sizing, supaya ukuran yang dipilih — dan langkah hitungnya — sudah memenuhi
+  // tekanan di titik tertinggi. Tidak ada sisa sama sekali → sizing biasa + pompa pendorong.
+  const sizingOverrides = { ...overrides };
+  if (gravity) {
+    const minorFraction = overrides['MINOR_LOSS_FRACTION'] ?? use('MINOR_LOSS_FRACTION');
+    const allowedGradient =
+      ((availableHeadM - minimumHeadM(minimumBar)) / (route.routeLengthM * (1 + minorFraction))) *
+      100;
+    const defaultGradient = overrides['HEADLOSS_GRADIENT_MAX'] ?? use('HEADLOSS_GRADIENT_MAX');
+    if (allowedGradient >= 0.1 && allowedGradient < defaultGradient) {
+      sizingOverrides['HEADLOSS_GRADIENT_MAX'] = round2(allowedGradient);
+    }
+  }
+  const main = computePressurized(
+    {
+      designFlowLs: flowLs,
+      routeLengthM: route.routeLengthM,
+      staticHeadM: route.staticHeadM,
+      residualPressureBar: gravity ? 0 : use('RESIDUAL_PRESSURE_FIXTURE'),
+      material: 'PVC',
+      pumpRequired: pumped,
+    },
+    locale,
+    sizingOverrides,
+  );
+  let gravityResidualBar: number | null = null;
+  let boosterPumpNeeded = pumped;
+  if (gravity) {
+    const check = run(ENG_703, {
+      availableHeadM,
+      lossM: round2(main.frictionLossM + main.minorLossM),
+      minimumBar,
+    });
+    gravityResidualBar = check.residualBar;
+    boosterPumpNeeded = check.boosterNeeded;
+  }
+  const requiredSourcePressureBar =
+    input.waterSource === 'municipal' ? round2(main.totalDynamicHeadM / 10.197) : null;
+
+  // 5 · cabang: debit beban per cabang pada kecepatan rencana.
+  const perBranchWsfu = branches.branchCount > 0 ? demand.wsfu / branches.branchCount : 0;
+  const branch = run(ENG_102, {
+    designFlowLs: Math.max(hunterGpm(perBranchWsfu) * 0.0630902, 0.01),
+    velocityMs: use('DESIGN_VELOCITY_PLASTIC'),
+    sizeTable: 'pvc_inch',
+  });
+
+  const variance = run(ENG_006, {});
+  run(ENG_012, {}); // dicatat sebagai asumsi yang mendasari isi kamar mandi
+
+  const allTraces = [...traces.slice(0, -2), ...main.traces, ...traces.slice(-2)];
   return {
     outletCount: load.outletCount,
     loadUnits: load.loadUnits,
-    mainSize: main.mainSize,
+    mainSize: main.recommendedSize,
+    branchSize: branch.mainSize,
     fixtureConnectionSize: connection.fixtureConnectionSize,
     branchCount: branches.branchCount,
     maxOutletsPerBranch: branches.maxOutletsPerBranch,
     floorHeightM,
-    floorsPlan: plan.floorsPlan,
-    boosterPumpNeeded: booster.boosterPumpNeeded,
+    floorsPlan: floorPlan.floorsPlan,
+    boosterPumpNeeded,
     pressureClasses: classes.classes,
-    bom: bom.lines,
+    supply: {
+      wsfu: demand.wsfu,
+      peakFlowLs: demand.peakFlowLs,
+      routeLengthM: route.routeLengthM,
+      routeBasis,
+      staticHeadM: route.staticHeadM,
+      main,
+      gravityResidualBar,
+      requiredSourcePressureBar,
+    },
+    mainRunNetM: hasRealDimensions ? route.routeLengthM : null,
     variancePercent: { min: variance.minPercent, max: variance.maxPercent },
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },
-    traces,
-    overallProvenance: weakest(traces.map((t) => t.provenance)),
+    appliedAssumptionIds: [...new Set([...applied, ...main.appliedAssumptionIds])],
+    traces: allTraces,
+    overallProvenance: weakest(allTraces.map((t) => t.provenance)),
   };
 }
 

@@ -49,13 +49,13 @@ describe('assembleRecommendation', () => {
   it('tanpa penulis prosa: memakai templat deterministik', async () => {
     const { recommendation, proseSource } = await assembleRecommendation(BASE, null);
     expect(proseSource).toBe('template');
-    expect(recommendation.headline).toContain('8 titik air');
+    expect(recommendation.headline).toContain('11 titik air');
   });
 
   it('prosa yang patuh REC-1 dipakai apa adanya', async () => {
     const prose = writer(
       'Sistem distribusi gravitasi',
-      'Ada 8 titik air dengan 2 cabang, jalur utama 1".',
+      'Ada 11 titik air dengan 3 cabang, jalur utama 1".',
     );
     const { proseSource } = await assembleRecommendation(BASE, prose);
     expect(proseSource).toBe('llm');
@@ -69,7 +69,7 @@ describe('assembleRecommendation', () => {
         return Promise.resolve(
           call === 1
             ? { headline: 'Perlu 12 batang', body: 'Sekitar 12 batang pipa.' }
-            : { headline: 'Sistem distribusi', body: 'Ada 8 titik air dan 2 cabang.' },
+            : { headline: 'Sistem distribusi', body: 'Ada 11 titik air dan 3 cabang.' },
         );
       }),
     };
@@ -92,7 +92,7 @@ describe('assembleRecommendation', () => {
     const prose: ProseWriter = { write: vi.fn(() => Promise.reject(new Error('LLM mati'))) };
     const { proseSource, recommendation } = await assembleRecommendation(BASE, prose);
     expect(proseSource).toBe('template');
-    expect(recommendation.stats.outletCount).toBe(8);
+    expect(recommendation.stats.outletCount).toBe(11);
   });
 
   it('templat deterministik selalu lulus pemeriksaan REC-1 sendiri', async () => {
@@ -120,11 +120,21 @@ describe('invarian T-1 — setiap nilai punya trace', () => {
     }
   });
 
-  it('dasar perhitungan berasal dari trace aturan, bukan dari prosa LLM', async () => {
+  it('dasar perhitungan material dari panjang jalur dan batang katalog, bukan dari prosa LLM', async () => {
+    const solution = computeSolution({ ...INPUT, planLengthM: 8, planWidthM: 15 });
+    const traces = solution.traces.map((trace, index) => ({ ...trace, id: `t${index}` }));
     const prose = writer('Judul', 'Penjelasan yang sama sekali berbeda.');
-    const { recommendation } = await assembleRecommendation(BASE, prose);
-    const eng009 = TRACES.find((t) => t.ruleId === 'ENG-009')!;
-    expect(recommendation.bom[0]!.basis).toBe(eng009.explanation);
+    const { recommendation } = await assembleRecommendation(
+      { ...BASE, solution, traces, mainStock: { meters: 4, productName: 'Pipa AW 1" x 4 Meter' } },
+      prose,
+    );
+    expect(recommendation.bom[0]!.basis).toContain('Panjang bersih');
+    expect(recommendation.bom[0]!.basis).not.toContain('Penjelasan');
+  });
+
+  it('tanpa ukuran rumah tidak ada baris material', async () => {
+    const { recommendation } = await assembleRecommendation(BASE, null);
+    expect(recommendation.bom).toEqual([]);
   });
 });
 

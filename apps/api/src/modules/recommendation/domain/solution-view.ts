@@ -17,7 +17,13 @@ import type {
   SystemLine,
 } from '@snouty/shared-types';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
-import type { CalculationTrace, SolutionResult } from '@snouty/engineering';
+import {
+  applyAssumption,
+  assumptionDescription,
+  type CalculationTrace,
+  type SolutionResult,
+} from '@snouty/engineering';
+import { pipePurchase, type StockLength } from './pipe-quantity.js';
 
 /** Trace yang sudah punya id basis data — pemanggil memberi id sebelum memakai ini. */
 export interface IdentifiedTrace extends CalculationTrace {
@@ -87,25 +93,50 @@ export function systemLinesFrom(
   locale: Locale = DEFAULT_LOCALE,
 ): readonly SystemLine[] {
   const en = locale === 'en';
-  const mainTraces = traceIdsFor(traces, 'ENG-001', 'ENG-002');
-  const branchTraces = traceIdsFor(traces, 'ENG-003');
+  const mainTraces = traceIdsFor(
+    traces,
+    'ENG-001',
+    'ENG-701',
+    'ENG-702',
+    'ENG-205',
+    'ENG-201',
+    'ENG-202',
+    'ENG-203',
+    'ENG-204',
+    'ENG-703',
+  );
+  const branchTraces = traceIdsFor(traces, 'ENG-003', 'ENG-102');
   const fixtureTraces = traceIdsFor(traces, 'ENG-005');
+  const sourceTraces = traceIdsFor(traces, 'ENG-702', 'ENG-204', 'ENG-206', 'ENG-703');
+  const supply = solution.supply;
+  const num = (n: number) =>
+    n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
 
-  return [
+  const lines: SystemLine[] = [
     {
       name: en ? 'Main distribution pipe' : 'Pipa distribusi utama',
-      path: en ? 'Source → riser' : 'Sumber → riser',
+      path: en ? 'Source → highest outlet' : 'Sumber → titik air tertinggi',
       size: solution.mainSize,
-      reason: explanationFor(traces, 'ENG-002'),
+      reason: [
+        explanationFor(traces, 'ENG-701'),
+        explanationFor(traces, 'ENG-702'),
+        explanationFor(traces, 'ENG-205'),
+      ]
+        .filter(Boolean)
+        .join(' '),
       provenance: provenanceFor(traces, mainTraces),
       traceIds: mainTraces,
       role: 'main',
     },
     {
-      name: en ? 'Branch per floor' : 'Cabang per lantai',
-      path: en ? 'Riser → water outlets' : 'Riser → titik air',
-      size: '3/4"',
-      reason: explanationFor(traces, 'ENG-003'),
+      name: en ? 'Branch' : 'Cabang',
+      path: en
+        ? `Main → water outlets (${solution.branchCount} branches)`
+        : `Pipa utama → titik air (${solution.branchCount} cabang)`,
+      size: solution.branchSize,
+      reason: [explanationFor(traces, 'ENG-003'), explanationFor(traces, 'ENG-102')]
+        .filter(Boolean)
+        .join(' '),
       provenance: provenanceFor(traces, branchTraces),
       traceIds: branchTraces,
       role: 'branch',
@@ -120,31 +151,81 @@ export function systemLinesFrom(
       role: 'fixture',
     },
   ];
+
+  // Sumber air: yang perlu disiapkan supaya titik tertinggi mendapat tekanan.
+  const pump = supply.main.pumpDuty;
+  const source =
+    supply.gravityResidualBar !== null
+      ? {
+          name: en ? 'Pressure from the roof tank' : 'Tekanan dari toren atap',
+          size: `${num(supply.gravityResidualBar)} bar`,
+          reason: explanationFor(traces, 'ENG-703'),
+        }
+      : supply.requiredSourcePressureBar !== null
+        ? {
+            name: en ? 'Pressure needed at the water meter' : 'Tekanan yang dibutuhkan di meteran PDAM',
+            size: `${num(supply.requiredSourcePressureBar)} bar`,
+            reason: en
+              ? `${explanationFor(traces, 'ENG-204')} If the mains pressure is lower, feed a tank first and pump from it.`
+              : `${explanationFor(traces, 'ENG-204')} Kalau tekanan PDAM di bawah itu, tampung dulu di toren lalu pakai pompa.`,
+          }
+        : pump
+          ? {
+              name: en ? 'Pump (duty point)' : 'Pompa (titik kerja)',
+              size: `${num(pump.flowM3h)} ${en ? 'm³/h' : 'm³/jam'} @ ${num(pump.headM)} m`,
+              reason: `${explanationFor(traces, 'ENG-204')} ${explanationFor(traces, 'ENG-206')}`.trim(),
+            }
+          : null;
+  if (source !== null) {
+    lines.push({
+      ...source,
+      path: en ? 'Water source' : 'Sumber air',
+      provenance: provenanceFor(traces, sourceTraces),
+      traceIds: sourceTraces,
+      role: 'fitting',
+    });
+  }
+  return lines;
 }
 
 /**
- * Baris BOM. `basis` berasal dari trace ENG-009, dan `provenance` mengikuti trace —
- * yang berarti selama dimensi bangunan belum ada, seluruh baris `ESTIMATED` atau lebih
- * lemah, persis seperti tag desain "ESTIMASI · DIMENSI BELUM LENGKAP".
+ * Material rumah. Hanya pipa utama yang punya panjang — dari jalur yang disebut atau dari ukuran
+ * rumah — dan jumlah belinya memakai panjang batang produk katalog terpilih. Cabang, sambungan,
+ * dan fitting mengikuti tata letak, jadi tidak diberi angka (koreksi 2026-10-12: rumus prototipe
+ * "2 + lantai batang", "3 × kamar mandi elbow" dikarang tanpa panjang jalur).
  */
 export function bomItemsFrom(
   solution: SolutionResult,
   traces: readonly IdentifiedTrace[],
   locale: Locale = DEFAULT_LOCALE,
+  stock: StockLength | null = null,
 ): readonly BomItem[] {
-  const bomTraces = traceIdsFor(traces, 'ENG-009');
-  const basis = explanationFor(traces, 'ENG-009');
-  const provenance = provenanceFor(traces, bomTraces);
-
-  return solution.bom.map((line) => ({
-    item: bomItemName(line.item, locale),
-    size: line.size,
-    quantity: line.quantity,
-    unit: bomUnitLabel(line.unit, locale),
-    basis,
-    provenance,
-    traceIds: bomTraces,
-  }));
+  if (solution.mainRunNetM === null) return [];
+  const en = locale === 'en';
+  const ids = traceIdsFor(traces, 'ENG-702');
+  const purchase = pipePurchase(
+    solution.mainRunNetM,
+    solution.supply.routeBasis === 'stated'
+      ? en
+        ? 'the stated run'
+        : 'jalur yang disebut'
+      : en
+        ? 'house length + width and the height to the highest outlet'
+        : 'panjang + lebar rumah dan beda tinggi ke titik air tertinggi',
+    stock,
+    locale,
+  );
+  return [
+    {
+      item: bomItemName('Pipa PVC AW', locale),
+      size: solution.mainSize,
+      quantity: purchase.quantity,
+      unit: bomUnitLabel(purchase.unit, locale),
+      basis: purchase.basis,
+      provenance: provenanceFor(traces, ids),
+      traceIds: ids,
+    },
+  ];
 }
 
 /**
@@ -157,7 +238,16 @@ export function assumptionsFrom(
   requirementAssumptions: readonly Assumption[],
   locale: Locale = DEFAULT_LOCALE,
 ): readonly Assumption[] {
-  const fromRules: Assumption[] = [];
+  const en = locale === 'en';
+  const fromRules: Assumption[] = [
+    {
+      text: en
+        ? 'How it is worked out: every fixture adds to the supply load, the load gives the peak flow (not every tap runs at once), and the main pipe is the smallest size that keeps the water speed and pressure loss within limits over the route from the source to the highest outlet. For a roof tank the pressure left at the highest outlet is checked too.'
+        : 'Cara hitungnya: tiap alat menambah beban suplai, beban itu memberi debit puncak (tidak semua keran dibuka bersamaan), lalu pipa utama dipilih ukuran terkecil yang kecepatan air dan kehilangan tekanannya masih dalam batas sepanjang jalur dari sumber ke titik air tertinggi. Untuk toren atap, sisa tekanan di titik tertinggi ikut dicek.',
+      fieldPath: '',
+      ruleId: 'ENG-701',
+    },
+  ];
 
   // Tinggi lantai hanya menjadi asumsi bila ENG-004 benar-benar berjalan.
   if (traces.some((trace) => trace.ruleId === 'ENG-004')) {
@@ -168,36 +258,22 @@ export function assumptionsFrom(
     });
   }
 
-  // ENG-011 (pompa pendorong) dan ENG-013 (kelas pipa) selalu dihitung, tetapi dulu hasilnya tidak
-  // pernah sampai ke solusi — mengubah tipe bangunan, sumber air, atau jenis instalasi di panel
-  // tampak "tidak berefek" (laporan pemilik 2026-10-08). Keduanya aturan yang belum divalidasi
-  // ahli, jadi tampil sebagai ASUMSI yang bisa diperbaiki, bukan sebagai baris sizing.
-  if (traces.some((trace) => trace.ruleId === 'ENG-011')) {
+  if (solution.mainRunNetM === null) {
     fromRules.push({
-      text: explanationFor(traces, 'ENG-011'),
-      fieldPath: 'water.source',
-      ruleId: 'ENG-011',
-    });
-  }
-  if (solution.pressureClasses.includes('D')) {
-    fromRules.push({
-      text:
-        locale === 'en'
-          ? 'The drainage line uses class D PVC pipe; its sizes are not calculated here — the Pralon technical team sizes it from the drainage fixtures.'
-          : 'Jalur pembuangan memakai pipa PVC kelas D; ukurannya belum dihitung di sini — tim teknis Pralon menghitungnya dari fixture pembuangannya.',
-      fieldPath: 'water.installationType',
-      ruleId: 'ENG-013',
+      text: en
+        ? 'The house size is not known yet, so pipe quantities are not counted; tell me the length × width of the house to get them.'
+        : 'Ukuran rumah belum diketahui, jadi jumlah pipanya belum dihitung; sebutkan panjang × lebar rumahnya supaya bisa dihitung.',
+      fieldPath: 'building.dimensions',
+      ruleId: 'ENG-702',
     });
   }
 
-  if (solution.overallProvenance !== 'VERIFIED') {
+  for (const id of solution.appliedAssumptionIds) {
     fromRules.push({
-      text:
-        locale === 'en'
-          ? 'Pipe length is estimated because the building dimensions have not been provided.'
-          : 'Panjang pipa diestimasi karena dimensi bangunan belum diberikan.',
-      fieldPath: 'building.dimensions',
-      ruleId: 'ENG-009',
+      text: assumptionDescription(id, locale),
+      fieldPath: applyAssumption(id).parameter,
+      ruleId: 'ENG-701',
+      assumptionId: id,
     });
   }
 
@@ -212,6 +288,7 @@ export function allowedNumbersFrom(
   bom: readonly BomItem[],
   solution: SolutionResult,
 ): readonly number[] {
+  const s = solution.supply;
   return [
     stats.outletCount,
     stats.branchCount,
@@ -223,6 +300,14 @@ export function allowedNumbersFrom(
     solution.variancePercent.max,
     solution.targetVelocityMs.min,
     solution.targetVelocityMs.max,
+    s.wsfu,
+    Math.round(s.peakFlowLs * 100) / 100,
+    s.routeLengthM,
+    s.main.velocityMs,
+    s.main.frictionLossM,
+    s.main.totalDynamicHeadM,
+    ...(s.gravityResidualBar !== null ? [s.gravityResidualBar] : []),
+    ...(s.requiredSourcePressureBar !== null ? [s.requiredSourcePressureBar] : []),
     ...solution.floorsPlan.map((floor) => floor.floor),
     ...solution.floorsPlan.map((floor) => floor.elevationM),
     ...bom.map((item) => item.quantity),
@@ -236,8 +321,8 @@ export function allowedSizesFrom(
 ): readonly string[] {
   return [
     solution.mainSize,
+    solution.branchSize,
     solution.fixtureConnectionSize,
-    '3/4"',
     ...bom.map((item) => item.size),
   ];
 }

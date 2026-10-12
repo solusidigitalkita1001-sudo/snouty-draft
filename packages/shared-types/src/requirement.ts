@@ -56,8 +56,16 @@ export type BuildingType = 'residential' | 'boarding_house' | 'light_commercial'
 export type WaterSource = 'rooftop_tank' | 'ground_tank' | 'pump' | 'municipal';
 export type InstallationType = 'clean_water' | 'drainage' | 'both';
 
+/**
+ * Ukuran untuk panjang pipa: jalur utama yang disebut, dan/atau ukuran denah rumah (panjang ×
+ * lebar, m). Denah → jalur datar terjauh = panjang + lebar (asumsi tertulis di solusi).
+ */
 export interface Dimensions {
-  readonly mainRunMeters: number;
+  readonly mainRunMeters?: number;
+  readonly lengthM?: number;
+  readonly widthM?: number;
+  /** Luas denah bila hanya luas yang disebut — dianggap persegi (sisi = √luas). */
+  readonly areaM2?: number;
 }
 
 export interface BuildingState {

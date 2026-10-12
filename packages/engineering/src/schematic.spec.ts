@@ -113,10 +113,12 @@ describe('buildSchematic — contoh kerja desain', () => {
   it('jumlah titik air sama dengan hitungan engine — gambar tak bisa bertentangan', () => {
     const solution = computeSolution(SOLUTION_INPUT);
     const fixtureNodes = schematic.nodes.filter((n) => n.type === 'fixture');
-    // 3 kamar mandi + 1 node wastafel (×4) + 1 node dapur = 5 node untuk 8 titik air.
+    // 3 kamar mandi (2 titik) + 1 node wastafel (×4) + 1 node dapur = 11 titik air.
     const represented = fixtureNodes.reduce((sum, node) => {
       const multiplier = /×(\d+)/.exec(node.label ?? '');
-      return sum + (multiplier ? Number(multiplier[1]) : 1);
+      // Satu node kamar mandi = shower + kloset = dua titik air (ENG-001 v2).
+      const perNode = node.label === 'Kamar mandi' ? 2 : 1;
+      return sum + (multiplier ? Number(multiplier[1]) : 1) * perNode;
     }, 0);
     expect(represented).toBe(solution.outletCount);
   });

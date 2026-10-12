@@ -13,6 +13,7 @@ import type { Locale } from '@snouty/shared-types';
 import type { Assumption, Recommendation, SelectedProduct, SystemLine } from '@snouty/shared-types';
 import type { SolutionResult } from '@snouty/engineering';
 import { checkProse } from '../domain/prose-check.js';
+import type { StockLength } from '../domain/pipe-quantity.js';
 import type { ProseSource } from '../domain/recommendation.repository.js';
 import {
   allowedNumbersFrom,
@@ -44,6 +45,8 @@ export interface AssembleInput {
   readonly traces: readonly IdentifiedTrace[];
   readonly products: readonly SelectedProduct[];
   readonly requirementAssumptions: readonly Assumption[];
+  /** Panjang batang produk pipa utama terpilih — dasar jumlah beli di material. */
+  readonly mainStock?: StockLength | null;
   /** `now` disuntikkan demi determinisme pengujian. */
   readonly now: string;
   /** Bahasa prosa (Fase 15); templat deterministik masih Indonesia sampai P15-03. */
@@ -62,7 +65,7 @@ export async function assembleRecommendation(
 ): Promise<AssembleResult> {
   const stats = statsFrom(input.solution, input.products.length);
   const systemLines = systemLinesFrom(input.solution, input.traces, input.locale);
-  const bom = bomItemsFrom(input.solution, input.traces, input.locale);
+  const bom = bomItemsFrom(input.solution, input.traces, input.locale, input.mainStock ?? null);
   const assumptions = assumptionsFrom(
     input.solution,
     input.traces,

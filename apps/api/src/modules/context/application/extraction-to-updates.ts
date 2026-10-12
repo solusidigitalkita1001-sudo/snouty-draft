@@ -85,6 +85,32 @@ const OBVIOUS = {
     if (/\b(?<!booster )(pompa|pumps?)\b(?!\s*(booster|pendorong|dorong))/i.test(m)) return 'pump';
     return undefined;
   },
+  /**
+   * Ukuran denah ("rumah 8 x 15", "ukuran 6x12 m", "luas 120 m2") — parser nilai bersatuan.
+   * Kata bangunan/ukuran harus mendahului angkanya: "kamar mandi 2x3 meter" bukan ukuran rumah.
+   */
+  plan: (m: string): { lengthM: number; widthM: number } | { areaM2: number } | undefined => {
+    const decimal = (s: string) => Number(s.replace(',', '.'));
+    const sides =
+      /\b(?:rumah|rumahnya|bangunan|bangunannya|denah|ukuran|ukurannya|lahan|tanah|house|building|plot|size)\b[^\d\n]{0,20}(\d+(?:[.,]\d+)?)\s*(?:m\s*)?[x×]\s*(\d+(?:[.,]\d+)?)\s*(?:m\b|meter|metre)?/i.exec(
+        m,
+      );
+    if (sides) {
+      const lengthM = decimal(sides[1]!);
+      const widthM = decimal(sides[2]!);
+      if (lengthM >= 2 && widthM >= 2 && lengthM <= 200 && widthM <= 200)
+        return { lengthM, widthM };
+    }
+    const area =
+      /\b(?:luas|luasnya|area)\b[^\d\n]{0,25}(\d+(?:[.,]\d+)?)\s*(?:m2|m²|meter persegi|square met(?:er|re)s?|sqm)/i.exec(
+        m,
+      );
+    if (area) {
+      const areaM2 = decimal(area[1]!);
+      if (areaM2 >= 10 && areaM2 <= 20_000) return { areaM2 };
+    }
+    return undefined;
+  },
   type: (m: string): NonNullable<Extraction['building']>['type'] => {
     if (/\b(kos|kost|kos-kosan|boarding house|dorm(?:itory)?|hostel)\b/i.test(m))
       return 'boarding_house';
@@ -234,8 +260,21 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     counted('building.floors', extraction.building?.floors, OBVIOUS.floors(message)),
   );
   add('building.floorHeightM', extraction.building?.floorHeightM);
-  if (extraction.building?.mainRunMeters !== undefined) {
-    add('building.dimensions', { mainRunMeters: extraction.building.mainRunMeters });
+  // Ukuran rumah dari teks lebih dulu (nilai tersurat); panjang jalur dari model hanya bila
+  // ukuran rumah tidak disebut. Keduanya disimpan bersama bila keduanya ada.
+  const plan = OBVIOUS.plan(message);
+  const run = extraction.building?.mainRunMeters;
+  if (plan !== undefined) {
+    updates.push({
+      path: 'building.dimensions',
+      value:
+        run !== undefined && GROUNDING['building.dimensions']!.test(message)
+          ? { ...plan, mainRunMeters: run }
+          : plan,
+      source: 'user_stated',
+    });
+  } else if (run !== undefined) {
+    add('building.dimensions', { mainRunMeters: run });
   }
 
   add(

@@ -22,46 +22,57 @@ const BOARD_EXAMPLE: SolutionInput = {
 describe('computeSolution — contoh kerja desain', () => {
   const result = computeSolution(BOARD_EXAMPLE);
 
-  it('menghasilkan 8 titik air dan 11 unit beban', () => {
-    expect(result.outletCount).toBe(8);
+  // Angka harapan dihitung tangan, bukan disalin dari engine (koreksi 2026-10-12).
+  it('kamar mandi dua titik (shower + kloset): 3 × 2 + 4 + 1 = 11 titik, 3 cabang', () => {
+    expect(result.outletCount).toBe(11);
     expect(result.loadUnits).toBe(11);
-  });
-
-  it('jalur utama 1" (11 unit melewati ambang 8)', () => {
-    expect(result.mainSize).toBe('1"');
-  });
-
-  it('8 titik air menjadi 2 cabang, maksimum 4 per cabang', () => {
-    expect(result.branchCount).toBe(2);
+    expect(result.branchCount).toBe(3);
     expect(result.maxOutletsPerBranch).toBe(4);
+  });
+
+  it('debit puncak: 3 × (2,2 + 1,0) + 4 × 0,5 + 1,0 = 12,6 WSFU → 16,3 gpm (kurva Hunter) = 1,028 l/s', () => {
+    expect(result.supply.wsfu).toBe(12.6);
+    expect(result.supply.peakFlowLs).toBeCloseTo(16.3 * 0.0630902, 3);
+  });
+
+  it('pipa utama 1": di 3/4" (dalam 24 mm) air 2,27 m/s melewati batas 2 m/s, di 1" (29,6 mm) 1,49 m/s', () => {
+    const v = (id: number) => 1.028e-3 / ((Math.PI * (id / 1000) ** 2) / 4);
+    expect(v(24)).toBeGreaterThan(2);
+    expect(v(29.6)).toBeCloseTo(1.49, 2);
+    expect(result.mainSize).toBe('1"');
   });
 
   it('tinggi lantai memakai default 3,5 m saat pengguna tidak memberikannya', () => {
     expect(result.floorHeightM).toBe(3.5);
   });
 
-  it('toren atap pada hunian: tanpa pompa pendorong', () => {
-    expect(result.boosterPumpNeeded).toBe(false);
+  it('toren 1 m di atas atap hanya 2,5 m di atas shower lantai 2 → di bawah 0,3 bar, perlu pompa pendorong', () => {
+    // Toren 2 × 3,5 + 1 = 8 m; shower (2 − 1) × 3,5 + 2 = 5,5 m.
+    expect(result.supply.staticHeadM).toBe(-2.5);
+    expect(result.supply.gravityResidualBar!).toBeLessThan(0.3);
+    expect(result.boosterPumpNeeded).toBe(true);
   });
 
   it('air bersih → kelas AW', () => {
     expect(result.pressureClasses).toEqual(['AW']);
   });
 
-  it('BOM mengikuti formula prototipe', () => {
-    expect(result.bom).toEqual([
-      { item: 'Pipa PVC AW', size: '1"', quantity: 4, unit: 'batang' },
-      { item: 'Pipa PVC AW', size: '3/4"', quantity: 6, unit: 'batang' },
-      { item: 'Tee', size: '3/4"', quantity: 5, unit: 'pcs' },
-      { item: 'Elbow 90°', size: '3/4"', quantity: 9, unit: 'pcs' },
-      { item: 'Reducer', size: '1"→3/4"', quantity: 2, unit: 'pcs' },
-    ]);
+  it('tanpa ukuran rumah tidak ada panjang pipa untuk material; dengan 8 × 15 m ada', () => {
+    expect(result.mainRunNetM).toBeNull();
+    expect(result.supply.routeBasis).toBe('assumed');
+    const sized = computeSolution({ ...BOARD_EXAMPLE, planLengthM: 8, planWidthM: 15 });
+    // 8 + 15 m mendatar + (8 − 5,5) m turun dari toren ke shower.
+    expect(sized.mainRunNetM).toBe(25.5);
+    expect(sized.supply.routeBasis).toBe('plan');
   });
 
-  it('BOM tidak memuat baris yang formulanya belum ada (lem PVC)', () => {
-    // Laporan dua halaman menyebut "Lem PVC, 100 gr, 2 kaleng", tetapi tidak ada
-    // formulanya. Mengarang satu untuk mengisi tabel adalah halusinasi berbaju rapi.
-    expect(result.bom.some((line) => /lem/i.test(line.item))).toBe(false);
+  it('PDAM: tekanan yang dibutuhkan di meteran = naik 5,5 m + kehilangan + 1 bar', () => {
+    const pdam = computeSolution({ ...BOARD_EXAMPLE, waterSource: 'municipal' });
+    const m = pdam.supply.main;
+    expect(pdam.supply.requiredSourcePressureBar).toBeCloseTo(
+      (5.5 + m.frictionLossM + m.minorLossM + 10.197) / 10.197,
+      1,
+    );
   });
 
   it('menyebar titik air ke dua lantai dengan elevasi dari tinggi lantai', () => {

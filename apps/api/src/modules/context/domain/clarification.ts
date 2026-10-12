@@ -65,7 +65,27 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
     question: 'Ada berapa kamar mandi?',
     options: ['1', '2', '3', '4'],
   },
+  // Pertanyaan penyempurna (koreksi 2026-10-12): ditanya di samping tombol Susun rekomendasi.
+  'building.dimensions': {
+    question: 'Ukuran rumahnya kira-kira berapa (panjang × lebar)?',
+    options: ['6 x 12 m', '8 x 15 m', '10 x 20 m'],
+  },
+  'fixtures.kitchens': {
+    question: 'Ada berapa dapur?',
+    options: ['0', '1', '2'],
+  },
+  'fixtures.basins': {
+    question: 'Ada berapa wastafel di luar kamar mandi?',
+    options: ['0', '1', '2', '3'],
+  },
 };
+
+/** Field yang memperbaiki hitungan rumah setelah data inti lengkap, urut pengaruhnya. */
+export const HOUSE_REFINEMENT_FIELDS: readonly RequirementFieldPath[] = [
+  'building.dimensions',
+  'fixtures.kitchens',
+  'fixtures.basins',
+];
 
 /**
  * Dua bahasa (Fase 15): `options` tetap label Indonesia kanonik sebagai PROTOKOL (klien
@@ -77,6 +97,9 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.installationType': 'What is this installation for?',
   'building.floors': 'How many floors does the building have?',
   'fixtures.bathrooms': 'How many bathrooms are there?',
+  'building.dimensions': 'Roughly how big is the house (length × width)?',
+  'fixtures.kitchens': 'How many kitchens are there?',
+  'fixtures.basins': 'How many wash basins outside the bathrooms?',
 };
 
 /** Label tampilan Inggris per nilai pilihan kanonik; angka tampil apa adanya. */
@@ -115,6 +138,7 @@ const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath
   'water.installationType',
   'building.floors',
   'fixtures.bathrooms',
+  ...HOUSE_REFINEMENT_FIELDS,
 ]);
 
 /**
@@ -179,6 +203,11 @@ const OPTION_VALUES: Readonly<
     Pembuangan: 'drainage',
     Keduanya: 'both',
   },
+  'building.dimensions': {
+    '6 x 12 m': { lengthM: 6, widthM: 12 },
+    '8 x 15 m': { lengthM: 8, widthM: 15 },
+    '10 x 20 m': { lengthM: 10, widthM: 20 },
+  },
 };
 
 /** Label singkat untuk ringkasan jawaban di gelembung pengguna. */
@@ -187,12 +216,18 @@ const ANSWER_LABEL: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.installationType': 'Instalasi',
   'building.floors': 'Lantai',
   'fixtures.bathrooms': 'Kamar mandi',
+  'building.dimensions': 'Ukuran rumah',
+  'fixtures.kitchens': 'Dapur',
+  'fixtures.basins': 'Wastafel',
 };
 const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.source': 'Water source',
   'water.installationType': 'Installation',
   'building.floors': 'Floors',
   'fixtures.bathrooms': 'Bathrooms',
+  'building.dimensions': 'House size',
+  'fixtures.kitchens': 'Kitchens',
+  'fixtures.basins': 'Basins',
 };
 
 export interface ClarificationAnswer {
@@ -257,4 +292,18 @@ function toQuestion(path: RequirementFieldPath, locale: Locale): ClarificationQu
       : {}),
     allowUnknown: true, // "Belum tahu" selalu tersedia — pengguna tidak dipaksa menebak.
   };
+}
+
+/**
+ * Pertanyaan yang memperbaiki hitungan rumah, ditampilkan di samping tombol Susun rekomendasi
+ * setelah data inti lengkap (laporan pemilik 2026-10-12: "kurang parameter luas"). Hanya field
+ * yang belum disebut pengguna; "Belum tahu" membiarkan asumsinya berlaku.
+ */
+export function houseRefinementQuestions(
+  isKnown: (path: RequirementFieldPath) => boolean,
+  locale: Locale = DEFAULT_LOCALE,
+): readonly ClarificationQuestion[] {
+  return HOUSE_REFINEMENT_FIELDS.filter((path) => !isKnown(path))
+    .map((path) => toQuestion(path, locale))
+    .filter((q): q is ClarificationQuestion => q !== null);
 }

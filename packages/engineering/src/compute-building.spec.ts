@@ -119,9 +119,9 @@ describe('pipa tiap lantai dari titik air per lantai', () => {
       basinsPerFloor: 4,
     });
     expect(r.floorBranch).toMatchObject({
-      outletsPerFloor: 10,
+      outletsPerFloor: 16, // 6 kamar mandi × 2 (shower + kloset) + 4 wastafel
       loadUnitsPerFloor: 16,
-      branchesPerFloor: 3,
+      branchesPerFloor: 4,
       fixtureConnectionSize: '1/2"',
       flowPerFloorLs: 3.75,
       headerLengthM: 54.8,

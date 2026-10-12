@@ -397,11 +397,24 @@ describe('runUnderstanding — bentuk event SSE', () => {
       ai,
       input({ message: 'rumah 2 lantai, 3 kamar mandi, toren atap, air bersih' }),
     );
-    const card = events.find((e) => e.type === 'card') as {
-      card: { kind: string; action?: string };
-    };
-    expect(card.card.kind).toBe('cta');
-    expect(card.card.action).toBe('ANALYZE');
+    const cards = events
+      .filter((e) => e.type === 'card')
+      .map(
+        (e) =>
+          (
+            e as unknown as {
+              card: { kind: string; action?: string; questions?: { id: string }[] };
+            }
+          ).card,
+      );
+    // Pertanyaan penyempurna (ukuran rumah, dapur, wastafel) di samping tombol, lalu CTA.
+    expect(cards.map((c) => c.kind)).toEqual(['clarification', 'cta']);
+    expect(cards[0]!.questions!.map((q) => q.id)).toEqual([
+      'building.dimensions',
+      'fixtures.kitchens',
+      'fixtures.basins',
+    ]);
+    expect(cards[1]!.action).toBe('ANALYZE');
     expect(nextState.missingInformation).toEqual([]);
   });
 
@@ -705,8 +718,10 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
       ai,
       input({ message: 'rumah 2 lantai, 2 kamar mandi, PDAM, saluran pembuangan' }),
     );
-    const card = events.find((e) => e.type === 'card') as { card: { kind: string } };
-    expect(card.card.kind).toBe('cta');
+    const kinds = events
+      .filter((e) => e.type === 'card')
+      .map((e) => (e as unknown as { card: { kind: string } }).card.kind);
+    expect(kinds).toContain('cta');
   });
 
   it('air bersih rumah tinggal lengkap: tetap CTA analisis', async () => {
@@ -719,8 +734,10 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
       ai,
       input({ message: 'rumah 2 lantai, 3 kamar mandi, toren atap, air bersih' }),
     );
-    const card = events.find((e) => e.type === 'card') as { card: { kind: string } };
-    expect(card.card.kind).toBe('cta');
+    const kinds = events
+      .filter((e) => e.type === 'card')
+      .map((e) => (e as unknown as { card: { kind: string } }).card.kind);
+    expect(kinds).toContain('cta');
   });
 });
 

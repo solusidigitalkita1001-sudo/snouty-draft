@@ -1,7 +1,7 @@
 /**
- * P15-04a — jalur bangunan dua bahasa: 'id' tak berubah; 'en' menerjemahkan nama, jalur, BOM, dan
- * asumsi dengan jumlah dan ukuran yang sama. Penjelasan trace ikut bahasa bila engine dipanggil
- * dengan locale percakapan (P15-04b).
+ * Jalur rumah di layar solusi. Koreksi 2026-10-12 ("koreksi itungannya udh bener belom"): pipa
+ * utama dari debit dan jalur, sumber air ditampilkan dengan tekanannya, material hanya dari
+ * panjang yang diketahui. Dua bahasa: 'en' menerjemahkan nama dan asumsi dengan angka yang sama.
  */
 import { describe, expect, it } from 'vitest';
 import { computeSolution, type SolutionInput } from '@snouty/engineering';
@@ -24,68 +24,66 @@ const INPUT: SolutionInput = {
   floorHeightM: null,
   mainRunMeters: null,
 };
+const identify = (s: ReturnType<typeof computeSolution>): readonly IdentifiedTrace[] =>
+  s.traces.map((t, i) => ({ ...t, id: `S${i}` }));
 const solution = computeSolution(INPUT);
-const traces: readonly IdentifiedTrace[] = solution.traces.map((t, i) => ({ ...t, id: `S${i}` }));
+const traces = identify(solution);
+const sized = computeSolution({ ...INPUT, planLengthM: 8, planWidthM: 15 });
+const sizedTraces = identify(sized);
 
-describe('solution-view locale', () => {
-  it("'id' eksplisit sama dengan bawaan", () => {
-    expect(systemLinesFrom(solution, traces, 'id')).toEqual(systemLinesFrom(solution, traces));
-    expect(bomItemsFrom(solution, traces, 'id')).toEqual(bomItemsFrom(solution, traces));
-    expect(assumptionsFrom(solution, traces, [], 'id')).toEqual(
-      assumptionsFrom(solution, traces, []),
-    );
-    expect(systemLinesFrom(solution, traces)[0]!.name).toBe('Pipa distribusi utama');
-    expect(bomItemsFrom(solution, traces)[0]!.item).toBe('Pipa PVC AW');
+describe('baris sistem rumah', () => {
+  it('pipa utama, cabang, sambungan, dan tekanan dari toren atap', () => {
+    const lines = systemLinesFrom(solution, traces, 'id');
+    expect(lines.map((l) => l.name)).toEqual([
+      'Pipa distribusi utama',
+      'Cabang',
+      'Sambungan fixture',
+      'Tekanan dari toren atap',
+    ]);
+    expect(lines[0]!.size).toBe(solution.mainSize);
+    expect(lines[0]!.reason).toContain('kurva Hunter');
+    expect(lines[1]!.size).toBe(solution.branchSize);
+    expect(lines[3]!.reason).toContain('pompa pendorong');
   });
 
-  it("'en': tiga baris sistem, ukuran dan trace sama, nama Inggris", () => {
+  it('PDAM: tekanan yang dibutuhkan di meteran; toren bawah: titik kerja pompa', () => {
+    const pdam = computeSolution({ ...INPUT, waterSource: 'municipal' });
+    const pdamLine = systemLinesFrom(pdam, identify(pdam), 'id').at(-1)!;
+    expect(pdamLine.name).toBe('Tekanan yang dibutuhkan di meteran PDAM');
+    expect(pdamLine.size).toMatch(/^\d+(,\d+)? bar$/);
+    const ground = computeSolution({ ...INPUT, waterSource: 'ground_tank' });
+    expect(systemLinesFrom(ground, identify(ground), 'id').at(-1)!.name).toBe(
+      'Pompa (titik kerja)',
+    );
+  });
+
+  it("'en': nama Inggris, ukuran dan trace sama", () => {
     const id = systemLinesFrom(solution, traces, 'id');
     const en = systemLinesFrom(solution, traces, 'en');
-    expect(en.map((l) => l.name)).toEqual([
-      'Main distribution pipe',
-      'Branch per floor',
-      'Fixture connection',
-    ]);
-    expect(en.map((l) => l.path)).toEqual([
-      'Source → riser',
-      'Riser → water outlets',
-      'Branch → fixture',
-    ]);
-    expect(en.map((l) => l.size)).toEqual(id.map((l) => l.size));
+    expect(en[0]!.name).toBe('Main distribution pipe');
+    // Ukuran pipa sama; angka tekanan hanya beda format desimal (0,05 / 0.05).
+    expect(en.slice(0, 3).map((l) => l.size)).toEqual(id.slice(0, 3).map((l) => l.size));
     expect(en.map((l) => l.traceIds)).toEqual(id.map((l) => l.traceIds));
   });
+});
 
-  it("'en' (P15-04b): trace yang dihitung dalam bahasa Inggris memberi alasan berbahasa Inggris", () => {
-    const enSolution = computeSolution(INPUT, 'en');
-    const enTraces: readonly IdentifiedTrace[] = enSolution.traces.map((t, i) => ({
-      ...t,
-      id: `S${i}`,
-    }));
-    const id = systemLinesFrom(solution, traces, 'id');
-    const en = systemLinesFrom(enSolution, enTraces, 'en');
-    expect(en.map((l) => l.size)).toEqual(id.map((l) => l.size));
-    en.forEach((line, i) => expect(line.reason).not.toBe(id[i]!.reason));
-    expect(en[0]!.reason).toContain('8-unit threshold');
-    expect(bomItemsFrom(enSolution, enTraces, 'en')[0]!.basis).toContain('planning estimate');
+describe('material rumah', () => {
+  it('tanpa ukuran rumah: tidak ada jumlah pipa karangan', () => {
+    expect(bomItemsFrom(solution, traces, 'id')).toEqual([]);
   });
 
-  it("'en': BOM — jumlah dan ukuran sama, nama dan satuan Inggris", () => {
-    const id = bomItemsFrom(solution, traces, 'id');
-    const en = bomItemsFrom(solution, traces, 'en');
-    expect(en.map((i) => [i.quantity, i.size])).toEqual(id.map((i) => [i.quantity, i.size]));
+  it('8 × 15 m: panjang bersih ÷ panjang batang katalog', () => {
+    const bom = bomItemsFrom(sized, sizedTraces, 'id', {
+      meters: 4,
+      productName: 'Pipa (TS End) Putih AW 1" x 4 Meter',
+    });
+    expect(bom).toHaveLength(1);
+    expect(bom[0]).toMatchObject({ item: 'Pipa PVC AW', size: sized.mainSize, unit: 'batang' });
+    expect(bom[0]!.quantity).toBe(Math.ceil(25.5 / 4));
+    expect(bom[0]!.basis).toContain('Panjang bersih 25,5 m');
+    const en = bomItemsFrom(sized, sizedTraces, 'en', { meters: 4, productName: 'x' });
     expect(en[0]!.item).toBe('PVC AW pipe');
     expect(en[0]!.unit).toBe('rods');
-    expect(en.every((i) => !i.item.startsWith('Pipa'))).toBe(true);
-  });
-
-  it("'en': asumsi dimensi berbahasa Inggris; jumlah sama", () => {
-    const id = assumptionsFrom(solution, traces, [], 'id');
-    const en = assumptionsFrom(solution, traces, [], 'en');
-    expect(en).toHaveLength(id.length);
-    const dimensions = en.find((a) => a.fieldPath === 'building.dimensions');
-    expect(dimensions?.text).toBe(
-      'Pipe length is estimated because the building dimensions have not been provided.',
-    );
   });
 
   it('bomItemName: item tak dikenal lewat apa adanya; keluarga pipa tetap', () => {
@@ -96,36 +94,29 @@ describe('solution-view locale', () => {
   });
 });
 
-describe('assumptionsFrom — panel "Ubah" berefek ke solusi (laporan pemilik 2026-10-08)', () => {
-  const assumptionsFor = (over: Partial<SolutionInput>) => {
-    const s = computeSolution({ ...INPUT, ...over });
-    const t: readonly IdentifiedTrace[] = s.traces.map((x, i) => ({ ...x, id: `T${i}` }));
-    return assumptionsFrom(s, t, []);
-  };
-
-  it('sumber air dan tipe bangunan mengubah asumsi pompa pendorong (ENG-011)', () => {
-    const roof = assumptionsFor({ waterSource: 'rooftop_tank' }).find(
-      (a) => a.ruleId === 'ENG-011',
+describe('asumsi rumah', () => {
+  it('cara hitung, ukuran rumah yang belum ada, dan asumsi registry yang bisa diubah', () => {
+    const list = assumptionsFrom(solution, traces, [], 'id');
+    expect(list[0]!.text).toMatch(/^Cara hitungnya:/);
+    expect(list.find((a) => a.fieldPath === 'building.dimensions')?.text).toContain(
+      'panjang × lebar',
     );
-    const pdam = assumptionsFor({ waterSource: 'municipal' }).find((a) => a.ruleId === 'ENG-011');
-    const factory = assumptionsFor({ buildingType: 'industrial' }).find(
-      (a) => a.ruleId === 'ENG-011',
+    expect(list.map((a) => a.assumptionId)).toEqual(
+      expect.arrayContaining(['WSFU_WATER_CLOSET_2_2', 'TANK_STAND_1M', 'HOUSE_RUN_20M']),
     );
-    expect(roof?.text).toContain('tanpa pompa pendorong');
-    expect(pdam?.text).toBe(
-      'Dengan sumber PDAM, distribusi diperkirakan memerlukan pompa pendorong.',
-    );
-    expect(factory?.text).toContain('memerlukan pompa pendorong');
-    expect(pdam?.fieldPath).toBe('water.source');
+    expect(list.some((a) => /tim teknis Pralon menghitungnya/.test(a.text))).toBe(false);
   });
 
-  it('jenis instalasi "Keduanya" menambah asumsi jalur pembuangan kelas D tanpa ukuran karangan', () => {
-    expect(
-      assumptionsFor({ installationType: 'clean_water' }).some((a) => a.ruleId === 'ENG-013'),
-    ).toBe(false);
-    const drain = assumptionsFor({ installationType: 'both' }).find((a) => a.ruleId === 'ENG-013');
-    expect(drain?.text).toContain('kelas D');
-    expect(drain?.text).not.toMatch(/\d/);
-    expect(drain?.fieldPath).toBe('water.installationType');
+  it('ukuran rumah diketahui: tidak ada lagi asumsi panjang jalur 20 m', () => {
+    const list = assumptionsFrom(sized, sizedTraces, [], 'id');
+    expect(list.some((a) => a.fieldPath === 'building.dimensions')).toBe(false);
+    expect(list.some((a) => a.assumptionId === 'HOUSE_RUN_20M')).toBe(false);
+  });
+
+  it("'en': jumlah sama, teks Inggris", () => {
+    const id = assumptionsFrom(solution, traces, [], 'id');
+    const en = assumptionsFrom(solution, traces, [], 'en');
+    expect(en).toHaveLength(id.length);
+    expect(en[0]!.text).toMatch(/^How it is worked out:/);
   });
 });

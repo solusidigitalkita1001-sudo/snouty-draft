@@ -10,7 +10,7 @@ export const FIELD_LABEL: Readonly<Record<RequirementFieldPath, string>> = {
   'building.type': 'Tipe bangunan',
   'building.floors': 'Jumlah lantai',
   'building.floorHeightM': 'Tinggi antar lantai',
-  'building.dimensions': 'Panjang jalur',
+  'building.dimensions': 'Ukuran rumah / jalur',
   'fixtures.bathrooms': 'Kamar mandi',
   'fixtures.basins': 'Wastafel',
   'fixtures.kitchens': 'Dapur',
@@ -24,7 +24,7 @@ export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
   'building.type': 'Building type',
   'building.floors': 'Number of floors',
   'building.floorHeightM': 'Floor-to-floor height',
-  'building.dimensions': 'Pipe run length',
+  'building.dimensions': 'House size / pipe run',
   'fixtures.bathrooms': 'Bathrooms',
   'fixtures.basins': 'Basins',
   'fixtures.kitchens': 'Kitchens',
@@ -89,8 +89,23 @@ export function requirementValueLabel(
       return en ? plural(value, 'point', 'points') : `${value} titik`;
     return String(value);
   }
-  if (typeof value === 'object' && value !== null && 'mainRunMeters' in value) {
-    return `${String((value as { mainRunMeters: unknown }).mainRunMeters)} m`;
+  if (typeof value === 'object' && value !== null) {
+    // Ukuran rumah dan/atau panjang jalur: "8 × 15 m", "luas 120 m²", "jalur 25 m".
+    const d = value as {
+      mainRunMeters?: number;
+      lengthM?: number;
+      widthM?: number;
+      areaM2?: number;
+    };
+    const n = (x: number) => x.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
+    const parts: string[] = [];
+    if (d.lengthM !== undefined && d.widthM !== undefined)
+      parts.push(`${n(d.lengthM)} × ${n(d.widthM)} m`);
+    else if (d.areaM2 !== undefined)
+      parts.push(en ? `area ${n(d.areaM2)} m²` : `luas ${n(d.areaM2)} m²`);
+    if (d.mainRunMeters !== undefined)
+      parts.push(en ? `run ${n(d.mainRunMeters)} m` : `jalur ${n(d.mainRunMeters)} m`);
+    if (parts.length > 0) return parts.join(' · ');
   }
   return (en ? VALUE_LABEL_EN : VALUE_LABEL)[String(value)] ?? String(value);
 }

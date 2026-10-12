@@ -58,7 +58,7 @@ describe('caseFacts', () => {
     const facts = caseFacts(handedOff, 'id', followUpCard(handedOff, 'id'));
     expect(facts).toContain('- Jumlah lantai: 3 lantai');
     expect(facts).toContain('- Diserahkan ke tim teknis Pralon (tidak dihitung otomatis):');
-    expect(facts).toContain('Luas bangunan tidak menentukan ukuran pipa');
+    expect(facts).toContain('Ukuran rumah (panjang × lebar atau luas) dipakai untuk panjang jalur');
   });
 
   it('tanpa kasus: belum ada yang dicatat', () => {

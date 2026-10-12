@@ -65,7 +65,7 @@ import {
 } from '../domain/irrigation.js';
 import { irrigationGuidance } from './irrigation-guidance.js';
 import { assumptionCard } from '../domain/requirement-defaults.js';
-import { planClarification } from '../domain/clarification.js';
+import { houseRefinementQuestions, planClarification } from '../domain/clarification.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
@@ -492,6 +492,8 @@ export async function runUnderstanding(
         : { text: fallback };
     events.push({ type: 'token', text: written.text });
   }
+  const refinement = card?.kind === 'cta' ? technicalQuestionCard(merged, locale) : null;
+  if (refinement) events.push({ type: 'card', card: refinement });
   if (card && !repeatedHandoff) events.push({ type: 'card', card });
 
   events.push(endEvent(input.messageId));
@@ -628,7 +630,13 @@ export function technicalQuestionCard(
   state: RequirementState,
   locale: Locale,
 ): AssistantCard | null {
-  if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return null;
+  // Rumah: ukuran, dapur, wastafel yang belum disebut — di samping tombol Susun rekomendasi.
+  if (state.useCase === undefined) {
+    if (followUpCard(state, locale)?.kind !== 'cta') return null;
+    const questions = houseRefinementQuestions((path) => fieldValueKnown(state, path), locale);
+    return questions.length > 0 ? { kind: 'clarification', questions } : null;
+  }
+  if (state.useCase.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return null;
   if (!isTechnicalComplete(state)) return null;
   if (caseProfile(state.useCase.caseId).calculatorStatus !== 'available') return null;
   const { card } = planTechnicalClarification(state, locale);
@@ -775,4 +783,13 @@ function tallBuildingCase(state: RequirementState, message: string): CaseId | nu
   )?.value;
   const floors = typeof said === 'number' ? said : state.building.floors.value;
   return floors !== null && exceedsAutomaticFloors(floors) ? 'multistorey_building_water' : null;
+}
+
+/** Field kebutuhan rumah yang sudah disebut pengguna (nilai default/asumsi tidak dihitung). */
+function fieldValueKnown(state: RequirementState, path: string): boolean {
+  const [group, key] = path.split('.') as [string, string];
+  const field = (
+    state as unknown as Record<string, Record<string, { value: unknown; source?: string }>>
+  )[group]?.[key];
+  return field !== undefined && field.value !== null && field.source !== 'default_applied';
 }

@@ -154,10 +154,12 @@ describe('MessageService.answerClarification — semua jawaban sekaligus, tanpa 
     );
     // Jawaban kartu tidak bisu: teks "sudah saya catat" ikut tersimpan bersama kartunya.
     expect(result.text).toMatch(/^Oke, sudah saya catat: .*2 lantai.*3 kamar mandi/);
+    // Pertanyaan penyempurna rumah (ukuran, dapur, wastafel) tersimpan bersama CTA.
+    expect(result.cards.map((c) => c.kind)).toEqual(['clarification', 'cta']);
     expect(conversations.appendAssistantMessage).toHaveBeenCalledWith(
       'C'.repeat(26),
       result.text,
-      [result.card],
+      result.cards,
       null,
     );
   });

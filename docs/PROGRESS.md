@@ -1315,6 +1315,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       teknis") — Policy 5 tidak lagi mengoper "Pembuangan"/"Keduanya" ke tim teknis; Kelompok J (ENG-601 beban
       buangan, ENG-602 ukuran jalur + ventilasi) menghitung jalur air kotor ke septic tank dan air bekas ke
       saluran/resapan, digabung ke solusi air bersih rumah atau berdiri sendiri; produk PVC D dicocokkan.
+- [x] P16-52 Hitungan air bersih rumah dikoreksi + ukuran rumah ditanyakan (2026-10-12, "kurang parameter luas
+      … koreksi itungannya") — ambang prototipe dan material karangan diganti: debit puncak kurva Hunter, jalur dan
+      beda tinggi dari ukuran rumah/lantai/sumber, ukuran pipa dari kecepatan dan kehilangan tekanan, tekanan toren
+      atap / kebutuhan tekanan PDAM / titik kerja pompa; kamar mandi = 2 titik; ukuran rumah, dapur, wastafel
+      ditanya di samping Susun rekomendasi dan dibaca dari teks ("rumah 8x15", "luas 120 m2").
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

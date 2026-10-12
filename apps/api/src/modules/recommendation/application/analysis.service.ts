@@ -263,7 +263,7 @@ export class AnalysisService {
 
     // --- Tahap 2: aturan teknik ---
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
-    const solution = computeSolution(solutionInputFrom(state), locale);
+    const solution = computeSolution(solutionInputFrom(state), locale, overridesOf(state));
     const traces: readonly IdentifiedTrace[] = solution.traces.map((trace) => ({
       ...trace,
       id: ulid(),
@@ -291,7 +291,7 @@ export class AnalysisService {
     const match = await this.matchRoles(
       requirementsFrom({
         mainSize: solution.mainSize,
-        branchSize: '3/4"',
+        branchSize: solution.branchSize,
         fixtureSize: solution.fixtureConnectionSize,
         pipeFamily: PIPE_FAMILY,
       }),
@@ -315,6 +315,7 @@ export class AnalysisService {
         traces,
         products: match.products,
         requirementAssumptions,
+        mainStock: match.stockFor('main'),
         now,
         locale,
       },
@@ -330,7 +331,8 @@ export class AnalysisService {
         {
           bathrooms: state.fixtures.bathrooms.value ?? 0,
           basins: state.fixtures.basins.value ?? 0,
-          kitchens: state.fixtures.kitchens.value ?? 0,
+          // Sama dengan sisi air bersih: dapur yang belum disebut dianggap satu (HOUSE_KITCHEN_1).
+          kitchens: state.fixtures.kitchens.value ?? 1,
         },
         locale,
         overridesOf(state),
@@ -997,18 +999,34 @@ export class TechnicalCaseNotComputableError extends Error {
  * Menerjemahkan state kebutuhan ke masukan engine. Nilai yang belum ada diisi default
  * yang **sudah tercatat sebagai asumsi** oleh Context Engine — bukan ditebak di sini.
  */
+/** Ukuran denah: panjang × lebar yang disebut, atau luas saja (dianggap persegi, sisi √luas). */
+function planOf(d: RequirementState['building']['dimensions']['value']): {
+  planLengthM: number | null;
+  planWidthM: number | null;
+} {
+  if (d?.lengthM !== undefined && d.widthM !== undefined) {
+    return { planLengthM: d.lengthM, planWidthM: d.widthM };
+  }
+  if (d?.areaM2 !== undefined && d.areaM2 > 0) {
+    const side = Math.round(Math.sqrt(d.areaM2) * 10) / 10;
+    return { planLengthM: side, planWidthM: side };
+  }
+  return { planLengthM: null, planWidthM: null };
+}
+
 function solutionInputFrom(state: RequirementState): SolutionInput {
   return {
     buildingType: (state.building.type.value ?? 'residential') as SolutionInput['buildingType'],
     floors: state.building.floors.value ?? 1,
     bathrooms: state.fixtures.bathrooms.value ?? 0,
     basins: state.fixtures.basins.value ?? 0,
-    kitchens: state.fixtures.kitchens.value ?? 0,
+    kitchens: state.fixtures.kitchens.value,
     waterSource: (state.water.source.value ?? 'rooftop_tank') as SolutionInput['waterSource'],
     installationType: (state.water.installationType.value ??
       'clean_water') as SolutionInput['installationType'],
     floorHeightM: state.building.floorHeightM.value,
     mainRunMeters: state.building.dimensions.value?.mainRunMeters ?? null,
+    ...planOf(state.building.dimensions.value),
   };
 }
 

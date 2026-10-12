@@ -77,10 +77,11 @@ function fromBuilding(state: RequirementState): EngineeringState {
     key: ParameterKey,
     fieldPath: string,
     tv: TrackedValue<T>,
-    map?: (v: T) => ParameterValue,
+    map?: (v: T) => ParameterValue | undefined,
   ) => {
     if (tv.value === null || tv.value === undefined) return;
     const value = map ? map(tv.value) : (tv.value as unknown as ParameterValue);
+    if (value === undefined) return;
     parameters.push({
       key,
       value,
@@ -99,6 +100,9 @@ function fromBuilding(state: RequirementState): EngineeringState {
     (h) => (state.building.floors.value ?? 1) * h,
   );
   track('route_length', 'building.dimensions', state.building.dimensions, (d) => d.mainRunMeters);
+  track('total_area', 'building.dimensions', state.building.dimensions, (d) =>
+    d.lengthM !== undefined && d.widthM !== undefined ? d.lengthM * d.widthM : undefined,
+  );
   track('bathrooms', 'fixtures.bathrooms', state.fixtures.bathrooms);
   track('basins', 'fixtures.basins', state.fixtures.basins);
   track('kitchens', 'fixtures.kitchens', state.fixtures.kitchens);

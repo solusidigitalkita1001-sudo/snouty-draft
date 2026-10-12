@@ -71,15 +71,17 @@ const RECOMMENDATION: Recommendation = {
     },
   ],
   products: [],
-  bom: SOLUTION.bom.map((line) => ({
-    item: line.item,
-    size: line.size,
-    quantity: line.quantity,
-    unit: line.unit,
-    basis: 'Kuantitas diperkirakan dari 2 lantai dan 3 kamar mandi.',
-    provenance: 'ASSUMED',
-    traceIds: ['t9'],
-  })),
+  bom: [
+    {
+      item: 'Pipa PVC AW',
+      size: '1"',
+      quantity: 7,
+      unit: 'batang',
+      basis: 'Panjang bersih 25,5 m ÷ 4 m per batang = 6,38 → 7 batang.',
+      provenance: 'ASSUMED',
+      traceIds: ['t9'],
+    },
+  ],
   assumptions: [
     {
       text: 'Tinggi antar lantai diasumsikan 3,5 meter.',
@@ -154,9 +156,10 @@ describe('assembleReportPayload', () => {
       pricing: { enabled: true, taxRatePercent: 11 },
     };
     const payload = assembleReportPayload(withPrices);
-    expect(payload.pricing.subtotal).toBe(500_000);
-    expect(payload.pricing.taxAmount).toBe(55_000);
-    expect(payload.pricing.total).toBe(555_000);
+    // Satu baris BOM × 100.000 = 100.000; PPN 11 % = 11.000.
+    expect(payload.pricing.subtotal).toBe(100_000);
+    expect(payload.pricing.taxAmount).toBe(11_000);
+    expect(payload.pricing.total).toBe(111_000);
   });
 
   it('status mengikuti provenance — ASUMSI hari ini, bukan TERVERIFIKASI', () => {

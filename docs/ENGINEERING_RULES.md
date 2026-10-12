@@ -425,6 +425,27 @@ ENG-602  ukuran = pipa terkecil dengan kapasitas ≥ beban pada kemiringan 2 % (
 Contoh (laporan pemilik): rumah 2 lantai, 3 kamar mandi, 1 dapur → air kotor 12 DFU → 4" (ventilasi
 2"); air bekas 8 DFU → 2" (ventilasi 1¼").
 
+### Kelompok K — Air bersih rumah (2026-10-12, "koreksi itungannya udh bener belom")
+
+Menggantikan ambang prototipe ENG-002 (unit beban ≥ 8 → 1", selain itu 3/4") dan rumus material
+ENG-009 ("2 + lantai batang", "3 × kamar mandi elbow") di `computeSolution`; keduanya tidak lagi
+dijalankan. ENG-001 v2: kamar mandi = dua titik air (shower + kloset).
+
+```
+ENG-701  WSFU = kloset × 2,2 + shower × 1,0 + wastafel × 0,5 + bak cuci dapur × 1,0 (IPC E103.3(2),
+         air dingin, pribadi) → debit puncak dari kurva Hunter kloset tangki (IPC E103.3(3))
+ENG-702  titik tertinggi = (lantai − 1) × tinggi lantai + 2 m (shower); toren atap = lantai × tinggi
+         lantai + 1 m; jalur = beda tinggi + jalur datar (disebut / panjang + lebar rumah / 20 m)
+Kel. F   ukuran pipa utama dari kecepatan ≤ 2 m/s dan kehilangan ≤ batas; toren atap: batas
+         kehilangan = (beda tinggi − 0,3 bar) ÷ jalur, supaya titik tertinggi tetap ≥ 0,3 bar
+ENG-703  tekanan dari toren di titik tertinggi; < 0,3 bar → pompa pendorong / toren lebih tinggi
+         PDAM: tekanan yang dibutuhkan di meteran = TDH; toren bawah/pompa: titik kerja pompa
+ENG-102  cabang dari debit per cabang pada 1,5 m/s
+```
+
+Material: hanya pipa utama, dari panjang jalur yang disebut atau dari ukuran rumah, ÷ panjang
+batang produk katalog terpilih. Dapur yang belum disebut dianggap satu (`HOUSE_KITCHEN_1`).
+
 ## 4. Tabel pelacak validasi
 
 Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja.
