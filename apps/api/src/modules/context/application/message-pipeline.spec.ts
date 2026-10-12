@@ -695,7 +695,7 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
     expect(card.card.captured).toContainEqual({ label: 'Sumber air', value: 'Pompa' });
   });
 
-  it('pembuangan: belum didukung penuh walaupun data inti lengkap', async () => {
+  it('pembuangan dengan data inti lengkap: CTA analisis, bukan kartu tim teknis (laporan pemilik 2026-10-12)', async () => {
     const ai = aiExtracting({
       building: { floors: 2 },
       fixtures: { bathrooms: 2 },
@@ -706,7 +706,7 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
       input({ message: 'rumah 2 lantai, 2 kamar mandi, PDAM, saluran pembuangan' }),
     );
     const card = events.find((e) => e.type === 'card') as { card: { kind: string } };
-    expect(card.card.kind).toBe('unsupported');
+    expect(card.card.kind).toBe('cta');
   });
 
   it('air bersih rumah tinggal lengkap: tetap CTA analisis', async () => {

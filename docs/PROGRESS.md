@@ -1311,6 +1311,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       daftar nama, jumlah SKU disebut bila berbeda; kelas PN/SDR hanya yang tertulis, satu penulisan, urut;
       perbandingan umum HDPE/uPVC setiap dua bahan disebut, kelas tidak ditempel ke pipa tanam; pagar
       keluaran model memeriksa penanda teknis dan angka bersatuan. Tes MySQL sungguhan untuk hitungan. OQ-59.
+- [x] P16-51 Pembuangan rumah dihitung (2026-10-12, "kok ngga mau ngitung … malah nyuruh ngubungin org
+      teknis") — Policy 5 tidak lagi mengoper "Pembuangan"/"Keduanya" ke tim teknis; Kelompok J (ENG-601 beban
+      buangan, ENG-602 ukuran jalur + ventilasi) menghitung jalur air kotor ke septic tank dan air bekas ke
+      saluran/resapan, digabung ke solusi air bersih rumah atau berdiri sendiri; produk PVC D dicocokkan.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

@@ -200,6 +200,14 @@ export { GravityInputError, computeGravity } from './compute-gravity.js';
 export type { GravityInput, GravityKind, GravityResult, TrafficLoad } from './compute-gravity.js';
 export { computeNetwork } from './compute-network.js';
 export { BuildingOccupancyUnknownError, computeBuildingWater } from './compute-building.js';
+export { computeHouseDrainage } from './compute-house-drainage.js';
+export type {
+  FixtureDrain,
+  HouseDrainageInput,
+  HouseDrainageResult,
+} from './compute-house-drainage.js';
+export { DRAIN_SIZES, ENG_601, ENG_602, GROUP_J } from './rules/group-j-drainage.js';
+export type { DrainLineResult, DrainSize, DrainageLoadResult } from './rules/group-j-drainage.js';
 export { hasStepTitle, ruleStepTitle } from './rules/step-titles.js';
 export {
   buildingWaterSchematic,

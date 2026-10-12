@@ -17,12 +17,14 @@ import { technicalCaptured, technicalMissing } from '../domain/technical.js';
  */
 const BASIS_ID = [
   'Ukuran pipa air bersih dihitung dari jumlah titik air (kamar mandi, wastafel, dapur) sebagai unit beban, jumlah lantai, dan sumber air.',
+  'Pipa pembuangan rumah dihitung dari unit beban buangan tiap alat (kloset, floor drain, wastafel, bak cuci dapur): jalur air kotor ke septic tank dan air bekas ke saluran atau resapan, masing-masing dengan ventilasi.',
   'Luas bangunan tidak menentukan ukuran pipa; panjang jalur utama hanya dipakai untuk memperkirakan panjang pipa di daftar material — tanpa itu panjangnya ditandai estimasi.',
   'Gedung bertingkat, kolam/tambak, drainase, air hujan, gorong-gorong, irigasi, cluster perumahan, transfer pompa, dan sumur masing-masing punya rumus sendiri dan dihitung saat Susun rekomendasi; industri diteruskan ke tim teknis Pralon.',
   'Hitungan disusun saat pengguna menekan Susun rekomendasi; setiap angka di solusi membawa dasar perhitungannya.',
 ];
 const BASIS_EN = [
   'Clean-water pipe sizes are calculated from the number of water outlets (bathrooms, basins, kitchens) as load units, the number of floors, and the water source.',
+  'House drainage pipes are calculated from the drainage load of each fixture (toilet, floor drain, basin, kitchen sink): a soil line to the septic tank and a waste line to the drain or soakaway, each with a vent.',
   'Building area does not determine pipe size; the main run length is only used to estimate pipe length in the material list — without it the length is marked as an estimate.',
   'Multi-storey buildings, fish ponds, drainage, stormwater, culverts, irrigation, housing clusters, pump transfer, and wells each have their own formulas and are calculated when Compose recommendation is pressed; industrial work goes to the Pralon technical team.',
   'The calculation runs when the user presses Compose recommendation; every figure in the solution carries its basis.',

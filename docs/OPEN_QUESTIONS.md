@@ -706,7 +706,10 @@ extracted and will be recorded in `DESIGN_IMPLEMENTATION.md` in Phase 0b.
 
 ### OQ-17 — (33h #4) Wastewater is offered in the UI but out of scope
 
-**Status:** open · **Blocks:** 5 (scope routing)
+**Status:** diputuskan pemilik (2026-10-12, P16-51) — pembuangan rumah DIHITUNG (Kelompok J: unit
+beban buangan IPC 709.1, kapasitas IPC 710.1(1) pada 2 %, kloset minimal 4", ventilasi ≥ ½ diameter),
+tidak lagi diteruskan ke tim teknis. Nilai IPC menunggu padanan SNI 8153 dari tim teknis Pralon.
+**Status lama:** open · **Blocks:** 5 (scope routing)
 The clarification chips offer "Air bersih + pembuangan" and "Air kotor / pembuangan", history shows
 "Saluran pembuangan ruko", screen 07 shows a `Pralon PVC D` card with size `3"–4" ?`, yet wastewater
 engineering is future scope.

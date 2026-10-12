@@ -20,7 +20,8 @@ const handedOff = withCompleteness(
   mergeRequirement(
     emptyRequirementState(T0),
     [
-      { path: 'building.type', value: 'residential', source: 'user_stated' },
+      // Industri tetap diserahkan ke tim teknis; pembuangan rumah kini dihitung (2026-10-12).
+      { path: 'building.type', value: 'industrial', source: 'user_stated' },
       { path: 'building.floors', value: 3, source: 'user_stated' },
       { path: 'fixtures.bathrooms', value: 4, source: 'user_stated' },
       { path: 'water.source', value: 'ground_tank', source: 'user_stated' },

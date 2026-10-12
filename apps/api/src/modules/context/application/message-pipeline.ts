@@ -574,7 +574,7 @@ function joinList(items: readonly string[], locale: Locale): string {
  * jawaban klarifikasi, supaya keduanya bermuara di keputusan yang sama:
  *
  *   - Policy 5: scope diputuskan dari kebutuhan nyata, bukan dari kata-kata pesan. Industri
- *     atau pembuangan tidak boleh sampai ke CTA analisis, karena analisisnya belum ada.
+ *     tidak sampai ke CTA analisis; air bersih dan pembuangan rumah dihitung.
  *   - Masih ada field inti kosong → kartu klarifikasi (maks. 4 pertanyaan).
  *   - Lengkap dan dalam cakupan → ajak lanjut ke analisis (Fase 6/7).
  */

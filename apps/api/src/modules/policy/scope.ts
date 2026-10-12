@@ -184,9 +184,9 @@ export function exceedsAutomaticFloors(floors: number): boolean {
 /**
  * Policy 5 — scope routing.
  *
- * Air bersih rumah tinggal / komersial kecil didukung penuh. Pembuangan diakui dan
- * kebutuhannya dicatat, tetapi belum didukung untuk rekomendasi penuh. Industri,
- * pabrik, dan bangunan besar selalu ke validasi teknis (layar 11).
+ * Air bersih dan pembuangan rumah tinggal / komersial kecil dihitung (pembuangan sejak
+ * 2026-10-12, Kelompok J — laporan pemilik "kok ngga mau ngitung"). Industri tetap ke
+ * validasi teknis (layar 11).
  *
  * Urutannya penting: industri diperiksa lebih dulu karena ia menang atas apa pun
  * jenis instalasinya.
@@ -214,22 +214,6 @@ export function scopePolicy(input: ScopeInput, locale: Locale = DEFAULT_LOCALE):
           ? `A ${input.floors}-storey building is outside the scope of automatic recommendations.`
           : `Bangunan ${input.floors} lantai berada di luar cakupan rekomendasi otomatis.`,
       ],
-    };
-  }
-
-  if (input.installationType === 'drainage' || input.installationType === 'both') {
-    return {
-      kind: 'policy',
-      code: 'SCOPE_NOT_YET_SUPPORTED',
-      reasons: en
-        ? [
-            'Your drainage need has been recorded.',
-            'Full recommendations for drainage are not supported yet; the Pralon technical team can help.',
-          ]
-        : [
-            'Kebutuhan saluran pembuangan sudah dicatat.',
-            'Rekomendasi penuh untuk pembuangan belum didukung; tim teknis Pralon dapat membantu.',
-          ],
     };
   }
 

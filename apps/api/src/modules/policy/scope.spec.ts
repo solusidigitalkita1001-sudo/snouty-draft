@@ -94,19 +94,9 @@ describe('Policy 5 — scope routing', () => {
     expect(scopePolicy({ ...base, floors: 4 }).kind).toBe('supported');
   });
 
-  it('pembuangan: diakui dan dicatat, belum didukung penuh', () => {
-    const outcome = scopePolicy({ ...base, installationType: 'drainage' });
-    expect(outcome).toMatchObject({ kind: 'policy', code: 'SCOPE_NOT_YET_SUPPORTED' });
-    if (outcome.kind !== 'policy') throw new Error('tak mungkin');
-    // Mengakui lebih dulu, lalu menawarkan jalan keluar — bukan menolak kosong.
-    expect(outcome.reasons[0]).toContain('dicatat');
-    expect(outcome.reasons.join(' ')).toContain('tim teknis');
-  });
-
-  it('"keduanya" juga belum didukung penuh', () => {
-    expect(scopePolicy({ ...base, installationType: 'both' })).toMatchObject({
-      code: 'SCOPE_NOT_YET_SUPPORTED',
-    });
+  it('pembuangan dan "keduanya" dihitung, tidak diteruskan ke tim teknis (laporan pemilik 2026-10-12)', () => {
+    expect(scopePolicy({ ...base, installationType: 'drainage' }).kind).toBe('supported');
+    expect(scopePolicy({ ...base, installationType: 'both' }).kind).toBe('supported');
   });
 
   it('field yang belum diketahui tidak memicu penolakan', () => {
@@ -145,7 +135,7 @@ describe('Policy teks dwibahasa (Fase 15)', () => {
       { buildingType: null, installationType: 'drainage', floors: null },
       'en',
     );
-    expect(drainage).toMatchObject({ code: 'SCOPE_NOT_YET_SUPPORTED' });
+    expect(drainage.kind).toBe('supported');
     expect(irrigationHandoffPolicy('en')).toMatchObject({
       code: 'TECHNICAL_VALIDATION_REQUIRED',
       reasons: [expect.stringContaining('irrigation'), expect.stringContaining('technical team')],

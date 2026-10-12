@@ -47,6 +47,8 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-504': { id: 'Pembagian riser', en: 'Splitting the risers' },
   'ENG-505': { id: 'Air untuk tiap lantai', en: 'Water for each floor' },
   'ENG-506': { id: 'Volume tangki', en: 'Tank volumes' },
+  'ENG-601': { id: 'Beban pembuangan', en: 'Drainage load' },
+  'ENG-602': { id: 'Ukuran pipa buangan dan ventilasi', en: 'Drain and vent size' },
 };
 
 /** Judul langkah untuk sebuah aturan; aturan yang belum terdaftar → judul umum, bukan kodenya. */

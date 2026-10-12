@@ -405,6 +405,26 @@ BOM gedung (audit C6) hanya jalur tegak: panjang bersih (tinggi gedung × riser,
 datar untuk transfer) ÷ panjang batang produk katalog terpilih (`pipe-quantity.ts`), dibulatkan ke
 batang utuh tanpa sisa potongan. Pipa tiap lantai tidak lagi dihitung jumlahnya dari √luas × lantai.
 
+### Kelompok J — Pembuangan rumah (2026-10-12, laporan pemilik "kok ngga mau ngitung")
+
+Instalasi "Pembuangan" atau "Keduanya" untuk rumah dan bangunan kecil dihitung, bukan diteruskan ke
+tim teknis (OQ-17). Dua jalur: air kotor (kloset → septic tank) dan air bekas (floor drain/shower,
+wastafel, bak cuci dapur → saluran atau resapan), pipa PVC D. Panjang jalur tidak diketahui, jadi
+tidak ada jumlah batang. Semua `REQUIRES_DOMAIN_VALIDATION`; nilai dari International Plumbing Code
+sampai padanan SNI 8153 dikonfirmasi tim teknis.
+
+```
+ENG-601  beban air kotor = kloset × 4 DFU ; air bekas = shower/floor drain × 2 + wastafel × 1
+         + bak cuci dapur × 2                         (IPC Tabel 709.1; asumsi DFU_* di registry)
+ENG-602  ukuran = pipa terkecil dengan kapasitas ≥ beban pada kemiringan 2 % (IPC Tabel 710.1(1):
+         2" 21, 2½" 24, 3" 42, 4" 216, 5" 480, 6" 840), tidak lebih kecil dari alat terbesar
+         (kloset 4" — SOIL_LINE_MIN_4IN; floor drain 2", bak cuci 1½", wastafel 1¼")
+         ventilasi = ukuran terkecil ≥ ½ diameter jalur, minimal 1¼" (IPC 906.2)
+```
+
+Contoh (laporan pemilik): rumah 2 lantai, 3 kamar mandi, 1 dapur → air kotor 12 DFU → 4" (ventilasi
+2"); air bekas 8 DFU → 2" (ventilasi 1¼").
+
 ## 4. Tabel pelacak validasi
 
 Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja.

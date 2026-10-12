@@ -26,6 +26,7 @@ import {
   buildSchematic,
   computeIrrigation,
   computeGravity,
+  computeHouseDrainage,
   computeBuildingWater,
   computeNetwork,
   computePond,
@@ -54,6 +55,7 @@ import {
   familyOf,
 } from '../domain/building-water-view.js';
 import { stockLengthOf, type StockLength } from '../domain/pipe-quantity.js';
+import { DRAINAGE_FAMILY, withHouseDrainage } from '../domain/house-drainage-view.js';
 import {
   gravityAssumptionsFrom,
   gravityBomItemsFrom,
@@ -318,7 +320,43 @@ export class AnalysisService {
       },
       this.prose,
     );
-    await this.repository.save(saveReady(state, assembled.recommendation, traces, locale), traces, {
+    // Pembuangan ("Pembuangan" atau "Keduanya") dihitung juga, bukan diteruskan ke tim teknis
+    // (laporan pemilik 2026-10-12). Hanya pembuangan → jalur air bersih tidak ditampilkan.
+    const installation = state.water.installationType.value;
+    let recommendation = assembled.recommendation;
+    let allTraces = traces;
+    if (installation === 'drainage' || installation === 'both') {
+      const drainage = computeHouseDrainage(
+        {
+          bathrooms: state.fixtures.bathrooms.value ?? 0,
+          basins: state.fixtures.basins.value ?? 0,
+          kitchens: state.fixtures.kitchens.value ?? 0,
+        },
+        locale,
+        overridesOf(state),
+      );
+      const drainageTraces: readonly IdentifiedTrace[] = drainage.traces.map((trace) => ({
+        ...trace,
+        id: ulid(),
+      }));
+      const drainageMatch = await this.matchRoles([
+        ...(drainage.soil ? [pipeRequirement('main', drainage.soil.size, DRAINAGE_FAMILY)] : []),
+        ...(drainage.waste
+          ? [pipeRequirement('branch', drainage.waste.size, DRAINAGE_FAMILY)]
+          : []),
+        ...(drainage.soil ? [fittingRequirement(drainage.soil.size, DRAINAGE_FAMILY)] : []),
+      ]);
+      recommendation = withHouseDrainage(
+        recommendation,
+        drainage,
+        drainageTraces,
+        drainageMatch.products,
+        installation === 'drainage',
+        locale,
+      );
+      allTraces = [...traces, ...drainageTraces];
+    }
+    await this.repository.save(saveReady(state, recommendation, allTraces, locale), allTraces, {
       proseSource: assembled.proseSource,
     });
     // Status percakapan menyusul solusinya: header layar dan daftar riwayat keduanya
@@ -339,7 +377,7 @@ export class AnalysisService {
       detail: `${schematic.floors.length} LANTAI`,
     });
 
-    events.push({ type: 'solution.ready', recommendationId: assembled.recommendation.id });
+    events.push({ type: 'solution.ready', recommendationId: recommendation.id });
     return events;
   }
 
