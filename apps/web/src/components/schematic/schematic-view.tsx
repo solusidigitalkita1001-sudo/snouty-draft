@@ -21,6 +21,7 @@ import {
   type Schematic,
   type SchematicNode,
 } from '@snouty/shared-types';
+import { useEffect, useRef, useState } from 'react';
 import { FlowSchematicView, FlowSidePanel } from './flow-schematic-view';
 import { mandatoryNotes, schematicCopy } from './schematic-copy';
 import { useLocale } from '../locale';
@@ -41,6 +42,33 @@ const FIXTURE_GAP = 14;
 const PADDING = 18;
 const GROUND_BAND = 34;
 const MIN_WIDTH = 500;
+/** Jarak antar-titik paling lebar saat gambar diregangkan mengisi kotaknya. */
+const MAX_SLOT = FIXTURE_WIDTH * 2.2;
+
+/**
+ * Gambar mengisi lebar kotaknya (laporan pemilik 2026-10-12: "keliatan strech, ngga fit"): lebar
+ * tata letak = lebar kotak ÷ skala, jadi garis lantai dan cabang memanjang, sedangkan teks dan kotak
+ * titik air membesar proporsional — tidak pernah ditarik satu arah saja. Skala naik di layar lebar
+ * supaya label tetap terbaca.
+ */
+function useContainerWidth(): [React.RefObject<HTMLDivElement | null>, number] {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver((entries) => setWidth(entries[0]?.contentRect.width ?? 0));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, width];
+}
+
+function scaleFor(containerWidth: number): number {
+  if (containerWidth >= 900) return 1.3;
+  if (containerWidth >= 700) return 1.15;
+  return 1;
+}
 
 /** Satu prop: skema bangunan (lantai per lantai) atau skema aliran kasus teknis. */
 export function SchematicView({ schematic }: { schematic: AnySchematic }) {
@@ -62,10 +90,19 @@ function BuildingSchematicView({ schematic }: { schematic: Schematic }) {
 
   const riserX = LABEL_COLUMN + RISER_COLUMN / 2;
   const branchStartX = LABEL_COLUMN + RISER_COLUMN;
-  const width = Math.max(
+  const [scrollRef, containerWidth] = useContainerWidth();
+  const contentWidth = Math.max(
     MIN_WIDTH,
     branchStartX + maxFixturesPerFloor * (FIXTURE_WIDTH + FIXTURE_GAP) + PADDING * 2,
   );
+  const width = Math.max(contentWidth, Math.round(containerWidth / scaleFor(containerWidth)));
+  // Titik air disebar ke lebar yang tersedia, tidak menumpuk di kiri.
+  const slot = Math.min(
+    MAX_SLOT,
+    Math.max(FIXTURE_WIDTH + FIXTURE_GAP, (width - branchStartX - PADDING) / maxFixturesPerFloor),
+  );
+  const fixtureX = (position: number) =>
+    branchStartX + position * slot + (slot - FIXTURE_WIDTH) / 2;
   const height = PADDING + floors.length * FLOOR_HEIGHT + GROUND_BAND;
 
   const floorTop = (index: number): number => PADDING + index * FLOOR_HEIGHT;
@@ -75,11 +112,11 @@ function BuildingSchematicView({ schematic }: { schematic: Schematic }) {
       {/* Invarian S-1 — dirender tanpa syarat. */}
       <div className={styles.banner}>{NOTES.banner}</div>
 
-      <div className={styles.canvasScroll}>
+      <div className={styles.canvasScroll} ref={scrollRef}>
         <svg
           className={styles.canvas}
-          width={width}
-          height={height}
+          width="100%"
+          style={{ height: 'auto' }}
           viewBox={`0 0 ${width} ${height}`}
           role="img"
           aria-label={COPY.ariaIntro}
@@ -143,7 +180,11 @@ function BuildingSchematicView({ schematic }: { schematic: Schematic }) {
                 <line
                   x1={riserX}
                   y1={top + 58}
-                  x2={branchStartX + fixtures.length * (FIXTURE_WIDTH + FIXTURE_GAP) - FIXTURE_GAP}
+                  x2={
+                    fixtures.length > 0
+                      ? fixtureX(fixtures.length - 1) + FIXTURE_WIDTH
+                      : branchStartX
+                  }
                   y2={top + 58}
                   className={styles.pipeBranch}
                   strokeWidth="3"
@@ -157,7 +198,7 @@ function BuildingSchematicView({ schematic }: { schematic: Schematic }) {
                 />
 
                 {fixtures.map((node, position) => {
-                  const x = branchStartX + position * (FIXTURE_WIDTH + FIXTURE_GAP);
+                  const x = fixtureX(position);
                   const boxTop = top + 58 + 22;
                   return (
                     <g key={node.id}>
