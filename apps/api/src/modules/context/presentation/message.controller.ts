@@ -15,7 +15,7 @@ import { RateLimitedError, RequestValidationError } from '../../../shared/http/a
 import { limitFor } from '../../policy/rate-limits.js';
 import { RateLimiter } from '../../../shared/rate-limit/rate-limiter.js';
 import { MessageService } from '../application/message.service.js';
-import { isClarificationAnswerId } from '../domain/clarification.js';
+import { isClarificationAnswerId, MAX_ANSWERS_PER_CARD } from '../domain/clarification.js';
 import { sseWriter } from '../../../shared/sse/event-stream.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
@@ -47,7 +47,7 @@ const ClarificationDto = z
           .strict(),
       )
       .min(1)
-      .max(4),
+      .max(MAX_ANSWERS_PER_CARD),
   })
   .strict();
 

@@ -15,6 +15,7 @@
  * aturan bisnis dan wajib hidup di kode (SPEC §5), bukan di prompt.
  */
 
+import { MAX_QUESTIONS as MAX_TECHNICAL_QUESTIONS } from '@snouty/engineering';
 import type { ClarificationQuestion, Dimensions, RequirementFieldPath } from '@snouty/shared-types';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type { FieldUpdate } from './context-merger.js';
@@ -265,6 +266,20 @@ export interface ClarificationPlan {
  * menurut prioritas (yang di luar prioritas ikut di belakang, stabil), lalu
  * dipotong maksimum empat. Bentuk tunggal hanya memakai field pertama.
  */
+/**
+ * Jumlah jawaban terbanyak dalam satu kartu yang bisa dikirim API: kartu inti, kartu penyempurna
+ * rumah/tempat ibadah/sekolah, atau kartu kasus teknis. Batas endpoint jawaban diturunkan dari sini
+ * — dulu literal 4 sementara kartu tempat ibadah berisi 5 pertanyaan, jadi jawabannya 400
+ * (laporan pemilik 2026-10-12).
+ */
+export const MAX_ANSWERS_PER_CARD = Math.max(
+  MAX_CLARIFICATION_QUESTIONS,
+  HOUSE_REFINEMENT_FIELDS.length,
+  WORSHIP_REFINEMENT_FIELDS.length,
+  PUBLIC_REFINEMENT_FIELDS.length,
+  MAX_TECHNICAL_QUESTIONS,
+);
+
 /** Field inti yang kartunya bisa dijawab — sama dengan yang ditanyakan `planClarification`. */
 const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath>([
   'water.source',
