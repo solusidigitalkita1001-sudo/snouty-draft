@@ -14,7 +14,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { caseProfileLabel, isCaseId, outdatedRules } from '@snouty/engineering';
 import { QUEUES } from '@snouty/jobs';
-import type { Locale, Recommendation, RequirementState } from '@snouty/shared-types';
+import type { AnySchematic, Locale, Recommendation, RequirementState } from '@snouty/shared-types';
 import { loadEnv } from '../../../config/env.js';
 import { ulid } from '../../../shared/ulid.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
@@ -114,6 +114,16 @@ export class ReportService {
       catalogVersionId: string,
       productId: string,
     ) => Promise<string | null> = async () => null,
+    /**
+     * Skema instalasi rekomendasi — jalur yang sama dengan endpoint skema web, supaya gambar di
+     * laporan tidak bisa berbeda dari yang dilihat pengguna di layar.
+     */
+    private readonly schematicOf: (
+      state: RequirementState,
+      catalogVersionId: string,
+      createdAt: string,
+      locale: Locale,
+    ) => Promise<AnySchematic | null> = async () => null,
   ) {}
 
   private async productNames(recommendation: Recommendation): Promise<Map<string, string>> {
@@ -217,6 +227,12 @@ export class ReportService {
       },
       locale,
       productNames: await this.productNames(recommendation),
+      schematic: await this.schematicOf(
+        state,
+        recommendation.catalogVersionId,
+        recommendation.createdAt,
+        locale,
+      ).catch(() => null),
     });
 
     const report = await this.reports.create({

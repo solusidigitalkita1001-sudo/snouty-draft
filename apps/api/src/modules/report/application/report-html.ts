@@ -22,8 +22,9 @@
 
 import { readFileSync } from 'node:fs';
 import { hasStepTitle, ruleStepTitle } from '@snouty/engineering';
-import type { Locale, Provenance } from '@snouty/shared-types';
+import { isFlowSchematic, type Locale, type Provenance } from '@snouty/shared-types';
 import type { ReportPayload } from '../domain/report.types.js';
+import { renderSchematicSvg } from './report-schematic.js';
 
 /**
  * Teks tetap halaman cetak per bahasa. Nilainya **HTML tepercaya** (konstanta kode, sudah
@@ -82,6 +83,19 @@ interface ReportCopy {
   readonly total: string;
   readonly exclusions: string;
   readonly closingTitle: string;
+  readonly schematicTitle: string;
+  /** Dua catatan wajib skema (invarian S-1) — redaksi sama persis dengan layar skema web. */
+  readonly schematicBanner: string;
+  readonly schematicNoteTitle: string;
+  readonly schematicNoteBody: string;
+  readonly schematicLegend: readonly {
+    readonly role: 'main' | 'branch' | 'fixture';
+    readonly label: string;
+  }[];
+  readonly schematicDrawing: string;
+  readonly schematicScale: string;
+  readonly schematicFloorHeight: string;
+  readonly schematicBasis: string;
   readonly basisTitle: string;
   readonly legendTitle: string;
   readonly nextStepsTitle: string;
@@ -155,6 +169,20 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     total: 'Total estimasi',
     exclusions: 'Belum termasuk jasa instalasi, aksesori non-pipa, dan pengiriman.',
     closingTitle: 'Dasar Perhitungan &amp; Pengesahan',
+    schematicTitle: 'Skema Instalasi',
+    schematicBanner: 'SKEMATIK · BUKAN GAMBAR KERJA',
+    schematicNoteTitle: 'CATATAN SKEMA',
+    schematicNoteBody:
+      'Skema menunjukkan hubungan antar jalur, bukan posisi fisik pipa di bangunan. Panjang jalur dan posisi shaft ditentukan saat pelaksanaan.',
+    schematicLegend: [
+      { role: 'main', label: 'Jalur utama &amp; riser' },
+      { role: 'branch', label: 'Cabang' },
+      { role: 'fixture', label: 'Sambungan ke titik air' },
+    ],
+    schematicDrawing: 'GAMBAR',
+    schematicScale: 'SKALA',
+    schematicFloorHeight: 'TINGGI LANTAI',
+    schematicBasis: 'DASAR',
     basisTitle: 'Dasar perhitungan',
     legendTitle: 'Status nilai',
     nextStepsTitle: 'Langkah berikutnya',
@@ -228,6 +256,20 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     total: 'Estimated total',
     exclusions: 'Excludes installation labor, non-pipe accessories, and delivery.',
     closingTitle: 'Calculation Basis &amp; Sign-off',
+    schematicTitle: 'Installation Schematic',
+    schematicBanner: 'SCHEMATIC · NOT A WORKING DRAWING',
+    schematicNoteTitle: 'SCHEMATIC NOTE',
+    schematicNoteBody:
+      'The schematic shows how routes relate to each other, not the physical position of pipes in the building. Route lengths and shaft positions are determined during construction.',
+    schematicLegend: [
+      { role: 'main', label: 'Main line &amp; riser' },
+      { role: 'branch', label: 'Branch' },
+      { role: 'fixture', label: 'Outlet connection' },
+    ],
+    schematicDrawing: 'DRAWING',
+    schematicScale: 'SCALE',
+    schematicFloorHeight: 'FLOOR HEIGHT',
+    schematicBasis: 'BASIS',
     basisTitle: 'Calculation basis',
     legendTitle: 'Value status',
     nextStepsTitle: 'Next steps',
@@ -276,12 +318,54 @@ ${sections(payload, t)}
 }
 
 /**
+ * Skema instalasi — gambar yang sama dengan layar skema, dengan kedua catatan wajibnya (S-1).
+ */
+function schematicSection(p: ReportPayload, t: ReportCopy, n: number): string {
+  const schematic = p.schematic!;
+  const block = schematic.titleBlock;
+  const third = isFlowSchematic(schematic)
+    ? [t.schematicBasis, schematic.titleBlock.basis]
+    : [t.schematicFloorHeight, schematic.titleBlock.floorHeight];
+  const svg = renderSchematicSvg(schematic, p.locale, {
+    ink: C['snouty-ink'],
+    muted: C['snouty-muted'],
+    actionText: C['snouty-action-text'],
+    actionSoftBg: C['snouty-action-soft-bg'],
+    pipeMain: C['snouty-pipe-main'],
+    pipeMid: C['snouty-pipe-mid'],
+    pipeFixture: C['snouty-pipe-fixture'],
+    surface: C['snouty-surface'],
+    surfaceSchematic: C['snouty-surface-schematic'],
+    gridLine: C['snouty-grid-line'],
+    floorLine: C['snouty-floor-line'],
+    nodeBorder: C['snouty-node-border'],
+  });
+  return `<section class="page">
+  ${sectionHead(p, t, n, t.schematicTitle)}
+  <div class="schematic-banner">${t.schematicBanner}</div>
+  <div class="schematic-frame">${svg}</div>
+  <div class="schematic-legend">
+    ${t.schematicLegend
+      .map((item) => `<span><i class="swatch swatch-${item.role}"></i>${item.label}</span>`)
+      .join('')}
+  </div>
+  <table class="title-block"><tr>
+    <td><span>${t.schematicDrawing}</span>${esc(block.drawing)}</td>
+    <td><span>${t.schematicScale}</span>${esc(block.scale)}</td>
+    <td><span>${third[0]!}</span>${esc(third[1]!)}</td>
+  </tr></table>
+  <p class="schematic-note"><strong>${t.schematicNoteTitle}</strong> ${t.schematicNoteBody}</p>
+</section>`;
+}
+
+/**
  * Sampul lalu bagian bernomor. Tanpa harga, tabel material sudah lengkap di ringkasan, jadi bagian
  * estimasi material (yang isinya harga) tidak dicetak dan nomor bagian mengikuti.
  */
 function sections(p: ReportPayload, t: ReportCopy): string {
   const parts: ((n: number) => string)[] = [
     (n) => summarySection(p, t, n),
+    ...(p.schematic ? [(n: number) => schematicSection(p, t, n)] : []),
     (n) => systemSection(p, t, n),
     ...(p.pricing.enabled ? [(n: number) => materialSection(p, t, n)] : []),
     (n) => closingSection(p, t, n),
@@ -585,6 +669,13 @@ export const PRINT_PALETTE = {
   'snouty-action-soft-border': '#f6c3bb',
   'snouty-pipe-mid': '#ee7a67',
   'snouty-pipe-light': '#f4b0a3',
+  'snouty-pipe-main': '#df301c',
+  'snouty-pipe-fixture': '#aeb6b7',
+  'snouty-surface': '#ffffff',
+  'snouty-surface-schematic': '#fcfdfc',
+  'snouty-grid-line': '#eef1f0',
+  'snouty-floor-line': '#b9c1c0',
+  'snouty-node-border': '#c9d0cf',
   'snouty-verified-text': '#1e7a4c',
   'snouty-verified-bg': '#e8f5ec',
   'snouty-assumed-text': '#8a5300',
@@ -668,6 +759,21 @@ table { width: 100%; border-collapse: collapse; }
 .data tr { break-inside: avoid; }
 .strong { font-weight: 600; }
 .size { font-weight: 700; white-space: nowrap; }
+.schematic-banner { display: inline-block; font-size: 7pt; letter-spacing: 0.14em; font-weight: 600; color: ${C['snouty-action-text']};
+  border: 1px solid ${C['snouty-action-soft-border']}; background: ${C['snouty-action-soft-bg']}; padding: 1mm 2.5mm; border-radius: 1mm; margin-bottom: 3mm; }
+.schematic-frame { border: 1px solid ${C['snouty-border']}; border-radius: 2mm; overflow: hidden; break-inside: avoid; }
+.schematic-frame svg { display: block; }
+.schematic-legend { display: flex; gap: 6mm; font-size: 8pt; color: ${C['snouty-muted']}; margin: 3mm 0; }
+.schematic-legend span { display: inline-flex; align-items: center; gap: 2mm; }
+.swatch { display: inline-block; width: 8mm; }
+.swatch-main { height: 1.1mm; background: ${C['snouty-pipe-main']}; }
+.swatch-branch { height: 0.8mm; background: ${C['snouty-pipe-mid']}; }
+.swatch-fixture { height: 0.55mm; background: ${C['snouty-pipe-fixture']}; }
+.title-block { border: 1px solid ${C['snouty-border']}; }
+.title-block td { width: 33%; padding: 2mm 3mm; font-family: 'IBM Plex Mono', 'Liberation Mono', monospace; font-size: 8.5pt; border-right: 1px solid ${C['snouty-border']}; }
+.title-block td span { display: block; font-family: 'IBM Plex Sans', 'Liberation Sans', sans-serif; font-size: 6.5pt; letter-spacing: 0.12em; color: ${C['snouty-caption']}; margin-bottom: 0.8mm; }
+.schematic-note { font-size: 8pt; line-height: 1.5; color: ${C['snouty-muted']}; margin: 3mm 0 0; }
+.schematic-note strong { color: ${C['snouty-ink']}; letter-spacing: 0.06em; }
 .grid + .bodytext { margin-top: 3mm; }
 .pending { font-size: 8pt; font-style: italic; color: ${C['snouty-caption']}; }
 .reason { font-size: 8pt; line-height: 1.5; color: ${C['snouty-muted']}; }

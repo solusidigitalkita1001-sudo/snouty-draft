@@ -9,6 +9,7 @@
 import type { Locale } from './locale.js';
 import type { Provenance } from './provenance.js';
 import type { Assumption, BomItem, SystemLine } from './recommendation.js';
+import type { AnySchematic } from './schematic.js';
 
 export type ReportStatus = 'PENDING' | 'READY' | 'FAILED';
 
@@ -75,6 +76,11 @@ export interface ReportPayload {
    * yang sudah punya baris di `bom` tidak diulang. Payload lama tidak punya field ini.
    */
   readonly pendingItems?: readonly ReportPendingItem[];
+  /**
+   * Skema instalasi saat laporan dibuat — topologi yang sama dengan layar skema, dibekukan bersama
+   * isi laporan (skema di web dibentuk ulang dari snapshot). Payload lama tidak punya field ini.
+   */
+  readonly schematic?: AnySchematic;
 }
 
 /** Satu produk katalog tanpa jumlah: nama dari katalog, ukuran dari rekomendasi. */

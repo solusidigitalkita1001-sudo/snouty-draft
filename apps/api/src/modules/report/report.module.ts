@@ -7,6 +7,7 @@
  * halaman ini, cetak".
  */
 import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
+import type { AnySchematic } from '@snouty/shared-types';
 import { ProductCatalogModule } from '../product-catalog/product-catalog.module.js';
 import {
   CATALOG_REPOSITORY,
@@ -91,6 +92,15 @@ const reportServiceProvider = {
       },
       async (catalogVersionId, productId) =>
         (await catalog.findProductById(catalogVersionId, productId))?.name ?? null,
+      // Bentuk skema engine adalah kembaran struktural `AnySchematic` (paket engineering tidak
+      // bergantung pada shared-types), sama seperti yang dikirim endpoint skema ke web.
+      async (state, catalogVersionId, createdAt, locale) =>
+        (await analysis.schematicForRecommendation(
+          state,
+          catalogVersionId,
+          createdAt,
+          locale,
+        )) as AnySchematic,
     ),
 };
 

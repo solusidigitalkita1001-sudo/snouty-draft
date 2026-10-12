@@ -11,6 +11,7 @@ import { emptyRequirementState } from '../../context/domain/requirement-state.fa
 import type { TraceToSave } from '../../recommendation/domain/recommendation.repository.js';
 import { assembleReportPayload } from './report-assembler.js';
 import { renderReportHtml } from './report-html.js';
+import { schematicFor } from '../../recommendation/application/analysis.service.js';
 
 const T0 = '2026-10-02T00:00:00.000Z';
 
@@ -442,5 +443,45 @@ describe('versi aturan di laporan (temuan SNTY-2026-10-0002)', () => {
     const payload = assembleReportPayload({ ...INPUT, traces: oldTraces });
     expect(payload.ruleset?.outdated).toBe(true);
     expect(renderReportHtml(payload)).toContain('Dihitung dengan versi aturan lama');
+  });
+});
+
+describe('skema instalasi di laporan', () => {
+  const schematic = schematicFor(STATE, 'dev-0.2', T0);
+  const withSchematic = renderReportHtml(assembleReportPayload({ ...INPUT, schematic } as never));
+
+  it('dicetak sebagai bagian 2 dengan gambar dan kedua catatan wajib skema', () => {
+    const section = withSchematic.slice(
+      withSchematic.indexOf('BAGIAN 2'),
+      withSchematic.indexOf('BAGIAN 3'),
+    );
+    expect(section).toContain('Skema Instalasi');
+    expect(section).toContain('<svg class="schematic"');
+    expect(section).toContain('SKEMATIK · BUKAN GAMBAR KERJA');
+    expect(section).toContain(
+      'Skema menunjukkan hubungan antar jalur, bukan posisi fisik pipa di bangunan. Panjang jalur dan posisi shaft ditentukan saat pelaksanaan.',
+    );
+  });
+
+  it('setiap lantai dan titik air dari topologi tergambar, tidak ada yang ditambah', () => {
+    for (const floor of schematic.floors) expect(withSchematic).toContain(floor.shortLabel);
+    const fixtures = schematic.nodes.filter((node) => node.type === 'fixture');
+    for (const node of fixtures) expect(withSchematic).toContain(`>${node.code!}</text>`);
+    expect(withSchematic.match(/<rect [^>]*rx="4"/g)).toHaveLength(fixtures.length);
+  });
+
+  it('label dari topologi di-escape', () => {
+    const evil = {
+      ...schematic,
+      nodes: schematic.nodes.map((node) =>
+        node.type === 'fixture' ? { ...node, label: '<img src=x onerror=a()>' } : node,
+      ),
+    };
+    const html = renderReportHtml(assembleReportPayload({ ...INPUT, schematic: evil } as never));
+    expect(html).not.toContain('<img');
+  });
+
+  it('tanpa skema (payload lama) tidak ada bagian skema', () => {
+    expect(renderReportHtml(assembleReportPayload(INPUT))).not.toContain('Skema Instalasi');
   });
 });

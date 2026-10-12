@@ -1336,6 +1336,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       "Menyusul" bila panjang jalur/ukuran bangunan belum ada (keputusan pemilik 2026-10-12, juga di pratinjau web);
       dasar perhitungan berupa rumus singkat berangka dari trace (`stepFormula`, engine); tanpa harga, bagian estimasi
       material tidak dicetak; judul ENG-102 jadi "Ukuran pipa dari debit".
+- [x] P16-59 Skema instalasi di laporan ("skema denahnya mana?"): topologi dari jalur endpoint skema web dibekukan ke
+      payload saat laporan dibuat, digambar sebagai SVG di API dengan metrik dan warna layar skema (bangunan per
+      lantai atau skema aliran), kedua catatan wajib S-1 apa adanya; payload lama tanpa bagian ini.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

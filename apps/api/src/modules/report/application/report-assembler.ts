@@ -17,6 +17,7 @@
 import { outdatedRules, rulesetStamp, stepFormula } from '@snouty/engineering';
 import {
   DEFAULT_LOCALE,
+  type AnySchematic,
   type Locale,
   type Recommendation,
   type RequirementFieldPath,
@@ -55,6 +56,8 @@ export interface AssembleReportInput {
    * rekomendasinya. Produk tanpa nama di sini tidak didaftar — nama tidak pernah dikarang.
    */
   readonly productNames?: ReadonlyMap<string, string>;
+  /** Skema instalasi dari jalur yang sama dengan layar skema; `null` bila tidak bisa dibentuk. */
+  readonly schematic?: AnySchematic | null;
 }
 
 export function assembleReportPayload(input: AssembleReportInput): ReportPayload {
@@ -79,6 +82,7 @@ export function assembleReportPayload(input: AssembleReportInput): ReportPayload
       outdated: outdatedRules(input.traces).length > 0,
     },
     pendingItems: pendingItems(input.recommendation, input.productNames ?? new Map()),
+    ...(input.schematic ? { schematic: input.schematic } : {}),
   };
 }
 
