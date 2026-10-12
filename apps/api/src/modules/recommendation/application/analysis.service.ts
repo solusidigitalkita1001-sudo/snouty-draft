@@ -294,7 +294,7 @@ export class AnalysisService {
     const match = await this.matchRoles(
       requirementsFrom({
         mainSize: solution.mainSize,
-        branchSize: solution.branchSize,
+        branchSizes: solution.branchGroups.map((g) => g.size),
         fixtureSize: solution.fixtureConnectionSize,
         pipeFamily: PIPE_FAMILY,
       }),
@@ -321,6 +321,7 @@ export class AnalysisService {
         mainStock: match.stockFor('main'),
         houseStocks: {
           branch: match.stockFor('branch'),
+          branchFor: (size) => match.stockForSize('branch', size),
           fixture: match.stockFor('fixture'),
           tee: match.products.find((p) => p.role === 'fitting') ?? null,
           // Pipa pengisi toren: produk PVC AW seukuran asumsinya (ENG-706).
@@ -940,7 +941,15 @@ export class AnalysisService {
       const product = selected ? byId.get(selected.productId) : undefined;
       return product ? stockLengthOf(product) : null;
     };
-    return { ...match, stockFor };
+    // Peran yang bisa terisi beberapa ukuran (cabang): produk per ukuran.
+    const stockForSize = (role: SystemRole, size: string): StockLength | null => {
+      const selected = match.products.find(
+        (p) => p.role === role && p.size === size && p.matchState === 'VERIFIED_SELECTED',
+      );
+      const product = selected ? byId.get(selected.productId) : undefined;
+      return product ? stockLengthOf(product) : null;
+    };
+    return { ...match, stockFor, stockForSize };
   }
 
   private async runPond(

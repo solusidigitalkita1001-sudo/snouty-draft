@@ -89,7 +89,12 @@ describe('trace dan auditabilitas (SPEC §8)', () => {
     const ids = result.traces.map((t) => t.ruleId);
     // ENG-004 ikut karena tinggi lantai tidak diberikan.
     expect(ids).toContain('ENG-004');
-    expect(new Set(ids).size).toBe(ids.length);
+    // ENG-102 berjalan sekali per beban cabang yang berbeda (ENG-707); aturan lain sekali.
+    const once = ids.filter((id) => id !== 'ENG-102');
+    expect(new Set(once).size).toBe(once.length);
+    expect(ids.filter((id) => id === 'ENG-102').length).toBe(
+      new Set(result.branchGroups.flatMap((g) => g.branches.map((b) => b.wsfu))).size,
+    );
     expect(ids.length).toBeGreaterThanOrEqual(11);
   });
 

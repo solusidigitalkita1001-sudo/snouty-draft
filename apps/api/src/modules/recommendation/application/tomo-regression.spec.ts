@@ -110,7 +110,7 @@ async function analyse(
 }
 
 describe('regresi laporan SNTY-2026-10-0002 (Tomo)', () => {
-  it('air bersih: pipa utama 1", 2 cabang ¾" (satu per lantai), sambungan ½"', async () => {
+  it('air bersih: pipa utama 1"; cabang per isi (ENG-707): lantai 2 (2 KM) 1", lantai 1 (1 KM + dapur) ¾"; sambungan ½"', async () => {
     const { rec } = await analyse();
     // 3 kamar mandi × 2 titik + 1 dapur (asumsi) = 7 titik; WSFU 3 × 3,2 + 1 = 10,6 → ±0,95 l/s;
     // ¾" (dalam 24 mm) 2,1 m/s > 2 m/s, 1" (29,6 mm) 1,38 m/s.
@@ -119,10 +119,14 @@ describe('regresi laporan SNTY-2026-10-0002 (Tomo)', () => {
     expect(rec.stats.branchCount).toBe(2);
     const line = (name: string) => rec.systemLines.find((l) => l.name === name)!;
     expect(line('Pipa distribusi utama').size).toBe('1"');
-    expect(line('Cabang')).toMatchObject({
-      size: '3/4"',
-      path: 'Pipa utama → titik air (2 cabang)',
+    // Temuan laporan 0009 (B): debit cabang dari isinya, bukan rata-rata 10,6 ÷ 2.
+    // 2 KM = 2 × (2,2 + 1) = 6,4 unit ≈ 0,7 l/s → dalam ≥ 24,2 mm pada 1,5 m/s → 1".
+    // 1 KM + dapur = 3,2 + 1 = 4,2 unit → ¾".
+    expect(line('Cabang 2 kamar mandi')).toMatchObject({
+      size: '1"',
+      path: 'Pipa utama → 2 kamar mandi (1 cabang)',
     });
+    expect(line('Cabang 1 kamar mandi + 1 bak cuci dapur')).toMatchObject({ size: '3/4"' });
     expect(line('Sambungan fixture').size).toBe('1/2"');
   });
 
@@ -192,13 +196,14 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
   it('semua jalur air bersih dan pembuangan punya jumlah; rumus baku bertanda asumsi', async () => {
     const { rec } = await analyse(SIZED);
     const rows = rec.bom.map((b) => `${b.item} ${b.size} ${b.quantity} ${b.unit}`);
-    // Air bersih: utama 1" (12 + 8 + 5,5 = 25,5 m → 7 batang); cabang ¾" 2 × 12 = 24 m → 6;
+    // Air bersih: utama 1" (12 + 8 + 5,5 = 25,5 m → 7 batang); cabang 1" dan ¾" masing-masing 12 m → 3;
     // sambungan ½" 7 × 1,5 = 10,5 m → 3; tee 1" 2 buah.
     // Pembuangan: air kotor 4" 12 + 3,5 = 15,5 m → 4; air bekas 2" 12 m → 3; ventilasi
     // 2 × 3,5 + 1 = 8 m per jalur → 2" 2 batang + 1¼" 2 batang (tanpa produk 1¼" → meter).
     expect(rows).toEqual([
-      'Pipa PVC AW 1" 7 batang',
-      'Pipa PVC AW 3/4" 6 batang',
+      // 1": utama 25,5 m (7) + cabang lantai 2, 12 m (3) — satu produk, digabung.
+      'Pipa PVC AW 1" 10 batang',
+      'Pipa PVC AW 3/4" 3 batang',
       'Pipa PVC AW 1/2" 3 batang',
       'Tee cabang 1" 2 pcs',
       'Pipa PVC D 4" 4 batang',

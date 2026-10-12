@@ -399,6 +399,194 @@ export const ENG_705: RuleVersion<YardInput, YardResult> = {
     }),
 };
 
+// ── ENG-707 · Isi tiap cabang air bersih ───────────────────────────────────
+
+export interface BranchFillInput {
+  /** Alat per lantai (sebaran ENG-008); `floor` = nomor lantai. */
+  readonly floors: readonly {
+    readonly floor: number;
+    readonly bathrooms: number;
+    readonly basins: number;
+    readonly kitchens: number;
+  }[];
+  readonly maxOutletsPerBranch: number;
+  readonly wsfuWaterCloset: number;
+  readonly wsfuShower: number;
+  readonly wsfuLavatory: number;
+  readonly wsfuKitchenSink: number;
+}
+export interface FilledBranch {
+  readonly floor: number;
+  readonly bathrooms: number;
+  readonly basins: number;
+  readonly kitchens: number;
+  readonly outlets: number;
+  readonly wsfu: number;
+}
+export interface BranchFillResult {
+  readonly branches: readonly FilledBranch[];
+  readonly branchCount: number;
+  readonly maxOutletsPerBranch: number;
+}
+
+/**
+ * Temuan laporan 0009: debit cabang dari rata-rata (WSFU total ÷ jumlah cabang) membuat cabang
+ * berisi 2 kamar mandi kekecilan. Titik air tiap lantai diisi ke cabang berurutan — kamar mandi
+ * (2 titik, tidak dipisah), lalu wastafel, lalu bak cuci dapur — paling banyak N titik per cabang;
+ * beban tiap cabang dijumlah dari isinya. Pengelompokan ini asumsi sampai denahnya ada.
+ */
+export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
+  ruleId: 'ENG-707',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const floors = o['floors'];
+    if (!Array.isArray(floors) || floors.length === 0 || floors.length > 50) {
+      throw new RuleInputError('ENG-707', 'floors');
+    }
+    const n = (f: string) => requireNumber('ENG-707', f, o[f], { min: 0, max: 20 });
+    return {
+      floors: floors.map((raw, i) => {
+        const f = (raw ?? {}) as Record<string, unknown>;
+        const c = (k: string) =>
+          requireInt('ENG-707', `floors[${i}].${k}`, f[k], { min: 0, max: 500 });
+        return {
+          floor: c('floor'),
+          bathrooms: c('bathrooms'),
+          basins: c('basins'),
+          kitchens: c('kitchens'),
+        };
+      }),
+      maxOutletsPerBranch: requireInt('ENG-707', 'maxOutletsPerBranch', o['maxOutletsPerBranch'], {
+        min: 2,
+        max: 20,
+      }),
+      wsfuWaterCloset: n('wsfuWaterCloset'),
+      wsfuShower: n('wsfuShower'),
+      wsfuLavatory: n('wsfuLavatory'),
+      wsfuKitchenSink: n('wsfuKitchenSink'),
+    };
+  },
+  compute: (i) => {
+    const branches: FilledBranch[] = [];
+    for (const floor of i.floors) {
+      const items = [
+        ...Array.from({ length: floor.bathrooms }, () => ({
+          kind: 'bathrooms' as const,
+          outlets: 2,
+          wsfu: i.wsfuWaterCloset + i.wsfuShower,
+        })),
+        ...Array.from({ length: floor.basins }, () => ({
+          kind: 'basins' as const,
+          outlets: 1,
+          wsfu: i.wsfuLavatory,
+        })),
+        ...Array.from({ length: floor.kitchens }, () => ({
+          kind: 'kitchens' as const,
+          outlets: 1,
+          wsfu: i.wsfuKitchenSink,
+        })),
+      ];
+      let open: {
+        bathrooms: number;
+        basins: number;
+        kitchens: number;
+        outlets: number;
+        wsfu: number;
+      } | null = null;
+      const close = () => {
+        if (open !== null && open.outlets > 0)
+          branches.push({ floor: floor.floor, ...open, wsfu: round2(open.wsfu) });
+        open = null;
+      };
+      for (const item of items) {
+        if (open === null || open.outlets + item.outlets > i.maxOutletsPerBranch) {
+          close();
+          open = { bathrooms: 0, basins: 0, kitchens: 0, outlets: 0, wsfu: 0 };
+        }
+        open[item.kind] += 1;
+        open.outlets += item.outlets;
+        open.wsfu += item.wsfu;
+      }
+      close();
+    }
+    return { branches, branchCount: branches.length, maxOutletsPerBranch: i.maxOutletsPerBranch };
+  },
+  sourceReference:
+    'Pengelompokan tanpa denah: kamar mandi (tidak dipisah), lalu wastafel, lalu bak cuci dapur, maks 4 titik per cabang, cabang per lantai; beban cabang = jumlah WSFU isinya (IPC Tabel E103.3(2))',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'masjid 0009: tiap lantai 2 KM + 4 wastafel → cabang 2 KM (6,4 WSFU) dan cabang 4 wastafel (2 WSFU)',
+      input: {
+        floors: [
+          { floor: 2, bathrooms: 2, basins: 4, kitchens: 0 },
+          { floor: 1, bathrooms: 2, basins: 4, kitchens: 0 },
+        ],
+        maxOutletsPerBranch: 4,
+        wsfuWaterCloset: 2.2,
+        wsfuShower: 1,
+        wsfuLavatory: 0.5,
+        wsfuKitchenSink: 1,
+      },
+      expected: {
+        branches: [
+          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0, outlets: 4, wsfu: 6.4 },
+          { floor: 2, bathrooms: 0, basins: 4, kitchens: 0, outlets: 4, wsfu: 2 },
+          { floor: 1, bathrooms: 2, basins: 0, kitchens: 0, outlets: 4, wsfu: 6.4 },
+          { floor: 1, bathrooms: 0, basins: 4, kitchens: 0, outlets: 4, wsfu: 2 },
+        ],
+        branchCount: 4,
+        maxOutletsPerBranch: 4,
+      },
+    },
+    {
+      name: 'rumah 0002: lantai 2 = 2 KM, lantai 1 = 1 KM + dapur → 2 cabang',
+      input: {
+        floors: [
+          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0 },
+          { floor: 1, bathrooms: 1, basins: 0, kitchens: 1 },
+        ],
+        maxOutletsPerBranch: 4,
+        wsfuWaterCloset: 2.2,
+        wsfuShower: 1,
+        wsfuLavatory: 0.5,
+        wsfuKitchenSink: 1,
+      },
+      expected: {
+        branches: [
+          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0, outlets: 4, wsfu: 6.4 },
+          { floor: 1, bathrooms: 1, basins: 0, kitchens: 1, outlets: 3, wsfu: 4.2 },
+        ],
+        branchCount: 2,
+        maxOutletsPerBranch: 4,
+      },
+    },
+  ],
+  explain: (i, o, locale) => {
+    const describe = (b: FilledBranch, en: boolean) =>
+      [
+        b.bathrooms > 0 ? `${b.bathrooms} ${en ? 'bathroom' : 'kamar mandi'}` : '',
+        b.basins > 0 ? `${b.basins} ${en ? 'basin' : 'wastafel'}` : '',
+        b.kitchens > 0 ? `${b.kitchens} ${en ? 'kitchen sink' : 'bak cuci dapur'}` : '',
+      ]
+        .filter(Boolean)
+        .join(' + ');
+    const list = (en: boolean) =>
+      o.branches
+        .map(
+          (b) =>
+            `${en ? 'floor' : 'lantai'} ${b.floor}: ${describe(b, en)} (${b.wsfu} ${en ? 'units' : 'unit'})`,
+        )
+        .join('; ');
+    return localized(locale, {
+      id: `Titik air tiap lantai dibagi ke cabang berisi paling banyak ${i.maxOutletsPerBranch} titik — kamar mandi tidak dipisah, lalu wastafel, lalu dapur: ${list(false)}. ${o.branchCount} cabang.`,
+      en: `Each floor's outlets are split into branches of at most ${i.maxOutletsPerBranch} outlets — bathrooms kept whole, then basins, then kitchen: ${list(true)}. ${o.branchCount} branches.`,
+    });
+  },
+};
+
 // ── ENG-706 · Pipa pengisi toren atap ───────────────────────────────────────
 
 export interface TankFillInput {
@@ -527,4 +715,4 @@ export const ENG_704: RuleVersion<HouseBranchLengthInput, HouseBranchLengthResul
     }),
 };
 
-export const GROUP_K = [ENG_701, ENG_702, ENG_703, ENG_704, ENG_705, ENG_706] as const;
+export const GROUP_K = [ENG_701, ENG_702, ENG_703, ENG_704, ENG_705, ENG_706, ENG_707] as const;

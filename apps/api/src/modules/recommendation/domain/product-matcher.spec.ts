@@ -32,7 +32,7 @@ function product(over: Partial<Product> = {}): Product {
 
 const REQUIREMENTS = requirementsFrom({
   mainSize: '1"',
-  branchSize: '3/4"',
+  branchSizes: ['3/4"'],
   fixtureSize: '1/2"',
   pipeFamily: 'PVC AW',
 });

@@ -214,6 +214,31 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
           `Heaviest floor branch ${f.n(o['branchDfu'])} DFU → ${o['branchSize']}${isStr(o['stackSize']) ? ` · Stack ${(i['floorDfu'] as unknown[]).map(f.n).join(' + ')} = ${f.n(o['stackDfu'])} DFU → ${o['stackSize']}` : ''}`,
         )
       : null,
+  'ENG-707': (_i, o, f) => {
+    if (!Array.isArray(o['branches'])) return null;
+    const parts = (o['branches'] as Bag[]).map((b) => {
+      const content = [
+        isNum(b['bathrooms']) && b['bathrooms'] > 0
+          ? f.t(`${b['bathrooms']} KM`, `${b['bathrooms']} bath`)
+          : '',
+        isNum(b['basins']) && b['basins'] > 0
+          ? f.t(`${b['basins']} wastafel`, `${b['basins']} basin`)
+          : '',
+        isNum(b['kitchens']) && b['kitchens'] > 0
+          ? f.t(`${b['kitchens']} dapur`, `${b['kitchens']} kitchen`)
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' + ');
+      return f.t(
+        `lt ${f.n(b['floor'])}: ${content} = ${f.n(b['wsfu'])} unit`,
+        `fl ${f.n(b['floor'])}: ${content} = ${f.n(b['wsfu'])} units`,
+      );
+    });
+    return parts.length > 0
+      ? f.t(`Cabang — ${parts.join(' · ')}`, `Branches — ${parts.join(' · ')}`)
+      : null;
+  },
   'ENG-704': (i, o, f) =>
     nums(i, ['planLengthM', 'branchCount', 'outletCount', 'fixtureDropM']) &&
     nums(o, ['branchNetM', 'fixtureNetM', 'teeCount'])

@@ -1357,6 +1357,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-64 Temuan laporan 0009 — A: pembuangan bangunan bertingkat dicek terhadap cabang mendatar per lantai dan
       pipa tegak (ENG-604, IPC 2021 Tabel 710.1(2), ENG-602 v2); masjid 0009 air bekas 2" → 2½"; rumah 0002 tetap 2";
       nomor pasal standar tidak lagi diubah menjadi desimal berkoma.
+- [x] P16-65 Temuan laporan 0009 — B: ukuran cabang air bersih dari isi tiap cabang (ENG-707 + ENG-102 per beban),
+      bukan rata-rata; baris sistem dan material per ukuran cabang; 0009: cabang 2 KM 1", cabang 4 wastafel ½";
+      rumah 0002: lantai 2 1", lantai 1 ¾".
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

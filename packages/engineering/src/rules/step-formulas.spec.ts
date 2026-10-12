@@ -64,7 +64,13 @@ describe('panjang jalur rumah dari ukuran rumah (P16-60)', () => {
 
   it('cabang = jumlah cabang × sisi terpanjang rumah; sambungan 1,5 m per titik; 1 tee per cabang', () => {
     // 3 KM × 2 + 1 dapur = 7 titik; lantai 2: 4 titik, lantai 1: 3 titik → 2 cabang.
-    expect(sized.branchLayout).toEqual({ branchNetM: 24, fixtureNetM: 10.5, teeCount: 2 });
+    expect(sized.branchLayout).toMatchObject({ branchNetM: 24, fixtureNetM: 10.5, teeCount: 2 });
+    // ENG-707: cabang lantai 2 (2 KM, 6,4 WSFU ≈ 0,7 l/s → 1") dan lantai 1 (1 KM + dapur, 4,2 WSFU
+    // → 3/4"), masing-masing sepanjang sisi terpanjang 12 m.
+    expect(sized.branchLayout!.bySize).toEqual([
+      { size: '1"', count: 1, netM: 12 },
+      { size: '3/4"', count: 1, netM: 12 },
+    ]);
     const trace = sized.traces.find((t) => t.ruleId === 'ENG-704')!;
     expect(stepFormula('ENG-704', trace.inputs, trace.output)).toBe(
       'Cabang = 2 × 12 m = 24 m · Sambungan = 7 × 1,5 m = 10,5 m · Tee = 2',

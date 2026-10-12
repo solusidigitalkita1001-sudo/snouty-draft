@@ -23,7 +23,6 @@ import { gateEngineProvenance, type Provenance } from './provenance.js';
 import { computePressurized, type PressurizedResult } from './compute-pressurized.js';
 import {
   ENG_001,
-  ENG_003,
   ENG_005,
   ENG_010,
   ENG_013,
@@ -39,12 +38,15 @@ import {
   ENG_704,
   ENG_705,
   ENG_706,
+  ENG_707,
   hunterGpm,
+  type FilledBranch,
   minimumHeadM,
   type RouteBasis,
 } from './rules/group-k-house-supply.js';
 import type { RuleVersion } from './rule.js';
-import { round2 } from './units.js';
+import { round1, round2 } from './units.js';
+import { PVC_INCH_SIZES } from './parameters/size-tables.js';
 
 export interface SolutionInput {
   readonly buildingType: 'residential' | 'boarding_house' | 'light_commercial' | 'industrial';
@@ -109,6 +111,12 @@ export interface SolutionResult {
    * Perkiraan cabang, sambungan, dan tee dari ukuran rumah (ENG-704) — `null` bila ukuran rumah
    * belum diketahui (jalur yang disebut saja tidak cukup untuk memperkirakan cabang).
    */
+  /** Cabang per ukuran (ENG-707 + ENG-102 per cabang), terbesar dulu. */
+  readonly branchGroups: readonly {
+    readonly size: string;
+    readonly count: number;
+    readonly branches: readonly FilledBranch[];
+  }[];
   /** Halaman dari bangunan ke depan tanah (ENG-705); `null` tanpa ukuran tanah dan bangunan. */
   readonly yardM: number | null;
   /** Pipa pengisi toren atap (ENG-706); `null` bukan toren atap atau tanpa ukuran bangunan. */
@@ -117,6 +125,12 @@ export interface SolutionResult {
     readonly branchNetM: number;
     readonly fixtureNetM: number;
     readonly teeCount: number;
+    /** Panjang cabang per ukuran (jumlah cabang ukuran itu × panjang per cabang ENG-704). */
+    readonly bySize: readonly {
+      readonly size: string;
+      readonly count: number;
+      readonly netM: number;
+    }[];
   } | null;
   readonly variancePercent: { readonly min: number; readonly max: number };
   readonly targetVelocityMs: { readonly min: number; readonly max: number };
@@ -171,9 +185,26 @@ export function computeSolution(
   const load = run(ENG_001, fixtures);
   const floorHeightM = input.floorHeightM ?? run(ENG_004, {}).floorHeightM;
   const floorPlan = run(ENG_008, { ...fixtures, floors: input.floors, floorHeightM });
-  // Cabang per lantai (ENG-003 v2): kamar mandi = 2 titik (ENG-001 v2), sama dengan hitungan titik.
-  const branches = run(ENG_003, {
-    outletsPerFloor: floorPlan.floorsPlan.map((f) => f.bathrooms * 2 + f.basins + f.kitchens),
+  // Beban per alat (IPC E103.3(2)) — sekali dibaca, dipakai debit total dan isi tiap cabang.
+  const wsfu = {
+    waterCloset: use('WSFU_WATER_CLOSET_2_2'),
+    shower: use('WSFU_SHOWER_1'),
+    lavatory: use('WSFU_LAVATORY_0_5'),
+    kitchenSink: use('WSFU_KITCHEN_SINK_1'),
+  };
+  // Isi tiap cabang per lantai (ENG-707, temuan laporan 0009): ukuran cabang dari isinya sendiri.
+  const branches = run(ENG_707, {
+    floors: floorPlan.floorsPlan.map((f) => ({
+      floor: f.floor,
+      bathrooms: f.bathrooms,
+      basins: f.basins,
+      kitchens: f.kitchens,
+    })),
+    maxOutletsPerBranch: 4,
+    wsfuWaterCloset: wsfu.waterCloset,
+    wsfuShower: wsfu.shower,
+    wsfuLavatory: wsfu.lavatory,
+    wsfuKitchenSink: wsfu.kitchenSink,
   });
   const connection = run(ENG_005, {});
   const velocity = run(ENG_010, {});
@@ -185,10 +216,10 @@ export function computeSolution(
     showers: input.bathrooms,
     lavatories: input.basins,
     kitchenSinks: fixtures.kitchens,
-    wsfuWaterCloset: use('WSFU_WATER_CLOSET_2_2'),
-    wsfuShower: use('WSFU_SHOWER_1'),
-    wsfuLavatory: use('WSFU_LAVATORY_0_5'),
-    wsfuKitchenSink: use('WSFU_KITCHEN_SINK_1'),
+    wsfuWaterCloset: wsfu.waterCloset,
+    wsfuShower: wsfu.shower,
+    wsfuLavatory: wsfu.lavatory,
+    wsfuKitchenSink: wsfu.kitchenSink,
   });
 
   // 3 · jalur dan beda tinggi
@@ -269,13 +300,31 @@ export function computeSolution(
   const requiredSourcePressureBar =
     input.waterSource === 'municipal' ? round2(main.totalDynamicHeadM / 10.197) : null;
 
-  // 5 · cabang: debit beban per cabang pada kecepatan rencana.
-  const perBranchWsfu = branches.branchCount > 0 ? demand.wsfu / branches.branchCount : 0;
-  const branch = run(ENG_102, {
-    designFlowLs: Math.max(hunterGpm(perBranchWsfu) * 0.0630902, 0.01),
-    velocityMs: use('DESIGN_VELOCITY_PLASTIC'),
-    sizeTable: 'pvc_inch',
-  });
+  // 5 · cabang: debit tiap cabang dari bebannya sendiri pada kecepatan rencana; cabang berbeban
+  // sama dihitung sekali. Cabang dikelompokkan per ukuran untuk tabel sistem dan material.
+  const designVelocity = use('DESIGN_VELOCITY_PLASTIC');
+  const sizeForWsfu = new Map<number, string>();
+  for (const b of branches.branches) {
+    if (sizeForWsfu.has(b.wsfu)) continue;
+    const sized = run(ENG_102, {
+      designFlowLs: Math.max(hunterGpm(b.wsfu) * 0.0630902, 0.01),
+      velocityMs: designVelocity,
+      sizeTable: 'pvc_inch',
+    });
+    sizeForWsfu.set(b.wsfu, sized.mainSize);
+  }
+  const groups = new Map<string, { size: string; count: number; branches: FilledBranch[] }>();
+  for (const b of branches.branches) {
+    const size = sizeForWsfu.get(b.wsfu)!;
+    const group = groups.get(size) ?? { size, count: 0, branches: [] };
+    group.count += 1;
+    group.branches.push(b);
+    groups.set(size, group);
+  }
+  // Terbesar dulu: baris pertama adalah ukuran yang paling menentukan.
+  const rank = (size: string) => PVC_INCH_SIZES.findIndex((n) => n.size === size);
+  const branchGroups = [...groups.values()].sort((a, b) => rank(b.size) - rank(a.size));
+  const branchSize = branchGroups[0]?.size ?? connection.fixtureConnectionSize;
 
   // 5b · pipa pengisi toren atap, hanya dengan ukuran bangunan (P16-63).
   const tankFill =
@@ -289,7 +338,7 @@ export function computeSolution(
       : null;
 
   // 6 · panjang cabang dan sambungan, hanya dari ukuran rumah (P16-60).
-  const branchLayout =
+  const layoutRun =
     plan !== null
       ? run(ENG_704, {
           planLengthM: Math.max(plan.lengthM, plan.widthM),
@@ -297,6 +346,17 @@ export function computeSolution(
           outletCount: load.outletCount,
           fixtureDropM: use('HOUSE_FIXTURE_DROP_1_5M'),
         })
+      : null;
+  const branchLayout =
+    layoutRun !== null && plan !== null
+      ? {
+          ...layoutRun,
+          bySize: branchGroups.map((g) => ({
+            size: g.size,
+            count: g.count,
+            netM: round1(g.count * Math.max(plan.lengthM, plan.widthM)),
+          })),
+        }
       : null;
 
   const variance = run(ENG_006, {});
@@ -307,7 +367,8 @@ export function computeSolution(
     outletCount: load.outletCount,
     loadUnits: load.loadUnits,
     mainSize: main.recommendedSize,
-    branchSize: branch.mainSize,
+    branchSize,
+    branchGroups,
     fixtureConnectionSize: connection.fixtureConnectionSize,
     branchCount: branches.branchCount,
     maxOutletsPerBranch: branches.maxOutletsPerBranch,

@@ -448,7 +448,10 @@ Kel. F   ukuran pipa utama dari kecepatan ≤ 2 m/s dan kehilangan ≤ batas; to
          kehilangan = (beda tinggi − 0,3 bar) ÷ jalur, supaya titik tertinggi tetap ≥ 0,3 bar
 ENG-703  tekanan dari toren di titik tertinggi; < 0,3 bar → pompa pendorong / toren lebih tinggi
          PDAM: tekanan yang dibutuhkan di meteran = TDH; toren bawah/pompa: titik kerja pompa
-ENG-102  cabang dari debit per cabang pada 1,5 m/s
+ENG-707  isi tiap cabang (laporan 0009): titik tiap lantai diisi ke cabang berurutan — kamar mandi
+         (tidak dipisah), wastafel, bak cuci dapur — maks 4 titik; beban cabang = jumlah WSFU isinya
+ENG-102  tiap cabang dari debit bebannya sendiri (Hunter) pada 1,5 m/s — cabang beda isi bisa
+         beda ukuran; material cabang per ukuran (jumlah cabang × sisi terpanjang)
 ENG-705  halaman = sisi terpanjang tanah − sisi terpanjang bangunan (≥ 0) — meteran PDAM, septic
          tank, dan saluran di depan tanah, bangunan di belakang; hanya bila ukuran tanah dan
          bangunan diketahui. ENG-702 v2: jalur sumber di bawah (PDAM, pompa, toren bawah) + halaman;

@@ -310,14 +310,17 @@ function normaliseRod(value: string): string {
  */
 export function requirementsFrom(input: {
   readonly mainSize: string;
-  readonly branchSize: string;
+  /** Semua ukuran cabang (ENG-707) — satu peran cabang per ukuran. */
+  readonly branchSizes: readonly string[];
   readonly fixtureSize: string;
   readonly pipeFamily: string;
 }): readonly RoleRequirement[] {
   return [
     pipeRequirement('main', input.mainSize, input.pipeFamily),
     pipeRequirement('riser', input.mainSize, input.pipeFamily),
-    pipeRequirement('branch', input.branchSize, input.pipeFamily),
+    ...[...new Set(input.branchSizes)].map((size) =>
+      pipeRequirement('branch', size, input.pipeFamily),
+    ),
     pipeRequirement('fixture', input.fixtureSize, input.pipeFamily),
     // Tee di pipa utama/riser tempat tiap cabang keluar: ukuran pipa utama.
     fittingRequirement(input.mainSize, input.pipeFamily, 'tee'),

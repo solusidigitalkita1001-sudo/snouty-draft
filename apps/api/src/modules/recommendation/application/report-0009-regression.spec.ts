@@ -77,3 +77,17 @@ describe('regresi laporan SNTY-2026-10-0009 — A: cabang per lantai dan pipa te
     );
   });
 });
+
+describe('regresi laporan SNTY-2026-10-0009 — B: cabang air bersih dari isinya', () => {
+  it('cabang 2 KM (6,4 unit ≈ 0,7 l/s, dalam ≥ 24,2 mm) → 1", bukan 3/4" dari rata-rata 16,8 ÷ 4', async () => {
+    const { rec } = await analyse0009();
+    const branches = rec.systemLines.filter(
+      (l) => l.role === 'branch' && l.name.startsWith('Cabang'),
+    );
+    expect(branches.map((l) => [l.name, l.size, l.path])).toEqual([
+      ['Cabang 2 kamar mandi', '1"', 'Pipa utama → 2 kamar mandi (2 cabang)'],
+      ['Cabang 4 wastafel', '1/2"', 'Pipa utama → 4 wastafel (2 cabang)'],
+    ]);
+    expect(rec.stats.branchCount).toBe(4);
+  });
+});

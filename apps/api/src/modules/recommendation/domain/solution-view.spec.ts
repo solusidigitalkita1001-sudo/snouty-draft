@@ -34,16 +34,20 @@ const sizedTraces = identify(sized);
 describe('baris sistem rumah', () => {
   it('pipa utama, cabang, sambungan, dan tekanan dari toren atap', () => {
     const lines = systemLinesFrom(solution, traces, 'id');
-    expect(lines.map((l) => l.name)).toEqual([
-      'Pipa distribusi utama',
-      'Cabang',
-      'Sambungan fixture',
-      'Tekanan dari toren atap',
+    // Cabang per ukuran menurut isinya (ENG-707): lantai 2 = 2 KM + 2 wastafel, lantai 1 = 1 KM +
+    // 2 wastafel + dapur → 2 KM (6,4 unit) 1", 1 KM + 2 wastafel (4,2) 3/4", 2 wastafel (1) dan
+    // dapur sendiri (1) 1/2".
+    expect(lines.map((l) => [l.name, l.size])).toEqual([
+      ['Pipa distribusi utama', solution.mainSize],
+      ['Cabang 2 kamar mandi', '1"'],
+      ['Cabang 1 kamar mandi + 2 wastafel', '3/4"'],
+      ['Cabang 2 wastafel / 1 bak cuci dapur', '1/2"'],
+      ['Sambungan fixture', '1/2"'],
+      ['Tekanan dari toren atap', expect.stringMatching(/bar$/)],
     ]);
-    expect(lines[0]!.size).toBe(solution.mainSize);
     expect(lines[0]!.reason).toContain('kurva Hunter');
-    expect(lines[1]!.size).toBe(solution.branchSize);
-    expect(lines[3]!.reason).toContain('pompa pendorong');
+    expect(lines[1]!.reason).toContain('kamar mandi tidak dipisah');
+    expect(lines.at(-1)!.reason).toContain('pompa pendorong');
   });
 
   it('PDAM: tekanan yang dibutuhkan di meteran; toren bawah: titik kerja pompa', () => {
@@ -101,13 +105,18 @@ describe('material rumah', () => {
       [sized.mainSize, Math.ceil(25.5 / 4), 'batang'],
       // Toren atap: pipa pengisi = halaman (tanpa ukuran tanah 0) + 15 m + muka air toren.
       [sized.tankFill!.size, Math.ceil(sized.tankFill!.netM / 4), 'batang'],
-      [sized.branchSize, Math.ceil(layout.branchNetM / 4), 'batang'],
+      // Cabang per ukuran: jumlah cabang ukuran itu × 15 m.
+      ...layout.bySize.map((b) => [b.size, Math.ceil((b.count * 15) / 4), 'batang']),
       [sized.fixtureConnectionSize, Math.ceil(layout.fixtureNetM / 4), 'batang'],
       [sized.mainSize, sized.branchCount, 'pcs'],
     ]);
     // Tanpa ukuran tanah: halaman 0 + sisi bangunan 15 m + muka air toren (2 × 3,5 + 1 = 8 m) = 23 m.
     expect(sized.tankFill).toEqual({ netM: 23, size: '3/4"' });
-    expect(bom[4]).toMatchObject({ item: 'Tee cabang', productId: 'TEE-1', provenance: 'ASSUMED' });
+    expect(bom.at(-1)).toMatchObject({
+      item: 'Tee cabang',
+      productId: 'TEE-1',
+      provenance: 'ASSUMED',
+    });
   });
 
   it('bomItemName: item tak dikenal lewat apa adanya; keluarga pipa tetap', () => {

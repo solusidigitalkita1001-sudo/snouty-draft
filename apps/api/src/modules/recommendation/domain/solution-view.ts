@@ -87,6 +87,58 @@ export function statsFrom(solution: SolutionResult, productCount: number): Recom
 }
 
 /** Baris tabel "Rekomendasi Sistem" (layar 06). */
+/** Isi satu cabang dalam kata-kata: "2 kamar mandi", "1 kamar mandi + 1 bak cuci dapur". */
+function branchContent(
+  b: { readonly bathrooms: number; readonly basins: number; readonly kitchens: number },
+  en: boolean,
+): string {
+  return [
+    b.bathrooms > 0
+      ? `${b.bathrooms} ${en ? (b.bathrooms > 1 ? 'bathrooms' : 'bathroom') : 'kamar mandi'}`
+      : '',
+    b.basins > 0 ? `${b.basins} ${en ? (b.basins > 1 ? 'basins' : 'basin') : 'wastafel'}` : '',
+    b.kitchens > 0 ? `${b.kitchens} ${en ? 'kitchen sink' : 'bak cuci dapur'}` : '',
+  ]
+    .filter(Boolean)
+    .join(' + ');
+}
+
+/**
+ * Cabang per ukuran (ENG-707 + ENG-102 per cabang, temuan laporan 0009). Satu ukuran → satu baris
+ * "Cabang" seperti sebelumnya; beberapa ukuran → satu baris per ukuran, dinamai menurut isinya.
+ */
+function branchLines(
+  solution: SolutionResult,
+  traces: readonly IdentifiedTrace[],
+  locale: Locale,
+): readonly SystemLine[] {
+  const en = locale === 'en';
+  const fill = traces.find((t) => t.ruleId === 'ENG-707');
+  const sizing = traces.filter((t) => t.ruleId === 'ENG-102');
+  const groups = solution.branchGroups;
+  return groups.map((group) => {
+    const own = sizing.filter((t) => (t.output as { mainSize?: string }).mainSize === group.size);
+    const ids = [...(fill ? [fill.id] : []), ...own.map((t) => t.id)];
+    const contents = [...new Set(group.branches.map((b) => branchContent(b, en)))].join(' / ');
+    const single = groups.length === 1;
+    return {
+      name: single ? (en ? 'Branch' : 'Cabang') : en ? `Branch: ${contents}` : `Cabang ${contents}`,
+      path: single
+        ? en
+          ? `Main → water outlets (${group.count} branches)`
+          : `Pipa utama → titik air (${group.count} cabang)`
+        : en
+          ? `Main → ${contents} (${group.count} branches)`
+          : `Pipa utama → ${contents} (${group.count} cabang)`,
+      size: group.size,
+      reason: [fill?.explanation ?? '', own[0]?.explanation ?? ''].filter(Boolean).join(' '),
+      provenance: provenanceFor(traces, ids),
+      traceIds: ids,
+      role: 'branch' as const,
+    };
+  });
+}
+
 export function systemLinesFrom(
   solution: SolutionResult,
   traces: readonly IdentifiedTrace[],
@@ -105,7 +157,6 @@ export function systemLinesFrom(
     'ENG-204',
     'ENG-703',
   );
-  const branchTraces = traceIdsFor(traces, 'ENG-003', 'ENG-102');
   const fixtureTraces = traceIdsFor(traces, 'ENG-005');
   const sourceTraces = traceIdsFor(traces, 'ENG-702', 'ENG-204', 'ENG-206', 'ENG-703');
   const supply = solution.supply;
@@ -127,19 +178,7 @@ export function systemLinesFrom(
       traceIds: mainTraces,
       role: 'main',
     },
-    {
-      name: en ? 'Branch' : 'Cabang',
-      path: en
-        ? `Main → water outlets (${solution.branchCount} branches)`
-        : `Pipa utama → titik air (${solution.branchCount} cabang)`,
-      size: solution.branchSize,
-      reason: [explanationFor(traces, 'ENG-003'), explanationFor(traces, 'ENG-102')]
-        .filter(Boolean)
-        .join(' '),
-      provenance: provenanceFor(traces, branchTraces),
-      traceIds: branchTraces,
-      role: 'branch',
-    },
+    ...branchLines(solution, traces, locale),
     {
       name: en ? 'Fixture connection' : 'Sambungan fixture',
       path: en ? 'Branch → fixture' : 'Cabang → fixture',
@@ -210,6 +249,8 @@ export interface HouseStocks {
   readonly fixture?: StockLength | null;
   /** Tee cabang yang terpilih dari katalog; tanpa produk, barisnya tetap ada tanpa `productId`. */
   readonly tee?: { readonly productId: string } | null;
+  /** Produk cabang per ukuran (cabang bisa berbeda ukuran, ENG-707). */
+  readonly branchFor?: (size: string) => StockLength | null;
   /** Pipa pengisi toren atap (ENG-706). */
   readonly fill?: StockLength | null;
 }
@@ -283,14 +324,16 @@ export function bomItemsFrom(
   if (layout === null) return rows;
   const layoutIds = traceIdsFor(traces, 'ENG-704');
   rows.push(
-    pipeRow(
-      solution.branchSize,
-      layout.branchNetM,
-      en
-        ? `${solution.branchCount} branches × building length`
-        : `${solution.branchCount} cabang × panjang bangunan`,
-      stocks.branch ?? null,
-      layoutIds,
+    ...layout.bySize.map((branch) =>
+      pipeRow(
+        branch.size,
+        branch.netM,
+        en
+          ? `${branch.count} branches × building length`
+          : `${branch.count} cabang × panjang bangunan`,
+        stocks.branchFor?.(branch.size) ?? stocks.branch ?? null,
+        layoutIds,
+      ),
     ),
     pipeRow(
       solution.fixtureConnectionSize,
@@ -410,7 +453,7 @@ export function allowedSizesFrom(
 ): readonly string[] {
   return [
     solution.mainSize,
-    solution.branchSize,
+    ...solution.branchGroups.map((g) => g.size),
     solution.fixtureConnectionSize,
     ...bom.map((item) => item.size),
   ];

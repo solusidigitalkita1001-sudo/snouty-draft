@@ -57,6 +57,7 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-704': { id: 'Panjang cabang dan sambungan', en: 'Branch and connection lengths' },
   'ENG-705': { id: 'Jarak halaman', en: 'Yard distance' },
   'ENG-706': { id: 'Pipa pengisi toren', en: 'Tank fill pipe' },
+  'ENG-707': { id: 'Isi tiap cabang', en: 'Branch contents' },
 };
 
 /** Judul langkah untuk sebuah aturan; aturan yang belum terdaftar → judul umum, bukan kodenya. */
