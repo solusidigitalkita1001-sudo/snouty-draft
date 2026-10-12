@@ -53,6 +53,10 @@ Bentuk error tunggal untuk seluruh API:
 | `GET`  | `/auth/me`       | profil + `tier` + `roles` + `entitlements`                            |
 | `POST` | `/guest/session` | membuat sesi tamu (biasanya implisit)                                 |
 
+Body `POST /auth/register`: `{ name, email, password, phone }` — `phone` wajib sejak 2026-10-12 (0022), nomor
+seluler Indonesia (08…, 628…, +628…) yang disimpan sebagai `+628…`; nomor lain → `400 VALIDATION_FAILED`
+dengan `details.reason: "phone"`.
+
 `POST /auth/register` mengembalikan `resumedConversationId` bila ada percakapan tamu yang berpindah
 kepemilikan. Inilah yang membuat alur register-gate melanjutkan kasus yang sama alih-alih membuang
 konteks.

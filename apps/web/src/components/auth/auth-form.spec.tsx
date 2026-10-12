@@ -163,3 +163,45 @@ describe('toggle lihat kata sandi', () => {
     expect(screen.getByRole('button', { name: AUTH_COPY.fields.showPassword })).toBeDefined();
   });
 });
+
+describe('nomor HP saat daftar (permintaan pemilik 2026-10-12)', () => {
+  it('daftar meminta nomor HP wajib; masuk tidak', () => {
+    const { unmount } = render(<AuthForm mode="login" />);
+    expect(screen.queryByLabelText(AUTH_COPY.fields.phone)).toBeNull();
+    unmount();
+    render(<AuthForm mode="register" />);
+    const input = screen.getByLabelText(AUTH_COPY.fields.phone) as HTMLInputElement;
+    expect(input.required).toBe(true);
+    expect(input.type).toBe('tel');
+    expect(input.getAttribute('aria-describedby')).toBe('phone-hint');
+  });
+
+  it('nomor ditolak server → pesan nomor HP, bukan pesan kata sandi', async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        error: { code: 'VALIDATION_FAILED', details: { fields: ['phone'], reason: 'phone' } },
+      }),
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<AuthForm mode="register" />);
+    fireEvent.change(screen.getByLabelText(AUTH_COPY.fields.name), { target: { value: 'Uji' } });
+    fireEvent.change(screen.getByLabelText(AUTH_COPY.fields.email), {
+      target: { value: 'uji@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(AUTH_COPY.fields.phone), {
+      target: { value: '021 555 1234' },
+    });
+    fireEvent.change(screen.getByLabelText(AUTH_COPY.fields.password), {
+      target: { value: 'KataSandiPanjang#1' },
+    });
+    fireEvent.submit(screen.getByLabelText(AUTH_COPY.fields.phone).closest('form')!);
+    expect(await screen.findByText(AUTH_COPY.errors.phoneInvalid)).toBeDefined();
+    const body = JSON.parse(
+      (fetchMock.mock.calls[0] as unknown as [string, { body: string }])[1].body,
+    );
+    expect(body.phone).toBe('021 555 1234');
+    vi.unstubAllGlobals();
+  });
+});

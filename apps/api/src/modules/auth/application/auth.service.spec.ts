@@ -12,6 +12,7 @@ import {
   InvalidCredentialsError,
   InvalidRefreshTokenError,
   PasswordRejectedError,
+  PhoneRejectedError,
 } from '../domain/auth.errors.js';
 import type { GuestAccountLinker, LinkResult } from '../domain/guest-account-linker.port.js';
 import type { NewUser, UserRepository, UserRow } from '../domain/user.repository.js';
@@ -129,7 +130,12 @@ function setup() {
   return { users, refreshRepo, accessTokens, linker, service };
 }
 
-const REGISTER = { email: 'Pengguna@Example.test', password: PASSWORD, name: '  Pengguna  ' };
+const REGISTER = {
+  email: 'Pengguna@Example.test',
+  password: PASSWORD,
+  name: '  Pengguna  ',
+  phone: '0812-3456-7890',
+};
 
 describe('register', () => {
   it('menyimpan email huruf kecil dan nama yang dirapikan — passwordnya hanya sebagai hash', async () => {
@@ -151,6 +157,16 @@ describe('register', () => {
 
     expect(session.accessToken).toBeTruthy();
     expect(session.refresh.token).toBeTruthy();
+  });
+
+  it('nomor HP wajib, dinormalkan +628…; nomor yang bukan seluler Indonesia ditolak sebelum menyimpan', async () => {
+    const { users, service } = setup();
+    const session = await service.register(REGISTER);
+    expect((users.rows.get(session.userId) as { phone?: string }).phone).toBe('+6281234567890');
+    await expect(
+      service.register({ ...REGISTER, email: 'lain@example.test', phone: '021-555-1234' }),
+    ).rejects.toThrow(PhoneRejectedError);
+    expect(users.rows.size).toBe(1);
   });
 
   it('menolak password di bawah kebijakan SEBELUM menyentuh repository', async () => {

@@ -66,6 +66,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const copy = mode === 'login' ? COPY.login : COPY.register;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -79,7 +80,9 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       setError(null);
 
       const result =
-        mode === 'login' ? await login(email, password) : await register(name, email, password);
+        mode === 'login'
+          ? await login(email, password)
+          : await register(name, email, password, phone);
 
       if (result.ok) {
         // Percakapan tamu yang berpindah dibuka langsung — itu janji "tidak perlu mengulang
@@ -92,10 +95,14 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         return;
       }
 
-      setError(errorText(COPY, result.code ?? '') ?? COPY.errors.generic);
+      setError(
+        (result.reason === 'phone'
+          ? COPY.errors.phoneInvalid
+          : errorText(COPY, result.code ?? '')) ?? COPY.errors.generic,
+      );
       setBusy(false);
     },
-    [busy, email, mode, name, password],
+    [busy, email, mode, name, password, phone],
   );
 
   return (
@@ -135,6 +142,30 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
             required
           />
         </label>
+
+        {mode === 'register' && (
+          <label className={styles.field}>
+            <span className={styles.label}>{COPY.fields.phone}</span>
+            <input
+              className={styles.input}
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              autoComplete="tel"
+              placeholder={COPY.fields.phonePlaceholder}
+              aria-describedby="phone-hint"
+              required
+            />
+          </label>
+        )}
+        {mode === 'register' && (
+          // Petunjuk di luar label, sama seperti kata sandi: teks di dalam label ikut menjadi nama
+          // aksesibel kolomnya.
+          <span id="phone-hint" className={styles.hint}>
+            {COPY.fields.phoneHint}
+          </span>
+        )}
 
         <label className={styles.field}>
           <span className={styles.label}>{COPY.fields.password}</span>

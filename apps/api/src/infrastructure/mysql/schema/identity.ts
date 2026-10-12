@@ -73,6 +73,8 @@ export const users = mysqlTable(
     /** Argon2id dalam bentuk ter-encode (memuat salt dan parameternya). */
     passwordHash: varchar('password_hash', { length: 255 }).notNull(),
     name: varchar('name', { length: 120 }).notNull(),
+    /** Nomor HP yang bisa dihubungi, +62… (0022). NULL hanya untuk akun yang dibuat sebelum 0022. */
+    phone: varchar('phone', { length: 20 }),
 
     /** `registered` | `advanced` — untuk MVP keduanya setara (OQ-05). */
     tier: varchar('tier', { length: 16 }).notNull().default('registered'),

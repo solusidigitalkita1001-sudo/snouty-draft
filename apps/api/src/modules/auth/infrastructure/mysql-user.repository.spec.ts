@@ -25,7 +25,13 @@ beforeEach(async () => {
 });
 
 function user(id: string, email: string) {
-  return { id, email, passwordHash: '$argon2id$v=19$m=19456,t=2,p=1$c2FsdA$aGFzaA', name: 'Tes' };
+  return {
+    id,
+    email,
+    passwordHash: '$argon2id$v=19$m=19456,t=2,p=1$c2FsdA$aGFzaA',
+    name: 'Tes',
+    phone: '+6281234567890',
+  };
 }
 
 describe('MysqlUserRepository', () => {

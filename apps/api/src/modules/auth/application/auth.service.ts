@@ -22,7 +22,9 @@ import {
   InvalidCredentialsError,
   InvalidRefreshTokenError,
   PasswordRejectedError,
+  PhoneRejectedError,
 } from '../domain/auth.errors.js';
+import { normalizeIndonesianMobile } from '../domain/phone-number.js';
 import { checkPassword } from '../domain/password-policy.js';
 import type { GuestAccountLinker } from '../domain/guest-account-linker.port.js';
 import type { PasswordHasher } from '../domain/password-hasher.port.js';
@@ -37,6 +39,8 @@ export interface Credentials {
 
 export interface RegisterInput extends Credentials {
   readonly name: string;
+  /** Nomor HP yang bisa dihubungi; wajib untuk akun baru. */
+  readonly phone: string;
   /** Sesi tamu yang sedang berjalan — percakapannya ikut pindah (G-1). */
   readonly guestSessionId?: string;
 }
@@ -88,12 +92,15 @@ export class AuthService {
   async register(input: RegisterInput): Promise<RegisteredSession> {
     const rejection = checkPassword(input.password);
     if (rejection !== null) throw new PasswordRejectedError(rejection);
+    const phone = normalizeIndonesianMobile(input.phone);
+    if (phone === null) throw new PhoneRejectedError();
 
     const user = {
       id: ulid(),
       email: normalizeEmail(input.email),
       passwordHash: await this.hasher.hash(input.password),
       name: input.name.trim(),
+      phone,
     };
     // Email ganda dilempar repository dari unique index-nya — bukan dari
     // pemeriksaan find-lalu-insert yang punya celah balapan di antaranya.

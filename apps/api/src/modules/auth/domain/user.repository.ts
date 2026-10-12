@@ -19,6 +19,8 @@ export interface NewUser {
   readonly email: string;
   readonly passwordHash: string;
   readonly name: string;
+  /** Nomor HP baku +628… (phone-number.ts). */
+  readonly phone: string;
 }
 
 export interface UserRepository {

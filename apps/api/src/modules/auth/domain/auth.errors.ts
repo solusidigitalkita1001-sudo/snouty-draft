@@ -107,3 +107,14 @@ export class PasswordRejectedError extends Error {
     this.details = { fields: ['password'], reason };
   }
 }
+
+/** Nomor HP bukan nomor seluler Indonesia yang sah. `details.reason` = `phone` untuk teks UI. */
+export class PhoneRejectedError extends Error {
+  readonly code = 'VALIDATION_FAILED' as const;
+  readonly details = { fields: ['phone'], reason: 'phone' } as const;
+
+  constructor() {
+    super('Nomor HP belum sesuai: pakai nomor seluler Indonesia, mis. 0812 3456 7890.');
+    this.name = 'PhoneRejectedError';
+  }
+}

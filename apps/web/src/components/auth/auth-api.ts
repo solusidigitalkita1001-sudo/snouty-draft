@@ -11,6 +11,8 @@ export interface AuthResult {
   readonly ok: boolean;
   /** Kode galat stabil dari API — dipetakan ke teks oleh komponen, bukan ditampilkan mentah. */
   readonly code?: string;
+  /** `details.reason` dari API — `phone` = nomor HP belum sesuai, bukan kata sandi lemah. */
+  readonly reason?: string;
   /** Percakapan tamu yang berpindah ke akun (invarian G-1). */
   readonly resumedConversationId?: string | null;
 }
@@ -40,9 +42,13 @@ async function post(path: string, body: Record<string, unknown>): Promise<AuthRe
     }
 
     const error = (await response.json().catch(() => ({}))) as {
-      error?: { code?: string };
+      error?: { code?: string; details?: { reason?: string } };
     };
-    return { ok: false, code: error.error?.code ?? 'GENERIC' };
+    return {
+      ok: false,
+      code: error.error?.code ?? 'GENERIC',
+      ...(error.error?.details?.reason ? { reason: error.error.details.reason } : {}),
+    };
   } catch {
     return { ok: false, code: 'GENERIC' };
   }
@@ -126,5 +132,9 @@ export async function logout(): Promise<void> {
   setAccessToken(null);
 }
 
-export const register = (name: string, email: string, password: string): Promise<AuthResult> =>
-  post('/auth/register', { name, email, password });
+export const register = (
+  name: string,
+  email: string,
+  password: string,
+  phone: string,
+): Promise<AuthResult> => post('/auth/register', { name, email, password, phone });

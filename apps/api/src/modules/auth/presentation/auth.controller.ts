@@ -30,6 +30,8 @@ const RegisterDto = z
     email: z.string().trim().toLowerCase().email().max(255),
     password: z.string().min(1).max(PASSWORD_MAX_LENGTH),
     name: z.string().trim().min(1).max(120),
+    /** Wajib; bentuknya diperiksa dan dinormalkan di AuthService (pesan galat yang tepat). */
+    phone: z.string().trim().min(1).max(30),
   })
   .strict();
 

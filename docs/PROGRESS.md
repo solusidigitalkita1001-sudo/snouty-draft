@@ -1320,6 +1320,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       beda tinggi dari ukuran rumah/lantai/sumber, ukuran pipa dari kecepatan dan kehilangan tekanan, tekanan toren
       atap / kebutuhan tekanan PDAM / titik kerja pompa; kamar mandi = 2 titik; ukuran rumah, dapur, wastafel
       ditanya di samping Susun rekomendasi dan dibaca dari teks ("rumah 8x15", "luas 120 m2").
+- [x] P16-53 Nomor HP wajib saat daftar (2026-10-12, "pastiin user nyantumin no hp yang bisa di hubungin") —
+      migration 0022 `users.phone` (NULL untuk akun lama), nomor seluler Indonesia dinormalkan +628…, kolom
+      "Nomor HP (WhatsApp)" di form daftar dengan pesan galat sendiri.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
