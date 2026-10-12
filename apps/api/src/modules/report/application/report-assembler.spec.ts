@@ -258,10 +258,10 @@ describe('renderReportHtml', () => {
     expect(html.match(/PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS/g)).toHaveLength(2);
   });
 
-  it('baris teknik berstatus ASUMSI, baris kebutuhan boleh TERVERIFIKASI', () => {
-    // Pembedaan yang penting: nilai TEKNIK asumsi karena aturannya belum divalidasi
-    // (OQ-06), tetapi kebutuhan yang DISEBUT PENGGUNA memang terverifikasi — itu
-    // pernyataan mereka sendiri, bukan hasil hitungan sistem.
+  it('baris teknik berstatus ASUMSI; baris kebutuhan "DISEBUT PENGGUNA", bukan TERVERIFIKASI', () => {
+    // Nilai TEKNIK asumsi karena aturannya belum divalidasi (OQ-06). Kebutuhan yang disebut
+    // pengguna adalah pernyataan mereka sendiri — bukan katalog atau aturan tervalidasi, jadi
+    // tidak memakai label TERVERIFIKASI (temuan laporan 0009).
     expect(html).toContain('ASUMSI');
 
     const systemSection = html.slice(html.indexOf('Rekomendasi Sistem</h2>'));
@@ -269,9 +269,16 @@ describe('renderReportHtml', () => {
     expect(systemRows).not.toContain('TERVERIFIKASI');
 
     const requirementSection = html.slice(html.indexOf('Kebutuhan yang tercatat'));
-    expect(
-      requirementSection.slice(0, requirementSection.indexOf('Rekomendasi Sistem</h2>')),
-    ).toContain('TERVERIFIKASI');
+    const requirementRows = requirementSection.slice(
+      0,
+      requirementSection.indexOf('Rekomendasi Sistem</h2>'),
+    );
+    expect(requirementRows).toContain('<span class="pill pill-user">DISEBUT PENGGUNA</span>');
+    expect(requirementRows).not.toContain('TERVERIFIKASI');
+    // Legendanya menjelaskan label itu.
+    expect(html).toContain(
+      '<strong>DISEBUT PENGGUNA</strong><span>Data dari Anda, belum dicek di lapangan</span>',
+    );
   });
 
   it('harga nonaktif: tidak merender kolom harga maupun blok total', () => {
@@ -360,7 +367,7 @@ describe('laporan dua bahasa (P15-05)', () => {
     expect(en).toContain('Reviewed by (optional):');
     expect(en).toContain('Page <span class="pageNumber"></span> of');
     expect(en).toContain('<span class="pill pill-assumed">ASSUMED</span>');
-    expect(en).toContain('<span class="pill pill-verified">VERIFIED</span>');
+    expect(en).toContain('<span class="pill pill-user">STATED BY YOU</span>');
     // Baris kebutuhan dirakit dalam bahasa percakapan, bukan diterjemahkan saat mencetak.
     expect(en).toContain('<tr><th>Number of floors</th><td>2 floors</td>');
   });

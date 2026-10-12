@@ -1367,6 +1367,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-67 Temuan laporan 0009 — D: air bekas juga turun dari lantai atas (ENG-603 v3); "Ada N produk Pralon" = jumlah
       baris material yang tercetak; batas kecepatan satu sumber (ENG-010 v2 dari registry: 0,6–2 m/s, rencana 1,5);
       teks asumsi/alasan tanpa "rumah" untuk bangunan lain; PDF tanpa halaman kosong di akhir (`section.page:last-of-type`).
+- [x] P16-68 Temuan laporan 0009 — E: data yang disebut pengguna dicetak "DISEBUT PENGGUNA" (bukan TERVERIFIKASI) di tabel
+      kebutuhan laporan, dengan legendanya; arti VERIFIED di kode tidak diubah (pemetaan saat render, berlaku juga untuk
+      laporan lama yang dicetak ulang). Di layar data pengguna tidak pernah diberi tag TERVERIFIKASI.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

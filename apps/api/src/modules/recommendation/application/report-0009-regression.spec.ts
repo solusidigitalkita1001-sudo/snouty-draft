@@ -185,3 +185,33 @@ describe('regresi laporan SNTY-2026-10-0009 — D: konsistensi angka dan teks', 
     expect(text).not.toMatch(/\brumah\b/i);
   });
 });
+
+describe('regresi laporan SNTY-2026-10-0009 — E: label data pengguna', () => {
+  it('tipe bangunan, lantai, kamar mandi tercetak "DISEBUT PENGGUNA", tidak TERVERIFIKASI', async () => {
+    const { assembleReportPayload } = await import('../../report/application/report-assembler.js');
+    const { renderReportHtml } = await import('../../report/application/report-html.js');
+    const { rec, traces } = await analyse0009();
+    const html = renderReportHtml(
+      assembleReportPayload({
+        reportNumber: 'SNTY-2026-10-0009',
+        identity: {
+          customerName: 'tomo',
+          projectLocation: 'masjid cibinong raya',
+          consultationDate: '2026-10-12',
+          installationType: 'Air bersih + pembuangan',
+        },
+        state: STATE_0009,
+        recommendation: rec,
+        traces,
+        catalogVersionLabel: 'erp',
+        pricing: { enabled: false, taxRatePercent: 11 },
+      } as never),
+    );
+    const requirements = html.slice(
+      html.indexOf('Kebutuhan yang tercatat'),
+      html.indexOf('</table>', html.indexOf('Kebutuhan yang tercatat')),
+    );
+    expect(requirements.match(/DISEBUT PENGGUNA/g)!.length).toBeGreaterThanOrEqual(6);
+    expect(requirements).not.toContain('TERVERIFIKASI');
+  });
+});

@@ -36,6 +36,13 @@ interface ReportCopy {
   readonly numberLocale: string;
   readonly provenance: Readonly<Record<Provenance, string>>;
   readonly provenanceMeaning: Readonly<Record<Provenance, string>>;
+  /**
+   * Data yang disebut pengguna (temuan laporan 0009): dulu tercetak "TERVERIFIKASI", padahal legenda
+   * TERVERIFIKASI berarti katalog Pralon atau aturan yang sudah divalidasi. Arti VERIFIED di kode
+   * tidak diubah — hanya labelnya di laporan.
+   */
+  readonly userStated: string;
+  readonly userStatedMeaning: string;
   /** Janji produk — jangan diparafrase. */
   readonly disclaimer: string;
   /** Janji produk (kalimat pertama) — jangan diparafrase. */
@@ -123,6 +130,8 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
       ESTIMATED: 'ESTIMASI',
       UNAVAILABLE: 'LIHAT DOKUMEN TEKNIS',
     },
+    userStated: 'DISEBUT PENGGUNA',
+    userStatedMeaning: 'Data dari Anda, belum dicek di lapangan',
     provenanceMeaning: {
       VERIFIED: 'Dari katalog Pralon atau aturan yang sudah divalidasi',
       ESTIMATED: 'Dihitung dari data Anda dengan sebagian perkiraan',
@@ -213,6 +222,8 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
       ESTIMATED: 'ESTIMATED',
       UNAVAILABLE: 'SEE TECHNICAL DOCUMENTS',
     },
+    userStated: 'STATED BY YOU',
+    userStatedMeaning: 'Data you gave, not checked on site',
     provenanceMeaning: {
       VERIFIED: 'From the Pralon catalogue or validated rules',
       ESTIMATED: 'Calculated from your data with some estimates',
@@ -490,7 +501,7 @@ function summarySection(p: ReportPayload, t: ReportCopy, n: number): string {
     ${p.requirements
       .map(
         (row) =>
-          `<tr><th>${esc(row.label)}</th><td>${esc(row.value)}</td><td class="status">${pill(
+          `<tr><th>${esc(row.label)}</th><td>${esc(row.value)}</td><td class="status">${requirementPill(
             row.provenance,
             t,
           )}</td></tr>`,
@@ -565,6 +576,7 @@ function systemSection(p: ReportPayload, t: ReportCopy, n: number): string {
   }
   <h3 class="subhead">${t.legendTitle}</h3>
   <div class="legend">
+    <div class="legend-item legend-user"><strong>${t.userStated}</strong><span>${t.userStatedMeaning}</span></div>
     ${LEGEND.map(
       (status) =>
         `<div class="legend-item legend-${status.toLowerCase()}"><strong>${t.provenance[status]}</strong><span>${t.provenanceMeaning[status]}</span></div>`,
@@ -626,6 +638,16 @@ function closingSection(p: ReportPayload, t: ReportCopy, n: number): string {
   </table>
   <div class="closing-foot"><strong>${t.disclaimer}</strong></div>
 </section>`;
+}
+
+/**
+ * Baris kebutuhan: VERIFIED di sana hanya lahir dari jawaban pengguna (`user_stated`) — dicetak
+ * "DISEBUT PENGGUNA", bukan TERVERIFIKASI. Berlaku juga saat laporan lama dicetak ulang.
+ */
+function requirementPill(status: Provenance, t: ReportCopy): string {
+  return status === 'VERIFIED'
+    ? `<span class="pill pill-user">${t.userStated}</span>`
+    : pill(status, t);
 }
 
 function pill(status: Provenance, t: ReportCopy): string {
@@ -805,9 +827,11 @@ table { width: 100%; border-collapse: collapse; }
 .note { font-size: 8pt; color: ${C['snouty-caption']}; margin: 3mm 0 0; }
 
 /* ── Penutup ── */
-.legend { break-inside: avoid; display: grid; grid-template-columns: repeat(4, 1fr); border-radius: 3mm; overflow: hidden; border: 1px solid ${C['snouty-border']}; }
+.legend { break-inside: avoid; display: grid; grid-template-columns: repeat(5, 1fr); border-radius: 3mm; overflow: hidden; border: 1px solid ${C['snouty-border']}; }
 .legend-item { padding: 3mm; display: flex; flex-direction: column; gap: 1mm; font-size: 7.5pt; line-height: 1.4; }
 .legend-item strong { font-size: 7.5pt; letter-spacing: 0.06em; }
+.legend-user { background: ${C['snouty-mascot-paper']}; color: ${C['snouty-ink']}; }
+.pill-user { background: ${C['snouty-mascot-paper']}; color: ${C['snouty-ink']}; border: 1px solid ${C['snouty-border']}; }
 .legend-verified { background: ${C['snouty-verified-bg']}; color: ${C['snouty-verified-text']}; }
 .legend-estimated { background: ${C['snouty-action-soft-bg']}; color: ${C['snouty-action-text']}; }
 .legend-assumed { background: ${C['snouty-assumed-bg']}; color: ${C['snouty-assumed-text']}; }
