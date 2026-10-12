@@ -22,8 +22,18 @@ export class AssumptionValueRejectedError extends Error {
   }
 }
 
+/**
+ * Kasus teknis menyimpan nilai pengganti di kasusnya; jalur bangunan (tanpa `useCase`) di state.
+ * Irigasi belum punya asumsi yang bisa diubah.
+ */
 export function overridesOf(state: RequirementState): AssumptionOverrides {
-  return state.useCase?.kind === 'technical' ? (state.useCase.assumptionOverrides ?? {}) : {};
+  if (state.useCase?.kind === 'technical') return state.useCase.assumptionOverrides ?? {};
+  return state.useCase === undefined ? (state.assumptionOverrides ?? {}) : {};
+}
+
+/** Kasus teknis dan jalur bangunan bisa mengganti asumsi angka. */
+function editable(state: RequirementState): boolean {
+  return state.useCase === undefined || state.useCase.kind === 'technical';
 }
 
 /** Asumsi angka yang boleh diganti pengguna. */
@@ -41,7 +51,7 @@ export function withAssumptionOverride(
   assumptionId: string,
   value: number | null,
 ): RequirementState {
-  if (state.useCase?.kind !== 'technical') {
+  if (!editable(state)) {
     throw new AssumptionValueRejectedError('Asumsi ini tidak bisa diubah di sini.');
   }
   if (numericAssumption(assumptionId) === null) {
@@ -51,10 +61,12 @@ export function withAssumptionOverride(
     throw new AssumptionValueRejectedError('Isi dengan angka lebih dari nol.');
   }
   const rest = Object.fromEntries(
-    Object.entries(state.useCase.assumptionOverrides ?? {}).filter(([id]) => id !== assumptionId),
+    Object.entries(overridesOf(state)).filter(([id]) => id !== assumptionId),
   );
   const overrides = value === null ? rest : { ...rest, [assumptionId]: value };
-  return { ...state, useCase: { ...state.useCase, assumptionOverrides: overrides } };
+  return state.useCase?.kind === 'technical'
+    ? { ...state, useCase: { ...state.useCase, assumptionOverrides: overrides } }
+    : { ...state, assumptionOverrides: overrides };
 }
 
 const formatted = (n: number, locale: Locale) =>
@@ -69,8 +81,9 @@ export function withEditableAssumptions(
   state: RequirementState,
   locale: Locale,
 ): Recommendation {
-  if (state.useCase?.kind !== 'technical') return recommendation;
-  const editable = recommendation.assumptions.map((row): Assumption => {
+  if (!editable(state)) return recommendation;
+  const overridden = overridesOf(state);
+  const rows = recommendation.assumptions.map((row): Assumption => {
     const definition = row.assumptionId ? numericAssumption(row.assumptionId) : null;
     if (definition === null) return row;
     return {
@@ -98,7 +111,9 @@ export function withEditableAssumptions(
       },
     ];
   });
-  return { ...recommendation, assumptions: [...editable, ...own] };
+  // Baris baku asumsi yang sudah diganti tidak ditampilkan dua kali — baris "Anda ubah" menggantikannya.
+  const shown = rows.filter((row) => !(row.assumptionId && row.assumptionId in overridden));
+  return { ...recommendation, assumptions: [...shown, ...own] };
 }
 
 /** Nilai baku registry — untuk "kembalikan ke nilai awal". */

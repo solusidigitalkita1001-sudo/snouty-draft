@@ -48,9 +48,23 @@ describe('nilai pengganti asumsi', () => {
     expect(() => overrideAssumption(building, 'DEMAND_LPCD_150', 5000, 'id')).toThrow(
       'Nilai itu di luar batas hitung',
     );
-    expect(() =>
-      withAssumptionOverride(emptyRequirementState('T'), 'DEMAND_LPCD_150', 200),
-    ).toThrow(AssumptionValueRejectedError);
+    // Irigasi belum punya asumsi yang bisa diubah.
+    const irrigation = {
+      ...emptyRequirementState('T'),
+      useCase: { kind: 'irrigation' },
+    } as unknown as RequirementState;
+    expect(() => withAssumptionOverride(irrigation, 'DEMAND_LPCD_150', 200)).toThrow(
+      AssumptionValueRejectedError,
+    );
+  });
+
+  it('jalur bangunan (rumah, tempat ibadah) menyimpan nilai pengganti di state (pemilik 2026-10-12)', () => {
+    const changed = withAssumptionOverride(emptyRequirementState('T'), 'WUDHU_TAP_SPACING_0_8M', 1);
+    expect(changed.assumptionOverrides).toEqual({ WUDHU_TAP_SPACING_0_8M: 1 });
+    expect(overridesOf(changed)).toEqual({ WUDHU_TAP_SPACING_0_8M: 1 });
+    expect(overridesOf(withAssumptionOverride(changed, 'WUDHU_TAP_SPACING_0_8M', null))).toEqual(
+      {},
+    );
   });
 
   it('baris asumsi membawa nilai + satuan; nilai dari pengguna tampil sebagai baris sendiri', () => {

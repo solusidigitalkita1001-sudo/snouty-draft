@@ -173,4 +173,29 @@ describe('Tempat ibadah (pemilik 2026-10-12: "masih nganggep kran itu wastafel, 
     expect(answer('value=8')).toEqual({ path: 'fixtures.basins', value: 8, source: 'user_stated' });
     expect(answer('2')).toEqual({ path: 'fixtures.basins', value: 2, source: 'user_stated' });
   });
+
+  it('jarak keran 0,8 m bisa diubah setelah hitungan: panjang deret dan talang ikut, nilai di luar batas ditolak', async () => {
+    const { overrideAssumption } =
+      await import('../../recommendation/application/analysis.service.js');
+    const before = await analyse(stateOf(MASJID));
+    const spacing = before.rec.assumptions.find(
+      (a) => a.assumptionId === 'WUDHU_TAP_SPACING_0_8M',
+    )!;
+    expect(spacing).toMatchObject({ value: 0.8, unit: 'm' });
+
+    const next = overrideAssumption(stateOf(MASJID), 'WUDHU_TAP_SPACING_0_8M', 1, DEFAULT_LOCALE);
+    expect(next.assumptionOverrides).toEqual({ WUDHU_TAP_SPACING_0_8M: 1 });
+    const { rec, traces } = await analyse(next);
+    // 2 deret × 4 keran × 1 m = 8 m talang 3", bukan 6,4 m.
+    const trough = rec.bom.find((b) => b.basis.includes('talang wudhu'))!;
+    expect(trough.basis).toContain('8 m');
+    expect(traces.find((t) => t.ruleId === 'ENG-802')!.explanation).toContain('jarak 1 m');
+    const rows = rec.assumptions.filter((a) => a.assumptionId === 'WUDHU_TAP_SPACING_0_8M');
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ value: 1, userSet: true });
+
+    expect(() =>
+      overrideAssumption(stateOf(MASJID), 'WUDHU_TAP_SPACING_0_8M', 20, DEFAULT_LOCALE),
+    ).toThrow();
+  });
 });

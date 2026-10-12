@@ -1292,7 +1292,12 @@ export function overrideAssumption(
 ): RequirementState {
   const next = withAssumptionOverride(state, assumptionId, value);
   try {
-    flowSchematicFor(next, 'uji', locale);
+    // Jalur bangunan: hitung coba engine rumah/tempat ibadah dengan nilai barunya.
+    if (next.useCase === undefined) {
+      computeSolution(solutionInputFrom(next), locale, overridesOf(next));
+    } else {
+      flowSchematicFor(next, 'uji', locale);
+    }
   } catch {
     throw new AssumptionValueRejectedError(
       locale === 'en'

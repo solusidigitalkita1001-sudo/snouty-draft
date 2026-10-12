@@ -1401,6 +1401,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       keran × 0,8 m. Pembuangan: satu talang per deret, 2 DFU/gpm (IPC 709.3) → ukuran dari IPC 710.1(2), masuk air
       bekas; urinoir 4 DFU ke air kotor. Skema: deret wudhu dan urinoir di lantai dasar. ENG-001 v4, ENG-601 v2,
       ENG-707 v2. Pertanyaan penyempurna khusus tempat ibadah (keran wudhu, tempat wudhu, urinoir).
+- [x] P16-77 Asumsi angka di hitungan bangunan (rumah, tempat ibadah) bisa diubah setelah hitungan selesai, seperti kasus
+      teknis (pemilik 2026-10-12: jarak keran wudhu default 0,8 m tapi bisa di-adjust). Nilai pengganti disimpan di
+      `RequirementState.assumptionOverrides`, diuji dengan hitung coba, lalu solusi dihitung ulang.
 - [ ] P16-69 Temuan laporan 0009 — F: kelompok tempat ibadah selesai di P16-76; sekolah/klinik dan nilai dari ahli
       Pralon masih → OQ-61. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").

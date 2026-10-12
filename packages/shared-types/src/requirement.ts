@@ -218,6 +218,12 @@ export interface RequirementState {
   readonly useCase?: UseCaseState;
   /** Subjek percakapan aktif (Fase 16); tidak ada = belum ada topik yang ditetapkan. */
   readonly subject?: ConversationSubject;
+  /**
+   * Nilai pengganti asumsi angka untuk jalur bangunan (pemilik 2026-10-12: jarak keran wudhu 0,8 m
+   * bisa diubah setelah hitungan selesai), per ID asumsi registry. Kasus teknis menyimpannya di
+   * `useCase.assumptionOverrides`.
+   */
+  readonly assumptionOverrides?: Readonly<Record<string, number>>;
 }
 
 /** Pemicu sebuah snapshot terbentuk (kolom `requirement_snapshots.trigger`). */
