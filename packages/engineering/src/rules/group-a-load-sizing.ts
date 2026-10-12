@@ -6,7 +6,7 @@
  * trace rekomendasi lama yang memuatnya tetap terbaca lewat judul langkahnya.
  */
 
-import { localized, requireInt, RuleInputError, type RuleVersion } from '../rule.js';
+import { localized, requireInt, requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 
@@ -173,22 +173,41 @@ export const ENG_005: RuleVersion<
  * Hanya dikutip sebagai penjelasan; batas kecepatan yang dipakai menghitung ada di registry
  * asumsi (Kelompok F).
  */
+/**
+ * v2 (temuan laporan 0009: "0,6–2", "1–2", dan "rencana 1,5" tercetak di tempat berbeda): batas dan
+ * kecepatan rencana dibaca dari registry asumsi yang sama dengan pemilihan ukuran (ENG-205) dan
+ * ukuran cabang (ENG-102) — VELOCITY_MIN_SELF_CLEANING, VELOCITY_MAX_PLASTIC, DESIGN_VELOCITY_PLASTIC.
+ */
 export const ENG_010: RuleVersion<
-  Record<string, never>,
-  { readonly minMs: number; readonly maxMs: number }
+  { readonly minMs: number; readonly maxMs: number; readonly designMs: number },
+  { readonly minMs: number; readonly maxMs: number; readonly designMs: number }
 > = {
   ruleId: 'ENG-010',
-  version: 1,
+  version: 2,
   category: 'load_sizing',
-  parseInput: () => ({}),
-  compute: () => ({ minMs: 1, maxMs: 2 }),
-  sourceReference: 'Teks "DETAIL TEKNIS" prototipe',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      minMs: requireNumber('ENG-010', 'minMs', o['minMs'], { min: 0.1, max: 5 }),
+      maxMs: requireNumber('ENG-010', 'maxMs', o['maxMs'], { min: 0.1, max: 5 }),
+      designMs: requireNumber('ENG-010', 'designMs', o['designMs'], { min: 0.1, max: 5 }),
+    };
+  },
+  compute: (i) => ({ minMs: i.minMs, maxMs: i.maxMs, designMs: i.designMs }),
+  sourceReference:
+    'Registry asumsi: VELOCITY_MIN_SELF_CLEANING, VELOCITY_MAX_PLASTIC, DESIGN_VELOCITY_PLASTIC',
   validationStatus: PENDING,
-  testCases: [{ name: 'rentang 1–2 m/s', input: {}, expected: { minMs: 1, maxMs: 2 } }],
+  testCases: [
+    {
+      name: 'batas 0,6–2 m/s, rencana 1,5 m/s',
+      input: { minMs: 0.6, maxMs: 2, designMs: 1.5 },
+      expected: { minMs: 0.6, maxMs: 2, designMs: 1.5 },
+    },
+  ],
   explain: (_input, output, locale) =>
     localized(locale, {
-      id: `Kecepatan aliran target ${output.minMs}–${output.maxMs} m/s.`,
-      en: `Target flow velocity ${output.minMs}–${output.maxMs} m/s.`,
+      id: `Kecepatan air dijaga ${output.minMs}–${output.maxMs} m/s; cabang dirancang pada ${output.designMs} m/s.`,
+      en: `Water speed is kept within ${output.minMs}–${output.maxMs} m/s; branches are designed at ${output.designMs} m/s.`,
     }),
 };
 

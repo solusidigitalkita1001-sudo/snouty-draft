@@ -703,7 +703,9 @@ const CSS = `
 html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { margin: 0; font-family: 'IBM Plex Sans', 'Liberation Sans', system-ui, sans-serif; color: ${C['snouty-ink']}; font-size: 9.5pt; }
 .page { page-break-after: always; }
-.page:last-child { page-break-after: auto; }
+/* Bagian terakhir tanpa pindah halaman. Bukan :last-child — elemen terakhir <body> adalah blok footer
+   PDF (<script>), jadi :last-child tidak pernah cocok dan PDF berakhir dengan halaman kosong (laporan 0009). */
+section.page:last-of-type { page-break-after: auto; }
 .mono { font-family: 'IBM Plex Mono', 'Liberation Mono', monospace; }
 .kicker { font-size: 7pt; letter-spacing: 0.16em; font-weight: 600; color: ${C['snouty-caption']}; text-transform: uppercase; }
 .kicker-action { color: ${C['snouty-action-text']}; }

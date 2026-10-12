@@ -95,8 +95,8 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
   'ENG-010': (_i, o, f) =>
     nums(o, ['minMs', 'maxMs'])
       ? f.t(
-          `Kecepatan aliran = ${f.n(o['minMs'])}–${f.n(o['maxMs'])} m/s`,
-          `Flow speed = ${f.n(o['minMs'])}–${f.n(o['maxMs'])} m/s`,
+          `Kecepatan air = ${f.n(o['minMs'])}–${f.n(o['maxMs'])} m/s${isNum(o['designMs']) ? ` · rencana cabang ${f.n(o['designMs'])} m/s` : ''}`,
+          `Water speed = ${f.n(o['minMs'])}–${f.n(o['maxMs'])} m/s${isNum(o['designMs']) ? ` · branch design ${f.n(o['designMs'])} m/s` : ''}`,
         )
       : null,
   'ENG-012': (_i, o, f) =>
@@ -193,8 +193,8 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
     if (isNum(o['wasteNetM']))
       parts.push(
         f.t(
-          `Air bekas = ${f.n(i['planLengthM'])}${yard} = ${f.n(o['wasteNetM'])} m`,
-          `Waste = ${f.n(i['planLengthM'])}${yard} = ${f.n(o['wasteNetM'])} m`,
+          `Air bekas = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1)${yard} = ${f.n(o['wasteNetM'])} m`,
+          `Waste = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1)${yard} = ${f.n(o['wasteNetM'])} m`,
         ),
       );
     const vent = isNum(o['soilVentNetM']) ? o['soilVentNetM'] : o['wasteVentNetM'];

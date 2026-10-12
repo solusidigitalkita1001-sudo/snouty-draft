@@ -207,7 +207,11 @@ export function computeSolution(
     wsfuKitchenSink: wsfu.kitchenSink,
   });
   const connection = run(ENG_005, {});
-  const velocity = run(ENG_010, {});
+  const velocity = run(ENG_010, {
+    minMs: use('VELOCITY_MIN_SELF_CLEANING'),
+    maxMs: use('VELOCITY_MAX_PLASTIC'),
+    designMs: use('DESIGN_VELOCITY_PLASTIC'),
+  });
   const classes = run(ENG_013, { installationType: input.installationType });
 
   // 2 · debit puncak

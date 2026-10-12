@@ -153,3 +153,35 @@ describe('regresi laporan SNTY-2026-10-0009 — C: fitting', () => {
     ]);
   });
 });
+
+describe('regresi laporan SNTY-2026-10-0009 — D: konsistensi angka dan teks', () => {
+  it('air bekas memasukkan jalur turun: 10 + 3,5 + halaman 5 = 18,5 m, sama dengan air kotor', async () => {
+    const { rec } = await analyse0009();
+    const drains = rec.bom.filter((b) => b.item === 'Pipa PVC D');
+    expect(drains.find((b) => b.size === '4"')!.basis).toContain('Panjang bersih 18,5 m');
+    expect(drains.find((b) => b.size === '2½"')!.basis).toContain('Panjang bersih 18,5 m');
+  });
+
+  it('"Ada N produk Pralon" sama dengan jumlah baris material', async () => {
+    const { rec } = await analyse0009();
+    expect(rec.stats.productCount).toBe(rec.bom.length);
+    expect(rec.body).toContain(`Ada ${rec.bom.length} produk Pralon`);
+  });
+
+  it('batas kecepatan satu sumber: 0,6–2 m/s, rencana 1,5 m/s; tidak ada "1–2 m/s"', async () => {
+    const { traces } = await analyse0009();
+    const text = traces.map((t) => t.explanation).join(' ');
+    expect(text).toContain('0.6–2 m/s');
+    expect(text).not.toMatch(/\b1–2 m\/s/);
+  });
+
+  it('bukan rumah tinggal: teks asumsi dan alasan tidak menyebut "rumah"', async () => {
+    const { rec } = await analyse0009();
+    const text = [
+      ...rec.assumptions.map((a) => a.text),
+      ...rec.systemLines.map((l) => l.reason),
+      rec.body,
+    ].join(' ');
+    expect(text).not.toMatch(/\brumah\b/i);
+  });
+});

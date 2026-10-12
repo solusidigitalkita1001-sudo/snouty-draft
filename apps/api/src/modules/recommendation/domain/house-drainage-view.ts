@@ -149,12 +149,12 @@ export function drainageAssumptions(
       text: en
         ? 'How the drainage is worked out: each fixture carries a drainage load, the loads are added per line, and each line takes the smallest pipe that can carry that load at a 2 % fall, never smaller than its largest fixture. Toilets drain to the septic tank, the rest to the drain or soakaway, each line with its own vent. ' +
           (result.lengths
-            ? 'Each route length is estimated from the house size until the floor plan is known.'
-            : 'The route length is not known yet, so the number of pipes is counted once the house size is given.')
+            ? 'Each route length is estimated from the building size until the floor plan is known.'
+            : 'The route length is not known yet, so the number of pipes is counted once the building size is given.')
         : 'Cara hitung pembuangannya: tiap alat punya beban buangan, bebannya dijumlah per jalur, lalu tiap jalur memakai pipa terkecil yang sanggup mengalirkan beban itu pada kemiringan 2 %, dan tidak lebih kecil dari alat terbesarnya. Kloset ke septic tank, sisanya ke saluran atau sumur resapan, masing-masing dengan ventilasi. ' +
           (result.lengths
-            ? 'Panjang tiap jalur diperkirakan dari ukuran rumah sampai denahnya ada.'
-            : 'Panjang jalurnya belum diketahui, jadi jumlah batang dihitung setelah ukuran rumahnya disebut.'),
+            ? 'Panjang tiap jalur diperkirakan dari ukuran bangunan sampai denahnya ada.'
+            : 'Panjang jalurnya belum diketahui, jadi jumlah batang dihitung setelah ukuran bangunannya disebut.'),
       fieldPath: '',
       ruleId: 'ENG-602',
     },
@@ -296,8 +296,8 @@ export function withHouseDrainage(
     return {
       ...base,
       headline: en
-        ? `House drainage: soil ${result.soil?.size ?? '-'}, waste ${result.waste?.size ?? '-'}`
-        : `Pembuangan rumah: air kotor ${result.soil?.size ?? '-'}, air bekas ${result.waste?.size ?? '-'}`,
+        ? `Drainage: soil ${result.soil?.size ?? '-'}, waste ${result.waste?.size ?? '-'}`
+        : `Pembuangan: air kotor ${result.soil?.size ?? '-'}, air bekas ${result.waste?.size ?? '-'}`,
       body: `${sentence} ${en ? 'Initial estimate, not a final design.' : 'Perkiraan awal, bukan desain final.'}`,
       stats: {
         ...base.stats,

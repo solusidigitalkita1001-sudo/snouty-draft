@@ -51,7 +51,7 @@ describe('computeHouseDrainage', () => {
 });
 
 describe('panjang jalur pembuangan dari ukuran rumah (ENG-603, P16-60)', () => {
-  it('air kotor = panjang + turun antar lantai, air bekas = panjang, ventilasi = tinggi bangunan + 1 m', () => {
+  it('air kotor dan air bekas = panjang + turun antar lantai, ventilasi = tinggi bangunan + 1 m', () => {
     const result = computeHouseDrainage({
       bathrooms: 3,
       basins: 0,
@@ -60,7 +60,7 @@ describe('panjang jalur pembuangan dari ukuran rumah (ENG-603, P16-60)', () => {
     });
     expect(result.lengths).toEqual({
       soilNetM: 15.5,
-      wasteNetM: 12,
+      wasteNetM: 15.5,
       soilVentNetM: 8,
       wasteVentNetM: 8,
     });

@@ -277,8 +277,8 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
       stated: { id: 'yang disebut', en: 'as stated' },
       plan: { id: 'panjang + lebar bangunan', en: 'building length + width' },
       assumed: {
-        id: 'perkiraan, ukuran rumah belum disebut',
-        en: 'estimated, house size not given',
+        id: 'perkiraan, ukuran bangunan belum disebut',
+        en: 'estimated, building size not given',
       },
     }[i.routeBasis];
     return o.tankLevelM !== null
@@ -699,7 +699,7 @@ export const ENG_704: RuleVersion<HouseBranchLengthInput, HouseBranchLengthResul
     teeCount: i.branchCount,
   }),
   sourceReference:
-    'Perkiraan tanpa denah: cabang = jumlah cabang × panjang rumah; sambungan = titik air × panjang sambungan; tee = 1 per cabang',
+    'Perkiraan tanpa denah: cabang = jumlah cabang × panjang bangunan; sambungan = titik air × panjang sambungan; tee = 1 per cabang',
   validationStatus: PENDING,
   testCases: [
     {
@@ -710,8 +710,8 @@ export const ENG_704: RuleVersion<HouseBranchLengthInput, HouseBranchLengthResul
   ],
   explain: (i, o, locale) =>
     localized(locale, {
-      id: `Cabang ${i.branchCount} × panjang rumah ${i.planLengthM} m = ${o.branchNetM} m; sambungan ke alat ${i.outletCount} titik × ${i.fixtureDropM} m = ${o.fixtureNetM} m; ${o.teeCount} tee, satu per cabang. Perkiraan sampai denahnya ada.`,
-      en: `Branches ${i.branchCount} × house length ${i.planLengthM} m = ${o.branchNetM} m; fixture connections ${i.outletCount} outlets × ${i.fixtureDropM} m = ${o.fixtureNetM} m; ${o.teeCount} tees, one per branch. An estimate until the floor plan is known.`,
+      id: `Cabang ${i.branchCount} × panjang bangunan ${i.planLengthM} m = ${o.branchNetM} m; sambungan ke alat ${i.outletCount} titik × ${i.fixtureDropM} m = ${o.fixtureNetM} m; ${o.teeCount} tee, satu per cabang. Perkiraan sampai denahnya ada.`,
+      en: `Branches ${i.branchCount} × building length ${i.planLengthM} m = ${o.branchNetM} m; fixture connections ${i.outletCount} outlets × ${i.fixtureDropM} m = ${o.fixtureNetM} m; ${o.teeCount} tees, one per branch. An estimate until the floor plan is known.`,
     }),
 };
 

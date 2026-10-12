@@ -198,7 +198,7 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
     const rows = rec.bom.map((b) => `${b.item} ${b.size} ${b.quantity} ${b.unit}`);
     // Air bersih: utama 1" (12 + 8 + 5,5 = 25,5 m → 7 batang); cabang 1" dan ¾" masing-masing 12 m → 3;
     // sambungan ½" 7 × 1,5 = 10,5 m → 3; tee 1" 2 buah.
-    // Pembuangan: air kotor 4" 12 + 3,5 = 15,5 m → 4; air bekas 2" 12 m → 3; ventilasi
+    // Pembuangan: air kotor 4" 12 + 3,5 = 15,5 m → 4; air bekas 2" juga 12 + 3,5 = 15,5 m → 4; ventilasi
     // 2 × 3,5 + 1 = 8 m per jalur → 2" 2 batang + 1¼" 2 batang (tanpa produk 1¼" → meter).
     expect(rows).toEqual([
       // 1": utama 25,5 m (7) + cabang lantai 2, 12 m (3) — satu produk, digabung.
@@ -207,7 +207,7 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
       'Pipa PVC AW 1/2" 3 batang',
       'Tee cabang 1" 2 pcs',
       'Pipa PVC D 4" 4 batang',
-      'Pipa PVC D 2" 5 batang',
+      'Pipa PVC D 2" 6 batang',
       'Pipa PVC D 1¼" 8 meter',
     ]);
     expect(

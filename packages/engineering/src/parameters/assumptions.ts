@@ -550,27 +550,27 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     value: 1,
     unit: 'dapur',
     conditionEn: 'number of kitchens not given',
-    descriptionEn: 'The house is taken to have 1 kitchen until the number is given.',
+    descriptionEn: 'The building is taken to have 1 kitchen until the number is given.',
     reference: 'Rumah tinggal lazimnya punya satu dapur',
     confidence: 'medium',
     confirmationRequired: true,
-    description: 'Rumah dianggap punya 1 dapur sampai jumlahnya disebut.',
+    description: 'Bangunan dianggap punya 1 dapur sampai jumlahnya disebut.',
   },
   {
     id: 'HOUSE_RUN_20M',
     parameter: 'route_length',
     appliesTo: [],
-    condition: 'ukuran rumah dan panjang jalur belum disebut',
+    condition: 'ukuran bangunan dan panjang jalur belum disebut',
     value: 20,
     unit: 'm',
-    conditionEn: 'house size and run length not given',
+    conditionEn: 'building size and run length not given',
     descriptionEn:
-      'The horizontal run to the farthest outlet is taken as 20 m until the house size is given; it is used for pipe sizing only, not for the pipe quantity.',
+      'The horizontal run to the farthest outlet is taken as 20 m until the building size is given; it is used for pipe sizing only, not for the pipe quantity.',
     reference: 'Perkiraan awal; diganti panjang + lebar rumah bila ukurannya disebut',
     confidence: 'low',
     confirmationRequired: true,
     description:
-      'Jalur datar ke titik air terjauh diambil 20 m sampai ukuran rumah disebut; hanya untuk memilih ukuran pipa, bukan untuk jumlah batang.',
+      'Jalur datar ke titik air terjauh diambil 20 m sampai ukuran bangunan disebut; hanya untuk memilih ukuran pipa, bukan untuk jumlah batang.',
   },
   {
     id: 'HOUSE_FIXTURE_DROP_1_5M',
@@ -736,7 +736,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     confidence: 'medium',
     confirmationRequired: true,
     description:
-      'Jalur kloset ke septic tank minimal 4 inci, seperti lazimnya rumah di Indonesia (minimum IPC 3 inci).',
+      'Jalur kloset ke septic tank minimal 4 inci, seperti lazimnya di Indonesia (minimum IPC 3 inci).',
   },
   {
     id: 'GRAVITY_SLOPE_MIN_0_5',

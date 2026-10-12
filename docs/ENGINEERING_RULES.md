@@ -455,7 +455,8 @@ ENG-102  tiap cabang dari debit bebannya sendiri (Hunter) pada 1,5 m/s — caban
 ENG-705  halaman = sisi terpanjang tanah − sisi terpanjang bangunan (≥ 0) — meteran PDAM, septic
          tank, dan saluran di depan tanah, bangunan di belakang; hanya bila ukuran tanah dan
          bangunan diketahui. ENG-702 v2: jalur sumber di bawah (PDAM, pompa, toren bawah) + halaman;
-         toren atap tidak. ENG-603 v2: air kotor dan air bekas + halaman.
+         toren atap tidak. ENG-603 v2: air kotor dan air bekas + halaman. ENG-603 v3: air bekas juga
+         + tinggi lantai × (lantai − 1). ENG-010 v2: batas 0,6–2 m/s dan rencana 1,5 m/s dari registry.
 ENG-706  pipa pengisi toren atap (hanya toren atap + ukuran bangunan) = halaman + sisi terpanjang
          bangunan + muka air toren; ukuran ¾" asumsi (TANK_FILL_PIPE_3_4IN)
 ENG-704  perkiraan panjang (hanya bila ukuran rumah diketahui, OQ-60): cabang = jumlah cabang × sisi

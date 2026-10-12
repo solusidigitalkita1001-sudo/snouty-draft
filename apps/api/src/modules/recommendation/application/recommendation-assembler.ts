@@ -209,3 +209,28 @@ export function templateProse(
       `Ada ${stats.productCount} produk Pralon yang sesuai untuk sistem ini.`,
   };
 }
+
+/**
+ * "Ada N produk Pralon" dihitung dari daftar material yang benar-benar tercetak (temuan laporan
+ * 0009: tertulis 5, daftarnya 7): baris material ditambah produk terpilih yang belum punya baris
+ * jumlah (laporan mencetaknya dengan jumlah "menyusul"). Dipanggil setelah pembuangan digabung dan
+ * baris SKU yang sama disatukan; kalimat templat ikut diperbarui.
+ */
+export function withPrintedMaterialCount(recommendation: Recommendation): Recommendation {
+  const counted = new Set(recommendation.bom.map((b) => b.productId).filter(Boolean));
+  const pending = new Set(
+    recommendation.products
+      .filter((p) => p.matchState !== 'INFORMATION_UNAVAILABLE' && !counted.has(p.productId))
+      .map((p) => p.productId),
+  );
+  const count = recommendation.bom.length + pending.size;
+  const before = recommendation.stats.productCount;
+  if (count === before) return recommendation;
+  const body = recommendation.body
+    .replace(`Ada ${before} produk Pralon`, `Ada ${count} produk Pralon`)
+    .replace(
+      new RegExp(`There (?:is|are) ${before} Pralon products?`),
+      `There ${count === 1 ? 'is' : 'are'} ${count} Pralon product${count === 1 ? '' : 's'}`,
+    );
+  return { ...recommendation, body, stats: { ...recommendation.stats, productCount: count } };
+}

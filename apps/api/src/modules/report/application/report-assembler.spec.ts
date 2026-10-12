@@ -519,3 +519,13 @@ describe('fitting tanpa jumlah (temuan laporan 0009)', () => {
     expect(html).not.toContain('Jumlah batang dihitung setelah');
   });
 });
+
+describe('tanpa halaman kosong di akhir PDF (temuan laporan 0009)', () => {
+  it('bagian terakhir tidak memaksa pindah halaman; :last-child tidak dipakai karena footer ada di akhir body', () => {
+    const html = renderReportHtml(assembleReportPayload(INPUT));
+    expect(html).toContain('section.page:last-of-type { page-break-after: auto; }');
+    expect(html).not.toContain('.page:last-child');
+    expect(html.trimEnd().endsWith('</html>')).toBe(true);
+    expect(html.lastIndexOf('<section')).toBeLessThan(html.indexOf('id="snouty-pdf-footer"'));
+  });
+});

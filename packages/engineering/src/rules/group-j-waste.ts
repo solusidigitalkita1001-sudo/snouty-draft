@@ -364,9 +364,9 @@ export interface DrainLengthInput {
   readonly yardM: number;
 }
 export interface DrainLengthResult {
-  /** Air kotor: panjang rumah + turun dari lantai teratas; `null` bila tidak ada kloset. */
+  /** Air kotor: panjang bangunan + turun dari lantai teratas; `null` bila tidak ada kloset. */
   readonly soilNetM: number | null;
-  /** Air bekas: panjang rumah; `null` bila tidak ada alat air bekas. */
+  /** Air bekas: panjang bangunan + turun dari lantai teratas; `null` bila tidak ada alat air bekas. */
   readonly wasteNetM: number | null;
   /** Ventilasi tiap jalur: tinggi bangunan + di atas atap. */
   readonly soilVentNetM: number | null;
@@ -380,7 +380,8 @@ export interface DrainLengthResult {
 export const ENG_603: RuleVersion<DrainLengthInput, DrainLengthResult> = {
   ruleId: 'ENG-603',
   // v2 (2026-10-12): jalur air kotor dan air bekas melewati halaman ke depan tanah.
-  version: 2,
+  // v3 (laporan 0009): air bekas juga turun dari lantai atas, seperti air kotor.
+  version: 3,
   category: 'geometry',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -406,13 +407,15 @@ export const ENG_603: RuleVersion<DrainLengthInput, DrainLengthResult> = {
       soilNetM: i.hasSoil
         ? round1(i.planLengthM + i.floorHeightM * (i.floors - 1) + i.yardM)
         : null,
-      wasteNetM: i.hasWaste ? round1(i.planLengthM + i.yardM) : null,
+      wasteNetM: i.hasWaste
+        ? round1(i.planLengthM + i.floorHeightM * (i.floors - 1) + i.yardM)
+        : null,
       soilVentNetM: i.hasSoil ? vent : null,
       wasteVentNetM: i.hasWaste ? vent : null,
     };
   },
   sourceReference:
-    'Perkiraan tanpa denah: air kotor = panjang bangunan + tinggi lantai × (lantai − 1) + halaman; air bekas = panjang bangunan + halaman; ventilasi = lantai × tinggi lantai + tinggi di atas atap',
+    'Perkiraan tanpa denah: air kotor = panjang bangunan + tinggi lantai × (lantai − 1) + halaman; air bekas = panjang bangunan + tinggi lantai × (lantai − 1) + halaman; ventilasi = lantai × tinggi lantai + tinggi di atas atap',
   validationStatus: PENDING,
   testCases: [
     {
@@ -426,10 +429,10 @@ export const ENG_603: RuleVersion<DrainLengthInput, DrainLengthResult> = {
         hasWaste: true,
         yardM: 0,
       },
-      expected: { soilNetM: 15.5, wasteNetM: 12, soilVentNetM: 8, wasteVentNetM: 8 },
+      expected: { soilNetM: 15.5, wasteNetM: 15.5, soilVentNetM: 8, wasteVentNetM: 8 },
     },
     {
-      name: 'sama, tanah 20 m → halaman 8 m: air kotor 23,5 m, air bekas 20 m',
+      name: 'sama, tanah 20 m → halaman 8 m: air kotor dan air bekas 12 + 3,5 + 8 = 23,5 m',
       input: {
         planLengthM: 12,
         floors: 2,
@@ -439,7 +442,7 @@ export const ENG_603: RuleVersion<DrainLengthInput, DrainLengthResult> = {
         hasWaste: true,
         yardM: 8,
       },
-      expected: { soilNetM: 23.5, wasteNetM: 20, soilVentNetM: 8, wasteVentNetM: 8 },
+      expected: { soilNetM: 23.5, wasteNetM: 23.5, soilVentNetM: 8, wasteVentNetM: 8 },
     },
   ],
   explain: (i, o, locale) =>
@@ -449,7 +452,7 @@ export const ENG_603: RuleVersion<DrainLengthInput, DrainLengthResult> = {
           ? `Air kotor = panjang bangunan ${i.planLengthM} m + ${i.floorHeightM} m × (${i.floors} − 1) lantai${i.yardM > 0 ? ` + halaman ${i.yardM} m` : ''} = ${o.soilNetM} m.`
           : '',
         o.wasteNetM !== null
-          ? `Air bekas = panjang bangunan ${i.planLengthM} m${i.yardM > 0 ? ` + halaman ${i.yardM} m` : ''} = ${o.wasteNetM} m.`
+          ? `Air bekas = panjang bangunan ${i.planLengthM} m + ${i.floorHeightM} m × (${i.floors} − 1) lantai${i.yardM > 0 ? ` + halaman ${i.yardM} m` : ''} = ${o.wasteNetM} m.`
           : '',
         `Ventilasi = ${i.floors} lantai × ${i.floorHeightM} m + ${i.ventAboveRoofM} m di atas atap = ${round1(i.floors * i.floorHeightM + i.ventAboveRoofM)} m per jalur.`,
         'Perkiraan sampai denahnya ada.',
@@ -461,7 +464,7 @@ export const ENG_603: RuleVersion<DrainLengthInput, DrainLengthResult> = {
           ? `Soil line = building length ${i.planLengthM} m + ${i.floorHeightM} m × (${i.floors} − 1) floors${i.yardM > 0 ? ` + yard ${i.yardM} m` : ''} = ${o.soilNetM} m.`
           : '',
         o.wasteNetM !== null
-          ? `Waste line = building length ${i.planLengthM} m${i.yardM > 0 ? ` + yard ${i.yardM} m` : ''} = ${o.wasteNetM} m.`
+          ? `Waste line = building length ${i.planLengthM} m + ${i.floorHeightM} m × (${i.floors} − 1) floors${i.yardM > 0 ? ` + yard ${i.yardM} m` : ''} = ${o.wasteNetM} m.`
           : '',
         `Vent = ${i.floors} floors × ${i.floorHeightM} m + ${i.ventAboveRoofM} m above the roof = ${round1(i.floors * i.floorHeightM + i.ventAboveRoofM)} m per line.`,
         'An estimate until the floor plan is known.',

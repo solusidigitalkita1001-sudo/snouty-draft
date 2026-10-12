@@ -81,6 +81,6 @@ describe('pembuangan rumah di solusi', () => {
     expect(only.systemLines.some((l) => l.name === 'Pipa utama')).toBe(false);
     expect(only.products.map((p) => p.productId)).toEqual(['D4']);
     expect(only.bom).toEqual([]);
-    expect(only.headline).toBe('Pembuangan rumah: air kotor 4", air bekas 2"');
+    expect(only.headline).toBe('Pembuangan: air kotor 4", air bekas 2"');
   });
 });

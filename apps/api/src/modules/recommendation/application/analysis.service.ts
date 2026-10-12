@@ -110,7 +110,11 @@ import { ConversationService } from '../../conversation/application/conversation
 import type { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import { CatalogUnavailableError as CatalogReadUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import { ulid } from '../../../shared/ulid.js';
-import { assembleRecommendation, type ProseWriter } from './recommendation-assembler.js';
+import {
+  assembleRecommendation,
+  withPrintedMaterialCount,
+  type ProseWriter,
+} from './recommendation-assembler.js';
 import {
   fittingRequirement,
   matchProducts,
@@ -425,6 +429,11 @@ export class AnalysisService {
       );
       allTraces = [...traces, ...drainageTraces];
     }
+    // Jumlah produk di ringkasan = daftar material yang tercetak (laporan 0009).
+    recommendation = withPrintedMaterialCount({
+      ...recommendation,
+      bom: mergeBomBySku(recommendation.bom),
+    });
     await this.repository.save(saveReady(state, recommendation, allTraces, locale), allTraces, {
       proseSource: assembled.proseSource,
     });
