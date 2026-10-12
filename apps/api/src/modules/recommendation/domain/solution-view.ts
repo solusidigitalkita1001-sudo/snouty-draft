@@ -259,7 +259,7 @@ export function bomItemsFrom(
           : 'jalur yang disebut'
         : en
           ? 'house length + width and the height to the highest outlet'
-          : 'panjang + lebar rumah dan beda tinggi ke titik air tertinggi',
+          : 'panjang + lebar bangunan dan beda tinggi ke titik air tertinggi',
       stock,
       ids,
     ),
@@ -287,8 +287,8 @@ export function bomItemsFrom(
       solution.branchSize,
       layout.branchNetM,
       en
-        ? `${solution.branchCount} branches × house length`
-        : `${solution.branchCount} cabang × panjang rumah`,
+        ? `${solution.branchCount} branches × building length`
+        : `${solution.branchCount} cabang × panjang bangunan`,
       stocks.branch ?? null,
       layoutIds,
     ),
