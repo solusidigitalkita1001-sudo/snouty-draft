@@ -85,6 +85,10 @@ export const CHAT_COPY = {
   titleFor: (building: string | null, floors: number | null) => {
     if (building === 'industrial') return 'Pabrik — jalur air proses';
     if (building === 'boarding_house') return 'Rumah kos — instalasi air bersih';
+    if (building === 'place_of_worship')
+      return floors !== null
+        ? `Tempat ibadah ${floors} lantai — konsultasi baru`
+        : 'Tempat ibadah — konsultasi baru';
     // Toko, kantor, masjid, sekolah: bangunan komersial ringan, bukan "Rumah" (laporan pemilik 2026-10-08).
     if (building === 'light_commercial')
       return floors !== null
@@ -305,6 +309,10 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   titleFor: (building: string | null, floors: number | null) => {
     if (building === 'industrial') return 'Factory — process water line';
     if (building === 'boarding_house') return 'Boarding house — clean water installation';
+    if (building === 'place_of_worship')
+      return floors !== null
+        ? `${floors}-storey place of worship — new consultation`
+        : 'Place of worship — new consultation';
     if (building === 'light_commercial')
       return floors !== null
         ? `${floors}-storey building — new consultation`
