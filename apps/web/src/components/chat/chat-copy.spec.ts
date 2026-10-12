@@ -14,3 +14,11 @@ describe('judul percakapan dari kebutuhan', () => {
     );
   });
 });
+
+describe('rateLimited (pemilik 2026-10-12)', () => {
+  it('menyebut menit; tamu ditawari akun dengan batasnya', () => {
+    expect(CHAT_COPY.rateLimited(58, 60)).toContain('±58 menit');
+    expect(CHAT_COPY.rateLimited(58, 60)).toContain('60 pesan per jam');
+    expect(CHAT_COPY.rateLimited(5, null)).not.toContain('daftar');
+  });
+});

@@ -195,7 +195,13 @@ export class MessageController {
         limit,
       );
       if (!verdict.allowed) {
-        throw new RateLimitedError(verdict.retryAfterSec);
+        // Tamu ditawari akun: batas pesan akun terdaftar ikut dikirim dari tabel kebijakan.
+        const registered =
+          actor.tier === 'guest' ? limitFor('registered', 'messages_per_hour') : null;
+        throw new RateLimitedError(
+          verdict.retryAfterSec,
+          registered ? { tier: actor.tier, registeredMax: registered.max } : { tier: actor.tier },
+        );
       }
     }
 

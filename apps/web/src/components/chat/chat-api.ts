@@ -45,6 +45,17 @@ export async function createConversation(language: Locale = 'id'): Promise<Conve
  */
 export type AnswerMode = 'hemat' | 'kualitas';
 
+/** Batas pesan per jam tercapai; `registeredMax` ada bila pengirimnya tamu. */
+export class RateLimitError extends Error {
+  constructor(
+    readonly retryAfterSec: number,
+    readonly registeredMax: number | null,
+  ) {
+    super('rate limited');
+    this.name = 'RateLimitError';
+  }
+}
+
 export async function sendMessage(
   conversationId: string,
   text: string,
@@ -60,6 +71,13 @@ export async function sendMessage(
     body: JSON.stringify({ text, mode }),
     ...(signal ? { signal } : {}),
   });
+  if (response.status === 429) {
+    const body = (await response.json().catch(() => null)) as {
+      error?: { details?: { retryAfterSec?: number; registeredMax?: number } };
+    } | null;
+    const details = body?.error?.details;
+    throw new RateLimitError(details?.retryAfterSec ?? 3600, details?.registeredMax ?? null);
+  }
   if (!response.ok || !response.body) throw new Error(`messages ${response.status}`);
 
   const reader = response.body.getReader();

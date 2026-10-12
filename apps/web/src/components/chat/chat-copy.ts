@@ -174,6 +174,10 @@ export const CHAT_COPY = {
     'Solusi ini panduan perencanaan, bukan sertifikasi teknis. Untuk pelaksanaan, rencana akhir sebaiknya diperiksa bersama instalatur atau tim teknis Pralon.',
   analysisFooter:
     'SNOUTY hanya mencocokkan dengan katalog Pralon. Nilai yang tidak tersedia ditandai sebagai estimasi.',
+  rateLimited: (minutes: number, registeredMax: number | null) =>
+    registeredMax !== null
+      ? `Batas pesan tamu untuk satu jam sudah tercapai. Coba lagi dalam ±${minutes} menit, atau daftar akun gratis — akun terdaftar bisa mengirim sampai ${registeredMax} pesan per jam.`
+      : `Batas pesan untuk satu jam sudah tercapai. Coba lagi dalam ±${minutes} menit.`,
   llmUnavailable:
     'Pemahaman bahasa sedang tidak tersedia. Coba lagi sebentar — percakapan Anda tetap tersimpan.',
   /** Giliran berakhir tanpa teks maupun kartu (tahap gagal di server). */
@@ -392,6 +396,10 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
     'This solution is planning guidance, not a technical certification. For implementation, the final plan should be reviewed with an installer or the Pralon technical team.',
   analysisFooter:
     'SNOUTY only matches against the Pralon catalog. Values that are not available are marked as estimates.',
+  rateLimited: (minutes: number, registeredMax: number | null) =>
+    registeredMax !== null
+      ? `The guest message limit for this hour has been reached. Try again in about ${minutes} minutes, or create a free account — registered accounts can send up to ${registeredMax} messages an hour.`
+      : `The message limit for this hour has been reached. Try again in about ${minutes} minutes.`,
   llmUnavailable:
     'Language understanding is temporarily unavailable. Please try again shortly — your conversation is still saved.',
   emptyReply:

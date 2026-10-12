@@ -51,6 +51,7 @@ import {
   deleteConversation,
   restoreConversation,
   sendMessage,
+  RateLimitError,
   sendToTechnicalTeam,
   uploadPlan,
   type ConversationSummary,
@@ -422,8 +423,19 @@ export function ChatWorkspace() {
 
       try {
         await sendMessage(activeId, text, apply, undefined, answerMode);
-      } catch {
-        setError(COPY.llmUnavailable);
+      } catch (failure) {
+        if (failure instanceof RateLimitError) {
+          // Lama menunggu disebut; tamu ditawari akun dengan batasnya (pemilik 2026-10-12).
+          setError(
+            COPY.rateLimited(
+              Math.max(1, Math.ceil(failure.retryAfterSec / 60)),
+              failure.registeredMax,
+            ),
+          );
+          if (failure.registeredMax !== null) setGate(true);
+        } else {
+          setError(COPY.llmUnavailable);
+        }
       } finally {
         if (assistantText !== '' || assistantCards.length > 0) {
           setTurns((previous) => [

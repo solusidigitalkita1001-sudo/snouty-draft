@@ -89,9 +89,22 @@ export class RateLimitedError extends Error {
   readonly code = 'RATE_LIMITED';
   readonly details: Readonly<Record<string, unknown>>;
 
-  constructor(readonly retryAfterSec: number) {
-    super('Permintaan terlalu sering. Coba lagi sebentar.');
+  /**
+   * `extra` membawa keterangan untuk klien — mis. batas pesan akun terdaftar bagi tamu, supaya
+   * tawaran "daftar akun" memakai angka kebijakan yang sama, bukan salinan di web.
+   */
+  constructor(
+    readonly retryAfterSec: number,
+    extra: Readonly<Record<string, unknown>> = {},
+  ) {
+    // Lama menunggu disebut (pemilik 2026-10-12): "coba lagi sebentar" padahal ±58 menit.
+    super(`Batas permintaan tercapai. Coba lagi dalam ±${waitMinutes(retryAfterSec)} menit.`);
     this.name = 'RateLimitedError';
-    this.details = { retryAfterSec };
+    this.details = { retryAfterSec, ...extra };
   }
+}
+
+/** Menit tunggu, dibulatkan ke atas, minimal 1. */
+export function waitMinutes(retryAfterSec: number): number {
+  return Math.max(1, Math.ceil(retryAfterSec / 60));
 }
