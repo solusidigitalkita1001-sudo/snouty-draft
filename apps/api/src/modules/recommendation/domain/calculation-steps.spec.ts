@@ -42,3 +42,11 @@ describe('langkah hitung', () => {
     expect(readableNumbers('loss 0.65 m', 'en')).toBe('loss 0.65 m');
   });
 });
+
+describe('readableNumbers: nomor pasal standar tidak menjadi desimal', () => {
+  it('"IPC 710.1(2)" tetap, "1.38 m/s" menjadi koma', () => {
+    expect(readableNumbers('Kecepatan 1.38 m/s (IPC 710.1(2), Tabel 709.1).', 'id')).toBe(
+      'Kecepatan 1,38 m/s (IPC 710.1(2), Tabel 709.1).',
+    );
+  });
+});

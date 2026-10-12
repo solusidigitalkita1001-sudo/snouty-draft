@@ -1354,6 +1354,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       baris tipis "Lihat solusi"; label kelompok isian ukuran di barisnya sendiri.
 - [x] P16-63 Pipa pengisi toren atap dihitung (ENG-706, asumsi ¾" TANK_FILL_PIPE_3_4IN): baris sistem dan baris
       material; layar solusi ponsel satu baris (panah kembali ringkas + tab).
+- [x] P16-64 Temuan laporan 0009 — A: pembuangan bangunan bertingkat dicek terhadap cabang mendatar per lantai dan
+      pipa tegak (ENG-604, IPC 2021 Tabel 710.1(2), ENG-602 v2); masjid 0009 air bekas 2" → 2½"; rumah 0002 tetap 2";
+      nomor pasal standar tidak lagi diubah menjadi desimal berkoma.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

@@ -17,6 +17,7 @@ import {
   ENG_601,
   ENG_602,
   ENG_603,
+  ENG_604,
   type DrainageLoadResult,
   type DrainLengthResult,
   type DrainLineResult,
@@ -27,6 +28,15 @@ export interface HouseDrainageInput {
   readonly bathrooms: number;
   readonly basins: number;
   readonly kitchens: number;
+  /**
+   * Alat per lantai (sebaran yang sama dengan air bersih, ENG-008). Ada → cabang mendatar per
+   * lantai dan pipa tegak ikut dicek (ENG-604); tidak ada → dianggap satu lantai.
+   */
+  readonly floors?: readonly {
+    readonly bathrooms: number;
+    readonly basins: number;
+    readonly kitchens: number;
+  }[];
   /** Ukuran rumah dan lantai — bila ada, panjang tiap jalur diperkirakan (ENG-603, P16-60). */
   readonly layout?: {
     readonly planLengthM: number;
@@ -106,19 +116,37 @@ export function computeHouseDrainage(
     lavatories: input.basins,
     kitchenSinks: input.kitchens,
   };
+  const dfu = {
+    waterCloset: use('DFU_WATER_CLOSET_4'),
+    shower: use('DFU_SHOWER_2'),
+    lavatory: use('DFU_LAVATORY_1'),
+    kitchenSink: use('DFU_KITCHEN_SINK_2'),
+  };
   const load = run(ENG_601, {
     ...counts,
-    dfuWaterCloset: use('DFU_WATER_CLOSET_4'),
-    dfuShower: use('DFU_SHOWER_2'),
-    dfuLavatory: use('DFU_LAVATORY_1'),
-    dfuKitchenSink: use('DFU_KITCHEN_SINK_2'),
+    dfuWaterCloset: dfu.waterCloset,
+    dfuShower: dfu.shower,
+    dfuLavatory: dfu.lavatory,
+    dfuKitchenSink: dfu.kitchenSink,
   });
+
+  // Beban per lantai tiap jalur — untuk cabang mendatar dan pipa tegak (ENG-604, laporan 0009).
+  const floors = input.floors && input.floors.length > 0 ? input.floors : [input];
+  const soilFloors = floors.map((f) => f.bathrooms * dfu.waterCloset).filter((d) => d > 0);
+  const wasteFloors = floors
+    .map((f) => f.bathrooms * dfu.shower + f.basins * dfu.lavatory + f.kitchens * dfu.kitchenSink)
+    .filter((d) => d > 0);
+  // Hanya bangunan bertingkat: satu lantai mengalir langsung ke saluran bangunan (710.1(1)).
+  const multiStorey = floors.length > 1;
+  const branchStack = (perFloor: readonly number[]) =>
+    multiStorey && perFloor.length > 0 ? run(ENG_604, { floorDfu: perFloor }).size : null;
 
   const soil =
     counts.waterClosets > 0
       ? run(ENG_602, {
           dfu: load.soilDfu,
           minimumSize: sizeFromInches('SOIL_LINE_MIN_4IN', use('SOIL_LINE_MIN_4IN')),
+          branchStackSize: branchStack(soilFloors),
         })
       : null;
 
@@ -130,7 +158,11 @@ export function computeHouseDrainage(
   );
   const waste =
     wasteFixtures.length > 0
-      ? run(ENG_602, { dfu: load.wasteDfu, minimumSize: FIXTURE_MIN[wasteFixtures[0]!] })
+      ? run(ENG_602, {
+          dfu: load.wasteDfu,
+          minimumSize: FIXTURE_MIN[wasteFixtures[0]!],
+          branchStackSize: branchStack(wasteFloors),
+        })
       : null;
 
   const fixtures: FixtureDrain[] = [

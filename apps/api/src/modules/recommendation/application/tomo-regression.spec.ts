@@ -219,3 +219,14 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
     expect(fittings).toEqual(['Tee TS - W 1"', 'Bell Long TY - D 4" x 4"']);
   });
 });
+
+describe('aturan A (laporan 0009) pada kasus rumah 0002', () => {
+  it('cabang per lantai dan pipa tegak dicek; air bekas 4 + 4 DFU tetap 2", air kotor 4", utama 1"', async () => {
+    const { rec, traces } = await analyse();
+    expect(traces.filter((t) => t.ruleId === 'ENG-604')).toHaveLength(2);
+    const size = (name: string) => rec.systemLines.find((l) => l.name === name)?.size;
+    expect(size('Pipa air bekas PVC D')).toBe('2"');
+    expect(size('Pipa air kotor PVC D')).toBe('4"');
+    expect(size('Pipa distribusi utama')).toBe('1"');
+  });
+});

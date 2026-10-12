@@ -351,6 +351,12 @@ export class AnalysisService {
           kitchens: state.fixtures.kitchens.value ?? 1,
           // Ukuran rumah → perkiraan panjang tiap jalur (ENG-603, P16-60); sisi terpanjang.
           layout: houseLayout(state, solution),
+          // Sebaran lantai yang sama dengan air bersih — cabang per lantai dan pipa tegak (ENG-604).
+          floors: solution.floorsPlan.map((f) => ({
+            bathrooms: f.bathrooms,
+            basins: f.basins,
+            kitchens: f.kitchens,
+          })),
         },
         locale,
         overridesOf(state),

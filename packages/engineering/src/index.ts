@@ -194,7 +194,7 @@ export type {
   HouseDrainageInput,
   HouseDrainageResult,
 } from './compute-house-waste.js';
-export { DRAIN_SIZES, ENG_601, ENG_602, ENG_603, GROUP_J } from './rules/group-j-waste.js';
+export { DRAIN_SIZES, ENG_601, ENG_602, ENG_603, ENG_604, GROUP_J } from './rules/group-j-waste.js';
 export type { DrainLineResult, DrainSize, DrainageLoadResult } from './rules/group-j-waste.js';
 export { hasStepTitle, ruleStepTitle } from './rules/step-titles.js';
 export { stepFormula } from './rules/step-formulas.js';

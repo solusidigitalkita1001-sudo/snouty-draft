@@ -13,7 +13,12 @@ import type { IdentifiedTrace } from './solution-view.js';
  * Penjelasan aturan tidak memakai pemisah ribuan, jadi titik di antara dua angka selalu desimal.
  */
 export function readableNumbers(text: string, locale: Locale): string {
-  return locale === 'en' ? text : text.replace(/(\d)\.(\d)/g, '$1,$2');
+  if (locale === 'en') return text;
+  // Nomor pasal/tabel standar ("IPC 710.1(2)", "Tabel 709.1") bukan desimal — tidak diubah.
+  return text.replace(
+    /\b(IPC|SNI|Tabel|Table)(\s+[\d.]+)|(\d)\.(\d)/g,
+    (_match, ref, refNum, a, b) => (ref !== undefined ? `${ref}${refNum}` : `${a},${b}`),
+  );
 }
 
 export function stepsFor(

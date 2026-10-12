@@ -420,6 +420,11 @@ ENG-602  ukuran = pipa terkecil dengan kapasitas ≥ beban pada kemiringan 2 % (
          2" 21, 2½" 24, 3" 42, 4" 216, 5" 480, 6" 840), tidak lebih kecil dari alat terbesar
          (kloset 4" — SOIL_LINE_MIN_4IN; floor drain 2", bak cuci 1½", wastafel 1¼")
          ventilasi = ukuran terkecil ≥ ½ diameter jalur, minimal 1¼" (IPC 906.2)
+ENG-604  bangunan ≥ 2 lantai: cabang mendatar lantai terberat dan pipa tegak (total semua lantai,
+         per interval ≤ kolom "satu interval") menurut IPC 2021 Tabel 710.1(2) — cabang 1½" 3,
+         2" 6, 2½" 12, 3" 20, 4" 160 DFU; stack ≤ 3 interval 4/10/20/48/240, > 3 interval
+         8/24/42/72/500. ENG-602 v2: ukuran jalur = maks(saluran bangunan, alat terbesar, ENG-604);
+         ventilasi dari ukuran baru. Tiap lantai dianggap satu interval (konservatif).
 ENG-603  perkiraan panjang (hanya bila ukuran rumah diketahui, OQ-60): air kotor = sisi terpanjang
          + tinggi lantai × (lantai − 1); air bekas = sisi terpanjang; ventilasi = lantai × tinggi
          lantai + 1 m di atas atap (HOUSE_VENT_ABOVE_ROOF_1M)

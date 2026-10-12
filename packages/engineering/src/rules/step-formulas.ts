@@ -207,6 +207,13 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
       );
     return parts.length > 0 ? parts.join(' · ') : null;
   },
+  'ENG-604': (i, o, f) =>
+    Array.isArray(i['floorDfu']) && nums(o, ['branchDfu', 'stackDfu']) && isStr(o['branchSize'])
+      ? f.t(
+          `Cabang lantai terberat ${f.n(o['branchDfu'])} DFU → ${o['branchSize']}${isStr(o['stackSize']) ? ` · Pipa tegak ${(i['floorDfu'] as unknown[]).map(f.n).join(' + ')} = ${f.n(o['stackDfu'])} DFU → ${o['stackSize']}` : ''}`,
+          `Heaviest floor branch ${f.n(o['branchDfu'])} DFU → ${o['branchSize']}${isStr(o['stackSize']) ? ` · Stack ${(i['floorDfu'] as unknown[]).map(f.n).join(' + ')} = ${f.n(o['stackDfu'])} DFU → ${o['stackSize']}` : ''}`,
+        )
+      : null,
   'ENG-704': (i, o, f) =>
     nums(i, ['planLengthM', 'branchCount', 'outletCount', 'fixtureDropM']) &&
     nums(o, ['branchNetM', 'fixtureNetM', 'teeCount'])

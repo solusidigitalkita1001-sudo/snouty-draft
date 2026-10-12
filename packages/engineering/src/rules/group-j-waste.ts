@@ -34,6 +34,29 @@ const DRAIN_CAPACITY_DFU_2PCT: Readonly<Partial<Record<DrainSize, number>>> = {
   '6"': 840,
 };
 
+/**
+ * Cabang mendatar per lantai dan pipa tegak (stack) — IPC 2021 Tabel 710.1(2) "Horizontal fixture
+ * branches and stacks" (tidak mencakup cabang saluran bangunan, yang ada di Tabel 710.1(1)).
+ * Kolom: total cabang mendatar; total buangan ke satu interval cabang; total stack ≤ 3 interval;
+ * total stack > 3 interval. Tabel dimulai dari 1½" — 1¼" tidak dipakai sebagai cabang atau stack.
+ * Dicek 2026-10-12 terhadap salinan IPC 2021 (Connecticut State Building Code 2022, UpCodes).
+ */
+interface BranchStackCapacity {
+  readonly branch: number;
+  readonly interval: number;
+  readonly stack3: number;
+  readonly stackMore: number;
+}
+const BRANCH_STACK_DFU: Readonly<Partial<Record<DrainSize, BranchStackCapacity>>> = {
+  '1½"': { branch: 3, interval: 2, stack3: 4, stackMore: 8 },
+  '2"': { branch: 6, interval: 6, stack3: 10, stackMore: 24 },
+  '2½"': { branch: 12, interval: 9, stack3: 20, stackMore: 42 },
+  '3"': { branch: 20, interval: 20, stack3: 48, stackMore: 72 },
+  '4"': { branch: 160, interval: 90, stack3: 240, stackMore: 500 },
+  '5"': { branch: 360, interval: 200, stack3: 540, stackMore: 1100 },
+  '6"': { branch: 620, interval: 350, stack3: 960, stackMore: 1900 },
+};
+
 const indexOf = (size: DrainSize) => DRAIN_SIZES.indexOf(size);
 const larger = (a: DrainSize, b: DrainSize): DrainSize => (indexOf(a) >= indexOf(b) ? a : b);
 
@@ -141,6 +164,8 @@ export interface DrainLineInput {
   readonly dfu: number;
   /** Ukuran minimum dari alat terbesar di jalur ini (mis. kloset 4"). */
   readonly minimumSize: DrainSize;
+  /** Ukuran minimum dari cabang mendatar per lantai dan pipa tegak (ENG-604); `null` = tidak dicek. */
+  readonly branchStackSize: DrainSize | null;
 }
 export interface DrainLineResult {
   /** Ukuran terkecil yang kapasitasnya cukup untuk beban ini. */
@@ -157,7 +182,8 @@ function inches(size: DrainSize): number {
 
 export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
   ruleId: 'ENG-602',
-  version: 1,
+  // v2 (2026-10-12, temuan laporan 0009): ukuran juga tidak di bawah cabang/stack (ENG-604).
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -165,49 +191,163 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
     if (!DRAIN_SIZES.includes(minimumSize as DrainSize)) {
       throw new Error(`ENG-602: minimumSize tidak dikenal: ${String(minimumSize)}`);
     }
+    const branchStack = o['branchStackSize'] ?? null;
+    if (branchStack !== null && !DRAIN_SIZES.includes(branchStack as DrainSize)) {
+      throw new Error(`ENG-602: branchStackSize tidak dikenal: ${String(branchStack)}`);
+    }
     return {
       dfu: requireNumber('ENG-602', 'dfu', o['dfu'], { min: 0, max: 840 }),
       minimumSize: minimumSize as DrainSize,
+      branchStackSize: branchStack as DrainSize | null,
     };
   },
   compute: (i) => {
     const capacitySize = (Object.entries(DRAIN_CAPACITY_DFU_2PCT) as [DrainSize, number][]).find(
       ([, cap]) => cap >= i.dfu,
     )![0];
-    const size = larger(capacitySize, i.minimumSize);
+    const size = larger(larger(capacitySize, i.minimumSize), i.branchStackSize ?? capacitySize);
     const half = inches(size) / 2;
     const ventSize = DRAIN_SIZES.find((s) => inches(s) >= Math.max(1.25, half))!;
     return { capacitySize, size, capacityDfu: DRAIN_CAPACITY_DFU_2PCT[size] ?? 0, ventSize };
   },
   sourceReference:
-    'Kapasitas saluran mendatar pada kemiringan 2 %, IPC Tabel 710.1(1): 2" 21, 2½" 24, 3" 42, 4" 216, 5" 480, 6" 840 DFU; ukuran tidak di bawah alat terbesar; ventilasi ≥ ½ diameter jalur, minimal 1¼" (IPC 906.2)',
+    'Kapasitas saluran mendatar pada kemiringan 2 %, IPC Tabel 710.1(1): 2" 21, 2½" 24, 3" 42, 4" 216, 5" 480, 6" 840 DFU; ukuran tidak di bawah alat terbesar dan tidak di bawah cabang mendatar / pipa tegak (ENG-604, IPC 710.1(2)); ventilasi ≥ ½ diameter jalur, minimal 1¼" (IPC 906.2)',
   validationStatus: PENDING,
   testCases: [
     {
       name: 'air kotor 12 DFU, minimum kloset 4" → 4", ventilasi 2"',
-      input: { dfu: 12, minimumSize: '4"' },
+      input: { dfu: 12, minimumSize: '4"', branchStackSize: null },
       expected: { capacitySize: '2"', size: '4"', capacityDfu: 216, ventSize: '2"' },
     },
     {
       name: 'air bekas 30 DFU, minimum 2" → 3" dari kapasitas, ventilasi 1½"',
-      input: { dfu: 30, minimumSize: '2"' },
+      input: { dfu: 30, minimumSize: '2"', branchStackSize: null },
       expected: { capacitySize: '3"', size: '3"', capacityDfu: 42, ventSize: '1½"' },
+    },
+    {
+      name: 'air bekas 16 DFU, cabang/stack menuntut 2½" → 2½", ventilasi 1¼"',
+      input: { dfu: 16, minimumSize: '2"', branchStackSize: '2½"' },
+      expected: { capacitySize: '2"', size: '2½"', capacityDfu: 24, ventSize: '1¼"' },
     },
   ],
   explain: (i, o, locale) =>
     localized(locale, {
       id:
         `Beban ${i.dfu} cukup dialirkan pipa ${o.capacitySize} pada kemiringan 2 %` +
-        (o.size !== o.capacitySize
-          ? `, tetapi alat terbesar di jalur ini butuh minimal ${i.minimumSize}, jadi jalurnya ${o.size}`
-          : `, jadi jalurnya ${o.size}`) +
+        (o.size === o.capacitySize
+          ? `, jadi jalurnya ${o.size}`
+          : o.size === i.branchStackSize && o.size !== i.minimumSize
+            ? `, tetapi cabang per lantai dan pipa tegaknya butuh minimal ${o.size}, jadi jalurnya ${o.size}`
+            : `, tetapi alat terbesar di jalur ini butuh minimal ${i.minimumSize}, jadi jalurnya ${o.size}`) +
         ` (kapasitas ${o.capacityDfu}). Pipa ventilasinya ${o.ventSize}, setengah diameter jalur dan tidak kurang dari 1¼".`,
       en:
         `A load of ${i.dfu} fits a ${o.capacitySize} pipe at 2 % slope` +
-        (o.size !== o.capacitySize
-          ? `, but the largest fixture on this line needs at least ${i.minimumSize}, so the line is ${o.size}`
-          : `, so the line is ${o.size}`) +
+        (o.size === o.capacitySize
+          ? `, so the line is ${o.size}`
+          : o.size === i.branchStackSize && o.size !== i.minimumSize
+            ? `, but the branch per floor and the stack need at least ${o.size}, so the line is ${o.size}`
+            : `, but the largest fixture on this line needs at least ${i.minimumSize}, so the line is ${o.size}`) +
         ` (capacity ${o.capacityDfu}). Its vent pipe is ${o.ventSize}, half the line diameter and not under 1¼".`,
+    }),
+};
+
+// ── ENG-604 · Cabang mendatar per lantai dan pipa tegak ────────────────────
+
+export interface BranchStackInput {
+  /** Beban jalur ini per lantai (DFU), satu angka per lantai yang punya alat di jalur ini. */
+  readonly floorDfu: readonly number[];
+}
+export interface BranchStackResult {
+  /** Cabang mendatar terkecil yang menampung lantai terberat. */
+  readonly branchSize: DrainSize;
+  readonly branchDfu: number;
+  /** Pipa tegak (≥ 2 lantai): total semua lantai dan buangan per interval; `null` 1 lantai. */
+  readonly stackSize: DrainSize | null;
+  readonly stackDfu: number;
+  /** Ukuran minimum jalur dari cabang dan stack. */
+  readonly size: DrainSize;
+}
+
+const TABULATED = DRAIN_SIZES.filter((s) => BRANCH_STACK_DFU[s] !== undefined);
+
+/**
+ * Temuan laporan 0009: ukuran jalur hanya dicek terhadap saluran bangunan (710.1(1)); cabang
+ * mendatar per lantai dan pipa tegak punya batas lebih kecil (710.1(2)). Setiap lantai dianggap
+ * satu interval cabang yang masuk ke pipa tegak — anggapan konservatif untuk lantai dasar, yang
+ * bisa juga langsung ke saluran bangunan.
+ */
+export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
+  ruleId: 'ENG-604',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const floors = o['floorDfu'];
+    if (!Array.isArray(floors) || floors.length === 0 || floors.length > 50) {
+      throw new Error('ENG-604: floorDfu harus berisi 1–50 lantai');
+    }
+    return {
+      floorDfu: floors.map((v, i) =>
+        requireNumber('ENG-604', `floorDfu[${i}]`, v, { min: 0, max: 1900 }),
+      ),
+    };
+  },
+  compute: (i) => {
+    const heaviest = Math.max(...i.floorDfu);
+    const total = i.floorDfu.reduce((a, b) => a + b, 0);
+    const last = TABULATED[TABULATED.length - 1]!;
+    const branchSize = TABULATED.find((s) => BRANCH_STACK_DFU[s]!.branch >= heaviest) ?? last;
+    const intervals = i.floorDfu.length;
+    const stackSize =
+      intervals > 1
+        ? (TABULATED.find((s) => {
+            const t = BRANCH_STACK_DFU[s]!;
+            const stackCap = intervals <= 3 ? t.stack3 : t.stackMore;
+            return stackCap >= total && t.interval >= heaviest;
+          }) ?? last)
+        : null;
+    return {
+      branchSize,
+      branchDfu: heaviest,
+      stackSize,
+      stackDfu: total,
+      size: stackSize === null ? branchSize : larger(branchSize, stackSize),
+    };
+  },
+  sourceReference:
+    'IPC 2021 Tabel 710.1(2): cabang mendatar 1½" 3, 2" 6, 2½" 12, 3" 20, 4" 160, 5" 360, 6" 620 DFU; per interval cabang 2/6/9/20/90/200/350; stack ≤ 3 interval 4/10/20/48/240/540/960; > 3 interval 8/24/42/72/500/1100/1900',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'air bekas 2 lantai × 8 DFU (2 floor drain + 4 wastafel) → cabang 2½", stack 16 DFU → 2½"',
+      input: { floorDfu: [8, 8] },
+      expected: { branchSize: '2½"', branchDfu: 8, stackSize: '2½"', stackDfu: 16, size: '2½"' },
+    },
+    {
+      name: 'air bekas rumah 2 lantai 4 + 4 DFU → 2"',
+      input: { floorDfu: [4, 4] },
+      expected: { branchSize: '2"', branchDfu: 4, stackSize: '2"', stackDfu: 8, size: '2"' },
+    },
+    {
+      name: '1 lantai 5 DFU → cabang 2", tanpa stack',
+      input: { floorDfu: [5] },
+      expected: { branchSize: '2"', branchDfu: 5, stackSize: null, stackDfu: 5, size: '2"' },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id:
+        `Cabang mendatar lantai terberat ${o.branchDfu} beban → ${o.branchSize}` +
+        (o.stackSize !== null
+          ? `; pipa tegak ${i.floorDfu.length} lantai, total ${o.stackDfu} beban → ${o.stackSize}`
+          : '') +
+        ` (IPC 710.1(2)). Jalur ini minimal ${o.size}.`,
+      en:
+        `Horizontal branch on the heaviest floor ${o.branchDfu} units → ${o.branchSize}` +
+        (o.stackSize !== null
+          ? `; stack over ${i.floorDfu.length} floors, total ${o.stackDfu} units → ${o.stackSize}`
+          : '') +
+        ` (IPC 710.1(2)). This line is at least ${o.size}.`,
     }),
 };
 
@@ -331,4 +471,4 @@ export const ENG_603: RuleVersion<DrainLengthInput, DrainLengthResult> = {
     }),
 };
 
-export const GROUP_J = [ENG_601, ENG_602, ENG_603] as const;
+export const GROUP_J = [ENG_601, ENG_602, ENG_603, ENG_604] as const;

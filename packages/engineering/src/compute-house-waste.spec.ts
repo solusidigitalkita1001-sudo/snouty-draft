@@ -71,3 +71,34 @@ describe('panjang jalur pembuangan dari ukuran rumah (ENG-603, P16-60)', () => {
     expect(computeHouseDrainage({ bathrooms: 1, basins: 0, kitchens: 1 }).lengths).toBeNull();
   });
 });
+
+describe('cabang mendatar dan pipa tegak (ENG-604, temuan laporan 0009)', () => {
+  it('masjid 0009: 2 lantai × (2 KM + 4 wastafel) → air bekas 8 DFU per lantai, 16 stack → 2½"', () => {
+    const floor = { bathrooms: 2, basins: 4, kitchens: 0 };
+    const r = computeHouseDrainage({
+      bathrooms: 4,
+      basins: 8,
+      kitchens: 0,
+      floors: [floor, floor],
+    });
+    // Saluran bangunan 2" (21) cukup, tetapi cabang 2" maks 6 dan stack 2" maks 10 (IPC 710.1(2)).
+    expect(r.waste).toMatchObject({ capacitySize: '2"', size: '2½"', ventSize: '1¼"' });
+    expect(r.soil?.size).toBe('4"');
+    expect(r.traces.filter((t) => t.ruleId === 'ENG-604')).toHaveLength(2);
+  });
+
+  it('rumah 0002: 2 lantai (2 KM | 1 KM + dapur) → air bekas 4 + 4 DFU tetap 2", air kotor 4"', () => {
+    const r = computeHouseDrainage({
+      bathrooms: 3,
+      basins: 0,
+      kitchens: 1,
+      floors: [
+        { bathrooms: 2, basins: 0, kitchens: 0 },
+        { bathrooms: 1, basins: 0, kitchens: 1 },
+      ],
+    });
+    expect(r.waste?.size).toBe('2"');
+    expect(r.soil?.size).toBe('4"');
+    expect(r.traces.some((t) => t.ruleId === 'ENG-604')).toBe(true);
+  });
+});
