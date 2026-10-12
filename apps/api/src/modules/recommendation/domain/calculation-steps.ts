@@ -59,5 +59,11 @@ export function withCalculationSteps(
       ...item,
       basis: readableNumbers(item.basis, locale),
     })),
+    // Asumsi yang diambil dari penjelasan aturan ("Tinggi antar lantai diasumsikan 3.5 meter")
+    // ikut berformat desimal Indonesia (laporan 0010).
+    assumptions: recommendation.assumptions.map((assumption) => ({
+      ...assumption,
+      text: readableNumbers(assumption.text, locale),
+    })),
   };
 }

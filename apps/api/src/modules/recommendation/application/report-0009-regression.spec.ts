@@ -320,3 +320,12 @@ describe('TC-H-07 · penjelasan baris hanya untuk jalurnya sendiri', () => {
     expect(waste).toContain('Cabang mendatar lantai terberat 8 beban');
   });
 });
+
+describe('desimal Indonesia di asumsi (laporan 0010)', () => {
+  it('"Tinggi antar lantai diasumsikan 3,5 meter", bukan 3.5', async () => {
+    const { rec } = await analyse0009();
+    const text = rec.assumptions.map((a) => a.text).join(' ');
+    expect(text).toContain('3,5 meter');
+    expect(text).not.toMatch(/\d\.\d/);
+  });
+});
