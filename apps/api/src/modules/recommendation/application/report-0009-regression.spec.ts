@@ -215,3 +215,15 @@ describe('regresi laporan SNTY-2026-10-0009 — E: label data pengguna', () => {
     expect(requirements).not.toContain('TERVERIFIKASI');
   });
 });
+
+describe('TC-H-01 · aturan lama tidak ikut di trace', () => {
+  it('tidak ada "Unit beban memakai bobot"; titik air 16 saja; beban suplai 16,8 WSFU; tanpa ENG-006', async () => {
+    const { rec, traces } = await analyse0009();
+    const text = traces.map((t) => t.explanation).join(' ');
+    expect(text).not.toContain('Unit beban memakai bobot');
+    expect(traces.find((t) => t.ruleId === 'ENG-001')!.explanation).toMatch(/= 16 titik\.$/);
+    expect(text).toContain('Beban suplai 16.8 unit');
+    expect(traces.some((t) => t.ruleId === 'ENG-006')).toBe(false);
+    expect(rec.stats.outletCount).toBe(16);
+  });
+});

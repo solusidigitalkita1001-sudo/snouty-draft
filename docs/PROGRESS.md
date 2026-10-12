@@ -1370,6 +1370,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-68 Temuan laporan 0009 — E: data yang disebut pengguna dicetak "DISEBUT PENGGUNA" (bukan TERVERIFIKASI) di tabel
       kebutuhan laporan, dengan legendanya; arti VERIFIED di kode tidak diubah (pemetaan saat render, berlaku juga untuk
       laporan lama yang dicetak ulang). Di layar data pengguna tidak pernah diberi tag TERVERIFIKASI.
+- [x] P16-70 TC-H-01: ENG-001 v3 hanya menghitung titik air (kalimat "unit beban … bobot" dihapus; beban suplai
+      satu-satunya WSFU ENG-701); ENG-006 (cadangan 10–15 % tanpa efek) dihapus. Dipertahankan: ENG-001/004/005/008/
+      010/012/013 (dijalankan jalur rumah), ENG-003 (gedung bertingkat), ENG-007/014 (aturan di API, ID-nya catatan
+      validasi).
 - [ ] P16-69 Temuan laporan 0009 — F (hanya diselidiki): kelompok hitung bangunan ibadah/umum → OQ-61, menunggu keputusan
       pemilik dan nilai dari ahli Pralon. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").

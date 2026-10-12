@@ -25,7 +25,6 @@ describe('computeSolution — contoh kerja desain', () => {
   // Angka harapan dihitung tangan, bukan disalin dari engine (koreksi 2026-10-12).
   it('kamar mandi dua titik (shower + kloset): 3 × 2 + 4 + 1 = 11 titik; cabang per lantai: lantai 2 = 6 titik (2), lantai 1 = 5 titik (2)', () => {
     expect(result.outletCount).toBe(11);
-    expect(result.loadUnits).toBe(11);
     expect(result.branchCount).toBe(4);
     expect(result.maxOutletsPerBranch).toBe(4);
   });
@@ -163,5 +162,42 @@ describe('kemurnian dan determinisme', () => {
     const started = Date.now();
     for (let i = 0; i < 100; i += 1) computeSolution(BOARD_EXAMPLE);
     expect((Date.now() - started) / 100).toBeLessThan(300);
+  });
+});
+
+describe('TC-H-01 · tanpa "unit beban" lama di trace', () => {
+  it('langkah titik air hanya menghitung titik; beban suplai satu-satunya WSFU Kelompok K', () => {
+    // Masjid 0009: 4 KM, 8 wastafel, 0 dapur.
+    const masjid = computeSolution({
+      ...BOARD_EXAMPLE,
+      buildingType: 'light_commercial',
+      bathrooms: 4,
+      basins: 8,
+      kitchens: 0,
+      waterSource: 'municipal',
+      installationType: 'both',
+    });
+    for (const locale of ['id', 'en'] as const) {
+      const text = computeSolution(
+        {
+          ...BOARD_EXAMPLE,
+          bathrooms: 4,
+          basins: 8,
+          kitchens: 0,
+          waterSource: 'municipal',
+        },
+        locale,
+      )
+        .traces.map((t) => t.explanation)
+        .join(' ');
+      expect(text).not.toMatch(/Unit beban memakai bobot|Load units use weights/);
+    }
+    const outlets = masjid.traces.find((t) => t.ruleId === 'ENG-001')!;
+    expect(outlets.explanation).toBe(
+      'Titik air dihitung 4 kamar mandi × 2 (shower dan kloset) + 8 wastafel + 0 dapur = 16 titik.',
+    );
+    expect(masjid.supply.wsfu).toBe(16.8);
+    // ENG-006 (cadangan lapangan tanpa efek) sudah dihapus.
+    expect(masjid.traces.some((t) => t.ruleId === 'ENG-006')).toBe(false);
   });
 });

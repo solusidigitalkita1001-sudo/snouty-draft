@@ -216,13 +216,10 @@ berstatus `ESTIMATED` selama `building.dimensions` kosong — persis seperti tag
 Laporan dua halaman menambahkan satu baris yang tidak ada di prototipe: **Lem PVC, 100 gr, 2 kaleng**.
 Belum ada formulanya; ini dicatat sebagai lubang yang harus diisi bersama ahli.
 
-#### ENG-006 · Selisih lapangan
+#### ENG-006 · Selisih lapangan — dihapus 2026-10-12 (TC-H-01)
 
-```
-variance = 10–15%
-```
-
-Asal: kedua prototipe, tampil sebagai catatan kaki tabel material.
+Tercetak di dasar perhitungan ("berbeda 10–15 %") tetapi tidak mengubah angka apa pun. ID-nya tidak
+dipakai ulang.
 
 #### ENG-012 · Isi kamar mandi
 
@@ -484,7 +481,7 @@ Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja
 | ENG-003 | Maks 4 titik air per cabang               | keduanya       | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 | ENG-004 | Tinggi lantai default 3,5 m               | keduanya       | REQUIRES_DOMAIN_VALIDATION | sedang             |
 | ENG-005 | Sambungan fixture 1/2"                    | keduanya       | REQUIRES_DOMAIN_VALIDATION | sedang             |
-| ENG-006 | Selisih lapangan 10–15%                   | keduanya       | REQUIRES_DOMAIN_VALIDATION | rendah             |
+| ENG-006 | Selisih lapangan 10–15% (dihapus)         | keduanya       | —                          | —                  |
 | ENG-007 | Urutan klarifikasi                        | prototipe      | REQUIRES_DOMAIN_VALIDATION | rendah             |
 | ENG-008 | Distribusi titik air antar lantai         | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
 | ENG-009 | Formula kuantitas BOM                     | prototipe      | REQUIRES_DOMAIN_VALIDATION | tinggi             |

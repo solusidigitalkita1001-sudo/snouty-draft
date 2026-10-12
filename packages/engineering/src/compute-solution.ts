@@ -29,7 +29,7 @@ import {
   type PressureClass,
 } from './rules/group-a-load-sizing.js';
 import { ENG_004, ENG_008, type FloorNode } from './rules/group-b-geometry.js';
-import { ENG_006, ENG_012 } from './rules/group-c-material.js';
+import { ENG_012 } from './rules/group-c-material.js';
 import { ENG_102 } from './rules/group-e-irrigation.js';
 import {
   ENG_701,
@@ -94,7 +94,6 @@ export interface HouseSupply {
 
 export interface SolutionResult {
   readonly outletCount: number;
-  readonly loadUnits: number;
   readonly mainSize: string;
   readonly branchSize: string;
   readonly fixtureConnectionSize: '1/2"';
@@ -132,7 +131,6 @@ export interface SolutionResult {
       readonly netM: number;
     }[];
   } | null;
-  readonly variancePercent: { readonly min: number; readonly max: number };
   readonly targetVelocityMs: { readonly min: number; readonly max: number };
   readonly appliedAssumptionIds: readonly string[];
   /** Satu trace per aturan yang dieksekusi, urut eksekusi. */
@@ -363,13 +361,12 @@ export function computeSolution(
         }
       : null;
 
-  const variance = run(ENG_006, {});
   run(ENG_012, {}); // dicatat sebagai asumsi yang mendasari isi kamar mandi
 
-  const allTraces = [...traces.slice(0, -2), ...main.traces, ...traces.slice(-2)];
+  // ENG-012 dicatat terakhir; langkah pipa utama (Kelompok F) disisipkan sebelum catatan itu.
+  const allTraces = [...traces.slice(0, -1), ...main.traces, ...traces.slice(-1)];
   return {
     outletCount: load.outletCount,
-    loadUnits: load.loadUnits,
     mainSize: main.recommendedSize,
     branchSize,
     branchGroups,
@@ -394,7 +391,6 @@ export function computeSolution(
     yardM: yard,
     tankFill: tankFill ? { netM: tankFill.fillNetM, size: tankFill.size } : null,
     branchLayout,
-    variancePercent: { min: variance.minPercent, max: variance.maxPercent },
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },
     appliedAssumptionIds: [...new Set([...applied, ...main.appliedAssumptionIds])],
     traces: allTraces,

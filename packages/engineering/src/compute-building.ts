@@ -58,7 +58,6 @@ export interface BuildingWaterInput {
 /** Pipa tiap lantai — dari titik air yang disebut pengguna (ENG-001/003/005 + ENG-505). */
 export interface FloorBranchResult {
   readonly outletsPerFloor: number;
-  readonly loadUnitsPerFloor: number;
   readonly branchesPerFloor: number;
   readonly fixtureConnectionSize: string;
   readonly flowPerFloorLs: number;
@@ -263,7 +262,6 @@ export function computeBuildingWater(
     floorTraces = [...traces.splice(0), ...header.traces];
     floorBranch = {
       outletsPerFloor: load.outletCount,
-      loadUnitsPerFloor: load.loadUnits,
       branchesPerFloor: branches.branchCount,
       fixtureConnectionSize: fixture.fixtureConnectionSize,
       flowPerFloorLs: share.flowPerFloorLs,

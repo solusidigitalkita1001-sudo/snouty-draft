@@ -20,7 +20,6 @@ export interface LoadResult {
   /** "Titik air" di UI. */
   readonly outletCount: number;
   /** Unit beban fixture. */
-  readonly loadUnits: number;
 }
 
 function parseFixtures(ruleId: string) {
@@ -43,37 +42,34 @@ function parseFixtures(ruleId: string) {
  */
 export const ENG_001: RuleVersion<FixtureCounts, LoadResult> = {
   ruleId: 'ENG-001',
-  version: 2,
+  // v3 (TC-H-01): hanya titik air. "Unit beban" berbobot lama dihapus — beban suplai satu-satunya
+  // adalah WSFU Kelompok K (ENG-701), beban buangan DFU Kelompok J (ENG-601).
+  version: 3,
   category: 'load_sizing',
   parseInput: parseFixtures('ENG-001'),
   compute: (input) => ({
     // Kamar mandi = shower + kloset: dua titik air (ENG-012), bukan satu (koreksi 2026-10-12).
     outletCount: input.bathrooms * 2 + input.basins + input.kitchens,
-    loadUnits: input.bathrooms * 2 + input.basins + input.kitchens,
   }),
   sourceReference:
-    'Prototipe baru SNOUTY; contoh board 3 KM + 4 wastafel + 1 dapur = 8 titik, 11 unit',
+    'Kamar mandi = kloset + shower (ENG-012): 2 titik; wastafel dan bak cuci dapur 1 titik',
   validationStatus: PENDING,
   testCases: [
     {
       name: 'contoh board: 3 kamar mandi (6 titik), 4 wastafel, 1 dapur',
       input: { bathrooms: 3, basins: 4, kitchens: 1 },
-      expected: { outletCount: 11, loadUnits: 11 },
+      expected: { outletCount: 11 },
     },
     {
       name: 'tanpa dapur sama sekali',
       input: { bathrooms: 1, basins: 1, kitchens: 0 },
-      expected: { outletCount: 3, loadUnits: 3 },
+      expected: { outletCount: 3 },
     },
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id:
-        `Titik air dihitung ${input.bathrooms} kamar mandi × 2 (shower dan kloset) + ${input.basins} wastafel + ${input.kitchens} dapur = ${output.outletCount} titik. ` +
-        `Unit beban memakai bobot kamar mandi 2 (shower + kloset), wastafel 1, dapur 1 = ${output.loadUnits} unit.`,
-      en:
-        `Water outlets counted as ${input.bathrooms} bathrooms × 2 (shower and toilet) + ${input.basins} basins + ${input.kitchens} kitchens = ${output.outletCount} outlets. ` +
-        `Load units use weights of bathroom 2 (shower + toilet), basin 1, kitchen 1 = ${output.loadUnits} units.`,
+      id: `Titik air dihitung ${input.bathrooms} kamar mandi × 2 (shower dan kloset) + ${input.basins} wastafel + ${input.kitchens} dapur = ${output.outletCount} titik.`,
+      en: `Water outlets counted as ${input.bathrooms} bathrooms × 2 (shower and toilet) + ${input.basins} basins + ${input.kitchens} kitchens = ${output.outletCount} outlets.`,
     }),
 };
 
