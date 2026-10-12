@@ -89,6 +89,8 @@ const reportServiceProvider = {
           { recommendationId: string } | undefined;
         return ready?.recommendationId ?? null;
       },
+      async (catalogVersionId, productId) =>
+        (await catalog.findProductById(catalogVersionId, productId))?.name ?? null,
     ),
 };
 

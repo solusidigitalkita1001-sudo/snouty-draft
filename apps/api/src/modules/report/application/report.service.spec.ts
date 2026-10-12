@@ -45,6 +45,7 @@ function setup(traces: { ruleId: string; ruleVersion: number }[]) {
         systemLines: [],
         assumptions: [],
         bom: [],
+        products: [],
         overallProvenance: 'ASSUMED',
       }),
       findTraces: async () => traces,

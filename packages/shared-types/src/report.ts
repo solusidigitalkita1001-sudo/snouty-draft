@@ -29,6 +29,11 @@ export interface ReportRequirementRow {
 export interface ReportBasisRow {
   readonly ruleId: string;
   readonly explanation: string;
+  /**
+   * Rumus singkat berangka dari trace (`stepFormula`) — laporan mencetak ini, bukan penjelasan
+   * panjangnya. Tidak ada untuk aturan tanpa rumus dan untuk payload lama.
+   */
+  readonly formula?: string;
 }
 
 /** Harga nonaktif (OQ-03) → `enabled: false`, nilainya nol dan bloknya tidak dirender. */
@@ -64,6 +69,19 @@ export interface ReportPayload {
    * punya field ini. `outdated` = disusun dengan aturan yang sudah diganti/dihapus saat dibuat.
    */
   readonly ruleset?: { readonly stamp: string; readonly outdated: boolean };
+  /**
+   * Produk Pralon terpilih yang jumlah belinya belum bisa dihitung (panjang jalur / ukuran rumah
+   * belum diketahui) — tetap didaftar, jumlahnya menyusul (keputusan pemilik 2026-10-12). Produk
+   * yang sudah punya baris di `bom` tidak diulang. Payload lama tidak punya field ini.
+   */
+  readonly pendingItems?: readonly ReportPendingItem[];
+}
+
+/** Satu produk katalog tanpa jumlah: nama dari katalog, ukuran dari rekomendasi. */
+export interface ReportPendingItem {
+  readonly productId: string;
+  readonly name: string;
+  readonly size: string;
 }
 
 /** Respons `POST /reports` (202): PDF-nya menyusul lewat antrean. */

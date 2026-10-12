@@ -269,6 +269,8 @@ function Preview({ report }: { report: ReportPreview }) {
   const { payload } = report;
   const priced = payload.pricing.enabled;
   const grid = priced ? styles.rowPriced : styles.row;
+  // Produk terpilih yang jumlahnya belum bisa dihitung (payload lama tidak punya field ini).
+  const pending = payload.pendingItems ?? [];
 
   return (
     <>
@@ -314,6 +316,29 @@ function Preview({ report }: { report: ReportPreview }) {
             )}
           </div>
         ))}
+        {pending.map((item) => (
+          <div key={item.productId} className={grid} role="row">
+            <span role="cell" className={styles.cellItem}>
+              {item.name}
+            </span>
+            <span role="cell" className={styles.cellMono}>
+              {item.size}
+            </span>
+            <span role="cell" className={[styles.cellQty, styles.muted].join(' ')}>
+              {COPY.quantityPending}
+            </span>
+            {priced && (
+              <span role="cell" className={[styles.cellMono, styles.right].join(' ')}>
+                —
+              </span>
+            )}
+          </div>
+        ))}
+        {payload.bom.length === 0 && pending.length === 0 && (
+          <p className={[styles.cellQty, styles.muted, styles.emptyRow].join(' ')}>
+            {COPY.bomEmpty}
+          </p>
+        )}
         {priced && (
           <div className={styles.totals}>
             <div className={styles.totalsBox}>
@@ -334,7 +359,10 @@ function Preview({ report }: { report: ReportPreview }) {
         )}
       </div>
 
-      <p className={styles.footnote}>{COPY.footnote}</p>
+      <p className={styles.footnote}>
+        {pending.length > 0 ? `${COPY.pendingNote} ` : ''}
+        {COPY.footnote}
+      </p>
     </>
   );
 }

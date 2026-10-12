@@ -131,6 +131,26 @@ describe('ReportModal', () => {
     expect(screen.getAllByText(formatRupiah(1234000)).length).toBeGreaterThan(0);
   });
 
+  it('produk yang jumlahnya belum bisa dihitung tetap tampil, jumlahnya "Menyusul"', async () => {
+    const report = preview();
+    await openPreview({
+      ...report,
+      payload: {
+        ...report.payload,
+        bom: [],
+        pendingItems: [
+          { productId: 'P1', name: 'Pipa (TS End) Putih AW 1" x 4 Meter', size: '1"' },
+          { productId: 'P2', name: 'Pipa (Plain End) Abu D 4" x 4 Meter', size: '4"' },
+        ],
+      },
+    });
+
+    expect(screen.getByText('Pipa (TS End) Putih AW 1" x 4 Meter')).toBeTruthy();
+    expect(screen.getByText('Pipa (Plain End) Abu D 4" x 4 Meter')).toBeTruthy();
+    expect(screen.getAllByText('Menyusul')).toHaveLength(2);
+    expect(screen.queryByText(/Laporan lengkap 2 halaman/)).toBeNull();
+  });
+
   it('tier yang tidak berhak mendapat pesan, bukan percobaan ulang', async () => {
     createReport.mockResolvedValue({ kind: 'not-entitled' });
     render(<ReportModal recommendationId={REC} onClose={() => {}} />);

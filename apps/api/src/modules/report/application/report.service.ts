@@ -14,7 +14,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { caseProfileLabel, isCaseId, outdatedRules } from '@snouty/engineering';
 import { QUEUES } from '@snouty/jobs';
-import type { Locale, RequirementState } from '@snouty/shared-types';
+import type { Locale, Recommendation, RequirementState } from '@snouty/shared-types';
 import { loadEnv } from '../../../config/env.js';
 import { ulid } from '../../../shared/ulid.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
@@ -109,7 +109,24 @@ export class ReportService {
       locale: Locale,
       now: string,
     ) => Promise<string | null> = async () => null,
+    /** Nama produk katalog — untuk daftar material yang jumlahnya belum bisa dihitung. */
+    private readonly productName: (
+      catalogVersionId: string,
+      productId: string,
+    ) => Promise<string | null> = async () => null,
   ) {}
+
+  private async productNames(recommendation: Recommendation): Promise<Map<string, string>> {
+    const ids = [...new Set(recommendation.products.map((p) => p.productId))];
+    const names = new Map<string, string>();
+    await Promise.all(
+      ids.map(async (id) => {
+        const name = await this.productName(recommendation.catalogVersionId, id).catch(() => null);
+        if (name !== null) names.set(id, name);
+      }),
+    );
+    return names;
+  }
 
   /**
    * Laporan yang rekomendasinya dihitung dengan aturan yang sudah diganti atau dihapus (temuan
@@ -199,6 +216,7 @@ export class ReportService {
         taxRatePercent: env.TAX_RATE_PERCENT,
       },
       locale,
+      productNames: await this.productNames(recommendation),
     });
 
     const report = await this.reports.create({

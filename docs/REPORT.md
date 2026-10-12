@@ -2,8 +2,9 @@
 
 Fase 0c · P0c-06 · Terakhir diperbarui 2026-09-30
 
-Laporan Rekomendasi & Estimasi Material — A4: sampul (logo Pralon, maskot SNOUTY) lalu empat bagian
-(ringkasan solusi, rekomendasi sistem, estimasi material, dasar perhitungan & pengesahan); tata letak
+Laporan Rekomendasi & Estimasi Material — A4: sampul merah-putih (logo Pralon, maskot SNOUTY) lalu bagian
+(ringkasan solusi dengan tabel ukuran dan material, rekomendasi sistem, estimasi material bila harga aktif, dasar
+perhitungan berupa rumus & pengesahan); tata letak
 mengikuti templat rapor yang dipilih pemilik 2026-10-12 (P16-57), awalnya SPEC §33g dan
 `SNOUTY Laporan Rekomendasi.dc.html`. Nomor halaman dicetak footer Chromium.
 

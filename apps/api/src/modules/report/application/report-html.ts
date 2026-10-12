@@ -53,7 +53,8 @@ interface ReportCopy {
   readonly section: (n: number) => string;
   readonly summaryTitle: string;
   readonly installationKicker: string;
-  readonly descriptionKicker: string;
+  readonly sizesTitle: string;
+  readonly itemsTitle: string;
   readonly requirementsTitle: string;
   readonly systemTitle: string;
   readonly systemColumns: {
@@ -73,6 +74,9 @@ interface ReportCopy {
     readonly status: string;
   };
   readonly bomEmpty: string;
+  /** Kolom jumlah produk yang panjang jalurnya belum diketahui. */
+  readonly quantityPending: string;
+  readonly pendingNote: string;
   readonly subtotal: string;
   readonly tax: (percent: number) => string;
   readonly total: string;
@@ -126,7 +130,8 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     section: (n) => `BAGIAN ${String(n)}`,
     summaryTitle: 'Ringkasan Solusi',
     installationKicker: 'JENIS INSTALASI',
-    descriptionKicker: 'DESKRIPSI SOLUSI',
+    sizesTitle: 'Ukuran pipa per jalur',
+    itemsTitle: 'Material yang dibutuhkan',
     requirementsTitle: 'Kebutuhan yang tercatat',
     systemTitle: 'Rekomendasi Sistem',
     systemColumns: { line: 'JALUR', size: 'UKURAN', reason: 'ALASAN', status: 'STATUS' },
@@ -142,6 +147,9 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     },
     bomEmpty:
       'Jumlah pipa dihitung setelah panjang jalur atau ukuran bangunan diketahui. Ukuran setiap jalur ada di Bagian 2.',
+    quantityPending: 'Menyusul',
+    pendingNote:
+      'Jumlah batang dihitung setelah panjang jalur atau ukuran bangunan (panjang × lebar) diketahui.',
     subtotal: 'Subtotal material',
     tax: (percent) => `PPN ${String(percent)}%`,
     total: 'Total estimasi',
@@ -195,7 +203,8 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     section: (n) => `SECTION ${String(n)}`,
     summaryTitle: 'Solution Summary',
     installationKicker: 'INSTALLATION TYPE',
-    descriptionKicker: 'SOLUTION DESCRIPTION',
+    sizesTitle: 'Pipe size per line',
+    itemsTitle: 'Materials needed',
     requirementsTitle: 'Recorded requirements',
     systemTitle: 'System Recommendation',
     systemColumns: { line: 'LINE', size: 'SIZE', reason: 'REASON', status: 'STATUS' },
@@ -211,6 +220,9 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     },
     bomEmpty:
       'Pipe quantities are counted once the route length or building size is known. The size of every line is in Section 2.',
+    quantityPending: 'To follow',
+    pendingNote:
+      'Pipe counts follow once the route length or the building size (length × width) is known.',
     subtotal: 'Material subtotal',
     tax: (percent) => `VAT ${String(percent)}%`,
     total: 'Estimated total',
@@ -257,14 +269,24 @@ export function renderReportHtml(payload: ReportPayload): string {
 <style>${CSS}</style>
 </head>
 <body>
-${cover(payload, t)}
-${summarySection(payload, t)}
-${systemSection(payload, t)}
-${materialSection(payload, t)}
-${closingSection(payload, t)}
+${sections(payload, t)}
 <script type="text/plain" id="snouty-pdf-footer">${footerTemplate(payload, t)}</script>
 </body>
 </html>`;
+}
+
+/**
+ * Sampul lalu bagian bernomor. Tanpa harga, tabel material sudah lengkap di ringkasan, jadi bagian
+ * estimasi material (yang isinya harga) tidak dicetak dan nomor bagian mengikuti.
+ */
+function sections(p: ReportPayload, t: ReportCopy): string {
+  const parts: ((n: number) => string)[] = [
+    (n) => summarySection(p, t, n),
+    (n) => systemSection(p, t, n),
+    ...(p.pricing.enabled ? [(n: number) => materialSection(p, t, n)] : []),
+    (n) => closingSection(p, t, n),
+  ];
+  return [cover(p, t), ...parts.map((part, i) => part(i + 1))].join('\n');
 }
 
 /**
@@ -340,44 +362,36 @@ function sectionHead(p: ReportPayload, t: ReportCopy, n: number, title: string):
   </header>`;
 }
 
-/** Warna kotak ukuran per urutan jalur — warna SNOUTY, bergiliran. */
-const TILE_TONES = [
-  'tone-action',
-  'tone-ink',
-  'tone-pipe',
-  'tone-amber',
-  'tone-green',
-  'tone-slate',
-];
-
-function summarySection(p: ReportPayload, t: ReportCopy): string {
-  const tiles = p.systemLines.slice(0, 6);
+/**
+ * Ringkasan satu halaman (permintaan pemilik 2026-10-12: "terlalu banyak warna, bingung bacanya;
+ * tidak ada tabel item dan jumlah"): jenis instalasi, ukuran pipa per jalur, material yang dibeli
+ * beserta jumlahnya, lalu kebutuhan yang tercatat. Hanya merah-putih, tanpa kotak warna-warni.
+ */
+function summarySection(p: ReportPayload, t: ReportCopy, n: number): string {
   return `<section class="page">
-  ${sectionHead(p, t, 1, t.summaryTitle)}
-  <div class="tiles">
-    <div class="tile tile-lead">
-      <div class="kicker kicker-light">${t.installationKicker}</div>
-      <div class="lead-value">${esc(p.identity.installationType)}</div>
-      <span class="pill pill-on-dark">${esc(t.provenance[p.overallProvenance])}</span>
-      <div class="lead-note">${esc(p.headline)}</div>
-    </div>
-    <div class="tile-grid">
-      ${tiles
-        .map(
-          (line, i) => `<div class="tile ${TILE_TONES[i % TILE_TONES.length]!}">
-        <div class="tile-value">${esc(line.size)}</div>
-        <div class="tile-label">${esc(line.name)}</div>
-        <div class="tile-sub">${esc(line.path)}</div>
-      </div>`,
-        )
-        .join('\n      ')}
-    </div>
+  ${sectionHead(p, t, n, t.summaryTitle)}
+  <div class="lead">
+    <div class="kicker kicker-action">${t.installationKicker}</div>
+    <div class="lead-value">${esc(p.identity.installationType)}</div>
+    <p class="lead-text">${esc(p.body)}</p>
   </div>
 
-  <div class="callout">
-    <div class="kicker kicker-action">${t.descriptionKicker}</div>
-    <p>${esc(p.body)}</p>
-  </div>
+  <h3 class="subhead">${t.sizesTitle}</h3>
+  <table class="grid data compact">
+    <thead><tr><th>${t.systemColumns.line}</th><th>${t.systemColumns.size}</th></tr></thead>
+    ${p.systemLines
+      .map(
+        (line) =>
+          `<tr><td class="strong">${esc(line.name)}<span class="sub">${esc(line.path)}</span></td>` +
+          `<td class="mono size">${esc(line.size)}</td></tr>`,
+      )
+      .join('\n    ')}
+  </table>
+
+  <h3 class="subhead">${t.itemsTitle}</h3>
+  ${p.pricing.enabled ? '' : `<div class="banner">${t.priceDisclaimer}</div>`}
+  ${materialTable(p, t, false)}
+  ${p.pricing.enabled ? '' : `<p class="note">${t.exclusions}</p>`}
 
   <h3 class="subhead">${t.requirementsTitle}</h3>
   <table class="grid">
@@ -394,9 +408,49 @@ function summarySection(p: ReportPayload, t: ReportCopy): string {
 </section>`;
 }
 
-function systemSection(p: ReportPayload, t: ReportCopy): string {
+/**
+ * Tabel material: baris yang sudah dihitung jumlahnya, lalu produk terpilih yang jumlahnya
+ * menyusul. Dipakai ringkasan (tanpa harga) dan bagian estimasi (dengan harga bila aktif).
+ */
+function materialTable(p: ReportPayload, t: ReportCopy, withPrices: boolean): string {
+  const pending = p.pendingItems ?? [];
+  if (p.bom.length === 0 && pending.length === 0) return `<p class="bodytext">${t.bomEmpty}</p>`;
+  const money = (value: number | undefined): string => rupiah(value, t.numberLocale);
+  return `<table class="grid data">
+    <thead><tr>
+      <th>${t.bomColumns.item}</th><th>${t.bomColumns.size}</th><th>${t.bomColumns.quantity}</th>
+      ${withPrices ? `<th>${t.bomColumns.unitPrice}</th><th>${t.bomColumns.subtotal}</th>` : ''}
+      <th>${t.bomColumns.status}</th>
+    </tr></thead>
+    ${p.bom
+      .map(
+        (item) =>
+          `<tr><td class="strong">${esc(item.item)}<span class="sub">${esc(item.basis)}</span></td>` +
+          `<td class="mono">${esc(item.size)}</td>` +
+          `<td class="mono">${String(item.quantity)} ${esc(item.unit)}</td>` +
+          (withPrices
+            ? `<td class="mono">${money(item.unitPrice)}</td><td class="mono">${money(item.subtotal)}</td>`
+            : '') +
+          `<td class="status">${pill(item.provenance, t)}</td></tr>`,
+      )
+      .join('\n    ')}
+    ${pending
+      .map(
+        (item) =>
+          `<tr><td class="strong">${esc(item.name)}</td>` +
+          `<td class="mono">${esc(item.size)}</td>` +
+          `<td class="pending">${t.quantityPending}</td>` +
+          (withPrices ? `<td class="mono">–</td><td class="mono">–</td>` : '') +
+          `<td class="status"></td></tr>`,
+      )
+      .join('\n    ')}
+  </table>
+  ${pending.length > 0 ? `<p class="bodytext">${t.pendingNote}</p>` : ''}`;
+}
+
+function systemSection(p: ReportPayload, t: ReportCopy, n: number): string {
   return `<section class="page">
-  ${sectionHead(p, t, 2, t.systemTitle)}
+  ${sectionHead(p, t, n, t.systemTitle)}
   <table class="grid data">
     <thead><tr><th>${t.systemColumns.line}</th><th>${t.systemColumns.size}</th><th>${t.systemColumns.reason}</th><th>${t.systemColumns.status}</th></tr></thead>
     ${p.systemLines
@@ -429,65 +483,39 @@ function systemSection(p: ReportPayload, t: ReportCopy): string {
 /** Keterangan status ditaruh dekat tabel yang memakai penandanya. */
 const LEGEND: readonly Provenance[] = ['VERIFIED', 'ESTIMATED', 'ASSUMED', 'UNAVAILABLE'];
 
-function materialSection(p: ReportPayload, t: ReportCopy): string {
-  const showPrices = p.pricing.enabled;
+function materialSection(p: ReportPayload, t: ReportCopy, n: number): string {
   const money = (value: number | undefined): string => rupiah(value, t.numberLocale);
   return `<section class="page">
-  ${sectionHead(p, t, 3, t.materialTitle)}
-  <div class="banner">${showPrices ? t.priceDisclaimerWithList : t.priceDisclaimer}</div>
-  ${
-    p.bom.length === 0
-      ? `<p class="bodytext">${t.bomEmpty}</p>`
-      : `<table class="grid data">
-    <thead><tr>
-      <th>${t.bomColumns.item}</th><th>${t.bomColumns.size}</th><th>${t.bomColumns.quantity}</th>
-      ${showPrices ? `<th>${t.bomColumns.unitPrice}</th><th>${t.bomColumns.subtotal}</th>` : ''}
-      <th>${t.bomColumns.status}</th>
-    </tr></thead>
-    ${p.bom
-      .map(
-        (item) =>
-          `<tr><td class="strong">${esc(item.item)}<span class="sub">${esc(item.basis)}</span></td>` +
-          `<td class="mono">${esc(item.size)}</td>` +
-          `<td class="mono">${String(item.quantity)} ${esc(item.unit)}</td>` +
-          (showPrices
-            ? `<td class="mono">${money(item.unitPrice)}</td><td class="mono">${money(item.subtotal)}</td>`
-            : '') +
-          `<td class="status">${pill(item.provenance, t)}</td></tr>`,
-      )
-      .join('\n    ')}
-  </table>`
-  }
-  ${
-    showPrices
-      ? `<table class="totals">
+  ${sectionHead(p, t, n, t.materialTitle)}
+  <div class="banner">${t.priceDisclaimerWithList}</div>
+  ${materialTable(p, t, true)}
+  <table class="totals">
     <tr><th>${t.subtotal}</th><td class="mono">${money(p.pricing.subtotal)}</td></tr>
     <tr><th>${t.tax(p.pricing.taxRatePercent)}</th><td class="mono">${money(p.pricing.taxAmount)}</td></tr>
     <tr class="grand"><th>${t.total}</th><td class="mono">${money(p.pricing.total)}</td></tr>
-  </table>`
-      : ''
-  }
+  </table>
   <p class="note">${t.exclusions}</p>
 </section>`;
 }
 
-function closingSection(p: ReportPayload, t: ReportCopy): string {
+function closingSection(p: ReportPayload, t: ReportCopy, n: number): string {
   const locale = p.locale;
   return `<section class="page">
-  ${sectionHead(p, t, 4, t.closingTitle)}
+  ${sectionHead(p, t, n, t.closingTitle)}
   <h3 class="subhead">${t.basisTitle}</h3>
-  <ol class="basis">
+  <table class="grid steps">
     ${p.basis
-      .map(
-        (row) =>
-          `<li>${
-            hasStepTitle(row.ruleId)
-              ? `<strong>${esc(ruleStepTitle(row.ruleId, locale))}.</strong> `
-              : ''
-          }${esc(row.explanation)}</li>`,
-      )
+      .map((row, i) => {
+        const title = hasStepTitle(row.ruleId) ? esc(ruleStepTitle(row.ruleId, locale)) : '';
+        // Rumus singkat bila ada; payload lama dan aturan tanpa rumus memakai penjelasannya.
+        const body =
+          row.formula !== undefined
+            ? `<td class="formula">${esc(row.formula)}</td>`
+            : `<td class="reason">${esc(row.explanation)}</td>`;
+        return `<tr><td class="step-no">${String(i + 1)}</td><th>${title}</th>${body}</tr>`;
+      })
       .join('\n    ')}
-  </ol>
+  </table>
 
   <h3 class="subhead">${t.nextStepsTitle}</h3>
   <p class="bodytext">${t.nextSteps}</p>
@@ -578,32 +606,32 @@ body { margin: 0; font-family: 'IBM Plex Sans', 'Liberation Sans', system-ui, sa
 .page:last-child { page-break-after: auto; }
 .mono { font-family: 'IBM Plex Mono', 'Liberation Mono', monospace; }
 .kicker { font-size: 7pt; letter-spacing: 0.16em; font-weight: 600; color: ${C['snouty-caption']}; text-transform: uppercase; }
-.kicker-light { color: ${C['snouty-pipe-light']}; }
 .kicker-action { color: ${C['snouty-action-text']}; }
 .sub { display: block; font-size: 7.5pt; font-weight: 400; color: ${C['snouty-caption']}; margin-top: 0.6mm; }
 .bodytext { font-size: 9pt; line-height: 1.6; color: ${C['snouty-muted']}; margin: 0 0 3mm; }
 
 /* ── Sampul ── */
 .cover { background: ${C['snouty-mascot-paper']}; position: relative; height: 297mm; overflow: hidden; display: flex; flex-direction: column; }
-.hero { position: relative; height: 178mm; background: ${C['snouty-ink']}; color: ${C['snouty-mascot-paper']}; padding: 20mm 18mm 0; overflow: hidden; }
+.hero { position: relative; height: 178mm; background: ${C['snouty-action']}; color: ${C['snouty-mascot-paper']}; padding: 20mm 18mm 0; overflow: hidden; }
 .rings { position: absolute; right: -40mm; top: -6mm; width: 170mm; height: 170mm; }
-.ring { fill: none; stroke: ${C['snouty-mascot-paper']}; stroke-opacity: 0.08; stroke-width: 1.2; }
+.ring { fill: none; stroke: ${C['snouty-mascot-paper']}; stroke-opacity: 0.18; stroke-width: 1.2; }
 .arc { fill: none; stroke-linecap: round; transform-origin: 260px 190px; }
-.arc-outer { stroke: ${C['snouty-action']}; stroke-width: 3; stroke-dasharray: 260 1200; transform: rotate(-95deg); }
-.arc-inner { stroke: ${C['snouty-pipe-mid']}; stroke-width: 3; stroke-dasharray: 220 900; transform: rotate(150deg); }
+.arc-outer { stroke: ${C['snouty-mascot-paper']}; stroke-width: 3; stroke-dasharray: 260 1200; transform: rotate(-95deg); }
+.arc-inner { stroke: ${C['snouty-mascot-paper']}; stroke-opacity: 0.7; stroke-width: 3; stroke-dasharray: 220 900; transform: rotate(150deg); }
 .snouty-art { background: url('${SNOUTY_MASCOT}') center / contain no-repeat; }
-.mascot { position: absolute; right: 22mm; top: 44mm; width: 78mm; height: 78mm; }
+.mascot { position: absolute; right: 18mm; top: 38mm; width: 88mm; height: 88mm; border-radius: 50%;
+  background-color: ${C['snouty-mascot-paper']}; background-size: 74%; }
 .lockup { position: relative; display: flex; align-items: center; gap: 5mm; }
 .logo-tile { background: ${C['snouty-mascot-paper']}; border-radius: 3mm; padding: 3mm 4mm; }
 .pralon-logo { width: 34mm; height: 12.7mm; background: url('${PRALON_LOGO}') center / contain no-repeat; }
-.lockup-divider { width: 0.3mm; height: 12mm; background: ${C['snouty-mascot-paper']}; opacity: 0.25; }
+.lockup-divider { width: 0.3mm; height: 12mm; background: ${C['snouty-mascot-paper']}; opacity: 0.5; }
 .brand { font-size: 14pt; font-weight: 700; letter-spacing: 0.04em; }
-.brandsub { font-size: 8pt; color: ${C['snouty-pipe-light']}; }
+.brandsub { font-size: 8pt; color: ${C['snouty-mascot-paper']}; opacity: 0.85; }
 .hero-text { position: absolute; left: 18mm; bottom: 16mm; right: 18mm; }
-.cover-kicker { font-size: 8pt; letter-spacing: 0.3em; font-weight: 600; color: ${C['snouty-pipe-mid']}; margin-bottom: 4mm; }
+.cover-kicker { font-size: 8pt; letter-spacing: 0.3em; font-weight: 600; color: ${C['snouty-mascot-paper']}; opacity: 0.85; margin-bottom: 4mm; }
 .cover-title { font-size: 38pt; line-height: 1.05; font-weight: 700; margin: 0 0 4mm; max-width: 120mm; letter-spacing: -0.01em; }
-.cover-sub { font-size: 10.5pt; color: ${C['snouty-border']}; }
-.band { height: 5mm; background: ${C['snouty-action']}; border-bottom: 1.6mm solid ${C['snouty-pipe-light']}; }
+.cover-sub { font-size: 10.5pt; color: ${C['snouty-mascot-paper']}; opacity: 0.9; }
+.band { height: 2.4mm; background: ${C['snouty-action-text']}; }
 .cover-body { flex: 1; padding: 13mm 18mm 12mm; display: flex; flex-direction: column; }
 .customer { font-size: 22pt; font-weight: 700; margin: 2mm 0 8mm; }
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 12mm; }
@@ -622,24 +650,14 @@ body { margin: 0; font-family: 'IBM Plex Sans', 'Liberation Sans', system-ui, sa
 .subhead { font-size: 10.5pt; font-weight: 700; margin: 6mm 0 2.5mm; }
 
 /* ── Kotak ringkasan ── */
-.tiles { display: grid; grid-template-columns: 62mm 1fr; gap: 3mm; }
-.tile { border-radius: 3mm; padding: 4mm; color: ${C['snouty-mascot-paper']}; break-inside: avoid; }
-.tile-lead { background: ${C['snouty-ink']}; display: flex; flex-direction: column; gap: 2.5mm; }
-.lead-value { font-size: 16pt; font-weight: 700; line-height: 1.15; }
-.lead-note { font-size: 8pt; line-height: 1.5; color: ${C['snouty-border']}; }
-.tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
-.tile-value { font-family: 'IBM Plex Mono', 'Liberation Mono', monospace; font-size: 17pt; font-weight: 700; }
-.tile-label { font-size: 8.5pt; font-weight: 600; margin-top: 2.5mm; line-height: 1.3; }
-.tile-sub { font-size: 7pt; opacity: 0.85; margin-top: 0.8mm; line-height: 1.35; }
-.tone-action { background: ${C['snouty-action']}; }
-.tone-ink { background: ${C['snouty-muted']}; }
-.tone-pipe { background: ${C['snouty-pipe-mid']}; }
-.tone-amber { background: ${C['snouty-assumed-strong']}; }
-.tone-green { background: ${C['snouty-verified-text']}; }
-.tone-slate { background: ${C['snouty-caption']}; }
-.callout { margin-top: 5mm; background: ${C['snouty-action-soft-bg']}; border: 1px solid ${C['snouty-action-soft-border']};
-  border-radius: 3mm; padding: 4mm 5mm; break-inside: avoid; }
-.callout p { margin: 2mm 0 0; font-size: 9pt; line-height: 1.6; color: ${C['snouty-ink']}; }
+.lead { border-left: 1.2mm solid ${C['snouty-action']}; padding: 1mm 0 1mm 5mm; break-inside: avoid; }
+.lead-value { font-size: 16pt; font-weight: 700; line-height: 1.2; margin-top: 1.5mm; }
+.lead-text { margin: 2.5mm 0 0; font-size: 9pt; line-height: 1.6; color: ${C['snouty-muted']}; }
+.grid.steps th { width: 42mm; color: ${C['snouty-ink']}; font-weight: 600; font-size: 8pt; }
+.grid.steps td, .grid.steps th { padding: 1mm 2mm; line-height: 1.35; }
+.step-no { width: 6mm; color: ${C['snouty-caption']}; font-size: 8pt; }
+.formula { font-family: 'IBM Plex Mono', 'Liberation Mono', monospace; font-size: 7.4pt; line-height: 1.35; color: ${C['snouty-ink']}; }
+.grid.compact td, .grid.compact th { padding: 1.5mm 2mm; }
 
 /* ── Tabel ── */
 table { width: 100%; border-collapse: collapse; }
@@ -650,6 +668,8 @@ table { width: 100%; border-collapse: collapse; }
 .data tr { break-inside: avoid; }
 .strong { font-weight: 600; }
 .size { font-weight: 700; white-space: nowrap; }
+.grid + .bodytext { margin-top: 3mm; }
+.pending { font-size: 8pt; font-style: italic; color: ${C['snouty-caption']}; }
 .reason { font-size: 8pt; line-height: 1.5; color: ${C['snouty-muted']}; }
 .status { white-space: nowrap; text-align: right; }
 .pill { display: inline-block; font-size: 6.5pt; letter-spacing: 0.06em; font-weight: 600; padding: 0.8mm 2.2mm; border-radius: 6mm; }
@@ -657,10 +677,8 @@ table { width: 100%; border-collapse: collapse; }
 .pill-estimated { background: ${C['snouty-action-soft-bg']}; color: ${C['snouty-action-text']}; }
 .pill-assumed { background: ${C['snouty-assumed-bg']}; color: ${C['snouty-assumed-text']}; }
 .pill-unavailable { background: ${C['snouty-canvas']}; color: ${C['snouty-muted']}; }
-.pill-on-dark { align-self: flex-start; background: ${C['snouty-muted']}; color: ${C['snouty-mascot-paper']}; }
-.assumptions, .basis { margin: 0; padding-left: 5mm; font-size: 8.2pt; line-height: 1.5; color: ${C['snouty-muted']}; }
-.basis li, .assumptions li { margin-bottom: 0.8mm; break-inside: avoid; }
-.basis strong { color: ${C['snouty-ink']}; }
+.assumptions { margin: 0; padding-left: 5mm; font-size: 8.2pt; line-height: 1.5; color: ${C['snouty-muted']}; }
+.assumptions li { margin-bottom: 0.8mm; break-inside: avoid; }
 .banner { border: 1px solid ${C['snouty-assumed-border']}; background: ${C['snouty-assumed-bg']}; color: ${C['snouty-assumed-text']};
   font-size: 8.5pt; padding: 3mm 4mm; border-radius: 2mm; margin-bottom: 5mm; }
 .totals { margin-top: 4mm; width: 60%; margin-left: auto; }
@@ -677,8 +695,8 @@ table { width: 100%; border-collapse: collapse; }
 .legend-estimated { background: ${C['snouty-action-soft-bg']}; color: ${C['snouty-action-text']}; }
 .legend-assumed { background: ${C['snouty-assumed-bg']}; color: ${C['snouty-assumed-text']}; }
 .legend-unavailable { background: ${C['snouty-canvas']}; color: ${C['snouty-muted']}; }
-.signature { margin-top: 7mm; break-inside: avoid; }
+.signature { margin-top: 5mm; break-inside: avoid; }
 .signature td { width: 50%; font-size: 9pt; border-top: 1px solid ${C['snouty-ink']}; padding-top: 2.5mm; vertical-align: top; }
-.sign-mascot { width: 14mm; height: 14mm; margin-bottom: 1.5mm; }
-.closing-foot { margin-top: 5mm; font-size: 7.5pt; letter-spacing: 0.08em; color: ${C['snouty-action-text']}; }
+.sign-mascot { float: left; width: 11mm; height: 11mm; margin: 0 3mm 0 0; }
+.closing-foot { margin-top: 3mm; font-size: 7.5pt; letter-spacing: 0.08em; color: ${C['snouty-action-text']}; }
 `;

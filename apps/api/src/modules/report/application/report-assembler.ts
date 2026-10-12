@@ -14,7 +14,7 @@
  * memaksakan VERIFIED.
  */
 
-import { outdatedRules, rulesetStamp } from '@snouty/engineering';
+import { outdatedRules, rulesetStamp, stepFormula } from '@snouty/engineering';
 import {
   DEFAULT_LOCALE,
   type Locale,
@@ -29,6 +29,7 @@ import {
 import type { TraceToSave } from '../../recommendation/domain/recommendation.repository.js';
 import type {
   ReportBasisRow,
+  ReportPendingItem,
   ReportIdentity,
   ReportPayload,
   ReportPricing,
@@ -49,6 +50,11 @@ export interface AssembleReportInput {
    * payload, supaya halaman cetak memakai bahasa yang sama kapan pun dicetak ulang.
    */
   readonly locale?: Locale;
+  /**
+   * Nama katalog produk terpilih (`productId` → nama), dicari service dari versi katalog
+   * rekomendasinya. Produk tanpa nama di sini tidak didaftar — nama tidak pernah dikarang.
+   */
+  readonly productNames?: ReadonlyMap<string, string>;
 }
 
 export function assembleReportPayload(input: AssembleReportInput): ReportPayload {
@@ -62,7 +68,7 @@ export function assembleReportPayload(input: AssembleReportInput): ReportPayload
     systemLines: input.recommendation.systemLines,
     assumptions: input.recommendation.assumptions,
     bom: input.recommendation.bom,
-    basis: basisRows(input.traces),
+    basis: basisRows(input.traces, locale),
     pricing: pricingFrom(input.recommendation, input.pricing),
     catalogVersionLabel: input.catalogVersionLabel,
     overallProvenance: input.recommendation.overallProvenance,
@@ -72,7 +78,31 @@ export function assembleReportPayload(input: AssembleReportInput): ReportPayload
       stamp: rulesetStamp(input.traces),
       outdated: outdatedRules(input.traces).length > 0,
     },
+    pendingItems: pendingItems(input.recommendation, input.productNames ?? new Map()),
   };
+}
+
+/**
+ * Produk terpilih yang belum punya baris jumlah — tetap didaftar supaya pembaca tahu barang apa
+ * yang dibeli; jumlahnya menyusul setelah panjang jalur atau ukuran rumah diketahui. Satu baris
+ * per produk; produk yang ketersediaannya tidak diketahui tidak ikut.
+ */
+function pendingItems(
+  recommendation: Recommendation,
+  names: ReadonlyMap<string, string>,
+): readonly ReportPendingItem[] {
+  const counted = new Set(recommendation.bom.map((item) => item.productId));
+  const seen = new Set<string>();
+  const rows: ReportPendingItem[] = [];
+  for (const product of recommendation.products) {
+    if (product.matchState === 'INFORMATION_UNAVAILABLE') continue;
+    if (counted.has(product.productId) || seen.has(product.productId)) continue;
+    const name = names.get(product.productId);
+    if (name === undefined) continue;
+    seen.add(product.productId);
+    rows.push({ productId: product.productId, name, size: product.size });
+  }
+  return rows;
 }
 
 /**
@@ -109,8 +139,16 @@ function requirementRows(state: RequirementState, locale: Locale): readonly Repo
  * Blok "DASAR PERHITUNGAN" halaman 2 — dirakit dari trace, bukan dari prosa LLM
  * (invarian T-1). Satu baris per aturan, urut sesuai eksekusi.
  */
-function basisRows(traces: readonly TraceToSave[]): readonly ReportBasisRow[] {
-  return traces.map((trace) => ({ ruleId: trace.ruleId, explanation: trace.explanation }));
+/** Satu baris per trace; rumus singkatnya dibangun dari masukan/keluaran trace itu sendiri. */
+function basisRows(traces: readonly TraceToSave[], locale: Locale): readonly ReportBasisRow[] {
+  return traces.map((trace) => {
+    const formula = stepFormula(trace.ruleId, trace.inputs, trace.output, locale);
+    return {
+      ruleId: trace.ruleId,
+      explanation: trace.explanation,
+      ...(formula !== null ? { formula } : {}),
+    };
+  });
 }
 
 /**

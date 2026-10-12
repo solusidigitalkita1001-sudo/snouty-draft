@@ -114,6 +114,7 @@ export type {
 export { ANALYSIS_STAGE_LABELS } from './sse.js';
 export type {
   ReportBasisRow,
+  ReportPendingItem,
   ReportCreated,
   ReportIdentity,
   ReportPayload,

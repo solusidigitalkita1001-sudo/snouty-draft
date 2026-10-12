@@ -15,6 +15,7 @@ import type { ReportPayload, ReportStatus } from '@snouty/shared-types';
 
 export type {
   ReportBasisRow,
+  ReportPendingItem,
   ReportIdentity,
   ReportPayload,
   ReportPricing,

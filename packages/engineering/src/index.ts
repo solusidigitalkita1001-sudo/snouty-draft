@@ -197,6 +197,7 @@ export type {
 export { DRAIN_SIZES, ENG_601, ENG_602, GROUP_J } from './rules/group-j-waste.js';
 export type { DrainLineResult, DrainSize, DrainageLoadResult } from './rules/group-j-waste.js';
 export { hasStepTitle, ruleStepTitle } from './rules/step-titles.js';
+export { stepFormula } from './rules/step-formulas.js';
 export {
   buildingWaterSchematic,
   gravitySchematic,

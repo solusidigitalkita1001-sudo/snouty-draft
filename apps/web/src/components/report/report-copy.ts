@@ -20,8 +20,11 @@ export const REPORT_COPY = {
   subtotal: 'Subtotal material',
   tax: (percent: number) => `PPN ${percent}%`,
   total: 'Total estimasi',
-  footnote:
-    'Belum termasuk jasa instalasi, aksesori non-pipa, dan pengiriman. Laporan lengkap 2 halaman berisi rekomendasi sistem, asumsi, dan blok tanda tangan.',
+  footnote: 'Belum termasuk jasa instalasi, aksesori non-pipa, dan pengiriman.',
+  quantityPending: 'Menyusul',
+  pendingNote:
+    'Jumlah batang dihitung setelah panjang jalur atau ukuran bangunan (panjang × lebar) diketahui.',
+  bomEmpty: 'Jumlah pipa dihitung setelah panjang jalur atau ukuran bangunan diketahui.',
   back: 'Kembali ke solusi',
   email: 'Kirim ke email',
   download: 'Unduh PDF',
@@ -62,8 +65,11 @@ export const REPORT_COPY_EN: CopyShape<typeof REPORT_COPY> = {
   subtotal: 'Material subtotal',
   tax: (percent: number) => `VAT ${percent}%`,
   total: 'Estimated total',
-  footnote:
-    'Excludes installation labor, non-pipe accessories, and delivery. The full 2-page report includes the system recommendation, assumptions, and a signature block.',
+  footnote: 'Excludes installation labor, non-pipe accessories, and delivery.',
+  quantityPending: 'To follow',
+  pendingNote:
+    'Pipe counts follow once the route length or the building size (length × width) is known.',
+  bomEmpty: 'Pipe quantities are counted once the route length or building size is known.',
   back: 'Back to solution',
   email: 'Send by email',
   download: 'Download PDF',

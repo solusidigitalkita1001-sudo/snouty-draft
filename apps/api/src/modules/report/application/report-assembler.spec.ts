@@ -3,7 +3,7 @@
  * menghasilkan isi identik (docs/REPORT.md §1).
  */
 import { describe, expect, it } from 'vitest';
-import type { Recommendation, RequirementState } from '@snouty/shared-types';
+import type { ProductMatchState, Recommendation, RequirementState } from '@snouty/shared-types';
 import { computeSolution } from '@snouty/engineering';
 import { mergeRequirement } from '../../context/domain/context-merger.js';
 import { withCompleteness } from '../../context/domain/completeness.js';
@@ -115,6 +115,41 @@ describe('assembleReportPayload', () => {
     );
   });
 
+  it('produk terpilih tanpa baris jumlah didaftar dengan nama katalog; tanpa nama tidak dikarang', () => {
+    const product = (
+      productId: string,
+      size: string,
+      matchState: ProductMatchState = 'VERIFIED_SELECTED',
+    ) => ({ productId, size, role: 'main', matchState, reason: '' }) as const;
+    const payload = assembleReportPayload({
+      ...INPUT,
+      recommendation: {
+        ...RECOMMENDATION,
+        bom: [{ ...RECOMMENDATION.bom[0]!, productId: 'P-COUNTED' }],
+        products: [
+          product('P-COUNTED', '1"'),
+          product('P-AW34', '3/4"'),
+          product('P-AW34', '3/4"'),
+          product('P-NONAME', '1/2"'),
+          product('P-UNKNOWN', '4"', 'INFORMATION_UNAVAILABLE'),
+        ],
+      },
+      productNames: new Map([
+        ['P-COUNTED', 'Pipa AW 1"'],
+        ['P-AW34', 'Pipa (TS End) Putih AW 3/4" x 4 Meter'],
+        ['P-UNKNOWN', 'Pipa D 4"'],
+      ]),
+    });
+    expect(payload.pendingItems).toEqual([
+      { productId: 'P-AW34', name: 'Pipa (TS End) Putih AW 3/4" x 4 Meter', size: '3/4"' },
+    ]);
+
+    const html = renderReportHtml({ ...payload, bom: [] });
+    expect(html).toContain('Pipa (TS End) Putih AW 3/4&quot; x 4 Meter');
+    expect(html).toContain('<td class="pending">Menyusul</td>');
+    expect(html).toContain('ukuran bangunan (panjang × lebar)');
+  });
+
   it('menyalin prosa dari rekomendasi, tidak membuat yang baru', () => {
     const payload = assembleReportPayload(INPUT);
     expect(payload.headline).toBe(RECOMMENDATION.headline);
@@ -172,9 +207,27 @@ describe('assembleReportPayload', () => {
 describe('renderReportHtml', () => {
   const html = renderReportHtml(assembleReportPayload(INPUT));
 
-  it('menghasilkan sampul dan empat bagian', () => {
-    expect(html.match(/class="page( cover)?"/g)).toHaveLength(5);
-    for (const n of [1, 2, 3, 4]) expect(html).toContain(`BAGIAN ${String(n)}`);
+  it('tanpa harga: sampul dan tiga bagian — material dan jumlahnya ada di ringkasan', () => {
+    expect(html.match(/class="page( cover)?"/g)).toHaveLength(4);
+    for (const n of [1, 2, 3]) expect(html).toContain(`BAGIAN ${String(n)}`);
+    expect(html).not.toContain('BAGIAN 4');
+    const summary = html.slice(html.indexOf('BAGIAN 1'), html.indexOf('BAGIAN 2'));
+    expect(summary).toContain('Material yang dibutuhkan');
+    expect(summary).toContain('7 batang');
+  });
+
+  it('ringkasan tanpa kotak warna-warni', () => {
+    expect(html).not.toMatch(/class="tile|tone-/);
+  });
+
+  it('dasar perhitungan mencetak rumus singkat bila aturannya punya rumus', () => {
+    const payload = assembleReportPayload(INPUT);
+    const withFormula = payload.basis.filter((row) => row.formula !== undefined);
+    expect(withFormula.length).toBeGreaterThan(0);
+    for (const row of withFormula) {
+      expect(html).toContain(`<td class="formula">${row.formula!.replace(/"/g, '&quot;')}</td>`);
+      expect(html).not.toContain(row.explanation.replace(/"/g, '&quot;'));
+    }
   });
 
   it('memuat logo Pralon dan maskot SNOUTY sebagai gambar tersisip, footer bernomor halaman', () => {
@@ -184,7 +237,10 @@ describe('renderReportHtml', () => {
   });
 
   it('dasar perhitungan memakai judul langkah, bukan kode aturan', () => {
-    const basis = html.slice(html.indexOf('<ol class="basis">'), html.indexOf('</ol>'));
+    const basis = html.slice(
+      html.indexOf('<table class="grid steps">'),
+      html.indexOf('Langkah berikutnya'),
+    );
     expect(basis).not.toMatch(/ENG-\d/);
   });
 
@@ -362,8 +418,8 @@ describe('laporan dua bahasa (P15-05)', () => {
     );
     expect(html).not.toContain('<img');
     // nomor ×6 (title, sampul, empat kop bagian), nama ×6 (sampul, empat kop, footer),
-    // lokasi (sampul), katalog, judul, isi, asumsi.
-    expect(html.split(escaped)).toHaveLength(18);
+    // lokasi (sampul), katalog, isi, asumsi.
+    expect(html.split(escaped)).toHaveLength(17);
   });
 });
 

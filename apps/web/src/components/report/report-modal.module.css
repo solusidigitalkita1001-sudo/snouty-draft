@@ -271,6 +271,11 @@
   text-align: right;
 }
 
+.emptyRow {
+  margin: 0;
+  padding: 11px 14px;
+}
+
 .strong {
   font-weight: 500;
 }

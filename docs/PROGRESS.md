@@ -1331,6 +1331,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       sampul gelap berlogo Pralon + maskot SNOUTY, empat bagian (ringkasan berupa kotak ukuran, rekomendasi sistem,
       estimasi material, dasar perhitungan + pengesahan), footer "Halaman x dari n" dari Chromium; dasar perhitungan
       memakai judul langkah, bukan kode aturan; penjelasan sebaran lantai tanpa kalimat tentang "sistem".
+- [x] P16-58 Masukan pemilik atas PDF P16-57: sampul merah-putih (tanpa latar hitam), ringkasan tanpa kotak warna —
+      tabel ukuran per jalur + tabel material & jumlah; produk Pralon terpilih tetap didaftar dengan jumlah
+      "Menyusul" bila panjang jalur/ukuran bangunan belum ada (keputusan pemilik 2026-10-12, juga di pratinjau web);
+      dasar perhitungan berupa rumus singkat berangka dari trace (`stepFormula`, engine); tanpa harga, bagian estimasi
+      material tidak dicetak; judul ENG-102 jadi "Ukuran pipa dari debit".
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

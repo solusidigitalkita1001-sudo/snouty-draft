@@ -22,7 +22,7 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-013': { id: 'Kelas pipa', en: 'Pipe class' },
   'ENG-014': { id: 'Nilai bila belum tahu', en: 'Values when unknown' },
   'ENG-101': { id: 'Kebutuhan air lahan', en: 'Field water need' },
-  'ENG-102': { id: 'Ukuran pipa utama', en: 'Main pipe size' },
+  'ENG-102': { id: 'Ukuran pipa dari debit', en: 'Pipe size from flow' },
   'ENG-103': { id: 'Tekanan dan pompa', en: 'Pressure and pump' },
   'ENG-104': { id: 'Bahan tiap jalur', en: 'Material per line' },
   'ENG-105': { id: 'Panjang dan material', en: 'Length and materials' },
