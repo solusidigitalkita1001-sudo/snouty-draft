@@ -12,7 +12,8 @@ import type { EngineeringLocale } from '../parameters/locale.js';
 type Bag = Readonly<Record<string, unknown>>;
 
 /** Satu bahasa: angka sudah diformat, tinggal disusun. */
-type Formula = (input: Bag, output: Bag, f: Fmt) => string | null;
+/** `version` = versi aturan trace — rumus ditulis sesuai versi yang benar-benar menghitung. */
+type Formula = (input: Bag, output: Bag, f: Fmt, version: number) => string | null;
 
 interface Fmt {
   readonly en: boolean;
@@ -178,7 +179,7 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
           `${f.n(i['dfu'])} DFU ≤ ${f.n(o['capacityDfu'])} (capacity of ${o['size']}) → pipe ${o['size']}, vent ${o['ventSize']}`,
         )
       : null,
-  'ENG-603': (i, o, f) => {
+  'ENG-603': (i, o, f, version) => {
     if (!nums(i, ['planLengthM', 'floors', 'floorHeightM', 'ventAboveRoofM'])) return null;
     const parts: string[] = [];
     // Halaman (ENG-603 v2); trace v1 tidak punya `yardM`.
@@ -193,8 +194,17 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
     if (isNum(o['wasteNetM']))
       parts.push(
         f.t(
-          `Air bekas = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1)${yard} = ${f.n(o['wasteNetM'])} m`,
-          `Waste = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1)${yard} = ${f.n(o['wasteNetM'])} m`,
+          // v3 menambah jalur turun antar lantai; trace v1/v2 ditulis dengan rumus versinya sendiri.
+          version >= 3
+            ? `Air bekas = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1)${yard} = ${f.n(o['wasteNetM'])} m`
+            : yard
+              ? `Air bekas = ${f.n(i['planLengthM'])}${yard} = ${f.n(o['wasteNetM'])} m`
+              : `Air bekas = ${f.n(o['wasteNetM'])} m`,
+          version >= 3
+            ? `Waste = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1)${yard} = ${f.n(o['wasteNetM'])} m`
+            : yard
+              ? `Waste = ${f.n(i['planLengthM'])}${yard} = ${f.n(o['wasteNetM'])} m`
+              : `Waste = ${f.n(o['wasteNetM'])} m`,
         ),
       );
     const vent = isNum(o['soilVentNetM']) ? o['soilVentNetM'] : o['wasteVentNetM'];
@@ -289,9 +299,11 @@ export function stepFormula(
   inputs: unknown,
   output: unknown,
   locale: EngineeringLocale = 'id',
+  /** Versi aturan trace; tanpa versi dianggap versi terbaru. */
+  version: number = Number.MAX_SAFE_INTEGER,
 ): string | null {
   const formula = FORMULAS[ruleId];
   if (formula === undefined) return null;
   const bag = (v: unknown): Bag => (v !== null && typeof v === 'object' ? (v as Bag) : {});
-  return formula(bag(inputs), bag(output), fmt(locale));
+  return formula(bag(inputs), bag(output), fmt(locale), version);
 }

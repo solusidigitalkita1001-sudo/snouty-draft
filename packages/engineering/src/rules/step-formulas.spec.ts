@@ -138,3 +138,16 @@ describe('tanah dan bangunan dibedakan (2026-10-12)', () => {
     expect(r.mainRunNetM).toBe(25.5);
   });
 });
+
+describe('rumus mengikuti versi trace (laporan 0010)', () => {
+  it('ENG-603 v1/v2: air bekas tanpa jalur turun — tidak ditulis "15 + 3,5 × (2 − 1) = 15 m"', () => {
+    const inputs = { planLengthM: 15, floors: 2, floorHeightM: 3.5, ventAboveRoofM: 1, yardM: 0 };
+    const output = { soilNetM: 18.5, wasteNetM: 15, soilVentNetM: 8, wasteVentNetM: 8 };
+    const old = stepFormula('ENG-603', inputs, output, 'id', 1)!;
+    expect(old).toContain('Air bekas = 15 m');
+    expect(old).not.toContain('Air bekas = 15 + 3,5');
+    expect(stepFormula('ENG-603', inputs, { ...output, wasteNetM: 18.5 }, 'id', 3)).toContain(
+      'Air bekas = 15 + 3,5 × (2 − 1) = 18,5 m',
+    );
+  });
+});

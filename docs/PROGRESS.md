@@ -1389,6 +1389,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       cabang/stack (ENG-604) hanya disebut bila memang menentukan ukuran; air kotor menyebut kloset sebagai penentu 4".
       Catatan: `VERIFIED` di state hanya dibaca laporan (dicetak "DISEBUT PENGGUNA"), panel web (hanya membedakan
       ASUMSI) dan engineering-state (diketahui/asumsi).
+- [x] P16-75 Temuan laporan SNTY-2026-10-0010 (dibuat 08.37 dari solusi 05.43): laporan BARU dari rekomendasi berversi
+      aturan lama kini disusun ulang dulu dengan aturan terbaru (laporan lama tidak disentuh); `ulid()` monoton dalam
+      satu milidetik sehingga langkah dasar perhitungan tidak lagi tercetak acak; rumus mengikuti versi trace (ENG-603
+      v1/v2 tidak ditulis dengan rumus v3).
 - [ ] P16-69 Temuan laporan 0009 — F (hanya diselidiki): kelompok hitung bangunan ibadah/umum → OQ-61, menunggu keputusan
       pemilik dan nilai dari ahli Pralon. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").

@@ -95,3 +95,31 @@ describe('ReportService — laporan versi lama', () => {
     ).toBe('Tomo');
   });
 });
+
+describe('ReportService — laporan baru tidak dicetak dari aturan lama (laporan 0010)', () => {
+  const actor = { kind: 'user', id: 'U' } as never;
+  const identity = {
+    customerName: 'Bagus',
+    projectLocation: 'Masjid Cibinong Raya',
+    consultationDate: '2026-10-12',
+  };
+
+  it('rekomendasi berversi aturan lama → disusun ulang dulu, laporan memakai rekomendasi baru', async () => {
+    const { service, created, recompose } = setup([{ ruleId: 'ENG-006', ruleVersion: 1 }]);
+    await service.create(OLD.recommendationId, actor, identity, '2026-10-12T09:00:00.000Z');
+    expect(recompose).toHaveBeenCalledTimes(1);
+    expect((created[0] as { recommendationId: string }).recommendationId).toBe(
+      'NEWREC'.padEnd(26, '0'),
+    );
+    expect(created).toHaveLength(1);
+  });
+
+  it('rekomendasi dengan aturan terkini → langsung dicetak, tanpa susun ulang', async () => {
+    const { service, created, recompose } = setup([{ ruleId: 'ENG-003', ruleVersion: 2 }]);
+    await service.create(OLD.recommendationId, actor, identity, '2026-10-12T09:00:00.000Z');
+    expect(recompose).not.toHaveBeenCalled();
+    expect((created[0] as { recommendationId: string }).recommendationId).toBe(
+      OLD.recommendationId,
+    );
+  });
+});

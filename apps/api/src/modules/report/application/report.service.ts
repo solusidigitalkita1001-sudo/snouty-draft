@@ -176,6 +176,7 @@ export class ReportService {
         consultationDate: now.slice(0, 10),
       },
       now,
+      false,
     );
   }
 
@@ -189,6 +190,8 @@ export class ReportService {
     actor: ConversationOwner,
     identity: ReportIdentityInput,
     now: string,
+    /** Rekomendasi hasil susun ulang tidak disusun ulang lagi. */
+    recomposeIfOutdated = true,
   ): Promise<Report> {
     const recommendation = await this.recommendations.findById(recommendationId);
     if (!recommendation) throw new RecommendationNotFoundError();
@@ -201,7 +204,22 @@ export class ReportService {
     const traces = await this.recommendations.findTraces(recommendationId);
     const snapshot = await this.snapshots.current(recommendation.conversationId);
     const state: RequirementState | null = snapshot?.state ?? null;
-    if (!state) throw new RecommendationNotFoundError();
+    if (!state || !snapshot) throw new RecommendationNotFoundError();
+
+    // Laporan BARU tidak pernah dicetak dari hitungan aturan lama (temuan laporan
+    // SNTY-2026-10-0010: solusi pukul 05.43 dicetak pukul 08.37 lengkap dengan aturan yang sudah
+    // diganti). Rekomendasinya disusun ulang dulu dari kebutuhan yang tersimpan — jalur yang sama
+    // dengan "Susun ulang"; laporan lama tidak disentuh.
+    if (outdatedRules(traces).length > 0 && recomposeIfOutdated) {
+      const fresh = await this.recompose(
+        recommendation.conversationId,
+        snapshot.id,
+        state,
+        locale,
+        now,
+      );
+      if (fresh !== null) return this.create(fresh, actor, identity, now, false);
+    }
 
     const yearMonth = yearMonthOf(now);
     const sequence = await this.reports.allocateNumber(yearMonth);

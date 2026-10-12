@@ -152,7 +152,13 @@ function requirementRows(state: RequirementState, locale: Locale): readonly Repo
 /** Satu baris per trace; rumus singkatnya dibangun dari masukan/keluaran trace itu sendiri. */
 function basisRows(traces: readonly TraceToSave[], locale: Locale): readonly ReportBasisRow[] {
   return traces.map((trace) => {
-    const formula = stepFormula(trace.ruleId, trace.inputs, trace.output, locale);
+    const formula = stepFormula(
+      trace.ruleId,
+      trace.inputs,
+      trace.output,
+      locale,
+      Number(trace.ruleVersion),
+    );
     return {
       ruleId: trace.ruleId,
       explanation: trace.explanation,

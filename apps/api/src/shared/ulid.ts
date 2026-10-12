@@ -16,8 +16,41 @@ const ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 const TIME_LENGTH = 10;
 const RANDOM_LENGTH = 16;
 
+let lastTime = -1;
+let lastRandom = '';
+
+/**
+ * Monoton dalam satu proses (spesifikasi ULID "monotonic"): id yang dibuat pada milidetik yang sama
+ * menaikkan bagian acaknya satu, bukan mengacak ulang. Temuan laporan SNTY-2026-10-0010: trace
+ * satu rekomendasi dibuat dalam milidetik yang sama, dan laporan yang mengurutkan menurut id
+ * mencetak langkah hitung dalam urutan acak.
+ */
 export function ulid(now: number = Date.now()): string {
-  return encodeTime(now) + encodeRandom();
+  const time = Math.floor(now);
+  if (time === lastTime && lastRandom !== '') {
+    const next = incrementBase32(lastRandom);
+    if (next !== null) {
+      lastRandom = next;
+      return encodeTime(time) + next;
+    }
+  }
+  lastTime = time;
+  lastRandom = encodeRandom();
+  return encodeTime(time) + lastRandom;
+}
+
+/** +1 dalam Crockford base32; `null` bila semua digit sudah maksimum (praktis tidak terjadi). */
+function incrementBase32(value: string): string | null {
+  const digits = value.split('');
+  for (let i = digits.length - 1; i >= 0; i -= 1) {
+    const index = ALPHABET.indexOf(digits[i]!);
+    if (index < ALPHABET.length - 1) {
+      digits[i] = ALPHABET[index + 1]!;
+      return digits.join('');
+    }
+    digits[i] = ALPHABET[0]!;
+  }
+  return null;
 }
 
 function encodeTime(milliseconds: number): string {
