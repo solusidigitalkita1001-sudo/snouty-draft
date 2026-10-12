@@ -404,15 +404,28 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-60 — Rumus baku panjang jalur rumah tanpa denah
+
+**Status:** default diterapkan atas keputusan pemilik (2026-10-12, P16-60) · **Blocks:** —
+**Pertanyaan:** Bila ukuran rumah diketahui tetapi denahnya tidak, berapa panjang cabang, sambungan
+ke alat, jalur pembuangan, dan ventilasi yang wajar untuk menghitung jumlah batang?
+**Default yang diterapkan:** cabang = jumlah cabang × sisi terpanjang rumah; sambungan = 1,5 m per
+titik air (`HOUSE_FIXTURE_DROP_1_5M`); tee = 1 per cabang, seukuran pipa utama; air kotor = sisi
+terpanjang + tinggi lantai × (lantai − 1); air bekas = sisi terpanjang; ventilasi = lantai × tinggi
+lantai + 1 m di atas atap (`HOUSE_VENT_ABOVE_ROOF_1M`). Semua ASUMSI (ENG-603, ENG-704,
+`REQUIRES_DOMAIN_VALIDATION`). **Masih terbuka:** validasi tim teknis Pralon; jumlah fitting Y
+pembuangan dan elbow belum dihitung.
+
 ### OQ-59 — SKU katalog bernama sama dan salinan ERP
 
 **Status:** default diterapkan (2026-10-09, P16-50) · **Blocks:** —
 **Pertanyaan:** Katalog aktif memuat 14 pasang SKU FITTING PVC bernama persis sama dengan kode ERP
 berbeda (mis. `product.0_S_06_280_110063_00` dan `product.0_S_06_297_110063_00`, "Spigot All Flange
+
 - D 110 x 63 mm") dan satu salinan HDPE bertanda "(copy)". Apakah pasangan itu varian berbeda
-(mis. standar flens) yang namanya belum dibedakan, atau catatan ganda?
-**Default yang diterapkan:** dihitung satu produk per nama kanonik, jumlah SKU tetap disebut bila
-berbeda. **Masih terbuka:** konfirmasi tim katalog; bila varian berbeda, namanya perlu pembeda di ERP.
+  (mis. standar flens) yang namanya belum dibedakan, atau catatan ganda?
+  **Default yang diterapkan:** dihitung satu produk per nama kanonik, jumlah SKU tetap disebut bila
+  berbeda. **Masih terbuka:** konfirmasi tim katalog; bila varian berbeda, namanya perlu pembeda di ERP.
 
 ### OQ-58 — Tebal dinding PVC, siklus pompa, dan kebutuhan per jenis gedung (audit akurasi)
 

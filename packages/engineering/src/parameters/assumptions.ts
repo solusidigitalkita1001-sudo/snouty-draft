@@ -573,6 +573,38 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'Jalur datar ke titik air terjauh diambil 20 m sampai ukuran rumah disebut; hanya untuk memilih ukuran pipa, bukan untuk jumlah batang.',
   },
   {
+    id: 'HOUSE_FIXTURE_DROP_1_5M',
+    parameter: 'route_length',
+    appliesTo: [],
+    condition: 'panjang pipa dari cabang ke tiap alat; denah belum ada',
+    value: 1.5,
+    unit: 'm',
+    conditionEn: 'pipe length from the branch to each fixture; no floor plan yet',
+    descriptionEn:
+      'The pipe from the branch to each fixture is taken as 1.5 m per outlet until the floor plan is known.',
+    reference:
+      'Perkiraan awal (keputusan pemilik 2026-10-12, P16-60); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Pipa dari cabang ke tiap alat diambil 1,5 m per titik air sampai denahnya diketahui.',
+  },
+  {
+    id: 'HOUSE_VENT_ABOVE_ROOF_1M',
+    parameter: 'building_height',
+    appliesTo: [],
+    condition: 'tinggi pipa ventilasi di atas atap',
+    value: 1,
+    unit: 'm',
+    conditionEn: 'vent pipe height above the roof',
+    descriptionEn: 'Each vent pipe is taken to rise 1 m above the roof.',
+    reference:
+      'Perkiraan awal (keputusan pemilik 2026-10-12, P16-60); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Tiap pipa ventilasi diambil naik 1 m di atas atap.',
+  },
+  {
     id: 'OUTLET_HEIGHT_2M',
     parameter: 'building_height',
     appliesTo: [],

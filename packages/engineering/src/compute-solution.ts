@@ -36,6 +36,7 @@ import {
   ENG_701,
   ENG_702,
   ENG_703,
+  ENG_704,
   hunterGpm,
   minimumHeadM,
   type RouteBasis,
@@ -99,6 +100,15 @@ export interface SolutionResult {
   readonly supply: HouseSupply;
   /** Panjang bersih pipa utama — hanya bila jalurnya disebut atau ukuran rumahnya diketahui. */
   readonly mainRunNetM: number | null;
+  /**
+   * Perkiraan cabang, sambungan, dan tee dari ukuran rumah (ENG-704) — `null` bila ukuran rumah
+   * belum diketahui (jalur yang disebut saja tidak cukup untuk memperkirakan cabang).
+   */
+  readonly branchLayout: {
+    readonly branchNetM: number;
+    readonly fixtureNetM: number;
+    readonly teeCount: number;
+  } | null;
   readonly variancePercent: { readonly min: number; readonly max: number };
   readonly targetVelocityMs: { readonly min: number; readonly max: number };
   readonly appliedAssumptionIds: readonly string[];
@@ -244,6 +254,17 @@ export function computeSolution(
     sizeTable: 'pvc_inch',
   });
 
+  // 6 · panjang cabang dan sambungan, hanya dari ukuran rumah (P16-60).
+  const branchLayout =
+    plan !== null
+      ? run(ENG_704, {
+          planLengthM: Math.max(plan.lengthM, plan.widthM),
+          branchCount: branches.branchCount,
+          outletCount: load.outletCount,
+          fixtureDropM: use('HOUSE_FIXTURE_DROP_1_5M'),
+        })
+      : null;
+
   const variance = run(ENG_006, {});
   run(ENG_012, {}); // dicatat sebagai asumsi yang mendasari isi kamar mandi
 
@@ -271,6 +292,7 @@ export function computeSolution(
       requiredSourcePressureBar,
     },
     mainRunNetM: hasRealDimensions ? route.routeLengthM : null,
+    branchLayout,
     variancePercent: { min: variance.minPercent, max: variance.maxPercent },
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },
     appliedAssumptionIds: [...new Set([...applied, ...main.appliedAssumptionIds])],

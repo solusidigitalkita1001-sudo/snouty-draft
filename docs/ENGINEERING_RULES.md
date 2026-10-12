@@ -409,8 +409,8 @@ batang utuh tanpa sisa potongan. Pipa tiap lantai tidak lagi dihitung jumlahnya 
 
 Instalasi "Pembuangan" atau "Keduanya" untuk rumah dan bangunan kecil dihitung, bukan diteruskan ke
 tim teknis (OQ-17). Dua jalur: air kotor (kloset → septic tank) dan air bekas (floor drain/shower,
-wastafel, bak cuci dapur → saluran atau resapan), pipa PVC D. Panjang jalur tidak diketahui, jadi
-tidak ada jumlah batang. Semua `REQUIRES_DOMAIN_VALIDATION`; nilai dari International Plumbing Code
+wastafel, bak cuci dapur → saluran atau resapan), pipa PVC D. Tanpa ukuran rumah tidak ada jumlah
+batang; dengan ukuran rumah panjangnya diperkirakan (ENG-603, OQ-60). Semua `REQUIRES_DOMAIN_VALIDATION`; nilai dari International Plumbing Code
 sampai padanan SNI 8153 dikonfirmasi tim teknis.
 
 ```
@@ -420,6 +420,9 @@ ENG-602  ukuran = pipa terkecil dengan kapasitas ≥ beban pada kemiringan 2 % (
          2" 21, 2½" 24, 3" 42, 4" 216, 5" 480, 6" 840), tidak lebih kecil dari alat terbesar
          (kloset 4" — SOIL_LINE_MIN_4IN; floor drain 2", bak cuci 1½", wastafel 1¼")
          ventilasi = ukuran terkecil ≥ ½ diameter jalur, minimal 1¼" (IPC 906.2)
+ENG-603  perkiraan panjang (hanya bila ukuran rumah diketahui, OQ-60): air kotor = sisi terpanjang
+         + tinggi lantai × (lantai − 1); air bekas = sisi terpanjang; ventilasi = lantai × tinggi
+         lantai + 1 m di atas atap (HOUSE_VENT_ABOVE_ROOF_1M)
 ```
 
 Contoh (laporan pemilik): rumah 2 lantai, 3 kamar mandi, 1 dapur → air kotor 12 DFU → 4" (ventilasi
@@ -441,10 +444,14 @@ Kel. F   ukuran pipa utama dari kecepatan ≤ 2 m/s dan kehilangan ≤ batas; to
 ENG-703  tekanan dari toren di titik tertinggi; < 0,3 bar → pompa pendorong / toren lebih tinggi
          PDAM: tekanan yang dibutuhkan di meteran = TDH; toren bawah/pompa: titik kerja pompa
 ENG-102  cabang dari debit per cabang pada 1,5 m/s
+ENG-704  perkiraan panjang (hanya bila ukuran rumah diketahui, OQ-60): cabang = jumlah cabang × sisi
+         terpanjang; sambungan = titik air × 1,5 m (HOUSE_FIXTURE_DROP_1_5M); tee = 1 per cabang
 ```
 
-Material: hanya pipa utama, dari panjang jalur yang disebut atau dari ukuran rumah, ÷ panjang
-batang produk katalog terpilih.
+Material: pipa utama dari panjang jalur yang disebut atau dari ukuran rumah; cabang, sambungan, tee,
+dan jalur pembuangan dari ENG-704/ENG-603 (P16-60, keputusan pemilik 2026-10-12). Jumlah batang =
+panjang ÷ panjang batang produk katalog terpilih yang ukurannya memang ada; tanpa produk seukuran,
+jumlahnya dalam meter. Fitting dipilih menurut fungsinya (tee / Y) dan ukuran utama di namanya.
 
 **2026-10-12 (P16-56):** ENG-002, ENG-009, ENG-011 dihapus dari registry — tidak dijalankan sejak
 Kelompok K; ID-nya tidak dipakai ulang. ENG-003 v2: cabang dihitung per lantai (⌈titik lantai ÷ 4⌉,

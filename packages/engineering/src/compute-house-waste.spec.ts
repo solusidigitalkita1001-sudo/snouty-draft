@@ -49,3 +49,25 @@ describe('computeHouseDrainage', () => {
     expect(r.waste?.size).toBe('2"');
   });
 });
+
+describe('panjang jalur pembuangan dari ukuran rumah (ENG-603, P16-60)', () => {
+  it('air kotor = panjang + turun antar lantai, air bekas = panjang, ventilasi = tinggi bangunan + 1 m', () => {
+    const result = computeHouseDrainage({
+      bathrooms: 3,
+      basins: 0,
+      kitchens: 1,
+      layout: { planLengthM: 12, floors: 2, floorHeightM: 3.5 },
+    });
+    expect(result.lengths).toEqual({
+      soilNetM: 15.5,
+      wasteNetM: 12,
+      soilVentNetM: 8,
+      wasteVentNetM: 8,
+    });
+    expect(result.appliedAssumptionIds).toContain('HOUSE_VENT_ABOVE_ROOF_1M');
+  });
+
+  it('tanpa ukuran rumah tidak ada panjang', () => {
+    expect(computeHouseDrainage({ bathrooms: 1, basins: 0, kitchens: 1 }).lengths).toBeNull();
+  });
+});

@@ -28,7 +28,12 @@ import {
   type SelectedProduct,
   type SystemRole,
 } from '@snouty/shared-types';
-import { isSameSizeReducer } from '../../product-catalog/domain/product-types.js';
+import {
+  fittingKindOf,
+  isSameSizeReducer,
+  productSizeOf,
+  type FittingKind,
+} from '../../product-catalog/domain/product-types.js';
 
 export interface RoleRequirement {
   readonly role: SystemRole;
@@ -48,6 +53,11 @@ export interface RoleRequirement {
    * Pralon belum terverifikasi dan tidak boleh ditebak AW (docs/MATCHER_V2_PROPOSAL.md §2).
    */
   readonly pressureClass?: string;
+  /**
+   * Fungsi fitting yang dibutuhkan (tee cabang, Y pembuangan). Tanpa ini peran fitting bisa terisi
+   * tutup pipa atau reducer — barang yang ukurannya cocok tetapi fungsinya bukan.
+   */
+  readonly fittingKind?: FittingKind;
 }
 
 export interface MatchResult {
@@ -82,7 +92,11 @@ export function pipeRequirement(role: SystemRole, size: string, family: string):
 }
 
 /** Peran fitting: keluarga fitting Pralon dulu, lalu fallback keluarga pipa + kategori FITTING. */
-export function fittingRequirement(size: string, pipeFamily: string): RoleRequirement {
+export function fittingRequirement(
+  size: string,
+  pipeFamily: string,
+  fittingKind?: FittingKind,
+): RoleRequirement {
   const dedicated = FITTING_FAMILY_FOR[pipeFamily];
   const pressureClass = PRESSURE_CLASS_OF[pipeFamily];
   return {
@@ -91,6 +105,7 @@ export function fittingRequirement(size: string, pipeFamily: string): RoleRequir
     families: dedicated ? [dedicated, pipeFamily] : [pipeFamily],
     categoryIncludes: 'FITTING',
     ...(pressureClass ? { pressureClass } : {}),
+    ...(fittingKind ? { fittingKind } : {}),
   };
 }
 
@@ -109,15 +124,24 @@ export function matchProducts(
 
   for (const requirement of requirements) {
     // Reducer yang kedua ujungnya sama bukan barang yang bisa dipasang — tidak pernah dipilih.
-    const pool = poolFor(requirement, candidates).filter((p) => !isSameSizeReducer(p.name));
+    const pool = poolFor(requirement, candidates).filter(
+      (p) =>
+        !isSameSizeReducer(p.name) &&
+        (requirement.fittingKind === undefined ||
+          fittingKindOf(p.name) === requirement.fittingKind),
+    );
     if (pool.length === 0) {
       unmatchedRoles.push(requirement.role);
       continue;
     }
 
     const wanted = PipeSize.parse(requirement.size);
+    // Fitting: ukuran UTAMA di namanya yang harus sama — "Long TY - D 10" x 4"" adalah fitting 10"
+    // bercabang 4", bukan fitting 4" (temuan laporan SNTY-2026-10-0007).
     const withSize = pool.filter((product) =>
-      product.sizes.some((label) => sameSize(label, wanted, requirement.size)),
+      requirement.role === 'fitting'
+        ? primarySizeIs(product.name, wanted, requirement.size)
+        : product.sizes.some((label) => sameSize(label, wanted, requirement.size)),
     );
     const classed = requirement.pressureClass
       ? splitByPressureClass(withSize, requirement.pressureClass)
@@ -194,6 +218,11 @@ function poolFor(requirement: RoleRequirement, candidates: readonly Product[]): 
     if (pool.length > 0) return pool;
   }
   return [];
+}
+
+function primarySizeIs(name: string, wanted: PipeSize | null, rawWanted: string): boolean {
+  const primary = productSizeOf(name);
+  return primary !== null && sameSize(primary.label, wanted, rawWanted);
 }
 
 function sameSize(label: string, wanted: PipeSize | null, rawWanted: string): boolean {
@@ -290,6 +319,7 @@ export function requirementsFrom(input: {
     pipeRequirement('riser', input.mainSize, input.pipeFamily),
     pipeRequirement('branch', input.branchSize, input.pipeFamily),
     pipeRequirement('fixture', input.fixtureSize, input.pipeFamily),
-    fittingRequirement(input.branchSize, input.pipeFamily),
+    // Tee di pipa utama/riser tempat tiap cabang keluar: ukuran pipa utama.
+    fittingRequirement(input.mainSize, input.pipeFamily, 'tee'),
   ];
 }

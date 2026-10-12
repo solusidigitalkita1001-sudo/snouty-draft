@@ -158,3 +158,23 @@ export function isSameSizeReducer(name: string): boolean {
   const second = `${m[3]!.replace(',', '.')}${unit(m[4] ?? m[2])}`;
   return first === second;
 }
+
+/**
+ * Jenis fungsi sebuah fitting, dari NAMA katalog Pralon (temuan laporan SNTY-2026-10-0007: peran
+ * "tee cabang" terisi "Cap - W 1/2"" dan sambungan cabang air kotor terisi "Long TY - D 10" x 4"").
+ *
+ *   - `tee`: percabangan pipa bertekanan — "Tee", "Bell Tee TS Branch", bukan "Faucet Tee" (tee
+ *     berulir untuk keran);
+ *   - `branch_y`: percabangan saluran pembuangan — "Y", "TY", "Long TY", bukan "Double Long TY"
+ *     (dua cabang sekaligus).
+ *
+ * Parser nilai atas DATA katalog, bukan tebakan atas kalimat pengguna.
+ */
+export type FittingKind = 'tee' | 'branch_y';
+
+export function fittingKindOf(name: string): FittingKind | null {
+  const type = productTypeOf(name).type;
+  if (/\bTee\b/i.test(type) && !/\bFaucet\b/i.test(type)) return 'tee';
+  if (/\b(?:T?Y)\b/.test(type) && !/\bDouble\b/i.test(type)) return 'branch_y';
+  return null;
+}

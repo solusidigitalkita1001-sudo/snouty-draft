@@ -13,6 +13,7 @@
  */
 
 import { localized, requireInt, requireNumber, type RuleVersion } from '../rule.js';
+import { round1 } from '../units.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 
@@ -210,4 +211,100 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
     }),
 };
 
-export const GROUP_J = [ENG_601, ENG_602] as const;
+// ── ENG-603 · Perkiraan panjang jalur pembuangan dari ukuran rumah ──────────
+
+export interface DrainLengthInput {
+  readonly planLengthM: number;
+  readonly floors: number;
+  readonly floorHeightM: number;
+  readonly ventAboveRoofM: number;
+  readonly hasSoil: boolean;
+  readonly hasWaste: boolean;
+}
+export interface DrainLengthResult {
+  /** Air kotor: panjang rumah + turun dari lantai teratas; `null` bila tidak ada kloset. */
+  readonly soilNetM: number | null;
+  /** Air bekas: panjang rumah; `null` bila tidak ada alat air bekas. */
+  readonly wasteNetM: number | null;
+  /** Ventilasi tiap jalur: tinggi bangunan + di atas atap. */
+  readonly soilVentNetM: number | null;
+  readonly wasteVentNetM: number | null;
+}
+
+/**
+ * Tanpa denah, panjang jalur pembuangan diperkirakan dari ukuran rumah (keputusan pemilik
+ * 2026-10-12, P16-60). Hanya dijalankan bila ukuran rumah diketahui.
+ */
+export const ENG_603: RuleVersion<DrainLengthInput, DrainLengthResult> = {
+  ruleId: 'ENG-603',
+  version: 1,
+  category: 'geometry',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      planLengthM: requireNumber('ENG-603', 'planLengthM', o['planLengthM'], { min: 1, max: 500 }),
+      floors: requireInt('ENG-603', 'floors', o['floors'], { min: 1, max: 50 }),
+      floorHeightM: requireNumber('ENG-603', 'floorHeightM', o['floorHeightM'], {
+        min: 2,
+        max: 10,
+      }),
+      ventAboveRoofM: requireNumber('ENG-603', 'ventAboveRoofM', o['ventAboveRoofM'], {
+        min: 0,
+        max: 5,
+      }),
+      hasSoil: o['hasSoil'] === true,
+      hasWaste: o['hasWaste'] === true,
+    };
+  },
+  compute: (i) => {
+    const vent = round1(i.floors * i.floorHeightM + i.ventAboveRoofM);
+    return {
+      soilNetM: i.hasSoil ? round1(i.planLengthM + i.floorHeightM * (i.floors - 1)) : null,
+      wasteNetM: i.hasWaste ? round1(i.planLengthM) : null,
+      soilVentNetM: i.hasSoil ? vent : null,
+      wasteVentNetM: i.hasWaste ? vent : null,
+    };
+  },
+  sourceReference:
+    'Perkiraan tanpa denah: air kotor = panjang rumah + tinggi lantai × (lantai − 1); air bekas = panjang rumah; ventilasi = lantai × tinggi lantai + tinggi di atas atap',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'rumah 12 m, 2 lantai × 3,5 m, ventilasi 1 m di atas atap',
+      input: {
+        planLengthM: 12,
+        floors: 2,
+        floorHeightM: 3.5,
+        ventAboveRoofM: 1,
+        hasSoil: true,
+        hasWaste: true,
+      },
+      expected: { soilNetM: 15.5, wasteNetM: 12, soilVentNetM: 8, wasteVentNetM: 8 },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: [
+        o.soilNetM !== null
+          ? `Air kotor = panjang rumah ${i.planLengthM} m + ${i.floorHeightM} m × (${i.floors} − 1) lantai = ${o.soilNetM} m.`
+          : '',
+        o.wasteNetM !== null ? `Air bekas = panjang rumah ${o.wasteNetM} m.` : '',
+        `Ventilasi = ${i.floors} lantai × ${i.floorHeightM} m + ${i.ventAboveRoofM} m di atas atap = ${round1(i.floors * i.floorHeightM + i.ventAboveRoofM)} m per jalur.`,
+        'Perkiraan sampai denahnya ada.',
+      ]
+        .filter(Boolean)
+        .join(' '),
+      en: [
+        o.soilNetM !== null
+          ? `Soil line = house length ${i.planLengthM} m + ${i.floorHeightM} m × (${i.floors} − 1) floors = ${o.soilNetM} m.`
+          : '',
+        o.wasteNetM !== null ? `Waste line = house length ${o.wasteNetM} m.` : '',
+        `Vent = ${i.floors} floors × ${i.floorHeightM} m + ${i.ventAboveRoofM} m above the roof = ${round1(i.floors * i.floorHeightM + i.ventAboveRoofM)} m per line.`,
+        'An estimate until the floor plan is known.',
+      ]
+        .filter(Boolean)
+        .join(' '),
+    }),
+};
+
+export const GROUP_J = [ENG_601, ENG_602, ENG_603] as const;

@@ -178,6 +178,36 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
           `${f.n(i['dfu'])} DFU ≤ ${f.n(o['capacityDfu'])} (capacity of ${o['size']}) → pipe ${o['size']}, vent ${o['ventSize']}`,
         )
       : null,
+  'ENG-603': (i, o, f) => {
+    if (!nums(i, ['planLengthM', 'floors', 'floorHeightM', 'ventAboveRoofM'])) return null;
+    const parts: string[] = [];
+    if (isNum(o['soilNetM']))
+      parts.push(
+        f.t(
+          `Air kotor = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1) = ${f.n(o['soilNetM'])} m`,
+          `Soil = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1) = ${f.n(o['soilNetM'])} m`,
+        ),
+      );
+    if (isNum(o['wasteNetM']))
+      parts.push(f.t(`Air bekas = ${f.n(o['wasteNetM'])} m`, `Waste = ${f.n(o['wasteNetM'])} m`));
+    const vent = isNum(o['soilVentNetM']) ? o['soilVentNetM'] : o['wasteVentNetM'];
+    if (isNum(vent))
+      parts.push(
+        f.t(
+          `Ventilasi = ${f.n(i['floors'])} × ${f.n(i['floorHeightM'])} + ${f.n(i['ventAboveRoofM'])} = ${f.n(vent)} m per jalur`,
+          `Vent = ${f.n(i['floors'])} × ${f.n(i['floorHeightM'])} + ${f.n(i['ventAboveRoofM'])} = ${f.n(vent)} m per line`,
+        ),
+      );
+    return parts.length > 0 ? parts.join(' · ') : null;
+  },
+  'ENG-704': (i, o, f) =>
+    nums(i, ['planLengthM', 'branchCount', 'outletCount', 'fixtureDropM']) &&
+    nums(o, ['branchNetM', 'fixtureNetM', 'teeCount'])
+      ? f.t(
+          `Cabang = ${f.n(i['branchCount'])} × ${f.n(i['planLengthM'])} m = ${f.n(o['branchNetM'])} m · Sambungan = ${f.n(i['outletCount'])} × ${f.n(i['fixtureDropM'])} m = ${f.n(o['fixtureNetM'])} m · Tee = ${f.n(o['teeCount'])}`,
+          `Branches = ${f.n(i['branchCount'])} × ${f.n(i['planLengthM'])} m = ${f.n(o['branchNetM'])} m · Connections = ${f.n(i['outletCount'])} × ${f.n(i['fixtureDropM'])} m = ${f.n(o['fixtureNetM'])} m · Tees = ${f.n(o['teeCount'])}`,
+        )
+      : null,
   'ENG-701': (i, o, f) =>
     nums(i, ['waterClosets', 'showers', 'lavatories', 'kitchenSinks']) &&
     nums(i, ['wsfuWaterCloset', 'wsfuShower', 'wsfuLavatory', 'wsfuKitchenSink']) &&

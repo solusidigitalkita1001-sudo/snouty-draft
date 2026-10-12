@@ -22,6 +22,7 @@ import {
   bomItemsFrom,
   statsFrom,
   systemLinesFrom,
+  type HouseStocks,
   type IdentifiedTrace,
 } from '../domain/solution-view.js';
 
@@ -47,6 +48,8 @@ export interface AssembleInput {
   readonly requirementAssumptions: readonly Assumption[];
   /** Panjang batang produk pipa utama terpilih — dasar jumlah beli di material. */
   readonly mainStock?: StockLength | null;
+  /** Produk cabang, sambungan, dan tee terpilih — dasar jumlah beli jalur lain (P16-60). */
+  readonly houseStocks?: HouseStocks;
   /** `now` disuntikkan demi determinisme pengujian. */
   readonly now: string;
   /** Bahasa prosa (Fase 15); templat deterministik masih Indonesia sampai P15-03. */
@@ -65,7 +68,13 @@ export async function assembleRecommendation(
 ): Promise<AssembleResult> {
   const stats = statsFrom(input.solution, input.products.length);
   const systemLines = systemLinesFrom(input.solution, input.traces, input.locale);
-  const bom = bomItemsFrom(input.solution, input.traces, input.locale, input.mainStock ?? null);
+  const bom = bomItemsFrom(
+    input.solution,
+    input.traces,
+    input.locale,
+    input.mainStock ?? null,
+    input.houseStocks ?? {},
+  );
   const assumptions = assumptionsFrom(
     input.solution,
     input.traces,

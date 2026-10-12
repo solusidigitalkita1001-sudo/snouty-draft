@@ -109,8 +109,7 @@ export function systemLinesFrom(
   const fixtureTraces = traceIdsFor(traces, 'ENG-005');
   const sourceTraces = traceIdsFor(traces, 'ENG-702', 'ENG-204', 'ENG-206', 'ENG-703');
   const supply = solution.supply;
-  const num = (n: number) =>
-    n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
+  const num = (n: number) => n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
 
   const lines: SystemLine[] = [
     {
@@ -163,7 +162,9 @@ export function systemLinesFrom(
         }
       : supply.requiredSourcePressureBar !== null
         ? {
-            name: en ? 'Pressure needed at the water meter' : 'Tekanan yang dibutuhkan di meteran PDAM',
+            name: en
+              ? 'Pressure needed at the water meter'
+              : 'Tekanan yang dibutuhkan di meteran PDAM',
             size: `${num(supply.requiredSourcePressureBar)} bar`,
             reason: en
               ? `${explanationFor(traces, 'ENG-204')} If the mains pressure is lower, feed a tank first and pump from it.`
@@ -173,7 +174,8 @@ export function systemLinesFrom(
           ? {
               name: en ? 'Pump (duty point)' : 'Pompa (titik kerja)',
               size: `${num(pump.flowM3h)} ${en ? 'm³/h' : 'm³/jam'} @ ${num(pump.headM)} m`,
-              reason: `${explanationFor(traces, 'ENG-204')} ${explanationFor(traces, 'ENG-206')}`.trim(),
+              reason:
+                `${explanationFor(traces, 'ENG-204')} ${explanationFor(traces, 'ENG-206')}`.trim(),
             }
           : null;
   if (source !== null) {
@@ -188,45 +190,101 @@ export function systemLinesFrom(
   return lines;
 }
 
+/** Produk katalog terpilih per jalur rumah — sumber panjang batang dan identitas baris material. */
+export interface HouseStocks {
+  readonly branch?: StockLength | null;
+  readonly fixture?: StockLength | null;
+  /** Tee cabang yang terpilih dari katalog; tanpa produk, barisnya tetap ada tanpa `productId`. */
+  readonly tee?: { readonly productId: string } | null;
+}
+
 /**
- * Material rumah. Hanya pipa utama yang punya panjang — dari jalur yang disebut atau dari ukuran
- * rumah — dan jumlah belinya memakai panjang batang produk katalog terpilih. Cabang, sambungan,
- * dan fitting mengikuti tata letak, jadi tidak diberi angka (koreksi 2026-10-12: rumus prototipe
- * "2 + lantai batang", "3 × kamar mandi elbow" dikarang tanpa panjang jalur).
+ * Material rumah. Pipa utama dari jalur yang disebut atau dari ukuran rumah; cabang, sambungan ke
+ * alat, dan tee dari perkiraan ENG-704 — hanya bila ukuran rumah diketahui (keputusan pemilik
+ * 2026-10-12, P16-60: dihitung dengan rumus baku bertanda asumsi, bukan "menyusul"). Jumlah beli
+ * memakai panjang batang produk katalog terpilih per jalur.
  */
 export function bomItemsFrom(
   solution: SolutionResult,
   traces: readonly IdentifiedTrace[],
   locale: Locale = DEFAULT_LOCALE,
   stock: StockLength | null = null,
+  stocks: HouseStocks = {},
 ): readonly BomItem[] {
   if (solution.mainRunNetM === null) return [];
   const en = locale === 'en';
   const ids = traceIdsFor(traces, 'ENG-702');
-  const purchase = pipePurchase(
-    solution.mainRunNetM,
-    solution.supply.routeBasis === 'stated'
-      ? en
-        ? 'the stated run'
-        : 'jalur yang disebut'
-      : en
-        ? 'house length + width and the height to the highest outlet'
-        : 'panjang + lebar rumah dan beda tinggi ke titik air tertinggi',
-    stock,
-    locale,
-  );
-  return [
-    {
+  const pipeRow = (
+    size: string,
+    netM: number,
+    detail: string,
+    rowStock: StockLength | null,
+    rowIds: readonly string[],
+  ): BomItem => {
+    const purchase = pipePurchase(netM, detail, rowStock, locale);
+    return {
       item: bomItemName('Pipa PVC AW', locale),
-      size: solution.mainSize,
+      size,
       ...(purchase.productId ? { productId: purchase.productId } : {}),
       quantity: purchase.quantity,
       unit: bomUnitLabel(purchase.unit, locale),
       basis: purchase.basis,
-      provenance: provenanceFor(traces, ids),
-      traceIds: ids,
-    },
+      provenance: provenanceFor(traces, rowIds),
+      traceIds: rowIds,
+    };
+  };
+  const rows: BomItem[] = [
+    pipeRow(
+      solution.mainSize,
+      solution.mainRunNetM,
+      solution.supply.routeBasis === 'stated'
+        ? en
+          ? 'the stated run'
+          : 'jalur yang disebut'
+        : en
+          ? 'house length + width and the height to the highest outlet'
+          : 'panjang + lebar rumah dan beda tinggi ke titik air tertinggi',
+      stock,
+      ids,
+    ),
   ];
+
+  const layout = solution.branchLayout;
+  if (layout === null) return rows;
+  const layoutIds = traceIdsFor(traces, 'ENG-704');
+  rows.push(
+    pipeRow(
+      solution.branchSize,
+      layout.branchNetM,
+      en
+        ? `${solution.branchCount} branches × house length`
+        : `${solution.branchCount} cabang × panjang rumah`,
+      stocks.branch ?? null,
+      layoutIds,
+    ),
+    pipeRow(
+      solution.fixtureConnectionSize,
+      layout.fixtureNetM,
+      en
+        ? `${solution.outletCount} outlets × connection length`
+        : `${solution.outletCount} titik air × panjang sambungan`,
+      stocks.fixture ?? null,
+      layoutIds,
+    ),
+    {
+      item: en ? 'Branch tee' : 'Tee cabang',
+      size: solution.mainSize,
+      ...(stocks.tee ? { productId: stocks.tee.productId } : {}),
+      quantity: layout.teeCount,
+      unit: 'pcs',
+      basis: en
+        ? `One tee on the main line per branch: ${layout.teeCount} branches.`
+        : `Satu tee di pipa utama untuk tiap cabang: ${layout.teeCount} cabang.`,
+      provenance: provenanceFor(traces, layoutIds),
+      traceIds: layoutIds,
+    },
+  );
+  return rows;
 }
 
 /**

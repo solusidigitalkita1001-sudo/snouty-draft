@@ -3,8 +3,8 @@
  *
  * 1 kamar mandi = 1 kloset + 1 shower/floor drain (sama dengan sisi air bersih, ENG-012);
  * wastafel dan bak cuci dapur dari jumlah yang disebut. Dua jalur: air kotor ke septic tank,
- * air bekas ke saluran/resapan. Panjang jalur tidak diketahui → tidak ada jumlah batang; yang
- * dihitung adalah beban, ukuran tiap jalur, ventilasi, dan ukuran sambungan tiap alat.
+ * air bekas ke saluran/resapan. Yang dihitung: beban, ukuran tiap jalur, ventilasi, ukuran sambungan
+ * tiap alat, dan — bila ukuran rumah diketahui — perkiraan panjang tiap jalur (ENG-603).
  */
 
 import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
@@ -16,7 +16,9 @@ import {
   DRAIN_SIZES,
   ENG_601,
   ENG_602,
+  ENG_603,
   type DrainageLoadResult,
+  type DrainLengthResult,
   type DrainLineResult,
   type DrainSize,
 } from './rules/group-j-waste.js';
@@ -25,6 +27,12 @@ export interface HouseDrainageInput {
   readonly bathrooms: number;
   readonly basins: number;
   readonly kitchens: number;
+  /** Ukuran rumah dan lantai — bila ada, panjang tiap jalur diperkirakan (ENG-603, P16-60). */
+  readonly layout?: {
+    readonly planLengthM: number;
+    readonly floors: number;
+    readonly floorHeightM: number;
+  } | null;
 }
 
 export interface FixtureDrain {
@@ -40,6 +48,8 @@ export interface HouseDrainageResult {
   /** Jalur air bekas; `null` bila tidak ada alat air bekas. */
   readonly waste: DrainLineResult | null;
   readonly fixtures: readonly FixtureDrain[];
+  /** Perkiraan panjang tiap jalur (ENG-603); `null` tanpa ukuran rumah. */
+  readonly lengths: DrainLengthResult | null;
   readonly appliedAssumptionIds: readonly string[];
   readonly traces: readonly CalculationTrace[];
   readonly overallProvenance: Provenance;
@@ -142,11 +152,21 @@ export function computeHouseDrainage(
       : []),
   ];
 
+  const lengths = input.layout
+    ? run(ENG_603, {
+        ...input.layout,
+        ventAboveRoofM: use('HOUSE_VENT_ABOVE_ROOF_1M'),
+        hasSoil: soil !== null,
+        hasWaste: waste !== null,
+      })
+    : null;
+
   return {
     load,
     soil,
     waste,
     fixtures,
+    lengths,
     appliedAssumptionIds: [...new Set(applied)],
     traces,
     overallProvenance: traces.every((t) => t.provenance === 'VERIFIED') ? 'VERIFIED' : 'ASSUMED',

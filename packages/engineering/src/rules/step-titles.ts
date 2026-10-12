@@ -49,9 +49,11 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-506': { id: 'Volume tangki', en: 'Tank volumes' },
   'ENG-601': { id: 'Beban pembuangan', en: 'Drainage load' },
   'ENG-602': { id: 'Ukuran pipa buangan dan ventilasi', en: 'Drain and vent size' },
+  'ENG-603': { id: 'Panjang jalur pembuangan', en: 'Drain line lengths' },
   'ENG-701': { id: 'Debit puncak air bersih', en: 'Peak water demand' },
   'ENG-702': { id: 'Jalur dan beda tinggi', en: 'Route and height' },
   'ENG-703': { id: 'Tekanan dari toren atap', en: 'Pressure from the roof tank' },
+  'ENG-704': { id: 'Panjang cabang dan sambungan', en: 'Branch and connection lengths' },
 };
 
 /** Judul langkah untuk sebuah aturan; aturan yang belum terdaftar → judul umum, bukan kodenya. */

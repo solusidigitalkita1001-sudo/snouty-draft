@@ -78,7 +78,7 @@ describe('ProductMatcher', () => {
         family: 'PVC AW',
         category: 'FITTING · SNI',
         sku: 'FIT-1',
-        name: 'Fitting Pralon',
+        name: 'Tee TS - W 1"',
       }),
     ];
     const ids = new Set(candidates.map((c) => c.id));
@@ -95,7 +95,7 @@ describe('ProductMatcher', () => {
         family: 'PVC AW',
         category: 'FITTING · SNI',
         sku: 'FIT-1',
-        name: 'Fitting Pralon',
+        name: 'Tee TS - W 1"',
       }),
     ];
     const result = matchProducts(REQUIREMENTS, candidates);
@@ -202,7 +202,7 @@ describe('ProductMatcher v2 — katalog Pralon (docs/MATCHER_V2_PROPOSAL.md)', (
     const sampleFitting = product({
       id: '01JBSMP00000000000000000F1',
       sku: 'DEV-FIT-TEE',
-      name: 'CONTOH Tee PVC AW',
+      name: 'CONTOH Tee PVC AW 3/4"',
       category: 'FITTING · SNI',
       sizes: ['3/4"'],
     });
@@ -253,5 +253,37 @@ describe('fitting tanpa pengganti (temuan laporan SNTY-2026-10-0002)', () => {
     const result = matchProducts([fittingRequirement('3/4"', 'PVC AW')], [sameReducer, otherSize]);
     expect(result.products).toEqual([]);
     expect(result.unmatchedRoles).toEqual(['fitting']);
+  });
+});
+
+describe('jenis dan ukuran utama fitting (temuan laporan SNTY-2026-10-0007)', () => {
+  const fitting = (id: string, name: string, sizes: string[], family = 'FITTING PVC') =>
+    product({ id, sku: id, name, family, category: 'FITTING', sizes });
+
+  it('tee cabang tidak pernah terisi tutup pipa atau tee keran', () => {
+    const picked = matchProducts(
+      [fittingRequirement('1/2"', 'PVC AW', 'tee')],
+      [
+        fitting('CAP', 'Cap - W 1/2"', ['1/2"']),
+        fitting('FAUCET', 'Faucet Tee - W 1/2"', ['1/2"']),
+        fitting('TEE', 'Tee Abu Ts 1/2"', ['1/2"']),
+      ],
+    ).products;
+    expect(picked.map((p) => p.productId)).toEqual(['TEE']);
+  });
+
+  it('Y pembuangan 4" memakai ukuran utama nama — "Long TY 10" x 4"" bukan fitting 4"', () => {
+    const candidates = [
+      fitting('TY-10X4', 'Long TY - D 10" x 4"', ['10"', '4"']),
+      fitting('DOUBLE', 'Double Long TY - D 4"', ['4"']),
+      fitting('TY-4', 'Bell Long TY - D 4" x 4"', ['4"']),
+    ];
+    const picked = matchProducts([fittingRequirement('4"', 'PVC D', 'branch_y')], candidates);
+    expect(picked.products.map((p) => p.productId)).toEqual(['TY-4']);
+    // Tanpa Y berukuran utama 4" → kosong, bukan fitting ukuran lain.
+    expect(
+      matchProducts([fittingRequirement('4"', 'PVC D', 'branch_y')], candidates.slice(0, 2))
+        .unmatchedRoles,
+    ).toEqual(['fitting']);
   });
 });

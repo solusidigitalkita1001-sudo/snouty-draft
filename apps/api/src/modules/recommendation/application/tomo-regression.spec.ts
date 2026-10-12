@@ -58,6 +58,10 @@ const CATALOG: readonly Product[] = [
   // Reducer yang kedua ujungnya sama — tidak boleh pernah dipilih.
   product('FITTING PVC', 'FITTING', 'Bell Reducer - W 1" x 1"', ['1"']),
   product('FITTING PVC', 'FITTING', 'Tee TS - W 1"', ['1"']),
+  // Temuan laporan 0007: tutup pipa dan Y bercabang 10" tidak boleh mengisi peran tee / Y 4".
+  product('FITTING PVC', 'FITTING', 'Cap - W 1"', ['1"']),
+  product('FITTING PVC', 'FITTING', 'Long TY - D 10" x 4"', ['10"', '4"']),
+  product('FITTING PVC', 'FITTING', 'Bell Long TY - D 4" x 4"', ['4"']),
   product('PVC D', 'PIPA AIR BUANGAN', 'Pipa (Plain End) Abu D 4" x 4 Meter', ['4"']),
   product('PVC D', 'PIPA AIR BUANGAN', 'Pipa (Plain End) Abu D 2" x 4 Meter', ['2"']),
 ];
@@ -76,7 +80,9 @@ const STATE: RequirementState = withCompleteness(
   ).state,
 );
 
-async function analyse(): Promise<{ rec: Recommendation; traces: readonly TraceToSave[] }> {
+async function analyse(
+  state: RequirementState = STATE,
+): Promise<{ rec: Recommendation; traces: readonly TraceToSave[] }> {
   let saved: { rec: Recommendation; traces: readonly TraceToSave[] } | null = null;
   const service = new AnalysisService(
     { findVersionById: async () => null } as never,
@@ -99,7 +105,7 @@ async function analyse(): Promise<{ rec: Recommendation; traces: readonly TraceT
         ),
     },
   );
-  await service.run('C'.repeat(26), 'S'.repeat(26), STATE, [], T0, undefined, DEFAULT_LOCALE);
+  await service.run('C'.repeat(26), 'S'.repeat(26), state, [], T0, undefined, DEFAULT_LOCALE);
   return saved!;
 }
 
@@ -171,5 +177,45 @@ describe('regresi laporan SNTY-2026-10-0002 (Tomo)', () => {
     for (const line of rec.systemLines) expect(html).toContain(line.name);
     expect(html).not.toMatch(/Reducer 3\/4&quot;→3\/4|Reducer 3\/4"→3\/4/);
     expect(html).not.toContain('ambang 8 unit');
+  });
+});
+
+describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
+  const SIZED: RequirementState = withCompleteness(
+    mergeRequirement(
+      STATE,
+      [{ path: 'building.dimensions', value: { lengthM: 8, widthM: 12 }, source: 'user_stated' }],
+      T0,
+    ).state,
+  );
+
+  it('semua jalur air bersih dan pembuangan punya jumlah; rumus baku bertanda asumsi', async () => {
+    const { rec } = await analyse(SIZED);
+    const rows = rec.bom.map((b) => `${b.item} ${b.size} ${b.quantity} ${b.unit}`);
+    // Air bersih: utama 1" (12 + 8 + 5,5 = 25,5 m → 7 batang); cabang ¾" 2 × 12 = 24 m → 6;
+    // sambungan ½" 7 × 1,5 = 10,5 m → 3; tee 1" 2 buah.
+    // Pembuangan: air kotor 4" 12 + 3,5 = 15,5 m → 4; air bekas 2" 12 m → 3; ventilasi
+    // 2 × 3,5 + 1 = 8 m per jalur → 2" 2 batang + 1¼" 2 batang (tanpa produk 1¼" → meter).
+    expect(rows).toEqual([
+      'Pipa PVC AW 1" 7 batang',
+      'Pipa PVC AW 3/4" 6 batang',
+      'Pipa PVC AW 1/2" 3 batang',
+      'Tee cabang 1" 2 pcs',
+      'Pipa PVC D 4" 4 batang',
+      'Pipa PVC D 2" 5 batang',
+      'Pipa PVC D 1¼" 8 meter',
+    ]);
+    expect(
+      rec.bom
+        .filter((b) => b.item !== 'Pipa PVC AW' || b.size !== '1"')
+        .every((b) => b.provenance === 'ASSUMED'),
+    ).toBe(true);
+  });
+
+  it('tee dan Y dipilih menurut fungsi dan ukuran utamanya', async () => {
+    const { rec } = await analyse(SIZED);
+    const name = (id: string) => CATALOG.find((p) => p.id === id)!.name;
+    const fittings = rec.products.filter((p) => p.role === 'fitting').map((p) => name(p.productId));
+    expect(fittings).toEqual(['Tee TS - W 1"', 'Bell Long TY - D 4" x 4"']);
   });
 });

@@ -13,12 +13,15 @@ import {
 import {
   DEFAULT_LOCALE,
   type Assumption,
+  type BomItem,
+  type BomUnit,
   type Locale,
   type Provenance,
   type Recommendation,
   type SelectedProduct,
   type SystemLine,
 } from '@snouty/shared-types';
+import { pipePurchase, type StockLength } from './pipe-quantity.js';
 import type { IdentifiedTrace } from './solution-view.js';
 
 /** Pipa buangan memakai kelas gravitasi. */
@@ -139,8 +142,14 @@ export function drainageAssumptions(
   return [
     {
       text: en
-        ? 'How the drainage is worked out: each fixture carries a drainage load, the loads are added per line, and each line takes the smallest pipe that can carry that load at a 2 % fall, never smaller than its largest fixture. Toilets drain to the septic tank, the rest to the drain or soakaway, each line with its own vent. The route length is not known yet, so the number of pipes is counted once the layout is known.'
-        : 'Cara hitung pembuangannya: tiap alat punya beban buangan, bebannya dijumlah per jalur, lalu tiap jalur memakai pipa terkecil yang sanggup mengalirkan beban itu pada kemiringan 2 %, dan tidak lebih kecil dari alat terbesarnya. Kloset ke septic tank, sisanya ke saluran atau sumur resapan, masing-masing dengan ventilasi. Panjang jalurnya belum diketahui, jadi jumlah batang dihitung setelah denahnya ada.',
+        ? 'How the drainage is worked out: each fixture carries a drainage load, the loads are added per line, and each line takes the smallest pipe that can carry that load at a 2 % fall, never smaller than its largest fixture. Toilets drain to the septic tank, the rest to the drain or soakaway, each line with its own vent. ' +
+          (result.lengths
+            ? 'Each route length is estimated from the house size until the floor plan is known.'
+            : 'The route length is not known yet, so the number of pipes is counted once the house size is given.')
+        : 'Cara hitung pembuangannya: tiap alat punya beban buangan, bebannya dijumlah per jalur, lalu tiap jalur memakai pipa terkecil yang sanggup mengalirkan beban itu pada kemiringan 2 %, dan tidak lebih kecil dari alat terbesarnya. Kloset ke septic tank, sisanya ke saluran atau sumur resapan, masing-masing dengan ventilasi. ' +
+          (result.lengths
+            ? 'Panjang tiap jalur diperkirakan dari ukuran rumah sampai denahnya ada.'
+            : 'Panjang jalurnya belum diketahui, jadi jumlah batang dihitung setelah ukuran rumahnya disebut.'),
       fieldPath: '',
       ruleId: 'ENG-602',
     },
@@ -191,6 +200,80 @@ export function drainageSentence(result: HouseDrainageResult, locale: Locale): s
  * Gabungkan pembuangan ke rekomendasi rumah. `only` = yang diminta hanya pembuangan: jalur air
  * bersih tidak ditampilkan.
  */
+/** Produk pipa buangan terpilih per jalur — sumber panjang batang baris material. */
+export interface DrainStocks {
+  readonly soil?: StockLength | null;
+  readonly waste?: StockLength | null;
+  readonly soilVent?: StockLength | null;
+  readonly wasteVent?: StockLength | null;
+}
+
+/**
+ * Material pembuangan dari perkiraan panjang ENG-603 (P16-60) — hanya bila ukuran rumah diketahui.
+ * Jumlah beli memakai panjang batang produk PVC D terpilih per jalur.
+ */
+export function drainageBomFrom(
+  result: HouseDrainageResult,
+  traces: readonly IdentifiedTrace[],
+  stocks: DrainStocks,
+  locale: Locale = DEFAULT_LOCALE,
+): readonly BomItem[] {
+  const lengths = result.lengths;
+  if (lengths === null) return [];
+  const en = locale === 'en';
+  const ids = traces.filter((t) => t.ruleId === 'ENG-603').map((t) => t.id);
+  const provenance: Provenance = traces.some(
+    (t) => t.ruleId === 'ENG-603' && t.provenance !== 'VERIFIED',
+  )
+    ? 'ASSUMED'
+    : 'VERIFIED';
+  const row = (size: string, netM: number | null, detail: string, stock: StockLength | null) => {
+    if (netM === null) return null;
+    const purchase = pipePurchase(netM, detail, stock, locale);
+    const item: BomItem = {
+      item: en ? `${DRAINAGE_FAMILY} pipe` : `Pipa ${DRAINAGE_FAMILY}`,
+      size,
+      ...(purchase.productId ? { productId: purchase.productId } : {}),
+      quantity: purchase.quantity,
+      unit: (en ? { batang: 'rods', meter: 'm' }[purchase.unit] : purchase.unit) as BomUnit,
+      basis: purchase.basis,
+      provenance,
+      traceIds: ids,
+    };
+    return item;
+  };
+  return [
+    result.soil &&
+      row(
+        result.soil.size,
+        lengths.soilNetM,
+        en ? 'soil line' : 'jalur air kotor',
+        stocks.soil ?? null,
+      ),
+    result.waste &&
+      row(
+        result.waste.size,
+        lengths.wasteNetM,
+        en ? 'waste line' : 'jalur air bekas',
+        stocks.waste ?? null,
+      ),
+    result.soil &&
+      row(
+        result.soil.ventSize,
+        lengths.soilVentNetM,
+        en ? 'soil line vent' : 'ventilasi air kotor',
+        stocks.soilVent ?? null,
+      ),
+    result.waste &&
+      row(
+        result.waste.ventSize,
+        lengths.wasteVentNetM,
+        en ? 'waste line vent' : 'ventilasi air bekas',
+        stocks.wasteVent ?? null,
+      ),
+  ].filter((r): r is BomItem => Boolean(r));
+}
+
 export function withHouseDrainage(
   base: Recommendation,
   result: HouseDrainageResult,
@@ -198,9 +281,11 @@ export function withHouseDrainage(
   products: readonly SelectedProduct[],
   only: boolean,
   locale: Locale = DEFAULT_LOCALE,
+  stocks: DrainStocks = {},
 ): Recommendation {
   const sentence = drainageSentence(result, locale);
   const lines = drainageSystemLines(result, traces, locale);
+  const bom = drainageBomFrom(result, traces, stocks, locale);
   const en = locale === 'en';
   if (only) {
     return {
@@ -217,7 +302,7 @@ export function withHouseDrainage(
       },
       systemLines: lines,
       products,
-      bom: [],
+      bom,
       assumptions: drainageAssumptions(result, locale),
       overallProvenance: worstOf(base.overallProvenance, result.overallProvenance),
     };
@@ -226,6 +311,7 @@ export function withHouseDrainage(
     ...base,
     body: `${base.body} ${sentence}`.trim(),
     systemLines: [...base.systemLines, ...lines],
+    bom: [...base.bom, ...bom],
     products: [
       ...base.products,
       ...products.filter((p) => !base.products.some((b) => b.productId === p.productId)),

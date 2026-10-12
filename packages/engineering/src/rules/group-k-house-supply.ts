@@ -324,4 +324,61 @@ export function minimumHeadM(bar: number): number {
   return barToHeadM(bar);
 }
 
-export const GROUP_K = [ENG_701, ENG_702, ENG_703] as const;
+// ── ENG-704 · Perkiraan panjang cabang dan sambungan dari ukuran rumah ──────
+
+export interface HouseBranchLengthInput {
+  readonly planLengthM: number;
+  readonly branchCount: number;
+  readonly outletCount: number;
+  readonly fixtureDropM: number;
+}
+export interface HouseBranchLengthResult {
+  readonly branchNetM: number;
+  readonly fixtureNetM: number;
+  readonly teeCount: number;
+}
+
+/**
+ * Tanpa denah, panjang cabang dan sambungan diperkirakan dari ukuran rumah (keputusan pemilik
+ * 2026-10-12, P16-60): tiap cabang menyusuri panjang rumah, tiap titik air disambung 1,5 m dari
+ * cabangnya, satu tee per cabang di pipa utama/riser. Hanya dijalankan bila ukuran rumah diketahui.
+ */
+export const ENG_704: RuleVersion<HouseBranchLengthInput, HouseBranchLengthResult> = {
+  ruleId: 'ENG-704',
+  version: 1,
+  category: 'geometry',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      planLengthM: requireNumber('ENG-704', 'planLengthM', o['planLengthM'], { min: 1, max: 500 }),
+      branchCount: requireInt('ENG-704', 'branchCount', o['branchCount'], { min: 1, max: 200 }),
+      outletCount: requireInt('ENG-704', 'outletCount', o['outletCount'], { min: 0, max: 1000 }),
+      fixtureDropM: requireNumber('ENG-704', 'fixtureDropM', o['fixtureDropM'], {
+        min: 0.1,
+        max: 20,
+      }),
+    };
+  },
+  compute: (i) => ({
+    branchNetM: round1(i.branchCount * i.planLengthM),
+    fixtureNetM: round1(i.outletCount * i.fixtureDropM),
+    teeCount: i.branchCount,
+  }),
+  sourceReference:
+    'Perkiraan tanpa denah: cabang = jumlah cabang × panjang rumah; sambungan = titik air × panjang sambungan; tee = 1 per cabang',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'rumah 12 m, 2 cabang, 7 titik, sambungan 1,5 m → cabang 24 m, sambungan 10,5 m, 2 tee',
+      input: { planLengthM: 12, branchCount: 2, outletCount: 7, fixtureDropM: 1.5 },
+      expected: { branchNetM: 24, fixtureNetM: 10.5, teeCount: 2 },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Cabang ${i.branchCount} × panjang rumah ${i.planLengthM} m = ${o.branchNetM} m; sambungan ke alat ${i.outletCount} titik × ${i.fixtureDropM} m = ${o.fixtureNetM} m; ${o.teeCount} tee, satu per cabang. Perkiraan sampai denahnya ada.`,
+      en: `Branches ${i.branchCount} × house length ${i.planLengthM} m = ${o.branchNetM} m; fixture connections ${i.outletCount} outlets × ${i.fixtureDropM} m = ${o.fixtureNetM} m; ${o.teeCount} tees, one per branch. An estimate until the floor plan is known.`,
+    }),
+};
+
+export const GROUP_K = [ENG_701, ENG_702, ENG_703, ENG_704] as const;

@@ -46,3 +46,33 @@ describe('rumus singkat langkah hitung', () => {
     expect(stepFormula('ENG-001', { bathrooms: 3 }, {})).toBeNull();
   });
 });
+
+describe('panjang jalur rumah dari ukuran rumah (P16-60)', () => {
+  const sized = computeSolution({
+    buildingType: 'residential',
+    floors: 2,
+    bathrooms: 3,
+    basins: 0,
+    kitchens: 1,
+    waterSource: 'municipal',
+    installationType: 'both',
+    floorHeightM: null,
+    mainRunMeters: null,
+    planLengthM: 12,
+    planWidthM: 8,
+  });
+
+  it('cabang = jumlah cabang × sisi terpanjang rumah; sambungan 1,5 m per titik; 1 tee per cabang', () => {
+    // 3 KM × 2 + 1 dapur = 7 titik; lantai 2: 4 titik, lantai 1: 3 titik → 2 cabang.
+    expect(sized.branchLayout).toEqual({ branchNetM: 24, fixtureNetM: 10.5, teeCount: 2 });
+    const trace = sized.traces.find((t) => t.ruleId === 'ENG-704')!;
+    expect(stepFormula('ENG-704', trace.inputs, trace.output)).toBe(
+      'Cabang = 2 × 12 m = 24 m · Sambungan = 7 × 1,5 m = 10,5 m · Tee = 2',
+    );
+  });
+
+  it('tanpa ukuran rumah tidak ada perkiraan cabang', () => {
+    expect(result.branchLayout).toBeNull();
+    expect(result.traces.some((t) => t.ruleId === 'ENG-704')).toBe(false);
+  });
+});

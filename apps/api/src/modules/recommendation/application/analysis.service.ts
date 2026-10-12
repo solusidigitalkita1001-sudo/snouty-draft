@@ -319,6 +319,11 @@ export class AnalysisService {
         products: match.products,
         requirementAssumptions,
         mainStock: match.stockFor('main'),
+        houseStocks: {
+          branch: match.stockFor('branch'),
+          fixture: match.stockFor('fixture'),
+          tee: match.products.find((p) => p.role === 'fitting') ?? null,
+        },
         now,
         locale,
       },
@@ -336,6 +341,8 @@ export class AnalysisService {
           basins: state.fixtures.basins.value ?? 0,
           // Sama dengan sisi air bersih: dapur yang belum disebut dianggap satu (HOUSE_KITCHEN_1).
           kitchens: state.fixtures.kitchens.value ?? 1,
+          // Ukuran rumah → perkiraan panjang tiap jalur (ENG-603, P16-60); sisi terpanjang.
+          layout: houseLayout(state, solution.floorHeightM),
         },
         locale,
         overridesOf(state),
@@ -349,8 +356,17 @@ export class AnalysisService {
         ...(drainage.waste
           ? [pipeRequirement('branch', drainage.waste.size, DRAINAGE_FAMILY)]
           : []),
-        ...(drainage.soil ? [fittingRequirement(drainage.soil.size, DRAINAGE_FAMILY)] : []),
+        ...(drainage.soil
+          ? [fittingRequirement(drainage.soil.size, DRAINAGE_FAMILY, 'branch_y')]
+          : []),
       ]);
+      // Pipa ventilasi: produk PVC D seukuran ventilasinya, hanya bila panjangnya dihitung.
+      const ventStock = async (size: string | undefined) =>
+        size !== undefined && drainage.lengths !== null
+          ? (await this.matchRoles([pipeRequirement('main', size, DRAINAGE_FAMILY)])).stockFor(
+              'main',
+            )
+          : null;
       recommendation = withHouseDrainage(
         recommendation,
         drainage,
@@ -358,6 +374,12 @@ export class AnalysisService {
         drainageMatch.products,
         installation === 'drainage',
         locale,
+        {
+          soil: drainageMatch.stockFor('main'),
+          waste: drainageMatch.stockFor('branch'),
+          soilVent: await ventStock(drainage.soil?.ventSize),
+          wasteVent: await ventStock(drainage.waste?.ventSize),
+        },
       );
       allTraces = [...traces, ...drainageTraces];
     }
@@ -895,8 +917,12 @@ export class AnalysisService {
     }
     const match = matchProducts(roles, [...byId.values()]);
     // Panjang batang dari produk yang benar-benar terpilih per peran — dasar jumlah beli di BOM.
+    // Hanya produk yang ukurannya memang ada di katalog: produk "ukuran perlu dikonfirmasi" adalah
+    // ukuran lain dari keluarga yang sama, dan batangnya tidak boleh menghitung jalur ukuran ini.
     const stockFor = (role: SystemRole): StockLength | null => {
-      const selected = match.products.find((p) => p.role === role);
+      const selected = match.products.find(
+        (p) => p.role === role && p.matchState === 'VERIFIED_SELECTED',
+      );
       const product = selected ? byId.get(selected.productId) : undefined;
       return product ? stockLengthOf(product) : null;
     };
@@ -1015,6 +1041,20 @@ function planOf(d: RequirementState['building']['dimensions']['value']): {
     return { planLengthM: side, planWidthM: side };
   }
   return { planLengthM: null, planWidthM: null };
+}
+
+/** Sisi terpanjang rumah + lantai — dasar perkiraan panjang jalur pembuangan; `null` tanpa ukuran. */
+function houseLayout(
+  state: RequirementState,
+  floorHeightM: number,
+): { planLengthM: number; floors: number; floorHeightM: number } | null {
+  const { planLengthM, planWidthM } = planOf(state.building.dimensions.value);
+  if (planLengthM === null || planWidthM === null) return null;
+  return {
+    planLengthM: Math.max(planLengthM, planWidthM),
+    floors: state.building.floors.value ?? 1,
+    floorHeightM,
+  };
 }
 
 function solutionInputFrom(state: RequirementState): SolutionInput {

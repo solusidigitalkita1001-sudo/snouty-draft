@@ -1339,6 +1339,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-59 Skema instalasi di laporan ("skema denahnya mana?"): topologi dari jalur endpoint skema web dibekukan ke
       payload saat laporan dibuat, digambar sebagai SVG di API dengan metrik dan warna layar skema (bangunan per
       lantai atau skema aliran), kedua catatan wajib S-1 apa adanya; payload lama tanpa bagian ini.
+- [x] P16-60 Temuan laporan SNTY-2026-10-0007 ("kok banyak yang menyusul?"): dengan ukuran rumah, cabang,
+      sambungan, tee, air kotor, air bekas, dan ventilasi ikut dihitung (ENG-704, ENG-603, asumsi
+      HOUSE_FIXTURE_DROP_1_5M / HOUSE_VENT_ABOVE_ROOF_1M, OQ-60 — rumus baku disetujui pemilik); fitting dipilih
+      menurut fungsi (tee / Y) dan ukuran utama di nama — tidak lagi "Cap" atau "Long TY 10" x 4""; jumlah batang
+      hanya dari produk yang ukurannya memang ada.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

@@ -77,13 +77,32 @@ describe('material rumah', () => {
       meters: 4,
       productName: 'Pipa (TS End) Putih AW 1" x 4 Meter',
     });
-    expect(bom).toHaveLength(1);
     expect(bom[0]).toMatchObject({ item: 'Pipa PVC AW', size: sized.mainSize, unit: 'batang' });
     expect(bom[0]!.quantity).toBe(Math.ceil(25.5 / 4));
     expect(bom[0]!.basis).toContain('Panjang bersih 25,5 m');
     const en = bomItemsFrom(sized, sizedTraces, 'en', { meters: 4, productName: 'x' });
     expect(en[0]!.item).toBe('PVC AW pipe');
     expect(en[0]!.unit).toBe('rods');
+  });
+
+  it('ukuran rumah diketahui: cabang, sambungan, dan tee ikut dihitung (P16-60)', () => {
+    const stock = (name: string) => ({ meters: 4, productName: name });
+    const bom = bomItemsFrom(sized, sizedTraces, 'id', stock('utama'), {
+      branch: stock('cabang'),
+      fixture: stock('sambungan'),
+      tee: { productId: 'TEE-1' },
+    });
+    const layout = sized.branchLayout!;
+    // Sisi terpanjang 15 m × jumlah cabang; 1,5 m per titik air; 1 tee per cabang.
+    expect(layout.branchNetM).toBe(sized.branchCount * 15);
+    expect(layout.fixtureNetM).toBe(sized.outletCount * 1.5);
+    expect(bom.map((b) => [b.size, b.quantity, b.unit])).toEqual([
+      [sized.mainSize, Math.ceil(25.5 / 4), 'batang'],
+      [sized.branchSize, Math.ceil(layout.branchNetM / 4), 'batang'],
+      [sized.fixtureConnectionSize, Math.ceil(layout.fixtureNetM / 4), 'batang'],
+      [sized.mainSize, sized.branchCount, 'pcs'],
+    ]);
+    expect(bom[3]).toMatchObject({ item: 'Tee cabang', productId: 'TEE-1', provenance: 'ASSUMED' });
   });
 
   it('bomItemName: item tak dikenal lewat apa adanya; keluarga pipa tetap', () => {
