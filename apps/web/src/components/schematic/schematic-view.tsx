@@ -21,7 +21,7 @@ import {
   type Schematic,
   type SchematicNode,
 } from '@snouty/shared-types';
-import { useEffect, useRef, useState } from 'react';
+import { fittedWidth, useContainerWidth } from './fit-width';
 import { FlowSchematicView, FlowSidePanel } from './flow-schematic-view';
 import { mandatoryNotes, schematicCopy } from './schematic-copy';
 import { useLocale } from '../locale';
@@ -44,31 +44,6 @@ const GROUND_BAND = 34;
 const MIN_WIDTH = 500;
 /** Jarak antar-titik paling lebar saat gambar diregangkan mengisi kotaknya. */
 const MAX_SLOT = FIXTURE_WIDTH * 3.4;
-
-/**
- * Gambar mengisi lebar kotaknya (laporan pemilik 2026-10-12: "keliatan strech, ngga fit"): lebar
- * tata letak = lebar kotak ÷ skala, jadi garis lantai dan cabang memanjang, sedangkan teks dan kotak
- * titik air membesar proporsional — tidak pernah ditarik satu arah saja. Skala naik di layar lebar
- * supaya label tetap terbaca.
- */
-function useContainerWidth(): [React.RefObject<HTMLDivElement | null>, number] {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [width, setWidth] = useState(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver((entries) => setWidth(entries[0]?.contentRect.width ?? 0));
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-  return [ref, width];
-}
-
-function scaleFor(containerWidth: number): number {
-  if (containerWidth >= 900) return 1.3;
-  if (containerWidth >= 700) return 1.15;
-  return 1;
-}
 
 /** Satu prop: skema bangunan (lantai per lantai) atau skema aliran kasus teknis. */
 export function SchematicView({ schematic }: { schematic: AnySchematic }) {
@@ -95,7 +70,7 @@ function BuildingSchematicView({ schematic }: { schematic: Schematic }) {
     MIN_WIDTH,
     branchStartX + maxFixturesPerFloor * (FIXTURE_WIDTH + FIXTURE_GAP) + PADDING * 2,
   );
-  const width = Math.max(contentWidth, Math.round(containerWidth / scaleFor(containerWidth)));
+  const width = fittedWidth(contentWidth, containerWidth);
   // Titik air disebar ke lebar yang tersedia, tidak menumpuk di kiri.
   const slot = Math.min(
     MAX_SLOT,

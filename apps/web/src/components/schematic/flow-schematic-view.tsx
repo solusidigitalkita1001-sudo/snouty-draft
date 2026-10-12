@@ -14,6 +14,7 @@ import type { FlowLinkRole, FlowNode, FlowSchematic } from '@snouty/shared-types
 import { mandatoryNotes, schematicCopy } from './schematic-copy';
 import { useLocale } from '../locale';
 import styles from './schematic.module.css';
+import { fittedWidth, useContainerWidth } from './fit-width';
 
 const NODE_WIDTH = 330;
 const NODE_HEIGHT = 54;
@@ -23,6 +24,8 @@ const LEAF_HEIGHT = 40;
 const LEAF_GAP = 14;
 const PADDING = 24;
 const MIN_WIDTH = 500;
+/** Jarak antar-titik ujung paling lebar saat baris itu diregangkan mengisi lebar gambar. */
+const MAX_LEAF_SLOT = LEAF_WIDTH * 2;
 
 export function FlowSchematicView({ schematic }: { schematic: FlowSchematic }) {
   const locale = useLocale().locale;
@@ -30,8 +33,24 @@ export function FlowSchematicView({ schematic }: { schematic: FlowSchematic }) {
   const NOTES = mandatoryNotes(locale);
   const leaves = schematic.leaves;
   const leavesWidth = leaves ? leaves.items.length * (LEAF_WIDTH + LEAF_GAP) - LEAF_GAP : 0;
-  const width = Math.max(MIN_WIDTH, NODE_WIDTH + PADDING * 2 + 180, leavesWidth + PADDING * 2);
-  const left = PADDING;
+  const [scrollRef, containerWidth] = useContainerWidth();
+  const contentWidth = Math.max(
+    MIN_WIDTH,
+    NODE_WIDTH + PADDING * 2 + 180,
+    leavesWidth + PADDING * 2,
+  );
+  const width = fittedWidth(contentWidth, containerWidth);
+  // Rel kotak di tengah gambar; label ukuran pipa di kanan rel tetap muat (180).
+  const left = Math.max(PADDING, Math.round((width - NODE_WIDTH) / 2));
+  // Titik ujung disebar rata di bawah rel, berpusat di gambar.
+  const leafCount = leaves?.items.length ?? 0;
+  const leafSlot =
+    leafCount > 0
+      ? Math.min(MAX_LEAF_SLOT, Math.max(LEAF_WIDTH + LEAF_GAP, (width - PADDING * 2) / leafCount))
+      : 0;
+  const leavesLeft = Math.round((width - leafSlot * leafCount) / 2);
+  const leafX = (position: number) =>
+    leavesLeft + position * leafSlot + (leafSlot - LEAF_WIDTH) / 2;
   const centerX = left + NODE_WIDTH / 2;
   const nodeTop = (index: number) => PADDING + index * (NODE_HEIGHT + LINK_HEIGHT);
   const lastBottom = nodeTop(schematic.nodes.length - 1) + NODE_HEIGHT;
@@ -43,11 +62,11 @@ export function FlowSchematicView({ schematic }: { schematic: FlowSchematic }) {
       {/* Invarian S-1 — dirender tanpa syarat. */}
       <div className={styles.banner}>{NOTES.banner}</div>
 
-      <div className={styles.canvasScroll}>
+      <div className={styles.canvasScroll} ref={scrollRef}>
         <svg
           className={styles.canvas}
-          width={width}
-          height={height}
+          width="100%"
+          style={{ height: 'auto' }}
           viewBox={`0 0 ${width} ${height}`}
           role="img"
           aria-label={COPY.flowAriaIntro}
@@ -100,15 +119,15 @@ export function FlowSchematicView({ schematic }: { schematic: FlowSchematic }) {
                 strokeWidth="2"
               />
               <line
-                x1={left + LEAF_WIDTH / 2}
+                x1={Math.min(centerX, leafX(0) + LEAF_WIDTH / 2)}
                 y1={leavesTop - 16}
-                x2={Math.max(centerX, left + leavesWidth - LEAF_WIDTH / 2)}
+                x2={Math.max(centerX, leafX(leafCount - 1) + LEAF_WIDTH / 2)}
                 y2={leavesTop - 16}
                 className={styles.pipeFixture}
                 strokeWidth="2"
               />
               {leaves.items.map((item, position) => {
-                const x = left + position * (LEAF_WIDTH + LEAF_GAP);
+                const x = leafX(position);
                 return (
                   <g key={`leaf-${position}`}>
                     <line
