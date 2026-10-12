@@ -73,6 +73,7 @@ describe('pembuangan rumah di solusi', () => {
     expect(merged.products.map((p) => p.productId)).toEqual(['AW1', 'D4']);
     expect(merged.bom).toEqual(base.bom);
     expect(merged.body).toContain('Untuk pembuangan, kloset dibuang ke septic tank lewat PVC D 4"');
+    expect(merged.body).toContain('sedangkan floor drain/shower dan bak cuci dapur lewat 2"');
   });
 
   it('"Pembuangan" saja: tanpa jalur, produk, dan material air bersih', () => {

@@ -149,6 +149,17 @@ export function drainageAssumptions(
   ];
 }
 
+/** Alat air bekas yang memang ada ("floor drain/shower dan bak cuci dapur"). */
+function wasteFixtures(result: HouseDrainageResult, lang: 'id' | 'en'): string {
+  const names = result.fixtures
+    .filter((f) => f.fixture !== 'water_closet')
+    .map((f) => FIXTURE_LABEL[f.fixture][lang]);
+  const and = lang === 'en' ? 'and' : 'dan';
+  return names.length <= 1
+    ? (names[0] ?? '')
+    : `${names.slice(0, -1).join(', ')} ${and} ${names.at(-1)}`;
+}
+
 /** Satu kalimat ringkasan — angka dari hasil hitungan. */
 export function drainageSentence(result: HouseDrainageResult, locale: Locale): string {
   const en = locale === 'en';
@@ -163,8 +174,8 @@ export function drainageSentence(result: HouseDrainageResult, locale: Locale): s
   if (result.waste) {
     parts.push(
       en
-        ? `floor drains, basins and the kitchen through ${result.waste.size} (vent ${result.waste.ventSize})`
-        : `floor drain, wastafel, dan dapur lewat ${result.waste.size} (ventilasi ${result.waste.ventSize})`,
+        ? `${wasteFixtures(result, 'en')} through ${result.waste.size} (vent ${result.waste.ventSize})`
+        : `${wasteFixtures(result, 'id')} lewat ${result.waste.size} (ventilasi ${result.waste.ventSize})`,
     );
   }
   if (parts.length === 0) return '';

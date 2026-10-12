@@ -98,11 +98,40 @@ export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
       expected: { soilDfu: 12, wasteDfu: 10 },
     },
   ],
-  explain: (i, o, locale) =>
-    localized(locale, {
-      id: `Beban air kotor ${o.soilDfu} = ${i.waterClosets} kloset × ${i.dfuWaterCloset}. Beban air bekas ${o.wasteDfu} = ${i.showers} shower/floor drain × ${i.dfuShower} + ${i.lavatories} wastafel × ${i.dfuLavatory} + ${i.kitchenSinks} bak cuci dapur × ${i.dfuKitchenSink}.`,
-      en: `Soil load ${o.soilDfu} = ${i.waterClosets} toilets × ${i.dfuWaterCloset}. Waste load ${o.wasteDfu} = ${i.showers} showers/floor drains × ${i.dfuShower} + ${i.lavatories} basins × ${i.dfuLavatory} + ${i.kitchenSinks} kitchen sinks × ${i.dfuKitchenSink}.`,
-    }),
+  explain: (i, o, locale) => {
+    // Hanya alat yang ada disebut — "0 wastafel × 1" bukan informasi.
+    const terms = (labels: readonly [string, string, string]) =>
+      (
+        [
+          [i.showers, labels[0], i.dfuShower],
+          [i.lavatories, labels[1], i.dfuLavatory],
+          [i.kitchenSinks, labels[2], i.dfuKitchenSink],
+        ] as const
+      )
+        .filter(([n]) => n > 0)
+        .map(([n, label, dfu]) => `${n} ${label} × ${dfu}`)
+        .join(' + ');
+    const wasteId = terms(['shower/floor drain', 'wastafel', 'bak cuci dapur']);
+    const wasteEn = terms(['showers/floor drains', 'basins', 'kitchen sinks']);
+    return localized(locale, {
+      id: [
+        i.waterClosets > 0
+          ? `Beban air kotor ${o.soilDfu} = ${i.waterClosets} kloset × ${i.dfuWaterCloset}.`
+          : '',
+        wasteId ? `Beban air bekas ${o.wasteDfu} = ${wasteId}.` : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
+      en: [
+        i.waterClosets > 0
+          ? `Soil load ${o.soilDfu} = ${i.waterClosets} toilets × ${i.dfuWaterCloset}.`
+          : '',
+        wasteEn ? `Waste load ${o.wasteDfu} = ${wasteEn}.` : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
+    });
+  },
 };
 
 // ── ENG-602 · Ukuran jalur pembuangan dan ventilasinya ──────────────────────
