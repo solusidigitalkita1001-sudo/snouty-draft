@@ -166,6 +166,7 @@ export function matchProducts(
         size: sizeLabel,
         role: requirement.role,
         matchState: 'VERIFIED_SELECTED',
+        name: pick.chosen.name,
         reason: `${pick.chosen.name} tersedia dalam ukuran ${sizeLabel}${pick.why}.`,
         ...(pick.alternatives.length > 0 ? { alternatives: pick.alternatives } : {}),
       });
@@ -179,6 +180,7 @@ export function matchProducts(
         size: sizeLabel,
         role: requirement.role,
         matchState: 'SIZE_NEEDS_VALIDATION',
+        name: pick.chosen.name,
         reason: `${pick.chosen.name} ada dalam ukuran ${sizeLabel}, tetapi kelas tekanannya belum terverifikasi untuk pipa kelas ${requirement.pressureClass}; perlu dikonfirmasi.`,
         ...(pick.alternatives.length > 0 ? { alternatives: pick.alternatives } : {}),
       });
@@ -208,6 +210,7 @@ export function matchProducts(
       size: requirement.size,
       role: requirement.role,
       matchState: 'SIZE_NEEDS_VALIDATION',
+      name: fallback.name,
       reason: `Ukuran ${requirement.size} belum tercatat untuk ${fallback.name}; perlu dikonfirmasi.`,
     });
   }

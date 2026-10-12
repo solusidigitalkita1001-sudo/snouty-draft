@@ -1381,6 +1381,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-72 TC-H-03 / TC-H-04: "keran/tempat wudhu" dipetakan ke wastafel lewat kamus kata benda parser (seperti
       "washtafel", "bak cuci"); field wastafel ditandai WUDHU_TAP_AS_BASIN sehingga trace ENG-001 menyebut "keran wudhu
       (dihitung sebagai wastafel)" dan asumsinya tampil (sementara, OQ-61); kartu wastafel/kamar mandi punya isian angka.
+- [x] P16-73 TC-H-05 / TC-H-06: satu daftar SKU (`skuLines` di shared-types) untuk tab Produk, material, ringkasan,
+      `stats.productCount`, dan item menyusul di laporan; produk membawa nama katalog dan peruntukan dua bahasa ("Pipa utama",
+      "Air kotor", "Ventilasi air bekas"); pipa ventilasi dan pengisi toren masuk daftar produk; tab Produk satu kartu
+      per SKU dengan peruntukannya; fitting tanpa jumlah tampil di material sebagai "– pcs" dengan keterangannya.
 - [ ] P16-69 Temuan laporan 0009 — F (hanya diselidiki): kelompok hitung bangunan ibadah/umum → OQ-61, menunggu keputusan
       pemilik dan nilai dari ahli Pralon. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").

@@ -10,7 +10,13 @@
  */
 
 import type { Locale } from '@snouty/shared-types';
-import type { Assumption, Recommendation, SelectedProduct, SystemLine } from '@snouty/shared-types';
+import {
+  skuLines,
+  type Assumption,
+  type Recommendation,
+  type SelectedProduct,
+  type SystemLine,
+} from '@snouty/shared-types';
 import type { SolutionResult } from '@snouty/engineering';
 import { checkProse } from '../domain/prose-check.js';
 import type { StockLength } from '../domain/pipe-quantity.js';
@@ -217,20 +223,21 @@ export function templateProse(
  * baris SKU yang sama disatukan; kalimat templat ikut diperbarui.
  */
 export function withPrintedMaterialCount(recommendation: Recommendation): Recommendation {
-  const counted = new Set(recommendation.bom.map((b) => b.productId).filter(Boolean));
-  const pending = new Set(
-    recommendation.products
-      .filter((p) => p.matchState !== 'INFORMATION_UNAVAILABLE' && !counted.has(p.productId))
-      .map((p) => p.productId),
-  );
-  const count = recommendation.bom.length + pending.size;
+  // "Produk Pralon" = SKU katalog, dari daftar yang sama dengan tab Produk dan material (TC-H-05).
+  // Baris material tanpa produk katalog tetap tercetak di material, tetapi bukan produk Pralon.
+  const count = skuLines(recommendation).length;
   const before = recommendation.stats.productCount;
-  if (count === before) return recommendation;
-  const body = recommendation.body
-    .replace(`Ada ${before} produk Pralon`, `Ada ${count} produk Pralon`)
-    .replace(
-      new RegExp(`There (?:is|are) ${before} Pralon products?`),
-      `There ${count === 1 ? 'is' : 'are'} ${count} Pralon product${count === 1 ? '' : 's'}`,
-    );
+  if (count === before && count > 0) return recommendation;
+  const body =
+    count === 0
+      ? recommendation.body
+          .replace(/ ?Ada \d+ produk Pralon yang sesuai untuk sistem ini\./, '')
+          .replace(/ ?There (?:is|are) \d+ Pralon products? suited to this system\./, '')
+      : recommendation.body
+          .replace(`Ada ${before} produk Pralon`, `Ada ${count} produk Pralon`)
+          .replace(
+            new RegExp(`There (?:is|are) ${before} Pralon products?`),
+            `There ${count === 1 ? 'is' : 'are'} ${count} Pralon product${count === 1 ? '' : 's'}`,
+          );
   return { ...recommendation, body, stats: { ...recommendation.stats, productCount: count } };
 }

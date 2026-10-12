@@ -93,6 +93,20 @@ export const SOLUTION_COPY = {
     SIZE_NEEDS_VALIDATION: 'UKURAN PERLU DIKONFIRMASI',
     INFORMATION_UNAVAILABLE: 'DATA BELUM LENGKAP',
   },
+  /** Label peran bila produk tidak membawa peruntukan sendiri (TC-H-06). */
+  roleLabel: {
+    main: 'Pipa utama',
+    riser: 'Riser',
+    branch: 'Cabang',
+    fixture: 'Sambungan ke alat',
+    fitting: 'Sambungan',
+  },
+  pendingQuantity: 'Menyusul',
+  pendingFittingQuantity: '– pcs',
+  pendingPipeBasis:
+    'Jumlah batang dihitung setelah panjang jalur atau ukuran bangunan (panjang × lebar) diketahui.',
+  pendingFittingBasis:
+    'Jumlah fitting (pcs) mengikuti titik sambungan di denah, jadi dihitung setelah denahnya ada.',
 } as const;
 
 export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
@@ -173,6 +187,19 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
     SIZE_NEEDS_VALIDATION: 'SIZE NEEDS CONFIRMATION',
     INFORMATION_UNAVAILABLE: 'DATA INCOMPLETE',
   },
+  roleLabel: {
+    main: 'Main line',
+    riser: 'Riser',
+    branch: 'Branch',
+    fixture: 'Fixture connection',
+    fitting: 'Fitting',
+  },
+  pendingQuantity: 'To follow',
+  pendingFittingQuantity: '– pcs',
+  pendingPipeBasis:
+    'Pipe counts follow once the route length or the building size (length × width) is known.',
+  pendingFittingBasis:
+    'Fitting counts (pcs) follow the joints on the floor plan, so they are counted once the plan is known.',
 };
 
 export function solutionCopy(locale: Locale): CopyShape<typeof SOLUTION_COPY> {

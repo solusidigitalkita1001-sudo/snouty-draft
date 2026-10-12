@@ -60,6 +60,54 @@ export interface SelectedProduct {
    * satu; drawer boleh menampilkan sisanya.
    */
   readonly alternatives?: readonly { readonly productId: string; readonly name: string }[];
+  /** Nama katalog produk terpilih — untuk baris material yang jumlahnya menyusul (TC-H-05). */
+  readonly name?: string;
+  /**
+   * Peruntukan dalam bahasa percakapan ("Pipa utama", "Air kotor", "Ventilasi air bekas") — lebih
+   * tepat daripada `role`, yang sama untuk pipa utama air bersih dan jalur air kotor (TC-H-05/06).
+   */
+  readonly purpose?: string;
+}
+
+/**
+ * Satu SKU dalam solusi (TC-H-05): tab Produk, daftar material, ringkasan "Ada N produk Pralon",
+ * dan `stats.productCount` diturunkan dari daftar yang sama. Satu SKU bisa melayani beberapa peran
+ * (pipa utama + riser); `counted` = punya baris jumlah di material, selain itu jumlahnya menyusul.
+ */
+export interface SkuLine {
+  readonly productId: string;
+  readonly name?: string;
+  readonly selections: readonly SelectedProduct[];
+  readonly counted: boolean;
+  readonly kind: 'pipe' | 'fitting';
+}
+
+export function skuLines(recommendation: {
+  readonly products: readonly SelectedProduct[];
+  readonly bom: readonly { readonly productId?: string }[];
+}): readonly SkuLine[] {
+  const counted = new Set(recommendation.bom.map((b) => b.productId).filter(Boolean));
+  const order: string[] = [];
+  const byId = new Map<string, SelectedProduct[]>();
+  for (const product of recommendation.products) {
+    if (product.matchState === 'INFORMATION_UNAVAILABLE') continue;
+    if (!byId.has(product.productId)) {
+      byId.set(product.productId, []);
+      order.push(product.productId);
+    }
+    byId.get(product.productId)!.push(product);
+  }
+  return order.map((productId) => {
+    const selections = byId.get(productId)!;
+    const named = selections.find((s) => s.name !== undefined);
+    return {
+      productId,
+      ...(named?.name !== undefined ? { name: named.name } : {}),
+      selections,
+      counted: counted.has(productId),
+      kind: selections.every((s) => s.role === 'fitting') ? 'fitting' : 'pipe',
+    };
+  });
 }
 
 export type BomUnit = 'batang' | 'pcs' | 'kaleng' | 'meter';

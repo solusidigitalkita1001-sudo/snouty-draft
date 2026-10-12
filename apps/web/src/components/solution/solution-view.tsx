@@ -9,11 +9,13 @@
  * aturan, bukan prosa — itulah yang membuat auditabilitas SPEC §8 terlihat pengguna.
  */
 
-import type {
-  Assumption,
-  ComposedResponse,
-  Recommendation,
-  SelectedProduct,
+import {
+  skuLines,
+  type Assumption,
+  type ComposedResponse,
+  type Recommendation,
+  type SelectedProduct,
+  type SkuLine,
 } from '@snouty/shared-types';
 import { useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
@@ -52,6 +54,8 @@ export function SolutionView({
   const COPY = useSolutionCopy();
   const [showTechnical, setShowTechnical] = useState(false);
   const [openProduct, setOpenProduct] = useState<DrawerSelection | null>(null);
+  // Satu daftar SKU untuk tab Produk dan material (TC-H-05).
+  const skus = skuLines(recommendation);
   const { stats } = recommendation;
   const on = (which: SolutionTab) => tab === undefined || tab === which;
   // Semua jenis solusi punya skema: bangunan (lantai per lantai) atau aliran (kasus teknis, irigasi).
@@ -229,6 +233,23 @@ export function SolutionView({
                 </span>
               </div>
             ))}
+            {/* Produk terpilih yang jumlahnya belum bisa dihitung — tetap di daftar material. */}
+            {skus
+              .filter((sku) => !sku.counted)
+              .map((sku) => (
+                <div key={`pending-${sku.productId}`} className={styles.bomRow} role="row">
+                  <span role="cell">{sku.name ?? COPY.roleLabel[sku.selections[0]!.role]}</span>
+                  <span className={styles.mono} role="cell">
+                    {sku.selections[0]!.size}
+                  </span>
+                  <span className={styles.mono} role="cell">
+                    {sku.kind === 'fitting' ? COPY.pendingFittingQuantity : COPY.pendingQuantity}
+                  </span>
+                  <span className={styles.bomBasis} role="cell">
+                    {sku.kind === 'fitting' ? COPY.pendingFittingBasis : COPY.pendingPipeBasis}
+                  </span>
+                </div>
+              ))}
           </div>
         </section>
       )}
@@ -251,15 +272,16 @@ export function SolutionView({
         <CompositionData composition={recommendation.composition} />
       )}
 
-      {on('produk') && recommendation.products.length > 0 && (
+      {on('produk') && skus.length > 0 && (
         <section className={styles.card}>
           <h3 className={styles.cardTitle}>{COPY.productsTitle}</h3>
           <div className={styles.productGrid}>
-            {recommendation.products.map((product) => (
+            {/* Satu kartu per SKU dengan semua peruntukannya (TC-H-05). */}
+            {skus.map((sku) => (
               <ProductCard
-                key={`${product.productId}-${product.role}`}
-                product={product}
-                onOpen={() => setOpenProduct(product)}
+                key={sku.productId}
+                sku={sku}
+                onOpen={() => setOpenProduct(sku.selections[0]!)}
               />
             ))}
           </div>
@@ -409,12 +431,18 @@ function Stat({ label, value, mono }: { label: string; value: string; mono?: boo
 }
 
 /** Kartu produk layar 07 — tiga keadaan, label dari desain. */
-function ProductCard({ product, onOpen }: { product: SelectedProduct; onOpen: () => void }) {
+function ProductCard({ sku, onOpen }: { sku: SkuLine; onOpen: () => void }) {
   const COPY = useSolutionCopy();
+  const product = sku.selections[0]!;
+  // Peruntukan dari API (bahasa percakapan); tanpa itu label peran dua bahasa (TC-H-06).
+  const purposes = [
+    ...new Set(sku.selections.map((s) => s.purpose ?? COPY.roleLabel[s.role])),
+  ].join(' · ');
+  const sizes = [...new Set(sku.selections.map((s) => s.size))].join(' · ');
   return (
     <button type="button" className={styles.productCard} onClick={onOpen}>
-      <div className={styles.productRole}>{product.role.toUpperCase()}</div>
-      <div className={styles.productSize}>{product.size}</div>
+      <div className={styles.productRole}>{purposes}</div>
+      <div className={styles.productSize}>{sizes}</div>
       <p className={styles.productReason}>{product.reason}</p>
       <span
         className={[

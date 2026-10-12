@@ -162,10 +162,12 @@ describe('regresi laporan SNTY-2026-10-0009 — D: konsistensi angka dan teks', 
     expect(drains.find((b) => b.size === '2½"')!.basis).toContain('Panjang bersih 18,5 m');
   });
 
-  it('"Ada N produk Pralon" sama dengan jumlah baris material', async () => {
+  it('tanpa produk katalog: "Ada N produk Pralon" tidak dicetak sebagai 0 (TC-D-03, TC-H-05)', async () => {
+    // Katalog uji kosong → tidak ada SKU; baris material tetap ada, tetapi bukan produk Pralon.
     const { rec } = await analyse0009();
-    expect(rec.stats.productCount).toBe(rec.bom.length);
-    expect(rec.body).toContain(`Ada ${rec.bom.length} produk Pralon`);
+    expect(rec.stats.productCount).toBe(0);
+    expect(rec.body).not.toContain('produk Pralon yang sesuai');
+    expect(rec.bom.length).toBeGreaterThan(0);
   });
 
   it('batas kecepatan satu sumber: 0,6–2 m/s, rencana 1,5 m/s; tidak ada "1–2 m/s"', async () => {
@@ -225,5 +227,76 @@ describe('TC-H-01 · aturan lama tidak ikut di trace', () => {
     expect(text).toContain('Beban suplai 16.8 unit');
     expect(traces.some((t) => t.ruleId === 'ENG-006')).toBe(false);
     expect(rec.stats.outletCount).toBe(16);
+  });
+});
+
+describe('TC-H-05 · satu daftar SKU untuk tab Produk, material, dan ringkasan', () => {
+  let seq = 100;
+  const verified = (value: string) => ({ provenance: 'VERIFIED', value }) as never;
+  const unavailable = { provenance: 'UNAVAILABLE', value: null } as never;
+  const item = (family: string, category: string, name: string, sizes: string[]) =>
+    ({
+      id: `R${String(++seq).padStart(25, '0')}`,
+      sku: `R-${seq}`,
+      name,
+      family,
+      category,
+      description: '',
+      status: 'active',
+      sizes,
+      material: verified('uPVC'),
+      standard: unavailable,
+      pressureClass: unavailable,
+      rodLength: unavailable,
+      jointType: unavailable,
+      application: unavailable,
+      sourceDocument: 'Export ERP uji',
+      sourcePage: 1,
+      catalogVersionId: 'V'.repeat(26),
+      imageUrl: null,
+    }) as unknown as import('@snouty/shared-types').Product;
+  const CATALOG = [
+    item('PVC AW', 'PIPA AIR BERSIH', 'Pipa (TS End) Abu AW 1 1/4" x 4 Meter', ['1 1/4"']),
+    item('PVC AW', 'PIPA AIR BERSIH', 'Pipa (TS End) Abu AW 1" x 4 Meter', ['1"']),
+    item('PVC AW', 'PIPA AIR BERSIH', 'Pipa (TS End) Abu AW 1/2" x 4 Meter', ['1/2"']),
+    item('PVC D', 'PIPA AIR BUANGAN', 'Pipa (TS End) Abu D 4" x 4 Meter', ['4"']),
+    item('PVC D', 'PIPA AIR BUANGAN', 'Pipa (TS End) Abu D 2 1/2" x 4 Meter', ['2 1/2"']),
+    item('PVC D', 'PIPA AIR BUANGAN', 'Pipa (TS End) Abu D 2" x 4 Meter', ['2"']),
+    item('PVC D', 'PIPA AIR BUANGAN', 'Pipa (TS End) Abu D 1 1/4" x 4 Meter', ['1 1/4"']),
+    item('FITTING PVC', 'FITTING', 'Bell Y - D 4"', ['4"']),
+  ];
+
+  it('SKU di tab Produk = SKU di material; ventilasi ikut produk, Y ikut material sebagai menyusul', async () => {
+    const { skuLines } = await import('@snouty/shared-types');
+    const { rec } = await analyse0009(CATALOG);
+    const productIds = new Set(rec.products.map((p) => p.productId));
+    const bomIds = new Set(rec.bom.map((b) => b.productId).filter(Boolean));
+    // Setiap SKU di material ada di tab Produk.
+    for (const id of bomIds) expect(productIds.has(id!)).toBe(true);
+    const lines = skuLines(rec);
+    const name = (id: string) => CATALOG.find((p) => p.id === id)!.name;
+    // Pipa ventilasi D 2" dan 1¼" ada di tab Produk.
+    expect(lines.map((l) => name(l.productId))).toEqual(
+      expect.arrayContaining([
+        'Pipa (TS End) Abu D 2" x 4 Meter',
+        'Pipa (TS End) Abu D 1 1/4" x 4 Meter',
+      ]),
+    );
+    // Bell Y 4" tidak punya jumlah → tetap satu SKU di daftar, jenis fitting, menyusul.
+    const y = lines.find((l) => name(l.productId) === 'Bell Y - D 4"')!;
+    expect(y).toMatchObject({ counted: false, kind: 'fitting', name: 'Bell Y - D 4"' });
+    // Ringkasan dan statistik dari daftar yang sama.
+    expect(rec.stats.productCount).toBe(lines.length);
+    expect(rec.body).toContain(`Ada ${lines.length} produk Pralon`);
+  });
+
+  it('satu kartu per SKU dengan semua peruntukannya; label Indonesia (TC-H-06)', async () => {
+    const { skuLines } = await import('@snouty/shared-types');
+    const { rec } = await analyse0009(CATALOG);
+    const mainPipe = skuLines(rec).find((l) => l.name === 'Pipa (TS End) Abu AW 1 1/4" x 4 Meter')!;
+    expect(mainPipe.selections.map((s) => s.purpose)).toEqual(['Pipa utama', 'Riser']);
+    const purposes = rec.products.map((p) => p.purpose);
+    expect(purposes).not.toContain(undefined);
+    expect(purposes.join(' ')).not.toMatch(/\b(MAIN|RISER|BRANCH|FIXTURE|FITTING)\b/);
   });
 });

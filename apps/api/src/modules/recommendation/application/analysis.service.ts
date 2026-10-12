@@ -176,6 +176,33 @@ export function schematicFor(
   });
 }
 
+/**
+ * Peruntukan tiap produk dalam bahasa percakapan (TC-H-05/06): satu SKU bisa punya beberapa
+ * peruntukan, dan `role` saja tidak membedakan pipa utama air bersih dari jalur air kotor.
+ */
+const PURPOSE = {
+  main: { id: 'Pipa utama', en: 'Main line' },
+  riser: { id: 'Riser', en: 'Riser' },
+  branch: { id: 'Cabang', en: 'Branch' },
+  fixture: { id: 'Sambungan ke alat', en: 'Fixture connection' },
+  fitting: { id: 'Sambungan', en: 'Fitting' },
+  teeJoint: { id: 'Sambungan cabang', en: 'Branch take-off' },
+  tankFill: { id: 'Pengisi toren', en: 'Tank fill' },
+  soil: { id: 'Air kotor', en: 'Soil line' },
+  waste: { id: 'Air bekas', en: 'Waste line' },
+  soilJoint: { id: 'Sambungan air kotor', en: 'Soil line junction' },
+  soilVent: { id: 'Ventilasi air kotor', en: 'Soil vent' },
+  wasteVent: { id: 'Ventilasi air bekas', en: 'Waste vent' },
+} as const;
+
+function withPurpose(
+  product: SelectedProduct,
+  purpose: { readonly id: string; readonly en: string },
+  locale: Locale,
+): SelectedProduct {
+  return { ...product, purpose: locale === 'en' ? purpose.en : purpose.id };
+}
+
 /** Fitting cabang terpilih: produk untuk kartu, baris material untuk BOM. */
 interface TeeFitting {
   readonly product: SelectedProduct;
@@ -335,14 +362,21 @@ export class AnalysisService {
     for (const group of solution.branchGroups) {
       tees.set(group.size, await this.matchTee(solution.mainSize, group.size, PIPE_FAMILY));
     }
-    const teeProducts = [...tees.values()].flat().map((t) => t.product);
+    const teeProducts = [...tees.values()]
+      .flat()
+      .map((t) => withPurpose(t.product, PURPOSE.teeJoint, locale));
+    // Pipa pengisi toren: produk PVC AW seukuran asumsinya (ENG-706) — ikut daftar produk.
+    const fillMatch = solution.tankFill
+      ? await this.matchRoles([pipeRequirement('main', solution.tankFill.size, PIPE_FAMILY)])
+      : null;
     const match = {
       ...pipes,
       products: [
-        ...pipes.products,
+        ...pipes.products.map((p) => withPurpose(p, PURPOSE[p.role], locale)),
         ...teeProducts.filter(
           (p, i) => teeProducts.findIndex((q) => q.productId === p.productId) === i,
         ),
+        ...(fillMatch?.products ?? []).map((p) => withPurpose(p, PURPOSE.tankFill, locale)),
       ],
     };
     events.push({
@@ -370,14 +404,7 @@ export class AnalysisService {
           branchFor: (size) => match.stockForSize('branch', size),
           fixture: match.stockFor('fixture'),
           teeFor: (branchSize) => (tees.get(branchSize) ?? []).map((t) => t.bom),
-          // Pipa pengisi toren: produk PVC AW seukuran asumsinya (ENG-706).
-          fill: solution.tankFill
-            ? (
-                await this.matchRoles([
-                  pipeRequirement('main', solution.tankFill.size, PIPE_FAMILY),
-                ])
-              ).stockFor('main')
-            : null,
+          fill: fillMatch?.stockFor('main') ?? null,
         },
         now,
         locale,
@@ -421,30 +448,46 @@ export class AnalysisService {
           ? [fittingRequirement(drainage.soil.size, DRAINAGE_FAMILY, 'branch_y')]
           : []),
       ]);
-      // Pipa ventilasi: produk PVC D seukuran ventilasinya, hanya bila panjangnya dihitung.
-      const ventStock = async (size: string | undefined) =>
+      // Pipa ventilasi: produk PVC D seukuran ventilasinya, hanya bila panjangnya dihitung — ikut
+      // daftar produk supaya tab Produk dan material berisi SKU yang sama (TC-H-05).
+      const ventMatch = async (size: string | undefined) =>
         size !== undefined && drainage.lengths !== null
-          ? (await this.matchRoles([pipeRequirement('main', size, DRAINAGE_FAMILY)])).stockFor(
-              'main',
-            )
+          ? await this.matchRoles([pipeRequirement('main', size, DRAINAGE_FAMILY)])
           : null;
+      const soilVent = await ventMatch(drainage.soil?.ventSize);
+      const wasteVent = await ventMatch(drainage.waste?.ventSize);
+      const drainProducts = [
+        ...drainageMatch.products.map((p) =>
+          withPurpose(
+            p,
+            p.role === 'fitting'
+              ? PURPOSE.soilJoint
+              : p.role === 'main'
+                ? PURPOSE.soil
+                : PURPOSE.waste,
+            locale,
+          ),
+        ),
+        ...(soilVent?.products ?? []).map((p) => withPurpose(p, PURPOSE.soilVent, locale)),
+        ...(wasteVent?.products ?? []).map((p) => withPurpose(p, PURPOSE.wasteVent, locale)),
+      ];
       recommendation = withHouseDrainage(
         recommendation,
         drainage,
         drainageTraces,
-        drainageMatch.products,
+        drainProducts,
         installation === 'drainage',
         locale,
         {
           soil: drainageMatch.stockFor('main'),
           waste: drainageMatch.stockFor('branch'),
-          soilVent: await ventStock(drainage.soil?.ventSize),
-          wasteVent: await ventStock(drainage.waste?.ventSize),
+          soilVent: soilVent?.stockFor('main') ?? null,
+          wasteVent: wasteVent?.stockFor('main') ?? null,
         },
       );
       allTraces = [...traces, ...drainageTraces];
     }
-    // Jumlah produk di ringkasan = daftar material yang tercetak (laporan 0009).
+    // Jumlah produk di ringkasan = daftar SKU yang sama dengan tab Produk dan material (TC-H-05).
     recommendation = withPrintedMaterialCount({
       ...recommendation,
       bom: mergeBomBySku(recommendation.bom),

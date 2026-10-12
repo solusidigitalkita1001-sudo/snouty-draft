@@ -91,10 +91,12 @@ export type {
   SolutionOption,
   RecommendationStats,
   SelectedProduct,
+  SkuLine,
   SystemLine,
   CalculationStep,
   SystemRole,
 } from './recommendation.js';
+export { skuLines } from './recommendation.js';
 export { isFlowSchematic } from './schematic.js';
 export type {
   AnySchematic,

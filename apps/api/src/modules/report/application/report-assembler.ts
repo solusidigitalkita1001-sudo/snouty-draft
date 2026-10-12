@@ -17,6 +17,7 @@
 import { outdatedRules, rulesetStamp, stepFormula } from '@snouty/engineering';
 import {
   DEFAULT_LOCALE,
+  skuLines,
   type AnySchematic,
   type Locale,
   type Recommendation,
@@ -95,23 +96,23 @@ function pendingItems(
   recommendation: Recommendation,
   names: ReadonlyMap<string, string>,
 ): readonly ReportPendingItem[] {
-  const counted = new Set(recommendation.bom.map((item) => item.productId));
-  const seen = new Set<string>();
-  const rows: ReportPendingItem[] = [];
-  for (const product of recommendation.products) {
-    if (product.matchState === 'INFORMATION_UNAVAILABLE') continue;
-    if (counted.has(product.productId) || seen.has(product.productId)) continue;
-    const name = names.get(product.productId);
-    if (name === undefined) continue;
-    seen.add(product.productId);
-    rows.push({
-      productId: product.productId,
-      name,
-      size: product.size,
-      kind: product.role === 'fitting' ? 'fitting' : 'pipe',
+  // Daftar SKU yang sama dengan tab Produk dan material (TC-H-05). Nama dari produk terpilih;
+  // rekomendasi lama tanpa nama memakai pencarian katalog. Tanpa nama → tidak dikarang.
+  return skuLines(recommendation)
+    .filter((line) => !line.counted)
+    .flatMap((line) => {
+      const name = line.name ?? names.get(line.productId);
+      return name === undefined
+        ? []
+        : [
+            {
+              productId: line.productId,
+              name,
+              size: line.selections[0]!.size,
+              kind: line.kind,
+            },
+          ];
     });
-  }
-  return rows;
 }
 
 /**

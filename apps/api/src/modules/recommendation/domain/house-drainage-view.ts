@@ -319,7 +319,10 @@ export function withHouseDrainage(
     bom: [...base.bom, ...bom],
     products: [
       ...base.products,
-      ...products.filter((p) => !base.products.some((b) => b.productId === p.productId)),
+      // Satu SKU boleh punya beberapa peruntukan (TC-H-05); yang persis sama tidak diulang.
+      ...products.filter(
+        (p) => !base.products.some((b) => b.productId === p.productId && b.purpose === p.purpose),
+      ),
     ],
     assumptions: [...base.assumptions, ...drainageAssumptions(result, locale)],
     overallProvenance: worstOf(base.overallProvenance, result.overallProvenance),
