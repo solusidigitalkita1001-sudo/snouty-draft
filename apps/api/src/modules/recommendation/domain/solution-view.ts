@@ -320,8 +320,8 @@ export function assumptionsFrom(
   if (solution.mainRunNetM === null) {
     fromRules.push({
       text: en
-        ? 'The house size is not known yet, so pipe quantities are not counted; tell me the length × width of the house to get them.'
-        : 'Ukuran rumah belum diketahui, jadi jumlah pipanya belum dihitung; sebutkan panjang × lebar rumahnya supaya bisa dihitung.',
+        ? 'The building size is not known yet, so pipe quantities are not counted; give the building length × width (and the land size if it is larger) to get them.'
+        : 'Ukuran bangunan belum diketahui, jadi jumlah pipanya belum dihitung; isi panjang × lebar bangunan (dan ukuran tanah bila lebih luas) supaya bisa dihitung.',
       fieldPath: 'building.dimensions',
       ruleId: 'ENG-702',
     });

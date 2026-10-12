@@ -415,6 +415,9 @@ terpanjang + tinggi lantai × (lantai − 1); air bekas = sisi terpanjang; venti
 lantai + 1 m di atas atap (`HOUSE_VENT_ABOVE_ROOF_1M`). Semua ASUMSI (ENG-603, ENG-704,
 `REQUIRES_DOMAIN_VALIDATION`). **Masih terbuka:** validasi tim teknis Pralon; jumlah fitting Y
 pembuangan dan elbow belum dihitung.
+**Tambahan 2026-10-12 (P16-61):** ukuran tanah dan bangunan dipisah; bangunan dasar hitungan, tanah
+hanya menambah halaman (ENG-705) ke jalur PDAM/pompa dan jalur buangan; luas bangunan dibaca total
+semua lantai (tapak = luas ÷ lantai). Pipa PDAM → toren atap belum dihitung.
 
 ### OQ-59 — SKU katalog bernama sama dan salinan ERP
 

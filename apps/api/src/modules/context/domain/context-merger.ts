@@ -15,6 +15,7 @@
  */
 
 import type {
+  Dimensions,
   FieldSource,
   RequirementFieldPath,
   RequirementState,
@@ -76,7 +77,10 @@ export function mergeRequirement(
     if (current.value !== null && incomingRank < currentRank) continue;
 
     const merged: TrackedValue<unknown> = {
-      value: update.value,
+      value:
+        update.path === 'building.dimensions'
+          ? mergeDimensions(current.value as Dimensions | null, update.value as Dimensions)
+          : update.value,
       source: update.source,
       provenance: update.provenance ?? provenanceFor(update.source),
       updatedAt: now,
@@ -89,6 +93,30 @@ export function mergeRequirement(
   }
 
   return { state: next, changed };
+}
+
+/**
+ * Ukuran digabung per kelompok — bangunan, tanah, jalur utama: kelompok yang disebut menggantikan
+ * kelompoknya saja. Mengisi ukuran tanah tidak menghapus ukuran bangunan; ukuran bangunan baru
+ * (sisi atau luas) menggantikan ukuran bangunan lama seluruhnya, bukan bercampur.
+ */
+const DIMENSION_GROUPS: readonly (readonly (keyof Dimensions)[])[] = [
+  ['lengthM', 'widthM', 'areaM2'],
+  ['landLengthM', 'landWidthM', 'landAreaM2'],
+  ['mainRunMeters'],
+];
+
+export function mergeDimensions(current: Dimensions | null, incoming: Dimensions): Dimensions {
+  if (current === null || typeof current !== 'object') return incoming;
+  const out: Record<string, number> = {};
+  for (const group of DIMENSION_GROUPS) {
+    const source = group.some((key) => incoming[key] !== undefined) ? incoming : current;
+    for (const key of group) {
+      const value = source[key];
+      if (value !== undefined) out[key] = value;
+    }
+  }
+  return out as Dimensions;
 }
 
 /**

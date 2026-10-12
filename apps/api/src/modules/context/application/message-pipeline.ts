@@ -18,6 +18,7 @@
 import type {
   AssistantCard,
   AssistantStreamEvent,
+  Dimensions,
   KeyValue,
   RequirementFieldPath,
   RequirementState,
@@ -791,5 +792,12 @@ function fieldValueKnown(state: RequirementState, path: string): boolean {
   const field = (
     state as unknown as Record<string, Record<string, { value: unknown; source?: string }>>
   )[group]?.[key];
-  return field !== undefined && field.value !== null && field.source !== 'default_applied';
+  if (field === undefined || field.value === null || field.source === 'default_applied')
+    return false;
+  // Ukuran: yang dihitung adalah bangunan — ukuran tanah saja belum menjawab pertanyaannya.
+  if (path === 'building.dimensions') {
+    const d = field.value as Dimensions;
+    return (d.lengthM !== undefined && d.widthM !== undefined) || d.areaM2 !== undefined;
+  }
+  return true;
 }

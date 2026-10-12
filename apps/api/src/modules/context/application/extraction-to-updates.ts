@@ -14,6 +14,7 @@
 
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
 import type { FieldUpdate } from '../domain/context-merger.js';
+import type { Dimensions } from '@snouty/shared-types';
 
 /** Penanda kata yang harus ada di pesan sebelum field ini dipercaya. */
 const GROUNDING: Readonly<Record<string, RegExp>> = {
@@ -86,30 +87,38 @@ const OBVIOUS = {
     return undefined;
   },
   /**
-   * Ukuran denah ("rumah 8 x 15", "ukuran 6x12 m", "luas 120 m2") — parser nilai bersatuan.
-   * Kata bangunan/ukuran harus mendahului angkanya: "kamar mandi 2x3 meter" bukan ukuran rumah.
+   * Ukuran bangunan dan tanah ("rumah 8 x 15", "tanah 10x20 m", "luas bangunan 120 m2", "LT 200
+   * m2") — parser nilai bersatuan. Kata bendanya menentukan milik siapa angkanya: tanah/lahan/
+   * kavling → ukuran tanah (2026-10-12: dipisah dari bangunan), selain itu bangunan.
+   * Kata benda harus mendahului angkanya: "kamar mandi 2x3 meter" bukan ukuran rumah.
    */
-  plan: (m: string): { lengthM: number; widthM: number } | { areaM2: number } | undefined => {
+  plan: (m: string): Dimensions | undefined => {
     const decimal = (s: string) => Number(s.replace(',', '.'));
+    const isLand = (noun: string) =>
+      /^(?:lahan|lahannya|tanah|tanahnya|kavling|kaveling|plot|land|lt)$/i.test(noun);
+    const out: Record<string, number> = {};
     const sides =
-      /\b(?:rumah|rumahnya|bangunan|bangunannya|denah|ukuran|ukurannya|lahan|tanah|house|building|plot|size)\b[^\d\n]{0,20}(\d+(?:[.,]\d+)?)\s*(?:m\s*)?[x×]\s*(\d+(?:[.,]\d+)?)\s*(?:m\b|meter|metre)?/i.exec(
-        m,
-      );
-    if (sides) {
-      const lengthM = decimal(sides[1]!);
-      const widthM = decimal(sides[2]!);
-      if (lengthM >= 2 && widthM >= 2 && lengthM <= 200 && widthM <= 200)
-        return { lengthM, widthM };
+      /\b(rumah|rumahnya|bangunan|bangunannya|denah|ukuran|ukurannya|lahan|lahannya|tanah|tanahnya|kavling|kaveling|house|building|plot|land|size)\b[^\d\n]{0,20}(\d+(?:[.,]\d+)?)\s*(?:m\s*)?[x×]\s*(\d+(?:[.,]\d+)?)\s*(?:m\b|meter|metre)?/gi;
+    for (const match of m.matchAll(sides)) {
+      const land = isLand(match[1]!);
+      const lengthM = decimal(match[2]!);
+      const widthM = decimal(match[3]!);
+      const max = land ? 1000 : 200;
+      if (lengthM < 2 || widthM < 2 || lengthM > max || widthM > max) continue;
+      const [l, w] = land ? ['landLengthM', 'landWidthM'] : ['lengthM', 'widthM'];
+      if (out[l] === undefined) Object.assign(out, { [l]: lengthM, [w]: widthM });
     }
     const area =
-      /\b(?:luas|luasnya|area)\b[^\d\n]{0,25}(\d+(?:[.,]\d+)?)\s*(?:m2|m²|meter persegi|square met(?:er|re)s?|sqm)/i.exec(
-        m,
-      );
-    if (area) {
-      const areaM2 = decimal(area[1]!);
-      if (areaM2 >= 10 && areaM2 <= 20_000) return { areaM2 };
+      /\b(luas|luasnya|area|lt|lb)\b\s*(tanah|tanahnya|lahan|bangunan|bangunannya|rumah|land|building)?[^\d\n]{0,25}(\d+(?:[.,]\d+)?)\s*(?:m2|m²|meter persegi|square met(?:er|re)s?|sqm)/gi;
+    for (const match of m.matchAll(area)) {
+      const areaM2 = decimal(match[3]!);
+      if (areaM2 < 10 || areaM2 > 100_000) continue;
+      const land = isLand(match[1]!) || isLand(match[2] ?? '');
+      const key = land ? 'landAreaM2' : 'areaM2';
+      // Luas bangunan hanya bila sisi bangunan tidak disebut — sisi lebih tepat.
+      if (out[key] === undefined && (land || out['lengthM'] === undefined)) out[key] = areaM2;
     }
-    return undefined;
+    return Object.keys(out).length > 0 ? (out as Dimensions) : undefined;
   },
   type: (m: string): NonNullable<Extraction['building']>['type'] => {
     if (/\b(kos|kost|kos-kosan|boarding house|dorm(?:itory)?|hostel)\b/i.test(m))

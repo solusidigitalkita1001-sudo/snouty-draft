@@ -1344,6 +1344,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       HOUSE_FIXTURE_DROP_1_5M / HOUSE_VENT_ABOVE_ROOF_1M, OQ-60 — rumus baku disetujui pemilik); fitting dipilih
       menurut fungsi (tee / Y) dan ukuran utama di nama — tidak lagi "Cap" atau "Long TY 10" x 4""; jumlah batang
       hanya dari produk yang ukurannya memang ada.
+- [x] P16-61 Ukuran diisi sendiri, tanah dan bangunan dibedakan (2026-10-12): kartu pertanyaan berisi isian angka
+      bangunan (wajib) dan tanah (opsional), panel kebutuhan punya baris "Ukuran bangunan" dan "Ukuran tanah"
+      yang diketik bebas; teks chat "tanah 10x20" / "LT/LB" dibaca ke bagian yang benar; ukuran digabung per
+      kelompok; halaman dari ukuran tanah masuk jalur PDAM/pompa dan buangan (ENG-705, ENG-702 v2, ENG-603 v2);
+      luas bangunan = total semua lantai.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

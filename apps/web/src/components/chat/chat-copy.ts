@@ -210,6 +210,7 @@ export const CHAT_COPY = {
   viewSolution: 'Lihat solusi',
   /** Kartu klarifikasi: jawaban ditampung, dikirim sekali (keputusan pemilik 2026-10-06). */
   sendAnswers: 'Kirim jawaban',
+  optionalInput: 'boleh dikosongkan',
   clarifyFailed: 'Jawaban belum tersimpan. Coba lagi.',
   /** Tombol overlay analisis — hanya saat gagal (prototipe). */
   analysisRetry: 'Coba lagi',
@@ -409,6 +410,7 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   backToChat: '← Conversation',
   viewSolution: 'View solution',
   sendAnswers: 'Send answers',
+  optionalInput: 'can be left empty',
   clarifyFailed: 'Answers were not saved. Please try again.',
   analysisRetry: 'Try again',
   analysisBack: 'Back to conversation',

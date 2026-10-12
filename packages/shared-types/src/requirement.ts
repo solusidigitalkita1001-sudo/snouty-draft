@@ -57,15 +57,26 @@ export type WaterSource = 'rooftop_tank' | 'ground_tank' | 'pump' | 'municipal';
 export type InstallationType = 'clean_water' | 'drainage' | 'both';
 
 /**
- * Ukuran untuk panjang pipa: jalur utama yang disebut, dan/atau ukuran denah rumah (panjang ×
- * lebar, m). Denah → jalur datar terjauh = panjang + lebar (asumsi tertulis di solusi).
+ * Ukuran untuk panjang pipa: jalur utama yang disebut, dan/atau ukuran BANGUNAN (panjang × lebar,
+ * m). Bangunan → jalur datar terjauh = panjang + lebar (asumsi tertulis di solusi).
+ *
+ * Ukuran TANAH dicatat terpisah (permintaan pemilik 2026-10-12: "bedain luas tanah sama luas
+ * bangunan") dan tidak dipakai menghitung panjang pipa — pipa mengikuti bangunan, bukan pagar.
  */
 export interface Dimensions {
   readonly mainRunMeters?: number;
+  /** Panjang × lebar tapak bangunan. */
   readonly lengthM?: number;
   readonly widthM?: number;
-  /** Luas denah bila hanya luas yang disebut — dianggap persegi (sisi = √luas). */
+  /**
+   * Luas bangunan bila hanya luas yang disebut — total semua lantai, seperti lazimnya "LB" di
+   * Indonesia; tapak = luas ÷ lantai, dianggap persegi (sisi = √tapak).
+   */
   readonly areaM2?: number;
+  /** Ukuran tanah: panjang × lebar dan/atau luas. Dicatat, tidak dipakai menghitung pipa. */
+  readonly landLengthM?: number;
+  readonly landWidthM?: number;
+  readonly landAreaM2?: number;
 }
 
 export interface BuildingState {

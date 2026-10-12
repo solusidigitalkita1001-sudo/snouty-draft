@@ -144,7 +144,9 @@ describe('pertanyaan penyempurna rumah (2026-10-12)', () => {
   it('ukuran rumah, dapur, wastafel yang belum disebut; jawaban ukuran jadi panjang × lebar', () => {
     const questions = houseRefinementQuestions((path) => path === 'fixtures.basins');
     expect(questions.map((q) => q.id)).toEqual(['building.dimensions', 'fixtures.kitchens']);
-    expect(answerToUpdate({ id: 'building.dimensions', option: '8 x 15 m' }, () => null)).toEqual({
+    expect(
+      answerToUpdate({ id: 'building.dimensions', option: 'lengthM=8;widthM=15' }, () => null),
+    ).toEqual({
       path: 'building.dimensions',
       value: { lengthM: 8, widthM: 15 },
       source: 'user_stated',
@@ -154,5 +156,46 @@ describe('pertanyaan penyempurna rumah (2026-10-12)', () => {
       value: 0,
       source: 'user_stated',
     });
+  });
+});
+
+describe('ukuran bangunan dan tanah diisi sendiri (2026-10-12)', () => {
+  const answer = (option: string) =>
+    answerToUpdate({ id: 'building.dimensions', option }, () => null);
+
+  it('kartu ukuran berisi isian angka, bukan pilihan tetap; bangunan wajib, tanah opsional', () => {
+    const [question] = houseRefinementQuestions((path) => path !== 'building.dimensions');
+    expect(question!.options).toEqual([]);
+    expect(question!.inputs!.map((i) => [i.group, i.label, i.required])).toEqual([
+      ['Bangunan', 'Panjang', true],
+      ['Bangunan', 'Lebar', true],
+      ['Tanah', 'Panjang', false],
+      ['Tanah', 'Lebar', false],
+    ]);
+  });
+
+  it('bangunan dan tanah tersimpan terpisah; desimal koma dibaca', () => {
+    expect(answer('lengthM=8;widthM=12,5;landLengthM=10;landWidthM=20')?.value).toEqual({
+      lengthM: 8,
+      widthM: 12.5,
+      landLengthM: 10,
+      landWidthM: 20,
+    });
+  });
+
+  it('isian tidak lengkap, di luar batas, atau kunci asing → null, bukan tebakan', () => {
+    expect(answer('lengthM=8')).toBeNull();
+    expect(answer('landLengthM=10;landWidthM=20')).toBeNull();
+    expect(answer('lengthM=8;widthM=12;landLengthM=10')).toBeNull();
+    expect(answer('lengthM=1;widthM=12')).toBeNull();
+    expect(answer('lengthM=8;widthM=12;mainRunMeters=30')).toBeNull();
+  });
+
+  it('gelembung pengguna menyebut keduanya', () => {
+    expect(
+      summarizeAnswers([
+        { id: 'building.dimensions', option: 'lengthM=8;widthM=12;landLengthM=10;landWidthM=20' },
+      ]),
+    ).toBe('Ukuran: bangunan 8 × 12 m, tanah 10 × 20 m');
   });
 });

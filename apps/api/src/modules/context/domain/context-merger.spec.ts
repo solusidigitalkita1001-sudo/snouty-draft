@@ -7,7 +7,7 @@
  * snapshot (P4-06a). Di sini: aturan merge murni.
  */
 import { describe, expect, it } from 'vitest';
-import { mergeRequirement, type FieldUpdate } from './context-merger.js';
+import { mergeDimensions, mergeRequirement, type FieldUpdate } from './context-merger.js';
 import { readField } from './requirement-field.js';
 import { emptyRequirementState } from './requirement-state.factory.js';
 
@@ -137,5 +137,17 @@ describe('ContextMerger', () => {
     const snapshot = JSON.stringify(original);
     mergeRequirement(original, [{ path: 'building.floors', value: 2, source: 'user_stated' }], T1);
     expect(JSON.stringify(original)).toBe(snapshot);
+  });
+});
+
+describe('ukuran digabung per kelompok (2026-10-12)', () => {
+  it('mengisi tanah tidak menghapus bangunan; bangunan baru menggantikan bangunan lama', () => {
+    expect(
+      mergeDimensions({ lengthM: 8, widthM: 12 }, { landLengthM: 10, landWidthM: 20 }),
+    ).toEqual({ lengthM: 8, widthM: 12, landLengthM: 10, landWidthM: 20 });
+    expect(mergeDimensions({ lengthM: 8, widthM: 12, landAreaM2: 200 }, { areaM2: 90 })).toEqual({
+      areaM2: 90,
+      landAreaM2: 200,
+    });
   });
 });

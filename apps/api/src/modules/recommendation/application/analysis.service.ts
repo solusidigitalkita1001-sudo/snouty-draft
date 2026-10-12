@@ -342,7 +342,7 @@ export class AnalysisService {
           // Sama dengan sisi air bersih: dapur yang belum disebut dianggap satu (HOUSE_KITCHEN_1).
           kitchens: state.fixtures.kitchens.value ?? 1,
           // Ukuran rumah → perkiraan panjang tiap jalur (ENG-603, P16-60); sisi terpanjang.
-          layout: houseLayout(state, solution.floorHeightM),
+          layout: houseLayout(state, solution),
         },
         locale,
         overridesOf(state),
@@ -1028,32 +1028,47 @@ export class TechnicalCaseNotComputableError extends Error {
  * Menerjemahkan state kebutuhan ke masukan engine. Nilai yang belum ada diisi default
  * yang **sudah tercatat sebagai asumsi** oleh Context Engine — bukan ditebak di sini.
  */
-/** Ukuran denah: panjang × lebar yang disebut, atau luas saja (dianggap persegi, sisi √luas). */
-function planOf(d: RequirementState['building']['dimensions']['value']): {
+/**
+ * Tapak bangunan: panjang × lebar yang disebut, atau luas bangunan saja — total semua lantai
+ * ("LB"), jadi tapak = luas ÷ lantai, dianggap persegi (sisi = √tapak). Ukuran tanah terpisah:
+ * hanya untuk jarak halaman (ENG-705), tidak pernah menjadi tapak bangunan.
+ */
+function planOf(
+  d: RequirementState['building']['dimensions']['value'],
+  floors: number,
+): {
   planLengthM: number | null;
   planWidthM: number | null;
+  landLengthM: number | null;
+  landWidthM: number | null;
 } {
+  const land = { landLengthM: d?.landLengthM ?? null, landWidthM: d?.landWidthM ?? null };
   if (d?.lengthM !== undefined && d.widthM !== undefined) {
-    return { planLengthM: d.lengthM, planWidthM: d.widthM };
+    return { planLengthM: d.lengthM, planWidthM: d.widthM, ...land };
   }
   if (d?.areaM2 !== undefined && d.areaM2 > 0) {
-    const side = Math.round(Math.sqrt(d.areaM2) * 10) / 10;
-    return { planLengthM: side, planWidthM: side };
+    const side = Math.round(Math.sqrt(d.areaM2 / Math.max(1, floors)) * 10) / 10;
+    return { planLengthM: side, planWidthM: side, ...land };
   }
-  return { planLengthM: null, planWidthM: null };
+  return { planLengthM: null, planWidthM: null, ...land };
 }
 
-/** Sisi terpanjang rumah + lantai — dasar perkiraan panjang jalur pembuangan; `null` tanpa ukuran. */
+/**
+ * Sisi terpanjang bangunan, lantai, dan halaman — dasar perkiraan panjang jalur pembuangan;
+ * `null` tanpa ukuran bangunan. Septic tank dan saluran di depan tanah (ENG-705).
+ */
 function houseLayout(
   state: RequirementState,
-  floorHeightM: number,
-): { planLengthM: number; floors: number; floorHeightM: number } | null {
-  const { planLengthM, planWidthM } = planOf(state.building.dimensions.value);
+  solution: { readonly floorHeightM: number; readonly yardM: number | null },
+): { planLengthM: number; floors: number; floorHeightM: number; yardM: number } | null {
+  const floors = state.building.floors.value ?? 1;
+  const { planLengthM, planWidthM } = planOf(state.building.dimensions.value, floors);
   if (planLengthM === null || planWidthM === null) return null;
   return {
     planLengthM: Math.max(planLengthM, planWidthM),
-    floors: state.building.floors.value ?? 1,
-    floorHeightM,
+    floors,
+    floorHeightM: solution.floorHeightM,
+    yardM: solution.yardM ?? 0,
   };
 }
 
@@ -1069,7 +1084,7 @@ function solutionInputFrom(state: RequirementState): SolutionInput {
       'clean_water') as SolutionInput['installationType'],
     floorHeightM: state.building.floorHeightM.value,
     mainRunMeters: state.building.dimensions.value?.mainRunMeters ?? null,
-    ...planOf(state.building.dimensions.value),
+    ...planOf(state.building.dimensions.value, state.building.floors.value ?? 1),
   };
 }
 

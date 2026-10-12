@@ -37,6 +37,7 @@ import {
   ENG_702,
   ENG_703,
   ENG_704,
+  ENG_705,
   hunterGpm,
   minimumHeadM,
   type RouteBasis,
@@ -60,6 +61,9 @@ export interface SolutionInput {
   /** Ukuran denah rumah (m); keduanya ada → jalur datar terjauh = panjang + lebar. */
   readonly planLengthM?: number | null;
   readonly planWidthM?: number | null;
+  /** Ukuran tanah — hanya untuk jarak halaman (ENG-705); bukan dasar panjang pipa di bangunan. */
+  readonly landLengthM?: number | null;
+  readonly landWidthM?: number | null;
 }
 
 export interface CalculationTrace {
@@ -104,6 +108,8 @@ export interface SolutionResult {
    * Perkiraan cabang, sambungan, dan tee dari ukuran rumah (ENG-704) — `null` bila ukuran rumah
    * belum diketahui (jalur yang disebut saja tidak cukup untuk memperkirakan cabang).
    */
+  /** Halaman dari bangunan ke depan tanah (ENG-705); `null` tanpa ukuran tanah dan bangunan. */
+  readonly yardM: number | null;
   readonly branchLayout: {
     readonly branchNetM: number;
     readonly fixtureNetM: number;
@@ -190,7 +196,21 @@ export function computeSolution(
         ? plan!.lengthM + plan!.widthM
         : use('HOUSE_RUN_20M');
   const gravity = input.waterSource === 'rooftop_tank';
+  // Halaman: ukuran tanah dan bangunan sama-sama diketahui (2026-10-12, ENG-705).
+  const yard =
+    plan !== null &&
+    typeof input.landLengthM === 'number' &&
+    typeof input.landWidthM === 'number' &&
+    input.landLengthM > 0 &&
+    input.landWidthM > 0
+      ? run(ENG_705, {
+          landSideM: Math.max(input.landLengthM, input.landWidthM),
+          buildingSideM: Math.max(plan.lengthM, plan.widthM),
+        }).yardM
+      : null;
   const route = run(ENG_702, {
+    // Toren atap ada di bangunan: halaman tidak masuk jalur toren → titik air.
+    yardM: gravity ? 0 : (yard ?? 0),
     source: input.waterSource,
     floors: input.floors,
     floorHeightM,
@@ -292,6 +312,7 @@ export function computeSolution(
       requiredSourcePressureBar,
     },
     mainRunNetM: hasRealDimensions ? route.routeLengthM : null,
+    yardM: yard,
     branchLayout,
     variancePercent: { min: variance.minPercent, max: variance.maxPercent },
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },

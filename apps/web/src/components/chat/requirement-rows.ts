@@ -14,9 +14,13 @@ export interface SelectOption {
 
 export type RowEditor =
   | { readonly kind: 'select'; readonly options: readonly SelectOption[] }
-  | { readonly kind: 'number'; readonly min: number; readonly max: number };
+  | { readonly kind: 'number'; readonly min: number; readonly max: number }
+  /** Panjang × lebar diketik bebas ("8 x 12"); `target` memilih bangunan atau tanah. */
+  | { readonly kind: 'size'; readonly target: 'building' | 'land' };
 
 export interface RequirementRow {
+  /** Kunci baris — unik; dua baris ukuran (bangunan, tanah) berbagi satu `path`. */
+  readonly key: string;
   readonly path: RequirementFieldPath;
   readonly label: string;
   readonly display: string;
@@ -50,49 +54,93 @@ const BUILDING: readonly SelectOption[] = [
   { value: 'industrial', label: 'Industri' },
 ];
 
-/** Ukuran rumah: pilihan sama dengan kartu pertanyaan; nilai "PxL" dikirim sebagai panjang × lebar. */
-const PLAN: readonly SelectOption[] = [
-  { value: '6x12', label: '6 × 12 m' },
-  { value: '8x15', label: '8 × 15 m' },
-  { value: '10x20', label: '10 × 20 m' },
-];
-
 interface PlanValue {
   readonly lengthM?: number;
   readonly widthM?: number;
   readonly areaM2?: number;
   readonly mainRunMeters?: number;
+  readonly landLengthM?: number;
+  readonly landWidthM?: number;
+  readonly landAreaM2?: number;
 }
 
-/** "8x15" → panjang × lebar untuk PATCH; selain itu `null`. */
-export function planFromOption(value: string): { lengthM: number; widthM: number } | null {
-  const m = /^(\d+(?:\.\d+)?)x(\d+(?:\.\d+)?)$/.exec(value);
-  return m ? { lengthM: Number(m[1]), widthM: Number(m[2]) } : null;
+/**
+ * Panjang × lebar yang diketik ("8 x 12", "8×12,5", "8 12") → angka; selain itu `null`. Parser
+ * nilai terstruktur — batasnya diperiksa lagi di API.
+ */
+export function sizeFromText(value: string): { lengthM: number; widthM: number } | null {
+  const m = /^\s*(\d+(?:[.,]\d+)?)\s*(?:[x×*]|\s)\s*(\d+(?:[.,]\d+)?)\s*(?:m)?\s*$/i.exec(value);
+  if (!m) return null;
+  const lengthM = Number(m[1]!.replace(',', '.'));
+  const widthM = Number(m[2]!.replace(',', '.'));
+  return lengthM > 0 && widthM > 0 ? { lengthM, widthM } : null;
 }
 
-function planRow(field: {
+/** Nilai PATCH untuk baris ukuran: bangunan atau tanah, dari teks "P x L". */
+export function sizePatch(
+  target: 'building' | 'land',
+  text: string,
+): Record<string, number> | null {
+  const size = sizeFromText(text);
+  if (size === null) return null;
+  return target === 'building'
+    ? { lengthM: size.lengthM, widthM: size.widthM }
+    : { landLengthM: size.lengthM, landWidthM: size.widthM };
+}
+
+const num = (n: number) => n.toLocaleString('id-ID', { maximumFractionDigits: 1 });
+
+/**
+ * Dua baris ukuran (permintaan pemilik 2026-10-12): bangunan — dasar hitungan — dan tanah, yang
+ * hanya menambah jarak halaman. Keduanya diketik bebas.
+ */
+function sizeRows(field: {
   value: unknown;
   provenance: Provenance;
   reason?: string;
-}): RequirementRow {
+}): readonly RequirementRow[] {
   const plan = field.value as PlanValue | null;
-  const sides = plan?.lengthM !== undefined && plan.widthM !== undefined;
-  const display = sides
-    ? `${plan!.lengthM} × ${plan!.widthM} m`
-    : plan?.areaM2 !== undefined
-      ? `luas ${plan.areaM2} m²`
-      : plan?.mainRunMeters !== undefined
-        ? `jalur ${plan.mainRunMeters} m`
-        : MISSING;
-  return {
-    path: 'building.dimensions',
-    label: 'Ukuran rumah',
-    display,
-    raw: sides ? `${plan!.lengthM}x${plan!.widthM}` : null,
+  const building =
+    plan?.lengthM !== undefined && plan.widthM !== undefined
+      ? {
+          display: `${num(plan.lengthM)} × ${num(plan.widthM)} m`,
+          raw: `${plan.lengthM} x ${plan.widthM}`,
+        }
+      : plan?.areaM2 !== undefined
+        ? { display: `luas ${num(plan.areaM2)} m²`, raw: null }
+        : plan?.mainRunMeters !== undefined
+          ? { display: `jalur ${num(plan.mainRunMeters)} m`, raw: null }
+          : { display: MISSING, raw: null };
+  const land =
+    plan?.landLengthM !== undefined && plan.landWidthM !== undefined
+      ? {
+          display: `${num(plan.landLengthM)} × ${num(plan.landWidthM)} m`,
+          raw: `${plan.landLengthM} x ${plan.landWidthM}`,
+        }
+      : plan?.landAreaM2 !== undefined
+        ? { display: `luas ${num(plan.landAreaM2)} m²`, raw: null }
+        : { display: MISSING, raw: null };
+  const common = {
+    path: 'building.dimensions' as const,
     provenance: field.provenance,
     ...(field.reason !== undefined ? { reason: field.reason } : {}),
-    editor: { kind: 'select', options: PLAN },
   };
+  return [
+    {
+      ...common,
+      key: 'building.dimensions.building',
+      label: 'Ukuran bangunan',
+      ...building,
+      editor: { kind: 'size', target: 'building' },
+    },
+    {
+      ...common,
+      key: 'building.dimensions.land',
+      label: 'Ukuran tanah',
+      ...land,
+      editor: { kind: 'size', target: 'land' },
+    },
+  ];
 }
 
 const labelOf = (options: readonly SelectOption[]) => (v: unknown) =>
@@ -109,7 +157,7 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
       min: 1,
       max: 50,
     }),
-    planRow(state.building.dimensions),
+    ...sizeRows(state.building.dimensions),
     row('fixtures.bathrooms', 'Kamar mandi', state.fixtures.bathrooms, String, {
       kind: 'number',
       min: 0,
@@ -149,6 +197,7 @@ function row(
   // UNAVAILABLE tidak pernah merender nilai — ketiadaan ditampilkan apa adanya.
   const missing = field.value === null || field.value === undefined;
   return {
+    key: path,
     path,
     label,
     display: missing ? MISSING : format(field.value),

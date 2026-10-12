@@ -81,12 +81,22 @@ const EditDto = z
           z
             .object({
               path: z.literal('building.dimensions'),
+              // Bangunan dan/atau tanah, masing-masing berpasangan (panjang + lebar).
               value: z
                 .object({
-                  lengthM: z.number().min(2).max(200),
-                  widthM: z.number().min(2).max(200),
+                  lengthM: z.number().min(2).max(200).optional(),
+                  widthM: z.number().min(2).max(200).optional(),
+                  landLengthM: z.number().min(2).max(1000).optional(),
+                  landWidthM: z.number().min(2).max(1000).optional(),
                 })
-                .strict(),
+                .strict()
+                .refine(
+                  (d) =>
+                    (d.lengthM === undefined) === (d.widthM === undefined) &&
+                    (d.landLengthM === undefined) === (d.landWidthM === undefined) &&
+                    (d.lengthM !== undefined || d.landLengthM !== undefined),
+                  { message: 'panjang dan lebar diisi berpasangan' },
+                ),
             })
             .strict(),
           z

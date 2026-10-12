@@ -444,6 +444,10 @@ Kel. F   ukuran pipa utama dari kecepatan ≤ 2 m/s dan kehilangan ≤ batas; to
 ENG-703  tekanan dari toren di titik tertinggi; < 0,3 bar → pompa pendorong / toren lebih tinggi
          PDAM: tekanan yang dibutuhkan di meteran = TDH; toren bawah/pompa: titik kerja pompa
 ENG-102  cabang dari debit per cabang pada 1,5 m/s
+ENG-705  halaman = sisi terpanjang tanah − sisi terpanjang bangunan (≥ 0) — meteran PDAM, septic
+         tank, dan saluran di depan tanah, bangunan di belakang; hanya bila ukuran tanah dan
+         bangunan diketahui. ENG-702 v2: jalur sumber di bawah (PDAM, pompa, toren bawah) + halaman;
+         toren atap tidak. ENG-603 v2: air kotor dan air bekas + halaman.
 ENG-704  perkiraan panjang (hanya bila ukuran rumah diketahui, OQ-60): cabang = jumlah cabang × sisi
          terpanjang; sambungan = titik air × 1,5 m (HOUSE_FIXTURE_DROP_1_5M); tee = 1 per cabang
 ```

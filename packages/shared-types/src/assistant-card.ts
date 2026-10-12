@@ -48,6 +48,24 @@ export interface ClarificationQuestion {
   readonly optionLabels?: readonly string[];
   /** "Belum tahu" selalu tersedia — pengguna tidak dipaksa menebak. */
   readonly allowUnknown: boolean;
+  /**
+   * Isian angka bebas sebagai pengganti pilihan (ukuran bangunan dan tanah, 2026-10-12). Jawaban
+   * dikirim sebagai satu `option`: `"lengthM=8;widthM=12"` — kunci dari `inputs`, nilai angka.
+   */
+  readonly inputs?: readonly ClarificationInput[];
+}
+
+/** Satu isian angka di kartu klarifikasi. */
+export interface ClarificationInput {
+  readonly key: string;
+  /** Kelompok tampilan ("Bangunan", "Tanah"); isian sekelompok diisi berpasangan. */
+  readonly group: string;
+  readonly label: string;
+  readonly unit: string;
+  /** Kelompok wajib — kelompok opsional boleh dikosongkan seluruhnya. */
+  readonly required: boolean;
+  readonly min: number;
+  readonly max: number;
 }
 
 /** Satu kriteria pemilihan (layar 08). Mengeras di Fase 5. */

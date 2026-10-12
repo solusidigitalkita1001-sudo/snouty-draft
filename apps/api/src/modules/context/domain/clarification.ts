@@ -15,7 +15,7 @@
  * aturan bisnis dan wajib hidup di kode (SPEC §5), bukan di prompt.
  */
 
-import type { ClarificationQuestion, RequirementFieldPath } from '@snouty/shared-types';
+import type { ClarificationQuestion, Dimensions, RequirementFieldPath } from '@snouty/shared-types';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type { FieldUpdate } from './context-merger.js';
 import {
@@ -46,7 +46,57 @@ export const CLARIFICATION_PRIORITY: readonly RequirementFieldPath[] = [
 interface QuestionTemplate {
   readonly question: string;
   readonly options: readonly string[];
+  /** Isian angka bebas sebagai pengganti pilihan (ukuran bangunan dan tanah). */
+  readonly inputs?: readonly TemplateInput[];
 }
+
+interface TemplateInput {
+  readonly key: keyof Dimensions;
+  readonly group: { readonly id: string; readonly en: string };
+  readonly label: { readonly id: string; readonly en: string };
+  readonly required: boolean;
+  readonly min: number;
+  readonly max: number;
+}
+
+/**
+ * Ukuran diisi sendiri, bangunan dan tanah terpisah (permintaan pemilik 2026-10-12). Bangunan
+ * wajib dan dipakai menghitung; tanah boleh dikosongkan dan hanya dicatat.
+ */
+const DIMENSION_INPUTS: readonly TemplateInput[] = [
+  {
+    key: 'lengthM',
+    group: { id: 'Bangunan', en: 'Building' },
+    label: { id: 'Panjang', en: 'Length' },
+    required: true,
+    min: 2,
+    max: 200,
+  },
+  {
+    key: 'widthM',
+    group: { id: 'Bangunan', en: 'Building' },
+    label: { id: 'Lebar', en: 'Width' },
+    required: true,
+    min: 2,
+    max: 200,
+  },
+  {
+    key: 'landLengthM',
+    group: { id: 'Tanah', en: 'Land' },
+    label: { id: 'Panjang', en: 'Length' },
+    required: false,
+    min: 2,
+    max: 1000,
+  },
+  {
+    key: 'landWidthM',
+    group: { id: 'Tanah', en: 'Land' },
+    label: { id: 'Lebar', en: 'Width' },
+    required: false,
+    min: 2,
+    max: 1000,
+  },
+];
 
 const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>>> = {
   'water.source': {
@@ -67,8 +117,9 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
   },
   // Pertanyaan penyempurna (koreksi 2026-10-12): ditanya di samping tombol Susun rekomendasi.
   'building.dimensions': {
-    question: 'Ukuran rumahnya kira-kira berapa (panjang × lebar)?',
-    options: ['6 x 12 m', '8 x 15 m', '10 x 20 m'],
+    question: 'Berapa ukuran bangunan dan tanahnya (panjang × lebar)?',
+    options: [],
+    inputs: DIMENSION_INPUTS,
   },
   'fixtures.kitchens': {
     question: 'Ada berapa dapur?',
@@ -97,7 +148,7 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.installationType': 'What is this installation for?',
   'building.floors': 'How many floors does the building have?',
   'fixtures.bathrooms': 'How many bathrooms are there?',
-  'building.dimensions': 'Roughly how big is the house (length × width)?',
+  'building.dimensions': 'What are the building and land sizes (length × width)?',
   'fixtures.kitchens': 'How many kitchens are there?',
   'fixtures.basins': 'How many wash basins outside the bathrooms?',
 };
@@ -203,11 +254,6 @@ const OPTION_VALUES: Readonly<
     Pembuangan: 'drainage',
     Keduanya: 'both',
   },
-  'building.dimensions': {
-    '6 x 12 m': { lengthM: 6, widthM: 12 },
-    '8 x 15 m': { lengthM: 8, widthM: 15 },
-    '10 x 20 m': { lengthM: 10, widthM: 20 },
-  },
 };
 
 /** Label singkat untuk ringkasan jawaban di gelembung pengguna. */
@@ -216,7 +262,7 @@ const ANSWER_LABEL: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.installationType': 'Instalasi',
   'building.floors': 'Lantai',
   'fixtures.bathrooms': 'Kamar mandi',
-  'building.dimensions': 'Ukuran rumah',
+  'building.dimensions': 'Ukuran',
   'fixtures.kitchens': 'Dapur',
   'fixtures.basins': 'Wastafel',
 };
@@ -225,7 +271,7 @@ const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> =
   'water.installationType': 'Installation',
   'building.floors': 'Floors',
   'fixtures.bathrooms': 'Bathrooms',
-  'building.dimensions': 'House size',
+  'building.dimensions': 'Size',
   'fixtures.kitchens': 'Kitchens',
   'fixtures.basins': 'Basins',
 };
@@ -248,11 +294,53 @@ export function answerToUpdate(
   const path = answer.id as RequirementFieldPath;
   if (!TEMPLATES[path]) return null;
   if (answer.option === UNKNOWN_OPTION) return defaultFor(path);
+  const inputs = TEMPLATES[path]!.inputs;
+  if (inputs) {
+    const value = inputValues(answer.option, inputs);
+    return value === null ? null : { path, value, source: 'user_stated' };
+  }
   if (!TEMPLATES[path]!.options.includes(answer.option)) return null;
   const mapped = OPTION_VALUES[path]?.[answer.option];
   const value = mapped ?? (/^\d+$/.test(answer.option) ? Number(answer.option) : null);
   if (value === null) return null;
   return { path, value, source: 'user_stated' };
+}
+
+/**
+ * `"lengthM=8;widthM=12;landLengthM=10;landWidthM=20"` → nilai field — parser nilai terstruktur.
+ * Kunci harus dari isian templat, angka dalam batasnya; kelompok diisi lengkap atau kosong
+ * seluruhnya; kelompok wajib harus ada. Selain itu `null`, bukan tebakan.
+ */
+function inputValues(option: string, inputs: readonly TemplateInput[]): Dimensions | null {
+  const values: Record<string, number> = {};
+  for (const part of option.split(';')) {
+    const [key, raw] = part.split('=');
+    const input = inputs.find((i) => i.key === key?.trim());
+    const value = Number((raw ?? '').trim().replace(',', '.'));
+    if (!input || raw === undefined || !Number.isFinite(value)) return null;
+    if (value < input.min || value > input.max) return null;
+    values[input.key] = value;
+  }
+  const groups = [...new Set(inputs.map((i) => i.group.id))];
+  for (const group of groups) {
+    const members = inputs.filter((i) => i.group.id === group);
+    const filled = members.filter((i) => values[i.key] !== undefined).length;
+    if (filled !== 0 && filled !== members.length) return null;
+    if (filled === 0 && members.some((i) => i.required)) return null;
+  }
+  return values as Dimensions;
+}
+
+/** "8 × 12 m (bangunan) · 10 × 20 m (tanah)" — jawaban isian untuk gelembung pengguna. */
+function inputSummary(option: string, locale: Locale): string {
+  const d = inputValues(option, DIMENSION_INPUTS);
+  if (d === null) return option;
+  const en = locale === 'en';
+  const n = (x: number) => x.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
+  const parts = [`${en ? 'building' : 'bangunan'} ${n(d.lengthM!)} × ${n(d.widthM!)} m`];
+  if (d.landLengthM !== undefined && d.landWidthM !== undefined)
+    parts.push(`${en ? 'land' : 'tanah'} ${n(d.landLengthM)} × ${n(d.landWidthM)} m`);
+  return parts.join(', ');
 }
 
 /** "Sumber air: Toren atap · Instalasi: Keduanya · Kamar mandi: 3" — gelembung pengguna. */
@@ -275,6 +363,8 @@ export function summarizeAnswers(
       const label = isIrrigationField(a.id)
         ? irrigationFieldLabel(a.id, locale)
         : (labels[a.id as RequirementFieldPath] ?? a.id);
+      if (TEMPLATES[a.id as RequirementFieldPath]?.inputs && a.option !== UNKNOWN_OPTION)
+        return `${label}: ${inputSummary(a.option, locale)}`;
       return `${label}: ${optionLabel(a.option, locale)}`;
     })
     .join(' · ');
@@ -287,6 +377,19 @@ function toQuestion(path: RequirementFieldPath, locale: Locale): ClarificationQu
     id: path,
     question: locale === 'en' ? (QUESTION_EN[path] ?? template.question) : template.question,
     options: template.options,
+    ...(template.inputs
+      ? {
+          inputs: template.inputs.map((input) => ({
+            key: input.key,
+            group: locale === 'en' ? input.group.en : input.group.id,
+            label: locale === 'en' ? input.label.en : input.label.id,
+            unit: 'm',
+            required: input.required,
+            min: input.min,
+            max: input.max,
+          })),
+        }
+      : {}),
     ...(locale === 'en'
       ? { optionLabels: template.options.map((option) => optionLabel(option, locale)) }
       : {}),

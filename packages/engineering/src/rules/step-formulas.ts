@@ -181,15 +181,22 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
   'ENG-603': (i, o, f) => {
     if (!nums(i, ['planLengthM', 'floors', 'floorHeightM', 'ventAboveRoofM'])) return null;
     const parts: string[] = [];
+    // Halaman (ENG-603 v2); trace v1 tidak punya `yardM`.
+    const yard = isNum(i['yardM']) && i['yardM'] > 0 ? ` + ${f.n(i['yardM'])}` : '';
     if (isNum(o['soilNetM']))
       parts.push(
         f.t(
-          `Air kotor = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1) = ${f.n(o['soilNetM'])} m`,
-          `Soil = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1) = ${f.n(o['soilNetM'])} m`,
+          `Air kotor = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1)${yard} = ${f.n(o['soilNetM'])} m`,
+          `Soil = ${f.n(i['planLengthM'])} + ${f.n(i['floorHeightM'])} × (${f.n(i['floors'])} − 1)${yard} = ${f.n(o['soilNetM'])} m`,
         ),
       );
     if (isNum(o['wasteNetM']))
-      parts.push(f.t(`Air bekas = ${f.n(o['wasteNetM'])} m`, `Waste = ${f.n(o['wasteNetM'])} m`));
+      parts.push(
+        f.t(
+          `Air bekas = ${f.n(i['planLengthM'])}${yard} = ${f.n(o['wasteNetM'])} m`,
+          `Waste = ${f.n(i['planLengthM'])}${yard} = ${f.n(o['wasteNetM'])} m`,
+        ),
+      );
     const vent = isNum(o['soilVentNetM']) ? o['soilVentNetM'] : o['wasteVentNetM'];
     if (isNum(vent))
       parts.push(
@@ -217,11 +224,23 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
           `Load = ${f.n(i['waterClosets'])} × ${f.n(i['wsfuWaterCloset'])} + ${f.n(i['showers'])} × ${f.n(i['wsfuShower'])} + ${f.n(i['lavatories'])} × ${f.n(i['wsfuLavatory'])} + ${f.n(i['kitchenSinks'])} × ${f.n(i['wsfuKitchenSink'])} = ${f.n(o['wsfu'])} units → Q = ${f.n(o['peakFlowLs'])} l/s (Hunter curve)`,
         )
       : null,
-  'ENG-702': (_i, o, f) =>
-    nums(o, ['staticHeadM', 'routeLengthM'])
+  'ENG-702': (i, o, f) => {
+    if (!nums(o, ['staticHeadM', 'routeLengthM']) || !nums(i, ['horizontalRunM'])) return null;
+    const yard = isNum(i['yardM']) && i['yardM'] > 0 ? ` + halaman ${f.n(i['yardM'])}` : '';
+    const yardEn = isNum(i['yardM']) && i['yardM'] > 0 ? ` + yard ${f.n(i['yardM'])}` : '';
+    const vertical = isNum(o['tankLevelM'])
+      ? Math.round(((o['tankLevelM'] as number) - (o['highestOutletM'] as number)) * 100) / 100
+      : (o['highestOutletM'] as number);
+    return f.t(
+      `Beda tinggi = ${f.n(o['staticHeadM'])} m · Panjang jalur = ${f.n(vertical)} tegak + ${f.n(i['horizontalRunM'])} datar${yard} = ${f.n(o['routeLengthM'])} m`,
+      `Height difference = ${f.n(o['staticHeadM'])} m · Route length = ${f.n(vertical)} vertical + ${f.n(i['horizontalRunM'])} horizontal${yardEn} = ${f.n(o['routeLengthM'])} m`,
+    );
+  },
+  'ENG-705': (i, o, f) =>
+    nums(i, ['landSideM', 'buildingSideM']) && nums(o, ['yardM'])
       ? f.t(
-          `Beda tinggi = ${f.n(o['staticHeadM'])} m · Panjang jalur = ${f.n(o['routeLengthM'])} m`,
-          `Height difference = ${f.n(o['staticHeadM'])} m · Route length = ${f.n(o['routeLengthM'])} m`,
+          `Halaman = sisi tanah ${f.n(i['landSideM'])} m − sisi bangunan ${f.n(i['buildingSideM'])} m = ${f.n(o['yardM'])} m`,
+          `Yard = land side ${f.n(i['landSideM'])} m − building side ${f.n(i['buildingSideM'])} m = ${f.n(o['yardM'])} m`,
         )
       : null,
 };

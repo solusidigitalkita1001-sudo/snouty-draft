@@ -32,6 +32,8 @@ export interface HouseDrainageInput {
     readonly planLengthM: number;
     readonly floors: number;
     readonly floorHeightM: number;
+    /** Halaman ke depan tanah (ENG-705); 0 tanpa ukuran tanah. */
+    readonly yardM?: number;
   } | null;
 }
 
@@ -155,6 +157,7 @@ export function computeHouseDrainage(
   const lengths = input.layout
     ? run(ENG_603, {
         ...input.layout,
+        yardM: input.layout.yardM ?? 0,
         ventAboveRoofM: use('HOUSE_VENT_ABOVE_ROOF_1M'),
         hasSoil: soil !== null,
         hasWaste: waste !== null,

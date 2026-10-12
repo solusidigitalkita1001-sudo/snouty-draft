@@ -76,3 +76,47 @@ describe('panjang jalur rumah dari ukuran rumah (P16-60)', () => {
     expect(result.traces.some((t) => t.ruleId === 'ENG-704')).toBe(false);
   });
 });
+
+describe('tanah dan bangunan dibedakan (2026-10-12)', () => {
+  const base = {
+    buildingType: 'residential' as const,
+    floors: 2,
+    bathrooms: 3,
+    basins: 0,
+    kitchens: 1,
+    installationType: 'both' as const,
+    floorHeightM: null,
+    mainRunMeters: null,
+    planLengthM: 8,
+    planWidthM: 12,
+    landLengthM: 10,
+    landWidthM: 20,
+  };
+
+  it('PDAM: halaman 20 − 12 = 8 m masuk jalur pipa utama (5,5 + 20 + 8 = 33,5 m)', () => {
+    const r = computeSolution({ ...base, waterSource: 'municipal' });
+    expect(r.yardM).toBe(8);
+    expect(r.mainRunNetM).toBe(33.5);
+    const trace = r.traces.find((t) => t.ruleId === 'ENG-702')!;
+    expect(stepFormula('ENG-702', trace.inputs, trace.output)).toBe(
+      'Beda tinggi = 5,5 m · Panjang jalur = 5,5 tegak + 20 datar + halaman 8 = 33,5 m',
+    );
+  });
+
+  it('toren atap: toren di bangunan, halaman tidak masuk jalur toren → titik air', () => {
+    const r = computeSolution({ ...base, waterSource: 'rooftop_tank' });
+    expect(r.yardM).toBe(8);
+    expect(r.mainRunNetM).toBe(22.5);
+  });
+
+  it('tanpa ukuran tanah tidak ada halaman', () => {
+    const r = computeSolution({
+      ...base,
+      waterSource: 'municipal',
+      landLengthM: null,
+      landWidthM: null,
+    });
+    expect(r.yardM).toBeNull();
+    expect(r.mainRunNetM).toBe(25.5);
+  });
+});

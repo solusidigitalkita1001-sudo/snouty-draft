@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { RequirementState } from '@snouty/shared-types';
-import { MISSING, planFromOption, requirementRows } from './requirement-rows';
+import { MISSING, requirementRows, sizeFromText, sizePatch } from './requirement-rows';
 
 const field = (value: unknown) => ({ value, provenance: 'VERIFIED' as const });
 const state = (dimensions: unknown) =>
@@ -25,24 +25,25 @@ const state = (dimensions: unknown) =>
   }) as unknown as RequirementState;
 
 describe('baris ukuran rumah (2026-10-12)', () => {
-  it('panjang × lebar tampil dan bisa dipilih ulang; luas saja tampil sebagai luas', () => {
-    const plan = requirementRows(state({ lengthM: 8, widthM: 15 })).find(
+  it('ukuran bangunan dan tanah tampil sebagai dua baris yang diketik sendiri', () => {
+    const rows = requirementRows(
+      state({ lengthM: 8, widthM: 15, landLengthM: 10, landWidthM: 20 }),
+    ).filter((r) => r.path === 'building.dimensions');
+    expect(rows.map((r) => [r.label, r.display, r.raw, r.editor.kind])).toEqual([
+      ['Ukuran bangunan', '8 × 15 m', '8 x 15', 'size'],
+      ['Ukuran tanah', '10 × 20 m', '10 x 20', 'size'],
+    ]);
+    const [building, land] = requirementRows(state({ areaM2: 120 })).filter(
       (r) => r.path === 'building.dimensions',
-    )!;
-    expect(plan.label).toBe('Ukuran rumah');
-    expect(plan.display).toBe('8 × 15 m');
-    expect(plan.raw).toBe('8x15');
-    expect(
-      requirementRows(state({ areaM2: 120 })).find((r) => r.path === 'building.dimensions')!
-        .display,
-    ).toBe('luas 120 m²');
-    expect(
-      requirementRows(state(null)).find((r) => r.path === 'building.dimensions')!.display,
-    ).toBe(MISSING);
+    );
+    expect(building!.display).toBe('luas 120 m²');
+    expect(land!.display).toBe(MISSING);
   });
 
-  it('pilihan "8x15" dikirim sebagai panjang × lebar', () => {
-    expect(planFromOption('8x15')).toEqual({ lengthM: 8, widthM: 15 });
-    expect(planFromOption('')).toBeNull();
+  it('teks "P x L" dikirim ke bagian ukuran yang benar', () => {
+    expect(sizePatch('building', '8 x 12,5')).toEqual({ lengthM: 8, widthM: 12.5 });
+    expect(sizePatch('land', '10×20 m')).toEqual({ landLengthM: 10, landWidthM: 20 });
+    expect(sizePatch('building', '8')).toBeNull();
+    expect(sizeFromText('')).toBeNull();
   });
 });

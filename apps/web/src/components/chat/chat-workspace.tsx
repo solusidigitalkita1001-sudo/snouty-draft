@@ -60,7 +60,7 @@ import { SolutionView, type SolutionTab } from '../solution/solution-view';
 import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
 import { gateHref, parseResume } from '../auth/resume-link';
 import { chatCopy, STAGE_ORDER, stageLabel } from './chat-copy';
-import { MISSING, planFromOption, requirementRows } from './requirement-rows';
+import { MISSING, requirementRows, sizePatch } from './requirement-rows';
 import styles from './chat-workspace.module.css';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
@@ -743,22 +743,20 @@ export function ChatWorkspace() {
    */
   const finishEdit = useCallback(async () => {
     if (!conversationId) return;
+    // Kunci edit per baris: dua baris ukuran (bangunan, tanah) berbagi satu field.
     const changes = rows
-      .filter((row) => row.path in edits)
+      .filter((row) => row.key in edits)
+      .filter((row) => String(edits[row.key]) !== String(row.raw ?? ''))
       .map((row) => ({
         path: row.path,
         value:
           row.editor.kind === 'number'
-            ? Number(edits[row.path])
-            : row.path === 'building.dimensions'
-              ? (planFromOption(edits[row.path] ?? '') ?? '')
-              : edits[row.path],
+            ? Number(edits[row.key])
+            : row.editor.kind === 'size'
+              ? (sizePatch(row.editor.target, edits[row.key] ?? '') ?? '')
+              : edits[row.key],
       }))
-      .filter((change) => change.value !== '' && !Number.isNaN(change.value as number))
-      .filter(
-        (change) =>
-          String(change.value) !== String(rows.find((r) => r.path === change.path)?.raw ?? ''),
-      );
+      .filter((change) => change.value !== '' && !Number.isNaN(change.value as number));
     if (changes.length === 0) {
       setEditing(false);
       setEdits({});
@@ -1468,7 +1466,7 @@ export function ChatWorkspace() {
               {useCase === null &&
                 rows.map((row) => (
                   <div
-                    key={row.label}
+                    key={row.key}
                     className={[
                       styles.reqRow,
                       !editing && row.display === MISSING ? styles.reqRowMissing : '',
@@ -1480,9 +1478,9 @@ export function ChatWorkspace() {
                         <select
                           className={styles.reqInput}
                           aria-label={row.label}
-                          value={edits[row.path] ?? (row.raw === null ? '' : String(row.raw))}
+                          value={edits[row.key] ?? (row.raw === null ? '' : String(row.raw))}
                           onChange={(event) =>
-                            setEdits((prev) => ({ ...prev, [row.path]: event.target.value }))
+                            setEdits((prev) => ({ ...prev, [row.key]: event.target.value }))
                           }
                         >
                           <option value="">{MISSING}</option>
@@ -1492,6 +1490,19 @@ export function ChatWorkspace() {
                             </option>
                           ))}
                         </select>
+                      ) : row.editor.kind === 'size' ? (
+                        // Panjang × lebar diketik bebas, mis. "8 x 12".
+                        <input
+                          className={styles.reqInput}
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="8 x 12"
+                          aria-label={`${row.label} (panjang × lebar, m)`}
+                          value={edits[row.key] ?? (row.raw === null ? '' : String(row.raw))}
+                          onChange={(event) =>
+                            setEdits((prev) => ({ ...prev, [row.key]: event.target.value }))
+                          }
+                        />
                       ) : (
                         <input
                           className={styles.reqInput}
@@ -1500,9 +1511,9 @@ export function ChatWorkspace() {
                           aria-label={row.label}
                           min={row.editor.min}
                           max={row.editor.max}
-                          value={edits[row.path] ?? (row.raw === null ? '' : String(row.raw))}
+                          value={edits[row.key] ?? (row.raw === null ? '' : String(row.raw))}
                           onChange={(event) =>
-                            setEdits((prev) => ({ ...prev, [row.path]: event.target.value }))
+                            setEdits((prev) => ({ ...prev, [row.key]: event.target.value }))
                           }
                         />
                       )
@@ -1812,7 +1823,8 @@ function ClarificationCard({
 }) {
   const COPY = useChatCopy();
   const [picked, setPicked] = useState<Readonly<Record<string, string>>>({});
-  const single = questions.length === 1;
+  // Pertanyaan berisian (ukuran) tidak terkirim dengan sekali klik: selalu lewat tombol kirim.
+  const single = questions.length === 1 && questions[0]!.inputs === undefined;
   const complete = questions.every((q) => picked[q.id] !== undefined);
 
   const choose = (question: ClarificationQuestion, option: string) => {
@@ -1839,6 +1851,20 @@ function ClarificationCard({
             <span className={styles.questionNum}>{String(index + 1).padStart(2, '0')}</span>
             <span className={styles.questionText}>{question.question}</span>
           </div>
+          {question.inputs && (
+            <MeasureInputs
+              question={question}
+              active={active}
+              onChange={(option) =>
+                setPicked((previous) => {
+                  const next = { ...previous };
+                  if (option === null) delete next[question.id];
+                  else next[question.id] = option;
+                  return next;
+                })
+              }
+            />
+          )}
           <div className={styles.chips} role="group" aria-label={question.question}>
             {[...question.options, ...(question.allowUnknown ? [UNKNOWN_OPTION] : [])].map(
               (option, optionIndex) => (
@@ -1886,6 +1912,87 @@ function ClarificationCard({
 }
 
 const UNKNOWN_OPTION = 'Belum tahu';
+
+/**
+ * Isian angka bebas per kelompok (bangunan wajib, tanah opsional — 2026-10-12). Jawaban dirakit
+ * sebagai `"lengthM=8;widthM=12"`; batas dan pasangan diperiksa lagi di API, di sini hanya supaya
+ * tombol kirim tidak menyala untuk isian yang belum lengkap.
+ */
+function MeasureInputs({
+  question,
+  active,
+  onChange,
+}: {
+  question: ClarificationQuestion;
+  active: boolean;
+  onChange: (option: string | null) => void;
+}) {
+  const COPY = useChatCopy();
+  const inputs = question.inputs ?? [];
+  const [values, setValues] = useState<Readonly<Record<string, string>>>({});
+  const groups = [...new Set(inputs.map((input) => input.group))];
+
+  const update = (key: string, raw: string) => {
+    const next = { ...values, [key]: raw };
+    setValues(next);
+    const number = (k: string) => Number((next[k] ?? '').replace(',', '.'));
+    const filled = (k: string) => (next[k] ?? '').trim() !== '';
+    let valid = true;
+    for (const group of groups) {
+      const members = inputs.filter((input) => input.group === group);
+      const count = members.filter((input) => filled(input.key)).length;
+      if (count === 0 ? members.some((input) => input.required) : count !== members.length)
+        valid = false;
+      for (const input of members)
+        if (
+          filled(input.key) &&
+          !(number(input.key) >= input.min && number(input.key) <= input.max)
+        )
+          valid = false;
+    }
+    onChange(
+      valid
+        ? inputs
+            .filter((input) => filled(input.key))
+            .map((input) => `${input.key}=${number(input.key)}`)
+            .join(';')
+        : null,
+    );
+  };
+
+  return (
+    <div className={styles.measureGroups}>
+      {groups.map((group) => {
+        const members = inputs.filter((input) => input.group === group);
+        const optional = members.every((input) => !input.required);
+        return (
+          <div key={group} className={styles.measureRow}>
+            <span className={styles.measureGroup}>
+              {group}
+              {optional && <span className={styles.measureOptional}> ({COPY.optionalInput})</span>}
+            </span>
+            {members.map((input, index) => (
+              <span key={input.key} className={styles.measureField}>
+                {index > 0 && <span aria-hidden="true">×</span>}
+                <input
+                  className={styles.measureInput}
+                  type="text"
+                  inputMode="decimal"
+                  placeholder={input.label}
+                  aria-label={`${group} — ${input.label} (${input.unit})`}
+                  disabled={!active}
+                  value={values[input.key] ?? ''}
+                  onChange={(event) => update(input.key, event.target.value)}
+                />
+              </span>
+            ))}
+            <span className={styles.measureUnit}>{members[0]?.unit}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 /**
  * Satu giliran asisten: teks diungkap bertahap (giliran baru, tanpa reduced-motion), kartu

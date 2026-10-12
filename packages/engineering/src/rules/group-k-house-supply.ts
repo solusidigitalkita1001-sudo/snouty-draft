@@ -171,6 +171,11 @@ export interface HouseRouteInput {
   readonly outletHeightM: number;
   /** Tinggi muka air toren di atas atap; hanya untuk toren atap. */
   readonly tankStandM: number;
+  /**
+   * Jarak halaman dari pagar depan ke bangunan (ENG-705) — meteran PDAM / pompa di depan tanah.
+   * Toren atap ada di bangunan, jadi halaman tidak masuk jalurnya. 0 bila ukuran tanah tidak ada.
+   */
+  readonly yardM: number;
 }
 export interface HouseRouteResult {
   readonly highestOutletM: number;
@@ -183,7 +188,8 @@ export interface HouseRouteResult {
 
 export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
   ruleId: 'ENG-702',
-  version: 1,
+  // v2 (2026-10-12): jarak halaman dari ukuran tanah ikut jalur sumber di bawah.
+  version: 2,
   category: 'geometry',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -212,6 +218,7 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
         max: 3,
       }),
       tankStandM: requireNumber('ENG-702', 'tankStandM', o['tankStandM'], { min: 0, max: 15 }),
+      yardM: requireNumber('ENG-702', 'yardM', o['yardM'] ?? 0, { min: 0, max: 1000 }),
     };
   },
   compute: (i) => {
@@ -229,11 +236,11 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
       highestOutletM: round2(highestOutletM),
       tankLevelM: null,
       staticHeadM: round2(highestOutletM),
-      routeLengthM: round1(highestOutletM + i.horizontalRunM),
+      routeLengthM: round1(highestOutletM + i.horizontalRunM + i.yardM),
     };
   },
   sourceReference:
-    'Titik tertinggi = (lantai − 1) × tinggi lantai + tinggi titik air; toren atap di atas atap (lantai × tinggi lantai + tinggi dudukan); jalur = beda tinggi + jalur datar terjauh',
+    'Titik tertinggi = (lantai − 1) × tinggi lantai + tinggi titik air; toren atap di atas atap (lantai × tinggi lantai + tinggi dudukan); jalur = beda tinggi + jalur datar terjauh (+ halaman untuk sumber di depan tanah)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -246,14 +253,29 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
         routeBasis: 'plan',
         outletHeightM: 2,
         tankStandM: 1,
+        yardM: 0,
       },
       expected: { highestOutletM: 5.5, tankLevelM: 8, staticHeadM: -2.5, routeLengthM: 25.5 },
+    },
+    {
+      name: 'PDAM, 2 lantai × 3,5 m, bangunan 8 × 12 m, halaman 8 m → 5,5 + 20 + 8 = 33,5 m',
+      input: {
+        source: 'municipal',
+        floors: 2,
+        floorHeightM: 3.5,
+        horizontalRunM: 20,
+        routeBasis: 'plan',
+        outletHeightM: 2,
+        tankStandM: 0,
+        yardM: 8,
+      },
+      expected: { highestOutletM: 5.5, tankLevelM: null, staticHeadM: 5.5, routeLengthM: 33.5 },
     },
   ],
   explain: (i, o, locale) => {
     const run = {
       stated: { id: 'yang disebut', en: 'as stated' },
-      plan: { id: 'panjang + lebar rumah', en: 'house length + width' },
+      plan: { id: 'panjang + lebar bangunan', en: 'building length + width' },
       assumed: {
         id: 'perkiraan, ukuran rumah belum disebut',
         en: 'estimated, house size not given',
@@ -265,8 +287,8 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
           en: `Tank water level at ${o.tankLevelM} m (roof ${i.floors} × ${i.floorHeightM} m + stand ${i.tankStandM} m), highest outlet at ${o.highestOutletM} m — the tank is ${round2(-o.staticHeadM)} m higher. The run to it is ${o.routeLengthM} m, including ${i.horizontalRunM} m horizontal (${run.en}).`,
         })
       : localized(locale, {
-          id: `Air naik ${o.highestOutletM} m dari sumber di bawah ke titik air tertinggi; jalurnya ${o.routeLengthM} m, termasuk ${i.horizontalRunM} m mendatar (${run.id}).`,
-          en: `Water rises ${o.highestOutletM} m from the source below to the highest outlet; the run is ${o.routeLengthM} m, including ${i.horizontalRunM} m horizontal (${run.en}).`,
+          id: `Air naik ${o.highestOutletM} m dari sumber di bawah ke titik air tertinggi; jalurnya ${o.routeLengthM} m, termasuk ${i.horizontalRunM} m mendatar (${run.id})${i.yardM > 0 ? ` dan ${i.yardM} m halaman dari depan tanah` : ''}.`,
+          en: `Water rises ${o.highestOutletM} m from the source below to the highest outlet; the run is ${o.routeLengthM} m, including ${i.horizontalRunM} m horizontal (${run.en})${i.yardM > 0 ? ` and ${i.yardM} m of yard from the front of the plot` : ''}.`,
         });
   },
 };
@@ -323,6 +345,59 @@ export const ENG_703: RuleVersion<GravityPressureInput, GravityPressureResult> =
 export function minimumHeadM(bar: number): number {
   return barToHeadM(bar);
 }
+
+// ── ENG-705 · Jarak halaman dari ukuran tanah ───────────────────────────────
+
+export interface YardInput {
+  readonly landSideM: number;
+  readonly buildingSideM: number;
+}
+export interface YardResult {
+  readonly yardM: number;
+}
+
+/**
+ * Tanah lebih panjang dari bangunan → pipa dari meteran PDAM di depan tanah, dan pipa buangan ke
+ * saluran depan / septic tank, melewati halaman dulu (permintaan pemilik 2026-10-12: "bedain luas
+ * tanah sama luas bangunan … rumus di-adjust"). Bangunan dianggap di belakang, halaman di depan:
+ * jarak terjauh yang mungkin, supaya pipa tidak kurang.
+ */
+export const ENG_705: RuleVersion<YardInput, YardResult> = {
+  ruleId: 'ENG-705',
+  version: 1,
+  category: 'geometry',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      landSideM: requireNumber('ENG-705', 'landSideM', o['landSideM'], { min: 1, max: 1000 }),
+      buildingSideM: requireNumber('ENG-705', 'buildingSideM', o['buildingSideM'], {
+        min: 1,
+        max: 500,
+      }),
+    };
+  },
+  compute: (i) => ({ yardM: round1(Math.max(0, i.landSideM - i.buildingSideM)) }),
+  sourceReference:
+    'Halaman = sisi terpanjang tanah − sisi terpanjang bangunan (bangunan di belakang, meteran dan saluran di depan tanah)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'tanah 10 × 20 m, bangunan 8 × 12 m → halaman 8 m',
+      input: { landSideM: 20, buildingSideM: 12 },
+      expected: { yardM: 8 },
+    },
+    {
+      name: 'bangunan memenuhi tanah → tanpa halaman',
+      input: { landSideM: 12, buildingSideM: 12 },
+      expected: { yardM: 0 },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Halaman = sisi terpanjang tanah ${i.landSideM} m − sisi terpanjang bangunan ${i.buildingSideM} m = ${o.yardM} m. Meteran PDAM dan saluran dianggap di depan tanah, bangunan di belakangnya.`,
+      en: `Yard = longest land side ${i.landSideM} m − longest building side ${i.buildingSideM} m = ${o.yardM} m. The water meter and the street drain are taken to be at the front of the plot, with the building behind.`,
+    }),
+};
 
 // ── ENG-704 · Perkiraan panjang cabang dan sambungan dari ukuran rumah ──────
 
@@ -381,4 +456,4 @@ export const ENG_704: RuleVersion<HouseBranchLengthInput, HouseBranchLengthResul
     }),
 };
 
-export const GROUP_K = [ENG_701, ENG_702, ENG_703, ENG_704] as const;
+export const GROUP_K = [ENG_701, ENG_702, ENG_703, ENG_704, ENG_705] as const;

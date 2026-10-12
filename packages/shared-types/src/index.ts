@@ -39,6 +39,7 @@ export { specHasValue } from './catalog.js';
 export type {
   AssistantCard,
   AssistantCardKind,
+  ClarificationInput,
   ClarificationQuestion,
   CriteriaItem,
   KeyValue,

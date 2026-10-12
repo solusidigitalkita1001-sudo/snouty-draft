@@ -2460,3 +2460,55 @@
   outline: 2px solid var(--snouty-focus-ring);
   outline-offset: 1px;
 }
+
+/* Isian ukuran bangunan / tanah di kartu klarifikasi (2026-10-12). */
+.measureGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.measureRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.measureGroup {
+  min-width: 72px;
+  font-weight: 500;
+}
+
+.measureOptional {
+  font-weight: 400;
+  color: var(--snouty-muted);
+}
+
+.measureField {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--snouty-muted);
+}
+
+.measureInput {
+  width: 76px;
+  border: 1px solid var(--snouty-border);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--snouty-ink);
+  background: var(--snouty-surface);
+}
+
+.measureInput:focus-visible {
+  outline: 2px solid var(--snouty-action);
+  outline-offset: 1px;
+}
+
+.measureUnit {
+  color: var(--snouty-muted);
+}
