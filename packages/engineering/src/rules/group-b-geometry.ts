@@ -2,9 +2,8 @@
  * Kelompok B — geometri dan elevasi. docs/ENGINEERING_RULES.md §3.
  *
  * ENG-008 adalah **murni heuristik gambar**: sistem tidak tahu denah sebenarnya,
- * jadi semua node yang dihasilkan bertanda `ASSUMED`. ENG-011 adalah klaim teknik
- * yang cukup berani untuk dibuat tanpa mengetahui tinggi toren maupun panjang jalur,
- * dan termasuk yang paling perlu ditinjau ahli.
+ * jadi semua node yang dihasilkan bertanda `ASSUMED`. ENG-011 ("toren atap pada hunian cukup tanpa
+ * pompa pendorong") dihapus 2026-10-12: tekanan dari toren kini dihitung (ENG-703).
  */
 
 import { localized, requireInt, requireNumber, type RuleVersion } from '../rule.js';
@@ -126,89 +125,4 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
     }),
 };
 
-export interface BoosterInput {
-  readonly buildingType: 'residential' | 'boarding_house' | 'light_commercial' | 'industrial';
-  readonly waterSource: 'rooftop_tank' | 'ground_tank' | 'pump' | 'municipal';
-}
-
-/**
- * ENG-011 · Kecukupan gravitasi toren atap.
- *
- * Asal: kalimat prototipe "tekanan gravitasi umumnya cukup tanpa pompa pendorong".
- * Tanpa tinggi toren dan panjang jalur, ini klaim yang berani; ia dipertahankan apa
- * adanya karena desain menyampaikannya kepada pengguna, tetapi keluarannya selalu
- * asumsi sampai ahli menilainya.
- */
-export const ENG_011: RuleVersion<BoosterInput, { readonly boosterPumpNeeded: boolean }> = {
-  ruleId: 'ENG-011',
-  version: 1,
-  category: 'geometry',
-  parseInput: (raw) => {
-    const o = (raw ?? {}) as Record<string, unknown>;
-    const buildingType = o['buildingType'];
-    const waterSource = o['waterSource'];
-    const buildings = ['residential', 'boarding_house', 'light_commercial', 'industrial'];
-    const sources = ['rooftop_tank', 'ground_tank', 'pump', 'municipal'];
-    if (typeof buildingType !== 'string' || !buildings.includes(buildingType)) {
-      throw new Error(`ENG-011: buildingType tidak dikenal: ${String(buildingType)}`);
-    }
-    if (typeof waterSource !== 'string' || !sources.includes(waterSource)) {
-      throw new Error(`ENG-011: waterSource tidak dikenal: ${String(waterSource)}`);
-    }
-    return {
-      buildingType: buildingType as BoosterInput['buildingType'],
-      waterSource: waterSource as BoosterInput['waterSource'],
-    };
-  },
-  compute: (input) => {
-    const gravityFed =
-      input.waterSource === 'rooftop_tank' &&
-      (input.buildingType === 'residential' || input.buildingType === 'light_commercial');
-    return { boosterPumpNeeded: !gravityFed };
-  },
-  sourceReference: 'Prototipe: "tekanan gravitasi umumnya cukup tanpa pompa pendorong"',
-  validationStatus: PENDING,
-  testCases: [
-    {
-      name: 'hunian dengan toren atap: tanpa pompa pendorong',
-      input: { buildingType: 'residential', waterSource: 'rooftop_tank' },
-      expected: { boosterPumpNeeded: false },
-    },
-    {
-      name: 'toren bawah: pompa pendorong diperlukan',
-      input: { buildingType: 'residential', waterSource: 'ground_tank' },
-      expected: { boosterPumpNeeded: true },
-    },
-    {
-      name: 'industri walau toren atap: tidak mengandalkan gravitasi',
-      input: { buildingType: 'industrial', waterSource: 'rooftop_tank' },
-      expected: { boosterPumpNeeded: true },
-    },
-  ],
-  explain: (input, output, locale) =>
-    localized(locale, {
-      id: output.boosterPumpNeeded
-        ? `Dengan sumber ${WATER_SOURCE_ID[input.waterSource]}, distribusi diperkirakan memerlukan pompa pendorong.`
-        : 'Dengan toren di atap, tekanan gravitasi umumnya cukup tanpa pompa pendorong.',
-      en: output.boosterPumpNeeded
-        ? `With a ${WATER_SOURCE_EN[input.waterSource]} source, distribution is expected to need a booster pump.`
-        : 'With a rooftop tank, gravity pressure is generally sufficient without a booster pump.',
-    }),
-};
-
-/** Nama sumber air dalam kalimat — nilai enum mentah ("municipal") tidak pernah tampil ke pengguna. */
-const WATER_SOURCE_ID: Readonly<Record<BoosterInput['waterSource'], string>> = {
-  rooftop_tank: 'toren atap',
-  ground_tank: 'toren bawah',
-  pump: 'pompa',
-  municipal: 'PDAM',
-};
-
-const WATER_SOURCE_EN: Readonly<Record<BoosterInput['waterSource'], string>> = {
-  rooftop_tank: 'rooftop tank',
-  ground_tank: 'ground tank',
-  pump: 'pump',
-  municipal: 'mains water',
-};
-
-export const GROUP_B = [ENG_004, ENG_008, ENG_011];
+export const GROUP_B = [ENG_004, ENG_008];

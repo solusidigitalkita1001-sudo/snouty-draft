@@ -15,7 +15,9 @@ import { ReportModal } from './report-modal';
 const createReport = vi.fn<(input: unknown) => Promise<ReportResult<unknown>>>();
 const fetchReport = vi.fn<(id: string) => Promise<ReportResult<ReportPreview>>>();
 const downloadReport = vi.fn<(id: string, fileName: string) => Promise<boolean>>();
+const rebuildReport = vi.fn<(id: string) => Promise<ReportResult<unknown>>>();
 vi.mock('./report-api', () => ({
+  rebuildReport: (id: string) => rebuildReport(id),
   createReport: (input: unknown) => createReport(input),
   fetchReport: (id: string) => fetchReport(id),
   downloadReport: (id: string, fileName: string) => downloadReport(id, fileName),
@@ -178,5 +180,23 @@ describe('ReportModal', () => {
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
     fireEvent.click(screen.getByRole('button', { name: 'Kembali ke solusi' }));
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(2));
+  });
+});
+
+describe('laporan dari aturan lama (temuan SNTY-2026-10-0002)', () => {
+  it('ditandai, dan "Susun ulang" membuat laporan baru — bukan mengubah yang lama', async () => {
+    await openPreview(preview({ outdated: true }));
+    expect(screen.getByText(/dihitung dengan versi aturan lama/)).toBeTruthy();
+    const fresh = preview({ id: '01JBREPORT0000000000000002', reportNumber: 'SNTY-2026-10-0002' });
+    rebuildReport.mockResolvedValue({ kind: 'ok', value: { id: fresh.id } });
+    fetchReport.mockResolvedValue({ kind: 'ok', value: fresh });
+    fireEvent.click(screen.getByRole('button', { name: 'Susun ulang dengan aturan terbaru' }));
+    await waitFor(() => expect(rebuildReport).toHaveBeenCalledWith('01JBREPORT0000000000000001'));
+    await waitFor(() => expect(screen.queryByText(/dihitung dengan versi aturan lama/)).toBeNull());
+  });
+
+  it('laporan dengan aturan terkini tidak ditandai', async () => {
+    await openPreview(preview({ outdated: false }));
+    expect(screen.queryByText(/dihitung dengan versi aturan lama/)).toBeNull();
   });
 });

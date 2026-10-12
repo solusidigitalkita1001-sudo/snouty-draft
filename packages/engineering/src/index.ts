@@ -26,30 +26,18 @@ export type { Provenance } from './provenance.js';
 
 export {
   ENG_001,
-  ENG_002,
   ENG_003,
   ENG_005,
   ENG_010,
   ENG_013,
   GROUP_A,
 } from './rules/group-a-load-sizing.js';
-export type {
-  FixtureCounts,
-  LoadResult,
-  MainSizeResult,
-  PressureClass,
-} from './rules/group-a-load-sizing.js';
+export type { FixtureCounts, LoadResult, PressureClass } from './rules/group-a-load-sizing.js';
 
-export { ENG_004, ENG_008, ENG_011, GROUP_B } from './rules/group-b-geometry.js';
-export type {
-  BoosterInput,
-  FloorNode,
-  FloorPlanInput,
-  FloorPlanResult,
-} from './rules/group-b-geometry.js';
+export { ENG_004, ENG_008, GROUP_B } from './rules/group-b-geometry.js';
+export type { FloorNode, FloorPlanInput, FloorPlanResult } from './rules/group-b-geometry.js';
 
-export { ENG_006, ENG_009, ENG_012, GROUP_C } from './rules/group-c-material.js';
-export type { BomInput, BomLine, BomResult } from './rules/group-c-material.js';
+export { ENG_006, ENG_012, GROUP_C } from './rules/group-c-material.js';
 
 export { ENG_007, ENG_014, GROUP_D } from './rules/group-d-conversation.js';
 
@@ -267,3 +255,5 @@ export type { CalculationTrace, SolutionInput, SolutionResult } from './compute-
 
 /** Registry berisi seluruh 14 aturan, siap dipakai dan diperiksa. */
 export { RULE_REGISTRY, ALL_RULES } from './registry.js';
+export { outdatedRules, rulesetStamp } from './ruleset.js';
+export type { RuleUse } from './ruleset.js';

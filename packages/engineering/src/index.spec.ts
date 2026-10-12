@@ -7,8 +7,8 @@ import { ALL_RULES, RULE_REGISTRY, RuleRegistrationError, RuleRegistry } from '.
 
 describe('registry aturan teknik', () => {
   it('memuat keempat belas aturan', () => {
-    expect(ALL_RULES).toHaveLength(45);
-    expect(RULE_REGISTRY.all()).toHaveLength(45);
+    expect(ALL_RULES).toHaveLength(42);
+    expect(RULE_REGISTRY.all()).toHaveLength(42);
   });
 
   it('memakai ID + versi yang unik', () => {
@@ -45,8 +45,8 @@ describe('registry aturan teknik', () => {
     expect(() => registry.register(rule)).toThrow(/sudah terdaftar/);
   });
 
-  it('semua 45 aturan (14 bangunan + 5 irigasi + 6 bertekanan + 4 kolam + 5 gravitasi/jaringan + 6 gedung bertingkat + 2 pembuangan rumah + 3 air bersih rumah) masih menunggu validasi ahli domain (OQ-06)', () => {
-    expect(RULE_REGISTRY.awaitingValidation()).toHaveLength(45);
+  it('semua 42 aturan (11 bangunan + 5 irigasi + 6 bertekanan + 4 kolam + 5 gravitasi/jaringan + 6 gedung bertingkat + 2 pembuangan rumah + 3 air bersih rumah) masih menunggu validasi ahli domain (OQ-06)', () => {
+    expect(RULE_REGISTRY.awaitingValidation()).toHaveLength(42);
   });
 
   it('tidak ada aturan VALIDATED tanpa jejak sumber (invarian P-1)', () => {
@@ -65,7 +65,9 @@ describe('registry aturan teknik', () => {
   });
 
   it('latest mengembalikan versi tertinggi', () => {
-    expect(RULE_REGISTRY.latest('ENG-002')?.version).toBe(1);
+    expect(RULE_REGISTRY.latest('ENG-003')?.version).toBe(2);
+    // Aturan yang dihapus (ENG-002, ENG-009, ENG-011) tidak terdaftar lagi.
+    expect(RULE_REGISTRY.latest('ENG-009')).toBeNull();
     expect(RULE_REGISTRY.latest('ENG-999')).toBeNull();
   });
 });

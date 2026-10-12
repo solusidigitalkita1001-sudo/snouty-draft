@@ -1,6 +1,6 @@
 /** Nama-nama di sini disalin dari katalog produksi (erp-2026-10-06). */
 import { describe, expect, it } from 'vitest';
-import { productTypeOf, productTypesOf } from './product-types.js';
+import { isSameSizeReducer, productTypeOf, productTypesOf } from './product-types.js';
 
 describe('productTypeOf', () => {
   it.each([
@@ -36,5 +36,15 @@ describe('productTypesOf', () => {
       ['Pipa HDPE Telkom', 1],
     ]);
     expect(types[0]!.pressureClasses).toEqual(['PN-8', 'PN-10', 'PN-16']);
+  });
+});
+
+describe('isSameSizeReducer', () => {
+  it('reducer berujung sama dikenali; reducer sungguhan dan non-reducer tidak', () => {
+    expect(isSameSizeReducer('Bell Reducer - W 3/4" x 3/4"')).toBe(true);
+    expect(isSameSizeReducer('Reducer (Segmented) PE 110 x 110 mm')).toBe(true);
+    expect(isSameSizeReducer('Bell Reducer - W 4" x 2"')).toBe(false);
+    expect(isSameSizeReducer('Reducer (Segmented) PE 140 x 110 mm')).toBe(false);
+    expect(isSameSizeReducer('Tee TS - W 1" x 1"')).toBe(false);
   });
 });

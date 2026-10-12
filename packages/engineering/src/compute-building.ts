@@ -239,7 +239,8 @@ export function computeBuildingWater(
       basins: input.basinsPerFloor ?? 0,
       kitchens: 0,
     });
-    const branches = run(ENG_003, { outletCount: load.outletCount });
+    // Satu lantai gedung: cabang induk lantai itu (ENG-003 v2 per lantai).
+    const branches = run(ENG_003, { outletsPerFloor: [load.outletCount] });
     const fixture = run(ENG_005, {});
     const share = run(ENG_505, {
       peakMinuteLs: demand.peakMinuteLs,

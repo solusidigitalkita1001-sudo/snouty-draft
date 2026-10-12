@@ -23,10 +23,10 @@ describe('computeSolution — contoh kerja desain', () => {
   const result = computeSolution(BOARD_EXAMPLE);
 
   // Angka harapan dihitung tangan, bukan disalin dari engine (koreksi 2026-10-12).
-  it('kamar mandi dua titik (shower + kloset): 3 × 2 + 4 + 1 = 11 titik, 3 cabang', () => {
+  it('kamar mandi dua titik (shower + kloset): 3 × 2 + 4 + 1 = 11 titik; cabang per lantai: lantai 2 = 6 titik (2), lantai 1 = 5 titik (2)', () => {
     expect(result.outletCount).toBe(11);
     expect(result.loadUnits).toBe(11);
-    expect(result.branchCount).toBe(3);
+    expect(result.branchCount).toBe(4);
     expect(result.maxOutletsPerBranch).toBe(4);
   });
 

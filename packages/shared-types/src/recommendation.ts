@@ -75,6 +75,11 @@ export interface IrrigationStats {
 
 export interface BomItem {
   readonly item: string;
+  /**
+   * Produk katalog yang dihitung jumlah belinya. Baris dengan produk yang sama digabung
+   * (`mergeBomBySku`) — dua peran (mis. transfer + riser) tidak lagi menjadi dua baris SKU sama.
+   */
+  readonly productId?: string;
   readonly size: string;
   readonly quantity: number;
   readonly unit: BomUnit;
@@ -184,4 +189,9 @@ export interface Recommendation {
   /** Provenance paling lemah di seluruh isi — satu asumsi membuat solusinya asumsi. */
   readonly overallProvenance: Provenance;
   readonly createdAt: string;
+  /**
+   * Hanya di respons `GET /recommendations/:id`: dihitung dengan aturan yang sudah diganti atau
+   * dihapus. Tidak disimpan — dinilai saat dibaca dari trace-nya.
+   */
+  readonly outdated?: boolean;
 }

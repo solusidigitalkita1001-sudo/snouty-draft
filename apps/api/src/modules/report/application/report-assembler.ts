@@ -14,6 +14,7 @@
  * memaksakan VERIFIED.
  */
 
+import { outdatedRules, rulesetStamp } from '@snouty/engineering';
 import {
   DEFAULT_LOCALE,
   type Locale,
@@ -66,6 +67,11 @@ export function assembleReportPayload(input: AssembleReportInput): ReportPayload
     catalogVersionLabel: input.catalogVersionLabel,
     overallProvenance: input.recommendation.overallProvenance,
     locale,
+    // Versi aturan dari trace rekomendasi ini — dicetak di laporan (temuan laporan 0002).
+    ruleset: {
+      stamp: rulesetStamp(input.traces),
+      outdated: outdatedRules(input.traces).length > 0,
+    },
   };
 }
 

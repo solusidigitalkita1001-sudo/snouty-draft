@@ -37,6 +37,8 @@ export const REPORT_COPY = {
   notEntitled:
     'Laporan PDF tersedia untuk akun terdaftar. Masuk atau daftar dulu — konsultasi ini tetap tersimpan — lalu buat laporannya.',
   error: 'Laporan belum bisa dibuat. Coba lagi sebentar lagi.',
+  outdated: 'Laporan ini dihitung dengan versi aturan lama.',
+  rebuild: 'Susun ulang dengan aturan terbaru',
   pdf: {
     PENDING: 'PDF sedang disiapkan…',
     READY: 'PDF siap diunduh.',
@@ -77,6 +79,8 @@ export const REPORT_COPY_EN: CopyShape<typeof REPORT_COPY> = {
   notEntitled:
     'PDF reports are available for registered accounts. Sign in or register first — this consultation is kept — then create the report.',
   error: 'The report could not be created. Please try again shortly.',
+  outdated: 'This report was calculated with an older version of the rules.',
+  rebuild: 'Recompose with the latest rules',
   pdf: {
     PENDING: 'Preparing the PDF…',
     READY: 'The PDF is ready to download.',

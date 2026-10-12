@@ -244,6 +244,7 @@ export function pressurizedBomItemsFrom(
   const lines: BomItem[] = [
     {
       ...row(en ? `${family} pipe` : `Pipa ${family}`, pipe.quantity, pipe.unit),
+      ...(pipe.productId ? { productId: pipe.productId } : {}),
       basis: `${explanationFor(traces, 'ENG-205')} ${pipe.basis}`.trim(),
     },
     row('Elbow 90°', 4, 'pcs'),

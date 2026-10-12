@@ -59,6 +59,11 @@ export interface ReportPayload {
    * isinya. Payload yang tersimpan sebelum field ini ada dibaca sebagai `'id'` (repository).
    */
   readonly locale: Locale;
+  /**
+   * Versi aturan hitung yang dipakai (sidik himpunan aturan@versi dari trace). Payload lama tidak
+   * punya field ini. `outdated` = disusun dengan aturan yang sudah diganti/dihapus saat dibuat.
+   */
+  readonly ruleset?: { readonly stamp: string; readonly outdated: boolean };
 }
 
 /** Respons `POST /reports` (202): PDF-nya menyusul lewat antrean. */
@@ -72,6 +77,11 @@ export interface ReportCreated {
 /** Respons `GET /reports/:id` — pratinjau di layar, alur yang dipilih desain (§8). */
 export interface ReportPreview extends ReportCreated {
   readonly payload: ReportPayload;
+  /**
+   * Dihitung dengan versi aturan lama — dinilai saat dibaca dari trace rekomendasinya terhadap
+   * aturan yang berlaku sekarang. Isi laporan tidak diubah; pengguna bisa menyusun laporan baru.
+   */
+  readonly outdated?: boolean;
   /** Terisi saat `READY`; rujukan penyimpanan, bukan URL yang bisa dibuka langsung. */
   readonly fileRef: string | null;
 }

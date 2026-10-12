@@ -219,6 +219,7 @@ export function bomItemsFrom(
     {
       item: bomItemName('Pipa PVC AW', locale),
       size: solution.mainSize,
+      ...(purchase.productId ? { productId: purchase.productId } : {}),
       quantity: purchase.quantity,
       unit: bomUnitLabel(purchase.unit, locale),
       basis: purchase.basis,

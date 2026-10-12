@@ -56,6 +56,7 @@ import {
 } from '../domain/building-water-view.js';
 import { stockLengthOf, type StockLength } from '../domain/pipe-quantity.js';
 import { DRAINAGE_FAMILY, withHouseDrainage } from '../domain/house-drainage-view.js';
+import { mergeBomBySku } from '../domain/bom-merge.js';
 import {
   gravityAssumptionsFrom,
   gravityBomItemsFrom,
@@ -138,7 +139,9 @@ export function schematicFor(
   catalogVersionLabel: string,
   now: string,
 ): ReturnType<typeof buildSchematic> {
-  const solution = computeSolution(solutionInputFrom(state));
+  // Hasil engine yang sama dengan layar solusi dan laporan: asumsi yang diganti pengguna ikut,
+  // ukuran cabang dari engine (dulu tetap 3/4").
+  const solution = computeSolution(solutionInputFrom(state), undefined, overridesOf(state));
   return buildSchematic({
     floors: state.building.floors.value ?? 1,
     floorHeightM: solution.floorHeightM,
@@ -151,7 +154,7 @@ export function schematicFor(
      */
     floorHeightIsDefault: state.building.floorHeightM.value === null,
     waterSource: (state.water.source.value ?? 'rooftop_tank') as 'rooftop_tank',
-    branchSize: '3/4"',
+    branchSize: solution.branchSize,
     mainSize: solution.mainSize,
     fixtureSize: solution.fixtureConnectionSize,
     floorsPlan: solution.floorsPlan,
@@ -1061,9 +1064,7 @@ function saveReady(
   traces: readonly IdentifiedTrace[],
   locale: Locale,
 ): Recommendation {
-  return withEditableAssumptions(
-    withCalculationSteps(recommendation, traces, locale),
-    state,
-    locale,
-  );
+  // Semua jenis kasus melewati sini: satu baris material per produk katalog.
+  const merged = { ...recommendation, bom: mergeBomBySku(recommendation.bom) };
+  return withEditableAssumptions(withCalculationSteps(merged, traces, locale), state, locale);
 }

@@ -11,6 +11,8 @@ import { specHasValue, type Locale, type Product } from '@snouty/shared-types';
 
 export interface StockLength {
   readonly meters: number;
+  /** Produk katalog asal panjang batang — identitas baris material. */
+  readonly productId?: string;
   /** Nama produk sumber panjangnya — supaya angka batang bisa dilacak ke katalog. */
   readonly productName: string;
 }
@@ -33,10 +35,11 @@ export function stockLengthOf(product: Product): StockLength | null {
   const match = fromSpec ?? LENGTH_IN_NAME.exec(product.name);
   if (!match) return null;
   const meters = toNumber(match[1]!);
-  return meters > 0 ? { meters, productName: product.name } : null;
+  return meters > 0 ? { meters, productId: product.id, productName: product.name } : null;
 }
 
 export interface PipePurchase {
+  readonly productId?: string;
   readonly quantity: number;
   readonly unit: 'batang' | 'meter';
   readonly basis: string;
@@ -70,6 +73,7 @@ export function pipePurchase(
   }
   if (stock.meters >= COIL_FROM_M) {
     return {
+      ...(stock.productId !== undefined ? { productId: stock.productId } : {}),
       quantity: Math.ceil(netLengthM),
       unit: 'meter',
       basis: en
@@ -80,6 +84,7 @@ export function pipePurchase(
   const exact = netLengthM / stock.meters;
   const rods = Math.ceil(exact);
   return {
+    ...(stock.productId !== undefined ? { productId: stock.productId } : {}),
     quantity: rods,
     unit: 'batang',
     basis: en

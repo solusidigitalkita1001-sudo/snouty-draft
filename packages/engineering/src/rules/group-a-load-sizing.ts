@@ -1,13 +1,12 @@
 /**
  * Kelompok A — beban, sizing, kelas tekanan. docs/ENGINEERING_RULES.md §3.
  *
- * Semua `REQUIRES_DOMAIN_VALIDATION`. ENG-002 adalah aturan paling berpengaruh di
- * sistem (ia menentukan angka terbesar di layar ringkasan) dan ambang tunggal tanpa
- * memperhitungkan panjang jalur, elevasi, atau kerugian gesek hampir pasti
- * penyederhanaan — validasi ahli di situ prioritas tertinggi.
+ * Semua `REQUIRES_DOMAIN_VALIDATION`. ENG-002 (ambang "unit beban ≥ 8 → 1"") dihapus 2026-10-12:
+ * ukuran pipa utama kini dari debit puncak dan hidraulik (Kelompok K + F). ID-nya tidak dipakai ulang;
+ * trace rekomendasi lama yang memuatnya tetap terbaca lewat judul langkahnya.
  */
 
-import { localized, requireInt, type RuleVersion } from '../rule.js';
+import { localized, requireInt, RuleInputError, type RuleVersion } from '../rule.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 
@@ -78,96 +77,69 @@ export const ENG_001: RuleVersion<FixtureCounts, LoadResult> = {
     }),
 };
 
-export interface MainSizeResult {
-  readonly mainSize: '1"' | '3/4"';
-}
-
 /**
- * ENG-002 · Ambang ukuran jalur utama dan riser.
+ * ENG-003 · Cabang per lantai, maksimum 4 titik air per cabang.
  *
- * **Perhatian (OQ-22):** prototipe lama dan SPEC §33b menyebut `fixtures >= 6` dengan
- * definisi `fixtures` yang juga berbeda. Contoh kerja di board cocok dengan versi baru
- * (`loadUnits >= 8`), dan itu yang dipakai di sini.
+ * v2 (temuan laporan SNTY-2026-10-0002): cabang dihitung PER LANTAI — satu cabang tidak melayani dua
+ * lantai. Lantai yang punya titik air mendapat minimal satu cabang; batas 4 titik berlaku di dalam
+ * satu lantai. v1 menghitung ⌈semua titik ÷ 4⌉ sehingga 3 titik di dua lantai menjadi "1 cabang".
  */
-export const ENG_002: RuleVersion<{ readonly loadUnits: number }, MainSizeResult> = {
-  ruleId: 'ENG-002',
-  version: 1,
-  category: 'load_sizing',
-  parseInput: (raw) => ({
-    loadUnits: requireInt('ENG-002', 'loadUnits', (raw as Record<string, unknown>)?.['loadUnits'], {
-      max: 10_000,
-    }),
-  }),
-  compute: (input) => ({ mainSize: input.loadUnits >= 8 ? '1"' : '3/4"' }),
-  sourceReference: 'Prototipe baru SNOUTY (OQ-22: prototipe lama memakai ambang berbeda)',
-  validationStatus: PENDING,
-  testCases: [
-    { name: 'tepat di ambang 8 unit', input: { loadUnits: 8 }, expected: { mainSize: '1"' } },
-    { name: 'di bawah ambang', input: { loadUnits: 7 }, expected: { mainSize: '3/4"' } },
-    { name: 'beban besar', input: { loadUnits: 24 }, expected: { mainSize: '1"' } },
-  ],
-  explain: (input, output, locale) =>
-    localized(locale, {
-      id:
-        `Total ${input.loadUnits} unit beban ${input.loadUnits >= 8 ? 'mencapai' : 'belum mencapai'} ambang 8 unit, ` +
-        `sehingga jalur utama dan riser memakai ukuran ${output.mainSize}.`,
-      en:
-        `A total of ${input.loadUnits} load units ${input.loadUnits >= 8 ? 'reaches' : 'does not reach'} the 8-unit threshold, ` +
-        `so the main line and riser use size ${output.mainSize}.`,
-    }),
-};
-
-/** ENG-003 · Maksimum titik air per cabang. */
 export const ENG_003: RuleVersion<
-  { readonly outletCount: number },
+  { readonly outletsPerFloor: readonly number[] },
   { readonly maxOutletsPerBranch: number; readonly branchCount: number }
 > = {
   ruleId: 'ENG-003',
-  version: 1,
+  version: 2,
   category: 'load_sizing',
-  parseInput: (raw) => ({
-    outletCount: requireInt(
-      'ENG-003',
-      'outletCount',
-      (raw as Record<string, unknown>)?.['outletCount'],
-      {
-        max: 1_000,
-      },
-    ),
-  }),
+  parseInput: (raw) => {
+    const value = (raw as Record<string, unknown>)?.['outletsPerFloor'];
+    if (!Array.isArray(value) || value.length === 0 || value.length > 200) {
+      throw new RuleInputError('ENG-003', 'outletsPerFloor');
+    }
+    return {
+      outletsPerFloor: value.map((n, i) =>
+        requireInt('ENG-003', `outletsPerFloor[${i}]`, n, { max: 1_000 }),
+      ),
+    };
+  },
   compute: (input) => ({
     maxOutletsPerBranch: 4,
-    branchCount: input.outletCount === 0 ? 0 : Math.ceil(input.outletCount / 4),
+    branchCount: input.outletsPerFloor.reduce((sum, n) => sum + Math.ceil(n / 4), 0),
   }),
   sourceReference:
-    'Kedua prototipe; muncul di UI sebagai "Melayani maksimal 4 titik air per cabang"',
+    'Kedua prototipe ("maksimal 4 titik air per cabang"); v2: dihitung per lantai, satu cabang tidak melayani dua lantai',
   validationStatus: PENDING,
   testCases: [
     {
-      name: '8 titik → 2 cabang',
-      input: { outletCount: 8 },
+      name: 'kasus SNTY-2026-10-0002: lantai 2 = 4 titik, lantai 1 = 3 titik → 2 cabang',
+      input: { outletsPerFloor: [4, 3] },
       expected: { maxOutletsPerBranch: 4, branchCount: 2 },
     },
     {
-      name: '9 titik → 3 cabang',
-      input: { outletCount: 9 },
+      name: '9 titik di satu lantai → 3 cabang',
+      input: { outletsPerFloor: [9] },
       expected: { maxOutletsPerBranch: 4, branchCount: 3 },
     },
     {
-      name: 'tanpa titik air → tanpa cabang',
-      input: { outletCount: 0 },
-      expected: { maxOutletsPerBranch: 4, branchCount: 0 },
+      name: 'lantai tanpa titik air tidak mendapat cabang',
+      input: { outletsPerFloor: [0, 2] },
+      expected: { maxOutletsPerBranch: 4, branchCount: 1 },
     },
   ],
-  explain: (input, output, locale) =>
-    localized(locale, {
+  explain: (input, output, locale) => {
+    const floors = input.outletsPerFloor.filter((n) => n > 0).length;
+    const total = input.outletsPerFloor.reduce((a, b) => a + b, 0);
+    return localized(locale, {
       id:
-        `Cabang dibatasi maksimal 4 titik air agar penurunan tekanan tetap wajar, sehingga ${input.outletCount} titik ` +
-        `memerlukan ${output.branchCount} cabang.`,
+        floors > 1
+          ? `Tiap lantai punya cabangnya sendiri, masing-masing paling banyak 4 titik air, sehingga ${total} titik di ${floors} lantai memerlukan ${output.branchCount} cabang.`
+          : `Cabang dibatasi maksimal 4 titik air agar penurunan tekanan tetap wajar, sehingga ${total} titik memerlukan ${output.branchCount} cabang.`,
       en:
-        `Each branch is limited to at most 4 water outlets to keep the pressure drop reasonable, so ${input.outletCount} outlets ` +
-        `require ${output.branchCount} branches.`,
-    }),
+        floors > 1
+          ? `Each floor has its own branch, each serving at most 4 outlets, so ${total} outlets on ${floors} floors need ${output.branchCount} branches.`
+          : `Each branch serves at most 4 outlets to keep the pressure drop reasonable, so ${total} outlets need ${output.branchCount} branches.`,
+    });
+  },
 };
 
 /**
@@ -198,9 +170,8 @@ export const ENG_005: RuleVersion<
 /**
  * ENG-010 · Kecepatan aliran target.
  *
- * Saat ini **hanya dikutip sebagai penjelasan**, belum dipakai menghitung apa pun.
- * Bila nanti sizing benar-benar berbasis kecepatan, ENG-002 kemungkinan besar
- * digantikan olehnya.
+ * Hanya dikutip sebagai penjelasan; batas kecepatan yang dipakai menghitung ada di registry
+ * asumsi (Kelompok F).
  */
 export const ENG_010: RuleVersion<
   Record<string, never>,
@@ -272,4 +243,4 @@ export const ENG_013: RuleVersion<
     }),
 };
 
-export const GROUP_A = [ENG_001, ENG_002, ENG_003, ENG_005, ENG_010, ENG_013];
+export const GROUP_A = [ENG_001, ENG_003, ENG_005, ENG_010, ENG_013];

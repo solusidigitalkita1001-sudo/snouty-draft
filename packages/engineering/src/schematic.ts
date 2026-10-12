@@ -167,8 +167,12 @@ export function buildSchematic(input: BuildSchematicInput): SchematicShape {
       id: reducerId,
       type: 'fitting',
       floorLevel: level,
-      code: `RD-${level}`,
-      label: `Reducer ${input.mainSize}→${input.branchSize}`,
+      // Reducer hanya bila ukurannya memang turun; "Reducer ¾"→¾"" bukan barang (laporan 0002).
+      code: input.mainSize === input.branchSize ? `TE-${level}` : `RD-${level}`,
+      label:
+        input.mainSize === input.branchSize
+          ? `Tee ${input.mainSize}`
+          : `Reducer ${input.mainSize}→${input.branchSize}`,
       size: input.branchSize,
       provenance,
     });

@@ -28,6 +28,7 @@ import {
   type SelectedProduct,
   type SystemRole,
 } from '@snouty/shared-types';
+import { isSameSizeReducer } from '../../product-catalog/domain/product-types.js';
 
 export interface RoleRequirement {
   readonly role: SystemRole;
@@ -107,7 +108,8 @@ export function matchProducts(
   const unmatchedRoles: SystemRole[] = [];
 
   for (const requirement of requirements) {
-    const pool = poolFor(requirement, candidates);
+    // Reducer yang kedua ujungnya sama bukan barang yang bisa dipasang — tidak pernah dipilih.
+    const pool = poolFor(requirement, candidates).filter((p) => !isSameSizeReducer(p.name));
     if (pool.length === 0) {
       unmatchedRoles.push(requirement.role);
       continue;
@@ -150,6 +152,13 @@ export function matchProducts(
     // Ukurannya ada, tetapi semua kandidat berkelas VERIFIED yang BERBEDA (fitting D untuk pipa
     // AW): tidak ada yang boleh dipasangkan — peran ini kosong, bukan "perlu dikonfirmasi".
     if (requirement.pressureClass && withSize.length > 0) {
+      unmatchedRoles.push(requirement.role);
+      continue;
+    }
+
+    // Fitting yang ukurannya tidak ada bukan pengganti: peran ini kosong (UNAVAILABLE), bukan
+    // fitting ukuran lain (temuan laporan SNTY-2026-10-0002).
+    if (requirement.role === 'fitting') {
       unmatchedRoles.push(requirement.role);
       continue;
     }

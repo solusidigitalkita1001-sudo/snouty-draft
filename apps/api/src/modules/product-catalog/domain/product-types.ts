@@ -140,3 +140,21 @@ export function productTypesOf(names: readonly string[]): readonly ProductType[]
 function pnValue(pn: string): number {
   return Number.parseFloat(pn.slice(3));
 }
+
+/** "Bell Reducer - W 4" x 2"", "Reducer (Segmented) PE 110 x 63 mm" — dua ujung sebuah reducer. */
+const REDUCER_ENDS =
+  /(\d+\s\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)\s*("|”|mm)?\s*x\s*(\d+\s\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)\s*("|”|mm)?/i;
+
+/**
+ * Reducer yang kedua ujungnya sama ukurannya (temuan laporan SNTY-2026-10-0002: "Reducer ¾"→¾"").
+ * Barang seperti itu bukan reducer; matcher tidak boleh memilihnya. Parser nilai atas nama katalog.
+ */
+export function isSameSizeReducer(name: string): boolean {
+  if (!/reduc/i.test(name)) return false;
+  const m = REDUCER_ENDS.exec(name);
+  if (!m) return false;
+  const unit = (u: string | undefined) => (u === undefined ? '' : u === 'mm' ? 'mm' : '"');
+  const first = `${m[1]!.replace(',', '.')}${unit(m[2] ?? m[4])}`;
+  const second = `${m[3]!.replace(',', '.')}${unit(m[4] ?? m[2])}`;
+  return first === second;
+}

@@ -17,7 +17,7 @@ import type { ReportPreview } from '@snouty/shared-types';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { Snouty } from '../mascot/snouty';
-import { createReport, downloadReport, fetchReport } from './report-api';
+import { createReport, downloadReport, fetchReport, rebuildReport } from './report-api';
 import { reportCopy, formatRupiah } from './report-copy';
 import { useLocale } from '../locale';
 import styles from './report-modal.module.css';
@@ -129,6 +129,18 @@ export function ReportModal({
   );
 
   const report = step.kind === 'preview' ? step.report : null;
+  // Laporan dari aturan lama → laporan BARU dengan aturan terbaru; yang lama tidak diubah.
+  const rebuild = useCallback(async () => {
+    if (!report) return;
+    setStep({ kind: 'loading' });
+    const created = await rebuildReport(report.id);
+    if (created.kind !== 'ok') {
+      setStep({ kind: created.kind });
+      return;
+    }
+    const preview = await fetchReport(created.value.id);
+    setStep(preview.kind === 'ok' ? { kind: 'preview', report: preview.value } : { kind: 'error' });
+  }, [report]);
   const [download, setDownload] = useState<'idle' | 'busy' | 'failed'>('idle');
   const startDownload = useCallback(async () => {
     if (!report || download === 'busy') return;
@@ -207,6 +219,14 @@ export function ReportModal({
           {step.kind === 'loading' && <p className={styles.status}>{COPY.loading}</p>}
           {step.kind === 'not-entitled' && <p className={styles.status}>{COPY.notEntitled}</p>}
           {step.kind === 'error' && <p className={styles.status}>{COPY.error}</p>}
+          {report?.outdated && (
+            <p className={styles.status} role="status">
+              {COPY.outdated}{' '}
+              <button type="button" className={styles.link} onClick={() => void rebuild()}>
+                {COPY.rebuild}
+              </button>
+            </p>
+          )}
           {report && <Preview report={report} />}
         </div>
 

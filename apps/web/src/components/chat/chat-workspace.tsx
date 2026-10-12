@@ -1313,6 +1313,7 @@ export function ChatWorkspace() {
             <SolutionView
               recommendation={solution}
               tab={solutionTab}
+              onRecompute={() => startAnalysis(true)}
               // Asumsi angka kasus teknis diganti di tempat, lalu langsung dihitung ulang di tab yang
               // sama (pemilik 2026-10-09: "kalau gw perbaiki asumsi ini SNOUTY ngitung kembali?").
               onChangeAssumption={async (assumptionId, value) => {

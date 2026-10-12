@@ -353,3 +353,25 @@ describe('laporan dua bahasa (P15-05)', () => {
     expect(html.split(escaped)).toHaveLength(11);
   });
 });
+
+describe('versi aturan di laporan (temuan SNTY-2026-10-0002)', () => {
+  it('laporan baru mencetak stempel versi aturan; hasil engine terkini tidak ditandai lama', () => {
+    const payload = assembleReportPayload(INPUT);
+    expect(payload.ruleset?.stamp).toMatch(/^[0-9a-f]{8}$/);
+    expect(payload.ruleset?.outdated).toBe(false);
+    const html = renderReportHtml(payload);
+    expect(html).toContain(`Versi aturan hitung ${payload.ruleset!.stamp}`);
+    expect(html).not.toContain('versi aturan lama');
+  });
+
+  it('trace dari aturan yang sudah dihapus (ENG-002, ENG-009) → tanda di halaman pertama', () => {
+    const oldTraces = [
+      ...TRACES,
+      { ...TRACES[0]!, id: 'old1', ruleId: 'ENG-002', ruleVersion: 1 },
+      { ...TRACES[0]!, id: 'old2', ruleId: 'ENG-009', ruleVersion: 1 },
+    ] as typeof TRACES;
+    const payload = assembleReportPayload({ ...INPUT, traces: oldTraces });
+    expect(payload.ruleset?.outdated).toBe(true);
+    expect(renderReportHtml(payload)).toContain('Dihitung dengan versi aturan lama');
+  });
+});

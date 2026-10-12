@@ -6,7 +6,7 @@
  * bukan hanya lewat `WHERE` di repository (docs/SECURITY.md §4).
  */
 import { Body, Controller, Get, Optional, Param, Post, Put, Req, Res } from '@nestjs/common';
-import { CaseInputInvalidError } from '@snouty/engineering';
+import { CaseInputInvalidError, outdatedRules } from '@snouty/engineering';
 import type { Response } from 'express';
 import type { AssistantStreamEvent } from '@snouty/shared-types';
 import { z } from 'zod';
@@ -175,7 +175,10 @@ export class RecommendationController {
     // Kepemilikan diperiksa lewat percakapannya — rekomendasi tidak punya pemilik
     // sendiri, dan memeriksanya di sini mencegah id yang ditebak membocorkan solusi.
     await this.conversations.find(recommendation.conversationId, actorOf(req));
-    return recommendation;
+    // Dihitung dengan aturan yang sudah diganti/dihapus → layar solusi menawarkan hitung ulang
+    // (temuan laporan SNTY-2026-10-0002).
+    const traces = await this.repository.findTraces(id);
+    return { ...recommendation, outdated: outdatedRules(traces).length > 0 };
   }
 }
 

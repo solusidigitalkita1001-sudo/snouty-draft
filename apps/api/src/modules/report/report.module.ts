@@ -23,6 +23,7 @@ import {
   type RecommendationRepository,
 } from '../recommendation/domain/recommendation.repository.js';
 import { ReportService } from './application/report.service.js';
+import { AnalysisService } from '../recommendation/application/analysis.service.js';
 import { REPORT_REPOSITORY, type ReportRepository } from './domain/report.repository.js';
 import { reportRepositoryProvider } from './infrastructure/mysql-report.repository.js';
 import { InternalRoleGuard } from '../../shared/http/internal-role.guard.js';
@@ -55,6 +56,7 @@ const reportServiceProvider = {
     RequirementSnapshotStore,
     JobPublisher,
     CATALOG_REPOSITORY,
+    AnalysisService,
   ],
   useFactory: (
     reports: ReportRepository,
@@ -63,6 +65,7 @@ const reportServiceProvider = {
     snapshots: RequirementSnapshotStore,
     publisher: JobPublisher,
     catalog: CatalogRepository,
+    analysis: AnalysisService,
   ) =>
     new ReportService(
       reports,
@@ -71,6 +74,21 @@ const reportServiceProvider = {
       snapshots,
       publisher,
       async (id) => (await catalog.findVersionById(id))?.label ?? null,
+      // Jalur analisis yang sama dengan tombol Susun rekomendasi; id dari event solution.ready.
+      async (conversationId, snapshotId, state, locale, now) => {
+        const events = await analysis.run(
+          conversationId,
+          snapshotId,
+          state,
+          [],
+          now,
+          undefined,
+          locale,
+        );
+        const ready = events.find((e) => e.type === 'solution.ready') as
+          { recommendationId: string } | undefined;
+        return ready?.recommendationId ?? null;
+      },
     ),
 };
 

@@ -114,3 +114,28 @@ nama kanonik)`, diuji di MySQL sungguhan) dan daftar nama per keluarga; jumlah S
 berbeda; kelas hanya yang tertulis di nama, satu penulisan, urut; perbandingan umum dipasang
 setiap kali dua bahan disebut; kelas tidak lagi ditempel ke topik pipa tanam; penanda teknis dan
 angka bersatuan di keluaran model harus sama persis dengan DATA, bila tidak → teks DATA apa adanya.
+
+## 7. Temuan laporan SNTY-2026-10-0002 (P16-56)
+
+Laporan pelanggan (rumah 2 lantai, PDAM, air bersih + pembuangan, 3 kamar mandi) tercetak dengan
+logika lama. Ditelusuri ke database produksi (read-only) dan kode:
+
+| Hipotesis                                 | Hasil                        | Bukti                                                                                                                        |
+| ----------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| PDF dari rekomendasi sebelum Kelompok K   | **Benar**                    | rekomendasi 02:28 UTC (09:28 WIB); P16-52 dikomit 09:47 WIB. Trace-nya ENG-001@1, ENG-002@1, ENG-003@1, ENG-009@1, ENG-011@1 |
+| Laporan/worker punya jalur hitung sendiri | Salah                        | `report-assembler.ts` menyalin `recommendation.systemLines/bom/assumptions`; worker hanya mencetak halaman                   |
+| Baris SKU ganda                           | Benar, asalnya ENG-009       | "Pipa PVC AW mainSize" dan "Pipa PVC AW 3/4"" — dua baris yang sama ketika pipa utama 3/4"                                   |
+| Reducer ukuran sama dari matcher          | Salah sumber                 | "Reducer 3/4"→3/4"" dari rumus ENG-009 (`${mainSize}→3/4"`) dan dari skema (`Reducer main→branch`), bukan matcher            |
+| Asumsi usang                              | Benar untuk rekomendasi lama | teks "pembuangan belum dihitung" sudah dihapus di P16-52                                                                     |
+
+Temuan tambahan: skema rumah memakai cabang tetap `3/4"` dan engine tanpa asumsi yang diganti
+pengguna — sumber hitung kedua; cabang dihitung ⌈semua titik ÷ 4⌉ lintas lantai.
+
+Perbaikan: ENG-002, ENG-009, ENG-011 dihapus dari registry (judul langkahnya tetap untuk trace
+lama); ENG-003 v2 per lantai; skema membaca `branchSize` engine dan menggambar tee bila ukuran sama;
+BOM digabung per `productId`; matcher menolak reducer berujung sama dan tidak memakai fitting
+ukuran lain sebagai pengganti; laporan mencetak stempel versi aturan dan menandai rekomendasi dari
+aturan usang. Keputusan pemilik: laporan lama tidak diubah — ditandai dan ditawari "Susun ulang"
+yang membuat laporan baru bernomor baru.
+
+Terdampak: ketiga laporan di produksi (0001 akun uji, 0002, 0003) dibuat dengan versi aturan lama.

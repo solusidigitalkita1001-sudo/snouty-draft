@@ -1323,6 +1323,10 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-53 Nomor HP wajib saat daftar (2026-10-12, "pastiin user nyantumin no hp yang bisa di hubungin") —
       migration 0022 `users.phone` (NULL untuk akun lama), nomor seluler Indonesia dinormalkan +628…, kolom
       "Nomor HP (WhatsApp)" di form daftar dengan pesan galat sendiri.
+- [x] P16-56 Temuan laporan SNTY-2026-10-0002 (docs/ENGINEERING_AUDIT.md §7) — laporan dicetak dari rekomendasi
+      versi lama; aturan mati ENG-002/009/011 dihapus; cabang per lantai (ENG-003 v2); skema memakai cabang engine,
+      tee bila ukuran sama; BOM satu baris per SKU; matcher tanpa reducer berujung sama / fitting pengganti; stempel
+      versi aturan di laporan, tanda versi lama + "Susun ulang" (laporan baru) dan "Hitung ulang" di layar solusi.
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner

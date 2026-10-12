@@ -12,7 +12,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import { caseProfileLabel, isCaseId } from '@snouty/engineering';
+import { caseProfileLabel, isCaseId, outdatedRules } from '@snouty/engineering';
 import { QUEUES } from '@snouty/jobs';
 import type { Locale, RequirementState } from '@snouty/shared-types';
 import { loadEnv } from '../../../config/env.js';
@@ -98,7 +98,59 @@ export class ReportService {
     private readonly catalogLabel: (
       catalogVersionId: string,
     ) => Promise<string | null> = async () => null,
+    /**
+     * Menyusun rekomendasi baru dari data kebutuhan yang tersimpan (jalur analisis yang sama dengan
+     * tombol Susun rekomendasi); mengembalikan id rekomendasinya. Dipakai "Susun ulang" laporan lama.
+     */
+    private readonly recompose: (
+      conversationId: string,
+      snapshotId: string,
+      state: RequirementState,
+      locale: Locale,
+      now: string,
+    ) => Promise<string | null> = async () => null,
   ) {}
+
+  /**
+   * Laporan yang rekomendasinya dihitung dengan aturan yang sudah diganti atau dihapus (temuan
+   * laporan SNTY-2026-10-0002). Isinya tidak diubah — keputusan pemilik 2026-10-12: tandai dan
+   * tawarkan susun ulang sebagai laporan baru.
+   */
+  async isOutdated(report: Report): Promise<boolean> {
+    const traces = await this.recommendations.findTraces(report.recommendationId);
+    return outdatedRules(traces).length > 0;
+  }
+
+  /**
+   * "Susun ulang dengan aturan terbaru": rekomendasi baru dari kebutuhan yang tersimpan, lalu laporan
+   * BARU bernomor baru dengan identitas pelanggan yang sama. Laporan lama tetap seperti adanya.
+   */
+  async rebuild(reportId: string, actor: ConversationOwner, now: string): Promise<Report> {
+    const old = await this.findForActor(reportId, actor);
+    const recommendation = await this.recommendations.findById(old.recommendationId);
+    if (!recommendation) throw new RecommendationNotFoundError();
+    const conversation = await this.conversations.find(recommendation.conversationId, actor);
+    const snapshot = await this.snapshots.current(recommendation.conversationId);
+    if (!snapshot) throw new RecommendationNotFoundError();
+    const fresh = await this.recompose(
+      recommendation.conversationId,
+      snapshot.id,
+      snapshot.state,
+      conversation.language,
+      now,
+    );
+    if (fresh === null) throw new RecommendationNotFoundError();
+    return this.create(
+      fresh,
+      actor,
+      {
+        customerName: old.payload.identity.customerName,
+        projectLocation: old.payload.identity.projectLocation,
+        consultationDate: now.slice(0, 10),
+      },
+      now,
+    );
+  }
 
   /**
    * Membuat laporan `PENDING` beserta payload yang sudah dibekukan. Pembuatan PDF-nya

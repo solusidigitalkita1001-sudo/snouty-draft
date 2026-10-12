@@ -78,3 +78,20 @@ async function resultOf<T>(response: Response): Promise<ReportResult<T>> {
   }
   return { kind: 'error' };
 }
+
+/**
+ * "Susun ulang dengan aturan terbaru" untuk laporan versi lama: rekomendasi dihitung ulang dari
+ * kebutuhan yang tersimpan dan laporan BARU (nomor baru) dibuat; laporan lama tidak diubah.
+ */
+export async function rebuildReport(id: string): Promise<ReportResult<ReportCreated>> {
+  try {
+    const response = await apiFetch(`${BASE}/reports/${encodeURIComponent(id)}/rebuild`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: authHeaders(),
+    });
+    return await resultOf<ReportCreated>(response);
+  } catch {
+    return { kind: 'error' };
+  }
+}

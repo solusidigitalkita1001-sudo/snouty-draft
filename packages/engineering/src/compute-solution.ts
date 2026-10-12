@@ -150,12 +150,15 @@ export function computeSolution(
     kitchens: input.kitchens ?? use('HOUSE_KITCHEN_1'),
   };
   const load = run(ENG_001, fixtures);
-  const branches = run(ENG_003, { outletCount: load.outletCount });
+  const floorHeightM = input.floorHeightM ?? run(ENG_004, {}).floorHeightM;
+  const floorPlan = run(ENG_008, { ...fixtures, floors: input.floors, floorHeightM });
+  // Cabang per lantai (ENG-003 v2): kamar mandi = 2 titik (ENG-001 v2), sama dengan hitungan titik.
+  const branches = run(ENG_003, {
+    outletsPerFloor: floorPlan.floorsPlan.map((f) => f.bathrooms * 2 + f.basins + f.kitchens),
+  });
   const connection = run(ENG_005, {});
   const velocity = run(ENG_010, {});
   const classes = run(ENG_013, { installationType: input.installationType });
-  const floorHeightM = input.floorHeightM ?? run(ENG_004, {}).floorHeightM;
-  const floorPlan = run(ENG_008, { ...fixtures, floors: input.floors, floorHeightM });
 
   // 2 · debit puncak
   const demand = run(ENG_701, {

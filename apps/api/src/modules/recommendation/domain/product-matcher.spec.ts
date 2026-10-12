@@ -233,3 +233,25 @@ describe('ProductMatcher v2 — katalog Pralon (docs/MATCHER_V2_PROPOSAL.md)', (
     ).toBe('SIZE_NEEDS_VALIDATION');
   });
 });
+
+describe('fitting tanpa pengganti (temuan laporan SNTY-2026-10-0002)', () => {
+  it('reducer berukuran sama tidak pernah dipilih; fitting ukuran lain bukan pengganti', () => {
+    const sameReducer = product({
+      id: '01JBFIT00000000000000000AA',
+      family: 'FITTING PVC',
+      category: 'FITTING',
+      name: 'Bell Reducer - W 3/4" x 3/4"',
+      sizes: ['3/4"'],
+    });
+    const otherSize = product({
+      id: '01JBFIT00000000000000000BB',
+      family: 'FITTING PVC',
+      category: 'FITTING',
+      name: 'Tee TS - W 1"',
+      sizes: ['1"'],
+    });
+    const result = matchProducts([fittingRequirement('3/4"', 'PVC AW')], [sameReducer, otherSize]);
+    expect(result.products).toEqual([]);
+    expect(result.unmatchedRoles).toEqual(['fitting']);
+  });
+});

@@ -279,6 +279,7 @@ export function gravityBomItemsFrom(
     );
     lines.push({
       ...row(en ? 'PVC D pipe' : 'Pipa PVC D', pipe.quantity, pipe.unit),
+      ...(pipe.productId ? { productId: pipe.productId } : {}),
       basis: `${explanationFor(traces, 'ENG-402')} ${pipe.basis}`.trim(),
     });
   }

@@ -35,6 +35,7 @@ export function SolutionView({
   recommendation,
   onFixAssumption,
   onChangeAssumption,
+  onRecompute,
   tab,
 }: {
   recommendation: Recommendation;
@@ -44,6 +45,8 @@ export function SolutionView({
    * Tanpa ini baris asumsi memakai `onFixAssumption` (kembali ke chat / panel Ubah).
    */
   onChangeAssumption?: (assumptionId: string, value: number | null) => Promise<string | null>;
+  /** Susun ulang rekomendasi dengan aturan terbaru — ditawarkan bila hasil ini dari aturan lama. */
+  onRecompute?: () => void;
   tab?: SolutionTab;
 }) {
   const COPY = useSolutionCopy();
@@ -70,6 +73,15 @@ export function SolutionView({
           <div className={styles.kicker}>{COPY.summaryKicker}</div>
           <h2 className={styles.headline}>{recommendation.headline}</h2>
           <p className={styles.body}>{recommendation.body}</p>
+          {/* Rekomendasi dari aturan yang sudah diganti (temuan laporan SNTY-2026-10-0002). */}
+          {recommendation.outdated && onRecompute && (
+            <p className={styles.disclaimer} role="status">
+              {COPY.outdated}{' '}
+              <button type="button" className={styles.linkButton} onClick={onRecompute}>
+                {COPY.recompute}
+              </button>
+            </p>
+          )}
           <div className={styles.statsRow}>
             {recommendation.kind === 'technical' && recommendation.highlights ? (
               <>

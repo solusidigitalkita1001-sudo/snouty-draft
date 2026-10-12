@@ -47,6 +47,8 @@ export const SOLUTION_COPY = {
 
   // Janji produk — jangan diparafrase.
   planningDisclaimer: 'PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS',
+  outdated: 'Hasil ini dihitung dengan versi aturan lama.',
+  recompute: 'Hitung ulang dengan aturan terbaru',
   schematicDisclaimer: 'SKEMATIK · BUKAN GAMBAR KERJA',
   /** Tab "Skema" di layar solusi: gambarnya hidup di halaman /schematic; tab ini pengantarnya. */
   schematicKicker: 'SKEMA',
@@ -130,6 +132,8 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
   productsTitle: 'Matching Pralon products',
 
   planningDisclaimer: 'PLANNING GUIDANCE — NOT A TECHNICAL CERTIFICATION',
+  outdated: 'This result was calculated with an older version of the rules.',
+  recompute: 'Recalculate with the latest rules',
   schematicDisclaimer: 'SCHEMATIC · NOT A WORKING DRAWING',
   schematicKicker: 'SCHEMATIC',
   schematicLoading: 'Preparing the schematic…',

@@ -175,3 +175,25 @@ describe('determinisme', () => {
     );
   });
 });
+
+describe('reducer ukuran sama (temuan laporan SNTY-2026-10-0002)', () => {
+  it('pipa utama dan cabang sama ukurannya → tee, bukan "Reducer ¾"→¾""', () => {
+    const solution = computeSolution({ ...SOLUTION_INPUT, bathrooms: 1, basins: 0, kitchens: 0 });
+    const same = buildSchematic({
+      floors: 1,
+      floorHeightM: solution.floorHeightM,
+      floorHeightIsDefault: true,
+      waterSource: 'rooftop_tank',
+      mainSize: '3/4"',
+      branchSize: '3/4"',
+      fixtureSize: '1/2"',
+      floorsPlan: solution.floorsPlan,
+      provenance: 'ASSUMED',
+      catalogVersionLabel: 'uji',
+      now: '2026-10-12T00:00:00.000Z',
+    });
+    const labels = same.nodes.map((n) => n.label ?? '');
+    expect(labels.some((l) => /^Reducer (.+)→\1$/.test(l))).toBe(false);
+    expect(labels).toContain('Tee 3/4"');
+  });
+});

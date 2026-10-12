@@ -55,7 +55,7 @@ describe('assembleRecommendation', () => {
   it('prosa yang patuh REC-1 dipakai apa adanya', async () => {
     const prose = writer(
       'Sistem distribusi gravitasi',
-      'Ada 11 titik air dengan 3 cabang, jalur utama 1".',
+      'Ada 11 titik air dengan 4 cabang, jalur utama 1".',
     );
     const { proseSource } = await assembleRecommendation(BASE, prose);
     expect(proseSource).toBe('llm');
@@ -69,7 +69,7 @@ describe('assembleRecommendation', () => {
         return Promise.resolve(
           call === 1
             ? { headline: 'Perlu 12 batang', body: 'Sekitar 12 batang pipa.' }
-            : { headline: 'Sistem distribusi', body: 'Ada 11 titik air dan 3 cabang.' },
+            : { headline: 'Sistem distribusi', body: 'Ada 11 titik air dan 4 cabang.' },
         );
       }),
     };

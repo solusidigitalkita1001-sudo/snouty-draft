@@ -76,6 +76,8 @@ interface ReportCopy {
   readonly nextSteps: string;
   readonly preparedBy: string;
   readonly catalog: string;
+  readonly ruleset: string;
+  readonly outdated: string;
   readonly reviewedBy: string;
   readonly reviewer: string;
   readonly consultationRef: string;
@@ -128,6 +130,9 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
       'Bawa laporan ini ke toko atau distributor Pralon untuk penawaran resmi dan pemeriksaan akhir bersama instalatur.',
     preparedBy: 'Disusun oleh:',
     catalog: 'Katalog',
+    ruleset: 'Versi aturan hitung',
+    outdated:
+      'Dihitung dengan versi aturan lama. Susun ulang rekomendasinya untuk memakai perhitungan terbaru.',
     reviewedBy: 'Diperiksa oleh (opsional):',
     reviewer: 'Instalatur / Tim Teknis Pralon',
     consultationRef: 'REF. KONSULTASI',
@@ -178,6 +183,9 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
       'Take this report to a Pralon store or distributor for an official quotation and a final check together with your installer.',
     preparedBy: 'Prepared by:',
     catalog: 'Catalog',
+    ruleset: 'Calculation rules version',
+    outdated:
+      'Calculated with an older version of the rules. Recompose the recommendation to use the latest calculation.',
     reviewedBy: 'Reviewed by (optional):',
     reviewer: 'Installer / Pralon Technical Team',
     consultationRef: 'CONSULTATION REF.',
@@ -212,7 +220,13 @@ function page1(p: ReportPayload, t: ReportCopy): string {
       <div class="docno">NO. ${esc(p.reportNumber)} · ${t.pageOf(1)}</div>
     </div>
   </header>
-
+${
+  p.ruleset?.outdated
+    ? `
+  <div class="banner">${t.outdated}</div>
+`
+    : ''
+}
   <table class="identity">
     <tr><th>${t.identity.customer}</th><td>${esc(p.identity.customerName)}</td>
         <th>${t.identity.consultationDate}</th><td>${esc(p.identity.consultationDate)}</td></tr>
@@ -323,7 +337,7 @@ function page2(p: ReportPayload, t: ReportCopy): string {
 
   <table class="signature">
     <tr>
-      <td>${t.preparedBy} <strong>SNOUTY</strong><span class="sub">${t.catalog} ${esc(p.catalogVersionLabel)}</span></td>
+      <td>${t.preparedBy} <strong>SNOUTY</strong><span class="sub">${t.catalog} ${esc(p.catalogVersionLabel)}</span>${p.ruleset ? `<span class="sub">${t.ruleset} ${esc(p.ruleset.stamp)}</span>` : ''}</td>
       <td>${t.reviewedBy}<span class="sub">${t.reviewer}</span></td>
     </tr>
   </table>

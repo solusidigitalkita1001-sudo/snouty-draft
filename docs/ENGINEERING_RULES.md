@@ -444,7 +444,12 @@ ENG-102  cabang dari debit per cabang pada 1,5 m/s
 ```
 
 Material: hanya pipa utama, dari panjang jalur yang disebut atau dari ukuran rumah, ÷ panjang
-batang produk katalog terpilih. Dapur yang belum disebut dianggap satu (`HOUSE_KITCHEN_1`).
+batang produk katalog terpilih.
+
+**2026-10-12 (P16-56):** ENG-002, ENG-009, ENG-011 dihapus dari registry — tidak dijalankan sejak
+Kelompok K; ID-nya tidak dipakai ulang. ENG-003 v2: cabang dihitung per lantai (⌈titik lantai ÷ 4⌉,
+minimal satu cabang per lantai yang punya titik air). Hasil lama dikenali dari trace (`outdatedRules`)
+dan laporan mencetak stempel versi aturan (`rulesetStamp`). Dapur yang belum disebut dianggap satu (`HOUSE_KITCHEN_1`).
 
 ## 4. Tabel pelacak validasi
 

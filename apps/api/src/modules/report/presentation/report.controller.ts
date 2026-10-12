@@ -84,6 +84,27 @@ export class ReportController {
       payload: report.payload,
       fileRef: report.fileRef,
       createdAt: report.createdAt,
+      outdated: await this.reports.isOutdated(report),
+    };
+  }
+
+  /**
+   * "Susun ulang dengan aturan terbaru" untuk laporan versi lama: rekomendasi baru dari kebutuhan
+   * yang tersimpan, lalu laporan BARU (nomor baru). Laporan lama tidak diubah (keputusan pemilik
+   * 2026-10-12).
+   */
+  @Post('reports/:id/rebuild')
+  @HttpCode(202)
+  async rebuild(@Param() params: unknown, @Req() req: PublicRequest): Promise<unknown> {
+    const actor = actorOf(req);
+    requireEntitled(actor.tier, 'REPORT_PDF');
+    const id = parse(IdParam, params).id;
+    const report = await this.reports.rebuild(id, actor, new Date().toISOString());
+    return {
+      id: report.id,
+      reportNumber: report.reportNumber,
+      status: report.status,
+      createdAt: report.createdAt,
     };
   }
 

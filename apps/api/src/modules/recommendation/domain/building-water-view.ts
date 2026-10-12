@@ -306,6 +306,7 @@ export function buildingBomItems(
     {
       item: en ? `${transferFamily} transfer pipe` : `Pipa transfer ${transferFamily}`,
       size: result.transfer.recommendedSize,
+      ...(transfer.productId ? { productId: transfer.productId } : {}),
       quantity: transfer.quantity,
       unit: transfer.unit,
       basis: transfer.basis,
@@ -317,6 +318,7 @@ export function buildingBomItems(
         ? `${familyOf(result.riserMaterial)} riser pipe`
         : `Pipa riser ${familyOf(result.riserMaterial)}`,
       size: result.riser.recommendedSize,
+      ...(riser.productId ? { productId: riser.productId } : {}),
       quantity: riser.quantity,
       unit: riser.unit,
       basis: riser.basis,
