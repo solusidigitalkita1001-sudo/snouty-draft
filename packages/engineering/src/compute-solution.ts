@@ -51,7 +51,12 @@ import { PVC_INCH_SIZES } from './parameters/size-tables.js';
 
 export interface SolutionInput {
   readonly buildingType:
-    'residential' | 'boarding_house' | 'light_commercial' | 'industrial' | 'place_of_worship';
+    | 'residential'
+    | 'boarding_house'
+    | 'light_commercial'
+    | 'industrial'
+    | 'place_of_worship'
+    | 'public_building';
   readonly floors: number;
   readonly bathrooms: number;
   readonly basins: number;
@@ -197,24 +202,27 @@ export function computeSolution(
   }
 
   // Tempat ibadah (Kelompok L): toilet umum, kamar mandi = kloset + keran, keran wudhu serentak.
+  // Sekolah dan klinik (2026-10-12) memakai toilet umum yang sama, tanpa wudhu.
   const worship = input.buildingType === 'place_of_worship';
+  const publicRestroom = worship || input.buildingType === 'public_building';
   const fixtures = {
     bathrooms: input.bathrooms,
     basins: input.basins,
-    kitchens: input.kitchens ?? (worship ? use('WORSHIP_KITCHEN_0') : use('HOUSE_KITCHEN_1')),
+    kitchens:
+      input.kitchens ?? (publicRestroom ? use('WORSHIP_KITCHEN_0') : use('HOUSE_KITCHEN_1')),
   };
-  if (worship && input.bathrooms > 0) use('WORSHIP_BATHROOM_WC_TAP');
-  const urinals = worship ? Math.max(0, input.urinals ?? 0) : 0;
+  if (publicRestroom && input.bathrooms > 0) use('WORSHIP_BATHROOM_WC_TAP');
+  const urinals = publicRestroom ? Math.max(0, input.urinals ?? 0) : 0;
   const load = run(ENG_001, {
     ...fixtures,
-    ...(worship ? { bathroomHasTap: true } : {}),
+    ...(publicRestroom ? { bathroomHasTap: true } : {}),
     ...(urinals > 0 ? { urinals } : {}),
   });
   const floorHeightM = input.floorHeightM ?? run(ENG_004, {}).floorHeightM;
   const floorPlan = run(ENG_008, { ...fixtures, floors: input.floors, floorHeightM });
   // Beban per alat (IPC E103.3(2)) — sekali dibaca, dipakai debit total dan isi tiap cabang.
   // Tempat ibadah memakai kolom pemakaian umum; keran kamar mandi menempati tempat shower.
-  const wsfu = worship
+  const wsfu = publicRestroom
     ? {
         waterCloset: use('WSFU_PUBLIC_WATER_CLOSET_5'),
         shower: use('WSFU_PUBLIC_TAP_1_5'),
@@ -257,7 +265,7 @@ export function computeSolution(
   // 2 · debit puncak. Tempat ibadah: keran wudhu dibuka bersamaan, ditambahkan penuh (ENG-801).
   const wudhuTaps = worship ? Math.max(0, input.wudhuTaps ?? 0) : 0;
   const wudhuTapFlowLs = wudhuTaps > 0 ? use('WUDHU_TAP_FLOW_0_1LS') : 0.1;
-  const demand = worship
+  const demand = publicRestroom
     ? run(ENG_801, {
         waterClosets: input.bathrooms,
         bathroomTaps: input.bathrooms,
@@ -448,7 +456,7 @@ export function computeSolution(
 
   // Catatan isi kamar mandi rumah (ENG-012) di akhir; tempat ibadah memakai asumsinya sendiri.
   const beforeNote = traces.length;
-  if (!worship) run(ENG_012, {});
+  if (!publicRestroom) run(ENG_012, {});
 
   // Langkah pipa utama (Kelompok F) disisipkan sebelum catatan itu.
   const allTraces = [...traces.slice(0, beforeNote), ...main.traces, ...traces.slice(beforeNote)];

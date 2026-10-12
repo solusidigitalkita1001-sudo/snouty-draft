@@ -28,6 +28,7 @@ export const ExtractionSchema = z
             'light_commercial',
             'industrial',
             'place_of_worship',
+            'public_building',
           ])
           .optional(),
         floors: z.number().int().min(1).max(50).optional(),

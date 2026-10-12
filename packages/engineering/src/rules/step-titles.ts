@@ -58,7 +58,7 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-705': { id: 'Jarak halaman', en: 'Yard distance' },
   'ENG-706': { id: 'Pipa pengisi toren', en: 'Tank fill pipe' },
   'ENG-707': { id: 'Isi tiap cabang', en: 'Branch contents' },
-  'ENG-801': { id: 'Debit puncak tempat ibadah', en: 'Peak demand, place of worship' },
+  'ENG-801': { id: 'Debit puncak toilet umum', en: 'Peak demand, public restrooms' },
   'ENG-802': { id: 'Deret keran wudhu', en: 'Ablution tap rows' },
   'ENG-803': { id: 'Talang wudhu', en: 'Ablution trough drain' },
 };

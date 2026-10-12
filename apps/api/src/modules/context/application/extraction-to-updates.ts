@@ -148,13 +148,14 @@ const OBVIOUS = {
       return 'boarding_house';
     if (/\b(pabrik|industri|gudang|factory|plant|industrial|warehouse)\b/i.test(m))
       return 'industrial';
-    // Tempat ibadah, sekolah, klinik: bangunan umum berpenghuni ramai — kelas komersial ringan
-    // (produksi 2026-10-07: "masjid 2 lantai" tidak dikenali, lalu model kehabisan waktu).
     // Masjid dan musala: kelompok hitung tempat ibadah (wudhu serentak, toilet umum).
     if (/\b(masjid|mesjid|mushol+a|musholla|musala|surau|langgar|mosque)\b/i.test(m))
       return 'place_of_worship';
+    // Sekolah dan klinik: toilet umum tanpa wudhu (pemilik 2026-10-12).
+    if (/\b(sekolah|madrasah|pesantren|klinik|puskesmas|school|clinic)\b/i.test(m))
+      return 'public_building';
     if (
-      /\b(ruko|toko|kantor|kafe|cafe|resto|shophouse|shop|store|office|restaurant|hotel|clinic|school|gereja|vihara|pura|sekolah|madrasah|pesantren|puskesmas|klinik|church|temple)\b/i.test(
+      /\b(ruko|toko|kantor|kafe|cafe|resto|shophouse|shop|store|office|restaurant|hotel|gereja|vihara|pura|church|temple)\b/i.test(
         m,
       )
     )
@@ -243,7 +244,8 @@ const TYPE_MARKERS: Readonly<
     /\b(kos|kost|kos-kosan|kosan|asrama|kontrakan|mess|boarding house|dorm(?:itory)?|hostel)\b/i,
   industrial: /\b(pabrik|industri|gudang|workshop|bengkel|factory|plant|industrial|warehouse)\b/i,
   light_commercial:
-    /\b(ruko|toko|kantor|kafe|cafe|resto|restoran|hotel|klinik|sekolah|warung|shophouse|shop|store|office|restaurant|clinic|school|gereja|vihara|pura|madrasah|pesantren|puskesmas|church|temple)\b/i,
+    /\b(ruko|toko|kantor|kafe|cafe|resto|restoran|hotel|warung|shophouse|shop|store|office|restaurant|gereja|vihara|pura|church|temple)\b/i,
+  public_building: /\b(sekolah|madrasah|pesantren|klinik|puskesmas|school|clinic)\b/i,
   place_of_worship: /\b(masjid|mesjid|mushol+a|musholla|musala|surau|langgar|mosque)\b/i,
 };
 
@@ -297,7 +299,9 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     updates.push({ path, value, source: 'user_stated' });
   };
 
-  add('building.type', extraction.building?.type ?? OBVIOUS.type(message));
+  // Jenis yang tersurat di pesan menang atas tebakan model (model bisa memakai kelas lama, mis.
+  // sekolah → komersial ringan, yang lalu ditolak penanda dan jenisnya hilang).
+  add('building.type', OBVIOUS.type(message) ?? extraction.building?.type);
   // Angka model dipakai hanya bila tersurat di dekat kata bendanya; selain itu angka dari
   // teks (bila ada). "rumah 2 lantai" + model `floors: 3` → 2, bukan 3, bukan kosong.
   const counted = (path: string, model: number | undefined, obvious: number | undefined) =>

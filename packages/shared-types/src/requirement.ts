@@ -55,9 +55,15 @@ export interface ConversationSubject {
 /**
  * `place_of_worship` (2026-10-12): masjid, musala — dihitung dengan kelompok bangunan ibadah
  * (beban toilet umum, keran wudhu serentak, talang wudhu), bukan dengan rumus rumah.
+ * `public_building` (2026-10-12): sekolah, klinik — toilet umum yang sama, tanpa wudhu.
  */
 export type BuildingType =
-  'residential' | 'boarding_house' | 'light_commercial' | 'industrial' | 'place_of_worship';
+  | 'residential'
+  | 'boarding_house'
+  | 'light_commercial'
+  | 'industrial'
+  | 'place_of_worship'
+  | 'public_building';
 export type WaterSource = 'rooftop_tank' | 'ground_tank' | 'pump' | 'municipal';
 export type InstallationType = 'clean_water' | 'drainage' | 'both';
 

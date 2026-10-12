@@ -407,12 +407,13 @@ masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specifi
 ### OQ-61 — Kelompok hitung bangunan ibadah / umum (temuan laporan 0009, poin F)
 
 **Status:** sebagian diputuskan pemilik (2026-10-12, P16-76): tempat ibadah punya kelompok hitung sendiri
-(Kelompok L). Masih terbuka: sekolah/klinik, dan pengesahan nilai oleh ahli Pralon · **Blocks:** perhitungan
-sekolah/klinik yang akurat
+(Kelompok L). Masih terbuka: pengesahan nilai oleh ahli Pralon, volume toren masjid · **Blocks:** —
 **Keputusan 2026-10-12:** keran wudhu 0,1 l/s per keran, semua serentak; kamar mandi masjid = kloset + keran;
 satu talang per tempat wudhu, aliran kontinu (2 DFU/gpm, IPC 709.3); urinoir sebagai pilihan (WSFU public 3, DFU 4);
 sumber air mengikuti percakapan (toren/PDAM/pompa) seperti rumah. Jarak antar keran 0,8 m adalah perkiraan awal
-(WUDHU_TAP_SPACING_0_8M). Lama puncak wudhu untuk volume toren belum dipakai.
+(WUDHU_TAP_SPACING_0_8M), bisa diubah pengguna setelah hitungan selesai (P16-77). Volume toren masjid: pemilik
+memutuskan belum dihitung; toren mengikuti jawaban sumber air di percakapan. Sekolah dan klinik: hitungan toilet umum
+yang sama, tanpa wudhu (P16-78).
 **Temuan:** `building.type = light_commercial` (masjid, musala, gereja, sekolah, klinik, ruko, kantor
 — dikenali lewat daftar kata di `extraction-to-updates.ts`, utang teknis menurut aturan "pertanyaan
 tidak di-hardcode") **tidak mengubah hitungan apa pun**: `computeSolution` menerima `buildingType`

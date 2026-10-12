@@ -174,15 +174,17 @@ export function schematicFor(
     ...(solution.wudhu
       ? { wudhuRows: solution.wudhu.rows.map((r) => ({ taps: r.taps, size: r.size })) }
       : {}),
-    ...(isWorship(state) ? { urinals: state.fixtures.urinals?.value ?? 0 } : {}),
+    ...(isPublicRestroom(state) ? { urinals: state.fixtures.urinals?.value ?? 0 } : {}),
     provenance: solution.overallProvenance,
     catalogVersionLabel,
     now,
   });
 }
 
-function isWorship(state: RequirementState): boolean {
-  return state.building.type.value === 'place_of_worship';
+/** Tempat ibadah dan sekolah/klinik: toilet umum (urinoir, tanpa dapur kecuali disebut). */
+function isPublicRestroom(state: RequirementState): boolean {
+  const type = state.building.type.value;
+  return type === 'place_of_worship' || type === 'public_building';
 }
 
 /**
@@ -443,9 +445,9 @@ export class AnalysisService {
           basins: state.fixtures.basins.value ?? 0,
           // Sama dengan sisi air bersih: dapur yang belum disebut dianggap satu (HOUSE_KITCHEN_1);
           // tempat ibadah tanpa dapur (WORSHIP_KITCHEN_0).
-          kitchens: state.fixtures.kitchens.value ?? (isWorship(state) ? 0 : 1),
+          kitchens: state.fixtures.kitchens.value ?? (isPublicRestroom(state) ? 0 : 1),
           // Tempat ibadah: urinoir ke air kotor, satu talang per deret wudhu ke air bekas.
-          ...(isWorship(state)
+          ...(isPublicRestroom(state)
             ? {
                 urinals: state.fixtures.urinals?.value ?? 0,
                 wudhuRowFlowsLs: solution.wudhu?.rows.map((r) => r.flowLs) ?? [],

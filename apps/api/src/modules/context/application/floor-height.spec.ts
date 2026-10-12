@@ -100,6 +100,37 @@ describe('TC-H-02 · tinggi lantai dari kalimat', () => {
   });
 });
 
+describe('Sekolah / klinik (pemilik 2026-10-12: hitungan toilet umum)', () => {
+  it('sekolah dan klinik dikenali, dihitung sebagai toilet umum tanpa wudhu', async () => {
+    for (const word of ['Sekolah', 'Klinik']) {
+      const state = stateOf(
+        `${word} 2 lantai, 6 kamar mandi, 4 urinoir, 4 wastafel, PDAM, air bersih dan pembuangan`,
+      );
+      expect(state.building.type.value).toBe('public_building');
+      expect(state.fixtures.urinals?.value).toBe(4);
+      const { rec, traces } = await analyse(state);
+      expect(traces.some((t) => t.ruleId === 'ENG-801')).toBe(true);
+      expect(rec.systemLines.some((l) => l.name.includes('wudhu'))).toBe(false);
+    }
+    const { houseRefinementQuestions } = await import('../domain/clarification.js');
+    expect(
+      houseRefinementQuestions(() => false, DEFAULT_LOCALE, 'public_building').map((q) => q.id),
+    ).toEqual(['building.dimensions', 'fixtures.urinals', 'fixtures.basins']);
+  });
+
+  it('tebakan model kelas lama (sekolah → komersial ringan) kalah dari jenis yang tersurat', () => {
+    const updates = extractionToUpdates(
+      { building: { type: 'light_commercial' } },
+      'sekolah 2 lantai',
+    );
+    expect(updates.find((u) => u.path === 'building.type')?.value).toBe('public_building');
+  });
+
+  it('kantor dan ruko tetap komersial ringan', () => {
+    expect(stateOf('kantor 2 lantai').building.type.value).toBe('light_commercial');
+  });
+});
+
 describe('Tempat ibadah (pemilik 2026-10-12: "masih nganggep kran itu wastafel, pdhl masjid")', () => {
   const MASJID =
     'Masjid 2 lantai, 4 kamar mandi, 8 keran wudhu di 2 tempat wudhu, 3 urinoir, PDAM, air bersih dan pembuangan';

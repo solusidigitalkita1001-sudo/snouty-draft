@@ -100,6 +100,21 @@ describe('urinoir (pemilik 2026-10-12: "di toilet cowo ada urinoir juga")', () =
   });
 });
 
+describe('sekolah / klinik (pemilik 2026-10-12: "pakai hitungan toilet umum")', () => {
+  it('toilet umum yang sama, tanpa wudhu walau keran wudhu terisi', () => {
+    const r = computeSolution({ ...MASJID, buildingType: 'public_building', urinals: 3 });
+    expect(r.supply.wsfu).toBe(35);
+    // Hanya Hunter: 24,9 gpm = 1,571 l/s, tanpa tambahan keran wudhu.
+    expect(r.supply.peakFlowLs).toBeCloseTo(1.571, 3);
+    expect(r.wudhu).toBeNull();
+    expect(r.appliedAssumptionIds).toEqual(
+      expect.arrayContaining(['WSFU_PUBLIC_WATER_CLOSET_5', 'WORSHIP_KITCHEN_0']),
+    );
+    expect(r.appliedAssumptionIds).not.toContain('WUDHU_TAP_FLOW_0_1LS');
+    expect(r.traces.some((t) => t.ruleId === 'ENG-012')).toBe(false);
+  });
+});
+
 describe('computeHouseDrainage · talang wudhu', () => {
   it('satu talang per deret: 0,4 l/s = 6,3 gpm × 2 = 13 DFU → 3"; masuk air bekas', () => {
     const r = computeHouseDrainage({

@@ -53,6 +53,7 @@ const BUILDING: readonly SelectOption[] = [
   { value: 'light_commercial', label: 'Komersial ringan' },
   { value: 'industrial', label: 'Industri' },
   { value: 'place_of_worship', label: 'Tempat ibadah' },
+  { value: 'public_building', label: 'Sekolah / klinik' },
 ];
 
 interface PlanValue {
@@ -149,9 +150,16 @@ const labelOf = (options: readonly SelectOption[]) => (v: unknown) =>
 
 /** Keran wudhu, tempat wudhu, urinoir — hanya untuk tempat ibadah; state lama boleh tanpa field. */
 function worshipRows(state: RequirementState): readonly RequirementRow[] {
-  if (state.building.type.value !== 'place_of_worship') return [];
+  const type = state.building.type.value;
   const empty = { value: null, provenance: 'UNAVAILABLE' as const };
   const count = (max: number): RowEditor => ({ kind: 'number', min: 0, max });
+  // Sekolah / klinik: toilet umum tanpa wudhu — hanya urinoir.
+  if (type === 'public_building') {
+    return [
+      row('fixtures.urinals', 'Urinoir', state.fixtures.urinals ?? empty, String, count(200)),
+    ];
+  }
+  if (type !== 'place_of_worship') return [];
   return [
     row('fixtures.wudhuTaps', 'Keran wudhu', state.fixtures.wudhuTaps ?? empty, String, count(500)),
     row(
@@ -166,7 +174,9 @@ function worshipRows(state: RequirementState): readonly RequirementRow[] {
 }
 
 export function requirementRows(state: RequirementState): readonly RequirementRow[] {
-  const worship = state.building.type.value === 'place_of_worship';
+  const worship =
+    state.building.type.value === 'place_of_worship' ||
+    state.building.type.value === 'public_building';
   return [
     row('building.type', 'Tipe bangunan', state.building.type, labelOf(BUILDING), {
       kind: 'select',

@@ -1404,8 +1404,11 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-77 Asumsi angka di hitungan bangunan (rumah, tempat ibadah) bisa diubah setelah hitungan selesai, seperti kasus
       teknis (pemilik 2026-10-12: jarak keran wudhu default 0,8 m tapi bisa di-adjust). Nilai pengganti disimpan di
       `RequirementState.assumptionOverrides`, diuji dengan hitung coba, lalu solusi dihitung ulang.
-- [ ] P16-69 Temuan laporan 0009 — F: kelompok tempat ibadah selesai di P16-76; sekolah/klinik dan nilai dari ahli
-      Pralon masih → OQ-61. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
+- [x] P16-78 Sekolah dan klinik (`public_building`) memakai hitungan toilet umum yang sama dengan tempat ibadah, tanpa
+      wudhu (keputusan pemilik 2026-10-12); jenis bangunan yang tersurat di pesan menang atas tebakan model. Volume toren
+      masjid sengaja belum dihitung (keputusan pemilik).
+- [ ] P16-69 Temuan laporan 0009 — F: tempat ibadah (P16-76) dan sekolah/klinik (P16-78) selesai; pengesahan nilai oleh
+      ahli Pralon masih → OQ-61. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)

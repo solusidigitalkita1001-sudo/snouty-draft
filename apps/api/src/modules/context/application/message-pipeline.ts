@@ -714,6 +714,8 @@ function buildingLabel(type: RequirementState['building']['type']['value']): str
       return 'bangunan industri';
     case 'place_of_worship':
       return 'tempat ibadah';
+    case 'public_building':
+      return 'sekolah atau klinik';
     default:
       return null;
   }

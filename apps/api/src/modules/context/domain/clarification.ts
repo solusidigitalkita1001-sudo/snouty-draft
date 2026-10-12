@@ -200,6 +200,13 @@ export const HOUSE_REFINEMENT_FIELDS: readonly RequirementFieldPath[] = [
   'fixtures.basins',
 ];
 
+/** Sekolah / klinik: toilet umum tanpa wudhu (pemilik 2026-10-12). */
+export const PUBLIC_REFINEMENT_FIELDS: readonly RequirementFieldPath[] = [
+  'building.dimensions',
+  'fixtures.urinals',
+  'fixtures.basins',
+];
+
 /** Tempat ibadah: wudhu dan urinoir menggantikan dapur (laporan pemilik 2026-10-12). */
 export const WORSHIP_REFINEMENT_FIELDS: readonly RequirementFieldPath[] = [
   'building.dimensions',
@@ -504,7 +511,11 @@ export function houseRefinementQuestions(
   buildingType: string | null = null,
 ): readonly ClarificationQuestion[] {
   const fields =
-    buildingType === 'place_of_worship' ? WORSHIP_REFINEMENT_FIELDS : HOUSE_REFINEMENT_FIELDS;
+    buildingType === 'place_of_worship'
+      ? WORSHIP_REFINEMENT_FIELDS
+      : buildingType === 'public_building'
+        ? PUBLIC_REFINEMENT_FIELDS
+        : HOUSE_REFINEMENT_FIELDS;
   return fields
     .filter((path) => !isKnown(path))
     .map((path) => toQuestion(path, locale))

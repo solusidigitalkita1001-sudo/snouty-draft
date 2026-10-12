@@ -71,6 +71,7 @@ const EditDto = z
                 'light_commercial',
                 'industrial',
                 'place_of_worship',
+                'public_building',
               ]),
             })
             .strict(),
