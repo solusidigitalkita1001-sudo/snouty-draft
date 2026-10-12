@@ -8,6 +8,9 @@ import {
   applyAssumption,
   assumptionDescription,
   DRAIN_SIZES,
+  drainLoadSentence,
+  type DrainageLoadInput,
+  type DrainageLoadResult,
   type HouseDrainageResult,
 } from '@snouty/engineering';
 import {
@@ -52,6 +55,42 @@ function parts(result: HouseDrainageResult, traces: readonly IdentifiedTrace[]) 
   return { load, soil, waste };
 }
 
+/**
+ * Penjelasan satu jalur saja (TC-H-07): beban jalurnya sendiri, lalu penentu ukurannya. Cabang per
+ * lantai dan pipa tegak (ENG-604) hanya disebut bila memang mereka yang menentukan ukuran — untuk
+ * kloset, alat terbesar (4") yang menentukan.
+ */
+function lineReason(
+  load: IdentifiedTrace | undefined,
+  own: readonly IdentifiedTrace[],
+  which: 'soil' | 'waste',
+  locale: Locale,
+): string {
+  const sizing = own.find((t) => t.ruleId === 'ENG-602');
+  const input = sizing?.inputs as
+    { minimumSize?: string; branchStackSize?: string | null } | undefined;
+  const output = sizing?.output as { size?: string; capacitySize?: string } | undefined;
+  const stackGoverns =
+    output?.size !== undefined &&
+    output.size === input?.branchStackSize &&
+    output.size !== input?.minimumSize &&
+    output.size !== output.capacitySize;
+  const loadText = load
+    ? drainLoadSentence(
+        load.inputs as DrainageLoadInput,
+        load.output as DrainageLoadResult,
+        which,
+        locale,
+      )
+    : '';
+  return [
+    loadText,
+    ...own.filter((t) => t.ruleId !== 'ENG-604' || stackGoverns).map((t) => t.explanation),
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
 const FIXTURE_LABEL = {
   water_closet: { id: 'kloset', en: 'toilet' },
   shower: { id: 'floor drain/shower', en: 'floor drain/shower' },
@@ -73,11 +112,12 @@ export function drainageSystemLines(
     size: string,
     own: readonly IdentifiedTrace[],
     role: SystemLine['role'],
+    which: 'soil' | 'waste',
   ): SystemLine => ({
     name,
     path,
     size,
-    reason: [...p.load, ...own].map((t) => t.explanation).join(' '),
+    reason: lineReason(p.load[0], own, which, locale),
     provenance: worst([...p.load, ...own]),
     traceIds: [...p.load, ...own].map((t) => t.id),
     role,
@@ -90,6 +130,7 @@ export function drainageSystemLines(
         result.soil.size,
         p.soil,
         'main',
+        'soil',
       ),
       line(
         en ? 'Soil vent pipe' : 'Pipa ventilasi air kotor',
@@ -97,6 +138,7 @@ export function drainageSystemLines(
         result.soil.ventSize,
         p.soil,
         'branch',
+        'soil',
       ),
     );
   }
@@ -110,6 +152,7 @@ export function drainageSystemLines(
         result.waste.size,
         p.waste,
         'branch',
+        'waste',
       ),
       line(
         en ? 'Waste vent pipe' : 'Pipa ventilasi air bekas',
@@ -117,6 +160,7 @@ export function drainageSystemLines(
         result.waste.ventSize,
         p.waste,
         'branch',
+        'waste',
       ),
     );
   }
@@ -131,6 +175,7 @@ export function drainageSystemLines(
       sizes.length === 1 ? sizes[0]! : `${sizes[0]}–${sizes.at(-1)}`,
       [...p.soil, ...p.waste],
       'fixture',
+      'soil',
     ),
     reason: en
       ? 'Minimum connection per fixture: toilet as its soil line, floor drain/shower 2", kitchen sink 1½", basin 1¼".'

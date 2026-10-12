@@ -300,3 +300,23 @@ describe('TC-H-05 · satu daftar SKU untuk tab Produk, material, dan ringkasan',
     expect(purposes.join(' ')).not.toMatch(/\b(MAIN|RISER|BRANCH|FIXTURE|FITTING)\b/);
   });
 });
+
+describe('TC-H-07 · penjelasan baris hanya untuk jalurnya sendiri', () => {
+  it('air kotor: hanya beban 16 DFU dan alasan 4" dari kloset; tanpa beban air bekas atau cabang 2½"', async () => {
+    const { rec } = await analyse0009();
+    const soil = rec.systemLines.find((l) => l.name === 'Pipa air kotor PVC D')!.reason;
+    expect(soil).toContain('Beban air kotor 16 = 4 kloset × 4.');
+    expect(soil).toContain('alat terbesar di jalur ini butuh minimal 4"');
+    expect(soil).not.toContain('Beban air bekas');
+    expect(soil).not.toContain('Cabang mendatar');
+    expect(soil).not.toContain('2½"');
+  });
+
+  it('air bekas: beban air bekas sendiri, dan cabang/stack yang memang menentukan 2½"', async () => {
+    const { rec } = await analyse0009();
+    const waste = rec.systemLines.find((l) => l.name === 'Pipa air bekas PVC D')!.reason;
+    expect(waste).toContain('Beban air bekas 16 =');
+    expect(waste).not.toContain('Beban air kotor');
+    expect(waste).toContain('Cabang mendatar lantai terberat 8 beban');
+  });
+});

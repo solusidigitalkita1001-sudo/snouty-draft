@@ -14,6 +14,7 @@
 
 import { localized, requireInt, requireNumber, type RuleVersion } from '../rule.js';
 import { round1 } from '../units.js';
+import type { EngineeringLocale } from '../parameters/locale.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 
@@ -122,41 +123,48 @@ export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
       expected: { soilDfu: 12, wasteDfu: 10 },
     },
   ],
-  explain: (i, o, locale) => {
-    // Hanya alat yang ada disebut — "0 wastafel × 1" bukan informasi.
-    const terms = (labels: readonly [string, string, string]) =>
-      (
-        [
-          [i.showers, labels[0], i.dfuShower],
-          [i.lavatories, labels[1], i.dfuLavatory],
-          [i.kitchenSinks, labels[2], i.dfuKitchenSink],
-        ] as const
-      )
-        .filter(([n]) => n > 0)
-        .map(([n, label, dfu]) => `${n} ${label} × ${dfu}`)
-        .join(' + ');
-    const wasteId = terms(['shower/floor drain', 'wastafel', 'bak cuci dapur']);
-    const wasteEn = terms(['showers/floor drains', 'basins', 'kitchen sinks']);
-    return localized(locale, {
-      id: [
-        i.waterClosets > 0
-          ? `Beban air kotor ${o.soilDfu} = ${i.waterClosets} kloset × ${i.dfuWaterCloset}.`
-          : '',
-        wasteId ? `Beban air bekas ${o.wasteDfu} = ${wasteId}.` : '',
-      ]
-        .filter(Boolean)
-        .join(' '),
-      en: [
-        i.waterClosets > 0
-          ? `Soil load ${o.soilDfu} = ${i.waterClosets} toilets × ${i.dfuWaterCloset}.`
-          : '',
-        wasteEn ? `Waste load ${o.wasteDfu} = ${wasteEn}.` : '',
-      ]
-        .filter(Boolean)
-        .join(' '),
-    });
-  },
+  explain: (i, o, locale) =>
+    [drainLoadSentence(i, o, 'soil', locale), drainLoadSentence(i, o, 'waste', locale)]
+      .filter(Boolean)
+      .join(' '),
 };
+
+/**
+ * Kalimat beban satu jalur (TC-H-07): baris air kotor hanya menyebut beban kloset, baris air bekas
+ * hanya alat air bekas. Kosong bila jalurnya tidak punya alat. Dipakai juga oleh `ENG_601.explain`.
+ */
+export function drainLoadSentence(
+  i: DrainageLoadInput,
+  o: DrainageLoadResult,
+  line: 'soil' | 'waste',
+  locale?: EngineeringLocale,
+): string {
+  if (line === 'soil') {
+    if (i.waterClosets <= 0) return '';
+    return localized(locale, {
+      id: `Beban air kotor ${o.soilDfu} = ${i.waterClosets} kloset × ${i.dfuWaterCloset}.`,
+      en: `Soil load ${o.soilDfu} = ${i.waterClosets} toilets × ${i.dfuWaterCloset}.`,
+    });
+  }
+  // Hanya alat yang ada disebut — "0 wastafel × 1" bukan informasi.
+  const terms = (labels: readonly [string, string, string]) =>
+    (
+      [
+        [i.showers, labels[0], i.dfuShower],
+        [i.lavatories, labels[1], i.dfuLavatory],
+        [i.kitchenSinks, labels[2], i.dfuKitchenSink],
+      ] as const
+    )
+      .filter(([n]) => n > 0)
+      .map(([n, label, dfu]) => `${n} ${label} × ${dfu}`)
+      .join(' + ');
+  const id = terms(['shower/floor drain', 'wastafel', 'bak cuci dapur']);
+  if (!id) return '';
+  return localized(locale, {
+    id: `Beban air bekas ${o.wasteDfu} = ${id}.`,
+    en: `Waste load ${o.wasteDfu} = ${terms(['showers/floor drains', 'basins', 'kitchen sinks'])}.`,
+  });
+}
 
 // ── ENG-602 · Ukuran jalur pembuangan dan ventilasinya ──────────────────────
 
