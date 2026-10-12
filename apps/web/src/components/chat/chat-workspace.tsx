@@ -133,6 +133,19 @@ interface ChatTurn {
   readonly understood?: boolean;
 }
 
+/** Data kebutuhan yang dipakai hitungan berubah (bukan hanya subjek percakapan). */
+export function requirementChanged(before: RequirementState, after: RequirementState): boolean {
+  const core = (s: RequirementState) =>
+    JSON.stringify([
+      s.building,
+      s.fixtures,
+      s.water,
+      s.useCase ?? null,
+      s.assumptionOverrides ?? null,
+    ]);
+  return core(before) !== core(after);
+}
+
 export function ChatWorkspace() {
   const COPY = useChatCopy();
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -373,7 +386,13 @@ export function ChatWorkspace() {
         switch (event.type) {
           case 'requirement.updated':
             understood = true;
-            setState(event.state);
+            // Kebutuhan berubah setelah solusi tersusun → solusi lama dibuang, supaya yang tampil
+            // selalu hasil hitung ulang lewat Susun rekomendasi (pemilik 2026-10-12), bukan
+            // solusi di memori halaman yang dihitung dari data sebelumnya.
+            setState((previous) => {
+              if (previous !== null && requirementChanged(previous, event.state)) setSolution(null);
+              return event.state;
+            });
             // Judul aktif diturunkan dari kebutuhan, seperti `titleFrom` prototipe.
             setActiveTitle(
               COPY.titleFor(

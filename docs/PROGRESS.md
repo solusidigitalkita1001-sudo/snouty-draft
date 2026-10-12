@@ -1407,6 +1407,9 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
 - [x] P16-78 Sekolah dan klinik (`public_building`) memakai hitungan toilet umum yang sama dengan tempat ibadah, tanpa
       wudhu (keputusan pemilik 2026-10-12); jenis bangunan yang tersurat di pesan menang atas tebakan model. Volume toren
       masjid sengaja belum dihitung (keputusan pemilik).
+- [x] P16-79 Susun rekomendasi selalu menghitung ulang di server (`/analyze`, tidak ada solusi di localStorage);
+      solusi di memori halaman kini dibuang begitu data kebutuhan berubah lewat chat, sehingga "Lihat solusi" tidak
+      menampilkan hasil dari data lama (pemilik 2026-10-12).
 - [ ] P16-69 Temuan laporan 0009 — F: tempat ibadah (P16-76) dan sekolah/klinik (P16-78) selesai; pengesahan nilai oleh
       ahli Pralon masih → OQ-61. Dampak aturan A pada laporan lama: dari 6 laporan berpembuangan, hanya 0009 yang
       berubah (air bekas 2" → 2½").
