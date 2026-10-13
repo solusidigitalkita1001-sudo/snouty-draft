@@ -273,3 +273,5 @@ export type { CalculationTrace, SolutionInput, SolutionResult } from './compute-
 export { RULE_REGISTRY, ALL_RULES } from './registry.js';
 export { outdatedRules, rulesetStamp } from './ruleset.js';
 export type { RuleUse } from './ruleset.js';
+export { ASSUMPTION_CATEGORIES, assumptionCategory } from './parameters/assumption-category.js';
+export type { AssumptionCategory } from './parameters/assumption-category.js';

@@ -20,7 +20,8 @@ import {
   type SelectedProduct,
   type SystemLine,
 } from '@snouty/shared-types';
-import { useState } from 'react';
+import { ASSUMPTION_CATEGORIES, assumptionCategory } from '@snouty/engineering';
+import { Fragment, useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { SchematicTab } from './schematic-tab';
 import { solutionCopy } from './solution-copy';
@@ -219,14 +220,42 @@ export function SolutionView({
       {on('material') && recommendation.assumptions.length > 0 && (
         <section className={styles.card}>
           <h3 className={styles.cardTitle}>{COPY.assumptionsTitle}</h3>
-          {recommendation.assumptions.map((assumption) => (
-            <AssumptionRow
-              key={`${assumption.fieldPath}-${assumption.text}`}
-              assumption={assumption}
-              {...(onFixAssumption ? { onFix: onFixAssumption } : {})}
-              {...(onChangeAssumption ? { onChange: onChangeAssumption } : {})}
-            />
-          ))}
+          <div className={styles.tableWrap}>
+            <table className={[styles.boqTable, styles.assumptionTable].join(' ')}>
+              <thead>
+                <tr>
+                  <th>{COPY.assumptionColumns.text}</th>
+                  <th>{COPY.assumptionColumns.value}</th>
+                  <th>{COPY.assumptionColumns.origin}</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {/* Dikelompokkan per kategori dari registry (DD-01 #10), urutan tetap. */}
+                {ASSUMPTION_CATEGORIES.map((category) => {
+                  const rows = recommendation.assumptions.filter(
+                    (a) => assumptionCategory(a) === category,
+                  );
+                  if (rows.length === 0) return null;
+                  return (
+                    <Fragment key={category}>
+                      <tr className={styles.boqSection}>
+                        <td colSpan={4}>{COPY.assumptionCategories[category]}</td>
+                      </tr>
+                      {rows.map((assumption) => (
+                        <AssumptionRow
+                          key={`${assumption.fieldPath}-${assumption.text}`}
+                          assumption={assumption}
+                          {...(onFixAssumption ? { onFix: onFixAssumption } : {})}
+                          {...(onChangeAssumption ? { onChange: onChangeAssumption } : {})}
+                        />
+                      ))}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 
@@ -685,6 +714,7 @@ function AssumptionRow({
   onChange?: (assumptionId: string, value: number | null) => Promise<string | null>;
 }) {
   const COPY = useSolutionCopy();
+  const { locale } = useLocale();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(assumption.value ?? ''));
   const [busy, setBusy] = useState(false);
@@ -705,8 +735,8 @@ function AssumptionRow({
   };
 
   return (
-    <div className={styles.assumptionRow}>
-      <div className={styles.assumptionMain}>
+    <tr>
+      <td className={styles.assumptionMain}>
         <span className={styles.assumptionText}>{assumption.text}</span>
         {editing && (
           <form
@@ -753,21 +783,40 @@ function AssumptionRow({
             {error && <span className={styles.assumptionError}>{error}</span>}
           </form>
         )}
-      </div>
-      {!editing && assumption.fieldPath !== '' && (editable || onFix) && (
-        <button
-          type="button"
-          className={styles.linkButton}
-          onClick={() => {
-            if (editable) {
-              setDraft(String(assumption.value).replace('.', ','));
-              setEditing(true);
-            } else onFix?.(assumption.fieldPath);
-          }}
-        >
-          {COPY.fixAssumption}
-        </button>
-      )}
-    </div>
+      </td>
+      <td className={styles.mono}>
+        {assumption.value !== undefined
+          ? `${String(assumption.value).replace('.', locale === 'en' ? '.' : ',')}${assumption.unit ? ` ${assumption.unit}` : ''}`
+          : ''}
+      </td>
+      <td>
+        {assumption.fieldPath !== '' && (
+          <span
+            className={[
+              styles.originTag,
+              assumption.userSet ? styles.originUser : styles.originStandard,
+            ].join(' ')}
+          >
+            {assumption.userSet ? COPY.assumptionOrigin.user : COPY.assumptionOrigin.standard}
+          </span>
+        )}
+      </td>
+      <td className={styles.assumptionAction}>
+        {!editing && assumption.fieldPath !== '' && (editable || onFix) && (
+          <button
+            type="button"
+            className={styles.linkButton}
+            onClick={() => {
+              if (editable) {
+                setDraft(String(assumption.value).replace('.', ','));
+                setEditing(true);
+              } else onFix?.(assumption.fieldPath);
+            }}
+          >
+            {COPY.fixAssumption}
+          </button>
+        )}
+      </td>
+    </tr>
   );
 }

@@ -420,6 +420,33 @@
 }
 
 /* Ganti nilai asumsi di tempat: angka + satuan, lalu hitung ulang. */
+.assumptionTable td {
+  vertical-align: middle;
+}
+
+.assumptionAction {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.originTag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.originUser {
+  color: var(--snouty-verified-text);
+  background: var(--snouty-verified-bg);
+}
+
+.originStandard {
+  color: var(--snouty-ink-4);
+  background: var(--snouty-surface-subtle);
+}
+
 .assumptionMain {
   display: flex;
   flex-direction: column;
@@ -623,6 +650,17 @@
 
   .boqTable td:empty {
     display: none;
+  }
+
+  /* Tabel asumsi di ponsel: kalimat asumsi sebaris penuh, nilai · asal · tombol di bawahnya. */
+  .assumptionTable td:nth-child(2) {
+    flex-basis: auto;
+    order: 0;
+    font-weight: 400;
+  }
+
+  .assumptionTable td:first-child {
+    flex-basis: 100%;
   }
 
   /* Estimasi material di ponsel = daftar, bukan tabel (permintaan pemilik 2026-10-07):
