@@ -74,7 +74,10 @@ const reportServiceProvider = {
       conversations,
       snapshots,
       publisher,
-      async (id) => (await catalog.findVersionById(id))?.label ?? null,
+      async (id) => {
+        const version = await catalog.findVersionById(id);
+        return version ? { label: version.label, effectiveFrom: version.effectiveFrom } : null;
+      },
       // Jalur analisis yang sama dengan tombol Susun rekomendasi; id dari event solution.ready.
       async (conversationId, snapshotId, state, locale, now) => {
         const events = await analysis.run(

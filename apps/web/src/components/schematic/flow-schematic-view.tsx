@@ -250,7 +250,7 @@ export function FlowSidePanel({ schematic }: { schematic: FlowSchematic }) {
         <TitleCell label={COPY.titleBlockLabels.drawing} value={schematic.titleBlock.drawing} />
         <TitleCell label={COPY.titleBlockLabels.scale} value={schematic.titleBlock.scale} />
         <TitleCell label={COPY.titleBlockLabels.basis} value={schematic.titleBlock.basis} />
-        <TitleCell label={COPY.titleBlockLabels.source} value={schematic.titleBlock.source} />
+        {/* Sel "SUMBER: KATALOG <versi>" dihapus (P17-10): label versi internal tidak ditampilkan. */}
       </div>
     </aside>
   );

@@ -235,9 +235,14 @@ describe('renderReportHtml', () => {
     const payload = assembleReportPayload(INPUT);
     const withFormula = payload.basis.filter((row) => row.formula !== undefined);
     expect(withFormula.length).toBeGreaterThan(0);
+    // Hanya tabel langkah hitung: kalimat yang sama boleh muncul di tabel asumsi.
+    const steps = html.slice(html.indexOf('<table class="grid steps">'));
+    const stepsTable = steps.slice(0, steps.indexOf('</table>'));
     for (const row of withFormula) {
-      expect(html).toContain(`<td class="formula">${row.formula!.replace(/"/g, '&quot;')}</td>`);
-      expect(html).not.toContain(row.explanation.replace(/"/g, '&quot;'));
+      expect(stepsTable).toContain(
+        `<td class="formula">${row.formula!.replace(/"/g, '&quot;')}</td>`,
+      );
+      expect(stepsTable).not.toContain(row.explanation.replace(/"/g, '&quot;'));
     }
   });
 
@@ -437,18 +442,20 @@ describe('laporan dua bahasa (P15-05)', () => {
     );
     expect(html).not.toContain('<img');
     // nomor ×7 (title, sampul, lima kop bagian), nama ×7 (sampul, lima kop, footer),
-    // lokasi (sampul), katalog, isi, asumsi.
-    expect(html.split(escaped)).toHaveLength(19);
+    // lokasi (sampul), isi, asumsi. Label katalog tidak dicetak lagi (P17-10).
+    expect(html.split(escaped)).toHaveLength(18);
   });
 });
 
 describe('versi aturan di laporan (temuan SNTY-2026-10-0002)', () => {
-  it('laporan baru mencetak stempel versi aturan; hasil engine terkini tidak ditandai lama', () => {
+  it('stempel versi aturan tersimpan di payload, tidak dicetak (P17-10); hasil terkini tidak ditandai lama', () => {
     const payload = assembleReportPayload(INPUT);
     expect(payload.ruleset?.stamp).toMatch(/^[0-9a-f]{8}$/);
     expect(payload.ruleset?.outdated).toBe(false);
     const html = renderReportHtml(payload);
-    expect(html).toContain(`Versi aturan hitung ${payload.ruleset!.stamp}`);
+    // Label internal tidak dicetak (keputusan pemilik 2026-10-13); pelacakan lewat payload.
+    expect(html).not.toContain(payload.ruleset!.stamp);
+    expect(html).not.toContain('Versi aturan hitung');
     expect(html).not.toContain('versi aturan lama');
   });
 
@@ -657,5 +664,19 @@ describe('denah di laporan (P17-07)', () => {
 
   it('tanpa data cabang (rekomendasi lama) tidak ada halaman denah', () => {
     expect(renderReportHtml(assembleReportPayload(INPUT))).not.toContain('Denah Instalasi');
+  });
+});
+
+describe('tanggal data produk (P17-10)', () => {
+  it('dicetak sebagai kalimat biasa, bukan label versi katalog', () => {
+    const html = renderReportHtml(
+      assembleReportPayload({ ...INPUT, catalogDate: '2026-10-06T00:00:00.000Z' } as never),
+    );
+    expect(html).toContain('Data produk per 6 Oktober 2026');
+    expect(html).not.toContain(INPUT.catalogVersionLabel);
+  });
+
+  it('payload lama tanpa tanggal: barisnya tidak dicetak', () => {
+    expect(renderReportHtml(assembleReportPayload(INPUT))).not.toContain('Data produk per');
   });
 });

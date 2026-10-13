@@ -105,10 +105,10 @@ describe('blok judul', () => {
     expect(screen.getByText('3,50 M · ASUMSI')).toBeDefined();
   });
 
-  it('menampilkan gambar, skala, dan sumber katalog', () => {
+  it('menampilkan gambar dan skala; label versi katalog tidak ditampilkan (P17-10)', () => {
     render(<SchematicSidePanel schematic={schematicFor(2)} />);
     expect(screen.getByText('SK-01 AIR BERSIH')).toBeDefined();
     expect(screen.getByText('NTS')).toBeDefined();
-    expect(screen.getByText('KATALOG dev-0.2')).toBeDefined();
+    expect(screen.queryByText('KATALOG dev-0.2')).toBeNull();
   });
 });

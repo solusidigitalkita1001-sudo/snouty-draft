@@ -124,8 +124,8 @@ interface ReportCopy {
   readonly nextStepsTitle: string;
   readonly nextSteps: string;
   readonly preparedBy: string;
-  readonly catalog: string;
-  readonly ruleset: string;
+  /** "Data produk per 6 Oktober 2026" — pengganti label versi katalog (P17-10). */
+  readonly productDataAsOf: (date: string) => string;
   readonly outdated: string;
   readonly reviewedBy: string;
   readonly reviewer: string;
@@ -218,8 +218,7 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     nextSteps:
       'Bawa laporan ini ke toko atau distributor Pralon untuk penawaran resmi dan pemeriksaan akhir bersama instalatur.',
     preparedBy: 'Disusun oleh:',
-    catalog: 'Katalog',
-    ruleset: 'Versi aturan hitung',
+    productDataAsOf: (date) => `Data produk per ${date}`,
     outdated:
       'Dihitung dengan versi aturan lama. Susun ulang rekomendasinya untuk memakai perhitungan terbaru.',
     reviewedBy: 'Diperiksa oleh (opsional):',
@@ -311,8 +310,7 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     nextSteps:
       'Take this report to a Pralon store or distributor for an official quotation and a final check together with your installer.',
     preparedBy: 'Prepared by:',
-    catalog: 'Catalog',
-    ruleset: 'Calculation rules version',
+    productDataAsOf: (date) => `Product data as of ${date}`,
     outdated:
       'Calculated with an older version of the rules. Recompose the recommendation to use the latest calculation.',
     reviewedBy: 'Reviewed by (optional):',
@@ -653,8 +651,7 @@ function closingSection(p: ReportPayload, t: ReportCopy, n: number): string {
       <td>
         <div class="sign-mascot snouty-art" role="img" aria-label="SNOUTY"></div>
         ${t.preparedBy} <strong>SNOUTY</strong>
-        <span class="sub">${t.catalog} ${esc(p.catalogVersionLabel)}</span>
-        ${p.ruleset ? `<span class="sub">${t.ruleset} ${esc(p.ruleset.stamp)}</span>` : ''}
+        ${p.catalogDate ? `<span class="sub">${t.productDataAsOf(longDate(p.catalogDate, t.numberLocale))}</span>` : ''}
       </td>
       <td>${t.reviewedBy}<span class="sub">${t.reviewer}</span></td>
     </tr>
@@ -685,6 +682,18 @@ function pill(status: Provenance, t: ReportCopy): string {
 function rupiah(value: number | undefined, numberLocale: string): string {
   if (value === undefined) return '–';
   return `Rp ${value.toLocaleString(numberLocale)}`;
+}
+
+/** "2026-10-06" → "6 Oktober 2026" / "October 6, 2026". */
+function longDate(iso: string, numberLocale: string): string {
+  const date = new Date(`${iso}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleDateString(numberLocale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
 }
 
 function esc(value: string): string {

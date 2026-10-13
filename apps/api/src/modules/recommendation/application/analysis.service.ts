@@ -70,6 +70,7 @@ import { DRAINAGE_FAMILY, withHouseDrainage } from '../domain/house-drainage-vie
 import { mergeBomBySku } from '../domain/bom-merge.js';
 import { needsFrom } from '../domain/solution-needs.js';
 import { compareScenarios } from '../domain/scenarios.js';
+import { firstSentences } from '../domain/summary-length.js';
 import {
   gravityAssumptionsFrom,
   gravityBomItemsFrom,
@@ -1340,7 +1341,11 @@ function saveReady(
   traces: readonly IdentifiedTrace[],
   locale: Locale,
 ): Recommendation {
-  // Semua jenis kasus melewati sini: satu baris material per produk katalog.
-  const merged = { ...recommendation, bom: mergeBomBySku(recommendation.bom) };
+  // Semua jenis kasus melewati sini: satu baris material per produk katalog, ringkasan dua kalimat.
+  const merged = {
+    ...recommendation,
+    body: firstSentences(recommendation.body),
+    bom: mergeBomBySku(recommendation.bom),
+  };
   return withEditableAssumptions(withCalculationSteps(merged, traces, locale), state, locale);
 }

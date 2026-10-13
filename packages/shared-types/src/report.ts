@@ -63,8 +63,13 @@ export interface ReportPayload {
   readonly bom: readonly BomItem[];
   readonly basis: readonly ReportBasisRow[];
   readonly pricing: ReportPricing;
-  /** Versi katalog yang dipakai — muncul di blok tanda tangan. */
+  /** Versi katalog yang dipakai — disimpan untuk pelacakan, tidak dicetak (P17-10). */
   readonly catalogVersionLabel: string;
+  /**
+   * Tanggal berlaku data produk (YYYY-MM-DD) — dicetak sebagai "Data produk per …" menggantikan label
+   * versi (keputusan pemilik 2026-10-13). Payload lama tidak punya.
+   */
+  readonly catalogDate?: string;
   readonly overallProvenance: Provenance;
   /**
    * Bahasa dokumen — bahasa percakapan saat laporan dibuat (P15-05), ikut dibekukan bersama

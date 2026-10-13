@@ -207,8 +207,7 @@ export const SOLUTION_COPY = {
    */
   composition: {
     optionsTitle: 'Opsi ukuran yang dipertimbangkan',
-    optionsHint:
-      'Semua kandidat yang dihitung — bukan hanya yang dipilih — supaya tradeoff-nya terlihat.',
+    optionsHint: 'Ukuran lain yang ikut dicoba, dengan kecepatan dan kehilangan tekanannya.',
     optionRecommended: 'DIREKOMENDASIKAN',
     optionAlternative: 'ALTERNATIF',
     optionStatus: {
@@ -434,8 +433,7 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
 
   composition: {
     optionsTitle: 'Size options considered',
-    optionsHint:
-      'All calculated candidates — not just the selected one — so the tradeoffs are visible.',
+    optionsHint: 'Other sizes that were tried, with their speed and pressure loss.',
     optionRecommended: 'RECOMMENDED',
     optionAlternative: 'ALTERNATIVE',
     optionStatus: {

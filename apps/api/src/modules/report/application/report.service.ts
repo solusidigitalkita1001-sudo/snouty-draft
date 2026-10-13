@@ -97,7 +97,8 @@ export class ReportService {
     /** Nama versi katalog untuk kop laporan ("erp-2026-10-06"), bukan ID-nya. */
     private readonly catalogLabel: (
       catalogVersionId: string,
-    ) => Promise<string | null> = async () => null,
+    ) => Promise<{ readonly label: string; readonly effectiveFrom: string } | null> = async () =>
+      null,
     /**
      * Menyusun rekomendasi baru dari data kebutuhan yang tersimpan (jalur analisis yang sama dengan
      * tombol Susun rekomendasi); mengembalikan id rekomendasinya. Dipakai "Susun ulang" laporan lama.
@@ -236,9 +237,7 @@ export class ReportService {
         // Jenis instalasi mengikuti kasusnya (gedung, kolam, irigasi, …), dalam bahasa laporan.
         installationType: installationLabel(state, locale),
       },
-      catalogVersionLabel:
-        (await this.catalogLabel(recommendation.catalogVersionId).catch(() => null)) ??
-        recommendation.catalogVersionId,
+      ...(await this.catalogVersion(recommendation.catalogVersionId)),
       pricing: {
         enabled: env.PRICING_ENABLED,
         taxRatePercent: env.TAX_RATE_PERCENT,
@@ -336,6 +335,16 @@ export class ReportService {
     const report = await this.reports.findById(reportId);
     if (!report) throw new ReportNotFoundError();
     return report;
+  }
+
+  /** Label versi (untuk pelacakan) dan tanggal berlakunya (yang dicetak). */
+  private async catalogVersion(
+    catalogVersionId: string,
+  ): Promise<{ catalogVersionLabel: string; catalogDate?: string }> {
+    const version = await this.catalogLabel(catalogVersionId).catch(() => null);
+    return version
+      ? { catalogVersionLabel: version.label, catalogDate: version.effectiveFrom }
+      : { catalogVersionLabel: catalogVersionId };
   }
 }
 

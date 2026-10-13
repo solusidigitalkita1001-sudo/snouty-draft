@@ -164,7 +164,7 @@ describe('Tempat ibadah (pemilik 2026-10-12: "masih nganggep kran itu wastafel, 
   it('hitungan: wudhu serentak, kamar mandi kloset + keran, deret wudhu dan talang di tabel sistem', async () => {
     const { rec, traces } = await analyse(stateOf(MASJID));
     const demand = traces.find((t) => t.ruleId === 'ENG-801')!;
-    expect(demand.explanation).toContain('8 × 0.1 l/s = 0.8 l/s');
+    expect(demand.explanation).toContain('8 × 0,1 l/s = 0,8 l/s');
     expect(demand.explanation).toContain('3 urinoir');
     expect(traces.some((t) => t.ruleId === 'ENG-701')).toBe(false);
     expect(traces.find((t) => t.ruleId === 'ENG-001')!.explanation).toContain('kloset dan keran');
@@ -173,10 +173,11 @@ describe('Tempat ibadah (pemilik 2026-10-12: "masih nganggep kran itu wastafel, 
     expect(names).toContain('Talang wudhu PVC D');
     const soil = rec.systemLines.find((l) => l.name.startsWith('Pipa air kotor'))!;
     expect(soil.path).toBe('Kloset dan urinoir → septic tank');
-    expect(rec.body).toContain('kloset dan urinoir dibuang ke septic tank');
-    expect(rec.body).toContain('tiap deret wudhu punya satu talang 3"');
+    // Ringkasan dua kalimat (P17-10): jalur pembuangan dan talang dibaca dari tabel sistem.
+    expect(rec.body.split(/(?<=[.!?])s+(?=[A-Z0-9"“(])/).length).toBeLessThanOrEqual(2);
+    expect(rec.systemLines.find((l) => l.name === 'Talang wudhu PVC D')?.size).toBe('3"');
     expect(rec.body).not.toContain('urinoir dan floor drain');
-    expect(demand.explanation).toContain('4 keran × 1.5');
+    expect(demand.explanation).toContain('4 keran × 1,5');
     expect(rec.assumptions.some((a) => a.assumptionId === 'WUDHU_TAP_FLOW_0_1LS')).toBe(true);
     expect(rec.assumptions.some((a) => a.assumptionId === 'HOUSE_KITCHEN_1')).toBe(false);
   });

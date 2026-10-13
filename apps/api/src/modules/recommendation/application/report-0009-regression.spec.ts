@@ -173,7 +173,7 @@ describe('regresi laporan SNTY-2026-10-0009 — D: konsistensi angka dan teks', 
   it('batas kecepatan satu sumber: 0,6–2 m/s, rencana 1,5 m/s; tidak ada "1–2 m/s"', async () => {
     const { traces } = await analyse0009();
     const text = traces.map((t) => t.explanation).join(' ');
-    expect(text).toContain('0.6–2 m/s');
+    expect(text).toContain('0,6–2 m/s');
     expect(text).not.toMatch(/\b1–2 m\/s/);
   });
 
@@ -224,7 +224,7 @@ describe('TC-H-01 · aturan lama tidak ikut di trace', () => {
     const text = traces.map((t) => t.explanation).join(' ');
     expect(text).not.toContain('Unit beban memakai bobot');
     expect(traces.find((t) => t.ruleId === 'ENG-001')!.explanation).toMatch(/= 16 titik\.$/);
-    expect(text).toContain('Beban suplai 16.8 unit');
+    expect(text).toContain('Beban suplai 16,8 unit');
     expect(traces.some((t) => t.ruleId === 'ENG-006')).toBe(false);
     expect(rec.stats.outletCount).toBe(16);
   });
@@ -287,7 +287,9 @@ describe('TC-H-05 · satu daftar SKU untuk tab Produk, material, dan ringkasan',
     expect(y).toMatchObject({ counted: false, kind: 'fitting', name: 'Bell Y - D 4"' });
     // Ringkasan dan statistik dari daftar yang sama.
     expect(rec.stats.productCount).toBe(lines.length);
-    expect(rec.body).toContain(`Ada ${lines.length} produk Pralon`);
+    // Ringkasan dua kalimat (P17-10): bila kalimat jumlah produk masih ada, angkanya sama dengan daftar.
+    const count = /Ada (d+) produk Pralon/.exec(rec.body);
+    if (count) expect(Number(count[1])).toBe(lines.length);
   });
 
   it('satu kartu per SKU dengan semua peruntukannya; label Indonesia (TC-H-06)', async () => {

@@ -69,7 +69,8 @@ describe('computeIrrigation', () => {
       mainRunMeters: 25,
       elevation: 'level',
     });
-    expect(r.traces[0]?.explanation).toContain('0.8 l/s');
+    // Penjelasan berbahasa Indonesia memakai koma desimal (P17-10).
+    expect(r.traces[0]?.explanation).toContain('0,8 l/s');
     expect(r.traces[2]?.explanation).toContain('1"');
   });
 });

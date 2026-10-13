@@ -45,6 +45,8 @@ export interface AssembleReportInput {
   readonly state: RequirementState;
   readonly identity: ReportIdentity;
   readonly catalogVersionLabel: string;
+  /** Tanggal berlaku versi katalog, bila diketahui. */
+  readonly catalogDate?: string;
   /** Harga hanya dirender bila `PRICING_ENABLED` (OQ-03, baku nonaktif). */
   readonly pricing: { readonly enabled: boolean; readonly taxRatePercent: number };
   /**
@@ -75,6 +77,7 @@ export function assembleReportPayload(input: AssembleReportInput): ReportPayload
     basis: basisRows(input.traces, locale),
     pricing: pricingFrom(input.recommendation, input.pricing),
     catalogVersionLabel: input.catalogVersionLabel,
+    ...(input.catalogDate ? { catalogDate: input.catalogDate.slice(0, 10) } : {}),
     overallProvenance: input.recommendation.overallProvenance,
     locale,
     // Versi aturan dari trace rekomendasi ini — dicetak di laporan (temuan laporan 0002).

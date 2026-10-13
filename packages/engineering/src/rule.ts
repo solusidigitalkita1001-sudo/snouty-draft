@@ -83,7 +83,18 @@ export function localized(
   locale: EngineeringLocale | undefined,
   texts: { readonly id: string; readonly en: string },
 ): string {
-  return texts[locale ?? DEFAULT_ENGINEERING_LOCALE];
+  const chosen = locale ?? DEFAULT_ENGINEERING_LOCALE;
+  return chosen === 'id' ? indonesianDecimals(texts.id) : texts[chosen];
+}
+
+/**
+ * Angka di penjelasan aturan ditulis langsung dari nilai JavaScript ("3.5"), padahal pembaca
+ * Indonesia memakai koma ("3,5") — P17-10. Diubah di satu tempat ini, bukan di tiap aturan.
+ * Nomor pasal rujukan tidak disentuh: yang menempel pada huruf ("E103.3") atau diikuti kurung
+ * ("710.1(2)") adalah kode, bukan angka.
+ */
+export function indonesianDecimals(text: string): string {
+  return text.replace(/(?<![A-Za-z\d.])(\d+)\.(\d+)(?![\d.]*\()/g, '$1,$2');
 }
 
 export class RuleInputError extends Error {

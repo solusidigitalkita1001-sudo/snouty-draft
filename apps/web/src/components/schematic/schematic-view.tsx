@@ -275,7 +275,7 @@ function BuildingSidePanel({ schematic }: { schematic: Schematic }) {
           label={COPY.titleBlockLabels.floorHeight}
           value={schematic.titleBlock.floorHeight}
         />
-        <TitleCell label={COPY.titleBlockLabels.source} value={schematic.titleBlock.source} />
+        {/* Sel "SUMBER: KATALOG <versi>" dihapus (P17-10): label versi internal tidak ditampilkan. */}
       </div>
     </aside>
   );

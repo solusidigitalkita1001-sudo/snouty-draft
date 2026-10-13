@@ -58,7 +58,7 @@ function setup(traces: { ruleId: string; ruleVersion: number }[]) {
       }),
     } as never,
     null,
-    async () => 'erp-uji',
+    async () => ({ label: 'erp-uji', effectiveFrom: '2026-10-06T00:00:00.000Z' }),
     recompose,
   );
   return { service, created, recompose };
