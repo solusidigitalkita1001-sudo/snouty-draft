@@ -285,3 +285,19 @@ describe('pompa sumber vs pompa pendorong (review putaran 3)', () => {
     expect(raised.supply.gravityResidualBar!).toBeGreaterThanOrEqual(0.3);
   });
 });
+
+describe('pertanyaan yang tidak dijawab tercatat sebagai asumsi (review putaran 3, 3b)', () => {
+  it('wastafel belum disebut → HOUSE_BASINS_0, dapur belum disebut → HOUSE_KITCHEN_1', () => {
+    const result = computeSolution({ ...BOARD_EXAMPLE, basins: null, kitchens: null });
+    expect(result.appliedAssumptionIds).toEqual(
+      expect.arrayContaining(['HOUSE_BASINS_0', 'HOUSE_KITCHEN_1']),
+    );
+    // 3 kamar mandi × 2 titik + 0 wastafel + 1 dapur.
+    expect(result.outletCount).toBe(7);
+  });
+
+  it('wastafel disebut (0 pun) → bukan asumsi', () => {
+    const result = computeSolution({ ...BOARD_EXAMPLE, basins: 0 });
+    expect(result.appliedAssumptionIds).not.toContain('HOUSE_BASINS_0');
+  });
+});

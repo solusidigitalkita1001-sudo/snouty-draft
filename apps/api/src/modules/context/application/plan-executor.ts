@@ -53,9 +53,9 @@ export type PlanOutcome =
   | { readonly kind: 'none' };
 
 const IDENTITY_ID =
-  'SNOUTY adalah asisten perencanaan pipa air bersih Pralon: membantu menghitung ukuran pipa dari kebutuhan bangunan, menjelaskan dan memilih produk dari katalog Pralon, dan meneruskan kasus khusus (pembuangan, kolam, irigasi besar) ke tim teknis Pralon.';
+  'SNOUTY adalah asisten perencanaan pipa air bersih dan pembuangan Pralon: membantu menghitung ukuran pipa air bersih dan pembuangan dari kebutuhan bangunan, menjelaskan dan memilih produk dari katalog Pralon, dan meneruskan kasus khusus (kolam, irigasi besar) ke tim teknis Pralon.';
 const IDENTITY_EN =
-  "SNOUTY is Pralon's clean-water piping planning assistant: it sizes pipes from a building's requirements, explains and picks products from the Pralon catalogue, and passes special cases (drainage, ponds, large irrigation) to the Pralon technical team.";
+  "SNOUTY is Pralon's clean-water and drainage piping planning assistant: it sizes clean-water and drainage pipes from a building's requirements, explains and picks products from the Pralon catalogue, and passes special cases (ponds, large irrigation) to the Pralon technical team.";
 
 const BASIS_FALLBACK_ID =
   'Ukuran pipa air bersih dihitung dari jumlah titik air, jumlah lantai, dan sumber air; luas bangunan tidak menentukan ukuran pipa — dimensi hanya dipakai untuk memperkirakan panjang pipa di daftar material.';

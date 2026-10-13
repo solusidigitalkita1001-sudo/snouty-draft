@@ -63,7 +63,8 @@ export interface SolutionInput {
     | 'public_building';
   readonly floors: number;
   readonly bathrooms: number;
-  readonly basins: number;
+  /** Wastafel total; `null` = belum disebut → HOUSE_BASINS_0 (tampil di tabel asumsi). */
+  readonly basins: number | null;
   /** `null` = belum disebut → asumsi satu dapur (HOUSE_KITCHEN_1), bukan nol diam-diam. */
   readonly kitchens: number | null;
   readonly waterSource: 'rooftop_tank' | 'ground_tank' | 'pump' | 'municipal';
@@ -240,7 +241,7 @@ export function computeSolution(
   const publicRestroom = worship || input.buildingType === 'public_building';
   const fixtures = {
     bathrooms: input.bathrooms,
-    basins: input.basins,
+    basins: input.basins ?? use('HOUSE_BASINS_0'),
     kitchens:
       input.kitchens ?? (publicRestroom ? use('WORSHIP_KITCHEN_0') : use('HOUSE_KITCHEN_1')),
   };
@@ -296,7 +297,7 @@ export function computeSolution(
   );
   assertBalanced(
     'wastafel per lantai',
-    input.basins,
+    fixtures.basins,
     perFloor.map((f) => f.basins),
   );
   assertBalanced(
@@ -324,7 +325,7 @@ export function computeSolution(
     ? run(ENG_801, {
         waterClosets: input.bathrooms,
         bathroomTaps: input.bathrooms,
-        lavatories: input.basins,
+        lavatories: fixtures.basins,
         kitchenSinks: fixtures.kitchens,
         urinals,
         wudhuTaps,
@@ -337,7 +338,7 @@ export function computeSolution(
     : run(ENG_701, {
         waterClosets: input.bathrooms,
         showers: input.bathrooms,
-        lavatories: input.basins,
+        lavatories: fixtures.basins,
         kitchenSinks: fixtures.kitchens,
         wsfuWaterCloset: wsfu.waterCloset,
         wsfuShower: wsfu.shower,

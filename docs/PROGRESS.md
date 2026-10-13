@@ -1540,7 +1540,13 @@ dinonaktifkan; pertanyaan wastafel jadi "total (termasuk di kamar mandi)"; kedal
       isian ukuran) sebelum tombol Susun; penegasan disimpan di `confirmedOutliers`, hitungan jalan, dan tabel Asumsi
       (layar + PDF) mencatat "Data di luar kewajaran, mohon diverifikasi: …". Lantai < 1 dan kedalaman < 0 dari teks
       ditolak. Tes U3
-- [ ] P20-03 Percakapan: parsing ukuran, tombol Susun (3b), wastafel total, sapaan, label PDAM / jenis instalasi
+- [x] P20-03 Percakapan. 3a: pasangan "N x M" pertama = bangunan, kecuali kata benda terakhir di klausanya
+      tanah/lahan (ukuran tanah) atau ruangan ("kamar mandi 2x3"); jumlah ruangan ("4 km 10x8") tidak dihitung pemilik.
+      3b akar masalah: CTA dikirim bersama kartu penyempurna dan wastafel kosong = 0 tanpa asumsi — kini tombol tetap
+      boleh ditekan, wastafel kosong memakai `HOUSE_BASINS_0` (tampil di tabel Asumsi bersama dapur/ukuran/sumur), tombol
+      Susun dan Simpan di giliran lama nonaktif. 3c: "Ada berapa wastafel total, termasuk yang di kamar mandi?". 3d:
+      sapaan menyebut air bersih sekaligus pembuangan (juga deskripsi diri untuk model). 3e: "PDAM" tetap huruf besar
+      di kalimat; pilihan jenis instalasi "Air bersih + pembuangan" (nama lama "Keduanya" tetap dibaca)
 - [ ] P20-04 BOQ 4a–4g
 - [ ] P20-05 Tekanan di meteran untuk pipa pengisi toren (5a tetap OQ-64)
 - [ ] P20-06 UI: huruf hilang saat mengetik cepat, opsi "Lebih dari X", teks tersembunyi di halaman tamu

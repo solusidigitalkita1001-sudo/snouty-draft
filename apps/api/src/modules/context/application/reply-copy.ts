@@ -13,7 +13,7 @@ import { DEFAULT_LOCALE, type Intent, type Locale } from '@snouty/shared-types';
 export const REPLY_COPY = {
   /** Sapaan atau di luar topik perpipaan — arahkan, jangan diam. */
   OUT_OF_SCOPE:
-    'Halo! Saya SNOUTY, asisten perencanaan pipa air bersih Pralon. Ceritakan bangunan dan kebutuhan airnya — misalnya jumlah lantai, kamar mandi, dan sumber airnya — atau tanyakan produk Pralon.',
+    'Halo! Saya SNOUTY dari Pralon, siap bantu merencanakan pipa air bersih sekaligus pembuangan untuk bangunan Anda. Ceritakan saja bangunannya — berapa lantai, berapa kamar mandi, dan airnya dari mana — atau tanyakan produk Pralon.',
   /** "Kenapa pipa utamanya 1 inci?" — dasar perhitungannya ada di solusi, bukan dikarang di sini. */
   EXPLANATION_REQUEST:
     'Dasar setiap angka ada di solusi: buka "Tampilkan detail teknis" untuk melihat aturan dan masukan yang dipakai. Bila ada yang terasa keliru, ubah kebutuhannya dan solusinya dihitung ulang.',
@@ -24,7 +24,7 @@ export const REPLY_COPY = {
 
 const REPLY_COPY_EN: Readonly<Record<RepliedIntent, string>> = {
   OUT_OF_SCOPE:
-    'Hello! I am SNOUTY, the Pralon clean-water piping planning assistant. Tell me about your building and its water needs — for example the number of floors, bathrooms, and the water source — or ask about Pralon products.',
+    'Hello! I am SNOUTY from Pralon, here to help plan both the clean-water and the drainage pipes for your building. Just tell me about it — how many floors, how many bathrooms, and where the water comes from — or ask about Pralon products.',
   EXPLANATION_REQUEST:
     'Every number in the solution has its basis: open "Show technical details" to see the rules and inputs used. If something looks off, change the requirement and the solution is recalculated.',
   CLARIFICATION_NEEDED:
@@ -37,10 +37,10 @@ const REPLY_COPY_EN: Readonly<Record<RepliedIntent, string>> = {
  * yang kosong — jadi tidak masuk `REPLY_COPY` yang berkunci intent.
  */
 export const OPENER_REPLY =
-  'Silakan, tanyakan saja. Saya bisa membantu merencanakan pipa untuk bangunan Anda — sebutkan jumlah lantai, kamar mandi, dan sumber airnya — atau menjawab pertanyaan tentang produk Pralon.';
+  'Silakan, tanyakan saja. Saya bisa membantu merencanakan pipa air bersih dan pembuangan untuk bangunan Anda — sebutkan jumlah lantai, kamar mandi, dan sumber airnya — atau menjawab pertanyaan tentang produk Pralon.';
 
 const OPENER_REPLY_EN =
-  'Go ahead and ask. I can help plan the piping for your building — tell me the number of floors, bathrooms, and the water source — or answer questions about Pralon products.';
+  'Go ahead and ask. I can help plan the clean-water and drainage pipes for your building — tell me the number of floors, bathrooms, and the water source — or answer questions about Pralon products.';
 
 export type RepliedIntent = keyof typeof REPLY_COPY;
 

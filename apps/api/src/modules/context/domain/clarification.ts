@@ -155,7 +155,8 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
   },
   'water.installationType': {
     question: 'Instalasi ini untuk apa?',
-    options: ['Air bersih', 'Pembuangan', 'Keduanya'],
+    // Label sama dengan panel dan laporan (review putaran 3, 3e); 'Keduanya' tetap dibaca dari kartu lama.
+    options: ['Air bersih', 'Pembuangan', 'Air bersih + pembuangan'],
   },
   'building.floors': {
     question: 'Bangunannya berapa lantai?',
@@ -178,7 +179,7 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
     options: ['0', '1', '2'],
   },
   'fixtures.basins': {
-    question: 'Ada berapa wastafel di luar kamar mandi?',
+    question: 'Ada berapa wastafel total, termasuk yang di kamar mandi?',
     options: ['0', '1', '2', '3'],
     inputs: countInputs({ id: 'Lebih dari 3', en: 'More than 3' }),
     inputValue: 'number',
@@ -251,7 +252,7 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'fixtures.bathrooms': 'How many bathrooms are there?',
   'building.dimensions': 'What are the building and land sizes (length × width)?',
   'fixtures.kitchens': 'How many kitchens are there?',
-  'fixtures.basins': 'How many wash basins outside the bathrooms?',
+  'fixtures.basins': 'How many wash basins in total, including those in the bathrooms?',
   'building.floorHeightM': 'What is the height of each floor (between 2 and 10 m)?',
   'fixtures.wudhuTaps': 'How many ablution taps are there (all ablution areas)?',
   'fixtures.wudhuAreas': 'How many ablution areas are the taps split over?',
@@ -268,6 +269,7 @@ const OPTION_LABEL_EN: Readonly<Record<string, string>> = {
   'Air bersih': 'Clean water',
   Pembuangan: 'Drainage',
   Keduanya: 'Both',
+  'Air bersih + pembuangan': 'Clean water + drainage',
   'Belum tahu': 'Not sure',
 };
 
@@ -376,6 +378,7 @@ const OPTION_VALUES: Readonly<
   'water.installationType': {
     'Air bersih': 'clean_water',
     Pembuangan: 'drainage',
+    'Air bersih + pembuangan': 'both',
     Keduanya: 'both',
   },
   // Batas atas rentang (tinggi angkat tidak kurang); "> 9 m" dihitung 10 m — OQ-66.
@@ -437,8 +440,9 @@ export function answerToUpdate(
     const value = template.inputValue === 'number' ? values['value'] : values;
     return value === undefined ? null : { path, value, source: 'user_stated' };
   }
-  if (!TEMPLATES[path]!.options.includes(answer.option)) return null;
+  // Nama lama sebuah pilihan (kartu yang terkirim sebelum labelnya diganti) tetap dikenali.
   const mapped = OPTION_VALUES[path]?.[answer.option];
+  if (!TEMPLATES[path]!.options.includes(answer.option) && mapped === undefined) return null;
   const value = mapped ?? (/^\d+$/.test(answer.option) ? Number(answer.option) : null);
   if (value === null) return null;
   return { path, value, source: 'user_stated' };

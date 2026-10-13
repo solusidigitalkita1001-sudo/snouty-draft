@@ -44,7 +44,7 @@ const SOURCE: readonly SelectOption[] = [
 const INSTALLATION: readonly SelectOption[] = [
   { value: 'clean_water', label: 'Air bersih' },
   { value: 'drainage', label: 'Pembuangan' },
-  { value: 'both', label: 'Keduanya' },
+  { value: 'both', label: 'Air bersih + pembuangan' },
 ];
 
 const BUILDING: readonly SelectOption[] = [

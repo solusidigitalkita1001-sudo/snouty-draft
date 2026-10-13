@@ -36,7 +36,12 @@ export const OPTION_ILLUSTRATIONS: Readonly<Record<string, OptionMap>> = {
     Pompa: 'pump',
     PDAM: 'meter',
   },
-  'water.installationType': { 'Air bersih': 'drop', Pembuangan: 'septic', Keduanya: 'house2' },
+  'water.installationType': {
+    'Air bersih': 'drop',
+    Pembuangan: 'septic',
+    'Air bersih + pembuangan': 'house2',
+    Keduanya: 'house2',
+  },
   // Kartu irigasi.
   'irrigation.source': {
     'Sungai / saluran': 'river',

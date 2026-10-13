@@ -112,27 +112,39 @@ const OBVIOUS = {
     return undefined;
   },
   /**
-   * Ukuran bangunan dan tanah ("rumah 8 x 15", "tanah 10x20 m", "luas bangunan 120 m2", "LT 200
-   * m2") — parser nilai bersatuan. Kata bendanya menentukan milik siapa angkanya: tanah/lahan/
-   * kavling → ukuran tanah (2026-10-12: dipisah dari bangunan), selain itu bangunan.
-   * Kata benda harus mendahului angkanya: "kamar mandi 2x3 meter" bukan ukuran rumah.
+   * Ukuran bangunan dan tanah ("rumah 8 x 15", "10x8", "tanah 10x20 m", "luas bangunan 120 m2",
+   * "LT 200 m2") — parser nilai bersatuan. Pasangan "N x M" pertama adalah bangunan, kecuali kata
+   * benda terakhir sebelum angkanya (dalam klausa yang sama) tanah/lahan/kavling → ukuran tanah,
+   * atau ruangan ("kamar mandi 2x3") → bukan ukuran rumah (review putaran 3, 3a).
    */
   plan: (m: string): Dimensions | undefined => {
     const decimal = (s: string) => Number(s.replace(',', '.'));
-    const isLand = (noun: string) =>
-      /^(?:lahan|lahannya|tanah|tanahnya|kavling|kaveling|plot|land|lt)$/i.test(noun);
     const out: Record<string, number> = {};
-    const sides =
-      /\b(rumah|rumahnya|bangunan|bangunannya|denah|ukuran|ukurannya|lahan|lahannya|tanah|tanahnya|kavling|kaveling|house|building|plot|land|size)\b[^\d\n]{0,20}(\d+(?:[.,]\d+)?)\s*(?:m\s*)?[x×]\s*(\d+(?:[.,]\d+)?)\s*(?:m\b|meter|metre)?/gi;
+    const sides = /(\d+(?:[.,]\d+)?)\s*(?:m\s*)?[x×]\s*(\d+(?:[.,]\d+)?)\s*(?:m\b|meter|metre)?/gi;
+    const owner =
+      /\b(?:(tanah|lahan|kavling|kaveling|plot|land|lt)|(kamar|km|wc|toilet|dapur|ruang|ruangan|bathroom|kitchen|room)|(rumah|bangunan|denah|house|building))(?:nya)?\b/gi;
+    let from = 0;
     for (const match of m.matchAll(sides)) {
-      const land = isLand(match[1]!);
-      const lengthM = decimal(match[2]!);
-      const widthM = decimal(match[3]!);
+      // Klausa sebelum angka: dari pasangan sebelumnya atau tanda baca terakhir.
+      const before = m.slice(from, match.index);
+      from = match.index + match[0].length;
+      const clause = before.split(/[,;\n]|\.\s/).at(-1) ?? '';
+      // "4 km 10x8": ruangan yang didahului angka adalah jumlah, bukan pemilik ukuran.
+      const nouns = [...clause.matchAll(owner)].filter(
+        (n) => n[2] === undefined || !/\d\s*$/.test(clause.slice(0, n.index)),
+      );
+      const last = nouns.at(-1);
+      if (last?.[2] !== undefined) continue; // ukuran ruangan
+      const land = last?.[1] !== undefined;
+      const lengthM = decimal(match[1]!);
+      const widthM = decimal(match[2]!);
       const max = land ? 1000 : 200;
       if (lengthM < 2 || widthM < 2 || lengthM > max || widthM > max) continue;
       const [l, w] = land ? ['landLengthM', 'landWidthM'] : ['lengthM', 'widthM'];
       if (out[l] === undefined) Object.assign(out, { [l]: lengthM, [w]: widthM });
     }
+    const isLand = (noun: string) =>
+      /^(?:lahan|lahannya|tanah|tanahnya|kavling|kaveling|plot|land|lt)$/i.test(noun);
     const area =
       /\b(luas|luasnya|area|lt|lb)\b\s*(tanah|tanahnya|lahan|bangunan|bangunannya|rumah|land|building)?[^\d\n]{0,25}(\d+(?:[.,]\d+)?)\s*(?:m2|m²|meter persegi|square met(?:er|re)s?|sqm)/gi;
     for (const match of m.matchAll(area)) {

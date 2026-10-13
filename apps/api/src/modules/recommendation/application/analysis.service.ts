@@ -495,7 +495,7 @@ export class AnalysisService {
       const drainage = computeHouseDrainage(
         {
           bathrooms: state.fixtures.bathrooms.value ?? 0,
-          basins: state.fixtures.basins.value ?? 0,
+          basins: solution.floorsPlan.reduce((n, f) => n + f.basins, 0),
           // Sama dengan sisi air bersih: dapur yang belum disebut dianggap satu (HOUSE_KITCHEN_1);
           // tempat ibadah tanpa dapur (WORSHIP_KITCHEN_0).
           kitchens: state.fixtures.kitchens.value ?? (isPublicRestroom(state) ? 0 : 1),
@@ -1372,7 +1372,7 @@ function solutionInputFrom(state: RequirementState): SolutionInput {
     buildingType: (state.building.type.value ?? 'residential') as SolutionInput['buildingType'],
     floors: state.building.floors.value ?? 1,
     bathrooms: state.fixtures.bathrooms.value ?? 0,
-    basins: state.fixtures.basins.value ?? 0,
+    basins: state.fixtures.basins.value,
     kitchens: state.fixtures.kitchens.value,
     // Tempat ibadah (Kelompok L): keran wudhu, tempat wudhu, urinoir — field lama boleh tidak ada.
     wudhuTaps: state.fixtures.wudhuTaps?.value ?? null,

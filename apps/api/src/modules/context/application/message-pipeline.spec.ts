@@ -849,3 +849,24 @@ describe('runUnderstanding — mutasi relatif (P16-12)', () => {
     expect(nextState.building.floors.value).toBe(2);
   });
 });
+
+describe('kalimat "sudah saya catat" (review putaran 3, 3e)', () => {
+  it('PDAM tetap huruf besar; jenis instalasi memakai label panel', async () => {
+    const { understoodReply } = await import('./message-pipeline.js');
+    const now = '2026-10-13T00:00:00.000Z';
+    const state = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(now),
+        [
+          { path: 'water.source', value: 'municipal', source: 'user_stated' },
+          { path: 'water.installationType', value: 'both', source: 'user_stated' },
+        ],
+        now,
+      ).state,
+    );
+    const text = understoodReply(state, 'clarification', 'id')!;
+    expect(text).toContain('PDAM');
+    expect(text).not.toContain('pdam');
+    expect(text).toContain('air bersih + pembuangan');
+  });
+});

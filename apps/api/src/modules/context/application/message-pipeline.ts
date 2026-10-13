@@ -537,7 +537,7 @@ export function understoodReply(
       continue;
     }
     if (typeof field.value === 'boolean') continue;
-    captured.push(requirementValueLabel(path, field.value, locale).toLowerCase());
+    captured.push(inSentence(requirementValueLabel(path, field.value, locale)));
   }
   if (captured.length === 0) return null;
   const summary = joinList(captured, locale);
@@ -561,6 +561,14 @@ export function understoodReply(
   return en
     ? `${opener} A few more things so the sizing is right:`
     : `${opener} Beberapa hal lagi supaya hitungannya pas:`;
+}
+
+/**
+ * Label nilai di tengah kalimat: huruf pertama kecil, singkatan tetap ("PDAM", bukan "pdam" —
+ * review putaran 3, 3e).
+ */
+function inSentence(label: string): string {
+  return /^[A-Z]{2}/.test(label) ? label : label.charAt(0).toLowerCase() + label.slice(1);
 }
 
 /** "a, b, dan c" / "a dan b" — daftar dalam kalimat, bukan deretan koma. */

@@ -7,13 +7,46 @@ describe('ukuran rumah dari teks (laporan pemilik 2026-10-12: "kurang parameter 
 
   it('panjang × lebar dan luas dibaca sebagai nilai bersatuan', () => {
     expect(dims('gw mau bikin rumah 8x15, 2 lantai')).toEqual({ lengthM: 8, widthM: 15 });
-    expect(dims('ukuran tanahnya 6 x 12 m')).toEqual({ lengthM: 6, widthM: 12 });
     expect(dims('luas bangunan 120 m2, 2 lantai')).toEqual({ areaM2: 120 });
   });
 
   it('ukuran ruangan bukan ukuran rumah; angka lantai bukan ukuran', () => {
     expect(dims('kamar mandi 2x3 meter, 3 kamar mandi')).toBeUndefined();
     expect(dims('rumah 2 lantai, 3 kamar mandi')).toBeUndefined();
+  });
+});
+
+describe('pasangan N x M (review putaran 3, 3a)', () => {
+  const dims = (message: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === 'building.dimensions')?.value;
+
+  it('tanpa label: pasangan pertama adalah bangunan', () => {
+    expect(dims('10x8')).toEqual({ lengthM: 10, widthM: 8 });
+    expect(dims('10 x 8 m')).toEqual({ lengthM: 10, widthM: 8 });
+    expect(dims('ukuran 10×8')).toEqual({ lengthM: 10, widthM: 8 });
+  });
+
+  it('bangunan dan tanah dalam satu kalimat', () => {
+    expect(dims('bangunan 10 x 8, tanah 20 x 10')).toEqual({
+      lengthM: 10,
+      widthM: 8,
+      landLengthM: 20,
+      landWidthM: 10,
+    });
+  });
+
+  it('didahului tanah/lahan → ukuran tanah', () => {
+    expect(dims('ukuran tanahnya 6 x 12 m')).toEqual({ landLengthM: 6, landWidthM: 12 });
+    expect(dims('lahan 15x8')).toEqual({ landLengthM: 15, landWidthM: 8 });
+  });
+
+  it('luas tanpa label adalah luas bangunan', () => {
+    expect(dims('luas 80 m2')).toEqual({ areaM2: 80 });
+  });
+
+  it('jumlah kamar mandi sebelum ukuran bukan ukuran ruangan', () => {
+    expect(dims('3 lantai, 4 km 10x8 m')).toEqual({ lengthM: 10, widthM: 8 });
+    expect(dims('kamar mandi 2x3 meter')).toBeUndefined();
   });
 });
 

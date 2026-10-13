@@ -740,6 +740,22 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description: 'Tiap bak cuci dapur dihitung 1 unit beban suplai.',
   },
   {
+    id: 'HOUSE_BASINS_0',
+    parameter: 'basins',
+    appliesTo: [],
+    condition: 'jumlah wastafel belum disebut',
+    value: 0,
+    unit: 'wastafel',
+    conditionEn: 'number of basins not given',
+    descriptionEn:
+      'No wash basins are counted until the number is given; each one adds a ½" outlet.',
+    reference: 'Pertanyaan wastafel tidak dijawab (review putaran 3, 3b): tidak dikarang, dicatat',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Wastafel belum dihitung sampai jumlahnya disebut; tiap wastafel menambah satu titik air ½".',
+  },
+  {
     id: 'HOUSE_KITCHEN_1',
     parameter: 'kitchens',
     appliesTo: [],

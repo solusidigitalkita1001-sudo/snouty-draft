@@ -223,3 +223,23 @@ describe('kedalaman sumur (review putaran 3, 1b)', () => {
     expect(isClarificationAnswerId('water.wellDepthM')).toBe(true);
   });
 });
+
+describe('label pilihan (review putaran 3, 3c/3e)', () => {
+  it('jenis instalasi memakai label yang sama dengan panel; nama lama tetap dibaca', () => {
+    expect(planClarification(['water.installationType'])!.questions[0]!.options).toEqual([
+      'Air bersih',
+      'Pembuangan',
+      'Air bersih + pembuangan',
+    ]);
+    for (const option of ['Air bersih + pembuangan', 'Keduanya']) {
+      expect(answerToUpdate({ id: 'water.installationType', option }, () => null)).toMatchObject({
+        value: 'both',
+      });
+    }
+  });
+
+  it('wastafel ditanya total, termasuk yang di kamar mandi', () => {
+    const [question] = houseRefinementQuestions((path) => path !== 'fixtures.basins');
+    expect(question!.question).toBe('Ada berapa wastafel total, termasuk yang di kamar mandi?');
+  });
+});

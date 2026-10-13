@@ -25,7 +25,7 @@ function layers(input: SolutionInput) {
   const s = computeSolution(input);
   const d = computeHouseDrainage({
     bathrooms: input.bathrooms,
-    basins: input.basins,
+    basins: input.basins ?? 0,
     kitchens: input.kitchens ?? 1,
     floors: s.floorsPlan.map((f) => ({
       bathrooms: f.bathrooms,

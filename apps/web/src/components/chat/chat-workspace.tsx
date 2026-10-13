@@ -2162,14 +2162,20 @@ function CardView({
     return (
       <div className={styles.ctaCard}>
         <span>Data inti sudah lengkap.</span>
-        <button type="button" className={styles.ctaButton} onClick={onAnalyze} disabled={analyzing}>
+        {/* Tombol di giliran lama nonaktif (review putaran 3, 3b): yang berlaku hanya giliran terakhir. */}
+        <button
+          type="button"
+          className={styles.ctaButton}
+          onClick={onAnalyze}
+          disabled={analyzing || !active}
+        >
           {analyzing ? 'Menganalisis…' : COPY.analyzeCta}
         </button>
         <button
           type="button"
           className={styles.chip}
           onClick={onSave}
-          disabled={saveState === 'saved'}
+          disabled={saveState === 'saved' || !active}
         >
           {saveState === 'saved' ? COPY.saved : COPY.saveSolution}
         </button>
