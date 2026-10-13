@@ -404,6 +404,16 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-64 — Tebal dinding resmi Pralon per kelas dan ukuran (review laporan 0015, P19-03)
+
+**Status:** menunggu tabel dari tim Pralon (keputusan pemilik 2026-10-13: tunggu tabel, jangan pakai
+angka SNI sebagai pengganti) · **Blocks:** diameter dalam per kelas (AW, D), seleksi ukuran cabang
+**Temuan review:** diameter dalam dihitung dengan SDR 26,5 untuk semua kelas
+(`PVC_AW_WALL_SDR`). Dengan tebal dinding AW sebenarnya, ID ½" bisa ±19 mm (di bawah syarat 20,1 mm)
+sehingga cabang tertentu bisa naik ke ¾".
+**Default sementara:** tetap SDR 26,5 sebagai ASUMSI yang tercatat; seleksi diulang begitu tabel resmi
+masuk, dan perubahan ukuran dicatat per kasus.
+
 ### OQ-63 — Jumlah fitting rumah per jalur (P18-01)
 
 **Status:** dipakai sebagai asumsi (keputusan pemilik 2026-10-13), menunggu pengesahan ahli Pralon ·

@@ -12,6 +12,7 @@ import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters
 import { gateEngineProvenance, type Provenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
 import { RuleInputError, type RuleVersion } from './rule.js';
+import { assertBalanced } from './consistency.js';
 import {
   DRAIN_SIZES,
   ENG_601,
@@ -169,6 +170,13 @@ export function computeHouseDrainage(
   const wasteFloors = floors
     .map((f) => f.bathrooms * dfu.shower + f.basins * dfu.lavatory + f.kitchens * dfu.kitchenSink)
     .filter((d) => d > 0);
+  // Beban per lantai wajib sama dengan beban total (laporan 0015); talang wudhu di luar lantai.
+  assertBalanced('beban air kotor (DFU) per lantai', load.soilDfu, soilFloors);
+  assertBalanced(
+    'beban air bekas (DFU) per lantai',
+    load.wasteDfu - (wudhuRows?.totalDfu ?? 0),
+    wasteFloors,
+  );
   // Hanya bangunan bertingkat: satu lantai mengalir langsung ke saluran bangunan (710.1(1)).
   const multiStorey = floors.length > 1;
   const branchStack = (perFloor: readonly number[]) =>

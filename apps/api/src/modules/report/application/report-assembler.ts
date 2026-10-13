@@ -14,7 +14,7 @@
  * memaksakan VERIFIED.
  */
 
-import { outdatedRules, rulesetStamp, stepFormula } from '@snouty/engineering';
+import { assertBalanced, outdatedRules, rulesetStamp, stepFormula } from '@snouty/engineering';
 import {
   DEFAULT_LOCALE,
   skuLines,
@@ -65,6 +65,16 @@ export interface AssembleReportInput {
 
 export function assembleReportPayload(input: AssembleReportInput): ReportPayload {
   const locale = input.locale ?? DEFAULT_LOCALE;
+  // Pagar terakhir (laporan 0015): sebaran per lantai di kebutuhan harus sama dengan totalnya.
+  for (const need of input.recommendation.needs ?? []) {
+    if (need.perFloor) {
+      assertBalanced(
+        `${need.kind} per lantai`,
+        need.count,
+        need.perFloor.map((f) => f.count),
+      );
+    }
+  }
   return {
     reportNumber: input.reportNumber,
     identity: input.identity,

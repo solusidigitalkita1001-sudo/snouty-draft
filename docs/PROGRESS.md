@@ -1490,6 +1490,27 @@ Keputusan pemilik 2026-10-13 (pilihan "Hitung fitting otomatis", usulan angka di
       berjumlah tanpa nama. Fitting tidak butuh ukuran rumah; panjang pipa, tee, dan reducer tetap butuh
       (regresi laporan 0002 diperbarui sesuai keputusan ini)
 
+## Phase 19 — Review laporan SNTY-2026-10-0015
+
+Review pemilik 2026-10-13 (5 kelompok, urut prioritas). Keputusan: sisa kamar mandi ke lantai atas, sisa
+wastafel ke lantai 1; sisa potong pipa 10% (bisa diubah); sok/stop kran/dop/lem sebagai "dihitung saat
+pemasangan"; tebal dinding resmi per kelas menunggu tabel Pralon (OQ-64).
+
+- [x] P19-01 [KRITIS] Satu sumber jumlah alat. Akar masalah: ENG-008 v1 memberi setiap lantai minimal 1 wastafel
+      (`Math.max(1, round(basins / floors))`) dan membulatkan kamar mandi per lantai, sehingga sebaran (cabang,
+      skema, DFU per lantai, kebutuhan bergambar) tidak sama dengan total (titik, WSFU, DFU total). ENG-008 v2
+      membagi rata dengan jumlah selalu sama dengan masukan; pemeriksaan keseimbangan di engine (per lantai,
+      Σ titik cabang, Σ WSFU cabang, Σ DFU per lantai) melempar `EngineConsistencyError` — analisis gagal tanpa
+      coba ulang dan tercatat di log; laporan menolak kebutuhan yang tidak seimbang. Sebaran tampil di tabel
+      asumsi. Tes: kasus 0015, 2 wastafel eksplisit, 1 lantai
+- [ ] P19-02 Teks, logika, dan transparansi asumsi (cabang air kotor minimal ukuran alat terbesar, lebar tanah di
+      kebutuhan, "2 ruang (4 titik)", produk tanpa jumlah tidak ikut hitungan ringkasan)
+- [ ] P19-03 Perhitungan teknis: cek kurva/tabel Hunter dan interpolasinya; ujung riser teratas elbow/reducer
+      bukan tee. Tebal dinding resmi per kelas → OQ-64 (menunggu tabel Pralon)
+- [ ] P19-04 BOQ: baris sok/stop kran/dop/lem "dihitung saat pemasangan"; sisa potong 10% di Dasar Perhitungan;
+      ventilasi air kotor di seksinya sendiri; struktur subjudul seragam
+- [ ] P19-05 Layout PDF: label terpotong, "PDAM PDAM", judul yatim (keep-with-next)
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

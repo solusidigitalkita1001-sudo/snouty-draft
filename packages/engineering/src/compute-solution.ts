@@ -48,6 +48,7 @@ import {
   type RouteBasis,
 } from './rules/group-k-house-supply.js';
 import type { RuleVersion } from './rule.js';
+import { assertBalanced } from './consistency.js';
 import { round1, round2 } from './units.js';
 import { PVC_INCH_SIZES } from './parameters/size-tables.js';
 
@@ -258,6 +259,28 @@ export function computeSolution(
     wsfuKitchenSink: wsfu.kitchenSink,
     wsfuUrinal: wsfu.urinal,
   });
+  // Satu sumber jumlah alat (laporan 0015): sebaran per lantai dan isi cabang wajib sama dengan total.
+  const perFloor = floorPlan.floorsPlan;
+  assertBalanced(
+    'kamar mandi per lantai',
+    input.bathrooms,
+    perFloor.map((f) => f.bathrooms),
+  );
+  assertBalanced(
+    'wastafel per lantai',
+    input.basins,
+    perFloor.map((f) => f.basins),
+  );
+  assertBalanced(
+    'dapur per lantai',
+    fixtures.kitchens,
+    perFloor.map((f) => f.kitchens),
+  );
+  assertBalanced(
+    'titik air per cabang',
+    load.outletCount,
+    branches.branches.map((b) => b.outlets),
+  );
   const connection = run(ENG_005, {});
   const velocity = run(ENG_010, {
     minMs: use('VELOCITY_MIN_SELF_CLEANING'),
@@ -293,6 +316,13 @@ export function computeSolution(
         wsfuLavatory: wsfu.lavatory,
         wsfuKitchenSink: wsfu.kitchenSink,
       });
+
+  // Beban cabang (Hunter) = beban total; keran wudhu dihitung terpisah sebagai debit serentak.
+  assertBalanced(
+    'beban suplai (WSFU) per cabang',
+    demand.wsfu,
+    branches.branches.map((b) => b.wsfu),
+  );
 
   // 3 · jalur dan beda tinggi
   const horizontalRunM =

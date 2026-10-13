@@ -6,7 +6,7 @@
  * bukan hanya lewat `WHERE` di repository (docs/SECURITY.md §4).
  */
 import { Body, Controller, Get, Optional, Param, Post, Put, Req, Res } from '@nestjs/common';
-import { CaseInputInvalidError, outdatedRules } from '@snouty/engineering';
+import { CaseInputInvalidError, EngineConsistencyError, outdatedRules } from '@snouty/engineering';
 import type { Response } from 'express';
 import type { AssistantStreamEvent } from '@snouty/shared-types';
 import { z } from 'zod';
@@ -97,12 +97,26 @@ export class RecommendationController {
         // Masukan kasus yang bertentangan bukan gangguan layanan: mengulang tidak akan menolong,
         // pengguna harus memperbaiki datanya (pertanyaannya sudah diajukan di chat).
         const invalid = error instanceof CaseInputInvalidError;
+        // Hasil hitung yang tidak seimbang (laporan 0015) adalah cacat, bukan gangguan sementara:
+        // tidak ditawarkan coba lagi, dan dicatat lengkap supaya bisa ditelusuri.
+        const inconsistent = error instanceof EngineConsistencyError;
+        if (inconsistent) {
+          this.log?.logger.error(
+            {
+              conversationId: id,
+              check: error.check,
+              expected: error.expected,
+              actual: error.actual,
+            },
+            'hasil hitung tidak seimbang',
+          );
+        }
         const code = invalid
           ? 'VALIDATION_FAILED'
           : error instanceof CatalogUnavailableError
             ? 'CATALOG_UNAVAILABLE'
             : 'SERVICE_UNAVAILABLE';
-        events = [{ type: 'error', code, retryable: !invalid }];
+        events = [{ type: 'error', code, retryable: !invalid && !inconsistent }];
         if (writer.started()) {
           writer.emit(events[0]!);
           res.end();

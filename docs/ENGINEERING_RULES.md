@@ -451,6 +451,10 @@ ENG-703  tekanan dari toren di titik tertinggi; < 0,3 bar → pompa pendorong / 
          PDAM: tekanan yang dibutuhkan di meteran = TDH; toren bawah/pompa: titik kerja pompa
 ENG-707  isi tiap cabang (laporan 0009): titik tiap lantai diisi ke cabang berurutan — kamar mandi
          (tidak dipisah), wastafel, bak cuci dapur — maks 4 titik; beban cabang = jumlah WSFU isinya
+ENG-008 v2 (laporan 0015): sebaran alat per lantai dibagi rata dan jumlahnya selalu sama dengan masukan;
+         sisa kamar mandi ke lantai teratas, sisa wastafel ke lantai 1, dapur di lantai 1. Engine
+         memeriksa keseimbangan (per lantai, Σ titik dan WSFU cabang, Σ DFU per lantai) dan melempar
+         EngineConsistencyError bila tidak seimbang.
 ENG-708  fitting air bersih (P18-01, keputusan pemilik 2026-10-13, OQ-63): elbow pipa utama
          FITTING_MAIN_ELBOWS_2; elbow pengisi toren FITTING_TANK_FILL_ELBOWS_2 (hanya toren atap
          dengan ukuran rumah); elbow per cabang FITTING_BRANCH_ELBOW_1 di ukuran cabangnya; elbow

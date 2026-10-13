@@ -59,9 +59,32 @@ export interface FloorPlanResult {
  * mengikuti prototipe. Itu pilihan gambar, bukan temuan teknik — dan karena itulah
  * seluruh keluarannya asumsi.
  */
+/**
+ * Bagi `total` ke `floors` lantai sama rata; sisanya satu-satu mulai dari lantai teratas
+ * (`'top'`) atau dari lantai 1 (`'bottom'`). Jumlahnya selalu sama dengan `total` — inilah yang
+ * dilanggar v1 (laporan SNTY-2026-10-0015: 1 wastafel di 2 lantai menjadi 2).
+ * Hasil urut dari lantai teratas, sama dengan `floorsPlan`.
+ */
+export function distributeAcrossFloors(
+  total: number,
+  floors: number,
+  remainderTo: 'top' | 'bottom',
+): readonly number[] {
+  const base = Math.floor(total / floors);
+  const remainder = total - base * floors;
+  return Array.from({ length: floors }, (_, k) => {
+    // k = 0 adalah lantai teratas.
+    const fromTop = remainderTo === 'top' ? k : floors - 1 - k;
+    return base + (fromTop < remainder ? 1 : 0);
+  });
+}
+
 export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
   ruleId: 'ENG-008',
-  version: 1,
+  // v2 (2026-10-13, laporan SNTY-2026-10-0015): jumlah per lantai selalu sama dengan masukan —
+  // v1 memberi setiap lantai minimal 1 wastafel dan membulatkan per lantai. Sisa kamar mandi ke
+  // lantai teratas, sisa wastafel ke lantai 1, dapur di lantai 1 (keputusan pemilik 2026-10-13).
+  version: 2,
   category: 'geometry',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -77,23 +100,22 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
     };
   },
   compute: (input) => {
-    const plan: FloorNode[] = [];
-    for (let floor = input.floors; floor >= 1; floor -= 1) {
-      const isTop = floor === input.floors;
-      plan.push({
+    const bathrooms = distributeAcrossFloors(input.bathrooms, input.floors, 'top');
+    const basins = distributeAcrossFloors(input.basins, input.floors, 'bottom');
+    const plan: FloorNode[] = bathrooms.map((count, k) => {
+      const floor = input.floors - k;
+      return {
         floor,
-        bathrooms: isTop
-          ? Math.ceil(input.bathrooms / input.floors)
-          : Math.floor(input.bathrooms / input.floors),
-        basins: input.basins > 0 ? Math.max(1, Math.round(input.basins / input.floors)) : 0,
-        // Dapur selalu di lantai 1 (prototipe).
+        bathrooms: count,
+        basins: basins[k]!,
         kitchens: floor === 1 ? input.kitchens : 0,
         elevationM: (floor - 1) * input.floorHeightM,
-      });
-    }
+      };
+    });
     return { floorsPlan: plan };
   },
-  sourceReference: 'Prototipe baru SNOUTY; heuristik gambar, bukan denah sebenarnya',
+  sourceReference:
+    'Sebaran perkiraan tanpa denah: dibagi rata per lantai; sisa kamar mandi ke lantai teratas, sisa wastafel ke lantai 1, dapur di lantai 1 (keputusan pemilik 2026-10-13)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -102,6 +124,27 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
       expected: {
         floorsPlan: [
           { floor: 2, bathrooms: 2, basins: 2, kitchens: 0, elevationM: 3.5 },
+          { floor: 1, bathrooms: 1, basins: 2, kitchens: 1, elevationM: 0 },
+        ],
+      },
+    },
+    {
+      name: 'laporan 0015: 2 lantai, 2 kamar mandi, 1 wastafel, 1 dapur → wastafel tetap satu, di lantai 1',
+      input: { floors: 2, bathrooms: 2, basins: 1, kitchens: 1, floorHeightM: 3.5 },
+      expected: {
+        floorsPlan: [
+          { floor: 2, bathrooms: 1, basins: 0, kitchens: 0, elevationM: 3.5 },
+          { floor: 1, bathrooms: 1, basins: 1, kitchens: 1, elevationM: 0 },
+        ],
+      },
+    },
+    {
+      name: '3 lantai, 5 kamar mandi, 4 wastafel → 2/2/1 kamar mandi dari atas, 1/1/2 wastafel',
+      input: { floors: 3, bathrooms: 5, basins: 4, kitchens: 1, floorHeightM: 3.5 },
+      expected: {
+        floorsPlan: [
+          { floor: 3, bathrooms: 2, basins: 1, kitchens: 0, elevationM: 7 },
+          { floor: 2, bathrooms: 2, basins: 1, kitchens: 0, elevationM: 3.5 },
           { floor: 1, bathrooms: 1, basins: 2, kitchens: 1, elevationM: 0 },
         ],
       },
@@ -117,10 +160,20 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
   explain: (input, output, locale) =>
     localized(locale, {
       id:
-        `Titik air disebar ke ${input.floors} lantai sebagai perkiraan gambar karena denahnya belum ada. ` +
+        `Titik air disebar ke ${input.floors} lantai karena denahnya belum ada: ${output.floorsPlan
+          .map(
+            (f) =>
+              `lantai ${f.floor} ${f.bathrooms} kamar mandi, ${f.basins} wastafel${f.kitchens > 0 ? `, ${f.kitchens} dapur` : ''}`,
+          )
+          .join('; ')} (sisa kamar mandi di lantai atas, sisa wastafel di lantai 1). ` +
         `Lantai teratas berada pada ${output.floorsPlan[0]?.elevationM ?? 0} meter dari lantai dasar.`,
       en:
-        `Water outlets are spread over ${input.floors} floors as a drawing estimate because the floor plan is not available yet. ` +
+        `Water outlets are spread over ${input.floors} floors because the floor plan is not available yet: ${output.floorsPlan
+          .map(
+            (f) =>
+              `floor ${f.floor} ${f.bathrooms} bathrooms, ${f.basins} basins${f.kitchens > 0 ? `, ${f.kitchens} kitchens` : ''}`,
+          )
+          .join('; ')} (extra bathrooms on the upper floor, extra basins on floor 1). ` +
         `The top floor is ${output.floorsPlan[0]?.elevationM ?? 0} meters above the ground floor.`,
     }),
 };

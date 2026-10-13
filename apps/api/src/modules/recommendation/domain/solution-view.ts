@@ -543,6 +543,16 @@ export function assumptionsFrom(
     });
   }
 
+  // Sebaran alat per lantai adalah perkiraan tanpa denah (ENG-008 v2, laporan 0015) — tampil
+  // sebagai asumsi supaya pembaca tahu kamar mandi dan wastafel mana yang dianggap di lantai mana.
+  if (solution.floorsPlan.length > 1 && traces.some((trace) => trace.ruleId === 'ENG-008')) {
+    fromRules.push({
+      text: explanationFor(traces, 'ENG-008'),
+      fieldPath: 'building.floors',
+      ruleId: 'ENG-008',
+    });
+  }
+
   if (solution.mainRunNetM === null) {
     fromRules.push({
       text: en

@@ -275,3 +275,4 @@ export { outdatedRules, rulesetStamp } from './ruleset.js';
 export type { RuleUse } from './ruleset.js';
 export { ASSUMPTION_CATEGORIES, assumptionCategory } from './parameters/assumption-category.js';
 export type { AssumptionCategory } from './parameters/assumption-category.js';
+export { EngineConsistencyError, assertBalanced } from './consistency.js';
