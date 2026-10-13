@@ -16,6 +16,7 @@
 import type { KeyValue } from './assistant-card.js';
 import type { Provenance } from './provenance.js';
 import type { ProductMatchState } from './catalog.js';
+import type { BuildingType } from './requirement.js';
 
 /** Lima statistik di layar 06. */
 export interface RecommendationStats {
@@ -242,6 +243,45 @@ export interface ComposedResponse {
   readonly missingData: readonly KeyValue[];
 }
 
+/**
+ * Satu butir kebutuhan di Ringkasan bergambar (DD-01 #1): apa yang dilayani instalasi ini, dari
+ * data hitungan engine — bukan dari teks percakapan. Teks dan gambarnya dipilih tampilan.
+ */
+export type NeedKind =
+  | 'building'
+  | 'bathroom'
+  | 'water_closet'
+  | 'basin'
+  | 'kitchen'
+  | 'urinal'
+  | 'wudhu_tap'
+  | 'rooftop_tank'
+  | 'ground_tank'
+  | 'municipal'
+  | 'well_pump'
+  | 'booster_pump'
+  | 'drainage';
+
+export interface SolutionNeed {
+  readonly kind: NeedKind;
+  readonly count: number;
+  /** Sebaran per lantai, lantai teratas lebih dulu (perkiraan engine bila denah belum ada). */
+  readonly perFloor?: readonly { readonly floor: number; readonly count: number }[];
+  /** Hanya `kind: 'building'`. */
+  readonly building?: {
+    readonly type: BuildingType;
+    readonly floors: number;
+    readonly floorHeightM: number;
+    readonly lengthM?: number;
+    readonly widthM?: number;
+  };
+  /** `booster_pump`: sisa tekanan di titik air tertinggi tanpa pompa. */
+  readonly residualBar?: number;
+  /** `drainage`: ukuran jalur air kotor dan air bekas. */
+  readonly soilSize?: string;
+  readonly wasteSize?: string;
+}
+
 export interface Recommendation {
   readonly id: string;
   readonly conversationId: string;
@@ -260,6 +300,8 @@ export interface Recommendation {
   /** Bagian tetap jawaban teknis (Fase 14 §28); hanya `kind: 'technical'`. */
   readonly composition?: ComposedResponse;
   readonly systemLines: readonly SystemLine[];
+  /** Kebutuhan bergambar di Ringkasan (DD-01 #1); hanya solusi bangunan yang dihitung sejak P17-04. */
+  readonly needs?: readonly SolutionNeed[];
   readonly products: readonly SelectedProduct[];
   readonly bom: readonly BomItem[];
   readonly assumptions: readonly Assumption[];

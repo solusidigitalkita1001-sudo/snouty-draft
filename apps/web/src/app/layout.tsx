@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
 import { THEME_INIT_SCRIPT } from '../components/theme-toggle';
 import { LOCALE_INIT_SCRIPT, LocaleProvider } from '../components/locale';
+import { IllustrationSprite } from '../components/illustration/illustration';
 import './globals.css';
 
 /**
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: LOCALE_INIT_SCRIPT }} />
       </head>
       <body>
+        <IllustrationSprite />
         <LocaleProvider>{children}</LocaleProvider>
       </body>
     </html>

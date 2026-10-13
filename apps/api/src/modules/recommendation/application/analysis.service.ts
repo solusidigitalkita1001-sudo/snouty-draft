@@ -41,6 +41,7 @@ import {
   computeSolution,
   type BuildingWaterInput,
   type FlowSchematicShape,
+  type HouseDrainageResult,
   type NetworkInput,
   type PondInput,
   type SolutionInput,
@@ -66,6 +67,7 @@ import {
 import { stockLengthOf, type StockLength } from '../domain/pipe-quantity.js';
 import { DRAINAGE_FAMILY, withHouseDrainage } from '../domain/house-drainage-view.js';
 import { mergeBomBySku } from '../domain/bom-merge.js';
+import { needsFrom } from '../domain/solution-needs.js';
 import {
   gravityAssumptionsFrom,
   gravityBomItemsFrom,
@@ -444,6 +446,7 @@ export class AnalysisService {
     const installation = state.water.installationType.value;
     let recommendation = assembled.recommendation;
     let allTraces = traces;
+    let drainageResult: HouseDrainageResult | null = null;
     if (installation === 'drainage' || installation === 'both') {
       const drainage = computeHouseDrainage(
         {
@@ -534,11 +537,13 @@ export class AnalysisService {
         },
       );
       allTraces = [...traces, ...drainageTraces];
+      drainageResult = drainage;
     }
     // Jumlah produk di ringkasan = daftar SKU yang sama dengan tab Produk dan material (TC-H-05).
     recommendation = withPrintedMaterialCount({
       ...recommendation,
       bom: mergeBomBySku(recommendation.bom),
+      needs: needsFrom(solutionInputFrom(state), solution, drainageResult),
     });
     await this.repository.save(saveReady(state, recommendation, allTraces, locale), allTraces, {
       proseSource: assembled.proseSource,

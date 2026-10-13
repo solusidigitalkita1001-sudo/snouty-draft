@@ -23,6 +23,7 @@ import {
 import { ASSUMPTION_CATEGORIES, assumptionCategory } from '@snouty/engineering';
 import { Fragment, useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
+import { NeedsBoard } from './needs-board';
 import { SchematicTab } from './schematic-tab';
 import { solutionCopy } from './solution-copy';
 import { useLocale } from '../locale';
@@ -81,6 +82,9 @@ export function SolutionView({
           <div className={styles.kicker}>{COPY.summaryKicker}</div>
           <h2 className={styles.headline}>{recommendation.headline}</h2>
           <p className={styles.body}>{recommendation.body}</p>
+          {recommendation.needs && recommendation.needs.length > 0 && (
+            <NeedsBoard needs={recommendation.needs} outletCount={stats.outletCount} />
+          )}
           {/* Rekomendasi dari aturan yang sudah diganti (temuan laporan SNTY-2026-10-0002). */}
           {recommendation.outdated && onRecompute && (
             <p className={styles.disclaimer} role="status">

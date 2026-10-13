@@ -10,6 +10,42 @@ import { pickCopy, type CopyShape } from '../copy';
 
 export const SOLUTION_COPY = {
   summaryKicker: 'RINGKASAN',
+  /** Ringkasan bergambar (DD-01 #1); angka dari `Recommendation.needs`. */
+  needs: {
+    title: 'Kebutuhan',
+    floors: 'Lantai',
+    labels: {
+      bathroom: 'Kamar mandi',
+      water_closet: 'Kloset',
+      basin: 'Wastafel',
+      kitchen: 'Bak cuci dapur',
+      urinal: 'Urinoir',
+      wudhu_tap: 'Keran wudhu',
+      rooftop_tank: 'Toren atap',
+      ground_tank: 'Toren bawah',
+      municipal: 'PDAM',
+      well_pump: 'Sumur + pompa',
+      booster_pump: 'Pompa pendorong',
+      drainage: 'Pembuangan',
+    },
+    buildingSize: (length: string, width: string) => `${length} × ${width} m`,
+    floorHeight: (height: string) => `${height} m per lantai`,
+    floorCount: (floor: number, count: number) => `Lantai ${floor}: ${count}`,
+    onFloor: (floor: number) => `Lantai ${floor}`,
+    perBathroom: 'Satu per kamar mandi',
+    rooftopTank: 'Di atas atap',
+    groundTank: 'Air dipompa ke atas',
+    municipal: 'Langsung dari meteran',
+    wellPump: 'Air dipompa dari sumur',
+    boosterNeeded: (bar: string) => `Perlu: tekanan di titik tertinggi hanya ${bar} bar`,
+    boosterNeededPlain: 'Perlu untuk tekanan di lantai atas',
+    boosterFlow: 'Menambah tekanan ke lantai atas',
+    drainageSizes: (soil: string, waste: string) => `Air kotor ${soil} · air bekas ${waste}`,
+    flowTitle: 'Alur air',
+    outlets: (count: number) => `${count} titik air`,
+    vent: 'Ventilasi',
+    ventCaption: 'Keluar di atas atap',
+  },
   statsLabels: {
     outletCount: 'Titik air',
     mainSize: 'Jalur utama',
@@ -146,6 +182,41 @@ export const SOLUTION_COPY = {
 
 export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
   summaryKicker: 'SUMMARY',
+  needs: {
+    title: 'What this serves',
+    floors: 'Floors',
+    labels: {
+      bathroom: 'Bathrooms',
+      water_closet: 'Toilets',
+      basin: 'Basins',
+      kitchen: 'Kitchen sinks',
+      urinal: 'Urinals',
+      wudhu_tap: 'Ablution taps',
+      rooftop_tank: 'Roof tank',
+      ground_tank: 'Ground tank',
+      municipal: 'Mains water',
+      well_pump: 'Well + pump',
+      booster_pump: 'Booster pump',
+      drainage: 'Drainage',
+    },
+    buildingSize: (length: string, width: string) => `${length} × ${width} m`,
+    floorHeight: (height: string) => `${height} m per floor`,
+    floorCount: (floor: number, count: number) => `Floor ${floor}: ${count}`,
+    onFloor: (floor: number) => `Floor ${floor}`,
+    perBathroom: 'One per bathroom',
+    rooftopTank: 'On the roof',
+    groundTank: 'Water is pumped up',
+    municipal: 'Straight from the meter',
+    wellPump: 'Water is pumped from the well',
+    boosterNeeded: (bar: string) => `Needed: only ${bar} bar at the highest outlet`,
+    boosterNeededPlain: 'Needed for pressure upstairs',
+    boosterFlow: 'Adds pressure for the upper floor',
+    drainageSizes: (soil: string, waste: string) => `Soil ${soil} · waste ${waste}`,
+    flowTitle: 'How the water runs',
+    outlets: (count: number) => `${count} outlets`,
+    vent: 'Vent',
+    ventCaption: 'Out above the roof',
+  },
   statsLabels: {
     outletCount: 'Outlets',
     mainSize: 'Main line',
@@ -269,6 +340,8 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
     fitting: 'Fitting',
   },
 };
+
+export type SolutionCopy = CopyShape<typeof SOLUTION_COPY>;
 
 export function solutionCopy(locale: Locale): CopyShape<typeof SOLUTION_COPY> {
   return pickCopy(locale, SOLUTION_COPY, SOLUTION_COPY_EN);

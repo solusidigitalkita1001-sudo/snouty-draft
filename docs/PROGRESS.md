@@ -1445,7 +1445,10 @@ Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
 - [x] P17-03 Tabel asumsi terklasifikasi (Bangunan · Isi ruangan · Sumber air · Panjang jalur · Teknik), kolom
       Asumsi · Nilai · Asal · Ubah; kategori diturunkan dari registry (asumsi → parameter → domain, `assumptionCategory`
       di engineering), bukan daftar; ubah-nilai di tempat tetap
-- [ ] P17-04 Pustaka ilustrasi (SVG, terang/gelap) + Ringkasan bergambar dan alur air
+- [x] P17-04 Pustaka ilustrasi `@snouty/ui/illustrations` (85 gambar kebutuhan/pilihan + 8 gambar produk, dibuat
+      dari mockup oleh `scripts/gen-illustrations.cjs`, warna token → terang/gelap) + Ringkasan bergambar: kartu
+      kebutuhan dan alur air dari `Recommendation.needs` (`needsFrom`, hasil engine; migration 0023 kolom `needs`).
+      Rekomendasi lama tanpa `needs` tetap tampil seperti sebelumnya
 - [ ] P17-05 Kartu pertanyaan bergambar untuk semua pilihan
 - [ ] P17-06 Foto produk dari pralon.com (disimpan lokal, dipetakan ke keluarga katalog). Foto diambil 2026-10-13
       (`data/catalog/images-pralon-com/`); foto D/VU/fitting diminta ke Pralon → OQ-62

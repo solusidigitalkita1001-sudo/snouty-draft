@@ -63,6 +63,8 @@ export const recommendations = mysqlTable(
     /** Bagian tetap jawaban teknis (`ComposedResponse`, 0018, Fase 14 §28); NULL selain `technical`. */
     composition: json('composition'),
     systemLines: json('system_lines').notNull(),
+    /** Kebutuhan bergambar di Ringkasan (P17-04, migration 0023); NULL untuk non-bangunan dan baris lama. */
+    needs: json('needs'),
     products: json('products').notNull(),
     bom: json('bom').notNull(),
     assumptions: json('assumptions').notNull(),

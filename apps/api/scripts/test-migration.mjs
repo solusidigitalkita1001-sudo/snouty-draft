@@ -115,8 +115,10 @@ const UP = [
   '0020_snapshot_subject_change.sql',
   '0021_uploads.sql',
   '0022_user_phone.sql',
+  '0023_recommendation_needs.sql',
 ];
 const DOWN = [
+  '0023_recommendation_needs.down.sql',
   '0022_user_phone.down.sql',
   '0021_uploads.down.sql',
   '0020_snapshot_subject_change.down.sql',

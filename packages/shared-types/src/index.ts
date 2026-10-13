@@ -97,6 +97,8 @@ export type {
   SystemRole,
   BomSystem,
   BomCalc,
+  NeedKind,
+  SolutionNeed,
 } from './recommendation.js';
 export { skuLines } from './recommendation.js';
 export { boqFrom } from './boq.js';
