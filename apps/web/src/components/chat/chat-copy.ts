@@ -224,6 +224,8 @@ export const CHAT_COPY = {
   /** Kartu klarifikasi: jawaban ditampung, dikirim sekali (keputusan pemilik 2026-10-06). */
   sendAnswers: 'Kirim jawaban',
   optionalInput: 'boleh dikosongkan',
+  /** Tombol yang membuka isian angka pada pertanyaan berpilihan dengan beberapa kelompok isian. */
+  enterOwn: 'Isi sendiri',
   clarifyFailed: 'Jawaban belum tersimpan. Coba lagi.',
   /** Tombol overlay analisis — hanya saat gagal (prototipe). */
   analysisRetry: 'Coba lagi',
@@ -437,6 +439,7 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   viewSolution: 'View solution',
   sendAnswers: 'Send answers',
   optionalInput: 'can be left empty',
+  enterOwn: 'Enter my own',
   clarifyFailed: 'Answers were not saved. Please try again.',
   analysisRetry: 'Try again',
   analysisBack: 'Back to conversation',

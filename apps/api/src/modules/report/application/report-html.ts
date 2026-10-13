@@ -345,7 +345,7 @@ export function renderReportHtml(payload: ReportPayload): string {
 <style>${CSS}${REPORT_V2_CSS}</style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">${illustrationSpriteContent()}</svg>
+<svg width="0" height="0" style="position:absolute;display:none" aria-hidden="true">${illustrationSpriteContent()}</svg>
 ${sections(payload, t)}
 <script type="text/plain" id="snouty-pdf-footer">${footerTemplate(payload, t)}</script>
 </body>

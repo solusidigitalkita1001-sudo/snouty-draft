@@ -354,6 +354,9 @@ export function ChatWorkspace() {
     async (raw: string) => {
       const text = raw.trim();
       if (!text || sending) return;
+      // Draf dikosongkan SEBELUM menunggu jaringan (review putaran 3, 6a): dulu dikosongkan setelah
+      // percakapan pertama dibuat, jadi huruf yang diketik selama menunggu ikut terhapus.
+      setDraft('');
       // Lanjutan dari layar solusi ("LANJUTKAN PERCAKAPAN") kembali ke aliran chat.
       setScreen('chat');
 
@@ -366,12 +369,13 @@ export function ChatWorkspace() {
           setConversationId(id);
         } catch {
           setError(COPY.llmUnavailable);
+          // Pesan yang gagal terkirim kembali ke kolom ketik, kecuali pengguna sudah mengetik lagi.
+          setDraft((current) => (current === '' ? text : current));
           return;
         }
       }
       const activeId = id;
 
-      setDraft('');
       setError(null);
       setStages({});
       setSending(true);
@@ -1864,7 +1868,7 @@ function AnalysisOverlay({
  * 2026-10-06). Satu pertanyaan saja (bentuk tunggal prototipe) tetap langsung terkirim.
  * Kartu yang bukan giliran terakhir terkunci: tetap terbaca, tidak bisa diklik.
  */
-function ClarificationCard({
+export function ClarificationCard({
   questions,
   active,
   onSubmit,
@@ -1875,15 +1879,57 @@ function ClarificationCard({
 }) {
   const COPY = useChatCopy();
   const [picked, setPicked] = useState<Readonly<Record<string, string>>>({});
+  // Pertanyaan berpilihan + isian ("Lebih dari 4"): isiannya baru tampil setelah tombolnya dipilih
+  // (review putaran 3, 6b). Pertanyaan yang hanya berisian (ukuran) menampilkannya langsung.
+  const [expanded, setExpanded] = useState<Readonly<Record<string, boolean>>>({});
+  const revealable = (q: ClarificationQuestion) => q.inputs !== undefined && q.options.length > 0;
+  const revealLabel = (q: ClarificationQuestion) => {
+    const groups = [...new Set((q.inputs ?? []).map((input) => input.group))];
+    return groups.length === 1 ? groups[0]! : COPY.enterOwn;
+  };
+  const reveal = (question: ClarificationQuestion) => {
+    if (!active) return;
+    setExpanded((previous) => ({ ...previous, [question.id]: true }));
+    setPicked((previous) => {
+      const next = { ...previous };
+      delete next[question.id];
+      return next;
+    });
+  };
   // Pertanyaan berisian (ukuran) tidak terkirim dengan sekali klik: selalu lewat tombol kirim.
   const single = questions.length === 1 && questions[0]!.inputs === undefined;
   const complete = questions.every((q) => picked[q.id] !== undefined);
 
   const choose = (question: ClarificationQuestion, option: string) => {
     if (!active) return;
+    setExpanded((previous) => ({ ...previous, [question.id]: false }));
     setPicked((previous) => ({ ...previous, [question.id]: option }));
     if (single) onSubmit([{ id: question.id, option }]);
   };
+
+  const renderChip = (question: ClarificationQuestion, option: string, label: string) => {
+    // Pilihan bergambar (P17-05): gambar dari id pertanyaan + nilai protokolnya.
+    const image = optionIllustration(question.id, option, UNKNOWN_OPTION);
+    return (
+      <button
+        key={option}
+        type="button"
+        className={[
+          styles.chip,
+          image ? styles.chipPicture : '',
+          picked[question.id] === option ? styles.chipSelected : '',
+        ].join(' ')}
+        aria-pressed={picked[question.id] === option}
+        disabled={!active}
+        onClick={() => choose(question, option)}
+      >
+        {image && <SceneImage name={image} className={styles.chipImage} />}
+        {/* Nilai chip = protokol (label Indonesia kanonik); yang tampil label bahasa percakapan. */}
+        <span>{label}</span>
+      </button>
+    );
+  };
+
   const submit = () => {
     if (!active || !complete) return;
     onSubmit(questions.map((q) => ({ id: q.id, option: picked[q.id]! })));
@@ -1903,10 +1949,38 @@ function ClarificationCard({
             <span className={styles.questionNum}>{String(index + 1).padStart(2, '0')}</span>
             <span className={styles.questionText}>{question.question}</span>
           </div>
-          {question.inputs && (
+          <div
+            className={[
+              styles.chips,
+              hasOptionIllustrations(question.id) ? styles.chipsPictured : '',
+            ].join(' ')}
+            role="group"
+            aria-label={question.question}
+          >
+            {question.options.map((option, optionIndex) =>
+              renderChip(question, option, question.optionLabels?.[optionIndex] ?? option),
+            )}
+            {revealable(question) && (
+              <button
+                type="button"
+                className={[styles.chip, expanded[question.id] ? styles.chipSelected : ''].join(
+                  ' ',
+                )}
+                aria-pressed={expanded[question.id] === true}
+                disabled={!active}
+                onClick={() => reveal(question)}
+              >
+                <span>{revealLabel(question)}</span>
+              </button>
+            )}
+            {question.allowUnknown && renderChip(question, UNKNOWN_OPTION, COPY.unknownOption)}
+          </div>
+          {question.inputs && (!revealable(question) || expanded[question.id]) && (
             <MeasureInputs
               question={question}
               active={active}
+              // Satu kelompok di balik tombolnya: nama kelompok sudah tertulis di tombol.
+              hideSingleGroupLabel={revealable(question)}
               onChange={(option) =>
                 setPicked((previous) => {
                   const next = { ...previous };
@@ -1917,44 +1991,6 @@ function ClarificationCard({
               }
             />
           )}
-          <div
-            className={[
-              styles.chips,
-              hasOptionIllustrations(question.id) ? styles.chipsPictured : '',
-            ].join(' ')}
-            role="group"
-            aria-label={question.question}
-          >
-            {[...question.options, ...(question.allowUnknown ? [UNKNOWN_OPTION] : [])].map(
-              (option, optionIndex) => {
-                // Pilihan bergambar (P17-05): gambar dari id pertanyaan + nilai protokolnya.
-                const image = optionIllustration(question.id, option, UNKNOWN_OPTION);
-                return (
-                  <button
-                    key={option}
-                    type="button"
-                    className={[
-                      styles.chip,
-                      image ? styles.chipPicture : '',
-                      picked[question.id] === option ? styles.chipSelected : '',
-                    ].join(' ')}
-                    aria-pressed={picked[question.id] === option}
-                    disabled={!active}
-                    onClick={() => choose(question, option)}
-                  >
-                    {image && <SceneImage name={image} className={styles.chipImage} />}
-                    {/* Nilai chip = protokol (label Indonesia kanonik); yang tampil label
-                        bahasa percakapan dari API, "Belum tahu" dari copy bahasa aktif. */}
-                    <span>
-                      {option === UNKNOWN_OPTION
-                        ? COPY.unknownOption
-                        : (question.optionLabels?.[optionIndex] ?? option)}
-                    </span>
-                  </button>
-                );
-              },
-            )}
-          </div>
         </div>
       ))}
       {!single && (
@@ -1989,10 +2025,12 @@ function MeasureInputs({
   question,
   active,
   onChange,
+  hideSingleGroupLabel = false,
 }: {
   question: ClarificationQuestion;
   active: boolean;
   onChange: (option: string | null) => void;
+  hideSingleGroupLabel?: boolean;
 }) {
   const COPY = useChatCopy();
   const inputs = question.inputs ?? [];
@@ -2034,10 +2072,14 @@ function MeasureInputs({
         const optional = members.every((input) => !input.required);
         return (
           <div key={group} className={styles.measureRow}>
-            <span className={styles.measureGroup}>
-              {group}
-              {optional && <span className={styles.measureOptional}> ({COPY.optionalInput})</span>}
-            </span>
+            {!(hideSingleGroupLabel && groups.length === 1) && (
+              <span className={styles.measureGroup}>
+                {group}
+                {optional && (
+                  <span className={styles.measureOptional}> ({COPY.optionalInput})</span>
+                )}
+              </span>
+            )}
             {members.map((input, index) => (
               <span key={input.key} className={styles.measureField}>
                 {index > 0 && <span aria-hidden="true">×</span>}

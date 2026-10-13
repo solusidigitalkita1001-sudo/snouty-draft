@@ -22,7 +22,9 @@ export function IllustrationSprite() {
       aria-hidden="true"
       width="0"
       height="0"
-      style={{ position: 'absolute' }}
+      // display:none (review putaran 3, 6c): label di dalam simbol ("KOS", "HOTEL", "0 %") dulu ikut
+      // terbaca sebagai teks halaman. Simbol tetap bisa dipakai lewat <use>; sprite tanpa gradien.
+      style={{ position: 'absolute', display: 'none' }}
       dangerouslySetInnerHTML={{ __html: illustrationSpriteContent() }}
     />
   );

@@ -1557,7 +1557,11 @@ dinonaktifkan; pertanyaan wastafel jadi "total (termasuk di kamar mandi)"; kedal
 - [x] P20-05 Tekanan di meteran untuk pipa pengisi toren: ENG-710 baru (muka air toren + gesek Hazen-Williams + 10%
       sambungan pada debit pengisian `TANK_FILL_FLOW_0_25LS`, diameter dalam dari SDR yang berlaku), tampil sebagai
       baris sistem "Tekanan untuk mengisi toren" dengan langkah hitungnya. 5a (ID per kelas) tetap OQ-64
-- [ ] P20-06 UI: huruf hilang saat mengetik cepat, opsi "Lebih dari X", teks tersembunyi di halaman tamu
+- [x] P20-06 UI. 6a akar masalah: pesan pertama mengosongkan draf SETELAH menunggu pembuatan percakapan, jadi
+      huruf yang diketik selama menunggu ikut terhapus — kini dikosongkan sebelum menunggu, dan dikembalikan bila
+      gagal terkirim. 6b: tombol "Lebih dari X" (atau "Isi sendiri") setelah pilihan angka, isian Jumlah baru tampil
+      setelah dipilih. 6c: sprite ilustrasi `display:none` — label simbol ("KOS", "HOTEL", "0 %", "semua
+      sekaligus?") dulu terbaca sebagai teks halaman; gambar tidak berubah (dicek tangkapan layar)
 
 ## Design Coverage
 
