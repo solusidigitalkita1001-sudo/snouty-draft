@@ -1445,11 +1445,16 @@ Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
 - [x] P17-03 Tabel asumsi terklasifikasi (Bangunan · Isi ruangan · Sumber air · Panjang jalur · Teknik), kolom
       Asumsi · Nilai · Asal · Ubah; kategori diturunkan dari registry (asumsi → parameter → domain, `assumptionCategory`
       di engineering), bukan daftar; ubah-nilai di tempat tetap
-- [x] P17-04 Pustaka ilustrasi `@snouty/ui/illustrations` (85 gambar kebutuhan/pilihan + 8 gambar produk, dibuat
+- [x] P17-04 (+ tata letak 2026-10-13: gambar bangunan di samping judul, kebutuhan menempel, alur air kartu sendiri)
+      Pustaka ilustrasi `@snouty/ui/illustrations` (85 gambar kebutuhan/pilihan + 8 gambar produk, dibuat
       dari mockup oleh `scripts/gen-illustrations.cjs`, warna token → terang/gelap) + Ringkasan bergambar: kartu
       kebutuhan dan alur air dari `Recommendation.needs` (`needsFrom`, hasil engine; migration 0023 kolom `needs`).
       Rekomendasi lama tanpa `needs` tetap tampil seperti sebelumnya
-- [ ] P17-05 Kartu pertanyaan bergambar untuk semua pilihan
+- [x] P17-05 Kartu pertanyaan bergambar: pilihan sumber air, jenis instalasi, irigasi, dan semua parameter enum
+      registry (proyek, bangunan, tujuan, cairan, lokasi/cara pasang, kontur, bentuk lahan, metode irigasi, tanaman,
+      pemakaian, buangan air hujan, beban jalan, tanah) tampil sebagai ubin bergambar; peta = data (id pertanyaan +
+      nilai protokol), dites cocok penuh dengan registry. Pilihan angka dan ya/tidak tetap chip teks. Bahan pipa
+      menunggu gambar produk (P17-06)
 - [ ] P17-06 Foto produk dari pralon.com (disimpan lokal, dipetakan ke keluarga katalog). Foto diambil 2026-10-13
       (`data/catalog/images-pralon-com/`); foto D/VU/fitting diminta ke Pralon → OQ-62
 - [ ] P17-07 Denah: potongan instalasi + denah jalur per lantai

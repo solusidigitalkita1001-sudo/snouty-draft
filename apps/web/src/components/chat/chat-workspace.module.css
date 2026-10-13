@@ -433,6 +433,32 @@
   color: var(--snouty-action-text);
 }
 
+/* Pilihan bergambar (P17-05): ubin dengan gambar di atas label. */
+.chipsPictured {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px;
+}
+
+.chipPicture {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border-radius: 8px;
+  padding: 8px 6px 9px;
+  background: var(--snouty-surface-subtle);
+  font-size: 12.5px;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.chipImage {
+  width: 76px;
+  height: 63px;
+  flex: none;
+}
+
 /* Chip terpilih: jawaban ditampung dulu, dikirim sekali lewat "Kirim jawaban". */
 .chipSelected,
 .chipSelected:disabled {

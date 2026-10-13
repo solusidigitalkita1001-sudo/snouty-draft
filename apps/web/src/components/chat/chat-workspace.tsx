@@ -63,6 +63,8 @@ import { gateHref, parseResume } from '../auth/resume-link';
 import { chatCopy, STAGE_ORDER, stageLabel } from './chat-copy';
 import { MISSING, requirementRows, sizePatch } from './requirement-rows';
 import styles from './chat-workspace.module.css';
+import { hasOptionIllustrations, optionIllustration } from './option-illustrations';
+import { SceneImage } from '../illustration/illustration';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
 function useChatCopy() {
@@ -1915,27 +1917,42 @@ function ClarificationCard({
               }
             />
           )}
-          <div className={styles.chips} role="group" aria-label={question.question}>
+          <div
+            className={[
+              styles.chips,
+              hasOptionIllustrations(question.id) ? styles.chipsPictured : '',
+            ].join(' ')}
+            role="group"
+            aria-label={question.question}
+          >
             {[...question.options, ...(question.allowUnknown ? [UNKNOWN_OPTION] : [])].map(
-              (option, optionIndex) => (
-                <button
-                  key={option}
-                  type="button"
-                  className={[
-                    styles.chip,
-                    picked[question.id] === option ? styles.chipSelected : '',
-                  ].join(' ')}
-                  aria-pressed={picked[question.id] === option}
-                  disabled={!active}
-                  onClick={() => choose(question, option)}
-                >
-                  {/* Nilai chip = protokol (label Indonesia kanonik); yang tampil label
-                      bahasa percakapan dari API, "Belum tahu" dari copy bahasa aktif. */}
-                  {option === UNKNOWN_OPTION
-                    ? COPY.unknownOption
-                    : (question.optionLabels?.[optionIndex] ?? option)}
-                </button>
-              ),
+              (option, optionIndex) => {
+                // Pilihan bergambar (P17-05): gambar dari id pertanyaan + nilai protokolnya.
+                const image = optionIllustration(question.id, option, UNKNOWN_OPTION);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    className={[
+                      styles.chip,
+                      image ? styles.chipPicture : '',
+                      picked[question.id] === option ? styles.chipSelected : '',
+                    ].join(' ')}
+                    aria-pressed={picked[question.id] === option}
+                    disabled={!active}
+                    onClick={() => choose(question, option)}
+                  >
+                    {image && <SceneImage name={image} className={styles.chipImage} />}
+                    {/* Nilai chip = protokol (label Indonesia kanonik); yang tampil label
+                        bahasa percakapan dari API, "Belum tahu" dari copy bahasa aktif. */}
+                    <span>
+                      {option === UNKNOWN_OPTION
+                        ? COPY.unknownOption
+                        : (question.optionLabels?.[optionIndex] ?? option)}
+                    </span>
+                  </button>
+                );
+              },
             )}
           </div>
         </div>
