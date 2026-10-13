@@ -709,3 +709,11 @@ describe('kebutuhan tercatat memuat setiap masukan hitungan (review laporan 0015
     );
   });
 });
+
+describe('tata letak cetak (review laporan 0015)', () => {
+  it('judul tidak yatim: subjudul menempel isi berikutnya; "Langkah berikutnya" satu blok', () => {
+    const html = renderReportHtml(assembleReportPayload(INPUT));
+    expect(html).toMatch(/\.subhead \{[^}]*break-after: avoid/);
+    expect(html).toMatch(/<div class="keep">\s*<h3 class="subhead">Langkah berikutnya<\/h3>/);
+  });
+});

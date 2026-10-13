@@ -643,8 +643,10 @@ function closingSection(p: ReportPayload, t: ReportCopy, n: number): string {
       .join('\n    ')}
   </table>
 
+  <div class="keep">
   <h3 class="subhead">${t.nextStepsTitle}</h3>
   <p class="bodytext">${t.nextSteps}</p>
+  </div>
 
   <table class="signature">
     <tr>
@@ -819,7 +821,11 @@ section.page:last-of-type { page-break-after: auto; }
 .section-rule { width: 12mm; height: 1mm; background: ${C['snouty-action']}; border-radius: 1mm; }
 .section-meta { text-align: right; font-size: 8.5pt; color: ${C['snouty-caption']}; }
 .section-meta strong { display: block; color: ${C['snouty-ink']}; font-size: 9.5pt; margin-bottom: 0.8mm; }
-.subhead { font-size: 10.5pt; font-weight: 700; margin: 6mm 0 2.5mm; }
+.subhead { font-size: 10.5pt; font-weight: 700; margin: 6mm 0 2.5mm; break-after: avoid; page-break-after: avoid; }
+/* Judul tidak pernah yatim di bawah halaman (review laporan 0015): judul + isi pertamanya satu blok. */
+.keep { break-inside: avoid; page-break-inside: avoid; }
+h2, h3 { break-after: avoid; page-break-after: avoid; }
+tr, .r-need, .r-product { break-inside: avoid; }
 
 /* ── Kotak ringkasan ── */
 .lead { border-left: 1.2mm solid ${C['snouty-action']}; padding: 1mm 0 1mm 5mm; break-inside: avoid; }

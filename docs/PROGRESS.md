@@ -1515,7 +1515,9 @@ pemasangan"; tebal dinding resmi per kelas menunggu tabel Pralon (OQ-64).
       tertulis di Dasar Perhitungan; sok, dop, stop kran, lem PVC tampil "dihitung saat pemasangan" (`BomItem.pending`);
       penggabungan SKU per sistem sehingga ventilasi air kotor 2" tidak masuk seksi air bekas; subjudul Pipa/Fitting
       selalu ada di setiap seksi (layar + PDF)
-- [ ] P19-05 Layout PDF: label terpotong, "PDAM PDAM", judul yatim (keep-with-next)
+- [x] P19-05 Layout PDF: label septic di potongan rata kanan di dalam gambar (tidak terpotong); tulisan "PDAM" di gambar
+      meteran dihapus (tidak dobel dengan labelnya); subjudul `break-after: avoid` dan blok "Langkah berikutnya" tidak
+      terpisah (tidak yatim). Kasus 0015 dibuat ulang lokal dan diperiksa per halaman (ringkasan, denah, BOQ)
 
 ## Design Coverage
 

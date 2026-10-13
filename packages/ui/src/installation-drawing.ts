@@ -356,7 +356,8 @@ export function sectionSvg(input: DrawingInput, copy: DrawingCopy): string {
     out.push(
       `<rect x="852" y="${groundY + 16}" width="40" height="46" rx="4" fill="var(--snouty-border)" stroke="${SOIL}"/>`,
     );
-    out.push(textEl(872, groundY + 78, copy.septic, { size: 10, anchor: 'middle' }));
+    // Rata kanan di dalam bidang gambar — label di tengah kotak terpotong tepi kanan (review 0015).
+    out.push(textEl(W - 4, groundY + 78, copy.septic, { size: 10, anchor: 'end' }));
   }
 
   // Panjang bangunan di bawah.

@@ -136,3 +136,13 @@ describe('sectionSvg / floorPlanSvg', () => {
     expect(evil).toContain('&lt;script&gt;');
   });
 });
+
+describe('label tidak terpotong (review laporan 0015)', () => {
+  it('label septic rata kanan di dalam bidang gambar', () => {
+    const svg = sectionSvg(drawingInputFrom(NEEDS)!, COPY);
+    const width = Number(/viewBox="0 0 (\d+)/.exec(svg)![1]);
+    const septic = /<text x="([\d.]+)"[^>]*text-anchor="end"[^>]*>Septic<\/text>/.exec(svg);
+    expect(septic).not.toBeNull();
+    expect(Number(septic![1])).toBeLessThanOrEqual(width);
+  });
+});
