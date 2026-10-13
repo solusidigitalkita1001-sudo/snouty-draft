@@ -157,3 +157,28 @@ export function flowSteps(
   }
   return steps;
 }
+
+export interface BuildingSummary {
+  readonly image: SceneIllustration;
+  /** "Rumah tinggal · 2 lantai · 8 × 15 m · 3,5 m per lantai". */
+  readonly meta: string;
+}
+
+/** Gambar dan satu baris data bangunan untuk kepala ringkasan; `null` tanpa butir bangunan. */
+export function buildingSummary(
+  needs: readonly SolutionNeed[],
+  copy: SolutionCopy['needs'],
+  locale: string,
+): BuildingSummary | null {
+  const need = needs.find((n) => n.kind === 'building');
+  const building = need?.building;
+  if (!need || !building) return null;
+  const parts = [copy.buildingTypes[building.type], copy.floorsCount(building.floors)];
+  if (building.lengthM !== undefined && building.widthM !== undefined) {
+    parts.push(
+      copy.buildingSize(decimal(building.lengthM, locale), decimal(building.widthM, locale)),
+    );
+  }
+  parts.push(copy.floorHeight(decimal(building.floorHeightM, locale)));
+  return { image: buildingImage(need), meta: parts.join(' · ') };
+}

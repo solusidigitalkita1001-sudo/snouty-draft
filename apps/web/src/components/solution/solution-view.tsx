@@ -23,7 +23,7 @@ import {
 import { ASSUMPTION_CATEGORIES, assumptionCategory } from '@snouty/engineering';
 import { Fragment, useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
-import { NeedsBoard } from './needs-board';
+import { NeedsGrid, SummaryHero, WaterFlowCard } from './needs-board';
 import { SchematicTab } from './schematic-tab';
 import { solutionCopy } from './solution-copy';
 import { useLocale } from '../locale';
@@ -62,6 +62,8 @@ export function SolutionView({
   // Satu daftar untuk tab Produk dan material (TC-H-05, DD-01 #4).
   const boq = boqFrom(recommendation);
   const { stats } = recommendation;
+  // Rekomendasi sebelum P17-04 tidak punya kebutuhan bergambar; ringkasannya tetap seperti dulu.
+  const needs = recommendation.needs ?? [];
   const on = (which: SolutionTab) => tab === undefined || tab === which;
   // Semua jenis solusi punya skema: bangunan (lantai per lantai) atau aliran (kasus teknis, irigasi).
   const hasSchematic = true;
@@ -79,11 +81,22 @@ export function SolutionView({
 
       {on('ringkasan') && (
         <section className={styles.card}>
-          <div className={styles.kicker}>{COPY.summaryKicker}</div>
-          <h2 className={styles.headline}>{recommendation.headline}</h2>
-          <p className={styles.body}>{recommendation.body}</p>
-          {recommendation.needs && recommendation.needs.length > 0 && (
-            <NeedsBoard needs={recommendation.needs} outletCount={stats.outletCount} />
+          {needs.length > 0 ? (
+            <>
+              <SummaryHero
+                needs={needs}
+                kicker={COPY.summaryKicker}
+                headline={recommendation.headline}
+                body={recommendation.body}
+              />
+              <NeedsGrid needs={needs} />
+            </>
+          ) : (
+            <>
+              <div className={styles.kicker}>{COPY.summaryKicker}</div>
+              <h2 className={styles.headline}>{recommendation.headline}</h2>
+              <p className={styles.body}>{recommendation.body}</p>
+            </>
           )}
           {/* Rekomendasi dari aturan yang sudah diganti (temuan laporan SNTY-2026-10-0002). */}
           {recommendation.outdated && onRecompute && (
@@ -156,6 +169,10 @@ export function SolutionView({
             )}
           </div>
         </section>
+      )}
+
+      {on('ringkasan') && needs.length > 0 && (
+        <WaterFlowCard needs={needs} outletCount={stats.outletCount} />
       )}
 
       {on('ringkasan') && (

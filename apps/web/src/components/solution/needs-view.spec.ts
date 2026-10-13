@@ -1,7 +1,7 @@
 /** P17-04 (DD-01 #1): gambar dan keterangan kebutuhan dari `Recommendation.needs`. */
 import type { BuildingType, SolutionNeed } from '@snouty/shared-types';
 import { describe, expect, it } from 'vitest';
-import { flowSteps, needCards } from './needs-view';
+import { buildingSummary, flowSteps, needCards } from './needs-view';
 import { solutionCopy } from './solution-copy';
 
 const copy = solutionCopy('id').needs;
@@ -88,5 +88,15 @@ describe('flowSteps', () => {
       'rooftop_tank',
       'building',
     ]);
+  });
+});
+
+describe('buildingSummary', () => {
+  it('satu baris data bangunan untuk kepala ringkasan', () => {
+    expect(buildingSummary(NEEDS, copy, 'id')).toEqual({
+      image: 'house2',
+      meta: 'Rumah tinggal · 2 lantai · 8 × 15 m · 3,5 m per lantai',
+    });
+    expect(buildingSummary([], copy, 'id')).toBeNull();
   });
 });

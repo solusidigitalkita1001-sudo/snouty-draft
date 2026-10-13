@@ -14,6 +14,15 @@ export const SOLUTION_COPY = {
   needs: {
     title: 'Kebutuhan',
     floors: 'Lantai',
+    floorsCount: (floors: number) => `${floors} lantai`,
+    buildingTypes: {
+      residential: 'Rumah tinggal',
+      boarding_house: 'Rumah kos',
+      light_commercial: 'Ruko / komersial',
+      industrial: 'Bangunan industri',
+      place_of_worship: 'Tempat ibadah',
+      public_building: 'Sekolah / klinik',
+    },
     labels: {
       bathroom: 'Kamar mandi',
       water_closet: 'Kloset',
@@ -185,6 +194,15 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
   needs: {
     title: 'What this serves',
     floors: 'Floors',
+    floorsCount: (floors: number) => (floors === 1 ? '1 floor' : `${floors} floors`),
+    buildingTypes: {
+      residential: 'House',
+      boarding_house: 'Boarding house',
+      light_commercial: 'Shophouse / commercial',
+      industrial: 'Industrial building',
+      place_of_worship: 'Place of worship',
+      public_building: 'School / clinic',
+    },
     labels: {
       bathroom: 'Bathrooms',
       water_closet: 'Toilets',
