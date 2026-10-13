@@ -82,11 +82,28 @@ describe('SolutionView — satu daftar SKU', () => {
     expect(document.body.textContent).not.toMatch(/\b(MAIN|RISER|BRANCH|FIXTURE|FITTING)\b/);
   });
 
-  it('TC-H-05: Y tanpa jumlah tetap di material sebagai "– pcs" dengan keterangan fitting', () => {
+  it('TC-H-05: Y tanpa jumlah tetap di BOQ, tanpa angka, dengan keterangan fitting', () => {
     render(<SolutionView recommendation={RECOMMENDATION} tab="material" />);
-    expect(screen.getByText('Bell Y - D 4"')).toBeTruthy();
-    expect(screen.getByText('– pcs')).toBeTruthy();
-    expect(screen.getByText(/Jumlah fitting \(pcs\) mengikuti titik sambungan/)).toBeTruthy();
-    expect(document.body.textContent).not.toMatch(/Y - D 4".*batang/);
+    const row = screen.getByText('Bell Y - D 4"').closest('tr')!;
+    expect(row.textContent).toContain('Dihitung saat pemasangan');
+    expect(row.textContent).not.toMatch(/batang|pcs/);
+  });
+
+  it('P17-01: tab Produk menyebut jumlah dan nomor baris BOQ yang sama dengan tab Material', () => {
+    render(<SolutionView recommendation={RECOMMENDATION} tab="produk" />);
+    expect(screen.getByText('8 batang')).toBeTruthy();
+    expect(screen.getByText('(BOQ no. 1)')).toBeTruthy();
+    expect(screen.getByText('2 batang')).toBeTruthy();
+    expect(screen.getByText('(BOQ no. 2)')).toBeTruthy();
+    expect(screen.getByText('Jumlah menyusul')).toBeTruthy();
+  });
+
+  it('P17-01: BOQ bernomor dengan total per satuan; dasar perhitungan di tabel terpisah', () => {
+    render(<SolutionView recommendation={RECOMMENDATION} tab="material" />);
+    const tables = document.querySelectorAll('table');
+    expect(tables).toHaveLength(2);
+    expect(tables[0]!.textContent).toContain('Total');
+    expect(tables[0]!.textContent).not.toContain('Panjang bersih');
+    expect(tables[1]!.textContent).toContain('Panjang bersih 28,5 m.');
   });
 });

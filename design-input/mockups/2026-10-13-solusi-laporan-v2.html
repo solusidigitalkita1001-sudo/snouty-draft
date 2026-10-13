@@ -1,0 +1,1416 @@
+<title>Mockup Laporan SNOUTY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: layar solusi SNOUTY apa adanya (kanvas abu, kartu putih, tab) — mockup mengisi ulang isinya. Token = packages/ui/src/tokens.css */
+:root {
+  --action: #df301c; --action-text: #b02414; --action-soft: #fdece9; --action-soft-border: #f6c3bb;
+  --pipe-main: #df301c; --pipe-mid: #ee7a67; --pipe-light: #f4b0a3;
+  --ink: #14181a; --ink-3: #2b3134; --ink-4: #42484b; --muted: #5a6468; --caption: #6b7376;
+  --canvas: #f7f8f7; --surface: #ffffff; --subtle: #fbfcfb; --border: #dde2e1; --hairline: #eff2f1;
+  --fill-soft: #eef1f0; --fill-mid: #dfe4e3; --floor: #b9c1c0;
+  --water: #6cc3ee; --water-soft: #d9f0fb;
+  --drain: #5f6a6e; --drain-2: #8e999c;
+  --ok: #1e7a4c; --ok-bg: #e8f5ec; --warn: #8a5300; --warn-bg: #fdf3e3; --warn-border: #f0dfc0;
+  --note: #3a5bd9; --note-bg: #eef2ff; --note-border: #c9d4fb;
+  --pvc-white: #f4f6f6; --pvc-grey: #a9b1b4; --pvc-grey-2: #8b9497;
+  --sans: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --r-card: 8px; --r-control: 6px; --r-tag: 4px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --action-text: #f4806e; --action-soft: #3a1d19; --action-soft-border: #5c2a23; --pipe-light: #7a3429;
+  --ink: #ecefee; --ink-3: #d0d6d5; --ink-4: #b4bcbe; --muted: #9aa3a6; --caption: #8b9497;
+  --canvas: #0f1213; --surface: #171b1d; --subtle: #1b2022; --border: #343b3e; --hairline: #23292b;
+  --fill-soft: #22292b; --fill-mid: #2d3538; --floor: #566064; --water-soft: #16323f;
+  --drain: #a3adb0; --drain-2: #77838a;
+  --ok: #62c48f; --ok-bg: #15291e; --warn: #e4b56c; --warn-bg: #2b2210; --warn-border: #4a3d22;
+  --note: #9fb3ff; --note-bg: #1a2140; --note-border: #34417a;
+  --pvc-white: #dfe4e5; --pvc-grey: #8b9497; --pvc-grey-2: #6f797c;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --action-text: #f4806e; --action-soft: #3a1d19; --action-soft-border: #5c2a23; --pipe-light: #7a3429;
+  --ink: #ecefee; --ink-3: #d0d6d5; --ink-4: #b4bcbe; --muted: #9aa3a6; --caption: #8b9497;
+  --canvas: #0f1213; --surface: #171b1d; --subtle: #1b2022; --border: #343b3e; --hairline: #23292b;
+  --fill-soft: #22292b; --fill-mid: #2d3538; --floor: #566064; --water-soft: #16323f;
+  --drain: #a3adb0; --drain-2: #77838a;
+  --ok: #62c48f; --ok-bg: #15291e; --warn: #e4b56c; --warn-bg: #2b2210; --warn-border: #4a3d22;
+  --note: #9fb3ff; --note-bg: #1a2140; --note-border: #34417a;
+  --pvc-white: #dfe4e5; --pvc-grey: #8b9497; --pvc-grey-2: #6f797c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--canvas); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5; padding: 0 16px; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 20px 60px; display: grid; gap: 16px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+.mono, td.num, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* Kepala layar */
+.top { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; justify-content: space-between; }
+.kicker { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--caption); }
+.top h1 { font-size: 22px; font-weight: 600; }
+.reviewToggle { font: 500 13px var(--sans); color: var(--note); background: var(--note-bg); border: 1px dashed var(--note-border); border-radius: var(--r-control); padding: 6px 12px; cursor: pointer; }
+.reviewToggle:focus-visible, .tab:focus-visible, .btn:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.tab { font: 500 14px var(--sans); color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 14px; cursor: pointer; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--action); }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.card h2 { font-size: 18px; font-weight: 600; }
+.card h3 { font-size: 15px; font-weight: 600; }
+.lead { font-size: 15px; color: var(--ink-3); max-width: 68ch; margin: 0; }
+.sub { color: var(--muted); font-size: 13px; margin: 0; }
+
+/* Catatan review: hanya untuk pemilik, bukan bagian UI */
+.note { display: none; font-size: 12.5px; color: var(--note); background: var(--note-bg); border: 1px dashed var(--note-border); border-radius: var(--r-control); padding: 8px 10px; }
+.note b { font-weight: 600; }
+body.review .note { display: block; }
+
+/* Ringkasan: kebutuhan bergambar */
+.needs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.need { border: 1px solid var(--hairline); background: var(--subtle); border-radius: var(--r-card); padding: 12px; display: grid; gap: 4px; justify-items: center; text-align: center; }
+.need svg { width: 100%; max-width: 132px; height: auto; aspect-ratio: 120 / 100; }
+.need .qty { font: 600 20px var(--mono); }
+.need .lbl { font-weight: 500; }
+.need .cap { font-size: 12px; color: var(--caption); }
+.need.flag { border-color: var(--warn-border); background: var(--warn-bg); }
+.need.flag .cap { color: var(--warn); }
+
+.results { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0; border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden; }
+.res { padding: 14px 16px; border-right: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); display: grid; gap: 2px; }
+.res .k { font-size: 12px; color: var(--caption); display: flex; align-items: center; gap: 6px; }
+.res .v { font: 600 22px var(--mono); }
+.res .d { font-size: 12.5px; color: var(--muted); }
+.dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.gallery figure { margin: 0; text-align: center; font-size: 12px; color: var(--muted); }
+.gallery svg { width: 100%; height: auto; aspect-ratio: 120 / 100; background: var(--subtle); border: 1px solid var(--hairline); border-radius: var(--r-card); }
+
+/* Ilustrasi */
+.ln { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ln1 { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.sf { fill: var(--surface); } .mf { fill: var(--fill-soft); } .df { fill: var(--fill-mid); }
+.wf { fill: var(--water); } .ws { fill: var(--water-soft); } .wl { fill: none; stroke: var(--water); stroke-width: 2; stroke-linecap: round; }
+.af { fill: var(--action); } .as { fill: var(--action-soft); } .al { fill: none; stroke: var(--pipe-main); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.gf { fill: var(--ok); }
+
+/* Produk */
+.prodGroup { display: grid; gap: 10px; }
+.prodGroup > h3 { display: flex; align-items: center; gap: 8px; }
+.prods { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.prod { border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden; display: grid; grid-template-rows: auto 1fr; background: var(--surface); }
+.prod .img { background: var(--subtle); border-bottom: 1px solid var(--hairline); display: grid; place-items: center; padding: 10px; }
+.prod .img svg { width: 100%; max-width: 180px; height: auto; aspect-ratio: 160 / 90; }
+.prod .body { padding: 12px; display: grid; gap: 6px; align-content: start; }
+.prod .name { font-weight: 600; }
+.prod .meta { font-size: 12.5px; color: var(--muted); }
+.prod .need { all: unset; display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--hairline); padding-top: 8px; margin-top: 2px; font-size: 13px; }
+.prod .need b { font: 600 15px var(--mono); }
+.prod a { color: var(--action-text); font-size: 13px; font-weight: 500; text-decoration: none; }
+.prod a:hover { text-decoration: underline; }
+.chip { font-size: 11.5px; font-weight: 500; padding: 1px 7px; border-radius: var(--r-tag); background: var(--fill-soft); color: var(--ink-4); }
+.chip.aw { background: var(--action-soft); color: var(--action-text); }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+
+/* Tabel */
+.tableWrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-card); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
+th { text-align: left; font-weight: 600; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--caption); background: var(--subtle); padding: 9px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+td.num, th.num { text-align: right; }
+tr.sect td { background: var(--fill-soft); font-weight: 600; color: var(--ink); padding-block: 7px; }
+tr.sub td { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--caption); font-weight: 600; padding-block: 5px; }
+tr.pending td { color: var(--muted); font-style: italic; }
+tr.total td { font-weight: 600; background: var(--subtle); border-bottom: 0; }
+td .pname { color: var(--muted); font-size: 12px; display: block; }
+.btn { font: 500 12.5px var(--sans); color: var(--action-text); background: none; border: 1px solid var(--action-soft-border); border-radius: var(--r-control); padding: 2px 9px; cursor: pointer; }
+.status { font-size: 11.5px; font-weight: 500; padding: 1px 7px; border-radius: var(--r-tag); white-space: nowrap; }
+.status.est { background: var(--warn-bg); color: var(--warn); }
+.status.you { background: var(--ok-bg); color: var(--ok); }
+.status.std { background: var(--fill-soft); color: var(--ink-4); }
+
+/* Denah */
+.drawing { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--subtle); }
+.drawing svg { display: block; min-width: 760px; width: 100%; height: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 26px; height: 0; border-top: 4px solid; }
+.titleBlock { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden; font-size: 12.5px; }
+.titleBlock div { padding: 8px 12px; border-right: 1px solid var(--hairline); }
+.titleBlock b { display: block; font-size: 11px; color: var(--caption); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.plans figure { margin: 0; display: grid; gap: 6px; min-width: 0; }
+.plans figcaption { font-weight: 600; font-size: 13px; }
+.plans svg { width: 100%; height: auto; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--subtle); }
+svg text { font-family: var(--sans); fill: var(--ink-3); }
+svg .tag rect { fill: var(--surface); stroke: var(--border); }
+svg .tag text { font-family: var(--mono); font-size: 11px; font-weight: 600; fill: var(--ink); }
+
+.panel[hidden] { display: none; }
+body:not(.review) .review-only { display: none; }
+.tab.review-only { color: var(--note); }
+.whatif { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.wi { font: 500 13px var(--sans); color: var(--ink); background: var(--subtle); border: 1px solid var(--border); border-radius: var(--r-card); padding: 10px; display: grid; justify-items: center; gap: 4px; cursor: pointer; text-align: center; }
+.wi svg { width: 84px; height: 70px; }
+.wi[aria-pressed="true"] { border-color: var(--action); background: var(--action-soft); }
+.wi:focus-visible, .qopt:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+.cmp td.changed { color: var(--action-text); font-weight: 600; }
+.qcards { display: grid; gap: 14px; }
+.qcard { border: 1px solid var(--border); border-radius: var(--r-card); padding: 14px; display: grid; gap: 10px; background: var(--surface); }
+.qcard .qk { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--caption); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.qcard .qk code { font-family: var(--mono); font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--note); }
+.qcard .qq { font-weight: 600; font-size: 15px; }
+.qopts { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.qopt { border: 1px solid var(--border); border-radius: var(--r-control); background: var(--subtle); padding: 6px; display: grid; justify-items: center; gap: 2px; font-size: 12.5px; text-align: center; cursor: pointer; font-family: var(--sans); color: var(--ink); }
+.qopt svg { width: 80px; height: 66px; }
+.qopt[aria-pressed="true"] { border-color: var(--action); background: var(--action-soft); }
+.mapIcons { display: flex; flex-wrap: wrap; gap: 4px; }
+.mapIcons svg { width: 54px; height: 45px; background: var(--subtle); border: 1px solid var(--hairline); border-radius: 4px; }
+.ex { color: var(--muted); font-size: 12.5px; }
+.ex span { display: block; }
+.res { grid-template-columns: 1fr; position: relative; padding-right: 84px; min-height: 92px; }
+.resImg { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 68px; height: 57px; }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.flow figure, .howto figure { margin: 0; display: grid; justify-items: center; text-align: center; gap: 4px; font-size: 12px; color: var(--muted); }
+.flow figure { width: 112px; }
+.flow svg { width: 96px; height: 80px; }
+.flow b, .howto b { display: block; color: var(--ink); font-size: 13px; font-weight: 600; }
+.flow .arrow { color: var(--caption); font-size: 18px; }
+.howto { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.howto figure { border: 1px solid var(--hairline); background: var(--subtle); border-radius: var(--r-card); padding: 10px; }
+.howto svg { width: 100px; height: 84px; }
+.galleryGroups { display: grid; gap: 16px; }
+.galleryGroups h4 { margin: 0 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--caption); }
+.thumb { width: 52px; height: 30px; display: block; }
+td.th { padding-block: 4px; width: 60px; }
+.pendIcons { display: inline-flex; gap: 2px; vertical-align: middle; margin-right: 6px; }
+.pendIcons svg { width: 40px; height: 23px; }
+.catIcon { width: 30px; height: 25px; vertical-align: middle; margin-right: 8px; }
+@media (max-width: 560px) { .card { padding: 14px; } .res .v { font-size: 19px; } }
+@media (prefers-reduced-motion: no-preference) { .tab { transition: color .15s, border-color .15s; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Rumah 2 lantai -->
+    <symbol id="i-house2" viewBox="0 0 120 100">
+      <line class="ln1" x1="6" y1="92" x2="114" y2="92"/>
+      <rect class="sf ln" x="22" y="34" width="76" height="58"/>
+      <path class="df ln" d="M14 36 L60 10 L106 36 Z"/>
+      <line class="ln1" x1="22" y1="62" x2="98" y2="62"/>
+      <rect class="ws ln1" x="31" y="42" width="15" height="12"/><rect class="ws ln1" x="74" y="42" width="15" height="12"/>
+      <rect class="ws ln1" x="31" y="71" width="15" height="12"/><rect class="mf ln1" x="72" y="70" width="14" height="22"/>
+      <rect class="as ln1" x="78" y="2" width="16" height="13" rx="3"/><line class="ln1" x1="81" y1="15" x2="81" y2="22"/><line class="ln1" x1="91" y1="15" x2="91" y2="20"/>
+      <text x="56" y="60" font-size="8" text-anchor="middle" style="fill:var(--caption)">2</text><text x="56" y="88" font-size="8" text-anchor="middle" style="fill:var(--caption)">1</text>
+    </symbol>
+    <!-- Rumah 1 lantai -->
+    <symbol id="i-house1" viewBox="0 0 120 100">
+      <line class="ln1" x1="6" y1="92" x2="114" y2="92"/>
+      <rect class="sf ln" x="18" y="52" width="84" height="40"/>
+      <path class="df ln" d="M10 54 L60 24 L110 54 Z"/>
+      <rect class="ws ln1" x="28" y="62" width="18" height="14"/><rect class="mf ln1" x="72" y="68" width="14" height="24"/>
+    </symbol>
+    <!-- Kamar mandi: shower -->
+    <symbol id="i-shower" viewBox="0 0 120 100">
+      <rect class="mf" x="16" y="8" width="88" height="84" rx="4"/>
+      <path class="ln1" d="M16 36 H104 M16 64 H104 M45 8 V92 M75 8 V92" style="stroke:var(--fill-mid)"/>
+      <path class="al" d="M92 92 V22 H66"/>
+      <path class="sf ln" d="M56 22 h20 l-4 7 h-12 z"/>
+      <path class="wl" d="M58 36 l-3 9 M66 36 v10 M74 36 l3 9 M60 52 l-2 7 M70 52 l2 7"/>
+      <ellipse class="df ln1" cx="66" cy="88" rx="10" ry="2.5"/>
+      <rect class="sf ln1" x="86" y="56" width="12" height="7" rx="2"/>
+    </symbol>
+    <!-- Kloset -->
+    <symbol id="i-wc" viewBox="0 0 120 100">
+      <rect class="sf ln" x="40" y="10" width="40" height="24" rx="3"/>
+      <line class="ln1" x1="54" y1="16" x2="66" y2="16"/>
+      <path class="sf ln" d="M28 42 H92 C92 60 78 70 60 70 C42 70 28 60 28 42 Z"/>
+      <path class="mf ln1" d="M36 44 H84 C82 56 72 62 60 62 C48 62 38 56 36 44 Z"/>
+      <path class="sf ln" d="M48 68 L46 90 H74 L72 68"/>
+      <line class="ln" x1="34" y1="38" x2="86" y2="38"/>
+      <path class="al" d="M60 10 V4" style="stroke-width:2.5"/>
+    </symbol>
+    <!-- Wastafel -->
+    <symbol id="i-basin" viewBox="0 0 120 100">
+      <rect class="ws ln1" x="38" y="4" width="44" height="30" rx="15"/>
+      <path class="ln1" d="M48 14 l8 -6 M50 22 l14 -10" style="stroke:var(--surface)"/>
+      <path class="sf ln" d="M20 46 H100 C100 60 84 68 60 68 C36 68 20 60 20 46 Z"/>
+      <path class="mf ln1" d="M30 48 H90 C88 56 76 61 60 61 C44 61 32 56 30 48 Z"/>
+      <path class="ln" d="M60 46 V38 H72 V42"/>
+      <path class="wl" d="M72 46 v6"/>
+      <rect class="sf ln" x="54" y="68" width="12" height="24"/>
+      <line class="ln1" x1="10" y1="92" x2="110" y2="92"/>
+    </symbol>
+    <!-- Dapur -->
+    <symbol id="i-kitchen" viewBox="0 0 120 100">
+      <rect class="df ln" x="8" y="50" width="104" height="8"/>
+      <rect class="sf ln" x="12" y="58" width="96" height="34"/>
+      <line class="ln1" x1="60" y1="58" x2="60" y2="92"/>
+      <line class="ln1" x1="52" y1="72" x2="52" y2="80"/><line class="ln1" x1="68" y1="72" x2="68" y2="80"/>
+      <path class="mf ln1" d="M30 50 v6 h40 v-6"/>
+      <path class="ln" d="M76 50 V28 Q76 20 68 20 H60 V26"/>
+      <path class="wl" d="M60 30 v10"/>
+      <circle class="as ln1" cx="94" cy="40" r="6"/><rect class="sf ln1" x="18" y="34" width="10" height="16" rx="2"/>
+    </symbol>
+    <!-- Toren -->
+    <symbol id="i-tank" viewBox="0 0 120 100">
+      <path class="as ln" d="M36 18 H84 V68 C84 72 74 75 60 75 C46 75 36 72 36 68 Z"/>
+      <ellipse class="sf ln" cx="60" cy="18" rx="24" ry="6"/>
+      <path class="ln1" d="M36 34 C46 38 74 38 84 34 M36 52 C46 56 74 56 84 52" style="stroke:var(--pipe-mid)"/>
+      <path class="ln" d="M40 74 L34 92 M80 74 L86 92 M38 84 H82"/>
+      <path class="al" d="M84 64 H100 V92"/>
+    </symbol>
+    <!-- Pompa -->
+    <symbol id="i-pump" viewBox="0 0 120 100">
+      <rect class="df ln" x="18" y="40" width="44" height="30" rx="4"/>
+      <path class="ln1" d="M26 46 v18 M34 46 v18 M42 46 v18 M50 46 v18"/>
+      <circle class="sf ln" cx="76" cy="55" r="17"/>
+      <circle class="as ln1" cx="76" cy="55" r="7"/>
+      <path class="al" d="M93 55 H110 M76 38 V22 H104"/>
+      <rect class="mf ln" x="14" y="70" width="84" height="8" rx="2"/>
+      <path class="ln1" d="M100 18 l6 4 l-6 4" />
+    </symbol>
+    <!-- Urinoir -->
+    <symbol id="i-urinal" viewBox="0 0 120 100">
+      <rect class="mf" x="22" y="6" width="76" height="88" rx="4"/>
+      <path class="al" d="M60 6 V20" style="stroke-width:2.5"/>
+      <path class="sf ln" d="M42 20 H78 V58 C78 72 70 82 60 82 C50 82 42 72 42 58 Z"/>
+      <path class="mf ln1" d="M48 28 H72 V56 C72 66 66 72 60 72 C54 72 48 66 48 56 Z"/>
+      <circle class="df ln1" cx="60" cy="64" r="3"/>
+    </symbol>
+    <!-- Tambak -->
+    <symbol id="i-pond" viewBox="0 0 120 100">
+      <path class="df ln" d="M6 46 L20 82 H100 L114 46"/>
+      <path class="ws" d="M14 54 H106 L98 80 H22 Z"/>
+      <path class="wl" d="M22 60 q6 -4 12 0 t12 0 t12 0 t12 0 t12 0 t12 0"/>
+      <path class="sf ln1" d="M40 70 q8 -6 16 0 q-8 6 -16 0 z M56 70 l5 -4 v8 z"/>
+      <path class="sf ln1" d="M70 74 q7 -5 14 0 q-7 5 -14 0 z M84 74 l4 -3 v6 z"/>
+      <path class="al" d="M2 30 H34 V50"/>
+      <path class="wl" d="M34 52 v6"/>
+      <path class="ln1" d="M90 30 q4 -8 8 0 M96 26 v-8 l6 4 z"/>
+    </symbol>
+    <!-- Masjid + wudhu -->
+    <symbol id="i-mosque" viewBox="0 0 120 100">
+      <line class="ln1" x1="6" y1="92" x2="114" y2="92"/>
+      <rect class="sf ln" x="26" y="50" width="62" height="42"/>
+      <path class="as ln" d="M30 50 C30 30 84 30 84 50 Z"/>
+      <line class="ln1" x1="57" y1="28" x2="57" y2="20"/><circle class="af" cx="57" cy="19" r="2"/>
+      <rect class="sf ln" x="94" y="30" width="10" height="62"/><path class="as ln1" d="M93 30 L99 18 L105 30"/>
+      <path class="mf ln1" d="M48 92 V70 C48 62 66 62 66 70 V92"/>
+      <path class="al" d="M8 74 H24" style="stroke-width:2.5"/><path class="ln1" d="M12 74 v5 M18 74 v5"/>
+      <path class="wl" d="M12 81 v4 M18 81 v4"/>
+    </symbol>
+    <!-- Sekolah -->
+    <symbol id="i-school" viewBox="0 0 120 100">
+      <line class="ln1" x1="6" y1="92" x2="114" y2="92"/>
+      <rect class="sf ln" x="12" y="44" width="96" height="48"/>
+      <path class="df ln" d="M6 46 L60 26 L114 46 Z"/>
+      <path class="ln1" d="M60 26 V6"/><path class="af" d="M60 6 h14 v8 h-14 z"/>
+      <rect class="ws ln1" x="20" y="54" width="14" height="12"/><rect class="ws ln1" x="40" y="54" width="14" height="12"/>
+      <rect class="ws ln1" x="66" y="54" width="14" height="12"/><rect class="ws ln1" x="86" y="54" width="14" height="12"/>
+      <rect class="mf ln1" x="53" y="72" width="14" height="20"/>
+    </symbol>
+    <!-- Irigasi lahan -->
+    <symbol id="i-field" viewBox="0 0 120 100">
+      <path class="mf" d="M4 52 H116 V94 H4 Z"/>
+      <path class="ln1" d="M4 66 H116 M4 80 H116" style="stroke:var(--fill-mid)"/>
+      <path class="gf" d="M16 62 q2 -10 4 0 z M32 62 q2 -10 4 0 z M48 62 q2 -10 4 0 z M64 62 q2 -10 4 0 z M80 62 q2 -10 4 0 z M96 62 q2 -10 4 0 z M24 76 q2 -10 4 0 z M40 76 q2 -10 4 0 z M56 76 q2 -10 4 0 z M72 76 q2 -10 4 0 z M88 76 q2 -10 4 0 z"/>
+      <path class="al" d="M4 44 H116 M30 44 V52 M60 44 V52 M90 44 V52"/>
+      <circle class="sf ln1" cx="96" cy="20" r="9"/><path class="ln1" d="M96 6 v-3 M110 20 h3 M82 20 h-3"/>
+    </symbol>
+
+    <!-- Rumah 3 lantai -->
+    <symbol id="i-house3" viewBox="0 0 120 100">
+      <line class="ln1" x1="6" y1="94" x2="114" y2="94"/>
+      <rect class="sf ln" x="28" y="26" width="64" height="68"/>
+      <path class="df ln" d="M22 28 L60 8 L98 28 Z"/>
+      <line class="ln1" x1="28" y1="49" x2="92" y2="49"/><line class="ln1" x1="28" y1="72" x2="92" y2="72"/>
+      <rect class="ws ln1" x="36" y="33" width="12" height="10"/><rect class="ws ln1" x="72" y="33" width="12" height="10"/>
+      <rect class="ws ln1" x="36" y="56" width="12" height="10"/><rect class="ws ln1" x="72" y="56" width="12" height="10"/>
+      <rect class="ws ln1" x="36" y="78" width="12" height="10"/><rect class="mf ln1" x="70" y="76" width="12" height="18"/>
+      <path class="al" d="M96 94 V30" style="stroke-width:2.5"/>
+    </symbol>
+    <!-- Ruko -->
+    <symbol id="i-shophouse" viewBox="0 0 120 100">
+      <line class="ln1" x1="4" y1="94" x2="116" y2="94"/>
+      <rect class="sf ln" x="8" y="20" width="52" height="74"/><rect class="sf ln" x="60" y="20" width="52" height="74"/>
+      <rect class="df ln1" x="6" y="14" width="108" height="6"/>
+      <rect class="ws ln1" x="16" y="28" width="36" height="14"/><rect class="ws ln1" x="68" y="28" width="36" height="14"/>
+      <rect class="as ln1" x="8" y="56" width="52" height="8"/><rect class="as ln1" x="60" y="56" width="52" height="8"/>
+      <path class="ln1" d="M14 66 V94 M22 66 V94 M30 66 V94 M38 66 V94 M46 66 V94 M54 66 V94 M66 66 V94 M74 66 V94 M82 66 V94 M90 66 V94 M98 66 V94 M106 66 V94" style="stroke:var(--floor)"/>
+    </symbol>
+    <!-- Gedung bertingkat -->
+    <symbol id="i-tower" viewBox="0 0 120 100">
+      <line class="ln1" x1="4" y1="94" x2="116" y2="94"/>
+      <rect class="sf ln" x="34" y="10" width="44" height="84"/>
+      <rect class="mf ln" x="78" y="40" width="28" height="54"/>
+      <path class="ln1" d="M40 18 h8 M54 18 h8 M66 18 h6 M40 28 h8 M54 28 h8 M66 28 h6 M40 38 h8 M54 38 h8 M66 38 h6 M40 48 h8 M54 48 h8 M66 48 h6 M40 58 h8 M54 58 h8 M66 58 h6 M40 68 h8 M54 68 h8 M66 68 h6 M84 50 h16 M84 60 h16 M84 70 h16" style="stroke:var(--water);stroke-width:3"/>
+      <rect class="as ln1" x="44" y="2" width="14" height="8" rx="2"/>
+      <rect class="mf ln1" x="50" y="80" width="12" height="14"/>
+    </symbol>
+    <!-- Perumahan cluster -->
+    <symbol id="i-cluster" viewBox="0 0 120 100">
+      <line class="ln1" x1="2" y1="92" x2="118" y2="92"/>
+      <g><rect class="sf ln1" x="6" y="62" width="30" height="30"/><path class="df ln1" d="M2 64 L21 48 L40 64 Z"/><rect class="ws ln1" x="12" y="70" width="8" height="8"/></g>
+      <g><rect class="sf ln1" x="45" y="56" width="30" height="36"/><path class="df ln1" d="M41 58 L60 42 L79 58 Z"/><rect class="ws ln1" x="51" y="64" width="8" height="8"/></g>
+      <g><rect class="sf ln1" x="84" y="62" width="30" height="30"/><path class="df ln1" d="M80 64 L99 48 L118 64 Z"/><rect class="ws ln1" x="90" y="70" width="8" height="8"/></g>
+      <path class="al" d="M2 98 H118" style="stroke-width:2.5"/>
+      <path class="ln1" d="M21 92 V98 M60 92 V98 M99 92 V98" style="stroke:var(--pipe-main)"/>
+      <circle class="gf" cx="14" cy="22" r="0"/>
+    </symbol>
+    <!-- Rumah sakit / klinik -->
+    <symbol id="i-hospital" viewBox="0 0 120 100">
+      <line class="ln1" x1="4" y1="94" x2="116" y2="94"/>
+      <rect class="sf ln" x="16" y="28" width="88" height="66"/>
+      <rect class="sf ln" x="44" y="14" width="32" height="14"/>
+      <path class="af" d="M56 34 h8 v8 h8 v8 h-8 v8 h-8 v-8 h-8 v-8 h8 z"/>
+      <rect class="ws ln1" x="24" y="38" width="14" height="10"/><rect class="ws ln1" x="82" y="38" width="14" height="10"/>
+      <rect class="ws ln1" x="24" y="62" width="14" height="10"/><rect class="ws ln1" x="82" y="62" width="14" height="10"/>
+      <rect class="mf ln1" x="50" y="72" width="20" height="22"/>
+    </symbol>
+    <!-- Pabrik -->
+    <symbol id="i-factory" viewBox="0 0 120 100">
+      <line class="ln1" x1="4" y1="94" x2="116" y2="94"/>
+      <path class="sf ln" d="M10 94 V50 L34 36 V50 L58 36 V50 L82 36 V94 Z"/>
+      <rect class="df ln" x="88" y="16" width="12" height="78"/>
+      <path class="ln1" d="M94 12 q6 -6 0 -10 M100 12 q6 -6 0 -10" style="stroke:var(--caption)"/>
+      <rect class="ws ln1" x="18" y="62" width="12" height="10"/><rect class="ws ln1" x="42" y="62" width="12" height="10"/><rect class="ws ln1" x="64" y="62" width="12" height="10"/>
+      <path class="al" d="M4 84 H82" style="stroke-width:2.5"/>
+    </symbol>
+    <!-- Sumur bor -->
+    <symbol id="i-well" viewBox="0 0 120 100">
+      <rect class="mf" x="4" y="42" width="112" height="56"/>
+      <path class="ln1" d="M4 42 H116" />
+      <path class="ws" d="M4 80 H116 V98 H4 Z"/>
+      <path class="wl" d="M10 84 q6 -3 12 0 t12 0 t12 0 M70 84 q6 -3 12 0 t12 0 t12 0"/>
+      <rect class="sf ln" x="54" y="42" width="12" height="50"/>
+      <path class="al" d="M60 92 V30 H90 V42"/>
+      <rect class="df ln" x="30" y="22" width="30" height="16" rx="3"/>
+      <circle class="sf ln1" cx="38" cy="30" r="4"/>
+      <path class="ln1" d="M10 50 l6 4 M22 60 l-4 4 M96 52 l6 -2 M100 66 l-6 4" style="stroke:var(--caption)"/>
+    </symbol>
+    <!-- Meteran PDAM -->
+    <symbol id="i-meter" viewBox="0 0 120 100">
+      <path class="al" d="M6 60 H40 M80 60 H114"/>
+      <rect class="sf ln" x="40" y="44" width="40" height="32" rx="6"/>
+      <circle class="ws ln" cx="60" cy="40" r="20"/>
+      <circle class="sf ln1" cx="60" cy="40" r="14"/>
+      <path class="ln" d="M60 40 L68 32"/>
+      <path class="ln1" d="M50 46 h20" style="stroke:var(--caption)"/>
+      <rect class="mf ln1" x="18" y="52" width="10" height="16" rx="2"/><path class="ln1" d="M23 52 V44 h8"/>
+      <text x="60" y="92" font-size="10" text-anchor="middle" style="fill:var(--caption)">PDAM</text>
+    </symbol>
+    <!-- Pemanas air -->
+    <symbol id="i-heater" viewBox="0 0 120 100">
+      <rect class="sf ln" x="38" y="8" width="44" height="76" rx="10"/>
+      <rect class="mf ln1" x="48" y="22" width="24" height="10" rx="2"/>
+      <circle class="af" cx="60" cy="50" r="5"/>
+      <path class="ln1" d="M54 62 q6 -8 12 0" style="stroke:var(--pipe-main)"/>
+      <path class="al" d="M50 84 V96"/><path class="wl" d="M70 84 V96" style="stroke-width:3"/>
+    </symbol>
+    <!-- Floor drain -->
+    <symbol id="i-floordrain" viewBox="0 0 120 100">
+      <path class="mf" d="M8 30 H112 L100 70 H20 Z"/>
+      <path class="ln1" d="M8 30 H112 L100 70 H20 Z" />
+      <rect class="sf ln" x="40" y="38" width="40" height="22" rx="3"/>
+      <path class="ln1" d="M46 42 v14 M52 42 v14 M58 42 v14 M64 42 v14 M70 42 v14 M76 42 v14"/>
+      <path class="ln" d="M60 70 V84 H96" style="stroke:var(--drain-2);stroke-width:5"/>
+      <path class="wl" d="M30 22 q4 6 8 0 M86 22 q4 6 8 0"/>
+    </symbol>
+    <!-- Bathtub -->
+    <symbol id="i-bathtub" viewBox="0 0 120 100">
+      <path class="sf ln" d="M10 46 H110 V58 C110 74 96 80 80 80 H40 C24 80 10 74 10 58 Z"/>
+      <path class="ws" d="M14 50 H106 V58 C106 70 94 76 80 76 H40 C26 76 14 70 14 58 Z"/>
+      <path class="ln" d="M22 46 V16 Q22 8 30 8 H38 V14"/>
+      <path class="wl" d="M38 18 v10"/>
+      <path class="ln" d="M30 80 L26 90 M90 80 L94 90"/>
+      <circle class="sf ln1" cx="56" cy="44" r="5"/><circle class="sf ln1" cx="66" cy="42" r="3"/>
+    </symbol>
+    <!-- Mesin cuci -->
+    <symbol id="i-washer" viewBox="0 0 120 100">
+      <rect class="sf ln" x="28" y="10" width="64" height="80" rx="5"/>
+      <line class="ln1" x1="28" y1="26" x2="92" y2="26"/>
+      <circle class="as ln1" cx="80" cy="18" r="4"/><rect class="mf ln1" x="36" y="15" width="22" height="6" rx="2"/>
+      <circle class="mf ln" cx="60" cy="56" r="22"/>
+      <circle class="ws ln1" cx="60" cy="56" r="15"/>
+      <path class="wl" d="M48 60 q6 -5 12 0 t12 0"/>
+      <path class="al" d="M92 30 H108 V4" style="stroke-width:2.5"/>
+    </symbol>
+    <!-- Keran taman -->
+    <symbol id="i-gardentap" viewBox="0 0 120 100">
+      <path class="gf" d="M0 84 q20 -10 40 0 q20 -10 40 0 q20 -10 40 0 V100 H0 Z"/>
+      <path class="al" d="M40 100 V36"/>
+      <path class="ln" d="M40 40 H60 V48"/>
+      <rect class="af" x="34" y="26" width="12" height="6" rx="2"/>
+      <path class="wl" d="M60 52 q4 10 0 18 M56 54 q-2 8 -6 14 M64 54 q6 8 10 14"/>
+      <path class="ln" d="M80 84 q4 -22 16 -28" style="stroke:var(--ok)"/><circle class="gf" cx="98" cy="54" r="6"/>
+    </symbol>
+    <!-- Kolam renang -->
+    <symbol id="i-pool" viewBox="0 0 120 100">
+      <rect class="mf ln" x="6" y="36" width="108" height="50" rx="4"/>
+      <rect class="ws" x="14" y="44" width="92" height="34" rx="2"/>
+      <path class="wl" d="M20 56 q6 -4 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 M20 68 q6 -4 12 0 t12 0 t12 0 t12 0 t12 0 t12 0"/>
+      <path class="ln" d="M90 36 V16 q0 -6 6 -6 M100 36 V16 q0 -6 6 -6 M90 24 H100 M90 30 H100"/>
+      <path class="al" d="M6 92 H40 V78" style="stroke-width:2.5"/>
+    </symbol>
+    <!-- Septic tank -->
+    <symbol id="i-septic" viewBox="0 0 120 100">
+      <rect class="mf" x="2" y="30" width="116" height="68"/>
+      <line class="ln1" x1="2" y1="30" x2="118" y2="30"/>
+      <rect class="sf ln" x="22" y="44" width="76" height="44" rx="6"/>
+      <line class="ln1" x1="60" y1="44" x2="60" y2="80"/>
+      <path class="ln1" d="M22 70 H98" style="stroke:var(--drain-2)"/>
+      <rect class="df ln1" x="34" y="30" width="12" height="14"/><rect class="df ln1" x="74" y="30" width="12" height="14"/>
+      <path class="ln" d="M2 52 H22" style="stroke:var(--drain);stroke-width:5"/>
+      <path class="ln" d="M98 62 H118" style="stroke:var(--drain-2);stroke-width:4"/>
+    </symbol>
+    <!-- Talang air hujan -->
+    <symbol id="i-gutter" viewBox="0 0 120 100">
+      <path class="df ln" d="M8 40 L56 12 L104 40 Z"/>
+      <rect class="sf ln" x="16" y="40" width="80" height="54"/>
+      <path class="ln" d="M100 40 H112 V94" style="stroke:var(--drain-2);stroke-width:5"/>
+      <path class="wl" d="M30 4 l-3 8 M44 2 l-3 8 M70 2 l-3 8 M86 6 l-3 8"/>
+      <path class="wl" d="M112 94 q4 4 8 0"/>
+      <rect class="ws ln1" x="28" y="54" width="16" height="14"/><rect class="mf ln1" x="64" y="66" width="16" height="28"/>
+    </symbol>
+    <!-- Irigasi tetes -->
+    <symbol id="i-drip" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="70" width="120" height="30"/>
+      <path class="al" d="M4 62 H116" style="stroke-width:2.5"/>
+      <g class="gf"><path d="M22 70 q-10 -14 0 -30 q10 16 0 30z"/><path d="M58 70 q-10 -14 0 -30 q10 16 0 30z"/><path d="M94 70 q-10 -14 0 -30 q10 16 0 30z"/></g>
+      <path class="wl" d="M30 64 v6 M66 64 v6 M102 64 v6"/>
+      <circle class="wf" cx="30" cy="74" r="2"/><circle class="wf" cx="66" cy="74" r="2"/><circle class="wf" cx="102" cy="74" r="2"/>
+    </symbol>
+    <!-- Hidroponik -->
+    <symbol id="i-hydro" viewBox="0 0 120 100">
+      <path class="ln" d="M14 94 V20 M106 94 V20"/>
+      <rect class="sf ln" x="10" y="30" width="100" height="12" rx="6"/><rect class="sf ln" x="10" y="58" width="100" height="12" rx="6"/>
+      <g class="gf"><circle cx="30" cy="24" r="6"/><circle cx="54" cy="24" r="6"/><circle cx="78" cy="24" r="6"/><circle cx="100" cy="24" r="0"/><circle cx="30" cy="52" r="6"/><circle cx="54" cy="52" r="6"/><circle cx="78" cy="52" r="6"/></g>
+      <rect class="ws ln1" x="36" y="80" width="48" height="14" rx="2"/>
+      <path class="al" d="M84 86 H96 V36 H110" style="stroke-width:2.5"/>
+    </symbol>
+    <!-- Kandang ternak -->
+    <symbol id="i-barn" viewBox="0 0 120 100">
+      <line class="ln1" x1="2" y1="94" x2="118" y2="94"/>
+      <path class="as ln" d="M14 94 V44 L60 18 L106 44 V94 Z"/>
+      <path class="sf ln" d="M44 94 V62 H76 V94 Z"/><path class="ln1" d="M44 62 L76 94 M76 62 L44 94"/>
+      <rect class="ws ln1" x="80" y="80" width="30" height="10" rx="2"/>
+      <path class="al" d="M116 60 H96 V80" style="stroke-width:2.5"/>
+    </symbol>
+    <!-- Ventilasi atap -->
+    <symbol id="i-vent" viewBox="0 0 120 100">
+      <path class="df ln" d="M4 80 L60 52 L116 80"/>
+      <path class="ln" d="M60 96 V22" style="stroke:var(--drain-2);stroke-width:8"/>
+      <path class="sf ln" d="M48 22 H72 L66 12 H54 Z"/>
+      <path class="ln1" d="M40 14 q-6 -6 0 -12 M80 14 q6 -6 0 -12" style="stroke:var(--caption)"/>
+    </symbol>
+    <!-- Cara hitung panjang: diagram kecil bangunan berdimensi -->
+    <symbol id="i-route" viewBox="0 0 120 100">
+      <rect class="sf ln1" x="16" y="30" width="84" height="56"/>
+      <path class="al" d="M24 80 H92 V40" />
+      <circle class="af" cx="92" cy="40" r="4"/>
+      <path class="ln1" d="M24 92 H92 M24 89 V95 M92 89 V95" style="stroke:var(--caption)"/>
+      <path class="ln1" d="M106 40 V80 M103 40 H109 M103 80 H109" style="stroke:var(--caption)"/>
+    </symbol>
+
+    <!-- ===== Tambahan: peta pertanyaan ===== -->
+    <symbol id="i-kos" viewBox="0 0 120 100">
+      <line class="ln1" x1="4" y1="94" x2="116" y2="94"/>
+      <rect class="sf ln" x="14" y="20" width="92" height="74"/>
+      <rect class="df ln1" x="10" y="14" width="100" height="6"/>
+      <g class="ws"><rect x="22" y="28" width="12" height="12"/><rect x="42" y="28" width="12" height="12"/><rect x="66" y="28" width="12" height="12"/><rect x="86" y="28" width="12" height="12"/><rect x="22" y="52" width="12" height="12"/><rect x="42" y="52" width="12" height="12"/><rect x="66" y="52" width="12" height="12"/><rect x="86" y="52" width="12" height="12"/></g>
+      <path class="ln1" d="M14 46 H106 M14 70 H106"/>
+      <rect class="mf ln1" x="52" y="74" width="16" height="20"/>
+      <rect class="as ln1" x="40" y="2" width="40" height="10" rx="2"/><text x="60" y="10" font-size="7" text-anchor="middle" style="fill:var(--action-text)">KOS</text>
+    </symbol>
+    <symbol id="i-hotel" viewBox="0 0 120 100">
+      <line class="ln1" x1="4" y1="94" x2="116" y2="94"/>
+      <rect class="sf ln" x="24" y="14" width="72" height="80"/>
+      <g class="ws"><rect x="32" y="22" width="10" height="8"/><rect x="48" y="22" width="10" height="8"/><rect x="64" y="22" width="10" height="8"/><rect x="80" y="22" width="8" height="8"/><rect x="32" y="38" width="10" height="8"/><rect x="48" y="38" width="10" height="8"/><rect x="64" y="38" width="10" height="8"/><rect x="80" y="38" width="8" height="8"/><rect x="32" y="54" width="10" height="8"/><rect x="48" y="54" width="10" height="8"/><rect x="64" y="54" width="10" height="8"/><rect x="80" y="54" width="8" height="8"/></g>
+      <path class="af" d="M44 70 H76 L80 76 H40 Z"/>
+      <rect class="mf ln1" x="50" y="76" width="20" height="18"/>
+      <rect class="af" x="44" y="4" width="32" height="8" rx="1"/><text x="60" y="10.5" font-size="6.5" text-anchor="middle" style="fill:#fff">HOTEL</text>
+    </symbol>
+    <symbol id="i-river" viewBox="0 0 120 100">
+      <path class="gf" d="M0 0 H120 V20 C90 26 70 34 60 50 C50 66 30 72 0 74 Z" style="opacity:.35"/>
+      <path class="ws" d="M0 74 C30 72 50 66 60 50 C70 34 90 26 120 20 V44 C100 48 86 56 78 68 C68 84 40 92 0 94 Z"/>
+      <path class="wl" d="M14 84 q8 -4 16 0 M50 72 q6 -6 12 -4 M84 44 q8 -4 16 -2"/>
+      <path class="ln1" d="M0 74 C30 72 50 66 60 50 C70 34 90 26 120 20 M0 94 C40 92 68 84 78 68 C86 56 100 48 120 44"/>
+      <path class="al" d="M70 60 L96 76 H118" style="stroke-width:2.5"/>
+    </symbol>
+    <symbol id="i-embung" viewBox="0 0 120 100">
+      <path class="df ln" d="M4 50 L22 86 H98 L116 50"/>
+      <path class="ws" d="M14 60 H106 L96 82 H24 Z"/>
+      <path class="wl" d="M26 68 q6 -3 12 0 t12 0 t12 0 t12 0 t12 0"/>
+      <path class="gf" d="M6 46 q3 -12 6 0 z M100 46 q3 -12 6 0 z M110 46 q3 -10 6 0 z"/>
+      <path class="ln1" d="M4 50 H116"/>
+    </symbol>
+    <symbol id="i-groundtank" viewBox="0 0 120 100">
+      <rect class="mf" x="2" y="44" width="116" height="54"/>
+      <line class="ln1" x1="2" y1="44" x2="118" y2="44"/>
+      <rect class="sf ln" x="18" y="52" width="60" height="38" rx="4"/>
+      <rect class="ws" x="22" y="64" width="52" height="22"/>
+      <rect class="df ln1" x="40" y="40" width="16" height="12"/>
+      <path class="al" d="M70 60 V30 H100 V44"/>
+      <rect class="df ln" x="86" y="34" width="24" height="12" rx="3"/>
+      <rect class="sf ln" x="30" y="18" width="40" height="22" style="opacity:.0"/>
+    </symbol>
+    <symbol id="i-reservoir" viewBox="0 0 120 100">
+      <line class="ln1" x1="2" y1="92" x2="118" y2="92"/>
+      <path class="df ln" d="M10 92 V40 H110 V92"/>
+      <rect class="ws" x="16" y="52" width="88" height="34"/>
+      <path class="wl" d="M22 60 q6 -3 12 0 t12 0 t12 0 t12 0 t12 0 t12 0"/>
+      <path class="ln1" d="M10 40 H110 M60 40 V30 M40 30 H80"/>
+      <path class="al" d="M110 78 H118" style="stroke-width:3"/>
+    </symbol>
+    <symbol id="i-mainline" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="56" width="120" height="44"/>
+      <path class="ln1" d="M0 56 H120"/>
+      <path class="al" d="M0 74 H120" style="stroke-width:6"/>
+      <path class="al" d="M40 74 V40 M86 74 V40" style="stroke-width:3"/>
+      <rect class="sf ln" x="34" y="32" width="12" height="10" rx="2"/><rect class="sf ln" x="80" y="32" width="12" height="10" rx="2"/>
+      <path class="ln1" d="M14 70 l6 4 l-6 4 M100 70 l6 4 l-6 4" style="stroke:var(--surface)"/>
+    </symbol>
+    <symbol id="i-ditch" viewBox="0 0 120 100">
+      <path class="mf ln" d="M0 40 H30 L40 82 H80 L90 40 H120 V100 H0 Z"/>
+      <path class="ws" d="M36 66 H84 L80 82 H40 Z"/>
+      <path class="wl" d="M42 72 q5 -3 10 0 t10 0 t10 0"/>
+      <path class="ln" d="M100 30 V58" style="stroke:var(--drain-2);stroke-width:6"/>
+      <path class="ln" d="M100 58 q0 6 -10 6" style="stroke:var(--drain-2);stroke-width:6"/>
+    </symbol>
+    <symbol id="i-network" viewBox="0 0 120 100">
+      <path class="al" d="M8 50 H112 M30 50 V20 M30 50 V80 M66 50 V20 M66 50 V80 M100 50 V24"/>
+      <g class="sf ln1"><rect x="22" y="8" width="16" height="12"/><rect x="22" y="80" width="16" height="12"/><rect x="58" y="8" width="16" height="12"/><rect x="58" y="80" width="16" height="12"/><rect x="92" y="12" width="16" height="12"/></g>
+      <circle class="af" cx="8" cy="50" r="5"/>
+    </symbol>
+    <symbol id="i-flat" viewBox="0 0 120 100">
+      <path class="mf ln" d="M0 60 H120 V100 H0 Z"/><path class="gf" d="M20 60 q3 -10 6 0 z M60 60 q3 -10 6 0 z M96 60 q3 -10 6 0 z"/>
+      <path class="ln1" d="M10 46 H110" style="stroke:var(--caption)"/><text x="60" y="40" font-size="10" text-anchor="middle" style="fill:var(--caption)">0 %</text>
+    </symbol>
+    <symbol id="i-slope" viewBox="0 0 120 100">
+      <path class="mf ln" d="M0 90 L120 34 V100 H0 Z"/><path class="gf" d="M30 76 q3 -10 6 0 z M80 53 q3 -10 6 0 z"/>
+      <path class="ln1" d="M10 96 H60 M60 96 a50 50 0 0 0 -4 -18" style="stroke:var(--caption)"/>
+    </symbol>
+    <symbol id="i-wavy" viewBox="0 0 120 100">
+      <path class="mf ln" d="M0 70 C20 40 40 40 60 66 C80 90 100 50 120 52 V100 H0 Z"/><path class="gf" d="M28 48 q3 -10 6 0 z M104 52 q3 -10 6 0 z"/>
+    </symbol>
+    <symbol id="i-square" viewBox="0 0 120 100">
+      <rect class="mf ln" x="26" y="16" width="68" height="68"/><path class="ln1" d="M26 50 H94 M60 16 V84" style="stroke:var(--fill-mid)"/>
+      <path class="al" d="M26 50 H94" style="stroke-width:2.5"/>
+    </symbol>
+    <symbol id="i-long" viewBox="0 0 120 100">
+      <rect class="mf ln" x="6" y="34" width="108" height="32"/>
+      <path class="al" d="M6 50 H114" style="stroke-width:2.5"/>
+    </symbol>
+    <symbol id="i-irregular" viewBox="0 0 120 100">
+      <path class="mf ln" d="M14 30 L52 12 L104 26 L96 64 L110 88 L40 86 L18 64 Z"/>
+      <path class="al" d="M22 56 L60 48 L98 52" style="stroke-width:2.5"/>
+    </symbol>
+    <symbol id="i-inside" viewBox="0 0 120 100">
+      <rect class="sf ln" x="10" y="10" width="100" height="84"/>
+      <rect class="mf" x="10" y="10" width="14" height="84"/><path class="ln1" d="M24 10 V94"/>
+      <path class="al" d="M17 94 V30 H60 V60"/>
+      <rect class="sf ln1" x="52" y="60" width="16" height="6" rx="2"/>
+      <path class="ln1" d="M70 94 V80 H100 V94" />
+    </symbol>
+    <symbol id="i-outside" viewBox="0 0 120 100">
+      <circle class="af" cx="96" cy="20" r="10" style="opacity:.85"/>
+      <path class="ln1" d="M96 2 v4 M96 34 v4 M78 20 h4 M110 20 h4 M84 8 l3 3 M108 8 l-3 3" style="stroke:var(--action)"/>
+      <rect class="mf" x="0" y="76" width="120" height="24"/><path class="ln1" d="M0 76 H120"/>
+      <path class="al" d="M6 60 H114" style="stroke-width:5"/>
+      <path class="ln" d="M24 76 V62 M64 76 V62 M104 76 V62"/>
+    </symbol>
+    <symbol id="i-buried" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="30" width="120" height="70"/>
+      <path class="ln1" d="M0 30 H120"/><path class="gf" d="M10 30 q3 -10 6 0 z M50 30 q3 -10 6 0 z M96 30 q3 -10 6 0 z"/>
+      <circle class="df" cx="22" cy="48" r="3"/><circle class="df" cx="88" cy="50" r="4"/><circle class="df" cx="56" cy="88" r="3"/>
+      <path class="al" d="M6 70 H114" style="stroke-width:6"/>
+      <path class="ln1" d="M108 34 V64 M104 38 l4 -4 l4 4 M104 60 l4 4 l4 -4" style="stroke:var(--caption)"/>
+    </symbol>
+    <symbol id="i-hanging" viewBox="0 0 120 100">
+      <rect class="df ln" x="0" y="8" width="120" height="10"/>
+      <path class="ln" d="M24 18 V46 M64 18 V46 M104 18 V46"/>
+      <path class="ln1" d="M16 46 a8 8 0 0 0 16 0 M56 46 a8 8 0 0 0 16 0 M96 46 a8 8 0 0 0 16 0"/>
+      <path class="al" d="M2 50 H118" style="stroke-width:6"/>
+    </symbol>
+    <symbol id="i-wallmount" viewBox="0 0 120 100">
+      <rect class="mf ln" x="70" y="0" width="22" height="100"/>
+      <path class="al" d="M60 4 V96" style="stroke-width:6"/>
+      <path class="ln" d="M54 24 H70 M54 52 H70 M54 80 H70"/>
+      <path class="ln1" d="M52 20 h16 v8 h-16 M52 48 h16 v8 h-16 M52 76 h16 v8 h-16"/>
+    </symbol>
+    <symbol id="i-onground" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="72" width="120" height="28"/><path class="ln1" d="M0 72 H120"/>
+      <rect class="df ln1" x="16" y="60" width="16" height="12"/><rect class="df ln1" x="56" y="60" width="16" height="12"/><rect class="df ln1" x="96" y="60" width="16" height="12"/>
+      <path class="al" d="M2 54 H118" style="stroke-width:6"/>
+    </symbol>
+    <symbol id="i-drop" viewBox="0 0 120 100">
+      <path class="wf" d="M60 10 C76 34 86 48 86 62 A26 26 0 0 1 34 62 C34 48 44 34 60 10 Z"/>
+      <path class="ln1" d="M48 62 a12 12 0 0 0 12 12" style="stroke:var(--surface)"/>
+    </symbol>
+    <symbol id="i-rain" viewBox="0 0 120 100">
+      <path class="sf ln" d="M28 52 a16 16 0 0 1 4 -31 a22 22 0 0 1 42 -4 a16 16 0 0 1 18 35 Z"/>
+      <path class="wl" d="M36 62 l-4 12 M52 62 l-4 12 M68 62 l-4 12 M84 62 l-4 12 M44 80 l-4 12 M60 80 l-4 12 M76 80 l-4 12"/>
+    </symbol>
+    <symbol id="i-sewage" viewBox="0 0 120 100">
+      <path class="ln" d="M4 30 H50 Q60 30 60 40 V70" style="stroke:var(--drain);stroke-width:12"/>
+      <path class="df" d="M44 74 h32 l6 20 h-44 z"/>
+      <path class="ln1" d="M44 74 h32 l6 20 h-44 z"/>
+      <circle class="df ln1" cx="56" cy="84" r="3"/><circle class="df ln1" cx="68" cy="86" r="2"/>
+      <path class="ln1" d="M84 20 q4 -6 0 -12 M94 24 q4 -6 0 -12" style="stroke:var(--caption)"/>
+    </symbol>
+    <symbol id="i-process" viewBox="0 0 120 100">
+      <rect class="as ln" x="12" y="30" width="34" height="56" rx="6"/><path class="ln1" d="M12 44 H46 M12 72 H46"/>
+      <rect class="sf ln" x="74" y="20" width="34" height="66" rx="16"/>
+      <path class="al" d="M46 60 H74 M91 20 V8 H30 V30"/>
+      <circle class="sf ln1" cx="60" cy="60" r="5"/>
+      <line class="ln1" x1="4" y1="90" x2="116" y2="90"/>
+    </symbol>
+    <symbol id="i-together" viewBox="0 0 120 100">
+      <path class="al" d="M6 30 H114 M20 30 V44 M44 30 V44 M68 30 V44 M92 30 V44"/>
+      <path class="wl" d="M20 48 v10 M44 48 v10 M68 48 v10 M92 48 v10 M17 50 l-2 8 M47 50 l2 8 M65 50 l-2 8 M95 50 l2 8"/>
+      <rect class="as" x="10" y="72" width="100" height="16" rx="3"/>
+      <text x="60" y="84" font-size="9" text-anchor="middle" style="fill:var(--action-text)">semua sekaligus</text>
+    </symbol>
+    <symbol id="i-spread" viewBox="0 0 120 100">
+      <path class="al" d="M6 30 H114 M20 30 V44 M44 30 V44 M68 30 V44 M92 30 V44"/>
+      <path class="wl" d="M44 48 v10 M92 48 v10"/>
+      <rect class="mf" x="10" y="72" width="22" height="16" rx="3"/><rect class="as" x="36" y="72" width="22" height="16" rx="3"/><rect class="mf" x="62" y="72" width="22" height="16" rx="3"/><rect class="as" x="88" y="72" width="22" height="16" rx="3"/>
+    </symbol>
+    <symbol id="i-citydrain" viewBox="0 0 120 100">
+      <rect class="df" x="0" y="40" width="120" height="14"/>
+      <path class="ln1" d="M0 40 H120 M0 54 H120"/>
+      <path class="ln1" d="M14 47 h12 M40 47 h12 M66 47 h12 M92 47 h12" style="stroke:var(--surface);stroke-width:2"/>
+      <path class="mf ln" d="M20 54 V92 H100 V54"/>
+      <path class="ws" d="M24 76 H96 V88 H24 Z"/>
+      <rect class="sf ln1" x="44" y="56" width="32" height="8"/><path class="ln1" d="M50 56 v8 M56 56 v8 M62 56 v8 M68 56 v8"/>
+    </symbol>
+    <symbol id="i-soakaway" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="26" width="120" height="74"/><path class="ln1" d="M0 26 H120"/>
+      <rect class="sf ln" x="36" y="34" width="48" height="52" rx="4"/>
+      <g class="df"><circle cx="46" cy="50" r="4"/><circle cx="58" cy="58" r="5"/><circle cx="72" cy="48" r="4"/><circle cx="50" cy="72" r="5"/><circle cx="70" cy="70" r="4"/></g>
+      <path class="wl" d="M40 90 l-6 6 M60 90 v8 M80 90 l6 6 M32 60 l-8 2 M88 60 l8 2"/>
+      <path class="ln" d="M2 40 H36" style="stroke:var(--drain-2);stroke-width:5"/>
+    </symbol>
+    <symbol id="i-moto" viewBox="0 0 120 100">
+      <rect class="df" x="0" y="70" width="120" height="30"/>
+      <circle class="sf ln" cx="34" cy="62" r="10"/><circle class="sf ln" cx="86" cy="62" r="10"/>
+      <path class="as ln" d="M34 62 L50 44 H74 L86 62 M50 44 L44 34 H36"/>
+      <circle class="sf ln" cx="62" cy="22" r="7"/><path class="ln" d="M62 29 L58 44"/>
+    </symbol>
+    <symbol id="i-car" viewBox="0 0 120 100">
+      <rect class="df" x="0" y="74" width="120" height="26"/>
+      <path class="as ln" d="M10 66 V52 L28 50 L40 34 H80 L94 50 L110 54 V66 Z"/>
+      <path class="ws ln1" d="M44 38 H60 V50 H34 Z M64 38 H78 L88 50 H64 Z"/>
+      <circle class="sf ln" cx="32" cy="66" r="9"/><circle class="sf ln" cx="88" cy="66" r="9"/>
+    </symbol>
+    <symbol id="i-truck" viewBox="0 0 120 100">
+      <rect class="df" x="0" y="78" width="120" height="22"/>
+      <rect class="sf ln" x="4" y="22" width="74" height="46"/>
+      <path class="as ln" d="M78 36 H100 L114 52 V68 H78 Z"/><path class="ws ln1" d="M84 40 H98 L108 52 H84 Z"/>
+      <circle class="sf ln" cx="22" cy="70" r="8"/><circle class="sf ln" cx="44" cy="70" r="8"/><circle class="sf ln" cx="96" cy="70" r="8"/>
+    </symbol>
+    <symbol id="i-rock" viewBox="0 0 120 100">
+      <rect class="df ln" x="6" y="12" width="108" height="76" rx="4"/>
+      <path class="sf ln1" d="M14 30 l14 -8 l12 6 l-4 14 l-18 2 z M54 24 l20 -4 l8 14 l-14 8 l-12 -6 z M88 40 l16 -2 l4 18 l-18 4 z M20 62 l16 -4 l8 14 l-20 4 z M56 56 l18 2 l2 18 l-22 -2 z"/>
+    </symbol>
+    <symbol id="i-clay" viewBox="0 0 120 100">
+      <rect class="as ln" x="6" y="12" width="108" height="76" rx="4"/>
+      <path class="ln1" d="M6 32 q14 -6 28 0 t28 0 t28 0 t24 0 M6 52 q14 -6 28 0 t28 0 t28 0 t24 0 M6 72 q14 -6 28 0 t28 0 t28 0 t24 0" style="stroke:var(--pipe-mid)"/>
+    </symbol>
+    <symbol id="i-sand" viewBox="0 0 120 100">
+      <rect class="mf ln" x="6" y="12" width="108" height="76" rx="4"/>
+      <g class="df"><circle cx="20" cy="24" r="2"/><circle cx="34" cy="34" r="2"/><circle cx="48" cy="22" r="2"/><circle cx="62" cy="36" r="2"/><circle cx="78" cy="26" r="2"/><circle cx="96" cy="34" r="2"/><circle cx="24" cy="52" r="2"/><circle cx="40" cy="62" r="2"/><circle cx="56" cy="50" r="2"/><circle cx="72" cy="60" r="2"/><circle cx="90" cy="52" r="2"/><circle cx="104" cy="64" r="2"/><circle cx="18" cy="76" r="2"/><circle cx="36" cy="80" r="2"/><circle cx="58" cy="76" r="2"/><circle cx="80" cy="80" r="2"/><circle cx="98" cy="78" r="2"/></g>
+    </symbol>
+    <symbol id="i-peat" viewBox="0 0 120 100">
+      <rect class="ln" x="6" y="12" width="108" height="76" rx="4" style="fill:var(--drain)"/>
+      <path class="ws" d="M6 60 H114 V84 a4 4 0 0 1 -4 4 H10 a4 4 0 0 1 -4 -4 Z" style="opacity:.6"/>
+      <path class="ln1" d="M20 28 l10 6 M44 22 l-6 10 M70 30 l12 -4 M94 24 l-4 10 M30 46 l12 2 M76 46 l-10 6" style="stroke:var(--fill-mid)"/>
+    </symbol>
+    <symbol id="i-sprinkler" viewBox="0 0 120 100">
+      <rect class="gf" x="0" y="84" width="120" height="16" style="opacity:.5"/>
+      <path class="al" d="M60 100 V54"/>
+      <rect class="df ln" x="54" y="46" width="12" height="10" rx="2"/>
+      <path class="wl" d="M54 48 C40 30 24 26 8 34 M66 48 C80 30 96 26 112 34 M60 46 V20"/>
+      <g class="wf"><circle cx="14" cy="44" r="2"/><circle cx="24" cy="52" r="2"/><circle cx="106" cy="44" r="2"/><circle cx="96" cy="52" r="2"/><circle cx="60" cy="14" r="2"/></g>
+    </symbol>
+    <symbol id="i-rice" viewBox="0 0 120 100">
+      <path class="ws" d="M0 70 H120 V100 H0 Z"/>
+      <g class="ln1" style="stroke:var(--ok);stroke-width:2"><path d="M20 72 V36 M20 50 q-8 -8 -10 -20 M20 46 q8 -8 12 -18 M50 72 V30 M50 44 q-8 -8 -10 -20 M50 40 q8 -8 12 -18 M80 72 V36 M80 50 q-8 -8 -10 -20 M80 46 q8 -8 12 -18 M108 72 V40"/></g>
+      <g class="as"><ellipse cx="32" cy="28" rx="3" ry="6"/><ellipse cx="62" cy="22" rx="3" ry="6"/><ellipse cx="92" cy="28" rx="3" ry="6"/></g>
+    </symbol>
+    <symbol id="i-corn" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="84" width="120" height="16"/>
+      <path class="ln" d="M60 86 V14" style="stroke:var(--ok)"/>
+      <path class="gf" d="M60 70 q-30 -6 -40 -26 q22 6 40 18 z M60 54 q30 -6 40 -26 q-22 6 -40 18 z"/>
+      <path class="ln1" d="M62 40 q12 -2 14 -20 q-14 4 -14 20 z" style="fill:#e8b93a;stroke:var(--ink)"/>
+    </symbol>
+    <symbol id="i-veg" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="80" width="120" height="20"/>
+      <circle class="gf" cx="34" cy="62" r="18"/><path class="ln1" d="M34 46 v32 M22 56 l12 8 l12 -8" style="stroke:var(--surface)"/>
+      <path class="af" d="M84 80 l-8 -36 h16 z"/><path class="gf" d="M84 44 l-8 -14 M84 44 l0 -16 M84 44 l8 -14" style="stroke:var(--ok);stroke-width:3"/>
+    </symbol>
+    <symbol id="i-tree" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="88" width="120" height="12"/>
+      <path class="ln" d="M60 90 V52" style="stroke:var(--drain);stroke-width:6"/>
+      <circle class="gf" cx="60" cy="38" r="30"/>
+      <g class="af"><circle cx="46" cy="30" r="4"/><circle cx="68" cy="24" r="4"/><circle cx="74" cy="46" r="4"/><circle cx="50" cy="50" r="4"/></g>
+    </symbol>
+    <symbol id="i-quake" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="50" width="120" height="50"/>
+      <path class="ln" d="M0 50 H40 L48 62 L56 44 L64 66 L72 50 H120"/>
+      <path class="al" d="M6 76 H50 L60 84 H114" style="stroke-width:5"/>
+      <path class="ln1" d="M30 20 h60 M24 30 h72" style="stroke:var(--caption);stroke-dasharray:4 4"/>
+    </symbol>
+    <symbol id="i-sunpipe" viewBox="0 0 120 100">
+      <circle class="af" cx="30" cy="28" r="14" style="opacity:.85"/>
+      <path class="ln1" d="M30 4 v6 M30 46 v6 M6 28 h6 M48 28 h6 M14 12 l4 4 M46 12 l-4 4 M14 44 l4 -4 M46 44 l-4 -4" style="stroke:var(--action)"/>
+      <path class="ln" d="M56 50 l10 10 M70 42 l10 10" style="stroke:var(--action)"/>
+      <path class="sf ln" d="M10 72 H112 V86 H10 Z"/>
+    </symbol>
+    <symbol id="i-culvert" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="34" width="120" height="66"/>
+      <path class="df ln" d="M0 30 H120 V38 H0 Z"/>
+      <path class="ln1" d="M14 34 h14 M44 34 h14 M74 34 h14 M104 34 h10" style="stroke:var(--surface);stroke-width:2"/>
+      <circle class="sf ln" cx="60" cy="70" r="20"/><circle class="ws" cx="60" cy="74" r="14"/>
+      <path class="ws" d="M0 80 H40 M80 80 H120" style="stroke:var(--water);stroke-width:8"/>
+      <path class="as ln" d="M44 12 H76 L82 30 H38 Z"/><circle class="sf ln1" cx="48" cy="30" r="4"/><circle class="sf ln1" cx="74" cy="30" r="4"/>
+    </symbol>
+    <symbol id="i-hilltank" viewBox="0 0 120 100">
+      <path class="mf ln" d="M0 100 L0 90 C30 86 50 40 80 30 C96 26 110 30 120 32 V100 Z"/>
+      <path class="as ln" d="M84 8 H108 V28 H84 Z"/>
+      <path class="al" d="M4 92 H20 C40 86 56 54 80 40 V28 H84" style="stroke-width:2.5"/>
+      <rect class="df ln1" x="4" y="84" width="14" height="10" rx="2"/>
+    </symbol>
+    <symbol id="i-catchment" viewBox="0 0 120 100">
+      <rect class="df ln" x="6" y="40" width="108" height="50"/>
+      <path class="ln1" d="M30 40 v50 M54 40 v50 M78 40 v50" style="stroke:var(--surface);stroke-dasharray:6 4;stroke-width:2"/>
+      <path class="wl" d="M20 8 l-4 10 M40 4 l-4 10 M60 8 l-4 10 M80 4 l-4 10 M100 8 l-4 10 M30 22 l-4 10 M70 22 l-4 10"/>
+      <path class="ln" d="M6 96 H114" style="stroke:var(--drain-2);stroke-width:5"/>
+    </symbol>
+    <symbol id="i-bioflok" viewBox="0 0 120 100">
+      <ellipse class="ws ln" cx="60" cy="34" rx="44" ry="12"/>
+      <path class="sf ln" d="M16 34 V78 C16 86 36 92 60 92 C84 92 104 86 104 78 V34"/>
+      <path class="ln1" d="M16 50 C30 56 90 56 104 50 M16 66 C30 72 90 72 104 66" style="stroke:var(--fill-mid)"/>
+      <path class="sf ln1" d="M46 34 q8 -5 16 0 q-8 5 -16 0 z M62 34 l5 -3 v6 z"/>
+      <path class="al" d="M104 80 H118" style="stroke-width:3"/>
+      <path class="wl" d="M30 30 v-14 M34 26 a3 3 0 1 0 0.1 0"/>
+    </symbol>
+    <symbol id="i-controlbox" viewBox="0 0 120 100">
+      <rect class="mf" x="0" y="30" width="120" height="70"/><path class="ln1" d="M0 30 H120"/>
+      <rect class="sf ln" x="40" y="30" width="40" height="52"/>
+      <rect class="df ln" x="36" y="24" width="48" height="8"/>
+      <path class="ln" d="M0 66 H40 M80 70 H120" style="stroke:var(--drain);stroke-width:6"/>
+      <path class="ws" d="M44 72 H76 V80 H44 Z"/>
+    </symbol>
+    <symbol id="i-question" viewBox="0 0 120 100">
+      <circle class="mf ln" cx="60" cy="50" r="32"/>
+      <text x="60" y="64" font-size="40" font-weight="600" text-anchor="middle" style="fill:var(--caption)">?</text>
+    </symbol>
+    <symbol id="i-tankup" viewBox="0 0 120 100">
+      <path class="as ln" d="M30 14 H70 V54 C70 58 62 60 50 60 C38 60 30 58 30 54 Z"/>
+      <ellipse class="sf ln" cx="50" cy="14" rx="20" ry="5"/>
+      <path class="ln" d="M34 60 L30 92 M66 60 L70 92 M32 76 H68"/>
+      <path class="al" d="M96 86 V24 M84 38 L96 24 L108 38"/>
+    </symbol>
+    <symbol id="i-bathplus" viewBox="0 0 120 100">
+      <rect class="mf" x="8" y="10" width="78" height="80" rx="4"/>
+      <path class="al" d="M70 90 V24 H48"/>
+      <path class="sf ln" d="M38 24 h18 l-4 6 h-10 z"/>
+      <path class="wl" d="M42 36 l-2 8 M48 36 v9 M54 36 l2 8"/>
+      <circle class="af" cx="96" cy="26" r="16"/>
+      <path d="M96 18 v16 M88 26 h16" style="stroke:#fff;stroke-width:3.5;stroke-linecap:round"/>
+    </symbol>
+
+    <!-- Produk: pipa (warna lewat CSS var) -->
+    <symbol id="p-pipe" viewBox="0 0 160 90">
+      <ellipse cx="148" cy="64" rx="0" ry="0"/>
+      <path d="M18 34 H124 V56 H18 Z" style="fill:var(--pc)"/>
+      <path d="M18 34 H124 V40 H18 Z" style="fill:var(--surface);opacity:.45"/>
+      <path d="M124 30 H148 V60 H124 Z" style="fill:var(--pc)"/>
+      <path d="M124 30 H148 V36 H124 Z" style="fill:var(--surface);opacity:.45"/>
+      <ellipse cx="148" cy="45" rx="5" ry="15" style="fill:var(--pc2)"/>
+      <ellipse cx="148" cy="45" rx="3" ry="10" style="fill:var(--subtle)"/>
+      <ellipse cx="18" cy="45" rx="4" ry="11" style="fill:var(--pc2)"/>
+      <path class="ln1" d="M18 34 H124 M18 56 H124 M124 30 H148 M124 60 H148 M124 30 V60" style="stroke:var(--pc2)"/>
+      <text x="40" y="49" font-size="7" style="fill:var(--pc3);font-family:var(--mono)">PRALON · SNI 06-0084</text>
+    </symbol>
+    <symbol id="p-tee" viewBox="0 0 160 90">
+      <path d="M30 44 H130 V66 H30 Z" style="fill:var(--pc)"/>
+      <path d="M22 40 H44 V70 H22 Z M116 40 H138 V70 H116 Z" style="fill:var(--pc)"/>
+      <path d="M68 14 H92 V46 H68 Z" style="fill:var(--pc)"/>
+      <path d="M64 8 H96 V26 H64 Z" style="fill:var(--pc)"/>
+      <path d="M22 40 H138 V46 H22 Z M64 8 H96 V13 H64 Z" style="fill:var(--surface);opacity:.45"/>
+      <ellipse cx="22" cy="55" rx="4" ry="15" style="fill:var(--pc2)"/><ellipse cx="138" cy="55" rx="4" ry="15" style="fill:var(--pc2)"/>
+      <ellipse cx="80" cy="8" rx="16" ry="3.5" style="fill:var(--pc2)"/>
+      <path class="ln1" d="M22 40 H64 M96 40 H138 M22 70 H138 M44 40 V70 M116 40 V70 M64 26 H96" style="stroke:var(--pc2)"/>
+    </symbol>
+    <symbol id="p-rtee" viewBox="0 0 160 90">
+      <path d="M30 44 H130 V66 H30 Z" style="fill:var(--pc)"/>
+      <path d="M22 40 H44 V70 H22 Z M116 40 H138 V70 H116 Z" style="fill:var(--pc)"/>
+      <path d="M72 18 H88 V46 H72 Z" style="fill:var(--pc)"/>
+      <path d="M69 12 H91 V28 H69 Z" style="fill:var(--pc)"/>
+      <path d="M22 40 H138 V46 H22 Z M69 12 H91 V16 H69 Z" style="fill:var(--surface);opacity:.45"/>
+      <ellipse cx="22" cy="55" rx="4" ry="15" style="fill:var(--pc2)"/><ellipse cx="138" cy="55" rx="4" ry="15" style="fill:var(--pc2)"/>
+      <ellipse cx="80" cy="12" rx="11" ry="2.8" style="fill:var(--pc2)"/>
+      <path class="ln1" d="M22 40 H69 M91 40 H138 M22 70 H138 M44 40 V70 M116 40 V70 M69 28 H91" style="stroke:var(--pc2)"/>
+    </symbol>
+    <symbol id="p-elbow" viewBox="0 0 160 90">
+      <path d="M30 50 H84 Q100 50 100 34 V20 H122 V40 Q122 72 88 72 H30 Z" style="fill:var(--pc)"/>
+      <path d="M22 46 H44 V76 H22 Z M96 14 H126 V34 H96 Z" style="fill:var(--pc)"/>
+      <path d="M22 46 H44 V51 H22 Z M96 14 H126 V19 H96 Z" style="fill:var(--surface);opacity:.45"/>
+      <ellipse cx="22" cy="61" rx="4" ry="15" style="fill:var(--pc2)"/><ellipse cx="111" cy="14" rx="15" ry="3.5" style="fill:var(--pc2)"/>
+    </symbol>
+    <symbol id="p-socket" viewBox="0 0 160 90">
+      <path d="M44 30 H116 V62 H44 Z" style="fill:var(--pc)"/>
+      <path d="M44 30 H116 V36 H44 Z" style="fill:var(--surface);opacity:.45"/>
+      <line x1="80" y1="30" x2="80" y2="62" style="stroke:var(--pc2);stroke-width:2"/>
+      <ellipse cx="44" cy="46" rx="5" ry="16" style="fill:var(--pc2)"/><ellipse cx="44" cy="46" rx="3" ry="11" style="fill:var(--subtle)"/>
+    </symbol>
+    <symbol id="p-cap" viewBox="0 0 160 90">
+      <path d="M50 30 H100 Q116 30 116 46 Q116 62 100 62 H50 Z" style="fill:var(--pc)"/>
+      <path d="M50 30 H100 Q110 30 113 36 H50 Z" style="fill:var(--surface);opacity:.45"/>
+      <ellipse cx="50" cy="46" rx="5" ry="16" style="fill:var(--pc2)"/><ellipse cx="50" cy="46" rx="3" ry="11" style="fill:var(--subtle)"/>
+    </symbol>
+    <symbol id="p-y" viewBox="0 0 160 90">
+      <path d="M24 50 H136 V72 H24 Z" style="fill:var(--pc)"/>
+      <path d="M70 52 L100 18 L116 30 L90 62 Z" style="fill:var(--pc)"/>
+      <path d="M96 12 L118 32 L126 24 L104 4 Z" style="fill:var(--pc)"/>
+      <path d="M24 50 H136 V55 H24 Z" style="fill:var(--surface);opacity:.45"/>
+      <ellipse cx="24" cy="61" rx="4" ry="11" style="fill:var(--pc2)"/><ellipse cx="136" cy="61" rx="4" ry="11" style="fill:var(--pc2)"/>
+    </symbol>
+    <symbol id="p-cleanout" viewBox="0 0 160 90">
+      <path d="M52 40 H108 V78 H52 Z" style="fill:var(--pc)"/>
+      <path d="M44 22 H116 V42 H44 Z" style="fill:var(--pc)"/>
+      <path d="M44 22 H116 V27 H44 Z" style="fill:var(--surface);opacity:.45"/>
+      <rect x="66" y="12" width="28" height="10" rx="2" style="fill:var(--pc2)"/>
+      <path d="M72 12 V22 M80 12 V22 M88 12 V22" style="stroke:var(--pc);stroke-width:2"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="kicker">Solusi perpipaan · Rumah tinggal</div>
+      <h1>Rumah 2 lantai, 8 × 15 m</h1>
+    </div>
+    <button class="reviewToggle" id="reviewToggle" type="button" aria-pressed="false">Tampilkan catatan review</button>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Bagian solusi">
+    <button class="tab" role="tab" id="t-ringkasan" aria-controls="ringkasan" aria-selected="true">Ringkasan</button>
+    <button class="tab" role="tab" id="t-produk" aria-controls="produk" aria-selected="false">Produk Pralon</button>
+    <button class="tab" role="tab" id="t-denah" aria-controls="denah" aria-selected="false">Denah</button>
+    <button class="tab" role="tab" id="t-material" aria-controls="material" aria-selected="false">Estimasi Material</button>
+    <button class="tab review-only" role="tab" id="t-peta" aria-controls="peta" aria-selected="false">Peta gambar</button>
+  </nav>
+
+  <!-- ========== RINGKASAN ========== -->
+  <section class="panel" id="ringkasan" role="tabpanel" aria-labelledby="t-ringkasan">
+    <div class="wrap" style="padding:0">
+      <div class="card">
+        <p class="note"><b>Poin 1 &amp; 5.</b> Ringkasan jadi papan kebutuhan bergambar. Isi kartunya dibaca dari data kebutuhan, bukan dari teks chat. Paragraf panjang diganti satu kalimat.</p>
+        <p class="lead">Pipa utama air bersih 1", pembuangan kloset 4" dan air bekas 2½". Toren di atap hanya 2,5 m di atas shower lantai 2, jadi tekanannya perlu dibantu pompa pendorong.</p>
+        <div class="needs">
+          <div class="need"><svg role="img" aria-label="Rumah 2 lantai"><use href="#i-house2"/></svg><span class="qty">2</span><span class="lbl">Lantai</span><span class="cap">8 × 15 m, 3,5 m per lantai</span></div>
+          <div class="need"><svg role="img" aria-label="Kamar mandi"><use href="#i-shower"/></svg><span class="qty">3</span><span class="lbl">Kamar mandi</span><span class="cap">Lantai 2: 2 · Lantai 1: 1</span></div>
+          <div class="need"><svg role="img" aria-label="Kloset"><use href="#i-wc"/></svg><span class="qty">3</span><span class="lbl">Kloset</span><span class="cap">Satu per kamar mandi</span></div>
+          <div class="need"><svg role="img" aria-label="Wastafel"><use href="#i-basin"/></svg><span class="qty">4</span><span class="lbl">Wastafel</span><span class="cap">Lantai 2: 2 · Lantai 1: 2</span></div>
+          <div class="need"><svg role="img" aria-label="Dapur"><use href="#i-kitchen"/></svg><span class="qty">1</span><span class="lbl">Bak cuci dapur</span><span class="cap">Lantai 1</span></div>
+          <div class="need"><svg role="img" aria-label="Toren atap"><use href="#i-tank"/></svg><span class="qty">1</span><span class="lbl">Toren atap</span><span class="cap">Dudukan 1 m di atas atap</span></div>
+          <div class="need flag"><svg role="img" aria-label="Pompa pendorong"><use href="#i-pump"/></svg><span class="qty">1</span><span class="lbl">Pompa pendorong</span><span class="cap">Perlu: tekanan shower lantai 2 hanya 0,02 bar</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Ukuran pipa</h2>
+        <div class="results">
+          <div class="res"><svg class="resImg" aria-hidden="true"><use href="#i-tank"/></svg><span class="k"><span class="dot" style="background:var(--pipe-main)"></span>Pipa utama air bersih</span><span class="v">1"</span><span class="d">PVC AW · aliran 1,49 m/s</span></div>
+          <div class="res"><svg class="resImg" aria-hidden="true"><use href="#i-shower"/></svg><span class="k"><span class="dot" style="background:var(--pipe-mid)"></span>Cabang per lantai</span><span class="v">1" · ¾" · ½"</span><span class="d">4 cabang, maks. 4 titik air per cabang</span></div>
+          <div class="res"><svg class="resImg" aria-hidden="true"><use href="#i-septic"/></svg><span class="k"><span class="dot" style="background:var(--drain)"></span>Air kotor (kloset)</span><span class="v">4"</span><span class="d">PVC D · ventilasi 2"</span></div>
+          <div class="res"><svg class="resImg" aria-hidden="true"><use href="#i-floordrain"/></svg><span class="k"><span class="dot" style="background:var(--drain-2)"></span>Air bekas</span><span class="v">2½"</span><span class="d">PVC D · ventilasi 1¼"</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Alur air di rumah ini</h2>
+        <div class="flow">
+          <figure><svg aria-hidden="true"><use href="#i-meter"/></svg><figcaption><b>Meteran</b>Pipa pengisi ¾"</figcaption></figure>
+          <span class="arrow" aria-hidden="true">→</span>
+          <figure><svg aria-hidden="true"><use href="#i-tank"/></svg><figcaption><b>Toren atap</b>+8 m</figcaption></figure>
+          <span class="arrow" aria-hidden="true">→</span>
+          <figure><svg aria-hidden="true"><use href="#i-pump"/></svg><figcaption><b>Pompa pendorong</b>Tekanan ke lantai 2</figcaption></figure>
+          <span class="arrow" aria-hidden="true">→</span>
+          <figure><svg aria-hidden="true"><use href="#i-house2"/></svg><figcaption><b>11 titik air</b>Pipa utama 1"</figcaption></figure>
+          <span class="arrow" aria-hidden="true">→</span>
+          <figure><svg aria-hidden="true"><use href="#i-septic"/></svg><figcaption><b>Septic / saluran</b>4" dan 2½"</figcaption></figure>
+          <span class="arrow" aria-hidden="true">→</span>
+          <figure><svg aria-hidden="true"><use href="#i-vent"/></svg><figcaption><b>Ventilasi</b>1 m di atas atap</figcaption></figure>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== PRODUK ========== -->
+  <section class="panel" id="produk" role="tabpanel" aria-labelledby="t-produk" hidden>
+    <div class="card">
+      <p class="note"><b>Poin 3, 4, 6.</b> Satu kartu per baris produk di BOQ (13 produk = 13 baris), jumlahnya diambil dari BOQ yang sama. Gambar di sini masih gambar tiruan. Nanti diganti foto produk dari pralon.com, yang disimpan di server SNOUTY. Saat ini 0 dari 2.644 produk di katalog punya gambar.</p>
+      <div id="prodGroups" class="wrap" style="padding:0"></div>
+    </div>
+  </section>
+
+  <!-- ========== DENAH ========== -->
+  <section class="panel" id="denah" role="tabpanel" aria-labelledby="t-denah" hidden>
+    <div class="wrap" style="padding:0">
+      <div class="card">
+        <p class="note"><b>Poin 7.</b> Ada dua gambar. Potongan bangunan menunjukkan jalur naik-turun, ukuran per segmen, dan ventilasi. Denah per lantai digambar sesuai ukuran bangunan 8 × 15 m. Letak ruang tidak dikarang: titik air dikelompokkan per cabang, dan posisinya mengikuti denah pengguna kalau sudah diunggah.</p>
+        <h2>Coba ubah</h2>
+        <div class="whatif" id="whatif"></div>
+        <div id="whatifResult"></div>
+      </div>
+      <div class="card">
+        <h2>Potongan instalasi</h2>
+        <div class="legend">
+          <span><i style="border-color:var(--pipe-main)"></i>Air bersih utama</span>
+          <span><i style="border-color:var(--pipe-mid)"></i>Cabang air bersih</span>
+          <span><i style="border-color:var(--drain)"></i>Air kotor</span>
+          <span><i style="border-color:var(--drain-2)"></i>Air bekas</span>
+          <span><i style="border-color:var(--drain-2);border-top-style:dashed"></i>Ventilasi</span>
+        </div>
+        <div class="drawing" id="section"></div>
+        <div class="titleBlock">
+          <div><b>Proyek</b>Rumah tinggal 2 lantai</div>
+          <div><b>Ukuran</b>8 × 15 m · 3,5 m/lantai</div>
+          <div><b>Gambar</b>Potongan instalasi</div>
+          <div><b>Skala</b>Skematik, tidak berskala</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Denah jalur per lantai</h2>
+        <div class="plans" id="plans"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== ESTIMASI MATERIAL ========== -->
+  <section class="panel" id="material" role="tabpanel" aria-labelledby="t-material" hidden>
+    <div class="wrap" style="padding:0">
+      <div class="card">
+        <p class="note"><b>Poin 8.</b> BOQ dikelompokkan per sistem, lalu per pipa / fitting. Tanpa kolom harga (keputusan 2026-10-13). Fitting yang belum bisa dihitung tetap tercantum, tidak disembunyikan.</p>
+        <h2>Daftar kebutuhan material (BOQ)</h2>
+        <div class="tableWrap"><table id="boq"></table></div>
+      </div>
+      <div class="card">
+        <p class="note"><b>Poin 9.</b> Dasar perhitungan dipisah dari BOQ dan ditaruh di bawahnya. Kolom "No." merujuk ke baris BOQ.</p>
+        <h2>Dasar perhitungan</h2>
+        <div class="howto">
+          <figure><svg aria-hidden="true"><use href="#i-route"/></svg><figcaption><b>Pipa utama</b>Mendatar 15 + 8 m, lalu naik 2,5 m ke titik tertinggi = 25,5 m</figcaption></figure>
+          <figure><svg aria-hidden="true"><use href="#i-shower"/></svg><figcaption><b>Cabang dan sambungan</b>Tiap cabang 15 m. Tiap titik air 1,5 m.</figcaption></figure>
+          <figure><svg aria-hidden="true"><use href="#i-septic"/></svg><figcaption><b>Pipa buang</b>Sepanjang bangunan + satu lantai turun = 18,5 m</figcaption></figure>
+          <figure><svg aria-hidden="true"><use href="#i-vent"/></svg><figcaption><b>Ventilasi</b>Dua lantai + 1 m di atas atap = 8 m</figcaption></figure>
+        </div>
+        <h3>Jumlah material</h3>
+        <div class="tableWrap"><table id="basisQty"></table></div>
+        <h3>Ukuran pipa</h3>
+        <div class="tableWrap"><table id="basisSize"></table></div>
+      </div>
+      <div class="card">
+        <p class="note"><b>Poin 10.</b> Asumsi dikelompokkan per kategori. Nilai standar bisa diubah di tempat, lalu hasilnya dihitung ulang, sama seperti sekarang.</p>
+        <h2>Asumsi</h2>
+        <div class="tableWrap"><table id="assume"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="peta" role="tabpanel" aria-labelledby="t-peta" hidden>
+    <div class="wrap" style="padding:0">
+      <div class="card">
+        <p class="note"><b>Untuk review saja.</b> Tab ini tidak ikut ke aplikasi. Isinya peta kasus, kartu pertanyaan, dan pertanyaan lanjutan, masing-masing dengan gambarnya. Daftar kasus dan pilihan diambil dari kode (profil kasus dan registry parameter).</p>
+        <h2>1. Jenis kasus</h2>
+        <div class="tableWrap"><table id="mapCases"></table></div>
+      </div>
+      <div class="card">
+        <h2>2. Kartu pertanyaan bergambar</h2>
+        <p class="sub">Setiap pilihan di kartu pertanyaan punya gambar. Kartu di bawah ini contoh tampilannya; pilihannya bisa diklik.</p>
+        <div id="mapCards" class="qcards"></div>
+      </div>
+      <div class="card">
+        <h2>3. Pertanyaan lanjutan soal hasil hitungan</h2>
+        <div class="tableWrap"><table id="mapFollow"></table></div>
+      </div>
+      <div class="card">
+        <h2>4. Semua ilustrasi</h2>
+        <div id="gallery" class="galleryGroups"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="border-style:dashed">
+    <h3>Laporan PDF</h3>
+    <p class="sub">PDF memakai blok yang sama, urutannya: halaman 1 ringkasan bergambar dan ukuran pipa, halaman 2 BOQ, halaman 3 dasar perhitungan dan asumsi, halaman 4 potongan dan denah. Daftar produk bergambar dilampirkan di akhir.</p>
+  </section>
+</div>
+
+<script>
+// Angka dari engine SNOUTY (computeSolution + computeHouseDrainage) untuk kasus ini; nama produk dari katalog ERP 2026-10-06.
+const BOQ = [
+  { sect: 'A. Air bersih · PVC AW' },
+  { sub: 'Pipa' },
+  { no: 1, item: 'Pipa utama', prod: 'Pipa (TS End) Putih AW 1" x 4 Meter', size: '1"', cls: 'AW', qty: 7, unit: 'batang', note: '25,5 m', kind: 'pipe', color: 'white', grp: 'aw' },
+  { no: 2, item: 'Pipa pengisi toren', prod: 'Pipa (TS End) Putih AW 3/4" x 4 Meter', size: '¾"', cls: 'AW', qty: 6, unit: 'batang', note: '23 m', kind: 'pipe', color: 'white', grp: 'aw' },
+  { no: 3, item: 'Cabang lantai 2 (kamar mandi)', prod: 'Pipa (TS End) Putih AW 1" x 4 Meter', size: '1"', cls: 'AW', qty: 4, unit: 'batang', note: '15 m', kind: 'pipe', color: 'white', grp: 'aw', same: 1 },
+  { no: 4, item: 'Cabang lantai 1 (kamar mandi + wastafel)', prod: 'Pipa (TS End) Putih AW 3/4" x 4 Meter', size: '¾"', cls: 'AW', qty: 4, unit: 'batang', note: '15 m', kind: 'pipe', color: 'white', grp: 'aw', same: 2 },
+  { no: 5, item: 'Cabang wastafel lt. 2 dan dapur', prod: 'Pipa (TS End) Putih AW 1/2" x 4 Meter', size: '½"', cls: 'AW', qty: 8, unit: 'batang', note: '2 × 15 m', kind: 'pipe', color: 'white', grp: 'aw' },
+  { no: 6, item: 'Sambungan ke alat', prod: 'Pipa (TS End) Putih AW 1/2" x 4 Meter', size: '½"', cls: 'AW', qty: 5, unit: 'batang', note: '11 titik × 1,5 m', kind: 'pipe', color: 'white', grp: 'aw', same: 5 },
+  { sub: 'Fitting' },
+  { no: 7, item: 'Tee cabang', prod: 'Tee Abu Ts 1"', size: '1"', cls: 'AW', qty: 1, unit: 'pcs', note: 'Cabang 1"', kind: 'tee', grp: 'aw' },
+  { no: 8, item: 'Tee cabang reduksi', prod: 'Tee Abu Ts 1" x 3/4"', size: '1" × ¾"', cls: 'AW', qty: 1, unit: 'pcs', note: 'Cabang ¾"', kind: 'rtee', grp: 'aw' },
+  { no: 9, item: 'Tee cabang reduksi', prod: 'Tee Abu Ts 1" x 1/2"', size: '1" × ½"', cls: 'AW', qty: 2, unit: 'pcs', note: 'Cabang ½"', kind: 'rtee', grp: 'aw' },
+  { pending: true, icons: ['elbow', 'socket', 'cap'], item: 'Elbow, sok, dop, kran', note: 'Dihitung saat pemasangan, mengikuti belokan di lapangan' },
+  { sect: 'B. Air kotor · PVC D' },
+  { no: 10, item: 'Pipa air kotor', prod: 'Pipa (TS End) Abu D 4" x 4 Meter', size: '4"', cls: 'D', qty: 5, unit: 'batang', note: '18,5 m', kind: 'pipe', color: 'grey', grp: 'soil' },
+  { no: 11, item: 'Pipa ventilasi', prod: 'Pipa (TS End) Abu D 2" x 4 Meter', size: '2"', cls: 'D', qty: 2, unit: 'batang', note: '8 m', kind: 'pipe', color: 'grey', grp: 'soil' },
+  { pending: true, icons: ['y', 'cleanout'], item: 'Y-branch, elbow 45°, clean out', note: 'Dihitung saat pemasangan' },
+  { sect: 'C. Air bekas · PVC D' },
+  { no: 12, item: 'Pipa air bekas', prod: 'Pipa (TS End) Abu D 2 1/2" x 4 Meter', size: '2½"', cls: 'D', qty: 5, unit: 'batang', note: '18,5 m', kind: 'pipe', color: 'grey', grp: 'waste' },
+  { no: 13, item: 'Pipa ventilasi', prod: 'Pipa (TS End) Abu D 1 1/4" x 4 Meter', size: '1¼"', cls: 'D', qty: 2, unit: 'batang', note: '8 m', kind: 'pipe', color: 'grey', grp: 'waste' },
+  { pending: true, icons: ['y', 'elbow'], item: 'Y-branch, elbow, floor drain', note: 'Dihitung saat pemasangan' },
+];
+
+const BASIS_QTY = [
+  ['1', 'Mendatar sepanjang bangunan + naik ke titik tertinggi', '15 + 8 m mendatar, 2,5 m naik', '25,5 m ÷ 4 m = 6,4', '7 batang'],
+  ['2', 'Halaman + sepanjang bangunan + naik ke toren', '0 + 15 + 8 m', '23 m ÷ 4 m = 5,8', '6 batang'],
+  ['3–5', 'Jumlah cabang × panjang bangunan', '1" × 1, ¾" × 1, ½" × 2; 15 m', '15 / 15 / 30 m ÷ 4 m', '4 / 4 / 8 batang'],
+  ['6', 'Titik air × 1,5 m', '11 titik', '16,5 m ÷ 4 m = 4,1', '5 batang'],
+  ['7–9', 'Satu tee per cabang, sesuai ukuran cabang', '4 cabang', '1 + 1 + 2', '4 pcs'],
+  ['10, 12', 'Panjang bangunan + tinggi lantai di atas lantai dasar', '15 + 3,5 × 1 m', '18,5 m ÷ 4 m = 4,6', '5 batang'],
+  ['11, 13', 'Tinggi bangunan + 1 m di atas atap', '2 × 3,5 + 1 m', '8 m ÷ 4 m', '2 batang'],
+];
+const BASIS_SIZE = [
+  ['Pipa utama', '1"', '12,6 unit beban → debit puncak 1,03 l/s (kurva Hunter). Di ¾" air 2,27 m/s, terlalu cepat; di 1" 1,49 m/s.'],
+  ['Cabang', '1" · ¾" · ½"', 'Per isi cabang: 2 kamar mandi 6,4 unit → 1"; 1 kamar mandi + 2 wastafel 4,2 unit → ¾"; wastafel/dapur → ½".'],
+  ['Tekanan', 'Pompa', 'Muka air toren 8 m, shower lantai 2 di 5,5 m. Sisa tekanan 0,02 bar, kurang dari 0,3 bar.'],
+  ['Air kotor', '4"', 'Beban 12 cukup untuk 2", tapi kloset butuh minimal 4". Ventilasi setengahnya: 2".'],
+  ['Air bekas', '2½"', '3 shower + 4 wastafel + 1 dapur = 12 beban. Pipa tegak 2 lantai dengan beban 12 → 2½". Ventilasi 1¼".'],
+];
+const ASSUME = [
+  { cat: 'Bangunan', icon: 'i-house2', rows: [
+    ['Ukuran bangunan', '8 × 15 m', 'you'], ['Jumlah lantai', '2', 'you'], ['Tinggi per lantai', '3,5 m', 'std', true] ] },
+  { cat: 'Isi ruangan', icon: 'i-shower', rows: [
+    ['Isi tiap kamar mandi', 'Shower + kloset', 'std', true], ['Letak alat per lantai', 'Lantai 2: 2 KM, 2 wastafel', 'std'] ] },
+  { cat: 'Sumber air', icon: 'i-tank', rows: [
+    ['Sumber', 'Toren atap', 'you'], ['Dudukan toren', '1 m di atas atap', 'std', true], ['Tekanan minimum di alat', '0,3 bar', 'std'] ] },
+  { cat: 'Panjang jalur', icon: 'i-route', rows: [
+    ['Panjang tiap cabang', '15 m (sisi terpanjang)', 'std', true], ['Sambungan ke tiap alat', '1,5 m', 'std', true],
+    ['Jarak halaman ke bangunan', '0 m', 'std', true], ['Ventilasi di atas atap', '1 m', 'std', true], ['Panjang per batang', '4 m', 'cat'] ] },
+  { cat: 'Teknik', icon: 'i-pump', rows: [
+    ['Kecepatan air', '0,6–2 m/s', 'std'], ['Kehilangan di fitting', '10 % dari pipa lurus', 'std'], ['Kemiringan pipa buang', '2 %', 'std'] ] },
+];
+const SRC = { you: ['Dari Anda', 'you'], std: ['Standar', 'std'], cat: ['Katalog', 'std'] };
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const PC = { white: ['var(--pvc-white)', 'var(--drain-2)', 'var(--caption)'], grey: ['var(--pvc-grey)', 'var(--pvc-grey-2)', 'var(--surface)'] };
+function thumb(kind, color) {
+  const [pc, pc2, pc3] = PC[kind === 'pipe' ? color : 'grey'];
+  return `<svg class="thumb" viewBox="0 0 160 90" aria-hidden="true" style="--pc:${pc};--pc2:${pc2};--pc3:${pc3}"><use href="#p-${kind}"/></svg>`;
+}
+function renderBoq() {
+  let rows = '<thead><tr><th class="num">No.</th><th></th><th>Uraian</th><th>Ukuran</th><th>Kelas</th><th class="num">Volume</th><th>Satuan</th><th>Keterangan</th></tr></thead><tbody>';
+  let pipes = 0, fits = 0;
+  for (const r of BOQ) {
+    if (r.sect) rows += `<tr class="sect"><td colspan="8">${esc(r.sect)}</td></tr>`;
+    else if (r.sub) rows += `<tr class="sub"><td></td><td colspan="7">${esc(r.sub)}</td></tr>`;
+    else if (r.pending) rows += `<tr class="pending"><td></td><td class="th"></td><td><span class="pendIcons">${r.icons.map((k) => thumb(k, 'grey')).join('')}</span>${esc(r.item)}</td><td>—</td><td>—</td><td class="num">—</td><td>—</td><td>${esc(r.note)}</td></tr>`;
+    else {
+      r.unit === 'batang' ? (pipes += r.qty) : (fits += r.qty);
+      rows += `<tr><td class="num">${r.no}</td><td class="th">${thumb(r.kind, r.color)}</td><td>${esc(r.item)}<span class="pname">${esc(r.prod)}</span></td><td class="mono">${esc(r.size)}</td><td><span class="chip ${r.cls === 'AW' ? 'aw' : ''}">${r.cls}</span></td><td class="num">${r.qty}</td><td>${r.unit}</td><td>${esc(r.note)}</td></tr>`;
+    }
+  }
+  rows += `<tr class="total"><td></td><td></td><td colspan="3">Total</td><td class="num">${pipes}<br>${fits}</td><td>batang<br>pcs</td><td></td></tr></tbody>`;
+  document.getElementById('boq').innerHTML = rows;
+}
+
+function renderBasis() {
+  document.getElementById('basisQty').innerHTML = '<thead><tr><th>No.</th><th>Cara hitung</th><th>Angka</th><th>Hitungan</th><th class="num">Hasil</th><th>Status</th></tr></thead><tbody>' +
+    BASIS_QTY.map((r) => `<tr><td class="mono">${r[0]}</td><td>${esc(r[1])}</td><td class="mono">${esc(r[2])}</td><td class="mono">${esc(r[3])}</td><td class="num">${esc(r[4])}</td><td><span class="status est">Perkiraan</span></td></tr>`).join('') + '</tbody>';
+  document.getElementById('basisSize').innerHTML = '<thead><tr><th>Jalur</th><th>Ukuran</th><th>Alasan</th><th>Status</th></tr></thead><tbody>' +
+    BASIS_SIZE.map((r) => `<tr><td>${esc(r[0])}</td><td class="mono">${esc(r[1])}</td><td>${esc(r[2])}</td><td><span class="status est">Perkiraan</span></td></tr>`).join('') + '</tbody>';
+}
+
+function renderAssume() {
+  let html = '<thead><tr><th>Asumsi</th><th>Nilai</th><th>Asal</th><th></th></tr></thead><tbody>';
+  for (const g of ASSUME) {
+    html += `<tr class="sect"><td colspan="4"><svg class="catIcon" viewBox="0 0 120 100" aria-hidden="true"><use href="#${g.icon}"/></svg>${esc(g.cat)}</td></tr>`;
+    for (const [k, v, src, edit] of g.rows) {
+      const [label, cls] = SRC[src];
+      html += `<tr><td>${esc(k)}</td><td class="mono">${esc(v)}</td><td><span class="status ${cls}">${label}</span></td><td style="text-align:right">${edit ? '<button class="btn" type="button">Ubah</button>' : ''}</td></tr>`;
+    }
+  }
+  document.getElementById('assume').innerHTML = html + '</tbody>';
+}
+
+function renderProducts() {
+  const groups = [
+    ['aw', 'Air bersih', 'var(--pipe-main)'], ['soil', 'Air kotor', 'var(--drain)'], ['waste', 'Air bekas', 'var(--drain-2)'],
+  ];
+  // Satu kartu per produk; baris BOQ dengan produk sama digabung (jumlahnya dijumlah).
+  const byProd = new Map();
+  for (const r of BOQ) if (r.no) {
+    const key = r.grp + '|' + r.prod;
+    const cur = byProd.get(key) ?? { ...r, total: 0, nos: [] };
+    cur.total += r.qty; cur.nos.push(r.no); byProd.set(key, cur);
+  }
+  const palette = { white: ['var(--pvc-white)', 'var(--drain-2)', 'var(--caption)'], grey: ['var(--pvc-grey)', 'var(--pvc-grey-2)', 'var(--surface)'] };
+  let html = '';
+  for (const [grp, title, color] of groups) {
+    const items = [...byProd.values()].filter((p) => p.grp === grp);
+    html += `<div class="prodGroup"><h3><span class="dot" style="background:${color}"></span>${title}</h3><div class="prods">`;
+    for (const p of items) {
+      const [pc, pc2, pc3] = p.kind === 'pipe' ? palette[p.color] : palette.grey;
+      const len = p.kind === 'pipe' ? ' · 4 m per batang' : '';
+      html += `<article class="prod"><div class="img"><svg role="img" aria-label="${esc(p.prod)}" style="--pc:${pc};--pc2:${pc2};--pc3:${pc3}"><use href="#p-${p.kind}"/></svg></div>
+        <div class="body"><span class="name">${esc(p.prod)}</span>
+        <span class="meta"><span class="chip ${p.cls === 'AW' ? 'aw' : ''}">${p.cls}</span> ${esc(p.size)}${len}</span>
+        <div class="need"><span>Dibutuhkan <span class="meta">(BOQ no. ${p.nos.join(', ')})</span></span><b>${p.total} ${p.unit}</b></div>
+        <a href="https://www.pralon.com/product" target="_blank" rel="noopener">Lihat di pralon.com ↗</a></div></article>`;
+    }
+    html += '</div></div>';
+  }
+  html += '<div class="prodGroup"><h3><span class="dot" style="background:var(--caption)"></span>Fitting pemasangan</h3><p class="sub">Jumlahnya mengikuti belokan dan sambungan di lapangan.</p><div class="prods">';
+  for (const [kind, name, size] of [['elbow', 'Elbow Abu Ts', '½" – 1"'], ['socket', 'Sok Abu Ts', '½" – 1"'], ['cap', 'Dop Abu Ts', '½" – 1"'], ['y', 'Y - Branch Abu Dv', '2" – 4"'], ['cleanout', 'Clean Out Abu', '4"']]) {
+    html += `<article class="prod"><div class="img"><svg role="img" aria-label="${name}" style="--pc:var(--pvc-grey);--pc2:var(--pvc-grey-2);--pc3:var(--surface)"><use href="#p-${kind}"/></svg></div><div class="body"><span class="name">${name}</span><span class="meta">${size}</span><div class="need"><span>Dibutuhkan</span><b style="font-size:13px">sesuai lapangan</b></div><a href="https://www.pralon.com/product" target="_blank" rel="noopener">Lihat di pralon.com ↗</a></div></article>`;
+  }
+  html += '</div></div>';
+  document.getElementById('prodGroups').innerHTML = html;
+}
+
+// ---------- Gambar potongan ----------
+function tag(x, y, t) {
+  const w = t.length * 7 + 10;
+  return `<g class="tag"><rect x="${x - w / 2}" y="${y - 9}" width="${w}" height="16" rx="3"/><text x="${x}" y="${y + 3}" text-anchor="middle">${t}</text></g>`;
+}
+function fixture(id, x, y, s, label) {
+  return `<svg x="${x - s / 2}" y="${y - s * 0.83}" width="${s}" height="${s * 0.83}" viewBox="0 0 120 100"><use href="#${id}"/></svg>` +
+    (label ? `<text x="${x}" y="${y + 13}" font-size="10" text-anchor="middle">${label}</text>` : '');
+}
+function renderSection() {
+  const G = 450, F2 = 310, R = 170; // tanah, lantai 2, atap
+  const X0 = 110, X1 = 790;
+  const P = (d, c, w, dash) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${dash ? ' stroke-dasharray="6 5"' : ''}/>`;
+  let s = `<svg viewBox="0 0 900 540" role="img" aria-label="Potongan instalasi rumah 2 lantai">`;
+  // tanah & struktur
+  s += `<rect x="0" y="${G}" width="900" height="90" fill="var(--fill-soft)"/><line x1="0" y1="${G}" x2="900" y2="${G}" stroke="var(--floor)" stroke-width="2"/>`;
+  s += `<rect x="${X0}" y="${R}" width="${X1 - X0}" height="${G - R}" fill="var(--surface)" stroke="var(--floor)" stroke-width="2"/>`;
+  s += `<rect x="${X0 - 6}" y="${F2 - 6}" width="${X1 - X0 + 12}" height="10" fill="var(--fill-mid)"/><rect x="${X0 - 12}" y="${R - 10}" width="${X1 - X0 + 24}" height="10" fill="var(--fill-mid)"/>`;
+  s += `<text x="${X0 + 8}" y="${F2 + 22}" font-size="11" style="fill:var(--caption)">LANTAI 1 · ±0,00</text><text x="${X0 + 8}" y="${R + 22}" font-size="11" style="fill:var(--caption)">LANTAI 2 · +3,50</text><text x="${X0 + 8}" y="${R - 16}" font-size="11" style="fill:var(--caption)">ATAP · +7,00</text>`;
+  // dimensi kiri
+  s += `<path d="M70 ${G} V${F2} M64 ${G} H76 M64 ${F2} H76 M70 ${F2} V${R} M64 ${R} H76" stroke="var(--caption)" fill="none"/>`;
+  s += `<text x="58" y="${(G + F2) / 2 + 4}" font-size="11" text-anchor="end" class="mono">3,5 m</text><text x="58" y="${(F2 + R) / 2 + 4}" font-size="11" text-anchor="end">3,5 m</text>`;
+
+  // toren + pompa di atap
+  s += fixture('i-tank', 210, R - 10, 80, '');
+  s += `<text x="210" y="${R - 82}" font-size="11" text-anchor="middle">Toren · muka air +8,00</text>`;
+  s += fixture('i-pump', 300, R - 10, 52, '');
+  s += `<text x="300" y="${R - 58}" font-size="11" text-anchor="middle" style="fill:var(--warn)">Pompa pendorong</text>`;
+  // pengisi toren dari meteran
+  s += P(`M30 ${G + 30} H90 V${R - 52} H170`, 'var(--pipe-mid)', 3);
+  s += `<rect x="20" y="${G + 20}" width="22" height="20" rx="3" fill="var(--surface)" stroke="var(--ink)"/><text x="31" y="${G + 58}" font-size="10" text-anchor="middle">Meteran</text>`;
+  s += tag(90, 280, '¾"');
+  // utama: toren → pompa → turun
+  s += P(`M250 ${R - 20} H280 M322 ${R - 22} H340 V${G - 70}`, 'var(--pipe-main)', 5);
+  s += tag(340, 240, '1"');
+
+  // fixture lantai 2 & 1
+  const FL2 = F2 - 6, FL1 = G;
+  const bF2 = F2 - 70, bF1 = G - 70;
+  // cabang lantai 2: 1" ke 2 KM (x 380..560), ½" ke 2 wastafel (x 600..660)
+  s += P(`M340 ${bF2} H560`, 'var(--pipe-main)', 4) + P(`M340 ${bF2 + 14} H660`, 'var(--pipe-mid)', 3);
+  s += `<circle cx="340" cy="${bF2}" r="4" fill="var(--pipe-main)"/><circle cx="340" cy="${bF2 + 14}" r="4" fill="var(--pipe-main)"/>`;
+  s += tag(450, bF2 - 12, '1"') + tag(630, bF2 + 2, '½"');
+  for (const [x, id, lbl] of [[390, 'i-shower', 'Shower'], [440, 'i-wc', 'Kloset'], [500, 'i-shower', 'Shower'], [550, 'i-wc', 'Kloset'], [610, 'i-basin', 'Wastafel'], [660, 'i-basin', 'Wastafel']]) {
+    s += P(`M${x} ${id === 'i-basin' ? bF2 + 14 : bF2} V${FL2 - 40}`, 'var(--pipe-light)', 2);
+    s += fixture(id, x, FL2, 44, lbl);
+  }
+  // cabang lantai 1: ¾" ke 1 KM + 2 wastafel; ½" ke dapur
+  s += P(`M340 ${bF1} H560`, 'var(--pipe-mid)', 4) + P(`M340 ${bF1 + 14} H640`, 'var(--pipe-mid)', 3);
+  s += `<circle cx="340" cy="${bF1}" r="4" fill="var(--pipe-main)"/><circle cx="340" cy="${bF1 + 14}" r="4" fill="var(--pipe-main)"/>`;
+  s += tag(470, bF1 - 12, '¾"') + tag(610, bF1 + 2, '½"');
+  for (const [x, id, lbl, low] of [[390, 'i-shower', 'Shower'], [440, 'i-wc', 'Kloset'], [500, 'i-basin', 'Wastafel'], [550, 'i-basin', 'Wastafel'], [640, 'i-kitchen', 'Dapur', 1]]) {
+    s += P(`M${x} ${low ? bF1 + 14 : bF1} V${FL1 - 40}`, 'var(--pipe-light)', 2);
+    s += fixture(id, x, FL1, 44, lbl);
+  }
+  // pembuangan: air kotor 4" (x 730), air bekas 2½" (x 760)
+  const SX = 730, WX = 760;
+  s += P(`M440 ${FL2 + 2} H${SX}`, 'var(--drain)', 4) + P(`M440 ${G + 6} H${SX}`, 'var(--drain)', 4);
+  s += P(`M390 ${FL2 - 2} H${WX}`, 'var(--drain-2)', 3) + P(`M390 ${G + 14} H${WX}`, 'var(--drain-2)', 3);
+  s += P(`M${SX} ${R - 40} V${G + 46} H850`, 'var(--drain)', 6);
+  s += P(`M${WX} ${R - 40} V${G + 26} H850`, 'var(--drain-2)', 4);
+  s += P(`M${SX} ${R - 40} V${R - 74}`, 'var(--drain-2)', 3, true) + P(`M${WX} ${R - 40} V${R - 74}`, 'var(--drain-2)', 3, true);
+  s += tag(SX - 26, 240, '4"') + tag(WX + 22, 270, '2½"') + tag(SX - 24, R - 58, '2"') + tag(WX + 26, R - 58, '1¼"');
+  s += `<text x="${(SX + WX) / 2}" y="${R - 84}" font-size="10" text-anchor="middle">Ventilasi +1 m di atas atap</text>`;
+  s += `<rect x="850" y="${G + 14}" width="44" height="44" rx="4" fill="var(--fill-mid)" stroke="var(--drain)"/><text x="872" y="${G + 72}" font-size="10" text-anchor="middle">Septic / saluran</text>`;
+  s += `<text x="${(X0 + X1) / 2}" y="${G + 80}" font-size="11" text-anchor="middle">Panjang bangunan 15 m</text>`;
+  s += `<path d="M${X0} ${G + 66} H${X1} M${X0} ${G + 60} V${G + 72} M${X1} ${G + 60} V${G + 72}" stroke="var(--caption)" fill="none"/>`;
+  s += '</svg>';
+  document.getElementById('section').innerHTML = s;
+}
+
+// ---------- Denah per lantai (skala 15 × 8 m) ----------
+function plan(title, branches) {
+  const k = 34, ox = 40, oy = 40, W = 15 * k, H = 8 * k;
+  let s = `<svg viewBox="0 0 ${W + 80} ${H + 90}" role="img" aria-label="${title}">`;
+  s += `<rect x="${ox}" y="${oy}" width="${W}" height="${H}" fill="var(--surface)" stroke="var(--ink)" stroke-width="3"/>`;
+  for (let i = 1; i < 15; i++) s += `<line x1="${ox + i * k}" y1="${oy}" x2="${ox + i * k}" y2="${oy + H}" stroke="var(--hairline)"/>`;
+  for (let j = 1; j < 8; j++) s += `<line x1="${ox}" y1="${oy + j * k}" x2="${ox + W}" y2="${oy + j * k}" stroke="var(--hairline)"/>`;
+  // pipa tegak di sudut kiri atas
+  s += `<circle cx="${ox + 18}" cy="${oy + 18}" r="8" fill="var(--pipe-main)"/><text x="${ox + 32}" y="${oy + 22}" font-size="11">Pipa tegak 1"</text>`;
+  s += `<circle cx="${ox + W - 18}" cy="${oy + 18}" r="8" fill="var(--drain)"/><text x="${ox + W - 32}" y="${oy + 22}" font-size="11" text-anchor="end">Pipa tegak buang</text>`;
+  branches.forEach((b, i) => {
+    const y = oy + 70 + i * 90;
+    s += `<path d="M${ox + 18} ${oy + 18} V${y} H${ox + W - 30}" fill="none" stroke="${b.color}" stroke-width="${b.w}" stroke-linecap="round"/>`;
+    s += tag(ox + 70, y - 14, b.size);
+    b.pts.forEach((p, j) => {
+      const x = ox + 150 + j * 70;
+      s += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + 30}" stroke="var(--pipe-light)" stroke-width="2"/><circle cx="${x}" cy="${y + 34}" r="5" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5"/><text x="${x}" y="${y + 54}" font-size="10" text-anchor="middle">${p}</text>`;
+    });
+  });
+  s += `<path d="M${ox} ${oy + H + 22} H${ox + W} M${ox} ${oy + H + 16} V${oy + H + 28} M${ox + W} ${oy + H + 16} V${oy + H + 28}" stroke="var(--caption)" fill="none"/><text x="${ox + W / 2}" y="${oy + H + 42}" font-size="11" text-anchor="middle">15 m</text>`;
+  s += `<path d="M${ox + W + 20} ${oy} V${oy + H} M${ox + W + 14} ${oy} H${ox + W + 26} M${ox + W + 14} ${oy + H} H${ox + W + 26}" stroke="var(--caption)" fill="none"/><text x="${ox + W + 34}" y="${oy + H / 2}" font-size="11">8 m</text>`;
+  return `<figure><figcaption>${title}</figcaption>${s}</svg></figure>`;
+}
+function renderPlans() {
+  document.getElementById('plans').innerHTML =
+    plan('Lantai 2', [
+      { size: '1"', color: 'var(--pipe-main)', w: 4, pts: ['Shower', 'Kloset', 'Shower', 'Kloset'] },
+      { size: '½"', color: 'var(--pipe-mid)', w: 3, pts: ['Wastafel', 'Wastafel'] },
+    ]) +
+    plan('Lantai 1', [
+      { size: '¾"', color: 'var(--pipe-mid)', w: 4, pts: ['Shower', 'Kloset', 'Wastafel', 'Wastafel'] },
+      { size: '½"', color: 'var(--pipe-mid)', w: 3, pts: ['Dapur'] },
+    ]);
+}
+
+// ---------- Tab & review ----------
+const tabs = [...document.querySelectorAll('.tab')];
+function show(id) {
+  tabs.forEach((t) => t.setAttribute('aria-selected', String(t.getAttribute('aria-controls') === id)));
+  document.querySelectorAll('.panel').forEach((p) => (p.hidden = p.id !== id));
+}
+tabs.forEach((t) => t.addEventListener('click', () => show(t.getAttribute('aria-controls'))));
+const rt = document.getElementById('reviewToggle');
+rt.addEventListener('click', () => {
+  const on = document.body.classList.toggle('review');
+  rt.setAttribute('aria-pressed', String(on));
+  rt.textContent = on ? 'Sembunyikan catatan review' : 'Tampilkan catatan review';
+});
+document.body.classList.add('review'); rt.setAttribute('aria-pressed', 'true'); rt.textContent = 'Sembunyikan catatan review';
+
+const GALLERY = [
+  ['Bangunan', [['i-house1', 'Rumah 1 lantai'], ['i-house2', 'Rumah 2 lantai'], ['i-house3', 'Rumah 3 lantai'], ['i-shophouse', 'Ruko'], ['i-tower', 'Gedung bertingkat'], ['i-cluster', 'Perumahan'], ['i-kos', 'Rumah kos'], ['i-hotel', 'Hotel'], ['i-mosque', 'Masjid / wudhu'], ['i-school', 'Sekolah'], ['i-hospital', 'Klinik / rumah sakit'], ['i-factory', 'Pabrik']]],
+  ['Alat di kamar mandi dan dapur', [['i-shower', 'Shower'], ['i-wc', 'Kloset'], ['i-basin', 'Wastafel'], ['i-urinal', 'Urinoir'], ['i-bathtub', 'Bathtub'], ['i-floordrain', 'Floor drain'], ['i-kitchen', 'Dapur'], ['i-washer', 'Mesin cuci'], ['i-heater', 'Pemanas air'], ['i-gardentap', 'Keran taman']]],
+  ['Sumber dan tampungan air', [['i-meter', 'Meteran PDAM'], ['i-well', 'Sumur bor'], ['i-river', 'Sungai'], ['i-embung', 'Embung'], ['i-tank', 'Toren atap'], ['i-groundtank', 'Toren bawah'], ['i-reservoir', 'Reservoir'], ['i-hilltank', 'Tandon di bukit'], ['i-mainline', 'Jaringan hulu'], ['i-pump', 'Pompa'], ['i-pool', 'Kolam renang']]],
+  ['Jaringan dan pemasangan', [['i-network', 'Jaringan hilir'], ['i-inside', 'Di dalam bangunan'], ['i-outside', 'Di luar, terbuka'], ['i-buried', 'Ditanam'], ['i-hanging', 'Digantung'], ['i-wallmount', 'Menempel dinding'], ['i-onground', 'Di atas tanah'], ['i-sunpipe', 'Kena matahari'], ['i-quake', 'Tanah bergerak'], ['i-together', 'Dipakai bersamaan'], ['i-spread', 'Dipakai tersebar']]],
+  ['Lahan, tanah, dan jalan', [['i-flat', 'Datar'], ['i-slope', 'Miring'], ['i-wavy', 'Bergelombang'], ['i-square', 'Bujur sangkar'], ['i-long', 'Memanjang'], ['i-irregular', 'Tidak beraturan'], ['i-rock', 'Tanah keras'], ['i-clay', 'Lempung'], ['i-sand', 'Berpasir'], ['i-peat', 'Gambut'], ['i-culvert', 'Gorong-gorong'], ['i-moto', 'Motor'], ['i-car', 'Mobil'], ['i-truck', 'Truk']]],
+  ['Jenis cairan', [['i-drop', 'Air bersih'], ['i-rain', 'Air hujan'], ['i-sewage', 'Air limbah'], ['i-process', 'Cairan proses']]],
+  ['Pembuangan', [['i-septic', 'Septic tank'], ['i-controlbox', 'Bak kontrol'], ['i-ditch', 'Selokan'], ['i-citydrain', 'Saluran kota'], ['i-soakaway', 'Resapan'], ['i-catchment', 'Area tangkapan hujan'], ['i-vent', 'Ventilasi atap'], ['i-gutter', 'Talang air hujan']]],
+  ['Pertanian dan perikanan', [['i-field', 'Irigasi lahan'], ['i-drip', 'Irigasi tetes'], ['i-hydro', 'Hidroponik'], ['i-sprinkler', 'Sprinkler'], ['i-rice', 'Padi'], ['i-corn', 'Palawija'], ['i-veg', 'Sayur'], ['i-tree', 'Buah / perkebunan'], ['i-pond', 'Tambak'], ['i-bioflok', 'Kolam bioflok'], ['i-barn', 'Kandang ternak']]],
+  ['Coba ubah', [['i-tankup', 'Toren dinaikkan'], ['i-bathplus', 'Tambah kamar mandi'], ['i-question', 'Belum tahu']]],
+];
+document.getElementById('gallery').innerHTML = GALLERY.map(([t, items]) => `<div><h4>${t}</h4><div class="gallery">${items.map(([id, l]) => `<figure><svg viewBox="0 0 120 100" aria-hidden="true"><use href="#${id}"/></svg>${l}</figure>`).join('')}</div></div>`).join('');
+const CASES = [
+  ['Rumah, kos, ruko, masjid, sekolah, klinik', ['rumah 2 lantai 3 kamar mandi toren di atap', 'kos 3 lantai 12 kamar mandi, air dari sumur pakai pompa', 'masjid 2 lantai 4 kamar mandi'], ['i-house1', 'i-house2', 'i-house3', 'i-kos', 'i-shophouse', 'i-mosque', 'i-school', 'i-hospital']],
+  ['Gedung bertingkat', ['gedung kantor 6 lantai, 20 toilet', 'hotel 7 lantai 60 kamar', 'gedung bertingkat 12 lantai pakai booster'], ['i-tower', 'i-hotel', 'i-groundtank', 'i-pump']],
+  ['Cluster perumahan', ['perumahan 40 unit', 'klaster townhouse 30 unit, pipa utama 400 m'], ['i-cluster', 'i-mainline', 'i-network']],
+  ['Irigasi lahan', ['irigasi sawah 1 hektar pakai sprinkler', 'irigasi tetes buat kebun'], ['i-field', 'i-sprinkler', 'i-drip', 'i-river', 'i-rice']],
+  ['Transfer air dengan pompa', ['transfer air dari sungai ke tandon jarak 800 m pakai pompa', 'air dipompa dari bawah ke tandon atas bukit, beda tinggi 30 m'], ['i-river', 'i-embung', 'i-pump', 'i-hilltank', 'i-reservoir']],
+  ['Saluran pembuangan gravitasi', ['pipa limbah rumah ke septic tank', 'got dan selokan di halaman belakang'], ['i-septic', 'i-ditch', 'i-controlbox', 'i-sewage']],
+  ['Drainase air hujan', ['drainase air hujan di lahan parkir', 'talang dan pipa air hujan gudang'], ['i-gutter', 'i-catchment', 'i-soakaway', 'i-citydrain']],
+  ['Gorong-gorong', ['gorong-gorong melintasi jalan desa lebar 6 m', 'pipa menyeberangi jalan di bawah aspal'], ['i-culvert', 'i-moto', 'i-car', 'i-truck']],
+  ['Sumur dan distribusi', ['sumur bor 60 m ke tandon', 'distribusi air dari sumur bor ke 10 rumah'], ['i-well', 'i-pump', 'i-tank', 'i-network']],
+  ['Kolam / tambak ikan', ['kolam lele 4 x 4 m', 'kolam lele bioflok 10 kolam', 'pengurasan kolam ikan'], ['i-pond', 'i-bioflok', 'i-embung', 'i-pump']],
+];
+const CARDS = [
+  ['source_type', 'Sumber airnya dari mana?', [['PDAM', 'i-meter'], ['Sungai / saluran', 'i-river'], ['Sumur', 'i-well'], ['Embung / kolam', 'i-embung'], ['Toren atap', 'i-tank'], ['Toren bawah', 'i-groundtank'], ['Reservoir', 'i-reservoir'], ['Jaringan hulu', 'i-mainline']]],
+  ['building_type', 'Bangunannya jenis apa?', [['Rumah tinggal', 'i-house2'], ['Rumah kos', 'i-kos'], ['Komersial ringan', 'i-shophouse'], ['Industri', 'i-factory'], ['Tempat ibadah', 'i-mosque'], ['Sekolah / klinik', 'i-school']]],
+  ['installation_type', 'Pipanya untuk apa?', [['Air bersih', 'i-drop'], ['Pembuangan', 'i-septic'], ['Keduanya', 'i-house2']]],
+  ['project_type', 'Proyeknya apa?', [['Rumah tinggal', 'i-house2'], ['Gedung bertingkat', 'i-tower'], ['Cluster perumahan', 'i-cluster'], ['Irigasi', 'i-field'], ['Drainase / air hujan', 'i-gutter'], ['Gorong-gorong', 'i-culvert'], ['Transfer pompa', 'i-hilltank'], ['Lainnya', 'i-question']]],
+  ['destination_type', 'Airnya dialirkan ke mana?', [['Alat di bangunan', 'i-basin'], ['Toren', 'i-tank'], ['Lahan', 'i-field'], ['Reservoir', 'i-reservoir'], ['Saluran', 'i-ditch'], ['Jaringan hilir', 'i-network']]],
+  ['fluid_type', 'Yang dialirkan apa?', [['Air bersih', 'i-drop'], ['Air hujan', 'i-rain'], ['Air limbah', 'i-sewage'], ['Air irigasi', 'i-field'], ['Cairan proses', 'i-process']]],
+  ['installation_location', 'Pipanya dipasang di mana?', [['Di dalam bangunan', 'i-inside'], ['Di luar, terbuka', 'i-outside'], ['Ditanam', 'i-buried']]],
+  ['installation_method', 'Cara pasangnya?', [['Ditanam', 'i-buried'], ['Digantung', 'i-hanging'], ['Menempel dinding', 'i-wallmount'], ['Di atas tanah', 'i-onground']]],
+  ['terrain', 'Kontur lahannya?', [['Datar', 'i-flat'], ['Miring', 'i-slope'], ['Bergelombang', 'i-wavy']]],
+  ['field_shape', 'Bentuk lahannya?', [['Bujur sangkar', 'i-square'], ['Memanjang', 'i-long'], ['Tidak beraturan', 'i-irregular']]],
+  ['irrigation_method', 'Cara pengairannya?', [['Genangan / gravitasi', 'i-field'], ['Sprinkler', 'i-sprinkler'], ['Tetes', 'i-drip']]],
+  ['crop_type', 'Tanamannya apa?', [['Padi', 'i-rice'], ['Palawija', 'i-corn'], ['Sayur', 'i-veg'], ['Buah / perkebunan', 'i-tree']]],
+  ['simultaneous_usage', 'Alatnya dipakai bersamaan?', [['Bersamaan', 'i-together'], ['Tersebar', 'i-spread'], ['Tidak tahu', 'i-question']]],
+  ['outfall_condition', 'Air hujannya dibuang ke mana?', [['Saluran kota', 'i-citydrain'], ['Sungai', 'i-river'], ['Resapan', 'i-soakaway'], ['Belum ada', 'i-question']]],
+  ['traffic_load', 'Yang lewat di atas pipa?', [['Pejalan kaki / motor', 'i-moto'], ['Mobil', 'i-car'], ['Truk / berat', 'i-truck']]],
+  ['soil_type', 'Tanahnya seperti apa?', [['Keras', 'i-rock'], ['Lempung', 'i-clay'], ['Berpasir', 'i-sand'], ['Gambut / lunak', 'i-peat']]],
+  ['pump_required · movement_risk · exposed_to_sun', 'Pertanyaan ya/tidak', [['Pakai pompa?', 'i-pump'], ['Tanah bergerak?', 'i-quake'], ['Kena matahari langsung?', 'i-sunpipe']]],
+  ['material', 'Ada preferensi bahan pipa?', [['PVC (uPVC)', 'p:pipe:var(--pvc-white):var(--drain-2)'], ['HDPE', 'p:pipe:#2b2f31:#14181a'], ['PPR', 'p:pipe:#5fa36a:#3f7a4a'], ['Galvanis', 'p:pipe:#c3c9cc:#8b9497'], ['Belum ada preferensi', 'i-question']]],
+];
+const FOLLOW = [
+  ['Kenapa pipa utamanya 1 inci?', 'Estimasi Material → Dasar perhitungan, ukuran pipa', ['i-route']],
+  ['Bisa pakai pipa lebih kecil supaya hemat?', 'Dasar perhitungan: di ¾" air mengalir 2,27 m/s, terlalu cepat', ['i-route']],
+  ['Kenapa perlu pompa?', 'Ringkasan (kartu pompa) + Dasar perhitungan, tekanan', ['i-pump']],
+  ['Berapa batang pipa yang harus dibeli?', 'Estimasi Material → BOQ', ['p:pipe:var(--pvc-white):var(--drain-2)']],
+  ['Kenapa elbow dan sok tidak ada jumlahnya?', 'BOQ, baris "dihitung saat pemasangan"', ['p:elbow:var(--pvc-grey):var(--pvc-grey-2)']],
+  ['Produk Pralon apa yang dipakai?', 'Produk Pralon', ['p:tee:var(--pvc-grey):var(--pvc-grey-2)']],
+  ['Pipanya lewat mana?', 'Denah: potongan + denah per lantai', ['i-house2']],
+  ['Air kotor dan air bekas dibuang ke mana?', 'Denah: potongan (septic / saluran)', ['i-septic']],
+  ['Ventilasi itu buat apa, harus berapa tinggi?', 'Dasar perhitungan: ventilasi', ['i-vent']],
+  ['Kalau toren saya naikkan?', 'Denah → Coba ubah: toren naik', ['i-tankup']],
+  ['Kalau tambah kamar mandi?', 'Denah → Coba ubah: tambah kamar mandi', ['i-bathplus']],
+  ['Kalau pakai PDAM langsung, atau toren bawah?', 'Denah → Coba ubah', ['i-meter', 'i-groundtank']],
+  ['Asumsinya apa saja, bisa saya ganti?', 'Estimasi Material → Asumsi (tombol Ubah)', ['i-route']],
+  ['Harganya berapa?', 'Tidak dihitung SNOUTY. Diteruskan ke tim teknis / sales', ['i-question']],
+];
+function icon(spec, cls) {
+  if (spec.startsWith('p:')) {
+    const [, kind, pc, pc2] = spec.split(':');
+    return `<svg class="${cls || ''}" viewBox="0 0 160 90" aria-hidden="true" style="--pc:${pc};--pc2:${pc2};--pc3:var(--surface)"><use href="#p-${kind}"/></svg>`;
+  }
+  return `<svg class="${cls || ''}" viewBox="0 0 120 100" aria-hidden="true"><use href="#${spec}"/></svg>`;
+}
+function renderMap() {
+  document.getElementById('mapCases').innerHTML = '<thead><tr><th>Kasus</th><th>Contoh kalimat pengguna</th><th>Gambar</th><th>Status</th></tr></thead><tbody>' +
+    CASES.map(([k, ex, ic]) => `<tr><td><b>${k}</b></td><td class="ex">${ex.map((e) => `<span>“${esc(e)}”</span>`).join('')}</td><td><div class="mapIcons">${ic.map((i) => icon(i)).join('')}</div></td><td><span class="status you">Lengkap</span></td></tr>`).join('') + '</tbody>';
+  document.getElementById('mapCards').innerHTML = CARDS.map(([key, q, opts]) => `<div class="qcard"><div class="qk"><span>Agar saya tidak menebak</span><code>${key}</code></div><div class="qq">${q}</div><div class="qopts">${opts.map(([l, i]) => `<button type="button" class="qopt" aria-pressed="false">${icon(i)}${esc(l)}</button>`).join('')}</div></div>`).join('');
+  document.querySelectorAll('.qcard').forEach((c) => c.addEventListener('click', (e) => {
+    const b = e.target.closest('.qopt'); if (!b) return;
+    c.querySelectorAll('.qopt').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+  }));
+  document.getElementById('mapFollow').innerHTML = '<thead><tr><th></th><th>Pertanyaan pengguna</th><th>Dijawab di</th></tr></thead><tbody>' +
+    FOLLOW.map(([q, w, ic]) => `<tr><td><div class="mapIcons">${ic.map((i) => icon(i)).join('')}</div></td><td><b>${esc(q)}</b></td><td>${esc(w)}</td></tr>`).join('') + '</tbody>';
+}
+// Angka skenario dari computeSolution (TANK_STAND_1M 4,5 m; bathrooms 4; waterSource municipal / ground_tank).
+const SCEN = {
+  base: { outlets: '11', main: '1" · 1,49 m/s', branches: '1" ×1, ¾" ×1, ½" ×2', pump: 'Perlu', residual: '0,02 bar', fill: '¾", 23 m' },
+  tank: { label: 'Toren dinaikkan 3,5 m', icon: 'i-tankup', outlets: '11', main: '1" · 1,49 m/s', branches: '1" ×1, ¾" ×1, ½" ×2', pump: 'Tidak perlu', residual: '0,33 bar', fill: '¾", 26,5 m' },
+  bath: { label: 'Tambah 1 kamar mandi', icon: 'i-bathplus', outlets: '13', main: '1" · 1,64 m/s', branches: '1" ×2, ½" ×2', pump: 'Perlu', residual: '−0,02 bar', fill: '¾", 23 m' },
+  pdam: { label: 'Langsung dari PDAM', icon: 'i-meter', outlets: '11', main: '1" · 1,49 m/s', branches: '1" ×1, ¾" ×1, ½" ×2', pump: 'Tidak perlu', residual: 'Mengikuti tekanan PDAM', fill: 'Tidak ada toren' },
+  ground: { label: 'Toren bawah + pompa', icon: 'i-groundtank', outlets: '11', main: '1" · 1,49 m/s', branches: '1" ×1, ¾" ×1, ½" ×2', pump: 'Pompa dari toren bawah', residual: 'Dari pompa', fill: 'Tidak ada toren atap' },
+};
+const SCEN_ROWS = [['outlets', 'Titik air'], ['main', 'Pipa utama'], ['branches', 'Cabang'], ['pump', 'Pompa pendorong'], ['residual', 'Tekanan di shower lantai 2'], ['fill', 'Pipa pengisi toren']];
+function renderWhatIf() {
+  const box = document.getElementById('whatif');
+  box.innerHTML = ['tank', 'bath', 'pdam', 'ground'].map((k) => `<button type="button" class="wi" data-k="${k}" aria-pressed="false">${icon(SCEN[k].icon)}${SCEN[k].label}</button>`).join('');
+  box.addEventListener('click', (e) => {
+    const b = e.target.closest('.wi'); if (!b) return;
+    const on = b.getAttribute('aria-pressed') !== 'true';
+    box.querySelectorAll('.wi').forEach((x) => x.setAttribute('aria-pressed', String(on && x === b)));
+    const out = document.getElementById('whatifResult');
+    if (!on) { out.innerHTML = ''; return; }
+    const sc = SCEN[b.dataset.k];
+    out.innerHTML = `<div class="tableWrap"><table class="cmp" style="min-width:480px"><thead><tr><th></th><th>Sekarang</th><th>${sc.label}</th></tr></thead><tbody>${SCEN_ROWS.map(([k, l]) => `<tr><td>${l}</td><td class="mono">${SCEN.base[k]}</td><td class="mono ${sc[k] !== SCEN.base[k] ? 'changed' : ''}">${sc[k]}</td></tr>`).join('')}</tbody></table></div>`;
+  });
+}
+renderMap(); renderWhatIf();
+renderBoq(); renderBasis(); renderAssume(); renderProducts(); renderSection(); renderPlans();
+const h = location.hash.slice(1); if (['ringkasan', 'produk', 'denah', 'material', 'peta'].includes(h)) show(h);
+</script>

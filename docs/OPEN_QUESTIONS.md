@@ -404,6 +404,20 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-62 — Foto produk per jenis untuk kartu produk (DD-01 #3, P17-06)
+
+**Status:** terbuka — menunggu foto dari tim Pralon (keputusan pemilik 2026-10-13) · **Blocks:** foto asli
+di kartu PVC D, PVC VU, PVC C, dan seluruh fitting
+**Temuan:** pralon.com punya 13 lini produk dengan satu foto utama per lini (diambil 2026-10-13 ke
+`data/catalog/images-pralon-com/`, lihat `SOURCE.md` dan `mapping.csv`). Foto yang benar-benar khusus
+untuk lininya hanya ada untuk PVC AW, PVC VP, dan Pipa Jacking (365 produk). PVC D dan VU hanya muncul
+di halaman AW dan VP, sedangkan fitting hanya punya satu foto kumpulan untuk 1.920 baris. FITTING FRP dan FITTING HDPE tidak
+punya foto sama sekali.
+**Keputusan pemilik:** foto PVC D/VU dan foto per jenis fitting (tee, elbow, sok, Y, reducer, clean
+out, …) **diminta ke tim Pralon**, tidak memakai foto lini lain.
+**Default sementara:** kartu produk tanpa foto asli memakai gambar produk SNOUTY per jenis (pipa
+putih/abu, tee, elbow, sok, dop, Y, clean out). Foto lapangan (detail) tidak dipakai di kartu.
+
 ### OQ-61 — Kelompok hitung bangunan ibadah / umum (temuan laporan 0009, poin F)
 
 **Status:** sebagian diputuskan pemilik (2026-10-12, P16-76): tempat ibadah punya kelompok hitung sendiri

@@ -325,6 +325,16 @@ export interface TeeBom {
   readonly size: string;
 }
 
+/** Peruntukan baris material air bersih — kata yang sama dengan kartu produk (DD-01 #4). */
+const BOM_PURPOSE = {
+  main: { id: 'Pipa utama', en: 'Main line' },
+  tankFill: { id: 'Pengisi toren', en: 'Tank fill' },
+  wudhuRow: { id: 'Deret wudhu', en: 'Ablution row' },
+  branch: { id: 'Cabang', en: 'Branch' },
+  fixture: { id: 'Sambungan ke alat', en: 'Fixture connection' },
+  teeJoint: { id: 'Sambungan cabang', en: 'Branch take-off' },
+} as const;
+
 export function bomItemsFrom(
   solution: SolutionResult,
   traces: readonly IdentifiedTrace[],
@@ -336,6 +346,7 @@ export function bomItemsFrom(
   const en = locale === 'en';
   const ids = traceIdsFor(traces, 'ENG-702');
   const pipeRow = (
+    purpose: { readonly id: string; readonly en: string },
     size: string,
     netM: number,
     detail: string,
@@ -345,6 +356,9 @@ export function bomItemsFrom(
     const purchase = pipePurchase(netM, detail, rowStock, locale);
     return {
       item: bomItemName('Pipa PVC AW', locale),
+      system: 'clean_water',
+      purpose: en ? purpose.en : purpose.id,
+      netLengthM: netM,
       size,
       ...(purchase.productId ? { productId: purchase.productId } : {}),
       quantity: purchase.quantity,
@@ -356,6 +370,7 @@ export function bomItemsFrom(
   };
   const rows: BomItem[] = [
     pipeRow(
+      BOM_PURPOSE.main,
       solution.mainSize,
       solution.mainRunNetM,
       solution.supply.routeBasis === 'stated'
@@ -373,6 +388,7 @@ export function bomItemsFrom(
   if (solution.tankFill !== null) {
     rows.push(
       pipeRow(
+        BOM_PURPOSE.tankFill,
         solution.tankFill.size,
         solution.tankFill.netM,
         en
@@ -394,6 +410,7 @@ export function bomItemsFrom(
     for (const [size, netM] of bySize) {
       rows.push(
         pipeRow(
+          BOM_PURPOSE.wudhuRow,
           size,
           Math.round(netM * 10) / 10,
           en ? 'ablution rows: taps × spacing' : 'deret wudhu: keran × jarak',
@@ -410,6 +427,7 @@ export function bomItemsFrom(
   rows.push(
     ...layout.bySize.map((branch) =>
       pipeRow(
+        BOM_PURPOSE.branch,
         branch.size,
         branch.netM,
         en
@@ -420,6 +438,7 @@ export function bomItemsFrom(
       ),
     ),
     pipeRow(
+      BOM_PURPOSE.fixture,
       solution.fixtureConnectionSize,
       layout.fixtureNetM,
       en
@@ -445,6 +464,8 @@ export function bomItemsFrom(
       fittings.length > 0
         ? fittings.map((f) => ({
             item: en ? ITEM[f.kind].en : ITEM[f.kind].id,
+            system: 'clean_water' as const,
+            purpose: en ? BOM_PURPOSE.teeJoint.en : BOM_PURPOSE.teeJoint.id,
             size: f.size,
             productId: f.productId,
             quantity: branch.count,
@@ -456,6 +477,8 @@ export function bomItemsFrom(
         : [
             {
               item: en ? ITEM.tee.en : ITEM.tee.id,
+              system: 'clean_water' as const,
+              purpose: en ? BOM_PURPOSE.teeJoint.en : BOM_PURPOSE.teeJoint.id,
               size:
                 branch.size === solution.mainSize
                   ? solution.mainSize

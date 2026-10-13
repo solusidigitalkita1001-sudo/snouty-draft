@@ -31,6 +31,10 @@ export function mergeBomBySku(items: readonly BomItem[]): readonly BomItem[] {
     out[at] = {
       ...prev,
       item: prev.item === item.item ? prev.item : `${prev.item} + ${item.item}`,
+      ...mergedPurpose(prev.purpose, item.purpose),
+      ...(prev.netLengthM !== undefined && item.netLengthM !== undefined
+        ? { netLengthM: Math.round((prev.netLengthM + item.netLengthM) * 10) / 10 }
+        : {}),
       quantity: prev.quantity + item.quantity,
       basis: `${prev.basis} ${item.basis}`.trim(),
       provenance: weaker(prev.provenance, item.provenance),
@@ -41,4 +45,10 @@ export function mergeBomBySku(items: readonly BomItem[]): readonly BomItem[] {
     };
   }
   return out;
+}
+
+/** Dua peruntukan satu SKU ditulis berdampingan ("Pipa utama · Cabang"), tanpa pengulangan. */
+function mergedPurpose(a: string | undefined, b: string | undefined): { purpose?: string } {
+  const parts = [...new Set([...(a?.split(' · ') ?? []), ...(b?.split(' · ') ?? [])])];
+  return parts.length > 0 ? { purpose: parts.join(' · ') } : {};
 }

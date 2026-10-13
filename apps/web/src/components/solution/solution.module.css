@@ -326,6 +326,76 @@
   flex-wrap: wrap;
 }
 
+/* ---------- BOQ (DD-01 #8, #9) ---------- */
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--snouty-border);
+  border-radius: 8px;
+}
+
+.boqTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.boqTable th {
+  text-align: left;
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--snouty-muted);
+  background: var(--snouty-surface-subtle);
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--snouty-border);
+  white-space: nowrap;
+}
+
+.boqTable td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  vertical-align: top;
+}
+
+.boqTable .num {
+  text-align: right;
+  font-family: var(--snouty-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.boqSection td {
+  background: var(--snouty-hairline-2, var(--snouty-surface-subtle));
+  font-weight: 600;
+}
+
+.boqGroup td {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--snouty-caption);
+  padding-block: 5px;
+}
+
+.boqProduct {
+  display: block;
+  font-size: 12px;
+  color: var(--snouty-muted);
+}
+
+.boqPending td {
+  color: var(--snouty-muted);
+}
+
+.boqTotal td {
+  font-weight: 600;
+  background: var(--snouty-surface-subtle);
+  border-bottom: 0;
+}
+
 /* ---------- asumsi ---------- */
 
 .assumptionRow {
@@ -436,6 +506,45 @@
   box-shadow: var(--snouty-focus-ring);
 }
 
+.productGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.productGroupTitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.productName {
+  font-weight: 600;
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+
+.productNeed {
+  align-self: stretch;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  border-top: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  padding-top: 7px;
+  font-size: 12.5px;
+  color: var(--snouty-muted);
+}
+
+.productNeed b {
+  color: var(--snouty-ink);
+  font-size: 14px;
+}
+
+.productRows {
+  font-size: 11.5px;
+}
+
 .productRole {
   font-family: var(--snouty-font-mono);
   font-size: 9.5px;
@@ -479,6 +588,35 @@
 @media (max-width: 719px) {
   .workspace {
     padding: 16px 14px 22px;
+  }
+
+  /* BOQ di ponsel = daftar (permintaan pemilik 2026-10-07): kepala tabel disembunyikan, tiap
+     baris bertumpuk — uraian sebaris penuh, ukuran · volume · satuan di bawahnya. */
+  .boqTable thead {
+    display: none;
+  }
+
+  .boqTable tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  }
+
+  .boqTable td {
+    padding: 0;
+    border: 0;
+  }
+
+  .boqTable td:nth-child(2) {
+    flex-basis: 100%;
+    order: -1;
+    font-weight: 600;
+  }
+
+  .boqTable td:empty {
+    display: none;
   }
 
   /* Estimasi material di ponsel = daftar, bukan tabel (permintaan pemilik 2026-10-07):

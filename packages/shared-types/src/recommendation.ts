@@ -29,6 +29,12 @@ export interface RecommendationStats {
 /** Peran sebuah baris/segmen dalam sistem — juga menentukan warna bar di UI. */
 export type SystemRole = 'main' | 'riser' | 'branch' | 'fixture' | 'fitting';
 
+/**
+ * Sistem tempat sebuah baris material atau produk dipakai — membagi BOQ menjadi bagian
+ * (DD-01 #8). Ventilasi ikut jalurnya: ventilasi air kotor di `soil`, air bekas di `waste`.
+ */
+export type BomSystem = 'clean_water' | 'soil' | 'waste';
+
 /** Satu baris tabel "Rekomendasi Sistem" (layar 06). */
 /** Satu langkah hitung yang bisa dibaca pengguna — judul + penjelasan aturan, tanpa kode aturan. */
 export interface CalculationStep {
@@ -67,6 +73,8 @@ export interface SelectedProduct {
    * tepat daripada `role`, yang sama untuk pipa utama air bersih dan jalur air kotor (TC-H-05/06).
    */
   readonly purpose?: string;
+  /** Sistem tempat produk ini dipakai (DD-01); rekomendasi lama tidak punya. */
+  readonly system?: BomSystem;
 }
 
 /**
@@ -135,6 +143,12 @@ export interface BomItem {
   readonly basis: string;
   readonly provenance: Provenance;
   readonly traceIds: readonly string[];
+  /** Bagian BOQ (DD-01 #8); rekomendasi lama tidak punya → bagian "Material". */
+  readonly system?: BomSystem;
+  /** Peruntukan dalam bahasa pengguna ("Pipa utama", "Cabang") — kolom Uraian BOQ. */
+  readonly purpose?: string;
+  /** Panjang bersih pipa sebelum dibulatkan ke batang — kolom Keterangan BOQ. */
+  readonly netLengthM?: number;
   /** Hanya bila `PRICING_ENABLED` (OQ-03). */
   readonly unitPrice?: number;
   readonly subtotal?: number;

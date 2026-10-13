@@ -95,8 +95,11 @@ export type {
   SystemLine,
   CalculationStep,
   SystemRole,
+  BomSystem,
 } from './recommendation.js';
 export { skuLines } from './recommendation.js';
+export { boqFrom } from './boq.js';
+export type { Boq, BoqProduct, BoqRow, BoqSection } from './boq.js';
 export { isFlowSchematic } from './schematic.js';
 export type {
   AnySchematic,

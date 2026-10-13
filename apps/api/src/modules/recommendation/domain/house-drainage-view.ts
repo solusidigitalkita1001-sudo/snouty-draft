@@ -17,6 +17,7 @@ import {
   DEFAULT_LOCALE,
   type Assumption,
   type BomItem,
+  type BomSystem,
   type BomUnit,
   type Locale,
   type Provenance,
@@ -332,6 +333,9 @@ export function drainageBomFrom(
     );
     troughRows.push({
       item: en ? `${DRAINAGE_FAMILY} pipe` : `Pipa ${DRAINAGE_FAMILY}`,
+      system: 'waste',
+      purpose: en ? 'Ablution trough' : 'Talang wudhu',
+      netLengthM: Math.round(netM * 10) / 10,
       size,
       ...(purchase.productId ? { productId: purchase.productId } : {}),
       quantity: purchase.quantity,
@@ -349,11 +353,21 @@ export function drainageBomFrom(
   )
     ? 'ASSUMED'
     : 'VERIFIED';
-  const row = (size: string, netM: number | null, detail: string, stock: StockLength | null) => {
+  const row = (
+    system: BomSystem,
+    purpose: string,
+    size: string,
+    netM: number | null,
+    detail: string,
+    stock: StockLength | null,
+  ) => {
     if (netM === null) return null;
     const purchase = pipePurchase(netM, detail, stock, locale);
     const item: BomItem = {
       item: en ? `${DRAINAGE_FAMILY} pipe` : `Pipa ${DRAINAGE_FAMILY}`,
+      system,
+      purpose,
+      netLengthM: netM,
       size,
       ...(purchase.productId ? { productId: purchase.productId } : {}),
       quantity: purchase.quantity,
@@ -367,6 +381,8 @@ export function drainageBomFrom(
   return [
     result.soil &&
       row(
+        'soil',
+        en ? 'Soil line' : 'Air kotor',
         result.soil.size,
         lengths.soilNetM,
         en ? 'soil line' : 'jalur air kotor',
@@ -374,6 +390,8 @@ export function drainageBomFrom(
       ),
     result.waste &&
       row(
+        'waste',
+        en ? 'Waste line' : 'Air bekas',
         result.waste.size,
         lengths.wasteNetM,
         en ? 'waste line' : 'jalur air bekas',
@@ -381,6 +399,8 @@ export function drainageBomFrom(
       ),
     result.soil &&
       row(
+        'soil',
+        en ? 'Soil vent' : 'Ventilasi air kotor',
         result.soil.ventSize,
         lengths.soilVentNetM,
         en ? 'soil line vent' : 'ventilasi air kotor',
@@ -388,6 +408,8 @@ export function drainageBomFrom(
       ),
     result.waste &&
       row(
+        'waste',
+        en ? 'Waste vent' : 'Ventilasi air bekas',
         result.waste.ventSize,
         lengths.wasteVentNetM,
         en ? 'waste line vent' : 'ventilasi air bekas',

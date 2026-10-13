@@ -10,12 +10,14 @@
  */
 
 import {
-  skuLines,
+  boqFrom,
   type Assumption,
+  type Boq,
+  type BoqProduct,
+  type BoqRow,
   type ComposedResponse,
   type Recommendation,
   type SelectedProduct,
-  type SkuLine,
 } from '@snouty/shared-types';
 import { useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
@@ -54,8 +56,8 @@ export function SolutionView({
   const COPY = useSolutionCopy();
   const [showTechnical, setShowTechnical] = useState(false);
   const [openProduct, setOpenProduct] = useState<DrawerSelection | null>(null);
-  // Satu daftar SKU untuk tab Produk dan material (TC-H-05).
-  const skus = skuLines(recommendation);
+  // Satu daftar untuk tab Produk dan material (TC-H-05, DD-01 #4).
+  const boq = boqFrom(recommendation);
   const { stats } = recommendation;
   const on = (which: SolutionTab) => tab === undefined || tab === which;
   // Semua jenis solusi punya skema: bangunan (lantai per lantai) atau aliran (kasus teknis, irigasi).
@@ -209,50 +211,7 @@ export function SolutionView({
         <CompositionOptions composition={recommendation.composition} />
       )}
 
-      {on('material') && (
-        <section className={styles.card}>
-          <h3 className={styles.cardTitle}>{COPY.bomTitle}</h3>
-          <div className={styles.bomTable} role="table">
-            <div className={styles.bomHeadRow} role="row">
-              <span role="columnheader">{COPY.bomColumns.item}</span>
-              <span role="columnheader">{COPY.bomColumns.size}</span>
-              <span role="columnheader">{COPY.bomColumns.quantity}</span>
-              <span role="columnheader">{COPY.bomColumns.basis}</span>
-            </div>
-            {recommendation.bom.map((item, index) => (
-              <div key={`${item.item}-${item.size}-${index}`} className={styles.bomRow} role="row">
-                <span role="cell">{item.item}</span>
-                <span className={styles.mono} role="cell">
-                  {item.size}
-                </span>
-                <span className={styles.mono} role="cell">
-                  {item.quantity} {item.unit}
-                </span>
-                <span className={styles.bomBasis} role="cell">
-                  {item.basis} <ProvenanceTag provenance={item.provenance} />
-                </span>
-              </div>
-            ))}
-            {/* Produk terpilih yang jumlahnya belum bisa dihitung — tetap di daftar material. */}
-            {skus
-              .filter((sku) => !sku.counted)
-              .map((sku) => (
-                <div key={`pending-${sku.productId}`} className={styles.bomRow} role="row">
-                  <span role="cell">{sku.name ?? COPY.roleLabel[sku.selections[0]!.role]}</span>
-                  <span className={styles.mono} role="cell">
-                    {sku.selections[0]!.size}
-                  </span>
-                  <span className={styles.mono} role="cell">
-                    {sku.kind === 'fitting' ? COPY.pendingFittingQuantity : COPY.pendingQuantity}
-                  </span>
-                  <span className={styles.bomBasis} role="cell">
-                    {sku.kind === 'fitting' ? COPY.pendingFittingBasis : COPY.pendingPipeBasis}
-                  </span>
-                </div>
-              ))}
-          </div>
-        </section>
-      )}
+      {on('material') && boq.sections.length > 0 && <BoqTables boq={boq} />}
 
       {on('material') && recommendation.assumptions.length > 0 && (
         <section className={styles.card}>
@@ -272,19 +231,28 @@ export function SolutionView({
         <CompositionData composition={recommendation.composition} />
       )}
 
-      {on('produk') && skus.length > 0 && (
+      {on('produk') && boq.products.length > 0 && (
         <section className={styles.card}>
           <h3 className={styles.cardTitle}>{COPY.productsTitle}</h3>
-          <div className={styles.productGrid}>
-            {/* Satu kartu per SKU dengan semua peruntukannya (TC-H-05). */}
-            {skus.map((sku) => (
-              <ProductCard
-                key={sku.productId}
-                sku={sku}
-                onOpen={() => setOpenProduct(sku.selections[0]!)}
-              />
-            ))}
-          </div>
+          {/* Kartu = SKU di BOQ, dikelompokkan per sistem seperti BOQ-nya (DD-01 #4). */}
+          {boqSystems(boq).map((system) => (
+            <div key={system ?? 'other'} className={styles.productGroup}>
+              {boq.sections.length > 1 && (
+                <h4 className={styles.productGroupTitle}>{COPY.boq.systems[system ?? 'other']}</h4>
+              )}
+              <div className={styles.productGrid}>
+                {boq.products
+                  .filter((p) => p.system === system)
+                  .map((product) => (
+                    <ProductCard
+                      key={product.productId}
+                      product={product}
+                      onOpen={() => setOpenProduct(product.selections[0]!)}
+                    />
+                  ))}
+              </div>
+            </div>
+          ))}
         </section>
       )}
 
@@ -430,30 +398,223 @@ function Stat({ label, value, mono }: { label: string; value: string; mono?: boo
   );
 }
 
-/** Kartu produk layar 07 — tiga keadaan, label dari desain. */
-function ProductCard({ sku, onOpen }: { sku: SkuLine; onOpen: () => void }) {
+/** Kartu produk layar 07: nama katalog, peruntukan, dan jumlahnya di BOQ (DD-01 #4). */
+function ProductCard({ product, onOpen }: { product: BoqProduct; onOpen: () => void }) {
   const COPY = useSolutionCopy();
-  const product = sku.selections[0]!;
+  const first = product.selections[0]!;
   // Peruntukan dari API (bahasa percakapan); tanpa itu label peran dua bahasa (TC-H-06).
   const purposes = [
-    ...new Set(sku.selections.map((s) => s.purpose ?? COPY.roleLabel[s.role])),
+    ...new Set(product.selections.map((s) => s.purpose ?? COPY.roleLabel[s.role])),
   ].join(' · ');
-  const sizes = [...new Set(sku.selections.map((s) => s.size))].join(' · ');
+  const sizes = [...new Set(product.selections.map((s) => s.size))].join(' · ');
   return (
     <button type="button" className={styles.productCard} onClick={onOpen}>
       <div className={styles.productRole}>{purposes}</div>
+      {product.name && <div className={styles.productName}>{product.name}</div>}
       <div className={styles.productSize}>{sizes}</div>
-      <p className={styles.productReason}>{product.reason}</p>
+      <div className={styles.productNeed}>
+        {product.quantity !== null ? (
+          <>
+            <span>
+              {COPY.productNeeded}{' '}
+              <span className={styles.productRows}>
+                ({COPY.productRows(product.rowNos.join(', '))})
+              </span>
+            </span>
+            <b className={styles.mono}>
+              {product.quantity} {product.unit}
+            </b>
+          </>
+        ) : (
+          <span>{COPY.productPending}</span>
+        )}
+      </div>
       <span
         className={[
           styles.productState,
-          product.matchState === 'VERIFIED_SELECTED' ? styles.productStateOk : '',
-          product.matchState === 'SIZE_NEEDS_VALIDATION' ? styles.productStateWarn : '',
+          first.matchState === 'VERIFIED_SELECTED' ? styles.productStateOk : '',
+          first.matchState === 'SIZE_NEEDS_VALIDATION' ? styles.productStateWarn : '',
         ].join(' ')}
       >
-        {COPY.matchStateLabel[product.matchState]}
+        {COPY.matchStateLabel[first.matchState]}
       </span>
     </button>
+  );
+}
+
+/** Urutan sistem di tab Produk = urutan bagian BOQ. */
+function boqSystems(boq: Boq) {
+  return boq.sections.map((s) => s.system);
+}
+
+function formatMeters(value: number, locale: string): string {
+  return `${value.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID')} m`;
+}
+
+/**
+ * BOQ per sistem lalu pipa / fitting (DD-01 #8) dan dasar perhitungan di tabel terpisah di
+ * bawahnya (DD-01 #9). Baris tanpa jumlah tetap tampil dengan keterangannya.
+ */
+function BoqTables({ boq }: { boq: Boq }) {
+  const COPY = useSolutionCopy();
+  const { locale } = useLocale();
+  const counted = boq.sections.flatMap((s) => s.rows).filter((r) => r.no !== null);
+  const totals = new Map<string, number>();
+  for (const row of counted) {
+    if (row.unit !== null && row.quantity !== null) {
+      totals.set(row.unit, (totals.get(row.unit) ?? 0) + row.quantity);
+    }
+  }
+  const note = (row: BoqRow) =>
+    row.pending
+      ? row.kind === 'fitting'
+        ? COPY.boq.pendingFitting
+        : COPY.boq.pendingPipe
+      : row.netLengthM !== undefined
+        ? formatMeters(row.netLengthM, locale)
+        : '';
+  return (
+    <>
+      <section className={styles.card}>
+        <h3 className={styles.cardTitle}>{COPY.boq.title}</h3>
+        <div className={styles.tableWrap}>
+          <table className={styles.boqTable}>
+            <thead>
+              <tr>
+                <th className={styles.num}>{COPY.boq.columns.no}</th>
+                <th>{COPY.boq.columns.item}</th>
+                <th>{COPY.boq.columns.size}</th>
+                <th className={styles.num}>{COPY.boq.columns.quantity}</th>
+                <th>{COPY.boq.columns.unit}</th>
+                <th>{COPY.boq.columns.note}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {boq.sections.map((section) => (
+                <BoqSectionRows
+                  key={section.system ?? 'other'}
+                  title={
+                    boq.sections.length > 1 || section.system !== null
+                      ? COPY.boq.systems[section.system ?? 'other']
+                      : null
+                  }
+                  rows={section.rows}
+                  note={note}
+                />
+              ))}
+              {totals.size > 0 && (
+                <tr className={styles.boqTotal}>
+                  <td />
+                  <td colSpan={2}>{COPY.boq.total}</td>
+                  <td className={styles.num}>
+                    {[...totals.values()].map((n, i) => (
+                      <div key={i}>{n}</div>
+                    ))}
+                  </td>
+                  <td>
+                    {[...totals.keys()].map((unit) => (
+                      <div key={unit}>{unit}</div>
+                    ))}
+                  </td>
+                  <td />
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {counted.some((r) => r.basis) && (
+        <section className={styles.card}>
+          <h3 className={styles.cardTitle}>{COPY.boq.basisTitle}</h3>
+          <div className={styles.tableWrap}>
+            <table className={styles.boqTable}>
+              <thead>
+                <tr>
+                  <th className={styles.num}>{COPY.boq.basisColumns.no}</th>
+                  <th>{COPY.boq.basisColumns.basis}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {counted
+                  .filter((r) => r.basis)
+                  .map((row) => (
+                    <tr key={row.no}>
+                      <td className={styles.num}>{row.no}</td>
+                      <td>
+                        <span className={styles.bomBasis}>
+                          {row.basis}
+                          {row.provenance && <ProvenanceTag provenance={row.provenance} />}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+    </>
+  );
+}
+
+function BoqSectionRows({
+  title,
+  rows,
+  note,
+}: {
+  title: string | null;
+  rows: readonly BoqRow[];
+  note: (row: BoqRow) => string;
+}) {
+  const COPY = useSolutionCopy();
+  const groups = (['pipe', 'fitting'] as const).filter((kind) => rows.some((r) => r.kind === kind));
+  return (
+    <>
+      {title !== null && (
+        <tr className={styles.boqSection}>
+          <td colSpan={6}>{title}</td>
+        </tr>
+      )}
+      {groups.map((kind) => (
+        <BoqGroup key={kind} label={groups.length > 1 ? COPY.boq.groups[kind] : null}>
+          {rows
+            .filter((r) => r.kind === kind)
+            .map((row, index) => (
+              <tr
+                key={`${row.productId ?? row.item}-${row.size}-${index}`}
+                className={row.pending ? styles.boqPending : undefined}
+              >
+                <td className={styles.num}>{row.no ?? '—'}</td>
+                <td>
+                  {row.purpose ?? row.item}
+                  {row.productName && row.productName !== (row.purpose ?? row.item) && (
+                    <span className={styles.boqProduct}>{row.productName}</span>
+                  )}
+                </td>
+                <td className={styles.mono}>{row.size}</td>
+                <td className={styles.num}>{row.quantity ?? '—'}</td>
+                <td>{row.unit ?? '—'}</td>
+                <td>{note(row)}</td>
+              </tr>
+            ))}
+        </BoqGroup>
+      ))}
+    </>
+  );
+}
+
+function BoqGroup({ label, children }: { label: string | null; children: React.ReactNode }) {
+  return (
+    <>
+      {label !== null && (
+        <tr className={styles.boqGroup}>
+          <td />
+          <td colSpan={5}>{label}</td>
+        </tr>
+      )}
+      {children}
+    </>
   );
 }
 

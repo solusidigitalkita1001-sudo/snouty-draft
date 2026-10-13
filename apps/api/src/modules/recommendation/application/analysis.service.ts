@@ -17,6 +17,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type {
   AssistantStreamEvent,
   Assumption,
+  BomSystem,
   Locale,
   Recommendation,
   RequirementState,
@@ -191,29 +192,34 @@ function isPublicRestroom(state: RequirementState): boolean {
  * Peruntukan tiap produk dalam bahasa percakapan (TC-H-05/06): satu SKU bisa punya beberapa
  * peruntukan, dan `role` saja tidak membedakan pipa utama air bersih dari jalur air kotor.
  */
+/** Peruntukan + sistem tiap produk rumah; sistem membagi BOQ dan tab Produk (DD-01). */
 const PURPOSE = {
-  main: { id: 'Pipa utama', en: 'Main line' },
-  riser: { id: 'Riser', en: 'Riser' },
-  branch: { id: 'Cabang', en: 'Branch' },
-  fixture: { id: 'Sambungan ke alat', en: 'Fixture connection' },
-  fitting: { id: 'Sambungan', en: 'Fitting' },
-  teeJoint: { id: 'Sambungan cabang', en: 'Branch take-off' },
-  tankFill: { id: 'Pengisi toren', en: 'Tank fill' },
-  soil: { id: 'Air kotor', en: 'Soil line' },
-  waste: { id: 'Air bekas', en: 'Waste line' },
-  soilJoint: { id: 'Sambungan air kotor', en: 'Soil line junction' },
-  soilVent: { id: 'Ventilasi air kotor', en: 'Soil vent' },
-  wasteVent: { id: 'Ventilasi air bekas', en: 'Waste vent' },
-  wudhuRow: { id: 'Deret wudhu', en: 'Ablution row' },
-  wudhuTrough: { id: 'Talang wudhu', en: 'Ablution trough' },
-} as const;
+  main: { id: 'Pipa utama', en: 'Main line', system: 'clean_water' },
+  riser: { id: 'Riser', en: 'Riser', system: 'clean_water' },
+  branch: { id: 'Cabang', en: 'Branch', system: 'clean_water' },
+  fixture: { id: 'Sambungan ke alat', en: 'Fixture connection', system: 'clean_water' },
+  fitting: { id: 'Sambungan', en: 'Fitting', system: 'clean_water' },
+  teeJoint: { id: 'Sambungan cabang', en: 'Branch take-off', system: 'clean_water' },
+  tankFill: { id: 'Pengisi toren', en: 'Tank fill', system: 'clean_water' },
+  soil: { id: 'Air kotor', en: 'Soil line', system: 'soil' },
+  waste: { id: 'Air bekas', en: 'Waste line', system: 'waste' },
+  soilJoint: { id: 'Sambungan air kotor', en: 'Soil line junction', system: 'soil' },
+  soilVent: { id: 'Ventilasi air kotor', en: 'Soil vent', system: 'soil' },
+  wasteVent: { id: 'Ventilasi air bekas', en: 'Waste vent', system: 'waste' },
+  wudhuRow: { id: 'Deret wudhu', en: 'Ablution row', system: 'clean_water' },
+  wudhuTrough: { id: 'Talang wudhu', en: 'Ablution trough', system: 'waste' },
+} as const satisfies Record<string, { id: string; en: string; system: BomSystem }>;
 
 function withPurpose(
   product: SelectedProduct,
-  purpose: { readonly id: string; readonly en: string },
+  purpose: { readonly id: string; readonly en: string; readonly system: BomSystem },
   locale: Locale,
 ): SelectedProduct {
-  return { ...product, purpose: locale === 'en' ? purpose.en : purpose.id };
+  return {
+    ...product,
+    purpose: locale === 'en' ? purpose.en : purpose.id,
+    system: purpose.system,
+  };
 }
 
 /** Fitting cabang terpilih: produk untuk kartu, baris material untuk BOM. */

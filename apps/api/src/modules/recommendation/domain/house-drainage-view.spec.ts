@@ -5,7 +5,7 @@
 import { computeHouseDrainage } from '@snouty/engineering';
 import type { Recommendation } from '@snouty/shared-types';
 import { describe, expect, it } from 'vitest';
-import { drainageSystemLines, withHouseDrainage } from './house-drainage-view.js';
+import { drainageBomFrom, drainageSystemLines, withHouseDrainage } from './house-drainage-view.js';
 import type { IdentifiedTrace } from './solution-view.js';
 
 const result = computeHouseDrainage({ bathrooms: 3, basins: 0, kitchens: 1 });
@@ -82,5 +82,25 @@ describe('pembuangan rumah di solusi', () => {
     expect(only.products.map((p) => p.productId)).toEqual(['D4']);
     expect(only.bom).toEqual([]);
     expect(only.headline).toBe('Pembuangan: air kotor 4", air bekas 2"');
+  });
+});
+
+describe('material pembuangan untuk BOQ (P17-01)', () => {
+  const sized = computeHouseDrainage({
+    bathrooms: 3,
+    basins: 4,
+    kitchens: 1,
+    layout: { planLengthM: 15, floors: 2, floorHeightM: 3.5 },
+  });
+  const sizedTraces = sized.traces.map((t, i) => ({ ...t, id: `S${i}` })) as IdentifiedTrace[];
+
+  it('air kotor + ventilasinya di bagian air kotor, air bekas + ventilasinya di air bekas', () => {
+    const bom = drainageBomFrom(sized, sizedTraces, {}, 'id');
+    expect(bom.map((b) => [b.system, b.purpose, b.netLengthM])).toEqual([
+      ['soil', 'Air kotor', 18.5],
+      ['waste', 'Air bekas', 18.5],
+      ['soil', 'Ventilasi air kotor', 8],
+      ['waste', 'Ventilasi air bekas', 8],
+    ]);
   });
 });

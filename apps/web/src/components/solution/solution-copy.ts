@@ -29,12 +29,29 @@ export const SOLUTION_COPY = {
   showTechnical: 'Tampilkan detail teknis',
   hideTechnical: 'Sembunyikan detail teknis',
   technicalKicker: 'DETAIL TEKNIS',
-  bomTitle: 'Perkiraan Material',
-  bomColumns: {
-    item: 'Item',
-    size: 'Ukuran',
-    quantity: 'Jumlah',
-    basis: 'DASAR PERHITUNGAN',
+  /** BOQ (DD-01 #8, #9): satu tabel per sistem; dasar perhitungan di tabel terpisah. */
+  boq: {
+    title: 'Daftar kebutuhan material',
+    columns: {
+      no: 'No.',
+      item: 'Uraian',
+      size: 'Ukuran',
+      quantity: 'Volume',
+      unit: 'Satuan',
+      note: 'Keterangan',
+    },
+    systems: {
+      clean_water: 'Air bersih',
+      soil: 'Air kotor',
+      waste: 'Air bekas',
+      other: 'Material',
+    },
+    groups: { pipe: 'Pipa', fitting: 'Fitting' },
+    pendingPipe: 'Menunggu ukuran bangunan',
+    pendingFitting: 'Dihitung saat pemasangan',
+    total: 'Total',
+    basisTitle: 'Dasar perhitungan',
+    basisColumns: { no: 'No.', basis: 'Cara hitung' },
   },
   assumptionsTitle: 'Asumsi yang digunakan',
   fixAssumption: 'Perbaiki asumsi ini →',
@@ -44,6 +61,9 @@ export const SOLUTION_COPY = {
   resetAssumption: 'Kembalikan nilai awal',
   recalculating: 'Menghitung ulang…',
   productsTitle: 'Produk Pralon yang sesuai',
+  productNeeded: 'Dibutuhkan',
+  productRows: (nos: string) => `BOQ no. ${nos}`,
+  productPending: 'Jumlah menyusul',
 
   // Janji produk — jangan diparafrase.
   planningDisclaimer: 'PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS',
@@ -101,12 +121,6 @@ export const SOLUTION_COPY = {
     fixture: 'Sambungan ke alat',
     fitting: 'Sambungan',
   },
-  pendingQuantity: 'Menyusul',
-  pendingFittingQuantity: '– pcs',
-  pendingPipeBasis:
-    'Jumlah batang dihitung setelah panjang jalur atau ukuran bangunan (panjang × lebar) diketahui.',
-  pendingFittingBasis:
-    'Jumlah fitting (pcs) mengikuti titik sambungan di denah, jadi dihitung setelah denahnya ada.',
 } as const;
 
 export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
@@ -129,12 +143,28 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
   showTechnical: 'Show technical details',
   hideTechnical: 'Hide technical details',
   technicalKicker: 'TECHNICAL DETAILS',
-  bomTitle: 'Estimated Materials',
-  bomColumns: {
-    item: 'Item',
-    size: 'Size',
-    quantity: 'Quantity',
-    basis: 'CALCULATION BASIS',
+  boq: {
+    title: 'Bill of quantities',
+    columns: {
+      no: 'No.',
+      item: 'Description',
+      size: 'Size',
+      quantity: 'Qty',
+      unit: 'Unit',
+      note: 'Notes',
+    },
+    systems: {
+      clean_water: 'Clean water',
+      soil: 'Soil',
+      waste: 'Waste',
+      other: 'Materials',
+    },
+    groups: { pipe: 'Pipes', fitting: 'Fittings' },
+    pendingPipe: 'Needs the building size',
+    pendingFitting: 'Counted at installation',
+    total: 'Total',
+    basisTitle: 'How the quantities were worked out',
+    basisColumns: { no: 'No.', basis: 'Working' },
   },
   assumptionsTitle: 'Assumptions used',
   fixAssumption: 'Fix this assumption →',
@@ -144,6 +174,9 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
   resetAssumption: 'Restore the original value',
   recalculating: 'Recalculating…',
   productsTitle: 'Matching Pralon products',
+  productNeeded: 'Needed',
+  productRows: (nos: string) => `BOQ no. ${nos}`,
+  productPending: 'Quantity to follow',
 
   planningDisclaimer: 'PLANNING GUIDANCE — NOT A TECHNICAL CERTIFICATION',
   outdated: 'This result was calculated with an older version of the rules.',
@@ -194,12 +227,6 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
     fixture: 'Fixture connection',
     fitting: 'Fitting',
   },
-  pendingQuantity: 'To follow',
-  pendingFittingQuantity: '– pcs',
-  pendingPipeBasis:
-    'Pipe counts follow once the route length or the building size (length × width) is known.',
-  pendingFittingBasis:
-    'Fitting counts (pcs) follow the joints on the floor plan, so they are counted once the plan is known.',
 };
 
 export function solutionCopy(locale: Locale): CopyShape<typeof SOLUTION_COPY> {

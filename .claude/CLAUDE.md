@@ -87,6 +87,10 @@ Urutan sumber kebenaran: `docs/DESIGN_IMPLEMENTATION.md` §1.
 Ambiguitas dan konflik masuk ke `docs/OPEN_QUESTIONS.md` dengan usulan default — **tidak pernah
 menjadi asumsi diam-diam**. Lanjutkan pekerjaan yang tidak terhalang.
 
+**Keputusan pemilik selalu berupa pilihan** (permintaan pemilik 2026-10-13): setiap pertanyaan yang
+perlu diputuskan pemilik diajukan lewat AskUserQuestion — opsi siap pilih, rekomendasi di urutan
+pertama dengan label "(Recommended)" — bukan daftar pertanyaan terbuka yang harus diketik.
+
 ## Git
 
 - Branch per fase/item: `phase-<n>/<item-id>-<nama-singkat>`.

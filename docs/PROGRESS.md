@@ -1429,6 +1429,27 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       Product Specification resmi (angka)
 - [ ] ✋ CHECKPOINT — reviewed by owner
 
+## Phase 17 — Layar solusi & laporan v2 (DD-01)
+
+Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
+`design-input/mockups/2026-10-13-solusi-laporan-v2.html`. Layar dan PDF memakai struktur yang sama.
+
+- [x] P17-01 BOQ satu sumber (`boqFrom` di shared-types): baris material membawa sistem (air bersih / air kotor /
+      air bekas), peruntukan, dan panjang bersih; tab Produk diturunkan dari BOQ (nama katalog, jumlah, nomor baris
+      BOQ), dikelompokkan per sistem; produk tanpa jumlah tetap jadi baris BOQ tanpa angka ("Menunggu ukuran
+      bangunan" / "Dihitung saat pemasangan"); dasar perhitungan pindah ke tabel terpisah di bawah BOQ (bentuk
+      sederhana; P17-02 merapikannya). Kolom Kelas belum ada — kelas ikut nama produk.
+- [ ] P17-02 Dasar perhitungan dipisah dari BOQ (tabel jumlah + tabel alasan ukuran)
+- [ ] P17-03 Tabel asumsi terklasifikasi (Bangunan · Isi ruangan · Sumber air · Panjang jalur · Teknik)
+- [ ] P17-04 Pustaka ilustrasi (SVG, terang/gelap) + Ringkasan bergambar dan alur air
+- [ ] P17-05 Kartu pertanyaan bergambar untuk semua pilihan
+- [ ] P17-06 Foto produk dari pralon.com (disimpan lokal, dipetakan ke keluarga katalog). Foto diambil 2026-10-13
+      (`data/catalog/images-pralon-com/`); foto D/VU/fitting diminta ke Pralon → OQ-62
+- [ ] P17-07 Denah: potongan instalasi + denah jalur per lantai
+- [ ] P17-08 "Coba ubah" bergambar di tab Denah (dihitung ulang engine)
+- [ ] P17-09 Laporan PDF mengikuti struktur v2
+- [ ] P17-10 Audit metatext dan penyederhanaan teks layar + PDF
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

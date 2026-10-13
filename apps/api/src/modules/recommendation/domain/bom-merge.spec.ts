@@ -51,3 +51,19 @@ describe('mergeBomBySku (temuan laporan SNTY-2026-10-0002)', () => {
     expect(merged).toHaveLength(4);
   });
 });
+
+describe('mergeBomBySku — peruntukan dan panjang bersih (P17-01)', () => {
+  it('peruntukan berdampingan tanpa ulang, panjang bersih dijumlah', () => {
+    const merged = mergeBomBySku([
+      row({ productId: 'A', purpose: 'Pipa utama', netLengthM: 25.5, quantity: 7 }),
+      row({ productId: 'A', purpose: 'Cabang', netLengthM: 15, quantity: 4 }),
+      row({ productId: 'A', purpose: 'Cabang', netLengthM: 15, quantity: 4 }),
+    ]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]).toMatchObject({
+      purpose: 'Pipa utama · Cabang',
+      netLengthM: 55.5,
+      quantity: 15,
+    });
+  });
+});

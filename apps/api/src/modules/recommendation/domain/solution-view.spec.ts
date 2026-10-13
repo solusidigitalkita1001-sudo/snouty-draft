@@ -89,6 +89,22 @@ describe('material rumah', () => {
     expect(en[0]!.unit).toBe('rods');
   });
 
+  it('P17-01: tiap baris air bersih membawa sistem, peruntukan, dan panjang bersih untuk BOQ', () => {
+    const stock = (name: string) => ({ meters: 4, productName: name });
+    const bom = bomItemsFrom(sized, sizedTraces, 'id', stock('utama'), {
+      branch: stock('cabang'),
+      fixture: stock('sambungan'),
+      fill: stock('pengisi'),
+    });
+    expect(bom.every((b) => b.system === 'clean_water')).toBe(true);
+    expect(bom.slice(0, 2).map((b) => [b.purpose, b.netLengthM])).toEqual([
+      ['Pipa utama', 25.5],
+      ['Pengisi toren', 23],
+    ]);
+    expect(bom.find((b) => b.unit === 'pcs')?.purpose).toBe('Sambungan cabang');
+    expect(bomItemsFrom(sized, sizedTraces, 'en', stock('x'))[0]!.purpose).toBe('Main line');
+  });
+
   it('ukuran rumah diketahui: cabang, sambungan, dan tee ikut dihitung (P16-60)', () => {
     const stock = (name: string) => ({ meters: 4, productName: name });
     const bom = bomItemsFrom(sized, sizedTraces, 'id', stock('utama'), {
