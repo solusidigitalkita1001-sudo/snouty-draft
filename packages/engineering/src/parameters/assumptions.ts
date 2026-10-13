@@ -70,6 +70,23 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description:
       'Pompa sedot biasa hanya bisa menyedot air dari kedalaman sekitar 7 m; lebih dalam dari itu perlu pompa jet atau submersible.',
   },
+  // ── Pengisian toren (review putaran 3, 5b) ──
+  {
+    id: 'TANK_FILL_FLOW_0_25LS',
+    parameter: 'design_flow',
+    appliesTo: [],
+    condition: 'debit pengisian toren atap dari meteran atau pompa belum diketahui',
+    value: 0.25,
+    unit: 'l/s',
+    conditionEn: 'roof tank fill rate from the meter or pump not known',
+    descriptionEn:
+      'The roof tank is taken to fill at 0.25 l/s (15 l/min, a typical house connection) to work out the pressure needed at the meter.',
+    reference: 'Perkiraan sambungan rumah PDAM ±15 l/menit; perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Toren atap diisi dengan debit 0,25 l/s (15 l/menit, sambungan rumah biasa) untuk menghitung tekanan yang dibutuhkan di meteran.',
+  },
   // ── Sisa potong pipa (review laporan 0015, P19-04) ──
   {
     id: 'PIPE_CUTTING_ALLOWANCE_10PCT',

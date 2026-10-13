@@ -365,7 +365,12 @@ export interface ScenarioMetrics {
   readonly boosterPumpNeeded: boolean;
   /** Sisa tekanan di titik tertinggi dari toren atap; `null` bila sumbernya bukan toren atap. */
   readonly residualBar: number | null;
-  readonly tankFill: { readonly netM: number; readonly size: string } | null;
+  readonly tankFill: {
+    readonly netM: number;
+    readonly size: string;
+    /** Tekanan minimal di meteran supaya toren terisi (ENG-710); rekomendasi lama tidak punya. */
+    readonly meterBar?: number;
+  } | null;
 }
 
 export interface ScenarioComparison {

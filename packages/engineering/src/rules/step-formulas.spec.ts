@@ -118,7 +118,13 @@ describe('tanah dan bangunan dibedakan (2026-10-12)', () => {
 
   it('toren atap: pipa pengisi dari depan tanah = halaman 8 + bangunan 12 + toren 8 = 28 m, 3/4" asumsi', () => {
     const r = computeSolution({ ...base, waterSource: 'rooftop_tank' });
-    expect(r.tankFill).toEqual({ netM: 28, size: '3/4"' });
+    expect(r.tankFill).toMatchObject({ netM: 28, size: '3/4"' });
+    // Tekanan di meteran (ENG-710): muka air toren 8 m + gesek dan sambungan pipa pengisi.
+    expect(r.tankFill!.meterBar).toBeGreaterThan(8 / 10.197);
+    const fill = r.traces.find((t) => t.ruleId === 'ENG-710')!;
+    expect(stepFormula('ENG-710', fill.inputs, fill.output)).toMatch(
+      /^Tekanan di meteran = \(8 \+ /,
+    );
     expect(r.appliedAssumptionIds).toContain('TANK_FILL_PIPE_3_4IN');
     const trace = r.traces.find((t) => t.ruleId === 'ENG-706')!;
     expect(stepFormula('ENG-706', trace.inputs, trace.output)).toBe(

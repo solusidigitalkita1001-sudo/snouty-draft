@@ -466,6 +466,8 @@ ENG-703 v2 (review putaran 3): bila tekanan toren kurang, dudukan minimum = dudu
          boosterPumpNeeded hanya dari aturan ini; pompa sumber (sumur, toren bawah) = sourcePumped.
 ENG-605 v2 (review putaran 3): Y = jumlah alat (cabang lantai atas masuk pipa tegak lewat Y alatnya);
          elbow 45° kaki pipa tegak hanya bila > 1 lantai; + sambungan ventilasi dan topi ventilasi per jalur.
+ENG-710  tekanan di meteran untuk mengisi toren atap = muka air toren + gesek pipa pengisi + 10% sambungan pada
+         TANK_FILL_FLOW_0_25LS (review putaran 3, 5b).
 ENG-709  pompa sumur: muka air > SURFACE_PUMP_SUCTION_7M → pompa jet / submersible (OQ-66).
 ENG-708  fitting air bersih (P18-01, keputusan pemilik 2026-10-13, OQ-63): elbow pipa utama
          FITTING_MAIN_ELBOWS_2; elbow pengisi toren FITTING_TANK_FILL_ELBOWS_2 (hanya toren atap

@@ -9,7 +9,8 @@
  *            lantai, dan jenis sumber;
  *   ENG-703  tekanan di titik tertinggi untuk toren atap (gravitasi): tinggi toren − kehilangan;
  *            kurang → dudukan toren minimum di samping pompa pendorong;
- *   ENG-709  pompa sumur: kedalaman muka air terhadap batas sedot pompa permukaan.
+ *   ENG-709  pompa sumur: kedalaman muka air terhadap batas sedot pompa permukaan;
+ *   ENG-710  tekanan di meteran / pompa supaya air sampai ke toren atap lewat pipa pengisi.
  *
  * Ukuran pipanya dipilih Kelompok F (kecepatan + kehilangan tekanan) dengan debit dan jalur ini.
  * Semua `REQUIRES_DOMAIN_VALIDATION`: nilai IPC menunggu padanan SNI 8153 dari tim teknis Pralon.
@@ -17,6 +18,7 @@
 
 import { localized, requireInt, requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
 import { barToHeadM, headMToBar, round1, round2, round3 } from '../units.js';
+import { frictionLossOf } from './group-f-pressurized.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 const GPM_TO_LS = 0.0630902;
@@ -817,6 +819,93 @@ export const ENG_706: RuleVersion<TankFillInput, TankFillResult> = {
     }),
 };
 
+// ── ENG-710 · Tekanan di meteran untuk mengisi toren atap ───────────────────
+
+export interface TankFillPressureInput {
+  /** Muka air toren di atas tanah (meteran di permukaan tanah). */
+  readonly tankLevelM: number;
+  readonly fillNetM: number;
+  readonly flowLs: number;
+  readonly innerDiameterMm: number;
+  readonly hazenWilliamsC: number;
+  readonly minorLossFraction: number;
+}
+export interface TankFillPressureResult {
+  readonly frictionLossM: number;
+  readonly minorLossM: number;
+  readonly requiredHeadM: number;
+  readonly requiredBar: number;
+}
+
+/**
+ * Review putaran 3 (5b): tekanan yang harus ada di meteran PDAM (atau pompa) supaya air naik ke
+ * toren atap lewat pipa pengisi = tinggi muka air toren + kehilangan gesek dan sambungan pada debit
+ * pengisian. Di bawah itu toren tidak terisi — tampung dulu di bawah dan pompa.
+ */
+export const ENG_710: RuleVersion<TankFillPressureInput, TankFillPressureResult> = {
+  ruleId: 'ENG-710',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      tankLevelM: requireNumber('ENG-710', 'tankLevelM', o['tankLevelM'], { min: 1, max: 200 }),
+      fillNetM: requireNumber('ENG-710', 'fillNetM', o['fillNetM'], { min: 1, max: 2000 }),
+      flowLs: requireNumber('ENG-710', 'flowLs', o['flowLs'], { min: 0.01, max: 10 }),
+      innerDiameterMm: requireNumber('ENG-710', 'innerDiameterMm', o['innerDiameterMm'], {
+        min: 5,
+        max: 200,
+      }),
+      hazenWilliamsC: requireNumber('ENG-710', 'hazenWilliamsC', o['hazenWilliamsC'], {
+        min: 60,
+        max: 160,
+      }),
+      minorLossFraction: requireNumber('ENG-710', 'minorLossFraction', o['minorLossFraction'], {
+        min: 0,
+        max: 1,
+      }),
+    };
+  },
+  compute: (i) => {
+    const { frictionLossM } = frictionLossOf(
+      i.flowLs,
+      i.innerDiameterMm,
+      i.fillNetM,
+      i.hazenWilliamsC,
+    );
+    const minorLossM = round2(frictionLossM * i.minorLossFraction);
+    const requiredHeadM = round2(i.tankLevelM + frictionLossM + minorLossM);
+    return {
+      frictionLossM,
+      minorLossM,
+      requiredHeadM,
+      requiredBar: round2(headMToBar(requiredHeadM)),
+    };
+  },
+  sourceReference:
+    'Tekanan di meteran = (tinggi muka air toren + kehilangan gesek Hazen-Williams + kehilangan sambungan) ÷ 10,197 m/bar, pada debit pengisian',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'toren 4,5 m, pipa ¾" (dalam 24 mm) 29,5 m, 0,25 l/s, C 150, sambungan 10%',
+      input: {
+        tankLevelM: 4.5,
+        fillNetM: 29.5,
+        flowLs: 0.25,
+        innerDiameterMm: 24,
+        hazenWilliamsC: 150,
+        minorLossFraction: 0.1,
+      },
+      expected: { frictionLossM: 0.49, minorLossM: 0.05, requiredHeadM: 5.04, requiredBar: 0.49 },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Supaya toren terisi, meteran atau pompa harus memberi minimal ${o.requiredBar} bar: naik ${i.tankLevelM} m ke muka air toren + ${o.frictionLossM} m gesek di pipa pengisi ${i.fillNetM} m + ${o.minorLossM} m sambungan, pada debit pengisian ${i.flowLs} l/s. Kalau tekanan PDAM di bawah itu, tampung dulu di bawah lalu pompa ke toren.`,
+      en: `To fill the tank the meter or pump must give at least ${o.requiredBar} bar: ${i.tankLevelM} m up to the tank water level + ${o.frictionLossM} m friction in the ${i.fillNetM} m fill pipe + ${o.minorLossM} m in fittings, at a fill rate of ${i.flowLs} l/s. If the mains pressure is lower, store the water below first and pump it up.`,
+    }),
+};
+
 // ── ENG-704 · Perkiraan panjang cabang dan sambungan dari ukuran rumah ──────
 
 export interface HouseBranchLengthInput {
@@ -1003,4 +1092,5 @@ export const GROUP_K = [
   ENG_707,
   ENG_708,
   ENG_709,
+  ENG_710,
 ] as const;

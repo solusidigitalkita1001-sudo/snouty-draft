@@ -39,6 +39,7 @@ import {
   ENG_704,
   ENG_708,
   ENG_709,
+  ENG_710,
   ENG_705,
   ENG_706,
   ENG_707,
@@ -51,7 +52,7 @@ import {
 import type { RuleVersion } from './rule.js';
 import { assertBalanced } from './consistency.js';
 import { round1, round2 } from './units.js';
-import { PVC_INCH_SIZES } from './parameters/size-tables.js';
+import { PVC_INCH_SIZES, sizeTable } from './parameters/size-tables.js';
 
 export interface SolutionInput {
   readonly buildingType:
@@ -156,7 +157,15 @@ export interface SolutionResult {
   /** Halaman dari bangunan ke depan tanah (ENG-705); `null` tanpa ukuran tanah dan bangunan. */
   readonly yardM: number | null;
   /** Pipa pengisi toren atap (ENG-706); `null` bukan toren atap atau tanpa ukuran bangunan. */
-  readonly tankFill: { readonly netM: number; readonly size: string } | null;
+  /**
+   * Pipa pengisi toren atap; `meterBar` = tekanan minimal di meteran / pompa supaya toren terisi
+   * (ENG-710, review putaran 3 5b).
+   */
+  readonly tankFill: {
+    readonly netM: number;
+    readonly size: string;
+    readonly meterBar: number;
+  } | null;
   readonly branchLayout: {
     readonly branchNetM: number;
     readonly fixtureNetM: number;
@@ -487,6 +496,21 @@ export function computeSolution(
         })
       : null;
 
+  // 5c · tekanan di meteran supaya air sampai ke toren lewat pipa pengisi (ENG-710).
+  const fillPressure =
+    tankFill !== null && route.tankLevelM !== null
+      ? run(ENG_710, {
+          tankLevelM: route.tankLevelM,
+          fillNetM: tankFill.fillNetM,
+          flowLs: use('TANK_FILL_FLOW_0_25LS'),
+          innerDiameterMm: sizeTable('pvc_inch', use('PVC_AW_WALL_SDR')).find(
+            (n) => n.size === tankFill.size,
+          )!.innerMm,
+          hazenWilliamsC: use('HAZEN_WILLIAMS_C_PLASTIC'),
+          minorLossFraction: use('MINOR_LOSS_FRACTION'),
+        })
+      : null;
+
   // 6 · panjang cabang dan sambungan, hanya dari ukuran rumah (P16-60).
   const layoutRun =
     plan !== null
@@ -594,7 +618,10 @@ export function computeSolution(
     },
     mainRunNetM: hasRealDimensions ? route.routeLengthM : null,
     yardM: yard,
-    tankFill: tankFill ? { netM: tankFill.fillNetM, size: tankFill.size } : null,
+    tankFill:
+      tankFill && fillPressure
+        ? { netM: tankFill.fillNetM, size: tankFill.size, meterBar: fillPressure.requiredBar }
+        : null,
     branchLayout,
     fittings,
     // Hanya dibaca bila panjang pipa memang dihitung — selain itu bukan asumsi yang dipakai.

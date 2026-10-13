@@ -259,6 +259,19 @@ export function systemLinesFrom(
       traceIds: fillTraces,
       role: 'main',
     });
+    // Tekanan yang harus ada di meteran supaya toren terisi (ENG-710, review putaran 3 5b).
+    if (solution.tankFill.meterBar !== undefined) {
+      const pressureTraces = traceIdsFor(traces, 'ENG-710');
+      lines.push({
+        name: en ? 'Pressure needed to fill the tank' : 'Tekanan untuk mengisi toren',
+        path: en ? 'At the meter / pump' : 'Di meteran / pompa',
+        size: `${num(solution.tankFill.meterBar)} bar`,
+        reason: explanationFor(traces, 'ENG-710'),
+        provenance: provenanceFor(traces, pressureTraces),
+        traceIds: pressureTraces,
+        role: 'fitting',
+      });
+    }
   }
 
   // Sumber air: yang perlu disiapkan supaya titik tertinggi mendapat tekanan.

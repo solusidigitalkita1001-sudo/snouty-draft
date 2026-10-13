@@ -209,3 +209,13 @@ describe('U3 — 2 × 2 m untuk 6 kamar mandi', () => {
     );
   });
 });
+
+describe('U1 — tekanan di meteran untuk pipa pengisi toren (5b)', () => {
+  it('dihitung dari muka air toren + kehilangan pipa pengisi, tampil sebagai baris sistem', async () => {
+    const rec = await analyse(U1);
+    const line = rec.systemLines.find((l) => l.name === 'Tekanan untuk mengisi toren')!;
+    // Muka air toren 1 × 3,5 + 1 = 4,5 m ≈ 0,44 bar tanpa kehilangan; dengan kehilangan lebih besar.
+    expect(Number(line.size.replace(' bar', '').replace(',', '.'))).toBeGreaterThan(0.44);
+    expect(line.reason).toContain('Supaya toren terisi');
+  });
+});

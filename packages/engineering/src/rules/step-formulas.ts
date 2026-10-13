@@ -288,6 +288,14 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
           `Tank fill pipe = ${f.n(i['yardM'])} + ${f.n(i['buildingSideM'])} + ${f.n(i['tankLevelM'])} = ${f.n(o['fillNetM'])} m`,
         )
       : null,
+  'ENG-710': (i, o, f) =>
+    nums(i, ['tankLevelM']) &&
+    nums(o, ['frictionLossM', 'minorLossM', 'requiredHeadM', 'requiredBar'])
+      ? f.t(
+          `Tekanan di meteran = (${f.n(i['tankLevelM'])} + ${f.n(o['frictionLossM'])} + ${f.n(o['minorLossM'])}) m = ${f.n(o['requiredHeadM'])} m ≈ ${f.n(o['requiredBar'])} bar`,
+          `Pressure at the meter = (${f.n(i['tankLevelM'])} + ${f.n(o['frictionLossM'])} + ${f.n(o['minorLossM'])}) m = ${f.n(o['requiredHeadM'])} m ≈ ${f.n(o['requiredBar'])} bar`,
+        )
+      : null,
   'ENG-705': (i, o, f) =>
     nums(i, ['landSideM', 'buildingSideM']) && nums(o, ['yardM'])
       ? f.t(

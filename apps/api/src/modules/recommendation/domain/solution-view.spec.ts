@@ -151,7 +151,7 @@ describe('material rumah', () => {
         ),
     ]);
     // Tanpa ukuran tanah: halaman 0 + sisi bangunan 15 m + muka air toren (2 × 3,5 + 1 = 8 m) = 23 m.
-    expect(sized.tankFill).toEqual({ netM: 23, size: '3/4"' });
+    expect(sized.tankFill).toMatchObject({ netM: 23, size: '3/4"' });
     expect(bom.find((b) => b.item === 'Tee cabang')).toMatchObject({
       productId: 'TEE-1',
       unit: 'pcs',
