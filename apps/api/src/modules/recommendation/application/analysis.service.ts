@@ -75,6 +75,7 @@ import {
   drainFittingNeeds,
   fittingBomRows,
   fittingKey,
+  pendingSupplyRows,
   supplyFittingNeeds,
   type FittingNeed,
 } from '../domain/fitting-bom.js';
@@ -481,6 +482,7 @@ export class AnalysisService {
         bom: [
           ...recommendation.bom,
           ...fittingBomRows(needs, traces, locale, (n) => fitted.get(fittingKey(n))?.productId),
+          ...pendingSupplyRows(locale),
         ],
         products: [...recommendation.products, ...uniqueProducts(fitted)],
       };
@@ -573,6 +575,7 @@ export class AnalysisService {
           wasteVent: wasteVent?.stockFor('main') ?? null,
           troughFor: (size) => troughMatches.get(size)?.stockFor('branch') ?? null,
           troughLengthsM: solution.wudhu?.rows.map((r) => r.lengthM) ?? [],
+          allowancePct: solution.cuttingAllowancePct,
         },
       );
       allTraces = [...traces, ...drainageTraces];

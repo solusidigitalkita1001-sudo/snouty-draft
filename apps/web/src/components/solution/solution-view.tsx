@@ -699,7 +699,7 @@ function BoqSectionRows({
         </tr>
       )}
       {groups.map((kind) => (
-        <BoqGroup key={kind} label={groups.length > 1 ? COPY.boq.groups[kind] : null}>
+        <BoqGroup key={kind} label={COPY.boq.groups[kind]}>
           {rows
             .filter((r) => r.kind === kind)
             .map((row, index) => (

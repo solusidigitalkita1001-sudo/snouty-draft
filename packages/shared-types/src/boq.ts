@@ -80,6 +80,18 @@ export function boqFrom(recommendation: {
 
   type Draft = Omit<BoqRow, 'no'> & { readonly system: BomSystem | null };
   const drafts: Draft[] = recommendation.bom.map((item) => {
+    if (item.pending) {
+      return {
+        system: item.system ?? null,
+        kind: kindOfUnit(item.unit),
+        ...(item.purpose !== undefined ? { purpose: item.purpose } : {}),
+        item: item.item,
+        size: item.size,
+        quantity: null,
+        unit: null,
+        pending: true,
+      };
+    }
     const selections = item.productId ? selectionsOf(item.productId) : [];
     const purpose = item.purpose ?? joined(selections.map((s) => s.purpose));
     const productName = selections.find((s) => s.name !== undefined)?.name;
@@ -101,7 +113,12 @@ export function boqFrom(recommendation: {
   });
 
   // Produk terpilih tanpa baris jumlah: satu baris per SKU dengan semua peruntukannya.
-  const counted = new Set(recommendation.bom.map((b) => b.productId).filter(Boolean));
+  const counted = new Set(
+    recommendation.bom
+      .filter((b) => !b.pending)
+      .map((b) => b.productId)
+      .filter(Boolean),
+  );
   const pendingIds = [...new Set(usable.map((p) => p.productId))].filter((id) => !counted.has(id));
   for (const productId of pendingIds) {
     const selections = selectionsOf(productId);

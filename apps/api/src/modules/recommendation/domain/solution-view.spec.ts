@@ -76,14 +76,19 @@ describe('material rumah', () => {
     expect(bomItemsFrom(solution, traces, 'id')).toEqual([]);
   });
 
-  it('8 × 15 m: panjang bersih ÷ panjang batang katalog', () => {
+  // Sisa potong 10% (PIPE_CUTTING_ALLOWANCE_10PCT, review laporan 0015) sebelum dibulatkan ke batang.
+  const rods = (netM: number) => Math.ceil(Math.round(netM * 1.1 * 100) / 100 / 4);
+
+  it('8 × 15 m: panjang bersih + sisa potong ÷ panjang batang katalog', () => {
     const bom = bomItemsFrom(sized, sizedTraces, 'id', {
       meters: 4,
       productName: 'Pipa (TS End) Putih AW 1" x 4 Meter',
     });
     expect(bom[0]).toMatchObject({ item: 'Pipa PVC AW', size: sized.mainSize, unit: 'batang' });
-    expect(bom[0]!.quantity).toBe(Math.ceil(25.5 / 4));
+    expect(bom[0]!.quantity).toBe(rods(25.5));
     expect(bom[0]!.basis).toContain('Panjang bersih 25,5 m');
+    expect(bom[0]!.basis).toContain('sisa potong 10% = 28,05 m');
+    expect(bom[0]!.calc?.working).toBe('25,5 m + 10% = 28,05 m ÷ 4 m = 7,01');
     const en = bomItemsFrom(sized, sizedTraces, 'en', { meters: 4, productName: 'x' });
     expect(en[0]!.item).toBe('PVC AW pipe');
     expect(en[0]!.unit).toBe('rods');
@@ -125,12 +130,12 @@ describe('material rumah', () => {
     expect(layout.branchNetM).toBe(sized.branchCount * 15);
     expect(layout.fixtureNetM).toBe(sized.outletCount * 1.5);
     expect(bom.map((b) => [b.size, b.quantity, b.unit])).toEqual([
-      [sized.mainSize, Math.ceil(25.5 / 4), 'batang'],
+      [sized.mainSize, rods(25.5), 'batang'],
       // Toren atap: pipa pengisi = halaman (tanpa ukuran tanah 0) + 15 m + muka air toren.
-      [sized.tankFill!.size, Math.ceil(sized.tankFill!.netM / 4), 'batang'],
+      [sized.tankFill!.size, rods(sized.tankFill!.netM), 'batang'],
       // Cabang per ukuran: jumlah cabang ukuran itu × 15 m.
-      ...layout.bySize.map((b) => [b.size, Math.ceil((b.count * 15) / 4), 'batang']),
-      [sized.fixtureConnectionSize, Math.ceil(layout.fixtureNetM / 4), 'batang'],
+      ...layout.bySize.map((b) => [b.size, rods(b.count * 15), 'batang']),
+      [sized.fixtureConnectionSize, rods(layout.fixtureNetM), 'batang'],
       // Sambungan per ukuran cabang, satu per cabang — kecuali cabang di ujung pipa utama, yang
       // disambung elbow (review laporan 0015); ukuran tanpa sisa cabang tidak punya baris.
       ...layout.bySize

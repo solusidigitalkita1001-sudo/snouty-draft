@@ -61,19 +61,33 @@ export function pipePurchase(
   detail: string,
   stock: StockLength | null,
   locale: Locale,
+  /** Sisa potong (%) ditambahkan sebelum pembulatan (review laporan 0015); 0 = panjang bersih. */
+  allowancePct = 0,
 ): PipePurchase {
   const en = locale === 'en';
+  const gross = Math.round(netLengthM * (1 + allowancePct / 100) * 100) / 100;
+  const withAllowance =
+    allowancePct > 0
+      ? en
+        ? ` + ${num(allowancePct, locale)}% cutting allowance = ${num(gross, locale)} m`
+        : ` + sisa potong ${num(allowancePct, locale)}% = ${num(gross, locale)} m`
+      : '';
   const net = en
-    ? `Net length ${num(netLengthM, locale)} m (${detail})`
-    : `Panjang bersih ${num(netLengthM, locale)} m (${detail})`;
+    ? `Net length ${num(netLengthM, locale)} m (${detail})${withAllowance}`
+    : `Panjang bersih ${num(netLengthM, locale)} m (${detail})${withAllowance}`;
   const method = capitalised(detail);
+  const base =
+    allowancePct > 0
+      ? `${num(netLengthM, locale)} m + ${num(allowancePct, locale)}% = ${num(gross, locale)} m`
+      : `${num(netLengthM, locale)} m`;
+  netLengthM = gross;
   if (stock === null) {
     return {
       quantity: Math.ceil(netLengthM),
       unit: 'meter',
       calc: {
         method,
-        working: `${num(netLengthM, locale)} m`,
+        working: base,
         result: `${Math.ceil(netLengthM)} m`,
       },
       basis: en
@@ -89,8 +103,8 @@ export function pipePurchase(
       calc: {
         method,
         working: en
-          ? `${num(netLengthM, locale)} m from ${num(stock.meters, locale)} m coils`
-          : `${num(netLengthM, locale)} m dari gulungan ${num(stock.meters, locale)} m`,
+          ? `${base} from ${num(stock.meters, locale)} m coils`
+          : `${base} dari gulungan ${num(stock.meters, locale)} m`,
         result: `${Math.ceil(netLengthM)} m`,
       },
       basis: en
@@ -106,11 +120,11 @@ export function pipePurchase(
     unit: 'batang',
     calc: {
       method,
-      working: `${num(netLengthM, locale)} m ÷ ${num(stock.meters, locale)} m = ${num(exact, locale)}`,
+      working: `${base} ÷ ${num(stock.meters, locale)} m = ${num(exact, locale)}`,
       result: `${rods} ${en ? 'rods' : 'batang'}`,
     },
     basis: en
-      ? `${net} ÷ ${num(stock.meters, locale)} m per piece (${stock.productName}) = ${num(exact, locale)} → ${rods} pieces, rounded up to whole pieces; no cutting allowance added.`
-      : `${net} ÷ ${num(stock.meters, locale)} m per batang (${stock.productName}) = ${num(exact, locale)} → ${rods} batang, dibulatkan ke batang utuh; belum termasuk sisa potongan.`,
+      ? `${net} ÷ ${num(stock.meters, locale)} m per piece (${stock.productName}) = ${num(exact, locale)} → ${rods} pieces, rounded up to whole pieces${allowancePct > 0 ? '.' : '; no cutting allowance added.'}`
+      : `${net} ÷ ${num(stock.meters, locale)} m per batang (${stock.productName}) = ${num(exact, locale)} → ${rods} batang, dibulatkan ke batang utuh${allowancePct > 0 ? '.' : '; belum termasuk sisa potongan.'}`,
   };
 }

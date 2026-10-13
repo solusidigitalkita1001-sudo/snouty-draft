@@ -36,6 +36,24 @@ export interface AssumptionDefinition {
 }
 
 export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
+  // ── Sisa potong pipa (review laporan 0015, P19-04) ──
+  {
+    id: 'PIPE_CUTTING_ALLOWANCE_10PCT',
+    parameter: 'route_length',
+    appliesTo: [],
+    condition: 'jumlah batang dari panjang bersih jalur; potongan di lapangan',
+    value: 10,
+    unit: '%',
+    conditionEn: 'rod count from the net run length; on-site offcuts',
+    descriptionEn:
+      'A 10% cutting allowance is added to each net pipe length before rounding up to whole rods.',
+    reference:
+      'Keputusan pemilik 2026-10-13 (review laporan 0015): default 10%, bisa diubah per kasus',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description:
+      'Sisa potong 10% ditambahkan ke tiap panjang bersih pipa sebelum dibulatkan ke batang utuh.',
+  },
   // ── Fitting rumah (P18-01): jumlah per jalur dari kebiasaan pemasangan, bukan dari denah ──
   {
     id: 'FITTING_MAIN_ELBOWS_2',

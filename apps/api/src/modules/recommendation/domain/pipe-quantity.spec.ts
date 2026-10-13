@@ -85,3 +85,13 @@ describe('pipePurchase — dasar perhitungan terstruktur (P17-02)', () => {
     });
   });
 });
+
+describe('pipePurchase — sisa potong (review laporan 0015)', () => {
+  it('10% ditambahkan sebelum dibulatkan, tertulis di hitungan dan dasar', () => {
+    const p = pipePurchase(25.5, 'jalur utama', { meters: 4, productName: 'x' }, 'id', 10);
+    expect(p.quantity).toBe(8);
+    expect(p.calc.working).toBe('25,5 m + 10% = 28,05 m ÷ 4 m = 7,01');
+    expect(p.basis).toContain('sisa potong 10% = 28,05 m');
+    expect(p.basis).not.toContain('belum termasuk sisa potongan');
+  });
+});

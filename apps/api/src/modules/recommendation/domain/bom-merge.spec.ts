@@ -67,3 +67,13 @@ describe('mergeBomBySku — peruntukan dan panjang bersih (P17-01)', () => {
     });
   });
 });
+
+describe('mergeBomBySku — sistem ikut kunci (review laporan 0015)', () => {
+  it('SKU sama di air kotor dan air bekas tetap dua baris', () => {
+    const merged = mergeBomBySku([
+      row({ productId: 'D2', system: 'waste', purpose: 'Air bekas' }),
+      row({ productId: 'D2', system: 'soil', purpose: 'Ventilasi air kotor' }),
+    ]);
+    expect(merged.map((m) => m.system)).toEqual(['waste', 'soil']);
+  });
+});

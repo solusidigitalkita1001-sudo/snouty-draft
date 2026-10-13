@@ -303,6 +303,8 @@ export interface DrainStocks {
   readonly waste?: StockLength | null;
   readonly soilVent?: StockLength | null;
   readonly wasteVent?: StockLength | null;
+  /** Sisa potong (%) dari hasil air bersih rumah yang sama (PIPE_CUTTING_ALLOWANCE_10PCT). */
+  readonly allowancePct?: number;
 }
 
 /**
@@ -330,6 +332,7 @@ export function drainageBomFrom(
       en ? 'ablution troughs: taps × spacing per row' : 'talang wudhu: keran × jarak per deret',
       stocks.troughFor?.(size) ?? null,
       locale,
+      stocks.allowancePct ?? 0,
     );
     troughRows.push({
       item: en ? `${DRAINAGE_FAMILY} pipe` : `Pipa ${DRAINAGE_FAMILY}`,
@@ -363,7 +366,7 @@ export function drainageBomFrom(
     stock: StockLength | null,
   ) => {
     if (netM === null) return null;
-    const purchase = pipePurchase(netM, detail, stock, locale);
+    const purchase = pipePurchase(netM, detail, stock, locale, stocks.allowancePct ?? 0);
     const item: BomItem = {
       item: en ? `${DRAINAGE_FAMILY} pipe` : `Pipa ${DRAINAGE_FAMILY}`,
       system,

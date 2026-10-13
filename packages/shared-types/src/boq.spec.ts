@@ -128,3 +128,28 @@ describe('boqFrom', () => {
     expect(legacy.products[0]).toMatchObject({ productId: 'X', quantity: 3, rowNos: [1] });
   });
 });
+
+describe('boqFrom — barang yang belum dihitung (review laporan 0015)', () => {
+  it('baris pending tampil tanpa angka dan tanpa nomor; tidak ikut kartu produk', () => {
+    const boq = boqFrom({
+      products: [],
+      bom: [
+        bom({
+          item: 'Stop kran',
+          system: 'clean_water',
+          size: '—',
+          quantity: 0,
+          unit: 'pcs',
+          pending: true,
+        }),
+      ],
+    });
+    expect(boq.sections[0]!.rows[0]).toMatchObject({
+      item: 'Stop kran',
+      no: null,
+      quantity: null,
+      pending: true,
+    });
+    expect(boq.products).toEqual([]);
+  });
+});

@@ -163,6 +163,11 @@ export interface SolutionResult {
   } | null;
   /** Fitting air bersih (ENG-708): elbow per jalur, cabang, dan titik air. */
   readonly fittings: HouseSupplyFittingResult;
+  /**
+   * Sisa potong pipa (%, PIPE_CUTTING_ALLOWANCE_10PCT) — ditambahkan ke panjang bersih sebelum
+   * dibulatkan ke batang; `0` bila panjang pipa belum dihitung (tanpa ukuran rumah).
+   */
+  readonly cuttingAllowancePct: number;
   /** Ukuran cabang di ujung pipa utama — disambung elbow, bukan tee (ENG-704 v2). */
   readonly mainEndBranchSize: string | null;
   readonly appliedAssumptionIds: readonly string[];
@@ -548,6 +553,8 @@ export function computeSolution(
     tankFill: tankFill ? { netM: tankFill.fillNetM, size: tankFill.size } : null,
     branchLayout,
     fittings,
+    // Hanya dibaca bila panjang pipa memang dihitung — selain itu bukan asumsi yang dipakai.
+    cuttingAllowancePct: plan !== null ? use('PIPE_CUTTING_ALLOWANCE_10PCT') : 0,
     mainEndBranchSize: endBranchSize ?? null,
     wudhu,
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },

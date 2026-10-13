@@ -168,6 +168,11 @@ export interface BomItem {
   readonly netLengthM?: number;
   /** Hitungan baris ini dalam tiga bagian — tabel "Dasar perhitungan" (DD-01 #9). */
   readonly calc?: BomCalc;
+  /**
+   * Barang yang dibutuhkan tetapi jumlahnya belum dihitung (sok, stop kran, dop, lem — review
+   * laporan 0015): tampil di BOQ tanpa angka, `quantity` diabaikan.
+   */
+  readonly pending?: true;
   /** Hanya bila `PRICING_ENABLED` (OQ-03). */
   readonly unitPrice?: number;
   readonly subtotal?: number;

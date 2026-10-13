@@ -359,7 +359,7 @@ export function bomItemsFrom(
     rowStock: StockLength | null,
     rowIds: readonly string[],
   ): BomItem => {
-    const purchase = pipePurchase(netM, detail, rowStock, locale);
+    const purchase = pipePurchase(netM, detail, rowStock, locale, solution.cuttingAllowancePct);
     return {
       item: bomItemName('Pipa PVC AW', locale),
       system: 'clean_water',

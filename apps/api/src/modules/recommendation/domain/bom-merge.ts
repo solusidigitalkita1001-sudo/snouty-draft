@@ -20,7 +20,9 @@ export function mergeBomBySku(items: readonly BomItem[]): readonly BomItem[] {
       out.push(item);
       continue;
     }
-    const key = `${item.productId}|${item.unit}`;
+    // Sistem ikut kunci (review laporan 0015): pipa 2" ventilasi air kotor dan pipa 2" air bekas
+    // adalah SKU sama, tetapi bagian BOQ-nya berbeda.
+    const key = `${item.productId}|${item.unit}|${item.system ?? ''}`;
     const at = indexByKey.get(key);
     if (at === undefined) {
       indexByKey.set(key, out.length);

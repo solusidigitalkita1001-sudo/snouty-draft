@@ -1511,8 +1511,10 @@ pemasangan"; tebal dinding resmi per kelas menunggu tabel Pralon (OQ-64).
       = 0,80 l/s; angka 6,5 gpm di review adalah nilai 3 WSFU), total dan cabang memakai kurva yang sama; tidak
       diubah tanpa sumber → OQ-65. Ujung pipa utama memakai elbow (+ reducer), bukan tee: ENG-704 v2 (tee = cabang
       − 1), ENG-708 v2, BOQ, dan skema (EL-n). Tebal dinding resmi per kelas → OQ-64 (menunggu tabel Pralon)
-- [ ] P19-04 BOQ: baris sok/stop kran/dop/lem "dihitung saat pemasangan"; sisa potong 10% di Dasar Perhitungan;
-      ventilasi air kotor di seksinya sendiri; struktur subjudul seragam
+- [x] P19-04 BOQ: sisa potong 10% (`PIPE_CUTTING_ALLOWANCE_10PCT`, bisa diubah) ditambahkan sebelum pembulatan dan
+      tertulis di Dasar Perhitungan; sok, dop, stop kran, lem PVC tampil "dihitung saat pemasangan" (`BomItem.pending`);
+      penggabungan SKU per sistem sehingga ventilasi air kotor 2" tidak masuk seksi air bekas; subjudul Pipa/Fitting
+      selalu ada di setiap seksi (layar + PDF)
 - [ ] P19-05 Layout PDF: label terpotong, "PDAM PDAM", judul yatim (keep-with-next)
 
 ## Design Coverage

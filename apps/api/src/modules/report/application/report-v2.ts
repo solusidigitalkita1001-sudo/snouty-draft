@@ -499,9 +499,9 @@ export function boqSection(
         groups
           .map(
             (kind) =>
-              (groups.length > 1
-                ? `<tr class="r-group"><td></td><td colspan="6">${v.groups[kind]}</td></tr>`
-                : '') +
+              // Subjudul Pipa / Fitting selalu ada, juga di seksi yang hanya punya satu kelompok
+              // (review laporan 0015: seksi Air bekas tanpa subjudul).
+              `<tr class="r-group"><td></td><td colspan="6">${v.groups[kind]}</td></tr>` +
               section.rows
                 .filter((r) => r.kind === kind)
                 .map(

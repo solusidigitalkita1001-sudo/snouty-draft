@@ -192,6 +192,31 @@ export function fittingKey(need: Pick<FittingNeed, 'kind' | 'size' | 'branchSize
   return `${need.kind}|${need.size}|${need.branchSize ?? ''}`;
 }
 
+/**
+ * Barang air bersih yang dibutuhkan tetapi jumlahnya belum dihitung (keputusan pemilik
+ * 2026-10-13): tampil di BOQ sebagai "dihitung saat pemasangan", tanpa angka karangan.
+ */
+export function pendingSupplyRows(locale: Locale): readonly BomItem[] {
+  const en = locale === 'en';
+  const row = (id: string, enName: string, unit: BomItem['unit']): BomItem => ({
+    item: en ? enName : id,
+    system: 'clean_water',
+    size: '—',
+    quantity: 0,
+    unit,
+    basis: '',
+    provenance: 'ASSUMED',
+    traceIds: [],
+    pending: true,
+  });
+  return [
+    row('Sok', 'Socket', 'pcs'),
+    row('Dop', 'Cap', 'pcs'),
+    row('Stop kran', 'Stop valve', 'pcs'),
+    row('Lem PVC', 'PVC solvent cement', 'kaleng'),
+  ];
+}
+
 export function fittingBomRows(
   needs: readonly FittingNeed[],
   traces: readonly IdentifiedTrace[],
