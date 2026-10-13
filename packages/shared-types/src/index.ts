@@ -99,6 +99,9 @@ export type {
   BomCalc,
   NeedBranch,
   NeedKind,
+  ScenarioComparison,
+  ScenarioId,
+  ScenarioMetrics,
   SolutionNeed,
 } from './recommendation.js';
 export { skuLines } from './recommendation.js';

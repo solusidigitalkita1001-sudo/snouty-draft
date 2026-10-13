@@ -459,6 +459,50 @@
   height: 77px;
 }
 
+/* ---------- Coba ubah (P17-08) ---------- */
+
+.scenarioButtons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.scenarioButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--snouty-border);
+  border-radius: 8px;
+  background: var(--snouty-surface-subtle);
+  font: 500 13px var(--snouty-font-sans);
+  color: var(--snouty-ink);
+  text-align: center;
+  cursor: pointer;
+}
+
+.scenarioButton[aria-pressed='true'] {
+  border-color: var(--snouty-action);
+  background: var(--snouty-action-soft-bg);
+}
+
+.scenarioButton:focus-visible {
+  outline: none;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.scenarioImage {
+  width: 80px;
+  height: 67px;
+}
+
+.scenarioChanged {
+  color: var(--snouty-action-text);
+  font-weight: 600;
+}
+
 /* ---------- Denah (DD-01 #7) ---------- */
 
 .drawing {

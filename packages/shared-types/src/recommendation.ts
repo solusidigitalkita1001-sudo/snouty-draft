@@ -333,3 +333,26 @@ export interface Recommendation {
    */
   readonly outdated?: boolean;
 }
+
+/** Skenario "Coba ubah" (DD-01, P17-08). */
+export type ScenarioId =
+  'tank_raised' | 'add_bathroom' | 'municipal' | 'ground_tank' | 'rooftop_tank';
+
+/** Angka engine yang dibandingkan antar skenario. */
+export interface ScenarioMetrics {
+  readonly outletCount: number;
+  readonly mainSize: string;
+  readonly velocityMs: number;
+  readonly branches: readonly { readonly size: string; readonly count: number }[];
+  readonly boosterPumpNeeded: boolean;
+  /** Sisa tekanan di titik tertinggi dari toren atap; `null` bila sumbernya bukan toren atap. */
+  readonly residualBar: number | null;
+  readonly tankFill: { readonly netM: number; readonly size: string } | null;
+}
+
+export interface ScenarioComparison {
+  readonly base: ScenarioMetrics;
+  /** Kenaikan dudukan toren pada skenario `tank_raised` (tinggi satu lantai). */
+  readonly raisedByM: number;
+  readonly scenarios: readonly { readonly id: ScenarioId; readonly metrics: ScenarioMetrics }[];
+}

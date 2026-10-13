@@ -17,6 +17,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type {
   AssistantStreamEvent,
   Assumption,
+  ScenarioComparison,
   BomSystem,
   Locale,
   Recommendation,
@@ -68,6 +69,7 @@ import { stockLengthOf, type StockLength } from '../domain/pipe-quantity.js';
 import { DRAINAGE_FAMILY, withHouseDrainage } from '../domain/house-drainage-view.js';
 import { mergeBomBySku } from '../domain/bom-merge.js';
 import { needsFrom } from '../domain/solution-needs.js';
+import { compareScenarios } from '../domain/scenarios.js';
 import {
   gravityAssumptionsFrom,
   gravityBomItemsFrom,
@@ -262,6 +264,16 @@ export class AnalysisService {
    * Skema rekomendasi: kasus teknis dan irigasi → skema aliran dari hitungan kasusnya; bangunan →
    * skema lantai per lantai. Keduanya dibentuk ulang dari snapshot, tidak disimpan.
    */
+  /**
+   * "Coba ubah" (P17-08): bandingkan hasil sekarang dengan skenario, dihitung ulang engine dari
+   * kebutuhan tersimpan. Hanya jalur bangunan dengan air bersih; selain itu `null`.
+   */
+  scenariosFor(state: RequirementState): ScenarioComparison | null {
+    if (state.useCase !== undefined) return null;
+    if (state.water.installationType.value === 'drainage') return null;
+    return compareScenarios(solutionInputFrom(state), overridesOf(state));
+  }
+
   async schematicForRecommendation(
     state: RequirementState,
     catalogVersionId: string,

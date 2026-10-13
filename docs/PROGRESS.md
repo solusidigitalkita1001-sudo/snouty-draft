@@ -1464,7 +1464,9 @@ Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
       dengan alat dan ukurannya, pembuangan + ventilasi + septic, ukuran lantai dan bangunan) dan denah jalur per lantai
       berskala ukuran bangunan; SVG dari `@snouty/ui/installation-drawing` untuk layar dan halaman Denah di PDF. Data
       cabang per lantai (ENG-707) dan ukuran ventilasi ikut disimpan di kebutuhan. Letak ruang tidak dikarang
-- [ ] P17-08 "Coba ubah" bergambar di tab Denah (dihitung ulang engine)
+- [x] P17-08 "Coba ubah" di tab Denah: tombol bergambar (toren dinaikkan satu lantai, tambah 1 kamar mandi, PDAM,
+      toren bawah + pompa, toren atap) dan tabel Sekarang ↔ skenario dengan perubahan ditandai. `GET
+    /recommendations/:id/scenarios` menghitung ulang engine dari kebutuhan tersimpan — tanpa menyimpan, tanpa LLM
 - [x] P17-09 Laporan PDF v2: ringkasan bergambar, BOQ per sistem dengan gambar produk, dasar perhitungan & asumsi
       berkategori, lampiran produk Pralon bergambar; payload membekukan `products`/`needs`/`outletCount`; modul
       gambar dipindah ke `@snouty/ui` (dibangun ke `dist` untuk API) supaya layar dan PDF memakai logika yang sama.

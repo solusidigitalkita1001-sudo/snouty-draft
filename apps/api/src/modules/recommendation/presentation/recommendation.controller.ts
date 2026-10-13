@@ -146,6 +146,21 @@ export class RecommendationController {
     return { state: saved.state };
   }
 
+  /**
+   * "Coba ubah" (DD-01, P17-08): skenario dihitung ulang engine dari kebutuhan tersimpan —
+   * tanpa menyimpan apa pun, tanpa model bahasa. Kepemilikan lewat percakapannya.
+   */
+  @Get('recommendations/:id/scenarios')
+  async scenarios(@Param() params: unknown, @Req() req: PublicRequest): Promise<unknown> {
+    const id = parse(IdParam, params).id;
+    const recommendation = await this.repository.findById(id);
+    if (!recommendation) return { error: { code: 'NOT_FOUND' } };
+    await this.conversations.find(recommendation.conversationId, actorOf(req));
+    const snapshot = await this.snapshots.current(recommendation.conversationId);
+    if (!snapshot) return { error: { code: 'NOT_FOUND' } };
+    return this.analysis.scenariosFor(snapshot.state) ?? { error: { code: 'NOT_FOUND' } };
+  }
+
   @Get('recommendations/:id/schematic')
   async schematic(@Param() params: unknown, @Req() req: PublicRequest): Promise<unknown> {
     const id = parse(IdParam, params).id;
