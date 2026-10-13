@@ -225,12 +225,45 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     value: 1,
     unit: 'pcs',
     conditionEn: 'clean-outs per drain line',
-    descriptionEn: 'Each drain line is estimated to need 1 clean-out at the foot of the stack.',
+    descriptionEn:
+      'Each drain line is estimated to need 1 clean-out at the foot of the stack, or at the end of the line for a building with 1 floor.',
     reference:
       'Perkiraan kebiasaan pemasangan rumah (keputusan pemilik 2026-10-13, P18-01); perlu validasi tim teknis Pralon',
     confidence: 'low',
     confirmationRequired: true,
-    description: 'Tiap jalur pembuangan diperkirakan memakai 1 clean out di kaki pipa tegak.',
+    description:
+      'Tiap jalur pembuangan diperkirakan memakai 1 clean out di kaki pipa tegak, atau di ujung jalur untuk bangunan 1 lantai.',
+  },
+  {
+    id: 'FITTING_VENT_JOIN_1',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'sambungan pipa ventilasi ke jalur pembuangan',
+    value: 1,
+    unit: 'pcs',
+    conditionEn: 'vent pipe joint to the drain line',
+    descriptionEn: 'Each vent pipe is estimated to join its drain line through 1 Y-branch or tee.',
+    reference:
+      'Review putaran 3 (2026-10-13): sambungan ventilasi belum dihitung; perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Tiap pipa ventilasi diperkirakan tersambung ke jalurnya lewat 1 Y-branch atau tee.',
+  },
+  {
+    id: 'FITTING_VENT_CAP_1',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'topi di ujung atas pipa ventilasi',
+    value: 1,
+    unit: 'pcs',
+    conditionEn: 'cap on top of the vent pipe',
+    descriptionEn: 'Each vent pipe is estimated to need 1 vent cap above the roof.',
+    reference:
+      'Review putaran 3 (2026-10-13): topi ventilasi belum dihitung; perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Tiap pipa ventilasi diperkirakan memakai 1 topi ventilasi di atas atap.',
   },
   // ── Irigasi ──
   {

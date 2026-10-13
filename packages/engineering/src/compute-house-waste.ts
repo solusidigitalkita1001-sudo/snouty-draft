@@ -266,9 +266,14 @@ export function computeHouseDrainage(
     hasWaste: waste !== null,
     floors: Math.max(floors.length, input.layout?.floors ?? 1),
     yPerFixture: use('FITTING_DRAIN_Y_PER_FIXTURE_1'),
-    yPerUpperFloor: use('FITTING_STACK_Y_PER_UPPER_FLOOR_1'),
-    stackBaseElbows45: use('FITTING_STACK_BASE_ELBOW45_2'),
+    // Rumah 1 lantai tanpa pipa tegak: asumsi elbow 45° tidak dipakai, jadi tidak tampil (4c).
+    stackBaseElbows45:
+      Math.max(floors.length, input.layout?.floors ?? 1) > 1
+        ? use('FITTING_STACK_BASE_ELBOW45_2')
+        : 0,
     cleanoutsPerLine: use('FITTING_CLEANOUT_PER_LINE_1'),
+    ventJoinsPerLine: use('FITTING_VENT_JOIN_1'),
+    ventCapsPerLine: use('FITTING_VENT_CAP_1'),
   });
 
   return {

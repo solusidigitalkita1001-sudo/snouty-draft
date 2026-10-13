@@ -76,7 +76,9 @@ import {
   drainFittingNeeds,
   fittingBomRows,
   fittingKey,
-  pendingSupplyRows,
+  pendingNeeds,
+  pendingRows,
+  type PendingNeed,
   supplyFittingNeeds,
   type FittingNeed,
 } from '../domain/fitting-bom.js';
@@ -234,6 +236,10 @@ function withPurpose(
     purpose: locale === 'en' ? purpose.en : purpose.id,
     system: purpose.system,
   };
+}
+
+function pendingKey(need: PendingNeed): string {
+  return `${need.system}|${need.kind ?? ''}|${need.size}`;
 }
 
 /** Satu produk per SKU dari peta fitting (beberapa jenis/ukuran bisa jatuh ke SKU yang sama). */
@@ -480,14 +486,21 @@ export class AnalysisService {
     if (installation !== 'drainage') {
       const needs = supplyFittingNeeds(solution);
       const fitted = await this.matchFittings(needs, PIPE_FAMILY, locale);
+      const pending = pendingNeeds([{ system: 'clean_water', size: solution.mainSize }]);
+      const pendingFitted = await this.matchPending(pending, PIPE_FAMILY, locale);
       recommendation = {
         ...recommendation,
         bom: [
           ...recommendation.bom,
           ...fittingBomRows(needs, traces, locale, (n) => fitted.get(fittingKey(n))?.productId),
-          ...pendingSupplyRows(locale),
+          ...pendingRows(pending, locale, (n) => pendingFitted.get(pendingKey(n))?.productId),
         ],
-        products: [...recommendation.products, ...uniqueProducts(fitted)],
+        products: [
+          ...recommendation.products,
+          ...[...uniqueProducts(fitted), ...uniqueProducts(pendingFitted)].filter(
+            (p, i, all) => all.findIndex((q) => q.productId === p.productId) === i,
+          ),
+        ],
       };
     }
     let drainageResult: HouseDrainageResult | null = null;
@@ -587,6 +600,12 @@ export class AnalysisService {
       // diulang: baris BOQ-nya kini punya jumlah.
       const drainNeeds = drainFittingNeeds(drainage);
       const drainFitted = await this.matchFittings(drainNeeds, DRAINAGE_FAMILY, locale);
+      // Sok, dop, dan lem pembuangan per jalur (review putaran 3, 4f).
+      const drainPending = pendingNeeds([
+        ...(drainage.soil ? [{ system: 'soil' as const, size: drainage.soil.size }] : []),
+        ...(drainage.waste ? [{ system: 'waste' as const, size: drainage.waste.size }] : []),
+      ]);
+      const drainPendingFitted = await this.matchPending(drainPending, DRAINAGE_FAMILY, locale);
       recommendation = {
         ...recommendation,
         bom: [
@@ -597,11 +616,18 @@ export class AnalysisService {
             locale,
             (n) => drainFitted.get(fittingKey(n))?.productId,
           ),
+          ...pendingRows(
+            drainPending,
+            locale,
+            (n) => drainPendingFitted.get(pendingKey(n))?.productId,
+          ),
         ],
         products: [
           ...recommendation.products,
-          ...uniqueProducts(drainFitted).filter(
-            (p) => !recommendation.products.some((q) => q.productId === p.productId),
+          ...[...uniqueProducts(drainFitted), ...uniqueProducts(drainPendingFitted)].filter(
+            (p, i, all) =>
+              !recommendation.products.some((q) => q.productId === p.productId) &&
+              all.findIndex((q) => q.productId === p.productId) === i,
           ),
         ],
       };
@@ -609,7 +635,7 @@ export class AnalysisService {
     // Jumlah produk di ringkasan = daftar SKU yang sama dengan tab Produk dan material (TC-H-05).
     recommendation = withPrintedMaterialCount({
       ...recommendation,
-      bom: mergeBomBySku(recommendation.bom),
+      bom: mergeBomBySku(recommendation.bom, locale),
       needs: needsFrom(solutionInputFrom(state), solution, drainageResult),
     });
     await this.repository.save(saveReady(state, recommendation, allTraces, locale), allTraces, {
@@ -1156,6 +1182,28 @@ export class AnalysisService {
     return out;
   }
 
+  /** Produk untuk sok/dop yang jumlahnya dihitung saat pemasangan; stop kran dan lem tanpa SKU. */
+  private async matchPending(
+    needs: readonly PendingNeed[],
+    family: string,
+    locale: Locale,
+  ): Promise<ReadonlyMap<string, SelectedProduct>> {
+    const out = new Map<string, SelectedProduct>();
+    for (const need of needs) {
+      if (need.kind === null || out.has(pendingKey(need))) continue;
+      const found = await this.matchRoles([fittingRequirement(need.size, family, need.kind)]);
+      const product = found.products[0];
+      if (product) {
+        out.set(pendingKey(need), {
+          ...product,
+          purpose: locale === 'en' ? need.item.en : need.item.id,
+          system: need.system,
+        });
+      }
+    }
+    return out;
+  }
+
   private async matchTee(
     mainSize: string,
     branchSize: string,
@@ -1429,7 +1477,7 @@ function saveReady(
   const merged = {
     ...recommendation,
     body: firstSentences(recommendation.body),
-    bom: mergeBomBySku(recommendation.bom),
+    bom: mergeBomBySku(recommendation.bom, locale),
   };
   return withEditableAssumptions(withCalculationSteps(merged, traces, locale), state, locale);
 }

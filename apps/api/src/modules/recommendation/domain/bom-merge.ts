@@ -4,17 +4,24 @@
  * satuan yang sama digabung: jumlahnya dijumlahkan, nama perannya disebut berurutan, dasar
  * perhitungan dan trace keduanya dipertahankan. Baris tanpa produk tidak disentuh.
  *
- * Jumlah dijumlahkan apa adanya (setiap peran sudah dibulatkan ke batang utuh): tidak ada asumsi
- * baru bahwa potongan satu jalur bisa dipakai jalur lain.
+ * Pipa dengan batang yang sama dibulatkan SEKALI per SKU (review putaran 3, 4a): panjang bersih
+ * semua perannya dijumlah, ditambah sisa potong, lalu dibagi panjang batang — bukan jumlah batang
+ * per peran yang masing-masing sudah dibulatkan ke atas. Baris lain dijumlah apa adanya.
  */
-import type { BomItem, Provenance } from '@snouty/shared-types';
+import { DEFAULT_LOCALE, type BomItem, type Locale, type Provenance } from '@snouty/shared-types';
+import { pipePurchase } from './pipe-quantity.js';
 
 const ORDER: readonly Provenance[] = ['VERIFIED', 'ESTIMATED', 'ASSUMED', 'UNAVAILABLE'];
 const weaker = (a: Provenance, b: Provenance) => (ORDER.indexOf(a) >= ORDER.indexOf(b) ? a : b);
 
-export function mergeBomBySku(items: readonly BomItem[]): readonly BomItem[] {
+export function mergeBomBySku(
+  items: readonly BomItem[],
+  locale: Locale = DEFAULT_LOCALE,
+): readonly BomItem[] {
   const out: BomItem[] = [];
   const indexByKey = new Map<string, number>();
+  // Peran dan panjang bersih tiap baris pipa yang digabung, untuk dibulatkan sekali di akhir.
+  const parts = new Map<number, { purpose: string; netM: number }[]>();
   for (const item of items) {
     if (item.productId === undefined) {
       out.push(item);
@@ -26,10 +33,24 @@ export function mergeBomBySku(items: readonly BomItem[]): readonly BomItem[] {
     const at = indexByKey.get(key);
     if (at === undefined) {
       indexByKey.set(key, out.length);
+      if (item.rod !== undefined && item.netLengthM !== undefined) {
+        parts.set(out.length, [{ purpose: item.purpose ?? item.item, netM: item.netLengthM }]);
+      }
       out.push(item);
       continue;
     }
     const prev = out[at]!;
+    const pipeParts = parts.get(at);
+    if (
+      pipeParts !== undefined &&
+      item.netLengthM !== undefined &&
+      item.rod?.meters === prev.rod?.meters &&
+      item.allowancePct === prev.allowancePct
+    ) {
+      pipeParts.push({ purpose: item.purpose ?? item.item, netM: item.netLengthM });
+    } else {
+      parts.delete(at);
+    }
     out[at] = {
       ...prev,
       item: prev.item === item.item ? prev.item : `${prev.item} + ${item.item}`,
@@ -53,6 +74,32 @@ export function mergeBomBySku(items: readonly BomItem[]): readonly BomItem[] {
       ...(prev.subtotal !== undefined && item.subtotal !== undefined
         ? { subtotal: prev.subtotal + item.subtotal }
         : {}),
+    };
+  }
+  for (const [at, pipe] of parts) {
+    if (pipe.length < 2) continue;
+    const row = out[at]!;
+    const netM = Math.round(pipe.reduce((sum, p) => sum + p.netM, 0) * 100) / 100;
+    const num = (n: number) =>
+      n.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
+    const detail = pipe.map((p) => `${p.purpose.toLowerCase()} ${num(p.netM)} m`).join(' + ');
+    const purchase = pipePurchase(
+      netM,
+      detail,
+      {
+        meters: row.rod!.meters,
+        productName: row.rod!.productName,
+        ...(row.productId !== undefined ? { productId: row.productId } : {}),
+      },
+      locale,
+      row.allowancePct ?? 0,
+    );
+    out[at] = {
+      ...row,
+      netLengthM: netM,
+      quantity: purchase.quantity,
+      calc: purchase.calc,
+      basis: purchase.basis,
     };
   }
   return out;

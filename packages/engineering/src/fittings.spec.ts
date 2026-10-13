@@ -65,7 +65,7 @@ describe('ujung pipa utama (ENG-704 v2, review laporan 0015)', () => {
 });
 
 describe('fitting pembuangan (ENG-605)', () => {
-  it('rumah 2 lantai: Y per alat, 1 Y per lantai atas, 2 elbow 45°, 1 clean out per jalur', () => {
+  it('rumah 2 lantai: Y per alat (cabang atas tidak dihitung lagi), 2 elbow 45°, clean out, sambungan dan topi ventilasi', () => {
     const r = computeHouseDrainage({
       bathrooms: 3,
       basins: 4,
@@ -76,8 +76,15 @@ describe('fitting pembuangan (ENG-605)', () => {
       ],
     });
     expect(r.fittings).toEqual({
-      soil: { fixtureY: 3, stackY: 1, elbows45: 2, cleanouts: 1 },
-      waste: { fixtureY: 8, stackY: 1, elbows45: 2, cleanouts: 1 },
+      soil: { fixtureY: 3, elbows45: 2, cleanouts: 1, ventJoins: 1, ventCaps: 1 },
+      waste: { fixtureY: 8, elbows45: 2, cleanouts: 1, ventJoins: 1, ventCaps: 1 },
     });
+  });
+
+  it('rumah 1 lantai (U1): tanpa elbow 45° pipa tegak, asumsinya tidak dipakai', () => {
+    const r = computeHouseDrainage({ bathrooms: 1, basins: 0, kitchens: 1 });
+    expect(r.fittings.soil).toMatchObject({ fixtureY: 1, elbows45: 0 });
+    expect(r.fittings.waste).toMatchObject({ fixtureY: 2, elbows45: 0 });
+    expect(r.appliedAssumptionIds).not.toContain('FITTING_STACK_BASE_ELBOW45_2');
   });
 });

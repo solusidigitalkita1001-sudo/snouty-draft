@@ -69,7 +69,7 @@ describe('supplyFittingNeeds + fittingBomRows', () => {
 });
 
 describe('drainFittingNeeds', () => {
-  it('per jalur di ukuran jalurnya: Y (alat + lantai atas), elbow 45°, clean out', () => {
+  it('per jalur di ukuran jalurnya: Y per alat (4g), elbow 45°, clean out, sambungan dan topi ventilasi (4f)', () => {
     const drainage = computeHouseDrainage({
       bathrooms: 3,
       basins: 4,
@@ -80,12 +80,16 @@ describe('drainFittingNeeds', () => {
       ],
     });
     expect(drainFittingNeeds(drainage).map((n) => [n.system, n.kind, n.size, n.quantity])).toEqual([
-      ['soil', 'branch_y', drainage.soil!.size, 4],
+      ['soil', 'branch_y', drainage.soil!.size, 3],
       ['soil', 'elbow_45', drainage.soil!.size, 2],
       ['soil', 'clean_out', drainage.soil!.size, 1],
-      ['waste', 'branch_y', drainage.waste!.size, 9],
+      ['soil', 'branch_y', drainage.soil!.size, 1],
+      ['soil', 'vent_cap', drainage.soil!.ventSize, 1],
+      ['waste', 'branch_y', drainage.waste!.size, 8],
       ['waste', 'elbow_45', drainage.waste!.size, 2],
       ['waste', 'clean_out', drainage.waste!.size, 1],
+      ['waste', 'branch_y', drainage.waste!.size, 1],
+      ['waste', 'vent_cap', drainage.waste!.ventSize, 1],
     ]);
   });
 });

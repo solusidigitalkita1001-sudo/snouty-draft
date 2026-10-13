@@ -176,7 +176,17 @@ export function isSameSizeReducer(name: string): boolean {
  * Parser nilai atas DATA katalog, bukan tebakan atas kalimat pengguna.
  */
 export type FittingKind =
-  'tee' | 'branch_y' | 'reducer' | 'elbow' | 'elbow_45' | 'faucet_elbow' | 'clean_out';
+  | 'tee'
+  | 'branch_y'
+  | 'reducer'
+  | 'elbow'
+  | 'elbow_45'
+  | 'faucet_elbow'
+  | 'clean_out'
+  | 'socket'
+  | 'cap'
+  /** Topi ventilasi — belum ada di katalog Pralon; barisnya tampil tanpa SKU. */
+  | 'vent_cap';
 
 export function fittingKindOf(name: string): FittingKind | null {
   const type = productTypeOf(name).type;
@@ -188,6 +198,11 @@ export function fittingKindOf(name: string): FittingKind | null {
     // "Double Faucet Elbow" punya dua keluaran — bukan pengganti faucet elbow satu titik.
     return /\bDouble\b/i.test(type) ? null : 'faucet_elbow';
   }
+  // Sok dan dop lurus (review putaran 3, 4d): bukan sok kran/katup/reduksi, bukan tutup clean out.
+  if (/\bSocket\b/i.test(type) && !/\b(Faucet|Valve|Red|Reducer|Insert|Flange)\b/i.test(type)) {
+    return 'socket';
+  }
+  if (/\bCap\b/i.test(type) && !/\b(Clean|Vent|Faucet)\b/i.test(type)) return 'cap';
   if (/\bClean\s*Out\b/i.test(type)) {
     return /\b(Cover|Bottom|Cap)\b/i.test(type) ? null : 'clean_out';
   }

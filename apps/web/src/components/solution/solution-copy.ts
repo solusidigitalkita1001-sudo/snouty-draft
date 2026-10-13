@@ -96,6 +96,8 @@ export const SOLUTION_COPY = {
       other: 'Material',
     },
     groups: { pipe: 'Pipa', fitting: 'Fitting' },
+    // Baris tanpa SKU Pralon terverifikasi (review putaran 3, 4d).
+    seeDocs: 'LIHAT DOKUMEN TEKNIS',
     pendingPipe: 'Menunggu ukuran bangunan',
     pendingFitting: 'Dihitung saat pemasangan',
     total: 'Total',
@@ -335,6 +337,7 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
       other: 'Materials',
     },
     groups: { pipe: 'Pipes', fitting: 'Fittings' },
+    seeDocs: 'SEE TECHNICAL DOCUMENTS',
     pendingPipe: 'Needs the building size',
     pendingFitting: 'Counted at installation',
     total: 'Total',

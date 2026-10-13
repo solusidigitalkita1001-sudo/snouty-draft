@@ -569,16 +569,21 @@ export interface DrainFittingInput {
   readonly hasWaste: boolean;
   readonly floors: number;
   readonly yPerFixture: number;
-  readonly yPerUpperFloor: number;
   readonly stackBaseElbows45: number;
   readonly cleanoutsPerLine: number;
+  /** Sambungan pipa ventilasi ke jalurnya (Y/tee) per jalur. */
+  readonly ventJoinsPerLine: number;
+  /** Topi ventilasi di ujung atas pipa ventilasi, per jalur. */
+  readonly ventCapsPerLine: number;
 }
 
 export interface DrainLineFittings {
   readonly fixtureY: number;
-  readonly stackY: number;
+  /** 0 untuk rumah 1 lantai: tidak ada pipa tegak yang perlu dibelokkan. */
   readonly elbows45: number;
   readonly cleanouts: number;
+  readonly ventJoins: number;
+  readonly ventCaps: number;
 }
 
 export interface DrainFittingResult {
@@ -587,13 +592,17 @@ export interface DrainFittingResult {
 }
 
 /**
- * Fitting pembuangan rumah (P18-01, keputusan pemilik 2026-10-13): Y-branch per alat, Y masuk pipa
- * tegak per lantai atas, elbow 45° di kaki pipa tegak, clean out per jalur. Angka dari registry
- * asumsi; tanpa cadangan; tidak butuh ukuran bangunan.
+ * Fitting pembuangan rumah (P18-01, keputusan pemilik 2026-10-13): Y-branch per alat, elbow 45° di
+ * kaki pipa tegak, clean out per jalur, sambungan dan topi ventilasi. Angka dari registry asumsi;
+ * tanpa cadangan; tidak butuh ukuran bangunan.
+ *
+ * v2 (review putaran 3): Y per lantai atas dihapus — cabang lantai atas masuk pipa tegak lewat Y
+ * alatnya sendiri, jadi dulu terhitung dua kali (4g); rumah 1 lantai tanpa elbow 45° pipa tegak
+ * (4c); ditambah sambungan ventilasi dan topi ventilasi (4f).
  */
 export const ENG_605: RuleVersion<DrainFittingInput, DrainFittingResult> = {
   ruleId: 'ENG-605',
-  version: 1,
+  version: 2,
   category: 'material',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -605,17 +614,19 @@ export const ENG_605: RuleVersion<DrainFittingInput, DrainFittingResult> = {
       hasWaste: o['hasWaste'] === true,
       floors: requireInt('ENG-605', 'floors', o['floors'], { min: 1, max: 50 }),
       yPerFixture: count('yPerFixture', 20),
-      yPerUpperFloor: count('yPerUpperFloor', 20),
       stackBaseElbows45: count('stackBaseElbows45', 20),
       cleanoutsPerLine: count('cleanoutsPerLine', 20),
+      ventJoinsPerLine: count('ventJoinsPerLine', 20),
+      ventCapsPerLine: count('ventCapsPerLine', 20),
     };
   },
   compute: (i) => {
     const line = (fixtures: number): DrainLineFittings => ({
       fixtureY: fixtures * i.yPerFixture,
-      stackY: (i.floors - 1) * i.yPerUpperFloor,
-      elbows45: i.stackBaseElbows45,
+      elbows45: i.floors > 1 ? i.stackBaseElbows45 : 0,
       cleanouts: i.cleanoutsPerLine,
+      ventJoins: i.ventJoinsPerLine,
+      ventCaps: i.ventCapsPerLine,
     });
     return {
       soil: i.hasSoil ? line(i.soilFixtures) : null,
@@ -623,7 +634,7 @@ export const ENG_605: RuleVersion<DrainFittingInput, DrainFittingResult> = {
     };
   },
   sourceReference:
-    'Perkiraan kebiasaan pemasangan rumah tanpa denah: Y per alat, Y per lantai atas di pipa tegak, elbow 45° di kaki pipa tegak, clean out per jalur (asumsi FITTING_*)',
+    'Perkiraan kebiasaan pemasangan rumah tanpa denah: Y per alat (cabang lantai atas masuk pipa tegak lewat Y alatnya), elbow 45° di kaki pipa tegak bila lebih dari 1 lantai, clean out, sambungan dan topi ventilasi per jalur (asumsi FITTING_*)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -635,13 +646,33 @@ export const ENG_605: RuleVersion<DrainFittingInput, DrainFittingResult> = {
         hasWaste: true,
         floors: 2,
         yPerFixture: 1,
-        yPerUpperFloor: 1,
         stackBaseElbows45: 2,
         cleanoutsPerLine: 1,
+        ventJoinsPerLine: 1,
+        ventCapsPerLine: 1,
       },
       expected: {
-        soil: { fixtureY: 3, stackY: 1, elbows45: 2, cleanouts: 1 },
-        waste: { fixtureY: 8, stackY: 1, elbows45: 2, cleanouts: 1 },
+        soil: { fixtureY: 3, elbows45: 2, cleanouts: 1, ventJoins: 1, ventCaps: 1 },
+        waste: { fixtureY: 8, elbows45: 2, cleanouts: 1, ventJoins: 1, ventCaps: 1 },
+      },
+    },
+    {
+      name: 'rumah 1 lantai: tanpa elbow 45° pipa tegak',
+      input: {
+        soilFixtures: 1,
+        wasteFixtures: 2,
+        hasSoil: true,
+        hasWaste: true,
+        floors: 1,
+        yPerFixture: 1,
+        stackBaseElbows45: 2,
+        cleanoutsPerLine: 1,
+        ventJoinsPerLine: 1,
+        ventCapsPerLine: 1,
+      },
+      expected: {
+        soil: { fixtureY: 1, elbows45: 0, cleanouts: 1, ventJoins: 1, ventCaps: 1 },
+        waste: { fixtureY: 2, elbows45: 0, cleanouts: 1, ventJoins: 1, ventCaps: 1 },
       },
     },
   ],
@@ -655,13 +686,23 @@ export const ENG_605: RuleVersion<DrainFittingInput, DrainFittingResult> = {
       f === null
         ? ''
         : en
-          ? `${name.en}: ${f.fixtureY} Y-branches for ${fixtures} fixtures, ${f.stackY} into the stack, ${f.elbows45} × 45° elbows and ${f.cleanouts} clean-out. `
-          : `${name.id}: ${f.fixtureY} Y-branch untuk ${fixtures} alat, ${f.stackY} masuk pipa tegak, ${f.elbows45} elbow 45° dan ${f.cleanouts} clean out. `;
+          ? `${name.en}: ${f.fixtureY} Y-branches for ${fixtures} fixtures, ${f.elbows45} × 45° elbows, ${f.cleanouts} clean-out, ${f.ventJoins} vent joint and ${f.ventCaps} vent cap. `
+          : `${name.id}: ${f.fixtureY} Y-branch untuk ${fixtures} alat, ${f.elbows45} elbow 45°, ${f.cleanouts} clean out, ${f.ventJoins} sambungan ventilasi, dan ${f.ventCaps} topi ventilasi. `;
     const soil = { id: 'Air kotor', en: 'Soil' };
     const waste = { id: 'Air bekas', en: 'Waste' };
+    const stack =
+      i.floors > 1
+        ? {
+            id: 'Cabang lantai atas masuk pipa tegak lewat Y alatnya sendiri, jadi tidak dihitung lagi. ',
+            en: 'Upper-floor branches enter the stack through their own fixture Y, so they are not counted again. ',
+          }
+        : {
+            id: 'Bangunan 1 lantai tidak punya pipa tegak, jadi tanpa elbow 45° di kakinya. ',
+            en: 'A single-storey building has no stack, so no 45° elbows at its foot. ',
+          };
     return localized(locale, {
-      id: `${part(soil, o.soil, i.soilFixtures, false)}${part(waste, o.waste, i.wasteFixtures, false)}Perkiraan sampai denahnya ada.`,
-      en: `${part(soil, o.soil, i.soilFixtures, true)}${part(waste, o.waste, i.wasteFixtures, true)}An estimate until the floor plan is known.`,
+      id: `${part(soil, o.soil, i.soilFixtures, false)}${part(waste, o.waste, i.wasteFixtures, false)}${stack.id}Perkiraan sampai denahnya ada.`,
+      en: `${part(soil, o.soil, i.soilFixtures, true)}${part(waste, o.waste, i.wasteFixtures, true)}${stack.en}An estimate until the floor plan is known.`,
     });
   },
 };

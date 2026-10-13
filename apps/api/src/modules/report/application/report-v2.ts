@@ -61,6 +61,7 @@ export interface ReportV2Copy {
   };
   readonly systems: Readonly<Record<'clean_water' | 'soil' | 'waste' | 'other', string>>;
   readonly groups: Readonly<Record<'pipe' | 'fitting', string>>;
+  readonly seeDocs: string;
   readonly pendingPipe: string;
   readonly pendingFitting: string;
   readonly total: string;
@@ -231,6 +232,8 @@ export const REPORT_V2_COPY: Readonly<Record<Locale, ReportV2Copy>> = {
       other: 'Material',
     },
     groups: { pipe: 'Pipa', fitting: 'Fitting' },
+    // Baris tanpa SKU Pralon terverifikasi (review putaran 3, 4d).
+    seeDocs: 'LIHAT DOKUMEN TEKNIS',
     pendingPipe: 'Menunggu ukuran bangunan',
     pendingFitting: 'Dihitung saat pemasangan',
     total: 'Total',
@@ -302,6 +305,7 @@ export const REPORT_V2_COPY: Readonly<Record<Locale, ReportV2Copy>> = {
     },
     systems: { clean_water: 'Clean water', soil: 'Soil', waste: 'Waste', other: 'Materials' },
     groups: { pipe: 'Pipes', fitting: 'Fittings' },
+    seeDocs: 'SEE TECHNICAL DOCUMENTS',
     pendingPipe: 'Needs the building size',
     pendingFitting: 'Counted at installation',
     total: 'Total',
@@ -521,6 +525,7 @@ export function boqSection(
                     (r.productName && r.productName !== (r.purpose ?? r.item)
                       ? `<span class="sub">${esc(r.productName)}</span>`
                       : '') +
+                    (r.seeDocs ? `<span class="sub">${esc(v.seeDocs)}</span>` : '') +
                     `</td><td class="mono">${esc(r.size)}</td>` +
                     `<td class="num">${r.quantity === null ? '—' : String(r.quantity)}</td>` +
                     `<td>${r.unit === null ? '—' : esc(r.unit)}</td><td>${esc(note(r))}</td></tr>`,

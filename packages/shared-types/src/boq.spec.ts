@@ -75,16 +75,26 @@ describe('boqFrom', () => {
     ]);
   });
 
-  it('produk terpilih tanpa jumlah tetap jadi baris BOQ tanpa nomor, di sistemnya', () => {
+  it('fitting terpilih tanpa baris jumlah saat fitting sudah dihitung adalah sisa pencocokan (4b)', () => {
     const soil = boq.sections[1]!.rows;
     expect(soil.map((r) => [r.no, r.productId, r.quantity, r.pending])).toEqual([
       [3, 'D4', 5, undefined],
-      [null, 'Y4', null, true],
     ]);
+  });
+
+  it('produk terpilih tanpa jumlah tetap jadi baris BOQ tanpa nomor bila fitting belum dihitung', () => {
+    const noFittings = boqFrom({
+      ...RECOMMENDATION,
+      bom: RECOMMENDATION.bom.filter((b) => b.unit !== 'pcs'),
+    });
+    const soil = noFittings.sections[1]!.rows;
     expect(soil[1]).toMatchObject({
+      no: null,
       kind: 'fitting',
+      productId: 'Y4',
       productName: 'Y D 4"',
       purpose: 'Sambungan air kotor',
+      pending: true,
     });
   });
 
@@ -100,7 +110,6 @@ describe('boqFrom', () => {
       ['AW1', 11, 'batang', [1]],
       ['TEE1', 4, 'pcs', [2]],
       ['D4', 5, 'batang', [3]],
-      ['Y4', null, null, []],
     ]);
     expect(boq.products[0]!.selections).toHaveLength(2);
   });

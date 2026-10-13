@@ -173,6 +173,12 @@ export interface BomItem {
    * laporan 0015): tampil di BOQ tanpa angka, `quantity` diabaikan.
    */
   readonly pending?: true;
+  /**
+   * Panjang batang dan sisa potong yang dipakai menghitung baris pipa ini — supaya baris ber-SKU
+   * sama bisa digabung lalu dibulatkan SEKALI (review putaran 3, 4a), bukan dijumlah per peran.
+   */
+  readonly rod?: { readonly meters: number; readonly productName: string };
+  readonly allowancePct?: number;
   /** Hanya bila `PRICING_ENABLED` (OQ-03). */
   readonly unitPrice?: number;
   readonly subtotal?: number;

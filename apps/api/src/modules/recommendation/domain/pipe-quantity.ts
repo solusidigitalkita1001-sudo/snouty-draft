@@ -40,6 +40,9 @@ export function stockLengthOf(product: Product): StockLength | null {
 
 export interface PipePurchase {
   readonly productId?: string;
+  /** Batang yang dipakai (tidak ada untuk gulungan atau tanpa panjang katalog). */
+  readonly rod?: { readonly meters: number; readonly productName: string };
+  readonly allowancePct: number;
   readonly quantity: number;
   readonly unit: 'batang' | 'meter';
   readonly basis: string;
@@ -83,6 +86,7 @@ export function pipePurchase(
   netLengthM = gross;
   if (stock === null) {
     return {
+      allowancePct,
       quantity: Math.ceil(netLengthM),
       unit: 'meter',
       calc: {
@@ -98,6 +102,7 @@ export function pipePurchase(
   if (stock.meters >= COIL_FROM_M) {
     return {
       ...(stock.productId !== undefined ? { productId: stock.productId } : {}),
+      allowancePct,
       quantity: Math.ceil(netLengthM),
       unit: 'meter',
       calc: {
@@ -116,6 +121,8 @@ export function pipePurchase(
   const rods = Math.ceil(exact);
   return {
     ...(stock.productId !== undefined ? { productId: stock.productId } : {}),
+    rod: { meters: stock.meters, productName: stock.productName },
+    allowancePct,
     quantity: rods,
     unit: 'batang',
     calc: {

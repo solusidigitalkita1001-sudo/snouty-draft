@@ -368,6 +368,7 @@ export function bomItemsFrom(
       calc: purchase.calc,
       size,
       ...(purchase.productId ? { productId: purchase.productId } : {}),
+      ...(purchase.rod ? { rod: purchase.rod, allowancePct: purchase.allowancePct } : {}),
       quantity: purchase.quantity,
       unit: bomUnitLabel(purchase.unit, locale),
       basis: purchase.basis,

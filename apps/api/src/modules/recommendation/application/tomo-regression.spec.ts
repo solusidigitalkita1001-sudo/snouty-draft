@@ -216,8 +216,9 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
     // 2" ventilasi air kotor 3 batang — baris sendiri, tidak digabung dengan air bekas 2" (beda
     // sistem); 1¼" tanpa produk → 9 meter.
     expect(rows).toEqual([
-      // 1": utama (8) + cabang lantai 2 (4) — satu produk, satu sistem, digabung.
-      'Pipa PVC AW 1" 12 batang',
+      // 1": utama 25,5 m + cabang lantai 2 12 m — satu produk, satu sistem, digabung lalu dibulatkan
+      // sekali (review putaran 3, 4a): 37,5 m + 10% = 41,25 m ÷ 4 m = 10,31 → 11 (dulu 8 + 4 = 12).
+      'Pipa PVC AW 1" 11 batang',
       'Pipa PVC AW 3/4" 4 batang',
       'Pipa PVC AW 1/2" 3 batang',
       'Tee cabang 1" 1 pcs',
@@ -236,7 +237,10 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
   it('tee dan Y dipilih menurut fungsi dan ukuran utamanya', async () => {
     const { rec } = await analyse(SIZED);
     const name = (id: string) => CATALOG.find((p) => p.id === id)!.name;
-    const fittings = rec.products.filter((p) => p.role === 'fitting').map((p) => name(p.productId));
+    const fittings = rec.products
+      .filter((p) => p.role === 'fitting')
+      .map((p) => name(p.productId))
+      .filter((n) => /\b(Tee|T?Y)\b/.test(n));
     expect(fittings).toEqual(['Tee TS - W 1"', 'Bell Long TY - D 4" x 4"']);
   });
 });

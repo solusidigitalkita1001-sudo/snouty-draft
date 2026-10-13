@@ -32,6 +32,11 @@ export interface BoqRow {
   readonly provenance?: Provenance;
   /** Produk terpilih yang jumlahnya belum bisa dihitung. */
   readonly pending?: true;
+  /**
+   * Tidak ada SKU Pralon yang terverifikasi untuk baris ini (tidak ada di katalog, atau seri/kelasnya
+   * belum terverifikasi): tampil "LIHAT DOKUMEN TEKNIS", bukan kosong (review putaran 3, 4d).
+   */
+  readonly seeDocs?: true;
 }
 
 export interface BoqSection {
@@ -79,22 +84,31 @@ export function boqFrom(recommendation: {
   const selectionsOf = (productId: string) => usable.filter((p) => p.productId === productId);
 
   type Draft = Omit<BoqRow, 'no'> & { readonly system: BomSystem | null };
+  // Produk terverifikasi = dipilih dengan ukuran dan kelasnya cocok; selain itu rujuk dokumen teknis.
+  const verified = (selections: readonly SelectedProduct[]) =>
+    selections.some((s) => s.matchState === 'VERIFIED_SELECTED');
   const drafts: Draft[] = recommendation.bom.map((item) => {
+    const selections = item.productId ? selectionsOf(item.productId) : [];
+    const productName = selections.find((s) => s.name !== undefined)?.name;
+    const seeDocs = !verified(selections) ? { seeDocs: true as const } : {};
     if (item.pending) {
       return {
         system: item.system ?? null,
         kind: kindOfUnit(item.unit),
         ...(item.purpose !== undefined ? { purpose: item.purpose } : {}),
         item: item.item,
+        ...(item.productId !== undefined && selections.length > 0
+          ? { productId: item.productId }
+          : {}),
+        ...(productName !== undefined ? { productName } : {}),
         size: item.size,
         quantity: null,
         unit: null,
         pending: true,
+        ...seeDocs,
       };
     }
-    const selections = item.productId ? selectionsOf(item.productId) : [];
     const purpose = item.purpose ?? joined(selections.map((s) => s.purpose));
-    const productName = selections.find((s) => s.name !== undefined)?.name;
     return {
       system: item.system ?? selections.find((s) => s.system)?.system ?? null,
       kind: kindOfUnit(item.unit),
@@ -109,19 +123,23 @@ export function boqFrom(recommendation: {
       basis: item.basis,
       ...(item.calc !== undefined ? { calc: item.calc } : {}),
       provenance: item.provenance,
+      ...seeDocs,
     };
   });
 
-  // Produk terpilih tanpa baris jumlah: satu baris per SKU dengan semua peruntukannya.
-  const counted = new Set(
-    recommendation.bom
-      .filter((b) => !b.pending)
-      .map((b) => b.productId)
-      .filter(Boolean),
-  );
+  // Produk terpilih tanpa baris BOQ sama sekali: satu baris per SKU dengan semua peruntukannya.
+  // Baris tertunda (sok, dop) sudah membawa produknya — tidak diulang.
+  const counted = new Set(recommendation.bom.map((b) => b.productId).filter(Boolean));
   const pendingIds = [...new Set(usable.map((p) => p.productId))].filter((id) => !counted.has(id));
+  // Fitting sudah dihitung per jenis dan ukuran: fitting terpilih yang tidak punya baris jumlah
+  // adalah sisa pencocokan (mis. tee cabang di rumah yang cabangnya disambung elbow — 4b), bukan
+  // barang yang dibutuhkan. Hanya rekomendasi tanpa hitungan fitting yang masih menampilkannya.
+  const fittingsCounted = recommendation.bom.some(
+    (b) => !b.pending && b.productId !== undefined && b.unit === 'pcs',
+  );
   for (const productId of pendingIds) {
     const selections = selectionsOf(productId);
+    if (fittingsCounted && selections.every((s) => s.role === 'fitting')) continue;
     const purpose = joined(selections.map((s) => s.purpose));
     const productName = selections.find((s) => s.name !== undefined)?.name;
     drafts.push({

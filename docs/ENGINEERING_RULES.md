@@ -464,6 +464,8 @@ ENG-702 v3 (review putaran 3): sumber sumur menambah kedalaman muka air (water.w
 ENG-703 v2 (review putaran 3): bila tekanan toren kurang, dudukan minimum = dudukan + (tinggi 0,3 bar +
          kehilangan − beda tinggi), dibulatkan ke atas per 0,5 m; heightShort bila beda tinggi < tinggi 0,3 bar.
          boosterPumpNeeded hanya dari aturan ini; pompa sumber (sumur, toren bawah) = sourcePumped.
+ENG-605 v2 (review putaran 3): Y = jumlah alat (cabang lantai atas masuk pipa tegak lewat Y alatnya);
+         elbow 45° kaki pipa tegak hanya bila > 1 lantai; + sambungan ventilasi dan topi ventilasi per jalur.
 ENG-709  pompa sumur: muka air > SURFACE_PUMP_SUCTION_7M → pompa jet / submersible (OQ-66).
 ENG-708  fitting air bersih (P18-01, keputusan pemilik 2026-10-13, OQ-63): elbow pipa utama
          FITTING_MAIN_ELBOWS_2; elbow pengisi toren FITTING_TANK_FILL_ELBOWS_2 (hanya toren atap

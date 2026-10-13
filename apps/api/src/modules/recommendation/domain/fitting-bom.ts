@@ -33,6 +33,7 @@ const ITEM: Readonly<Partial<Record<FittingKind, Text>>> = {
   branch_y: { id: 'Y-branch', en: 'Y-branch' },
   clean_out: { id: 'Clean out', en: 'Clean-out' },
   reducer: { id: 'Reducer cabang', en: 'Branch reducer' },
+  vent_cap: { id: 'Topi ventilasi', en: 'Vent cap' },
 };
 
 /** Fitting air bersih dari ENG-708. */
@@ -142,6 +143,7 @@ export function drainFittingNeeds(drainage: HouseDrainageResult): readonly Fitti
     system: 'soil' | 'waste',
     size: string | undefined,
     f: HouseDrainageResult['fittings']['soil'],
+    ventSize: string | undefined,
   ) => {
     if (!size || f === null) return;
     const name =
@@ -151,13 +153,11 @@ export function drainFittingNeeds(drainage: HouseDrainageResult): readonly Fitti
         system,
         kind: 'branch_y',
         size,
-        quantity: f.fixtureY + f.stackY,
+        // ENG-605 v2: cabang lantai atas masuk pipa tegak lewat Y alatnya sendiri (4g).
+        quantity: f.fixtureY,
         purpose: { id: `Y-branch ${name.id}`, en: `${name.en} Y-branches` },
-        method: {
-          id: 'Y per alat + Y per lantai atas di pipa tegak',
-          en: 'Y per fixture + Y per upper floor on the stack',
-        },
-        working: { id: `${f.fixtureY} + ${f.stackY}`, en: `${f.fixtureY} + ${f.stackY}` },
+        method: { id: 'Y per alat', en: 'Y per fixture' },
+        working: { id: `${f.fixtureY} alat`, en: `${f.fixtureY} fixtures` },
         ruleId: 'ENG-605',
       },
       {
@@ -181,9 +181,35 @@ export function drainFittingNeeds(drainage: HouseDrainageResult): readonly Fitti
         ruleId: 'ENG-605',
       },
     );
+    // Ventilasi (review putaran 3, 4f): sambungannya ke jalur dan topinya di atas atap.
+    if (ventSize) {
+      needs.push(
+        {
+          system,
+          kind: 'branch_y',
+          size,
+          ...(ventSize !== size ? { branchSize: ventSize } : {}),
+          quantity: f.ventJoins,
+          purpose: { id: `Sambungan ventilasi ${name.id}`, en: `${name.en} vent joint` },
+          method: { id: 'Y/tee pipa ventilasi ke jalur', en: 'Vent Y/tee into the line' },
+          working: { id: `${f.ventJoins} per ventilasi`, en: `${f.ventJoins} per vent` },
+          ruleId: 'ENG-605',
+        },
+        {
+          system,
+          kind: 'vent_cap',
+          size: ventSize,
+          quantity: f.ventCaps,
+          purpose: { id: `Topi ventilasi ${name.id}`, en: `${name.en} vent cap` },
+          method: { id: 'Topi di ujung atas ventilasi', en: 'Cap on top of the vent' },
+          working: { id: `${f.ventCaps} per ventilasi`, en: `${f.ventCaps} per vent` },
+          ruleId: 'ENG-605',
+        },
+      );
+    }
   };
-  line('soil', drainage.soil?.size, drainage.fittings.soil);
-  line('waste', drainage.waste?.size, drainage.fittings.waste);
+  line('soil', drainage.soil?.size, drainage.fittings.soil, drainage.soil?.ventSize);
+  line('waste', drainage.waste?.size, drainage.fittings.waste, drainage.waste?.ventSize);
   return needs.filter((n) => n.quantity > 0);
 }
 
@@ -192,29 +218,75 @@ export function fittingKey(need: Pick<FittingNeed, 'kind' | 'size' | 'branchSize
   return `${need.kind}|${need.size}|${need.branchSize ?? ''}`;
 }
 
+/** Barang yang dibutuhkan tetapi jumlahnya baru dihitung saat pemasangan, per jalur. */
+export interface PendingNeed {
+  readonly system: BomSystem;
+  /** `null` = tidak ada di katalog Pralon (stop kran, lem) — tampil tanpa SKU. */
+  readonly kind: FittingKind | null;
+  readonly size: string;
+  readonly item: Text;
+  readonly unit: BomItem['unit'];
+}
+
 /**
- * Barang air bersih yang dibutuhkan tetapi jumlahnya belum dihitung (keputusan pemilik
- * 2026-10-13): tampil di BOQ sebagai "dihitung saat pemasangan", tanpa angka karangan.
+ * Sok, dop, stop kran, dan lem (keputusan pemilik 2026-10-13): jumlahnya "dihitung saat
+ * pemasangan", tanpa angka karangan. Sok dan dop di ukuran jalur utamanya supaya punya SKU;
+ * pembuangan mendapat sok, dop, dan lem juga (review putaran 3, 4f).
  */
-export function pendingSupplyRows(locale: Locale): readonly BomItem[] {
+export function pendingNeeds(
+  lines: readonly { readonly system: BomSystem; readonly size: string }[],
+): readonly PendingNeed[] {
+  return lines.flatMap(({ system, size }) => [
+    {
+      system,
+      kind: 'socket' as const,
+      size,
+      item: { id: 'Sok', en: 'Socket' },
+      unit: 'pcs' as const,
+    },
+    { system, kind: 'cap' as const, size, item: { id: 'Dop', en: 'Cap' }, unit: 'pcs' as const },
+    ...(system === 'clean_water'
+      ? [
+          {
+            system,
+            kind: null,
+            size,
+            item: { id: 'Stop kran', en: 'Stop valve' },
+            unit: 'pcs' as const,
+          },
+        ]
+      : []),
+    {
+      system,
+      kind: null,
+      size: '—',
+      item: { id: 'Lem PVC', en: 'PVC solvent cement' },
+      unit: 'kaleng' as const,
+    },
+  ]);
+}
+
+export function pendingRows(
+  needs: readonly PendingNeed[],
+  locale: Locale,
+  productFor: (need: PendingNeed) => string | undefined,
+): readonly BomItem[] {
   const en = locale === 'en';
-  const row = (id: string, enName: string, unit: BomItem['unit']): BomItem => ({
-    item: en ? enName : id,
-    system: 'clean_water',
-    size: '—',
-    quantity: 0,
-    unit,
-    basis: '',
-    provenance: 'ASSUMED',
-    traceIds: [],
-    pending: true,
+  return needs.map((need) => {
+    const productId = productFor(need);
+    return {
+      item: en ? need.item.en : need.item.id,
+      system: need.system,
+      size: need.size,
+      ...(productId !== undefined ? { productId } : {}),
+      quantity: 0,
+      unit: need.unit,
+      basis: '',
+      provenance: 'ASSUMED',
+      traceIds: [],
+      pending: true,
+    };
   });
-  return [
-    row('Sok', 'Socket', 'pcs'),
-    row('Dop', 'Cap', 'pcs'),
-    row('Stop kran', 'Stop valve', 'pcs'),
-    row('Lem PVC', 'PVC solvent cement', 'kaleng'),
-  ];
 }
 
 export function fittingBomRows(

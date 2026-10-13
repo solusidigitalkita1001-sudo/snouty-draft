@@ -1547,7 +1547,13 @@ dinonaktifkan; pertanyaan wastafel jadi "total (termasuk di kamar mandi)"; kedal
       Susun dan Simpan di giliran lama nonaktif. 3c: "Ada berapa wastafel total, termasuk yang di kamar mandi?". 3d:
       sapaan menyebut air bersih sekaligus pembuangan (juga deskripsi diri untuk model). 3e: "PDAM" tetap huruf besar
       di kalimat; pilihan jenis instalasi "Air bersih + pembuangan" (nama lama "Keduanya" tetap dibaca)
-- [ ] P20-04 BOQ 4a–4g
+- [x] P20-04 BOQ. 4a: pipa ber-SKU sama digabung lalu dibulatkan sekali (Σ panjang bersih + 10% ÷ batang; U1 ¾" =
+      14 batang). 4b: fitting terpilih tanpa baris jumlah tidak tampil lagi (tee sisa). 4c/4g: ENG-605 v2 — rumah 1
+      lantai tanpa elbow 45° pipa tegak, Y = jumlah alat (Y per lantai atas dulu dobel). 4d: baris tanpa SKU Pralon
+      terverifikasi (tidak ada di katalog atau seri/kelas belum terverifikasi) bertanda "LIHAT DOKUMEN TEKNIS" (layar +
+      PDF); sok/dop punya SKU di ukuran jalurnya. 4e: nama di BOQ = nama katalog; seri D lebih dulu, seri lain
+      bertanda dokumen teknis. 4f: sambungan ventilasi (Y/tee) dan topi ventilasi per jalur (`FITTING_VENT_JOIN_1`,
+      `FITTING_VENT_CAP_1`), sok/dop/lem untuk air kotor dan air bekas. Tes U1/U2/U3 dengan katalog ERP di repo
 - [ ] P20-05 Tekanan di meteran untuk pipa pengisi toren (5a tetap OQ-64)
 - [ ] P20-06 UI: huruf hilang saat mengetik cepat, opsi "Lebih dari X", teks tersembunyi di halaman tamu
 
