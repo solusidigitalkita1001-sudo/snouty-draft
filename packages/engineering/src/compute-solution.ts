@@ -37,11 +37,13 @@ import {
   ENG_702,
   ENG_703,
   ENG_704,
+  ENG_708,
   ENG_705,
   ENG_706,
   ENG_707,
   hunterGpm,
   type FilledBranch,
+  type HouseSupplyFittingResult,
   minimumHeadM,
   type RouteBasis,
 } from './rules/group-k-house-supply.js';
@@ -158,6 +160,8 @@ export interface SolutionResult {
       readonly size: string;
     }[];
   } | null;
+  /** Fitting air bersih (ENG-708): elbow per jalur, cabang, dan titik air. */
+  readonly fittings: HouseSupplyFittingResult;
   readonly appliedAssumptionIds: readonly string[];
   /** Satu trace per aturan yang dieksekusi, urut eksekusi. */
   readonly traces: readonly CalculationTrace[];
@@ -427,6 +431,18 @@ export function computeSolution(
         }
       : null;
 
+  // 6b · fitting air bersih (ENG-708, P18-01) — dari jumlah jalur, tanpa butuh ukuran rumah.
+  const fittings = run(ENG_708, {
+    branchesBySize: branchGroups.map((g) => ({ size: g.size, count: g.count })),
+    outletCount: load.outletCount,
+    hasTankFill: tankFill !== null,
+    mainElbows: use('FITTING_MAIN_ELBOWS_2'),
+    tankFillElbows: use('FITTING_TANK_FILL_ELBOWS_2'),
+    elbowsPerBranch: use('FITTING_BRANCH_ELBOW_1'),
+    elbowsPerOutlet: use('FITTING_OUTLET_ELBOW_1'),
+    faucetElbowsPerOutlet: use('FITTING_OUTLET_FAUCET_ELBOW_1'),
+  });
+
   // 7 · deret wudhu: keran berjejer per tempat wudhu, satu pipa pembagi per deret (ENG-802).
   let wudhu: SolutionResult['wudhu'] = null;
   if (wudhuTaps > 0) {
@@ -486,6 +502,7 @@ export function computeSolution(
     yardM: yard,
     tankFill: tankFill ? { netM: tankFill.fillNetM, size: tankFill.size } : null,
     branchLayout,
+    fittings,
     wudhu,
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },
     appliedAssumptionIds: [...new Set([...applied, ...main.appliedAssumptionIds])],

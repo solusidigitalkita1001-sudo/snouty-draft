@@ -535,4 +535,108 @@ export const ENG_603: RuleVersion<DrainLengthInput, DrainLengthResult> = {
     }),
 };
 
-export const GROUP_J = [ENG_601, ENG_602, ENG_603, ENG_604] as const;
+export interface DrainFittingInput {
+  readonly soilFixtures: number;
+  readonly wasteFixtures: number;
+  readonly hasSoil: boolean;
+  readonly hasWaste: boolean;
+  readonly floors: number;
+  readonly yPerFixture: number;
+  readonly yPerUpperFloor: number;
+  readonly stackBaseElbows45: number;
+  readonly cleanoutsPerLine: number;
+}
+
+export interface DrainLineFittings {
+  readonly fixtureY: number;
+  readonly stackY: number;
+  readonly elbows45: number;
+  readonly cleanouts: number;
+}
+
+export interface DrainFittingResult {
+  readonly soil: DrainLineFittings | null;
+  readonly waste: DrainLineFittings | null;
+}
+
+/**
+ * Fitting pembuangan rumah (P18-01, keputusan pemilik 2026-10-13): Y-branch per alat, Y masuk pipa
+ * tegak per lantai atas, elbow 45° di kaki pipa tegak, clean out per jalur. Angka dari registry
+ * asumsi; tanpa cadangan; tidak butuh ukuran bangunan.
+ */
+export const ENG_605: RuleVersion<DrainFittingInput, DrainFittingResult> = {
+  ruleId: 'ENG-605',
+  version: 1,
+  category: 'material',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const count = (f: string, max = 1000) => requireInt('ENG-605', f, o[f], { min: 0, max });
+    return {
+      soilFixtures: count('soilFixtures'),
+      wasteFixtures: count('wasteFixtures'),
+      hasSoil: o['hasSoil'] === true,
+      hasWaste: o['hasWaste'] === true,
+      floors: requireInt('ENG-605', 'floors', o['floors'], { min: 1, max: 50 }),
+      yPerFixture: count('yPerFixture', 20),
+      yPerUpperFloor: count('yPerUpperFloor', 20),
+      stackBaseElbows45: count('stackBaseElbows45', 20),
+      cleanoutsPerLine: count('cleanoutsPerLine', 20),
+    };
+  },
+  compute: (i) => {
+    const line = (fixtures: number): DrainLineFittings => ({
+      fixtureY: fixtures * i.yPerFixture,
+      stackY: (i.floors - 1) * i.yPerUpperFloor,
+      elbows45: i.stackBaseElbows45,
+      cleanouts: i.cleanoutsPerLine,
+    });
+    return {
+      soil: i.hasSoil ? line(i.soilFixtures) : null,
+      waste: i.hasWaste ? line(i.wasteFixtures) : null,
+    };
+  },
+  sourceReference:
+    'Perkiraan kebiasaan pemasangan rumah tanpa denah: Y per alat, Y per lantai atas di pipa tegak, elbow 45° di kaki pipa tegak, clean out per jalur (asumsi FITTING_*)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'rumah 2 lantai: 3 kloset; 3 shower + 4 wastafel + 1 dapur',
+      input: {
+        soilFixtures: 3,
+        wasteFixtures: 8,
+        hasSoil: true,
+        hasWaste: true,
+        floors: 2,
+        yPerFixture: 1,
+        yPerUpperFloor: 1,
+        stackBaseElbows45: 2,
+        cleanoutsPerLine: 1,
+      },
+      expected: {
+        soil: { fixtureY: 3, stackY: 1, elbows45: 2, cleanouts: 1 },
+        waste: { fixtureY: 8, stackY: 1, elbows45: 2, cleanouts: 1 },
+      },
+    },
+  ],
+  explain: (i, o, locale) => {
+    const part = (
+      name: { id: string; en: string },
+      f: DrainLineFittings | null,
+      fixtures: number,
+      en: boolean,
+    ) =>
+      f === null
+        ? ''
+        : en
+          ? `${name.en}: ${f.fixtureY} Y-branches for ${fixtures} fixtures, ${f.stackY} into the stack, ${f.elbows45} × 45° elbows and ${f.cleanouts} clean-out. `
+          : `${name.id}: ${f.fixtureY} Y-branch untuk ${fixtures} alat, ${f.stackY} masuk pipa tegak, ${f.elbows45} elbow 45° dan ${f.cleanouts} clean out. `;
+    const soil = { id: 'Air kotor', en: 'Soil' };
+    const waste = { id: 'Air bekas', en: 'Waste' };
+    return localized(locale, {
+      id: `${part(soil, o.soil, i.soilFixtures, false)}${part(waste, o.waste, i.wasteFixtures, false)}Perkiraan sampai denahnya ada.`,
+      en: `${part(soil, o.soil, i.soilFixtures, true)}${part(waste, o.waste, i.wasteFixtures, true)}An estimate until the floor plan is known.`,
+    });
+  },
+};
+
+export const GROUP_J = [ENG_601, ENG_602, ENG_603, ENG_604, ENG_605] as const;

@@ -36,6 +36,150 @@ export interface AssumptionDefinition {
 }
 
 export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
+  // ── Fitting rumah (P18-01): jumlah per jalur dari kebiasaan pemasangan, bukan dari denah ──
+  {
+    id: 'FITTING_MAIN_ELBOWS_2',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'elbow di pipa utama air bersih; denah belum ada',
+    value: 2,
+    unit: 'pcs',
+    conditionEn: 'elbows on the clean-water main; no floor plan yet',
+    descriptionEn:
+      'The clean-water main is estimated to need 2 elbows (out of the source and into the riser).',
+    reference:
+      'Perkiraan kebiasaan pemasangan rumah (keputusan pemilik 2026-10-13, P18-01); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Pipa utama air bersih diperkirakan memakai 2 elbow (keluar dari sumber dan belok ke pipa tegak).',
+  },
+  {
+    id: 'FITTING_TANK_FILL_ELBOWS_2',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'elbow di pipa pengisi toren atap',
+    value: 2,
+    unit: 'pcs',
+    conditionEn: 'elbows on the roof-tank fill pipe',
+    descriptionEn:
+      'The tank fill pipe is estimated to need 2 elbows (up the wall and into the tank).',
+    reference:
+      'Perkiraan kebiasaan pemasangan rumah (keputusan pemilik 2026-10-13, P18-01); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Pipa pengisi toren diperkirakan memakai 2 elbow (naik di dinding dan masuk ke toren).',
+  },
+  {
+    id: 'FITTING_BRANCH_ELBOW_1',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'elbow per cabang air bersih',
+    value: 1,
+    unit: 'pcs',
+    conditionEn: 'elbows per clean-water branch',
+    descriptionEn: 'Each clean-water branch is estimated to need 1 elbow at its end.',
+    reference:
+      'Perkiraan kebiasaan pemasangan rumah (keputusan pemilik 2026-10-13, P18-01); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Tiap cabang air bersih diperkirakan memakai 1 elbow di ujungnya.',
+  },
+  {
+    id: 'FITTING_OUTLET_ELBOW_1',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'elbow per titik air',
+    value: 1,
+    unit: 'pcs',
+    conditionEn: 'elbows per outlet',
+    descriptionEn: 'Each outlet is estimated to need 1 elbow on the pipe down to the fixture.',
+    reference:
+      'Perkiraan kebiasaan pemasangan rumah (keputusan pemilik 2026-10-13, P18-01); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Tiap titik air diperkirakan memakai 1 elbow pada pipa turun ke alat.',
+  },
+  {
+    id: 'FITTING_OUTLET_FAUCET_ELBOW_1',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'faucet elbow (drat kran) per titik air',
+    value: 1,
+    unit: 'pcs',
+    conditionEn: 'faucet elbows (threaded outlet) per outlet',
+    descriptionEn: 'Each outlet is estimated to need 1 faucet elbow for the tap thread.',
+    reference:
+      'Perkiraan kebiasaan pemasangan rumah (keputusan pemilik 2026-10-13, P18-01); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Tiap titik air diperkirakan memakai 1 faucet elbow untuk drat kran.',
+  },
+  {
+    id: 'FITTING_DRAIN_Y_PER_FIXTURE_1',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'Y-branch per alat yang dibuang',
+    value: 1,
+    unit: 'pcs',
+    conditionEn: 'Y-branches per drained fixture',
+    descriptionEn:
+      'Each drained fixture (toilet, shower, basin, kitchen) is estimated to join its line through 1 Y-branch.',
+    reference:
+      'Perkiraan kebiasaan pemasangan rumah (keputusan pemilik 2026-10-13, P18-01); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Tiap alat yang dibuang (kloset, shower, wastafel, dapur) diperkirakan masuk jalurnya lewat 1 Y-branch.',
+  },
+  {
+    id: 'FITTING_STACK_Y_PER_UPPER_FLOOR_1',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'Y masuk pipa tegak per lantai di atas lantai dasar',
+    value: 1,
+    unit: 'pcs',
+    conditionEn: 'Y-branches into the stack per floor above ground',
+    descriptionEn: 'Each floor above ground is estimated to join the stack through 1 Y-branch.',
+    reference:
+      'Perkiraan kebiasaan pemasangan rumah (keputusan pemilik 2026-10-13, P18-01); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Tiap lantai di atas lantai dasar diperkirakan masuk pipa tegak lewat 1 Y-branch.',
+  },
+  {
+    id: 'FITTING_STACK_BASE_ELBOW45_2',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'elbow 45° di kaki pipa tegak pembuangan',
+    value: 2,
+    unit: 'pcs',
+    conditionEn: '45° elbows at the foot of a drain stack',
+    descriptionEn:
+      'The foot of each drain stack is estimated to need 2 × 45° elbows to turn horizontal.',
+    reference:
+      'Perkiraan kebiasaan pemasangan rumah (keputusan pemilik 2026-10-13, P18-01); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Kaki tiap pipa tegak pembuangan diperkirakan memakai 2 elbow 45° untuk belok menjadi mendatar.',
+  },
+  {
+    id: 'FITTING_CLEANOUT_PER_LINE_1',
+    parameter: 'installation_method',
+    appliesTo: [],
+    condition: 'clean out per jalur pembuangan',
+    value: 1,
+    unit: 'pcs',
+    conditionEn: 'clean-outs per drain line',
+    descriptionEn: 'Each drain line is estimated to need 1 clean-out at the foot of the stack.',
+    reference:
+      'Perkiraan kebiasaan pemasangan rumah (keputusan pemilik 2026-10-13, P18-01); perlu validasi tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Tiap jalur pembuangan diperkirakan memakai 1 clean out di kaki pipa tegak.',
+  },
   // ── Irigasi ──
   {
     id: 'IRRIGATION_PRELIMINARY_FLOW_FLOOD',

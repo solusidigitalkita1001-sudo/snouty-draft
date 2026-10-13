@@ -18,6 +18,8 @@ import {
   ENG_602,
   ENG_603,
   ENG_604,
+  ENG_605,
+  type DrainFittingResult,
   type DrainageLoadResult,
   type DrainLengthResult,
   type DrainLineResult,
@@ -72,6 +74,8 @@ export interface HouseDrainageResult {
   readonly wudhuTroughs: readonly WudhuDrainRow[];
   /** Perkiraan panjang tiap jalur (ENG-603); `null` tanpa ukuran rumah. */
   readonly lengths: DrainLengthResult | null;
+  /** Fitting pembuangan (ENG-605): Y, elbow 45°, clean out per jalur. */
+  readonly fittings: DrainFittingResult;
   readonly appliedAssumptionIds: readonly string[];
   readonly traces: readonly CalculationTrace[];
   readonly overallProvenance: Provenance;
@@ -242,11 +246,26 @@ export function computeHouseDrainage(
       })
     : null;
 
+  // Fitting pembuangan (ENG-605, P18-01) — dari jumlah alat dan lantai, tanpa butuh ukuran rumah.
+  const fittings = run(ENG_605, {
+    soilFixtures: counts.waterClosets + urinals,
+    wasteFixtures:
+      counts.showers + counts.lavatories + counts.kitchenSinks + (wudhuRows?.rows.length ?? 0),
+    hasSoil: soil !== null,
+    hasWaste: waste !== null,
+    floors: Math.max(floors.length, input.layout?.floors ?? 1),
+    yPerFixture: use('FITTING_DRAIN_Y_PER_FIXTURE_1'),
+    yPerUpperFloor: use('FITTING_STACK_Y_PER_UPPER_FLOOR_1'),
+    stackBaseElbows45: use('FITTING_STACK_BASE_ELBOW45_2'),
+    cleanoutsPerLine: use('FITTING_CLEANOUT_PER_LINE_1'),
+  });
+
   return {
     load,
     soil,
     waste,
     fixtures,
+    fittings,
     wudhuTroughs: wudhuRows?.rows ?? [],
     lengths,
     appliedAssumptionIds: [...new Set(applied)],

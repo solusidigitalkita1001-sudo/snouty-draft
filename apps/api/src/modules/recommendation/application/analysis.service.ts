@@ -72,6 +72,13 @@ import { needsFrom } from '../domain/solution-needs.js';
 import { compareScenarios } from '../domain/scenarios.js';
 import { firstSentences } from '../domain/summary-length.js';
 import {
+  drainFittingNeeds,
+  fittingBomRows,
+  fittingKey,
+  supplyFittingNeeds,
+  type FittingNeed,
+} from '../domain/fitting-bom.js';
+import {
   gravityAssumptionsFrom,
   gravityBomItemsFrom,
   gravityHighlights,
@@ -225,6 +232,12 @@ function withPurpose(
     purpose: locale === 'en' ? purpose.en : purpose.id,
     system: purpose.system,
   };
+}
+
+/** Satu produk per SKU dari peta fitting (beberapa jenis/ukuran bisa jatuh ke SKU yang sama). */
+function uniqueProducts(fitted: ReadonlyMap<string, SelectedProduct>): readonly SelectedProduct[] {
+  const seen = new Set<string>();
+  return [...fitted.values()].filter((p) => !seen.has(p.productId) && seen.add(p.productId));
 }
 
 /** Fitting cabang terpilih: produk untuk kartu, baris material untuk BOM. */
@@ -459,6 +472,19 @@ export class AnalysisService {
     const installation = state.water.installationType.value;
     let recommendation = assembled.recommendation;
     let allTraces = traces;
+    // Fitting air bersih (ENG-708, P18-01): baris BOQ + produk Pralon per jenis dan ukuran.
+    if (installation !== 'drainage') {
+      const needs = supplyFittingNeeds(solution);
+      const fitted = await this.matchFittings(needs, PIPE_FAMILY, locale);
+      recommendation = {
+        ...recommendation,
+        bom: [
+          ...recommendation.bom,
+          ...fittingBomRows(needs, traces, locale, (n) => fitted.get(fittingKey(n))?.productId),
+        ],
+        products: [...recommendation.products, ...uniqueProducts(fitted)],
+      };
+    }
     let drainageResult: HouseDrainageResult | null = null;
     if (installation === 'drainage' || installation === 'both') {
       const drainage = computeHouseDrainage(
@@ -551,6 +577,28 @@ export class AnalysisService {
       );
       allTraces = [...traces, ...drainageTraces];
       drainageResult = drainage;
+      // Fitting pembuangan (ENG-605, P18-01). Y-branch air kotor dari pencocokan di atas tidak
+      // diulang: baris BOQ-nya kini punya jumlah.
+      const drainNeeds = drainFittingNeeds(drainage);
+      const drainFitted = await this.matchFittings(drainNeeds, DRAINAGE_FAMILY, locale);
+      recommendation = {
+        ...recommendation,
+        bom: [
+          ...recommendation.bom,
+          ...fittingBomRows(
+            drainNeeds,
+            drainageTraces,
+            locale,
+            (n) => drainFitted.get(fittingKey(n))?.productId,
+          ),
+        ],
+        products: [
+          ...recommendation.products,
+          ...uniqueProducts(drainFitted).filter(
+            (p) => !recommendation.products.some((q) => q.productId === p.productId),
+          ),
+        ],
+      };
     }
     // Jumlah produk di ringkasan = daftar SKU yang sama dengan tab Produk dan material (TC-H-05).
     recommendation = withPrintedMaterialCount({
@@ -1074,6 +1122,32 @@ export class AnalysisService {
    * berbeda → tee reduksi (utama × cabang) bila ada di katalog, selain itu tee sama sisi + reducer
    * (utama × cabang). Kedua ukuran fitting harus persis; yang tidak ada dibiarkan kosong.
    */
+  /**
+   * Produk Pralon untuk tiap jenis dan ukuran fitting yang dihitung (P18-01). Ukuran yang tidak
+   * ada di katalog tidak diberi produk pengganti — barisnya tetap berjumlah, tanpa nama.
+   */
+  private async matchFittings(
+    needs: readonly FittingNeed[],
+    family: string,
+    locale: Locale,
+  ): Promise<ReadonlyMap<string, SelectedProduct>> {
+    const out = new Map<string, SelectedProduct>();
+    for (const need of needs) {
+      const key = fittingKey(need);
+      if (out.has(key)) continue;
+      const found = await this.matchRoles([fittingRequirement(need.size, family, need.kind)]);
+      const product = found.products[0];
+      if (product) {
+        out.set(key, {
+          ...product,
+          purpose: locale === 'en' ? need.purpose.en : need.purpose.id,
+          system: need.system,
+        });
+      }
+    }
+    return out;
+  }
+
   private async matchTee(
     mainSize: string,
     branchSize: string,

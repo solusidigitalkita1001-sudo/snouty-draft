@@ -142,8 +142,9 @@ describe('regresi laporan SNTY-2026-10-0009 — C: fitting', () => {
 
   it('pipa utama 1¼" ke cabang 1" dan 1/2": tee + reducer per cabang, bukan tee sama sisi saja', async () => {
     const { rec } = await analyse0009(CATALOG);
+    // Hanya sambungan cabang; elbow/Y/clean out (P18-01) diuji di bagian fitting rumah.
     const rows = rec.bom
-      .filter((b) => b.unit === 'pcs')
+      .filter((b) => b.unit === 'pcs' && /^(Tee|Reducer)/.test(b.item))
       .map((b) => `${b.item} ${b.size} ${b.quantity} ${nameOf(b.productId) ?? '-'}`);
     expect(rows).toEqual([
       // Satu tee sama sisi untuk keempat cabang (produk sama, digabung).
@@ -282,9 +283,9 @@ describe('TC-H-05 · satu daftar SKU untuk tab Produk, material, dan ringkasan',
         'Pipa (TS End) Abu D 1 1/4" x 4 Meter',
       ]),
     );
-    // Bell Y 4" tidak punya jumlah → tetap satu SKU di daftar, jenis fitting, menyusul.
+    // Bell Y 4" kini punya jumlah dari ENG-605 (P18-01): satu SKU, jenis fitting, terhitung.
     const y = lines.find((l) => name(l.productId) === 'Bell Y - D 4"')!;
-    expect(y).toMatchObject({ counted: false, kind: 'fitting', name: 'Bell Y - D 4"' });
+    expect(y).toMatchObject({ counted: true, kind: 'fitting', name: 'Bell Y - D 4"' });
     // Ringkasan dan statistik dari daftar yang sama.
     expect(rec.stats.productCount).toBe(lines.length);
     // Ringkasan dua kalimat (P17-10): bila kalimat jumlah produk masih ada, angkanya sama dengan daftar.

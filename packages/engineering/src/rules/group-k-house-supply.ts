@@ -731,4 +731,114 @@ export const ENG_704: RuleVersion<HouseBranchLengthInput, HouseBranchLengthResul
     }),
 };
 
-export const GROUP_K = [ENG_701, ENG_702, ENG_703, ENG_704, ENG_705, ENG_706, ENG_707] as const;
+export interface HouseSupplyFittingInput {
+  readonly branchesBySize: readonly { readonly size: string; readonly count: number }[];
+  readonly outletCount: number;
+  readonly hasTankFill: boolean;
+  readonly mainElbows: number;
+  readonly tankFillElbows: number;
+  readonly elbowsPerBranch: number;
+  readonly elbowsPerOutlet: number;
+  readonly faucetElbowsPerOutlet: number;
+}
+
+export interface HouseSupplyFittingResult {
+  readonly mainElbows: number;
+  readonly tankFillElbows: number;
+  readonly branchElbows: readonly { readonly size: string; readonly count: number }[];
+  readonly outletElbows: number;
+  readonly faucetElbows: number;
+}
+
+/**
+ * Fitting air bersih rumah (P18-01, keputusan pemilik 2026-10-13): jumlah elbow dan faucet elbow
+ * dari banyaknya jalur, cabang, dan titik air — bukan dari denah. Angka per jalur dari registry
+ * asumsi; tanpa cadangan. Tidak butuh ukuran bangunan, jadi dihitung meski panjang pipa belum.
+ */
+export const ENG_708: RuleVersion<HouseSupplyFittingInput, HouseSupplyFittingResult> = {
+  ruleId: 'ENG-708',
+  version: 1,
+  category: 'material',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const count = (f: string, max = 1000) => requireInt('ENG-708', f, o[f], { min: 0, max });
+    const groups = o['branchesBySize'];
+    if (!Array.isArray(groups)) throw new RuleInputError('ENG-708', 'branchesBySize harus daftar');
+    return {
+      branchesBySize: groups.map((g: { size?: unknown; count?: unknown }, i) => {
+        if (typeof g.size !== 'string')
+          throw new RuleInputError('ENG-708', `branchesBySize[${i}].size`);
+        return {
+          size: g.size,
+          count: requireInt('ENG-708', `branchesBySize[${i}].count`, g.count, { min: 0, max: 200 }),
+        };
+      }),
+      outletCount: count('outletCount'),
+      hasTankFill: o['hasTankFill'] === true,
+      mainElbows: count('mainElbows', 20),
+      tankFillElbows: count('tankFillElbows', 20),
+      elbowsPerBranch: count('elbowsPerBranch', 20),
+      elbowsPerOutlet: count('elbowsPerOutlet', 20),
+      faucetElbowsPerOutlet: count('faucetElbowsPerOutlet', 20),
+    };
+  },
+  compute: (i) => ({
+    mainElbows: i.mainElbows,
+    tankFillElbows: i.hasTankFill ? i.tankFillElbows : 0,
+    branchElbows: i.branchesBySize.map((b) => ({
+      size: b.size,
+      count: b.count * i.elbowsPerBranch,
+    })),
+    outletElbows: i.outletCount * i.elbowsPerOutlet,
+    faucetElbows: i.outletCount * i.faucetElbowsPerOutlet,
+  }),
+  sourceReference:
+    'Perkiraan kebiasaan pemasangan rumah tanpa denah: elbow pipa utama, elbow pengisi toren, elbow per cabang, elbow dan faucet elbow per titik air (asumsi FITTING_*)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'rumah contoh: cabang 1"×1, 3/4"×1, 1/2"×2; 11 titik; toren atap',
+      input: {
+        branchesBySize: [
+          { size: '1"', count: 1 },
+          { size: '3/4"', count: 1 },
+          { size: '1/2"', count: 2 },
+        ],
+        outletCount: 11,
+        hasTankFill: true,
+        mainElbows: 2,
+        tankFillElbows: 2,
+        elbowsPerBranch: 1,
+        elbowsPerOutlet: 1,
+        faucetElbowsPerOutlet: 1,
+      },
+      expected: {
+        mainElbows: 2,
+        tankFillElbows: 2,
+        branchElbows: [
+          { size: '1"', count: 1 },
+          { size: '3/4"', count: 1 },
+          { size: '1/2"', count: 2 },
+        ],
+        outletElbows: 11,
+        faucetElbows: 11,
+      },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Fitting air bersih diperkirakan dari jumlah jalur: pipa utama ${o.mainElbows} elbow${i.hasTankFill ? `, pengisi toren ${o.tankFillElbows} elbow` : ''}, ${i.elbowsPerBranch} elbow per cabang, dan tiap titik air ${i.elbowsPerOutlet} elbow + ${i.faucetElbowsPerOutlet} faucet elbow (${i.outletCount} titik). Perkiraan sampai denahnya ada.`,
+      en: `Clean-water fittings are estimated from the number of runs: main ${o.mainElbows} elbows${i.hasTankFill ? `, tank fill ${o.tankFillElbows} elbows` : ''}, ${i.elbowsPerBranch} elbow per branch, and per outlet ${i.elbowsPerOutlet} elbow + ${i.faucetElbowsPerOutlet} faucet elbow (${i.outletCount} outlets). An estimate until the floor plan is known.`,
+    }),
+};
+
+export const GROUP_K = [
+  ENG_701,
+  ENG_702,
+  ENG_703,
+  ENG_704,
+  ENG_705,
+  ENG_706,
+  ENG_707,
+  ENG_708,
+] as const;

@@ -404,6 +404,18 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-63 — Jumlah fitting rumah per jalur (P18-01)
+
+**Status:** dipakai sebagai asumsi (keputusan pemilik 2026-10-13), menunggu pengesahan ahli Pralon ·
+**Blocks:** status TERVERIFIKASI untuk baris fitting BOQ
+**Keputusan pemilik:** fitting dihitung otomatis dari jumlah jalur dan titik, tanpa cadangan:
+air bersih — 2 elbow pipa utama, 2 elbow pengisi toren, 1 elbow per cabang, 1 elbow + 1 faucet
+elbow per titik air; pembuangan — 1 Y-branch per alat, 1 Y per lantai di atas lantai dasar di pipa
+tegak, 2 elbow 45° di kaki tiap pipa tegak, 1 clean out per jalur. Semua di registry asumsi
+(`FITTING_*`, bisa diganti per kasus), aturan ENG-708 dan ENG-605 `REQUIRES_DOMAIN_VALIDATION`.
+**Yang perlu disahkan:** angka per jalur di atas; apakah sok/dop perlu dihitung untuk pipa TS End;
+fitting reduksi di cabang buang (wastafel 1¼" ke jalur 2½"); cadangan untuk proyek.
+
 ### OQ-62 — Foto produk per jenis untuk kartu produk (DD-01 #3, P17-06)
 
 **Status:** terbuka — menunggu foto dari tim Pralon (keputusan pemilik 2026-10-13) · **Blocks:** foto asli

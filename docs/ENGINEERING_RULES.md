@@ -425,6 +425,10 @@ ENG-604  bangunan ≥ 2 lantai: cabang mendatar lantai terberat dan pipa tegak (
 ENG-603  perkiraan panjang (hanya bila ukuran rumah diketahui, OQ-60): air kotor = sisi terpanjang
          + tinggi lantai × (lantai − 1); air bekas = sisi terpanjang; ventilasi = lantai × tinggi
          lantai + 1 m di atas atap (HOUSE_VENT_ABOVE_ROOF_1M)
+ENG-605  fitting pembuangan (P18-01, keputusan pemilik 2026-10-13, OQ-63): per jalur di ukuran
+         jalurnya — Y-branch = alat × FITTING_DRAIN_Y_PER_FIXTURE_1 + (lantai − 1) ×
+         FITTING_STACK_Y_PER_UPPER_FLOOR_1; elbow 45° = FITTING_STACK_BASE_ELBOW45_2 per pipa tegak;
+         clean out = FITTING_CLEANOUT_PER_LINE_1 per jalur. Tanpa cadangan; tidak butuh ukuran rumah.
 ```
 
 Contoh (laporan pemilik): rumah 2 lantai, 3 kamar mandi, 1 dapur → air kotor 12 DFU → 4" (ventilasi
@@ -447,6 +451,11 @@ ENG-703  tekanan dari toren di titik tertinggi; < 0,3 bar → pompa pendorong / 
          PDAM: tekanan yang dibutuhkan di meteran = TDH; toren bawah/pompa: titik kerja pompa
 ENG-707  isi tiap cabang (laporan 0009): titik tiap lantai diisi ke cabang berurutan — kamar mandi
          (tidak dipisah), wastafel, bak cuci dapur — maks 4 titik; beban cabang = jumlah WSFU isinya
+ENG-708  fitting air bersih (P18-01, keputusan pemilik 2026-10-13, OQ-63): elbow pipa utama
+         FITTING_MAIN_ELBOWS_2; elbow pengisi toren FITTING_TANK_FILL_ELBOWS_2 (hanya toren atap
+         dengan ukuran rumah); elbow per cabang FITTING_BRANCH_ELBOW_1 di ukuran cabangnya; elbow
+         ½" FITTING_OUTLET_ELBOW_1 dan faucet elbow FITTING_OUTLET_FAUCET_ELBOW_1 per titik air.
+         Tanpa cadangan; tidak butuh ukuran rumah. Menggantikan rumus elbow prototipe ENG-009.
 ENG-102  tiap cabang dari debit bebannya sendiri (Hunter) pada 1,5 m/s — cabang beda isi bisa
          beda ukuran; material cabang per ukuran (jumlah cabang × sisi terpanjang)
 ENG-705  halaman = sisi terpanjang tanah − sisi terpanjang bangunan (≥ 0) — meteran PDAM, septic

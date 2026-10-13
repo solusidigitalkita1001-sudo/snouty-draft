@@ -57,7 +57,10 @@ export function bomUnitLabel(unit: string, locale: Locale = DEFAULT_LOCALE): Bom
   return (locale === 'id' ? unit : (BOM_UNITS_EN[unit] ?? unit)) as BomUnit;
 }
 
-function traceIdsFor(traces: readonly IdentifiedTrace[], ...ruleIds: string[]): readonly string[] {
+export function traceIdsFor(
+  traces: readonly IdentifiedTrace[],
+  ...ruleIds: string[]
+): readonly string[] {
   return traces.filter((trace) => ruleIds.includes(trace.ruleId)).map((trace) => trace.id);
 }
 
@@ -66,7 +69,10 @@ function explanationFor(traces: readonly IdentifiedTrace[], ruleId: string): str
 }
 
 /** Provenance paling lemah di antara trace yang mendasari sebuah baris. */
-function provenanceFor(traces: readonly IdentifiedTrace[], ids: readonly string[]): Provenance {
+export function provenanceFor(
+  traces: readonly IdentifiedTrace[],
+  ids: readonly string[],
+): Provenance {
   const order: readonly Provenance[] = ['VERIFIED', 'ESTIMATED', 'ASSUMED', 'UNAVAILABLE'];
   let worst: Provenance = 'VERIFIED';
   for (const trace of traces) {

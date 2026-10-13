@@ -1,6 +1,11 @@
 /** Nama-nama di sini disalin dari katalog produksi (erp-2026-10-06). */
 import { describe, expect, it } from 'vitest';
-import { isSameSizeReducer, productTypeOf, productTypesOf } from './product-types.js';
+import {
+  fittingKindOf,
+  isSameSizeReducer,
+  productTypeOf,
+  productTypesOf,
+} from './product-types.js';
 
 describe('productTypeOf', () => {
   it.each([
@@ -46,5 +51,29 @@ describe('isSameSizeReducer', () => {
     expect(isSameSizeReducer('Bell Reducer - W 4" x 2"')).toBe(false);
     expect(isSameSizeReducer('Reducer (Segmented) PE 140 x 110 mm')).toBe(false);
     expect(isSameSizeReducer('Tee TS - W 1" x 1"')).toBe(false);
+  });
+});
+
+describe('fittingKindOf — jenis fitting untuk hitungan fitting rumah (P18-01)', () => {
+  it.each([
+    ['Elbow Abu Ts 1/2"', 'elbow'],
+    ['Elbow 90° Abu Dv 4"', 'elbow'],
+    ['Elbow 45° Abu Dv 2"', 'elbow_45'],
+    ['Bend 45° Abu 4"', 'elbow_45'],
+    ['Faucet Elbow Abu Ts 1/2"', 'faucet_elbow'],
+    ['Clean Out Abu 4"', 'clean_out'],
+  ])('%s → %s', (name, kind) => {
+    expect(fittingKindOf(name)).toBe(kind);
+  });
+
+  it.each([
+    'Elbow Reducer Abu Ts 1" x 1/2"',
+    'Clean Out Cover Abu 4"',
+    'Clean Out Bottom Abu 4"',
+    'Large Radius Elbow Abu 4"',
+    'Double Faucet Elbow 90° Abu 1/2"',
+    'Bend 22 1/2° Abu 4"',
+  ])('%s bukan elbow/faucet/clean out biasa', (name) => {
+    expect(['elbow', 'elbow_45', 'faucet_elbow', 'clean_out']).not.toContain(fittingKindOf(name));
   });
 });

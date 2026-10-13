@@ -1466,7 +1466,7 @@ Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
       cabang per lantai (ENG-707) dan ukuran ventilasi ikut disimpan di kebutuhan. Letak ruang tidak dikarang
 - [x] P17-08 "Coba ubah" di tab Denah: tombol bergambar (toren dinaikkan satu lantai, tambah 1 kamar mandi, PDAM,
       toren bawah + pompa, toren atap) dan tabel Sekarang ↔ skenario dengan perubahan ditandai. `GET
-  /recommendations/:id/scenarios` menghitung ulang engine dari kebutuhan tersimpan — tanpa menyimpan, tanpa LLM
+/recommendations/:id/scenarios` menghitung ulang engine dari kebutuhan tersimpan — tanpa menyimpan, tanpa LLM
 - [x] P17-09 Laporan PDF v2: ringkasan bergambar, BOQ per sistem dengan gambar produk, dasar perhitungan & asumsi
       berkategori, lampiran produk Pralon bergambar; payload membekukan `products`/`needs`/`outletCount`; modul
       gambar dipindah ke `@snouty/ui` (dibangun ke `dist` untuk API) supaya layar dan PDF memakai logika yang sama.
@@ -1477,6 +1477,18 @@ Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
       per 6 Oktober 2026", stempel aturan tetap di payload; sel "KATALOG <versi>" di blok judul skema dihapus;
       petunjuk opsi ukuran ditulis ulang tanpa metatext
 - [ ] ✋ CHECKPOINT Fase 17 — ditinjau pemilik
+
+## Phase 18 — Hitung fitting otomatis
+
+Keputusan pemilik 2026-10-13 (pilihan "Hitung fitting otomatis", usulan angka disetujui, tanpa cadangan).
+
+- [x] P18-01 Fitting rumah dihitung engine: ENG-708 (air bersih — elbow pipa utama, pengisi toren, per cabang,
+      elbow + faucet elbow per titik) dan ENG-605 (pembuangan — Y per alat dan per lantai atas, elbow 45° di kaki
+      pipa tegak, clean out per jalur). 9 asumsi `FITTING_*` di registry (bisa diganti), semua ASUMSI → OQ-63.
+      Baris BOQ fitting dengan dasar perhitungan dan produk Pralon per jenis/ukuran (`fittingKindOf` mengenali elbow,
+      elbow 45°, faucet elbow, clean out dari nama katalog — diuji pada katalog ERP); ukuran tanpa produk tetap
+      berjumlah tanpa nama. Fitting tidak butuh ukuran rumah; panjang pipa, tee, dan reducer tetap butuh
+      (regresi laporan 0002 diperbarui sesuai keputusan ini)
 
 ## Design Coverage
 

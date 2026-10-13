@@ -166,11 +166,17 @@ export function isSameSizeReducer(name: string): boolean {
  *   - `tee`: percabangan pipa bertekanan — "Tee", "Bell Tee TS Branch", bukan "Faucet Tee" (tee
  *     berulir untuk keran);
  *   - `branch_y`: percabangan saluran pembuangan — "Y", "TY", "Long TY", bukan "Double Long TY"
- *     (dua cabang sekaligus).
+ *     (dua cabang sekaligus);
+ *   - `faucet_elbow`: elbow berdrat untuk keran — "Faucet Elbow";
+ *   - `clean_out`: lubang pembersih — "Clean Out", bukan tutup/alasnya ("Clean Out Cover/Bottom");
+ *   - `elbow_45`: "Elbow 45°", "Bend 45°";
+ *   - `elbow`: elbow 90° biasa — "Elbow", "Elbow 90°", bukan elbow reduksi/berflens/sudut lain
+ *     (P18-01).
  *
  * Parser nilai atas DATA katalog, bukan tebakan atas kalimat pengguna.
  */
-export type FittingKind = 'tee' | 'branch_y' | 'reducer';
+export type FittingKind =
+  'tee' | 'branch_y' | 'reducer' | 'elbow' | 'elbow_45' | 'faucet_elbow' | 'clean_out';
 
 export function fittingKindOf(name: string): FittingKind | null {
   const type = productTypeOf(name).type;
@@ -178,6 +184,27 @@ export function fittingKindOf(name: string): FittingKind | null {
   if (/\b(?:T?Y)\b/.test(type) && !/\bDouble\b/i.test(type)) return 'branch_y';
   // Reducer lurus; elbow reducer dan reducer berflens bukan pengganti sambungan cabang.
   if (/\bReducer\b/i.test(type) && !/\b(Elbow|Flange)\b/i.test(type)) return 'reducer';
+  if (/\bFaucet\b/i.test(type) && /\bElbow\b/i.test(type)) {
+    // "Double Faucet Elbow" punya dua keluaran — bukan pengganti faucet elbow satu titik.
+    return /\bDouble\b/i.test(type) ? null : 'faucet_elbow';
+  }
+  if (/\bClean\s*Out\b/i.test(type)) {
+    return /\b(Cover|Bottom|Cap)\b/i.test(type) ? null : 'clean_out';
+  }
+  if (
+    /\b(Elbow|Bend)\b/i.test(type) &&
+    /\b45\s*°?/.test(type) &&
+    !/\b(Reducer|Flange|Bell)\b/i.test(type)
+  ) {
+    return 'elbow_45';
+  }
+  if (
+    /\bElbow\b/i.test(type) &&
+    !/\b(Reducer|Flange|Faucet|Bell|Radius)\b/i.test(type) &&
+    !/\b(45|22|11)\b/.test(type)
+  ) {
+    return 'elbow';
+  }
   return null;
 }
 

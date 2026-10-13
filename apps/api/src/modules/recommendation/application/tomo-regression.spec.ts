@@ -139,12 +139,20 @@ describe('regresi laporan SNTY-2026-10-0002 (Tomo)', () => {
     expect(size('Pipa ventilasi air bekas')).toBe('1¼"');
   });
 
-  it('material: tanpa ukuran rumah tidak ada angka; tidak ada tee/elbow/reducer; tidak ada SKU ganda', async () => {
+  it('material tanpa ukuran rumah: tidak ada panjang pipa, tee, atau reducer; fitting dari asumsi registry saja; tidak ada SKU ganda', async () => {
     const { rec } = await analyse();
-    expect(rec.bom.some((b) => /tee|elbow|reducer/i.test(b.item))).toBe(false);
+    // Panjang pipa dan sambungan cabang butuh ukuran rumah — tetap tidak ada angka (laporan 0002).
+    expect(rec.bom.some((b) => b.unit !== 'pcs')).toBe(false);
+    expect(rec.bom.some((b) => /tee|reducer/i.test(b.item))).toBe(false);
+    // Fitting P18-01 (keputusan pemilik 2026-10-13): dari jumlah jalur dan titik, asumsi registry,
+    // dengan dasar perhitungannya — bukan rumus prototipe ENG-009 yang dibuang.
+    for (const row of rec.bom) {
+      expect(row.provenance).toBe('ASSUMED');
+      expect(row.calc).toBeDefined();
+      expect(row.traceIds.length).toBeGreaterThan(0);
+    }
     const ids = rec.bom.map((b) => b.productId).filter((id) => id !== undefined);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(rec.bom).toEqual([]);
     // Reducer berukuran sama tidak pernah menjadi produk terpilih.
     const reducer = CATALOG.find((p) => p.name.startsWith('Bell Reducer'))!;
     expect(rec.products.some((p) => p.productId === reducer.id)).toBe(false);
@@ -195,7 +203,10 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
 
   it('semua jalur air bersih dan pembuangan punya jumlah; rumus baku bertanda asumsi', async () => {
     const { rec } = await analyse(SIZED);
-    const rows = rec.bom.map((b) => `${b.item} ${b.size} ${b.quantity} ${b.unit}`);
+    // Pipa dan sambungan cabang; fitting P18-01 diuji terpisah.
+    const rows = rec.bom
+      .filter((b) => b.unit !== 'pcs' || /^Tee/.test(b.item))
+      .map((b) => `${b.item} ${b.size} ${b.quantity} ${b.unit}`);
     // Air bersih: utama 1" (12 + 8 + 5,5 = 25,5 m → 7 batang); cabang 1" dan ¾" masing-masing 12 m → 3;
     // sambungan ½" 7 × 1,5 = 10,5 m → 3; tee 1" 2 buah.
     // Pembuangan: air kotor 4" 12 + 3,5 = 15,5 m → 4; air bekas 2" juga 12 + 3,5 = 15,5 m → 4; ventilasi
