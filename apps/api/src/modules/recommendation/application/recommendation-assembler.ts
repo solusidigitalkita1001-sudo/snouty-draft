@@ -11,7 +11,7 @@
 
 import type { Locale } from '@snouty/shared-types';
 import {
-  skuLines,
+  boqFrom,
   type Assumption,
   type Recommendation,
   type SelectedProduct,
@@ -223,9 +223,9 @@ export function templateProse(
  * baris SKU yang sama disatukan; kalimat templat ikut diperbarui.
  */
 export function withPrintedMaterialCount(recommendation: Recommendation): Recommendation {
-  // "Produk Pralon" = SKU katalog, dari daftar yang sama dengan tab Produk dan material (TC-H-05).
-  // Baris material tanpa produk katalog tetap tercetak di material, tetapi bukan produk Pralon.
-  const count = skuLines(recommendation).length;
+  // "Produk Pralon" = SKU katalog yang punya jumlah di BOQ (TC-H-05, review laporan 0015). Produk
+  // yang jumlahnya menyusul tetap di BOQ dan tab Produk, tetapi tidak ikut hitungan ringkasan.
+  const count = boqFrom(recommendation).products.filter((p) => p.quantity !== null).length;
   const before = recommendation.stats.productCount;
   if (count === before && count > 0) return recommendation;
   const body =

@@ -179,15 +179,18 @@ export function computeHouseDrainage(
   );
   // Hanya bangunan bertingkat: satu lantai mengalir langsung ke saluran bangunan (710.1(1)).
   const multiStorey = floors.length > 1;
-  const branchStack = (perFloor: readonly number[]) =>
-    multiStorey && perFloor.length > 0 ? run(ENG_604, { floorDfu: perFloor }).size : null;
+  const branchStack = (perFloor: readonly number[], minimumSize: DrainSize) =>
+    multiStorey && perFloor.length > 0
+      ? run(ENG_604, { floorDfu: perFloor, minimumSize }).size
+      : null;
+  const soilMin = sizeFromInches('SOIL_LINE_MIN_4IN', use('SOIL_LINE_MIN_4IN'));
 
   const soil =
     counts.waterClosets > 0 || urinals > 0
       ? run(ENG_602, {
           dfu: load.soilDfu,
-          minimumSize: sizeFromInches('SOIL_LINE_MIN_4IN', use('SOIL_LINE_MIN_4IN')),
-          branchStackSize: branchStack(soilFloors),
+          minimumSize: soilMin,
+          branchStackSize: branchStack(soilFloors, soilMin),
         })
       : null;
 
@@ -216,7 +219,7 @@ export function computeHouseDrainage(
       ? run(ENG_602, {
           dfu: load.wasteDfu,
           minimumSize: wasteMin,
-          branchStackSize: branchStack(wasteFloors),
+          branchStackSize: branchStack(wasteFloors, wasteMin),
         })
       : null;
 

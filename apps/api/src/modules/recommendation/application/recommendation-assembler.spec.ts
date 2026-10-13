@@ -7,6 +7,7 @@ import { computeSolution, type SolutionInput } from '@snouty/engineering';
 import {
   assembleRecommendation,
   templateProse,
+  withPrintedMaterialCount,
   type ProseWriter,
 } from './recommendation-assembler.js';
 import type { IdentifiedTrace } from '../domain/solution-view.js';
@@ -205,5 +206,42 @@ describe('templateProse', () => {
     expect(result.headline).toBe('Distribution system for 3 water outlets');
     expect(result.body).toContain('served by 1 branch.');
     expect(result.body).toContain('There is 1 Pralon product');
+  });
+});
+
+describe('jumlah produk di ringkasan (review laporan 0015)', () => {
+  it('hanya produk yang punya jumlah di BOQ; yang menyusul tidak ikut', () => {
+    const product = (productId: string, role: 'main' | 'fitting') => ({
+      productId,
+      role,
+      size: '4"',
+      matchState: 'VERIFIED_SELECTED' as const,
+      reason: '',
+      name: productId,
+    });
+    const rec = withPrintedMaterialCount({
+      stats: {
+        outletCount: 6,
+        mainSize: '1"',
+        branchCount: 2,
+        fixtureConnectionSize: '1/2"',
+        productCount: 2,
+      },
+      body: 'Pipa utama 1".',
+      products: [product('D4', 'main'), product('Y4', 'fitting')],
+      bom: [
+        {
+          item: 'Pipa PVC D',
+          productId: 'D4',
+          size: '4"',
+          quantity: 5,
+          unit: 'batang',
+          basis: '',
+          provenance: 'ASSUMED',
+          traceIds: [],
+        },
+      ],
+    } as never);
+    expect(rec.stats.productCount).toBe(1);
   });
 });

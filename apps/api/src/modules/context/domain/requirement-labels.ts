@@ -93,6 +93,8 @@ export function requirementValueLabel(
   path: RequirementFieldPath,
   value: unknown,
   locale: Locale = DEFAULT_LOCALE,
+  /** Toilet umum (tempat ibadah, sekolah): kamar mandi = kloset + keran, bukan shower + kloset. */
+  context: { readonly bathroomHasTap?: boolean } = {},
 ): string {
   const en = locale === 'en';
   if (typeof value === 'boolean') return en ? (value ? 'Yes' : 'No') : value ? 'Ya' : 'Tidak';
@@ -100,6 +102,20 @@ export function requirementValueLabel(
     if (path === 'building.floors')
       return en ? plural(value, 'floor', 'floors') : `${value} lantai`;
     if (path === 'building.floorHeightM') return `${value} m`;
+    // Kamar mandi adalah ruang berisi dua titik air (review laporan 0015: "2 titik" untuk 2 kamar mandi
+    // salah baca — sebenarnya 4 titik).
+    if (path === 'fixtures.bathrooms') {
+      const pair = context.bathroomHasTap
+        ? en
+          ? 'toilet + tap'
+          : 'kloset + keran'
+        : en
+          ? 'shower + toilet'
+          : 'shower + kloset';
+      return en
+        ? `${plural(value, 'room', 'rooms')} (${plural(value * 2, 'outlet', 'outlets')}: ${pair})`
+        : `${value} ruang (${value * 2} titik: ${pair})`;
+    }
     if (path.startsWith('fixtures.'))
       return en ? plural(value, 'point', 'points') : `${value} titik`;
     return String(value);

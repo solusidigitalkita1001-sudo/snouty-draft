@@ -1503,8 +1503,10 @@ pemasangan"; tebal dinding resmi per kelas menunggu tabel Pralon (OQ-64).
       Σ titik cabang, Σ WSFU cabang, Σ DFU per lantai) melempar `EngineConsistencyError` — analisis gagal tanpa
       coba ulang dan tercatat di log; laporan menolak kebutuhan yang tidak seimbang. Sebaran tampil di tabel
       asumsi. Tes: kasus 0015, 2 wastafel eksplisit, 1 lantai
-- [ ] P19-02 Teks, logika, dan transparansi asumsi (cabang air kotor minimal ukuran alat terbesar, lebar tanah di
-      kebutuhan, "2 ruang (4 titik)", produk tanpa jumlah tidak ikut hitungan ringkasan)
+- [x] P19-02 Teks, logika, asumsi: ENG-604 v2 menerapkan ukuran alat terbesar di cabang dan pipa tegak (langkah 21
+      kini "→ 4", kloset minimal 4""); ukuran bangunan/tanah dan tinggi lantai tampil di Kebutuhan tercatat dengan
+      statusnya; kamar mandi ditulis "2 ruang (4 titik: shower + kloset)" (toilet umum: kloset + keran); jumlah produk
+      di ringkasan hanya produk yang punya jumlah di BOQ
 - [ ] P19-03 Perhitungan teknis: cek kurva/tabel Hunter dan interpolasinya; ujung riser teratas elbow/reducer
       bukan tee. Tebal dinding resmi per kelas → OQ-64 (menunggu tabel Pralon)
 - [ ] P19-04 BOQ: baris sok/stop kran/dop/lem "dihitung saat pemasangan"; sisa potong 10% di Dasar Perhitungan;

@@ -151,13 +151,21 @@ function requirementRows(state: RequirementState, locale: Locale): readonly Repo
     if (field.value === null) return;
     rows.push({
       label: requirementFieldLabel(path, locale),
-      value: requirementValueLabel(path, field.value, locale),
+      value: requirementValueLabel(path, field.value, locale, {
+        bathroomHasTap:
+          state.building.type.value === 'place_of_worship' ||
+          state.building.type.value === 'public_building',
+      }),
       provenance: field.provenance,
     });
   };
 
   add('building.type', state.building.type);
   add('building.floors', state.building.floors);
+  // Setiap masukan yang dipakai hitungan tampil dengan statusnya (review 0015): ukuran bangunan dan
+  // tanah (halaman dihitung dari selisihnya), tinggi lantai bila disebut pengguna.
+  add('building.dimensions', state.building.dimensions);
+  add('building.floorHeightM', state.building.floorHeightM);
   add('water.source', state.water.source);
   add('water.installationType', state.water.installationType);
   add('fixtures.bathrooms', state.fixtures.bathrooms);

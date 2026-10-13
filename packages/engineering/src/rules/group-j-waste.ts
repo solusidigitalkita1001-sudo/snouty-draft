@@ -319,6 +319,11 @@ export function branchSizeForDfu(dfu: number): DrainSize {
 export interface BranchStackInput {
   /** Beban jalur ini per lantai (DFU), satu angka per lantai yang punya alat di jalur ini. */
   readonly floorDfu: readonly number[];
+  /**
+   * Ukuran minimum alat terbesar di jalur ini (kloset 4") — v2: berlaku juga untuk cabang dan pipa
+   * tegak, supaya langkah hitung tidak menulis "cabang → 2"" untuk jalur kloset (laporan 0015).
+   */
+  readonly minimumSize?: DrainSize;
 }
 export interface BranchStackResult {
   /** Cabang mendatar terkecil yang menampung lantai terberat. */
@@ -339,7 +344,8 @@ export interface BranchStackResult {
  */
 export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
   ruleId: 'ENG-604',
-  version: 1,
+  // v2 (laporan 0015): ukuran minimum alat terbesar diterapkan di cabang dan pipa tegak.
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -347,19 +353,26 @@ export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
     if (!Array.isArray(floors) || floors.length === 0 || floors.length > 50) {
       throw new Error('ENG-604: floorDfu harus berisi 1–50 lantai');
     }
+    const minimum = o['minimumSize'];
     return {
       floorDfu: floors.map((v, i) =>
         requireNumber('ENG-604', `floorDfu[${i}]`, v, { min: 0, max: 1900 }),
       ),
+      ...(typeof minimum === 'string' && (DRAIN_SIZES as readonly string[]).includes(minimum)
+        ? { minimumSize: minimum as DrainSize }
+        : {}),
     };
   },
   compute: (i) => {
     const heaviest = Math.max(...i.floorDfu);
     const total = i.floorDfu.reduce((a, b) => a + b, 0);
     const last = TABULATED[TABULATED.length - 1]!;
-    const branchSize = TABULATED.find((s) => BRANCH_STACK_DFU[s]!.branch >= heaviest) ?? last;
+    const atLeast = (size: DrainSize) => (i.minimumSize ? larger(size, i.minimumSize) : size);
+    const branchSize = atLeast(
+      TABULATED.find((s) => BRANCH_STACK_DFU[s]!.branch >= heaviest) ?? last,
+    );
     const intervals = i.floorDfu.length;
-    const stackSize =
+    const stackTable =
       intervals > 1
         ? (TABULATED.find((s) => {
             const t = BRANCH_STACK_DFU[s]!;
@@ -367,6 +380,7 @@ export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
             return stackCap >= total && t.interval >= heaviest;
           }) ?? last)
         : null;
+    const stackSize = stackTable === null ? null : atLeast(stackTable);
     return {
       branchSize,
       branchDfu: heaviest,
@@ -390,6 +404,11 @@ export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
       expected: { branchSize: '2"', branchDfu: 4, stackSize: '2"', stackDfu: 8, size: '2"' },
     },
     {
+      name: 'laporan 0015: air kotor 2 lantai × 4 DFU, kloset minimal 4" → cabang dan stack 4"',
+      input: { floorDfu: [4, 4], minimumSize: '4"' },
+      expected: { branchSize: '4"', branchDfu: 4, stackSize: '4"', stackDfu: 8, size: '4"' },
+    },
+    {
       name: '1 lantai 5 DFU → cabang 2", tanpa stack',
       input: { floorDfu: [5] },
       expected: { branchSize: '2"', branchDfu: 5, stackSize: null, stackDfu: 5, size: '2"' },
@@ -402,13 +421,21 @@ export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
         (o.stackSize !== null
           ? `; pipa tegak ${i.floorDfu.length} lantai, total ${o.stackDfu} beban → ${o.stackSize}`
           : '') +
-        ` (IPC 710.1(2)). Jalur ini minimal ${o.size}.`,
+        ` (IPC 710.1(2))` +
+        (i.minimumSize
+          ? `, dengan alat terbesar di jalur ini butuh minimal ${i.minimumSize}`
+          : '') +
+        `. Jalur ini minimal ${o.size}.`,
       en:
         `Horizontal branch on the heaviest floor ${o.branchDfu} units → ${o.branchSize}` +
         (o.stackSize !== null
           ? `; stack over ${i.floorDfu.length} floors, total ${o.stackDfu} units → ${o.stackSize}`
           : '') +
-        ` (IPC 710.1(2)). This line is at least ${o.size}.`,
+        ` (IPC 710.1(2))` +
+        (i.minimumSize
+          ? `, with the largest fixture on this line needing at least ${i.minimumSize}`
+          : '') +
+        `. This line is at least ${o.size}.`,
     }),
 };
 

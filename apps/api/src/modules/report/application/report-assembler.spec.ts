@@ -680,3 +680,32 @@ describe('tanggal data produk (P17-10)', () => {
     expect(renderReportHtml(assembleReportPayload(INPUT))).not.toContain('Data produk per');
   });
 });
+
+describe('kebutuhan tercatat memuat setiap masukan hitungan (review laporan 0015)', () => {
+  const withSizes = withCompleteness(
+    mergeRequirement(
+      STATE,
+      [
+        {
+          path: 'building.dimensions',
+          value: { lengthM: 12, widthM: 7, landLengthM: 15, landWidthM: 10 },
+          source: 'user_stated',
+        },
+      ],
+      T0,
+    ).state,
+  );
+  const rows = assembleReportPayload({ ...INPUT, state: withSizes }).requirements;
+
+  it('ukuran bangunan dan tanah tampil dengan statusnya', () => {
+    const size = rows.find((r) => r.label === 'Ukuran bangunan / tanah');
+    expect(size?.value).toContain('tanah 15 × 10 m');
+    expect(size?.provenance).toBe('VERIFIED');
+  });
+
+  it('kamar mandi ditulis sebagai ruang dengan titik airnya', () => {
+    expect(rows.find((r) => r.label === 'Kamar mandi')?.value).toBe(
+      '3 ruang (6 titik: shower + kloset)',
+    );
+  });
+});
