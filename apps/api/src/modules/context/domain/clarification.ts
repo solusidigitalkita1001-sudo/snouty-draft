@@ -506,10 +506,14 @@ export function summarizeAnswers(
           index >= 0 ? (parameterOptionLabels(a.id, locale)?.[index] ?? a.option) : a.option;
         return `${parameterLabel(a.id, locale)}: ${optionLabel(display, locale)}`;
       }
+      // Kartu kewajaran ukuran (`outlier.*`, review putaran 3) menjawab soal ukuran bangunan.
+      const id = (
+        a.id.startsWith('outlier.') ? 'building.dimensions' : a.id
+      ) as RequirementFieldPath;
       const label = isIrrigationField(a.id)
         ? irrigationFieldLabel(a.id, locale)
-        : (labels[a.id as RequirementFieldPath] ?? a.id);
-      const template = TEMPLATES[a.id as RequirementFieldPath];
+        : (labels[id] ?? a.id);
+      const template = TEMPLATES[id];
       if (template?.inputs && a.option.includes('='))
         return `${label}: ${inputSummary(template, a.option, locale)}`;
       return `${label}: ${optionLabel(a.option, locale)}`;
@@ -568,4 +572,16 @@ export function houseRefinementQuestions(
     .filter((path) => !isKnown(path))
     .map((path) => toQuestion(path, locale))
     .filter((q): q is ClarificationQuestion => q !== null);
+}
+
+/** Isian ukuran bangunan/tanah untuk kartu lain (pertanyaan kewajaran, review putaran 3). */
+export function dimensionQuestionInputs(
+  locale: Locale = DEFAULT_LOCALE,
+): NonNullable<ClarificationQuestion['inputs']> {
+  return toQuestion('building.dimensions', locale)!.inputs!;
+}
+
+/** `"lengthM=8;widthM=12;…"` → ukuran, dengan pagar yang sama seperti kartu ukuran; selain itu `null`. */
+export function parseDimensionAnswer(option: string): Dimensions | null {
+  return option.includes('=') ? (inputValues(option, DIMENSION_INPUTS) as Dimensions | null) : null;
 }

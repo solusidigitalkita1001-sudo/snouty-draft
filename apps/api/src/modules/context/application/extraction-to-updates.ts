@@ -288,6 +288,9 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   const updates: FieldUpdate[] = [];
   const add = (path: FieldUpdate['path'], value: unknown): void => {
     if (value === undefined) return; // "tidak disebut di pesan ini"
+    // Lantai dan ukuran ≤ 0 tidak ada artinya: ditolak, field-nya tetap ditanyakan (review putaran 3).
+    if (path === 'building.floors' && typeof value === 'number' && value < 1) return;
+    if (path === 'water.wellDepthM' && typeof value === 'number' && value < 0) return;
     const marker = GROUNDING[path];
     if (marker && message !== '' && !marker.test(message)) return; // tidak pernah diucapkan
     const noun = COUNT_NOUNS[path];

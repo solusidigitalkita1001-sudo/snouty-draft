@@ -16,6 +16,7 @@ import { limitFor } from '../../policy/rate-limits.js';
 import { RateLimiter } from '../../../shared/rate-limit/rate-limiter.js';
 import { MessageService } from '../application/message.service.js';
 import { isClarificationAnswerId, MAX_ANSWERS_PER_CARD } from '../domain/clarification.js';
+import { isOutlierAnswerId } from '../domain/plausibility.js';
 import { sseWriter } from '../../../shared/sse/event-stream.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
@@ -39,9 +40,14 @@ const ClarificationDto = z
             // Field inti bangunan, field irigasi (OQ-47), atau kunci parameter kasus teknis
             // (Fase 14) — satu daftar di domain (`isClarificationAnswerId`), supaya kartu yang
             // dikirim API selalu bisa dijawab lewat API (bug 2026-10-07: kartu teknis → 400).
-            id: z.string().trim().min(1).max(64).refine(isClarificationAnswerId, {
-              message: 'id klarifikasi tidak dikenal',
-            }),
+            id: z
+              .string()
+              .trim()
+              .min(1)
+              .max(64)
+              .refine((id) => isClarificationAnswerId(id) || isOutlierAnswerId(id), {
+                message: 'id klarifikasi tidak dikenal',
+              }),
             option: z.string().trim().min(1).max(80),
           })
           .strict(),

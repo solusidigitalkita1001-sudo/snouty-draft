@@ -135,6 +135,13 @@ export { extractTechnicalContext } from './cases/extractor.js';
 export type { ExtractedParameter } from './cases/extractor.js';
 export { MAX_QUESTIONS, caseReadiness, resolveMissingParameters } from './cases/missing.js';
 export { caseInputIssues, CaseInputInvalidError } from './cases/validation.js';
+export {
+  houseInputIssues,
+  MIN_FLOOR_AREA_PER_BATHROOM_M2,
+  type HouseInputFacts,
+  type HouseInputIssue,
+  type HouseOutlierCode,
+} from './house-input-issues.js';
 export type { CaseInputIssue } from './cases/validation.js';
 export type { CaseReadinessInput, MissingParameter } from './cases/missing.js';
 

@@ -11,6 +11,7 @@
  * tersedia, sambil tetap membiarkan jalur edit deterministik bekerja.
  */
 
+import { confirmOutliers, isOutlierAnswerId, outlierAnswer } from '../domain/plausibility.js';
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import type {
   AssistantCard,
@@ -690,15 +691,28 @@ export class MessageService {
     const technical = applyTechnicalAnswers(afterIrrigation, technicalAnswers);
     const base = technical.state;
 
-    const updates = answers
-      .filter((answer) => !isIrrigationField(answer.id))
-      .filter((answer) => !technicalAnswers.some((t) => t.key === answer.id))
-      .map((answer) => answerToUpdate(answer, defaultUpdateFor))
-      .filter((update): update is NonNullable<typeof update> => update !== null);
+    // Kartu kewajaran (review putaran 3): "Sudah benar" ditegaskan, ukuran baru menggantikan.
+    const outliers = answers
+      .map((answer) => outlierAnswer(answer))
+      .filter((a): a is NonNullable<typeof a> => a !== null);
+    const updates = [
+      ...answers
+        .filter((answer) => !isIrrigationField(answer.id))
+        .filter((answer) => !isOutlierAnswerId(answer.id))
+        .filter((answer) => !technicalAnswers.some((t) => t.key === answer.id))
+        .map((answer) => answerToUpdate(answer, defaultUpdateFor))
+        .filter((update): update is NonNullable<typeof update> => update !== null),
+      ...outliers.flatMap((a) => ('update' in a ? [a.update] : [])),
+    ];
     const result = mergeRequirement(base, updates, now);
-    const merged = withCompleteness(result.state);
+    const confirmed = confirmOutliers(
+      result.state,
+      outliers.flatMap((a) => ('confirm' in a ? [a.confirm] : [])),
+    );
+    const merged = withCompleteness(confirmed.state);
     if (
       result.changed.length > 0 ||
+      confirmed.changed ||
       (Object.keys(irrigation).length > 0 && applied.changed) ||
       technical.changed
     ) {

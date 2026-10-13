@@ -66,6 +66,7 @@ import {
 import { irrigationGuidance } from './irrigation-guidance.js';
 import { assumptionCard } from '../domain/requirement-defaults.js';
 import { houseRefinementQuestions, planClarification } from '../domain/clarification.js';
+import { outlierQuestions, pendingOutliers } from '../domain/plausibility.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
@@ -552,6 +553,11 @@ export function understoodReply(
       ? `${opener} Press **Compose recommendation** to see the pipe sizes and the product list.`
       : `${opener} Tekan **Susun rekomendasi** untuk melihat ukuran pipa dan daftar produknya.`;
   }
+  if (nextCard === 'clarification' && pendingOutliers(state).length > 0) {
+    return en
+      ? `${opener} One thing to check first:`
+      : `${opener} Ada yang perlu saya pastikan dulu:`;
+  }
   return en
     ? `${opener} A few more things so the sizing is right:`
     : `${opener} Beberapa hal lagi supaya hitungannya pas:`;
@@ -592,6 +598,11 @@ export function followUpCard(
   if (merged.missingInformation.length > 0) {
     const plan = planClarification(merged.missingInformation, locale);
     return plan ? { kind: 'clarification', questions: plan.questions } : null;
+  }
+  // Angka janggal (luas per kamar mandi, tanah lebih kecil dari bangunan) ditanya balik dulu.
+  const outliers = pendingOutliers(merged);
+  if (outliers.length > 0) {
+    return { kind: 'clarification', questions: outlierQuestions(outliers, locale) };
   }
   return { kind: 'cta', action: 'ANALYZE' };
 }

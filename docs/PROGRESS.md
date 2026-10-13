@@ -1535,7 +1535,11 @@ dinonaktifkan; pertanyaan wastafel jadi "total (termasuk di kamar mandi)"; kedal
       ENG-703 v2 menghitung dudukan toren minimum (per 0,5 m) dan menyebut bila beda tinggi sendiri kurang
       sehingga pipa lebih besar tidak menolong; kartu pompa menawarkan "atau naikkan toren ke X m"; teks pompa
       tanpa "lantai atas". Tes U1/U2 di engine dan kebutuhan
-- [ ] P20-02 Validasi kewajaran masukan (luas per KM, tanah < bangunan, nilai ≤ 0) dengan konfirmasi + catatan
+- [x] P20-02 Validasi kewajaran: `houseInputIssues` (engine) — luas lantai < 2 m² per kamar mandi
+      (`MIN_FLOOR_AREA_PER_BATHROOM_M2`) dan tanah lebih kecil daripada bangunan → kartu tanya balik ("Sudah benar" +
+      isian ukuran) sebelum tombol Susun; penegasan disimpan di `confirmedOutliers`, hitungan jalan, dan tabel Asumsi
+      (layar + PDF) mencatat "Data di luar kewajaran, mohon diverifikasi: …". Lantai < 1 dan kedalaman < 0 dari teks
+      ditolak. Tes U3
 - [ ] P20-03 Percakapan: parsing ukuran, tombol Susun (3b), wastafel total, sapaan, label PDAM / jenis instalasi
 - [ ] P20-04 BOQ 4a–4g
 - [ ] P20-05 Tekanan di meteran untuk pipa pengisi toren (5a tetap OQ-64)

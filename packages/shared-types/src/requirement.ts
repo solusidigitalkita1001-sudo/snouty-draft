@@ -236,6 +236,11 @@ export interface RequirementState {
    * `useCase.assumptionOverrides`.
    */
   readonly assumptionOverrides?: Readonly<Record<string, number>>;
+  /**
+   * Masalah kewajaran masukan yang sudah ditegaskan pengguna ("sudah benar", review putaran 3):
+   * tidak ditanyakan lagi, dan laporan mencatatnya sebagai data yang perlu diverifikasi.
+   */
+  readonly confirmedOutliers?: readonly string[];
 }
 
 /** Pemicu sebuah snapshot terbentuk (kolom `requirement_snapshots.trigger`). */

@@ -49,6 +49,7 @@ import {
   CaseInputInvalidError,
 } from '@snouty/engineering';
 import { floorHeightOutOfRange } from '../../context/domain/completeness.js';
+import { outlierAssumptions } from '../../context/domain/plausibility.js';
 import {
   appliedAssumptionsToView,
   engineeringStateFrom,
@@ -316,6 +317,8 @@ export class AnalysisService {
     locale: Locale = DEFAULT_LOCALE,
   ): Promise<readonly AssistantStreamEvent[]> {
     const events = streamedEvents(emit);
+    // Angka di luar kewajaran yang tetap dihitung dicatat untuk diverifikasi (review putaran 3).
+    requirementAssumptions = [...outlierAssumptions(state, locale), ...requirementAssumptions];
 
     // Jalur irigasi (OQ-47): mesin Kelompok E, perakitan sendiri, tanpa skema bangunan.
     if (state.useCase?.kind === 'irrigation') {
