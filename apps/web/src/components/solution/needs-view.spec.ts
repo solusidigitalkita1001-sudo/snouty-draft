@@ -1,7 +1,7 @@
 /** P17-04 (DD-01 #1): gambar dan keterangan kebutuhan dari `Recommendation.needs`. */
 import type { BuildingType, SolutionNeed } from '@snouty/shared-types';
 import { describe, expect, it } from 'vitest';
-import { buildingSummary, flowSteps, needCards } from './needs-view';
+import { buildingSummary, flowSteps, needCards } from '@snouty/ui/needs-view';
 import { solutionCopy } from './solution-copy';
 
 const copy = solutionCopy('id').needs;

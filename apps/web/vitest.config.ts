@@ -21,6 +21,15 @@ export default defineConfig({
       '@snouty/engineering': fileURLToPath(
         new URL('../../packages/engineering/src/index.ts', import.meta.url),
       ),
+      '@snouty/ui/illustrations': fileURLToPath(
+        new URL('../../packages/ui/src/illustrations.ts', import.meta.url),
+      ),
+      '@snouty/ui/needs-view': fileURLToPath(
+        new URL('../../packages/ui/src/needs-view.ts', import.meta.url),
+      ),
+      '@snouty/ui/product-visual': fileURLToPath(
+        new URL('../../packages/ui/src/product-visual.ts', import.meta.url),
+      ),
     },
   },
   test: {

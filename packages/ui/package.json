@@ -6,9 +6,21 @@
   "exports": {
     "./tokens.css": "./src/tokens.css",
     "./tokens": "./src/tokens.ts",
-    "./illustrations": "./src/illustrations.ts"
+    "./illustrations": {
+      "types": "./src/illustrations.ts",
+      "default": "./dist/illustrations.js"
+    },
+    "./needs-view": {
+      "types": "./src/needs-view.ts",
+      "default": "./dist/needs-view.js"
+    },
+    "./product-visual": {
+      "types": "./src/product-visual.ts",
+      "default": "./dist/product-visual.js"
+    }
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run"
   },
@@ -16,5 +28,8 @@
     "typescript": "^6.0.3",
     "vitest": "^5.0.2",
     "@types/node": "^26.6.3"
+  },
+  "dependencies": {
+    "@snouty/shared-types": "workspace:*"
   }
 }

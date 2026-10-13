@@ -25,6 +25,17 @@ import { hasStepTitle, ruleStepTitle } from '@snouty/engineering';
 import { isFlowSchematic, type Locale, type Provenance } from '@snouty/shared-types';
 import type { ReportPayload } from '../domain/report.types.js';
 import { renderSchematicSvg } from './report-schematic.js';
+import { illustrationSpriteContent } from '@snouty/ui/illustrations';
+import {
+  REPORT_V2_COPY,
+  REPORT_V2_CSS,
+  basisAssumptionsSection,
+  boqSection,
+  payloadBoq,
+  productsSection,
+  summaryPictures,
+  type ReportParts,
+} from './report-v2.js';
 
 /**
  * Teks tetap halaman cetak per bahasa. Nilainya **HTML tepercaya** (konstanta kode, sudah
@@ -106,6 +117,7 @@ interface ReportCopy {
   readonly schematicFloorHeight: string;
   readonly schematicBasis: string;
   readonly basisTitle: string;
+  readonly stepsTitle: string;
   readonly legendTitle: string;
   readonly nextStepsTitle: string;
   readonly nextSteps: string;
@@ -182,7 +194,7 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     tax: (percent) => `PPN ${String(percent)}%`,
     total: 'Total estimasi',
     exclusions: 'Belum termasuk jasa instalasi, aksesori non-pipa, dan pengiriman.',
-    closingTitle: 'Dasar Perhitungan &amp; Pengesahan',
+    closingTitle: 'Langkah Hitung &amp; Pengesahan',
     schematicTitle: 'Skema Instalasi',
     schematicBanner: 'SKEMATIK · BUKAN GAMBAR KERJA',
     schematicNoteTitle: 'CATATAN SKEMA',
@@ -198,6 +210,7 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     schematicFloorHeight: 'TINGGI LANTAI',
     schematicBasis: 'DASAR',
     basisTitle: 'Dasar perhitungan',
+    stepsTitle: 'Langkah hitung',
     legendTitle: 'Status nilai',
     nextStepsTitle: 'Langkah berikutnya',
     nextSteps:
@@ -274,7 +287,7 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     tax: (percent) => `VAT ${String(percent)}%`,
     total: 'Estimated total',
     exclusions: 'Excludes installation labor, non-pipe accessories, and delivery.',
-    closingTitle: 'Calculation Basis &amp; Sign-off',
+    closingTitle: 'Calculation Steps &amp; Sign-off',
     schematicTitle: 'Installation Schematic',
     schematicBanner: 'SCHEMATIC · NOT A WORKING DRAWING',
     schematicNoteTitle: 'SCHEMATIC NOTE',
@@ -290,6 +303,7 @@ export const REPORT_COPY: Readonly<Record<Locale, ReportCopy>> = {
     schematicFloorHeight: 'FLOOR HEIGHT',
     schematicBasis: 'BASIS',
     basisTitle: 'Calculation basis',
+    stepsTitle: 'Calculation steps',
     legendTitle: 'Value status',
     nextStepsTitle: 'Next steps',
     nextSteps:
@@ -322,14 +336,16 @@ const SNOUTY_MASCOT = asset('snouty-mascot.png');
 
 export function renderReportHtml(payload: ReportPayload): string {
   const t = REPORT_COPY[payload.locale];
+  // Sprite ilustrasi yang sama dengan layar; warnanya token di `:root` laporan (PRINT_PALETTE).
   return `<!doctype html>
 <html lang="${t.htmlLang}">
 <head>
 <meta charset="utf-8">
 <title>${esc(payload.reportNumber)}</title>
-<style>${CSS}</style>
+<style>${CSS}${REPORT_V2_CSS}</style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">${illustrationSpriteContent()}</svg>
 ${sections(payload, t)}
 <script type="text/plain" id="snouty-pdf-footer">${footerTemplate(payload, t)}</script>
 </body>
@@ -382,14 +398,49 @@ function schematicSection(p: ReportPayload, t: ReportCopy, n: number): string {
  * estimasi material (yang isinya harga) tidak dicetak dan nomor bagian mengikuti.
  */
 function sections(p: ReportPayload, t: ReportCopy): string {
+  const v = REPORT_V2_COPY[p.locale];
+  const helpers = reportParts(p, t);
+  const legend = legendBlock(t);
+  // Urutan DD-01: ringkasan bergambar → skema → BOQ → dasar perhitungan & asumsi → produk.
   const parts: ((n: number) => string)[] = [
     (n) => summarySection(p, t, n),
     ...(p.schematic ? [(n: number) => schematicSection(p, t, n)] : []),
-    (n) => systemSection(p, t, n),
+    (n) =>
+      boqSection(
+        p,
+        v,
+        helpers,
+        n,
+        p.pricing.enabled ? t.priceDisclaimerWithList : t.priceDisclaimer,
+        t.exclusions,
+      ),
+    (n) => basisAssumptionsSection(p, v, helpers, n, t.systemColumns, legend),
+    ...(payloadBoq(p).products.length > 0
+      ? [(n: number) => productsSection(p, v, helpers, n)]
+      : []),
     ...(p.pricing.enabled ? [(n: number) => materialSection(p, t, n)] : []),
     (n) => closingSection(p, t, n),
   ];
   return [cover(p, t), ...parts.map((part, i) => part(i + 1))].join('\n');
+}
+
+function reportParts(p: ReportPayload, t: ReportCopy): ReportParts {
+  return {
+    esc,
+    pill: (status) => pill(status, t),
+    sectionHead: (n, title) => sectionHead(p, t, n, title),
+  };
+}
+
+function legendBlock(t: ReportCopy): string {
+  return `<h3 class="subhead">${t.legendTitle}</h3>
+  <div class="legend">
+    <div class="legend-item legend-user"><strong>${t.userStated}</strong><span>${t.userStatedMeaning}</span></div>
+    ${LEGEND.map(
+      (status) =>
+        `<div class="legend-item legend-${status.toLowerCase()}"><strong>${t.provenance[status]}</strong><span>${t.provenanceMeaning[status]}</span></div>`,
+    ).join('\n    ')}
+  </div>`;
 }
 
 /**
@@ -471,13 +522,20 @@ function sectionHead(p: ReportPayload, t: ReportCopy, n: number, title: string):
  * beserta jumlahnya, lalu kebutuhan yang tercatat. Hanya merah-putih, tanpa kotak warna-warni.
  */
 function summarySection(p: ReportPayload, t: ReportCopy, n: number): string {
-  return `<section class="page">
-  ${sectionHead(p, t, n, t.summaryTitle)}
-  <div class="lead">
+  const pictures = summaryPictures(p, REPORT_V2_COPY[p.locale], reportParts(p, t));
+  // Gambar lebih dulu (DD-01 #1); laporan tanpa kebutuhan bergambar memakai kepala teks lama.
+  const lead =
+    pictures.hero ??
+    `<div class="lead">
     <div class="kicker kicker-action">${t.installationKicker}</div>
     <div class="lead-value">${esc(p.identity.installationType)}</div>
     <p class="lead-text">${esc(p.body)}</p>
-  </div>
+  </div>`;
+  return `<section class="page">
+  ${sectionHead(p, t, n, t.summaryTitle)}
+  ${lead}
+  ${pictures.needs}
+  ${pictures.flow}
 
   <h3 class="subhead">${t.sizesTitle}</h3>
   <table class="grid data compact">
@@ -490,11 +548,6 @@ function summarySection(p: ReportPayload, t: ReportCopy, n: number): string {
       )
       .join('\n    ')}
   </table>
-
-  <h3 class="subhead">${t.itemsTitle}</h3>
-  ${p.pricing.enabled ? '' : `<div class="banner">${t.priceDisclaimer}</div>`}
-  ${materialTable(p, t, false)}
-  ${p.pricing.enabled ? '' : `<p class="note">${t.exclusions}</p>`}
 
   <h3 class="subhead">${t.requirementsTitle}</h3>
   <table class="grid">
@@ -552,39 +605,6 @@ function materialTable(p: ReportPayload, t: ReportCopy, withPrices: boolean): st
   ${pending.some((p) => p.kind === 'fitting') ? `<p class="bodytext">${t.pendingFittingNote}</p>` : ''}`;
 }
 
-function systemSection(p: ReportPayload, t: ReportCopy, n: number): string {
-  return `<section class="page">
-  ${sectionHead(p, t, n, t.systemTitle)}
-  <table class="grid data">
-    <thead><tr><th>${t.systemColumns.line}</th><th>${t.systemColumns.size}</th><th>${t.systemColumns.reason}</th><th>${t.systemColumns.status}</th></tr></thead>
-    ${p.systemLines
-      .map(
-        (line) =>
-          `<tr><td class="strong">${esc(line.name)}<span class="sub">${esc(line.path)}</span></td>` +
-          `<td class="mono size">${esc(line.size)}</td><td class="reason">${esc(line.reason)}</td>` +
-          `<td class="status">${pill(line.provenance, t)}</td></tr>`,
-      )
-      .join('\n    ')}
-  </table>
-  ${
-    p.assumptions.length > 0
-      ? `<h3 class="subhead">${t.assumptionsTitle}</h3>
-  <ul class="assumptions">
-    ${p.assumptions.map((a) => `<li>${esc(a.text)}</li>`).join('\n    ')}
-  </ul>`
-      : ''
-  }
-  <h3 class="subhead">${t.legendTitle}</h3>
-  <div class="legend">
-    <div class="legend-item legend-user"><strong>${t.userStated}</strong><span>${t.userStatedMeaning}</span></div>
-    ${LEGEND.map(
-      (status) =>
-        `<div class="legend-item legend-${status.toLowerCase()}"><strong>${t.provenance[status]}</strong><span>${t.provenanceMeaning[status]}</span></div>`,
-    ).join('\n    ')}
-  </div>
-</section>`;
-}
-
 /** Keterangan status ditaruh dekat tabel yang memakai penandanya. */
 const LEGEND: readonly Provenance[] = ['VERIFIED', 'ESTIMATED', 'ASSUMED', 'UNAVAILABLE'];
 
@@ -607,7 +627,7 @@ function closingSection(p: ReportPayload, t: ReportCopy, n: number): string {
   const locale = p.locale;
   return `<section class="page">
   ${sectionHead(p, t, n, t.closingTitle)}
-  <h3 class="subhead">${t.basisTitle}</h3>
+  <h3 class="subhead">${t.stepsTitle}</h3>
   <table class="grid steps">
     ${p.basis
       .map((row, i) => {
@@ -713,12 +733,28 @@ export const PRINT_PALETTE = {
   'snouty-assumed-strong': '#b26b00',
   'snouty-assumed-bg': '#fdf3e3',
   'snouty-assumed-border': '#f0dfc0',
+  // Dipakai sprite ilustrasi (P17-09).
+  'snouty-surface-subtle': '#fbfcfb',
+  'snouty-hairline': '#eff2f1',
+  'snouty-muted-2': '#7a8285',
+  'snouty-mascot-water': '#6cc3ee',
+  'snouty-product-white': '#f4f6f6',
+  'snouty-product-white-line': '#8e999c',
+  'snouty-product-white-label': '#6b7376',
+  'snouty-product-grey': '#a9b1b4',
+  'snouty-product-grey-line': '#7c868a',
+  'snouty-product-grey-label': '#ffffff',
 } as const;
 /* eslint-enable no-restricted-syntax */
 
 const C = PRINT_PALETTE;
 
-const CSS = `
+/** Token `--snouty-*` yang dipakai ilustrasi, dari palet cetak (nilainya dites cocok dengan tokens.css). */
+const ROOT_TOKENS = `:root{${Object.entries(PRINT_PALETTE)
+  .map(([name, value]) => `--${name}:${value}`)
+  .join(';')};--snouty-font-mono:'IBM Plex Mono',ui-monospace,monospace}`;
+
+const CSS = `${ROOT_TOKENS}
 @page { size: A4; margin: 14mm 13mm 16mm; }
 @page :first { margin: 0; }
 * { box-sizing: border-box; }

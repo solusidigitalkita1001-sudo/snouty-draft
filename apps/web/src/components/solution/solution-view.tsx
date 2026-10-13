@@ -24,7 +24,7 @@ import { ASSUMPTION_CATEGORIES, assumptionCategory } from '@snouty/engineering';
 import { Fragment, useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { NeedsGrid, SummaryHero, WaterFlowCard } from './needs-board';
-import { productVisual } from './product-visual';
+import { productVisual } from '@snouty/ui/product-visual';
 import { ProductVisualView } from './product-visual-view';
 import { SchematicTab } from './schematic-tab';
 import { solutionCopy } from './solution-copy';

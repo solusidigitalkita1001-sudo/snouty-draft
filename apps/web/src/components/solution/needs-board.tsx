@@ -10,7 +10,7 @@
 import type { SolutionNeed } from '@snouty/shared-types';
 import { SceneImage } from '../illustration/illustration';
 import { useLocale } from '../locale';
-import { buildingSummary, flowSteps, needCards } from './needs-view';
+import { buildingSummary, flowSteps, needCards } from '@snouty/ui/needs-view';
 import { solutionCopy } from './solution-copy';
 import styles from './solution.module.css';
 

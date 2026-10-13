@@ -1,0 +1,12 @@
+{
+  // Yang dibangun hanya modul yang dimuat API saat runtime untuk laporan (P17-09): ilustrasi,
+  // ringkasan bergambar, gambar produk. Token tetap dibaca web dari sumber. `outDir`/`rootDir` ditulis ulang di sini, tidak
+  // diwarisi, seperti shared-types.
+  "extends": "../config/tsconfig/lib.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "noEmit": false
+  },
+  "include": ["src/illustrations.ts", "src/needs-view.ts", "src/product-visual.ts"]
+}

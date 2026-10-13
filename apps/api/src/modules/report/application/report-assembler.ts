@@ -84,6 +84,14 @@ export function assembleReportPayload(input: AssembleReportInput): ReportPayload
     },
     pendingItems: pendingItems(input.recommendation, input.productNames ?? new Map()),
     ...(input.schematic ? { schematic: input.schematic } : {}),
+    // DD-01 (P17-09): BOQ, ringkasan bergambar, dan lampiran produk dari data yang sama dengan layar.
+    // Varian alternatif tidak dicetak — tidak ikut dibekukan.
+    products: input.recommendation.products.map(({ alternatives: _alternatives, ...product }) => {
+      const name = product.name ?? input.productNames?.get(product.productId);
+      return name !== undefined ? { ...product, name } : product;
+    }),
+    ...(input.recommendation.needs ? { needs: input.recommendation.needs } : {}),
+    ...(input.recommendation.stats ? { outletCount: input.recommendation.stats.outletCount } : {}),
   };
 }
 

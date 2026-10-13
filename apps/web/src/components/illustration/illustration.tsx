@@ -13,6 +13,7 @@ import {
   type ProductIllustration,
   type SceneIllustration,
 } from '@snouty/ui/illustrations';
+import type { ProductColors } from '@snouty/ui/product-visual';
 
 /** Dipasang sekali di layout. Isinya string statis milik kita, bukan masukan pengguna. */
 export function IllustrationSprite() {
@@ -46,13 +47,6 @@ export function SceneImage({
       <use href={sceneHref(name)} />
     </svg>
   );
-}
-
-/** Warna gambar produk: badan, garis, tulisan. */
-export interface ProductColors {
-  readonly body: string;
-  readonly line: string;
-  readonly text: string;
 }
 
 export function ProductImage({

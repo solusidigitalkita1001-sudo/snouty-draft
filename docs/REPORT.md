@@ -25,6 +25,17 @@ dipertanggungjawabkan, bukan hanya enak dibaca.
 
 ## 2. Struktur
 
+> **Berlaku sejak 2026-10-13 (DD-01, P17-09):** laporan mengikuti layar solusi v2 — sampul; **Ringkasan**
+> bergambar (gambar bangunan + data bangunan, kartu kebutuhan, alur air, ukuran pipa per jalur, kebutuhan
+> tercatat); **Skema** (bila ada); **Daftar Kebutuhan Material (BOQ)** per sistem lalu pipa/fitting, dengan
+> gambar produk kecil, baris tanpa jumlah tetap tercantum; **Dasar Perhitungan & Asumsi** (jumlah material:
+> cara hitung · hitungan · hasil; ukuran pipa: alasan per jalur; asumsi per kategori; legenda status);
+> **Produk Pralon** (lampiran kartu produk bergambar, jumlah + nomor baris BOQ); estimasi harga hanya bila
+> harga aktif; **Langkah Hitung & Pengesahan**. BOQ dan produk diturunkan dari `boqFrom` yang sama
+> dengan layar; gambar dari `@snouty/ui` (sprite ilustrasi, `needs-view`, `product-visual`). Foto
+> produk disisipkan sebagai latar CSS, sehingga laporan tetap tanpa tag `<img>`. Payload lama (tanpa
+> `products`/`needs`) tetap tercetak. Tabel halaman 1–2 di bawah adalah struktur awal (Fase 8).
+
 ### Halaman 1
 
 | Blok                    | Isi                                                                                                                           |

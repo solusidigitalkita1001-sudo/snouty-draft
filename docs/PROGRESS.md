@@ -1462,7 +1462,10 @@ Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
       → OQ-62; tautan "Lihat di pralon.com" belum (kartu = tombol drawer)
 - [ ] P17-07 Denah: potongan instalasi + denah jalur per lantai
 - [ ] P17-08 "Coba ubah" bergambar di tab Denah (dihitung ulang engine)
-- [ ] P17-09 Laporan PDF mengikuti struktur v2
+- [x] P17-09 Laporan PDF v2: ringkasan bergambar, BOQ per sistem dengan gambar produk, dasar perhitungan & asumsi
+      berkategori, lampiran produk Pralon bergambar; payload membekukan `products`/`needs`/`outletCount`; modul
+      gambar dipindah ke `@snouty/ui` (dibangun ke `dist` untuk API) supaya layar dan PDF memakai logika yang sama.
+      Gambar pipa SNOUTY tidak lagi bertuliskan nomor standar (tulisan karangan dari mockup dihapus)
 - [ ] P17-10 Audit metatext dan penyederhanaan teks layar + PDF
 
 ## Design Coverage

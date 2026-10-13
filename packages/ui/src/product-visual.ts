@@ -8,22 +8,35 @@
  * kosong daripada gambar jenis yang salah.
  */
 
-import type { ProductIllustration } from '@snouty/ui/illustrations';
-import type { ProductColors } from '../illustration/illustration';
+import type { ProductIllustration } from './illustrations.js';
+
+/** Warna gambar produk: badan, garis, tulisan (nilai CSS — token `--snouty-product-*`). */
+export interface ProductColors {
+  readonly body: string;
+  readonly line: string;
+  readonly text: string;
+}
+
+/**
+ * Berkas foto pralon.com. Web menyajikannya dari `apps/web/public/products`, laporan PDF
+ * menyisipkannya dari `apps/api/assets/report/products` — keduanya salinan berkas yang sama,
+ * tidak di-hotlink ke pralon.com.
+ */
+export const PRODUCT_PHOTO_FILES = ['pvc-aw.jpg', 'pvc-vp.webp', 'pipa-jacking.webp'] as const;
+export type ProductPhoto = (typeof PRODUCT_PHOTO_FILES)[number];
 
 export type ProductVisual =
-  | { readonly kind: 'photo'; readonly src: string }
+  | { readonly kind: 'photo'; readonly file: ProductPhoto }
   | {
       readonly kind: 'drawing';
       readonly name: ProductIllustration;
       readonly colors: ProductColors;
     };
 
-/** Foto pralon.com, disimpan di server SNOUTY (`public/products`), tidak di-hotlink. */
-const PHOTO_BY_FAMILY: Readonly<Record<string, string>> = {
-  'PVC AW': '/products/pvc-aw.jpg',
-  'PVC VP': '/products/pvc-vp.webp',
-  'PIPA JACKING': '/products/pipa-jacking.webp',
+const PHOTO_BY_FAMILY: Readonly<Record<string, ProductPhoto>> = {
+  'PVC AW': 'pvc-aw.jpg',
+  'PVC VP': 'pvc-vp.webp',
+  'PIPA JACKING': 'pipa-jacking.webp',
 };
 
 /** Warna benda (pipa putih, pipa/fitting abu) — warna produknya, bukan warna tema. */
@@ -59,7 +72,7 @@ export function productVisual(product: {
   readonly kind: 'pipe' | 'fitting';
 }): ProductVisual | null {
   const photo = product.family ? PHOTO_BY_FAMILY[product.family] : undefined;
-  if (photo) return { kind: 'photo', src: photo };
+  if (photo) return { kind: 'photo', file: photo };
   if (product.kind === 'pipe') {
     const colors = product.family && WHITE_PIPE_FAMILIES.has(product.family) ? WHITE : GREY;
     return { kind: 'drawing', name: 'pipe', colors };

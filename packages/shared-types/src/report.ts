@@ -8,7 +8,13 @@
 
 import type { Locale } from './locale.js';
 import type { Provenance } from './provenance.js';
-import type { Assumption, BomItem, SystemLine } from './recommendation.js';
+import type {
+  Assumption,
+  BomItem,
+  SelectedProduct,
+  SolutionNeed,
+  SystemLine,
+} from './recommendation.js';
 import type { AnySchematic } from './schematic.js';
 
 export type ReportStatus = 'PENDING' | 'READY' | 'FAILED';
@@ -81,6 +87,15 @@ export interface ReportPayload {
    * isi laporan (skema di web dibentuk ulang dari snapshot). Payload lama tidak punya field ini.
    */
   readonly schematic?: AnySchematic;
+  /**
+   * Produk terpilih (DD-01, P17-09): BOQ dan lampiran produk laporan diturunkan dari daftar yang
+   * sama dengan layar (`boqFrom`). Payload lama tidak punya — memakai `pendingItems`.
+   */
+  readonly products?: readonly SelectedProduct[];
+  /** Kebutuhan bergambar ringkasan (P17-04); hanya solusi bangunan sejak P17-04. */
+  readonly needs?: readonly SolutionNeed[];
+  /** Jumlah titik air dari engine — alur air di ringkasan. */
+  readonly outletCount?: number;
 }
 
 /** Satu produk katalog tanpa jumlah: nama dari katalog, ukuran dari rekomendasi. */

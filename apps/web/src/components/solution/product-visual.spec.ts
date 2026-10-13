@@ -1,12 +1,12 @@
 /** P17-06: gambar kartu produk — foto pralon.com untuk AW/VP/Jacking, gambar jenis untuk lainnya. */
 import { describe, expect, it } from 'vitest';
-import { productVisual } from './product-visual';
+import { productVisual } from '@snouty/ui/product-visual';
 
 describe('productVisual', () => {
   it('foto asli hanya untuk keluarga yang fotonya memang keluarga itu', () => {
     expect(productVisual({ family: 'PVC AW', kind: 'pipe' })).toEqual({
       kind: 'photo',
-      src: '/products/pvc-aw.jpg',
+      file: 'pvc-aw.jpg',
     });
     expect(productVisual({ family: 'PVC VP', kind: 'pipe' })).toMatchObject({ kind: 'photo' });
     // PVC D tidak memakai foto AW (keputusan pemilik: foto D diminta ke Pralon, OQ-62).

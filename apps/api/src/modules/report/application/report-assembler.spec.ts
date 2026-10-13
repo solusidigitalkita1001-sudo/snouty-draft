@@ -151,9 +151,10 @@ describe('assembleReportPayload', () => {
     ]);
 
     const html = renderReportHtml({ ...payload, bom: [] });
+    // BOQ (DD-01): produk tanpa jumlah tetap satu baris tanpa angka, dengan keterangannya.
     expect(html).toContain('Pipa (TS End) Putih AW 3/4&quot; x 4 Meter');
-    expect(html).toContain('<td class="pending">Menyusul</td>');
-    expect(html).toContain('ukuran bangunan (panjang × lebar)');
+    expect(html).toContain('Menunggu ukuran bangunan');
+    expect(html).not.toContain('Pipa D 4&quot;');
   });
 
   it('menyalin prosa dari rekomendasi, tidak membuat yang baru', () => {
@@ -213,13 +214,17 @@ describe('assembleReportPayload', () => {
 describe('renderReportHtml', () => {
   const html = renderReportHtml(assembleReportPayload(INPUT));
 
-  it('tanpa harga: sampul dan tiga bagian — material dan jumlahnya ada di ringkasan', () => {
-    expect(html.match(/class="page( cover)?"/g)).toHaveLength(4);
-    for (const n of [1, 2, 3]) expect(html).toContain(`BAGIAN ${String(n)}`);
-    expect(html).not.toContain('BAGIAN 4');
-    const summary = html.slice(html.indexOf('BAGIAN 1'), html.indexOf('BAGIAN 2'));
-    expect(summary).toContain('Material yang dibutuhkan');
-    expect(summary).toContain('7 batang');
+  it('tanpa harga (DD-01): ringkasan, BOQ, dasar perhitungan & asumsi, penutup; tanpa produk terpilih tanpa lampiran produk', () => {
+    const titles = [...html.matchAll(/<h2 class="section-title">([^<]*)<\/h2>/g)].map((m) => m[1]);
+    expect(titles).toEqual([
+      'Ringkasan Solusi',
+      'Daftar Kebutuhan Material (BOQ)',
+      'Dasar Perhitungan &amp; Asumsi',
+      'Langkah Hitung &amp; Pengesahan',
+    ]);
+    const boq = html.slice(html.indexOf('BAGIAN 2'), html.indexOf('BAGIAN 3'));
+    expect(boq).toContain('<td class="num">7</td>');
+    expect(boq).toContain('batang');
   });
 
   it('ringkasan tanpa kotak warna-warni', () => {
@@ -264,15 +269,15 @@ describe('renderReportHtml', () => {
     // tidak memakai label TERVERIFIKASI (temuan laporan 0009).
     expect(html).toContain('ASUMSI');
 
-    const systemSection = html.slice(html.indexOf('Rekomendasi Sistem</h2>'));
-    const systemRows = systemSection.slice(0, systemSection.indexOf('Asumsi yang digunakan'));
+    const basis = html.slice(html.indexOf('Dasar Perhitungan &amp; Asumsi</h2>'));
+    const systemRows = basis.slice(
+      basis.indexOf('Ukuran pipa</h3>'),
+      basis.indexOf('<h3 class="subhead">Asumsi</h3>'),
+    );
     expect(systemRows).not.toContain('TERVERIFIKASI');
 
     const requirementSection = html.slice(html.indexOf('Kebutuhan yang tercatat'));
-    const requirementRows = requirementSection.slice(
-      0,
-      requirementSection.indexOf('Rekomendasi Sistem</h2>'),
-    );
+    const requirementRows = requirementSection.slice(0, requirementSection.indexOf('</section>'));
     expect(requirementRows).toContain('<span class="pill pill-user">DISEBUT PENGGUNA</span>');
     expect(requirementRows).not.toContain('TERVERIFIKASI');
     // Legendanya menjelaskan label itu.
@@ -362,7 +367,8 @@ describe('laporan dua bahasa (P15-05)', () => {
     expect(en).toContain('<html lang="en">');
     expect(en).toContain('Piping System Recommendation');
     expect(en).toContain('SECTION 2');
-    expect(en).toContain('System Recommendation</h2>');
+    expect(en).toContain('Bill of Quantities</h2>');
+    expect(en).toContain('Calculation Basis &amp; Assumptions</h2>');
     expect(en).toContain('<th>UNIT PRICE</th>');
     expect(en).toContain('Reviewed by (optional):');
     expect(en).toContain('Page <span class="pageNumber"></span> of');
@@ -430,9 +436,9 @@ describe('laporan dua bahasa (P15-05)', () => {
       }),
     );
     expect(html).not.toContain('<img');
-    // nomor ×6 (title, sampul, empat kop bagian), nama ×6 (sampul, empat kop, footer),
+    // nomor ×7 (title, sampul, lima kop bagian), nama ×7 (sampul, lima kop, footer),
     // lokasi (sampul), katalog, isi, asumsi.
-    expect(html.split(escaped)).toHaveLength(17);
+    expect(html.split(escaped)).toHaveLength(19);
   });
 });
 
@@ -479,7 +485,12 @@ describe('skema instalasi di laporan', () => {
     for (const floor of schematic.floors) expect(withSchematic).toContain(floor.shortLabel);
     const fixtures = schematic.nodes.filter((node) => node.type === 'fixture');
     for (const node of fixtures) expect(withSchematic).toContain(`>${node.code!}</text>`);
-    expect(withSchematic.match(/<rect [^>]*rx="4"/g)).toHaveLength(fixtures.length);
+    // Dihitung di bagian skema saja — sprite ilustrasi juga memuat persegi bersudut.
+    const section = withSchematic.slice(
+      withSchematic.indexOf('<svg class="schematic"'),
+      withSchematic.indexOf('<div class="schematic-legend">'),
+    );
+    expect(section.match(/<rect [^>]*rx="4"/g)).toHaveLength(fixtures.length);
   });
 
   it('label dari topologi di-escape', () => {
@@ -521,9 +532,13 @@ describe('fitting tanpa jumlah (temuan laporan 0009)', () => {
       { productId: 'Y4', name: 'Long Y - D 4"', size: '4"', kind: 'fitting' },
     ]);
     const html = renderReportHtml(payload);
-    expect(html).toContain('<td class="pending">– pcs</td>');
-    expect(html).toContain('Jumlah fitting (pcs) mengikuti titik sambungan di denah');
-    expect(html).not.toContain('Jumlah batang dihitung setelah');
+    // BOQ (DD-01): fitting tanpa jumlah → "Dihitung saat pemasangan", bukan keterangan batang.
+    const row = html.slice(
+      html.indexOf('Long Y - D 4&quot;') - 400,
+      html.indexOf('Long Y - D 4&quot;') + 400,
+    );
+    expect(row).toContain('Dihitung saat pemasangan');
+    expect(row).not.toContain('Menunggu ukuran bangunan');
   });
 });
 
@@ -534,5 +549,75 @@ describe('tanpa halaman kosong di akhir PDF (temuan laporan 0009)', () => {
     expect(html).not.toContain('.page:last-child');
     expect(html.trimEnd().endsWith('</html>')).toBe(true);
     expect(html.lastIndexOf('<section')).toBeLessThan(html.indexOf('id="snouty-pdf-footer"'));
+  });
+});
+
+describe('laporan v2 (DD-01, P17-09)', () => {
+  const products = [
+    {
+      productId: 'AW1',
+      name: 'Pipa (TS End) Putih AW 1" x 4 Meter',
+      size: '1"',
+      role: 'main' as const,
+      matchState: 'VERIFIED_SELECTED' as const,
+      reason: '',
+      purpose: 'Pipa utama',
+      system: 'clean_water' as const,
+      family: 'PVC AW',
+      category: 'PIPA PVC AW · TS END',
+      alternatives: [{ productId: 'AW1B', name: 'Pipa AW 1" x 6 Meter' }],
+    },
+  ];
+  const payload = assembleReportPayload({
+    ...INPUT,
+    recommendation: {
+      ...RECOMMENDATION,
+      products,
+      bom: [
+        {
+          ...RECOMMENDATION.bom[0]!,
+          productId: 'AW1',
+          system: 'clean_water',
+          purpose: 'Pipa utama',
+        },
+      ],
+      needs: [
+        {
+          kind: 'building',
+          count: 2,
+          building: { type: 'residential', floors: 2, floorHeightM: 3.5 },
+        },
+        {
+          kind: 'bathroom',
+          count: 3,
+          perFloor: [
+            { floor: 2, count: 2 },
+            { floor: 1, count: 1 },
+          ],
+        },
+      ],
+    },
+  } as never);
+  const html = renderReportHtml(payload);
+
+  it('payload membekukan produk (tanpa varian alternatif), kebutuhan, dan jumlah titik air', () => {
+    expect(payload.products?.[0]).not.toHaveProperty('alternatives');
+    expect(payload.needs).toHaveLength(2);
+    expect(payload.outletCount).toBe(RECOMMENDATION.stats.outletCount);
+  });
+
+  it('ringkasan bergambar: sprite ilustrasi dan gambar bangunan lebih dulu', () => {
+    expect(html).toContain('<symbol id="il-house2"');
+    const summary = html.slice(html.indexOf('BAGIAN 1'), html.indexOf('BAGIAN 2'));
+    expect(summary.indexOf('r-hero-img')).toBeLessThan(summary.indexOf('lead-value'));
+    expect(summary).toContain('Rumah tinggal · 2 lantai · 3,5 m per lantai');
+    expect(summary).toContain('Lantai 2: 2 · Lantai 1: 1');
+  });
+
+  it('lampiran produk: foto pralon.com sebagai latar CSS — laporan tetap tanpa tag <img>', () => {
+    expect(html).toContain('Produk Pralon</h2>');
+    expect(html).toContain('BOQ no. 1');
+    expect(html).toContain("background-image:url('data:image/jpeg;base64,");
+    expect(html).not.toContain('<img');
   });
 });

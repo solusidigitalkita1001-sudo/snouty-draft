@@ -10,7 +10,7 @@
     "dev:up:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-up.ps1",
     "dev:down:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-down.ps1",
     "build": "pnpm -r build",
-    "build:types": "pnpm --filter @snouty/shared-types --filter @snouty/engineering --filter @snouty/jobs build",
+    "build:types": "pnpm --filter @snouty/shared-types --filter @snouty/engineering --filter @snouty/jobs --filter @snouty/ui build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

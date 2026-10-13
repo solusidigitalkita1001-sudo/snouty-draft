@@ -3,9 +3,32 @@
  * Memilih gambar dan menyusun keterangan saja; angka semuanya dari `Recommendation.needs`.
  */
 
-import type { BuildingType, SolutionNeed } from '@snouty/shared-types';
-import type { SceneIllustration } from '@snouty/ui/illustrations';
-import type { SolutionCopy } from './solution-copy';
+import type { BuildingType, NeedKind, SolutionNeed } from '@snouty/shared-types';
+import type { SceneIllustration } from './illustrations.js';
+
+/** Teks yang dibutuhkan ringkasan bergambar — dipenuhi copy layar dan copy laporan. */
+export interface NeedsCopy {
+  readonly floors: string;
+  readonly floorsCount: (floors: number) => string;
+  readonly buildingTypes: Readonly<Record<BuildingType, string>>;
+  readonly labels: Readonly<Record<Exclude<NeedKind, 'building'>, string>>;
+  readonly buildingSize: (length: string, width: string) => string;
+  readonly floorHeight: (height: string) => string;
+  readonly floorCount: (floor: number, count: number) => string;
+  readonly onFloor: (floor: number) => string;
+  readonly perBathroom: string;
+  readonly rooftopTank: string;
+  readonly groundTank: string;
+  readonly municipal: string;
+  readonly wellPump: string;
+  readonly boosterNeeded: (bar: string) => string;
+  readonly boosterNeededPlain: string;
+  readonly boosterFlow: string;
+  readonly drainageSizes: (soil: string, waste: string) => string;
+  readonly outlets: (count: number) => string;
+  readonly vent: string;
+  readonly ventCaption: string;
+}
 
 export interface NeedCard {
   readonly key: string;
@@ -62,7 +85,7 @@ function decimal(value: number, locale: string): string {
   return value.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
 }
 
-function caption(need: SolutionNeed, copy: SolutionCopy['needs'], locale: string): string {
+function caption(need: SolutionNeed, copy: NeedsCopy, locale: string): string {
   const perFloor =
     need.perFloor && need.perFloor.length > 1
       ? need.perFloor.map((f) => copy.floorCount(f.floor, f.count)).join(' · ')
@@ -101,7 +124,7 @@ function caption(need: SolutionNeed, copy: SolutionCopy['needs'], locale: string
 
 export function needCards(
   needs: readonly SolutionNeed[],
-  copy: SolutionCopy['needs'],
+  copy: NeedsCopy,
   locale: string,
 ): readonly NeedCard[] {
   return needs.map((need) => ({
@@ -123,7 +146,7 @@ const SOURCE_KINDS = ['municipal', 'well_pump', 'ground_tank', 'rooftop_tank'] a
 export function flowSteps(
   needs: readonly SolutionNeed[],
   outletCount: number,
-  copy: SolutionCopy['needs'],
+  copy: NeedsCopy,
   locale: string,
 ): readonly FlowStep[] {
   const cards = new Map(needCards(needs, copy, locale).map((c) => [c.key, c]));
@@ -167,7 +190,7 @@ export interface BuildingSummary {
 /** Gambar dan satu baris data bangunan untuk kepala ringkasan; `null` tanpa butir bangunan. */
 export function buildingSummary(
   needs: readonly SolutionNeed[],
-  copy: SolutionCopy['needs'],
+  copy: NeedsCopy,
   locale: string,
 ): BuildingSummary | null {
   const need = needs.find((n) => n.kind === 'building');
