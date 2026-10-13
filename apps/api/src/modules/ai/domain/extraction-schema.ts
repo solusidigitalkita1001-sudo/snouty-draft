@@ -51,6 +51,8 @@ export const ExtractionSchema = z
         source: z.enum(['rooftop_tank', 'ground_tank', 'pump', 'municipal']).optional(),
         installationType: z.enum(['clean_water', 'drainage', 'both']).optional(),
         boosterPump: z.boolean().optional(),
+        /** Kedalaman muka air sumur (m), hanya bila disebut. */
+        wellDepthM: z.number().min(0).max(60).optional(),
       })
       .strict()
       .optional(),

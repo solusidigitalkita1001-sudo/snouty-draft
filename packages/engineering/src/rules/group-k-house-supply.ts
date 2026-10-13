@@ -7,7 +7,9 @@
  *            Hunter untuk sistem kloset tangki (IPC Lampiran E, Tabel E103.3(2) dan E103.3(3));
  *   ENG-702  jalur dan elevasi: dari sumber ke titik air tertinggi, menurut ukuran rumah, jumlah
  *            lantai, dan jenis sumber;
- *   ENG-703  tekanan di titik tertinggi untuk toren atap (gravitasi): tinggi toren − kehilangan.
+ *   ENG-703  tekanan di titik tertinggi untuk toren atap (gravitasi): tinggi toren − kehilangan;
+ *            kurang → dudukan toren minimum di samping pompa pendorong;
+ *   ENG-709  pompa sumur: kedalaman muka air terhadap batas sedot pompa permukaan.
  *
  * Ukuran pipanya dipilih Kelompok F (kecepatan + kehilangan tekanan) dengan debit dan jalur ini.
  * Semua `REQUIRES_DOMAIN_VALIDATION`: nilai IPC menunggu padanan SNI 8153 dari tim teknis Pralon.
@@ -176,6 +178,11 @@ export interface HouseRouteInput {
    * Toren atap ada di bangunan, jadi halaman tidak masuk jalurnya. 0 bila ukuran tanah tidak ada.
    */
   readonly yardM: number;
+  /**
+   * Kedalaman muka air sumur di bawah tanah — hanya sumber `pump` (sumur). Pompa mengangkat air
+   * dari muka air itu, jadi tinggi angkatnya bertambah sedalam ini (review putaran 3, 1b).
+   */
+  readonly wellDepthM: number;
 }
 export interface HouseRouteResult {
   readonly highestOutletM: number;
@@ -189,7 +196,8 @@ export interface HouseRouteResult {
 export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
   ruleId: 'ENG-702',
   // v2 (2026-10-12): jarak halaman dari ukuran tanah ikut jalur sumber di bawah.
-  version: 2,
+  // v3 (2026-10-13, review putaran 3): sumur menambah kedalaman muka airnya ke tinggi angkat.
+  version: 3,
   category: 'geometry',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -219,6 +227,10 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
       }),
       tankStandM: requireNumber('ENG-702', 'tankStandM', o['tankStandM'], { min: 0, max: 15 }),
       yardM: requireNumber('ENG-702', 'yardM', o['yardM'] ?? 0, { min: 0, max: 1000 }),
+      wellDepthM: requireNumber('ENG-702', 'wellDepthM', o['wellDepthM'] ?? 0, {
+        min: 0,
+        max: 100,
+      }),
     };
   },
   compute: (i) => {
@@ -232,15 +244,16 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
         routeLengthM: round1(tankLevelM - highestOutletM + i.horizontalRunM),
       };
     }
+    const lift = i.source === 'pump' ? i.wellDepthM : 0;
     return {
       highestOutletM: round2(highestOutletM),
       tankLevelM: null,
-      staticHeadM: round2(highestOutletM),
-      routeLengthM: round1(highestOutletM + i.horizontalRunM + i.yardM),
+      staticHeadM: round2(highestOutletM + lift),
+      routeLengthM: round1(highestOutletM + lift + i.horizontalRunM + i.yardM),
     };
   },
   sourceReference:
-    'Titik tertinggi = (lantai − 1) × tinggi lantai + tinggi titik air; toren atap di atas atap (lantai × tinggi lantai + tinggi dudukan); jalur = beda tinggi + jalur datar terjauh (+ halaman untuk sumber di depan tanah)',
+    'Titik tertinggi = (lantai − 1) × tinggi lantai + tinggi titik air; toren atap di atas atap (lantai × tinggi lantai + tinggi dudukan); sumur menambah kedalaman muka airnya; jalur = beda tinggi + jalur datar terjauh (+ halaman untuk sumber di depan tanah)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -254,6 +267,7 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
         outletHeightM: 2,
         tankStandM: 1,
         yardM: 0,
+        wellDepthM: 0,
       },
       expected: { highestOutletM: 5.5, tankLevelM: 8, staticHeadM: -2.5, routeLengthM: 25.5 },
     },
@@ -268,8 +282,24 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
         outletHeightM: 2,
         tankStandM: 0,
         yardM: 8,
+        wellDepthM: 0,
       },
       expected: { highestOutletM: 5.5, tankLevelM: null, staticHeadM: 5.5, routeLengthM: 33.5 },
+    },
+    {
+      name: 'sumur, muka air 6 m, 3 lantai × 3,5 m → angkat 9 + 6 = 15 m',
+      input: {
+        source: 'pump',
+        floors: 3,
+        floorHeightM: 3.5,
+        horizontalRunM: 18,
+        routeBasis: 'plan',
+        outletHeightM: 2,
+        tankStandM: 0,
+        yardM: 0,
+        wellDepthM: 6,
+      },
+      expected: { highestOutletM: 9, tankLevelM: null, staticHeadM: 15, routeLengthM: 33 },
     },
   ],
   explain: (i, o, locale) => {
@@ -286,10 +316,15 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
           id: `Muka air toren di ${o.tankLevelM} m (atap ${i.floors} × ${i.floorHeightM} m + dudukan ${i.tankStandM} m), titik air tertinggi di ${o.highestOutletM} m — toren ${round2(-o.staticHeadM)} m lebih tinggi. Jalur ke titik itu ${o.routeLengthM} m, termasuk ${i.horizontalRunM} m mendatar (${run.id}).`,
           en: `Tank water level at ${o.tankLevelM} m (roof ${i.floors} × ${i.floorHeightM} m + stand ${i.tankStandM} m), highest outlet at ${o.highestOutletM} m — the tank is ${round2(-o.staticHeadM)} m higher. The run to it is ${o.routeLengthM} m, including ${i.horizontalRunM} m horizontal (${run.en}).`,
         })
-      : localized(locale, {
-          id: `Air naik ${o.highestOutletM} m dari sumber di bawah ke titik air tertinggi; jalurnya ${o.routeLengthM} m, termasuk ${i.horizontalRunM} m mendatar (${run.id})${i.yardM > 0 ? ` dan ${i.yardM} m halaman dari depan tanah` : ''}.`,
-          en: `Water rises ${o.highestOutletM} m from the source below to the highest outlet; the run is ${o.routeLengthM} m, including ${i.horizontalRunM} m horizontal (${run.en})${i.yardM > 0 ? ` and ${i.yardM} m of yard from the front of the plot` : ''}.`,
-        });
+      : i.source === 'pump' && i.wellDepthM > 0
+        ? localized(locale, {
+            id: `Air diangkat ${o.staticHeadM} m: ${i.wellDepthM} m dari muka air sumur ke permukaan tanah, lalu ${o.highestOutletM} m ke titik air tertinggi; jalurnya ${o.routeLengthM} m, termasuk ${i.horizontalRunM} m mendatar (${run.id})${i.yardM > 0 ? ` dan ${i.yardM} m halaman dari depan tanah` : ''}.`,
+            en: `Water is lifted ${o.staticHeadM} m: ${i.wellDepthM} m from the well water level to the ground, then ${o.highestOutletM} m to the highest outlet; the run is ${o.routeLengthM} m, including ${i.horizontalRunM} m horizontal (${run.en})${i.yardM > 0 ? ` and ${i.yardM} m of yard from the front of the plot` : ''}.`,
+          })
+        : localized(locale, {
+            id: `Air naik ${o.highestOutletM} m dari sumber di bawah ke titik air tertinggi; jalurnya ${o.routeLengthM} m, termasuk ${i.horizontalRunM} m mendatar (${run.id})${i.yardM > 0 ? ` dan ${i.yardM} m halaman dari depan tanah` : ''}.`,
+            en: `Water rises ${o.highestOutletM} m from the source below to the highest outlet; the run is ${o.routeLengthM} m, including ${i.horizontalRunM} m horizontal (${run.en})${i.yardM > 0 ? ` and ${i.yardM} m of yard from the front of the plot` : ''}.`,
+          });
   },
 };
 
@@ -299,15 +334,31 @@ export interface GravityPressureInput {
   readonly availableHeadM: number;
   readonly lossM: number;
   readonly minimumBar: number;
+  /** Tinggi dudukan toren yang dipakai sekarang (muka air di atas atap). */
+  readonly tankStandM: number;
 }
 export interface GravityPressureResult {
   readonly residualBar: number;
   readonly boosterNeeded: boolean;
+  /**
+   * Dudukan toren terendah yang memberi tekanan minimum dengan pipa yang sama, dibulatkan ke atas
+   * per 0,5 m — pilihan di samping pompa pendorong (review putaran 3, 1d). `null` bila cukup.
+   */
+  readonly minimumStandM: number | null;
+  /**
+   * Beda tinggi toren sendiri sudah di bawah tekanan minimum: pipa sebesar apa pun tidak menolong,
+   * hanya toren yang lebih tinggi atau pompa.
+   */
+  readonly heightShort: boolean;
 }
+
+/** Kenaikan dudukan toren yang masuk akal di lapangan. */
+const STAND_STEP_M = 0.5;
 
 export const ENG_703: RuleVersion<GravityPressureInput, GravityPressureResult> = {
   ruleId: 'ENG-703',
-  version: 1,
+  // v2 (2026-10-13, review putaran 3): dudukan toren minimum dan "beda tinggi tidak cukup".
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -318,26 +369,118 @@ export const ENG_703: RuleVersion<GravityPressureInput, GravityPressureResult> =
       }),
       lossM: requireNumber('ENG-703', 'lossM', o['lossM'], { min: 0, max: 1000 }),
       minimumBar: requireNumber('ENG-703', 'minimumBar', o['minimumBar'], { min: 0, max: 5 }),
+      tankStandM: requireNumber('ENG-703', 'tankStandM', o['tankStandM'], { min: 0, max: 15 }),
     };
   },
   compute: (i) => {
     const residualBar = round2(headMToBar(i.availableHeadM - i.lossM));
-    return { residualBar, boosterNeeded: residualBar < i.minimumBar };
+    const boosterNeeded = residualBar < i.minimumBar;
+    const requiredHeadM = barToHeadM(i.minimumBar);
+    // Kekurangan tinggi dengan pipa yang sama; kehilangan di pipa tegak tambahan diabaikan
+    // (beberapa sentimeter), jadi dudukan ini batas bawah yang dibulatkan ke atas.
+    const deficitM = requiredHeadM + i.lossM - i.availableHeadM;
+    const minimumStandM = boosterNeeded
+      ? Math.ceil(round3((i.tankStandM + deficitM) / STAND_STEP_M)) * STAND_STEP_M
+      : null;
+    return {
+      residualBar,
+      boosterNeeded,
+      minimumStandM,
+      heightShort: boosterNeeded && i.availableHeadM < requiredHeadM,
+    };
   },
   sourceReference:
-    'Tekanan sisa = (beda tinggi toren − kehilangan gesek dan sambungan) ÷ 10,197 m/bar; di bawah minimum → pompa pendorong',
+    'Tekanan sisa = (beda tinggi toren − kehilangan gesek dan sambungan) ÷ 10,197 m/bar; di bawah minimum → pompa pendorong, atau dudukan toren dinaikkan sebesar kekurangannya (dibulatkan per 0,5 m)',
   validationStatus: PENDING,
   testCases: [
     {
       name: 'toren 2,5 m di atas shower, kehilangan 1,2 m, minimum 0,3 bar → 0,13 bar, perlu pendorong',
-      input: { availableHeadM: 2.5, lossM: 1.2, minimumBar: 0.3 },
-      expected: { residualBar: 0.13, boosterNeeded: true },
+      input: { availableHeadM: 2.5, lossM: 1.2, minimumBar: 0.3, tankStandM: 1 },
+      // 3,06 + 1,2 − 2,5 = 1,76 m kurang → dudukan 2,76 m → 3 m. Beda tinggi 2,5 m < 3,06 m.
+      expected: { residualBar: 0.13, boosterNeeded: true, minimumStandM: 3, heightShort: true },
+    },
+    {
+      name: 'toren 1 lantai: 2,5 m beda tinggi, kehilangan 0,2 m → 0,23 bar, dudukan 2 m',
+      input: { availableHeadM: 2.5, lossM: 0.2, minimumBar: 0.3, tankStandM: 1 },
+      expected: { residualBar: 0.23, boosterNeeded: true, minimumStandM: 2, heightShort: true },
+    },
+    {
+      name: 'toren 5 m di atas, kehilangan 1 m → 0,39 bar, cukup',
+      input: { availableHeadM: 5, lossM: 1, minimumBar: 0.3, tankStandM: 1 },
+      expected: {
+        residualBar: 0.39,
+        boosterNeeded: false,
+        minimumStandM: null,
+        heightShort: false,
+      },
+    },
+  ],
+  explain: (i, o, locale) => {
+    const need = round2(barToHeadM(i.minimumBar));
+    const short = o.heightShort
+      ? {
+          id: ` Beda tinggi ${round2(i.availableHeadM)} m sendiri sudah kurang dari ${need} m, jadi pipa yang lebih besar pun tidak menolong.`,
+          en: ` The ${round2(i.availableHeadM)} m height difference alone is under ${need} m, so a larger pipe does not help.`,
+        }
+      : { id: '', en: '' };
+    return localized(locale, {
+      id: `Dari toren atap, titik air tertinggi mendapat ${o.residualBar} bar (${round2(i.availableHeadM)} m beda tinggi − ${round2(i.lossM)} m kehilangan). ${o.boosterNeeded ? `Itu di bawah ${i.minimumBar} bar.${short.id} Pilihannya pompa pendorong, atau dudukan toren dinaikkan dari ${i.tankStandM} m ke ${o.minimumStandM} m di atas atap.` : `Itu cukup (minimal ${i.minimumBar} bar), tanpa pompa pendorong.`}`,
+      en: `From the roof tank the highest outlet gets ${o.residualBar} bar (${round2(i.availableHeadM)} m height difference − ${round2(i.lossM)} m loss). ${o.boosterNeeded ? `That is below ${i.minimumBar} bar.${short.en} The options are a booster pump, or raising the tank stand from ${i.tankStandM} m to ${o.minimumStandM} m above the roof.` : `That is enough (at least ${i.minimumBar} bar), with no booster pump.`}`,
+    });
+  },
+};
+
+// ── ENG-709 · Pompa sumur: batas sedot pompa permukaan ──────────────────────
+
+export interface WellPumpInput {
+  /** Kedalaman muka air sumur di bawah tanah. */
+  readonly wellDepthM: number;
+  /** Batas sedot praktis pompa permukaan (pompa sedot biasa). */
+  readonly suctionLimitM: number;
+}
+export interface WellPumpResult {
+  /** Muka air lebih dalam dari batas sedot → pompa jet atau submersible. */
+  readonly beyondSuction: boolean;
+}
+
+export const ENG_709: RuleVersion<WellPumpInput, WellPumpResult> = {
+  ruleId: 'ENG-709',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      wellDepthM: requireNumber('ENG-709', 'wellDepthM', o['wellDepthM'], { min: 0, max: 100 }),
+      suctionLimitM: requireNumber('ENG-709', 'suctionLimitM', o['suctionLimitM'], {
+        min: 1,
+        max: 10,
+      }),
+    };
+  },
+  compute: (i) => ({ beyondSuction: i.wellDepthM > i.suctionLimitM }),
+  sourceReference:
+    'Pompa permukaan menyedot dengan beda tekanan atmosfer (teoretis ±10 m, praktis ±7 m setelah kehilangan dan uap air); lebih dalam → pompa jet atau submersible',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'muka air 6 m, batas 7 m → pompa sedot cukup',
+      input: { wellDepthM: 6, suctionLimitM: 7 },
+      expected: { beyondSuction: false },
+    },
+    {
+      name: 'muka air 9 m, batas 7 m → jet / submersible',
+      input: { wellDepthM: 9, suctionLimitM: 7 },
+      expected: { beyondSuction: true },
     },
   ],
   explain: (i, o, locale) =>
     localized(locale, {
-      id: `Dari toren atap, titik air tertinggi mendapat ${o.residualBar} bar (${round2(i.availableHeadM)} m beda tinggi − ${round2(i.lossM)} m kehilangan). ${o.boosterNeeded ? `Itu di bawah ${i.minimumBar} bar, jadi perlu pompa pendorong atau toren yang lebih tinggi.` : `Itu cukup (minimal ${i.minimumBar} bar), tanpa pompa pendorong.`}`,
-      en: `From the roof tank the highest outlet gets ${o.residualBar} bar (${round2(i.availableHeadM)} m height difference − ${round2(i.lossM)} m loss). ${o.boosterNeeded ? `That is below ${i.minimumBar} bar, so a booster pump or a higher tank is needed.` : `That is enough (at least ${i.minimumBar} bar), with no booster pump.`}`,
+      id: o.beyondSuction
+        ? `Muka air sumur ${i.wellDepthM} m lebih dalam dari batas sedot pompa biasa (±${i.suctionLimitM} m), jadi pakai pompa jet atau pompa submersible.`
+        : `Muka air sumur ${i.wellDepthM} m masih dalam batas sedot pompa biasa (±${i.suctionLimitM} m).`,
+      en: o.beyondSuction
+        ? `The well water level at ${i.wellDepthM} m is deeper than a surface pump can lift (about ${i.suctionLimitM} m), so use a jet pump or a submersible pump.`
+        : `The well water level at ${i.wellDepthM} m is within a surface pump's suction lift (about ${i.suctionLimitM} m).`,
     }),
 };
 
@@ -859,4 +1002,5 @@ export const GROUP_K = [
   ENG_706,
   ENG_707,
   ENG_708,
+  ENG_709,
 ] as const;

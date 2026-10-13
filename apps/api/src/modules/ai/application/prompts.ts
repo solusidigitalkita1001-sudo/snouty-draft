@@ -17,7 +17,7 @@ export const EXTRACTION_SYSTEM_PROMPT = [
   'Kembalikan JSON sesuai skema. Hanya sebutkan field yang BENAR-BENAR dinyatakan pengguna.',
   'Field yang tidak disebut: hilangkan (jangan tulis null). Ketiadaan eksplisit ("tidak ada dapur"): tulis 0.',
   'Jangan menebak, menyimpulkan, atau mengisi default — itu dilakukan sistem, bukan Anda.',
-  'Khususnya floorHeightM, mainRunMeters, outletCount, boosterPump: tulis HANYA bila pengguna menyebut angkanya/halnya secara eksplisit; pesan yang hanya menyebut jumlah lantai dan kamar mandi TIDAK menyebut tinggi lantai maupun panjang jalur.',
+  'Khususnya floorHeightM, mainRunMeters, outletCount, boosterPump, wellDepthM (kedalaman muka air sumur): tulis HANYA bila pengguna menyebut angkanya/halnya secara eksplisit; pesan yang hanya menyebut jumlah lantai dan kamar mandi TIDAK menyebut tinggi lantai maupun panjang jalur.',
   // Tanpa contoh konkret berangka: model kecil menyalin contohnya sebagai jawaban ("mau tanya
   // soal pipa" → rumah 2 lantai, 3 kamar mandi). Pagar sebenarnya di kode (extraction-to-updates).
   'Pesan yang tidak memuat satu pun fakta bangunan/instalasi (misalnya hanya menyapa atau berkata ingin bertanya): kembalikan {} — objek kosong.',

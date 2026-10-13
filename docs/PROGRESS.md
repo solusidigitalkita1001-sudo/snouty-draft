@@ -1519,6 +1519,28 @@ pemasangan"; tebal dinding resmi per kelas menunggu tabel Pralon (OQ-64).
       meteran dihapus (tidak dobel dengan labelnya); subjudul `break-after: avoid` dan blok "Langkah berikutnya" tidak
       terpisah (tidak yatim). Kasus 0015 dibuat ulang lokal dan diperiksa per halaman (ringkasan, denah, BOQ)
 
+## Phase 20 — Review putaran 3 (audit live, kasus U1/U2/U3)
+
+Review pemilik 2026-10-13, dikerjakan berurutan 1 → 6. Kurva Hunter tidak diubah. Keputusan: tombol Susun
+rekomendasi tetap boleh ditekan, pertanyaan yang tidak dijawab dicatat di tabel Asumsi dan tombol lama
+dinonaktifkan; pertanyaan wastafel jadi "total (termasuk di kamar mandi)"; kedalaman sumur ditanya (default
+6 m sebagai asumsi, peringatan di atas 7 m); ambang tekanan tetap berbeda dan alasannya dijelaskan.
+
+- [x] P20-01 Pompa dan tekanan. 1a akar masalah: `boosterPumpNeeded = pumped` membuat sumber pompa/toren bawah
+      tampil dengan pompa pendorong kedua — kini `boosterPumpNeeded` hanya dari ENG-703 (toren atap kurang
+      tekanan) dan pompa sumber punya `sourcePumped`. 1b: field `water.wellDepthM` (kartu penyempurna bila sumber
+      sumur: < 5 / 5–9 / > 9 m / angka pasti / belum tahu), ENG-702 v3 menambah muka air ke tinggi angkat, asumsi
+      `WELL_WATER_DEPTH_6M`, ENG-709 baru (batas sedot `SURFACE_PUMP_SUCTION_7M` → pompa jet / submersible).
+      1c: deskripsi `RESIDUAL_GRAVITY_0_3BAR` dan `RESIDUAL_PRESSURE_FIXTURE` menjelaskan beda ambangnya. 1d:
+      ENG-703 v2 menghitung dudukan toren minimum (per 0,5 m) dan menyebut bila beda tinggi sendiri kurang
+      sehingga pipa lebih besar tidak menolong; kartu pompa menawarkan "atau naikkan toren ke X m"; teks pompa
+      tanpa "lantai atas". Tes U1/U2 di engine dan kebutuhan
+- [ ] P20-02 Validasi kewajaran masukan (luas per KM, tanah < bangunan, nilai ≤ 0) dengan konfirmasi + catatan
+- [ ] P20-03 Percakapan: parsing ukuran, tombol Susun (3b), wastafel total, sapaan, label PDAM / jenis instalasi
+- [ ] P20-04 BOQ 4a–4g
+- [ ] P20-05 Tekanan di meteran untuk pipa pengisi toren (5a tetap OQ-64)
+- [ ] P20-06 UI: huruf hilang saat mengetik cepat, opsi "Lebih dari X", teks tersembunyi di halaman tamu
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

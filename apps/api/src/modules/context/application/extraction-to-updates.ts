@@ -23,6 +23,8 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
   'building.dimensions': /\b(meter|metre|\d\s*m\b|panjang|jarak|jalur|length|distance|run)/i,
   'fixtures.outletCount': /\b(titik|outlet|keran|kran|taps?|faucets?|points?)/i,
   'water.boosterPump': /\b(pompa|booster|pendorong|pumps?)/i,
+  // Kedalaman sumur hanya dipercaya bila sumurnya memang disebut.
+  'water.wellDepthM': /\b(sumur|wells?|muka air|water level)/i,
   // Evaluasi 2026-10-06: dari "Instalasi air bersih untuk rumah baru 1 lantai" model menulis
   // `source: municipal`. Sumber air hanya dipercaya bila pengguna menyebut sumbernya.
   'water.source':
@@ -382,6 +384,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     extraction.water?.installationType ?? OBVIOUS.installationType(message),
   );
   add('water.boosterPump', extraction.water?.boosterPump);
+  add('water.wellDepthM', extraction.water?.wellDepthM);
 
   return updates;
 }

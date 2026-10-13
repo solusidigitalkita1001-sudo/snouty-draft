@@ -404,6 +404,16 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-66 — Kedalaman sumur dari pilihan rentang (review putaran 3, P20-01)
+
+**Status:** terbuka · **Blocks:** pengesahan ENG-702 v3 / ENG-709
+**Konteks:** pemilik memilih pertanyaan rentang (< 5 / 5–9 / > 9 m / belum tahu). Engine butuh satu angka.
+**Default sementara:** rentang dihitung dengan batas atasnya supaya tinggi angkat pompa tidak kurang
+(< 5 → 5 m, 5–9 → 9 m), "> 9 m" dihitung 10 m; angka pasti boleh diketik; belum tahu → `WELL_WATER_DEPTH_6M`.
+Batas sedot pompa permukaan `SURFACE_PUMP_SUCTION_7M`. Akibatnya pilihan "5–9 m" selalu memberi saran pompa
+jet / submersible.
+**Yang perlu diputuskan ahli Pralon:** nilai wakil tiap rentang dan batas sedot yang dipakai.
+
 ### OQ-65 — Kurva debit puncak (Hunter) yang dipakai Pralon (review laporan 0015, P19-03)
 
 **Status:** terbuka — engine tetap memakai IPC 2021 Tabel E103.3(3) · **Blocks:** pengesahan ENG-701/ENG-102

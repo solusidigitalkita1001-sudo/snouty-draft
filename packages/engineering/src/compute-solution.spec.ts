@@ -201,3 +201,87 @@ describe('TC-H-01 · tanpa "unit beban" lama di trace', () => {
     expect(masjid.traces.some((t) => t.ruleId === 'ENG-006')).toBe(false);
   });
 });
+
+describe('pompa sumber vs pompa pendorong (review putaran 3)', () => {
+  // U2: 3 lantai, 10 × 8 m, tanah 20 × 10 m, 4 KM, 2 wastafel, 1 dapur, pompa sumur.
+  const U2: SolutionInput = {
+    buildingType: 'residential',
+    floors: 3,
+    bathrooms: 4,
+    basins: 2,
+    kitchens: 1,
+    waterSource: 'pump',
+    installationType: 'clean_water',
+    floorHeightM: null,
+    mainRunMeters: null,
+    planLengthM: 10,
+    planWidthM: 8,
+    landLengthM: 20,
+    landWidthM: 10,
+  };
+
+  it('U2 sumur: pompanya bagian sumber, bukan pompa pendorong kedua', () => {
+    const result = computeSolution(U2);
+    expect(result.sourcePumped).toBe(true);
+    expect(result.boosterPumpNeeded).toBe(false);
+  });
+
+  it('U2 kedalaman belum disebut → muka air 6 m (asumsi), masuk tinggi angkat', () => {
+    const result = computeSolution(U2);
+    expect(result.appliedAssumptionIds).toContain('WELL_WATER_DEPTH_6M');
+    // Titik tertinggi (3 − 1) × 3,5 + 2 = 9 m, ditambah muka air 6 m.
+    expect(result.supply.staticHeadM).toBe(15);
+    expect(result.supply.well).toEqual({ depthM: 6, suctionLimitM: 7, beyondSuction: false });
+  });
+
+  it('muka air 9 m → di luar batas sedot 7 m: pompa jet / submersible', () => {
+    const result = computeSolution({ ...U2, wellDepthM: 9 });
+    expect(result.appliedAssumptionIds).not.toContain('WELL_WATER_DEPTH_6M');
+    expect(result.supply.staticHeadM).toBe(18);
+    expect(result.supply.well!.beyondSuction).toBe(true);
+  });
+
+  it('toren bawah juga dipompa sendiri, tanpa pendorong; PDAM tidak dipompa', () => {
+    const ground = computeSolution({ ...U2, waterSource: 'ground_tank' });
+    expect(ground).toMatchObject({ sourcePumped: true, boosterPumpNeeded: false });
+    expect(ground.supply.well).toBeNull();
+    const pdam = computeSolution({ ...U2, waterSource: 'municipal' });
+    expect(pdam).toMatchObject({ sourcePumped: false, boosterPumpNeeded: false });
+  });
+
+  // U1: 1 lantai, 10 × 6 m, tanah 15 × 8 m, 1 KM, 1 dapur, 0 wastafel, toren atap.
+  const U1: SolutionInput = {
+    ...U2,
+    floors: 1,
+    bathrooms: 1,
+    basins: 0,
+    waterSource: 'rooftop_tank',
+    planLengthM: 10,
+    planWidthM: 6,
+    landLengthM: 15,
+    landWidthM: 8,
+  };
+
+  it('U1 toren 1 m di atas atap 1 lantai: beda tinggi 2,5 m < 3,06 m → pipa saja tidak cukup, dudukan dinaikkan', () => {
+    const result = computeSolution(U1);
+    // Toren 3,5 + 1 = 4,5 m; shower 2 m.
+    expect(result.supply.staticHeadM).toBe(-2.5);
+    expect(result.boosterPumpNeeded).toBe(true);
+    expect(result.sourcePumped).toBe(false);
+    expect(result.supply.gravityRemedy!.heightShort).toBe(true);
+    // Kekurangan = 0,3 bar (3,06 m) + kehilangan − 2,5 m, ditambah ke dudukan 1 m, per 0,5 m.
+    const lossM = result.supply.main.frictionLossM + result.supply.main.minorLossM;
+    const stand = Math.ceil((1 + 0.3 * 10.197 + lossM - 2.5) / 0.5) * 0.5;
+    expect(result.supply.gravityRemedy!.minimumStandM).toBe(stand);
+  });
+
+  it('U1 dengan dudukan sesuai saran → tekanan cukup tanpa pompa', () => {
+    const first = computeSolution(U1);
+    const raised = computeSolution(U1, undefined, {
+      TANK_STAND_1M: first.supply.gravityRemedy!.minimumStandM,
+    });
+    expect(raised.boosterPumpNeeded).toBe(false);
+    expect(raised.supply.gravityRemedy).toBeNull();
+    expect(raised.supply.gravityResidualBar!).toBeGreaterThanOrEqual(0.3);
+  });
+});

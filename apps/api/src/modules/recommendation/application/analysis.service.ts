@@ -1380,6 +1380,8 @@ function solutionInputFrom(state: RequirementState): SolutionInput {
       'clean_water') as SolutionInput['installationType'],
     floorHeightM: state.building.floorHeightM.value,
     mainRunMeters: state.building.dimensions.value?.mainRunMeters ?? null,
+    // Sumur: kosong → engine memakai asumsi WELL_WATER_DEPTH_6M (tampil di tabel asumsi).
+    wellDepthM: state.water.wellDepthM?.value ?? null,
     ...planOf(state.building.dimensions.value, state.building.floors.value ?? 1),
   };
 }

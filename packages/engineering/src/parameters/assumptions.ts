@@ -36,6 +36,40 @@ export interface AssumptionDefinition {
 }
 
 export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
+  // ── Sumur (review putaran 3, 1b) ──
+  {
+    id: 'WELL_WATER_DEPTH_6M',
+    parameter: 'well_depth',
+    appliesTo: [],
+    condition: 'sumber air sumur, kedalaman muka air tidak disebut',
+    value: 6,
+    unit: 'm',
+    conditionEn: 'well water source, water level depth not given',
+    descriptionEn:
+      'The well water level is taken as 6 m below the ground; the pump lift includes it.',
+    reference: 'Keputusan pemilik 2026-10-13 (review putaran 3): default 6 m bila belum tahu',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Muka air sumur diambil 6 m di bawah permukaan tanah; tinggi angkat pompa ikut menghitungnya.',
+  },
+  {
+    id: 'SURFACE_PUMP_SUCTION_7M',
+    parameter: 'well_depth',
+    appliesTo: [],
+    condition: 'pompa sumur, batas sedot pompa permukaan',
+    value: 7,
+    unit: 'm',
+    conditionEn: 'well pump, surface pump suction lift',
+    descriptionEn:
+      'A surface (suction) pump lifts water from at most about 7 m below it; deeper wells need a jet or submersible pump.',
+    reference:
+      'Batas teoretis ±10 m kolom air dikurangi kehilangan isap dan tekanan uap; praktik umum pompa sumur dangkal ±7–9 m',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description:
+      'Pompa sedot biasa hanya bisa menyedot air dari kedalaman sekitar 7 m; lebih dalam dari itu perlu pompa jet atau submersible.',
+  },
   // ── Sisa potong pipa (review laporan 0015, P19-04) ──
   {
     id: 'PIPE_CUTTING_ALLOWANCE_10PCT',
@@ -482,11 +516,12 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     unit: 'bar',
     conditionEn: 'residual pressure at the fixture not specified',
     descriptionEn:
-      'Minimum residual pressure at the farthest point is assumed to be 1 bar (about 10 m of water column).',
+      'Minimum residual pressure at the farthest point is assumed to be 1 bar (about 10 m of water column). For a pump or mains water the target is higher than for a roof tank (0.3 bar) because the pump or the network can supply it, so a pressure comfortable for a shower is used, not just the lower limit.',
     reference: 'Praktik umum tekanan minimum di kran/shower ±0,5–1 bar',
     confidence: 'medium',
     confirmationRequired: true,
-    description: 'Tekanan sisa minimum di titik terjauh diasumsikan 1 bar (±10 m kolom air).',
+    description:
+      'Tekanan sisa minimum di titik terjauh diasumsikan 1 bar (±10 m kolom air). Untuk pompa dan PDAM targetnya lebih tinggi daripada toren atap (0,3 bar) karena tekanannya bisa diatur dari pompa atau jaringan, jadi dipakai tekanan yang nyaman untuk shower, bukan sekadar batas bawah.',
   },
   {
     id: 'MINOR_LOSS_FRACTION',
@@ -977,12 +1012,12 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     unit: 'bar',
     conditionEn: 'minimum pressure at the highest outlet fed from a roof tank',
     descriptionEn:
-      'The highest outlet fed from the roof tank needs at least 0.3 bar; below that a booster pump is suggested.',
+      'The highest outlet fed from the roof tank needs at least 0.3 bar; below that a booster pump or a higher tank is suggested. The threshold is lower than for a pump or mains water (1 bar) because the tank relies on height alone: 0.3 bar still serves ordinary taps and showers, whereas 1 bar would need the tank 10 m above the shower.',
     reference: 'Noerbambang & Morimura: tekanan minimum alat plambing biasa ±0,3 kg/cm²',
     confidence: 'low',
     confirmationRequired: true,
     description:
-      'Titik air tertinggi dari toren atap butuh minimal 0,3 bar; di bawah itu disarankan pompa pendorong.',
+      'Titik air tertinggi dari toren atap butuh minimal 0,3 bar; di bawah itu disarankan pompa pendorong atau toren dinaikkan. Ambangnya lebih rendah daripada pompa dan PDAM (1 bar) karena toren hanya mengandalkan beda tinggi: 0,3 bar masih cukup untuk keran dan shower biasa, sedangkan menuntut 1 bar berarti toren 10 m di atas shower.',
   },
   // ── Pembuangan rumah (Kelompok J) ──
   {

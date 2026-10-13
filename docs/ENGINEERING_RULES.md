@@ -459,6 +459,12 @@ ENG-704 v2 / ENG-708 v2 (review 0015): cabang terakhir di ujung pipa utama (terj
          untuk toren atap, lantai teratas untuk sumber di bawah) disambung elbow, ditambah reducer bila
          cabangnya lebih kecil; tee = jumlah cabang − 1. Skema menggambar EL-n di lantai ujung.
 ENG-604 v2 (review 0015): ukuran minimum alat terbesar berlaku juga untuk cabang dan pipa tegak.
+ENG-702 v3 (review putaran 3): sumber sumur menambah kedalaman muka air (water.wellDepthM, default
+         WELL_WATER_DEPTH_6M) ke beda tinggi dan jalur.
+ENG-703 v2 (review putaran 3): bila tekanan toren kurang, dudukan minimum = dudukan + (tinggi 0,3 bar +
+         kehilangan − beda tinggi), dibulatkan ke atas per 0,5 m; heightShort bila beda tinggi < tinggi 0,3 bar.
+         boosterPumpNeeded hanya dari aturan ini; pompa sumber (sumur, toren bawah) = sourcePumped.
+ENG-709  pompa sumur: muka air > SURFACE_PUMP_SUCTION_7M → pompa jet / submersible (OQ-66).
 ENG-708  fitting air bersih (P18-01, keputusan pemilik 2026-10-13, OQ-63): elbow pipa utama
          FITTING_MAIN_ELBOWS_2; elbow pengisi toren FITTING_TANK_FILL_ELBOWS_2 (hanya toren atap
          dengan ukuran rumah); elbow per cabang FITTING_BRANCH_ELBOW_1 di ukuran cabangnya; elbow

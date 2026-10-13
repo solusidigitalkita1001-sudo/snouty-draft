@@ -100,3 +100,43 @@ describe('buildingSummary', () => {
     expect(buildingSummary([], copy, 'id')).toBeNull();
   });
 });
+
+describe('pompa dan sumur (review putaran 3)', () => {
+  const caption = (need: SolutionNeed) => needCards([need], copy, 'id')[0]!;
+
+  it('pompa pendorong menawarkan dudukan toren sebagai pilihan lain', () => {
+    expect(
+      caption({ kind: 'booster_pump', count: 1, residualBar: 0.23, minimumStandM: 2 }).caption,
+    ).toBe(
+      'Perlu: tekanan di titik tertinggi hanya 0,23 bar · atau naikkan toren ke 2 m di atas atap',
+    );
+  });
+
+  it('teks alur pompa tidak menyebut "lantai atas" (rumah 1 lantai)', () => {
+    const steps = flowSteps(
+      [
+        {
+          kind: 'building',
+          count: 1,
+          building: { type: 'residential', floors: 1, floorHeightM: 3.5 },
+        },
+        { kind: 'rooftop_tank', count: 1 },
+        { kind: 'booster_pump', count: 1, residualBar: 0.23 },
+      ],
+      2,
+      copy,
+      'id',
+    );
+    for (const step of steps) expect(step.caption).not.toMatch(/lantai atas/);
+  });
+
+  it('sumur: kedalaman perkiraan disebut "kira-kira"; di luar batas sedot ditandai', () => {
+    expect(
+      caption({ kind: 'well_pump', count: 1, wellDepthM: 6, wellDepthAssumed: true }).caption,
+    ).toBe('Muka air sumur kira-kira 6 m');
+    expect(caption({ kind: 'well_pump', count: 1, wellDepthM: 9, deepWell: true })).toMatchObject({
+      caption: 'Muka air 9 m: pakai pompa jet atau submersible',
+      attention: true,
+    });
+  });
+});

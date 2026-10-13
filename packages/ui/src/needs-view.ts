@@ -21,7 +21,13 @@ export interface NeedsCopy {
   readonly groundTank: string;
   readonly municipal: string;
   readonly wellPump: string;
+  /** Kedalaman muka air sumur; `assumed` = perkiraan karena belum disebut. */
+  readonly wellDepth: (depth: string, assumed: boolean) => string;
+  /** Muka air lebih dalam dari batas sedot pompa biasa. */
+  readonly deepWell: (depth: string) => string;
   readonly boosterNeeded: (bar: string) => string;
+  /** Pilihan selain pompa pendorong: dudukan toren dinaikkan. */
+  readonly raiseTank: (stand: string) => string;
   readonly boosterNeededPlain: string;
   readonly boosterFlow: string;
   readonly drainageSizes: (soil: string, waste: string) => string;
@@ -110,11 +116,19 @@ function caption(need: SolutionNeed, copy: NeedsCopy, locale: string): string {
     case 'municipal':
       return copy.municipal;
     case 'well_pump':
-      return copy.wellPump;
-    case 'booster_pump':
-      return need.residualBar !== undefined
-        ? copy.boosterNeeded(decimal(Math.max(need.residualBar, 0), locale))
-        : copy.boosterNeededPlain;
+      if (need.wellDepthM === undefined) return copy.wellPump;
+      return need.deepWell
+        ? copy.deepWell(decimal(need.wellDepthM, locale))
+        : copy.wellDepth(decimal(need.wellDepthM, locale), need.wellDepthAssumed === true);
+    case 'booster_pump': {
+      const why =
+        need.residualBar !== undefined
+          ? copy.boosterNeeded(decimal(Math.max(need.residualBar, 0), locale))
+          : copy.boosterNeededPlain;
+      return need.minimumStandM !== undefined
+        ? `${why} · ${copy.raiseTank(decimal(need.minimumStandM, locale))}`
+        : why;
+    }
     case 'drainage':
       return copy.drainageSizes(need.soilSize ?? '–', need.wasteSize ?? '–');
     default:
@@ -133,7 +147,8 @@ export function needCards(
     count: need.count,
     label: need.kind === 'building' ? copy.floors : copy.labels[need.kind],
     caption: caption(need, copy, locale),
-    attention: need.kind === 'booster_pump',
+    attention:
+      need.kind === 'booster_pump' || (need.kind === 'well_pump' && need.deepWell === true),
   }));
 }
 

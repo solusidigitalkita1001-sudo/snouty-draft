@@ -26,6 +26,7 @@ export const FIELD_LABEL: Readonly<Record<RequirementFieldPath, string>> = {
   'water.source': 'Sumber air',
   'water.installationType': 'Jenis instalasi',
   'water.boosterPump': 'Pompa pendorong',
+  'water.wellDepthM': 'Kedalaman muka air sumur',
 };
 
 export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
@@ -43,6 +44,7 @@ export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
   'water.source': 'Water source',
   'water.installationType': 'Installation type',
   'water.boosterPump': 'Booster pump',
+  'water.wellDepthM': 'Well water level depth',
 };
 
 /** Label field menurut bahasa percakapan. */
@@ -101,7 +103,7 @@ export function requirementValueLabel(
   if (typeof value === 'number') {
     if (path === 'building.floors')
       return en ? plural(value, 'floor', 'floors') : `${value} lantai`;
-    if (path === 'building.floorHeightM') return `${value} m`;
+    if (path === 'building.floorHeightM' || path === 'water.wellDepthM') return `${value} m`;
     // Kamar mandi adalah ruang berisi dua titik air (review laporan 0015: "2 titik" untuk 2 kamar mandi
     // salah baca — sebenarnya 4 titik).
     if (path === 'fixtures.bathrooms') {

@@ -73,13 +73,28 @@ export function needsFrom(
   }
 
   if (input.installationType !== 'drainage') {
-    needs.push({ kind: SOURCE_NEED[input.waterSource], count: 1 });
+    // Pompa sumur / toren bawah adalah bagian sumbernya; pompa pendorong hanya untuk toren atap
+    // yang tekanannya kurang (review putaran 3, 1a — dulu sumber pompa tampil dengan pompa kedua).
+    const well = solution.supply.well;
+    needs.push({
+      kind: SOURCE_NEED[input.waterSource],
+      count: 1,
+      ...(well !== null
+        ? {
+            wellDepthM: well.depthM,
+            wellDepthAssumed: solution.appliedAssumptionIds.includes('WELL_WATER_DEPTH_6M'),
+            deepWell: well.beyondSuction,
+          }
+        : {}),
+    });
     if (solution.boosterPumpNeeded) {
       const residual = solution.supply.gravityResidualBar;
+      const remedy = solution.supply.gravityRemedy;
       needs.push({
         kind: 'booster_pump',
         count: 1,
         ...(residual !== null ? { residualBar: residual } : {}),
+        ...(remedy !== null ? { minimumStandM: remedy.minimumStandM } : {}),
       });
     }
   }

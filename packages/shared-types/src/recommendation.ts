@@ -289,6 +289,13 @@ export interface SolutionNeed {
   };
   /** `booster_pump`: sisa tekanan di titik air tertinggi tanpa pompa. */
   readonly residualBar?: number;
+  /** `booster_pump`: dudukan toren (m di atas atap) yang cukup tanpa pompa — pilihan lainnya. */
+  readonly minimumStandM?: number;
+  /** `well_pump`: kedalaman muka air sumur yang dihitung; `wellDepthAssumed` bila perkiraan. */
+  readonly wellDepthM?: number;
+  readonly wellDepthAssumed?: boolean;
+  /** `well_pump`: muka air di luar batas sedot pompa biasa → pompa jet / submersible. */
+  readonly deepWell?: boolean;
   /** `drainage`: ukuran jalur air kotor dan air bekas, dan ventilasinya. */
   readonly soilSize?: string;
   readonly wasteSize?: string;

@@ -38,6 +38,7 @@ import {
   ENG_703,
   ENG_704,
   ENG_708,
+  ENG_709,
   ENG_705,
   ENG_706,
   ENG_707,
@@ -82,6 +83,8 @@ export interface SolutionInput {
   /** Ukuran tanah — hanya untuk jarak halaman (ENG-705); bukan dasar panjang pipa di bangunan. */
   readonly landLengthM?: number | null;
   readonly landWidthM?: number | null;
+  /** Sumur (`waterSource: 'pump'`): kedalaman muka air; kosong → WELL_WATER_DEPTH_6M. */
+  readonly wellDepthM?: number | null;
 }
 
 export interface CalculationTrace {
@@ -103,6 +106,17 @@ export interface HouseSupply {
   readonly main: PressurizedResult;
   /** Toren atap: tekanan di titik tertinggi; selain itu `null`. */
   readonly gravityResidualBar: number | null;
+  /**
+   * Toren atap yang tekanannya kurang (ENG-703 v2): dudukan minimum sebagai pilihan selain pompa
+   * pendorong, dan apakah beda tingginya sendiri sudah kurang. `null` bila tekanannya cukup.
+   */
+  readonly gravityRemedy: { readonly minimumStandM: number; readonly heightShort: boolean } | null;
+  /** Sumur: kedalaman muka air yang dihitung dan batas sedot pompa biasa (ENG-709); selain itu `null`. */
+  readonly well: {
+    readonly depthM: number;
+    readonly suctionLimitM: number;
+    readonly beyondSuction: boolean;
+  } | null;
   /** PDAM: tekanan yang harus tersedia di meteran; selain itu `null`. */
   readonly requiredSourcePressureBar: number | null;
 }
@@ -116,7 +130,14 @@ export interface SolutionResult {
   readonly maxOutletsPerBranch: number;
   readonly floorHeightM: number;
   readonly floorsPlan: readonly FloorNode[];
+  /**
+   * Pompa PENDORONG tambahan — hanya toren atap yang tekanannya kurang (ENG-703). Pompa yang
+   * memang bagian sumber air (sumur, toren bawah) ada di `sourcePumped`; dulu keduanya satu flag
+   * sehingga sumber pompa tampil dengan pompa kedua (review putaran 3, 1a).
+   */
   readonly boosterPumpNeeded: boolean;
+  /** Sumber air yang dipompa sendiri: sumur atau toren bawah. */
+  readonly sourcePumped: boolean;
   readonly pressureClasses: readonly PressureClass[];
   readonly supply: HouseSupply;
   /** Panjang bersih pipa utama — hanya bila jalurnya disebut atau ukuran rumahnya diketahui. */
@@ -351,6 +372,13 @@ export function computeSolution(
           buildingSideM: Math.max(plan.lengthM, plan.widthM),
         }).yardM
       : null;
+  // Sumur: muka air yang disebut, atau asumsi 6 m (keputusan pemilik 2026-10-13).
+  const wellDepthM =
+    input.waterSource !== 'pump'
+      ? 0
+      : typeof input.wellDepthM === 'number' && input.wellDepthM >= 0
+        ? input.wellDepthM
+        : use('WELL_WATER_DEPTH_6M');
   const route = run(ENG_702, {
     // Toren atap ada di bangunan: halaman tidak masuk jalur toren → titik air.
     yardM: gravity ? 0 : (yard ?? 0),
@@ -361,6 +389,7 @@ export function computeSolution(
     routeBasis,
     outletHeightM: use('OUTLET_HEIGHT_2M'),
     tankStandM: gravity ? use('TANK_STAND_1M') : 0,
+    wellDepthM,
   });
 
   // 4 · pipa utama. Toren atap: ukuran terkecil yang lolos kriteria kecepatan dan masih menyisakan
@@ -396,15 +425,26 @@ export function computeSolution(
     sizingOverrides,
   );
   let gravityResidualBar: number | null = null;
-  let boosterPumpNeeded = pumped;
+  let boosterPumpNeeded = false;
+  let gravityRemedy: HouseSupply['gravityRemedy'] = null;
   if (gravity) {
     const check = run(ENG_703, {
       availableHeadM,
       lossM: round2(main.frictionLossM + main.minorLossM),
       minimumBar,
+      tankStandM: use('TANK_STAND_1M'),
     });
     gravityResidualBar = check.residualBar;
     boosterPumpNeeded = check.boosterNeeded;
+    if (check.minimumStandM !== null) {
+      gravityRemedy = { minimumStandM: check.minimumStandM, heightShort: check.heightShort };
+    }
+  }
+  let well: HouseSupply['well'] = null;
+  if (input.waterSource === 'pump') {
+    const suctionLimitM = use('SURFACE_PUMP_SUCTION_7M');
+    const check = run(ENG_709, { wellDepthM, suctionLimitM });
+    well = { depthM: wellDepthM, suctionLimitM, beyondSuction: check.beyondSuction };
   }
   const requiredSourcePressureBar =
     input.waterSource === 'municipal' ? round2(main.totalDynamicHeadM / 10.197) : null;
@@ -537,6 +577,7 @@ export function computeSolution(
     floorHeightM,
     floorsPlan: floorPlan.floorsPlan,
     boosterPumpNeeded,
+    sourcePumped: pumped,
     pressureClasses: classes.classes,
     supply: {
       wsfu: demand.wsfu,
@@ -546,6 +587,8 @@ export function computeSolution(
       staticHeadM: route.staticHeadM,
       main,
       gravityResidualBar,
+      gravityRemedy,
+      well,
       requiredSourcePressureBar,
     },
     mainRunNetM: hasRealDimensions ? route.routeLengthM : null,

@@ -199,3 +199,27 @@ describe('ukuran bangunan dan tanah diisi sendiri (2026-10-12)', () => {
     ).toBe('Ukuran: bangunan 8 × 12 m, tanah 10 × 20 m');
   });
 });
+
+describe('kedalaman sumur (review putaran 3, 1b)', () => {
+  it('ditanya di kartu penyempurna hanya bila sumbernya sumur', () => {
+    const known = () => false;
+    expect(houseRefinementQuestions(known, 'id', 'residential', 'pump').map((q) => q.id)).toContain(
+      'water.wellDepthM',
+    );
+    expect(
+      houseRefinementQuestions(known, 'id', 'residential', 'rooftop_tank').map((q) => q.id),
+    ).not.toContain('water.wellDepthM');
+  });
+
+  it('pilihan rentang dihitung dengan batas atasnya; angka pasti dipakai apa adanya', () => {
+    const answer = (option: string) =>
+      answerToUpdate({ id: 'water.wellDepthM', option }, () => null);
+    expect(answer('< 5 m')).toMatchObject({ value: 5, source: 'user_stated' });
+    expect(answer('5–9 m')).toMatchObject({ value: 9 });
+    expect(answer('> 9 m')).toMatchObject({ value: 10 });
+    expect(answer('value=8')).toMatchObject({ value: 8 });
+    // "Belum tahu" tanpa default → kosong; engine memakai asumsi 6 m.
+    expect(answer('Belum tahu')).toBeNull();
+    expect(isClarificationAnswerId('water.wellDepthM')).toBe(true);
+  });
+});

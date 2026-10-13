@@ -73,3 +73,67 @@ describe('needsFrom — rumah 2 lantai, 3 KM, 4 wastafel, 1 dapur, toren atap', 
     expect(kinds).not.toContain('booster_pump');
   });
 });
+
+describe('needsFrom — pompa sumber vs pompa pendorong (review putaran 3, U1/U2)', () => {
+  // U2: 3 lantai, 10 × 8 m, tanah 20 × 10 m, 4 KM, 2 wastafel, 1 dapur, pompa sumur.
+  const U2: SolutionInput = {
+    ...INPUT,
+    floors: 3,
+    bathrooms: 4,
+    basins: 2,
+    waterSource: 'pump',
+    installationType: 'clean_water',
+    planLengthM: 10,
+    planWidthM: 8,
+    landLengthM: 20,
+    landWidthM: 10,
+  };
+
+  it('U2: satu pompa — sumur + pompa, tanpa pompa pendorong kedua', () => {
+    const needs = needsFrom(U2, computeSolution(U2), null);
+    const kinds = needs.map((n) => n.kind);
+    expect(kinds).toContain('well_pump');
+    expect(kinds).not.toContain('booster_pump');
+    expect(needs.find((n) => n.kind === 'well_pump')).toMatchObject({
+      wellDepthM: 6,
+      wellDepthAssumed: true,
+      deepWell: false,
+    });
+  });
+
+  it('muka air yang disebut 9 m → bukan perkiraan, pompa jet / submersible', () => {
+    const deep = { ...U2, wellDepthM: 9 };
+    expect(
+      needsFrom(deep, computeSolution(deep), null).find((n) => n.kind === 'well_pump'),
+    ).toMatchObject({
+      wellDepthM: 9,
+      wellDepthAssumed: false,
+      deepWell: true,
+    });
+  });
+
+  it('toren bawah: pompanya bagian sumber, tanpa pompa pendorong', () => {
+    const ground = { ...U2, waterSource: 'ground_tank' as const };
+    const kinds = needsFrom(ground, computeSolution(ground), null).map((n) => n.kind);
+    expect(kinds).toContain('ground_tank');
+    expect(kinds).not.toContain('booster_pump');
+  });
+
+  it('U1 toren atap 1 lantai: pompa pendorong dengan pilihan dudukan toren', () => {
+    const U1: SolutionInput = {
+      ...U2,
+      floors: 1,
+      bathrooms: 1,
+      basins: 0,
+      waterSource: 'rooftop_tank',
+      planLengthM: 10,
+      planWidthM: 6,
+      landLengthM: 15,
+      landWidthM: 8,
+    };
+    const solution = computeSolution(U1);
+    const booster = needsFrom(U1, solution, null).find((n) => n.kind === 'booster_pump')!;
+    expect(booster.minimumStandM).toBe(solution.supply.gravityRemedy!.minimumStandM);
+    expect(booster.minimumStandM).toBeGreaterThan(1);
+  });
+});

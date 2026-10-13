@@ -84,6 +84,22 @@ const FLOOR_HEIGHT_INPUTS: readonly TemplateInput[] = [
   },
 ];
 
+/**
+ * Kedalaman muka air sumur (review putaran 3, 1b): pilihan rentang, atau angka pastinya. Rentang
+ * dihitung dengan batas atasnya supaya tinggi angkat pompa tidak kurang (OQ-66).
+ */
+const WELL_DEPTH_INPUTS: readonly TemplateInput[] = [
+  {
+    key: 'value',
+    unit: 'm',
+    group: { id: 'Angka pasti', en: 'Exact depth' },
+    label: { id: 'Kedalaman', en: 'Depth' },
+    required: true,
+    min: 0,
+    max: 60,
+  },
+];
+
 /** Jumlah di atas pilihan yang tersedia diketik sendiri (TC-H-04: 8 wastafel / keran wudhu). */
 const countInputs = (more: { id: string; en: string }): readonly TemplateInput[] => [
   {
@@ -186,6 +202,12 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
     inputs: countInputs({ id: 'Lebih dari 3', en: 'More than 3' }),
     inputValue: 'number',
   },
+  'water.wellDepthM': {
+    question: 'Muka air sumurnya kira-kira berapa meter di bawah tanah?',
+    options: ['< 5 m', '5–9 m', '> 9 m'],
+    inputs: WELL_DEPTH_INPUTS,
+    inputValue: 'number',
+  },
   'fixtures.urinals': {
     question: 'Ada berapa urinoir di toilet pria?',
     options: ['0', '2', '3', '4'],
@@ -234,6 +256,7 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'fixtures.wudhuTaps': 'How many ablution taps are there (all ablution areas)?',
   'fixtures.wudhuAreas': 'How many ablution areas are the taps split over?',
   'fixtures.urinals': 'How many urinals are in the men’s restroom?',
+  'water.wellDepthM': 'Roughly how many metres below the ground is the well water level?',
 };
 
 /** Label tampilan Inggris per nilai pilihan kanonik; angka tampil apa adanya. */
@@ -274,9 +297,10 @@ export interface ClarificationPlan {
  */
 export const MAX_ANSWERS_PER_CARD = Math.max(
   MAX_CLARIFICATION_QUESTIONS,
-  HOUSE_REFINEMENT_FIELDS.length,
-  WORSHIP_REFINEMENT_FIELDS.length,
-  PUBLIC_REFINEMENT_FIELDS.length,
+  // +1: kedalaman sumur ikut kartu penyempurna bila sumbernya sumur.
+  HOUSE_REFINEMENT_FIELDS.length + 1,
+  WORSHIP_REFINEMENT_FIELDS.length + 1,
+  PUBLIC_REFINEMENT_FIELDS.length + 1,
   MAX_TECHNICAL_QUESTIONS,
 );
 
@@ -289,6 +313,7 @@ const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath
   'building.floorHeightM',
   ...HOUSE_REFINEMENT_FIELDS,
   ...WORSHIP_REFINEMENT_FIELDS,
+  'water.wellDepthM',
 ]);
 
 /**
@@ -353,6 +378,8 @@ const OPTION_VALUES: Readonly<
     Pembuangan: 'drainage',
     Keduanya: 'both',
   },
+  // Batas atas rentang (tinggi angkat tidak kurang); "> 9 m" dihitung 10 m — OQ-66.
+  'water.wellDepthM': { '< 5 m': 5, '5–9 m': 9, '> 9 m': 10 },
 };
 
 /** Label singkat untuk ringkasan jawaban di gelembung pengguna. */
@@ -368,6 +395,7 @@ const ANSWER_LABEL: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'fixtures.wudhuTaps': 'Keran wudhu',
   'fixtures.wudhuAreas': 'Tempat wudhu',
   'fixtures.urinals': 'Urinoir',
+  'water.wellDepthM': 'Muka air sumur',
 };
 const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.source': 'Water source',
@@ -381,6 +409,7 @@ const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> =
   'fixtures.wudhuTaps': 'Ablution taps',
   'fixtures.wudhuAreas': 'Ablution areas',
   'fixtures.urinals': 'Urinals',
+  'water.wellDepthM': 'Well water level',
 };
 
 export interface ClarificationAnswer {
@@ -524,13 +553,17 @@ export function houseRefinementQuestions(
   isKnown: (path: RequirementFieldPath) => boolean,
   locale: Locale = DEFAULT_LOCALE,
   buildingType: string | null = null,
+  waterSource: string | null = null,
 ): readonly ClarificationQuestion[] {
-  const fields =
+  const base =
     buildingType === 'place_of_worship'
       ? WORSHIP_REFINEMENT_FIELDS
       : buildingType === 'public_building'
         ? PUBLIC_REFINEMENT_FIELDS
         : HOUSE_REFINEMENT_FIELDS;
+  // Sumur: kedalaman muka airnya menentukan tinggi angkat dan jenis pompa (review putaran 3, 1b).
+  const fields: readonly RequirementFieldPath[] =
+    waterSource === 'pump' ? [...base, 'water.wellDepthM'] : base;
   return fields
     .filter((path) => !isKnown(path))
     .map((path) => toQuestion(path, locale))

@@ -124,6 +124,11 @@ export interface WaterState {
   readonly installationType: TrackedValue<InstallationType>;
   /** Ditanyakan langsung di board layar 03. */
   readonly boosterPump: TrackedValue<boolean>;
+  /**
+   * Kedalaman muka air sumur (m) — hanya sumber pompa sumur (review putaran 3). Opsional: state
+   * tersimpan sebelum field ini ada dibaca sebagai kosong.
+   */
+  readonly wellDepthM?: TrackedValue<number>;
 }
 
 /** Jalur bidang yang bisa dirujuk klarifikasi dan daftar informasi kurang. */
@@ -141,7 +146,8 @@ export type RequirementFieldPath =
   | 'fixtures.urinals'
   | 'water.source'
   | 'water.installationType'
-  | 'water.boosterPump';
+  | 'water.boosterPump'
+  | 'water.wellDepthM';
 
 /**
  * Empat field inti yang menggerakkan meter "KELENGKAPAN DATA" dan menahan

@@ -631,6 +631,7 @@ export function technicalQuestionCard(
       (path) => fieldValueKnown(state, path),
       locale,
       state.building.type.value,
+      state.water.source.value,
     );
     return questions.length > 0 ? { kind: 'clarification', questions } : null;
   }
