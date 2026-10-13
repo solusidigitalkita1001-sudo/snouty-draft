@@ -197,3 +197,19 @@ describe('reducer ukuran sama (temuan laporan SNTY-2026-10-0002)', () => {
     expect(labels).toContain('Tee 3/4"');
   });
 });
+
+describe('ujung pipa tegak (review laporan 0015)', () => {
+  const fitting = (over: Partial<BuildSchematicInput>, level: number) =>
+    buildSchematic(inputFrom(over)).nodes.find((n) => n.id === `red-${level}`)!;
+
+  it('toren atap mengalir dari atas: ujungnya lantai 1 → elbow; lantai 2 tetap sambungan cabang', () => {
+    expect(fitting({}, 1).code).toBe('EL-1');
+    expect(fitting({}, 1).label).toMatch(/^Elbow/);
+    expect(fitting({}, 2).code).not.toBe('EL-2');
+  });
+
+  it('PDAM naik dari bawah: ujungnya lantai teratas → elbow, bukan tee', () => {
+    expect(fitting({ waterSource: 'municipal' }, 2).code).toBe('EL-2');
+    expect(fitting({ waterSource: 'municipal' }, 1).code).not.toBe('EL-1');
+  });
+});

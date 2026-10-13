@@ -216,7 +216,8 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
       'Pipa PVC AW 1" 10 batang',
       'Pipa PVC AW 3/4" 3 batang',
       'Pipa PVC AW 1/2" 3 batang',
-      'Tee cabang 1" 2 pcs',
+      // Cabang kedua di ujung pipa utama memakai elbow, bukan tee (review laporan 0015).
+      'Tee cabang 1" 1 pcs',
       'Pipa PVC D 4" 4 batang',
       'Pipa PVC D 2" 6 batang',
       'Pipa PVC D 1¼" 8 meter',

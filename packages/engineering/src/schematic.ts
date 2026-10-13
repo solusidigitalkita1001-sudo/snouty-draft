@@ -164,9 +164,15 @@ export function buildSchematic(input: BuildSchematicInput): SchematicShape {
     });
   }
 
-  // 5 — per lantai: reducer di titik percabangan, node branch, lalu titik air.
+  // 5 — per lantai: sambungan di titik percabangan, node branch, lalu titik air. Lantai di ujung
+  // pipa tegak (terjauh dari sumber: lantai 1 untuk toren atap, lantai teratas untuk sumber di bawah)
+  // disambung elbow, bukan tee (review laporan 0015).
+  const levels = input.floorsPlan.map((p) => p.floor);
+  const endLevel = input.waterSource === 'rooftop_tank' ? Math.min(...levels) : Math.max(...levels);
   for (const plan of input.floorsPlan) {
     const level = plan.floor;
+    const atEnd = level === endLevel;
+    const same = input.mainSize === input.branchSize;
     const reducerId = `red-${level}`;
     const branchId = `br-${level}`;
 
@@ -175,9 +181,12 @@ export function buildSchematic(input: BuildSchematicInput): SchematicShape {
       type: 'fitting',
       floorLevel: level,
       // Reducer hanya bila ukurannya memang turun; "Reducer ¾"→¾"" bukan barang (laporan 0002).
-      code: input.mainSize === input.branchSize ? `TE-${level}` : `RD-${level}`,
-      label:
-        input.mainSize === input.branchSize
+      code: atEnd ? `EL-${level}` : same ? `TE-${level}` : `RD-${level}`,
+      label: atEnd
+        ? same
+          ? `Elbow ${input.mainSize}`
+          : `Elbow + reducer ${input.mainSize}→${input.branchSize}`
+        : same
           ? `Tee ${input.mainSize}`
           : `Reducer ${input.mainSize}→${input.branchSize}`,
       size: input.branchSize,

@@ -30,6 +30,9 @@ describe('supplyFittingNeeds + fittingBomRows', () => {
   it('air bersih: elbow utama, pengisi toren, per cabang per ukuran, elbow dan drat kran per titik', () => {
     expect(needs.map((n) => [n.kind, n.size, n.quantity])).toEqual([
       ['elbow', '1"', 2],
+      // Ujung pipa utama (review 0015): elbow + reducer ke cabang dapur 1/2" (toren atap: ujung di lantai 1).
+      ['elbow', '1"', 1],
+      ['reducer', '1"', 1],
       ['elbow', '3/4"', 2],
       ['elbow', '1"', 1],
       ['elbow', '3/4"', 1],
@@ -41,7 +44,7 @@ describe('supplyFittingNeeds + fittingBomRows', () => {
 
   it('baris BOQ: fitting, pcs, sistem air bersih, dasar perhitungan dari engine, status asumsi', () => {
     const rows = fittingBomRows(needs, traces, 'id', (n) =>
-      fittingKey(n) === 'elbow|1"' ? 'EL1' : undefined,
+      fittingKey(n) === 'elbow|1"|' ? 'EL1' : undefined,
     );
     expect(rows[0]).toMatchObject({
       item: 'Elbow',
@@ -54,8 +57,13 @@ describe('supplyFittingNeeds + fittingBomRows', () => {
       calc: { method: 'Elbow di pipa utama', working: '2 per pipa utama', result: '2 pcs' },
     });
     // Ukuran tanpa produk katalog: tetap berjumlah, tanpa nama produk.
-    expect(rows[6]).not.toHaveProperty('productId');
-    expect(rows[6]).toMatchObject({ item: 'Faucet elbow', purpose: 'Drat kran', quantity: 11 });
+    expect(rows[8]).not.toHaveProperty('productId');
+    expect(rows[8]).toMatchObject({ item: 'Faucet elbow', purpose: 'Drat kran', quantity: 11 });
+    expect(rows[2]).toMatchObject({
+      item: 'Reducer cabang',
+      size: '1" × 1/2"',
+      purpose: 'Reducer ujung pipa utama',
+    });
     expect(rows.every((r) => r.traceIds.length > 0)).toBe(true);
   });
 });

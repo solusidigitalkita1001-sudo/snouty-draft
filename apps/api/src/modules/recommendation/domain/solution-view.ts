@@ -462,11 +462,15 @@ export function bomItemsFrom(
     reducing_tee: { id: 'Tee reduksi cabang', en: 'Reducing branch tee' },
     reducer: { id: 'Reducer cabang', en: 'Branch reducer' },
   };
-  for (const branch of layout.bySize) {
+  for (const group of layout.bySize) {
+    // Cabang di ujung pipa utama disambung elbow, bukan tee (ENG-704 v2, review laporan 0015).
+    const atEnd = solution.mainEndBranchSize === group.size ? 1 : 0;
+    const branch = { ...group, count: group.count - atEnd };
+    if (branch.count <= 0) continue;
     const fittings = stocks.teeFor?.(branch.size) ?? [];
     const basis = en
-      ? `One per branch on the main line: ${branch.count} branches of ${branch.size}.`
-      : `Satu per cabang di pipa utama: ${branch.count} cabang ${branch.size}.`;
+      ? `One per branch on the main line${atEnd ? ', except the branch at its end' : ''}: ${branch.count} branches of ${branch.size}.`
+      : `Satu per cabang di pipa utama${atEnd ? ', kecuali cabang di ujungnya' : ''}: ${branch.count} cabang ${branch.size}.`;
     const teeCalc = {
       method: en ? 'One per branch on the main line' : 'Satu per cabang di pipa utama',
       working: en

@@ -147,8 +147,9 @@ describe('regresi laporan SNTY-2026-10-0009 — C: fitting', () => {
       .filter((b) => b.unit === 'pcs' && /^(Tee|Reducer)/.test(b.item))
       .map((b) => `${b.item} ${b.size} ${b.quantity} ${nameOf(b.productId) ?? '-'}`);
     expect(rows).toEqual([
-      // Satu tee sama sisi untuk keempat cabang (produk sama, digabung).
-      `Tee cabang ${rec.stats.mainSize} 4 Tee Abu Ts 1 1/4"`,
+      // Tee sama sisi untuk tiga cabang; cabang keempat di ujung pipa utama memakai elbow + reducer
+      // (review laporan 0015), reducer-nya sama SKU dengan reducer cabang 1/2" lainnya (digabung).
+      `Tee cabang ${rec.stats.mainSize} 3 Tee Abu Ts 1 1/4"`,
       `Reducer cabang ${rec.stats.mainSize} × 1" 2 Bell Reducer - W 1 1/4" x 1"`,
       `Reducer cabang ${rec.stats.mainSize} × 1/2" 2 Bell Reducer - W 1 1/4" x 1/2"`,
     ]);

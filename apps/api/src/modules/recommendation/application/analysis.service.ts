@@ -1135,7 +1135,9 @@ export class AnalysisService {
     for (const need of needs) {
       const key = fittingKey(need);
       if (out.has(key)) continue;
-      const found = await this.matchRoles([fittingRequirement(need.size, family, need.kind)]);
+      const found = await this.matchRoles([
+        fittingRequirement(need.size, family, need.kind, need.branchSize),
+      ]);
       const product = found.products[0];
       if (product) {
         out.set(key, {

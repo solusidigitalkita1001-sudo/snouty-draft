@@ -455,6 +455,10 @@ ENG-008 v2 (laporan 0015): sebaran alat per lantai dibagi rata dan jumlahnya sel
          sisa kamar mandi ke lantai teratas, sisa wastafel ke lantai 1, dapur di lantai 1. Engine
          memeriksa keseimbangan (per lantai, Σ titik dan WSFU cabang, Σ DFU per lantai) dan melempar
          EngineConsistencyError bila tidak seimbang.
+ENG-704 v2 / ENG-708 v2 (review 0015): cabang terakhir di ujung pipa utama (terjauh dari sumber — lantai 1
+         untuk toren atap, lantai teratas untuk sumber di bawah) disambung elbow, ditambah reducer bila
+         cabangnya lebih kecil; tee = jumlah cabang − 1. Skema menggambar EL-n di lantai ujung.
+ENG-604 v2 (review 0015): ukuran minimum alat terbesar berlaku juga untuk cabang dan pipa tegak.
 ENG-708  fitting air bersih (P18-01, keputusan pemilik 2026-10-13, OQ-63): elbow pipa utama
          FITTING_MAIN_ELBOWS_2; elbow pengisi toren FITTING_TANK_FILL_ELBOWS_2 (hanya toren atap
          dengan ukuran rumah); elbow per cabang FITTING_BRANCH_ELBOW_1 di ukuran cabangnya; elbow

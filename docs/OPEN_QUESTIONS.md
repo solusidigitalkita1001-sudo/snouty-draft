@@ -404,6 +404,18 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-65 — Kurva debit puncak (Hunter) yang dipakai Pralon (review laporan 0015, P19-03)
+
+**Status:** terbuka — engine tetap memakai IPC 2021 Tabel E103.3(3) · **Blocks:** pengesahan ENG-701/ENG-102
+**Temuan review:** 7,9 WSFU → 0,8 l/s dianggap terlalu tinggi ("tabel flush tank ±6,5 gpm ≈ 0,41 l/s").
+**Hasil pemeriksaan (2026-10-13):** kurva di `HUNTER_FLUSH_TANK` sama dengan IPC 2021 Tabel E103.3(3)
+kolom sistem kloset tangki (1 → 3,0; 3 → 6,5; 8 → 12,8; 10 → 14,6 gpm), interpolasi linear; 7,9 WSFU →
+12,7 gpm = 0,80 l/s sesuai tabel itu. Angka 6,5 gpm adalah nilai untuk 3 WSFU. Cabang memakai fungsi
+yang sama (4,7 WSFU → 9,0 gpm = 0,57 l/s), jadi total dan cabang konsisten.
+**Yang perlu diputuskan ahli Pralon:** apakah tetap IPC E103.3(3), atau kurva lain (padanan SNI 8153 /
+kurva Hunter termodifikasi untuk rumah tinggal) yang memberi debit lebih kecil.
+**Default sementara:** IPC E103.3(3), tidak diubah tanpa sumber.
+
 ### OQ-64 — Tebal dinding resmi Pralon per kelas dan ukuran (review laporan 0015, P19-03)
 
 **Status:** menunggu tabel dari tim Pralon (keputusan pemilik 2026-10-13: tunggu tabel, jangan pakai

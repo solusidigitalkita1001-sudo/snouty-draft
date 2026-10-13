@@ -163,6 +163,8 @@ export interface SolutionResult {
   } | null;
   /** Fitting air bersih (ENG-708): elbow per jalur, cabang, dan titik air. */
   readonly fittings: HouseSupplyFittingResult;
+  /** Ukuran cabang di ujung pipa utama — disambung elbow, bukan tee (ENG-704 v2). */
+  readonly mainEndBranchSize: string | null;
   readonly appliedAssumptionIds: readonly string[];
   /** Satu trace per aturan yang dieksekusi, urut eksekusi. */
   readonly traces: readonly CalculationTrace[];
@@ -462,7 +464,20 @@ export function computeSolution(
       : null;
 
   // 6b · fitting air bersih (ENG-708, P18-01) — dari jumlah jalur, tanpa butuh ukuran rumah.
+  // Cabang terjauh dari sumber di sepanjang pipa utama: toren atap mengalir dari atas (ujungnya
+  // lantai 1), sumber di bawah naik (ujungnya lantai teratas). Di sana elbow, bukan tee.
+  const allBranches = branches.branches;
+  const ordered = [...allBranches].sort((a, b) =>
+    gravity ? b.floor - a.floor : a.floor - b.floor,
+  );
+  const endBranch = ordered.at(-1);
+  const endBranchSize =
+    endBranch !== undefined
+      ? branchGroups.find((g) => g.branches.includes(endBranch))?.size
+      : undefined;
   const fittings = run(ENG_708, {
+    mainSize: main.recommendedSize,
+    ...(endBranchSize !== undefined ? { endBranchSize } : {}),
     branchesBySize: branchGroups.map((g) => ({ size: g.size, count: g.count })),
     outletCount: load.outletCount,
     hasTankFill: tankFill !== null,
@@ -533,6 +548,7 @@ export function computeSolution(
     tankFill: tankFill ? { netM: tankFill.fillNetM, size: tankFill.size } : null,
     branchLayout,
     fittings,
+    mainEndBranchSize: endBranchSize ?? null,
     wudhu,
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },
     appliedAssumptionIds: [...new Set([...applied, ...main.appliedAssumptionIds])],

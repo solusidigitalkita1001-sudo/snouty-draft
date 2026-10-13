@@ -131,15 +131,19 @@ describe('material rumah', () => {
       // Cabang per ukuran: jumlah cabang ukuran itu × 15 m.
       ...layout.bySize.map((b) => [b.size, Math.ceil((b.count * 15) / 4), 'batang']),
       [sized.fixtureConnectionSize, Math.ceil(layout.fixtureNetM / 4), 'batang'],
-      // Sambungan per ukuran cabang, satu per cabang.
-      ...layout.bySize.flatMap((b) =>
-        b.size === sized.mainSize
-          ? [[sized.mainSize, b.count, 'pcs']]
-          : [
-              [sized.mainSize, b.count, 'pcs'],
-              [`${sized.mainSize} × ${b.size}`, b.count, 'pcs'],
-            ],
-      ),
+      // Sambungan per ukuran cabang, satu per cabang — kecuali cabang di ujung pipa utama, yang
+      // disambung elbow (review laporan 0015); ukuran tanpa sisa cabang tidak punya baris.
+      ...layout.bySize
+        .map((b) => ({ ...b, count: b.count - (b.size === sized.mainEndBranchSize ? 1 : 0) }))
+        .filter((b) => b.count > 0)
+        .flatMap((b) =>
+          b.size === sized.mainSize
+            ? [[sized.mainSize, b.count, 'pcs']]
+            : [
+                [sized.mainSize, b.count, 'pcs'],
+                [`${sized.mainSize} × ${b.size}`, b.count, 'pcs'],
+              ],
+        ),
     ]);
     // Tanpa ukuran tanah: halaman 0 + sisi bangunan 15 m + muka air toren (2 × 3,5 + 1 = 8 m) = 23 m.
     expect(sized.tankFill).toEqual({ netM: 23, size: '3/4"' });

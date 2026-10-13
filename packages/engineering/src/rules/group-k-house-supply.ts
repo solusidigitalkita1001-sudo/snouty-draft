@@ -695,7 +695,8 @@ export interface HouseBranchLengthResult {
  */
 export const ENG_704: RuleVersion<HouseBranchLengthInput, HouseBranchLengthResult> = {
   ruleId: 'ENG-704',
-  version: 1,
+  // v2 (review laporan 0015): cabang terakhir di ujung pipa utama disambung elbow, bukan tee.
+  version: 2,
   category: 'geometry',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -712,27 +713,30 @@ export const ENG_704: RuleVersion<HouseBranchLengthInput, HouseBranchLengthResul
   compute: (i) => ({
     branchNetM: round1(i.branchCount * i.planLengthM),
     fixtureNetM: round1(i.outletCount * i.fixtureDropM),
-    teeCount: i.branchCount,
+    teeCount: Math.max(0, i.branchCount - 1),
   }),
   sourceReference:
-    'Perkiraan tanpa denah: cabang = jumlah cabang × panjang bangunan; sambungan = titik air × panjang sambungan; tee = 1 per cabang',
+    'Perkiraan tanpa denah: cabang = jumlah cabang × panjang bangunan; sambungan = titik air × panjang sambungan; tee = 1 per cabang kecuali cabang di ujung pipa utama (elbow)',
   validationStatus: PENDING,
   testCases: [
     {
-      name: 'rumah 12 m, 2 cabang, 7 titik, sambungan 1,5 m → cabang 24 m, sambungan 10,5 m, 2 tee',
+      name: 'rumah 12 m, 2 cabang, 7 titik, sambungan 1,5 m → cabang 24 m, sambungan 10,5 m, 1 tee (ujung pipa utama elbow)',
       input: { planLengthM: 12, branchCount: 2, outletCount: 7, fixtureDropM: 1.5 },
-      expected: { branchNetM: 24, fixtureNetM: 10.5, teeCount: 2 },
+      expected: { branchNetM: 24, fixtureNetM: 10.5, teeCount: 1 },
     },
   ],
   explain: (i, o, locale) =>
     localized(locale, {
-      id: `Cabang ${i.branchCount} × panjang bangunan ${i.planLengthM} m = ${o.branchNetM} m; sambungan ke alat ${i.outletCount} titik × ${i.fixtureDropM} m = ${o.fixtureNetM} m; ${o.teeCount} tee, satu per cabang. Perkiraan sampai denahnya ada.`,
-      en: `Branches ${i.branchCount} × building length ${i.planLengthM} m = ${o.branchNetM} m; fixture connections ${i.outletCount} outlets × ${i.fixtureDropM} m = ${o.fixtureNetM} m; ${o.teeCount} tees, one per branch. An estimate until the floor plan is known.`,
+      id: `Cabang ${i.branchCount} × panjang bangunan ${i.planLengthM} m = ${o.branchNetM} m; sambungan ke alat ${i.outletCount} titik × ${i.fixtureDropM} m = ${o.fixtureNetM} m; ${o.teeCount} tee, satu per cabang kecuali cabang di ujung pipa utama yang disambung elbow. Perkiraan sampai denahnya ada.`,
+      en: `Branches ${i.branchCount} × building length ${i.planLengthM} m = ${o.branchNetM} m; fixture connections ${i.outletCount} outlets × ${i.fixtureDropM} m = ${o.fixtureNetM} m; ${o.teeCount} tees, one per branch except the branch at the end of the main, which takes an elbow. An estimate until the floor plan is known.`,
     }),
 };
 
 export interface HouseSupplyFittingInput {
   readonly branchesBySize: readonly { readonly size: string; readonly count: number }[];
+  /** Ukuran pipa utama dan cabang di ujungnya (terjauh dari sumber) — v2. */
+  readonly mainSize?: string;
+  readonly endBranchSize?: string;
   readonly outletCount: number;
   readonly hasTankFill: boolean;
   readonly mainElbows: number;
@@ -744,6 +748,10 @@ export interface HouseSupplyFittingInput {
 
 export interface HouseSupplyFittingResult {
   readonly mainElbows: number;
+  /** Elbow di ujung pipa utama, menggantikan tee cabang terakhir (v2). */
+  readonly endElbows: number;
+  /** Reducer di ujung pipa utama bila cabang terakhir lebih kecil: ukuran cabangnya; `null` bila sama. */
+  readonly endReducer: string | null;
   readonly tankFillElbows: number;
   readonly branchElbows: readonly { readonly size: string; readonly count: number }[];
   readonly outletElbows: number;
@@ -757,7 +765,8 @@ export interface HouseSupplyFittingResult {
  */
 export const ENG_708: RuleVersion<HouseSupplyFittingInput, HouseSupplyFittingResult> = {
   ruleId: 'ENG-708',
-  version: 1,
+  // v2 (review laporan 0015): ujung pipa utama memakai elbow (+ reducer bila cabangnya lebih kecil).
+  version: 2,
   category: 'material',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -775,6 +784,8 @@ export const ENG_708: RuleVersion<HouseSupplyFittingInput, HouseSupplyFittingRes
       }),
       outletCount: count('outletCount'),
       hasTankFill: o['hasTankFill'] === true,
+      ...(typeof o['mainSize'] === 'string' ? { mainSize: o['mainSize'] } : {}),
+      ...(typeof o['endBranchSize'] === 'string' ? { endBranchSize: o['endBranchSize'] } : {}),
       mainElbows: count('mainElbows', 20),
       tankFillElbows: count('tankFillElbows', 20),
       elbowsPerBranch: count('elbowsPerBranch', 20),
@@ -784,6 +795,11 @@ export const ENG_708: RuleVersion<HouseSupplyFittingInput, HouseSupplyFittingRes
   },
   compute: (i) => ({
     mainElbows: i.mainElbows,
+    endElbows: i.endBranchSize !== undefined ? 1 : 0,
+    endReducer:
+      i.endBranchSize !== undefined && i.mainSize !== undefined && i.endBranchSize !== i.mainSize
+        ? i.endBranchSize
+        : null,
     tankFillElbows: i.hasTankFill ? i.tankFillElbows : 0,
     branchElbows: i.branchesBySize.map((b) => ({
       size: b.size,
@@ -793,7 +809,7 @@ export const ENG_708: RuleVersion<HouseSupplyFittingInput, HouseSupplyFittingRes
     faucetElbows: i.outletCount * i.faucetElbowsPerOutlet,
   }),
   sourceReference:
-    'Perkiraan kebiasaan pemasangan rumah tanpa denah: elbow pipa utama, elbow pengisi toren, elbow per cabang, elbow dan faucet elbow per titik air (asumsi FITTING_*)',
+    'Perkiraan kebiasaan pemasangan rumah tanpa denah: elbow pipa utama, elbow (+ reducer) di ujung pipa utama, elbow pengisi toren, elbow per cabang, elbow dan faucet elbow per titik air (asumsi FITTING_*)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -814,6 +830,8 @@ export const ENG_708: RuleVersion<HouseSupplyFittingInput, HouseSupplyFittingRes
       },
       expected: {
         mainElbows: 2,
+        endElbows: 0,
+        endReducer: null,
         tankFillElbows: 2,
         branchElbows: [
           { size: '1"', count: 1 },
@@ -827,8 +845,8 @@ export const ENG_708: RuleVersion<HouseSupplyFittingInput, HouseSupplyFittingRes
   ],
   explain: (i, o, locale) =>
     localized(locale, {
-      id: `Fitting air bersih diperkirakan dari jumlah jalur: pipa utama ${o.mainElbows} elbow${i.hasTankFill ? `, pengisi toren ${o.tankFillElbows} elbow` : ''}, ${i.elbowsPerBranch} elbow per cabang, dan tiap titik air ${i.elbowsPerOutlet} elbow + ${i.faucetElbowsPerOutlet} faucet elbow (${i.outletCount} titik). Perkiraan sampai denahnya ada.`,
-      en: `Clean-water fittings are estimated from the number of runs: main ${o.mainElbows} elbows${i.hasTankFill ? `, tank fill ${o.tankFillElbows} elbows` : ''}, ${i.elbowsPerBranch} elbow per branch, and per outlet ${i.elbowsPerOutlet} elbow + ${i.faucetElbowsPerOutlet} faucet elbow (${i.outletCount} outlets). An estimate until the floor plan is known.`,
+      id: `Fitting air bersih diperkirakan dari jumlah jalur: pipa utama ${o.mainElbows} elbow${o.endElbows > 0 ? ` + ${o.endElbows} elbow di ujungnya${o.endReducer ? ` dengan reducer ke ${o.endReducer}` : ''}` : ''}${i.hasTankFill ? `, pengisi toren ${o.tankFillElbows} elbow` : ''}, ${i.elbowsPerBranch} elbow per cabang, dan tiap titik air ${i.elbowsPerOutlet} elbow + ${i.faucetElbowsPerOutlet} faucet elbow (${i.outletCount} titik). Perkiraan sampai denahnya ada.`,
+      en: `Clean-water fittings are estimated from the number of runs: main ${o.mainElbows} elbows${o.endElbows > 0 ? ` + ${o.endElbows} elbow at its end${o.endReducer ? ` with a reducer to ${o.endReducer}` : ''}` : ''}${i.hasTankFill ? `, tank fill ${o.tankFillElbows} elbows` : ''}, ${i.elbowsPerBranch} elbow per branch, and per outlet ${i.elbowsPerOutlet} elbow + ${i.faucetElbowsPerOutlet} faucet elbow (${i.outletCount} outlets). An estimate until the floor plan is known.`,
     }),
 };
 

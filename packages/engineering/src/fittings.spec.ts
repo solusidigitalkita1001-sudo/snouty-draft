@@ -18,10 +18,14 @@ const HOUSE: SolutionInput = {
 };
 
 describe('fitting air bersih (ENG-708)', () => {
-  it('rumah contoh: 2 elbow utama, 2 pengisi toren, 1 per cabang, 11 elbow + 11 faucet elbow', () => {
+  it('rumah contoh: 2 elbow utama + 1 di ujung, 2 pengisi toren, 1 per cabang, 11 elbow + 11 faucet elbow', () => {
     const r = computeSolution(HOUSE);
+    // Toren atap mengalir dari atas: ujung pipa utama di cabang dapur lantai 1 (1/2") → elbow + reducer.
+    expect(r.mainEndBranchSize).toBe('1/2"');
     expect(r.fittings).toEqual({
       mainElbows: 2,
+      endElbows: 1,
+      endReducer: '1/2"',
       tankFillElbows: 2,
       branchElbows: [
         { size: '1"', count: 1 },
@@ -48,6 +52,15 @@ describe('fitting air bersih (ENG-708)', () => {
   it('nilai asumsi bisa diganti pengguna', () => {
     const r = computeSolution(HOUSE, 'id', { FITTING_BRANCH_ELBOW_1: 2 });
     expect(r.fittings.branchElbows.map((b) => b.count)).toEqual([2, 2, 4]);
+  });
+});
+
+describe('ujung pipa utama (ENG-704 v2, review laporan 0015)', () => {
+  it('PDAM naik dari bawah: ujungnya cabang lantai teratas', () => {
+    const r = computeSolution({ ...HOUSE, waterSource: 'municipal', bathrooms: 2, basins: 1 });
+    const top = r.branchGroups.find((g) => g.branches.some((b) => b.floor === 2))!;
+    expect(r.mainEndBranchSize).toBe(top.size);
+    expect(r.branchLayout!.teeCount).toBe(r.branchCount - 1);
   });
 });
 

@@ -1507,8 +1507,10 @@ pemasangan"; tebal dinding resmi per kelas menunggu tabel Pralon (OQ-64).
       kini "→ 4", kloset minimal 4""); ukuran bangunan/tanah dan tinggi lantai tampil di Kebutuhan tercatat dengan
       statusnya; kamar mandi ditulis "2 ruang (4 titik: shower + kloset)" (toilet umum: kloset + keran); jumlah produk
       di ringkasan hanya produk yang punya jumlah di BOQ
-- [ ] P19-03 Perhitungan teknis: cek kurva/tabel Hunter dan interpolasinya; ujung riser teratas elbow/reducer
-      bukan tee. Tebal dinding resmi per kelas → OQ-64 (menunggu tabel Pralon)
+- [x] P19-03 Perhitungan teknis: kurva Hunter diperiksa — sama dengan IPC 2021 Tabel E103.3(3) (7,9 WSFU → 12,7 gpm
+      = 0,80 l/s; angka 6,5 gpm di review adalah nilai 3 WSFU), total dan cabang memakai kurva yang sama; tidak
+      diubah tanpa sumber → OQ-65. Ujung pipa utama memakai elbow (+ reducer), bukan tee: ENG-704 v2 (tee = cabang
+      − 1), ENG-708 v2, BOQ, dan skema (EL-n). Tebal dinding resmi per kelas → OQ-64 (menunggu tabel Pralon)
 - [ ] P19-04 BOQ: baris sok/stop kran/dop/lem "dihitung saat pemasangan"; sisa potong 10% di Dasar Perhitungan;
       ventilasi air kotor di seksinya sendiri; struktur subjudul seragam
 - [ ] P19-05 Layout PDF: label terpotong, "PDAM PDAM", judul yatim (keep-with-next)

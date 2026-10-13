@@ -16,6 +16,8 @@ export interface FittingNeed {
   readonly system: BomSystem;
   readonly kind: FittingKind;
   readonly size: string;
+  /** Sisi kedua fitting reduksi (reducer pipa utama → cabang). */
+  readonly branchSize?: string;
   readonly quantity: number;
   readonly purpose: Text;
   /** Cara hitung dan hitungannya — kolom tabel dasar perhitungan. */
@@ -30,6 +32,7 @@ const ITEM: Readonly<Partial<Record<FittingKind, Text>>> = {
   faucet_elbow: { id: 'Faucet elbow', en: 'Faucet elbow' },
   branch_y: { id: 'Y-branch', en: 'Y-branch' },
   clean_out: { id: 'Clean out', en: 'Clean-out' },
+  reducer: { id: 'Reducer cabang', en: 'Branch reducer' },
 };
 
 /** Fitting air bersih dari ENG-708. */
@@ -47,6 +50,35 @@ export function supplyFittingNeeds(solution: SolutionResult): readonly FittingNe
       ruleId: 'ENG-708',
     },
   ];
+  // Ujung pipa utama: elbow ke cabang terakhir, dengan reducer bila cabangnya lebih kecil (v2).
+  if (f.endElbows > 0) {
+    needs.push({
+      system: 'clean_water',
+      kind: 'elbow',
+      size: solution.mainSize,
+      quantity: f.endElbows,
+      purpose: { id: 'Elbow ujung pipa utama', en: 'Main end elbow' },
+      method: { id: 'Elbow di ujung pipa utama', en: 'Elbow at the end of the main' },
+      working: { id: '1 per pipa utama', en: '1 per main' },
+      ruleId: 'ENG-708',
+    });
+  }
+  if (f.endReducer !== null) {
+    needs.push({
+      system: 'clean_water',
+      kind: 'reducer',
+      size: solution.mainSize,
+      branchSize: f.endReducer,
+      quantity: 1,
+      purpose: { id: 'Reducer ujung pipa utama', en: 'Main end reducer' },
+      method: {
+        id: `Pipa utama ${solution.mainSize} ke cabang terakhir ${f.endReducer}`,
+        en: `Main ${solution.mainSize} to the last branch ${f.endReducer}`,
+      },
+      working: { id: '1 per pipa utama', en: '1 per main' },
+      ruleId: 'ENG-708',
+    });
+  }
   if (solution.tankFill !== null && f.tankFillElbows > 0) {
     needs.push({
       system: 'clean_water',
@@ -156,8 +188,8 @@ export function drainFittingNeeds(drainage: HouseDrainageResult): readonly Fitti
 }
 
 /** Kunci produk per jenis dan ukuran (dipakai pemanggil untuk mencocokkan katalog sekali saja). */
-export function fittingKey(need: Pick<FittingNeed, 'kind' | 'size'>): string {
-  return `${need.kind}|${need.size}`;
+export function fittingKey(need: Pick<FittingNeed, 'kind' | 'size' | 'branchSize'>): string {
+  return `${need.kind}|${need.size}|${need.branchSize ?? ''}`;
 }
 
 export function fittingBomRows(
@@ -175,7 +207,7 @@ export function fittingBomRows(
       item: text(ITEM[need.kind] ?? { id: 'Fitting', en: 'Fitting' }),
       system: need.system,
       purpose: text(need.purpose),
-      size: need.size,
+      size: need.branchSize ? `${need.size} × ${need.branchSize}` : need.size,
       ...(productId !== undefined ? { productId } : {}),
       quantity: need.quantity,
       unit: 'pcs',
