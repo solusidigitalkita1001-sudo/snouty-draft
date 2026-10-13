@@ -61,9 +61,12 @@ bukan jalan keluar ketika sistem tidak mau menghitung.
 - **Jawaban pengetahuan**: fakta bersumber (`data/knowledge/pipe-facts.json`, dari Knowledge Master
   HRGA + katalog) dirangkai deterministik; saklar **Hemat | Kualitas** — hemat menampilkan DATA
   langsung (±0,1 s), kualitas membiarkan model merangkai ulang DATA itu (angka dijaga pagar).
-- **Layar solusi**: ringkasan, baris sistem dengan langkah hitung yang bisa dibaca, material dari
-  panjang jalur × panjang batang katalog, asumsi yang bisa diubah lalu dihitung ulang, skema
-  (rumah: per lantai; kasus teknis: rel aliran), laporan PDF.
+- **Layar solusi v2 (13 Okt, DD-01)**: ringkasan bergambar (gambar bangunan, kartu kebutuhan per
+  lantai, alur air); tab Produk bergambar (foto pralon.com untuk AW/VP/Jacking, gambar jenis untuk
+  lainnya) yang diturunkan dari BOQ; Estimasi Material = BOQ per sistem (air bersih/air kotor/air
+  bekas) + tabel dasar perhitungan + tabel asumsi berkategori yang bisa diubah; tab Denah = potongan
+  instalasi + denah jalur per lantai + "Coba ubah" (skenario dihitung ulang engine, tanpa simpan);
+  kartu pertanyaan bergambar; laporan PDF dengan struktur yang sama.
 - **Akun**: tamu + akun terdaftar (wajib nomor HP sejak 12 Okt), laporan PDF untuk akun terdaftar.
 - **Audit 9–12 Oktober**: diameter dalam dari OD resmi (bukan nominal), presisi rantai hitung, zona
   tekanan dari elevasi, BOM tanpa angka karangan, pagar keluaran model atas penanda teknis
@@ -92,6 +95,9 @@ bukan jalan keluar ketika sistem tidak mau menghitung.
 - Pertanyaan pengguna tidak di-hardcode (2026-10-07).
 - Laporan PDF tersedia untuk akun terdaftar.
 - Nomor HP wajib saat daftar (2026-10-12).
+- Layar solusi & laporan v2 (2026-10-13, `design-input/DESIGN_DECISIONS.md` DD-01): BOQ tanpa harga,
+  ilustrasi digambar khusus untuk semua kasus dan pilihan, ringkasan maksimal 2 kalimat, label versi
+  internal tidak dicetak ("Data produk per …"). Keputusan pemilik diajukan sebagai pilihan.
 
 ## 7. Pertanyaan terbuka yang paling menentukan arah
 
@@ -102,7 +108,10 @@ Rincian dan pilihan di `TOPIK_BRAINSTORM.md`; daftar lengkap di `docs/OPEN_QUEST
 - **Data resmi yang belum ada**: tabel tebal dinding per kelas, tekanan kerja resmi AW/D/PN, TDS
   solvent cement, tabel ketahanan kimia, umur pakai, kode produk pelanggan (OQ-54, OQ-55).
 - **Model**: tetap CPU lokal, GPU, atau berbayar per giliran.
-- **Denah**: pengguna sudah bisa melampirkan denah, tetapi sistem belum membacanya (OQ-56).
+- **Denah**: pengguna sudah bisa melampirkan denah, tetapi sistem belum membacanya (OQ-56). Denah
+  yang digambar SNOUTY (13 Okt) skematik: alat berurutan di cabangnya, letak ruang tidak dikarang.
+- **Foto produk**: foto PVC D/VU dan per jenis fitting diminta ke tim Pralon (OQ-62); fitting
+  (elbow, sok, Y, clean out) belum dihitung jumlahnya — "dihitung saat pemasangan".
 - **Kebutuhan air per jenis gedung** (kantor/hotel/rumah sakit) masih satu nilai untuk semua.
 - **Lanjutan produk**: email/market intelligence, back-office, nomor HP ke tim teknis saat handoff.
 

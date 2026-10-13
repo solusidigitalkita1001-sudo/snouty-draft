@@ -59,8 +59,12 @@ flowchart LR
   E --> T[Trace per aturan:<br/>masukan, keluaran, penjelasan]
   E --> MT[Matcher katalog per peran<br/>pipa utama · riser · cabang · fitting]
   MT --> B[Material: panjang bersih ÷<br/>panjang batang produk terpilih]
-  T --> VW[Layar solusi · skema · laporan PDF]
-  B --> VW
+  T --> VW[Layar solusi · denah · laporan PDF]
+  B --> BOQ[boqFrom: BOQ per sistem<br/>= tab Produk = PDF]
+  BOQ --> VW
+  E --> ND[needs: kebutuhan bergambar<br/>+ cabang per lantai]
+  ND --> VW
+  E --> SC[/scenarios: Coba ubah<br/>hitung ulang, tanpa simpan/]
 ```
 
 Durasi per tahap dicatat di log (`analisis`): engine ±3 ms, katalog ±31 ms, penyusunan ±13 ms.
@@ -81,6 +85,10 @@ flowchart LR
 ```
 
 Lint menggagalkan build bila `engineering` menyentuh `ai`/I/O atau `policy` bergantung ke modul lain.
+
+`packages/ui` (13 Okt) bukan lagi hanya token: ilustrasi (sprite SVG dari mockup DD-01), pemilih
+gambar kebutuhan dan produk, serta gambar denah dibangun ke `dist` supaya web dan laporan PDF di API
+memakai kode yang sama; `shared-types` memuat `boqFrom`.
 
 ## 6. State percakapan
 
