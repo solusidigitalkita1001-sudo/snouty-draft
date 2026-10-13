@@ -48,6 +48,19 @@ export const TOKEN_GROUPS: readonly TokenGroup[] = [
     ],
   },
   {
+    title: 'Gambar produk',
+    rule: 'Warna benda di gambar jenis produk (pipa putih AW, abu D dan fitting) — bagian dari gambar, tanpa padanan gelap.',
+    kind: 'color',
+    tokens: [
+      { name: 'snouty-product-white', use: 'badan pipa putih' },
+      { name: 'snouty-product-white-line', use: 'garis pipa putih' },
+      { name: 'snouty-product-white-label', use: 'tulisan di pipa putih' },
+      { name: 'snouty-product-grey', use: 'badan pipa/fitting abu' },
+      { name: 'snouty-product-grey-line', use: 'garis pipa/fitting abu' },
+      { name: 'snouty-product-grey-label', use: 'tulisan di pipa abu' },
+    ],
+  },
+  {
     title: 'Mascot',
     rule: 'Warna seni mascot — bagian dari gambar, bukan antarmuka, jadi tanpa padanan gelap.',
     kind: 'color',

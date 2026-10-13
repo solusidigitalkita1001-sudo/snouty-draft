@@ -27,8 +27,16 @@ const PHOTO_BY_FAMILY: Readonly<Record<string, string>> = {
 };
 
 /** Warna benda (pipa putih, pipa/fitting abu) — warna produknya, bukan warna tema. */
-const WHITE: ProductColors = { body: '#f4f6f6', line: '#8e999c', text: '#6b7376' };
-const GREY: ProductColors = { body: '#a9b1b4', line: '#7c868a', text: '#ffffff' };
+const WHITE: ProductColors = {
+  body: 'var(--snouty-product-white)',
+  line: 'var(--snouty-product-white-line)',
+  text: 'var(--snouty-product-white-label)',
+};
+const GREY: ProductColors = {
+  body: 'var(--snouty-product-grey)',
+  line: 'var(--snouty-product-grey-line)',
+  text: 'var(--snouty-product-grey-label)',
+};
 const WHITE_PIPE_FAMILIES = new Set(['PVC AW']);
 
 /**

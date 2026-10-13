@@ -35,6 +35,18 @@
   --snouty-pipe-light: #f4b0a3;
   --snouty-pipe-fixture: #aeb6b7;
 
+  /* ── Gambar produk (P17-06) ────────────────────────────────────────────── */
+  /*
+   * Warna benda di gambar jenis produk: pipa PVC putih (AW) dan abu (D, fitting). Warna produknya
+   * sendiri, bukan warna antarmuka — sengaja tanpa padanan gelap, seperti warna mascot.
+   */
+  --snouty-product-white: #f4f6f6;
+  --snouty-product-white-line: #8e999c;
+  --snouty-product-white-label: #6b7376;
+  --snouty-product-grey: #a9b1b4;
+  --snouty-product-grey-line: #7c868a;
+  --snouty-product-grey-label: #ffffff;
+
   /* ── Mascot ────────────────────────────────────────────────────────────── */
   /*
    * Warna seni mascot (garis, kertas, air, pipi) dari prototipe. Sengaja tidak punya

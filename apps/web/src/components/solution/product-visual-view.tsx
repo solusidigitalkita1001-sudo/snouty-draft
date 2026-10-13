@@ -13,7 +13,7 @@ export function ProductVisualView({
   className?: string | undefined;
 }) {
   if (visual.kind === 'photo') {
-    // eslint-disable-next-line @next/next/no-img-element -- foto statis kecil dari /public, tanpa optimasi
+    // Foto statis kecil dari /public: <img> biasa, tanpa optimasi gambar Next.
     return <img src={visual.src} alt={label} className={className} loading="lazy" />;
   }
   return (

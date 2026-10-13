@@ -1,5 +1,5 @@
 // Membuat packages/ui/src/illustrations.ts dari simbol SVG di mockup DD-01.
-const fs = require('fs');
+import fs from 'node:fs';
 const [mockup, out] = process.argv.slice(2);
 const html = fs.readFileSync(mockup, 'utf8');
 const symbols = [
@@ -91,7 +91,7 @@ const ts = `/**
  *
  * DIBUAT OTOMATIS dari mockup yang disetujui pemilik
  * (\`design-input/mockups/2026-10-13-solusi-laporan-v2.html\`) — ubah gambarnya di sana lalu jalankan
- * \`node scripts/gen-illustrations.cjs <mockup> packages/ui/src/illustrations.ts\`; jangan sunting
+ * \`node scripts/gen-illustrations.mjs <mockup> packages/ui/src/illustrations.ts\`; jangan sunting
  * string di bawah dengan tangan.
  *
  * Satu sprite SVG untuk web dan laporan: simbol \`il-<nama>\` dipakai lewat \`<use href>\`.
@@ -132,4 +132,4 @@ export function productHref(name: ProductIllustration): string {
 }
 `;
 fs.writeFileSync(out, ts);
-console.log(`scenes ${scenes.length}, products ${products.length}, bytes ${ts.length}`);
+process.stdout.write(`scenes ${scenes.length}, products ${products.length}, bytes ${ts.length}\n`);
