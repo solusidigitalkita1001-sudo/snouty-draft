@@ -36,6 +36,15 @@ export function mergeBomBySku(items: readonly BomItem[]): readonly BomItem[] {
         ? { netLengthM: Math.round((prev.netLengthM + item.netLengthM) * 10) / 10 }
         : {}),
       quantity: prev.quantity + item.quantity,
+      ...(prev.calc !== undefined && item.calc !== undefined
+        ? {
+            calc: {
+              method: `${prev.calc.method} · ${item.calc.method}`,
+              working: `${prev.calc.working} · ${item.calc.working}`,
+              result: `${prev.quantity + item.quantity} ${prev.unit}`,
+            },
+          }
+        : {}),
       basis: `${prev.basis} ${item.basis}`.trim(),
       provenance: weaker(prev.provenance, item.provenance),
       traceIds: [...new Set([...prev.traceIds, ...item.traceIds])],

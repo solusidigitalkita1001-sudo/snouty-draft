@@ -9,7 +9,7 @@
  */
 
 import type { Provenance } from './provenance.js';
-import type { BomItem, BomSystem, SelectedProduct } from './recommendation.js';
+import type { BomCalc, BomItem, BomSystem, SelectedProduct } from './recommendation.js';
 
 export interface BoqRow {
   /** Nomor baris BOQ; `null` untuk baris yang jumlahnya belum bisa dihitung. */
@@ -26,8 +26,9 @@ export interface BoqRow {
   readonly quantity: number | null;
   readonly unit: string | null;
   readonly netLengthM?: number;
-  /** Teks dasar perhitungan dari trace — tabel "Dasar perhitungan", bukan kolom BOQ. */
+  /** Teks dasar perhitungan dari trace — dipakai bila `calc` tidak ada (rekomendasi lama). */
   readonly basis?: string;
+  readonly calc?: BomCalc;
   readonly provenance?: Provenance;
   /** Produk terpilih yang jumlahnya belum bisa dihitung. */
   readonly pending?: true;
@@ -94,6 +95,7 @@ export function boqFrom(recommendation: {
       unit: item.unit,
       ...(item.netLengthM !== undefined ? { netLengthM: item.netLengthM } : {}),
       basis: item.basis,
+      ...(item.calc !== undefined ? { calc: item.calc } : {}),
       provenance: item.provenance,
     };
   });

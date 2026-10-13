@@ -120,6 +120,19 @@ export function skuLines(recommendation: {
 
 export type BomUnit = 'batang' | 'pcs' | 'kaleng' | 'meter';
 
+/**
+ * Dasar perhitungan satu baris BOQ, dari kode yang menghitungnya (bukan dipecah dari kalimat):
+ * dari mana panjang/jumlahnya, hitungannya, dan hasilnya.
+ */
+export interface BomCalc {
+  /** "Panjang + lebar bangunan dan beda tinggi ke titik air tertinggi". */
+  readonly method: string;
+  /** "25,5 m ÷ 4 m = 6,38". */
+  readonly working: string;
+  /** "7 batang". */
+  readonly result: string;
+}
+
 /** Statistik layar 06 untuk solusi IRIGASI (OQ-47) — menggantikan lima statistik bangunan. */
 export interface IrrigationStats {
   readonly areaHa: number;
@@ -149,6 +162,8 @@ export interface BomItem {
   readonly purpose?: string;
   /** Panjang bersih pipa sebelum dibulatkan ke batang — kolom Keterangan BOQ. */
   readonly netLengthM?: number;
+  /** Hitungan baris ini dalam tiga bagian — tabel "Dasar perhitungan" (DD-01 #9). */
+  readonly calc?: BomCalc;
   /** Hanya bila `PRICING_ENABLED` (OQ-03). */
   readonly unitPrice?: number;
   readonly subtotal?: number;

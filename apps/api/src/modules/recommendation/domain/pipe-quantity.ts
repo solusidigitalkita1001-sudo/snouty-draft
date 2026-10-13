@@ -7,7 +7,7 @@
  * Tidak ada tambahan potongan atau cadangan kecuali dikonfigurasi — tidak ada yang dikonfigurasi.
  */
 
-import { specHasValue, type Locale, type Product } from '@snouty/shared-types';
+import { specHasValue, type BomCalc, type Locale, type Product } from '@snouty/shared-types';
 
 export interface StockLength {
   readonly meters: number;
@@ -43,7 +43,11 @@ export interface PipePurchase {
   readonly quantity: number;
   readonly unit: 'batang' | 'meter';
   readonly basis: string;
+  readonly calc: BomCalc;
 }
+
+/** "jalur air kotor" → "Jalur air kotor": `detail` dipakai di tengah kalimat dan di awal sel. */
+const capitalised = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 const num = (n: number, locale: Locale) =>
   n.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
@@ -62,10 +66,16 @@ export function pipePurchase(
   const net = en
     ? `Net length ${num(netLengthM, locale)} m (${detail})`
     : `Panjang bersih ${num(netLengthM, locale)} m (${detail})`;
+  const method = capitalised(detail);
   if (stock === null) {
     return {
       quantity: Math.ceil(netLengthM),
       unit: 'meter',
+      calc: {
+        method,
+        working: `${num(netLengthM, locale)} m`,
+        result: `${Math.ceil(netLengthM)} m`,
+      },
       basis: en
         ? `${net}. The pipe length per piece is not in the catalogue for this product, so the quantity is in metres.`
         : `${net}. Panjang per batang produk ini belum tercatat di katalog, jadi jumlahnya dalam meter.`,
@@ -76,6 +86,13 @@ export function pipePurchase(
       ...(stock.productId !== undefined ? { productId: stock.productId } : {}),
       quantity: Math.ceil(netLengthM),
       unit: 'meter',
+      calc: {
+        method,
+        working: en
+          ? `${num(netLengthM, locale)} m from ${num(stock.meters, locale)} m coils`
+          : `${num(netLengthM, locale)} m dari gulungan ${num(stock.meters, locale)} m`,
+        result: `${Math.ceil(netLengthM)} m`,
+      },
       basis: en
         ? `${net}. ${stock.productName} is sold in ${num(stock.meters, locale)} m coils, so the quantity is in metres.`
         : `${net}. ${stock.productName} dijual per gulung ${num(stock.meters, locale)} m, jadi jumlahnya dalam meter.`,
@@ -87,6 +104,11 @@ export function pipePurchase(
     ...(stock.productId !== undefined ? { productId: stock.productId } : {}),
     quantity: rods,
     unit: 'batang',
+    calc: {
+      method,
+      working: `${num(netLengthM, locale)} m ÷ ${num(stock.meters, locale)} m = ${num(exact, locale)}`,
+      result: `${rods} ${en ? 'rods' : 'batang'}`,
+    },
     basis: en
       ? `${net} ÷ ${num(stock.meters, locale)} m per piece (${stock.productName}) = ${num(exact, locale)} → ${rods} pieces, rounded up to whole pieces; no cutting allowance added.`
       : `${net} ÷ ${num(stock.meters, locale)} m per batang (${stock.productName}) = ${num(exact, locale)} → ${rods} batang, dibulatkan ke batang utuh; belum termasuk sisa potongan.`,

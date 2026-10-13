@@ -359,6 +359,7 @@ export function bomItemsFrom(
       system: 'clean_water',
       purpose: en ? purpose.en : purpose.id,
       netLengthM: netM,
+      calc: purchase.calc,
       size,
       ...(purchase.productId ? { productId: purchase.productId } : {}),
       quantity: purchase.quantity,
@@ -460,6 +461,13 @@ export function bomItemsFrom(
     const basis = en
       ? `One per branch on the main line: ${branch.count} branches of ${branch.size}.`
       : `Satu per cabang di pipa utama: ${branch.count} cabang ${branch.size}.`;
+    const teeCalc = {
+      method: en ? 'One per branch on the main line' : 'Satu per cabang di pipa utama',
+      working: en
+        ? `${branch.count} branches of ${branch.size}`
+        : `${branch.count} cabang ${branch.size}`,
+      result: `${branch.count} pcs`,
+    };
     const fitRows: BomItem[] =
       fittings.length > 0
         ? fittings.map((f) => ({
@@ -471,6 +479,7 @@ export function bomItemsFrom(
             quantity: branch.count,
             unit: 'pcs',
             basis,
+            calc: teeCalc,
             provenance: provenanceFor(traces, layoutIds),
             traceIds: layoutIds,
           }))
@@ -486,6 +495,7 @@ export function bomItemsFrom(
               quantity: branch.count,
               unit: 'pcs',
               basis,
+              calc: teeCalc,
               provenance: provenanceFor(traces, layoutIds),
               traceIds: layoutIds,
             },

@@ -380,6 +380,12 @@
   padding-block: 5px;
 }
 
+.basisSubtitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 4px 0 0;
+}
+
 .boqProduct {
   display: block;
   font-size: 12px;

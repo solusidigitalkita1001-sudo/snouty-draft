@@ -1439,7 +1439,9 @@ Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
       BOQ), dikelompokkan per sistem; produk tanpa jumlah tetap jadi baris BOQ tanpa angka ("Menunggu ukuran
       bangunan" / "Dihitung saat pemasangan"); dasar perhitungan pindah ke tabel terpisah di bawah BOQ (bentuk
       sederhana; P17-02 merapikannya). Kolom Kelas belum ada — kelas ikut nama produk.
-- [ ] P17-02 Dasar perhitungan dipisah dari BOQ (tabel jumlah + tabel alasan ukuran)
+- [x] P17-02 Dasar perhitungan dipisah dari BOQ: tabel jumlah (No · Cara hitung · Hitungan · Hasil · Status) dari
+      `BomItem.calc` yang ditulis kode penghitungnya (bukan dipecah dari kalimat; baris lama memakai kalimat utuh) +
+      tabel alasan ukuran per jalur dari `systemLines`
 - [ ] P17-03 Tabel asumsi terklasifikasi (Bangunan · Isi ruangan · Sumber air · Panjang jalur · Teknik)
 - [ ] P17-04 Pustaka ilustrasi (SVG, terang/gelap) + Ringkasan bergambar dan alur air
 - [ ] P17-05 Kartu pertanyaan bergambar untuk semua pilihan

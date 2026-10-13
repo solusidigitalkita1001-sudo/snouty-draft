@@ -33,7 +33,17 @@ const RECOMMENDATION = {
     fixtureConnectionSize: '1/2"',
     productCount: 3,
   },
-  systemLines: [],
+  systemLines: [
+    {
+      name: 'Pipa utama',
+      path: 'Toren → rumah',
+      size: '1 1/4"',
+      reason: 'Debit 1,2 l/s pada 1,5 m/s.',
+      provenance: 'ASSUMED',
+      traceIds: [],
+      role: 'main',
+    },
+  ],
   products: [
     product('AW114', 'main', '1 1/4"', { name: 'Pipa AW 1 1/4"', purpose: 'Pipa utama' }),
     product('AW114', 'riser', '1 1/4"', { name: 'Pipa AW 1 1/4"', purpose: 'Riser' }),
@@ -49,6 +59,7 @@ const RECOMMENDATION = {
       quantity: 8,
       unit: 'batang',
       basis: 'Panjang bersih 28,5 m.',
+      calc: { method: 'Jalur utama', working: '28,5 m ÷ 4 m = 7,13', result: '8 batang' },
       provenance: 'ASSUMED',
       traceIds: [],
     },
@@ -101,9 +112,21 @@ describe('SolutionView — satu daftar SKU', () => {
   it('P17-01: BOQ bernomor dengan total per satuan; dasar perhitungan di tabel terpisah', () => {
     render(<SolutionView recommendation={RECOMMENDATION} tab="material" />);
     const tables = document.querySelectorAll('table');
-    expect(tables).toHaveLength(2);
+    expect(tables).toHaveLength(3);
     expect(tables[0]!.textContent).toContain('Total');
     expect(tables[0]!.textContent).not.toContain('Panjang bersih');
-    expect(tables[1]!.textContent).toContain('Panjang bersih 28,5 m.');
+    expect(tables[1]!.textContent).toContain('28,5 m ÷ 4 m = 7,13');
+  });
+  it('P17-02: dasar perhitungan dipecah Cara hitung · Hitungan · Hasil; baris lama memakai kalimatnya; ukuran pipa punya tabel sendiri', () => {
+    render(<SolutionView recommendation={RECOMMENDATION} tab="material" />);
+    const [, quantities, sizes] = document.querySelectorAll('table');
+    const first = quantities!.querySelectorAll('tbody tr')[0]!;
+    expect([...first.querySelectorAll('td')].slice(1, 4).map((td) => td.textContent)).toEqual([
+      'Jalur utama',
+      '28,5 m ÷ 4 m = 7,13',
+      '8 batang',
+    ]);
+    expect(quantities!.textContent).toContain('Panjang bersih 8 m.');
+    expect(sizes!.textContent).toContain('Debit 1,2 l/s pada 1,5 m/s.');
   });
 });

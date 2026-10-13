@@ -62,3 +62,26 @@ describe('BOM gedung', () => {
     expect(bom[0]!.basis).toContain('jalur datar belum disebut');
   });
 });
+
+describe('pipePurchase — dasar perhitungan terstruktur (P17-02)', () => {
+  it('batang: cara hitung, hitungan, hasil terpisah', () => {
+    const p = pipePurchase(25.5, 'panjang + lebar bangunan', { meters: 4, productName: 'x' }, 'id');
+    expect(p.calc).toEqual({
+      method: 'Panjang + lebar bangunan',
+      working: '25,5 m ÷ 4 m = 6,38',
+      result: '7 batang',
+    });
+  });
+
+  it('gulungan dan tanpa panjang batang: hasil dalam meter', () => {
+    expect(pipePurchase(120, 'jalur', { meters: 100, productName: 'x' }, 'id').calc).toMatchObject({
+      working: '120 m dari gulungan 100 m',
+      result: '120 m',
+    });
+    expect(pipePurchase(12.4, 'jalur', null, 'en').calc).toEqual({
+      method: 'Jalur',
+      working: '12.4 m',
+      result: '13 m',
+    });
+  });
+});

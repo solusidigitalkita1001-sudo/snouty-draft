@@ -96,6 +96,7 @@ export type {
   CalculationStep,
   SystemRole,
   BomSystem,
+  BomCalc,
 } from './recommendation.js';
 export { skuLines } from './recommendation.js';
 export { boqFrom } from './boq.js';

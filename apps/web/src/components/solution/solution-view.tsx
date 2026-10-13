@@ -18,6 +18,7 @@ import {
   type ComposedResponse,
   type Recommendation,
   type SelectedProduct,
+  type SystemLine,
 } from '@snouty/shared-types';
 import { useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
@@ -211,7 +212,9 @@ export function SolutionView({
         <CompositionOptions composition={recommendation.composition} />
       )}
 
-      {on('material') && boq.sections.length > 0 && <BoqTables boq={boq} />}
+      {on('material') && boq.sections.length > 0 && (
+        <BoqTables boq={boq} lines={recommendation.systemLines} />
+      )}
 
       {on('material') && recommendation.assumptions.length > 0 && (
         <section className={styles.card}>
@@ -455,7 +458,7 @@ function formatMeters(value: number, locale: string): string {
  * BOQ per sistem lalu pipa / fitting (DD-01 #8) dan dasar perhitungan di tabel terpisah di
  * bawahnya (DD-01 #9). Baris tanpa jumlah tetap tampil dengan keterangannya.
  */
-function BoqTables({ boq }: { boq: Boq }) {
+function BoqTables({ boq, lines }: { boq: Boq; lines: readonly SystemLine[] }) {
   const COPY = useSolutionCopy();
   const { locale } = useLocale();
   const counted = boq.sections.flatMap((s) => s.rows).filter((r) => r.no !== null);
@@ -524,34 +527,76 @@ function BoqTables({ boq }: { boq: Boq }) {
         </div>
       </section>
 
-      {counted.some((r) => r.basis) && (
+      {(counted.some((r) => r.calc || r.basis) || lines.length > 0) && (
         <section className={styles.card}>
           <h3 className={styles.cardTitle}>{COPY.boq.basisTitle}</h3>
-          <div className={styles.tableWrap}>
-            <table className={styles.boqTable}>
-              <thead>
-                <tr>
-                  <th className={styles.num}>{COPY.boq.basisColumns.no}</th>
-                  <th>{COPY.boq.basisColumns.basis}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {counted
-                  .filter((r) => r.basis)
-                  .map((row) => (
-                    <tr key={row.no}>
-                      <td className={styles.num}>{row.no}</td>
-                      <td>
-                        <span className={styles.bomBasis}>
-                          {row.basis}
-                          {row.provenance && <ProvenanceTag provenance={row.provenance} />}
-                        </span>
-                      </td>
+          {counted.some((r) => r.calc || r.basis) && (
+            <>
+              <h4 className={styles.basisSubtitle}>{COPY.boq.basisQuantityTitle}</h4>
+              <div className={styles.tableWrap}>
+                <table className={styles.boqTable}>
+                  <thead>
+                    <tr>
+                      <th className={styles.num}>{COPY.boq.basisColumns.no}</th>
+                      <th>{COPY.boq.basisColumns.method}</th>
+                      <th>{COPY.boq.basisColumns.working}</th>
+                      <th className={styles.num}>{COPY.boq.basisColumns.result}</th>
+                      <th>{COPY.boq.basisColumns.status}</th>
                     </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody>
+                    {counted
+                      .filter((r) => r.calc || r.basis)
+                      .map((row) => (
+                        <tr key={row.no}>
+                          <td className={styles.num}>{row.no}</td>
+                          {/* Rekomendasi lama tidak punya `calc`: kalimat dasarnya utuh di satu sel. */}
+                          {row.calc ? (
+                            <>
+                              <td>{row.calc.method}</td>
+                              <td className={styles.mono}>{row.calc.working}</td>
+                              <td className={styles.num}>{row.calc.result}</td>
+                            </>
+                          ) : (
+                            <td colSpan={3}>{row.basis}</td>
+                          )}
+                          <td>{row.provenance && <ProvenanceTag provenance={row.provenance} />}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+          {lines.length > 0 && (
+            <>
+              <h4 className={styles.basisSubtitle}>{COPY.boq.basisSizeTitle}</h4>
+              <div className={styles.tableWrap}>
+                <table className={styles.boqTable}>
+                  <thead>
+                    <tr>
+                      <th>{COPY.boq.basisColumns.line}</th>
+                      <th>{COPY.boq.basisColumns.size}</th>
+                      <th>{COPY.boq.basisColumns.reason}</th>
+                      <th>{COPY.boq.basisColumns.status}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lines.map((line) => (
+                      <tr key={line.name}>
+                        <td>{line.name}</td>
+                        <td className={styles.mono}>{line.size}</td>
+                        <td>{line.reason}</td>
+                        <td>
+                          <ProvenanceTag provenance={line.provenance} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </section>
       )}
     </>
