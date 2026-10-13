@@ -76,6 +76,9 @@ export interface SelectedProduct {
   readonly purpose?: string;
   /** Sistem tempat produk ini dipakai (DD-01); rekomendasi lama tidak punya. */
   readonly system?: BomSystem;
+  /** Keluarga dan kategori katalog ("PVC AW", "FITTING · TEE") — gambar kartu produk (P17-06). */
+  readonly family?: string;
+  readonly category?: string;
 }
 
 /**

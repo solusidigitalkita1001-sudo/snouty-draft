@@ -1455,8 +1455,11 @@ Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
       pemakaian, buangan air hujan, beban jalan, tanah) tampil sebagai ubin bergambar; peta = data (id pertanyaan +
       nilai protokol), dites cocok penuh dengan registry. Pilihan angka dan ya/tidak tetap chip teks. Bahan pipa
       menunggu gambar produk (P17-06)
-- [ ] P17-06 Foto produk dari pralon.com (disimpan lokal, dipetakan ke keluarga katalog). Foto diambil 2026-10-13
-      (`data/catalog/images-pralon-com/`); foto D/VU/fitting diminta ke Pralon → OQ-62
+- [x] P17-06 Gambar kartu produk: foto pralon.com (disimpan di `apps/web/public/products`, sumber
+      `data/catalog/images-pralon-com/`) untuk PVC AW, PVC VP, Pipa Jacking; keluarga lain gambar jenis SNOUTY dari
+      kategori katalog (tee/tee reduksi, elbow/bend, sok, dop, Y, clean out; pipa putih/abu); kategori tanpa gambar
+      jenis tidak diberi gambar. Produk terpilih membawa `family` + `category`. Sisa: foto D/VU/fitting dari Pralon
+      → OQ-62; tautan "Lihat di pralon.com" belum (kartu = tombol drawer)
 - [ ] P17-07 Denah: potongan instalasi + denah jalur per lantai
 - [ ] P17-08 "Coba ubah" bergambar di tab Denah (dihitung ulang engine)
 - [ ] P17-09 Laporan PDF mengikuti struktur v2

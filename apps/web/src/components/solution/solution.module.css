@@ -672,6 +672,26 @@
   box-shadow: var(--snouty-focus-ring);
 }
 
+.productImageBox {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  height: 104px;
+  margin: -13px -14px 2px;
+  padding: 8px;
+  background: var(--snouty-surface-subtle);
+  border-bottom: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  border-radius: 8px 8px 0 0;
+}
+
+.productImage {
+  max-width: 100%;
+  max-height: 88px;
+  width: auto;
+  height: 88px;
+  object-fit: contain;
+}
+
 .productGroup {
   display: flex;
   flex-direction: column;

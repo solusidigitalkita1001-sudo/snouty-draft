@@ -24,6 +24,8 @@ import { ASSUMPTION_CATEGORIES, assumptionCategory } from '@snouty/engineering';
 import { Fragment, useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { NeedsGrid, SummaryHero, WaterFlowCard } from './needs-board';
+import { productVisual } from './product-visual';
+import { ProductVisualView } from './product-visual-view';
 import { SchematicTab } from './schematic-tab';
 import { solutionCopy } from './solution-copy';
 import { useLocale } from '../locale';
@@ -460,8 +462,23 @@ function ProductCard({ product, onOpen }: { product: BoqProduct; onOpen: () => v
     ...new Set(product.selections.map((s) => s.purpose ?? COPY.roleLabel[s.role])),
   ].join(' · ');
   const sizes = [...new Set(product.selections.map((s) => s.size))].join(' · ');
+  const visual = productVisual({
+    ...(first.family !== undefined ? { family: first.family } : {}),
+    ...(first.category !== undefined ? { category: first.category } : {}),
+    size: first.size,
+    kind: product.kind,
+  });
   return (
     <button type="button" className={styles.productCard} onClick={onOpen}>
+      {visual && (
+        <div className={styles.productImageBox}>
+          <ProductVisualView
+            visual={visual}
+            label={product.name ?? purposes}
+            className={styles.productImage}
+          />
+        </div>
+      )}
       <div className={styles.productRole}>{purposes}</div>
       {product.name && <div className={styles.productName}>{product.name}</div>}
       <div className={styles.productSize}>{sizes}</div>
