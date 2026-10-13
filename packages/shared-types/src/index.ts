@@ -97,6 +97,7 @@ export type {
   SystemRole,
   BomSystem,
   BomCalc,
+  NeedBranch,
   NeedKind,
   SolutionNeed,
 } from './recommendation.js';

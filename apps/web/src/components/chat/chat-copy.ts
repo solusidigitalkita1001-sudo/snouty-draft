@@ -215,7 +215,7 @@ export const CHAT_COPY = {
   solutionTabs: [
     { id: 'ringkasan', label: 'Ringkasan' },
     { id: 'produk', label: 'Produk Pralon' },
-    { id: 'skema', label: 'Skema' },
+    { id: 'skema', label: 'Denah' },
     { id: 'material', label: 'Estimasi Material' },
   ] as const,
   /** Bolak-balik chat ↔ solusi — bukan dari prototipe (di sana lanjutan dirender di layar solusi); minimal. */
@@ -430,7 +430,7 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
   solutionTabs: [
     { id: 'ringkasan', label: 'Summary' },
     { id: 'produk', label: 'Pralon Products' },
-    { id: 'skema', label: 'Schematic' },
+    { id: 'skema', label: 'Layout' },
     { id: 'material', label: 'Material Estimate' },
   ],
   backToChat: '← Conversation',

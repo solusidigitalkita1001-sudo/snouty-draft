@@ -277,12 +277,28 @@ export interface SolutionNeed {
     readonly floorHeightM: number;
     readonly lengthM?: number;
     readonly widthM?: number;
+    /** Ukuran pipa utama air bersih — denah (P17-07). */
+    readonly mainSize?: string;
+    /** Cabang air bersih per lantai dengan isinya, dari engine (ENG-707) — denah (P17-07). */
+    readonly branches?: readonly NeedBranch[];
   };
   /** `booster_pump`: sisa tekanan di titik air tertinggi tanpa pompa. */
   readonly residualBar?: number;
-  /** `drainage`: ukuran jalur air kotor dan air bekas. */
+  /** `drainage`: ukuran jalur air kotor dan air bekas, dan ventilasinya. */
   readonly soilSize?: string;
   readonly wasteSize?: string;
+  readonly soilVentSize?: string;
+  readonly wasteVentSize?: string;
+}
+
+/** Satu cabang air bersih di satu lantai: ukurannya dan alat yang dilayaninya. */
+export interface NeedBranch {
+  readonly floor: number;
+  readonly size: string;
+  readonly bathrooms: number;
+  readonly basins: number;
+  readonly kitchens: number;
+  readonly urinals: number;
 }
 
 export interface Recommendation {

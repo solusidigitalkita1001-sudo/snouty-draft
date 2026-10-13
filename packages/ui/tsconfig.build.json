@@ -8,5 +8,10 @@
     "rootDir": "src",
     "noEmit": false
   },
-  "include": ["src/illustrations.ts", "src/needs-view.ts", "src/product-visual.ts"]
+  "include": [
+    "src/illustrations.ts",
+    "src/needs-view.ts",
+    "src/product-visual.ts",
+    "src/installation-drawing.ts"
+  ]
 }

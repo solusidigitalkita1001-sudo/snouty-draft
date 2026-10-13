@@ -23,6 +23,7 @@ import {
 import { ASSUMPTION_CATEGORIES, assumptionCategory } from '@snouty/engineering';
 import { Fragment, useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
+import { InstallationDrawingCard } from './installation-drawing-card';
 import { NeedsGrid, SummaryHero, WaterFlowCard } from './needs-board';
 import { productVisual } from '@snouty/ui/product-visual';
 import { ProductVisualView } from './product-visual-view';
@@ -72,6 +73,10 @@ export function SolutionView({
 
   return (
     <div className={styles.workspace}>
+      {on('skema') && tab !== undefined && needs.length > 0 && (
+        <InstallationDrawingCard needs={needs} />
+      )}
+
       {on('skema') && tab !== undefined && (
         <SchematicTab
           recommendationId={recommendation.id}

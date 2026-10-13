@@ -17,6 +17,10 @@
     "./product-visual": {
       "types": "./src/product-visual.ts",
       "default": "./dist/product-visual.js"
+    },
+    "./installation-drawing": {
+      "types": "./src/installation-drawing.ts",
+      "default": "./dist/installation-drawing.js"
     }
   },
   "scripts": {

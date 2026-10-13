@@ -30,6 +30,9 @@ export default defineConfig({
       '@snouty/ui/product-visual': fileURLToPath(
         new URL('../../packages/ui/src/product-visual.ts', import.meta.url),
       ),
+      '@snouty/ui/installation-drawing': fileURLToPath(
+        new URL('../../packages/ui/src/installation-drawing.ts', import.meta.url),
+      ),
     },
   },
   test: {

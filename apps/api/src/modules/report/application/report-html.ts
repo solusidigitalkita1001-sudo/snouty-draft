@@ -31,6 +31,8 @@ import {
   REPORT_V2_CSS,
   basisAssumptionsSection,
   boqSection,
+  drawingSection,
+  hasDrawing,
   payloadBoq,
   productsSection,
   summaryPictures,
@@ -405,6 +407,7 @@ function sections(p: ReportPayload, t: ReportCopy): string {
   const parts: ((n: number) => string)[] = [
     (n) => summarySection(p, t, n),
     ...(p.schematic ? [(n: number) => schematicSection(p, t, n)] : []),
+    ...(hasDrawing(p) ? [(n: number) => drawingSection(p, v, helpers, n)] : []),
     (n) =>
       boqSection(
         p,

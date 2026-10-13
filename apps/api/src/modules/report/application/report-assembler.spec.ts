@@ -621,3 +621,41 @@ describe('laporan v2 (DD-01, P17-09)', () => {
     expect(html).not.toContain('<img');
   });
 });
+
+describe('denah di laporan (P17-07)', () => {
+  const withBranches = renderReportHtml(
+    assembleReportPayload({
+      ...INPUT,
+      recommendation: {
+        ...RECOMMENDATION,
+        needs: [
+          {
+            kind: 'building',
+            count: 1,
+            building: {
+              type: 'residential',
+              floors: 1,
+              floorHeightM: 3.5,
+              mainSize: '3/4"',
+              branches: [
+                { floor: 1, size: '3/4"', bathrooms: 1, basins: 1, kitchens: 1, urinals: 0 },
+              ],
+            },
+          },
+          { kind: 'municipal', count: 1 },
+        ],
+      },
+    } as never),
+  );
+
+  it('ada data cabang → halaman Denah Instalasi dengan potongan dan denah lantai', () => {
+    const section = withBranches.slice(withBranches.indexOf('Denah Instalasi</h2>'));
+    expect(section).toContain('Potongan instalasi');
+    expect(section).toContain('Denah jalur per lantai');
+    expect(section).toContain('<use href="#il-meter"/>');
+  });
+
+  it('tanpa data cabang (rekomendasi lama) tidak ada halaman denah', () => {
+    expect(renderReportHtml(assembleReportPayload(INPUT))).not.toContain('Denah Instalasi');
+  });
+});

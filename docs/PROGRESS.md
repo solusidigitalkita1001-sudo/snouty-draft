@@ -1460,7 +1460,10 @@ Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
       kategori katalog (tee/tee reduksi, elbow/bend, sok, dop, Y, clean out; pipa putih/abu); kategori tanpa gambar
       jenis tidak diberi gambar. Produk terpilih membawa `family` + `category`. Sisa: foto D/VU/fitting dari Pralon
       → OQ-62; tautan "Lihat di pralon.com" belum (kartu = tombol drawer)
-- [ ] P17-07 Denah: potongan instalasi + denah jalur per lantai
+- [x] P17-07 Denah (tab "Skema" → "Denah"): potongan instalasi (toren/sumber, pompa, pipa utama, cabang per lantai
+      dengan alat dan ukurannya, pembuangan + ventilasi + septic, ukuran lantai dan bangunan) dan denah jalur per lantai
+      berskala ukuran bangunan; SVG dari `@snouty/ui/installation-drawing` untuk layar dan halaman Denah di PDF. Data
+      cabang per lantai (ENG-707) dan ukuran ventilasi ikut disimpan di kebutuhan. Letak ruang tidak dikarang
 - [ ] P17-08 "Coba ubah" bergambar di tab Denah (dihitung ulang engine)
 - [x] P17-09 Laporan PDF v2: ringkasan bergambar, BOQ per sistem dengan gambar produk, dasar perhitungan & asumsi
       berkategori, lampiran produk Pralon bergambar; payload membekukan `products`/`needs`/`outletCount`; modul

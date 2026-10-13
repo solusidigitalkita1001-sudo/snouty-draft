@@ -37,6 +37,24 @@ export function needsFrom(
         ...(input.planLengthM && input.planWidthM
           ? { lengthM: input.planLengthM, widthM: input.planWidthM }
           : {}),
+        ...(input.installationType !== 'drainage'
+          ? {
+              mainSize: solution.mainSize,
+              // Cabang per lantai dari ENG-707: ukuran tiap cabang dan alat yang dilayaninya.
+              branches: solution.branchGroups
+                .flatMap((group) =>
+                  group.branches.map((b) => ({
+                    floor: b.floor,
+                    size: group.size,
+                    bathrooms: b.bathrooms,
+                    basins: b.basins,
+                    kitchens: b.kitchens,
+                    urinals: b.urinals ?? 0,
+                  })),
+                )
+                .sort((a, b) => b.floor - a.floor),
+            }
+          : {}),
       },
     },
   ];
@@ -69,8 +87,12 @@ export function needsFrom(
     needs.push({
       kind: 'drainage',
       count: 1,
-      ...(drainage.soil ? { soilSize: drainage.soil.size } : {}),
-      ...(drainage.waste ? { wasteSize: drainage.waste.size } : {}),
+      ...(drainage.soil
+        ? { soilSize: drainage.soil.size, soilVentSize: drainage.soil.ventSize }
+        : {}),
+      ...(drainage.waste
+        ? { wasteSize: drainage.waste.size, wasteVentSize: drainage.waste.ventSize }
+        : {}),
     });
   }
   return needs;

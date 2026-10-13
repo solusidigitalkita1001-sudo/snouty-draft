@@ -28,6 +28,12 @@ import {
 } from '@snouty/ui/illustrations';
 import { buildingSummary, flowSteps, needCards, type NeedsCopy } from '@snouty/ui/needs-view';
 import {
+  drawingInputFrom,
+  floorPlanSvg,
+  sectionSvg,
+  type DrawingCopy,
+} from '@snouty/ui/installation-drawing';
+import {
   PRODUCT_PHOTO_FILES,
   productVisual,
   type ProductPhoto,
@@ -36,6 +42,13 @@ import {
 
 export interface ReportV2Copy {
   readonly needs: NeedsCopy;
+  readonly drawing: Omit<DrawingCopy, 'decimal'> & {
+    readonly title: string;
+    readonly sectionTitle: string;
+    readonly plansTitle: string;
+    readonly planCaption: (level: number) => string;
+    readonly note: string;
+  };
   readonly flowTitle: string;
   readonly boqTitle: string;
   readonly boqColumns: {
@@ -164,6 +177,35 @@ const NEEDS_EN: NeedsCopy = {
 export const REPORT_V2_COPY: Readonly<Record<Locale, ReportV2Copy>> = {
   id: {
     needs: NEEDS_ID,
+    drawing: {
+      title: 'Denah Instalasi',
+      sectionTitle: 'Potongan instalasi',
+      plansTitle: 'Denah jalur per lantai',
+      planCaption: (level) => `Lantai ${level}`,
+      note: 'Skematik, tidak berskala. Posisi alat menyesuaikan denah bangunan.',
+      floor: (level, elevation) => `LANTAI ${level} · +${elevation}`,
+      roof: (elevation) => `ATAP · +${elevation}`,
+      ground: 'TANAH',
+      floorHeight: (height) => `${height} m`,
+      length: (meters) => `Panjang ${meters} m`,
+      width: (meters) => `Lebar ${meters} m`,
+      tank: 'Toren atap',
+      groundTank: 'Toren bawah',
+      meter: 'Meteran',
+      well: 'Sumur',
+      pump: 'Pompa pendorong',
+      septic: 'Septic / saluran',
+      vent: 'Ventilasi',
+      riser: 'Pipa tegak',
+      soilStack: 'Pipa tegak buang',
+      fixtures: {
+        shower: 'Shower',
+        wc: 'Kloset',
+        basin: 'Wastafel',
+        kitchen: 'Dapur',
+        urinal: 'Urinoir',
+      },
+    },
     flowTitle: 'Alur air',
     boqTitle: 'Daftar Kebutuhan Material (BOQ)',
     boqColumns: {
@@ -211,6 +253,35 @@ export const REPORT_V2_COPY: Readonly<Record<Locale, ReportV2Copy>> = {
   },
   en: {
     needs: NEEDS_EN,
+    drawing: {
+      title: 'Installation Layout',
+      sectionTitle: 'Installation section',
+      plansTitle: 'Pipe layout per floor',
+      planCaption: (level) => `Floor ${level}`,
+      note: 'Schematic, not to scale. Fixture positions follow the building plan.',
+      floor: (level, elevation) => `FLOOR ${level} · +${elevation}`,
+      roof: (elevation) => `ROOF · +${elevation}`,
+      ground: 'GROUND',
+      floorHeight: (height) => `${height} m`,
+      length: (meters) => `Length ${meters} m`,
+      width: (meters) => `Width ${meters} m`,
+      tank: 'Roof tank',
+      groundTank: 'Ground tank',
+      meter: 'Meter',
+      well: 'Well',
+      pump: 'Booster pump',
+      septic: 'Septic / drain',
+      vent: 'Vent',
+      riser: 'Riser',
+      soilStack: 'Drain stack',
+      fixtures: {
+        shower: 'Shower',
+        wc: 'Toilet',
+        basin: 'Basin',
+        kitchen: 'Kitchen',
+        urinal: 'Urinal',
+      },
+    },
     flowTitle: 'How the water runs',
     boqTitle: 'Bill of Quantities',
     boqColumns: {
@@ -594,6 +665,36 @@ export function productsSection(
 </section>`;
 }
 
+/** Denah instalasi (P17-07): potongan dan denah per lantai; kosong tanpa data bangunan. */
+export function hasDrawing(p: ReportPayload): boolean {
+  return drawingInputFrom(p.needs ?? []) !== null;
+}
+
+export function drawingSection(
+  p: ReportPayload,
+  v: ReportV2Copy,
+  parts: ReportParts,
+  n: number,
+): string {
+  const input = drawingInputFrom(p.needs ?? []);
+  if (input === null) return '';
+  const copy: DrawingCopy = { ...v.drawing, decimal: (value) => decimal(value, p.locale) };
+  const levels = Array.from({ length: input.floors }, (_, i) => input.floors - i);
+  return `<section class="page">
+  ${parts.sectionHead(n, v.drawing.title)}
+  <h3 class="subhead">${v.drawing.sectionTitle}</h3>
+  <div class="r-drawing">${sectionSvg(input, copy)}</div>
+  <p class="note">${v.drawing.note}</p>
+  <h3 class="subhead">${v.drawing.plansTitle}</h3>
+  <div class="r-plans">${levels
+    .map(
+      (level) =>
+        `<figure class="r-plan"><figcaption>${parts.esc(v.drawing.planCaption(level))}</figcaption>${floorPlanSvg(input, level, copy)}</figure>`,
+    )
+    .join('')}</div>
+</section>`;
+}
+
 /** CSS tambahan v2 — nilai warna dari token yang didefinisikan di `:root` laporan. */
 export const REPORT_V2_CSS = `
 .r-hero { display: grid; grid-template-columns: 46mm 1fr; gap: 6mm; align-items: center; margin-bottom: 5mm; }
@@ -626,6 +727,11 @@ td.num, th.num { text-align: right; font-family: var(--snouty-font-mono); }
 .r-product-role { font-family: var(--snouty-font-mono); font-size: 7pt; letter-spacing: 0.06em; color: var(--snouty-muted); }
 .r-product-need { display: flex; justify-content: space-between; border-top: 1px solid var(--snouty-hairline); padding-top: 1mm; margin-top: 0.5mm; }
 .sub-inline { color: var(--snouty-caption); font-size: 7.5pt; }
+.r-drawing svg { display: block; width: 100%; height: auto; border: 1px solid var(--snouty-border); border-radius: 2mm; background: var(--snouty-surface-subtle); }
+.r-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+.r-plan { margin: 0; break-inside: avoid; }
+.r-plan figcaption { font-size: 8.5pt; font-weight: 600; margin-bottom: 1mm; }
+.r-plan svg { display: block; width: 100%; height: auto; border: 1px solid var(--snouty-border); border-radius: 2mm; background: var(--snouty-surface-subtle); }
 .r-photo { background-size: contain; background-repeat: no-repeat; background-position: center; }
 .r-thumb.r-photo { width: 14mm; height: 8mm; }
 .r-product-pic.r-photo { width: 40mm; height: 23mm; }
