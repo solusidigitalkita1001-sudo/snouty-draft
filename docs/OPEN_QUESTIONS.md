@@ -371,6 +371,10 @@ katalog yang tidak memisahkannya (katalog contoh). Fitting diterima penuh hanya 
 `pressure_class` VERIFIED sama dengan kelas pipa; kelas `UNAVAILABLE` (seluruh seri "W", keputusan
 pemilik: **tidak ditebak AW**) menjadi `SIZE_NEEDS_VALIDATION`; kelas VERIFIED berbeda (D untuk AW)
 ditolak. Masih menunggu Pralon: arti token "W" dan fitting tanpa token (`docs/MATCHER_V2_PROPOSAL.md` §5).
+**Pembaruan 2026-10-14 (review putaran 4, 5c):** export ERP mengosongkan kelas untuk SELURUH fitting
+seri Ts (294), W (574), dan DV/Dv (255); `compatible_skus` kosong untuk semua produk. Pemilik akan
+mengirim data produk Pralon sebagai sumber pemetaan seri → kelas. Sampai itu masuk, fitting ini tetap
+`SIZE_NEEDS_VALIDATION` (catatan di tab Produk), tanpa label di BOQ.
 
 ### OQ-55 — SKU katalog adalah ID ekspor ERP, bukan kode produk pelanggan
 
@@ -435,6 +439,10 @@ angka SNI sebagai pengganti) · **Blocks:** diameter dalam per kelas (AW, D), se
 sehingga cabang tertentu bisa naik ke ¾".
 **Default sementara:** tetap SDR 26,5 sebagai ASUMSI yang tercatat; seleksi diulang begitu tabel resmi
 masuk, dan perubahan ukuran dicatat per kasus.
+**Pembaruan 2026-10-14 (review putaran 4, poin 4):** pemilik akan mengirim tabel resmi. Handbook Pralon
+yang diterima hari ini (`data/standards/2026-10-14-pralon-handbook/`: PROD/STD-001, 002, 003, 014)
+memuat SNI kelas S, SNI Kelas A/B, JIS VP/VU, dan PE100 — **tidak memuat AW dan D**. VP tidak dipakai
+sebagai pengganti (½" VP 2,7 mm vs ½" AW ±1,5 mm). Seleksi ukuran belum diubah.
 
 ### OQ-63 — Jumlah fitting rumah per jalur (P18-01)
 
