@@ -1626,6 +1626,11 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       tabel ini. Verifikasi live: U2 → pipa utama 1¼", tanpa "SDR 26,5". "tebal pipa d 4 inch" dulu tidak dikenali
       (122 s, dijawab fakta ukuran inci): contoh dimensi ber-inci ditambah, aspek `dimensions` langsung PRODUCT_LOOKUP
       di router dan melewati perencana (eval 151/153)
+- [x] P21-10 Kecocokan fitting seri Ts/W/DV dengan pipa AW/D (OQ-48 ditutup, keputusan pemilik: data pabrik
+      cukup). Dasar: PROD/STD-04 — AW, D, C seukuran ber-OD sama, soket fitting mengikuti OD. Matcher: fitting
+      berkelas kosong di ukuran yang pipa kelasnya dibuat → `VERIFIED_SELECTED` dengan alasan bersumber; ukuran
+      yang kelasnya tidak dibuat (D ½") tetap perlu dikonfirmasi; fitting berkelas lain tetap ditolak. U1–U3: 77
+      baris terverifikasi, 0 perlu dikonfirmasi
 
 ## Design Coverage
 

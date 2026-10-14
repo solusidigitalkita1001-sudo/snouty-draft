@@ -158,7 +158,7 @@ describe('ProductMatcher v2 — katalog Pralon (docs/MATCHER_V2_PROPOSAL.md)', (
     expect(reversed.products[0]?.productId).toBe('01JBVAR00000000000000000A3');
   });
 
-  it('fitting: keluarga FITTING PVC dicari dulu; kelas D ditolak untuk pipa AW; kelas belum terverifikasi → SIZE_NEEDS_VALIDATION', () => {
+  it('fitting: keluarga FITTING PVC dicari dulu; kelas D ditolak untuk pipa AW; kelas kosong → cocok lewat OD PROD/STD-04', () => {
     const fittingD = product({
       id: '01JBFITD0000000000000000D1',
       sku: 'TEE-D',
@@ -195,8 +195,9 @@ describe('ProductMatcher v2 — katalog Pralon (docs/MATCHER_V2_PROPOSAL.md)', (
     expect(onlyD.unmatchedRoles).toEqual(['fitting']);
     const onlyW = matchProducts([req], [fittingW, fittingD]).products[0];
     expect(onlyW?.productId).toBe('01JBFITW0000000000000000W1');
-    expect(onlyW?.matchState).toBe('SIZE_NEEDS_VALIDATION');
-    expect(onlyW?.reason).toContain('belum terverifikasi');
+    // OD pipa AW dan D seukuran sama (PROD/STD-04): soket ¾" pas — terverifikasi (putaran 4, 5c).
+    expect(onlyW?.matchState).toBe('VERIFIED_SELECTED');
+    expect(onlyW?.reason).toContain('PROD/STD-04');
     const withAW = matchProducts([req], [fittingW, fittingD, fittingAW]).products[0];
     expect(withAW?.productId).toBe('01JBFITA0000000000000000A1');
     expect(withAW?.matchState).toBe('VERIFIED_SELECTED');
@@ -328,5 +329,27 @@ describe('kedua ukuran fitting harus persis (temuan laporan 0009)', () => {
       candidates,
     ).products;
     expect(reducer?.productId).toBe('RED');
+  });
+});
+
+describe('fitting berkelas kosong — dicocokkan lewat OD PROD/STD-04 (review putaran 4, 5c)', () => {
+  const tee = (size: string) =>
+    product({
+      id: '01JBFITTS000000000000000T1',
+      sku: 'TEE-TS',
+      name: `Tee Abu Ts ${size}`,
+      family: 'FITTING PVC',
+      category: 'FITTING · TEE',
+      sizes: [size],
+    });
+
+  it('pipa D ½" tidak dibuat (PROD/STD-04) → fitting ½" tetap perlu dikonfirmasi', () => {
+    const [fitting] = matchProducts([fittingRequirement('1/2"', 'PVC D')], [tee('1/2"')]).products;
+    expect(fitting?.matchState).toBe('SIZE_NEEDS_VALIDATION');
+  });
+
+  it('pipa D 2" dibuat → fitting 2" berkelas kosong terverifikasi', () => {
+    const [fitting] = matchProducts([fittingRequirement('2"', 'PVC D')], [tee('2"')]).products;
+    expect(fitting?.matchState).toBe('VERIFIED_SELECTED');
   });
 });

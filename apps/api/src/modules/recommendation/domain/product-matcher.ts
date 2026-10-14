@@ -11,9 +11,10 @@
  *
  *   - `VERIFIED_SELECTED` — produk ada, ukuran tersedia, dan (bila disyaratkan) kelas tekanannya
  *     VERIFIED sama dengan kelas pipa.
- *   - `SIZE_NEEDS_VALIDATION` — produknya tepat, tetapi ukuran itu tidak terdaftar, ATAU kelas
- *     tekanannya belum terverifikasi (fitting seri "W" Pralon). Bukan kegagalan: pengguna tetap
- *     melihat produknya, dengan catatan.
+ *   - `SIZE_NEEDS_VALIDATION` — produknya tepat, tetapi ukuran itu tidak terdaftar, ATAU kelasnya
+ *     kosong dan tidak bisa dipastikan dari standar pipa. Fitting PVC berkelas kosong (seri Ts, W,
+ *     DV) di ukuran yang pipa kelasnya dibuat sudah terverifikasi lewat OD (PROD/STD-04, 2026-10-14).
+ *     Bukan kegagalan: pengguna tetap melihat produknya, dengan catatan.
  *   - `INFORMATION_UNAVAILABLE` — tidak ada produk untuk peran itu di katalog aktif.
  *
  * Kandidat ganda (katalog Pralon: rata-rata 11 SKU per keluarga + ukuran pipa — ujung, warna,
@@ -34,6 +35,7 @@ import {
   isSameSizeReducer,
   type FittingKind,
 } from '../../product-catalog/domain/product-types.js';
+import { pralonPipeMadeIn } from '@snouty/engineering';
 
 export interface RoleRequirement {
   readonly role: SystemRole;
@@ -177,6 +179,30 @@ export function matchProducts(
 
     if (classed.unverified.length > 0) {
       const pick = selectCandidate(classed.unverified);
+      // Kelas kosong di katalog (seri Ts, W, DV) tetapi pipanya PRALON berukuran inci: menurut
+      // PROD/STD-04 AW, D, dan C seukuran ber-OD sama, jadi soket fitting ukuran itu pas di pipa
+      // kelas ini selama kelasnya dibuat di ukuran tersebut (keputusan pemilik 2026-10-14).
+      const pipeClass = requirement.pressureClass;
+      if (
+        requirement.role === 'fitting' &&
+        pipeClass !== undefined &&
+        [requirement.size, requirement.branchSize ?? requirement.size].every((s) =>
+          pralonPipeMadeIn(s, pipeClass),
+        )
+      ) {
+        products.push({
+          productId: pick.chosen.id,
+          size: sizeLabel,
+          role: requirement.role,
+          matchState: 'VERIFIED_SELECTED',
+          name: pick.chosen.name,
+          family: pick.chosen.family,
+          category: pick.chosen.category,
+          reason: `${pick.chosen.name} tersedia dalam ukuran ${sizeLabel}; diameter luar pipa PRALON kelas ${pipeClass} di ukuran ini sama dengan kelas lainnya (standar Pralon PROD/STD-04), jadi soketnya pas${pick.why}.`,
+          ...(pick.alternatives.length > 0 ? { alternatives: pick.alternatives } : {}),
+        });
+        continue;
+      }
       products.push({
         productId: pick.chosen.id,
         size: sizeLabel,

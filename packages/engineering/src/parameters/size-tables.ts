@@ -107,3 +107,16 @@ export const HDPE_MM_SIZES: readonly NominalSize[] = sizeTable('hdpe_mm');
 export function sizeTableFor(familyOrMaterial: string): SizeTableId {
   return /hdpe|mdpe|\bpe\b/i.test(familyOrMaterial) ? 'hdpe_mm' : 'pvc_inch';
 }
+
+/**
+ * Pipa PRALON kelas `pipeClass` dibuat dalam ukuran nominal `size` (PROD/STD-04). Di dokumen itu
+ * AW, D, dan C berukuran sama punya OD yang sama, jadi fitting sambungan lem ukuran itu pas di
+ * pipa kelas mana pun yang dibuat di ukuran tersebut — dipakai matcher untuk fitting yang kelasnya
+ * kosong di katalog (seri Ts, W, DV).
+ */
+export function pralonPipeMadeIn(size: string, pipeClass: string): boolean {
+  const row = PRALON_UPVC_WALLS_MM.find((r) => r.size === size);
+  if (row === undefined) return false;
+  const key = pipeClass.toUpperCase();
+  return (key === 'AW' || key === 'D' || key === 'C') && row[key] !== null;
+}

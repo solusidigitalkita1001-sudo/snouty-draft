@@ -371,6 +371,11 @@ katalog yang tidak memisahkannya (katalog contoh). Fitting diterima penuh hanya 
 `pressure_class` VERIFIED sama dengan kelas pipa; kelas `UNAVAILABLE` (seluruh seri "W", keputusan
 pemilik: **tidak ditebak AW**) menjadi `SIZE_NEEDS_VALIDATION`; kelas VERIFIED berbeda (D untuk AW)
 ditolak. Masih menunggu Pralon: arti token "W" dan fitting tanpa token (`docs/MATCHER_V2_PROPOSAL.md` §5).
+**Ditutup 2026-10-14 (keputusan pemilik, P21-10):** PROD/STD-04 Rev. 11 (data internal pabrik) menunjukkan
+pipa PRALON AW, D, dan C berukuran nominal sama ber-OD sama; fitting sambungan lem dibuat per ukuran nominal,
+jadi fitting berkelas kosong (Ts, W, DV) di ukuran yang pipa kelasnya dibuat dinyatakan cocok
+(`pralonPipeMadeIn`). Fitting berkelas VERIFIED lain (D untuk jalur AW) tetap ditolak. Arti token "W"
+tidak lagi menghalangi.
 **Pembaruan 2026-10-14 (review putaran 4, 5c):** export ERP mengosongkan kelas untuk SELURUH fitting
 seri Ts (294), W (574), dan DV/Dv (255); `compatible_skus` kosong untuk semua produk. Pemilik akan
 mengirim data produk Pralon sebagai sumber pemetaan seri → kelas. Sampai itu masuk, fitting ini tetap
