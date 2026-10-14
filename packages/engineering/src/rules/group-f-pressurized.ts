@@ -269,7 +269,7 @@ export interface SizingInput {
   /** Tabel ukuran kandidat: inci (PVC) atau mm (HDPE). */
   readonly sizeTable: SizeTableId;
   /** SDR untuk memperkirakan tebal dinding (diameter dalam = OD − 2·OD/SDR). */
-  readonly wallSdr: number;
+  readonly wallSdr?: number;
 }
 export type CandidateStatus = 'ok' | 'too_fast' | 'too_slow' | 'high_loss';
 export interface SizeCandidate {
@@ -290,78 +290,78 @@ export interface SizingResult {
   readonly allCriteriaMet: boolean;
 }
 
-/** Hasil kandidat kasus uji ENG-205 (5 l/s, 800 m, statis 12 m, C 150, sisa 0,5 bar, SDR 26,5) — dari probe; diameter dalam diperiksa ulang di spec dengan hitungan acuan. */
+/** Hasil kandidat kasus uji ENG-205 (5 l/s, 800 m, statis 12 m, C 150, sisa 0,5 bar, tebal AW PROD/STD-04) — dari probe; diameter dalam diperiksa ulang di spec dengan hitungan acuan. */
 const PROBE_CANDIDATES: readonly SizeCandidate[] = [
   {
     size: '1/2"',
-    innerDiameterMm: 20.3,
-    velocityMs: 15.45,
-    frictionLossM: 7634.79,
-    gradientMPer100m: 954.35,
-    totalDynamicHeadM: 8415.37,
+    innerDiameterMm: 18.9,
+    velocityMs: 17.82,
+    frictionLossM: 10813,
+    gradientMPer100m: 1351.63,
+    totalDynamicHeadM: 11911.4,
     status: 'too_fast',
   },
   {
     size: '3/4"',
-    innerDiameterMm: 24,
-    velocityMs: 11.05,
-    frictionLossM: 3377.89,
-    gradientMPer100m: 422.24,
-    totalDynamicHeadM: 3732.78,
+    innerDiameterMm: 22.3,
+    velocityMs: 12.8,
+    frictionLossM: 4831.05,
+    gradientMPer100m: 603.88,
+    totalDynamicHeadM: 5331.26,
     status: 'too_fast',
   },
   {
     size: '1"',
-    innerDiameterMm: 29.6,
-    velocityMs: 7.27,
-    frictionLossM: 1216.32,
-    gradientMPer100m: 152.04,
-    totalDynamicHeadM: 1355.05,
+    innerDiameterMm: 27.9,
+    velocityMs: 8.18,
+    frictionLossM: 1622.39,
+    gradientMPer100m: 202.8,
+    totalDynamicHeadM: 1801.73,
     status: 'too_fast',
   },
   {
     size: '1¼"',
-    innerDiameterMm: 38.8,
-    velocityMs: 4.23,
-    frictionLossM: 325.52,
-    gradientMPer100m: 40.69,
-    totalDynamicHeadM: 375.17,
+    innerDiameterMm: 37.3,
+    velocityMs: 4.58,
+    frictionLossM: 394.43,
+    gradientMPer100m: 49.3,
+    totalDynamicHeadM: 450.97,
     status: 'too_fast',
   },
   {
     size: '1½"',
-    innerDiameterMm: 44.4,
-    velocityMs: 3.23,
-    frictionLossM: 168.82,
-    gradientMPer100m: 21.1,
-    totalDynamicHeadM: 202.8,
+    innerDiameterMm: 43.3,
+    velocityMs: 3.4,
+    frictionLossM: 190.75,
+    gradientMPer100m: 23.84,
+    totalDynamicHeadM: 226.93,
     status: 'too_fast',
   },
   {
     size: '2"',
-    innerDiameterMm: 55.5,
-    velocityMs: 2.07,
-    frictionLossM: 56.94,
-    gradientMPer100m: 7.12,
-    totalDynamicHeadM: 79.73,
+    innerDiameterMm: 55.3,
+    velocityMs: 2.08,
+    frictionLossM: 57.95,
+    gradientMPer100m: 7.24,
+    totalDynamicHeadM: 80.85,
     status: 'too_fast',
   },
   {
     size: '2½"',
-    innerDiameterMm: 70.3,
-    velocityMs: 1.29,
-    frictionLossM: 18.01,
-    gradientMPer100m: 2.25,
-    totalDynamicHeadM: 36.91,
+    innerDiameterMm: 70.8,
+    velocityMs: 1.27,
+    frictionLossM: 17.39,
+    gradientMPer100m: 2.17,
+    totalDynamicHeadM: 36.23,
     status: 'ok',
   },
   {
     size: '3"',
-    innerDiameterMm: 82.3,
-    velocityMs: 0.94,
-    frictionLossM: 8.36,
-    gradientMPer100m: 1.04,
-    totalDynamicHeadM: 26.3,
+    innerDiameterMm: 82.8,
+    velocityMs: 0.93,
+    frictionLossM: 8.11,
+    gradientMPer100m: 1.01,
+    totalDynamicHeadM: 26.02,
     status: 'ok',
   },
   {
@@ -375,11 +375,11 @@ const PROBE_CANDIDATES: readonly SizeCandidate[] = [
   },
   {
     size: '6"',
-    innerDiameterMm: 152.5,
+    innerDiameterMm: 152.3,
     velocityMs: 0.27,
-    frictionLossM: 0.41,
+    frictionLossM: 0.42,
     gradientMPer100m: 0.05,
-    totalDynamicHeadM: 17.55,
+    totalDynamicHeadM: 17.56,
     status: 'too_slow',
   },
 ];
@@ -457,7 +457,7 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
   validationStatus: PENDING,
   testCases: [
     {
-      name: '5 l/s, 800 m, statis 12 m → kandidat 2½" (2,25 m/100 m, 1,29 m/s) dengan alternatif 3"',
+      name: '5 l/s, 800 m, statis 12 m → kandidat 2½" (2,17 m/100 m, 1,27 m/s) dengan alternatif 3"',
       input: {
         designFlowLs: 5,
         lengthM: 800,
@@ -469,7 +469,6 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
         gradientMaxMPer100m: 10,
         minorLossFraction: 0.1,
         sizeTable: 'pvc_inch',
-        wallSdr: 26.5,
       },
       expected: {
         candidates: PROBE_CANDIDATES,

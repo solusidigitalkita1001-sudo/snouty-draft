@@ -19,10 +19,16 @@ describe('diameter dalam HDPE dari PROD/STD/014', () => {
     expect(table.find((s) => s.size === '20 mm')!.innerMm).toBe(innerDiameterMm(20, 17));
     expect(table.find((s) => s.size === '110 mm')!.innerMm).toBe(96);
   });
+});
 
-  it('PVC inci tidak berubah: tebal AW/D belum resmi (OQ-64), tetap SDR 26,5', () => {
-    expect(sizeTable('pvc_inch').find((s) => s.size === '1/2"')!.innerMm).toBe(
-      innerDiameterMm(22, 26.5),
-    );
+describe('diameter dalam PVC dari PROD/STD-04 (kelas AW)', () => {
+  it('½" AW: OD 22 + 0,2 → rata-rata 22,1; tebal 1,5 + 0,2 → rata-rata 1,6; dalam 18,9 mm (bukan 20,3)', () => {
+    const half = sizeTable('pvc_inch').find((s) => s.size === '1/2"')!;
+    expect(half.innerMm).toBe(18.9);
+    expect(half.innerMm).not.toBe(innerDiameterMm(22, 26.5));
+  });
+
+  it('SDR yang diberikan tidak mengubah PVC: tebalnya resmi, bukan asumsi', () => {
+    expect(sizeTable('pvc_inch', 11)).toEqual(sizeTable('pvc_inch'));
   });
 });

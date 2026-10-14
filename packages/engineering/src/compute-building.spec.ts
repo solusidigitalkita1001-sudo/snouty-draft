@@ -63,7 +63,8 @@ describe('computeBuildingWater', () => {
     expect(r.appliedAssumptionIds).not.toContain('OCCUPANT_AREA_10M2');
     expect(r.zoning.zones).toBe(1);
     expect(r.risers).toBe(1);
-    expect(r.transfer.recommendedSize).toBe('1"');
+    // 1¼": 1" AW resmi (dalam 27,9 mm) melewati batas kerugian gesek — PROD/STD-04, putaran 4.
+    expect(r.transfer.recommendedSize).toBe('1¼"');
   });
 
   it('tanpa penghuni dan luas → minta data, tidak menebak', () => {

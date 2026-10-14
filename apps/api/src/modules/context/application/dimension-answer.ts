@@ -1,10 +1,10 @@
 /**
  * "Tebal pipa HDPE 110 SDR 17 berapa?" — tebal dinding, diameter dalam, dan berat per meter dari
- * tabel standar Pralon (P21-08). Nol LLM: angkanya dari dokumen, kalimatnya dari kode, dan
- * dokumennya disebut. Kelas tanpa tabel resmi (PRALON AW/D/C, OQ-64) diakui tidak ada angkanya.
+ * tabel standar Pralon (P21-08, PRALON AW/D/C sejak P21-09). Nol LLM: angkanya dari dokumen,
+ * kalimatnya dari kode, dan dokumennya disebut.
  */
 
-import type { AssistantCard, Locale } from '@snouty/shared-types';
+import { PipeSize, type AssistantCard, type Locale } from '@snouty/shared-types';
 import {
   classFilterFrom,
   meanInnerMm,
@@ -24,6 +24,7 @@ export interface DimensionOutcome {
 const MAX_LISTED = 9;
 
 const SERIES_NAME: Readonly<Record<StandardSeries, { id: string; en: string }>> = {
+  pralon_upvc: { id: 'pipa PRALON uPVC', en: 'PRALON uPVC pipe' },
   pe100: { id: 'pipa HDPE PE100', en: 'PE100 HDPE pipe' },
   jis_vp: { id: 'pipa uPVC JIS VP', en: 'JIS VP uPVC pipe' },
   jis_vu: { id: 'pipa uPVC JIS VU', en: 'JIS VU uPVC pipe' },
@@ -41,18 +42,9 @@ export function dimensionAnswer(
   const n = (x: number, digits = 1) =>
     x.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: digits });
   const filter = classFilterFrom(message, families, rows);
-  const size = parseSize(withoutClassTokens(message));
-  const contact: AssistantCard[] = [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }];
-
-  if (filter.pralonClass !== undefined) {
-    return {
-      text: en
-        ? `I don't have the official wall-thickness table for Pralon class ${filter.pralonClass} pipe yet, so I won't quote a figure. The Pralon technical team can give you the exact numbers.`
-        : `Tabel tebal dinding resmi pipa PRALON kelas ${filter.pralonClass} belum saya pegang, jadi angkanya tidak saya sebutkan. Tim teknis Pralon bisa memberikan angka pastinya.`,
-      cards: contact,
-    };
-  }
-
+  const parsed = parseSize(withoutClassTokens(message));
+  // Label kanonik (`1/2"`, `110 mm`) — parser ukuran mengembalikan inci tanpa tanda inci.
+  const size = parsed === null ? null : (PipeSize.parse(parsed)?.label ?? parsed);
   const matches = rowsFor(rows, filter, size);
   const seriesOf = [...new Set(matches.map((r) => r.series))];
   const name = (s: StandardSeries) => (en ? SERIES_NAME[s].en : SERIES_NAME[s].id);
@@ -75,7 +67,13 @@ export function dimensionAnswer(
     const classSizes = filter.classLabel
       ? inSeries.filter((r) => r.classLabel === filter.classLabel)
       : inSeries;
-    const label = `${name(filter.series!)}${filter.classLabel ? ` ${filter.classLabel}` : ''}`;
+    const classText =
+      filter.classLabel === undefined
+        ? ''
+        : filter.series === 'pralon_upvc'
+          ? ` ${en ? 'class' : 'kelas'} ${filter.classLabel}`
+          : ` ${filter.classLabel}`;
+    const label = `${name(filter.series!)}${classText}`;
     const range =
       classSizes.length > 0
         ? `${classSizes[0]!.size}–${classSizes.at(-1)!.size}`
@@ -100,7 +98,10 @@ export function dimensionAnswer(
   }
 
   const series = seriesOf[0]!;
-  const cls = (r: StandardRow) => `${r.classLabel}${r.pressure ? ` (${r.pressure})` : ''}`;
+  const cls = (r: StandardRow) =>
+    r.series === 'pralon_upvc'
+      ? `${en ? 'class' : 'kelas'} ${r.classLabel}`
+      : `${r.classLabel}${r.pressure ? ` (${r.pressure})` : ''}`;
   const figures = (r: StandardRow) => {
     const weight =
       r.kgPerM === null ? '' : en ? `, ${n(r.kgPerM, 3)} kg/m` : `, berat ${n(r.kgPerM, 3)} kg/m`;

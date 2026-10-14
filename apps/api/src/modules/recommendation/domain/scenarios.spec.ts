@@ -21,9 +21,14 @@ describe('compareScenarios — rumah 2 lantai, toren atap', () => {
   const result = compareScenarios(HOUSE, {});
   const of = (id: string) => result.scenarios.find((s) => s.id === id)!.metrics;
 
-  it('dasar: perlu pompa pendorong, sisa tekanan 0,02 bar', () => {
-    expect(result.base).toMatchObject({ outletCount: 11, mainSize: '1"', boosterPumpNeeded: true });
-    expect(result.base.residualBar).toBeCloseTo(0.02, 2);
+  // Pipa utama 1¼" (tebal AW resmi) menggesek lebih sedikit dari 1" dulu: sisa 0,17 bar, tetap < 0,3.
+  it('dasar: perlu pompa pendorong, sisa tekanan 0,17 bar', () => {
+    expect(result.base).toMatchObject({
+      outletCount: 11,
+      mainSize: '1¼"',
+      boosterPumpNeeded: true,
+    });
+    expect(result.base.residualBar).toBeCloseTo(0.17, 2);
   });
 
   it('skenario yang ditawarkan: toren naik, tambah kamar mandi, PDAM, toren bawah (toren atap sudah dipakai)', () => {
@@ -41,8 +46,8 @@ describe('compareScenarios — rumah 2 lantai, toren atap', () => {
     expect(of('tank_raised').residualBar!).toBeGreaterThanOrEqual(0.3);
   });
 
-  it('tambah satu kamar mandi: 13 titik air, pipa utama tetap 1"', () => {
-    expect(of('add_bathroom')).toMatchObject({ outletCount: 13, mainSize: '1"' });
+  it('tambah satu kamar mandi: 13 titik air, pipa utama tetap 1¼" (tebal AW resmi)', () => {
+    expect(of('add_bathroom')).toMatchObject({ outletCount: 13, mainSize: '1¼"' });
   });
 
   it('PDAM: tanpa toren dan tanpa pipa pengisi toren', () => {

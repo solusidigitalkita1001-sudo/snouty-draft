@@ -509,9 +509,7 @@ export function computeSolution(
           tankLevelM: route.tankLevelM,
           fillNetM: tankFill.fillNetM,
           flowLs: use('TANK_FILL_FLOW_0_25LS'),
-          innerDiameterMm: sizeTable('pvc_inch', use('PVC_AW_WALL_SDR')).find(
-            (n) => n.size === tankFill.size,
-          )!.innerMm,
+          innerDiameterMm: sizeTable('pvc_inch').find((n) => n.size === tankFill.size)!.innerMm,
           hazenWilliamsC: use('HAZEN_WILLIAMS_C_PLASTIC'),
           minorLossFraction: use('MINOR_LOSS_FRACTION'),
         })

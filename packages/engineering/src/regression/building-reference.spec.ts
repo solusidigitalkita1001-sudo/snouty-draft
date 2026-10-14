@@ -13,8 +13,11 @@ import { RuleInputError } from '../rule.js';
 
 const M_PER_BAR = 10.197;
 
-/** Acuan: diameter dalam dari OD dan SDR. */
-const innerMm = (odMm: number, sdr: number) => odMm - (2 * odMm) / sdr;
+/**
+ * Acuan: diameter dalam PRALON AW dari PROD/STD-04 — OD rata-rata − 2 × tebal rata-rata.
+ * 6": OD 165 + 1,0, tebal 6,4 + 0,4 → 152,3 mm; 4": OD 114 + 0,6, tebal 4,3 + 0,3 → 105,4 mm.
+ */
+const AW_INNER_MM = { 4: 114.3 - 2 * 4.45, 6: 165.5 - 2 * 6.6 } as const;
 /** Acuan: kontinuitas. */
 const velocity = (ls: number, idMm: number) => ls / 1000 / ((Math.PI * (idMm / 1000) ** 2) / 4);
 /** Acuan: Hazen-Williams SI dengan eksponen buku teks 4,87. */
@@ -70,14 +73,14 @@ describe('regresi brief: 5 000 m² × 20 lantai, 90 m', () => {
 
   it('riser: diameter dalam 6" dari OD 165 mm (bukan 150 mm), kecepatan per riser dalam batas', () => {
     expect(r.riser.recommendedSize).toBe('6"');
-    expect(r.riser.innerDiameterMm).toBeCloseTo(innerMm(165, 26.5), 1);
+    expect(r.riser.innerDiameterMm).toBeCloseTo(AW_INNER_MM[6], 1);
     expect(r.riser.innerDiameterMm).not.toBe(150);
     const perRiser = 125 / r.risers;
-    expect(r.riser.velocityMs).toBeCloseTo(velocity(perRiser, innerMm(165, 26.5)), 2);
+    expect(r.riser.velocityMs).toBeCloseTo(velocity(perRiser, AW_INNER_MM[6]), 2);
     expect(r.riser.velocityMs).toBeLessThanOrEqual(2);
     // Satu ukuran lebih kecil (4", OD 114) tidak lolos batas kecepatan pada debit yang sama —
     // itulah sebabnya riser dibagi, bukan dikecilkan.
-    expect(velocity(perRiser, innerMm(114, 26.5))).toBeGreaterThan(2);
+    expect(velocity(perRiser, AW_INNER_MM[4])).toBeGreaterThan(2);
   });
 
   it('transfer: kecepatan dan kerugian gesek cocok dengan hitungan acuan; TDH = statik + gesek + minor + sisa', () => {

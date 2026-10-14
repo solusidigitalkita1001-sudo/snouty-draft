@@ -432,8 +432,9 @@ kurva Hunter termodifikasi untuk rumah tinggal) yang memberi debit lebih kecil.
 
 ### OQ-64 — Tebal dinding resmi Pralon per kelas dan ukuran (review laporan 0015, P19-03)
 
-**Status:** menunggu tabel dari tim Pralon (keputusan pemilik 2026-10-13: tunggu tabel, jangan pakai
-angka SNI sebagai pengganti) · **Blocks:** diameter dalam per kelas (AW, D), seleksi ukuran cabang
+**Status:** **ditutup 2026-10-14** — PROD/STD-04 Rev. 11 diterima dari pemilik dan dipakai (P21-09,
+`data/standards/2026-10-14-prod-std-004/`). Riwayat: menunggu tabel dari tim Pralon (keputusan pemilik
+2026-10-13: tunggu tabel, jangan pakai angka SNI sebagai pengganti) · **Blocks:** diameter dalam per kelas (AW, D), seleksi ukuran cabang
 **Temuan review:** diameter dalam dihitung dengan SDR 26,5 untuk semua kelas
 (`PVC_AW_WALL_SDR`). Dengan tebal dinding AW sebenarnya, ID ½" bisa ±19 mm (di bawah syarat 20,1 mm)
 sehingga cabang tertentu bisa naik ke ¾".

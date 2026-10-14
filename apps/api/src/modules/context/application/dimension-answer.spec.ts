@@ -46,11 +46,22 @@ describe('jawaban dimensi dari standar Pralon', () => {
     );
   });
 
-  it('PRALON AW: tabel resmi belum ada → tidak ada angka, tawarkan tim teknis (OQ-64)', () => {
+  it('PRALON AW ½" dari PROD/STD-04: tebal 1,5 mm, dalam ±18,9 mm (OD rata-rata 22,1), 0,162 kg/m', () => {
     const { text, cards } = ask('tebal pipa aw 1/2', ['pvc aw']);
-    expect(text).toContain('belum saya pegang');
-    expect(text).not.toMatch(/\d,\d mm/);
-    expect(cards).toEqual([{ kind: 'cta', action: 'CONTACT_TECHNICAL' }]);
+    expect(text).toBe(
+      'Pipa PRALON uPVC 1/2" kelas AW: tebal dinding 1,5 mm (+0,2 mm), diameter dalam ±18,9 mm, berat 0,162 kg/m. Mengacu standar Pralon PROD/STD-04 Rev. 11.',
+    );
+    expect(cards).toEqual([]);
+  });
+
+  it('PRALON D tidak dibuat di ½" → sebut rentang yang ada', () => {
+    expect(ask('tebal pipa d 1/2', ['pvc d']).text).toContain(
+      'kelas D tidak dibuat dalam ukuran 1/2"',
+    );
+  });
+
+  it('ukuran inci tanpa kelas → tanya jenisnya (PRALON, VP, …)', () => {
+    expect(ask('tebal pipa pvc 1/2 inch', ['pvc']).text).toMatch(/PRALON uPVC.*Yang mana/);
   });
 
   it('bahasa Inggris', () => {

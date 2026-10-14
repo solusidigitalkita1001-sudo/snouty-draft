@@ -1585,7 +1585,7 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       satu-satunya meleset "tes 123" (bge-m3 menilai angka jauh; contoh "tes 1 2 3" tidak menolong). Klasifikasi
       model kini dibatasi `LLM_REPLY_TIMEOUT_MS` (dibatalkan sungguhan); lewat batas atau keluaran rusak → balasan
       klarifikasi, bukan giliran gagal. Tes router + e2e `greeting.e2e.mjs` (`E2E_SEND=1`, < 2 detik)
-- [ ] P21-04 Diameter dalam per kelas — **terhalang OQ-64**. Handbook Pralon dari pemilik disimpan sebagai sumber
+- [x] P21-04 Diameter dalam per kelas — selesai lewat P21-09 (PROD/STD-04). Catatan awal: terhalang OQ-64. Handbook Pralon dari pemilik disimpan sebagai sumber
       (`data/standards/2026-10-14-pralon-handbook/`: PROD/STD-001, 002, 003, 014), tetapi tidak memuat AW dan D;
       VP bukan pengganti (½" VP 2,7 mm). SDR 26,5 tetap asumsi tercatat; ukuran tidak berubah. Pemilik akan
       mengirim tabel AW/D
@@ -1614,6 +1614,16 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       (`product-aspect.json`, eval 149/150), kelas dibaca parser nilai (SDR/PN/S/Kelas A-B/VP/VU), nol model dan
       nol katalog; dokumen sumber disebut di jawaban. Ukuran yang ada di beberapa jenis pipa → ditanya jenisnya;
       PRALON AW/D/C → diakui belum ada tabelnya + tim teknis (OQ-64). `data/standards` ikut image Docker
+- [x] P21-09 Tebal dinding PRALON uPVC AW/D/C dari PROD/STD-04 Rev. 11 (PDF pemilik, menutup OQ-64). Transkripsi
+      `data/standards/2026-10-14-prod-std-004/pralon-upvc.json` dicek silang: berat dari OD rata-rata × WT maks ×
+      1,485 g/cm³ sama dengan dokumen untuk 29 baris. Engine: `pralon-upvc-walls.ts` (`scripts/gen-pralon-upvc-walls.mjs`),
+      dalam = OD rata-rata − 2 × tebal rata-rata: ½" 20,3 → 18,9, ¾" 24,0 → 22,3, 1" 29,6 → 27,9, 1¼" 38,8 → 37,3,
+      1½" 44,4 → 43,3 mm (2" ke atas ±0,5 mm). `PVC_AW_WALL_SDR` dihapus — hilang dari tabel Asumsi. **Perubahan
+      ukuran:** U1 tetap (sisa tekanan toren 0,12 → 0,06 bar, pengisi 0,48 → 0,49 bar); **U2 pipa utama 1" → 1¼",
+      cabang 1 KM + 1 wastafel ½" → ¾"**, tinggi angkat pompa 29,55 → 26,61 m, BOQ: 1¼" 12 btg, 1" 3, ¾" 6, ½" 5, tee
+      1¼"×¾" 2, reducer 1¼"×1" (tidak ada di katalog); U3 tetap (meteran PDAM 1,57 → 1,58 bar). Contoh desain 2 lantai
+      3 KM: utama 1" → 1¼" (1" AW 27,9 mm: gesekan ±10,9 m/100 m > 10). Jawaban "tebal pipa AW/D/C" kini memakai
+      tabel ini
 
 ## Design Coverage
 

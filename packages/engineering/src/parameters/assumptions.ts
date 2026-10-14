@@ -634,24 +634,6 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
   },
 
   {
-    id: 'PVC_AW_WALL_SDR',
-    parameter: 'pressure_class',
-    appliesTo: [],
-    condition: 'diameter dalam PVC diperkirakan dari diameter luar tanpa tabel tebal dinding resmi',
-    value: 26.5,
-    unit: 'SDR',
-    conditionEn:
-      'PVC inner diameter estimated from the outside diameter without an official wall-thickness table',
-    descriptionEn:
-      'PVC inner diameter is the official outside diameter minus a wall about 1/26.5 of that diameter, until the official wall-thickness table is available.',
-    reference:
-      'Knowledge Master §7.1 (OD per ukuran) dan §7.2 (tebal AW 4" 4,1–4,3 mm, bertentangan antarsumber; dipakai yang lebih tebal: 114 ÷ 4,3 ≈ 26,5)',
-    confidence: 'low',
-    confirmationRequired: true,
-    description:
-      'Diameter dalam pipa PVC dihitung dari diameter luar resmi dikurangi tebal dinding sekitar 1/26,5 diameter luar, sampai tabel tebal dinding resmi tersedia.',
-  },
-  {
     id: 'HDPE_SDR17_PN10',
     parameter: 'pressure_class',
     appliesTo: [],

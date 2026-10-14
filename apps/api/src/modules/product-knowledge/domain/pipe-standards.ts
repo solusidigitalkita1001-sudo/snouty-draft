@@ -1,15 +1,15 @@
 /**
  * Tabel standar pipa Pralon — tebal dinding, diameter dalam, berat per meter per kelas dan ukuran.
  *
- * Sumbernya dokumen standar Pralon (PROD/STD-001, 002, 003, 014) lewat handbook yang diterima
- * pemilik 2026-10-14 (`data/standards/`). Ini data per KELAS, bukan per SKU katalog, jadi hidup di
- * sini dan bukan di kolom produk. Kelas yang tidak ada di dokumen (PRALON AW/D/C, OQ-64) tidak
- * punya baris — jawabannya mengakui itu, tidak meminjam kelas lain.
+ * Sumbernya dokumen standar Pralon (PROD/STD-001, 002, 003, 014 lewat handbook; PROD/STD-04 untuk
+ * PRALON AW/D/C) yang diterima pemilik 2026-10-14 (`data/standards/`). Ini data per KELAS, bukan per
+ * SKU katalog, jadi hidup di sini dan bukan di kolom produk. Kombinasi yang tidak ada di dokumen
+ * tidak punya baris — jawabannya mengakui itu, tidak meminjam kelas lain.
  */
 
 import { PipeSize } from '@snouty/shared-types';
 
-export type StandardSeries = 'pe100' | 'jis_vp' | 'jis_vu' | 'sni_s' | 'sni_ab';
+export type StandardSeries = 'pralon_upvc' | 'pe100' | 'jis_vp' | 'jis_vu' | 'sni_s' | 'sni_ab';
 
 export interface StandardRow {
   readonly series: StandardSeries;
@@ -20,6 +20,8 @@ export interface StandardRow {
   /** Label ukuran kanonik `PipeSize` ("110 mm", `1/2"`). */
   readonly size: string;
   readonly outerMm: number;
+  /** Toleransi OD (+) bila dokumen menghitung dengan OD rata-rata (PROD/STD-04). */
+  readonly outerToleranceMm?: number;
   /** Tebal dinding nominal (minimum) dan toleransi atasnya, mm. */
   readonly wallMm: number;
   readonly wallToleranceMm: number;
@@ -32,13 +34,12 @@ export interface StandardRow {
 export interface ClassFilter {
   readonly series?: StandardSeries;
   readonly classLabel?: string;
-  /** Kelas PRALON AW/D/C disebut — belum ada tabel resminya (OQ-64). */
-  readonly pralonClass?: 'AW' | 'D' | 'C';
 }
 
-/** Diameter dalam rata-rata: OD − 2 × (tebal nominal + ½ toleransi), 0,1 mm. */
+/** Diameter dalam rata-rata: OD (rata-rata bila ada toleransinya) − 2 × tebal rata-rata, 0,1 mm. */
 export function meanInnerMm(row: StandardRow): number {
-  return Math.round((row.outerMm - 2 * (row.wallMm + row.wallToleranceMm / 2)) * 10) / 10;
+  const outer = row.outerMm + (row.outerToleranceMm ?? 0) / 2;
+  return Math.round((outer - 2 * (row.wallMm + row.wallToleranceMm / 2)) * 10) / 10;
 }
 
 const num = (raw: string): number => Number(raw.replace(',', '.'));
@@ -75,7 +76,7 @@ export function classFilterFrom(
   const ab = AB_CLASS.exec(text);
   if (ab) return { series: 'sni_ab', classLabel: `Kelas ${ab[1]!.toUpperCase()}` };
   const pralon = families.find((f) => /^pvc (aw|d|c)$/.test(f));
-  if (pralon) return { pralonClass: pralon.slice(4).toUpperCase() as 'AW' | 'D' | 'C' };
+  if (pralon) return { series: 'pralon_upvc', classLabel: pralon.slice(4).toUpperCase() };
   if (families.includes('hdpe')) return { series: 'pe100' };
   return {};
 }

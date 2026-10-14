@@ -95,7 +95,9 @@ export function computePressurized(
   const minorLossFraction = use('MINOR_LOSS_FRACTION');
   // HDPE/MDPE dijual dalam mm (OD); PVC dalam inci — label hasil langsung cocok dengan katalog.
   const table = sizeTableFor(input.material ?? 'PVC');
-  const wallSdr = use(wallSdrAssumptionId(table));
+  // PVC: tebal resmi kelas AW, tanpa asumsi; HDPE: kelas SDR masih asumsi.
+  const sdrId = wallSdrAssumptionId(table);
+  const wallSdr = sdrId === null ? undefined : use(sdrId);
 
   const sizing = run(ENG_205, {
     designFlowLs: input.designFlowLs,

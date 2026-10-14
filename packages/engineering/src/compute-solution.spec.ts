@@ -34,11 +34,18 @@ describe('computeSolution — contoh kerja desain', () => {
     expect(result.supply.peakFlowLs).toBeCloseTo(16.3 * 0.0630902, 3);
   });
 
-  it('pipa utama 1": di 3/4" (dalam 24 mm) air 2,27 m/s melewati batas 2 m/s, di 1" (29,6 mm) 1,49 m/s', () => {
-    const v = (id: number) => 1.028e-3 / ((Math.PI * (id / 1000) ** 2) / 4);
-    expect(v(24)).toBeGreaterThan(2);
-    expect(v(29.6)).toBeCloseTo(1.49, 2);
-    expect(result.mainSize).toBe('1"');
+  // Tebal dinding AW resmi (PROD/STD-04): 1" dalam 27,9 mm, 1¼" dalam 37,3 mm. Dengan perkiraan
+  // SDR 26,5 dulu 1" = 29,6 mm dan lolos — review putaran 4, poin 4.
+  it('pipa utama 1¼": di 1" AW (dalam 27,9 mm) kerugian gesek ±10,9 m/100 m melewati batas 10; di 1¼" (37,3 mm) jauh di bawahnya', () => {
+    const q = 1.028e-3;
+    const v = (id: number) => q / ((Math.PI * (id / 1000) ** 2) / 4);
+    // Hazen-Williams SI, C 150, m per 100 m.
+    const gradient = (id: number) =>
+      (100 * 10.67 * q ** 1.852) / (150 ** 1.852 * (id / 1000) ** 4.87);
+    expect(v(27.9)).toBeLessThan(2);
+    expect(gradient(27.9)).toBeGreaterThan(10);
+    expect(gradient(37.3)).toBeLessThan(10);
+    expect(result.mainSize).toBe('1¼"');
   });
 
   it('tinggi lantai memakai default 3,5 m saat pengguna tidak memberikannya', () => {

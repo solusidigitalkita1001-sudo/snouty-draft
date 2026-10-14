@@ -130,6 +130,45 @@ export function standardRowsFrom(raw: unknown): readonly StandardRow[] {
   return rows;
 }
 
+const UpvcSchema = z.object({
+  doc: z.object({ no: z.string(), rev: z.string() }),
+  rows: z.array(
+    z.tuple([
+      z.string(),
+      z.number(),
+      z.number(),
+      z.array(z.number()).nullable(),
+      z.array(z.number()).nullable(),
+      z.array(z.number()).nullable(),
+    ]),
+  ),
+});
+
+/** PROD/STD-04 (`pralon-upvc.json`): kelas PRALON AW, D, C per ukuran inci. */
+export function pralonUpvcRowsFrom(raw: unknown): readonly StandardRow[] {
+  const f = UpvcSchema.parse(raw);
+  return f.rows.flatMap(([size, od, odTol, ...classes]) =>
+    (['AW', 'D', 'C'] as const).flatMap((label, i) => {
+      const cell = classes[i];
+      if (!cell) return [];
+      const [wall, tol, kgPerM] = cell as [number, number, number];
+      return [
+        {
+          series: 'pralon_upvc' as const,
+          classLabel: label,
+          size: inch(size),
+          outerMm: od,
+          outerToleranceMm: odTol,
+          wallMm: wall,
+          wallToleranceMm: tol,
+          kgPerM,
+          document: `${f.doc.no} Rev. ${f.doc.rev}`,
+        },
+      ];
+    }),
+  );
+}
+
 let cached: readonly StandardRow[] | null = null;
 
 export function pipeStandardRows(): readonly StandardRow[] {
@@ -143,9 +182,19 @@ export function pipeStandardRows(): readonly StandardRow[] {
           .sort()
           .at(-1)
       : undefined;
-  cached =
-    root !== null && latest !== undefined
-      ? standardRowsFrom(JSON.parse(readFileSync(join(root, latest, 'standards.json'), 'utf8')))
-      : [];
+  // PROD/STD-04 di foldernya sendiri — folder terbaru yang memuatnya menang.
+  const upvc =
+    root !== null && existsSync(root)
+      ? readdirSync(root)
+          .filter((d) => existsSync(join(root, d, 'pralon-upvc.json')))
+          .sort()
+          .at(-1)
+      : undefined;
+  const read = (dir: string, file: string): unknown =>
+    JSON.parse(readFileSync(join(root!, dir, file), 'utf8'));
+  cached = [
+    ...(upvc !== undefined ? pralonUpvcRowsFrom(read(upvc, 'pralon-upvc.json')) : []),
+    ...(latest !== undefined ? standardRowsFrom(read(latest, 'standards.json')) : []),
+  ];
   return cached;
 }

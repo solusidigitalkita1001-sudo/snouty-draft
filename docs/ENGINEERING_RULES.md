@@ -284,7 +284,10 @@ audit C1):** diameter dalam tidak lagi angka nominal (6" = 150 mm). PVC: OD resm
 yang lebih tebal dari dua sumber yang bertentangan, §7.2); HDPE tetap SDR 17. SDR masuk sebagai
 masukan aturan (`wallSdr`) sehingga bisa diubah dari "Perbaiki asumsi" dan tercatat di trace.
 Tabel gravitasi (Kelompok H) memakai OD 8"–12" yang sama; 16" dikeluarkan karena OD-nya tidak ada
-di sumber.
+di sumber. **2026-10-14 (P21-09, menutup OQ-64):** PVC memakai tabel resmi PROD/STD-04 Rev. 11
+kelas AW — diameter dalam = OD rata-rata (OD + ½ toleransi) − 2 × tebal rata-rata (tebal + ½
+toleransi); ½" = 18,9 mm, ¾" = 22,3 mm, 1" = 27,9 mm, 1¼" = 37,3 mm. `PVC_AW_WALL_SDR` dihapus
+dan `wallSdr` hanya berlaku untuk HDPE, yang tebalnya per OD dan SDR dari PROD/STD/014 (P21-07).
 
 #### ENG-103 · Kebutuhan tekanan dan pompa
 

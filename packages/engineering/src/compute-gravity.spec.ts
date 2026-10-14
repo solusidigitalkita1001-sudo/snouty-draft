@@ -9,7 +9,7 @@ describe('computeGravity', () => {
   it('drainase 20 l/s pada 1 % → 8" (47 % kapasitas), trace ENG-402 + ENG-401, asumsi ber-ID', () => {
     const r = computeGravity({ kind: 'drainage', designFlowLs: 20, slopePercent: 1 });
     expect(r.recommendedSize).toBe('8"');
-    expect(r.utilisationPercent).toBe(47.1);
+    expect(r.utilisationPercent).toBe(47.2); // 8" AW dalam 199,6 mm (PROD/STD-04)
     expect(r.allCriteriaMet).toBe(true);
     expect(r.structural).toBeNull();
     expect(r.traces.map((t) => t.ruleId)).toEqual(['ENG-402', 'ENG-401']);

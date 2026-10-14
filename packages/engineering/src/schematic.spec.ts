@@ -70,13 +70,14 @@ describe('buildSchematic — contoh kerja desain', () => {
   it('riser melewati semua lantai dengan ukuran jalur utama', () => {
     const risers = schematic.nodes.filter((n) => n.type === 'riser');
     expect(risers).toHaveLength(2);
-    for (const riser of risers) expect(riser.size).toBe('1"');
+    // Pipa utama contoh desain 1¼" sejak tebal AW resmi (compute-solution.spec).
+    for (const riser of risers) expect(riser.size).toBe('1¼"');
   });
 
   it('segmen main dari sumber ke pangkal riser', () => {
     const main = schematic.segments.find((s) => s.role === 'main')!;
     expect(main.from).toBe('src');
-    expect(main.size).toBe('1"');
+    expect(main.size).toBe('1¼"');
   });
 
   it('setiap lantai punya reducer dan cabang', () => {

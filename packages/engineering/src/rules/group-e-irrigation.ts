@@ -126,8 +126,8 @@ export interface MainSizeFromFlowInput {
   readonly velocityMs: number;
   /** Tabel ukuran: inci untuk PVC, mm (OD) untuk HDPE/MDPE. Bawaan inci. */
   readonly sizeTable: SizeTableId;
-  /** SDR untuk memperkirakan tebal dinding (diameter dalam = OD − 2·OD/SDR). */
-  readonly wallSdr: number;
+  /** SDR kelas HDPE; PVC memakai tebal dinding resmi kelas AW (PROD/STD-04). */
+  readonly wallSdr?: number;
 }
 export interface MainSizeFromFlowResult {
   readonly requiredInnerDiameterMm: number;
@@ -170,14 +170,14 @@ export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult>
   validationStatus: PENDING,
   testCases: [
     {
-      name: '1,5 l/s pada 1,5 m/s → 35,7 mm → 1¼" (dalam 38,8 mm)',
-      input: { designFlowLs: 1.5, velocityMs: 1.5, sizeTable: 'pvc_inch', wallSdr: 26.5 },
-      expected: { requiredInnerDiameterMm: 35.7, mainSize: '1¼"', innerDiameterMm: 38.8 },
+      name: '1,5 l/s pada 1,5 m/s → 35,7 mm → 1¼" AW (dalam 37,3 mm)',
+      input: { designFlowLs: 1.5, velocityMs: 1.5, sizeTable: 'pvc_inch' },
+      expected: { requiredInnerDiameterMm: 35.7, mainSize: '1¼"', innerDiameterMm: 37.3 },
     },
     {
-      name: '0,5 l/s pada 1,5 m/s → 20,6 mm → 3/4" (dalam 24 mm)',
-      input: { designFlowLs: 0.5, velocityMs: 1.5, sizeTable: 'pvc_inch', wallSdr: 26.5 },
-      expected: { requiredInnerDiameterMm: 20.6, mainSize: '3/4"', innerDiameterMm: 24 },
+      name: '0,5 l/s pada 1,5 m/s → 20,6 mm → 3/4" AW (dalam 22,3 mm)',
+      input: { designFlowLs: 0.5, velocityMs: 1.5, sizeTable: 'pvc_inch' },
+      expected: { requiredInnerDiameterMm: 20.6, mainSize: '3/4"', innerDiameterMm: 22.3 },
     },
   ],
   explain: (input, output, locale) =>
@@ -459,13 +459,18 @@ export function requireSizeTable(ruleId: string, raw: unknown): SizeTableId {
 export function withWallSdr(
   ruleId: string,
   o: Record<string, unknown>,
-): { readonly sizeTable: SizeTableId; readonly wallSdr: number } {
+): { readonly sizeTable: SizeTableId; readonly wallSdr?: number } {
   const table = requireSizeTable(ruleId, o['sizeTable']);
   return {
     sizeTable: table,
-    wallSdr:
-      o['wallSdr'] === undefined
-        ? defaultWallSdr(table)
-        : requireNumber(ruleId, 'wallSdr', o['wallSdr'], { min: 5, max: 60 }),
+    // PVC tidak memakai SDR lagi (tebal resmi PROD/STD-04); HDPE: SDR dari pesan atau baku registry.
+    ...(table === 'pvc_inch'
+      ? {}
+      : {
+          wallSdr:
+            o['wallSdr'] === undefined
+              ? defaultWallSdr(table)!
+              : requireNumber(ruleId, 'wallSdr', o['wallSdr'], { min: 5, max: 60 }),
+        }),
   };
 }

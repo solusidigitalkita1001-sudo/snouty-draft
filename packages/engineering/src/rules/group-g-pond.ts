@@ -169,7 +169,7 @@ export const ENG_303: RuleVersion<DrainSizeInput, DrainSizeResult> = {
         drainFlowLs: 4.44,
         requiredInnerDiameterMm: 75.2,
         drainSize: '3"',
-        innerDiameterMm: 82.3,
+        innerDiameterMm: 82.8,
       },
     },
   ],

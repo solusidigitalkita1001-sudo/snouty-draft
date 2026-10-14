@@ -228,3 +228,30 @@ describe('U1 — tekanan di meteran untuk pipa pengisi toren (5b)', () => {
     expect(line.reason).toContain('Supaya toren terisi');
   });
 });
+
+describe('tebal dinding AW resmi PROD/STD-04 (review putaran 4, poin 4)', () => {
+  const line = (rec: Recommendation, name: string) =>
+    rec.systemLines.find((l) => l.name === name)?.size;
+
+  it('U2: pipa utama 1" → 1¼", cabang 1 KM + 1 wastafel ½" → ¾" (½" AW dalam 18,9 mm)', async () => {
+    const rec = await analyse(U2);
+    expect(line(rec, 'Pipa distribusi utama')).toBe('1¼"');
+    expect(rec.systemLines.some((l) => l.name.startsWith('Cabang') && l.size === '1/2"')).toBe(
+      false,
+    );
+  });
+
+  it('U1 dan U3: ukuran tidak berubah', async () => {
+    const u1 = await analyse(U1);
+    expect(line(u1, 'Pipa distribusi utama')).toBe('3/4"');
+    expect(line(u1, 'Sambungan fixture')).toBe('1/2"');
+    expect(line(await analyse(U3), 'Pipa distribusi utama')).toBe('1¼"');
+  });
+
+  it('asumsi SDR 26,5 tidak tampil lagi di tabel Asumsi', async () => {
+    for (const state of [U1, U2, U3]) {
+      const ids = (await analyse(state)).assumptions.map((a) => a.assumptionId);
+      expect(ids).not.toContain('PVC_AW_WALL_SDR');
+    }
+  });
+});
