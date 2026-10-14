@@ -1578,6 +1578,13 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       "HOTEL", "0 %", "semua sekaligus?") tetap terkirim di HTML server dan payload RSC. `IllustrationSprite` kini
       komponen klien yang mengisi simbol hanya di browser (`useSyncExternalStore`); HTML server berisi `<svg>`
       kosong. Tes: markup server tanpa `<symbol>`, render browser memuat simbol
+- [x] P21-03 Sapaan pendek. Akar masalah: "oi" tidak mirip contoh mana pun, jadi jatuh ke perencana + klasifikasi
+      model (±30 detik) yang ragu → "kurang paham". Sesuai aturan "pertanyaan tidak di-hardcode", sapaan ditambah
+      sebagai CONTOH di `data/understanding/intent.json` (oi, woi, p, ping, halo min, assalamualaikum, punten, …),
+      bukan daftar frasa di kode; sapaan pertama sudah teks tetap tanpa model. Eval bge-m3: intent 145/146 (99,3%),
+      satu-satunya meleset "tes 123" (bge-m3 menilai angka jauh; contoh "tes 1 2 3" tidak menolong). Klasifikasi
+      model kini dibatasi `LLM_REPLY_TIMEOUT_MS` (dibatalkan sungguhan); lewat batas atau keluaran rusak → balasan
+      klarifikasi, bukan giliran gagal. Tes router + e2e `greeting.e2e.mjs` (`E2E_SEND=1`, < 2 detik)
 
 ## Design Coverage
 

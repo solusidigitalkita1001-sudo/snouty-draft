@@ -9,6 +9,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AiService, IntentInput } from '../../ai/domain/ai.port.js';
 import type { Extraction, IntentClassification } from '../../ai/domain/extraction-schema.js';
+import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import { understood } from '../../understanding/testing/understood.js';
 import { INTENT_CONFIDENCE_THRESHOLD, IntentRouter } from './intent-router.js';
 
@@ -391,5 +392,20 @@ describe('IntentRouter', () => {
     expect(d.intent).toBe('CLARIFICATION_NEEDED');
     expect(d.shouldExtract).toBe(false);
     expect(d.mutatesState).toBe(false);
+  });
+
+  it('model dibatasi waktunya; lewat batas atau keluaran rusak → bertanya balik, bukan giliran gagal (putaran 4, poin 3)', async () => {
+    const seen: IntentInput[] = [];
+    const ai = aiReturning({ intent: 'OUT_OF_SCOPE', confidence: 1 });
+    ai.classifyIntent = (input) => {
+      seen.push(input);
+      return Promise.reject(
+        new AiOutputInvalidError('intent_classification', 'melewati batas tunggu'),
+      );
+    };
+    const d = await new IntentRouter(ai).route(understood('qwerty', { intent: null }), false);
+    expect(seen[0]?.timeoutMs).toBeGreaterThan(0);
+    expect(d.intent).toBe('CLARIFICATION_NEEDED');
+    expect(d.shouldExtract).toBe(false);
   });
 });

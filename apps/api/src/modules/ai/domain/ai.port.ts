@@ -29,6 +29,11 @@ export interface IntentInput {
    * sebagai lanjutan, bukan pesan lepas. Opsional: klasifikasi tetap sah tanpanya.
    */
   readonly recentTurns?: readonly { readonly role: 'user' | 'assistant'; readonly text: string }[];
+  /**
+   * Batas tunggu; lewat itu panggilan DIBATALKAN dan melempar `AiOutputInvalidError` — pemanggil
+   * memperlakukannya sebagai ragu dan bertanya balik, bukan giliran yang gagal.
+   */
+  readonly timeoutMs?: number;
 }
 
 export interface AiService {

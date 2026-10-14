@@ -150,6 +150,41 @@
       "intent": "greeting"
     },
     {
+      "text": "oi kak",
+      "intent": "greeting",
+      "source": "review putaran 4, 2026-10-14"
+    },
+    {
+      "text": "woiii",
+      "intent": "greeting",
+      "source": "review putaran 4, 2026-10-14"
+    },
+    {
+      "text": "assalamualaikum min",
+      "intent": "greeting",
+      "source": "review putaran 4, 2026-10-14"
+    },
+    {
+      "text": "pp",
+      "intent": "greeting",
+      "source": "review putaran 4, 2026-10-14"
+    },
+    {
+      "text": "tes 123",
+      "intent": "greeting",
+      "source": "review putaran 4, 2026-10-14"
+    },
+    {
+      "text": "halo bang",
+      "intent": "greeting",
+      "source": "review putaran 4, 2026-10-14"
+    },
+    {
+      "text": "punten kak",
+      "intent": "greeting",
+      "source": "review putaran 4, 2026-10-14"
+    },
+    {
       "text": "makasih banyak ya infonya",
       "intent": "thanks"
     },

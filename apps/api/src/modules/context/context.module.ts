@@ -52,7 +52,7 @@ const storeProvider = {
 const intentRouterProvider = {
   provide: IntentRouter,
   inject: [AI_SERVICE],
-  useFactory: (ai: AiService) => new IntentRouter(ai),
+  useFactory: (ai: AiService) => new IntentRouter(ai, loadEnv().LLM_REPLY_TIMEOUT_MS),
 };
 
 /** Balasan percakapan ditulis model bila ada; tanpa model tetap ada teks tetapnya. */

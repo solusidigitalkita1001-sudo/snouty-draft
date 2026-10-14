@@ -97,6 +97,7 @@ export class OpenRouterAiService implements AiService {
       INTENT_SYSTEM_PROMPT,
       user,
       context,
+      input.timeoutMs,
     );
   }
 
@@ -184,6 +185,12 @@ export class OpenRouterAiService implements AiService {
     systemPrompt: string,
     userMessage: string,
     context: AiCallContext,
+    /**
+     * Batas tunggu pemanggil, lebih pendek dari `LLM_CALL_TIMEOUT_MS`. Lewat batas ini model tidak
+     * dianggap mati — pemanggil hanya tidak mau menunggu — jadi hasilnya keluaran tidak valid
+     * (pemanggil jatuh ke klarifikasi), bukan giliran "model tidak tersedia".
+     */
+    timeoutMs?: number,
   ): Promise<T> {
     // Skema yang memvalidasi keluaran juga DIKIRIM ke model. Sebelumnya prompt hanya
     // berkata "sesuai skema" tanpa pernah menyebutkan skemanya — model harus menebak
@@ -196,20 +203,25 @@ export class OpenRouterAiService implements AiService {
     // menggantung — satu percobaan ulang pernah 524 detik di laptop yang kehabisan RAM.
     let first;
     try {
-      first = await this.bounded((signal) =>
-        this.callOnce(
-          task,
-          tierForTask(task),
-          system,
-          userMessage,
-          true,
-          context,
-          undefined,
-          signal,
-        ),
+      first = await this.bounded(
+        (signal) =>
+          this.callOnce(
+            task,
+            tierForTask(task),
+            system,
+            userMessage,
+            true,
+            context,
+            undefined,
+            signal,
+          ),
+        timeoutMs,
       );
     } catch (error) {
-      if (error instanceof LlmAbortedError) throw new LlmUnavailableError(null);
+      if (error instanceof LlmAbortedError) {
+        if (timeoutMs !== undefined) throw new AiOutputInvalidError(task, 'melewati batas tunggu');
+        throw new LlmUnavailableError(null);
+      }
       throw error;
     }
     const firstJson = safeJson(first.content);
@@ -238,17 +250,19 @@ export class OpenRouterAiService implements AiService {
     const retryUser = `${userMessage}\n\n[Keluaran sebelumnya tidak valid: ${parsedFirst.error.message}. Kembalikan JSON yang sesuai skema.]`;
     let second;
     try {
-      second = await this.bounded((signal) =>
-        this.callOnce(
-          'extraction_retry',
-          'strong',
-          system,
-          retryUser,
-          true,
-          context,
-          'validation_failed',
-          signal,
-        ),
+      second = await this.bounded(
+        (signal) =>
+          this.callOnce(
+            'extraction_retry',
+            'strong',
+            system,
+            retryUser,
+            true,
+            context,
+            'validation_failed',
+            signal,
+          ),
+        timeoutMs,
       );
     } catch (error) {
       if (error instanceof LlmAbortedError) {
@@ -263,10 +277,13 @@ export class OpenRouterAiService implements AiService {
     throw new AiOutputInvalidError(task, parsedSecond.error.message);
   }
 
-  /** Menjalankan satu panggilan dengan batas waktu `LLM_CALL_TIMEOUT_MS`; lewat → `LlmAbortedError`. */
-  private async bounded<T>(run: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  /** Menjalankan satu panggilan dengan batas waktu (baku `LLM_CALL_TIMEOUT_MS`); lewat → `LlmAbortedError`. */
+  private async bounded<T>(
+    run: (signal: AbortSignal) => Promise<T>,
+    timeoutMs: number = loadEnv().LLM_CALL_TIMEOUT_MS,
+  ): Promise<T> {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), loadEnv().LLM_CALL_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       return await run(controller.signal);
     } finally {

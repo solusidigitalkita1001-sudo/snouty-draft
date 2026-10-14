@@ -16,6 +16,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import type { ConversationSubject, Intent } from '@snouty/shared-types';
+import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import type { IntentClassification } from '../../ai/domain/extraction-schema.js';
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
@@ -267,9 +268,15 @@ export interface RoutingDecision {
   readonly mutatesState: boolean;
 }
 
+/** Batas tunggu klasifikasi model bila tidak diberi — setara baku `LLM_REPLY_TIMEOUT_MS`. */
+const CLASSIFY_TIMEOUT_MS = 10_000;
+
 @Injectable()
 export class IntentRouter {
-  constructor(@Inject(AI_SERVICE) private readonly ai: AiService) {}
+  constructor(
+    @Inject(AI_SERVICE) private readonly ai: AiService,
+    private readonly classifyTimeoutMs: number = CLASSIFY_TIMEOUT_MS,
+  ) {}
 
   async route(
     u: MessageUnderstanding,
@@ -314,12 +321,7 @@ export class IntentRouter {
       subject,
       withRequirementPrecedence(
         u,
-        fast ??
-          (await this.ai.classifyIntent({
-            message: u.text,
-            hasExistingRequirements,
-            recentTurns,
-          })),
+        fast ?? (await this.classifyWithinLimit(u.text, hasExistingRequirements, recentTurns)),
       ),
     );
 
@@ -340,6 +342,32 @@ export class IntentRouter {
       shouldExtract: EXTRACTING_INTENTS.has(classification.intent),
       mutatesState: MUTATING_INTENTS.has(classification.intent),
     };
+  }
+
+  /**
+   * Klasifikasi model dengan batas tunggu balasan percakapan (`LLM_REPLY_TIMEOUT_MS`). Pesan yang
+   * tidak mirip contoh mana pun dulu menunggu model sampai 30 detik lalu tetap dijawab "kurang
+   * paham" (review putaran 4, poin 3). Lewat batas atau keluaran tidak valid = ragu, dan ragu
+   * dijawab pertanyaan balik — bukan giliran yang gagal.
+   */
+  private async classifyWithinLimit(
+    message: string,
+    hasExistingRequirements: boolean,
+    recentTurns: readonly ReplyTurn[],
+  ): Promise<IntentClassification> {
+    try {
+      return await this.ai.classifyIntent({
+        message,
+        hasExistingRequirements,
+        recentTurns,
+        timeoutMs: this.classifyTimeoutMs,
+      });
+    } catch (error) {
+      if (error instanceof AiOutputInvalidError) {
+        return { intent: 'CLARIFICATION_NEEDED', confidence: 0 };
+      }
+      throw error;
+    }
   }
 }
 
