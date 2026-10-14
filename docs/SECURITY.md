@@ -211,17 +211,17 @@ Galat yang sampai ke klien hanya berisi kode stabil dan pesan aman. Stack trace 
 
 ## 12. Daftar periksa sebelum produksi
 
-|                                                       | Status                       |
-| ----------------------------------------------------- | ---------------------------- |
-| Akun database least-privilege dibuat                  | **belum** — OQ-34            |
-| Pemilik backup teridentifikasi & restore pernah diuji | **belum** — `DATABASE.md` §8 |
-| Enkripsi at-rest MySQL dikonfirmasi                   | **belum**                    |
-| Perjanjian pemrosesan data dengan penyedia LLM        | **belum**                    |
-| Redaksi email sebelum Fase 11                         | direncanakan                 |
-| Pemindaian dependensi di CI                           | direncanakan Fase 0e         |
-| Pemindaian secret di CI                               | direncanakan Fase 0e         |
-| Uji penetrasi                                         | Fase 13                      |
-| Prosedur pemberitahuan insiden                        | **belum** — `PRIVACY.md` §10 |
+|                                                       | Status                                                |
+| ----------------------------------------------------- | ----------------------------------------------------- |
+| Akun database least-privilege dibuat                  | **ya** (produksi, 2026-10-14) — `deploy.sh db-grants` |
+| Pemilik backup teridentifikasi & restore pernah diuji | **belum** — `DATABASE.md` §8                          |
+| Enkripsi at-rest MySQL dikonfirmasi                   | **belum**                                             |
+| Perjanjian pemrosesan data dengan penyedia LLM        | **belum**                                             |
+| Redaksi email sebelum Fase 11                         | direncanakan                                          |
+| Pemindaian dependensi di CI                           | manual `pnpm audit --prod` bersih 2026-10-14          |
+| Pemindaian secret di CI                               | direncanakan Fase 0e                                  |
+| Uji penetrasi                                         | Fase 13                                               |
+| Prosedur pemberitahuan insiden                        | **belum** — `PRIVACY.md` §10                          |
 
 Empat baris pertama semuanya bermuara pada satu hal: SNOUTY menumpang pada infrastruktur yang
 kepemilikan operasionalnya belum jelas. Itu perlu diselesaikan sebelum ada data pelanggan nyata di
@@ -276,3 +276,24 @@ publik), dan `auth`/`health` tanpa pemeriksaan aktor memang benar.
 **Belum, dan terhalang:** validasi unggahan (MIME + magic bytes) menunggu endpoint unggah (OQ-07);
 header keamanan & CORS (§9) ditetapkan reverse proxy saat deployment; akun database least-privilege
 tetap **OQ-34** dan masih yang paling berisiko di proyek ini.
+
+## 13. Audit keamanan 2026-10-14 (live ai.pralon.co.id)
+
+**Bersih:** dari jaringan hanya 22/80/443 terbuka (MySQL, Redis, RabbitMQ, Ollama, port aplikasi tertutup);
+HTTP → HTTPS, HSTS, sertifikat Let's Encrypt; `.env`/`.git` tidak tersaji; `.env.production` 600; tidak ada
+secret di repo; database produksi di container SNOUTY sendiri (bukan host bersama 192.168.1.136).
+
+**Ditutup hari itu:**
+
+- Next.js 16.3.7 → 16.3.8 (SSRF image optimisation, cache poisoning) dan `source-map-js` ≥ 1.2.2 (override
+  pnpm) — `pnpm audit --prod` bersih.
+- Content-Security-Policy (semua aset origin sendiri; `'unsafe-inline'` untuk skrip inline Next.js dan skrip
+  tema/bahasa) dan Permissions-Policy (`geolocation=(self)` untuk onboarding). Report-only lebih dulu: nol
+  pelanggaran di seluruh layar, lalu ditegakkan.
+- `/health` tidak lagi dibuka ke publik.
+- User database aplikasi hanya SELECT/INSERT/UPDATE/DELETE (`deploy.sh db-grants`, ikut setiap `migrate`);
+  cadangan sebelum perubahan di `~/backups` (`deploy.sh db-backup`). Diverifikasi: `CREATE TABLE` ditolak,
+  aplikasi tetap menulis, tanpa galat akses di log.
+
+**Masih terbuka (butuh pihak Pralon):** uji restore cadangan, enkripsi at-rest, perjanjian data dengan penyedia
+LLM, prosedur insiden. `'unsafe-inline'` di script-src bisa diganti nonce bila nanti dibutuhkan.

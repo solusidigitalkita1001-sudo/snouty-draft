@@ -186,6 +186,16 @@ deploy/deploy.sh release     # git pull → build → up → smoke  (migration T
 Rollback: `git checkout <commit-sebelumnya> && deploy/deploy.sh build && deploy/deploy.sh up`.
 Log: `deploy/deploy.sh logs api` (atau `web`, `worker`).
 
+### 8a. Catatan operasional (2026-10-14)
+
+- **Perubahan `deploy/nginx/nginx.prod.conf`**: setelah `git pull`, uji lalu **restart** (bukan reload) —
+  berkasnya di-mount satu file, dan `git pull` membuat inode baru yang tidak terlihat oleh `nginx -s reload`:
+  `docker compose … exec -T nginx nginx -t` lalu `docker compose … restart nginx`. bagspace ikut dilayani
+  nginx ini.
+- **Cadangan**: `deploy/deploy.sh db-backup` (mysqldump gzip ke `~/backups`) sebelum migration atau perubahan hak.
+- **Hak database**: `deploy/deploy.sh db-grants` — user aplikasi hanya SELECT/INSERT/UPDATE/DELETE; otomatis
+  setelah `migrate` (migration berjalan sebagai root).
+
 ## 9. Yang belum dioptimalkan (sengaja)
 
 - Image belum dipangkas (build stage dipakai sebagai runtime): ukuran besar tetapi benar. Pemangkasan

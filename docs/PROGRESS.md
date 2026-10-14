@@ -1637,6 +1637,10 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       DISAMARKAN (`maskValues`, opsi data katalog) karena bge-m3 menyamakan "harga pipa d 4 inch" dengan "tebal pipa d
       4 inch" lewat token ukurannya; (3) kartu produk di chat tidak lagi bertanda "LIHAT DOKUMEN TEKNIS" (produk ber-SKU)
       dan sumber jawaban katalog "katalog produk Pralon", bukan nama berkas impor ERP. Eval 152/155 (98,1%)
+- [x] P21-12 Audit keamanan live (docs/SECURITY.md §13): Next.js 16.3.8 + source-map-js ≥ 1.2.2 (audit bersih),
+      CSP + Permissions-Policy ditegakkan setelah report-only bersih, `/health` ditutup dari publik, user DB aplikasi
+      tanpa DROP/ALTER/CREATE (`db-grants`, cadangan `db-backup` 2,1 MB sebelum diubah). Temuan di luar SNOUTY:
+      container bagspace-* berhenti sejak ±5 hari (bukan akibat perubahan ini)
 
 ## Design Coverage
 
