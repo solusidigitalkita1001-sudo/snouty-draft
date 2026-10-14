@@ -3,7 +3,7 @@
  * (pipa utama + cabang SKU sama, tee), air kotor (pipa + ventilasi, Y tanpa jumlah).
  */
 import { describe, expect, it } from 'vitest';
-import { boqFrom } from './boq.js';
+import { boqFrom, displayName } from './boq.js';
 import type { BomItem, SelectedProduct } from './recommendation.js';
 
 const product = (
@@ -160,5 +160,14 @@ describe('boqFrom — barang yang belum dihitung (review laporan 0015)', () => {
       pending: true,
     });
     expect(boq.products).toEqual([]);
+  });
+});
+
+describe('displayName (review putaran 4, 5c)', () => {
+  it('nama katalog tetap, hanya spasi sebelum tanda inci yang dibuang', () => {
+    expect(displayName('Socket DV 2 "')).toBe('Socket DV 2"');
+    expect(displayName('Elbow DV 45° 2 1/2"')).toBe('Elbow DV 45° 2 1/2"');
+    expect(displayName('Tee  Abu Ts 1" x 1/2"')).toBe('Tee Abu Ts 1" x 1/2"');
+    expect(displayName(undefined)).toBeUndefined();
   });
 });

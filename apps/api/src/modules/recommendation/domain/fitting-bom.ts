@@ -226,6 +226,8 @@ export interface PendingNeed {
   readonly size: string;
   readonly item: Text;
   readonly unit: BomItem['unit'];
+  /** Lini Pralon yang belum ada di data katalog — lihat `BomItem.askPralon`. */
+  readonly askPralon?: true;
 }
 
 /**
@@ -262,6 +264,8 @@ export function pendingNeeds(
       size: '—',
       item: { id: 'Lem PVC', en: 'PVC solvent cement' },
       unit: 'kaleng' as const,
+      // Solvent Cement adalah lini Pralon (materi perusahaan), hanya belum ada di export ERP.
+      askPralon: true as const,
     },
   ]);
 }
@@ -285,6 +289,7 @@ export function pendingRows(
       provenance: 'ASSUMED',
       traceIds: [],
       pending: true,
+      ...(need.askPralon ? { askPralon: true as const } : {}),
     };
   });
 }

@@ -298,7 +298,7 @@ export function gravityBomItemsFrom(
     lines.push(row('Elbow 45°', 2, 'pcs'));
     lines.push(row(en ? 'Tee / junction inspection box' : 'Tee / bak kontrol sambungan', 1, 'pcs'));
   }
-  lines.push(row(en ? 'PVC solvent cement' : 'Lem PVC', 1, 'kaleng', '-'));
+  lines.push({ ...row(en ? 'PVC solvent cement' : 'Lem PVC', 1, 'kaleng', '-'), askPralon: true });
   return lines;
 }
 

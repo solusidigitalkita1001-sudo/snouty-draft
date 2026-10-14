@@ -255,7 +255,11 @@ export function pressurizedBomItemsFrom(
     lines.push(row(en ? 'Threaded socket / pump adaptor' : 'Sok drat / adaptor pompa', 2, 'pcs'));
   }
   if (family !== 'HDPE')
-    lines.push({ ...row(en ? 'PVC solvent cement' : 'Lem PVC', 1, 'kaleng'), size: '-' });
+    lines.push({
+      ...row(en ? 'PVC solvent cement' : 'Lem PVC', 1, 'kaleng'),
+      size: '-',
+      askPralon: true,
+    });
   return lines;
 }
 

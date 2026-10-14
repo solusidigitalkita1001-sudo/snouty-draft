@@ -713,7 +713,11 @@ function BoqSectionRows({
                   {row.productName && row.productName !== (row.purpose ?? row.item) && (
                     <span className={styles.boqProduct}>{row.productName}</span>
                   )}
-                  {row.seeDocs && <span className={styles.boqProduct}>{COPY.boq.seeDocs}</span>}
+                  {row.availability && (
+                    <span className={styles.boqProduct}>
+                      {COPY.boq.availability[row.availability]}
+                    </span>
+                  )}
                 </td>
                 <td className={styles.mono}>{row.size}</td>
                 <td className={styles.num}>{row.quantity ?? '—'}</td>

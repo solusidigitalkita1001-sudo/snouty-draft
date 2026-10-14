@@ -162,6 +162,8 @@ export function pondBomItemsFrom(
     basis,
     provenance,
     traceIds: bomTraces,
+    // Butir lem engine kolam adalah Solvent Cement Pralon (lihat `BomItem.askPralon`).
+    ...(line.item === 'Lem PVC' ? { askPralon: true as const } : {}),
   }));
 }
 

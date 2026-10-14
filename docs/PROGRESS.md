@@ -1585,6 +1585,17 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       satu-satunya meleset "tes 123" (bge-m3 menilai angka jauh; contoh "tes 1 2 3" tidak menolong). Klasifikasi
       model kini dibatasi `LLM_REPLY_TIMEOUT_MS` (dibatalkan sungguhan); lewat batas atau keluaran rusak → balasan
       klarifikasi, bukan giliran gagal. Tes router + e2e `greeting.e2e.mjs` (`E2E_SEND=1`, < 2 detik)
+- [ ] P21-04 Diameter dalam per kelas — **terhalang OQ-64**. Handbook Pralon dari pemilik disimpan sebagai sumber
+      (`data/standards/2026-10-14-pralon-handbook/`: PROD/STD-001, 002, 003, 014), tetapi tidak memuat AW dan D;
+      VP bukan pengganti (½" VP 2,7 mm). SDR 26,5 tetap asumsi tercatat; ukuran tidak berubah. Pemilik akan
+      mengirim tabel AW/D
+- [x] P21-05 BOQ. 5a akar masalah: status dokumen teknis menempel pada setiap baris yang produknya tidak
+      `VERIFIED_SELECTED`, termasuk fitting ber-SKU seri Ts/W/DV yang kelasnya kosong di export ERP. Kini status
+      (`BoqRow.availability`) hanya untuk baris tanpa SKU: "Tidak tersedia di katalog Pralon, gunakan produk setara"
+      (stop kran, topi ventilasi, clean out/sambungan ventilasi 2½") atau, untuk lem, "Solvent Cement Pralon,
+      tanyakan ketersediaannya ke tim Pralon" (keputusan pemilik). Tidak ada tautan datasheet: kolom `documents`
+      katalog kosong. 5c: nama = nama katalog, spasi sebelum tanda inci dibuang (`displayName`); pemetaan seri →
+      kelas menunggu data produk dari pemilik (OQ-48). Angka BOQ U1/U2/U3 identik dengan putaran 3
 
 ## Design Coverage
 

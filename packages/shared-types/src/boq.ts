@@ -33,10 +33,12 @@ export interface BoqRow {
   /** Produk terpilih yang jumlahnya belum bisa dihitung. */
   readonly pending?: true;
   /**
-   * Tidak ada SKU Pralon yang terverifikasi untuk baris ini (tidak ada di katalog, atau seri/kelasnya
-   * belum terverifikasi): tampil "LIHAT DOKUMEN TEKNIS", bukan kosong (review putaran 3, 4d).
+   * Baris tanpa SKU katalog Pralon (review putaran 4, 5a — dulu "LIHAT DOKUMEN TEKNIS" juga menempel
+   * di fitting ber-SKU yang kelasnya belum terverifikasi, sehingga labelnya kehilangan arti):
+   * `not_in_catalog` = Pralon tidak punya barangnya di katalog, pakai produk setara;
+   * `ask_pralon` = lini produk Pralon yang belum ada di data katalog (Solvent Cement).
    */
-  readonly seeDocs?: true;
+  readonly availability?: 'not_in_catalog' | 'ask_pralon';
 }
 
 export interface BoqSection {
@@ -71,6 +73,17 @@ function kindOfUnit(unit: string): 'pipe' | 'fitting' {
   return unit === 'pcs' || unit === 'kaleng' ? 'fitting' : 'pipe';
 }
 
+/**
+ * Nama katalog persis, hanya format ukurannya diseragamkan: master ERP kadang menulis `Socket DV 2 "`
+ * (spasi sebelum tanda inci) di samping `Socket DV 2"` (review putaran 4, 5c).
+ */
+export function displayName(name: string | undefined): string | undefined {
+  return name
+    ?.replace(/\s+(["”])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 function joined(values: readonly (string | undefined)[]): string | undefined {
   const unique = [...new Set(values.filter((v): v is string => Boolean(v)))];
   return unique.length > 0 ? unique.join(' · ') : undefined;
@@ -84,13 +97,14 @@ export function boqFrom(recommendation: {
   const selectionsOf = (productId: string) => usable.filter((p) => p.productId === productId);
 
   type Draft = Omit<BoqRow, 'no'> & { readonly system: BomSystem | null };
-  // Produk terverifikasi = dipilih dengan ukuran dan kelasnya cocok; selain itu rujuk dokumen teknis.
-  const verified = (selections: readonly SelectedProduct[]) =>
-    selections.some((s) => s.matchState === 'VERIFIED_SELECTED');
   const drafts: Draft[] = recommendation.bom.map((item) => {
     const selections = item.productId ? selectionsOf(item.productId) : [];
-    const productName = selections.find((s) => s.name !== undefined)?.name;
-    const seeDocs = !verified(selections) ? { seeDocs: true as const } : {};
+    const productName = displayName(selections.find((s) => s.name !== undefined)?.name);
+    // Status hanya untuk baris TANPA SKU; kelas fitting yang belum terverifikasi dicatat di tab Produk.
+    const availability =
+      productName === undefined
+        ? { availability: item.askPralon ? ('ask_pralon' as const) : ('not_in_catalog' as const) }
+        : {};
     if (item.pending) {
       return {
         system: item.system ?? null,
@@ -105,7 +119,7 @@ export function boqFrom(recommendation: {
         quantity: null,
         unit: null,
         pending: true,
-        ...seeDocs,
+        ...availability,
       };
     }
     const purpose = item.purpose ?? joined(selections.map((s) => s.purpose));
@@ -123,7 +137,7 @@ export function boqFrom(recommendation: {
       basis: item.basis,
       ...(item.calc !== undefined ? { calc: item.calc } : {}),
       provenance: item.provenance,
-      ...seeDocs,
+      ...availability,
     };
   });
 
@@ -141,7 +155,7 @@ export function boqFrom(recommendation: {
     const selections = selectionsOf(productId);
     if (fittingsCounted && selections.every((s) => s.role === 'fitting')) continue;
     const purpose = joined(selections.map((s) => s.purpose));
-    const productName = selections.find((s) => s.name !== undefined)?.name;
+    const productName = displayName(selections.find((s) => s.name !== undefined)?.name);
     drafts.push({
       system: selections.find((s) => s.system)?.system ?? null,
       kind: selections.every((s) => s.role === 'fitting') ? 'fitting' : 'pipe',

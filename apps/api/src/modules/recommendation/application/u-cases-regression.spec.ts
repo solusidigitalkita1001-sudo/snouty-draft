@@ -185,17 +185,26 @@ describe('U2 — rumah 3 lantai, pompa sumur', () => {
   });
 });
 
-describe('semua kasus — setiap baris punya SKU atau rujukan dokumen teknis (4d)', () => {
+describe('semua kasus — status katalog hanya untuk baris tanpa SKU (putaran 4, 5a–5c)', () => {
   it.each([
     ['U1', U1],
     ['U2', U2],
     ['U3', U3],
   ])('%s', async (_name, state) => {
     for (const row of rowsOf(await analyse(state))) {
-      expect(row.productName !== undefined || row.seeDocs === true, row.purpose ?? row.item).toBe(
-        true,
-      );
+      const label = row.purpose ?? row.item;
+      // Ber-SKU → tanpa status (dulu "LIHAT DOKUMEN TEKNIS" juga di Elbow Abu Ts); tanpa SKU → status.
+      expect(row.productName === undefined, label).toBe(row.availability !== undefined);
+      // Nama katalog tanpa spasi sebelum tanda inci (Socket DV 2 ").
+      expect(row.productName ?? '', label).not.toMatch(/\s"/);
+      if (row.item === 'Lem PVC') expect(row.availability, label).toBe('ask_pralon');
+      if (row.item === 'Stop kran') expect(row.availability, label).toBe('not_in_catalog');
     }
+  });
+
+  it('fitting Ts ber-SKU di U1 tidak lagi bertanda dokumen teknis', async () => {
+    const elbow = rowsOf(await analyse(U1)).find((r) => r.productName === 'Elbow Abu Ts 3/4"')!;
+    expect(elbow.availability).toBeUndefined();
   });
 });
 

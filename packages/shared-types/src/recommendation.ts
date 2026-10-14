@@ -174,6 +174,11 @@ export interface BomItem {
    */
   readonly pending?: true;
   /**
+   * Lini produk Pralon yang belum ada di data katalog (Solvent Cement — materi perusahaan, keputusan
+   * pemilik 2026-10-14): BOQ menyuruh menanyakannya ke Pralon, bukan memakai produk setara.
+   */
+  readonly askPralon?: true;
+  /**
    * Panjang batang dan sisa potong yang dipakai menghitung baris pipa ini — supaya baris ber-SKU
    * sama bisa digabung lalu dibulatkan SEKALI (review putaran 3, 4a), bukan dijumlah per peran.
    */

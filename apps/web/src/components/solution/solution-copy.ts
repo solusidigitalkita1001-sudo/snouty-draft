@@ -97,7 +97,10 @@ export const SOLUTION_COPY = {
     },
     groups: { pipe: 'Pipa', fitting: 'Fitting' },
     // Baris tanpa SKU Pralon terverifikasi (review putaran 3, 4d).
-    seeDocs: 'LIHAT DOKUMEN TEKNIS',
+    availability: {
+      not_in_catalog: 'Tidak tersedia di katalog Pralon, gunakan produk setara',
+      ask_pralon: 'Solvent Cement Pralon, tanyakan ketersediaannya ke tim Pralon',
+    },
     pendingPipe: 'Menunggu ukuran bangunan',
     pendingFitting: 'Dihitung saat pemasangan',
     total: 'Total',
@@ -337,7 +340,10 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
       other: 'Materials',
     },
     groups: { pipe: 'Pipes', fitting: 'Fittings' },
-    seeDocs: 'SEE TECHNICAL DOCUMENTS',
+    availability: {
+      not_in_catalog: 'Not in the Pralon catalogue, use an equivalent product',
+      ask_pralon: 'Pralon Solvent Cement, ask the Pralon team about availability',
+    },
     pendingPipe: 'Needs the building size',
     pendingFitting: 'Counted at installation',
     total: 'Total',
