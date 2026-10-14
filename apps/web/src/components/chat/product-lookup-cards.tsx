@@ -52,7 +52,10 @@ export function ProductLookupCards({
           >
             {isCustomerSku(product.sku) && <span className={styles.lookupSku}>{product.sku}</span>}
             <span className={styles.lookupName}>{product.name}</span>
-            <ProvenanceTag provenance={product.provenance} />
+            {/* Produk katalog selalu ber-SKU: "lihat dokumen teknis" hanya untuk item tanpa SKU (putaran 4, 5a). */}
+            {product.provenance !== 'UNAVAILABLE' && (
+              <ProvenanceTag provenance={product.provenance} />
+            )}
             <span className={styles.lookupOpen}>{COPY.productCards.open}</span>
           </button>
         ))}

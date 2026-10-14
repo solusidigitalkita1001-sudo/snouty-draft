@@ -47,7 +47,8 @@ export const PRODUCT_ANSWER_COPY = {
   askTechnicalForProducts:
     'Untuk pilihan produk Pralon yang sesuai kebutuhan Anda, tim teknis Pralon bisa membantu.',
   comparisonIntro: 'Berikut yang tercatat di katalog Pralon untuk masing-masing:',
-  source: (document: string, page: number) => `Sumber: ${document} hal. ${page}.`,
+  // Nama berkas impor dan nomor barisnya label internal (QA smoke 2026-10-14) — cukup asal datanya.
+  source: 'Sumber: katalog produk Pralon.',
   seeDocuments: (titles: readonly string[]) => `Lihat dokumen teknis: ${titles.join('; ')}.`,
   insufficient: (label: string, name: string) =>
     `${label} untuk ${name} belum tercantum di katalog; tim teknis Pralon bisa memastikannya.`,
@@ -84,7 +85,7 @@ export interface ProductAnswerCopy {
   readonly catalogNotInstalled: string;
   readonly askTechnicalForProducts: string;
   readonly comparisonIntro: string;
-  readonly source: (document: string, page: number) => string;
+  readonly source: string;
   readonly seeDocuments: (titles: readonly string[]) => string;
   readonly insufficient: (label: string, name: string) => string;
 }
@@ -111,7 +112,7 @@ export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
   askTechnicalForProducts:
     "For the Pralon product that fits your needs, Pralon's technical team can help.",
   comparisonIntro: 'Here is what the Pralon catalog records for each:',
-  source: (document, page) => `Source: ${document} p. ${page}.`,
+  source: 'Source: Pralon product catalogue.',
   seeDocuments: (titles) => `See the technical documents: ${titles.join('; ')}.`,
   insufficient: (label, name) =>
     `${label} for ${name} is not listed in the catalogue yet; Pralon's technical team can confirm it.`,
@@ -147,11 +148,11 @@ export function answerText(
   const label = aspectLabel(answer.aspect, locale);
   switch (answer.kind) {
     case 'value':
-      return `${label} ${product.name}: ${answer.value}. ${copy.source(answer.sourceDocument, answer.sourcePage)}`;
+      return `${label} ${product.name}: ${answer.value}. ${copy.source}`;
     case 'list':
-      return `${label} ${product.name}: ${answer.items.join(', ')}. ${copy.source(answer.sourceDocument, answer.sourcePage)}`;
+      return `${label} ${product.name}: ${answer.items.join(', ')}. ${copy.source}`;
     case 'availability': {
-      const source = copy.source(answer.sourceDocument, answer.sourcePage);
+      const source = copy.source;
       if (en) {
         return answer.available
           ? `${product.name} is available in size ${answer.sizeLabel}. ${source}`

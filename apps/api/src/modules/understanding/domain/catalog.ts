@@ -21,6 +21,11 @@ export const CatalogSchema = z.object({
    * dan 0,75 dengan sambungan lem — yang kedua bukan topik yang ditanya. Baku 1 = tanpa batasan.
    */
   window: z.number().min(0).max(1).default(1),
+  /**
+   * Angka dan ukuran disamarkan (`value-mask.ts`) di contoh maupun pesan sebelum dibandingkan —
+   * untuk katalog yang labelnya tidak bergantung pada ukuran (aspek produk, QA smoke 2026-10-14).
+   */
+  maskValues: z.boolean().default(false),
   labels: z.record(
     z.string().regex(/^[a-z][a-z0-9_ ]*$/),
     z.array(z.string().trim().min(1)).min(1),

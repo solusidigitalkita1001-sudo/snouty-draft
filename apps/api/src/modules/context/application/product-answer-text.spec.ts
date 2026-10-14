@@ -51,7 +51,7 @@ describe('product answer text locale', () => {
       'Pipa PVC AW: Pipa untuk air bersih bertekanan. Material uPVC. Aplikasi: Air bersih. Standar SNI 06-0084.',
     );
     expect(answerText(AW, AVAILABLE)).toBe(
-      'Pipa PVC AW tersedia dalam ukuran 3/4". Sumber: Katalog 2026 hal. 14.',
+      'Pipa PVC AW tersedia dalam ukuran 3/4". Sumber: katalog produk Pralon.',
     );
     expect(answerText(AW, AVAILABLE, 'id')).toBe(answerText(AW, AVAILABLE));
   });
@@ -61,7 +61,7 @@ describe('product answer text locale', () => {
       'Pipa PVC AW: Pipa untuk air bersih bertekanan. Material: uPVC. Application: Air bersih. Standard: SNI 06-0084.',
     );
     expect(answerText(AW, AVAILABLE, 'en')).toBe(
-      'Pipa PVC AW is available in size 3/4". Source: Katalog 2026 p. 14.',
+      'Pipa PVC AW is available in size 3/4". Source: Pralon product catalogue.',
     );
     const insufficient = { kind: 'insufficientData', aspect: 'pressure_class' } as never;
     expect(answerText(AW, insufficient, 'en')).toContain(

@@ -374,6 +374,23 @@
       "source": "P21-09, live 2026-10-14"
     },
     {
+      "text": "harga pipa aw 1/2 inch berapa?",
+      "intent": "price_question",
+      "productAspect": null,
+      "source": "QA smoke 2026-10-14"
+    },
+    {
+      "text": "pipa d 3 inci harganya berapa ya?",
+      "intent": "price_question",
+      "productAspect": null,
+      "source": "QA smoke 2026-10-14"
+    },
+    {
+      "text": "tebal pipa d 3 inch berapa?",
+      "productAspect": "dimensions",
+      "source": "QA smoke 2026-10-14"
+    },
+    {
       "text": "standarnya apa?",
       "intent": "product_spec",
       "productAspect": "standard"

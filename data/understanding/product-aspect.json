@@ -3,6 +3,7 @@
   "description": "Aspek spesifikasi yang ditanyakan tentang sebuah produk — kosakata tertutup product-knowledge. Tidak cocok = pertanyaan konsep (dijawab pengetahuan, bukan kolom katalog).",
   "threshold": 0.74,
   "margin": 0.02,
+  "maskValues": true,
   "labels": {
     "sizes": [
       "ukuran hdpe ada apa aja?",
@@ -173,7 +174,12 @@
       "ketebalan pipa pvc 1 inch berapa?",
       "tebal pipa 6 inci kelas d berapa?",
       "diameter dalam pipa aw 1/2 berapa mm?",
-      "berat pipa aw 1 inci per batang?"
+      "berat pipa aw 1 inci per batang?",
+      "tebal pipa aw 2 inch berapa?",
+      "tebal pipa d 6 inci berapa?",
+      "tebal pvc d 3 inch berapa mm?",
+      "tebalnya pipa aw 3/4 inch berapa?",
+      "pipa d 2 1/2 inch tebal dindingnya berapa?"
     ],
     "none": [
       "pralon itu apa?",
@@ -223,7 +229,14 @@
       "kenapa ukurannya 1 inch?",
       "kenapa pakai 1 inch?",
       "kenapa bukan 3/4?",
-      "why that size?"
+      "why that size?",
+      "harga pipa aw 3/4 berapa?",
+      "berapa harga pipa d 4 inch?",
+      "pipa hdpe 110 harganya berapa?",
+      "harga per batang pipa vp 2 inci?",
+      "berapa duit pipa pvc 1 inch?",
+      "how much is a 2 inch aw pipe?",
+      "price of hdpe 90 mm pipe?"
     ]
   }
 }

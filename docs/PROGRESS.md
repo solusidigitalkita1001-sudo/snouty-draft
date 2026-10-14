@@ -1631,6 +1631,12 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       berkelas kosong di ukuran yang pipa kelasnya dibuat → `VERIFIED_SELECTED` dengan alasan bersumber; ukuran
       yang kelasnya tidak dibuat (D ½") tetap perlu dikonfirmasi; fitting berkelas lain tetap ditolak. U1–U3: 77
       baris terverifikasi, 0 perlu dikonfirmasi
+- [x] P21-11 Temuan QA smoke live (17/20 lolos): (1) "pipa pvc aw ada ukuran apa saja?" dijawab ukuran SATU
+      produk teratas → kini `familySizeAnswer` untuk seluruh keluarga; (2) "tebal pipa d 3 inch berapa?" di tengah
+      percakapan dijawab soal harga → dimensi didahulukan dari harga, dan aspek produk dicocokkan dengan angka/ukuran
+      DISAMARKAN (`maskValues`, opsi data katalog) karena bge-m3 menyamakan "harga pipa d 4 inch" dengan "tebal pipa d
+      4 inch" lewat token ukurannya; (3) kartu produk di chat tidak lagi bertanda "LIHAT DOKUMEN TEKNIS" (produk ber-SKU)
+      dan sumber jawaban katalog "katalog produk Pralon", bukan nama berkas impor ERP. Eval 152/155 (98,1%)
 
 ## Design Coverage
 

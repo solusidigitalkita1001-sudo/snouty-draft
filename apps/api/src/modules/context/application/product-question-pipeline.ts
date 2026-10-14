@@ -65,6 +65,7 @@ import {
   overviewChoice,
   previousRange,
   rangeOverview,
+  familySizeAnswer,
 } from './product-range.js';
 
 /** Alias kosakata sebuah keluarga kanonis — untuk mencari katalog dengan nama yang dipakai katalog. */
@@ -208,23 +209,25 @@ export async function runProductQuestion(
   const locale = input.locale ?? DEFAULT_LOCALE;
   const u = input.understanding;
 
-  // Harga tidak ditampilkan (OQ-03): jawab jujur dan arahkan, jangan bertanya "produk mana".
-  if (u.intent?.label === 'price_question') {
-    return [
-      { type: 'message.start', messageId: input.messageId },
-      { type: 'token', text: productAnswerCopy(locale).priceNotShown },
-      { type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } },
-      endEvent(input.messageId),
-    ];
-  }
-
   // Tebal dinding / diameter dalam / berat: tabel standar Pralon per kelas (P21-08), nol model.
+  // Didahulukan dari harga: "tebal pipa d 3 inch berapa?" sempat terbaca pertanyaan harga karena
+  // "berapa" (QA smoke 2026-10-14) — aspek tebal/berat dari contoh lebih spesifik daripada intentnya.
   if (u.productAspect === 'dimensions') {
     const outcome = dimensionAnswer(input.message, u.families, pipeStandardRows(), locale);
     return [
       { type: 'message.start', messageId: input.messageId },
       { type: 'token', text: outcome.text },
       ...outcome.cards.map((card) => ({ type: 'card', card }) as AssistantStreamEvent),
+      endEvent(input.messageId),
+    ];
+  }
+
+  // Harga tidak ditampilkan (OQ-03): jawab jujur dan arahkan, jangan bertanya "produk mana".
+  if (u.intent?.label === 'price_question') {
+    return [
+      { type: 'message.start', messageId: input.messageId },
+      { type: 'token', text: productAnswerCopy(locale).priceNotShown },
+      { type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } },
       endEvent(input.messageId),
     ];
   }
@@ -445,6 +448,22 @@ export async function runProductQuestion(
       : askedAspect === 'size_availability' && size === null
         ? 'sizes'
         : askedAspect;
+
+  // "pipa pvc aw ada ukuran apa saja?" — ukuran seluruh keluarga dari katalog, bukan ukuran satu
+  // produk teratas (QA smoke 2026-10-14: dijawab "…AW - Lon 4\" x 4 Meter: 4\"").
+  if (aspect === 'sizes' && continued === null && u.families.length === 1) {
+    const family = await catalogFamily(catalog, u.families[0]!);
+    const sizes =
+      family === null ? null : await familySizeAnswer(catalog, family, null, null, locale);
+    if (sizes !== null) {
+      return [
+        { type: 'message.start', messageId: input.messageId },
+        { type: 'token', text: sizes.text },
+        ...sizes.cards.map((card) => ({ type: 'card', card }) as AssistantStreamEvent),
+        endEvent(input.messageId),
+      ];
+    }
+  }
 
   const outcome =
     aspect === null
@@ -886,4 +905,15 @@ async function fittingTurn(
     size,
     locale,
   });
+}
+
+/** Nama keluarga katalog untuk keluarga kosakata ("pvc aw" → "PVC AW"); katalog tak terbaca → null. */
+async function catalogFamily(catalog: ProductCatalog, family: string): Promise<string | null> {
+  try {
+    const counts = await catalog.familyCounts();
+    return counts.find((c) => c.family.toLowerCase() === family.toLowerCase())?.family ?? null;
+  } catch (error) {
+    if (error instanceof CatalogUnavailableError) return null;
+    throw error;
+  }
 }

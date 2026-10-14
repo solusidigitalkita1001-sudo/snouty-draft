@@ -759,7 +759,7 @@ describe('runProductQuestion — SPESIFIKASI', () => {
       reply as never,
       'PROMPT-FAQ',
     );
-    expect(text(events)).toBe('Standar Pipa PVC AW: SNI 06-0084. Sumber: Katalog 2026 hal. 14.');
+    expect(text(events)).toBe('Standar Pipa PVC AW: SNI 06-0084. Sumber: katalog produk Pralon.');
     expect(cards(events).map((c) => c.kind)).toEqual(['product']);
   });
 
@@ -936,5 +936,44 @@ describe('runProductQuestion — DIMENSI (P21-08)', () => {
     const out = text(events);
     expect(out).toContain('tebal dinding 6,6 mm');
     expect(out).toContain('PROD/STD/014');
+  });
+});
+
+describe('runProductQuestion — dimensi didahulukan dari harga (QA smoke 2026-10-14)', () => {
+  it('"tebal pipa d 3 inch berapa?" terbaca harga tetapi beraspek dimensi → tabel PROD/STD-04', async () => {
+    const events = await runProductQuestion(
+      failingAi,
+      brokenCatalog,
+      noQuestions,
+      input('tebal pipa d 3 inch berapa?', {
+        intent: 'price_question',
+        productAspect: 'dimensions',
+      }),
+    );
+    const out = text(events);
+    expect(out).toContain('kelas D: tebal dinding 1,5 mm');
+    expect(out).not.toContain('Harga');
+  });
+});
+
+describe('runProductQuestion — ukuran satu keluarga (QA smoke 2026-10-14)', () => {
+  it('"pipa pvc aw ada ukuran apa saja?" → rentang ukuran keluarga, bukan ukuran satu produk teratas', async () => {
+    const pipe = (id: string, size: string): Product => ({
+      ...AW,
+      id: id.padEnd(26, '0'),
+      sku: id,
+      name: `Pipa (TS End) Abu AW ${size} x 4 Meter`,
+      sizes: [size],
+    });
+    const items = [pipe('A1', '1/2"'), pipe('A2', '3/4"'), pipe('A3', '4"')];
+    const events = await runProductQuestion(
+      failingAi,
+      catalog({ 'pvc aw': [items[2]!], semua: items }),
+      noQuestions,
+      input('pipa pvc aw ada ukuran apa saja?', SPEC('sizes')),
+    );
+    const out = text(events);
+    expect(out).toContain('1/2"');
+    expect(out).toContain('4"');
   });
 });

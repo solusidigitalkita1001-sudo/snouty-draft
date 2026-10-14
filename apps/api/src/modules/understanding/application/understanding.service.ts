@@ -12,6 +12,7 @@
  */
 import type { Logger } from 'pino';
 import type { TextEncoder } from '../../ai/domain/text-encoder.port.js';
+import { maskValues } from '../domain/value-mask.js';
 import { examplesOf, type Catalog } from '../domain/catalog.js';
 import { decide, rank, type EmbeddedExample, type Verdict } from '../domain/classifier.js';
 import type {
@@ -84,8 +85,10 @@ export class UnderstandingService {
     }
     if (!this.ready) return unavailableUnderstanding(message, this.lexicon);
     let query: Float32Array;
+    let masked: Float32Array;
     try {
       query = await this.encodeQuery(message);
+      masked = this.anyMasked ? await this.encodeQuery(maskValues(message)) : query;
     } catch (error) {
       // Penyandi tumbang di tengah jalan: giliran ini tanpa pemahaman semantik, bukan gagal.
       this.logger?.warn({ err: error }, 'penyandi teks tidak terjangkau');
@@ -105,8 +108,8 @@ export class UnderstandingService {
       companyTopic:
         (this.verdict('company-topic', query).best?.label as CompanyTopicLabel | undefined) ?? null,
       productAspect:
-        (this.verdict('product-aspect', query).best?.label as ProductAspectLabel | undefined) ??
-        null,
+        (this.verdict('product-aspect', query, masked).best?.label as
+          ProductAspectLabel | undefined) ?? null,
       knowledgeTopics: knowledge.matched.map((m) => m.label as KnowledgeTopicLabel),
       mutationOp:
         (this.verdict('mutation-op', query).best?.label as MutationOpLabel | undefined) ?? null,
@@ -135,11 +138,15 @@ export class UnderstandingService {
     }
   }
 
-  private verdict(name: CatalogName, query: Float32Array): Verdict {
+  private verdict(name: CatalogName, query: Float32Array, masked: Float32Array = query): Verdict {
     const catalog = this.byName.get(name);
     const examples = this.embedded.get(name);
     if (!catalog || !examples) return { best: null, matched: [], ranked: [] };
-    return decide(catalog, rank(query, examples));
+    return decide(catalog, rank(catalog.maskValues ? masked : query, examples));
+  }
+
+  private get anyMasked(): boolean {
+    return [...this.byName.values()].some((c) => c.maskValues);
   }
 
   private async encodeQuery(message: string): Promise<Float32Array> {
@@ -170,7 +177,9 @@ export class UnderstandingService {
       for (const catalog of this.byName.values()) {
         if (this.embedded.has(catalog.name as CatalogName)) continue; // sudah dari percobaan sebelumnya
         const examples = examplesOf(catalog);
-        const vectors = await this.vectorsFor(examples.map((e) => e.text.toLowerCase()));
+        const vectors = await this.vectorsFor(
+          examples.map((e) => (catalog.maskValues ? maskValues(e.text) : e.text.toLowerCase())),
+        );
         this.embedded.set(
           catalog.name as CatalogName,
           examples.map((e, i) => ({ ...e, vector: vectors[i]! })),

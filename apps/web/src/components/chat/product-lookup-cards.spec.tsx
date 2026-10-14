@@ -16,13 +16,20 @@ const CARD: ProductCardDto = {
 };
 
 describe('ProductLookupCards', () => {
-  it('merender nama, SKU, dan provenance sebagai teks — tidak pernah label "dipakai di solusi"', () => {
+  it('merender nama dan SKU — tanpa label "dipakai di solusi" dan tanpa "lihat dokumen teknis" (produk ber-SKU)', () => {
     render(<ProductLookupCards products={[CARD]} onOpen={() => {}} />);
 
     expect(screen.getByText('Pipa PVC AW')).toBeTruthy();
     expect(screen.getByText('AW-075')).toBeTruthy();
-    expect(screen.getByText('LIHAT DOKUMEN TEKNIS')).toBeTruthy();
+    expect(screen.queryByText('LIHAT DOKUMEN TEKNIS')).toBeNull();
     expect(screen.queryByText(/DIPAKAI DI SOLUSI/)).toBeNull();
+  });
+
+  it('provenance yang ada tetap tampil (TERVERIFIKASI)', () => {
+    render(
+      <ProductLookupCards products={[{ ...CARD, provenance: 'VERIFIED' }]} onOpen={() => {}} />,
+    );
+    expect(screen.getByText('TERVERIFIKASI')).toBeTruthy();
   });
 
   it('SKU ekspor ERP (ID internal Odoo) tidak ditampilkan — nama tetap (OQ-55)', () => {
