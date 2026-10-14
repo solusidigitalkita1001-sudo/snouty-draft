@@ -1623,7 +1623,9 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       cabang 1 KM + 1 wastafel ½" → ¾"**, tinggi angkat pompa 29,55 → 26,61 m, BOQ: 1¼" 12 btg, 1" 3, ¾" 6, ½" 5, tee
       1¼"×¾" 2, reducer 1¼"×1" (tidak ada di katalog); U3 tetap (meteran PDAM 1,57 → 1,58 bar). Contoh desain 2 lantai
       3 KM: utama 1" → 1¼" (1" AW 27,9 mm: gesekan ±10,9 m/100 m > 10). Jawaban "tebal pipa AW/D/C" kini memakai
-      tabel ini
+      tabel ini. Verifikasi live: U2 → pipa utama 1¼", tanpa "SDR 26,5". "tebal pipa d 4 inch" dulu tidak dikenali
+      (122 s, dijawab fakta ukuran inci): contoh dimensi ber-inci ditambah, aspek `dimensions` langsung PRODUCT_LOOKUP
+      di router dan melewati perencana (eval 151/153)
 
 ## Design Coverage
 

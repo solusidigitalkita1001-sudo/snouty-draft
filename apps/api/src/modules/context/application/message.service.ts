@@ -272,6 +272,8 @@ export class MessageService {
       // Topik dengan fakta bersumber dijawab dari pengetahuan, bukan direncanakan model ("apa itu pipa
       // jacking?" dulu jadi daftar jenis katalog; "maksimal suhu berapa?" 26 detik model).
       !answersFromKnowledge(u) &&
+      // Tebal/berat/diameter dalam: tabel standar menjawab langsung (router, P21-09).
+      u.productAspect !== 'dimensions' &&
       !isConfidentStandalone(u) &&
       (recentTurns.some((t) => t.role === 'assistant') || u.intent === null)
     ) {

@@ -356,6 +356,24 @@
       "source": "P21-08, handbook Pralon 2026-10-14"
     },
     {
+      "text": "tebal pipa d 4 inch berapa?",
+      "intent": "product_spec",
+      "productAspect": "dimensions",
+      "source": "P21-09, live 2026-10-14"
+    },
+    {
+      "text": "tebal dinding pipa d 4 inci?",
+      "intent": "product_spec",
+      "productAspect": "dimensions",
+      "source": "P21-09, live 2026-10-14"
+    },
+    {
+      "text": "pipa aw 1 1/4 tebalnya berapa?",
+      "intent": "product_spec",
+      "productAspect": "dimensions",
+      "source": "P21-09, live 2026-10-14"
+    },
+    {
       "text": "standarnya apa?",
       "intent": "product_spec",
       "productAspect": "standard"

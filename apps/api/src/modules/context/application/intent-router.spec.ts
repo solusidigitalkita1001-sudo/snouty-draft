@@ -409,3 +409,15 @@ describe('IntentRouter', () => {
     expect(d.shouldExtract).toBe(false);
   });
 });
+
+describe('IntentRouter — pertanyaan dimensi (P21-09)', () => {
+  it('aspek tebal/berat dari contoh → PRODUCT_LOOKUP tanpa model, walau intent ragu', async () => {
+    const { ai, calls } = countingAi({ intent: 'OUT_OF_SCOPE', confidence: 1 });
+    const d = await new IntentRouter(ai).route(
+      understood('pipa aw 1 1/4 tebalnya berapa?', { intent: null, productAspect: 'dimensions' }),
+      false,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+    expect(calls()).toBe(0);
+  });
+});

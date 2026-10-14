@@ -74,6 +74,9 @@ export function certainIntent(
   // kebutuhan yang dihitung, bukan pertanyaan pengetahuan — tes FAQ 2026-10-12: dulu dijawab
   // paragraf sambungan rumah, atau jatuh ke model lalu "Silakan, tanyakan saja".
   if (!u.mentionsCompetitor && isCaseStatement(u)) return sure('REQUIREMENT_STATEMENT');
+  // Tebal dinding / berat / diameter dalam dijawab tabel standar Pralon — aspeknya dari contoh sudah
+  // cukup, intent yang ragu tidak perlu menunggu model (live 2026-10-14: "tebal pipa d 4 inch" 122 s).
+  if (u.productAspect === 'dimensions' && !u.mentionsCompetitor) return sure('PRODUCT_LOOKUP');
   // Intent ragu tetapi topiknya punya fakta bersumber ("pipa VP sama VU tuh apa?"): pengetahuan.
   if (fine === undefined) {
     return !u.mentionsCompetitor && answersFromKnowledge(u) ? sure('PRODUCT_LOOKUP') : null;
