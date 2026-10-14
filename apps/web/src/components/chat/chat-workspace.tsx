@@ -341,13 +341,20 @@ export function ChatWorkspace() {
     return () => clearTimeout(timer);
   }, [toastOn]);
 
-  // Mengetik atau mengirim membangunkannya; diam lagi 15 detik menidurkannya lagi.
+  // Mengetik membangunkannya (di `changeDraft`); diam lagi 15 detik menidurkannya lagi.
+  // Efek ini tidak boleh memanggil setState selain lewat timer: ia berjalan di SETIAP ketikan, dan
+  // `setSleepy(false)` di sini dulu membuat update bersarang yang menumpuk saat mengetik cepat
+  // sampai React melempar #185 dan huruf yang sedang diketik hilang (review putaran 4, poin 1).
   useEffect(() => {
-    setSleepy(false);
     if (turns.length > 0 || draft !== '') return;
     const timer = setTimeout(() => setSleepy(true), WELCOME_SLEEP_MS);
     return () => clearTimeout(timer);
   }, [turns.length, draft]);
+  /** Satu-satunya penulis draf dari composer; bangun maskot ikut dalam event yang sama. */
+  const changeDraft = useCallback((value: string) => {
+    setDraft(value);
+    setSleepy(false);
+  }, []);
 
   /** Mengirim teks apa pun — composer, chip jawaban, maupun saran lanjutan. */
   const submitText = useCallback(
@@ -560,6 +567,7 @@ export function ChatWorkspace() {
   const reset = useCallback(() => {
     setTurns([]);
     setDraft('');
+    setSleepy(false);
     setState(null);
     setStages({});
     setError(null);
@@ -1166,7 +1174,7 @@ export function ChatWorkspace() {
                 <ComposerField
                   className={styles.composerCardInput ?? ''}
                   value={draft}
-                  onChange={setDraft}
+                  onChange={changeDraft}
                   onSubmit={() => void submit()}
                   placeholder={COPY.composerPlaceholder}
                   ariaLabel={COPY.composerPlaceholder}
@@ -1411,7 +1419,7 @@ export function ChatWorkspace() {
                 className={styles.composerCardInput ?? ''}
                 value={draft}
                 focusToken={composerFocus}
-                onChange={setDraft}
+                onChange={changeDraft}
                 onSubmit={() => void submit()}
                 placeholder={mobile ? COPY.composerPlaceholderMobile : COPY.composerPlaceholderChat}
                 ariaLabel={COPY.composerPlaceholderChat}

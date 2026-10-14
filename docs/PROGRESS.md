@@ -1563,6 +1563,18 @@ dinonaktifkan; pertanyaan wastafel jadi "total (termasuk di kamar mandi)"; kedal
       setelah dipilih. 6c: sprite ilustrasi `display:none` — label simbol ("KOS", "HOTEL", "0 %", "semua
       sekaligus?") dulu terbaca sebagai teks halaman; gambar tidak berubah (dicek tangkapan layar)
 
+## Phase 21 — Review putaran 4 (uji ulang live, 14 Okt 2026)
+
+Review pemilik 2026-10-14, dikerjakan berurutan 1 → 6. Hunter, tinggi angkat pompa, dan tekanan toren tidak diubah;
+kasus U1/U2/U3 putaran 3 tetap jadi regresi.
+
+- [x] P21-01 Ketik cepat kehilangan huruf (React #185). Akar masalah: efek `sleepy` di `ChatWorkspace` bergantung
+      pada `draft` dan memanggil `setSleepy(false)` di setiap ketikan; update bersarang itu menumpuk saat mengetik
+      cepat sampai React melempar #185 di `onChange` dan huruf itu dibuang. Kini maskot dibangunkan di event ketik
+      (`changeDraft`), efek hanya memasang timer. Tidak ada parsing live di composer. Tes e2e
+      `apps/web/e2e/composer-typing.e2e.mjs` (playwright-core: ketik 0/5/10 ms, tempel/IME) — gagal di build lama,
+      lolos di build baru
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |
