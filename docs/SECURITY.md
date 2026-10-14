@@ -295,6 +295,12 @@ secret di repo; database produksi di container SNOUTY sendiri (bukan host bersam
   cadangan sebelum perubahan di `~/backups` (`deploy.sh db-backup`). Diverifikasi: `CREATE TABLE` ditolak,
   aplikasi tetap menulis, tanpa galat akses di log.
 
+**Temuan saat memasang audit log (P21-14):** API tidak memercayai reverse proxy, jadi `request.ip` selalu
+IP kontainer nginx. Akibatnya rate limit login/daftar per IP (§12) sebenarnya **satu kuota untuk semua
+orang** — 10 percobaan dari siapa pun dalam 15 menit bisa mengunci login seluruh pengguna — dan audit log tidak
+tahu IP asal. Diperbaiki: `trust proxy` = tepat 1 lompatan (`shared/http/trust-proxy.ts`, diuji dengan server
+HTTP nyata: alamat palsu buatan klien di `X-Forwarded-For` diabaikan).
+
 **Masih terbuka (butuh pihak Pralon):** enkripsi at-rest, cadangan di luar server, penunjukan PIC insiden
 dan pejabat PDP, audit log tindakan pengguna. Uji restore, cadangan harian, dan runbook insiden selesai
 2026-10-14 (P21-13); model AI lokal sehingga perjanjian dengan penyedia LLM belum diperlukan. `'unsafe-inline'` di script-src bisa diganti nonce bila nanti dibutuhkan.

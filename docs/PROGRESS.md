@@ -1652,6 +1652,8 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       correlation ID, entitas — tanpa isi; gagal tulis tidak menggagalkan aksi. (2) **Salinan cadangan luar server**
       `db-backup-offsite`: gpg kunci publik + rsync, aktif bila `BACKUP_REMOTE`/`BACKUP_GPG_RECIPIENT` diisi.
       (3) **Enkripsi at-rest**: langkah admin di DEPLOYMENT.md §8b (LUKS untuk volume data SNOUTY)
+- [x] P21-15 IP klien di belakang nginx: `request.ip` selalu IP kontainer nginx → rate limit login per IP menjadi
+      satu kuota global dan audit log tanpa IP asal. `trust proxy` = 1 lompatan (`trustReverseProxy`), tes HTTP nyata
 
 ## Design Coverage
 

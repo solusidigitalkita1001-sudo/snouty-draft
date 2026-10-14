@@ -1,9 +1,11 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import pino from 'pino';
 import { AppModule } from './app.module.js';
 import { loadEnv } from './config/env.js';
 import { ApiErrorFilter } from './shared/http/api-error.filter.js';
+import { trustReverseProxy } from './shared/http/trust-proxy.js';
 
 const log = pino({ name: 'snouty-api' });
 
@@ -11,7 +13,10 @@ async function bootstrap(): Promise<void> {
   // Gagal keras di sini bila konfigurasi kurang, bukan nanti saat permintaan pertama.
   const env = loadEnv();
 
-  const app = await NestFactory.create(AppModule, { logger: false });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: false });
+
+  // Satu reverse proxy (nginx) di depan — IP klien dari X-Forwarded-For (shared/http/trust-proxy.ts).
+  trustReverseProxy(app);
 
   // `/api/v1` untuk seluruh API (docs/API_CONTRACTS.md §1). `/health` dikecualikan:
   // ia dipanggil pemeriksa infrastruktur yang tidak mengenal versi API kita, dan
