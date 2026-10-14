@@ -5,7 +5,6 @@
  */
 
 import {
-  illustrationSpriteContent,
   productHref,
   sceneHref,
   PRODUCT_VIEWBOX,
@@ -15,20 +14,7 @@ import {
 } from '@snouty/ui/illustrations';
 import type { ProductColors } from '@snouty/ui/product-visual';
 
-/** Dipasang sekali di layout. Isinya string statis milik kita, bukan masukan pengguna. */
-export function IllustrationSprite() {
-  return (
-    <svg
-      aria-hidden="true"
-      width="0"
-      height="0"
-      // display:none (review putaran 3, 6c): label di dalam simbol ("KOS", "HOTEL", "0 %") dulu ikut
-      // terbaca sebagai teks halaman. Simbol tetap bisa dipakai lewat <use>; sprite tanpa gradien.
-      style={{ position: 'absolute', display: 'none' }}
-      dangerouslySetInnerHTML={{ __html: illustrationSpriteContent() }}
-    />
-  );
-}
+export { IllustrationSprite } from './illustration-sprite';
 
 /** Gambar kebutuhan/pilihan. Tanpa `label` gambarnya dekoratif (teks di sebelahnya sudah cukup). */
 export function SceneImage({

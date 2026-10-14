@@ -1574,6 +1574,10 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       (`changeDraft`), efek hanya memasang timer. Tidak ada parsing live di composer. Tes e2e
       `apps/web/e2e/composer-typing.e2e.mjs` (playwright-core: ketik 0/5/10 ms, tempel/IME) — gagal di build lama,
       lolos di build baru
+- [x] P21-02 Teks sprite di HTML tamu. `display:none` (P20-06) menyembunyikan tampilan, tetapi isi simbol ("KOS",
+      "HOTEL", "0 %", "semua sekaligus?") tetap terkirim di HTML server dan payload RSC. `IllustrationSprite` kini
+      komponen klien yang mengisi simbol hanya di browser (`useSyncExternalStore`); HTML server berisi `<svg>`
+      kosong. Tes: markup server tanpa `<symbol>`, render browser memuat simbol
 
 ## Design Coverage
 
