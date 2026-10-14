@@ -1,3 +1,8 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Versi aman untuk dependensi transitif yang punya advisori (pnpm audit 2026-10-14):
+# source-map-js < 1.2.2 — DoS lewat offset section source map (lewat postcss/next).
+overrides:
+  source-map-js: '>=1.2.2'
