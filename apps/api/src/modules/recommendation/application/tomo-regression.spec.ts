@@ -66,7 +66,7 @@ const CATALOG: readonly Product[] = [
   product('PVC D', 'PIPA AIR BUANGAN', 'Pipa (Plain End) Abu D 2" x 4 Meter', ['2"']),
 ];
 
-const STATE: RequirementState = withCompleteness(
+const AS_REPORTED: RequirementState = withCompleteness(
   mergeRequirement(
     emptyRequirementState(T0),
     [
@@ -79,6 +79,13 @@ const STATE: RequirementState = withCompleteness(
     T0,
   ).state,
 );
+// Angka laporan 0002/0007/0009 dihitung tanpa wastafel. Sejak review putaran 4 (6d) wastafel yang
+// tidak disebut = 1 per kamar mandi; regresi aturan lain dipatok ke 0 lewat ganti asumsi, dan
+// default barunya diuji tersendiri di bawah.
+const STATE: RequirementState = {
+  ...AS_REPORTED,
+  assumptionOverrides: { HOUSE_BASINS_PER_BATHROOM_1: 0 },
+};
 
 async function analyse(
   state: RequirementState = STATE,
@@ -108,6 +115,14 @@ async function analyse(
   await service.run('C'.repeat(26), 'S'.repeat(26), state, [], T0, undefined, DEFAULT_LOCALE);
   return saved!;
 }
+
+describe('wastafel tidak disebut (review putaran 4, 6d)', () => {
+  it('tanpa ganti asumsi: 1 wastafel per kamar mandi → 3 KM × 2 + 3 wastafel + 1 dapur = 10 titik', async () => {
+    const { rec } = await analyse(AS_REPORTED);
+    expect(rec.stats.outletCount).toBe(10);
+    expect(rec.assumptions.map((a) => a.assumptionId)).toContain('HOUSE_BASINS_PER_BATHROOM_1');
+  });
+});
 
 describe('regresi laporan SNTY-2026-10-0002 (Tomo)', () => {
   it('air bersih: pipa utama 1"; cabang per isi (ENG-707): lantai 2 (2 KM) 1", lantai 1 (1 KM + dapur) ¾"; sambungan ½"', async () => {

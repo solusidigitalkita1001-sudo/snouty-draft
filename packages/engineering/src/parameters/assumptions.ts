@@ -806,6 +806,23 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'Wastafel belum dihitung sampai jumlahnya disebut; tiap wastafel menambah satu titik air ½".',
   },
   {
+    id: 'HOUSE_BASINS_PER_BATHROOM_1',
+    parameter: 'basins',
+    appliesTo: [],
+    condition: 'jumlah wastafel belum disebut (rumah)',
+    value: 1,
+    unit: 'wastafel per kamar mandi',
+    conditionEn: 'number of basins not given (house)',
+    descriptionEn:
+      'Until the number is given, each bathroom is taken to have 1 wash basin; each one adds a ½" outlet.',
+    reference:
+      'Keputusan pemilik 2026-10-14 (review putaran 4, 6d): pertanyaannya "wastafel total", jadi 0 untuk rumah 6 kamar mandi tidak realistis',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Sampai jumlahnya disebut, tiap kamar mandi dianggap punya 1 wastafel; tiap wastafel menambah satu titik air ½".',
+  },
+  {
     id: 'HOUSE_KITCHEN_1',
     parameter: 'kitchens',
     appliesTo: [],

@@ -63,3 +63,18 @@ describe('Ringkasan bergambar', () => {
     expect(container.textContent).toContain('Pipa utama 1 inci');
   });
 });
+
+describe('banner data di luar kewajaran (review putaran 4, 6b)', () => {
+  it('tampil di atas Ringkasan, bukan hanya di tabel Asumsi', () => {
+    const text =
+      'Data di luar kewajaran, mohon diverifikasi: Bangunan 2 × 2 m 2 lantai untuk 6 kamar mandi.';
+    const rec = {
+      ...withNeeds,
+      assumptions: [{ text, fieldPath: 'building.dimensions', needsVerification: true }],
+    } as unknown as Recommendation;
+    const { container } = render(<SolutionView recommendation={rec} tab="ringkasan" />);
+    const first = container.querySelector('section')!;
+    expect(first.firstElementChild!.textContent).toBe(text);
+    expect(first.firstElementChild!.getAttribute('role')).toBe('status');
+  });
+});

@@ -536,6 +536,12 @@ export function understoodReply(
       );
       continue;
     }
+    // Angka meter tanpa nama terbaca janggal di kalimat ("…, dan 10 m") — review putaran 4, 6a.
+    if (path === 'water.wellDepthM' && typeof field.value === 'number') {
+      const m = field.value.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
+      captured.push(en ? `a well water level of about ${m} m` : `muka air sumur ±${m} m`);
+      continue;
+    }
     if (typeof field.value === 'boolean') continue;
     captured.push(inSentence(requirementValueLabel(path, field.value, locale)));
   }

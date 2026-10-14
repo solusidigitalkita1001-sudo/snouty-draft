@@ -107,5 +107,6 @@ export function outlierAssumptions(state: RequirementState, locale: Locale): rea
       ? `Data outside the usual range, please verify: ${issue.noteEn}`
       : `Data di luar kewajaran, mohon diverifikasi: ${issue.note}`,
     fieldPath: 'building.dimensions',
+    needsVerification: true as const,
   }));
 }

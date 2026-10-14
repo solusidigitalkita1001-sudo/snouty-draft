@@ -209,6 +209,11 @@ export interface Assumption {
   readonly unit?: string;
   /** Nilai ini dari pengguna (menggantikan asumsi baku), bukan tebakan sistem. */
   readonly userSet?: boolean;
+  /**
+   * Masukan di luar kewajaran yang tetap dihitung (review putaran 3, 2): selain di tabel Asumsi,
+   * tampil sebagai banner di atas Ringkasan dan di sampul laporan (review putaran 4, 6b).
+   */
+  readonly needsVerification?: true;
 }
 
 /** Status kandidat ukuran — kosakata tertutup dari engine (Kelompok F/H), label di UI. */

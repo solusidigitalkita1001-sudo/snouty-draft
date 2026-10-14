@@ -214,7 +214,7 @@ describe('U3 — 2 × 2 m untuk 6 kamar mandi', () => {
     const text = rec.assumptions.map((a) => a.text);
     expect(text.some((t) => t.startsWith('Data di luar kewajaran, mohon diverifikasi'))).toBe(true);
     expect(rec.assumptions.map((a) => a.assumptionId)).toEqual(
-      expect.arrayContaining(['HOUSE_BASINS_0', 'HOUSE_KITCHEN_1']),
+      expect.arrayContaining(['HOUSE_BASINS_PER_BATHROOM_1', 'HOUSE_KITCHEN_1']),
     );
   });
 });

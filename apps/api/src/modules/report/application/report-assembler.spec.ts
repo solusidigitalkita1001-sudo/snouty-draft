@@ -717,3 +717,19 @@ describe('tata letak cetak (review laporan 0015)', () => {
     expect(html).toMatch(/<div class="keep">\s*<h3 class="subhead">Langkah berikutnya<\/h3>/);
   });
 });
+
+describe('sampul laporan — data di luar kewajaran (review putaran 4, 6b)', () => {
+  it('asumsi yang perlu diverifikasi tampil sebagai banner di halaman pertama', () => {
+    const payload = assembleReportPayload(INPUT);
+    const text = 'Data di luar kewajaran, mohon diverifikasi: Bangunan 2 × 2 m 2 lantai.';
+    const html = renderReportHtml({
+      ...payload,
+      assumptions: [
+        ...payload.assumptions,
+        { text, fieldPath: 'building.dimensions', needsVerification: true },
+      ],
+    });
+    const cover = html.slice(html.indexOf('class="page cover"'), html.indexOf('BAGIAN 1'));
+    expect(cover).toContain(`<div class="banner">${text}</div>`);
+  });
+});

@@ -93,6 +93,14 @@ export function SolutionView({
 
       {on('ringkasan') && (
         <section className={styles.card}>
+          {/* Masukan di luar kewajaran: dulu hanya di tabel Asumsi tab Estimasi (putaran 4, 6b). */}
+          {recommendation.assumptions
+            .filter((a) => a.needsVerification)
+            .map((a) => (
+              <p key={a.text} className={styles.disclaimer} role="status">
+                {a.text}
+              </p>
+            ))}
           {needs.length > 0 ? (
             <>
               <SummaryHero

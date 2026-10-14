@@ -870,3 +870,22 @@ describe('kalimat "sudah saya catat" (review putaran 3, 3e)', () => {
     expect(text).toContain('air bersih + pembuangan');
   });
 });
+
+describe('kalimat "sudah saya catat" — muka air sumur berlabel (review putaran 4, 6a)', () => {
+  it('"…, dan muka air sumur ±10 m", bukan "…, dan 10 m"', async () => {
+    const { understoodReply } = await import('./message-pipeline.js');
+    const now = '2026-10-14T00:00:00.000Z';
+    const state = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(now),
+        [
+          { path: 'water.source', value: 'pump', source: 'user_stated' },
+          { path: 'water.wellDepthM', value: 10, source: 'user_stated' },
+        ],
+        now,
+      ).state,
+    );
+    expect(understoodReply(state, 'cta', 'id')).toContain('muka air sumur ±10 m');
+    expect(understoodReply(state, 'cta', 'en')).toContain('well water level of about 10 m');
+  });
+});

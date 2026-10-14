@@ -250,7 +250,13 @@ export function computeSolution(
   const publicRestroom = worship || input.buildingType === 'public_building';
   const fixtures = {
     bathrooms: input.bathrooms,
-    basins: input.basins ?? use('HOUSE_BASINS_0'),
+    // Rumah: 1 wastafel per kamar mandi bila belum disebut (pemilik 2026-10-14, 6d); toilet umum
+    // tetap 0 sampai disebut.
+    basins:
+      input.basins ??
+      (publicRestroom
+        ? use('HOUSE_BASINS_0')
+        : input.bathrooms * use('HOUSE_BASINS_PER_BATHROOM_1')),
     kitchens:
       input.kitchens ?? (publicRestroom ? use('WORSHIP_KITCHEN_0') : use('HOUSE_KITCHEN_1')),
   };

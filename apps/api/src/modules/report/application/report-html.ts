@@ -486,6 +486,10 @@ function cover(p: ReportPayload, t: ReportCopy): string {
   <div class="band"></div>
   <div class="cover-body">
     ${p.ruleset?.outdated ? `<div class="banner">${t.outdated}</div>` : ''}
+    ${p.assumptions
+      .filter((a) => a.needsVerification)
+      .map((a) => `<div class="banner">${esc(a.text)}</div>`)
+      .join('')}
     <div class="kicker">${t.preparedFor}</div>
     <div class="customer">${esc(p.identity.customerName)}</div>
     <div class="info-grid">

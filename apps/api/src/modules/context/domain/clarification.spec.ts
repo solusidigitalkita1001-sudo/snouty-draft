@@ -243,3 +243,16 @@ describe('label pilihan (review putaran 3, 3c/3e)', () => {
     expect(question!.question).toBe('Ada berapa wastafel total, termasuk yang di kamar mandi?');
   });
 });
+
+describe('kedalaman sumur — setiap pilihan memetakan nilainya sendiri (review putaran 4, 6c)', () => {
+  it.each([
+    ['< 5 m', 5],
+    ['5–9 m', 9],
+    ['> 9 m', 10],
+  ])('%s → %d m', (option, metres) => {
+    expect(answerToUpdate({ id: 'water.wellDepthM', option }, () => null)).toMatchObject({
+      path: 'water.wellDepthM',
+      value: metres,
+    });
+  });
+});

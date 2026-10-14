@@ -61,6 +61,8 @@ describe('kewajaran masukan rumah', () => {
     expect(outlierAssumptions(confirmed.state, 'id')[0]!.text).toMatch(
       /^Data di luar kewajaran, mohon diverifikasi: Bangunan 2 × 2 m 2 lantai/,
     );
+    // Banner Ringkasan dan sampul laporan membaca penanda ini, bukan teksnya (putaran 4, 6b).
+    expect(outlierAssumptions(confirmed.state, 'id')[0]!.needsVerification).toBe(true);
   });
 
   it('ukuran baru lewat kartu → pembaruan ukuran bangunan dari pengguna', () => {

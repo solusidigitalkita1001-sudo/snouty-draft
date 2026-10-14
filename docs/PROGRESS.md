@@ -1596,6 +1596,14 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       tanyakan ketersediaannya ke tim Pralon" (keputusan pemilik). Tidak ada tautan datasheet: kolom `documents`
       katalog kosong. 5c: nama = nama katalog, spasi sebelum tanda inci dibuang (`displayName`); pemetaan seri →
       kelas menunggu data produk dari pemilik (OQ-48). Angka BOQ U1/U2/U3 identik dengan putaran 3
+- [x] P21-06 Minor. 6a: kalimat "sudah saya catat" menyebut "muka air sumur ±9 m", bukan "…, dan 9 m". 6b: asumsi
+      di luar kewajaran membawa `needsVerification` → banner di atas Ringkasan dan di sampul PDF. 6c: tidak
+      terulang di live (klik dan keyboard, U2 → "5–9 m" tercatat 9 m); pemetaan tiap pilihan dikunci tes. 6d
+      (keputusan pemilik): wastafel tidak disebut = 1 per kamar mandi untuk rumah (`HOUSE_BASINS_PER_BATHROOM_1`,
+      tercatat sebagai asumsi; toilet umum tetap 0). Akibatnya **U3 berubah**: 6 wastafel asumsi → air bekas 2½" →
+      3", ventilasi air bekas 1¼" → 1½", pipa ¾" 1 → 2 batang, ½" 6 → 9 batang, elbow ½" 14 → 21, faucet elbow
+      13 → 19, Y air bekas 7 → 13, tambah tee 1¼" × ½". U1 (wastafel 0 disebut) dan U2 (2 disebut) tidak berubah.
+      Regresi laporan 0002 dipatok ke 0 wastafel lewat ganti asumsi, dan default barunya diuji tersendiri
 
 ## Design Coverage
 
