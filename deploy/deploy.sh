@@ -5,6 +5,8 @@
 #   deploy/deploy.sh migrate    jalankan migration ke MySQL SNOUTY (langkah terpisah, disengaja)
 #   deploy/deploy.sh up         nyalakan/perbarui seluruh layanan
 #   deploy/deploy.sh smoke      cek health API dan halaman web
+#   deploy/deploy.sh db-backup  mysqldump ke ~/backups
+#   deploy/deploy.sh db-grants  user aplikasi hanya SELECT/INSERT/UPDATE/DELETE (ikut migrate)
 #   deploy/deploy.sh release    = git pull → build → up → smoke   (migration TIDAK termasuk)
 #   deploy/deploy.sh logs [svc] ikuti log
 #   deploy/deploy.sh cutover    ambil alih 80/443 dari nginx proyek lama (bagspace tetap dilayani)
@@ -38,6 +40,27 @@ case "$cmd" in
       -e DB_HOST=127.0.0.1 -e DB_PORT="${DB_PORT:-3316}" -e DB_DATABASE="${DB_DATABASE:-snouty}" \
       -e DB_USERNAME=root -e DB_PASSWORD="${DB_ROOT_PASSWORD}" \
       "snouty-api:${SNOUTY_TAG:-latest}" node scripts/db-apply.mjs
+    "$0" db-grants
+    ;;
+  db-grants)
+    # Least privilege (SPEC §17, audit keamanan 2026-10-14): user aplikasi hanya baca/tulis data —
+    # tanpa DROP/ALTER/CREATE. Migration berjalan sebagai root (`migrate`). Idempoten; ikut setiap
+    # `migrate` supaya volume MySQL baru (yang memberi MYSQL_USER semua hak) langsung dibatasi lagi.
+    db="${DB_DATABASE:-snouty}"
+    user="${DB_USERNAME:-snouty}"
+    "${COMPOSE[@]}" exec -T mysql mysql -uroot -p"${DB_ROOT_PASSWORD}" 2>/dev/null <<SQL
+REVOKE ALL PRIVILEGES ON \`${db}\`.* FROM '${user}'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON \`${db}\`.* TO '${user}'@'%';
+SHOW GRANTS FOR '${user}'@'%';
+SQL
+    ;;
+  db-backup)
+    # Cadangan sebelum perubahan skema/hak: berkas gzip di ~/backups (bukan di repo).
+    mkdir -p "$HOME/backups"
+    out="$HOME/backups/${DB_DATABASE:-snouty}-$(date +%Y%m%d-%H%M%S).sql.gz"
+    "${COMPOSE[@]}" exec -T mysql mysqldump -uroot -p"${DB_ROOT_PASSWORD}" --single-transaction \
+      --routines --triggers "${DB_DATABASE:-snouty}" 2>/dev/null | gzip > "$out"
+    echo "✓ cadangan: $out ($(du -h "$out" | cut -f1))"
     ;;
   up)
     # Tanpa --remove-orphans: proyek lama di server memakai nama compose `snouty` juga, dan flag itu
