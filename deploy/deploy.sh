@@ -6,6 +6,7 @@
 #   deploy/deploy.sh up         nyalakan/perbarui seluruh layanan
 #   deploy/deploy.sh smoke      cek health API dan halaman web
 #   deploy/deploy.sh db-backup  mysqldump ke ~/backups
+#   deploy/deploy.sh db-backup-daily  cadangan + hapus yang lebih dari 14 hari (cron)
 #   deploy/deploy.sh db-grants  user aplikasi hanya SELECT/INSERT/UPDATE/DELETE (ikut migrate)
 #   deploy/deploy.sh release    = git pull → build → up → smoke   (migration TIDAK termasuk)
 #   deploy/deploy.sh logs [svc] ikuti log
@@ -61,6 +62,12 @@ SQL
     "${COMPOSE[@]}" exec -T mysql mysqldump -uroot -p"${DB_ROOT_PASSWORD}" --single-transaction \
       --routines --triggers "${DB_DATABASE:-snouty}" 2>/dev/null | gzip > "$out"
     echo "✓ cadangan: $out ($(du -h "$out" | cut -f1))"
+    ;;
+  db-backup-daily)
+    # Dijalankan cron harian (crontab user snouty, docs/DEPLOYMENT.md §8a): cadangan + simpan 14 hari.
+    # Cadangan manual bernama lain (pre-/before-) tidak ikut dihapus.
+    "$0" db-backup
+    find "$HOME/backups" -maxdepth 1 -name "${DB_DATABASE:-snouty}-2*.sql.gz" -mtime +14 -delete
     ;;
   up)
     # Tanpa --remove-orphans: proyek lama di server memakai nama compose `snouty` juga, dan flag itu
