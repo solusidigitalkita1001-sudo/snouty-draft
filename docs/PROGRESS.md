@@ -1646,6 +1646,12 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       (kontak/PIC diisi pemilik), audit dependensi di CI (`pnpm audit --audit-level=high`). Model AI lokal (Ollama)
       → perjanjian dengan penyedia LLM belum diperlukan. Terbuka: enkripsi at-rest, cadangan di luar server,
       `audit_logs` baru 1 baris
+- [x] P21-14 Keputusan pemilik keamanan: (1) **audit log** tindakan pengguna — `@Audited` + `AuditInterceptor`
+      global pada 14 endpoint (daftar, login + login gagal, keluar, ubah profil/kata sandi, simpan/hapus/pulihkan
+      percakapan, kirim ke tim teknis, buat/bangun ulang laporan, unggah, consent, onboarding): aktor, peran, IP,
+      correlation ID, entitas — tanpa isi; gagal tulis tidak menggagalkan aksi. (2) **Salinan cadangan luar server**
+      `db-backup-offsite`: gpg kunci publik + rsync, aktif bila `BACKUP_REMOTE`/`BACKUP_GPG_RECIPIENT` diisi.
+      (3) **Enkripsi at-rest**: langkah admin di DEPLOYMENT.md §8b (LUKS untuk volume data SNOUTY)
 
 ## Design Coverage
 

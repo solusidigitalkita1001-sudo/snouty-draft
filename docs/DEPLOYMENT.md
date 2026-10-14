@@ -200,6 +200,31 @@ Log: `deploy/deploy.sh logs api` (atau `web`, `worker`).
 - **Hak database**: `deploy/deploy.sh db-grants` — user aplikasi hanya SELECT/INSERT/UPDATE/DELETE; otomatis
   setelah `migrate` (migration berjalan sebagai root).
 
+### 8b. Enkripsi at-rest — langkah untuk admin server (keputusan pemilik 2026-10-14)
+
+User `snouty` tidak punya sudo, jadi ini dikerjakan admin server. Disk root (LVM `ubuntu-vg`) tidak
+terenkripsi dan tidak bisa dienkripsi di tempat tanpa instal ulang; yang praktis: **volume terenkripsi
+khusus untuk data SNOUTY**. Data yang harus pindah ke sana: volume Docker `snouty_mysql-data`
+(database), `snouty_storage` (unggahan & laporan PDF), dan `/home/snouty/backups`.
+
+1. Siapkan ruang: disk baru, atau ruang kosong di VG (`sudo vgs`). ±20 GB cukup untuk sekarang.
+2. `sudo cryptsetup luksFormat /dev/<perangkat>` lalu `sudo cryptsetup open /dev/<perangkat> snouty_crypt`,
+   `sudo mkfs.ext4 /dev/mapper/snouty_crypt`, mount di `/srv/snouty-data`.
+3. **Pembukaan kunci saat boot** — pilih satu, dan putuskan dulu karena menentukan apa yang terjadi saat
+   server restart: (a) frasa sandi manual (paling aman; SNOUTY mati sampai admin membuka kunci), atau
+   (b) Clevis + Tang di server lain (terbuka otomatis selama server Tang terjangkau). Jangan menaruh file
+   kunci di disk root yang tidak terenkripsi — itu meniadakan enkripsinya.
+4. Jendela pemeliharaan (±15 menit, SNOUTY saja): `deploy/deploy.sh db-backup`, lalu
+   `docker compose … stop api worker web mysql`, salin isi volume dengan `sudo rsync -aHAX
+/var/lib/docker/volumes/snouty_mysql-data/_data/ /srv/snouty-data/mysql/` (dan `snouty_storage`), arahkan
+   volume ke lokasi baru (volume `local` dengan `driver_opts: {type: none, o: bind, device: …}` di
+   `docker-compose.prod.yml` — perubahan ini dikerjakan bersama tim SNOUTY), nyalakan, `deploy/deploy.sh smoke`
+   dan `deploy/restore-check.sh`.
+5. Pindahkan `~/backups` ke `/srv/snouty-data/backups` (symlink dari lokasi lama supaya cron tetap jalan).
+6. Volume lama dihapus **setelah** satu siklus cadangan + uji pemulihan di lokasi baru berhasil.
+
+Kunci LUKS (header + frasa sandi) dicadangkan terpisah oleh admin — kehilangannya = data tidak bisa dibuka.
+
 ## 9. Yang belum dioptimalkan (sengaja)
 
 - Image belum dipangkas (build stage dipakai sebagai runtime): ukuran besar tetapi benar. Pemangkasan

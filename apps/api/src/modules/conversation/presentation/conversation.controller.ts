@@ -18,6 +18,7 @@ import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { requireEntitled } from '../../../shared/http/entitlement.js';
 import { ConversationService } from '../application/conversation.service.js';
 import type { ConversationOwner, ConversationRow } from '../domain/conversation.repository.js';
+import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 const RenameDto = z.object({ title: z.string().trim().min(1).max(160) }).strict();
@@ -114,6 +115,7 @@ export class ConversationController {
    * dari tiga: UI menyembunyikan tombolnya bagi tamu, gerbang ini menolak tamu yang
    * melewati UI, dan kepemilikan diperiksa di service.
    */
+  @Audited(USER_AUDIT.conversationSave)
   @Post(':id/save')
   @HttpCode(204)
   async save(@Param() rawParam: unknown, @Req() request: PublicRequest): Promise<void> {
@@ -122,12 +124,14 @@ export class ConversationController {
     await this.conversations.save(idOf(rawParam), { kind: actor.kind, id: actor.id });
   }
 
+  @Audited(USER_AUDIT.conversationDelete)
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param() rawParam: unknown, @Req() request: PublicRequest): Promise<void> {
     await this.conversations.remove(idOf(rawParam), ownerOf(request));
   }
 
+  @Audited(USER_AUDIT.conversationRestore)
   @Post(':id/restore')
   @HttpCode(204)
   async restore(@Param() rawParam: unknown, @Req() request: PublicRequest): Promise<void> {

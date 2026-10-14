@@ -26,6 +26,7 @@ import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { RequestValidationError } from '../../../shared/http/api-errors.js';
 import { requireEntitled } from '../../../shared/http/entitlement.js';
 import { ReportService } from '../application/report.service.js';
+import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 
@@ -47,6 +48,7 @@ export class ReportController {
    * menawarkannya; pemeriksaan di sini lapis kedua setelah UI (docs/POLICY.md §6).
    * 202, bukan 201: laporannya ada, PDF-nya menyusul lewat antrean.
    */
+  @Audited(USER_AUDIT.reportCreate)
   @Post('reports')
   @HttpCode(202)
   async create(@Body() body: unknown, @Req() req: PublicRequest): Promise<unknown> {
@@ -93,6 +95,7 @@ export class ReportController {
    * yang tersimpan, lalu laporan BARU (nomor baru). Laporan lama tidak diubah (keputusan pemilik
    * 2026-10-12).
    */
+  @Audited(USER_AUDIT.reportRebuild)
   @Post('reports/:id/rebuild')
   @HttpCode(202)
   async rebuild(@Param() params: unknown, @Req() req: PublicRequest): Promise<unknown> {

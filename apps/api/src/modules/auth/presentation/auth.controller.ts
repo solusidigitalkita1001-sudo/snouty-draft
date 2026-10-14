@@ -20,6 +20,7 @@ import { AuthService, type AuthenticatedSession } from '../application/auth.serv
 import { InvalidRefreshTokenError } from '../domain/auth.errors.js';
 import { PASSWORD_MAX_LENGTH } from '../domain/password-policy.js';
 import { readCookie, type WithGuestSession } from './guest-session.middleware.js';
+import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
 
 export const REFRESH_COOKIE = 'snouty_refresh';
 /** Browser hanya mengirim cookie refresh ke endpoint auth — bukan ke seluruh API. */
@@ -73,6 +74,7 @@ export class AuthController {
     if (!verdict.allowed) throw new RateLimitedError(verdict.retryAfterSec);
   }
 
+  @Audited(USER_AUDIT.register)
   @Post('register')
   async register(
     @Body() rawBody: unknown,
@@ -95,6 +97,7 @@ export class AuthController {
     };
   }
 
+  @Audited(USER_AUDIT.login)
   @Post('login')
   @HttpCode(200)
   async login(
@@ -130,6 +133,7 @@ export class AuthController {
     return { ...profileOf(session), accessToken: session.accessToken };
   }
 
+  @Audited(USER_AUDIT.logout)
   @Post('logout')
   @HttpCode(204)
   async logout(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
@@ -156,6 +160,7 @@ export class AuthController {
   }
 
   /** Halaman akun (OQ-53): ganti nama tampilan. */
+  @Audited(USER_AUDIT.profileUpdate)
   @Patch('me')
   async updateMe(@Body() rawBody: unknown, @Req() request: PublicRequest) {
     const actor = userOf(request);
@@ -164,6 +169,7 @@ export class AuthController {
   }
 
   /** Halaman akun (OQ-53): ganti sandi dengan sandi saat ini sebagai bukti. */
+  @Audited(USER_AUDIT.passwordChange)
   @Post('password')
   @HttpCode(204)
   async changePassword(@Body() rawBody: unknown, @Req() request: Request & PublicRequest) {

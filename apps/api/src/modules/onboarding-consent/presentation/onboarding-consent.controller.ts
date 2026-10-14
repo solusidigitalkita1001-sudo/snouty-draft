@@ -13,6 +13,7 @@ import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { ConsentService } from '../application/consent.service.js';
 import { OnboardingService } from '../application/onboarding.service.js';
 import type { ConsentSubject } from '../domain/consent.repository.js';
+import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
 
 const CompleteDto = z.object({ outcome: z.enum(['done', 'guest', 'skip']) }).strict();
 const ConsentDto = z
@@ -34,6 +35,7 @@ export class OnboardingConsentController {
     return { state: await this.onboarding.state(subjectOf(request)) };
   }
 
+  @Audited(USER_AUDIT.onboardingComplete)
   @Post('onboarding/complete')
   @HttpCode(204)
   async complete(@Body() rawBody: unknown, @Req() request: PublicRequest): Promise<void> {
@@ -47,6 +49,7 @@ export class OnboardingConsentController {
     return { items: onboardingBenefits() };
   }
 
+  @Audited(USER_AUDIT.consentRecord)
   @Post('consents')
   @HttpCode(204)
   async record(@Body() rawBody: unknown, @Req() request: PublicRequest): Promise<void> {

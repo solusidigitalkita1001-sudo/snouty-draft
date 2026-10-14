@@ -25,6 +25,7 @@ import { loadEnv } from '../../../config/env.js';
 import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { RequestValidationError } from '../../../shared/http/api-errors.js';
 import { UploadRejectedError, UploadsService } from '../application/uploads.service.js';
+import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 const UploadDto = z.object({ conversationId: z.string().length(26) }).strict();
@@ -39,6 +40,7 @@ interface MultipartFile {
 export class UploadsController {
   constructor(private readonly uploads: UploadsService) {}
 
+  @Audited(USER_AUDIT.uploadCreate)
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {

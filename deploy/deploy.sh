@@ -6,7 +6,8 @@
 #   deploy/deploy.sh up         nyalakan/perbarui seluruh layanan
 #   deploy/deploy.sh smoke      cek health API dan halaman web
 #   deploy/deploy.sh db-backup  mysqldump ke ~/backups
-#   deploy/deploy.sh db-backup-daily  cadangan + hapus yang lebih dari 14 hari (cron)
+#   deploy/deploy.sh db-backup-daily  cadangan + hapus yang lebih dari 14 hari + salin ke luar (cron)
+#   deploy/deploy.sh db-backup-offsite salinan terenkripsi gpg ke BACKUP_REMOTE (bila diisi)
 #   deploy/deploy.sh db-grants  user aplikasi hanya SELECT/INSERT/UPDATE/DELETE (ikut migrate)
 #   deploy/deploy.sh release    = git pull → build → up → smoke   (migration TIDAK termasuk)
 #   deploy/deploy.sh logs [svc] ikuti log
@@ -68,6 +69,22 @@ SQL
     # Cadangan manual bernama lain (pre-/before-) tidak ikut dihapus.
     "$0" db-backup
     find "$HOME/backups" -maxdepth 1 -name "${DB_DATABASE:-snouty}-2*.sql.gz" -mtime +14 -delete
+    "$0" db-backup-offsite
+    ;;
+  db-backup-offsite)
+    # Salinan ke luar server (keputusan pemilik 2026-10-14): dienkripsi dengan KUNCI PUBLIK gpg
+    # penerima sebelum keluar — server ini tidak pernah memegang kunci pembukanya. Aktif begitu
+    # BACKUP_REMOTE (mis. user@nas:/backup/snouty) dan BACKUP_GPG_RECIPIENT ada di .env.production
+    # dan kunci publiknya sudah diimpor (`gpg --import`). Tanpa keduanya: dilewati, tercatat di log.
+    if [ -z "${BACKUP_REMOTE:-}" ] || [ -z "${BACKUP_GPG_RECIPIENT:-}" ]; then
+      echo "▸ salinan luar server dilewati: BACKUP_REMOTE/BACKUP_GPG_RECIPIENT belum diisi"
+      exit 0
+    fi
+    latest="$(ls -t "$HOME"/backups/"${DB_DATABASE:-snouty}"-2*.sql.gz | head -1)"
+    gpg --batch --yes --trust-model always --recipient "$BACKUP_GPG_RECIPIENT" \
+      --output "$latest.gpg" --encrypt "$latest"
+    rsync -a --timeout=120 "$latest.gpg" "$BACKUP_REMOTE/" && rm -f "$latest.gpg"
+    echo "✓ salinan terenkripsi terkirim: $(basename "$latest").gpg → $BACKUP_REMOTE"
     ;;
   up)
     # Tanpa --remove-orphans: proyek lama di server memakai nama compose `snouty` juga, dan flag itu

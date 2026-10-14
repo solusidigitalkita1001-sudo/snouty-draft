@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { RequestValidationError } from '../../../shared/http/api-errors.js';
 import { HandoffService } from '../application/handoff.service.js';
+import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 const HandoffDto = z.object({ reason: z.string().trim().min(1).max(255) }).strict();
@@ -18,6 +19,7 @@ const HandoffDto = z.object({ reason: z.string().trim().min(1).max(255) }).stric
 export class HandoffController {
   constructor(private readonly handoffs: HandoffService) {}
 
+  @Audited(USER_AUDIT.handoffCreate)
   @Post(':id/handoff')
   async enqueue(
     @Param() params: unknown,
