@@ -1604,6 +1604,11 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       3", ventilasi air bekas 1¼" → 1½", pipa ¾" 1 → 2 batang, ½" 6 → 9 batang, elbow ½" 14 → 21, faucet elbow
       13 → 19, Y air bekas 7 → 13, tambah tee 1¼" × ½". U1 (wastafel 0 disebut) dan U2 (2 disebut) tidak berubah.
       Regresi laporan 0002 dipatok ke 0 wastafel lewat ganti asumsi, dan default barunya diuji tersendiri
+- [x] P21-07 Diameter dalam HDPE dari tebal dinding resmi PE100 Pralon (PROD/STD/014 Rev. 04, handbook pemilik):
+      `pe100-walls.ts` dibangkitkan `scripts/gen-pe100-walls.mjs` dari `data/standards/`; dalam = OD − 2 × (tebal
+      nominal + ½ toleransi). OD yang tidak diproduksi di SDR itu kembali ke rumus SDR. `HDPE_SDR17_PN10` kini hanya
+      asumsi kelas (PN 10), tebalnya resmi. Kasus acuan 20 lantai: transfer tetap 280 mm, dalam 247,1 → 245,0 mm.
+      PVC inci tidak berubah (OQ-64)
 
 ## Design Coverage
 

@@ -6,13 +6,15 @@
  * (`1½"` atau `63 mm`) adalah label `PipeSize` kanonik yang langsung dicocokkan ke katalog.
  *
  * Diameter dalam = OD − 2 × tebal dinding (Knowledge Master §2). OD PVC adalah angka yang konsisten
- * di banyak sumber (Knowledge Master §7.1); tebal dindingnya belum ada yang resmi (§7.2 —
- * sumbernya bertentangan), jadi tebal diperkirakan dari SDR yang ada di registry asumsi
- * (`PVC_AW_WALL_SDR`, `HDPE_SDR17_PN10`). Ukuran nominal inci tidak pernah dipakai sebagai
+ * di banyak sumber (Knowledge Master §7.1); tebal dinding AW/D belum ada yang resmi (§7.2, OQ-64),
+ * jadi tebalnya diperkirakan dari SDR di registry asumsi (`PVC_AW_WALL_SDR`). HDPE memakai tebal
+ * dinding resmi PE100 Pralon per OD dan SDR (PROD/STD/014, `pe100-walls.ts`); SDR-nya sendiri
+ * (`HDPE_SDR17_PN10`) tetap asumsi kelas. Ukuran nominal inci tidak pernah dipakai sebagai
  * diameter dalam: 6" berdiameter luar 165 mm, bukan diameter dalam 150 mm (audit C1).
  */
 
 import { assumption } from './assumptions.js';
+import { PE100_WALLS_MM } from './pe100-walls.js';
 
 export type SizeTableId = 'pvc_inch' | 'hdpe_mm';
 
@@ -48,6 +50,18 @@ export function innerDiameterMm(outerMm: number, sdr: number): number {
   return Math.round((outerMm - (2 * outerMm) / sdr) * 10) / 10;
 }
 
+/**
+ * Diameter dalam PE100 dari tabel resmi: OD − 2 × tebal rata-rata (nominal + ½ toleransi atas) —
+ * diameter dalam rata-rata yang lazim dipakai hitungan hidrolik. `null` bila Pralon tidak
+ * memproduksi OD itu di SDR tersebut.
+ */
+export function pe100InnerDiameterMm(outerMm: number, sdr: number): number | null {
+  const wall = PE100_WALLS_MM[outerMm]?.[String(sdr)];
+  if (wall === undefined) return null;
+  const [nominal, tolerance] = wall;
+  return Math.round((outerMm - 2 * (nominal + tolerance / 2)) * 10) / 10;
+}
+
 export function defaultWallSdr(id: SizeTableId): number {
   return assumption(id === 'hdpe_mm' ? 'HDPE_SDR17_PN10' : 'PVC_AW_WALL_SDR').value as number;
 }
@@ -65,7 +79,8 @@ export function sizeTable(
     ? HDPE_OUTER_DIAMETERS_MM.map((od) => ({
         size: `${od} mm`,
         outerMm: od,
-        innerMm: innerDiameterMm(od, wallSdr),
+        // OD yang tidak diproduksi di SDR ini tetap dari rumus SDR (asumsi kelas yang sama).
+        innerMm: pe100InnerDiameterMm(od, wallSdr) ?? innerDiameterMm(od, wallSdr),
       }))
     : PVC_OUTER_DIAMETERS_MM.map(([size, od]) => ({
         size,

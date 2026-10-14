@@ -83,7 +83,9 @@ describe('regresi brief: 5 000 m² × 20 lantai, 90 m', () => {
   it('transfer: kecepatan dan kerugian gesek cocok dengan hitungan acuan; TDH = statik + gesek + minor + sisa', () => {
     const od = Number.parseInt(r.transfer.recommendedSize, 10);
     expect(r.transferMaterial).toBe('HDPE');
-    const id = innerMm(od, 17);
+    // Tebal dinding resmi PE100 SDR 17 OD 280 (PROD/STD/014): 16,6 + 1,8 mm → tebal rata-rata 17,5 mm.
+    expect(od).toBe(280);
+    const id = od - 2 * (16.6 + 1.8 / 2);
     expect(r.transfer.innerDiameterMm).toBeCloseTo(id, 1);
     expect(r.transfer.velocityMs).toBeCloseTo(velocity(300 / 3.6, id), 2);
     const hf = hazenWilliams(300 / 3.6, id, 90, 150);

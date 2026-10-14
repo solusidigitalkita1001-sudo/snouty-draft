@@ -655,17 +655,18 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     id: 'HDPE_SDR17_PN10',
     parameter: 'pressure_class',
     appliesTo: [],
-    condition: 'diameter dalam HDPE diperkirakan dari OD tanpa data tebal dinding Pralon',
+    condition: 'kelas tekanan pipa HDPE belum disebut',
     value: 17,
     unit: 'SDR',
-    conditionEn: 'HDPE inner diameter estimated from OD without Pralon wall-thickness data',
+    conditionEn: 'HDPE pressure class not given',
     descriptionEn:
-      'HDPE inner diameter is estimated for PE100 PN 10 (SDR 17); other classes change the inner diameter.',
-    reference: 'ISO 4427: PE100 PN 10 ≈ SDR 17 (tebal dinding = OD / 17)',
+      'HDPE is taken as PE100 PN 10 (SDR 17); the wall thickness per size follows the Pralon PE100 standard. Another class changes the inner diameter.',
+    reference:
+      'Pralon PROD/STD/014 Rev. 04 (PE100, SNI 9362:2025): SDR 17 = PN 10; tebal dinding per OD dari tabelnya',
     confidence: 'medium',
     confirmationRequired: true,
     description:
-      'Diameter dalam HDPE diperkirakan untuk PE100 PN 10 (SDR 17); kelas lain mengubah diameter dalam.',
+      'Pipa HDPE dianggap PE100 PN 10 (SDR 17); tebal dinding tiap ukuran mengikuti standar PE100 Pralon. Kelas lain mengubah diameter dalam.',
   },
 
   // ── Bahan per segmen ──
