@@ -211,17 +211,17 @@ Galat yang sampai ke klien hanya berisi kode stabil dan pesan aman. Stack trace 
 
 ## 12. Daftar periksa sebelum produksi
 
-|                                                       | Status                                                |
-| ----------------------------------------------------- | ----------------------------------------------------- |
-| Akun database least-privilege dibuat                  | **ya** (produksi, 2026-10-14) — `deploy.sh db-grants` |
-| Pemilik backup teridentifikasi & restore pernah diuji | **belum** — `DATABASE.md` §8                          |
-| Enkripsi at-rest MySQL dikonfirmasi                   | **belum**                                             |
-| Perjanjian pemrosesan data dengan penyedia LLM        | **belum**                                             |
-| Redaksi email sebelum Fase 11                         | direncanakan                                          |
-| Pemindaian dependensi di CI                           | manual `pnpm audit --prod` bersih 2026-10-14          |
-| Pemindaian secret di CI                               | direncanakan Fase 0e                                  |
-| Uji penetrasi                                         | Fase 13                                               |
-| Prosedur pemberitahuan insiden                        | **belum** — `PRIVACY.md` §10                          |
+|                                                       | Status                                                                                                               |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Akun database least-privilege dibuat                  | **ya** (produksi, 2026-10-14) — `deploy.sh db-grants`                                                                |
+| Pemilik backup teridentifikasi & restore pernah diuji | restore diuji 2026-10-14 (29 tabel, 0 selisih); cadangan harian + uji mingguan (cron); pemilik backup belum ditunjuk |
+| Enkripsi at-rest MySQL dikonfirmasi                   | **belum**                                                                                                            |
+| Perjanjian pemrosesan data dengan penyedia LLM        | belum diperlukan — model lokal (Ollama); wajib bila beralih ke penyedia luar                                         |
+| Redaksi email sebelum Fase 11                         | direncanakan                                                                                                         |
+| Pemindaian dependensi di CI                           | ya — `pnpm audit --prod --audit-level=high` di job quality                                                           |
+| Pemindaian secret di CI                               | ya — gitleaks, seluruh riwayat (job guards)                                                                          |
+| Uji penetrasi                                         | Fase 13                                                                                                              |
+| Prosedur pemberitahuan insiden                        | runbook `INCIDENT.md`; kontak & PIC belum diisi                                                                      |
 
 Empat baris pertama semuanya bermuara pada satu hal: SNOUTY menumpang pada infrastruktur yang
 kepemilikan operasionalnya belum jelas. Itu perlu diselesaikan sebelum ada data pelanggan nyata di
@@ -295,5 +295,6 @@ secret di repo; database produksi di container SNOUTY sendiri (bukan host bersam
   cadangan sebelum perubahan di `~/backups` (`deploy.sh db-backup`). Diverifikasi: `CREATE TABLE` ditolak,
   aplikasi tetap menulis, tanpa galat akses di log.
 
-**Masih terbuka (butuh pihak Pralon):** uji restore cadangan, enkripsi at-rest, perjanjian data dengan penyedia
-LLM, prosedur insiden. `'unsafe-inline'` di script-src bisa diganti nonce bila nanti dibutuhkan.
+**Masih terbuka (butuh pihak Pralon):** enkripsi at-rest, cadangan di luar server, penunjukan PIC insiden
+dan pejabat PDP, audit log tindakan pengguna. Uji restore, cadangan harian, dan runbook insiden selesai
+2026-10-14 (P21-13); model AI lokal sehingga perjanjian dengan penyedia LLM belum diperlukan. `'unsafe-inline'` di script-src bisa diganti nonce bila nanti dibutuhkan.

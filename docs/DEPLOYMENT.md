@@ -193,6 +193,10 @@ Log: `deploy/deploy.sh logs api` (atau `web`, `worker`).
   `docker compose … exec -T nginx nginx -t` lalu `docker compose … restart nginx`. bagspace ikut dilayani
   nginx ini.
 - **Cadangan**: `deploy/deploy.sh db-backup` (mysqldump gzip ke `~/backups`) sebelum migration atau perubahan hak.
+- **Cadangan otomatis** (crontab user `snouty`): `db-backup-daily` setiap hari 02.30 (simpan 14 hari, log
+  `~/backups/backup.log`) dan `deploy/restore-check.sh` setiap Minggu 03.00 (log `~/backups/restore-check.log`)
+  — memulihkan cadangan terbaru ke kontainer sementara tanpa port, membandingkan jumlah baris, lalu menghapusnya.
+  Cadangan masih di disk yang sama dengan database.
 - **Hak database**: `deploy/deploy.sh db-grants` — user aplikasi hanya SELECT/INSERT/UPDATE/DELETE; otomatis
   setelah `migrate` (migration berjalan sebagai root).
 

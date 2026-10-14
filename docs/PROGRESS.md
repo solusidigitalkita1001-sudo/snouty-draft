@@ -1641,6 +1641,11 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       CSP + Permissions-Policy ditegakkan setelah report-only bersih, `/health` ditutup dari publik, user DB aplikasi
       tanpa DROP/ALTER/CREATE (`db-grants`, cadangan `db-backup` 2,1 MB sebelum diubah). Temuan di luar SNOUTY:
       container bagspace-* berhenti sejak ±5 hari (bukan akibat perubahan ini)
+- [x] P21-13 Sisa checklist keamanan: uji restore (`deploy/restore-check.sh`: 29 tabel, 0 selisih, 2 detik),
+      cadangan harian 02.30 + uji pemulihan mingguan (cron, retensi 14 hari), runbook insiden `docs/INCIDENT.md`
+      (kontak/PIC diisi pemilik), audit dependensi di CI (`pnpm audit --audit-level=high`). Model AI lokal (Ollama)
+      → perjanjian dengan penyedia LLM belum diperlukan. Terbuka: enkripsi at-rest, cadangan di luar server,
+      `audit_logs` baru 1 baris
 
 ## Design Coverage
 

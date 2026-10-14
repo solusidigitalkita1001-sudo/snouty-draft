@@ -113,6 +113,11 @@ alamat, bahkan nilai proyek. Rencananya:
 2. Yang dikirim adalah isi yang sudah diredaksi; teks asli tetap di MySQL untuk ditinjau manusia.
 3. Nilai asli dipulihkan hanya saat ditampilkan ke peninjau internal yang berwenang.
 
+**Produksi 2026-10-14:** model berjalan lokal di server SNOUTY (Ollama — `qwen3.5:4b`/`9b`, `bge-m3`),
+jadi tidak ada data percakapan yang dikirim ke penyedia luar dan perjanjian pemrosesan data dengan
+penyedia LLM belum diperlukan. Begitu `OPENROUTER_BASE_URL` diarahkan ke penyedia berbayar, tabel di atas
+berlaku penuh dan perjanjian itu wajib lebih dulu.
+
 Ketentuan umum untuk semua jalur: minta penyedia mematikan retensi dan pelatihan bila tersedia,
 catat model dan endpoint yang dipakai di `llm_calls`, dan **jangan pernah** mengirim password hash,
 token, atau isi berkas unggahan.
@@ -205,7 +210,10 @@ diketahui. Prasyarat teknis yang harus sudah ada sebelum produksi:
 2. Jalur eskalasi yang jelas dan pemilik yang ditunjuk.
 3. Kemampuan mengirim pemberitahuan massal kepada pengguna terdaftar.
 
-Ketiganya belum ada. Dicatat di sini agar tidak ditemukan saat sudah terlambat.
+Status 2026-10-14: runbook ada di `docs/INCIDENT.md` (bendung, amankan bukti, cakupan, pemulihan dari
+cadangan harian yang diuji). Masih kurang: (1) `audit_logs` belum mencatat tindakan pengguna cukup
+lengkap; (2) penanggung jawab dan pejabat PDP belum ditunjuk (`INCIDENT.md` §0); (3) pemberitahuan massal
+belum ada — email pengguna terdaftar tersedia di `users`, tamu tidak punya kontak.
 
 ---
 
