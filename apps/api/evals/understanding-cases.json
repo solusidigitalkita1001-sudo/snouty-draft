@@ -332,6 +332,30 @@
       "families": ["hdpe"]
     },
     {
+      "text": "tebal dinding hdpe 160 sdr 21 berapa mm?",
+      "intent": "product_spec",
+      "productAspect": "dimensions",
+      "source": "P21-08, handbook Pralon 2026-10-14"
+    },
+    {
+      "text": "pipa vp 3/4 beratnya berapa kg per meter?",
+      "intent": "product_spec",
+      "productAspect": "dimensions",
+      "source": "P21-08, handbook Pralon 2026-10-14"
+    },
+    {
+      "text": "diameter dalamnya pipa pe100 63 pn 16 berapa?",
+      "intent": "product_spec",
+      "productAspect": "dimensions",
+      "source": "P21-08, handbook Pralon 2026-10-14"
+    },
+    {
+      "text": "how thick is the wall of a 90 mm hdpe pipe?",
+      "intent": "product_spec",
+      "productAspect": "dimensions",
+      "source": "P21-08, handbook Pralon 2026-10-14"
+    },
+    {
       "text": "standarnya apa?",
       "intent": "product_spec",
       "productAspect": "standard"

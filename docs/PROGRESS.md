@@ -1609,6 +1609,11 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
       nominal + ½ toleransi). OD yang tidak diproduksi di SDR itu kembali ke rumus SDR. `HDPE_SDR17_PN10` kini hanya
       asumsi kelas (PN 10), tebalnya resmi. Kasus acuan 20 lantai: transfer tetap 280 mm, dalam 247,1 → 245,0 mm.
       PVC inci tidak berubah (OQ-64)
+- [x] P21-08 Pertanyaan tebal dinding, diameter dalam, dan berat per meter dijawab dari tabel standar Pralon
+      (handbook: SNI kelas S, SNI Kelas A/B, JIS VP/VU, PE100) — aspek baru `dimensions` dikenali dari contoh
+      (`product-aspect.json`, eval 149/150), kelas dibaca parser nilai (SDR/PN/S/Kelas A-B/VP/VU), nol model dan
+      nol katalog; dokumen sumber disebut di jawaban. Ukuran yang ada di beberapa jenis pipa → ditanya jenisnya;
+      PRALON AW/D/C → diakui belum ada tabelnya + tim teknis (OQ-64). `data/standards` ikut image Docker
 
 ## Design Coverage
 

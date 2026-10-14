@@ -924,3 +924,17 @@ describe('runProductQuestion — batas klaim (audit anti-halusinasi 2026-10-09)'
     expect(out).not.toMatch(/kelas (PN|SDR)/);
   });
 });
+
+describe('runProductQuestion — DIMENSI (P21-08)', () => {
+  it('"tebal pipa hdpe 110 sdr 17?" dijawab tabel standar Pralon, tanpa model dan tanpa katalog', async () => {
+    const events = await runProductQuestion(
+      failingAi,
+      brokenCatalog,
+      noQuestions,
+      input('tebal pipa hdpe 110 sdr 17 berapa?', SPEC('dimensions')),
+    );
+    const out = text(events);
+    expect(out).toContain('tebal dinding 6,6 mm');
+    expect(out).toContain('PROD/STD/014');
+  });
+});

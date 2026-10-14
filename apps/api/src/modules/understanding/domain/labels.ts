@@ -75,6 +75,9 @@ export const PRODUCT_ASPECTS = [
   'rod_length',
   'joint_type',
   'application',
+  // Tebal dinding / diameter dalam / berat per meter — dijawab tabel standar Pralon per kelas
+  // (`data/standards`, P21-08), bukan kolom katalog per SKU.
+  'dimensions',
 ] as const;
 export type ProductAspectLabel = (typeof PRODUCT_ASPECTS)[number];
 

@@ -48,6 +48,8 @@ import { isAnswerable, isAuthoritative } from '../../product-catalog/domain/cata
 import { CatalogUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import type { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
 import { endEvent } from './message-pipeline.js';
+import { dimensionAnswer } from './dimension-answer.js';
+import { pipeStandardRows } from '../../product-knowledge/infrastructure/pipe-standards.loader.js';
 import {
   briefComparison,
   compareMaterials,
@@ -212,6 +214,17 @@ export async function runProductQuestion(
       { type: 'message.start', messageId: input.messageId },
       { type: 'token', text: productAnswerCopy(locale).priceNotShown },
       { type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } },
+      endEvent(input.messageId),
+    ];
+  }
+
+  // Tebal dinding / diameter dalam / berat: tabel standar Pralon per kelas (P21-08), nol model.
+  if (u.productAspect === 'dimensions') {
+    const outcome = dimensionAnswer(input.message, u.families, pipeStandardRows(), locale);
+    return [
+      { type: 'message.start', messageId: input.messageId },
+      { type: 'token', text: outcome.text },
+      ...outcome.cards.map((card) => ({ type: 'card', card }) as AssistantStreamEvent),
       endEvent(input.messageId),
     ];
   }

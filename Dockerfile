@@ -40,6 +40,8 @@ COPY apps/worker ./apps/worker
 COPY data/understanding ./data/understanding
 # Fakta pengetahuan pipa bersumber (`data/knowledge`, daftar FAQ pemilik 2026-10-09).
 COPY data/knowledge ./data/knowledge
+# Tabel standar pipa Pralon (handbook PROD/STD, P21-08) — tebal dinding dan berat per kelas.
+COPY data/standards ./data/standards
 RUN pnpm build:types \
   && pnpm --filter @snouty/api build \
   && pnpm --filter @snouty/worker build
