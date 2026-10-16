@@ -17,7 +17,11 @@ const needs = [
   { kind: 'rooftop_tank', count: 1 },
 ] as const;
 const solution = {
-  recommendation: { needs } as unknown as ActiveSolution['recommendation'],
+  recommendation: {
+    needs,
+    systemLines: [],
+    bom: [],
+  } as unknown as ActiveSolution['recommendation'],
   stale: false,
 } satisfies ActiveSolution;
 

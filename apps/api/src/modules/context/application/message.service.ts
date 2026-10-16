@@ -250,9 +250,24 @@ export class MessageService {
     // lanjutan kebutuhan — tanpa menunggu model menebaknya. Bentuk yang PASTI lain (produk,
     // pesaing, sapaan) tetap lewat router, yang juga memotongnya tanpa model.
     const fine = u.intent?.label;
-    const continuation =
-      state.useCase?.kind === 'technical' &&
-      (fine === undefined || isRequirement(fine) || isFollowUp(fine) || CASE_QUESTIONS.has(fine))
+    // Pertanyaan tentang solusi yang SUDAH dihitung (P22-02/04: "toren setinggi apa", "fitting apa saja")
+    // dijawab di atas solusinya — bukan diserahkan ke perencana yang bisa memilih jalur kebutuhan.
+    const aboutSolution =
+      solution !== null &&
+      !solution.stale &&
+      (fine === 'system_layout_question' || fine === 'explanation_request');
+    const continuation = aboutSolution
+      ? ({
+          intent: 'EXPLANATION_REQUEST',
+          confidence: 1,
+          shouldExtract: false,
+          mutatesState: false,
+        } satisfies RoutingDecision)
+      : state.useCase?.kind === 'technical' &&
+          (fine === undefined ||
+            isRequirement(fine) ||
+            isFollowUp(fine) ||
+            CASE_QUESTIONS.has(fine))
         ? ({
             intent: 'REQUIREMENT_STATEMENT',
             confidence: 1,

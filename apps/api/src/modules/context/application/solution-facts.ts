@@ -105,3 +105,42 @@ function tankStandLines(view: TankStandView, locale: Locale, num: (n: number) =>
   }
   return lines;
 }
+
+/**
+ * Jawaban tetap untuk pertanyaan bentuk sistem (P22-02) — jalur per segmen dan materialnya dari
+ * rekomendasi, tanpa model. Dipakai sebagai teks bila model tidak dikonfigurasi atau ditolak pagar.
+ */
+export function layoutReply(solution: ActiveSolution, locale: Locale): string {
+  const en = locale === 'en';
+  const r = solution.recommendation;
+  const num = (n: number) => n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
+  const lines = r.systemLines.map(
+    (l) => `${l.name.toLowerCase()} ${l.size} (${l.path.toLowerCase()})`,
+  );
+  const rows = r.bom.filter((b) => b.quantity > 0);
+  const pipes = rows.filter((b) => /^pipa|^pipe/i.test(b.purpose ?? b.item) || b.unit === 'batang');
+  const fittings = rows.filter((b) => !pipes.includes(b));
+  const list = (items: typeof rows) =>
+    items
+      .map((b) => `${(b.purpose ?? b.item).toLowerCase()} ${b.size} ${num(b.quantity)} ${b.unit}`)
+      .join(', ');
+  const stale = solution.stale
+    ? en
+      ? ' The requirement changed after this calculation; press Compose recommendation again for current figures.'
+      : ' Kebutuhan sudah berubah setelah hitungan ini; tekan Susun rekomendasi lagi untuk angka terbaru.'
+    : '';
+  if (en) {
+    return (
+      `The installation section is below. The runs: ${lines.join('; ')}.` +
+      (pipes.length > 0 ? ` Pipes: ${list(pipes)}.` : '') +
+      (fittings.length > 0 ? ` Fittings: ${list(fittings)}.` : '') +
+      stale
+    );
+  }
+  return (
+    `Potongan instalasinya di bawah. Jalurnya: ${lines.join('; ')}.` +
+    (pipes.length > 0 ? ` Pipa: ${list(pipes)}.` : '') +
+    (fittings.length > 0 ? ` Fitting: ${list(fittings)}.` : '') +
+    stale
+  );
+}

@@ -87,6 +87,7 @@ import {
   replyFor,
 } from './reply-copy.js';
 import { caseFacts } from './case-facts.js';
+import { layoutReply } from './solution-facts.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
 
@@ -153,26 +154,30 @@ export async function runUnderstanding(
     const label = input.understanding?.intent?.label;
     const caseCard = followUpCard(withCompleteness(input.state), input.locale);
     const handedOff = caseCard?.kind === 'unsupported';
+    // Bentuk sistem pengguna sendiri (P22-02): teks tetap dari jalur dan BOQ solusinya, gambar menyusul.
+    const drawing = drawingCardFor(label, input.solution);
     const fallback =
-      label === 'out_of_scope'
-        ? outOfTopicReply(input.locale)
-        : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
-          ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
-            // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
-            explanationHandedOff(caseCard.reasons, input.locale)
-          : input.decision.intent === 'EXPLANATION_REQUEST' &&
-              withCompleteness(input.state).missingInformation.length > 0
-            ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
-              explanationBeforeSolution(input.locale)
-            : input.decision.intent === 'OUT_OF_SCOPE' &&
-                (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
-              ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
-                // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
-                // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
-                label === 'greeting'
-                ? greetingAgain(input.recentTurns ?? [], input.locale)
-                : outOfTopicReply(input.locale)
-              : replyFor(input.decision.intent, input.locale);
+      drawing !== null && input.solution
+        ? layoutReply(input.solution, input.locale ?? DEFAULT_LOCALE)
+        : label === 'out_of_scope'
+          ? outOfTopicReply(input.locale)
+          : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
+            ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
+              // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
+              explanationHandedOff(caseCard.reasons, input.locale)
+            : input.decision.intent === 'EXPLANATION_REQUEST' &&
+                withCompleteness(input.state).missingInformation.length > 0
+              ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
+                explanationBeforeSolution(input.locale)
+              : input.decision.intent === 'OUT_OF_SCOPE' &&
+                  (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
+                ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
+                  // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
+                  // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
+                  label === 'greeting'
+                  ? greetingAgain(input.recentTurns ?? [], input.locale)
+                  : outOfTopicReply(input.locale)
+                : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Model merangkai balasan di atas DATA kasus (P16-28): yang sudah dicatat, status kasus, dan
       // cara SNOUTY menghitung — semuanya dari kode. Angka di luar DATA ditolak `ReplyWriter`, jadi
@@ -186,19 +191,24 @@ export async function runUnderstanding(
               intent: input.decision.intent,
               userMessage: input.message,
               recentTurns: input.recentTurns ?? [],
-              facts: caseFacts(
-                withCompleteness(input.state),
-                input.locale ?? DEFAULT_LOCALE,
-                caseCard,
-                input.solution ?? null,
-              ),
+              facts:
+                caseFacts(
+                  withCompleteness(input.state),
+                  input.locale ?? DEFAULT_LOCALE,
+                  caseCard,
+                  input.solution ?? null,
+                ) +
+                (drawing !== null
+                  ? input.locale === 'en'
+                    ? '\n- The installation section drawing is shown right below this reply; describe the runs and materials, do not say a drawing is unavailable.'
+                    : '\n- Gambar potongan instalasi tampil tepat di bawah jawaban ini; jelaskan jalur dan materialnya, jangan katakan gambar tidak tersedia.'
+                  : ''),
               ...(input.locale ? { locale: input.locale } : {}),
               fallback,
             })
           : { text: fallback };
       events.push({ type: 'token', text: written.text });
     }
-    const drawing = drawingCardFor(label, input.solution);
     if (drawing !== null) events.push({ type: 'card', card: drawing });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
