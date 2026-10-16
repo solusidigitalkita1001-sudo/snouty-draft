@@ -120,8 +120,12 @@ describe('computeNetwork — jaringan air minum (SPAM)', () => {
     expect(spam.supply?.maxPressureBar).toBeGreaterThanOrEqual(1.96);
     expect(spam.supply?.pressureClass.pn).not.toBeNull();
     expect(spam.traces.map((t) => t.ruleId)).toEqual(
-      expect.arrayContaining(['ENG-409', 'ENG-410', 'ENG-411']),
+      expect.arrayContaining(['ENG-409', 'ENG-414', 'ENG-415', 'ENG-416', 'ENG-410', 'ENG-411']),
     );
+    // Tanpa jumlah cabang: satu pipa, topologi diasumsikan; sumur/reservoir tanpa tekanan → dipompa.
+    expect(spam.supply?.topology).toMatchObject({ assumed: true, branches: 0, branch: null });
+    expect(spam.supply?.mode.kind).toBe('pumped');
+    expect(spam.pumpDuty).not.toBeNull();
     expect(spam.appliedAssumptionIds).toEqual(
       expect.arrayContaining([
         'SPAM_PERSONS_PER_CONNECTION_5',
@@ -157,5 +161,103 @@ describe('computeNetwork — jaringan air minum (SPAM)', () => {
 
   it('tanpa sambungan maupun jiwa → galat masukan', () => {
     expect(() => computeNetwork({ routeLengthM: 100, staticHeadM: 5 })).toThrow(/sambungan/);
+  });
+});
+
+describe('computeNetwork — audit PDAM 2026-10-16: topologi, mode sistem, regresi', () => {
+  const base = {
+    kind: 'water_supply' as const,
+    connections: 500,
+    routeLengthM: 2000,
+    staticHeadM: 20,
+    material: 'HDPE' as const,
+  };
+
+  it('4 cabang: induk membawa seluruh puncak, tiap cabang seperempatnya; head titik kritis = statis + induk + cabang + sisa', () => {
+    const r = computeNetwork({ ...base, branches: 4 });
+    const t = r.supply!.topology;
+    expect(t).toMatchObject({ assumed: false, branches: 4, connectionsPerBranch: 125 });
+    expect(t.trunk.flowLs).toBe(r.peakFlowLs);
+    expect(t.branch?.flowLs).toBe(Math.round((r.peakFlowLs / 4) * 1000) / 1000);
+    expect(t.branch!.lengthM).toBe(1000);
+    expect(t.branch!.innerDiameterMm).toBeLessThanOrEqual(t.trunk.innerDiameterMm);
+    const cp = r.supply!.criticalPath;
+    expect(cp.lossM).toBe(
+      Math.round(
+        (t.trunk.frictionLossM +
+          t.trunk.minorLossM +
+          t.branch!.frictionLossM +
+          t.branch!.minorLossM) *
+          100,
+      ) / 100,
+    );
+    expect(cp.requiredHeadM).toBe(Math.round((20 + cp.lossM + cp.residualM) * 100) / 100);
+    expect(r.totalDynamicHeadM).toBe(cp.requiredHeadM);
+  });
+
+  it('cabang vs tunggal: ukuran induk sama (debit sama), tetapi head titik kritis lebih besar karena cabang ikut dihitung', () => {
+    const single = computeNetwork(base);
+    const branched = computeNetwork({ ...base, branches: 4 });
+    expect(branched.recommendedSize).toBe(single.recommendedSize);
+    expect(branched.supply!.criticalPath.requiredHeadM).toBeGreaterThan(
+      single.supply!.criticalPath.requiredHeadM,
+    );
+  });
+
+  it('PDAM 1,5 bar → booster sebesar kekurangan; PDAM 10 bar → suplai langsung tanpa pompa; reservoir 40 m di atas → gravitasi', () => {
+    const low = computeNetwork({ ...base, branches: 2, sourcePressureBar: 1.5 });
+    expect(low.supply!.mode.kind).toBe('booster');
+    expect(low.supply!.mode.pumpHeadM).toBe(
+      Math.round((low.supply!.criticalPath.requiredHeadM - low.supply!.mode.availableHeadM) * 100) /
+        100,
+    );
+    expect(low.pumpDuty?.headM).toBe(low.supply!.mode.pumpHeadM);
+    const high = computeNetwork({ ...base, branches: 2, routeLengthM: 300, sourcePressureBar: 6 });
+    expect(high.supply!.mode.kind).toBe('direct_supply');
+    expect(high.pumpDuty).toBeNull();
+    expect(high.supply!.mode.residualAtCriticalBar).toBeGreaterThan(1);
+    const gravity = computeNetwork({ ...base, branches: 2, staticHeadM: -40, routeLengthM: 500 });
+    expect(gravity.supply!.mode.kind).toBe('gravity');
+    expect(gravity.pumpDuty).toBeNull();
+    expect(gravity.supply!.surgeBar).toBe(0);
+  });
+
+  it('kenaikan elevasi dan kenaikan debit menaikkan head pompa; tekanan sumber naik menurunkannya', () => {
+    const a = computeNetwork({ ...base, branches: 2, sourcePressureBar: 1.5 });
+    const higher = computeNetwork({
+      ...base,
+      branches: 2,
+      sourcePressureBar: 1.5,
+      staticHeadM: 35,
+    });
+    expect(higher.supply!.mode.pumpHeadM).toBeGreaterThan(a.supply!.mode.pumpHeadM);
+    const more = computeNetwork({
+      ...base,
+      branches: 2,
+      sourcePressureBar: 1.5,
+      connections: 1000,
+    });
+    expect(more.peakFlowLs).toBeGreaterThan(a.peakFlowLs);
+    const stronger = computeNetwork({ ...base, branches: 2, sourcePressureBar: 3 });
+    expect(stronger.supply!.mode.pumpHeadM).toBeLessThan(a.supply!.mode.pumpHeadM);
+  });
+
+  it('kelas tekanan: mode berpompa membawa surja (a·v/g); tanpa pompa surja 0; PN naik bila tekanan naik', () => {
+    const pumped = computeNetwork({ ...base, branches: 2 });
+    expect(pumped.supply!.surgeBar).toBeGreaterThan(0);
+    expect(pumped.supply!.pressureClass.pn).not.toBeNull();
+    const pvc = computeNetwork({ ...base, branches: 2, material: 'PVC' });
+    expect(pvc.appliedAssumptionIds).toContain('WAVE_SPEED_PVC_400MS');
+    expect(pumped.appliedAssumptionIds).toContain('WAVE_SPEED_PE_300MS');
+    // Statis 80 m: tekanan kerja melampaui kelas PN lazim → pn null (kajian tim teknis), bukan dikarang.
+    const high = computeNetwork({ ...base, branches: 2, staticHeadM: 80 });
+    expect(high.supply!.maxPressureBar).toBeGreaterThan(pumped.supply!.maxPressureBar);
+    expect(high.supply!.pressureClass.pn).toBeNull();
+  });
+
+  it('1,5 m vs 1.500 m: panjang 1 000× berbeda memberi kehilangan yang jauh berbeda (regresi angka pengguna)', () => {
+    const short = computeNetwork({ ...base, routeLengthM: 1.5 });
+    const long = computeNetwork({ ...base, routeLengthM: 1500 });
+    expect(long.frictionLossM).toBeGreaterThan(short.frictionLossM * 100);
   });
 });

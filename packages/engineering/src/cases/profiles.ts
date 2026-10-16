@@ -363,7 +363,14 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
     descriptionEn:
       'Drinking-water transmission/distribution from a reservoir to hundreds to thousands of house connections or people.',
     critical: ['number_of_connections', 'route_length', 'static_head'],
-    important: ['source_type', 'terrain', 'required_pressure', 'material', 'number_of_branches'],
+    important: [
+      'number_of_branches',
+      'source_pressure',
+      'source_type',
+      'required_pressure',
+      'material',
+      'terrain',
+    ],
     optional: ['number_of_occupants', 'installation_location', 'pressure_class'],
     outputs: [
       'material_selection',

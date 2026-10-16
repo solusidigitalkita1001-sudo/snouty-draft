@@ -10,7 +10,7 @@
 
 import type { EngineeringLocale } from '../parameters/locale.js';
 import { localized, requireInt, requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
-import { round1, round2 } from '../units.js';
+import { barToHeadM, headMToBar, round1, round2, round3 } from '../units.js';
 import { NOMINAL_SIZES } from './group-e-irrigation.js';
 import { PVC_LARGE_SIZES } from '../parameters/size-tables.js';
 
@@ -873,6 +873,8 @@ export const PN_CLASSES: ReadonlyArray<{ readonly pn: number; readonly sdr: numb
 
 export interface PressureClassInput {
   readonly maxPressureBar: number;
+  /** Tunjangan surja (water hammer) di atas tekanan kerja; 0 bila tanpa pompa. */
+  readonly surgeBar: number;
   readonly marginPercent: number;
 }
 export interface PressureClassResult {
@@ -883,7 +885,8 @@ export interface PressureClassResult {
 
 export const ENG_411: RuleVersion<PressureClassInput, PressureClassResult> = {
   ruleId: 'ENG-411',
-  version: 1,
+  // v2 (audit PDAM 2026-10-16): surja ikut dihitung sebelum margin.
+  version: 2,
   category: 'material',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -892,6 +895,7 @@ export const ENG_411: RuleVersion<PressureClassInput, PressureClassResult> = {
         min: 0,
         max: 100,
       }),
+      surgeBar: requireNumber('ENG-411', 'surgeBar', o['surgeBar'], { min: 0, max: 50 }),
       marginPercent: requireNumber('ENG-411', 'marginPercent', o['marginPercent'], {
         min: 0,
         max: 100,
@@ -899,27 +903,32 @@ export const ENG_411: RuleVersion<PressureClassInput, PressureClassResult> = {
     };
   },
   compute: (i) => {
-    const requiredBar = round2(i.maxPressureBar * (1 + i.marginPercent / 100));
+    const requiredBar = round2((i.maxPressureBar + i.surgeBar) * (1 + i.marginPercent / 100));
     const cls = PN_CLASSES.find((c) => c.pn >= requiredBar) ?? null;
     return { requiredBar, pn: cls?.pn ?? null, sdr: cls?.sdr ?? null };
   },
   sourceReference:
-    'Kelas tekanan nominal (PN) ≥ tekanan kerja maksimum × (1 + margin) — tekanan statis atau head pompa; PE100: PN 6,3/8/10/12,5/16/20 ↔ SDR 26/21/17/13,6/11/9',
+    'Kelas tekanan nominal (PN) ≥ (tekanan kerja maksimum + surja) × (1 + margin) — tekanan statis, tekanan sumber, atau head pompa; surja Joukowsky Δh = a·v/g; PE100: PN 6,3/8/10/12,5/16/20 ↔ SDR 26/21/17/13,6/11/9',
   validationStatus: PENDING,
   testCases: [
     {
       name: '10,2 bar + 10 % → 11,22 bar → PN 12,5 (SDR 13,6)',
-      input: { maxPressureBar: 10.2, marginPercent: 10 },
+      input: { maxPressureBar: 10.2, surgeBar: 0, marginPercent: 10 },
       expected: { requiredBar: 11.22, pn: 12.5, sdr: 13.6 },
     },
     {
       name: '2 bar + 10 % → PN 6,3',
-      input: { maxPressureBar: 2, marginPercent: 10 },
+      input: { maxPressureBar: 2, surgeBar: 0, marginPercent: 10 },
       expected: { requiredBar: 2.2, pn: 6.3, sdr: 26 },
     },
     {
+      name: '8 bar + surja 2 bar + 10 % → 11 bar → PN 12,5',
+      input: { maxPressureBar: 8, surgeBar: 2, marginPercent: 10 },
+      expected: { requiredBar: 11, pn: 12.5, sdr: 13.6 },
+    },
+    {
       name: '25 bar → di luar kelas yang lazim',
-      input: { maxPressureBar: 25, marginPercent: 0 },
+      input: { maxPressureBar: 25, surgeBar: 0, marginPercent: 0 },
       expected: { requiredBar: 25, pn: null, sdr: null },
     },
   ],
@@ -928,11 +937,11 @@ export const ENG_411: RuleVersion<PressureClassInput, PressureClassResult> = {
       id:
         o.pn === null
           ? `Tekanan kerja ${i.maxPressureBar} bar (+${i.marginPercent} % margin = ${o.requiredBar} bar) melampaui kelas PN yang lazim — perlu kajian tim teknis.`
-          : `Tekanan kerja maksimum ${i.maxPressureBar} bar + margin ${i.marginPercent} % = ${o.requiredBar} bar → kelas PN ${o.pn} (PE100 SDR ${o.sdr}).`,
+          : `Tekanan kerja maksimum ${i.maxPressureBar} bar${i.surgeBar > 0 ? ` + surja ${i.surgeBar} bar` : ''} + margin ${i.marginPercent} % = ${o.requiredBar} bar → kelas PN ${o.pn} (PE100 SDR ${o.sdr}).`,
       en:
         o.pn === null
           ? `Working pressure ${i.maxPressureBar} bar (+${i.marginPercent} % margin = ${o.requiredBar} bar) exceeds the usual PN classes — technical review needed.`
-          : `Maximum working pressure ${i.maxPressureBar} bar + ${i.marginPercent} % margin = ${o.requiredBar} bar → class PN ${o.pn} (PE100 SDR ${o.sdr}).`,
+          : `Maximum working pressure ${i.maxPressureBar} bar${i.surgeBar > 0 ? ` + surge ${i.surgeBar} bar` : ''} + ${i.marginPercent} % margin = ${o.requiredBar} bar → class PN ${o.pn} (PE100 SDR ${o.sdr}).`,
     }),
 };
 
@@ -1178,6 +1187,295 @@ export const ENG_413: RuleVersion<SewerProfileInput, SewerProfileResult> = {
     }),
 };
 
+// ── ENG-414 · Alokasi debit per segmen: pipa induk + N cabang seragam ──────
+
+export interface SegmentDemandInput {
+  readonly connections: number;
+  /** Jumlah cabang; 0 = tidak diketahui → satu pipa, topologi diasumsikan. */
+  readonly branches: number;
+  readonly peakFlowLs: number;
+  readonly trunkLengthM: number;
+  /** Panjang tiap cabang sebagai bagian dari pipa induk (asumsi registry). */
+  readonly branchLengthRatio: number;
+}
+export interface SegmentDemandResult {
+  readonly topologyAssumed: boolean;
+  readonly branches: number;
+  readonly connectionsPerBranch: number | null;
+  readonly trunkFlowLs: number;
+  readonly branchFlowLs: number | null;
+  readonly branchLengthM: number | null;
+}
+
+export const ENG_414: RuleVersion<SegmentDemandInput, SegmentDemandResult> = {
+  ruleId: 'ENG-414',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      connections: requireInt('ENG-414', 'connections', o['connections'], {
+        min: 1,
+        max: 1_000_000,
+      }),
+      branches: requireInt('ENG-414', 'branches', o['branches'], { min: 0, max: 500 }),
+      peakFlowLs: requireNumber('ENG-414', 'peakFlowLs', o['peakFlowLs'], {
+        min: 0.001,
+        max: 100_000,
+      }),
+      trunkLengthM: requireNumber('ENG-414', 'trunkLengthM', o['trunkLengthM'], {
+        min: 1,
+        max: 100_000,
+      }),
+      branchLengthRatio: requireNumber('ENG-414', 'branchLengthRatio', o['branchLengthRatio'], {
+        min: 0.05,
+        max: 5,
+      }),
+    };
+  },
+  compute: (i) => {
+    if (i.branches === 0) {
+      return {
+        topologyAssumed: true,
+        branches: 0,
+        connectionsPerBranch: null,
+        trunkFlowLs: i.peakFlowLs,
+        branchFlowLs: null,
+        branchLengthM: null,
+      };
+    }
+    // Seluruh debit puncak lewat pipa induk; tiap cabang membawa bagiannya — tidak ada segmen
+    // yang dihitung memikul debit yang sudah diambil cabang lain (audit PDAM 2026-10-16).
+    return {
+      topologyAssumed: false,
+      branches: i.branches,
+      connectionsPerBranch: Math.ceil(i.connections / i.branches),
+      trunkFlowLs: i.peakFlowLs,
+      branchFlowLs: round3(i.peakFlowLs / i.branches),
+      branchLengthM: round1(i.trunkLengthM * i.branchLengthRatio),
+    };
+  },
+  sourceReference:
+    'Topologi pipa induk + N cabang seragam: Q_induk = Q_puncak; Q_cabang = Q_puncak ÷ N; SR per cabang = ⌈SR ÷ N⌉; panjang cabang = rasio × panjang induk (asumsi)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '500 SR, 4 cabang, 7,28 l/s, induk 2 000 m, rasio 0,5 → cabang 1,82 l/s × 1 000 m, 125 SR tiap cabang',
+      input: {
+        connections: 500,
+        branches: 4,
+        peakFlowLs: 7.28,
+        trunkLengthM: 2000,
+        branchLengthRatio: 0.5,
+      },
+      expected: {
+        topologyAssumed: false,
+        branches: 4,
+        connectionsPerBranch: 125,
+        trunkFlowLs: 7.28,
+        branchFlowLs: 1.82,
+        branchLengthM: 1000,
+      },
+    },
+    {
+      name: 'cabang tidak diketahui → satu pipa, topologi diasumsikan',
+      input: {
+        connections: 500,
+        branches: 0,
+        peakFlowLs: 7.28,
+        trunkLengthM: 2000,
+        branchLengthRatio: 0.5,
+      },
+      expected: {
+        topologyAssumed: true,
+        branches: 0,
+        connectionsPerBranch: null,
+        trunkFlowLs: 7.28,
+        branchFlowLs: null,
+        branchLengthM: null,
+      },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: o.topologyAssumed
+        ? `Jumlah cabang belum disebut: seluruh ${o.trunkFlowLs} l/s dihitung lewat satu pipa sepanjang ${i.trunkLengthM} m — topologi diasumsikan, bukan hasil pemodelan.`
+        : `Pipa induk membawa seluruh ${o.trunkFlowLs} l/s; ${o.branches} cabang masing-masing ${o.branchFlowLs} l/s untuk ±${o.connectionsPerBranch} sambungan, panjang cabang ${o.branchLengthM} m (${i.branchLengthRatio} × pipa induk, asumsi).`,
+      en: o.topologyAssumed
+        ? `The number of branches was not given: the full ${o.trunkFlowLs} l/s is sized through one ${i.trunkLengthM} m pipe — an assumed topology, not a model.`
+        : `The trunk carries the full ${o.trunkFlowLs} l/s; ${o.branches} branches carry ${o.branchFlowLs} l/s each for about ${o.connectionsPerBranch} connections, branch length ${o.branchLengthM} m (${i.branchLengthRatio} × trunk, assumed).`,
+    }),
+};
+
+// ── ENG-415 · Head yang dibutuhkan di jalur kritis: induk + satu cabang terjauh ──
+
+export interface CriticalPathInput {
+  /** Beda tinggi sumber → titik kritis (positif = titik kritis lebih tinggi). */
+  readonly staticHeadM: number;
+  readonly trunkLossM: number;
+  readonly branchLossM: number;
+  readonly residualBar: number;
+}
+export interface CriticalPathResult {
+  readonly lossM: number;
+  readonly residualM: number;
+  /** Head yang harus disediakan sumber/pompa; negatif = gravitasi sudah lebih dari cukup. */
+  readonly requiredHeadM: number;
+}
+
+export const ENG_415: RuleVersion<CriticalPathInput, CriticalPathResult> = {
+  ruleId: 'ENG-415',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      staticHeadM: requireNumber('ENG-415', 'staticHeadM', o['staticHeadM'], {
+        min: -500,
+        max: 500,
+      }),
+      trunkLossM: requireNumber('ENG-415', 'trunkLossM', o['trunkLossM'], { min: 0, max: 5000 }),
+      branchLossM: requireNumber('ENG-415', 'branchLossM', o['branchLossM'], { min: 0, max: 5000 }),
+      residualBar: requireNumber('ENG-415', 'residualBar', o['residualBar'], { min: 0, max: 20 }),
+    };
+  },
+  compute: (i) => {
+    const lossM = round2(i.trunkLossM + i.branchLossM);
+    const residualM = round2(barToHeadM(i.residualBar));
+    return { lossM, residualM, requiredHeadM: round2(i.staticHeadM + lossM + residualM) };
+  },
+  sourceReference:
+    'Head titik kritis = beda tinggi + Σ kehilangan segmen di jalur terjauh (induk + cabang) + tekanan sisa yang disyaratkan di sambungan',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'statis 20 m, induk 30 m, cabang 5 m, sisa 1 bar → 65,2 m',
+      input: { staticHeadM: 20, trunkLossM: 30, branchLossM: 5, residualBar: 1 },
+      expected: { lossM: 35, residualM: 10.2, requiredHeadM: 65.2 },
+    },
+    {
+      name: 'reservoir 40 m di atas, kehilangan 12 m, sisa 1 bar → −17,8 m (gravitasi lebih dari cukup)',
+      input: { staticHeadM: -40, trunkLossM: 10, branchLossM: 2, residualBar: 1 },
+      expected: { lossM: 12, residualM: 10.2, requiredHeadM: -17.8 },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Di titik kritis (ujung terjauh/tertinggi): beda tinggi ${i.staticHeadM} m + kehilangan ${o.lossM} m (induk ${i.trunkLossM} m, cabang ${i.branchLossM} m) + tekanan sisa ${i.residualBar} bar (${o.residualM} m) = ${o.requiredHeadM} m yang harus disediakan sumber atau pompa.`,
+      en: `At the critical point (farthest/highest): static ${i.staticHeadM} m + losses ${o.lossM} m (trunk ${i.trunkLossM} m, branch ${i.branchLossM} m) + residual ${i.residualBar} bar (${o.residualM} m) = ${o.requiredHeadM} m to be supplied by the source or a pump.`,
+    }),
+};
+
+// ── ENG-416 · Mode sistem: gravitasi, suplai langsung PDAM, booster, pompa ──
+
+export type SupplyMode = 'gravity' | 'direct_supply' | 'booster' | 'pumped';
+
+export interface SupplyModeInput {
+  readonly requiredHeadM: number;
+  readonly residualM: number;
+  /** Tekanan tersedia di sumber (PDAM) dalam meter; `null` = reservoir/sumur tanpa tekanan. */
+  readonly sourceHeadM: number | null;
+}
+export interface SupplyModeResult {
+  readonly mode: SupplyMode;
+  readonly availableHeadM: number;
+  /** Head pompa yang dibutuhkan; 0 bila tanpa pompa. */
+  readonly pumpHeadM: number;
+  /** Tekanan sisa yang akan terjadi di titik kritis dengan mode ini. */
+  readonly residualAtCriticalBar: number;
+}
+
+export const ENG_416: RuleVersion<SupplyModeInput, SupplyModeResult> = {
+  ruleId: 'ENG-416',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const source = o['sourceHeadM'];
+    return {
+      requiredHeadM: requireNumber('ENG-416', 'requiredHeadM', o['requiredHeadM'], {
+        min: -1000,
+        max: 10_000,
+      }),
+      residualM: requireNumber('ENG-416', 'residualM', o['residualM'], { min: 0, max: 500 }),
+      sourceHeadM:
+        source === null || source === undefined
+          ? null
+          : requireNumber('ENG-416', 'sourceHeadM', source, { min: 0, max: 500 }),
+    };
+  },
+  compute: (i) => {
+    const availableHeadM = i.sourceHeadM ?? 0;
+    const surplusM = availableHeadM - i.requiredHeadM;
+    let mode: SupplyMode;
+    if (i.sourceHeadM === null) mode = i.requiredHeadM <= 0 ? 'gravity' : 'pumped';
+    else mode = surplusM >= 0 ? 'direct_supply' : 'booster';
+    const pumpHeadM = surplusM >= 0 ? 0 : round2(-surplusM);
+    return {
+      mode,
+      availableHeadM,
+      pumpHeadM,
+      residualAtCriticalBar: round2(headMToBar(i.residualM + Math.max(0, surplusM))),
+    };
+  },
+  sourceReference:
+    'Gravitasi bila head titik kritis ≤ 0 tanpa tekanan sumber; suplai langsung bila tekanan PDAM ≥ head titik kritis; booster sebesar kekurangannya; pompa penuh bila sumber tanpa tekanan',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'reservoir, head titik kritis −17,8 m → gravitasi, sisa 1 bar + 1,75 bar surplus',
+      input: { requiredHeadM: -17.8, residualM: 10.2, sourceHeadM: null },
+      expected: { mode: 'gravity', availableHeadM: 0, pumpHeadM: 0, residualAtCriticalBar: 2.75 },
+    },
+    {
+      name: 'PDAM 3 bar (30,6 m), butuh 20 m → suplai langsung, sisa di titik kritis 2,04 bar',
+      input: { requiredHeadM: 20, residualM: 10.2, sourceHeadM: 30.6 },
+      expected: {
+        mode: 'direct_supply',
+        availableHeadM: 30.6,
+        pumpHeadM: 0,
+        residualAtCriticalBar: 2.04,
+      },
+    },
+    {
+      name: 'PDAM 1,5 bar (15,3 m), butuh 65,2 m → booster 49,9 m, sisa tepat 1 bar',
+      input: { requiredHeadM: 65.2, residualM: 10.2, sourceHeadM: 15.3 },
+      expected: {
+        mode: 'booster',
+        availableHeadM: 15.3,
+        pumpHeadM: 49.9,
+        residualAtCriticalBar: 1,
+      },
+    },
+    {
+      name: 'sumur, butuh 65,2 m → pompa 65,2 m',
+      input: { requiredHeadM: 65.2, residualM: 10.2, sourceHeadM: null },
+      expected: { mode: 'pumped', availableHeadM: 0, pumpHeadM: 65.2, residualAtCriticalBar: 1 },
+    },
+  ],
+  explain: (i, o, locale) => {
+    const need = i.requiredHeadM;
+    return localized(locale, {
+      id:
+        o.mode === 'gravity'
+          ? `Reservoir di atas titik kritis: gravitasi memberi ${-need} m lebih dari yang dibutuhkan, tekanan sisa ±${o.residualAtCriticalBar} bar — tanpa pompa.`
+          : o.mode === 'direct_supply'
+            ? `Tekanan PDAM ${o.availableHeadM} m cukup untuk ${need} m yang dibutuhkan: suplai langsung tanpa pompa, sisa ±${o.residualAtCriticalBar} bar di titik kritis.`
+            : o.mode === 'booster'
+              ? `Tekanan PDAM ${o.availableHeadM} m kurang dari ${need} m yang dibutuhkan: pompa booster ${o.pumpHeadM} m menutup kekurangannya.`
+              : `Sumber tanpa tekanan: pompa harus menyediakan ${o.pumpHeadM} m (beda tinggi, kehilangan, dan tekanan sisa).`,
+      en:
+        o.mode === 'gravity'
+          ? `The reservoir sits above the critical point: gravity gives ${-need} m more than needed, residual about ${o.residualAtCriticalBar} bar — no pump.`
+          : o.mode === 'direct_supply'
+            ? `Mains pressure ${o.availableHeadM} m covers the ${need} m needed: direct supply without a pump, about ${o.residualAtCriticalBar} bar left at the critical point.`
+            : o.mode === 'booster'
+              ? `Mains pressure ${o.availableHeadM} m is below the ${need} m needed: a ${o.pumpHeadM} m booster pump covers the shortfall.`
+              : `A source without pressure: the pump must supply ${o.pumpHeadM} m (static, losses and residual).`,
+    });
+  },
+};
+
 export const GROUP_H = [
   ENG_401,
   ENG_402,
@@ -1192,4 +1490,7 @@ export const GROUP_H = [
   ENG_411,
   ENG_412,
   ENG_413,
+  ENG_414,
+  ENG_415,
+  ENG_416,
 ] as const;

@@ -376,6 +376,13 @@ ENG-412  air limbah, aliran sebagian (Manning segmen lingkaran): d/D dan v pada 
          d/D ≤ 0,8; S_min ≈ S × (0,6 ÷ v)²
 ENG-413  profil air limbah: manhole = ⌈L ÷ 50 m⌉ + 1; penurunan = L × S; galian akhir = 1 m + penurunan; > 4 m →
          stasiun pompa angkat / jalur dipecah
+ENG-414  SPAM (audit PDAM): pipa induk + N cabang seragam — Q_induk = Q_puncak, Q_cabang = Q_puncak ÷ N, SR/cabang =
+         ⌈SR ÷ N⌉, panjang cabang = 50 % induk (asumsi); N tidak disebut → satu pipa bertanda "topologi diasumsikan"
+ENG-415  head titik kritis = statis + Σ kehilangan (induk + satu cabang terjauh, diameter dalam aktual) + tekanan sisa
+ENG-416  mode sistem: reservoir & head ≤ 0 → gravitasi; PDAM ≥ head → suplai langsung; PDAM < head → booster sebesar
+         kekurangan; sumber tanpa tekanan → pompa penuh. Titik kerja pompa (ENG-206) hanya sebesar kekurangan.
+ENG-411 v2: PN ≥ (tekanan kerja maks + surja) × 1,10; surja Joukowsky Δh = a·v/g hanya pada mode berpompa
+         (a PE 300 m/s, PVC 400 m/s — asumsi); katalog tanpa PN → produk "perlu dikonfirmasi", bukan dikarang
 ```
 
 Jaringan air minum / SPAM (P22-05): `computeNetwork({ kind: 'water_supply' })` memakai asumsi SPAM
@@ -552,6 +559,9 @@ Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja
 | ENG-411 | Kelas tekanan PN dari tekanan kerja                      | P22-08         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 | ENG-412 | Aliran sebagian air limbah, S minimum                    | P22-08         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 | ENG-413 | Manhole, penurunan, kedalaman galian                     | P22-08         | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-414 | Debit per segmen: induk + N cabang seragam               | audit PDAM     | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-415 | Head jalur kritis per segmen                             | audit PDAM     | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-416 | Mode sistem: gravitasi/PDAM/booster/pompa                | audit PDAM     | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 
 Bila waktu ahli terbatas, empat yang bertanda tinggi/tertinggi memberi hasil terbesar: ENG-002
 menentukan angka utama, ENG-001 dan ENG-012 memberinya masukan, ENG-011 menentukan apakah pompa perlu

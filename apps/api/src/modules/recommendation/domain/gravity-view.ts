@@ -154,6 +154,11 @@ export function networkInputFrom(state: RequirementState): NetworkInput | null {
     return null;
   }
   const residual = numberOf(p['required_pressure']);
+  // Topologi dan tekanan sumber (audit PDAM 2026-10-16): cabang dan tekanan PDAM ikut ke engine.
+  const branches =
+    caseId === 'water_supply_network' ? numberOf(p['number_of_branches']) : undefined;
+  const sourcePressureBar =
+    caseId === 'water_supply_network' ? numberOf(p['source_pressure']) : undefined;
   // Bahan pilihan pengguna adalah constraint, bukan saran (audit PDAM 2026-10-16: HDPE dipilih, BOM PVC AW).
   const materialLabel = p['material']?.value;
   const material = typeof materialLabel === 'string' ? MATERIAL[materialLabel] : undefined;
@@ -166,6 +171,8 @@ export function networkInputFrom(state: RequirementState): NetworkInput | null {
     routeLengthM,
     staticHeadM,
     kind: caseId === 'water_supply_network' ? 'water_supply' : 'cluster',
+    ...(branches !== undefined ? { branches: Math.max(0, Math.round(branches)) } : {}),
+    ...(sourcePressureBar !== undefined ? { sourcePressureBar } : {}),
     ...(residual !== undefined ? { residualPressureBar: residual } : {}),
   };
 }

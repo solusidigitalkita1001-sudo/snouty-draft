@@ -269,6 +269,7 @@ export type {
 export type {
   NetworkInput,
   NetworkKind,
+  NetworkSegment,
   NetworkResult,
   WaterSupplyPlan,
 } from './compute-network.js';

@@ -71,6 +71,12 @@ import { DRAINAGE_FAMILY, withHouseDrainage } from '../domain/house-drainage-vie
 import { mergeBomBySku } from '../domain/bom-merge.js';
 import { needsFrom } from '../domain/solution-needs.js';
 import { tankStandViewFrom } from '../domain/tank-stand-view.js';
+import {
+  waterSupplyBomItems,
+  waterSupplyHighlights,
+  waterSupplyProse,
+  waterSupplySystemLines,
+} from '../domain/water-supply-view.js';
 import { compareScenarios } from '../domain/scenarios.js';
 import { firstSentences } from '../domain/summary-length.js';
 import {
@@ -983,12 +989,29 @@ export class AnalysisService {
     });
 
     const { version } = await this.catalogForMatching(events);
+    const supply = result.supply;
     const roles = [
       pipeRequirement('main', result.recommendedSize, family),
       fittingRequirement(result.recommendedSize, family),
     ];
-    if (result.alternativeSize)
+    if (supply?.topology.branch) {
+      // Jaringan air minum: pipa cabang, tee percabangan, reducer bila ukurannya turun (audit PDAM 2026-10-16).
+      const b = supply.topology.branch;
+      roles.push(pipeRequirement('branch', b.size, family));
+      roles.push(
+        fittingRequirement(
+          result.recommendedSize,
+          family,
+          'tee',
+          b.size === result.recommendedSize ? undefined : b.size,
+        ),
+      );
+      if (b.size !== result.recommendedSize) {
+        roles.push(fittingRequirement(result.recommendedSize, family, 'reducer', b.size));
+      }
+    } else if (result.alternativeSize) {
       roles.push(pipeRequirement('branch', result.alternativeSize, family));
+    }
     const match = await this.matchRoles(roles);
     events.push({
       type: 'stage',
@@ -1003,20 +1026,30 @@ export class AnalysisService {
       routeLengthM: input.routeLengthM,
       staticHeadM: input.staticHeadM,
     };
-    const prose = pressurizedProse(result, family, pressurizedInput, locale);
+    const prose = supply
+      ? waterSupplyProse(result, family, locale)
+      : pressurizedProse(result, family, pressurizedInput, locale);
+    const teeId = match.products.find(
+      (pr) => pr.role === 'fitting' && /tee/i.test(pr.name ?? ''),
+    )?.productId;
+    const reducerId = match.products.find(
+      (pr) => pr.role === 'fitting' && /reducer|sok reducer/i.test(pr.name ?? ''),
+    )?.productId;
     const recommendation: Recommendation = {
       id: ulid(),
       conversationId,
       snapshotId,
       catalogVersionId: version.id,
       kind: 'technical',
-      headline: `${result.connections} ${result.kind === 'water_supply' ? 'SR' : 'unit'}: ${prose.headline}`,
+      headline: supply ? prose.headline : `${result.connections} unit: ${prose.headline}`,
       body: `Kebutuhan puncak ${String(result.peakFlowLs).replace('.', ',')} l/s untuk ${result.connections} sambungan (rata-rata ${String(result.averageFlowLs).replace('.', ',')} l/s). ${prose.body}`,
       stats: pressurizedLegacyStats(result, match.products.length),
-      highlights: [
-        ...networkHighlightsPrefix(result, locale),
-        ...pressurizedHighlights(result, family, match.products.length, locale),
-      ],
+      highlights: supply
+        ? waterSupplyHighlights(result, family, match.products.length, locale)
+        : [
+            ...networkHighlightsPrefix(result, locale),
+            ...pressurizedHighlights(result, family, match.products.length, locale),
+          ],
       composition: composeResponse({
         state,
         traces,
@@ -1024,16 +1057,27 @@ export class AnalysisService {
         appliedAssumptionIds: [...result.appliedAssumptionIds, ...extra],
         locale,
       }),
-      systemLines: pressurizedSystemLinesFrom(result, family, traces, locale),
+      systemLines: supply
+        ? waterSupplySystemLines(result, family, traces, locale)
+        : pressurizedSystemLinesFrom(result, family, traces, locale),
       products: match.products,
-      bom: pressurizedBomItemsFrom(
-        result,
-        family,
-        input.routeLengthM,
-        traces,
-        locale,
-        match.stockFor('main'),
-      ),
+      bom: supply
+        ? waterSupplyBomItems(
+            result,
+            family,
+            traces,
+            locale,
+            { trunk: match.stockFor('main'), branch: match.stockFor('branch') },
+            { ...(teeId ? { tee: teeId } : {}), ...(reducerId ? { reducer: reducerId } : {}) },
+          )
+        : pressurizedBomItemsFrom(
+            result,
+            family,
+            input.routeLengthM,
+            traces,
+            locale,
+            match.stockFor('main'),
+          ),
       assumptions: pressurizedAssumptionsFrom(result, extra, traces, locale),
       overallProvenance: result.overallProvenance,
       createdAt: now,

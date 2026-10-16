@@ -243,7 +243,17 @@ export function networkSchematic(
     `${n(input.routeLengthM, locale)} m`,
     true,
   );
-  if (result.alternativeSize) {
+  const branch = result.supply?.topology.branch;
+  if (branch) {
+    b.link('branch', pipe(branch.size, input.family)).node(
+      'zone',
+      t(
+        `${result.supply!.topology.branches} CABANG`,
+        `${result.supply!.topology.branches} BRANCHES`,
+      ),
+      `${flowOf(branch.flowLs, locale)} ${t('tiap cabang', 'each')}`,
+    );
+  } else if (result.alternativeSize) {
     b.link('branch', pipe(result.alternativeSize, input.family)).node(
       'zone',
       t('CABANG', 'BRANCHES'),

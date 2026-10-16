@@ -1779,6 +1779,18 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
       bila pengguna yang memilih). Regresi: extractor (1.500 m, 1,5 km, 2.000 SR, 12,5 m, 2.5 l/s) dan pemetaan
       bahan (HDPE/PVC/tanpa pilihan × 150 m/1 500 m). Temuan 3–6 (hidraulika per segmen, verifikasi pompa dan
       tekanan sumber, validasi kelas PN, fitting tanpa topologi) dilaporkan sebagai rencana — menunggu pilihan pemilik.
+- [x] P22-12 Audit PDAM — temuan 3–6 (keputusan pemilik 2026-10-16, semua pilihan rekomendasi). **Topologi** ENG-414:
+      pipa induk + N cabang seragam dari `number_of_branches`; induk pada debit puncak, tiap cabang pada bagiannya
+      (tidak ada segmen memikul debit yang sudah diambil cabang lain); tanpa N → satu pipa bertanda asumsi. **Hidraulika
+      per segmen**: induk dan cabang diukur sendiri (Kelompok F, diameter dalam aktual); ENG-415 head titik kritis =
+      statis + kehilangan induk + cabang + tekanan sisa. **Mode sistem** ENG-416 dari tekanan sumber (`source_pressure`,
+      penting untuk PDAM): gravitasi / suplai langsung / booster sebesar kekurangan / pompa penuh; titik kerja pompa
+      hanya sebesar kekurangan dan dinyatakan "cocokkan dengan kurva pabrikan". **Kelas tekanan** ENG-411 v2 = (tekanan
+      kerja maks + surja a·v/g pada mode berpompa) × 1,10; katalog HDPE tidak memuat PN → produk ditandai perlu
+      dikonfirmasi, kelas disebut di solusi. **BOM**: pipa induk, pipa cabang N × panjang, tee per cabang, reducer bila
+      ukuran turun; elbow/katup/check valve menjadi baris tertunda "dihitung saat pemasangan". Skema menampilkan N cabang.
+      Regresi: cabang vs tunggal, 1,5 m vs 1.500 m, debit naik, elevasi naik, tekanan sumber naik/turun, PN dengan
+      surja. 66 aturan. Di luar cakupan: jaringan loop/pemodelan EPANET, penempatan reservoir, kurva pompa pabrikan.
 - [x] ✋ CHECKPOINT Fase 22 — pemilik menerima keempat default (OQ-67 ambang 0,7 bar, OQ-68 tetap skematik, OQ-69
       tanpa harga, OQ-70 kriteria umum divalidasi bersama aturan lain), 2026-10-16
 
