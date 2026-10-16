@@ -79,7 +79,7 @@ import {
   irrigationAnswerValue,
   isIrrigationField,
 } from '../domain/irrigation.js';
-import { mergeRequirement, type FieldUpdate } from '../domain/context-merger.js';
+import { mergeRequirement } from '../domain/context-merger.js';
 import { defaultUpdateFor } from '../domain/requirement-defaults.js';
 import { productQueryOf, runProductQuestion } from './product-question-pipeline.js';
 import { ReplyWriter, type ReplyTurn } from './reply-writer.js';
