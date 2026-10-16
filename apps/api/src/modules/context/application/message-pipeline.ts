@@ -198,6 +198,8 @@ export async function runUnderstanding(
           : { text: fallback };
       events.push({ type: 'token', text: written.text });
     }
+    const drawing = drawingCardFor(label, input.solution);
+    if (drawing !== null) events.push({ type: 'card', card: drawing });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
   }
@@ -754,6 +756,20 @@ export function isEmptyExtraction(extraction: Extraction): boolean {
   );
 }
 
+/**
+ * Gambar potongan instalasi untuk pertanyaan bentuk sistem pipa (P22-02): hanya bila solusinya
+ * sudah dihitung dan masih berlaku — gambarnya dibentuk dari kebutuhan bergambar yang sama dengan
+ * tab Denah, jadi tidak bisa bertentangan dengan angka di solusi.
+ */
+export function drawingCardFor(
+  label: string | undefined,
+  solution: ActiveSolution | null | undefined,
+): AssistantCard | null {
+  if (label !== 'system_layout_question' || !solution || solution.stale) return null;
+  const needs = solution.recommendation.needs ?? [];
+  return needs.length > 0 ? { kind: 'drawing', needs } : null;
+}
+
 export function endEvent(messageId: string): AssistantStreamEvent {
   // Usage nyata diisi pemanggil dari audit biaya; di ruas tanpa model ia nol.
   return { type: 'message.end', messageId, usage: { in: 0, out: 0, costUsd: 0 } };
@@ -798,6 +814,7 @@ const EXPLAINING_INTENTS: ReadonlySet<string> = new Set([
   'knowledge_question',
   'advice_request',
   'explanation_request',
+  'system_layout_question',
   'company_question',
   'competitor_question',
   'out_of_scope',

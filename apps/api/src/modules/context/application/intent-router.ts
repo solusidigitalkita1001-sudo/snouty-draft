@@ -110,7 +110,9 @@ export function certainIntent(
   if (fine === 'clarification_answer') {
     return sure(hasExistingRequirements ? 'CLARIFICATION_ANSWER' : 'REQUIREMENT_STATEMENT');
   }
-  if (fine === 'explanation_request') return sure('EXPLANATION_REQUEST');
+  if (fine === 'explanation_request' || fine === 'system_layout_question') {
+    return sure('EXPLANATION_REQUEST');
+  }
   if (isProductQuestion(fine)) {
     // Merek pesaing di pertanyaan produk adalah urusan Policy 1, bukan pencarian katalog.
     if (u.mentionsCompetitor) return sure('COMPETITOR_QUESTION');
@@ -241,7 +243,13 @@ export function fastPathIntent(
   hasExistingRequirements: boolean,
 ): IntentClassification | null {
   if (hasExistingRequirements) return null;
-  if (!u.mentionsRequirement || u.intent?.label === 'explanation_request') return null;
+  if (
+    !u.mentionsRequirement ||
+    u.intent?.label === 'explanation_request' ||
+    u.intent?.label === 'system_layout_question'
+  ) {
+    return null;
+  }
   if (u.mentionsCompetitor) return null;
   return { intent: 'REQUIREMENT_STATEMENT', confidence: 0.9 };
 }

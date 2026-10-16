@@ -38,6 +38,7 @@ import { useRevealedText } from './assistant-reveal';
 import { useCaseRows } from './use-case-rows';
 import { ProductLookupCards } from './product-lookup-cards';
 import { HouseExamples, type HouseExampleItem } from './house-examples';
+import { InstallationDrawingCard } from '../solution/installation-drawing-card';
 import {
   createConversation,
   fetchConversation,
@@ -2256,6 +2257,11 @@ function CardView({
 
   if (card.kind === 'clarification') {
     return <ClarificationCard questions={card.questions} active={active} onSubmit={onAnswers} />;
+  }
+
+  // Potongan instalasi di dalam chat (P22-02) — gambar yang sama dengan tab Denah.
+  if (card.kind === 'drawing') {
+    return <InstallationDrawingCard needs={card.needs} />;
   }
 
   if (card.kind === 'cta' && card.action === 'CONTACT_TECHNICAL') {

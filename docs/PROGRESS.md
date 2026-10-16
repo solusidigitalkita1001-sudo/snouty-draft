@@ -1694,7 +1694,16 @@ meninggalkan sesi dengan "kerjain sampai selesai": keputusan desain diambil seba
       cara mengubah ("ketik saja bedanya, misalnya 'kamar mandinya 2', atau ubah di panel kanan"), lalu kartu
       Susun rekomendasi + pertanyaan penyempurna yang sudah ada. `GET /house-examples` publik. Tes: loader,
       domain (nilai ASUMSI beralasan, tidak menimpa pernyataan pengguna, kartu CTA), komponen web.
-- [ ] P22-02 Gambar sistem pipa saat ditanya (butir 2).
+- [x] P22-02 Gambar sistem pipa saat ditanya (butir 2). Label pemahaman baru `system_layout_question`
+      (contoh di `intent.json`: arah jalur, jumlah pipa, fitting/aksesoris, "gambar sistem pipanya dong",
+      "where do the pipes run", …) — dirutekan seperti permintaan penjelasan, dijawab di atas fakta solusi aktif
+      (P22-04: ukuran tiap jalur, BOQ pipa dan fitting), dan **membawa kartu gambar** `{ kind: 'drawing',
+  needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, toren/meteran/pompa, alat
+      per lantai, pipa buang dan ventilasi), digambar klien dari kebutuhan bergambar solusi. Hanya bila
+      solusinya sudah dihitung dan belum usang; jalur perencana (`case_question`) ikut membawa gambar dan
+      kartunya kini tersimpan di riwayat. Varian kartu jadi tujuh (spec, API_CONTRACTS). "Lebih nyata"
+      dalam arti gaya gambar (isometrik, foto) butuh keputusan desain → OQ-68. Tes: `drawingCardFor`,
+      urutan event (teks → kartu → selesai), daftar varian; eval bge-m3 lolos.
 - [ ] P22-03 Estimasi ganti pipa lama ke Pralon (butir 3).
 - [ ] P22-05 Use case SPAM dan sewerage (butir 5).
 - [ ] ✋ CHECKPOINT Fase 22 — ditinjau pemilik
@@ -1750,7 +1759,7 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | ENG-012 | Assumption "each bathroom contains 1 shower + 1 closet"                                                                           | prototype                   | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-013 | Pressure class guidance: AW for pressurised clean water, D for drainage                                                           | board screen 08             | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-014 | "Belum tahu" defaults (`source → Toren atap`, `install → Air bersih`); see OQ-32                                                  | prototype                   | REQUIRES_DOMAIN_VALIDATION | —            | —    |
-| ENG-711 | Tank stand options: roof slab vs tank tower, residual pressure per support (P22-04)                                                | user feedback 2026-10-16    | REQUIRES_DOMAIN_VALIDATION | OQ-67 |
+| ENG-711 | Tank stand options: roof slab vs tank tower, residual pressure per support (P22-04)                                               | user feedback 2026-10-16    | REQUIRES_DOMAIN_VALIDATION | OQ-67        |
 
 ## Session Log
 

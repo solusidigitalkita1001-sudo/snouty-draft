@@ -18,6 +18,7 @@
 
 import type { Provenance } from './provenance.js';
 import type { ProductMatchState } from './catalog.js';
+import type { SolutionNeed } from './recommendation.js';
 
 /** Pasangan label–nilai untuk kartu yang menampilkan data tertangkap. */
 export interface KeyValue {
@@ -109,7 +110,12 @@ export type AssistantCard =
       readonly slaHours: number;
     }
   | { readonly kind: 'product'; readonly products: readonly ProductCardDto[] }
-  | { readonly kind: 'cta'; readonly action: 'ANALYZE' | 'REGISTER' | 'CONTACT_TECHNICAL' };
+  | { readonly kind: 'cta'; readonly action: 'ANALYZE' | 'REGISTER' | 'CONTACT_TECHNICAL' }
+  /**
+   * Potongan instalasi di dalam chat (P22-02): kebutuhan bergambar solusi yang sudah dihitung —
+   * data yang sama dengan tab Denah, digambar klien. Tidak pernah berisi markup.
+   */
+  | { readonly kind: 'drawing'; readonly needs: readonly SolutionNeed[] };
 
 export type AssistantCardKind = AssistantCard['kind'];
 

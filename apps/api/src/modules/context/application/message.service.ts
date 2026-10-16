@@ -323,6 +323,7 @@ export class MessageService {
           locale,
           hasExisting,
           solution,
+          ...(u.intent ? { fineIntent: u.intent.label } : {}),
           named: u.families,
           previousText: [...recentTurns].reverse().find((t) => t.role === 'assistant')?.text ?? '',
           asksAspect: u.productAspect !== null,
@@ -339,7 +340,7 @@ export class MessageService {
           await this.conversations.appendAssistantMessage(
             conversationId,
             textOf(outcome.events),
-            [],
+            cardsOf(outcome.events),
             null,
           );
           timer.mark('persist');
@@ -947,6 +948,7 @@ function textOf(events: readonly AssistantStreamEvent[]): string {
 /** Maksud pertanyaan yang, di tengah kasus teknis, menanyakan kasus itu — bukan produk atau harga. */
 const CASE_QUESTIONS: ReadonlySet<string> = new Set([
   'explanation_request',
+  'system_layout_question',
   'knowledge_question',
   'use_question',
   'advice_request',

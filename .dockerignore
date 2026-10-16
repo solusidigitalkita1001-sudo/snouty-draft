@@ -13,6 +13,7 @@ data
 !data/understanding
 !data/knowledge
 !data/standards
+!data/house-examples
 data/standards/**/*.html
 data/standards/**/*.pdf
 docs

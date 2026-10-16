@@ -36,6 +36,9 @@ export const FINE_INTENTS = [
   'requirement_mutation',
   'clarification_answer',
   'explanation_request',
+  // Bentuk sistem pipanya — arah jalur, jumlah pipa, fitting (P22-02): dijawab dari solusi yang
+  // sudah dihitung dan disertai gambar potongan instalasi.
+  'system_layout_question',
   // lanjutan atas subjek aktif — maknanya hanya relatif terhadap yang sedang dibicarakan;
   // bentuk penyajian yang diminta (tabel/butir/ringkasan) dibaca katalog `format`.
   'follow_up_continue',

@@ -69,7 +69,7 @@ describe('AssistantCard tertutup di tingkat tipe', () => {
 });
 
 describe('daftar varian', () => {
-  it('memuat tepat enam bentuk balasan yang didukung', () => {
+  it('memuat tepat tujuh bentuk balasan yang didukung', () => {
     // Daftar ini ditulis ulang di sini dengan sengaja: menambah varian berarti
     // memperbarui tes ini, dan di situlah pertanyaan "apakah ini butuh jalur render
     // baru?" pasti ditanyakan.
@@ -80,9 +80,10 @@ describe('daftar varian', () => {
       'unsupported',
       'product',
       'cta',
+      'drawing',
     ];
 
-    expect(new Set(kinds).size).toBe(6);
+    expect(new Set(kinds).size).toBe(7);
   });
 
   it('membatasi pertanyaan klarifikasi pada empat — lebih dari itu berhenti terasa seperti percakapan', () => {

@@ -85,6 +85,6 @@ export function moodForCards(cards: readonly AssistantCard[]): Mood {
   if (kinds.has('unsupported')) return 'focus';
   if (kinds.has('criteria')) return 'wink';
   if (kinds.has('clarification')) return 'confused';
-  if (kinds.has('summary') || kinds.has('cta')) return 'happy';
+  if (kinds.has('summary') || kinds.has('cta') || kinds.has('drawing')) return 'happy';
   return 'idle';
 }

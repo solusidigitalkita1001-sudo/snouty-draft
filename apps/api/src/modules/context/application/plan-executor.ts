@@ -4,10 +4,16 @@
  * DATA kasus dengan pagar angka `ReplyWriter`. Tindakan yang sudah punya jalurnya sendiri
  * (spesifikasi produk, kebutuhan, perusahaan) dikembalikan sebagai keputusan router.
  */
-import type { AssistantStreamEvent, Intent, Locale, RequirementState } from '@snouty/shared-types';
+import type {
+  AssistantCard,
+  AssistantStreamEvent,
+  Intent,
+  Locale,
+  RequirementState,
+} from '@snouty/shared-types';
 import type { RoutingDecision } from './intent-router.js';
 import { caseFacts } from './case-facts.js';
-import { endEvent, followUpCard } from './message-pipeline.js';
+import { drawingCardFor, endEvent, followUpCard } from './message-pipeline.js';
 import {
   familiesInMessage,
   familyRange,
@@ -34,6 +40,8 @@ export interface PlanContext {
   readonly hasExisting: boolean;
   /** Rekomendasi yang sudah dihitung (P22-04). */
   readonly solution?: ActiveSolution | null;
+  /** Label pemahaman pesan — pertanyaan bentuk sistem pipa membawa gambar (P22-02). */
+  readonly fineIntent?: string;
   /**
    * Keluarga yang DISEBUT pesan ini (kosakata, `u.families`): "kalau yang pvc?" menyebut pvc —
    * itu mengalahkan pilihan model (uji 2026-10-09: model memilih FITTING PVC saja).
@@ -69,13 +77,19 @@ function decisionFor(intent: Intent, extracting: boolean, mutating: boolean): Ro
   return { intent, confidence: 0.9, shouldExtract: extracting, mutatesState: mutating };
 }
 
-function answered(ctx: PlanContext, text: string, family: string | null): PlanOutcome {
+function answered(
+  ctx: PlanContext,
+  text: string,
+  family: string | null,
+  cards: readonly AssistantCard[] = [],
+): PlanOutcome {
   return {
     kind: 'answered',
     family,
     events: [
       { type: 'message.start', messageId: ctx.messageId },
       { type: 'token', text },
+      ...cards.map((card) => ({ type: 'card', card }) as const),
       endEvent(ctx.messageId),
     ],
   };
@@ -162,7 +176,8 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
             fallback,
           })
         : { text: fallback };
-      return answered(ctx, written.text, null);
+      const drawing = drawingCardFor(ctx.fineIntent, ctx.solution);
+      return answered(ctx, written.text, null, drawing ? [drawing] : []);
     }
     case 'product_question': {
       // Tepat setelah daftar jenis/ragam, pesan yang hanya menyebut keluarga lain ("kalau yang

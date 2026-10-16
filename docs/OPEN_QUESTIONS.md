@@ -413,6 +413,19 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-68 — Gaya gambar sistem pipa "lebih nyata" (P22-02, masukan pengguna 2026-10-16)
+
+**Status:** terbuka · **Blocks:** —
+**Konteks:** pengguna meminta "contoh gambar yang lebih real untuk sistem pipa (arah, jumlah pipa, jumlah
+aksesoris)". Yang ada: potongan instalasi dan denah jalur per lantai (DD-01 #7) — skematik, SVG token SNOUTY —
+kini juga tampil di chat saat bentuk sistemnya ditanya, dengan jumlah pipa dan fitting dari BOQ di jawabannya.
+**Default sementara:** gambar skematik yang ada dipakai; angka (ukuran, jumlah, fitting) selalu dari engine.
+Tidak ada foto atau gambar isometrik yang dibuat sendiri: DD-01 menetapkan ilustrasi digambar khusus lewat
+Claude Design, dan gambar yang "nyata" tanpa denah rumah berarti letak ruang yang dikarang (DD-01 #7 melarang).
+**Yang perlu diputuskan pemilik:** apakah perlu gaya isometrik/3D untuk potongan instalasi (desain baru di
+Claude Design), dan apakah foto contoh instalasi nyata (milik Pralon) boleh dipakai sebagai acuan di samping
+skema.
+
 ### OQ-67 — Tinggi tiang toren dan ambang "deras di shower" (P22-04, masukan pengguna rumah subsidi 2026-10-16)
 
 **Status:** terbuka · **Blocks:** pengesahan ENG-711
