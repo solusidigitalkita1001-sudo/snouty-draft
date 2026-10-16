@@ -42,6 +42,8 @@ COPY data/understanding ./data/understanding
 COPY data/knowledge ./data/knowledge
 # Tabel standar pipa Pralon (handbook PROD/STD, P21-08) — tebal dinding dan berat per kelas.
 COPY data/standards ./data/standards
+# Contoh rumah layar sambutan (`data/house-examples`, P22-01).
+COPY data/house-examples ./data/house-examples
 RUN pnpm build:types \
   && pnpm --filter @snouty/api build \
   && pnpm --filter @snouty/worker build

@@ -1788,6 +1788,73 @@
   text-wrap: pretty;
 }
 
+/* ---------- contoh rumah di sambutan (P22-01) ---------- */
+
+.welcomeExamples {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.welcomeExamplesTitle {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--snouty-muted);
+}
+
+.exampleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.exampleCard {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: center;
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--snouty-surface);
+  border: 1px solid var(--snouty-hairline, var(--snouty-border-soft));
+  border-radius: 10px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  min-height: 44px;
+}
+
+.exampleCard:hover:not(:disabled),
+.exampleCard:focus-visible {
+  border-color: var(--snouty-action);
+  outline: none;
+}
+
+.exampleCard:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.exampleImage {
+  grid-row: 1 / span 2;
+  width: 56px;
+  height: 47px;
+}
+
+.exampleLabel {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.exampleSummary {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--snouty-caption);
+}
+
 /* ---------- blok merek & ikon sidebar ---------- */
 
 .brandRow {

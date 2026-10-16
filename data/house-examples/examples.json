@@ -1,0 +1,71 @@
+{
+  "description": "Contoh rumah untuk layar sambutan (P22-01, masukan pengguna rumah subsidi 2026-10-16). Pengguna awam memilih yang paling mirip, lalu mengubah yang berbeda. Setiap nilai masuk sebagai ASUMSI bertanda contoh — tampil di tabel Asumsi dengan tombol Ubah — bukan sebagai pernyataan pengguna. Ukuran mengikuti tipe rumah yang lazim (tipe 30 ≈ 5 × 6 m, tipe 36 ≈ 6 × 6 m); bukan data Pralon. Tambah contoh di sini, tanpa mengubah kode.",
+  "examples": [
+    {
+      "id": "subsidi_30",
+      "image": "house1",
+      "label": { "id": "Rumah subsidi tipe 30", "en": "Subsidised house, type 30" },
+      "summary": {
+        "id": "1 lantai, 1 kamar mandi, dapur, toren di atap, bangunan 5 × 6 m di tanah 6 × 10 m",
+        "en": "1 floor, 1 bathroom, kitchen, roof tank, 5 × 6 m house on a 6 × 10 m plot"
+      },
+      "fields": [
+        { "path": "building.type", "value": "residential" },
+        { "path": "building.floors", "value": 1 },
+        { "path": "fixtures.bathrooms", "value": 1 },
+        { "path": "fixtures.basins", "value": 0 },
+        { "path": "fixtures.kitchens", "value": 1 },
+        { "path": "water.source", "value": "rooftop_tank" },
+        { "path": "water.installationType", "value": "both" },
+        {
+          "path": "building.dimensions",
+          "value": { "lengthM": 6, "widthM": 5, "landLengthM": 10, "landWidthM": 6 }
+        }
+      ]
+    },
+    {
+      "id": "subsidi_36",
+      "image": "house1",
+      "label": { "id": "Rumah subsidi tipe 36", "en": "Subsidised house, type 36" },
+      "summary": {
+        "id": "1 lantai, 1 kamar mandi, dapur, toren di atap, bangunan 6 × 6 m di tanah 6 × 12 m",
+        "en": "1 floor, 1 bathroom, kitchen, roof tank, 6 × 6 m house on a 6 × 12 m plot"
+      },
+      "fields": [
+        { "path": "building.type", "value": "residential" },
+        { "path": "building.floors", "value": 1 },
+        { "path": "fixtures.bathrooms", "value": 1 },
+        { "path": "fixtures.basins", "value": 0 },
+        { "path": "fixtures.kitchens", "value": 1 },
+        { "path": "water.source", "value": "rooftop_tank" },
+        { "path": "water.installationType", "value": "both" },
+        {
+          "path": "building.dimensions",
+          "value": { "lengthM": 6, "widthM": 6, "landLengthM": 12, "landWidthM": 6 }
+        }
+      ]
+    },
+    {
+      "id": "rumah_2_lantai",
+      "image": "house2",
+      "label": { "id": "Rumah 2 lantai", "en": "Two-storey house" },
+      "summary": {
+        "id": "2 lantai, 2 kamar mandi, 1 wastafel, dapur, toren di atap, bangunan 6 × 10 m di tanah 6 × 12 m",
+        "en": "2 floors, 2 bathrooms, 1 basin, kitchen, roof tank, 6 × 10 m house on a 6 × 12 m plot"
+      },
+      "fields": [
+        { "path": "building.type", "value": "residential" },
+        { "path": "building.floors", "value": 2 },
+        { "path": "fixtures.bathrooms", "value": 2 },
+        { "path": "fixtures.basins", "value": 1 },
+        { "path": "fixtures.kitchens", "value": 1 },
+        { "path": "water.source", "value": "rooftop_tank" },
+        { "path": "water.installationType", "value": "both" },
+        {
+          "path": "building.dimensions",
+          "value": { "lengthM": 10, "widthM": 6, "landLengthM": 12, "landWidthM": 6 }
+        }
+      ]
+    }
+  ]
+}

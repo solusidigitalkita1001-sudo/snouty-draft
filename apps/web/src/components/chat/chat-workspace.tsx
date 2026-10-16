@@ -37,6 +37,7 @@ import { ComposerField } from './composer-field';
 import { useRevealedText } from './assistant-reveal';
 import { useCaseRows } from './use-case-rows';
 import { ProductLookupCards } from './product-lookup-cards';
+import { HouseExamples, type HouseExampleItem } from './house-examples';
 import {
   createConversation,
   fetchConversation,
@@ -56,6 +57,8 @@ import {
   uploadPlan,
   type ConversationSummary,
   type AnswerMode,
+  applyHouseExample,
+  fetchHouseExamples,
 } from './chat-api';
 import { SolutionView, type SolutionTab } from '../solution/solution-view';
 import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
@@ -561,6 +564,67 @@ export function ChatWorkspace() {
       ]);
     },
     [conversationId, sending, COPY],
+  );
+
+  /**
+   * Contoh rumah (P22-01): daftarnya dari API saat layar sambutan dibuka; memilih satu membuat
+   * percakapan (bila belum ada) dan menerapkan nilainya di server — balasannya diperlakukan sama
+   * dengan jawaban kartu klarifikasi.
+   */
+  const [examples, setExamples] = useState<readonly HouseExampleItem[]>([]);
+  useEffect(() => {
+    let active = true;
+    void fetchHouseExamples().then((list) => {
+      if (active) setExamples(list as readonly HouseExampleItem[]);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const chooseExample = useCallback(
+    async (exampleId: string) => {
+      if (sending) return;
+      setSending(true);
+      setError(null);
+      let id = conversationId;
+      if (id === null) {
+        try {
+          id = (await createConversation(locale)).id;
+          setConversationId(id);
+        } catch {
+          setSending(false);
+          setError(COPY.llmUnavailable);
+          return;
+        }
+      }
+      const result = await applyHouseExample(id, exampleId);
+      setSending(false);
+      if (!result) {
+        setError(COPY.clarifyFailed);
+        return;
+      }
+      setScreen('chat');
+      setState(result.state);
+      setActiveTitle(
+        COPY.titleFor(
+          result.state.building.type.value as string | null,
+          result.state.building.floors.value as number | null,
+        ),
+      );
+      setTurns((previous) => [
+        ...previous,
+        { id: `u-${previous.length}`, role: 'user', text: result.userText, cards: [] },
+        {
+          id: `a-${Date.now()}`,
+          role: 'assistant',
+          text: result.text ?? '',
+          cards: result.cards ?? [],
+          fresh: true,
+          understood: true,
+        },
+      ]);
+    },
+    [conversationId, sending, locale, COPY],
   );
 
   /** "+ Konsultasi Baru" — kembali ke sambutan dengan percakapan baru (prototipe `reset`). */
@@ -1213,6 +1277,13 @@ export function ChatWorkspace() {
                   </button>
                 </div>
               </div>
+              <HouseExamples
+                examples={examples}
+                locale={locale}
+                title={COPY.welcome.examplesTitle}
+                disabled={sending}
+                onChoose={(exampleId) => void chooseExample(exampleId)}
+              />
               {/* Galat di layar sambutan (mis. denah ditolak) — aliran chat belum ada untuk menampungnya. */}
               {error !== null && (
                 <div className={styles.errorCard} role="alert">

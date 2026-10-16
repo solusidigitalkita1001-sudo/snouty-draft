@@ -1684,7 +1684,16 @@ meninggalkan sesi dengan "kerjain sampai selesai": keputusan desain diambil seba
       (toren setinggi berapa, dak atau tiang, pipa dari toren berapa inci, berapa batang, fitting apa saja,
       arah jalur); eval bge-m3 lolos. 55 aturan; tes engine 389, API 527 (report/context/recommendation),
       web kartu 2. OQ-67 (tinggi tiang, ambang deras).
-- [ ] P22-01 Contoh rumah dan bahasa awam (butir 1).
+- [x] P22-01 Contoh rumah dan bahasa awam (butir 1). Layar sambutan kini punya **contoh rumah bergambar**
+      ("Atau mulai dari contoh rumah yang mirip, lalu ubah yang berbeda"): rumah subsidi tipe 30, tipe 36, rumah
+      2 lantai — DATA di `data/house-examples/examples.json` (pemilik menambah contoh tanpa kode; tiap nilai
+      diperiksa skema edit panel kanan `RequirementEditSchema`, yang dipindah ke domain). Memilih satu membuat
+      percakapan dan menerapkan nilainya di server tanpa LLM (`POST /conversations/:id/house-examples/:exampleId`)
+      sebagai **asumsi bertanda contoh** — kalah dari apa pun yang pengguna sebut, tampil di tabel Asumsi dengan
+      alasan "Dari contoh …; ubah bila rumah Anda berbeda" dan tombol Ubah. Balasan teknisi: contoh yang dipakai,
+      cara mengubah ("ketik saja bedanya, misalnya 'kamar mandinya 2', atau ubah di panel kanan"), lalu kartu
+      Susun rekomendasi + pertanyaan penyempurna yang sudah ada. `GET /house-examples` publik. Tes: loader,
+      domain (nilai ASUMSI beralasan, tidak menimpa pernyataan pengguna, kartu CTA), komponen web.
 - [ ] P22-02 Gambar sistem pipa saat ditanya (butir 2).
 - [ ] P22-03 Estimasi ganti pipa lama ke Pralon (butir 3).
 - [ ] P22-05 Use case SPAM dan sewerage (butir 5).

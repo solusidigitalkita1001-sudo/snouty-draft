@@ -68,6 +68,8 @@ export const CHAT_COPY = {
     sleepBubble: 'Zzz… ketik saja, aku langsung bangun.',
     headline: 'Temukan solusi perpipaan yang tepat untuk kebutuhan Anda.',
     body: 'Ceritakan kebutuhan bangunan atau instalasi Anda. SNOUTY akan membantu menganalisis kebutuhan dan merekomendasikan solusi produk Pralon.',
+    /** Contoh rumah (P22-01): untuk yang tidak tahu harus mulai dari mana. */
+    examplesTitle: 'Atau mulai dari contoh rumah yang mirip, lalu ubah yang berbeda',
   },
 
   headerTitle: 'Konsultasi',
@@ -306,6 +308,7 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
     sleepBubble: "Zzz… just start typing, I'll wake right up.",
     headline: 'Find the right piping solution for your needs.',
     body: 'Describe your building or installation needs. SNOUTY will help analyze them and recommend Pralon product solutions.',
+    examplesTitle: 'Or start from a similar example house, then change what differs',
   },
 
   headerTitle: 'Consultation',
