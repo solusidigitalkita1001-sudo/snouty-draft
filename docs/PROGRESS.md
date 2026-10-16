@@ -1798,6 +1798,13 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
       kini hanya untuk jaringan non-SPAM), dan judul menurunkan "PDAM" menjadi "pdam" (huruf pertama saja yang
       diturunkan, singkatan utuh). Pengamatan UX yang belum diubah: pada kartu kasus teknis, pertanyaan opsional yang
       tidak disentuh menahan tombol "Kirim jawaban" sampai "Belum tahu" dipilih.
+- [x] P22-14 Produk jaringan air minum mengikuti kelas PN (temuan tur 2026-10-16, tab Estimasi Material SPAM).
+      Katalog ERP 2026-10-06 ternyata memuat `pressure_class` untuk pipa HDPE (PN 4–24, sebagian SDR) — klaim P22-12
+      "katalog HDPE tidak memuat PN" keliru dan prosa yang menyebutnya diganti. `RoleRequirement.minimumPn`: pipa PE
+      dipilih dari kelas terendah yang ≥ PN hasil ENG-411 (PN-20 untuk jaringan contoh, bukan PN-8 batang 4 m); PN tidak
+      tercatat (kosong/SDR) atau hanya kelas di bawahnya → produk tampil "perlu dikonfirmasi" dengan alasan yang menyebut
+      kelasnya; tidak ada tebakan dari SDR. Peran fitting generik dihapus untuk kasus SPAM (tee dan reducer sudah peran
+      eksplisit) — sebelumnya terisi "HDPE Pejal 90 mm" dan muncul sebagai baris BOQ tertunda. Regresi matcher: 4 tes.
 - [x] ✋ CHECKPOINT Fase 22 — pemilik menerima keempat default (OQ-67 ambang 0,7 bar, OQ-68 tetap skematik, OQ-69
       tanpa harga, OQ-70 kriteria umum divalidasi bersama aturan lain), 2026-10-16
 

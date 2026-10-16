@@ -310,7 +310,7 @@ export function waterSupplyProse(
           ? `; each of the ${t.branches} branches carries ${id(t.branch.flowLs, locale)} l/s in ${t.branch.size}, losing ${id(t.branch.frictionLossM, locale)} m. `
           : `. The number of branches was not given, so the whole flow is sized through one pipe — an assumption, not a layout. `) +
         `At the critical point the network needs ${id(sp.criticalPath.requiredHeadM, locale)} m; ${result.pumpDuty ? `the ${sp.mode.pumpHeadM} m pump duty covers the shortfall and must be matched to the maker’s pump curve` : `${id(sp.mode.residualAtCriticalBar, locale)} bar remains without a pump`}. ` +
-        `Pressure class PN ${sp.pressureClass.pn ?? '—'} from ${id(sp.maxPressureBar, locale)} bar working pressure${sp.surgeBar > 0 ? ` plus ${id(sp.surgeBar, locale)} bar surge` : ''}; the catalog does not state PN for ${family}, so the class must be confirmed with Pralon. Initial estimate, not a final design.`,
+        `Pressure class PN ${sp.pressureClass.pn ?? '—'} from ${id(sp.maxPressureBar, locale)} bar working pressure${sp.surgeBar > 0 ? ` plus ${id(sp.surgeBar, locale)} bar surge` : ''}; buy ${family} pipe of that class or higher — the product list shows which Pralon pipe meets it. Initial estimate, not a final design.`,
     };
   }
   return {
@@ -321,6 +321,6 @@ export function waterSupplyProse(
         ? `; tiap dari ${t.branches} cabang membawa ${id(t.branch.flowLs)} l/s di ${t.branch.size}, kerugian ${id(t.branch.frictionLossM)} m. `
         : `. Jumlah cabang belum disebut, jadi seluruh debit dihitung lewat satu pipa — asumsi, bukan tata letak. `) +
       `Di titik kritis jaringan butuh ${id(sp.criticalPath.requiredHeadM)} m; ${result.pumpDuty ? `pompa ${id(sp.mode.pumpHeadM)} m menutup kekurangannya dan harus dicocokkan dengan kurva pompa pabrikan` : `tanpa pompa masih tersisa ${id(sp.mode.residualAtCriticalBar)} bar`}. ` +
-      `Kelas tekanan PN ${sp.pressureClass.pn ?? '—'} dari tekanan kerja ${id(sp.maxPressureBar)} bar${sp.surgeBar > 0 ? ` ditambah surja ${id(sp.surgeBar)} bar` : ''}; katalog tidak mencantumkan PN untuk ${family}, jadi kelasnya harus dikonfirmasi ke Pralon. Perkiraan awal, bukan desain final.`,
+      `Kelas tekanan PN ${sp.pressureClass.pn ?? '—'} dari tekanan kerja ${id(sp.maxPressureBar)} bar${sp.surgeBar > 0 ? ` ditambah surja ${id(sp.surgeBar)} bar` : ''}; pakai pipa ${family} kelas itu atau lebih — daftar produk menunjukkan pipa Pralon yang memenuhinya. Perkiraan awal, bukan desain final.`,
   };
 }

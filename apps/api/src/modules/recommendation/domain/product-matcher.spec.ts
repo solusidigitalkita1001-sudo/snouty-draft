@@ -3,7 +3,12 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { Product } from '@snouty/shared-types';
-import { fittingRequirement, matchProducts, requirementsFrom } from './product-matcher.js';
+import {
+  fittingRequirement,
+  matchProducts,
+  pipeRequirement,
+  requirementsFrom,
+} from './product-matcher.js';
 
 function product(over: Partial<Product> = {}): Product {
   const unavailable = { provenance: 'UNAVAILABLE', value: null } as const;
@@ -351,5 +356,67 @@ describe('fitting berkelas kosong — dicocokkan lewat OD PROD/STD-04 (review pu
   it('pipa D 2" dibuat → fitting 2" berkelas kosong terverifikasi', () => {
     const [fitting] = matchProducts([fittingRequirement('2"', 'PVC D')], [tee('2"')]).products;
     expect(fitting?.matchState).toBe('VERIFIED_SELECTED');
+  });
+});
+
+describe('pipa PE dengan kelas PN minimum (audit PDAM, tur 2026-10-16)', () => {
+  const hdpe = (id: string, name: string, pn: string | null, rod = '100 m'): Product =>
+    product({
+      id,
+      sku: id,
+      name,
+      family: 'HDPE',
+      category: 'PIPA HDPE',
+      sizes: ['90 mm'],
+      pressureClass:
+        pn === null
+          ? { provenance: 'UNAVAILABLE', value: null }
+          : { provenance: 'VERIFIED', value: pn },
+      rodLength: { provenance: 'VERIFIED', value: rod },
+    });
+  const pn8 = hdpe(
+    '01JBHDPE0000000000000000A8',
+    'Pipa HDPE PE 100 PN-8 90 mm x 4 Meter',
+    'PN 8',
+    '4 m',
+  );
+  const pn20 = hdpe('01JBHDPE000000000000000A20', 'Pipa HDPE PN-20 90 mm x 100 Meter', 'PN 20');
+  const pn24 = hdpe('01JBHDPE000000000000000A24', 'Pipa HDPE PN-24 90 mm x 100 Meter', 'PN 24');
+  const sdr = hdpe('01JBHDPE00000000000000ASDR', 'Pipa HDPE SDR 11 90 mm', 'SDR 11');
+  const blank = hdpe('01JBHDPE0000000000000000AX', 'Pipa HDPE 90 mm', null);
+
+  it('PN 20 dibutuhkan: PN-8 tidak terpilih walau batangnya 4 m; PN 20 menang atas PN 24', () => {
+    const { products } = matchProducts(
+      [pipeRequirement('main', '90 mm', 'HDPE', { minimumPn: 20 })],
+      [pn8, pn20, pn24, sdr],
+    );
+    expect(products).toHaveLength(1);
+    expect(products[0]).toMatchObject({ productId: pn20.id, matchState: 'VERIFIED_SELECTED' });
+    expect(products[0]!.reason).toContain('kelas PN 20');
+  });
+
+  it('hanya kelas di bawahnya → kelas tertinggi tampil sebagai perlu dikonfirmasi, alasannya menyebut kelas', () => {
+    const { products, unmatchedRoles } = matchProducts(
+      [pipeRequirement('main', '90 mm', 'HDPE', { minimumPn: 20 })],
+      [pn8],
+    );
+    expect(unmatchedRoles).toEqual([]);
+    expect(products[0]).toMatchObject({ productId: pn8.id, matchState: 'SIZE_NEEDS_VALIDATION' });
+    expect(products[0]!.reason).toContain('PN 8');
+    expect(products[0]!.reason).toContain('PN 20');
+  });
+
+  it('PN tidak tercatat (kosong atau hanya SDR) → perlu dikonfirmasi, bukan ditebak cukup', () => {
+    const { products } = matchProducts(
+      [pipeRequirement('main', '90 mm', 'HDPE', { minimumPn: 10 })],
+      [blank, sdr],
+    );
+    expect(products[0]!.matchState).toBe('SIZE_NEEDS_VALIDATION');
+    expect(products[0]!.reason).toContain('tidak tercatat');
+  });
+
+  it('tanpa kelas minimum perilaku lama: varian batang 4 m menang', () => {
+    const { products } = matchProducts([pipeRequirement('main', '90 mm', 'HDPE')], [pn20, pn8]);
+    expect(products[0]!.productId).toBe(pn8.id);
   });
 });

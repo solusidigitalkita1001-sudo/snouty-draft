@@ -990,14 +990,21 @@ export class AnalysisService {
 
     const { version } = await this.catalogForMatching(events);
     const supply = result.supply;
-    const roles = [
-      pipeRequirement('main', result.recommendedSize, family),
-      fittingRequirement(result.recommendedSize, family),
-    ];
+    // Jaringan air minum: kelas PN dari ENG-411 ikut memilih pipa (PN-8 tidak boleh terpilih untuk
+    // jaringan yang butuh PN 20); fitting hanya yang terhitung (tee, reducer), bukan peran generik
+    // yang bisa terisi barang sembarang seukuran (tur 2026-10-16: "HDPE Pejal 90 mm").
+    const pipeOptions =
+      supply?.pressureClass.pn != null ? { minimumPn: supply.pressureClass.pn } : {};
+    const roles = supply
+      ? [pipeRequirement('main', result.recommendedSize, family, pipeOptions)]
+      : [
+          pipeRequirement('main', result.recommendedSize, family),
+          fittingRequirement(result.recommendedSize, family),
+        ];
     if (supply?.topology.branch) {
       // Jaringan air minum: pipa cabang, tee percabangan, reducer bila ukurannya turun (audit PDAM 2026-10-16).
       const b = supply.topology.branch;
-      roles.push(pipeRequirement('branch', b.size, family));
+      roles.push(pipeRequirement('branch', b.size, family, pipeOptions));
       roles.push(
         fittingRequirement(
           result.recommendedSize,

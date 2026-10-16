@@ -56,6 +56,12 @@ export interface RoleRequirement {
    */
   readonly pressureClass?: string;
   /**
+   * Kelas PN minimum pipa PE (jaringan air minum, ENG-411). Produk berkelas PN ≥ ini terpilih — yang
+   * terendah di antara yang cukup, supaya tidak membeli kelas lebih mahal dari perlu. PN kosong di
+   * katalog atau hanya kelas di bawahnya → produk tetap tampil, tetapi perlu dikonfirmasi.
+   */
+  readonly minimumPn?: number;
+  /**
    * Fungsi fitting yang dibutuhkan (tee cabang, Y pembuangan). Tanpa ini peran fitting bisa terisi
    * tutup pipa atau reducer — barang yang ukurannya cocok tetapi fungsinya bukan.
    */
@@ -94,8 +100,18 @@ const PRESSURE_CLASS_OF: Readonly<Record<string, string>> = {
 };
 
 /** Peran pipa: satu keluarga, kategori fitting dikecualikan. */
-export function pipeRequirement(role: SystemRole, size: string, family: string): RoleRequirement {
-  return { role, size, families: [family] };
+export function pipeRequirement(
+  role: SystemRole,
+  size: string,
+  family: string,
+  options: { readonly minimumPn?: number } = {},
+): RoleRequirement {
+  return {
+    role,
+    size,
+    families: [family],
+    ...(options.minimumPn !== undefined ? { minimumPn: options.minimumPn } : {}),
+  };
 }
 
 /** Peran fitting: keluarga fitting Pralon dulu, lalu fallback keluarga pipa + kategori FITTING. */
@@ -157,6 +173,10 @@ export function matchProducts(
       requirement.branchSize !== undefined
         ? `${requirement.size} × ${requirement.branchSize}`
         : requirement.size;
+    if (requirement.minimumPn !== undefined && withSize.length > 0) {
+      products.push(selectByMinimumPn(requirement, withSize, sizeLabel));
+      continue;
+    }
     const classed = requirement.pressureClass
       ? splitByPressureClass(withSize, requirement.pressureClass)
       : { verified: withSize, unverified: [] as Product[] };
@@ -303,6 +323,74 @@ function splitByPressureClass(
     // Kelas VERIFIED yang berbeda (fitting D untuk pipa AW) dibuang diam-diam: itu bukan kandidat.
   }
   return { verified, unverified };
+}
+
+/** "PN 20", "C · PN 12.5" → 20, 12.5; "SDR 11" dan kelas kosong → null (tidak ditebak dari SDR). */
+export function nominalPressureOf(product: Product): number | null {
+  if (!specHasValue(product.pressureClass)) return null;
+  const match = /PN\s*(\d+(?:[.,]\d+)?)/i.exec(product.pressureClass.value);
+  return match ? Number(match[1]!.replace(',', '.')) : null;
+}
+
+/**
+ * Pipa dengan kelas PN minimum: kelas terendah yang masih cukup menang; tanpa PN tercatat atau hanya
+ * kelas di bawahnya → perlu dikonfirmasi, dengan alasan yang menyebut kelasnya (audit PDAM, tur
+ * 2026-10-16: pipa PN-8 pernah terpilih untuk jaringan yang butuh PN 20).
+ */
+function selectByMinimumPn(
+  requirement: RoleRequirement,
+  withSize: readonly Product[],
+  sizeLabel: string,
+): SelectedProduct {
+  const minimum = requirement.minimumPn!;
+  const rated = withSize
+    .map((product) => ({ product, pn: nominalPressureOf(product) }))
+    .filter((r): r is { product: Product; pn: number } => r.pn !== null);
+  const sufficient = rated.filter((r) => r.pn >= minimum);
+  const base = (product: Product, state: SelectedProduct['matchState'], reason: string) => ({
+    productId: product.id,
+    size: sizeLabel,
+    role: requirement.role,
+    matchState: state,
+    name: product.name,
+    family: product.family,
+    category: product.category,
+    reason,
+  });
+  if (sufficient.length > 0) {
+    const lowest = Math.min(...sufficient.map((r) => r.pn));
+    const pick = selectCandidate(sufficient.filter((r) => r.pn === lowest).map((r) => r.product));
+    return {
+      ...base(
+        pick.chosen,
+        'VERIFIED_SELECTED',
+        `${pick.chosen.name} tersedia dalam ukuran ${sizeLabel} kelas PN ${lowest} — memenuhi PN ${minimum} yang dibutuhkan${pick.why}.`,
+      ),
+      ...(pick.alternatives.length > 0 ? { alternatives: pick.alternatives } : {}),
+    };
+  }
+  const unknown = withSize.filter((product) => nominalPressureOf(product) === null);
+  if (unknown.length > 0) {
+    const pick = selectCandidate(unknown);
+    return {
+      ...base(
+        pick.chosen,
+        'SIZE_NEEDS_VALIDATION',
+        `${pick.chosen.name} ada dalam ukuran ${sizeLabel}, tetapi kelas tekanannya tidak tercatat di katalog; jaringan ini butuh PN ${minimum} — perlu dikonfirmasi ke Pralon.`,
+      ),
+      ...(pick.alternatives.length > 0 ? { alternatives: pick.alternatives } : {}),
+    };
+  }
+  const highest = Math.max(...rated.map((r) => r.pn));
+  const pick = selectCandidate(rated.filter((r) => r.pn === highest).map((r) => r.product));
+  return {
+    ...base(
+      pick.chosen,
+      'SIZE_NEEDS_VALIDATION',
+      `Kelas tertinggi di katalog untuk ${sizeLabel} adalah PN ${highest}, di bawah PN ${minimum} yang dibutuhkan jaringan ini — perlu dikonfirmasi ke Pralon.`,
+    ),
+    ...(pick.alternatives.length > 0 ? { alternatives: pick.alternatives } : {}),
+  };
 }
 
 interface Selection {

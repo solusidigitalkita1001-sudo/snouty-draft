@@ -90,7 +90,7 @@ describe('water-supply view', () => {
       /, (gravitasi|suplai|dipompa|PDAM)/,
     );
     expect(prose.body).toContain('kurva pompa pabrikan');
-    expect(prose.body).toContain('dikonfirmasi ke Pralon');
+    expect(prose.body).toMatch(/Kelas tekanan PN \d+ .*kelas itu atau lebih/);
     expect(prose.body).toContain('bukan desain final');
     expect(waterSupplyProse(branched, 'HDPE', 'en').body).toContain('not a final design');
   });
