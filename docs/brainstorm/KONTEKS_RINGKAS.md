@@ -53,7 +53,7 @@ bukan jalan keluar ketika sistem tidak mau menghitung.
 - **Pemahaman**: ±1.900 contoh kalimat berlabel (intent, topik pengetahuan, jenis kasus, aspek
   produk, format, kedalaman) di `data/understanding/`, disandikan `bge-m3`. Golden eval: intent
   139/139 + 15 kasus topik.
-- **Mesin hitung** (45 aturan ber-ID, semua menunggu validasi ahli):
+- **Mesin hitung** (58 aturan ber-ID, semua menunggu validasi ahli):
   rumah air bersih (debit puncak kurva Hunter + hidraulik), rumah pembuangan (unit beban buangan,
   jalur air kotor/air bekas + ventilasi), gedung bertingkat (kebutuhan, zona tekanan per lantai,
   pompa transfer, riser, tangki bawah/atap), transfer bertekanan/sumur, gravitasi/drainase/air
@@ -71,6 +71,13 @@ bukan jalan keluar ketika sistem tidak mau menghitung.
 - **Audit 9–12 Oktober**: diameter dalam dari OD resmi (bukan nominal), presisi rantai hitung, zona
   tekanan dari elevasi, BOM tanpa angka karangan, pagar keluaran model atas penanda teknis
   (PN/SDR/SNI) — rincian `docs/ENGINEERING_AUDIT.md`.
+
+- **Masukan pengguna awam (16 Okt, Fase 22)**: contoh rumah bergambar di layar sambutan (subsidi tipe
+  30/36, 2 lantai, ganti pipa lama) — nilainya asumsi bertanda contoh yang bisa diubah; kartu **Tinggi
+  toren** (dak vs tiang toren 3–8 m, tekanan tiap pilihan, mana yang cukup tanpa pompa) di solusi dan PDF;
+  jawaban chat tentang solusi aktif dibangun di atas angka hasil hitung (ukuran, pompa, BOQ) dan
+  pertanyaan bentuk sistem membawa gambar potongan instalasi; field "ganti pipa lama ke Pralon"; dua
+  kasus proyek baru: jaringan air minum (SPAM) dan jaringan air limbah (sewerage). 58 aturan.
 
 ## 5. Angka yang mengubah keputusan
 
@@ -103,7 +110,7 @@ bukan jalan keluar ketika sistem tidak mau menghitung.
 
 Rincian dan pilihan di `TOPIK_BRAINSTORM.md`; daftar lengkap di `docs/OPEN_QUESTIONS.md`.
 
-- **Validasi domain**: siapa di Pralon memvalidasi 45 aturan dan nilai asumsinya (OQ-06, OQ-57,
+- **Validasi domain**: siapa di Pralon memvalidasi 58 aturan dan nilai asumsinya (OQ-06, OQ-57,
   OQ-58). Semua angka masih IPC/buku acuan, belum padanan SNI 8153.
 - **Data resmi yang belum ada**: tabel tebal dinding per kelas, tekanan kerja resmi AW/D/PN, TDS
   solvent cement, tabel ketahanan kimia, umur pakai, kode produk pelanggan (OQ-54, OQ-55).
@@ -114,6 +121,10 @@ Rincian dan pilihan di `TOPIK_BRAINSTORM.md`; daftar lengkap di `docs/OPEN_QUEST
   (elbow, sok, Y, clean out) belum dihitung jumlahnya — "dihitung saat pemasangan".
 - **Kebutuhan air per jenis gedung** (kantor/hotel/rumah sakit) masih satu nilai untuk semua.
 - **Lanjutan produk**: email/market intelligence, back-office, nomor HP ke tim teknis saat handoff.
+- **Default Fase 22 yang belum ditinjau pemilik** (OQ-67–70): tinggi tiang toren 3/4/5/6/8 m dan ambang
+  "deras di shower" 0,7 bar; gaya gambar sistem pipa (isometrik?) butuh Claude Design; estimasi ganti pipa
+  tanpa rupiah selama katalog tanpa harga; kriteria SPAM/sewerage (100 l/jiwa/hari, 5 jiwa/SR, faktor
+  puncak, minimum pipa air limbah 6", keluarga PVC D).
 
 ## 8. Glosarium
 

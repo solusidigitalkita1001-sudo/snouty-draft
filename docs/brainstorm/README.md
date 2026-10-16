@@ -1,7 +1,7 @@
 # Paket Brainstorming SNOUTY
 
 Bahan untuk diskusi arah SNOUTY dengan Claude (claude.ai) tanpa membuka seluruh repositori.
-Diperbarui 12 Oktober 2026.
+Diperbarui 16 Oktober 2026.
 
 ## Isi folder ini — unggah semuanya
 
@@ -10,7 +10,7 @@ Diperbarui 12 Oktober 2026.
 | `KONTEKS_RINGKAS.md`  | Baca pertama. Apa itu SNOUTY, prinsip, yang sudah ada, angka, keputusan pemilik, glosarium.  |
 | `ARSITEKTUR_SKEMA.md` | Pembagian kerja model vs kode, topologi, alur satu giliran, Susun rekomendasi, modul, state. |
 | `MESIN_HITUNG.md`     | Cara SNOUTY menghitung tiap kasus, contoh angka, dan kelemahan yang diketahui.               |
-| `TOPIK_BRAINSTORM.md` | Sembilan topik keputusan dengan pilihan dan apa yang perlu diputuskan.                       |
+| `TOPIK_BRAINSTORM.md` | Sepuluh topik keputusan dengan pilihan dan apa yang perlu diputuskan.                        |
 
 ## Lampiran tambahan bila topiknya menyentuh
 

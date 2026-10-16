@@ -86,3 +86,20 @@ produksi dikumpulkan, dan perlu layar back-office atau cukup berkas?
 Email intelligence (membaca email pertanyaan pelanggan), market intelligence (topik yang sering
 ditanya, produk yang sering dicari tetapi tidak ada), back-office penuh, aplikasi untuk sales di
 lapangan. **Pertanyaan:** mana yang paling bernilai untuk Pralon kuartal ini?
+
+## 10. Pengguna awam rumah subsidi dan proyek SPAM/sewerage (Fase 22, 16 Okt)
+
+Masukan seorang pengguna rumahan: aplikasi harus mudah untuk orang awam segmen subsidi, gambar sistem
+pipa yang lebih nyata, estimasi ganti pipa murah ke Pralon, dan jawaban "toren harus setinggi apa supaya
+kencang tanpa pompa". Semua sudah dibangun dengan default; yang perlu diputuskan:
+
+- **Tinggi toren (OQ-67)**: daftar tinggi tiang yang lazim Pralon lihat di lapangan, muka air di atas
+  dudukan, dan ambang tekanan yang dianggap "deras" (sekarang 0,7 bar — hampir selalu butuh pompa untuk
+  rumah 1 lantai; apakah mau dikatakan apa adanya seperti sekarang, atau ambangnya diturunkan).
+- **Gambar "lebih nyata" (OQ-68)**: A. tetap skematik (sekarang, angka dari engine). B. gaya isometrik
+  digambar khusus di Claude Design. C. foto contoh instalasi Pralon sebagai acuan di samping skema.
+- **Estimasi rupiah ganti pipa (OQ-69)**: A. tanpa harga (sekarang; DD-01 #8). B. Pralon memberi daftar
+  harga ke impor katalog → BOQ penggantian bawa subtotal, untuk akun terdaftar saja (OQ-14). C. harga
+  indikatif per kelas, bukan per SKU.
+- **Proyek SPAM/sewerage (OQ-70)**: kriteria per kategori kota, faktor puncak per ukuran jaringan,
+  keluarga pipa air limbah Pralon, dan batas kapan proyek besar langsung ke tim teknis.
