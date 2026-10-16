@@ -415,7 +415,7 @@ masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specifi
 
 ### OQ-70 — Kriteria perencanaan jaringan air minum (SPAM) dan air limbah (P22-05, 2026-10-16)
 
-**Status:** terbuka · **Blocks:** pengesahan ENG-406/407/408 dan asumsi SPAM__/SEWER__
+**Status:** default diterima pemilik (2026-10-16): kriteria umum dipakai, divalidasi bersama aturan lain (OQ-06); tidak ada ambang handoff proyek besar · **Blocks:** pengesahan ENG-406/407/408 dan asumsi SPAM dan SEWER
 **Konteks:** pemilik minta use case proyek SPAM dan sewerage disiapkan. Dua kasus teknis baru dihitung
 dengan kriteria perencanaan umum, semuanya `REQUIRES_DOMAIN_VALIDATION`.
 **Default sementara:** SPAM — 100 l/jiwa/hari (Permen PUPR 27/2016: 60–150 menurut kategori kota),
@@ -429,7 +429,7 @@ diteruskan ke tim teknis.
 
 ### OQ-69 — Estimasi biaya penggantian pipa ke Pralon (P22-03, masukan pengguna 2026-10-16)
 
-**Status:** terbuka · **Blocks:** angka rupiah di estimasi penggantian
+**Status:** diputuskan pemilik (2026-10-16): tetap tanpa harga; pertanyaan harga ke tim Pralon · **Blocks:** —
 **Konteks:** pengguna rumah subsidi ingin tahu "kalau pipa murahnya diganti Pralon, estimasinya berapa".
 SNOUTY kini menghitung daftar material penggantian (sama dengan instalasi baru di jalur yang sama) dan
 menyebutnya sebagai penggantian, tetapi tidak bisa memberi rupiah: ekspor katalog ERP tidak memuat kolom harga,
@@ -442,7 +442,7 @@ terdaftar (OQ-14).
 
 ### OQ-68 — Gaya gambar sistem pipa "lebih nyata" (P22-02, masukan pengguna 2026-10-16)
 
-**Status:** terbuka · **Blocks:** —
+**Status:** diputuskan pemilik (2026-10-16): tetap skematik, angka dari engine; tidak ada desain isometrik atau foto · **Blocks:** —
 **Konteks:** pengguna meminta "contoh gambar yang lebih real untuk sistem pipa (arah, jumlah pipa, jumlah
 aksesoris)". Yang ada: potongan instalasi dan denah jalur per lantai (DD-01 #7) — skematik, SVG token SNOUTY —
 kini juga tampil di chat saat bentuk sistemnya ditanya, dengan jumlah pipa dan fitting dari BOQ di jawabannya.
@@ -455,7 +455,7 @@ skema.
 
 ### OQ-67 — Tinggi tiang toren dan ambang "deras di shower" (P22-04, masukan pengguna rumah subsidi 2026-10-16)
 
-**Status:** terbuka · **Blocks:** pengesahan ENG-711
+**Status:** default diterima pemilik (2026-10-16): ambang deras tetap 0,7 bar dan dikatakan apa adanya; tinggi tiang dan muka air menunggu ahli Pralon · **Blocks:** pengesahan ENG-711
 **Konteks:** pertanyaan paling sering dari pengguna awam: "toren harus di ketinggian berapa supaya aliran
 kencang ke tiap titik tanpa pompa pendorong — di dak atau pakai tiang toren, pipa dari toren berapa inci, di
 dalam rumah berapa". ENG-711 menghitung tekanan di titik air tertinggi untuk tiap dudukan yang mungkin.

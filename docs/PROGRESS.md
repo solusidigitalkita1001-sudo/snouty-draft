@@ -1727,7 +1727,14 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
       IPAL). 58 aturan. OQ-70 (kriteria per kategori kota, keluarga pipa air limbah Pralon, batas diteruskan ke
       tim teknis). Tes: engine 8 (sewer/SPAM) + registry; API pemetaan parameter → engine, prosa, highlight,
       skema; eval bge-m3.
-- [ ] ✋ CHECKPOINT Fase 22 — ditinjau pemilik
+- [x] Smoke test produksi 2026-10-16 (permintaan pemilik "coba jo lakukan smoke test"): rilis ok (API, DB, web, katalog,
+      migration 0024); contoh rumah → analisis → kartu Tinggi toren (dak 0,1 bar, tiang 6 m 0,35 bar); chat "toren
+      setinggi berapa" dan "arah jalur pipanya, fitting apa saja" dijawab dari solusi, yang kedua membawa gambar;
+      SPAM 500 SR → HDPE 75 mm; sewerage 200 SR → PVC D 6". Dua temuan diperbaiki di sesi yang sama: pertanyaan
+      tentang solusi tidak lagi lewat perencana (bisa tersasar ke jalur kebutuhan), dan teks tetap penjelasan
+      dibangun dari solusinya, bukan kalimat generik.
+- [x] ✋ CHECKPOINT Fase 22 — pemilik menerima keempat default (OQ-67 ambang 0,7 bar, OQ-68 tetap skematik, OQ-69
+      tanpa harga, OQ-70 kriteria umum divalidasi bersama aturan lain), 2026-10-16
 
 ## Design Coverage
 
