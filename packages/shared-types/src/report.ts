@@ -14,6 +14,7 @@ import type {
   SelectedProduct,
   SolutionNeed,
   SystemLine,
+  TankStandView,
 } from './recommendation.js';
 import type { AnySchematic } from './schematic.js';
 
@@ -99,6 +100,8 @@ export interface ReportPayload {
   readonly products?: readonly SelectedProduct[];
   /** Kebutuhan bergambar ringkasan (P17-04); hanya solusi bangunan sejak P17-04. */
   readonly needs?: readonly SolutionNeed[];
+  /** Pilihan dudukan toren (P22-04); hanya solusi bangunan bersumber toren atap. */
+  readonly tankStand?: TankStandView;
   /** Jumlah titik air dari engine — alur air di ringkasan. */
   readonly outletCount?: number;
 }

@@ -26,6 +26,7 @@ import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { InstallationDrawingCard } from './installation-drawing-card';
 import { ScenarioCard } from './scenario-card';
 import { NeedsGrid, SummaryHero, WaterFlowCard } from './needs-board';
+import { TankStandCard } from './tank-stand-card';
 import { productVisual } from '@snouty/ui/product-visual';
 import { ProductVisualView } from './product-visual-view';
 import { SchematicTab } from './schematic-tab';
@@ -193,6 +194,9 @@ export function SolutionView({
 
       {on('ringkasan') && needs.length > 0 && (
         <WaterFlowCard needs={needs} outletCount={stats.outletCount} />
+      )}
+      {on('ringkasan') && recommendation.tankStand && (
+        <TankStandCard view={recommendation.tankStand} />
       )}
 
       {on('ringkasan') && (

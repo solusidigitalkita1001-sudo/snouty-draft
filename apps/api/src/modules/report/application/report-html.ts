@@ -33,6 +33,8 @@ import {
   boqSection,
   drawingSection,
   hasDrawing,
+  hasTankStand,
+  tankStandSection,
   payloadBoq,
   productsSection,
   summaryPictures,
@@ -406,6 +408,7 @@ function sections(p: ReportPayload, t: ReportCopy): string {
     (n) => summarySection(p, t, n),
     ...(p.schematic ? [(n: number) => schematicSection(p, t, n)] : []),
     ...(hasDrawing(p) ? [(n: number) => drawingSection(p, v, helpers, n)] : []),
+    ...(hasTankStand(p) ? [(n: number) => tankStandSection(p, v, helpers, n)] : []),
     (n) =>
       boqSection(
         p,

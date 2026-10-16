@@ -88,6 +88,7 @@ import {
 } from './reply-copy.js';
 import { caseFacts } from './case-facts.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
+import type { ActiveSolution } from '../domain/active-solution.port.js';
 
 export interface PipelineInput {
   readonly messageId: string;
@@ -107,6 +108,8 @@ export interface PipelineInput {
    * dibaca dari sini, bukan dari pola kalimat. Opsional supaya jalur edit/jawaban kartu tak berubah.
    */
   readonly understanding?: MessageUnderstanding;
+  /** Rekomendasi yang sudah dihitung (P22-04) — fakta untuk pertanyaan tentang solusinya. */
+  readonly solution?: ActiveSolution | null;
 }
 
 export interface PipelineResult {
@@ -187,6 +190,7 @@ export async function runUnderstanding(
                 withCompleteness(input.state),
                 input.locale ?? DEFAULT_LOCALE,
                 caseCard,
+                input.solution ?? null,
               ),
               ...(input.locale ? { locale: input.locale } : {}),
               fallback,
@@ -283,7 +287,7 @@ export async function runUnderstanding(
                   intent: input.decision.intent,
                   userMessage: input.message,
                   recentTurns: input.recentTurns ?? [],
-                  facts: caseFacts(applied.state, locale, card),
+                  facts: caseFacts(applied.state, locale, card, input.solution ?? null),
                   locale,
                   fallback: guidance,
                 })
@@ -480,7 +484,7 @@ export async function runUnderstanding(
             intent: input.decision.intent,
             userMessage: input.message,
             recentTurns: input.recentTurns ?? [],
-            facts: caseFacts(merged, locale, card),
+            facts: caseFacts(merged, locale, card, input.solution ?? null),
             locale,
             fallback,
           })

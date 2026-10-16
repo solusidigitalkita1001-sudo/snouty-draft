@@ -103,6 +103,8 @@ export type {
   ScenarioId,
   ScenarioMetrics,
   SolutionNeed,
+  TankStandOption,
+  TankStandView,
 } from './recommendation.js';
 export { skuLines } from './recommendation.js';
 export { boqFrom } from './boq.js';

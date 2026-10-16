@@ -70,6 +70,7 @@ import { stockLengthOf, type StockLength } from '../domain/pipe-quantity.js';
 import { DRAINAGE_FAMILY, withHouseDrainage } from '../domain/house-drainage-view.js';
 import { mergeBomBySku } from '../domain/bom-merge.js';
 import { needsFrom } from '../domain/solution-needs.js';
+import { tankStandViewFrom } from '../domain/tank-stand-view.js';
 import { compareScenarios } from '../domain/scenarios.js';
 import { firstSentences } from '../domain/summary-length.js';
 import {
@@ -632,11 +633,14 @@ export class AnalysisService {
         ],
       };
     }
+    const tankStand = tankStandViewFrom(solution);
     // Jumlah produk di ringkasan = daftar SKU yang sama dengan tab Produk dan material (TC-H-05).
     recommendation = withPrintedMaterialCount({
       ...recommendation,
       bom: mergeBomBySku(recommendation.bom, locale),
       needs: needsFrom(solutionInputFrom(state), solution, drainageResult),
+      // Pilihan dudukan toren (P22-04) — hanya ada bila sumbernya toren atap.
+      ...(tankStand ? { tankStand } : {}),
     });
     await this.repository.save(saveReady(state, recommendation, allTraces, locale), allTraces, {
       proseSource: assembled.proseSource,

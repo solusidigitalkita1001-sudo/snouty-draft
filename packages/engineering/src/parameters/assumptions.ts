@@ -1085,6 +1085,22 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description:
       'Titik air tertinggi dari toren atap butuh minimal 0,3 bar; di bawah itu disarankan pompa pendorong atau toren dinaikkan. Ambangnya lebih rendah daripada pompa dan PDAM (1 bar) karena toren hanya mengandalkan beda tinggi: 0,3 bar masih cukup untuk keran dan shower biasa, sedangkan menuntut 1 bar berarti toren 10 m di atas shower.',
   },
+  {
+    id: 'RESIDUAL_GRAVITY_COMFORT_0_7BAR',
+    parameter: 'required_pressure',
+    appliesTo: [],
+    condition: 'tekanan yang terasa deras di shower dari toren atap, tanpa pompa',
+    value: 0.7,
+    unit: 'bar',
+    conditionEn: 'pressure that feels strong at a shower fed from a roof tank, without a pump',
+    descriptionEn:
+      'A shower feels strong from about 0.7 bar (7 m of water above the shower head). The tank stand options (ENG-711) mark which support reaches it without a booster pump; 0.3 bar remains the minimum for taps to work.',
+    reference: 'Noerbambang & Morimura: tekanan minimum shower 0,7 kg/cm²',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Shower terasa deras mulai sekitar 0,7 bar (muka air 7 m di atas kepala shower). Pilihan dudukan toren (ENG-711) menandai dudukan mana yang mencapainya tanpa pompa pendorong; 0,3 bar tetap batas minimum supaya keran mengalir.',
+  },
   // ── Pembuangan rumah (Kelompok J) ──
   {
     id: 'DFU_WATER_CLOSET_4',

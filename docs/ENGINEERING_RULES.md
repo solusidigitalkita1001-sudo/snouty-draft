@@ -472,6 +472,11 @@ ENG-605 v2 (review putaran 3): Y = jumlah alat (cabang lantai atas masuk pipa te
 ENG-710  tekanan di meteran untuk mengisi toren atap = muka air toren + gesek pipa pengisi + 10% sambungan pada
          TANK_FILL_FLOW_0_25LS (review putaran 3, 5b).
 ENG-709  pompa sumur: muka air > SURFACE_PUMP_SUCTION_7M → pompa jet / submersible (OQ-66).
+ENG-711  pilihan dudukan toren (P22-04, masukan pengguna rumah subsidi): tekanan di titik tertinggi untuk
+         dak atap (pelat atap + TANK_STAND_1M) dan tiang toren TANK_TOWER_HEIGHTS_M (3/4/5/6/8 m + TANK_STAND_1M)
+         dengan kehilangan pipa utama yang sama; tiang yang muka airnya tidak di atas dak tidak ditawarkan.
+         recommendedIndex = terendah ≥ RESIDUAL_GRAVITY_0_3BAR; comfortableIndex = terendah ≥
+         RESIDUAL_GRAVITY_COMFORT_0_7BAR (shower deras, Noerbambang & Morimura 0,7 kg/cm²). OQ-67.
 ENG-708  fitting air bersih (P18-01, keputusan pemilik 2026-10-13, OQ-63): elbow pipa utama
          FITTING_MAIN_ELBOWS_2; elbow pengisi toren FITTING_TANK_FILL_ELBOWS_2 (hanya toren atap
          dengan ukuran rumah); elbow per cabang FITTING_BRANCH_ELBOW_1 di ukuran cabangnya; elbow
@@ -520,6 +525,7 @@ Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja
 | ENG-012 | 1 kamar mandi = shower + kloset           | prototipe      | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 | ENG-013 | Kelas AW / D                              | board 08       | REQUIRES_DOMAIN_VALIDATION | sedang             |
 | ENG-014 | Default "Belum tahu"                      | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-711 | Pilihan dudukan toren: dak / tiang        | P22-04         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 
 Bila waktu ahli terbatas, empat yang bertanda tinggi/tertinggi memberi hasil terbesar: ENG-002
 menentukan angka utama, ENG-001 dan ENG-012 memberinya masukan, ENG-011 menentukan apakah pompa perlu

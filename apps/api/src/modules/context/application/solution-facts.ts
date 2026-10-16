@@ -1,0 +1,107 @@
+/**
+ * DATA solusi aktif untuk penulis balasan (P22-04): ukuran pipa, kebutuhan pompa, pilihan tinggi
+ * toren, dan ringkasan BOQ — semuanya angka hasil engine yang tersimpan di rekomendasi. Model
+ * merangkai kalimat; `ReplyWriter` menolak angka yang tidak ada di sini.
+ */
+import type { Locale, SolutionNeed, TankStandView } from '@snouty/shared-types';
+import type { ActiveSolution } from '../domain/active-solution.port.js';
+
+export function solutionFacts(solution: ActiveSolution | null | undefined, locale: Locale): string {
+  if (!solution) return '';
+  const en = locale === 'en';
+  const r = solution.recommendation;
+  const num = (n: number) => n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
+  const lines: string[] = [];
+  lines.push(en ? 'SOLUTION ALREADY CALCULATED:' : 'SOLUSI YANG SUDAH DIHITUNG:');
+  if (solution.stale) {
+    lines.push(
+      en
+        ? '- The requirement changed after this calculation; the user should press Compose recommendation again for current figures.'
+        : '- Kebutuhan sudah berubah setelah hitungan ini; untuk angka terbaru pengguna perlu menekan Susun rekomendasi lagi.',
+    );
+  }
+  lines.push(`- ${r.headline}`);
+  for (const line of r.systemLines) {
+    lines.push(`- ${line.name} (${line.path}): ${line.size}`);
+  }
+  for (const need of r.needs ?? []) lines.push(...needLines(need, locale, num));
+  if (r.tankStand) lines.push(...tankStandLines(r.tankStand, locale, num));
+  const boq = r.bom.filter((b) => b.quantity > 0);
+  if (boq.length > 0) {
+    lines.push(en ? 'MATERIAL LIST (BOQ):' : 'DAFTAR MATERIAL (BOQ):');
+    for (const b of boq) {
+      lines.push(`- ${b.purpose ?? b.item} ${b.size}: ${num(b.quantity)} ${b.unit}`);
+    }
+  }
+  return lines.join('\n');
+}
+
+function needLines(need: SolutionNeed, locale: Locale, num: (n: number) => string): string[] {
+  const en = locale === 'en';
+  switch (need.kind) {
+    case 'booster_pump':
+      return [
+        en
+          ? `- Booster pump needed: only ${need.residualBar === undefined ? '?' : num(need.residualBar)} bar at the highest outlet without it${need.minimumStandM === undefined ? '' : `; or raise the tank stand to ${num(need.minimumStandM)} m above the roof`}.`
+          : `- Perlu pompa pendorong: tanpa pompa hanya ${need.residualBar === undefined ? '?' : num(need.residualBar)} bar di titik air tertinggi${need.minimumStandM === undefined ? '' : `; atau dudukan toren dinaikkan ke ${num(need.minimumStandM)} m di atas atap`}.`,
+      ];
+    case 'drainage':
+      return [
+        en
+          ? `- Drainage: soil ${need.soilSize ?? '?'}, waste ${need.wasteSize ?? '?'}, vents ${need.soilVentSize ?? '?'} / ${need.wasteVentSize ?? '?'}.`
+          : `- Pembuangan: air kotor ${need.soilSize ?? '?'}, air bekas ${need.wasteSize ?? '?'}, ventilasi ${need.soilVentSize ?? '?'} / ${need.wasteVentSize ?? '?'}.`,
+      ];
+    case 'well_pump':
+      return need.wellDepthM === undefined
+        ? []
+        : [
+            en
+              ? `- Well water level ${num(need.wellDepthM)} m${need.deepWell ? ' (beyond a surface pump: jet or submersible pump)' : ''}.`
+              : `- Muka air sumur ${num(need.wellDepthM)} m${need.deepWell ? ' (di luar batas pompa sedot biasa: pompa jet atau submersible)' : ''}.`,
+          ];
+    default:
+      return [];
+  }
+}
+
+function tankStandLines(view: TankStandView, locale: Locale, num: (n: number) => string): string[] {
+  const en = locale === 'en';
+  const label = (o: TankStandView['options'][number]) =>
+    o.kind === 'roof_slab'
+      ? en
+        ? 'on the roof slab'
+        : 'di dak atap'
+      : en
+        ? `${num(o.supportHeightM)} m tank tower`
+        : `tiang toren ${num(o.supportHeightM)} m`;
+  const status = (o: TankStandView['options'][number]) =>
+    o.comfortable
+      ? en
+        ? 'strong shower'
+        : 'deras di shower'
+      : o.meetsMinimum
+        ? en
+          ? 'enough without a pump'
+          : 'cukup tanpa pompa'
+        : en
+          ? 'not enough, needs a pump'
+          : 'kurang, perlu pompa';
+  const lines = [
+    en
+      ? `TANK HEIGHT OPTIONS (gravity only, minimum ${num(view.minimumBar)} bar, strong shower from ${num(view.comfortBar)} bar); pipe from the tank ${view.mainSize}, branches inside ${view.branchSizes.join(' / ')}:`
+      : `PILIHAN TINGGI TOREN (gravitasi saja, minimum ${num(view.minimumBar)} bar, deras di shower mulai ${num(view.comfortBar)} bar); pipa dari toren ${view.mainSize}, cabang di dalam rumah ${view.branchSizes.join(' / ')}:`,
+  ];
+  view.options.forEach((o, i) => {
+    lines.push(
+      `- ${label(o)}, ${en ? 'water level' : 'muka air'} ${num(o.waterLevelM)} m: ${num(o.residualBar)} bar, ${status(o)}${i === view.recommendedIndex ? (en ? ' (lowest that is enough)' : ' (terendah yang cukup)') : ''}`,
+    );
+  });
+  if (view.recommendedIndex === null) {
+    lines.push(
+      en
+        ? '- None of these supports is enough without a booster pump.'
+        : '- Tidak ada dudukan di daftar ini yang cukup tanpa pompa pendorong.',
+    );
+  }
+  return lines;
+}

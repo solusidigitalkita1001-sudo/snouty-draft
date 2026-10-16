@@ -1082,6 +1082,285 @@ export const ENG_708: RuleVersion<HouseSupplyFittingInput, HouseSupplyFittingRes
     }),
 };
 
+// ── ENG-711 · Pilihan dudukan toren: dak atap atau tiang toren ─────────────
+
+/**
+ * Tinggi tiang toren yang lazim dipasang di rumah (m dari tanah ke dudukan toren). Daftar pasar,
+ * bukan standar: menunggu pengesahan ahli Pralon (OQ-67).
+ */
+export const TANK_TOWER_HEIGHTS_M = [3, 4, 5, 6, 8] as const;
+
+export type TankSupportKind = 'roof_slab' | 'tower';
+
+export interface TankStandOptionsInput {
+  /** Tinggi pelat atap (dak) dari tanah. */
+  readonly roofHeightM: number;
+  /** Titik air tertinggi dari tanah (kepala shower lantai teratas). */
+  readonly highestOutletM: number;
+  /** Muka air toren di atas dudukannya (asumsi TANK_STAND_1M). */
+  readonly standM: number;
+  /** Kehilangan gesek + sambungan di pipa utama pada ukuran yang dipilih. */
+  readonly lossM: number;
+  readonly minimumBar: number;
+  /** Tekanan yang terasa deras di shower; di atas `minimumBar`. */
+  readonly comfortBar: number;
+  readonly towerHeightsM: readonly number[];
+}
+
+export interface TankStandOption {
+  readonly kind: TankSupportKind;
+  /** Tinggi dudukan dari tanah: pelat atap, atau puncak tiang. */
+  readonly supportHeightM: number;
+  readonly waterLevelM: number;
+  /** Beda tinggi muka air ke titik air tertinggi. */
+  readonly headM: number;
+  readonly residualBar: number;
+  readonly meetsMinimum: boolean;
+  readonly comfortable: boolean;
+}
+
+export interface TankStandOptionsResult {
+  readonly options: readonly TankStandOption[];
+  /** Indeks pilihan terendah yang memenuhi tekanan minimum; `null` bila tidak ada. */
+  readonly recommendedIndex: number | null;
+  /** Indeks pilihan terendah yang terasa deras; `null` bila tidak ada. */
+  readonly comfortableIndex: number | null;
+}
+
+export const ENG_711: RuleVersion<TankStandOptionsInput, TankStandOptionsResult> = {
+  ruleId: 'ENG-711',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const towers = o['towerHeightsM'];
+    if (!Array.isArray(towers) || towers.length > 20) {
+      throw new RuleInputError('ENG-711', 'towerHeightsM harus daftar tinggi tiang (≤ 20)');
+    }
+    const minimumBar = requireNumber('ENG-711', 'minimumBar', o['minimumBar'], { min: 0, max: 5 });
+    return {
+      roofHeightM: requireNumber('ENG-711', 'roofHeightM', o['roofHeightM'], { min: 1, max: 100 }),
+      highestOutletM: requireNumber('ENG-711', 'highestOutletM', o['highestOutletM'], {
+        min: 0,
+        max: 100,
+      }),
+      standM: requireNumber('ENG-711', 'standM', o['standM'], { min: 0, max: 15 }),
+      lossM: requireNumber('ENG-711', 'lossM', o['lossM'], { min: 0, max: 1000 }),
+      minimumBar,
+      comfortBar: requireNumber('ENG-711', 'comfortBar', o['comfortBar'], {
+        min: minimumBar,
+        max: 5,
+      }),
+      towerHeightsM: towers.map((h, n) =>
+        requireNumber('ENG-711', `towerHeightsM[${n}]`, h, { min: 1, max: 30 }),
+      ),
+    };
+  },
+  compute: (i) => {
+    // Kehilangan di pipa tegak tambahan diabaikan (beberapa sentimeter), sama seperti ENG-703.
+    const option = (kind: TankSupportKind, supportHeightM: number): TankStandOption => {
+      const waterLevelM = round2(supportHeightM + i.standM);
+      const headM = round2(waterLevelM - i.highestOutletM);
+      const residualBar = round2(headMToBar(headM - i.lossM));
+      return {
+        kind,
+        supportHeightM,
+        waterLevelM,
+        headM,
+        residualBar,
+        meetsMinimum: residualBar >= i.minimumBar,
+        comfortable: residualBar >= i.comfortBar,
+      };
+    };
+    const roof = option('roof_slab', i.roofHeightM);
+    // Tiang yang muka airnya di bawah dak tidak lebih baik daripada dak — tidak ditawarkan.
+    const towers = i.towerHeightsM
+      .filter((h) => h + i.standM > roof.waterLevelM)
+      .sort((a, b) => a - b)
+      .map((h) => option('tower', h));
+    const options = [roof, ...towers];
+    const firstIndex = (test: (o: TankStandOption) => boolean) => {
+      const n = options.findIndex(test);
+      return n === -1 ? null : n;
+    };
+    return {
+      options,
+      recommendedIndex: firstIndex((o) => o.meetsMinimum),
+      comfortableIndex: firstIndex((o) => o.comfortable),
+    };
+  },
+  sourceReference:
+    'Tekanan sisa tiap dudukan = (muka air − titik air tertinggi − kehilangan pipa utama) ÷ 10,197 m/bar; dudukan dak = pelat atap + TANK_STAND_1M, tiang toren = tinggi tiang + TANK_STAND_1M; ambang deras di shower 0,7 kg/cm² (Noerbambang & Morimura)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'rumah 1 lantai 3,5 m, shower 2 m, kehilangan 0,5 m: dak 0,2 bar kurang; tiang 5 m cukup; tidak ada yang deras',
+      input: {
+        roofHeightM: 3.5,
+        highestOutletM: 2,
+        standM: 1,
+        lossM: 0.5,
+        minimumBar: 0.3,
+        comfortBar: 0.7,
+        towerHeightsM: [3, 4, 5, 6, 8],
+      },
+      expected: {
+        options: [
+          {
+            kind: 'roof_slab',
+            supportHeightM: 3.5,
+            waterLevelM: 4.5,
+            headM: 2.5,
+            residualBar: 0.2,
+            meetsMinimum: false,
+            comfortable: false,
+          },
+          {
+            kind: 'tower',
+            supportHeightM: 4,
+            waterLevelM: 5,
+            headM: 3,
+            residualBar: 0.25,
+            meetsMinimum: false,
+            comfortable: false,
+          },
+          {
+            kind: 'tower',
+            supportHeightM: 5,
+            waterLevelM: 6,
+            headM: 4,
+            residualBar: 0.34,
+            meetsMinimum: true,
+            comfortable: false,
+          },
+          {
+            kind: 'tower',
+            supportHeightM: 6,
+            waterLevelM: 7,
+            headM: 5,
+            residualBar: 0.44,
+            meetsMinimum: true,
+            comfortable: false,
+          },
+          {
+            kind: 'tower',
+            supportHeightM: 8,
+            waterLevelM: 9,
+            headM: 7,
+            residualBar: 0.64,
+            meetsMinimum: true,
+            comfortable: false,
+          },
+        ],
+        recommendedIndex: 2,
+        comfortableIndex: null,
+      },
+    },
+    {
+      name: 'rumah 2 lantai 7 m, shower 5,5 m, kehilangan 0,3 m: dak 0,22 bar; hanya tiang 8 m yang lebih tinggi dari dak',
+      input: {
+        roofHeightM: 7,
+        highestOutletM: 5.5,
+        standM: 1,
+        lossM: 0.3,
+        minimumBar: 0.3,
+        comfortBar: 0.7,
+        towerHeightsM: [3, 4, 5, 6, 8],
+      },
+      expected: {
+        options: [
+          {
+            kind: 'roof_slab',
+            supportHeightM: 7,
+            waterLevelM: 8,
+            headM: 2.5,
+            residualBar: 0.22,
+            meetsMinimum: false,
+            comfortable: false,
+          },
+          {
+            kind: 'tower',
+            supportHeightM: 8,
+            waterLevelM: 9,
+            headM: 3.5,
+            residualBar: 0.31,
+            meetsMinimum: true,
+            comfortable: false,
+          },
+        ],
+        recommendedIndex: 1,
+        comfortableIndex: null,
+      },
+    },
+    {
+      name: 'dak sudah cukup dan deras → dak direkomendasikan, tiang yang lebih tinggi tetap ditampilkan',
+      input: {
+        roofHeightM: 3.5,
+        highestOutletM: 0,
+        standM: 1,
+        lossM: 0.2,
+        minimumBar: 0.3,
+        comfortBar: 0.4,
+        towerHeightsM: [4],
+      },
+      expected: {
+        options: [
+          {
+            kind: 'roof_slab',
+            supportHeightM: 3.5,
+            waterLevelM: 4.5,
+            headM: 4.5,
+            residualBar: 0.42,
+            meetsMinimum: true,
+            comfortable: true,
+          },
+          {
+            kind: 'tower',
+            supportHeightM: 4,
+            waterLevelM: 5,
+            headM: 5,
+            residualBar: 0.47,
+            meetsMinimum: true,
+            comfortable: true,
+          },
+        ],
+        recommendedIndex: 0,
+        comfortableIndex: 0,
+      },
+    },
+  ],
+  explain: (i, o, locale) => {
+    const label = (opt: TankStandOption) =>
+      opt.kind === 'roof_slab'
+        ? {
+            id: `di dak (muka air ${opt.waterLevelM} m)`,
+            en: `on the roof slab (water level ${opt.waterLevelM} m)`,
+          }
+        : {
+            id: `tiang ${opt.supportHeightM} m (muka air ${opt.waterLevelM} m)`,
+            en: `${opt.supportHeightM} m tower (water level ${opt.waterLevelM} m)`,
+          };
+    const rows = o.options.map((opt) => ({
+      id: `${label(opt).id} → ${opt.residualBar} bar`,
+      en: `${label(opt).en} → ${opt.residualBar} bar`,
+    }));
+    const rec = o.recommendedIndex === null ? null : o.options[o.recommendedIndex]!;
+    const comfy = o.comfortableIndex === null ? null : o.options[o.comfortableIndex]!;
+    return localized(locale, {
+      id: `Muka air toren dihitung dari tiap dudukan (dak atau tiang) ditambah ${i.standM} m, dikurangi titik air tertinggi ${i.highestOutletM} m dan kehilangan ${i.lossM} m: ${rows.map((r) => r.id).join('; ')}. ${
+        rec
+          ? `Tanpa pompa, dudukan terendah yang memberi ${i.minimumBar} bar adalah ${label(rec).id}${comfy ? `; terasa deras di shower (${i.comfortBar} bar) mulai ${label(comfy).id}` : `; tidak ada yang mencapai ${i.comfortBar} bar (deras di shower) tanpa pompa`}.`
+          : `Tidak ada dudukan di daftar yang mencapai ${i.minimumBar} bar; perlu pompa pendorong atau tiang yang lebih tinggi.`
+      }`,
+      en: `The tank water level is taken from each support (roof slab or tower) plus ${i.standM} m, minus the highest outlet at ${i.highestOutletM} m and ${i.lossM} m of loss: ${rows.map((r) => r.en).join('; ')}. ${
+        rec
+          ? `Without a pump, the lowest support giving ${i.minimumBar} bar is ${label(rec).en}${comfy ? `; a strong shower (${i.comfortBar} bar) starts at ${label(comfy).en}` : `; none reaches ${i.comfortBar} bar (a strong shower) without a pump`}.`
+          : `No support in the list reaches ${i.minimumBar} bar; a booster pump or a taller tower is needed.`
+      }`,
+    });
+  },
+};
+
 export const GROUP_K = [
   ENG_701,
   ENG_702,
@@ -1093,4 +1372,5 @@ export const GROUP_K = [
   ENG_708,
   ENG_709,
   ENG_710,
+  ENG_711,
 ] as const;

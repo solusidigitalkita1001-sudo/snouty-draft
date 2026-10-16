@@ -349,6 +349,8 @@ export interface Recommendation {
   readonly systemLines: readonly SystemLine[];
   /** Kebutuhan bergambar di Ringkasan (DD-01 #1); hanya solusi bangunan yang dihitung sejak P17-04. */
   readonly needs?: readonly SolutionNeed[];
+  /** Pilihan dudukan toren (P22-04); hanya solusi bangunan bersumber toren atap. */
+  readonly tankStand?: TankStandView;
   readonly products: readonly SelectedProduct[];
   readonly bom: readonly BomItem[];
   readonly assumptions: readonly Assumption[];
@@ -360,6 +362,32 @@ export interface Recommendation {
    * dihapus. Tidak disimpan — dinilai saat dibaca dari trace-nya.
    */
   readonly outdated?: boolean;
+}
+
+/**
+ * Pilihan dudukan toren atap (ENG-711, P22-04): dak atap atau tiang toren, dengan tekanan di titik
+ * air tertinggi untuk tiap pilihan — jawaban "toren harus setinggi apa supaya deras tanpa pompa".
+ * Angka dari engine; tampilan hanya memilih kata dan gambar.
+ */
+export interface TankStandOption {
+  readonly kind: 'roof_slab' | 'tower';
+  /** Tinggi dudukan dari tanah (pelat atap atau puncak tiang). */
+  readonly supportHeightM: number;
+  readonly waterLevelM: number;
+  readonly residualBar: number;
+  readonly meetsMinimum: boolean;
+  readonly comfortable: boolean;
+}
+
+export interface TankStandView {
+  readonly options: readonly TankStandOption[];
+  readonly recommendedIndex: number | null;
+  readonly comfortableIndex: number | null;
+  readonly minimumBar: number;
+  readonly comfortBar: number;
+  /** Ukuran pipa utama dari toren dan cabang di dalam rumah — disebut bersama tinggi toren. */
+  readonly mainSize: string;
+  readonly branchSizes: readonly string[];
 }
 
 /** Skenario "Coba ubah" (DD-01, P17-08). */

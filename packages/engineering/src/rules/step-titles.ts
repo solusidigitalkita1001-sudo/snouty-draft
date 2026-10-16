@@ -62,6 +62,7 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-708': { id: 'Fitting air bersih', en: 'Clean-water fittings' },
   'ENG-709': { id: 'Pompa sumur', en: 'Well pump' },
   'ENG-710': { id: 'Tekanan untuk mengisi toren', en: 'Pressure to fill the tank' },
+  'ENG-711': { id: 'Pilihan dudukan toren', en: 'Tank stand options' },
   'ENG-801': { id: 'Debit puncak toilet umum', en: 'Peak demand, public restrooms' },
   'ENG-802': { id: 'Deret keran wudhu', en: 'Ablution tap rows' },
   'ENG-803': { id: 'Talang wudhu', en: 'Ablution trough drain' },

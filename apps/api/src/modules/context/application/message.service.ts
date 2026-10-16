@@ -85,6 +85,7 @@ import { productQueryOf, runProductQuestion } from './product-question-pipeline.
 import { ReplyWriter, type ReplyTurn } from './reply-writer.js';
 import { RequirementSnapshotStore } from './requirement-snapshot.store.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
+import type { ActiveSolution, ActiveSolutionRegistry } from '../domain/active-solution.port.js';
 import { ulid } from '../../../shared/ulid.js';
 import { stageTimer, type StageTimer } from '../../../shared/logging/stage-timer.js';
 import type { EventSink } from '../../../shared/sse/event-stream.js';
@@ -111,7 +112,25 @@ export class MessageService {
     @Optional() private readonly understanding: UnderstandingService | null = null,
     /** Perencana giliran (P16-29); tanpa ini router contoh saja. */
     @Optional() private readonly planner: TurnPlanner | null = null,
+    /** Solusi aktif percakapan (P22-04); tanpa ini pertanyaan tentang hasil dijawab dari kebutuhan saja. */
+    @Optional() private readonly activeSolution: ActiveSolutionRegistry | null = null,
   ) {}
+
+  /**
+   * Rekomendasi terakhir percakapan sebagai fakta jawaban (P22-04). `stale` bila snapshot kebutuhan
+   * sudah bukan yang dihitung — modelnya diberi tahu, bukan dibiarkan menyebut angka lama sebagai kini.
+   */
+  private async solutionFor(
+    conversationId: string,
+    snapshotId: string | null,
+  ): Promise<ActiveSolution | null> {
+    const recommendation = await this.activeSolution?.latestFor(conversationId);
+    if (!recommendation) return null;
+    return {
+      recommendation,
+      stale: snapshotId !== null && recommendation.snapshotId !== snapshotId,
+    };
+  }
 
   /**
    * Memproses satu pesan pengguna dan mengembalikan event untuk dialirkan.
@@ -184,6 +203,7 @@ export class MessageService {
     const snapshot = await this.store.current(conversationId);
     const state = snapshot?.state ?? emptyRequirementState(now);
     const hasExisting = (snapshot?.state.completeness.filled ?? 0) > 0;
+    const solution = await this.solutionFor(conversationId, snapshot?.id ?? null);
 
     // Satu pemahaman per giliran (P16-11): intent, kedalaman, format, topik, keluarga produk —
     // dari contoh (data) + penyandi teks, puluhan milidetik. Semua keputusan di bawah membacanya.
@@ -296,6 +316,7 @@ export class MessageService {
           state,
           locale,
           hasExisting,
+          solution,
           named: u.families,
           previousText: [...recentTurns].reverse().find((t) => t.role === 'assistant')?.text ?? '',
           asksAspect: u.productAspect !== null,
@@ -418,6 +439,7 @@ export class MessageService {
         recentTurns,
         locale,
         understanding: u,
+        solution,
         ...(emit ? { emit: withoutFirstStart(emit) } : {}),
       },
       this.reply,
@@ -550,6 +572,7 @@ export class MessageService {
       state,
       locale,
       hasExisting: (state.completeness?.filled ?? 0) > 0,
+      solution: await this.solutionFor(conversationId, null),
       named: u.families,
       previousText: '',
       asksAspect: u.productAspect !== null,

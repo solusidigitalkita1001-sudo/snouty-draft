@@ -9,12 +9,13 @@
  * yang memuat angka di luar hasil hitungan dibuang oleh REC-1 di perakitan, bukan di
  * sini. Modul ini hanya memutuskan siapa yang menulis.
  */
-import { Module } from '@nestjs/common';
+import { Inject, Module, type OnModuleInit } from '@nestjs/common';
 import { AiModule } from '../ai/ai.module.js';
 import { AI_SERVICE } from '../ai/domain/ai.port.js';
 import { PROSE_SYSTEM_PROMPT } from '../ai/application/prompts.js';
 import { loadEnv } from '../../config/env.js';
 import { ContextModule } from '../context/context.module.js';
+import { ActiveSolutionRegistry } from '../context/domain/active-solution.port.js';
 import { ConversationModule } from '../conversation/conversation.module.js';
 import { ProductCatalogModule } from '../product-catalog/product-catalog.module.js';
 import { CatalogQueryService } from '../product-catalog/application/catalog-query.service.js';
@@ -68,4 +69,16 @@ const analysisServiceProvider = {
   providers: [recommendationRepositoryProvider, proseWriterProvider, analysisServiceProvider],
   exports: [analysisServiceProvider, recommendationRepositoryProvider],
 })
-export class RecommendationModule {}
+export class RecommendationModule implements OnModuleInit {
+  constructor(
+    private readonly registry: ActiveSolutionRegistry,
+    @Inject(RECOMMENDATION_REPOSITORY) private readonly repository: RecommendationRepository,
+  ) {}
+
+  /** Jawaban chat tentang solusi aktif (P22-04) membaca rekomendasi terakhir lewat port context. */
+  onModuleInit(): void {
+    this.registry.bind({
+      latestFor: (conversationId) => this.repository.findLatestForConversation(conversationId),
+    });
+  }
+}

@@ -59,6 +59,25 @@ export const SOLUTION_COPY = {
     vent: 'Ventilasi',
     ventCaption: 'Keluar di atas atap',
   },
+  /** Tinggi toren (P22-04): pilihan dudukan dari ENG-711. */
+  tankStand: {
+    title: 'Tinggi toren',
+    lead: (option: string, minimum: string) =>
+      `Tanpa pompa pendorong, dudukan terendah yang masih memberi ${minimum} bar di titik air tertinggi: ${option.toLowerCase()}.`,
+    leadNone: (minimum: string) =>
+      `Tanpa pompa pendorong, tidak ada dudukan di daftar yang mencapai ${minimum} bar di titik air tertinggi.`,
+    roofSlab: 'Di dak atap',
+    tower: (height: string) => `Tiang toren ${height} m`,
+    waterLevel: (level: string) => `muka air ${level} m`,
+    bar: (bar: string) => `${bar} bar`,
+    short: 'kurang, perlu pompa',
+    enough: 'cukup tanpa pompa',
+    strong: 'deras di shower',
+    pipes: (main: string, branches: string) =>
+      `Pipa dari toren ${main}, cabang di dalam rumah ${branches}.`,
+    strongNeedsPump: (comfort: string) =>
+      `Supaya shower terasa deras (${comfort} bar) tanpa tiang yang lebih tinggi, perlu pompa pendorong.`,
+  },
   statsLabels: {
     outletCount: 'Titik air',
     mainSize: 'Jalur utama',
@@ -304,6 +323,24 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
     outlets: (count: number) => `${count} outlets`,
     vent: 'Vent',
     ventCaption: 'Out above the roof',
+  },
+  tankStand: {
+    title: 'Tank height',
+    lead: (option: string, minimum: string) =>
+      `Without a booster pump, the lowest support that still gives ${minimum} bar at the highest outlet: ${option.toLowerCase()}.`,
+    leadNone: (minimum: string) =>
+      `Without a booster pump, no support in the list reaches ${minimum} bar at the highest outlet.`,
+    roofSlab: 'On the roof slab',
+    tower: (height: string) => `${height} m tank tower`,
+    waterLevel: (level: string) => `water level ${level} m`,
+    bar: (bar: string) => `${bar} bar`,
+    short: 'not enough, needs a pump',
+    enough: 'enough without a pump',
+    strong: 'strong shower',
+    pipes: (main: string, branches: string) =>
+      `Pipe from the tank ${main}, branches inside the house ${branches}.`,
+    strongNeedsPump: (comfort: string) =>
+      `For a strong shower (${comfort} bar) without a taller tower, a booster pump is needed.`,
   },
   statsLabels: {
     outletCount: 'Outlets',

@@ -40,6 +40,7 @@ import {
   ENG_708,
   ENG_709,
   ENG_710,
+  ENG_711,
   ENG_705,
   ENG_706,
   ENG_707,
@@ -48,6 +49,8 @@ import {
   type HouseSupplyFittingResult,
   minimumHeadM,
   type RouteBasis,
+  TANK_TOWER_HEIGHTS_M,
+  type TankStandOptionsResult,
 } from './rules/group-k-house-supply.js';
 import type { RuleVersion } from './rule.js';
 import { assertBalanced } from './consistency.js';
@@ -113,6 +116,11 @@ export interface HouseSupply {
    * pendorong, dan apakah beda tingginya sendiri sudah kurang. `null` bila tekanannya cukup.
    */
   readonly gravityRemedy: { readonly minimumStandM: number; readonly heightShort: boolean } | null;
+  /**
+   * Toren atap: tekanan dari tiap dudukan yang mungkin — dak atap atau tiang toren (ENG-711), untuk
+   * pertanyaan "toren harus setinggi apa supaya deras tanpa pompa". Selain toren atap `null`.
+   */
+  readonly tankStand: (TankStandOptionsResult & { readonly comfortBar: number }) | null;
   /** Sumur: kedalaman muka air yang dihitung dan batas sedot pompa biasa (ENG-709); selain itu `null`. */
   readonly well: {
     readonly depthM: number;
@@ -443,6 +451,7 @@ export function computeSolution(
   let gravityResidualBar: number | null = null;
   let boosterPumpNeeded = false;
   let gravityRemedy: HouseSupply['gravityRemedy'] = null;
+  let tankStand: HouseSupply['tankStand'] = null;
   if (gravity) {
     const check = run(ENG_703, {
       availableHeadM,
@@ -455,6 +464,18 @@ export function computeSolution(
     if (check.minimumStandM !== null) {
       gravityRemedy = { minimumStandM: check.minimumStandM, heightShort: check.heightShort };
     }
+    // Dak atau tiang toren: tekanan dari tiap dudukan dengan pipa yang sama (ENG-711).
+    const comfortBar = use('RESIDUAL_GRAVITY_COMFORT_0_7BAR');
+    const options = run(ENG_711, {
+      roofHeightM: round2(input.floors * floorHeightM),
+      highestOutletM: round2((input.floors - 1) * floorHeightM + use('OUTLET_HEIGHT_2M')),
+      standM: use('TANK_STAND_1M'),
+      lossM: round2(main.frictionLossM + main.minorLossM),
+      minimumBar,
+      comfortBar,
+      towerHeightsM: [...TANK_TOWER_HEIGHTS_M],
+    });
+    tankStand = { ...options, comfortBar };
   }
   let well: HouseSupply['well'] = null;
   if (input.waterSource === 'pump') {
@@ -617,6 +638,7 @@ export function computeSolution(
       main,
       gravityResidualBar,
       gravityRemedy,
+      tankStand,
       well,
       requiredSourcePressureBar,
     },

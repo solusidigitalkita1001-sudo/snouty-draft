@@ -104,6 +104,7 @@ export function assembleReportPayload(input: AssembleReportInput): ReportPayload
       return name !== undefined ? { ...product, name } : product;
     }),
     ...(input.recommendation.needs ? { needs: input.recommendation.needs } : {}),
+    ...(input.recommendation.tankStand ? { tankStand: input.recommendation.tankStand } : {}),
     ...(input.recommendation.stats ? { outletCount: input.recommendation.stats.outletCount } : {}),
   };
 }

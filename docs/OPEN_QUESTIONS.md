@@ -413,6 +413,21 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-67 — Tinggi tiang toren dan ambang "deras di shower" (P22-04, masukan pengguna rumah subsidi 2026-10-16)
+
+**Status:** terbuka · **Blocks:** pengesahan ENG-711
+**Konteks:** pertanyaan paling sering dari pengguna awam: "toren harus di ketinggian berapa supaya aliran
+kencang ke tiap titik tanpa pompa pendorong — di dak atau pakai tiang toren, pipa dari toren berapa inci, di
+dalam rumah berapa". ENG-711 menghitung tekanan di titik air tertinggi untuk tiap dudukan yang mungkin.
+**Default sementara:** (1) tinggi tiang toren yang ditawarkan `TANK_TOWER_HEIGHTS_M` = 3, 4, 5, 6, 8 m dari
+tanah ke dudukan — daftar ukuran pasar, bukan standar; (2) muka air = dudukan + `TANK_STAND_1M` (1 m) untuk dak
+maupun tiang; (3) ambang minimum tetap `RESIDUAL_GRAVITY_0_3BAR`, ambang "deras di shower"
+`RESIDUAL_GRAVITY_COMFORT_0_7BAR` = 0,7 bar (Noerbambang & Morimura: tekanan minimum shower 0,7 kg/cm²);
+(4) kehilangan di pipa tegak tambahan diabaikan, seperti ENG-703. Pilihan tampil di kartu "Tinggi toren" layar
+Ringkasan dan laporan PDF, dan menjadi fakta jawaban chat.
+**Yang perlu diputuskan ahli Pralon:** daftar tinggi tiang yang lazim dipasang, tinggi muka air di atas
+dudukan untuk toren yang biasa dipakai, dan ambang tekanan yang Pralon anggap "deras".
+
 ### OQ-66 — Kedalaman sumur dari pilihan rentang (review putaran 3, P20-01)
 
 **Status:** terbuka · **Blocks:** pengesahan ENG-702 v3 / ENG-709

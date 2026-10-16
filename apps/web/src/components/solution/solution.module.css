@@ -389,6 +389,11 @@
   background: var(--snouty-surface-subtle);
 }
 
+.needRecommended {
+  border-color: var(--snouty-action);
+  box-shadow: inset 0 3px 0 var(--snouty-action);
+}
+
 .needAttention {
   border-color: var(--snouty-assumed-border);
   background: var(--snouty-assumed-bg-soft);

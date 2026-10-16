@@ -296,6 +296,20 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
           `Pressure at the meter = (${f.n(i['tankLevelM'])} + ${f.n(o['frictionLossM'])} + ${f.n(o['minorLossM'])}) m = ${f.n(o['requiredHeadM'])} m ≈ ${f.n(o['requiredBar'])} bar`,
         )
       : null,
+  'ENG-711': (i, o, f) => {
+    const options = o['options'];
+    if (!Array.isArray(options) || !nums(i, ['highestOutletM', 'lossM', 'standM'])) return null;
+    const rows = options
+      .filter((opt): opt is Record<string, unknown> => typeof opt === 'object' && opt !== null)
+      .filter((opt) => nums(opt, ['supportHeightM', 'waterLevelM', 'residualBar']))
+      .map((opt) =>
+        f.t(
+          `${opt['kind'] === 'roof_slab' ? 'dak' : 'tiang'} ${f.n(opt['supportHeightM'])} m: (${f.n(opt['waterLevelM'])} − ${f.n(i['highestOutletM'])} − ${f.n(i['lossM'])}) m ÷ 10,197 = ${f.n(opt['residualBar'])} bar`,
+          `${opt['kind'] === 'roof_slab' ? 'roof slab' : 'tower'} ${f.n(opt['supportHeightM'])} m: (${f.n(opt['waterLevelM'])} − ${f.n(i['highestOutletM'])} − ${f.n(i['lossM'])}) m ÷ 10.197 = ${f.n(opt['residualBar'])} bar`,
+        ),
+      );
+    return rows.length > 0 ? rows.join('; ') : null;
+  },
   'ENG-705': (i, o, f) =>
     nums(i, ['landSideM', 'buildingSideM']) && nums(o, ['yardM'])
       ? f.t(

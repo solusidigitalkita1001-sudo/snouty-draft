@@ -17,6 +17,7 @@ import {
   type RangeCatalog,
 } from './product-range.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
+import type { ActiveSolution } from '../domain/active-solution.port.js';
 import { openerReply } from './reply-copy.js';
 import type { TurnPlan } from './turn-planner.js';
 import { withCompleteness } from '../domain/completeness.js';
@@ -31,6 +32,8 @@ export interface PlanContext {
   readonly state: RequirementState;
   readonly locale: Locale;
   readonly hasExisting: boolean;
+  /** Rekomendasi yang sudah dihitung (P22-04). */
+  readonly solution?: ActiveSolution | null;
   /**
    * Keluarga yang DISEBUT pesan ini (kosakata, `u.families`): "kalau yang pvc?" menyebut pvc —
    * itu mengalahkan pilihan model (uji 2026-10-09: model memilih FITTING PVC saja).
@@ -139,7 +142,10 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
       const facts =
         plan.action === 'chat'
           ? identity
-          : [identity, caseFacts(state, ctx.locale, followUpCard(state, ctx.locale))].join('\n');
+          : [
+              identity,
+              caseFacts(state, ctx.locale, followUpCard(state, ctx.locale), ctx.solution ?? null),
+            ].join('\n');
       const fallback =
         plan.action === 'case_question'
           ? en

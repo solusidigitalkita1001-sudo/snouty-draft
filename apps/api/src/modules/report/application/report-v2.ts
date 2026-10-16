@@ -18,6 +18,7 @@ import {
   type ReportPayload,
   type SelectedProduct,
   type SolutionNeed,
+  type TankStandOption,
 } from '@snouty/shared-types';
 import {
   PRODUCT_VIEWBOX,
@@ -50,6 +51,21 @@ export interface ReportV2Copy {
     readonly note: string;
   };
   readonly flowTitle: string;
+  /** Tinggi toren (P22-04): pilihan dudukan dari ENG-711 — kata-kata yang sama dengan layar. */
+  readonly tankStand: {
+    readonly title: string;
+    readonly lead: (option: string, minimum: string) => string;
+    readonly leadNone: (minimum: string) => string;
+    readonly roofSlab: string;
+    readonly tower: (height: string) => string;
+    readonly waterLevel: (level: string) => string;
+    readonly bar: (bar: string) => string;
+    readonly short: string;
+    readonly enough: string;
+    readonly strong: string;
+    readonly pipes: (main: string, branches: string) => string;
+    readonly strongNeedsPump: (comfort: string) => string;
+  };
   readonly boqTitle: string;
   readonly boqColumns: {
     readonly no: string;
@@ -216,6 +232,23 @@ export const REPORT_V2_COPY: Readonly<Record<Locale, ReportV2Copy>> = {
       },
     },
     flowTitle: 'Alur air',
+    tankStand: {
+      title: 'Tinggi Toren',
+      lead: (option, minimum) =>
+        `Tanpa pompa pendorong, dudukan terendah yang masih memberi ${minimum} bar di titik air tertinggi: ${option.toLowerCase()}.`,
+      leadNone: (minimum) =>
+        `Tanpa pompa pendorong, tidak ada dudukan di daftar yang mencapai ${minimum} bar di titik air tertinggi.`,
+      roofSlab: 'Di dak atap',
+      tower: (height) => `Tiang toren ${height} m`,
+      waterLevel: (level) => `muka air ${level} m`,
+      bar: (bar) => `${bar} bar`,
+      short: 'kurang, perlu pompa',
+      enough: 'cukup tanpa pompa',
+      strong: 'deras di shower',
+      pipes: (main, branches) => `Pipa dari toren ${main}, cabang di dalam rumah ${branches}.`,
+      strongNeedsPump: (comfort) =>
+        `Supaya shower terasa deras (${comfort} bar) tanpa tiang yang lebih tinggi, perlu pompa pendorong.`,
+    },
     boqTitle: 'Daftar Kebutuhan Material (BOQ)',
     boqColumns: {
       no: 'NO.',
@@ -297,6 +330,24 @@ export const REPORT_V2_COPY: Readonly<Record<Locale, ReportV2Copy>> = {
       },
     },
     flowTitle: 'How the water runs',
+    tankStand: {
+      title: 'Tank Height',
+      lead: (option, minimum) =>
+        `Without a booster pump, the lowest support that still gives ${minimum} bar at the highest outlet: ${option.toLowerCase()}.`,
+      leadNone: (minimum) =>
+        `Without a booster pump, no support in the list reaches ${minimum} bar at the highest outlet.`,
+      roofSlab: 'On the roof slab',
+      tower: (height) => `${height} m tank tower`,
+      waterLevel: (level) => `water level ${level} m`,
+      bar: (bar) => `${bar} bar`,
+      short: 'not enough, needs a pump',
+      enough: 'enough without a pump',
+      strong: 'strong shower',
+      pipes: (main, branches) =>
+        `Pipe from the tank ${main}, branches inside the house ${branches}.`,
+      strongNeedsPump: (comfort) =>
+        `For a strong shower (${comfort} bar) without a taller tower, a booster pump is needed.`,
+    },
     boqTitle: 'Bill of Quantities',
     boqColumns: {
       no: 'NO.',
@@ -691,6 +742,57 @@ export function hasDrawing(p: ReportPayload): boolean {
   return drawingInputFrom(p.needs ?? []) !== null;
 }
 
+export function hasTankStand(p: ReportPayload): boolean {
+  return p.tankStand !== undefined && p.tankStand.options.length > 0;
+}
+
+/**
+ * Tinggi toren (P22-04): tekanan di titik air tertinggi untuk tiap dudukan — dak atap atau tiang
+ * toren — dari ENG-711, dengan kata dan gambar yang sama dengan kartu di layar.
+ */
+export function tankStandSection(
+  p: ReportPayload,
+  v: ReportV2Copy,
+  parts: ReportParts,
+  n: number,
+): string {
+  const view = p.tankStand;
+  if (view === undefined) return '';
+  const c = v.tankStand;
+  const d = (value: number) => decimal(value, p.locale);
+  const label = (option: TankStandOption) =>
+    option.kind === 'roof_slab' ? c.roofSlab : c.tower(d(option.supportHeightM));
+  const caption = (option: TankStandOption) =>
+    option.comfortable ? c.strong : option.meetsMinimum ? c.enough : c.short;
+  const recommended = view.recommendedIndex === null ? null : view.options[view.recommendedIndex];
+  const lead = recommended
+    ? c.lead(label(recommended), d(view.minimumBar))
+    : c.leadNone(d(view.minimumBar));
+  const cards = view.options
+    .map(
+      (option, index) =>
+        `<div class="r-need${index === view.recommendedIndex ? ' r-need-recommended' : option.meetsMinimum ? '' : ' r-need-attention'}">` +
+        scene(option.kind === 'roof_slab' ? 'tank' : 'tankup', 'r-need-img') +
+        `<span class="r-need-count">${parts.esc(c.bar(d(option.residualBar)))}</span>` +
+        `<span class="r-need-label">${parts.esc(label(option))}</span>` +
+        `<span class="r-need-caption">${parts.esc(`${c.waterLevel(d(option.waterLevelM))} · ${caption(option)}`)}</span>` +
+        `</div>`,
+    )
+    .join('');
+  const pipes = [
+    c.pipes(view.mainSize, view.branchSizes.join(' / ')),
+    view.comfortableIndex === null ? c.strongNeedsPump(d(view.comfortBar)) : '',
+  ]
+    .filter((s) => s !== '')
+    .join(' ');
+  return `<section class="page">
+  ${parts.sectionHead(n, c.title)}
+  <p class="lead-text">${parts.esc(lead)}</p>
+  <div class="r-needs">${cards}</div>
+  <p class="note">${parts.esc(pipes)}</p>
+</section>`;
+}
+
 export function drawingSection(
   p: ReportPayload,
   v: ReportV2Copy,
@@ -726,6 +828,7 @@ export const REPORT_V2_CSS = `
 .r-need { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.6mm; padding: 2.5mm; border: 1px solid var(--snouty-hairline); border-radius: 2mm; background: var(--snouty-surface-subtle); break-inside: avoid; }
 .r-need-attention { border-color: var(--snouty-assumed-border); background: var(--snouty-assumed-bg); }
 .r-need-attention .r-need-caption { color: var(--snouty-assumed-text); }
+.r-need-recommended { border-color: var(--snouty-action); box-shadow: inset 0 1mm 0 var(--snouty-action); }
 .r-need-img { width: 24mm; height: 20mm; }
 .r-need-count { font-family: var(--snouty-font-mono); font-size: 13pt; font-weight: 600; }
 .r-need-label { font-size: 8.5pt; font-weight: 600; }

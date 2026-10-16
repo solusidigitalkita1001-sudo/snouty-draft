@@ -10,6 +10,8 @@ import { requirementFieldLabel } from '../domain/requirement-labels.js';
 import { caseProfile, caseProfileLabel, isCaseId } from '@snouty/engineering';
 import { capturedFrom } from './message-pipeline.js';
 import { technicalCaptured, technicalMissing } from '../domain/technical.js';
+import type { ActiveSolution } from '../domain/active-solution.port.js';
+import { solutionFacts } from './solution-facts.js';
 
 /**
  * Dasar perhitungan mesin SNOUTY — disalin dari aturan Kelompok A–C (packages/engineering), bukan
@@ -35,10 +37,14 @@ export function caseFacts(
   locale: Locale,
   /** Kartu tindak lanjut untuk state ini (`followUpCard`) — sumber status kebijakan. */
   card: AssistantCard | null,
+  /** Rekomendasi yang sudah dihitung untuk percakapan ini (P22-04); tanpa ini hanya kebutuhan. */
+  solution: ActiveSolution | null = null,
 ): string {
   const en = locale === 'en';
   if (state?.useCase?.kind === 'technical' && isCaseId(state.useCase.caseId)) {
-    return technicalFacts(state, state.useCase.caseId, locale);
+    return [technicalFacts(state, state.useCase.caseId, locale), solutionFacts(solution, locale)]
+      .filter((part) => part !== '')
+      .join('\n');
   }
   const lines: string[] = [];
   const captured = state ? capturedFrom(state, locale) : [];
@@ -60,6 +66,12 @@ export function caseFacts(
         : '- Diserahkan ke tim teknis Pralon (tidak dihitung otomatis):',
       ...card.reasons.map((r) => `  - ${r}`),
     );
+  } else if (solution && !solution.stale) {
+    lines.push(
+      en
+        ? '- Calculated: the solution below is for the recorded requirement.'
+        : '- Sudah dihitung: solusi di bawah berlaku untuk kebutuhan yang tercatat.',
+    );
   } else if (missing.length > 0) {
     lines.push(
       en
@@ -75,6 +87,9 @@ export function caseFacts(
   } else {
     lines.push(en ? '- No case started yet.' : '- Belum ada kasus.');
   }
+
+  const facts = solutionFacts(solution, locale);
+  if (facts !== '') lines.push(facts);
 
   lines.push(en ? 'HOW SNOUTY CALCULATES:' : 'CARA SNOUTY MENGHITUNG:');
   for (const fact of en ? BASIS_EN : BASIS_ID) lines.push(`- ${fact}`);

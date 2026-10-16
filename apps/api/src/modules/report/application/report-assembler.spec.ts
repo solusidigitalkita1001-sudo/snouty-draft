@@ -733,3 +733,47 @@ describe('sampul laporan — data di luar kewajaran (review putaran 4, 6b)', () 
     expect(cover).toContain(`<div class="banner">${text}</div>`);
   });
 });
+
+describe('renderReportHtml — Tinggi toren (P22-04)', () => {
+  const tankStand = {
+    options: [
+      {
+        kind: 'roof_slab',
+        supportHeightM: 3.5,
+        waterLevelM: 4.5,
+        residualBar: 0.2,
+        meetsMinimum: false,
+        comfortable: false,
+      },
+      {
+        kind: 'tower',
+        supportHeightM: 5,
+        waterLevelM: 6,
+        residualBar: 0.34,
+        meetsMinimum: true,
+        comfortable: false,
+      },
+    ],
+    recommendedIndex: 1,
+    comfortableIndex: null,
+    minimumBar: 0.3,
+    comfortBar: 0.7,
+    mainSize: '3/4"',
+    branchSizes: ['1/2"'],
+  } as const;
+
+  it('bagian Tinggi Toren muncul hanya bila rekomendasi punya pilihan dudukan, dengan kata yang sama dengan layar', () => {
+    const without = renderReportHtml(assembleReportPayload(INPUT));
+    expect(without).not.toContain('Tinggi Toren');
+    const html = renderReportHtml({ ...assembleReportPayload(INPUT), tankStand });
+    expect(html).toContain('Tinggi Toren');
+    expect(html).toContain(
+      'dudukan terendah yang masih memberi 0,3 bar di titik air tertinggi: tiang toren 5 m.',
+    );
+    expect(html).toContain('Di dak atap');
+    expect(html).toContain('muka air 4,5 m · kurang, perlu pompa');
+    expect(html).toContain('r-need-recommended');
+    expect(html).toContain('Pipa dari toren 3/4&quot;, cabang di dalam rumah 1/2&quot;.');
+    expect(html).toContain('(0,7 bar)');
+  });
+});

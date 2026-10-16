@@ -1655,6 +1655,41 @@ kasus U1/U2/U3 putaran 3 tetap jadi regresi.
 - [x] P21-15 IP klien di belakang nginx: `request.ip` selalu IP kontainer nginx → rate limit login per IP menjadi
       satu kuota global dan audit log tanpa IP asal. `trust proxy` = 1 lompatan (`trustReverseProxy`), tes HTTP nyata
 
+## Phase 22 — Masukan pengguna awam: rumah subsidi, gambar sistem, SPAM/sewerage (16 Okt 2026)
+
+Masukan dari kenalan pemilik (bapak-bapak yang mengulik rumahnya sendiri) lewat pemilik, 2026-10-16. Pemilik
+meninggalkan sesi dengan "kerjain sampai selesai": keputusan desain diambil sebagai default dan dicatat di
+`docs/OPEN_QUESTIONS.md` (OQ-67 dst.), bukan ditanyakan. Lima butir:
+
+1. Aplikasi mudah dipakai orang awam segmen perumahan subsidi (alur, penjelasan, contoh rumah).
+2. Gambar sistem pipa yang lebih nyata (arah, jumlah pipa, jumlah aksesoris) bila ditanya.
+3. Estimasi bila sistem pipa rumah subsidi (pipa murah) diganti produk Pralon.
+4. Pertanyaan paling sering: rumah subsidi, aliran kencang ke tiap titik tanpa pompa pendorong — toren di
+   ketinggian berapa, dak atau tiang toren, pipa dari toren berapa inci, di dalam instalasi berapa.
+5. Siapkan use case proyek SPAM (jaringan air minum) dan sewerage (jaringan air limbah).
+
+- [x] P22-04 Tinggi toren tanpa pompa (butir 4). **ENG-711** v1 (Kelompok K): tekanan di titik air tertinggi
+      untuk tiap dudukan — dak atap (pelat atap + TANK_STAND_1M) dan tiang toren `TANK_TOWER_HEIGHTS_M`
+      3/4/5/6/8 m — dengan kehilangan pipa utama yang sama; tiang yang tidak lebih tinggi dari dak tidak
+      ditawarkan; `recommendedIndex` = terendah ≥ 0,3 bar, `comfortableIndex` = terendah ≥ asumsi baru
+      `RESIDUAL_GRAVITY_COMFORT_0_7BAR` (shower deras, Noerbambang & Morimura). Contoh U1 (1 lantai 3,5 m,
+      shower 2 m): dak 0,2 bar kurang; tiang 5 m cukup; tidak ada yang 0,7 bar tanpa pompa → dikatakan apa
+      adanya. Tersimpan sebagai `Recommendation.tankStand` (migration 0024 `tank_stand`), kartu **Tinggi
+      toren** di tab Ringkasan (tiap pilihan bergambar `tank`/`tankup`, yang cukup ditandai, ukuran pipa dari
+      toren dan cabang di dalam rumah disebut), bagian **Tinggi Toren** di PDF dengan kata yang sama.
+      **Jawaban chat tentang solusi aktif** (dulu model hanya diberi kebutuhan, tanpa satu pun angka hasil):
+      port `ActiveSolutionRegistry` di context diikat modul recommendation saat init (arah dependensi tetap),
+      `solutionFacts` memberi ukuran pipa, pompa, pilihan tinggi toren, dan BOQ ke penulis balasan — ditandai
+      usang bila snapshot kebutuhan sudah berubah. Contoh pertanyaan ditambah ke `explanation_request`
+      (toren setinggi berapa, dak atau tiang, pipa dari toren berapa inci, berapa batang, fitting apa saja,
+      arah jalur); eval bge-m3 lolos. 55 aturan; tes engine 389, API 527 (report/context/recommendation),
+      web kartu 2. OQ-67 (tinggi tiang, ambang deras).
+- [ ] P22-01 Contoh rumah dan bahasa awam (butir 1).
+- [ ] P22-02 Gambar sistem pipa saat ditanya (butir 2).
+- [ ] P22-03 Estimasi ganti pipa lama ke Pralon (butir 3).
+- [ ] P22-05 Use case SPAM dan sewerage (butir 5).
+- [ ] ✋ CHECKPOINT Fase 22 — ditinjau pemilik
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |
@@ -1706,6 +1741,7 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | ENG-012 | Assumption "each bathroom contains 1 shower + 1 closet"                                                                           | prototype                   | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-013 | Pressure class guidance: AW for pressurised clean water, D for drainage                                                           | board screen 08             | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-014 | "Belum tahu" defaults (`source → Toren atap`, `install → Air bersih`); see OQ-32                                                  | prototype                   | REQUIRES_DOMAIN_VALIDATION | —            | —    |
+| ENG-711 | Tank stand options: roof slab vs tank tower, residual pressure per support (P22-04)                                                | user feedback 2026-10-16    | REQUIRES_DOMAIN_VALIDATION | OQ-67 |
 
 ## Session Log
 

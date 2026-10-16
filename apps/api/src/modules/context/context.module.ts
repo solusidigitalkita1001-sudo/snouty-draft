@@ -35,6 +35,7 @@ import {
 import { requirementSnapshotRepositoryProvider } from './infrastructure/mysql-requirement-snapshot.repository.js';
 import { MessageController } from './presentation/message.controller.js';
 import { TurnPlanner } from './application/turn-planner.js';
+import { ActiveSolutionRegistry } from './domain/active-solution.port.js';
 
 const rateLimiterProvider = {
   provide: RateLimiter,
@@ -76,6 +77,7 @@ const messageServiceProvider = {
     LoggerService,
     CompanyKnowledgeService,
     UnderstandingService,
+    ActiveSolutionRegistry,
   ],
   useFactory: (
     conversations: ConversationService,
@@ -88,6 +90,7 @@ const messageServiceProvider = {
     logger: LoggerService,
     company: CompanyKnowledgeService,
     understanding: UnderstandingService,
+    activeSolution: ActiveSolutionRegistry,
   ) =>
     new MessageService(
       conversations,
@@ -102,6 +105,7 @@ const messageServiceProvider = {
       understanding,
       // Perencana giliran (P16-29): model memilih tindakan untuk pesan yang bergantung konteks.
       ai && loadEnv().LLM_TURN_PLANNER ? new TurnPlanner(ai, loadEnv().LLM_REPLY_TIMEOUT_MS) : null,
+      activeSolution,
     ),
 };
 
@@ -124,8 +128,10 @@ const messageServiceProvider = {
     storeProvider,
     intentRouterProvider,
     replyWriterProvider,
+    // Diikat modul recommendation saat init (P22-04): context tidak mengimpor recommendation.
+    ActiveSolutionRegistry,
     messageServiceProvider,
   ],
-  exports: [RequirementSnapshotStore],
+  exports: [RequirementSnapshotStore, ActiveSolutionRegistry],
 })
 export class ContextModule {}

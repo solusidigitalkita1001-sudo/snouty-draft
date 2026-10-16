@@ -106,3 +106,129 @@ describe('balasan percakapan yang nyambung (P16-28)', () => {
     expect(events.some((e) => e.type === 'card')).toBe(false);
   });
 });
+
+describe('caseFacts — solusi aktif (P22-04)', () => {
+  const recommendation = {
+    id: 'R'.repeat(26),
+    conversationId: 'C'.repeat(26),
+    snapshotId: 'S'.repeat(26),
+    catalogVersionId: 'V'.repeat(26),
+    headline: 'Pipa utama 3/4 inci dari toren atap',
+    body: '',
+    stats: {
+      outletCount: 3,
+      mainSize: '3/4"',
+      branchCount: 1,
+      fixtureConnectionSize: '1/2"',
+      productCount: 4,
+    },
+    systemLines: [
+      {
+        name: 'Pipa distribusi utama',
+        path: 'Toren → lantai 1',
+        size: '3/4"',
+        reason: '',
+        provenance: 'ASSUMED',
+        traceIds: [],
+        role: 'main',
+      },
+    ],
+    needs: [{ kind: 'booster_pump', count: 1, residualBar: 0.2, minimumStandM: 2 }],
+    tankStand: {
+      options: [
+        {
+          kind: 'roof_slab',
+          supportHeightM: 3.5,
+          waterLevelM: 4.5,
+          residualBar: 0.2,
+          meetsMinimum: false,
+          comfortable: false,
+        },
+        {
+          kind: 'tower',
+          supportHeightM: 5,
+          waterLevelM: 6,
+          residualBar: 0.34,
+          meetsMinimum: true,
+          comfortable: false,
+        },
+      ],
+      recommendedIndex: 1,
+      comfortableIndex: null,
+      minimumBar: 0.3,
+      comfortBar: 0.7,
+      mainSize: '3/4"',
+      branchSizes: ['1/2"'],
+    },
+    products: [],
+    bom: [
+      {
+        item: 'Pipa PVC AW',
+        purpose: 'Pipa utama',
+        size: '3/4"',
+        quantity: 2,
+        unit: 'batang',
+        basis: '',
+        provenance: 'ASSUMED',
+        traceIds: [],
+      },
+      {
+        item: 'Elbow',
+        size: '1/2"',
+        quantity: 6,
+        unit: 'pcs',
+        basis: '',
+        provenance: 'ASSUMED',
+        traceIds: [],
+      },
+    ],
+    assumptions: [],
+    overallProvenance: 'ASSUMED',
+    createdAt: T0,
+  } as const;
+  const state = withCompleteness(
+    mergeRequirement(
+      emptyRequirementState(T0),
+      [
+        { path: 'building.floors', value: 1, source: 'user_stated' },
+        { path: 'fixtures.bathrooms', value: 1, source: 'user_stated' },
+        { path: 'water.source', value: 'rooftop_tank', source: 'user_stated' },
+      ],
+      T0,
+    ).state,
+  );
+
+  it('memuat ukuran pipa, pompa, pilihan tinggi toren, dan BOQ dari rekomendasi — status "sudah dihitung"', () => {
+    const facts = caseFacts(state, 'id', followUpCard(state, 'id'), {
+      recommendation: recommendation as never,
+      stale: false,
+    });
+    expect(facts).toContain('Sudah dihitung');
+    expect(facts).toContain('Pipa distribusi utama (Toren → lantai 1): 3/4"');
+    expect(facts).toContain('Perlu pompa pendorong: tanpa pompa hanya 0,2 bar');
+    expect(facts).toContain('PILIHAN TINGGI TOREN');
+    expect(facts).toContain(
+      'tiang toren 5 m, muka air 6 m: 0,34 bar, cukup tanpa pompa (terendah yang cukup)',
+    );
+    expect(facts).toContain('di dak atap, muka air 4,5 m: 0,2 bar, kurang, perlu pompa');
+    expect(facts).toContain('pipa dari toren 3/4", cabang di dalam rumah 1/2"');
+    expect(facts).toContain('Pipa utama 3/4": 2 batang');
+    expect(facts).toContain('Elbow 1/2": 6 pcs');
+  });
+
+  it('kebutuhan berubah setelah dihitung → ditandai usang, angkanya tetap disebut sebagai hitungan lama', () => {
+    const facts = caseFacts(state, 'en', followUpCard(state, 'en'), {
+      recommendation: recommendation as never,
+      stale: true,
+    });
+    expect(facts).toContain('The requirement changed after this calculation');
+    expect(facts).not.toContain('Calculated: the solution below');
+    expect(facts).toContain('TANK HEIGHT OPTIONS');
+  });
+
+  it('tanpa solusi → tidak ada blok solusi', () => {
+    expect(caseFacts(state, 'id', followUpCard(state, 'id'))).not.toContain(
+      'SOLUSI YANG SUDAH DIHITUNG',
+    );
+  });
+});

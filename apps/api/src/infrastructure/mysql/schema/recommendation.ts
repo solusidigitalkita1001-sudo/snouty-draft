@@ -65,6 +65,8 @@ export const recommendations = mysqlTable(
     systemLines: json('system_lines').notNull(),
     /** Kebutuhan bergambar di Ringkasan (P17-04, migration 0023); NULL untuk non-bangunan dan baris lama. */
     needs: json('needs'),
+    /** Pilihan dudukan toren (P22-04, migration 0024); NULL selain toren atap dan baris lama. */
+    tankStand: json('tank_stand'),
     products: json('products').notNull(),
     bom: json('bom').notNull(),
     assumptions: json('assumptions').notNull(),
