@@ -24,6 +24,7 @@ import type {
 } from '@snouty/shared-types';
 import type { IdentifiedTrace } from './solution-view.js';
 import { pipePurchase, type StockLength } from './pipe-quantity.js';
+import { MATERIAL } from './pressurized-view.js';
 
 function traceIdsFor(traces: readonly IdentifiedTrace[], ...ruleIds: string[]): readonly string[] {
   return traces.filter((trace) => ruleIds.includes(trace.ruleId)).map((trace) => trace.id);
@@ -153,7 +154,11 @@ export function networkInputFrom(state: RequirementState): NetworkInput | null {
     return null;
   }
   const residual = numberOf(p['required_pressure']);
+  // Bahan pilihan pengguna adalah constraint, bukan saran (audit PDAM 2026-10-16: HDPE dipilih, BOM PVC AW).
+  const materialLabel = p['material']?.value;
+  const material = typeof materialLabel === 'string' ? MATERIAL[materialLabel] : undefined;
   return {
+    ...(material ? { material } : {}),
     ...(connections !== undefined ? { connections: Math.max(1, Math.round(connections)) } : {}),
     ...(connections === undefined && population !== undefined
       ? { population: Math.max(1, Math.round(population)) }

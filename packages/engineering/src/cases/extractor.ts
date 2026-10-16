@@ -18,12 +18,22 @@ export interface ExtractedParameter {
   readonly evidence: string;
 }
 
-const NUM = String.raw`(\d+(?:[.,]\d+)?)`;
+/**
+ * Angka dengan pemisah ribuan Indonesia ("1.500", "2.500.000") atau desimal ("1,5", "2.5"). Kelompok
+ * ribuan dicoba lebih dulu supaya "1.500" tidak terpotong jadi "1.500"→1,5 (audit PDAM 2026-10-16).
+ */
+const NUM = String.raw`(\d{1,3}(?:\.\d{3})+(?!\d)|\d+(?:[.,]\d+)?)`;
 /** Satuan panjang sebagai kelompok tangkap — posisinya sama dengan "(m|meter)" yang lama. */
 const M = String.raw`(m|meters?|metres?)`;
 
-function num(raw: string): number {
-  return Number(raw.replace(',', '.'));
+/**
+ * "1.500" → 1500 (titik pemisah ribuan, kelompok tepat tiga digit); "1,5" dan "1.5" → 1,5. Angka
+ * pengguna dipertahankan apa adanya — tidak ada pembulatan atau konversi diam-diam.
+ */
+export function num(raw: string): number {
+  const text = raw.trim();
+  if (/^\d{1,3}(?:\.\d{3})+$/.test(text)) return Number(text.replace(/\./g, ''));
+  return Number(text.replace(',', '.'));
 }
 
 export function extractTechnicalContext(
@@ -306,8 +316,10 @@ export function extractTechnicalContext(
     }
   });
   take(
-    /(\d+)\s*(?:orang|jiwa|penduduk|penghuni|karyawan|pegawai|pekerja|people|persons?|occupants?|employees?|staff|inhabitants?)\b/,
-    (m) => add('number_of_occupants', Number(m[1]), m[0], 'orang'),
+    new RegExp(
+      String.raw`${NUM}\s*(?:orang|jiwa|penduduk|penghuni|karyawan|pegawai|pekerja|people|persons?|occupants?|employees?|staff|inhabitants?)\b`,
+    ),
+    (m) => add('number_of_occupants', num(m[1]!), m[0], 'orang'),
   );
   // Titik air PER LANTAI ("4 toilet per lantai", "tiap lantai 6 kamar mandi") — diambil sebelum
   // jumlah total supaya angka yang sama tidak terbaca dua kali.
@@ -333,9 +345,11 @@ export function extractTechnicalContext(
     add('number_of_outlets', Number(m[1]), m[0], 'titik'),
   );
   take(
-    /(\d+)\s*(unit|units|rumah|kk|kavling|sambungan|sr|houses?|homes?|connections?|plots?)\b/,
+    new RegExp(
+      String.raw`${NUM}\s*(unit|units|rumah|kk|kavling|sambungan|sr|houses?|homes?|connections?|plots?)\b`,
+    ),
     (m) => {
-      add('number_of_connections', Number(m[1]), m[0], 'sambungan');
+      add('number_of_connections', num(m[1]!), m[0], 'sambungan');
     },
   );
 

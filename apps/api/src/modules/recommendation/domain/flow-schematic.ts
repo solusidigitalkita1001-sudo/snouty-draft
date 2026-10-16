@@ -15,6 +15,7 @@ import {
   gravitySchematic,
   irrigationSchematic,
   networkSchematic,
+  type NetworkInput,
   pondSchematic,
   pressurizedSchematic,
   type FlowSchematicShape,
@@ -30,6 +31,17 @@ import { pressurizedPlanFrom } from './pressurized-view.js';
 /** Keluarga pipa jaringan cluster — aturan yang sama dengan `runNetwork`. */
 export function networkFamilyFor(routeLengthM: number): 'HDPE' | 'PVC AW' {
   return routeLengthM >= HDPE_FROM_METERS ? 'HDPE' : 'PVC AW';
+}
+
+/**
+ * Keluarga pipa jaringan: bahan pilihan pengguna menang; tanpa pilihan, aturan panjang jalur
+ * (HDPE_MAIN_FROM_200M). Bahan yang tidak ada di katalog sebagai keluarga (PPR, galvanis) jatuh ke
+ * aturan panjang — dan itu disebut di asumsi, bukan diam-diam.
+ */
+export function networkFamilyOf(network: NetworkInput): 'HDPE' | 'PVC AW' {
+  if (network.material === 'HDPE') return 'HDPE';
+  if (network.material === 'PVC') return 'PVC AW';
+  return networkFamilyFor(network.routeLengthM);
 }
 
 /** `null` = state ini bukan kasus teknis/irigasi yang bisa dihitung (pakai skema bangunan). */
@@ -89,9 +101,9 @@ export function flowSchematicFor(
   }
   const network = networkInputFrom(state);
   if (network !== null) {
-    const family = networkFamilyFor(network.routeLengthM);
+    const family = networkFamilyOf(network);
     const result = computeNetwork(
-      family === 'HDPE' ? { ...network, material: 'HDPE' } : network,
+      { ...network, material: family === 'HDPE' ? 'HDPE' : 'PVC' },
       locale,
       overridesOf(state),
     );

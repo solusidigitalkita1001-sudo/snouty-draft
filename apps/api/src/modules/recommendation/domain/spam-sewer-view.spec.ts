@@ -98,3 +98,40 @@ describe('water_supply_network (SPAM)', () => {
     expect(withUnits).toMatchObject({ kind: 'cluster', connections: 120 });
   });
 });
+
+describe('audit PDAM 2026-10-16: bahan pilihan dan angka pengguna dipertahankan', () => {
+  it('HDPE dipilih → masukan jaringan membawa HDPE; PVC → PVC; tanpa pilihan → aturan panjang jalur', async () => {
+    const { networkFamilyOf } = await import('./flow-schematic.js');
+    const base = { number_of_connections: 500, route_length: 150, static_head: 20 };
+    const hdpe = networkInputFrom({
+      ...technical('water_supply_network', base),
+      useCase: {
+        kind: 'technical',
+        caseId: 'water_supply_network',
+        parameters: {
+          ...(
+            technical('water_supply_network', base).useCase as {
+              parameters: Record<string, unknown>;
+            }
+          ).parameters,
+          material: {
+            key: 'material',
+            value: 'HDPE',
+            origin: 'known',
+            source: 'HDPE',
+            label: 'Bahan',
+          },
+        },
+      },
+    } as unknown as RequirementState)!;
+    expect(hdpe.material).toBe('HDPE');
+    expect(networkFamilyOf(hdpe)).toBe('HDPE');
+    const none = networkInputFrom(technical('water_supply_network', base))!;
+    expect(none.material).toBeUndefined();
+    // 150 m tanpa pilihan: aturan panjang → PVC AW; 1 500 m → HDPE.
+    expect(networkFamilyOf(none)).toBe('PVC AW');
+    expect(networkFamilyOf({ ...none, routeLengthM: 1500 })).toBe('HDPE');
+    const pvc = { ...none, material: 'PVC' as const };
+    expect(networkFamilyOf({ ...pvc, routeLengthM: 1500 })).toBe('PVC AW');
+  });
+});

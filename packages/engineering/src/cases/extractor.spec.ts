@@ -132,3 +132,21 @@ describe('extractTechnicalContext — temuan smoke 2026-10-16', () => {
     expect(f).toMatchObject({ static_head: 40, route_length: 500, design_flow: 5 });
   });
 });
+
+describe('extractTechnicalContext — audit PDAM 2026-10-16: angka pengguna dipertahankan', () => {
+  it('"1.500 meter" adalah 1 500 m, bukan 1,5 m; "1,5 km" adalah 1 500 m; "2.000 sambungan" 2 000', () => {
+    expect(
+      facts('jaringan distribusi pdam, pipa induk 1.500 meter', 'water_supply_network'),
+    ).toMatchObject({
+      route_length: 1500,
+    });
+    expect(facts('pipa transmisi 1,5 km', 'water_supply_network')).toMatchObject({
+      route_length: 1500,
+    });
+    expect(facts('spam untuk 2.000 sambungan rumah', 'water_supply_network')).toMatchObject({
+      number_of_connections: 2000,
+    });
+    expect(facts('beda tinggi 12,5 meter', 'pump_transfer')).toMatchObject({ static_head: 12.5 });
+    expect(facts('debit 2.5 liter per detik', 'pump_transfer')).toMatchObject({ design_flow: 2.5 });
+  });
+});

@@ -1769,6 +1769,16 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
       sementara kartu menanyakan hal sekunder (bahan, kontur, tekanan) satu per satu. Kini angka inti masuk kartu
       sebagai isian (kritis lebih dulu, wajib; sekunder opsional), jawabannya `kunci=angka` seperti ukuran bangunan,
       lalu tombol Susun rekomendasi begitu data inti lengkap.
+- [x] P22-11 Audit jaringan distribusi PDAM — temuan 1 dan 2 (brief pemilik 2026-10-16). (1) "1.500 meter" terbaca
+      1,5 m: akar masalah di parser angka extractor kasus teknis (NUM dan num() menganggap titik selalu desimal);
+      kini kelompok ribuan Indonesia ("1.500", "2.500.000") dikenali, koma tetap desimal, angka pengguna tidak
+      diubah; parser jumlah sambungan/jiwa ikut memakainya ("2.000 sambungan" dulu terbaca 0). (2) HDPE dipilih
+      tetapi BOM PVC AW: akar masalah networkInputFrom tidak membaca parameter material dan runNetwork/flowSchematic
+      memilih keluarga hanya dari panjang jalur (HDPE_MAIN_FROM_200M); kini bahan pilihan pengguna menjadi constraint
+      (networkFamilyOf: pilihan menang, aturan panjang hanya tanpa pilihan, dan asumsi panjang tidak lagi dicatat
+      bila pengguna yang memilih). Regresi: extractor (1.500 m, 1,5 km, 2.000 SR, 12,5 m, 2.5 l/s) dan pemetaan
+      bahan (HDPE/PVC/tanpa pilihan × 150 m/1 500 m). Temuan 3–6 (hidraulika per segmen, verifikasi pompa dan
+      tekanan sumber, validasi kelas PN, fitting tanpa topologi) dilaporkan sebagai rencana — menunggu pilihan pemilik.
 - [x] ✋ CHECKPOINT Fase 22 — pemilik menerima keempat default (OQ-67 ambang 0,7 bar, OQ-68 tetap skematik, OQ-69
       tanpa harga, OQ-70 kriteria umum divalidasi bersama aturan lain), 2026-10-16
 

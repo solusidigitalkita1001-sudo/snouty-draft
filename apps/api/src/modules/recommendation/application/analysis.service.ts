@@ -144,7 +144,7 @@ import {
 } from '../domain/product-matcher.js';
 import type { IdentifiedTrace, TeeBom } from '../domain/solution-view.js';
 import { composeResponse } from '../domain/response-composer.js';
-import { flowSchematicFor, networkFamilyFor } from '../domain/flow-schematic.js';
+import { flowSchematicFor, networkFamilyOf } from '../domain/flow-schematic.js';
 import { withCalculationSteps } from '../domain/calculation-steps.js';
 import {
   AssumptionValueRejectedError,
@@ -962,9 +962,10 @@ export class AnalysisService {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     // Keluarga dulu: HDPE dijual dalam mm, jadi engine harus memilih ukuran dari tabel mm.
-    const family = networkFamilyFor(input.routeLengthM);
+    // Bahan pilihan pengguna menang atas aturan panjang (audit PDAM 2026-10-16).
+    const family = networkFamilyOf(input);
     const result = computeNetwork(
-      family === 'HDPE' ? { ...input, material: 'HDPE' } : input,
+      { ...input, material: family === 'HDPE' ? 'HDPE' : 'PVC' },
       locale,
       overridesOf(state),
     );
@@ -972,7 +973,8 @@ export class AnalysisService {
       ...trace,
       id: ulid(),
     }));
-    const extra = family === 'HDPE' ? ['HDPE_MAIN_FROM_200M'] : [];
+    // Asumsi panjang jalur hanya bila keluarganya memang dipilih aturan itu, bukan oleh pengguna.
+    const extra = family === 'HDPE' && input.material === undefined ? ['HDPE_MAIN_FROM_200M'] : [];
     events.push({
       type: 'stage',
       stage: 'ANALYZING_INSTALLATION',

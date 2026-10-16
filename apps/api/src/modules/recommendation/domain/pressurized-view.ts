@@ -44,7 +44,8 @@ function numberOf(p: TechnicalParameter | undefined): number | undefined {
   return typeof p?.value === 'number' ? p.value : undefined;
 }
 
-const MATERIAL: Readonly<Record<string, PipeMaterial>> = {
+/** Label pilihan registry → bahan engine; dipakai jalur bertekanan DAN jaringan (audit PDAM 2026-10-16). */
+export const MATERIAL: Readonly<Record<string, PipeMaterial>> = {
   'PVC (uPVC)': 'PVC',
   HDPE: 'HDPE',
   PPR: 'PPR',
