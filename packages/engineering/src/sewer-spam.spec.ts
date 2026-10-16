@@ -12,16 +12,22 @@ describe('computeGravity — jaringan air limbah', () => {
     expect(result.sewer).toMatchObject({
       connections: 200,
       averageFlowLs: 0.93,
-      peakFlowLs: 2.31,
+      peakFlowLs: 2.41,
       minimumSize: SEWER_MINIMUM_SIZE,
     });
-    expect(result.designFlowLs).toBe(2.31);
+    expect(result.designFlowLs).toBe(2.41);
+    // Aliran sebagian pada 6" dan 0,5 %: terisi sebagian, kecepatan di bawah 0,6 → kemiringan minimum disebut.
+    expect(result.sewer?.partial.depthRatio).toBeGreaterThan(0.2);
+    expect(result.sewer?.partial.depthRatio).toBeLessThan(0.4);
+    expect(result.sewer?.partial.minimumSlopePercent).toBeGreaterThanOrEqual(0.5);
+    expect(result.sewer?.profile).toBeNull();
     expect(result.recommendedSize).toBe('6"');
     expect(result.traces.map((t) => t.ruleId)).toEqual([
       'ENG-406',
       'ENG-402',
       'ENG-407',
       'ENG-401',
+      'ENG-412',
     ]);
     expect(result.appliedAssumptionIds).toEqual(
       expect.arrayContaining([
@@ -29,6 +35,7 @@ describe('computeGravity — jaringan air limbah', () => {
         'SPAM_DEMAND_LPCD_100',
         'SEWER_RETURN_FACTOR_0_8',
         'SEWER_PEAK_FACTOR_2_5',
+        'SEWER_INFILTRATION_10PCT',
       ]),
     );
     expect(result.overallProvenance).toBe('ASSUMED');
@@ -46,6 +53,35 @@ describe('computeGravity — jaringan air limbah', () => {
     const result = computeGravity({ kind: 'sewer', designFlowLs: 60, slopePercent: 0.5 });
     expect(result.sewer?.hydraulicSize).toBe(result.recommendedSize);
     expect(['8"', '10"', '12"']).toContain(result.recommendedSize);
+  });
+
+  it('panjang jalur diketahui → profil: manhole tiap 50 m, penurunan, galian akhir, perlu pompa angkat', () => {
+    const result = computeGravity({
+      kind: 'sewer',
+      connections: 200,
+      routeLengthM: 1500,
+      slopePercent: 0.5,
+    });
+    expect(result.traces.map((t) => t.ruleId)).toContain('ENG-413');
+    expect(result.sewer?.profile).toMatchObject({
+      routeLengthM: 1500,
+      manholes: 31,
+      fallM: 7.5,
+      endDepthM: 8.5,
+      liftNeeded: true,
+    });
+    const short = computeGravity({
+      kind: 'sewer',
+      connections: 200,
+      routeLengthM: 300,
+      slopePercent: 0.5,
+    });
+    expect(short.sewer?.profile).toMatchObject({
+      manholes: 7,
+      fallM: 1.5,
+      endDepthM: 2.5,
+      liftNeeded: false,
+    });
   });
 
   it('tanpa sambungan, jiwa, maupun debit → galat masukan, bukan tebakan', () => {
@@ -69,19 +105,39 @@ describe('computeNetwork — jaringan air minum (SPAM)', () => {
       material: 'HDPE',
     });
     expect(spam.kind).toBe('water_supply');
-    // 500 × 5 × 100 ÷ 86 400 = 2,89 l/s; × 1,75 = 5,06 l/s.
-    expect(spam.averageFlowLs).toBe(2.89);
-    expect(spam.peakFlowLs).toBe(5.06);
+    // Domestik 2,89 l/s; + non-domestik 15 % ÷ (1 − 20 % NRW) = 4,16 rata-rata; jam puncak × 1,75 = 7,28.
+    expect(spam.supply).toMatchObject({
+      domesticAverageLs: 2.89,
+      averageLs: 4.16,
+      maxDayLs: 4.78,
+      peakHourLs: 7.28,
+      dailyVolumeM3: 359.4,
+      reservoirM3: 82.6,
+    });
+    expect(spam.averageFlowLs).toBe(4.16);
+    expect(spam.peakFlowLs).toBe(7.28);
+    // Tekanan kerja maksimum = max(statis 20 m, TDH) → kelas PN dari daftar PE100.
+    expect(spam.supply?.maxPressureBar).toBeGreaterThanOrEqual(1.96);
+    expect(spam.supply?.pressureClass.pn).not.toBeNull();
+    expect(spam.traces.map((t) => t.ruleId)).toEqual(
+      expect.arrayContaining(['ENG-409', 'ENG-410', 'ENG-411']),
+    );
     expect(spam.appliedAssumptionIds).toEqual(
       expect.arrayContaining([
         'SPAM_PERSONS_PER_CONNECTION_5',
         'SPAM_DEMAND_LPCD_100',
         'SPAM_PEAK_HOUR_FACTOR_1_75',
+        'SPAM_NON_DOMESTIC_15PCT',
+        'SPAM_NRW_20PCT',
+        'SPAM_DAY_PEAK_1_15',
+        'SPAM_RESERVOIR_20PCT',
+        'PRESSURE_CLASS_MARGIN_10PCT',
       ]),
     );
     const cluster = computeNetwork({ connections: 120, routeLengthM: 400, staticHeadM: 10 });
     expect(cluster.kind).toBe('cluster');
     expect(cluster.peakFlowLs).toBe(1.67);
+    expect(cluster.supply).toBeNull();
     expect(cluster.appliedAssumptionIds).toEqual(
       expect.arrayContaining(['PERSONS_PER_UNIT_4', 'DEMAND_LPCD_150', 'PEAK_HOUR_FACTOR_2']),
     );
@@ -96,7 +152,7 @@ describe('computeNetwork — jaringan air minum (SPAM)', () => {
     });
     expect(result.connections).toBe(400);
     expect(result.traces[0]!.ruleId).toBe('ENG-408');
-    expect(result.traces[1]!.ruleId).toBe('ENG-405');
+    expect(result.traces[1]!.ruleId).toBe('ENG-409');
   });
 
   it('tanpa sambungan maupun jiwa → galat masukan', () => {

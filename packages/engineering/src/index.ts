@@ -266,7 +266,12 @@ export type {
   TankResult,
   ZoningResult,
 } from './rules/group-i-building.js';
-export type { NetworkInput, NetworkKind, NetworkResult } from './compute-network.js';
+export type {
+  NetworkInput,
+  NetworkKind,
+  NetworkResult,
+  WaterSupplyPlan,
+} from './compute-network.js';
 export type { PipeMaterial, PressurizedInput, PressurizedResult } from './compute-pressurized.js';
 export {
   barToHeadM,

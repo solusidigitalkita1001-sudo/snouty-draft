@@ -1,11 +1,13 @@
 /**
  * Orkestrator jaringan distribusi (cluster perumahan, jaringan air minum/SPAM): kebutuhan puncak
- * dari sambungan rumah (ENG-405) — atau dari jiwa yang dilayani (ENG-408) — lalu jalur bertekanan
+ * dari sambungan rumah — atau dari jiwa yang dilayani (ENG-408) — lalu jalur bertekanan
  * (Kelompok F). Satu panggilan, satu trace per aturan. Murni.
  *
- * `kind` memilih asumsi kebutuhannya: cluster memakai kriteria perkotaan (150 l/orang/hari,
- * 4 orang/unit, faktor 2), jaringan air minum (P22-05) memakai kriteria SPAM (100 l/orang/hari,
- * 5 jiwa/SR, faktor jam puncak 1,75) — keduanya tercatat sebagai asumsi dan bisa diganti.
+ * `kind` memilih cara menghitung kebutuhannya: cluster memakai ENG-405 (150 l/orang/hari,
+ * 4 orang/unit, faktor 2); jaringan air minum (P22-05, dilengkapi P22-08) memakai kriteria SPAM
+ * ENG-409 — domestik + non-domestik + kebocoran, faktor hari maksimum dan jam puncak — lalu
+ * volume reservoir (ENG-410) dan kelas tekanan pipa (ENG-411). Semua asumsinya tercatat dan bisa
+ * diganti.
  */
 
 import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
@@ -18,7 +20,8 @@ import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters
 import { gateEngineProvenance } from './provenance.js';
 import type { CalculationTrace } from './compute-solution.js';
 import type { RuleVersion } from './rule.js';
-import { ENG_405, ENG_408 } from './rules/group-h-gravity.js';
+import { ENG_405, ENG_408, ENG_409, ENG_410, ENG_411 } from './rules/group-h-gravity.js';
+import { round2 } from './units.js';
 
 export type NetworkKind = 'cluster' | 'water_supply';
 
@@ -37,11 +40,26 @@ export interface NetworkInput {
   readonly material?: PressurizedInput['material'];
 }
 
+/** Jaringan air minum: rincian kebutuhan, reservoir, dan kelas tekanan (ENG-409/410/411). */
+export interface WaterSupplyPlan {
+  readonly domesticAverageLs: number;
+  readonly averageLs: number;
+  readonly maxDayLs: number;
+  readonly peakHourLs: number;
+  readonly dailyVolumeM3: number;
+  readonly reservoirM3: number;
+  /** Tekanan kerja maksimum di pipa: statis atau head pompa, mana yang lebih besar. */
+  readonly maxPressureBar: number;
+  readonly pressureClass: { readonly pn: number | null; readonly sdr: number | null };
+}
+
 export interface NetworkResult extends PressurizedResult {
   readonly kind: NetworkKind;
   readonly connections: number;
   readonly averageFlowLs: number;
   readonly peakFlowLs: number;
+  /** Hanya `kind: 'water_supply'`. */
+  readonly supply: WaterSupplyPlan | null;
 }
 
 export class NetworkInputError extends Error {
@@ -50,6 +68,8 @@ export class NetworkInputError extends Error {
     this.name = 'NetworkInputError';
   }
 }
+
+const M_HEAD_PER_BAR = 10.197;
 
 export function computeNetwork(
   input: NetworkInput,
@@ -89,19 +109,37 @@ export function computeNetwork(
   if (connections === undefined) {
     throw new NetworkInputError('butuh jumlah sambungan rumah atau jiwa yang dilayani');
   }
-  const demand = run(ENG_405, {
-    connections,
-    personsPerConnection,
-    litresPerPersonPerDay:
-      input.litresPerPersonPerDay ?? (spam ? use('SPAM_DEMAND_LPCD_100') : use('DEMAND_LPCD_150')),
-    peakFactor:
-      input.peakFactor ?? (spam ? use('SPAM_PEAK_HOUR_FACTOR_1_75') : use('PEAK_HOUR_FACTOR_2')),
-  });
+
+  let averageFlowLs: number;
+  let peakFlowLs: number;
+  let supplyDemand: ReturnType<typeof ENG_409.compute> | null = null;
+  if (spam) {
+    supplyDemand = run(ENG_409, {
+      connections,
+      personsPerConnection,
+      litresPerPersonPerDay: input.litresPerPersonPerDay ?? use('SPAM_DEMAND_LPCD_100'),
+      nonDomesticPercent: use('SPAM_NON_DOMESTIC_15PCT'),
+      nrwPercent: use('SPAM_NRW_20PCT'),
+      dayPeakFactor: use('SPAM_DAY_PEAK_1_15'),
+      hourPeakFactor: input.peakFactor ?? use('SPAM_PEAK_HOUR_FACTOR_1_75'),
+    });
+    averageFlowLs = supplyDemand.averageLs;
+    peakFlowLs = supplyDemand.peakHourLs;
+  } else {
+    const demand = run(ENG_405, {
+      connections,
+      personsPerConnection,
+      litresPerPersonPerDay: input.litresPerPersonPerDay ?? use('DEMAND_LPCD_150'),
+      peakFactor: input.peakFactor ?? use('PEAK_HOUR_FACTOR_2'),
+    });
+    averageFlowLs = demand.averageFlowLs;
+    peakFlowLs = demand.peakFlowLs;
+  }
 
   const residual = input.residualPressureBar ?? use('RESIDUAL_PRESSURE_FIXTURE');
   const pressurized = computePressurized(
     {
-      designFlowLs: demand.peakFlowLs,
+      designFlowLs: peakFlowLs,
       routeLengthM: input.routeLengthM,
       staticHeadM: input.staticHeadM,
       residualPressureBar: residual,
@@ -111,13 +149,44 @@ export function computeNetwork(
     overrides,
   );
 
+  let supply: WaterSupplyPlan | null = null;
+  if (spam && supplyDemand) {
+    const reservoir = run(ENG_410, {
+      maxDayLs: supplyDemand.maxDayLs,
+      fractionPercent: use('SPAM_RESERVOIR_20PCT'),
+    });
+    // Tekanan kerja maksimum: pipa gravitasi dari reservoir menanggung tinggi statisnya; pipa
+    // dari pompa menanggung head pompa. Keduanya dalam meter kolom air.
+    const maxPressureBar = round2(
+      Math.max(Math.abs(input.staticHeadM), pressurized.totalDynamicHeadM) / M_HEAD_PER_BAR,
+    );
+    const cls = run(ENG_411, {
+      maxPressureBar,
+      marginPercent: use('PRESSURE_CLASS_MARGIN_10PCT'),
+    });
+    supply = {
+      domesticAverageLs: supplyDemand.domesticAverageLs,
+      averageLs: supplyDemand.averageLs,
+      maxDayLs: supplyDemand.maxDayLs,
+      peakHourLs: supplyDemand.peakHourLs,
+      dailyVolumeM3: supplyDemand.dailyVolumeM3,
+      reservoirM3: reservoir.reservoirM3,
+      maxPressureBar,
+      pressureClass: { pn: cls.pn, sdr: cls.sdr },
+    };
+  }
+
+  // Trace kebutuhan dulu, lalu jalur bertekanan, lalu reservoir dan kelas tekanan — urutan hitung.
+  const demandTraces = traces.filter((t) => t.ruleId !== 'ENG-410' && t.ruleId !== 'ENG-411');
+  const afterTraces = traces.filter((t) => t.ruleId === 'ENG-410' || t.ruleId === 'ENG-411');
   return {
     ...pressurized,
     kind,
     connections,
-    averageFlowLs: demand.averageFlowLs,
-    peakFlowLs: demand.peakFlowLs,
-    traces: [...traces, ...pressurized.traces],
+    averageFlowLs,
+    peakFlowLs,
+    supply,
+    traces: [...demandTraces, ...pressurized.traces, ...afterTraces],
     appliedAssumptionIds: [...new Set([...applied, ...pressurized.appliedAssumptionIds])],
   };
 }

@@ -513,6 +513,8 @@ export interface SewerFlowInput {
   /** Bagian pemakaian air yang kembali sebagai air limbah (0–1). */
   readonly returnFactor: number;
   readonly peakFactor: number;
+  /** Infiltrasi air tanah/hujan ke pipa sebagai % dari debit rata-rata. */
+  readonly infiltrationPercent: number;
 }
 export interface SewerFlowResult {
   readonly averageFlowLs: number;
@@ -521,7 +523,8 @@ export interface SewerFlowResult {
 
 export const ENG_406: RuleVersion<SewerFlowInput, SewerFlowResult> = {
   ruleId: 'ENG-406',
-  version: 1,
+  // v2 (P22-08): infiltrasi ditambahkan ke debit puncak.
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -544,6 +547,12 @@ export const ENG_406: RuleVersion<SewerFlowInput, SewerFlowResult> = {
         max: 1,
       }),
       peakFactor: requireNumber('ENG-406', 'peakFactor', o['peakFactor'], { min: 1, max: 6 }),
+      infiltrationPercent: requireNumber(
+        'ENG-406',
+        'infiltrationPercent',
+        o['infiltrationPercent'],
+        { min: 0, max: 100 },
+      ),
     };
   },
   compute: (input) => {
@@ -553,28 +562,32 @@ export const ENG_406: RuleVersion<SewerFlowInput, SewerFlowResult> = {
         input.litresPerPersonPerDay *
         input.returnFactor) /
       86_400;
-    return { averageFlowLs: round2(average), peakFlowLs: round2(average * input.peakFactor) };
+    return {
+      averageFlowLs: round2(average),
+      peakFlowLs: round2(average * input.peakFactor + (average * input.infiltrationPercent) / 100),
+    };
   },
   sourceReference:
-    'Q_limbah rata = sambungan × orang × l/orang/hari × faktor kembali ÷ 86 400; Q_puncak = Q_rata × faktor puncak (kriteria perencanaan SPALD-T: air limbah ±80 % pemakaian air)',
+    'Q_limbah rata = sambungan × orang × l/orang/hari × faktor kembali ÷ 86 400; Q_puncak = Q_rata × faktor puncak + infiltrasi % × Q_rata (kriteria perencanaan SPALD-T: air limbah ±80 % pemakaian air, infiltrasi ±10 %)',
   validationStatus: PENDING,
   testCases: [
     {
-      name: '200 SR × 5 orang × 100 l × 0,8 kembali, puncak 2,5 → 0,93 → 2,31 l/s',
+      name: '200 SR × 5 orang × 100 l × 0,8 kembali, puncak 2,5 + infiltrasi 10 % → 0,93 → 2,41 l/s',
       input: {
         connections: 200,
         personsPerConnection: 5,
         litresPerPersonPerDay: 100,
         returnFactor: 0.8,
         peakFactor: 2.5,
+        infiltrationPercent: 10,
       },
-      expected: { averageFlowLs: 0.93, peakFlowLs: 2.31 },
+      expected: { averageFlowLs: 0.93, peakFlowLs: 2.41 },
     },
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Air limbah puncak ${output.peakFlowLs} l/s = ${input.connections} sambungan × ${input.personsPerConnection} orang × ${input.litresPerPersonPerDay} l/hari × ${input.returnFactor} yang kembali sebagai limbah ÷ 86 400 (= ${output.averageFlowLs} l/s rata-rata) × faktor puncak ${input.peakFactor}.`,
-      en: `Peak wastewater ${output.peakFlowLs} l/s = ${input.connections} connections × ${input.personsPerConnection} persons × ${input.litresPerPersonPerDay} l/day × ${input.returnFactor} returned as wastewater ÷ 86 400 (= ${output.averageFlowLs} l/s average) × peak factor ${input.peakFactor}.`,
+      id: `Air limbah puncak ${output.peakFlowLs} l/s = ${input.connections} sambungan × ${input.personsPerConnection} orang × ${input.litresPerPersonPerDay} l/hari × ${input.returnFactor} yang kembali sebagai limbah ÷ 86 400 (= ${output.averageFlowLs} l/s rata-rata) × faktor puncak ${input.peakFactor}, ditambah infiltrasi ${input.infiltrationPercent} % dari rata-rata.`,
+      en: `Peak wastewater ${output.peakFlowLs} l/s = ${input.connections} connections × ${input.personsPerConnection} persons × ${input.litresPerPersonPerDay} l/day × ${input.returnFactor} returned as wastewater ÷ 86 400 (= ${output.averageFlowLs} l/s average) × peak factor ${input.peakFactor}, plus ${input.infiltrationPercent} % of the average as infiltration.`,
     }),
 };
 
@@ -693,6 +706,478 @@ export const ENG_408: RuleVersion<ConnectionsFromPopulationInput, ConnectionsFro
       }),
   };
 
+// ── ENG-409 · Kebutuhan air jaringan air minum (SPAM): domestik, non-domestik, kebocoran, puncak ──
+
+export interface SupplyDemandInput {
+  readonly connections: number;
+  readonly personsPerConnection: number;
+  readonly litresPerPersonPerDay: number;
+  /** Non-domestik (sekolah, masjid, hidran umum) sebagai % dari domestik. */
+  readonly nonDomesticPercent: number;
+  /** Kehilangan air / NRW sebagai % dari produksi. */
+  readonly nrwPercent: number;
+  readonly dayPeakFactor: number;
+  readonly hourPeakFactor: number;
+}
+export interface SupplyDemandResult {
+  readonly domesticAverageLs: number;
+  /** Produksi rata-rata: domestik + non-domestik, ditambah kebocoran. */
+  readonly averageLs: number;
+  readonly maxDayLs: number;
+  readonly peakHourLs: number;
+  readonly dailyVolumeM3: number;
+}
+
+export const ENG_409: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
+  ruleId: 'ENG-409',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      connections: requireInt('ENG-409', 'connections', o['connections'], {
+        min: 1,
+        max: 1_000_000,
+      }),
+      personsPerConnection: requireNumber(
+        'ENG-409',
+        'personsPerConnection',
+        o['personsPerConnection'],
+        { min: 1, max: 50 },
+      ),
+      litresPerPersonPerDay: requireNumber(
+        'ENG-409',
+        'litresPerPersonPerDay',
+        o['litresPerPersonPerDay'],
+        { min: 20, max: 500 },
+      ),
+      nonDomesticPercent: requireNumber('ENG-409', 'nonDomesticPercent', o['nonDomesticPercent'], {
+        min: 0,
+        max: 100,
+      }),
+      nrwPercent: requireNumber('ENG-409', 'nrwPercent', o['nrwPercent'], { min: 0, max: 60 }),
+      dayPeakFactor: requireNumber('ENG-409', 'dayPeakFactor', o['dayPeakFactor'], {
+        min: 1,
+        max: 2,
+      }),
+      hourPeakFactor: requireNumber('ENG-409', 'hourPeakFactor', o['hourPeakFactor'], {
+        min: 1,
+        max: 5,
+      }),
+    };
+  },
+  compute: (i) => {
+    const domestic = (i.connections * i.personsPerConnection * i.litresPerPersonPerDay) / 86_400;
+    const average = (domestic * (1 + i.nonDomesticPercent / 100)) / (1 - i.nrwPercent / 100);
+    return {
+      domesticAverageLs: round2(domestic),
+      averageLs: round2(average),
+      maxDayLs: round2(average * i.dayPeakFactor),
+      peakHourLs: round2(average * i.hourPeakFactor),
+      dailyVolumeM3: round1(average * 86.4),
+    };
+  },
+  sourceReference:
+    'Kriteria perencanaan SPAM: Q_rata = (domestik × (1 + non-domestik %)) ÷ (1 − NRW %); Q_hari maks = Q_rata × f_hari; Q_jam puncak = Q_rata × f_jam; pipa transmisi/reservoir pada Q_hari maks, distribusi pada Q_jam puncak',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '500 SR × 5 × 100 l, non-domestik 15 %, NRW 20 %, f_hari 1,15, f_jam 1,75',
+      input: {
+        connections: 500,
+        personsPerConnection: 5,
+        litresPerPersonPerDay: 100,
+        nonDomesticPercent: 15,
+        nrwPercent: 20,
+        dayPeakFactor: 1.15,
+        hourPeakFactor: 1.75,
+      },
+      // domestik 2,894 l/s → × 1,15 ÷ 0,8 = 4,161 → hari maks 4,785 → jam puncak 7,282; 359,5 m³/hari
+      expected: {
+        domesticAverageLs: 2.89,
+        averageLs: 4.16,
+        maxDayLs: 4.78,
+        peakHourLs: 7.28,
+        dailyVolumeM3: 359.4,
+      },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Kebutuhan domestik ${o.domesticAverageLs} l/s (${i.connections} SR × ${i.personsPerConnection} jiwa × ${i.litresPerPersonPerDay} l/hari), ditambah non-domestik ${i.nonDomesticPercent} % dan kebocoran ${i.nrwPercent} % → produksi rata-rata ${o.averageLs} l/s (${o.dailyVolumeM3} m³/hari); hari maksimum ${o.maxDayLs} l/s (× ${i.dayPeakFactor}) untuk transmisi dan reservoir, jam puncak ${o.peakHourLs} l/s (× ${i.hourPeakFactor}) untuk pipa distribusi.`,
+      en: `Domestic demand ${o.domesticAverageLs} l/s (${i.connections} connections × ${i.personsPerConnection} people × ${i.litresPerPersonPerDay} l/day), plus ${i.nonDomesticPercent} % non-domestic and ${i.nrwPercent} % losses → average production ${o.averageLs} l/s (${o.dailyVolumeM3} m³/day); maximum day ${o.maxDayLs} l/s (× ${i.dayPeakFactor}) for transmission and the reservoir, peak hour ${o.peakHourLs} l/s (× ${i.hourPeakFactor}) for the distribution pipe.`,
+    }),
+};
+
+// ── ENG-410 · Volume reservoir dari kebutuhan hari maksimum ────────────────
+
+export interface ReservoirInput {
+  readonly maxDayLs: number;
+  /** Volume reservoir sebagai % dari kebutuhan hari maksimum. */
+  readonly fractionPercent: number;
+}
+export interface ReservoirResult {
+  readonly maxDayVolumeM3: number;
+  readonly reservoirM3: number;
+}
+
+export const ENG_410: RuleVersion<ReservoirInput, ReservoirResult> = {
+  ruleId: 'ENG-410',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      maxDayLs: requireNumber('ENG-410', 'maxDayLs', o['maxDayLs'], { min: 0.01, max: 100_000 }),
+      fractionPercent: requireNumber('ENG-410', 'fractionPercent', o['fractionPercent'], {
+        min: 5,
+        max: 100,
+      }),
+    };
+  },
+  compute: (i) => {
+    const maxDayVolumeM3 = i.maxDayLs * 86.4;
+    return {
+      maxDayVolumeM3: round1(maxDayVolumeM3),
+      reservoirM3: round1((maxDayVolumeM3 * i.fractionPercent) / 100),
+    };
+  },
+  sourceReference:
+    'Kriteria perencanaan SPAM: volume reservoir distribusi ±15–20 % kebutuhan hari maksimum (penyeimbang jam puncak)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '4,78 l/s hari maks → 413 m³/hari → reservoir 20 % = 82,6 m³',
+      input: { maxDayLs: 4.78, fractionPercent: 20 },
+      expected: { maxDayVolumeM3: 413, reservoirM3: 82.6 },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Reservoir distribusi ≈ ${i.fractionPercent} % × kebutuhan hari maksimum ${o.maxDayVolumeM3} m³ = ${o.reservoirM3} m³.`,
+      en: `Distribution reservoir ≈ ${i.fractionPercent} % × maximum-day demand ${o.maxDayVolumeM3} m³ = ${o.reservoirM3} m³.`,
+    }),
+};
+
+// ── ENG-411 · Kelas tekanan pipa dari tekanan kerja maksimum ────────────────
+
+/** PN yang lazim untuk PE100 dan padanan SDR-nya. */
+export const PN_CLASSES: ReadonlyArray<{ readonly pn: number; readonly sdr: number }> = [
+  { pn: 6.3, sdr: 26 },
+  { pn: 8, sdr: 21 },
+  { pn: 10, sdr: 17 },
+  { pn: 12.5, sdr: 13.6 },
+  { pn: 16, sdr: 11 },
+  { pn: 20, sdr: 9 },
+];
+
+export interface PressureClassInput {
+  readonly maxPressureBar: number;
+  readonly marginPercent: number;
+}
+export interface PressureClassResult {
+  readonly requiredBar: number;
+  readonly pn: number | null;
+  readonly sdr: number | null;
+}
+
+export const ENG_411: RuleVersion<PressureClassInput, PressureClassResult> = {
+  ruleId: 'ENG-411',
+  version: 1,
+  category: 'material',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      maxPressureBar: requireNumber('ENG-411', 'maxPressureBar', o['maxPressureBar'], {
+        min: 0,
+        max: 100,
+      }),
+      marginPercent: requireNumber('ENG-411', 'marginPercent', o['marginPercent'], {
+        min: 0,
+        max: 100,
+      }),
+    };
+  },
+  compute: (i) => {
+    const requiredBar = round2(i.maxPressureBar * (1 + i.marginPercent / 100));
+    const cls = PN_CLASSES.find((c) => c.pn >= requiredBar) ?? null;
+    return { requiredBar, pn: cls?.pn ?? null, sdr: cls?.sdr ?? null };
+  },
+  sourceReference:
+    'Kelas tekanan nominal (PN) ≥ tekanan kerja maksimum × (1 + margin) — tekanan statis atau head pompa; PE100: PN 6,3/8/10/12,5/16/20 ↔ SDR 26/21/17/13,6/11/9',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '10,2 bar + 10 % → 11,22 bar → PN 12,5 (SDR 13,6)',
+      input: { maxPressureBar: 10.2, marginPercent: 10 },
+      expected: { requiredBar: 11.22, pn: 12.5, sdr: 13.6 },
+    },
+    {
+      name: '2 bar + 10 % → PN 6,3',
+      input: { maxPressureBar: 2, marginPercent: 10 },
+      expected: { requiredBar: 2.2, pn: 6.3, sdr: 26 },
+    },
+    {
+      name: '25 bar → di luar kelas yang lazim',
+      input: { maxPressureBar: 25, marginPercent: 0 },
+      expected: { requiredBar: 25, pn: null, sdr: null },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id:
+        o.pn === null
+          ? `Tekanan kerja ${i.maxPressureBar} bar (+${i.marginPercent} % margin = ${o.requiredBar} bar) melampaui kelas PN yang lazim — perlu kajian tim teknis.`
+          : `Tekanan kerja maksimum ${i.maxPressureBar} bar + margin ${i.marginPercent} % = ${o.requiredBar} bar → kelas PN ${o.pn} (PE100 SDR ${o.sdr}).`,
+      en:
+        o.pn === null
+          ? `Working pressure ${i.maxPressureBar} bar (+${i.marginPercent} % margin = ${o.requiredBar} bar) exceeds the usual PN classes — technical review needed.`
+          : `Maximum working pressure ${i.maxPressureBar} bar + ${i.marginPercent} % margin = ${o.requiredBar} bar → class PN ${o.pn} (PE100 SDR ${o.sdr}).`,
+    }),
+};
+
+// ── ENG-412 · Aliran sebagian di pipa air limbah: d/D, kecepatan, kemiringan minimum ──
+
+export interface SewerPartialFlowInput {
+  readonly designFlowLs: number;
+  readonly innerDiameterMm: number;
+  readonly slopePercent: number;
+  readonly manningN: number;
+  readonly velocityMinMs: number;
+  readonly velocityMaxMs: number;
+  /** d/D maksimum yang diizinkan pada debit rencana (0–1). */
+  readonly maxDepthRatio: number;
+}
+export interface SewerPartialFlowResult {
+  readonly depthRatio: number;
+  readonly velocityMs: number;
+  readonly selfCleansing: boolean;
+  readonly tooFast: boolean;
+  readonly depthOk: boolean;
+  /** Kemiringan agar kecepatan penuh ≥ minimum — rujukan bila kemiringan rencana kurang. */
+  readonly minimumSlopePercent: number;
+}
+
+/** Luas dan jari-jari hidraulik segmen lingkaran pada kedalaman relatif y = d/D. */
+function circularSection(dM: number, y: number): { area: number; radius: number } {
+  const theta = 2 * Math.acos(1 - 2 * y);
+  const area = ((dM * dM) / 8) * (theta - Math.sin(theta));
+  const perimeter = (dM * theta) / 2;
+  return { area, radius: perimeter > 0 ? area / perimeter : 0 };
+}
+
+export const ENG_412: RuleVersion<SewerPartialFlowInput, SewerPartialFlowResult> = {
+  ruleId: 'ENG-412',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const velocityMinMs = requireNumber('ENG-412', 'velocityMinMs', o['velocityMinMs'], {
+      min: 0.1,
+      max: 3,
+    });
+    return {
+      designFlowLs: requireNumber('ENG-412', 'designFlowLs', o['designFlowLs'], {
+        min: 0.001,
+        max: 100_000,
+      }),
+      innerDiameterMm: requireNumber('ENG-412', 'innerDiameterMm', o['innerDiameterMm'], {
+        min: 10,
+        max: 5000,
+      }),
+      slopePercent: requireNumber('ENG-412', 'slopePercent', o['slopePercent'], {
+        min: 0.01,
+        max: 50,
+      }),
+      manningN: requireNumber('ENG-412', 'manningN', o['manningN'], { min: 0.005, max: 0.05 }),
+      velocityMinMs,
+      velocityMaxMs: requireNumber('ENG-412', 'velocityMaxMs', o['velocityMaxMs'], {
+        min: velocityMinMs,
+        max: 10,
+      }),
+      maxDepthRatio: requireNumber('ENG-412', 'maxDepthRatio', o['maxDepthRatio'], {
+        min: 0.1,
+        max: 1,
+      }),
+    };
+  },
+  compute: (i) => {
+    const dM = i.innerDiameterMm / 1000;
+    const s = i.slopePercent / 100;
+    const q = i.designFlowLs / 1000;
+    const flowAt = (y: number) => {
+      const { area, radius } = circularSection(dM, y);
+      return (area * Math.pow(radius, 2 / 3) * Math.sqrt(s)) / i.manningN;
+    };
+    // Kedalaman relatif pada debit rencana: bisection pada 0 < y ≤ 1 (debit naik monoton sampai
+    // ±0,94 D; di atas itu dianggap penuh).
+    let lo = 0.001;
+    let hi = 1;
+    let y: number;
+    if (flowAt(0.94) <= q) {
+      y = 1;
+    } else {
+      for (let n = 0; n < 60; n += 1) {
+        const mid = (lo + hi) / 2;
+        if (flowAt(mid) < q) lo = mid;
+        else hi = mid;
+      }
+      y = hi;
+    }
+    const { area } = circularSection(dM, Math.min(y, 1));
+    const velocity = area > 0 ? q / area : 0;
+    // Kemiringan minimum supaya kecepatan PADA DEBIT RENCANA mencapai v_min: kecepatan ≈ ∝ √S pada
+    // kedalaman yang sama, jadi S_min ≈ S × (v_min / v)²; bila sudah cukup, kemiringan rencana dipakai.
+    const minimumSlope =
+      velocity >= i.velocityMinMs || velocity === 0
+        ? i.slopePercent
+        : i.slopePercent * Math.pow(i.velocityMinMs / velocity, 2);
+    return {
+      depthRatio: round2(y),
+      velocityMs: round2(velocity),
+      selfCleansing: velocity >= i.velocityMinMs,
+      tooFast: velocity > i.velocityMaxMs,
+      depthOk: y <= i.maxDepthRatio,
+      minimumSlopePercent: round2(minimumSlope),
+    };
+  },
+  sourceReference:
+    'Manning pada segmen lingkaran: A = D²/8 (θ − sin θ), P = Dθ/2, θ = 2 arccos(1 − 2d/D); kecepatan pembersihan sendiri ≥ 0,6 m/s pada debit rencana, maksimum ≈ 3 m/s, d/D ≤ 0,8; S_min ≈ S × (v_min ÷ v)²',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '2,4 l/s di 6" (152,2 mm) pada 0,5 %: d/D ±0,27, v ±0,59 m/s (< 0,6) → kemiringan min ±0,51 %',
+      input: {
+        designFlowLs: 2.4,
+        innerDiameterMm: 152.2,
+        slopePercent: 0.5,
+        manningN: 0.01,
+        velocityMinMs: 0.6,
+        velocityMaxMs: 3,
+        maxDepthRatio: 0.8,
+      },
+      expected: {
+        depthRatio: 0.27,
+        velocityMs: 0.59,
+        selfCleansing: false,
+        tooFast: false,
+        depthOk: true,
+        minimumSlopePercent: 0.51,
+      },
+    },
+    {
+      name: 'debit di atas kapasitas penuh → d/D 1, kedalaman tidak memenuhi',
+      input: {
+        designFlowLs: 60,
+        innerDiameterMm: 152.2,
+        slopePercent: 0.5,
+        manningN: 0.01,
+        velocityMinMs: 0.6,
+        velocityMaxMs: 3,
+        maxDepthRatio: 0.8,
+      },
+      expected: {
+        depthRatio: 1,
+        velocityMs: 3.3,
+        selfCleansing: true,
+        tooFast: true,
+        depthOk: false,
+        minimumSlopePercent: 0.5,
+      },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Pada debit rencana ${i.designFlowLs} l/s pipa ${i.innerDiameterMm} mm terisi ${Math.round(o.depthRatio * 100)} % (d/D ${o.depthRatio}${o.depthOk ? '' : ` > ${i.maxDepthRatio}`}) dengan kecepatan ${o.velocityMs} m/s — ${o.selfCleansing ? 'cukup membersihkan sendiri' : `di bawah ${i.velocityMinMs} m/s, endapan bisa menumpuk; kemiringan minimum supaya debit rencana mencapai ${i.velocityMinMs} m/s adalah ${o.minimumSlopePercent} %`}${o.tooFast ? `; melampaui ${i.velocityMaxMs} m/s, pipa bisa tergerus` : ''}.`,
+      en: `At the design flow of ${i.designFlowLs} l/s the ${i.innerDiameterMm} mm pipe runs ${Math.round(o.depthRatio * 100)} % full (d/D ${o.depthRatio}${o.depthOk ? '' : ` > ${i.maxDepthRatio}`}) at ${o.velocityMs} m/s — ${o.selfCleansing ? 'self-cleansing' : `below ${i.velocityMinMs} m/s, solids may settle; the minimum slope for the design flow to reach ${i.velocityMinMs} m/s is ${o.minimumSlopePercent} %`}${o.tooFast ? `; above ${i.velocityMaxMs} m/s, the pipe may scour` : ''}.`,
+    }),
+};
+
+// ── ENG-413 · Profil jalur air limbah: manhole, penurunan, kedalaman galian ──
+
+export interface SewerProfileInput {
+  readonly routeLengthM: number;
+  readonly slopePercent: number;
+  readonly manholeSpacingM: number;
+  /** Kedalaman dasar pipa di awal jalur (timbunan + pipa). */
+  readonly startDepthM: number;
+  /** Kedalaman galian praktis maksimum sebelum butuh stasiun pompa angkat. */
+  readonly maxDepthM: number;
+}
+export interface SewerProfileResult {
+  readonly manholes: number;
+  readonly fallM: number;
+  readonly endDepthM: number;
+  readonly liftNeeded: boolean;
+}
+
+export const ENG_413: RuleVersion<SewerProfileInput, SewerProfileResult> = {
+  ruleId: 'ENG-413',
+  version: 1,
+  category: 'geometry',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      routeLengthM: requireNumber('ENG-413', 'routeLengthM', o['routeLengthM'], {
+        min: 1,
+        max: 100_000,
+      }),
+      slopePercent: requireNumber('ENG-413', 'slopePercent', o['slopePercent'], {
+        min: 0.01,
+        max: 50,
+      }),
+      manholeSpacingM: requireNumber('ENG-413', 'manholeSpacingM', o['manholeSpacingM'], {
+        min: 10,
+        max: 200,
+      }),
+      startDepthM: requireNumber('ENG-413', 'startDepthM', o['startDepthM'], { min: 0.3, max: 10 }),
+      maxDepthM: requireNumber('ENG-413', 'maxDepthM', o['maxDepthM'], { min: 1, max: 20 }),
+    };
+  },
+  compute: (i) => {
+    const fallM = (i.routeLengthM * i.slopePercent) / 100;
+    const endDepthM = i.startDepthM + fallM;
+    return {
+      manholes: Math.ceil(i.routeLengthM / i.manholeSpacingM) + 1,
+      fallM: round2(fallM),
+      endDepthM: round2(endDepthM),
+      liftNeeded: endDepthM > i.maxDepthM,
+    };
+  },
+  sourceReference:
+    'Manhole tiap ≤ 50 m (pipa kecil) dan di tiap belokan/pertemuan; penurunan = panjang × kemiringan; galian lebih dalam dari ±4 m → stasiun pompa angkat (kriteria perencanaan SPALD-T)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '1 500 m pada 0,6 %, manhole tiap 50 m, awal 1 m, maks 4 m → 31 manhole, turun 9 m, perlu pompa angkat',
+      input: {
+        routeLengthM: 1500,
+        slopePercent: 0.6,
+        manholeSpacingM: 50,
+        startDepthM: 1,
+        maxDepthM: 4,
+      },
+      expected: { manholes: 31, fallM: 9, endDepthM: 10, liftNeeded: true },
+    },
+    {
+      name: '300 m pada 0,5 % → 7 manhole, turun 1,5 m, galian akhir 2,5 m',
+      input: {
+        routeLengthM: 300,
+        slopePercent: 0.5,
+        manholeSpacingM: 50,
+        startDepthM: 1,
+        maxDepthM: 4,
+      },
+      expected: { manholes: 7, fallM: 1.5, endDepthM: 2.5, liftNeeded: false },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Jalur ${i.routeLengthM} m pada ${i.slopePercent} % turun ${o.fallM} m: dari kedalaman awal ${i.startDepthM} m, dasar pipa di ujung ${o.endDepthM} m${o.liftNeeded ? ` — lebih dalam dari batas praktis ${i.maxDepthM} m, perlu stasiun pompa angkat atau jalur dipecah` : ''}; manhole tiap ${i.manholeSpacingM} m → ${o.manholes} buah (ditambah di belokan dan pertemuan).`,
+      en: `A ${i.routeLengthM} m run at ${i.slopePercent} % drops ${o.fallM} m: from a starting depth of ${i.startDepthM} m the invert ends at ${o.endDepthM} m${o.liftNeeded ? ` — deeper than the practical ${i.maxDepthM} m, a lift station or a split route is needed` : ''}; a manhole every ${i.manholeSpacingM} m → ${o.manholes} (plus bends and junctions).`,
+    }),
+};
+
 export const GROUP_H = [
   ENG_401,
   ENG_402,
@@ -702,4 +1187,9 @@ export const GROUP_H = [
   ENG_406,
   ENG_407,
   ENG_408,
+  ENG_409,
+  ENG_410,
+  ENG_411,
+  ENG_412,
+  ENG_413,
 ] as const;

@@ -45,6 +45,10 @@ describe('sewerage', () => {
     expect(prose.headline).toMatch(/^Jaringan air limbah: pipa PVC D 6"/);
     expect(prose.body).toContain('Air limbah dari 200 sambungan rumah');
     expect(prose.body).toContain('minimal 6"');
+    expect(prose.body).toContain('Pada debit rencana pipa terisi');
+    expect(prose.body).toContain('manhole sekitar');
+    const highlights2 = gravityHighlights(result, 2, 'id');
+    expect(highlights2.some((h) => h.label === 'Manhole')).toBe(true);
     const highlights = gravityHighlights(result, 2, 'id');
     expect(highlights[0]).toEqual({ label: 'Sambungan rumah', value: '200 SR' });
     const schematic = gravitySchematic({ pipeLengthM: 1500 }, result, 'erp-2026-10-06', 'id');

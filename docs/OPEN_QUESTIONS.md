@@ -423,9 +423,12 @@ dengan kriteria perencanaan umum, semuanya `REQUIRES_DOMAIN_VALIDATION`.
 ≥ HDPE_MAIN_FROM_200M; air limbah — 80 % pemakaian air kembali sebagai limbah, faktor puncak 2,5, Manning
 n plastik, terisi ≤ 80 %, kecepatan penuh ≥ 0,6 m/s, kemiringan 0,5 % bila tidak disebut, ukuran minimum
 6" (150 mm), keluarga PVC D. Jaringan besar (ribuan SR), zona tekanan, dan reservoir tidak dihitung.
+**Dilengkapi P22-08:** non-domestik 15 %, NRW 20 %, faktor hari maksimum 1,15, reservoir 20 % hari maksimum,
+margin kelas tekanan 10 % (PN ↔ SDR PE100), infiltrasi air limbah 10 %, kecepatan maks 3 m/s, manhole tiap 50 m,
+kedalaman awal 1 m, galian maks 4 m — semuanya asumsi registry yang bisa diganti.
 **Yang perlu diputuskan ahli Pralon:** angka per kategori kota, faktor puncak per ukuran jaringan, ukuran
-minimum dan keluarga pipa air limbah Pralon (apakah PVC D atau produk sewer lain), dan batas kapan proyek
-diteruskan ke tim teknis.
+minimum dan keluarga pipa air limbah Pralon (apakah PVC D atau produk sewer lain), kelas kekakuan (SN) pipa
+tanam, dan batas kapan proyek diteruskan ke tim teknis.
 
 ### OQ-69 — Estimasi biaya penggantian pipa ke Pralon (P22-03, masukan pengguna 2026-10-16)
 

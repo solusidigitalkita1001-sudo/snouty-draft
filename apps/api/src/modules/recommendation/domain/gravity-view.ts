@@ -109,6 +109,7 @@ export function gravityPlanFrom(state: RequirementState): GravityPlan | null {
         ...opt('connections', connections === undefined ? undefined : Math.round(connections)),
         ...opt('population', population === undefined ? undefined : Math.round(population)),
         ...opt('slopePercent', slopePercent),
+        ...opt('routeLengthM', routeLengthM),
       },
       pipeLengthM: routeLengthM ?? null,
     };
@@ -226,6 +227,32 @@ export function gravityHighlights(
           : 'Perlu validasi struktural',
     });
   }
+  if (result.sewer) {
+    const pf = result.sewer.partial;
+    rows.push({
+      label: en ? 'Flow depth at design flow' : 'Kedalaman aliran pada debit rencana',
+      value: `${Math.round(pf.depthRatio * 100)} % d/D · ${id(pf.velocityMs, locale)} m/s${pf.selfCleansing ? '' : en ? ' (below self-cleansing)' : ' (di bawah pembersihan sendiri)'}`,
+    });
+    if (!pf.selfCleansing) {
+      rows.push({
+        label: en ? 'Minimum slope' : 'Kemiringan minimum',
+        value: `${id(pf.minimumSlopePercent, locale)} %`,
+      });
+    }
+    if (result.sewer.profile) {
+      const pr = result.sewer.profile;
+      rows.push({
+        label: en ? 'Manholes' : 'Manhole',
+        value: en
+          ? `${pr.manholes} (every ${id(pr.routeLengthM / Math.max(1, pr.manholes - 1), locale)} m)`
+          : `${pr.manholes} buah`,
+      });
+      rows.push({
+        label: en ? 'Invert depth at the end' : 'Kedalaman galian di ujung',
+        value: `${id(pr.endDepthM, locale)} m${pr.liftNeeded ? (en ? ' — lift station needed' : ' — perlu pompa angkat') : ''}`,
+      });
+    }
+  }
   rows.push({ label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` });
   return rows;
 }
@@ -331,6 +358,19 @@ export function gravityBomItemsFrom(
       basis: `${explanationFor(traces, 'ENG-402')} ${pipe.basis}`.trim(),
     });
   }
+  if (result.kind === 'sewer' && result.sewer?.profile) {
+    // Manhole / bak kontrol bukan produk perpipaan Pralon: dicantumkan jumlahnya, bukan disembunyikan.
+    lines.push(
+      row(
+        en
+          ? 'Manhole / inspection chamber (outside the piping)'
+          : 'Manhole / bak kontrol (di luar perpipaan)',
+        result.sewer.profile.manholes,
+        'pcs',
+        '-',
+      ),
+    );
+  }
   if (result.kind === 'culvert') {
     lines.push(
       row(
@@ -417,22 +457,46 @@ export function networkHighlightsPrefix(
   result: NetworkResult,
   locale: Locale = DEFAULT_LOCALE,
 ): readonly KeyValue[] {
-  if (locale === 'en') {
-    return [
-      { label: 'Connections', value: `${result.connections} units` },
-      {
-        label: 'Peak demand',
-        value: `${id(result.peakFlowLs, locale)} l/s (average ${id(result.averageFlowLs, locale)} l/s)`,
-      },
-    ];
-  }
-  return [
-    { label: 'Sambungan', value: `${result.connections} unit` },
+  const en = locale === 'en';
+  const rows: KeyValue[] = [
     {
-      label: 'Kebutuhan puncak',
-      value: `${id(result.peakFlowLs)} l/s (rata-rata ${id(result.averageFlowLs)} l/s)`,
+      label: en ? 'Connections' : 'Sambungan',
+      value: en ? `${result.connections} units` : `${result.connections} unit`,
+    },
+    {
+      label: en ? 'Peak demand' : 'Kebutuhan puncak',
+      value: en
+        ? `${id(result.peakFlowLs, locale)} l/s (average ${id(result.averageFlowLs, locale)} l/s)`
+        : `${id(result.peakFlowLs)} l/s (rata-rata ${id(result.averageFlowLs)} l/s)`,
     },
   ];
+  // Jaringan air minum (P22-08): hari maksimum, reservoir, kelas tekanan.
+  if (result.supply) {
+    const sp = result.supply;
+    rows[0] = {
+      label: en ? 'House connections' : 'Sambungan rumah',
+      value: `${result.connections} SR`,
+    };
+    rows.push(
+      {
+        label: en ? 'Maximum day' : 'Hari maksimum',
+        value: en
+          ? `${id(sp.maxDayLs, locale)} l/s (${id(sp.dailyVolumeM3, locale)} m³/day average)`
+          : `${id(sp.maxDayLs)} l/s (${id(sp.dailyVolumeM3)} m³/hari rata-rata)`,
+      },
+      { label: en ? 'Reservoir' : 'Reservoir', value: `${id(sp.reservoirM3, locale)} m³` },
+      {
+        label: en ? 'Pressure class' : 'Kelas tekanan',
+        value:
+          sp.pressureClass.pn === null
+            ? en
+              ? `${id(sp.maxPressureBar, locale)} bar — technical review`
+              : `${id(sp.maxPressureBar)} bar — kajian tim teknis`
+            : `PN ${id(sp.pressureClass.pn, locale)} (${id(sp.maxPressureBar, locale)} bar)`,
+      },
+    );
+  }
+  return rows;
 }
 
 function gravityProseEn(result: GravityResult): { headline: string; body: string } {
@@ -466,5 +530,15 @@ function sewerLead(result: GravityResult, locale: Locale): string {
         ? `Hydraulically ${sewer.hydraulicSize} would do, but a network sewer is at least ${sewer.minimumSize} so solids do not block it. `
         : `Secara hidraulik ${sewer.hydraulicSize} sudah cukup, tetapi pipa air limbah jaringan dipakai minimal ${sewer.minimumSize} supaya padatan tidak menyumbat. `
       : '';
-  return demand + minimum;
+  const pf = sewer.partial;
+  const flow = en
+    ? `At the design flow the pipe runs ${Math.round(pf.depthRatio * 100)} % full at ${id(pf.velocityMs, locale)} m/s${pf.selfCleansing ? ', self-cleansing' : `, below the 0.6 m/s self-cleansing velocity — lay it at least ${id(pf.minimumSlopePercent, locale)} %`}${pf.tooFast ? ', and too fast (scour)' : ''}. `
+    : `Pada debit rencana pipa terisi ${Math.round(pf.depthRatio * 100)} % dengan kecepatan ${id(pf.velocityMs)} m/s${pf.selfCleansing ? ', cukup membersihkan sendiri' : `, di bawah 0,6 m/s untuk membersihkan sendiri — pasang minimal ${id(pf.minimumSlopePercent)} %`}${pf.tooFast ? ', dan terlalu cepat (tergerus)' : ''}. `;
+  const pr = sewer.profile;
+  const profile = pr
+    ? en
+      ? `Over ${id(pr.routeLengthM, locale)} m the invert drops ${id(pr.fallM, locale)} m to ${id(pr.endDepthM, locale)} m deep${pr.liftNeeded ? ' — beyond a practical trench, so a lift station or a split route is needed' : ''}; about ${pr.manholes} manholes. `
+      : `Sepanjang ${id(pr.routeLengthM)} m dasar pipa turun ${id(pr.fallM)} m sampai kedalaman ${id(pr.endDepthM)} m${pr.liftNeeded ? ' — melampaui galian praktis, perlu stasiun pompa angkat atau jalur dipecah' : ''}; manhole sekitar ${pr.manholes} buah. `
+    : '';
+  return demand + minimum + flow + profile;
 }

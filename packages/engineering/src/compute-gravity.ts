@@ -3,8 +3,11 @@
  * Kelompok H, fase 4. Satu panggilan, satu trace per aturan; default dari registry asumsi dicatat
  * di `appliedAssumptionIds`. Intensitas hujan WAJIB dari pemanggil: tidak ada asumsinya. Murni.
  *
- * Jaringan air limbah (`sewer`, P22-05): debit dari sambungan rumah atau jiwa (ENG-408 → ENG-406),
- * ukuran hidraulik Manning (ENG-402), lalu ukuran minimum pipa air limbah (ENG-407).
+ * Jaringan air limbah (`sewer`, P22-05, dilengkapi P22-08): debit dari sambungan rumah atau jiwa
+ * (ENG-408 → ENG-406, dengan infiltrasi), ukuran hidraulik Manning (ENG-402), ukuran minimum pipa
+ * air limbah (ENG-407), lalu aliran sebagian pada ukuran terpilih — d/D, kecepatan pembersihan
+ * sendiri, kemiringan minimum (ENG-412) — dan profil jalur: manhole, penurunan, kedalaman galian,
+ * perlu pompa angkat (ENG-413) bila panjang jalurnya diketahui.
  */
 
 import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
@@ -20,6 +23,8 @@ import {
   ENG_406,
   ENG_407,
   ENG_408,
+  ENG_412,
+  ENG_413,
   culvertStructuralNote,
   type CulvertStructuralResult,
   type GravityCandidate,
@@ -43,9 +48,11 @@ export interface GravityInput {
   /** Air limbah: sambungan rumah, atau jiwa yang dilayani bila sambungannya tidak disebut. */
   readonly connections?: number;
   readonly population?: number;
+  /** Air limbah: panjang jalur untuk profil galian dan manhole (ENG-413). */
+  readonly routeLengthM?: number;
 }
 
-/** Air limbah: asal debit rencananya (ENG-406), untuk tampilan dan laporan. */
+/** Air limbah: asal debit rencananya dan pemeriksaan jalurnya, untuk tampilan dan laporan. */
 export interface SewerDemand {
   readonly connections: number;
   readonly averageFlowLs: number;
@@ -53,6 +60,23 @@ export interface SewerDemand {
   /** Ukuran hidraulik sebelum dinaikkan ke minimum pipa air limbah; sama bila tidak dinaikkan. */
   readonly hydraulicSize: string;
   readonly minimumSize: string;
+  /** Aliran sebagian pada debit rencana di ukuran terpilih (ENG-412). */
+  readonly partial: {
+    readonly depthRatio: number;
+    readonly velocityMs: number;
+    readonly selfCleansing: boolean;
+    readonly tooFast: boolean;
+    readonly depthOk: boolean;
+    readonly minimumSlopePercent: number;
+  };
+  /** Profil jalur (ENG-413); `null` bila panjang jalur belum diketahui. */
+  readonly profile: {
+    readonly routeLengthM: number;
+    readonly manholes: number;
+    readonly fallM: number;
+    readonly endDepthM: number;
+    readonly liftNeeded: boolean;
+  } | null;
 }
 
 export interface GravityResult {
@@ -119,8 +143,8 @@ export function computeGravity(
       runoffCoefficient: runoff,
     }).designFlowLs;
   }
-  // Air limbah: sambungan (atau jiwa → sambungan) → debit rata-rata dan puncak.
-  let sewerDemand: Omit<SewerDemand, 'hydraulicSize' | 'minimumSize'> | null = null;
+  // Air limbah: sambungan (atau jiwa → sambungan) → debit rata-rata dan puncak + infiltrasi.
+  let sewerDemand: { connections: number; averageFlowLs: number; peakFlowLs: number } | null = null;
   if (input.kind === 'sewer' && designFlowLs === undefined) {
     const personsPerConnection = use('SPAM_PERSONS_PER_CONNECTION_5');
     const connections =
@@ -139,6 +163,7 @@ export function computeGravity(
       litresPerPersonPerDay: use('SPAM_DEMAND_LPCD_100'),
       returnFactor: use('SEWER_RETURN_FACTOR_0_8'),
       peakFactor: use('SEWER_PEAK_FACTOR_2_5'),
+      infiltrationPercent: use('SEWER_INFILTRATION_10PCT'),
     });
     designFlowLs = demand.peakFlowLs;
     sewerDemand = { connections, ...demand };
@@ -153,24 +178,54 @@ export function computeGravity(
   const sizing = run(ENG_402, { designFlowLs, slopePercent, manningN, fillRatio, velocityMinMs });
   // Air limbah jaringan: tidak lebih kecil dari ukuran minimum pipa air limbah (ENG-407).
   let recommendedSize = sizing.recommended;
-  let sewer: SewerDemand | null = null;
   if (input.kind === 'sewer') {
-    const minimumSize = SEWER_MINIMUM_SIZE;
-    const minimum = run(ENG_407, { recommendedSize: sizing.recommended, minimumSize });
+    const minimum = run(ENG_407, {
+      recommendedSize: sizing.recommended,
+      minimumSize: SEWER_MINIMUM_SIZE,
+    });
     recommendedSize = minimum.size;
-    sewer = sewerDemand
-      ? { ...sewerDemand, hydraulicSize: sizing.recommended, minimumSize }
-      : {
-          // Debit diberikan langsung: tidak ada sambungan yang diketahui.
-          connections: input.connections ?? 0,
-          averageFlowLs: designFlowLs,
-          peakFlowLs: designFlowLs,
-          hydraulicSize: sizing.recommended,
-          minimumSize,
-        };
   }
   const pick = sizing.candidates.find((c) => c.size === recommendedSize)!;
   const full = run(ENG_401, { innerDiameterMm: pick.innerDiameterMm, slopePercent, manningN });
+
+  let sewer: SewerDemand | null = null;
+  if (input.kind === 'sewer') {
+    const partial = run(ENG_412, {
+      designFlowLs,
+      innerDiameterMm: pick.innerDiameterMm,
+      slopePercent,
+      manningN,
+      velocityMinMs,
+      velocityMaxMs: use('SEWER_VELOCITY_MAX_3MS'),
+      maxDepthRatio: fillRatio,
+    });
+    const profile =
+      input.routeLengthM !== undefined && input.routeLengthM > 0
+        ? run(ENG_413, {
+            routeLengthM: input.routeLengthM,
+            slopePercent,
+            manholeSpacingM: use('SEWER_MANHOLE_SPACING_50M'),
+            startDepthM: use('SEWER_START_DEPTH_1M'),
+            maxDepthM: use('SEWER_MAX_DEPTH_4M'),
+          })
+        : null;
+    const demand = sewerDemand ?? {
+      // Debit diberikan langsung: tidak ada sambungan yang diketahui.
+      connections: input.connections ?? 0,
+      averageFlowLs: designFlowLs,
+      peakFlowLs: designFlowLs,
+    };
+    sewer = {
+      ...demand,
+      hydraulicSize: sizing.recommended,
+      minimumSize: SEWER_MINIMUM_SIZE,
+      partial,
+      profile:
+        profile && input.routeLengthM !== undefined
+          ? { routeLengthM: input.routeLengthM, ...profile }
+          : null,
+    };
+  }
 
   let structural: CulvertStructuralResult | null = null;
   if (input.kind === 'culvert') {
@@ -199,7 +254,7 @@ export function computeGravity(
     fullFlowLs: full.fullFlowLs,
     fullVelocityMs: full.fullVelocityMs,
     utilisationPercent: pick.utilisationPercent,
-    allCriteriaMet: sizing.allCriteriaMet,
+    allCriteriaMet: sizing.allCriteriaMet && (sewer === null || sewer.partial.selfCleansing),
     structural,
     sewer,
     appliedAssumptionIds: [...new Set(applied)],

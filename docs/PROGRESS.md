@@ -1745,6 +1745,18 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
       alat ke pipa tegak air kotor (kloset/urinoir) atau air bekas (lainnya) di dinding kanan, konsisten dengan
       potongan; tag ukuran cabang di bawah garis; dua baris label pipa tegak buang berukuran. Dicek render lokal
       untuk 1 lantai 6 × 6 m, 2 lantai 10 × 6 m, dan 2 lantai 15 × 8 m dengan tiga cabang. PDF memakai SVG yang sama.
+- [x] P22-08 Kelengkapan hitungan SPAM dan sewerage (pemilik 2026-10-16: "pastiin dari segala aspek ... terpenuhi
+      semuanya"). Audit terhadap kriteria perencanaan SPAM dan SPALD-T, lalu yang kurang ditambah. **SPAM**: ENG-409
+      kebutuhan = domestik + non-domestik 15 % ÷ (1 − NRW 20 %), hari maksimum × 1,15 (transmisi/reservoir) dan
+      jam puncak × 1,75 (distribusi); ENG-410 reservoir 20 % hari maksimum; ENG-411 kelas tekanan PN dari
+      max(statis, head pompa) + 10 % (PE100 PN ↔ SDR). **Sewerage**: ENG-406 v2 + infiltrasi 10 %; ENG-412 aliran
+      sebagian Manning segmen lingkaran — d/D dan kecepatan pada debit rencana, ≥ 0,6 m/s dan ≤ 3 m/s, d/D ≤ 0,8,
+      kemiringan minimum S × (0,6 ÷ v)²; ENG-413 profil jalur — manhole tiap 50 m, penurunan, kedalaman galian
+      akhir, > 4 m → stasiun pompa angkat; manhole masuk BOQ sebagai baris di luar perpipaan. Contoh 200 SR, 1,5 km,
+      0,5 %: 2,41 l/s, 6" terisi ±27 % pada ±0,55 m/s → pasang ≥ 0,6 %; 31 manhole; dasar pipa turun 7,5 m → perlu
+      pompa angkat. Contoh 500 SR SPAM: 4,16 l/s rata-rata (359 m³/hari), jam puncak 7,28 l/s, reservoir 83 m³.
+      Highlight, prosa, dan BOQ ikut. Di luar cakupan (ke tim teknis): pemodelan jaringan bercabang/loop,
+      penempatan reservoir, desain IPAL, pompa angkat. 63 aturan; OQ-70 diperluas.
 - [x] ✋ CHECKPOINT Fase 22 — pemilik menerima keempat default (OQ-67 ambang 0,7 bar, OQ-68 tetap skematik, OQ-69
       tanpa harga, OQ-70 kriteria umum divalidasi bersama aturan lain), 2026-10-16
 

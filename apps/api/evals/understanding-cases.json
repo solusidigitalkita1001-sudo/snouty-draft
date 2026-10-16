@@ -1083,6 +1083,19 @@
       "text": "Pipa yg cocok buat proyek perumahan 50 unit?",
       "useCase": "residential_cluster",
       "source": "tes FAQ sales pemilik 2026-10-12 MA-07"
+    },
+    {
+      "text": "gw mau bikin spam",
+      "intent": "requirement_technical",
+      "useCase": "water_supply_network"
+    },
+    {
+      "text": "mau bangun jaringan air minum buat desa",
+      "useCase": "water_supply_network"
+    },
+    {
+      "text": "kita lagi ngerjain sewerage kawasan",
+      "useCase": "sewerage"
     }
   ]
 }

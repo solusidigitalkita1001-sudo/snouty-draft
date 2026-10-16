@@ -367,6 +367,15 @@ ENG-405  Q_rata = sambungan × 4 orang × 150 l/hari ÷ 86 400 ; Q_puncak = Q_ra
 ENG-406  air limbah (P22-05): Q_rata = SR × 5 jiwa × 100 l/hari × 0,8 kembali ÷ 86 400 ; Q_puncak = × 2,5
 ENG-407  air limbah: ukuran ≥ minimum pipa air limbah jaringan 6" (150 mm) — dinaikkan bila hidraulik lebih kecil
 ENG-408  jiwa → sambungan rumah: ⌈jiwa ÷ 5⌉ (SPAM dan air limbah)
+ENG-406 v2 (P22-08): + infiltrasi 10 % × Q_rata
+ENG-409  SPAM (P22-08): Q_rata = domestik × (1 + non-domestik 15 %) ÷ (1 − NRW 20 %); Q_hari maks = × 1,15
+         (transmisi, reservoir); Q_jam puncak = × 1,75 (distribusi)
+ENG-410  reservoir distribusi = 20 % × volume hari maksimum
+ENG-411  kelas tekanan: PN ≥ max(tinggi statis, head pompa) × 1,10 → PN 6,3/8/10/12,5/16/20 ↔ SDR 26/21/17/13,6/11/9
+ENG-412  air limbah, aliran sebagian (Manning segmen lingkaran): d/D dan v pada Q_rencana; v ≥ 0,6 m/s, ≤ 3 m/s,
+         d/D ≤ 0,8; S_min ≈ S × (0,6 ÷ v)²
+ENG-413  profil air limbah: manhole = ⌈L ÷ 50 m⌉ + 1; penurunan = L × S; galian akhir = 1 m + penurunan; > 4 m →
+         stasiun pompa angkat / jalur dipecah
 ```
 
 Jaringan air minum / SPAM (P22-05): `computeNetwork({ kind: 'water_supply' })` memakai asumsi SPAM
@@ -518,26 +527,31 @@ dan laporan mencetak stempel versi aturan (`rulesetStamp`). Dapur yang belum dis
 
 Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja.
 
-| ID      | Deskripsi                                 | Asal           | Status                     | Prioritas validasi |
-| ------- | ----------------------------------------- | -------------- | -------------------------- | ------------------ |
-| ENG-001 | Unit beban + jumlah titik air             | prototipe baru | REQUIRES_DOMAIN_VALIDATION | **tinggi**         |
-| ENG-002 | Ambang ukuran jalur utama (≥ 8 unit → 1") | prototipe baru | REQUIRES_DOMAIN_VALIDATION | **tertinggi**      |
-| ENG-003 | Maks 4 titik air per cabang               | keduanya       | REQUIRES_DOMAIN_VALIDATION | tinggi             |
-| ENG-004 | Tinggi lantai default 3,5 m               | keduanya       | REQUIRES_DOMAIN_VALIDATION | sedang             |
-| ENG-005 | Sambungan fixture 1/2"                    | keduanya       | REQUIRES_DOMAIN_VALIDATION | sedang             |
-| ENG-006 | Selisih lapangan 10–15% (dihapus)         | keduanya       | —                          | —                  |
-| ENG-007 | Urutan klarifikasi                        | prototipe      | REQUIRES_DOMAIN_VALIDATION | rendah             |
-| ENG-008 | Distribusi titik air antar lantai         | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
-| ENG-009 | Formula kuantitas BOM                     | prototipe      | REQUIRES_DOMAIN_VALIDATION | tinggi             |
-| ENG-010 | Kecepatan aliran 1–2 m/s                  | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
-| ENG-011 | Gravitasi toren cukup tanpa pompa         | prototipe      | REQUIRES_DOMAIN_VALIDATION | **tinggi**         |
-| ENG-012 | 1 kamar mandi = shower + kloset           | prototipe      | REQUIRES_DOMAIN_VALIDATION | tinggi             |
-| ENG-013 | Kelas AW / D                              | board 08       | REQUIRES_DOMAIN_VALIDATION | sedang             |
-| ENG-014 | Default "Belum tahu"                      | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
-| ENG-711 | Pilihan dudukan toren: dak / tiang        | P22-04         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
-| ENG-406 | Debit air limbah dari sambungan rumah     | P22-05         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
-| ENG-407 | Ukuran minimum pipa air limbah 6"         | P22-05         | REQUIRES_DOMAIN_VALIDATION | sedang             |
-| ENG-408 | Sambungan rumah dari jumlah jiwa          | P22-05         | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ID      | Deskripsi                                                | Asal           | Status                     | Prioritas validasi |
+| ------- | -------------------------------------------------------- | -------------- | -------------------------- | ------------------ |
+| ENG-001 | Unit beban + jumlah titik air                            | prototipe baru | REQUIRES_DOMAIN_VALIDATION | **tinggi**         |
+| ENG-002 | Ambang ukuran jalur utama (≥ 8 unit → 1")                | prototipe baru | REQUIRES_DOMAIN_VALIDATION | **tertinggi**      |
+| ENG-003 | Maks 4 titik air per cabang                              | keduanya       | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-004 | Tinggi lantai default 3,5 m                              | keduanya       | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-005 | Sambungan fixture 1/2"                                   | keduanya       | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-006 | Selisih lapangan 10–15% (dihapus)                        | keduanya       | —                          | —                  |
+| ENG-007 | Urutan klarifikasi                                       | prototipe      | REQUIRES_DOMAIN_VALIDATION | rendah             |
+| ENG-008 | Distribusi titik air antar lantai                        | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-009 | Formula kuantitas BOM                                    | prototipe      | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-010 | Kecepatan aliran 1–2 m/s                                 | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-011 | Gravitasi toren cukup tanpa pompa                        | prototipe      | REQUIRES_DOMAIN_VALIDATION | **tinggi**         |
+| ENG-012 | 1 kamar mandi = shower + kloset                          | prototipe      | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-013 | Kelas AW / D                                             | board 08       | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-014 | Default "Belum tahu"                                     | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-711 | Pilihan dudukan toren: dak / tiang                       | P22-04         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-406 | Debit air limbah dari sambungan rumah                    | P22-05         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-407 | Ukuran minimum pipa air limbah 6"                        | P22-05         | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-408 | Sambungan rumah dari jumlah jiwa                         | P22-05         | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-409 | Kebutuhan SPAM: non-domestik, NRW, hari maks, jam puncak | P22-08         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-410 | Volume reservoir 20 % hari maksimum                      | P22-08         | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-411 | Kelas tekanan PN dari tekanan kerja                      | P22-08         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-412 | Aliran sebagian air limbah, S minimum                    | P22-08         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-413 | Manhole, penurunan, kedalaman galian                     | P22-08         | REQUIRES_DOMAIN_VALIDATION | sedang             |
 
 Bila waktu ahli terbatas, empat yang bertanda tinggi/tertinggi memberi hasil terbesar: ENG-002
 menentukan angka utama, ENG-001 dan ENG-012 memberinya masukan, ENG-011 menentukan apakah pompa perlu
