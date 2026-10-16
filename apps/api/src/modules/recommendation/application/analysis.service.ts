@@ -1008,7 +1008,7 @@ export class AnalysisService {
       snapshotId,
       catalogVersionId: version.id,
       kind: 'technical',
-      headline: `${result.connections} unit: ${prose.headline}`,
+      headline: `${result.connections} ${result.kind === 'water_supply' ? 'SR' : 'unit'}: ${prose.headline}`,
       body: `Kebutuhan puncak ${String(result.peakFlowLs).replace('.', ',')} l/s untuk ${result.connections} sambungan (rata-rata ${String(result.averageFlowLs).replace('.', ',')} l/s). ${prose.body}`,
       stats: pressurizedLegacyStats(result, match.products.length),
       highlights: [

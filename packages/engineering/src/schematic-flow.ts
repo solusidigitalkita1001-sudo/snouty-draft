@@ -326,10 +326,21 @@ export function gravitySchematic(
         ]
       : result.kind === 'culvert'
         ? [t('SALURAN HULU', 'UPSTREAM CHANNEL'), undefined]
-        : [t('TITIK MASUK', 'INLET'), undefined];
+        : result.kind === 'sewer'
+          ? [
+              t('SAMBUNGAN RUMAH', 'HOUSE CONNECTIONS'),
+              result.sewer && result.sewer.connections > 0
+                ? `${result.sewer.connections} SR`
+                : undefined,
+            ]
+          : [t('TITIK MASUK', 'INLET'), undefined];
   const length = input.pipeLengthM !== null ? ` · ${n(input.pipeLengthM, locale)} m` : '';
   const pipeTitle =
-    result.kind === 'culvert' ? t('GORONG-GORONG', 'CULVERT') : t('PIPA SALURAN', 'DRAIN PIPE');
+    result.kind === 'culvert'
+      ? t('GORONG-GORONG', 'CULVERT')
+      : result.kind === 'sewer'
+        ? t('PIPA AIR LIMBAH', 'SEWER PIPE')
+        : t('PIPA SALURAN', 'DRAIN PIPE');
   const pipeDetail =
     result.kind === 'culvert' && result.structural
       ? `${t('timbunan min.', 'min. cover')} ${n(result.structural.minimumCoverM, locale)} m${length}`
@@ -341,7 +352,11 @@ export function gravitySchematic(
     .link('drain', '')
     .node(
       'outlet',
-      result.kind === 'culvert' ? t('SALURAN HILIR', 'DOWNSTREAM') : t('PEMBUANGAN', 'OUTFALL'),
+      result.kind === 'culvert'
+        ? t('SALURAN HILIR', 'DOWNSTREAM')
+        : result.kind === 'sewer'
+          ? t('IPAL / PENGOLAHAN', 'TREATMENT PLANT')
+          : t('PEMBUANGAN', 'OUTFALL'),
       `${n(result.utilisationPercent, locale)} % ${t('kapasitas', 'capacity')}`,
     );
   const drawing =
@@ -349,7 +364,9 @@ export function gravitySchematic(
       ? t('SK-06 AIR HUJAN', 'SK-06 STORMWATER')
       : result.kind === 'culvert'
         ? t('SK-07 GORONG-GORONG', 'SK-07 CULVERT')
-        : t('SK-06 DRAINASE', 'SK-06 DRAINAGE');
+        : result.kind === 'sewer'
+          ? t('SK-08 AIR LIMBAH', 'SK-08 SEWERAGE')
+          : t('SK-06 DRAINASE', 'SK-06 DRAINAGE');
   return finish(
     b,
     null,

@@ -79,7 +79,7 @@ describe('gravityPlanFrom / networkInputFrom', () => {
           static_head: known('Statis', 8),
         }),
       ),
-    ).toEqual({ connections: 120, routeLengthM: 600, staticHeadM: 8 });
+    ).toEqual({ connections: 120, routeLengthM: 600, staticHeadM: 8, kind: 'cluster' });
   });
 });
 

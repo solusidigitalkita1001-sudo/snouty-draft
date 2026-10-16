@@ -193,7 +193,14 @@ export {
 } from './rules/group-h-gravity.js';
 export type { GravityCandidate, GravitySizingResult } from './rules/group-h-gravity.js';
 export { GravityInputError, computeGravity } from './compute-gravity.js';
-export type { GravityInput, GravityKind, GravityResult, TrafficLoad } from './compute-gravity.js';
+export type {
+  GravityInput,
+  GravityKind,
+  GravityResult,
+  SewerDemand,
+  TrafficLoad,
+} from './compute-gravity.js';
+export { SEWER_MINIMUM_SIZE } from './compute-gravity.js';
 export { computeNetwork } from './compute-network.js';
 export { BuildingOccupancyUnknownError, computeBuildingWater } from './compute-building.js';
 export { computeHouseDrainage } from './compute-house-waste.js';
@@ -259,7 +266,7 @@ export type {
   TankResult,
   ZoningResult,
 } from './rules/group-i-building.js';
-export type { NetworkInput, NetworkResult } from './compute-network.js';
+export type { NetworkInput, NetworkKind, NetworkResult } from './compute-network.js';
 export type { PipeMaterial, PressurizedInput, PressurizedResult } from './compute-pressurized.js';
 export {
   barToHeadM,

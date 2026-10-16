@@ -466,6 +466,10 @@ const INTRO: Readonly<Record<CaseId, string>> = {
     'Oke, gorong-gorong. Saya hitung diameter dan kelas pipanya dari debit, kemiringan, dan beban jalan.',
   well_distribution: 'Oke, sumur ke tandon. Saya hitung pipa dan kebutuhan pompanya.',
   fish_pond: 'Oke, kolam/tambak. Saya hitung pipa masuk, pipa kuras, dan fitting-nya.',
+  water_supply_network:
+    'Oke, jaringan air minum. Saya hitung kebutuhan puncak dari sambungan atau jiwa yang dilayani, lalu ukuran pipa transmisi/distribusinya.',
+  sewerage:
+    'Oke, jaringan air limbah. Saya hitung debit air limbah dari sambungan rumah, lalu diameter dan kemiringan pipanya.',
 };
 
 /** Kalimat pembuka per kasus (Inggris) — kunci sama dengan `INTRO`. */
@@ -485,6 +489,10 @@ const INTRO_EN: Readonly<Record<CaseId, string>> = {
     "Okay, a culvert. I'll work out the diameter and pipe class from the flow, slope, and road load.",
   well_distribution: "Okay, well to storage tank. I'll work out the pipe and the pump needs.",
   fish_pond: "Okay, a fish pond. I'll work out the inlet pipe, the drain pipe, and the fittings.",
+  water_supply_network:
+    "Okay, a drinking-water network. I'll work out the peak demand from the connections or people served, then the transmission/distribution pipe size.",
+  sewerage:
+    "Okay, a sewerage network. I'll work out the wastewater flow from the house connections, then the pipe diameter and slope.",
 };
 
 function joinNatural(items: readonly string[], locale: Locale = DEFAULT_LOCALE): string {

@@ -9,7 +9,7 @@
  */
 
 import type { EngineeringLocale } from '../parameters/locale.js';
-import { localized, requireInt, requireNumber, type RuleVersion } from '../rule.js';
+import { localized, requireInt, requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
 import { round1, round2 } from '../units.js';
 import { NOMINAL_SIZES } from './group-e-irrigation.js';
 import { PVC_LARGE_SIZES } from '../parameters/size-tables.js';
@@ -504,4 +504,202 @@ export const ENG_405: RuleVersion<NetworkDemandInput, NetworkDemandResult> = {
     }),
 };
 
-export const GROUP_H = [ENG_401, ENG_402, ENG_403, ENG_404, ENG_405] as const;
+// ── ENG-406 · Debit air limbah domestik dari sambungan rumah ───────────────
+
+export interface SewerFlowInput {
+  readonly connections: number;
+  readonly personsPerConnection: number;
+  readonly litresPerPersonPerDay: number;
+  /** Bagian pemakaian air yang kembali sebagai air limbah (0–1). */
+  readonly returnFactor: number;
+  readonly peakFactor: number;
+}
+export interface SewerFlowResult {
+  readonly averageFlowLs: number;
+  readonly peakFlowLs: number;
+}
+
+export const ENG_406: RuleVersion<SewerFlowInput, SewerFlowResult> = {
+  ruleId: 'ENG-406',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      connections: requireInt('ENG-406', 'connections', o['connections'], { min: 1, max: 100_000 }),
+      personsPerConnection: requireNumber(
+        'ENG-406',
+        'personsPerConnection',
+        o['personsPerConnection'],
+        { min: 1, max: 50 },
+      ),
+      litresPerPersonPerDay: requireNumber(
+        'ENG-406',
+        'litresPerPersonPerDay',
+        o['litresPerPersonPerDay'],
+        { min: 20, max: 500 },
+      ),
+      returnFactor: requireNumber('ENG-406', 'returnFactor', o['returnFactor'], {
+        min: 0.1,
+        max: 1,
+      }),
+      peakFactor: requireNumber('ENG-406', 'peakFactor', o['peakFactor'], { min: 1, max: 6 }),
+    };
+  },
+  compute: (input) => {
+    const average =
+      (input.connections *
+        input.personsPerConnection *
+        input.litresPerPersonPerDay *
+        input.returnFactor) /
+      86_400;
+    return { averageFlowLs: round2(average), peakFlowLs: round2(average * input.peakFactor) };
+  },
+  sourceReference:
+    'Q_limbah rata = sambungan × orang × l/orang/hari × faktor kembali ÷ 86 400; Q_puncak = Q_rata × faktor puncak (kriteria perencanaan SPALD-T: air limbah ±80 % pemakaian air)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '200 SR × 5 orang × 100 l × 0,8 kembali, puncak 2,5 → 0,93 → 2,31 l/s',
+      input: {
+        connections: 200,
+        personsPerConnection: 5,
+        litresPerPersonPerDay: 100,
+        returnFactor: 0.8,
+        peakFactor: 2.5,
+      },
+      expected: { averageFlowLs: 0.93, peakFlowLs: 2.31 },
+    },
+  ],
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: `Air limbah puncak ${output.peakFlowLs} l/s = ${input.connections} sambungan × ${input.personsPerConnection} orang × ${input.litresPerPersonPerDay} l/hari × ${input.returnFactor} yang kembali sebagai limbah ÷ 86 400 (= ${output.averageFlowLs} l/s rata-rata) × faktor puncak ${input.peakFactor}.`,
+      en: `Peak wastewater ${output.peakFlowLs} l/s = ${input.connections} connections × ${input.personsPerConnection} persons × ${input.litresPerPersonPerDay} l/day × ${input.returnFactor} returned as wastewater ÷ 86 400 (= ${output.averageFlowLs} l/s average) × peak factor ${input.peakFactor}.`,
+    }),
+};
+
+// ── ENG-407 · Ukuran minimum pipa air limbah ────────────────────────────────
+
+export interface SewerMinimumSizeInput {
+  readonly recommendedSize: string;
+  readonly minimumSize: string;
+}
+export interface SewerMinimumSizeResult {
+  readonly size: string;
+  readonly raised: boolean;
+}
+
+function gravitySizeIndex(size: string): number {
+  return GRAVITY_SIZES.findIndex((s) => s.size === size);
+}
+
+export const ENG_407: RuleVersion<SewerMinimumSizeInput, SewerMinimumSizeResult> = {
+  ruleId: 'ENG-407',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const recommendedSize = String(o['recommendedSize'] ?? '');
+    const minimumSize = String(o['minimumSize'] ?? '');
+    if (gravitySizeIndex(recommendedSize) === -1) {
+      throw new RuleInputError('ENG-407', `recommendedSize tidak dikenal: ${recommendedSize}`);
+    }
+    if (gravitySizeIndex(minimumSize) === -1) {
+      throw new RuleInputError('ENG-407', `minimumSize tidak dikenal: ${minimumSize}`);
+    }
+    return { recommendedSize, minimumSize };
+  },
+  compute: (input) => {
+    const raised = gravitySizeIndex(input.recommendedSize) < gravitySizeIndex(input.minimumSize);
+    return { size: raised ? input.minimumSize : input.recommendedSize, raised };
+  },
+  sourceReference:
+    'Pipa air limbah jaringan tidak lebih kecil dari ukuran minimum (150 mm / 6") supaya tidak tersumbat padatan — kriteria umum perencanaan SPALD-T',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'hidraulik cukup 3", minimum 6" → 6" (dinaikkan)',
+      input: { recommendedSize: '3"', minimumSize: '6"' },
+      expected: { size: '6"', raised: true },
+    },
+    {
+      name: 'hidraulik butuh 8", minimum 6" → 8"',
+      input: { recommendedSize: '8"', minimumSize: '6"' },
+      expected: { size: '8"', raised: false },
+    },
+  ],
+  explain: (input, output, locale) =>
+    localized(locale, {
+      id: output.raised
+        ? `Secara hidraulik ${input.recommendedSize} sudah cukup, tetapi pipa air limbah jaringan dipakai minimal ${input.minimumSize} supaya padatan tidak menyumbat; dipakai ${output.size}.`
+        : `Ukuran ${output.size} sudah di atas minimum pipa air limbah ${input.minimumSize}.`,
+      en: output.raised
+        ? `Hydraulically ${input.recommendedSize} is enough, but a network sewer pipe is at least ${input.minimumSize} so solids do not block it; ${output.size} is used.`
+        : `The ${output.size} size is already above the ${input.minimumSize} sewer minimum.`,
+    }),
+};
+
+// ── ENG-408 · Sambungan rumah dari jumlah jiwa ──────────────────────────────
+
+export interface ConnectionsFromPopulationInput {
+  readonly population: number;
+  readonly personsPerConnection: number;
+}
+export interface ConnectionsFromPopulationResult {
+  readonly connections: number;
+}
+
+export const ENG_408: RuleVersion<ConnectionsFromPopulationInput, ConnectionsFromPopulationResult> =
+  {
+    ruleId: 'ENG-408',
+    version: 1,
+    category: 'load_sizing',
+    parseInput: (raw) => {
+      const o = (raw ?? {}) as Record<string, unknown>;
+      return {
+        population: requireInt('ENG-408', 'population', o['population'], {
+          min: 1,
+          max: 5_000_000,
+        }),
+        personsPerConnection: requireNumber(
+          'ENG-408',
+          'personsPerConnection',
+          o['personsPerConnection'],
+          { min: 1, max: 50 },
+        ),
+      };
+    },
+    compute: (input) => ({
+      connections: Math.max(1, Math.ceil(input.population / input.personsPerConnection)),
+    }),
+    sourceReference: 'Sambungan rumah = jiwa ÷ jiwa per sambungan, dibulatkan ke atas',
+    validationStatus: PENDING,
+    testCases: [
+      {
+        name: '1 000 jiwa ÷ 5 → 200 SR',
+        input: { population: 1000, personsPerConnection: 5 },
+        expected: { connections: 200 },
+      },
+      {
+        name: '12 jiwa ÷ 5 → 3 SR (dibulatkan ke atas)',
+        input: { population: 12, personsPerConnection: 5 },
+        expected: { connections: 3 },
+      },
+    ],
+    explain: (input, output, locale) =>
+      localized(locale, {
+        id: `${input.population} jiwa ÷ ${input.personsPerConnection} jiwa per sambungan = ${output.connections} sambungan rumah.`,
+        en: `${input.population} people ÷ ${input.personsPerConnection} per connection = ${output.connections} house connections.`,
+      }),
+  };
+
+export const GROUP_H = [
+  ENG_401,
+  ENG_402,
+  ENG_403,
+  ENG_404,
+  ENG_405,
+  ENG_406,
+  ENG_407,
+  ENG_408,
+] as const;

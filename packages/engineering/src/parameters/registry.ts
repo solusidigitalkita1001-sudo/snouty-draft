@@ -180,6 +180,8 @@ const BASE_PARAMETERS: readonly ParameterBase[] = [
         'Drainase / air hujan',
         'Gorong-gorong',
         'Transfer pompa',
+        'Jaringan air minum (SPAM)',
+        'Jaringan air limbah',
         'Lainnya',
       ],
     },

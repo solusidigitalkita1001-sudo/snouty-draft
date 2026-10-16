@@ -291,7 +291,7 @@ export function extractTechnicalContext(
     add('building_floors', Number(m[1]), m[0], 'lantai'),
   );
   take(
-    /(\d+)\s*(?:orang|penghuni|karyawan|pegawai|pekerja|people|persons?|occupants?|employees?|staff)\b/,
+    /(\d+)\s*(?:orang|jiwa|penduduk|penghuni|karyawan|pegawai|pekerja|people|persons?|occupants?|employees?|staff|inhabitants?)\b/,
     (m) => add('number_of_occupants', Number(m[1]), m[0], 'orang'),
   );
   // Titik air PER LANTAI ("4 toilet per lantai", "tiap lantai 6 kamar mandi") — diambil sebelum
@@ -318,7 +318,7 @@ export function extractTechnicalContext(
     add('number_of_outlets', Number(m[1]), m[0], 'titik'),
   );
   take(
-    /(\d+)\s*(unit|units|rumah|kk|kavling|sambungan|houses?|homes?|connections?|plots?)\b/,
+    /(\d+)\s*(unit|units|rumah|kk|kavling|sambungan|sr|houses?|homes?|connections?|plots?)\b/,
     (m) => {
       add('number_of_connections', Number(m[1]), m[0], 'sambungan');
     },

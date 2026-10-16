@@ -364,7 +364,16 @@ ENG-402  ukuran nominal terkecil (½"–16") dengan Q_rencana ≤ 80 % Q_penuh d
 ENG-403  Q = 2,78 · C · I (mm/jam) · A (ha) → l/s                  C perumahan 0,6 bila tak disebut
 ENG-404  timbunan minimum = max(0,6 m [1,0 m beban berat], 1 × D) → memadai / wajib validasi struktural
 ENG-405  Q_rata = sambungan × 4 orang × 150 l/hari ÷ 86 400 ; Q_puncak = Q_rata × 2,0
+ENG-406  air limbah (P22-05): Q_rata = SR × 5 jiwa × 100 l/hari × 0,8 kembali ÷ 86 400 ; Q_puncak = × 2,5
+ENG-407  air limbah: ukuran ≥ minimum pipa air limbah jaringan 6" (150 mm) — dinaikkan bila hidraulik lebih kecil
+ENG-408  jiwa → sambungan rumah: ⌈jiwa ÷ 5⌉ (SPAM dan air limbah)
 ```
+
+Jaringan air minum / SPAM (P22-05): `computeNetwork({ kind: 'water_supply' })` memakai asumsi SPAM
+(SPAM_DEMAND_LPCD_100, SPAM_PERSONS_PER_CONNECTION_5, SPAM_PEAK_HOUR_FACTOR_1_75) dan menerima jiwa
+sebagai pengganti SR (ENG-408); cluster tetap 150 l / 4 orang / faktor 2. Jaringan air limbah:
+`computeGravity({ kind: 'sewer' })` — ENG-408 → ENG-406 → ENG-402 → ENG-407 → ENG-401. Contoh: 200 SR →
+0,93 l/s rata-rata, 2,31 l/s puncak → hidraulik 3" pada 0,5 % → dipakai 6". OQ-70.
 
 Contoh: 20 l/s pada 1 % → 8" (47 % kapasitas); 0,5 ha × 100 mm/jam → 83,4 l/s → 12";
 120 unit → 1,67 l/s puncak → 1½" bertekanan.
@@ -526,6 +535,9 @@ Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja
 | ENG-013 | Kelas AW / D                              | board 08       | REQUIRES_DOMAIN_VALIDATION | sedang             |
 | ENG-014 | Default "Belum tahu"                      | prototipe      | REQUIRES_DOMAIN_VALIDATION | sedang             |
 | ENG-711 | Pilihan dudukan toren: dak / tiang        | P22-04         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-406 | Debit air limbah dari sambungan rumah     | P22-05         | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-407 | Ukuran minimum pipa air limbah 6"         | P22-05         | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-408 | Sambungan rumah dari jumlah jiwa          | P22-05         | REQUIRES_DOMAIN_VALIDATION | sedang             |
 
 Bila waktu ahli terbatas, empat yang bertanda tinggi/tertinggi memberi hasil terbesar: ENG-002
 menentukan angka utama, ENG-001 dan ENG-012 memberinya masukan, ENG-011 menentukan apakah pompa perlu

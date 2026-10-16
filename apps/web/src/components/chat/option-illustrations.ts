@@ -60,6 +60,9 @@ export const OPTION_ILLUSTRATIONS: Readonly<Record<string, OptionMap>> = {
     'Drainase / air hujan': 'gutter',
     'Gorong-gorong': 'culvert',
     'Transfer pompa': 'hilltank',
+    // P22-05: proyek jaringan air minum dan air limbah.
+    'Jaringan air minum (SPAM)': 'network',
+    'Jaringan air limbah': 'sewage',
     Lainnya: 'question',
   },
   building_type: {

@@ -95,6 +95,24 @@ export function gravityPlanFrom(state: RequirementState): GravityPlan | null {
       pipeLengthM: routeLengthM ?? null,
     };
   }
+  // Jaringan air limbah (P22-05): debit dari sambungan/jiwa (engine), atau debit yang disebut.
+  if (caseId === 'sewerage') {
+    const connections = numberOf(p['number_of_connections']);
+    const population = numberOf(p['number_of_occupants']);
+    if (connections === undefined && population === undefined && designFlowLs === undefined) {
+      return null;
+    }
+    return {
+      input: {
+        kind: 'sewer',
+        ...opt('designFlowLs', designFlowLs),
+        ...opt('connections', connections === undefined ? undefined : Math.round(connections)),
+        ...opt('population', population === undefined ? undefined : Math.round(population)),
+        ...opt('slopePercent', slopePercent),
+      },
+      pipeLengthM: routeLengthM ?? null,
+    };
+  }
   if (caseId === 'culvert') {
     const roadWidthM = numberOf(p['road_width']);
     if (designFlowLs === undefined || roadWidthM === undefined) return null;
@@ -116,19 +134,32 @@ export function gravityPlanFrom(state: RequirementState): GravityPlan | null {
 
 /** Parameter universal kasus cluster → masukan engine jaringan; `null` = data inti belum cukup. */
 export function networkInputFrom(state: RequirementState): NetworkInput | null {
-  if (state.useCase?.kind !== 'technical' || state.useCase.caseId !== 'residential_cluster')
-    return null;
+  if (state.useCase?.kind !== 'technical') return null;
+  const caseId = state.useCase.caseId;
+  if (caseId !== 'residential_cluster' && caseId !== 'water_supply_network') return null;
   const p = state.useCase.parameters;
   const connections = numberOf(p['number_of_connections']) ?? numberOf(p['number_of_units']);
+  // Jaringan air minum (P22-05): jiwa yang dilayani menggantikan jumlah SR (ENG-408).
+  const population =
+    caseId === 'water_supply_network' ? numberOf(p['number_of_occupants']) : undefined;
   const routeLengthM = numberOf(p['route_length']);
   const staticHeadM = numberOf(p['static_head']);
-  if (connections === undefined || routeLengthM === undefined || staticHeadM === undefined)
+  if (
+    (connections === undefined && population === undefined) ||
+    routeLengthM === undefined ||
+    staticHeadM === undefined
+  ) {
     return null;
+  }
   const residual = numberOf(p['required_pressure']);
   return {
-    connections: Math.max(1, Math.round(connections)),
+    ...(connections !== undefined ? { connections: Math.max(1, Math.round(connections)) } : {}),
+    ...(connections === undefined && population !== undefined
+      ? { population: Math.max(1, Math.round(population)) }
+      : {}),
     routeLengthM,
     staticHeadM,
+    kind: caseId === 'water_supply_network' ? 'water_supply' : 'cluster',
     ...(residual !== undefined ? { residualPressureBar: residual } : {}),
   };
 }
@@ -138,11 +169,13 @@ const KIND_LABEL: Readonly<Record<Locale, Record<GravityResult['kind'], string>>
     drainage: 'Saluran gravitasi',
     stormwater: 'Drainase air hujan',
     culvert: 'Gorong-gorong',
+    sewer: 'Jaringan air limbah',
   },
   en: {
     drainage: 'Gravity drain',
     stormwater: 'Stormwater drainage',
     culvert: 'Culvert',
+    sewer: 'Sewerage network',
   },
 };
 
@@ -153,6 +186,21 @@ export function gravityHighlights(
 ): readonly KeyValue[] {
   const en = locale === 'en';
   const rows: KeyValue[] = [
+    // Air limbah (P22-05): asal debitnya — sambungan yang dilayani dan rata-ratanya.
+    ...(result.sewer && result.sewer.connections > 0
+      ? [
+          {
+            label: en ? 'Connections' : 'Sambungan rumah',
+            value: en
+              ? `${result.sewer.connections} connections`
+              : `${result.sewer.connections} SR`,
+          },
+          {
+            label: en ? 'Average wastewater' : 'Air limbah rata-rata',
+            value: `${id(result.sewer.averageFlowLs, locale)} l/s`,
+          },
+        ]
+      : []),
     {
       label: en ? 'Design flow' : 'Debit rencana',
       value: `${id(result.designFlowLs, locale)} l/s`,
@@ -360,7 +408,7 @@ export function gravityProse(
     : '';
   return {
     headline: `${label}: pipa PVC D ${result.recommendedSize} untuk ${id(result.designFlowLs)} l/s pada kemiringan ${id(result.slopePercent)} %`,
-    body: `Pada kemiringan ${id(result.slopePercent)} %, pipa ${result.recommendedSize} mengalirkan ${id(result.fullFlowLs)} l/s saat penuh dengan kecepatan ${id(result.fullVelocityMs)} m/s; debit rencana ${id(result.designFlowLs)} l/s memakai ${id(result.utilisationPercent)} % kapasitasnya sehingga masih ada ruang udara.${structural} Perkiraan awal, bukan desain final.`,
+    body: `${sewerLead(result, 'id')}Pada kemiringan ${id(result.slopePercent)} %, pipa ${result.recommendedSize} mengalirkan ${id(result.fullFlowLs)} l/s saat penuh dengan kecepatan ${id(result.fullVelocityMs)} m/s; debit rencana ${id(result.designFlowLs)} l/s memakai ${id(result.utilisationPercent)} % kapasitasnya sehingga masih ada ruang udara.${structural} Perkiraan awal, bukan desain final.`,
   };
 }
 
@@ -397,6 +445,26 @@ function gravityProseEn(result: GravityResult): { headline: string; body: string
     : '';
   return {
     headline: `${label}: PVC D ${result.recommendedSize} pipe for ${id(result.designFlowLs, l)} l/s at a slope of ${id(result.slopePercent, l)} %`,
-    body: `At a slope of ${id(result.slopePercent, l)} %, the ${result.recommendedSize} pipe carries ${id(result.fullFlowLs, l)} l/s when full at a velocity of ${id(result.fullVelocityMs, l)} m/s; the design flow of ${id(result.designFlowLs, l)} l/s uses ${id(result.utilisationPercent, l)} % of its capacity, so there is still air space.${structural} Initial estimate, not a final design.`,
+    body: `${sewerLead(result, 'en')}At a slope of ${id(result.slopePercent, l)} %, the ${result.recommendedSize} pipe carries ${id(result.fullFlowLs, l)} l/s when full at a velocity of ${id(result.fullVelocityMs, l)} m/s; the design flow of ${id(result.designFlowLs, l)} l/s uses ${id(result.utilisationPercent, l)} % of its capacity, so there is still air space.${structural} Initial estimate, not a final design.`,
   };
+}
+
+/** Air limbah (P22-05): kalimat pembuka tentang asal debit dan ukuran minimum, kosong untuk kasus lain. */
+function sewerLead(result: GravityResult, locale: Locale): string {
+  const sewer = result.sewer;
+  if (!sewer) return '';
+  const en = locale === 'en';
+  const demand =
+    sewer.connections > 0
+      ? en
+        ? `Wastewater from ${sewer.connections} house connections: ${id(sewer.averageFlowLs, locale)} l/s on average, ${id(sewer.peakFlowLs, locale)} l/s at peak. `
+        : `Air limbah dari ${sewer.connections} sambungan rumah: rata-rata ${id(sewer.averageFlowLs)} l/s, puncak ${id(sewer.peakFlowLs)} l/s. `
+      : '';
+  const minimum =
+    sewer.hydraulicSize !== result.recommendedSize
+      ? en
+        ? `Hydraulically ${sewer.hydraulicSize} would do, but a network sewer is at least ${sewer.minimumSize} so solids do not block it. `
+        : `Secara hidraulik ${sewer.hydraulicSize} sudah cukup, tetapi pipa air limbah jaringan dipakai minimal ${sewer.minimumSize} supaya padatan tidak menyumbat. `
+      : '';
+  return demand + minimum;
 }

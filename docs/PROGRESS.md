@@ -1714,7 +1714,19 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
       keempat di sambutan: "Ganti pipa rumah subsidi ke Pralon" (tipe 36, pipa lama diganti). Contoh kalimat
       permintaan ganti pipa masuk `requirement_building`. **Tanpa rupiah**: katalog tidak memuat harga dan DD-01
       #8 menetapkan BOQ tanpa harga → OQ-69. Tes: penanda ekstraksi, label nilai, templat prosa, baris panel.
-- [ ] P22-05 Use case SPAM dan sewerage (butir 5).
+- [x] P22-05 Use case SPAM dan sewerage (butir 5). Dua kasus teknis baru. **Jaringan air minum (SPAM)**
+      `water_supply_network`: SR (atau jiwa → SR lewat **ENG-408**), panjang, beda tinggi → kebutuhan puncak
+      ENG-405 dengan asumsi SPAM (100 l/jiwa/hari, 5 jiwa/SR, faktor jam puncak 1,75 — tercatat, bisa diganti)
+      → Kelompok F; `computeNetwork` kini berjenis (`cluster` | `water_supply`), cluster tidak berubah.
+      **Jaringan air limbah (sewerage)** `sewerage`: SR/jiwa → **ENG-406** (80 % kembali, puncak 2,5) → Manning
+      ENG-402 → **ENG-407** ukuran minimum 6" (150 mm) → ENG-401; `computeGravity` jenis `sewer` dengan blok
+      `sewer` (sambungan, rata-rata, puncak, ukuran hidraulik vs minimum). Contoh 200 SR: 0,93 → 2,31 l/s,
+      hidraulik 3" → dipakai 6". Profil kasus (alternatif: jiwa menggantikan SR; debit langsung untuk air limbah),
+      pilihan jenis proyek + gambar, ekstraktor mengenal "jiwa"/"penduduk"/"SR", contoh use-case (bge-m3),
+      kalimat pembuka kasus, label/highlight/prosa/skema "SK-08 AIR LIMBAH" (sambungan rumah → pipa air limbah →
+      IPAL). 58 aturan. OQ-70 (kriteria per kategori kota, keluarga pipa air limbah Pralon, batas diteruskan ke
+      tim teknis). Tes: engine 8 (sewer/SPAM) + registry; API pemetaan parameter → engine, prosa, highlight,
+      skema; eval bge-m3.
 - [ ] ✋ CHECKPOINT Fase 22 — ditinjau pemilik
 
 ## Design Coverage
@@ -1769,6 +1781,9 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | ENG-013 | Pressure class guidance: AW for pressurised clean water, D for drainage                                                           | board screen 08             | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-014 | "Belum tahu" defaults (`source → Toren atap`, `install → Air bersih`); see OQ-32                                                  | prototype                   | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-711 | Tank stand options: roof slab vs tank tower, residual pressure per support (P22-04)                                               | user feedback 2026-10-16    | REQUIRES_DOMAIN_VALIDATION | OQ-67        |
+| ENG-406 | Domestic wastewater flow from house connections: 80 % return, peak 2.5 (P22-05)                                                   | planning criteria SPALD-T   | REQUIRES_DOMAIN_VALIDATION | OQ-70        |
+| ENG-407 | Minimum network sewer size 6" / 150 mm (P22-05)                                                                                   | planning criteria SPALD-T   | REQUIRES_DOMAIN_VALIDATION | OQ-70        |
+| ENG-408 | House connections from population: ceil(people / 5) (P22-05)                                                                      | SPAM planning criteria      | REQUIRES_DOMAIN_VALIDATION | OQ-70        |
 
 ## Session Log
 

@@ -56,6 +56,18 @@
       "material pipa untuk proyek cluster 20 unit",
       "which pipe for a 50-unit housing project?"
     ],
+    "water_supply_network": [
+      "proyek spam desa 500 sambungan rumah, pipa transmisi 2 km",
+      "jaringan distribusi air minum untuk 2000 jiwa",
+      "spam pedesaan, reservoir ke 300 sr, beda tinggi 20 m",
+      "pipa transmisi air baku dari reservoir ke desa 3 km",
+      "jaringan perpipaan pdam untuk 1500 sambungan",
+      "air minum perpipaan untuk kampung 800 jiwa dari mata air",
+      "proyek spam kabupaten, distribusi 5 km ke 1000 sr",
+      "drinking water network for a village of 2000 people",
+      "water supply scheme, 500 house connections, 2 km transmission main",
+      "rural water supply from a spring to 800 people"
+    ],
     "irrigation": [
       "irigasi sawah 1 hektar pakai sprinkler",
       "irigasi sawah 2 hektar",
@@ -96,6 +108,17 @@
       "sewer line for a shophouse",
       "gravity drain with a 1% slope",
       "pembuangan air kotor kamar mandi ke septik"
+    ],
+    "sewerage": [
+      "jaringan air limbah untuk 200 sambungan rumah ke ipal",
+      "proyek sewerage kawasan, pipa induk 1,5 km",
+      "pipa air limbah domestik 300 sr ke ipal komunal",
+      "spald-t untuk 1000 jiwa, kemiringan 0,5 %",
+      "sewer line perumahan 150 rumah ke instalasi pengolahan",
+      "jaringan pembuangan air limbah kota, 2 km ke ipal",
+      "sewerage network for 300 house connections to a treatment plant",
+      "domestic sewer for 1000 people, 1.5 km trunk line",
+      "communal wastewater piping for 150 houses"
     ],
     "stormwater": [
       "drainase air hujan komplek 2 hektar",

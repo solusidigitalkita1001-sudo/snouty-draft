@@ -156,6 +156,8 @@ export const USE_CASES = [
   'culvert',
   'well_distribution',
   'fish_pond',
+  'water_supply_network',
+  'sewerage',
 ] as const;
 export type UseCaseLabel = (typeof USE_CASES)[number];
 

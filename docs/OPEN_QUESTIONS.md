@@ -413,6 +413,20 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-70 — Kriteria perencanaan jaringan air minum (SPAM) dan air limbah (P22-05, 2026-10-16)
+
+**Status:** terbuka · **Blocks:** pengesahan ENG-406/407/408 dan asumsi SPAM__/SEWER__
+**Konteks:** pemilik minta use case proyek SPAM dan sewerage disiapkan. Dua kasus teknis baru dihitung
+dengan kriteria perencanaan umum, semuanya `REQUIRES_DOMAIN_VALIDATION`.
+**Default sementara:** SPAM — 100 l/jiwa/hari (Permen PUPR 27/2016: 60–150 menurut kategori kota),
+5 jiwa/SR, faktor jam puncak 1,75, sisa tekanan di sambungan RESIDUAL_PRESSURE_FIXTURE, HDPE bila jalur
+≥ HDPE_MAIN_FROM_200M; air limbah — 80 % pemakaian air kembali sebagai limbah, faktor puncak 2,5, Manning
+n plastik, terisi ≤ 80 %, kecepatan penuh ≥ 0,6 m/s, kemiringan 0,5 % bila tidak disebut, ukuran minimum
+6" (150 mm), keluarga PVC D. Jaringan besar (ribuan SR), zona tekanan, dan reservoir tidak dihitung.
+**Yang perlu diputuskan ahli Pralon:** angka per kategori kota, faktor puncak per ukuran jaringan, ukuran
+minimum dan keluarga pipa air limbah Pralon (apakah PVC D atau produk sewer lain), dan batas kapan proyek
+diteruskan ke tim teknis.
+
 ### OQ-69 — Estimasi biaya penggantian pipa ke Pralon (P22-03, masukan pengguna 2026-10-16)
 
 **Status:** terbuka · **Blocks:** angka rupiah di estimasi penggantian

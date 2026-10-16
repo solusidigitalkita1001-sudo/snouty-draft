@@ -26,6 +26,8 @@ export const PARAMETER_ENGLISH: Readonly<Record<ParameterKey, ParameterEnglish>>
       'Drainage / stormwater',
       'Culvert',
       'Pump transfer',
+      'Drinking-water network (SPAM)',
+      'Sewerage network',
       'Other',
     ],
   },

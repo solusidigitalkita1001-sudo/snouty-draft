@@ -24,7 +24,10 @@ export type CaseId =
   | 'stormwater'
   | 'culvert'
   | 'well_distribution'
-  | 'fish_pond';
+  | 'fish_pond'
+  // P22-05: proyek jaringan air minum (SPAM) dan jaringan air limbah (sewerage).
+  | 'water_supply_network'
+  | 'sewerage';
 
 export interface CaseProfile {
   readonly id: CaseId;
@@ -350,6 +353,45 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
     outputs: ['material_selection', 'pipe_sizing', 'pump_sizing', 'product_matching'],
     calculations: ['static_head_calc', 'pipe_diameter', 'pump_duty'],
     calculatorStatus: 'available',
+  },
+  {
+    id: 'water_supply_network',
+    label: 'Jaringan air minum (SPAM)',
+    labelEn: 'Drinking-water network (SPAM)',
+    description:
+      'Pipa transmisi/distribusi air minum dari reservoir ke ratusan–ribuan sambungan rumah atau jiwa.',
+    descriptionEn:
+      'Drinking-water transmission/distribution from a reservoir to hundreds to thousands of house connections or people.',
+    critical: ['number_of_connections', 'route_length', 'static_head'],
+    important: ['source_type', 'terrain', 'required_pressure', 'material', 'number_of_branches'],
+    optional: ['number_of_occupants', 'installation_location', 'pressure_class'],
+    outputs: [
+      'material_selection',
+      'pipe_sizing',
+      'pump_sizing',
+      'network_layout',
+      'bom',
+      'product_matching',
+    ],
+    calculations: ['network_peak_demand', 'pipe_diameter', 'pump_duty', 'material_quantity'],
+    calculatorStatus: 'available',
+    // Jiwa yang dilayani menggantikan jumlah SR (ENG-408).
+    alternatives: { number_of_connections: ['number_of_occupants'] },
+  },
+  {
+    id: 'sewerage',
+    label: 'Jaringan air limbah (sewerage)',
+    labelEn: 'Sewerage network',
+    description: 'Pipa air limbah domestik gravitasi dari sambungan rumah ke IPAL atau pengolahan.',
+    descriptionEn: 'Gravity domestic sewer from house connections to a treatment plant.',
+    critical: ['number_of_connections', 'route_length'],
+    important: ['slope', 'upstream_level', 'downstream_level', 'material', 'burial_depth'],
+    optional: ['number_of_occupants', 'design_flow', 'soil_type', 'nominal_diameter'],
+    outputs: ['material_selection', 'pipe_sizing', 'bom', 'product_matching'],
+    calculations: ['gravity_capacity', 'material_quantity'],
+    calculatorStatus: 'available',
+    // Jiwa (ENG-408) atau debit rencana yang disebut langsung menggantikan jumlah SR.
+    alternatives: { number_of_connections: ['number_of_occupants', 'design_flow'] },
   },
 ];
 
