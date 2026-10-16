@@ -80,12 +80,6 @@ import {
   isIrrigationField,
 } from '../domain/irrigation.js';
 import { mergeRequirement, type FieldUpdate } from '../domain/context-merger.js';
-import {
-  houseExampleReason,
-  houseExampleReply,
-  houseExampleUserText,
-  type HouseExample,
-} from '../domain/house-example.js';
 import { defaultUpdateFor } from '../domain/requirement-defaults.js';
 import { productQueryOf, runProductQuestion } from './product-question-pipeline.js';
 import { ReplyWriter, type ReplyTurn } from './reply-writer.js';
@@ -776,49 +770,6 @@ export class MessageService {
     const cards = [questions, card].filter((c): c is AssistantCard => c !== null);
     await this.conversations.appendAssistantMessage(conversationId, text, cards, null);
     return { state: merged, userText, card, cards, text };
-  }
-
-  /**
-   * Contoh rumah dari layar sambutan (P22-01): nilainya masuk sebagai asumsi bertanda contoh —
-   * sumber terlemah, jadi kalah dari apa pun yang pengguna sebut — lalu kartu lanjutan yang sama
-   * seperti jawaban klarifikasi. Nol panggilan LLM.
-   */
-  async applyHouseExample(
-    conversationId: string,
-    actor: ConversationOwner,
-    example: HouseExample,
-    now: string,
-  ): Promise<{
-    state: RequirementState;
-    userText: string;
-    cards: readonly AssistantCard[];
-    text: string;
-  }> {
-    const conversation = await this.conversations.find(conversationId, actor);
-    const locale = conversation.language;
-    const snapshot = await this.store.current(conversationId);
-    const state = snapshot?.state ?? emptyRequirementState(now);
-    const reason = houseExampleReason(example, locale);
-    const updates: FieldUpdate[] = example.fields.map((field) => ({
-      path: field.path,
-      value: field.value,
-      source: 'default_applied',
-      provenance: 'ASSUMED',
-      reason,
-    }));
-    const result = mergeRequirement(state, updates, now);
-    const merged = withCompleteness(result.state);
-    if (result.changed.length > 0) {
-      await this.store.append(conversationId, merged, 'default_applied');
-    }
-    const userText = houseExampleUserText(example, locale);
-    await this.conversations.appendUserMessage(conversationId, actor, userText);
-    const card = followUpCard(merged, locale);
-    const questions = technicalQuestionCard(merged, locale);
-    const cards = [questions, card].filter((c): c is AssistantCard => c !== null);
-    const text = houseExampleReply(example, locale);
-    await this.conversations.appendAssistantMessage(conversationId, text, cards, null);
-    return { state: merged, userText, cards, text };
   }
 
   /**

@@ -34,9 +34,6 @@ import {
 } from './domain/requirement-snapshot.repository.js';
 import { requirementSnapshotRepositoryProvider } from './infrastructure/mysql-requirement-snapshot.repository.js';
 import { MessageController } from './presentation/message.controller.js';
-import { HouseExamplesController } from './presentation/house-examples.controller.js';
-import { HOUSE_EXAMPLES } from './domain/house-example.js';
-import { houseExamplesFromRepo } from './infrastructure/house-examples.js';
 import { TurnPlanner } from './application/turn-planner.js';
 import { ActiveSolutionRegistry } from './domain/active-solution.port.js';
 
@@ -124,7 +121,7 @@ const messageServiceProvider = {
     CompanyKnowledgeModule,
     UnderstandingModule,
   ],
-  controllers: [MessageController, HouseExamplesController],
+  controllers: [MessageController],
   providers: [
     rateLimiterProvider,
     requirementSnapshotRepositoryProvider,
@@ -133,8 +130,6 @@ const messageServiceProvider = {
     replyWriterProvider,
     // Diikat modul recommendation saat init (P22-04): context tidak mengimpor recommendation.
     ActiveSolutionRegistry,
-    // Contoh rumah (P22-01): data dari repo, dibaca sekali saat boot.
-    { provide: HOUSE_EXAMPLES, useFactory: () => houseExamplesFromRepo() },
     messageServiceProvider,
   ],
   exports: [RequirementSnapshotStore, ActiveSolutionRegistry],

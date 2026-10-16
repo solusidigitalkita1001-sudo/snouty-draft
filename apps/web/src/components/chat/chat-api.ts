@@ -365,34 +365,3 @@ export async function uploadPlan(conversationId: string, file: File): Promise<Up
   }
   return { kind: 'error' };
 }
-
-/** Contoh rumah layar sambutan (P22-01) — publik, tanpa sesi; kosong bila gagal. */
-export async function fetchHouseExamples(): Promise<
-  readonly {
-    readonly id: string;
-    readonly image: string;
-    readonly label: { readonly id: string; readonly en: string };
-    readonly summary: { readonly id: string; readonly en: string };
-  }[]
-> {
-  try {
-    const response = await fetch(`${BASE}/house-examples`, { credentials: 'include' });
-    if (!response.ok) return [];
-    return ((await response.json()) as { examples: readonly never[] }).examples;
-  } catch {
-    return [];
-  }
-}
-
-/** Mulai dari contoh rumah (P22-01) — nilainya diterapkan server tanpa LLM; `null` bila ditolak. */
-export async function applyHouseExample(
-  id: string,
-  exampleId: string,
-): Promise<ClarificationResult | null> {
-  const response = await apiFetch(
-    `${BASE}/conversations/${encodeURIComponent(id)}/house-examples/${encodeURIComponent(exampleId)}`,
-    { method: 'POST', credentials: 'include', headers: authHeaders() },
-  );
-  if (!response.ok) return null;
-  return (await response.json()) as ClarificationResult;
-}

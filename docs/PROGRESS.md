@@ -1684,7 +1684,10 @@ meninggalkan sesi dengan "kerjain sampai selesai": keputusan desain diambil seba
       (toren setinggi berapa, dak atau tiang, pipa dari toren berapa inci, berapa batang, fitting apa saja,
       arah jalur); eval bge-m3 lolos. 55 aturan; tes engine 389, API 527 (report/context/recommendation),
       web kartu 2. OQ-67 (tinggi tiang, ambang deras).
-- [x] P22-01 Contoh rumah dan bahasa awam (butir 1). Layar sambutan kini punya **contoh rumah bergambar**
+- [x] P22-01 Contoh rumah dan bahasa awam (butir 1). **Dicabut pemilik 2026-10-16** ("hapus woi biar user prompt
+      sendiri"): kartu contoh rumah, endpoint GET /house-examples dan POST …/house-examples/:exampleId, data
+      data/house-examples, dan tesnya dihapus (P22-07); yang tersisa dari item ini hanya skema edit kebutuhan di
+      domain (RequirementEditSchema). Catatan asli: Layar sambutan kini punya **contoh rumah bergambar**
       ("Atau mulai dari contoh rumah yang mirip, lalu ubah yang berbeda"): rumah subsidi tipe 30, tipe 36, rumah
       2 lantai — DATA di `data/house-examples/examples.json` (pemilik menambah contoh tanpa kode; tiap nilai
       diperiksa skema edit panel kanan `RequirementEditSchema`, yang dipindah ke domain). Memilih satu membuat

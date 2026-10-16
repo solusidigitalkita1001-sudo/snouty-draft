@@ -6,18 +6,7 @@
  * body (pesan), jadi responsnya ditulis manual sebagai `event:`/`data:`. Kepemilikan
  * percakapan diperiksa di service (lapis application).
  */
-import {
-  Body,
-  Controller,
-  Get,
-  Inject,
-  Optional,
-  Param,
-  Patch,
-  Post,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import type { AssistantStreamEvent, RequirementState } from '@snouty/shared-types';
 import { z } from 'zod';
@@ -29,13 +18,9 @@ import { MessageService } from '../application/message.service.js';
 import { isClarificationAnswerId, MAX_ANSWERS_PER_CARD } from '../domain/clarification.js';
 import { isOutlierAnswerId } from '../domain/plausibility.js';
 import { EditDto } from '../domain/requirement-edit.js';
-import { HOUSE_EXAMPLES, type HouseExample } from '../domain/house-example.js';
 import { sseWriter } from '../../../shared/sse/event-stream.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
-const ExampleParam = z
-  .object({ id: z.string().length(26), exampleId: z.string().regex(/^[a-z0-9_]{2,40}$/) })
-  .strict();
 /**
  * `mode` (catatan pemilik 2026-10-09 "mode hemat / high quality"): hemat = jawaban langsung dari
  * DATA, instan; kualitas = model merangkai jawaban pengetahuan untuk pertanyaan itu (±20 detik).
@@ -78,10 +63,6 @@ export class MessageController {
   constructor(
     private readonly messages: MessageService,
     private readonly rateLimiter: RateLimiter,
-    /** Contoh rumah (P22-01) — data; kosong bila berkasnya tidak ada. */
-    @Optional()
-    @Inject(HOUSE_EXAMPLES)
-    private readonly houseExamples: readonly HouseExample[] = [],
   ) {}
 
   /**
@@ -107,18 +88,6 @@ export class MessageController {
     const id = parse(IdParam, params).id;
     const { answers } = parse(ClarificationDto, body);
     return this.messages.answerClarification(id, actorOf(req), answers, new Date().toISOString());
-  }
-
-  /**
-   * `POST /conversations/:id/house-examples/:exampleId` — mulai dari contoh rumah (P22-01), nol
-   * LLM. Contoh yang tidak dikenal → VALIDATION_FAILED; daftarnya dilayani `GET /house-examples`.
-   */
-  @Post(':id/house-examples/:exampleId')
-  async houseExample(@Param() params: unknown, @Req() req: PublicRequest) {
-    const { id, exampleId } = parse(ExampleParam, params);
-    const example = this.houseExamples.find((e) => e.id === exampleId);
-    if (!example) throw new RequestValidationError(['exampleId']);
-    return this.messages.applyHouseExample(id, actorOf(req), example, new Date().toISOString());
   }
 
   /** `PATCH /conversations/:id/requirement` — edit inline panel kanan, nol LLM. */
