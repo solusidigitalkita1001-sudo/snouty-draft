@@ -60,6 +60,8 @@ export interface AssembleInput {
   readonly now: string;
   /** Bahasa prosa (Fase 15); templat deterministik masih Indonesia sampai P15-03. */
   readonly locale?: Locale;
+  /** Pipa lama diganti ke Pralon (P22-03): judul dan kalimat pembuka menyebutnya. */
+  readonly replaceExisting?: boolean;
 }
 
 export interface AssembleResult {
@@ -97,6 +99,7 @@ export async function assembleRecommendation(
     allowedNumbers,
     allowedSizes,
     ...(input.locale ? { locale: input.locale } : {}),
+    replaceExisting: input.replaceExisting ?? false,
   });
 
   return {
@@ -127,10 +130,14 @@ async function writeProse(
     allowedNumbers: readonly number[];
     allowedSizes: readonly string[];
     locale?: Locale;
+    replaceExisting?: boolean;
   },
 ): Promise<{ headline: string; body: string; source: AssembleResult['proseSource'] }> {
   if (!prose) {
-    return { ...templateProse(context.stats, context.locale), source: 'template' };
+    return {
+      ...templateProse(context.stats, context.locale, context.replaceExisting ?? false),
+      source: 'template',
+    };
   }
 
   const locale = context.locale ? { locale: context.locale } : {};
@@ -168,7 +175,10 @@ async function writeProse(
 
   // Tidak ada percobaan ketiga. Templat deterministik selalu lulus REC-1 karena ia
   // hanya menyusun ulang angka yang memang dihitung.
-  return { ...templateProse(context.stats, context.locale), source: 'template' };
+  return {
+    ...templateProse(context.stats, context.locale, context.replaceExisting ?? false),
+    source: 'template',
+  };
 }
 
 async function safeWrite(
@@ -191,6 +201,8 @@ async function safeWrite(
 export function templateProse(
   stats: ReturnType<typeof statsFrom>,
   locale: Locale = 'id',
+  /** Pipa lama diganti ke Pralon (P22-03): jumlahnya sama dengan instalasi baru di jalur yang sama. */
+  replaceExisting = false,
 ): {
   headline: string;
   body: string;
@@ -200,16 +212,26 @@ export function templateProse(
     const products =
       stats.productCount === 1 ? '1 Pralon product' : `${stats.productCount} Pralon products`;
     return {
-      headline: `Distribution system for ${stats.outletCount} water outlets`,
+      headline: replaceExisting
+        ? `Replacing the pipes with Pralon for ${stats.outletCount} water outlets`
+        : `Distribution system for ${stats.outletCount} water outlets`,
       body:
+        (replaceExisting
+          ? 'The existing pipes are replaced along the same runs, so the material list is the same as for a new installation; the old pipes are removed during the work. '
+          : '') +
         `Your requirements cover ${stats.outletCount} water outlets served by ${branches}. ` +
         `The main line uses size ${stats.mainSize}, and each fixture connection uses ${stats.fixtureConnectionSize}. ` +
         `There ${stats.productCount === 1 ? 'is' : 'are'} ${products} suited to this system.`,
     };
   }
   return {
-    headline: `Sistem distribusi untuk ${stats.outletCount} titik air`,
+    headline: replaceExisting
+      ? `Penggantian pipa ke Pralon untuk ${stats.outletCount} titik air`
+      : `Sistem distribusi untuk ${stats.outletCount} titik air`,
     body:
+      (replaceExisting
+        ? 'Pipa lama diganti pada jalur yang sama, jadi daftar materialnya sama dengan instalasi baru; pipa lama dilepas saat pemasangan. '
+        : '') +
       `Kebutuhan Anda mencakup ${stats.outletCount} titik air yang dilayani ${stats.branchCount} cabang. ` +
       `Jalur utama memakai ukuran ${stats.mainSize}, dan sambungan ke setiap fixture memakai ${stats.fixtureConnectionSize}. ` +
       `Ada ${stats.productCount} produk Pralon yang sesuai untuk sistem ini.`,

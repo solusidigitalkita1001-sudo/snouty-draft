@@ -23,6 +23,8 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
   'building.dimensions': /\b(meter|metre|\d\s*m\b|panjang|jarak|jalur|length|distance|run)/i,
   'fixtures.outletCount': /\b(titik|outlet|keran|kran|taps?|faucets?|points?)/i,
   'water.boosterPump': /\b(pompa|booster|pendorong|pumps?)/i,
+  // Penggantian pipa (P22-03) hanya dipercaya bila penggantiannya memang disebut.
+  'water.replaceExisting': /\b(ganti|diganti|mengganti|renov|lama|existing|replac|re-?pip)/i,
   // Kedalaman sumur hanya dipercaya bila sumurnya memang disebut.
   'water.wellDepthM': /\b(sumur|wells?|muka air|water level)/i,
   // Evaluasi 2026-10-06: dari "Instalasi air bersih untuk rumah baru 1 lantai" model menulis
@@ -400,6 +402,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   );
   add('water.boosterPump', extraction.water?.boosterPump);
   add('water.wellDepthM', extraction.water?.wellDepthM);
+  add('water.replaceExisting', extraction.water?.replaceExisting);
 
   return updates;
 }

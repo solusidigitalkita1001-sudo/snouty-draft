@@ -64,6 +64,7 @@ export const ALL_FIELD_PATHS: readonly RequirementFieldPath[] = [
   'water.installationType',
   'water.boosterPump',
   'water.wellDepthM',
+  'water.replaceExisting',
 ];
 
 /** Field yang nilainya belum ada — dipakai kelengkapan dan klarifikasi. */

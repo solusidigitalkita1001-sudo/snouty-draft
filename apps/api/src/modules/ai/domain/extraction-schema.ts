@@ -53,6 +53,8 @@ export const ExtractionSchema = z
         boosterPump: z.boolean().optional(),
         /** Kedalaman muka air sumur (m), hanya bila disebut. */
         wellDepthM: z.number().min(0).max(60).optional(),
+        /** Pipa yang ada diganti (renovasi), hanya bila pengguna menyebutnya. */
+        replaceExisting: z.boolean().optional(),
       })
       .strict()
       .optional(),

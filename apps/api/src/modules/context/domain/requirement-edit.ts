@@ -68,6 +68,8 @@ export const RequirementEditSchema = z.union([
       value: z.enum(['clean_water', 'drainage', 'both']),
     })
     .strict(),
+  // Pekerjaan (P22-03): instalasi baru atau ganti pipa lama ke Pralon.
+  z.object({ path: z.literal('water.replaceExisting'), value: z.boolean() }).strict(),
 ]);
 
 export type RequirementEdit = z.infer<typeof RequirementEditSchema>;

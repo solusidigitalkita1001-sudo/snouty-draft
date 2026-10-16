@@ -129,6 +129,12 @@ export interface WaterState {
    * tersimpan sebelum field ini ada dibaca sebagai kosong.
    */
   readonly wellDepthM?: TrackedValue<number>;
+  /**
+   * Pekerjaan: pipa yang ada diganti ke Pralon (P22-03, rumah subsidi berpipa murah) — jumlah
+   * materialnya sama dengan instalasi baru pada jalur yang sama; yang berubah kata-katanya. Opsional
+   * seperti `wellDepthM`.
+   */
+  readonly replaceExisting?: TrackedValue<boolean>;
 }
 
 /** Jalur bidang yang bisa dirujuk klarifikasi dan daftar informasi kurang. */
@@ -147,7 +153,8 @@ export type RequirementFieldPath =
   | 'water.source'
   | 'water.installationType'
   | 'water.boosterPump'
-  | 'water.wellDepthM';
+  | 'water.wellDepthM'
+  | 'water.replaceExisting';
 
 /**
  * Empat field inti yang menggerakkan meter "KELENGKAPAN DATA" dan menahan

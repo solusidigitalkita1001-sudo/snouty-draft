@@ -475,6 +475,7 @@ export class AnalysisService {
         },
         now,
         locale,
+        replaceExisting: state.water.replaceExisting?.value === true,
       },
       this.prose,
     );

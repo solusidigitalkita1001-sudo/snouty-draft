@@ -36,6 +36,7 @@ export function emptyRequirementState(now: string): RequirementState {
       installationType: empty(now),
       boosterPump: empty(now),
       wellDepthM: empty(now),
+      replaceExisting: empty(now),
     },
     missingInformation: [],
     completeness: { filled: 0, required: 4 },

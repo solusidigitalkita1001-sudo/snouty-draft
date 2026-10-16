@@ -864,7 +864,9 @@ export function ChatWorkspace() {
             ? Number(edits[row.key])
             : row.editor.kind === 'size'
               ? (sizePatch(row.editor.target, edits[row.key] ?? '') ?? '')
-              : edits[row.key],
+              : row.editor.kind === 'select' && row.editor.boolean
+                ? edits[row.key] === 'true'
+                : edits[row.key],
       }))
       .filter((change) => change.value !== '' && !Number.isNaN(change.value as number));
     if (changes.length === 0) {

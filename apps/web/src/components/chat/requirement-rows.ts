@@ -13,7 +13,8 @@ export interface SelectOption {
 }
 
 export type RowEditor =
-  | { readonly kind: 'select'; readonly options: readonly SelectOption[] }
+  /** `boolean`: pilihan 'true'/'false' dikirim sebagai boolean ke PATCH (P22-03). */
+  | { readonly kind: 'select'; readonly options: readonly SelectOption[]; readonly boolean?: true }
   | { readonly kind: 'number'; readonly min: number; readonly max: number }
   /** Panjang × lebar diketik bebas ("8 x 12"); `target` memilih bangunan atau tanah. */
   | { readonly kind: 'size'; readonly target: 'building' | 'land' };
@@ -45,6 +46,12 @@ const INSTALLATION: readonly SelectOption[] = [
   { value: 'clean_water', label: 'Air bersih' },
   { value: 'drainage', label: 'Pembuangan' },
   { value: 'both', label: 'Air bersih + pembuangan' },
+];
+
+/** Pekerjaan (P22-03): instalasi baru, atau pipa lama diganti ke Pralon. */
+const WORK: readonly SelectOption[] = [
+  { value: 'false', label: 'Instalasi baru' },
+  { value: 'true', label: 'Ganti pipa lama' },
 ];
 
 const BUILDING: readonly SelectOption[] = [
@@ -220,6 +227,16 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
       labelOf(INSTALLATION),
       { kind: 'select', options: INSTALLATION },
     ),
+    // State lama tidak punya field ini; barisnya tampil hanya bila ada.
+    ...(state.water.replaceExisting
+      ? [
+          row('water.replaceExisting', 'Pekerjaan', state.water.replaceExisting, labelOf(WORK), {
+            kind: 'select',
+            options: WORK,
+            boolean: true,
+          }),
+        ]
+      : []),
   ];
 }
 

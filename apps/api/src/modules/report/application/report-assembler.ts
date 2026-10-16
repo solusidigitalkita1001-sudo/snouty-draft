@@ -169,6 +169,7 @@ function requirementRows(state: RequirementState, locale: Locale): readonly Repo
   add('building.floorHeightM', state.building.floorHeightM);
   add('water.source', state.water.source);
   add('water.installationType', state.water.installationType);
+  if (state.water.replaceExisting) add('water.replaceExisting', state.water.replaceExisting);
   add('fixtures.bathrooms', state.fixtures.bathrooms);
   add('fixtures.basins', state.fixtures.basins);
   add('fixtures.kitchens', state.fixtures.kitchens);

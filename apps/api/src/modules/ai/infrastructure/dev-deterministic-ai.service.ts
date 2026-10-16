@@ -92,6 +92,7 @@ export class DevDeterministicAiService implements AiService {
     else if (hasClean) water['installationType'] = 'clean_water';
 
     if (/pompa pendorong|booster/.test(text)) water['boosterPump'] = true;
+    if (/ganti pipa|pipa lama|renovasi|replace/.test(text)) water['replaceExisting'] = true;
 
     // Divalidasi skema yang sama seperti keluaran model — tidak ada jalur pintas.
     return Promise.resolve(

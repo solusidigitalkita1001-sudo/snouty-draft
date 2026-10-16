@@ -413,6 +413,19 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-69 — Estimasi biaya penggantian pipa ke Pralon (P22-03, masukan pengguna 2026-10-16)
+
+**Status:** terbuka · **Blocks:** angka rupiah di estimasi penggantian
+**Konteks:** pengguna rumah subsidi ingin tahu "kalau pipa murahnya diganti Pralon, estimasinya berapa".
+SNOUTY kini menghitung daftar material penggantian (sama dengan instalasi baru di jalur yang sama) dan
+menyebutnya sebagai penggantian, tetapi tidak bisa memberi rupiah: ekspor katalog ERP tidak memuat kolom harga,
+`PRICING_ENABLED` baku `false`, dan DD-01 #8 menetapkan BOQ tanpa harga.
+**Default sementara:** estimasi = volume material (batang, pcs) tanpa harga; pertanyaan harga tetap dijawab
+"tanyakan ke tim Pralon" (CTA tim teknis).
+**Yang perlu diputuskan pemilik:** (1) apakah Pralon mau memberi daftar harga (kolom `price` di impor katalog)
+supaya BOQ penggantian bisa membawa subtotal; (2) bila ya, apakah harganya tampil untuk tamu atau hanya pengguna
+terdaftar (OQ-14).
+
 ### OQ-68 — Gaya gambar sistem pipa "lebih nyata" (P22-02, masukan pengguna 2026-10-16)
 
 **Status:** terbuka · **Blocks:** —

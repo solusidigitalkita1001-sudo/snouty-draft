@@ -1698,13 +1698,22 @@ meninggalkan sesi dengan "kerjain sampai selesai": keputusan desain diambil seba
       (contoh di `intent.json`: arah jalur, jumlah pipa, fitting/aksesoris, "gambar sistem pipanya dong",
       "where do the pipes run", …) — dirutekan seperti permintaan penjelasan, dijawab di atas fakta solusi aktif
       (P22-04: ukuran tiap jalur, BOQ pipa dan fitting), dan **membawa kartu gambar** `{ kind: 'drawing',
-  needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, toren/meteran/pompa, alat
+needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, toren/meteran/pompa, alat
       per lantai, pipa buang dan ventilasi), digambar klien dari kebutuhan bergambar solusi. Hanya bila
       solusinya sudah dihitung dan belum usang; jalur perencana (`case_question`) ikut membawa gambar dan
       kartunya kini tersimpan di riwayat. Varian kartu jadi tujuh (spec, API_CONTRACTS). "Lebih nyata"
       dalam arti gaya gambar (isometrik, foto) butuh keputusan desain → OQ-68. Tes: `drawingCardFor`,
       urutan event (teks → kartu → selesai), daftar varian; eval bge-m3 lolos.
-- [ ] P22-03 Estimasi ganti pipa lama ke Pralon (butir 3).
+- [x] P22-03 Estimasi ganti pipa lama ke Pralon (butir 3). Field kebutuhan baru `water.replaceExisting`
+      ("Pekerjaan": instalasi baru / ganti pipa lama) — diekstrak model hanya bila penggantiannya disebut
+      (penanda ganti/renovasi/lama/replace), bisa diubah di panel kanan (pilihan boolean) dan lewat
+      `PATCH /requirement`, tampil di kebutuhan yang tercatat, kop PDF ("Ganti pipa lama · Air bersih +
+      pembuangan") dan tabel kebutuhan laporan. Engine dan BOQ **tidak berubah**: pipa lama diganti pada jalur
+      yang sama, jadi daftar materialnya sama dengan instalasi baru — itu dikatakan di judul dan kalimat pembuka
+      solusi ("Penggantian pipa ke Pralon untuk N titik air"; "pipa lama dilepas saat pemasangan"). Contoh rumah
+      keempat di sambutan: "Ganti pipa rumah subsidi ke Pralon" (tipe 36, pipa lama diganti). Contoh kalimat
+      permintaan ganti pipa masuk `requirement_building`. **Tanpa rupiah**: katalog tidak memuat harga dan DD-01
+      #8 menetapkan BOQ tanpa harga → OQ-69. Tes: penanda ekstraksi, label nilai, templat prosa, baris panel.
 - [ ] P22-05 Use case SPAM dan sewerage (butir 5).
 - [ ] ✋ CHECKPOINT Fase 22 — ditinjau pemilik
 

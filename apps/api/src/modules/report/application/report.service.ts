@@ -355,9 +355,13 @@ function installationLabel(state: RequirementState, locale: Locale): string {
   }
   if (state.useCase?.kind === 'irrigation')
     return locale === 'en' ? 'Land irrigation' : 'Irigasi lahan';
-  return requirementValueLabel(
+  const installation = requirementValueLabel(
     'water.installationType',
     state.water.installationType.value ?? 'clean_water',
     locale,
   );
+  // Penggantian pipa lama ke Pralon (P22-03) disebut di kop, bukan disembunyikan di tabel.
+  return state.water.replaceExisting?.value === true
+    ? `${requirementValueLabel('water.replaceExisting', true, locale)} · ${installation}`
+    : installation;
 }

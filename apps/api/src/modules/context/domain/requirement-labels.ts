@@ -27,6 +27,7 @@ export const FIELD_LABEL: Readonly<Record<RequirementFieldPath, string>> = {
   'water.installationType': 'Jenis instalasi',
   'water.boosterPump': 'Pompa pendorong',
   'water.wellDepthM': 'Kedalaman muka air sumur',
+  'water.replaceExisting': 'Pekerjaan',
 };
 
 export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
@@ -45,6 +46,7 @@ export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
   'water.installationType': 'Installation type',
   'water.boosterPump': 'Booster pump',
   'water.wellDepthM': 'Well water level depth',
+  'water.replaceExisting': 'Work',
 };
 
 /** Label field menurut bahasa percakapan. */
@@ -99,6 +101,15 @@ export function requirementValueLabel(
   context: { readonly bathroomHasTap?: boolean } = {},
 ): string {
   const en = locale === 'en';
+  if (path === 'water.replaceExisting' && typeof value === 'boolean') {
+    return en
+      ? value
+        ? 'Replace the existing pipes'
+        : 'New installation'
+      : value
+        ? 'Ganti pipa lama'
+        : 'Instalasi baru';
+  }
   if (typeof value === 'boolean') return en ? (value ? 'Yes' : 'No') : value ? 'Ya' : 'Tidak';
   if (typeof value === 'number') {
     if (path === 'building.floors')
