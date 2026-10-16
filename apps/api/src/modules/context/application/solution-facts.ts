@@ -144,3 +144,67 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
     stale
   );
 }
+
+/**
+ * Jawaban tetap untuk pertanyaan tentang solusi yang sudah dihitung (P22-04): judul solusi, jalur
+ * utama, pompa/tinggi toren bila ada — dari rekomendasi, tanpa model. Dipakai bila model tidak
+ * dikonfigurasi, lambat, atau ditolak pagar; dulu teks generik "buka detail teknis".
+ */
+export function solutionReply(solution: ActiveSolution, locale: Locale): string {
+  const en = locale === 'en';
+  const r = solution.recommendation;
+  const num = (n: number) => n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
+  const parts: string[] = [r.headline.replace(/\.$/, '') + '.'];
+  const main = r.systemLines.find((l) => l.role === 'main');
+  if (main) {
+    parts.push(
+      en
+        ? `${main.name} ${main.size} (${main.path.toLowerCase()}).`
+        : `${main.name} ${main.size} (${main.path.toLowerCase()}).`,
+    );
+  }
+  const booster = (r.needs ?? []).find((n) => n.kind === 'booster_pump');
+  const stand = r.tankStand;
+  if (stand) {
+    const rec = stand.recommendedIndex === null ? null : stand.options[stand.recommendedIndex];
+    const label = (o: NonNullable<typeof rec>) =>
+      o.kind === 'roof_slab'
+        ? en
+          ? 'on the roof slab'
+          : 'di dak atap'
+        : en
+          ? `a ${num(o.supportHeightM)} m tank tower`
+          : `tiang toren ${num(o.supportHeightM)} m`;
+    const roof = stand.options[0];
+    parts.push(
+      rec
+        ? en
+          ? `Without a booster pump the lowest support that still gives ${num(stand.minimumBar)} bar at the highest outlet is ${label(rec)} (water level ${num(rec.waterLevelM)} m, ${num(rec.residualBar)} bar)${roof && roof !== rec ? `; ${label(roof)} gives only ${num(roof.residualBar)} bar` : ''}.`
+          : `Tanpa pompa pendorong, dudukan terendah yang masih memberi ${num(stand.minimumBar)} bar di titik air tertinggi adalah ${label(rec)} (muka air ${num(rec.waterLevelM)} m, ${num(rec.residualBar)} bar)${roof && roof !== rec ? `; ${label(roof)} hanya memberi ${num(roof.residualBar)} bar` : ''}.`
+        : en
+          ? `None of the tank supports reaches ${num(stand.minimumBar)} bar without a booster pump.`
+          : `Tidak ada dudukan toren yang mencapai ${num(stand.minimumBar)} bar tanpa pompa pendorong.`,
+    );
+    parts.push(
+      en
+        ? `Pipe from the tank ${stand.mainSize}, branches inside ${stand.branchSizes.join(' / ')}.`
+        : `Pipa dari toren ${stand.mainSize}, cabang di dalam rumah ${stand.branchSizes.join(' / ')}.`,
+    );
+  } else if (booster) {
+    parts.push(
+      en
+        ? `A booster pump is needed${booster.residualBar === undefined ? '' : `: only ${num(booster.residualBar)} bar at the highest outlet without it`}.`
+        : `Perlu pompa pendorong${booster.residualBar === undefined ? '' : `: tanpa pompa hanya ${num(booster.residualBar)} bar di titik air tertinggi`}.`,
+    );
+  }
+  parts.push(
+    solution.stale
+      ? en
+        ? 'The requirement changed after this calculation; press Compose recommendation again for current figures.'
+        : 'Kebutuhan sudah berubah setelah hitungan ini; tekan Susun rekomendasi lagi untuk angka terbaru.'
+      : en
+        ? 'The basis of every figure is under "Show technical details" on the solution screen.'
+        : 'Dasar tiap angka ada di "Tampilkan detail teknis" pada layar solusi.',
+  );
+  return parts.join(' ');
+}

@@ -232,3 +232,64 @@ describe('caseFacts — solusi aktif (P22-04)', () => {
     );
   });
 });
+
+describe('solutionReply — teks tetap atas solusi yang sudah dihitung (P22-04)', () => {
+  it('menyebut judul, jalur utama, dudukan toren terendah yang cukup, dan ukuran pipa', async () => {
+    const { solutionReply } = await import('./solution-facts.js');
+    const text = solutionReply(
+      {
+        recommendation: {
+          headline: 'Sistem distribusi untuk 3 titik air',
+          needs: [],
+          systemLines: [
+            {
+              name: 'Pipa distribusi utama',
+              path: 'Toren → lantai 1',
+              size: '3/4"',
+              reason: '',
+              provenance: 'ASSUMED',
+              traceIds: [],
+              role: 'main',
+            },
+          ],
+          bom: [],
+          tankStand: {
+            options: [
+              {
+                kind: 'roof_slab',
+                supportHeightM: 3.5,
+                waterLevelM: 4.5,
+                residualBar: 0.1,
+                meetsMinimum: false,
+                comfortable: false,
+              },
+              {
+                kind: 'tower',
+                supportHeightM: 6,
+                waterLevelM: 7,
+                residualBar: 0.35,
+                meetsMinimum: true,
+                comfortable: false,
+              },
+            ],
+            recommendedIndex: 1,
+            comfortableIndex: null,
+            minimumBar: 0.3,
+            comfortBar: 0.7,
+            mainSize: '3/4"',
+            branchSizes: ['1/2"'],
+          },
+        } as never,
+        stale: false,
+      },
+      'id',
+    );
+    expect(text).toContain('Sistem distribusi untuk 3 titik air.');
+    expect(text).toContain('Pipa distribusi utama 3/4" (toren → lantai 1).');
+    expect(text).toContain(
+      'adalah tiang toren 6 m (muka air 7 m, 0,35 bar); di dak atap hanya memberi 0,1 bar.',
+    );
+    expect(text).toContain('Pipa dari toren 3/4", cabang di dalam rumah 1/2".');
+    expect(text).toContain('Tampilkan detail teknis');
+  });
+});

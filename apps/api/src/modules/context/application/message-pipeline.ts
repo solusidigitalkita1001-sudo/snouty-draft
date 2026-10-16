@@ -87,7 +87,7 @@ import {
   replyFor,
 } from './reply-copy.js';
 import { caseFacts } from './case-facts.js';
-import { layoutReply } from './solution-facts.js';
+import { layoutReply, solutionReply } from './solution-facts.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
 
@@ -159,25 +159,28 @@ export async function runUnderstanding(
     const fallback =
       drawing !== null && input.solution
         ? layoutReply(input.solution, input.locale ?? DEFAULT_LOCALE)
-        : label === 'out_of_scope'
-          ? outOfTopicReply(input.locale)
-          : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
-            ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
-              // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
-              explanationHandedOff(caseCard.reasons, input.locale)
-            : input.decision.intent === 'EXPLANATION_REQUEST' &&
-                withCompleteness(input.state).missingInformation.length > 0
-              ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
-                explanationBeforeSolution(input.locale)
-              : input.decision.intent === 'OUT_OF_SCOPE' &&
-                  (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
-                ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
-                  // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
-                  // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
-                  label === 'greeting'
-                  ? greetingAgain(input.recentTurns ?? [], input.locale)
-                  : outOfTopicReply(input.locale)
-                : replyFor(input.decision.intent, input.locale);
+        : // Penjelasan atas solusi yang sudah dihitung (P22-04): teks tetap dari solusinya sendiri.
+          input.decision.intent === 'EXPLANATION_REQUEST' && input.solution && !input.solution.stale
+          ? solutionReply(input.solution, input.locale ?? DEFAULT_LOCALE)
+          : label === 'out_of_scope'
+            ? outOfTopicReply(input.locale)
+            : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
+              ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
+                // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
+                explanationHandedOff(caseCard.reasons, input.locale)
+              : input.decision.intent === 'EXPLANATION_REQUEST' &&
+                  withCompleteness(input.state).missingInformation.length > 0
+                ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
+                  explanationBeforeSolution(input.locale)
+                : input.decision.intent === 'OUT_OF_SCOPE' &&
+                    (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
+                  ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
+                    // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
+                    // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
+                    label === 'greeting'
+                    ? greetingAgain(input.recentTurns ?? [], input.locale)
+                    : outOfTopicReply(input.locale)
+                  : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Model merangkai balasan di atas DATA kasus (P16-28): yang sudah dicatat, status kasus, dan
       // cara SNOUTY menghitung — semuanya dari kode. Angka di luar DATA ditolak `ReplyWriter`, jadi
