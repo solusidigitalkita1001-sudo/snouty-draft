@@ -273,7 +273,25 @@ export function extractTechnicalContext(
   take(new RegExp(`${NUM}\\s*(?:%|percent)\\s*(?:slope|gradient|fall|incline)`), (m) =>
     add('slope', num(m[1]!), m[0], '%'),
   );
+  // Tekanan SUMBER ("tekanan pdam 1,5 bar", "mains pressure 2 bar") diambil lebih dulu; "N bar" sisanya adalah
+  // tekanan yang dibutuhkan di ujung (audit PDAM 2026-10-16).
+  take(
+    new RegExp(
+      `(?:tekanan|pressure)\\s*(?:dari\\s*)?(?:pdam|sumber|sumbernya|meteran|jaringan pdam|mains|source|supply)\\D{0,12}?${NUM}\\s*bar\\b`,
+    ),
+    (m) => add('source_pressure', num(m[1]!), m[0], 'bar'),
+  );
+  take(new RegExp(`(?:pdam|mains|source)\\D{0,12}?${NUM}\\s*bar\\b`), (m) =>
+    add('source_pressure', num(m[1]!), m[0], 'bar'),
+  );
   take(new RegExp(`${NUM}\\s*bar\\b`), (m) => add('required_pressure', num(m[1]!), m[0], 'bar'));
+  // Jumlah cabang jaringan ("bercabang 4", "4 cabang", "4 branches").
+  take(/(?:bercabang|cabangnya|branches?:?)\s*(\d+)\b/, (m) =>
+    add('number_of_branches', Number(m[1]), m[0], 'cabang'),
+  );
+  take(/(\d+)\s*(?:cabang|branches?)\b/, (m) =>
+    add('number_of_branches', Number(m[1]), m[0], 'cabang'),
+  );
 
   // ── Tinggi lantai ("tinggi lantai 4 m", "floor height 4 m") — bukan panjang jalur; menjadi tinggi
   // bangunan setelah jumlah lantainya diketahui (gedung bertingkat), bila tinggi bangunan tidak disebut.

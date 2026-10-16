@@ -150,3 +150,28 @@ describe('extractTechnicalContext — audit PDAM 2026-10-16: angka pengguna dipe
     expect(facts('debit 2.5 liter per detik', 'pump_transfer')).toMatchObject({ design_flow: 2.5 });
   });
 });
+
+describe('extractTechnicalContext — jaringan PDAM: tekanan sumber dan jumlah cabang', () => {
+  it('"tekanan pdam 1,5 bar" adalah tekanan sumber; "butuh 2 bar di ujung" tekanan yang dibutuhkan; "bercabang 4"', () => {
+    const f = facts(
+      'spam pdam 500 sambungan rumah, pipa induk 1.500 meter, beda tinggi 20 m, jalurnya bercabang 4, tekanan pdam 1,5 bar, pakai hdpe',
+      'water_supply_network',
+    );
+    expect(f).toMatchObject({
+      number_of_connections: 500,
+      route_length: 1500,
+      static_head: 20,
+      number_of_branches: 4,
+      source_pressure: 1.5,
+    });
+    expect(f).not.toHaveProperty('required_pressure');
+    expect(facts('di ujung butuh 2 bar, 4 cabang', 'water_supply_network')).toMatchObject({
+      required_pressure: 2,
+      number_of_branches: 4,
+    });
+    expect(facts('mains pressure 3 bar, 6 branches', 'water_supply_network')).toMatchObject({
+      source_pressure: 3,
+      number_of_branches: 6,
+    });
+  });
+});
