@@ -158,7 +158,11 @@ export function technicalAnswerValue(
     return null;
   }
   if (def.kind === 'number') {
-    const n = Number(option.replace(/[^\d.,-]/g, '').replace(',', '.'));
+    // Isian kartu dikirim sebagai `kunci=angka` (sama dengan ukuran bangunan); selain itu angka bebas.
+    const typed = option.match(/^([a-z_]+)=([-\d.,]+)$/);
+    if (typed && typed[1] !== key) return null;
+    const raw = typed ? typed[2]! : option;
+    const n = Number(raw.replace(/[^\d.,-]/g, '').replace(',', '.'));
     return Number.isFinite(n) ? { key, value: n } : null;
   }
   if (def.kind === 'enum') {
@@ -248,12 +252,56 @@ export function planTechnicalClarification(
       const options = numberSuggestions(state, m.key) ?? def.suggestions;
       if (options && options.length > 0) {
         card.push({ id: m.key, question, options, allowUnknown: true });
+      } else if (def.kind === 'number') {
+        // Angka inti ditanya di kartu sebagai isian (pemilik 2026-10-16: alur kasus teknis harus seperti
+        // rumah — data inti di kartu, bukan teks yang diulang sementara kartu menanyakan hal sekunder).
+        const label = locale === 'en' ? def.labelEn : def.label;
+        const range = numberRange(def.unit);
+        card.push({
+          id: m.key,
+          question,
+          options: [],
+          allowUnknown: true,
+          inputs: [
+            {
+              key: m.key,
+              group: label,
+              label,
+              unit: def.unit ?? '',
+              required: m.importance === 'critical',
+              min: range.min,
+              max: range.max,
+            },
+          ],
+        });
       } else {
         text.push(m);
       }
     }
   }
   return { card, text };
+}
+
+/** Batas isian angka per satuan — pagar masukan, bukan kriteria teknik. */
+function numberRange(unit: string | undefined): { readonly min: number; readonly max: number } {
+  switch (unit) {
+    case 'm':
+      return { min: 0.1, max: 100_000 };
+    case 'l/s':
+      return { min: 0.01, max: 100_000 };
+    case 'ha':
+      return { min: 0.01, max: 100_000 };
+    case 'mm/jam':
+      return { min: 1, max: 500 };
+    case '%':
+      return { min: 0.01, max: 100 };
+    case 'bar':
+      return { min: 0.1, max: 50 };
+    case 'jam':
+      return { min: 0.1, max: 24 };
+    default:
+      return { min: 1, max: 5_000_000 };
+  }
 }
 
 /**

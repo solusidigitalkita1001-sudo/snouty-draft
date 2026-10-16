@@ -174,16 +174,18 @@ describe('runUnderstanding — bentuk event SSE', () => {
       }),
     );
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    // Angka inti (debit, kemiringan) kini ditanya di kartu isian, bukan teks (P22-10).
     expect(events.map((e) => e.type)).toEqual([
       'message.start',
       'requirement.updated',
       'token',
+      'card',
       'message.end',
     ]);
     const text = (events[2] as { text: string }).text;
     expect(text).toContain('Oke, gorong-gorong');
     expect(text).toContain('lebar jalan 6 m');
-    expect(text).toContain('tolong jawab');
+    expect(text).toContain('pilih jawabannya di bawah');
     expect(nextState.useCase).toMatchObject({ kind: 'technical', caseId: 'culvert' });
     const params = (nextState.useCase as { parameters: Record<string, { value: unknown }> })
       .parameters;
@@ -202,9 +204,11 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(after['slope']?.value).toBe(1);
     expect(after['road_width']?.value).toBe(6);
     // Semua parameter kritis ada dan kalkulator gorong-gorong tersedia (Fase 4) → CTA analisis.
-    const card = next.events.find((e) => e.type === 'card') as
-      { card: { kind: string; action?: string } } | undefined;
-    expect(card?.card).toEqual({ kind: 'cta', action: 'ANALYZE' });
+    // Pertanyaan penyempurna (isian) dan CTA tampil bersama, seperti alur rumah (P22-10).
+    const cards = next.events
+      .filter((e): e is Extract<typeof e, { type: 'card' }> => e.type === 'card')
+      .map((e) => e.card);
+    expect(cards).toContainEqual({ kind: 'cta', action: 'ANALYZE' });
   });
 
   it('jalur irigasi ("irigasi sawah 1 hektar"): arahan + kartu pertanyaan IRIGASI, nol ekstraksi, luas tercatat', async () => {

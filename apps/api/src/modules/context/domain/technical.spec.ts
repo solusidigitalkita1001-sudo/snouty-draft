@@ -65,7 +65,7 @@ describe('skenario D transfer pompa', () => {
     expect(text).toContain('Oke, transfer air dengan pompa');
     expect(text).toContain('panjang jalur 800 m');
     expect(text).not.toMatch(/\*\*Data|Jawab langsung|asumsi awal yang ditandai/);
-    expect(text).toContain('tolong jawab');
+    expect(text).toContain('pilih jawabannya di bawah');
     expect(text).not.toMatch(/\d\s*(bar|mm|inci)\b/); // tanpa angka teknik hasil hitungan
   });
 
@@ -92,7 +92,7 @@ describe('skenario D transfer pompa', () => {
 });
 
 describe('skenario E gorong-gorong tanpa angka', () => {
-  it('belum lengkap: kartu berisi pertanyaan berpilihan, angka ditanya di teks', () => {
+  it('belum lengkap: angka inti ditanya di kartu sebagai isian, pilihan sebagai chip; teks tidak mengulang', () => {
     const r = applyTechnicalFacts(
       emptyRequirementState(T0),
       'culvert',
@@ -100,12 +100,24 @@ describe('skenario E gorong-gorong tanpa angka', () => {
     );
     expect(isTechnicalComplete(r.state)).toBe(false);
     const plan = planTechnicalClarification(r.state);
-    expect(plan.card.map((q) => q.id)).toContain('traffic_load');
-    expect(plan.card.every((q) => q.options.length > 1 && q.allowUnknown)).toBe(true);
-    expect(plan.text.map((m) => m.key)).toEqual(
-      expect.arrayContaining(['design_flow', 'road_width', 'slope']),
-    );
-    expect(technicalGuidance(r.state)).toContain('tolong jawab');
+    const ids = plan.card.map((q) => q.id);
+    expect(ids).toEqual(expect.arrayContaining(['design_flow', 'road_width', 'slope']));
+    // Kritis lebih dulu: debit dan lebar jalan mendahului pilihan beban jalan.
+    expect(ids.indexOf('design_flow')).toBeLessThan(ids.indexOf('traffic_load'));
+    const flow = plan.card.find((q) => q.id === 'design_flow')!;
+    expect(flow.inputs).toEqual([
+      expect.objectContaining({ key: 'design_flow', unit: 'l/s', required: true }),
+    ]);
+    expect(flow.options).toEqual([]);
+    expect(plan.card.every((q) => q.allowUnknown)).toBe(true);
+    expect(plan.text).toEqual([]);
+    expect(technicalGuidance(r.state)).toContain('pilih jawabannya di bawah');
+    // Jawaban isian kartu `kunci=angka` terbaca sebagai angka parameternya.
+    expect(technicalAnswerValue('design_flow', 'design_flow=300')).toEqual({
+      key: 'design_flow',
+      value: 300,
+    });
+    expect(technicalAnswerValue('design_flow', 'route_length=300')).toBeNull();
   });
 });
 
@@ -120,7 +132,7 @@ describe('technical dwibahasa', () => {
     expect(technicalGuidance(state, 'id')).toBe(technicalGuidance(state));
     const en = technicalGuidance(state, 'en');
     expect(en).toContain('Okay, a culvert.');
-    expect(en).toContain('please answer a few things:');
+    expect(en).toMatch(/pick|choose|select/i);
     expect(en).not.toContain('tolong jawab');
     expect(en.split('\n').filter((l) => l.startsWith('- ')).length).toBe(
       technicalGuidance(state)
@@ -137,7 +149,7 @@ describe('technical dwibahasa', () => {
     expect(text).not.toMatch(/^\s/);
     expect(text).not.toContain('Oke, gorong-gorong');
     expect(text).toMatch(/^Yang sudah saya catat: .*air limbah/i);
-    expect(text).toContain('tolong jawab beberapa hal ini');
+    expect(text).toContain('pilih jawabannya di bawah');
     expect(technicalGuidance(answered, 'id')).toMatch(/^Oke, gorong-gorong/);
   });
 
@@ -175,6 +187,7 @@ describe('technical dwibahasa', () => {
     en.card.forEach((q, i) => {
       expect(q.question).not.toBe(id.card[i]!.question);
       expect(q.options).toEqual(id.card[i]!.options);
+      if (q.inputs) return; // isian angka: tanpa pilihan, labelnya di
       expect(q.optionLabels).toHaveLength(q.options.length);
       expect(q.optionLabels).not.toEqual(q.options);
     });
@@ -206,7 +219,7 @@ describe('technical dwibahasa', () => {
 
   it('technicalAnswerValue menerima label Inggris dan Yes/No, hasilnya nilai protokol', () => {
     const enumQuestion = planTechnicalClarification(state, 'en').card.find(
-      (q) => q.options[0] !== 'Ya',
+      (q) => q.options.length > 0 && q.options[0] !== 'Ya',
     )!;
     const protocolValue = enumQuestion.options[0]!;
     const englishLabel = enumQuestion.optionLabels![0]!;

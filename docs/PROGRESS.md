@@ -1764,6 +1764,11 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
       diperbaiki: "tinggi lantai 4 m" terbaca panjang jalur 4 m (kini tinggi lantai dikonsumsi dan menjadi tinggi
       bangunan 8 × 4 m), "tandon di bukit 40 meter" tidak terbaca beda tinggi (kata bukit/hill jadi penanda), dan
       "Kedalaman sumur 40 m" kehilangan labelnya karena "m" substring label (cek per kata).
+- [x] P22-10 Kartu pertanyaan kasus teknis seperti alur rumah (pemilik 2026-10-16: "kenapa konsepnya ngga kaya yang
+      sebelum2nya"). Dulu angka inti (jarak, beda tinggi, jumlah SR) hanya ditanya di teks yang diulang tiap giliran,
+      sementara kartu menanyakan hal sekunder (bahan, kontur, tekanan) satu per satu. Kini angka inti masuk kartu
+      sebagai isian (kritis lebih dulu, wajib; sekunder opsional), jawabannya `kunci=angka` seperti ukuran bangunan,
+      lalu tombol Susun rekomendasi begitu data inti lengkap.
 - [x] ✋ CHECKPOINT Fase 22 — pemilik menerima keempat default (OQ-67 ambang 0,7 bar, OQ-68 tetap skematik, OQ-69
       tanpa harga, OQ-70 kriteria umum divalidasi bersama aturan lain), 2026-10-16
 
