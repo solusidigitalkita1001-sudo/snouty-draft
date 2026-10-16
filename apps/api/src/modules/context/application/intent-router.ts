@@ -403,6 +403,9 @@ export function answersFromKnowledge(u: MessageUnderstanding): boolean {
   const pressure = mentionsPressure(u.text) && u.families.length > 0 ? ['tekanan kerja'] : [];
   const topics = [...u.knowledgeTopics, ...pressure].filter((t) => facts.has(t));
   if (topics.length === 0) return false;
+  // Pertanyaan tentang bentuk sistem pengguna sendiri (P22-02: 'fitting apa saja yang perlu dibeli')
+  // dijawab dari solusinya, bukan dari pengetahuan umum tentang jenis fitting.
+  if (u.intent?.label === 'system_layout_question') return false;
   const requirement = u.intent?.label.startsWith('requirement_') ?? false;
   return !requirement || topics.some((t) => CALCULATION_TOPICS.has(t));
 }

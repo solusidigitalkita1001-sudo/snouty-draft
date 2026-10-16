@@ -225,3 +225,24 @@ describe('isCaseStatement (MA-06 / MA-07)', () => {
     ).toBe(false);
   });
 });
+
+describe('answersFromKnowledge — pertanyaan bentuk sistem sendiri (P22-02)', () => {
+  it('topik fitting di pertanyaan tentang sistem pengguna tidak dijawab pengetahuan umum', () => {
+    expect(
+      answersFromKnowledge(
+        understood('fitting apa saja yang perlu dibeli?', {
+          intent: 'system_layout_question',
+          knowledgeTopics: ['kesalahan umum'],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      answersFromKnowledge(
+        understood('fitting apa saja?', {
+          intent: 'knowledge_question',
+          knowledgeTopics: ['kesalahan umum'],
+        }),
+      ),
+    ).toBe(true);
+  });
+});
