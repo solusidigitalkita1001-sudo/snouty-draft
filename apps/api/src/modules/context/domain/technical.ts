@@ -410,9 +410,10 @@ export function technicalNudge(state: RequirementState, locale: Locale = DEFAULT
  */
 export function capturedPhrase(label: string, value: string): string {
   const unit = value.trim().split(/\s+/).slice(1).join(' ').toLowerCase();
-  return unit !== '' && label.toLowerCase().includes(unit)
-    ? value
-    : `${label.toLowerCase()} ${value}`;
+  // Satuan yang sudah menjadi KATA di labelnya ("10 kolam" untuk "Jumlah kolam") tidak diulang; satuan
+  // yang kebetulan substring ("m" di "Kedalaman sumur") bukan alasan membuang labelnya (smoke 2026-10-16).
+  const words = label.toLowerCase().split(/[\s/]+/);
+  return unit !== '' && words.includes(unit) ? value : `${label.toLowerCase()} ${value}`;
 }
 
 interface GuidanceCopy {

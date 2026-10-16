@@ -1757,6 +1757,13 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
       pompa angkat. Contoh 500 SR SPAM: 4,16 l/s rata-rata (359 m³/hari), jam puncak 7,28 l/s, reservoir 83 m³.
       Highlight, prosa, dan BOQ ikut. Di luar cakupan (ke tim teknis): pemodelan jaringan bercabang/loop,
       penempatan reservoir, desain IPAL, pompa angkat. 63 aturan; OQ-70 diperluas.
+- [x] P22-09 Smoke test semua use case di produksi (pemilik 2026-10-16: "jalanin smoke test lagi semua use case"):
+      19 kasus — rumah 2 lantai, rumah subsidi, gedung bertingkat, cluster, irigasi, transfer pompa, drainase, air hujan,
+      gorong-gorong, sumur ke tandon, kolam lele, SPAM, sewerage, masjid, industri (handoff), ukuran produk, tebal
+      dinding, harga, pesaing. Sembilan menghasilkan solusi, lainnya bertanya/handoff sesuai desain. Tiga temuan
+      diperbaiki: "tinggi lantai 4 m" terbaca panjang jalur 4 m (kini tinggi lantai dikonsumsi dan menjadi tinggi
+      bangunan 8 × 4 m), "tandon di bukit 40 meter" tidak terbaca beda tinggi (kata bukit/hill jadi penanda), dan
+      "Kedalaman sumur 40 m" kehilangan labelnya karena "m" substring label (cek per kata).
 - [x] ✋ CHECKPOINT Fase 22 — pemilik menerima keempat default (OQ-67 ambang 0,7 bar, OQ-68 tetap skematik, OQ-69
       tanpa harga, OQ-70 kriteria umum divalidasi bersama aturan lain), 2026-10-16
 

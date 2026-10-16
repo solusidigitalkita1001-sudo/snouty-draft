@@ -113,3 +113,22 @@ describe('extractTechnicalContext — beda tinggi (laporan pemilik 2026-10-08)',
     expect(facts('sumbernya 6 m lebih tinggi', 'pump_transfer')).toMatchObject({ static_head: -6 });
   });
 });
+
+describe('extractTechnicalContext — temuan smoke 2026-10-16', () => {
+  it('"tinggi lantai 4 m" bukan panjang jalur: menjadi tinggi bangunan 8 × 4 m', () => {
+    const f = facts(
+      'gedung kantor 8 lantai, 4 toilet per lantai, tinggi lantai 4 m, air dari pdam ke tangki bawah',
+      'multistorey_building_water',
+    );
+    expect(f).toMatchObject({ building_floors: 8, building_height: 32 });
+    expect(f).not.toHaveProperty('route_length');
+  });
+
+  it('"tandon di bukit 40 meter" adalah beda tinggi, bukan panjang jalur', () => {
+    const f = facts(
+      'transfer air dari sungai ke tandon di bukit 40 meter, jarak 500 m, debit 5 liter per detik',
+      'pump_transfer',
+    );
+    expect(f).toMatchObject({ static_head: 40, route_length: 500, design_flow: 5 });
+  });
+});

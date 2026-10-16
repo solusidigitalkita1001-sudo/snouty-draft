@@ -94,7 +94,7 @@ export function extractTechnicalContext(
   // 2026-10-08: update teknis tidak berefek — angkanya jatuh ke route_length).
   take(
     new RegExp(
-      `(lebih rendah|lebih tinggi|naik|beda tinggi|perbedaan tinggi|selisih tinggi|ketinggian|elevasi|elevation difference|elevation gain|elevation|height difference|static head|lift|rise)(?:nya)?\\s*(?:(?:jadi|menjadi|diubah jadi|sekarang|sekitar|kira-kira|sejauh|setinggi|is|to|of|about|approximately|around|roughly)\\s*)*[:=]?\\s*${NUM}\\s*${M}\\b`,
+      `(lebih rendah|lebih tinggi|naik|beda tinggi|perbedaan tinggi|selisih tinggi|ketinggian|elevasi|bukit|hill|elevation difference|elevation gain|elevation|height difference|static head|lift|rise)(?:nya)?\\s*(?:(?:jadi|menjadi|diubah jadi|sekarang|sekitar|kira-kira|sejauh|setinggi|is|to|of|about|approximately|around|roughly)\\s*)*[:=]?\\s*${NUM}\\s*${M}\\b`,
     ),
     (m) => {
       const term = m[1]!;
@@ -265,6 +265,18 @@ export function extractTechnicalContext(
   );
   take(new RegExp(`${NUM}\\s*bar\\b`), (m) => add('required_pressure', num(m[1]!), m[0], 'bar'));
 
+  // ── Tinggi lantai ("tinggi lantai 4 m", "floor height 4 m") — bukan panjang jalur; menjadi tinggi
+  // bangunan setelah jumlah lantainya diketahui (gedung bertingkat), bila tinggi bangunan tidak disebut.
+  let floorHeightM: number | undefined;
+  take(
+    new RegExp(
+      `(?:tinggi (?:antar )?lantai|tinggi per lantai|floor height|floor-to-floor|storey height)\\D{0,12}?${NUM}\\s*${M}\\b`,
+    ),
+    (m) => {
+      floorHeightM = num(m[1]!);
+    },
+  );
+
   // ── Panjang jalur (setelah elevasi/sumur/jalan diambil) ──
   take(new RegExp(`${NUM}\\s*(km|kilomet(?:er|re)s?)\\b`), (m) =>
     add('route_length', num(m[1]!) * 1000, m[0], 'm'),
@@ -287,9 +299,12 @@ export function extractTechnicalContext(
   );
 
   // ── Bangunan ──
-  take(/(\d+)\s*-?\s*(lantai|floors?|stor(?:eys?|ies|y))\b/, (m) =>
-    add('building_floors', Number(m[1]), m[0], 'lantai'),
-  );
+  take(/(\d+)\s*-?\s*(lantai|floors?|stor(?:eys?|ies|y))\b/, (m) => {
+    add('building_floors', Number(m[1]), m[0], 'lantai');
+    if (floorHeightM !== undefined) {
+      add('building_height', Number(m[1]) * floorHeightM, `${m[0]} × ${floorHeightM} m`, 'm');
+    }
+  });
   take(
     /(\d+)\s*(?:orang|jiwa|penduduk|penghuni|karyawan|pegawai|pekerja|people|persons?|occupants?|employees?|staff|inhabitants?)\b/,
     (m) => add('number_of_occupants', Number(m[1]), m[0], 'orang'),
