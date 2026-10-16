@@ -47,6 +47,15 @@ export interface DrawingCopy {
   readonly vent: string;
   readonly riser: string;
   readonly soilStack: string;
+  /** Pipa tegak air bekas di denah (dirapikan 2026-10-16). */
+  readonly wasteStack: string;
+  /** Label pendek pipa tegak di denah ("Air kotor", "Air bekas"), diikuti ukurannya. */
+  readonly planSoil: string;
+  readonly planWaste: string;
+  /** Nama ruang basah di denah: kamar mandi, wastafel, dapur, toilet. */
+  readonly rooms: Readonly<Record<'bathroom' | 'basin' | 'kitchen' | 'toilet', string>>;
+  /** Catatan di atas denah: letak ruang mengikuti denah pengguna. */
+  readonly planNote: string;
   readonly fixtures: Readonly<Record<FixtureKind, string>>;
   readonly decimal: (value: number) => string;
 }
@@ -383,16 +392,70 @@ export function sectionSvg(input: DrawingInput, copy: DrawingCopy): string {
 }
 
 /** Denah jalur satu lantai: kotak bangunan sesuai panjang × lebar, cabang dan titik airnya. */
+/** Alat yang buangannya ke jalur air kotor; sisanya air bekas. */
+const SOIL_FIXTURES: ReadonlySet<FixtureKind> = new Set(['wc', 'urinal']);
+
+type RoomKind = 'bathroom' | 'basin' | 'kitchen' | 'toilet';
+
+interface Room {
+  readonly kind: RoomKind;
+  readonly fixtures: readonly FixtureKind[];
+}
+
+/**
+ * Alat sebuah cabang dikelompokkan per ruang: tiap kamar mandi = shower + kloset, wastafel,
+ * dapur, toilet urinoir. Letak ruang di denah tetap tidak dikarang (DD-01 #7): ruang-ruang berjajar
+ * sepanjang cabangnya, dan catatan di gambar menyebut letaknya mengikuti denah pengguna.
+ */
+function branchRooms(branch: NeedBranch): readonly Room[] {
+  return [
+    ...Array.from({ length: branch.bathrooms }, () => ({
+      kind: 'bathroom' as const,
+      fixtures: ['shower', 'wc'] as const,
+    })),
+    ...Array.from({ length: branch.basins }, () => ({
+      kind: 'basin' as const,
+      fixtures: ['basin'] as const,
+    })),
+    ...Array.from({ length: branch.kitchens }, () => ({
+      kind: 'kitchen' as const,
+      fixtures: ['kitchen'] as const,
+    })),
+    ...Array.from({ length: branch.urinals }, () => ({
+      kind: 'toilet' as const,
+      fixtures: ['urinal'] as const,
+    })),
+  ];
+}
+
+/**
+ * Denah jalur satu lantai (DD-01 #7, dirapikan atas masukan pemilik 2026-10-16): kotak bangunan
+ * berskala, pipa tegak air bersih di dinding kiri, cabang ke ruang-ruang basah (kamar mandi, dapur)
+ * yang digambar dengan ikon alat, dan — bila ada pembuangan — jalur air kotor/air bekas dari tiap
+ * alat ke pipa tegak buangnya di dinding kanan. Skematik: letak ruang mengikuti denah pengguna.
+ */
 export function floorPlanSvg(input: DrawingInput, level: number, copy: DrawingCopy): string {
   const known = input.lengthM !== undefined && input.widthM !== undefined;
   const long = known ? Math.max(input.lengthM!, input.widthM!) : 15;
   const short = known ? Math.min(input.lengthM!, input.widthM!) : 8;
-  const k = Math.min(440 / long, 230 / short);
+  const onFloor = input.branches.filter((b) => b.floor === level);
+  const drainage = input.drainage;
+  const hasWaste = drainage !== null && drainage.wasteSize !== undefined;
+  const hasSoil = drainage !== null && (drainage.soilSize !== undefined || !hasWaste);
+  // Tinggi minimum supaya tiap cabang punya satu baris ruang basah yang terbaca.
+  const ROW = 124;
+  // Dua pipa tegak buang butuh dua baris label di atas ruang pertama.
+  const header = hasSoil && hasWaste ? 88 : 64;
+  const minH = header + ROW * Math.max(1, onFloor.length);
+  const k = Math.max(Math.min(520 / long, 300 / short, 40), minH / short);
   const w = long * k;
-  const h = short * k;
-  const ox = 40;
-  const oy = 30;
+  const h = Math.max(short * k, minH);
+  const ox = 36;
+  const oy = 40;
   const out: string[] = [];
+
+  // Catatan skala di atas bidang: tidak menimpa label apa pun.
+  out.push(textEl(ox, oy - 14, copy.planNote, { size: 10, color: 'var(--snouty-caption)' }));
   out.push(
     `<rect x="${ox}" y="${oy}" width="${w}" height="${h}" fill="var(--snouty-surface)" stroke="var(--snouty-ink)" stroke-width="3"/>`,
   );
@@ -406,49 +469,111 @@ export function floorPlanSvg(input: DrawingInput, level: number, copy: DrawingCo
         `<line x1="${ox}" y1="${oy + j * k}" x2="${ox + w}" y2="${oy + j * k}" stroke="var(--snouty-hairline)"/>`,
       );
   }
-  const rx = ox + 16;
-  const ry = oy + 16;
-  out.push(`<circle cx="${rx}" cy="${ry}" r="8" fill="${MAIN}"/>`);
+
+  // Pipa tegak air bersih di dinding kiri; pipa tegak buang di dinding kanan.
+  const rx = ox + 18;
+  const ry = oy + 18;
+  out.push(`<circle cx="${rx}" cy="${ry}" r="7" fill="${MAIN}"/>`);
   out.push(
-    textEl(rx + 14, ry + 4, `${copy.riser}${input.mainSize ? ` ${input.mainSize}` : ''}`, {
-      size: 11,
+    textEl(rx + 12, ry + 4, `${copy.riser}${input.mainSize ? ` ${input.mainSize}` : ''}`, {
+      size: 10.5,
+      weight: 600,
     }),
   );
-  if (input.drainage?.soilSize) {
-    out.push(`<circle cx="${ox + w - 16}" cy="${ry}" r="8" fill="${SOIL}"/>`);
-    out.push(textEl(ox + w - 30, ry + 4, copy.soilStack, { size: 11, anchor: 'end' }));
+  const soilX = ox + w - 18;
+  const wasteX = ox + w - 18 - (hasSoil && hasWaste ? 22 : 0);
+  const soilY = ry;
+  const wasteY = hasSoil ? ry + 20 : ry;
+  if (hasSoil) {
+    out.push(`<circle cx="${soilX}" cy="${soilY}" r="7" fill="${SOIL}"/>`);
+    out.push(
+      textEl(
+        wasteX - 12,
+        soilY + 4,
+        `${copy.planSoil}${drainage?.soilSize ? ` ${drainage.soilSize}` : ''}`,
+        { size: 10.5, anchor: 'end', weight: 600 },
+      ),
+    );
   }
-  const onFloor = input.branches.filter((b) => b.floor === level);
-  const gap = (h - 50) / Math.max(1, onFloor.length);
+  if (hasWaste) {
+    out.push(`<circle cx="${wasteX}" cy="${wasteY}" r="7" fill="${WASTE}"/>`);
+    out.push(
+      textEl(wasteX - 12, wasteY + 4, `${copy.planWaste} ${drainage!.wasteSize}`, {
+        size: 10.5,
+        anchor: 'end',
+        weight: 600,
+      }),
+    );
+  }
+
+  const ICON = 28;
+  const STEP = 44;
+  const PAD = 12;
+  const GAP = 18;
+  const x0 = ox + 64;
+  let deepestSoil = soilY;
+  let deepestWaste = wasteY;
   onFloor.forEach((branch, i) => {
-    const y = oy + 44 + i * gap;
-    const fixtures = branchFixtures(branch);
-    const span = w - 110;
-    const step = fixtures.length > 1 ? Math.min(64, span / (fixtures.length - 1)) : 0;
-    const end = ox + 80 + step * Math.max(0, fixtures.length - 1);
+    const y = oy + header + i * ROW;
+    const rooms = branchRooms(branch);
+    // Lebar tiap ruang dari jumlah alatnya; seluruh baris dibatasi bidang bangunan.
+    const widths = rooms.map((r) => PAD * 2 + STEP * (r.fixtures.length - 1) + ICON);
+    const total = widths.reduce((a, b) => a + b, 0) + GAP * Math.max(0, rooms.length - 1);
+    const available = soilX - 40 - x0;
+    const squeeze = total > available ? available / total : 1;
+    const lineEnd = x0 + Math.min(total, available);
     out.push(
       pathEl(
-        `M${rx} ${ry} V${y} H${Math.max(end, ox + 90)}`,
+        `M${rx} ${ry} V${y} H${Math.max(lineEnd, x0 + 24)}`,
         i === 0 ? MAIN : BRANCH,
         i === 0 ? 4 : 3,
       ),
     );
-    out.push(tag(ox + 50, y - 13, branch.size));
-    fixtures.forEach((kind, f) => {
-      const x = ox + 80 + step * f;
-      out.push(pathEl(`M${x} ${y} V${y + 22}`, DROP, 2));
+    out.push(tag(x0 - 32, y + 16, branch.size));
+    let x = x0;
+    rooms.forEach((room, r) => {
+      const boxW = widths[r]! * squeeze;
+      const step = STEP * squeeze;
+      // Kotak ruang putus-putus: nama ruang di atas, alat di bawah garis cabang.
       out.push(
-        `<circle cx="${x}" cy="${y + 26}" r="5" fill="var(--snouty-surface)" stroke="var(--snouty-ink)" stroke-width="1.5"/>`,
+        `<rect x="${x}" y="${y - 24}" width="${boxW}" height="${82}" rx="6" fill="none" stroke="var(--snouty-border)" stroke-dasharray="4 3"/>`,
       );
       out.push(
-        textEl(x, y + 44, copy.fixtures[kind], {
-          size: 9.5,
-          anchor: 'middle',
-          color: 'var(--snouty-caption)',
-        }),
+        textEl(x + 6, y - 11, copy.rooms[room.kind], { size: 9.5, color: 'var(--snouty-muted)' }),
       );
+      room.fixtures.forEach((kind, f) => {
+        const cx = x + PAD * squeeze + ICON / 2 + step * f;
+        out.push(pathEl(`M${cx} ${y} V${y + 14}`, DROP, 2));
+        out.push(icon(FIXTURE_IMAGE[kind], cx, y + 14 + ICON * (100 / 120), ICON));
+        out.push(
+          textEl(cx, y + 50, copy.fixtures[kind], {
+            size: 8.5,
+            anchor: 'middle',
+            color: 'var(--snouty-caption)',
+          }),
+        );
+        if (drainage !== null) {
+          // Buangan tiap alat: kloset/urinoir ke jalur air kotor, lainnya ke air bekas — ke pipa
+          // tegaknya masing-masing di dinding kanan, serupa dengan potongan instalasi.
+          const toSoil = SOIL_FIXTURES.has(kind) || !hasWaste;
+          const collectorY = toSoil ? y + 74 : y + 66;
+          const stackX = toSoil ? soilX : wasteX;
+          out.push(pathEl(`M${cx} ${y + 58} V${collectorY} H${stackX}`, toSoil ? SOIL : WASTE, 2));
+          if (toSoil) deepestSoil = Math.max(deepestSoil, collectorY);
+          else deepestWaste = Math.max(deepestWaste, collectorY);
+        }
+      });
+      x += boxW + GAP * squeeze;
     });
   });
+  // Pipa tegak buang digambar setelah jalurnya supaya lingkarannya tetap di atas garis.
+  if (hasSoil && deepestSoil > soilY) {
+    out.push(pathEl(`M${soilX} ${soilY} V${deepestSoil}`, SOIL, 3));
+  }
+  if (hasWaste && deepestWaste > wasteY) {
+    out.push(pathEl(`M${wasteX} ${wasteY} V${deepestWaste}`, WASTE, 3));
+  }
+
   if (known) {
     out.push(
       pathEl(
@@ -478,5 +603,5 @@ export function floorPlanSvg(input: DrawingInput, level: number, copy: DrawingCo
       }),
     );
   }
-  return `<svg viewBox="0 0 ${ox + w + 90} ${oy + h + 50}" xmlns="http://www.w3.org/2000/svg" role="img" font-family="inherit">${out.join('')}</svg>`;
+  return `<svg viewBox="0 0 ${ox + w + 100} ${oy + h + 48}" xmlns="http://www.w3.org/2000/svg" role="img" font-family="inherit">${out.join('')}</svg>`;
 }

@@ -24,7 +24,12 @@ const COPY: DrawingCopy = {
   septic: 'Septic',
   vent: 'Ventilasi',
   riser: 'Pipa tegak',
-  soilStack: 'Pipa tegak buang',
+  soilStack: 'Pipa tegak air kotor',
+  wasteStack: 'Pipa tegak air bekas',
+  planSoil: 'Air kotor',
+  planWaste: 'Air bekas',
+  rooms: { bathroom: 'Kamar mandi', basin: 'Wastafel', kitchen: 'Dapur', toilet: 'Toilet' },
+  planNote: 'Letak ruang mengikuti denah Anda',
   fixtures: {
     shower: 'Shower',
     wc: 'Kloset',
@@ -126,8 +131,16 @@ describe('sectionSvg / floorPlanSvg', () => {
     const plan = floorPlanSvg(input, 1, COPY);
     expect(plan).toContain('Panjang 15 m');
     expect(plan).toContain('Lebar 8 m');
-    // Lantai 1: shower, kloset, 2 wastafel (cabang 3/4") + dapur (cabang 1/2").
-    expect(plan.match(/<circle [^>]*r="5"/g)).toHaveLength(5);
+    // Lantai 1: shower, kloset, 2 wastafel (cabang 3/4") + dapur (cabang 1/2") — tiap alat satu ikon.
+    expect(plan.match(/#il-(shower|wc|basin|kitchen|urinal)/g)).toHaveLength(5);
+    // Ruang basah per cabang: satu kamar mandi, dua wastafel, satu dapur — kotak putus-putus bernama.
+    expect(plan.match(/>Kamar mandi</g)).toHaveLength(1);
+    expect(plan.match(/>Wastafel</g)!.length).toBeGreaterThanOrEqual(2);
+    expect(plan).toContain('>Dapur<');
+    // Buangan: kloset ke pipa tegak air kotor, lainnya ke air bekas — keduanya tergambar.
+    expect(plan).toContain('Air kotor');
+    expect(plan).toContain('Air bekas');
+    expect(plan).toContain('Letak ruang mengikuti denah Anda');
   });
 
   it('label di-escape', () => {

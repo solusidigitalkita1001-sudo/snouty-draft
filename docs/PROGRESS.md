@@ -1733,6 +1733,15 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
       SPAM 500 SR → HDPE 75 mm; sewerage 200 SR → PVC D 6". Dua temuan diperbaiki di sesi yang sama: pertanyaan
       tentang solusi tidak lagi lewat perencana (bisa tersasar ke jalur kebutuhan), dan teks tetap penjelasan
       dibangun dari solusinya, bukan kalimat generik.
+- [x] P22-06 Denah jalur per lantai dirapikan (pemilik 2026-10-16: "skema denahnya masih kurang proper"). Temuan dari
+      tangkapan layar produksi: satu denah rumah 1 lantai membesar sampai teks raksasa dan label panjang terpotong;
+      alat digambar lingkaran polos berjajar; tidak ada jalur buangan; label pipa tegak menimpa tag ukuran. Kini:
+      skala maksimal 40 px/m dan lebar maksimal 560 px; alat dengan ikon yang sama seperti potongan, dikelompokkan
+      per ruang basah (Kamar mandi = shower + kloset, Wastafel, Dapur, Toilet) dalam kotak putus-putus — letak ruang
+      tetap tidak dikarang (DD-01 #7, catatan "letak ruang mengikuti denah Anda" di atas gambar); jalur buangan tiap
+      alat ke pipa tegak air kotor (kloset/urinoir) atau air bekas (lainnya) di dinding kanan, konsisten dengan
+      potongan; tag ukuran cabang di bawah garis; dua baris label pipa tegak buang berukuran. Dicek render lokal
+      untuk 1 lantai 6 × 6 m, 2 lantai 10 × 6 m, dan 2 lantai 15 × 8 m dengan tiga cabang. PDF memakai SVG yang sama.
 - [x] ✋ CHECKPOINT Fase 22 — pemilik menerima keempat default (OQ-67 ambang 0,7 bar, OQ-68 tetap skematik, OQ-69
       tanpa harga, OQ-70 kriteria umum divalidasi bersama aturan lain), 2026-10-16
 
