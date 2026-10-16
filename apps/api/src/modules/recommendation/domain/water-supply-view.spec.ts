@@ -85,6 +85,10 @@ describe('water-supply view', () => {
   it('prosa: menyebut mode, segmen, PN, dan bahwa kelas harus dikonfirmasi ke Pralon; bukan desain final', () => {
     const prose = waterSupplyProse(branched, 'HDPE', 'id');
     expect(prose.headline).toMatch(/^500 sambungan rumah: pipa induk HDPE .* dengan 4 cabang/);
+    expect(prose.headline).toContain(', PDAM + pompa booster');
+    expect(waterSupplyProse(single, 'HDPE', 'id').headline).toMatch(
+      /, (gravitasi|suplai|dipompa|PDAM)/,
+    );
     expect(prose.body).toContain('kurva pompa pabrikan');
     expect(prose.body).toContain('dikonfirmasi ke Pralon');
     expect(prose.body).toContain('bukan desain final');

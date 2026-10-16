@@ -1042,7 +1042,10 @@ export class AnalysisService {
       catalogVersionId: version.id,
       kind: 'technical',
       headline: supply ? prose.headline : `${result.connections} unit: ${prose.headline}`,
-      body: `Kebutuhan puncak ${String(result.peakFlowLs).replace('.', ',')} l/s untuk ${result.connections} sambungan (rata-rata ${String(result.averageFlowLs).replace('.', ',')} l/s). ${prose.body}`,
+      // Prosa jaringan air minum sudah membuka dengan jam puncak; prefiks generik hanya untuk jaringan lain.
+      body: supply
+        ? prose.body
+        : `Kebutuhan puncak ${String(result.peakFlowLs).replace('.', ',')} l/s untuk ${result.connections} sambungan (rata-rata ${String(result.averageFlowLs).replace('.', ',')} l/s). ${prose.body}`,
       stats: pressurizedLegacyStats(result, match.products.length),
       highlights: supply
         ? waterSupplyHighlights(result, family, match.products.length, locale)

@@ -283,6 +283,14 @@ export function waterSupplyBomItems(
   return lines;
 }
 
+/** Huruf pertama kecil untuk sambungan kalimat, singkatan seperti PDAM tetap utuh. */
+function lowerFirst(label: string): string {
+  const [first = '', second = ''] = label;
+  return second === second.toUpperCase() && /[A-Z]/.test(second)
+    ? label
+    : first.toLowerCase() + label.slice(1);
+}
+
 /** Prosa jaringan air minum: mode, segmen, dan apa yang belum final. */
 export function waterSupplyProse(
   result: NetworkResult,
@@ -295,7 +303,7 @@ export function waterSupplyProse(
   const mode = supplyModeLabel(sp.mode.kind, locale);
   if (en) {
     return {
-      headline: `${result.connections} house connections: ${family} ${t.trunk.size} trunk${t.branch ? ` with ${t.branches} branches of ${t.branch.size}` : ''}, ${mode.toLowerCase()}`,
+      headline: `${result.connections} house connections: ${family} ${t.trunk.size} trunk${t.branch ? ` with ${t.branches} branches of ${t.branch.size}` : ''}, ${lowerFirst(mode)}`,
       body:
         `Peak hour ${id(sp.peakHourLs, locale)} l/s for ${result.connections} connections. The ${t.trunk.size} trunk runs at ${id(t.trunk.velocityMs, locale)} m/s and loses ${id(t.trunk.frictionLossM, locale)} m over ${id(t.trunk.lengthM, locale)} m` +
         (t.branch
@@ -306,7 +314,7 @@ export function waterSupplyProse(
     };
   }
   return {
-    headline: `${result.connections} sambungan rumah: pipa induk ${family} ${t.trunk.size}${t.branch ? ` dengan ${t.branches} cabang ${t.branch.size}` : ''}, ${mode.toLowerCase()}`,
+    headline: `${result.connections} sambungan rumah: pipa induk ${family} ${t.trunk.size}${t.branch ? ` dengan ${t.branches} cabang ${t.branch.size}` : ''}, ${lowerFirst(mode)}`,
     body:
       `Jam puncak ${id(sp.peakHourLs)} l/s untuk ${result.connections} sambungan. Pipa induk ${t.trunk.size} mengalir ${id(t.trunk.velocityMs)} m/s dengan kerugian ${id(t.trunk.frictionLossM)} m sepanjang ${id(t.trunk.lengthM)} m` +
       (t.branch

@@ -1791,6 +1791,13 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
       ukuran turun; elbow/katup/check valve menjadi baris tertunda "dihitung saat pemasangan". Skema menampilkan N cabang.
       Regresi: cabang vs tunggal, 1,5 m vs 1.500 m, debit naik, elevasi naik, tekanan sumber naik/turun, PN dengan
       surja. 66 aturan. Di luar cakupan: jaringan loop/pemodelan EPANET, penempatan reservoir, kurva pompa pabrikan.
+- [x] P22-13 Tur ujung-ke-ujung di produksi (pemilik 2026-10-16: "coba lakukan testing end to end, gw pengen
+      liat"). Playwright menjalankan dua alur sebagai tamu di ai.pralon.co.id (SPAM PDAM 500 SR bercabang 4 dengan
+      tekanan sumber; rumah subsidi 1 lantai dengan toren atap), 15 tangkapan layar dilaporkan sebagai artifact. Dua
+      cacat teks yang terlihat diperbaiki: prosa SPAM membuka dua kali dengan kebutuhan puncak (prefiks generik jaringan
+      kini hanya untuk jaringan non-SPAM), dan judul menurunkan "PDAM" menjadi "pdam" (huruf pertama saja yang
+      diturunkan, singkatan utuh). Pengamatan UX yang belum diubah: pada kartu kasus teknis, pertanyaan opsional yang
+      tidak disentuh menahan tombol "Kirim jawaban" sampai "Belum tahu" dipilih.
 - [x] ✋ CHECKPOINT Fase 22 — pemilik menerima keempat default (OQ-67 ambang 0,7 bar, OQ-68 tetap skematik, OQ-69
       tanpa harga, OQ-70 kriteria umum divalidasi bersama aturan lain), 2026-10-16
 
