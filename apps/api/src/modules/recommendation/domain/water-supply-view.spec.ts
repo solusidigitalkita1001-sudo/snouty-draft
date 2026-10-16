@@ -1,6 +1,7 @@
 /** Audit PDAM 2026-10-16 (temuan 3–6): tampilan jaringan air minum jujur per segmen, mode, PN, fitting. */
 import { computeNetwork } from '@snouty/engineering';
 import { describe, expect, it } from 'vitest';
+import { firstSentences } from './summary-length.js';
 import {
   waterSupplyBomItems,
   waterSupplyHighlights,
@@ -90,7 +91,12 @@ describe('water-supply view', () => {
       /, (gravitasi|suplai|dipompa|PDAM)/,
     );
     expect(prose.body).toContain('kurva pompa pabrikan');
-    expect(prose.body).toMatch(/Kelas tekanan PN \d+ .*kelas itu atau lebih/);
+    expect(prose.body).toMatch(/kelas PN \d+ atau lebih/);
+    // Ringkasan dipotong dua kalimat (DD-01 #5): mode, pompa, dan PN harus selamat dari potongan itu.
+    expect(firstSentences(prose.body)).toBe(prose.body);
+    expect(firstSentences(waterSupplyProse(single, 'HDPE', 'id').body)).toBe(
+      waterSupplyProse(single, 'HDPE', 'id').body,
+    );
     expect(prose.body).toContain('bukan desain final');
     expect(waterSupplyProse(branched, 'HDPE', 'en').body).toContain('not a final design');
   });

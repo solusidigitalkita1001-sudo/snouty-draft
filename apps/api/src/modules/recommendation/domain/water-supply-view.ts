@@ -301,26 +301,43 @@ export function waterSupplyProse(
   const t = sp.topology;
   const en = locale === 'en';
   const mode = supplyModeLabel(sp.mode.kind, locale);
+  const pn = sp.pressureClass.pn ?? '—';
+  const pump = result.pumpDuty ? id(sp.mode.pumpHeadM, locale) : null;
+  const need = id(sp.criticalPath.requiredHeadM, locale);
+  const surge = sp.surgeBar > 0 ? id(sp.surgeBar, locale) : null;
+  const working = id(sp.maxPressureBar, locale);
+  // Dua kalimat saja — ringkasan solusi dipotong setelah kalimat kedua (DD-01 #5), jadi mode sistem,
+  // pompa, dan kelas PN harus ada di sini; rinciannya di highlight, baris sistem, dan tabel asumsi.
   if (en) {
+    const segments =
+      `Peak hour ${id(sp.peakHourLs, locale)} l/s for ${result.connections} connections through a ${t.trunk.size} trunk of ${id(t.trunk.lengthM, locale)} m (${id(t.trunk.velocityMs, locale)} m/s, ${id(t.trunk.frictionLossM, locale)} m loss)` +
+      (t.branch
+        ? ` and ${t.branches} branches of ${t.branch.size} × ${id(t.branch.lengthM, locale)} m carrying ${id(t.branch.flowLs, locale)} l/s each (${id(t.branch.frictionLossM, locale)} m loss).`
+        : `; the number of branches was not given, so the whole flow is sized through one pipe — an assumption, not a layout.`);
+    const drive =
+      pump !== null
+        ? sp.mode.kind === 'booster'
+          ? `the mains pressure does not reach it, so a ${pump} m booster pump covers the shortfall (match it to the maker’s pump curve)`
+          : `a ${pump} m pump duty is needed (match it to the maker’s pump curve)`
+        : `${id(sp.mode.residualAtCriticalBar, locale)} bar remains there without a pump`;
     return {
       headline: `${result.connections} house connections: ${family} ${t.trunk.size} trunk${t.branch ? ` with ${t.branches} branches of ${t.branch.size}` : ''}, ${lowerFirst(mode)}`,
-      body:
-        `Peak hour ${id(sp.peakHourLs, locale)} l/s for ${result.connections} connections. The ${t.trunk.size} trunk runs at ${id(t.trunk.velocityMs, locale)} m/s and loses ${id(t.trunk.frictionLossM, locale)} m over ${id(t.trunk.lengthM, locale)} m` +
-        (t.branch
-          ? `; each of the ${t.branches} branches carries ${id(t.branch.flowLs, locale)} l/s in ${t.branch.size}, losing ${id(t.branch.frictionLossM, locale)} m. `
-          : `. The number of branches was not given, so the whole flow is sized through one pipe — an assumption, not a layout. `) +
-        `At the critical point the network needs ${id(sp.criticalPath.requiredHeadM, locale)} m; ${result.pumpDuty ? `the ${sp.mode.pumpHeadM} m pump duty covers the shortfall and must be matched to the maker’s pump curve` : `${id(sp.mode.residualAtCriticalBar, locale)} bar remains without a pump`}. ` +
-        `Pressure class PN ${sp.pressureClass.pn ?? '—'} from ${id(sp.maxPressureBar, locale)} bar working pressure${sp.surgeBar > 0 ? ` plus ${id(sp.surgeBar, locale)} bar surge` : ''}; buy ${family} pipe of that class or higher — the product list shows which Pralon pipe meets it. Initial estimate, not a final design.`,
+      body: `${segments} The critical point needs ${need} m: ${drive}, with ${family} pipe of class PN ${pn} or higher (${working} bar working pressure${surge ? ` plus ${surge} bar surge` : ''}) — an initial estimate, not a final design.`,
     };
   }
+  const segments =
+    `Jam puncak ${id(sp.peakHourLs)} l/s untuk ${result.connections} sambungan lewat pipa induk ${t.trunk.size} sepanjang ${id(t.trunk.lengthM)} m (${id(t.trunk.velocityMs)} m/s, kerugian ${id(t.trunk.frictionLossM)} m)` +
+    (t.branch
+      ? ` dan ${t.branches} cabang ${t.branch.size} × ${id(t.branch.lengthM)} m dengan ${id(t.branch.flowLs)} l/s tiap cabang (kerugian ${id(t.branch.frictionLossM)} m).`
+      : `; jumlah cabang belum disebut, jadi seluruh debit dihitung lewat satu pipa — asumsi, bukan tata letak.`);
+  const drive =
+    pump !== null
+      ? sp.mode.kind === 'booster'
+        ? `tekanan PDAM tidak sampai ke sana, jadi pompa booster ${pump} m menutup kekurangannya (cocokkan dengan kurva pompa pabrikan)`
+        : `perlu pompa ${pump} m (cocokkan dengan kurva pompa pabrikan)`
+      : `tanpa pompa masih tersisa ${id(sp.mode.residualAtCriticalBar)} bar di sana`;
   return {
     headline: `${result.connections} sambungan rumah: pipa induk ${family} ${t.trunk.size}${t.branch ? ` dengan ${t.branches} cabang ${t.branch.size}` : ''}, ${lowerFirst(mode)}`,
-    body:
-      `Jam puncak ${id(sp.peakHourLs)} l/s untuk ${result.connections} sambungan. Pipa induk ${t.trunk.size} mengalir ${id(t.trunk.velocityMs)} m/s dengan kerugian ${id(t.trunk.frictionLossM)} m sepanjang ${id(t.trunk.lengthM)} m` +
-      (t.branch
-        ? `; tiap dari ${t.branches} cabang membawa ${id(t.branch.flowLs)} l/s di ${t.branch.size}, kerugian ${id(t.branch.frictionLossM)} m. `
-        : `. Jumlah cabang belum disebut, jadi seluruh debit dihitung lewat satu pipa — asumsi, bukan tata letak. `) +
-      `Di titik kritis jaringan butuh ${id(sp.criticalPath.requiredHeadM)} m; ${result.pumpDuty ? `pompa ${id(sp.mode.pumpHeadM)} m menutup kekurangannya dan harus dicocokkan dengan kurva pompa pabrikan` : `tanpa pompa masih tersisa ${id(sp.mode.residualAtCriticalBar)} bar`}. ` +
-      `Kelas tekanan PN ${sp.pressureClass.pn ?? '—'} dari tekanan kerja ${id(sp.maxPressureBar)} bar${sp.surgeBar > 0 ? ` ditambah surja ${id(sp.surgeBar)} bar` : ''}; pakai pipa ${family} kelas itu atau lebih — daftar produk menunjukkan pipa Pralon yang memenuhinya. Perkiraan awal, bukan desain final.`,
+    body: `${segments} Titik kritis butuh ${need} m: ${drive}, dengan pipa ${family} kelas PN ${pn} atau lebih (tekanan kerja ${working} bar${surge ? ` ditambah surja ${surge} bar` : ''}) — perkiraan awal, bukan desain final.`,
   };
 }
