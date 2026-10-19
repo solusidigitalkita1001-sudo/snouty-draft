@@ -1154,7 +1154,9 @@
     },
     {
       "text": "elbow pvc 3 inch ada?",
-      "source": "audit 2026-10-19"
+      "source": "audit 2026-10-19",
+      "intent": "product_spec",
+      "productAspect": "size_availability"
     },
     {
       "text": "kenapa pipa pvc bisa pecah?",
@@ -1190,6 +1192,16 @@
     {
       "text": "pipa pvc di luar rumah kena panas terus, awet nggak?",
       "topics": ["sinar matahari"],
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "apa itu pipa jacking?",
+      "topics": ["pipa jacking"],
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "reducer pvc 2 x 1 inch ada ga?",
+      "intent": "product_spec",
       "source": "audit 2026-10-19"
     }
   ]
