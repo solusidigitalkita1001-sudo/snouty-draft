@@ -179,7 +179,7 @@ describe('withRenovation', () => {
     expect(r.assumptions.some((a) => a.ruleId === 'ENG-901' && a.fieldPath === '')).toBe(true);
   });
 
-  it('ganti sebagian 12 m dari 30 m: pipa 40 % (dibulatkan ke atas), 2 sok, elbow tidak disentuh', () => {
+  it('ganti sebagian 12 m dari 30 m: hanya pipa utama 40 % (dibulatkan ke atas) + 2 sok; cabang dan fitting lain tidak ikut', () => {
     const out = withRenovation(
       base('technical'),
       {
@@ -194,9 +194,9 @@ describe('withRenovation', () => {
       'id',
     );
     const r = out.recommendation;
+    expect(r.bom).toHaveLength(2);
     expect(r.bom[0]).toMatchObject({ item: 'Pipa PVC AW', quantity: 4, netLengthM: 12 });
-    expect(r.bom[1]).toMatchObject({ item: 'Elbow', quantity: 4 });
-    expect(r.bom[2]).toMatchObject({
+    expect(r.bom[1]).toMatchObject({
       item: 'Sok PVC AW (sambung ke pipa lama)',
       quantity: 2,
       productId: 'P-SOK',

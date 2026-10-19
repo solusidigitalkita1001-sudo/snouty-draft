@@ -1853,6 +1853,12 @@ sok drat dari katalog. Dicatat sebagai OQ-71.
       `outletCount`, dan "tambah …" hanya berarti perluasan bila kalimatnya menyebut instalasi yang ada ("tambah satu
       kamar mandi" tetap perubahan kebutuhan). Catatan: "ganti semua pipa transfer lama dari sumur ke tandon, 300 m"
       membaca 300 m sebagai kedalaman sumur (perilaku ekstraktor sumur yang sudah ada, bukan renovasi).
+- [x] P23-06 Smoke produksi kedua: ketiga mode rumah kini jalan (perluasan: pipa lama 3/4" galvanis kurang untuk
+      8 titik → diganti ke 1", sok drat 2 + tee 1 ber-SKU; renovasi tanpa jenis → "Renovasinya seperti apa?"; ganti
+      sebagian 12 m). Dua rapian: material ganti sebagian hanya pipa jalur utama sepanjang segmen + sok (cabang,
+      sambungan alat, dan fitting per titik tidak ikut; baris tertunda tetap, sok tertunda digantikan yang dihitung —
+      sebelumnya semua baris pipa dikali rasio dan sok bergabung menjadi "Sok + Sok …"), dan asumsi 1 WSFU/titik lama
+      hanya tampil bila beban total memang dihitung.
 - [ ] ✋ CHECKPOINT Fase 23 — uji langsung di produksi tiga mode untuk rumah dan SPAM; pemilik menilai.
 
 ## Design Coverage

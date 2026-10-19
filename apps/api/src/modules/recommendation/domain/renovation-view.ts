@@ -335,20 +335,36 @@ export function withRenovation(
   if (facts.mode === 'replace_partial') {
     if (result.partial) {
       const p = result.partial;
-      bom = bom.map((row) => {
-        if (!isPipeRow(row) || p.ratio >= 1) return row;
-        const quantity = Math.ceil(row.quantity * p.ratio);
-        return {
-          ...row,
-          quantity,
-          ...(row.netLengthM !== undefined
-            ? { netLengthM: Math.round(row.netLengthM * p.ratio * 10) / 10 }
-            : {}),
-          basis: `${explain('ENG-903')} ${row.basis}`.trim(),
-          traceIds: [...row.traceIds, ...idsOf('ENG-903')],
-        };
-      });
+      // Material segmen saja: pipa jalur utama sepanjang segmen + sok penyambung. Cabang, sambungan
+      // alat, dan fitting per titik air tidak diganti; baris tertunda ("dihitung saat pemasangan")
+      // tetap, kecuali sok yang kini dihitung.
       const productId = ctx.productFor?.('socket', ctx.newMainSize);
+      const firstPipe = bom.findIndex(isPipeRow);
+      const isMainPipe = (row: BomItem, index: number): boolean =>
+        isPipeRow(row) &&
+        (row.purpose === undefined
+          ? index === firstPipe
+          : /^(Pipa utama|Main line)$/.test(row.purpose));
+      bom = bom.flatMap((row, index) => {
+        if (isMainPipe(row, index)) {
+          const quantity = p.ratio >= 1 ? row.quantity : Math.ceil(row.quantity * p.ratio);
+          return [
+            {
+              ...row,
+              quantity,
+              ...(row.netLengthM !== undefined
+                ? { netLengthM: Math.round(row.netLengthM * p.ratio * 10) / 10 }
+                : {}),
+              basis: `${explain('ENG-903')} ${row.basis}`.trim(),
+              traceIds: [...row.traceIds, ...idsOf('ENG-903')],
+            },
+          ];
+        }
+        if (row.pending === true) {
+          return productId !== undefined && row.productId === productId ? [] : [row];
+        }
+        return [];
+      });
       bom.push({
         item: en
           ? `Socket ${ctx.family} (rejoin to the existing pipe)`
@@ -392,7 +408,9 @@ export function withRenovation(
     );
   }
 
-  for (const aid of [...result.appliedAssumptionIds, ...(ctx.extraAssumptionIds ?? [])]) {
+  // Asumsi pemanggil (beban titik air lama) hanya bila beban totalnya memang dihitung.
+  const extra = result.totalLoad !== null ? (ctx.extraAssumptionIds ?? []) : [];
+  for (const aid of [...result.appliedAssumptionIds, ...extra]) {
     const a = applyAssumption(aid);
     assumptions.push({
       text: assumptionDescription(aid, locale),
