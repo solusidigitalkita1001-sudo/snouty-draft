@@ -4,126 +4,278 @@
     {
       "id": "C-01",
       "category": "rumah — toren atap",
-      "messages": ["rumah 2 lantai, 3 kamar mandi, 4 wastafel, 1 dapur, air dari toren atap, instalasi air bersih"],
+      "messages": [
+        "rumah 2 lantai, 3 kamar mandi, 4 wastafel, 1 dapur, air dari toren atap, instalasi air bersih"
+      ],
       "expect": "titik air 3×2+4+1 = 11; beban 3×2,2+3×1+4×0,5+1×1 = 12,6 WSFU → debit puncak Hunter ±1,03 l/s; pipa utama dari batas kecepatan/kehilangan tekanan; fixture 1/2\".",
       "checks": [
-        { "path": "kind", "equals": "building" },
-        { "path": "stats.outletCount", "equals": 11 },
-        { "path": "stats.fixtureConnectionSize", "equals": "1/2\"" },
-        { "path": "systemLines[*].steps[*].text", "matches": "12,6 unit" }
-      ]
+        {
+          "path": "kind",
+          "equals": "building"
+        },
+        {
+          "path": "stats.outletCount",
+          "equals": 11
+        },
+        {
+          "path": "stats.fixtureConnectionSize",
+          "equals": "1/2\""
+        },
+        {
+          "path": "systemLines[*].steps[*].text",
+          "matches": "12,6 unit"
+        }
+      ],
+      "answers": {
+        "building.dimensions": "lengthM=10;widthM=8"
+      }
     },
     {
       "id": "C-02",
       "category": "rumah kecil — PDAM",
-      "messages": ["rumah 1 lantai, 1 kamar mandi, 1 wastafel, 1 dapur, air dari PDAM, instalasi air bersih"],
+      "messages": [
+        "rumah 1 lantai, 1 kamar mandi, 1 wastafel, 1 dapur, air dari PDAM, instalasi air bersih"
+      ],
       "expect": "titik air 1×2+1+1 = 4; beban 2,2+1+0,5+1 = 4,7 WSFU.",
       "checks": [
-        { "path": "kind", "equals": "building" },
-        { "path": "stats.outletCount", "equals": 4 },
-        { "path": "systemLines[*].steps[*].text", "matches": "4,7 unit" }
+        {
+          "path": "kind",
+          "equals": "building"
+        },
+        {
+          "path": "stats.outletCount",
+          "equals": 4
+        },
+        {
+          "path": "systemLines[*].steps[*].text",
+          "matches": "4,7 unit"
+        }
       ]
     },
     {
       "id": "C-03",
       "category": "rumah 3 lantai — pompa booster",
-      "messages": ["rumah 3 lantai, 4 kamar mandi, 3 wastafel, 1 dapur, air dari PDAM pakai pompa booster, instalasi air bersih"],
+      "messages": [
+        "rumah 3 lantai, 4 kamar mandi, 3 wastafel, 1 dapur, air dari PDAM pakai pompa booster, instalasi air bersih"
+      ],
       "expect": "titik air 4×2+3+1 = 12; beban 4×2,2+4×1+3×0,5+1 = 15,3 WSFU.",
       "checks": [
-        { "path": "stats.outletCount", "equals": 12 },
-        { "path": "systemLines[*].steps[*].text", "matches": "15,3 unit" }
+        {
+          "path": "stats.outletCount",
+          "equals": 12
+        },
+        {
+          "path": "systemLines[*].steps[*].text",
+          "matches": "15,3 unit"
+        }
       ]
     },
     {
       "id": "C-04",
       "category": "rumah kos",
-      "messages": ["rumah kos 2 lantai, 10 kamar mandi, 2 wastafel, 1 dapur, toren atap, instalasi air bersih"],
+      "messages": [
+        "rumah kos 2 lantai, 10 kamar mandi, 2 wastafel, 1 dapur, toren atap, instalasi air bersih"
+      ],
       "expect": "titik air 10×2+2+1 = 23; beban 10×2,2+10×1+2×0,5+1 = 34 WSFU.",
       "checks": [
-        { "path": "stats.outletCount", "equals": 23 },
-        { "path": "systemLines[*].steps[*].text", "matches": "34 unit" }
+        {
+          "path": "stats.outletCount",
+          "equals": 23
+        },
+        {
+          "path": "systemLines[*].steps[*].text",
+          "matches": "34 unit"
+        }
       ]
     },
     {
       "id": "C-05",
       "category": "rumah — pembuangan",
-      "messages": ["rumah 2 lantai, 3 kamar mandi, 2 wastafel, 1 dapur, air dari PDAM, hitung pipa pembuangannya juga"],
-      "expect": "Jalur air kotor kloset minimal 4\" (IPC); air bekas dari DFU.",
-      "checks": [{ "path": "kind", "equals": "building" }]
+      "messages": [
+        "rumah 2 lantai, 3 kamar mandi, 2 wastafel, 1 dapur, air dari PDAM, hitung pipa pembuangannya juga"
+      ],
+      "expect": "Air bersih DAN pembuangan: jalur air kotor kloset minimal 4\" (IPC), air bekas dari DFU.",
+      "checks": [
+        {
+          "path": "systemLines[*].name",
+          "matches": "kotor|pembuangan|buangan"
+        },
+        {
+          "path": "systemLines[*].name",
+          "matches": "distribusi|air bersih"
+        },
+        {
+          "path": "systemLines[*].size",
+          "matches": "^4\"$"
+        }
+      ]
     },
     {
       "id": "C-06",
       "category": "gedung bertingkat",
-      "messages": ["gedung kantor 8 lantai, 40 toilet, air dari PDAM ke ground tank lalu pompa ke atas"],
-      "expect": "Kasus gedung bertingkat: riser, zona tekanan, pompa.",
-      "checks": [{ "path": "headline", "exists": true }]
+      "messages": [
+        "gedung kantor 8 lantai, luas per lantai 500 m2, 5 toilet dan 4 wastafel per lantai, air dari PDAM ke ground tank lalu pompa ke atas"
+      ],
+      "expect": "Gedung bertingkat dihitung: riser, zona tekanan, pompa.",
+      "checks": [
+        {
+          "path": "headline",
+          "exists": true
+        },
+        {
+          "path": "stats.mainSize",
+          "exists": true
+        }
+      ]
     },
     {
       "id": "C-07",
       "category": "sumur bor",
-      "messages": ["sumur bor kedalaman 40 meter ke tandon atas rumah, jarak 15 meter"],
-      "expect": "Kasus distribusi sumur: pipa naik dan pompa.",
-      "checks": [{ "path": "headline", "exists": true }]
+      "messages": [
+        "sumur bor kedalaman 40 meter ke tandon atas rumah setinggi 7 meter, jarak 15 meter"
+      ],
+      "expect": "Debit belum disebut → asumsi registry pengisian tandon 0,25 l/s; tinggi statis 40 + 7 = 47 m.",
+      "checks": [
+        {
+          "path": "headline",
+          "exists": true
+        },
+        {
+          "path": "assumptions[*].text",
+          "matches": "0,25 l/s"
+        }
+      ]
     },
     {
       "id": "C-08",
       "category": "air hujan",
-      "messages": ["talang air hujan atap rumah luas 150 m2, pipa turun berapa inch?"],
-      "expect": "Debit limpasan dari luas 150 m² dan intensitas hujan asumsi.",
-      "checks": [{ "path": "headline", "exists": true }]
+      "messages": [
+        "talang air hujan atap rumah luas 150 m2, intensitas hujan 120 mm/jam, pipa turun berapa inch?"
+      ],
+      "expect": "Debit limpasan dari 150 m² × 120 mm/jam × koefisien limpasan asumsi.",
+      "checks": [
+        {
+          "path": "headline",
+          "exists": true
+        }
+      ]
     },
     {
       "id": "C-09",
       "category": "irigasi",
       "messages": ["irigasi sawah 2 hektar, air dari sungai jaraknya 300 meter, pakai pompa"],
       "expect": "Kebutuhan air irigasi 2 ha, jalur 300 m.",
-      "checks": [{ "path": "headline", "exists": true }]
+      "checks": [
+        {
+          "path": "headline",
+          "exists": true
+        }
+      ]
     },
     {
       "id": "C-10",
       "category": "kolam",
       "messages": ["kolam lele 10 kolam ukuran 4 x 4 meter, air dari sumur"],
       "expect": "10 kolam 4×4 m: pipa masuk dan kuras.",
-      "checks": [{ "path": "headline", "exists": true }]
+      "checks": [
+        {
+          "path": "headline",
+          "exists": true
+        }
+      ]
     },
     {
       "id": "C-11",
       "category": "cluster perumahan",
-      "messages": ["jaringan air bersih cluster 50 rumah, pipa utama 400 meter dari PDAM"],
-      "expect": "Debit puncak 50 sambungan, pipa distribusi.",
-      "checks": [{ "path": "headline", "exists": true }]
+      "messages": [
+        "jaringan air bersih cluster 50 rumah, pipa utama 400 meter dari PDAM, beda tinggi 5 meter"
+      ],
+      "expect": "Debit puncak 50 sambungan, pipa distribusi 400 m, beda tinggi 5 m.",
+      "checks": [
+        {
+          "path": "headline",
+          "exists": true
+        }
+      ]
     },
     {
       "id": "C-12",
       "category": "transfer pompa",
-      "messages": ["transfer air pakai pompa dari tandon bawah ke tandon atas, jarak 100 meter, beda tinggi 15 meter"],
-      "expect": "Pipa transfer 100 m, head statis 15 m.",
-      "checks": [{ "path": "headline", "exists": true }]
+      "messages": [
+        "transfer air pakai pompa dari tandon bawah ke tandon atas, jarak 100 meter, beda tinggi 15 meter"
+      ],
+      "expect": "Debit belum disebut → asumsi pengisian tandon 0,25 l/s; jalur 100 m, tinggi statis 15 m.",
+      "checks": [
+        {
+          "path": "headline",
+          "exists": true
+        },
+        {
+          "path": "assumptions[*].text",
+          "matches": "0,25 l/s"
+        }
+      ]
     },
     {
       "id": "C-13",
       "category": "renovasi — ganti semua",
-      "messages": ["mau ganti semua pipa galvanis lama 3/4 inch di rumah 2 lantai, 3 kamar mandi, 2 wastafel, 1 dapur, toren atap"],
+      "messages": [
+        "mau ganti semua pipa galvanis lama 3/4 inch di rumah 2 lantai, 3 kamar mandi, 2 wastafel, 1 dapur, toren atap"
+      ],
       "expect": "Renovasi ganti semua; pipa lama galvanis 3/4\" dicek.",
-      "checks": [{ "path": "kind", "equals": "building" }]
+      "checks": [
+        {
+          "path": "kind",
+          "equals": "building"
+        }
+      ]
     },
     {
       "id": "C-14",
       "category": "renovasi — perluasan",
-      "messages": ["rumah 2 lantai, 3 kamar mandi, 2 wastafel, 1 dapur, toren atap. mau tambah 2 titik air di lantai 2, pipa utama lama 3/4 inch"],
+      "messages": [
+        "rumah 2 lantai, 3 kamar mandi, 2 wastafel, 1 dapur, toren atap. mau tambah 2 titik air di lantai 2, pipa utama lama 3/4 inch"
+      ],
       "expect": "Perluasan: beban lama + baru dicek terhadap pipa lama 3/4\".",
-      "checks": [{ "path": "kind", "equals": "building" }]
+      "checks": [
+        {
+          "path": "kind",
+          "equals": "building"
+        }
+      ]
     },
     {
       "id": "C-15",
       "category": "bahasa Inggris",
       "language": "en",
-      "messages": ["a 2-storey house with 3 bathrooms, 4 basins, 1 kitchen, rooftop tank, clean water"],
+      "messages": [
+        "a 2-storey house with 3 bathrooms, 4 basins, 1 kitchen, rooftop tank, clean water"
+      ],
       "expect": "Sama dengan C-01 dalam bahasa Inggris: 11 outlets.",
       "checks": [
-        { "path": "stats.outletCount", "equals": 11 },
-        { "path": "headline", "none": "titik air|Sistem distribusi" }
+        {
+          "path": "stats.outletCount",
+          "equals": 11
+        },
+        {
+          "path": "headline",
+          "none": "titik air|Sistem distribusi"
+        }
       ]
+    },
+    {
+      "id": "C-16",
+      "category": "air hujan — tanpa intensitas",
+      "messages": ["talang air hujan atap rumah luas 150 m2, pipa turun berapa inch?"],
+      "expect": "Intensitas hujan dijawab \"Belum tahu\" dan tidak ada asumsi bersumber: chat menyebut angka yang masih dibutuhkan, analisis berakhir VALIDATION_FAILED (bukan \"layanan tidak tersedia\").",
+      "expectError": "VALIDATION_FAILED"
+    },
+    {
+      "id": "C-17",
+      "category": "sumur — tanpa tinggi tandon",
+      "messages": ["sumur bor kedalaman 40 meter ke tandon atas rumah, jarak 15 meter"],
+      "expect": "Tinggi tandon \"Belum tahu\" tanpa asumsi pengganti: VALIDATION_FAILED, bukan tinggi 0 m diam-diam.",
+      "expectError": "VALIDATION_FAILED"
     }
   ]
 }

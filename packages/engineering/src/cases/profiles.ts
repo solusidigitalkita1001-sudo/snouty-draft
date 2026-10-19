@@ -51,6 +51,12 @@ export interface CaseProfile {
    * terhadap beban total. Tanpa ini kapasitasnya tidak dicek dan solusi menyebutkannya.
    */
   readonly existingLoad?: 'existing_outlets' | 'existing_connections';
+  /**
+   * Asumsi registry yang dipakai bila parameter KRITIS dijawab "Belum tahu" (P25-05). Parameter kritis
+   * tanpa entri di sini tetap dianggap belum lengkap: hitungannya memang butuh angka itu, dan tidak ada
+   * nilai bersumber untuk menggantinya (simulasi 2026-10-19: "Datanya sudah cukup" lalu analisis gagal).
+   */
+  readonly unknownDefaults?: Partial<Record<ParameterKey, string>>;
 }
 
 export const CASE_PROFILES: readonly CaseProfile[] = [
@@ -240,6 +246,8 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   },
   {
     id: 'pump_transfer',
+    // Pompa mengisi tandon: debit pengisian toren sambungan rumah (registry, keyakinan rendah).
+    unknownDefaults: { design_flow: 'TANK_FILL_FLOW_0_25LS' },
     label: 'Transfer air dengan pompa',
     labelEn: 'Pumped water transfer',
     description: 'Memompa dari sumber ke tandon/reservoir/lahan lewat satu jalur panjang.',
@@ -351,6 +359,8 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   },
   {
     id: 'well_distribution',
+    // Pompa mengisi tandon: debit pengisian toren sambungan rumah (registry, keyakinan rendah).
+    unknownDefaults: { design_flow: 'TANK_FILL_FLOW_0_25LS' },
     label: 'Sumur dan distribusi',
     labelEn: 'Well and distribution',
     description: 'Sumur bor/submersible ke tandon lalu distribusi.',
@@ -437,4 +447,9 @@ export function isCaseId(id: string): id is CaseId {
 /** Semua parameter aktif sebuah kasus, urut prioritas. */
 export function activeParameters(profile: CaseProfile): readonly ParameterKey[] {
   return [...profile.critical, ...profile.important, ...profile.optional];
+}
+
+/** Asumsi registry pengganti "Belum tahu" untuk parameter kritis sebuah kasus, bila ada (P25-05). */
+export function unknownDefault(caseId: CaseId, key: ParameterKey): string | undefined {
+  return CASE_PROFILES.find((p) => p.id === caseId)?.unknownDefaults?.[key];
 }

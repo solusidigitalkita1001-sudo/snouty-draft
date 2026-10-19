@@ -129,6 +129,7 @@ export {
   caseProfileDescription,
   caseProfileLabel,
   isCaseId,
+  unknownDefault,
 } from './cases/profiles.js';
 export type { CaseId, CaseProfile } from './cases/profiles.js';
 export { extractTechnicalContext, renovationCue, workTypeOf } from './cases/extractor.js';

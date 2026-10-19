@@ -18,6 +18,7 @@ import {
   AnalysisService,
   CatalogUnavailableError,
   overrideAssumption,
+  TechnicalCaseNotComputableError,
 } from '../application/analysis.service.js';
 import { RECOMMENDATION_REPOSITORY } from '../domain/recommendation.repository.js';
 import type { RecommendationRepository } from '../domain/recommendation.repository.js';
@@ -96,7 +97,11 @@ export class RecommendationController {
         // alasan menampilkan solusi tanpa produk.
         // Masukan kasus yang bertentangan bukan gangguan layanan: mengulang tidak akan menolong,
         // pengguna harus memperbaiki datanya (pertanyaannya sudah diajukan di chat).
-        const invalid = error instanceof CaseInputInvalidError;
+        // Kasus teknis tanpa angka wajib (dijawab "Belum tahu", tanpa asumsi pengganti) bukan gangguan
+        // layanan: pengguna perlu melengkapi angkanya, dan chat sudah menyebut angka mana (P25-05).
+        const invalid =
+          error instanceof CaseInputInvalidError ||
+          error instanceof TechnicalCaseNotComputableError;
         // Hasil hitung yang tidak seimbang (laporan 0015) adalah cacat, bukan gangguan sementara:
         // tidak ditawarkan coba lagi, dan dicatat lengkap supaya bisa ditelusuri.
         const inconsistent = error instanceof EngineConsistencyError;

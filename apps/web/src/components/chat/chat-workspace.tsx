@@ -808,7 +808,10 @@ export function ChatWorkspace() {
         if (event.type === 'stage') {
           setStages((previous) => ({ ...previous, [event.stage]: event.status }));
         } else if (event.type === 'error') {
-          setError(COPY.llmUnavailable);
+          // Data kurang bukan gangguan layanan: pengguna diarahkan ke pertanyaan di chat (P25-05).
+          setError(
+            event.code === 'VALIDATION_FAILED' ? COPY.analysisNeedsData : COPY.llmUnavailable,
+          );
         }
       })
         .then(async (recommendationId) => {

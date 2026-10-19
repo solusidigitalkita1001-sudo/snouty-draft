@@ -89,8 +89,9 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
   // `source: municipal`. Sumber air hanya dipercaya bila pengguna menyebut sumbernya.
   'water.source':
     /\b(toren|tandon|tangki|pompa|pdam|sumur|ledeng|air tanah|sumber|tanks?|rooftop|roof|ground|municipal|mains|city water|wells?|pumps?|source)/i,
+  // Klitik "-nya" ikut ("pembuangannya"), sama dengan pembaca nilainya.
   'water.installationType':
-    /\b(air bersih|pembuangan|limbah|drainase|saluran|keduanya|clean water|potable|drinking water|supply|drainage|waste ?water|sewer|both)\b/i,
+    /\b(air bersih|pembuangan|limbah|drainase|saluran|keduanya|clean water|potable|drinking water|supply|drainage|waste ?water|sewer|both)(?:nya)?\b/i,
 };
 
 /**
@@ -135,11 +136,16 @@ const OBVIOUS = {
   installationType: (m: string): NonNullable<Extraction['water']>['installationType'] => {
     // Irigasi/pertanian BUKAN "drainage": ia di luar cakupan dan ditangani kebijakan guna
     // (policy/scope.ts `useCasePolicy`, isyarat dari pemahaman) sebelum ekstraksi.
+    // Klitik "-nya" ikut ("hitung pipa pembuangannya juga" dulu tidak terbaca — simulasi 2026-10-19).
     const drainage =
-      /\b(drainase|pembuangan|limbah|saluran air kotor|drainage|waste ?water|sewer|sewage)\b/i.test(
+      /\b(drainase|pembuangan|limbah|saluran air kotor|drainage|waste ?water|sewer|sewage)(?:nya)?\b/i.test(
         m,
       );
-    const clean = /\b(air bersih|clean water|potable water|drinking water)\b/i.test(m);
+    // Sumber air (PDAM, toren, sumur) hanya bermakna untuk air bersih: pembuangan yang disebut bersama
+    // sumbernya berarti keduanya dihitung, bukan pembuangan saja.
+    const clean =
+      /\b(air bersih|clean water|potable water|drinking water)\b/i.test(m) ||
+      OBVIOUS.source(m) !== undefined;
     if (drainage && clean) return 'both';
     if (drainage) return 'drainage';
     if (clean) return 'clean_water';

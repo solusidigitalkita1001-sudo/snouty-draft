@@ -21,6 +21,7 @@ import {
   renovationCue,
   resolveMissingParameters,
   unitLabel,
+  unknownDefault,
   type CaseId,
   type MissingParameter,
   type ParameterKey,
@@ -204,10 +205,37 @@ function normalize(label: string): string {
 function sets(state: RequirementState): { known: Set<string>; assumed: Set<string> } {
   const known = new Set<string>();
   const assumed = new Set<string>();
+  const caseId = state.useCase?.kind === 'technical' ? state.useCase.caseId : null;
   for (const [key, p] of Object.entries(parametersOf(state))) {
-    (p.origin === 'known' ? known : assumed).add(key);
+    if (p.origin === 'known') {
+      known.add(key);
+      continue;
+    }
+    // "Belum tahu" pada parameter KRITIS hanya terpenuhi bila kasusnya punya asumsi registry untuk
+    // menggantinya; tanpa itu hitungannya memang tidak bisa dibuat dan parameter tetap ditanya
+    // (simulasi 2026-10-19: "Datanya sudah cukup" lalu analisis gagal "layanan tidak tersedia").
+    if (p.value === UNKNOWN && caseId !== null && isUnresolvedUnknown(caseId, key)) continue;
+    assumed.add(key);
   }
   return { known, assumed };
+}
+
+/** Parameter kritis yang dijawab "Belum tahu" dan tidak punya asumsi pengganti di profil kasus. */
+function isUnresolvedUnknown(caseId: string, key: string): boolean {
+  if (!isCaseId(caseId) || !isParameterKey(key)) return false;
+  return caseProfile(caseId).critical.includes(key) && unknownDefault(caseId, key) === undefined;
+}
+
+/** Label parameter kritis yang sudah dijawab "Belum tahu" tetapi tetap dibutuhkan hitungannya. */
+export function unresolvedUnknowns(
+  state: RequirementState,
+  locale: Locale = DEFAULT_LOCALE,
+): readonly string[] {
+  if (state.useCase?.kind !== 'technical') return [];
+  const caseId = state.useCase.caseId;
+  return Object.entries(state.useCase.parameters)
+    .filter(([key, p]) => p.value === UNKNOWN && isUnresolvedUnknown(caseId, key))
+    .map(([key, p]) => (isParameterKey(key) ? parameterLabel(key, locale) : p.label).toLowerCase());
 }
 
 /** Parameter yang masih perlu ditanya, urut dampak — maksimum empat (brief §8). */
@@ -423,6 +451,8 @@ export function technicalGuidance(
     );
   }
   const { text, card } = planTechnicalClarification(state, locale);
+  const stillNeeded = unresolvedUnknowns(state, locale);
+  if (stillNeeded.length > 0) lines.push('', copy.stillNeeded(joinNatural(stillNeeded, locale)));
   // Pertanyaan pilihan tampil sebagai kartu di bawah teks; mengulangnya di sini membuat
   // pengguna membaca pertanyaan yang sama dua kali (audit keterbacaan 2026-10-08).
   const missing = text.map((m) => (locale === 'en' ? m.questionEn : m.question));
@@ -498,6 +528,7 @@ interface GuidanceCopy {
   readonly proceedWithDefaults: string;
   readonly readyToCompute: string;
   readonly readyForTeam: string;
+  readonly stillNeeded: (labels: string) => string;
 }
 
 const GUIDANCE_COPY: Readonly<Record<Locale, GuidanceCopy>> = {
@@ -511,6 +542,8 @@ const GUIDANCE_COPY: Readonly<Record<Locale, GuidanceCopy>> = {
       'Datanya sudah cukup. Tekan **Susun rekomendasi** untuk melihat ukuran pipa dan daftar produknya.',
     readyForTeam:
       'Datanya sudah cukup; saya teruskan ke tim teknis Pralon untuk dihitung, dan hasilnya dikirim ke Anda.',
+    stillNeeded: (labels) =>
+      `Ukuran pipanya baru bisa dihitung kalau ${labels} diketahui. Perkiraan kasar pun cukup, nanti saya tandai di hasilnya.`,
   },
   en: {
     captured: (joined) => `What I have noted so far: ${joined}.`,
@@ -522,6 +555,8 @@ const GUIDANCE_COPY: Readonly<Record<Locale, GuidanceCopy>> = {
       'That is enough data. Press **Compose recommendation** to see the pipe sizes and the product list.',
     readyForTeam:
       'That is enough data; I will pass it to the Pralon technical team to calculate, and the result will be sent to you.',
+    stillNeeded: (labels) =>
+      `The pipe size can only be worked out once the ${labels} is known. A rough estimate is enough; I will mark it in the result.`,
   },
 };
 

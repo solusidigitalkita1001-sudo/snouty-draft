@@ -180,6 +180,9 @@ export const CHAT_COPY = {
       : `Batas pesan untuk satu jam sudah tercapai. Coba lagi dalam ±${minutes} menit.`,
   llmUnavailable:
     'Pemahaman bahasa sedang tidak tersedia. Coba lagi sebentar — percakapan Anda tetap tersimpan.',
+  /** Analisis butuh angka yang belum diketahui (P25-05) — bukan gangguan layanan. */
+  analysisNeedsData:
+    'Hitungannya butuh beberapa angka lagi. Jawab pertanyaan di chat dulu — perkiraan kasar pun cukup.',
   /** Giliran berakhir tanpa teks maupun kartu (tahap gagal di server). */
   emptyReply:
     'Saya belum bisa membaca pesan itu. Coba tulis ulang dengan jumlah lantai, kamar mandi, dan sumber airnya.',
@@ -404,6 +407,8 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
       : `The message limit for this hour has been reached. Try again in about ${minutes} minutes.`,
   llmUnavailable:
     'Language understanding is temporarily unavailable. Please try again shortly — your conversation is still saved.',
+  analysisNeedsData:
+    'The calculation needs a few more numbers. Answer the questions in the chat first — a rough estimate is enough.',
   emptyReply:
     'I could not read that message. Try again with the number of floors, bathrooms, and the water source.',
   emptyState: 'Describe your needs as if talking to a consultant. No technical terms needed.',

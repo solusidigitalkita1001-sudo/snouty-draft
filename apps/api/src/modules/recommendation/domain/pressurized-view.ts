@@ -10,6 +10,8 @@ import {
   type PipeMaterial,
   type PressurizedInput,
   type PressurizedResult,
+  assumption,
+  unknownDefault,
 } from '@snouty/engineering';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type {
@@ -70,7 +72,12 @@ export function pressurizedPlanFrom(state: RequirementState): PressurizedPlan | 
   if (caseId !== 'pump_transfer' && caseId !== 'well_distribution') return null;
   const p = state.useCase.parameters;
 
-  const designFlowLs = numberOf(p['design_flow']);
+  // Debit "Belum tahu": asumsi registry yang dipasang profil kasus (pengisian tandon 0,25 l/s), tercatat
+  // di hasil sebagai asumsi yang perlu dikonfirmasi (P25-05).
+  const flowDefault =
+    numberOf(p['design_flow']) === undefined ? unknownDefault(caseId, 'design_flow') : undefined;
+  const designFlowLs =
+    numberOf(p['design_flow']) ?? (flowDefault ? Number(assumption(flowDefault).value) : undefined);
   const routeLengthM = numberOf(p['route_length']);
   let staticHeadM = numberOf(p['static_head']);
   if (staticHeadM === undefined && caseId === 'well_distribution') {
@@ -83,7 +90,7 @@ export function pressurizedPlanFrom(state: RequirementState): PressurizedPlan | 
 
   const materialLabel = p['material']?.value;
   const material = typeof materialLabel === 'string' ? MATERIAL[materialLabel] : undefined;
-  const extra: string[] = [];
+  const extra: string[] = flowDefault ? [flowDefault] : [];
   let family: PressurizedPlan['family'];
   if (material) {
     family = material === 'PVC' ? 'PVC AW' : material;

@@ -16,7 +16,9 @@ import { resolve } from 'node:path';
 
 const [base, file] = process.argv.slice(2);
 if (!base || !file) {
-  console.error('pakai: node scripts/live-calc-eval.mjs <base-url> <berkas-kasus.json> [--only ID] [--out hasil.md]');
+  console.error(
+    'pakai: node scripts/live-calc-eval.mjs <base-url> <berkas-kasus.json> [--only ID] [--out hasil.md]',
+  );
   process.exit(2);
 }
 const flag = (name) => {
@@ -85,41 +87,61 @@ function check(rec, c) {
 
 function globalChecks(rec) {
   const failed = [];
-  if (rec.overallProvenance === 'VERIFIED') failed.push('overallProvenance VERIFIED padahal aturan belum divalidasi');
+  if (rec.overallProvenance === 'VERIFIED')
+    failed.push('overallProvenance VERIFIED padahal aturan belum divalidasi');
   for (const b of rec.bom ?? []) {
     if (b.provenance === 'VERIFIED') failed.push(`BOM ${b.item} VERIFIED`);
-    if (!(Number.isFinite(b.quantity) && b.quantity > 0)) failed.push(`BOM ${b.item} kuantitas ${b.quantity}`);
+    // Baris `pending` sengaja tanpa angka (dihitung tim / butuh data) — bukan kuantitas karangan.
+    if (!b.pending && !(Number.isFinite(b.quantity) && b.quantity > 0))
+      failed.push(`BOM ${b.item} kuantitas ${b.quantity}`);
   }
   for (const p of rec.products ?? []) {
     if (!p.productId || !p.family) failed.push(`produk tanpa id/keluarga katalog: ${p.name}`);
   }
   const json = JSON.stringify(rec);
-  if (/\bNaN\b|"undefined"|\bnull m\b/.test(json)) failed.push('nilai mentah NaN/undefined di rekomendasi');
+  if (/\bNaN\b|"undefined"|\bnull m\b/.test(json))
+    failed.push('nilai mentah NaN/undefined di rekomendasi');
   if (METATEXT.test(`${rec.headline} ${rec.body}`)) failed.push('metatext di judul/isi');
   return failed;
 }
 
 async function run(kase) {
   const req = session();
-  const conv = await (await req('POST', '/conversations', { language: kase.language ?? 'id' })).json();
+  const conv = await (
+    await req('POST', '/conversations', { language: kase.language ?? 'id' })
+  ).json();
   const log = [];
   let cards = [];
   for (const text of kase.messages) {
     const t0 = Date.now();
-    const events = sse(await (await req('POST', `/conversations/${conv.id}/messages`, { text })).text());
+    const events = sse(
+      await (await req('POST', `/conversations/${conv.id}/messages`, { text })).text(),
+    );
     cards = events.filter((e) => e.type === 'card').map((e) => e.card);
     log.push({ who: 'user', text, ms: Date.now() - t0 });
-    log.push({ who: 'snouty', text: events.filter((e) => e.type === 'token').map((e) => e.text).join('') });
+    log.push({
+      who: 'snouty',
+      text: events
+        .filter((e) => e.type === 'token')
+        .map((e) => e.text)
+        .join(''),
+    });
   }
   for (let round = 0; round < MAX_CARD_ROUNDS; round += 1) {
     const card = clarificationOf(cards);
     if (!card) break;
-    const answers = card.questions.map((q) => ({ id: q.id, option: kase.answers?.[q.id] ?? UNKNOWN }));
+    const answers = card.questions.map((q) => ({
+      id: q.id,
+      option: kase.answers?.[q.id] ?? UNKNOWN,
+    }));
     const r = await req('POST', `/conversations/${conv.id}/requirement/clarification`, { answers });
     const body = await r.json().catch(() => ({}));
     log.push({ who: 'kartu', text: answers.map((a) => `${a.id}=${a.option}`).join('; ') });
     if (!r.ok) {
-      log.push({ who: 'galat', text: `clarification HTTP ${r.status} ${JSON.stringify(body).slice(0, 200)}` });
+      log.push({
+        who: 'galat',
+        text: `clarification HTTP ${r.status} ${JSON.stringify(body).slice(0, 200)}`,
+      });
       break;
     }
     log.push({ who: 'snouty', text: body.text ?? '' });
@@ -133,7 +155,14 @@ async function run(kase) {
   const error = events.find((e) => e.type === 'error');
   const id = events.find((e) => e.type === 'solution.ready')?.recommendationId;
   const handoff = events.find((e) => e.type === 'card' && e.card?.kind === 'unsupported');
-  if (!id) return { log, analyzeMs, rec: null, events, error: error?.code ?? (handoff ? 'HANDOFF' : 'TANPA SOLUSI') };
+  if (!id)
+    return {
+      log,
+      analyzeMs,
+      rec: null,
+      events,
+      error: error?.code ?? (handoff ? 'HANDOFF' : 'TANPA SOLUSI'),
+    };
   const rec = await (await req('GET', `/recommendations/${id}`)).json();
   return { log, analyzeMs, rec, events };
 }
@@ -148,7 +177,10 @@ for (const kase of cases) {
     result = { log: [], rec: null, error: `galat: ${e.message}` };
   }
   const failed = [];
-  if (!result.rec) failed.push(`tidak ada rekomendasi (${result.error})`);
+  if (kase.expectError) {
+    if (result.error !== kase.expectError)
+      failed.push(`diharapkan galat ${kase.expectError}, dapat ${result.error ?? 'rekomendasi'}`);
+  } else if (!result.rec) failed.push(`tidak ada rekomendasi (${result.error})`);
   else {
     failed.push(...globalChecks(result.rec));
     for (const c of kase.checks ?? []) {
@@ -168,19 +200,36 @@ const passed = rows.filter((r) => r.failed.length === 0).length;
 console.log(`\n${passed}/${rows.length} lolos`);
 
 if (out) {
-  const lines = [`# Simulasi perhitungan — ${file}`, '', `${passed}/${rows.length} lolos · ${new Date().toISOString()} · ${base}`, ''];
+  const lines = [
+    `# Simulasi perhitungan — ${file}`,
+    '',
+    `${passed}/${rows.length} lolos · ${new Date().toISOString()} · ${base}`,
+    '',
+  ];
   for (const { kase, failed, log, rec } of rows) {
-    lines.push(`## ${failed.length === 0 ? '✓' : '✗'} ${kase.id} — ${kase.category}`, '', `**Diharapkan:** ${kase.expect ?? '-'}`, '');
+    lines.push(
+      `## ${failed.length === 0 ? '✓' : '✗'} ${kase.id} — ${kase.category}`,
+      '',
+      `**Diharapkan:** ${kase.expect ?? '-'}`,
+      '',
+    );
     for (const l of log) lines.push(`- **${l.who}:** ${String(l.text).replace(/\n+/g, ' ⏎ ')}`);
     if (rec) {
-      lines.push('', `**Hasil:** ${rec.headline} — ${rec.body}`, '', `- stats: \`${JSON.stringify(rec.stats)}\``);
+      lines.push(
+        '',
+        `**Hasil:** ${rec.headline} — ${rec.body}`,
+        '',
+        `- stats: \`${JSON.stringify(rec.stats)}\``,
+      );
       for (const s of rec.systemLines ?? []) {
         lines.push(`- jalur **${s.name}** ${s.size ?? ''}`);
         for (const st of s.steps ?? []) lines.push(`  - ${st.title}: ${st.text}`);
       }
       lines.push('', '| Item | Ukuran | Jumlah | Dasar |', '|---|---|---|---|');
       for (const b of rec.bom ?? [])
-        lines.push(`| ${b.purpose ?? b.item} | ${b.size ?? ''} | ${b.quantity} ${b.unit ?? ''} | ${String(b.basis ?? '').replace(/\|/g, '/')} |`);
+        lines.push(
+          `| ${b.purpose ?? b.item} | ${b.size ?? ''} | ${b.quantity} ${b.unit ?? ''} | ${String(b.basis ?? '').replace(/\|/g, '/')} |`,
+        );
     }
     if (failed.length) lines.push('', '**Gagal:**', ...failed.map((f) => `- ${f}`));
     lines.push('');
