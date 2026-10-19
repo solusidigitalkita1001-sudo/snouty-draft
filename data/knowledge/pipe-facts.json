@@ -75,6 +75,12 @@
       "gap": "umur pakai resmi"
     },
     {
+      "topic": "sinar matahari",
+      "text": "Pipa PVC yang lama terkena sinar matahari langsung melemah dan warnanya berubah karena UV. Jalur PVC di luar bangunan sebaiknya dilindungi dari panas dan sinar UV, lalu diperiksa kondisinya secara berkala. Pipa HDPE berwarna hitam tahan sinar matahari, jadi lebih cocok untuk jalur yang terbuka. Saat disimpan, pipa PVC juga dijauhkan dari sinar matahari langsung dan ditutup terpal.",
+      "textEn": "PVC pipe left in direct sunlight for a long time weakens and discolours from UV. PVC runs outside buildings are best protected from heat and UV and checked regularly. Black HDPE pipe withstands sunlight, so it suits exposed runs better. In storage, PVC pipe is also kept out of direct sun and covered with a tarp.",
+      "source": "pipe-knowledge.ts (PVC: melemah bila lama terpapar sinar matahari; HDPE: warna hitamnya tahan sinar matahari; gangguan: warna berubah karena UV; perawatan: lindungi dari panas dan sinar UV; penyimpanan)"
+    },
+    {
       "topic": "solvent cement",
       "text": "Untuk pipa PVC Pralon pakai solvent cement (lem PVC) Pralon: quick dry untuk ukuran kecil dan slow dry untuk ukuran besar. Solvent cement bekerja dengan melarutkan sedikit permukaan pipa dan socket fitting; saat pelarutnya menguap, kedua permukaan menyatu menjadi satu bagian — bukan sekadar menempel seperti lem biasa. Langkahnya: potong rata, bersihkan, oles di pipa dan socket, masukkan sampai batas, tahan sebentar, lalu biarkan kering sebelum dialiri; waktu tahan dan kering mengikuti lembar data solvent cement Pralon. Ukuran kemasan dan lembar data solvent cement bisa diminta ke tim teknis Pralon.",
       "textEn": "For Pralon PVC pipe use Pralon solvent cement (PVC glue): quick dry for small sizes and slow dry for large sizes. Solvent cement works by softening a thin layer of the pipe and the fitting socket; as the solvent evaporates the two surfaces fuse into one piece — it does not just stick like ordinary glue. Steps: cut square, clean, apply to pipe and socket, push in to the mark, hold briefly, then let it cure before filling; hold and cure times follow the Pralon solvent-cement data sheet. Pack sizes and the solvent-cement data sheet are available from the Pralon technical team.",

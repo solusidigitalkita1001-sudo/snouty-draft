@@ -66,8 +66,15 @@ export function Onboarding() {
       .then((state) => {
         if (cancelled) return;
         if (state === 'pending') {
-          safeLsRemove();
-          setOpen(true);
+          // Browser ini sudah pernah melihat onboarding, tetapi subjeknya baru di server (cookie tamu
+          // berganti, masuk di akun lain): jangan tampilkan lagi — server disusulkan keadaannya
+          // (pemilik 2026-10-19: "kalo user udh pernah buka website, wizardnya jangan tampilin lagi").
+          const known = seenOutcome(cached);
+          if (known !== null) {
+            void completeOnboarding(known);
+            return;
+          }
+          showFirstTime();
         } else {
           safeLsSet(state);
         }
@@ -75,8 +82,15 @@ export function Onboarding() {
       .catch(() => {
         // API tidak terjangkau: hormati LS; tanpa LS, tampilkan — pengunjung baru
         // lebih mungkin benar-benar baru daripada kehilangan onboarding selamanya.
-        if (!cancelled && cached === null) setOpen(true);
+        if (!cancelled && cached === null) showFirstTime();
       });
+
+    // Ditandai "sudah dilihat" begitu tampil: menutup tab di tengah wizard tidak membuatnya muncul
+    // lagi di kunjungan berikutnya. Menyelesaikannya mengganti tanda ini dengan hasil sebenarnya.
+    function showFirstTime() {
+      safeLsSet('skip');
+      setOpen(true);
+    }
 
     return () => {
       cancelled = true;
@@ -470,10 +484,7 @@ function safeLsSet(value: string): void {
   }
 }
 
-function safeLsRemove(): void {
-  try {
-    localStorage.removeItem(ONBOARDING_LS_KEY);
-  } catch {
-    // Sama seperti di atas.
-  }
+/** Hasil onboarding yang tersimpan di browser ini, atau `null` bila belum pernah tampil. */
+function seenOutcome(cached: string | null): OnboardingOutcome | null {
+  return cached === 'done' || cached === 'guest' || cached === 'skip' ? cached : null;
 }

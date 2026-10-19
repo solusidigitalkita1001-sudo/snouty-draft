@@ -113,7 +113,8 @@ export interface ProductQuestionInput {
   readonly lexicon: Pick<
     EntityLexicon,
     'productFamilies' | 'isCatalogFamily' | 'isFittingFamily' | 'aliasesOf'
-  >;
+  > &
+    Partial<Pick<EntityLexicon, 'representativeFamily'>>;
   /** Dipanggil untuk tiap data resmi yang belum ada di jawaban pengetahuan (log, bukan state). */
   readonly onGap?: (gap: { readonly topic: string; readonly gap: string }) => void;
 }
@@ -572,7 +573,11 @@ async function answerConcept(
   const support =
     query === null || (topicOnly && knowledge !== '')
       ? NO_SUPPORT
-      : await lookup(catalog, query, { optional: true, aliases: aliasesFrom(input.lexicon) });
+      : await lookup(catalog, query, {
+          optional: true,
+          aliases: aliasesFrom(input.lexicon),
+          representative: (term) => input.lexicon.representativeFamily?.(term) ?? null,
+        });
 
   // Pendukung dari katalog HANYA bila otoritatif. Dari katalog contoh: tidak ada kartu,
   // tidak ada "tidak ada di katalog Pralon" — hanya ajakan ke tim teknis.
@@ -754,7 +759,13 @@ async function lookup(
     optional,
     aliases = NO_ALIASES,
     size = null,
-  }: { readonly optional: boolean; readonly aliases?: Aliases; readonly size?: string | null },
+    representative = () => null,
+  }: {
+    readonly optional: boolean;
+    readonly aliases?: Aliases;
+    readonly size?: string | null;
+    readonly representative?: (term: string) => string | null;
+  },
 ): Promise<CatalogSupport> {
   let authoritative: boolean;
   try {
@@ -775,6 +786,17 @@ async function lookup(
   const products: Product[] = [];
   const missing: string[] = [];
   for (const term of terms) {
+    // Bahan tanpa ukuran ("pvc", "hdpe"): wakilnya pipa terkecil dari keluarga katalog yang mewakili
+    // bahan itu, bukan hasil pencarian nama yang urutannya sembarang.
+    const family = size === null ? representative(term) : null;
+    if (family !== null) {
+      const own = await catalog.listProducts({ family, status: 'active', limit: 50 });
+      const pick = smallestFirst(own.items.filter(isAnswerable))[0];
+      if (pick) {
+        if (!products.some((f) => f.id === pick.id)) products.push(pick);
+        continue;
+      }
+    }
     const page = await catalog.listProducts({ q: term, limit: 10 });
     let candidates = page.items.filter(isAnswerable);
     // Istilah gabungan "elbow hdpe" jarang muncul utuh di nama produk ("Elbow 90° HDPE 63 mm"):
@@ -809,6 +831,17 @@ async function lookup(
  * kebetulan memuatnya ("HDPE" → keluarga HDPE, bukan pipa kabel yang kebetulan bernama HDPE), dan
  * pipa menang atas fitting untuk istilah bahan. Pencarian LIKE memberi urutan sembarang.
  */
+/** Produk urut ukuran pertamanya, terkecil dulu; yang tanpa ukuran di belakang. */
+function smallestFirst(items: readonly Product[]): Product[] {
+  const sizeOf = (p: Product) => (p.sizes[0] ? PipeSize.parse(p.sizes[0]) : null);
+  return [...items].sort((a, b) => {
+    const x = sizeOf(a);
+    const y = sizeOf(b);
+    if (x === null || y === null) return x === null ? (y === null ? 0 : 1) : -1;
+    return x.isLargerThan(y) ? 1 : y.isLargerThan(x) ? -1 : 0;
+  });
+}
+
 /** Produk berukuran `size` — dari daftar ukurannya, atau dari namanya bila daftar ukuran kosong. */
 function hasSize(product: Product, size: string): boolean {
   const wanted = PipeSize.parse(size);

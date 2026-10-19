@@ -17,6 +17,12 @@ export const VocabularySchema = z.object({
    * Pralon — tidak pernah dicari ke katalog, jadi tidak ada klaim "tidak ada di katalog".
    */
   knowledgeOnlyFamilies: z.array(z.string().trim().min(1)).default([]),
+  /**
+   * Keluarga katalog yang MEWAKILI sebuah bahan saat contoh produknya ditunjukkan ("pvc" → "PVC AW").
+   * Tanpa ini contohnya hasil pencarian nama yang urutannya sembarang (audit 2026-10-19: PVC diwakili
+   * "Pipa (Bell End) Kelas B 355 mm").
+   */
+  representativeFamilies: z.record(z.string().trim().min(1), z.string().trim().min(1)).default({}),
   /** Keluarga yang merupakan JENIS FITTING (tee, elbow): digabung dengan bahannya saat mencari katalog. */
   fittingFamilies: z.array(z.string().trim().min(1)).default([]),
   /**
@@ -63,6 +69,7 @@ export class EntityLexicon {
   private readonly knowledgeOnly: ReadonlySet<string>;
   private readonly fittings: ReadonlySet<string>;
   private readonly aliases: ReadonlyMap<string, readonly string[]>;
+  private readonly representatives: ReadonlyMap<string, string>;
 
   constructor(vocabulary: Vocabulary) {
     this.families = Object.entries(vocabulary.productFamilies)
@@ -74,6 +81,9 @@ export class EntityLexicon {
       }));
     this.knowledgeOnly = new Set(vocabulary.knowledgeOnlyFamilies.map((f) => f.toLowerCase()));
     this.fittings = new Set(vocabulary.fittingFamilies.map((f) => f.toLowerCase()));
+    this.representatives = new Map(
+      Object.entries(vocabulary.representativeFamilies).map(([k, v]) => [k.toLowerCase(), v]),
+    );
     this.aliases = new Map(
       Object.entries(vocabulary.productFamilies).map(([k, v]) => [
         k.toLowerCase(),
@@ -144,6 +154,13 @@ export class EntityLexicon {
   aliasesOf(family: string): readonly string[] {
     const key = family.toLowerCase();
     return (this.aliases.get(key) ?? []).filter((a) => a !== key);
+  }
+
+  /** Keluarga katalog yang mewakili istilah ini bila istilahnya persis satu bahan ("pvc" → "PVC AW"). */
+  representativeFamily(term: string): string | null {
+    const families = this.productFamilies(term);
+    if (families.length !== 1 || families[0] !== term.trim().toLowerCase()) return null;
+    return this.representatives.get(families[0]!) ?? null;
   }
 
   /** Keluarga jenis fitting (tee, elbow, …) — bukan bahan. */

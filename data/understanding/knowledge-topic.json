@@ -111,7 +111,6 @@
     "penyimpanan": [
       "pvc disimpan di luar boleh?",
       "cara nyimpen pipa pvc yang benar?",
-      "pipa pvc boleh kena matahari?",
       "cara menyimpan pipa pvc",
       "pipa ditumpuk berapa tinggi?",
       "cara angkut pipa pvc?",
@@ -119,7 +118,6 @@
       "penyimpanan pipa di gudang",
       "how should pvc pipe be stored?",
       "can pvc be stored outdoors?",
-      "can pvc sit in the sun?",
       "how high can pipe be stacked?",
       "how to transport pvc pipe?",
       "pipa pvc disimpan di mana?",
@@ -625,6 +623,16 @@
       "is pvc pipe safe for drinking water?",
       "is pralon pipe lead free?",
       "which pipe is safe for potable water?"
+    ],
+    "sinar matahari": [
+      "pipa pvc boleh kena matahari?",
+      "can pvc sit in the sun?",
+      "pipa pvc dipasang di luar kena panas matahari tahan?",
+      "pipa di atap kena matahari awet ga?",
+      "pipa hdpe tahan sinar matahari?",
+      "pvc tahan uv?",
+      "is pvc pipe uv resistant?",
+      "can hdpe pipe be exposed to sunlight?"
     ]
   },
   "window": 0.04

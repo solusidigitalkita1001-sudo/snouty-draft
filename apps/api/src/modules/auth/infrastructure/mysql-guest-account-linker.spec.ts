@@ -4,9 +4,13 @@
  * pemilik yang bisa menjangkaunya.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { createTestDatabase, testId, type TestDatabase } from '../../../../test/mysql.js';
-import { guestSessions, users } from '../../../infrastructure/mysql/schema/identity.js';
+import {
+  guestSessions,
+  onboardingStates,
+  users,
+} from '../../../infrastructure/mysql/schema/identity.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import { MysqlConversationRepository } from '../../conversation/infrastructure/mysql-conversation.repository.js';
 import { GuestSessionService } from '../application/guest-session.service.js';
@@ -145,5 +149,37 @@ describe('G-1 — penautan yang tidak boleh terjadi', () => {
       .from(guestSessions)
       .where(eq(guestSessions.id, GUEST_ID));
     expect([USER_ID, OTHER_USER]).toContain(session?.linkedUserId);
+  });
+});
+
+describe('onboarding ikut ke akun (pemilik 2026-10-19: wizard jangan muncul lagi)', () => {
+  const stateOf = async (kind: 'user' | 'guest', id: string) =>
+    (
+      await fixture.db
+        .select({ state: onboardingStates.state })
+        .from(onboardingStates)
+        .where(and(eq(onboardingStates.subjectKind, kind), eq(onboardingStates.subjectId, id)))
+    )[0]?.state;
+
+  it('tamu yang sudah melewati onboarding: akunnya juga tidak pending', async () => {
+    await fixture.db
+      .insert(onboardingStates)
+      .values({ subjectKind: 'guest', subjectId: GUEST_ID, state: 'skip' });
+    await linker.link(GUEST_ID, USER_ID);
+    expect(await stateOf('user', USER_ID)).toBe('skip');
+  });
+
+  it('keadaan milik akun tidak ditimpa keadaan tamu', async () => {
+    await fixture.db.insert(onboardingStates).values([
+      { subjectKind: 'guest', subjectId: GUEST_ID, state: 'skip' },
+      { subjectKind: 'user', subjectId: USER_ID, state: 'done' },
+    ]);
+    await linker.link(GUEST_ID, USER_ID);
+    expect(await stateOf('user', USER_ID)).toBe('done');
+  });
+
+  it('tamu yang belum pernah melihat onboarding: akunnya tetap tanpa baris', async () => {
+    await linker.link(GUEST_ID, USER_ID);
+    expect(await stateOf('user', USER_ID)).toBeUndefined();
   });
 });

@@ -1181,6 +1181,16 @@
       "text": "jalur 45 meter pakai pipa 6 meter butuh berapa batang?",
       "topics": ["jumlah batang"],
       "source": "audit 2026-10-19"
+    },
+    {
+      "text": "pipa pvc boleh kena matahari langsung?",
+      "topics": ["sinar matahari"],
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "pipa pvc di luar rumah kena panas terus, awet nggak?",
+      "topics": ["sinar matahari"],
+      "source": "audit 2026-10-19"
     }
   ]
 }

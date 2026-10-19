@@ -153,6 +153,25 @@ describe('audit 2026-10-19 — jawaban produk', () => {
   });
 });
 
+describe('audit 2026-10-19 — contoh produk perbandingan', () => {
+  it('"bedanya pipa hdpe sama pvc apa?": PVC diwakili PVC AW terkecil, bukan pipa SNI kelas B 355 mm', async () => {
+    const pipe = (name: string, family: string, sizes: string[]) =>
+      product({ name, family, sizes, category: 'PIPA' });
+    const reply = text(
+      await ask('bedanya pipa hdpe sama pvc apa?', { intent: 'product_comparison' }, [
+        pipe('Pipa (Bell End) Kelas B 355 mm x 6 Meter PVC', 'PVC SNI KELAS B', ['355 mm']),
+        pipe('Pipa PVC AW 2" x 4 Meter', 'PVC AW', ['2"']),
+        pipe('Pipa PVC AW 1/2" x 4 Meter', 'PVC AW', ['1/2"']),
+        pipe('Pipa HDPE PE 100 PN-8 160 mm x 9 Meter', 'HDPE', ['160 mm']),
+        pipe('Pipa HDPE PE 100 PN-16 20 mm x 100 Meter', 'HDPE', ['20 mm']),
+      ]),
+    );
+    expect(reply).toContain('Pipa PVC AW 1/2" x 4 Meter');
+    expect(reply).toContain('Pipa HDPE PE 100 PN-16 20 mm x 100 Meter');
+    expect(reply).not.toContain('Kelas B 355 mm');
+  });
+});
+
 describe('audit 2026-10-19 — pengetahuan bersumber', () => {
   it('sambungan HDPE: las panas, bukan lem, dan stub end + flange dari katalog', async () => {
     const a = await knowledgeAnswer(

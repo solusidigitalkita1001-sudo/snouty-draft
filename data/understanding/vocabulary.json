@@ -218,6 +218,10 @@
     "roof"
   ],
   "knowledgeOnlyFamilies": ["galvanis"],
+  "representativeFamilies": {
+    "pvc": "PVC AW",
+    "hdpe": "HDPE"
+  },
   "fittingFamilies": ["tee", "elbow", "reducer", "socket"],
   "outOfScopeFluids": [
     "peternakan",

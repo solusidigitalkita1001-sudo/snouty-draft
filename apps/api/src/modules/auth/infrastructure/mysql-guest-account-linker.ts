@@ -20,7 +20,7 @@
 import { Injectable } from '@nestjs/common';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { conversations } from '../../../infrastructure/mysql/schema/conversation.js';
-import { guestSessions } from '../../../infrastructure/mysql/schema/identity.js';
+import { guestSessions, onboardingStates } from '../../../infrastructure/mysql/schema/identity.js';
 import { DatabaseService, type QueryRunner } from '../../../shared/database/database.service.js';
 import {
   GUEST_ACCOUNT_LINKER,
@@ -78,6 +78,25 @@ export class MysqlGuestAccountLinker implements GuestAccountLinker {
         .update(guestSessions)
         .set({ linkedUserId: userId, linkedAt: sql`CURRENT_TIMESTAMP(3)` })
         .where(eq(guestSessions.id, guestSessionId));
+
+      // Onboarding yang sudah dilewati sebagai tamu ikut ke akun: tanpa ini akun baru dianggap belum
+      // pernah melihatnya dan wizard muncul lagi setelah daftar/masuk (pemilik 2026-10-19). Keadaan
+      // milik akun sendiri tidak ditimpa.
+      const seen = await tx
+        .select({ state: onboardingStates.state })
+        .from(onboardingStates)
+        .where(
+          and(
+            eq(onboardingStates.subjectKind, 'guest'),
+            eq(onboardingStates.subjectId, guestSessionId),
+          ),
+        );
+      if (seen[0] !== undefined) {
+        await tx
+          .insert(onboardingStates)
+          .values({ subjectKind: 'user', subjectId: userId, state: seen[0].state })
+          .onDuplicateKeyUpdate({ set: { state: sql`\`state\`` } });
+      }
 
       return {
         movedConversations: owned.length,

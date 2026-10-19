@@ -1936,6 +1936,14 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       ukuran (contoh intent harga, eval 98,7 %); "pipa pvc bisa buat solar/bensin?" dijawab air panas (contoh
       ketahanan kimia); "pdam ke rumah 25 m" menyeret topik pembuangan (contoh sambungan rumah); "kolam lele 10
       kolam" mencatat sumber air "embung / kolam" yang tidak disebut (kolam hanya sumber bila disebut asal air).
+- [x] P25-03 Sisa audit + onboarding sekali (pemilik 2026-10-19: "gas selesaiin" dan "kalo user ini udh pernah buka
+      website nya tolong wizardnya jangan tampilin lagi"). (1) Topik `sinar matahari` dari teks bersumber (PVC melemah
+      karena UV, HDPE hitam tahan matahari) — dulu dijawab cara menyimpan. (2) Contoh produk per bahan dari keluarga
+      wakil di kosakata (`representativeFamilies`: PVC → PVC AW, HDPE → HDPE, pipa terkecil) — dulu PVC diwakili "Pipa
+      (Bell End) Kelas B 355 mm". (3) Contoh intent harga vs tebal pipa AW diimbangi; eval intent 99,4 %. (4) Wizard:
+      status onboarding tamu ikut ke akun saat daftar/masuk (dalam transaksi penautan, tanpa menimpa milik akun);
+      browser yang pernah melihatnya tidak menampilkannya lagi walau server bilang pending (server disusulkan); wizard
+      ditandai sudah dilihat begitu tampil, jadi menutup tab di tengah jalan tidak memunculkannya lagi.
 
 ## Design Coverage
 
