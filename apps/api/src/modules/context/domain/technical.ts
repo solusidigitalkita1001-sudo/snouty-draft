@@ -20,6 +20,7 @@ import {
   parameterOptionLabels,
   renovationCue,
   resolveMissingParameters,
+  unitLabel,
   type CaseId,
   type MissingParameter,
   type ParameterKey,
@@ -285,7 +286,7 @@ export function planTechnicalClarification(
               key: m.key,
               group: label,
               label,
-              unit: def.unit ?? '',
+              unit: def.unit ? unitLabel(def.unit, locale) : '',
               required: m.importance === 'critical',
               min: range.min,
               max: range.max,
@@ -365,7 +366,7 @@ export function formatTechnicalValue(
       maximumFractionDigits: 2,
     });
     if (!p.unit) return n;
-    return p.unit === '%' ? `${n}%` : `${n} ${p.unit}`;
+    return p.unit === '%' ? `${n}%` : `${n} ${unitLabel(p.unit, locale)}`;
   }
   if (locale === 'en' && key !== undefined && isParameterKey(key)) {
     const options = parameterDefinition(key).options ?? [];

@@ -367,7 +367,16 @@
       "beda pvc aw sama pvc d apa?",
       "pvc pralon ada jenis apa saja?",
       "hdpe itu pipa apa?",
-      "tipe pipa hdpe apa saja?"
+      "tipe pipa hdpe apa saja?",
+      "pipa ppr pralon ada ga?",
+      "pralon jual pipa ppr?",
+      "pipa hdpe pralon ada?",
+      "do you sell ppr pipe?",
+      "sumur bor kedalaman 40 meter, pakai pipa apa?",
+      "sumur bor 30 m pipanya apa?",
+      "talang air hujan atap 150 m2 pakai pipa berapa?",
+      "gedung 5 lantai pakai pipa apa?",
+      "what pipe should I use for a 5 storey building?"
     ],
     "vp vu": [
       "pipa vp itu apa?",
@@ -426,7 +435,10 @@
       "pipa hic itu apa?",
       "pipa listrik pralon ada?",
       "what is a conduit pipe?",
-      "pipe for electrical cables?"
+      "pipe for electrical cables?",
+      "ukuran pipa conduit apa aja?",
+      "conduit listrik pralon ukurannya apa saja?",
+      "what sizes of electrical conduit?"
     ],
     "pipa gas": [
       "pipa buat gas pakai apa?",
@@ -568,6 +580,43 @@
       "pipa pvc kegunaannya untuk sektor apa saja?",
       "what else is hdpe pipe used for besides drinking water?",
       "applications of pvc pipe by sector?"
+    ],
+    "sambungan hdpe": [
+      "sambungan pipa hdpe pakai apa?",
+      "cara nyambung pipa hdpe gimana?",
+      "pipa hdpe bisa dilem?",
+      "hdpe disambung pakai apa?",
+      "butt fusion itu apa?",
+      "electrofusion itu apa?",
+      "las pipa hdpe gimana caranya?",
+      "sambung hdpe ke pompa pakai apa?",
+      "how do you join hdpe pipe?",
+      "can hdpe pipe be glued?",
+      "what is butt fusion?"
+    ],
+    "pipa pembuangan": [
+      "kemiringan pipa pembuangan berapa?",
+      "pipa air kotor harus miring berapa persen?",
+      "pipa buangan rumah dipasang miring berapa?",
+      "pipa wc ukuran berapa?",
+      "pipa kloset pakai ukuran berapa inch?",
+      "pipa buangan wastafel ukuran berapa?",
+      "floor drain pakai pipa berapa inch?",
+      "pipa dari kloset ke septic tank ukuran berapa?",
+      "what slope should a drain pipe have?",
+      "what size pipe for a toilet drain?",
+      "how much fall does a waste pipe need?"
+    ],
+    "air minum": [
+      "pipa pralon aman buat air minum?",
+      "pipa pvc aman untuk air minum ga?",
+      "pipa pralon mengandung timbal?",
+      "pipa yang aman buat air minum apa?",
+      "pvc beracun ga buat air minum?",
+      "pipa pdam pakai yang aman apa?",
+      "is pvc pipe safe for drinking water?",
+      "is pralon pipe lead free?",
+      "which pipe is safe for potable water?"
     ]
   },
   "window": 0.04

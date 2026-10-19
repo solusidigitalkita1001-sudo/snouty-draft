@@ -243,12 +243,21 @@ describe('IntentRouter — presedensi kebutuhan (intent sadar konteks)', () => {
   it('jalur cepat tidak dipakai untuk pertanyaan "kenapa", pesaing, atau bila sudah ada kebutuhan', async () => {
     const { ai, calls } = countingAi({ intent: 'EXPLANATION_REQUEST', confidence: 0.9 });
     const r = new IntentRouter(ai);
-    // "kenapa …" yang dikenali: pasti di kode (tanpa model); yang tidak dikenali → model.
+    // "kenapa …" yang dikenali: pasti di kode (tanpa model). Sebelum ada kebutuhan, pesan yang
+    // membawa hal kebutuhan memulai kasusnya (audit 2026-10-19); setelahnya ia penjelasan.
     expect(
       (
         await r.route(
           understood('kenapa rumah 2 lantai butuh pipa 1 inci?', { intent: 'explanation_request' }),
           false,
+        )
+      ).intent,
+    ).toBe('REQUIREMENT_STATEMENT');
+    expect(
+      (
+        await r.route(
+          understood('kenapa rumah 2 lantai butuh pipa 1 inci?', { intent: 'explanation_request' }),
+          true,
         )
       ).intent,
     ).toBe('EXPLANATION_REQUEST');

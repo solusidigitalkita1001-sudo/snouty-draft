@@ -431,7 +431,7 @@ describe('runProductQuestion — KONSEP', () => {
     );
     const out = text(events);
     expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
-    expect(out).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
+    expect(out).toContain('HDPE tidak ada di katalog Pralon.');
     expect(out).toContain('Contoh produknya di katalog Pralon:');
     expect(out).toContain('Pipa PVC AW:');
     expect(cards(events).map((c) => c.kind)).toEqual(['product', 'cta']);
@@ -459,11 +459,11 @@ describe('runProductQuestion — KONSEP', () => {
     const out = text(events);
     expect(out).toContain('**PVC**\n- Kaku, dilem.');
     expect(out).toContain('Pipa PVC AW:'); // produk tak disebut → ikut
-    expect(out).toContain('"hdpe" tidak ada di katalog'); // katalog tak disinggung → ikut
+    expect(out).toContain('HDPE tidak ada di katalog'); // katalog tak disinggung → ikut
     const call = reply.calls[0] as { systemPrompt?: string; facts?: string };
     expect(call.systemPrompt).toBe('PROMPT-FAQ');
     expect(call.facts).toContain('Singkatnya, **PVC (uPVC) kaku');
-    expect(call.facts).toContain('"hdpe" tidak ada di katalog');
+    expect(call.facts).toContain('HDPE tidak ada di katalog');
   });
 
   it('model yang meringkas DATA berbutir menjadi satu paragraf ditolak → teks deterministik', async () => {
@@ -770,7 +770,7 @@ describe('runProductQuestion — SPESIFIKASI', () => {
       noQuestions,
       input('ukuran hdpe apa saja?', SPEC('sizes')),
     );
-    expect(text(pralon)).toContain('"hdpe" tidak ada di katalog Pralon yang aktif');
+    expect(text(pralon)).toContain('HDPE tidak ada di katalog Pralon.');
 
     const sample = await runProductQuestion(
       ai({ productQuery: 'hdpe', aspect: 'sizes' }),
@@ -778,7 +778,7 @@ describe('runProductQuestion — SPESIFIKASI', () => {
       noQuestions,
       input('ukuran hdpe apa saja?', SPEC('sizes')),
     );
-    expect(text(sample)).toContain('"hdpe" belum ada di data katalog yang terpasang');
+    expect(text(sample)).toContain('"HDPE" belum ada di data katalog yang terpasang');
     expect(text(sample)).not.toContain('tidak ada di katalog Pralon');
     expect(cards(sample)).toEqual([{ kind: 'cta', action: 'CONTACT_TECHNICAL' }]);
   });
@@ -802,7 +802,7 @@ describe('runProductQuestion — SPESIFIKASI', () => {
       input('standar pvc aw dan pvc d?', SPEC('standard')),
     );
     const out = text(events);
-    expect(out).toContain('"pvc d" tidak ada di katalog Pralon yang aktif');
+    expect(out).toContain('PVC D tidak ada di katalog Pralon.');
     expect(out).toContain('Standar Pipa PVC AW: SNI 06-0084.');
     expect(cards(events).map((c) => c.kind)).toEqual(['cta', 'product']);
   });

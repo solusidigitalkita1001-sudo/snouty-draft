@@ -66,7 +66,7 @@ export type {
 } from './rules/group-e-irrigation.js';
 
 // ── Fase 1 asisten teknik umum: registry parameter, asumsi, ketergantungan, kesiapan ──
-export { DEFAULT_ENGINEERING_LOCALE } from './parameters/locale.js';
+export { DEFAULT_ENGINEERING_LOCALE, unitLabel } from './parameters/locale.js';
 export type { EngineeringLocale } from './parameters/locale.js';
 export {
   PARAMETERS,

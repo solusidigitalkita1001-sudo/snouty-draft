@@ -8,6 +8,7 @@ import {
   ASSUMPTIONS,
   assumption,
   assumptionDescription,
+  unitLabel,
   type AssumptionOverrides,
 } from '@snouty/engineering';
 import type { Assumption, Locale, Recommendation, RequirementState } from '@snouty/shared-types';
@@ -89,13 +90,13 @@ export function withEditableAssumptions(
     return {
       ...row,
       value: definition.value as number,
-      ...(definition.unit ? { unit: definition.unit } : {}),
+      ...(definition.unit ? { unit: unitLabel(definition.unit, locale) } : {}),
     };
   });
   const own = Object.entries(overridesOf(state)).flatMap(([id, value]): Assumption[] => {
     const definition = numericAssumption(id);
     if (definition === null) return [];
-    const unit = definition.unit ? ` ${definition.unit}` : '';
+    const unit = definition.unit ? ` ${unitLabel(definition.unit, locale)}` : '';
     const before = assumptionDescription(id, locale).replace(/\.$/, '');
     return [
       {
@@ -106,7 +107,7 @@ export function withEditableAssumptions(
         fieldPath: definition.parameter,
         assumptionId: id,
         value,
-        ...(definition.unit ? { unit: definition.unit } : {}),
+        ...(definition.unit ? { unit: unitLabel(definition.unit, locale) } : {}),
         userSet: true,
       },
     ];

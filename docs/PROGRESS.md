@@ -1911,6 +1911,21 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       bahasa awal. Pustaka dipilih dari tiga calon lewat `apps/api/evals/reply-language-cases.json` (95 kalimat
       berlabel): franc salah membaca "pralon itu apa?" sebagai Inggris, eld salah 22 kalimat; tinyld tidak salah
       bahasa dan memutuskan ≥ 90%. Kalimat yang salah dikenali di produksi ditambahkan ke berkas itu. OQ-73.
+- [x] P25-02 Audit live pertanyaan perpipaan (permintaan pemilik 2026-10-19: "audit ai.pralon.co.id, tanya mengenai
+      pertanyaan perpipaan, kalo salah langsung perbaikan"). 20 pertanyaan dikirim ke produksi; yang salah dan
+      perbaikannya: (1) "pipa ppr pralon ada ga?" dijawab pipa gas + conduit → contoh negatif topik, jawaban dibuka
+      "PPR tidak ada di katalog Pralon"; (2) "kemiringan pipa air kotor" dan "pipa wc ukuran berapa" → topik baru
+      `pipa pembuangan` dari acuan engine (kemiringan 2 %, kloset 4", IPC, belum divalidasi); (3) "talang air hujan
+      atap 150 m2" dan pertanyaan "jelaskan" lain tanpa kebutuhan dijawab "tekan Susun rekomendasi" → router memulai
+      kasusnya bila ada hal kebutuhan, selain itu model; contoh kasus air hujan + kosakata talang/atap; (4) "sumur bor
+      40 meter" dijawab hitungan batang → contoh negatif; (5) "sambungan pipa hdpe" memilih satu produk acak → topik
+      baru `sambungan hdpe`; (6) "conduit ukuran apa aja" menyeret panjang batang semua pipa → contoh conduit;
+      (7) gedung 5 lantai (Inggris) terbaca cluster dan "5 lantai" → contoh kasus gedung + terjemahan satuan
+      `unitLabel`; (8) "is pralon pipe safe for drinking water" dijawab ketahanan kimia → topik baru `air minum`
+      (SNI seri S, Calcium-Zinc bebas timbal); (9) "hdpe pn 10" dibuka kelas PVC → kalimat pembuka HDPE; (10) "tee 2
+      inch" hanya reducer → tee sama ukuran didahulukan; metatext ("Kelas tekanan hanya disebut…", "data saya belum
+      memuat…") dihapus. Eval pemahaman tetap 98,1 %; 10 parafrase audit ditambahkan ke golden set; tes regresi di
+      `audit-2026-10-19.spec.ts`.
 
 ## Design Coverage
 

@@ -45,6 +45,25 @@ export interface FittingOutcome {
 
 const FITTING = /^FITTING\b/i;
 const SHOWN = 6;
+/** Kandidat yang diurutkan ulang saat pengguna menyebut ukuran. */
+const SIZED_POOL = 60;
+
+/**
+ * "tee 2 inch ada?": tee 2" polos lebih dulu, lalu reducer yang ukuran utamanya 2", baru yang 2"-nya
+ * hanya di cabang (audit 2026-10-19: jawabannya enam reducer tee tanpa satu pun tee 2"). Urutan
+ * katalog dipertahankan di dalam tiap golongan.
+ */
+function bySizeFit(products: readonly Product[], size: PipeSize): Product[] {
+  const rank = (p: Product): number => {
+    const parsed = p.sizes.map((s) => PipeSize.parse(s));
+    if (parsed.length === 1 && parsed[0]?.equals(size)) return 0;
+    return parsed[0]?.equals(size) ? 1 : 2;
+  };
+  return products
+    .map((product, index) => ({ product, index, rank: rank(product) }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .map((r) => r.product);
+}
 const TOP_CATEGORIES = 5;
 
 /**
@@ -131,7 +150,8 @@ async function fittingLookup(
       const page = await catalog.listProducts({
         family,
         status: 'active',
-        limit: SHOWN,
+        // Dengan ukuran: ambil lebih banyak supaya yang SAMA ukuran bisa didahulukan (bySizeFit).
+        limit: size !== null ? SIZED_POOL : SHOWN,
         ...(term !== null ? { categoryIncludes: term } : {}),
         ...(size !== null ? { size } : {}),
       });
@@ -166,7 +186,7 @@ async function fittingLookup(
     };
   }
 
-  const shown = found.slice(0, SHOWN);
+  const shown = (size !== null ? bySizeFit(found, size) : found).slice(0, SHOWN);
   const lines = shown.map((p) => {
     const pn = specHasValue(p.pressureClass)
       ? en
@@ -190,10 +210,6 @@ async function fittingLookup(
         : `${capitalize(what)} di katalog Pralon${kindNote}, contohnya:`,
       '',
       ...lines,
-      '',
-      en
-        ? 'Pressure is only stated where the catalogue records it.'
-        : 'Kelas tekanan hanya disebut bila tercatat di katalog.',
     ].join('\n'),
   };
 }

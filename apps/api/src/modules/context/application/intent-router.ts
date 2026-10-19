@@ -111,6 +111,12 @@ export function certainIntent(
     return sure(hasExistingRequirements ? 'CLARIFICATION_ANSWER' : 'REQUIREMENT_STATEMENT');
   }
   if (fine === 'explanation_request' || fine === 'system_layout_question') {
+    // Belum ada kebutuhan yang tercatat: tidak ada solusi untuk dijelaskan. Pesan yang membawa hal
+    // kebutuhan ("kenapa rumah 2 lantai butuh pipa 1 inci?", "talang atap 150 m2 berapa inch?")
+    // memulai kasusnya supaya dihitung; selain itu model yang memutuskan. Dulu keduanya dijawab
+    // "ukurannya baru dihitung setelah Susun rekomendasi" tanpa satu angka pun (audit 2026-10-19).
+    if (!hasExistingRequirements)
+      return u.mentionsRequirement ? sure('REQUIREMENT_STATEMENT') : null;
     return sure('EXPLANATION_REQUEST');
   }
   if (isProductQuestion(fine)) {

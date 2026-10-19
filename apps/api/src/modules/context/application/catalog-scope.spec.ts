@@ -170,7 +170,7 @@ describe('catalog scope — fitting', () => {
       ask('fitting hdpe 110 mm', [], '110 mm'),
     );
     expect(out!.text).toContain('ELBOW HDPE 110 MM PN10 — kelas tekanan PN10');
-    expect(out!.text).toContain('- TEE HDPE 110 MM\n');
+    expect(out!.text).toMatch(/^- TEE HDPE 110 MM$/m);
   });
 
   it('8. satu keluarga: jumlah dan jenis dari kategori resmi katalog', async () => {

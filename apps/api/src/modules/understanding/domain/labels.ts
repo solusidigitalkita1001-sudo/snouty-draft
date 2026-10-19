@@ -123,6 +123,9 @@ export const KNOWLEDGE_TOPICS = [
   'aplikasi',
   'fungsi vs bahan',
   'jenis pipa baru',
+  'sambungan hdpe',
+  'pipa pembuangan',
+  'air minum',
 ] as const;
 export type KnowledgeTopicLabel = (typeof KNOWLEDGE_TOPICS)[number];
 

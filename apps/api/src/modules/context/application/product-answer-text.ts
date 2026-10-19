@@ -24,7 +24,7 @@ export const ASPECT_LABEL: Readonly<Record<ProductAspect, string>> = {
 export const PRODUCT_ANSWER_COPY = {
   /** Hanya atas katalog `pralon` (otoritatif) — klaim negatif tentang Pralon. */
   notInCatalog: (query: string) =>
-    `"${query}" tidak ada di katalog Pralon yang aktif. Tim teknis Pralon bisa membantu bila Anda membutuhkannya.`,
+    `${query} tidak ada di katalog Pralon. Tim teknis Pralon bisa membantu mencarikan pilihan yang sesuai.`,
   /** Katalog aktif bukan impor Pralon (contoh pengembangan): tidak ada klaim tentang Pralon. */
   notInInstalledCatalog: (query: string) =>
     `"${query}" belum ada di data katalog yang terpasang di sistem ini. Tim teknis Pralon bisa membantu bila Anda membutuhkannya.`,
@@ -92,7 +92,7 @@ export interface ProductAnswerCopy {
 
 export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
   notInCatalog: (query) =>
-    `"${query}" is not in the active Pralon catalog. Pralon's technical team can help if you need it.`,
+    `${query} is not in the Pralon catalogue. The Pralon technical team can help find a suitable option.`,
   notInInstalledCatalog: (query) =>
     `"${query}" is not yet in the catalog data installed in this system. Pralon's technical team can help if you need it.`,
   catalogUnavailable:

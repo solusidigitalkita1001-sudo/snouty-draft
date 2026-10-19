@@ -45,7 +45,11 @@
       "an 8-storey office building",
       "high-rise hotel with 15 floors",
       "multi-storey building, riser and booster pump",
-      "gedung perkantoran 9 lantai"
+      "gedung perkantoran 9 lantai",
+      "what pipe should I use for a 5 storey building water supply?",
+      "water pipes for a six floor building",
+      "gedung 5 lantai pakai pipa apa?",
+      "pipa air bersih gedung 6 lantai"
     ],
     "residential_cluster": [
       "perluasan jaringan cluster, tambah 40 unit ke pipa induk lama",
@@ -167,7 +171,12 @@
       "rainwater drainage for a 2 hectare parking lot, slope 1%",
       "stormwater drainage for a housing complex",
       "roof gutters and rainwater downpipes",
-      "flooding in the yard, need runoff drainage"
+      "flooding in the yard, need runoff drainage",
+      "talang air hujan atap 150 m2",
+      "pipa talang buat atap 200 m2 berapa inch?",
+      "pipa air hujan dari atap rumah luas 120 m2",
+      "downpipe size for a 150 m2 roof",
+      "rainwater pipe for a 200 m2 roof"
     ],
     "culvert": [
       "ganti gorong-gorong lama yang pecah di jalan desa",
@@ -191,7 +200,10 @@
       "kedalaman sumur 40 meter, pompa satelit",
       "submersible pump for a deep well",
       "borehole 70 m deep feeding a tank",
-      "deep well pump to a water tower"
+      "deep well pump to a water tower",
+      "sumur bor 35 meter pakai pipa apa?",
+      "pipa untuk sumur bor dalam 45 m",
+      "pipe for a 40 m borehole"
     ],
     "fish_pond": [
       "renovasi kolam lele, ganti pipa inlet lama 4 kolam",

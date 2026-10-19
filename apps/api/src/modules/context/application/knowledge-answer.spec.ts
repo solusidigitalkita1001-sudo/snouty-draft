@@ -57,7 +57,7 @@ describe('knowledgeAnswer', () => {
       catalog,
       'id',
     );
-    expect(a!.text).toContain('data saya belum memuat angka yang sudah divalidasi');
+    expect(a!.text).toContain('tim teknis Pralon bisa memberikan angkanya');
     expect(a!.text).toMatch(
       /\*\*HDPE\*\* — 3 produk · ukuran 63 mm–160 mm · kelas PN-8, PN-16, SDR-11/,
     );
@@ -189,7 +189,8 @@ describe('tes FAQ sales 2026-10-12', () => {
     const a = await knowledgeAnswer(['umur pakai'], 'berapa daya tahan pipa hdpe?', catalog, 'id', [
       'hdpe',
     ]);
-    expect(a!.text).toContain('belum ada di data saya');
+    expect(a!.text).toContain('bisa diminta ke tim teknis Pralon');
+    expect(a!.text).not.toMatch(/data saya/);
     expect(a!.gaps).toEqual([{ topic: 'umur pakai', gap: 'umur pakai resmi' }]);
   });
 

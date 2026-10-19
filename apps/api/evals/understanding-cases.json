@@ -1096,6 +1096,60 @@
     {
       "text": "kita lagi ngerjain sewerage kawasan",
       "useCase": "sewerage"
+    },
+    {
+      "text": "pralon punya pipa ppr ga?",
+      "topics": [],
+      "topicsOnly": true,
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "gimana cara menyambung pipa hdpe?",
+      "topics": ["sambungan hdpe"],
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "berapa derajat kemiringan saluran pembuangan?",
+      "topics": ["pipa pembuangan"],
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "ukuran pipa buat kloset berapa?",
+      "topics": ["pipa pembuangan"],
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "apakah pipa pvc aman untuk air minum?",
+      "topics": ["air minum"],
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "does pralon pipe contain lead?",
+      "topics": ["air minum"],
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "ukuran conduit listrik yang ada apa aja?",
+      "topics": ["conduit"],
+      "topicsOnly": true,
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "sumur bor 50 meter pipanya pakai apa ya?",
+      "topics": [],
+      "topicsOnly": true,
+      "useCase": "well_distribution",
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "pipa talang untuk atap 100 m2 berapa inci?",
+      "useCase": "stormwater",
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "water supply pipes for a 7 storey office",
+      "useCase": "multistorey_building_water",
+      "source": "audit 2026-10-19"
     }
   ]
 }

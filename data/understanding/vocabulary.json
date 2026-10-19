@@ -209,7 +209,13 @@
     "water supply",
     "drinking water",
     "treatment plant",
-    "house connections"
+    "house connections",
+    "talang",
+    "atap",
+    "gutter",
+    "gutters",
+    "downpipe",
+    "roof"
   ],
   "knowledgeOnlyFamilies": ["galvanis"],
   "fittingFamilies": ["tee", "elbow", "reducer", "socket"],

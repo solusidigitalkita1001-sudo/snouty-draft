@@ -71,6 +71,18 @@ import {
 /** Alias kosakata sebuah keluarga kanonis — untuk mencari katalog dengan nama yang dipakai katalog. */
 type Aliases = (family: string) => readonly string[];
 const NO_ALIASES: Aliases = () => [];
+/**
+ * Nama yang disebut pengguna untuk ditulis di kalimat: nama keluarga produk dari kosakata ditulis
+ * seperti nama produknya ("hdpe" → "HDPE", "pvc d" → "PVC D"); nama lain apa adanya. Dulu kata
+ * kuncinya dikutip mentah ('"ppr" tidak ada di katalog…', audit 2026-10-19).
+ */
+function displayNameOf(term: string, lexicon: Pick<EntityLexicon, 'productFamilies'>): string {
+  const families = lexicon.productFamilies(term);
+  return families.length === 1 && families[0] === term.trim().toLowerCase()
+    ? term.trim().toUpperCase()
+    : term;
+}
+
 const aliasesFrom = (lexicon: Partial<Pick<EntityLexicon, 'aliasesOf'>>): Aliases =>
   lexicon.aliasesOf ? (family) => lexicon.aliasesOf!(family) : NO_ALIASES;
 
@@ -476,6 +488,7 @@ export async function runProductQuestion(
           size,
           locale,
           aliasesFrom(input.lexicon),
+          (term) => displayNameOf(term, input.lexicon),
         );
 
   return [
@@ -565,10 +578,12 @@ async function answerConcept(
   // tidak ada "tidak ada di katalog Pralon" — hanya ajakan ke tim teknis.
   const facts: string[] = [];
   const cards: AssistantCard[] = [];
+  const missing = support.missing.map((m) => displayNameOf(m, input.lexicon)).join(', ');
+  // "pipa ppr pralon ada?" bertanya KETERSEDIAAN di Pralon: jawabannya dulu, penjelasan bahan
+  // sesudahnya (audit 2026-10-19: dulu kalimat "tidak ada" baru muncul di paragraf terakhir).
+  const availabilityFirst = support.authoritative && missing !== '' && u.mentionsOwnBrand;
   if (support.authoritative) {
-    if (support.missing.length > 0) {
-      facts.push(COPY.notInCatalog(support.missing.join(', ')));
-    }
+    if (missing !== '' && !availabilityFirst) facts.push(COPY.notInCatalog(missing));
     if (support.products.length > 0) {
       facts.push(COPY.catalogSupport);
       facts.push(support.products.map((p) => overviewText(p, locale)).join('\n\n'));
@@ -595,11 +610,13 @@ async function answerConcept(
     if (!support.authoritative || support.missing.length === 0) return range;
     return {
       ...range,
-      text: `${COPY.notInCatalog(support.missing.join(', '))}\n\n${range.text}`,
+      text: `${COPY.notInCatalog(missing)}\n\n${range.text}`,
     };
   }
 
-  const data = [knowledge, ...facts].filter((part) => part !== '').join('\n\n');
+  const data = [availabilityFirst ? COPY.notInCatalog(missing) : '', knowledge, ...facts]
+    .filter((part) => part !== '')
+    .join('\n\n');
   if (!reply || !faqPrompt) return { text: data, cards };
 
   const written = await reply.write({
@@ -672,6 +689,7 @@ async function answerSpec(
   rawSize: string | null,
   locale: Locale = DEFAULT_LOCALE,
   aliases: Aliases = NO_ALIASES,
+  display: (term: string) => string = (term) => term,
 ): Promise<Outcome> {
   const COPY = productAnswerCopy(locale);
   // Aspek tanpa produk ("ukurannya apa aja?" di awal percakapan): tunjukkan ragamnya dulu,
@@ -686,8 +704,13 @@ async function answerSpec(
     };
   }
 
-  const notFound = (names: string) =>
-    support.authoritative ? COPY.notInCatalog(names) : COPY.notInInstalledCatalog(names);
+  const notFound = (names: string) => {
+    const shown = names
+      .split(', ')
+      .map((n) => display(n))
+      .join(', ');
+    return support.authoritative ? COPY.notInCatalog(shown) : COPY.notInInstalledCatalog(shown);
+  };
 
   if (support.products.length === 0) {
     return { text: notFound(query), cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }] };
