@@ -1949,6 +1949,20 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       jacking?" bahkan dijawab model "belum tercatat di katalog"). Embedding kini di service `ollama-embed` sendiri, dan
       contoh "apa itu …" serta ketersediaan ukuran fitting ditambah: uji serentak yang sama 21/22 giliran < 5 s, nol
       gagal (sisa: jawaban kartu yang memakai ekstraksi model ±90 s).
+- [x] P25-04 Simulasi test case perpipaan (pemilik 2026-10-19: "coba lakukan simulasi menggunakan testcase sambil di
+      uji, dari perpipaan dulu, kalo udh ok nanti masuk ke perhitungan"). `evals/live-piping-cases.json` (48 kasus:
+      ragam, ketersediaan, ukuran, fitting, dimensi, tekanan, kelas, bahan, aplikasi, pemasangan, pembuangan, harga,
+      pesaing, perusahaan, bahasa Inggris, lanjutan multi-giliran) dijalankan `scripts/live-eval.mjs` ke produksi,
+      berurutan, dengan aturan teks global (tanpa metatext/basa-basi/"belum menangkap maksud"). Putaran 1: 45/48 lolos
+      otomatis, tetapi pembacaan manual menemukan 11 jawaban salah — pemeriksaan diperketat lalu diperbaiki: galvanis
+      "katalog belum terpasang" → "bukan produk Pralon"; ukuran jacking dijawab conduit; "pvc d 4 inch ada?" dijawab
+      penjelasan kelas dan "7 inch" dijawab proses produksi → jawaban ketersediaan ukuran per keluarga (contoh produk,
+      atau "tidak ada" + ukuran tersedia); panjang batang satu produk acak → per keluarga; "pipa pvc aw tahan berapa
+      bar?" ditempeli HDPE/MDPE; "yang pe 100 aja" mengulang daftar jenis; "lebih detail dong" dan "boleh" lewat
+      perencana model (10–30 s, "luasan bangunan") → lanjutan bersubjek diputuskan kode; "tee pvc ada ukuran apa aja?"
+      → daftar ukuran (sempat gagal diam-diam di produksi karena perbandingan inci vs mm melempar); "kalau yang 3/4?"
+      dijawab tabel diameter → tee PVC 3/4"; tee HDPE 110 x 110 dianggap reducer. Hasil akhir 48/48. Alat diagnosis
+      `understanding.probe.spec.ts` (opt-in `PROBE=`) jadi permanen. Berikutnya: simulasi perhitungan.
 
 ## Design Coverage
 

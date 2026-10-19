@@ -106,8 +106,8 @@
           "q": "pvc d 4 inch ada?",
           "expect": "Ada: produk PVC D 4\" dari katalog, bukan penjelasan kelas.",
           "checks": {
-            "all": ["D[^\n]*4\"", "katalog"],
-            "none": ["tidak ada", "belum ada", "kelas pipa PVC, bukan bahan"]
+            "all": ["^Ada. PVC D 4\" di katalog Pralon"],
+            "cards": ["product"]
           }
         }
       ]
@@ -118,11 +118,10 @@
       "turns": [
         {
           "q": "pipa pvc aw 7 inch ada?",
-          "expect": "7\" tidak ada di katalog; tidak mengganti ukuran diam-diam.",
+          "expect": "PVC AW 7\" tidak ada di katalog Pralon, lalu ukuran yang tersedia.",
           "checks": {
-            "any": [["tidak ada", "belum ada", "tidak tersedia"]],
-            "all": ["7\""],
-            "none": ["Pipa uPVC Pralon dibuat lewat"]
+            "all": ["^PVC AW 7\" tidak ada di katalog Pralon", "1/2\""],
+            "none": ["tidak tersedia dalam ukuran"]
           }
         }
       ]

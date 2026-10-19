@@ -505,3 +505,39 @@ describe('simulasi test case 2026-10-19 — tee sama ukuran HDPE', () => {
     expect(listed[0]).toBe('- Tee (Segmented) PE 110 x 110 mm');
   });
 });
+
+describe('simulasi test case 2026-10-19 — ketersediaan ukuran pipa', () => {
+  const pipe = (name: string, family: string, sizes: string[]) =>
+    product({ name, family, sizes, category: 'PIPA' });
+  const ITEMS = [
+    pipe('Pipa (TS End) D 4" x 4 Meter', 'PVC D', ['4"']),
+    pipe('Pipa (TS End) D 3" x 4 Meter', 'PVC D', ['3"']),
+    pipe('Pipa (TS End) AW 1/2" x 4 Meter', 'PVC AW', ['1/2"']),
+    pipe('Pipa (TS End) AW 16" x 6 Meter', 'PVC AW', ['16"']),
+  ];
+
+  it('"pvc d 4 inch ada?": "Ada", dengan produk PVC D 4"', async () => {
+    const reply = text(
+      await ask(
+        'pvc d 4 inch ada?',
+        { intent: 'product_spec', productAspect: 'size_availability' },
+        ITEMS,
+      ),
+    );
+    expect(reply.startsWith('Ada. PVC D 4" di katalog Pralon')).toBe(true);
+    expect(reply).toContain('- Pipa (TS End) D 4" x 4 Meter');
+  });
+
+  it('"pipa pvc aw 7 inch ada?": tidak ada, lalu ukuran yang tersedia — tanpa produk sembarang', async () => {
+    const reply = text(
+      await ask(
+        'pipa pvc aw 7 inch ada?',
+        { intent: 'product_spec', productAspect: 'size_availability' },
+        ITEMS,
+      ),
+    );
+    expect(reply.startsWith('PVC AW 7" tidak ada di katalog Pralon.')).toBe(true);
+    expect(reply).toContain('1/2"');
+    expect(reply).not.toContain('tidak tersedia dalam ukuran');
+  });
+});

@@ -513,6 +513,28 @@ export async function runProductQuestion(
     }
   }
 
+  // "pvc d 4 inch ada?" / "pipa pvc aw 7 inch ada?": ketersediaan ukuran dalam SATU keluarga katalog —
+  // beberapa produk berukuran itu, atau "tidak ada" beserta ukuran yang tersedia. Dulu satu produk
+  // sembarang ("Pipa ... Lon 4\" tidak tersedia dalam ukuran 7\"", simulasi 2026-10-19).
+  if (
+    aspect === 'size_availability' &&
+    size !== null &&
+    continued === null &&
+    u.families.length === 1
+  ) {
+    const family = await catalogFamily(catalog, u.families[0]!);
+    const sized =
+      family === null ? null : await familySizeAvailability(catalog, family, size, locale);
+    if (sized !== null) {
+      return [
+        { type: 'message.start', messageId: input.messageId },
+        { type: 'token', text: sized.text },
+        ...sized.cards.map((card) => ({ type: 'card', card }) as AssistantStreamEvent),
+        endEvent(input.messageId),
+      ];
+    }
+  }
+
   const outcome =
     aspect === null
       ? await answerConcept(catalog, input, query, reply, faqPrompt)
@@ -872,6 +894,43 @@ async function lookup(
  * kebetulan memuatnya ("HDPE" → keluarga HDPE, bukan pipa kabel yang kebetulan bernama HDPE), dan
  * pipa menang atas fitting untuk istilah bahan. Pencarian LIKE memberi urutan sembarang.
  */
+/** Contoh produk yang ditampilkan untuk satu ukuran dalam satu keluarga. */
+const SIZE_EXAMPLES = 6;
+
+/** Ada/tidaknya satu ukuran dalam satu keluarga katalog; `null` bila ukurannya tidak terbaca. */
+async function familySizeAvailability(
+  catalog: ProductCatalog,
+  family: string,
+  rawSize: string,
+  locale: Locale,
+): Promise<Outcome | null> {
+  const size = PipeSize.parse(rawSize);
+  if (size === null) return null;
+  const en = locale === 'en';
+  const page = await catalog.listProducts({ family, status: 'active', size, limit: 50 });
+  const found = page.items.filter(isAnswerable).slice(0, SIZE_EXAMPLES);
+  if (found.length > 0) {
+    return {
+      text: [
+        en
+          ? `Yes. ${family} ${size} in the Pralon catalogue, for example:`
+          : `Ada. ${family} ${size} di katalog Pralon, contohnya:`,
+        '',
+        ...found.map((p) => `- ${p.name}`),
+      ].join('\n'),
+      cards: [{ kind: 'product', products: found.map(toCard) }],
+    };
+  }
+  const range = await familySizeAnswer(catalog, family, null, null, locale);
+  const absent = en
+    ? `${family} ${size} is not in the Pralon catalogue.`
+    : `${family} ${size} tidak ada di katalog Pralon.`;
+  return {
+    text: range === null ? absent : `${absent}\n\n${range.text}`,
+    cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }],
+  };
+}
+
 /** Produk urut ukuran pertamanya, terkecil dulu; yang tanpa ukuran di belakang. */
 function smallestFirst(items: readonly Product[]): Product[] {
   const sizeOf = (p: Product) => (p.sizes[0] ? PipeSize.parse(p.sizes[0]) : null);
