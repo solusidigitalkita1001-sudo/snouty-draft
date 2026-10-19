@@ -70,6 +70,32 @@ export const RequirementEditSchema = z.union([
     .strict(),
   // Pekerjaan (P22-03): instalasi baru atau ganti pipa lama ke Pralon.
   z.object({ path: z.literal('water.replaceExisting'), value: z.boolean() }).strict(),
+  // Renovasi (P23-03): jenis pekerjaan dan data pipa lama.
+  z
+    .object({
+      path: z.literal('water.workType'),
+      value: z.enum(['new', 'replace_all', 'replace_partial', 'extend']),
+    })
+    .strict(),
+  z
+    .object({
+      path: z.literal('water.existingMainSize'),
+      value: z.string().regex(/^(\d+(?: \d\/\d)?|\d\/\d)"$|^\d+(?:\.\d+)? mm$/),
+    })
+    .strict(),
+  z
+    .object({
+      path: z.literal('water.existingPipeMaterial'),
+      value: z.enum(['pvc', 'galvanized', 'hdpe', 'ppr']),
+    })
+    .strict(),
+  z.object({ path: z.literal('water.existingOutlets'), value: count(1000) }).strict(),
+  z
+    .object({
+      path: z.literal('water.replacementLengthM'),
+      value: z.number().min(0.1).max(100_000),
+    })
+    .strict(),
 ]);
 
 export type RequirementEdit = z.infer<typeof RequirementEditSchema>;

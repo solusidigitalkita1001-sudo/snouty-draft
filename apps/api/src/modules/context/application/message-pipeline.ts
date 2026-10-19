@@ -562,6 +562,27 @@ export function understoodReply(
       continue;
     }
     if (typeof field.value === 'boolean') continue;
+    // Data pipa lama (P23-03) dibaca sebagai frasa, bukan nilai telanjang ("…, 3/4"").
+    if (path === 'water.existingMainSize') {
+      captured.push(en ? `an existing ${field.value} main pipe` : `pipa utama lama ${field.value}`);
+      continue;
+    }
+    if (path === 'water.existingPipeMaterial') {
+      const material = requirementValueLabel(path, field.value, locale);
+      captured.push(en ? `the existing pipe is ${material}` : `pipa lamanya ${material}`);
+      continue;
+    }
+    if (path === 'water.existingOutlets' && typeof field.value === 'number') {
+      captured.push(
+        en ? `${field.value} existing water points` : `${field.value} titik air yang sudah ada`,
+      );
+      continue;
+    }
+    if (path === 'water.replacementLengthM' && typeof field.value === 'number') {
+      const m = field.value.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
+      captured.push(en ? `${m} m of pipe to replace` : `${m} m pipa yang diganti`);
+      continue;
+    }
     captured.push(inSentence(requirementValueLabel(path, field.value, locale)));
   }
   if (captured.length === 0) return null;
@@ -676,6 +697,7 @@ export function technicalQuestionCard(
       locale,
       state.building.type.value,
       state.water.source.value,
+      state.water.workType?.value ?? (state.water.replaceExisting?.value ? 'replace_all' : null),
     );
     return questions.length > 0 ? { kind: 'clarification', questions } : null;
   }

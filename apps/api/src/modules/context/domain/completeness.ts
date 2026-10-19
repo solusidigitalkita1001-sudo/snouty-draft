@@ -42,8 +42,11 @@ export function evaluateCompleteness(state: RequirementState): CompletenessResul
   const missing = CORE_REQUIREMENT_FIELDS.filter((path) => !isFilled(readField(state, path)));
   const filled = CORE_REQUIREMENT_FIELDS.length - missing.length;
   // Tinggi lantai di luar rentang menahan rekomendasi sampai dikoreksi.
-  const blocked: RequirementFieldPath[] =
-    floorHeightOutOfRange(state) !== null ? ['building.floorHeightM'] : [];
+  const blocked: RequirementFieldPath[] = [
+    ...(floorHeightOutOfRange(state) !== null ? (['building.floorHeightM'] as const) : []),
+    // Renovasi yang jenisnya belum disebut (P23-03): ditanya, bukan ditebak bangun baru.
+    ...(state.water.workType?.value === 'renovation' ? (['water.workType'] as const) : []),
+  ];
 
   return {
     completeness: { filled, required: 4 },

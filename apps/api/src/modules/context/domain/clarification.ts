@@ -39,6 +39,7 @@ const CARD_THRESHOLD = 3;
  * yang bisa dihitung.
  */
 export const CLARIFICATION_PRIORITY: readonly RequirementFieldPath[] = [
+  'water.workType',
   'water.source',
   'water.installationType',
   'building.floors',
@@ -215,6 +216,41 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
     inputs: countInputs({ id: 'Jumlah lain', en: 'Other number' }),
     inputValue: 'number',
   },
+  // Renovasi (P23-03): jenis pekerjaan dan data pipa lama, hanya ditanya bila relevan.
+  'water.workType': {
+    question: 'Renovasinya seperti apa?',
+    options: ['Ganti semua pipa', 'Ganti sebagian', 'Tambah titik air (perluasan)'],
+  },
+  'water.existingMainSize': {
+    question: 'Pipa utama yang sudah ada ukurannya berapa?',
+    options: ['1/2"', '3/4"', '1"', '1 1/4"'],
+  },
+  'water.existingPipeMaterial': {
+    question: 'Pipa lamanya bahan apa?',
+    options: ['PVC', 'Galvanis / besi', 'HDPE', 'PPR'],
+  },
+  'water.existingOutlets': {
+    question: 'Berapa titik air yang sudah terpasang sekarang (di luar yang baru)?',
+    options: ['2', '4', '6', '8'],
+    inputs: countInputs({ id: 'Jumlah lain', en: 'Other number' }),
+    inputValue: 'number',
+  },
+  'water.replacementLengthM': {
+    question: 'Berapa meter pipa yang diganti?',
+    options: [],
+    inputs: [
+      {
+        key: 'value',
+        unit: 'm',
+        group: { id: 'Panjang', en: 'Length' },
+        label: { id: 'Yang diganti', en: 'Replaced' },
+        required: true,
+        min: 0.5,
+        max: 10_000,
+      },
+    ],
+    inputValue: 'number',
+  },
 };
 
 /** Field yang memperbaiki hitungan rumah setelah data inti lengkap, urut pengaruhnya. */
@@ -258,6 +294,11 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'fixtures.wudhuAreas': 'How many ablution areas are the taps split over?',
   'fixtures.urinals': 'How many urinals are in the men’s restroom?',
   'water.wellDepthM': 'Roughly how many metres below the ground is the well water level?',
+  'water.workType': 'What kind of renovation is it?',
+  'water.existingMainSize': 'What size is the existing main pipe?',
+  'water.existingPipeMaterial': 'What is the existing pipe made of?',
+  'water.existingOutlets': 'How many water points are already installed (besides the new ones)?',
+  'water.replacementLengthM': 'How many metres of pipe are being replaced?',
 };
 
 /** Label tampilan Inggris per nilai pilihan kanonik; angka tampil apa adanya. */
@@ -271,6 +312,10 @@ const OPTION_LABEL_EN: Readonly<Record<string, string>> = {
   Keduanya: 'Both',
   'Air bersih + pembuangan': 'Clean water + drainage',
   'Belum tahu': 'Not sure',
+  'Ganti semua pipa': 'Replace all pipes',
+  'Ganti sebagian': 'Partial replacement',
+  'Tambah titik air (perluasan)': 'Add water points (extension)',
+  'Galvanis / besi': 'Galvanized / steel',
 };
 
 export function optionLabel(option: string, locale: Locale): string {
@@ -316,6 +361,11 @@ const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath
   ...HOUSE_REFINEMENT_FIELDS,
   ...WORSHIP_REFINEMENT_FIELDS,
   'water.wellDepthM',
+  'water.workType',
+  'water.existingMainSize',
+  'water.existingPipeMaterial',
+  'water.existingOutlets',
+  'water.replacementLengthM',
 ]);
 
 /**
@@ -383,6 +433,18 @@ const OPTION_VALUES: Readonly<
   },
   // Batas atas rentang (tinggi angkat tidak kurang); "> 9 m" dihitung 10 m — OQ-66.
   'water.wellDepthM': { '< 5 m': 5, '5–9 m': 9, '> 9 m': 10 },
+  'water.workType': {
+    'Ganti semua pipa': 'replace_all',
+    'Ganti sebagian': 'replace_partial',
+    'Tambah titik air (perluasan)': 'extend',
+  },
+  'water.existingMainSize': { '1/2"': '1/2"', '3/4"': '3/4"', '1"': '1"', '1 1/4"': '1 1/4"' },
+  'water.existingPipeMaterial': {
+    PVC: 'pvc',
+    'Galvanis / besi': 'galvanized',
+    HDPE: 'hdpe',
+    PPR: 'ppr',
+  },
 };
 
 /** Label singkat untuk ringkasan jawaban di gelembung pengguna. */
@@ -399,6 +461,11 @@ const ANSWER_LABEL: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'fixtures.wudhuAreas': 'Tempat wudhu',
   'fixtures.urinals': 'Urinoir',
   'water.wellDepthM': 'Muka air sumur',
+  'water.workType': 'Pekerjaan',
+  'water.existingMainSize': 'Pipa lama',
+  'water.existingPipeMaterial': 'Bahan pipa lama',
+  'water.existingOutlets': 'Titik air lama',
+  'water.replacementLengthM': 'Yang diganti',
 };
 const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.source': 'Water source',
@@ -413,6 +480,11 @@ const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> =
   'fixtures.wudhuAreas': 'Ablution areas',
   'fixtures.urinals': 'Urinals',
   'water.wellDepthM': 'Well water level',
+  'water.workType': 'Work',
+  'water.existingMainSize': 'Existing pipe',
+  'water.existingPipeMaterial': 'Existing material',
+  'water.existingOutlets': 'Existing points',
+  'water.replacementLengthM': 'Replaced',
 };
 
 export interface ClarificationAnswer {
@@ -562,6 +634,8 @@ export function houseRefinementQuestions(
   locale: Locale = DEFAULT_LOCALE,
   buildingType: string | null = null,
   waterSource: string | null = null,
+  /** Jenis pekerjaan renovasi (P23-03): menentukan data pipa lama mana yang ditanya. */
+  workType: string | null = null,
 ): readonly ClarificationQuestion[] {
   const base =
     buildingType === 'place_of_worship'
@@ -570,12 +644,35 @@ export function houseRefinementQuestions(
         ? PUBLIC_REFINEMENT_FIELDS
         : HOUSE_REFINEMENT_FIELDS;
   // Sumur: kedalaman muka airnya menentukan tinggi angkat dan jenis pompa (review putaran 3, 1b).
-  const fields: readonly RequirementFieldPath[] =
-    waterSource === 'pump' ? [...base, 'water.wellDepthM'] : base;
+  const fields: readonly RequirementFieldPath[] = [
+    ...renovationRefinementFields(workType),
+    ...base,
+    ...(waterSource === 'pump' ? (['water.wellDepthM'] as const) : []),
+  ];
   return fields
     .filter((path) => !isKnown(path))
     .map((path) => toQuestion(path, locale))
     .filter((q): q is ClarificationQuestion => q !== null);
+}
+
+/**
+ * Data pipa lama yang relevan per jenis pekerjaan (P23-03) — cermin `renovationParameters` kasus
+ * teknis: perluasan butuh ukuran, titik lama, bahan; ganti sebagian butuh panjang dan bahan;
+ * ganti semua hanya bahan (sambungan ke sumber). Bangun baru tidak ditanya apa pun.
+ */
+export function renovationRefinementFields(
+  workType: string | null | undefined,
+): readonly RequirementFieldPath[] {
+  switch (workType) {
+    case 'extend':
+      return ['water.existingMainSize', 'water.existingOutlets', 'water.existingPipeMaterial'];
+    case 'replace_partial':
+      return ['water.replacementLengthM', 'water.existingPipeMaterial'];
+    case 'replace_all':
+      return ['water.existingPipeMaterial'];
+    default:
+      return [];
+  }
 }
 
 /** Isian ukuran bangunan/tanah untuk kartu lain (pertanyaan kewajaran, review putaran 3). */

@@ -93,6 +93,26 @@ export class DevDeterministicAiService implements AiService {
 
     if (/pompa pendorong|booster/.test(text)) water['boosterPump'] = true;
     if (/ganti pipa|pipa lama|renovasi|replace/.test(text)) water['replaceExisting'] = true;
+    // Jenis pekerjaan renovasi (P23-03) — meniru keluaran model, divalidasi skema yang sama.
+    if (/perluas|tambah|nambah|extend|add(?:ing)? (?:a |an )?(?:bathroom|outlet|tap)/.test(text)) {
+      water['workType'] = 'extend';
+    } else if (/sebagian|bocor|rusak|segmen|partial|leak/.test(text))
+      water['workType'] = 'replace_partial';
+    else if (/ganti (?:semua|seluruh|total)|rehab|replace all|re-?pip/.test(text)) {
+      water['workType'] = 'replace_all';
+    } else if (/renovasi|renov|pipa lama|existing/.test(text)) water['workType'] = 'renovation';
+    const size =
+      /pipa (?:utama )?lama\D{0,12}?(\d+(?:\s\d\/\d|\/\d)?\s*(?:inch|inci|")|\d+\s*mm)/.exec(text);
+    if (size) water['existingMainSize'] = size[1]!;
+    const material = /pipa (?:utama )?lama\D{0,20}?(galvanis|besi|pvc|hdpe|ppr)/.exec(text);
+    if (material) {
+      water['existingPipeMaterial'] =
+        material[1] === 'galvanis' || material[1] === 'besi' ? 'galvanized' : material[1]!;
+    }
+    const existing = /sudah ada (\d+) titik/.exec(text);
+    if (existing) water['existingOutlets'] = Number(existing[1]);
+    const replaced = /(?:diganti|ganti)\D{0,12}?(\d+(?:[.,]\d+)?)\s*m(?:eter)?\b/.exec(text);
+    if (replaced) water['replacementLengthM'] = Number(replaced[1]!.replace(',', '.'));
 
     // Divalidasi skema yang sama seperti keluaran model — tidak ada jalur pintas.
     return Promise.resolve(

@@ -14,7 +14,17 @@
 
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
 import type { FieldUpdate } from '../domain/context-merger.js';
-import type { Dimensions } from '@snouty/shared-types';
+import { PipeSize, type Dimensions } from '@snouty/shared-types';
+
+/** `3/4 inch`, `1\"`, `110 mm` → label `PipeSize`; tidak terbaca → `undefined` (tidak disimpan). */
+function canonicalSize(raw: string | undefined): string | undefined {
+  if (raw === undefined) return undefined;
+  const text = raw
+    .replace(/\b(inch(?:es)?|inci)\b/i, '"')
+    .replace(/\s+"/, '"')
+    .trim();
+  return PipeSize.parse(text)?.label;
+}
 
 /** Penanda kata yang harus ada di pesan sebelum field ini dipercaya. */
 const GROUNDING: Readonly<Record<string, RegExp>> = {
@@ -27,6 +37,13 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
   'water.replaceExisting': /\b(ganti|diganti|mengganti|renov|lama|existing|replac|re-?pip)/i,
   // Kedalaman sumur hanya dipercaya bila sumurnya memang disebut.
   'water.wellDepthM': /\b(sumur|wells?|muka air|water level)/i,
+  // Renovasi (P23-03): jenis pekerjaan dan data pipa lama hanya bila pekerjaannya memang disebut.
+  'water.workType':
+    /\b(renov|rehab|ganti|diganti|mengganti|perluas|tambah|nambah|lama|existing|replac|extend|extension|expan|add(?:ing)?\b|bangun baru|new build)/i,
+  'water.existingMainSize': /\b(inch|inci|"|mm|dim|diameter|ukuran|size)/i,
+  'water.existingPipeMaterial': /\b(galvanis|galvani[sz]ed|besi|steel|iron|pvc|hdpe|ppr|gip)\b/i,
+  'water.existingOutlets': /\b(sudah ada|sudah terpasang|yang ada|lama|existing|sekarang)/i,
+  'water.replacementLengthM': /\b(ganti|diganti|mengganti|replac|segmen|segment|bocor|leak)/i,
   // Evaluasi 2026-10-06: dari "Instalasi air bersih untuk rumah baru 1 lantai" model menulis
   // `source: municipal`. Sumber air hanya dipercaya bila pengguna menyebut sumbernya.
   'water.source':
@@ -222,6 +239,7 @@ export const COUNT_NOUNS: Readonly<Record<string, string>> = {
   'fixtures.urinals': URINAL,
   'fixtures.kitchens': 'dapur|kitchens?|pantry',
   'fixtures.outletCount': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
+  'water.existingOutlets': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
 };
 
 const NEGATION =
@@ -403,6 +421,13 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   add('water.boosterPump', extraction.water?.boosterPump);
   add('water.wellDepthM', extraction.water?.wellDepthM);
   add('water.replaceExisting', extraction.water?.replaceExisting);
+  // Renovasi (P23-03): ukuran pipa lama dinormalkan ke label kanonik; label yang tidak terbaca
+  // dibuang, bukan disimpan sebagai teks bebas.
+  add('water.workType', extraction.water?.workType);
+  add('water.existingMainSize', canonicalSize(extraction.water?.existingMainSize));
+  add('water.existingPipeMaterial', extraction.water?.existingPipeMaterial);
+  add('water.existingOutlets', extraction.water?.existingOutlets);
+  add('water.replacementLengthM', extraction.water?.replacementLengthM);
 
   return updates;
 }

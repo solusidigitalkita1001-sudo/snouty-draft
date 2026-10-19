@@ -361,6 +361,15 @@ function installationLabel(state: RequirementState, locale: Locale): string {
     locale,
   );
   // Penggantian pipa lama ke Pralon (P22-03) disebut di kop, bukan disembunyikan di tabel.
+  const workType = state.water.workType?.value;
+  if (
+    workType !== undefined &&
+    workType !== null &&
+    workType !== 'new' &&
+    workType !== 'renovation'
+  ) {
+    return `${requirementValueLabel('water.workType', workType, locale)} · ${installation}`;
+  }
   return state.water.replaceExisting?.value === true
     ? `${requirementValueLabel('water.replaceExisting', true, locale)} · ${installation}`
     : installation;

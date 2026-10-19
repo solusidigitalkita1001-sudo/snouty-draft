@@ -54,6 +54,23 @@ const WORK: readonly SelectOption[] = [
   { value: 'true', label: 'Ganti pipa lama' },
 ];
 
+/** Jenis pekerjaan renovasi (P23-03). */
+const WORK_TYPE: readonly SelectOption[] = [
+  { value: 'new', label: 'Instalasi baru' },
+  { value: 'replace_all', label: 'Ganti semua pipa' },
+  { value: 'replace_partial', label: 'Ganti sebagian' },
+  { value: 'extend', label: 'Perluasan (tambah titik air)' },
+];
+const EXISTING_SIZE: readonly SelectOption[] = ['1/2"', '3/4"', '1"', '1 1/4"', '1 1/2"', '2"'].map(
+  (size) => ({ value: size, label: size }),
+);
+const EXISTING_MATERIAL: readonly SelectOption[] = [
+  { value: 'pvc', label: 'PVC' },
+  { value: 'galvanized', label: 'Galvanis / besi' },
+  { value: 'hdpe', label: 'HDPE' },
+  { value: 'ppr', label: 'PPR' },
+];
+
 const BUILDING: readonly SelectOption[] = [
   { value: 'residential', label: 'Rumah tinggal' },
   { value: 'boarding_house', label: 'Rumah kos' },
@@ -228,7 +245,7 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
       { kind: 'select', options: INSTALLATION },
     ),
     // State lama tidak punya field ini; barisnya tampil hanya bila ada.
-    ...(state.water.replaceExisting
+    ...(state.water.replaceExisting && !state.water.workType
       ? [
           row('water.replaceExisting', 'Pekerjaan', state.water.replaceExisting, labelOf(WORK), {
             kind: 'select',
@@ -237,7 +254,71 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
           }),
         ]
       : []),
+    ...renovationRows(state),
   ];
+}
+
+/** Renovasi (P23-03): jenis pekerjaan selalu bisa diubah; data pipa lama hanya bila relevan. */
+function renovationRows(state: RequirementState): RequirementRow[] {
+  const work = state.water.workType;
+  if (!work) return [];
+  const mode = work.value;
+  const rows: RequirementRow[] = [
+    row('water.workType', 'Jenis pekerjaan', work, labelOf(WORK_TYPE), {
+      kind: 'select',
+      options: WORK_TYPE,
+    }),
+  ];
+  if (mode === 'extend' && state.water.existingMainSize) {
+    rows.push(
+      row('water.existingMainSize', 'Ukuran pipa lama', state.water.existingMainSize, String, {
+        kind: 'select',
+        options: EXISTING_SIZE,
+      }),
+    );
+  }
+  if (mode === 'extend' && state.water.existingOutlets) {
+    rows.push(
+      row(
+        'water.existingOutlets',
+        'Titik air yang sudah ada',
+        state.water.existingOutlets,
+        String,
+        {
+          kind: 'number',
+          min: 0,
+          max: 1000,
+        },
+      ),
+    );
+  }
+  if (mode === 'replace_partial' && state.water.replacementLengthM) {
+    rows.push(
+      row(
+        'water.replacementLengthM',
+        'Panjang yang diganti (m)',
+        state.water.replacementLengthM,
+        String,
+        {
+          kind: 'number',
+          min: 1,
+          max: 10000,
+        },
+      ),
+    );
+  }
+  if (mode !== 'new' && mode !== 'renovation' && state.water.existingPipeMaterial) {
+    rows.push(
+      row(
+        'water.existingPipeMaterial',
+        'Bahan pipa lama',
+        state.water.existingPipeMaterial,
+        labelOf(EXISTING_MATERIAL),
+        { kind: 'select', options: EXISTING_MATERIAL },
+      ),
+    );
+  }
+  return rows;
 }
 
 function row(

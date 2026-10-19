@@ -55,6 +55,20 @@ export const ExtractionSchema = z
         wellDepthM: z.number().min(0).max(60).optional(),
         /** Pipa yang ada diganti (renovasi), hanya bila pengguna menyebutnya. */
         replaceExisting: z.boolean().optional(),
+        /**
+         * Jenis pekerjaan renovasi (P23-03): `renovation` bila disebut renovasi tanpa jenisnya.
+         * Tulis hanya bila pengguna menyebut pekerjaan di instalasi yang sudah ada.
+         */
+        workType: z
+          .enum(['new', 'replace_all', 'replace_partial', 'extend', 'renovation'])
+          .optional(),
+        /** Ukuran pipa utama lama persis seperti disebut (`3/4"`, `1 inch`, `110 mm`). */
+        existingMainSize: z.string().min(1).max(20).optional(),
+        existingPipeMaterial: z.enum(['pvc', 'galvanized', 'hdpe', 'ppr']).optional(),
+        /** Titik air yang sudah terpasang, hanya bila disebut sebagai yang lama. */
+        existingOutlets: z.number().int().min(0).max(1_000).optional(),
+        /** Panjang pipa yang diganti (m), hanya bila disebut. */
+        replacementLengthM: z.number().min(0).max(100_000).optional(),
       })
       .strict()
       .optional(),

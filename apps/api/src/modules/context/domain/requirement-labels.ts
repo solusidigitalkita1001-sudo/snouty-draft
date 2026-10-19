@@ -28,6 +28,11 @@ export const FIELD_LABEL: Readonly<Record<RequirementFieldPath, string>> = {
   'water.boosterPump': 'Pompa pendorong',
   'water.wellDepthM': 'Kedalaman muka air sumur',
   'water.replaceExisting': 'Pekerjaan',
+  'water.workType': 'Jenis pekerjaan',
+  'water.existingMainSize': 'Ukuran pipa lama',
+  'water.existingPipeMaterial': 'Bahan pipa lama',
+  'water.existingOutlets': 'Titik air yang sudah ada',
+  'water.replacementLengthM': 'Panjang yang diganti',
 };
 
 export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
@@ -47,6 +52,11 @@ export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
   'water.boosterPump': 'Booster pump',
   'water.wellDepthM': 'Well water level depth',
   'water.replaceExisting': 'Work',
+  'water.workType': 'Type of work',
+  'water.existingMainSize': 'Existing pipe size',
+  'water.existingPipeMaterial': 'Existing pipe material',
+  'water.existingOutlets': 'Existing water points',
+  'water.replacementLengthM': 'Length replaced',
 };
 
 /** Label field menurut bahasa percakapan. */
@@ -71,6 +81,16 @@ const VALUE_LABEL: Readonly<Record<string, string>> = {
   clean_water: 'Air bersih',
   drainage: 'Pembuangan',
   both: 'Air bersih + pembuangan',
+  // Jenis pekerjaan (P23-03) dan bahan pipa lama.
+  new: 'Instalasi baru',
+  replace_all: 'Ganti semua pipa',
+  replace_partial: 'Ganti sebagian',
+  extend: 'Perluasan',
+  renovation: 'Renovasi (jenisnya belum disebut)',
+  pvc: 'PVC',
+  galvanized: 'Galvanis / besi',
+  hdpe: 'HDPE',
+  ppr: 'PPR',
 };
 
 const VALUE_LABEL_EN: Readonly<Record<string, string>> = {
@@ -87,6 +107,15 @@ const VALUE_LABEL_EN: Readonly<Record<string, string>> = {
   clean_water: 'Clean water',
   drainage: 'Drainage',
   both: 'Clean water + drainage',
+  new: 'New installation',
+  replace_all: 'Replace all pipes',
+  replace_partial: 'Partial replacement',
+  extend: 'Extension',
+  renovation: 'Renovation (type not given yet)',
+  pvc: 'PVC',
+  galvanized: 'Galvanized / steel',
+  hdpe: 'HDPE',
+  ppr: 'PPR',
 };
 
 function plural(n: number, one: string, many: string): string {
@@ -114,7 +143,14 @@ export function requirementValueLabel(
   if (typeof value === 'number') {
     if (path === 'building.floors')
       return en ? plural(value, 'floor', 'floors') : `${value} lantai`;
-    if (path === 'building.floorHeightM' || path === 'water.wellDepthM') return `${value} m`;
+    if (
+      path === 'building.floorHeightM' ||
+      path === 'water.wellDepthM' ||
+      path === 'water.replacementLengthM'
+    )
+      return `${value} m`;
+    if (path === 'water.existingOutlets')
+      return en ? plural(value, 'point', 'points') : `${value} titik`;
     // Kamar mandi adalah ruang berisi dua titik air (review laporan 0015: "2 titik" untuk 2 kamar mandi
     // salah baca — sebenarnya 4 titik).
     if (path === 'fixtures.bathrooms') {

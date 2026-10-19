@@ -170,6 +170,19 @@ function requirementRows(state: RequirementState, locale: Locale): readonly Repo
   add('water.source', state.water.source);
   add('water.installationType', state.water.installationType);
   if (state.water.replaceExisting) add('water.replaceExisting', state.water.replaceExisting);
+  // Renovasi (P23-03): jenis pekerjaan dan data pipa lama ikut ke tabel masukan laporan.
+  if (state.water.workType?.value) add('water.workType', state.water.workType);
+  if (state.water.existingMainSize?.value)
+    add('water.existingMainSize', state.water.existingMainSize);
+  if (state.water.existingPipeMaterial?.value) {
+    add('water.existingPipeMaterial', state.water.existingPipeMaterial);
+  }
+  if (state.water.existingOutlets && state.water.existingOutlets.value !== null) {
+    add('water.existingOutlets', state.water.existingOutlets);
+  }
+  if (state.water.replacementLengthM && state.water.replacementLengthM.value !== null) {
+    add('water.replacementLengthM', state.water.replacementLengthM);
+  }
   add('fixtures.bathrooms', state.fixtures.bathrooms);
   add('fixtures.basins', state.fixtures.basins);
   add('fixtures.kitchens', state.fixtures.kitchens);
