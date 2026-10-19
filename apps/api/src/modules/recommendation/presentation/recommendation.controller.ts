@@ -116,6 +116,11 @@ export class RecommendationController {
           : error instanceof CatalogUnavailableError
             ? 'CATALOG_UNAVAILABLE'
             : 'SERVICE_UNAVAILABLE';
+        // Galat yang tidak dikenali dulu ditelan tanpa jejak: lima kasus teknis gagal di simulasi
+        // 2026-10-19 dan log hanya berisi "analisis total 0 ms".
+        if (code === 'SERVICE_UNAVAILABLE' && !inconsistent) {
+          this.log?.logger.error({ conversationId: id, err: error }, 'analisis gagal');
+        }
         events = [{ type: 'error', code, retryable: !invalid && !inconsistent }];
         if (writer.started()) {
           writer.emit(events[0]!);
