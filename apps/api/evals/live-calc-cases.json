@@ -253,6 +253,10 @@
         {
           "path": "bom[*].size",
           "none": "1¼"
+        },
+        {
+          "path": "bom[*].size",
+          "matches": "^3/4\" × 1/2\"$"
         }
       ]
     },

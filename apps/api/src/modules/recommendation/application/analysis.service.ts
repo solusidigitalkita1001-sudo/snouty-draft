@@ -719,7 +719,8 @@ export class AnalysisService {
     // (atau tambahan) dihitung 1 WSFU (setara wastafel) karena jenisnya tidak ditanya.
     const renovated = await this.renovate(renovationState, recommendation, allTraces, locale, {
       newMainSize: solution.mainSize,
-      branchSize: solution.branchSize,
+      // Titik tambahan disambung lewat cabang seukuran sambungan alat (1/2"), bukan cabang terbesar rumah.
+      branchSize: extension ? solution.fixtureConnectionSize : solution.branchSize,
       routeLengthM: solution.mainRunNetM,
       family: PIPE_FAMILY,
       newLoad: extension ? added : solution.outletCount,
