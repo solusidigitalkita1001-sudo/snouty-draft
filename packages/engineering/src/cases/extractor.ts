@@ -542,18 +542,30 @@ export function extractTechnicalContext(
   return out;
 }
 
-const EXTEND =
-  /perluas|perluasan|\btambah(?:an)?\b|\bnambah\b|menambah|ditambah|\bextend(?:ing|ed)?\b|\bextension\b|\bexpan(?:d|sion)\b|\badd(?:ing)?\s+(?:a |an |\d+ |new )?(?:bathroom|outlet|tap|connection|point|branch|floor|kitchen|toilet)/;
+const EXTEND = /perluas|perluasan|\bextend(?:ing|ed)?\b|\bextension\b|\bexpan(?:d|sion)\b/;
+/** "Tambah …" hanya berarti perluasan bila ada instalasi yang sudah ada di kalimatnya — "tambah satu kamar mandi" saja adalah perubahan kebutuhan. */
+const EXTEND_VERB = /\btambah(?:an)?\b|\bnambah\b|menambah|ditambah|\badd(?:ing)?\b/;
+const EXISTING_CONTEXT =
+  /\brenov|\brehab|existing|\blama\b|sudah ada|sudah terpasang|yang ada|sudah melayani|already serv|\bold\b/;
 const PARTIAL =
   /ganti sebagian|sebagian(?: pipa)?(?: yang)? diganti|\bsegmen\b|\bsegment\b|partial(?:ly)?\b|replace (?:a |the )?(?:section|segment|part|stretch)|(?:pipa|pipe)\D{0,20}?(?:bocor|rusak|pecah|leak(?:s|ing)?|burst|broken|cracked)|(?:bocor|rusak|pecah|leak(?:s|ing)?|burst|broken)\D{0,20}?(?:pipa|pipe)/;
 const REPLACE_ALL =
   /ganti (?:semua|seluruh|total|semuanya)|(?:semua|seluruh|semuanya|total)\D{0,12}?(?:pipa|pipe)\D{0,12}?(?:diganti|ganti)|rehab(?:ilitasi)?\b|replace (?:all|every|the whole|the entire)|re-?pip(?:e|ing)\b|renovasi total|bongkar (?:semua|total)|ganti (?:instalasi|pipa)nya semua|ganti pipa lama|ganti pipanya/;
 
-function workTypeOf(whole: string): { readonly value: string; readonly evidence: string } | null {
+/**
+ * Jenis pekerjaan yang TERSURAT di kalimat (nilai protokol `work_type`), atau `null`. Diekspor
+ * supaya alur rumah membaca kosakata yang sama (P23-05) — satu parser, bukan dua daftar.
+ */
+export function workTypeOf(
+  message: string,
+): { readonly value: string; readonly evidence: string } | null {
+  const whole = ` ${message.toLowerCase()} `;
   const partial = PARTIAL.exec(whole);
   if (partial) return { value: 'Ganti sebagian', evidence: partial[0] };
   const extend = EXTEND.exec(whole);
   if (extend) return { value: 'Perluasan', evidence: extend[0] };
+  const verb = EXTEND_VERB.exec(whole);
+  if (verb && EXISTING_CONTEXT.test(whole)) return { value: 'Perluasan', evidence: verb[0] };
   const all = REPLACE_ALL.exec(whole);
   if (all) return { value: 'Ganti semua pipa', evidence: all[0] };
   return null;

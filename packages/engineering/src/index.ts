@@ -131,7 +131,7 @@ export {
   isCaseId,
 } from './cases/profiles.js';
 export type { CaseId, CaseProfile } from './cases/profiles.js';
-export { extractTechnicalContext, renovationCue } from './cases/extractor.js';
+export { extractTechnicalContext, renovationCue, workTypeOf } from './cases/extractor.js';
 export type { ExtractedParameter } from './cases/extractor.js';
 export {
   MAX_QUESTIONS,

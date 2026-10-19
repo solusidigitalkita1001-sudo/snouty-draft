@@ -151,3 +151,47 @@ describe('renovasi rumah (P23-03): jenis pekerjaan dan data pipa lama', () => {
     ]);
   });
 });
+
+describe('renovasi tersurat dibaca kode bila model melewatkannya (P23-05)', () => {
+  it('model kosong: jenis pekerjaan, pipa lama, titik lama, panjang yang diganti tetap tercatat', () => {
+    const byPath = (message: string) =>
+      Object.fromEntries(extractionToUpdates({}, message).map((u) => [u.path, u.value]));
+    expect(
+      byPath('mau renovasi instalasi air rumah 1 lantai 1 kamar mandi, toren atap'),
+    ).toMatchObject({ 'water.workType': 'renovation' });
+    expect(
+      byPath('renovasi rumah 1 lantai, mau tambah 1 kamar mandi, toren di atap, bangunan 6x8 m'),
+    ).toMatchObject({ 'water.workType': 'extend' });
+    expect(byPath('pipa utama lama 3/4 inch galvanis, sudah ada 4 titik air')).toMatchObject({
+      'water.existingMainSize': '3/4"',
+      'water.existingPipeMaterial': 'galvanized',
+      'water.existingOutlets': 4,
+    });
+    expect(byPath('pipa rumah bocor, mau ganti sebagian sekitar 12 meter')).toMatchObject({
+      'water.workType': 'replace_partial',
+      'water.replacementLengthM': 12,
+    });
+    expect(byPath('rumah subsidi, ganti semua pipanya ke pralon')).toMatchObject({
+      'water.workType': 'replace_all',
+    });
+  });
+
+  it('"tambah satu kamar mandi" saja adalah perubahan kebutuhan, bukan perluasan; titik air lama bukan titik air baru', () => {
+    expect(
+      extractionToUpdates({}, 'tambah satu kamar mandi').some((u) => u.path === 'water.workType'),
+    ).toBe(false);
+    expect(
+      extractionToUpdates({}, 'rumah 2 lantai 3 kamar mandi').some(
+        (u) => u.path === 'water.workType',
+      ),
+    ).toBe(false);
+    const updates = extractionToUpdates(
+      { fixtures: { outletCount: 4 }, water: { existingOutlets: 4 } },
+      'tambah titik air di dapur, sudah ada 4 titik air',
+    );
+    expect(updates.some((u) => u.path === 'fixtures.outletCount')).toBe(false);
+    expect(updates).toContainEqual(
+      expect.objectContaining({ path: 'water.existingOutlets', value: 4 }),
+    );
+  });
+});

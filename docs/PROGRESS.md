@@ -1845,6 +1845,14 @@ sok drat dari katalog. Dicatat sebagai OQ-71.
       kop laporan dan tabel masukan laporan. `replaceExisting` lama tetap dibaca sebagai ganti semua.
 - [x] P23-04 Data pemahaman: contoh kalimat renovasi di `use-case.json` untuk 12 kasus dan di `intent.json`
       (requirement_building / requirement_technical); eval bge-m3 dijalankan ulang.
+- [x] P23-05 Smoke produksi pertama: kasus teknis (SPAM perluasan/ganti sebagian, air limbah perluasan, transfer
+      pompa ganti semua) sudah benar; alur rumah tidak merekam jenis pekerjaan karena model ekstraksi produksi
+      melewatkan field barunya, dan "sudah ada 4 titik air" terbaca sebagai 4 titik air baru. Perbaikan: kosakata
+      renovasi yang tersurat dibaca kode bila model melewatkannya (pola OBVIOUS yang sudah ada — satu parser dengan
+      kasus teknis: `workTypeOf`/`extractTechnicalContext` diekspor dari engine), titik air lama tidak pernah menjadi
+      `outletCount`, dan "tambah …" hanya berarti perluasan bila kalimatnya menyebut instalasi yang ada ("tambah satu
+      kamar mandi" tetap perubahan kebutuhan). Catatan: "ganti semua pipa transfer lama dari sumur ke tandon, 300 m"
+      membaca 300 m sebagai kedalaman sumur (perilaku ekstraktor sumur yang sudah ada, bukan renovasi).
 - [ ] ✋ CHECKPOINT Fase 23 — uji langsung di produksi tiga mode untuk rumah dan SPAM; pemilik menilai.
 
 ## Design Coverage

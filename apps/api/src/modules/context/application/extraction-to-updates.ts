@@ -14,7 +14,48 @@
 
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
 import type { FieldUpdate } from '../domain/context-merger.js';
-import { PipeSize, type Dimensions } from '@snouty/shared-types';
+import { PipeSize, type Dimensions, type WorkType } from '@snouty/shared-types';
+import { extractTechnicalContext, WORK_TYPE_MODE, workTypeOf } from '@snouty/engineering';
+
+/** Kosakata renovasi yang tersurat (satu parser dengan kasus teknis) → field rumah. */
+const EXISTING_MATERIAL_FIELD: Readonly<Record<string, string>> = {
+  PVC: 'pvc',
+  'Galvanis / besi': 'galvanized',
+  HDPE: 'hdpe',
+  PPR: 'ppr',
+};
+/** "Renovasi" / "pipa lama" tanpa jenis pekerjaan yang tersurat — ditanya, bukan ditebak. */
+const RENOVATION_WORD =
+  /\brenov|\brehab|pipa lama|pipa (?:yang )?(?:sudah )?(?:ada|terpasang)|instalasi lama|instalasi (?:yang )?(?:sudah )?ada|existing (?:pipe|plumbing|installation)|\bold pipes?\b|re-?pip(?:e|ing)/i;
+
+function obviousRenovation(message: string): {
+  readonly workType?: WorkType;
+  readonly existingMainSize?: string;
+  readonly existingPipeMaterial?: string;
+  readonly existingOutlets?: number;
+  readonly replacementLengthM?: number;
+} {
+  const facts = Object.fromEntries(extractTechnicalContext(message).map((f) => [f.key, f.value]));
+  const stated = workTypeOf(message);
+  const workType: WorkType | undefined = stated
+    ? WORK_TYPE_MODE[stated.value]
+    : RENOVATION_WORD.test(message)
+      ? 'renovation'
+      : undefined;
+  const size = facts['existing_pipe_size'];
+  const material = facts['existing_pipe_material'];
+  const outlets = facts['existing_outlets'];
+  const length = facts['replacement_length'];
+  return {
+    ...(workType ? { workType } : {}),
+    ...(typeof size === 'string' ? { existingMainSize: size } : {}),
+    ...(typeof material === 'string' && EXISTING_MATERIAL_FIELD[material]
+      ? { existingPipeMaterial: EXISTING_MATERIAL_FIELD[material]! }
+      : {}),
+    ...(typeof outlets === 'number' ? { existingOutlets: outlets } : {}),
+    ...(typeof length === 'number' ? { replacementLengthM: length } : {}),
+  };
+}
 
 /** `3/4 inch`, `1\"`, `110 mm` → label `PipeSize`; tidak terbaca → `undefined` (tidak disimpan). */
 function canonicalSize(raw: string | undefined): string | undefined {
@@ -400,7 +441,16 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
       OBVIOUS.kitchens(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.kitchens']!),
     ),
   );
-  add('fixtures.outletCount', extraction.fixtures?.outletCount);
+  // "sudah ada 4 titik air" adalah titik air LAMA (P23-05): angka yang sama tidak boleh menjadi
+  // jumlah titik air baru.
+  const renovation = obviousRenovation(message);
+  add(
+    'fixtures.outletCount',
+    renovation.existingOutlets !== undefined &&
+      extraction.fixtures?.outletCount === renovation.existingOutlets
+      ? undefined
+      : extraction.fixtures?.outletCount,
+  );
 
   // Toren disebut tanpa letaknya ("mau pasang 2 toren", produksi 2026-10-07): model menebak
   // `ground_tank` dan lolos. Letak toren adalah pertanyaan yang pantas ditanyakan, bukan ditebak —
@@ -423,11 +473,27 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   add('water.replaceExisting', extraction.water?.replaceExisting);
   // Renovasi (P23-03): ukuran pipa lama dinormalkan ke label kanonik; label yang tidak terbaca
   // dibuang, bukan disimpan sebagai teks bebas.
-  add('water.workType', extraction.water?.workType);
-  add('water.existingMainSize', canonicalSize(extraction.water?.existingMainSize));
-  add('water.existingPipeMaterial', extraction.water?.existingPipeMaterial);
-  add('water.existingOutlets', extraction.water?.existingOutlets);
-  add('water.replacementLengthM', extraction.water?.replacementLengthM);
+  // Model yang melewatkannya tidak membuat renovasi hilang: kosakata yang tersurat dibaca kode
+  // (pola OBVIOUS); jenis yang tersurat di kalimat menang atas tebakan model yang lebih samar.
+  add(
+    'water.workType',
+    renovation.workType !== undefined && renovation.workType !== 'renovation'
+      ? renovation.workType
+      : (extraction.water?.workType ?? renovation.workType),
+  );
+  add(
+    'water.existingMainSize',
+    canonicalSize(extraction.water?.existingMainSize) ?? renovation.existingMainSize,
+  );
+  add(
+    'water.existingPipeMaterial',
+    extraction.water?.existingPipeMaterial ?? renovation.existingPipeMaterial,
+  );
+  add('water.existingOutlets', extraction.water?.existingOutlets ?? renovation.existingOutlets);
+  add(
+    'water.replacementLengthM',
+    extraction.water?.replacementLengthM ?? renovation.replacementLengthM,
+  );
 
   return updates;
 }
