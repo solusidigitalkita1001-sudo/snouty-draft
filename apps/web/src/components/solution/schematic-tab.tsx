@@ -21,17 +21,25 @@ function useSolutionCopy() {
 export function SchematicTab({
   recommendationId,
   available = true,
+  preloaded,
 }: {
   readonly recommendationId: string;
   /** `false` = jenis solusi ini tidak punya skema (teknis/irigasi): tanpa permintaan ke API. */
   readonly available?: boolean;
+  /** Tautan bagikan (P24-03): skema sudah ada di payload — tanpa permintaan, tanpa tautan halaman penuh. */
+  readonly preloaded?: AnySchematic | null;
 }) {
   const COPY = useSolutionCopy();
-  const [schematic, setSchematic] = useState<AnySchematic | null>(null);
-  const [failed, setFailed] = useState(!available);
+  const [schematic, setSchematic] = useState<AnySchematic | null>(preloaded ?? null);
+  const [failed, setFailed] = useState(!available || preloaded === null);
 
   useEffect(() => {
     let cancelled = false;
+    if (preloaded !== undefined) {
+      setSchematic(preloaded);
+      setFailed(preloaded === null);
+      return undefined;
+    }
     setSchematic(null);
     setFailed(!available);
     if (!available) return undefined;
@@ -57,14 +65,14 @@ export function SchematicTab({
     return () => {
       cancelled = true;
     };
-  }, [recommendationId, available]);
+  }, [recommendationId, available, preloaded]);
 
   return (
     <section className={styles.card}>
       <div className={styles.cardHead}>
         <div className={styles.kicker}>{COPY.schematicKicker}</div>
         {/* Tautan hanya bila memang ada skema di baliknya. */}
-        {schematic !== null && (
+        {schematic !== null && preloaded === undefined && (
           <a className={styles.linkButton} href={`/schematic?recommendation=${recommendationId}`}>
             {COPY.schematicOpen}
           </a>

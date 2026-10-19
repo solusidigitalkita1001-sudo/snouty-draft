@@ -19,6 +19,8 @@ import type {
   AssistantStreamEvent,
   ClarificationQuestion,
   ProductCardDto,
+  ProjectDetail,
+  ProjectSummary,
   Recommendation,
   RequirementState,
   StageStatus,
@@ -66,6 +68,19 @@ import { MISSING, requirementRows, sizePatch } from './requirement-rows';
 import styles from './chat-workspace.module.css';
 import { hasOptionIllustrations, optionIllustration } from './option-illustrations';
 import { SceneImage } from '../illustration/illustration';
+import {
+  fetchPinned,
+  fetchProject,
+  fetchProjects,
+  moveToProject,
+  setPinned,
+} from '../library/library-api';
+import { libraryCopy } from '../library/library-copy';
+import { ProjectsSection } from '../library/projects-section';
+import { ProjectView } from '../library/project-view';
+import { RowMenu } from '../library/row-menu';
+import { ShareDialog } from '../library/share-dialog';
+import lib from '../library/library.module.css';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
 function useChatCopy() {
@@ -201,6 +216,20 @@ export function ChatWorkspace() {
     | { kind: 'guest' }
     | { kind: 'list'; items: readonly ConversationSummary[] }
   >({ kind: 'loading' });
+  // Fitur akun (P24, pemilik 2026-10-19): proyek, sematan, tautan bagikan — hanya untuk akun.
+  const [projects, setProjects] = useState<readonly ProjectSummary[]>([]);
+  const [pinned, setPinnedList] = useState<readonly ConversationSummary[]>([]);
+  /** Halaman proyek di area utama; `'new'` = formulir proyek baru. */
+  const [projectView, setProjectView] = useState<ProjectDetail | 'new' | null>(null);
+  /** Proyek untuk konsultasi berikutnya ("Konsultasi baru di proyek ini"). */
+  const [pendingProject, setPendingProject] = useState<ProjectDetail | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const loadLibrary = useCallback(() => {
+    void Promise.all([fetchProjects(), fetchPinned()]).then(([projectList, pinnedList]) => {
+      setProjects(projectList);
+      setPinnedList(pinnedList);
+    });
+  }, []);
   const streamRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -224,11 +253,12 @@ export function ChatWorkspace() {
         setHistory(
           result?.kind === 'ok' ? { kind: 'list', items: result.items } : { kind: 'guest' },
         );
+        if (result?.kind === 'ok') loadLibrary();
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadLibrary]);
 
   // Menjadi sempit menutup panel (prototipe); overlay tidak boleh tiba-tiba menutupi isi.
   useEffect(() => {
@@ -278,9 +308,12 @@ export function ChatWorkspace() {
   const refreshHistory = useCallback(() => {
     if (history.kind === 'guest') return;
     void fetchHistory().then((result) => {
-      if (result.kind === 'ok') setHistory({ kind: 'list', items: result.items });
+      if (result.kind === 'ok') {
+        setHistory({ kind: 'list', items: result.items });
+        loadLibrary();
+      }
     });
-  }, [history.kind]);
+  }, [history.kind, loadLibrary]);
 
   /**
    * Tempel ke bawah (pola ChatGPT/Claude): selama pengguna berada dekat dasar, aliran mengikuti
@@ -373,7 +406,7 @@ export function ChatWorkspace() {
       let id = conversationId;
       if (id === null) {
         try {
-          id = (await createConversation(locale)).id;
+          id = (await createConversation(locale, pendingProject?.id ?? null)).id;
           setConversationId(id);
         } catch {
           setError(COPY.llmUnavailable);
@@ -473,7 +506,7 @@ export function ChatWorkspace() {
         refreshHistory();
       }
     },
-    [conversationId, refreshHistory, sending, locale, COPY],
+    [conversationId, refreshHistory, sending, locale, COPY, pendingProject],
   );
 
   const submit = useCallback(() => submitText(draft), [draft, submitText]);
@@ -491,7 +524,7 @@ export function ChatWorkspace() {
       let id = conversationId;
       if (id === null) {
         try {
-          id = (await createConversation(locale)).id;
+          id = (await createConversation(locale, pendingProject?.id ?? null)).id;
           setConversationId(id);
         } catch {
           setError(COPY.llmUnavailable);
@@ -522,7 +555,7 @@ export function ChatWorkspace() {
       ]);
       refreshHistory();
     },
-    [conversationId, refreshHistory, sending, uploading, locale, COPY],
+    [conversationId, refreshHistory, sending, uploading, locale, COPY, pendingProject],
   );
 
   /**
@@ -585,6 +618,9 @@ export function ChatWorkspace() {
     setPanelOpen(false);
     setEditing(false);
     setEdits({});
+    setProjectView(null);
+    setPendingProject(null);
+    setShareOpen(false);
     // Tidak membuat percakapan di sini — baru saat pesan pertama dikirim.
     setConversationId(null);
     refreshHistory();
@@ -613,6 +649,8 @@ export function ChatWorkspace() {
               })),
           );
           setState(requirement);
+          setProjectView(null);
+          setPendingProject(null);
           setConversationId(item.id);
           setActiveTitle(item.title ?? COPY.titleFor(null, null));
           setReopened(true);
@@ -682,6 +720,53 @@ export function ChatWorkspace() {
     setRemoved(null);
     void restoreConversation(removed).then(() => refreshHistory());
   }, [refreshHistory, removed]);
+
+  /** Sematkan / lepas sematan (P24-01). Riwayat dan bagian DISEMATKAN dimuat ulang. */
+  const togglePin = useCallback(
+    (id: string, value: boolean) => {
+      void setPinned(id, value).then((ok) => {
+        if (!ok) {
+          setError(COPY.saveFailed);
+          return;
+        }
+        loadLibrary();
+        refreshHistory();
+      });
+    },
+    [COPY, loadLibrary, refreshHistory],
+  );
+
+  /** Pindahkan konsultasi ke proyek atau keluarkan (P24-02). */
+  const moveConversation = useCallback(
+    (id: string, projectId: string | null) => {
+      void moveToProject(id, projectId).then((ok) => {
+        if (!ok) {
+          setError(COPY.saveFailed);
+          return;
+        }
+        loadLibrary();
+        refreshHistory();
+        if (projectView !== null && projectView !== 'new') {
+          void fetchProject(projectView.id).then((detail) => {
+            if (detail) setProjectView(detail);
+          });
+        }
+      });
+    },
+    [COPY, loadLibrary, projectView, refreshHistory],
+  );
+
+  /** Buka halaman proyek di area utama (percakapan yang terbuka ditutup, seperti Konsultasi Baru). */
+  const openProject = useCallback(
+    (id: string) => {
+      void fetchProject(id).then((detail) => {
+        if (detail === null) return;
+        reset();
+        setProjectView(detail);
+      });
+    },
+    [reset],
+  );
 
   /**
    * Menyerahkan kasus ke tim teknis. Kebutuhan yang sudah terkumpul disalin di sisi
@@ -857,31 +942,56 @@ export function ChatWorkspace() {
       ? COPY.activeStatus.reopened
       : COPY.activeStatus.inProgress;
   // Tanpa judul = tanpa pesan (judul diset saat pesan pertama): tidak ada yang bisa dibuka.
+  // Yang disematkan tampil di bagiannya sendiri, tidak diulang di RIWAYAT (P24-01).
+  const pinnedIds = new Set(pinned.map((item) => item.id));
   const otherHistory =
     history.kind === 'list'
-      ? history.items.filter((item) => item.id !== conversationId && item.title !== null)
+      ? history.items.filter(
+          (item) => item.id !== conversationId && item.title !== null && !pinnedIds.has(item.id),
+        )
       : [];
+  const pinnedVisible = pinned.filter((item) => item.title !== null && item.id !== conversationId);
+  const activeSummary =
+    history.kind === 'list' && conversationId !== null
+      ? (history.items.find((item) => item.id === conversationId) ??
+        pinned.find((item) => item.id === conversationId) ??
+        null)
+      : null;
+  const LIB = libraryCopy(locale);
 
+  const historyRow = (item: ConversationSummary, itemClass: string) => (
+    <div key={item.id} className={[styles.historyRow, lib.menuHost].join(' ')}>
+      <button
+        type="button"
+        className={itemClass}
+        onClick={() => {
+          setMenuOpen(false);
+          openHistory(item);
+        }}
+      >
+        <span className={styles.historyTitleText}>
+          {pinnedIds.has(item.id) && (
+            <span className={lib.pinMark} aria-hidden="true">
+              ●
+            </span>
+          )}
+          {item.title ?? COPY.titleFor(null, null)}
+        </span>
+        <span className={styles.historyMeta}>{historyDate(item.updatedAt)}</span>
+      </button>
+      <RowMenu
+        title={item.title ?? COPY.titleFor(null, null)}
+        pinned={pinnedIds.has(item.id)}
+        projectId={item.projectId ?? null}
+        projects={projects}
+        onPin={(value) => togglePin(item.id, value)}
+        onMove={(projectId) => moveConversation(item.id, projectId)}
+        onDelete={() => removeConversation(item)}
+      />
+    </div>
+  );
   const historyList = (itemClass: string) =>
-    otherHistory.map((item) => (
-      <div key={item.id} className={styles.historyRow}>
-        <button
-          type="button"
-          className={itemClass}
-          onClick={() => {
-            setMenuOpen(false);
-            openHistory(item);
-          }}
-        >
-          <span className={styles.historyTitleText}>{item.title ?? COPY.titleFor(null, null)}</span>
-          <span className={styles.historyMeta}>{historyDate(item.updatedAt)}</span>
-        </button>
-        <DeleteButton
-          label={COPY.deleteConversation(item.title ?? COPY.titleFor(null, null))}
-          onClick={() => removeConversation(item)}
-        />
-      </div>
-    ));
+    otherHistory.map((item) => historyRow(item, itemClass));
 
   const footerAvatar = (
     <span className={styles.footerAvatar} aria-hidden="true">
@@ -947,11 +1057,43 @@ export function ChatWorkspace() {
           </button>
 
           <div className={styles.sidebarGroup}>
-            <div className={styles.sidebarSection}>{COPY.historyTitle}</div>
+            {/* Akun (P24): PROYEK, lalu DISEMATKAN, lalu RIWAYAT — seperti Claude. Tamu: RIWAYAT saja. */}
+            {history.kind === 'list' && (
+              <>
+                <ProjectsSection
+                  projects={projects}
+                  activeId={
+                    projectView !== null && projectView !== 'new'
+                      ? projectView.id
+                      : (pendingProject?.id ?? null)
+                  }
+                  sectionClass={styles.sidebarSection ?? ''}
+                  onOpen={(id) => {
+                    setMenuOpen(false);
+                    openProject(id);
+                  }}
+                  onNew={() => {
+                    reset();
+                    setProjectView('new');
+                  }}
+                />
+                {pinnedVisible.length > 0 && (
+                  <>
+                    <div className={lib.sectionHead}>
+                      <div className={styles.sidebarSection}>{LIB.pinnedTitle}</div>
+                    </div>
+                    {pinnedVisible.map((item) => historyRow(item, styles.historyItem!))}
+                  </>
+                )}
+              </>
+            )}
+            <div className={history.kind === 'list' ? lib.sectionHead : undefined}>
+              <div className={styles.sidebarSection}>{COPY.historyTitle}</div>
+            </div>
 
             {/* Percakapan aktif: blok merah lembut + garis kiri merek, status mono merah. */}
             {inConversation && (
-              <div className={styles.historyRow}>
+              <div className={[styles.historyRow, lib.menuHost].join(' ')}>
                 <div className={styles.historyActive} aria-current="true">
                   <span className={styles.historyActiveTitle}>
                     {activeTitle ?? COPY.titleFor(null, null)}
@@ -960,9 +1102,14 @@ export function ChatWorkspace() {
                 </div>
                 {/* Hanya akun yang punya riwayat; percakapan tamu tidak tercantum di mana pun. */}
                 {history.kind === 'list' && conversationId !== null && (
-                  <DeleteButton
-                    label={COPY.deleteConversation(activeTitle ?? COPY.titleFor(null, null))}
-                    onClick={() => removeConversation({ id: conversationId, title: activeTitle })}
+                  <RowMenu
+                    title={activeTitle ?? COPY.titleFor(null, null)}
+                    pinned={pinnedIds.has(conversationId)}
+                    projectId={activeSummary?.projectId ?? pendingProject?.id ?? null}
+                    projects={projects}
+                    onPin={(value) => togglePin(conversationId, value)}
+                    onMove={(projectId) => moveConversation(conversationId, projectId)}
+                    onDelete={() => removeConversation({ id: conversationId, title: activeTitle })}
                   />
                 )}
               </div>
@@ -1092,7 +1239,11 @@ export function ChatWorkspace() {
               </>
             )}
             <span className={styles.headerTitle}>
-              {inConversation ? (activeTitle ?? COPY.headerTitle) : COPY.headerWelcomeTitle}
+              {inConversation
+                ? (activeTitle ?? COPY.headerTitle)
+                : projectView !== null && projectView !== 'new'
+                  ? projectView.name
+                  : COPY.headerWelcomeTitle}
             </span>
             {/* Badge mono berbingkai "SOLUSI SIAP" setelah solusi tersusun. Badge "LANGKAH n DARI 4"
                 dari prototipe dihapus (pemilik, 2026-10-07): hitungan langkah tidak berarti bagi
@@ -1158,7 +1309,37 @@ export function ChatWorkspace() {
           dengan gelembung komik, headline besar, lalu composer BERBENTUK KARTU di tengah —
           bukan bar di bawah. Begitu ada giliran pertama, ia berganti menjadi aliran chat.
         */}
-        {turns.length === 0 ? (
+        {turns.length === 0 && projectView !== null ? (
+          <ProjectView
+            project={projectView}
+            formatDate={historyDate}
+            onCreated={(created) => {
+              loadLibrary();
+              void fetchProject(created.id).then((detail) => {
+                if (detail) setProjectView(detail);
+              });
+            }}
+            onUpdated={(updated) => {
+              loadLibrary();
+              setProjectView((current) =>
+                current !== null && current !== 'new'
+                  ? { ...current, name: updated.name, notes: updated.notes }
+                  : current,
+              );
+            }}
+            onDeleted={() => {
+              loadLibrary();
+              refreshHistory();
+              setProjectView(null);
+            }}
+            onCancel={() => setProjectView(null)}
+            onNewConversation={(project) => {
+              setProjectView(null);
+              setPendingProject(project);
+            }}
+            onOpenConversation={(conversation) => openHistory(conversation)}
+          />
+        ) : turns.length === 0 ? (
           <div className={styles.welcome}>
             <div className={styles.welcomeInner}>
               <div className={styles.welcomeMascotRow}>
@@ -1173,6 +1354,9 @@ export function ChatWorkspace() {
                 <p className={styles.welcomeBody}>{COPY.welcome.body}</p>
               </div>
 
+              {pendingProject !== null && (
+                <span className={lib.chip}>{LIB.inProject(pendingProject.name)}</span>
+              )}
               <div className={styles.composerCard}>
                 <ComposerField
                   className={styles.composerCardInput ?? ''}
@@ -1344,6 +1528,13 @@ export function ChatWorkspace() {
                   <button
                     type="button"
                     className={styles.tabAction}
+                    onClick={() => (user ? setShareOpen(true) : setGate(true))}
+                  >
+                    {LIB.share}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.tabAction}
                     onClick={save}
                     disabled={saveState === 'saved'}
                   >
@@ -1391,6 +1582,13 @@ export function ChatWorkspace() {
                   disabled={saveState === 'saved'}
                 >
                   {saveState === 'saved' ? COPY.saved : COPY.saveShort}
+                </button>
+                <button
+                  type="button"
+                  className={styles.tabAction}
+                  onClick={() => (user ? setShareOpen(true) : setGate(true))}
+                >
+                  {LIB.share}
                 </button>
                 <button
                   type="button"
@@ -1442,6 +1640,13 @@ export function ChatWorkspace() {
         )}
         {/* Laporan dibuka dari layar SOLUSI (tombol "Buat laporan" di header) — dulu modal ini ada di
           cabang layar chat sehingga tidak pernah tampil (laporan pemilik 2026-10-09). */}
+        {shareOpen && solution !== null && (
+          <ShareDialog
+            recommendationId={solution.id}
+            onClose={() => setShareOpen(false)}
+            formatDate={historyDate}
+          />
+        )}
         {reportOpen && solution !== null && (
           <ReportModal
             recommendationId={solution.id}
@@ -1658,30 +1863,6 @@ export function ChatWorkspace() {
 function completenessNote(filled: number, copy: ReturnType<typeof chatCopy>): string {
   const missing = 4 - filled;
   return missing <= 0 ? copy.meterNote.complete : copy.meterNote.remaining(missing);
-}
-
-/** Tombol hapus di baris riwayat — muncul saat diarahkan; di layar sentuh selalu terlihat. */
-function DeleteButton({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      className={styles.historyDelete}
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-    >
-      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
-  );
 }
 
 /**

@@ -1,5 +1,7 @@
 'use client';
 
+import type { AnySchematic } from '@snouty/shared-types';
+
 /**
  * Layar 06 — workspace solusi, dan kartu produk layar 07.
  * Dari prototipe baru. docs/DESIGN_IMPLEMENTATION.md.
@@ -49,8 +51,14 @@ export function SolutionView({
   onChangeAssumption,
   onRecompute,
   tab,
+  shared,
 }: {
   recommendation: Recommendation;
+  /**
+   * Tautan bagikan baca-saja (P24-03): skema datang bersama payload, dan semua yang butuh akun
+   * pemilik (skenario, halaman skema penuh, perbaiki asumsi, hitung ulang) tidak ditampilkan.
+   */
+  shared?: { readonly schematic: AnySchematic | null };
   onFixAssumption?: (fieldPath: string) => void;
   /**
    * Ganti nilai asumsi angka lalu hitung ulang. `null` = berhasil; string = pesan untuk baris itu.
@@ -75,7 +83,7 @@ export function SolutionView({
 
   return (
     <div className={styles.workspace}>
-      {on('skema') && tab !== undefined && needs.length > 0 && (
+      {on('skema') && tab !== undefined && needs.length > 0 && !shared && (
         <ScenarioCard recommendationId={recommendation.id} />
       )}
 
@@ -86,6 +94,7 @@ export function SolutionView({
       {on('skema') && tab !== undefined && (
         <SchematicTab
           recommendationId={recommendation.id}
+          {...(shared ? { preloaded: shared.schematic } : {})}
           // Skema hanya ada untuk solusi bangunan; kasus teknis/irigasi tidak punya (API 404) —
           // jangan memintanya, tampilkan "belum tersedia" langsung tanpa galat di konsol.
           available={hasSchematic}
@@ -180,7 +189,7 @@ export function SolutionView({
             <span className={styles.disclaimer}>{COPY.planningDisclaimer}</span>
             {/* Skema dibentuk ulang deterministik dari snapshot — jadi tautannya cukup id.
                 Hanya solusi bangunan yang punya skema; tanpa itu tautannya tidak ditampilkan. */}
-            {hasSchematic && (
+            {hasSchematic && !shared && (
               <a
                 className={styles.linkButton}
                 href={`/schematic?recommendation=${recommendation.id}`}

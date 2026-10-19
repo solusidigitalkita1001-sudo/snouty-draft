@@ -25,15 +25,22 @@ export interface ConversationSummary {
   readonly status: string;
   readonly stage: string;
   readonly updatedAt: string;
+  /** Proyek dan sematan (P24); respons lama tidak membawanya. */
+  readonly projectId?: string | null;
+  readonly pinnedAt?: string | null;
 }
 
 /** Bahasa ditetapkan saat percakapan dibuat (Fase 15) — percakapan lama tetap dalam bahasanya. */
-export async function createConversation(language: Locale = 'id'): Promise<ConversationSummary> {
+export async function createConversation(
+  language: Locale = 'id',
+  /** Konsultasi baru di dalam proyek (P24-02) — hanya akun. */
+  projectId: string | null = null,
+): Promise<ConversationSummary> {
   const response = await apiFetch(`${BASE}/conversations`, {
     method: 'POST',
     credentials: 'include',
     headers: { ...authHeaders(), 'content-type': 'application/json' },
-    body: JSON.stringify({ language }),
+    body: JSON.stringify(projectId === null ? { language } : { language, projectId }),
   });
   if (!response.ok) throw new Error(`conversations ${response.status}`);
   return (await response.json()) as ConversationSummary;

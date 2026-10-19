@@ -1,0 +1,512 @@
+/*
+ * Fitur akun Fase 24 (proyek, sematan, bagikan) — BELUM DIDESAIN (OQ-72). Hanya token dan pola
+ * yang sudah ada: baris riwayat sidebar, label mono, kartu dan isian pop-up akun.
+ */
+
+/* ---------- bagian sidebar ---------- */
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sectionAdd {
+  border: none;
+  background: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--snouty-muted);
+  cursor: pointer;
+}
+
+.sectionAdd:hover {
+  color: var(--snouty-action-text);
+  background: var(--snouty-surface-subtle);
+}
+
+.sectionAdd:focus-visible,
+.menuButton:focus-visible,
+.menuItem:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.projectItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.projectItem:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+.projectItemOn {
+  background: var(--snouty-action-row);
+  box-shadow: inset 2px 0 0 var(--snouty-action);
+  border-radius: 0 5px 5px 0;
+}
+
+.projectIcon {
+  flex: none;
+  color: var(--snouty-muted);
+}
+
+.projectName {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--snouty-ink-4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectCount {
+  flex: none;
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  color: var(--snouty-disabled);
+}
+
+.pinMark {
+  display: inline-block;
+  margin-right: 5px;
+  color: var(--snouty-action-text);
+  font-size: 10px;
+}
+
+.empty {
+  font-size: 11.5px;
+  color: var(--snouty-caption);
+  padding: 4px 9px;
+}
+
+/* ---------- menu baris (⋯) ---------- */
+
+/* Dipasang pada baris riwayat/proyek: tombol ⋯ muncul saat baris diarahkan. */
+.menuHost {
+  position: relative;
+}
+
+.menuWrap {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+}
+
+.menuButton {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--snouty-muted);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.menuHost:hover .menuButton,
+.menuButton:focus-visible,
+.menuButtonOpen {
+  opacity: 1;
+}
+
+.menuButton:hover {
+  color: var(--snouty-ink);
+  background: var(--snouty-surface-subtle);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 70;
+  min-width: 210px;
+  max-width: 260px;
+  padding: 5px;
+  background: var(--snouty-surface);
+  border: 1px solid var(--snouty-border);
+  border-radius: 8px;
+  box-shadow: var(--snouty-shadow-modal);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  color: var(--snouty-ink);
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+.menuDanger {
+  color: var(--snouty-action-text);
+}
+
+.menuLabel {
+  padding: 6px 9px 3px;
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--snouty-muted);
+}
+
+.menuSep {
+  height: 1px;
+  margin: 4px 2px;
+  background: var(--snouty-hairline);
+}
+
+@media (pointer: coarse) {
+  .menuButton {
+    opacity: 1;
+    width: 40px;
+    height: 40px;
+  }
+
+  .menuItem {
+    min-height: 44px;
+  }
+}
+
+/* ---------- halaman proyek (area utama) ---------- */
+
+.page {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 28px 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.pageInner {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.kicker {
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--snouty-action-text);
+}
+
+.nameInput {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin-left: -6px;
+  font: inherit;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--snouty-ink);
+  background: none;
+}
+
+.nameInput:hover {
+  border-color: var(--snouty-border);
+}
+
+.nameInput:focus-visible,
+.notes:focus-visible,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.card {
+  border: 1px solid var(--snouty-border);
+  border-radius: 10px;
+  background: var(--snouty-surface);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--snouty-ink);
+}
+
+.hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--snouty-caption);
+}
+
+.notes,
+.input {
+  width: 100%;
+  border: 1px solid var(--snouty-border);
+  border-radius: 6px;
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--snouty-ink);
+  background: var(--snouty-surface);
+}
+
+.notes {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.status {
+  font-size: 12px;
+  color: var(--snouty-caption);
+}
+
+.statusError {
+  font-size: 12px;
+  color: var(--snouty-assumed-text);
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--snouty-action);
+  color: var(--snouty-action-on);
+  cursor: pointer;
+}
+
+.primary:hover {
+  background: var(--snouty-action-hover);
+}
+
+.primary:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.secondary {
+  border: 1px solid var(--snouty-border);
+  border-radius: 6px;
+  padding: 8px 13px;
+  font: inherit;
+  font-size: 13px;
+  background: var(--snouty-surface);
+  color: var(--snouty-ink);
+  cursor: pointer;
+}
+
+.secondary:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+.danger {
+  border: none;
+  background: none;
+  padding: 8px 4px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--snouty-action-text);
+  cursor: pointer;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 4px;
+  border: none;
+  border-bottom: 1px solid var(--snouty-hairline);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.listItem:hover .listTitle {
+  color: var(--snouty-action-text);
+}
+
+.listTitle {
+  font-size: 13.5px;
+  color: var(--snouty-ink);
+}
+
+.listMeta {
+  flex: none;
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  color: var(--snouty-disabled);
+}
+
+.chip {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--snouty-border);
+  background: var(--snouty-surface-subtle);
+  font-size: 12px;
+  color: var(--snouty-ink-4);
+}
+
+/* ---------- dialog bagikan ---------- */
+
+.linkRow {
+  display: flex;
+  gap: 8px;
+}
+
+.linkRow .input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--snouty-font-mono);
+  font-size: 12px;
+}
+
+/* ---------- halaman tautan publik ---------- */
+
+.sharedShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--snouty-canvas, var(--snouty-surface-subtle));
+}
+
+.sharedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--snouty-hairline);
+  background: var(--snouty-surface);
+}
+
+.sharedBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sharedBrandName {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.sharedBody {
+  flex: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 22px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sharedTitle {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--snouty-hairline);
+}
+
+.tab {
+  border: none;
+  background: none;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--snouty-muted);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tabOn {
+  color: var(--snouty-action-text);
+  border-bottom-color: var(--snouty-action);
+  font-weight: 500;
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 18px 16px;
+  }
+
+  .nameInput {
+    font-size: 21px;
+  }
+
+  .sharedHeader,
+  .sharedBody {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
