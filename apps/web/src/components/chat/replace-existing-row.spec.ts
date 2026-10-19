@@ -54,3 +54,41 @@ describe('baris Pekerjaan', () => {
     expect(requirementRows(base).some((r) => r.path === 'water.replaceExisting')).toBe(false);
   });
 });
+
+describe('baris renovasi (P23-03, regresi diperbaiki di P24)', () => {
+  const withWater = (water: Record<string, unknown>) =>
+    ({ ...base, water: { ...base.water, ...water } }) as unknown as RequirementState;
+
+  it('bangun baru: field renovasi kosong tidak menampilkan baris apa pun', () => {
+    const state = withWater({
+      workType: tracked(null),
+      existingMainSize: tracked(null),
+      existingPipeMaterial: tracked(null),
+      existingOutlets: tracked(null),
+      replacementLengthM: tracked(null),
+    });
+    const paths = requirementRows(state).map((r) => r.path);
+    expect(paths).not.toContain('water.workType');
+    expect(paths).not.toContain('water.existingPipeMaterial');
+  });
+
+  it('perluasan: jenis pekerjaan, ukuran pipa lama, titik lama, bahan lama', () => {
+    const state = withWater({
+      workType: tracked('extend'),
+      existingMainSize: tracked('3/4"'),
+      existingPipeMaterial: tracked('galvanized'),
+      existingOutlets: tracked(4),
+      replacementLengthM: tracked(null),
+    });
+    const paths = requirementRows(state).map((r) => r.path);
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        'water.workType',
+        'water.existingMainSize',
+        'water.existingOutlets',
+        'water.existingPipeMaterial',
+      ]),
+    );
+    expect(paths).not.toContain('water.replacementLengthM');
+  });
+});

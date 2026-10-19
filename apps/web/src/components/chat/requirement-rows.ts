@@ -261,7 +261,9 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
 /** Renovasi (P23-03): jenis pekerjaan selalu bisa diubah; data pipa lama hanya bila relevan. */
 function renovationRows(state: RequirementState): RequirementRow[] {
   const work = state.water.workType;
-  if (!work) return [];
+  // Hanya bila pekerjaannya disebut (P24, regresi Fase 23): state baru membawa field kosong ini, dan
+  // rumah bangun baru tidak boleh menampilkan "Jenis pekerjaan / Bahan pipa lama: Belum diisi".
+  if (!work || work.value === null) return [];
   const mode = work.value;
   const rows: RequirementRow[] = [
     row('water.workType', 'Jenis pekerjaan', work, labelOf(WORK_TYPE), {
@@ -307,7 +309,10 @@ function renovationRows(state: RequirementState): RequirementRow[] {
       ),
     );
   }
-  if (mode !== 'new' && mode !== 'renovation' && state.water.existingPipeMaterial) {
+  if (
+    (mode === 'replace_all' || mode === 'replace_partial' || mode === 'extend') &&
+    state.water.existingPipeMaterial
+  ) {
     rows.push(
       row(
         'water.existingPipeMaterial',
