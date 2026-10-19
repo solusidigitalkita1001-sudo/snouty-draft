@@ -191,3 +191,24 @@ describe('extractTechnicalContext — audit 2026-10-19: kolam sebagai tujuan, bu
     expect(source('water from a pond to the field')).toBe('Embung / kolam');
   });
 });
+
+describe('extractTechnicalContext — simulasi 2026-10-19: tinggi tandon tujuan', () => {
+  const elevation = (text: string) =>
+    extractTechnicalContext(text, 'well_distribution').find((f) => f.key === 'tank_elevation')
+      ?.value;
+
+  it('"tandon atas rumah setinggi 7 meter" dan "tinggi toren 6 m" terbaca', () => {
+    expect(
+      elevation('sumur bor 40 meter ke tandon atas rumah setinggi 7 meter, jarak 15 meter'),
+    ).toBe(7);
+    expect(elevation('tinggi toren 6 m dari tanah')).toBe(6);
+    expect(elevation('pump to a tank at 12 m height')).toBe(12);
+  });
+
+  it('jarak dan beda tinggi bukan tinggi tandon', () => {
+    expect(elevation('sumur bor 40 meter ke tandon atas rumah, jarak 15 meter')).toBeUndefined();
+    expect(
+      elevation('dari tandon bawah ke tandon atas, jarak 100 meter, beda tinggi 15 meter'),
+    ).toBeUndefined();
+  });
+});

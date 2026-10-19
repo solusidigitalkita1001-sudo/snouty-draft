@@ -188,6 +188,18 @@ export function extractTechnicalContext(
       });
   }
 
+  // ── Tinggi tandon tujuan ("tandon atas rumah setinggi 7 meter", "tinggi toren 7 m") ──
+  // Dulu tidak dibaca sama sekali, dan tinggi angkat sumur dihitung tanpa tinggi tandonnya
+  // (simulasi 2026-10-19: head 45,97 m untuk sumur 40 m ke tandon 7 m).
+  take(
+    new RegExp(
+      `(?:(?:toren|tandon|tangki|tank|tower)\\w*[^.,\\d]{0,30}?(?:setinggi|tingginya|tinggi|ketinggian|elevasi|elevation|height(?: of)?|at)|(?:tinggi|ketinggian|elevasi)\\s+(?:toren|tandon|tangki|menara)\\w*)\\s*${NUM}\\s*${M}\\b`,
+    ),
+    (m) => {
+      add('tank_elevation', num(m[1]!), m[0], 'm');
+    },
+  );
+
   // ── Timbunan / kedalaman tanam ──
   take(
     new RegExp(

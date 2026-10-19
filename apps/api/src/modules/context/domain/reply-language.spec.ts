@@ -25,10 +25,12 @@ describe('replyLanguageOf', () => {
     expect(detected === null || detected === language).toBe(true);
   });
 
-  it('decides at least 90% of the labeled sentences (the rest keep the conversation language)', () => {
+  // 85 %: franc boleh membatalkan tinyld (kalimat panjang bercampur istilah); yang dibatalkan tetap di
+  // bahasa percakapan — salah bahasa lebih buruk daripada tidak berpindah.
+  it('decides at least 85% of the labeled sentences (the rest keep the conversation language)', () => {
     const labeled = [...CASES.id, ...CASES.en];
     const decided = labeled.filter((text) => replyLanguageOf(text) !== null).length;
-    expect(decided / labeled.length).toBeGreaterThanOrEqual(0.9);
+    expect(decided / labeled.length).toBeGreaterThanOrEqual(0.85);
   });
 
   it('the owner report: a short branded Indonesian question is not read as English', () => {

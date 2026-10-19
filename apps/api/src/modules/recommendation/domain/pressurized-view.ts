@@ -82,7 +82,11 @@ export function pressurizedPlanFrom(state: RequirementState): PressurizedPlan | 
   let staticHeadM = numberOf(p['static_head']);
   if (staticHeadM === undefined && caseId === 'well_distribution') {
     const well = numberOf(p['well_depth']);
-    if (well !== undefined) staticHeadM = well + (numberOf(p['tank_elevation']) ?? 0);
+    // Tinggi tandon tidak diam-diam dianggap 0 m: tanpa angkanya tinggi angkat pompa terlalu kecil
+    // (simulasi 2026-10-19: sumur 40 m ke tandon 7 m dihitung head 45,97 m). Belum diketahui →
+    // tidak bisa dihitung, dan chat menyebut angka itu masih dibutuhkan.
+    const elevation = numberOf(p['tank_elevation']);
+    if (well !== undefined && elevation !== undefined) staticHeadM = well + elevation;
   }
   if (designFlowLs === undefined || routeLengthM === undefined || staticHeadM === undefined) {
     return null;

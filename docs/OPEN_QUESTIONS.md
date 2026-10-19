@@ -413,6 +413,22 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-74 — Kasus teknis dengan angka kritis "Belum tahu" dan perluasan rumah (P25-05, 2026-10-19)
+
+**Status:** default sementara berlaku · **Blocks:** tidak ada
+**Konteks:** simulasi perhitungan: setiap pertanyaan dijawab "Belum tahu" dulu berakhir "Datanya sudah cukup"
+lalu analisis gagal "layanan tidak tersedia".
+**Default sementara:** parameter kritis yang punya asumsi registry di profil kasus (`unknownDefaults`) memakai
+asumsi itu dan ditandai di hasil — saat ini hanya debit pompa yang mengisi tandon (sumur, transfer:
+`TANK_FILL_FLOW_0_25LS`, 0,25 l/s). Parameter kritis lain tanpa nilai bersumber (intensitas hujan, tinggi tandon,
+beda tinggi jaringan, penghuni/luas gedung) tetap ditanya; chat menyebut angkanya masih dibutuhkan dan
+analisis menjawab VALIDATION_FAILED ("Hitungannya butuh beberapa angka lagi"), bukan angka karangan.
+Perluasan rumah ("rumah 3 kamar mandi … mau tambah 2 titik air"): fixture yang disebut dihitung sebagai
+bagian baru, dan beban lama ditanya lewat kartu.
+**Yang perlu diputuskan pemilik/tim teknis:** nilai acuan bersumber untuk intensitas hujan rencana (mis. dari
+SNI/BMKG per daerah) dan tinggi tandon atas yang lazim, supaya keduanya bisa menjadi asumsi; dan apakah
+"tambah N titik air" pada rumah yang disebut lengkap harus dibaca sebagai beban lama = rumah itu, beban baru = N.
+
 ### OQ-73 — Bahasa balasan dari kalimat pengguna, bukan tombol bahasa (P25-01, 2026-10-19)
 
 **Status:** diputuskan pemilik (2026-10-19): "jawaban bhs ing itu berdasarkan prompt user, bukan berdasarkan
