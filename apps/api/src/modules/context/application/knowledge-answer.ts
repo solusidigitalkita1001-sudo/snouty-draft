@@ -167,8 +167,8 @@ async function pressureFit(
   if (anyPvc || named.length === 0) {
     lines.push(
       en
-        ? `- **uPVC**: the official working pressure of each PVC class is not in my data yet, so whether it suits ${span} bar needs to be confirmed by the Pralon technical team.`
-        : `- **uPVC**: angka tekanan kerja resmi tiap kelas PVC belum ada di data saya, jadi kecocokannya untuk ${span} bar perlu dipastikan tim teknis Pralon.`,
+        ? `- **uPVC**: whether a PVC class suits ${span} bar follows the official working pressure in the Pralon product specification — the Pralon technical team can confirm it.`
+        : `- **uPVC**: kecocokan kelas PVC untuk ${span} bar mengikuti angka tekanan kerja resmi di spesifikasi produk Pralon — tim teknis Pralon bisa memastikannya.`,
     );
     gaps.push({ topic: 'tekanan kerja', gap: 'tekanan kerja resmi tiap kelas PVC' });
   }

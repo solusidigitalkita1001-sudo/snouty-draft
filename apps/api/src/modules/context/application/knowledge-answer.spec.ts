@@ -171,7 +171,7 @@ describe('tes FAQ sales 2026-10-12', () => {
       '**HDPE** di katalog Pralon yang kelasnya di atas 12 bar: PN-16 (selisih 4 bar)',
     );
     expect(a!.text).not.toContain('PN-8');
-    expect(a!.text).toContain('angka tekanan kerja resmi tiap kelas PVC belum ada');
+    expect(a!.text).toContain('mengikuti angka tekanan kerja resmi di spesifikasi produk Pralon');
     // Paragraf umum tekanan kerja tidak ditumpuk di atas jawaban bernilai.
     expect(a!.text).not.toContain('Kelas pipa PVC menandai fungsinya');
     expect(a!.gaps.map((g) => g.gap)).toEqual(['tekanan kerja resmi tiap kelas PVC']);
@@ -208,7 +208,8 @@ describe('tes FAQ sales 2026-10-12', () => {
       catalog,
       'id',
     );
-    expect(n!.text).toContain('belum memuat jenis pipa yang lebih baru');
+    expect(n!.text).toContain('jenis yang lebih baru dari keduanya tidak ada di katalog Pralon');
+    expect(n!.text).not.toMatch(/data saya/i);
     expect(n!.gaps).toHaveLength(1);
   });
 });

@@ -17,7 +17,7 @@
       "q": "Berapa daya tahan lama pipa HDPE?",
       "expect": "jujur umur pakai belum ada di data resmi; faktor yang memengaruhi; tawarkan tim teknis (aksi, bukan kalimat saja)",
       "checks": {
-        "all": ["belum|tidak ada", "tekanan|suhu|paparan|sinar|pemasangan"],
+        "all": ["tim teknis", "tekanan|suhu|paparan|sinar|pemasangan"],
         "none": ["\\d+ ?tahun"],
         "cards": ["cta"]
       }

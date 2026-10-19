@@ -298,8 +298,8 @@
     },
     {
       "topic": "jenis pipa baru",
-      "text": "Data saya belum memuat jenis pipa yang lebih baru dari HDPE dan uPVC untuk air bersih atau air minum, jadi saya tidak bisa merekomendasikannya. Tim teknis Pralon bisa menjelaskan bila ada lini produk baru.",
-      "textEn": "My data does not include a pipe type newer than HDPE and uPVC for clean or drinking water, so I cannot recommend one. The Pralon technical team can tell you about any new product line.",
+      "text": "Untuk air bersih dan air minum, pipa yang dibuat Pralon adalah HDPE dan uPVC; jenis yang lebih baru dari keduanya tidak ada di katalog Pralon. Tim teknis Pralon bisa menjelaskan bila ada lini produk baru.",
+      "textEn": "For clean and drinking water, the pipe Pralon makes is HDPE and uPVC; no newer type is in the Pralon catalogue. The Pralon technical team can tell you about any new product line.",
       "source": "Katalog Pralon aktif dan Snouty Product Knowledge Master §5 (portofolio)",
       "catalog": {
         "families": ["HDPE", "PVC AW", "PVC S-10", "PVC VP"]
