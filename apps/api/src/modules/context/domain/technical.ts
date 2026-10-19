@@ -18,6 +18,7 @@ import {
   parameterDefinition,
   parameterLabel,
   parameterOptionLabels,
+  renovationCue,
   resolveMissingParameters,
   type CaseId,
   type MissingParameter,
@@ -62,8 +63,16 @@ function withParameters(
   state: RequirementState,
   caseId: CaseId,
   parameters: Readonly<Record<string, TechnicalParameter>>,
+  /** Pesan menyebut renovasi tanpa jenisnya (P23-02); gugur begitu `work_type` tercatat. */
+  renovationHinted = state.useCase?.kind === 'technical' && state.useCase.renovationHinted === true,
 ): RequirementState {
-  const useCase: TechnicalUseCase = { kind: 'technical', caseId, parameters };
+  const hinted = renovationHinted && parameters['work_type'] === undefined;
+  const useCase: TechnicalUseCase = {
+    kind: 'technical',
+    caseId,
+    parameters,
+    ...(hinted ? { renovationHinted: true } : {}),
+  };
   return { ...state, useCase };
 }
 
@@ -94,7 +103,10 @@ export function applyTechnicalFacts(
     captured.push(fact.key);
     changed = true;
   }
-  return { state: withParameters(state, caseId, next), changed, captured };
+  const wasHinted = state.useCase?.kind === 'technical' && state.useCase.renovationHinted === true;
+  const hinted = wasHinted || renovationCue(message);
+  if (hinted && next['work_type'] === undefined && !wasHinted) changed = true;
+  return { state: withParameters(state, caseId, next, hinted), changed, captured };
 }
 
 /**
@@ -201,7 +213,13 @@ function sets(state: RequirementState): { known: Set<string>; assumed: Set<strin
 export function technicalMissing(state: RequirementState): readonly MissingParameter[] {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return [];
   const profile = caseProfile(state.useCase.caseId);
-  return resolveMissingParameters({ profile, ...sets(state) });
+  const workType = state.useCase.parameters['work_type']?.value;
+  return resolveMissingParameters({
+    profile,
+    ...sets(state),
+    workType: typeof workType === 'string' ? workType : null,
+    renovationHinted: state.useCase.renovationHinted === true,
+  });
 }
 
 /** Lengkap = tidak ada parameter KRITIS yang masih belum diketahui/diasumsikan. */

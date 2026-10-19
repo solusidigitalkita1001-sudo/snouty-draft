@@ -42,6 +42,7 @@ import {
   computeSolution,
   type BuildingWaterInput,
   type FlowSchematicShape,
+  type GravityInput,
   type HouseDrainageResult,
   type NetworkInput,
   type PondInput,
@@ -71,6 +72,12 @@ import { DRAINAGE_FAMILY, withHouseDrainage } from '../domain/house-drainage-vie
 import { mergeBomBySku } from '../domain/bom-merge.js';
 import { needsFrom } from '../domain/solution-needs.js';
 import { tankStandViewFrom } from '../domain/tank-stand-view.js';
+import {
+  renovationFactsFrom,
+  withRenovation,
+  type RenovationContext,
+  type RenovationFacts,
+} from '../domain/renovation-view.js';
 import {
   waterSupplyBomItems,
   waterSupplyHighlights,
@@ -481,7 +488,9 @@ export class AnalysisService {
         },
         now,
         locale,
-        replaceExisting: state.water.replaceExisting?.value === true,
+        replaceExisting:
+          state.water.replaceExisting?.value === true ||
+          state.water.workType?.value === 'replace_all',
       },
       this.prose,
     );
@@ -649,6 +658,28 @@ export class AnalysisService {
       // Pilihan dudukan toren (P22-04) — hanya ada bila sumbernya toren atap.
       ...(tankStand ? { tankStand } : {}),
     });
+    // Renovasi (P23-02): perluasan mengecek pipa utama lama terhadap beban total — titik air lama
+    // dihitung 1 WSFU (setara wastafel) karena jenisnya tidak ditanya (RENOV_EXISTING_OUTLET_1_WSFU).
+    const renovated = await this.renovate(state, recommendation, allTraces, locale, {
+      newMainSize: solution.mainSize,
+      branchSize: solution.branchSize,
+      routeLengthM: solution.mainRunNetM,
+      family: PIPE_FAMILY,
+      newLoad: solution.outletCount,
+      loadUnit: 'titik',
+      sizeForTotal: (existing) =>
+        computeSolution(
+          {
+            ...solutionInputFrom(state),
+            basins: (state.fixtures.basins.value ?? 0) + existing,
+          },
+          locale,
+          overridesOf(state),
+        ).mainSize,
+      extraAssumptionIds: ['RENOV_EXISTING_OUTLET_1_WSFU'],
+    });
+    recommendation = renovated.recommendation;
+    allTraces = renovated.traces;
     await this.repository.save(saveReady(state, recommendation, allTraces, locale), allTraces, {
       proseSource: assembled.proseSource,
     });
@@ -693,7 +724,7 @@ export class AnalysisService {
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const { input, assumptions: inputAssumptions } = irrigationInputFrom(state);
     const result = computeIrrigation(input, locale);
-    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
     }));
@@ -728,7 +759,7 @@ export class AnalysisService {
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
     const stats = irrigationStatsFrom(result, input.areaHa, match.products.length);
     const prose = irrigationProse(stats, result, locale);
-    const recommendation: Recommendation = {
+    let recommendation: Recommendation = {
       id: ulid(),
       conversationId,
       snapshotId,
@@ -758,6 +789,13 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
+    const renovated = await this.renovate(state, recommendation, traces, locale, {
+      newMainSize: result.mainSize,
+      routeLengthM: input.mainRunMeters,
+      family: result.mainFamily,
+    });
+    recommendation = renovated.recommendation;
+    traces = renovated.traces;
     await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
@@ -795,7 +833,7 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computePressurized(plan.input, locale, overridesOf(state));
-    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
     }));
@@ -832,7 +870,7 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
     const prose = pressurizedProse(result, plan.family, plan.input, locale);
-    const recommendation: Recommendation = {
+    let recommendation: Recommendation = {
       id: ulid(),
       conversationId,
       snapshotId,
@@ -863,6 +901,13 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
+    const renovated = await this.renovate(state, recommendation, traces, locale, {
+      newMainSize: result.recommendedSize,
+      routeLengthM: plan.input.routeLengthM,
+      family: plan.family,
+    });
+    recommendation = renovated.recommendation;
+    traces = renovated.traces;
     await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
@@ -891,7 +936,7 @@ export class AnalysisService {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computeGravity(plan.input, locale, overridesOf(state));
-    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
     }));
@@ -916,7 +961,7 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
     const prose = gravityProse(result, locale);
-    const recommendation: Recommendation = {
+    let recommendation: Recommendation = {
       id: ulid(),
       conversationId,
       snapshotId,
@@ -940,6 +985,25 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
+    const renovated = await this.renovate(state, recommendation, traces, locale, {
+      newMainSize: result.recommendedSize,
+      routeLengthM: plan.pipeLengthM,
+      family: 'PVC D',
+      newLoad: result.sewer?.connections ?? null,
+      loadUnit: 'sambungan',
+      // Air limbah: pipa lama dicek dengan sambungan lama + baru lewat aturan yang sama.
+      sizeForTotal:
+        result.kind === 'sewer'
+          ? (_existing, total) =>
+              computeGravity(
+                { ...sewerBaseInput(plan.input), connections: total },
+                locale,
+                overridesOf(state),
+              ).recommendedSize
+          : null,
+    });
+    recommendation = renovated.recommendation;
+    traces = renovated.traces;
     await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
@@ -975,7 +1039,7 @@ export class AnalysisService {
       locale,
       overridesOf(state),
     );
-    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
     }));
@@ -994,7 +1058,7 @@ export class AnalysisService {
     // jaringan yang butuh PN 20); fitting hanya yang terhitung (tee, reducer), bukan peran generik
     // yang bisa terisi barang sembarang seukuran (tur 2026-10-16: "HDPE Pejal 90 mm").
     const pipeOptions =
-      supply?.pressureClass.pn != null ? { minimumPn: supply.pressureClass.pn } : {};
+      supply && supply.pressureClass.pn !== null ? { minimumPn: supply.pressureClass.pn } : {};
     const roles = supply
       ? [pipeRequirement('main', result.recommendedSize, family, pipeOptions)]
       : [
@@ -1042,7 +1106,7 @@ export class AnalysisService {
     const reducerId = match.products.find(
       (pr) => pr.role === 'fitting' && /reducer|sok reducer/i.test(pr.name ?? ''),
     )?.productId;
-    const recommendation: Recommendation = {
+    let recommendation: Recommendation = {
       id: ulid(),
       conversationId,
       snapshotId,
@@ -1092,6 +1156,26 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
+    const renovated = await this.renovate(state, recommendation, traces, locale, {
+      newMainSize: result.recommendedSize,
+      branchSize: supply?.topology.branch?.size ?? null,
+      routeLengthM: input.routeLengthM,
+      family,
+      newLoad: result.connections,
+      loadUnit: 'sambungan',
+      sizeForTotal: (_existing, total) =>
+        computeNetwork(
+          {
+            ...networkBaseInput(input),
+            connections: total,
+            material: family === 'HDPE' ? 'HDPE' : 'PVC',
+          },
+          locale,
+          overridesOf(state),
+        ).recommendedSize,
+    });
+    recommendation = renovated.recommendation;
+    traces = renovated.traces;
     await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
@@ -1123,7 +1207,7 @@ export class AnalysisService {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computeBuildingWater(input, locale, overridesOf(state));
-    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
     }));
@@ -1157,7 +1241,7 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
     const prose = buildingProse(result, input.floors, locale);
-    const recommendation: Recommendation = {
+    let recommendation: Recommendation = {
       id: ulid(),
       conversationId,
       snapshotId,
@@ -1181,6 +1265,13 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
+    const renovated = await this.renovate(state, recommendation, traces, locale, {
+      newMainSize: result.transfer.recommendedSize,
+      routeLengthM: input.horizontalRunM ?? null,
+      family: transferFamily,
+    });
+    recommendation = renovated.recommendation;
+    traces = renovated.traces;
     await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
@@ -1295,6 +1386,58 @@ export class AnalysisService {
    * murni memilih. Menggantikan jendela 50 produk pertama yang membuat semua peran kosong di katalog
    * Pralon (docs/MATCHER_V2_PROPOSAL.md §4).
    */
+  /**
+   * Lapisan renovasi (P23-02) untuk rekomendasi kasus mana pun: fakta dari state, fitting sambungan
+   * dari katalog (tee/sok drat/sok seukuran), lalu tampilan dari engine. Bangun baru → apa adanya.
+   */
+  private async renovate(
+    state: RequirementState,
+    recommendation: Recommendation,
+    traces: readonly IdentifiedTrace[],
+    locale: Locale,
+    ctx: Omit<RenovationContext, 'productFor'>,
+  ): Promise<{ recommendation: Recommendation; traces: readonly IdentifiedTrace[] }> {
+    const facts: RenovationFacts | null = renovationFactsFrom(state);
+    if (facts === null) return { recommendation, traces };
+    const products = new Map<string, string>();
+    const keyOf = (kind: string, size: string, branch?: string) =>
+      `${kind}|${size}|${branch ?? ''}`;
+    const wanted: { kind: 'tee' | 'faucet_socket' | 'socket'; size: string; branch?: string }[] =
+      [];
+    if (facts.mode === 'extend' && facts.existingSize !== null) {
+      const branch = ctx.branchSize ?? ctx.newMainSize;
+      wanted.push({
+        kind: 'tee',
+        size: facts.existingSize,
+        ...(branch !== facts.existingSize ? { branch } : {}),
+      });
+      wanted.push({ kind: 'faucet_socket', size: facts.existingSize });
+    }
+    if (facts.mode === 'replace_partial') wanted.push({ kind: 'socket', size: ctx.newMainSize });
+    for (const w of wanted) {
+      const found = await this.matchRoles([
+        fittingRequirement(w.size, ctx.family, w.kind, w.branch),
+      ]);
+      const product = found.products[0];
+      if (product && product.matchState === 'VERIFIED_SELECTED') {
+        products.set(keyOf(w.kind, w.size, w.branch), product.productId);
+      }
+    }
+    const renovated = withRenovation(
+      recommendation,
+      facts,
+      traces,
+      {
+        ...ctx,
+        productFor: (kind, size, branch) =>
+          products.get(keyOf(kind, size, branch)) ?? products.get(keyOf(kind, size)),
+      },
+      locale,
+      overridesOf(state),
+    );
+    return { recommendation: renovated.recommendation, traces: renovated.traces };
+  }
+
   private async matchRoles(roles: readonly RoleRequirement[]) {
     const byId = new Map<string, Product>();
     for (const role of roles) {
@@ -1346,7 +1489,7 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computePond(input, locale, overridesOf(state));
-    const traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
+    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
       ...trace,
       id: ulid(),
     }));
@@ -1380,7 +1523,7 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
     const prose = pondProse(result, locale);
-    const recommendation: Recommendation = {
+    let recommendation: Recommendation = {
       id: ulid(),
       conversationId,
       snapshotId,
@@ -1404,6 +1547,13 @@ export class AnalysisService {
       overallProvenance: result.overallProvenance,
       createdAt: now,
     };
+    const renovated = await this.renovate(state, recommendation, traces, locale, {
+      newMainSize: result.inletSize,
+      routeLengthM: input.routeLengthM ?? null,
+      family: result.inletFamily,
+    });
+    recommendation = renovated.recommendation;
+    traces = renovated.traces;
     await this.repository.save(saveReady(state, recommendation, traces, locale), traces, {
       proseSource: 'template',
     });
@@ -1525,6 +1675,23 @@ export function overrideAssumption(
     );
   }
   return next;
+}
+
+/** Masukan air limbah tanpa sambungan/jiwa/debit — dasar hitung ulang dengan beban total (P23-02). */
+function sewerBaseInput(input: GravityInput): GravityInput {
+  return withoutKeys(input, ['connections', 'population', 'designFlowLs']);
+}
+
+/** Masukan jaringan tanpa sambungan/jiwa — dasar hitung ulang dengan beban total (P23-02). */
+function networkBaseInput(input: NetworkInput): NetworkInput {
+  return withoutKeys(input, ['connections', 'population']);
+}
+
+/** Salinan objek tanpa kunci tertentu — kunci dihapus, bukan diisi `undefined` (exactOptionalPropertyTypes). */
+function withoutKeys<T extends object>(input: T, keys: readonly (keyof T)[]): T {
+  return Object.fromEntries(
+    Object.entries(input).filter(([key]) => !keys.includes(key as keyof T)),
+  ) as T;
 }
 
 /** Rekomendasi siap simpan: langkah hitung per baris + baris asumsi yang bisa diubah. */

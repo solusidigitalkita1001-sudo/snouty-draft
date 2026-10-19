@@ -182,6 +182,8 @@ export type FittingKind =
   | 'elbow'
   | 'elbow_45'
   | 'faucet_elbow'
+  /** Sok drat (faucet socket) — sambungan ke pipa besi/galvanis (renovasi, P23-02). */
+  | 'faucet_socket'
   | 'clean_out'
   | 'socket'
   | 'cap'
@@ -197,6 +199,10 @@ export function fittingKindOf(name: string): FittingKind | null {
   if (/\bFaucet\b/i.test(type) && /\bElbow\b/i.test(type)) {
     // "Double Faucet Elbow" punya dua keluaran — bukan pengganti faucet elbow satu titik.
     return /\bDouble\b/i.test(type) ? null : 'faucet_elbow';
+  }
+  // Sok drat lurus (bukan insert/double): ujung potongan pipa besi/galvanis saat renovasi.
+  if (/\bFaucet\s+Socket\b/i.test(type) && !/\b(Insert|Double|Reducer|Red)\b/i.test(type)) {
+    return 'faucet_socket';
   }
   // Sok dan dop lurus (review putaran 3, 4d): bukan sok kran/katup/reduksi, bukan tutup clean out.
   if (/\bSocket\b/i.test(type) && !/\b(Faucet|Valve|Red|Reducer|Insert|Flange)\b/i.test(type)) {

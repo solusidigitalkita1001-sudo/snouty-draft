@@ -242,3 +242,38 @@ describe('technical dwibahasa', () => {
     });
   });
 });
+
+describe('isyarat renovasi (P23-02)', () => {
+  it('"renovasi" tanpa jenis → jenis pekerjaan ditanya paling dulu sebagai kritis; jawaban menggugurkan isyaratnya', () => {
+    const start = applyTechnicalFacts(
+      emptyRequirementState(T0),
+      'water_supply_network',
+      'mau renovasi jaringan spam lama, 500 sr, jalur 2 km, beda tinggi 20 m',
+    );
+    expect(start.state.useCase).toMatchObject({ kind: 'technical', renovationHinted: true });
+    const missing = technicalMissing(start.state);
+    expect(missing[0]).toMatchObject({ key: 'work_type', importance: 'critical' });
+    expect(isTechnicalComplete(start.state)).toBe(false);
+    const card = planTechnicalClarification(start.state).card;
+    expect(card[0]).toMatchObject({ id: 'work_type' });
+    expect(card[0]!.options).toContain('Perluasan');
+    const answered = applyTechnicalAnswers(start.state, [
+      technicalAnswerValue('work_type', 'Perluasan')!,
+    ]);
+    expect(answered.state.useCase).not.toHaveProperty('renovationHinted');
+    const keys = technicalMissing(answered.state).map((m) => m.key);
+    expect(keys).toContain('existing_pipe_size');
+    expect(keys).toContain('existing_connections');
+    expect(isTechnicalComplete(answered.state)).toBe(true);
+  });
+
+  it('bangun baru biasa: tidak ada isyarat, tidak ada pertanyaan pipa lama', () => {
+    const start = applyTechnicalFacts(
+      emptyRequirementState(T0),
+      'water_supply_network',
+      'spam baru 500 sr, jalur 2 km, beda tinggi 20 m',
+    );
+    expect(start.state.useCase).not.toHaveProperty('renovationHinted');
+    expect(technicalMissing(start.state).map((m) => m.key)).not.toContain('work_type');
+  });
+});
