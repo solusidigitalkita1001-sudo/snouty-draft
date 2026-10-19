@@ -56,7 +56,10 @@ const SIZED_POOL = 60;
 function bySizeFit(products: readonly Product[], size: PipeSize): Product[] {
   const rank = (p: Product): number => {
     const parsed = p.sizes.map((s) => PipeSize.parse(s));
-    if (parsed.length === 1 && parsed[0]?.equals(size)) return 0;
+    // Nama yang memuat dua ukuran ("Bell Tee 200mm x 2\"") adalah reducer walau tabel ukurannya
+    // hanya mencatat satu.
+    const reducerName = /\d\s*(?:mm|"|”)?\s*x\s*\d/i.test(p.name);
+    if (parsed.length === 1 && parsed[0]?.equals(size) && !reducerName) return 0;
     return parsed[0]?.equals(size) ? 1 : 2;
   };
   return products
@@ -163,17 +166,12 @@ async function fittingLookup(
     }
   }
 
-  const what = [
-    fittings.join(en ? ' and ' : ' dan '),
-    query.kindTerms.length > 0
-      ? en
-        ? `type ${query.kindTerms[0]}`
-        : `jenis ${query.kindTerms[0]}`
-      : null,
-    query.size !== null ? (en ? `size ${query.size}` : `ukuran ${query.size}`) : null,
-  ]
+  // Ditulis seperti orang menyebut barangnya — "tee PVC 2\"" — bukan label katalog
+  // ("FITTING PVC, jenis tee, ukuran 2", audit 2026-10-19).
+  const materials = fittings.map((f) => f.replace(/^fitting\s+/i, '')).join(en ? ' and ' : ' dan ');
+  const what = [query.kindTerms[0] ?? 'fitting', materials, size?.toString() ?? query.size]
     .filter(Boolean)
-    .join(', ');
+    .join(' ');
 
   if (found.length === 0) {
     // Tidak diganti kategori atau ukuran lain diam-diam — pengguna yang memutuskan.

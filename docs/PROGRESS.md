@@ -1925,7 +1925,12 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       (SNI seri S, Calcium-Zinc bebas timbal); (9) "hdpe pn 10" dibuka kelas PVC → kalimat pembuka HDPE; (10) "tee 2
       inch" hanya reducer → tee sama ukuran didahulukan; metatext ("Kelas tekanan hanya disebut…", "data saya belum
       memuat…") dihapus. Eval pemahaman tetap 98,1 %; 10 parafrase audit ditambahkan ke golden set; tes regresi di
-      `audit-2026-10-19.spec.ts`.
+      `audit-2026-10-19.spec.ts`. Audit ulang setelah rilis (putaran 2) menemukan dan memperbaiki: "elbow pvc 3 inch
+      ada?" dijawab bahasa Inggris (nilai bersatuan dan nama produk kini disisihkan sebelum bahasa dikenali, skor seri =
+      tidak jelas); "pralon punya pipa ppr ga?" tidak dikenali (contoh intent); talang 150 m2 tercatat "0,02 ha" (luas
+      < 1 ha ditampilkan m²); judul daftar fitting "FITTING PVC, jenis tee, ukuran 2" → "Tee PVC 2""; bell tee 200 mm x
+      2" dianggap tee sama ukuran; "kenapa pipa bisa pecah?" dibuka kalimat bocor sambungan; nilai pilihan berhuruf
+      kapital di tengah kalimat ("sumber air Sumur").
 
 ## Design Coverage
 

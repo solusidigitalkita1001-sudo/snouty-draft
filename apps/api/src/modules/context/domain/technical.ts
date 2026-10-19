@@ -362,9 +362,12 @@ export function formatTechnicalValue(
     return locale === 'en' ? (p.value ? 'Yes' : 'No') : p.value ? 'Ya' : 'Tidak';
   }
   if (typeof p.value === 'number') {
-    const n = p.value.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', {
-      maximumFractionDigits: 2,
-    });
+    const format = (x: number) =>
+      x.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
+    // Luas di bawah satu hektar (atap, halaman) dibaca dalam m²: "150 m²", bukan "0,02 ha" yang
+    // sudah terbulatkan (audit 2026-10-19: talang atap 150 m2 tercatat 0,02 ha).
+    if (p.unit === 'ha' && p.value < 1) return `${format(p.value * 10_000)} m²`;
+    const n = format(p.value);
     if (!p.unit) return n;
     return p.unit === '%' ? `${n}%` : `${n} ${unitLabel(p.unit, locale)}`;
   }
@@ -480,7 +483,12 @@ export function capturedPhrase(label: string, value: string): string {
   // Satuan yang sudah menjadi KATA di labelnya ("10 kolam" untuk "Jumlah kolam") tidak diulang; satuan
   // yang kebetulan substring ("m" di "Kedalaman sumur") bukan alasan membuang labelnya (smoke 2026-10-16).
   const words = label.toLowerCase().split(/[\s/]+/);
-  return unit !== '' && words.includes(unit) ? value : `${label.toLowerCase()} ${value}`;
+  // Nilai pilihan berhuruf kapital di tengah kalimat ("sumber air Sumur") ditulis kecil; singkatan
+  // ("PDAM", "HDPE") tetap (audit 2026-10-19).
+  const inSentence = /^\p{Lu}\p{Ll}/u.test(value)
+    ? value[0]!.toLowerCase() + value.slice(1)
+    : value;
+  return unit !== '' && words.includes(unit) ? value : `${label.toLowerCase()} ${inSentence}`;
 }
 
 interface GuidanceCopy {

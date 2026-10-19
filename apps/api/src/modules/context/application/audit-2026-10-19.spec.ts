@@ -18,7 +18,8 @@ import type { AssistantStreamEvent, Product } from '@snouty/shared-types';
 import { TEST_LEXICON, understood } from '../../understanding/testing/understood.js';
 import { IntentRouter } from './intent-router.js';
 import { knowledgeAnswer } from './knowledge-answer.js';
-import { formatTechnicalValue } from '../domain/technical.js';
+import { capturedPhrase, formatTechnicalValue } from '../domain/technical.js';
+import { conceptsFor } from './pipe-knowledge.js';
 import { runProductQuestion, type ProductQuestionInput } from './product-question-pipeline.js';
 
 const text = (events: readonly AssistantStreamEvent[]) =>
@@ -110,6 +111,7 @@ const PVC_TEES = [
   product({ name: 'Tee DV Abu 3" x 2"', family: 'FITTING PVC', sizes: ['3"', '2"'] }),
   product({ name: 'Tee Abu Ts 2" x 1"', family: 'FITTING PVC', sizes: ['2"', '1"'] }),
   product({ name: 'Tee DV Abu 4" x 2"', family: 'FITTING PVC', sizes: ['4"', '2"'] }),
+  product({ name: 'Bell Tee TS Branch - W 160 mmx 2"', family: 'FITTING PVC', sizes: ['2"'] }),
   product({ name: 'Tee Abu Ts 2"', family: 'FITTING PVC', sizes: ['2"'] }),
 ];
 
@@ -143,6 +145,8 @@ describe('audit 2026-10-19 — jawaban produk', () => {
       ),
     );
     const listed = reply.split(/\n/).filter((l) => l.startsWith('- '));
+    // Judulnya seperti orang menyebut barang, bukan label katalog ("FITTING PVC, jenis tee, ukuran 2").
+    expect(reply.startsWith('Tee PVC 2" di katalog Pralon')).toBe(true);
     expect(listed[0]).toBe('- Tee Abu Ts 2"');
     expect(listed[1]).toMatch(/^- Tee Abu Ts 2" x/);
     expect(reply).not.toMatch(/hanya disebut bila tercatat/);
@@ -253,5 +257,22 @@ describe('audit 2026-10-19 — router dan tampilan', () => {
     const p = { label: 'Jumlah lantai', value: 5, unit: 'lantai', origin: 'known' } as const;
     expect(formatTechnicalValue(p, 'en', 'building_floors')).toBe('5 floors');
     expect(formatTechnicalValue(p, 'id', 'building_floors')).toBe('5 lantai');
+  });
+
+  it('luas atap di bawah satu hektar dibaca m², bukan "0,02 ha"', () => {
+    const area = { label: 'Luas tangkapan', value: 0.015, unit: 'ha', origin: 'known' } as const;
+    expect(formatTechnicalValue(area, 'id')).toBe('150 m²');
+    expect(formatTechnicalValue({ ...area, value: 2 }, 'id')).toBe('2 ha');
+  });
+
+  it('nilai pilihan di tengah kalimat ditulis kecil, singkatan tetap', () => {
+    expect(capturedPhrase('Sumber air', 'Sumur')).toBe('sumber air sumur');
+    expect(capturedPhrase('Sumber air', 'PDAM')).toBe('sumber air PDAM');
+  });
+
+  it('"kenapa pipa pvc bisa pecah?": daftar gangguan, tidak dibuka dengan bocor sambungan', () => {
+    const [faults] = conceptsFor(['perawatan dan gangguan']);
+    expect(faults!.text.startsWith('Gangguan yang lazim pada pipa PVC')).toBe(true);
+    expect(faults!.text).toContain('- Pipa retak atau pecah');
   });
 });

@@ -101,6 +101,22 @@ export class EntityLexicon {
     return [...new Set(found.sort((a, b) => a.at - b.at).map((f) => f.canonical))];
   }
 
+  /**
+   * Teks tanpa nama produk dan merek (Pralon, pesaing, alias keluarga). Nama-nama itu sama di kedua
+   * bahasa, jadi tidak boleh ikut menentukan bahasa pesan: "elbow pvc 3 inch ada?" bukan kalimat
+   * Inggris (audit 2026-10-19).
+   */
+  withoutNames(text: string): string {
+    let remaining = text.toLowerCase();
+    for (const { pattern } of this.families) {
+      remaining = remaining.replace(new RegExp(pattern.source, 'gi'), ' ');
+    }
+    for (const pattern of [this.own, this.competitors]) {
+      remaining = remaining.replace(new RegExp(pattern.source, 'gi'), ' ');
+    }
+    return remaining.replace(/\s+/g, ' ').trim();
+  }
+
   mentionsCompetitor(text: string): boolean {
     return this.competitors.test(text);
   }

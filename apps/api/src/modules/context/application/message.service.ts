@@ -152,7 +152,9 @@ export class MessageService {
 
     // Bahasa balasan dari kalimat pengguna, bukan tombol bahasa (keputusan pemilik 2026-10-19).
     // Pesan yang tidak jelas bahasanya ("ok", "4 inch") tetap di bahasa percakapan.
-    const locale = replyLanguageOf(text) ?? row.language;
+    const locale =
+      replyLanguageOf(text, (t) => this.understanding?.entities.withoutNames(t) ?? t) ??
+      row.language;
     if (locale !== row.language) {
       await this.conversations.adoptLanguage(conversationId, actor, locale);
     }

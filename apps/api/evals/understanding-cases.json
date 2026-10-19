@@ -1101,7 +1101,8 @@
       "text": "pralon punya pipa ppr ga?",
       "topics": [],
       "topicsOnly": true,
-      "source": "audit 2026-10-19"
+      "source": "audit 2026-10-19",
+      "intent": "product_concept"
     },
     {
       "text": "gimana cara menyambung pipa hdpe?",
@@ -1149,6 +1150,15 @@
     {
       "text": "water supply pipes for a 7 storey office",
       "useCase": "multistorey_building_water",
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "elbow pvc 3 inch ada?",
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "kenapa pipa pvc bisa pecah?",
+      "topics": ["perawatan dan gangguan"],
       "source": "audit 2026-10-19"
     }
   ]
