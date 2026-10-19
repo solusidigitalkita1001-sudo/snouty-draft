@@ -413,6 +413,18 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-73 — Bahasa balasan dari kalimat pengguna, bukan tombol bahasa (P25-01, 2026-10-19)
+
+**Status:** diputuskan pemilik (2026-10-19): "jawaban bhs ing itu berdasarkan prompt user, bukan berdasarkan
+bilingual button" · **Blocks:** tidak ada
+**Konteks:** sejak Fase 15 bahasa adalah atribut percakapan yang ditetapkan dari tombol bahasa saat dibuat.
+**Default sementara:** bahasa dikenali per pesan; pesan yang bahasanya jelas memindahkan bahasa percakapan,
+pesan pendek atau netral ("ok", "pralon jis vs sni") tidak. Tombol bahasa tetap mengatur teks antarmuka dan
+menjadi bahasa awal sebelum pengguna menulis. Hanya Indonesia dan Inggris; bahasa lain dibaca sebagai yang
+paling dekat dari keduanya atau tidak diputuskan.
+**Yang perlu diputuskan pemilik:** apakah teks antarmuka (tombol, label panel) juga ikut berpindah mengikuti
+bahasa pengguna, atau tetap mengikuti tombol.
+
 ### OQ-72 — Fitur akun ala Claude: proyek, sematan, tautan bagikan (Fase 24, 2026-10-19)
 
 **Status:** lingkup diputuskan pemilik (2026-10-19, AskUserQuestion): Proyek dengan catatan konteks, Pin,

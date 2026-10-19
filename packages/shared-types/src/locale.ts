@@ -1,10 +1,9 @@
 /**
  * Bahasa antarmuka dan jawaban (Fase 15, keputusan pemilik 2026-10-07: ID + EN penuh).
  *
- * Bahasa adalah atribut PERCAKAPAN, ditetapkan saat percakapan dibuat: label parameter yang
- * disalin ke state, pertanyaan klarifikasi, dan prosa yang tersimpan lahir dalam satu bahasa.
- * Mengganti bahasa di tengah percakapan akan mencampur keduanya — pengganti bahasa di UI
- * berlaku untuk percakapan BERIKUTNYA, dan percakapan lama tetap dalam bahasanya.
+ * Bahasa adalah atribut PERCAKAPAN. Nilai awalnya dari tombol bahasa UI; sejak P25-01 (keputusan
+ * pemilik 2026-10-19) setiap pesan pengguna yang bahasanya jelas memindahkannya — pengguna yang
+ * menulis dalam bahasa Inggris dijawab dalam bahasa Inggris, apa pun posisi tombolnya.
  */
 export const LOCALES = ['id', 'en'] as const;
 export type Locale = (typeof LOCALES)[number];

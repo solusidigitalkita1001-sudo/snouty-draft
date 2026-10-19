@@ -205,3 +205,16 @@ describe('sematan dan proyek di MySQL (P24-01/02, 0025)', () => {
     expect(await service.list(owner, { projectId })).toEqual([]);
   });
 });
+
+describe('bahasa percakapan di MySQL (P25-01)', () => {
+  it('bahasa tersimpan tanpa mengubah urutan riwayat', async () => {
+    const owner = { kind: 'user' as const, id: testId('user') };
+    const first = await service.create(owner, 'id');
+    const second = await service.create(owner, 'id');
+    await service.appendUserMessage(second.id, owner, 'halo');
+    const before = (await service.list(owner, {})).map((r) => r.id);
+    await repository.setLanguage(first.id, 'en');
+    expect((await service.find(first.id, owner)).language).toBe('en');
+    expect((await service.list(owner, {})).map((r) => r.id)).toEqual(before);
+  });
+});

@@ -89,6 +89,8 @@ export interface ConversationRepository {
   setPinned(id: string, pinned: boolean): Promise<void>;
   /** Pindahkan ke proyek atau lepas dari proyek (`null`) — tidak mengubah urutan riwayat. */
   setProject(id: string, projectId: string | null): Promise<void>;
+  /** Bahasa balasan terkini, dari kalimat pengguna (P25-01) — tidak mengubah urutan riwayat. */
+  setLanguage(id: string, language: Locale): Promise<void>;
 
   softDelete(id: string): Promise<void>;
   /** Membatalkan soft delete ("Urungkan" di riwayat). */

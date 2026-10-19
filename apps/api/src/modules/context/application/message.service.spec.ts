@@ -24,6 +24,7 @@ function serviceWith(router: { route: () => Promise<unknown> }) {
     rename: vi.fn(async () => undefined),
     appendUserMessage: vi.fn(async () => undefined),
     projectContext: vi.fn(async () => null),
+    adoptLanguage: vi.fn(async () => undefined),
     appendAssistantMessage: vi.fn(async () => undefined),
   };
   const store = { current: vi.fn(async () => null), append: vi.fn(async () => undefined) };
@@ -234,6 +235,7 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
       rename: vi.fn(async () => undefined),
       appendUserMessage: vi.fn(async () => undefined),
       projectContext: vi.fn(async () => null),
+      adoptLanguage: vi.fn(async () => undefined),
       appendAssistantMessage: vi.fn(async (_id: string, text: string) => {
         assistant.push(text);
         rows.push({ role: 'assistant', text });
@@ -497,6 +499,7 @@ describe('MessageService — perencana giliran (P16-29)', () => {
       rename: vi.fn(async () => undefined),
       appendUserMessage: vi.fn(async () => undefined),
       projectContext: vi.fn(async () => null),
+      adoptLanguage: vi.fn(async () => undefined),
       appendAssistantMessage: vi.fn(async () => undefined),
     };
     const store = {
@@ -566,6 +569,7 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
       rename: vi.fn(async () => undefined),
       appendUserMessage: vi.fn(async () => undefined),
       projectContext: vi.fn(async () => null),
+      adoptLanguage: vi.fn(async () => undefined),
       appendAssistantMessage: vi.fn(async () => undefined),
     };
     const store = { current: vi.fn(async () => ({ state })), append: vi.fn(async () => ({})) };
@@ -691,5 +695,32 @@ describe('MessageService — catatan proyek (P24-02)', () => {
     conversations.find.mockResolvedValueOnce({ title: 'Rumah 2 lantai' } as never);
     await service.handle('C'.repeat(26), ACTOR, 'jadi 3 lantai', 'x');
     expect(conversations.projectContext).not.toHaveBeenCalled();
+  });
+});
+
+describe('MessageService — bahasa balasan dari kalimat pengguna (P25-01)', () => {
+  const unreachable = () => Promise.reject(new LlmUnavailableError(503));
+
+  it('kalimat Inggris di percakapan berbahasa Indonesia: percakapan pindah ke bahasa Inggris', async () => {
+    const { service, conversations } = serviceWith({ route: unreachable });
+    conversations.find.mockResolvedValueOnce({ title: null, language: 'id' } as never);
+    await service.handle('C'.repeat(26), ACTOR, 'what sizes of hdpe pipe do you have?', 'x');
+    expect(conversations.adoptLanguage).toHaveBeenCalledWith('C'.repeat(26), ACTOR, 'en');
+  });
+
+  it('kalimat Indonesia di percakapan berbahasa Inggris: kembali ke bahasa Indonesia', async () => {
+    const { service, conversations } = serviceWith({ route: unreachable });
+    conversations.find.mockResolvedValueOnce({ title: 'House', language: 'en' } as never);
+    await service.handle('C'.repeat(26), ACTOR, 'ukuran pipa hdpe ada apa aja?', 'x');
+    expect(conversations.adoptLanguage).toHaveBeenCalledWith('C'.repeat(26), ACTOR, 'id');
+  });
+
+  it('bahasanya sama atau tidak jelas: bahasa percakapan tidak diubah', async () => {
+    const { service, conversations } = serviceWith({ route: unreachable });
+    conversations.find.mockResolvedValueOnce({ title: 'House', language: 'en' } as never);
+    await service.handle('C'.repeat(26), ACTOR, 'ok', 'x');
+    conversations.find.mockResolvedValueOnce({ title: 'House', language: 'en' } as never);
+    await service.handle('C'.repeat(26), ACTOR, 'can I use PVC for hot water?', 'x');
+    expect(conversations.adoptLanguage).not.toHaveBeenCalled();
   });
 });

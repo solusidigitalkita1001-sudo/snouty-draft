@@ -75,6 +75,15 @@ export class ConversationService {
     await this.repository.setPinned(id, pinned);
   }
 
+  /**
+   * Bahasa balasan mengikuti kalimat pengguna (P25-01): disimpan supaya kartu jawaban, judul, dan
+   * laporan setelah giliran ini memakai bahasa yang sama dengan balasannya.
+   */
+  async adoptLanguage(id: string, actor: ConversationOwner, language: Locale): Promise<void> {
+    await this.owned(id, actor);
+    await this.repository.setLanguage(id, language);
+  }
+
   /** Pindahkan ke proyek milik aktor, atau lepas dari proyek (`null`) (P24-02). */
   async moveToProject(
     id: string,

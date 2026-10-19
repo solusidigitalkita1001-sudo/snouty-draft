@@ -119,6 +119,13 @@ export class MysqlConversationRepository implements ConversationRepository {
       .where(eq(conversations.id, id));
   }
 
+  async setLanguage(id: string, language: Locale): Promise<void> {
+    await this.database.db
+      .update(conversations)
+      .set({ language, updatedAt: sql`updated_at` })
+      .where(eq(conversations.id, id));
+  }
+
   async setProject(id: string, projectId: string | null): Promise<void> {
     await this.database.db
       .update(conversations)

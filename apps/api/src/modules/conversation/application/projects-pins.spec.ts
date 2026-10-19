@@ -57,6 +57,9 @@ function fakes() {
     async setPinned(id, pinned) {
       rows.set(id, { ...rows.get(id)!, pinnedAt: pinned ? tick() : null });
     },
+    async setLanguage(id, language) {
+      rows.set(id, { ...rows.get(id)!, language });
+    },
     async setProject(id, projectId) {
       rows.set(id, { ...rows.get(id)!, projectId });
     },
@@ -189,5 +192,17 @@ describe('proyek (P24-02)', () => {
     expect(await conversationService.projectContext(outside.id)).toBeNull();
     await projectService.update(project.id, alice.id, { notes: null });
     expect(await conversationService.projectContext(inside.id)).toBeNull();
+  });
+});
+
+describe('bahasa percakapan (P25-01)', () => {
+  it('pemilik mengganti bahasa balasan; percakapan orang lain NOT_FOUND', async () => {
+    const { conversationService } = fakes();
+    const row = await conversationService.create(alice, 'id');
+    await conversationService.adoptLanguage(row.id, alice, 'en');
+    expect((await conversationService.find(row.id, alice)).language).toBe('en');
+    await expect(conversationService.adoptLanguage(row.id, bob, 'id')).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   });
 });

@@ -1899,6 +1899,19 @@ sidebar dengan halamannya sendiri. Belum ada desain — OQ-72.
       atas bila ruang di bawah kurang, dan menutup saat digulir. Diverifikasi di produksi (mode gelap, baris terbawah).
 - [ ] ✋ CHECKPOINT Fase 24 — pemilik mencoba proyek, sematan, dan tautan bagikan di produksi.
 
+## Phase 25 — Bahasa balasan mengikuti kalimat pengguna (19 Okt 2026)
+
+Pemilik 2026-10-19: "harusnya jawaban bhs ing itu berdasarkan prompt user, bukan berdasarkan bilingual
+button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan dibuat.
+
+- [x] P25-01 Setiap pesan dikenali bahasanya oleh model n-gram tinyld yang dibatasi ke Indonesia/Inggris — bukan
+      daftar kata atau kalimat. Bila jelas, balasan memakai bahasa itu dan `conversations.language` ikut diganti
+      (tanpa mengubah urutan riwayat), sehingga kartu jawaban, judul, dan laporan setelahnya sebahasa. Bila tidak
+      jelas ("ok", "pralon jis vs sni"), bahasa percakapan tetap. Tombol bahasa kini hanya bahasa antarmuka dan
+      bahasa awal. Pustaka dipilih dari tiga calon lewat `apps/api/evals/reply-language-cases.json` (95 kalimat
+      berlabel): franc salah membaca "pralon itu apa?" sebagai Inggris, eld salah 22 kalimat; tinyld tidak salah
+      bahasa dan memutuskan ≥ 90%. Kalimat yang salah dikenali di produksi ditambahkan ke berkas itu. OQ-73.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |
@@ -1951,7 +1964,7 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | ENG-013 | Pressure class guidance: AW for pressurised clean water, D for drainage                                                           | board screen 08             | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-014 | "Belum tahu" defaults (`source → Toren atap`, `install → Air bersih`); see OQ-32                                                  | prototype                   | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-711 | Tank stand options: roof slab vs tank tower, residual pressure per support (P22-04)                                               | user feedback 2026-10-16    | REQUIRES_DOMAIN_VALIDATION | OQ-67        |
-| ENG-901 | Existing pipe capacity for the total load after an extension, compared by outer diameter (P23-01)                                | owner request 2026-10-19    | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
+| ENG-901 | Existing pipe capacity for the total load after an extension, compared by outer diameter (P23-01)                                 | owner request 2026-10-19    | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
 | ENG-902 | Tie-in to the existing pipe: solvent tee / threaded sockets + tee / HDPE tee / PPR fusion → technical team (P23-01)               | field practice              | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
 | ENG-903 | Partial replacement: replaced length ratio and rejoin couplings (P23-01)                                                          | field practice              | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
 | ENG-904 | Total load after an extension = existing + new (P23-01)                                                                           | owner request 2026-10-19    | REQUIRES_DOMAIN_VALIDATION | OQ-71        |

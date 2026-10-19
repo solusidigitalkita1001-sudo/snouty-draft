@@ -41,7 +41,7 @@ export interface ConversationSummary {
   readonly title: string | null;
   readonly status: ConversationStatus;
   readonly stage: ConversationStage;
-  /** Bahasa percakapan (Fase 15), ditetapkan saat dibuat. */
+  /** Bahasa percakapan (Fase 15): awalnya dari UI, lalu mengikuti kalimat pengguna (P25-01). */
   readonly language: Locale;
   /** Proyek pengelompok (P24-02); `null` = tanpa proyek. Respons lama tidak membawanya. */
   readonly projectId?: string | null;

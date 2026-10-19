@@ -42,6 +42,7 @@ import {
 import { familiesInMessage, previousRange } from './product-range.js';
 import { conversationTitle } from '../domain/conversation-title.js';
 import { socialKind, socialReply } from '../domain/social.js';
+import { replyLanguageOf } from '../domain/reply-language.js';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import { productFaqSystemPrompt } from '../../ai/application/prompts.js';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
@@ -149,13 +150,20 @@ export class MessageService {
     const row = await this.conversations.find(conversationId, actor);
     await this.conversations.appendUserMessage(conversationId, actor, text);
 
+    // Bahasa balasan dari kalimat pengguna, bukan tombol bahasa (keputusan pemilik 2026-10-19).
+    // Pesan yang tidak jelas bahasanya ("ok", "4 inch") tetap di bahasa percakapan.
+    const locale = replyLanguageOf(text) ?? row.language;
+    if (locale !== row.language) {
+      await this.conversations.adoptLanguage(conversationId, actor, locale);
+    }
+
     // Judul dari pesan pertama: potongan pesannya dipasang SEKARANG (instan), lalu model
     // memperhalusnya di latar — judul tidak boleh menahan jawaban (di CPU, satu panggilan
     // judul pernah 57 detik rata-rata). Riwayat memuat ulang setelah giliran selesai, jadi
     // judul model terlihat paling lambat pada pembukaan berikutnya.
     if (row.title === null || row.title === undefined) {
       await this.conversations.rename(conversationId, actor, fallbackTitle(text));
-      this.refineTitleInBackground(conversationId, actor, text, row.language);
+      this.refineTitleInBackground(conversationId, actor, text, locale);
     }
 
     const messageId = ulid();
@@ -179,10 +187,10 @@ export class MessageService {
         now,
         messageId,
         emit,
-        row.language,
+        locale,
         mode,
       );
-      await this.retitle(conversationId, actor, row.title ?? null, row.language);
+      await this.retitle(conversationId, actor, row.title ?? null, locale);
       return events;
     } catch (error) {
       // Model terkonfigurasi tetapi tidak terjangkau (kunci ditolak, limit habis,
