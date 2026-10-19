@@ -1886,7 +1886,17 @@ sidebar dengan halamannya sendiri. Belum ada desain — OQ-72.
       di area utama (nama, catatan, Konsultasi baru di proyek ini, daftar konsultasi, hapus dengan konfirmasi);
       chip "Proyek: …" di layar sambutan; tombol Bagikan di layar solusi (tamu → register-gate) dengan pop-up
       buat/salin/cabut. Tes: unit service (fake), MySQL pin/proyek (CI), komponen web.
-- [ ] P24-05 Manual book v2: daftar isi terisi dan tangkapan layar produksi, termasuk fitur Fase 24.
+- [x] P24-05 Manual book v2 (31 tangkapan layar produksi, daftar isi diperbarui oleh Word, ekspor PDF) dan BRD/PRD/FRD
+      v2 dengan fitur Fase 24 — di Downloads pemilik, tidak di repo. Tur tangkapan layar menemukan dan memperbaiki:
+      (1) regresi Fase 23 — kartu "Yang sudah saya pahami" dan panel kebutuhan menampilkan "Jenis pekerjaan / Bahan
+      pipa lama: Belum diisi" untuk rumah bangun baru (baris renovasi kini butuh jenis pekerjaan yang tersurat);
+      (2) nilai mentah "renovation" di kartu; (3) "ukuran pipa hdpe ada apa aja?" dijawab sebagai konsep karena aspek
+      ukuran tidak dikenali — contoh ditambahkan ke `product-aspect.json`, eval tetap lolos; (4) dialog bagikan tidak
+      menutup dengan Escape setelah fokus lepas; (5) konsultasi tersemat yang sedang dibuka pindah ke RIWAYAT;
+      (6) bilah bawah ponsel memecah tiga tombol menjadi dua baris.
+- [x] P24-06 Menu ⋯ baris sidebar terpotong dan tertimpa baris lain di mode gelap (laporan pemilik 2026-10-19, "apa ini?
+      ayolah"): menu kini dirender lewat portal ke `document.body` dengan posisi tetap terhadap tombolnya, membuka ke
+      atas bila ruang di bawah kurang, dan menutup saat digulir. Diverifikasi di produksi (mode gelap, baris terbawah).
 - [ ] ✋ CHECKPOINT Fase 24 — pemilik mencoba proyek, sematan, dan tautan bagikan di produksi.
 
 ## Design Coverage
