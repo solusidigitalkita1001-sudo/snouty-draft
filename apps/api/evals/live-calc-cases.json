@@ -313,6 +313,13 @@
           "matches": "0,25 l/s"
         }
       ]
+    },
+    {
+      "id": "C-19",
+      "category": "rumah — kamar mandi belum diketahui",
+      "messages": ["rumah 2 lantai pakai toren atap, instalasi air bersih"],
+      "expect": "Jumlah kamar mandi \"Belum tahu\": tidak dihitung sebagai 0 kamar mandi; analisis VALIDATION_FAILED (dulu \"1 titik air\").",
+      "expectError": "VALIDATION_FAILED"
     }
   ]
 }

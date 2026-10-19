@@ -394,6 +394,41 @@ export class AnalysisService {
       ]);
     }
 
+    // Data inti rumah yang belum diketahui tidak diganti nol: dulu "kamar mandi: Belum tahu" dihitung
+    // 0 kamar mandi dan solusinya "1 titik air" (simulasi 2026-10-19). Nol yang DISEBUT tetap sah.
+    const missingCore = [
+      ...(state.building.floors.value === null
+        ? [
+            {
+              parameter: 'building_floors' as const,
+              id: 'jumlah lantai',
+              en: 'the number of floors',
+            },
+          ]
+        : []),
+      // Tempat ibadah dan toilet umum dihitung dari kran wudhu/alat, bukan kamar mandi.
+      ...(state.fixtures.bathrooms.value === null &&
+      state.building.type.value !== 'place_of_worship' &&
+      state.building.type.value !== 'public_building'
+        ? [
+            {
+              parameter: 'bathrooms' as const,
+              id: 'jumlah kamar mandi',
+              en: 'the number of bathrooms',
+            },
+          ]
+        : []),
+    ];
+    if (missingCore.length > 0) {
+      throw new CaseInputInvalidError(
+        missingCore.map((m) => ({
+          parameter: m.parameter,
+          message: `Ukuran pipanya baru bisa dihitung kalau ${m.id} diketahui.`,
+          messageEn: `The pipe size can only be worked out once ${m.en} is known.`,
+        })),
+      );
+    }
+
     // --- Tahap 2: aturan teknik ---
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const solution = computeSolution(solutionInputFrom(state), locale, overridesOf(state));
