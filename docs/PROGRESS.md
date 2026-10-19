@@ -1963,6 +1963,23 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       → daftar ukuran (sempat gagal diam-diam di produksi karena perbandingan inci vs mm melempar); "kalau yang 3/4?"
       dijawab tabel diameter → tee PVC 3/4"; tee HDPE 110 x 110 dianggap reducer. Hasil akhir 48/48. Alat diagnosis
       `understanding.probe.spec.ts` (opt-in `PROBE=`) jadi permanen. Berikutnya: simulasi perhitungan.
+- [x] P25-05 Simulasi test case perhitungan (pemilik 2026-10-19: "gas"). `evals/live-calc-cases.json` (17 kasus: rumah
+      toren/PDAM/booster/kos, pembuangan, gedung bertingkat, sumur, air hujan, irigasi, kolam, cluster, transfer,
+      renovasi ganti semua dan perluasan, bahasa Inggris, dua kasus "Belum tahu") dijalankan
+      `scripts/live-calc-eval.mjs`: pesan → kartu klarifikasi → analisis → JSON rekomendasi, dengan aturan global (tanpa
+      VERIFIED, produk katalog nyata, kuantitas BOM positif kecuali baris pending, tanpa NaN/metatext). Angka diperiksa
+      tangan: 11 titik / 12,6 WSFU / 1,03 l/s Hunter; panjang pipa + 10 % ÷ 4 m per batang; gedung 400 orang × 150 l
+      = 60 m³, 3,33 l/s, head 34,16 m, 1,12 kW; air hujan 0,6 × 120 × 150 / 3,6e6 = 3 l/s; kolam 160 m³ / 3 jam.
+      Putaran 1: 2/15 — temuan dan perbaikan: (1) lima kasus teknis "Datanya sudah cukup" lalu analisis gagal
+      "layanan tidak tersedia" karena "Belum tahu" tercatat diasumsikan tanpa nilai → profil kasus `unknownDefaults`
+      (pompa mengisi tandon: `TANK_FILL_FLOW_0_25LS`, tercatat di hasil), parameter kritis lain tetap ditanya
+      dengan penjelasan, analisis menjawab VALIDATION_FAILED dan web menampilkan "Hitungannya butuh beberapa angka
+      lagi" (dulu "pemahaman bahasa tidak tersedia"); galat analisis tak terduga kini dicatat di log; (2) "hitung pipa
+      pembuangannya juga" tidak terbaca (klitik -nya) → air bersih + pembuangan; (3) "tandon … setinggi 7 meter" tidak
+      dibaca dan tinggi tandon diam-diam 0 m (head 45,97 m) → dibaca, dan tanpa angkanya sumur tidak dihitung (head kini
+      52,97 m); (4) kalimat gedung panjang berbahasa Indonesia dijawab Inggris → franc boleh membatalkan tinyld pada
+      kalimat ≥ 8 kata. Hasil akhir: perhitungan 17/17, perpipaan 48/48, FAQ sales 19/19. OQ-74 mencatat default
+      dan yang perlu diputuskan (intensitas hujan dan tinggi tandon bersumber, makna "tambah N titik air").
 
 ## Design Coverage
 
