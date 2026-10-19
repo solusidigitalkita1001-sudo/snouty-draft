@@ -67,7 +67,10 @@ Tarik sekali: `docker compose --env-file .env.production -f deploy/docker-compos
 Model EMBEDDING untuk pemahaman pertanyaan (P16-11, `docs/AI_BEHAVIOR.md` §4a): `bge-m3` (±1,2 GB, 567M
 parameter; puluhan milidetik per kalimat di CPU, dan Ollama menjalankannya di runner terpisah dari 7B).
 Tarik sekali: `docker compose --env-file .env.production -f deploy/docker-compose.prod.yml exec ollama ollama pull bge-m3`,
-lalu `LLM_MODEL_EMBEDDING=bge-m3` di `.env.production`. Tanpa ini API tetap jalan, tetapi setiap pesan
+lalu `LLM_MODEL_EMBEDDING=bge-m3` di `.env.production`. Sejak P25-03 embedding dilayani service
+`ollama-embed` (profil `ollama`, volume model yang sama, `cpus: 1.5`, `EMBEDDING_BASE_URL` diset di compose):
+di Ollama yang sama dengan 7B, uji 20 pesan serentak 2026-10-19 mencatat tahap pemahaman sampai 73 s dan
+pertanyaan pengetahuan yang semestinya tanpa model ikut timeout. Tanpa embedding API tetap jalan, tetapi setiap pesan
 yang tidak terbaca parser nilai jatuh ke model generatif (40–170 s per klasifikasi). Contoh kalimat
 dan kosakata ada di `data/understanding/` (ikut ke image). Vektor contoh di-cache di volume
 `understanding-cache` (`UNDERSTANDING_CACHE_DIR`, compose): boot pertama menyandikan ±1.300 contoh —

@@ -67,6 +67,10 @@ services:
       STORAGE_PATH: /data/storage
       # Cache vektor contoh pemahaman (P16-11) di volume: rilis baru tidak menyandikan ulang.
       UNDERSTANDING_CACHE_DIR: /data/understanding-cache
+      # Embedding di Ollama-nya sendiri (P25-03): di Ollama yang sama dengan model chat, penyandian
+      # satu kalimat antre sampai 73 s saat ramai dan pertanyaan yang semestinya tanpa model ikut
+      # timeout. Model chat tetap di `ollama`.
+      EMBEDDING_BASE_URL: http://ollama-embed:11434/v1
     ports: ['127.0.0.1:${API_BIND_PORT:-3001}:3001']
     volumes: ['storage:/data/storage', 'understanding-cache:/data/understanding-cache']
     depends_on:
@@ -112,6 +116,20 @@ services:
       # Fase 15: giliran pertama setelah jeda 152 s, giliran berikutnya 10–30 s). 24 jam ≈ selalu.
       OLLAMA_KEEP_ALIVE: 24h
       OLLAMA_NUM_PARALLEL: '1'
+    volumes: ['ollama-data:/root/.ollama']
+
+  # Ollama khusus embedding (bge-m3) untuk pemahaman pertanyaan (P25-03, audit 2026-10-19). Memakai
+  # volume model yang sama — bge-m3 tidak diunduh ulang — tetapi antrean dan jatah CPU-nya sendiri,
+  # jadi penyandian ±0,3 s per kalimat tidak menunggu generasi 7B yang memakai seluruh core.
+  ollama-embed:
+    image: ollama/ollama
+    restart: unless-stopped
+    profiles: ['ollama']
+    cpus: 1.5
+    environment:
+      OLLAMA_KEEP_ALIVE: 24h
+      OLLAMA_NUM_PARALLEL: '4'
+      OLLAMA_MAX_LOADED_MODELS: '1'
     volumes: ['ollama-data:/root/.ollama']
 
   # Nginx di compose memegang 80/443 (nginx host nonaktif di server ini) dan juga melayani
