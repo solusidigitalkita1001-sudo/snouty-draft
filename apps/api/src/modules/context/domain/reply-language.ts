@@ -32,9 +32,16 @@ export function replyLanguageOf(
   const [best, second] = detectAll(signal, { only: ['id', 'en'] });
   if (!best || !isLocale(best.lang)) return null;
   if (second && second.accuracy >= best.accuracy) return null;
+  // franc hanya andal di kalimat panjang; di kalimat pendek ia sendiri sering salah ("how do you join
+  // pipe?" terbaca Indonesia), jadi pembatalannya hanya berlaku dari VETO_MIN_WORDS kata.
+  if (wordsIn(signal) < VETO_MIN_WORDS) return best.lang;
   const veto = francLocale(signal);
   return veto !== null && veto !== best.lang ? null : best.lang;
 }
+
+/** Kata (dua huruf atau lebih) setelah nilai dan nama disisihkan — batas pembatalan franc. */
+const VETO_MIN_WORDS = 8;
+const wordsIn = (signal: string) => signal.split(/\s+/).filter((w) => /\p{L}{2,}/u.test(w)).length;
 
 function francLocale(signal: string): Locale | null {
   const [top, runnerUp] = francAll(signal, { only: Object.keys(FRANC_LOCALE), minLength: 1 });
