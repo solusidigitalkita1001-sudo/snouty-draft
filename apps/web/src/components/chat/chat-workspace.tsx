@@ -992,6 +992,29 @@ export function ChatWorkspace() {
   );
   const historyList = (itemClass: string) =>
     otherHistory.map((item) => historyRow(item, itemClass));
+  const activePinned = conversationId !== null && pinnedIds.has(conversationId);
+  const activeRow = (
+    <div className={[styles.historyRow, lib.menuHost].join(' ')}>
+      <div className={styles.historyActive} aria-current="true">
+        <span className={styles.historyActiveTitle}>
+          {activeTitle ?? COPY.titleFor(null, null)}
+        </span>
+        <span className={styles.historyActiveStatus}>{activeStatus}</span>
+      </div>
+      {/* Hanya akun yang punya riwayat; percakapan tamu tidak tercantum di mana pun. */}
+      {history.kind === 'list' && conversationId !== null && (
+        <RowMenu
+          title={activeTitle ?? COPY.titleFor(null, null)}
+          pinned={pinnedIds.has(conversationId)}
+          projectId={activeSummary?.projectId ?? pendingProject?.id ?? null}
+          projects={projects}
+          onPin={(value) => togglePin(conversationId, value)}
+          onMove={(projectId) => moveConversation(conversationId, projectId)}
+          onDelete={() => removeConversation({ id: conversationId, title: activeTitle })}
+        />
+      )}
+    </div>
+  );
 
   const footerAvatar = (
     <span className={styles.footerAvatar} aria-hidden="true">
@@ -1077,11 +1100,12 @@ export function ChatWorkspace() {
                     setProjectView('new');
                   }}
                 />
-                {pinnedVisible.length > 0 && (
+                {(pinnedVisible.length > 0 || (inConversation && activePinned)) && (
                   <>
                     <div className={lib.sectionHead}>
                       <div className={styles.sidebarSection}>{LIB.pinnedTitle}</div>
                     </div>
+                    {inConversation && activePinned && activeRow}
                     {pinnedVisible.map((item) => historyRow(item, styles.historyItem!))}
                   </>
                 )}
@@ -1091,29 +1115,9 @@ export function ChatWorkspace() {
               <div className={styles.sidebarSection}>{COPY.historyTitle}</div>
             </div>
 
-            {/* Percakapan aktif: blok merah lembut + garis kiri merek, status mono merah. */}
-            {inConversation && (
-              <div className={[styles.historyRow, lib.menuHost].join(' ')}>
-                <div className={styles.historyActive} aria-current="true">
-                  <span className={styles.historyActiveTitle}>
-                    {activeTitle ?? COPY.titleFor(null, null)}
-                  </span>
-                  <span className={styles.historyActiveStatus}>{activeStatus}</span>
-                </div>
-                {/* Hanya akun yang punya riwayat; percakapan tamu tidak tercantum di mana pun. */}
-                {history.kind === 'list' && conversationId !== null && (
-                  <RowMenu
-                    title={activeTitle ?? COPY.titleFor(null, null)}
-                    pinned={pinnedIds.has(conversationId)}
-                    projectId={activeSummary?.projectId ?? pendingProject?.id ?? null}
-                    projects={projects}
-                    onPin={(value) => togglePin(conversationId, value)}
-                    onMove={(projectId) => moveConversation(conversationId, projectId)}
-                    onDelete={() => removeConversation({ id: conversationId, title: activeTitle })}
-                  />
-                )}
-              </div>
-            )}
+            {/* Percakapan aktif: blok merah lembut + garis kiri merek, status mono merah. Yang
+                disematkan tetap di bawah DISEMATKAN (P24-01). */}
+            {inConversation && !activePinned && activeRow}
 
             {history.kind === 'guest' && <p className={styles.historyGuest}>{COPY.historyGuest}</p>}
             {history.kind === 'list' && otherHistory.length === 0 && !inConversation && (

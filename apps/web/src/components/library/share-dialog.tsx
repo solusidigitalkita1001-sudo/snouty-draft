@@ -36,6 +36,15 @@ export function ShareDialog({
     return () => opener?.focus();
   }, [recommendationId]);
 
+  // Escape menutup walau fokus sudah lepas dari kartu (tombol yang baru diklik menjadi nonaktif).
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   const create = async () => {
     setBusy(true);
     setNotice(null);
