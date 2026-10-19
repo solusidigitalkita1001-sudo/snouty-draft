@@ -92,3 +92,14 @@ describe('baris renovasi (P23-03, regresi diperbaiki di P24)', () => {
     expect(paths).not.toContain('water.replacementLengthM');
   });
 });
+
+describe('renovasi tanpa jenis', () => {
+  it('nilai "renovation" tampil berlabel, bukan nilai mentah', () => {
+    const state = {
+      ...base,
+      water: { ...base.water, workType: tracked('renovation') },
+    } as unknown as RequirementState;
+    const row = requirementRows(state).find((r) => r.path === 'water.workType');
+    expect(row?.display).toBe('Renovasi (jenisnya belum disebut)');
+  });
+});

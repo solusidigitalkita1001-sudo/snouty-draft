@@ -266,10 +266,17 @@ function renovationRows(state: RequirementState): RequirementRow[] {
   if (!work || work.value === null) return [];
   const mode = work.value;
   const rows: RequirementRow[] = [
-    row('water.workType', 'Jenis pekerjaan', work, labelOf(WORK_TYPE), {
-      kind: 'select',
-      options: WORK_TYPE,
-    }),
+    // `renovation` = disebut renovasi tanpa jenisnya: bukan pilihan edit, tetapi tetap berlabel.
+    row(
+      'water.workType',
+      'Jenis pekerjaan',
+      work,
+      (v) => (v === 'renovation' ? 'Renovasi (jenisnya belum disebut)' : labelOf(WORK_TYPE)(v)),
+      {
+        kind: 'select',
+        options: WORK_TYPE,
+      },
+    ),
   ];
   if (mode === 'extend' && state.water.existingMainSize) {
     rows.push(
