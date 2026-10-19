@@ -87,6 +87,23 @@ yang diturunkan dari tabel entitlement (SPEC §33e). UI tidak pernah menuliskann
 | **`POST`** | **`/conversations/:id/messages`** | **mengembalikan `text/event-stream` — lihat §3**                              |
 | `POST`     | `/conversations/:id/save`         | "Simpan solusi" → status `SAVED`, memicu toast                                |
 
+### Proyek, sematan, tautan bagikan (Fase 24)
+
+| Metode   | Path                         | Catatan                                                                                                   |
+| -------- | ---------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `PATCH`  | `/conversations/:id`         | `{ title?, pinned?, projectId? }` — minimal satu; `pinned`/`projectId` butuh `CONVERSATION_HISTORY`       |
+| `GET`    | `/conversations?pinned=true` | yang disematkan, urut waktu disematkan; `?projectId=` memfilter proyek                                    |
+| `POST`   | `/conversations`             | `{ language?, projectId? }` — konsultasi baru di dalam proyek milik akun                                  |
+| `GET`    | `/projects`                  | proyek milik akun + `conversationCount`                                                                   |
+| `POST`   | `/projects`                  | `{ name, notes? }`                                                                                        |
+| `GET`    | `/projects/:id`              | proyek + `conversations`                                                                                  |
+| `PATCH`  | `/projects/:id`              | `{ name?, notes? }`                                                                                       |
+| `DELETE` | `/projects/:id`              | hapus lunak; konsultasinya dilepas, tetap di riwayat                                                      |
+| `POST`   | `/recommendations/:id/share` | pemilik; `{ token, createdAt }` — token hanya dikirim sekali; tautan lama dicabut                         |
+| `GET`    | `/recommendations/:id/share` | `{ active, createdAt }`                                                                                   |
+| `DELETE` | `/recommendations/:id/share` | cabut                                                                                                     |
+| `GET`    | `/shared/:token`             | publik, 120/jam per IP; `SharedSolution { title, sharedAt, recommendation, schematic }`; 404 bila dicabut |
+
 ### Kebutuhan
 
 | Metode  | Path                                           | Keterangan                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |

@@ -1861,6 +1861,34 @@ sok drat dari katalog. Dicatat sebagai OQ-71.
       hanya tampil bila beban total memang dihitung.
 - [ ] ✋ CHECKPOINT Fase 23 — uji langsung di produksi tiga mode untuk rumah dan SPAM; pemilik menilai.
 
+## Phase 24 — Fitur akun: proyek, sematan, tautan bagikan (19 Okt 2026)
+
+Pemilik 2026-10-19: "tambahin bbrp fitur dong untuk akun yang terdaftar yg dmn itu kaya claude: itu ada
+project, pin, dll" dan "manual booknya daftar isinya ngga ada, serta ngga ada gambar dokumentasinya".
+Pilihan pemilik (AskUserQuestion): Proyek + Pin + Bagikan tautan baca-saja; proyek sebagai bagian di
+sidebar dengan halamannya sendiri. Belum ada desain — OQ-72.
+
+- [x] P24-01 Sematan. Migration 0025: `conversations.pinned_at` (+ indeks). `PATCH /conversations/:id` menerima
+      `{ title?, pinned?, projectId? }` (minimal satu); sematan dan proyek digerbang `CONVERSATION_HISTORY`.
+      `GET /conversations?pinned=true` urut waktu disematkan; menyematkan tidak mengubah urutan riwayat
+      (`updated_at` ditulis apa adanya). Ringkasan percakapan membawa `projectId` dan `pinnedAt`.
+- [x] P24-02 Proyek. Tabel `projects` (pemilik akun, nama ≤ 80, catatan ≤ 2 000, hapus lunak) dan
+      `conversations.project_id`. `/projects` GET/POST, `/projects/:id` GET (dengan konsultasinya)/PATCH/DELETE
+      — akun saja, milik orang lain NOT_FOUND, tercatat di audit. `POST /conversations` menerima `projectId`.
+      Hapus proyek melepas konsultasinya (tetap di riwayat). Catatan proyek dibaca pada giliran pertama
+      konsultasi di proyek itu sebagai bagian cerita (pesan tersimpan tetap kalimat pengguna).
+- [x] P24-03 Tautan bagikan baca-saja. Tabel `share_links` (hash SHA-256 token 256-bit, satu tautan aktif per
+      solusi). `POST/GET/DELETE /recommendations/:id/share` (akun pemilik, audit); `GET /shared/:token` publik,
+      dibatasi 120/jam per IP, tanpa sesi tamu, tanpa percakapan dan data akun. Halaman web `/shared?t=…`
+      (noindex) memakai layar solusi dalam mode `shared`: tanpa skenario, perbaiki asumsi, dan tautan halaman skema.
+- [x] P24-04 Web. Sidebar akun: PROYEK (+ proyek baru) → DISEMATKAN → RIWAYAT; menu ⋯ per baris (Sematkan /
+      Lepas sematan, Pindahkan ke proyek, Keluarkan dari proyek, Hapus) menggantikan tombol hapus; halaman proyek
+      di area utama (nama, catatan, Konsultasi baru di proyek ini, daftar konsultasi, hapus dengan konfirmasi);
+      chip "Proyek: …" di layar sambutan; tombol Bagikan di layar solusi (tamu → register-gate) dengan pop-up
+      buat/salin/cabut. Tes: unit service (fake), MySQL pin/proyek (CI), komponen web.
+- [ ] P24-05 Manual book v2: daftar isi terisi dan tangkapan layar produksi, termasuk fitur Fase 24.
+- [ ] ✋ CHECKPOINT Fase 24 — pemilik mencoba proyek, sematan, dan tautan bagikan di produksi.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

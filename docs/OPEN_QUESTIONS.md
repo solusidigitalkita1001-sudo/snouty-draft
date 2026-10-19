@@ -413,6 +413,23 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-72 — Fitur akun ala Claude: proyek, sematan, tautan bagikan (Fase 24, 2026-10-19)
+
+**Status:** lingkup diputuskan pemilik (2026-10-19, AskUserQuestion): Proyek dengan catatan konteks, Pin,
+dan Bagikan tautan baca-saja; Duplikat konsultasi tidak dipilih; proyek tampil sebagai bagian PROYEK di
+sidebar dengan halamannya sendiri · **Blocks:** tidak ada — tampilan bisa diganti saat desainnya datang
+**Konteks:** pemilik: "tambahin bbrp fitur dong untuk akun yang terdaftar yg dmn itu kaya claude: itu ada
+project, pin, dll". Tidak ada keluaran Claude Design untuk layar ini.
+**Default sementara:** tanpa desain, dibangun hanya dari token dan pola yang sudah ada — baris riwayat dan
+label mono sidebar, kartu dan isian pop-up akun, tombol aksi tab solusi. Sidebar akun: Konsultasi Baru →
+PROYEK (+) → DISEMATKAN → RIWAYAT; menu ⋯ per baris (Sematkan, Pindahkan ke proyek, Hapus). Catatan proyek
+dibaca SNOUTY sebagai bagian cerita pada giliran pertama konsultasi baru di proyek itu (grounding tetap
+berlaku). Tautan bagikan: token 256-bit sekali tampil, disimpan hash SHA-256; satu tautan aktif per
+solusi; memuat ringkasan, produk, denah, material — tanpa percakapan dan data akun; percakapan dihapus →
+tautan mati; halaman /shared tidak diindeks.
+**Yang perlu diputuskan pemilik/desain:** tata letak final sidebar dan halaman proyek, apakah tautan perlu
+masa berlaku, apakah halaman tautan menampilkan merek toko/distributor.
+
 ### OQ-71 — Renovasi untuk semua kasus: cara sambung, sok, beban titik air lama (Fase 23, 2026-10-19)
 
 **Status:** default diterima pemilik (2026-10-19, tiga pilihan AskUserQuestion): tiga mode (ganti semua, ganti
