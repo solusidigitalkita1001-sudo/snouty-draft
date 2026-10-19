@@ -131,9 +131,14 @@ export {
   isCaseId,
 } from './cases/profiles.js';
 export type { CaseId, CaseProfile } from './cases/profiles.js';
-export { extractTechnicalContext } from './cases/extractor.js';
+export { extractTechnicalContext, renovationCue } from './cases/extractor.js';
 export type { ExtractedParameter } from './cases/extractor.js';
-export { MAX_QUESTIONS, caseReadiness, resolveMissingParameters } from './cases/missing.js';
+export {
+  MAX_QUESTIONS,
+  caseReadiness,
+  renovationParameters,
+  resolveMissingParameters,
+} from './cases/missing.js';
 export { caseInputIssues, CaseInputInvalidError } from './cases/validation.js';
 export {
   houseInputIssues,
@@ -225,6 +230,21 @@ export type {
   DrainageLoadResult,
 } from './rules/group-j-waste.js';
 export { ENG_801, ENG_802, ENG_803, GROUP_L } from './rules/group-l-worship.js';
+export { ENG_901, ENG_902, ENG_903, ENG_904, GROUP_M } from './rules/group-m-renovation.js';
+export type {
+  ExistingMaterial,
+  TieInFittingKind,
+  TieInMethod,
+  TieInResult,
+} from './rules/group-m-renovation.js';
+export {
+  computeRenovation,
+  existingMaterialOf,
+  outerDiameterMmOf,
+  renovationModeOf,
+  WORK_TYPE_MODE,
+} from './compute-renovation.js';
+export type { RenovationInput, RenovationMode, RenovationResult } from './compute-renovation.js';
 export type { WudhuDrainRow, WudhuRow } from './rules/group-l-worship.js';
 export { hasStepTitle, ruleStepTitle } from './rules/step-titles.js';
 export { stepFormula } from './rules/step-formulas.js';

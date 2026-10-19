@@ -135,7 +135,23 @@ export interface WaterState {
    * seperti `wellDepthM`.
    */
   readonly replaceExisting?: TrackedValue<boolean>;
+  /**
+   * Jenis pekerjaan renovasi (P23-03, pemilik 2026-10-19): `renovation` = disebut renovasi tanpa
+   * jenisnya → ditanya; selain itu menentukan apa yang dihitung. `replaceExisting: true` lama dibaca
+   * sebagai `replace_all`.
+   */
+  readonly workType?: TrackedValue<WorkType>;
+  /** Ukuran pipa utama lama (label ukuran, mis. `3/4"`) — cek kapasitas saat perluasan. */
+  readonly existingMainSize?: TrackedValue<string>;
+  readonly existingPipeMaterial?: TrackedValue<ExistingPipeMaterial>;
+  /** Titik air yang sudah terpasang (di luar yang baru) — beban total saat perluasan. */
+  readonly existingOutlets?: TrackedValue<number>;
+  /** Panjang pipa yang diganti (m) — penggantian sebagian. */
+  readonly replacementLengthM?: TrackedValue<number>;
 }
+
+export type WorkType = 'new' | 'replace_all' | 'replace_partial' | 'extend' | 'renovation';
+export type ExistingPipeMaterial = 'pvc' | 'galvanized' | 'hdpe' | 'ppr';
 
 /** Jalur bidang yang bisa dirujuk klarifikasi dan daftar informasi kurang. */
 export type RequirementFieldPath =
@@ -154,7 +170,12 @@ export type RequirementFieldPath =
   | 'water.installationType'
   | 'water.boosterPump'
   | 'water.wellDepthM'
-  | 'water.replaceExisting';
+  | 'water.replaceExisting'
+  | 'water.workType'
+  | 'water.existingMainSize'
+  | 'water.existingPipeMaterial'
+  | 'water.existingOutlets'
+  | 'water.replacementLengthM';
 
 /**
  * Empat field inti yang menggerakkan meter "KELENGKAPAN DATA" dan menahan
@@ -220,6 +241,11 @@ export interface TechnicalUseCase {
    * mis. `{ DEMAND_LPCD_150: 200 }`. Dipakai engine menggantikan nilai bakunya.
    */
   readonly assumptionOverrides?: Readonly<Record<string, number>>;
+  /**
+   * Pesan menyebut pekerjaan di instalasi yang ada ("renovasi", "pipa lama") tanpa jenisnya
+   * (P23-01) — jenis pekerjaannya ditanya, bukan ditebak. Hilang setelah `work_type` tercatat.
+   */
+  readonly renovationHinted?: true;
 }
 
 export type UseCaseState = IrrigationUseCase | TechnicalUseCase;

@@ -76,6 +76,8 @@ export type {
   SnapshotTrigger,
   WaterSource,
   WaterState,
+  WorkType,
+  ExistingPipeMaterial,
 } from './requirement.js';
 export { CORE_REQUIREMENT_FIELDS } from './requirement.js';
 export type {

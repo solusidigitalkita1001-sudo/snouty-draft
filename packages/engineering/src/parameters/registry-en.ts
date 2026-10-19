@@ -267,6 +267,58 @@ export const PARAMETER_ENGLISH: Readonly<Record<ParameterKey, ParameterEnglish>>
     questionEn: 'How many house/unit connections are there?',
     reasonEn: 'Peak demand of the network.',
   },
+  work_type: {
+    labelEn: 'Type of work',
+    questionEn:
+      'Is this a new build, a full pipe replacement, a partial replacement, or an extension of what is already installed?',
+    reasonEn:
+      'Decides what gets calculated: the whole system, the replaced segment, or the new part plus a check of the existing pipe.',
+    optionLabelsEn: ['New build', 'Replace all pipes', 'Partial replacement', 'Extension'],
+  },
+  existing_pipe_size: {
+    labelEn: 'Existing pipe size',
+    questionEn: 'What size is the existing main pipe?',
+    reasonEn: 'Checks whether the existing pipe still carries the total load after the extension.',
+    optionLabelsEn: [
+      '1/2"',
+      '3/4"',
+      '1"',
+      '1 1/4"',
+      '1 1/2"',
+      '2"',
+      '2 1/2"',
+      '3"',
+      '4"',
+      '63 mm',
+      '90 mm',
+      '110 mm',
+      '160 mm',
+      '200 mm',
+    ],
+  },
+  existing_pipe_material: {
+    labelEn: 'Existing pipe material',
+    questionEn: 'What is the existing pipe made of?',
+    reasonEn:
+      'Tie-in to the existing pipe: galvanized/steel pipe joins through a threaded socket, not glue.',
+    optionLabelsEn: ['PVC', 'Galvanized / steel', 'HDPE', 'PPR'],
+  },
+  existing_outlets: {
+    labelEn: 'Existing water points',
+    questionEn: 'How many water points are already installed (besides the new ones)?',
+    reasonEn: 'Total load after the extension, for the existing pipe check.',
+  },
+  existing_connections: {
+    labelEn: 'Connections already served',
+    questionEn:
+      'How many connections/units does the existing network already serve (besides the new ones)?',
+    reasonEn: 'Total load after the extension, for the existing trunk check.',
+  },
+  replacement_length: {
+    labelEn: 'Length replaced',
+    questionEn: 'How many metres of pipe are being replaced?',
+    reasonEn: 'Pipe and joint quantities for the replaced segment only.',
+  },
   number_of_occupants: {
     labelEn: 'Number of occupants',
     questionEn: 'Roughly how many people use the building each day (residents, staff, visitors)?',

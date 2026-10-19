@@ -77,6 +77,11 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-801': { id: 'Debit puncak toilet umum', en: 'Peak demand, public restrooms' },
   'ENG-802': { id: 'Deret keran wudhu', en: 'Ablution tap rows' },
   'ENG-803': { id: 'Talang wudhu', en: 'Ablution trough drain' },
+  // Kelompok M — renovasi (P23-01)
+  'ENG-901': { id: 'Kapasitas pipa lama', en: 'Existing pipe capacity' },
+  'ENG-902': { id: 'Sambungan ke pipa lama', en: 'Tie-in to the existing pipe' },
+  'ENG-903': { id: 'Segmen yang diganti', en: 'Replaced segment' },
+  'ENG-904': { id: 'Beban total setelah perluasan', en: 'Total load after the extension' },
 };
 
 /** Judul langkah untuk sebuah aturan; aturan yang belum terdaftar → judul umum, bukan kodenya. */

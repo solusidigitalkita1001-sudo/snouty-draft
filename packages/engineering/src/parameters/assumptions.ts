@@ -1665,6 +1665,56 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description:
       'Jalur transfer dan riser diambil setinggi gedung; jalur datar belum ikut dihitung.',
   },
+
+  // ── Renovasi (P23-01, pemilik 2026-10-19; OQ-71) ──
+  {
+    id: 'RENOV_COUPLINGS_PER_SEGMENT_2',
+    parameter: 'replacement_length',
+    appliesTo: [],
+    condition: 'penggantian sebagian: segmen disambung kembali ke pipa lama',
+    value: 2,
+    unit: 'sok',
+    conditionEn: 'partial replacement: the segment is rejoined to the existing pipe',
+    descriptionEn:
+      'A replaced segment is rejoined to the existing pipe with one coupling at each end (2 per segment).',
+    reference: 'Praktik lapangan: satu sok di tiap ujung potongan',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description:
+      'Segmen yang diganti disambung kembali ke pipa lama dengan satu sok di tiap ujung (2 per segmen).',
+  },
+  {
+    id: 'RENOV_EXISTING_OUTLET_1_WSFU',
+    parameter: 'existing_outlets',
+    appliesTo: ['residential_clean_water'],
+    condition: 'perluasan rumah: titik air lama disebut jumlahnya, bukan jenisnya',
+    value: 1,
+    unit: 'WSFU per titik',
+    conditionEn: 'house extension: the existing outlets are given as a count, not by type',
+    descriptionEn:
+      'Each existing water point counts as 1 WSFU (a basin) when checking the existing main pipe against the total load.',
+    reference: 'Rata-rata beban titik air rumah (IPC E103.3(2): wastafel 0,5 – kloset 2,2)',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Tiap titik air lama dihitung 1 WSFU (setara wastafel) saat pipa utama lama dicek terhadap beban total.',
+  },
+  {
+    id: 'RENOV_REPLACE_WHOLE_ROUTE',
+    parameter: 'replacement_length',
+    appliesTo: [],
+    condition: 'penggantian sebagian tanpa panjang yang diganti disebut',
+    value: 100,
+    unit: '% jalur',
+    conditionEn: 'partial replacement without the replaced length given',
+    descriptionEn:
+      'Without the replaced length, the whole run is counted as replaced — a stand-in until the length is given.',
+    reference: 'Tanpa panjang segmen tidak ada dasar untuk menghitung sebagian',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Tanpa panjang yang diganti, seluruh jalur dihitung diganti — sementara, sampai panjangnya disebut.',
+  },
 ];
 
 const BY_ID: ReadonlyMap<string, AssumptionDefinition> = new Map(ASSUMPTIONS.map((a) => [a.id, a]));

@@ -530,6 +530,30 @@ Kelompok K; ID-nya tidak dipakai ulang. ENG-003 v2: cabang dihitung per lantai (
 minimal satu cabang per lantai yang punya titik air). Hasil lama dikenali dari trace (`outdatedRules`)
 dan laporan mencetak stempel versi aturan (`rulesetStamp`). Dapur yang belum disebut dianggap satu (`HOUSE_KITCHEN_1`).
 
+### Kelompok M — Renovasi (Fase 23, pemilik 2026-10-19: "inget dari semua case yah")
+
+Lapisan di atas hitungan kasus mana pun (`computeRenovation`, `packages/engineering/src/compute-renovation.ts`):
+kasusnya tetap mengukur pipa untuk bagian yang dikerjakan; aturan ini menjawab yang hanya ada pada instalasi yang
+sudah terpasang. Parameter: `work_type` (Bangun baru / Ganti semua pipa / Ganti sebagian / Perluasan),
+`existing_pipe_size`, `existing_pipe_material`, `existing_outlets` / `existing_connections`,
+`replacement_length`. "Renovasi" tanpa jenis membuat jenis pekerjaannya ditanya, bukan ditebak.
+
+```
+ENG-901  kapasitas pipa lama (perluasan): cukup bila diameter luar pipa lama + 1 mm ≥ diameter luar ukuran yang
+         dibutuhkan beban total menurut aturan kasusnya (inci lewat tabel PRALON AW PROD/STD-04, mm = OD ISO 4427);
+         selisih dalam %. Kurang → jalur utama lama disebut diganti, panjangnya tidak diketahui → tidak masuk BOM.
+ENG-902  sambungan ke pipa lama: PVC → tee lem (reduksi bila cabang lebih kecil); galvanis/besi → potong, 2 sok
+         drat seukuran + tee; HDPE → tee HDPE; PPR → fitting fusi bukan lini Pralon → tim teknis; bahan tidak
+         disebut → tee, ditandai perlu dipastikan.
+ENG-903  penggantian sebagian: panjang = min(yang diganti, jalur); rasio = panjang ÷ jalur (1 bila jalur tidak
+         diketahui); sok penyambung RENOV_COUPLINGS_PER_SEGMENT_2; baris pipa BOM dikali rasio (dibulatkan ke atas).
+ENG-904  beban total perluasan = beban lama + beban baru (titik air atau sambungan) — satu trace untuk cek ENG-901.
+```
+
+Asumsi: RENOV_COUPLINGS_PER_SEGMENT_2, RENOV_REPLACE_WHOLE_ROUTE, RENOV_EXISTING_OUTLET_1_WSFU (rumah: titik air
+lama dihitung setara wastafel saat beban total dihitung ulang dengan ENG-701). Semua `REQUIRES_DOMAIN_VALIDATION`
+(OQ-71).
+
 ## 4. Tabel pelacak validasi
 
 Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja.

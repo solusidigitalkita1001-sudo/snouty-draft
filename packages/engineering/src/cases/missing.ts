@@ -32,6 +32,42 @@ export interface CaseReadinessInput {
   readonly profile: CaseProfile;
   readonly known: ReadonlySet<string>;
   readonly assumed: ReadonlySet<string>;
+  /** Nilai `work_type` yang tercatat (P23-01); kosong = belum disebut. */
+  readonly workType?: string | null;
+  /** Pesan menyebut renovasi tanpa jenisnya → `work_type` ditanya lebih dulu. */
+  readonly renovationHinted?: boolean;
+}
+
+/**
+ * Parameter renovasi yang relevan untuk sebuah jenis pekerjaan (P23-01): ditanya hanya bila
+ * pekerjaannya memang di instalasi yang ada — bangun baru tidak pernah ditanya pipa lamanya.
+ */
+export function renovationParameters(
+  profile: CaseProfile,
+  workType: string | null | undefined,
+  renovationHinted = false,
+): readonly { readonly key: ParameterKey; readonly importance: 'critical' | 'important' }[] {
+  switch (workType) {
+    case 'Ganti semua pipa':
+      return [{ key: 'existing_pipe_material', importance: 'important' }];
+    case 'Ganti sebagian':
+      return [
+        { key: 'replacement_length', importance: 'important' },
+        { key: 'existing_pipe_material', importance: 'important' },
+      ];
+    case 'Perluasan':
+      return [
+        { key: 'existing_pipe_size', importance: 'important' },
+        ...(profile.existingLoad
+          ? [{ key: profile.existingLoad, importance: 'important' as const }]
+          : []),
+        { key: 'existing_pipe_material', importance: 'important' },
+      ];
+    case 'Bangun baru':
+      return [];
+    default:
+      return renovationHinted ? [{ key: 'work_type', importance: 'critical' }] : [];
+  }
 }
 
 /** Kesiapan per keluaran yang dijanjikan profil (kebutuhan profil menimpa baku). */
@@ -75,7 +111,20 @@ export function resolveMissingParameters(
     .map((key) => ({ key, ...rank(key) }))
     .sort((a, b) => a.importance - b.importance || b.unlocks - a.unlocks);
 
-  return candidates.slice(0, max).map(({ key, importance }) => {
+  // Renovasi (P23-01): jenis pekerjaan yang belum jelas ditanya paling dulu; data pipa lama
+  // menyusul setelah parameter kritis kasusnya, sebelum parameter penting lainnya.
+  const renovation = renovationParameters(input.profile, input.workType, input.renovationHinted)
+    .filter(({ key }) => !known.has(key) && !input.assumed.has(key))
+    .map(({ key, importance }) => ({
+      key,
+      importance: importance === 'critical' ? -1 : 0.5,
+      unlocks: 0,
+    }));
+  const ordered = [...candidates, ...renovation].sort(
+    (a, b) => a.importance - b.importance || b.unlocks - a.unlocks,
+  );
+
+  return ordered.slice(0, max).map(({ key, importance }) => {
     const def = parameterDefinition(key);
     return {
       key,
@@ -85,7 +134,7 @@ export function resolveMissingParameters(
       labelEn: def.labelEn,
       questionEn: def.questionEn,
       ...(def.optionLabelsEn ? { optionLabelsEn: def.optionLabelsEn } : {}),
-      importance: importance === 0 ? 'critical' : importance === 1 ? 'important' : 'optional',
+      importance: importance <= 0 ? 'critical' : importance <= 1 ? 'important' : 'optional',
       unlocks: unlocksOf(key),
     };
   });

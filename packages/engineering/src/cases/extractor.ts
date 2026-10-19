@@ -305,6 +305,63 @@ export function extractTechnicalContext(
     },
   );
 
+  // ── Renovasi (P23-01): yang sudah terpasang dibaca lebih dulu supaya angkanya tidak jatuh ke
+  // panjang jalur, diameter baru, atau jumlah titik/sambungan baru. ──
+  const SIZE = String.raw`(\d+(?:[.,]\d+)?\s*mm|\d+\s*\d\/\d\s*(?:inch(?:es)?|inci|")|\d+\/\d\s*(?:inch(?:es)?|inci|")|\d+(?:[.,]\d+)?\s*(?:inch(?:es)?|inci|"))`;
+  const sizeLabel = (raw: string): string => {
+    const mm = /^(\d+(?:[.,]\d+)?)\s*mm$/i.exec(raw.trim());
+    if (mm) return `${mm[1]!.replace(',', '.')} mm`;
+    return `${raw
+      .replace(/\s*(inch(?:es)?|inci|")\s*$/i, '')
+      .replace(/\s+/g, ' ')
+      .trim()}"`;
+  };
+  take(
+    new RegExp(
+      `(?:pipa|pipe|main|induk|utama)\\D{0,16}?(?:lama|eksisting|existing|yang (?:sudah )?(?:ada|terpasang)|sekarang|old)\\D{0,16}?${SIZE}`,
+    ),
+    (m) => add('existing_pipe_size', sizeLabel(m[1]!), m[0]),
+  );
+  take(new RegExp(`(?:existing|old)\\s+(?:\\w+\\s+){0,2}?(?:pipe|main)\\D{0,10}?${SIZE}`), (m) =>
+    add('existing_pipe_size', sizeLabel(m[1]!), m[0]),
+  );
+  // 'existing 1" steel pipe': ukurannya mendahului kata pipanya.
+  take(new RegExp(`(?:existing|old)\\s+${SIZE}\\s*(?:\\w+\\s+)?(?:pipe|main)\\b`), (m) =>
+    add('existing_pipe_size', sizeLabel(m[1]!), m[0]),
+  );
+  take(
+    new RegExp(
+      `(?:diganti|ganti|mengganti|replac(?:e|ing))\\D{0,24}?(?:sepanjang|sekitar|about|of)?\\s*${NUM}\\s*${M}\\b`,
+    ),
+    (m) => add('replacement_length', num(m[1]!), m[0], 'm'),
+  );
+  take(
+    new RegExp(
+      `${NUM}\\s*${M}\\s*(?:yang )?(?:diganti|mau diganti|akan diganti|to be replaced|replaced|of pipe (?:is |to be )?replaced)`,
+    ),
+    (m) => add('replacement_length', num(m[1]!), m[0], 'm'),
+  );
+  take(
+    /(?:sudah ada|sudah terpasang|yang (?:sudah )?ada|existing|sekarang ada)\D{0,14}?(\d+)\s*(?:titik(?: air)?|outlets?|taps?|kran|keran)/,
+    (m) => add('existing_outlets', Number(m[1]), m[0], 'titik'),
+  );
+  take(
+    /(\d+)\s*(?:titik(?: air)?|outlets?|taps?|kran|keran)\s*(?:yang )?(?:sudah ada|sudah terpasang|lama|existing|sekarang)/,
+    (m) => add('existing_outlets', Number(m[1]), m[0], 'titik'),
+  );
+  take(
+    new RegExp(
+      String.raw`(?:sudah (?:melayani|ada|terpasang|dilayani)|yang (?:sudah )?ada|existing|already serv(?:es|ing))\D{0,14}?${NUM}\s*(?:sambungan|sr|unit|rumah|kk|connections?|houses?|homes?)\b`,
+    ),
+    (m) => add('existing_connections', num(m[1]!), m[0], 'sambungan'),
+  );
+  take(
+    new RegExp(
+      String.raw`${NUM}\s*(?:sambungan|sr|unit|rumah|kk|connections?|houses?|homes?)\s*(?:yang )?(?:sudah (?:ada|dilayani|terpasang)|lama|existing|already served)`,
+    ),
+    (m) => add('existing_connections', num(m[1]!), m[0], 'sambungan'),
+  );
+
   // ── Panjang jalur (setelah elevasi/sumur/jalan diambil) ──
   take(new RegExp(`${NUM}\\s*(km|kilomet(?:er|re)s?)\\b`), (m) =>
     add('route_length', num(m[1]!) * 1000, m[0], 'm'),
@@ -434,9 +491,31 @@ export function extractTechnicalContext(
   else if (/bergelombang|naik turun|undulating|rolling terrain|up and down/.test(whole))
     add('terrain', 'Bergelombang', 'bergelombang');
 
+  // Bahan pipa LAMA (renovasi, P23-01): "pipa lama galvanis", "pipa besi yang ada", "existing
+  // galvanized pipe" — bukan preferensi bahan untuk pipa baru.
+  const existingMaterial =
+    /(?:pipa|pipe)\s+(?:\w+\s+)?(?:lama|eksisting|existing|old|yang (?:sudah )?(?:ada|terpasang))[^,.;]{0,24}?\b(pvc|hdpe|ppr|galvanis|galvani[sz]ed|gip|besi|steel|iron)\b|(pvc|hdpe|ppr|galvanis|galvani[sz]ed|gip|besi|steel|iron)\s+(?:yang )?(?:sudah (?:ada|terpasang)|existing|terpasang|lama)\b|(?:existing|old)[^,.;]{0,14}?\b(pvc|hdpe|ppr|galvani[sz]ed|steel|iron)\s+(?:pipes?|main)\b|pipa\s+(besi|gip)\b/.exec(
+      whole,
+    );
+  if (existingMaterial) {
+    const name = (existingMaterial[1] ??
+      existingMaterial[2] ??
+      existingMaterial[3] ??
+      existingMaterial[4])!;
+    const label =
+      name === 'pvc'
+        ? 'PVC'
+        : name === 'hdpe'
+          ? 'HDPE'
+          : name === 'ppr'
+            ? 'PPR'
+            : 'Galvanis / besi';
+    add('existing_pipe_material', label, existingMaterial[0]);
+  }
+  const forNewPipe = existingMaterial ? whole.replace(existingMaterial[0], ' ') : whole;
   const material =
     /pipa\s+(pvc|hdpe|ppr|galvanis|gip)\b|(pvc|hdpe|ppr|galvanis)\s+(?:yang )?(?:sudah|existing|terpasang|lama)|(pvc|hdpe|ppr|galvani[sz]ed)\s+pipes?\b|existing\s+(pvc|hdpe|ppr|galvani[sz]ed)\b/.exec(
-      whole,
+      forNewPipe,
     );
   if (material) {
     const name = (material[1] ?? material[2] ?? material[3] ?? material[4])!;
@@ -455,5 +534,40 @@ export function extractTechnicalContext(
     add('traffic_load', 'Truk / berat', 'truk');
   else if (/\bmobil\b|\bcars?\b|light vehicles?/.test(whole)) add('traffic_load', 'Mobil', 'mobil');
 
+  // ── Jenis pekerjaan (P23-01): nilai enum dari kosakata, hanya bila modenya tersurat. "Renovasi"
+  // saja tidak cukup — itu isyarat (`renovationCue`) yang membuat jenis pekerjaannya ditanya. ──
+  const workType = workTypeOf(whole);
+  if (workType) add('work_type', workType.value, workType.evidence);
+
   return out;
+}
+
+const EXTEND =
+  /perluas|perluasan|\btambah(?:an)?\b|\bnambah\b|menambah|ditambah|\bextend(?:ing|ed)?\b|\bextension\b|\bexpan(?:d|sion)\b|\badd(?:ing)?\s+(?:a |an |\d+ |new )?(?:bathroom|outlet|tap|connection|point|branch|floor|kitchen|toilet)/;
+const PARTIAL =
+  /ganti sebagian|sebagian(?: pipa)?(?: yang)? diganti|\bsegmen\b|\bsegment\b|partial(?:ly)?\b|replace (?:a |the )?(?:section|segment|part|stretch)|(?:pipa|pipe)\D{0,20}?(?:bocor|rusak|pecah|leak(?:s|ing)?|burst|broken|cracked)|(?:bocor|rusak|pecah|leak(?:s|ing)?|burst|broken)\D{0,20}?(?:pipa|pipe)/;
+const REPLACE_ALL =
+  /ganti (?:semua|seluruh|total|semuanya)|(?:semua|seluruh|semuanya|total)\D{0,12}?(?:pipa|pipe)\D{0,12}?(?:diganti|ganti)|rehab(?:ilitasi)?\b|replace (?:all|every|the whole|the entire)|re-?pip(?:e|ing)\b|renovasi total|bongkar (?:semua|total)|ganti (?:instalasi|pipa)nya semua|ganti pipa lama|ganti pipanya/;
+
+function workTypeOf(whole: string): { readonly value: string; readonly evidence: string } | null {
+  const partial = PARTIAL.exec(whole);
+  if (partial) return { value: 'Ganti sebagian', evidence: partial[0] };
+  const extend = EXTEND.exec(whole);
+  if (extend) return { value: 'Perluasan', evidence: extend[0] };
+  const all = REPLACE_ALL.exec(whole);
+  if (all) return { value: 'Ganti semua pipa', evidence: all[0] };
+  return null;
+}
+
+/**
+ * Pesan menyebut pekerjaan di instalasi yang sudah ada ("renovasi", "pipa lama", "existing")
+ * tanpa jenisnya tersurat — jenis pekerjaannya ditanya, bukan ditebak.
+ */
+export function renovationCue(message: string): boolean {
+  const whole = ` ${message.toLowerCase()} `;
+  return (
+    /\brenov|\brehab|pipa lama|pipa (?:yang )?(?:sudah )?(?:ada|terpasang)|instalasi lama|instalasi (?:yang )?(?:sudah )?ada|yang sudah ada|existing|\bold pipes?\b|\bupgrade\b|\bganti\b|diganti|mengganti|\breplac/.test(
+      whole,
+    ) || workTypeOf(whole) !== null
+  );
 }

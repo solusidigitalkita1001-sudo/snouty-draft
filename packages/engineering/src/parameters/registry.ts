@@ -89,6 +89,13 @@ export type ParameterKey =
   | 'terrain_slope'
   | 'road_width'
   | 'installation_location'
+  // renovation (P23-01): jenis pekerjaan dan apa yang sudah terpasang
+  | 'work_type'
+  | 'existing_pipe_size'
+  | 'existing_pipe_material'
+  | 'existing_outlets'
+  | 'existing_connections'
+  | 'replacement_length'
   // fluid
   | 'fluid_type'
   | 'fluid_temperature'
@@ -647,6 +654,85 @@ const BASE_PARAMETERS: readonly ParameterBase[] = [
     'Ada berapa sambungan rumah/unit?',
     'Kebutuhan puncak jaringan.',
     { unit: 'sambungan' },
+  ),
+  // ── renovation (P23-01, pemilik 2026-10-19: renovasi untuk semua kasus) ──
+  // Nilai protokol `work_type` dipakai kode (`WORK_TYPE_MODE`) — mengubah teksnya = mengubah kode.
+  P(
+    'work_type',
+    'project',
+    'enum',
+    'Jenis pekerjaan',
+    'optional',
+    'Pekerjaannya bangun baru, ganti semua pipa, ganti sebagian, atau perluasan dari instalasi yang ada?',
+    'Menentukan apa yang dihitung: seluruh sistem, segmen yang diganti, atau bagian baru plus cek pipa lama.',
+    { options: ['Bangun baru', 'Ganti semua pipa', 'Ganti sebagian', 'Perluasan'] },
+  ),
+  P(
+    'existing_pipe_size',
+    'pipe',
+    'enum',
+    'Ukuran pipa lama',
+    'important',
+    'Pipa utama yang sudah ada ukurannya berapa?',
+    'Cek apakah pipa lama masih cukup untuk beban total setelah perluasan.',
+    {
+      options: [
+        '1/2"',
+        '3/4"',
+        '1"',
+        '1 1/4"',
+        '1 1/2"',
+        '2"',
+        '2 1/2"',
+        '3"',
+        '4"',
+        '63 mm',
+        '90 mm',
+        '110 mm',
+        '160 mm',
+        '200 mm',
+      ],
+    },
+  ),
+  P(
+    'existing_pipe_material',
+    'pipe',
+    'enum',
+    'Bahan pipa lama',
+    'important',
+    'Pipa lamanya bahan apa?',
+    'Sambungan ke pipa lama: pipa galvanis/besi disambung lewat sok drat, bukan dilem.',
+    { options: ['PVC', 'Galvanis / besi', 'HDPE', 'PPR'] },
+  ),
+  P(
+    'existing_outlets',
+    'network',
+    'number',
+    'Titik air yang sudah ada',
+    'important',
+    'Berapa titik air yang sudah terpasang sekarang (di luar yang baru)?',
+    'Beban total setelah perluasan untuk cek pipa lama.',
+    { unit: 'titik' },
+  ),
+  P(
+    'existing_connections',
+    'network',
+    'number',
+    'Sambungan yang sudah dilayani',
+    'important',
+    'Berapa sambungan/unit yang sudah dilayani jaringan lama (di luar yang baru)?',
+    'Beban total setelah perluasan untuk cek pipa induk lama.',
+    { unit: 'sambungan' },
+  ),
+  P(
+    'replacement_length',
+    'pipe',
+    'number',
+    'Panjang yang diganti',
+    'important',
+    'Berapa meter pipa yang diganti?',
+    'Jumlah pipa dan sambungan untuk segmen yang diganti saja.',
+    { unit: 'm' },
   ),
   P(
     'number_of_occupants',

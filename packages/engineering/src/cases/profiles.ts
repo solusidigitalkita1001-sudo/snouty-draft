@@ -46,11 +46,17 @@ export interface CaseProfile {
   readonly calculatorStatus: 'available' | 'pending';
   /** Parameter yang dianggap terpenuhi bila salah satu penggantinya diketahui. */
   readonly alternatives?: Partial<Record<ParameterKey, readonly ParameterKey[]>>;
+  /**
+   * Perluasan (P23-01): beban yang sudah dilayani instalasi lama, untuk cek kapasitas pipa lama
+   * terhadap beban total. Tanpa ini kapasitasnya tidak dicek dan solusi menyebutkannya.
+   */
+  readonly existingLoad?: 'existing_outlets' | 'existing_connections';
 }
 
 export const CASE_PROFILES: readonly CaseProfile[] = [
   {
     id: 'residential_clean_water',
+    existingLoad: 'existing_outlets',
     label: 'Air bersih rumah tinggal',
     labelEn: 'Clean water for houses',
     description: 'Distribusi air bersih di rumah/kos/ruko dari toren, pompa, atau PDAM.',
@@ -97,6 +103,7 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   },
   {
     id: 'multistorey_building_water',
+    existingLoad: 'existing_outlets',
     label: 'Air bersih gedung bertingkat',
     labelEn: 'Clean water for multi-storey buildings',
     description: 'Gedung ≥ 4 lantai: zonasi tekanan, riser, pompa transfer/booster.',
@@ -160,6 +167,7 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   },
   {
     id: 'residential_cluster',
+    existingLoad: 'existing_connections',
     label: 'Jaringan cluster perumahan',
     labelEn: 'Housing cluster network',
     description: 'Distribusi dari reservoir/sumur ke puluhan–ratusan sambungan rumah.',
@@ -356,6 +364,7 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   },
   {
     id: 'water_supply_network',
+    existingLoad: 'existing_connections',
     label: 'Jaringan air minum (SPAM)',
     labelEn: 'Drinking-water network (SPAM)',
     description:
@@ -387,6 +396,7 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   },
   {
     id: 'sewerage',
+    existingLoad: 'existing_connections',
     label: 'Jaringan air limbah (sewerage)',
     labelEn: 'Sewerage network',
     description: 'Pipa air limbah domestik gravitasi dari sambungan rumah ke IPAL atau pengolahan.',
