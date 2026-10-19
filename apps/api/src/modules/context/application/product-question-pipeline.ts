@@ -879,7 +879,9 @@ function smallestFirst(items: readonly Product[]): Product[] {
     const x = sizeOf(a);
     const y = sizeOf(b);
     if (x === null || y === null) return x === null ? (y === null ? 0 : 1) : -1;
-    return x.isLargerThan(y) ? 1 : y.isLargerThan(x) ? -1 : 0;
+    // Satuan berbeda tidak dibandingkan (PipeSize.compare melempar): inci dulu, lalu mm.
+    if (x.unit !== y.unit) return x.unit === 'in' ? -1 : 1;
+    return x.valueX1000 - y.valueX1000;
   });
 }
 

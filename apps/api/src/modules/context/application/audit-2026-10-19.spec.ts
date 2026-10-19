@@ -417,6 +417,8 @@ describe('simulasi test case 2026-10-19 — ukuran fitting', () => {
     tee('Tee Abu Ts 3/4"', ['3/4"']),
     tee('Tee Abu Ts 1/2"', ['1/2"']),
     tee('Tee Abu Ts 3/4" x 1/2"', ['3/4"', '1/2"']),
+    // Fitting PVC mencampur inci dan mm; dulu perbandingannya melempar galat di produksi.
+    tee('Ts.Tee - W 63 mm x 3/4"', ['63 mm', '3/4"']),
     elbow('Elbow Abu Ts 3/4"', ['3/4"']),
   ];
   /** Fake katalog yang juga menyaring kategori seperti query MySQL-nya. */
@@ -457,7 +459,7 @@ describe('simulasi test case 2026-10-19 — ukuran fitting', () => {
         productAspect: 'size_availability',
       }),
     );
-    expect(reply).toContain('Tee PVC di katalog Pralon tersedia ukuran 1/2", 3/4", 2"');
+    expect(reply).toContain('Tee PVC di katalog Pralon tersedia ukuran 1/2", 3/4", 2", 63 mm');
   });
 
   it('"kalau yang 3/4?" setelah tee PVC: tee 3/4" saja, bukan tabel diameter atau elbow', async () => {

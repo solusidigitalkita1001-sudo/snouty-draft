@@ -189,9 +189,9 @@ async function fittingSizes(
     }
   }
   if (found.size === 0 || matchedKind === null) return null;
-  const sizes = [...found.values()].sort((a, b) =>
-    a.isLargerThan(b) ? 1 : b.isLargerThan(a) ? -1 : 0,
-  );
+  // Urut per satuan (inci dulu, lalu mm): fitting PVC mencampur keduanya, dan membandingkan
+  // inci dengan mm melempar galat yang dulu ditelan — jawabannya jatuh ke jalur lain.
+  const sizes = PipeSize.sort([...found.values()]);
   const materials = fittings.map((f) => f.replace(/^fitting\s+/i, '')).join(en ? ' and ' : ' dan ');
   const what = `${matchedKind} ${materials}`;
   const list = sizes.map((s) => s.toString()).join(', ');

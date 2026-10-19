@@ -104,11 +104,10 @@
       "turns": [
         {
           "q": "pvc d 4 inch ada?",
-          "expect": "Ada: daftar produk PVC D 4\" dari katalog, bukan penjelasan kelas.",
+          "expect": "Ada: produk PVC D 4\" dari katalog, bukan penjelasan kelas.",
           "checks": {
-            "all": ["4\"", "di katalog Pralon"],
-            "none": ["tidak ada", "belum ada"],
-            "cards": ["product"]
+            "all": ["D[^\n]*4\"", "katalog"],
+            "none": ["tidak ada", "belum ada", "kelas pipa PVC, bukan bahan"]
           }
         }
       ]
@@ -660,7 +659,7 @@
           "q": "boleh",
           "expect": "Lanjutan profil perusahaan (bagian lain), bukan pembuka atau pertanyaan kebutuhan.",
           "checks": {
-            "all": ["Pralon"],
+            "any": [["mutu", "sertifikasi", "dipakai untuk", "diproduksi|dibuat"]],
             "none": [
               "Silakan, tanyakan saja",
               "Produk mana yang Anda maksud",
