@@ -62,6 +62,12 @@ export const RATE_LIMITS: Readonly<
  */
 export const AUTH_IP_LIMIT: RateLimit = { max: 10, windowSeconds: 15 * 60 };
 
+/**
+ * Membuka tautan bagikan (P24-03), per IP: cukup untuk tukang/toko membuka berulang, terlalu
+ * sedikit untuk menebak token 256-bit — walau tebakannya memang mustahil, permintaannya tetap biaya.
+ */
+export const SHARED_VIEW_IP_LIMIT: RateLimit = { max: 120, windowSeconds: 60 * 60 };
+
 export function limitFor(tier: Tier, dimension: RateDimension): RateLimit | null {
   return RATE_LIMITS[tier][dimension];
 }

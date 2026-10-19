@@ -35,6 +35,13 @@ import {
   type ProseCapableAi,
 } from './infrastructure/llm-prose-writer.js';
 import { RecommendationController } from './presentation/recommendation.controller.js';
+import { ShareController } from './presentation/share.controller.js';
+import { ShareService } from './application/share.service.js';
+import { SHARE_LINK_REPOSITORY, type ShareLinkRepository } from './domain/share-link.repository.js';
+import { shareLinkRepositoryProvider } from './infrastructure/mysql-share-link.repository.js';
+import { RequirementSnapshotStore } from '../context/application/requirement-snapshot.store.js';
+import { RateLimiter } from '../../shared/rate-limit/rate-limiter.js';
+import { RedisService } from '../../shared/redis/redis.service.js';
 
 const proseWriterProvider = {
   provide: PROSE_WRITER,
@@ -63,10 +70,42 @@ const analysisServiceProvider = {
   ) => new AnalysisService(catalog, repository, conversations, prose, catalogQuery),
 };
 
+/** Tautan bagikan baca-saja (P24-03). */
+const shareServiceProvider = {
+  provide: ShareService,
+  inject: [
+    SHARE_LINK_REPOSITORY,
+    RECOMMENDATION_REPOSITORY,
+    ConversationService,
+    RequirementSnapshotStore,
+    AnalysisService,
+  ],
+  useFactory: (
+    links: ShareLinkRepository,
+    recommendations: RecommendationRepository,
+    conversations: ConversationService,
+    snapshots: RequirementSnapshotStore,
+    analysis: AnalysisService,
+  ) => new ShareService(links, recommendations, conversations, snapshots, analysis),
+};
+
+const rateLimiterProvider = {
+  provide: RateLimiter,
+  inject: [RedisService],
+  useFactory: (redis: RedisService) => new RateLimiter(redis),
+};
+
 @Module({
   imports: [AiModule, ContextModule, ConversationModule, ProductCatalogModule],
-  controllers: [RecommendationController],
-  providers: [recommendationRepositoryProvider, proseWriterProvider, analysisServiceProvider],
+  controllers: [RecommendationController, ShareController],
+  providers: [
+    recommendationRepositoryProvider,
+    proseWriterProvider,
+    analysisServiceProvider,
+    shareLinkRepositoryProvider,
+    shareServiceProvider,
+    rateLimiterProvider,
+  ],
   exports: [analysisServiceProvider, recommendationRepositoryProvider],
 })
 export class RecommendationModule implements OnModuleInit {

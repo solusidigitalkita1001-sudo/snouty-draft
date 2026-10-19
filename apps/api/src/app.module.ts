@@ -72,9 +72,10 @@ export class AppModule implements NestModule {
     // pernah berjalan, tanpa satu pun galat. Ketahuan lewat probe terhadap
     // aplikasi yang berjalan, bukan lewat tes unit: tes unit memanggil `use()`
     // langsung dan tidak pernah menyentuh pencocokan rute.
+    // Tautan bagikan (P24-03) dibuka tanpa aktor: sesi tamu per kunjungan hanya menimbun baris.
     consumer
       .apply(GuestSessionMiddleware)
-      .exclude('health', 'internal/{*rest}')
+      .exclude('health', 'internal/{*rest}', 'shared/{*rest}')
       .forRoutes('{*rest}');
   }
 }
