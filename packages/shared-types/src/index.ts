@@ -52,6 +52,9 @@ export type {
   ConversationStage,
   ConversationStatus,
   ConversationSummary,
+  ProjectDetail,
+  ProjectSummary,
+  SharedSolution,
   MessageRole,
 } from './conversation.js';
 export { CONVERSATION_STATUS_LABELS } from './conversation.js';

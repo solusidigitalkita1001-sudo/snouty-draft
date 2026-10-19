@@ -7,7 +7,7 @@
  * naik ke atas.
  */
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, isNull, like, lt, type SQL, sql } from 'drizzle-orm';
+import { and, desc, eq, isNotNull, isNull, like, lt, type SQL, sql } from 'drizzle-orm';
 import type {
   AssistantCard,
   ConversationStage,
@@ -34,12 +34,18 @@ const MAX_LIMIT = 50;
 export class MysqlConversationRepository implements ConversationRepository {
   constructor(private readonly database: QueryRunner) {}
 
-  async create(row: { id: string; owner: ConversationOwner; language: Locale }): Promise<void> {
+  async create(row: {
+    id: string;
+    owner: ConversationOwner;
+    language: Locale;
+    projectId?: string | null;
+  }): Promise<void> {
     await this.database.db.insert(conversations).values({
       id: row.id,
       ownerKind: row.owner.kind,
       ownerId: row.owner.id,
       language: row.language,
+      projectId: row.projectId ?? null,
     });
   }
 
@@ -63,6 +69,19 @@ export class MysqlConversationRepository implements ConversationRepository {
     if (query.status !== undefined) conditions.push(eq(conversations.status, query.status));
     if (query.q !== undefined && query.q.trim() !== '') {
       conditions.push(like(conversations.title, `%${escapeLike(query.q.trim())}%`));
+    }
+    if (query.projectId !== undefined)
+      conditions.push(eq(conversations.projectId, query.projectId));
+    // Sematan diurut menurut waktu disematkan dan tidak berhalaman (jumlahnya kecil, dibatasi limit).
+    if (query.pinned === true) {
+      conditions.push(isNotNull(conversations.pinnedAt));
+      const pinned = await this.database.db
+        .select()
+        .from(conversations)
+        .where(and(...conditions))
+        .orderBy(desc(conversations.pinnedAt))
+        .limit(limit);
+      return pinned.map(toConversation);
     }
     if (query.cursor !== undefined) {
       conditions.push(lt(conversations.updatedAt, new Date(query.cursor)));
@@ -89,6 +108,21 @@ export class MysqlConversationRepository implements ConversationRepository {
     await this.database.db
       .update(conversations)
       .set({ status, ...(stage !== undefined ? { stage } : {}) })
+      .where(eq(conversations.id, id));
+  }
+
+  async setPinned(id: string, pinned: boolean): Promise<void> {
+    // `updated_at` ditulis ulang apa adanya: menyematkan bukan "menyentuh" percakapan.
+    await this.database.db
+      .update(conversations)
+      .set({ pinnedAt: pinned ? sql`CURRENT_TIMESTAMP(3)` : null, updatedAt: sql`updated_at` })
+      .where(eq(conversations.id, id));
+  }
+
+  async setProject(id: string, projectId: string | null): Promise<void> {
+    await this.database.db
+      .update(conversations)
+      .set({ projectId, updatedAt: sql`updated_at` })
       .where(eq(conversations.id, id));
   }
 
@@ -147,6 +181,8 @@ function toConversation(row: typeof conversations.$inferSelect): ConversationRow
     status: row.status as ConversationRow['status'],
     stage: row.stage as ConversationRow['stage'],
     language: isLocale(row.language) ? row.language : DEFAULT_LOCALE,
+    projectId: row.projectId,
+    pinnedAt: row.pinnedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deletedAt: row.deletedAt,

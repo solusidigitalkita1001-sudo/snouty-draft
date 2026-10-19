@@ -15,7 +15,12 @@
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type { AssistantCard, ConversationStatus } from '@snouty/shared-types';
 import { ulid } from '../../../shared/ulid.js';
-import { ConversationNotFoundError, EmptyMessageError } from '../domain/conversation.errors.js';
+import {
+  ConversationNotFoundError,
+  EmptyMessageError,
+  ProjectNotFoundError,
+} from '../domain/conversation.errors.js';
+import type { ProjectRepository } from '../domain/project.repository.js';
 import type {
   ConversationListQuery,
   ConversationOwner,
@@ -29,21 +34,71 @@ export interface ListFilter {
   readonly q?: string;
   readonly cursor?: string;
   readonly limit?: number;
+  readonly pinned?: boolean;
+  readonly projectId?: string;
 }
 
 const MAX_TITLE_LENGTH = 160;
 const MAX_MESSAGE_LENGTH = 8_000;
 
 export class ConversationService {
-  constructor(private readonly repository: ConversationRepository) {}
+  constructor(
+    private readonly repository: ConversationRepository,
+    /** Proyek (P24-02); tanpa ini konsultasi tidak bisa dimasukkan ke proyek. */
+    private readonly projects: ProjectRepository | null = null,
+  ) {}
 
   async create(
     owner: ConversationOwner,
     language: Locale = DEFAULT_LOCALE,
+    projectId: string | null = null,
   ): Promise<ConversationRow> {
+    if (projectId !== null) await this.ownedProject(projectId, owner);
     const id = ulid();
-    await this.repository.create({ id, owner, language });
+    await this.repository.create({ id, owner, language, projectId });
+    if (projectId !== null) await this.projects?.touch(projectId);
     return this.owned(id, owner);
+  }
+
+  /**
+   * Percakapan aktif TANPA pemeriksaan aktor — hanya untuk tautan bagikan (P24-03), yang
+   * otorisasinya adalah token itu sendiri. Dihapus = tidak ada.
+   */
+  async findForShare(id: string): Promise<ConversationRow | null> {
+    const row = await this.repository.findById(id);
+    return row === null || row.deletedAt !== null ? null : row;
+  }
+
+  /** Sematkan atau lepas sematan (P24-01) — hanya pemiliknya. */
+  async pin(id: string, actor: ConversationOwner, pinned: boolean): Promise<void> {
+    await this.owned(id, actor);
+    await this.repository.setPinned(id, pinned);
+  }
+
+  /** Pindahkan ke proyek milik aktor, atau lepas dari proyek (`null`) (P24-02). */
+  async moveToProject(
+    id: string,
+    actor: ConversationOwner,
+    projectId: string | null,
+  ): Promise<void> {
+    await this.owned(id, actor);
+    if (projectId !== null) {
+      await this.ownedProject(projectId, actor);
+      await this.projects?.touch(projectId);
+    }
+    await this.repository.setProject(id, projectId);
+  }
+
+  /**
+   * Catatan proyek sebuah konsultasi (P24-02): dibaca pipeline pesan sebagai konteks giliran
+   * pertama. `null` bila tanpa proyek, proyeknya dihapus, atau catatannya kosong.
+   */
+  async projectContext(id: string): Promise<{ name: string; notes: string } | null> {
+    const row = await this.repository.findById(id);
+    if (row === null || row.projectId === null || this.projects === null) return null;
+    const project = await this.projects.findById(row.projectId);
+    if (project === null || project.deletedAt !== null || project.notes === null) return null;
+    return { name: project.name, notes: project.notes };
   }
 
   async find(id: string, actor: ConversationOwner): Promise<ConversationRow> {
@@ -148,6 +203,14 @@ export class ConversationService {
       throw new ConversationNotFoundError(id);
     }
     return row;
+  }
+
+  private async ownedProject(projectId: string, actor: ConversationOwner): Promise<void> {
+    if (actor.kind !== 'user' || this.projects === null) throw new ProjectNotFoundError(projectId);
+    const project = await this.projects.findById(projectId);
+    if (project === null || project.deletedAt !== null || project.ownerId !== actor.id) {
+      throw new ProjectNotFoundError(projectId);
+    }
   }
 
   private async message(conversationId: string, messageId: string): Promise<MessageRow> {

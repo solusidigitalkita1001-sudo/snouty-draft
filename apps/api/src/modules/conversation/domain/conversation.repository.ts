@@ -30,6 +30,10 @@ export interface ConversationRow {
   readonly stage: ConversationStage;
   /** Bahasa percakapan (0019): jawaban model dan teks UI mengikutinya. */
   readonly language: Locale;
+  /** Proyek pengelompok (P24-02); `null` = tanpa proyek. */
+  readonly projectId: string | null;
+  /** Waktu disematkan (P24-01); `null` = tidak disematkan. */
+  readonly pinnedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly deletedAt: Date | null;
@@ -53,10 +57,19 @@ export interface ConversationListQuery {
   /** `updatedAt` ISO milik baris terakhir halaman sebelumnya. */
   readonly cursor?: string;
   readonly limit?: number;
+  /** `true` = hanya yang disematkan, urut waktu disematkan terbaru dulu (P24-01). */
+  readonly pinned?: boolean;
+  /** Hanya konsultasi di proyek ini (P24-02). */
+  readonly projectId?: string;
 }
 
 export interface ConversationRepository {
-  create(row: { id: string; owner: ConversationOwner; language: Locale }): Promise<void>;
+  create(row: {
+    id: string;
+    owner: ConversationOwner;
+    language: Locale;
+    projectId?: string | null;
+  }): Promise<void>;
 
   /** Termasuk yang soft-deleted TIDAK ikut — penghapusan harus terlihat terhapus. */
   findById(id: string): Promise<ConversationRow | null>;
@@ -71,6 +84,11 @@ export interface ConversationRepository {
    * tanpa tahap `SOLUSI` akan membuat header layar bertentangan dengan isinya.
    */
   updateStatus(id: string, status: ConversationStatus, stage?: ConversationStage): Promise<void>;
+
+  /** Sematkan / lepas sematan — tidak mengubah urutan "terbaru diperbarui" (P24-01). */
+  setPinned(id: string, pinned: boolean): Promise<void>;
+  /** Pindahkan ke proyek atau lepas dari proyek (`null`) — tidak mengubah urutan riwayat. */
+  setProject(id: string, projectId: string | null): Promise<void>;
 
   softDelete(id: string): Promise<void>;
   /** Membatalkan soft delete ("Urungkan" di riwayat). */

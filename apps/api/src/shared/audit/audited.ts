@@ -30,6 +30,12 @@ export const USER_AUDIT = {
   conversationSave: { action: 'conversation.save', entityType: 'conversation' },
   conversationDelete: { action: 'conversation.delete', entityType: 'conversation' },
   conversationRestore: { action: 'conversation.restore', entityType: 'conversation' },
+  // Fase 24: proyek dan tautan bagikan (P24-02/03).
+  projectCreate: { action: 'project.create', entityType: 'project' },
+  projectUpdate: { action: 'project.update', entityType: 'project' },
+  projectDelete: { action: 'project.delete', entityType: 'project' },
+  shareCreate: { action: 'share.create', entityType: 'recommendation' },
+  shareRevoke: { action: 'share.revoke', entityType: 'recommendation' },
   handoffCreate: { action: 'handoff.create', entityType: 'conversation' },
   reportCreate: { action: 'report.create', entityType: 'report' },
   reportRebuild: { action: 'report.rebuild', entityType: 'report' },

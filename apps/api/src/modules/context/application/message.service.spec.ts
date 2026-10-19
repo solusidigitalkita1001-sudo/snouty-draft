@@ -23,6 +23,7 @@ function serviceWith(router: { route: () => Promise<unknown> }) {
     messages: vi.fn(async () => []),
     rename: vi.fn(async () => undefined),
     appendUserMessage: vi.fn(async () => undefined),
+    projectContext: vi.fn(async () => null),
     appendAssistantMessage: vi.fn(async () => undefined),
   };
   const store = { current: vi.fn(async () => null), append: vi.fn(async () => undefined) };
@@ -232,6 +233,7 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
       messages: vi.fn(async () => rows),
       rename: vi.fn(async () => undefined),
       appendUserMessage: vi.fn(async () => undefined),
+      projectContext: vi.fn(async () => null),
       appendAssistantMessage: vi.fn(async (_id: string, text: string) => {
         assistant.push(text);
         rows.push({ role: 'assistant', text });
@@ -494,6 +496,7 @@ describe('MessageService — perencana giliran (P16-29)', () => {
       messages: vi.fn(async () => rows),
       rename: vi.fn(async () => undefined),
       appendUserMessage: vi.fn(async () => undefined),
+      projectContext: vi.fn(async () => null),
       appendAssistantMessage: vi.fn(async () => undefined),
     };
     const store = {
@@ -562,6 +565,7 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
       messages: vi.fn(async () => rows),
       rename: vi.fn(async () => undefined),
       appendUserMessage: vi.fn(async () => undefined),
+      projectContext: vi.fn(async () => null),
       appendAssistantMessage: vi.fn(async () => undefined),
     };
     const store = { current: vi.fn(async () => ({ state })), append: vi.fn(async () => ({})) };
@@ -661,5 +665,31 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     );
     await service.handle('C'.repeat(26), ACTOR, question, 'T');
     expect(planner.plan).not.toHaveBeenCalled();
+  });
+});
+
+describe('MessageService — catatan proyek (P24-02)', () => {
+  it('giliran pertama konsultasi di proyek: catatan ikut dipahami, pesan tersimpan tetap kalimat pengguna', async () => {
+    const route = vi.fn(() => Promise.reject(new LlmUnavailableError(503)));
+    const { service, conversations } = serviceWith({ route });
+    conversations.projectContext.mockResolvedValueOnce({
+      name: 'Rumah Bekasi',
+      notes: 'sumber air PDAM, pakai pipa PVC',
+    } as never);
+    await service.handle('C'.repeat(26), ACTOR, 'rumah 2 lantai 3 kamar mandi', 'x');
+    expect(conversations.appendUserMessage).toHaveBeenCalledWith(
+      'C'.repeat(26),
+      ACTOR,
+      'rumah 2 lantai 3 kamar mandi',
+    );
+    expect(JSON.stringify(route.mock.calls)).toContain('sumber air PDAM, pakai pipa PVC');
+  });
+
+  it('giliran berikutnya (sudah berjudul): catatan tidak dibaca ulang', async () => {
+    const route = vi.fn(() => Promise.reject(new LlmUnavailableError(503)));
+    const { service, conversations } = serviceWith({ route });
+    conversations.find.mockResolvedValueOnce({ title: 'Rumah 2 lantai' } as never);
+    await service.handle('C'.repeat(26), ACTOR, 'jadi 3 lantai', 'x');
+    expect(conversations.projectContext).not.toHaveBeenCalled();
   });
 });

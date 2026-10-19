@@ -4,6 +4,8 @@
 
 import type { AssistantCard } from './assistant-card.js';
 import type { Locale } from './locale.js';
+import type { Recommendation } from './recommendation.js';
+import type { AnySchematic } from './schematic.js';
 
 /** Diturunkan dari tag yang benar-benar muncul di desain (termasuk OQ-28). */
 export type ConversationStatus =
@@ -41,8 +43,36 @@ export interface ConversationSummary {
   readonly stage: ConversationStage;
   /** Bahasa percakapan (Fase 15), ditetapkan saat dibuat. */
   readonly language: Locale;
+  /** Proyek pengelompok (P24-02); `null` = tanpa proyek. Respons lama tidak membawanya. */
+  readonly projectId?: string | null;
+  /** Waktu disematkan (P24-01); `null` = tidak disematkan. */
+  readonly pinnedAt?: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
+}
+
+/** Proyek milik akun (P24-02): pengelompok konsultasi dengan catatan konteks. */
+export interface ProjectSummary {
+  readonly id: string;
+  readonly name: string;
+  readonly notes: string | null;
+  /** Hanya di daftar proyek. */
+  readonly conversationCount?: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface ProjectDetail extends ProjectSummary {
+  readonly conversations: readonly ConversationSummary[];
+}
+
+/** Solusi yang dibagikan lewat tautan baca-saja (P24-03): tanpa percakapan, tanpa data akun. */
+export interface SharedSolution {
+  readonly title: string | null;
+  readonly sharedAt: string;
+  readonly recommendation: Recommendation;
+  /** `null` bila skema tidak bisa dibentuk dari kebutuhan tersimpan. */
+  readonly schematic: AnySchematic | null;
 }
 
 export interface ConversationMessage {

@@ -162,11 +162,20 @@ export class MessageService {
 
     if (!this.ai) return llmUnavailable(messageId);
 
+    // Proyek (P24-02): catatan proyek (lokasi, sumber air, bahan) ikut dipahami pada giliran
+    // PERTAMA konsultasi di dalamnya, seperti pengguna menuliskannya di awal cerita. Pesan yang
+    // tersimpan tetap kalimat pengguna; grounding tetap berlaku karena catatannya ada di teks.
+    const project =
+      row.title === null || row.title === undefined
+        ? await this.conversations.projectContext(conversationId)
+        : null;
+    const understoodText = project ? `${project.notes}\n${text}` : text;
+
     try {
       const events = await this.answer(
         conversationId,
         actor,
-        text,
+        understoodText,
         now,
         messageId,
         emit,

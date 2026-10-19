@@ -185,3 +185,23 @@ describe('simpan solusi (P8-01)', () => {
     expect(after.stage).toBe('SOLUSI');
   });
 });
+
+describe('sematan dan proyek di MySQL (P24-01/02, 0025)', () => {
+  it('sematan tidak mengubah urutan riwayat; daftar sematan terpisah; proyek memfilter', async () => {
+    const owner = { kind: 'user' as const, id: testId('user') };
+    const first = await service.create(owner);
+    const second = await service.create(owner);
+    await service.appendUserMessage(second.id, owner, 'halo');
+    const before = (await service.list(owner, {})).map((r) => r.id);
+    await repository.setPinned(first.id, true);
+    expect((await service.list(owner, {})).map((r) => r.id)).toEqual(before);
+    const pinned = await service.list(owner, { pinned: true });
+    expect(pinned.map((r) => r.id)).toEqual([first.id]);
+    expect(pinned[0]!.pinnedAt).toBeInstanceOf(Date);
+    const projectId = testId('PROJ');
+    await repository.setProject(second.id, projectId);
+    expect((await service.list(owner, { projectId })).map((r) => r.id)).toEqual([second.id]);
+    await repository.setProject(second.id, null);
+    expect(await service.list(owner, { projectId })).toEqual([]);
+  });
+});

@@ -61,6 +61,10 @@ export const conversations = mysqlTable(
      * memakai katalog minggu depan.
      */
     catalogVersionId: char('catalog_version_id', { length: 26 }),
+    /** Proyek pengelompok (0025, P24-02); NULL = tanpa proyek. Tanpa FK: proyek dihapus lunak. */
+    projectId: char('project_id', { length: 26 }),
+    /** Disematkan di atas riwayat (0025, P24-01); NULL = tidak disematkan. */
+    pinnedAt: datetime('pinned_at', { fsp: 3 }),
 
     createdAt: createdAt(),
     updatedAt: datetime('updated_at', { fsp: 3 })
@@ -74,6 +78,8 @@ export const conversations = mysqlTable(
     // Bentuk query layar 12: riwayat milikku, terbaru dulu, difilter status.
     index('ix_conversations_owner_updated').on(t.ownerKind, t.ownerId, t.updatedAt),
     index('ix_conversations_status_updated').on(t.status, t.updatedAt),
+    index('ix_conversations_project').on(t.projectId, t.updatedAt),
+    index('ix_conversations_owner_pinned').on(t.ownerKind, t.ownerId, t.pinnedAt),
     check('ck_conversations_owner_kind', sql`\`owner_kind\` IN ('user','guest')`),
     check(
       'ck_conversations_status',
@@ -182,4 +188,26 @@ export const uploads = mysqlTable(
       sql`\`mime_type\` IN ('application/pdf','image/png','image/jpeg','image/webp')`,
     ),
   ],
+);
+
+/**
+ * Proyek (0025, P24-02, pemilik 2026-10-19): pengelompok konsultasi milik akun, dengan catatan
+ * (lokasi, sumber air, preferensi bahan) yang ikut dibaca sebagai konteks konsultasi baru di dalamnya.
+ * Hanya akun — tamu tidak punya riwayat, jadi tidak punya proyek.
+ */
+export const projects = mysqlTable(
+  'projects',
+  {
+    id: id().primaryKey(),
+    ownerId: char('owner_id', { length: 26 }).notNull(),
+    name: varchar('name', { length: 80 }).notNull(),
+    notes: text('notes'),
+    createdAt: createdAt(),
+    updatedAt: datetime('updated_at', { fsp: 3 })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP(3)`)
+      .$onUpdate(() => sql`CURRENT_TIMESTAMP(3)`),
+    deletedAt: datetime('deleted_at', { fsp: 3 }),
+  },
+  (t) => [index('ix_projects_owner_updated').on(t.ownerId, t.updatedAt)],
 );

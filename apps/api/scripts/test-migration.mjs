@@ -116,8 +116,12 @@ const UP = [
   '0021_uploads.sql',
   '0022_user_phone.sql',
   '0023_recommendation_needs.sql',
+  '0024_recommendation_tank_stand.sql',
+  '0025_projects_pins_shares.sql',
 ];
 const DOWN = [
+  '0025_projects_pins_shares.down.sql',
+  '0024_recommendation_tank_stand.down.sql',
   '0023_recommendation_needs.down.sql',
   '0022_user_phone.down.sql',
   '0021_uploads.down.sql',
@@ -143,8 +147,8 @@ const DOWN = [
   '0001_catalog_import_runs.down.sql',
   '0000_catalog.down.sql',
 ];
-/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0020 satu-dua kolom), ditambah `uploads` (0021). */
-const TABLES = 28;
+/** 17 tabel sampai 0005, ditambah 10 dari 0006–0010 (0011 hanya menambah FK, 0012–0020 satu-dua kolom), ditambah `uploads` (0021), `projects` dan `share_links` (0025). */
+const TABLES = 30;
 
 console.log(`\nMigration test → ${cfg.host}:${cfg.port}/${cfg.database}\n`);
 

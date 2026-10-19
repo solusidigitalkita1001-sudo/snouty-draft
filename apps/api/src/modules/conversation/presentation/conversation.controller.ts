@@ -21,8 +21,18 @@ import type { ConversationOwner, ConversationRow } from '../domain/conversation.
 import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
-const RenameDto = z.object({ title: z.string().trim().min(1).max(160) }).strict();
-const CreateDto = z.object({ language: z.enum(LOCALES).optional() }).strict();
+/** Ubah judul, sematkan, dan/atau pindah proyek (P24-01/02) — minimal satu. */
+const PatchDto = z
+  .object({
+    title: z.string().trim().min(1).max(160).optional(),
+    pinned: z.boolean().optional(),
+    projectId: z.string().length(26).nullable().optional(),
+  })
+  .strict()
+  .refine((d) => d.title !== undefined || d.pinned !== undefined || d.projectId !== undefined);
+const CreateDto = z
+  .object({ language: z.enum(LOCALES).optional(), projectId: z.string().length(26).optional() })
+  .strict();
 const ListQuery = z
   .object({
     status: z
@@ -40,6 +50,8 @@ const ListQuery = z
     q: z.string().trim().min(1).max(80).optional(),
     cursor: z.string().datetime().optional(),
     limit: z.coerce.number().int().min(1).max(50).optional(),
+    pinned: z.enum(['true']).optional(),
+    projectId: z.string().length(26).optional(),
   })
   .strict();
 
@@ -56,7 +68,9 @@ export class ConversationController {
     const owner = ownerOf(request);
     const dto = parse(CreateDto, body ?? {});
     const language = dto.language ?? localeFromAcceptLanguage(request.headers['accept-language']);
-    return summaryOf(await this.conversations.create(owner, language));
+    // Konsultasi di dalam proyek hanya untuk akun (proyek tidak dimiliki tamu).
+    if (dto.projectId !== undefined) requireEntitled(actorOf(request).tier, 'CONVERSATION_HISTORY');
+    return summaryOf(await this.conversations.create(owner, language, dto.projectId ?? null));
   }
 
   @Get()
@@ -75,6 +89,8 @@ export class ConversationController {
         ...(query.q !== undefined ? { q: query.q } : {}),
         ...(query.cursor !== undefined ? { cursor: query.cursor } : {}),
         ...(query.limit !== undefined ? { limit: query.limit } : {}),
+        ...(query.pinned !== undefined ? { pinned: true } : {}),
+        ...(query.projectId !== undefined ? { projectId: query.projectId } : {}),
       },
     );
     return { items: rows.map(summaryOf) };
@@ -106,8 +122,18 @@ export class ConversationController {
     @Body() rawBody: unknown,
     @Req() request: PublicRequest,
   ): Promise<void> {
-    const body = parse(RenameDto, rawBody);
-    await this.conversations.rename(idOf(rawParam), ownerOf(request), body.title);
+    const body = parse(PatchDto, rawBody);
+    const id = idOf(rawParam);
+    const owner = ownerOf(request);
+    // Sematan dan proyek milik akun (P24-01/02); mengganti judul tetap terbuka untuk tamu.
+    if (body.pinned !== undefined || body.projectId !== undefined) {
+      requireEntitled(actorOf(request).tier, 'CONVERSATION_HISTORY');
+    }
+    if (body.title !== undefined) await this.conversations.rename(id, owner, body.title);
+    if (body.pinned !== undefined) await this.conversations.pin(id, owner, body.pinned);
+    if (body.projectId !== undefined) {
+      await this.conversations.moveToProject(id, owner, body.projectId);
+    }
   }
 
   /**
@@ -144,13 +170,15 @@ function ownerOf(request: PublicRequest): ConversationOwner {
   return { kind: actor.kind, id: actor.id };
 }
 
-function summaryOf(row: ConversationRow) {
+export function summaryOf(row: ConversationRow) {
   return {
     id: row.id,
     title: row.title,
     status: row.status,
     stage: row.stage,
     language: row.language,
+    projectId: row.projectId,
+    pinnedAt: row.pinnedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

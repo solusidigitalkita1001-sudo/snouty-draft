@@ -219,3 +219,26 @@ export const technicalHandoffs = mysqlTable(
     check('ck_handoffs_status', sql`\`status\` IN ('QUEUED','IN_REVIEW','RESOLVED','CLOSED')`),
   ],
 );
+
+/**
+ * Tautan bagikan baca-saja (0025, P24-03): token acak 32 byte dikirim ke pengguna sekali, yang
+ * disimpan hanya SHA-256-nya. Aktif = `revoked_at` NULL; membuat tautan baru mencabut yang lama.
+ */
+export const shareLinks = mysqlTable(
+  'share_links',
+  {
+    id: char('id', { length: 26 }).primaryKey(),
+    tokenHash: char('token_hash', { length: 64 }).notNull(),
+    recommendationId: char('recommendation_id', { length: 26 }).notNull(),
+    conversationId: char('conversation_id', { length: 26 }).notNull(),
+    ownerId: char('owner_id', { length: 26 }).notNull(),
+    createdAt: datetime('created_at', { fsp: 3 })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP(3)`),
+    revokedAt: datetime('revoked_at', { fsp: 3 }),
+  },
+  (t) => [
+    uniqueIndex('uq_share_links_token').on(t.tokenHash),
+    index('ix_share_links_recommendation').on(t.recommendationId, t.revokedAt),
+  ],
+);

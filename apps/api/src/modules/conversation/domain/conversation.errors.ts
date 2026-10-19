@@ -19,3 +19,13 @@ export class EmptyMessageError extends Error {
     this.details = { fields: [field] };
   }
 }
+
+/** Proyek milik orang lain, dihapus, atau tidak ada — `NOT_FOUND`, sama seperti percakapan. */
+export class ProjectNotFoundError extends Error {
+  readonly code = 'NOT_FOUND' as const;
+
+  constructor(readonly projectId: string) {
+    super('Proyek tidak ditemukan.');
+    this.name = 'ProjectNotFoundError';
+  }
+}
