@@ -413,6 +413,27 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-71 — Renovasi untuk semua kasus: cara sambung, sok, beban titik air lama (Fase 23, 2026-10-19)
+
+**Status:** default diterima pemilik (2026-10-19, tiga pilihan AskUserQuestion): tiga mode (ganti semua, ganti
+sebagian, perluasan); perluasan menanyakan ukuran pipa lama lalu menghitung beban total — tanpa ukuran, seluruh
+sistem diukur seperti baru dan hasilnya menyebut jalur lama harus dicek; sambungan ke pipa galvanis/besi memakai
+sok drat dari katalog · **Blocks:** pengesahan ENG-901…904 dan asumsi RENOV_* oleh ahli Pralon (OQ-06)
+**Konteks:** pemilik: "snouty bisa mencakup itung-itungan yang sifatnya renov belum? kalo belum segera lakukan
+development. inget dari semua case yah". Sebelumnya hanya rumah dengan mode "ganti semua" (kata-kata saja).
+**Default sementara:** pipa lama cukup bila diameter luarnya ≥ ukuran yang dihitung untuk beban total (ENG-901,
+dibandingkan lewat OD: PROD/STD-04 untuk inci, ISO 4427 untuk mm); sambungan ke pipa lama: PVC → tee lem,
+galvanis/besi → 2 sok drat + tee, HDPE → tee HDPE, PPR → fitting fusi bukan lini Pralon → tim teknis (ENG-902);
+penggantian sebagian: pipa sepanjang segmen + RENOV_COUPLINGS_PER_SEGMENT_2 sok, tanpa panjang → seluruh jalur
+(RENOV_REPLACE_WHOLE_ROUTE) (ENG-903); beban total = lama + baru (ENG-904), titik air lama rumah dihitung
+1 WSFU/titik (RENOV_EXISTING_OUTLET_1_WSFU) karena jenisnya tidak ditanya. Pipa utama lama yang kurang disebut harus
+diganti, tetapi panjangnya tidak diketahui sehingga tidak masuk daftar material. Kapasitas pipa lama hanya dicek pada
+kasus berbeban hitungan (rumah, gedung — belum, cluster, SPAM, air limbah); kasus lain menyebut bahwa pipa lama belum
+dicek.
+**Yang perlu diputuskan ahli Pralon:** apakah perbandingan OD cukup (vs kehilangan tekanan jalur lama yang
+panjangnya tidak diketahui), jumlah sok per segmen, cara sambung yang direkomendasikan Pralon untuk pipa besi
+(sok drat vs flens), dan beban rata-rata titik air lama.
+
 ### OQ-70 — Kriteria perencanaan jaringan air minum (SPAM) dan air limbah (P22-05, 2026-10-16)
 
 **Status:** default diterima pemilik (2026-10-16): kriteria umum dipakai, divalidasi bersama aturan lain (OQ-06); tidak ada ambang handoff proyek besar · **Blocks:** pengesahan ENG-406/407/408 dan asumsi SPAM dan SEWER

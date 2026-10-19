@@ -1808,6 +1808,45 @@ needs }` — potongan instalasi yang sama dengan tab Denah (ukuran per segmen, t
 - [x] ✋ CHECKPOINT Fase 22 — pemilik menerima keempat default (OQ-67 ambang 0,7 bar, OQ-68 tetap skematik, OQ-69
       tanpa harga, OQ-70 kriteria umum divalidasi bersama aturan lain), 2026-10-16
 
+## Phase 23 — Renovasi untuk semua kasus (19 Okt 2026)
+
+Pemilik 2026-10-19: "snouty bisa mencakup itung-itungan yang sifatnya renov belum? kalo belum segera lakukan
+development. inget dari semua case yah". Sebelumnya hanya rumah dengan mode "ganti semua pipa" (P22-03, kata-kata
+saja). Keputusan pemilik lewat AskUserQuestion (ketiganya pilihan rekomendasi): tiga mode (ganti semua, ganti
+sebagian, perluasan); perluasan menanyakan ukuran pipa lama lalu menghitung beban total — tanpa ukuran, seluruh
+sistem diukur seperti baru dan hasilnya menyebut jalur lama harus dicek; sambungan ke pipa galvanis/besi lewat
+sok drat dari katalog. Dicatat sebagai OQ-71.
+
+- [x] P23-01 Engine renovasi. Parameter registry `work_type` (enum; optional — ditanya hanya bila ada isyarat
+      renovasi tanpa jenis), `existing_pipe_size` (enum ukuran inci + mm), `existing_pipe_material`,
+      `existing_outlets`, `existing_connections`, `replacement_length`; ekstraktor membaca semuanya dari kalimat
+      ("pipa lama 3/4 inch galvanis", "sudah ada 4 titik", "ganti 300 meter", "pipa induk lama 110 mm hdpe sudah
+      melayani 300 sr") sebelum panjang jalur/diameter/jumlah sambungan baru, plus `renovationCue` untuk "renovasi"
+      tanpa jenis. Resolver pertanyaan bersyarat (`renovationParameters`): isyarat → `work_type` kritis paling dulu;
+      perluasan → ukuran pipa lama, beban lama (`existingLoad` profil), bahan lama; ganti sebagian → panjang + bahan;
+      ganti semua → bahan. Kelompok M ENG-901 kapasitas pipa lama (diameter luar), ENG-902 sambungan ke pipa lama,
+      ENG-903 penggantian sebagian, ENG-904 beban total; asumsi RENOV_COUPLINGS_PER_SEGMENT_2, RENOV_REPLACE_WHOLE_ROUTE,
+      RENOV_EXISTING_OUTLET_1_WSFU; `computeRenovation` murni. 70 aturan. Tes: aturan, orkestrator, ekstraksi, resolver.
+- [x] P23-02 Lapisan renovasi di API untuk semua jalur hitung (`renovation-view.ts`, `AnalysisService.renovate`):
+      irigasi, transfer pompa/sumur, gravitasi (air limbah mengecek pipa lama dengan sambungan total), jaringan
+      cluster/SPAM (pipa induk lama dicek dengan `computeNetwork` beban total), gedung, kolam, dan rumah
+      (`computeSolution` dengan titik air lama sebagai 1 WSFU). Hasil: judul berawalan jenis pekerjaan, kalimat
+      pembuka dari engine, baris sistem "Pipa utama lama" (ENG-904 + ENG-901) dan "Sambungan ke pipa lama"
+      (ENG-902) atau "Segmen yang diganti" (ENG-903), BOM: tee/sok drat sambungan (dicocokkan ke katalog; jenis
+      fitting baru `faucet_socket`), pipa × rasio + sok untuk ganti sebagian; asumsi renovasi di tabel asumsi;
+      kapasitas yang tidak bisa dicek DITULIS dengan alasannya. Isyarat renovasi kasus teknis
+      (`TechnicalUseCase.renovationHinted`) membuat jenis pekerjaan ditanya di kartu sebelum tombol hitung.
+- [x] P23-03 Alur rumah: field `water.workType` (new/replace_all/replace_partial/extend/renovation),
+      `existingMainSize`, `existingPipeMaterial`, `existingOutlets`, `replacementLengthM` — skema ekstraksi +
+      prompt + stub dev, grounding per field (ukuran dinormalkan lewat `PipeSize`, tidak terbaca → dibuang),
+      `renovation` tanpa jenis menahan rekomendasi dan ditanya paling dulu ("Renovasinya seperti apa?"), kartu
+      penyempurna menanyakan data pipa lama sesuai jenisnya (`renovationRefinementFields`), label nilai dua bahasa,
+      kalimat "sudah saya catat" berfrasa, panel kebutuhan (baris jenis pekerjaan + data pipa lama bila relevan),
+      kop laporan dan tabel masukan laporan. `replaceExisting` lama tetap dibaca sebagai ganti semua.
+- [x] P23-04 Data pemahaman: contoh kalimat renovasi di `use-case.json` untuk 12 kasus dan di `intent.json`
+      (requirement_building / requirement_technical); eval bge-m3 dijalankan ulang.
+- [ ] ✋ CHECKPOINT Fase 23 — uji langsung di produksi tiga mode untuk rumah dan SPAM; pemilik menilai.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |
@@ -1860,6 +1899,10 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | ENG-013 | Pressure class guidance: AW for pressurised clean water, D for drainage                                                           | board screen 08             | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-014 | "Belum tahu" defaults (`source → Toren atap`, `install → Air bersih`); see OQ-32                                                  | prototype                   | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-711 | Tank stand options: roof slab vs tank tower, residual pressure per support (P22-04)                                               | user feedback 2026-10-16    | REQUIRES_DOMAIN_VALIDATION | OQ-67        |
+| ENG-901 | Existing pipe capacity for the total load after an extension, compared by outer diameter (P23-01)                                | owner request 2026-10-19    | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
+| ENG-902 | Tie-in to the existing pipe: solvent tee / threaded sockets + tee / HDPE tee / PPR fusion → technical team (P23-01)               | field practice              | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
+| ENG-903 | Partial replacement: replaced length ratio and rejoin couplings (P23-01)                                                          | field practice              | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
+| ENG-904 | Total load after an extension = existing + new (P23-01)                                                                           | owner request 2026-10-19    | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
 | ENG-406 | Domestic wastewater flow from house connections: 80 % return, peak 2.5 (P22-05)                                                   | planning criteria SPALD-T   | REQUIRES_DOMAIN_VALIDATION | OQ-70        |
 | ENG-407 | Minimum network sewer size 6" / 150 mm (P22-05)                                                                                   | planning criteria SPALD-T   | REQUIRES_DOMAIN_VALIDATION | OQ-70        |
 | ENG-408 | House connections from population: ceil(people / 5) (P22-05)                                                                      | SPAM planning criteria      | REQUIRES_DOMAIN_VALIDATION | OQ-70        |

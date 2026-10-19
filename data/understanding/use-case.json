@@ -5,6 +5,13 @@
   "margin": 0.02,
   "labels": {
     "residential_clean_water": [
+      "renovasi instalasi air rumah, tambah 1 kamar mandi di belakang",
+      "rumah subsidi mau ganti semua pipanya ke pralon",
+      "pipa rumah bocor, mau ganti sebagian jalur ke kamar mandi",
+      "mau nambah titik air di dapur, pipa lama 3/4 inch galvanis",
+      "renovasi rumah 2 lantai, pipa lama diganti semua",
+      "extend the house plumbing, add a bathroom, existing 3/4 inch pipe",
+      "replace the old galvanized pipes in my house with pvc",
       "rumah 2 lantai 3 kamar mandi toren di atap",
       "rumah 1 lantai 2 kamar mandi 1 dapur",
       "kos 3 lantai 12 kamar mandi, air dari sumur pakai pompa",
@@ -25,6 +32,8 @@
       "rumah 2 lantai, wastafel 2, dapur 1"
     ],
     "multistorey_building_water": [
+      "renovasi gedung 6 lantai, riser lama diganti",
+      "gedung kantor 8 lantai tambah 2 lantai, pipa air lama 2 inch",
       "gedung 8 lantai apartemen",
       "gedung kantor 6 lantai, 20 toilet",
       "apartemen 10 lantai jalur air utama",
@@ -39,6 +48,8 @@
       "gedung perkantoran 9 lantai"
     ],
     "residential_cluster": [
+      "perluasan jaringan cluster, tambah 40 unit ke pipa induk lama",
+      "ganti pipa induk cluster yang sudah tua, 150 unit",
       "jaringan air bersih cluster 120 unit rumah",
       "perumahan 40 unit",
       "komplek perumahan 200 kavling",
@@ -57,6 +68,11 @@
       "which pipe for a 50-unit housing project?"
     ],
     "water_supply_network": [
+      "perluasan jaringan spam, tambah 200 sr ke pipa induk lama 110 mm",
+      "pipa induk pdam bocor, ganti 300 meter",
+      "rehabilitasi jaringan spam desa, ganti semua pipa transmisi",
+      "extend the existing water supply network by 200 connections",
+      "renovasi jaringan pdam lama",
       "proyek spam desa 500 sambungan rumah, pipa transmisi 2 km",
       "jaringan distribusi air minum untuk 2000 jiwa",
       "spam pedesaan, reservoir ke 300 sr, beda tinggi 20 m",
@@ -77,6 +93,8 @@
       "i want to build a water supply scheme"
     ],
     "irrigation": [
+      "perluasan jaringan irigasi, tambah 1 hektar ke pipa lama",
+      "ganti pipa irigasi lama yang bocor 200 m",
       "irigasi sawah 1 hektar pakai sprinkler",
       "irigasi sawah 2 hektar",
       "mau pasang pipa buat irigasi sawah dari sungai",
@@ -94,6 +112,8 @@
       "irigasi taman"
     ],
     "pump_transfer": [
+      "ganti pipa transfer lama dari sumur ke tandon, 300 m",
+      "pipa transfer pompa bocor di tengah, ganti 50 meter",
       "transfer air dari sungai ke tandon jarak 800 m pakai pompa",
       "memompa air dari embung ke reservoir 500 m",
       "air dipompa dari bawah ke tandon atas bukit, beda tinggi 30 m",
@@ -106,6 +126,7 @@
       "dorong air dari reservoir ke menara air"
     ],
     "gravity_drainage": [
+      "ganti saluran drainase lama yang sudah pecah, 100 m",
       "saluran pembuangan air kotor dengan kemiringan 1%",
       "pipa limbah rumah ke septic tank",
       "saluran limbah pabrik",
@@ -118,6 +139,8 @@
       "pembuangan air kotor kamar mandi ke septik"
     ],
     "sewerage": [
+      "perluasan jaringan air limbah, tambah 100 sambungan ke pipa induk lama",
+      "rehabilitasi pipa sewer lama 500 m",
       "jaringan air limbah untuk 200 sambungan rumah ke ipal",
       "proyek sewerage kawasan, pipa induk 1,5 km",
       "pipa air limbah domestik 300 sr ke ipal komunal",
@@ -134,6 +157,7 @@
       "we are building a sewer network"
     ],
     "stormwater": [
+      "ganti pipa air hujan komplek yang lama, 200 m",
       "drainase air hujan komplek 2 hektar",
       "drainase air hujan di lahan parkir",
       "drainase air hujan komplek perumahan",
@@ -146,6 +170,7 @@
       "flooding in the yard, need runoff drainage"
     ],
     "culvert": [
+      "ganti gorong-gorong lama yang pecah di jalan desa",
       "mau pasang gorong-gorong melintasi jalan desa lebar 6 m",
       "gorong-gorong melintasi jalan",
       "gorong-gorong jalan desa diameter besar",
@@ -157,6 +182,7 @@
       "saluran di bawah jalan raya untuk air sungai kecil"
     ],
     "well_distribution": [
+      "ganti pipa sumur bor lama ke tandon, 60 m",
       "sumur bor 60 m ke tandon",
       "sumur bor 60 m",
       "pompa submersible ke tandon atas",
@@ -168,6 +194,7 @@
       "deep well pump to a water tower"
     ],
     "fish_pond": [
+      "renovasi kolam lele, ganti pipa inlet lama 4 kolam",
       "gw pengen bikin tambak lele 4 x 4 meter, produk nya apa aja",
       "kolam ikan nila 3 petak",
       "kolam lele 4 x 4 m",
