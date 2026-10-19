@@ -1987,7 +1987,12 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       utama lama dicek terhadap total (`RENOV_ADDED_OUTLET_1_WSFU`, 1 WSFU per titik tambahan), dan BOM hanya untuk
       titik baru — pipa ke alat 1,5 m per titik + 10 %, elbow dan drat kran per titik, cabang dari pipa lama menunggu
       jaraknya (`extension-view.ts`). Tanpa keputusan baru: tinggi toren atap untuk kasus sumur dari jumlah lantai
-      (lantai × 3,5 m + dudukan 1 m, asumsi registry yang sama dengan hitungan rumah).
+      (lantai × 3,5 m + dudukan 1 m, asumsi registry yang sama dengan hitungan rumah). Simulasi ulang menemukan dan
+      memperbaiki: rumah dengan kamar mandi "Belum tahu" dihitung 0 kamar mandi ("1 titik air") → analisis menolak
+      (VALIDATION_FAILED) bila jumlah lantai atau kamar mandi belum diketahui, kecuali tempat ibadah/toilet umum;
+      "sumur bor 40 m ke toren atap rumah 2 lantai" masuk jalur rumah (kedalaman hilang, toren dianggap sumber) →
+      contoh kasus sumur; tee sambung perluasan memakai cabang terbesar rumah (3/4" × 1") → 3/4" × 1/2". Hasil:
+      perhitungan 19/19, perpipaan 48/48, FAQ 19/19.
 
 ## Design Coverage
 
