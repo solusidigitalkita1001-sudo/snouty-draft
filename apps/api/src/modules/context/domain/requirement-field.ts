@@ -69,6 +69,7 @@ export const ALL_FIELD_PATHS: readonly RequirementFieldPath[] = [
   'water.existingMainSize',
   'water.existingPipeMaterial',
   'water.existingOutlets',
+  'water.addedOutlets',
   'water.replacementLengthM',
 ];
 

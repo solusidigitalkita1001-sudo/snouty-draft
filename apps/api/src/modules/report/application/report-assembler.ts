@@ -180,6 +180,9 @@ function requirementRows(state: RequirementState, locale: Locale): readonly Repo
   if (state.water.existingOutlets && state.water.existingOutlets.value !== null) {
     add('water.existingOutlets', state.water.existingOutlets);
   }
+  if (state.water.addedOutlets && state.water.addedOutlets.value !== null) {
+    add('water.addedOutlets', state.water.addedOutlets);
+  }
   if (state.water.replacementLengthM && state.water.replacementLengthM.value !== null) {
     add('water.replacementLengthM', state.water.replacementLengthM);
   }

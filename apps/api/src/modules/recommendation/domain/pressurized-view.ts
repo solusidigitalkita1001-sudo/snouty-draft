@@ -80,13 +80,23 @@ export function pressurizedPlanFrom(state: RequirementState): PressurizedPlan | 
     numberOf(p['design_flow']) ?? (flowDefault ? Number(assumption(flowDefault).value) : undefined);
   const routeLengthM = numberOf(p['route_length']);
   let staticHeadM = numberOf(p['static_head']);
+  let roofTankFromFloors = false;
   if (staticHeadM === undefined && caseId === 'well_distribution') {
     const well = numberOf(p['well_depth']);
     // Tinggi tandon tidak diam-diam dianggap 0 m: tanpa angkanya tinggi angkat pompa terlalu kecil
     // (simulasi 2026-10-19: sumur 40 m ke tandon 7 m dihitung head 45,97 m). Belum diketahui →
     // tidak bisa dihitung, dan chat menyebut angka itu masih dibutuhkan.
-    const elevation = numberOf(p['tank_elevation']);
-    if (well !== undefined && elevation !== undefined) staticHeadM = well + elevation;
+    const floors = numberOf(p['building_floors']);
+    const elevation =
+      numberOf(p['tank_elevation']) ??
+      (floors !== undefined
+        ? floors * Number(assumption('FLOOR_HEIGHT_3_5M').value) +
+          Number(assumption('TANK_STAND_1M').value)
+        : undefined);
+    if (well !== undefined && elevation !== undefined) {
+      staticHeadM = well + elevation;
+      if (numberOf(p['tank_elevation']) === undefined) roofTankFromFloors = true;
+    }
   }
   if (designFlowLs === undefined || routeLengthM === undefined || staticHeadM === undefined) {
     return null;
@@ -94,7 +104,10 @@ export function pressurizedPlanFrom(state: RequirementState): PressurizedPlan | 
 
   const materialLabel = p['material']?.value;
   const material = typeof materialLabel === 'string' ? MATERIAL[materialLabel] : undefined;
-  const extra: string[] = flowDefault ? [flowDefault] : [];
+  const extra: string[] = [
+    ...(flowDefault ? [flowDefault] : []),
+    ...(roofTankFromFloors ? ['FLOOR_HEIGHT_3_5M', 'TANK_STAND_1M'] : []),
+  ];
   let family: PressurizedPlan['family'];
   if (material) {
     family = material === 'PVC' ? 'PVC AW' : material;

@@ -668,6 +668,25 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
 
   // ── Air hujan ──
   {
+    // Keputusan pemilik 2026-10-19 (P25-06): tanpa intensitas hujan setempat, hitung tetap jalan
+    // dengan nilai awal hujan lebat — cenderung aman (pipa tidak kekecilan), ditandai perlu validasi.
+    id: 'RAINFALL_INTENSITY_150MMH',
+    parameter: 'rainfall_intensity',
+    appliesTo: ['stormwater'],
+    condition: 'intensitas hujan setempat tidak diketahui',
+    value: 150,
+    unit: 'mm/jam',
+    conditionEn: 'local rainfall intensity not known',
+    descriptionEn:
+      'Rainfall is taken as 150 mm/h (heavy rain) until the local design intensity is known; this leans towards a pipe that is not too small.',
+    reference:
+      'Keputusan pemilik 2026-10-19: nilai awal hujan lebat; perlu diganti intensitas rencana setempat dari tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Intensitas hujan diambil 150 mm/jam (hujan lebat) sampai intensitas rencana setempat diketahui; nilai ini cenderung membuat pipa tidak kekecilan.',
+  },
+  {
     id: 'RUNOFF_C_RESIDENTIAL',
     parameter: 'runoff_coefficient',
     appliesTo: ['stormwater'],
@@ -1682,6 +1701,22 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     confirmationRequired: true,
     description:
       'Segmen yang diganti disambung kembali ke pipa lama dengan satu sok di tiap ujung (2 per segmen).',
+  },
+  {
+    id: 'RENOV_ADDED_OUTLET_1_WSFU',
+    parameter: 'existing_outlets',
+    appliesTo: ['residential_clean_water'],
+    condition: 'perluasan rumah: titik air tambahan disebut jumlahnya, bukan jenisnya',
+    value: 1,
+    unit: 'WSFU per titik',
+    conditionEn: 'house extension: the added outlets are given as a count, not by type',
+    descriptionEn:
+      'Each added water point counts as 1 WSFU (a basin) when checking the existing main pipe against the total load.',
+    reference: 'Rata-rata beban titik air rumah (IPC E103.3(2): wastafel 0,5 – kloset 2,2)',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Tiap titik air tambahan dihitung 1 WSFU (setara wastafel) saat pipa utama lama dicek terhadap beban total.',
   },
   {
     id: 'RENOV_EXISTING_OUTLET_1_WSFU',

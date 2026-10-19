@@ -32,6 +32,7 @@ export const FIELD_LABEL: Readonly<Record<RequirementFieldPath, string>> = {
   'water.existingMainSize': 'Ukuran pipa lama',
   'water.existingPipeMaterial': 'Bahan pipa lama',
   'water.existingOutlets': 'Titik air yang sudah ada',
+  'water.addedOutlets': 'Titik air tambahan',
   'water.replacementLengthM': 'Panjang yang diganti',
 };
 
@@ -56,6 +57,7 @@ export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
   'water.existingMainSize': 'Existing pipe size',
   'water.existingPipeMaterial': 'Existing pipe material',
   'water.existingOutlets': 'Existing water points',
+  'water.addedOutlets': 'Added water points',
   'water.replacementLengthM': 'Length replaced',
 };
 
@@ -149,7 +151,7 @@ export function requirementValueLabel(
       path === 'water.replacementLengthM'
     )
       return `${value} m`;
-    if (path === 'water.existingOutlets')
+    if (path === 'water.existingOutlets' || path === 'water.addedOutlets')
       return en ? plural(value, 'point', 'points') : `${value} titik`;
     // Kamar mandi adalah ruang berisi dua titik air (review laporan 0015: "2 titik" untuk 2 kamar mandi
     // salah baca — sebenarnya 4 titik).

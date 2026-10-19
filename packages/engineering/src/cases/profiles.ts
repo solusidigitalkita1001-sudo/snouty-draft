@@ -287,6 +287,7 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   },
   {
     id: 'stormwater',
+    unknownDefaults: { rainfall_intensity: 'RAINFALL_INTENSITY_150MMH' },
     label: 'Drainase air hujan',
     labelEn: 'Stormwater drainage',
     description: 'Limpasan hujan dari tangkapan ke saluran/outfall.',
@@ -367,7 +368,10 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
     descriptionEn: 'Bored/submersible well to a tank, then distribution.',
     critical: ['well_depth', 'design_flow', 'tank_elevation', 'route_length'],
     important: ['source_flow_capacity', 'pump_power', 'number_of_outlets'],
-    optional: ['material', 'operating_hours'],
+    optional: ['material', 'operating_hours', 'building_floors'],
+    // Toren di atap rumah: tingginya dari jumlah lantai (3,5 m per lantai + dudukan 1 m, asumsi
+    // registry yang sama dengan hitungan rumah) — pengguna lebih tahu lantainya daripada elevasinya.
+    alternatives: { tank_elevation: ['building_floors'] },
     outputs: ['material_selection', 'pipe_sizing', 'pump_sizing', 'product_matching'],
     calculations: ['static_head_calc', 'pipe_diameter', 'pump_duty'],
     calculatorStatus: 'available',

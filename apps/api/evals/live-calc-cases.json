@@ -236,11 +236,23 @@
       "messages": [
         "rumah 2 lantai, 3 kamar mandi, 2 wastafel, 1 dapur, toren atap. mau tambah 2 titik air di lantai 2, pipa utama lama 3/4 inch"
       ],
-      "expect": "Perluasan: beban lama + baru dicek terhadap pipa lama 3/4\".",
+      "expect": "Keputusan pemilik: rumah yang disebut = beban lama (9 titik), 2 titik = beban baru; pipa lama 3/4\" dicek terhadap total 11,6 + 2 = 13,6 WSFU → butuh 1¼\", jadi pipa lama kurang. Material hanya untuk 2 titik baru.",
       "checks": [
         {
-          "path": "kind",
-          "equals": "building"
+          "path": "headline",
+          "matches": "2 titik air baru di rumah dengan 9 titik air"
+        },
+        {
+          "path": "systemLines[*].name",
+          "matches": "Pipa utama lama"
+        },
+        {
+          "path": "bom[*].purpose",
+          "matches": "Pipa ke titik air baru"
+        },
+        {
+          "path": "bom[*].size",
+          "none": "1¼"
         }
       ]
     },
@@ -267,8 +279,17 @@
       "id": "C-16",
       "category": "air hujan — tanpa intensitas",
       "messages": ["talang air hujan atap rumah luas 150 m2, pipa turun berapa inch?"],
-      "expect": "Intensitas hujan dijawab \"Belum tahu\" dan tidak ada asumsi bersumber: chat menyebut angka yang masih dibutuhkan, analisis berakhir VALIDATION_FAILED (bukan \"layanan tidak tersedia\").",
-      "expectError": "VALIDATION_FAILED"
+      "expect": "Keputusan pemilik: intensitas \"Belum tahu\" → 150 mm/jam (asumsi registry): 0,6 × 150 × 150 m² ÷ 3,6e6 = 3,75 l/s.",
+      "checks": [
+        {
+          "path": "headline",
+          "matches": "3,7\\d? l/s|3,8 l/s"
+        },
+        {
+          "path": "assumptions[*].text",
+          "matches": "150 mm/jam"
+        }
+      ]
     },
     {
       "id": "C-17",
@@ -276,6 +297,22 @@
       "messages": ["sumur bor kedalaman 40 meter ke tandon atas rumah, jarak 15 meter"],
       "expect": "Tinggi tandon \"Belum tahu\" tanpa asumsi pengganti: VALIDATION_FAILED, bukan tinggi 0 m diam-diam.",
       "expectError": "VALIDATION_FAILED"
+    },
+    {
+      "id": "C-18",
+      "category": "sumur — toren atap rumah 2 lantai",
+      "messages": ["sumur bor kedalaman 40 meter ke toren atap rumah 2 lantai, jarak 15 meter"],
+      "expect": "Tinggi toren dari lantai: 2 × 3,5 + 1 = 8 m; tinggi statis 40 + 8 = 48 m; debit pengisian 0,25 l/s (asumsi).",
+      "checks": [
+        {
+          "path": "headline",
+          "matches": "head 5[3-9],?\\d* m"
+        },
+        {
+          "path": "assumptions[*].text",
+          "matches": "0,25 l/s"
+        }
+      ]
     }
   ]
 }

@@ -1980,6 +1980,14 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       52,97 m); (4) kalimat gedung panjang berbahasa Indonesia dijawab Inggris → franc boleh membatalkan tinyld pada
       kalimat ≥ 8 kata. Hasil akhir: perhitungan 17/17, perpipaan 48/48, FAQ sales 19/19. OQ-74 mencatat default
       dan yang perlu diputuskan (intensitas hujan dan tinggi tandon bersumber, makna "tambah N titik air").
+- [x] P25-06 Perbaikan temuan simulasi perhitungan (pemilik 2026-10-19: "lakukan perbaikan dari temuan lu tadi").
+      Keputusan pemilik (AskUserQuestion): intensitas hujan "Belum tahu" → 150 mm/jam (`RAINFALL_INTENSITY_150MMH`,
+      dipakai engine seperti koefisien limpasan, tercatat di hasil); perluasan "rumah … mau tambah N titik air" →
+      rumah yang disebut = beban lama, N = beban baru (`water.addedOutlets`, parser angka "tambah N titik"): pipa
+      utama lama dicek terhadap total (`RENOV_ADDED_OUTLET_1_WSFU`, 1 WSFU per titik tambahan), dan BOM hanya untuk
+      titik baru — pipa ke alat 1,5 m per titik + 10 %, elbow dan drat kran per titik, cabang dari pipa lama menunggu
+      jaraknya (`extension-view.ts`). Tanpa keputusan baru: tinggi toren atap untuk kasus sumur dari jumlah lantai
+      (lantai × 3,5 m + dudukan 1 m, asumsi registry yang sama dengan hitungan rumah).
 
 ## Design Coverage
 

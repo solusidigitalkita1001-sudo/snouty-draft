@@ -286,6 +286,15 @@ function renovationRows(state: RequirementState): RequirementRow[] {
       }),
     );
   }
+  if (mode === 'extend' && state.water.addedOutlets && state.water.addedOutlets.value !== null) {
+    rows.push(
+      row('water.addedOutlets', 'Titik air tambahan', state.water.addedOutlets, String, {
+        kind: 'number',
+        min: 1,
+        max: 1000,
+      }),
+    );
+  }
   if (mode === 'extend' && state.water.existingOutlets) {
     rows.push(
       row(

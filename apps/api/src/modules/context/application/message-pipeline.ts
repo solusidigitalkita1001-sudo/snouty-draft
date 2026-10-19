@@ -578,6 +578,10 @@ export function understoodReply(
       );
       continue;
     }
+    if (path === 'water.addedOutlets' && typeof field.value === 'number') {
+      captured.push(en ? `${field.value} added water points` : `tambah ${field.value} titik air`);
+      continue;
+    }
     if (path === 'water.replacementLengthM' && typeof field.value === 'number') {
       const m = field.value.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
       captured.push(en ? `${m} m of pipe to replace` : `${m} m pipa yang diganti`);
@@ -693,7 +697,10 @@ export function technicalQuestionCard(
   if (state.useCase === undefined) {
     if (followUpCard(state, locale)?.kind !== 'cta') return null;
     const questions = houseRefinementQuestions(
-      (path) => fieldValueKnown(state, path),
+      // Titik air tambahan yang disebut: beban lama = rumah yang disebut (P25-06), tidak ditanya lagi.
+      (path) =>
+        fieldValueKnown(state, path) ||
+        (path === 'water.existingOutlets' && (state.water.addedOutlets?.value ?? null) !== null),
       locale,
       state.building.type.value,
       state.water.source.value,

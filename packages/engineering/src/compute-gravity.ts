@@ -1,7 +1,8 @@
 /**
  * Orkestrator saluran gravitasi (drainase, air hujan, gorong-gorong, jaringan air limbah) —
  * Kelompok H, fase 4. Satu panggilan, satu trace per aturan; default dari registry asumsi dicatat
- * di `appliedAssumptionIds`. Intensitas hujan WAJIB dari pemanggil: tidak ada asumsinya. Murni.
+ * di `appliedAssumptionIds`. Intensitas hujan tanpa angka setempat memakai asumsi registry
+ * `RAINFALL_INTENSITY_150MMH` (keputusan pemilik 2026-10-19). Murni.
  *
  * Jaringan air limbah (`sewer`, P22-05, dilengkapi P22-08): debit dari sambungan rumah atau jiwa
  * (ENG-408 → ENG-406, dengan infiltrasi), ukuran hidraulik Manning (ENG-402), ukuran minimum pipa
@@ -133,13 +134,14 @@ export function computeGravity(
 
   let designFlowLs = input.designFlowLs;
   if (designFlowLs === undefined && input.kind === 'stormwater') {
-    if (input.catchmentHa === undefined || input.rainfallMmPerHour === undefined) {
-      throw new GravityInputError('air hujan butuh luas tangkapan dan intensitas hujan setempat');
+    if (input.catchmentHa === undefined) {
+      throw new GravityInputError('air hujan butuh luas tangkapan');
     }
     const runoff = input.runoffCoefficient ?? use('RUNOFF_C_RESIDENTIAL');
+    const rainfall = input.rainfallMmPerHour ?? use('RAINFALL_INTENSITY_150MMH');
     designFlowLs = run(ENG_403, {
       catchmentHa: input.catchmentHa,
-      rainfallMmPerHour: input.rainfallMmPerHour,
+      rainfallMmPerHour: rainfall,
       runoffCoefficient: runoff,
     }).designFlowLs;
   }

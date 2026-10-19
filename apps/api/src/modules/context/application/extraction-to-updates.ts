@@ -24,6 +24,19 @@ const EXISTING_MATERIAL_FIELD: Readonly<Record<string, string>> = {
   HDPE: 'hdpe',
   PPR: 'ppr',
 };
+/**
+ * "mau tambah 2 titik air" / "add 2 more water points": titik air yang DITAMBAHKAN pada perluasan
+ * (P25-06). Parser angka bersatuan (angka + "titik"), seperti pembaca jumlah lain di berkas ini.
+ */
+const ADDED_OUTLETS =
+  /\b(?:tambah(?:kan)?|menambah|nambah|ditambah)\s+(\d{1,3})\s+titik\b|\badd(?:ing)?\s+(\d{1,3})\s+(?:more\s+)?(?:water\s+)?(?:points?|outlets?)\b/i;
+
+function addedOutletsOf(message: string): number | undefined {
+  const m = ADDED_OUTLETS.exec(message);
+  const n = m ? Number(m[1] ?? m[2]) : NaN;
+  return Number.isInteger(n) && n > 0 ? n : undefined;
+}
+
 /** "Renovasi" / "pipa lama" tanpa jenis pekerjaan yang tersurat — ditanya, bukan ditebak. */
 const RENOVATION_WORD =
   /\brenov|\brehab|pipa lama|pipa (?:yang )?(?:sudah )?(?:ada|terpasang)|instalasi lama|instalasi (?:yang )?(?:sudah )?ada|existing (?:pipe|plumbing|installation)|\bold pipes?\b|re-?pip(?:e|ing)/i;
@@ -450,10 +463,13 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   // "sudah ada 4 titik air" adalah titik air LAMA (P23-05): angka yang sama tidak boleh menjadi
   // jumlah titik air baru.
   const renovation = obviousRenovation(message);
+  // "tambah 2 titik air" juga bukan jumlah titik air rumah: ia beban baru perluasan (P25-06).
+  const added = addedOutletsOf(message);
   add(
     'fixtures.outletCount',
-    renovation.existingOutlets !== undefined &&
-      extraction.fixtures?.outletCount === renovation.existingOutlets
+    (renovation.existingOutlets !== undefined &&
+      extraction.fixtures?.outletCount === renovation.existingOutlets) ||
+      (added !== undefined && extraction.fixtures?.outletCount === added)
       ? undefined
       : extraction.fixtures?.outletCount,
   );
@@ -496,6 +512,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     extraction.water?.existingPipeMaterial ?? renovation.existingPipeMaterial,
   );
   add('water.existingOutlets', extraction.water?.existingOutlets ?? renovation.existingOutlets);
+  add('water.addedOutlets', added);
   add(
     'water.replacementLengthM',
     extraction.water?.replacementLengthM ?? renovation.replacementLengthM,

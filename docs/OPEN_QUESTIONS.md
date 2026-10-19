@@ -415,7 +415,10 @@ masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specifi
 
 ### OQ-74 — Kasus teknis dengan angka kritis "Belum tahu" dan perluasan rumah (P25-05, 2026-10-19)
 
-**Status:** default sementara berlaku · **Blocks:** tidak ada
+**Status:** sebagian diputuskan pemilik (2026-10-19, AskUserQuestion): intensitas hujan "Belum tahu" → 150 mm/jam
+(asumsi registry `RAINFALL_INTENSITY_150MMH`, perlu validasi); "rumah … mau tambah N titik air" → rumah yang disebut
+= beban lama, N = beban baru (P25-06). Tinggi toren atap untuk sumur diturunkan dari jumlah lantai (3,5 m per
+lantai + dudukan 1 m). Masih terbuka: nilai intensitas rencana resmi per daerah dari tim teknis · **Blocks:** tidak ada
 **Konteks:** simulasi perhitungan: setiap pertanyaan dijawab "Belum tahu" dulu berakhir "Datanya sudah cukup"
 lalu analisis gagal "layanan tidak tersedia".
 **Default sementara:** parameter kritis yang punya asumsi registry di profil kasus (`unknownDefaults`) memakai

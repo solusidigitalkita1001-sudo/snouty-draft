@@ -46,10 +46,13 @@ describe('gravityPlanFrom / networkInputFrom', () => {
     expect(plan.pipeLengthM).toBe(8);
   });
 
-  it('air hujan butuh tangkapan + intensitas; drainase butuh debit; cluster butuh sambungan + jalur + statis', () => {
+  it('air hujan butuh tangkapan (intensitas dari registry bila tidak disebut); drainase butuh debit; cluster butuh sambungan + jalur + statis', () => {
+    // Intensitas belum diketahui: engine memakai RAINFALL_INTENSITY_150MMH (keputusan pemilik 2026-10-19).
     expect(
-      gravityPlanFrom(technical('stormwater', { catchment_area: known('Luas tangkapan', 0.5) })),
-    ).toBeNull();
+      gravityPlanFrom(technical('stormwater', { catchment_area: known('Luas tangkapan', 0.5) }))!
+        .input,
+    ).toEqual({ kind: 'stormwater', catchmentHa: 0.5 });
+    expect(gravityPlanFrom(technical('stormwater', {}))).toBeNull();
     const storm = gravityPlanFrom(
       technical('stormwater', {
         total_area: known('Luas lahan', 0.5),

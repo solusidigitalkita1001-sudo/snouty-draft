@@ -41,6 +41,7 @@ export function emptyRequirementState(now: string): RequirementState {
       existingMainSize: empty(now),
       existingPipeMaterial: empty(now),
       existingOutlets: empty(now),
+      addedOutlets: empty(now),
       replacementLengthM: empty(now),
     },
     missingInformation: [],

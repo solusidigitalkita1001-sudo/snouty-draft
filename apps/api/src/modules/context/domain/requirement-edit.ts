@@ -90,6 +90,7 @@ export const RequirementEditSchema = z.union([
     })
     .strict(),
   z.object({ path: z.literal('water.existingOutlets'), value: count(1000) }).strict(),
+  z.object({ path: z.literal('water.addedOutlets'), value: count(1000) }).strict(),
   z
     .object({
       path: z.literal('water.replacementLengthM'),

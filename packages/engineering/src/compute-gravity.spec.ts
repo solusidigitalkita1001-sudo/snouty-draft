@@ -23,7 +23,7 @@ describe('computeGravity', () => {
     expect(r.appliedAssumptionIds).not.toContain('GRAVITY_SLOPE_MIN_0_5');
   });
 
-  it('air hujan: 0,5 ha × 100 mm/jam (C asumsi 0,6) → 83,4 l/s → 12"; tanpa intensitas → galat, bukan tebakan', () => {
+  it('air hujan: 0,5 ha × 100 mm/jam (C asumsi 0,6) → 83,4 l/s → 12"; tanpa luas tangkapan → galat', () => {
     const r = computeGravity({
       kind: 'stormwater',
       catchmentHa: 0.5,
@@ -34,8 +34,15 @@ describe('computeGravity', () => {
     expect(r.recommendedSize).toBe('12"');
     expect(r.traces[0]!.ruleId).toBe('ENG-403');
     expect(r.appliedAssumptionIds).toContain('RUNOFF_C_RESIDENTIAL');
-    expect(() => computeGravity({ kind: 'stormwater', catchmentHa: 0.5 })).toThrow(
-      GravityInputError,
+    expect(() => computeGravity({ kind: 'stormwater' })).toThrow(GravityInputError);
+  });
+
+  it('air hujan tanpa intensitas: 150 mm/jam dari registry (keputusan pemilik 2026-10-19), tercatat', () => {
+    // 2,778 × C 0,6 × 150 mm/jam × 0,5 ha = 125,01 l/s, dibulatkan ke atas → 125,1 (seperti 83,4 di atas).
+    const r = computeGravity({ kind: 'stormwater', catchmentHa: 0.5, slopePercent: 1 });
+    expect(r.designFlowLs).toBe(125.1);
+    expect(r.appliedAssumptionIds).toEqual(
+      expect.arrayContaining(['RUNOFF_C_RESIDENTIAL', 'RAINFALL_INTENSITY_150MMH']),
     );
   });
 

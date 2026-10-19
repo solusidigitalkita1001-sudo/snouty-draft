@@ -83,13 +83,14 @@ export function gravityPlanFrom(state: RequirementState): GravityPlan | null {
   }
   if (caseId === 'stormwater') {
     const catchmentHa = numberOf(p['catchment_area']) ?? numberOf(p['total_area']);
+    // Intensitas hujan yang belum diketahui diisi engine dari registry (RAINFALL_INTENSITY_150MMH).
     const rainfallMmPerHour = numberOf(p['rainfall_intensity']);
-    if (catchmentHa === undefined || rainfallMmPerHour === undefined) return null;
+    if (catchmentHa === undefined) return null;
     return {
       input: {
         kind: 'stormwater',
         catchmentHa,
-        rainfallMmPerHour,
+        ...opt('rainfallMmPerHour', rainfallMmPerHour),
         ...opt('runoffCoefficient', numberOf(p['runoff_coefficient'])),
         ...opt('slopePercent', slopePercent),
       },

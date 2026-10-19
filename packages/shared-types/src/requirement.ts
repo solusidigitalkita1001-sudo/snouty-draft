@@ -146,6 +146,11 @@ export interface WaterState {
   readonly existingPipeMaterial?: TrackedValue<ExistingPipeMaterial>;
   /** Titik air yang sudah terpasang (di luar yang baru) — beban total saat perluasan. */
   readonly existingOutlets?: TrackedValue<number>;
+  /**
+   * Perluasan (P25-06, keputusan pemilik 2026-10-19): titik air yang DITAMBAHKAN ("mau tambah 2 titik
+   * air"). Bila ada, fixture rumah yang disebut adalah beban lama dan angka ini beban baru.
+   */
+  readonly addedOutlets?: TrackedValue<number>;
   /** Panjang pipa yang diganti (m) — penggantian sebagian. */
   readonly replacementLengthM?: TrackedValue<number>;
 }
@@ -175,6 +180,7 @@ export type RequirementFieldPath =
   | 'water.existingMainSize'
   | 'water.existingPipeMaterial'
   | 'water.existingOutlets'
+  | 'water.addedOutlets'
   | 'water.replacementLengthM';
 
 /**

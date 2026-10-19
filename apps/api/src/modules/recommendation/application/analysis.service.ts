@@ -78,6 +78,7 @@ import {
   type RenovationContext,
   type RenovationFacts,
 } from '../domain/renovation-view.js';
+import { extensionOnly } from '../domain/extension-view.js';
 import {
   waterSupplyBomItems,
   waterSupplyHighlights,
@@ -658,25 +659,48 @@ export class AnalysisService {
       // Pilihan dudukan toren (P22-04) — hanya ada bila sumbernya toren atap.
       ...(tankStand ? { tankStand } : {}),
     });
+    // Perluasan dengan titik air tambahan yang disebut (P25-06, keputusan pemilik 2026-10-19): rumah
+    // yang disebut = beban lama, tambahan = beban baru, material hanya untuk titik baru.
+    const added = state.water.addedOutlets?.value ?? null;
+    const extension = added !== null && added > 0 && renovationFactsFrom(state)?.mode === 'extend';
+    if (extension)
+      recommendation = extensionOnly(recommendation, added, solution.outletCount, locale);
+    const renovationState: RequirementState = extension
+      ? {
+          ...state,
+          water: {
+            ...state.water,
+            existingOutlets: {
+              value: solution.outletCount,
+              provenance: 'ESTIMATED',
+              source: 'inferred',
+              reason: 'fixture rumah yang disebut',
+              updatedAt: now,
+            },
+          },
+        }
+      : state;
     // Renovasi (P23-02): perluasan mengecek pipa utama lama terhadap beban total — titik air lama
-    // dihitung 1 WSFU (setara wastafel) karena jenisnya tidak ditanya (RENOV_EXISTING_OUTLET_1_WSFU).
-    const renovated = await this.renovate(state, recommendation, allTraces, locale, {
+    // (atau tambahan) dihitung 1 WSFU (setara wastafel) karena jenisnya tidak ditanya.
+    const renovated = await this.renovate(renovationState, recommendation, allTraces, locale, {
       newMainSize: solution.mainSize,
       branchSize: solution.branchSize,
       routeLengthM: solution.mainRunNetM,
       family: PIPE_FAMILY,
-      newLoad: solution.outletCount,
+      newLoad: extension ? added : solution.outletCount,
       loadUnit: 'titik',
       sizeForTotal: (existing) =>
         computeSolution(
           {
             ...solutionInputFrom(state),
-            basins: (state.fixtures.basins.value ?? 0) + existing,
+            basins: (state.fixtures.basins.value ?? 0) + (extension ? added : existing),
           },
           locale,
           overridesOf(state),
         ).mainSize,
-      extraAssumptionIds: ['RENOV_EXISTING_OUTLET_1_WSFU'],
+      extraAssumptionIds: [
+        extension ? 'RENOV_ADDED_OUTLET_1_WSFU' : 'RENOV_EXISTING_OUTLET_1_WSFU',
+      ],
     });
     recommendation = renovated.recommendation;
     allTraces = renovated.traces;
