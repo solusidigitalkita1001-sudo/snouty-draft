@@ -355,7 +355,6 @@
       "pvc aw ada ukuran 3/4?",
       "standar sni hdpe apa?",
       "tekanan kerja hdpe berapa?",
-      "panjang batang pvc berapa?",
       "bikinin tabelnya dong",
       "lebih detail dong",
       "ringkas dong",
@@ -374,7 +373,10 @@
       "sumur bor 30 m pipanya apa?",
       "talang air hujan atap 150 m2 pakai pipa berapa?",
       "gedung 5 lantai pakai pipa apa?",
-      "what pipe should I use for a 5 storey building?"
+      "what pipe should I use for a 5 storey building?",
+      "pipa pvc d 5 inch ada?",
+      "hdpe 75 mm ada ga?",
+      "pipa aw 2 inch ready?"
     ],
     "vp vu": [
       "pipa vp itu apa?",
@@ -421,7 +423,10 @@
       "cara pasang pipa jacking?",
       "pipa dorong bawah tanah itu apa?",
       "what is a jacking pipe?",
-      "pipe jacking uses?"
+      "pipe jacking uses?",
+      "ukuran pipa jacking ada apa aja?",
+      "pipa jacking tersedia ukuran berapa?",
+      "jacking pipe sizes?"
     ],
     "conduit": [
       "conduit itu apa?",
@@ -508,7 +513,10 @@
       "panjang standar pipa pvc?",
       "pipa hdpe satu gulung berapa meter?",
       "how long is one pipe length?",
-      "standard pipe length?"
+      "standard pipe length?",
+      "panjang batang pvc berapa?",
+      "satu batang pipa hdpe berapa meter?",
+      "pipa pvc per batangnya berapa meter?"
     ],
     "jumlah batang": [
       "butuh berapa batang pipa untuk 27 meter?",

@@ -253,7 +253,14 @@ export async function runProductQuestion(
   const knowledgeTopics = mentionsPressure(input.message)
     ? [...new Set([...u.knowledgeTopics, 'tekanan kerja'])]
     : u.knowledgeTopics;
-  if (knowledgeTopics.some((t) => factTopics().has(t))) {
+  // "kalau yang 3/4?" atas subjek produk (tee PVC) adalah ukuran produk itu, bukan topik "ukuran inci"
+  // (simulasi 2026-10-19: dijawab tabel diameter luar).
+  const sizeOfSubject =
+    u.families.length === 0 &&
+    input.subject?.kind === 'product' &&
+    u.productAspect === 'size_availability' &&
+    parseSize(input.message) !== null;
+  if (!sizeOfSubject && knowledgeTopics.some((t) => factTopics().has(t))) {
     const answer = await knowledgeAnswer(
       knowledgeTopics,
       input.message,
@@ -353,6 +360,34 @@ export async function runProductQuestion(
       return [
         { type: 'message.start', messageId: input.messageId },
         { type: 'token', text: choice.text },
+        endEvent(input.messageId),
+      ];
+    }
+  }
+
+  // Memilih SATU jenis dari keluarga yang sedang dibahas dengan namanya sendiri ("yang pe 100 aja"
+  // setelah ukuran per jenis HDPE): "pe 100" alias HDPE, jadi tanpa ini terbaca menyebut keluarga
+  // dan daftar jenisnya diulang (simulasi 2026-10-19).
+  const subjectFamilies =
+    input.subject?.kind === 'product' ? input.lexicon.productFamilies(input.subject.entity) : [];
+  if (
+    previousRange(lastAssistantText(input)) === 'family' &&
+    u.families.length > 0 &&
+    u.families.every((f) => subjectFamilies.includes(f)) &&
+    !u.mentionsRequirement
+  ) {
+    const chosen = await familySizes(
+      catalog,
+      subjectFamilies,
+      input.message,
+      false,
+      lastAssistantText(input),
+      locale,
+    );
+    if (chosen !== null) {
+      return [
+        { type: 'message.start', messageId: input.messageId },
+        { type: 'token', text: chosen.text },
         endEvent(input.messageId),
       ];
     }
@@ -598,9 +633,15 @@ async function answerConcept(
   } else if (!(topicOnly && knowledge !== '')) {
     // Penutup: bila pengguna bertanya tentang Pralon-nya ("HDPE di Pralon ok nggak?"), katakan
     // MENGAPA belum bisa dijawab; dan jangan ulangi kalimat yang persis sama tiap giliran.
-    const closing = /\bpralon\b/i.test(input.message)
-      ? COPY.catalogNotInstalledShort
-      : COPY.askTechnicalForProducts;
+    // Bahan yang memang bukan produk Pralon (galvanis) tidak dicari ke katalog — itu bukan "katalog
+    // belum terpasang" (simulasi 2026-10-19: "pralon jual pipa galvanis?" dijawab begitu).
+    const notPralon =
+      u.families.length > 0 && u.families.every((f) => !input.lexicon.isCatalogFamily(f));
+    const closing = notPralon
+      ? COPY.notPralonProduct(materialsFor(u.families)[0]?.label ?? u.families.join(', '))
+      : query !== null && /\bpralon\b/i.test(input.message)
+        ? COPY.catalogNotInstalledShort
+        : COPY.askTechnicalForProducts;
     if (!lastAssistantText(input).includes(closing)) facts.push(closing);
     cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
   }
@@ -940,17 +981,31 @@ async function fittingTurn(
     return null;
   }
   const size = parseSize(input.message);
-  const kinds = u.families.filter((f) => input.lexicon.isFittingFamily(f));
+  const ownKinds = u.families.filter((f) => input.lexicon.isFittingFamily(f));
   const subjectEntity =
     input.subject?.kind === 'product' &&
-    (size !== null || kinds.length > 0) &&
+    (size !== null || ownKinds.length > 0) &&
     u.families.every((f) => input.lexicon.isFittingFamily(f))
       ? input.subject.entity
       : null;
+  // "kalau yang 3/4?" setelah tee PVC: jenisnya dari subjek — tanpa ini semua fitting PVC 3/4" ikut.
+  const kinds =
+    ownKinds.length > 0 || subjectEntity === null
+      ? ownKinds
+      : input.lexicon
+          .productFamilies(subjectEntity)
+          .filter((f) => input.lexicon.isFittingFamily(f));
+  const ownMaterials = u.families.filter((f) => !input.lexicon.isFittingFamily(f));
+  const materials =
+    ownMaterials.length > 0 || subjectEntity === null
+      ? ownMaterials
+      : input.lexicon
+          .productFamilies(subjectEntity)
+          .filter((f) => !input.lexicon.isFittingFamily(f));
   const scope = fittingScope(
     catalogScope(input.message, subjectEntity, families),
     kinds,
-    u.families.filter((f) => !input.lexicon.isFittingFamily(f)),
+    materials,
     families,
   );
   if (scope.length === 0) return null;
@@ -960,6 +1015,8 @@ async function fittingTurn(
     kindTerms: [...new Set(kindTerms)],
     size,
     locale,
+    listSizes:
+      u.productAspect === 'sizes' || (u.productAspect === 'size_availability' && size === null),
   });
 }
 

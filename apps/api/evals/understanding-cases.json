@@ -1203,6 +1203,21 @@
       "text": "reducer pvc 2 x 1 inch ada ga?",
       "intent": "product_spec",
       "source": "audit 2026-10-19"
+    },
+    {
+      "text": "pipa jacking ada ukuran berapa aja?",
+      "topics": ["pipa jacking"],
+      "source": "simulasi 2026-10-19"
+    },
+    {
+      "text": "pvc d 6 inch ada ga?",
+      "productAspect": "size_availability",
+      "source": "simulasi 2026-10-19"
+    },
+    {
+      "text": "pipa hdpe satu batangnya berapa meter?",
+      "topics": ["panjang batang"],
+      "source": "simulasi 2026-10-19"
     }
   ]
 }

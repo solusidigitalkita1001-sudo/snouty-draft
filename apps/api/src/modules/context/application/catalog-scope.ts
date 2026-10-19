@@ -33,6 +33,8 @@ export interface FittingQuery {
   /** Ukuran dari parser nilai ("110 mm", "3/4"), `null` bila tidak disebut. */
   readonly size: string | null;
   readonly locale: Locale;
+  /** Pengguna menanyakan UKURAN yang tersedia ("tee pvc ada ukuran apa aja?"), bukan contoh produk. */
+  readonly listSizes?: boolean;
 }
 
 export interface FittingOutcome {
@@ -56,9 +58,13 @@ const SIZED_POOL = 60;
 function bySizeFit(products: readonly Product[], size: PipeSize): Product[] {
   const rank = (p: Product): number => {
     const parsed = p.sizes.map((s) => PipeSize.parse(s));
-    // Nama yang memuat dua ukuran ("Bell Tee 200mm x 2\"") adalah reducer walau tabel ukurannya
-    // hanya mencatat satu.
-    const reducerName = /\d\s*(?:mm|"|”)?\s*x\s*\d/i.test(p.name);
+    // Nama yang memuat dua ukuran BERBEDA ("Bell Tee 200mm x 2\"") adalah reducer walau tabel
+    // ukurannya hanya mencatat satu; "Tee PE 110 x 110 mm" tetap tee sama ukuran.
+    const pair =
+      /(\d+(?:[.,]\d+)?(?:\s+\d\/\d)?)\s*(?:mm|"|”)?\s*x\s*(\d+(?:[.,]\d+)?(?:\s+\d\/\d)?)/i.exec(
+        p.name,
+      );
+    const reducerName = pair !== null && pair[1] !== pair[2];
     if (parsed.length === 1 && parsed[0]?.equals(size) && !reducerName) return 0;
     return parsed[0]?.equals(size) ? 1 : 2;
   };
@@ -127,6 +133,10 @@ export async function fittingAnswer(
   const fittings = scope.filter((f) => FITTING.test(f));
   if (fittings.length === 0) return null;
   try {
+    if (query.listSizes && query.kindTerms.length > 0 && query.size === null) {
+      const sizes = await fittingSizes(catalog, fittings, query);
+      if (sizes !== null) return sizes;
+    }
     if (query.kindTerms.length > 0 || query.size !== null) {
       return await fittingLookup(catalog, fittings, query);
     }
@@ -135,6 +145,63 @@ export async function fittingAnswer(
   } catch {
     return null;
   }
+}
+
+/** Halaman katalog yang dibaca untuk daftar ukuran — cukup untuk ratusan varian satu jenis fitting. */
+const SIZE_PAGES = 6;
+
+/**
+ * Ukuran yang tersedia untuk satu jenis fitting ("tee pvc ada ukuran apa aja?"): ukuran utama setiap
+ * produk jenis itu, unik dan urut. Dulu dijawab enam produk sembarang (simulasi 2026-10-19).
+ */
+async function fittingSizes(
+  catalog: ScopeCatalog,
+  fittings: readonly string[],
+  query: FittingQuery,
+): Promise<FittingOutcome | null> {
+  const en = query.locale === 'en';
+  const found = new Map<string, PipeSize>();
+  let matchedKind: string | null = null;
+  for (const family of fittings) {
+    for (const term of query.kindTerms) {
+      let cursor: string | undefined;
+      let any = false;
+      for (let page = 0; page < SIZE_PAGES; page += 1) {
+        const result = await catalog.listProducts({
+          family,
+          status: 'active',
+          categoryIncludes: term,
+          limit: 100,
+          ...(cursor ? { cursor } : {}),
+        });
+        for (const p of result.items) {
+          const main = p.sizes[0] ? PipeSize.parse(p.sizes[0]) : null;
+          if (main) found.set(main.toString(), main);
+          any = true;
+        }
+        if (!result.nextCursor) break;
+        cursor = result.nextCursor;
+      }
+      if (any) {
+        matchedKind = term;
+        break;
+      }
+    }
+  }
+  if (found.size === 0 || matchedKind === null) return null;
+  const sizes = [...found.values()].sort((a, b) =>
+    a.isLargerThan(b) ? 1 : b.isLargerThan(a) ? -1 : 0,
+  );
+  const materials = fittings.map((f) => f.replace(/^fitting\s+/i, '')).join(en ? ' and ' : ' dan ');
+  const what = `${matchedKind} ${materials}`;
+  const list = sizes.map((s) => s.toString()).join(', ');
+  return {
+    products: [],
+    families: fittings,
+    text: en
+      ? `${capitalize(what)} in the Pralon catalogue comes in ${list}. Name a size and I will show the products.`
+      : `${capitalize(what)} di katalog Pralon tersedia ukuran ${list}. Sebutkan ukurannya kalau mau saya tampilkan produknya.`,
+  };
 }
 
 /** Pencarian terfilter: keluarga + jenis (kategori resmi) + ukuran (tabel ukuran). */

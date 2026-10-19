@@ -1,0 +1,697 @@
+{
+  "$comment": "Simulasi live pertanyaan PERPIPAAN (P25-04, permintaan pemilik 2026-10-19: 'simulasi menggunakan testcase sambil di uji, dari perpipaan dulu'). Dijalankan scripts/live-eval.mjs terhadap API berjalan. Tiap kasus = percakapan tamu baru; `turns` dijawab berurutan dan pemeriksaan berlaku untuk giliran itu. `expect` = jawaban yang benar menurut katalog aktif dan pengetahuan bersumber; `checks`: all = semua pola wajib ada, any = tiap grup minimal satu, none = tidak boleh ada, cards = jenis kartu yang wajib ada. Pola regex, tanpa beda huruf besar/kecil. Angka acuan dari katalog erp-2026-10-06 dan tabel standar Pralon.",
+  "cases": [
+    {
+      "id": "PP-01",
+      "category": "ragam produk",
+      "turns": [
+        {
+          "q": "produk pralon apa aja?",
+          "expect": "Ragam produk dari katalog: uPVC (AW, D, C), HDPE, conduit, jacking, fitting.",
+          "checks": {
+            "all": ["PVC", "HDPE"],
+            "any": [["conduit|HIC", "jacking", "fitting"]]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-02",
+      "category": "ketersediaan",
+      "turns": [
+        {
+          "q": "pipa ppr pralon ada ga?",
+          "expect": "Dibuka: PPR tidak ada di katalog Pralon.",
+          "checks": {
+            "all": ["^PPR tidak ada di katalog Pralon"],
+            "none": ["pipa gas", "conduit"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-03",
+      "category": "ketersediaan",
+      "turns": [
+        {
+          "q": "pralon jual pipa galvanis?",
+          "expect": "Galvanis dijelaskan sebagai bahan; dikatakan bukan produk Pralon (bukan \"katalog belum terpasang\").",
+          "checks": {
+            "all": ["galvanis", "bukan produk Pralon|tidak membuat"],
+            "none": ["belum terpasang", "\\*\\*GALVANIS\\*\\* —"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-04",
+      "category": "ukuran",
+      "turns": [
+        {
+          "q": "ukuran pipa pvc aw ada apa aja?",
+          "expect": "Rentang ukuran PVC AW dari katalog: 1/2\" sampai 16\".",
+          "checks": {
+            "all": ["1/2\"", "16\""]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-05",
+      "category": "ukuran",
+      "turns": [
+        {
+          "q": "pipa hdpe ukurannya dari berapa sampai berapa?",
+          "expect": "Ukuran HDPE per jenis dari katalog, sampai 900 mm.",
+          "checks": {
+            "all": ["900 mm"],
+            "any": [["16 mm", "20 mm"]]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-06",
+      "category": "ukuran",
+      "turns": [
+        {
+          "q": "conduit pralon ukuran apa aja?",
+          "expect": "High Impact Conduit 20–32 mm; tidak menyeret panjang batang pipa lain.",
+          "checks": {
+            "all": ["20 mm", "32 mm"],
+            "none": ["PVC AW", "HDPE\\*\\* — 1"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-07",
+      "category": "ukuran",
+      "turns": [
+        {
+          "q": "pipa jacking pralon ukuran apa saja?",
+          "expect": "Pipa jacking 6\"–16\" dari katalog.",
+          "checks": {
+            "all": ["jacking", "6\"", "16\""],
+            "none": ["Conduit adalah", "PVC AW"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-08",
+      "category": "ketersediaan ukuran",
+      "turns": [
+        {
+          "q": "pvc d 4 inch ada?",
+          "expect": "Ada: daftar produk PVC D 4\" dari katalog, bukan penjelasan kelas.",
+          "checks": {
+            "all": ["4\"", "di katalog Pralon"],
+            "none": ["tidak ada", "belum ada"],
+            "cards": ["product"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-09",
+      "category": "ketersediaan ukuran",
+      "turns": [
+        {
+          "q": "pipa pvc aw 7 inch ada?",
+          "expect": "7\" tidak ada di katalog; tidak mengganti ukuran diam-diam.",
+          "checks": {
+            "any": [["tidak ada", "belum ada", "tidak tersedia"]],
+            "all": ["7\""],
+            "none": ["Pipa uPVC Pralon dibuat lewat"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-10",
+      "category": "fitting",
+      "turns": [
+        {
+          "q": "elbow pvc 3 inch ada?",
+          "expect": "Daftar elbow PVC 3\" dari katalog, berbahasa Indonesia.",
+          "checks": {
+            "all": ["Elbow", "3\"", "katalog Pralon"],
+            "cards": ["product"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-11",
+      "category": "fitting",
+      "turns": [
+        {
+          "q": "tee hdpe 110 mm ada?",
+          "expect": "Tee HDPE 110 mm: tee sama ukuran (110 x 110) di daftar, reducer tidak mendahuluinya.",
+          "checks": {
+            "all": ["^- [^\\n]*110 x 110 mm|^- Cross Tee HDPE 110 mm"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-12",
+      "category": "fitting",
+      "turns": [
+        {
+          "q": "fitting tee 2 inch pvc ada?",
+          "expect": "Judul 'Tee PVC 2\"', tee sama ukuran didahulukan.",
+          "checks": {
+            "all": ["^Tee PVC 2\" di katalog Pralon"],
+            "none": ["FITTING PVC, jenis"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-13",
+      "category": "dimensi",
+      "turns": [
+        {
+          "q": "pipa pvc d 4 inch tebalnya berapa?",
+          "expect": "Tabel standar Pralon: PVC D 4\" tebal 2 mm.",
+          "checks": {
+            "all": ["2 mm", "standar Pralon"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-14",
+      "category": "dimensi",
+      "turns": [
+        {
+          "q": "pipa hdpe 110 mm sdr 11 ketebalannya berapa?",
+          "expect": "Tebal 10 mm, PN 16 (PE100 SDR 11).",
+          "checks": {
+            "all": ["10 mm"],
+            "any": [["PN ?16"]]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-15",
+      "category": "dimensi",
+      "turns": [
+        {
+          "q": "berat pipa hdpe 110 mm sdr 11 per meter berapa?",
+          "expect": "Berat per meter dari tabel standar (kg/m).",
+          "checks": {
+            "all": ["kg/m"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-16",
+      "category": "dimensi",
+      "turns": [
+        {
+          "q": "pipa aw 1 1/4 tebalnya berapa?",
+          "expect": "Tebal dinding AW 1 1/4\" dari tabel; bukan jawaban harga.",
+          "checks": {
+            "all": ["mm"],
+            "none": ["Harga tidak saya tampilkan"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-17",
+      "category": "panjang batang",
+      "turns": [
+        {
+          "q": "panjang satu batang pipa pvc berapa meter?",
+          "expect": "Panjang batang PVC dari katalog (beberapa panjang, mis. 4 m dan 6 m), bukan satu produk acak.",
+          "checks": {
+            "all": ["4 m", "6 m"],
+            "none": ["Kelas B 355"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-18",
+      "category": "tekanan",
+      "turns": [
+        {
+          "q": "tekanan kerja pipa hdpe pn 10 berapa bar?",
+          "expect": "Dibuka: PN = tekanan nominal dalam bar, PN 10 = 10 bar.",
+          "checks": {
+            "all": ["^Pada pipa HDPE, angka PN", "PN 10 berarti 10 bar"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-19",
+      "category": "tekanan",
+      "turns": [
+        {
+          "q": "pipa pvc aw tahan berapa bar?",
+          "expect": "Angka resmi PVC tidak dikarang; tanpa daftar HDPE/MDPE yang tidak ditanya.",
+          "checks": {
+            "any": [["tim teknis", "spesifikasi produk Pralon"]],
+            "none": [
+              "AW[^.]{0,40}\\d+ ?bar",
+              "PVC[^.]{0,40}tahan \\d+ ?bar",
+              "\\*\\*HDPE\\*\\*",
+              "\\*\\*MDPE\\*\\*"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-20",
+      "category": "kelas",
+      "turns": [
+        {
+          "q": "beda pvc aw, d, dan c apa?",
+          "expect": "AW bertekanan, D gravitasi, C tanpa tekanan.",
+          "checks": {
+            "all": ["AW", "gravitasi"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-21",
+      "category": "kelas",
+      "turns": [
+        {
+          "q": "pipa vp sama vu bedanya apa?",
+          "expect": "VP bertekanan, VU tak bertekanan, standar JIS.",
+          "checks": {
+            "all": ["JIS", "VP", "VU"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-22",
+      "category": "standar",
+      "turns": [
+        {
+          "q": "pipa sni untuk air minum yang mana?",
+          "expect": "SNI seri S untuk air minum.",
+          "checks": {
+            "all": ["seri S|S-series|S-10"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-23",
+      "category": "merek",
+      "turns": [
+        {
+          "q": "pippo itu apa?",
+          "expect": "PIPPO = merek kedua Pralon (AW, D).",
+          "checks": {
+            "all": ["PIPPO"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-24",
+      "category": "bahan",
+      "turns": [
+        {
+          "q": "bedanya pipa hdpe sama pvc apa?",
+          "expect": "HDPE lentur, PVC kaku; contoh produk mewakili (bukan pipa SNI kelas B 355 mm).",
+          "checks": {
+            "all": ["lentur", "kaku"],
+            "none": ["Kelas B 355"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-25",
+      "category": "bahan",
+      "turns": [
+        {
+          "q": "pipa pvc boleh buat air panas?",
+          "expect": "Tidak; PPR lazim untuk air panas, dan PPR bukan produk Pralon.",
+          "checks": {
+            "all": ["^Tidak", "PPR tidak termasuk produk Pralon"],
+            "cards": ["cta"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-26",
+      "category": "bahan",
+      "turns": [
+        {
+          "q": "pipa pvc bisa buat solar atau bensin?",
+          "expect": "Ketahanan kimia bergantung bahan; minta tim teknis; bukan air panas.",
+          "checks": {
+            "all": ["tim teknis"],
+            "none": ["air panas"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-27",
+      "category": "bahan",
+      "turns": [
+        {
+          "q": "pipa pralon aman buat air minum?",
+          "expect": "SNI seri S untuk air minum, formulasi Calcium-Zinc bebas timbal.",
+          "checks": {
+            "all": ["seri S", "timbal"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-28",
+      "category": "bahan",
+      "turns": [
+        {
+          "q": "pipa pvc boleh kena matahari langsung?",
+          "expect": "PVC melemah karena UV, lindungi; HDPE hitam tahan matahari.",
+          "checks": {
+            "all": ["UV"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-29",
+      "category": "aplikasi",
+      "turns": [
+        {
+          "q": "pipa buat gas rumah pakai apa?",
+          "expect": "MDPE/HDPE gas kuning, las panas; bukan PVC.",
+          "checks": {
+            "all": ["MDPE|HDPE gas"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-30",
+      "category": "aplikasi",
+      "turns": [
+        {
+          "q": "pipa buat kabel listrik pakai apa?",
+          "expect": "Conduit (High Impact Conduit).",
+          "checks": {
+            "all": ["conduit|HIC"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-31",
+      "category": "pemasangan",
+      "turns": [
+        {
+          "q": "cara nyambung pipa pvc pakai lem gimana?",
+          "expect": "Solvent cement dan langkahnya.",
+          "checks": {
+            "all": ["solvent cement"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-32",
+      "category": "pemasangan",
+      "turns": [
+        {
+          "q": "sambungan pipa hdpe pakai apa aja?",
+          "expect": "Butt fusion, electrofusion, kompresi, stub end + flange.",
+          "checks": {
+            "all": ["butt fusion", "electrofusion"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-33",
+      "category": "pembuangan",
+      "turns": [
+        {
+          "q": "kemiringan pipa air kotor berapa persen?",
+          "expect": "Kemiringan 2 % (acuan IPC, belum divalidasi).",
+          "checks": {
+            "all": ["2 %", "belum divalidasi"],
+            "none": ["Susun rekomendasi"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-34",
+      "category": "pembuangan",
+      "turns": [
+        {
+          "q": "pipa wc ukuran berapa?",
+          "expect": "Kloset minimal 4\".",
+          "checks": {
+            "all": ["kloset 4\""]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-35",
+      "category": "pemasangan",
+      "turns": [
+        {
+          "q": "pipa pvc ditanam kedalaman berapa?",
+          "expect": "Kedalaman timbunan bergantung lokasi; angka resmi dari pedoman Pralon, tidak dikarang.",
+          "checks": {
+            "all": ["timbunan"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-36",
+      "category": "gangguan",
+      "turns": [
+        {
+          "q": "kenapa pipa pvc bisa pecah?",
+          "expect": "Daftar gangguan dan penyebabnya; retak/pecah karena tekanan berlebih atau benturan.",
+          "checks": {
+            "all": ["^Gangguan yang lazim", "retak atau pecah"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-37",
+      "category": "hitung batang",
+      "turns": [
+        {
+          "q": "butuh berapa batang pipa 4 meter untuk jalur 30 meter?",
+          "expect": "30 m / 4 m → 8 batang.",
+          "checks": {
+            "all": ["30 m", "8 batang"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-38",
+      "category": "harga",
+      "turns": [
+        {
+          "q": "harga pipa pvc aw 4 inch berapa?",
+          "expect": "Harga tidak ditampilkan; tim Pralon mengirim penawaran.",
+          "checks": {
+            "all": ["Harga tidak saya tampilkan"],
+            "cards": ["cta"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-39",
+      "category": "pesaing",
+      "turns": [
+        {
+          "q": "pipa wavin sama pralon bagusan mana?",
+          "expect": "Merek lain tidak dinilai; keunggulan Pralon dari profil.",
+          "checks": {
+            "all": ["Merek lain tidak bisa saya nilai"],
+            "none": ["Wavin (lebih|kurang)"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-40",
+      "category": "pesaing",
+      "turns": [
+        {
+          "q": "rucika lebih murah ya dibanding pralon?",
+          "expect": "Tidak membandingkan harga pesaing; tetap netral.",
+          "checks": {
+            "none": ["Rucika (lebih|memang) murah", "Rucika lebih mahal"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-41",
+      "category": "perusahaan",
+      "turns": [
+        {
+          "q": "pralon itu perusahaan apa?",
+          "expect": "PT Pralon produsen sistem perpipaan di Indonesia.",
+          "checks": {
+            "all": ["produsen"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-42",
+      "category": "bahasa Inggris",
+      "turns": [
+        {
+          "q": "what sizes of hdpe pipe do you have?",
+          "expect": "English reply with HDPE sizes.",
+          "checks": {
+            "all": ["mm"],
+            "any": [["sizes", "to \\d+ mm"]],
+            "none": ["sampai", "ukuran"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-43",
+      "category": "bahasa Inggris",
+      "turns": [
+        {
+          "q": "is pvc pipe safe for drinking water?",
+          "expect": "English: SNI S-series, lead-free Calcium-Zinc.",
+          "checks": {
+            "all": ["drinking water", "lead-free"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-44",
+      "category": "bahasa Inggris",
+      "turns": [
+        {
+          "q": "how do you join hdpe pipe?",
+          "expect": "English: butt fusion, electrofusion.",
+          "checks": {
+            "all": ["butt fusion"],
+            "none": ["dilem", "Sambungannya"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-45",
+      "category": "lanjutan",
+      "turns": [
+        {
+          "q": "ukuran hdpe ada apa aja?",
+          "expect": "Ukuran per jenis HDPE.",
+          "checks": {
+            "all": ["HDPE"]
+          }
+        },
+        {
+          "q": "yang pe 100 aja",
+          "expect": "Ukuran HDPE PE 100 saja.",
+          "checks": {
+            "all": ["PE 100"],
+            "none": ["Telkom", "Gas SDR"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-46",
+      "category": "lanjutan",
+      "turns": [
+        {
+          "q": "pvc aw itu apa?",
+          "expect": "Kelas AW bertekanan.",
+          "checks": {
+            "all": ["AW"]
+          }
+        },
+        {
+          "q": "lebih detail dong",
+          "expect": "Penjelasan lebih dalam tentang PVC AW, bukan ikhtisar seluruh katalog.",
+          "checks": {
+            "all": ["AW"],
+            "none": ["Produk mana yang Anda maksud", "7\\.\\d{3} produk", "24 keluarga"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-47",
+      "category": "lanjutan",
+      "turns": [
+        {
+          "q": "pralon itu apa?",
+          "expect": "Profil perusahaan.",
+          "checks": {
+            "all": ["Pralon"]
+          }
+        },
+        {
+          "q": "boleh",
+          "expect": "Lanjutan profil perusahaan (bagian lain), bukan pembuka atau pertanyaan kebutuhan.",
+          "checks": {
+            "all": ["Pralon"],
+            "none": [
+              "Silakan, tanyakan saja",
+              "Produk mana yang Anda maksud",
+              "luasan bangunan",
+              "perannya"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "PP-48",
+      "category": "lanjutan",
+      "turns": [
+        {
+          "q": "tee pvc ada ukuran apa aja?",
+          "expect": "Ukuran tee PVC yang tersedia.",
+          "checks": {
+            "any": [["1/2\"", "3/4\"", "1\""]],
+            "all": ["[Tt]ee"]
+          }
+        },
+        {
+          "q": "kalau yang 3/4?",
+          "expect": "Tee PVC 3/4\" dari katalog.",
+          "checks": {
+            "all": ["[Tt]ee[^\\n]*3/4\""],
+            "none": ["diameter luar", "Diameter luar"]
+          }
+        }
+      ]
+    }
+  ]
+}

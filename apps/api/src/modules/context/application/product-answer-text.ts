@@ -40,6 +40,8 @@ export const PRODUCT_ANSWER_COPY = {
   rangeNext:
     'Mau saya jelaskan salah satunya, atau ceritakan bangunannya supaya saya bisa memilihkan?',
   /** Pengguna menyebut Pralon ("HDPE di Pralon ok nggak?") tetapi katalognya belum terpasang. */
+  notPralonProduct: (material: string) =>
+    `${material[0]!.toUpperCase()}${material.slice(1)} bukan produk Pralon. Untuk jalur air bersih, Pralon membuat pipa uPVC dan HDPE.`,
   catalogNotInstalledShort:
     'Soal produk Pralon-nya sendiri, katalog Pralon belum terpasang di sistem ini, jadi saya belum bisa memastikan tipe dan ukurannya — tim teknis Pralon bisa membantu.',
   catalogNotInstalled:
@@ -81,6 +83,7 @@ export interface ProductAnswerCopy {
   readonly typeNext: string;
   readonly sizeNext: string;
   readonly rangeNext: string;
+  readonly notPralonProduct: (material: string) => string;
   readonly catalogNotInstalledShort: string;
   readonly catalogNotInstalled: string;
   readonly askTechnicalForProducts: string;
@@ -105,6 +108,8 @@ export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
   sizeNext: 'Want me to check a specific size, or compare it with another type?',
   rangeNext:
     'Would you like me to explain one of them, or tell me about the building so I can pick for you?',
+  notPralonProduct: (material) =>
+    `${material[0]!.toUpperCase()}${material.slice(1)} is not a Pralon product. For clean-water lines Pralon makes uPVC and HDPE pipe.`,
   catalogNotInstalledShort:
     "As for the Pralon product itself, the Pralon catalog is not installed in this system, so I can't confirm the type and size yet — Pralon's technical team can help.",
   catalogNotInstalled:

@@ -90,8 +90,9 @@ export async function knowledgeAnswer(
     for (const c of concepts) parts.push(en ? c.textEn : c.text);
     for (const f of own) {
       parts.push(en ? f.textEn : f.text);
-      if (f.catalog) {
-        const lines = await catalogLines(f.catalog, message, catalog, locale).catch(() => []);
+      const hook = f.catalog ? forNamed(f.catalog, named) : null;
+      if (hook) {
+        const lines = await catalogLines(hook, message, catalog, locale).catch(() => []);
         if (lines.length > 0) parts.push(lines.join('\n'));
       }
     }
@@ -269,3 +270,17 @@ export function mentionsPressure(message: string): boolean {
 }
 const PRESSURE_VALUE =
   /(\d+(?:[.,]\d+)?)\s*(?:(?:-|–|sampai|s\/d|hingga)\s*(\d+(?:[.,]\d+)?)\s*)?bar\b/i;
+
+/**
+ * Data katalog sebuah fakta hanya untuk bahan yang ditanyakan: "pipa pvc aw tahan berapa bar?"
+ * tidak ditempeli daftar HDPE dan MDPE (simulasi 2026-10-19). Pesan tanpa bahan memakai semuanya;
+ * pesan yang bahannya tidak ada di daftar fakta tidak memakai data katalognya.
+ */
+function forNamed(hook: CatalogHook, named: readonly string[]): CatalogHook | null {
+  if (named.length === 0 || !hook.families) return hook;
+  const related = hook.families.filter((family) => {
+    const f = family.toLowerCase();
+    return named.some((n) => f.includes(n) || n.includes(f));
+  });
+  return related.length > 0 ? { ...hook, families: related } : null;
+}

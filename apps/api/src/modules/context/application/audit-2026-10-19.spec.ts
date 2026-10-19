@@ -89,12 +89,14 @@ function ask(
   message: string,
   labels: Parameters<typeof understood>[1],
   items: readonly Product[] = [],
+  over: Partial<ProductQuestionInput> = {},
 ): Promise<readonly AssistantStreamEvent[]> {
   const input: ProductQuestionInput = {
     messageId: 'm',
     message,
     understanding: understood(message, labels),
     lexicon: TEST_LEXICON,
+    ...over,
   };
   return runProductQuestion(
     noAi,
@@ -315,5 +317,189 @@ describe('audit 2026-10-19 — router dan tampilan', () => {
     );
     expect(a!.text).toContain('30 m');
     expect(a!.text).toContain('batang 4 m → 8 batang');
+  });
+});
+
+describe('simulasi test case 2026-10-19 — lanjutan dan bahan bukan Pralon', () => {
+  const hdpe = (name: string, sizes: string[]) =>
+    product({ name, family: 'HDPE', sizes, category: 'PIPA HDPE' });
+  const HDPE_PIPES = [
+    hdpe('Pipa HDPE PE 100 PN-10 63 mm x 6 Meter', ['63 mm']),
+    hdpe('Pipa HDPE PE 100 PN-10 110 mm x 6 Meter', ['110 mm']),
+    hdpe('Pipa HDPE Telkom 32/26 x 100 Meter', ['32/26']),
+  ];
+
+  it('"yang pe 100 aja" setelah ukuran per jenis HDPE: ukuran PE 100 saja, bukan daftar jenis lagi', async () => {
+    const previous = await ask(
+      'ukuran hdpe ada apa aja?',
+      { intent: 'product_spec', productAspect: 'sizes' },
+      HDPE_PIPES,
+    );
+    const reply = text(
+      await ask('yang pe 100 aja', { intent: 'product_concept' }, HDPE_PIPES, {
+        subject: { kind: 'product', entity: 'hdpe', topic: 'product_overview', depth: 'standard' },
+        recentTurns: [
+          { role: 'user', text: 'ukuran hdpe ada apa aja?' },
+          { role: 'assistant', text: text(previous) },
+        ],
+      }),
+    );
+    expect(reply).toContain('PE 100');
+    expect(reply).toContain('110 mm');
+    expect(reply).not.toContain('Telkom');
+  });
+
+  it('"pralon jual pipa galvanis?": galvanis bukan produk Pralon — bukan "katalog belum terpasang"', async () => {
+    const reply = text(
+      await ask('pralon jual pipa galvanis?', { intent: 'product_range' }, HDPE_PIPES),
+    );
+    expect(reply).toContain('Pipa galvanis (GIP) bukan produk Pralon.');
+    expect(reply).not.toMatch(/belum terpasang/);
+  });
+});
+
+describe('simulasi test case 2026-10-19 — data katalog hanya untuk bahan yang ditanya', () => {
+  it('"pipa pvc aw tahan berapa bar?": tanpa daftar HDPE/MDPE', async () => {
+    const a = await knowledgeAnswer(
+      ['tekanan kerja'],
+      'pipa pvc aw tahan berapa bar?',
+      {
+        familyCounts: async () => [
+          { family: 'HDPE', count: 3 },
+          { family: 'MDPE', count: 2 },
+        ],
+        productNamesInFamily: async () => ['Pipa HDPE PE 100 PN-10 63 mm x 6 Meter'],
+      },
+      'id',
+      ['pvc aw'],
+    );
+    expect(a!.text).not.toMatch(/\*\*HDPE\*\*|\*\*MDPE\*\*/);
+    expect(a!.text).toContain('spesifikasi produk Pralon');
+  });
+});
+
+describe('simulasi test case 2026-10-19 — lanjutan atas subjek produk', () => {
+  const AW = [
+    product({
+      name: 'Pipa (TS End) AW 1/2" x 4 Meter',
+      family: 'PVC AW',
+      sizes: ['1/2"'],
+      category: 'PIPA',
+    }),
+  ];
+  it('"lebih detail dong" setelah "pvc aw itu apa?": tetap tentang PVC AW, bukan ikhtisar katalog', async () => {
+    const reply = text(
+      await ask('lebih detail dong', { intent: 'follow_up_more' }, AW, {
+        subject: {
+          kind: 'product',
+          entity: 'pvc aw',
+          topic: 'product_overview',
+          depth: 'standard',
+        },
+        recentTurns: [
+          { role: 'user', text: 'pvc aw itu apa?' },
+          { role: 'assistant', text: 'AW, D, dan C adalah kelas pipa PVC.' },
+        ],
+      }),
+    );
+    expect(reply).toContain('AW');
+    expect(reply).not.toMatch(/keluarga\)|24 keluarga|Produk mana/);
+  });
+});
+
+describe('simulasi test case 2026-10-19 — ukuran fitting', () => {
+  const tee = (name: string, sizes: string[]) =>
+    product({ name, family: 'FITTING PVC', sizes, category: 'FITTING · TEE' });
+  const elbow = (name: string, sizes: string[]) =>
+    product({ name, family: 'FITTING PVC', sizes, category: 'FITTING · ELBOW' });
+  const ITEMS = [
+    tee('Tee Abu Ts 2"', ['2"']),
+    tee('Tee Abu Ts 3/4"', ['3/4"']),
+    tee('Tee Abu Ts 1/2"', ['1/2"']),
+    tee('Tee Abu Ts 3/4" x 1/2"', ['3/4"', '1/2"']),
+    elbow('Elbow Abu Ts 3/4"', ['3/4"']),
+  ];
+  /** Fake katalog yang juga menyaring kategori seperti query MySQL-nya. */
+  const withCategory = (items: readonly Product[]) => {
+    const base = catalogOf(items);
+    return {
+      ...base,
+      listProducts: async (q: { categoryIncludes?: string } & Record<string, unknown>) => {
+        const page = await base.listProducts(q as never);
+        const term = q.categoryIncludes?.toLowerCase();
+        return {
+          ...page,
+          items: term
+            ? page.items.filter((p) => p.category.toLowerCase().includes(term))
+            : page.items,
+        };
+      },
+    };
+  };
+  const run = (message: string, labels: Parameters<typeof understood>[1], over = {}) =>
+    runProductQuestion(
+      noAi,
+      withCategory(ITEMS) as never,
+      { answer: () => Promise.reject(new Error('bukan spesifikasi')) } as never,
+      {
+        messageId: 'm',
+        message,
+        understanding: understood(message, labels),
+        lexicon: TEST_LEXICON,
+        ...over,
+      },
+    );
+
+  it('"tee pvc ada ukuran apa aja?": ukuran tee yang tersedia, urut', async () => {
+    const reply = text(
+      await run('tee pvc ada ukuran apa aja?', {
+        intent: 'product_spec',
+        productAspect: 'size_availability',
+      }),
+    );
+    expect(reply).toContain('Tee PVC di katalog Pralon tersedia ukuran 1/2", 3/4", 2"');
+  });
+
+  it('"kalau yang 3/4?" setelah tee PVC: tee 3/4" saja, bukan tabel diameter atau elbow', async () => {
+    const reply = text(
+      await run(
+        'kalau yang 3/4?',
+        {
+          intent: 'product_spec',
+          productAspect: 'size_availability',
+          knowledgeTopics: ['ukuran inci'],
+        },
+        {
+          subject: {
+            kind: 'product',
+            entity: 'tee pvc',
+            topic: 'product_overview',
+            depth: 'standard',
+          },
+        },
+      ),
+    );
+    expect(reply).toContain('Tee Abu Ts 3/4"');
+    expect(reply).not.toMatch(/Elbow|diameter luar|Diameter luar/);
+  });
+});
+
+describe('simulasi test case 2026-10-19 — tee sama ukuran HDPE', () => {
+  it('"tee hdpe 110 mm ada?": Tee PE 110 x 110 mm mendahului reducer 250 x 110', async () => {
+    const tee = (name: string, sizes: string[]) =>
+      product({ name, family: 'FITTING HDPE', sizes, category: 'FITTING · TEE' });
+    const reply = text(
+      await ask(
+        'tee hdpe 110 mm ada?',
+        { intent: 'product_spec', productAspect: 'size_availability' },
+        [
+          tee('Tee (Segmented) PE 250 x 110 mm', ['110 mm']),
+          tee('Tee (Segmented) PE 315 x 110 mm', ['110 mm']),
+          tee('Tee (Segmented) PE 110 x 110 mm', ['110 mm']),
+        ],
+      ),
+    );
+    const listed = reply.split(/\n/).filter((l) => l.startsWith('- '));
+    expect(listed[0]).toBe('- Tee (Segmented) PE 110 x 110 mm');
   });
 });

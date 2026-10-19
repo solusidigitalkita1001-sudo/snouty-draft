@@ -51,7 +51,12 @@ import { ConversationService } from '../../conversation/application/conversation
 import type { ConversationOwner } from '../../conversation/domain/conversation.repository.js';
 import { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import { ProductQuestionService } from '../../product-knowledge/application/product-question.service.js';
-import { IntentRouter, type RoutingDecision, answersFromKnowledge } from './intent-router.js';
+import {
+  IntentRouter,
+  type RoutingDecision,
+  answersFromKnowledge,
+  subjectContinuation,
+} from './intent-router.js';
 import {
   applyTechnicalAnswers,
   technicalAnswerValue,
@@ -329,6 +334,9 @@ export class MessageService {
       // Tebal/berat/diameter dalam: tabel standar menjawab langsung (router, P21-09).
       u.productAspect !== 'dimensions' &&
       !isConfidentStandalone(u) &&
+      // Lanjutan atas subjek aktif ("boleh", "lebih detail dong") diputuskan kode dari subjeknya;
+      // lewat perencana dulu ia 10–30 s dan dijawab karangan model (simulasi 2026-10-19).
+      subjectContinuation(u, state.subject) === null &&
       (recentTurns.some((t) => t.role === 'assistant') || u.intent === null)
     ) {
       const families = (await this.catalogFamilies()).map((f) => f.family);
