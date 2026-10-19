@@ -411,7 +411,11 @@ export function answersFromKnowledge(u: MessageUnderstanding): boolean {
   if (topics.length === 0) return false;
   // Pertanyaan tentang bentuk sistem pengguna sendiri (P22-02: 'fitting apa saja yang perlu dibeli')
   // dijawab dari solusinya, bukan dari pengetahuan umum tentang jenis fitting.
-  if (u.intent?.label === 'system_layout_question') return false;
+  // Pertanyaan hitung atas panjang jalur tetap pengetahuan walau bentuknya mirip pertanyaan sistem
+  // ("butuh berapa batang pipa 4 meter untuk jalur 30 meter?", audit 2026-10-19: dijawab model
+  // dengan meminta data bangunan).
+  const calculation = topics.some((t) => CALCULATION_TOPICS.has(t));
+  if (u.intent?.label === 'system_layout_question' && !calculation) return false;
   const requirement = u.intent?.label.startsWith('requirement_') ?? false;
-  return !requirement || topics.some((t) => CALCULATION_TOPICS.has(t));
+  return !requirement || calculation;
 }

@@ -33,7 +33,7 @@ const num = (n: number, locale: Locale) =>
 
 const LENGTH = /x\s*(\d+(?:[.,]\d+)?)\s*Meter/i;
 /** Panjang jalur di pesan ("27 meter", "60 m") — parser nilai, bukan pola pertanyaan. */
-const ROUTE = /(\d+(?:[.,]\d+)?)\s*(?:m|meter|metres?|meters?)\b/i;
+const ROUTE = /(\d+(?:[.,]\d+)?)\s*(?:m|meter|metres?|meters?)\b/gi;
 
 const decimal = (raw: string) => Number(raw.replace(',', '.'));
 
@@ -185,8 +185,12 @@ async function catalogLines(
   const present = (hook.families ?? []).filter((f) => counts.some((c) => c.family === f));
   if (present.length === 0) return [];
   const lines: string[] = [];
-  const route = hook.rods ? ROUTE.exec(message) : null;
-  const routeM = route ? decimal(route[1]!) : null;
+  // Panjang jalur = nilai meter TERBESAR di pesan; nilai lain yang lebih kecil adalah panjang batang
+  // yang diminta ("pipa 4 meter untuk jalur 30 meter" → jalur 30 m, batang 4 m). Dulu nilai pertama
+  // dipakai sebagai jalur dan jawabannya "untuk 4 m: 1 batang" (audit 2026-10-19).
+  const metres = hook.rods ? [...message.matchAll(ROUTE)].map((m) => decimal(m[1]!)) : [];
+  const routeM = metres.length > 0 ? Math.max(...metres) : null;
+  const askedRods = metres.filter((m) => m !== routeM);
   if (hook.rods && routeM === null) return [];
   lines.push(en ? 'In the active Pralon catalogue:' : 'Di katalog Pralon yang aktif:');
   for (const family of present) {
@@ -203,13 +207,13 @@ async function catalogLines(
       ),
     ].sort((a, b) => a - b);
     if (hook.rods && routeM !== null && lengths.length > 0) {
-      const options = lengths
-        .filter((l) => l > 0 && l < 50)
-        .map((l) =>
-          en
-            ? `${num(l, locale)} m pipe → ${Math.ceil(routeM / l)} pipes`
-            : `batang ${num(l, locale)} m → ${Math.ceil(routeM / l)} batang`,
-        );
+      const usable = lengths.filter((l) => l > 0 && l < 50);
+      const asked = usable.filter((l) => askedRods.includes(l));
+      const options = (asked.length > 0 ? asked : usable).map((l) =>
+        en
+          ? `${num(l, locale)} m pipe → ${Math.ceil(routeM / l)} pipes`
+          : `batang ${num(l, locale)} m → ${Math.ceil(routeM / l)} batang`,
+      );
       if (options.length > 0) {
         lines.push(
           en

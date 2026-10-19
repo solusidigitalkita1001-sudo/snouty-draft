@@ -27,6 +27,14 @@ const NUM = String.raw`(\d{1,3}(?:\.\d{3})+(?!\d)|\d+(?:[.,]\d+)?)`;
 const M = String.raw`(m|meters?|metres?)`;
 
 /**
+ * Air tenang sebagai SUMBER: embung, waduk, danau — atau kolam yang disebut sebagai asal air ("dari
+ * kolam", "sumber air kolam"). "kolam lele 10 kolam" adalah tujuan airnya, bukan sumbernya (audit
+ * 2026-10-19: tercatat "sumber air embung / kolam" yang tidak pernah disebut).
+ */
+const STILL_WATER_SOURCE =
+  /\bembung\b|\bwaduk\b|\bdanau\b|\blake\b|\b(?:dari|from|sumber(?: air)?(?:nya)?|source)\s+(?:an? |the )?(?:kolam|pond)\b/;
+
+/**
  * "1.500" → 1500 (titik pemisah ribuan, kelompok tepat tiga digit); "1,5" dan "1.5" → 1,5. Angka
  * pengguna dipertahankan apa adanya — tidak ada pembulatan atau konversi diam-diam.
  */
@@ -441,8 +449,8 @@ export function extractTechnicalContext(
   )
     add('source_type', 'Sungai / saluran', 'sungai');
   else if (/sumur|\bwell\b(?! as)|borehole/.test(whole)) add('source_type', 'Sumur', 'sumur');
-  else if (/\bembung\b|\bkolam\b|\bwaduk\b|\bdanau\b|\bpond\b|\blake\b/.test(whole))
-    add('source_type', 'Embung / kolam', 'embung');
+  else if (STILL_WATER_SOURCE.test(whole))
+    add('source_type', 'Embung / kolam', STILL_WATER_SOURCE.exec(whole)![0]);
   else if (/\bpdam\b|municipal|mains water|city water/.test(whole))
     add('source_type', 'PDAM', 'pdam');
   else if (

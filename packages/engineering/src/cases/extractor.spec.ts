@@ -175,3 +175,19 @@ describe('extractTechnicalContext — jaringan PDAM: tekanan sumber dan jumlah c
     });
   });
 });
+
+describe('extractTechnicalContext — audit 2026-10-19: kolam sebagai tujuan, bukan sumber', () => {
+  const source = (text: string) =>
+    extractTechnicalContext(text).find((f) => f.key === 'source_type')?.value;
+
+  it('"kolam lele 10 kolam" tidak mencatat sumber air', () => {
+    expect(source('kolam lele 10 kolam, butuh pipa apa?')).toBeUndefined();
+    expect(source('10 fish ponds, which pipe?')).toBeUndefined();
+  });
+
+  it('kolam yang disebut sebagai asal air tetap sumber', () => {
+    expect(source('air dari kolam ke sawah 200 m')).toBe('Embung / kolam');
+    expect(source('sumber airnya embung, jarak 300 m')).toBe('Embung / kolam');
+    expect(source('water from a pond to the field')).toBe('Embung / kolam');
+  });
+});

@@ -275,4 +275,26 @@ describe('audit 2026-10-19 — router dan tampilan', () => {
     expect(faults!.text.startsWith('Gangguan yang lazim pada pipa PVC')).toBe(true);
     expect(faults!.text).toContain('- Pipa retak atau pecah');
   });
+
+  it('"butuh berapa batang pipa 4 meter untuk jalur 30 meter?": jawaban hitung, bukan model', async () => {
+    const decision = await new IntentRouter(never).route(
+      understood('butuh berapa batang pipa 4 meter untuk jalur 30 meter?', {
+        intent: 'system_layout_question',
+        knowledgeTopics: ['jumlah batang'],
+      }),
+      false,
+    );
+    expect(decision.intent).toBe('PRODUCT_LOOKUP');
+    const a = await knowledgeAnswer(
+      ['jumlah batang'],
+      'butuh berapa batang pipa 4 meter untuk jalur 30 meter?',
+      {
+        familyCounts: async () => [{ family: 'PVC AW', count: 1 }],
+        productNamesInFamily: async () => ['Pipa PVC AW 1/2" x 4 Meter'],
+      },
+      'id',
+    );
+    expect(a!.text).toContain('30 m');
+    expect(a!.text).toContain('batang 4 m → 8 batang');
+  });
 });

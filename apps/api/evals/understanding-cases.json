@@ -1160,6 +1160,27 @@
       "text": "kenapa pipa pvc bisa pecah?",
       "topics": ["perawatan dan gangguan"],
       "source": "audit 2026-10-19"
+    },
+    {
+      "text": "harga hdpe 90 mm per meter berapa ya?",
+      "intent": "price_question",
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "pvc tahan bensin ga?",
+      "topics": ["ketahanan kimia"],
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "jarak meteran pdam ke rumah 30 m, pipanya berapa inch?",
+      "topics": ["sambungan rumah"],
+      "topicsOnly": true,
+      "source": "audit 2026-10-19"
+    },
+    {
+      "text": "jalur 45 meter pakai pipa 6 meter butuh berapa batang?",
+      "topics": ["jumlah batang"],
+      "source": "audit 2026-10-19"
     }
   ]
 }

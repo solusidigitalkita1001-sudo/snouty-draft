@@ -1930,7 +1930,12 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       tidak jelas); "pralon punya pipa ppr ga?" tidak dikenali (contoh intent); talang 150 m2 tercatat "0,02 ha" (luas
       < 1 ha ditampilkan m²); judul daftar fitting "FITTING PVC, jenis tee, ukuran 2" → "Tee PVC 2""; bell tee 200 mm x
       2" dianggap tee sama ukuran; "kenapa pipa bisa pecah?" dibuka kalimat bocor sambungan; nilai pilihan berhuruf
-      kapital di tengah kalimat ("sumber air Sumur").
+      kapital di tengah kalimat ("sumber air Sumur"). Putaran 3: "butuh berapa batang pipa 4 meter untuk jalur 30
+      meter?" dijawab model meminta data bangunan (topik hitung kini menang atas bentuk pertanyaan sistem; panjang
+      jalur = nilai meter terbesar, batang yang disebut dipakai); "harga pipa hdpe 110 mm per meter" dijawab daftar
+      ukuran (contoh intent harga, eval 98,7 %); "pipa pvc bisa buat solar/bensin?" dijawab air panas (contoh
+      ketahanan kimia); "pdam ke rumah 25 m" menyeret topik pembuangan (contoh sambungan rumah); "kolam lele 10
+      kolam" mencatat sumber air "embung / kolam" yang tidak disebut (kolam hanya sumber bila disebut asal air).
 
 ## Design Coverage
 
