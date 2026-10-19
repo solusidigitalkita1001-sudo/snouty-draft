@@ -1943,7 +1943,12 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       (Bell End) Kelas B 355 mm". (3) Contoh intent harga vs tebal pipa AW diimbangi; eval intent 99,4 %. (4) Wizard:
       status onboarding tamu ikut ke akun saat daftar/masuk (dalam transaksi penautan, tanpa menimpa milik akun);
       browser yang pernah melihatnya tidak menampilkannya lagi walau server bilang pending (server disusulkan); wizard
-      ditandai sudah dilihat begitu tampil, jadi menutup tab di tengah jalan tidak memunculkannya lagi.
+      ditandai sudah dilihat begitu tampil, jadi menutup tab di tengah jalan tidak memunculkannya lagi; e2e
+      `onboarding-once.e2e.mjs` lolos di produksi. (5) Beban: 20 pesan serentak membuat tahap pemahaman menunggu bge-m3
+      sampai 73 s di Ollama yang sama dengan 7B, lalu router/penulis timeout ("belum menangkap maksudnya"; "apa itu pipa
+      jacking?" bahkan dijawab model "belum tercatat di katalog"). Embedding kini di service `ollama-embed` sendiri, dan
+      contoh "apa itu …" serta ketersediaan ukuran fitting ditambah: uji serentak yang sama 21/22 giliran < 5 s, nol
+      gagal (sisa: jawaban kartu yang memakai ekstraksi model ±90 s).
 
 ## Design Coverage
 
