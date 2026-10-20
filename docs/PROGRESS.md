@@ -1997,6 +1997,15 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       membawa `language` giliran (hasil pengenal bahasa P25-01), dan web memasang bahasa antarmuka ke situ. Membuka
       riwayat memasang bahasa terakhir percakapan itu. Tombol bahasa tetap bisa dipakai, dan kalimat berikutnya yang
       bahasanya jelas memindahkannya lagi.
+- [x] P25-08 Audit live campuran + daftar pertanyaan sales (pemilik 2026-10-20). Campuran 8/16 → 14/16
+      (`evals/live-mixed-cases.json`), daftar sales 69 pertanyaan (`evals/live-sales-faq-2026-10-20.json`), semua
+      jawaban dibaca. Perbandingan kelas PVC ("AW sama D", "AW, D, C") jadi satu tabel kelas dengan baris katalog;
+      perbandingan bahan dan data katalog ≥ 2 keluarga jadi tabel (> 4 keluarga: keluarga di baris). Topik
+      `sambungan transisi` (PVC ke galvanis lewat Faucet Socket/Valve Socket, Master §20.2). Lanjutan terstruktur
+      atas subjek produk (ukuran terbaca, atau jenis fitting) melewati perencana model; ukuran di pesan berlaku untuk
+      semua aspek; kelas tekanan per ukuran dari semua produk keluarga ("HDPE 110 mm"). Sisa: "which sizes…" Inggris
+      dijawab daftar jenis; "galvanis karatan ganti apa" langsung kartu kasus; "yang paling besar" masih lewat
+      perencana model. Laporan: Downloads/TESTCASE*SNOUTY*{campuran,pertanyaan-sales}\_2026-10-20.md.
 
 ## Design Coverage
 
