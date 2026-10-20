@@ -4,7 +4,13 @@
  */
 import { describe, expect, it } from 'vitest';
 import { mergeRequirement } from './context-merger.js';
-import { assumptionCard, defaultUpdateFor, REQUIREMENT_DEFAULTS } from './requirement-defaults.js';
+import { withCompleteness } from './completeness.js';
+import {
+  assumptionCard,
+  defaultUpdateFor,
+  houseAssumptionUpdates,
+  REQUIREMENT_DEFAULTS,
+} from './requirement-defaults.js';
 import { fieldEntries, readField } from './requirement-field.js';
 import { emptyRequirementState } from './requirement-state.factory.js';
 
@@ -88,5 +94,54 @@ describe('kartu asumsi dwibahasa', () => {
       reason: 'The distribution source is a rooftop tank, with no booster pump.',
       ruleId: 'ENG-014',
     });
+  });
+});
+
+describe('hitung dulu + anggapan rumah (pemilik 2026-10-20)', () => {
+  const house = (floors: number | null, bathrooms: number | null) => {
+    const updates = [
+      { path: 'building.type' as const, value: 'residential', source: 'user_stated' as const },
+      ...(floors === null
+        ? []
+        : [{ path: 'building.floors' as const, value: floors, source: 'user_stated' as const }]),
+      ...(bathrooms === null
+        ? []
+        : [
+            {
+              path: 'fixtures.bathrooms' as const,
+              value: bathrooms,
+              source: 'user_stated' as const,
+            },
+          ]),
+    ];
+    return withCompleteness(mergeRequirement(emptyRequirementState(T0), updates, T1).state);
+  };
+
+  it('lantai disebut: kamar mandi 1 per lantai, toren atap, air bersih — semuanya ASSUMED ber-reason', () => {
+    const updates = houseAssumptionUpdates(house(3, null));
+    expect(updates.map((u) => [u.path, u.value])).toEqual(
+      [
+        ['water.source', 'rooftop_tank'],
+        ['water.installationType', 'clean_water'],
+        ['fixtures.bathrooms', 3],
+      ].sort(
+        (a, b) =>
+          updates.findIndex((u) => u.path === a[0]) - updates.findIndex((u) => u.path === b[0]),
+      ),
+    );
+    for (const u of updates) expect(u).toMatchObject({ provenance: 'ASSUMED', ruleId: 'ENG-014' });
+    expect(updates.find((u) => u.path === 'fixtures.bathrooms')!.reason).toBe(
+      'Jumlah kamar mandi diasumsikan 1 per lantai.',
+    );
+  });
+
+  it('lantai belum disebut: tanpa anggapan — yang kurang ditanyakan', () => {
+    expect(houseAssumptionUpdates(house(null, 2))).toEqual([]);
+  });
+
+  it('"Belum tahu" kamar mandi: jumlah lantai bila diketahui, tanpa lantai tetap kosong', () => {
+    expect(defaultUpdateFor('fixtures.bathrooms', house(2, null))).toMatchObject({ value: 2 });
+    expect(defaultUpdateFor('fixtures.bathrooms', house(null, null))).toBeNull();
+    expect(defaultUpdateFor('fixtures.bathrooms')).toBeNull();
   });
 });

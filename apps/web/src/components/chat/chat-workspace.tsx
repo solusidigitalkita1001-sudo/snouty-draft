@@ -845,6 +845,21 @@ export function ChatWorkspace() {
   );
   const analyze = useCallback(() => startAnalysis(false), [startAnalysis]);
 
+  // "Hitung dulu + asumsi" (pemilik 2026-10-20): kartu ANALYZE bertanda `auto` di giliran terbaru
+  // langsung menjalankan analisis, sekali per giliran — tombolnya tetap ada untuk menghitung ulang.
+  const autoAnalyzed = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const last = turns.at(-1);
+    if (!last || last.role !== 'assistant' || !last.fresh) return;
+    if (autoAnalyzed.current.has(last.id)) return;
+    const auto = last.cards.some(
+      (card) => card.kind === 'cta' && card.action === 'ANALYZE' && card.auto === true,
+    );
+    if (!auto) return;
+    autoAnalyzed.current.add(last.id);
+    analyze();
+  }, [turns, analyze]);
+
   /**
    * "Simpan hasil konsultasi". Digerbang `SAVE_SOLUTION` di API: tamu menerima 403 dan
    * tombolnya tetap tidak berubah — UI tidak berpura-pura berhasil.

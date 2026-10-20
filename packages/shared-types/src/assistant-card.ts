@@ -110,7 +110,15 @@ export type AssistantCard =
       readonly slaHours: number;
     }
   | { readonly kind: 'product'; readonly products: readonly ProductCardDto[] }
-  | { readonly kind: 'cta'; readonly action: 'ANALYZE' | 'REGISTER' | 'CONTACT_TECHNICAL' }
+  | {
+      readonly kind: 'cta';
+      readonly action: 'ANALYZE' | 'REGISTER' | 'CONTACT_TECHNICAL';
+      /**
+       * ANALYZE yang langsung dijalankan klien tanpa menunggu tombol (pemilik 2026-10-20: "Hitung
+       * dulu + asumsi") — rumah yang datanya lengkap atau dilengkapi anggapan di giliran itu.
+       */
+      readonly auto?: boolean;
+    }
   /**
    * Potongan instalasi di dalam chat (P22-02): kebutuhan bergambar solusi yang sudah dihitung —
    * data yang sama dengan tab Denah, digambar klien. Tidak pernah berisi markup.

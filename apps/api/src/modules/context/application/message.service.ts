@@ -776,7 +776,7 @@ export class MessageService {
         .filter((answer) => !isIrrigationField(answer.id))
         .filter((answer) => !isOutlierAnswerId(answer.id))
         .filter((answer) => !technicalAnswers.some((t) => t.key === answer.id))
-        .map((answer) => answerToUpdate(answer, defaultUpdateFor))
+        .map((answer) => answerToUpdate(answer, (path) => defaultUpdateFor(path, state)))
         .filter((update): update is NonNullable<typeof update> => update !== null),
       ...outliers.flatMap((a) => ('update' in a ? [a.update] : [])),
     ];

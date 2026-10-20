@@ -64,7 +64,7 @@ import {
   planIrrigationClarification,
 } from '../domain/irrigation.js';
 import { irrigationGuidance } from './irrigation-guidance.js';
-import { assumptionCard } from '../domain/requirement-defaults.js';
+import { assumptionCard, houseAssumptionUpdates } from '../domain/requirement-defaults.js';
 import { houseRefinementQuestions, planClarification } from '../domain/clarification.js';
 import { outlierQuestions, pendingOutliers } from '../domain/plausibility.js';
 import { mergeRequirement } from '../domain/context-merger.js';
@@ -347,7 +347,13 @@ export async function runUnderstanding(
   const adviceOnly =
     input.understanding?.intent?.label === 'advice_request' &&
     !input.understanding.mentionsRequirement;
-  const skipModel = quickCore >= 2 || mutationOp !== null || adviceOnly;
+  // Rumah yang lantainya tersurat dihitung langsung dengan anggapan (pemilik 2026-10-20) — model
+  // tidak menambah apa pun yang dibutuhkan hitungan itu, hanya 15–50 detik (uji sales 2026-10-20).
+  const quick = extractionToUpdates({}, input.message);
+  const houseWithFloors =
+    quick.some((u) => u.path === 'building.type' && u.value === 'residential') &&
+    quick.some((u) => u.path === 'building.floors');
+  const skipModel = quickCore >= 2 || houseWithFloors || mutationOp !== null || adviceOnly;
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
     extraction = skipModel ? {} : await ai.extract(input.message);
@@ -421,6 +427,12 @@ export async function runUnderstanding(
     merged = withCompleteness(result.state);
     changed = result.changed.length > 0;
     changedPaths = result.changed;
+    // Rumah yang lantainya sudah disebut: sisa data inti dianggap dulu, lalu langsung dihitung.
+    const assumptions = houseAssumptionUpdates(merged);
+    if (assumptions.length > 0) {
+      merged = withCompleteness(mergeRequirement(merged, assumptions, input.now).state);
+      changed = true;
+    }
   }
 
   events.push({ type: 'requirement.updated', state: merged });
@@ -460,7 +472,12 @@ export async function runUnderstanding(
     });
   }
 
-  const card = followUpCard(merged, input.locale);
+  const next = followUpCard(merged, input.locale);
+  // Rumah yang baru lengkap di giliran ini langsung dihitung — dengan atau tanpa anggapan.
+  const card: AssistantCard | null =
+    next?.kind === 'cta' && next.action === 'ANALYZE' && changed && merged.useCase === undefined
+      ? { ...next, auto: true }
+      : next;
   // Giliran kebutuhan bangunan tidak pernah bisu (checkpoint Fase 15, S1/S11): satu kalimat
   // tentang apa yang tercatat, lalu kartunya. Jalur irigasi/teknis/kebijakan sudah menulis
   // teksnya sendiri; bahan yang dinasihati di atas pun sudah.
@@ -485,7 +502,8 @@ export async function runUnderstanding(
   if (materials.length === 0 && merged.useCase === undefined && !policyCardShown) {
     // Ubahan ("jadi 3 lantai") cukup menyebut yang berubah, bukan mengulang semua kebutuhan.
     const only = input.decision.mutatesState && changedPaths.length > 0 ? changedPaths : undefined;
-    const text = understoodReply(merged, card?.kind ?? null, locale, only);
+    const auto = card?.kind === 'cta' && card.auto === true;
+    const text = understoodReply(merged, card?.kind ?? null, locale, only, auto);
     if (text !== null) events.push({ type: 'token', text });
   }
   // Giliran yang tidak menghasilkan kalimat apa pun ("itung ulang, luasnya belum gw kasih" atas
@@ -541,14 +559,34 @@ export function understoodReply(
   nextCard: AssistantCard['kind'] | null,
   locale: Locale,
   only?: readonly RequirementFieldPath[],
+  /** Kartu ANALYZE langsung dijalankan (rumah dihitung di giliran ini). */
+  auto = false,
 ): string | null {
   // Kalimat, bukan tabel: jumlah fixture membawa NAMA field-nya ("3 kamar mandi", bukan "3 titik"
   // seperti di panel yang sudah berlabel); lantai dan nilai bernama memakai label nilainya.
   const en = locale === 'en';
   const captured: string[] = [];
+  // Yang dianggap tidak disebut sebagai "sudah saya catat": ditulis sendiri sebagai anggapan.
+  const assumed: string[] = [];
   for (const [path, field] of fieldEntries(state)) {
-    if (field.value === null || path === 'building.floorHeightM' || path === 'building.dimensions')
+    if (field.value === null || path === 'building.floorHeightM') continue;
+    if (path === 'building.dimensions') {
+      const run = (field.value as { mainRunMeters?: number }).mainRunMeters;
+      if (
+        typeof run === 'number' &&
+        field.provenance !== 'ASSUMED' &&
+        (!only || only.includes(path))
+      ) {
+        const m = run.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
+        captured.push(en ? `a main run of about ${m} m` : `jalur utama ±${m} m`);
+      }
       continue;
+    }
+    if (field.provenance === 'ASSUMED' && field.source === 'default_applied') {
+      const phrase = assumedPhrase(path, field.value, locale);
+      if (phrase !== null) assumed.push(phrase);
+      continue;
+    }
     if (only && !only.includes(path)) continue;
     if (path.startsWith('fixtures.') && typeof field.value === 'number') {
       if (field.value === 0) continue;
@@ -601,6 +639,23 @@ export function understoodReply(
     : en
       ? `Okay, I have noted: ${summary}.`
       : `Oke, sudah saya catat: ${summary}.`;
+  if (nextCard === 'cta' && auto) {
+    const guess =
+      assumed.length === 0
+        ? ''
+        : en
+          ? ` Until you tell me otherwise I am taking ${joinList(assumed, locale)}.`
+          : ` Yang belum disebut saya anggap dulu ${joinList(assumed, locale)}.`;
+    const change =
+      assumed.length === 0
+        ? ''
+        : en
+          ? ' If any of that is different, answer the questions below and I will recompute.'
+          : ' Kalau ada yang berbeda, jawab pertanyaan di bawah dan hitungannya saya ulang.';
+    return en
+      ? `${opener}${guess} I am working out the pipe sizes and the product list now.${change}`
+      : `${opener}${guess} Ukuran pipa dan daftar produknya saya hitung sekarang.${change}`;
+  }
   if (nextCard === 'cta') {
     return en
       ? `${opener} Press **Compose recommendation** to see the pipe sizes and the product list.`
@@ -614,6 +669,25 @@ export function understoodReply(
   return en
     ? `${opener} A few more things so the sizing is right:`
     : `${opener} Beberapa hal lagi supaya hitungannya pas:`;
+}
+
+/** Anggapan rumah sebagai frasa ("1 kamar mandi per lantai", "air dari toren atap"). */
+function assumedPhrase(path: RequirementFieldPath, value: unknown, locale: Locale): string | null {
+  const en = locale === 'en';
+  switch (path) {
+    case 'fixtures.bathrooms':
+      return en
+        ? `1 bathroom per floor (${String(value)} in total)`
+        : `1 kamar mandi per lantai (${String(value)} kamar mandi)`;
+    case 'water.source':
+      return en
+        ? 'water from a rooftop tank without a booster pump'
+        : 'air dari toren atap tanpa pompa pendorong';
+    case 'water.installationType':
+      return en ? 'clean water only' : 'air bersih saja';
+    default:
+      return null;
+  }
 }
 
 /**
@@ -699,7 +773,17 @@ export function technicalQuestionCard(
   // Rumah: ukuran, dapur, wastafel yang belum disebut — di samping tombol Susun rekomendasi.
   if (state.useCase === undefined) {
     if (followUpCard(state, locale)?.kind !== 'cta') return null;
-    const questions = houseRefinementQuestions(
+    // Data inti yang baru dianggap ditanya lebih dulu — jawabannya menimpa anggapan.
+    const assumedCore = (['fixtures.bathrooms', 'water.source'] as const).filter(
+      (path) =>
+        (path === 'fixtures.bathrooms' ? state.fixtures.bathrooms : state.water.source).source ===
+        'default_applied',
+    );
+    // Satu rencana per field: rencana gabungan dua field berbentuk satu pertanyaan saja.
+    const confirm = assumedCore.flatMap(
+      (path) => planClarification([path], locale)?.questions ?? [],
+    );
+    const refinements = houseRefinementQuestions(
       // Titik air tambahan yang disebut: beban lama = rumah yang disebut (P25-06), tidak ditanya lagi.
       (path) =>
         fieldValueKnown(state, path) ||
@@ -709,6 +793,7 @@ export function technicalQuestionCard(
       state.water.source.value,
       state.water.workType?.value ?? (state.water.replaceExisting?.value ? 'replace_all' : null),
     );
+    const questions = [...confirm, ...refinements];
     return questions.length > 0 ? { kind: 'clarification', questions } : null;
   }
   if (state.useCase.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return null;

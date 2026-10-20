@@ -55,6 +55,8 @@ export const ENG_014: RuleVersion<
     defaults: [
       { field: 'water.source', value: 'rooftop_tank' },
       { field: 'water.installationType', value: 'clean_water' },
+      // Rumah yang lantainya disebut (pemilik 2026-10-20): 1 kamar mandi per lantai.
+      { field: 'fixtures.bathrooms', value: '1 per lantai' },
     ],
   }),
   sourceReference: 'Prototipe baru SNOUTY; disajikan kepada pengguna sebagai asumsi',
@@ -67,6 +69,7 @@ export const ENG_014: RuleVersion<
         defaults: [
           { field: 'water.source', value: 'rooftop_tank' },
           { field: 'water.installationType', value: 'clean_water' },
+          { field: 'fixtures.bathrooms', value: '1 per lantai' },
         ],
       },
     },

@@ -80,9 +80,11 @@ describe('runUnderstanding — diet panggilan model (2026-10-07)', () => {
 });
 
 describe('runUnderstanding — bentuk event SSE', () => {
-  it('data tidak lengkap: start → stage active → requirement.updated → stage done → card clarification → end', async () => {
+  it('data tidak lengkap (lantai belum disebut): start → stage active → requirement.updated → stage done → card clarification → end', async () => {
+    // Model menyebut 2 lantai, tetapi pesannya tidak — pagar grounding membuangnya; tanpa lantai
+    // tidak ada anggapan (pemilik 2026-10-20), jadi yang kurang ditanyakan.
     const ai = aiExtracting({ building: { floors: 2 }, fixtures: { bathrooms: 3 } });
-    const { events } = await runUnderstanding(ai, input());
+    const { events } = await runUnderstanding(ai, input({ message: 'rumah 3 kamar mandi' }));
 
     // 'token' sebelum 'card': satu kalimat pengantar (checkpoint Fase 15), kartunya tetap.
     expect(events.map((e) => e.type)).toEqual([
@@ -98,7 +100,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(active).toMatchObject({ stage: 'UNDERSTANDING', status: 'active' });
     const done = events[3] as { status: string; detail: string };
     expect(done.status).toBe('done');
-    expect(done.detail).toBe('2 DATA');
+    expect(done.detail).toBe('1 DATA'); // kamar mandi (jenis rumah bukan data inti)
     const card = events[5] as { card: { kind: string } };
     expect(card.card.kind).toBe('clarification');
   });
@@ -123,6 +125,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
       'stage',
       'token',
       'card',
+      'card',
       'message.end',
     ]);
     const text = (events[4] as { text: string }).text;
@@ -132,9 +135,12 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(text).toContain('- **PVC (uPVC)** biasanya lebih cocok untuk instalasi tetap');
     expect(text).toContain('- **HDPE** biasanya lebih cocok untuk jalur panjang');
     expect(text).toContain('Keduanya bisa dipakai di bagian yang berbeda');
-    expect(text).toContain('saya perlu beberapa hal di bawah ini');
     expect(text).not.toContain('Singkatnya'); // bukan perbandingan definisi
-    expect((events[5] as { card: { kind: string } }).card.kind).toBe('clarification');
+    // Lantai disebut → dihitung langsung dengan anggapan (pemilik 2026-10-20): pertanyaan
+    // konfirmasi anggapan, lalu ANALYZE yang dijalankan klien.
+    const cards = events.filter((e) => e.type === 'card') as { card: Record<string, unknown> }[];
+    expect(cards.map((c) => c.card['kind'])).toEqual(['clarification', 'cta']);
+    expect(cards[1]!.card).toMatchObject({ action: 'ANALYZE', auto: true });
   });
 
   it('giliran teknis kedua ("debitnya 200 liter per detik") tidak mengulang kalimat pembuka kasus', async () => {
@@ -356,7 +362,7 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(seen[seen.length - 1]).toBe('message.end');
   });
 
-  it('pernyataan kebutuhan biasa: satu kalimat "sudah saya catat" sebelum kartu klarifikasi (bukan bisu)', async () => {
+  it('rumah 2 lantai tanpa kamar mandi: "sudah saya catat", anggapan tertulis, langsung dihitung (pemilik 2026-10-20)', async () => {
     const ai = aiExtracting({ building: { floors: 2 }, fixtures: { bathrooms: 3 } });
     const { events } = await runUnderstanding(
       ai,
@@ -366,14 +372,18 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(tokens).toHaveLength(1);
     // Pesannya hanya menyebut lantai; kamar mandi dari model dibuang pagar grounding.
     expect(tokens[0]!.text).toMatch(/^Oke, sudah saya catat: .*2 lantai/);
-    expect(tokens[0]!.text).toContain('Beberapa hal lagi');
+    expect(tokens[0]!.text).not.toMatch(/sudah saya catat:[^.]*kamar mandi/);
+    expect(tokens[0]!.text).toContain(
+      'Yang belum disebut saya anggap dulu 1 kamar mandi per lantai (2 kamar mandi), air dari toren atap tanpa pompa pendorong, dan air bersih saja.',
+    );
+    expect(tokens[0]!.text).toContain('saya hitung sekarang');
     // Teks sebelum kartu — pengantar, bukan penutup.
     expect(events.findIndex((e) => e.type === 'token')).toBeLessThan(
       events.findIndex((e) => e.type === 'card'),
     );
   });
 
-  it('en: pengantar yang sama dalam bahasa Inggris; lengkap → ajakan menyusun rekomendasi', async () => {
+  it('en: pengantar yang sama dalam bahasa Inggris; lengkap → langsung dihitung', async () => {
     const ai = aiExtracting({
       building: { floors: 2 },
       fixtures: { bathrooms: 3 },
@@ -388,7 +398,8 @@ describe('runUnderstanding — bentuk event SSE', () => {
     );
     const token = events.find((e) => e.type === 'token') as { text: string };
     expect(token.text).toMatch(/^Okay, I have noted: .*rooftop tank/);
-    expect(token.text).toContain('**Compose recommendation**');
+    expect(token.text).toContain('I am working out the pipe sizes and the product list now.');
+    expect(token.text).not.toContain('Until you tell me otherwise');
   });
 
   it('data inti lengkap: kartu CTA ANALYZE, bukan klarifikasi', async () => {
@@ -420,6 +431,21 @@ describe('runUnderstanding — bentuk event SSE', () => {
     ]);
     expect(cards[1]!.action).toBe('ANALYZE');
     expect(nextState.missingInformation).toEqual([]);
+  });
+
+  it('jalur utama tersurat ("toren ke kamar mandi ±15 meter") tercatat tanpa model, dipakai hitungan', async () => {
+    const ai = aiExtracting({});
+    const { nextState } = await runUnderstanding(
+      ai,
+      input({
+        message:
+          'Gue butuh pipa air bersih buat rumah 2 lantai. Dari toren ke kamar mandi ±15 meter.',
+      }),
+    );
+    expect(ai.extract).not.toHaveBeenCalled();
+    expect(nextState.building.dimensions.value).toEqual({ mainRunMeters: 15 });
+    expect(nextState.fixtures.bathrooms).toMatchObject({ value: 2, provenance: 'ASSUMED' });
+    expect(nextState.water.source).toMatchObject({ value: 'rooftop_tank', provenance: 'ASSUMED' });
   });
 
   it('model kehabisan waktu (LlmUnavailableError) pada pesan masjid 2 lantai → fakta teks tetap dicatat, pengantar + klarifikasi, bukan galat', async () => {

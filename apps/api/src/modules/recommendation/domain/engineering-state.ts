@@ -128,6 +128,9 @@ function fromBuilding(state: RequirementState): EngineeringState {
   if (state.water.installationType.source === 'default_applied') {
     applied.push(applyAssumption('FLUID_CLEAN_WATER'));
   }
+  if (state.fixtures.bathrooms.source === 'default_applied') {
+    applied.push(applyAssumption('HOUSE_BATHROOMS_PER_FLOOR_1'));
+  }
 
   return {
     caseId: 'residential_clean_water',

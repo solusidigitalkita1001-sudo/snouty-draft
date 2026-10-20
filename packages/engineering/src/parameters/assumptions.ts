@@ -808,6 +808,21 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'Wastafel belum dihitung sampai jumlahnya disebut; tiap wastafel menambah satu titik air ½".',
   },
   {
+    id: 'HOUSE_BATHROOMS_PER_FLOOR_1',
+    parameter: 'bathrooms',
+    appliesTo: ['residential_clean_water'],
+    condition: 'jumlah kamar mandi rumah belum disebut, jumlah lantai sudah',
+    value: 1,
+    unit: 'kamar mandi per lantai',
+    conditionEn: 'number of bathrooms in a house not given, number of floors given',
+    descriptionEn: 'Until the number is given, the house is taken to have 1 bathroom per floor.',
+    reference:
+      'Keputusan pemilik 2026-10-20 ("Hitung dulu + asumsi"): rumah dihitung langsung, anggapannya tertulis dan bisa diubah',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Sampai jumlahnya disebut, rumah dianggap punya 1 kamar mandi per lantai.',
+  },
+  {
     id: 'HOUSE_BASINS_PER_BATHROOM_1',
     parameter: 'basins',
     appliesTo: [],

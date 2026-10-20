@@ -322,8 +322,89 @@
       "id": "C-19",
       "category": "rumah — kamar mandi belum diketahui",
       "messages": ["rumah 2 lantai pakai toren atap, instalasi air bersih"],
-      "expect": "Jumlah kamar mandi \"Belum tahu\": tidak dihitung sebagai 0 kamar mandi; analisis VALIDATION_FAILED (dulu \"1 titik air\").",
-      "expectError": "VALIDATION_FAILED"
+      "expect": "Kamar mandi tidak disebut, lantai disebut: dianggap 1 per lantai (2 kamar mandi), tertulis di asumsi, lalu dihitung (pemilik 2026-10-20: Hitung dulu + asumsi). Bukan 0 kamar mandi.",
+      "checks": [
+        {
+          "path": "kind",
+          "equals": "building"
+        },
+        {
+          "path": "assumptions[*].text",
+          "matches": "kamar mandi"
+        }
+      ]
+    },
+    {
+      "id": "C-20",
+      "category": "study case sales 2026-10-20",
+      "messages": [
+        "Gue butuh pipa air bersih buat rumah 2 lantai. Dari toren ke kamar mandi ±15 meter. Rekomendasi Pralon yang aman gimana setup-nya?"
+      ],
+      "expect": "Dihitung langsung: jalur utama 15 m tersurat, 2 kamar mandi dianggap.",
+      "checks": [
+        {
+          "path": "kind",
+          "equals": "building"
+        },
+        {
+          "path": "headline",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "C-21",
+      "category": "study case sales 2026-10-20",
+      "messages": [
+        "Rumah 1 lantai, jalur utama dari toren ke dapur 8 meter. Mending jalur utama pakai 3/4\" atau 1\"?"
+      ],
+      "expect": "Ukuran jalur utama rumah 1 lantai dihitung dari engine, bukan dikarang.",
+      "checks": [
+        {
+          "path": "kind",
+          "equals": "building"
+        },
+        {
+          "path": "headline",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "C-22",
+      "category": "study case sales 2026-10-20",
+      "messages": [
+        "Rumah 2 lantai, 3 kamar mandi, bisa dipakai barengan. Toren ke lantai 2 ±18 m. Saran ukuran jalur utama + cabang?"
+      ],
+      "expect": "Jalur utama dan cabang untuk 3 kamar mandi, jalur 18 m.",
+      "checks": [
+        {
+          "path": "kind",
+          "equals": "building"
+        },
+        {
+          "path": "headline",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "id": "C-23",
+      "category": "study case sales 2026-10-20",
+      "messages": [
+        "Need clean water pipe for 2-storey house, from water tank to bathroom 15m. Recommend Pralon setup dong."
+      ],
+      "expect": "English: dihitung langsung, judul dan asumsi Inggris.",
+      "checks": [
+        {
+          "path": "kind",
+          "equals": "building"
+        },
+        {
+          "path": "headline",
+          "exists": true
+        }
+      ]
     }
   ]
 }

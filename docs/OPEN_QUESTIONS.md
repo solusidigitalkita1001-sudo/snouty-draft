@@ -413,6 +413,17 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-75 — Study case rumah dihitung dulu dengan anggapan; tekanan kerja per kelas (P25-08, 2026-10-20)
+
+**Status:** diputuskan pemilik (2026-10-20, AskUserQuestion). (1) "Hitung dulu + asumsi": rumah tinggal yang jumlah
+lantainya disebut langsung dihitung; kamar mandi yang belum disebut dianggap 1 per lantai
+(`HOUSE_BATHROOMS_PER_FLOOR_1`, ENG-014, ASSUMED), sumber air toren atap, air bersih — anggapannya tertulis di
+jawaban dan ditanyakan di kartu supaya bisa diubah; tanpa jumlah lantai tetap ditanya dulu (SC-03, SC-04). (2) Tekanan
+kerja per kelas PVC **tetap ke tim teknis**: angka Master (AW 10 bar, D 5 bar, SNI S-x) tidak ditampilkan sampai
+Product Specification resmi tersedia — PROD-STD-004 Rev.11 hanya memuat tebal dinding dan berat · **Blocks:** tidak ada
+**Masih terbuka:** spesifikasi resmi tekanan kerja per kelas, umur pakai HDPE, dan batas suhu operasi dari Pralon;
+validasi tim teknis untuk anggapan 1 kamar mandi per lantai.
+
 ### OQ-74 — Kasus teknis dengan angka kritis "Belum tahu" dan perluasan rumah (P25-05, 2026-10-19)
 
 **Status:** sebagian diputuskan pemilik (2026-10-19, AskUserQuestion): intensitas hujan "Belum tahu" → 150 mm/jam

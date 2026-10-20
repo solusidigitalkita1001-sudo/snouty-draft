@@ -84,7 +84,8 @@ function canonicalSize(raw: string | undefined): string | undefined {
 const GROUNDING: Readonly<Record<string, RegExp>> = {
   // Penanda Indonesia DAN Inggris (Fase 15, P15-03): pemahaman dua bahasa hidup di pola kode.
   'building.floorHeightM': /\b(tinggi|ketinggian|meter|metre|height|\d\s*m\b)/i,
-  'building.dimensions': /\b(meter|metre|\d\s*m\b|panjang|jarak|jalur|length|distance|run)/i,
+  // "15m": angka berdigit banyak menempel satuan (dulu hanya "5m", uji sales 2026-10-20).
+  'building.dimensions': /\b(meter|metre|\d+\s*m\b|panjang|jarak|jalur|length|distance|run)/i,
   'fixtures.outletCount': /\b(titik|outlet|keran|kran|taps?|faucets?|points?)/i,
   'water.boosterPump': /\b(pompa|booster|pendorong|pumps?)/i,
   // Penggantian pipa (P22-03) hanya dipercaya bila penggantiannya memang disebut.
@@ -196,6 +197,27 @@ const OBVIOUS = {
    * benda terakhir sebelum angkanya (dalam klausa yang sama) tanah/lahan/kavling → ukuran tanah,
    * atau ruangan ("kamar mandi 2x3") → bukan ukuran rumah (review putaran 3, 3a).
    */
+  /**
+   * Panjang jalur utama tersurat ("dari toren ke kamar mandi ±15 meter", "jalur utama 8 meter"):
+   * parser nilai bersatuan. Hanya bila ada TEPAT SATU panjang meter di pesan — ukuran rumah
+   * ("10x12 m"), panjang batang ("x 4 meter"), kedalaman/tinggi bukan jalur. Dulu angka ini hanya
+   * dari model, dan hilang saat model dilewati (uji sales 2026-10-20).
+   */
+  mainRun: (m: string): number | undefined => {
+    const found = [
+      ...m.matchAll(
+        /(?<![\dx×.,]\s?)(\d+(?:[.,]\d+)?)\s*(?:m|meter|metre|meters|metres)\b(?!\s*[x×])/gi,
+      ),
+    ].filter((match) => {
+      const before = m.slice(Math.max(0, match.index - 24), match.index).toLowerCase();
+      return !/(dalam|kedalaman|tinggi|muka air|sumur|batang|pipa\s*$|deep|depth|high|height)\s*[±~]?\s*(?:sekitar|kira-kira|kurang lebih)?\s*$/.test(
+        before,
+      );
+    });
+    if (found.length !== 1) return undefined;
+    const value = Number(found[0]![1]!.replace(',', '.'));
+    return value >= 1 && value <= 300 ? value : undefined;
+  },
   plan: (m: string): Dimensions | undefined => {
     const decimal = (s: string) => Number(s.replace(',', '.'));
     const out: Record<string, number> = {};
@@ -414,7 +436,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   // Ukuran rumah dari teks lebih dulu (nilai tersurat); panjang jalur dari model hanya bila
   // ukuran rumah tidak disebut. Keduanya disimpan bersama bila keduanya ada.
   const plan = OBVIOUS.plan(message);
-  const run = extraction.building?.mainRunMeters;
+  const run = extraction.building?.mainRunMeters ?? OBVIOUS.mainRun(message);
   if (plan !== undefined) {
     updates.push({
       path: 'building.dimensions',

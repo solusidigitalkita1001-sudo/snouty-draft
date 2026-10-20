@@ -17,6 +17,7 @@ import {
   type FieldSource,
   type Locale,
   type RequirementFieldPath,
+  type RequirementState,
   type TrackedValue,
 } from '@snouty/shared-types';
 import type { FieldUpdate } from './context-merger.js';
@@ -53,6 +54,13 @@ export const REQUIREMENT_DEFAULTS: readonly RequirementDefault[] = [
     reason: 'Tinggi antar lantai diasumsikan 3,5 meter.',
     ruleId: 'ENG-014',
   },
+  // Nilainya jumlah lantai rumah itu (`defaultUpdateFor` dengan state) — tanpa lantai, tanpa default.
+  {
+    path: 'fixtures.bathrooms',
+    value: null,
+    reason: 'Jumlah kamar mandi diasumsikan 1 per lantai.',
+    ruleId: 'ENG-014',
+  },
 ];
 
 /** Kembaran Inggris `reason` tiap default — kunci sama dengan path di `REQUIREMENT_DEFAULTS`. */
@@ -62,6 +70,7 @@ export const REQUIREMENT_DEFAULT_REASONS_EN: Readonly<
   'water.source': 'The distribution source is a rooftop tank, with no booster pump.',
   'water.installationType': 'The installation is assumed to be for clean water only.',
   'building.floorHeightM': 'Floor-to-floor height is assumed to be 3.5 metres.',
+  'fixtures.bathrooms': 'The number of bathrooms is assumed to be 1 per floor.',
 };
 
 /** Kalimat alasan default menurut bahasa; Indonesia = `reason` tabel apa adanya. */
@@ -80,17 +89,47 @@ const BY_PATH: ReadonlyMap<RequirementFieldPath, RequirementDefault> = new Map(
  * sudah terisi. Mengembalikan `null` bila field tidak punya default (mis.
  * `building.dimensions`).
  */
-export function defaultUpdateFor(path: RequirementFieldPath): FieldUpdate | null {
+export function defaultUpdateFor(
+  path: RequirementFieldPath,
+  /** State saat ini — kamar mandi dihitung dari jumlah lantainya. */
+  state?: RequirementState,
+): FieldUpdate | null {
   const def = BY_PATH.get(path);
   if (!def) return null;
+  const value = path === 'fixtures.bathrooms' ? (state?.building.floors.value ?? null) : def.value;
+  if (value === null) return null;
   return {
     path: def.path,
-    value: def.value,
+    value,
     source: 'default_applied' satisfies FieldSource,
     provenance: 'ASSUMED',
     reason: def.reason,
     ruleId: def.ruleId,
   };
+}
+
+/** Data inti rumah yang boleh dianggap saat lantainya sudah disebut. */
+const HOUSE_ASSUMABLE: readonly RequirementFieldPath[] = [
+  'fixtures.bathrooms',
+  'water.source',
+  'water.installationType',
+];
+
+/**
+ * "Hitung dulu + asumsi" (pemilik 2026-10-20): rumah tinggal yang jumlah lantainya disebut dihitung
+ * langsung — data inti lain yang belum disebut diisi anggapan bertanda (`ASSUMED`, ENG-014) dan
+ * tertulis di jawaban. Tanpa jumlah lantai, atau dengan data lain yang belum lengkap, tidak ada
+ * anggapan: yang kurang ditanyakan seperti biasa.
+ */
+export function houseAssumptionUpdates(state: RequirementState): readonly FieldUpdate[] {
+  if (state.useCase !== undefined) return [];
+  if (state.building.type.value !== 'residential') return [];
+  if (state.building.floors.value === null) return [];
+  const missing = state.missingInformation;
+  if (missing.length === 0 || !missing.every((p) => HOUSE_ASSUMABLE.includes(p))) return [];
+  return missing
+    .map((path) => defaultUpdateFor(path, state))
+    .filter((u): u is FieldUpdate => u !== null);
 }
 
 export interface AssumptionCardItem {
