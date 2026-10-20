@@ -1052,8 +1052,20 @@ async function fittingTurn(
   } catch {
     return null;
   }
-  const size = parseSize(input.message);
   const ownKinds = u.families.filter((f) => input.lexicon.isFittingFamily(f));
+  // Jenis fitting baru tanpa ukuran atas subjek bersize ("and a tee in the same size?" setelah
+  // elbow 2"): ukurannya ukuran subjek. Permintaan daftar ukuran ("tee ukuran apa aja?") tidak.
+  // Subjek hanya menyimpan nama ("elbow pvc"), jadi ukurannya dibaca dari pesan pengguna terakhir
+  // yang menyebut ukuran.
+  const subjectSize =
+    ownKinds.length > 0 && input.subject?.kind === 'product' && u.productAspect !== 'sizes'
+      ? ([...(input.recentTurns ?? [])]
+          .reverse()
+          .filter((t) => t.role === 'user')
+          .map((t) => parseSize(t.text))
+          .find((s) => s !== null) ?? null)
+      : null;
+  const size = parseSize(input.message) ?? subjectSize;
   const subjectEntity =
     input.subject?.kind === 'product' &&
     (size !== null || ownKinds.length > 0) &&

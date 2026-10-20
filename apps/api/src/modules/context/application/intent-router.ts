@@ -124,6 +124,12 @@ export function certainIntent(
     if (u.mentionsCompetitor) return sure('COMPETITOR_QUESTION');
     return sure('PRODUCT_LOOKUP');
   }
+  // Lanjutan yang MENYEBUT produk ("and a tee in the same size?") adalah pertanyaan produk atas
+  // subjeknya — dulu jatuh ke pembuka, lalu model menulis "Yes, a 2-inch tee is available" tanpa
+  // katalog (audit campuran 2026-10-20).
+  if ((fine as FineIntent).startsWith('follow_up_') && u.families.length > 0) {
+    return sure('PRODUCT_LOOKUP');
+  }
   // Lanjutan tanpa subjek (pemanggil sudah mencoba `subjectContinuation`): tidak ada yang
   // dilanjutkan — jawabannya pembuka, bukan 40 detik model untuk sampai ke kesimpulan yang sama.
   if ((fine as FineIntent).startsWith('follow_up_')) return sure('OUT_OF_SCOPE');

@@ -541,3 +541,102 @@ describe('simulasi test case 2026-10-19 — ketersediaan ukuran pipa', () => {
     expect(reply).not.toContain('tidak tersedia dalam ukuran');
   });
 });
+
+describe('audit campuran 2026-10-20 — lanjutan produk bersubjek', () => {
+  const fitting = (name: string, sizes: string[], category: string) =>
+    product({ name, family: 'FITTING PVC', sizes, category });
+  const ITEMS = [
+    fitting('Elbow Abu Ts 2"', ['2"'], 'FITTING · ELBOW'),
+    fitting('Tee Abu Ts 2"', ['2"'], 'FITTING · TEE'),
+    fitting('Tee Abu Ts 3/4"', ['3/4"'], 'FITTING · TEE'),
+    product({ name: 'Pipa (TS End) AW 3" x 4 Meter', family: 'PVC AW', sizes: ['3"'] }),
+    product({ name: 'Pipa (TS End) AW 1/2" x 4 Meter', family: 'PVC AW', sizes: ['1/2"'] }),
+  ];
+  /** Seperti query MySQL-nya: katalog uji yang juga menyaring kategori. */
+  const catalog = () => {
+    const base = catalogOf(ITEMS);
+    return {
+      ...base,
+      listProducts: async (q: { categoryIncludes?: string } & Record<string, unknown>) => {
+        const page = await base.listProducts(q as never);
+        const term = q.categoryIncludes?.toLowerCase();
+        return {
+          ...page,
+          items: term
+            ? page.items.filter((p) => p.category.toLowerCase().includes(term))
+            : page.items,
+        };
+      },
+    };
+  };
+  const run = (message: string, labels: Parameters<typeof understood>[1], over = {}) =>
+    runProductQuestion(
+      noAi,
+      catalog() as never,
+      { answer: () => Promise.reject(new Error('bukan spesifikasi')) } as never,
+      {
+        messageId: 'm',
+        message,
+        understanding: understood(message, labels),
+        lexicon: TEST_LEXICON,
+        ...over,
+      },
+    );
+  const elbowSubject = {
+    kind: 'product',
+    entity: 'elbow pvc',
+    topic: 'product_overview',
+    depth: 'standard',
+  } as const;
+
+  it('lanjutan yang menyebut produk adalah pertanyaan produk, bukan pembuka', async () => {
+    const { certainIntent } = await import('./intent-router.js');
+    const u = understood('and a tee in the same size?', { intent: 'follow_up_reference' });
+    expect(u.families).toEqual(['tee']);
+    expect(certainIntent(u, false)?.intent).toBe('PRODUCT_LOOKUP');
+    expect(
+      certainIntent(understood('boleh', { intent: 'follow_up_continue' }), false)?.intent,
+    ).toBe('OUT_OF_SCOPE');
+  });
+
+  it('perencana model dilewati untuk lanjutan terstruktur atas subjek produk', async () => {
+    const { isStructuredProductFollowUp } = await import('./turn-planner.js');
+    const fittingKind = (f: string) => TEST_LEXICON.isFittingFamily(f);
+    const hdpe = { ...elbowSubject, entity: 'hdpe' };
+    const pressure = understood('what pressure class for 110 mm?', {
+      intent: 'product_spec',
+      productAspect: 'pressure_class',
+    });
+    expect(isStructuredProductFollowUp(pressure, hdpe, pressure.text, fittingKind)).toBe(true);
+    const tee = understood('and a tee in the same size?', { intent: 'follow_up_reference' });
+    expect(isStructuredProductFollowUp(tee, elbowSubject, tee.text, fittingKind)).toBe(true);
+    // Tanpa subjek, atau tanpa ukuran/jenis fitting: konteksnya tetap dibaca perencana.
+    expect(isStructuredProductFollowUp(pressure, undefined, pressure.text, fittingKind)).toBe(
+      false,
+    );
+    const largest = understood('yang paling besar berapa?', {
+      intent: 'product_spec',
+      productAspect: 'sizes',
+    });
+    expect(isStructuredProductFollowUp(largest, hdpe, largest.text, fittingKind)).toBe(false);
+  });
+
+  it('"and a tee in the same size?" setelah elbow 2": tee 2" dari katalog, ukuran dari pesan sebelumnya', async () => {
+    const reply = text(
+      await run(
+        'and a tee in the same size?',
+        { intent: 'follow_up_reference' },
+        {
+          subject: elbowSubject,
+          recentTurns: [
+            { role: 'user', text: 'do you have a 2 inch pvc elbow?' },
+            { role: 'assistant', text: 'elbow PVC 2" in the Pralon catalogue: Elbow Abu Ts 2"' },
+          ],
+        },
+      ),
+    );
+    expect(reply).toContain('Tee Abu Ts 2"');
+    expect(reply).not.toContain('Tee Abu Ts 3/4"');
+    expect(reply).not.toContain('Elbow');
+  });
+});

@@ -72,7 +72,11 @@ import {
 } from './message-pipeline.js';
 import { irrigationGuidance } from './irrigation-guidance.js';
 import { executePlan } from './plan-executor.js';
-import { isConfidentStandalone, type TurnPlanner } from './turn-planner.js';
+import {
+  isConfidentStandalone,
+  isStructuredProductFollowUp,
+  type TurnPlanner,
+} from './turn-planner.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
 import {
   answerToUpdate,
@@ -335,6 +339,9 @@ export class MessageService {
       // Tebal/berat/diameter dalam: tabel standar menjawab langsung (router, P21-09).
       u.productAspect !== 'dimensions' &&
       !isConfidentStandalone(u) &&
+      !isStructuredProductFollowUp(u, state.subject, text, (f) =>
+        this.lexicon().isFittingFamily(f),
+      ) &&
       // Lanjutan atas subjek aktif ("boleh", "lebih detail dong") diputuskan kode dari subjeknya;
       // lewat perencana dulu ia 10–30 s dan dijawab karangan model (simulasi 2026-10-19).
       subjectContinuation(u, state.subject) === null &&

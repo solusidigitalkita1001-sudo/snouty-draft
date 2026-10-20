@@ -12,7 +12,8 @@
  * Gagal, lambat, atau keluaran tidak sah → `null`, dan giliran berjalan lewat router lama.
  */
 import { z } from 'zod';
-import type { Locale } from '@snouty/shared-types';
+import type { ConversationSubject, Locale } from '@snouty/shared-types';
+import { parseSize } from '../domain/size-parser.js';
 import type { ReplyCapableAi, ReplyTurn } from './reply-writer.js';
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 
@@ -123,6 +124,24 @@ export function isConfidentStandalone(u: MessageUnderstanding): boolean {
   if (STANDALONE.has(intent.label)) return true;
   // Ubahan kebutuhan yang menyebut bendanya ("tambah satu kamar mandi") juga utuh.
   return intent.label === 'requirement_mutation' && u.mentionsRequirement;
+}
+
+/**
+ * Lanjutan produk yang isinya sudah TERSTRUKTUR: ada subjek produk aktif, dan pesan membawa aspek
+ * produk dengan ukuran yang terbaca parser ("what pressure class for 110 mm?", "kalau yang 3 inch
+ * ada?") atau hanya menyebut jenis fitting baru atas subjek itu ("and a tee in the same size?").
+ * Kode sudah tahu apa yang dicari di katalog; perencana model (±10 s) membacanya sebagai data
+ * bangunan atau obrolan lalu jawabannya dikarang (audit campuran 2026-10-20).
+ */
+export function isStructuredProductFollowUp(
+  u: MessageUnderstanding,
+  subject: ConversationSubject | undefined,
+  message: string,
+  isFittingFamily: (family: string) => boolean,
+): boolean {
+  if (subject?.kind !== 'product' || u.mentionsRequirement) return false;
+  if (u.productAspect !== null && parseSize(message) !== null) return true;
+  return u.families.length > 0 && u.families.every(isFittingFamily);
 }
 
 export class TurnPlanner {
