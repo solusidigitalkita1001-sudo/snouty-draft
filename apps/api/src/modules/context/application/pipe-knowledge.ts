@@ -342,9 +342,17 @@ const PVC_CLASSES: readonly PvcClassKnowledge[] = [
  * Tabel perbandingan kelas PVC bila pesan menyebut dua kelas atau lebih ("AW sama D"); `null` bila
  * kurang dari dua — satu kelas dijawab konsep kelasnya saja.
  */
+export interface ClassTableRow {
+  readonly label: string;
+  /** Nilai per keluarga kanonis ("pvc aw" → ukuran katalognya). */
+  readonly byFamily: Readonly<Record<string, string>>;
+}
+
 export function compareClasses(
   families: readonly string[],
   locale: Locale = DEFAULT_LOCALE,
+  /** Baris tambahan dari katalog aktif (ukuran, panjang batang) — dihitung pemanggil. */
+  catalogRows: readonly ClassTableRow[] = [],
 ): string | null {
   const named = families.map((f) => f.toLowerCase());
   const classes = PVC_CLASSES.filter((c) => named.includes(c.family));
@@ -361,6 +369,10 @@ export function compareClasses(
     row(en ? 'Pressure' : 'Tekanan', 'pressure'),
     row(en ? 'Used for' : 'Dipakai untuk', 'use'),
     row(en ? 'In a house' : 'Di rumah', 'houseExample'),
+    ...catalogRows.map(
+      (r) =>
+        `| ${r.label} | ${classes.map((c) => cell(r.byFamily[c.family] ?? '—')).join(' | ')} |`,
+    ),
   ].join('\n');
   const joined = labels.join(en ? ' and ' : ' dan ');
   return en
@@ -550,7 +562,10 @@ export function reformat(
   return `Singkatnya, ${gists}. ${uses}.`;
 }
 
-/** Ringkasan → satu blok per bahan → simpulan: "bedanya" dijawab sebagai perbedaan. */
+/**
+ * Ringkasan → tabel aspek berdampingan → simpulan: "bedanya" dijawab sebagai perbedaan. Tabel,
+ * bukan blok per bahan, supaya aspek yang sama terbaca sejajar (pemilik 2026-10-20).
+ */
 export function compareMaterials(
   first: MaterialKnowledge,
   second: MaterialKnowledge,
@@ -558,30 +573,19 @@ export function compareMaterials(
 ): string {
   const a = textsOf(first, locale);
   const b = textsOf(second, locale);
+  const table = materialsTable([first, second], locale);
   if (locale === 'en') {
     return [
       `In short, **${a.label} is ${a.gist}**, while **${b.label} is ${b.gist}**.`,
-      '',
-      `**${a.label}**`,
-      ...dimensionRows(a, locale),
-      '',
-      `**${b.label}**`,
-      ...dimensionRows(b, locale),
-      '',
+      table,
       `So for **${a.bestFor}**, ${a.label} is usually more practical; for **${b.bestFor}**, ${b.label} is usually the better fit.`,
-    ].join('\n');
+    ].join('\n\n');
   }
   return [
     `Singkatnya, **${a.label} ${a.gist}**, sedangkan **${b.label} ${b.gist}**.`,
-    '',
-    `**${a.label}**`,
-    ...dimensionRows(a, locale),
-    '',
-    `**${b.label}**`,
-    ...dimensionRows(b, locale),
-    '',
+    table,
     `Jadi untuk **${a.bestFor}**, ${a.label} biasanya lebih praktis; untuk **${b.bestFor}**, ${b.label} biasanya lebih cocok.`,
-  ].join('\n');
+  ].join('\n\n');
 }
 
 /** Satu kalimat — untuk mengulang yang sudah dijelaskan tanpa mengulang seluruh perbandingan. */

@@ -9,8 +9,12 @@ import type { Locale } from '@snouty/shared-types';
 import { designationsOf } from '../../product-catalog/domain/product-identity.js';
 import { productSizeOf, productTypesOf } from '../../product-catalog/domain/product-types.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
-import { knowledgeFacts, type CatalogHook } from '../infrastructure/knowledge-facts.js';
-import { compareClasses, conceptsFor } from './pipe-knowledge.js';
+import {
+  knowledgeFacts,
+  type CatalogHook,
+  type KnowledgeFact,
+} from '../infrastructure/knowledge-facts.js';
+import { compareClasses, conceptsFor, type ClassTableRow } from './pipe-knowledge.js';
 
 export interface KnowledgeCatalog {
   familyCounts(): Promise<readonly FamilyCount[]>;
@@ -87,14 +91,19 @@ export async function knowledgeAnswer(
       if (lead) leads.push(en ? lead.textEn : lead.text);
       if (f.gap) gaps.push({ topic, gap: f.gap });
     }
-    // Dua kelas PVC disebut ("AW sama D") → tabel perbandingan kelas menggantikan paragraf konsepnya.
-    const classTable = topic === 'kelas pvc' ? compareClasses(named, locale) : null;
+    // Dua kelas PVC disebut ("AW sama D") → satu tabel perbandingan kelas menggantikan paragraf
+    // konsepnya, dan ukuran/panjang katalognya menjadi baris tabel itu, bukan daftar kedua di bawahnya
+    // (pemilik 2026-10-20: "bisa disusun lebih rapi").
+    const classTable =
+      topic === 'kelas pvc'
+        ? compareClasses(named, locale, await classCatalogRows(own, named, catalog, locale))
+        : null;
     if (classTable !== null) parts.push(classTable);
     else for (const c of concepts) parts.push(en ? c.textEn : c.text);
     for (const f of own) {
       const sentence = en ? f.textEn : f.text;
       if (sentence) parts.push(sentence);
-      const hook = f.catalog ? forNamed(f.catalog, named) : null;
+      const hook = f.catalog && classTable === null ? forNamed(f.catalog, named) : null;
       if (hook) {
         const lines = await catalogLines(hook, message, catalog, locale).catch(() => []);
         if (lines.length > 0) parts.push(lines.join('\n'));
@@ -186,86 +195,182 @@ async function catalogLines(
   locale: Locale,
 ): Promise<string[]> {
   const en = locale === 'en';
-  const counts = await catalog.familyCounts();
-  const present = (hook.families ?? []).filter((f) => counts.some((c) => c.family === f));
-  if (present.length === 0) return [];
-  const lines: string[] = [];
+  const header = en ? 'In the active Pralon catalogue:' : 'Di katalog Pralon yang aktif:';
+  if (!hook.rods) {
+    const entries = await catalogEntries(hook, catalog, locale);
+    if (entries.length === 0) return [];
+    return entries.length >= 2
+      ? // Baris kosong: tabel Markdown tidak boleh menempel pada kalimat sebelumnya.
+        [header, '', catalogTable(entries, locale)]
+      : [header, catalogBullet(entries[0]!, locale)];
+  }
   // Panjang jalur = nilai meter TERBESAR di pesan; nilai lain yang lebih kecil adalah panjang batang
   // yang diminta ("pipa 4 meter untuk jalur 30 meter" → jalur 30 m, batang 4 m). Dulu nilai pertama
   // dipakai sebagai jalur dan jawabannya "untuk 4 m: 1 batang" (audit 2026-10-19).
-  const metres = hook.rods ? [...message.matchAll(ROUTE)].map((m) => decimal(m[1]!)) : [];
-  const routeM = metres.length > 0 ? Math.max(...metres) : null;
+  const metres = [...message.matchAll(ROUTE)].map((m) => decimal(m[1]!));
+  if (metres.length === 0) return [];
+  const routeM = Math.max(...metres);
   const askedRods = metres.filter((m) => m !== routeM);
-  if (hook.rods && routeM === null) return [];
-  lines.push(en ? 'In the active Pralon catalogue:' : 'Di katalog Pralon yang aktif:');
-  for (const family of present) {
+  const lines = [header];
+  for (const { family, names } of await familyNames(hook, catalog)) {
+    const usable = lengthsOf(names).filter((l) => l > 0 && l < 50);
+    const asked = usable.filter((l) => askedRods.includes(l));
+    const options = (asked.length > 0 ? asked : usable).map((l) =>
+      en
+        ? `${num(l, locale)} m pipe → ${Math.ceil(routeM / l)} pipes`
+        : `batang ${num(l, locale)} m → ${Math.ceil(routeM / l)} batang`,
+    );
+    if (options.length === 0) continue;
+    lines.push(
+      en
+        ? `- **${family}** for ${num(routeM, locale)} m: ${options.join('; ')}`
+        : `- **${family}** untuk ${num(routeM, locale)} m: ${options.join('; ')}`,
+    );
+  }
+  return lines.length > 1 ? lines : [];
+}
+
+/** Nama produk per keluarga fakta yang ada di katalog aktif, setelah saringan nama fakta. */
+async function familyNames(
+  hook: CatalogHook,
+  catalog: KnowledgeCatalog,
+): Promise<{ family: string; names: readonly string[] }[]> {
+  const counts = await catalog.familyCounts();
+  const out: { family: string; names: readonly string[] }[] = [];
+  for (const family of hook.families ?? []) {
+    if (!counts.some((c) => c.family === family)) continue;
     const all = await catalog.productNamesInFamily(family);
     const only = hook.nameIncludes?.[family];
     const names = only ? all.filter((n) => n.toLowerCase().includes(only.toLowerCase())) : all;
-    if (names.length === 0) continue;
-    const lengths = [
-      ...new Set(
-        names
-          .map((n) => LENGTH.exec(n)?.[1])
-          .filter((l): l is string => l !== undefined)
-          .map(decimal),
-      ),
-    ].sort((a, b) => a - b);
-    if (hook.rods && routeM !== null && lengths.length > 0) {
-      const usable = lengths.filter((l) => l > 0 && l < 50);
-      const asked = usable.filter((l) => askedRods.includes(l));
-      const options = (asked.length > 0 ? asked : usable).map((l) =>
-        en
-          ? `${num(l, locale)} m pipe → ${Math.ceil(routeM / l)} pipes`
-          : `batang ${num(l, locale)} m → ${Math.ceil(routeM / l)} batang`,
-      );
-      if (options.length > 0) {
-        lines.push(
-          en
-            ? `- **${family}** for ${num(routeM, locale)} m: ${options.join('; ')}`
-            : `- **${family}** untuk ${num(routeM, locale)} m: ${options.join('; ')}`,
-        );
-      }
-      continue;
-    }
+    if (names.length > 0) out.push({ family, names });
+  }
+  return out;
+}
+
+function lengthsOf(names: readonly string[]): number[] {
+  return [
+    ...new Set(
+      names
+        .map((n) => LENGTH.exec(n)?.[1])
+        .filter((l): l is string => l !== undefined)
+        .map(decimal),
+    ),
+  ].sort((a, b) => a - b);
+}
+
+/** Ukuran, panjang, kelas, dan jenis per keluarga — dihitung dari nama produk katalog aktif. */
+async function catalogEntries(
+  hook: CatalogHook,
+  catalog: KnowledgeCatalog,
+  locale: Locale,
+): Promise<CatalogEntry[]> {
+  const entries: CatalogEntry[] = [];
+  for (const { family, names } of await familyNames(hook, catalog)) {
     const sizes = names
       .map((n) => productSizeOf(n))
       .filter((s): s is NonNullable<typeof s> => s !== null)
       .sort((a, b) => a.mm - b.mm);
-    const range =
-      sizes.length > 0
-        ? sizes[0]!.label === sizes[sizes.length - 1]!.label
-          ? sizes[0]!.label
-          : `${sizes[0]!.label}–${sizes[sizes.length - 1]!.label}`
-        : null;
-    const details: string[] = [
-      en ? `${num(names.length, locale)} products` : `${num(names.length, locale)} produk`,
-    ];
-    if (range) details.push(en ? `sizes ${range}` : `ukuran ${range}`);
+    const aspects: Partial<Record<CatalogAspect, string>> = {};
+    if (sizes.length > 0) {
+      const first = sizes[0]!.label;
+      const last = sizes[sizes.length - 1]!.label;
+      aspects.sizes = first === last ? first : `${first}–${last}`;
+    }
+    const lengths = lengthsOf(names);
     if (hook.lengths && lengths.length > 0) {
-      details.push(
-        en
-          ? `lengths ${lengths.map((l) => `${num(l, locale)} m`).join(', ')}`
-          : `panjang ${lengths.map((l) => `${num(l, locale)} m`).join(', ')}`,
-      );
+      aspects.lengths = lengths.map((l) => `${num(l, locale)} m`).join(', ');
     }
     if (hook.pressure) {
       // Hanya kelas yang tertulis di nama produk keluarga ini, satu penulisan per kelas.
       const classes = designationsOf(names);
-      if (classes.length > 0) {
-        details.push(en ? `classes ${classes.join(', ')}` : `kelas ${classes.join(', ')}`);
-      }
+      if (classes.length > 0) aspects.classes = classes.join(', ');
     }
     if (hook.types) {
       const types = productTypesOf(names)
         .slice(0, 6)
         .map((t) => t.type);
-      if (types.length > 0)
-        details.push(en ? `types: ${types.join(', ')}` : `jenis: ${types.join(', ')}`);
+      if (types.length > 0) aspects.types = types.join(', ');
     }
-    lines.push(`- **${family}** — ${details.join(' · ')}`);
+    entries.push({ family, count: names.length, aspects });
   }
-  return lines.length > 1 ? lines : [];
+  return entries;
+}
+
+type CatalogAspect = 'sizes' | 'lengths' | 'classes' | 'types';
+
+interface CatalogEntry {
+  readonly family: string;
+  readonly count: number;
+  readonly aspects: Partial<Record<CatalogAspect, string>>;
+}
+
+const ASPECT_LABELS: Record<Locale, Record<CatalogAspect, string>> = {
+  id: { sizes: 'Ukuran', lengths: 'Panjang batang', classes: 'Kelas', types: 'Jenis' },
+  en: { sizes: 'Sizes', lengths: 'Pipe lengths', classes: 'Classes', types: 'Types' },
+};
+
+/** Satu keluarga: satu baris butir. */
+function catalogBullet(e: CatalogEntry, locale: Locale): string {
+  const en = locale === 'en';
+  const labels = ASPECT_LABELS[locale];
+  const details = [en ? `${num(e.count, locale)} products` : `${num(e.count, locale)} produk`];
+  for (const [aspect, value] of Object.entries(e.aspects) as [CatalogAspect, string][]) {
+    details.push(
+      aspect === 'types'
+        ? `${labels.types.toLowerCase()}: ${value}`
+        : `${shortLabel(aspect, locale)} ${value}`,
+    );
+  }
+  return `- **${e.family}** — ${details.join(' · ')}`;
+}
+
+function shortLabel(aspect: CatalogAspect, locale: Locale): string {
+  if (locale === 'en')
+    return { sizes: 'sizes', lengths: 'lengths', classes: 'classes', types: 'types' }[aspect];
+  return { sizes: 'ukuran', lengths: 'panjang', classes: 'kelas', types: 'jenis' }[aspect];
+}
+
+/**
+ * Dua keluarga atau lebih: tabel berdampingan — ukuran dan panjang tiap kelas terbaca sejajar
+ * (pemilik 2026-10-20: daftar butir AW/D "bisa disusun lebih rapi"). Jumlah produk tidak ikut:
+ * ia hitungan SKU, bukan sesuatu yang dipakai orang untuk memilih pipa.
+ */
+function catalogTable(entries: readonly CatalogEntry[], locale: Locale): string {
+  const labels = ASPECT_LABELS[locale];
+  const aspects = (Object.keys(labels) as CatalogAspect[]).filter((a) =>
+    entries.some((e) => e.aspects[a] !== undefined),
+  );
+  const cell = (text: string) => text.replace(/\|/g, '/');
+  return [
+    `| | ${entries.map((e) => `**${e.family}**`).join(' | ')} |`,
+    `| --- | ${entries.map(() => '---').join(' | ')} |`,
+    ...aspects.map(
+      (a) => `| ${labels[a]} | ${entries.map((e) => cell(e.aspects[a] ?? '—')).join(' | ')} |`,
+    ),
+  ].join('\n');
+}
+
+/** Baris katalog (ukuran, panjang batang) per kelas PVC yang disebut, untuk tabel perbandingan kelas. */
+async function classCatalogRows(
+  facts: readonly KnowledgeFact[],
+  named: readonly string[],
+  catalog: KnowledgeCatalog,
+  locale: Locale,
+): Promise<ClassTableRow[]> {
+  const hook = facts
+    .map((f) => (f.catalog ? forNamed(f.catalog, named) : null))
+    .find((h): h is CatalogHook => h !== null);
+  if (!hook) return [];
+  const entries = await catalogEntries(hook, catalog, locale).catch(() => [] as CatalogEntry[]);
+  const labels = ASPECT_LABELS[locale];
+  return (Object.keys(labels) as CatalogAspect[])
+    .filter((a) => entries.some((e) => e.aspects[a] !== undefined))
+    .map((a) => ({
+      label: labels[a],
+      byFamily: Object.fromEntries(
+        entries.map((e) => [e.family.toLowerCase(), e.aspects[a] ?? '—']),
+      ),
+    }));
 }
 
 /** Nilai tekanan dalam bar di pesan ("10 bar", "8-12 bar") — parser nilai, bukan pola pertanyaan. */

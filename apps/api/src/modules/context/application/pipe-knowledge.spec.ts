@@ -56,15 +56,15 @@ describe('pipe knowledge', () => {
     }
   });
 
-  it('"apa bedanya pvc sama hdpe" → ringkasan, blok per bahan, simpulan; sifatnya tidak tertukar', () => {
+  it('"apa bedanya pvc sama hdpe" → ringkasan, tabel aspek, simpulan; sifatnya tidak tertukar', () => {
     const out = explain(q('apa bedanya pvc sama hdpe?', [], comparison));
     expect(out).toMatch(
       /^Singkatnya, \*\*PVC \(uPVC\) kaku dan dipasok batangan\*\*, sedangkan \*\*HDPE lentur/,
     );
-    expect(out).toContain('**PVC (uPVC)**\n- Bentuk: kaku dan ringan');
-    expect(out).toContain('**HDPE**\n- Bentuk: lentur dan ulet');
-    expect(out).toContain('- Sambungan:');
-    expect(out).toContain('- Pemakaian lazim:');
+    expect(out).toContain('| Aspek | **PVC (uPVC)** | **HDPE** |');
+    expect(out).toMatch(/\| Bentuk \| kaku dan ringan[^|]*\| lentur dan ulet/);
+    expect(out).toContain('| Sambungan |');
+    expect(out).toContain('| Pemakaian lazim |');
     expect(out).toMatch(/Jadi untuk \*\*instalasi tetap[^\n]*HDPE biasanya lebih cocok\.$/);
   });
 
@@ -190,13 +190,18 @@ describe('pipe knowledge', () => {
     expect(complete).not.toContain('saya perlu');
   });
 
-  it('keepsStructure: tanpa butir di DATA selalu lolos; dengan butir butuh butir + tebal', () => {
-    const knowledge = explain(q('apa bedanya pvc sama hdpe?', [], comparison)); // 8 butir
+  it('keepsStructure: tanpa struktur di DATA selalu lolos; butir butuh butir + tebal; tabel butuh tabel', () => {
+    const [pvc, hdpe] = MATERIALS;
+    const knowledge = reformat('bullets', { materials: [pvc!, hdpe!], fitting: false })!; // 8 butir
     expect(keepsStructure('satu paragraf saja', '')).toBe(true);
     expect(keepsStructure('Secara umum **PVC** kaku dan HDPE lentur.', knowledge)).toBe(false);
     const half = '**PVC**\n- a\n- b\n\n**HDPE**\n- c\n- d';
     expect(keepsStructure(half, knowledge)).toBe(true);
     expect(keepsStructure(half.replaceAll('**', ''), knowledge)).toBe(false);
+    // Perbandingan bahan kini tabel (pemilik 2026-10-20): paragraf atau butir saja ditolak.
+    const table = explain(q('apa bedanya pvc sama hdpe?', [], comparison));
+    expect(keepsStructure('Secara umum **PVC** kaku dan HDPE lentur.', table)).toBe(false);
+    expect(keepsStructure(table, table)).toBe(true);
   });
 
   it('keluarga kanonis dipetakan ke bahannya: PE100 → HDPE, galvanis/besi dikenali, kelas PVC = PVC', () => {
@@ -224,9 +229,11 @@ describe('pipe knowledge', () => {
     const bullets = (t: string) => t.split('\n').filter((l) => l.startsWith('- ')).length;
     const bolds = (t: string) => (t.match(/\*\*/g) ?? []).length;
     expect(en).toMatch(/^In short, \*\*PVC \(uPVC\) is rigid/);
-    expect(en).toContain('- Joining:');
+    expect(en).toContain('| Joints |');
     expect(en).not.toMatch(/\b(dan|sambungan|bentuk)\b/i);
     expect(bullets(en)).toBe(bullets(id));
+    const rows = (t: string) => t.split('\n').filter((l) => l.startsWith('|')).length;
+    expect(rows(en)).toBe(rows(id));
     expect(bolds(en)).toBe(bolds(id));
   });
 

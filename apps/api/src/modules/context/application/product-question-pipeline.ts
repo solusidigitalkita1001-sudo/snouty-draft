@@ -738,9 +738,13 @@ const normalize = (s: string) =>
 
 /**
  * Bila pengetahuan dirangkai sebagai butir, tulisan model harus tetap berbutir — minimal
- * separuh jumlah butirnya — dan membawa penekanan tebal. Teks tanpa struktur → teks deterministik.
+ * separuh jumlah butirnya — dan membawa penekanan tebal. Bila dirangkai sebagai tabel, tulisannya
+ * harus tetap tabel dengan minimal separuh barisnya. Teks tanpa struktur → teks deterministik.
  */
 export function keepsStructure(written: string, knowledge: string): boolean {
+  const rows = (s: string) => (s.match(/^\s*\|.*\|\s*$/gm) ?? []).length;
+  const tableRows = rows(knowledge);
+  if (tableRows > 0 && rows(written) * 2 < tableRows) return false;
   const items = (s: string) => (s.match(/^\s*(?:[-*]|\d+\.)\s/gm) ?? []).length;
   const expected = items(knowledge);
   if (expected === 0) return true;

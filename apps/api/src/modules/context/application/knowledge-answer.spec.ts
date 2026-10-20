@@ -46,8 +46,10 @@ describe('knowledgeAnswer', () => {
   it('pipa gas: fakta + produk gas di katalog (MDPE, HDPE gas saja)', async () => {
     const a = await knowledgeAnswer(['pipa gas'], 'pipa buat jalur gas rumah?', catalog, 'id');
     expect(a!.text).toContain('MDPE atau HDPE gas');
-    expect(a!.text).toContain('**MDPE** — 2 produk · ukuran 20 mm–110 mm');
-    expect(a!.text).toContain('**HDPE** — 1 produk · ukuran 110 mm');
+    // Dua keluarga → tabel berdampingan (pemilik 2026-10-20: "bisa disusun lebih rapi").
+    expect(a!.text).toMatch(/\| \| \*\*(MDPE|HDPE)\*\* \| \*\*(MDPE|HDPE)\*\* \|/);
+    expect(a!.text).toMatch(/\| Ukuran \| .*20 mm–110 mm/);
+    expect(a!.text).not.toContain('produk ·');
   });
 
   it('tekanan kerja: tanpa angka per kelas PVC, kelas tekanan HDPE dari nama produk', async () => {
@@ -58,9 +60,9 @@ describe('knowledgeAnswer', () => {
       'id',
     );
     expect(a!.text).toContain('tim teknis Pralon bisa memberikan angkanya');
-    expect(a!.text).toMatch(
-      /\*\*HDPE\*\* — 3 produk · ukuran 63 mm–160 mm · kelas PN-8, PN-16, SDR-11/,
-    );
+    expect(a!.text).toContain('Di katalog Pralon yang aktif:\n\n| | **HDPE** |');
+    expect(a!.text).toContain('| Ukuran | 63 mm–160 mm |');
+    expect(a!.text).toContain('| Kelas | PN-8, PN-16, SDR-11 |');
   });
 
   it('conduit: fakta + HIC dengan panjang batang dari katalog', async () => {
@@ -97,8 +99,10 @@ describe('knowledgeAnswer', () => {
       'pvc d',
     ]);
     expect(en!.text).toContain('| Aspect | **PVC AW** | **PVC D** |');
-    expect(a!.text).toContain('- **PVC AW** — 2 produk');
-    expect(a!.text).toContain('- **PVC D** — 1 produk');
+    // Ukuran dan panjang katalog jadi baris tabel yang sama, bukan daftar kedua.
+    expect(a!.text).toContain('| Ukuran | 1/2"–3" | 1 1/2" |');
+    expect(a!.text).toContain('| Panjang batang | 4 m, 5,8 m | 4 m |');
+    expect(a!.text).not.toContain('Di katalog Pralon yang aktif');
     expect(a!.text).not.toMatch(/JIS|PIPPO|tercatat di katalog/);
   });
 
