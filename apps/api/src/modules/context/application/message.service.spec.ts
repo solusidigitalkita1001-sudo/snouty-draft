@@ -5,7 +5,7 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
-import type { RequirementState } from '@snouty/shared-types';
+import type { AssistantStreamEvent, RequirementState } from '@snouty/shared-types';
 import { MessageService, isSaneTitle } from './message.service.js';
 import { scriptedUnderstanding } from '../../understanding/testing/understood.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
@@ -438,6 +438,29 @@ describe('MessageService — aliran event (P14-07)', () => {
     expect(startedBeforeRoute).toBe(true);
     expect(seen).toEqual(events.map((e) => e.type));
     expect(seen.filter((t) => t === 'message.start')).toHaveLength(1);
+  });
+
+  it('message.start membawa bahasa kalimat pengguna supaya antarmuka ikut berpindah (OQ-73)', async () => {
+    const seen: AssistantStreamEvent[] = [];
+    const { service } = serviceWith({
+      route: () =>
+        Promise.resolve({
+          intent: 'OUT_OF_SCOPE',
+          confidence: 1,
+          shouldExtract: false,
+          mutatesState: false,
+        }),
+    });
+
+    await service.handle(
+      'C'.repeat(26),
+      ACTOR,
+      'which pralon pipe should I use for my house water supply?',
+      '2026-10-05T00:00:00Z',
+      (e) => seen.push(e),
+    );
+
+    expect(seen[0]).toMatchObject({ type: 'message.start', language: 'en' });
   });
 
   it('model tidak terjangkau SETELAH message.start terkirim: sisa event (error, end) tetap sampai lewat array', async () => {

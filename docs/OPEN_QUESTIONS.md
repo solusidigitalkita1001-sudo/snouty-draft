@@ -435,7 +435,8 @@ SNI/BMKG per daerah) dan tinggi tandon atas yang lazim, supaya keduanya bisa men
 ### OQ-73 — Bahasa balasan dari kalimat pengguna, bukan tombol bahasa (P25-01, 2026-10-19)
 
 **Status:** diputuskan pemilik (2026-10-19): "jawaban bhs ing itu berdasarkan prompt user, bukan berdasarkan
-bilingual button" · **Blocks:** tidak ada
+bilingual button". Teks antarmuka juga ikut bahasa pengguna (pemilik 2026-10-20, AskUserQuestion; P25-07) ·
+**Blocks:** tidak ada
 **Konteks:** sejak Fase 15 bahasa adalah atribut percakapan yang ditetapkan dari tombol bahasa saat dibuat.
 **Default sementara:** bahasa dikenali per pesan; pesan yang bahasanya jelas memindahkan bahasa percakapan,
 pesan pendek atau netral ("ok", "pralon jis vs sni") tidak. Tombol bahasa tetap mengatur teks antarmuka dan

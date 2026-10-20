@@ -7,6 +7,7 @@
 
 import type { AssistantCard } from './assistant-card.js';
 import type { ErrorCode } from './errors.js';
+import type { Locale } from './locale.js';
 import type { RequirementState } from './requirement.js';
 export type AnalysisStage =
   | 'UNDERSTANDING'
@@ -40,7 +41,15 @@ export interface TokenUsage {
  * benar-benar mulai/selesai/gagal.
  */
 export type AssistantStreamEvent =
-  | { readonly type: 'message.start'; readonly messageId: string }
+  | {
+      readonly type: 'message.start';
+      readonly messageId: string;
+      /**
+       * Bahasa balasan giliran ini (OQ-73): antarmuka ikut berpindah ke bahasa pengguna.
+       * Hanya pada `message.start` yang dikirim langsung; salinan di array hasil tidak membawanya.
+       */
+      readonly language?: Locale;
+    }
   | {
       readonly type: 'stage';
       readonly stage: AnalysisStage;

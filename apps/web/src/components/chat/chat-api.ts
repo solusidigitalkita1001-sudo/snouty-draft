@@ -25,6 +25,8 @@ export interface ConversationSummary {
   readonly status: string;
   readonly stage: string;
   readonly updatedAt: string;
+  /** Bahasa terakhir percakapan; antarmuka ikut saat riwayat dibuka (OQ-73). */
+  readonly language?: Locale;
   /** Proyek dan sematan (P24); respons lama tidak membawanya. */
   readonly projectId?: string | null;
   readonly pinnedAt?: string | null;

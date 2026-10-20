@@ -208,7 +208,7 @@ add_header X-Accel-Buffering no;
 
 ```ts
 type SseEvent =
-  | { type: 'message.start'; messageId: string }
+  | { type: 'message.start'; messageId: string; language?: 'id' | 'en' } // bahasa balasan; antarmuka ikut (OQ-73)
   | { type: 'stage'; stage: AnalysisStage; status: 'active' | 'done' | 'failed'; detail?: string }
   | { type: 'token'; text: string }
   | { type: 'requirement.updated'; state: RequirementState }
@@ -256,7 +256,7 @@ yang disisipi markup tidak bisa menghasilkan markup di layar, karena tidak ada j
 ### Contoh aliran
 
 ```
-event: message.start        {"messageId":"01JB…"}
+event: message.start        {"messageId":"01JB…","language":"id"}
 event: requirement.updated  {"state":{…}}
 event: stage                {"stage":"UNDERSTANDING","status":"done","detail":"6 DATA"}
 event: stage                {"stage":"ANALYZING_INSTALLATION","status":"active"}

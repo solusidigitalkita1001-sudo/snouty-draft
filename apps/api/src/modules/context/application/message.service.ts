@@ -223,7 +223,8 @@ export class MessageService {
     // (`llm_calls`). Dicatat ke log terstruktur supaya profil latensi bisa dibaca dari produksi.
     const timer = stageTimer();
     // Giliran dimulai SEKARANG di mata klien — bukan setelah klasifikasi intent (5–30 s di CPU).
-    emit?.({ type: 'message.start', messageId });
+    // Bahasanya ikut supaya antarmuka berpindah ke bahasa pengguna (OQ-73), bukan hanya balasan.
+    emit?.({ type: 'message.start', messageId, language: locale });
     const snapshot = await this.store.current(conversationId);
     const state = snapshot?.state ?? emptyRequirementState(now);
     const hasExisting = (snapshot?.state.completeness.filled ?? 0) > 0;

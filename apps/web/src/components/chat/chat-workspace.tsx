@@ -192,7 +192,7 @@ export function ChatWorkspace() {
   const narrow = useMediaQuery(NARROW_QUERY);
   const mobile = useMediaQuery(MOBILE_QUERY);
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
-  const { locale } = useLocale();
+  const { locale, setLocale } = useLocale();
   const [handoffState, setHandoffState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
   const [toastOn, setToastOn] = useState(false);
@@ -432,6 +432,10 @@ export function ChatWorkspace() {
 
       const apply = (event: AssistantStreamEvent): void => {
         switch (event.type) {
+          case 'message.start':
+            // Antarmuka mengikuti bahasa kalimat pengguna (OQ-73); server sudah memutuskannya.
+            if (event.language !== undefined) setLocale(event.language);
+            break;
           case 'requirement.updated':
             understood = true;
             // Kebutuhan berubah setelah solusi tersusun → solusi lama dibuang, supaya yang tampil
@@ -506,7 +510,7 @@ export function ChatWorkspace() {
         refreshHistory();
       }
     },
-    [conversationId, refreshHistory, sending, locale, COPY, pendingProject],
+    [conversationId, refreshHistory, sending, locale, COPY, pendingProject, setLocale],
   );
 
   const submit = useCallback(() => submitText(draft), [draft, submitText]);
@@ -652,6 +656,8 @@ export function ChatWorkspace() {
           setProjectView(null);
           setPendingProject(null);
           setConversationId(item.id);
+          // Riwayat dibuka dalam bahasa terakhir percakapannya (OQ-73).
+          if (item.language !== undefined) setLocale(item.language);
           setActiveTitle(item.title ?? COPY.titleFor(null, null));
           setReopened(true);
           setSolution(null);
@@ -662,7 +668,7 @@ export function ChatWorkspace() {
         },
       );
     },
-    [conversationId],
+    [conversationId, setLocale],
   );
 
   /**

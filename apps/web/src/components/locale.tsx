@@ -2,8 +2,8 @@
 
 /**
  * Bahasa antarmuka (Fase 15): `id` | `en`, disimpan di localStorage seperti tema, dipasang ke
- * `<html lang>` sebelum cat pertama, dan dikirim saat percakapan dibuat. Percakapan yang sudah
- * ada tetap dalam bahasanya (lihat `packages/shared-types/src/locale.ts`).
+ * `<html lang>` sebelum cat pertama, dan dikirim saat percakapan dibuat sebagai bahasa awal. Setelah itu
+ * antarmuka mengikuti bahasa kalimat pengguna yang diputuskan server (`message.start`, OQ-73).
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { DEFAULT_LOCALE, isLocale, type Locale } from '@snouty/shared-types';

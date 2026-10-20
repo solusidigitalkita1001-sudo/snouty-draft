@@ -1993,6 +1993,10 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       "sumur bor 40 m ke toren atap rumah 2 lantai" masuk jalur rumah (kedalaman hilang, toren dianggap sumber) →
       contoh kasus sumur; tee sambung perluasan memakai cabang terbesar rumah (3/4" × 1") → 3/4" × 1/2". Hasil:
       perhitungan 19/19, perpipaan 48/48, FAQ 19/19.
+- [x] P25-07 Antarmuka ikut bahasa pengguna (OQ-73, pemilik 2026-10-20: "Ikut bahasa pengguna"). `message.start`
+      membawa `language` giliran (hasil pengenal bahasa P25-01), dan web memasang bahasa antarmuka ke situ. Membuka
+      riwayat memasang bahasa terakhir percakapan itu. Tombol bahasa tetap bisa dipakai, dan kalimat berikutnya yang
+      bahasanya jelas memindahkannya lagi.
 
 ## Design Coverage
 
