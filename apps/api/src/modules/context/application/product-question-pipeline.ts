@@ -226,7 +226,8 @@ export async function runProductQuestion(
   // Tebal dinding / diameter dalam / berat: tabel standar Pralon per kelas (P21-08), nol model.
   // Didahulukan dari harga: "tebal pipa d 3 inch berapa?" sempat terbaca pertanyaan harga karena
   // "berapa" (QA smoke 2026-10-14) — aspek tebal/berat dari contoh lebih spesifik daripada intentnya.
-  if (u.productAspect === 'dimensions') {
+  const nominalSizes = u.families.length === 0 && u.knowledgeTopics.includes('ukuran inci');
+  if (u.productAspect === 'dimensions' && !nominalSizes) {
     const outcome = dimensionAnswer(input.message, u.families, pipeStandardRows(), locale);
     return [
       { type: 'message.start', messageId: input.messageId },
@@ -285,7 +286,21 @@ export async function runProductQuestion(
       answer !== null && compared.length >= 2
         ? {
             ...answer,
-            text: [compareMaterials(compared[0]!, compared[1]!, locale), answer.text].join('\n\n'),
+            // Tabel perbandingan sudah menjawab "dasar memilih"; dari pengetahuan hanya topik terdekat
+            // yang ikut — dulu tiga topik menempel di bawah tabel (uji sales 2026-10-20).
+            text: [
+              compareMaterials(compared[0]!, compared[1]!, locale),
+              (
+                (await knowledgeAnswer(
+                  knowledgeTopics.slice(0, 1),
+                  input.message,
+                  catalog,
+                  locale,
+                  u.families,
+                  subjectFamilies,
+                )) ?? answer
+              ).text,
+            ].join('\n\n'),
           }
         : answer;
     if (known !== null) {
@@ -491,7 +506,9 @@ export async function runProductQuestion(
   // Lanjutan ("lebih detail dong") memperdalam penjelasan konsep; aspek hanya dari pesan nyata —
   // dan tidak pernah dari pertanyaan konsep ("apa bedanya fitting sama HDPE?"), apa pun kata model.
   const conceptual = isConceptual(u.intent?.label);
-  const askedAspect = u.productAspect ?? parsed?.aspect ?? null;
+  // Dimensi tanpa jenis pipa yang dijawab ukuran nominal (di atas) tidak menjadi aspek spesifikasi.
+  const askedAspect =
+    (u.productAspect === 'dimensions' ? null : u.productAspect) ?? parsed?.aspect ?? null;
   // Ukuran di pesan berlaku untuk aspek apa pun (parser nilai terstruktur): "what pressure class for
   // 110 mm?" dulu kehilangan 110 mm dan dijawab PN satu produk 160 mm (audit campuran 2026-10-20).
   // Ketersediaan ukuran tanpa angka → daftar ukuran.

@@ -499,7 +499,11 @@
       "is the pipe lead free?",
       "how do I join pvc to an old iron pipe?",
       "pralon pakai timbal nggak di pipanya?",
-      "pipa pralon mengandung timbal ga sih?"
+      "pipa pralon mengandung timbal ga sih?",
+      "tekanan kerja masing-masing kelas pipa itu berapa?",
+      "kalau tertulis maksimal 60 derajat, lewat dari itu risikonya apa?",
+      "angka tekanan dan suhu di spesifikasi pipa pengaruhnya ke pemilihan gimana?",
+      "tulisan x 6 meter di nama produk itu panjang satu batang ya?"
     ],
     "advice_request": [
       "lebih bagus pvc atau hdpe buat rumah 2 lantai?",
@@ -517,7 +521,10 @@
       "what would you suggest for a boarding house?",
       "pvc apa hdpe ya buat rumah?",
       "cocoknya pakai apa buat rumah 2 lantai?",
-      "kasih saran dong pipanya"
+      "kasih saran dong pipanya",
+      "perlu pipa conduit untuk instalasi kabel listrik di rumah, produk pralon yang pas apa?",
+      "butuh pipa untuk saluran gas di rumah, pralon punya yang cocok?",
+      "need a conduit for house wiring, which pralon product fits?"
     ],
     "requirement_building": [
       "renovasi instalasi air rumah, tambah 1 kamar mandi",

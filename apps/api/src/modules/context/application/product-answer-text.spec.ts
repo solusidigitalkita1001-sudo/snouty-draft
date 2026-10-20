@@ -65,7 +65,7 @@ describe('product answer text locale', () => {
     );
     const insufficient = { kind: 'insufficientData', aspect: 'pressure_class' } as never;
     expect(answerText(AW, insufficient, 'en')).toContain(
-      'Working pressure for Pipa PVC AW is not listed',
+      'Pressure class for Pipa PVC AW is not listed',
     );
   });
 

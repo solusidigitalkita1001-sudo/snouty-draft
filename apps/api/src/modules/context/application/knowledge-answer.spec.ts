@@ -153,6 +153,35 @@ describe('knowledgeAnswer', () => {
     expect(a!.text).not.toContain('150 m');
   });
 
+  it('lebih dari empat keluarga: keluarga jadi baris supaya muat di ponsel (uji sales 2026-10-20)', async () => {
+    const families = ['PVC AW', 'PVC D', 'PVC C', 'PVC VP', 'PVC VU'];
+    const wide: KnowledgeCatalog = {
+      familyCounts: async () => families.map((family) => ({ family, count: 1 })),
+      productNamesInFamily: async (family) => [`Pipa ${family.slice(4)} 1/2" x 4 Meter`],
+    };
+    const a = await knowledgeAnswer(['panjang batang'], 'panjang batang pipa berapa?', wide, 'id');
+    expect(a!.text).toContain('| | Ukuran | Panjang batang |');
+    expect(a!.text).toContain('| **PVC VU** | 1/2" | 4 m |');
+  });
+
+  it('hitung batang hanya dari panjang yang lazim, bukan potongan 1 m', async () => {
+    const rods: KnowledgeCatalog = {
+      familyCounts: async () => [{ family: 'PVC AW', count: 11 }],
+      productNamesInFamily: async () => [
+        'Pipa AW 1/2" x 1 Meter',
+        ...Array.from({ length: 10 }, (_, i) => `Pipa AW ${i + 1}" x 4 Meter`),
+      ],
+    };
+    const a = await knowledgeAnswer(
+      ['jumlah batang'],
+      'jalur 27 meter butuh berapa batang?',
+      rods,
+      'id',
+    );
+    expect(a!.text).toContain('batang 4 m → 7 batang');
+    expect(a!.text).not.toContain('27 batang');
+  });
+
   it('topik tanpa fakta maupun konsep → null', async () => {
     expect(await knowledgeAnswer([], 'halo', catalog, 'id')).toBeNull();
   });

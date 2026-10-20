@@ -90,7 +90,11 @@ export class EntityLexicon {
       }));
     this.siblings = vocabulary.siblingAliases.map((group) =>
       Object.entries(group).flatMap(([canonical, aliases]) =>
-        aliases.map((alias) => ({ canonical, pattern: new RegExp(bounded(alias), 'i') })),
+        aliases.map((alias) => ({
+          canonical,
+          // Angka di depannya berarti satuan ("60 c", "60°c"), bukan nama kelas.
+          pattern: new RegExp(`(?<![\\d°]\\s?)${bounded(alias)}`, 'i'),
+        })),
       ),
     );
     this.knowledgeOnly = new Set(vocabulary.knowledgeOnlyFamilies.map((f) => f.toLowerCase()));

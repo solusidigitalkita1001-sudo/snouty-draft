@@ -33,7 +33,8 @@
     "tee": ["tee"],
     "elbow": ["elbow", "knee", "keni", "bend", "siku"],
     "reducer": ["reducer"],
-    "socket": ["socket", "sok"]
+    "socket": ["socket", "sok"],
+    "mdpe": ["mdpe", "medium density polyethylene"]
   },
   "competitorBrands": [
     "rucika",
@@ -222,7 +223,13 @@
     "pvc": "PVC AW",
     "hdpe": "HDPE"
   },
-  "siblingAliases": [{ "pvc aw": ["aw"], "pvc d": ["d"] }],
+  "siblingAliases": [
+    {
+      "pvc aw": ["aw"],
+      "pvc d": ["d"],
+      "pvc c": ["c"]
+    }
+  ],
   "fittingFamilies": ["tee", "elbow", "reducer", "socket"],
   "outOfScopeFluids": [
     "peternakan",

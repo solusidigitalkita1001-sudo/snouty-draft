@@ -220,7 +220,12 @@
       "pipa untuk boiler air panas",
       "hot water line for a boiler",
       "pipa pralon maksimal suhu berapa?",
-      "pipa pvc tahan panas sampai berapa derajat?"
+      "pipa pvc tahan panas sampai berapa derajat?",
+      "pipa SNI air bersih boleh dipakai buat air panas?",
+      "uPVC air bersih bisa dialiri air panas nggak?",
+      "kalau tertulis maksimal 60 derajat, lewat dari itu risikonya apa?",
+      "batas suhu 60°C pada pipa itu artinya apa?",
+      "suhu kerja yang direkomendasikan di spesifikasi pipa maksudnya apa?"
     ],
     "kelas pvc": [
       "pvc aw sama d itu kelas apa?",
@@ -515,7 +520,10 @@
       "kenapa ukuran pipa pakai inch tapi spek mm?",
       "diameter luar pipa 4 inci berapa?",
       "what is 1/2 inch pipe in mm?",
-      "pipe size inch to mm?"
+      "pipe size inch to mm?",
+      "pipa 1/2 inci itu berapa mm?",
+      "ukuran 3/4 dan 1 inci setara berapa milimeter?",
+      "cara baca ukuran pipa 1 1/2 inci gimana?"
     ],
     "panjang batang": [
       "satu batang pipa panjangnya berapa?",
@@ -528,7 +536,10 @@
       "standard pipe length?",
       "panjang batang pvc berapa?",
       "satu batang pipa hdpe berapa meter?",
-      "pipa pvc per batangnya berapa meter?"
+      "pipa pvc per batangnya berapa meter?",
+      "tulisan x 6 meter di nama produk itu panjang satu batang ya?",
+      "diameter 1 1/2 inci panjang 6 meter artinya satu batang 6 meter?",
+      "kolom panjang 6 m di daftar produk itu per batang?"
     ],
     "jumlah batang": [
       "butuh berapa batang pipa untuk 27 meter?",
@@ -548,7 +559,11 @@
       "pipa pn 10 itu tahan berapa?",
       "tekanan air 10 bar pakai pipa apa?",
       "what is the working pressure of aw pipe?",
-      "what does pn mean on hdpe pipe?"
+      "what does pn mean on hdpe pipe?",
+      "tekanan kerja masing-masing kelas pipa itu berapa?",
+      "tiap kelas pipa tahan tekanan berapa bar?",
+      "angka tekanan di spesifikasi pipa pengaruhnya ke pemilihan gimana?",
+      "what does the pressure rating on a pipe mean for choosing it?"
     ],
     "pippo": [
       "pippo itu apa?",

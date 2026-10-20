@@ -35,6 +35,16 @@ export interface KnowledgeAnswer {
 const num = (n: number, locale: Locale) =>
   n.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
 
+/** Keluarga yang masih ditulis sebagai kolom tabel; lebih dari ini, keluarga menjadi baris. */
+const MAX_FAMILY_COLUMNS = 4;
+
+/**
+ * Panjang batang yang dipakai menghitung jumlah batang harus panjang yang LAZIM di keluarga itu:
+ * produk potongan 1 m dan 2 m memberi "27 batang" untuk jalur 27 m (uji sales 2026-10-20).
+ * Lazim = dipakai sedikitnya sepersepuluh produk keluarga itu.
+ */
+const COMMON_LENGTH_SHARE = 0.1;
+
 /** Panjang yang masih ditulis satu per satu; lebih dari ini ditulis rentang. */
 const MAX_LISTED_LENGTHS = 8;
 
@@ -223,7 +233,7 @@ async function catalogLines(
   const askedRods = metres.filter((m) => m !== routeM);
   const lines = [header];
   for (const { family, names } of await familyNames(hook, catalog)) {
-    const usable = lengthsOf(names).filter((l) => l > 0 && l < 50);
+    const usable = commonLengths(names).filter((l) => l > 0 && l < 50);
     const asked = usable.filter((l) => askedRods.includes(l));
     const options = (asked.length > 0 ? asked : usable).map((l) =>
       en
@@ -255,6 +265,19 @@ async function familyNames(
     if (names.length > 0) out.push({ family, names });
   }
   return out;
+}
+
+/** Panjang yang tertulis di sedikitnya `COMMON_LENGTH_SHARE` nama produk, urut naik. */
+function commonLengths(names: readonly string[]): number[] {
+  const counts = new Map<number, number>();
+  for (const n of names) {
+    const raw = LENGTH.exec(n)?.[1];
+    if (raw !== undefined) counts.set(decimal(raw), (counts.get(decimal(raw)) ?? 0) + 1);
+  }
+  const common = [...counts.entries()]
+    .filter(([, c]) => c >= names.length * COMMON_LENGTH_SHARE)
+    .map(([l]) => l);
+  return (common.length > 0 ? common : [...counts.keys()]).sort((a, b) => a - b);
 }
 
 function lengthsOf(names: readonly string[]): number[] {
@@ -358,6 +381,17 @@ function catalogTable(entries: readonly CatalogEntry[], locale: Locale): string 
     entries.some((e) => e.aspects[a] !== undefined),
   );
   const cell = (text: string) => text.replace(/\|/g, '/');
+  // Banyak keluarga (panjang batang semua pipa: 9 keluarga) tidak muat sebagai kolom di layar
+  // ponsel: keluarga menjadi baris, aspek menjadi kolom.
+  if (entries.length > MAX_FAMILY_COLUMNS) {
+    return [
+      `| | ${aspects.map((a) => labels[a]).join(' | ')} |`,
+      `| --- | ${aspects.map(() => '---').join(' | ')} |`,
+      ...entries.map(
+        (e) => `| **${e.label}** | ${aspects.map((a) => cell(e.aspects[a] ?? '—')).join(' | ')} |`,
+      ),
+    ].join('\n');
+  }
   return [
     `| | ${entries.map((e) => `**${e.label}**`).join(' | ')} |`,
     `| --- | ${entries.map(() => '---').join(' | ')} |`,

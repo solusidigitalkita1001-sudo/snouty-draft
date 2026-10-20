@@ -33,7 +33,7 @@ describe('EntityLexicon', () => {
       VocabularySchema.parse({
         ownBrand: ['pralon'],
         productFamilies: { 'pvc aw': ['pvc aw', 'aw'], 'pvc d': ['pvc d', 'pipa d'] },
-        siblingAliases: [{ 'pvc aw': ['aw'], 'pvc d': ['d'] }],
+        siblingAliases: [{ 'pvc aw': ['aw'], 'pvc d': ['d'], 'pvc c': ['c'] }],
         competitorBrands: [],
         competitorReferences: [],
         requirementEntities: [],
@@ -45,6 +45,14 @@ describe('EntityLexicon', () => {
     ]);
     expect(withSiblings.productFamilies('d itu apa?')).toEqual([]);
     expect(withSiblings.productFamilies('pipa d sama aw')).toEqual(['pvc d', 'pvc aw']);
+    expect(withSiblings.productFamilies('AW, D, C itu maksudnya apa?')).toEqual([
+      'pvc aw',
+      'pvc d',
+      'pvc c',
+    ]);
+    // Suhu, bukan kelas C.
+    expect(withSiblings.productFamilies('pipa aw tahan 60 c?')).toEqual(['pvc aw']);
+    expect(withSiblings.productFamilies('pipa aw tahan 60°c?')).toEqual(['pvc aw']);
   });
 
   it('batas kata: "awal" bukan AW, "hdpex" bukan HDPE, "besi" di "besinya" tetap dikenali hanya bila berdiri sendiri', () => {
