@@ -141,7 +141,10 @@ export async function runUnderstanding(
   // pencocokan produk. Isinya keputusan pemilik 2026-10-12 (b): merek lain tidak dinilai, keunggulan
   // Pralon dari profil terverifikasi, lalu tawaran tim teknis.
   if (input.decision.intent === 'COMPETITOR_QUESTION') {
-    events.push({ type: 'token', text: competitorAnswer(locale) });
+    events.push({
+      type: 'token',
+      text: competitorAnswer(locale, input.understanding?.knowledgeTopics ?? []),
+    });
     events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };

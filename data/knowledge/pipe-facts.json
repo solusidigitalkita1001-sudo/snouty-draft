@@ -95,8 +95,8 @@
     },
     {
       "topic": "panjang batang",
-      "text": "Panjang per batang tercatat di nama setiap produk katalog Pralon dan berbeda per jenis pipa.",
-      "textEn": "The length per pipe is recorded in each Pralon catalogue product name and differs per pipe type.",
+      "text": "Ya — panjang yang tertulis di nama produk, misalnya \"x 6 Meter\", adalah panjang satu batang, dan ukuran inci atau mm di nama itu adalah ukuran pipanya. Panjang batangnya berbeda per jenis pipa.",
+      "textEn": "Yes — the length written in the product name, for example \"x 6 Meter\", is the length of one pipe, and the inch or mm size in that name is the pipe size. Pipe lengths differ per pipe type.",
       "source": "Katalog aktif Pralon",
       "catalog": {
         "families": [
@@ -230,6 +230,15 @@
       "text": "Memilih sambungan: solvent cement (TS end) untuk ukuran kecil sampai menengah di dalam bangunan — sambungannya menyatu, kaku, dan permanen. Rubber ring (bell end) untuk jaringan besar di luar bangunan — pemasangannya cepat, bisa menerima sedikit gerakan tanah, dan bisa dibongkar. Keduanya kedap bila dipasang sesuai langkahnya.",
       "textEn": "Choosing the joint: solvent cement (TS end) for small to medium sizes inside buildings — the joint fuses, rigid and permanent. Rubber ring (bell end) for large networks outside buildings — quick to install, tolerates some ground movement, and can be taken apart. Both are watertight when made by the steps.",
       "source": "Snouty Product Knowledge Master §4.10, §18"
+    },
+    {
+      "topic": "standar pralon",
+      "text": "\"PRALON Standard\" berarti pipanya mengikuti standar Pralon sendiri, yaitu pipa uPVC kelas AW, D, dan C — kelasnya menandai pemakaian dan tebal dinding: AW untuk air bersih bertekanan, D untuk pembuangan dan ventilasi, C tanpa tekanan kerja. Jadi bukan kelas yang berbeda dari AW/D: kelas AW/D-nya tertulis di nama produk. Di luar standar Pralon ada pipa berstandar JIS (VP, VU) dan SNI (seri S untuk air minum, kelas A/B untuk air buangan).",
+      "textEn": "\"PRALON Standard\" means the pipe follows Pralon's own standard, that is uPVC pipe in classes AW, D, and C — the class marks use and wall thickness: AW for pressurised clean water, D for drainage and venting, C with no working pressure. So it is not a class apart from AW/D: the AW/D class is written in the product name. Besides the Pralon standard there is JIS-standard pipe (VP, VU) and SNI pipe (S series for drinking water, classes A/B for wastewater).",
+      "source": "Snouty Product Knowledge Master §5 (pipa uPVC standar PRALON kelas AW, D, C), §6.1–6.9",
+      "catalog": {
+        "families": ["PVC AW", "PVC D", "PVC C"]
+      }
     },
     {
       "topic": "sambungan transisi",
