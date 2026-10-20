@@ -2007,6 +2007,14 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       dijawab daftar jenis; "galvanis karatan ganti apa" langsung kartu kasus; "yang paling besar" masih lewat
       perencana model. Laporan: Downloads/TESTCASE*SNOUTY*{campuran,pertanyaan-sales}\_2026-10-20.md.
 
+- [x] P25-09 Study case rumah dihitung dulu + jawaban langsung (OQ-75, pemilik 2026-10-20). Rumah yang lantainya
+      disebut langsung dihitung: kamar mandi yang belum disebut dianggap 1 per lantai (HOUSE_BATHROOMS_PER_FLOOR_1),
+      toren atap, air bersih — ditulis di jawaban, ditanya di kartu, kartu ANALYZE ber-auto dijalankan web. Panjang jalur
+      utama dibaca dari teks ("±15 meter"), grounding "15m" diperbaiki. Pertanyaan pesaing satu produk (solvent cement)
+      dijawab fakta produk Pralon; "x 6 Meter = 1 batang?" dibuka "Ya"; topik standar pralon. Tekanan kerja per kelas
+      tetap ke tim teknis. Hitung live 23/23, sales 69/69. Sisa: SC-03/SC-04 (tanpa lantai) masih 20–40 s karena model
+      ekstraksi; booster pump dari teks belum tercatat tanpa model.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |
