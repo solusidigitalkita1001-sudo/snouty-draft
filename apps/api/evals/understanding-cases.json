@@ -1244,6 +1244,39 @@
       "productAspect": "sizes",
       "topics": [],
       "useCase": null
+    },
+    {
+      "text": "pipa pvc baru mau disambung ke pipa besi yang lama, caranya?",
+      "intent": "knowledge_question",
+      "source": "audit live 2026-10-20 (P25-08)",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "useCase": null,
+      "productAspect": null,
+      "topics": ["sambungan transisi"]
+    },
+    {
+      "text": "pipa pralon ada timbalnya ga?",
+      "intent": "knowledge_question",
+      "source": "audit live 2026-10-20 (P25-08)",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "useCase": null,
+      "productAspect": null,
+      "topics": ["air minum"]
+    },
+    {
+      "text": "satu batangnya panjangnya berapa?",
+      "intent": "product_spec",
+      "source": "audit live 2026-10-20 (P25-08)",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "useCase": null,
+      "productAspect": "rod_length",
+      "topics": ["panjang batang"]
     }
   ]
 }

@@ -18,6 +18,7 @@ const NAMES: Record<string, string[]> = {
     'Pipa HDPE Gas SDR-11 110 mm x 100 Meter Kuning',
   ],
   MDPE: ['Pipa MDPE SDR-11 110 mm x 100 Meter Kuning', 'Pipa MDPE SDR-11 20 mm x 100 Meter Kuning'],
+  'FITTING PVC': ['Faucet Socket Abu Ts 1/2"', 'Faucet Socket Abu Ts 2"', 'Elbow Abu Ts 3"'],
   'PVC HIC': [
     'Pipa High Impact Conduit 20mm x 2.88 Meter',
     'Pipa High Impact Conduit 32mm x 2.88 Meter',
@@ -104,6 +105,32 @@ describe('knowledgeAnswer', () => {
     expect(a!.text).toContain('| Panjang batang | 4 m, 5,8 m | 4 m |');
     expect(a!.text).not.toContain('Di katalog Pralon yang aktif');
     expect(a!.text).not.toMatch(/JIS|PIPPO|tercatat di katalog/);
+  });
+
+  it('PVC ke galvanis: lewat ulir, Faucet Socket dari katalog dengan namanya sendiri (audit 2026-10-20)', async () => {
+    const a = await knowledgeAnswer(
+      ['sambungan transisi'],
+      'nyambungin pipa pvc ke pipa galvanis lama gimana?',
+      catalog,
+      'id',
+      ['pvc', 'galvanis'],
+    );
+    expect(a!.text).toMatch(/^Pipa PVC tidak bisa dilem ke pipa galvanis/);
+    expect(a!.text).toContain('- **Faucet Socket** — 2 produk · ukuran 1/2"–2"');
+    expect(a!.text).not.toContain('FITTING PVC');
+  });
+
+  it('subjek percakapan hanya mempersempit katalog: "panjang per batangnya?" setelah HDPE', async () => {
+    const a = await knowledgeAnswer(
+      ['panjang batang'],
+      'panjang per batangnya?',
+      catalog,
+      'id',
+      [],
+      ['hdpe'],
+    );
+    expect(a!.text).toContain('**HDPE**');
+    expect(a!.text).not.toContain('PVC AW');
   });
 
   it('topik tanpa fakta maupun konsep → null', async () => {

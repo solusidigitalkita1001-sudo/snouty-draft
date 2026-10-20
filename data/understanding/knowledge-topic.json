@@ -258,7 +258,12 @@
       "pipa ditanam di tanah yang bergerak",
       "kenapa pipa tanam disarankan hdpe?",
       "pipa bawah tanah lebih baik hdpe atau pvc?",
-      "distribusi air ditanam pakai pipa apa?"
+      "distribusi air ditanam pakai pipa apa?",
+      "pipa untuk jaringan air desa yang panjang pakai apa?",
+      "pipa distribusi spam pedesaan pakai apa?",
+      "jaringan pipa air bersih antar kampung pakai bahan apa?",
+      "which pipe suits a long rural water network?",
+      "best pipe for a village distribution main?"
     ],
     "bertekanan vs gravitasi": [
       "pipa bertekanan sama gravitasi bedanya apa?",
@@ -380,7 +385,10 @@
       "what pipe should I use for a 5 storey building?",
       "pipa pvc d 5 inch ada?",
       "hdpe 75 mm ada ga?",
-      "pipa aw 2 inch ready?"
+      "pipa aw 2 inch ready?",
+      "pipa besi di rumah sudah berkarat, sebaiknya diganti pipa apa?",
+      "ganti pipa galvanis yang karatan pakai pipa apa?",
+      "our old steel pipes are rusty, what should we replace them with?"
     ],
     "vp vu": [
       "pipa vp itu apa?",
@@ -599,6 +607,20 @@
       "what else is hdpe pipe used for besides drinking water?",
       "applications of pvc pipe by sector?"
     ],
+    "sambungan transisi": [
+      "cara menyambung pipa pvc ke pipa besi gimana?",
+      "pipa pralon bisa disambung ke pipa galvanis?",
+      "sambung paralon ke pipa besi lama pakai apa?",
+      "fitting buat nyambung pvc dengan pipa galvanis apa?",
+      "pipa galvanis lama mau diganti sebagian pakai pvc, sambungannya gimana?",
+      "dari pipa besi ke pipa pvc pakai sok drat apa?",
+      "ujung pipa besi yang berulir disambung ke pvc pakai apa?",
+      "sambungan pvc ke keran atau katup pakai apa?",
+      "how do I join pvc to a steel pipe?",
+      "can pvc pipe connect to galvanized pipe?",
+      "which fitting joins pvc to a threaded iron pipe?",
+      "connecting new pvc to an existing galvanised line"
+    ],
     "sambungan hdpe": [
       "sambungan pipa hdpe pakai apa?",
       "cara nyambung pipa hdpe gimana?",
@@ -623,7 +645,11 @@
       "pipa dari kloset ke septic tank ukuran berapa?",
       "what slope should a drain pipe have?",
       "what size pipe for a toilet drain?",
-      "how much fall does a waste pipe need?"
+      "how much fall does a waste pipe need?",
+      "pipa untuk saluran air limbah perumahan pakai apa?",
+      "jaringan pipa limbah kawasan pakai pipa apa?",
+      "pipa sewer untuk komplek perumahan apa?",
+      "which pipe for a housing estate sewer?"
     ],
     "air minum": [
       "pipa pralon aman buat air minum?",
@@ -634,7 +660,12 @@
       "pipa pdam pakai yang aman apa?",
       "is pvc pipe safe for drinking water?",
       "is pralon pipe lead free?",
-      "which pipe is safe for potable water?"
+      "which pipe is safe for potable water?",
+      "ada kandungan timbalnya nggak?",
+      "pipanya bebas timbal?",
+      "is there any lead in it?",
+      "is the pipe lead free?",
+      "does pralon pipe use lead stabiliser?"
     ],
     "sinar matahari": [
       "pipa pvc boleh kena matahari?",

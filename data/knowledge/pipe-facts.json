@@ -232,6 +232,17 @@
       "source": "Snouty Product Knowledge Master §4.10, §18"
     },
     {
+      "topic": "sambungan transisi",
+      "text": "Pipa PVC tidak bisa dilem ke pipa galvanis atau pipa besi; keduanya disambung lewat ulir (drat). Ujung pipa galvanis yang berulir disambung dengan **Faucet Socket** — fitting PVC dengan ulir dalam di satu sisi, sementara sisi lainnya dilem ke pipa PVC. Untuk menyambung ke katup ada **Valve Socket**. Ukuran fittingnya mengikuti ukuran pipa yang disambung.",
+      "textEn": "PVC pipe cannot be glued to galvanised or steel pipe; the two are joined through a thread. A threaded galvanised pipe end takes a **Faucet Socket** — a PVC fitting with an internal thread on one side, while the other side is solvent-cemented to the PVC pipe. To connect to a valve there is the **Valve Socket**. The fitting size follows the size of the pipe being joined.",
+      "source": "Snouty Product Knowledge Master §20.2 (Faucet Socket: sambungan dengan ulir dalam; Valve Socket: menghubungkan pipa dengan valve); katalog aktif",
+      "catalog": {
+        "families": ["FITTING PVC"],
+        "nameIncludes": { "FITTING PVC": "Faucet Socket" },
+        "labels": { "FITTING PVC": "Faucet Socket" }
+      }
+    },
+    {
       "topic": "kelas pvc",
       "source": "Katalog aktif Pralon",
       "catalog": {

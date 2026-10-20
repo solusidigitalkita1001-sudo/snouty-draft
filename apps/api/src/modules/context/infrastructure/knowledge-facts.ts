@@ -19,6 +19,8 @@ const CatalogHookSchema = z
     types: z.boolean().optional(),
     /** Saring nama produk per keluarga: { "HDPE": "gas" }. */
     nameIncludes: z.record(z.string(), z.string().min(1)).optional(),
+    /** Nama tampil per keluarga bila saringannya mempersempit keluarga ({ "FITTING PVC": "Faucet Socket" }). */
+    labels: z.record(z.string(), z.string().min(1)).optional(),
   })
   .strict();
 

@@ -261,12 +261,19 @@ export async function runProductQuestion(
     u.productAspect === 'size_availability' &&
     parseSize(input.message) !== null;
   if (!sizeOfSubject && knowledgeTopics.some((t) => factTopics().has(t))) {
+    // Lanjutan tanpa bahan ("panjang per batangnya?" setelah ukuran HDPE) membicarakan bahan
+    // subjeknya, bukan semua keluarga di fakta (audit campuran 2026-10-20).
+    const subjectFamilies =
+      u.families.length === 0 && input.subject?.kind === 'product'
+        ? input.lexicon.productFamilies(input.subject.entity)
+        : [];
     const answer = await knowledgeAnswer(
       knowledgeTopics,
       input.message,
       catalog,
       locale,
       u.families,
+      subjectFamilies,
     );
     // Perbandingan umum bahan HANYA bila pertanyaannya memang perbandingan ("dasar memilih HDPE
     // dibanding uPVC?"): tes FAQ 2026-10-12 — blok "HDPE lentur dan bisa digulung" membuka jawaban

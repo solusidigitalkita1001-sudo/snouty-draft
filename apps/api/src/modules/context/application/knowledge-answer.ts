@@ -52,9 +52,16 @@ export async function knowledgeAnswer(
   locale: Locale,
   /** Bahan yang disebut pesan (keluarga kanonis kosakata) — subjek yang menentukan fakta. */
   families: readonly string[] = [],
+  /**
+   * Bahan subjek percakapan saat pesan tidak menyebut bahan ("panjang per batangnya?" setelah HDPE):
+   * hanya mempersempit DATA KATALOG. Kalimat pembuka dan pilihan fakta tetap dari pesan — subjek
+   * "HDPE vs PVC" tidak boleh membuka "air panas pakai apa?" dengan "Tidak — PVC …".
+   */
+  subjectFamilies: readonly string[] = [],
 ): Promise<KnowledgeAnswer | null> {
   const en = locale === 'en';
   const named = families.map((f) => f.toLowerCase());
+  const scope = named.length > 0 ? named : subjectFamilies.map((f) => f.toLowerCase());
   // Fakta yang subjeknya bahan lain tidak dipakai bila pesan menyebut bahannya (tes FAQ
   // 2026-10-12: "kegunaan HDPE" dijawab kegunaan uPVC).
   const facts = knowledgeFacts().filter(
@@ -96,14 +103,14 @@ export async function knowledgeAnswer(
     // (pemilik 2026-10-20: "bisa disusun lebih rapi").
     const classTable =
       topic === 'kelas pvc'
-        ? compareClasses(named, locale, await classCatalogRows(own, named, catalog, locale))
+        ? compareClasses(named, locale, await classCatalogRows(own, scope, catalog, locale))
         : null;
     if (classTable !== null) parts.push(classTable);
     else for (const c of concepts) parts.push(en ? c.textEn : c.text);
     for (const f of own) {
       const sentence = en ? f.textEn : f.text;
       if (sentence) parts.push(sentence);
-      const hook = f.catalog && classTable === null ? forNamed(f.catalog, named) : null;
+      const hook = f.catalog && classTable === null ? forNamed(f.catalog, scope) : null;
       if (hook) {
         const lines = await catalogLines(hook, message, catalog, locale).catch(() => []);
         if (lines.length > 0) parts.push(lines.join('\n'));
@@ -291,7 +298,7 @@ async function catalogEntries(
         .map((t) => t.type);
       if (types.length > 0) aspects.types = types.join(', ');
     }
-    entries.push({ family, count: names.length, aspects });
+    entries.push({ family, label: hook.labels?.[family] ?? family, count: names.length, aspects });
   }
   return entries;
 }
@@ -300,6 +307,8 @@ type CatalogAspect = 'sizes' | 'lengths' | 'classes' | 'types';
 
 interface CatalogEntry {
   readonly family: string;
+  /** Nama yang ditampilkan — keluarga katalog, atau label fakta bila saringannya mempersempitnya. */
+  readonly label: string;
   readonly count: number;
   readonly aspects: Partial<Record<CatalogAspect, string>>;
 }
@@ -321,7 +330,7 @@ function catalogBullet(e: CatalogEntry, locale: Locale): string {
         : `${shortLabel(aspect, locale)} ${value}`,
     );
   }
-  return `- **${e.family}** — ${details.join(' · ')}`;
+  return `- **${e.label}** — ${details.join(' · ')}`;
 }
 
 function shortLabel(aspect: CatalogAspect, locale: Locale): string {
@@ -342,7 +351,7 @@ function catalogTable(entries: readonly CatalogEntry[], locale: Locale): string 
   );
   const cell = (text: string) => text.replace(/\|/g, '/');
   return [
-    `| | ${entries.map((e) => `**${e.family}**`).join(' | ')} |`,
+    `| | ${entries.map((e) => `**${e.label}**`).join(' | ')} |`,
     `| --- | ${entries.map(() => '---').join(' | ')} |`,
     ...aspects.map(
       (a) => `| ${labels[a]} | ${entries.map((e) => cell(e.aspects[a] ?? '—')).join(' | ')} |`,

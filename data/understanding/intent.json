@@ -356,7 +356,13 @@
       "elbow pvc 2 inch ada?",
       "tee hdpe 63 mm ada?",
       "socket pvc 1 inch ready?",
-      "do you have a 2 inch pvc elbow?"
+      "do you have a 2 inch pvc elbow?",
+      "panjang satu batangnya berapa?",
+      "per batang panjangnya berapa meter?",
+      "panjang batangnya?",
+      "how long is one pipe length?",
+      "what pressure class is the 90 mm one?",
+      "which PN for 160 mm?"
     ],
     "product_range": [
       "produk pralon apa aja?",
@@ -487,7 +493,13 @@
       "apa itu flange?",
       "apa itu butt fusion?",
       "apa itu pipa conduit?",
-      "what is a stub end?"
+      "what is a stub end?",
+      "ada kandungan timbalnya nggak?",
+      "is there any lead in it?",
+      "is the pipe lead free?",
+      "how do I join pvc to an old iron pipe?",
+      "pralon pakai timbal nggak di pipanya?",
+      "pipa pralon mengandung timbal ga sih?"
     ],
     "advice_request": [
       "lebih bagus pvc atau hdpe buat rumah 2 lantai?",
@@ -835,7 +847,9 @@
       "the info please",
       "the data please",
       "yang sama kayak tadi",
-      "sama seperti tadi"
+      "sama seperti tadi",
+      "and an elbow in that size?",
+      "socketnya ukuran yang sama ada?"
     ],
     "follow_up_choice": [
       "yang mana buat kamar mandi?",

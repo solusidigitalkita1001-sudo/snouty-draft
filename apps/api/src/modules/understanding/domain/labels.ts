@@ -124,6 +124,7 @@ export const KNOWLEDGE_TOPICS = [
   'fungsi vs bahan',
   'jenis pipa baru',
   'sambungan hdpe',
+  'sambungan transisi',
   'pipa pembuangan',
   'air minum',
   'sinar matahari',
