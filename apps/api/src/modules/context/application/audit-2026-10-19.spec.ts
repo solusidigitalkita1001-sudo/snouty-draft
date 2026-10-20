@@ -639,4 +639,35 @@ describe('audit campuran 2026-10-20 — lanjutan produk bersubjek', () => {
     expect(reply).not.toContain('Tee Abu Ts 3/4"');
     expect(reply).not.toContain('Elbow');
   });
+
+  it('"what pressure class for 110 mm?" atas HDPE: semua kelas di 110 mm, bukan PN satu produk 160 mm', async () => {
+    const hdpe = (name: string, size: string) => product({ name, family: 'HDPE', sizes: [size] });
+    const reply = text(
+      await ask(
+        'what pressure class for 110 mm?',
+        { intent: 'product_spec', productAspect: 'pressure_class' },
+        [
+          hdpe('Pipa HDPE PE 100 PN-8 160 mm x 9 Meter', '160 mm'),
+          hdpe('Pipa HDPE PE 100 PN-10 110 mm x 6 Meter', '110 mm'),
+          hdpe('Pipa HDPE PE 100 PN-16 110 mm x 6 Meter', '110 mm'),
+        ],
+        { subject: { ...elbowSubject, entity: 'hdpe' }, locale: 'en' },
+      ),
+    );
+    expect(reply).toContain('HDPE 110 mm in the Pralon catalogue comes in classes PN-10, PN-16');
+    expect(reply).not.toContain('160 mm');
+  });
+
+  it('"kalau yang 3 inch ada?" setelah ukuran PVC AW: ada, PVC AW 3" dari katalog', async () => {
+    const reply = text(
+      await ask(
+        'kalau yang 3 inch ada?',
+        { intent: 'product_spec', productAspect: 'size_availability' },
+        ITEMS,
+        { subject: { ...elbowSubject, entity: 'pvc aw' } },
+      ),
+    );
+    expect(reply).toMatch(/^Ada. PVC AW 3" di katalog Pralon/);
+    expect(reply).toContain('Pipa (TS End) AW 3" x 4 Meter');
+  });
 });

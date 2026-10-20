@@ -133,6 +133,26 @@ describe('knowledgeAnswer', () => {
     expect(a!.text).not.toContain('PVC AW');
   });
 
+  it('panjang yang banyak (batang dan gulungan HDPE) ditulis rentang, bukan 100 angka', async () => {
+    const many: KnowledgeCatalog = {
+      familyCounts: async () => [{ family: 'HDPE', count: 12 }],
+      productNamesInFamily: async () =>
+        [6, 9, 12, 50, 100, 150, 200, 250, 300, 350, 400].map(
+          (m) => `Pipa HDPE PE 100 PN-10 63 mm x ${m} Meter`,
+        ),
+    };
+    const a = await knowledgeAnswer(
+      ['panjang batang'],
+      'panjang per batangnya?',
+      many,
+      'id',
+      [],
+      ['hdpe'],
+    );
+    expect(a!.text).toContain('panjang 6–400 m');
+    expect(a!.text).not.toContain('150 m');
+  });
+
   it('topik tanpa fakta maupun konsep → null', async () => {
     expect(await knowledgeAnswer([], 'halo', catalog, 'id')).toBeNull();
   });

@@ -29,6 +29,7 @@ import type { MessageUnderstanding } from '../../understanding/application/messa
 import type { EntityLexicon } from '../../understanding/domain/vocabulary.js';
 import { isConceptual } from '../../understanding/domain/labels.js';
 import { parseSize } from '../domain/size-parser.js';
+import { designationsOf } from '../../product-catalog/domain/product-identity.js';
 import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from './catalog-scope.js';
 import { knowledgeAnswer, mentionsPressure, pressureRange } from './knowledge-answer.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
@@ -491,9 +492,10 @@ export async function runProductQuestion(
   // dan tidak pernah dari pertanyaan konsep ("apa bedanya fitting sama HDPE?"), apa pun kata model.
   const conceptual = isConceptual(u.intent?.label);
   const askedAspect = u.productAspect ?? parsed?.aspect ?? null;
-  // Ketersediaan ukuran butuh ukurannya (parser nilai terstruktur); tanpa angka → daftar ukuran.
-  const size =
-    askedAspect === 'size_availability' ? (parsed?.size ?? parseSize(input.message)) : null;
+  // Ukuran di pesan berlaku untuk aspek apa pun (parser nilai terstruktur): "what pressure class for
+  // 110 mm?" dulu kehilangan 110 mm dan dijawab PN satu produk 160 mm (audit campuran 2026-10-20).
+  // Ketersediaan ukuran tanpa angka → daftar ukuran.
+  const size = parsed?.size ?? parseSize(input.message);
   // Pertanyaan RAGAM ("HDPE jenisnya apa aja?") tidak pernah menjadi pertanyaan spesifikasi:
   // "jenis" sempat terbaca aspek ukuran dan dijawab ukuran satu produk (live 2026-10-09).
   const asksRange = u.intent?.label === 'product_range';
@@ -503,6 +505,11 @@ export async function runProductQuestion(
       : askedAspect === 'size_availability' && size === null
         ? 'sizes'
         : askedAspect;
+
+  // Keluarga yang ditanya: dari pesan, atau dari subjek produk untuk lanjutan tanpa bahan ("kalau
+  // yang 3 inch ada?" setelah ukuran PVC AW) — satu keluarga saja, selain itu jalur produk.
+  const askedFamilies = u.families.length > 0 ? u.families : subjectFamilies;
+  const oneFamily = askedFamilies.length === 1 ? askedFamilies[0]! : null;
 
   // "pipa pvc aw ada ukuran apa saja?" — ukuran seluruh keluarga dari katalog, bukan ukuran satu
   // produk teratas (QA smoke 2026-10-14: dijawab "…AW - Lon 4\" x 4 Meter: 4\"").
@@ -523,13 +530,8 @@ export async function runProductQuestion(
   // "pvc d 4 inch ada?" / "pipa pvc aw 7 inch ada?": ketersediaan ukuran dalam SATU keluarga katalog —
   // beberapa produk berukuran itu, atau "tidak ada" beserta ukuran yang tersedia. Dulu satu produk
   // sembarang ("Pipa ... Lon 4\" tidak tersedia dalam ukuran 7\"", simulasi 2026-10-19).
-  if (
-    aspect === 'size_availability' &&
-    size !== null &&
-    continued === null &&
-    u.families.length === 1
-  ) {
-    const family = await catalogFamily(catalog, u.families[0]!);
+  if (aspect === 'size_availability' && size !== null && continued === null && oneFamily !== null) {
+    const family = await catalogFamily(catalog, oneFamily);
     const sized =
       family === null ? null : await familySizeAvailability(catalog, family, size, locale);
     if (sized !== null) {
@@ -537,6 +539,22 @@ export async function runProductQuestion(
         { type: 'message.start', messageId: input.messageId },
         { type: 'token', text: sized.text },
         ...sized.cards.map((card) => ({ type: 'card', card }) as AssistantStreamEvent),
+        endEvent(input.messageId),
+      ];
+    }
+  }
+
+  // "what pressure class for 110 mm?" atas HDPE: SEMUA kelas yang tertulis di produk keluarga itu
+  // berukuran 110 mm — bukan kelas satu produk yang kebetulan teratas.
+  if (aspect === 'pressure_class' && size !== null && continued === null && oneFamily !== null) {
+    const family = await catalogFamily(catalog, oneFamily);
+    const classes =
+      family === null ? null : await familyClassesAtSize(catalog, family, size, locale);
+    if (classes !== null) {
+      return [
+        { type: 'message.start', messageId: input.messageId },
+        { type: 'token', text: classes.text },
+        ...classes.cards.map((card) => ({ type: 'card', card }) as AssistantStreamEvent),
         endEvent(input.messageId),
       ];
     }
@@ -939,6 +957,52 @@ async function familySizeAvailability(
   return {
     text: range === null ? absent : `${absent}\n\n${range.text}`,
     cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }],
+  };
+}
+
+/** Batas halaman yang dibaca untuk satu ukuran dalam satu keluarga (HDPE 110 mm ±100 produk). */
+const CLASS_PAGES = 6;
+
+/**
+ * Kelas tekanan yang tertulis di nama produk satu keluarga pada satu ukuran ("PN-6, PN-8, …"); tidak
+ * ada produk berukuran itu → "tidak ada" beserta ukuran yang tersedia. `null` bila ukurannya tidak
+ * terbaca atau produknya tidak menulis kelas (pemanggil memakai jalur spesifikasi).
+ */
+async function familyClassesAtSize(
+  catalog: ProductCatalog,
+  family: string,
+  rawSize: string,
+  locale: Locale,
+): Promise<Outcome | null> {
+  const size = PipeSize.parse(rawSize);
+  if (size === null) return null;
+  const en = locale === 'en';
+  const found: Product[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < CLASS_PAGES; page++) {
+    const result = await catalog.listProducts({
+      family,
+      status: 'active',
+      size,
+      limit: 50,
+      ...(cursor ? { cursor } : {}),
+    });
+    found.push(...result.items.filter(isAnswerable));
+    if (result.nextCursor === null) break;
+    cursor = result.nextCursor;
+  }
+  if (found.length === 0) return familySizeAvailability(catalog, family, rawSize, locale);
+  const classes = designationsOf(found.map((p) => p.name));
+  if (classes.length === 0) return null;
+  const examples = classes
+    .map((c) => found.find((p) => p.name.includes(c)))
+    .filter((p): p is Product => p !== undefined)
+    .slice(0, SIZE_EXAMPLES);
+  return {
+    text: en
+      ? `${family} ${size} in the Pralon catalogue comes in classes ${classes.join(', ')}. The class to pick depends on the line's working pressure plus room for pressure surges.`
+      : `${family} ${size} di katalog Pralon tersedia kelas ${classes.join(', ')}. Kelas yang dipilih mengikuti tekanan kerja jalurnya ditambah ruang untuk lonjakan tekanan.`,
+    cards: examples.length > 0 ? [{ kind: 'product', products: examples.map(toCard) }] : [],
   };
 }
 

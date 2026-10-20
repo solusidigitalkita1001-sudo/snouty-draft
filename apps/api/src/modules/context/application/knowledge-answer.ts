@@ -35,6 +35,9 @@ export interface KnowledgeAnswer {
 const num = (n: number, locale: Locale) =>
   n.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
 
+/** Panjang yang masih ditulis satu per satu; lebih dari ini ditulis rentang. */
+const MAX_LISTED_LENGTHS = 8;
+
 const LENGTH = /x\s*(\d+(?:[.,]\d+)?)\s*Meter/i;
 /** Panjang jalur di pesan ("27 meter", "60 m") — parser nilai, bukan pola pertanyaan. */
 const ROUTE = /(\d+(?:[.,]\d+)?)\s*(?:m|meter|metres?|meters?)\b/gi;
@@ -285,7 +288,12 @@ async function catalogEntries(
     }
     const lengths = lengthsOf(names);
     if (hook.lengths && lengths.length > 0) {
-      aspects.lengths = lengths.map((l) => `${num(l, locale)} m`).join(', ');
+      // Lebih dari beberapa panjang (HDPE: batang dan gulungan, 100+ angka) dibaca sebagai rentang;
+      // daftar lengkapnya bukan jawaban (audit campuran 2026-10-20).
+      aspects.lengths =
+        lengths.length > MAX_LISTED_LENGTHS
+          ? `${num(lengths[0]!, locale)}–${num(lengths[lengths.length - 1]!, locale)} m`
+          : lengths.map((l) => `${num(l, locale)} m`).join(', ');
     }
     if (hook.pressure) {
       // Hanya kelas yang tertulis di nama produk keluarga ini, satu penulisan per kelas.
