@@ -222,6 +222,7 @@
     "pvc": "PVC AW",
     "hdpe": "HDPE"
   },
+  "siblingAliases": [{ "pvc aw": ["aw"], "pvc d": ["d"] }],
   "fittingFamilies": ["tee", "elbow", "reducer", "socket"],
   "outOfScopeFluids": [
     "peternakan",

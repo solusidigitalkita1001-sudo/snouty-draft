@@ -34,8 +34,12 @@ const LeadSchema = z
 const FactSchema = z
   .object({
     topic: z.enum(KNOWLEDGE_TOPICS),
-    text: z.string().min(1),
-    textEn: z.string().min(1),
+    /**
+     * Kosong bila fakta hanya membawa data katalog: kalimat pengantar seperti "ukurannya tercatat di
+     * katalog" adalah pengisi, bukan jawaban (keluhan pemilik 2026-10-20 pada "beda AW sama D").
+     */
+    text: z.string().default(''),
+    textEn: z.string().default(''),
     source: z.string().min(1),
     catalog: CatalogHookSchema.optional(),
     /**
@@ -51,7 +55,11 @@ const FactSchema = z
      */
     gap: z.string().min(1).optional(),
   })
-  .strict();
+  .strict()
+  .refine((f) => (f.text === '') === (f.textEn === '') && (f.text !== '' || f.catalog), {
+    message:
+      'fakta tanpa kalimat harus membawa data katalog, dan kedua bahasa sama-sama terisi atau kosong',
+  });
 
 const FactsFileSchema = z.object({ $comment: z.string().optional(), facts: z.array(FactSchema) });
 

@@ -252,9 +252,9 @@ export const CONCEPTS: readonly ConceptKnowledge[] = [
   {
     topic: 'kelas pvc',
     families: ['pvc aw', 'pvc d', 'pvc c'],
-    text: 'AW, D, dan C adalah kelas pipa PVC, bukan bahan yang berbeda: AW untuk jalur air bersih bertekanan (dinding paling tebal), D untuk pembuangan dan ventilasi yang mengalir karena gravitasi (dinding lebih tipis), C tanpa tekanan kerja (pelindung dan saluran tak bertekanan). Jadi "pipa AW" adalah pipa PVC kelas bertekanan. Di luar kelas PRALON, ada pipa uPVC standar JIS (VP bertekanan, VU tak bertekanan) dan SNI (seri S untuk air minum, kelas A/B untuk air buangan); PIPPO adalah merek kedua Pralon dengan kelas AW dan D. Tekanan kerja tiap kelas mengikuti spesifikasi produk Pralon.',
+    text: 'AW, D, dan C adalah kelas pipa PVC Pralon, bahannya sama; bedanya di tebal dinding dan tekanan yang ditahan. AW untuk air bersih bertekanan dan dindingnya paling tebal. D untuk pembuangan dan ventilasi yang mengalir karena gravitasi, dindingnya lebih tipis, jadi tidak dipakai di jalur bertekanan. C tidak punya tekanan kerja, dipakai untuk pelindung dan saluran tak bertekanan. Angka tekanan kerja tiap kelas mengikuti spesifikasi produk Pralon.',
     textEn:
-      'AW, D, and C are classes of PVC pipe, not different materials: AW for pressurized clean-water lines (thickest wall), D for drainage and venting that flow by gravity (thinner wall), C with no working pressure (sleeves and non-pressure runs). So an "AW pipe" is PVC pipe of the pressure class. Beyond the PRALON classes there is JIS-standard uPVC pipe (VP pressure, VU non-pressure) and SNI pipe (S series for drinking water, classes A/B for drainage); PIPPO is Pralon\'s second brand with AW and D classes. Working pressure per class follows the Pralon product specification.',
+      'AW, D, and C are classes of Pralon PVC pipe made of the same material; they differ in wall thickness and the pressure they hold. AW is for pressurised clean water and has the thickest wall. D is for drainage and venting that flow by gravity; its wall is thinner, so it is not used on pressure lines. C has no working pressure and is used for sleeves and non-pressure runs. Working pressure per class follows the Pralon product specification.',
   },
   {
     topic: 'pipa tanam',
@@ -275,6 +275,106 @@ export const CONCEPTS: readonly ConceptKnowledge[] = [
       'Rigid pipe is easy to run straight and neat inside a building, but every bend is a joint. Flexible pipe follows the route with fewer joints — useful outside buildings and underground.',
   },
 ];
+
+/** Satu kelas pipa PVC Pralon: aspek yang membedakannya dari kelas lain, satu salinan per bahasa. */
+interface PvcClassTexts {
+  readonly wall: string;
+  readonly pressure: string;
+  readonly use: string;
+  readonly houseExample: string;
+}
+
+interface PvcClassKnowledge extends PvcClassTexts {
+  /** Keluarga kanonis kosakata ("pvc aw") — label katalognya huruf besar ("PVC AW"). */
+  readonly family: string;
+  readonly en: PvcClassTexts;
+}
+
+/**
+ * Kelas PVC Pralon sebagai kolom perbandingan (pemilik 2026-10-20: "beda AW sama D" harus tabel,
+ * bukan paragraf). Kualitatif saja seperti bahan di atas — angka tekanan kerja dan tebal dinding
+ * menunggu spesifikasi resmi (OQ-45), dan harga tidak pernah dibandingkan (OQ-03).
+ */
+const PVC_CLASSES: readonly PvcClassKnowledge[] = [
+  {
+    family: 'pvc aw',
+    wall: 'lebih tebal',
+    pressure: 'menahan tekanan air dari pompa atau PDAM',
+    use: 'air bersih bertekanan',
+    houseExample: 'pompa atau PDAM → toren → keran, shower, dan wastafel di tiap lantai',
+    en: {
+      wall: 'thicker',
+      pressure: 'holds water pressure from a pump or the mains',
+      use: 'pressurised clean water',
+      houseExample: 'pump or mains → roof tank → taps, showers, and basins on every floor',
+    },
+  },
+  {
+    family: 'pvc d',
+    wall: 'lebih tipis dari AW pada ukuran yang sama',
+    pressure: 'tidak untuk jalur bertekanan; air mengalir karena gravitasi',
+    use: 'pembuangan dan ventilasi',
+    houseExample:
+      'kloset, wastafel, dan floor drain → pipa tegak buangan → septic tank atau saluran kota',
+    en: {
+      wall: 'thinner than AW at the same size',
+      pressure: 'not for pressure lines; water flows by gravity',
+      use: 'drainage and venting',
+      houseExample: 'toilets, basins, and floor drains → soil stack → septic tank or public sewer',
+    },
+  },
+  {
+    family: 'pvc c',
+    wall: 'paling tipis',
+    pressure: 'tidak punya tekanan kerja',
+    use: 'pelindung dan saluran tak bertekanan',
+    houseExample: 'selongsong pipa atau kabel yang menembus dinding dan lantai',
+    en: {
+      wall: 'thinnest',
+      pressure: 'no working pressure',
+      use: 'sleeves and non-pressure runs',
+      houseExample: 'sleeves for pipes or cables passing through walls and floors',
+    },
+  },
+];
+
+/**
+ * Tabel perbandingan kelas PVC bila pesan menyebut dua kelas atau lebih ("AW sama D"); `null` bila
+ * kurang dari dua — satu kelas dijawab konsep kelasnya saja.
+ */
+export function compareClasses(
+  families: readonly string[],
+  locale: Locale = DEFAULT_LOCALE,
+): string | null {
+  const named = families.map((f) => f.toLowerCase());
+  const classes = PVC_CLASSES.filter((c) => named.includes(c.family));
+  if (classes.length < 2) return null;
+  const en = locale === 'en';
+  const texts = classes.map((c) => (en ? c.en : c));
+  const labels = classes.map((c) => c.family.toUpperCase());
+  const row = (label: string, key: keyof PvcClassTexts) =>
+    `| ${label} | ${texts.map((t) => cell(t[key])).join(' | ')} |`;
+  const table = [
+    `| ${en ? 'Aspect' : 'Aspek'} | ${labels.map((l) => `**${l}**`).join(' | ')} |`,
+    `| --- | ${labels.map(() => '---').join(' | ')} |`,
+    row(en ? 'Wall' : 'Dinding', 'wall'),
+    row(en ? 'Pressure' : 'Tekanan', 'pressure'),
+    row(en ? 'Used for' : 'Dipakai untuk', 'use'),
+    row(en ? 'In a house' : 'Di rumah', 'houseExample'),
+  ].join('\n');
+  const joined = labels.join(en ? ' and ' : ' dan ');
+  return en
+    ? [
+        `${joined} are the same uPVC material; what differs is wall thickness and the pressure the pipe holds.`,
+        table,
+        'Do not use a gravity-class pipe on a pressure line just because the flow looks small. The size of each run follows the number of water points, floors, and the water source; tell me about the building if you want it worked out. Working pressure per class follows the Pralon product specification.',
+      ].join('\n\n')
+    : [
+        `${joined} sama-sama uPVC; bedanya di tebal dinding dan tekanan yang ditahan pipanya.`,
+        table,
+        'Pipa kelas gravitasi jangan dipakai di jalur bertekanan walau alirannya kelihatan kecil. Ukuran tiap jalur mengikuti jumlah titik air, jumlah lantai, dan sumber airnya; ceritakan bangunannya kalau mau saya hitungkan. Angka tekanan kerja tiap kelas mengikuti spesifikasi produk Pralon.',
+      ].join('\n\n');
+}
 
 /**
  * Bahan yang dimaksud sekumpulan keluarga produk kanonis (dari kosakata `understanding`):

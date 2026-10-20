@@ -128,9 +128,10 @@ describe('pipe knowledge', () => {
       '**SDR** — perbandingan diameter luar terhadap tebal dinding',
     );
     expect(explain(q('upvc itu apa?', ['upvc']))).toContain('uPVC adalah unplasticized PVC');
-    // Kelas PVC ikut dari keluarga produknya ("pvc aw"), tanpa topik eksplisit.
+    // Kelas PVC ikut dari keluarga produknya ("pvc aw"), tanpa topik eksplisit. PIPPO tidak lagi
+    // ditempel di konsep kelas (pemilik 2026-10-20: jawaban AW–D melebar); ia dijawab fakta topik "pippo".
     expect(explain(q('bedanya pralon aw sama pippo aw?', [], comparison))).toContain(
-      'PIPPO adalah merek kedua Pralon',
+      'AW, D, dan C adalah kelas pipa PVC Pralon',
     );
     expect(explain(q('how do I join pvc pipe with glue?', ['sambungan lem']), 'en')).toContain(
       'with solvent cement',

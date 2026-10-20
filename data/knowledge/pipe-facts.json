@@ -233,8 +233,6 @@
     },
     {
       "topic": "kelas pvc",
-      "text": "Panjang batang dan ukuran tiap kelas tercatat di katalog Pralon yang aktif.",
-      "textEn": "Lengths and sizes for each class are recorded in the active Pralon catalogue.",
       "source": "Katalog aktif Pralon",
       "catalog": {
         "families": ["PVC AW", "PVC D", "PVC C"],

@@ -10,7 +10,7 @@ import { designationsOf } from '../../product-catalog/domain/product-identity.js
 import { productSizeOf, productTypesOf } from '../../product-catalog/domain/product-types.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
 import { knowledgeFacts, type CatalogHook } from '../infrastructure/knowledge-facts.js';
-import { conceptsFor } from './pipe-knowledge.js';
+import { compareClasses, conceptsFor } from './pipe-knowledge.js';
 
 export interface KnowledgeCatalog {
   familyCounts(): Promise<readonly FamilyCount[]>;
@@ -87,9 +87,13 @@ export async function knowledgeAnswer(
       if (lead) leads.push(en ? lead.textEn : lead.text);
       if (f.gap) gaps.push({ topic, gap: f.gap });
     }
-    for (const c of concepts) parts.push(en ? c.textEn : c.text);
+    // Dua kelas PVC disebut ("AW sama D") → tabel perbandingan kelas menggantikan paragraf konsepnya.
+    const classTable = topic === 'kelas pvc' ? compareClasses(named, locale) : null;
+    if (classTable !== null) parts.push(classTable);
+    else for (const c of concepts) parts.push(en ? c.textEn : c.text);
     for (const f of own) {
-      parts.push(en ? f.textEn : f.text);
+      const sentence = en ? f.textEn : f.text;
+      if (sentence) parts.push(sentence);
       const hook = f.catalog ? forNamed(f.catalog, named) : null;
       if (hook) {
         const lines = await catalogLines(hook, message, catalog, locale).catch(() => []);

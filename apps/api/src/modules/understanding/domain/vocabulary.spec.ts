@@ -28,6 +28,25 @@ describe('EntityLexicon', () => {
     expect(lexicon.productFamilies('pvc, pvc, dan pvc lagi')).toEqual(['pvc']);
   });
 
+  it('alias saudara: "D" adalah PVC D hanya bila kelas lain segrup disebut (pemilik 2026-10-20)', () => {
+    const withSiblings = new EntityLexicon(
+      VocabularySchema.parse({
+        ownBrand: ['pralon'],
+        productFamilies: { 'pvc aw': ['pvc aw', 'aw'], 'pvc d': ['pvc d', 'pipa d'] },
+        siblingAliases: [{ 'pvc aw': ['aw'], 'pvc d': ['d'] }],
+        competitorBrands: [],
+        competitorReferences: [],
+        requirementEntities: [],
+      }),
+    );
+    expect(withSiblings.productFamilies('perbedaan pipa AW sama D apa ?')).toEqual([
+      'pvc aw',
+      'pvc d',
+    ]);
+    expect(withSiblings.productFamilies('d itu apa?')).toEqual([]);
+    expect(withSiblings.productFamilies('pipa d sama aw')).toEqual(['pvc d', 'pvc aw']);
+  });
+
   it('batas kata: "awal" bukan AW, "hdpex" bukan HDPE, "besi" di "besinya" tetap dikenali hanya bila berdiri sendiri', () => {
     expect(lexicon.productFamilies('awal mula pralon')).toEqual([]);
     expect(lexicon.productFamilies('hdpex')).toEqual([]);

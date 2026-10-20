@@ -1233,6 +1233,17 @@
       "text": "rumah 2 lantai 3 kamar mandi, air dari sumur pakai pompa",
       "useCase": "residential_clean_water",
       "source": "simulasi 2026-10-19"
+    },
+    {
+      "text": "what sizes does the pralon AW pipe come in?",
+      "intent": "product_spec",
+      "source": "audit live 2026-10-20 (P25-08)",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": "sizes",
+      "topics": [],
+      "useCase": null
     }
   ]
 }

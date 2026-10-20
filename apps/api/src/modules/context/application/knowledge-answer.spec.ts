@@ -75,6 +75,33 @@ describe('knowledgeAnswer', () => {
     expect(a!.text).toContain('Pipa HDPE Gas');
   });
 
+  it('beda AW sama D: tabel kelas lalu katalog kedua kelas, tanpa kalimat pengisi (pemilik 2026-10-20)', async () => {
+    const a = await knowledgeAnswer(
+      ['kelas pvc'],
+      'perbedaan pipa AW sama D apa ?',
+      catalog,
+      'id',
+      ['pvc aw', 'pvc d'],
+    );
+    expect(a!.text).toMatch(/^PVC AW dan PVC D sama-sama uPVC; bedanya di tebal dinding/);
+    expect(a!.text).toContain('| Aspek | **PVC AW** | **PVC D** |');
+    expect(a!.text).toContain(
+      '| Dipakai untuk | air bersih bertekanan | pembuangan dan ventilasi |',
+    );
+    expect(a!.text).not.toMatch(/mahal|murah|harga/i);
+    // Satu kelas saja tetap paragraf konsep.
+    const one = await knowledgeAnswer(['kelas pvc'], 'pipa aw itu apa?', catalog, 'id', ['pvc aw']);
+    expect(one!.text).toMatch(/^AW, D, dan C adalah kelas pipa PVC Pralon/);
+    const en = await knowledgeAnswer(['kelas pvc'], 'difference between AW and D?', catalog, 'en', [
+      'pvc aw',
+      'pvc d',
+    ]);
+    expect(en!.text).toContain('| Aspect | **PVC AW** | **PVC D** |');
+    expect(a!.text).toContain('- **PVC AW** — 2 produk');
+    expect(a!.text).toContain('- **PVC D** — 1 produk');
+    expect(a!.text).not.toMatch(/JIS|PIPPO|tercatat di katalog/);
+  });
+
   it('topik tanpa fakta maupun konsep → null', async () => {
     expect(await knowledgeAnswer([], 'halo', catalog, 'id')).toBeNull();
   });

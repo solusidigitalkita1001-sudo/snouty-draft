@@ -23,6 +23,14 @@ export const VocabularySchema = z.object({
    * "Pipa (Bell End) Kelas B 355 mm").
    */
   representativeFamilies: z.record(z.string().trim().min(1), z.string().trim().min(1)).default({}),
+  /**
+   * Alias pendek yang baru berarti keluarga bila keluarga lain SEGRUP sudah disebut: "d" pada
+   * "beda pipa AW sama D" adalah PVC D, tetapi "d" sendirian bukan nama produk (keluhan pemilik
+   * 2026-10-20: perbandingan AW–D hanya menampilkan AW). Satu objek = satu grup, keluarga → alias.
+   */
+  siblingAliases: z
+    .array(z.record(z.string().trim().min(1), z.array(z.string().trim().min(1)).min(1)))
+    .default([]),
   /** Keluarga yang merupakan JENIS FITTING (tee, elbow): digabung dengan bahannya saat mencari katalog. */
   fittingFamilies: z.array(z.string().trim().min(1)).default([]),
   /**
@@ -70,6 +78,7 @@ export class EntityLexicon {
   private readonly fittings: ReadonlySet<string>;
   private readonly aliases: ReadonlyMap<string, readonly string[]>;
   private readonly representatives: ReadonlyMap<string, string>;
+  private readonly siblings: readonly (readonly Alias[])[];
 
   constructor(vocabulary: Vocabulary) {
     this.families = Object.entries(vocabulary.productFamilies)
@@ -79,6 +88,11 @@ export class EntityLexicon {
         canonical,
         pattern: new RegExp(bounded(alias), 'i'),
       }));
+    this.siblings = vocabulary.siblingAliases.map((group) =>
+      Object.entries(group).flatMap(([canonical, aliases]) =>
+        aliases.map((alias) => ({ canonical, pattern: new RegExp(bounded(alias), 'i') })),
+      ),
+    );
     this.knowledgeOnly = new Set(vocabulary.knowledgeOnlyFamilies.map((f) => f.toLowerCase()));
     this.fittings = new Set(vocabulary.fittingFamilies.map((f) => f.toLowerCase()));
     this.representatives = new Map(
@@ -107,6 +121,14 @@ export class EntityLexicon {
       found.push({ canonical, at: match.index });
       // Alias yang sudah dipakai dihapus supaya "pvc" di dalam "pvc aw" tidak dihitung dua kali.
       remaining = remaining.replace(pattern, (m) => ' '.repeat(m.length));
+    }
+    for (const group of this.siblings) {
+      if (!group.some((a) => found.some((f) => f.canonical === a.canonical))) continue;
+      for (const { canonical, pattern } of group) {
+        if (found.some((f) => f.canonical === canonical)) continue;
+        const match = pattern.exec(remaining);
+        if (match) found.push({ canonical, at: match.index });
+      }
     }
     return [...new Set(found.sort((a, b) => a.at - b.at).map((f) => f.canonical))];
   }

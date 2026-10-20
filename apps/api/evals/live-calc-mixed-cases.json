@@ -1,0 +1,87 @@
+{
+  "$comment": "Audit live campuran — perhitungan (P25-08, pemilik 2026-10-20). Melengkapi live-calc-cases.json: renovasi ganti sebagian, SPAM, jaringan air limbah, dan kasus berbahasa Inggris (balasan dan judul harus Inggris). Dijalankan scripts/live-calc-eval.mjs; kartu dijawab 'Belum tahu' kecuali `answers`. Angka diperiksa tangan setelah dijalankan.",
+  "cases": [
+    {
+      "id": "CM-01",
+      "category": "renovasi — ganti sebagian",
+      "messages": [
+        "mau ganti sebagian pipa air bersih di rumah 2 lantai, 3 kamar mandi, 2 wastafel, 1 dapur, toren atap. yang diganti sepanjang 12 meter, pipa lama pvc 3/4 inch"
+      ],
+      "expect": "Ganti sebagian: material hanya untuk 12 m yang diganti (+10 %), ukuran dicek terhadap beban rumah.",
+      "checks": [
+        { "path": "kind", "equals": "building" },
+        { "path": "headline", "exists": true }
+      ]
+    },
+    {
+      "id": "CM-02",
+      "category": "SPAM desa",
+      "messages": [
+        "jaringan SPAM desa 200 sambungan rumah, sumber mata air, pipa transmisi 2 km, beda tinggi 40 meter turun ke desa"
+      ],
+      "expect": "Debit dari 200 SR, pipa transmisi 2 km gravitasi 40 m; HDPE/PVC AW dari katalog.",
+      "checks": [{ "path": "headline", "exists": true }]
+    },
+    {
+      "id": "CM-03",
+      "category": "air limbah kawasan",
+      "messages": ["jaringan pipa air limbah perumahan 100 rumah, pipa utama 600 meter, gravitasi"],
+      "expect": "Debit air limbah 100 rumah, pipa gravitasi dengan kemiringan; tidak dipakai pipa bertekanan.",
+      "checks": [{ "path": "headline", "exists": true }]
+    },
+    {
+      "id": "CM-04",
+      "category": "renovasi perluasan — Inggris",
+      "language": "en",
+      "messages": [
+        "my 2-storey house has 3 bathrooms, 2 basins, 1 kitchen and a rooftop tank. I want to add 2 water points upstairs, the old main pipe is 3/4 inch"
+      ],
+      "expect": "Sama dengan C-14 dalam bahasa Inggris.",
+      "checks": [
+        { "path": "headline", "matches": "2 new" },
+        { "path": "headline", "none": "titik air|rumah" }
+      ]
+    },
+    {
+      "id": "CM-05",
+      "category": "air hujan — Inggris",
+      "language": "en",
+      "messages": ["rainwater downpipe for a 100 m2 roof, rainfall intensity 120 mm/h"],
+      "expect": "0,6 × 120 × 100 / 3,6e6 = 2 l/s; bahasa Inggris.",
+      "checks": [
+        { "path": "headline", "exists": true },
+        { "path": "headline", "none": "atap|talang" }
+      ]
+    },
+    {
+      "id": "CM-06",
+      "category": "sumur — Inggris",
+      "language": "en",
+      "messages": ["borehole 30 m deep pumping to the rooftop tank of a 2-storey house, 10 m away"],
+      "expect": "Tinggi toren 2 × 3,5 + 1 = 8 m; statis 38 m; pengisian 0,25 l/s.",
+      "checks": [
+        { "path": "headline", "exists": true },
+        { "path": "headline", "none": "sumur|toren" }
+      ]
+    },
+    {
+      "id": "CM-07",
+      "category": "rumah — dari Indonesia ke Inggris",
+      "messages": [
+        "rumah 1 lantai, 2 kamar mandi, 1 wastafel, 1 dapur, air dari PDAM",
+        "please calculate the drainage pipes too"
+      ],
+      "expect": "Air bersih + pembuangan; giliran kedua bahasa Inggris, hasil Inggris.",
+      "checks": [{ "path": "headline", "exists": true }]
+    },
+    {
+      "id": "CM-08",
+      "category": "renovasi tanpa jenis",
+      "messages": [
+        "mau renovasi pipa air rumah 2 lantai, 2 kamar mandi, 1 wastafel, 1 dapur, toren atap"
+      ],
+      "expect": "Jenis renovasi tidak ditebak: ditanya; 'Belum tahu' → tidak dikarang (VALIDATION_FAILED atau hitung sebagai baru dengan catatan).",
+      "checks": []
+    }
+  ]
+}

@@ -1,0 +1,246 @@
+{
+  "$comment": "Audit live campuran (P25-08, pemilik 2026-10-20: 'Audit live campuran'). Percakapan multi-giliran berpindah bahasa Indonesia/Inggris, lanjutan bersubjek, dan pertanyaan seputar renovasi/SPAM/sewerage. Format sama dengan live-piping-cases.json (scripts/live-eval.mjs). `lang` per giliran = bahasa balasan yang benar: diperiksa lewat pola none bahasa lawan.",
+  "cases": [
+    {
+      "id": "MX-01",
+      "category": "ukuran per keluarga — Inggris",
+      "turns": [
+        {
+          "q": "what sizes does the pralon AW pipe come in?",
+          "expect": "Daftar ukuran PVC AW (1/2\" sampai 12\") dalam bahasa Inggris, bukan conduit.",
+          "checks": { "all": ["AW", "1/2"], "none": ["conduit", "\\bukuran\\b"] }
+        },
+        {
+          "q": "kalau yang 3 inch ada?",
+          "expect": "Ya, PVC AW 3\" ada (bahasa Indonesia).",
+          "checks": {
+            "all": ["3\""],
+            "any": [["\\bada\\b", "tersedia"]],
+            "none": ["\\bavailable\\b"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "MX-02",
+      "category": "ukuran per keluarga — Inggris HDPE",
+      "turns": [
+        {
+          "q": "which sizes are available for pralon hdpe pipe?",
+          "expect": "Ukuran HDPE dalam mm dari katalog, bahasa Inggris.",
+          "checks": { "all": ["HDPE", "mm"], "none": ["conduit", "\\bukuran\\b"] }
+        },
+        {
+          "q": "what pressure class for 110 mm?",
+          "expect": "PN tersedia untuk HDPE 110 mm.",
+          "checks": { "all": ["110", "PN"], "none": ["\\btekanan\\b"] }
+        }
+      ]
+    },
+    {
+      "id": "MX-03",
+      "category": "pindah bahasa di tengah",
+      "turns": [
+        {
+          "q": "pipa pvc d itu buat apa?",
+          "expect": "PVC D untuk pembuangan / non-tekanan.",
+          "checks": {
+            "any": [["pembuangan", "air kotor", "non.?tekanan", "drainase"]],
+            "none": ["\\bthe\\b"]
+          }
+        },
+        {
+          "q": "can it be used for clean water under pressure?",
+          "expect": "Tidak dianjurkan untuk air bertekanan, pakai AW; bahasa Inggris.",
+          "checks": { "any": [["AW"], ["not", "no\\b"]], "none": ["\\bpipa\\b"] }
+        },
+        {
+          "q": "ok makasih",
+          "expect": "Balasan sosial singkat.",
+          "checks": { "none": ["\\bthe\\b"] }
+        }
+      ]
+    },
+    {
+      "id": "MX-04",
+      "category": "fitting — Inggris",
+      "turns": [
+        {
+          "q": "do you have a 2 inch pvc elbow?",
+          "expect": "Elbow PVC 2\" dari katalog, bahasa Inggris.",
+          "checks": { "all": ["elbow", "2\""], "none": ["\\bukuran\\b"] }
+        },
+        {
+          "q": "and a tee in the same size?",
+          "expect": "Tee PVC 2\" sama ukuran.",
+          "checks": { "all": ["tee", "2\""], "none": ["reducer"] }
+        }
+      ]
+    },
+    {
+      "id": "MX-05",
+      "category": "renovasi — pertanyaan",
+      "turns": [
+        {
+          "q": "pipa galvanis di rumah udah karatan, mending ganti pakai apa?",
+          "expect": "Arahkan ke PVC AW / HDPE Pralon untuk air bersih; bukan galvanis.",
+          "checks": { "any": [["AW", "HDPE", "PVC"]], "none": ["belum tercatat"] }
+        },
+        {
+          "q": "nyambungin pipa pvc ke pipa galvanis lama gimana?",
+          "expect": "Sambungan drat (sok drat dalam/luar / TS-drat) dari katalog.",
+          "checks": { "any": [["drat", "ulir", "thread"]] }
+        }
+      ]
+    },
+    {
+      "id": "MX-06",
+      "category": "renovasi — Inggris",
+      "turns": [
+        {
+          "q": "how do I connect a new pvc pipe to my old galvanized pipe?",
+          "expect": "Sambungan drat, bahasa Inggris.",
+          "checks": { "any": [["thread"]], "none": ["\\bdrat\\b", "\\bpipa\\b"] }
+        }
+      ]
+    },
+    {
+      "id": "MX-07",
+      "category": "SPAM",
+      "turns": [
+        {
+          "q": "pipa pralon untuk jaringan SPAM desa pakai apa?",
+          "expect": "HDPE / PVC AW untuk jaringan distribusi air minum, bersumber.",
+          "checks": { "any": [["HDPE", "AW"]], "none": ["belum tercatat", "conduit"] }
+        },
+        {
+          "q": "which one is better for a long village network?",
+          "expect": "Perbandingan HDPE vs PVC untuk jaringan panjang, bahasa Inggris.",
+          "checks": { "all": ["HDPE"], "none": ["\\bpipa\\b"] }
+        }
+      ]
+    },
+    {
+      "id": "MX-08",
+      "category": "sewerage",
+      "turns": [
+        {
+          "q": "pipa untuk jaringan air limbah kawasan perumahan pakai apa?",
+          "expect": "Pipa air limbah gravitasi (PVC D / pipa air limbah) dari katalog.",
+          "checks": { "any": [["PVC", "HDPE"]], "none": ["belum tercatat", "conduit"] }
+        },
+        {
+          "q": "kemiringannya berapa?",
+          "expect": "Kemiringan pipa pembuangan (acuan engine 2 % untuk pipa kecil), ditandai belum divalidasi bila perlu.",
+          "checks": { "any": [["%", "persen"]] }
+        }
+      ]
+    },
+    {
+      "id": "MX-09",
+      "category": "air minum — campuran",
+      "turns": [
+        {
+          "q": "apakah pipa pralon aman untuk air minum?",
+          "expect": "SNI, Calcium-Zinc bebas timbal.",
+          "checks": { "any": [["SNI", "timbal", "lead"]] }
+        },
+        {
+          "q": "does it contain lead?",
+          "expect": "Tidak, stabilizer Calcium-Zinc; bahasa Inggris.",
+          "checks": {
+            "any": [["lead.?free", "calcium", "no lead", "does not contain"]],
+            "none": ["\\btimbal\\b"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "MX-10",
+      "category": "harga — Inggris",
+      "turns": [
+        {
+          "q": "how much is a 4 inch pvc aw pipe?",
+          "expect": "Harga tidak dikarang: arahkan ke sales/distributor, bahasa Inggris.",
+          "checks": { "none": ["Rp\\s?\\d", "IDR\\s?\\d", "\\bharga\\b"] }
+        }
+      ]
+    },
+    {
+      "id": "MX-11",
+      "category": "pesaing — Inggris",
+      "turns": [
+        {
+          "q": "is pralon better than wavin?",
+          "expect": "Tidak merekomendasikan pesaing; menjelaskan Pralon.",
+          "checks": { "all": ["Pralon"], "none": ["recommend wavin", "choose wavin"] }
+        }
+      ]
+    },
+    {
+      "id": "MX-12",
+      "category": "hitung — Inggris pendek",
+      "turns": [
+        {
+          "q": "how many 4 meter pipes do I need for a 30 meter run?",
+          "expect": "30 m (+ cadangan) ÷ 4 m = 8–9 batang, bahasa Inggris.",
+          "checks": { "any": [["\\b8\\b", "\\b9\\b"]], "none": ["\\bbatang\\b"] }
+        }
+      ]
+    },
+    {
+      "id": "MX-13",
+      "category": "perusahaan — Inggris",
+      "turns": [
+        {
+          "q": "where is pralon's factory?",
+          "expect": "Lokasi pabrik dari pengetahuan perusahaan, bahasa Inggris.",
+          "checks": { "none": ["\\bpabrik\\b", "belum tercatat"] }
+        }
+      ]
+    },
+    {
+      "id": "MX-14",
+      "category": "lanjutan subjek — Indonesia",
+      "turns": [
+        {
+          "q": "pipa hdpe pralon ada ukuran apa aja?",
+          "expect": "Daftar ukuran HDPE.",
+          "checks": { "all": ["HDPE", "mm"] }
+        },
+        {
+          "q": "yang paling besar berapa?",
+          "expect": "Ukuran HDPE terbesar.",
+          "checks": { "all": ["HDPE"], "any": [["terbesar", "paling besar"]] }
+        },
+        {
+          "q": "panjang per batangnya?",
+          "expect": "Panjang/roll HDPE (batang 6 m atau gulungan) dari katalog.",
+          "checks": { "any": [["\\bm\\b", "meter", "roll", "gulung"]] }
+        }
+      ]
+    },
+    {
+      "id": "MX-15",
+      "category": "pemasangan — Inggris",
+      "turns": [
+        {
+          "q": "how deep should I bury a pvc water pipe?",
+          "expect": "Kedalaman penimbunan bersumber, bahasa Inggris.",
+          "checks": { "any": [["cm", "\\bm\\b", "meter"]], "none": ["\\bkedalaman\\b"] }
+        }
+      ]
+    },
+    {
+      "id": "MX-16",
+      "category": "kebutuhan kasus — Inggris",
+      "turns": [
+        {
+          "q": "I want to install a rainwater downpipe for a 100 m2 roof",
+          "expect": "Kasus air hujan dimulai (kartu klarifikasi / hitungan), bahasa Inggris.",
+          "checks": { "none": ["\\btalang\\b", "\\batap\\b"] }
+        }
+      ]
+    }
+  ]
+}
