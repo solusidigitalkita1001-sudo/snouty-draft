@@ -1026,6 +1026,10 @@ Partial relief: the standalone onboarding file _does_ design the post-close stat
 "Onboarding tidak akan muncul lagi otomatis pada kunjungan berikutnya. Nanti dapat dibuka manual dari
 menu bantuan." and a "Tampilkan onboarding lagi" control — so the re-open affordance belongs in a help
 menu.
+**Needs design (Fase 26, 2026-10-21):** dashboard admin prospek 5A (`/internal/prospects`: corong, papan,
+penugasan, tim sales), dashboard sales (P26-06), opt-in "dihubungi tim Pralon" di form daftar dan menu Akun,
+tombol "Minta dihubungi tim Pralon". Dibangun minimal dengan token yang ada; tanpa penanda di layar
+(pemilik: tanpa metatext) — statusnya dicatat di sini.
 
 ---
 

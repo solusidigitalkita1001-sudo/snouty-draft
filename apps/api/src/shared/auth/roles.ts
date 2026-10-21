@@ -16,6 +16,8 @@ export const INTERNAL_ROLES = {
   technicalTeam: 'technical_team',
   salesReviewer: 'sales_reviewer',
   admin: 'admin',
+  /** Sales Pralon (P26-05, OQ-76): hanya prospek yang ditugaskan kepadanya. */
+  sales: 'sales',
 } as const;
 
 export type InternalRole = (typeof INTERNAL_ROLES)[keyof typeof INTERNAL_ROLES];

@@ -38,6 +38,10 @@ export const USER_AUDIT = {
   shareRevoke: { action: 'share.revoke', entityType: 'recommendation' },
   handoffCreate: { action: 'handoff.create', entityType: 'conversation' },
   salesRequest: { action: 'sales.request', entityType: 'conversation' },
+  // Dashboard admin (P26-05): penugasan prospek dan anggota tim sales.
+  prospectAssign: { action: 'prospect.assign', entityType: 'user' },
+  salesGrant: { action: 'sales.grant', entityType: 'user' },
+  salesRevoke: { action: 'sales.revoke', entityType: 'user' },
   reportCreate: { action: 'report.create', entityType: 'report' },
   reportRebuild: { action: 'report.rebuild', entityType: 'report' },
   uploadCreate: { action: 'upload.create', entityType: 'upload' },

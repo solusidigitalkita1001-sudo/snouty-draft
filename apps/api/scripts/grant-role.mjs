@@ -11,7 +11,7 @@
 import mysql from 'mysql2/promise';
 
 const LOCAL_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
-const VALID_ROLES = ['sales_reviewer', 'technical_team', 'catalog_admin', 'domain_expert', 'admin'];
+const VALID_ROLES = ['sales_reviewer', 'technical_team', 'catalog_admin', 'domain_expert', 'admin', 'sales'];
 
 const host = process.env.DB_HOST ?? '127.0.0.1';
 if (!LOCAL_HOSTS.has(host)) {

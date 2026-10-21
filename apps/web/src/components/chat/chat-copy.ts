@@ -137,6 +137,7 @@ export const CHAT_COPY = {
     register: 'Daftar',
     role: 'Pelanggan',
     account: 'Akun',
+    dashboard: 'Dashboard prospek',
   },
   /** Belum ada endpoint berkas (`POST /uploads` baru kontrak) — chip tidak berpura-pura. */
   uploading: 'Mengirim denah…',
@@ -381,6 +382,7 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
     register: 'Sign up',
     role: 'Customer',
     account: 'Account',
+    dashboard: 'Prospect dashboard',
   },
   uploading: 'Sending floor plan…',
   uploadFailed: 'The floor plan was not sent. Please try again shortly.',

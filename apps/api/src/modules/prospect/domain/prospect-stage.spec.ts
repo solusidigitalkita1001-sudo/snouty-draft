@@ -102,3 +102,21 @@ describe('skala proyek (§3)', () => {
     expect(projectScaleOf({ useCase: 'kasus_baru', buildingType: null })).toBe('house');
   });
 });
+
+describe('aktivitas tanpa tahap', () => {
+  it('pesan terakhir memperbarui kebaruan, bukan tahap', () => {
+    const view = assessProspect(
+      [
+        { kind: 'analysis', at: daysAgo(20) },
+        { kind: 'activity', at: daysAgo(1) },
+      ],
+      ['house'],
+      NOW,
+    );
+    expect(view).toMatchObject({
+      stage: 'ask',
+      stageReachedAt: daysAgo(20),
+      lastActivityAt: daysAgo(1),
+    });
+  });
+});

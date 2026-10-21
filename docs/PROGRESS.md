@@ -2051,7 +2051,15 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       tim teknis). Gate tamu meneruskan permintaannya setelah daftar/masuk (`then=contact_*`). Opt-in tidak
       tercentang di form daftar + sakelar di menu Akun. PRIVACY.md diperbarui. Layar daftar/akun tetap needs
       design (OQ-21).
-- [ ] P26-05 Dashboard admin (pemilik 2026-10-21): papan prospek 5A + penugasan ke sales + peran `sales`.
+- [x] P26-05 Dashboard admin (pemilik 2026-10-21) di `/internal/prospects`: corong 5A (klik = filter), papan prospek
+      (prioritas, skala proyek, aktivitas terakhir, dasar kontak) dengan filter dan pencarian, penugasan ke sales,
+      dan tab Tim sales (admin menambah lewat email akun terdaftar / mencabut). Migration 0028: peran `sales`,
+      tabel `sales_leads` (satu per prospek, dipindah bukan digandakan), admin pertama = akun pemilik (AskUserQuestion).
+      Aturan di kode: staf internal bukan prospek; penugasan hanya bila ada opt-in atau "minta dihubungi"
+      (OQ-76); izin TERAKHIR yang berlaku. Kejadian dibaca per pengguna sebagai waktu pertama/terakhir per jenis
+      dari tabel yang ada, dinilai `assessProspect`. `RequiresRole` kini menerima beberapa peran (admin ATAU
+      sales_reviewer). Tautan "Dashboard prospek" di sidebar untuk admin/peninjau. Layar belum didesain (OQ-21),
+      tanpa label internal di layar.
 - [ ] P26-06 Dashboard sales (pemilik 2026-10-21): prospek miliknya + ringkasan percakapan + status menang/kalah.
 - [ ] P26-07 Geo-IP → kota dan penulis `market_events`.
 

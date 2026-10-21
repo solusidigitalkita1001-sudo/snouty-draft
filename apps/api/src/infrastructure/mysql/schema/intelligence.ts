@@ -190,3 +190,33 @@ export const salesRequests = mysqlTable(
     check('ck_sales_requests_source', sql`\`source\` IN ('solution','price')`),
   ],
 );
+
+/**
+ * Penugasan prospek ke sales (P26-05). Satu baris per prospek: dipindah, bukan digandakan. Status
+ * menang/kalah dipakai mengkalibrasi ulang prioritas (docs/PROSPECT_5A.md §5).
+ */
+export const salesLeads = mysqlTable(
+  'sales_leads',
+  {
+    id: id().primaryKey(),
+    userId: char('user_id', { length: 26 }).notNull(),
+    assignedTo: char('assigned_to', { length: 26 }).notNull(),
+    assignedBy: char('assigned_by', { length: 26 }).notNull(),
+    status: varchar('status', { length: 16 }).notNull().default('new'),
+    lostReason: varchar('lost_reason', { length: 255 }),
+    /** Ringkasan percakapan untuk sales (P26-06). */
+    summary: json('summary'),
+    createdAt: createdAt(),
+    updatedAt: datetime('updated_at', { fsp: 3 })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP(3)`),
+  },
+  (t) => [
+    uniqueIndex('uq_sales_leads_user').on(t.userId),
+    index('ix_sales_leads_assignee_status').on(t.assignedTo, t.status),
+    check(
+      'ck_sales_leads_status',
+      sql`\`status\` IN ('new','contacted','quoted','won','lost')`,
+    ),
+  ],
+);

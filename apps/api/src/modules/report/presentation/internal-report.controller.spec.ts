@@ -30,11 +30,11 @@ describe('InternalReportController', () => {
   });
 
   it('menandai rute cetak dengan peran yang diminta', () => {
-    const required = reflector.get<string | undefined>(
+    const required = reflector.get<readonly string[] | undefined>(
       REQUIRED_ROLE,
       InternalReportController.prototype.print,
     );
-    expect(required).toBe(INTERNAL_ROLES.admin);
+    expect(required).toEqual([INTERNAL_ROLES.admin]);
   });
 });
 

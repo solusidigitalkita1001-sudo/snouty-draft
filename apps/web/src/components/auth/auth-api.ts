@@ -32,12 +32,14 @@ async function post(path: string, body: Record<string, unknown>): Promise<AuthRe
         resumedConversationId?: string | null;
         name?: string;
         tier?: string;
+        roles?: string[];
       };
       // Disimpan di memori supaya permintaan berikutnya dikenali sebagai pengguna, bukan
       // tamu. Tanpa ini, login "berhasil" tetapi API tetap melihat tamu dan menolak
       // riwayat dengan 403.
       if (data.accessToken) setAccessToken(data.accessToken);
-      if (data.name && data.tier) setCurrentUser({ name: data.name, tier: data.tier });
+      if (data.name && data.tier)
+        setCurrentUser({ name: data.name, tier: data.tier, roles: data.roles ?? [] });
       return { ok: true, resumedConversationId: data.resumedConversationId ?? null };
     }
 

@@ -48,6 +48,15 @@ export function setAccessToken(token: string | null): void {
 export interface CurrentUser {
   readonly name: string;
   readonly tier: string;
+  /** Peran internal (dashboard P26-05). Tampilan saja — aksesnya selalu diperiksa API. */
+  readonly roles?: readonly string[];
+}
+
+/** Peran yang membuka dashboard prospek (admin dan peninjau sales). */
+export const DASHBOARD_ROLES: readonly string[] = ['admin', 'sales_reviewer'];
+
+export function canOpenDashboard(user: CurrentUser | null): boolean {
+  return user?.roles?.some((role) => DASHBOARD_ROLES.includes(role)) ?? false;
 }
 
 let currentUser: CurrentUser | null = null;
@@ -93,10 +102,12 @@ export async function restoreSession(): Promise<boolean> {
       accessToken?: string;
       name?: string;
       tier?: string;
+      roles?: string[];
     };
     if (!body.accessToken) return false;
     setAccessToken(body.accessToken);
-    if (body.name && body.tier) setCurrentUser({ name: body.name, tier: body.tier });
+    if (body.name && body.tier)
+      setCurrentUser({ name: body.name, tier: body.tier, roles: body.roles ?? [] });
     return true;
   } catch {
     return false;

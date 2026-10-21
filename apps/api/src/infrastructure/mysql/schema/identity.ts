@@ -130,7 +130,7 @@ export const userRoles = mysqlTable(
     }).onDelete('cascade'),
     check(
       'ck_user_roles_role',
-      sql`\`role\` IN ('sales_reviewer','technical_team','catalog_admin','domain_expert','admin')`,
+      sql`\`role\` IN ('sales_reviewer','technical_team','catalog_admin','domain_expert','admin','sales')`,
     ),
   ],
 );

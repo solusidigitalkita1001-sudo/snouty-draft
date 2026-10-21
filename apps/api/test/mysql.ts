@@ -82,8 +82,10 @@ const UP = [
   '0025_projects_pins_shares.sql',
   '0026_prospect_signals.sql',
   '0027_sales_contact.sql',
+  '0028_sales_leads.sql',
 ];
 const DOWN = [
+  '0028_sales_leads.down.sql',
   '0027_sales_contact.down.sql',
   '0026_prospect_signals.down.sql',
   '0025_projects_pins_shares.down.sql',
@@ -120,6 +122,7 @@ const DOWN = [
  * `users` harus terakhir, karena `guest_sessions` merujuknya dengan `RESTRICT`.
  */
 const TABLES = [
+  'sales_leads',
   'sales_requests',
   'prospect_signals',
   'share_links',

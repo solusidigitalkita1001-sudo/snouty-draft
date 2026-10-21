@@ -62,7 +62,12 @@ import {
   type AnswerMode,
 } from './chat-api';
 import { SolutionView, type SolutionTab } from '../solution/solution-view';
-import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
+import {
+  canOpenDashboard,
+  getCurrentUser,
+  restoreSession,
+  type CurrentUser,
+} from '../auth/session';
 import { gateHref, parseResume, type ResumeAction } from '../auth/resume-link';
 import { chatCopy, STAGE_ORDER, stageLabel } from './chat-copy';
 import { MISSING, requirementRows, sizePatch } from './requirement-rows';
@@ -1196,6 +1201,11 @@ export function ChatWorkspace() {
               layar di baliknya, tautan mati hanya menjanjikan yang tidak ada (keputusan pemilik
               2026-10-07). Kembali bila layarnya didesain. */}
           <div className={styles.sidebarLinks}>
+            {canOpenDashboard(user) && (
+              <a className={styles['sidebarLinkButton']} href="/internal/prospects">
+                {COPY.footer.dashboard}
+              </a>
+            )}
             {/* Pengalih tema dan bahasa sebagai baris menu — penempatannya belum didesain; minimal. */}
             <ThemeToggle className={styles['sidebarLinkButton'] ?? ''} />
             <LocaleToggle className={styles['sidebarLinkButton'] ?? ''} />

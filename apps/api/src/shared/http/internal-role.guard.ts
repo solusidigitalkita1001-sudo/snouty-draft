@@ -28,13 +28,13 @@ import { correlationIdOf, type WithCorrelationId } from './correlation-id.middle
 export const REQUIRED_ROLE = 'snouty:requiredRole';
 
 /**
- * Peran yang wajib dipegang untuk menyentuh rute ini.
+ * Peran yang wajib dipegang untuk menyentuh rute ini — salah satu dari yang disebut.
  *
  * Wajib ada pada setiap rute internal; `InternalRoleGuard` menolak rute yang tidak
  * menyebutkannya, supaya peran yang lupa dipasang tidak berarti rute tanpa pagar.
  */
-export const RequiresRole = (role: string): MethodDecorator & ClassDecorator =>
-  SetMetadata(REQUIRED_ROLE, role);
+export const RequiresRole = (...roles: readonly string[]): MethodDecorator & ClassDecorator =>
+  SetMetadata(REQUIRED_ROLE, roles);
 
 /** Aktor internal yang sudah terautentikasi. Diisi modul `auth` di Fase 3. */
 export interface InternalActor {
@@ -74,18 +74,21 @@ export class InternalRoleGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const required = this.reflector.getAllAndOverride<string | undefined>(REQUIRED_ROLE, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-    if (required === undefined) {
+    const required = this.reflector.getAllAndOverride<readonly string[] | undefined>(
+      REQUIRED_ROLE,
+      [context.getHandler(), context.getClass()],
+    );
+    if (required === undefined || required.length === 0) {
       throw new InternalRouteMisconfiguredError(context.getClass().name);
     }
 
     const request = context.switchToHttp().getRequest<Request & WithInternalActor>();
     const actor = request.internalActor;
     if (actor === undefined) throw new UnauthenticatedError();
-    if (!actor.roles.includes(required)) throw new NotEntitledError(required);
+    // Salah satu peran yang disebut sudah cukup (dasbor prospek: admin ATAU sales_reviewer).
+    if (!required.some((role) => actor.roles.includes(role))) {
+      throw new NotEntitledError(required.join('|'));
+    }
 
     return true;
   }

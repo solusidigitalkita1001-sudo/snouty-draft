@@ -18,6 +18,8 @@ export type Priority = 'hot' | 'warm' | 'cold';
 export type ProspectEvent =
   | { readonly kind: 'account_created'; readonly at: Date }
   | { readonly kind: 'conversation_started'; readonly at: Date }
+  /** Pesan terakhir di percakapan: kebaruan saja, tidak menggeser tahap. */
+  | { readonly kind: 'activity'; readonly at: Date }
   | { readonly kind: 'intent'; readonly label: string; readonly at: Date }
   | { readonly kind: 'product_view'; readonly at: Date }
   | { readonly kind: 'pin'; readonly at: Date }
@@ -69,9 +71,10 @@ const INTENT_STAGE: Readonly<Record<FineIntent, Stage | null>> = {
 };
 
 /** Validasi tim teknis masih menimbang (Ask); laporan dan minta dihubungi adalah tindakan (Act). */
-const EVENT_STAGE: Readonly<Record<Exclude<ProspectEvent['kind'], 'intent'>, Stage>> = {
+const EVENT_STAGE: Readonly<Record<Exclude<ProspectEvent['kind'], 'intent'>, Stage | null>> = {
   account_created: 'aware',
   conversation_started: 'aware',
+  activity: null,
   product_view: 'appeal',
   pin: 'appeal',
   analysis: 'ask',

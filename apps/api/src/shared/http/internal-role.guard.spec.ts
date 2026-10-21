@@ -38,6 +38,12 @@ class MixedRoutes {
   forgotten(): void {}
 }
 
+/** Salah satu dari beberapa peran (dasbor prospek P26-05: admin ATAU sales_reviewer). */
+class BoardRoutes {
+  @RequiresRole(INTERNAL_ROLES.admin, INTERNAL_ROLES.salesReviewer)
+  board(): void {}
+}
+
 function contextFor(
   target: new () => object,
   handler: (...args: never[]) => unknown,
@@ -132,6 +138,16 @@ describe('InternalRoleGuard — peran', () => {
       expect(error).toBeInstanceOf(NotEntitledError);
       expect((error as NotEntitledError).details).toEqual({ role: 'catalog_admin' });
     }
+  });
+});
+
+describe('InternalRoleGuard — salah satu peran', () => {
+  it('sales_reviewer membuka rute admin-atau-peninjau; sales tidak', () => {
+    const as = (roles: string[]) =>
+      contextFor(BoardRoutes, BoardRoutes.prototype.board, { internalActor: { id: 'X', roles } });
+    expect(guard().canActivate(as([INTERNAL_ROLES.salesReviewer]))).toBe(true);
+    expect(guard().canActivate(as([INTERNAL_ROLES.admin]))).toBe(true);
+    expect(() => guard().canActivate(as([INTERNAL_ROLES.sales]))).toThrow(NotEntitledError);
   });
 });
 
