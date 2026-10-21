@@ -22,7 +22,8 @@ function serviceWith(router: { route: () => Promise<unknown> }) {
     find: vi.fn(async () => ({ title: null })),
     messages: vi.fn(async () => []),
     rename: vi.fn(async () => undefined),
-    appendUserMessage: vi.fn(async () => undefined),
+    appendUserMessage: vi.fn(async () => ({ id: 'MSG_USER' })),
+    tagIntent: vi.fn(async () => undefined),
     projectContext: vi.fn(async () => null),
     adoptLanguage: vi.fn(async () => undefined),
     appendAssistantMessage: vi.fn(async () => undefined),
@@ -153,6 +154,8 @@ describe('MessageService.answerClarification — semua jawaban sekaligus, tanpa 
       'C'.repeat(26),
       ACTOR,
       result.userText,
+      // Label tahap 5A (P26-02): jawaban kartu sudah pasti jawaban klarifikasi.
+      'clarification_answer',
     );
     // Jawaban kartu tidak bisu: teks "sudah saya catat" ikut tersimpan bersama kartunya.
     expect(result.text).toMatch(/^Oke, sudah saya catat: .*2 lantai.*3 kamar mandi/);
@@ -233,7 +236,8 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
       // Giliran sebelumnya tersedia sebagai `recentTurns` — seperti di produksi.
       messages: vi.fn(async () => rows),
       rename: vi.fn(async () => undefined),
-      appendUserMessage: vi.fn(async () => undefined),
+      appendUserMessage: vi.fn(async () => ({ id: 'MSG_USER' })),
+      tagIntent: vi.fn(async () => undefined),
       projectContext: vi.fn(async () => null),
       adoptLanguage: vi.fn(async () => undefined),
       appendAssistantMessage: vi.fn(async (_id: string, text: string) => {
@@ -308,8 +312,14 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
       return assistant.at(-1) ?? '';
     };
     const subject = () => snapshots.at(-1)?.state.subject;
-    return { say, subject, ai, store };
+    return { say, subject, ai, store, conversations };
   }
+
+  it('label pemahaman pesan pengguna tersimpan sebagai sinyal tahap 5A (P26-02)', async () => {
+    const { say, conversations } = await conversation();
+    await say('pralon itu apa?');
+    expect(conversations.tagIntent).toHaveBeenCalledWith('MSG_USER', 'company_question');
+  });
 
   it('percakapan pemilik: "pralon itu apa?" … "semuanya, tolong tampilin" tetap tentang PT Pralon', async () => {
     const { say, subject, ai } = await conversation();
@@ -520,7 +530,8 @@ describe('MessageService — perencana giliran (P16-29)', () => {
       find: vi.fn(async () => ({ title: 'x', language: 'id' })),
       messages: vi.fn(async () => rows),
       rename: vi.fn(async () => undefined),
-      appendUserMessage: vi.fn(async () => undefined),
+      appendUserMessage: vi.fn(async () => ({ id: 'MSG_USER' })),
+      tagIntent: vi.fn(async () => undefined),
       projectContext: vi.fn(async () => null),
       adoptLanguage: vi.fn(async () => undefined),
       appendAssistantMessage: vi.fn(async () => undefined),
@@ -590,7 +601,8 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
       find: vi.fn(async () => ({ title: 'x', language: 'id' })),
       messages: vi.fn(async () => rows),
       rename: vi.fn(async () => undefined),
-      appendUserMessage: vi.fn(async () => undefined),
+      appendUserMessage: vi.fn(async () => ({ id: 'MSG_USER' })),
+      tagIntent: vi.fn(async () => undefined),
       projectContext: vi.fn(async () => null),
       adoptLanguage: vi.fn(async () => undefined),
       appendAssistantMessage: vi.fn(async () => undefined),

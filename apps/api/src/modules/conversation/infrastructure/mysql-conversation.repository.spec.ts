@@ -4,7 +4,8 @@
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDatabase, testId, type TestDatabase } from '../../../../test/mysql.js';
-import { conversations } from '../../../infrastructure/mysql/schema/conversation.js';
+import { eq } from 'drizzle-orm';
+import { conversations, messages } from '../../../infrastructure/mysql/schema/conversation.js';
 import type { ConversationOwner } from '../domain/conversation.repository.js';
 import { ConversationNotFoundError, EmptyMessageError } from '../domain/conversation.errors.js';
 import { ConversationService } from '../application/conversation.service.js';
@@ -216,5 +217,27 @@ describe('bahasa percakapan di MySQL (P25-01)', () => {
     await repository.setLanguage(first.id, 'en');
     expect((await service.find(first.id, owner)).language).toBe('en');
     expect((await service.list(owner, {})).map((r) => r.id)).toEqual(before);
+  });
+});
+
+describe('label intent pesan di MySQL (P26-02, 0026)', () => {
+  it('pesan pengguna menyimpan label pemahaman — saat ditulis atau sesudahnya', async () => {
+    const conversation = await service.create(GUEST);
+    const card = await service.appendUserMessage(
+      conversation.id,
+      GUEST,
+      '2 lantai',
+      'clarification_answer',
+    );
+    const typed = await service.appendUserMessage(conversation.id, GUEST, 'harga pipa 4 inch?');
+    await service.tagIntent(typed.id, 'price_question');
+
+    const rows = await fixture.db
+      .select({ id: messages.id, intent: messages.intent })
+      .from(messages)
+      .where(eq(messages.conversationId, conversation.id));
+    const intentOf = (id: string) => rows.find((r) => r.id === id)?.intent;
+    expect(intentOf(card.id)).toBe('clarification_answer');
+    expect(intentOf(typed.id)).toBe('price_question');
   });
 });

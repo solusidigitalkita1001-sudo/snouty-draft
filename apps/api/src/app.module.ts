@@ -3,6 +3,7 @@ import { DatabaseModule } from './shared/database/database.module.js';
 import { CorrelationIdMiddleware } from './shared/http/correlation-id.middleware.js';
 import { LoggingModule } from './shared/logging/logging.module.js';
 import { AuditModule } from './shared/audit/audit.module.js';
+import { ProspectSignalModule } from './shared/prospect/prospect-signal.module.js';
 import { RedisModule } from './shared/redis/redis.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AccessTokenMiddleware } from './modules/auth/presentation/access-token.middleware.js';
@@ -32,6 +33,7 @@ import { UploadsModule } from './modules/uploads/uploads.module.js';
     RedisModule,
     LoggingModule,
     AuditModule,
+    ProspectSignalModule,
     HealthModule,
     AuthModule,
     OnboardingConsentModule,

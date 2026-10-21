@@ -103,7 +103,12 @@ export interface ConversationRepository {
     text: string;
     cards?: readonly AssistantCard[];
     mood?: string | null;
+    /** Label pemahaman pesan pengguna (P26-02), bila sudah diketahui saat ditulis. */
+    intent?: string | null;
   }): Promise<void>;
+
+  /** Label pemahaman ditulis setelah giliran dipahami (P26-02) — tidak mengubah urutan riwayat. */
+  setMessageIntent(messageId: string, intent: string): Promise<void>;
 
   listMessages(conversationId: string): Promise<readonly MessageRow[]>;
 }

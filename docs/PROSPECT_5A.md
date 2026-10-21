@@ -52,8 +52,21 @@ Pemetaannya aturan di kode (tabel di bawah), bukan tebakan model.
 6. **Minta dihubungi.** Handoff jenis baru `sales` (lihat §4). Handoff teknis yang ada tetap terpisah.
 7. **Rating** (Advocate). Tabel `feedback` memang belum ada; menyusul, tidak menghalangi tahap lain.
 
-Semua sinyal masuk satu tabel `prospect_signals` (`user_id`, `kind`, `stage`, `conversation_id`,
-`occurred_at`, `meta` json kecil tanpa teks bebas), ditulis konsumer antrean `prospect.signal`.
+Dibangun di P26-02 (migration 0026):
+
+- `messages.intent`: label ditulis di latar setelah giliran dipahami; jawaban kartu langsung
+  `clarification_answer`.
+- `prospect_signals` (`kind`, `ref_id`, `user_id`, `occurred_on` DATE, `dedupe_key` unik): satu baris per
+  jenis × rujukan × pengguna × hari, tanpa IP dan tanpa teks. Ditulis `@RecordsSignal` +
+  `ProspectSignalInterceptor` (pola `@Audited`) setelah respons berhasil, insert-or-ignore, tanpa ditunggu.
+  Bukan RabbitMQ: satu insert kecil tidak sepadan dengan perjalanan API → antrean → worker → API, dan
+  kegagalannya cukup dicatat di log.
+- Pemilik sinyal dibaca saat dihitung (laporan → rekomendasi → percakapan → pemilik; tautan →
+  `share_links.token_hash`), sehingga unduhan tamu ikut pindah saat tamu mendaftar. Buka produk hanya
+  dicatat untuk pengguna terdaftar.
+- **Aktivitas terakhir** tanpa kolom baru: `MAX(conversations.updated_at)` per pemilik, yang naik setiap
+  ada pesan (indeks `ix_conversations_owner_updated`).
+- Rating menyusul bersama tabel `feedback`.
 
 ---
 

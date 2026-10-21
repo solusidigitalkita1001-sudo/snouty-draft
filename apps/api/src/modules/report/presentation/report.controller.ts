@@ -27,6 +27,7 @@ import { RequestValidationError } from '../../../shared/http/api-errors.js';
 import { requireEntitled } from '../../../shared/http/entitlement.js';
 import { ReportService } from '../application/report.service.js';
 import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
+import { PROSPECT_SIGNAL, RecordsSignal } from '../../../shared/prospect/prospect-signal.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 
@@ -116,6 +117,7 @@ export class ReportController {
    * kepemilikan diperiksa layanan, jalurnya dipastikan di dalam akar penyimpanan, dan
    * nama berkasnya nomor laporan — bukan id internal.
    */
+  @RecordsSignal(PROSPECT_SIGNAL.reportDownload)
   @Get('reports/:id/download')
   async download(
     @Param() params: unknown,

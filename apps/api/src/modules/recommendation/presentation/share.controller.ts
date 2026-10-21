@@ -9,6 +9,7 @@ import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { RateLimitedError, RequestValidationError } from '../../../shared/http/api-errors.js';
 import { requireEntitled } from '../../../shared/http/entitlement.js';
 import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
+import { PROSPECT_SIGNAL, RecordsSignal } from '../../../shared/prospect/prospect-signal.js';
 import { RateLimiter } from '../../../shared/rate-limit/rate-limiter.js';
 import { SHARED_VIEW_IP_LIMIT } from '../../policy/rate-limits.js';
 import { ShareService } from '../application/share.service.js';
@@ -47,6 +48,7 @@ export class ShareController {
     await this.shares.revoke(idOf(params), actor);
   }
 
+  @RecordsSignal(PROSPECT_SIGNAL.shareVisit)
   @Get('shared/:token')
   async view(@Param() params: unknown, @Req() request: Request) {
     const verdict = await this.rateLimiter.consume(

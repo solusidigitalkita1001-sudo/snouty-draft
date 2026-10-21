@@ -157,7 +157,7 @@ export class MessageService {
   ): Promise<readonly AssistantStreamEvent[]> {
     // Kepemilikan diperiksa di lapisan application (docs/SECURITY.md §4).
     const row = await this.conversations.find(conversationId, actor);
-    await this.conversations.appendUserMessage(conversationId, actor, text);
+    const userMessage = await this.conversations.appendUserMessage(conversationId, actor, text);
 
     // Bahasa balasan dari kalimat pengguna, bukan tombol bahasa (keputusan pemilik 2026-10-19).
     // Pesan yang tidak jelas bahasanya ("ok", "4 inch") tetap di bahasa percakapan.
@@ -200,6 +200,7 @@ export class MessageService {
         emit,
         locale,
         mode,
+        userMessage.id,
       );
       await this.retitle(conversationId, actor, row.title ?? null, locale);
       return events;
@@ -221,6 +222,7 @@ export class MessageService {
     emit?: EventSink,
     locale: Locale = DEFAULT_LOCALE,
     mode: 'hemat' | 'kualitas' = 'hemat',
+    userMessageId: string | null = null,
   ): Promise<readonly AssistantStreamEvent[]> {
     const ai = this.ai!;
     // Instrumentasi tahap (P14-07): waktu per tahap giliran, bukan hanya per panggilan model
@@ -238,6 +240,7 @@ export class MessageService {
     // dari contoh (data) + penyandi teks, puluhan milidetik. Semua keputusan di bawah membacanya.
     const u = await this.understand(text);
     timer.mark('understand');
+    if (userMessageId !== null && u.intent) this.tagIntent(userMessageId, u.intent.label);
 
     // Pesan sosial ("ok makasih", "sip", "bye"): balasan tetap, nol model, nol state.
     const social = socialReply(u, locale);
@@ -520,6 +523,16 @@ export class MessageService {
   }
 
   /** Pemahaman pesan; tanpa layanan pemahaman (tes lama) semua keputusan makna kosong. */
+  /**
+   * Label pemahaman pesan pengguna sebagai sinyal tahap 5A (P26-02). Di latar: giliran tidak menunggu
+   * tulisan ini, dan label yang gagal tertulis tidak sepadan dengan menggagalkan jawaban.
+   */
+  private tagIntent(messageId: string, label: string): void {
+    void this.conversations.tagIntent(messageId, label).catch((error: unknown) => {
+      this.logger?.warn({ err: error, messageId }, 'label intent tidak tertulis');
+    });
+  }
+
   private understand(text: string): Promise<MessageUnderstanding> {
     return this.understanding
       ? this.understanding.understand(text)
@@ -796,7 +809,12 @@ export class MessageService {
     }
 
     const userText = summarizeAnswers(answers, conversation.language);
-    await this.conversations.appendUserMessage(conversationId, actor, userText);
+    await this.conversations.appendUserMessage(
+      conversationId,
+      actor,
+      userText,
+      'clarification_answer',
+    );
     const card = followUpCard(merged, conversation.language);
     // Giliran jawaban kartu tidak pernah bisu (laporan pemilik 2026-10-07: kasus teknis yang sisa
     // pertanyaannya angka tidak punya kartu lanjutan → layar diam). Teksnya deterministik.

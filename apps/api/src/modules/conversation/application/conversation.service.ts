@@ -165,6 +165,8 @@ export class ConversationService {
     id: string,
     actor: ConversationOwner,
     textContent: string,
+    /** Label pemahaman bila sudah diketahui (jawaban kartu); selain itu lewat `tagIntent`. */
+    intent: string | null = null,
   ): Promise<MessageRow> {
     await this.owned(id, actor);
     const trimmed = textContent.trim();
@@ -176,8 +178,17 @@ export class ConversationService {
       conversationId: id,
       role: 'user',
       text: trimmed.slice(0, MAX_MESSAGE_LENGTH),
+      intent,
     });
     return this.message(id, messageId);
+  }
+
+  /**
+   * Label pemahaman pesan pengguna, sinyal tahap 5A (P26-02, docs/PROSPECT_5A.md §2). Dipanggil
+   * sistem setelah giliran dipahami; hanya label, tidak pernah teks.
+   */
+  async tagIntent(messageId: string, intent: string): Promise<void> {
+    await this.repository.setMessageIntent(messageId, intent);
   }
 
   /** Dipakai pipeline Fase 4 — aktor tidak diperiksa karena pemanggilnya sistem. */

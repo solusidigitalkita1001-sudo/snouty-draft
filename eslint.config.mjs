@@ -106,6 +106,12 @@ export default tseslint.config(
               message:
                 'Lokasi tidak boleh punya jalur ke rekomendasi (docs/MARKET_INTELLIGENCE.md §6).',
             },
+            {
+              // Skor prospek 5A tidak pernah memengaruhi rekomendasi (docs/PROSPECT_5A.md §1).
+              group: ['**/modules/prospect/**'],
+              message:
+                'Skor prospek tidak boleh punya jalur ke rekomendasi (docs/PROSPECT_5A.md §1).',
+            },
           ],
         },
       ],

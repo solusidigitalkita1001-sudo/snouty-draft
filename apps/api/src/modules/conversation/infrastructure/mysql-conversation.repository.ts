@@ -154,6 +154,7 @@ export class MysqlConversationRepository implements ConversationRepository {
     text: string;
     cards?: readonly AssistantCard[];
     mood?: string | null;
+    intent?: string | null;
   }): Promise<void> {
     await this.database.db.insert(messages).values({
       id: message.id,
@@ -162,12 +163,17 @@ export class MysqlConversationRepository implements ConversationRepository {
       text: message.text,
       cards: message.cards ?? [],
       mood: message.mood ?? null,
+      intent: message.intent ?? null,
     });
     // Percakapan yang disentuh naik ke atas riwayat.
     await this.database.db
       .update(conversations)
       .set({ updatedAt: sql`CURRENT_TIMESTAMP(3)` })
       .where(eq(conversations.id, message.conversationId));
+  }
+
+  async setMessageIntent(messageId: string, intent: string): Promise<void> {
+    await this.database.db.update(messages).set({ intent }).where(eq(messages.id, messageId));
   }
 
   async listMessages(conversationId: string): Promise<readonly MessageRow[]> {

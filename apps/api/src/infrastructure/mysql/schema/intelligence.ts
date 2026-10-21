@@ -141,3 +141,32 @@ export const marketEvents = mysqlTable(
     ),
   ],
 );
+
+/**
+ * Sinyal tahap 5A yang tidak meninggalkan baris lain (P26-02, docs/PROSPECT_5A.md §2): unduh laporan,
+ * buka detail produk oleh pengguna terdaftar, kunjungan tautan bagikan. Tanpa IP, tanpa teks. Pemilik
+ * ditentukan saat dibaca (laporan → percakapan → pemilik), jadi sinyal tamu ikut pindah saat mendaftar.
+ */
+export const prospectSignals = mysqlTable(
+  'prospect_signals',
+  {
+    id: id().primaryKey(),
+    kind: varchar('kind', { length: 24 }).notNull(),
+    /** Id laporan, id produk, atau SHA-256 token tautan — token mentah tidak pernah disimpan. */
+    refId: varchar('ref_id', { length: 64 }).notNull(),
+    userId: char('user_id', { length: 26 }),
+    occurredOn: date('occurred_on', { mode: 'string' }).notNull(),
+    /** Satu baris per jenis × rujukan × pengguna × hari. */
+    dedupeKey: char('dedupe_key', { length: 64 }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('uq_prospect_signals_dedupe').on(t.dedupeKey),
+    index('ix_prospect_signals_kind_ref').on(t.kind, t.refId),
+    index('ix_prospect_signals_user_day').on(t.userId, t.occurredOn),
+    check(
+      'ck_prospect_signals_kind',
+      sql`\`kind\` IN ('report_download','product_view','share_visit')`,
+    ),
+  ],
+);

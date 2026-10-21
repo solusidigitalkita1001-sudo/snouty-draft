@@ -70,6 +70,7 @@ function fakes() {
       rows.set(id, { ...rows.get(id)!, deletedAt: null });
     },
     async appendMessage() {},
+    async setMessageIntent() {},
     async listMessages() {
       return [];
     },

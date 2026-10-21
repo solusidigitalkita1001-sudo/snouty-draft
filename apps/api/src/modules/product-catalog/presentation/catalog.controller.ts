@@ -11,6 +11,7 @@
  * bukan dituliskan ulang di sini.
  */
 import { Controller, Get, Param, Query } from '@nestjs/common';
+import { PROSPECT_SIGNAL, RecordsSignal } from '../../../shared/prospect/prospect-signal.js';
 import { z } from 'zod';
 import { PipeSize } from '@snouty/shared-types';
 import { CatalogQueryService } from '../application/catalog-query.service.js';
@@ -67,6 +68,7 @@ export class CatalogController {
     });
   }
 
+  @RecordsSignal(PROSPECT_SIGNAL.productView)
   @Get('products/:id')
   async findProduct(@Param() rawParam: unknown) {
     return this.catalog.findProduct(productId(rawParam));

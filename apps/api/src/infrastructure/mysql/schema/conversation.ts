@@ -104,6 +104,11 @@ export const messages = mysqlTable(
     cards: json('cards'),
     /** Mood mascot penyerta, diturunkan dari state sistem — bukan dipilih LLM. */
     mood: varchar('mood', { length: 16 }),
+    /**
+     * Label pemahaman pesan pengguna (`FINE_INTENTS`), sinyal tahap 5A (P26-02). Hanya label;
+     * ditulis setelah giliran dipahami, `NULL` untuk balasan asisten dan pesan yang tidak berlabel.
+     */
+    intent: varchar('intent', { length: 48 }),
     /** Rujukan audit biaya ke `llm_calls` (konteks ops) — lintas konteks, tanpa FK. */
     llmCallId: char('llm_call_id', { length: 26 }),
     createdAt: createdAt(),

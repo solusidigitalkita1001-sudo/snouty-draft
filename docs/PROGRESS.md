@@ -2032,7 +2032,12 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       model, lokasi IP → kota, privasi UU PDP, urutan kerja.
 - [x] ✋ CHECKPOINT P26-01 — sisa OQ-76 diputuskan pemilik 2026-10-21: opt-in kontak sales, peran `sales`
       melihat prospek miliknya saja, bobot prioritas dari dokumen, DB-IP Lite.
-- [ ] P26-02 Instrumentasi: `messages.intent`, `prospect_signals`, konsumer antrean, aktivitas terakhir.
+- [x] P26-02 Instrumentasi (migration 0026): `messages.intent` (label pemahaman, ditulis di latar; jawaban kartu
+      = `clarification_answer`) dan `prospect_signals` lewat `@RecordsSignal` di unduh laporan, buka produk (hanya
+      pengguna terdaftar), dan kunjungan tautan bagikan (SHA-256 token). Satu baris per jenis × rujukan × pengguna ×
+      hari, tanpa IP/teks. Aktivitas terakhir = `MAX(conversations.updated_at)`, tanpa kolom baru. Bukan RabbitMQ:
+      insert kecil tanpa ditunggu, seperti jejak audit. Pagar lint: modul `prospect` tidak boleh diimpor
+      rekomendasi/engineering/context. 1585 tes (termasuk MySQL) hijau.
 - [ ] P26-03 Aturan tahap 5A + prioritas (domain murni + tes).
 - [ ] P26-04 Handoff `sales` ("minta dihubungi") + pemberitahuan saat daftar + PRIVACY.
 - [ ] P26-05 Papan prospek admin + penugasan + peran `sales`.
