@@ -347,13 +347,14 @@ export async function runUnderstanding(
   const adviceOnly =
     input.understanding?.intent?.label === 'advice_request' &&
     !input.understanding.mentionsRequirement;
-  // Rumah yang lantainya tersurat dihitung langsung dengan anggapan (pemilik 2026-10-20) — model
-  // tidak menambah apa pun yang dibutuhkan hitungan itu, hanya 15–50 detik (uji sales 2026-10-20).
-  const quick = extractionToUpdates({}, input.message);
-  const houseWithFloors =
-    quick.some((u) => u.path === 'building.type' && u.value === 'residential') &&
-    quick.some((u) => u.path === 'building.floors');
-  const skipModel = quickCore >= 2 || houseWithFloors || mutationOp !== null || adviceOnly;
+  // Rumah tinggal: setiap data yang dipakai hitungan rumah dibaca parser nilai (jumlah dengan digit
+  // atau kata bilangan, sumber, pompa, panjang jalur, sumur, renovasi), dan yang tidak disebut
+  // dianggap atau ditanya kartu. Model hanya menambah 15–50 detik (uji sales 2026-10-20; pemilik
+  // 2026-10-21 memilih melewati model untuk semua pesan rumah).
+  const house = extractionToUpdates({}, input.message).some(
+    (u) => u.path === 'building.type' && u.value === 'residential',
+  );
+  const skipModel = quickCore >= 2 || house || mutationOp !== null || adviceOnly;
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
     extraction = skipModel ? {} : await ai.extract(input.message);

@@ -117,7 +117,8 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
  */
 const OBVIOUS = {
   floors: (m: string) =>
-    intAfter(/\b(\d{1,2})\s*-?\s*(?:lantai|lt|floors?|stor(?:e)?ys?|stories|levels?)\b/i, m),
+    intAfter(/\b(\d{1,2})\s*-?\s*(?:lantai|lt|floors?|stor(?:e)?ys?|stories|levels?)\b/i, m) ??
+    wordCountOf('lantai|tingkat|floors?|stor(?:e)?ys?|stories', m),
   bathrooms: (m: string) => countOf('kamar mandi|km|toilet|bathrooms?|toilets?|restrooms?', m),
   // Jumlah wastafel/dapur/titik air yang tersurat juga dibaca kode (diet panggilan model,
   // 2026-10-07): bila model dilewati, "4 wastafel, 1 dapur" tetap tercatat.
@@ -127,6 +128,27 @@ const OBVIOUS = {
   wudhuTaps: (m: string) => countOf(WUDHU, m, 3),
   wudhuAreas: (m: string) => countOf(WUDHU_AREA, m, 3),
   urinals: (m: string) => countOf(URINAL, m, 3),
+  /**
+   * Jumlah titik air tersurat ("10 titik air", "6 keran"). Keran wudhu punya field sendiri, jadi
+   * pesan yang menyebutnya tidak dibaca di sini. Dulu hanya dari model (diet rumah, 2026-10-21).
+   */
+  outlets: (m: string) =>
+    new RegExp(`\\b(?:${WUDHU}|${WUDHU_AREA})\\b`, 'i').test(m)
+      ? undefined
+      : countOf('titik(?: air)?|keran|kran|outlets?|taps?|faucets?', m, 3),
+  /**
+   * Kedalaman sumur / muka air tersurat ("sumur bor 25 m", "muka airnya 8 meter") — parser nilai
+   * bersatuan, batas yang sama dengan skema model (0–60 m). Dulu hanya dari model.
+   */
+  wellDepth: (m: string): number | undefined => {
+    const match =
+      /\b(?:sumur(?:\s*bor)?|kedalaman|dalamnya|sedalam|muka air(?:nya)?|water level|wells?|depth)\b[^\d.,;]{0,20}?(\d+(?:[.,]\d+)?)\s*(?:m|meter|metre|meters|metres)\b/i.exec(
+        m,
+      );
+    if (!match) return undefined;
+    const value = Number(match[1]!.replace(',', '.'));
+    return value >= 0 && value <= 60 ? value : undefined;
+  },
   kitchens: (m: string) => countOf('dapur|kitchens?|pantry', m),
   /**
    * Tinggi tiap lantai ("tinggi lantai 4 m", "tinggi tiap lantai 3,8 meter", "floor height 4 m")
@@ -223,7 +245,7 @@ const OBVIOUS = {
       ),
     ].filter((match) => {
       const before = m.slice(Math.max(0, match.index - 24), match.index).toLowerCase();
-      return !/(dalam|kedalaman|tinggi|muka air|sumur|batang|pipa\s*$|deep|depth|high|height)\s*[±~]?\s*(?:sekitar|kira-kira|kurang lebih)?\s*$/.test(
+      return !/(dalam|kedalaman|tinggi|muka air|sumur|bor|batang|pipa\s*$|deep|depth|high|height)\s*[±~]?\s*(?:sekitar|kira-kira|kurang lebih)?\s*$/.test(
         before,
       );
     });
@@ -288,7 +310,13 @@ const OBVIOUS = {
       )
     )
       return 'light_commercial';
-    if (/\b(rumah|hunian|house|home|villa|residence|apartment)\b/i.test(m)) return 'residential';
+    // "rumah sakit", "rumah makan", "rumah pompa" bukan rumah tinggal.
+    if (
+      /\b(rumah(?!\s*(?:sakit|ibadah|makan|potong|kaca|pompa|walet))|hunian|house|home|villa|residence|apartment)\b/i.test(
+        m,
+      )
+    )
+      return 'residential';
     return undefined;
   },
 };
@@ -395,13 +423,34 @@ function countOf(nouns: string, message: string, digits = 2): number | undefined
     message,
   );
   if (before !== undefined) return before;
-  return intAfter(
-    new RegExp(
-      `\\b(?:${nouns})(?:nya)?\\s*(?:ada|sebanyak|berjumlah|:|=)?\\s*(\\d{1,${digits}})(?!\\s*(?:x|×|m\\b|meter|cm|mm|lantai|lt\\b|[.,]\\d))`,
-      'i',
-    ),
-    message,
+  return (
+    intAfter(
+      new RegExp(
+        `\\b(?:${nouns})(?:nya)?\\s*(?:ada|sebanyak|berjumlah|:|=)?\\s*(\\d{1,${digits}})(?!\\s*(?:x|×|m\\b|meter|cm|mm|lantai|lt\\b|[.,]\\d))`,
+        'i',
+      ),
+      message,
+    ) ?? wordCountOf(nouns, message)
   );
+}
+
+/**
+ * Jumlah yang ditulis dengan kata bilangan ("dua lantai", "kamar mandinya tiga") — parser nilai,
+ * kata bilangannya harus menempel kata bendanya. Dulu hanya model yang membacanya, sehingga pesan
+ * rumah tidak bisa melewati model (diet rumah, 2026-10-21). Bilangan besar diperiksa lebih dulu
+ * supaya "dua belas" tidak terbaca "dua".
+ */
+function wordCountOf(nouns: string, message: string): number | undefined {
+  for (let n = 12; n >= 1; n--) {
+    const words = NUMBER_WORDS[n]!;
+    const before = new RegExp(`\\b(?:${words})\\s+(?:buah\\s+)?(?:${nouns})(?:nya)?\\b`, 'i');
+    const after = new RegExp(
+      `\\b(?:${nouns})(?:nya)?\\s+(?:ada\\s+|sebanyak\\s+|berjumlah\\s+)?(?:${words})\\b(?!\\s*(?:belas|lantai|tingkat|x|×))`,
+      'i',
+    );
+    if (before.test(message) || after.test(message)) return n;
+  }
+  return undefined;
 }
 
 function intAfter(pattern: RegExp, message: string): number | undefined {
@@ -500,13 +549,13 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   const renovation = obviousRenovation(message);
   // "tambah 2 titik air" juga bukan jumlah titik air rumah: ia beban baru perluasan (P25-06).
   const added = addedOutletsOf(message);
+  const outlets = extraction.fixtures?.outletCount ?? OBVIOUS.outlets(message);
   add(
     'fixtures.outletCount',
-    (renovation.existingOutlets !== undefined &&
-      extraction.fixtures?.outletCount === renovation.existingOutlets) ||
-      (added !== undefined && extraction.fixtures?.outletCount === added)
+    (renovation.existingOutlets !== undefined && outlets === renovation.existingOutlets) ||
+      (added !== undefined && outlets === added)
       ? undefined
-      : extraction.fixtures?.outletCount,
+      : outlets,
   );
 
   // Toren disebut tanpa letaknya ("mau pasang 2 toren", produksi 2026-10-07): model menebak
@@ -526,7 +575,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     extraction.water?.installationType ?? OBVIOUS.installationType(message),
   );
   add('water.boosterPump', extraction.water?.boosterPump ?? OBVIOUS.boosterPump(message));
-  add('water.wellDepthM', extraction.water?.wellDepthM);
+  add('water.wellDepthM', extraction.water?.wellDepthM ?? OBVIOUS.wellDepth(message));
   add('water.replaceExisting', extraction.water?.replaceExisting);
   // Renovasi (P23-03): ukuran pipa lama dinormalkan ke label kanonik; label yang tidak terbaca
   // dibuang, bukan disimpan sebagai teks bebas.

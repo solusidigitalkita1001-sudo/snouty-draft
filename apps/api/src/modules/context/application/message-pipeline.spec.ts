@@ -74,8 +74,26 @@ describe('runUnderstanding — diet panggilan model (2026-10-07)', () => {
 
   it('< 2 data inti terbaca kode → model ekstraksi dipanggil', async () => {
     const ai = aiExtracting({ building: { floors: 2 } });
-    await runUnderstanding(ai, input({ message: 'mau bikin instalasi buat rumah saya' }));
+    await runUnderstanding(ai, input({ message: 'mau bikin instalasi buat ruko saya' }));
     expect(ai.extract).toHaveBeenCalledTimes(1);
+  });
+
+  it('rumah tinggal → model TIDAK dipanggil; pompa dan jalur dari teks (pemilik 2026-10-21, SC-04)', async () => {
+    const ai = aiExtracting({ building: { floors: 2 } });
+    const { events } = await runUnderstanding(
+      ai,
+      input({
+        message: 'Air rumah gue pakai booster pump. Jalur utama kira-kira 20 meter.',
+      }),
+    );
+    expect(ai.extract).not.toHaveBeenCalled();
+    const updated = events.find((e) => e.type === 'requirement.updated') as {
+      state: ReturnType<typeof emptyRequirementState>;
+    };
+    expect(updated.state.building.type.value).toBe('residential');
+    expect(updated.state.building.floors.value).toBeNull();
+    expect(updated.state.water.boosterPump.value).toBe(true);
+    expect(updated.state.building.dimensions.value).toEqual({ mainRunMeters: 20 });
   });
 });
 

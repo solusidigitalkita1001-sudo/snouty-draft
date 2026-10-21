@@ -2012,8 +2012,12 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       toren atap, air bersih — ditulis di jawaban, ditanya di kartu, kartu ANALYZE ber-auto dijalankan web. Panjang jalur
       utama dibaca dari teks ("±15 meter"), grounding "15m" diperbaiki. Pertanyaan pesaing satu produk (solvent cement)
       dijawab fakta produk Pralon; "x 6 Meter = 1 batang?" dibuka "Ya"; topik standar pralon. Tekanan kerja per kelas
-      tetap ke tim teknis. Hitung live 23/23, sales 69/69. Sisa: SC-03/SC-04 (tanpa lantai) masih 20–40 s karena model
-      ekstraksi; booster pump dari teks belum tercatat tanpa model.
+      tetap ke tim teknis. Hitung live 23/23, sales 69/69.
+- [x] P25-10 Pesan rumah tanpa model ekstraksi (pemilik 2026-10-21, AskUserQuestion: "Lewati model utk rumah").
+      SC-03/SC-04 (rumah tanpa jumlah lantai) masih 20–40 s menunggu 7B. Kini setiap pesan rumah tinggal dibaca parser
+      nilai saja: jumlah dengan kata bilangan ("dua lantai", "kamar mandinya tiga"), titik air tersurat (bukan keran
+      wudhu/titik tambahan), kedalaman sumur, dan pompa pendorong ("booster pump", "tanpa pompa booster" = tidak);
+      yang tidak disebut ditanya kartu. "Rumah sakit/makan/pompa" bukan rumah tinggal.
 
 ## Design Coverage
 

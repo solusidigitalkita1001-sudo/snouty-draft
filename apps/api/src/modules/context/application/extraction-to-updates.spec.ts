@@ -90,3 +90,33 @@ describe('pompa pendorong dari teks (uji sales 2026-10-20, SC-04)', () => {
     expect(booster('rumah 2 lantai, toren di atap')).toBeUndefined();
   });
 });
+
+describe('pesan rumah tanpa model (pemilik 2026-10-21)', () => {
+  const value = (message: string, path: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === path)?.value;
+
+  it('jumlah dengan kata bilangan terbaca', () => {
+    expect(value('rumah dua lantai, kamar mandinya tiga', 'building.floors')).toBe(2);
+    expect(value('rumah dua lantai, kamar mandinya tiga', 'fixtures.bathrooms')).toBe(3);
+    expect(value('rumah satu lantai dengan dua belas keran', 'fixtures.outletCount')).toBe(12);
+    expect(value('rumah 2 lantai, 3 kamar mandi', 'fixtures.bathrooms')).toBe(3);
+  });
+
+  it('titik air tersurat terbaca, kecuali keran wudhu dan titik tambahan', () => {
+    expect(value('rumah 2 lantai, total 10 titik air', 'fixtures.outletCount')).toBe(10);
+    expect(value('masjid 2 lantai, 12 keran wudhu', 'fixtures.outletCount')).toBeUndefined();
+    expect(value('rumah 2 lantai mau tambah 2 titik air', 'fixtures.outletCount')).toBeUndefined();
+  });
+
+  it('kedalaman sumur terbaca dan bukan panjang jalur', () => {
+    expect(value('rumah pakai sumur bor 25 meter', 'water.wellDepthM')).toBe(25);
+    expect(value('rumah pakai sumur bor 25 meter', 'building.dimensions')).toBeUndefined();
+    expect(value('rumah 2 lantai, jalur 15 meter', 'water.wellDepthM')).toBeUndefined();
+  });
+
+  it('rumah sakit dan rumah makan bukan rumah tinggal', () => {
+    expect(value('rumah sakit 3 lantai', 'building.type')).not.toBe('residential');
+    expect(value('rumah makan 2 lantai', 'building.type')).not.toBe('residential');
+    expect(value('Gue mau pasang air bersih di rumah', 'building.type')).toBe('residential');
+  });
+});
