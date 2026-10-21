@@ -31,7 +31,10 @@ const asAdmin = { id: ADMIN, roles: ['admin'] };
 
 let fixture: TestDatabase;
 let leads: LeadService;
-let ai: { writeProse: ReturnType<typeof vi.fn> };
+const fakeAi = () => ({
+  writeProse: vi.fn(async (): Promise<unknown> => ({ text: 'Pelanggan membangun rumah 2 lantai.' })),
+});
+let ai: ReturnType<typeof fakeAi>;
 
 beforeAll(async () => {
   fixture = await createTestDatabase('sales_dashboard');
@@ -42,7 +45,7 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await fixture.clear();
-  ai = { writeProse: vi.fn(async () => ({ text: 'Pelanggan membangun rumah 2 lantai.' })) };
+  ai = fakeAi();
   const board = new ProspectBoardService(new MysqlProspectStore({ db: fixture.db }));
   leads = new LeadService(new MysqlLeadStore({ db: fixture.db }), board, new LeadContextWriter(ai));
   const person = (id: string, email: string, name: string) => ({

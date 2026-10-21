@@ -139,13 +139,19 @@ tingkat prioritas tampil di papan. Bobot §3 diubah dari data itu, lewat perubah
 
 ## 6. Lokasi
 
-- **Kota pengunjung**: dari IP (DB-IP Lite offline di server, CC BY 4.0 dengan atribusi di halaman privasi, tanpa API luar per permintaan), lalu
-  diganti kota dari izin browser bila diberikan. Yang disimpan hanya nama kota/kabupaten; IP dan
-  koordinat tidak pernah disimpan untuk keperluan ini. Untuk tamu, kota hanya masuk agregat pasar.
-- **Lokasi proyek** (yang disebut di percakapan, mis. "proyek di Cikarang") dicatat di ringkasan prospek
-  bila pengguna terdaftar menyebutnya.
-- Geo-IP di Indonesia sering meleset ke kota ISP (mis. Jakarta). Papan menandainya "perkiraan" dan
-  mendahulukan kota dari browser.
+Diterapkan di P26-07 (OQ-77, default sementara):
+
+- **Wilayah dari IP = provinsi**, bukan kota. DB-IP Lite (berkas lokal, CC BY 4.0, tanpa permintaan ke
+  pihak luar per kunjungan) sering meleset ke kota penyedia internet dan kadang memberi kecamatan
+  ("Cicurug"), terlalu sempit untuk ambang k-anonimitas dan terlalu yakin untuk akurasinya. IP tidak
+  disimpan; hanya nama provinsi masuk `market_events`.
+- **Wilayah hanya untuk agregat pasar** (tab Pasar). Papan prospek dan dashboard sales **tidak**
+  menampilkan wilayah per orang: janji onboarding membatasi data wilayah untuk analisis kebutuhan pasar,
+  dan mengubahnya berarti mengubah teks persetujuan (OQ-77).
+- **Kota dari izin browser** belum dipakai: koordinat → kota butuh basis data geografis tersendiri
+  (mis. GeoNames). Sampai diputuskan (OQ-77), izin lokasi tetap hanya dicatat sebagai persetujuan.
+- **Lokasi proyek** yang disebut di percakapan belum diekstrak menjadi field; untuk saat ini sales
+  membacanya dari kalimat pelanggan dan transkrip di dashboard sales.
 
 ---
 

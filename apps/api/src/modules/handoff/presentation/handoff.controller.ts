@@ -11,6 +11,7 @@ import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
 import { RequestValidationError } from '../../../shared/http/api-errors.js';
 import { HandoffService } from '../application/handoff.service.js';
 import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
+import { RecordsMarketEvent } from '../../../shared/market/market-signal.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 const HandoffDto = z.object({ reason: z.string().trim().min(1).max(255) }).strict();
@@ -20,6 +21,8 @@ export class HandoffController {
   constructor(private readonly handoffs: HandoffService) {}
 
   @Audited(USER_AUDIT.handoffCreate)
+  // Kasus diserahkan ke tim teknis = sinyal cakupan di event pasar (P26-07).
+  @RecordsMarketEvent({ trigger: 'technical', param: 'id' })
   @Post(':id/handoff')
   async enqueue(
     @Param() params: unknown,

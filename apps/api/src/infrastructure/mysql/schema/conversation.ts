@@ -65,6 +65,8 @@ export const conversations = mysqlTable(
     projectId: char('project_id', { length: 26 }),
     /** Disematkan di atas riwayat (0025, P24-01); NULL = tidak disematkan. */
     pinnedAt: datetime('pinned_at', { fsp: 3 }),
+    /** Event pasar konsultasi ini sudah dicatat (P26-07) — satu per konsultasi, tanpa id di event. */
+    marketRecordedAt: datetime('market_recorded_at', { fsp: 3 }),
 
     createdAt: createdAt(),
     updatedAt: datetime('updated_at', { fsp: 3 })

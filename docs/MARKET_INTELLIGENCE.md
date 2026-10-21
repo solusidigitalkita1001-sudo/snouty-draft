@@ -226,5 +226,26 @@ dan tidak menyimpulkan permintaan nol. Sinyal cakupan sengaja dikecualikan — r
 tidak bisa menunjuk satu orang, dan menahannya hanya menyembunyikan sinyal yang dibutuhkan untuk tahu
 cakupan rekomendasi terlalu sempit.
 
-**Belum:** pemancar event dari chat dan email (menunggu keduanya berjalan penuh), penyimpanan agregat
-terhitung, dan dashboard (§7) yang menunggu **OQ-21**.
+**P26-07 (2026-10-21) — pemancar chat dan tab Pasar:**
+
+| Bagian                      | Berkas                                                             |
+| --------------------------- | ------------------------------------------------------------------ |
+| Penanda rute                | `shared/market/market-signal.ts` (`@RecordsMarketEvent`)           |
+| Fakta → event (murni)       | `modules/market-intelligence/domain/chat-event.ts`                 |
+| Provinsi dari IP            | `domain/region.ts` + `infrastructure/geoip.ts` (DB-IP Lite, OQ-77) |
+| Baca fakta, tulis event     | `infrastructure/mysql-market-event.store.ts`                       |
+| Interceptor + dashboard     | `presentation/market-event.interceptor.ts`, `GET /internal/market` |
+| Penanda satu per konsultasi | migration 0029 (`conversations.market_recorded_at`)                |
+
+- Event lahir saat solusi pertama dihitung (`POST /conversations/:id/analyze`) atau, bila tidak pernah
+  ada solusi, saat kasus diserahkan ke tim teknis (`POST /conversations/:id/handoff`). Satu event per
+  konsultasi: penandanya di tabel percakapan (yang memang beridentitas), bukan di event pasar.
+- Rekomendasi hanya memasang penanda dari `shared/market`; ia tetap tidak mengimpor
+  `market-intelligence`, jadi pagar lint §9.3 tidak berubah.
+- Wilayah = **provinsi** dari IP; IP tidak disimpan. Tanpa berkas DB-IP, event tetap tercatat tanpa
+  wilayah. Atribusi CC BY 4.0 tampil di tab Pasar dan `PRIVACY.md`.
+- `quotationIntent` = konsultasi itu memuat pertanyaan harga (label pesan) atau "minta dihubungi".
+- Agregat dihitung saat dashboard dibuka dari `market_events` periode yang dipilih (30/90/365 hari); bila
+  volumenya besar, ia pindah ke tabel terhitung harian — fungsinya tetap `aggregate.ts`.
+
+**Belum:** pemancar event dari email (Fase 11 belum berjalan penuh) dan kota dari izin browser (OQ-77).

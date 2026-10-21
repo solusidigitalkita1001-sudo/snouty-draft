@@ -27,6 +27,7 @@ import { assumptionCardFor } from '../../context/application/message-pipeline.js
 import { sseWriter } from '../../../shared/sse/event-stream.js';
 import { LoggerService } from '../../../shared/logging/logger.service.js';
 import { streamStageClock } from '../../../shared/logging/stage-timer.js';
+import { RecordsMarketEvent } from '../../../shared/market/market-signal.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 /** `value: null` = kembalikan ke nilai baku asumsi. */
@@ -44,6 +45,8 @@ export class RecommendationController {
     @Optional() private readonly log?: LoggerService,
   ) {}
 
+  // Solusi selesai dihitung = satu event pasar tanpa identitas (P26-07).
+  @RecordsMarketEvent({ trigger: 'solution', param: 'id' })
   @Post('conversations/:id/analyze')
   async analyze(
     @Param() params: unknown,

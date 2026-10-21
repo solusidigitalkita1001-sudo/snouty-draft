@@ -22,6 +22,7 @@ import {
 } from './dashboard-api';
 import { dashboardCopy } from './dashboard-copy';
 import styles from './dashboard.module.css';
+import { MarketPanel } from './market-panel';
 
 const STAGES: readonly Stage[] = ['aware', 'appeal', 'ask', 'act', 'advocate'];
 
@@ -30,11 +31,13 @@ type Board = {
   readonly items: readonly ProspectItem[];
 };
 
-export function ProspectDashboard() {
+type Tab = 'prospects' | 'team' | 'market';
+
+export function ProspectDashboard({ initialTab = 'prospects' }: { initialTab?: Tab } = {}) {
   const { locale } = useLocale();
   const COPY = dashboardCopy(locale);
   const [ready, setReady] = useState(false);
-  const [tab, setTab] = useState<'prospects' | 'team'>('prospects');
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [filter, setFilter] = useState<ProspectFilter>({});
   const [board, setBoard] = useState<Loaded<Board> | null>(null);
   const [team, setTeam] = useState<readonly SalesMember[]>([]);
@@ -107,6 +110,14 @@ export function ProspectDashboard() {
             onClick={() => setTab('team')}
           >
             {COPY.nav.team}
+          </button>
+          <button
+            type="button"
+            className={[styles.tab, tab === 'market' ? styles.tabOn : ''].join(' ')}
+            aria-pressed={tab === 'market'}
+            onClick={() => setTab('market')}
+          >
+            {COPY.nav.market}
           </button>
         </nav>
         <a className={styles.back} href="/consultation">
@@ -294,6 +305,8 @@ export function ProspectDashboard() {
             )}
           </>
         )}
+
+        {board?.kind === 'ok' && tab === 'market' && <MarketPanel />}
 
         {board?.kind === 'ok' && tab === 'team' && (
           <TeamPanel

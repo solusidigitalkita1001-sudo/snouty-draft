@@ -413,6 +413,20 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-77 — Wilayah dari IP: tingkat, siapa yang melihat, dan kota dari izin browser (P26-07, 2026-10-21)
+
+**Status:** open — default berjalan · **Blocks:** tidak ada
+**Konteks:** pemilik memilih "IP → kota, ditambah izin browser" (OQ-76). Saat dibangun, tiga hal tidak
+tertutup keputusan itu.
+**Default sementara:** (1) **provinsi, bukan kota** — DB-IP Lite di Indonesia sering memberi kota
+penyedia internet atau kecamatan ("Cicurug"), terlalu sempit untuk ambang k-anonimitas dan terlalu yakin
+untuk akurasinya; (2) wilayah **hanya di agregat pasar**, tidak tampil per orang di papan prospek atau
+dashboard sales — janji onboarding "data wilayah dipakai untuk analisis kebutuhan pasar" belum mencakup
+sales; (3) **kota dari izin browser belum dipakai** — koordinat → kota butuh basis data geografis
+tersendiri (mis. GeoNames, CC BY 4.0), izin lokasi tetap dicatat sebagai persetujuan saja.
+**Yang perlu diputuskan pemilik:** apakah wilayah per orang boleh tampil untuk sales (perlu teks
+persetujuan baru), dan apakah kota dari browser (GeoNames) ditambahkan.
+
 ### OQ-76 — Prospek 5A dan penugasan sales (P26-01, 2026-10-21)
 
 **Status:** diputuskan pemilik (2026-10-21, AskUserQuestion): papan prospek hanya untuk pengguna

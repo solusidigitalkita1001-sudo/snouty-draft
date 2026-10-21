@@ -7,7 +7,7 @@ import { pickCopy, type CopyShape } from '../copy';
 
 export const DASHBOARD_COPY = {
   brand: 'SNOUTY',
-  nav: { prospects: 'Prospek', team: 'Tim sales', back: 'Kembali ke konsultasi' },
+  nav: { prospects: 'Prospek', team: 'Tim sales', market: 'Pasar', back: 'Kembali ke konsultasi' },
   prospects: {
     title: 'Prospek',
     subtitle: 'Pelanggan terdaftar menurut tahap 5A dan prioritasnya.',
@@ -62,6 +62,35 @@ export const DASHBOARD_COPY = {
   signIn: 'Masuk',
   failed: 'Tidak bisa memuat sekarang. Coba lagi sebentar.',
   retry: 'Muat ulang',
+  market: {
+    title: 'Pasar',
+    subtitle:
+      'Kebutuhan dari seluruh konsultasi, tanpa identitas. Kelompok di bawah 5 tidak ditampilkan.',
+    period: 'Periode',
+    days: (n: number) => `${n} hari terakhir`,
+    funnel: {
+      started: 'Konsultasi',
+      reachedSolution: 'Sampai solusi',
+      routedToTechnical: 'Ke tim teknis',
+      requestedQuotation: 'Menanyakan harga',
+    },
+    regional: 'Permintaan per provinsi',
+    products: 'Minat produk',
+    projects: 'Pola proyek',
+    drainage: (n: number) => `${n} konsultasi menyertakan pembuangan`,
+    scope: (pct: string) => `${pct} konsultasi diserahkan ke tim teknis`,
+    suppressed: (groups: number, events: number) =>
+      `${groups} kelompok (${events} konsultasi) tidak ditampilkan karena kurang dari 5.`,
+    empty: 'Belum ada data untuk periode ini.',
+    unknownRegion: 'Wilayah tidak diketahui',
+    scale: {
+      kecil: 'kecil',
+      sedang: 'sedang',
+      besar: 'besar',
+      tidak_diketahui: 'skala tidak diketahui',
+    } as Record<string, string>,
+    attribution: 'Wilayah dari alamat IP: DB-IP (db-ip.com), CC BY 4.0.',
+  },
   team: {
     title: 'Tim sales',
     subtitle: 'Akun terdaftar yang menerima prospek.',
@@ -83,7 +112,12 @@ export const DASHBOARD_COPY = {
 
 export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
   brand: 'SNOUTY',
-  nav: { prospects: 'Prospects', team: 'Sales team', back: 'Back to consultation' },
+  nav: {
+    prospects: 'Prospects',
+    team: 'Sales team',
+    market: 'Market',
+    back: 'Back to consultation',
+  },
   prospects: {
     title: 'Prospects',
     subtitle: 'Registered customers by 5A stage and priority.',
@@ -138,6 +172,29 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
   signIn: 'Sign in',
   failed: 'Cannot load right now. Please try again shortly.',
   retry: 'Reload',
+  market: {
+    title: 'Market',
+    subtitle: 'Needs across all consultations, without identities. Groups under 5 are hidden.',
+    period: 'Period',
+    days: (n: number) => `Last ${n} days`,
+    funnel: {
+      started: 'Consultations',
+      reachedSolution: 'Reached a solution',
+      routedToTechnical: 'Sent to technical team',
+      requestedQuotation: 'Asked about price',
+    },
+    regional: 'Demand by province',
+    products: 'Product interest',
+    projects: 'Project patterns',
+    drainage: (n: number) => `${n} consultations included drainage`,
+    scope: (pct: string) => `${pct} of consultations were sent to the technical team`,
+    suppressed: (groups: number, events: number) =>
+      `${groups} groups (${events} consultations) hidden because they have fewer than 5.`,
+    empty: 'No data for this period yet.',
+    unknownRegion: 'Unknown region',
+    scale: { kecil: 'small', sedang: 'medium', besar: 'large', tidak_diketahui: 'unknown scale' },
+    attribution: 'Region from IP address: DB-IP (db-ip.com), CC BY 4.0.',
+  },
   team: {
     title: 'Sales team',
     subtitle: 'Registered accounts that receive prospects.',

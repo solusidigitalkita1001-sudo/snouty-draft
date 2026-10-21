@@ -10,6 +10,7 @@
 #   deploy/deploy.sh db-backup-offsite salinan terenkripsi gpg ke BACKUP_REMOTE (bila diisi)
 #   deploy/deploy.sh db-grants  user aplikasi hanya SELECT/INSERT/UPDATE/DELETE (ikut migrate)
 #   deploy/deploy.sh release    = git pull → build → up → smoke   (migration TIDAK termasuk)
+#   deploy/deploy.sh geoip      unduh DB-IP Lite (bulan ini, atau bulan lalu) ke .geoip/ — bulanan
 #   deploy/deploy.sh logs [svc] ikuti log
 #   deploy/deploy.sh cutover    ambil alih 80/443 dari nginx proyek lama (bagspace tetap dilayani)
 #   deploy/deploy.sh rollback-edge kembalikan nginx proyek lama
@@ -29,6 +30,23 @@ set -a; . "$ENV_FILE"; set +a
 
 cmd="${1:-}"
 case "$cmd" in
+  geoip)
+    # DB-IP Lite City (CC BY 4.0, https://db-ip.com): wilayah event pasar dari IP (P26-07, OQ-77).
+    # Diganti di tempat secara atomik; API membacanya saat dibutuhkan, restart api memuat versi baru.
+    mkdir -p "$ROOT/.geoip"
+    tmp="$ROOT/.geoip/download.mmdb.gz"
+    got=""
+    for month in "$(date +%Y-%m)" "$(date -d "$(date +%Y-%m-01) -1 month" +%Y-%m)"; do
+      if curl -fsSL -o "$tmp" "https://download.db-ip.com/free/dbip-city-lite-$month.mmdb.gz"; then
+        got="$month"; break
+      fi
+    done
+    [ -n "$got" ] || { echo "✖ DB-IP Lite tidak bisa diunduh"; rm -f "$tmp"; exit 1; }
+    gunzip -c "$tmp" > "$ROOT/.geoip/dbip-city-lite.mmdb.new"
+    mv "$ROOT/.geoip/dbip-city-lite.mmdb.new" "$ROOT/.geoip/dbip-city-lite.mmdb"
+    rm -f "$tmp"
+    echo "✓ DB-IP Lite $got: $(du -h "$ROOT/.geoip/dbip-city-lite.mmdb" | cut -f1)"
+    ;;
   build)
     "${COMPOSE[@]}" build api web worker
     ;;

@@ -37,6 +37,7 @@ keputusan teknis. Lihat §5.
 | Email masuk ke sales                                                      | data pribadi pihak ketiga | mailbox                   | analisis lead                                                                        |
 | Label maksud pesan, unduh laporan, buka produk, kunjungan tautan (P26-02) | perilaku, tanpa teks/IP   | sistem                    | tahap prospek 5A — **hanya** akun terdaftar yang tampil per orang (`PROSPECT_5A.md`) |
 | Izin dihubungi tim Pralon, permintaan "minta dihubungi" (P26-04)          | persetujuan               | daftar, menu Akun, tombol | dasar sah sales menghubungi (OQ-76)                                                  |
+| Provinsi dari alamat IP (P26-07)                                          | lokasi kasar, tanpa IP    | geolokasi DB-IP Lite      | **hanya** agregat pasar tanpa identitas; tidak tampil per orang (OQ-77)              |
 | Log & correlation ID                                                      | metadata teknis           | sistem                    | diagnosis                                                                            |
 
 Yang **tidak pernah** dikumpulkan: NIK, data keuangan, biometrik, lokasi presisi (koordinat), kontak

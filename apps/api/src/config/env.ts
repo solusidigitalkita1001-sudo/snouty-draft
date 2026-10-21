@@ -93,6 +93,11 @@ const EnvSchema = z.object({
   UPLOAD_RETENTION_DAYS: z.coerce.number().int().min(1).max(3650).default(180),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   OPENROUTER_BASE_URL: z.string().url().default('https://openrouter.ai/api/v1'),
+  /**
+   * Basis data geolokasi IP DB-IP Lite (mmdb, CC BY 4.0) untuk wilayah event pasar (P26-07).
+   * Opsional: tanpa berkas ini event pasar tetap dicatat, tanpa wilayah.
+   */
+  GEOIP_DB_PATH: z.string().min(1).optional(),
   LLM_MODEL_FAST: z.string().min(1).optional(),
   LLM_MODEL_BALANCED: z.string().min(1).optional(),
   LLM_MODEL_STRONG: z.string().min(1).optional(),

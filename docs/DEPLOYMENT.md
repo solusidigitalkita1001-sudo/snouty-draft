@@ -196,6 +196,10 @@ Log: `deploy/deploy.sh logs api` (atau `web`, `worker`).
   `docker compose … exec -T nginx nginx -t` lalu `docker compose … restart nginx`. bagspace ikut dilayani
   nginx ini.
 - **Cadangan**: `deploy/deploy.sh db-backup` (mysqldump gzip ke `~/backups`) sebelum migration atau perubahan hak.
+- **Geolokasi IP (P26-07)**: `deploy/deploy.sh geoip` mengunduh DB-IP Lite City (CC BY 4.0, ±120 MB) ke
+  `~/snouty/.geoip/` (di luar git), di-mount read-only ke api di `/data/geoip`. Jalankan **sebelum** `up`
+  pertama kali (tanpa direktori itu Docker membuatnya sebagai root), lalu bulanan disusul
+  `docker compose … restart api`. Tanpa berkas: event pasar tetap tercatat tanpa wilayah.
 - **Cadangan otomatis** (crontab user `snouty`): `db-backup-daily` setiap hari 02.30 (simpan 14 hari, log
   `~/backups/backup.log`) dan `deploy/restore-check.sh` setiap Minggu 03.00 (log `~/backups/restore-check.log`)
   — memulihkan cadangan terbaru ke kontainer sementara tanpa port, membandingkan jumlah baris, lalu menghapusnya.

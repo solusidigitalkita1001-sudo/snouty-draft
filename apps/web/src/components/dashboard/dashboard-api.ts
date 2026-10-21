@@ -193,3 +193,33 @@ export const fetchTranscript = (userId: string, conversationId: string) =>
   get<{ readonly items: readonly TranscriptLine[] }>(
     `${LEADS}/${userId}/conversations/${conversationId}`,
   );
+
+// ── Dashboard pasar (P26-07) ────────────────────────────────────────────────
+
+export interface AggregateResult {
+  readonly buckets: readonly { readonly key: string; readonly count: number }[];
+  readonly suppressedGroups: number;
+  readonly suppressedEvents: number;
+}
+
+export interface MarketDashboard {
+  readonly fromDay: string;
+  readonly total: number;
+  readonly regional: AggregateResult;
+  readonly productInterest: AggregateResult;
+  readonly projects: AggregateResult;
+  readonly scope: {
+    readonly total: number;
+    readonly routedToTechnical: number;
+    readonly ratio: number;
+  };
+  readonly drainage: number;
+  readonly funnel: {
+    readonly started: number;
+    readonly reachedSolution: number;
+    readonly routedToTechnical: number;
+    readonly requestedQuotation: number;
+  };
+}
+
+export const fetchMarket = (days: number) => get<MarketDashboard>(`${BASE}/market?days=${days}`);

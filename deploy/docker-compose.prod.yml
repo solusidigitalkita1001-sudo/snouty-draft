@@ -71,8 +71,14 @@ services:
       # satu kalimat antre sampai 73 s saat ramai dan pertanyaan yang semestinya tanpa model ikut
       # timeout. Model chat tetap di `ollama`.
       EMBEDDING_BASE_URL: http://ollama-embed:11434/v1
+      # Geolokasi IP DB-IP Lite (P26-07): wilayah event pasar setingkat provinsi. Berkas diunduh
+      # `deploy.sh geoip`; tanpa berkas, event pasar tetap tercatat tanpa wilayah.
+      GEOIP_DB_PATH: /data/geoip/dbip-city-lite.mmdb
     ports: ['127.0.0.1:${API_BIND_PORT:-3001}:3001']
-    volumes: ['storage:/data/storage', 'understanding-cache:/data/understanding-cache']
+    volumes:
+      - storage:/data/storage
+      - understanding-cache:/data/understanding-cache
+      - ../.geoip:/data/geoip:ro
     depends_on:
       mysql: { condition: service_healthy }
       redis: { condition: service_healthy }

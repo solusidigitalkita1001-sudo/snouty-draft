@@ -1,6 +1,6 @@
-/** Back-office — **belum didesain (OQ-21)**. Lihat `internal-copy.ts`. */
-import { InternalShell } from '../../../components/internal/internal-shell';
+/** Dashboard pasar (P26-07): tab Pasar di dashboard admin. Akses diperiksa API per peran. */
+import { ProspectDashboard } from '../../../components/dashboard/prospect-dashboard';
 
 export default function Page() {
-  return <InternalShell section="market" />;
+  return <ProspectDashboard initialTab="market" />;
 }

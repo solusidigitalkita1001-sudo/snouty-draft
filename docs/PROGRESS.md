@@ -2070,7 +2070,17 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       melihat prospek miliknya (lainnya NOT_FOUND); admin/peninjau melihat semua dan membuka ringkasan dari papan.
       Tautan "Prospek saya" di sidebar untuk peran `sales`. Mock `auth-api` di tes menu Akun dilengkapi (galat
       tak tertangani sejak P26-04 yang lolos karena grep hasil tes tidak menangkap baris "Errors").
-- [ ] P26-07 Geo-IP → kota dan penulis `market_events`.
+- [x] P26-07 Penulis `market_events` + tab Pasar + wilayah dari IP. Event lahir saat solusi pertama dihitung atau
+      kasus diserahkan ke tim teknis (`@RecordsMarketEvent` dari `shared/market`; rekomendasi tetap tidak
+      mengimpor market-intelligence), satu per konsultasi (migration 0029 `conversations.market_recorded_at`),
+      tanpa identitas. Wilayah = provinsi dari DB-IP Lite (berkas lokal `deploy.sh geoip`, CC BY 4.0, IP tidak
+      disimpan; tanpa berkas event tetap tercatat). Tab Pasar di dashboard admin (`/internal/market` kini
+      membukanya): corong, sinyal cakupan, pembuangan, permintaan per provinsi, minat produk, pola proyek, dengan
+      kelompok < 5 disebut ditahan. OQ-77 (default berjalan): provinsi bukan kota, wilayah tidak tampil per
+      orang, kota dari izin browser belum. Galat tipe di tes P26-06 diperbaiki (tsc tidak dijalankan ulang
+      setelah tes ditulis).
+- [ ] ✋ CHECKPOINT Fase 26 — pemilik mencoba dashboard admin (papan, tim sales, pasar) dan dashboard sales
+      dengan akun sales sungguhan; OQ-77.
 
 ## Design Coverage
 

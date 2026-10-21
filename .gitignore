@@ -21,6 +21,8 @@ packages/*/src/**/*.d.ts.map
 
 # env & secrets — never commit
 .env
+# Basis data geolokasi IP (deploy.sh geoip), ±120 MB — tidak masuk git.
+.geoip/
 .env.*
 !.env.example
 
