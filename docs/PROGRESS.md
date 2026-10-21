@@ -2092,6 +2092,13 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       dan cangkang dashboard menahan isinya sampai pemulihan selesai. (2) "tulisannya gede2 banget sama
       tebel2" — skala tipografi diturunkan (judul 22→17 px, angka stat 24→20, tebal 600→500 di baris data).
       (3) Ikon garis di menu sidebar, tombol menu, dan tautan kembali; `aria-hidden`, label teks tetap pembawa makna.
+- [x] P26-10 Uji alur penuh DI PRODUKSI 2026-10-21, 15/15 (dua akun uji berlabel, dihapus setelah uji; sisa
+      hanya satu event pasar yang tidak bisa ditarik karena memang anonim): izin dihubungi → konsultasi →
+      analisis → minta dihubungi → papan admin (Act, bisa ditugaskan) → tambah sales → tugaskan → Prospek saya →
+      ringkasan (2 lantai, 3 kamar mandi, "Sistem distribusi untuk 10 titik air", pipa utama 1¼") → ubah status →
+      kalah tanpa alasan ditolak → transkrip → sales ditolak di papan admin → paragraf konteks dari model
+      produksi lolos pagar angka. Login pemilik terbukti membawa peran admin dan keempat endpoint dashboard
+      menjawab 200.
 - [ ] ✋ CHECKPOINT Fase 26 — menunggu uji pemilik (pemilik 2026-10-21: "Gw coba sendiri nanti"): tambah akun
       sales, tugaskan prospek, cek dashboard admin (papan, tim sales, pasar) dan dashboard sales. OQ-77 diputuskan
       2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live. Simulasi HTTP
