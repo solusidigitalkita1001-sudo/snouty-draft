@@ -2099,8 +2099,8 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       kalah tanpa alasan ditolak → transkrip → sales ditolak di papan admin → paragraf konteks dari model
       produksi lolos pagar angka. Login pemilik terbukti membawa peran admin dan keempat endpoint dashboard
       menjawab 200.
-- [ ] ✋ CHECKPOINT Fase 26 — menunggu uji pemilik (pemilik 2026-10-21: "Gw coba sendiri nanti"): tambah akun
-      sales, tugaskan prospek, cek dashboard admin (papan, tim sales, pasar) dan dashboard sales. OQ-77 diputuskan
+- [x] ✋ CHECKPOINT Fase 26 — **ditutup pemilik 2026-10-21** atas dasar uji produksi 15/15 (P26-10) dan simulasi
+      lokal 21/21; penilaian tampilan dicatat terpisah bila ada temuan. OQ-77 diputuskan
       2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live. Simulasi HTTP
       ujung-ke-ujung di stack lokal (akun uji admin/sales/pelanggan, bukan produksi) 21/21: opt-in, analisis, minta
       dihubungi → papan (Act, admin bukan prospek) → tambah sales → tugaskan → pasar → Prospek saya, ringkasan, status,
