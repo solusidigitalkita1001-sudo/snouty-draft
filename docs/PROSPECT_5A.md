@@ -1,6 +1,6 @@
 # SNOUTY — Prospek 5A dan Penugasan Sales
 
-Fase 26 · P26-01 · Dibuat 2026-10-21 · **Konsep — menunggu review pemilik**
+Fase 26 · P26-01 · Dibuat 2026-10-21 · **Konsep — keputusan OQ-76 lengkap**
 
 SNOUTY membantu pengguna, dan di sisi Pralon menunjukkan siapa yang berpotensi membeli. Kerangkanya
 5A (Aware → Appeal → Ask → Act → Advocate). Admin menugaskan prospek ke sales, dan sales menerima
@@ -119,7 +119,7 @@ tingkat prioritas tampil di papan. Bobot §3 diubah dari data itu, lewat perubah
 
 ## 6. Lokasi
 
-- **Kota pengunjung**: dari IP (basis data geo-IP offline di server, tanpa API luar per permintaan), lalu
+- **Kota pengunjung**: dari IP (DB-IP Lite offline di server, CC BY 4.0 dengan atribusi di halaman privasi, tanpa API luar per permintaan), lalu
   diganti kota dari izin browser bila diberikan. Yang disimpan hanya nama kota/kabupaten; IP dan
   koordinat tidak pernah disimpan untuk keperluan ini. Untuk tamu, kota hanya masuk agregat pasar.
 - **Lokasi proyek** (yang disebut di percakapan, mis. "proyek di Cikarang") dicatat di ringkasan prospek
@@ -134,7 +134,8 @@ tingkat prioritas tampil di papan. Bobot §3 diubah dari data itu, lewat perubah
 - Pengguna terdaftar diberi tahu **saat mendaftar** bahwa konsultasinya dapat ditindaklanjuti tim sales
   Pralon, dan kebijakan privasi diperbarui (`PRIVACY.md`). Teks onboarding langkah 4 tentang wilayah ikut
   disesuaikan.
-- Kontak oleh sales: lihat OQ-76 (opt-in "boleh dihubungi" vs pemberitahuan saja).
+- Kontak oleh sales (OQ-76): **opt-in** "boleh dihubungi tim Pralon" saat daftar, bisa dicabut di profil
+  (consent baru `SALES_CONTACT`); tanpa opt-in, sales hanya menghubungi bila pengguna menekan "minta dihubungi".
 - Pengguna yang menghapus akun: `prospect_signals` dan `sales_leads` ikut dihapus; agregat anonim tetap.
 - Retensi sinyal mengikuti retensi percakapan (`PRIVACY.md` §6).
 

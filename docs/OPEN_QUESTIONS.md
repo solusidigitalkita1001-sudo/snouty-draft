@@ -415,11 +415,11 @@ masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specifi
 
 ### OQ-76 — Prospek 5A dan penugasan sales (P26-01, 2026-10-21)
 
-**Status:** sebagian diputuskan pemilik (2026-10-21, AskUserQuestion): papan prospek hanya untuk pengguna
+**Status:** diputuskan pemilik (2026-10-21, AskUserQuestion): papan prospek hanya untuk pengguna
 terdaftar (tamu hanya di agregat anonim); lokasi dari IP → kota ditambah izin browser; papan dipakai sales +
 admin, kontak lewat jalur handoff; admin menugaskan prospek ke sales, dan sales menerima ringkasan percakapan.
-Konsep: `docs/PROSPECT_5A.md` · **Blocks:** P26-02 … P26-07
-**Masih terbuka (default sementara):** (1) dasar kontak sales — default: opt-in "boleh dihubungi tim
+Konsep: `docs/PROSPECT_5A.md` · **Blocks:** tidak ada
+**Diputuskan 2026-10-21 (AskUserQuestion, semua usulan default diterima):** (1) dasar kontak sales — default: opt-in "boleh dihubungi tim
 Pralon" saat daftar, dan selalu boleh bila pengguna menekan "minta dihubungi"; (2) bobot prioritas §3 —
 default angka di dokumen, dikalibrasi dari status menang/kalah; (3) peran `sales` baru yang hanya melihat
 prospek miliknya — default ya; (4) sumber geo-IP — default basis data offline berlisensi gratis (DB-IP Lite,

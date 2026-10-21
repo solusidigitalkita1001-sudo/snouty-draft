@@ -2030,7 +2030,8 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
 - [x] P26-01 Dokumen konsep: dua lapis (agregat anonim untuk semua, prospek hanya akun terdaftar), tahap 5A
       dari sinyal nyata, prioritas panas/hangat/dingin, alur admin → sales, ringkasan terstruktur + paragraf
       model, lokasi IP → kota, privasi UU PDP, urutan kerja.
-- [ ] ✋ CHECKPOINT P26-01 — pemilik me-review konsep dan sisa OQ-76.
+- [x] ✋ CHECKPOINT P26-01 — sisa OQ-76 diputuskan pemilik 2026-10-21: opt-in kontak sales, peran `sales`
+      melihat prospek miliknya saja, bobot prioritas dari dokumen, DB-IP Lite.
 - [ ] P26-02 Instrumentasi: `messages.intent`, `prospect_signals`, konsumer antrean, aktivitas terakhir.
 - [ ] P26-03 Aturan tahap 5A + prioritas (domain murni + tes).
 - [ ] P26-04 Handoff `sales` ("minta dihubungi") + pemberitahuan saat daftar + PRIVACY.
