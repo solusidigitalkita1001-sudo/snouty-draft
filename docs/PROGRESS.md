@@ -2085,6 +2085,11 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       ujung-ke-ujung di stack lokal (akun uji admin/sales/pelanggan, bukan produksi) 21/21: opt-in, analisis, minta
       dihubungi → papan (Act, admin bukan prospek) → tambah sales → tugaskan → pasar → Prospek saya, ringkasan, status,
       kalah tanpa alasan ditolak, transkrip, sales ditolak di papan admin, tamu ditolak.
+      Uji penulis konteks dengan model PRODUKSI (tanpa akun/data baru) menemukan dan memperbaiki dua hal: paragraf
+      menyapa pelanggan ("Pak…") → prompt catatan internal + pagar sapaan; "1 inci" ditolak terhadap DATA `1"` →
+      pagar prosa bersama menyamakan 1" = 1 inci = 1 inch. Kini 3/3 paragraf rumah lolos (13–18 s). Suite perpipaan
+      live menemukan regresi sejak P25-08 ("pralon jual pipa galvanis?" dijawab cara menyambung) → contoh negatif
+      di data topik; 48/48.
 
 ## Design Coverage
 
