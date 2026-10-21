@@ -83,7 +83,14 @@ peluruhan      : 0,5 ^ (hari sejak sinyal terakhir / 14)
 panas ≥ 12 · hangat ≥ 4 · selebihnya dingin
 ```
 
-Advocate sedikit di bawah Act karena ia sinyal loyalitas, bukan pembelian yang sedang berjalan. Angka di
+Advocate sedikit di bawah Act karena ia sinyal loyalitas, bukan pembelian yang sedang berjalan; karena
+itu prioritas memakai bobot **terbesar** yang pernah dicapai (pengguna yang membuat laporan lalu
+membagikannya tetap berbobot Act), sedangkan tahap yang ditampilkan tetap yang tertinggi. Skala diambil
+dari proyek terbesar pengguna; skala yang tidak diketahui dianggap rumah, supaya prospek tidak pernah
+tampak lebih besar daripada yang dikatakan penggunanya. Kasus kawasan: `residential_cluster`,
+`water_supply_network`, `sewerage`, `stormwater`, `irrigation`; gedung: gedung bertingkat, transfer
+pompa, drainase gravitasi, gorong-gorong, kolam, dan bangunan non-rumah. Diterapkan di
+`modules/prospect/domain/prospect-stage.ts` (P26-03). Angka di
 atas aturan bisnis yang hidup di kode (`prospect/domain`) dan diuji. Tidak ada model yang memberi skor.
 
 ---

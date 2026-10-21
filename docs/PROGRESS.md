@@ -2038,7 +2038,12 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       hari, tanpa IP/teks. Aktivitas terakhir = `MAX(conversations.updated_at)`, tanpa kolom baru. Bukan RabbitMQ:
       insert kecil tanpa ditunggu, seperti jejak audit. Pagar lint: modul `prospect` tidak boleh diimpor
       rekomendasi/engineering/context. 1585 tes (termasuk MySQL) hijau.
-- [ ] P26-03 Aturan tahap 5A + prioritas (domain murni + tes).
+- [x] P26-03 Aturan tahap 5A + prioritas, domain murni `modules/prospect/domain/prospect-stage.ts` (11 tes). Label
+      pemahaman → tahap lewat `Record<FineIntent, …>` (label baru gagal typecheck sampai tahapnya diputuskan);
+      basa-basi, keluhan, dan lanjutan tidak menggeser tahap. Tahap = tertinggi yang dicapai; prioritas = bobot
+      tahap TERBESAR × skala proyek terbesar × 0,5^(hari diam/14); skala tak diketahui = rumah. Pagar lint
+      diperbaiki: pola lama `**/modules/prospect/**` tidak menangkap impor relatif — kini per lapisan
+      (`**/prospect/domain/**` dst.), diverifikasi menolak impor dari rekomendasi.
 - [ ] P26-04 Handoff `sales` ("minta dihubungi") + pemberitahuan saat daftar + PRIVACY.
 - [ ] P26-05 Papan prospek admin + penugasan + peran `sales`.
 - [ ] P26-06 Ringkasan sales + layar sales + status menang/kalah.

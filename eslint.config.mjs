@@ -108,7 +108,12 @@ export default tseslint.config(
             },
             {
               // Skor prospek 5A tidak pernah memengaruhi rekomendasi (docs/PROSPECT_5A.md §1).
-              group: ['**/modules/prospect/**'],
+              group: [
+                '**/prospect/domain/**',
+                '**/prospect/application/**',
+                '**/prospect/infrastructure/**',
+                '**/prospect/presentation/**',
+              ],
               message:
                 'Skor prospek tidak boleh punya jalur ke rekomendasi (docs/PROSPECT_5A.md §1).',
             },
