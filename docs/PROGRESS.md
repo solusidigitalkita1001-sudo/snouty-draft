@@ -2079,8 +2079,9 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       kelompok < 5 disebut ditahan. OQ-77 (default berjalan): provinsi bukan kota, wilayah tidak tampil per
       orang, kota dari izin browser belum. Galat tipe di tes P26-06 diperbaiki (tsc tidak dijalankan ulang
       setelah tes ditulis).
-- [ ] ✋ CHECKPOINT Fase 26 — pemilik mencoba dashboard admin (papan, tim sales, pasar) dan dashboard sales
-      dengan akun sales sungguhan; OQ-77.
+- [ ] ✋ CHECKPOINT Fase 26 — menunggu uji pemilik (pemilik 2026-10-21: "Gw coba sendiri nanti"): tambah akun
+      sales, tugaskan prospek, cek dashboard admin (papan, tim sales, pasar) dan dashboard sales. OQ-77 diputuskan
+      2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live.
 
 ## Design Coverage
 

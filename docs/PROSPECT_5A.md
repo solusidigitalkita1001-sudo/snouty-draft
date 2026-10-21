@@ -139,7 +139,7 @@ tingkat prioritas tampil di papan. Bobot §3 diubah dari data itu, lewat perubah
 
 ## 6. Lokasi
 
-Diterapkan di P26-07 (OQ-77, default sementara):
+Diterapkan di P26-07 (OQ-77, diputuskan pemilik 2026-10-21):
 
 - **Wilayah dari IP = provinsi**, bukan kota. DB-IP Lite (berkas lokal, CC BY 4.0, tanpa permintaan ke
   pihak luar per kunjungan) sering meleset ke kota penyedia internet dan kadang memberi kecamatan

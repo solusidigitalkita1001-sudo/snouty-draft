@@ -415,7 +415,7 @@ masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specifi
 
 ### OQ-77 — Wilayah dari IP: tingkat, siapa yang melihat, dan kota dari izin browser (P26-07, 2026-10-21)
 
-**Status:** open — default berjalan · **Blocks:** tidak ada
+**Status:** diputuskan pemilik (2026-10-21, AskUserQuestion): ketiga default diterima — provinsi dari IP, wilayah hanya di agregat pasar (tidak per orang untuk sales), kota dari izin browser belum perlu. · **Blocks:** tidak ada
 **Konteks:** pemilik memilih "IP → kota, ditambah izin browser" (OQ-76). Saat dibangun, tiga hal tidak
 tertutup keputusan itu.
 **Default sementara:** (1) **provinsi, bukan kota** — DB-IP Lite di Indonesia sering memberi kota
