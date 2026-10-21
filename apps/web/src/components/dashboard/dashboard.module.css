@@ -877,3 +877,59 @@
     position: static;
   }
 }
+
+/* Kartu angka tahap 5A (P26-15, pemilik: "card yang isinya counting aja"). Lima kartu memanjang;
+   gradasi satu hue mengikuti URUTAN tahap, dan tiap kartu tetap membawa nama serta artinya. */
+.statRow5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.statName {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.statName svg {
+  flex: none;
+  opacity: 0.75;
+}
+
+.statTone1 {
+  background: color-mix(in srgb, var(--snouty-action) 6%, var(--snouty-surface));
+}
+
+.statTone2 {
+  background: color-mix(in srgb, var(--snouty-action) 12%, var(--snouty-surface));
+}
+
+.statTone3 {
+  background: color-mix(in srgb, var(--snouty-action) 20%, var(--snouty-surface));
+}
+
+.statTone4 {
+  background: color-mix(in srgb, var(--snouty-action) 30%, var(--snouty-surface));
+}
+
+.statTone5 {
+  background: color-mix(in srgb, var(--snouty-action) 42%, var(--snouty-surface));
+}
+
+.statTone4 .statValue,
+.statTone5 .statValue {
+  color: var(--snouty-action-text);
+}
+
+@media (max-width: 860px) {
+  .statRow5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .statRow5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

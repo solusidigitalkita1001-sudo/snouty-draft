@@ -70,8 +70,8 @@ describe('dashboard prospek (P26-05)', () => {
     expect(table.getByText('Panas')).toBeDefined();
     expect(table.getByText('Kawasan')).toBeDefined();
     expect(table.getByText('Minta dihubungi')).toBeDefined();
-    // Batang tahap 5A: label, artinya, dan jumlahnya ada di satu tombol filter.
-    expect(screen.getByRole('button', { name: /Aware.*Kenal.*3/ })).toBeDefined();
+    // Kartu tahap 5A: angka, nama, dan artinya ada di satu tombol filter.
+    expect(screen.getByRole('button', { name: /3\s*Aware\s*Kenal/ })).toBeDefined();
   });
 
   it('prospek tanpa izin maupun permintaan kontak tidak bisa ditugaskan', async () => {

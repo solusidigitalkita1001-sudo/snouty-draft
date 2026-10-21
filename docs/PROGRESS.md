@@ -2123,6 +2123,10 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       kartu Tahap 5A dan Prioritas memanjang penuh, batang lebih tinggi (14 px), dan deret 5A bergradasi satu hue
       terang→pekat menurut URUTAN tahapnya (bukan besar angkanya). Tes baru memeriksa isian batang benar-benar
       ada dan lebarnya sebanding.
+- [x] P26-15 Tahap 5A jadi lima kartu angka (pemilik 2026-10-21: "card yang isinya counting aja"): angka besar,
+      nama tahap berikon, artinya di bawah; tetap tombol filter. Latarnya bergradasi satu hue menurut urutan tahap,
+      dan angka pada dua kartu terpekat memakai warna teks aksi agar kontrasnya tetap. Di layar sempit lima kartu
+      menjadi tiga lalu dua kolom.
 - [x] ✋ CHECKPOINT Fase 26 — **ditutup pemilik 2026-10-21** atas dasar uji produksi 15/15 (P26-10) dan simulasi
       lokal 21/21; penilaian tampilan dicatat terpisah bila ada temuan. OQ-77 diputuskan
       2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live. Simulasi HTTP

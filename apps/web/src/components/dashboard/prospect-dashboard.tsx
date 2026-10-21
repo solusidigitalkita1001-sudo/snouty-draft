@@ -7,7 +7,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { useLocale } from '../locale';
-import { BarList, type Slice } from './charts';
+import type { Slice } from './charts';
 import {
   assignProspect,
   fetchProspects,
@@ -124,15 +124,35 @@ export function ProspectBoard() {
           <StageIcon stage="ask" />
           {COPY.prospects.funnelTitle}
         </h2>
-        <BarList
-          slices={stageSlices}
-          graded
-          valueLabel={(n) => COPY.prospects.people(n)}
-          selected={filter.stage ?? null}
-          onSelect={(key) =>
-            setFilter((f) => ({ ...f, stage: f.stage === key ? undefined : (key as Stage) }))
-          }
-        />
+        <div className={[styles.statRow, styles.statRow5].join(' ')}>
+          {stageSlices.map((slice, index) => {
+            const stage = slice.key as Stage;
+            const on = filter.stage === stage;
+            return (
+              <button
+                key={stage}
+                type="button"
+                className={[
+                  styles.stat,
+                  styles[`statTone${index + 1}`] ?? '',
+                  on ? styles.statOn : '',
+                ].join(' ')}
+                aria-pressed={on}
+                title={COPY.prospects.people(slice.value)}
+                onClick={() =>
+                  setFilter((f) => ({ ...f, stage: f.stage === stage ? undefined : stage }))
+                }
+              >
+                <span className={styles.statValue}>{slice.value}</span>
+                <span className={styles.statName}>
+                  <StageIcon stage={stage} />
+                  {slice.label}
+                </span>
+                <span className={styles.statLabel}>{slice.detail}</span>
+              </button>
+            );
+          })}
+        </div>
         <p className={styles.meta}>{COPY.prospects.funnelHint}</p>
       </section>
 
