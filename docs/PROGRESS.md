@@ -2017,7 +2017,9 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       SC-03/SC-04 (rumah tanpa jumlah lantai) masih 20–40 s menunggu 7B. Kini setiap pesan rumah tinggal dibaca parser
       nilai saja: jumlah dengan kata bilangan ("dua lantai", "kamar mandinya tiga"), titik air tersurat (bukan keran
       wudhu/titik tambahan), kedalaman sumur, dan pompa pendorong ("booster pump", "tanpa pompa booster" = tidak);
-      yang tidak disebut ditanya kartu. "Rumah sakit/makan/pompa" bukan rumah tinggal.
+      yang tidak disebut ditanya kartu. "Rumah sakit/makan/pompa" bukan rumah tinggal. Live: SC-03 0,3 s, SC-04 0,4 s
+      (dulu 20–40 s). Uji ulang menemukan "air limbah perumahan 100 rumah" jatuh ke jalur rumah — contoh `sewerage`
+      ditambah di `use-case.json` (eval pemahaman tetap ≥ 95%). Hitung live 23/23, campuran 8/8.
 
 ## Design Coverage
 
