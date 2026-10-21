@@ -72,3 +72,21 @@ describe('ukuran tanah dan bangunan dari teks (2026-10-12)', () => {
     expect(dims('LT 150 m2 LB 90 m2')).toEqual({ landAreaM2: 150, areaM2: 90 });
   });
 });
+
+describe('pompa pendorong dari teks (uji sales 2026-10-20, SC-04)', () => {
+  const booster = (message: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === 'water.boosterPump')?.value;
+  const source = (message: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === 'water.source')?.value;
+
+  it('booster yang disebut tercatat tanpa model, dan bukan sumber air', () => {
+    expect(booster('Air rumah gue pakai booster pump. Jalur utama kira-kira 20 meter.')).toBe(true);
+    expect(booster('rumah 2 lantai pakai pompa pendorong')).toBe(true);
+    expect(source('Air rumah gue pakai booster pump.')).toBeUndefined();
+  });
+
+  it('peniadaan berarti tanpa pompa; tidak disebut berarti tidak dicatat', () => {
+    expect(booster('rumah 2 lantai tanpa pompa booster')).toBe(false);
+    expect(booster('rumah 2 lantai, toren di atap')).toBeUndefined();
+  });
+});

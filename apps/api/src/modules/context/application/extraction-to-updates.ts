@@ -192,6 +192,19 @@ const OBVIOUS = {
     return undefined;
   },
   /**
+   * Pompa pendorong yang tersurat ("pakai booster pump", "pompa pendorong") — nilai enum, bukan
+   * tebakan. Dulu hanya dari model, dan hilang saat model dilewati (uji sales 2026-10-20, SC-04).
+   * Peniadaan di depannya ("tanpa pompa booster") berarti `false`.
+   */
+  boosterPump: (m: string): boolean | undefined => {
+    const named =
+      /\b(booster(?:\s*pumps?)?|pompa\s*(?:booster|pendorong|dorong|tekan)|pressure pumps?)\b/i;
+    if (!named.test(m)) return undefined;
+    return !/\b(tanpa|tidak pakai|tidak ada|nggak pakai|gak pakai|ga pakai|no|without)\s+(?:a\s+)?(booster|pompa|pressure)/i.test(
+      m,
+    );
+  },
+  /**
    * Ukuran bangunan dan tanah ("rumah 8 x 15", "10x8", "tanah 10x20 m", "luas bangunan 120 m2",
    * "LT 200 m2") — parser nilai bersatuan. Pasangan "N x M" pertama adalah bangunan, kecuali kata
    * benda terakhir sebelum angkanya (dalam klausa yang sama) tanah/lahan/kavling → ukuran tanah,
@@ -512,7 +525,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     'water.installationType',
     extraction.water?.installationType ?? OBVIOUS.installationType(message),
   );
-  add('water.boosterPump', extraction.water?.boosterPump);
+  add('water.boosterPump', extraction.water?.boosterPump ?? OBVIOUS.boosterPump(message));
   add('water.wellDepthM', extraction.water?.wellDepthM);
   add('water.replaceExisting', extraction.water?.replaceExisting);
   // Renovasi (P23-03): ukuran pipa lama dinormalkan ke label kanonik; label yang tidak terbaca
