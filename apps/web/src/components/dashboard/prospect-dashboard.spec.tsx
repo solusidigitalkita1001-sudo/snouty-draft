@@ -22,7 +22,7 @@ vi.mock('../auth/session', () => ({
   isSales: () => false,
 }));
 
-const { ProspectBoard } = await import('./prospect-dashboard');
+const { ProspectBoard, initialsOf } = await import('./prospect-dashboard');
 
 function prospect(over: Partial<ProspectItem>): ProspectItem {
   return {
@@ -124,5 +124,14 @@ describe('dashboard prospek (P26-05)', () => {
     api.fetchProspects.mockResolvedValue({ kind: 'forbidden' });
     render(<ProspectBoard />);
     expect(await screen.findByText(/untuk tim Pralon/)).toBeDefined();
+  });
+});
+
+describe('inisial avatar baris pelanggan (P26-13)', () => {
+  it('maksimal dua huruf; nama kosong tetap punya penanda', () => {
+    expect(initialsOf('Budi Santoso')).toBe('BS');
+    expect(initialsOf('  rina  ')).toBe('R');
+    expect(initialsOf('Agus Dwi Prakoso')).toBe('AD');
+    expect(initialsOf('   ')).toBe('?');
   });
 });

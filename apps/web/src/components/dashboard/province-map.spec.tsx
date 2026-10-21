@@ -24,8 +24,9 @@ const MAP: MapDemand = {
 describe('peta permintaan (P26-12)', () => {
   it('provinsi dan jumlahnya terbaca sebagai teks, bukan hanya warna', () => {
     render(<ProvinceMap map={MAP} />);
-    expect(screen.getByRole('button', { name: /Jawa Barat · 12 konsultasi/ })).toBeDefined();
-    expect(screen.getByRole('button', { name: /Bali · 5 konsultasi/ })).toBeDefined();
+    // Chip legenda: nama + jumlahnya sebagai teks, bukan hanya warna zona.
+    expect(screen.getByRole('button', { name: /Jawa Barats*12/ })).toBeDefined();
+    expect(screen.getByRole('button', { name: /Balis*5/ })).toBeDefined();
     expect(screen.getByRole('img').getAttribute('aria-label')).toContain(
       'Jawa Barat: 12 konsultasi',
     );
@@ -43,7 +44,7 @@ describe('peta permintaan (P26-12)', () => {
 
   it('bisa kembali ke seluruh Indonesia', () => {
     render(<ProvinceMap map={MAP} />);
-    fireEvent.click(screen.getByRole('button', { name: /Bali · 5/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Balis*5/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Lihat seluruh Indonesia' }));
     expect(screen.getByText('Peta permintaan')).toBeDefined();
   });

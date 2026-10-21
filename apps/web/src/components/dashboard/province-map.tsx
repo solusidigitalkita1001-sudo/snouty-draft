@@ -1,26 +1,26 @@
 'use client';
 
 /**
- * Peta permintaan (P26-12, pemilik 2026-10-21: "zone by province, klik → zoom ke sebaran titiknya").
+ * Peta permintaan (P26-12, dirapikan P26-13 setelah pemilik menilai versi pertama "jelek banget").
  *
- * Zona provinsi diwarnai menurut jumlah konsultasi — satu hue, terang ke gelap, karena pekerjaannya
- * magnitudo. Warna tidak pernah satu-satunya pembawa makna: hover memberi jumlahnya, provinsi dengan
- * data diberi label, dan daftar di bawah peta mengulang angkanya sebagai teks.
+ * Tiga hal yang membuat versi pertama buruk dan diperbaiki di sini:
+ *   1. **Proporsi melar** — tinggi bingkai dulu ditetapkan 380, padahal rentang Indonesia 45,8° × 16,8°.
+ *      Sekarang tinggi diturunkan dari bounds (dengan koreksi kosinus lintang), jadi pulau tidak gepeng.
+ *   2. **Teks dan titik ikut membesar saat zoom** — ukurannya dalam satuan peta. Sekarang skalanya
+ *      dibagi faktor zoom, jadi label dan titik tetap seukuran di layar.
+ *   3. **Zoom melompat** — perpindahan bingkai kini dianimasikan (dan langsung bila pengguna meminta
+ *      gerak dikurangi).
  *
- * Geometri dari Natural Earth (domain publik) lewat `scripts/build-province-map.mjs`; tidak ada ubin
- * peta dari pihak luar, jadi tidak ada permintaan ke luar saat dashboard dibuka.
+ * Zona diwarnai satu hue terang→gelap menurut jumlah konsultasi; warna tidak pernah satu-satunya
+ * pembawa makna — ada label angka, tooltip, dan daftar teks di bawah peta.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale } from '../locale';
 import { dashboardCopy } from './dashboard-copy';
 import type { MapDemand } from './dashboard-api';
+import { MapPinIcon, ZoomOutIcon } from './dashboard-icons';
 import styles from './province-map.module.css';
 import atlas from './provinces.json';
-
-const W = 900;
-const H = 380;
-/** Lima langkah terang→gelap dari satu hue; langkah 0 untuk provinsi tanpa data. */
-const STEPS = 5;
 
 interface Atlas {
   readonly bounds: readonly number[];
@@ -33,16 +33,24 @@ interface Atlas {
 
 const MAP = atlas as Atlas;
 const [MIN_LNG = 95, MIN_LAT = -11, MAX_LNG = 141, MAX_LAT = 6] = MAP.bounds;
+const W = 1000;
+/** Tinggi dari rentang sebenarnya: 1° bujur ≈ 1° lintang × cos(lintang) di dekat khatulistiwa. */
+const H = Math.round(
+  (W * (MAX_LAT - MIN_LAT)) /
+    ((MAX_LNG - MIN_LNG) * Math.cos((((MAX_LAT + MIN_LAT) / 2) * Math.PI) / 180)),
+);
+const STEPS = 5;
+const ZOOM_MS = 420;
 
-/** Proyeksi setara-persegi panjang: cukup untuk peta sesempit lintang Indonesia. */
+type Box = { x: number; y: number; w: number; h: number };
+const FULL: Box = { x: 0, y: 0, w: W, h: H };
+
 function project(lng: number, lat: number): [number, number] {
-  const x = ((lng - MIN_LNG) / (MAX_LNG - MIN_LNG)) * W;
-  const y = ((MAX_LAT - lat) / (MAX_LAT - MIN_LAT)) * H;
-  return [x, y];
+  return [((lng - MIN_LNG) / (MAX_LNG - MIN_LNG)) * W, ((MAX_LAT - lat) / (MAX_LAT - MIN_LAT)) * H];
 }
 
 const pathOf = (rings: Atlas['provinces'][number]['rings']) =>
-  rings
+  `${rings
     .map((ring) =>
       ring
         .map(([lng = 0, lat = 0], i) => {
@@ -51,9 +59,10 @@ const pathOf = (rings: Atlas['provinces'][number]['rings']) =>
         })
         .join(' '),
     )
-    .join(' Z ') + ' Z';
+    .join(' Z ')} Z`;
 
-function boxOf(rings: Atlas['provinces'][number]['rings']) {
+/** Kotak provinsi, dipaskan ke rasio bingkai supaya zoom tidak menggepengkan isinya. */
+function boxOf(rings: Atlas['provinces'][number]['rings']): Box {
   let [minX, minY, maxX, maxY] = [Infinity, Infinity, -Infinity, -Infinity];
   for (const ring of rings) {
     for (const [lng = 0, lat = 0] of ring) {
@@ -64,46 +73,93 @@ function boxOf(rings: Atlas['provinces'][number]['rings']) {
       maxY = Math.max(maxY, y);
     }
   }
-  // Sedikit ruang di tepi supaya titik di pinggir provinsi tidak menempel bingkai.
-  const pad = Math.max(12, (maxX - minX) * 0.12);
-  return {
-    x: minX - pad,
-    y: minY - pad,
-    w: maxX - minX + pad * 2,
-    h: maxY - minY + pad * 2,
-  };
+  const pad = Math.max(10, (maxX - minX) * 0.14);
+  let w = maxX - minX + pad * 2;
+  let h = maxY - minY + pad * 2;
+  const ratio = W / H;
+  if (w / h > ratio) h = w / ratio;
+  else w = h * ratio;
+  return { x: (minX + maxX) / 2 - w / 2, y: (minY + maxY) / 2 - h / 2, w, h };
+}
+
+/** Perpindahan bingkai yang mulus; langsung bila pengguna meminta gerak dikurangi. */
+function useAnimatedBox(target: Box): Box {
+  const [box, setBox] = useState(target);
+  const from = useRef(target);
+  const frame = useRef(0);
+
+  useEffect(() => {
+    const reduced =
+      typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+      from.current = target;
+      setBox(target);
+      return;
+    }
+    const start = performance.now();
+    const origin = from.current;
+    const ease = (t: number) => 1 - (1 - t) ** 3;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / ZOOM_MS);
+      const k = ease(t);
+      const next = {
+        x: origin.x + (target.x - origin.x) * k,
+        y: origin.y + (target.y - origin.y) * k,
+        w: origin.w + (target.w - origin.w) * k,
+        h: origin.h + (target.h - origin.h) * k,
+      };
+      setBox(next);
+      from.current = next;
+      if (t < 1) frame.current = requestAnimationFrame(step);
+    };
+    frame.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame.current);
+  }, [target]);
+
+  return box;
 }
 
 export function ProvinceMap({ map }: { map: MapDemand }) {
   const { locale } = useLocale();
   const COPY = dashboardCopy(locale);
   const [focus, setFocus] = useState<string | null>(null);
-  const [hover, setHover] = useState<{ name: string; count: number; x: number; y: number } | null>(
+  const [hover, setHover] = useState<{ label: string; count: number; x: number; y: number } | null>(
     null,
   );
 
+  const shapes = useMemo(() => MAP.provinces.map((p) => ({ ...p, d: pathOf(p.rings) })), []);
   const counts = useMemo(
     () => new Map(map.provinces.map((p) => [p.name, p.count])),
     [map.provinces],
   );
   const max = Math.max(...map.provinces.map((p) => p.count), 1);
-  const shapes = useMemo(() => MAP.provinces.map((p) => ({ ...p, d: pathOf(p.rings) })), []);
+
   const focused = shapes.find((p) => p.name === focus) ?? null;
-  const view = focused ? boxOf(focused.rings) : { x: 0, y: 0, w: W, h: H };
+  const target = useMemo(() => (focused ? boxOf(focused.rings) : FULL), [focused]);
+  const view = useAnimatedBox(target);
+  /** Faktor zoom: dipakai membagi ukuran teks dan titik supaya tetap seukuran di layar. */
+  const k = view.w / W;
+
   const points = focus === null ? [] : map.points.filter((point) => point.province === focus);
   const maxPoint = Math.max(...points.map((p) => p.count), 1);
-  /** Jari-jari dari AKAR jumlah: luas lingkaran yang sebanding, bukan jari-jari. */
-  const radius = (count: number) => (4 + 10 * Math.sqrt(count / maxPoint)) * (view.w / W) ** 0.6;
+  const radius = (count: number) => (5 + 11 * Math.sqrt(count / maxPoint)) * k;
+
+  const open = (name: string) => {
+    setHover(null);
+    setFocus(name);
+  };
 
   return (
     <div className={styles.wrap}>
       <div className={styles.head}>
         <span className={styles.title}>
+          <MapPinIcon />
           {focus === null ? COPY.map.title : COPY.map.focus(focus)}
         </span>
         {focus !== null && (
           <button type="button" className={styles.back} onClick={() => setFocus(null)}>
-            {COPY.map.zoomOut}
+            <ZoomOutIcon />
+            <span>{COPY.map.zoomOut}</span>
           </button>
         )}
       </div>
@@ -124,6 +180,7 @@ export function ProvinceMap({ map }: { map: MapDemand }) {
             const count = counts.get(province.name) ?? 0;
             const step = count === 0 ? 0 : Math.max(1, Math.ceil((count / max) * STEPS));
             const [cx, cy] = project(province.center[0] ?? 0, province.center[1] ?? 0);
+            const dim = focus !== null && focus !== province.name;
             return (
               <path
                 key={province.name}
@@ -131,22 +188,32 @@ export function ProvinceMap({ map }: { map: MapDemand }) {
                 className={[
                   styles.zone,
                   styles[`step${step}`],
-                  focus === province.name ? styles.zoneOn : '',
                   count > 0 ? styles.zoneLive : '',
+                  focus === province.name ? styles.zoneOn : '',
+                  dim ? styles.zoneDim : '',
                 ].join(' ')}
-                onMouseEnter={() => setHover({ name: province.name, count, x: cx, y: cy })}
-                onClick={() => count > 0 && setFocus(province.name)}
+                onMouseEnter={() =>
+                  count > 0 && setHover({ label: province.name, count, x: cx, y: cy })
+                }
+                onClick={() => count > 0 && open(province.name)}
               />
             );
           })}
 
+          {/* Angka provinsi hanya saat seluruh Indonesia terlihat; saat fokus, kota yang bicara. */}
           {focus === null &&
             map.provinces.map((province) => {
               const shape = shapes.find((s) => s.name === province.name);
               if (shape === undefined) return null;
               const [cx, cy] = project(shape.center[0] ?? 0, shape.center[1] ?? 0);
               return (
-                <text key={province.name} x={cx} y={cy} className={styles.zoneLabel}>
+                <text
+                  key={province.name}
+                  x={cx}
+                  y={cy}
+                  className={styles.zoneLabel}
+                  style={{ fontSize: 11 * k, strokeWidth: 3 * k }}
+                >
                   {province.count}
                 </text>
               );
@@ -154,36 +221,47 @@ export function ProvinceMap({ map }: { map: MapDemand }) {
 
           {points.map((point) => {
             const [cx, cy] = project(point.lng, point.lat);
+            const r = radius(point.count);
             return (
               <g key={`${point.city}|${point.lat}|${point.lng}`}>
                 <circle
                   cx={cx}
                   cy={cy}
-                  r={radius(point.count)}
+                  r={r}
                   className={styles.point}
                   onMouseEnter={() =>
-                    setHover({ name: point.city, count: point.count, x: cx, y: cy })
+                    setHover({ label: point.city, count: point.count, x: cx, y: cy })
                   }
                 />
-                <text x={cx} y={cy - radius(point.count) - 4} className={styles.pointLabel}>
+                <text
+                  x={cx}
+                  y={cy + r + 11 * k}
+                  className={styles.pointLabel}
+                  style={{ fontSize: 10 * k, strokeWidth: 3 * k }}
+                >
                   {point.city}
                 </text>
               </g>
             );
           })}
-
-          {hover !== null && (
-            <g className={styles.tip} transform={`translate(${hover.x} ${hover.y})`}>
-              <rect x={-70} y={-34} width={140} height={26} rx={6} className={styles.tipBox} />
-              <text y={-16} className={styles.tipText}>
-                {hover.name} · {hover.count}
-              </text>
-            </g>
-          )}
         </svg>
+
+        {/* Tooltip sebagai elemen HTML: ukurannya tidak ikut zoom, dan teksnya tajam. */}
+        {hover !== null && (
+          <div
+            className={styles.tip}
+            style={{
+              left: `${((hover.x - view.x) / view.w) * 100}%`,
+              top: `${((hover.y - view.y) / view.h) * 100}%`,
+            }}
+            role="status"
+          >
+            <strong>{hover.label}</strong>
+            <span>{COPY.map.count(hover.count)}</span>
+          </div>
+        )}
       </div>
 
-      {/* Angka yang sama sebagai teks: peta bukan satu-satunya jalan membaca data ini. */}
       {map.provinces.length === 0 ? (
         <p className={styles.note}>{COPY.map.empty}</p>
       ) : (
@@ -193,9 +271,10 @@ export function ProvinceMap({ map }: { map: MapDemand }) {
               <button
                 type="button"
                 className={focus === province.name ? styles.legendOn : undefined}
-                onClick={() => setFocus(focus === province.name ? null : province.name)}
+                onClick={() => (focus === province.name ? setFocus(null) : open(province.name))}
               >
-                {province.name} · {COPY.map.count(province.count)}
+                <span className={styles.legendName}>{province.name}</span>
+                <span className={styles.legendCount}>{province.count}</span>
               </button>
             </li>
           ))}

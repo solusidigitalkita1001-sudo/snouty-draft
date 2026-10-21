@@ -762,3 +762,118 @@
   flex: none;
   opacity: 0.85;
 }
+
+/* ── Baris prospek yang lebih terbaca (P26-13) ─────────────────────────────── */
+
+.person {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--snouty-action-soft-bg);
+  color: var(--snouty-action-text);
+  font-family: var(--snouty-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.iconRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconRow svg {
+  flex: none;
+  opacity: 0.7;
+}
+
+.contactOn svg {
+  color: var(--snouty-action-text);
+  opacity: 1;
+}
+
+.contactOff {
+  color: var(--snouty-muted);
+}
+
+.searchField {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+  min-height: var(--snouty-tap-min);
+  padding: 0 12px;
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-control);
+  background: var(--snouty-surface);
+  color: var(--snouty-muted);
+}
+
+.searchField:focus-within {
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--snouty-ink);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardTitle svg {
+  flex: none;
+  opacity: 0.6;
+}
+
+/* Tabel: baris lebih lega, kepala menempel saat menggulir, hover menuntun mata. */
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--snouty-surface);
+}
+
+.table td {
+  padding: 14px 12px;
+}
+
+.table tbody tr:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+@media (max-width: 720px) {
+  .table tbody tr:hover {
+    background: var(--snouty-surface);
+  }
+
+  .table th {
+    position: static;
+  }
+}

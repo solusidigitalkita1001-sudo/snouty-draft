@@ -2110,6 +2110,13 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       memberi angkanya, klik mem-fokus provinsi dan menggambar titik kota. Migration 0030: `market_events` menyimpan
       kota perkiraan dan koordinat DIBULATKAN 0,1° (±11 km) — tetap anonim, dan ambang k-anonimitas 5 berlaku untuk
       zona maupun titik; yang ditahan dan yang tanpa wilayah disebut di bawah peta.
+- [x] P26-13 Peta dan papan dibenahi setelah pemilik menilai ("map nya jelek banget ketika di klik zone nya",
+      "halaman prospek ui ux nya jelek dan ngga rapi"). Peta: tinggi bingkai diturunkan dari bounds + koreksi
+      kosinus (dulu 380 ditetapkan sendiri sehingga pulau gepeng); label dan titik dibagi faktor zoom supaya
+      tetap seukuran di layar; perpindahan bingkai dianimasikan (langsung bila reduced-motion); provinsi lain
+      meredup saat satu difokuskan; tooltip jadi elemen HTML supaya teksnya tajam; legenda jadi chip + lencana
+      angka. Papan: avatar inisial, ikon per tahap 5A / skala proyek / dasar kontak, kolom pencarian berikon,
+      baris lebih lega, kepala tabel menempel saat menggulir, hover baris.
 - [x] ✋ CHECKPOINT Fase 26 — **ditutup pemilik 2026-10-21** atas dasar uji produksi 15/15 (P26-10) dan simulasi
       lokal 21/21; penilaian tampilan dicatat terpisah bila ada temuan. OQ-77 diputuskan
       2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live. Simulasi HTTP

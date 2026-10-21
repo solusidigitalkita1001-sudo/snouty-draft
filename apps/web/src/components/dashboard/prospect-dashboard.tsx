@@ -20,6 +20,7 @@ import {
   type Stage,
 } from './dashboard-api';
 import { dashboardCopy } from './dashboard-copy';
+import { ContactIcon, ScaleIcon, SearchIcon, StageIcon } from './dashboard-icons';
 import { EmptyState } from './empty-state';
 import styles from './dashboard.module.css';
 
@@ -120,7 +121,10 @@ export function ProspectBoard() {
 
       <div className={styles.cards}>
         <section className={styles.card}>
-          <h2 className={styles.cardTitle}>{COPY.prospects.funnelTitle}</h2>
+          <h2 className={styles.cardTitle}>
+            <StageIcon stage="ask" />
+            {COPY.prospects.funnelTitle}
+          </h2>
           <BarList
             slices={stageSlices}
             valueLabel={(n) => COPY.prospects.people(n)}
@@ -133,7 +137,10 @@ export function ProspectBoard() {
         </section>
 
         <section className={styles.card}>
-          <h2 className={styles.cardTitle}>{COPY.prospects.priorityTitle}</h2>
+          <h2 className={styles.cardTitle}>
+            <ScaleIcon scale="building" />
+            {COPY.prospects.priorityTitle}
+          </h2>
           <div className={styles.statRow}>
             {PRIORITIES.map((priority) => (
               <button
@@ -191,14 +198,17 @@ export function ProspectBoard() {
           <option value="unassigned">{COPY.filters.unassigned}</option>
           <option value="assigned">{COPY.filters.assigned}</option>
         </select>
-        <input
-          className={[styles.control, styles.search].join(' ')}
-          type="search"
-          placeholder={COPY.filters.search}
-          aria-label={COPY.filters.search}
-          value={filter.q ?? ''}
-          onChange={(e) => setFilter((f) => ({ ...f, q: e.target.value || undefined }))}
-        />
+        <span className={styles.searchField}>
+          <SearchIcon />
+          <input
+            className={styles.searchInput}
+            type="search"
+            placeholder={COPY.filters.search}
+            aria-label={COPY.filters.search}
+            value={filter.q ?? ''}
+            onChange={(e) => setFilter((f) => ({ ...f, q: e.target.value || undefined }))}
+          />
+        </span>
         {(filter.stage ?? filter.priority ?? filter.scale ?? filter.assignment ?? filter.q) !==
           undefined && (
           <button type="button" className={styles.secondary} onClick={() => setFilter({})}>
@@ -236,13 +246,25 @@ export function ProspectBoard() {
               {items.map((item) => (
                 <tr key={item.userId}>
                   <td data-label={COPY.columns.customer}>
-                    <div className={styles.name}>{item.name}</div>
-                    <div className={styles.meta}>{item.email}</div>
-                    {item.phone && <div className={styles.meta}>{item.phone}</div>}
-                    <div className={styles.meta}>{COPY.conversations(item.conversationCount)}</div>
+                    <div className={styles.person}>
+                      <span className={styles.avatar} aria-hidden="true">
+                        {initialsOf(item.name)}
+                      </span>
+                      <span className={styles.personText}>
+                        <span className={styles.name}>{item.name}</span>
+                        <span className={styles.meta}>{item.email}</span>
+                        {item.phone && <span className={styles.meta}>{item.phone}</span>}
+                        <span className={styles.meta}>
+                          {COPY.conversations(item.conversationCount)}
+                        </span>
+                      </span>
+                    </div>
                   </td>
                   <td data-label={COPY.columns.stage}>
-                    <span className={styles.stageTag}>{COPY.stages[item.stage].name}</span>
+                    <span className={styles.iconRow}>
+                      <StageIcon stage={item.stage} />
+                      <span className={styles.stageTag}>{COPY.stages[item.stage].name}</span>
+                    </span>
                     <div className={styles.meta}>{COPY.stages[item.stage].meaning}</div>
                   </td>
                   <td data-label={COPY.columns.priority}>
@@ -252,16 +274,39 @@ export function ProspectBoard() {
                       {COPY.priority[item.priority]}
                     </span>
                   </td>
-                  <td data-label={COPY.columns.project}>{COPY.scale[item.scale]}</td>
+                  <td data-label={COPY.columns.project}>
+                    <span className={styles.iconRow}>
+                      <ScaleIcon scale={item.scale} />
+                      <span>{COPY.scale[item.scale]}</span>
+                    </span>
+                  </td>
                   <td data-label={COPY.columns.activity}>
                     {dateFormat.format(new Date(item.lastActivityAt))}
                   </td>
                   <td data-label={COPY.columns.contact}>
-                    {item.salesRequestedAt
-                      ? COPY.contact.requested
-                      : item.salesContactConsent
-                        ? COPY.contact.consent
-                        : COPY.contact.none}
+                    <span
+                      className={[
+                        styles.iconRow,
+                        item.contactable ? styles.contactOn : styles.contactOff,
+                      ].join(' ')}
+                    >
+                      <ContactIcon
+                        kind={
+                          item.salesRequestedAt
+                            ? 'requested'
+                            : item.salesContactConsent
+                              ? 'consent'
+                              : 'none'
+                        }
+                      />
+                      <span>
+                        {item.salesRequestedAt
+                          ? COPY.contact.requested
+                          : item.salesContactConsent
+                            ? COPY.contact.consent
+                            : COPY.contact.none}
+                      </span>
+                    </span>
                   </td>
                   <td data-label={COPY.columns.sales}>
                     <AssignCell
@@ -340,4 +385,11 @@ function AssignCell({
       )}
     </>
   );
+}
+
+/** Inisial nama untuk avatar baris pelanggan — maksimal dua huruf. */
+export function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const letters = parts.slice(0, 2).map((part) => part.charAt(0).toUpperCase());
+  return letters.join('') || '?';
 }
