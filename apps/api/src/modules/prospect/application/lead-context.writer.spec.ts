@@ -42,6 +42,15 @@ describe('LeadContextWriter (P26-06)', () => {
     expect(await writer.write(FACTS)).toBe(text);
   });
 
+  it('paragraf yang menyapa pelanggan (bukan catatan untuk sales) → tanpa paragraf', async () => {
+    const writer = new LeadContextWriter(
+      aiReturning({
+        text: 'Pak, untuk rumah 2 lantai itu, kapan Bapak mau mulai memasang pipanya?',
+      }),
+    );
+    expect(await writer.write(FACTS)).toBeNull();
+  });
+
   it('angka yang tidak ada di DATA → tanpa paragraf', async () => {
     const writer = new LeadContextWriter(
       aiReturning({ text: 'Pelanggan butuh sekitar 45 batang pipa untuk rumah 2 lantai.' }),
