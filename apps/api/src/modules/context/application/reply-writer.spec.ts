@@ -121,4 +121,11 @@ describe('passesGuards — penanda teknis harus sama dengan DATA', () => {
   it('penanda dan ukuran yang memang ada di DATA lolos; penulisan koma/spasi setara', () => {
     expect(passesGuards('Kelasnya PN 8 dan PN-16, ukuran 16 mm sampai 900 mm.', facts)).toBe(true);
   });
+
+  it('1" = 1 inci = 1 inch (ringkasan sales 2026-10-21); ukuran lain tetap ditolak', () => {
+    const data = 'pipa utama: 1", produk: Pipa AW 1" x 4 Meter';
+    expect(passesGuards('Pipa utamanya 1 inci, batang 4 meter.', data)).toBe(true);
+    expect(passesGuards('Pipa utamanya 1 inch.', data)).toBe(true);
+    expect(passesGuards('Pipa utamanya 2 inci.', data)).toBe(false);
+  });
 });

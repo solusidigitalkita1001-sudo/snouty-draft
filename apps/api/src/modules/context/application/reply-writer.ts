@@ -139,7 +139,13 @@ export function technicalClaimsIn(text: string): readonly string[] {
     claims.push(`${m[1]!.toUpperCase()}-${m[2]!.replace(',', '.')}`);
   }
   for (const m of text.matchAll(QUANTITY)) {
-    const unit = m[2]!.toLowerCase().replace('meter', 'm').replace('inch', 'inci');
+    // 1" = 1 inci = 1 inch: satuan yang sama tidak boleh terbaca sebagai klaim baru (uji ringkasan
+    // sales 2026-10-21: DATA menulis 1", model menulis "1 inci" → paragraf benar ditolak).
+    const unit = m[2]!
+      .toLowerCase()
+      .replace('meter', 'm')
+      .replace('inch', 'inci')
+      .replace('"', 'inci');
     claims.push(`${m[1]!.replace(',', '.')}${unit}`);
   }
   return claims;
