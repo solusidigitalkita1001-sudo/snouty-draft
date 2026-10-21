@@ -1,12 +1,16 @@
 'use client';
 
 /**
- * Pasar (P26-07/P26-08, docs/MARKET_INTELLIGENCE.md §7): agregat tanpa identitas sebagai chart. Ambang
- * k-anonimitas sudah diterapkan server; panel ini menampilkan dan menyebut berapa kelompok yang ditahan.
+ * Pasar (P26-07, dirapikan P26-16 setelah pemilik menilai kartunya "cuma tulisan doang").
+ *
+ * Susunannya: empat angka ringkas di atas, peta permintaan, lalu tren dan tiga daftar peringkat
+ * (minat produk, provinsi, pola proyek) yang kini membawa nomor urut, ikon, lencana ukuran, batang,
+ * dan porsinya terhadap keseluruhan. Ambang k-anonimitas sudah diterapkan server; panel ini
+ * menampilkan dan menyebut berapa kelompok yang ditahan.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useLocale } from '../locale';
-import { BarList, TrendLine, type Slice } from './charts';
+import { RankList, TrendLine, type RankRow } from './charts';
 import {
   fetchMarket,
   type AggregateResult,
@@ -14,6 +18,15 @@ import {
   type MarketDashboard,
 } from './dashboard-api';
 import { dashboardCopy } from './dashboard-copy';
+import {
+  ChartIcon,
+  ChatIcon,
+  ContactIcon,
+  MapPinIcon,
+  PipeIcon,
+  ScaleIcon,
+  StageIcon,
+} from './dashboard-icons';
 import { ProvinceMap } from './province-map';
 import styles from './dashboard.module.css';
 import { EmptyState } from './empty-state';
@@ -46,6 +59,11 @@ export function MarketPanel() {
   const building = (key: string) => LABELS.buildingTypes[key] ?? LABELS.cases[key] ?? key;
   const region = (key: string) => (key === 'tidak_diketahui' ? COPY.market.unknownRegion : key);
   const count = (n: number) => COPY.market.consultations(n);
+  const percent = (ratio: number) =>
+    new Intl.NumberFormat(locale === 'en' ? 'en-GB' : 'id-ID', {
+      style: 'percent',
+      maximumFractionDigits: 0,
+    }).format(ratio);
 
   return (
     <>
@@ -80,78 +98,105 @@ export function MarketPanel() {
       {data?.kind === 'ok' && data.value.total === 0 && (
         <EmptyState mood="confused" text={COPY.market.empty} />
       )}
+
       {data?.kind === 'ok' && data.value.total > 0 && (
         <>
+          {/* Empat angka yang paling sering ditanyakan, sebelum grafik apa pun. */}
+          <div className={[styles.statRow, styles.statRow4].join(' ')}>
+            <Kpi
+              icon={<ChatIcon />}
+              value={String(data.value.funnel.started)}
+              label={COPY.market.funnel.started}
+            />
+            <Kpi
+              icon={<StageIcon stage="act" />}
+              value={String(data.value.funnel.reachedSolution)}
+              label={COPY.market.funnel.reachedSolution}
+              detail={percent(
+                data.value.funnel.started === 0
+                  ? 0
+                  : data.value.funnel.reachedSolution / data.value.funnel.started,
+              )}
+            />
+            <Kpi
+              icon={<ContactIcon kind="requested" />}
+              value={String(data.value.funnel.requestedQuotation)}
+              label={COPY.market.funnel.requestedQuotation}
+            />
+            <Kpi
+              icon={<ChartIcon />}
+              value={percent(data.value.scope.ratio)}
+              label={COPY.market.funnel.routedToTechnical}
+              detail={COPY.market.drainage(data.value.drainage)}
+            />
+          </div>
+
           <section className={[styles.card, styles.cardWide].join(' ')}>
             <ProvinceMap map={data.value.map} />
           </section>
 
           <div className={styles.cards}>
             <section className={styles.card}>
-              <h2 className={styles.cardTitle}>{COPY.market.funnelTitle}</h2>
-              <BarList
-                slices={(
-                  ['started', 'reachedSolution', 'routedToTechnical', 'requestedQuotation'] as const
-                ).map((key) => ({
-                  key,
-                  label: COPY.market.funnel[key],
-                  value: data.value.funnel[key],
-                }))}
-                valueLabel={count}
-              />
-              <ul className={styles.factList}>
-                <li>
-                  {COPY.market.scope(
-                    new Intl.NumberFormat(locale === 'en' ? 'en-GB' : 'id-ID', {
-                      style: 'percent',
-                      maximumFractionDigits: 0,
-                    }).format(data.value.scope.ratio),
-                  )}
-                </li>
-                <li>{COPY.market.drainage(data.value.drainage)}</li>
-              </ul>
+              <h2 className={styles.cardTitle}>
+                <ChartIcon />
+                {COPY.market.trendTitle}
+              </h2>
+              <TrendLine points={monthlyTrend(data.value.regional, month)} valueLabel={count} />
             </section>
 
             <section className={styles.card}>
-              <h2 className={styles.cardTitle}>{COPY.market.trendTitle}</h2>
-              <TrendLine points={monthlyTrend(data.value.regional, month)} valueLabel={count} />
+              <h2 className={styles.cardTitle}>
+                <PipeIcon />
+                {COPY.market.products}
+              </h2>
+              <RankCard
+                result={data.value.productInterest}
+                copy={COPY}
+                total={data.value.total}
+                row={(key) => {
+                  const [family = '', size = '', ym = ''] = key.split('|');
+                  return { label: family, badge: size, detail: month(ym), icon: <PipeIcon /> };
+                }}
+              />
             </section>
           </div>
 
           <div className={styles.cards}>
-            <ChartCard
-              title={COPY.market.regional}
-              result={data.value.regional}
-              copy={COPY}
-              count={count}
-              label={(key) => {
-                const [name = '', ym = ''] = key.split('|');
-                return { label: region(name), detail: month(ym) };
-              }}
-            />
-            <ChartCard
-              title={COPY.market.products}
-              result={data.value.productInterest}
-              copy={COPY}
-              count={count}
-              label={(key) => {
-                const [family = '', size = '', ym = ''] = key.split('|');
-                return { label: `${family} ${size}`, detail: month(ym) };
-              }}
-            />
-            <ChartCard
-              title={COPY.market.projects}
-              result={data.value.projects}
-              copy={COPY}
-              count={count}
-              label={(key) => {
-                const [type = '', scale = '', place = ''] = key.split('|');
-                return {
-                  label: building(type),
-                  detail: `${COPY.market.scale[scale] ?? scale} · ${region(place)}`,
-                };
-              }}
-            />
+            <section className={styles.card}>
+              <h2 className={styles.cardTitle}>
+                <MapPinIcon />
+                {COPY.market.regional}
+              </h2>
+              <RankCard
+                result={data.value.regional}
+                copy={COPY}
+                total={data.value.total}
+                row={(key) => {
+                  const [name = '', ym = ''] = key.split('|');
+                  return { label: region(name), detail: month(ym), icon: <MapPinIcon /> };
+                }}
+              />
+            </section>
+
+            <section className={styles.card}>
+              <h2 className={styles.cardTitle}>
+                <ScaleIcon scale="district" />
+                {COPY.market.projects}
+              </h2>
+              <RankCard
+                result={data.value.projects}
+                copy={COPY}
+                total={data.value.total}
+                row={(key) => {
+                  const [type = '', scale = '', place = ''] = key.split('|');
+                  return {
+                    label: building(type),
+                    detail: `${COPY.market.scale[scale] ?? scale} · ${region(place)}`,
+                    icon: <ScaleIcon scale={marketScale(scale)} />,
+                  };
+                }}
+              />
+            </section>
           </div>
 
           <p className={styles.meta}>
@@ -167,6 +212,36 @@ export function MarketPanel() {
         </>
       )}
     </>
+  );
+}
+
+/** Skala event pasar (kecil/sedang/besar) → ikon proyek yang sama dengan papan prospek. */
+function marketScale(scale: string): string {
+  if (scale === 'besar') return 'district';
+  if (scale === 'sedang') return 'building';
+  return 'house';
+}
+
+function Kpi({
+  icon,
+  value,
+  label,
+  detail,
+}: {
+  icon: ReactNode;
+  value: string;
+  label: string;
+  detail?: string;
+}) {
+  return (
+    <div className={styles.stat}>
+      <span className={styles.statIcon} aria-hidden="true">
+        {icon}
+      </span>
+      <span className={styles.statValue}>{value}</span>
+      <span className={styles.statLabel}>{label}</span>
+      {detail !== undefined && <span className={styles.statDetail}>{detail}</span>}
+    </div>
   );
 }
 
@@ -199,33 +274,26 @@ export function monthlyTrend(
   return points;
 }
 
-function ChartCard({
-  title,
+function RankCard({
   result,
   copy,
-  count,
-  label,
+  total,
+  row,
 }: {
-  title: string;
   result: AggregateResult;
   copy: ReturnType<typeof dashboardCopy>;
-  count: (n: number) => string;
-  label: (key: string) => { label: string; detail?: string };
+  total: number;
+  row: (key: string) => Omit<RankRow, 'key' | 'value'>;
 }) {
-  const slices: readonly Slice[] = result.buckets.slice(0, TOP).map((bucket) => {
-    const parts = label(bucket.key);
-    return {
-      key: bucket.key,
-      label: parts.label,
-      value: bucket.count,
-      ...(parts.detail !== undefined ? { detail: parts.detail } : {}),
-    };
-  });
+  const rows: readonly RankRow[] = result.buckets.slice(0, TOP).map((bucket) => ({
+    key: bucket.key,
+    value: bucket.count,
+    ...row(bucket.key),
+  }));
   return (
-    <section className={styles.card}>
-      <h2 className={styles.cardTitle}>{title}</h2>
-      {slices.length > 0 ? (
-        <BarList slices={slices} valueLabel={count} />
+    <>
+      {rows.length > 0 ? (
+        <RankList rows={rows} total={total} valueLabel={(n) => copy.market.consultations(n)} />
       ) : (
         <p className={styles.muted}>{copy.market.empty}</p>
       )}
@@ -234,6 +302,6 @@ function ChartCard({
           {copy.market.suppressed(result.suppressedGroups, result.suppressedEvents)}
         </p>
       )}
-    </section>
+    </>
   );
 }

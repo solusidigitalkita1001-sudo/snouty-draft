@@ -18,11 +18,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--snouty-muted);
-  font-family: var(--snouty-font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  color: var(--snouty-ink-2);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .back {

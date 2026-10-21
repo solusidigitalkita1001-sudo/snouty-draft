@@ -168,3 +168,116 @@
     gap: 10px;
   }
 }
+
+/* ── Daftar peringkat (P26-16): nomor, ikon, nama, lencana, batang, angka ──── */
+
+.rankList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: rank;
+}
+
+.rankRow {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.rankNo {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--snouty-surface-subtle);
+  color: var(--snouty-muted);
+  font-family: var(--snouty-font-mono);
+  font-size: 11px;
+}
+
+.rankRow:first-child .rankNo {
+  background: var(--snouty-action-soft-bg);
+  color: var(--snouty-action-text);
+}
+
+.rankMain {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rankTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rankIcon {
+  display: inline-flex;
+  color: var(--snouty-muted);
+}
+
+.rankName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.rankBadge {
+  flex: none;
+  padding: 1px 7px;
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-pill);
+  background: var(--snouty-surface-subtle);
+  color: var(--snouty-ink-2);
+  font-family: var(--snouty-font-mono);
+  font-size: 11px;
+}
+
+.rankTrack {
+  height: 8px;
+  border-radius: var(--snouty-radius-pill);
+  background: var(--snouty-surface-subtle);
+  overflow: hidden;
+}
+
+.rankFill {
+  display: block;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: var(--snouty-action);
+  transition: width 0.25s ease;
+}
+
+.rankDetail {
+  color: var(--snouty-muted);
+  font-size: 11px;
+}
+
+.rankValue {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 46px;
+}
+
+.rankValue strong {
+  font-family: var(--snouty-font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.rankValue small {
+  color: var(--snouty-muted);
+  font-size: 11px;
+}

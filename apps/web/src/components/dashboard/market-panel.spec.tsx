@@ -1,5 +1,5 @@
 /** P26-07 — tab Pasar: angka dari agregat server, kelompok yang ditahan disebut, atribusi DB-IP ada. */
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 const api = vi.hoisted(() => ({ fetchMarket: vi.fn() }));
@@ -43,7 +43,9 @@ describe('tab Pasar (P26-07)', () => {
     render(<MarketPanel />);
     expect(await screen.findByText('Sampai solusi')).toBeDefined();
     expect(screen.getAllByText(/Jawa Barat/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/PVC AW 1"/)).toBeDefined();
+    // Nama keluarga dan ukurannya kini terpisah: lencana ukuran di samping nama.
+    expect(screen.getByText('PVC AW')).toBeDefined();
+    expect(screen.getByText('1"')).toBeDefined();
     expect(screen.getByText('Rumah tinggal')).toBeDefined();
     expect(screen.getByText(/kecil · Jawa Barat/)).toBeDefined();
     expect(screen.getByText(/2 kelompok \(5 konsultasi\) tidak ditampilkan/)).toBeDefined();
@@ -67,5 +69,62 @@ describe('tab Pasar (P26-07)', () => {
     });
     render(<MarketPanel />);
     expect(await screen.findByText('Belum ada data untuk periode ini.')).toBeDefined();
+  });
+});
+
+describe('kartu peringkat Pasar (P26-16)', () => {
+  it('minat produk: nomor urut, nama, lencana ukuran, dan porsinya', async () => {
+    api.fetchMarket.mockResolvedValue({
+      kind: 'ok',
+      value: {
+        fromDay: '2026-07-23',
+        total: 20,
+        regional: { buckets: [], suppressedGroups: 0, suppressedEvents: 0 },
+        productInterest: {
+          buckets: [
+            { key: 'PVC AW|1"|2026-10', count: 10 },
+            { key: 'HDPE|63 mm|2026-10', count: 5 },
+          ],
+          suppressedGroups: 1,
+          suppressedEvents: 4,
+        },
+        projects: { buckets: [], suppressedGroups: 0, suppressedEvents: 0 },
+        map: { provinces: [], points: [], withoutRegion: 0, suppressedPoints: 0 },
+        scope: { total: 20, routedToTechnical: 4, ratio: 0.2 },
+        drainage: 1,
+        funnel: { started: 20, reachedSolution: 12, routedToTechnical: 4, requestedQuotation: 6 },
+      },
+    });
+    render(<MarketPanel />);
+    const list = (await screen.findAllByRole('list')).find((el) => el.tagName === 'OL');
+    expect(list).toBeDefined();
+    const rows = within(list!).getAllByRole('listitem');
+    expect(within(rows[0]!).getByText('PVC AW')).toBeDefined();
+    expect(within(rows[0]!).getByText('1"')).toBeDefined();
+    expect(within(rows[0]!).getByText('1')).toBeDefined(); // nomor urut
+    expect(within(rows[0]!).getByText('50%')).toBeDefined(); // porsi dari 20 konsultasi
+    expect(within(rows[1]!).getByText('63 mm')).toBeDefined();
+    expect(screen.getByText(/1 kelompok \(4 konsultasi\) tidak ditampilkan/)).toBeDefined();
+  });
+
+  it('empat angka ringkas di atas halaman', async () => {
+    api.fetchMarket.mockResolvedValue({
+      kind: 'ok',
+      value: {
+        fromDay: '2026-07-23',
+        total: 20,
+        regional: { buckets: [], suppressedGroups: 0, suppressedEvents: 0 },
+        productInterest: { buckets: [], suppressedGroups: 0, suppressedEvents: 0 },
+        projects: { buckets: [], suppressedGroups: 0, suppressedEvents: 0 },
+        map: { provinces: [], points: [], withoutRegion: 0, suppressedPoints: 0 },
+        scope: { total: 20, routedToTechnical: 4, ratio: 0.2 },
+        drainage: 1,
+        funnel: { started: 20, reachedSolution: 12, routedToTechnical: 4, requestedQuotation: 6 },
+      },
+    });
+    render(<MarketPanel />);
+    expect(await screen.findByText('Konsultasi')).toBeDefined();
+    expect(screen.getByText('60%')).toBeDefined(); // 12 dari 20 sampai solusi
+    expect(screen.getByText('20%')).toBeDefined(); // porsi ke tim teknis
   });
 });

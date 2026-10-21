@@ -2127,6 +2127,12 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       nama tahap berikon, artinya di bawah; tetap tombol filter. Latarnya bergradasi satu hue menurut urutan tahap,
       dan angka pada dua kartu terpekat memakai warna teks aksi agar kontrasnya tetap. Di layar sempit lima kartu
       menjadi tiga lalu dua kolom.
+- [x] P26-16 Kartu halaman Pasar dibuat berisi (pemilik 2026-10-21: "minat produk masa cuma tulisan doang? dan
+      uppercase semua?"). Kapital semua dibuang dari judul kartu, tag tahap, kepala tabel, judul blok, dan judul
+      peta — hanya kicker merek yang tetap kapital. Tiga daftar peringkat (produk, provinsi, pola proyek) memakai
+      komponen baru `RankList`: nomor urut, ikon, nama, lencana ukuran, batang, jumlah, dan porsinya terhadap
+      keseluruhan. Di atas halaman ada empat angka ringkas (konsultasi, sampai solusi + persennya, menanyakan
+      harga, porsi ke tim teknis). Ikon pipa baru untuk kartu produk.
 - [x] ✋ CHECKPOINT Fase 26 — **ditutup pemilik 2026-10-21** atas dasar uji produksi 15/15 (P26-10) dan simulasi
       lokal 21/21; penilaian tampilan dicatat terpisah bila ada temuan. OQ-77 diputuskan
       2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live. Simulasi HTTP

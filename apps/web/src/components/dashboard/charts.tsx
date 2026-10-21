@@ -9,7 +9,7 @@
  * tanpa palet kedua. Tanpa pustaka chart: bentuknya batang dan garis sederhana, dan satu dependensi
  * baru tidak sepadan.
  */
-import { useId, useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import styles from './charts.module.css';
 
 export interface Slice {
@@ -187,5 +187,69 @@ export function TrendLine({
         {active ? `${active.label} · ${valueLabel(active.value)}` : ' '}
       </p>
     </div>
+  );
+}
+
+export interface RankRow {
+  readonly key: string;
+  readonly label: string;
+  /** Keterangan kedua, mis. bulan atau skala proyek. */
+  readonly detail?: string;
+  /** Lencana kecil di samping label — ukuran pipa, kelas, atau kode. */
+  readonly badge?: string;
+  readonly value: number;
+  readonly icon?: ReactNode;
+}
+
+/**
+ * Daftar peringkat: nomor urut, ikon, nama, lencana, batang, lalu angkanya. Dipakai untuk minat
+ * produk, permintaan provinsi, dan pola proyek — tiga daftar yang dulu hanya teks dan angka.
+ */
+export function RankList({
+  rows,
+  valueLabel,
+  total,
+}: {
+  rows: readonly RankRow[];
+  valueLabel: (value: number) => string;
+  /** Bila diberikan, tiap baris menyebut porsinya terhadap keseluruhan. */
+  total?: number;
+}) {
+  const max = Math.max(...rows.map((r) => r.value), 1);
+  const percent = (value: number) =>
+    total !== undefined && total > 0 ? Math.round((value / total) * 100) : null;
+  return (
+    <ol className={styles.rankList}>
+      {rows.map((row, index) => {
+        const share = percent(row.value);
+        return (
+          <li
+            key={row.key}
+            className={styles.rankRow}
+            title={`${row.label}: ${valueLabel(row.value)}`}
+          >
+            <span className={styles.rankNo}>{index + 1}</span>
+            <span className={styles.rankMain}>
+              <span className={styles.rankTitle}>
+                {row.icon !== undefined && <span className={styles.rankIcon}>{row.icon}</span>}
+                <span className={styles.rankName}>{row.label}</span>
+                {row.badge !== undefined && <span className={styles.rankBadge}>{row.badge}</span>}
+              </span>
+              <span className={styles.rankTrack}>
+                <span
+                  className={styles.rankFill}
+                  style={{ width: `${Math.max(3, (row.value / max) * 100)}%` }}
+                />
+              </span>
+              {row.detail !== undefined && <span className={styles.rankDetail}>{row.detail}</span>}
+            </span>
+            <span className={styles.rankValue}>
+              <strong>{row.value}</strong>
+              {share !== null && <small>{share}%</small>}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

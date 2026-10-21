@@ -95,10 +95,8 @@
 }
 
 .funnelName {
-  font-family: var(--snouty-font-mono);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .funnelMeaning {
@@ -147,12 +145,9 @@
   padding: 10px 12px;
   border-bottom: 1px solid var(--snouty-border);
   color: var(--snouty-muted);
-  font-family: var(--snouty-font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   text-align: left;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 .table td {
@@ -175,10 +170,8 @@
 }
 
 .stageTag {
-  font-family: var(--snouty-font-mono);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 /* Prioritas dibawa teksnya; warna hanya penegas, tidak pernah satu-satunya pembawa makna. */
@@ -444,11 +437,9 @@
 }
 
 .blockTitle {
-  color: var(--snouty-muted);
-  font-family: var(--snouty-font-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  color: var(--snouty-ink-2);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .contextText {
@@ -648,12 +639,10 @@
 
 .cardTitle {
   margin: 0;
-  color: var(--snouty-muted);
-  font-family: var(--snouty-font-mono);
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  color: var(--snouty-ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .statRow {
@@ -930,6 +919,27 @@
 
 @media (max-width: 560px) {
   .statRow5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Empat angka ringkas di atas halaman Pasar (P26-16). */
+.statRow4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.statIcon {
+  display: inline-flex;
+  color: var(--snouty-muted);
+}
+
+.statDetail {
+  color: var(--snouty-muted);
+  font-size: 11px;
+}
+
+@media (max-width: 860px) {
+  .statRow4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

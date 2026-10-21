@@ -221,3 +221,14 @@ export function ChatIcon() {
     </Icon>
   );
 }
+
+/** Potongan pipa: kartu minat produk. */
+export function PipeIcon() {
+  return (
+    <Icon>
+      <path d="M3 7.5h9a2.5 2.5 0 0 1 2.5 2.5v0a2.5 2.5 0 0 1-2.5 2.5H3" />
+      <path d="M3 6v8" />
+      <path d="M14.5 8.2h2.6v3.6h-2.6" />
+    </Icon>
+  );
+}
