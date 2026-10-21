@@ -2044,9 +2044,15 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       tahap TERBESAR × skala proyek terbesar × 0,5^(hari diam/14); skala tak diketahui = rumah. Pagar lint
       diperbaiki: pola lama `**/modules/prospect/**` tidak menangkap impor relatif — kini per lapisan
       (`**/prospect/domain/**` dst.), diverifikasi menolak impor dari rekomendasi.
-- [ ] P26-04 Handoff `sales` ("minta dihubungi") + pemberitahuan saat daftar + PRIVACY.
-- [ ] P26-05 Papan prospek admin + penugasan + peran `sales`.
-- [ ] P26-06 Ringkasan sales + layar sales + status menang/kalah.
+- [x] P26-04 "Minta dihubungi tim Pralon" (pemilik 2026-10-21: di layar solusi + saat tanya harga; tamu diminta
+      daftar dulu). Migration 0027: consent `SALES_CONTACT` + tabel `sales_requests` (sumber `solution`/`price`,
+      penekanan ulang dalam 24 jam = permintaan yang sama). `POST /conversations/:id/contact-request` digerbang
+      kapabilitas `CONTACT_SALES` (terdaftar). Kartu jawaban harga kini `CONTACT_SALES` (penawaran = sales, bukan
+      tim teknis). Gate tamu meneruskan permintaannya setelah daftar/masuk (`then=contact_*`). Opt-in tidak
+      tercentang di form daftar + sakelar di menu Akun. PRIVACY.md diperbarui. Layar daftar/akun tetap needs
+      design (OQ-21).
+- [ ] P26-05 Dashboard admin (pemilik 2026-10-21): papan prospek 5A + penugasan ke sales + peran `sales`.
+- [ ] P26-06 Dashboard sales (pemilik 2026-10-21): prospek miliknya + ringkasan percakapan + status menang/kalah.
 - [ ] P26-07 Geo-IP → kota dan penulis `market_events`.
 
 ## Design Coverage

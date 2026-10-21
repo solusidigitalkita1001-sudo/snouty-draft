@@ -9,7 +9,8 @@
 
 export const CONSENT_REPOSITORY = Symbol('CONSENT_REPOSITORY');
 
-export type ConsentKind = 'LOCATION' | 'ANALYTICS_STORAGE';
+/** `SALES_CONTACT`: boleh dihubungi tim sales Pralon (P26-04, OQ-76) — opt-in, hanya pengguna terdaftar. */
+export type ConsentKind = 'LOCATION' | 'ANALYTICS_STORAGE' | 'SALES_CONTACT';
 
 export interface ConsentSubject {
   readonly kind: 'user' | 'guest';

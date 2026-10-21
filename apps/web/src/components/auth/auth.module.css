@@ -200,3 +200,24 @@
   outline: none;
   box-shadow: var(--snouty-focus-ring);
 }
+
+/* Opt-in dihubungi tim Pralon (P26-04): kotak centang + teks, target sentuh ≥ 44px. */
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding-top: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--snouty-ink);
+  cursor: pointer;
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  flex: none;
+  accent-color: var(--snouty-action);
+}

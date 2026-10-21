@@ -139,6 +139,27 @@ export async function sendToTechnicalTeam(
 }
 
 /**
+ * "Minta dihubungi tim Pralon" (P26-04). Tamu menerima 401/403 — itu bukan kegagalan: UI menawarkan
+ * daftar/masuk, lalu permintaannya diteruskan setelah masuk.
+ */
+export type SalesContactResult = 'sent' | 'gate' | 'failed';
+
+export async function requestSalesContact(
+  conversationId: string,
+  source: 'solution' | 'price',
+): Promise<SalesContactResult> {
+  const response = await apiFetch(`${BASE}/conversations/${conversationId}/contact-request`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'content-type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ source }),
+  });
+  if (response.ok) return 'sent';
+  if (response.status === 401 || response.status === 403) return 'gate';
+  return 'failed';
+}
+
+/**
  * Riwayat percakapan (layar 12). Digerbang `CONVERSATION_HISTORY` di API — tamu
  * menerima 403, dan itu BUKAN kegagalan: UI menampilkan ajakan mendaftar alih-alih
  * daftar kosong, karena daftar kosong akan terbaca "Anda belum pernah berkonsultasi".

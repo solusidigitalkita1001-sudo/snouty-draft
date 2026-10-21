@@ -205,3 +205,18 @@ describe('nomor HP saat daftar (permintaan pemilik 2026-10-12)', () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe('izin dihubungi tim Pralon (P26-04, OQ-76)', () => {
+  it('daftar menawarkan opt-in yang TIDAK tercentang sampai pengguna memilih', () => {
+    render(<AuthForm mode="register" />);
+    const box = screen.getByRole('checkbox', { name: AUTH_COPY.fields.salesContact });
+    expect((box as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(box);
+    expect((box as HTMLInputElement).checked).toBe(true);
+  });
+
+  it('masuk tidak menanyakan izin lagi', () => {
+    render(<AuthForm mode="login" />);
+    expect(screen.queryByRole('checkbox')).toBeNull();
+  });
+});

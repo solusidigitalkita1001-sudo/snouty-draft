@@ -242,7 +242,8 @@ export async function runProductQuestion(
     return [
       { type: 'message.start', messageId: input.messageId },
       { type: 'token', text: productAnswerCopy(locale).priceNotShown },
-      { type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } },
+      // Penawaran milik tim sales, bukan validasi teknis (P26-04).
+      { type: 'card', card: { kind: 'cta', action: 'CONTACT_SALES' } },
       endEvent(input.messageId),
     ];
   }

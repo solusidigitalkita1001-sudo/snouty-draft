@@ -451,7 +451,7 @@ export async function runUnderstanding(
   // tetap dijawab (kebijakan OQ-03) — bukan dibiarkan menguap di balik kartu (audit live 2026-10-08).
   if (input.understanding?.intent?.label === 'price_question') {
     events.push({ type: 'token', text: productAnswerCopy(locale).priceNotShown });
-    events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_TECHNICAL' } });
+    events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_SALES' } });
   }
 
   const materials =

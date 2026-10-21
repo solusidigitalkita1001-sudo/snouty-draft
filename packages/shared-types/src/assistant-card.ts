@@ -112,7 +112,8 @@ export type AssistantCard =
   | { readonly kind: 'product'; readonly products: readonly ProductCardDto[] }
   | {
       readonly kind: 'cta';
-      readonly action: 'ANALYZE' | 'REGISTER' | 'CONTACT_TECHNICAL';
+      /** `CONTACT_SALES`: minta penawaran/dihubungi tim sales Pralon (P26-04) — bukan tim teknis. */
+      readonly action: 'ANALYZE' | 'REGISTER' | 'CONTACT_TECHNICAL' | 'CONTACT_SALES';
       /**
        * ANALYZE yang langsung dijalankan klien tanpa menunggu tombol (pemilik 2026-10-20: "Hitung
        * dulu + asumsi") — rumah yang datanya lengkap atau dilengkapi anggapan di giliran itu.

@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { onboardingBenefits } from '../../policy/entitlements.js';
 import { RequestValidationError } from '../../../shared/http/api-errors.js';
 import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
+import { requireEntitled } from '../../../shared/http/entitlement.js';
 import { ConsentService } from '../application/consent.service.js';
 import { OnboardingService } from '../application/onboarding.service.js';
 import type { ConsentSubject } from '../domain/consent.repository.js';
@@ -18,7 +19,7 @@ import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
 const CompleteDto = z.object({ outcome: z.enum(['done', 'guest', 'skip']) }).strict();
 const ConsentDto = z
   .object({
-    kind: z.enum(['LOCATION', 'ANALYTICS_STORAGE']),
+    kind: z.enum(['LOCATION', 'ANALYTICS_STORAGE', 'SALES_CONTACT']),
     granted: z.boolean(),
   })
   .strict();
@@ -54,6 +55,8 @@ export class OnboardingConsentController {
   @HttpCode(204)
   async record(@Body() rawBody: unknown, @Req() request: PublicRequest): Promise<void> {
     const body = parse(ConsentDto, rawBody);
+    // Izin dihubungi sales hanya bermakna untuk orang yang dikenal (OQ-76).
+    if (body.kind === 'SALES_CONTACT') requireEntitled(actorOf(request).tier, 'CONTACT_SALES');
     await this.consents.record(subjectOf(request), body.kind, body.granted);
   }
 

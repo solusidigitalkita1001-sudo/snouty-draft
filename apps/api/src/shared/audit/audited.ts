@@ -37,6 +37,7 @@ export const USER_AUDIT = {
   shareCreate: { action: 'share.create', entityType: 'recommendation' },
   shareRevoke: { action: 'share.revoke', entityType: 'recommendation' },
   handoffCreate: { action: 'handoff.create', entityType: 'conversation' },
+  salesRequest: { action: 'sales.request', entityType: 'conversation' },
   reportCreate: { action: 'report.create', entityType: 'report' },
   reportRebuild: { action: 'report.rebuild', entityType: 'report' },
   uploadCreate: { action: 'upload.create', entityType: 'upload' },

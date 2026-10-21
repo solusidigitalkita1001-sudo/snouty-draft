@@ -9,7 +9,15 @@
  * Dua panggilan API bila keduanya berubah — hasilnya dilaporkan sebagai satu status.
  */
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { changePassword, fetchProfile, logout, updateName, type Profile } from '../auth/auth-api';
+import {
+  changePassword,
+  fetchProfile,
+  fetchSalesContactConsent,
+  logout,
+  recordSalesContactConsent,
+  updateName,
+  type Profile,
+} from '../auth/auth-api';
 import { LocaleToggle, useLocale } from '../locale';
 import { ThemeToggle } from '../theme-toggle';
 import { accountCopy } from './account-copy';
@@ -35,6 +43,8 @@ export function AccountModal({
   const [next, setNext] = useState('');
   const [notice, setNotice] = useState<Notice>(null);
   const [busy, setBusy] = useState(false);
+  /** Opt-in dihubungi tim Pralon (P26-04); `null` = belum terbaca. */
+  const [salesContact, setSalesContact] = useState<boolean | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,6 +60,9 @@ export function AccountModal({
       if (result.ok && result.profile) {
         setProfile(result.profile);
         setName(result.profile.name);
+        void fetchSalesContactConsent().then((granted) => {
+          if (!cancelled) setSalesContact(granted);
+        });
       } else {
         setProfile(null);
       }
@@ -135,6 +148,22 @@ export function AccountModal({
       setNotice({ kind: 'ok', text: COPY.saved });
     },
     [COPY, busy, current, errorText, name, next, onProfileChange, profile],
+  );
+
+  /** Disimpan saat diubah — izin bukan bagian dari tombol Simpan profil. */
+  const toggleSalesContact = useCallback(
+    async (granted: boolean) => {
+      const previous = salesContact;
+      setSalesContact(granted);
+      const ok = await recordSalesContactConsent(granted);
+      if (!ok) {
+        setSalesContact(previous);
+        setNotice({ kind: 'error', text: COPY.errors.generic });
+        return;
+      }
+      setNotice({ kind: 'ok', text: COPY.saved });
+    },
+    [COPY, salesContact],
   );
 
   const signOut = useCallback(async () => {
@@ -250,6 +279,23 @@ export function AccountModal({
                 <LocaleToggle className={styles.toggle ?? ''} />
               </div>
             </div>
+
+            {salesContact !== null && (
+              <div className={styles.section}>
+                <div className={styles.sectionHead}>
+                  <span className={styles.sectionTitle}>{COPY.contactHeading}</span>
+                  <span className={styles.hint}>{COPY.contactNote}</span>
+                </div>
+                <label className={styles.check}>
+                  <input
+                    type="checkbox"
+                    checked={salesContact}
+                    onChange={(e) => void toggleSalesContact(e.target.checked)}
+                  />
+                  <span>{COPY.contactLabel}</span>
+                </label>
+              </div>
+            )}
 
             {notice && (
               <p

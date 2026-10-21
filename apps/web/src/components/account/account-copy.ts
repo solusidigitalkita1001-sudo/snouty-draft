@@ -27,6 +27,10 @@ export const ACCOUNT_COPY = {
 
   display: 'Tampilan',
 
+  contactHeading: 'Dihubungi tim Pralon',
+  contactLabel: 'Saya bersedia dihubungi tim Pralon soal kebutuhan pipa saya.',
+  contactNote: 'Tanpa ini, tim Pralon hanya menghubungi saat Anda menekan "Minta dihubungi".',
+
   save: 'Simpan',
   saving: 'Menyimpan…',
   saved: 'Tersimpan.',
@@ -64,6 +68,11 @@ export const ACCOUNT_COPY_EN: CopyShape<typeof ACCOUNT_COPY> = {
   passwordHint: 'At least 12 characters.',
 
   display: 'Display',
+
+  contactHeading: 'Contact from the Pralon team',
+  contactLabel: 'I agree to be contacted by the Pralon team about my piping needs.',
+  contactNote:
+    'Without this, the Pralon team only contacts you when you press "Ask to be contacted".',
 
   save: 'Save',
   saving: 'Saving…',

@@ -56,13 +56,14 @@ import {
   sendMessage,
   RateLimitError,
   sendToTechnicalTeam,
+  requestSalesContact,
   uploadPlan,
   type ConversationSummary,
   type AnswerMode,
 } from './chat-api';
 import { SolutionView, type SolutionTab } from '../solution/solution-view';
 import { getCurrentUser, restoreSession, type CurrentUser } from '../auth/session';
-import { gateHref, parseResume } from '../auth/resume-link';
+import { gateHref, parseResume, type ResumeAction } from '../auth/resume-link';
 import { chatCopy, STAGE_ORDER, stageLabel } from './chat-copy';
 import { MISSING, requirementRows, sizePatch } from './requirement-rows';
 import styles from './chat-workspace.module.css';
@@ -198,6 +199,10 @@ export function ChatWorkspace() {
   const [toastOn, setToastOn] = useState(false);
   /** Register-gate (P8-09): tamu menekan aksi khusus akun — tawarkan daftar/masuk di tempat. */
   const [gate, setGate] = useState(false);
+  /** Aksi yang diteruskan setelah daftar/masuk dari gate ini — simpan, atau minta dihubungi. */
+  const [gateThen, setGateThen] = useState<ResumeAction>('save');
+  /** "Minta dihubungi tim Pralon" (P26-04). */
+  const [salesState, setSalesState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
   const resumeHandled = useRef(false);
   /** Id percakapan yang baru dihapus — selama notifikasi "Urungkan" tampil. */
   const [removed, setRemoved] = useState<string | null>(null);
@@ -614,6 +619,7 @@ export function ChatWorkspace() {
     setSaveState('idle');
     setGate(false);
     setHandoffState('idle');
+    setSalesState('idle');
     setReportOpen(false);
     setOpenProduct(null);
     setActiveTitle(null);
@@ -684,6 +690,14 @@ export function ChatWorkspace() {
     window.history.replaceState(null, '', window.location.pathname);
     const item = history.items.find((i) => i.id === target.conversationId);
     if (item === undefined) return;
+    if (target.then === 'contact_solution' || target.then === 'contact_price') {
+      openHistory(item);
+      const source = target.then === 'contact_price' ? 'price' : 'solution';
+      void requestSalesContact(item.id, source).then((result) =>
+        setSalesState(result === 'sent' ? 'sent' : 'idle'),
+      );
+      return;
+    }
     if (target.then !== 'save' || item.status === 'SAVED') {
       openHistory(item);
       return;
@@ -787,6 +801,34 @@ export function ChatWorkspace() {
       });
     },
     [conversationId, handoffState],
+  );
+
+  /**
+   * "Minta dihubungi tim Pralon" (P26-04, OQ-76). Tamu ditawari daftar/masuk dulu — sales menghubungi
+   * orang yang dikenal — dan permintaannya diteruskan otomatis setelah masuk.
+   */
+  const contactSales = useCallback(
+    (source: 'solution' | 'price') => {
+      if (!conversationId || salesState === 'sending' || salesState === 'sent') return;
+      const askToSignIn = () => {
+        setGateThen(source === 'price' ? 'contact_price' : 'contact_solution');
+        setGate(true);
+      };
+      if (!user) {
+        askToSignIn();
+        return;
+      }
+      setSalesState('sending');
+      void requestSalesContact(conversationId, source).then((result) => {
+        if (result === 'gate') {
+          setSalesState('idle');
+          askToSignIn();
+          return;
+        }
+        setSalesState(result === 'sent' ? 'sent' : 'failed');
+      });
+    },
+    [conversationId, salesState, user],
   );
 
   /**
@@ -1452,6 +1494,8 @@ export function ChatWorkspace() {
                     onAnswers={submitAnswers}
                     onHandoff={handoff}
                     handoffState={handoffState}
+                    onSalesContact={() => contactSales('price')}
+                    salesState={salesState}
                     onSave={save}
                     saveState={saveState}
                     onAnalyze={analyze}
@@ -1506,7 +1550,14 @@ export function ChatWorkspace() {
             )}
 
             {gate && conversationId !== null && (
-              <RegisterGate conversationId={conversationId} onDismiss={() => setGate(false)} />
+              <RegisterGate
+                conversationId={conversationId}
+                then={gateThen}
+                onDismiss={() => {
+                  setGate(false);
+                  setGateThen('save');
+                }}
+              />
             )}
 
             {error !== null && (
@@ -1556,6 +1607,14 @@ export function ChatWorkspace() {
                   <button
                     type="button"
                     className={styles.tabAction}
+                    onClick={() => contactSales('solution')}
+                    disabled={salesState === 'sending' || salesState === 'sent'}
+                  >
+                    {salesLabel(COPY.salesContact, salesState, COPY.salesContact.solution)}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.tabAction}
                     onClick={() => (user ? setShareOpen(true) : setGate(true))}
                   >
                     {LIB.share}
@@ -1572,7 +1631,14 @@ export function ChatWorkspace() {
               )}
             </div>
             {gate && conversationId !== null && (
-              <RegisterGate conversationId={conversationId} onDismiss={() => setGate(false)} />
+              <RegisterGate
+                conversationId={conversationId}
+                then={gateThen}
+                onDismiss={() => {
+                  setGate(false);
+                  setGateThen('save');
+                }}
+              />
             )}
             <SolutionView
               recommendation={solution}
@@ -1603,6 +1669,14 @@ export function ChatWorkspace() {
             {/* Ponsel: aksi akhir di bawah, dalam jangkauan jempol — isi solusi mendapat layar atas. */}
             {mobile && (
               <div className={styles.mobileSolutionBar}>
+                <button
+                  type="button"
+                  className={styles.tabAction}
+                  onClick={() => contactSales('solution')}
+                  disabled={salesState === 'sending' || salesState === 'sent'}
+                >
+                  {salesLabel(COPY.salesContact, salesState, COPY.salesContact.solutionShort)}
+                </button>
                 <button
                   type="button"
                   className={styles.tabAction}
@@ -1900,21 +1974,24 @@ function completenessNote(filled: number, copy: ReturnType<typeof chatCopy>): st
  */
 function RegisterGate({
   conversationId,
+  then,
   onDismiss,
 }: {
   conversationId: string;
+  then: ResumeAction;
   onDismiss: () => void;
 }) {
   const COPY = useChatCopy();
+  const text = then === 'save' ? COPY.gate : { ...COPY.gate, ...COPY.gateContact };
   return (
-    <div className={styles.gateCard} role="region" aria-label={COPY.gate.title}>
-      <div className={styles.gateTitle}>{COPY.gate.title}</div>
-      <p className={styles.gateBody}>{COPY.gate.body}</p>
+    <div className={styles.gateCard} role="region" aria-label={text.title}>
+      <div className={styles.gateTitle}>{text.title}</div>
+      <p className={styles.gateBody}>{text.body}</p>
       <div className={styles.gateActions}>
-        <a className={styles.ctaButton} href={gateHref('register', conversationId, 'save')}>
+        <a className={styles.ctaButton} href={gateHref('register', conversationId, then)}>
           {COPY.gate.register}
         </a>
-        <a className={styles.chip} href={gateHref('login', conversationId, 'save')}>
+        <a className={styles.chip} href={gateHref('login', conversationId, then)}>
           {COPY.gate.login}
         </a>
         <button type="button" className={styles.gateLater} onClick={onDismiss}>
@@ -1954,6 +2031,18 @@ function UnderstoodCard({
       </div>
     </div>
   );
+}
+
+/** Label tombol "minta dihubungi" mengikuti keadaannya. */
+function salesLabel(
+  copy: { readonly sending: string; readonly sent: string; readonly failed: string },
+  state: 'idle' | 'sending' | 'sent' | 'failed',
+  idle: string,
+): string {
+  if (state === 'sending') return copy.sending;
+  if (state === 'sent') return copy.sent;
+  if (state === 'failed') return copy.failed;
+  return idle;
 }
 
 /** Tahap yang sedang berjalan (atau yang pertama belum selesai) ditandai gagal. */
@@ -2339,6 +2428,8 @@ function AssistantTurn({
   onAnswers: (answers: ReadonlyArray<{ readonly id: string; readonly option: string }>) => void;
   onHandoff: (reason: string) => void;
   handoffState: 'idle' | 'sending' | 'sent';
+  onSalesContact: () => void;
+  salesState: 'idle' | 'sending' | 'sent' | 'failed';
   onSave: () => void;
   saveState: 'idle' | 'saved';
   onAnalyze: () => void;
@@ -2372,6 +2463,8 @@ function CardView({
   onAnswers,
   onHandoff,
   handoffState,
+  onSalesContact,
+  salesState,
   onSave,
   saveState,
   onAnalyze,
@@ -2384,6 +2477,8 @@ function CardView({
   onAnswers: (answers: ReadonlyArray<{ readonly id: string; readonly option: string }>) => void;
   onHandoff: (reason: string) => void;
   handoffState: 'idle' | 'sending' | 'sent';
+  onSalesContact: () => void;
+  salesState: 'idle' | 'sending' | 'sent' | 'failed';
   onSave: () => void;
   saveState: 'idle' | 'saved';
   onAnalyze: () => void;
@@ -2402,6 +2497,22 @@ function CardView({
   // Potongan instalasi di dalam chat (P22-02) — gambar yang sama dengan tab Denah.
   if (card.kind === 'drawing') {
     return <InstallationDrawingCard needs={card.needs} />;
+  }
+
+  if (card.kind === 'cta' && card.action === 'CONTACT_SALES') {
+    // Jawaban harga (P26-04): penawaran datang dari tim sales Pralon, bukan dari tim teknis.
+    return (
+      <div className={styles.ctaCard}>
+        <button
+          type="button"
+          className={styles.ctaButton}
+          onClick={onSalesContact}
+          disabled={salesState === 'sending' || salesState === 'sent'}
+        >
+          {salesLabel(COPY.salesContact, salesState, COPY.salesContact.price)}
+        </button>
+      </div>
+    );
   }
 
   if (card.kind === 'cta' && card.action === 'CONTACT_TECHNICAL') {

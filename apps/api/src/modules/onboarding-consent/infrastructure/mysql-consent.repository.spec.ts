@@ -121,3 +121,13 @@ describe('consent — pencabutan idempoten', () => {
     expect(state?.revokedAt).toBeNull();
   });
 });
+
+describe('izin dihubungi sales (P26-04, 0027)', () => {
+  it('SALES_CONTACT tersimpan dan bisa dicabut', async () => {
+    const user: ConsentSubject = { kind: 'user', id: testId('SALESUSER') };
+    await service.record(user, 'SALES_CONTACT', true);
+    expect(await service.isGranted(user, 'SALES_CONTACT')).toBe(true);
+    await service.revoke(user, 'SALES_CONTACT');
+    expect(await service.isGranted(user, 'SALES_CONTACT')).toBe(false);
+  });
+});

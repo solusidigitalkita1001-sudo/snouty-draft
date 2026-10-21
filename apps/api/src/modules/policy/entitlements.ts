@@ -21,6 +21,7 @@ export type Capability =
   | 'RECOMMENDATION'
   | 'CLARIFICATION'
   | 'TECHNICAL_HANDOFF'
+  | 'CONTACT_SALES'
   | 'CONVERSATION_HISTORY'
   | 'SAVE_SOLUTION'
   | 'CASE_ANALYSIS'
@@ -33,6 +34,8 @@ export const ENTITLEMENTS: Readonly<Record<Capability, readonly Tier[]>> = {
   RECOMMENDATION: ['guest', 'registered', 'advanced'],
   CLARIFICATION: ['guest', 'registered', 'advanced'],
   TECHNICAL_HANDOFF: ['guest', 'registered', 'advanced'],
+  // Sales menghubungi orang yang dikenal (OQ-76): tamu diminta daftar dulu, percakapannya ikut pindah.
+  CONTACT_SALES: ['registered', 'advanced'],
   CONVERSATION_HISTORY: ['registered', 'advanced'],
   SAVE_SOLUTION: ['registered', 'advanced'],
   CASE_ANALYSIS: ['advanced'],
@@ -73,6 +76,7 @@ export const CAPABILITY_LABEL: Readonly<Record<Capability, string>> = {
   RECOMMENDATION: 'Rekomendasi produk Pralon',
   CLARIFICATION: 'Pertanyaan klarifikasi',
   TECHNICAL_HANDOFF: 'Kirim ke tim teknis Pralon',
+  CONTACT_SALES: 'Dihubungi tim Pralon',
   CONVERSATION_HISTORY: 'Riwayat percakapan',
   SAVE_SOLUTION: 'Simpan hasil konsultasi',
   CASE_ANALYSIS: 'Analisis studi kasus',
@@ -86,6 +90,7 @@ export const CAPABILITY_LABEL_EN: Readonly<Record<Capability, string>> = {
   RECOMMENDATION: 'Pralon product recommendations',
   CLARIFICATION: 'Clarification questions',
   TECHNICAL_HANDOFF: 'Send to the Pralon technical team',
+  CONTACT_SALES: 'Contact from the Pralon team',
   CONVERSATION_HISTORY: 'Conversation history',
   SAVE_SOLUTION: 'Save consultation results',
   CASE_ANALYSIS: 'Case study analysis',

@@ -14,7 +14,7 @@
 import { useCallback, useState } from 'react';
 import { authCopy } from './auth-copy';
 import { useLocale } from '../locale';
-import { login, register } from './auth-api';
+import { login, recordSalesContactConsent, register } from './auth-api';
 import { afterAuthHref } from './resume-link';
 import styles from './auth.module.css';
 
@@ -67,6 +67,8 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  /** Opt-in dihubungi tim Pralon (OQ-76): tidak pernah tercentang tanpa pilihan pengguna. */
+  const [salesContact, setSalesContact] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -85,6 +87,9 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           : await register(name, email, password, phone);
 
       if (result.ok) {
+        // Pilihan opt-in dicatat sebagai consent ber-versi kebijakan. Gagal mencatat tidak menahan
+        // pendaftaran: pilihannya tetap bisa diubah di menu Akun.
+        if (mode === 'register') await recordSalesContactConsent(salesContact);
         // Percakapan tamu yang berpindah dibuka langsung — itu janji "tidak perlu mengulang
         // cerita" (invarian G-1), dan membiarkan pengguna mencarinya sendiri melanggarnya.
         // Datang dari register-gate (P8-09): aksi yang tadi ditekan ikut diteruskan.
@@ -102,7 +107,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       );
       setBusy(false);
     },
-    [busy, email, mode, name, password, phone],
+    [busy, email, mode, name, password, phone, salesContact],
   );
 
   return (
@@ -204,6 +209,23 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         {mode === 'register' && (
           <span id="password-hint" className={styles.hint}>
             {COPY.fields.passwordHint}
+          </span>
+        )}
+
+        {mode === 'register' && (
+          <label className={styles.check}>
+            <input
+              type="checkbox"
+              checked={salesContact}
+              onChange={(e) => setSalesContact(e.target.checked)}
+              aria-describedby="sales-contact-hint"
+            />
+            <span>{COPY.fields.salesContact}</span>
+          </label>
+        )}
+        {mode === 'register' && (
+          <span id="sales-contact-hint" className={styles.hint}>
+            {COPY.fields.salesContactHint}
           </span>
         )}
 

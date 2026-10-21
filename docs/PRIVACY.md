@@ -26,16 +26,18 @@ keputusan teknis. Lihat §5.
 
 ## 2. Inventaris data
 
-| Data                                                 | Kategori                  | Dari                   | Dipakai untuk                        |
-| ---------------------------------------------------- | ------------------------- | ---------------------- | ------------------------------------ |
-| Nama, email, password hash                           | identitas                 | registrasi             | autentikasi                          |
-| Isi percakapan                                       | dapat memuat data pribadi | chat                   | menyusun rekomendasi                 |
-| Kebutuhan bangunan (lantai, kamar mandi, sumber air) | data properti             | chat                   | perhitungan teknik                   |
-| Lokasi tingkat kota                                  | lokasi                    | izin browser, opsional | **hanya** analisis kebutuhan wilayah |
-| Denah yang diunggah                                  | dapat memuat alamat       | unggahan               | membantu estimasi                    |
-| Laporan (nama, lokasi proyek)                        | data pribadi              | dibangkitkan           | dokumen pelanggan                    |
-| Email masuk ke sales                                 | data pribadi pihak ketiga | mailbox                | analisis lead                        |
-| Log & correlation ID                                 | metadata teknis           | sistem                 | diagnosis                            |
+| Data                                                                      | Kategori                  | Dari                      | Dipakai untuk                                                                        |
+| ------------------------------------------------------------------------- | ------------------------- | ------------------------- | ------------------------------------------------------------------------------------ |
+| Nama, email, password hash                                                | identitas                 | registrasi                | autentikasi                                                                          |
+| Isi percakapan                                                            | dapat memuat data pribadi | chat                      | menyusun rekomendasi                                                                 |
+| Kebutuhan bangunan (lantai, kamar mandi, sumber air)                      | data properti             | chat                      | perhitungan teknik                                                                   |
+| Lokasi tingkat kota                                                       | lokasi                    | izin browser, opsional    | **hanya** analisis kebutuhan wilayah                                                 |
+| Denah yang diunggah                                                       | dapat memuat alamat       | unggahan                  | membantu estimasi                                                                    |
+| Laporan (nama, lokasi proyek)                                             | data pribadi              | dibangkitkan              | dokumen pelanggan                                                                    |
+| Email masuk ke sales                                                      | data pribadi pihak ketiga | mailbox                   | analisis lead                                                                        |
+| Label maksud pesan, unduh laporan, buka produk, kunjungan tautan (P26-02) | perilaku, tanpa teks/IP   | sistem                    | tahap prospek 5A — **hanya** akun terdaftar yang tampil per orang (`PROSPECT_5A.md`) |
+| Izin dihubungi tim Pralon, permintaan "minta dihubungi" (P26-04)          | persetujuan               | daftar, menu Akun, tombol | dasar sah sales menghubungi (OQ-76)                                                  |
+| Log & correlation ID                                                      | metadata teknis           | sistem                    | diagnosis                                                                            |
 
 Yang **tidak pernah** dikumpulkan: NIK, data keuangan, biometrik, lokasi presisi (koordinat), kontak
 di perangkat.
@@ -48,8 +50,14 @@ Persetujuan adalah **baris di database**, bukan flag `localStorage` (OQ-19).
 
 ```
 consents(subject_id, kind, granted, policy_version, granted_at, revoked_at)
-kind ∈ { LOCATION, ANALYTICS_STORAGE }
+kind ∈ { LOCATION, ANALYTICS_STORAGE, SALES_CONTACT }
 ```
+
+`SALES_CONTACT` (P26-04, OQ-76): opt-in "Saya bersedia dihubungi tim Pralon soal kebutuhan pipa saya" di
+form daftar — **tidak pernah tercentang tanpa pilihan pengguna** — dan sakelar di menu Akun. Hanya akun
+terdaftar (tamu ditolak API). Tanpa opt-in, sales hanya menghubungi pengguna yang menekan "Minta dihubungi
+tim Pralon" sendiri (`sales_requests`). Halaman kebijakan privasi untuk pengguna belum ada (OQ-21); teks
+pemberitahuan di form daftar adalah pemberitahuan yang berlaku sampai halaman itu dibuat.
 
 | Aspek            | Ketentuan                                                                                  |
 | ---------------- | ------------------------------------------------------------------------------------------ |

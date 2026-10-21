@@ -34,6 +34,19 @@ export const CHAT_COPY = {
     login: 'Masuk',
     later: 'Nanti saja',
   },
+  /** Gate untuk "minta dihubungi" (P26-04): sales menghubungi orang yang dikenal. */
+  gateContact: {
+    title: 'Masuk dulu supaya tim Pralon bisa menghubungi Anda',
+    body: 'Tim Pralon menghubungi lewat email atau nomor HP di akun Anda. Percakapan ini ikut pindah, jadi tidak perlu cerita ulang.',
+  },
+  salesContact: {
+    solution: 'Minta dihubungi tim Pralon',
+    solutionShort: 'Hubungi Pralon',
+    price: 'Minta penawaran tim Pralon',
+    sending: 'Mengirim…',
+    sent: 'Tim Pralon akan menghubungi Anda',
+    failed: 'Belum terkirim, coba lagi',
+  },
   /** Label aksesibel titik berpikir — tidak ada teksnya di prototipe. */
   thinking: 'SNOUTY sedang berpikir',
   toast: {
@@ -279,6 +292,18 @@ export const CHAT_COPY_EN: CopyShape<typeof CHAT_COPY> = {
     register: 'Sign up',
     login: 'Log in',
     later: 'Not now',
+  },
+  gateContact: {
+    title: 'Sign in so the Pralon team can reach you',
+    body: 'The Pralon team gets in touch by the email or phone number on your account. This conversation moves with you, so nothing needs repeating.',
+  },
+  salesContact: {
+    solution: 'Ask the Pralon team to contact me',
+    solutionShort: 'Contact Pralon',
+    price: 'Ask the Pralon team for a quote',
+    sending: 'Sending…',
+    sent: 'The Pralon team will contact you',
+    failed: 'Not sent, try again',
   },
   thinking: 'SNOUTY is thinking',
   toast: {

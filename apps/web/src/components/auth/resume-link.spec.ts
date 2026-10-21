@@ -26,3 +26,16 @@ describe('resume-link (P8-09)', () => {
     expect(afterAuthHref(`?resume=${ID}`, null)).toBe(`/consultation?c=${ID}`);
   });
 });
+
+describe('minta dihubungi setelah daftar/masuk (P26-04)', () => {
+  const ID = '01JBC0NV0000000000000000AB';
+  it('aksi kontak sales ikut diteruskan, sumbernya tetap', () => {
+    expect(parseResume(`?resume=${ID}&then=contact_price`)).toEqual({
+      conversationId: ID,
+      then: 'contact_price',
+    });
+    expect(afterAuthHref(`?resume=${ID}&then=contact_solution`, ID)).toBe(
+      `/consultation?c=${ID}&then=contact_solution`,
+    );
+  });
+});

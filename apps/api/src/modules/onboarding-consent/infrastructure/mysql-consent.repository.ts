@@ -119,7 +119,7 @@ function toSubjectKind(raw: string): 'user' | 'guest' {
 }
 
 function toKind(raw: string): ConsentKind {
-  if (raw === 'LOCATION' || raw === 'ANALYTICS_STORAGE') return raw;
+  if (raw === 'LOCATION' || raw === 'ANALYTICS_STORAGE' || raw === 'SALES_CONTACT') return raw;
   throw new Error(`jenis consent tidak dikenal di database: ${raw}`);
 }
 

@@ -138,3 +138,38 @@ export const register = (
   password: string,
   phone: string,
 ): Promise<AuthResult> => post('/auth/register', { name, email, password, phone });
+
+// ── Izin dihubungi tim Pralon (P26-04, OQ-76) ────────────────────────────────
+
+/** Opt-in "boleh dihubungi tim Pralon": consent `SALES_CONTACT`, hanya pengguna terdaftar. */
+export async function recordSalesContactConsent(granted: boolean): Promise<boolean> {
+  try {
+    const response = await fetch(`${BASE}/consents`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ kind: 'SALES_CONTACT', granted }),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Keadaan opt-in saat ini; `null` bila tidak bisa dibaca. */
+export async function fetchSalesContactConsent(): Promise<boolean | null> {
+  try {
+    const response = await fetch(`${BASE}/consents`, {
+      credentials: 'include',
+      headers: { ...authHeaders() },
+    });
+    if (!response.ok) return null;
+    const body = (await response.json()) as {
+      items: readonly { kind: string; granted: boolean; revokedAt?: string | null }[];
+    };
+    const row = body.items.find((item) => item.kind === 'SALES_CONTACT');
+    return row !== undefined && row.granted && !row.revokedAt;
+  } catch {
+    return null;
+  }
+}

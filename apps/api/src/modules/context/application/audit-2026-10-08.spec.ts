@@ -323,6 +323,7 @@ describe('ruas kebutuhan — bangunan vs kasus sumur, harga, toren, di luar topi
       pipelineInput({ message, understanding: understood(message, { intent: 'price_question' }) }),
     );
     expect(text(events)).toContain('Harga tidak saya tampilkan');
+    expect(events).toContainEqual({ type: 'card', card: { kind: 'cta', action: 'CONTACT_SALES' } });
   });
 
   it('"torennya pindah ke bawah" mengubah sumber air ke toren bawah (klitik -nya)', async () => {

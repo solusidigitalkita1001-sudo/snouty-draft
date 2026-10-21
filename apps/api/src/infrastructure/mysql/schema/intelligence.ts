@@ -170,3 +170,23 @@ export const prospectSignals = mysqlTable(
     ),
   ],
 );
+
+/**
+ * "Minta dihubungi tim Pralon" (P26-04, OQ-76): sinyal tahap Act dan dasar sah bagi sales untuk
+ * menghubungi pengguna terdaftar yang tidak memberi opt-in umum.
+ */
+export const salesRequests = mysqlTable(
+  'sales_requests',
+  {
+    id: id().primaryKey(),
+    userId: char('user_id', { length: 26 }).notNull(),
+    conversationId: char('conversation_id', { length: 26 }),
+    source: varchar('source', { length: 16 }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('ix_sales_requests_user_created').on(t.userId, t.createdAt),
+    index('ix_sales_requests_conversation').on(t.conversationId),
+    check('ck_sales_requests_source', sql`\`source\` IN ('solution','price')`),
+  ],
+);

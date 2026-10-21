@@ -334,7 +334,7 @@ describe('runProductQuestion — KONSEP', () => {
     );
     expect(text(events)).toContain('Harga tidak saya tampilkan di sini');
     expect(text(events)).not.toContain('Produk mana');
-    expect(cards(events)).toEqual([{ kind: 'cta', action: 'CONTACT_TECHNICAL' }]);
+    expect(cards(events)).toEqual([{ kind: 'cta', action: 'CONTACT_SALES' }]);
   });
 
   it('"yang mana buat kamar mandi?" setelah PVC D vs AW → lanjutan subjek: kelas AW/D dijelaskan, bukan pembuka', async () => {

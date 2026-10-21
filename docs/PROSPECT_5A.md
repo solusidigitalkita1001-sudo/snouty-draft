@@ -175,6 +175,6 @@ sales dibangun dengan token yang ada sampai desain tersedia, tanpa label interna
 | P26-02 | Instrumentasi: `messages.intent`, `prospect_signals`, konsumer antrean, aktivitas terakhir |
 | P26-03 | Aturan tahap 5A + prioritas (domain murni + tes)                                           |
 | P26-04 | Handoff `sales` ("minta dihubungi") di chat + pemberitahuan saat daftar + PRIVACY          |
-| P26-05 | Papan prospek admin (`/internal/prospects`) + penugasan + peran `sales`                    |
-| P26-06 | Ringkasan sales (terstruktur + paragraf model) + layar sales + status                      |
+| P26-05 | **Dashboard admin**: papan prospek (`/internal/prospects`) + penugasan + peran `sales`     |
+| P26-06 | **Dashboard sales**: prospek miliknya + ringkasan (terstruktur + paragraf model) + status  |
 | P26-07 | Geo-IP → kota (agregat + prospek) dan penulis `market_events` yang selama ini kosong       |

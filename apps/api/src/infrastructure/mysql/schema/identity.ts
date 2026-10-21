@@ -257,7 +257,7 @@ export const consents = mysqlTable(
   (t) => [
     index('ix_consents_subject').on(t.subjectKind, t.subjectId, t.kind),
     check('ck_consents_subject_kind', sql`\`subject_kind\` IN ('user','guest')`),
-    check('ck_consents_kind', sql`\`kind\` IN ('LOCATION','ANALYTICS_STORAGE')`),
+    check('ck_consents_kind', sql`\`kind\` IN ('LOCATION','ANALYTICS_STORAGE','SALES_CONTACT')`),
     /** Pencabutan tidak pernah mendahului pemberian. */
     check(
       'ck_consents_revoked_after_granted',

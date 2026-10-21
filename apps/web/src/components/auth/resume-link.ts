@@ -9,7 +9,7 @@
  */
 
 /** Aksi yang diteruskan setelah masuk. Hanya yang memang dibuka oleh akun terdaftar. */
-export type ResumeAction = 'save';
+export type ResumeAction = 'save' | 'contact_solution' | 'contact_price';
 
 export interface ResumeTarget {
   readonly conversationId: string;
@@ -17,7 +17,7 @@ export interface ResumeTarget {
 }
 
 const ULID = /^[0-9A-HJKMNP-TV-Z]{26}$/;
-const ACTIONS: readonly ResumeAction[] = ['save'];
+const ACTIONS: readonly ResumeAction[] = ['save', 'contact_solution', 'contact_price'];
 
 /** Tautan ke layar daftar/masuk yang membawa percakapan dan aksinya. */
 export function gateHref(
