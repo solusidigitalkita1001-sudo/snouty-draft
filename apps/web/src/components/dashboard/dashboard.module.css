@@ -374,3 +374,204 @@
     flex-wrap: wrap;
   }
 }
+
+/* Dashboard sales (P26-06): daftar prospek di kiri, ringkasan di kanan; bertumpuk di ponsel. */
+.leadLayout {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.leadList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leadItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-height: var(--snouty-tap-min);
+  padding: 12px;
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-card);
+  background: var(--snouty-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.leadItemOn {
+  border-color: var(--snouty-action);
+}
+
+.leadItem:focus-visible,
+.linkButton:focus-visible {
+  outline: none;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.leadTags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.leadDetail {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-card);
+  background: var(--snouty-surface);
+}
+
+.leadBody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.leadHead {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leadName {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.contactRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.blockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.blockTitle {
+  color: var(--snouty-muted);
+  font-family: var(--snouty-font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.contextText {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.factList,
+.quoteList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.quoteList {
+  color: var(--snouty-ink-2);
+}
+
+.projectCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--snouty-border-soft);
+  border-radius: var(--snouty-radius-card);
+}
+
+.factGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.factGrid dt {
+  color: var(--snouty-muted);
+  font-size: 12px;
+}
+
+.factGrid dd {
+  margin: 0;
+  font-size: 13px;
+}
+
+.linkButton {
+  align-self: flex-start;
+  min-height: var(--snouty-tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--snouty-action-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.transcript p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.lineUser,
+.lineBot {
+  padding: 8px 10px;
+  border-radius: var(--snouty-radius-control);
+}
+
+.lineUser {
+  background: var(--snouty-surface-subtle);
+}
+
+.lineBot {
+  border: 1px solid var(--snouty-border-soft);
+}
+
+@media (max-width: 860px) {
+  .leadLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .leadDetail {
+    padding: 16px;
+  }
+}

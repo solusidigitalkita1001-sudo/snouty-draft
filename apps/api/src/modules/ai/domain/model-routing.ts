@@ -24,7 +24,9 @@ export type LlmTask =
   | 'explanation_prose'
   | 'ambiguous_input'
   | 'extraction_retry'
-  | 'turn_planning';
+  | 'turn_planning'
+  /** Paragraf konteks ringkasan prospek untuk sales (P26-06) — merangkum data, bukan menghitung. */
+  | 'lead_summary';
 
 /**
  * Tabel routing (docs/AI_BEHAVIOR.md). Percobaan ulang setelah validasi gagal dan
@@ -44,6 +46,7 @@ const ROUTING: Readonly<Record<LlmTask, LlmTier>> = {
   extraction_retry: 'strong',
   /** Perencana giliran (P16-29): JSON pendek dengan daftar tertutup — model tercepat cukup. */
   turn_planning: 'fast',
+  lead_summary: 'balanced',
 };
 
 export function tierForTask(task: LlmTask): LlmTier {

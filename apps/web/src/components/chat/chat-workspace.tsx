@@ -65,6 +65,7 @@ import { SolutionView, type SolutionTab } from '../solution/solution-view';
 import {
   canOpenDashboard,
   getCurrentUser,
+  isSales,
   restoreSession,
   type CurrentUser,
 } from '../auth/session';
@@ -1204,6 +1205,11 @@ export function ChatWorkspace() {
             {canOpenDashboard(user) && (
               <a className={styles['sidebarLinkButton']} href="/internal/prospects">
                 {COPY.footer.dashboard}
+              </a>
+            )}
+            {isSales(user) && (
+              <a className={styles['sidebarLinkButton']} href="/internal/leads">
+                {COPY.footer.myLeads}
               </a>
             )}
             {/* Pengalih tema dan bahasa sebagai baris menu — penempatannya belum didesain; minimal. */}

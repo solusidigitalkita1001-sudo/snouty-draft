@@ -55,6 +55,11 @@ export interface CurrentUser {
 /** Peran yang membuka dashboard prospek (admin dan peninjau sales). */
 export const DASHBOARD_ROLES: readonly string[] = ['admin', 'sales_reviewer'];
 
+/** Sales (P26-06) membuka daftar prospek yang ditugaskan kepadanya. */
+export function isSales(user: CurrentUser | null): boolean {
+  return user?.roles?.includes('sales') ?? false;
+}
+
 export function canOpenDashboard(user: CurrentUser | null): boolean {
   return user?.roles?.some((role) => DASHBOARD_ROLES.includes(role)) ?? false;
 }

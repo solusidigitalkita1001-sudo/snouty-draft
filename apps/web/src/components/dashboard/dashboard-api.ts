@@ -115,3 +115,81 @@ export const fetchSalesTeam = () =>
 export const addSalesMember = (email: string) => send('POST', `${BASE}/sales-team`, { email });
 
 export const removeSalesMember = (userId: string) => send('DELETE', `${BASE}/sales-team/${userId}`);
+
+// ── Dashboard sales (P26-06) ────────────────────────────────────────────────
+
+export interface LeadProject {
+  readonly conversationId: string;
+  readonly title: string | null;
+  readonly updatedAt: string;
+  readonly buildingType: string | null;
+  readonly floors: number | null;
+  readonly bathrooms: number | null;
+  readonly waterSource: string | null;
+  readonly caseId: string | null;
+  readonly headline: string | null;
+  readonly mainSize: string | null;
+  readonly products: readonly {
+    readonly name: string;
+    readonly family: string | null;
+    readonly size: string | null;
+  }[];
+}
+
+export interface LeadDetail {
+  readonly status: LeadStatus;
+  readonly lostReason: string | null;
+  readonly assignedAt: string;
+  readonly context: { readonly text: string; readonly generatedAt: string } | null;
+  readonly prospect: ProspectItem | null;
+  readonly facts: {
+    readonly projects: readonly LeadProject[];
+    readonly reports: number;
+    readonly shares: number;
+    readonly salesRequest: { readonly source: string; readonly at: string } | null;
+    readonly quotes: readonly { readonly text: string; readonly at: string }[];
+  };
+}
+
+export interface TranscriptLine {
+  readonly role: 'user' | 'assistant';
+  readonly text: string;
+  readonly at: string;
+}
+
+const LEADS = `${BASE}/leads`;
+
+export const fetchMyLeads = () => get<{ readonly items: readonly ProspectItem[] }>(`${LEADS}/mine`);
+
+export const fetchLead = (userId: string) => get<LeadDetail>(`${LEADS}/${userId}`);
+
+export const setLeadStatus = (userId: string, status: LeadStatus, lostReason?: string) =>
+  send('POST', `${LEADS}/${userId}/status`, {
+    status,
+    ...(lostReason !== undefined ? { lostReason } : {}),
+  });
+
+/** Paragraf konteks baru; `null` bila model tidak tersedia atau paragrafnya gagal pagar. */
+export async function refreshLeadContext(
+  userId: string,
+): Promise<{ readonly text: string; readonly generatedAt: string } | null | 'failed'> {
+  try {
+    const response = await apiFetch(`${LEADS}/${userId}/context`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: authHeaders(),
+    });
+    if (!response.ok) return 'failed';
+    const body = (await response.json()) as {
+      context: { text: string; generatedAt: string } | null;
+    };
+    return body.context;
+  } catch {
+    return 'failed';
+  }
+}
+
+export const fetchTranscript = (userId: string, conversationId: string) =>
+  get<{ readonly items: readonly TranscriptLine[] }>(
+    `${LEADS}/${userId}/conversations/${conversationId}`,
+  );

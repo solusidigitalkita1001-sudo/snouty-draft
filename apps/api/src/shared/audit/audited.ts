@@ -42,6 +42,9 @@ export const USER_AUDIT = {
   prospectAssign: { action: 'prospect.assign', entityType: 'user' },
   salesGrant: { action: 'sales.grant', entityType: 'user' },
   salesRevoke: { action: 'sales.revoke', entityType: 'user' },
+  // Dashboard sales (P26-06): perubahan status dan pembukaan transkrip pelanggan.
+  leadStatus: { action: 'lead.status', entityType: 'user' },
+  leadTranscript: { action: 'lead.transcript.view', entityType: 'user' },
   reportCreate: { action: 'report.create', entityType: 'report' },
   reportRebuild: { action: 'report.rebuild', entityType: 'report' },
   uploadCreate: { action: 'upload.create', entityType: 'upload' },

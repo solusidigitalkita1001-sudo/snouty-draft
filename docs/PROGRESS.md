@@ -2060,7 +2060,16 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       dari tabel yang ada, dinilai `assessProspect`. `RequiresRole` kini menerima beberapa peran (admin ATAU
       sales_reviewer). Tautan "Dashboard prospek" di sidebar untuk admin/peninjau. Layar belum didesain (OQ-21),
       tanpa label internal di layar.
-- [ ] P26-06 Dashboard sales (pemilik 2026-10-21): prospek miliknya + ringkasan percakapan + status menang/kalah.
+- [x] P26-06 Dashboard sales (pemilik 2026-10-21) di `/internal/leads`: daftar prospek yang ditugaskan (urut
+      prioritas), ringkasan per prospek — kontak (email, tautan WhatsApp), tahap/prioritas/skala, status baru →
+      dihubungi → penawaran → menang/kalah (kalah wajib beralasan), jejak (minta dihubungi, laporan, bagikan),
+      konsultasi dari snapshot kebutuhan + rekomendasi terakhir (bangunan, lantai, kamar mandi, sumber air, kasus,
+      hasil hitungan engine, pipa utama, produk), kalimat pelanggan terakhir, dan transkrip baca-saja (diaudit).
+      Paragraf konteks dari model (tugas `lead_summary`, tier balanced) disusun di latar saat penugasan dan bisa
+      disusun ulang; pagar REC-1 (`passesGuards`): angka yang tidak ada di DATA → tanpa paragraf. Sales hanya
+      melihat prospek miliknya (lainnya NOT_FOUND); admin/peninjau melihat semua dan membuka ringkasan dari papan.
+      Tautan "Prospek saya" di sidebar untuk peran `sales`. Mock `auth-api` di tes menu Akun dilengkapi (galat
+      tak tertangani sejak P26-04 yang lolos karena grep hasil tes tidak menangkap baris "Errors").
 - [ ] P26-07 Geo-IP → kota dan penulis `market_events`.
 
 ## Design Coverage

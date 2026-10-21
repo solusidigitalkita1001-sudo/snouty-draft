@@ -23,8 +23,9 @@ import {
   RequiresRole,
   type WithInternalActor,
 } from '../../../shared/http/internal-role.guard.js';
+import { LeadService } from '../application/lead.service.js';
 import { ProspectBoardService } from '../application/prospect-board.service.js';
-import type { ProspectRow } from '../domain/prospect-board.js';
+import { prospectDto } from './prospect.dto.js';
 import { STAGES } from '../domain/prospect-stage.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
@@ -45,14 +46,17 @@ const BOARD_ROLES = [INTERNAL_ROLES.admin, INTERNAL_ROLES.salesReviewer] as cons
 @Controller('internal')
 @UseGuards(InternalRoleGuard)
 export class InternalProspectController {
-  constructor(private readonly board: ProspectBoardService) {}
+  constructor(
+    private readonly board: ProspectBoardService,
+    private readonly leads: LeadService,
+  ) {}
 
   @Get('prospects')
   @RequiresRole(...BOARD_ROLES)
   async list(@Query() query: unknown) {
     const filter = parse(BoardQuery, query);
     const result = await this.board.board(filter);
-    return { funnel: result.funnel, items: result.items.map(toDto) };
+    return { funnel: result.funnel, items: result.items.map(prospectDto) };
   }
 
   @Audited(USER_AUDIT.prospectAssign)
@@ -66,7 +70,7 @@ export class InternalProspectController {
   ): Promise<void> {
     const { id } = parse(IdParam, params);
     const { salesUserId } = parse(AssignDto, body);
-    await this.board.assign(id, salesUserId, actorId(req));
+    await this.leads.assign(id, salesUserId, actorId(req));
   }
 
   @Get('sales-team')
@@ -92,32 +96,6 @@ export class InternalProspectController {
     const { id } = parse(IdParam, params);
     await this.board.removeSales(id);
   }
-}
-
-function toDto(row: ProspectRow) {
-  return {
-    userId: row.user.id,
-    name: row.user.name,
-    email: row.user.email,
-    phone: row.user.phone,
-    registeredAt: row.user.createdAt.toISOString(),
-    stage: row.stage,
-    stageReachedAt: row.stageReachedAt.toISOString(),
-    lastActivityAt: row.lastActivityAt.toISOString(),
-    scale: row.scale,
-    score: row.score,
-    priority: row.priority,
-    salesContactConsent: row.salesContactConsent,
-    salesRequestedAt: row.salesRequestedAt?.toISOString() ?? null,
-    contactable: row.contactable,
-    conversationCount: row.conversationCount,
-    lead: row.lead && {
-      salesUserId: row.lead.salesUserId,
-      salesName: row.lead.salesName,
-      status: row.lead.status,
-      assignedAt: row.lead.assignedAt.toISOString(),
-    },
-  };
 }
 
 function actorId(req: WithInternalActor): string {

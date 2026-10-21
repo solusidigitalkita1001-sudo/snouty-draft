@@ -353,7 +353,14 @@ function AssignCell({
           </option>
         ))}
       </select>
-      {item.lead && <div className={styles.meta}>{copy.leadStatus[item.lead.status]}</div>}
+      {item.lead && (
+        <div className={styles.meta}>
+          {copy.leadStatus[item.lead.status]} ·{' '}
+          <a className={styles.back} href={`/internal/leads?u=${item.userId}`}>
+            {copy.summary}
+          </a>
+        </div>
+      )}
     </>
   );
 }

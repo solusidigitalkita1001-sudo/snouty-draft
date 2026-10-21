@@ -13,6 +13,8 @@ const api = vi.hoisted(() => ({
   updateName: vi.fn(),
   changePassword: vi.fn(),
   logout: vi.fn(),
+  fetchSalesContactConsent: vi.fn(async () => false),
+  recordSalesContactConsent: vi.fn(async () => true),
 }));
 vi.mock('../auth/auth-api', () => api);
 
@@ -23,6 +25,15 @@ afterEach(() => {
 });
 
 describe('AccountModal', () => {
+  it('izin dihubungi tim Pralon terbaca dan disimpan saat diubah (P26-04)', async () => {
+    api.fetchProfile.mockResolvedValue({ ok: true, profile: PROFILE });
+    render(<AccountModal onClose={() => {}} />);
+    const box = await screen.findByRole('checkbox', { name: ACCOUNT_COPY.contactLabel });
+    expect((box as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(box);
+    await waitFor(() => expect(api.recordSalesContactConsent).toHaveBeenCalledWith(true));
+  });
+
   it('memuat profil; tanpa metatext; dialog bisa ditutup dengan Escape', async () => {
     api.fetchProfile.mockResolvedValue({ ok: true, profile: PROFILE });
     const onClose = vi.fn();

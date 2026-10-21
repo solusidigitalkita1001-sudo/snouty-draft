@@ -17,6 +17,26 @@ import { ProspectBoardService } from './application/prospect-board.service.js';
 import { PROSPECT_STORE, type ProspectStore } from './domain/prospect-board.js';
 import { prospectStoreProvider } from './infrastructure/mysql-prospect.store.js';
 import { InternalProspectController } from './presentation/internal-prospect.controller.js';
+import { InternalLeadController } from './presentation/internal-lead.controller.js';
+import { LeadService } from './application/lead.service.js';
+import { LeadContextWriter } from './application/lead-context.writer.js';
+import { LEAD_STORE, type LeadStore } from './domain/lead.js';
+import { leadStoreProvider } from './infrastructure/mysql-lead.store.js';
+import { AiModule } from '../ai/ai.module.js';
+import { AI_SERVICE, type AiService } from '../ai/domain/ai.port.js';
+import { LoggerService } from '../../shared/logging/logger.service.js';
+
+const leadServiceProvider = {
+  provide: LeadService,
+  inject: [LEAD_STORE, ProspectBoardService, AI_SERVICE, LoggerService],
+  useFactory: (
+    leads: LeadStore,
+    board: ProspectBoardService,
+    ai: AiService | null,
+    logger: LoggerService,
+  ) =>
+    new LeadService(leads, board, new LeadContextWriter(ai), logger.child({ module: 'prospect' })),
+};
 
 const prospectBoardServiceProvider = {
   provide: ProspectBoardService,
@@ -32,13 +52,15 @@ const salesRequestServiceProvider = {
 };
 
 @Module({
-  imports: [ConversationModule],
-  controllers: [SalesRequestController, InternalProspectController],
+  imports: [ConversationModule, AiModule],
+  controllers: [SalesRequestController, InternalProspectController, InternalLeadController],
   providers: [
     salesRequestRepositoryProvider,
     salesRequestServiceProvider,
     prospectStoreProvider,
     prospectBoardServiceProvider,
+    leadStoreProvider,
+    leadServiceProvider,
     InternalRoleGuard,
   ],
 })
