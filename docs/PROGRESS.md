@@ -2021,6 +2021,23 @@ button". Sebelumnya bahasa ditetapkan sekali dari tombol bahasa saat percakapan 
       (dulu 20–40 s). Uji ulang menemukan "air limbah perumahan 100 rumah" jatuh ke jalur rumah — contoh `sewerage`
       ditambah di `use-case.json` (eval pemahaman tetap ≥ 95%). Hitung live 23/23, campuran 8/8.
 
+## Phase 26 — Prospek 5A dan penugasan sales (21 Okt 2026)
+
+Pemilik 2026-10-21: SNOUTY juga alat Pralon untuk memantau user yang potensial membeli (konsep 5A); admin
+melempar data customer ke sales, dan sales menangkap ringkasan percakapan user dengan AI. Keputusan dan
+sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
+
+- [x] P26-01 Dokumen konsep: dua lapis (agregat anonim untuk semua, prospek hanya akun terdaftar), tahap 5A
+      dari sinyal nyata, prioritas panas/hangat/dingin, alur admin → sales, ringkasan terstruktur + paragraf
+      model, lokasi IP → kota, privasi UU PDP, urutan kerja.
+- [ ] ✋ CHECKPOINT P26-01 — pemilik me-review konsep dan sisa OQ-76.
+- [ ] P26-02 Instrumentasi: `messages.intent`, `prospect_signals`, konsumer antrean, aktivitas terakhir.
+- [ ] P26-03 Aturan tahap 5A + prioritas (domain murni + tes).
+- [ ] P26-04 Handoff `sales` ("minta dihubungi") + pemberitahuan saat daftar + PRIVACY.
+- [ ] P26-05 Papan prospek admin + penugasan + peran `sales`.
+- [ ] P26-06 Ringkasan sales + layar sales + status menang/kalah.
+- [ ] P26-07 Geo-IP → kota dan penulis `market_events`.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |
