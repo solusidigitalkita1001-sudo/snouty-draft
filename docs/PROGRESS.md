@@ -2081,7 +2081,10 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       setelah tes ditulis).
 - [ ] ✋ CHECKPOINT Fase 26 — menunggu uji pemilik (pemilik 2026-10-21: "Gw coba sendiri nanti"): tambah akun
       sales, tugaskan prospek, cek dashboard admin (papan, tim sales, pasar) dan dashboard sales. OQ-77 diputuskan
-      2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live.
+      2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live. Simulasi HTTP
+      ujung-ke-ujung di stack lokal (akun uji admin/sales/pelanggan, bukan produksi) 21/21: opt-in, analisis, minta
+      dihubungi → papan (Act, admin bukan prospek) → tambah sales → tugaskan → pasar → Prospek saya, ringkasan, status,
+      kalah tanpa alasan ditolak, transkrip, sales ditolak di papan admin, tamu ditolak.
 
 ## Design Coverage
 
