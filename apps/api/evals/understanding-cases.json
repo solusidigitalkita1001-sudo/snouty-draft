@@ -1098,6 +1098,10 @@
       "useCase": "sewerage"
     },
     {
+      "text": "jaringan pipa air limbah perumahan 100 rumah, pipa utama 600 meter, gravitasi",
+      "useCase": "sewerage"
+    },
+    {
       "text": "pralon punya pipa ppr ga?",
       "topics": [],
       "topicsOnly": true,
