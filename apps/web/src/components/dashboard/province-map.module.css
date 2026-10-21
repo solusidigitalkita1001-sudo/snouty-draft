@@ -1,0 +1,184 @@
+/* Peta permintaan (P26-12). Satu hue terang→gelap untuk magnitudo; laut dan provinsi tanpa data
+   recessive. Warna lewat token, jadi mode gelap ikut tanpa palet kedua. */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.title {
+  color: var(--snouty-muted);
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.back {
+  min-height: var(--snouty-tap-min);
+  padding: 0 10px;
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-control);
+  background: var(--snouty-surface);
+  color: var(--snouty-action-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.canvas {
+  border: 1px solid var(--snouty-border-soft);
+  border-radius: var(--snouty-radius-card);
+  background: var(--snouty-surface-subtle);
+  overflow: hidden;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: none;
+}
+
+.zone {
+  fill: var(--snouty-surface);
+  stroke: var(--snouty-border);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Lima langkah dari satu hue: dibuat dari warna merek di atas permukaan, terang ke gelap. */
+.step0 {
+  fill: var(--snouty-surface);
+}
+
+.step1 {
+  fill: color-mix(in srgb, var(--snouty-action) 14%, var(--snouty-surface));
+}
+
+.step2 {
+  fill: color-mix(in srgb, var(--snouty-action) 30%, var(--snouty-surface));
+}
+
+.step3 {
+  fill: color-mix(in srgb, var(--snouty-action) 48%, var(--snouty-surface));
+}
+
+.step4 {
+  fill: color-mix(in srgb, var(--snouty-action) 68%, var(--snouty-surface));
+}
+
+.step5 {
+  fill: color-mix(in srgb, var(--snouty-action) 88%, var(--snouty-surface));
+}
+
+.zoneLive {
+  cursor: pointer;
+}
+
+.zoneLive:hover {
+  stroke: var(--snouty-action);
+  stroke-width: 1.4;
+}
+
+.zoneOn {
+  stroke: var(--snouty-action);
+  stroke-width: 1.4;
+}
+
+.zoneLabel {
+  fill: var(--snouty-ink);
+  font-family: var(--snouty-font-mono);
+  font-size: 9px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--snouty-surface);
+  stroke-width: 2.5;
+}
+
+.point {
+  fill: color-mix(in srgb, var(--snouty-action) 75%, transparent);
+  stroke: var(--snouty-surface);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+}
+
+.pointLabel {
+  fill: var(--snouty-ink);
+  font-size: 7px;
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--snouty-surface);
+  stroke-width: 2.5;
+}
+
+.tip {
+  pointer-events: none;
+}
+
+.tipBox {
+  fill: var(--snouty-ink);
+  opacity: 0.92;
+}
+
+.tipText {
+  fill: var(--snouty-surface);
+  font-size: 10px;
+  text-anchor: middle;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend button {
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-pill);
+  background: var(--snouty-surface);
+  color: var(--snouty-ink-2);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.legend button:hover {
+  border-color: var(--snouty-action);
+}
+
+.legend button:focus-visible,
+.back:focus-visible {
+  outline: none;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.legendOn {
+  border-color: var(--snouty-action);
+  background: var(--snouty-action-soft-bg);
+  color: var(--snouty-action-text);
+}
+
+.note {
+  margin: 0;
+  color: var(--snouty-muted);
+  font-size: 12px;
+}

@@ -15,6 +15,7 @@ import {
   type SalesMember,
 } from './dashboard-api';
 import { dashboardCopy } from './dashboard-copy';
+import { EmptyState } from './empty-state';
 import styles from './dashboard.module.css';
 
 export function TeamPanel() {
@@ -94,7 +95,7 @@ export function TeamPanel() {
       )}
 
       {team === null && <p className={styles.muted}>{COPY.loading}</p>}
-      {team !== null && team.length === 0 && <p className={styles.muted}>{COPY.team.empty}</p>}
+      {team !== null && team.length === 0 && <EmptyState mood="confused" text={COPY.team.empty} />}
 
       {team !== null && team.length > 0 && (
         <div className={styles.cards}>

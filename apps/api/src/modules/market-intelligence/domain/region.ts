@@ -49,10 +49,36 @@ const PROVINCE_ID: Readonly<Record<string, string>> = {
   'Special Region of Yogyakarta': 'DI Yogyakarta',
 };
 
-/** Bentuk catatan mmdb yang dipakai — hanya negara dan subdivisi. */
+/** Bentuk catatan mmdb yang dipakai — negara, subdivisi, kota, dan titik kasarnya. */
 export interface GeoRecord {
   readonly country?: { readonly iso_code?: string };
   readonly subdivisions?: readonly { readonly names?: { readonly en?: string } }[];
+  readonly city?: { readonly names?: { readonly en?: string } };
+  readonly location?: { readonly latitude?: number; readonly longitude?: number };
+}
+
+/**
+ * Tempat satu event pasar: provinsi, kota perkiraan, dan koordinat yang **dibulatkan 0,1°** (±11 km).
+ * Pembulatan itu yang membuat titik di peta tetap setingkat kota — bukan alamat (P26-12, OQ-77).
+ */
+export interface Place {
+  readonly province: string | null;
+  readonly city: string | null;
+  readonly lat: number | null;
+  readonly lng: number | null;
+}
+
+const COARSE = 10; // satu angka di belakang koma
+
+export function placeOf(record: GeoRecord | null | undefined): Place {
+  const province = provinceOf(record);
+  if (province === null) return { province: null, city: null, lat: null, lng: null };
+  const city = record?.city?.names?.en ?? null;
+  const lat = record?.location?.latitude;
+  const lng = record?.location?.longitude;
+  const coarse = (v: number | undefined) =>
+    typeof v === 'number' && Number.isFinite(v) ? Math.round(v * COARSE) / COARSE : null;
+  return { province, city: city === '' ? null : city, lat: coarse(lat), lng: coarse(lng) };
 }
 
 export function provinceOf(record: GeoRecord | null | undefined): string | null {

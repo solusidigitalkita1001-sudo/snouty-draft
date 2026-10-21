@@ -132,3 +132,63 @@ export function consultationFunnel(events: readonly MarketEvent[]): Consultation
     requestedQuotation: events.filter((event) => event.quotationIntent).length,
   };
 }
+
+/** Zona provinsi dan titik kota untuk peta (P26-12). */
+export interface MapDemand {
+  readonly provinces: readonly { readonly name: string; readonly count: number }[];
+  readonly points: readonly {
+    readonly city: string;
+    readonly province: string;
+    readonly lat: number;
+    readonly lng: number;
+    readonly count: number;
+  }[];
+  /** Konsultasi yang wilayahnya tidak diketahui, dan yang ditahan ambang. */
+  readonly withoutRegion: number;
+  readonly suppressedPoints: number;
+}
+
+/**
+ * Peta memakai ambang k-anonimitas yang sama dengan agregat lain: provinsi dan titik kota dengan
+ * kurang dari lima konsultasi tidak digambar — sebuah titik tunggal di kota kecil praktis menunjuk
+ * satu orang, dan itulah yang dicegah ambang ini (docs/MARKET_INTELLIGENCE.md §5).
+ */
+export function mapDemand(events: readonly MarketEvent[]): MapDemand {
+  const provinces = new Map<string, number>();
+  const points = new Map<
+    string,
+    { city: string; province: string; lat: number; lng: number; count: number }
+  >();
+  let withoutRegion = 0;
+
+  for (const event of events) {
+    if (event.region === null) {
+      withoutRegion += 1;
+      continue;
+    }
+    provinces.set(event.region, (provinces.get(event.region) ?? 0) + 1);
+    const { city, lat, lng } = event;
+    if (!city || lat === null || lat === undefined || lng === null || lng === undefined) continue;
+    const key = `${event.region}|${city}|${lat}|${lng}`;
+    const point = points.get(key) ?? { city, province: event.region, lat, lng, count: 0 };
+    point.count += 1;
+    points.set(key, point);
+  }
+
+  let suppressedPoints = 0;
+  const kept = [...points.values()].filter((point) => {
+    if (point.count >= K_ANONYMITY_THRESHOLD) return true;
+    suppressedPoints += point.count;
+    return false;
+  });
+
+  return {
+    provinces: [...provinces.entries()]
+      .filter(([, count]) => count >= K_ANONYMITY_THRESHOLD)
+      .map(([name, count]) => ({ name, count }))
+      .sort((x, y) => y.count - x.count || x.name.localeCompare(y.name)),
+    points: kept.sort((x, y) => y.count - x.count || x.city.localeCompare(y.city)),
+    withoutRegion,
+    suppressedPoints,
+  };
+}

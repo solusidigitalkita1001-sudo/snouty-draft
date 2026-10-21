@@ -20,6 +20,7 @@ import {
   type Stage,
 } from './dashboard-api';
 import { dashboardCopy } from './dashboard-copy';
+import { EmptyState } from './empty-state';
 import styles from './dashboard.module.css';
 
 const STAGES: readonly Stage[] = ['aware', 'appeal', 'ask', 'act', 'advocate'];
@@ -216,7 +217,7 @@ export function ProspectBoard() {
       )}
 
       {items.length === 0 ? (
-        <p className={styles.muted}>{COPY.empty}</p>
+        <EmptyState mood="confused" text={COPY.empty} />
       ) : (
         <div className={styles.tableWrap}>
           <table className={styles.table}>

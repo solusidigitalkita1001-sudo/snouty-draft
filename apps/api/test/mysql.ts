@@ -84,8 +84,10 @@ const UP = [
   '0027_sales_contact.sql',
   '0028_sales_leads.sql',
   '0029_market_recorded.sql',
+  '0030_market_place.sql',
 ];
 const DOWN = [
+  '0030_market_place.down.sql',
   '0029_market_recorded.down.sql',
   '0028_sales_leads.down.sql',
   '0027_sales_contact.down.sql',

@@ -16,7 +16,12 @@ import { MysqlMarketEventStore } from './mysql-market-event.store.js';
 
 let fixture: TestDatabase;
 let service: MarketEventService;
-const regions = { provinceOf: async (ip: string | undefined) => (ip ? 'Jawa Barat' : null) };
+const regions = {
+  placeOf: async (ip: string | undefined) =>
+    ip
+      ? { province: 'Jawa Barat', city: 'Bandung', lat: -6.9, lng: 107.6 }
+      : { province: null, city: null, lat: null, lng: null },
+};
 
 beforeAll(async () => {
   fixture = await createTestDatabase('market_events_writer');
@@ -108,7 +113,7 @@ describe('penulis event pasar (P26-07)', () => {
 
 describe('GeoIpLookup tanpa berkas', () => {
   it('tanpa basis data: tanpa wilayah, bukan galat', async () => {
-    expect(await new GeoIpLookup(undefined).provinceOf('36.66.0.1')).toBeNull();
-    expect(await new GeoIpLookup('/tidak/ada.mmdb').provinceOf('36.66.0.1')).toBeNull();
+    expect((await new GeoIpLookup(undefined).placeOf('36.66.0.1')).province).toBeNull();
+    expect((await new GeoIpLookup('/tidak/ada.mmdb').placeOf('36.66.0.1')).province).toBeNull();
   });
 });

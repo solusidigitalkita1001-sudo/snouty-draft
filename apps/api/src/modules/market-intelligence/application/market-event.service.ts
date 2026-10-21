@@ -17,6 +17,8 @@ import {
   type ConsultationFacts,
 } from '../domain/chat-event.js';
 import type { MarketEvent } from '../domain/market-event.js';
+import { mapDemand, type MapDemand } from '../domain/aggregate.js';
+import type { Place } from '../domain/region.js';
 
 export interface MarketEventStore {
   claim(conversationId: string): Promise<boolean>;
@@ -26,7 +28,7 @@ export interface MarketEventStore {
 }
 
 export interface RegionLookup {
-  provinceOf(ip: string | undefined): Promise<string | null>;
+  placeOf(ip: string | undefined): Promise<Place>;
 }
 
 export interface MarketDashboard {
@@ -38,6 +40,7 @@ export interface MarketDashboard {
   readonly scope: ScopeSignal;
   readonly drainage: number;
   readonly funnel: ConsultationFunnel;
+  readonly map: MapDemand;
 }
 
 /**
@@ -56,12 +59,21 @@ export class MarketEventService {
   async record(conversationId: string, trigger: ChatEventTrigger, ip: string | undefined) {
     try {
       if (!(await this.store.claim(conversationId))) return;
-      const [facts, region] = await Promise.all([
+      const [facts, place] = await Promise.all([
         this.store.facts(conversationId),
-        this.regions.provinceOf(ip),
+        this.regions.placeOf(ip),
       ]);
       await this.store.insert(
-        chatMarketEvent({ id: ulid(), at: this.clock().toISOString(), region, trigger, facts }),
+        chatMarketEvent({
+          id: ulid(),
+          at: this.clock().toISOString(),
+          region: place.province,
+          city: place.city,
+          lat: place.lat,
+          lng: place.lng,
+          trigger,
+          facts,
+        }),
       );
     } catch (error) {
       this.log?.warn({ err: error, trigger }, 'event pasar tidak tercatat');
@@ -81,6 +93,7 @@ export class MarketEventService {
       scope: scopeSignal(events),
       drainage: drainageDemand(events),
       funnel: consultationFunnel(events),
+      map: mapDemand(events),
     };
   }
 }

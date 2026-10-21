@@ -6,7 +6,7 @@
 import { existsSync } from 'node:fs';
 import maxmind, { type CityResponse, type Reader } from 'maxmind';
 import type { Logger } from 'pino';
-import { provinceOf } from '../domain/region.js';
+import { placeOf, type Place } from '../domain/region.js';
 
 export class GeoIpLookup {
   private reader: Promise<Reader<CityResponse> | null> | null = null;
@@ -16,14 +16,15 @@ export class GeoIpLookup {
     private readonly log: Pick<Logger, 'warn'> | null = null,
   ) {}
 
-  async provinceOf(ip: string | undefined): Promise<string | null> {
-    if (ip === undefined || ip === '') return null;
+  async placeOf(ip: string | undefined): Promise<Place> {
+    const none: Place = { province: null, city: null, lat: null, lng: null };
+    if (ip === undefined || ip === '') return none;
     const reader = await this.open();
-    if (reader === null) return null;
+    if (reader === null) return none;
     try {
-      return provinceOf(reader.get(ip.replace(/^::ffff:/, '')));
+      return placeOf(reader.get(ip.replace(/^::ffff:/, '')));
     } catch {
-      return null;
+      return none;
     }
   }
 

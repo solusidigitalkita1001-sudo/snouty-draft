@@ -29,6 +29,12 @@ describe('tab Pasar (P26-07)', () => {
           suppressedGroups: 0,
           suppressedEvents: 0,
         },
+        map: {
+          provinces: [{ name: 'Jawa Barat', count: 7 }],
+          points: [{ city: 'Bandung', province: 'Jawa Barat', lat: -6.9, lng: 107.6, count: 7 }],
+          withoutRegion: 0,
+          suppressedPoints: 0,
+        },
         scope: { total: 12, routedToTechnical: 3, ratio: 0.25 },
         drainage: 2,
         funnel: { started: 12, reachedSolution: 9, routedToTechnical: 3, requestedQuotation: 4 },
@@ -36,7 +42,7 @@ describe('tab Pasar (P26-07)', () => {
     });
     render(<MarketPanel />);
     expect(await screen.findByText('Sampai solusi')).toBeDefined();
-    expect(screen.getByText('Jawa Barat')).toBeDefined();
+    expect(screen.getAllByText(/Jawa Barat/).length).toBeGreaterThan(0);
     expect(screen.getByText(/PVC AW 1"/)).toBeDefined();
     expect(screen.getByText('Rumah tinggal')).toBeDefined();
     expect(screen.getByText(/kecil · Jawa Barat/)).toBeDefined();
@@ -53,6 +59,7 @@ describe('tab Pasar (P26-07)', () => {
         regional: { buckets: [], suppressedGroups: 0, suppressedEvents: 0 },
         productInterest: { buckets: [], suppressedGroups: 0, suppressedEvents: 0 },
         projects: { buckets: [], suppressedGroups: 0, suppressedEvents: 0 },
+        map: { provinces: [], points: [], withoutRegion: 0, suppressedPoints: 0 },
         scope: { total: 0, routedToTechnical: 0, ratio: 0 },
         drainage: 0,
         funnel: { started: 0, reachedSolution: 0, routedToTechnical: 0, requestedQuotation: 0 },

@@ -22,8 +22,12 @@ export interface MarketEvent {
   readonly source: MarketEventSource;
   /** `YYYY-MM-DD`. */
   readonly occurredOn: string;
-  /** Kota/kabupaten saja, mis. "Bekasi". */
+  /** Provinsi, mis. "Jawa Barat". */
   readonly region: string | null;
+  /** Kota perkiraan dari IP, dan titiknya yang dibulatkan 0,1° — bahan peta (P26-12). */
+  readonly city?: string | null;
+  readonly lat?: number | null;
+  readonly lng?: number | null;
   readonly buildingType: string | null;
   readonly projectScale: ProjectScale | null;
   readonly installationType: MarketInstallationType | null;

@@ -14,7 +14,9 @@ import {
   type MarketDashboard,
 } from './dashboard-api';
 import { dashboardCopy } from './dashboard-copy';
+import { ProvinceMap } from './province-map';
 import styles from './dashboard.module.css';
+import { EmptyState } from './empty-state';
 import { salesCopy } from './sales-copy';
 
 const PERIODS = [30, 90, 365] as const;
@@ -76,10 +78,14 @@ export function MarketPanel() {
         </div>
       )}
       {data?.kind === 'ok' && data.value.total === 0 && (
-        <p className={styles.muted}>{COPY.market.empty}</p>
+        <EmptyState mood="confused" text={COPY.market.empty} />
       )}
       {data?.kind === 'ok' && data.value.total > 0 && (
         <>
+          <section className={[styles.card, styles.cardWide].join(' ')}>
+            <ProvinceMap map={data.value.map} />
+          </section>
+
           <div className={styles.cards}>
             <section className={styles.card}>
               <h2 className={styles.cardTitle}>{COPY.market.funnelTitle}</h2>

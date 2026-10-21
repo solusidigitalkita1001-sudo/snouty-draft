@@ -108,7 +108,23 @@ export const DASHBOARD_COPY = {
       besar: 'besar',
       tidak_diketahui: 'skala tidak diketahui',
     } as Record<string, string>,
-    attribution: 'Wilayah dari alamat IP: DB-IP (db-ip.com), CC BY 4.0.',
+    attribution:
+      'Wilayah dari alamat IP: DB-IP (db-ip.com), CC BY 4.0. Peta: Natural Earth (domain publik).',
+  },
+  map: {
+    title: 'Peta permintaan',
+    focus: (province: string) => `${province} — sebaran kota`,
+    zoomOut: 'Lihat seluruh Indonesia',
+    count: (n: number) => `${n} konsultasi`,
+    empty: 'Belum ada wilayah yang bisa ditampilkan.',
+    noPoints: 'Kotanya belum bisa ditampilkan: tiap kota masih kurang dari 5 konsultasi.',
+    hidden: (unknown: number, suppressed: number) =>
+      [
+        unknown > 0 ? `${unknown} konsultasi tanpa wilayah` : null,
+        suppressed > 0 ? `${suppressed} di kota dengan kurang dari 5` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ') + ' tidak digambar di peta.',
   },
   team: {
     title: 'Tim sales',
@@ -233,7 +249,23 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
       besar: 'large',
       tidak_diketahui: 'unknown scale',
     },
-    attribution: 'Region from IP address: DB-IP (db-ip.com), CC BY 4.0.',
+    attribution:
+      'Region from IP address: DB-IP (db-ip.com), CC BY 4.0. Map: Natural Earth (public domain).',
+  },
+  map: {
+    title: 'Demand map',
+    focus: (province: string) => `${province} — cities`,
+    zoomOut: 'Show all of Indonesia',
+    count: (n: number) => `${n} consultation${n === 1 ? '' : 's'}`,
+    empty: 'No region can be shown yet.',
+    noPoints: 'Cities cannot be shown yet: each has fewer than 5 consultations.',
+    hidden: (unknown: number, suppressed: number) =>
+      [
+        unknown > 0 ? `${unknown} consultations without a region` : null,
+        suppressed > 0 ? `${suppressed} in cities with fewer than 5` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ') + ' are not drawn on the map.',
   },
   team: {
     title: 'Sales team',

@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   char,
+  decimal,
   check,
   date,
   datetime,
@@ -113,8 +114,12 @@ export const marketEvents = mysqlTable(
     id: id().primaryKey(),
     source: varchar('source', { length: 8 }).notNull(),
     occurredOn: date('occurred_on').notNull(),
-    /** Kota/kabupaten saja. */
+    /** Provinsi (P26-07); kota dan koordinat kasar menyusul di 0030 untuk peta. */
     region: varchar('region', { length: 120 }),
+    city: varchar('city', { length: 120 }),
+    /** Dibulatkan 0,1° (±11 km): cukup untuk titik di peta, tidak cukup untuk menunjuk alamat. */
+    lat: decimal('lat', { precision: 4, scale: 1 }),
+    lng: decimal('lng', { precision: 5, scale: 1 }),
     buildingType: varchar('building_type', { length: 24 }),
     projectScale: varchar('project_scale', { length: 8 }),
     installationType: varchar('installation_type', { length: 16 }),

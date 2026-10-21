@@ -2099,6 +2099,17 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       kalah tanpa alasan ditolak → transkrip → sales ditolak di papan admin → paragraf konteks dari model
       produksi lolos pagar angka. Login pemilik terbukti membawa peran admin dan keempat endpoint dashboard
       menjawab 200.
+- [x] P26-11 Tampilan dirapikan + maskot (pemilik 2026-10-21: "sumpah jelek", "tambahin beberapa maskotnya").
+      Skala tipografi turun, ketebalan dikurangi, ikon garis di sidebar. Maskot dipakai TERBATAS — hanya di layar
+      kosong (papan, tim sales, prospek sales, pasar) lewat satu komponen `EmptyState`, `aria-hidden`, kalimatnya
+      yang membawa makna. Ini mengesampingkan pedoman desain "maskot tidak dipakai di back-office" atas permintaan
+      pemilik.
+- [x] P26-12 Peta permintaan (pemilik 2026-10-21: "zone by province, klik → zoom ke sebaran titiknya"). Geometri
+      Natural Earth (domain publik) disaring + disederhanakan jadi aset 47 KB lewat `apps/web/scripts/build-province-map.mjs`;
+      tanpa ubin dari pihak luar. Zona provinsi diwarnai satu hue terang→gelap menurut jumlah konsultasi, hover
+      memberi angkanya, klik mem-fokus provinsi dan menggambar titik kota. Migration 0030: `market_events` menyimpan
+      kota perkiraan dan koordinat DIBULATKAN 0,1° (±11 km) — tetap anonim, dan ambang k-anonimitas 5 berlaku untuk
+      zona maupun titik; yang ditahan dan yang tanpa wilayah disebut di bawah peta.
 - [x] ✋ CHECKPOINT Fase 26 — **ditutup pemilik 2026-10-21** atas dasar uji produksi 15/15 (P26-10) dan simulasi
       lokal 21/21; penilaian tampilan dicatat terpisah bila ada temuan. OQ-77 diputuskan
       2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live. Simulasi HTTP

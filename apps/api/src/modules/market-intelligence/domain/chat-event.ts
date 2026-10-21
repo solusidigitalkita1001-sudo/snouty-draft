@@ -43,6 +43,9 @@ export function chatMarketEvent(input: {
   readonly id: string;
   readonly at: string;
   readonly region: string | null;
+  readonly city?: string | null;
+  readonly lat?: number | null;
+  readonly lng?: number | null;
   readonly trigger: ChatEventTrigger;
   readonly facts: ConsultationFacts;
 }): MarketEvent {
@@ -58,6 +61,9 @@ export function chatMarketEvent(input: {
     source: 'chat',
     occurredOn: dayOf(input.at),
     region: input.region,
+    city: input.city ?? null,
+    lat: input.lat ?? null,
+    lng: input.lng ?? null,
     buildingType: facts.buildingType ?? facts.caseId,
     projectScale: known
       ? MARKET_SCALE[projectScaleOf({ useCase: facts.caseId, buildingType: facts.buildingType })]

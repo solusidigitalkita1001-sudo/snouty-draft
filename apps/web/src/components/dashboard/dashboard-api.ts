@@ -202,6 +202,19 @@ export interface AggregateResult {
   readonly suppressedEvents: number;
 }
 
+export interface MapDemand {
+  readonly provinces: readonly { readonly name: string; readonly count: number }[];
+  readonly points: readonly {
+    readonly city: string;
+    readonly province: string;
+    readonly lat: number;
+    readonly lng: number;
+    readonly count: number;
+  }[];
+  readonly withoutRegion: number;
+  readonly suppressedPoints: number;
+}
+
 export interface MarketDashboard {
   readonly fromDay: string;
   readonly total: number;
@@ -214,6 +227,7 @@ export interface MarketDashboard {
     readonly ratio: number;
   };
   readonly drainage: number;
+  readonly map: MapDemand;
   readonly funnel: {
     readonly started: number;
     readonly reachedSolution: number;

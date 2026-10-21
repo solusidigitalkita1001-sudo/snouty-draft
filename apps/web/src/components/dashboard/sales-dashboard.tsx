@@ -24,6 +24,7 @@ import {
 import { dashboardCopy } from './dashboard-copy';
 import styles from './dashboard.module.css';
 import { salesCopy } from './sales-copy';
+import { EmptyState } from './empty-state';
 
 const STATUSES: readonly LeadStatus[] = ['new', 'contacted', 'quoted', 'won', 'lost'];
 const ULID = /^[0-9A-HJKMNP-TV-Z]{26}$/;
@@ -97,7 +98,11 @@ export function SalesDashboard() {
           </div>
           <div className={styles.leadLayout}>
             <ul className={styles.leadList} aria-label={COPY.title}>
-              {list.value.items.length === 0 && <li className={styles.muted}>{COPY.empty}</li>}
+              {list.value.items.length === 0 && (
+                <li>
+                  <EmptyState mood="confused" text={COPY.empty} />
+                </li>
+              )}
               {list.value.items.map((item) => (
                 <li key={item.userId}>
                   <button
