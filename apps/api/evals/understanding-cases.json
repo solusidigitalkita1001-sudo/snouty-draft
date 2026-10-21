@@ -811,6 +811,10 @@
       "families": ["pvc"]
     },
     {
+      "text": "pralon jual pipa galvanis?",
+      "topics": []
+    },
+    {
       "text": "pipa galvanis masih dijual?",
       "intent": "product_concept",
       "families": ["galvanis"]
