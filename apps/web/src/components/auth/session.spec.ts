@@ -81,3 +81,38 @@ describe('apiFetch', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('apiFetch saat sesi belum dipulihkan (laporan pemilik 2026-10-21)', () => {
+  it('401 tanpa token tetapi ada petunjuk sesi: sesi dipulihkan lalu permintaan diulang', async () => {
+    setAccessToken(null);
+    localStorage.setItem('snouty.session', '1');
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('{}', { status: 401 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ accessToken: 'tok', name: 'Admin', tier: 'registered' }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(new Response('{"items":[]}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await apiFetch('/api/v1/internal/prospects');
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    vi.unstubAllGlobals();
+  });
+
+  it('tanpa petunjuk sesi, 401 diteruskan apa adanya — tamu tidak memicu refresh', async () => {
+    setAccessToken(null);
+    localStorage.setItem('snouty.session', '0');
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 401 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect((await apiFetch('/api/v1/internal/prospects')).status).toBe(401);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+});

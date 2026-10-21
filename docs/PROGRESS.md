@@ -2086,6 +2086,12 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       bulan (garis + crosshair, bulan kosong = nol), peringkat provinsi/produk/pola proyek, beban tim sales.
       Satu seri per chart = satu warna token, jadi tidak ada palet kategorikal; makna selalu dibawa teks, dan mode
       gelap ikut sendiri. Gaya tab lama dibuang.
+- [x] P26-09 Temuan uji pemilik 2026-10-21 di dashboard: (1) "Halaman ini untuk tim Pralon" padahal perannya
+      admin — halaman memanggil API sebelum sesi dipulihkan, 401-nya dibaca sebagai tidak berhak. `apiFetch`
+      kini memulihkan sesi juga saat token belum ada tetapi penanda sesi ada (berlaku untuk semua layar),
+      dan cangkang dashboard menahan isinya sampai pemulihan selesai. (2) "tulisannya gede2 banget sama
+      tebel2" — skala tipografi diturunkan (judul 22→17 px, angka stat 24→20, tebal 600→500 di baris data).
+      (3) Ikon garis di menu sidebar, tombol menu, dan tautan kembali; `aria-hidden`, label teks tetap pembawa makna.
 - [ ] ✋ CHECKPOINT Fase 26 — menunggu uji pemilik (pemilik 2026-10-21: "Gw coba sendiri nanti"): tambah akun
       sales, tugaskan prospek, cek dashboard admin (papan, tim sales, pasar) dan dashboard sales. OQ-77 diputuskan
       2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live. Simulasi HTTP

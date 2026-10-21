@@ -145,7 +145,11 @@ function withAuth(init: RequestInit): RequestInit {
  */
 export async function apiFetch(input: string, init: RequestInit = {}): Promise<Response> {
   const response = await fetch(input, withAuth(init));
-  if (response.status !== 401 || getAccessToken() === null) return response;
+  if (response.status !== 401) return response;
+  // Tanpa token DI MEMORI tetapi dengan petunjuk sesi: halaman baru dimuat dan pemulihan sesi belum
+  // selesai saat permintaan ini dikirim. Dulu 401-nya diteruskan apa adanya, dan layar internal
+  // membacanya sebagai "halaman ini bukan untuk Anda" padahal perannya ada (laporan pemilik 2026-10-21).
+  if (getAccessToken() === null && !hasSessionHint()) return response;
   if (!(await refreshOnce())) return response;
   return fetch(input, withAuth(init));
 }

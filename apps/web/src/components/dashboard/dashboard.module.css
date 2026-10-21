@@ -11,7 +11,8 @@
 }
 
 .brand {
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 0.04em;
 }
 
@@ -32,9 +33,9 @@
 }
 
 .main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px;
+  max-width: 1160px;
+  padding: 20px 24px 40px;
+  font-size: 13px;
 }
 
 .titleRow {
@@ -43,15 +44,17 @@
 
 .title {
   margin: 0;
-  font-size: 22px;
+  font-size: 17px;
   font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .subtitle,
 .muted {
   margin: 4px 0 0;
   color: var(--snouty-muted);
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .funnel {
@@ -86,8 +89,9 @@
 }
 
 .funnelCount {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 .funnelName {
@@ -162,7 +166,7 @@
 }
 
 .name {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .meta {
@@ -224,6 +228,7 @@
 
 .primary,
 .secondary {
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -232,7 +237,6 @@
   border-radius: var(--snouty-radius-control);
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
 }
@@ -416,7 +420,7 @@
 
 .leadName {
   margin: 0;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -581,11 +585,12 @@
 .navItem {
   display: flex;
   align-items: center;
+  gap: 10px;
   min-height: var(--snouty-tap-min);
   padding: 0 12px;
   border-radius: var(--snouty-radius-control);
   color: var(--snouty-ink-2);
-  font-size: 14px;
+  font-size: 13px;
   text-decoration: none;
 }
 
@@ -596,7 +601,7 @@
 .navOn {
   background: var(--snouty-action-soft-bg);
   color: var(--snouty-action-text);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .navItem:focus-visible,
@@ -645,10 +650,10 @@
   margin: 0;
   color: var(--snouty-muted);
   font-family: var(--snouty-font-mono);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
 }
 
 .statRow {
@@ -684,8 +689,8 @@
 }
 
 .statValue {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -711,6 +716,7 @@
   .navToggle {
     display: inline-flex;
     align-items: center;
+    gap: 8px;
     min-height: var(--snouty-tap-min);
     margin: 12px 16px 0;
     padding: 0 14px;
@@ -732,4 +738,27 @@
   .sidebar {
     transition: none;
   }
+}
+
+/* Tautan kembali dengan ikon (P26-08). */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--snouty-tap-min);
+  color: var(--snouty-action-text);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.backLink:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.navItem svg,
+.backLink svg,
+.navToggle svg {
+  flex: none;
+  opacity: 0.85;
 }

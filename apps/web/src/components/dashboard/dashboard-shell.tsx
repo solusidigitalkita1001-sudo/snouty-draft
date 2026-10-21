@@ -11,6 +11,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { canOpenDashboard, getCurrentUser, isSales, restoreSession } from '../auth/session';
 import { useLocale } from '../locale';
 import { dashboardCopy } from './dashboard-copy';
+import { BackIcon, MenuIcon, sectionIcon } from './dashboard-icons';
 import styles from './dashboard.module.css';
 
 export type DashboardSection = 'prospects' | 'team' | 'market' | 'leads';
@@ -84,14 +85,16 @@ export function DashboardShell({
               className={[styles.navItem, item.section === section ? styles.navOn : ''].join(' ')}
               aria-current={item.section === section ? 'page' : undefined}
             >
-              {item.label}
+              {sectionIcon(item.section)}
+              <span>{item.label}</span>
             </a>
           ))}
         </nav>
         <div className={styles.sidebarFoot}>
           {user && <span className={styles.meta}>{user.name}</span>}
-          <a className={styles.back} href="/consultation">
-            {COPY.nav.back}
+          <a className={styles.backLink} href="/consultation">
+            <BackIcon />
+            <span>{COPY.nav.back}</span>
           </a>
         </div>
       </aside>
@@ -104,9 +107,12 @@ export function DashboardShell({
           aria-expanded={open}
           onClick={() => setOpen((shownNow) => !shownNow)}
         >
-          {open ? COPY.nav.close : COPY.nav.menu}
+          <MenuIcon open={open} />
+          <span>{open ? COPY.nav.close : COPY.nav.menu}</span>
         </button>
-        <main className={styles.main}>{children}</main>
+        <main className={styles.main}>
+          {ready ? children : <p className={styles.muted}>{COPY.loading}</p>}
+        </main>
       </div>
     </div>
   );
