@@ -84,6 +84,22 @@ describe('dashboard prospek (P26-05)', () => {
     expect(screen.queryByRole('combobox', { name: /Sales — Budi/ })).toBeNull();
   });
 
+  it('papan penuh tanpa satu pun yang bisa ditugaskan menjelaskan alasannya (uji pemilik 2026-10-21)', async () => {
+    api.fetchProspects.mockResolvedValue({
+      kind: 'ok',
+      value: {
+        funnel: FUNNEL,
+        items: [
+          prospect({ contactable: false, salesRequestedAt: null, salesContactConsent: false }),
+        ],
+      },
+    });
+    api.fetchSalesTeam.mockResolvedValue({ kind: 'ok', value: { items: [] } });
+    render(<ProspectDashboard />);
+    expect(await screen.findByText(/Belum ada yang bisa ditugaskan/)).toBeDefined();
+    expect(screen.getByText(/Tim sales masih kosong/)).toBeDefined();
+  });
+
   it('menugaskan ke sales lalu memuat ulang papan', async () => {
     api.fetchProspects.mockResolvedValue({
       kind: 'ok',

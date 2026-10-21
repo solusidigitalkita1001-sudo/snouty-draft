@@ -56,6 +56,9 @@ export const DASHBOARD_COPY = {
   summary: 'Ringkasan',
   assignBlocked: 'Belum bisa ditugaskan',
   noSales: 'Tambahkan anggota tim sales dulu',
+  noneContactable:
+    'Belum ada yang bisa ditugaskan: prospek baru bisa diserahkan ke sales setelah pelanggan menekan "Minta dihubungi tim Pralon" atau mencentang izin dihubungi di menu Akun.',
+  teamEmptyHint: 'Tim sales masih kosong. Tambahkan anggotanya di tab Tim sales.',
   empty: 'Belum ada prospek yang cocok.',
   loading: 'Memuat…',
   forbidden: 'Halaman ini untuk tim Pralon. Masuk dengan akun yang punya akses.',
@@ -166,6 +169,9 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
   summary: 'Summary',
   assignBlocked: 'Cannot be assigned yet',
   noSales: 'Add a sales team member first',
+  noneContactable:
+    'Nobody can be assigned yet: a prospect can go to sales once the customer presses "Ask the Pralon team to contact me" or ticks the contact permission in Account.',
+  teamEmptyHint: 'The sales team is empty. Add members in the Sales team tab.',
   empty: 'No matching prospects yet.',
   loading: 'Loading…',
   forbidden: 'This page is for the Pralon team. Sign in with an account that has access.',

@@ -233,6 +233,16 @@ export function ProspectDashboard({ initialTab = 'prospects' }: { initialTab?: T
               />
             </div>
 
+            {/* Papan yang penuh tetapi tak satu pun bisa ditugaskan tampak rusak tanpa alasannya
+                (uji pemilik 2026-10-21: 13 baris, nol opt-in, tim sales kosong). */}
+            {board.value.items.length > 0 &&
+              !board.value.items.some((item) => item.contactable) && (
+                <p className={styles.muted}>{COPY.noneContactable}</p>
+              )}
+            {board.value.items.length > 0 && team.length === 0 && (
+              <p className={styles.muted}>{COPY.teamEmptyHint}</p>
+            )}
+
             {board.value.items.length === 0 ? (
               <p className={styles.muted}>{COPY.empty}</p>
             ) : (
