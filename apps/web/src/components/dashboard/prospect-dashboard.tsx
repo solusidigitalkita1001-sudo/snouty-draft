@@ -119,52 +119,49 @@ export function ProspectBoard() {
         <p className={styles.subtitle}>{COPY.prospects.subtitle}</p>
       </div>
 
-      <div className={styles.cards}>
-        <section className={styles.card}>
-          <h2 className={styles.cardTitle}>
-            <StageIcon stage="ask" />
-            {COPY.prospects.funnelTitle}
-          </h2>
-          <BarList
-            slices={stageSlices}
-            valueLabel={(n) => COPY.prospects.people(n)}
-            selected={filter.stage ?? null}
-            onSelect={(key) =>
-              setFilter((f) => ({ ...f, stage: f.stage === key ? undefined : (key as Stage) }))
-            }
-          />
-          <p className={styles.meta}>{COPY.prospects.funnelHint}</p>
-        </section>
+      <section className={[styles.card, styles.cardWide].join(' ')}>
+        <h2 className={styles.cardTitle}>
+          <StageIcon stage="ask" />
+          {COPY.prospects.funnelTitle}
+        </h2>
+        <BarList
+          slices={stageSlices}
+          graded
+          valueLabel={(n) => COPY.prospects.people(n)}
+          selected={filter.stage ?? null}
+          onSelect={(key) =>
+            setFilter((f) => ({ ...f, stage: f.stage === key ? undefined : (key as Stage) }))
+          }
+        />
+        <p className={styles.meta}>{COPY.prospects.funnelHint}</p>
+      </section>
 
-        <section className={styles.card}>
-          <h2 className={styles.cardTitle}>
-            <ScaleIcon scale="building" />
-            {COPY.prospects.priorityTitle}
-          </h2>
-          <div className={styles.statRow}>
-            {PRIORITIES.map((priority) => (
-              <button
-                key={priority}
-                type="button"
-                className={[styles.stat, filter.priority === priority ? styles.statOn : ''].join(
-                  ' ',
-                )}
-                aria-pressed={filter.priority === priority}
-                onClick={() =>
-                  setFilter((f) => ({
-                    ...f,
-                    priority: f.priority === priority ? undefined : priority,
-                  }))
-                }
-              >
-                <span className={styles.statValue}>{byPriority(priority)}</span>
-                <span className={styles.statLabel}>{COPY.priority[priority]}</span>
-              </button>
-            ))}
-          </div>
-          <p className={styles.meta}>{COPY.prospects.priorityHint}</p>
-        </section>
-      </div>
+      <section className={[styles.card, styles.cardWide].join(' ')}>
+        <h2 className={styles.cardTitle}>
+          <ScaleIcon scale="building" />
+          {COPY.prospects.priorityTitle}
+        </h2>
+        <div className={styles.statRow}>
+          {PRIORITIES.map((priority) => (
+            <button
+              key={priority}
+              type="button"
+              className={[styles.stat, filter.priority === priority ? styles.statOn : ''].join(' ')}
+              aria-pressed={filter.priority === priority}
+              onClick={() =>
+                setFilter((f) => ({
+                  ...f,
+                  priority: f.priority === priority ? undefined : priority,
+                }))
+              }
+            >
+              <span className={styles.statValue}>{byPriority(priority)}</span>
+              <span className={styles.statLabel}>{COPY.priority[priority]}</span>
+            </button>
+          ))}
+        </div>
+        <p className={styles.meta}>{COPY.prospects.priorityHint}</p>
+      </section>
 
       <div className={styles.filters}>
         <select

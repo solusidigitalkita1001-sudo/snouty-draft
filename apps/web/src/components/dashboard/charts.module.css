@@ -10,12 +10,16 @@
   list-style: none;
 }
 
-.chartBar,
+.chartBar {
+  display: block;
+}
+
+.chartRow,
 .chartBar > button {
   display: grid;
-  grid-template-columns: minmax(96px, 30%) 1fr auto;
+  grid-template-columns: minmax(120px, 22%) 1fr auto;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
 }
 
@@ -61,7 +65,7 @@
 
 .chartBarTrack {
   position: relative;
-  height: 10px;
+  height: 14px;
   border-radius: var(--snouty-radius-pill);
   background: var(--snouty-surface-subtle);
   overflow: hidden;
@@ -73,10 +77,33 @@
   inset: 0 auto 0 0;
   border-radius: 0 4px 4px 0;
   background: var(--snouty-action);
+  transition: width 0.25s ease;
+}
+
+/* Gradasi satu hue untuk deret berurutan (tahap 5A): terang di awal, pekat di akhir — urutannya
+   ikut maknanya, bukan ikut besarnya angka. */
+.tone1 .chartBarFill {
+  background: color-mix(in srgb, var(--snouty-action) 34%, var(--snouty-surface));
+}
+
+.tone2 .chartBarFill {
+  background: color-mix(in srgb, var(--snouty-action) 52%, var(--snouty-surface));
+}
+
+.tone3 .chartBarFill {
+  background: color-mix(in srgb, var(--snouty-action) 70%, var(--snouty-surface));
+}
+
+.tone4 .chartBarFill {
+  background: color-mix(in srgb, var(--snouty-action) 86%, var(--snouty-surface));
+}
+
+.tone5 .chartBarFill {
+  background: var(--snouty-action);
 }
 
 .chartBarValue {
-  min-width: 2.5ch;
+  min-width: 3ch;
   font-family: var(--snouty-font-mono);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
@@ -135,9 +162,9 @@
 }
 
 @media (max-width: 720px) {
-  .chartBar,
+  .chartRow,
   .chartBar > button {
-    grid-template-columns: minmax(80px, 40%) 1fr auto;
-    gap: 8px;
+    grid-template-columns: minmax(84px, 38%) 1fr auto;
+    gap: 10px;
   }
 }

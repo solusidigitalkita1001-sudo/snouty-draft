@@ -31,17 +31,20 @@ export function BarList({
   valueLabel,
   onSelect,
   selected,
+  graded = false,
 }: {
   slices: readonly Slice[];
   /** Pembaca layar: "7 konsultasi" lebih jelas daripada "7". */
   valueLabel?: (value: number) => string;
   onSelect?: (key: string) => void;
   selected?: string | null;
+  /** Deret berurutan (tahap 5A): tiap batang satu langkah gradasi menurut urutannya, bukan besarnya. */
+  graded?: boolean;
 }) {
   const max = Math.max(...slices.map((s) => s.value), 1);
   return (
     <ul className={styles.chartBars}>
-      {slices.map((slice) => {
+      {slices.map((slice, index) => {
         const width =
           slice.value === 0 ? EMPTY_BAR : Math.max(EMPTY_BAR, (slice.value / max) * 100);
         const on = selected === slice.key;
@@ -61,7 +64,11 @@ export function BarList({
         return (
           <li
             key={slice.key}
-            className={[styles.chartBar, on ? styles.chartBarOn : ''].join(' ')}
+            className={[
+              styles.chartBar,
+              graded ? (styles[`tone${Math.min(5, index + 1)}`] ?? '') : '',
+              on ? styles.chartBarOn : '',
+            ].join(' ')}
             title={title}
           >
             {onSelect ? (
@@ -69,7 +76,7 @@ export function BarList({
                 {body}
               </button>
             ) : (
-              body
+              <span className={styles.chartRow}>{body}</span>
             )}
           </li>
         );

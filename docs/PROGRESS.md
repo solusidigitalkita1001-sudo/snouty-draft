@@ -2117,6 +2117,12 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       meredup saat satu difokuskan; tooltip jadi elemen HTML supaya teksnya tajam; legenda jadi chip + lencana
       angka. Papan: avatar inisial, ikon per tahap 5A / skala proyek / dasar kontak, kolom pencarian berikon,
       baris lebih lega, kepala tabel menempel saat menggulir, hover baris.
+- [x] P26-14 Batang 5A tidak tergambar (laporan pemilik 2026-10-21 + tangkapan layar): `li` DAN tombol di
+      dalamnya sama-sama grid tiga kolom, jadi seluruh isi tombol terjepit di kolom pertama dan treknya nyaris
+      tak terlihat. Grid kini hanya di satu tingkat. Sekaligus permintaan pemilik "bikin memanjang dan berwarna":
+      kartu Tahap 5A dan Prioritas memanjang penuh, batang lebih tinggi (14 px), dan deret 5A bergradasi satu hue
+      terang→pekat menurut URUTAN tahapnya (bukan besar angkanya). Tes baru memeriksa isian batang benar-benar
+      ada dan lebarnya sebanding.
 - [x] ✋ CHECKPOINT Fase 26 — **ditutup pemilik 2026-10-21** atas dasar uji produksi 15/15 (P26-10) dan simulasi
       lokal 21/21; penilaian tampilan dicatat terpisah bila ada temuan. OQ-77 diputuskan
       2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live. Simulasi HTTP
