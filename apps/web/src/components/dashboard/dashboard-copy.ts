@@ -1,5 +1,5 @@
 /**
- * Teks dashboard admin (P26-05). Layar ini belum didesain (OQ-21) — statusnya dicatat di
+ * Teks dashboard internal (P26-05 … P26-08). Layar ini belum didesain (OQ-21) — statusnya dicatat di
  * docs/OPEN_QUESTIONS.md, bukan ditulis di layar (pemilik: tanpa metatext).
  */
 import type { Locale } from '@snouty/shared-types';
@@ -7,10 +7,24 @@ import { pickCopy, type CopyShape } from '../copy';
 
 export const DASHBOARD_COPY = {
   brand: 'SNOUTY',
-  nav: { prospects: 'Prospek', team: 'Tim sales', market: 'Pasar', back: 'Kembali ke konsultasi' },
+  kicker: 'BACK OFFICE',
+  nav: {
+    prospects: 'Prospek',
+    leads: 'Prospek saya',
+    team: 'Tim sales',
+    market: 'Pasar',
+    back: 'Kembali ke konsultasi',
+    menu: 'Menu',
+    close: 'Tutup menu',
+  },
   prospects: {
     title: 'Prospek',
     subtitle: 'Pelanggan terdaftar menurut tahap 5A dan prioritasnya.',
+    funnelTitle: 'Tahap 5A',
+    funnelHint: 'Tekan satu tahap untuk menyaring daftar di bawah.',
+    priorityTitle: 'Prioritas',
+    priorityHint: 'Dari tahap, skala proyek, dan seberapa baru aktivitasnya.',
+    people: (n: number) => `${n} pelanggan`,
   },
   stages: {
     aware: { name: 'Aware', meaning: 'Kenal' },
@@ -29,13 +43,12 @@ export const DASHBOARD_COPY = {
     lost: 'Kalah',
   },
   filters: {
-    allStages: 'Semua tahap',
-    allPriorities: 'Semua prioritas',
     allScales: 'Semua proyek',
     allAssignments: 'Semua penugasan',
     unassigned: 'Belum ditugaskan',
     assigned: 'Sudah ditugaskan',
     search: 'Cari nama atau email',
+    clear: 'Hapus filter',
   },
   columns: {
     customer: 'Pelanggan',
@@ -53,12 +66,12 @@ export const DASHBOARD_COPY = {
   },
   conversations: (n: number) => `${n} konsultasi`,
   assign: 'Tugaskan ke…',
-  summary: 'Ringkasan',
   assignBlocked: 'Belum bisa ditugaskan',
   noSales: 'Tambahkan anggota tim sales dulu',
   noneContactable:
     'Belum ada yang bisa ditugaskan: prospek baru bisa diserahkan ke sales setelah pelanggan menekan "Minta dihubungi tim Pralon" atau mencentang izin dihubungi di menu Akun.',
-  teamEmptyHint: 'Tim sales masih kosong. Tambahkan anggotanya di tab Tim sales.',
+  teamEmptyHint: 'Tim sales masih kosong. Tambahkan anggotanya di menu Tim sales.',
+  summary: 'Ringkasan',
   empty: 'Belum ada prospek yang cocok.',
   loading: 'Memuat…',
   forbidden: 'Halaman ini untuk tim Pralon. Masuk dengan akun yang punya akses.',
@@ -71,12 +84,14 @@ export const DASHBOARD_COPY = {
       'Kebutuhan dari seluruh konsultasi, tanpa identitas. Kelompok di bawah 5 tidak ditampilkan.',
     period: 'Periode',
     days: (n: number) => `${n} hari terakhir`,
+    funnelTitle: 'Corong konsultasi',
     funnel: {
       started: 'Konsultasi',
       reachedSolution: 'Sampai solusi',
       routedToTechnical: 'Ke tim teknis',
       requestedQuotation: 'Menanyakan harga',
     },
+    trendTitle: 'Konsultasi per bulan',
     regional: 'Permintaan per provinsi',
     products: 'Minat produk',
     projects: 'Pola proyek',
@@ -86,6 +101,7 @@ export const DASHBOARD_COPY = {
       `${groups} kelompok (${events} konsultasi) tidak ditampilkan karena kurang dari 5.`,
     empty: 'Belum ada data untuk periode ini.',
     unknownRegion: 'Wilayah tidak diketahui',
+    consultations: (n: number) => `${n} konsultasi`,
     scale: {
       kecil: 'kecil',
       sedang: 'sedang',
@@ -97,6 +113,8 @@ export const DASHBOARD_COPY = {
   team: {
     title: 'Tim sales',
     subtitle: 'Akun terdaftar yang menerima prospek.',
+    loadTitle: 'Beban prospek',
+    membersTitle: 'Anggota',
     email: 'Email akun terdaftar',
     add: 'Tambahkan',
     adding: 'Menambahkan…',
@@ -115,15 +133,24 @@ export const DASHBOARD_COPY = {
 
 export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
   brand: 'SNOUTY',
+  kicker: 'BACK OFFICE',
   nav: {
     prospects: 'Prospects',
+    leads: 'My prospects',
     team: 'Sales team',
     market: 'Market',
     back: 'Back to consultation',
+    menu: 'Menu',
+    close: 'Close menu',
   },
   prospects: {
     title: 'Prospects',
     subtitle: 'Registered customers by 5A stage and priority.',
+    funnelTitle: '5A stages',
+    funnelHint: 'Press a stage to filter the list below.',
+    priorityTitle: 'Priority',
+    priorityHint: 'From the stage, project scale, and how recent the activity is.',
+    people: (n: number) => `${n} customer${n === 1 ? '' : 's'}`,
   },
   stages: {
     aware: { name: 'Aware', meaning: 'Knows us' },
@@ -142,13 +169,12 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
     lost: 'Lost',
   },
   filters: {
-    allStages: 'All stages',
-    allPriorities: 'All priorities',
     allScales: 'All projects',
     allAssignments: 'All assignments',
     unassigned: 'Unassigned',
     assigned: 'Assigned',
     search: 'Search name or email',
+    clear: 'Clear filters',
   },
   columns: {
     customer: 'Customer',
@@ -166,12 +192,12 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
   },
   conversations: (n: number) => `${n} consultation${n === 1 ? '' : 's'}`,
   assign: 'Assign to…',
-  summary: 'Summary',
   assignBlocked: 'Cannot be assigned yet',
   noSales: 'Add a sales team member first',
   noneContactable:
     'Nobody can be assigned yet: a prospect can go to sales once the customer presses "Ask the Pralon team to contact me" or ticks the contact permission in Account.',
-  teamEmptyHint: 'The sales team is empty. Add members in the Sales team tab.',
+  teamEmptyHint: 'The sales team is empty. Add members in the Sales team menu.',
+  summary: 'Summary',
   empty: 'No matching prospects yet.',
   loading: 'Loading…',
   forbidden: 'This page is for the Pralon team. Sign in with an account that has access.',
@@ -183,12 +209,14 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
     subtitle: 'Needs across all consultations, without identities. Groups under 5 are hidden.',
     period: 'Period',
     days: (n: number) => `Last ${n} days`,
+    funnelTitle: 'Consultation funnel',
     funnel: {
       started: 'Consultations',
       reachedSolution: 'Reached a solution',
       routedToTechnical: 'Sent to technical team',
       requestedQuotation: 'Asked about price',
     },
+    trendTitle: 'Consultations per month',
     regional: 'Demand by province',
     products: 'Product interest',
     projects: 'Project patterns',
@@ -198,12 +226,20 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
       `${groups} groups (${events} consultations) hidden because they have fewer than 5.`,
     empty: 'No data for this period yet.',
     unknownRegion: 'Unknown region',
-    scale: { kecil: 'small', sedang: 'medium', besar: 'large', tidak_diketahui: 'unknown scale' },
+    consultations: (n: number) => `${n} consultation${n === 1 ? '' : 's'}`,
+    scale: {
+      kecil: 'small',
+      sedang: 'medium',
+      besar: 'large',
+      tidak_diketahui: 'unknown scale',
+    },
     attribution: 'Region from IP address: DB-IP (db-ip.com), CC BY 4.0.',
   },
   team: {
     title: 'Sales team',
     subtitle: 'Registered accounts that receive prospects.',
+    loadTitle: 'Prospect load',
+    membersTitle: 'Members',
     email: 'Registered account email',
     add: 'Add',
     adding: 'Adding…',

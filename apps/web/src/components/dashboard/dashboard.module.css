@@ -2,20 +2,12 @@
    minimal. Tabel menjadi kartu bertumpuk di ponsel supaya tidak ada gulir mendatar halaman. */
 
 .shell {
+  display: flex;
+  align-items: flex-start;
   min-height: 100dvh;
   background: var(--snouty-canvas);
   color: var(--snouty-ink);
   font-family: var(--snouty-font-sans);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  height: var(--snouty-header-h);
-  padding: 0 24px;
-  background: var(--snouty-surface);
-  border-bottom: 1px solid var(--snouty-border);
 }
 
 .brand {
@@ -23,30 +15,6 @@
   letter-spacing: 0.04em;
 }
 
-.tabs {
-  display: flex;
-  gap: 4px;
-  flex: 1;
-}
-
-.tab {
-  min-height: var(--snouty-tap-min);
-  padding: 0 14px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: none;
-  color: var(--snouty-muted);
-  font: inherit;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.tabOn {
-  color: var(--snouty-ink);
-  border-bottom-color: var(--snouty-action);
-}
-
-.tab:focus-visible,
 .funnelStep:focus-visible,
 .control:focus-visible,
 .primary:focus-visible,
@@ -573,5 +541,195 @@
 
   .leadDetail {
     padding: 16px;
+  }
+}
+
+/* ── Cangkang sidebar (P26-08, pemilik 2026-10-21: "pake sidebar ae") ───────── */
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: var(--snouty-sidebar-w);
+  height: 100dvh;
+  padding: 20px 16px;
+  border-right: 1px solid var(--snouty-border);
+  background: var(--snouty-surface);
+}
+
+.sidebarHead {
+  display: flex;
+  flex-direction: column;
+}
+
+.brandKicker {
+  color: var(--snouty-muted);
+  font-family: var(--snouty-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  min-height: var(--snouty-tap-min);
+  padding: 0 12px;
+  border-radius: var(--snouty-radius-control);
+  color: var(--snouty-ink-2);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.navItem:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+.navOn {
+  background: var(--snouty-action-soft-bg);
+  color: var(--snouty-action-text);
+  font-weight: 600;
+}
+
+.navItem:focus-visible,
+.navToggle:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.sidebarFoot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--snouty-border-soft);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.navToggle {
+  display: none;
+}
+
+/* ── Kartu chart dan stat ───────────────────────────────────────────────────── */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-card);
+  background: var(--snouty-surface);
+}
+
+.cardTitle {
+  margin: 0;
+  color: var(--snouty-muted);
+  font-family: var(--snouty-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-card);
+  background: var(--snouty-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.stat:focus-visible {
+  outline: none;
+  border-color: var(--snouty-focus-border);
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.statOn {
+  border-color: var(--snouty-action);
+  background: var(--snouty-action-soft-bg);
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  color: var(--snouty-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    transform: translateX(-100%);
+    transition: transform 0.18s ease;
+    box-shadow: var(--snouty-shadow-drawer);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .navToggle {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--snouty-tap-min);
+    margin: 12px 16px 0;
+    padding: 0 14px;
+    border: 1px solid var(--snouty-border);
+    border-radius: var(--snouty-radius-control);
+    background: var(--snouty-surface);
+    color: var(--snouty-ink);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .statRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
   }
 }

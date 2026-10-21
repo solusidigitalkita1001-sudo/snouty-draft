@@ -70,7 +70,6 @@ export const SALES_COPY = {
     water_supply_network: 'Jaringan air minum',
     sewerage: 'Jaringan air limbah',
   } as Record<string, string>,
-  backToBoard: 'Papan prospek',
   failed: 'Belum tersimpan. Coba lagi sebentar.',
   lostReasonRequired: 'Tulis alasan kalahnya.',
 } as const;
@@ -145,7 +144,6 @@ export const SALES_COPY_EN: CopyShape<typeof SALES_COPY> = {
     water_supply_network: 'Water supply network',
     sewerage: 'Sewerage network',
   },
-  backToBoard: 'Prospect board',
   failed: 'Not saved. Please try again shortly.',
   lostReasonRequired: 'Write the reason it was lost.',
 };

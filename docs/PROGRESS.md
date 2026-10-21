@@ -2079,6 +2079,13 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       kelompok < 5 disebut ditahan. OQ-77 (default berjalan): provinsi bukan kota, wilayah tidak tampil per
       orang, kota dari izin browser belum. Galat tipe di tes P26-06 diperbaiki (tsc tidak dijalankan ulang
       setelah tes ditulis).
+- [x] P26-08 Dashboard dirapikan (pemilik 2026-10-21: "pake sidebar ae jo, terus hias dengan chartnya"). Navigasi
+      pindah dari tab ke sidebar, tiap bagian punya alamat sendiri (/internal/prospects, /internal/leads,
+      /internal/market, /internal/sales-team) dan menunya mengikuti peran; di layar sempit sidebar jadi panel.
+      Chart: tahap 5A dan prioritas sebagai batang/stat yang sekaligus filter, corong pasar, tren konsultasi per
+      bulan (garis + crosshair, bulan kosong = nol), peringkat provinsi/produk/pola proyek, beban tim sales.
+      Satu seri per chart = satu warna token, jadi tidak ada palet kategorikal; makna selalu dibawa teks, dan mode
+      gelap ikut sendiri. Gaya tab lama dibuang.
 - [ ] ✋ CHECKPOINT Fase 26 — menunggu uji pemilik (pemilik 2026-10-21: "Gw coba sendiri nanti"): tambah akun
       sales, tugaskan prospek, cek dashboard admin (papan, tim sales, pasar) dan dashboard sales. OQ-77 diputuskan
       2026-10-21: wilayah tetap agregat, kota dari browser belum perlu. Seluruh item P26-01..07 sudah live. Simulasi HTTP

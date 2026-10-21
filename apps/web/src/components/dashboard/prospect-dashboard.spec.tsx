@@ -18,9 +18,11 @@ vi.mock('./dashboard-api', () => api);
 vi.mock('../auth/session', () => ({
   restoreSession: vi.fn(async () => true),
   getCurrentUser: () => ({ name: 'Admin', tier: 'registered', roles: ['admin'] }),
+  canOpenDashboard: () => true,
+  isSales: () => false,
 }));
 
-const { ProspectDashboard } = await import('./prospect-dashboard');
+const { ProspectBoard } = await import('./prospect-dashboard');
 
 function prospect(over: Partial<ProspectItem>): ProspectItem {
   return {
@@ -62,13 +64,14 @@ describe('dashboard prospek (P26-05)', () => {
       kind: 'ok',
       value: { funnel: FUNNEL, items: [prospect({})] },
     });
-    render(<ProspectDashboard />);
+    render(<ProspectBoard />);
     expect(await screen.findByText('Budi')).toBeDefined();
     const table = within(screen.getByRole('table'));
     expect(table.getByText('Panas')).toBeDefined();
     expect(table.getByText('Kawasan')).toBeDefined();
     expect(table.getByText('Minta dihubungi')).toBeDefined();
-    expect(screen.getByRole('button', { name: /3\s*Aware/ })).toBeDefined();
+    // Batang tahap 5A: label, artinya, dan jumlahnya ada di satu tombol filter.
+    expect(screen.getByRole('button', { name: /Aware.*Kenal.*3/ })).toBeDefined();
   });
 
   it('prospek tanpa izin maupun permintaan kontak tidak bisa ditugaskan', async () => {
@@ -79,7 +82,7 @@ describe('dashboard prospek (P26-05)', () => {
         items: [prospect({ contactable: false, salesRequestedAt: null })],
       },
     });
-    render(<ProspectDashboard />);
+    render(<ProspectBoard />);
     expect(await screen.findByText('Belum bisa ditugaskan')).toBeDefined();
     expect(screen.queryByRole('combobox', { name: /Sales — Budi/ })).toBeNull();
   });
@@ -95,7 +98,7 @@ describe('dashboard prospek (P26-05)', () => {
       },
     });
     api.fetchSalesTeam.mockResolvedValue({ kind: 'ok', value: { items: [] } });
-    render(<ProspectDashboard />);
+    render(<ProspectBoard />);
     expect(await screen.findByText(/Belum ada yang bisa ditugaskan/)).toBeDefined();
     expect(screen.getByText(/Tim sales masih kosong/)).toBeDefined();
   });
@@ -106,7 +109,7 @@ describe('dashboard prospek (P26-05)', () => {
       value: { funnel: FUNNEL, items: [prospect({})] },
     });
     api.assignProspect.mockResolvedValue(null);
-    render(<ProspectDashboard />);
+    render(<ProspectBoard />);
     const select = await screen.findByRole('combobox', { name: /Sales — Budi/ });
     fireEvent.change(select, { target: { value: '01JSALES0000000000000000001' } });
     await waitFor(() =>
@@ -119,7 +122,7 @@ describe('dashboard prospek (P26-05)', () => {
 
   it('akun tanpa akses diarahkan masuk, bukan papan kosong', async () => {
     api.fetchProspects.mockResolvedValue({ kind: 'forbidden' });
-    render(<ProspectDashboard />);
+    render(<ProspectBoard />);
     expect(await screen.findByText(/untuk tim Pralon/)).toBeDefined();
   });
 });

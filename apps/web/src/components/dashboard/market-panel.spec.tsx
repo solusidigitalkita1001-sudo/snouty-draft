@@ -36,9 +36,10 @@ describe('tab Pasar (P26-07)', () => {
     });
     render(<MarketPanel />);
     expect(await screen.findByText('Sampai solusi')).toBeDefined();
-    expect(screen.getByText(/^Jawa Barat · /)).toBeDefined();
-    expect(screen.getByText(/^PVC AW 1" · /)).toBeDefined();
-    expect(screen.getByText(/Rumah tinggal · kecil · Jawa Barat/)).toBeDefined();
+    expect(screen.getByText('Jawa Barat')).toBeDefined();
+    expect(screen.getByText(/PVC AW 1"/)).toBeDefined();
+    expect(screen.getByText('Rumah tinggal')).toBeDefined();
+    expect(screen.getByText(/kecil · Jawa Barat/)).toBeDefined();
     expect(screen.getByText(/2 kelompok \(5 konsultasi\) tidak ditampilkan/)).toBeDefined();
     expect(screen.getByText(/DB-IP/)).toBeDefined();
   });

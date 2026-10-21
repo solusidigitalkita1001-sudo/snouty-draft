@@ -1,6 +1,11 @@
-/** Dashboard admin (P26-05): prospek 5A dan tim sales. Akses diperiksa API per peran. */
-import { ProspectDashboard } from '../../../components/dashboard/prospect-dashboard';
+/** Papan prospek 5A (P26-05). Akses diperiksa API per peran. */
+import { DashboardShell } from '../../../components/dashboard/dashboard-shell';
+import { ProspectBoard } from '../../../components/dashboard/prospect-dashboard';
 
 export default function Page() {
-  return <ProspectDashboard />;
+  return (
+    <DashboardShell section="prospects">
+      <ProspectBoard />
+    </DashboardShell>
+  );
 }

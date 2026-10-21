@@ -1,20 +1,19 @@
 'use client';
 
 /**
- * Dashboard admin (P26-05, docs/PROSPECT_5A.md §4): corong 5A, papan prospek dengan filter, penugasan
- * ke sales, dan tim sales. Semua angka dari API (`prospect-stage` di server) — komponen ini tidak
- * menghitung tahap atau prioritas. Mascot tidak dipakai: ini alat kerja (skill desain).
+ * Papan prospek (P26-05/P26-08, docs/PROSPECT_5A.md §4): corong 5A sebagai chart yang bisa dipakai
+ * memfilter, ringkasan prioritas, lalu tabel prospek dengan penugasan ke sales. Semua angka dari API
+ * (`prospect-stage` di server) — komponen ini tidak menghitung tahap maupun prioritas.
  */
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { getCurrentUser, restoreSession } from '../auth/session';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocale } from '../locale';
+import { BarList, type Slice } from './charts';
 import {
-  addSalesMember,
   assignProspect,
   fetchProspects,
   fetchSalesTeam,
-  removeSalesMember,
   type Loaded,
+  type Priority,
   type ProspectFilter,
   type ProspectItem,
   type SalesMember,
@@ -22,31 +21,22 @@ import {
 } from './dashboard-api';
 import { dashboardCopy } from './dashboard-copy';
 import styles from './dashboard.module.css';
-import { MarketPanel } from './market-panel';
 
 const STAGES: readonly Stage[] = ['aware', 'appeal', 'ask', 'act', 'advocate'];
+const PRIORITIES: readonly Priority[] = ['hot', 'warm', 'cold'];
 
 type Board = {
   readonly funnel: Readonly<Record<Stage, number>>;
   readonly items: readonly ProspectItem[];
 };
 
-type Tab = 'prospects' | 'team' | 'market';
-
-export function ProspectDashboard({ initialTab = 'prospects' }: { initialTab?: Tab } = {}) {
+export function ProspectBoard() {
   const { locale } = useLocale();
   const COPY = dashboardCopy(locale);
-  const [ready, setReady] = useState(false);
-  const [tab, setTab] = useState<Tab>(initialTab);
   const [filter, setFilter] = useState<ProspectFilter>({});
   const [board, setBoard] = useState<Loaded<Board> | null>(null);
   const [team, setTeam] = useState<readonly SalesMember[]>([]);
   const [rowError, setRowError] = useState<{ userId: string; text: string } | null>(null);
-  const isAdmin = getCurrentUser()?.roles?.includes('admin') ?? false;
-
-  useEffect(() => {
-    void restoreSession().finally(() => setReady(true));
-  }, []);
 
   const loadTeam = useCallback(async () => {
     const result = await fetchSalesTeam();
@@ -58,13 +48,12 @@ export function ProspectDashboard({ initialTab = 'prospects' }: { initialTab?: T
   }, [filter]);
 
   useEffect(() => {
-    if (!ready) return;
     void loadBoard();
-  }, [ready, loadBoard]);
+  }, [loadBoard]);
 
   useEffect(() => {
-    if (ready) void loadTeam();
-  }, [ready, loadTeam]);
+    void loadTeam();
+  }, [loadTeam]);
 
   const errorText = useCallback(
     (code: string) => COPY.errors[code] ?? COPY.errors['generic'] ?? '',
@@ -90,245 +79,209 @@ export function ProspectDashboard({ initialTab = 'prospects' }: { initialTab?: T
     year: 'numeric',
   });
 
-  return (
-    <div className={styles.shell}>
-      <header className={styles.header}>
-        <span className={styles.brand}>{COPY.brand}</span>
-        <nav className={styles.tabs} aria-label={COPY.prospects.title}>
-          <button
-            type="button"
-            className={[styles.tab, tab === 'prospects' ? styles.tabOn : ''].join(' ')}
-            aria-pressed={tab === 'prospects'}
-            onClick={() => setTab('prospects')}
-          >
-            {COPY.nav.prospects}
-          </button>
-          <button
-            type="button"
-            className={[styles.tab, tab === 'team' ? styles.tabOn : ''].join(' ')}
-            aria-pressed={tab === 'team'}
-            onClick={() => setTab('team')}
-          >
-            {COPY.nav.team}
-          </button>
-          <button
-            type="button"
-            className={[styles.tab, tab === 'market' ? styles.tabOn : ''].join(' ')}
-            aria-pressed={tab === 'market'}
-            onClick={() => setTab('market')}
-          >
-            {COPY.nav.market}
-          </button>
-        </nav>
-        <a className={styles.back} href="/consultation">
-          {COPY.nav.back}
+  if (board === null) return <p className={styles.muted}>{COPY.loading}</p>;
+  if (board.kind === 'forbidden') {
+    return (
+      <div className={styles.notice}>
+        <p>{COPY.forbidden}</p>
+        <a className={styles.primary} href="/login">
+          {COPY.signIn}
         </a>
-      </header>
+      </div>
+    );
+  }
+  if (board.kind === 'failed') {
+    return (
+      <div className={styles.notice} role="alert">
+        <p>{COPY.failed}</p>
+        <button type="button" className={styles.secondary} onClick={() => void loadBoard()}>
+          {COPY.retry}
+        </button>
+      </div>
+    );
+  }
 
-      <main className={styles.main}>
-        {board === null && <p className={styles.muted}>{COPY.loading}</p>}
+  const items = board.value.items;
+  const stageSlices: readonly Slice[] = STAGES.map((stage) => ({
+    key: stage,
+    label: COPY.stages[stage].name,
+    detail: COPY.stages[stage].meaning,
+    value: board.value.funnel[stage],
+  }));
+  const byPriority = (priority: Priority) => items.filter((i) => i.priority === priority).length;
 
-        {board?.kind === 'forbidden' && (
-          <div className={styles.notice}>
-            <p>{COPY.forbidden}</p>
-            <a className={styles.primary} href="/login">
-              {COPY.signIn}
-            </a>
-          </div>
-        )}
+  return (
+    <>
+      <div className={styles.titleRow}>
+        <h1 className={styles.title}>{COPY.prospects.title}</h1>
+        <p className={styles.subtitle}>{COPY.prospects.subtitle}</p>
+      </div>
 
-        {board?.kind === 'failed' && (
-          <div className={styles.notice} role="alert">
-            <p>{COPY.failed}</p>
-            <button type="button" className={styles.secondary} onClick={() => void loadBoard()}>
-              {COPY.retry}
-            </button>
-          </div>
-        )}
-
-        {board?.kind === 'ok' && tab === 'prospects' && (
-          <>
-            <div className={styles.titleRow}>
-              <h1 className={styles.title}>{COPY.prospects.title}</h1>
-              <p className={styles.subtitle}>{COPY.prospects.subtitle}</p>
-            </div>
-
-            <ol className={styles.funnel} aria-label="5A">
-              {STAGES.map((stage) => (
-                <li key={stage}>
-                  <button
-                    type="button"
-                    className={[
-                      styles.funnelStep,
-                      filter.stage === stage ? styles.funnelOn : '',
-                    ].join(' ')}
-                    aria-pressed={filter.stage === stage}
-                    onClick={() =>
-                      setFilter((f) => ({ ...f, stage: f.stage === stage ? undefined : stage }))
-                    }
-                  >
-                    <span className={styles.funnelCount}>{board.value.funnel[stage]}</span>
-                    <span className={styles.funnelName}>{COPY.stages[stage].name}</span>
-                    <span className={styles.funnelMeaning}>{COPY.stages[stage].meaning}</span>
-                  </button>
-                </li>
-              ))}
-            </ol>
-
-            <div className={styles.filters}>
-              <select
-                className={styles.control}
-                aria-label={COPY.columns.priority}
-                value={filter.priority ?? ''}
-                onChange={(e) =>
-                  setFilter((f) => ({
-                    ...f,
-                    priority: (e.target.value || undefined) as ProspectFilter['priority'],
-                  }))
-                }
-              >
-                <option value="">{COPY.filters.allPriorities}</option>
-                <option value="hot">{COPY.priority.hot}</option>
-                <option value="warm">{COPY.priority.warm}</option>
-                <option value="cold">{COPY.priority.cold}</option>
-              </select>
-              <select
-                className={styles.control}
-                aria-label={COPY.columns.project}
-                value={filter.scale ?? ''}
-                onChange={(e) =>
-                  setFilter((f) => ({
-                    ...f,
-                    scale: (e.target.value || undefined) as ProspectFilter['scale'],
-                  }))
-                }
-              >
-                <option value="">{COPY.filters.allScales}</option>
-                <option value="house">{COPY.scale.house}</option>
-                <option value="building">{COPY.scale.building}</option>
-                <option value="district">{COPY.scale.district}</option>
-              </select>
-              <select
-                className={styles.control}
-                aria-label={COPY.columns.sales}
-                value={filter.assignment ?? ''}
-                onChange={(e) =>
-                  setFilter((f) => ({
-                    ...f,
-                    assignment: (e.target.value || undefined) as ProspectFilter['assignment'],
-                  }))
-                }
-              >
-                <option value="">{COPY.filters.allAssignments}</option>
-                <option value="unassigned">{COPY.filters.unassigned}</option>
-                <option value="assigned">{COPY.filters.assigned}</option>
-              </select>
-              <input
-                className={[styles.control, styles.search].join(' ')}
-                type="search"
-                placeholder={COPY.filters.search}
-                aria-label={COPY.filters.search}
-                value={filter.q ?? ''}
-                onChange={(e) => setFilter((f) => ({ ...f, q: e.target.value || undefined }))}
-              />
-            </div>
-
-            {/* Papan yang penuh tetapi tak satu pun bisa ditugaskan tampak rusak tanpa alasannya
-                (uji pemilik 2026-10-21: 13 baris, nol opt-in, tim sales kosong). */}
-            {board.value.items.length > 0 &&
-              !board.value.items.some((item) => item.contactable) && (
-                <p className={styles.muted}>{COPY.noneContactable}</p>
-              )}
-            {board.value.items.length > 0 && team.length === 0 && (
-              <p className={styles.muted}>{COPY.teamEmptyHint}</p>
-            )}
-
-            {board.value.items.length === 0 ? (
-              <p className={styles.muted}>{COPY.empty}</p>
-            ) : (
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th scope="col">{COPY.columns.customer}</th>
-                      <th scope="col">{COPY.columns.stage}</th>
-                      <th scope="col">{COPY.columns.priority}</th>
-                      <th scope="col">{COPY.columns.project}</th>
-                      <th scope="col">{COPY.columns.activity}</th>
-                      <th scope="col">{COPY.columns.contact}</th>
-                      <th scope="col">{COPY.columns.sales}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {board.value.items.map((item) => (
-                      <tr key={item.userId}>
-                        <td data-label={COPY.columns.customer}>
-                          <div className={styles.name}>{item.name}</div>
-                          <div className={styles.meta}>{item.email}</div>
-                          {item.phone && <div className={styles.meta}>{item.phone}</div>}
-                          <div className={styles.meta}>
-                            {COPY.conversations(item.conversationCount)}
-                          </div>
-                        </td>
-                        <td data-label={COPY.columns.stage}>
-                          <span className={styles.stageTag}>{COPY.stages[item.stage].name}</span>
-                          <div className={styles.meta}>{COPY.stages[item.stage].meaning}</div>
-                        </td>
-                        <td data-label={COPY.columns.priority}>
-                          <span
-                            className={[styles.priority, styles[`priority_${item.priority}`]].join(
-                              ' ',
-                            )}
-                          >
-                            {COPY.priority[item.priority]}
-                          </span>
-                        </td>
-                        <td data-label={COPY.columns.project}>{COPY.scale[item.scale]}</td>
-                        <td data-label={COPY.columns.activity}>
-                          {dateFormat.format(new Date(item.lastActivityAt))}
-                        </td>
-                        <td data-label={COPY.columns.contact}>
-                          {item.salesRequestedAt
-                            ? COPY.contact.requested
-                            : item.salesContactConsent
-                              ? COPY.contact.consent
-                              : COPY.contact.none}
-                        </td>
-                        <td data-label={COPY.columns.sales}>
-                          <AssignCell
-                            item={item}
-                            team={team}
-                            copy={COPY}
-                            onAssign={(salesUserId) => void assign(item.userId, salesUserId)}
-                          />
-                          {rowError?.userId === item.userId && (
-                            <div className={styles.rowError} role="alert">
-                              {rowError.text}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </>
-        )}
-
-        {board?.kind === 'ok' && tab === 'market' && <MarketPanel />}
-
-        {board?.kind === 'ok' && tab === 'team' && (
-          <TeamPanel
-            team={team}
-            isAdmin={isAdmin}
-            copy={COPY}
-            errorText={errorText}
-            onChanged={() => void Promise.all([loadTeam(), loadBoard()])}
+      <div className={styles.cards}>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>{COPY.prospects.funnelTitle}</h2>
+          <BarList
+            slices={stageSlices}
+            valueLabel={(n) => COPY.prospects.people(n)}
+            selected={filter.stage ?? null}
+            onSelect={(key) =>
+              setFilter((f) => ({ ...f, stage: f.stage === key ? undefined : (key as Stage) }))
+            }
           />
+          <p className={styles.meta}>{COPY.prospects.funnelHint}</p>
+        </section>
+
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>{COPY.prospects.priorityTitle}</h2>
+          <div className={styles.statRow}>
+            {PRIORITIES.map((priority) => (
+              <button
+                key={priority}
+                type="button"
+                className={[styles.stat, filter.priority === priority ? styles.statOn : ''].join(
+                  ' ',
+                )}
+                aria-pressed={filter.priority === priority}
+                onClick={() =>
+                  setFilter((f) => ({
+                    ...f,
+                    priority: f.priority === priority ? undefined : priority,
+                  }))
+                }
+              >
+                <span className={styles.statValue}>{byPriority(priority)}</span>
+                <span className={styles.statLabel}>{COPY.priority[priority]}</span>
+              </button>
+            ))}
+          </div>
+          <p className={styles.meta}>{COPY.prospects.priorityHint}</p>
+        </section>
+      </div>
+
+      <div className={styles.filters}>
+        <select
+          className={styles.control}
+          aria-label={COPY.columns.project}
+          value={filter.scale ?? ''}
+          onChange={(e) =>
+            setFilter((f) => ({
+              ...f,
+              scale: (e.target.value || undefined) as ProspectFilter['scale'],
+            }))
+          }
+        >
+          <option value="">{COPY.filters.allScales}</option>
+          <option value="house">{COPY.scale.house}</option>
+          <option value="building">{COPY.scale.building}</option>
+          <option value="district">{COPY.scale.district}</option>
+        </select>
+        <select
+          className={styles.control}
+          aria-label={COPY.columns.sales}
+          value={filter.assignment ?? ''}
+          onChange={(e) =>
+            setFilter((f) => ({
+              ...f,
+              assignment: (e.target.value || undefined) as ProspectFilter['assignment'],
+            }))
+          }
+        >
+          <option value="">{COPY.filters.allAssignments}</option>
+          <option value="unassigned">{COPY.filters.unassigned}</option>
+          <option value="assigned">{COPY.filters.assigned}</option>
+        </select>
+        <input
+          className={[styles.control, styles.search].join(' ')}
+          type="search"
+          placeholder={COPY.filters.search}
+          aria-label={COPY.filters.search}
+          value={filter.q ?? ''}
+          onChange={(e) => setFilter((f) => ({ ...f, q: e.target.value || undefined }))}
+        />
+        {(filter.stage ?? filter.priority ?? filter.scale ?? filter.assignment ?? filter.q) !==
+          undefined && (
+          <button type="button" className={styles.secondary} onClick={() => setFilter({})}>
+            {COPY.filters.clear}
+          </button>
         )}
-      </main>
-    </div>
+      </div>
+
+      {/* Papan yang penuh tetapi tak satu pun bisa ditugaskan tampak rusak tanpa alasannya
+          (uji pemilik 2026-10-21: 13 baris, nol opt-in, tim sales kosong). */}
+      {items.length > 0 && !items.some((item) => item.contactable) && (
+        <p className={styles.muted}>{COPY.noneContactable}</p>
+      )}
+      {items.length > 0 && team.length === 0 && (
+        <p className={styles.muted}>{COPY.teamEmptyHint}</p>
+      )}
+
+      {items.length === 0 ? (
+        <p className={styles.muted}>{COPY.empty}</p>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th scope="col">{COPY.columns.customer}</th>
+                <th scope="col">{COPY.columns.stage}</th>
+                <th scope="col">{COPY.columns.priority}</th>
+                <th scope="col">{COPY.columns.project}</th>
+                <th scope="col">{COPY.columns.activity}</th>
+                <th scope="col">{COPY.columns.contact}</th>
+                <th scope="col">{COPY.columns.sales}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <tr key={item.userId}>
+                  <td data-label={COPY.columns.customer}>
+                    <div className={styles.name}>{item.name}</div>
+                    <div className={styles.meta}>{item.email}</div>
+                    {item.phone && <div className={styles.meta}>{item.phone}</div>}
+                    <div className={styles.meta}>{COPY.conversations(item.conversationCount)}</div>
+                  </td>
+                  <td data-label={COPY.columns.stage}>
+                    <span className={styles.stageTag}>{COPY.stages[item.stage].name}</span>
+                    <div className={styles.meta}>{COPY.stages[item.stage].meaning}</div>
+                  </td>
+                  <td data-label={COPY.columns.priority}>
+                    <span
+                      className={[styles.priority, styles[`priority_${item.priority}`]].join(' ')}
+                    >
+                      {COPY.priority[item.priority]}
+                    </span>
+                  </td>
+                  <td data-label={COPY.columns.project}>{COPY.scale[item.scale]}</td>
+                  <td data-label={COPY.columns.activity}>
+                    {dateFormat.format(new Date(item.lastActivityAt))}
+                  </td>
+                  <td data-label={COPY.columns.contact}>
+                    {item.salesRequestedAt
+                      ? COPY.contact.requested
+                      : item.salesContactConsent
+                        ? COPY.contact.consent
+                        : COPY.contact.none}
+                  </td>
+                  <td data-label={COPY.columns.sales}>
+                    <AssignCell
+                      item={item}
+                      team={team}
+                      copy={COPY}
+                      onAssign={(salesUserId) => void assign(item.userId, salesUserId)}
+                    />
+                    {rowError?.userId === item.userId && (
+                      <div className={styles.rowError} role="alert">
+                        {rowError.text}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -385,106 +338,5 @@ function AssignCell({
         </div>
       )}
     </>
-  );
-}
-
-function TeamPanel({
-  team,
-  isAdmin,
-  copy,
-  errorText,
-  onChanged,
-}: {
-  team: readonly SalesMember[];
-  isAdmin: boolean;
-  copy: Copy;
-  errorText: (code: string) => string;
-  onChanged: () => void;
-}) {
-  const [email, setEmail] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const add = async (event: FormEvent) => {
-    event.preventDefault();
-    if (busy || email.trim() === '') return;
-    setBusy(true);
-    setError(null);
-    const problem = await addSalesMember(email.trim());
-    setBusy(false);
-    if (problem !== null) {
-      setError(errorText(problem));
-      return;
-    }
-    setEmail('');
-    onChanged();
-  };
-
-  const remove = async (id: string) => {
-    setError(null);
-    const problem = await removeSalesMember(id);
-    if (problem !== null) {
-      setError(errorText(problem));
-      return;
-    }
-    onChanged();
-  };
-
-  return (
-    <section>
-      <div className={styles.titleRow}>
-        <h1 className={styles.title}>{copy.team.title}</h1>
-        <p className={styles.subtitle}>{copy.team.subtitle}</p>
-      </div>
-
-      {isAdmin ? (
-        <form className={styles.addForm} onSubmit={(e) => void add(e)}>
-          <input
-            className={[styles.control, styles.search].join(' ')}
-            type="email"
-            required
-            placeholder={copy.team.email}
-            aria-label={copy.team.email}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <button type="submit" className={styles.primary} disabled={busy}>
-            {busy ? copy.team.adding : copy.team.add}
-          </button>
-        </form>
-      ) : (
-        <p className={styles.muted}>{copy.team.adminOnly}</p>
-      )}
-      {error !== null && (
-        <p className={styles.rowError} role="alert">
-          {error}
-        </p>
-      )}
-
-      {team.length === 0 ? (
-        <p className={styles.muted}>{copy.team.empty}</p>
-      ) : (
-        <ul className={styles.teamList}>
-          {team.map((member) => (
-            <li key={member.id} className={styles.teamRow}>
-              <div>
-                <div className={styles.name}>{member.name}</div>
-                <div className={styles.meta}>{member.email}</div>
-              </div>
-              <span className={styles.meta}>{copy.team.openLeads(member.openLeads)}</span>
-              {isAdmin && (
-                <button
-                  type="button"
-                  className={styles.secondary}
-                  onClick={() => void remove(member.id)}
-                >
-                  {copy.team.remove}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
   );
 }

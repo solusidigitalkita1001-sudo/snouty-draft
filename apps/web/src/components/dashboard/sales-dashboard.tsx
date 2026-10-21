@@ -6,7 +6,7 @@
  * model sudah lolos pagar angka di server. Komponen ini tidak menilai apa pun.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { canOpenDashboard, getCurrentUser, restoreSession } from '../auth/session';
+
 import { useLocale } from '../locale';
 import {
   fetchLead,
@@ -40,7 +40,6 @@ export function SalesDashboard() {
   const { locale } = useLocale();
   const COPY = salesCopy(locale);
   const BOARD = dashboardCopy(locale);
-  const [ready, setReady] = useState(false);
   const [list, setList] = useState<Loaded<{ readonly items: readonly ProspectItem[] }> | null>(
     null,
   );
@@ -48,7 +47,6 @@ export function SalesDashboard() {
   const [detail, setDetail] = useState<Loaded<LeadDetail> | null>(null);
 
   useEffect(() => {
-    void restoreSession().finally(() => setReady(true));
     // Admin membuka ringkasan dari papan prospek: `?u=<id pengguna>`.
     const fromBoard = new URLSearchParams(window.location.search).get('u');
     if (fromBoard !== null && ULID.test(fromBoard)) setSelected(fromBoard);
@@ -64,112 +62,91 @@ export function SalesDashboard() {
   }, []);
 
   useEffect(() => {
-    if (ready) void loadList();
-  }, [ready, loadList]);
+    void loadList();
+  }, [loadList]);
 
   useEffect(() => {
-    if (ready && selected !== null) void loadDetail(selected);
-  }, [ready, selected, loadDetail]);
-
-  const showBoardLink = canOpenDashboard(getCurrentUser());
+    if (selected !== null) void loadDetail(selected);
+  }, [selected, loadDetail]);
 
   return (
-    <div className={styles.shell}>
-      <header className={styles.header}>
-        <span className={styles.brand}>{BOARD.brand}</span>
-        <nav className={styles.tabs} aria-label={COPY.title}>
-          <span className={[styles.tab, styles.tabOn].join(' ')}>{COPY.title}</span>
-          {showBoardLink && (
-            <a className={styles.tab} href="/internal/prospects">
-              {COPY.backToBoard}
-            </a>
-          )}
-        </nav>
-        <a className={styles.back} href="/consultation">
-          {BOARD.nav.back}
-        </a>
-      </header>
+    <>
+      {list === null && <p className={styles.muted}>{BOARD.loading}</p>}
+      {list?.kind === 'forbidden' && (
+        <div className={styles.notice}>
+          <p>{BOARD.forbidden}</p>
+          <a className={styles.primary} href="/login">
+            {BOARD.signIn}
+          </a>
+        </div>
+      )}
+      {list?.kind === 'failed' && (
+        <div className={styles.notice} role="alert">
+          <p>{BOARD.failed}</p>
+          <button type="button" className={styles.secondary} onClick={() => void loadList()}>
+            {BOARD.retry}
+          </button>
+        </div>
+      )}
 
-      <main className={styles.main}>
-        {list === null && <p className={styles.muted}>{BOARD.loading}</p>}
-        {list?.kind === 'forbidden' && (
-          <div className={styles.notice}>
-            <p>{BOARD.forbidden}</p>
-            <a className={styles.primary} href="/login">
-              {BOARD.signIn}
-            </a>
+      {list?.kind === 'ok' && (
+        <>
+          <div className={styles.titleRow}>
+            <h1 className={styles.title}>{COPY.title}</h1>
+            <p className={styles.subtitle}>{COPY.subtitle}</p>
           </div>
-        )}
-        {list?.kind === 'failed' && (
-          <div className={styles.notice} role="alert">
-            <p>{BOARD.failed}</p>
-            <button type="button" className={styles.secondary} onClick={() => void loadList()}>
-              {BOARD.retry}
-            </button>
-          </div>
-        )}
-
-        {list?.kind === 'ok' && (
-          <>
-            <div className={styles.titleRow}>
-              <h1 className={styles.title}>{COPY.title}</h1>
-              <p className={styles.subtitle}>{COPY.subtitle}</p>
-            </div>
-            <div className={styles.leadLayout}>
-              <ul className={styles.leadList} aria-label={COPY.title}>
-                {list.value.items.length === 0 && <li className={styles.muted}>{COPY.empty}</li>}
-                {list.value.items.map((item) => (
-                  <li key={item.userId}>
-                    <button
-                      type="button"
-                      className={[
-                        styles.leadItem,
-                        selected === item.userId ? styles.leadItemOn : '',
-                      ].join(' ')}
-                      aria-pressed={selected === item.userId}
-                      onClick={() => setSelected(item.userId)}
-                    >
-                      <span className={styles.name}>{item.name}</span>
-                      <span className={styles.leadTags}>
-                        <span
-                          className={[styles.priority, styles[`priority_${item.priority}`]].join(
-                            ' ',
-                          )}
-                        >
-                          {BOARD.priority[item.priority]}
-                        </span>
-                        <span className={styles.stageTag}>{BOARD.stages[item.stage].name}</span>
-                        {item.lead && (
-                          <span className={styles.meta}>{BOARD.leadStatus[item.lead.status]}</span>
-                        )}
+          <div className={styles.leadLayout}>
+            <ul className={styles.leadList} aria-label={COPY.title}>
+              {list.value.items.length === 0 && <li className={styles.muted}>{COPY.empty}</li>}
+              {list.value.items.map((item) => (
+                <li key={item.userId}>
+                  <button
+                    type="button"
+                    className={[
+                      styles.leadItem,
+                      selected === item.userId ? styles.leadItemOn : '',
+                    ].join(' ')}
+                    aria-pressed={selected === item.userId}
+                    onClick={() => setSelected(item.userId)}
+                  >
+                    <span className={styles.name}>{item.name}</span>
+                    <span className={styles.leadTags}>
+                      <span
+                        className={[styles.priority, styles[`priority_${item.priority}`]].join(' ')}
+                      >
+                        {BOARD.priority[item.priority]}
                       </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                      <span className={styles.stageTag}>{BOARD.stages[item.stage].name}</span>
+                      {item.lead && (
+                        <span className={styles.meta}>{BOARD.leadStatus[item.lead.status]}</span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
 
-              <section className={styles.leadDetail} aria-live="polite">
-                {selected === null && <p className={styles.muted}>{COPY.pick}</p>}
-                {selected !== null && detail === null && (
-                  <p className={styles.muted}>{BOARD.loading}</p>
-                )}
-                {selected !== null && detail !== null && detail.kind !== 'ok' && (
-                  <p className={styles.muted}>{BOARD.failed}</p>
-                )}
-                {selected !== null && detail?.kind === 'ok' && (
-                  <LeadView
-                    key={selected}
-                    userId={selected}
-                    detail={detail.value}
-                    onChanged={() => void Promise.all([loadList(), loadDetail(selected)])}
-                  />
-                )}
-              </section>
-            </div>
-          </>
-        )}
-      </main>
-    </div>
+            <section className={styles.leadDetail} aria-live="polite">
+              {selected === null && <p className={styles.muted}>{COPY.pick}</p>}
+              {selected !== null && detail === null && (
+                <p className={styles.muted}>{BOARD.loading}</p>
+              )}
+              {selected !== null && detail !== null && detail.kind !== 'ok' && (
+                <p className={styles.muted}>{BOARD.failed}</p>
+              )}
+              {selected !== null && detail?.kind === 'ok' && (
+                <LeadView
+                  key={selected}
+                  userId={selected}
+                  detail={detail.value}
+                  onChanged={() => void Promise.all([loadList(), loadDetail(selected)])}
+                />
+              )}
+            </section>
+          </div>
+        </>
+      )}
+    </>
   );
 }
 

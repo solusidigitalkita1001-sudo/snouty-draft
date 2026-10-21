@@ -1,6 +1,11 @@
-/** Dashboard pasar (P26-07): tab Pasar di dashboard admin. Akses diperiksa API per peran. */
-import { ProspectDashboard } from '../../../components/dashboard/prospect-dashboard';
+/** Pasar: agregat kebutuhan tanpa identitas (P26-07). Akses diperiksa API per peran. */
+import { DashboardShell } from '../../../components/dashboard/dashboard-shell';
+import { MarketPanel } from '../../../components/dashboard/market-panel';
 
 export default function Page() {
-  return <ProspectDashboard initialTab="market" />;
+  return (
+    <DashboardShell section="market">
+      <MarketPanel />
+    </DashboardShell>
+  );
 }
