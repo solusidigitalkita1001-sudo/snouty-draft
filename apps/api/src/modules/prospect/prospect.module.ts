@@ -25,6 +25,8 @@ import { leadStoreProvider } from './infrastructure/mysql-lead.store.js';
 import { AiModule } from '../ai/ai.module.js';
 import { AI_SERVICE, type AiService } from '../ai/domain/ai.port.js';
 import { LoggerService } from '../../shared/logging/logger.service.js';
+import { NOTIFIER, type Notifier } from '../../shared/notification/notifier.port.js';
+import { NotificationService } from '../notification/application/notification.service.js';
 
 const leadServiceProvider = {
   provide: LeadService,
@@ -40,15 +42,19 @@ const leadServiceProvider = {
 
 const prospectBoardServiceProvider = {
   provide: ProspectBoardService,
-  inject: [PROSPECT_STORE],
-  useFactory: (store: ProspectStore) => new ProspectBoardService(store),
+  inject: [PROSPECT_STORE, NOTIFIER],
+  useFactory: (store: ProspectStore, notifier: Notifier) =>
+    new ProspectBoardService(store, notifier),
 };
 
 const salesRequestServiceProvider = {
   provide: SalesRequestService,
-  inject: [SALES_REQUEST_REPOSITORY, ConversationService],
-  useFactory: (requests: SalesRequestRepository, conversations: ConversationService) =>
-    new SalesRequestService(requests, conversations),
+  inject: [SALES_REQUEST_REPOSITORY, ConversationService, NotificationService],
+  useFactory: (
+    requests: SalesRequestRepository,
+    conversations: ConversationService,
+    notifications: NotificationService,
+  ) => new SalesRequestService(requests, conversations, (event) => notifications.notifyTeam(event)),
 };
 
 @Module({

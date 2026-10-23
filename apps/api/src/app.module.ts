@@ -14,6 +14,7 @@ import { ConversationModule } from './modules/conversation/conversation.module.j
 import { HandoffModule } from './modules/handoff/handoff.module.js';
 import { ProspectModule } from './modules/prospect/prospect.module.js';
 import { MarketIntelligenceModule } from './modules/market-intelligence/market-intelligence.module.js';
+import { NotificationModule } from './modules/notification/notification.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { OnboardingConsentModule } from './modules/onboarding-consent/onboarding-consent.module.js';
 import { ProductCatalogModule } from './modules/product-catalog/product-catalog.module.js';
@@ -36,6 +37,7 @@ import { UploadsModule } from './modules/uploads/uploads.module.js';
     LoggingModule,
     AuditModule,
     ProspectSignalModule,
+    NotificationModule,
     HealthModule,
     AuthModule,
     OnboardingConsentModule,

@@ -27,6 +27,7 @@ import type {
 } from '@snouty/shared-types';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useBootStep } from '../boot/boot';
+import { NotificationBell } from '../notification/notification-bell';
 import { moodForCards } from '../mascot/mood';
 import { Snouty, SnoutyAvatar } from '../mascot/snouty';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
@@ -1343,6 +1344,9 @@ export function ChatWorkspace() {
             )}
           </div>
           <div className={styles.headerActions}>
+            {/* Laporan yang disusun di latar mengabari pemiliknya di sini (P27-07). Tamu tidak
+                punya pemberitahuan, jadi loncengnya tidak dirender sama sekali. */}
+            <NotificationBell enabled={user !== null} />
             {/* Sempit: sidebar (dan pengalih tema di dalamnya) hilang — tombolnya pindah ke header. */}
             {/* Di ponsel, pengalih tema dan bahasa cukup di drawer: header 390 px sudah memuat
                 + ☰ judul dan "Kebutuhan (n)" — lima kontrol membuat judul terpotong dan bertumpuk

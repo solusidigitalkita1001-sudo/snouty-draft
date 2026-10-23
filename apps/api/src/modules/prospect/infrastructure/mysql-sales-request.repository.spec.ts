@@ -54,6 +54,7 @@ describe('permintaan dihubungi sales di MySQL (0027)', () => {
     const tomorrow = new SalesRequestService(
       repository,
       conversations,
+      null,
       () => new Date(Date.now() + 25 * 60 * 60 * 1000),
     );
     const later = await tomorrow.request(conversation.id, USER, 'solution');

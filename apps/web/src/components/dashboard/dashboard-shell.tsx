@@ -11,6 +11,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { canOpenDashboard, getCurrentUser, isSales, restoreSession } from '../auth/session';
 import { useLocale } from '../locale';
 import { dashboardCopy } from './dashboard-copy';
+import { NotificationBell } from '../notification/notification-bell';
 import { BackIcon, MenuIcon, sectionIcon } from './dashboard-icons';
 import styles from './dashboard.module.css';
 
@@ -91,7 +92,11 @@ export function DashboardShell({
           ))}
         </nav>
         <div className={styles.sidebarFoot}>
-          {user && <span className={styles.meta}>{user.name}</span>}
+          <div className={styles.footRow}>
+            {user && <span className={styles.meta}>{user.name}</span>}
+            {/* Penugasan prospek dan permintaan dihubungi sampai ke sini (P27-07). */}
+            <NotificationBell enabled={user !== null} />
+          </div>
           <a className={styles.backLink} href="/consultation">
             <BackIcon />
             <span>{COPY.nav.back}</span>

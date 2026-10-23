@@ -12,6 +12,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import type { Notifier } from '../../../shared/notification/notifier.port.js';
 import { caseProfileLabel, isCaseId, outdatedRules } from '@snouty/engineering';
 import { QUEUES } from '@snouty/jobs';
 import type { AnySchematic, Locale, Recommendation, RequirementState } from '@snouty/shared-types';
@@ -125,6 +126,8 @@ export class ReportService {
       createdAt: string,
       locale: Locale,
     ) => Promise<AnySchematic | null> = async () => null,
+    /** Pemberitahuan "laporan siap" (P27-07); `null` di tes dan di proses tanpa notifikasi. */
+    private readonly notifier: Notifier | null = null,
   ) {}
 
   private async productNames(recommendation: Recommendation): Promise<Map<string, string>> {
@@ -321,6 +324,30 @@ export class ReportService {
     const report = await this.reports.findById(reportId);
     if (!report) throw new ReportNotFoundError();
     await this.reports.markStatus(reportId, 'READY', { fileRef });
+    await this.notifyOwner(report);
+  }
+
+  /**
+   * PDF disusun di latar, jadi pemiliknya bisa sudah pindah layar saat ia selesai (P27-07).
+   * Hanya akun: tamu tidak punya tempat menerima pemberitahuan. Gagal memberi tahu tidak
+   * menggagalkan laporannya — ia sudah jadi.
+   */
+  private async notifyOwner(report: Report): Promise<void> {
+    if (this.notifier === null) return;
+    try {
+      const recommendation = await this.recommendations.findById(report.recommendationId);
+      if (!recommendation) return;
+      const conversation = await this.conversations.findForShare(recommendation.conversationId);
+      if (conversation === null || conversation.owner.kind !== 'user') return;
+      await this.notifier.notify({
+        userId: conversation.owner.id,
+        kind: 'report_ready',
+        subjectId: report.id,
+        data: { reportNumber: report.reportNumber, conversationId: conversation.id },
+      });
+    } catch (cause) {
+      this.log?.warn({ err: cause, reportId: report.id }, 'pemberitahuan laporan gagal');
+    }
   }
 
   /** Menandai gagal. Nomornya TIDAK dilepas — percobaan ulang memakai nomor yang sama. */

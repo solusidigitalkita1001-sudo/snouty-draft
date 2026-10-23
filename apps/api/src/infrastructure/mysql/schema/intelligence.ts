@@ -222,3 +222,29 @@ export const salesLeads = mysqlTable(
     check('ck_sales_leads_status', sql`\`status\` IN ('new','contacted','quoted','won','lost')`),
   ],
 );
+
+/**
+ * Pemberitahuan di dalam aplikasi (P27-07). Barisnya menyimpan KEJADIAN (`kind`, `subjectId`,
+ * `data`), bukan kalimat: teks yang dibaca orang dirakit di lapisan tampilan per bahasa.
+ */
+export const notifications = mysqlTable(
+  'notifications',
+  {
+    id: id().primaryKey(),
+    userId: char('user_id', { length: 26 }).notNull(),
+    kind: varchar('kind', { length: 32 }).notNull(),
+    /** Yang dirujuk: prospek, permintaan dihubungi, atau laporan. */
+    subjectId: char('subject_id', { length: 26 }),
+    data: json('data'),
+    readAt: datetime('read_at', { fsp: 3 }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('ix_notifications_user_created').on(t.userId, t.createdAt),
+    index('ix_notifications_user_unread').on(t.userId, t.readAt),
+    check(
+      'ck_notifications_kind',
+      sql`\`kind\` IN ('lead_assigned','contact_requested','report_ready')`,
+    ),
+  ],
+);

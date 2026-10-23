@@ -1,3 +1,4 @@
+import type { Notifier } from '../../../shared/notification/notifier.port.js';
 import {
   AccountNotFoundError,
   canBeContacted,
@@ -25,6 +26,8 @@ export interface ProspectBoard {
 export class ProspectBoardService {
   constructor(
     private readonly store: ProspectStore,
+    /** Pemberitahuan di dalam aplikasi (P27-07); `null` di tes dan di proses tanpa notifikasi. */
+    private readonly notifier: Notifier | null = null,
     private readonly clock: () => Date = () => new Date(),
   ) {}
 
@@ -69,6 +72,13 @@ export class ProspectBoardService {
     if (!canBeContacted(basis)) throw new NotContactableError();
     if (!(await this.store.isSales(salesUserId))) throw new NotSalesError();
     await this.store.assign({ userId, salesUserId, assignedBy });
+    // Sales tahu ada prospek baru tanpa harus membuka papannya (P27-07). Lewat port: modul ini
+    // tidak boleh bergantung pada modul notifikasi.
+    await this.notifier?.notify({
+      userId: salesUserId,
+      kind: 'lead_assigned',
+      subjectId: userId,
+    });
   }
 
   salesTeam(): Promise<readonly SalesMember[]> {

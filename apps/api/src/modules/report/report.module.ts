@@ -7,6 +7,7 @@
  * halaman ini, cetak".
  */
 import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
+import { NOTIFIER, type Notifier } from '../../shared/notification/notifier.port.js';
 import type { AnySchematic } from '@snouty/shared-types';
 import { ProductCatalogModule } from '../product-catalog/product-catalog.module.js';
 import {
@@ -58,6 +59,7 @@ const reportServiceProvider = {
     JobPublisher,
     CATALOG_REPOSITORY,
     AnalysisService,
+    NOTIFIER,
   ],
   useFactory: (
     reports: ReportRepository,
@@ -67,6 +69,7 @@ const reportServiceProvider = {
     publisher: JobPublisher,
     catalog: CatalogRepository,
     analysis: AnalysisService,
+    notifier: Notifier,
   ) =>
     new ReportService(
       reports,
@@ -104,6 +107,7 @@ const reportServiceProvider = {
           createdAt,
           locale,
         )) as AnySchematic,
+      notifier,
     ),
 };
 

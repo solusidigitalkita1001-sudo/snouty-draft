@@ -1,0 +1,138 @@
+/* Lonceng pemberitahuan (P27-07). Semua warna dari token; mode gelap ikut sendiri. */
+
+.root {
+  position: relative;
+}
+
+.bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-control);
+  background: var(--snouty-surface);
+  color: var(--snouty-ink-4);
+  cursor: pointer;
+}
+
+.bell:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+/* Angka, bukan titik: "ada 3" dan "ada 1" bukan kabar yang sama. */
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--snouty-radius-chip);
+  font-size: var(--snouty-text-caption);
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  background: var(--snouty-action);
+  color: var(--snouty-action-on);
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: min(320px, calc(100vw - 32px));
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-card);
+  background: var(--snouty-surface);
+  box-shadow: var(--snouty-shadow-menu);
+  overflow: hidden;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--snouty-hairline);
+}
+
+.panelTitle {
+  font-size: var(--snouty-text-desc);
+  font-weight: 500;
+  color: var(--snouty-ink);
+}
+
+.markAll {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--snouty-text-helper);
+  color: var(--snouty-action-text);
+  cursor: pointer;
+}
+
+.empty {
+  padding: 18px 12px;
+  font-size: var(--snouty-text-helper);
+  color: var(--snouty-caption);
+  text-align: center;
+}
+
+.list {
+  max-height: 340px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item,
+.itemUnread {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--snouty-hairline-2);
+}
+
+.item:last-child,
+.itemUnread:last-child {
+  border-bottom: none;
+}
+
+/* Belum dibaca dibedakan oleh latar DAN bobot teks, bukan warna saja. */
+.itemUnread {
+  background: var(--snouty-action-row);
+}
+
+.text {
+  font-size: var(--snouty-text-desc);
+  line-height: 1.45;
+  color: var(--snouty-ink-3);
+}
+
+.itemUnread .text {
+  font-weight: 500;
+  color: var(--snouty-ink);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: var(--snouty-text-helper);
+  color: var(--snouty-caption);
+}
+
+.openLink {
+  color: var(--snouty-action-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

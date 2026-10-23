@@ -2212,6 +2212,18 @@ lalu layar, lalu data.
       keluarnya (gagal punya tombol coba lagi), judul ditemani lencana baca-saja, ada tombol cetak dan gaya
       cetak yang membuang header serta tab — tautan ini sering berakhir di tangan tukang.
 
+- [x] P27-07 Pemberitahuan di dalam aplikasi (pemilik 2026-10-23: "notifikasi belum ada"). Migration 0031
+      `notifications`; barisnya menyimpan KEJADIAN (`kind`, `subject_id`, `data`), bukan kalimat — teks
+      yang dibaca orang dirakit di web per bahasa, karena kalimat Indonesia yang dibekukan di database
+      tidak bisa berbahasa Inggris nanti dan tidak bisa diperbaiki tanpa migration. Tiga kejadian:
+      prospek ditugaskan (ke sales itu), ada yang minta dihubungi (ke admin dan peninjau), laporan siap
+      (ke pemiliknya, hanya akun). Modul penghasil kejadian bergantung pada port `NOTIFIER` di
+      `shared/notification`, bukan pada modul notifikasi — arah dependensinya satu arah, dan menulis
+      pemberitahuan tidak pernah menggagalkan pemanggilnya. Loncengnya satu komponen yang dipakai di
+      cangkang dashboard dan di ruang konsultasi; tamu tidak merendernya sama sekali, dan "tidak ada
+      apa-apa" juga tidak — bukan lonceng kosong yang mengundang klik. Menandai terbaca selalu membawa
+      `user_id` di WHERE: id dari klien tidak bisa menyentuh baris orang lain.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |
