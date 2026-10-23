@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-23 · Current phase: **27 — Masukan pemilik dan Leo atas SNOUTY yang berjalan**
+Last updated: 2026-10-23 · Current phase: **27 — Masukan pemilik dan Leo atas SNOUTY yang berjalan** · dua belas item selesai dan live
 
 ## Summary
 
@@ -2294,6 +2294,21 @@ lalu layar, lalu data.
       pralon.com, tidak ada di katalog ERP). Empat kasus emas baru menjaga semuanya; akurasi intent
       tetap 99,4 %. Sekalian: perbandingan kelas AW/D/C ikut jadi prosa — tabelnya tinggal data
       katalog (ukuran, panjang batang) yang memang berkolom.
+
+- [x] ✋ CHECKPOINT Fase 27 — seluruh dua belas hal yang disebut pemilik 2026-10-23 selesai dan LIVE di
+      ai.pralon.co.id (empat rilis: migration 0031–0032 dengan backup dikonfirmasi lebih dulu). Verifikasi
+      akhir: 1690 tes API + 248 tes web + 521 tes engineering hijau; akurasi pemahaman intent 99,4 % dengan
+      bge-b3 (ambang 95 %); suite emas FAQ 19/19 di produksi; dan 67 pertanyaan pemilik dijawab masuk akal
+      66/67 — laporan lengkapnya `~/Downloads/TESTCASE_SNOUTY_pertanyaan-pemilik_2026-10-23.md`.
+      Satu catatan yang tidak diperbaiki dan sengaja dilaporkan: pertanyaan produk yang butuh model bahasa
+      ("fitting elbow 90 derajat 3/4\"") dijawab 4–8 detik bila ditanya sendiri, tetapi pada uji berurutan
+      sempat kehabisan waktu 90 detik karena model 7B di server melayani giliran sebelumnya — jawabannya
+      lalu jatuh ke "Maaf, saya belum menangkap maksudnya". Itu soal kapasitas model di server, bukan
+      pemahaman; pemisahan penyandi sudah dilakukan di P25-03, yang tersisa adalah model generatifnya.
+      Pelajaran yang berulang tiga kali di fase ini dan layak diingat: **contoh berbentuk RANGKA kalimat**
+      ("produk Pralon buat … apa") menarik kalimat mana pun yang berangka sama; contoh yang berguna selalu
+      membawa kata pembedanya. Dua kali ia membuat jawaban yang tadinya benar jadi salah, dan dua-duanya
+      baru ketahuan karena seluruh 67 pertanyaan dijalankan ulang setelah tiap perbaikan.
 
 ## Design Coverage
 
