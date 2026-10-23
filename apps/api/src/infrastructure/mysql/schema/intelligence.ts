@@ -219,9 +219,6 @@ export const salesLeads = mysqlTable(
   (t) => [
     uniqueIndex('uq_sales_leads_user').on(t.userId),
     index('ix_sales_leads_assignee_status').on(t.assignedTo, t.status),
-    check(
-      'ck_sales_leads_status',
-      sql`\`status\` IN ('new','contacted','quoted','won','lost')`,
-    ),
+    check('ck_sales_leads_status', sql`\`status\` IN ('new','contacted','quoted','won','lost')`),
   ],
 );

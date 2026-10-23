@@ -2190,6 +2190,18 @@ lalu layar, lalu data.
       (`addsNoStructure`), bukan di prompt: balasan model yang memuat judul Markdown, tabel, butir, atau baris
       seluruhnya tebal yang tidak ada di DATA jatuh ke teks deterministik.
 
+- [x] P27-04 Persetujuan ikut ke akun saat tamu mendaftar (pemilik 2026-10-23: "pastiin ketika udh pernah
+      akses, lokasinya nempel"). Keadaan onboarding sudah pindah sejak P24, tetapi consent tidak: izin lokasi
+      yang diberikan sebagai tamu hilang begitu orangnya daftar, dan ia ditanya lagi. Penaut tamu→akun kini
+      menyalin baris consent TERAKHIR per jenis ke akun, di transaksi yang sama; consent tetap append-only
+      (jejak tamunya tidak diubah) dan jenis yang sudah diputuskan akun itu sendiri tidak ditimpa.
+- [x] P27-05 Layar muat pertama (pemilik 2026-10-23: "loading snouty untuk awal2 masuk"). `BootGate` menahan
+      isi aplikasi sampai sesi dipulihkan dan keadaan onboarding diketahui — dulu ruang konsultasi kosong
+      tampil dulu lalu wizard berkedip di atasnya. Layarnya bermaskot, bernama, dan berbar tak tentu (tanpa
+      persen yang dikarang); ia menyerah setelah 5 detik supaya API yang diam tidak menyandera siapa pun, dan
+      berhenti bergerak pada `prefers-reduced-motion`. Sekalian: keputusan lokasi disimpan di browser dan
+      DISUSULKAN ke server saat subjeknya berganti (cookie tamu baru), jadi langkah lokasi tidak muncul lagi.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

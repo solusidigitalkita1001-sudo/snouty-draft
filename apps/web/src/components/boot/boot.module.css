@@ -1,0 +1,89 @@
+/*
+ * Layar muat pertama (P27-05). Penuh layar, di atas segalanya termasuk onboarding (z-index 70),
+ * supaya wizard tidak sempat berkedip di baliknya. Semua warna dari token; mode gelap ikut sendiri.
+ */
+
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 24px;
+  background: var(--snouty-canvas);
+  animation: snoutyBootIn var(--snouty-enter) both;
+}
+
+.mascot {
+  margin-bottom: 10px;
+}
+
+.name {
+  font-size: var(--snouty-text-headline);
+  font-weight: 600;
+  letter-spacing: var(--snouty-tracking-headline);
+  color: var(--snouty-ink);
+}
+
+.kicker {
+  font-size: var(--snouty-text-helper);
+  color: var(--snouty-muted);
+}
+
+/* Bar tak tentu: ia menandakan "sedang berjalan", bukan berapa persen — tidak ada persen yang jujur. */
+.bar {
+  position: relative;
+  width: 148px;
+  height: 3px;
+  margin-top: 18px;
+  overflow: hidden;
+  border-radius: var(--snouty-radius-pill);
+  background: var(--snouty-hairline);
+}
+
+.barFill {
+  position: absolute;
+  inset-block: 0;
+  width: 42%;
+  border-radius: inherit;
+  background: var(--snouty-action);
+  animation: snoutyBootSlide 1.15s ease-in-out infinite;
+}
+
+.line {
+  margin-top: 10px;
+  font-size: var(--snouty-text-helper);
+  color: var(--snouty-caption);
+}
+
+@keyframes snoutyBootIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes snoutyBootSlide {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+
+/*
+ * Gerak dimatikan: aturan global di tokens.css memaksa durasi ~0, yang membuat bar berhenti di
+ * ujung kanan dan terlihat seperti macet. Di sini ia menjadi bar penuh yang diam.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .barFill {
+    width: 100%;
+    transform: none;
+  }
+}

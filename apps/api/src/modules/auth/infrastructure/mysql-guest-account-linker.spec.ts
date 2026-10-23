@@ -16,6 +16,8 @@ import { MysqlConversationRepository } from '../../conversation/infrastructure/m
 import { GuestSessionService } from '../application/guest-session.service.js';
 import { MysqlGuestSessionRepository } from './mysql-guest-session.repository.js';
 import { MysqlGuestAccountLinker } from './mysql-guest-account-linker.js';
+import { ConsentService } from '../../onboarding-consent/application/consent.service.js';
+import { MysqlConsentRepository } from '../../onboarding-consent/infrastructure/mysql-consent.repository.js';
 
 const GUEST_ID = testId('LGUEST');
 const USER_ID = testId('LUSER');
@@ -181,5 +183,44 @@ describe('onboarding ikut ke akun (pemilik 2026-10-19: wizard jangan muncul lagi
   it('tamu yang belum pernah melihat onboarding: akunnya tetap tanpa baris', async () => {
     await linker.link(GUEST_ID, USER_ID);
     expect(await stateOf('user', USER_ID)).toBeUndefined();
+  });
+});
+
+describe('persetujuan ikut ke akun (P27-04, pemilik 2026-10-23: "lokasinya nempel")', () => {
+  const consentService = () =>
+    new ConsentService(new MysqlConsentRepository({ db: fixture.db }), 'v1');
+
+  it('izin lokasi yang diberikan sebagai tamu tetap berlaku setelah daftar', async () => {
+    await consentService().record(GUEST, 'LOCATION', true);
+    await linker.link(GUEST_ID, USER_ID);
+    expect(await consentService().isGranted(USER, 'LOCATION')).toBe(true);
+    // Jejak tamunya tidak diubah — consent bersifat append-only.
+    expect(await consentService().isGranted(GUEST, 'LOCATION')).toBe(true);
+  });
+
+  it('penolakan ikut juga: akun tidak ditanyai ulang hal yang sudah ditolak', async () => {
+    await consentService().record(GUEST, 'LOCATION', false);
+    await linker.link(GUEST_ID, USER_ID);
+    const current = await consentService().current(USER);
+    expect(current.map((c) => [c.kind, c.granted])).toEqual([['LOCATION', false]]);
+  });
+
+  it('keputusan terakhir tamu yang pindah, bukan yang pertama', async () => {
+    await consentService().record(GUEST, 'LOCATION', false);
+    await consentService().record(GUEST, 'LOCATION', true);
+    await linker.link(GUEST_ID, USER_ID);
+    expect(await consentService().isGranted(USER, 'LOCATION')).toBe(true);
+  });
+
+  it('jenis yang sudah diputuskan akun itu sendiri tidak ditimpa', async () => {
+    await consentService().record(GUEST, 'LOCATION', true);
+    await consentService().record(USER, 'LOCATION', false);
+    await linker.link(GUEST_ID, USER_ID);
+    expect(await consentService().isGranted(USER, 'LOCATION')).toBe(false);
+  });
+
+  it('tamu tanpa persetujuan apa pun tidak menambah baris', async () => {
+    await linker.link(GUEST_ID, USER_ID);
+    expect(await consentService().current(USER)).toEqual([]);
   });
 });

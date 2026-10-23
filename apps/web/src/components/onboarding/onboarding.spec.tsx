@@ -9,6 +9,7 @@ import { Onboarding } from './onboarding';
 
 const api = vi.hoisted(() => ({
   ONBOARDING_LS_KEY: 'snouty_onboarding_state',
+  LOCATION_LS_KEY: 'snouty_location_consent',
   fetchOnboardingState: vi.fn(),
   completeOnboarding: vi.fn(async () => undefined),
   fetchBenefits: vi.fn(async () => []),
@@ -58,5 +59,46 @@ describe('Onboarding — sekali per pengunjung', () => {
     render(<Onboarding />);
     await waitFor(() => expect(localStorage.getItem(KEY)).toBe('guest'));
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+/**
+ * P27-05 — pemilik 2026-10-23: "pastiin ketika udh pernah akses, lokasinya nempel dan ngga masuk
+ * wizard". Subjek server bisa berganti (cookie tamu baru) walau browsernya sama; keputusan lokasi
+ * yang sudah pernah diambil disusulkan supaya tidak ditanya lagi.
+ */
+describe('Onboarding — keputusan lokasi ikut menempel', () => {
+  const LOCATION = api.LOCATION_LS_KEY;
+
+  it('subjek baru di server: izin lokasi yang pernah diberikan disusulkan', async () => {
+    localStorage.setItem(KEY, 'done');
+    localStorage.setItem(LOCATION, 'granted');
+    api.fetchOnboardingState.mockResolvedValueOnce('pending');
+    render(<Onboarding />);
+    await waitFor(() => expect(api.recordLocationConsent).toHaveBeenCalledWith(true));
+  });
+
+  it('penolakan ikut disusulkan juga — langkah lokasi tidak muncul lagi', async () => {
+    localStorage.setItem(KEY, 'skip');
+    localStorage.setItem(LOCATION, 'denied');
+    api.fetchOnboardingState.mockResolvedValueOnce('pending');
+    render(<Onboarding />);
+    await waitFor(() => expect(api.recordLocationConsent).toHaveBeenCalledWith(false));
+  });
+
+  it('belum pernah memutuskan lokasi: tidak ada yang disusulkan', async () => {
+    localStorage.setItem(KEY, 'done');
+    api.fetchOnboardingState.mockResolvedValueOnce('pending');
+    render(<Onboarding />);
+    await waitFor(() => expect(api.completeOnboarding).toHaveBeenCalled());
+    expect(api.recordLocationConsent).not.toHaveBeenCalled();
+  });
+
+  it('server sudah tahu keadaannya: tidak ada yang disusulkan', async () => {
+    localStorage.setItem(LOCATION, 'granted');
+    api.fetchOnboardingState.mockResolvedValueOnce('done');
+    render(<Onboarding />);
+    await waitFor(() => expect(localStorage.getItem(KEY)).toBe('done'));
+    expect(api.recordLocationConsent).not.toHaveBeenCalled();
   });
 });

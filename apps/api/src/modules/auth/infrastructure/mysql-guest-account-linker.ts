@@ -20,8 +20,13 @@
 import { Injectable } from '@nestjs/common';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { conversations } from '../../../infrastructure/mysql/schema/conversation.js';
-import { guestSessions, onboardingStates } from '../../../infrastructure/mysql/schema/identity.js';
+import {
+  consents,
+  guestSessions,
+  onboardingStates,
+} from '../../../infrastructure/mysql/schema/identity.js';
 import { DatabaseService, type QueryRunner } from '../../../shared/database/database.service.js';
+import { ulid } from '../../../shared/ulid.js';
 import {
   GUEST_ACCOUNT_LINKER,
   type GuestAccountLinker,
@@ -98,12 +103,67 @@ export class MysqlGuestAccountLinker implements GuestAccountLinker {
           .onDuplicateKeyUpdate({ set: { state: sql`\`state\`` } });
       }
 
+      await copyConsents(tx, guestSessionId, userId);
+
       return {
         movedConversations: owned.length,
         resumedConversationId: owned[0]?.id ?? null,
       };
     });
   }
+}
+
+/**
+ * Persetujuan yang diberikan sebagai tamu ikut ke akun (P27-04, pemilik 2026-10-23: "pastiin
+ * ketika udh pernah akses, lokasinya nempel"). Tanpa ini izin lokasi hilang begitu orangnya
+ * mendaftar, dan ia ditanya lagi di kunjungan berikutnya.
+ *
+ * Consent bersifat append-only (docs/PRIVACY.md §3), jadi yang pindah adalah SALINAN baris
+ * terakhir per jenis — jejak tamunya tidak diubah. Jenis yang sudah diputuskan akun itu sendiri
+ * tidak ditimpa: keputusan atas nama akun yang berlaku.
+ */
+async function copyConsents(
+  tx: Parameters<Parameters<QueryRunner['db']['transaction']>[0]>[0],
+  guestSessionId: string,
+  userId: string,
+): Promise<void> {
+  const rows = await tx
+    .select({
+      id: consents.id,
+      kind: consents.kind,
+      granted: consents.granted,
+      policyVersion: consents.policyVersion,
+      grantedAt: consents.grantedAt,
+      revokedAt: consents.revokedAt,
+    })
+    .from(consents)
+    .where(and(eq(consents.subjectKind, 'guest'), eq(consents.subjectId, guestSessionId)))
+    .orderBy(desc(consents.id));
+  if (rows.length === 0) return;
+
+  const mine = await tx
+    .select({ kind: consents.kind })
+    .from(consents)
+    .where(and(eq(consents.subjectKind, 'user'), eq(consents.subjectId, userId)));
+  const decided = new Set(mine.map((row) => row.kind));
+
+  // Terbaru dulu (ULID menurun), jadi entri pertama per jenis adalah yang berlaku.
+  const latest = new Map<string, (typeof rows)[number]>();
+  for (const row of rows) if (!latest.has(row.kind)) latest.set(row.kind, row);
+
+  const copies = [...latest.values()]
+    .filter((row) => !decided.has(row.kind))
+    .map((row) => ({
+      id: ulid(),
+      subjectId: userId,
+      subjectKind: 'user',
+      kind: row.kind,
+      granted: row.granted,
+      policyVersion: row.policyVersion,
+      grantedAt: row.grantedAt,
+      revokedAt: row.revokedAt,
+    }));
+  if (copies.length > 0) await tx.insert(consents).values(copies);
 }
 
 export const guestAccountLinkerProvider = {

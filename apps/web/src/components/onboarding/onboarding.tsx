@@ -20,6 +20,7 @@
  * dibuat gampang diganti saat lembar mascot final datang.
  */
 
+import { useBootStep } from '../boot/boot';
 import { type Mood } from '../mascot/mood';
 import { Snouty, SnoutyAvatar } from '../mascot/snouty';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -27,6 +28,7 @@ import {
   completeOnboarding,
   fetchBenefits,
   fetchOnboardingState,
+  LOCATION_LS_KEY,
   ONBOARDING_LS_KEY,
   recordLocationConsent,
   type OnboardingBenefit,
@@ -51,6 +53,7 @@ const DENIED_AUTO_ADVANCE_MS = 450;
 
 export function Onboarding() {
   const COPY = useOnboardingCopy();
+  const bootReady = useBootStep();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [location, setLocation] = useState<LocationState>('ask');
@@ -72,6 +75,10 @@ export function Onboarding() {
           const known = seenOutcome(cached);
           if (known !== null) {
             void completeOnboarding(known);
+            // Keputusan lokasi ikut disusulkan, supaya ia tidak ditanya lagi di subjek yang baru
+            // (P27-05, pemilik 2026-10-23: "lokasinya nempel"). Lihat `safeLocationGet`.
+            const location = safeLocationGet();
+            if (location !== null) void recordLocationConsent(location);
             return;
           }
           showFirstTime();
@@ -83,7 +90,9 @@ export function Onboarding() {
         // API tidak terjangkau: hormati LS; tanpa LS, tampilkan — pengunjung baru
         // lebih mungkin benar-benar baru daripada kehilangan onboarding selamanya.
         if (!cancelled && cached === null) showFirstTime();
-      });
+      })
+      // Layar muat pertama menunggu langkah ini, berhasil atau tidak (P27-05).
+      .finally(() => bootReady('onboarding'));
 
     // Ditandai "sudah dilihat" begitu tampil: menutup tab di tengah wizard tidak membuatnya muncul
     // lagi di kunjungan berikutnya. Menyelesaikannya mengganti tanda ini dengan hasil sebenarnya.
@@ -95,7 +104,7 @@ export function Onboarding() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [bootReady]);
 
   useEffect(() => {
     if (open && step === 5 && benefits.length === 0) {
@@ -123,7 +132,9 @@ export function Onboarding() {
 
   const resolveLocation = useCallback((state: Exclude<LocationState, 'ask' | 'pending'>) => {
     setLocation(state);
-    void recordLocationConsent(state === 'granted');
+    const granted = state === 'granted';
+    safeLocationSet(granted);
+    void recordLocationConsent(granted);
   }, []);
 
   const askLocation = useCallback(() => {
@@ -487,4 +498,27 @@ function safeLsSet(value: string): void {
 /** Hasil onboarding yang tersimpan di browser ini, atau `null` bila belum pernah tampil. */
 function seenOutcome(cached: string | null): OnboardingOutcome | null {
   return cached === 'done' || cached === 'guest' || cached === 'skip' ? cached : null;
+}
+
+/**
+ * Keputusan lokasi di browser ini — kenyamanan yang sama dengan `ONBOARDING_LS_KEY`, bukan sumber
+ * kebenaran: yang berwenang tetap baris consent di server. Ia hanya dipakai untuk menyusulkan
+ * keputusan yang sudah pernah diambil ke subjek server yang baru (cookie tamu berganti), supaya
+ * orangnya tidak ditanya lagi. Nilainya boolean, bukan koordinat: lokasi sendiri tidak disimpan.
+ */
+function safeLocationGet(): boolean | null {
+  try {
+    const value = localStorage.getItem(LOCATION_LS_KEY);
+    return value === 'granted' ? true : value === 'denied' ? false : null;
+  } catch {
+    return null;
+  }
+}
+
+function safeLocationSet(granted: boolean): void {
+  try {
+    localStorage.setItem(LOCATION_LS_KEY, granted ? 'granted' : 'denied');
+  } catch {
+    // Mode privat yang menolak LS hanya kehilangan kenyamanan ini.
+  }
 }

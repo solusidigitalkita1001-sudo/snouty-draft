@@ -54,3 +54,6 @@ export async function recordLocationConsent(granted: boolean): Promise<void> {
  * (OQ-19, docs/PRIVACY.md §3).
  */
 export const ONBOARDING_LS_KEY = 'snouty_onboarding_state';
+
+/** Keputusan lokasi di browser ini (P27-05) — kenyamanan yang sama, bukan sumber kebenaran. */
+export const LOCATION_LS_KEY = 'snouty_location_consent';

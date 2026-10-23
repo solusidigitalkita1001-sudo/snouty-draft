@@ -26,6 +26,7 @@ import type {
   StageStatus,
 } from '@snouty/shared-types';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { useBootStep } from '../boot/boot';
 import { moodForCards } from '../mascot/mood';
 import { Snouty, SnoutyAvatar } from '../mascot/snouty';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
@@ -241,6 +242,7 @@ export function ChatWorkspace() {
       setPinnedList(pinnedList);
     });
   }, []);
+  const bootReady = useBootStep();
   const streamRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -265,11 +267,13 @@ export function ChatWorkspace() {
           result?.kind === 'ok' ? { kind: 'list', items: result.items } : { kind: 'guest' },
         );
         if (result?.kind === 'ok') loadLibrary();
-      });
+      })
+      // Layar muat pertama menunggu langkah ini — juga saat gagal, supaya tidak menyandera (P27-05).
+      .finally(() => bootReady('session'));
     return () => {
       cancelled = true;
     };
-  }, [loadLibrary]);
+  }, [loadLibrary, bootReady]);
 
   // Menjadi sempit menutup panel (prototipe); overlay tidak boleh tiba-tiba menutupi isi.
   useEffect(() => {
