@@ -78,6 +78,17 @@ const LINES: Readonly<Record<NotificationKind, Line>> = {
       href: '/internal/prospects',
     };
   },
+  follow_up_due: (item, locale) => {
+    const name = String(item.data['name'] ?? '').trim();
+    const who = name === '' ? (locale === 'en' ? 'a prospect' : 'prospek') : name;
+    return {
+      text:
+        locale === 'en'
+          ? `Time to check back in with ${who}.`
+          : `Waktunya menengok ${who} lagi.`,
+      href: item.subjectId ? `/internal/leads?prospect=${item.subjectId}` : '/internal/leads',
+    };
+  },
   report_ready: (item, locale) => {
     const number = String(item.data['reportNumber'] ?? '');
     const conversationId = item.data['conversationId'];

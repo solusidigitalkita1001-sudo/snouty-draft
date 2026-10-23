@@ -211,6 +211,11 @@ export const salesLeads = mysqlTable(
     lostReason: varchar('lost_reason', { length: 255 }),
     /** Kapan prospek ini perlu ditengok lagi (P27-09); `null` = belum dijadwalkan. */
     followUpAt: datetime('follow_up_at', { fsp: 3 }),
+    /**
+     * Jadwal yang pengingatnya sudah dikirim (P28-01). Menyimpan jadwalnya, bukan `1`/`0`:
+     * menggeser tanggal tengok otomatis membuat pengingatnya berbunyi lagi.
+     */
+    followUpRemindedFor: datetime('follow_up_reminded_for', { fsp: 3 }),
     /** Ringkasan percakapan untuk sales (P26-06). */
     summary: json('summary'),
     createdAt: createdAt(),
@@ -221,6 +226,7 @@ export const salesLeads = mysqlTable(
   (t) => [
     uniqueIndex('uq_sales_leads_user').on(t.userId),
     index('ix_sales_leads_assignee_status').on(t.assignedTo, t.status),
+    index('ix_sales_leads_follow_up').on(t.followUpAt),
     check('ck_sales_leads_status', sql`\`status\` IN ('new','contacted','quoted','won','lost')`),
   ],
 );
@@ -246,7 +252,7 @@ export const notifications = mysqlTable(
     index('ix_notifications_user_unread').on(t.userId, t.readAt),
     check(
       'ck_notifications_kind',
-      sql`\`kind\` IN ('lead_assigned','contact_requested','report_ready')`,
+      sql`\`kind\` IN ('lead_assigned','contact_requested','report_ready','follow_up_due')`,
     ),
   ],
 );

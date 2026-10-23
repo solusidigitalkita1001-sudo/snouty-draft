@@ -96,6 +96,21 @@ describe('kalimat pemberitahuan', () => {
     expect(line.href).toBe(`/consultation?c=${'C'.repeat(26)}`);
   });
 
+  it('pengingat tindak lanjut menyebut nama prospeknya dan jalan ke prospeknya (P28-01)', () => {
+    const subjectId = 'P'.repeat(26);
+    const line = notificationLine(
+      item({ kind: 'follow_up_due', subjectId, data: { name: 'Pak Dedi' } }),
+      'id',
+    );
+    expect(line.text).toBe('Waktunya menengok Pak Dedi lagi.');
+    expect(line.href).toBe(`/internal/leads?prospect=${subjectId}`);
+  });
+
+  it('prospek tanpa nama tetap jadi kalimat yang utuh', () => {
+    const line = notificationLine(item({ kind: 'follow_up_due', data: { name: null } }), 'id');
+    expect(line.text).toBe('Waktunya menengok prospek lagi.');
+  });
+
   it('Inggris setara, tanpa kata Indonesia yang tertinggal', () => {
     const line = notificationLine(item({ kind: 'lead_assigned' }), 'en');
     expect(line.text).toBe('A prospect was assigned to you.');

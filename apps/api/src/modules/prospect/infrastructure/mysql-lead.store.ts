@@ -2,7 +2,7 @@
  * Data lead untuk dashboard sales (P26-06): penugasan, status, paragraf konteks, dan fakta ringkasan
  * dari snapshot kebutuhan serta rekomendasi terakhir tiap konsultasi pengguna.
  */
-import { and, count, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNull, lte, ne, or, sql } from 'drizzle-orm';
 import {
   conversations,
   messages,
@@ -22,6 +22,7 @@ import {
 import { DatabaseService } from '../../../shared/database/database.service.js';
 import {
   LEAD_STORE,
+  type DueFollowUp,
   type LeadContext,
   type LeadFacts,
   type LeadProject,
@@ -123,6 +124,53 @@ export class MysqlLeadStore implements LeadStore {
 
   async setFollowUp(userId: string, at: Date | null): Promise<void> {
     await this.db.update(salesLeads).set({ followUpAt: at }).where(eq(salesLeads.userId, userId));
+  }
+
+  /**
+   * Yang jatuh tempo dan belum diingatkan (P28-01). Prospek yang sudah menang atau kalah tidak
+   * ikut: jadwal tengok yang tertinggal di sana bukan pekerjaan yang tersisa.
+   */
+  async dueFollowUps(now: Date, limit: number): Promise<readonly DueFollowUp[]> {
+    const rows = await this.db
+      .select({
+        userId: salesLeads.userId,
+        assignedTo: salesLeads.assignedTo,
+        followUpAt: salesLeads.followUpAt,
+        userName: users.name,
+      })
+      .from(salesLeads)
+      .leftJoin(users, eq(users.id, salesLeads.userId))
+      .where(
+        and(
+          lte(salesLeads.followUpAt, now),
+          inArray(salesLeads.status, ['new', 'contacted', 'quoted']),
+          or(
+            isNull(salesLeads.followUpRemindedFor),
+            ne(salesLeads.followUpRemindedFor, salesLeads.followUpAt),
+          ),
+        ),
+      )
+      .orderBy(salesLeads.followUpAt)
+      .limit(limit);
+    return rows.flatMap((row) =>
+      row.followUpAt === null
+        ? []
+        : [
+            {
+              userId: row.userId,
+              assignedTo: row.assignedTo,
+              followUpAt: row.followUpAt,
+              userName: row.userName,
+            },
+          ],
+    );
+  }
+
+  async markFollowUpReminded(userId: string, followUpAt: Date): Promise<void> {
+    await this.db
+      .update(salesLeads)
+      .set({ followUpRemindedFor: followUpAt })
+      .where(and(eq(salesLeads.userId, userId), eq(salesLeads.followUpAt, followUpAt)));
   }
 
   async setStatus(userId: string, status: LeadStatus, lostReason: string | null): Promise<void> {

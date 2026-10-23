@@ -87,8 +87,10 @@ const UP = [
   '0030_market_place.sql',
   '0031_notifications.sql',
   '0032_lead_activities.sql',
+  '0033_follow_up_reminder.sql',
 ];
 const DOWN = [
+  '0033_follow_up_reminder.down.sql',
   '0032_lead_activities.down.sql',
   '0031_notifications.down.sql',
   '0030_market_place.down.sql',

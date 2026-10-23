@@ -58,6 +58,21 @@ export interface LeadContext {
   readonly generatedAt: string;
 }
 
+/**
+ * Prospek yang tanggal tengoknya sudah lewat dan pengingatnya belum dikirim (P28-01). Dibawa
+ * sampai `followUpAt` supaya penandaan "sudah diingatkan" menunjuk jadwal yang sama dengan yang
+ * dibaca — jadwal yang digeser di sela-sela sapuan tidak ikut tertandai.
+ */
+export interface DueFollowUp {
+  readonly userId: string;
+  readonly assignedTo: string;
+  readonly followUpAt: Date;
+  readonly userName: string | null;
+}
+
+/** Sekali sapu membawa secukupnya; sisanya ikut sapuan berikutnya. */
+export const DUE_FOLLOW_UP_BATCH = 100;
+
 /** Satu konsultasi pengguna, dari snapshot kebutuhan dan rekomendasi terakhirnya. */
 export interface LeadProject {
   readonly conversationId: string;
@@ -138,6 +153,10 @@ export interface LeadStore {
   activity(userId: string): Promise<readonly LeadActivity[]>;
   appendActivity(row: NewLeadActivity): Promise<void>;
   setFollowUp(userId: string, at: Date | null): Promise<void>;
+  /** Jadwal tengok yang sudah lewat dan belum diingatkan, terlama dulu (P28-01). */
+  dueFollowUps(now: Date, limit: number): Promise<readonly DueFollowUp[]>;
+  /** Menandai jadwal itu sudah diingatkan. Jadwal lain pada prospek yang sama tidak tersentuh. */
+  markFollowUpReminded(userId: string, followUpAt: Date): Promise<void>;
 }
 
 export const LEAD_STORE = Symbol('LEAD_STORE');

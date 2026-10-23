@@ -9,7 +9,11 @@ import { apiFetch, authHeaders } from '../auth/session';
 
 const BASE = '/api/v1';
 
-export type NotificationKind = 'lead_assigned' | 'contact_requested' | 'report_ready';
+export type NotificationKind =
+  | 'lead_assigned'
+  | 'contact_requested'
+  | 'report_ready'
+  | 'follow_up_due';
 
 export interface NotificationItem {
   readonly id: string;

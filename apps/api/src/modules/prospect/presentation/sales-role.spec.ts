@@ -352,3 +352,75 @@ describe('jejak tindak lanjut dan jadwal menengok', () => {
     }
   });
 });
+
+/**
+ * P28-01 — tanggal tengok yang lewat tidak berguna kalau tidak ada yang membangunkan sales-nya.
+ * Sebelum ini jadwalnya hanya memerah bila layarnya kebetulan dibuka.
+ */
+describe('pengingat tindak lanjut yang jatuh tempo', () => {
+  const DUE = new Date('2026-11-02T05:00:00.000Z');
+
+  /** `LeadService` dengan lonceng dan jam yang bisa disetel — sisanya nyata. */
+  function sweeper(now: Date) {
+    const notify = vi.fn(async () => undefined);
+    const service = new LeadService(
+      new MysqlLeadStore({ db: fixture.db }),
+      new ProspectBoardService(new MysqlProspectStore({ db: fixture.db })),
+      new LeadContextWriter(null),
+      { notify, notifyAll: vi.fn(async () => undefined) },
+      null,
+      () => now,
+    );
+    return { service, notify };
+  }
+
+  it('sales yang ditugaskan diberi tahu, dengan nama prospeknya', async () => {
+    await controller.followUp({ id: BUYER }, { at: DUE.toISOString() }, SALES_REQ);
+    const { service, notify } = sweeper(new Date(DUE.getTime() + 60_000));
+
+    expect(await service.remindDueFollowUps()).toBe(1);
+    expect(notify).toHaveBeenCalledWith({
+      userId: SALES,
+      kind: 'follow_up_due',
+      subjectId: BUYER,
+      data: { name: 'Pembeli', dueAt: DUE.toISOString() },
+    });
+  });
+
+  it('jadwal yang belum tiba dibiarkan', async () => {
+    await controller.followUp({ id: BUYER }, { at: DUE.toISOString() }, SALES_REQ);
+    const { service, notify } = sweeper(new Date(DUE.getTime() - 60_000));
+
+    expect(await service.remindDueFollowUps()).toBe(0);
+    expect(notify).not.toHaveBeenCalled();
+  });
+
+  it('sapuan berikutnya tidak mengulang pengingat yang sama', async () => {
+    await controller.followUp({ id: BUYER }, { at: DUE.toISOString() }, SALES_REQ);
+    const after = new Date(DUE.getTime() + 60_000);
+    expect(await sweeper(after).service.remindDueFollowUps()).toBe(1);
+    expect(await sweeper(after).service.remindDueFollowUps()).toBe(0);
+  });
+
+  it('jadwal yang digeser berbunyi lagi — penandanya menyimpan jadwalnya, bukan sekadar sudah/belum', async () => {
+    await controller.followUp({ id: BUYER }, { at: DUE.toISOString() }, SALES_REQ);
+    expect(await sweeper(new Date(DUE.getTime() + 60_000)).service.remindDueFollowUps()).toBe(1);
+
+    const later = new Date(DUE.getTime() + 86_400_000);
+    await controller.followUp({ id: BUYER }, { at: later.toISOString() }, SALES_REQ);
+    expect(await sweeper(new Date(later.getTime() + 60_000)).service.remindDueFollowUps()).toBe(1);
+  });
+
+  it('prospek yang sudah menang atau kalah tidak diingatkan lagi', async () => {
+    await controller.followUp({ id: BUYER }, { at: DUE.toISOString() }, SALES_REQ);
+    await controller.status({ id: BUYER }, { status: 'won' }, SALES_REQ);
+
+    expect(await sweeper(new Date(DUE.getTime() + 60_000)).service.remindDueFollowUps()).toBe(0);
+  });
+
+  it('prospek tanpa jadwal tidak pernah muncul di sapuan', async () => {
+    const { service, notify } = sweeper(new Date(DUE.getTime() + 60_000));
+    expect(await service.remindDueFollowUps()).toBe(0);
+    expect(notify).not.toHaveBeenCalled();
+  });
+});

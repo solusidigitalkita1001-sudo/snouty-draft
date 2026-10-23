@@ -2,7 +2,7 @@
  * Prospek 5A dan tindak lanjut sales (Fase 26, docs/PROSPECT_5A.md). Tidak diimpor rekomendasi,
  * engineering, atau context (pagar lint): skor prospek tidak pernah memengaruhi rekomendasi.
  */
-import { Module } from '@nestjs/common';
+import { Module, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { ConversationModule } from '../conversation/conversation.module.js';
 import { ConversationService } from '../conversation/application/conversation.service.js';
 import { SalesRequestService } from './application/sales-request.service.js';
@@ -28,16 +28,30 @@ import { LoggerService } from '../../shared/logging/logger.service.js';
 import { NOTIFIER, type Notifier } from '../../shared/notification/notifier.port.js';
 import { NotificationService } from '../notification/application/notification.service.js';
 
+/**
+ * Jadwal tengok disimpan per tanggal, bukan per jam (P27-09), jadi sapuan seperempat jam sudah
+ * jauh lebih halus daripada ketelitian datanya — dan cukup sering agar pengingat pagi tidak
+ * sampai siang baru berbunyi.
+ */
+const FOLLOW_UP_SWEEP_MS = 15 * 60_000;
+
 const leadServiceProvider = {
   provide: LeadService,
-  inject: [LEAD_STORE, ProspectBoardService, AI_SERVICE, LoggerService],
+  inject: [LEAD_STORE, ProspectBoardService, AI_SERVICE, NOTIFIER, LoggerService],
   useFactory: (
     leads: LeadStore,
     board: ProspectBoardService,
     ai: AiService | null,
+    notifier: Notifier,
     logger: LoggerService,
   ) =>
-    new LeadService(leads, board, new LeadContextWriter(ai), logger.child({ module: 'prospect' })),
+    new LeadService(
+      leads,
+      board,
+      new LeadContextWriter(ai),
+      notifier,
+      logger.child({ module: 'prospect' }),
+    ),
 };
 
 const prospectBoardServiceProvider = {
@@ -70,4 +84,27 @@ const salesRequestServiceProvider = {
     InternalRoleGuard,
   ],
 })
-export class ProspectModule {}
+export class ProspectModule implements OnModuleInit, OnModuleDestroy {
+  private timer: NodeJS.Timeout | null = null;
+
+  constructor(
+    private readonly leads: LeadService,
+    private readonly logger: LoggerService,
+  ) {}
+
+  onModuleInit(): void {
+    const log = this.logger.child({ module: 'prospect' });
+    const sweep = () =>
+      void this.leads
+        .remindDueFollowUps()
+        .then((n) => n > 0 && log.info({ sent: n }, 'pengingat tindak lanjut dikirim'))
+        .catch((err: unknown) => log.warn({ err }, 'sapuan pengingat gagal'));
+    sweep();
+    this.timer = setInterval(sweep, FOLLOW_UP_SWEEP_MS);
+    this.timer.unref();
+  }
+
+  onModuleDestroy(): void {
+    if (this.timer) clearInterval(this.timer);
+  }
+}

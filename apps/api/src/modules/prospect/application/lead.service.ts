@@ -2,6 +2,7 @@ import type { Logger } from 'pino';
 import { ulid } from '../../../shared/ulid.js';
 import {
   canSeeLead,
+  DUE_FOLLOW_UP_BATCH,
   EmptyNoteError,
   MAX_NOTE_CHARS,
   LeadNotFoundError,
@@ -16,6 +17,7 @@ import {
   type TranscriptLine,
 } from '../domain/lead.js';
 import type { LeadStatus, ProspectRow } from '../domain/prospect-board.js';
+import type { Notifier } from '../../../shared/notification/notifier.port.js';
 import type { LeadContextWriter } from './lead-context.writer.js';
 import type { ProspectBoardService } from './prospect-board.service.js';
 
@@ -34,7 +36,8 @@ export class LeadService {
     private readonly leads: LeadStore,
     private readonly board: ProspectBoardService,
     private readonly writer: LeadContextWriter,
-    private readonly log: Pick<Logger, 'warn'> | null = null,
+    private readonly notifier: Notifier | null = null,
+    private readonly log: Pick<Logger, 'warn' | 'info'> | null = null,
     private readonly clock: () => Date = () => new Date(),
   ) {}
 
@@ -81,6 +84,37 @@ export class LeadService {
     await this.visible(userId, viewer);
     await this.leads.setFollowUp(userId, at);
     await this.record(userId, viewer, { kind: 'follow_up', followUpAt: at });
+  }
+
+  /**
+   * Sapuan pengingat tindak lanjut (P28-01). Tanggal tengok yang lewat tidak berguna kalau tidak
+   * ada yang membangunkan sales-nya: sebelum ini tanggalnya hanya memerah bila layarnya kebetulan
+   * dibuka.
+   *
+   * Prospeknya ditandai lebih dulu, baru diberitahu. Urutan sebaliknya berisiko mengirim
+   * pengingat yang sama berulang kali bila penandaannya gagal — dan pengingat kembar lebih
+   * merusak kepercayaan pada loncengnya daripada satu pengingat yang telat sekali sapuan.
+   */
+  async remindDueFollowUps(): Promise<number> {
+    if (this.notifier === null) return 0;
+    const now = this.clock();
+    const due = await this.leads.dueFollowUps(now, DUE_FOLLOW_UP_BATCH);
+    let sent = 0;
+    for (const row of due) {
+      try {
+        await this.leads.markFollowUpReminded(row.userId, row.followUpAt);
+        await this.notifier.notify({
+          userId: row.assignedTo,
+          kind: 'follow_up_due',
+          subjectId: row.userId,
+          data: { name: row.userName, dueAt: row.followUpAt.toISOString() },
+        });
+        sent += 1;
+      } catch (error: unknown) {
+        this.log?.warn({ err: error, userId: row.userId }, 'pengingat tindak lanjut gagal');
+      }
+    }
+    return sent;
   }
 
   async activity(userId: string, viewer: InternalViewer): Promise<readonly LeadActivity[]> {
