@@ -2631,7 +2631,7 @@ menu — "yang tidak boleh dibuka tidak ditampilkan" berlaku untuk alamat yang d
 Diperiksa ulang di produksi sesudahnya: keempat layar menolak tamu, tanpa galat konsol.
 
 **Penutup Fase 29.** Empat item live di ai.pralon.co.id (dua rilis, 2026-10-23; tanpa migration).
-Tes: API 1725 lulus (2 dilewati), web 274 lulus, engineering 521 lulus. Yang dipakai untuk
+Tes: API 1725 lulus (2 dilewati), web 273 lulus, engineering 521 lulus. Yang dipakai untuk
 memeriksanya: Chromium Playwright milik worker, 13 layar × 2 lebar, lokal untuk yang perlu masuk
 akun dan produksi untuk yang tidak — cara yang sama dengan P28-03, dan sekali lagi yang menemukan
 cacatnya adalah membuka layarnya, bukan menjalankan tesnya.
