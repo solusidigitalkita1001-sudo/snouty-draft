@@ -1416,6 +1416,15 @@
       "text": "Ada berapa jenis Solvent Cement merek Pralon?",
       "topics": ["solvent cement"],
       "topicsOnly": true
+    },
+    {
+      "source": "P27-13 (uji produksi 2026-10-23): gas dan conduit berangka kalimat sama, jangan tertukar",
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "text": "Gue butuh pipa buat jalur gas rumah. Rekomendasi Pralon yang cocok apa?",
+      "topics": ["pipa gas"],
+      "topicsOnly": true
     }
   ]
 }
