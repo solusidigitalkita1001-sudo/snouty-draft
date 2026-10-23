@@ -10,7 +10,7 @@
  * Semua `REQUIRES_DOMAIN_VALIDATION`.
  */
 
-import { localized, requireNumber, type RuleVersion } from '../rule.js';
+import { localized, requireInt, requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
 import { barToHeadM, headMToBar, lsToM3h, round1, round2, round3 } from '../units.js';
 import { withWallSdr } from './group-e-irrigation.js';
 import { sizeTable, type SizeTableId } from '../parameters/size-tables.js';
@@ -563,4 +563,135 @@ export const ENG_206: RuleVersion<PumpDutyInput, PumpDutyResult> = {
     }),
 };
 
-export const GROUP_F = [ENG_201, ENG_202, ENG_203, ENG_204, ENG_205, ENG_206] as const;
+// ── ENG-207 · Kerugian minor dari daftar fitting di jalur ───────────────────
+//
+// Masukan Leo (2026-10-22): "rumus pressure loss di pipa sama fitting nya gw gk bisa langsung
+// cek gitu, kan harus diitung dulu". ENG-203 menaksir kerugian sambungan sebagai 10 % kerugian
+// gesek — satu angka tanpa isi, yang tidak bisa diperiksa. Di jalur rumah fittingnya SUDAH
+// diketahui (ENG-708 menghitungnya), jadi kerugiannya dihitung dari daftar itu:
+//
+//   h_minor = ΣK · v²/(2g)
+//
+// Tiap suku tampil terpisah di laporan (jenis, jumlah, K, hasilnya), sehingga pemeriksa bisa
+// mengalikan ulang sendiri. Nilai K per jenis datang dari registry asumsi, bukan dari sini.
+
+/** Satu jenis fitting di jalur kritis, dengan koefisien kerugiannya. */
+export interface MinorFitting {
+  /** Label jenis fitting yang muncul di laporan ("Elbow 90°", "Tee cabang"). */
+  readonly kind: string;
+  readonly kindEn: string;
+  readonly count: number;
+  /** Koefisien kerugian K — dari registry asumsi. */
+  readonly k: number;
+}
+
+export interface FittingMinorLossInput {
+  readonly velocityMs: number;
+  readonly fittings: readonly MinorFitting[];
+}
+
+export interface FittingMinorLossItem extends MinorFitting {
+  /** K × jumlah. */
+  readonly totalK: number;
+  readonly lossM: number;
+}
+
+export interface FittingMinorLossResult {
+  readonly items: readonly FittingMinorLossItem[];
+  readonly totalK: number;
+  /** Tinggi kecepatan v²/2g (m) — pengali bersama semua suku. */
+  readonly velocityHeadM: number;
+  readonly minorLossM: number;
+}
+
+export const ENG_207: RuleVersion<FittingMinorLossInput, FittingMinorLossResult> = {
+  ruleId: 'ENG-207',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const list = o['fittings'];
+    if (!Array.isArray(list)) throw new RuleInputError('ENG-207', 'fittings harus daftar');
+    return {
+      velocityMs: requireNumber('ENG-207', 'velocityMs', o['velocityMs'], { min: 0.01, max: 20 }),
+      fittings: list.map((raw_, index) => {
+        const f = (raw_ ?? {}) as Record<string, unknown>;
+        if (typeof f['kind'] !== 'string' || typeof f['kindEn'] !== 'string')
+          throw new RuleInputError('ENG-207', `fittings[${index}].kind`);
+        return {
+          kind: f['kind'],
+          kindEn: f['kindEn'],
+          count: requireInt('ENG-207', `fittings[${index}].count`, f['count'], {
+            min: 0,
+            max: 1_000,
+          }),
+          k: requireNumber('ENG-207', `fittings[${index}].k`, f['k'], { min: 0, max: 50 }),
+        };
+      }),
+    };
+  },
+  compute: (input) => {
+    const velocityHeadM = (input.velocityMs * input.velocityMs) / (2 * G);
+    const items = input.fittings
+      .filter((f) => f.count > 0)
+      .map((f) => {
+        const totalK = round2(f.count * f.k);
+        return { ...f, totalK, lossM: round3(totalK * velocityHeadM) };
+      });
+    const totalK = round2(items.reduce((sum, f) => sum + f.count * f.k, 0));
+    return {
+      items,
+      totalK,
+      velocityHeadM: round3(velocityHeadM),
+      minorLossM: round2(totalK * velocityHeadM),
+    };
+  },
+  sourceReference:
+    'Metode koefisien kerugian (K-factor): h = ΣK · v²/2g; nilai K per jenis fitting dari registry asumsi MINOR_K_*',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '2 elbow 90° + 1 tee cabang pada 1,31 m/s',
+      input: {
+        velocityMs: 1.31,
+        fittings: [
+          { kind: 'Elbow 90°', kindEn: '90° elbow', count: 2, k: 0.9 },
+          { kind: 'Tee cabang', kindEn: 'Branch tee', count: 1, k: 1.8 },
+        ],
+      },
+      expected: {
+        items: [
+          { kind: 'Elbow 90°', kindEn: '90° elbow', count: 2, k: 0.9, totalK: 1.8, lossM: 0.157 },
+          { kind: 'Tee cabang', kindEn: 'Branch tee', count: 1, k: 1.8, totalK: 1.8, lossM: 0.157 },
+        ],
+        totalK: 3.6,
+        velocityHeadM: 0.087,
+        minorLossM: 0.31,
+      },
+    },
+    {
+      name: 'tanpa fitting → tanpa kerugian',
+      input: { velocityMs: 1.5, fittings: [] },
+      expected: { items: [], totalK: 0, velocityHeadM: 0.115, minorLossM: 0 },
+    },
+  ],
+  explain: (input, output, locale) => {
+    const list = output.items
+      .map((f) =>
+        locale === 'en'
+          ? `${f.count} × ${f.kindEn} (K ${f.k})`
+          : `${f.count} × ${f.kind} (K ${f.k})`,
+      )
+      .join(', ');
+    return localized(locale, {
+      id: output.items.length
+        ? `Kehilangan di sambungan dihitung dari fitting yang memang ada di jalur ini: ${list}. Jumlah K ${output.totalK} × tinggi kecepatan ${output.velocityHeadM} m (v ${input.velocityMs} m/s) = ${output.minorLossM} m.`
+        : 'Tidak ada fitting di jalur ini, jadi tidak ada kehilangan sambungan.',
+      en: output.items.length
+        ? `The fitting loss is worked out from the fittings actually on this route: ${list}. Total K ${output.totalK} × velocity head ${output.velocityHeadM} m (v ${input.velocityMs} m/s) = ${output.minorLossM} m.`
+        : 'There are no fittings on this route, so there is no fitting loss.',
+    });
+  },
+};
+
+export const GROUP_F = [ENG_201, ENG_202, ENG_203, ENG_204, ENG_205, ENG_206, ENG_207] as const;

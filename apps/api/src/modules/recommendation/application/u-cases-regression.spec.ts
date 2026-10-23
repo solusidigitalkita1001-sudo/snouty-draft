@@ -153,12 +153,17 @@ describe('U1 — rumah 1 lantai, toren atap', () => {
     expect(rows.some((r) => /45°/.test(r.item))).toBe(false);
   });
 
-  it('pembuangan: Y per alat (4g), sambungan + topi ventilasi, sok/dop/lem (4f)', async () => {
+  it('pembuangan: Y per alat (4g), sambungan + topi ventilasi, sok dihitung, dop/lem menyusul', async () => {
     const soil = boqFrom(await analyse(U1)).sections.find((s) => s.system === 'soil')!.rows;
     expect(soil.find((r) => r.purpose === 'Y-branch air kotor')!.quantity).toBe(1);
     expect(soil.some((r) => r.purpose === 'Sambungan ventilasi air kotor')).toBe(true);
     expect(soil.some((r) => r.purpose === 'Topi ventilasi air kotor')).toBe(true);
-    expect(soil.filter((r) => r.pending).map((r) => r.item)).toEqual(['Sok', 'Dop', 'Lem PVC']);
+    // Sok kini punya angka dari sambungan antar batang (masukan Leo 2026-10-22), bukan "menyusul".
+    const sok = soil.find((r) => r.item === 'Sok')!;
+    expect(sok.pending).toBeUndefined();
+    expect(sok.quantity).toBeGreaterThan(0);
+    expect(sok.basis).toContain('satu sok tiap sambungan');
+    expect(soil.filter((r) => r.pending).map((r) => r.item)).toEqual(['Dop', 'Lem PVC']);
   });
 
   it('toren atap 1 lantai kurang tekanan: pompa pendorong dengan pilihan dudukan toren (1d)', async () => {

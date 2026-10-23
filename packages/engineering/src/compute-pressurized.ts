@@ -20,6 +20,9 @@ import {
   ENG_204,
   ENG_205,
   ENG_206,
+  ENG_207,
+  type FittingMinorLossResult,
+  type MinorFitting,
   type PumpDutyResult,
   type SizeCandidate,
 } from './rules/group-f-pressurized.js';
@@ -36,6 +39,12 @@ export interface PressurizedInput {
   readonly material?: PipeMaterial;
   /** `false` memaksa evaluasi gravitasi (tanpa titik kerja pompa); kosong → dari tinggi statis. */
   readonly pumpRequired?: boolean;
+  /**
+   * Fitting yang benar-benar ada di jalur kritis. Diberikan → kehilangan sambungan dihitung per
+   * fitting (ENG-207, masukan Leo 2026-10-22) dan bisa diperiksa suku per suku; tidak diberikan →
+   * taksiran fraksi kerugian gesek (ENG-203) seperti sebelumnya.
+   */
+  readonly minorFittings?: readonly MinorFitting[];
 }
 
 export interface PressurizedResult {
@@ -47,6 +56,8 @@ export interface PressurizedResult {
   readonly velocityMs: number;
   readonly frictionLossM: number;
   readonly minorLossM: number;
+  /** Rincian kerugian per fitting bila daftarnya diberikan; `null` = taksiran fraksi. */
+  readonly minorLossDetail: FittingMinorLossResult | null;
   readonly totalDynamicHeadM: number;
   readonly hazenWilliamsC: number;
   readonly pumpDuty: PumpDutyResult | null;
@@ -125,10 +136,17 @@ export function computePressurized(
     lengthM: input.routeLengthM,
     hazenWilliamsC: hw.c,
   });
-  const minor = run(ENG_203, {
-    frictionLossM: friction.frictionLossM,
-    fraction: minorLossFraction,
-  });
+  // Daftar fitting diberikan → tiap suku kerugiannya tampil dan bisa dihitung ulang pemeriksa.
+  const minorDetail =
+    input.minorFittings !== undefined && input.minorFittings.length > 0
+      ? run(ENG_207, { velocityMs: velocity.velocityMs, fittings: input.minorFittings })
+      : null;
+  const minor =
+    minorDetail ??
+    run(ENG_203, {
+      frictionLossM: friction.frictionLossM,
+      fraction: minorLossFraction,
+    });
   const tdh = run(ENG_204, {
     staticHeadM: input.staticHeadM,
     frictionLossM: friction.frictionLossM,
@@ -155,6 +173,7 @@ export function computePressurized(
     velocityMs: velocity.velocityMs,
     frictionLossM: friction.frictionLossM,
     minorLossM: minor.minorLossM,
+    minorLossDetail: minorDetail,
     totalDynamicHeadM: tdh.totalDynamicHeadM,
     hazenWilliamsC: hw.c,
     pumpDuty,

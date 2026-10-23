@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-08 · Current phase: **4 — Context Engine, intent, ekstraksi, SSE** · Current phase: **5 — Policy Engine, scope routing, klarifikasi** · Current phase: **6 — Engineering Rule Engine** · Current phase: **7 — Product Matching & perakitan rekomendasi** · Current phase: **8 — Riwayat, solusi tersimpan, laporan, handoff** · Current phase: **9 — Schematic Engine** · Current phase: **10–13** · Seluruh pekerjaan yang tidak terhalang **selesai**. Delapan keputusan yang membuka sisanya dirangkum di **`docs/KEPUTUSAN_DIBUTUHKAN.md`**
+Last updated: 2026-10-23 · Current phase: **27 — Masukan pemilik dan Leo atas SNOUTY yang berjalan**
 
 ## Summary
 
@@ -2145,6 +2145,31 @@ sisa pertanyaan: OQ-76. Konsep: `docs/PROSPECT_5A.md`.
       live menemukan regresi sejak P25-08 ("pralon jual pipa galvanis?" dijawab cara menyambung) → contoh negatif
       di data topik; 48/48.
 
+## Phase 27 — Masukan pemilik dan Leo atas SNOUTY yang berjalan (23 Okt 2026)
+
+Pemilik 2026-10-23 menyerahkan dua belas hal yang kurang, plus masukan Leo atas laporan
+SNTY-2026-10-0020. Urutan kerja: perhitungan dulu (paling bisa diperiksa), lalu percakapan,
+lalu layar, lalu data.
+
+- [x] P27-01 Masukan Leo soal perhitungan. (1) **Sok sambungan batang pipa** — Leo: "pipa sisa itu
+      di asumsikan bisa langsung nyambung ya?, kan butuh socket buat nyambungnya lagi". Aturan baru
+      `ENG-015`: sambungan per jalur menerus = ⌈panjang ÷ panjang batang⌉ − 1, dikali jumlah jalur;
+      panjang batang dari produk katalog yang terpilih. Baris BOQ "Sok" kini berangka dengan dasar
+      hitungnya, bukan lagi "Dihitung saat pemasangan" — untuk air bersih maupun air kotor/bekas;
+      dop, stop kran, dan lem tetap menyusul. (2) **Kerugian tekanan bisa dicek** — Leo: "rumus
+      pressure loss di pipa sama fitting nya gw gk bisa langsung cek gitu". Aturan baru `ENG-207`
+      menghitung kerugian sambungan dari DAFTAR fitting di jalur kritis (ΣK · v²/2g) dan mencetak
+      tiap sukunya; delapan nilai K masuk registry asumsi (`MINOR_K_*`) supaya bisa diganti tim
+      teknis tanpa menyentuh rumus. ENG-203 (10 % kerugian gesek) tinggal untuk kasus yang daftar
+      fittingnya belum ada. (3) **Satuan di rumus** — rumus Hazen-Williams, kecepatan, dan ukuran
+      dari debit kini mencetak substitusinya dalam satuan yang memang dipakai rumusnya (m³/s, m),
+      bukan hanya l/s dan mm; tanpa itu angkanya memang tidak bisa dimasukkan ulang. Akibat ikutan:
+      `ENG-703` naik ke v3 — dudukan toren yang disarankan ikut menanggung kerugian di pipa tegak
+      yang ditambahkan, karena dengan kerugian fitting yang benar saran lamanya masih kurang.
+      Rumah contoh Leo: kehilangan sambungan 0,19 m → 0,66 m, tekanan di meteran 1,74 → 1,78 bar.
+      Tes baru `checkable-hydraulics.spec.ts` menghitung ulang Hazen-Williams, kecepatan, dan
+      ΣK·v²/2g DARI LUAR engine dan membandingkannya — persis cara Leo memeriksa.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |
@@ -2201,6 +2226,8 @@ holds, **no sizing value may render as TERVERIFIKASI** (Policy 4).
 | ENG-902 | Tie-in to the existing pipe: solvent tee / threaded sockets + tee / HDPE tee / PPR fusion → technical team (P23-01)               | field practice              | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
 | ENG-903 | Partial replacement: replaced length ratio and rejoin couplings (P23-01)                                                          | field practice              | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
 | ENG-904 | Total load after an extension = existing + new (P23-01)                                                                           | owner request 2026-10-19    | REQUIRES_DOMAIN_VALIDATION | OQ-71        |
+| ENG-015 | Sockets between pipe rods: ⌈run length ÷ rod length⌉ − 1 per continuous run (P27-01)                                              | Leo feedback 2026-10-22     | REQUIRES_DOMAIN_VALIDATION | —            | —    |
+| ENG-207 | Minor loss from the fitting list on the critical path: ΣK·v²/2g, K per type (P27-01)                                              | K-factor tables             | REQUIRES_DOMAIN_VALIDATION | —            | —    |
 | ENG-406 | Domestic wastewater flow from house connections: 80 % return, peak 2.5 (P22-05)                                                   | planning criteria SPALD-T   | REQUIRES_DOMAIN_VALIDATION | OQ-70        |
 | ENG-407 | Minimum network sewer size 6" / 150 mm (P22-05)                                                                                   | planning criteria SPALD-T   | REQUIRES_DOMAIN_VALIDATION | OQ-70        |
 | ENG-408 | House connections from population: ceil(people / 5) (P22-05)                                                                      | SPAM planning criteria      | REQUIRES_DOMAIN_VALIDATION | OQ-70        |

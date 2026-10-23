@@ -29,7 +29,7 @@ import {
   type PressureClass,
 } from './rules/group-a-load-sizing.js';
 import { ENG_004, ENG_008, type FloorNode } from './rules/group-b-geometry.js';
-import { ENG_012 } from './rules/group-c-material.js';
+import { ENG_012, pipeJointsPerRun } from './rules/group-c-material.js';
 import { ENG_102 } from './rules/group-e-irrigation.js';
 import { ENG_801, ENG_802 } from './rules/group-l-worship.js';
 import {
@@ -54,7 +54,7 @@ import {
 } from './rules/group-k-house-supply.js';
 import type { RuleVersion } from './rule.js';
 import { assertBalanced } from './consistency.js';
-import { round1, round2 } from './units.js';
+import { round1, round2, round3 } from './units.js';
 import { PVC_INCH_SIZES, sizeTable } from './parameters/size-tables.js';
 
 export interface SolutionInput {
@@ -436,6 +436,48 @@ export function computeSolution(
       sizingOverrides['HEADLOSS_GRADIENT_MAX'] = round2(allowedGradient);
     }
   }
+  // Fitting di jalur kritis sumber → titik air tertinggi (masukan Leo 2026-10-22): kehilangan
+  // sambungan dihitung per fitting (ENG-207), bukan sebagai 10 % kerugian gesek, supaya tiap
+  // sukunya bisa dihitung ulang oleh pemeriksa. Topologinya sudah pasti sebelum ukuran dipilih;
+  // yang berubah per ukuran hanya kecepatan airnya, dan itu dihitung di dalam ENG-207.
+  const criticalElbows =
+    use('FITTING_MAIN_ELBOWS_2') +
+    use('FITTING_BRANCH_ELBOW_1') +
+    use('FITTING_OUTLET_ELBOW_1') +
+    use('FITTING_OUTLET_FAUCET_ELBOW_1');
+  const routeSockets = pipeJointsPerRun(route.routeLengthM, use('PIPE_STOCK_LENGTH_4M'));
+  const criticalFittings = [
+    {
+      kind: 'Masuk pipa dari sumber',
+      kindEn: 'Pipe entry from the source',
+      count: 1,
+      k: use('MINOR_K_ENTRY'),
+    },
+    {
+      kind: 'Stop kran terbuka',
+      kindEn: 'Open stop valve',
+      count: 1,
+      k: use('MINOR_K_VALVE_GATE'),
+    },
+    {
+      kind: 'Elbow 90° (pipa utama, cabang, turun ke alat, drat kran)',
+      kindEn: '90° elbows (main, branch, drop to the fixture, tap thread)',
+      count: criticalElbows,
+      k: use('MINOR_K_ELBOW_90'),
+    },
+    {
+      kind: 'Tee tempat cabang keluar',
+      kindEn: 'Tee where the branch leaves',
+      count: branches.branchCount > 0 ? 1 : 0,
+      k: use('MINOR_K_TEE_BRANCH'),
+    },
+    {
+      kind: 'Sok antar batang pipa',
+      kindEn: 'Sockets between pipe rods',
+      count: routeSockets,
+      k: use('MINOR_K_SOCKET'),
+    },
+  ];
   const main = computePressurized(
     {
       designFlowLs: flowLs,
@@ -444,6 +486,7 @@ export function computeSolution(
       residualPressureBar: gravity ? 0 : use('RESIDUAL_PRESSURE_FIXTURE'),
       material: 'PVC',
       pumpRequired: pumped,
+      minorFittings: criticalFittings,
     },
     locale,
     sizingOverrides,
@@ -453,9 +496,13 @@ export function computeSolution(
   let gravityRemedy: HouseSupply['gravityRemedy'] = null;
   let tankStand: HouseSupply['tankStand'] = null;
   if (gravity) {
+    const lossM = round2(main.frictionLossM + main.minorLossM);
     const check = run(ENG_703, {
       availableHeadM,
-      lossM: round2(main.frictionLossM + main.minorLossM),
+      lossM,
+      // Dudukan yang lebih tinggi memperpanjang jalur; kehilangan per meter dipakai ENG-703 v3
+      // supaya saran tingginya sudah menanggung kehilangan di pipa tambahan itu.
+      lossPerRouteM: round3(lossM / Math.max(route.routeLengthM, 0.1)),
       minimumBar,
       tankStandM: use('TANK_STAND_1M'),
     });

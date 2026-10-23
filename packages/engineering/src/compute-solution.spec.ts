@@ -276,9 +276,14 @@ describe('pompa sumber vs pompa pendorong (review putaran 3)', () => {
     expect(result.boosterPumpNeeded).toBe(true);
     expect(result.sourcePumped).toBe(false);
     expect(result.supply.gravityRemedy!.heightShort).toBe(true);
-    // Kekurangan = 0,3 bar (3,06 m) + kehilangan − 2,5 m, ditambah ke dudukan 1 m, per 0,5 m.
-    const lossM = result.supply.main.frictionLossM + result.supply.main.minorLossM;
-    const stand = Math.ceil((1 + 0.3 * 10.197 + lossM - 2.5) / 0.5) * 0.5;
+    // Kekurangan = 0,3 bar (3,06 m) + kehilangan − 2,5 m. Pipa tegak tambahan ikut kehilangan,
+    // jadi kenaikannya dibagi (1 − kehilangan per meter jalur) sebelum ditambahkan ke dudukan 1 m
+    // dan dibulatkan per 0,5 m (ENG-703 v3).
+    const lossM =
+      Math.round((result.supply.main.frictionLossM + result.supply.main.minorLossM) * 100) / 100;
+    const perMeter = Math.round((lossM / result.supply.routeLengthM) * 1000) / 1000;
+    const deficitM = 0.3 * 10.197 + lossM - 2.5;
+    const stand = Math.ceil((1 + deficitM / (1 - perMeter)) / 0.5) * 0.5;
     expect(result.supply.gravityRemedy!.minimumStandM).toBe(stand);
   });
 

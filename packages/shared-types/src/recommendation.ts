@@ -184,6 +184,15 @@ export interface BomItem {
    */
   readonly rod?: { readonly meters: number; readonly productName: string };
   readonly allowancePct?: number;
+  /**
+   * Sambungan pipa-ke-pipa di baris ini (ENG-015, masukan Leo 2026-10-22: batang yang disambung
+   * butuh sok). Dipakai merakit baris "Sok" dengan angka, bukan "dihitung saat pemasangan".
+   */
+  readonly joints?: {
+    readonly runs: number;
+    readonly runLengthM: number;
+    readonly sockets: number;
+  };
   /** Hanya bila `PRICING_ENABLED` (OQ-03). */
   readonly unitPrice?: number;
   readonly subtotal?: number;

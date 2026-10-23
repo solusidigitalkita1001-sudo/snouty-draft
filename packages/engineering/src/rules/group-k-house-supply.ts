@@ -335,6 +335,8 @@ export const ENG_702: RuleVersion<HouseRouteInput, HouseRouteResult> = {
 export interface GravityPressureInput {
   readonly availableHeadM: number;
   readonly lossM: number;
+  /** Kehilangan per meter jalur (kehilangan ÷ panjang jalur); 0 = diabaikan. */
+  readonly lossPerRouteM: number;
   readonly minimumBar: number;
   /** Tinggi dudukan toren yang dipakai sekarang (muka air di atas atap). */
   readonly tankStandM: number;
@@ -360,7 +362,8 @@ const STAND_STEP_M = 0.5;
 export const ENG_703: RuleVersion<GravityPressureInput, GravityPressureResult> = {
   ruleId: 'ENG-703',
   // v2 (2026-10-13, review putaran 3): dudukan toren minimum dan "beda tinggi tidak cukup".
-  version: 2,
+  // v3 (P27-02): dudukan yang disarankan ikut menanggung kehilangan di pipa tegak tambahannya.
+  version: 3,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -370,6 +373,10 @@ export const ENG_703: RuleVersion<GravityPressureInput, GravityPressureResult> =
         max: 100,
       }),
       lossM: requireNumber('ENG-703', 'lossM', o['lossM'], { min: 0, max: 1000 }),
+      lossPerRouteM:
+        o['lossPerRouteM'] === undefined
+          ? 0
+          : requireNumber('ENG-703', 'lossPerRouteM', o['lossPerRouteM'], { min: 0, max: 0.9 }),
       minimumBar: requireNumber('ENG-703', 'minimumBar', o['minimumBar'], { min: 0, max: 5 }),
       tankStandM: requireNumber('ENG-703', 'tankStandM', o['tankStandM'], { min: 0, max: 15 }),
     };
@@ -378,11 +385,14 @@ export const ENG_703: RuleVersion<GravityPressureInput, GravityPressureResult> =
     const residualBar = round2(headMToBar(i.availableHeadM - i.lossM));
     const boosterNeeded = residualBar < i.minimumBar;
     const requiredHeadM = barToHeadM(i.minimumBar);
-    // Kekurangan tinggi dengan pipa yang sama; kehilangan di pipa tegak tambahan diabaikan
-    // (beberapa sentimeter), jadi dudukan ini batas bawah yang dibulatkan ke atas.
+    // Kekurangan tinggi dengan pipa yang sama. Menaikkan dudukan memperpanjang jalur, jadi
+    // kehilangannya ikut naik: tinggi tambahan harus menutup kekurangan DAN kehilangan di pipa
+    // sepanjang tambahan itu sendiri (v3) — dulu diabaikan, dan sejak kerugian sambungan dihitung
+    // per fitting (ENG-207) selisihnya cukup besar untuk membuat saran dudukan masih kurang.
     const deficitM = requiredHeadM + i.lossM - i.availableHeadM;
+    const raiseM = deficitM / Math.max(1 - i.lossPerRouteM, 0.1);
     const minimumStandM = boosterNeeded
-      ? Math.ceil(round3((i.tankStandM + deficitM) / STAND_STEP_M)) * STAND_STEP_M
+      ? Math.ceil(round3((i.tankStandM + raiseM) / STAND_STEP_M)) * STAND_STEP_M
       : null;
     return {
       residualBar,
@@ -397,18 +407,18 @@ export const ENG_703: RuleVersion<GravityPressureInput, GravityPressureResult> =
   testCases: [
     {
       name: 'toren 2,5 m di atas shower, kehilangan 1,2 m, minimum 0,3 bar → 0,13 bar, perlu pendorong',
-      input: { availableHeadM: 2.5, lossM: 1.2, minimumBar: 0.3, tankStandM: 1 },
+      input: { availableHeadM: 2.5, lossM: 1.2, lossPerRouteM: 0, minimumBar: 0.3, tankStandM: 1 },
       // 3,06 + 1,2 − 2,5 = 1,76 m kurang → dudukan 2,76 m → 3 m. Beda tinggi 2,5 m < 3,06 m.
       expected: { residualBar: 0.13, boosterNeeded: true, minimumStandM: 3, heightShort: true },
     },
     {
       name: 'toren 1 lantai: 2,5 m beda tinggi, kehilangan 0,2 m → 0,23 bar, dudukan 2 m',
-      input: { availableHeadM: 2.5, lossM: 0.2, minimumBar: 0.3, tankStandM: 1 },
+      input: { availableHeadM: 2.5, lossM: 0.2, lossPerRouteM: 0, minimumBar: 0.3, tankStandM: 1 },
       expected: { residualBar: 0.23, boosterNeeded: true, minimumStandM: 2, heightShort: true },
     },
     {
       name: 'toren 5 m di atas, kehilangan 1 m → 0,39 bar, cukup',
-      input: { availableHeadM: 5, lossM: 1, minimumBar: 0.3, tankStandM: 1 },
+      input: { availableHeadM: 5, lossM: 1, lossPerRouteM: 0, minimumBar: 0.3, tankStandM: 1 },
       expected: {
         residualBar: 0.39,
         boosterNeeded: false,

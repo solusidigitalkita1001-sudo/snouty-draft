@@ -365,9 +365,11 @@ export function drainageBomFrom(
     netM: number | null,
     detail: string,
     stock: StockLength | null,
+    /** Jalur menerus yang menyusun panjang ini — dasar jumlah sok (ENG-015). */
+    runs = 1,
   ) => {
     if (netM === null) return null;
-    const purchase = pipePurchase(netM, detail, stock, locale, stocks.allowancePct ?? 0);
+    const purchase = pipePurchase(netM, detail, stock, locale, stocks.allowancePct ?? 0, runs);
     const item: BomItem = {
       item: en ? `${DRAINAGE_FAMILY} pipe` : `Pipa ${DRAINAGE_FAMILY}`,
       system,
@@ -376,6 +378,7 @@ export function drainageBomFrom(
       calc: purchase.calc,
       size,
       ...(purchase.productId ? { productId: purchase.productId } : {}),
+      ...(purchase.joints ? { joints: purchase.joints } : {}),
       ...(purchase.rod ? { rod: purchase.rod, allowancePct: purchase.allowancePct } : {}),
       quantity: purchase.quantity,
       unit: (en ? { batang: 'rods', meter: 'm' }[purchase.unit] : purchase.unit) as BomUnit,

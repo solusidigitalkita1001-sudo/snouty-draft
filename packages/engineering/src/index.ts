@@ -37,7 +37,8 @@ export type { FixtureCounts, LoadResult, PressureClass } from './rules/group-a-l
 export { ENG_004, ENG_008, GROUP_B } from './rules/group-b-geometry.js';
 export type { FloorNode, FloorPlanInput, FloorPlanResult } from './rules/group-b-geometry.js';
 
-export { ENG_012, GROUP_C } from './rules/group-c-material.js';
+export { ENG_012, ENG_015, GROUP_C, pipeJointsPerRun } from './rules/group-c-material.js';
+export type { PipeJointInput, PipeJointResult, PipeRunGroup } from './rules/group-c-material.js';
 
 export { ENG_007, ENG_014, GROUP_D } from './rules/group-d-conversation.js';
 
@@ -169,6 +170,7 @@ export {
   ENG_204,
   ENG_205,
   ENG_206,
+  ENG_207,
   GROUP_F,
   frictionLossOf,
   tdhOf,
@@ -176,6 +178,9 @@ export {
 } from './rules/group-f-pressurized.js';
 export type {
   CandidateStatus,
+  FittingMinorLossItem,
+  FittingMinorLossResult,
+  MinorFitting,
   PumpDutyResult,
   SizeCandidate,
   SizingResult,

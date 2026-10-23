@@ -7,6 +7,7 @@
  * Tidak ada tambahan potongan atau cadangan kecuali dikonfigurasi — tidak ada yang dikonfigurasi.
  */
 
+import { pipeJointsPerRun } from '@snouty/engineering';
 import { specHasValue, type BomCalc, type Locale, type Product } from '@snouty/shared-types';
 
 export interface StockLength {
@@ -47,6 +48,12 @@ export interface PipePurchase {
   readonly unit: 'batang' | 'meter';
   readonly basis: string;
   readonly calc: BomCalc;
+  /** Sambungan pipa-ke-pipa; hanya bila pemanggil menyebut berapa jalur menerus yang dirakit. */
+  readonly joints?: {
+    readonly runs: number;
+    readonly runLengthM: number;
+    readonly sockets: number;
+  };
 }
 
 /** "jalur air kotor" → "Jalur air kotor": `detail` dipakai di tengah kalimat dan di awal sel. */
@@ -66,8 +73,16 @@ export function pipePurchase(
   locale: Locale,
   /** Sisa potong (%) ditambahkan sebelum pembulatan (review laporan 0015); 0 = panjang bersih. */
   allowancePct = 0,
+  /**
+   * Berapa jalur menerus yang menyusun panjang bersih ini (pipa utama 1, cabang sebanyak
+   * cabangnya, sambungan ke alat sebanyak titik airnya). Diberikan → jumlah sok dihitung
+   * (ENG-015); tidak diberikan → sok tetap "dihitung saat pemasangan" seperti sebelumnya.
+   */
+  runs?: number,
 ): PipePurchase {
   const en = locale === 'en';
+  // Sok dihitung dari panjang jalur yang sebenarnya; sisa potong bukan bagian jalur.
+  const netLengthBeforeAllowanceM = netLengthM;
   const gross = Math.round(netLengthM * (1 + allowancePct / 100) * 100) / 100;
   const withAllowance =
     allowancePct > 0
@@ -119,8 +134,19 @@ export function pipePurchase(
   }
   const exact = netLengthM / stock.meters;
   const rods = Math.ceil(exact);
+  // Batang yang disambung ujung ke ujung butuh sok di tiap sambungan (masukan Leo 2026-10-22):
+  // panjang BERSIH tiap jalur, bukan panjang kotor — sisa potong bukan bagian jalur.
+  const joints =
+    runs !== undefined && runs > 0
+      ? {
+          runs,
+          runLengthM: Math.round((netLengthBeforeAllowanceM / runs) * 100) / 100,
+          sockets: runs * pipeJointsPerRun(netLengthBeforeAllowanceM / runs, stock.meters),
+        }
+      : undefined;
   return {
     ...(stock.productId !== undefined ? { productId: stock.productId } : {}),
+    ...(joints !== undefined ? { joints } : {}),
     rod: { meters: stock.meters, productName: stock.productName },
     allowancePct,
     quantity: rods,

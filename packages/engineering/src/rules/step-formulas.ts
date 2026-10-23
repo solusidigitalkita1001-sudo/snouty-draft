@@ -19,6 +19,11 @@ interface Fmt {
   readonly en: boolean;
   /** Angka dengan pemisah desimal sesuai bahasa, maksimal 2 desimal. */
   n(value: unknown): string;
+  /**
+   * Angka dengan angka penting secukupnya — untuk nilai SI yang disubstitusikan ke rumus
+   * (0,0008 m³/s, 0,0279 m). Dibulatkan ke 2 desimal, nilai itu tidak bisa dihitung ulang.
+   */
+  s(value: unknown, significant?: number): string;
   /** Pilih teks per bahasa. */
   t(id: string, en: string): string;
 }
@@ -34,6 +39,13 @@ function fmt(locale: EngineeringLocale): Fmt {
       isNum(value)
         ? value.toLocaleString(en ? 'en-US' : 'id-ID', {
             maximumFractionDigits: 2,
+            useGrouping: false,
+          })
+        : '?',
+    s: (value, significant = 4) =>
+      isNum(value)
+        ? Number(value.toPrecision(significant)).toLocaleString(en ? 'en-US' : 'id-ID', {
+            maximumFractionDigits: 20,
             useGrouping: false,
           })
         : '?',
@@ -119,25 +131,61 @@ const FORMULAS: Readonly<Record<string, Formula>> = {
     nums(o, ['requiredInnerDiameterMm', 'innerDiameterMm']) &&
     isStr(o['mainSize'])
       ? f.t(
-          `d = √(4 × Q ÷ (π × v)) = √(4 × ${f.n(i['designFlowLs'])} l/s ÷ (π × ${f.n(i['velocityMs'])} m/s)) = ${f.n(o['requiredInnerDiameterMm'])} mm → ${o['mainSize']} (dalam ${f.n(o['innerDiameterMm'])} mm)`,
-          `d = √(4 × Q ÷ (π × v)) = √(4 × ${f.n(i['designFlowLs'])} l/s ÷ (π × ${f.n(i['velocityMs'])} m/s)) = ${f.n(o['requiredInnerDiameterMm'])} mm → ${o['mainSize']} (inner ${f.n(o['innerDiameterMm'])} mm)`,
+          `d = √(4 × Q ÷ (π × v)), dalam satuan SI: Q ${f.n(i['designFlowLs'])} l/s = ${f.s((i['designFlowLs'] as number) / 1000)} m³/s; v ${f.n(i['velocityMs'])} m/s → d = ${f.s((o['requiredInnerDiameterMm'] as number) / 1000)} m = ${f.n(o['requiredInnerDiameterMm'])} mm → ${o['mainSize']} (dalam ${f.n(o['innerDiameterMm'])} mm)`,
+          `d = √(4 × Q ÷ (π × v)), in SI units: Q ${f.n(i['designFlowLs'])} l/s = ${f.s((i['designFlowLs'] as number) / 1000)} m³/s; v ${f.n(i['velocityMs'])} m/s → d = ${f.s((o['requiredInnerDiameterMm'] as number) / 1000)} m = ${f.n(o['requiredInnerDiameterMm'])} mm → ${o['mainSize']} (inner ${f.n(o['innerDiameterMm'])} mm)`,
         )
       : null,
+  // Satuan SI ditulis apa adanya (masukan Leo 2026-10-22: "gw gk bisa langsung cek"): rumus ini
+  // memakai m³/s dan m, sedangkan laporan menyebut l/s dan mm — tanpa konversinya di layar,
+  // angkanya tidak bisa dimasukkan ulang ke rumus.
   'ENG-201': (i, o, f) =>
     nums(i, ['designFlowLs', 'innerDiameterMm']) && nums(o, ['areaMm2', 'velocityMs'])
       ? f.t(
-          `v = Q ÷ A = ${f.n(i['designFlowLs'])} l/s ÷ ${f.n(o['areaMm2'])} mm² = ${f.n(o['velocityMs'])} m/s`,
-          `v = Q ÷ A = ${f.n(i['designFlowLs'])} l/s ÷ ${f.n(o['areaMm2'])} mm² = ${f.n(o['velocityMs'])} m/s`,
+          `v = Q ÷ A, dalam satuan SI: Q ${f.n(i['designFlowLs'])} l/s = ${f.s((i['designFlowLs'] as number) / 1000)} m³/s; A ${f.n(o['areaMm2'])} mm² = ${f.s((o['areaMm2'] as number) / 1e6)} m² → v = ${f.n(o['velocityMs'])} m/s`,
+          `v = Q ÷ A, in SI units: Q ${f.n(i['designFlowLs'])} l/s = ${f.s((i['designFlowLs'] as number) / 1000)} m³/s; A ${f.n(o['areaMm2'])} mm² = ${f.s((o['areaMm2'] as number) / 1e6)} m² → v = ${f.n(o['velocityMs'])} m/s`,
         )
       : null,
   'ENG-202': (i, o, f) =>
     nums(i, ['designFlowLs', 'innerDiameterMm', 'lengthM', 'hazenWilliamsC']) &&
     nums(o, ['frictionLossM'])
       ? f.t(
-          `hf = 10,67 × L × Q^1,852 ÷ (C^1,852 × d^4,87), dengan L ${f.n(i['lengthM'])} m, Q ${f.n(i['designFlowLs'])} l/s, C ${f.n(i['hazenWilliamsC'])}, d ${f.n(i['innerDiameterMm'])} mm → hf = ${f.n(o['frictionLossM'])} m`,
-          `hf = 10.67 × L × Q^1.852 ÷ (C^1.852 × d^4.87), with L ${f.n(i['lengthM'])} m, Q ${f.n(i['designFlowLs'])} l/s, C ${f.n(i['hazenWilliamsC'])}, d ${f.n(i['innerDiameterMm'])} mm → hf = ${f.n(o['frictionLossM'])} m`,
+          `hf = 10,67 × L × Q^1,852 ÷ (C^1,852 × d^4,87), dalam satuan SI: L ${f.n(i['lengthM'])} m; Q ${f.n(i['designFlowLs'])} l/s = ${f.s((i['designFlowLs'] as number) / 1000)} m³/s; C ${f.n(i['hazenWilliamsC'])}; d ${f.n(i['innerDiameterMm'])} mm = ${f.s((i['innerDiameterMm'] as number) / 1000)} m → hf = ${f.n(o['frictionLossM'])} m${isNum(o['gradientMPer100m']) ? ` (${f.n(o['gradientMPer100m'])} m per 100 m)` : ''}`,
+          `hf = 10.67 × L × Q^1.852 ÷ (C^1.852 × d^4.87), in SI units: L ${f.n(i['lengthM'])} m; Q ${f.n(i['designFlowLs'])} l/s = ${f.s((i['designFlowLs'] as number) / 1000)} m³/s; C ${f.n(i['hazenWilliamsC'])}; d ${f.n(i['innerDiameterMm'])} mm = ${f.s((i['innerDiameterMm'] as number) / 1000)} m → hf = ${f.n(o['frictionLossM'])} m${isNum(o['gradientMPer100m']) ? ` (${f.n(o['gradientMPer100m'])} m per 100 m)` : ''}`,
         )
       : null,
+  'ENG-207': (i, o, f) => {
+    const items = o['items'];
+    if (!Array.isArray(items) || !nums(i, ['velocityMs'])) return null;
+    if (!nums(o, ['totalK', 'velocityHeadM', 'minorLossM'])) return null;
+    const terms = (items as Bag[])
+      .filter((item) => nums(item, ['count', 'k', 'totalK']))
+      .map(
+        (item) =>
+          `${f.n(item['count'])} × ${f.n(item['k'])} = ${f.n(item['totalK'])} (${f.en ? String(item['kindEn'] ?? '') : String(item['kind'] ?? '')})`,
+      );
+    if (terms.length === 0) return null;
+    return f.t(
+      `h = ΣK × v² ÷ (2g): ΣK = ${terms.join(' + ')} → ${f.n(o['totalK'])}; v² ÷ (2 × 9,81) = ${f.n(i['velocityMs'])}² ÷ 19,62 = ${f.s(o['velocityHeadM'])} m → h = ${f.n(o['totalK'])} × ${f.s(o['velocityHeadM'])} = ${f.n(o['minorLossM'])} m`,
+      `h = ΣK × v² ÷ (2g): ΣK = ${terms.join(' + ')} → ${f.n(o['totalK'])}; v² ÷ (2 × 9.81) = ${f.n(i['velocityMs'])}² ÷ 19.62 = ${f.s(o['velocityHeadM'])} m → h = ${f.n(o['totalK'])} × ${f.s(o['velocityHeadM'])} = ${f.n(o['minorLossM'])} m`,
+    );
+  },
+  'ENG-015': (i, o, f) => {
+    const runs = i['runs'];
+    if (!Array.isArray(runs) || !nums(i, ['stockLengthM']) || !nums(o, ['sockets'])) return null;
+    const perRun = o['perRun'];
+    if (!Array.isArray(perRun)) return null;
+    const terms = (runs as Bag[])
+      .filter((r, index) => nums(r, ['lengthM', 'count']) && isNum(perRun[index]))
+      .map(
+        (r, index) =>
+          `(⌈${f.n(r['lengthM'])} ÷ ${f.n(i['stockLengthM'])}⌉ − 1) × ${f.n(r['count'])} = ${f.n((perRun[index] as number) * (r['count'] as number))}`,
+      );
+    if (terms.length === 0) return null;
+    return f.t(
+      `Sok = ${terms.join(' + ')} = ${f.n(o['sockets'])} pcs`,
+      `Sockets = ${terms.join(' + ')} = ${f.n(o['sockets'])} pcs`,
+    );
+  },
   'ENG-203': (i, o, f) =>
     nums(i, ['frictionLossM', 'fraction']) && nums(o, ['minorLossM'])
       ? f.t(

@@ -93,6 +93,9 @@ import {
   fittingKey,
   pendingNeeds,
   pendingRows,
+  socketNeeds,
+  socketRows,
+  type SocketNeed,
   type PendingNeed,
   supplyFittingNeeds,
   type FittingNeed,
@@ -255,6 +258,10 @@ function withPurpose(
 
 function pendingKey(need: PendingNeed): string {
   return `${need.system}|${need.kind ?? ''}|${need.size}`;
+}
+
+function socketKey(need: SocketNeed): string {
+  return `${need.system}|${need.size}`;
 }
 
 /** Satu produk per SKU dari peta fitting (beberapa jenis/ukuran bisa jatuh ke SKU yang sama). */
@@ -539,20 +546,30 @@ export class AnalysisService {
     if (installation !== 'drainage') {
       const needs = supplyFittingNeeds(solution);
       const fitted = await this.matchFittings(needs, PIPE_FAMILY, locale);
-      const pending = pendingNeeds([{ system: 'clean_water', size: solution.mainSize }]);
+      // Sok antar batang pipa (masukan Leo 2026-10-22): jumlahnya dari sambungan tiap jalur,
+      // jadi barisnya tidak lagi "dihitung saat pemasangan".
+      const sockets = socketNeeds(recommendation.bom);
+      const socketFitted = await this.matchSockets(sockets, PIPE_FAMILY, locale);
+      const pending = pendingNeeds(
+        [{ system: 'clean_water', size: solution.mainSize }],
+        sockets.map((need) => need.system),
+      );
       const pendingFitted = await this.matchPending(pending, PIPE_FAMILY, locale);
       recommendation = {
         ...recommendation,
         bom: [
           ...recommendation.bom,
           ...fittingBomRows(needs, traces, locale, (n) => fitted.get(fittingKey(n))?.productId),
+          ...socketRows(sockets, locale, (n) => socketFitted.get(socketKey(n))?.productId),
           ...pendingRows(pending, locale, (n) => pendingFitted.get(pendingKey(n))?.productId),
         ],
         products: [
           ...recommendation.products,
-          ...[...uniqueProducts(fitted), ...uniqueProducts(pendingFitted)].filter(
-            (p, i, all) => all.findIndex((q) => q.productId === p.productId) === i,
-          ),
+          ...[
+            ...uniqueProducts(fitted),
+            ...uniqueProducts(socketFitted),
+            ...uniqueProducts(pendingFitted),
+          ].filter((p, i, all) => all.findIndex((q) => q.productId === p.productId) === i),
         ],
       };
     }
@@ -653,11 +670,19 @@ export class AnalysisService {
       // diulang: baris BOQ-nya kini punya jumlah.
       const drainNeeds = drainFittingNeeds(drainage);
       const drainFitted = await this.matchFittings(drainNeeds, DRAINAGE_FAMILY, locale);
-      // Sok, dop, dan lem pembuangan per jalur (review putaran 3, 4f).
-      const drainPending = pendingNeeds([
-        ...(drainage.soil ? [{ system: 'soil' as const, size: drainage.soil.size }] : []),
-        ...(drainage.waste ? [{ system: 'waste' as const, size: drainage.waste.size }] : []),
-      ]);
+      // Sok pembuangan dihitung dari sambungan antar batang (masukan Leo 2026-10-22); dop dan lem
+      // tetap menyusul (review putaran 3, 4f).
+      const drainSockets = socketNeeds(recommendation.bom).filter(
+        (need) => need.system === 'soil' || need.system === 'waste',
+      );
+      const drainSocketFitted = await this.matchSockets(drainSockets, DRAINAGE_FAMILY, locale);
+      const drainPending = pendingNeeds(
+        [
+          ...(drainage.soil ? [{ system: 'soil' as const, size: drainage.soil.size }] : []),
+          ...(drainage.waste ? [{ system: 'waste' as const, size: drainage.waste.size }] : []),
+        ],
+        drainSockets.map((need) => need.system),
+      );
       const drainPendingFitted = await this.matchPending(drainPending, DRAINAGE_FAMILY, locale);
       recommendation = {
         ...recommendation,
@@ -669,6 +694,11 @@ export class AnalysisService {
             locale,
             (n) => drainFitted.get(fittingKey(n))?.productId,
           ),
+          ...socketRows(
+            drainSockets,
+            locale,
+            (n) => drainSocketFitted.get(socketKey(n))?.productId,
+          ),
           ...pendingRows(
             drainPending,
             locale,
@@ -677,7 +707,11 @@ export class AnalysisService {
         ],
         products: [
           ...recommendation.products,
-          ...[...uniqueProducts(drainFitted), ...uniqueProducts(drainPendingFitted)].filter(
+          ...[
+            ...uniqueProducts(drainFitted),
+            ...uniqueProducts(drainSocketFitted),
+            ...uniqueProducts(drainPendingFitted),
+          ].filter(
             (p, i, all) =>
               !recommendation.products.some((q) => q.productId === p.productId) &&
               all.findIndex((q) => q.productId === p.productId) === i,
@@ -1394,7 +1428,29 @@ export class AnalysisService {
     return out;
   }
 
-  /** Produk untuk sok/dop yang jumlahnya dihitung saat pemasangan; stop kran dan lem tanpa SKU. */
+  /** Produk sok Pralon per ukuran jalur — jumlahnya dari sambungan antar batang (ENG-015). */
+  private async matchSockets(
+    needs: readonly SocketNeed[],
+    family: string,
+    locale: Locale,
+  ): Promise<ReadonlyMap<string, SelectedProduct>> {
+    const out = new Map<string, SelectedProduct>();
+    for (const need of needs) {
+      if (out.has(socketKey(need))) continue;
+      const found = await this.matchRoles([fittingRequirement(need.size, family, 'socket')]);
+      const product = found.products[0];
+      if (product) {
+        out.set(socketKey(need), {
+          ...product,
+          purpose: locale === 'en' ? 'Socket' : 'Sok',
+          system: need.system,
+        });
+      }
+    }
+    return out;
+  }
+
+  /** Produk untuk dop yang jumlahnya dihitung saat pemasangan; stop kran dan lem tanpa SKU. */
   private async matchPending(
     needs: readonly PendingNeed[],
     family: string,

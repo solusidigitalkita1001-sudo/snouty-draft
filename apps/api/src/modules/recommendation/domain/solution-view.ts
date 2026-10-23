@@ -371,8 +371,17 @@ export function bomItemsFrom(
     detail: string,
     rowStock: StockLength | null,
     rowIds: readonly string[],
+    /** Jalur menerus yang menyusun panjang ini — dasar jumlah sok (ENG-015). */
+    runs?: number,
   ): BomItem => {
-    const purchase = pipePurchase(netM, detail, rowStock, locale, solution.cuttingAllowancePct);
+    const purchase = pipePurchase(
+      netM,
+      detail,
+      rowStock,
+      locale,
+      solution.cuttingAllowancePct,
+      runs,
+    );
     return {
       item: bomItemName('Pipa PVC AW', locale),
       system: 'clean_water',
@@ -381,6 +390,7 @@ export function bomItemsFrom(
       calc: purchase.calc,
       size,
       ...(purchase.productId ? { productId: purchase.productId } : {}),
+      ...(purchase.joints ? { joints: purchase.joints } : {}),
       ...(purchase.rod ? { rod: purchase.rod, allowancePct: purchase.allowancePct } : {}),
       quantity: purchase.quantity,
       unit: bomUnitLabel(purchase.unit, locale),
@@ -403,6 +413,8 @@ export function bomItemsFrom(
           : 'panjang + lebar bangunan dan beda tinggi ke titik air tertinggi',
       stock,
       ids,
+      // Satu jalur menerus dari sumber ke titik air tertinggi.
+      1,
     ),
   ];
 
@@ -417,6 +429,7 @@ export function bomItemsFrom(
           : 'pengisi toren: halaman + sepanjang bangunan + naik ke toren',
         stocks.fill ?? null,
         traceIdsFor(traces, 'ENG-706'),
+        1,
       ),
     );
   }
@@ -437,6 +450,7 @@ export function bomItemsFrom(
           en ? 'ablution rows: taps × spacing' : 'deret wudhu: keran × jarak',
           stocks.wudhuFor?.(size) ?? null,
           wudhuIds,
+          solution.wudhu.rows.filter((row) => row.size === size).length,
         ),
       );
     }
@@ -456,6 +470,7 @@ export function bomItemsFrom(
           : `${branch.count} cabang × panjang bangunan`,
         stocks.branchFor?.(branch.size) ?? stocks.branch ?? null,
         layoutIds,
+        branch.count,
       ),
     ),
     pipeRow(
@@ -467,6 +482,7 @@ export function bomItemsFrom(
         : `${solution.outletCount} titik air × panjang sambungan`,
       stocks.fixture ?? null,
       layoutIds,
+      solution.outletCount,
     ),
   );
   // Sambungan cabang per ukuran cabang: satu tee (sama sisi atau reduksi), atau tee + reducer, per

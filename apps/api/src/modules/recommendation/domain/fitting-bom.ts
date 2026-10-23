@@ -231,21 +231,31 @@ export interface PendingNeed {
 }
 
 /**
- * Sok, dop, stop kran, dan lem (keputusan pemilik 2026-10-13): jumlahnya "dihitung saat
- * pemasangan", tanpa angka karangan. Sok dan dop di ukuran jalur utamanya supaya punya SKU;
- * pembuangan mendapat sok, dop, dan lem juga (review putaran 3, 4f).
+ * Dop, stop kran, dan lem (keputusan pemilik 2026-10-13): jumlahnya "dihitung saat pemasangan",
+ * tanpa angka karangan, di ukuran jalur utamanya supaya punya SKU; pembuangan mendapat dop dan
+ * lem juga (review putaran 3, 4f).
+ *
+ * Sok TIDAK lagi di sini bila panjang jalurnya dihitung: sejak masukan Leo (2026-10-22) jumlahnya
+ * dihitung dari sambungan antar batang (`socketNeeds`). Baris pipa tanpa panjang batang katalog
+ * tetap tidak punya sambungan yang bisa dihitung, jadi soknya tetap menyusul.
  */
 export function pendingNeeds(
   lines: readonly { readonly system: BomSystem; readonly size: string }[],
+  /** Sistem yang soknya sudah dihitung dari sambungan batang — barisnya tidak diulang di sini. */
+  socketsCountedFor: readonly BomSystem[] = [],
 ): readonly PendingNeed[] {
   return lines.flatMap(({ system, size }) => [
-    {
-      system,
-      kind: 'socket' as const,
-      size,
-      item: { id: 'Sok', en: 'Socket' },
-      unit: 'pcs' as const,
-    },
+    ...(socketsCountedFor.includes(system)
+      ? []
+      : [
+          {
+            system,
+            kind: 'socket' as const,
+            size,
+            item: { id: 'Sok', en: 'Socket' },
+            unit: 'pcs' as const,
+          },
+        ]),
     { system, kind: 'cap' as const, size, item: { id: 'Dop', en: 'Cap' }, unit: 'pcs' as const },
     ...(system === 'clean_water'
       ? [
@@ -290,6 +300,92 @@ export function pendingRows(
       traceIds: [],
       pending: true,
       ...(need.askPralon ? { askPralon: true as const } : {}),
+    };
+  });
+}
+
+/**
+ * Sok sambungan antar batang pipa (masukan Leo 2026-10-22): "pipa sisa itu di asumsikan bisa
+ * langsung nyambung ya?, kan butuh socket buat nyambungnya lagi".
+ *
+ * Jumlahnya dibaca dari baris pipa yang sudah dihitung — tiap baris tahu berapa jalur menerus
+ * yang menyusunnya dan berapa panjang batang produknya (`joints`, ENG-015). Baris digabung per
+ * sistem dan ukuran, karena satu ukuran dipesan sebagai satu SKU.
+ */
+export interface SocketNeed {
+  readonly system: BomSystem;
+  readonly size: string;
+  readonly quantity: number;
+  /** Rincian per jalur, supaya kolom dasar perhitungan bisa diperiksa. */
+  readonly parts: readonly {
+    readonly purpose: string;
+    readonly runs: number;
+    readonly runLengthM: number;
+    readonly rodM: number;
+    readonly sockets: number;
+  }[];
+}
+
+export function socketNeeds(rows: readonly BomItem[]): readonly SocketNeed[] {
+  const bySize = new Map<string, SocketNeed>();
+  for (const row of rows) {
+    if (row.joints === undefined || row.rod === undefined || row.joints.sockets <= 0) continue;
+    const system = row.system ?? 'clean_water';
+    const key = `${system}|${row.size}`;
+    const found = bySize.get(key) ?? { system, size: row.size, quantity: 0, parts: [] };
+    bySize.set(key, {
+      ...found,
+      quantity: found.quantity + row.joints.sockets,
+      parts: [
+        ...found.parts,
+        {
+          purpose: row.purpose ?? row.item,
+          runs: row.joints.runs,
+          runLengthM: row.joints.runLengthM,
+          rodM: row.rod.meters,
+          sockets: row.joints.sockets,
+        },
+      ],
+    });
+  }
+  return [...bySize.values()];
+}
+
+export function socketRows(
+  needs: readonly SocketNeed[],
+  locale: Locale,
+  productFor: (need: SocketNeed) => string | undefined,
+): readonly BomItem[] {
+  const en = locale === 'en';
+  const n = (value: number) => value.toLocaleString(en ? 'en-US' : 'id-ID');
+  return needs.map((need) => {
+    const productId = productFor(need);
+    const working = need.parts
+      .map(
+        (part) =>
+          `${part.purpose}: (⌈${n(part.runLengthM)} ÷ ${n(part.rodM)}⌉ − 1) × ${n(part.runs)} = ${n(part.sockets)}`,
+      )
+      .join('; ');
+    return {
+      item: en ? 'Socket' : 'Sok',
+      system: need.system,
+      purpose: en ? 'Joining pipe rods' : 'Sambungan antar batang',
+      size: need.size,
+      ...(productId !== undefined ? { productId } : {}),
+      quantity: need.quantity,
+      unit: 'pcs' as const,
+      basis: en
+        ? `Rods joined end to end need one socket per joint. ${working} = ${n(need.quantity)} pcs. Fittings on the route (elbows, tees) have their own sockets and are not counted again; on site the number can be lower when an offcut lands at a fitting.`
+        : `Batang yang disambung ujung ke ujung butuh satu sok tiap sambungan. ${working} = ${n(need.quantity)} pcs. Fitting di jalur (elbow, tee) punya sambungannya sendiri dan tidak dihitung lagi; di lapangan jumlahnya bisa lebih sedikit kalau potongan pipa jatuh pas di fitting.`,
+      calc: {
+        method: en
+          ? 'One socket per joint between rods'
+          : 'Satu sok tiap sambungan antar batang pipa',
+        working,
+        result: `${n(need.quantity)} pcs`,
+      },
+      provenance: 'ASSUMED' as const,
+      traceIds: [],
     };
   });
 }

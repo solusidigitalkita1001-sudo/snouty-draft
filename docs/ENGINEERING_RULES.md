@@ -230,6 +230,25 @@ dipakai ulang.
 Asal: kartu asumsi prototipe. Aturan inilah yang menjadi dasar bobot 2 pada ENG-001; keduanya harus
 divalidasi bersama, karena kalau isi kamar mandi berbeda, bobotnya ikut salah.
 
+#### ENG-015 · Sok sambungan antar batang pipa (Fase 27, masukan Leo 2026-10-22)
+
+```
+sambungan per jalur menerus = ⌈panjang jalur ÷ panjang batang⌉ − 1
+sok                         = Σ (jumlah jalur × sambungan per jalur)
+```
+
+Masukan Leo atas laporan SNTY-2026-10-0020: _"ngitungnya pipa sisa itu di asumsikan bisa langsung
+nyambung ya?, kan butuh socket buat nyambungnya lagi"_. Jumlah batang memang dihitung dari panjang
+jalur ÷ panjang batang, tetapi soknya dulu ditulis "dihitung saat pemasangan" — artinya BOQ
+menyuruh menyambung tanpa pernah menyebut sambungannya.
+
+Panjang batang datang dari produk katalog yang benar-benar terpilih, bukan konstanta 4 m. Untuk
+kerugian tekanan di jalur kritis — yang dihitung sebelum produk dipilih — dipakai asumsi
+`PIPE_STOCK_LENGTH_4M`.
+
+Fitting di jalur (elbow, tee) punya bell-nya sendiri dan tidak dihitung lagi. Karena potongan pipa
+tidak selalu jatuh pas di fitting, angka ini **perkiraan atas**, dan BOQ mengatakannya begitu.
+
 ### Kelompok D — Alur percakapan
 
 #### ENG-007 · Urutan prioritas klarifikasi
@@ -332,7 +351,35 @@ ENG-205  kandidat dari tabel nominal; status ok / too_fast (> 2 m/s) / high_loss
          too_slow (< 0,6 m/s); rekomendasi = ukuran ok terkecil; alternatif = satu ukuran di atasnya
 ENG-206  P_hidraulik = ρ·g·Q·H ; daya poros = P ÷ η_pompa (η 0,6) ; beda tekanan = H ÷ 10,197
          daya masuk motor TIDAK dihitung (efisiensi motor dan cadangan dari pabrikan) — v2, audit C3
+ENG-207  kerugian minor = ΣK · v²/2g dari DAFTAR fitting di jalur kritis (Fase 27)
 ```
+
+#### ENG-207 · Kerugian minor dari daftar fitting (Fase 27, masukan Leo 2026-10-22)
+
+Masukan Leo: _"rumus rumus pressure loss di pipa sama fitting nya gw gk bisa langsung cek gitu..
+kan harus diitung dulu"_. ENG-203 menaksir kerugian sambungan sebagai 10 % kerugian gesek — satu
+angka tanpa isi, yang tidak bisa diperiksa. Di jalur rumah fittingnya sudah diketahui (ENG-708
+menghitungnya), jadi kerugiannya dihitung dari daftar itu dan **tiap sukunya tercetak** — jenis,
+jumlah, K, dan hasilnya:
+
+```
+h = ΣK · v²/(2g)         K per jenis dari registry asumsi MINOR_K_*
+
+masuk pipa 0,5 · stop kran terbuka 0,2 · elbow 90° 0,9 · elbow 45° 0,4
+tee arah cabang 1,8 · tee arah lurus 0,6 · reducer 0,3 · sok 0,1
+```
+
+Jalur kritis air bersih rumah = sumber → titik air tertinggi: 1 masuk pipa, 1 stop kran, elbow pipa
+utama + cabang + turun ke alat + drat kran, 1 tee tempat cabang keluar, dan sok antar batang
+sepanjang jalur. ENG-203 tetap dipakai untuk kasus yang daftar fittingnya belum ada.
+
+Akibat ikutan: **ENG-703 naik ke v3**. Dudukan toren yang disarankan kini ikut menanggung kerugian
+di pipa tegak yang ditambahkan (dulu diabaikan sebagai "beberapa sentimeter"); sejak kerugian
+sambungan dihitung per fitting, selisih itu cukup besar untuk membuat saran lamanya masih kurang.
+
+Rumus yang dicetak di laporan juga diperbaiki: substitusinya memakai **satuan yang benar-benar
+masuk ke rumus** (m³/s dan m), bukan hanya l/s dan mm — tanpa itu angkanya tidak bisa dimasukkan
+ulang ke rumusnya, yang persis keluhan Leo.
 
 ### Kelompok G — Kolam / tambak ikan (Fase 14, laporan pemilik "tambak lele 4 x 4 meter")
 
