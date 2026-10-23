@@ -1,0 +1,274 @@
+{
+  "$comment": "Pertanyaan pemilik 2026-10-23 (Duta, Angel, Edo + product knowledge + study case) untuk dibaca jawabannya, bukan dicocokkan polanya.",
+  "cases": [
+    {
+      "group": "owner-faq",
+      "q": "Rekomendasi jalur pipa utama untuk air minum, lebih baik pipa HDPE atau pipa uPVC berdasarkan daya tahan dan ketidakstabilan tekanan air antara 8-12 bar?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Berapa daya tahan lama pipa HDPE?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa yang menjadi dasar pemilihan pipa HDPE di banding uPVC?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa saran pipa yang di gunakan untuk pipa sambungan rumah?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa perbedaan pipa merek pralon dengan ruchika?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Kenapa harus memilih pipa merek pralon di banding merek vinilon?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Selain untuk air minum dan air bersih, tolong infokan kegunaan pipa HDPE?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa bedanya pipa drainase dan pipa uPVC?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Lebih baik menggunakan sambungan pipa pvc dengan rubber atau solvent cement?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa itu pipa jacking?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apakah bisa pipa PVC di gunakan untuk air panas pengganti pipa PPR?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Adakah jenis pipa terbaru setelah pipa HDPE dan uPVC yang di rekomendasikan untuk air bersih atau air minum?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Perbedaan pipa AW sama D apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Fittings AW sama D bedanya apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Pipa VP sama VU tuh apa? Dan keunggulannya dari Pipa AW sama D Pralon apa? Minusnya apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Rekomendasi lem buat pipa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Solvent cement itu apa? Cara kerja solvent cement?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Pipa Pralon bisa ga buat air panas? Maksimal di suhu berapa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Pipa Pralon bisa ga buat cairan kimia?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Keunggulan Pralon dari Vinilon, Rucika dan Power apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa beda Pippo dan Pralon?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa perbedaan PIPA KELAS AW , PIPA KELAS D dan PIPA KELAS C"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Berapa tekanan kerja untuk pipa kelas AW, D dan C?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa itu Pipa Gold JIS Pralon?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa perbedaan Solvent Cement Pralon dengan LEM PVC merek lain?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Bagaimana Cara kerja untuk Produk Solvent Cement merek Pralon"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Ada berapa jenis Solvent Cement merek Pralon?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Ada berapa Panjang meter untuk setiap 1 batang pipa yang dijual Oleh Pralon?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa itu Injection Fittings?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa perbedaan Injection fiting tipe TS dan Injection fiting tipe DV?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa saja produk yang dihasilkan dari Perusahaan PT. Pralon?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Pipa uPVC itu apa? Bedanya sama PVC biasa apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Kalau buat air bersih rumah, kapan pilih uPVC, kapan pilih HDPE?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "HDPE itu bedanya apa sama MDPE? MDPE itu khusus gas ya?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Conduit itu apa? Bedanya sama pipa air apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Plain End itu artinya apa? Ada tipe ujung lain nggak dan bedanya apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Fitting itu apa aja contohnya? Elbow/tee/reducer/socket itu fungsinya apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Ukuran pipa itu bacanya gimana sih: 1/2\", 3/4\", 1\", 1 1/2\"? Itu setara berapa mm?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "SNI di pipa artinya apa? Pentingnya apa buat proyek rumah/gedung?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Kalau buat drainase/air buangan, kenapa biasanya beda pilihan sama air bersih?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Pipa untuk tanam bawah tanah: kenapa sering disaranin HDPE dibanding uPVC?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Apa kesalahan paling umum orang pas milih pipa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Gue butuh pipa buat air buangan kamar mandi (kloset + floor drain). Pralon yang cocok apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Untuk Pipa uPVC SNI Air Bersih, ada berapa varian? Ringkas aja range diameter + opsi panjang + kelas."
+    },
+    {
+      "group": "owner-faq",
+      "q": "Gue butuh jalur pipa air bersih 27 meter lurus. Kira-kira butuh berapa batang?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Gue butuh fitting elbow 90 derajat buat uPVC 3/4\". Ada rekomendasi Pralon?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Gue butuh pipa buat jalur gas rumah. Rekomendasi Pralon yang cocok apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Pipa buat tanam bawah tanah untuk distribusi air, jalur 60 meter. Pralon yang cocok HDPE apa uPVC?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Butuh pipa conduit buat kabel listrik rumah. Produk Pralon yang cocok apa?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Gue butuh pipa air bersih buat rumah 2 lantai. Dari toren ke kamar mandi ±15 meter. Rekomendasi Pralon yang aman gimana setup-nya?"
+    },
+    {
+      "group": "owner-faq",
+      "q": "Proyek gedung 5 lantai, kebutuhan air bersih untuk toilet per lantai. Minta arahan kelas pipa + ukuran jalur riser dan cabang."
+    },
+    {
+      "group": "owner-faq",
+      "q": "Need clean water pipe for 2-storey house, from water tank to bathroom 15m. Recommend Pralon setup dong."
+    },
+    {
+      "group": "product-knowledge",
+      "q": "\"uPVC SNI Air Bersih\" itu buat jalur apa aja? Boleh dipakai buat air panas nggak?"
+    },
+    {
+      "group": "product-knowledge",
+      "q": "Metode sambungan uPVC yang benar itu apa aja? Lem (solvent cement) vs rubber ring bedanya kapan dipakai?"
+    },
+    {
+      "group": "product-knowledge",
+      "q": "Kenapa ukuran di lapangan pakai inch tapi spek kadang pakai mm?"
+    },
+    {
+      "group": "product-knowledge",
+      "q": "Kalau ada pipa diameter 1 1/2\" panjang 6 meter, itu artinya 1 batang pipa 6 m dengan diameter segitu kan?"
+    },
+    {
+      "group": "product-knowledge",
+      "q": "\"Pralon Standard\" itu maksudnya apa dibanding kelas AW/D?"
+    },
+    {
+      "group": "product-knowledge",
+      "q": "Pressure dan recommended temp itu ngaruhnya ke pemilihan pipa gimana?"
+    },
+    {
+      "group": "product-knowledge",
+      "q": "Kalau ada tulisan maksimal 60 derajat, itu berarti aman sampai 60 derajat terus di atas itu gimana risikonya?"
+    },
+    {
+      "group": "product-knowledge",
+      "q": "Cara basic nentuin diameter pipa tanpa hitung ribet gimana? Rule of thumb buat rumah kecil?"
+    },
+    {
+      "group": "study-case",
+      "q": "Rumah 1 lantai, jalur utama dari toren ke dapur 8 meter. Mending jalur utama pakai 3/4\" atau 1\"?"
+    },
+    {
+      "group": "study-case",
+      "q": "Gue mau pasang air bersih di rumah. Rekomendasi Pralon yang cocok apa?"
+    },
+    {
+      "group": "study-case",
+      "q": "Air rumah gue pakai booster pump. Jalur utama kira-kira 20 meter. Aman pakai AW ukuran berapa?"
+    },
+    {
+      "group": "study-case",
+      "q": "Rumah 2 lantai, 3 kamar mandi, bisa dipakai barengan. Toren ke lantai 2 kurang lebih 18 m. Saran ukuran jalur utama dan cabang?"
+    },
+    {
+      "group": "study-case",
+      "q": "Lagi ngerjain proyek ruko 3 lantai, fitting yang cocok buat pengerjaan ini apa?"
+    },
+    {
+      "group": "study-case",
+      "q": "Lagi ngerjain renovasi kamar mandi, pipa yang cocok buat pengerjaan ini apa?"
+    },
+    {
+      "group": "study-case",
+      "q": "Need clean water pipe for 2-storey house, from water tank to bathroom 15m. Recommend Pralon setup dong.",
+      "language": "en"
+    }
+  ]
+}

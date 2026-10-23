@@ -2277,6 +2277,24 @@ lalu layar, lalu data.
       ventilasinya: ukurannya, setengah diameter jalur yang dilayaninya, dan mengapa ia ada. Satuan dan
       rincian per fitting sudah diperbaiki di P27-01.
 
+- [x] P27-13 Uji 67 pertanyaan pemilik DI PRODUKSI, lalu jawabannya dibaca satu per satu (pemilik
+      2026-10-23: "coba testing dari pertanyaan2 ini lalu lu review jawabannya masuk akal apa ngga").
+      Daftar Duta/Angel/Edo (52) + product knowledge + study case; skrip baru `ask-eval.mjs` hanya
+      bertanya dan menyimpan jawabannya — tanpa pola yang dicocokkan, karena pola yang lolos tidak
+      berarti jawabannya masuk akal. Suite emas FAQ tetap 19/19. Enam jawaban memang tidak masuk akal,
+      semuanya karena TOPIK yang nyasar (diagnosa dengan probe bge-m3, bukan tebakan): "lagi ngerjain
+      renovasi kamar mandi" dijawab PPR/air panas karena contoh air panas menyebut kamar mandi;
+      "butuh pipa conduit" menyeret topik `aplikasi` sehingga dua paragraf tak relevan menempel;
+      "air buangan kamar mandi" terbaca `bertekanan vs gravitasi` sehingga dibuka cerita air bersih;
+      "uPVC SNI air bersih buat jalur apa aja + boleh air panas?" hanya terjawab separuhnya. Diperbaiki
+      di DATA: contoh negatif untuk cerita proyek, penguatan `conduit`, `pipa pembuangan`, `aplikasi`,
+      dan `air panas`. Tiga fakta yang tidak menjawab pertanyaannya juga diperbaiki: jumlah jenis
+      solvent cement (dua, quick/slow dry), "MDPE itu khusus gas ya?" (bukan — bahan yang sama dipakai
+      untuk air; yang membedakan warna dan penandaannya), dan nama lini "Pipa Gold JIS" (bersumber
+      pralon.com, tidak ada di katalog ERP). Empat kasus emas baru menjaga semuanya; akurasi intent
+      tetap 99,4 %. Sekalian: perbandingan kelas AW/D/C ikut jadi prosa — tabelnya tinggal data
+      katalog (ukuran, panjang batang) yang memang berkolom.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

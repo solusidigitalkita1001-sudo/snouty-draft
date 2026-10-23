@@ -360,32 +360,41 @@ export function compareClasses(
   const en = locale === 'en';
   const texts = classes.map((c) => (en ? c.en : c));
   const labels = classes.map((c) => c.family.toUpperCase());
-  const row = (label: string, key: keyof PvcClassTexts) =>
-    `| ${label} | ${texts.map((t) => cell(t[key])).join(' | ')} |`;
-  const table = [
-    `| ${en ? 'Aspect' : 'Aspek'} | ${labels.map((l) => `**${l}**`).join(' | ')} |`,
-    `| --- | ${labels.map(() => '---').join(' | ')} |`,
-    row(en ? 'Wall' : 'Dinding', 'wall'),
-    row(en ? 'Pressure' : 'Tekanan', 'pressure'),
-    row(en ? 'Used for' : 'Dipakai untuk', 'use'),
-    row(en ? 'In a house' : 'Di rumah', 'houseExample'),
-    ...catalogRows.map(
-      (r) =>
-        `| ${r.label} | ${classes.map((c) => cell(r.byFamily[c.family] ?? '—')).join(' | ')} |`,
-    ),
-  ].join('\n');
+  // Sifat tiap kelas dalam PROSA (P27-13, pemilik 2026-10-23: "terlalu text book"); yang tetap
+  // tabel hanyalah data katalog — ukuran dan panjang batang per kelas, yang memang berkolom.
+  const sentences = classes.map((c, index) => {
+    const t = texts[index]!;
+    const name = labels[index]!;
+    return en
+      ? `**${name}** has the ${t.wall} wall and ${t.pressure}; it is used for ${t.use} — in a house, ${t.houseExample}.`
+      : `**${name}** dindingnya ${t.wall} dan ${t.pressure}; dipakai untuk ${t.use} — di rumah, ${t.houseExample}.`;
+  });
+  const table =
+    catalogRows.length > 0
+      ? [
+          `| | ${labels.map((l) => `**${l}**`).join(' | ')} |`,
+          `| --- | ${labels.map(() => '---').join(' | ')} |`,
+          ...catalogRows.map(
+            (r) =>
+              `| ${r.label} | ${classes.map((c) => cell(r.byFamily[c.family] ?? '—')).join(' | ')} |`,
+          ),
+        ].join('\n')
+      : null;
   const joined = labels.join(en ? ' and ' : ' dan ');
-  return en
+  const parts = en
     ? [
         `${joined} are the same uPVC material; what differs is wall thickness and the pressure the pipe holds.`,
+        sentences.join(' '),
         table,
         'Do not use a gravity-class pipe on a pressure line just because the flow looks small. The size of each run follows the number of water points, floors, and the water source; tell me about the building if you want it worked out. Working pressure per class follows the Pralon product specification.',
-      ].join('\n\n')
+      ]
     : [
         `${joined} sama-sama uPVC; bedanya di tebal dinding dan tekanan yang ditahan pipanya.`,
+        sentences.join(' '),
         table,
         'Pipa kelas gravitasi jangan dipakai di jalur bertekanan walau alirannya kelihatan kecil. Ukuran tiap jalur mengikuti jumlah titik air, jumlah lantai, dan sumber airnya; ceritakan bangunannya kalau mau saya hitungkan. Angka tekanan kerja tiap kelas mengikuti spesifikasi produk Pralon.',
-      ].join('\n\n');
+      ];
+  return parts.filter((part): part is string => part !== null).join('\n\n');
 }
 
 /**

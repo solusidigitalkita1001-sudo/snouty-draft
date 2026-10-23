@@ -87,10 +87,12 @@ describe('knowledgeAnswer', () => {
       ['pvc aw', 'pvc d'],
     );
     expect(a!.text).toMatch(/^PVC AW dan PVC D sama-sama uPVC; bedanya di tebal dinding/);
-    expect(a!.text).toContain('| Aspek | **PVC AW** | **PVC D** |');
-    expect(a!.text).toContain(
-      '| Dipakai untuk | air bersih bertekanan | pembuangan dan ventilasi |',
-    );
+    // Sifat tiap kelas dalam prosa (P27-13, pemilik 2026-10-23: "terlalu text book"); yang tetap
+    // tabel hanyalah data katalog, yang memang berkolom.
+    expect(a!.text).toContain('**PVC AW** dindingnya lebih tebal');
+    expect(a!.text).toContain('dipakai untuk air bersih bertekanan');
+    expect(a!.text).toContain('dipakai untuk pembuangan dan ventilasi');
+    expect(a!.text).not.toContain('| Aspek |');
     expect(a!.text).not.toMatch(/mahal|murah|harga/i);
     // Satu kelas saja tetap paragraf konsep.
     const one = await knowledgeAnswer(['kelas pvc'], 'pipa aw itu apa?', catalog, 'id', ['pvc aw']);
@@ -99,7 +101,8 @@ describe('knowledgeAnswer', () => {
       'pvc aw',
       'pvc d',
     ]);
-    expect(en!.text).toContain('| Aspect | **PVC AW** | **PVC D** |');
+    expect(en!.text).toContain('**PVC AW** has the thicker wall');
+    expect(en!.text).not.toContain('| Aspect |');
     // Ukuran dan panjang katalog jadi baris tabel yang sama, bukan daftar kedua.
     expect(a!.text).toContain('| Ukuran | 1/2"–3" | 1 1/2" |');
     expect(a!.text).toContain('| Panjang batang | 4 m, 5,8 m | 4 m |');
