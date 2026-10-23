@@ -19,9 +19,37 @@ import { humanSize } from '../../uploads/domain/upload-policy.js';
 import { assumptionCardFor, capturedFrom } from '../../context/application/message-pipeline.js';
 import {
   HANDOFF_REPOSITORY,
+  type HandoffQueueRow,
   type HandoffRepository,
   type HandoffRow,
+  type HandoffStatus,
 } from '../domain/handoff.repository.js';
+import { slaDueAt } from '../domain/handoff-sla.js';
+import { TECHNICAL_SLA_HOURS } from '../../policy/policy-cards.js';
+
+/** Berapa kasus tertutup yang ikut ditampilkan — cukup untuk melihat antrean bergerak. */
+const CLOSED_SHOWN = 10;
+
+/** Satu baris antrean sebagaimana dilihat tim teknis. */
+export interface HandoffBoardItem extends HandoffQueueRow {
+  /** Kapan janji "1×24 jam kerja" jatuh tempo untuk kasus ini. */
+  readonly dueAt: Date;
+  readonly overdue: boolean;
+}
+
+export interface HandoffBoard {
+  readonly open: readonly HandoffBoardItem[];
+  readonly closed: readonly HandoffBoardItem[];
+  readonly slaHours: number;
+}
+
+function withDeadline(row: HandoffQueueRow, now: Date): HandoffBoardItem {
+  const dueAt = slaDueAt(row.createdAt, TECHNICAL_SLA_HOURS);
+  // Kasus yang sudah ditutup tidak pernah "terlambat sekarang": yang diukur waktu
+  // penutupannya, bukan jam dinding hari ini.
+  const measuredAt = row.resolvedAt ?? now;
+  return { ...row, dueAt, overdue: measuredAt.getTime() > dueAt.getTime() };
+}
 
 export class HandoffNotFoundError extends Error {
   // Tanpa kode ini filter memetakannya ke 503 `retryable` — worker mengulang job untuk
@@ -108,5 +136,32 @@ export class HandoffService {
   /** Antrean kerja tim teknis — dipakai back-office (layar menyusul, OQ-21). */
   async queue(limit?: number): Promise<readonly HandoffRow[]> {
     return this.handoffs.listQueued(limit);
+  }
+
+  /**
+   * Isi layar antrean teknis (P29-01): yang belum selesai lebih dulu, lalu yang sudah
+   * ditutup. Tenggatnya dihitung di sini — janji "1×24 jam kerja" adalah aturan bisnis, dan
+   * layar tidak menghitung aturan bisnis sendiri.
+   */
+  async board(now: Date = new Date()): Promise<HandoffBoard> {
+    const [open, closed] = await Promise.all([
+      this.handoffs.listOpen(),
+      this.handoffs.listClosed(CLOSED_SHOWN),
+    ]);
+    return {
+      open: open.map((row) => withDeadline(row, now)),
+      closed: closed.map((row) => withDeadline(row, now)),
+      slaHours: TECHNICAL_SLA_HOURS,
+    };
+  }
+
+  /**
+   * Memindahkan status kasus. `IN_REVIEW` mencatat siapa yang mengambilnya; menutup kasus
+   * melepas penugasan supaya daftar tidak menyimpan nama yang tidak lagi berarti apa-apa.
+   */
+  async changeStatus(id: string, status: HandoffStatus, actorId: string): Promise<HandoffRow> {
+    const row = await this.handoffs.findById(id);
+    if (!row) throw new HandoffNotFoundError();
+    return this.handoffs.setStatus(id, status, status === 'IN_REVIEW' ? actorId : null);
   }
 }

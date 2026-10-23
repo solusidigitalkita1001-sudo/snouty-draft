@@ -37,6 +37,8 @@ export const USER_AUDIT = {
   shareCreate: { action: 'share.create', entityType: 'recommendation' },
   shareRevoke: { action: 'share.revoke', entityType: 'recommendation' },
   handoffCreate: { action: 'handoff.create', entityType: 'conversation' },
+  /** Perubahan status di antrean teknis (P29-01). */
+  handoffStatus: { action: 'handoff.status', entityType: 'conversation' },
   salesRequest: { action: 'sales.request', entityType: 'conversation' },
   // Dashboard admin (P26-05): penugasan prospek dan anggota tim sales.
   prospectAssign: { action: 'prospect.assign', entityType: 'user' },

@@ -38,6 +38,7 @@ keputusan teknis. Lihat §5.
 | Label maksud pesan, unduh laporan, buka produk, kunjungan tautan (P26-02) | perilaku, tanpa teks/IP   | sistem                    | tahap prospek 5A — **hanya** akun terdaftar yang tampil per orang (`PROSPECT_5A.md`) |
 | Izin dihubungi tim Pralon, permintaan "minta dihubungi" (P26-04)          | persetujuan               | daftar, menu Akun, tombol | dasar sah sales menghubungi (OQ-76)                                                  |
 | Provinsi dari alamat IP (P26-07)                                          | lokasi kasar, tanpa IP    | geolokasi DB-IP Lite      | **hanya** agregat pasar tanpa identitas; tidak tampil per orang (OQ-77)              |
+| Nama, email, dan nomor HP di antrean teknis (P29-01)                      | identitas                 | akun pengirim kasus       | menjawab kasus yang pengguna sendiri serahkan — tidak tampil di layar lain           |
 | Log & correlation ID                                                      | metadata teknis           | sistem                    | diagnosis                                                                            |
 
 Yang **tidak pernah** dikumpulkan: NIK, data keuangan, biometrik, lokasi presisi (koordinat), kontak
@@ -59,6 +60,12 @@ form daftar — **tidak pernah tercentang tanpa pilihan pengguna** — dan sakel
 terdaftar (tamu ditolak API). Tanpa opt-in, sales hanya menghubungi pengguna yang menekan "Minta dihubungi
 tim Pralon" sendiri (`sales_requests`). Halaman kebijakan privasi untuk pengguna belum ada (OQ-21); teks
 pemberitahuan di form daftar adalah pemberitahuan yang berlaku sampai halaman itu dibuat.
+
+**Antrean teknis bukan jalur sales** (P29-01). Kontak pengirim kasus muncul di layar antrean teknis
+tanpa `SALES_CONTACT`, karena dasarnya bukan persetujuan pemasaran melainkan permintaan pengguna
+sendiri: ia menekan "Kirim ke tim teknis Pralon" dan produk menjanjikan balasan 1×24 jam kerja.
+Kontak itu hanya untuk menjawab kasusnya, hanya di layar itu, dan tidak pernah dipakai menghubungi
+orang tentang hal lain.
 
 | Aspek            | Ketentuan                                                                                  |
 | ---------------- | ------------------------------------------------------------------------------------------ |

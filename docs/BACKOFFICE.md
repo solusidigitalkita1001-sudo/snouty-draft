@@ -86,14 +86,18 @@ tindakan itu tercatat lengkap dengan identitas dan waktunya.
 
 ### 4.3 Antrean handoff teknis — `technical_team` · Fase 10
 
-| Kemampuan                                                                    |     |
-| ---------------------------------------------------------------------------- | --- |
-| Antrean kasus dari "Kirim ke tim teknis Pralon"                              |
-| Melihat snapshot kebutuhan lengkap — pelanggan tidak perlu menjelaskan ulang |
-| Unduh ringkasan kebutuhan                                                    |
-| Ubah status: `QUEUED` → `ACKNOWLEDGED` → `CLOSED`                            |
-| Pelacakan SLA terhadap "1×24 jam kerja"                                      |
-| Catatan internal                                                             |
+| Kemampuan                                                                    | Keadaan                                            |
+| ---------------------------------------------------------------------------- | -------------------------------------------------- |
+| Antrean kasus dari "Kirim ke tim teknis Pralon"                              | **ada** (P29-01)                                   |
+| Melihat snapshot kebutuhan lengkap — pelanggan tidak perlu menjelaskan ulang | **ada**, asumsi dan lampiran dipisah               |
+| Kontak pengirim supaya kasusnya bisa dijawab                                 | **ada** (P29-01); tamu disebut tanpa kontak        |
+| Ubah status: `QUEUED` → `IN_REVIEW` → `RESOLVED`/`CLOSED`                    | **ada**; `IN_REVIEW` mencatat siapa yang ambil     |
+| Pelacakan SLA terhadap "1×24 jam kerja"                                      | **ada**; hari kerja saja, hari libur belum (OQ-78) |
+| Unduh ringkasan kebutuhan                                                    | belum                                              |
+| Catatan internal                                                             | belum                                              |
+
+Nama status mengikuti yang sudah ada di skema sejak Fase 8 (`IN_REVIEW`, bukan `ACKNOWLEDGED`);
+mengganti namanya berarti migration tanpa manfaat yang bisa dilihat siapa pun.
 
 Pelacakan SLA bukan hiasan: SLA itu **dijanjikan kepada pelanggan di layar 11**. Kalau tidak diukur,
 janji itu kosong.

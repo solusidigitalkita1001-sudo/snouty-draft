@@ -413,6 +413,21 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-78 — Jam kerja dan hari libur untuk janji "1×24 jam kerja" (P29-01, 2026-10-23)
+
+**Status:** open, berjalan dengan default · **Blocks:** tidak ada
+**Konteks:** antrean teknis kini menandai kasus yang melewati janji "1×24 jam kerja" yang dibuat
+produk kepada pengguna. Untuk menandainya, sistem harus tahu kapan jam itu berjalan.
+**Default yang berjalan sekarang:** jam berjalan sepanjang hari Senin–Jumat dan berhenti penuh di
+Sabtu–Minggu; batas harinya WIB (+07:00, tetap — Indonesia tidak punya daylight saving); hari libur
+nasional **tidak** ikut, karena sistem tidak punya kalendernya dan menebak tanggalnya lebih buruk
+daripada mengakui batasnya.
+**Yang perlu diputuskan pemilik:** (1) apakah jamnya dibatasi jam kerja kantor (mis. 08.00–17.00)
+alih-alih sepanjang hari kerja — ini memperpanjang tenggat kasus yang masuk malam hari; (2) apakah
+kalender libur nasional perlu dimuat, dan dari mana sumbernya; (3) apakah Sabtu dihitung setengah
+hari di pabrik. Sampai dijawab, penandaan "terlambat" sedikit lebih galak daripada seharusnya —
+arah galat yang benar untuk janji kepada pelanggan.
+
 ### OQ-77 — Wilayah dari IP: tingkat, siapa yang melihat, dan kota dari izin browser (P26-07, 2026-10-21)
 
 **Status:** diputuskan pemilik (2026-10-21, AskUserQuestion): ketiga default diterima — provinsi dari IP, wilayah hanya di agregat pasar (tidak per orang untuk sales), kota dari izin browser belum perlu. · **Blocks:** tidak ada

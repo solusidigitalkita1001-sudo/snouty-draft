@@ -19,6 +19,7 @@ import { HANDOFF_REPOSITORY, type HandoffRepository } from './domain/handoff.rep
 import { handoffRepositoryProvider } from './infrastructure/mysql-handoff.repository.js';
 import { HandoffController } from './presentation/handoff.controller.js';
 import { InternalHandoffController } from './presentation/internal-handoff.controller.js';
+import { HandoffQueueController } from './presentation/handoff-queue.controller.js';
 import { UploadsModule } from '../uploads/uploads.module.js';
 import { UploadsService } from '../uploads/application/uploads.service.js';
 
@@ -63,7 +64,7 @@ const handoffServiceProvider = {
 
 @Module({
   imports: [ContextModule, ConversationModule, UploadsModule],
-  controllers: [HandoffController, InternalHandoffController],
+  controllers: [HandoffController, InternalHandoffController, HandoffQueueController],
   providers: [
     handoffRepositoryProvider,
     handoffServiceProvider,
