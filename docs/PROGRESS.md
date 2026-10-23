@@ -2465,3 +2465,35 @@ mengerjakan yang kedua.
   - [x] P28-02a Tes (5): label teratas dipakai, intent yang mengekstrak ditolak cadangan, tanpa
         peringkat ditandai model tidak tersedia, keyakinan rendah DARI model tetap ragu biasa, dan
         pipeline mengucapkan kalimat yang benar
+
+- [x] P28-03 Layarnya dilihat sendiri, bukan hanya diuji. Sampai sekarang tampilan yang dikirim
+      Fase 27 hanya dibuktikan lewat tes dan smoke HTTP; tidak ada yang pernah membukanya. Chromium
+      Playwright (yang memang sudah dipakai worker untuk PDF) dipakai memotret layar produksi dan
+      layar lokal yang perlu masuk akun. **Satu cacat nyata ditemukan dan ditutup:** di back-office
+      lonceng pemberitahuan duduk di KAKI sidebar kiri, dan panelnya membuka ke bawah-kanan — jadi
+      separuhnya terpotong tepi kiri layar dan sisanya jatuh di bawah lipatan. Lonceng kini punya
+      `placement`; di kaki sidebar panelnya naik dan berpaut ke tepi kiri. Yang diperiksa dan
+      bersih: muat awal, onboarding, konsultasi (desktop dan 390px), tautan bagikan yang tidak
+      berlaku (kartu maskot muncul sebagaimana mestinya), papan prospek, pasar, dan panel lonceng
+      di ruang konsultasi — keempat jenis kalimatnya terbaca wajar, termasuk `follow_up_due` yang
+      baru. Tidak ada galat konsol dan tidak ada gulir mendatar di satu layar pun.
+  - [x] P28-03a Tes (2): arah panel baku ke bawah, dan naik saat `placement="above"`
+
+- [x] P28-04 Satu navigasi untuk seluruh back-office. Ketahuan saat layarnya dibuka satu per satu:
+      back-office punya DUA sidebar yang tidak saling menyebut — papan prospek (prospek, prospek
+      saya, pasar, tim sales) dan alat internal (katalog, validasi aturan, peninjauan email, antrean
+      teknis). Dari yang satu tidak ada jalan ke yang lain, dan **separuh "alat" tidak punya satu pun
+      tautan dari dalam aplikasi**: layar katalog hanya bisa dibuka dengan mengetik alamatnya, jadi
+      pemegang `catalog_admin` tidak akan pernah menemukannya. Daftarnya kini satu
+      (`back-office-nav.ts`) dan dipakai kedua cangkang. Perannya mengikuti PERSIS apa yang dituntut
+      API tiap layar (`RequiresRole`), supaya menu tidak pernah menjanjikan layar yang lalu ditolak.
+  - [x] P28-04a Tes (7): admin melihat papan dan alatnya, katalog hanya untuk `catalog_admin`,
+        antrean teknis hanya untuk admin, sales hanya prospeknya sendiri, tamu tidak melihat apa pun,
+        pasar tidak muncul dua kali walau kedua daftar menyebutnya, label ikut bahasa
+
+- [x] P28-05 Yang harus diisi pemilik akhirnya tertulis. `deploy/env.production.example` tidak pernah
+      memuat `N8N_HANDOFF_WEBHOOK_URL`, `N8N_WEBHOOK_SECRET`, `TECH_HANDOFF_TARGET`, atau
+      `PRICING_ENABLED` — jadi satu-satunya cara mengetahui bahwa "Kirim ke tim teknis" tidak pernah
+      benar-benar mengirim email adalah membaca kode worker. Keempatnya kini ada beserta bentuk
+      payload webhook dan cara tanda tangannya diverifikasi, dan `docs/DEPLOYMENT.md` §0 menyebutnya
+      di tabel "yang harus disiapkan pemilik" dengan keadaan sebenarnya per 2026-10-23.

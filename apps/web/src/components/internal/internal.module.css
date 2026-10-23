@@ -129,3 +129,14 @@
   color: var(--snouty-assumed-body);
   text-wrap: pretty;
 }
+
+/* Judul kelompok menu (P28-04) — memisahkan alat internal dari papan prospek. */
+.navGroup {
+  display: block;
+  margin: 14px 0 4px;
+  padding: 0 10px;
+  font-size: var(--snouty-text-caption);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--snouty-caption);
+}

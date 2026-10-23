@@ -125,3 +125,23 @@ describe('kalimat pemberitahuan', () => {
     expect(at('2026-10-21T12:00:00.000Z')).toBe('2 hari lalu');
   });
 });
+
+/**
+ * P28-03 — terlihat saat layarnya dipotret: di back-office loncengnya duduk di kaki sidebar
+ * kiri, dan panel yang membuka ke bawah-kanan jatuh keluar layar.
+ */
+describe('arah panel', () => {
+  it('baku membuka ke bawah', async () => {
+    api.fetchNotifications.mockResolvedValue({ unread: 1, items: [item()] });
+    render(<NotificationBell />);
+    fireEvent.click(await screen.findByRole('button', { name: /Pemberitahuan/ }));
+    expect(screen.getByRole('dialog').className).not.toContain('panelAbove');
+  });
+
+  it('di kaki sidebar panelnya naik', async () => {
+    api.fetchNotifications.mockResolvedValue({ unread: 1, items: [item()] });
+    render(<NotificationBell placement="above" />);
+    fireEvent.click(await screen.findByRole('button', { name: /Pemberitahuan/ }));
+    expect(screen.getByRole('dialog').className).toContain('panelAbove');
+  });
+});

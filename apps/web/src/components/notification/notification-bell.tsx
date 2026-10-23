@@ -23,7 +23,16 @@ import styles from './notification.module.css';
 /** Ditarik ulang berkala; cukup jarang untuk tidak membebani, cukup sering untuk terasa hidup. */
 const POLL_MS = 60_000;
 
-export function NotificationBell({ enabled = true }: { readonly enabled?: boolean }) {
+/** Ke mana panelnya membuka — ditentukan di tempat loncengnya dipasang, bukan ditebak. */
+export type BellPlacement = 'below' | 'above';
+
+export function NotificationBell({
+  enabled = true,
+  placement = 'below',
+}: {
+  readonly enabled?: boolean;
+  readonly placement?: BellPlacement;
+}) {
   const { locale } = useLocale();
   const COPY = notificationShell(locale);
   const [feed, setFeed] = useState<NotificationFeed | null>(null);
@@ -79,7 +88,13 @@ export function NotificationBell({ enabled = true }: { readonly enabled?: boolea
       </button>
 
       {open && (
-        <div className={styles.panel} role="dialog" aria-label={COPY.title}>
+        <div
+          className={[styles.panel, placement === 'above' ? styles.panelAbove : '']
+            .filter(Boolean)
+            .join(' ')}
+          role="dialog"
+          aria-label={COPY.title}
+        >
           <div className={styles.panelHead}>
             <span className={styles.panelTitle}>{COPY.title}</span>
             {feed.unread > 0 && (

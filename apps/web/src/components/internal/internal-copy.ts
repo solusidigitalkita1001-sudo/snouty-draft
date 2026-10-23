@@ -15,6 +15,7 @@ import { pickCopy, type CopyShape } from '../copy';
 export const INTERNAL_COPY = {
   needsDesign: 'BACK-OFFICE SEMENTARA · MENUNGGU DESAIN (OQ-21)',
   brand: 'SNOUTY · INTERNAL',
+  boardGroup: 'Papan prospek',
 
   nav: [
     { href: '/internal/catalog', label: 'Katalog', phase: 'P1-10b' },
@@ -64,6 +65,7 @@ export const INTERNAL_COPY = {
 export const INTERNAL_COPY_EN: CopyShape<typeof INTERNAL_COPY> = {
   needsDesign: 'TEMPORARY BACK-OFFICE · AWAITING DESIGN (OQ-21)',
   brand: 'SNOUTY · INTERNAL',
+  boardGroup: 'Prospect board',
 
   nav: [
     { href: '/internal/catalog', label: 'Catalog', phase: 'P1-10b' },
@@ -116,5 +118,5 @@ export function internalCopy(locale: Locale): CopyShape<typeof INTERNAL_COPY> {
 
 export type InternalSection = Exclude<
   keyof typeof INTERNAL_COPY,
-  'needsDesign' | 'brand' | 'nav' | 'statusLabel'
+  'needsDesign' | 'brand' | 'boardGroup' | 'nav' | 'statusLabel'
 >;

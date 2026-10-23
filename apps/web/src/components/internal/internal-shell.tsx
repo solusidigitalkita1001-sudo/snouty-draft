@@ -13,6 +13,9 @@
 
 import { internalCopy, type InternalSection } from './internal-copy';
 import { useLocale } from '../locale';
+import { useEffect, useState } from 'react';
+import { getCurrentUser, restoreSession } from '../auth/session';
+import { boardLinks } from './back-office-nav';
 import styles from './internal.module.css';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
@@ -22,7 +25,14 @@ function useInternalCopy() {
 
 export function InternalShell({ section }: { section: InternalSection }) {
   const COPY = useInternalCopy();
+  const { locale } = useLocale();
   const content = COPY[section];
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    void restoreSession().finally(() => setReady(true));
+  }, []);
+  // Jalan kembali ke papan prospek (P28-04): dari sini dulu tidak ada satu pun tautan ke sana.
+  const board = boardLinks(ready ? getCurrentUser() : null, locale);
 
   return (
     <div className={styles.shell}>
@@ -42,6 +52,16 @@ export function InternalShell({ section }: { section: InternalSection }) {
               <span className={styles.navPhase}>{item.phase}</span>
             </a>
           ))}
+          {board.length > 0 && (
+            <>
+              <span className={styles.navGroup}>{COPY.boardGroup}</span>
+              {board.map((item) => (
+                <a key={item.section} href={item.href} className={styles.navItem}>
+                  <span>{item.label}</span>
+                </a>
+              ))}
+            </>
+          )}
         </nav>
       </aside>
 

@@ -3,7 +3,7 @@
  * mode gelap tanpa aset kedua. Semuanya `aria-hidden`: label teks di sebelahnya yang membawa makna —
  * ikon tidak pernah menjadi satu-satunya penanda.
  */
-import type { DashboardSection } from './dashboard-shell';
+import type { BackOfficeSection } from '../internal/back-office-nav';
 
 function Icon({ children }: { children: React.ReactNode }) {
   return (
@@ -81,11 +81,55 @@ export function MenuIcon({ open }: { open: boolean }) {
   );
 }
 
-export function sectionIcon(section: DashboardSection) {
+export function sectionIcon(section: BackOfficeSection) {
   if (section === 'prospects') return <FunnelIcon />;
   if (section === 'leads') return <PersonIcon />;
   if (section === 'market') return <ChartIcon />;
-  return <TeamIcon />;
+  if (section === 'team') return <TeamIcon />;
+  if (section === 'catalog') return <BoxIcon />;
+  if (section === 'rules') return <RulerIcon />;
+  if (section === 'email') return <MailIcon />;
+  return <InboxIcon />;
+}
+
+/** Kotak: katalog produk. */
+export function BoxIcon() {
+  return (
+    <Icon>
+      <path d="M3 6.5 10 3l7 3.5v7L10 17l-7-3.5v-7Z" />
+      <path d="M3 6.5 10 10l7-3.5M10 10v7" />
+    </Icon>
+  );
+}
+
+/** Penggaris: aturan teknik yang divalidasi. */
+export function RulerIcon() {
+  return (
+    <Icon>
+      <path d="M3 12.5 12.5 3l4.5 4.5L7.5 17 3 12.5Z" />
+      <path d="M6.5 9 8 10.5M9 6.5 10.5 8M12 4l1.5 1.5" />
+    </Icon>
+  );
+}
+
+/** Amplop: peninjauan email masuk. */
+export function MailIcon() {
+  return (
+    <Icon>
+      <rect x="2.5" y="4.5" width="15" height="11" rx="2" />
+      <path d="m3 6 7 5 7-5" />
+    </Icon>
+  );
+}
+
+/** Baki masuk: antrean kasus untuk tim teknis. */
+export function InboxIcon() {
+  return (
+    <Icon>
+      <path d="M2.5 11.5 5 4h10l2.5 7.5v3a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-3Z" />
+      <path d="M2.5 11.5h4l1 2h5l1-2h4" />
+    </Icon>
+  );
 }
 
 /** Penanda lokasi: judul peta permintaan. */

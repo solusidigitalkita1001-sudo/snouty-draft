@@ -52,6 +52,18 @@
   overflow: hidden;
 }
 
+/*
+ * Lonceng yang duduk di KAKI sidebar kiri (back-office): panel yang membuka ke bawah-kanan
+ * jatuh keluar layar — separuhnya terpotong tepi kiri dan sisanya di bawah lipatan (terlihat
+ * saat layarnya dipotret, P28-03). Di sana panelnya naik dan berpaut ke tepi kiri.
+ */
+.panelAbove {
+  top: auto;
+  bottom: calc(100% + 8px);
+  right: auto;
+  left: 0;
+}
+
 .panelHead {
   display: flex;
   align-items: center;

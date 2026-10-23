@@ -13,16 +13,11 @@ import { useLocale } from '../locale';
 import { dashboardCopy } from './dashboard-copy';
 import { NotificationBell } from '../notification/notification-bell';
 import { BackIcon, MenuIcon, sectionIcon } from './dashboard-icons';
+import { boardLinks, toolLinks, type BoardSection } from '../internal/back-office-nav';
 import styles from './dashboard.module.css';
 
-export type DashboardSection = 'prospects' | 'team' | 'market' | 'leads';
-
-interface NavItem {
-  readonly section: DashboardSection;
-  readonly href: string;
-  readonly label: string;
-  readonly show: boolean;
-}
+/** Tetap diekspor: dipakai halaman-halaman papan untuk menyebut bagiannya. */
+export type DashboardSection = BoardSection;
 
 export function DashboardShell({
   section,
@@ -42,34 +37,15 @@ export function DashboardShell({
   }, []);
 
   const user = ready ? getCurrentUser() : null;
-  const items: readonly NavItem[] = [
-    {
-      section: 'prospects',
-      href: '/internal/prospects',
-      label: COPY.nav.prospects,
-      show: canOpenDashboard(user),
-    },
-    {
-      section: 'leads',
-      href: '/internal/leads',
-      label: COPY.nav.leads,
-      show: isSales(user) || canOpenDashboard(user),
-    },
-    {
-      section: 'market',
-      href: '/internal/market',
-      label: COPY.nav.market,
-      show: canOpenDashboard(user),
-    },
-    {
-      section: 'team',
-      href: '/internal/sales-team',
-      label: COPY.nav.team,
-      show: canOpenDashboard(user),
-    },
-  ];
+  // Satu navigasi untuk seluruh back-office (P28-04): papan prospek DAN alat internal. Dulu
+  // keduanya sidebar terpisah yang tidak saling menyebut, dan layar katalog tidak punya satu pun
+  // tautan dari dalam aplikasi — hanya bisa dibuka dengan mengetik alamatnya.
+  const board = boardLinks(user, locale);
+  const tools = toolLinks(user, locale);
   // Sebelum sesi terbaca, bagian yang sedang dibuka tetap tampil supaya menu tidak berkedip kosong.
-  const shown = items.filter((item) => item.show || item.section === section);
+  const shown = board.some((item) => item.section === section)
+    ? board
+    : [...board, { section, href: '#', label: COPY.nav[section] }];
 
   return (
     <div className={styles.shell}>
@@ -90,12 +66,24 @@ export function DashboardShell({
               <span>{item.label}</span>
             </a>
           ))}
+          {tools.length > 0 && (
+            <>
+              <span className={styles.navGroup}>{COPY.nav.tools}</span>
+              {tools.map((item) => (
+                <a key={item.section} href={item.href} className={styles.navItem}>
+                  {sectionIcon(item.section)}
+                  <span>{item.label}</span>
+                </a>
+              ))}
+            </>
+          )}
         </nav>
         <div className={styles.sidebarFoot}>
           <div className={styles.footRow}>
             {user && <span className={styles.meta}>{user.name}</span>}
-            {/* Penugasan prospek dan permintaan dihubungi sampai ke sini (P27-07). */}
-            <NotificationBell enabled={user !== null} />
+            {/* Penugasan prospek dan permintaan dihubungi sampai ke sini (P27-07). Loncengnya
+                duduk di kaki sidebar, jadi panelnya naik — ke bawah ia jatuh keluar layar. */}
+            <NotificationBell enabled={user !== null} placement="above" />
           </div>
           <a className={styles.backLink} href="/consultation">
             <BackIcon />
