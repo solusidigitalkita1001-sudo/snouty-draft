@@ -2545,3 +2545,9 @@ peninjauan email yang belum punya satu pun email masuk untuk ditinjau.
         dengan "bukan produk Pralon", dan **tidak lagi menghasilkan gap**; 5 kasus emas baru
         (245 → 250). Contohnya membawa kata pembeda (nama bahan, "selain"), bukan rangka kalimat.
         Evaluasi penyandi sungguhan tetap 99,4% intent dan seluruh topik lulus
+
+**Verifikasi P28-06 di produksi (23 Okt 2026).** Lima pertanyaan yang dulu salah kini dijawab benar
+dalam 180–390 ms tanpa kartu eskalasi. Seluruh 67 pertanyaan pemilik dijalankan ulang setelah
+perubahan data — tidak ada jawaban lain yang berubah, dan paragraf bahan umum tidak bocor ke satu
+pun dari 67 itu. Dua pertanyaan kasus (#65 90 s, #66 17 s) masih terkena kelambatan model di CPU;
+keduanya tetap terjawab benar, bukan jatuh ke "belum menangkap maksudnya" seperti sebelum P28-02.
