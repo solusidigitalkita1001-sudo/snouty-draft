@@ -2477,7 +2477,13 @@ mengerjakan yang kedua.
       berlaku (kartu maskot muncul sebagaimana mestinya), papan prospek, pasar, dan panel lonceng
       di ruang konsultasi — keempat jenis kalimatnya terbaca wajar, termasuk `follow_up_due` yang
       baru. Tidak ada galat konsol dan tidak ada gulir mendatar di satu layar pun.
-  - [x] P28-03a Tes (2): arah panel baku ke bawah, dan naik saat `placement="above"`
+      **Cacat kedua, ditemukan saat memeriksa perbaikan yang pertama:** panel yang sudah naik pun
+      masih ditembus teks kepala tabel. Panelnya opak dan ber-`z-index` 60, tetapi sidebar back-office
+      `position: sticky` tanpa `z-index` — ia punya konteks tumpukan sendiri, dan kepala tabel yang
+      juga melekat (z-index 1, lebih belakang di DOM) menang atas seluruh isi sidebar. Sidebar kini
+      `z-index: 20`.
+  - [x] P28-03a Tes (2): arah panel baku ke bawah, dan naik saat `placement="above"`.
+        Tumpukan diperiksa di browser sungguhan, bukan di jsdom — jsdom tidak menyusun lapisan
 
 - [x] P28-04 Satu navigasi untuk seluruh back-office. Ketahuan saat layarnya dibuka satu per satu:
       back-office punya DUA sidebar yang tidak saling menyebut — papan prospek (prospek, prospek
@@ -2497,3 +2503,11 @@ mengerjakan yang kedua.
       benar-benar mengirim email adalah membaca kode worker. Keempatnya kini ada beserta bentuk
       payload webhook dan cara tanda tangannya diverifikasi, dan `docs/DEPLOYMENT.md` §0 menyebutnya
       di tabel "yang harus disiapkan pemilik" dengan keadaan sebenarnya per 2026-10-23.
+
+**Dua catatan koreksi yang muncul dari memeriksa layarnya sendiri.** (1) Dashboard pasar bukan lagi
+"cangkang minimal" seperti yang masih tertulis di P12-03: sejak P26-07/P26-16 ia punya empat angka
+ringkas, peta permintaan per provinsi, tren bulanan, dan tiga daftar peringkat, lengkap dengan
+penyebutan berapa kelompok yang ditahan ambang k-anonimitas. (2) Halaman akun (OQ-53) juga sudah
+ada — sebagai pop-up dari kaki sidebar, sesuai permintaan pemilik, bukan halaman tersendiri.
+Keduanya sempat dilaporkan sebagai "yang masih kurang" karena catatan fase lamanya tidak pernah
+diperbarui; yang kurang hanyalah catatannya.
