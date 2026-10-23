@@ -2242,6 +2242,30 @@ lalu layar, lalu data.
       jejaknya; kalimat tiap baris dirakit dari jenis barisnya, bukan dari teks yang dikirim server.
       Gagal mencatat jejak tidak membatalkan tindakannya — ia sudah terjadi.
 
+- [x] P27-10 Dataset FAQ dimatangkan (pemilik 2026-10-23: "matengin lagi mengenai dataset FAQ"). Delapan
+      pertanyaan lapangan yang sering datang belum punya topik sama sekali: memotong pipa, membersihkan
+      pipa, perbaikan bocor, warna pipa, pipa dicor, pukulan air, kemiringan buangan, bau saluran.
+      Semuanya kini punya fakta bersumber di `data/knowledge/pipe-facts.json` — kualitatif, mengutip apa
+      yang memang tertulis di materi perusahaan; angka berstatus "perlu validasi" tidak dibawa, dan yang
+      belum ada jawabannya (pipa dicor, aturan pukulan air, kemiringan resmi) mendapat `gap` sehingga
+      jawabannya menawarkan tim teknis, bukan karangan. Fakta "warna pipa" menjawab salah paham yang
+      paling sering: warna menandai lini produk, bukan kelas tekanannya. Dua invarian baru dipaku: tiap
+      topik yang bisa dikenali punya fakta atau konsep (topik tanpa jawaban = SNOUTY mengangguk lalu
+      diam), dan tiap topik punya minimal lima contoh kalimat.
+- [x] P27-11 Contoh pemahaman ditebalkan (pemilik 2026-10-23: "data set tolong matengin lagi tiap poin2
+      nya tebelin lagi isiannya"). Delapan kasus emas baru untuk topik lapangan membuktikan masalahnya
+      lebih dulu: akurasi intent turun ke 94,8 % dan tidak satu pun topik baru dikenali. Yang ditambah:
+      pertanyaan berbentuk GEJALA ("pipanya bunyi", "rembes", "bau got") di `knowledge_question`, contoh
+      per topik baru dari arah gejala (orang menyebut "bunyi gedebuk", bukan "water hammer"), contoh
+      negatif di `use-case none`, dan penebalan 25 label lama yang paling tipis di intent, company-topic,
+      product-aspect, use-case, depth, dan mutation-op. Akurasi intent 99,4 % (171/172) dengan `bge-m3`,
+      di atas ambang 95 % (docs/EVALUATION.md). Satu contoh yang hampir menyalin kasus emasnya diparafrase
+      — contoh yang sama persis hanya mengukur hafalan — dan satu regresi yang sempat terjadi ("kemarin
+      saya beli di toko sebelah" terbaca pertanyaan kompetitor) ditarik kembali: yang menandai kompetitor
+      adalah mereknya, bukan kata "toko". Sekalian: `hookTimeout` vitest dinaikkan ke 60 detik — fixture
+      MySQL menurunkan lalu menaikkan seluruh migration tiap suite, dan sejak migration bertambah batas
+      10 detik terlampaui, meninggalkan skema setengah jadi yang menggagalkan jalan berikutnya.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

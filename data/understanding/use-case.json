@@ -115,7 +115,12 @@
       "pipe to water my farm",
       "plantation irrigation system",
       "sprinklers for my orchard",
-      "irigasi taman"
+      "irigasi taman",
+      "irigasi kebun kopi 3 hektar",
+      "mengairi perkebunan seluas 5 hektar",
+      "kebun buah 2 ha mau dipasang irigasi",
+      "lahan pertanian hektaran butuh jaringan air",
+      "irrigation for a 3 hectare coffee plantation"
     ],
     "pump_transfer": [
       "ganti pipa transfer lama dari sumur ke tandon, 300 m",
@@ -129,7 +134,12 @@
       "pump water from a river to a reservoir 600 m away",
       "pumping line to an elevated tank",
       "jalur pompa transfer ke tangki atas",
-      "dorong air dari reservoir ke menara air"
+      "dorong air dari reservoir ke menara air",
+      "transfer air dari ground tank ke toren pakai pompa",
+      "pompa dari sumur ke tandon atas",
+      "mindahin air antar tangki",
+      "pumping water from a reservoir to a tank",
+      "jalur pompa 200 meter ke atas bukit"
     ],
     "gravity_drainage": [
       "ganti saluran drainase lama yang sudah pecah, 100 m",
@@ -142,7 +152,12 @@
       "sewage and wastewater drain to a septic tank by gravity",
       "sewer line for a shophouse",
       "gravity drain with a 1% slope",
-      "pembuangan air kotor kamar mandi ke septik"
+      "pembuangan air kotor kamar mandi ke septik",
+      "saluran buang gravitasi dari gedung",
+      "air limbah ngalir sendiri tanpa pompa",
+      "drainase kawasan dengan kemiringan alami",
+      "gravity drain from the building to the ditch",
+      "buangan dialirkan ke selokan depan"
     ],
     "sewerage": [
       "perluasan jaringan air limbah, tambah 100 sambungan ke pipa induk lama",
@@ -194,7 +209,12 @@
       "culvert under a 6 m road for trucks",
       "pipe under the road crossing",
       "culvert for a village road",
-      "saluran di bawah jalan raya untuk air sungai kecil"
+      "saluran di bawah jalan raya untuk air sungai kecil",
+      "gorong-gorong bawah jalan pakai pipa apa",
+      "crossing jalan desa butuh pipa",
+      "saluran lewat bawah jalan raya",
+      "culvert under a village road",
+      "pipa buat jembatan saluran"
     ],
     "well_distribution": [
       "ganti pipa sumur bor lama ke tandon, 60 m",
@@ -228,7 +248,12 @@
       "fish pond 4 x 4 m, 1.2 m deep",
       "i want to raise tilapia in a biofloc tank",
       "catfish ponds, 10 units",
-      "tilapia pond inlet and outlet piping"
+      "tilapia pond inlet and outlet piping",
+      "kolam lele 5x8 meter mau diisi dan dikuras",
+      "tambak udang butuh pipa isi dan buang",
+      "kolam ikan koi saluran airnya gimana",
+      "a catfish pond fill and drain line",
+      "kolam budidaya 3 petak"
     ],
     "none": [
       "pralon itu apa?",
@@ -250,7 +275,15 @@
       "cuaca hari ini gimana?",
       "what is the difference between pvc and hdpe?",
       "jaraknya 150 m",
-      "debitnya 5 liter per detik"
+      "debitnya 5 liter per detik",
+      "pipa boleh ditanam di tembok ngga",
+      "ujung pipa dipotong miring ngaruh ngga",
+      "kenapa kamar mandi bau got",
+      "pipa bunyi keras tiap kran ditutup",
+      "sambungan rembes padahal baru dilem",
+      "warna pipa nentuin kekuatannya ya",
+      "wc mampet boleh dituang soda api",
+      "pipa pembuangan mesti turun berapa"
     ]
   }
 }

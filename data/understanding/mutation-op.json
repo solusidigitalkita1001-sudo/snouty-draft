@@ -24,7 +24,11 @@
       "add two taps",
       "add another floor",
       "plus one sink",
-      "another kitchen"
+      "another kitchen",
+      "tambah satu wastafel lagi",
+      "sekalian tambahin dapur",
+      "naik jadi tiga lantai",
+      "tambahin 2 titik air"
     ],
     "remove": [
       "kurangi satu wastafel",
@@ -41,7 +45,11 @@
       "take out one sink",
       "one bathroom less",
       "drop one floor",
-      "minus one tap"
+      "minus one tap",
+      "kurangi satu kamar mandi",
+      "wastafelnya ngga jadi",
+      "jangan pakai toren",
+      "batalkan yang di lantai dua"
     ],
     "none": [
       "ubah jadi 3 lantai",

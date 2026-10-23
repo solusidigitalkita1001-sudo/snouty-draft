@@ -129,6 +129,15 @@ export const KNOWLEDGE_TOPICS = [
   'pipa pembuangan',
   'air minum',
   'sinar matahari',
+  // Pertanyaan lapangan yang sering datang tetapi belum punya topik (P27-10).
+  'memotong pipa',
+  'membersihkan pipa',
+  'perbaikan bocor',
+  'warna pipa',
+  'pipa dicor',
+  'pukulan air',
+  'kemiringan buangan',
+  'bau saluran',
 ] as const;
 export type KnowledgeTopicLabel = (typeof KNOWLEDGE_TOPICS)[number];
 

@@ -247,8 +247,12 @@
       "source": "Snouty Product Knowledge Master §20.2 (Faucet Socket: sambungan dengan ulir dalam; Valve Socket: menghubungkan pipa dengan valve); katalog aktif",
       "catalog": {
         "families": ["FITTING PVC"],
-        "nameIncludes": { "FITTING PVC": "Faucet Socket" },
-        "labels": { "FITTING PVC": "Faucet Socket" }
+        "nameIncludes": {
+          "FITTING PVC": "Faucet Socket"
+        },
+        "labels": {
+          "FITTING PVC": "Faucet Socket"
+        }
       }
     },
     {
@@ -323,6 +327,62 @@
         "families": ["HDPE", "PVC AW", "PVC S-10", "PVC VP"]
       },
       "gap": "jenis pipa baru untuk air bersih"
+    },
+    {
+      "topic": "memotong pipa",
+      "text": "Potong pipa tegak lurus terhadap sumbunya, bukan miring: ujung yang rata dan lurus itulah yang membuat sambungan lem atau rubber ring rapat. Setelah dipotong, bekas potongan dirapikan dan serpihannya dibersihkan sebelum disambung — kotoran di permukaan sambungan adalah penyebab bocor yang paling sering disebut. Untuk sambungan rubber ring, ujung spigot biasanya dibuat bevel supaya cincin karetnya tidak terdorong keluar saat pipa dimasukkan.",
+      "textEn": "Cut the pipe square to its axis, not at an angle: a flat, straight end is what makes a solvent or rubber-ring joint seal. After cutting, deburr the end and clean off the shavings before joining — dirt on the joint surface is the most commonly named cause of leaks. For a rubber-ring joint the spigot end is usually bevelled so the ring is not pushed out as the pipe goes in.",
+      "source": "Snouty Product Knowledge Master §4.9 (cutter: ujung rata dan lurus), §sambungan lem dan rubber ring"
+    },
+    {
+      "topic": "membersihkan pipa",
+      "text": "Jalur yang tersumbat dibersihkan secara mekanis — lumpur, kerak, atau benda asing dikeluarkan, bukan dilarutkan. Materi Pralon menyebut satu larangan tegas: jangan membersihkan pipa uPVC dengan soda api. Untuk jalur pembuangan, clean out di kaki pipa tegak dan di ujung jalur memang disiapkan supaya pembersihan tidak perlu membongkar pipa.",
+      "textEn": "A blocked line is cleared mechanically — the silt, scale, or foreign object is taken out, not dissolved. The Pralon material names one firm prohibition: do not clean uPVC pipe with caustic soda. On drainage lines the clean-outs at the stack foot and at the end of the run exist so that clearing a blockage does not mean breaking the pipe open.",
+      "source": "Snouty Product Knowledge Master §25 (jangan memakai soda api), §27 (aliran tersumbat → cleaning)"
+    },
+    {
+      "topic": "perbaikan bocor",
+      "text": "Bocor di sambungan hampir selalu soal permukaan: kotor saat disambung, atau lemnya kurang merata. Perbaikannya mengulang sambungan itu, bukan menambal dari luar. Pipa yang pecah atau retak karena benturan atau tekanan berlebih dipotong lalu disambung kembali. Untuk menyambung kembali pipa yang sudah terpasang, materi Pralon menyebut fitting perbaikan: Dresser Joint, Gibault Joint, dan Bell Repair Socket.",
+      "textEn": "A leaking joint is nearly always about the surface: dirty when it was made, or the cement spread unevenly. The fix is to remake that joint, not to patch it from outside. Pipe cracked by impact or over-pressure is cut out and rejoined. To rejoin pipe that is already installed, the Pralon material names repair fittings: a Dresser Joint, a Gibault Joint, and a Bell Repair Socket.",
+      "source": "Snouty Product Knowledge Master §27 (troubleshooting dan repair fitting)",
+      "gap": "prosedur perbaikan resmi per jenis kerusakan"
+    },
+    {
+      "topic": "warna pipa",
+      "text": "Warna pipa menandai lini produknya, bukan kelas tekanannya. Yang menentukan boleh atau tidaknya sebuah pipa dipakai di jalur bertekanan adalah KELAS yang tertulis pada pipanya — AW, D, C, atau kelas PN/SDR pada HDPE — bukan abu-abu atau coklatnya. Dua pipa sewarna bisa berbeda kelas, dan satu kelas bisa punya lebih dari satu warna. Jadi baca tulisan di badan pipanya, bukan warnanya.",
+      "textEn": "The colour marks the product line, not the pressure class. What decides whether a pipe may go into a pressurised run is the CLASS written on it — AW, D, C, or the PN/SDR class on HDPE — not whether it is grey or brown. Two pipes of the same colour can be different classes, and one class can come in more than one colour. So read the marking on the pipe body, not its colour.",
+      "source": "Katalog aktif Pralon (warna dan kelas tercantum terpisah pada nama produk)",
+      "gap": "standar warna resmi per lini produk",
+      "catalog": {
+        "families": ["PVC AW", "PVC D"]
+      }
+    },
+    {
+      "topic": "pipa dicor",
+      "text": "Materi Pralon yang ada belum memuat panduan untuk pipa yang dicor di dalam dinding atau lantai beton — berbeda dengan pipa yang ditanam di tanah, yang panduannya ada. Yang bisa dikatakan dari materi itu: pipa butuh dukungan yang cukup agar tidak melengkung, dan sambungan adalah titik yang paling perlu diperiksa sebelum tertutup. Untuk jalur yang akan dicor, tim teknis Pralon bisa memberi panduannya.",
+      "textEn": "The Pralon material does not yet cover pipe cast into a wall or concrete floor — unlike buried pipe, which is covered. What the material does say: pipe needs enough support not to sag, and joints are the points to check before anything closes over them. For a run that will be cast in, the Pralon technical team can advise.",
+      "source": "Snouty Product Knowledge Master §penimbunan (pipa tanam), §27 (support kurang → pipa melengkung)",
+      "gap": "panduan pipa yang dicor di dinding atau lantai"
+    },
+    {
+      "topic": "pukulan air",
+      "text": "Pukulan air (water hammer) adalah hentakan tekanan saat aliran berhenti mendadak — katup ditutup cepat, atau pompa mati. Hentakan itu merambat di sepanjang pipa dan membebani sambungan. Materi Pralon menyebut dua hal untuk menghadapinya: hindari penyebabnya, dan pakai air valve pada kondisi tertentu, terutama di jalur panjang dan di perubahan elevasi seperti perbukitan atau jembatan. Angka batas jalurnya belum berstatus aturan desain.",
+      "textEn": "Water hammer is the pressure shock when flow stops suddenly — a valve shut quickly, or a pump cutting out. The shock travels along the pipe and loads the joints. The Pralon material names two responses: avoid the cause, and use an air valve in certain conditions, particularly on long runs and at changes in elevation such as hills or bridges. The length figures it mentions are not yet a design rule.",
+      "source": "Snouty Product Knowledge Master §24 (water hammer / air valve — bukan design rule final)",
+      "gap": "aturan desain pencegahan pukulan air (panjang jalur, penempatan air valve)"
+    },
+    {
+      "topic": "kemiringan buangan",
+      "text": "Pipa pembuangan mengalir karena gravitasi, jadi ia harus turun sepanjang jalurnya. Terlalu landai membuat air dan kotoran mengendap; terlalu curam membuat air mendahului kotorannya dan jalur tetap kotor. Kemiringan yang dipakai SNOUTY untuk menghitung ukuran pipa buangan ditulis di dasar perhitungan tiap solusi, bersama beban tiap alat — jadi angkanya bisa diperiksa, bukan dihafal.",
+      "textEn": "Drainage flows by gravity, so it must fall along its whole run. Too flat and water and solids settle; too steep and the water outruns the solids and the line still fouls. The slope SNOUTY uses to size a drain is printed in the calculation basis of each solution, together with each fixture load — so the figure can be checked rather than memorised.",
+      "source": "Dasar perhitungan solusi (ENG-602/ENG-604); angka kemiringan menunggu validasi ahli Pralon",
+      "gap": "kemiringan minimum resmi per ukuran pipa"
+    },
+    {
+      "topic": "bau saluran",
+      "text": "Bau yang naik dari saluran berarti ada jalan bagi udara saluran untuk masuk ke ruangan. Dua hal yang menahannya: perangkap air (leher angsa) di tiap alat, yang harus selalu terisi air, dan pipa ventilasi yang membuang udara saluran ke atas atap sehingga aliran tidak menyedot air di perangkap itu. Alat yang jarang dipakai bisa berbau karena perangkapnya kering. Setiap jalur buangan di solusi SNOUTY selalu punya ventilasinya sendiri.",
+      "textEn": "A smell coming up from the drain means sewer air has a path into the room. Two things hold it back: a water trap at each fixture, which must stay full of water, and a vent pipe taking sewer air above the roof so the flow does not siphon that trap dry. A fixture that is rarely used can smell simply because its trap has dried out. Every drainage line in a SNOUTY solution carries its own vent.",
+      "source": "Praktik perpipaan baku (perangkap air dan ventilasi); jalur ventilasi dihitung ENG-602/ENG-603"
     }
   ]
 }

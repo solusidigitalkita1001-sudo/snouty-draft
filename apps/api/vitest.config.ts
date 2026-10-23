@@ -38,5 +38,13 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.spec.ts'],
+    /**
+     * Fixture MySQL menurunkan lalu menaikkan SELURUH migration di `beforeAll` tiap suite, dan
+     * belasan suite melakukannya bersamaan terhadap satu kontainer. Batas bawaan 10 detik sudah
+     * terlampaui sejak jumlah migration bertambah (P27-09), dan hook yang kehabisan waktu
+     * meninggalkan skema setengah jadi yang menggagalkan jalannya berikutnya — kegagalan yang
+     * terlihat seperti bug kode padahal soal waktu.
+     */
+    hookTimeout: 60_000,
   },
 });

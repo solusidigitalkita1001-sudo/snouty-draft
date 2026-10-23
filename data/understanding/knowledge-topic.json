@@ -156,7 +156,12 @@
       "what is the manufacturing process?",
       "how are fittings made?",
       "what is extrusion?",
-      "pipa dibuat gimana?"
+      "pipa dibuat gimana?",
+      "pipa pralon dibuat gimana",
+      "proses produksi pipa pvc seperti apa",
+      "how is pvc pipe manufactured",
+      "bahan baku pipa apa",
+      "pabriknya bikin pipa lewat tahap apa aja"
     ],
     "uji mutu": [
       "pipa pvc diuji gimana?",
@@ -171,7 +176,12 @@
       "what is a hydrostatic test?",
       "burst test meaning?",
       "qc pipa gimana?",
-      "standar mutu pipa pvc apa?"
+      "standar mutu pipa pvc apa?",
+      "pipa pralon diuji apa aja",
+      "quality control pipa gimana",
+      "ada tes kualitas sebelum dikirim ngga",
+      "what quality tests does pralon run",
+      "pipa diperiksa apa sebelum dijual"
     ],
     "penimbunan": [
       "galian buat pipa tanam berapa dalam?",
@@ -300,7 +310,13 @@
       "what is a flexible pipe?",
       "why is hdpe flexible?",
       "which pipe can be coiled?",
-      "pipa lentur buat apa?"
+      "pipa lentur buat apa?",
+      "pipa kaku sama lentur bagusan mana",
+      "kenapa hdpe bisa digulung",
+      "pipa yang bisa ngikutin belokan apa",
+      "rigid vs flexible pipe which is better",
+      "buat tanah bergerak pakai pipa yang mana",
+      "pipa lentur kurang cocok di mana"
     ],
     "fungsi vs bahan": [
       "pipa drainase sama upvc bedanya apa?",
@@ -311,7 +327,13 @@
       "pipa limbah itu jenis bahan apa?",
       "pipa drainase termasuk upvc bukan?",
       "difference between drainage pipe and upvc pipe?",
-      "is a drainage pipe a different material from upvc?"
+      "is a drainage pipe a different material from upvc?",
+      "pilih pipa dari bahannya atau dari fungsinya",
+      "yang penting bahan apa kelasnya",
+      "gimana cara milih pipa yang bener",
+      "should I choose by material or by use",
+      "bingung milih pvc atau hdpe buat kasus saya",
+      "dasar pemilihan pipa apa"
     ],
     "jenis pipa baru": [
       "adakah jenis pipa terbaru selain hdpe dan upvc?",
@@ -322,7 +344,12 @@
       "selain pvc dan hdpe ada pipa yang lebih baru?",
       "pipa model terbaru apa?",
       "is there a newer pipe type than hdpe and upvc?",
-      "latest pipe technology for drinking water?"
+      "latest pipe technology for drinking water?",
+      "pralon punya jenis pipa baru ngga",
+      "ada produk pipa terbaru apa",
+      "lini produk pralon apa aja sekarang",
+      "what pipe types does pralon make",
+      "jenis pipa yang tersedia apa saja"
     ],
     "none": [
       "pralon itu apa?",
@@ -504,7 +531,13 @@
       "pipa hdpe tahan berapa tahun?",
       "garansi pipa berapa lama?",
       "how long does hdpe pipe last?",
-      "pipe service life?"
+      "pipe service life?",
+      "pipa pvc tahan berapa lama",
+      "umur pipa pralon berapa tahun",
+      "how long does pvc pipe last",
+      "pipa ditanam awet ngga",
+      "kapan pipa harus diganti",
+      "pipa lama 15 tahun masih aman ngga"
     ],
     "solvent cement": [
       "solvent cement itu apa?",
@@ -555,7 +588,13 @@
       "pipa 100 meter berapa batang?",
       "berapa batang buat jalur lurus 30 meter?",
       "how many pipe lengths for 27 metres?",
-      "how many pipes do i need for 40 m?"
+      "how many pipes do i need for 40 m?",
+      "butuh berapa batang buat 30 meter",
+      "hitung batang pipa gimana",
+      "50 m itu berapa lonjor",
+      "how many lengths do I need for 24 metres",
+      "sebatang pipa dapat berapa meter",
+      "kalau jalurnya 12 meter perlu berapa batang"
     ],
     "tekanan kerja": [
       "tekanan kerja pipa aw berapa?",
@@ -578,7 +617,13 @@
       "pipa pippo merek siapa?",
       "pippo buatan pralon?",
       "kualitas pippo dibanding pralon?",
-      "what is pippo pipe?"
+      "what is pippo pipe?",
+      "pippo itu apa",
+      "bedanya pippo sama pralon biasa",
+      "pipa pippo buat apa",
+      "pippo termasuk lini pralon ya?",
+      "what is pippo pipe",
+      "pippo ukurannya apa aja"
     ],
     "sni": [
       "sni di pipa artinya apa?",
@@ -599,7 +644,14 @@
       "ujung pipa ada berapa jenis?",
       "pipa ujung polos itu apa?",
       "what is a plain end pipe?",
-      "bell end vs plain end?"
+      "bell end vs plain end?",
+      "ts end sama bell end bedanya apa",
+      "ujung pipa yang polos itu apa namanya",
+      "spigot sama socket beda ya",
+      "what is a ts end",
+      "ujung pipa buat rubber ring yang mana",
+      "pipa saya ujungnya rata, pakai sambungan apa",
+      "plain end itu apa"
     ],
     "kesalahan umum": [
       "kesalahan umum memilih pipa apa?",
@@ -608,7 +660,13 @@
       "faktor memilih pipa apa saja?",
       "tips memilih pipa yang benar?",
       "common mistakes choosing pipes?",
-      "how to choose the right pipe?"
+      "how to choose the right pipe?",
+      "kesalahan yang sering terjadi pas masang pipa apa",
+      "kenapa sambungan sering bocor",
+      "salah pasang pipa yang umum apa aja",
+      "common mistakes installing pvc pipe",
+      "apa yang bikin instalasi gagal",
+      "biar ngga bocor apa yang harus dihindari"
     ],
     "sambungan rumah": [
       "pipa untuk sambungan rumah pakai apa?",
@@ -619,7 +677,13 @@
       "house connection pipe for water supply?",
       "pipa dari pdam ke rumah jaraknya 20 meter, ukuran berapa?",
       "pipa dari meteran pdam ke rumah pakai ukuran apa?",
-      "pipe from the water meter to the house, what size?"
+      "pipe from the water meter to the house, what size?",
+      "sambungan rumah itu apa",
+      "house connection maksudnya apa",
+      "pipa dari jaringan ke rumah pakai apa",
+      "sambungan dari meteran ke rumah gimana",
+      "what is a house connection in a water network",
+      "pipa dinas ke rumah ukurannya apa"
     ],
     "aplikasi": [
       "kegunaan pipa hdpe selain air minum?",
@@ -627,14 +691,28 @@
       "aplikasi pipa upvc di bidang apa saja?",
       "pipa pvc kegunaannya untuk sektor apa saja?",
       "what else is hdpe pipe used for besides drinking water?",
-      "applications of pvc pipe by sector?"
+      "applications of pvc pipe by sector?",
+      "pipa pralon bisa dipakai buat apa aja",
+      "upvc cocoknya buat apa",
+      "penggunaan pipa pvc di proyek apa saja",
+      "what is upvc pipe used for",
+      "pipa ini buat air bersih atau buangan",
+      "bisa buat irigasi sawah ngga",
+      "dipakai di gedung bertingkat bisa?"
     ],
     "standar pralon": [
       "pralon standard itu maksudnya apa?",
       "kolom class tertulis PRALON standard, artinya apa?",
       "standar pralon itu beda sama kelas aw dan d?",
       "pipa standar pralon dibanding pipa JIS dan SNI apa bedanya?",
-      "what does PRALON Standard mean in the class column?"
+      "what does PRALON Standard mean in the class column?",
+      "pralon ikut standar apa",
+      "pipa pralon sni atau jis?",
+      "standar yang dipakai pralon apa aja",
+      "pralon punya sertifikat standar ngga",
+      "which standards does pralon follow",
+      "acuan standar pipa pralon",
+      "pipa pralon sesuai sni ngga"
     ],
     "sambungan transisi": [
       "cara menyambung pipa pvc ke pipa besi gimana?",
@@ -704,7 +782,138 @@
       "pipa hdpe tahan sinar matahari?",
       "pvc tahan uv?",
       "is pvc pipe uv resistant?",
-      "can hdpe pipe be exposed to sunlight?"
+      "can hdpe pipe be exposed to sunlight?",
+      "pipa kena matahari langsung aman ngga",
+      "pvc di luar ruangan tahan ngga",
+      "pipa jadi kusam kena panas kenapa",
+      "does sunlight damage pvc pipe",
+      "pipa di atas atap perlu dicat?",
+      "uv ngaruh ke pipa ngga"
+    ],
+    "memotong pipa": [
+      "cara motong pipa pvc yang bener gimana",
+      "motong pipa pakai apa ya?",
+      "pipa dipotong miring boleh ngga?",
+      "habis dipotong perlu diamplas ngga",
+      "ujung pipa harus rata ya sebelum dilem?",
+      "gergaji besi bisa buat motong pvc?",
+      "how do I cut pvc pipe properly",
+      "does the cut end need to be square",
+      "perlu dibevel ngga ujungnya buat rubber ring",
+      "bekas potongan pipa kasar, ngaruh ke sambungan?",
+      "alat potong pipa namanya apa",
+      "motong pipa hdpe caranya sama?",
+      "ujung pipa dipotong miring bakal bocor ngga",
+      "potongan pipa tidak rata ngaruh ke sambungan?",
+      "kalau ujungnya ngga rata gimana",
+      "motong pipa harus tegak lurus ya",
+      "does a slanted cut cause leaks"
+    ],
+    "membersihkan pipa": [
+      "pipa mampet gimana bersihinnya",
+      "boleh disiram soda api ngga pipanya?",
+      "saluran buntu caranya apa",
+      "bersihin pipa pvc pakai cairan apa",
+      "pipa kotor di dalam, bisa dibersihin tanpa dibongkar?",
+      "clean out itu buat apa sih",
+      "how to clear a blocked pvc drain",
+      "is caustic soda safe for pvc pipe",
+      "kerak di dalam pipa gimana ngilanginnya",
+      "saluran air lambat ngalirnya kenapa",
+      "wc mampet boleh dituang soda api",
+      "saluran buntu boleh pakai bahan kimia?",
+      "toilet mampet cara bersihinnya apa",
+      "is it safe to pour chemicals down a pvc drain"
+    ],
+    "perbaikan bocor": [
+      "pipa bocor di sambungan gimana benerinnya",
+      "bisa ditambal ngga kalau bocor?",
+      "pipa retak harus diganti semua?",
+      "ada fitting buat nyambung pipa yang udah kepasang?",
+      "dresser joint itu apa",
+      "cara repair pipa yang udah ditanam",
+      "how do I fix a leaking pvc joint",
+      "pipa pecah kena benturan, solusinya apa",
+      "bell repair socket fungsinya apa",
+      "sambungan rembes terus padahal udah dilem",
+      "sambungan rembes padahal baru dilem kemarin",
+      "baru dilem kok bocor lagi",
+      "pipa merembes terus di satu titik",
+      "the joint seeps even though it was just glued"
+    ],
+    "warna pipa": [
+      "pipa abu-abu sama coklat bedanya apa",
+      "warna pipa nentuin kelasnya ngga?",
+      "kenapa ada pipa putih ada yang abu",
+      "pipa coklat buat apa",
+      "beda warna beda kekuatan ya?",
+      "what does the pipe colour mean",
+      "is the grey one stronger than the brown one",
+      "pipa hitam itu hdpe ya?",
+      "saya cuma inget warnanya, gimana tau kelasnya",
+      "warna pipa air bersih apa",
+      "yang abu-abu lebih kuat dari yang coklat ya",
+      "pipa abu lebih tebal dari pipa coklat?",
+      "saya mau yang paling kuat, warnanya apa",
+      "is the grey pipe stronger than the brown one",
+      "warna nentuin kekuatan pipa ngga"
+    ],
+    "pipa dicor": [
+      "pipa boleh dicor di dinding ngga",
+      "instalasi pipa ditanam dalam tembok aman?",
+      "pipa di bawah lantai beton gimana",
+      "pipa air di cor bareng dak, boleh?",
+      "kalau pipa ditanam di dinding terus bocor gimana",
+      "can pvc pipe be cast into concrete",
+      "pipa dalam tembok perlu pelindung ngga",
+      "instalasi tanam vs tempel bagusan mana",
+      "instalasi airnya mau ditanam di tembok aman ngga",
+      "pipa air di dalam dinding boleh ngga",
+      "mau ditanam di tembok, nanti kalau bocor gimana",
+      "is it safe to bury water pipe inside a wall"
+    ],
+    "pukulan air": [
+      "pipa bunyi gedebuk pas kran ditutup",
+      "water hammer itu apa",
+      "pipa getar pas pompa mati",
+      "suara hentakan di pipa kenapa ya",
+      "air valve fungsinya apa",
+      "what causes water hammer in pipes",
+      "how do I stop the banging noise in my pipes",
+      "jalur panjang perlu apa biar ngga ada hentakan",
+      "tiap kran ditutup pipanya bunyi keras banget",
+      "pipa bunyi kayak dipukul",
+      "ada suara gedebuk di pipa",
+      "pipes bang when I shut the tap"
+    ],
+    "kemiringan buangan": [
+      "pipa buangan kemiringannya berapa",
+      "saluran air kotor harus miring berapa persen",
+      "kalau pipa buang datar aja gimana",
+      "terlalu curam pipa buangan ngaruh ngga",
+      "what slope does a drain pipe need",
+      "pipa wc kemiringannya gimana",
+      "drainase mampet gara-gara kurang miring ya?",
+      "pipa pembuangan mesti turun berapa biar lancar",
+      "pipa buang perlu kemiringan berapa derajat",
+      "saluran buangan harus menurun seberapa",
+      "how much fall does a waste pipe need",
+      "kalau pipa buangnya rata air ngalir ngga",
+      "kemiringan pipa kotoran berapa persen"
+    ],
+    "bau saluran": [
+      "kenapa kamar mandi bau selokan",
+      "bau dari lubang pembuangan gimana ngatasinnya",
+      "leher angsa itu apa fungsinya",
+      "ventilasi pipa buangan perlu ngga",
+      "floor drain bau padahal baru",
+      "why does my bathroom smell like sewage",
+      "kamar mandi lama ngga dipakai jadi bau",
+      "pipa ventilasi harus keluar atap ya?",
+      "kenapa kamar mandi saya bau got terus",
+      "bau got naik dari lantai kamar mandi",
+      "rumah bau selokan padahal bersih",
+      "my bathroom keeps smelling of the drain"
     ]
   },
   "window": 0.04

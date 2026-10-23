@@ -70,7 +70,12 @@
       "compatible fittings for pvc d?",
       "which fittings are compatible?",
       "what fitting should i use with this pipe?",
-      "fitting yang cocok apa?"
+      "fitting yang cocok apa?",
+      "fitting yang cocok buat pipa ini apa",
+      "sambungannya pakai fitting apa",
+      "fitting ukuran ini ada ngga",
+      "which fittings fit this pipe",
+      "tee yang pas buat pipa ini yang mana"
     ],
     "material": [
       "bahan pipa pvc apa?",
@@ -83,7 +88,12 @@
       "what is hdpe made of?",
       "material of this pipe?",
       "made of what?",
-      "bahannya dari apa?"
+      "bahannya dari apa?",
+      "ini bahannya apa",
+      "terbuat dari apa pipanya",
+      "bahan bakunya pvc murni ya",
+      "what material is this pipe",
+      "bahannya sama dengan yang tadi ngga"
     ],
     "standard": [
       "standar sni hdpe apa?",
@@ -117,7 +127,12 @@
       "pn rating of pvc aw?",
       "pressure rating?",
       "what pressure does it withstand?",
-      "tekanan maksimalnya berapa?"
+      "tekanan maksimalnya berapa?",
+      "kelas tekanannya apa",
+      "kuat berapa bar",
+      "pn berapa ini",
+      "what pressure class is this",
+      "sdr nya berapa"
     ],
     "rod_length": [
       "panjang batang pvc berapa?",
@@ -131,7 +146,12 @@
       "how long is each length?",
       "what's the rod length?",
       "how many metres per length?",
-      "panjang pipa per batang berapa?"
+      "panjang pipa per batang berapa?",
+      "satu batang panjangnya berapa",
+      "dijual per berapa meter",
+      "panjang per lonjor berapa",
+      "how long is one length",
+      "ada yang 6 meter ngga"
     ],
     "joint_type": [
       "sambungan hdpe pakai apa?",

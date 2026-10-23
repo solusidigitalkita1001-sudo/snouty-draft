@@ -355,3 +355,50 @@ describe('answersFromKnowledge — pertanyaan bentuk sistem sendiri (P22-02)', (
     ).toBe(true);
   });
 });
+
+/**
+ * Cakupan FAQ (P27-10, pemilik 2026-10-23: "matengin lagi mengenai dataset FAQ").
+ *
+ * Invarian yang dipaku: setiap topik yang bisa dikenali pemahaman HARUS punya jawabannya — fakta
+ * bersumber di `data/knowledge/pipe-facts.json` atau konsep di `pipe-knowledge.ts`. Topik yang
+ * dikenali tetapi tidak punya jawaban berarti SNOUTY mengangguk lalu diam.
+ */
+describe('cakupan topik FAQ', () => {
+  it('tiap topik yang dikenali punya fakta atau konsep', async () => {
+    const { KNOWLEDGE_TOPICS } = await import('../../understanding/domain/labels.js');
+    const { CONCEPTS } = await import('./pipe-knowledge.js');
+    const facts = factTopics();
+    const concepts = new Set(CONCEPTS.map((c) => c.topic));
+    const orphan = KNOWLEDGE_TOPICS.filter((t) => !facts.has(t) && !concepts.has(t));
+    expect(orphan).toEqual([]);
+  });
+
+  it('tiap topik punya contoh kalimat di katalog pemahaman', async () => {
+    const { KNOWLEDGE_TOPICS } = await import('../../understanding/domain/labels.js');
+    const { findDataDir } = await import('../../understanding/infrastructure/catalog-files.js');
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const dir = findDataDir();
+    expect(dir).not.toBeNull();
+    const raw = readFileSync(join(dir!, 'knowledge-topic.json'), 'utf8');
+    const labels = (JSON.parse(raw) as { labels: Record<string, readonly string[]> }).labels;
+    for (const topic of KNOWLEDGE_TOPICS) {
+      expect(labels[topic]?.length ?? 0, topic).toBeGreaterThanOrEqual(5);
+    }
+  });
+
+  it('topik lapangan yang baru benar-benar menjawab, bukan kalimat kosong', () => {
+    for (const topic of [
+      'memotong pipa',
+      'membersihkan pipa',
+      'perbaikan bocor',
+      'warna pipa',
+      'pipa dicor',
+      'pukulan air',
+      'kemiringan buangan',
+      'bau saluran',
+    ] as const) {
+      expect(factTopics().has(topic), topic).toBe(true);
+    }
+  });
+});

@@ -136,7 +136,14 @@
       "bye bye",
       "see you later",
       "udah dulu ya",
-      "cukup dulu, bye"
+      "cukup dulu, bye",
+      "oke makasih ya, saya pamit dulu",
+      "cukup segitu dulu",
+      "saya tutup dulu, nanti balik lagi",
+      "thanks, that is all for now",
+      "bye for now",
+      "ok saya lanjut besok aja",
+      "udahan dulu deh"
     ],
     "complaint": [
       "dongo",
@@ -156,7 +163,17 @@
       "useless",
       "that is wrong",
       "that is not what I asked",
-      "you are not answering my question"
+      "you are not answering my question",
+      "kok jawabannya muter-muter sih",
+      "saya udah bilang tadi, kenapa ditanya lagi",
+      "ini salah, bukan itu maksud saya",
+      "lama banget sih responnya",
+      "kamu ngga nyambung",
+      "this is wrong, I said two floors not three",
+      "jawabannya ngga sesuai pertanyaan",
+      "udah dijelasin masih salah juga",
+      "kenapa hasilnya beda dari tadi",
+      "saya bingung sama jawabannya"
     ],
     "out_of_scope": [
       "cuaca hari ini gimana?",
@@ -237,7 +254,14 @@
       "wavin gimana?",
       "pralon vs wavin",
       "is rucika any good?",
-      "compared to other brands, how is pralon?"
+      "compared to other brands, how is pralon?",
+      "kalau dibanding wavin gimana",
+      "rucika sama pralon bagusan mana sih",
+      "maspion punya yang begini juga ngga",
+      "is pralon better than wavin",
+      "vinilon kualitasnya gimana",
+      "harga pralon lebih mahal dari merek lain ya",
+      "di toko adanya rucika, sama saja ngga dengan pralon"
     ],
     "product_concept": [
       "apa itu pvc?",
@@ -449,7 +473,15 @@
       "pipa apa yang tahan panas?",
       "pipa buat air panas yang mana?",
       "bahan pipa buat luar bangunan apa?",
-      "pakai pipa apa buat air panas?"
+      "pakai pipa apa buat air panas?",
+      "pipa buat saluran air hujan pakai apa",
+      "buat air limbah dapur enaknya pipa apa",
+      "pipa buat kolam ikan yang mana",
+      "which pipe for a buried water main",
+      "buat ventilasi pakai pipa apa",
+      "pipa buat air sumur bor apa ya",
+      "yang cocok buat saluran irigasi apa",
+      "buat jalur pompa pakai pipa jenis apa"
     ],
     "knowledge_question": [
       "cara nyambung pipa pvc pakai lem gimana?",
@@ -503,7 +535,31 @@
       "tekanan kerja masing-masing kelas pipa itu berapa?",
       "kalau tertulis maksimal 60 derajat, lewat dari itu risikonya apa?",
       "angka tekanan dan suhu di spesifikasi pipa pengaruhnya ke pemilihan gimana?",
-      "tulisan x 6 meter di nama produk itu panjang satu batang ya?"
+      "tulisan x 6 meter di nama produk itu panjang satu batang ya?",
+      "pipa saya bunyi keras tiap kran ditutup, kenapa ya",
+      "sambungannya rembes padahal baru dilem",
+      "kamar mandi bau got terus padahal rajin dibersihkan",
+      "wc mampet, boleh dituang soda api ngga",
+      "pipa boleh ditanam di tembok ngga sih",
+      "ujung pipa dipotong miring ngaruh ke sambungan ngga",
+      "pipa pembuangan harus turun berapa supaya lancar",
+      "warna pipa itu nentuin kekuatannya ya",
+      "kenapa pipa saya pecah padahal baru setahun",
+      "pipa di luar kena matahari lama-lama gimana",
+      "my pipes bang whenever I close the tap, why",
+      "the joint keeps seeping even though I glued it",
+      "why does my bathroom smell of sewage",
+      "can pvc pipe be buried inside a wall",
+      "floor drain saya kering terus, wajar ngga",
+      "pipa lama bunyi kayak dipukul, bahaya ngga",
+      "air di pipa bau besi, itu kenapa",
+      "pipa getar pas pompa nyala",
+      "yang abu-abu lebih kuat dari yang coklat ya",
+      "pipa warna gelap lebih tebal ya dibanding yang terang",
+      "pipa airnya mau disembunyikan di dalam tembok, aman?",
+      "kalau instalasinya ditanam di dinding, boleh ngga",
+      "pipanya mau dicor sekalian, kuat ngga",
+      "is the grey one stronger than the brown one"
     ],
     "advice_request": [
       "lebih bagus pvc atau hdpe buat rumah 2 lantai?",
@@ -524,7 +580,14 @@
       "kasih saran dong pipanya",
       "perlu pipa conduit untuk instalasi kabel listrik di rumah, produk pralon yang pas apa?",
       "butuh pipa untuk saluran gas di rumah, pralon punya yang cocok?",
-      "need a conduit for house wiring, which pralon product fits?"
+      "need a conduit for house wiring, which pralon product fits?",
+      "saranin dong yang paling pas buat saya",
+      "menurut kamu mending yang mana",
+      "rekomendasi kamu apa",
+      "what would you suggest for my case",
+      "kasih masukan dong",
+      "kalau kamu di posisi saya pilih apa",
+      "yang paling hemat buat kasus saya apa"
     ],
     "requirement_building": [
       "renovasi instalasi air rumah, tambah 1 kamar mandi",
@@ -578,7 +641,15 @@
       "pipe to water my farm",
       "garden irrigation from a well",
       "plantation irrigation system",
-      "irigasi taman"
+      "irigasi taman",
+      "mau pasang irigasi tetes buat kebun cabai",
+      "sawah saya 2 hektar mau dialiri dari sungai",
+      "irigasi sprinkler buat lahan jagung",
+      "butuh pipa buat nyiram kebun sayur",
+      "lahan 5000 m2 mau diairi dari sumur bor",
+      "drip irrigation for a chilli field",
+      "mau alirkan air ke kebun jeruk 1 hektar",
+      "nyiram greenhouse pakai pipa apa"
     ],
     "requirement_technical": [
       "perluasan jaringan spam, tambah 200 sr ke pipa induk lama",
@@ -731,7 +802,14 @@
       "show me the pipe layout",
       "can i see the installation drawing?",
       "where do the pipes run?",
-      "which fittings and how many?"
+      "which fittings and how many?",
+      "jalur pipanya lewat mana aja",
+      "pipanya nyambung dari mana ke mana",
+      "bisa lihat denah instalasinya",
+      "urutan pemasangannya gimana",
+      "how does the system connect together",
+      "pipa tegaknya di mana",
+      "gambar sistemnya ada ngga"
     ],
     "follow_up_continue": [
       "boleh",
@@ -874,7 +952,15 @@
       "so which should i choose?",
       "which one suits a house?",
       "mana yg cocok?",
-      "mending yang mana?"
+      "mending yang mana?",
+      "yang pertama aja",
+      "ambil yang kedua",
+      "pilih yang murah",
+      "yang paling kuat aja",
+      "the first one please",
+      "saya pilih opsi b",
+      "yang atas itu",
+      "pakai yang kamu saranin aja"
     ],
     "follow_up_reformat": [
       "bikinin tabelnya dong",
