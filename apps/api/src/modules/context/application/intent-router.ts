@@ -378,7 +378,8 @@ export class IntentRouter {
     const fast = certain ?? fastPathIntent(u, hasExistingRequirements);
     // `null` dari model = ia tidak menjawab (batas waktu / keluaran tidak valid), bukan "ragu".
     // Bacaan teratas pemahaman dipakai sebagai cadangan sebelum menyerah (P28-02).
-    const answered = fast ?? (await this.classifyWithinLimit(u.text, hasExistingRequirements, recentTurns));
+    const answered =
+      fast ?? (await this.classifyWithinLimit(u.text, hasExistingRequirements, recentTurns));
     const fallback = answered ?? rankedFallbackIntent(u, hasExistingRequirements);
     const classification = withSubjectPrecedence(
       u,

@@ -8,7 +8,7 @@
  * (`InternalRoleGuard`). Mascot tidak dipakai di back-office (skill desain).
  */
 import { useEffect, useState, type ReactNode } from 'react';
-import { canOpenDashboard, getCurrentUser, isSales, restoreSession } from '../auth/session';
+import { getCurrentUser, restoreSession } from '../auth/session';
 import { useLocale } from '../locale';
 import { dashboardCopy } from './dashboard-copy';
 import { NotificationBell } from '../notification/notification-bell';
