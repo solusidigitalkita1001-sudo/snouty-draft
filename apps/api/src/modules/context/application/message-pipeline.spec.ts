@@ -692,6 +692,25 @@ describe('runUnderstanding — bentuk event SSE', () => {
     expect(text?.text).toContain('belum menangkap maksudnya');
     expect(changed).toBe(false);
   });
+
+  /**
+   * P28-02 — giliran yang kehabisan waktu bukan pertanyaan yang tidak terbaca. Menyuruh pengguna
+   * memperjelas kalimat yang sudah jelas membuatnya menulis ulang hal yang sama lalu gagal lagi.
+   */
+  it('model tidak menjawab: mengatakan gilirannya kehabisan waktu, bukan "belum menangkap maksudnya"', async () => {
+    const decision: RoutingDecision = {
+      intent: 'CLARIFICATION_NEEDED',
+      confidence: 0,
+      shouldExtract: false,
+      mutatesState: false,
+      modelUnavailable: true,
+    };
+    const { events, changed } = await runUnderstanding(aiExtracting({}), input({ decision }));
+    const text = events.find((e) => e.type === 'token') as { text: string } | undefined;
+    expect(text?.text).toContain('kehabisan waktu');
+    expect(text?.text).not.toContain('belum menangkap maksudnya');
+    expect(changed).toBe(false);
+  });
 });
 
 describe('applyEdit — nol panggilan LLM (§9 #9)', () => {

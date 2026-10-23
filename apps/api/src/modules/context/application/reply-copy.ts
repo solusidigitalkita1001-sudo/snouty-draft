@@ -50,6 +50,20 @@ export function replyFor(intent: Intent, locale: Locale = DEFAULT_LOCALE): strin
   return locale === 'en' ? REPLY_COPY_EN[key] : REPLY_COPY[key];
 }
 
+/**
+ * Model tidak menjawab pada waktunya dan pemahaman pun tidak punya bacaan yang cukup (P28-02).
+ *
+ * Sebelum ini jawabannya "Maaf, saya belum menangkap maksudnya" — dan itu tidak benar:
+ * pertanyaannya mungkin sejelas-jelasnya, yang terjadi adalah gilirannya kehabisan waktu.
+ * Pengguna yang disuruh memperjelas kalimat yang sudah jelas akan menulis ulang hal yang sama
+ * dan gagal lagi; yang benar adalah mengatakan apa yang sesungguhnya terjadi.
+ */
+export function modelBusyReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en'
+    ? 'Sorry — I ran out of time working that one out. Please send it again in a moment; it usually goes through on the second try.'
+    : 'Maaf, giliran ini kehabisan waktu di saya — bukan karena pertanyaannya. Coba kirim lagi sebentar lagi, biasanya percobaan kedua langsung jalan.';
+}
+
 /** "Kenapa 1 inci?" sebelum ada solusi: belum ada angka yang bisa dijelaskan. */
 export function explanationBeforeSolution(locale: Locale = DEFAULT_LOCALE): string {
   return locale === 'en'

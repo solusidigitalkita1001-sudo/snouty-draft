@@ -269,6 +269,38 @@ export function fastPathIntent(
 /** Di bawah ini, sistem bertanya alih-alih menebak (docs/AI_BEHAVIOR.md). */
 export const INTENT_CONFIDENCE_THRESHOLD = 0.6;
 
+/** Tidak ada bacaan sama sekali. */
+const UNSURE: IntentClassification = { intent: 'CLARIFICATION_NEEDED', confidence: 0 };
+
+/**
+ * Bacaan cadangan saat model generatif tidak menjawab (P28-02).
+ *
+ * Pemahaman menyimpan peringkat lengkap, bukan hanya label yang lolos ambang. Bila model yang
+ * ditanya karena ambang itu tidak kunjung menjawab, label teratas peringkat lebih baik daripada
+ * menyerah — ia tetap mekanisme berbasis contoh yang sama, hanya dengan bar yang lebih rendah,
+ * dan dipakai HANYA sebagai cadangan. Di produksi satu pertanyaan produk yang benar dijawab
+ * "Maaf, saya belum menangkap maksudnya" semata karena model sedang padat (uji 67 pertanyaan,
+ * 2026-10-23).
+ *
+ * Pagarnya: cadangan tidak pernah MENYENTUH kebutuhan. Intent yang mengekstrak ditolak di sini,
+ * karena mengubah apa yang tercatat atas bacaan yang lemah persis kesalahan yang paling mahal
+ * (CONTEXT_ENGINE §6) — untuk itu bertanya tetap jawabannya.
+ */
+export function rankedFallbackIntent(
+  u: MessageUnderstanding,
+  hasExistingRequirements: boolean,
+): IntentClassification | null {
+  const top = u.intentRanking[0];
+  if (top === undefined) return null;
+  const guess = certainIntent(
+    { ...u, intent: { label: top.label as FineIntent, score: top.score } },
+    hasExistingRequirements,
+  );
+  if (guess === null || EXTRACTING_INTENTS.has(guess.intent)) return null;
+  // Tepat di ambang: cukup untuk dijalankan, tetapi tidak berpura-pura seyakin bacaan yang lolos.
+  return { intent: guess.intent, confidence: INTENT_CONFIDENCE_THRESHOLD };
+}
+
 /** Intent yang membawa kebutuhan untuk diekstrak dan di-merge ke state. */
 const EXTRACTING_INTENTS: ReadonlySet<Intent> = new Set<Intent>([
   'REQUIREMENT_STATEMENT',
@@ -289,6 +321,11 @@ export interface RoutingDecision {
   readonly shouldExtract: boolean;
   /** Mengubah state yang sudah ada? Menentukan apakah snapshot baru ditulis. */
   readonly mutatesState: boolean;
+  /**
+   * Model generatif tidak menjawab pada waktunya DAN pemahaman tidak punya bacaan cadangan
+   * (P28-02). Bukan "tidak paham" — dan balasannya tidak boleh berpura-pura begitu.
+   */
+  readonly modelUnavailable?: boolean;
 }
 
 /** Batas tunggu klasifikasi model bila tidak diberi — setara baku `LLM_REPLY_TIMEOUT_MS`. */
@@ -339,13 +376,14 @@ export class IntentRouter {
     // untuk yang tidak mirip contoh mana pun — di CPU, satu panggilan 10–60 detik.
     const certain = certainIntent(u, hasExistingRequirements);
     const fast = certain ?? fastPathIntent(u, hasExistingRequirements);
+    // `null` dari model = ia tidak menjawab (batas waktu / keluaran tidak valid), bukan "ragu".
+    // Bacaan teratas pemahaman dipakai sebagai cadangan sebelum menyerah (P28-02).
+    const answered = fast ?? (await this.classifyWithinLimit(u.text, hasExistingRequirements, recentTurns));
+    const fallback = answered ?? rankedFallbackIntent(u, hasExistingRequirements);
     const classification = withSubjectPrecedence(
       u,
       subject,
-      withRequirementPrecedence(
-        u,
-        fast ?? (await this.classifyWithinLimit(u.text, hasExistingRequirements, recentTurns)),
-      ),
+      withRequirementPrecedence(u, fallback ?? UNSURE),
     );
 
     // Ragu → bertanya. Mengubah kebutuhan tanpa diminta jauh lebih mahal daripada
@@ -356,6 +394,7 @@ export class IntentRouter {
         confidence: classification.confidence,
         shouldExtract: false,
         mutatesState: false,
+        ...(fallback === null ? { modelUnavailable: true } : {}),
       };
     }
 
@@ -377,7 +416,7 @@ export class IntentRouter {
     message: string,
     hasExistingRequirements: boolean,
     recentTurns: readonly ReplyTurn[],
-  ): Promise<IntentClassification> {
+  ): Promise<IntentClassification | null> {
     try {
       return await this.ai.classifyIntent({
         message,
@@ -386,9 +425,7 @@ export class IntentRouter {
         timeoutMs: this.classifyTimeoutMs,
       });
     } catch (error) {
-      if (error instanceof AiOutputInvalidError) {
-        return { intent: 'CLARIFICATION_NEEDED', confidence: 0 };
-      }
+      if (error instanceof AiOutputInvalidError) return null;
       throw error;
     }
   }

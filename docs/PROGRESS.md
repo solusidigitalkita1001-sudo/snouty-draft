@@ -2448,3 +2448,20 @@ mengerjakan yang kedua.
         tiba dibiarkan, sapuan kedua tidak mengulang, jadwal yang digeser berbunyi lagi, menang/kalah
         dilewati, prospek tanpa jadwal tidak pernah muncul. Web (2): kalimat Indonesia dan prospek
         tanpa nama tetap utuh
+
+- [x] P28-02 Model yang kehabisan waktu tidak lagi berpura-pura tidak paham. Di uji 67 pertanyaan
+      (P27-13) satu pertanyaan produk yang sepenuhnya jelas — "fitting elbow 90 derajat 3/4 inch" —
+      dijawab "Maaf, saya belum menangkap maksudnya" semata karena model 7B sedang padat; sendirian
+      ia dijawab benar dalam 4–8 detik. Dua perbaikan, keduanya di sisi yang memang bisa diubah
+      tanpa menambah mesin (`OLLAMA_KEEP_ALIVE=24h` dan `OLLAMA_NUM_PARALLEL=1` sudah terpasang
+      sejak Fase 15/25): (1) **bacaan cadangan** — `rankedFallbackIntent` memakai label teratas
+      `intentRanking` milik pemahaman, yang selama ini dibuang begitu saja saat skornya di bawah
+      ambang; mekanisme berbasis contoh yang sama, hanya dengan bar lebih rendah, dan HANYA saat
+      model generatif tidak menjawab. Pagarnya: cadangan tidak pernah menghasilkan intent yang
+      mengekstrak — mengubah kebutuhan atas bacaan lemah justru kesalahan yang paling mahal
+      (CONTEXT_ENGINE §6). (2) **Kalimatnya jujur** — bila cadangan pun tidak ada, `modelUnavailable`
+      membawa balasan "giliran ini kehabisan waktu di saya, bukan karena pertanyaannya", bukan
+      menyuruh pengguna memperjelas kalimat yang sudah jelas.
+  - [x] P28-02a Tes (5): label teratas dipakai, intent yang mengekstrak ditolak cadangan, tanpa
+        peringkat ditandai model tidak tersedia, keyakinan rendah DARI model tetap ragu biasa, dan
+        pipeline mengucapkan kalimat yang benar

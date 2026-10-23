@@ -430,3 +430,64 @@ describe('IntentRouter — pertanyaan dimensi (P21-09)', () => {
     expect(calls()).toBe(0);
   });
 });
+
+/**
+ * P28-02 — di produksi satu pertanyaan produk yang sepenuhnya jelas dijawab "Maaf, saya belum
+ * menangkap maksudnya", semata karena model sedang padat (uji 67 pertanyaan pemilik, 2026-10-23).
+ * Dua hal yang diperbaiki: ada bacaan cadangan, dan bila tidak ada pun jawabannya jujur.
+ */
+describe('IntentRouter — model tidak menjawab (P28-02)', () => {
+  /** Model yang selalu kehabisan waktu. */
+  function silentAi(): AiService {
+    const ai = aiReturning({ intent: 'OUT_OF_SCOPE', confidence: 1 });
+    ai.classifyIntent = () =>
+      Promise.reject(new AiOutputInvalidError('intent_classification', 'melewati batas tunggu'));
+    return ai;
+  }
+
+  const ranked = (label: string) => [{ label, score: 0.4, example: 'contoh' }];
+
+  it('label teratas peringkat dipakai sebagai cadangan, bukan menyerah', async () => {
+    const d = await new IntentRouter(silentAi()).route(
+      understood('fitting elbow 90 derajat 3/4 inch', {
+        intent: null,
+        intentRanking: ranked('product_spec'),
+      }),
+      false,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+    expect(d.modelUnavailable).toBeUndefined();
+  });
+
+  it('cadangan tidak pernah menyentuh kebutuhan — bacaan lemah tidak boleh mengubah state', async () => {
+    const d = await new IntentRouter(silentAi()).route(
+      understood('yang itu aja deh', {
+        intent: null,
+        intentRanking: ranked('clarification_answer'),
+      }),
+      true,
+    );
+    expect(d.intent).toBe('CLARIFICATION_NEEDED');
+    expect(d.mutatesState).toBe(false);
+    expect(d.shouldExtract).toBe(false);
+    expect(d.modelUnavailable).toBe(true);
+  });
+
+  it('tanpa peringkat sama sekali: ditandai model tidak tersedia, bukan "tidak paham"', async () => {
+    const d = await new IntentRouter(silentAi()).route(
+      understood('qwerty', { intent: null, intentRanking: [] }),
+      false,
+    );
+    expect(d.intent).toBe('CLARIFICATION_NEEDED');
+    expect(d.modelUnavailable).toBe(true);
+  });
+
+  it('model yang MENJAWAB dengan keyakinan rendah tetap ragu biasa, bukan model tidak tersedia', async () => {
+    const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.2 }).route(
+      understood('hmm', { intent: null, intentRanking: ranked('product_spec') }),
+      false,
+    );
+    expect(d.intent).toBe('CLARIFICATION_NEEDED');
+    expect(d.modelUnavailable).toBeUndefined();
+  });
+});

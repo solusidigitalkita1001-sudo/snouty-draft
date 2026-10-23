@@ -82,6 +82,7 @@ import { competitorAnswer } from './competitor-answer.js';
 import {
   explanationBeforeSolution,
   explanationHandedOff,
+  modelBusyReply,
   openerReply,
   outOfTopicReply,
   replyFor,
@@ -183,7 +184,10 @@ export async function runUnderstanding(
                     label === 'greeting'
                     ? greetingAgain(input.recentTurns ?? [], input.locale)
                     : outOfTopicReply(input.locale)
-                  : replyFor(input.decision.intent, input.locale);
+                  : input.decision.modelUnavailable === true
+                    ? // Giliran yang kehabisan waktu, bukan pertanyaan yang tidak terbaca (P28-02).
+                      modelBusyReply(input.locale)
+                    : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Model merangkai balasan di atas DATA kasus (P16-28): yang sudah dicatat, status kasus, dan
       // cara SNOUTY menghitung — semuanya dari kode. Angka di luar DATA ditolak `ReplyWriter`, jadi
