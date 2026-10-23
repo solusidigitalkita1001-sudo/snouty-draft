@@ -12,7 +12,12 @@ import { Body, Controller, Get, HttpCode, Patch, Post, Req, Res } from '@nestjs/
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { ENTITLEMENTS, type Capability, type Tier } from '../../policy/entitlements.js';
-import { AUTH_IP_LIMIT } from '../../policy/rate-limits.js';
+import {
+  AUTH_IP_LIMIT,
+  AUTH_REFRESH_FAILURE_IP_LIMIT,
+  AUTH_REFRESH_IP_LIMIT,
+  type RateLimit,
+} from '../../policy/rate-limits.js';
 import { RateLimiter } from '../../../shared/rate-limit/rate-limiter.js';
 import { RateLimitedError, RequestValidationError } from '../../../shared/http/api-errors.js';
 import { userOf, type PublicRequest } from '../../../shared/http/actor.js';
@@ -68,9 +73,13 @@ export class AuthController {
    * Dipanggil sebelum satu pun verifikasi kata sandi berjalan — Argon2id sengaja mahal,
    * jadi tanpa batas ini endpoint login adalah alat habiskan-CPU yang disediakan sendiri.
    */
-  private async guardByIp(request: Request, action: string): Promise<void> {
+  private async guardByIp(
+    request: Request,
+    action: string,
+    limit: RateLimit = AUTH_IP_LIMIT,
+  ): Promise<void> {
     const ip = request.ip ?? 'tidak-diketahui';
-    const verdict = await this.rateLimiter.consume(`auth:${action}`, ip, AUTH_IP_LIMIT);
+    const verdict = await this.rateLimiter.consume(`auth:${action}`, ip, limit);
     if (!verdict.allowed) throw new RateLimitedError(verdict.retryAfterSec);
   }
 
@@ -124,13 +133,24 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(200)
   async refresh(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
-    await this.guardByIp(request, 'refresh');
-    const token = readCookie(request.headers.cookie, REFRESH_COOKIE);
-    if (token === undefined) throw new InvalidRefreshTokenError('unknown');
+    await this.guardByIp(request, 'refresh', AUTH_REFRESH_IP_LIMIT);
+    try {
+      const token = readCookie(request.headers.cookie, REFRESH_COOKIE);
+      if (token === undefined) throw new InvalidRefreshTokenError('unknown');
 
-    const session = await this.auth.refresh(token);
-    this.setRefreshCookie(response, session);
-    return { ...profileOf(session), accessToken: session.accessToken };
+      const session = await this.auth.refresh(token);
+      this.setRefreshCookie(response, session);
+      return { ...profileOf(session), accessToken: session.accessToken };
+    } catch (error) {
+      // Dihitung SETELAH gagal, pada kuota terpisah yang ketat: yang dibatasi adalah
+      // menebak cookie, bukan memuat halaman. **Hanya cookie yang ditolak** — database yang
+      // sedang mati bukan percobaan menebak, dan menghitungnya akan mengubah gangguan sesaat
+      // menjadi seluruh kantor yang tidak bisa masuk selama seperempat jam.
+      if (error instanceof InvalidRefreshTokenError) {
+        await this.guardByIp(request, 'refresh-failed', AUTH_REFRESH_FAILURE_IP_LIMIT);
+      }
+      throw error;
+    }
   }
 
   @Audited(USER_AUDIT.logout)

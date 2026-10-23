@@ -63,6 +63,23 @@ export const RATE_LIMITS: Readonly<
 export const AUTH_IP_LIMIT: RateLimit = { max: 10, windowSeconds: 15 * 60 };
 
 /**
+ * Memulihkan sesi (`POST /auth/refresh`) punya batas sendiri, dan jauh lebih longgar.
+ *
+ * Ia bukan permukaan tebak-menebak: cookie-nya rahasia 256-bit, dirotasi setiap pemakaian.
+ * Yang dilakukannya adalah pekerjaan normal — setiap muat halaman menembaknya sekali. Satu
+ * kantor Pralon duduk di balik SATU alamat IP, jadi batas sepuluh per seperempat jam membuat
+ * orang kesembilan terlempar ke layar "masuk dengan akun yang punya akses" tanpa sebab yang
+ * bisa dilihatnya — dan itu persis yang terjadi (Fase 29).
+ */
+export const AUTH_REFRESH_IP_LIMIT: RateLimit = { max: 300, windowSeconds: 15 * 60 };
+
+/**
+ * Yang tetap ketat adalah pemulihan yang **gagal**: di situlah tebakan tinggal. Satu browser
+ * yang cookie-nya sudah kedaluwarsa menghabiskan satu jatah, bukan sepuluh.
+ */
+export const AUTH_REFRESH_FAILURE_IP_LIMIT: RateLimit = { max: 20, windowSeconds: 15 * 60 };
+
+/**
  * Membuka tautan bagikan (P24-03), per IP: cukup untuk tukang/toko membuka berulang, terlalu
  * sedikit untuk menebak token 256-bit — walau tebakannya memang mustahil, permintaannya tetap biaya.
  */

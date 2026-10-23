@@ -157,6 +157,13 @@ karena satu permintaan di sana berharga jauh lebih mahal daripada satu pesan cha
 
 Endpoint autentikasi punya batas ketat berdasarkan IP untuk menghambat credential stuffing.
 
+**Memulihkan sesi dikecualikan dari batas itu** (P29-04). `POST /auth/refresh` bukan permukaan
+tebak-menebak — cookie-nya rahasia 256-bit yang dirotasi setiap pemakaian — dan ia ditembak sekali
+setiap muat halaman. Satu kantor di balik satu alamat IP akan menghabiskan kuota login hanya dengan
+bekerja, dan gejalanya adalah pengguna yang terlempar ke layar masuk tanpa pernah salah kata sandi.
+Kuotanya sendiri longgar; yang tetap ketat adalah pemulihan yang **gagal**, karena di situlah
+tebakan tinggal.
+
 ---
 
 ## 9. Header dan CORS
