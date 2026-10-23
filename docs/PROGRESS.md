@@ -2622,3 +2622,16 @@ terbuka. Pemegang `catalog_admin` tidak tahu apa itu OQ-07, dan tidak perlu tahu
       `technical_team` tidak pernah disebut sama sekali sebelum ini.
   - [x] P29-03a Tes: navigasi (8, termasuk `technical_team` melihat antrean teknis), dan tes
         cangkang lama yang ikut terhapus bersama berkasnya
+
+**Cacat yang baru terlihat setelah dibuka di produksi (P29-03).** Layar validasi aturan dan
+peninjauan email tidak memanggil API sama sekali, jadi tidak ada 401 yang menolak siapa pun:
+mengetik alamatnya sudah cukup untuk membukanya sebagai tamu. Dua layar lain aman hanya karena
+API-nya kebetulan menolak. Gerbangnya kini di cangkang, memakai daftar peran yang sama dengan
+menu — "yang tidak boleh dibuka tidak ditampilkan" berlaku untuk alamat yang diketik juga.
+Diperiksa ulang di produksi sesudahnya: keempat layar menolak tamu, tanpa galat konsol.
+
+**Penutup Fase 29.** Empat item live di ai.pralon.co.id (dua rilis, 2026-10-23; tanpa migration).
+Tes: API 1725 lulus (2 dilewati), web 274 lulus, engineering 521 lulus. Yang dipakai untuk
+memeriksanya: Chromium Playwright milik worker, 13 layar × 2 lebar, lokal untuk yang perlu masuk
+akun dan produksi untuk yang tidak — cara yang sama dengan P28-03, dan sekali lagi yang menemukan
+cacatnya adalah membuka layarnya, bukan menjalankan tesnya.
