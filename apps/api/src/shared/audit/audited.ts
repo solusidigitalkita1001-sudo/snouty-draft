@@ -45,6 +45,8 @@ export const USER_AUDIT = {
   // Dashboard sales (P26-06): perubahan status dan pembukaan transkrip pelanggan.
   leadStatus: { action: 'lead.status', entityType: 'user' },
   leadTranscript: { action: 'lead.transcript.view', entityType: 'user' },
+  leadNote: { action: 'lead.note', entityType: 'user' },
+  leadFollowUp: { action: 'lead.follow_up', entityType: 'user' },
   reportCreate: { action: 'report.create', entityType: 'report' },
   reportRebuild: { action: 'report.rebuild', entityType: 'report' },
   uploadCreate: { action: 'upload.create', entityType: 'upload' },

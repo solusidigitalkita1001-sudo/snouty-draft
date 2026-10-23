@@ -21,6 +21,30 @@ export const SALES_COPY = {
     none: 'Belum ada paragraf konteks. Data di bawah tetap lengkap.',
   },
   projects: 'Konsultasi',
+  // Tindak lanjut (P27-09)
+  followUp: {
+    title: 'Tengok lagi',
+    none: 'Belum dijadwalkan.',
+    set: 'Simpan jadwal',
+    clear: 'Hapus jadwal',
+    label: 'Tanggal menengok',
+    due: 'Jadwalnya sudah lewat.',
+  },
+  notes: {
+    title: 'Catatan tindak lanjut',
+    placeholder: 'Apa yang terjadi saat dihubungi?',
+    add: 'Simpan catatan',
+    empty: 'Belum ada catatan. Tulis apa yang terjadi saat Anda menghubunginya.',
+    byAt: (who: string, when: string) => `${who} · ${when}`,
+    someone: 'Tim Pralon',
+  },
+  trail: {
+    assigned: 'Ditugaskan ke sales',
+    status: (status: string) => `Status menjadi ${status}`,
+    followUp: (when: string | null) =>
+      when === null ? 'Jadwal menengok dihapus' : `Dijadwalkan ditengok ${when}`,
+  },
+
   quotes: 'Kalimat pelanggan',
   activity: 'Jejak',
   reports: (n: number) => `${n} laporan dibuat`,
@@ -93,6 +117,29 @@ export const SALES_COPY_EN: CopyShape<typeof SALES_COPY> = {
     none: 'No context paragraph yet. The data below is complete.',
   },
   projects: 'Consultations',
+  followUp: {
+    title: 'Follow up',
+    none: 'Not scheduled yet.',
+    set: 'Save date',
+    clear: 'Clear date',
+    label: 'Follow-up date',
+    due: 'This date has passed.',
+  },
+  notes: {
+    title: 'Follow-up notes',
+    placeholder: 'What happened when you got in touch?',
+    add: 'Save note',
+    empty: 'No notes yet. Write what happened when you got in touch.',
+    byAt: (who: string, when: string) => `${who} · ${when}`,
+    someone: 'The Pralon team',
+  },
+  trail: {
+    assigned: 'Assigned to sales',
+    status: (status: string) => `Status changed to ${status}`,
+    followUp: (when: string | null) =>
+      when === null ? 'Follow-up date cleared' : `Follow-up set for ${when}`,
+  },
+
   quotes: 'Customer messages',
   activity: 'Activity',
   reports: (n: number) => `${n} report${n === 1 ? '' : 's'} created`,

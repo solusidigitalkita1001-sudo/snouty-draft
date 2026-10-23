@@ -8,7 +8,12 @@ import {
   messages,
   requirementSnapshots,
 } from '../../../infrastructure/mysql/schema/conversation.js';
-import { salesLeads, salesRequests } from '../../../infrastructure/mysql/schema/intelligence.js';
+import {
+  leadActivities,
+  salesLeads,
+  salesRequests,
+} from '../../../infrastructure/mysql/schema/intelligence.js';
+import { users } from '../../../infrastructure/mysql/schema/identity.js';
 import {
   recommendations,
   reports,
@@ -21,7 +26,9 @@ import {
   type LeadFacts,
   type LeadProject,
   type LeadRecord,
+  type LeadActivity,
   type LeadStore,
+  type NewLeadActivity,
   type TranscriptLine,
 } from '../domain/lead.js';
 import { LEAD_STATUSES, type LeadStatus } from '../domain/prospect-board.js';
@@ -31,6 +38,8 @@ const MAX_PROJECTS = 8;
 const MAX_PRODUCTS = 6;
 const MAX_QUOTES = 5;
 const MAX_QUOTE_CHARS = 200;
+/** Jejak yang dibawa sekali tarik — layar sales butuh riwayat, bukan arsip. */
+const MAX_ACTIVITY = 50;
 
 const json = (path: string) =>
   sql<
@@ -66,7 +75,54 @@ export class MysqlLeadStore implements LeadStore {
       lostReason: row.lostReason,
       assignedAt: row.updatedAt,
       context: toContext(row.summary),
+      followUpAt: row.followUpAt,
     };
+  }
+
+  /** Jejak tindak lanjut, terbaru dulu — urut `id` ULID, bukan stempel waktu (P27-09). */
+  async activity(userId: string): Promise<readonly LeadActivity[]> {
+    const rows = await this.db
+      .select({
+        id: leadActivities.id,
+        kind: leadActivities.kind,
+        actorId: leadActivities.actorId,
+        actorName: users.name,
+        note: leadActivities.note,
+        status: leadActivities.status,
+        followUpAt: leadActivities.followUpAt,
+        at: leadActivities.createdAt,
+      })
+      .from(leadActivities)
+      .leftJoin(users, eq(users.id, leadActivities.actorId))
+      .where(eq(leadActivities.userId, userId))
+      .orderBy(desc(leadActivities.id))
+      .limit(MAX_ACTIVITY);
+    return rows.map((row) => ({
+      id: row.id,
+      kind: row.kind as LeadActivity['kind'],
+      actorId: row.actorId,
+      actorName: row.actorName,
+      note: row.note,
+      status: row.status === null ? null : toStatus(row.status),
+      followUpAt: row.followUpAt,
+      at: row.at,
+    }));
+  }
+
+  async appendActivity(row: NewLeadActivity): Promise<void> {
+    await this.db.insert(leadActivities).values({
+      id: row.id,
+      userId: row.userId,
+      actorId: row.actorId,
+      kind: row.kind,
+      note: row.note,
+      status: row.status,
+      followUpAt: row.followUpAt,
+    });
+  }
+
+  async setFollowUp(userId: string, at: Date | null): Promise<void> {
+    await this.db.update(salesLeads).set({ followUpAt: at }).where(eq(salesLeads.userId, userId));
   }
 
   async setStatus(userId: string, status: LeadStatus, lostReason: string | null): Promise<void> {

@@ -23,6 +23,7 @@ import {
 } from './dashboard-api';
 import { dashboardCopy } from './dashboard-copy';
 import styles from './dashboard.module.css';
+import { LeadFollowUp } from './lead-followup';
 import { salesCopy } from './sales-copy';
 import { EmptyState } from './empty-state';
 
@@ -309,6 +310,9 @@ function LeadView({
           {detail.facts.shares > 0 && <li>{COPY.shares(detail.facts.shares)}</li>}
         </ul>
       </div>
+
+      {/* Tindak lanjut: jadwal menengok, catatan, dan jejaknya (P27-09). */}
+      <LeadFollowUp userId={userId} followUpAt={detail.followUpAt} onChanged={onChanged} />
 
       <div className={styles.block}>
         <span className={styles.blockTitle}>{COPY.projects}</span>

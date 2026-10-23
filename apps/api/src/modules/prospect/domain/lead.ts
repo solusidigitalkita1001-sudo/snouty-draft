@@ -12,6 +12,45 @@ export interface LeadRecord {
   readonly lostReason: string | null;
   readonly assignedAt: Date;
   readonly context: LeadContext | null;
+  /** Kapan prospek ini perlu ditengok lagi (P27-09); `null` = belum dijadwalkan. */
+  readonly followUpAt: Date | null;
+}
+
+/**
+ * Satu baris jejak tindak lanjut (P27-09). Append-only: riwayat yang bisa diubah bukan riwayat.
+ * `kind` menentukan kolom mana yang terisi — catatan, status baru, atau tanggal tengok.
+ */
+export interface LeadActivity {
+  readonly id: string;
+  readonly kind: 'note' | 'status' | 'follow_up' | 'assigned';
+  readonly actorId: string;
+  readonly actorName: string | null;
+  readonly note: string | null;
+  readonly status: LeadStatus | null;
+  readonly followUpAt: Date | null;
+  readonly at: Date;
+}
+
+export interface NewLeadActivity {
+  readonly id: string;
+  readonly userId: string;
+  readonly actorId: string;
+  readonly kind: LeadActivity['kind'];
+  readonly note: string | null;
+  readonly status: LeadStatus | null;
+  readonly followUpAt: Date | null;
+}
+
+/** Catatan kosong bukan catatan; batasnya sama dengan kolomnya. */
+export const MAX_NOTE_CHARS = 1000;
+
+export class EmptyNoteError extends Error {
+  readonly code = 'VALIDATION_FAILED' as const;
+  readonly details = { reason: 'note' };
+  constructor() {
+    super('Catatannya masih kosong.');
+    this.name = 'EmptyNoteError';
+  }
 }
 
 export interface LeadContext {
@@ -95,6 +134,10 @@ export interface LeadStore {
   facts(userId: string): Promise<LeadFacts>;
   /** `null` bila percakapan bukan milik pengguna itu. */
   transcript(userId: string, conversationId: string): Promise<readonly TranscriptLine[] | null>;
+  /** Jejak tindak lanjut, terbaru dulu (P27-09). */
+  activity(userId: string): Promise<readonly LeadActivity[]>;
+  appendActivity(row: NewLeadActivity): Promise<void>;
+  setFollowUp(userId: string, at: Date | null): Promise<void>;
 }
 
 export const LEAD_STORE = Symbol('LEAD_STORE');

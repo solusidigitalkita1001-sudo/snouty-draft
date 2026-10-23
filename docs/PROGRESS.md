@@ -2224,6 +2224,24 @@ lalu layar, lalu data.
       apa-apa" juga tidak — bukan lonceng kosong yang mengundang klik. Menandai terbaca selalu membawa
       `user_id` di WHERE: id dari klien tidak bisa menyentuh baris orang lain.
 
+- [x] P27-08 Peran sales diuji di jalur perannya (pemilik 2026-10-23: "role sales belum di testing untuk
+      melihat summary chat antara user dan snouty"). Tes P26-06 memeriksa `LeadService` langsung; yang
+      belum pernah diuji adalah penjaga rute, aktor internal, dan bentuk respons controller. 13 tes baru
+      (`sales-role.spec.ts`) memakai MySQL, controller, dan `InternalRoleGuard` sungguhan: peran sales
+      lolos ke daftar/ringkasan/status/transkrip, admin dan peninjau lolos, akun biasa ditolak, tanpa akun
+      gagal tertutup; ringkasan memuat kebutuhan, kalimat pelanggan (bukan jawaban SNOUTY), dan dasar
+      kontaknya; transkrip membawa keempat giliran berurutan; sales lain mendapat NOT_FOUND di semua
+      jalur; paragraf konteks menyusul di latar dan bisa disusun ulang.
+- [x] P27-09 CRM prospek diperdalam (pemilik 2026-10-23: "CRM mengenai prospek harus di dalemin lebih
+      lanjut"). Sampai sekarang yang tercatat hanyalah status SEKARANG — tidak ada jejak kapan dihubungi,
+      apa katanya, atau kapan harus ditengok lagi. Migration 0032: `sales_leads.follow_up_at` dan tabel
+      `lead_activities` (append-only: catatan, perubahan status beserta alasan kalahnya, penjadwalan,
+      penugasan — masing-masing dengan pencatat dan waktunya). Rute `GET :id/activity`,
+      `POST :id/notes`, `POST :id/follow-up`, semuanya digerbang peran yang sama. Di layar sales:
+      kotak catatan, pemilih tanggal menengok yang menandai jadwal yang sudah lewat, dan garis waktu
+      jejaknya; kalimat tiap baris dirakit dari jenis barisnya, bukan dari teks yang dikirim server.
+      Gagal mencatat jejak tidak membatalkan tindakannya — ia sudah terjadi.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

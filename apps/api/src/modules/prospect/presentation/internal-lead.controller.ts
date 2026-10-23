@@ -21,6 +21,9 @@ const IdParam = z.object({ id: z.string().length(26) }).strict();
 const TranscriptParam = z
   .object({ id: z.string().length(26), conversationId: z.string().length(26) })
   .strict();
+const NoteDto = z.object({ note: z.string().trim().min(1).max(1000) }).strict();
+/** `null` menghapus jadwalnya; tanggalnya dikirim sebagai ISO. */
+const FollowUpDto = z.object({ at: z.string().datetime().nullable() }).strict();
 const StatusDto = z
   .object({
     status: z.enum(LEAD_STATUSES),
@@ -54,6 +57,7 @@ export class InternalLeadController {
       status: lead.status,
       lostReason: lead.lostReason,
       assignedAt: lead.assignedAt.toISOString(),
+      followUpAt: lead.followUpAt?.toISOString() ?? null,
       context: lead.context,
       prospect: prospect && prospectDto(prospect),
       facts: {
@@ -80,6 +84,53 @@ export class InternalLeadController {
     const { id } = parse(IdParam, params);
     const { status, lostReason } = parse(StatusDto, body);
     await this.leads.setStatus(id, viewerOf(req), status, lostReason ?? null);
+  }
+
+  /** Jejak tindak lanjut: catatan, perubahan status, jadwal tengok, penugasan (P27-09). */
+  @Get(':id/activity')
+  @RequiresRole(...LEAD_ROLES)
+  async activity(@Param() params: unknown, @Req() req: WithInternalActor) {
+    const { id } = parse(IdParam, params);
+    const rows = await this.leads.activity(id, viewerOf(req));
+    return {
+      items: rows.map((row) => ({
+        id: row.id,
+        kind: row.kind,
+        actorName: row.actorName,
+        note: row.note,
+        status: row.status,
+        followUpAt: row.followUpAt?.toISOString() ?? null,
+        at: row.at.toISOString(),
+      })),
+    };
+  }
+
+  @Audited(USER_AUDIT.leadNote)
+  @Post(':id/notes')
+  @HttpCode(204)
+  @RequiresRole(...LEAD_ROLES)
+  async note(
+    @Param() params: unknown,
+    @Body() body: unknown,
+    @Req() req: WithInternalActor,
+  ): Promise<void> {
+    const { id } = parse(IdParam, params);
+    const { note } = parse(NoteDto, body);
+    await this.leads.addNote(id, viewerOf(req), note);
+  }
+
+  @Audited(USER_AUDIT.leadFollowUp)
+  @Post(':id/follow-up')
+  @HttpCode(204)
+  @RequiresRole(...LEAD_ROLES)
+  async followUp(
+    @Param() params: unknown,
+    @Body() body: unknown,
+    @Req() req: WithInternalActor,
+  ): Promise<void> {
+    const { id } = parse(IdParam, params);
+    const { at } = parse(FollowUpDto, body);
+    await this.leads.setFollowUp(id, viewerOf(req), at === null ? null : new Date(at));
   }
 
   @Post(':id/context')

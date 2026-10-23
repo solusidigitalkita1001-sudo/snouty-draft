@@ -12,6 +12,9 @@ const api = vi.hoisted(() => ({
   setLeadStatus: vi.fn(),
   refreshLeadContext: vi.fn(),
   fetchTranscript: vi.fn(),
+  fetchLeadActivity: vi.fn(async () => ({ kind: 'ok', value: { items: [] } })),
+  addLeadNote: vi.fn(async () => null),
+  setLeadFollowUp: vi.fn(async () => null),
 }));
 vi.mock('./dashboard-api', () => api);
 vi.mock('../auth/session', () => ({
@@ -49,6 +52,7 @@ const ITEM: ProspectItem = {
 const DETAIL: LeadDetail = {
   status: 'new',
   lostReason: null,
+  followUpAt: null,
   assignedAt: '2026-10-20T00:00:00Z',
   context: { text: 'Pelanggan membangun rumah 2 lantai.', generatedAt: '2026-10-20T00:00:00Z' },
   prospect: ITEM,

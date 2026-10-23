@@ -209,6 +209,8 @@ export const salesLeads = mysqlTable(
     assignedBy: char('assigned_by', { length: 26 }).notNull(),
     status: varchar('status', { length: 16 }).notNull().default('new'),
     lostReason: varchar('lost_reason', { length: 255 }),
+    /** Kapan prospek ini perlu ditengok lagi (P27-09); `null` = belum dijadwalkan. */
+    followUpAt: datetime('follow_up_at', { fsp: 3 }),
     /** Ringkasan percakapan untuk sales (P26-06). */
     summary: json('summary'),
     createdAt: createdAt(),
@@ -246,5 +248,29 @@ export const notifications = mysqlTable(
       'ck_notifications_kind',
       sql`\`kind\` IN ('lead_assigned','contact_requested','report_ready')`,
     ),
+  ],
+);
+
+/**
+ * Jejak tindak lanjut sebuah prospek (P27-09): catatan sales, perubahan status, penjadwalan
+ * tengok berikutnya, dan penugasan. Append-only — riwayat yang bisa diubah bukan riwayat.
+ */
+export const leadActivities = mysqlTable(
+  'lead_activities',
+  {
+    id: id().primaryKey(),
+    /** Prospek yang dibicarakan. */
+    userId: char('user_id', { length: 26 }).notNull(),
+    /** Yang mencatat: sales, admin, atau peninjau. */
+    actorId: char('actor_id', { length: 26 }).notNull(),
+    kind: varchar('kind', { length: 16 }).notNull(),
+    note: varchar('note', { length: 1000 }),
+    status: varchar('status', { length: 16 }),
+    followUpAt: datetime('follow_up_at', { fsp: 3 }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('ix_lead_activities_user').on(t.userId, t.id),
+    check('ck_lead_activities_kind', sql`\`kind\` IN ('note','status','follow_up','assigned')`),
   ],
 );

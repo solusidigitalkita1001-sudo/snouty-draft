@@ -951,3 +951,50 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ---------- jejak tindak lanjut prospek (P27-09) ---------- */
+
+.trail {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Garis waktu: satu rel tipis di kiri, titik per baris — urutannya terbaca sekilas. */
+.trailItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0 8px 18px;
+  border-left: 1px solid var(--snouty-border-soft);
+}
+
+.trailItem::before {
+  content: '';
+  position: absolute;
+  left: -3.5px;
+  top: 14px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--snouty-node-border);
+}
+
+.trailItem:first-child::before {
+  background: var(--snouty-action);
+}
+
+.trailText {
+  font-size: var(--snouty-text-desc);
+  line-height: 1.45;
+  color: var(--snouty-ink-3);
+}
+
+.trailMeta {
+  font-size: var(--snouty-text-helper);
+  color: var(--snouty-caption);
+}

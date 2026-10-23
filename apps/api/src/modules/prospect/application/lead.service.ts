@@ -1,10 +1,14 @@
 import type { Logger } from 'pino';
+import { ulid } from '../../../shared/ulid.js';
 import {
   canSeeLead,
+  EmptyNoteError,
+  MAX_NOTE_CHARS,
   LeadNotFoundError,
   LostReasonRequiredError,
   validStatusChange,
   type InternalViewer,
+  type LeadActivity,
   type LeadContext,
   type LeadFacts,
   type LeadRecord,
@@ -54,7 +58,34 @@ export class LeadService {
   ): Promise<void> {
     await this.visible(userId, viewer);
     if (!validStatusChange(status, lostReason)) throw new LostReasonRequiredError();
-    await this.leads.setStatus(userId, status, status === 'lost' ? lostReason!.trim() : null);
+    const reason = status === 'lost' ? lostReason!.trim() : null;
+    await this.leads.setStatus(userId, status, reason);
+    // Perubahan status masuk jejak (P27-09): "sekarang kalah" tanpa kapan dan oleh siapa bukan
+    // riwayat yang bisa dipakai siapa pun.
+    await this.record(userId, viewer, { kind: 'status', status, note: reason });
+  }
+
+  /**
+   * Catatan tindak lanjut dari sales (P27-09, pemilik 2026-10-23: "CRM mengenai prospek harus di
+   * dalemin lebih lanjut"): apa yang terjadi saat dihubungi, dengan nama pencatat dan waktunya.
+   */
+  async addNote(userId: string, viewer: InternalViewer, note: string): Promise<void> {
+    await this.visible(userId, viewer);
+    const text = note.trim().slice(0, MAX_NOTE_CHARS);
+    if (text.length === 0) throw new EmptyNoteError();
+    await this.record(userId, viewer, { kind: 'note', note: text });
+  }
+
+  /** Kapan prospek ini ditengok lagi; `null` menghapus jadwalnya. */
+  async setFollowUp(userId: string, viewer: InternalViewer, at: Date | null): Promise<void> {
+    await this.visible(userId, viewer);
+    await this.leads.setFollowUp(userId, at);
+    await this.record(userId, viewer, { kind: 'follow_up', followUpAt: at });
+  }
+
+  async activity(userId: string, viewer: InternalViewer): Promise<readonly LeadActivity[]> {
+    await this.visible(userId, viewer);
+    return this.leads.activity(userId);
   }
 
   /** Paragraf konteks baru dari data terkini; `null` bila model tidak tersedia atau gagal pagar. */
@@ -69,6 +100,7 @@ export class LeadService {
    */
   async assign(userId: string, salesUserId: string, assignedBy: string): Promise<void> {
     await this.board.assign(userId, salesUserId, assignedBy);
+    await this.record(userId, { id: assignedBy, roles: [] }, { kind: 'assigned' });
     void this.writeContext(userId).catch((error: unknown) => {
       this.log?.warn({ err: error, userId }, 'ringkasan prospek tidak tersusun');
     });
@@ -83,6 +115,32 @@ export class LeadService {
     const lines = await this.leads.transcript(userId, conversationId);
     if (lines === null) throw new LeadNotFoundError();
     return lines;
+  }
+
+  /** Satu baris jejak. Gagal mencatat tidak membatalkan tindakannya — ia sudah terjadi. */
+  private async record(
+    userId: string,
+    viewer: InternalViewer,
+    row: {
+      readonly kind: LeadActivity['kind'];
+      readonly note?: string | null;
+      readonly status?: LeadStatus | null;
+      readonly followUpAt?: Date | null;
+    },
+  ): Promise<void> {
+    try {
+      await this.leads.appendActivity({
+        id: ulid(),
+        userId,
+        actorId: viewer.id,
+        kind: row.kind,
+        note: row.note ?? null,
+        status: row.status ?? null,
+        followUpAt: row.followUpAt ?? null,
+      });
+    } catch (error: unknown) {
+      this.log?.warn({ err: error, userId }, 'jejak tindak lanjut tidak tercatat');
+    }
   }
 
   private async writeContext(userId: string): Promise<LeadContext | null> {

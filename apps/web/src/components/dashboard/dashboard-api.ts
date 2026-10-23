@@ -140,6 +140,8 @@ export interface LeadDetail {
   readonly status: LeadStatus;
   readonly lostReason: string | null;
   readonly assignedAt: string;
+  /** Kapan prospek ini ditengok lagi (P27-09); `null` = belum dijadwalkan. */
+  readonly followUpAt: string | null;
   readonly context: { readonly text: string; readonly generatedAt: string } | null;
   readonly prospect: ProspectItem | null;
   readonly facts: {
@@ -157,11 +159,32 @@ export interface TranscriptLine {
   readonly at: string;
 }
 
+/** Satu baris jejak tindak lanjut (P27-09). */
+export interface LeadActivityItem {
+  readonly id: string;
+  readonly kind: 'note' | 'status' | 'follow_up' | 'assigned';
+  readonly actorName: string | null;
+  readonly note: string | null;
+  readonly status: LeadStatus | null;
+  readonly followUpAt: string | null;
+  readonly at: string;
+}
+
 const LEADS = `${BASE}/leads`;
 
 export const fetchMyLeads = () => get<{ readonly items: readonly ProspectItem[] }>(`${LEADS}/mine`);
 
 export const fetchLead = (userId: string) => get<LeadDetail>(`${LEADS}/${userId}`);
+
+export const fetchLeadActivity = (userId: string) =>
+  get<{ readonly items: readonly LeadActivityItem[] }>(`${LEADS}/${userId}/activity`);
+
+export const addLeadNote = (userId: string, note: string) =>
+  send('POST', `${LEADS}/${userId}/notes`, { note });
+
+/** `null` menghapus jadwalnya. */
+export const setLeadFollowUp = (userId: string, at: string | null) =>
+  send('POST', `${LEADS}/${userId}/follow-up`, { at });
 
 export const setLeadStatus = (userId: string, status: LeadStatus, lostReason?: string) =>
   send('POST', `${LEADS}/${userId}/status`, {

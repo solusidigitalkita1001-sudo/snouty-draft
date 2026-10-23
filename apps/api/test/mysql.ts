@@ -86,8 +86,10 @@ const UP = [
   '0029_market_recorded.sql',
   '0030_market_place.sql',
   '0031_notifications.sql',
+  '0032_lead_activities.sql',
 ];
 const DOWN = [
+  '0032_lead_activities.down.sql',
   '0031_notifications.down.sql',
   '0030_market_place.down.sql',
   '0029_market_recorded.down.sql',
@@ -128,6 +130,7 @@ const DOWN = [
  * `users` harus terakhir, karena `guest_sessions` merujuknya dengan `RESTRICT`.
  */
 const TABLES = [
+  'lead_activities',
   'notifications',
   'sales_leads',
   'sales_requests',
