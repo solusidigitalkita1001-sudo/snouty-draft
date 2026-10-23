@@ -2266,6 +2266,17 @@ lalu layar, lalu data.
       MySQL menurunkan lalu menaikkan seluruh migration tiap suite, dan sejak migration bertambah batas
       10 detik terlampaui, meninggalkan skema setengah jadi yang menggagalkan jalan berikutnya.
 
+- [x] P27-12 Format perhitungan teknis ditinjau ulang terhadap laporan SNTY-2026-10-0020 (pemilik
+      2026-10-23: "format perhitungan teknis perlu divalidasi lagi"). Dua cacat penyajian yang terlihat
+      di laporan itu: (1) langkah hitung bernomor memuat judul yang sama persis dua kali — ENG-102 untuk
+      tiap ukuran cabang, ENG-602/604 untuk air kotor dan air bekas — sehingga pembaca tidak tahu baris
+      mana membicarakan jalur mana; judulnya kini dibedakan oleh UKURAN yang dihasilkan langkah itu
+      sendiri (`stepQualifier`), hanya bila aturannya memang berulang. (2) Baris "Pipa air kotor" dan
+      "Pipa ventilasi air kotor" di tabel ukuran memuat paragraf alasan yang identik — seluruh cerita
+      beban diulang di baris yang sebenarnya hanya soal ventilasi; baris ventilasi kini menjelaskan
+      ventilasinya: ukurannya, setengah diameter jalur yang dilayaninya, dan mengapa ia ada. Satuan dan
+      rincian per fitting sudah diperbaiki di P27-01.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

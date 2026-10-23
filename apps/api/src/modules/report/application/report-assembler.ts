@@ -14,7 +14,13 @@
  * memaksakan VERIFIED.
  */
 
-import { assertBalanced, outdatedRules, rulesetStamp, stepFormula } from '@snouty/engineering';
+import {
+  assertBalanced,
+  outdatedRules,
+  rulesetStamp,
+  stepFormula,
+  stepQualifier,
+} from '@snouty/engineering';
 import {
   DEFAULT_LOCALE,
   skuLines,
@@ -201,6 +207,11 @@ function requirementRows(state: RequirementState, locale: Locale): readonly Repo
  */
 /** Satu baris per trace; rumus singkatnya dibangun dari masukan/keluaran trace itu sendiri. */
 function basisRows(traces: readonly TraceToSave[], locale: Locale): readonly ReportBasisRow[] {
+  // Aturan yang berjalan lebih dari sekali (ENG-102 per ukuran cabang, ENG-602/604 untuk air kotor
+  // dan air bekas) tampil dengan judul yang sama persis. Barisnya dibedakan oleh ukuran yang
+  // dihasilkannya sendiri — hanya bila memang berulang, supaya yang tunggal tetap bersih.
+  const runs = new Map<string, number>();
+  for (const trace of traces) runs.set(trace.ruleId, (runs.get(trace.ruleId) ?? 0) + 1);
   return traces.map((trace) => {
     const formula = stepFormula(
       trace.ruleId,
@@ -209,10 +220,13 @@ function basisRows(traces: readonly TraceToSave[], locale: Locale): readonly Rep
       locale,
       Number(trace.ruleVersion),
     );
+    const qualifier =
+      (runs.get(trace.ruleId) ?? 0) > 1 ? stepQualifier(trace.ruleId, trace.output) : null;
     return {
       ruleId: trace.ruleId,
       explanation: trace.explanation,
       ...(formula !== null ? { formula } : {}),
+      ...(qualifier !== null ? { qualifier } : {}),
     };
   });
 }

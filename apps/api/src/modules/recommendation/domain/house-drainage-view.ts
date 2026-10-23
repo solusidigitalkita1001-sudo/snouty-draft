@@ -67,6 +67,21 @@ function parts(result: HouseDrainageResult, traces: readonly IdentifiedTrace[]) 
  * lantai dan pipa tegak (ENG-604) hanya disebut bila memang mereka yang menentukan ukuran — untuk
  * kloset, alat terbesar (4") yang menentukan.
  */
+/**
+ * Alasan baris VENTILASI (P27-12, pemilik 2026-10-23: "format perhitungan teknis perlu divalidasi
+ * lagi"). Di laporan SNTY-2026-10-0020 baris pipa buangan dan baris ventilasinya memuat paragraf
+ * yang sama persis — seluruh cerita beban diulang di baris yang sebenarnya hanya soal ventilasi.
+ * Baris ventilasi kini menjelaskan ventilasinya saja, dari keluaran ENG-602 yang sama.
+ */
+function ventReason(own: readonly IdentifiedTrace[], locale: Locale): string {
+  const sizing = own.find((t) => t.ruleId === 'ENG-602');
+  const output = sizing?.output as { size?: string; ventSize?: string } | undefined;
+  if (output?.ventSize === undefined || output.size === undefined) return '';
+  return locale === 'en'
+    ? `The vent is ${output.ventSize}: half the diameter of the ${output.size} line it serves, and never under 1¼". It carries sewer air above the roof so the water traps are not siphoned dry.`
+    : `Ventilasinya ${output.ventSize}: setengah diameter jalur ${output.size} yang dilayaninya, dan tidak pernah kurang dari 1¼". Ia membuang udara saluran ke atas atap supaya perangkap air di tiap alat tidak tersedot kering.`;
+}
+
 function lineReason(
   load: IdentifiedTrace | undefined,
   own: readonly IdentifiedTrace[],
@@ -121,11 +136,13 @@ export function drainageSystemLines(
     own: readonly IdentifiedTrace[],
     role: SystemLine['role'],
     which: 'soil' | 'waste',
+    /** Baris ventilasi menjelaskan ventilasinya, bukan mengulang cerita beban jalurnya (P27-12). */
+    vent = false,
   ): SystemLine => ({
     name,
     path,
     size,
-    reason: lineReason(p.load[0], own, which, locale),
+    reason: vent ? ventReason(own, locale) : lineReason(p.load[0], own, which, locale),
     provenance: worst([...p.load, ...own]),
     traceIds: [...p.load, ...own].map((t) => t.id),
     role,
@@ -153,6 +170,7 @@ export function drainageSystemLines(
         p.soil,
         'branch',
         'soil',
+        true,
       ),
     );
   }
@@ -179,6 +197,7 @@ export function drainageSystemLines(
         p.waste,
         'branch',
         'waste',
+        true,
       ),
     );
   }

@@ -416,3 +416,24 @@ export function stepFormula(
   const bag = (v: unknown): Bag => (v !== null && typeof v === 'object' ? (v as Bag) : {});
   return formula(bag(inputs), bag(output), fmt(locale), version);
 }
+
+/**
+ * Pembeda judul langkah yang BERULANG (P27-12, pemilik 2026-10-23: "format perhitungan teknis
+ * perlu divalidasi lagi").
+ *
+ * Judul langkah melekat pada aturannya, sementara satu aturan bisa berjalan beberapa kali dalam
+ * satu solusi: ENG-102 dipakai untuk tiap ukuran cabang, ENG-602/604 untuk air kotor dan air
+ * bekas. Di laporan SNTY-2026-10-0020 itu tampil sebagai dua baris berjudul sama persis —
+ * pembaca tidak bisa tahu baris mana membicarakan jalur mana.
+ *
+ * Yang dipakai membedakan adalah KELUARAN langkah itu sendiri (ukuran yang dihasilkan), bukan
+ * konteks yang dikarang. `null` bila tidak ada yang bisa membedakannya.
+ */
+export function stepQualifier(ruleId: string, output: unknown): string | null {
+  const bag: Bag = output !== null && typeof output === 'object' ? (output as Bag) : {};
+  for (const key of ['mainSize', 'size', 'branchSize', 'recommended'] as const) {
+    const value = bag[key];
+    if (isStr(value) && value.trim() !== '') return value;
+  }
+  return null;
+}

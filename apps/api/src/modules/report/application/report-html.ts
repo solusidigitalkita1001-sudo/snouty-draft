@@ -639,7 +639,11 @@ function closingSection(p: ReportPayload, t: ReportCopy, n: number): string {
   <table class="grid steps">
     ${p.basis
       .map((row, i) => {
-        const title = hasStepTitle(row.ruleId) ? esc(ruleStepTitle(row.ruleId, locale)) : '';
+        const base = hasStepTitle(row.ruleId) ? ruleStepTitle(row.ruleId, locale) : '';
+        // Aturan yang berjalan beberapa kali dibedakan ukuran hasilnya (P27-12).
+        const title = esc(
+          base !== '' && row.qualifier !== undefined ? `${base} — ${row.qualifier}` : base,
+        );
         // Rumus singkat bila ada; payload lama dan aturan tanpa rumus memakai penjelasannya.
         const body =
           row.formula !== undefined

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeSolution } from '../compute-solution.js';
-import { stepFormula } from './step-formulas.js';
+import { stepFormula, stepQualifier } from './step-formulas.js';
 
 // Rumah contoh kerja desain: 2 lantai, 3 kamar mandi, 4 wastafel, 1 dapur, toren atap.
 const result = computeSolution({
@@ -156,5 +156,26 @@ describe('rumus mengikuti versi trace (laporan 0010)', () => {
     expect(stepFormula('ENG-603', inputs, { ...output, wasteNetM: 18.5 }, 'id', 3)).toContain(
       'Air bekas = 15 + 3,5 × (2 − 1) = 18,5 m',
     );
+  });
+});
+
+/**
+ * P27-12 — pemilik 2026-10-23: "format perhitungan teknis perlu divalidasi lagi". Satu aturan bisa
+ * berjalan beberapa kali dalam satu solusi, dan judul langkahnya melekat pada aturannya; di
+ * laporan SNTY-2026-10-0020 itu tampil sebagai dua baris berjudul sama persis.
+ */
+describe('stepQualifier — membedakan langkah yang berulang', () => {
+  it('ukuran dari keluaran langkah itu sendiri', () => {
+    expect(stepQualifier('ENG-102', { mainSize: '3/4"', innerDiameterMm: 22.3 })).toBe('3/4"');
+    expect(stepQualifier('ENG-602', { size: '4"', ventSize: '2"' })).toBe('4"');
+    expect(stepQualifier('ENG-604', { branchSize: '2"', stackDfu: 7 })).toBe('2"');
+    expect(stepQualifier('ENG-205', { recommended: '1¼"' })).toBe('1¼"');
+  });
+
+  it('tanpa ukuran di keluarannya: tidak ada yang dikarang', () => {
+    expect(stepQualifier('ENG-004', { floorHeightM: 3.5 })).toBeNull();
+    expect(stepQualifier('ENG-102', {})).toBeNull();
+    expect(stepQualifier('ENG-102', null)).toBeNull();
+    expect(stepQualifier('ENG-102', { mainSize: '  ' })).toBeNull();
   });
 });

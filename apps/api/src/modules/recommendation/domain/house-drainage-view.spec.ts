@@ -104,3 +104,45 @@ describe('material pembuangan untuk BOQ (P17-01)', () => {
     ]);
   });
 });
+
+/**
+ * P27-12 — pemilik 2026-10-23: "format perhitungan teknis perlu divalidasi lagi". Di laporan
+ * SNTY-2026-10-0020 baris pipa buangan dan baris ventilasinya memuat paragraf yang sama persis.
+ */
+describe('baris ventilasi menjelaskan ventilasinya', () => {
+  const lines = drainageSystemLines(result, traces);
+  const pipe = lines.find((l) => l.name.includes('air kotor') && !l.name.includes('ventilasi'))!;
+  const vent = lines.find((l) => l.name === 'Pipa ventilasi air kotor')!;
+
+  it('alasannya tidak lagi sama persis dengan baris pipanya', () => {
+    expect(vent.reason).not.toBe(pipe.reason);
+    expect(vent.reason.length).toBeGreaterThan(0);
+  });
+
+  it('baris pipa bercerita beban; baris ventilasi bercerita ventilasi', () => {
+    expect(pipe.reason).toContain('Beban air kotor');
+    expect(vent.reason).not.toContain('Beban air kotor');
+    expect(vent.reason).toContain('setengah diameter jalur');
+    expect(vent.reason).toContain('atas atap');
+  });
+
+  it('ukurannya diambil dari hasil hitungan, bukan ditulis ulang', () => {
+    expect(vent.reason).toContain(result.soil!.ventSize);
+    expect(vent.reason).toContain(result.soil!.size);
+    expect(vent.size).toBe(result.soil!.ventSize);
+  });
+
+  it('air bekas mendapat perlakuan yang sama', () => {
+    const wasteVent = lines.find((l) => l.name === 'Pipa ventilasi air bekas')!;
+    const wastePipe = lines.find((l) => l.name.includes('air bekas') && l !== wasteVent)!;
+    expect(wasteVent.reason).not.toBe(wastePipe.reason);
+    expect(wasteVent.reason).toContain(result.waste!.ventSize);
+  });
+
+  it('Inggris setara, tanpa kalimat Indonesia yang tertinggal', () => {
+    const en = drainageSystemLines(result, traces, 'en');
+    const ventEn = en.find((l) => l.name === 'Soil vent pipe')!;
+    expect(ventEn.reason).toContain('half the diameter');
+    expect(ventEn.reason).not.toMatch(/\b(jalur|ventilasinya|atap)\b/);
+  });
+});

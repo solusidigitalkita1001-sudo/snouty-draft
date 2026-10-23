@@ -253,7 +253,7 @@ export {
 export type { RenovationInput, RenovationMode, RenovationResult } from './compute-renovation.js';
 export type { WudhuDrainRow, WudhuRow } from './rules/group-l-worship.js';
 export { hasStepTitle, ruleStepTitle } from './rules/step-titles.js';
-export { stepFormula } from './rules/step-formulas.js';
+export { stepFormula, stepQualifier } from './rules/step-formulas.js';
 export {
   buildingWaterSchematic,
   gravitySchematic,

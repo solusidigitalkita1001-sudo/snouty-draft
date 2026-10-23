@@ -42,6 +42,12 @@ export interface ReportBasisRow {
    * panjangnya. Tidak ada untuk aturan tanpa rumus dan untuk payload lama.
    */
   readonly formula?: string;
+  /**
+   * Pembeda judul bila aturan yang sama berjalan lebih dari sekali (P27-12): ukuran yang
+   * dihasilkan langkah itu. Tanpa ini dua baris berjudul sama persis dan pembaca tidak tahu baris
+   * mana membicarakan jalur mana.
+   */
+  readonly qualifier?: string;
 }
 
 /** Harga nonaktif (OQ-03) → `enabled: false`, nilainya nol dan bloknya tidak dirender. */
