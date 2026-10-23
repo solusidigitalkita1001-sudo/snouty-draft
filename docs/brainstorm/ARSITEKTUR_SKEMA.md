@@ -5,15 +5,15 @@ Status per 12 Oktober 2026. Ringkasan untuk brainstorming; rujukan penuh di `doc
 
 ## 1. Pembagian kerja: model vs kode
 
-| Tugas                                                  | Siapa                                                                                        |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| Memahami maksud kalimat                                | Kemiripan vektor ke contoh berlabel (`bge-m3`); model hanya bila tidak ada contoh yang mirip |
-| Membaca angka bersatuan (lantai, 8x15, 120 m², 20 l/s) | Parser nilai di kode                                                                         |
-| Menghitung pipa, pompa, tangki, zona, material         | `packages/engineering` — aturan ber-ID, tanpa I/O, tanpa model                               |
-| Fakta produk (jumlah, ukuran, kelas, panjang batang)   | Query SQL ke katalog aktif                                                                   |
-| Pengetahuan perpipaan                                  | Fakta bersumber di `data/knowledge/` + konsep di kode                                        |
-| Merangkai kalimat jawaban                              | Templat deterministik (mode hemat) atau model di atas DATA (mode kualitas)                   |
-| Menjaga keluaran model                                 | Pagar kode: angka dan penanda teknis harus ada di DATA, nama pesaing ditolak                 |
+| Tugas                                                  | Siapa                                                                             |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| Memahami maksud kalimat                                | Kemiripan vektor ke contoh berlabel; model hanya bila tidak ada contoh yang mirip |
+| Membaca angka bersatuan (lantai, 8x15, 120 m², 20 l/s) | Parser nilai di kode                                                              |
+| Menghitung pipa, pompa, tangki, zona, material         | `packages/engineering` — aturan ber-ID, tanpa I/O, tanpa model                    |
+| Fakta produk (jumlah, ukuran, kelas, panjang batang)   | Query SQL ke katalog aktif                                                        |
+| Pengetahuan perpipaan                                  | Fakta bersumber di `data/knowledge/` + konsep di kode                             |
+| Merangkai kalimat jawaban                              | Templat deterministik (mode hemat) atau model di atas DATA (mode kualitas)        |
+| Menjaga keluaran model                                 | Pagar kode: angka dan penanda teknis harus ada di DATA, nama pesaing ditolak      |
 
 ## 2. Topologi produksi
 
@@ -25,10 +25,13 @@ flowchart LR
   A --> M[(MySQL: katalog, percakapan,<br/>snapshot, rekomendasi, trace, laporan)]
   A --> R[(Redis: cache, rate limit)]
   A --> Q[[RabbitMQ]] --> K[apps/worker · Chromium → PDF]
-  A -->|OpenAI-compatible| O[Ollama · qwen3.5 4b/9b · bge-m3 · CPU]
+  A -->|OpenAI-compatible| O[Layanan model di server sendiri<br/>penjawab · pemahaman]
 ```
 
-Satu server 4 CPU tanpa GPU. Rilis per commit: build → (migrate) → up → smoke, lalu dicek di situs.
+Satu server, seluruhnya di kontainer. Layanan model berjalan di server itu juga — tidak
+ada data yang keluar — dan bisa diganti tanpa mengubah sistem; yang memahami pertanyaan terpisah
+dari yang menjawab, supaya keduanya tidak saling mengantre. Rilis per commit: build → (migrate) →
+up → smoke, lalu dicek di situs.
 
 ## 3. Satu giliran chat
 
@@ -105,13 +108,14 @@ pengguna dan subjek aktif. Setiap perubahan = snapshot append-only.
 | `packages/engineering`           | 45 aturan ber-ID, registry parameter & asumsi dua bahasa                | Semua menunggu validasi ahli Pralon                     |
 | `data/knowledge/pipe-facts.json` | Fakta per topik dari Knowledge Master HRGA + kait katalog               | Angka bertanda "perlu validasi" tidak dibawa            |
 | Knowledge Master §7.1            | OD pipa uPVC per ukuran nominal                                         | Konsisten antarsumber; tebal dinding bertentangan       |
-| Model (qwen3.5)                  | Merangkai kalimat di atas DATA, perencana giliran                       | Tidak pernah menjadi sumber fakta                       |
+| Model bahasa                     | Merangkai kalimat di atas DATA, perencana giliran                       | Tidak pernah menjadi sumber fakta                       |
 
 ## 8. Pertanyaan arsitektur untuk dibahas
 
-1. Apakah perlu retrieval dokumen penuh (indeks semua PDF/TDS Pralon dengan `bge-m3`) atau cukup
-   fakta terkurasi per topik seperti sekarang?
-2. Model: GPU di server, model berbayar per giliran, atau tetap CPU dengan mode hemat sebagai baku?
+1. Apakah perlu retrieval dokumen penuh (mengindeks semua PDF/TDS Pralon) atau cukup fakta
+   terkurasi per topik seperti sekarang?
+2. Model: perangkat yang lebih kencang di server, layanan berbayar per giliran, atau tetap seperti
+   sekarang dengan mode hemat sebagai baku?
 3. Membaca denah yang dilampirkan (OQ-56): ekstraksi ukuran ruangan/jalur otomatis, atau tetap
    ditanyakan?
 4. Siapa merawat `data/understanding/` dan `data/knowledge/` setelah serah terima, dan dengan alat

@@ -40,9 +40,11 @@ bukan jalan keluar ketika sistem tidak mau menghitung.
 - pnpm monorepo: `apps/web` (Next.js), `apps/api` (NestJS + Drizzle/MySQL, SSE), `apps/worker`
   (RabbitMQ + Chromium untuk PDF), `packages/engineering` (TypeScript murni tanpa I/O — semua
   rumus), `packages/shared-types`.
-- Produksi: satu server 4 CPU tanpa GPU, docker compose: nginx, MySQL, Redis, RabbitMQ, Ollama.
-- Model lokal (gratis): `qwen3.5:4b` (cepat) dan `qwen3.5:9b` (seimbang/kuat); `bge-m3` untuk
-  embedding (pemahaman pertanyaan).
+- Produksi: satu server, seluruhnya di kontainer — web, API, pekerja latar, basis data,
+  cache, antrean pekerjaan, dan layanan model.
+- Model bahasa berjalan di server sendiri, tanpa mengirim data ke luar, dan bisa diganti tanpa
+  mengubah sistem. Pemahaman pertanyaan memakai layanan terpisah dari layanan penjawab, supaya
+  keduanya tidak saling mengantre.
 - Setiap commit langsung dirilis ke produksi dan dicek di situs.
 - Skema lengkap: `ARSITEKTUR_SKEMA.md`. Rumus: `MESIN_HITUNG.md`.
 
@@ -51,7 +53,7 @@ bukan jalan keluar ketika sistem tidak mau menghitung.
 - **Katalog**: impor ERP 2026-10-06 — 7.681 SKU aktif, 24 keluarga; dihitung sebagai 7.664 produk
   berbeda (salinan ERP dan SKU bernama sama dihitung sekali, jumlah SKU tetap disebut).
 - **Pemahaman**: ±1.900 contoh kalimat berlabel (intent, topik pengetahuan, jenis kasus, aspek
-  produk, format, kedalaman) di `data/understanding/`, disandikan `bge-m3`. Golden eval: intent
+  produk, format, kedalaman) di `data/understanding/`, disandikan jadi vektor. Golden eval: intent
   139/139 + 15 kasus topik.
 - **Mesin hitung** (58 aturan ber-ID, semua menunggu validasi ahli):
   rumah air bersih (debit puncak kurva Hunter + hidraulik), rumah pembuangan (unit beban buangan,
@@ -114,7 +116,7 @@ Rincian dan pilihan di `TOPIK_BRAINSTORM.md`; daftar lengkap di `docs/OPEN_QUEST
   OQ-58). Semua angka masih IPC/buku acuan, belum padanan SNI 8153.
 - **Data resmi yang belum ada**: tabel tebal dinding per kelas, tekanan kerja resmi AW/D/PN, TDS
   solvent cement, tabel ketahanan kimia, umur pakai, kode produk pelanggan (OQ-54, OQ-55).
-- **Model**: tetap CPU lokal, GPU, atau berbayar per giliran.
+- **Model**: tetap di server sendiri, perangkat yang lebih kencang, atau berbayar per giliran.
 - **Denah**: pengguna sudah bisa melampirkan denah, tetapi sistem belum membacanya (OQ-56). Denah
   yang digambar SNOUTY (13 Okt) skematik: alat berurutan di cabangnya, letak ruang tidak dikarang.
 - **Foto produk**: foto PVC D/VU dan per jenis fitting diminta ke tim Pralon (OQ-62); fitting

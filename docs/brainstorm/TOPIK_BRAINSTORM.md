@@ -21,13 +21,13 @@ kelompok.
 
 ## 2. Model bahasa: kecepatan vs kualitas vs biaya
 
-**Sekarang:** CPU lokal gratis. Mode hemat (DATA langsung) ±0,1 s; mode kualitas (model 9B
-merangkai) 20–25 s; perencana untuk kalimat asing ±8 s.
+**Sekarang:** berjalan di server sendiri, tanpa biaya per giliran. Mode hemat (DATA langsung)
+±0,1 s; mode kualitas (model merangkai) 20–25 s; perencana untuk kalimat asing ±8 s.
 
 **Pilihan:**
 
-- A. Tetap lokal; hemat sebagai baku, kualitas opsional.
-- B. GPU di server (perkiraan 10–20× lebih cepat), sekali beli/sewa.
+- A. Tetap di server sendiri; hemat sebagai baku, kualitas opsional.
+- B. Perangkat yang lebih kencang di server (perkiraan 10–20× lebih cepat), sekali beli/sewa.
 - C. Model berbayar per giliran (3–6 s, biaya kecil per giliran) untuk merangkai dan memahami;
   angka tetap dari kode.
 
