@@ -2511,3 +2511,9 @@ penyebutan berapa kelompok yang ditahan ambang k-anonimitas. (2) Halaman akun (O
 ada — sebagai pop-up dari kaki sidebar, sesuai permintaan pemilik, bukan halaman tersendiri.
 Keduanya sempat dilaporkan sebagai "yang masih kurang" karena catatan fase lamanya tidak pernah
 diperbarui; yang kurang hanyalah catatannya.
+
+**Penutup Fase 28.** Lima item selesai dan live di ai.pralon.co.id (release 2026-10-23, migration
+0033 dengan backup dikonfirmasi). Tes: API 1701 lulus (2 dilewati), web 259 lulus, engineering 521
+lulus. Yang SENGAJA tidak dikerjakan karena memang butuh orang lain, bukan karena terlewat:
+ahli domain (OQ-06), foto produk (OQ-62), daftar harga (OQ-04), kredensial n8n (OQ-08), dan
+peninjauan email yang belum punya satu pun email masuk untuk ditinjau.
