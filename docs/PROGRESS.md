@@ -2202,6 +2202,16 @@ lalu layar, lalu data.
       berhenti bergerak pada `prefers-reduced-motion`. Sekalian: keputusan lokasi disimpan di browser dan
       DISUSULKAN ke server saat subjeknya berganti (cookie tamu baru), jadi langkah lokasi tidak muncul lagi.
 
+- [x] P27-06 Tautan bagikan dibenahi (pemilik 2026-10-23: "ui ux pada share link masih perlu dibenahi").
+      Pop-up: tiga keadaan dibedakan tegas — belum ada tautan, tautan baru (token di tangan), dan tautan
+      aktif dari kunjungan lalu yang tokennya memang tidak disimpan siapa pun; dulu dua tombol "Buat
+      tautan"/"Buat tautan baru" berdiri berdampingan dan tidak jelas sedang ada tautan atau tidak. Tautan
+      langsung tersalin begitu dibuat (token hanya diterima sekali), ada kirim lewat WhatsApp — ke sanalah
+      tautan ini pergi — dan mencabut turun jadi tautan kecil berkonfirmasi, bukan tombol merah sejajar
+      "Salin". Halaman `/shared`: memuat, tidak ada, dan gagal masing-masing kartu bermaskot dengan jalan
+      keluarnya (gagal punya tombol coba lagi), judul ditemani lencana baca-saja, ada tombol cetak dan gaya
+      cetak yang membuang header serta tab — tautan ini sering berakhir di tangan tukang.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

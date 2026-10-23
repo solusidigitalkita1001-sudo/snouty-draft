@@ -509,3 +509,107 @@
     padding-right: 16px;
   }
 }
+
+/* ---------- bagikan: pop-up dan halaman publik (P27-06) ---------- */
+
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--snouty-border);
+  border-radius: 6px;
+  padding: 8px 13px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--snouty-ink-4);
+  background: var(--snouty-surface);
+  cursor: pointer;
+}
+
+.secondaryAction:hover {
+  background: var(--snouty-surface-subtle);
+}
+
+/* Mencabut bukan aksi sejajar "salin": ia tautan kecil di kaki, bukan tombol merah besar. */
+.linkDanger {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  color: var(--snouty-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.linkDanger:hover {
+  color: var(--snouty-action-text);
+}
+
+.shareReady {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--snouty-ink);
+}
+
+.shareFooter {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--snouty-hairline);
+}
+
+.sharedTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sharedBadge {
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-chip);
+  padding: 2px 9px;
+  font-size: 11px;
+  color: var(--snouty-muted);
+  background: var(--snouty-surface-subtle);
+}
+
+/* Memuat, tidak ada, gagal: satu bentuk kartu, selalu dengan jalan keluarnya. */
+.sharedState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 16px;
+  text-align: center;
+}
+
+.sharedStateTitle {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--snouty-ink);
+}
+
+.sharedCta {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--snouty-hairline);
+}
+
+/* Tautan ini sering dicetak di toko: sisakan isinya saja. */
+@media print {
+  .sharedHeader,
+  .tabs,
+  .sharedCta,
+  .sharedBadge {
+    display: none;
+  }
+
+  .sharedBody {
+    max-width: none;
+    padding: 0;
+  }
+}

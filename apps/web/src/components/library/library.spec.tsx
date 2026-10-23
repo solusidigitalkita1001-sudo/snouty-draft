@@ -150,9 +150,47 @@ describe('ShareDialog', () => {
           .readOnly,
       ).toBe(true),
     );
+    // Mencabut diminta konfirmasi lebih dulu (P27-06): ia memutus tautan yang mungkin sudah dikirim.
     fireEvent.click(screen.getByText(COPY.shareRevoke));
+    expect(screen.getByText(COPY.shareRevokeConfirm)).toBeDefined();
+    fireEvent.click(screen.getByText(COPY.shareRevokeYes));
     await waitFor(() => expect(screen.getByText(COPY.shareRevoked)).toBeDefined());
     expect(screen.queryByDisplayValue('https://ai.pralon.co.id/shared?t=abc')).toBeNull();
+  });
+
+  it('batal mencabut: tautannya tetap ada', async () => {
+    api.fetchShareStatus.mockResolvedValue({ active: false, createdAt: null });
+    api.createShare.mockResolvedValue('https://ai.pralon.co.id/shared?t=abc');
+    render(
+      <ShareDialog
+        recommendationId={'R'.repeat(26)}
+        onClose={() => undefined}
+        formatDate={() => '19 OKT'}
+      />,
+    );
+    await waitFor(() => expect(api.fetchShareStatus).toHaveBeenCalled());
+    fireEvent.click(screen.getByText(COPY.shareCreate));
+    await screen.findByDisplayValue('https://ai.pralon.co.id/shared?t=abc');
+    fireEvent.click(screen.getByText(COPY.shareRevoke));
+    fireEvent.click(screen.getByText(COPY.cancel));
+    expect(api.revokeShare).not.toHaveBeenCalled();
+    expect(screen.getByDisplayValue('https://ai.pralon.co.id/shared?t=abc')).toBeDefined();
+  });
+
+  // Tokennya hanya diterima sekali dari server; kunjungan berikutnya tidak memegangnya lagi.
+  it('tautan aktif dari kunjungan lalu: dikatakan apa adanya, bukan kotak kosong', async () => {
+    api.fetchShareStatus.mockResolvedValue({ active: true, createdAt: '2026-10-19T00:00:00.000Z' });
+    render(
+      <ShareDialog
+        recommendationId={'R'.repeat(26)}
+        onClose={() => undefined}
+        formatDate={() => '19 Oktober 2026'}
+      />,
+    );
+    await waitFor(() => expect(screen.getByText(COPY.shareLost)).toBeDefined());
+    expect(screen.getByText(`${COPY.shareActive} 19 Oktober 2026`)).toBeDefined();
+    expect(screen.getByText(COPY.shareRecreate)).toBeDefined();
+    expect(screen.queryByLabelText(COPY.shareLinkLabel)).toBeNull();
   });
 });
 
@@ -162,6 +200,24 @@ describe('SharedSolutionPage', () => {
     window.history.replaceState(null, '', '/shared?t=abc');
     render(<SharedSolutionPage />);
     await waitFor(() => expect(screen.getByText(COPY.sharedNotFound)).toBeDefined());
+    expect(screen.getByText(COPY.sharedNotFoundTitle)).toBeDefined();
     expect(api.fetchShared).toHaveBeenCalledWith('abc');
+  });
+
+  // P27-06: gagal memuat bukan jalan buntu — ada tombol untuk mencoba lagi.
+  it('gagal memuat: judul, alasan, dan tombol coba lagi yang benar-benar memanggil ulang', async () => {
+    api.fetchShared.mockResolvedValue('error');
+    window.history.replaceState(null, '', '/shared?t=abc');
+    render(<SharedSolutionPage />);
+    await waitFor(() => expect(screen.getByText(COPY.sharedErrorTitle)).toBeDefined());
+    fireEvent.click(screen.getByText(COPY.sharedRetry));
+    await waitFor(() => expect(api.fetchShared).toHaveBeenCalledTimes(2));
+  });
+
+  it('tanpa token di alamat: tidak memanggil server sama sekali', async () => {
+    window.history.replaceState(null, '', '/shared');
+    render(<SharedSolutionPage />);
+    await waitFor(() => expect(screen.getByText(COPY.sharedNotFoundTitle)).toBeDefined());
+    expect(api.fetchShared).not.toHaveBeenCalled();
   });
 });
