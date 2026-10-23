@@ -367,7 +367,7 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
   it('percakapan pemilik #2: "apa bedanya fitting sama hdpe?" lalu "bikinin … bentuk table" → tabel, bukan "Produk mana"', async () => {
     const { say, subject } = await conversation();
     const first = await say('apa bedanya fitting sama hdpe ?');
-    expect(first).toContain('**HDPE** adalah bahan pipa, sedangkan **fitting**');
+    expect(first).toContain('HDPE adalah bahan pipa, sedangkan fitting');
     expect(subject()).toMatchObject({ kind: 'product', entity: 'hdpe' });
     const table = await say(
       'bikinin skema perbedaan nya dalam bentuk table dong biar lebih enak dibaca',
@@ -394,8 +394,8 @@ describe('MessageService — subjek percakapan & pertanyaan perusahaan (Fase 16)
     const vsAw = await say('terus bedanya sama pipa AW apa dari product2 yang lu jelasin tadi');
     expect(vsAw).not.toContain('Produk mana');
     expect(vsAw).toContain('adalah kelas pipa PVC');
-    expect(vsAw).toContain('**PVC (uPVC)**');
-    expect(vsAw).toContain('**HDPE**');
+    expect(vsAw).toContain('PVC (uPVC) kaku dan dipasok batangan');
+    expect(vsAw).toContain('HDPE lentur dan bisa digulung');
   });
 
   it('TEST E: setelah profil perusahaan, "produk HDPE nya gimana?" berpindah ke subjek produk', async () => {

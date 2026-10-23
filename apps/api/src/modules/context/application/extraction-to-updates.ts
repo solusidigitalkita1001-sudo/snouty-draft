@@ -388,8 +388,70 @@ export function mentionsCount(message: string, n: number, noun: string): boolean
   return (
     n === 1 &&
     (new RegExp(`\\bse(?:${noun})\\b`).test(text) ||
-      new RegExp(`\\b(?:a|an)${GAP}(?:${noun})\\b`).test(text))
+      // Batas kata di belakang "a"/"an" wajib: tanpa itu "ada dapur" terbaca "a … dapur" = 1.
+      new RegExp(`\\b(?:a|an)\\b${GAP}(?:${noun})\\b`).test(text))
   );
+}
+
+/** Berapa kali kata bendanya disebut di pesan, dengan atau tanpa angka. */
+function nounMentions(message: string, noun: string): number {
+  return (message.toLowerCase().match(new RegExp(`\\b(?:${noun})\\b`, 'g')) ?? []).length;
+}
+
+/** Semua angka yang menempel pada kata benda itu, sesuai urutan munculnya. */
+export function statedCounts(message: string, noun: string): number[] {
+  const out: number[] = [];
+  for (let n = 1; n <= 99; n++) {
+    if (mentionsCount(message, n, noun)) out.push(n);
+  }
+  return out;
+}
+
+/** Batas kewajaran jumlah alat dalam satu bangunan — di atas ini angka model tidak dipercaya. */
+const PLAUSIBLE_COUNT_MAX = 200;
+
+/**
+ * Apakah jumlah dari model bisa DIPERTANGGUNGJAWABKAN oleh pesan ini (P27-02).
+ *
+ * Pagar lama hanya menerima angka yang tersurat persis ("3 kamar mandi"), lalu diam-diam memakai
+ * angka lain yang kebetulan ada di teks. Laporan pemilik 2026-10-23: "user nanya bangun rumah
+ * dengan spesifikasi beberapa udah disebutin, tp snouty malah menanyakan ulang". Memang:
+ *
+ *   "tiap lantai ada 2 kamar mandi" (2 lantai) → model 4, pagar memaksa 2 — salah, diam-diam.
+ *   "lantai 1 ada 1 kamar mandi, lantai 2 ada 2 kamar mandi" → model 3, pagar memaksa 1.
+ *   "ada dapur dan satu kamar mandi" → model 1 dapur, pagar membuangnya → dapur ditanya lagi.
+ *
+ * Yang diterima sekarang, semuanya masih berdasar isi pesan:
+ *
+ *   - angkanya tersurat di dekat kata bendanya (seperti dulu);
+ *   - JUMLAH beberapa angka yang tersurat — kalimat yang membagi per lantai atau per ruang;
+ *   - angka tersurat DIKALI jumlah lantai — "tiap lantai 2 kamar mandi";
+ *   - kata bendanya disebut lebih sering daripada angkanya ditemukan — kalimatnya memang tidak
+ *     terbaca parser teks, jadi bacaan model yang dipakai, asal tidak lebih kecil dari yang
+ *     tersurat dan masih wajar.
+ *
+ * Tidak cocok satu pun → `undefined`: field tetap kosong dan DITANYAKAN sekali, bukan diisi angka
+ * yang salah. Pesan yang tidak menyebut kata bendanya sama sekali tetap ditolak seperti dulu —
+ * itu pagar halusinasinya.
+ */
+export function confirmCount(
+  message: string,
+  noun: string,
+  value: number,
+  floors?: number,
+): number | undefined {
+  if (message === '') return value;
+  if (value === 0) return mentionsCount(message, 0, noun) ? 0 : undefined;
+  const stated = statedCounts(message, noun);
+  if (stated.includes(value)) return value;
+  const sum = stated.reduce((total, n) => total + n, 0);
+  if (stated.length > 1 && sum === value) return value;
+  if (floors !== undefined && floors > 1 && stated.some((n) => n * floors === value)) return value;
+  const mentions = nounMentions(message, noun);
+  if (mentions > stated.length && value >= Math.max(1, sum) && value <= PLAUSIBLE_COUNT_MAX) {
+    return value;
+  }
+  return undefined;
 }
 
 const TYPE_MARKERS: Readonly<
@@ -462,6 +524,8 @@ function intAfter(pattern: RegExp, message: string): number | undefined {
 
 export function extractionToUpdates(extraction: Extraction, message = ''): FieldUpdate[] {
   const updates: FieldUpdate[] = [];
+  // Jumlah lantai dipakai memeriksa kalimat yang membagi per lantai ("tiap lantai 2 kamar mandi").
+  const floorsStated = extraction.building?.floors ?? OBVIOUS.floors(message);
   const add = (path: FieldUpdate['path'], value: unknown): void => {
     if (value === undefined) return; // "tidak disebut di pesan ini"
     // Lantai dan ukuran ≤ 0 tidak ada artinya: ditolak, field-nya tetap ditanyakan (review putaran 3).
@@ -471,7 +535,9 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     if (marker && message !== '' && !marker.test(message)) return; // tidak pernah diucapkan
     const noun = COUNT_NOUNS[path];
     if (message !== '' && noun !== undefined && typeof value === 'number') {
-      if (!mentionsCount(message, value, noun)) return; // angka yang tidak pernah diucapkan
+      // Jumlah lantai sendiri tidak boleh "dikalikan lantai" — ia yang jadi pengalinya.
+      const floors = path === 'building.floors' ? undefined : floorsStated;
+      if (confirmCount(message, noun, value, floors) === undefined) return;
     }
     if (message !== '' && path === 'building.type' && typeof value === 'string') {
       const typeMarker = TYPE_MARKERS[value as keyof typeof TYPE_MARKERS];
@@ -483,10 +549,18 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   // Jenis yang tersurat di pesan menang atas tebakan model (model bisa memakai kelas lama, mis.
   // sekolah → komersial ringan, yang lalu ditolak penanda dan jenisnya hilang).
   add('building.type', OBVIOUS.type(message) ?? extraction.building?.type);
-  // Angka model dipakai hanya bila tersurat di dekat kata bendanya; selain itu angka dari
-  // teks (bila ada). "rumah 2 lantai" + model `floors: 3` → 2, bukan 3, bukan kosong.
+  // Angka model dipakai bila pesan bisa mempertanggungjawabkannya (`confirmCount`); selain itu
+  // angka dari teks (bila ada). "rumah 2 lantai" + model `floors: 3` → 2, bukan 3, bukan kosong.
   const counted = (path: string, model: number | undefined, obvious: number | undefined) =>
-    model !== undefined && mentionsCount(message, model, COUNT_NOUNS[path] ?? '') ? model : obvious;
+    model !== undefined &&
+    confirmCount(
+      message,
+      COUNT_NOUNS[path] ?? '',
+      model,
+      path === 'building.floors' ? undefined : floorsStated,
+    ) !== undefined
+      ? model
+      : obvious;
 
   add(
     'building.floors',

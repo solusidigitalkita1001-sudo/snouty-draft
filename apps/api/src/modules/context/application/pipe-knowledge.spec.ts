@@ -56,32 +56,29 @@ describe('pipe knowledge', () => {
     }
   });
 
-  it('"apa bedanya pvc sama hdpe" → ringkasan, tabel aspek, simpulan; sifatnya tidak tertukar', () => {
+  // Prosa, bukan tabel aspek (pemilik 2026-10-23: "format deliver answer di snouty terlalu text
+  // book"). Tabelnya tetap ada untuk permintaan "bikinin tabelnya" — lihat `reformat`.
+  it('"apa bedanya pvc sama hdpe" → tiga paragraf pendek tanpa tabel; sifatnya tidak tertukar', () => {
     const out = explain(q('apa bedanya pvc sama hdpe?', [], comparison));
-    expect(out).toMatch(
-      /^Singkatnya, \*\*PVC \(uPVC\) kaku dan dipasok batangan\*\*, sedangkan \*\*HDPE lentur/,
-    );
-    expect(out).toContain('| Aspek | **PVC (uPVC)** | **HDPE** |');
-    expect(out).toMatch(/\| Bentuk \| kaku dan ringan[^|]*\| lentur dan ulet/);
-    expect(out).toContain('| Sambungan |');
-    expect(out).toContain('| Pemakaian lazim |');
-    expect(out).toMatch(/Jadi untuk \*\*instalasi tetap[^\n]*HDPE biasanya lebih cocok\.$/);
+    expect(out).toMatch(/^PVC \(uPVC\) kaku dan dipasok batangan, sedangkan HDPE lentur/);
+    expect(out).not.toContain('|');
+    expect(out).not.toContain('**');
+    expect(out).toContain('PVC (uPVC) disambung dengan lem (solvent cement)');
+    expect(out).toContain('HDPE disambung dengan pemanasan');
+    expect(out).toMatch(/Jadi untuk instalasi tetap[^\n]*HDPE lebih cocok\.$/);
+    expect(out.split('\n\n')).toHaveLength(3);
   });
 
   it('"apa bedanya fitting sama hdpe" → bahan vs komponen dulu, lalu ikhtisar HDPE dan konsep fitting; EN setara', () => {
     const id = explain(q('apa bedanya fitting sama hdpe?', ['fitting'], comparison));
-    expect(id).toMatch(
-      /^\*\*HDPE\*\* adalah bahan pipa, sedangkan \*\*fitting\*\* adalah komponen penyambungnya/,
-    );
-    expect(id).toContain('**HDPE** lentur dan ulet');
+    expect(id).toMatch(/^HDPE adalah bahan pipa, sedangkan fitting adalah komponen penyambungnya/);
+    expect(id).toContain('HDPE lentur dan ulet');
     expect(id).toContain('Fitting adalah komponen penyambung pipa');
     const en = explain(
       q('what is the difference between a fitting and hdpe?', ['fitting'], comparison),
       'en',
     );
-    expect(en).toMatch(
-      /^\*\*HDPE\*\* is a pipe material, while a \*\*fitting\*\* is a connecting part/,
-    );
+    expect(en).toMatch(/^HDPE is a pipe material, while a fitting is a connecting part/);
     expect(en).toContain('Fittings are the connecting parts of a pipe run');
     // Tanpa perbandingan, kalimat "bukan dua pilihan" tidak dipaksakan.
     expect(explain(q('fitting hdpe apa saja?', ['fitting']))).not.toContain('bukan dua pilihan');
@@ -120,7 +117,7 @@ describe('pipe knowledge', () => {
     expect(explain(q('pipa pvc disimpan di luar boleh?', ['penyimpanan']))).toMatch(
       /^Pipa PVC sebaiknya disimpan begini:/,
     );
-    expect(explain(q('apa itu pvc?', [], concept))).toMatch(/^\*\*PVC/);
+    expect(explain(q('apa itu pvc?', [], concept))).toMatch(/^PVC/);
     expect(explain(q('pipa bocor di sambungan kenapa ya?', ['perawatan dan gangguan']))).toContain(
       'Bocor di sambungan',
     );
@@ -150,8 +147,8 @@ describe('pipe knowledge', () => {
 
   it('satu bahan → ikhtisar; konsep yang disinggung ikut; tanpa bahan → kosong', () => {
     const ppr = explain(q('apa itu ppr?', [], concept));
-    expect(ppr).toMatch(/^\*\*PPR\*\* kaku, dipasok batangan/); // prosa, bukan butir
-    expect(ppr).toContain('**cocok untuk instalasi air panas dan dingin di dalam bangunan**');
+    expect(ppr).toMatch(/^PPR kaku, dipasok batangan/); // prosa, bukan butir
+    expect(ppr).toContain('cocok untuk instalasi air panas dan dingin di dalam bangunan');
     expect(ppr).toContain('kurang cocok untuk');
     expect(ppr).not.toContain('- Bentuk:');
     expect(explain(q('pipa yang ditanam di tanah enaknya apa? hdpe', ['pipa tanam']))).toContain(
@@ -198,9 +195,12 @@ describe('pipe knowledge', () => {
     const half = '**PVC**\n- a\n- b\n\n**HDPE**\n- c\n- d';
     expect(keepsStructure(half, knowledge)).toBe(true);
     expect(keepsStructure(half.replaceAll('**', ''), knowledge)).toBe(false);
-    // Perbandingan bahan kini tabel (pemilik 2026-10-20): paragraf atau butir saja ditolak.
-    const table = explain(q('apa bedanya pvc sama hdpe?', [], comparison));
-    expect(keepsStructure('Secara umum **PVC** kaku dan HDPE lentur.', table)).toBe(false);
+    // Perbandingan bahan kini PROSA: tidak ada struktur yang harus dipertahankan model.
+    const prose = explain(q('apa bedanya pvc sama hdpe?', [], comparison));
+    expect(keepsStructure('Secara umum PVC kaku dan HDPE lentur.', prose)).toBe(true);
+    // Tabel yang memang diminta tetap wajib dipertahankan.
+    const table = reformat('table', { materials: [pvc!, hdpe!], fitting: false })!;
+    expect(keepsStructure('Secara umum PVC kaku dan HDPE lentur.', table)).toBe(false);
     expect(keepsStructure(table, table)).toBe(true);
   });
 
@@ -219,33 +219,33 @@ describe('pipe knowledge', () => {
     expect(conceptsFor(['pipa tanam']).map((c) => c.topic)).toEqual(['pipa tanam']);
   });
 
-  it('locale: Indonesia tidak berubah; Inggris berstruktur sama (jumlah butir dan label tebal)', () => {
+  it('locale: Indonesia tidak berubah; Inggris sama bentuknya (jumlah paragraf, tanpa tebal)', () => {
     const input = q('apa bedanya pvc sama hdpe?', [], comparison);
     expect(explain(input, 'id')).toBe(explain(input));
-    expect(explain(input)).toMatch(/^Singkatnya, \*\*PVC \(uPVC\) kaku dan dipasok batangan\*\*/);
+    expect(explain(input)).toMatch(/^PVC \(uPVC\) kaku dan dipasok batangan/);
 
     const id = explain(input);
     const en = explain(q('what is the difference between pvc and hdpe?', [], comparison), 'en');
-    const bullets = (t: string) => t.split('\n').filter((l) => l.startsWith('- ')).length;
-    const bolds = (t: string) => (t.match(/\*\*/g) ?? []).length;
-    expect(en).toMatch(/^In short, \*\*PVC \(uPVC\) is rigid/);
-    expect(en).toContain('| Joints |');
+    expect(en).toMatch(/^PVC \(uPVC\) is rigid/);
+    expect(en).toContain('is joined by');
     expect(en).not.toMatch(/\b(dan|sambungan|bentuk)\b/i);
-    expect(bullets(en)).toBe(bullets(id));
-    const rows = (t: string) => t.split('\n').filter((l) => l.startsWith('|')).length;
-    expect(rows(en)).toBe(rows(id));
-    expect(bolds(en)).toBe(bolds(id));
+    const paragraphs = (t: string) => t.split('\n\n').length;
+    expect(paragraphs(en)).toBe(paragraphs(id));
+    for (const text of [id, en]) {
+      expect(text).not.toContain('**');
+      expect(text).not.toContain('|');
+    }
   });
 
   it('locale en: satu bahan, konsep, ringkasan, dan saran; nama Inggris dikenali kosakata', () => {
     expect(
       materialsFor(TEST_LEXICON.productFamilies('is buried steel pipe ok?')).map((m) => m.family),
     ).toEqual(['Galvanis']);
-    expect(explain(q('tell me about ppr', [], concept), 'en')).toMatch(/^\*\*PPR\*\* is rigid/);
+    expect(explain(q('tell me about ppr', [], concept), 'en')).toMatch(/^PPR is rigid/);
     expect(explain(q('buried pipe', ['pipa tanam']), 'en')).toMatch(/^Buried pipe carries/);
     const [pvc, hdpe] = MATERIALS;
     expect(briefComparison([pvc!, hdpe!], 'en')).toBe(
-      'As above: **PVC (uPVC) is rigid and supplied in straight lengths**, while **HDPE is flexible and can be coiled**.',
+      'As above: PVC (uPVC) is rigid and supplied in straight lengths, while HDPE is flexible and can be coiled.',
     );
     const advice = adviseMaterials(
       [pvc!, hdpe!],

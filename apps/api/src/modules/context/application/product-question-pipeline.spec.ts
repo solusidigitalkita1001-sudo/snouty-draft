@@ -193,7 +193,7 @@ describe('runProductQuestion — KONSEP', () => {
       ),
     );
     const out = text(events);
-    expect(out).toContain('**HDPE** adalah bahan pipa, sedangkan **fitting**');
+    expect(out).toContain('HDPE adalah bahan pipa, sedangkan fitting');
     expect(out).not.toContain('Singkatnya, **PVC');
   });
 
@@ -229,7 +229,7 @@ describe('runProductQuestion — KONSEP', () => {
     const out = text(events);
     expect(asked).toBe(0);
     expect(out).toContain(
-      '**HDPE** adalah bahan pipa, sedangkan **fitting** adalah komponen penyambungnya',
+      'HDPE adalah bahan pipa, sedangkan fitting adalah komponen penyambungnya',
     );
     expect(out).toContain('Fitting adalah komponen penyambung pipa');
     expect(out).not.toContain('belum tercantum di katalog');
@@ -367,8 +367,8 @@ describe('runProductQuestion — KONSEP', () => {
       input('apa bedanya pvc sama hdpe?', COMPARISON),
     );
     const out = text(events);
-    expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
-    expect(out).toContain('| Sambungan |');
+    expect(out).toContain('PVC (uPVC) kaku dan dipasok batangan, sedangkan HDPE');
+    expect(out).toContain('PVC (uPVC) disambung dengan lem');
     // Katalog gagal dibaca → tidak ada klaim tentang Pralon, hanya ajakan ke tim teknis.
     expect(out).not.toContain('tidak ada di katalog');
     expect(out).toContain('tim teknis Pralon bisa membantu');
@@ -396,7 +396,7 @@ describe('runProductQuestion — KONSEP', () => {
       // Pertanyaan lain yang bukan harga — harga punya jawaban tetapnya sendiri (OQ-03).
       input('kalau pvc vs hdpe soal ketahanannya?', COMPARISON, { recentTurns: turns }),
     );
-    expect(text(other)).toContain('Seperti tadi: **PVC (uPVC) kaku');
+    expect(text(other)).toContain('Seperti tadi: PVC (uPVC) kaku');
     expect(text(other)).not.toContain('| Sambungan |');
 
     const again = await runProductQuestion(
@@ -405,7 +405,7 @@ describe('runProductQuestion — KONSEP', () => {
       noQuestions,
       input('apa bedanya pvc sama hdpe?', COMPARISON, { recentTurns: turns }),
     );
-    expect(text(again)).toContain('| Sambungan |');
+    expect(text(again)).toContain('PVC (uPVC) disambung dengan lem');
   });
 
   it('katalog CONTOH tidak pernah bocor: tanpa "CONTOH …", tanpa "tidak ada di katalog Pralon"', async () => {
@@ -416,7 +416,7 @@ describe('runProductQuestion — KONSEP', () => {
       input('apa bedanya pvc sama hdpe?', COMPARISON),
     );
     const out = text(events);
-    expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
+    expect(out).toContain('PVC (uPVC) kaku dan dipasok batangan, sedangkan HDPE');
     expect(out).not.toContain('CONTOH');
     expect(out).not.toContain('tidak ada di katalog');
     expect(cards(events).map((c) => c.kind)).toEqual(['cta']);
@@ -430,7 +430,7 @@ describe('runProductQuestion — KONSEP', () => {
       input('apa bedanya pvc sama hdpe?', COMPARISON),
     );
     const out = text(events);
-    expect(out).toContain('Singkatnya, **PVC (uPVC) kaku');
+    expect(out).toContain('PVC (uPVC) kaku dan dipasok batangan, sedangkan HDPE');
     expect(out).toContain('HDPE tidak ada di katalog Pralon.');
     expect(out).toContain('Contoh produknya di katalog Pralon:');
     expect(out).toContain('Pipa PVC AW:');
@@ -462,10 +462,12 @@ describe('runProductQuestion — KONSEP', () => {
     expect(out).toContain('HDPE tidak ada di katalog'); // katalog tak disinggung → ikut
     const call = reply.calls[0] as { systemPrompt?: string; facts?: string };
     expect(call.systemPrompt).toBe('PROMPT-FAQ');
-    expect(call.facts).toContain('Singkatnya, **PVC (uPVC) kaku');
+    expect(call.facts).toContain('PVC (uPVC) kaku dan dipasok batangan, sedangkan HDPE');
     expect(call.facts).toContain('HDPE tidak ada di katalog');
   });
 
+  // Perbandingan biasa kini PROSA, jadi tabel hanya lahir saat pengguna memintanya. Di sanalah
+  // pagar ini berlaku: tabel yang diminta tidak boleh diringkas model menjadi satu paragraf.
   it('model yang meringkas DATA bertabel menjadi satu paragraf ditolak → teks deterministik', async () => {
     const reply = {
       write: async () => ({
@@ -473,11 +475,26 @@ describe('runProductQuestion — KONSEP', () => {
         source: 'llm' as const,
       }),
     };
+    const previous = explain({
+      families: ['pvc', 'hdpe'],
+      topics: [],
+      comparison: true,
+      aboutMaterial: true,
+    });
     const events = await runProductQuestion(
-      ai({ productQuery: 'pvc dan hdpe', aspect: null }),
+      ai({ productQuery: null, aspect: null }),
       catalog({}, 'sample'),
       noQuestions,
-      input('apa bedanya pvc sama hdpe?', COMPARISON),
+      input(
+        'bikinin dalam bentuk table dong',
+        { intent: 'follow_up_reformat', format: 'table' },
+        {
+          recentTurns: [
+            { role: 'user', text: 'apa bedanya pvc sama hdpe?' },
+            { role: 'assistant', text: previous },
+          ],
+        },
+      ),
       reply as never,
       'PROMPT-FAQ',
     );
@@ -536,8 +553,8 @@ describe('runProductQuestion — nada percakapan', () => {
       input('kalo pipa HDPE di Pralon gmn? ok ngga?', CONCEPT),
     );
     const out = text(first);
-    expect(out).toMatch(/^\*\*HDPE\*\* lentur dan ulet/);
-    expect(out).toContain('**cocok untuk jalur panjang');
+    expect(out).toMatch(/^HDPE lentur dan ulet/);
+    expect(out).toContain('cocok untuk jalur panjang');
     expect(out).toContain('kurang cocok untuk');
     expect(out).toContain('katalog Pralon belum terpasang di sistem ini');
     expect(out).not.toContain('- Bentuk:');
@@ -857,7 +874,7 @@ describe('runProductQuestion — batas klaim (audit anti-halusinasi 2026-10-09)'
       input(message, { ...COMPARISON, knowledgeTopics: ['pipa tanam'] }),
     );
     const out = text(events);
-    expect(out.startsWith('Singkatnya')).toBe(true);
+    expect(out).toContain('HDPE lentur dan bisa digulung, sedangkan PVC (uPVC)');
     expect(out).toContain('Di katalog Pralon yang aktif:');
     expect(out).toContain('**HDPE** — 3 produk');
     expect(out).not.toMatch(/PN-\d/);

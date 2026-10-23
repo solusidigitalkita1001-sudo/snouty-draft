@@ -2170,6 +2170,26 @@ lalu layar, lalu data.
       Tes baru `checkable-hydraulics.spec.ts` menghitung ulang Hazen-Williams, kecepatan, dan
       ΣK·v²/2g DARI LUAR engine dan membandingkannya — persis cara Leo memeriksa.
 
+- [x] P27-02 Jangan menanyakan ulang apa yang sudah disebut (pemilik 2026-10-23: "spesifikasi beberapa udah
+      disebutin, tp snouty malah menanyakan ulang"). Pagar grounding hanya menerima angka yang tersurat PERSIS
+      di dekat kata bendanya, lalu diam-diam memakai angka lain yang ada di teks: "tiap lantai ada 2 kamar
+      mandi" di rumah 2 lantai tercatat 2, "lantai 1 ada 1 kamar mandi, lantai 2 ada 2" tercatat 1, dan "ada
+      dapur" tanpa angka hilang sama sekali lalu ditanyakan lagi. `confirmCount` kini menerima: angka tersurat,
+      JUMLAH beberapa angka tersurat, angka tersurat DIKALI jumlah lantai, dan — bila kata bendanya disebut
+      lebih sering daripada angkanya ditemukan — bacaan model, asal tidak lebih kecil dari yang tersurat dan
+      masih wajar. Tidak cocok satu pun → field tetap kosong dan ditanyakan sekali, bukan diisi angka salah.
+      Pagar halusinasi tetap: kata benda yang tidak disebut sama sekali tetap menolak angkanya. Sekalian
+      diperbaiki: `(?:a|an)` tanpa batas kata di belakangnya membaca "ada dapur" sebagai "a … dapur" = 1.
+- [x] P27-03 Balasan tidak lagi seperti buku teks (pemilik 2026-10-23: "format deliver answer di snouty terlalu
+      text book"). Perbandingan bahan dijawab tiga paragraf pendek — apa bedanya, cara menyambungnya, kapan
+      memilih yang mana — bukan ringkasan + tabel aspek + simpulan; tebal yang berfungsi sebagai judul dibuang
+      dari ikhtisar bahan, ringkasan, dan perbandingan singkat. Tabel yang sama tetap ada dan dipakai saat
+      pengguna memintanya ("bikinin tabelnya"), lewat label `format` dari modul understanding — bukan pola
+      kalimat. Prompt balasan dan FAQ ditulis ulang: paragraf mengalir, tanpa judul, tanpa tabel atau butir
+      yang tidak ada di DATA, tanpa pembuka basa-basi dan penutup ringkasan. Pagarnya hidup di KODE
+      (`addsNoStructure`), bukan di prompt: balasan model yang memuat judul Markdown, tabel, butir, atau baris
+      seluruhnya tebal yang tidak ada di DATA jatuh ke teks deterministik.
+
 ## Design Coverage
 
 | Screen | Description                                               | Phase               | Status                            |

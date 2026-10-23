@@ -56,10 +56,35 @@ describe('ReplyWriter', () => {
 
   it('penanda daftar bernomor Markdown bukan angka teknik; angka di dalam butirnya tetap dijaga', async () => {
     const list = '1. Kaku.\n2. Dilem.\n3. Batangan.\n4. Tanpa alat.';
+    // DATA yang sudah berbutir boleh dijawab berbutir (lihat pagar struktur di bawah).
+    const listed = { ...base, facts: '- Kaku\n- Dilem\n- Batangan\n- Tanpa alat' };
     const writer = new ReplyWriter(ai({ text: list }), 'sys');
-    expect(await writer.write(base)).toEqual({ text: list, source: 'llm' });
+    expect(await writer.write(listed)).toEqual({ text: list, source: 'llm' });
     const leaky = new ReplyWriter(ai({ text: '3. Tekanan 10 bar.' }), 'sys');
-    expect((await leaky.write(base)).source).toBe('fallback');
+    expect((await leaky.write(listed)).source).toBe('fallback');
+  });
+
+  // P27-03 — pemilik 2026-10-23: "format deliver answer di snouty terlalu text book".
+  it('struktur yang tidak ada di DATA ditolak: judul, tabel, butir, dan baris tebal', async () => {
+    const plain = { ...base, facts: 'uPVC kaku dan dipasok batangan.' };
+    const rejected = [
+      '## Ringkasan\n\nuPVC kaku.',
+      '| Aspek | uPVC |\n| --- | --- |\n| Bentuk | kaku |',
+      '- uPVC kaku\n- dipasok batangan',
+      '**Kesimpulan:**\nuPVC kaku.',
+    ];
+    for (const text of rejected) {
+      const writer = new ReplyWriter(ai({ text }), 'sys');
+      expect((await writer.write(plain)).source, text).toBe('fallback');
+    }
+    const prose = new ReplyWriter(ai({ text: 'uPVC kaku dan dipasok batangan.' }), 'sys');
+    expect((await prose.write(plain)).source).toBe('llm');
+  });
+
+  it('tabel yang memang ada di DATA boleh diteruskan', async () => {
+    const table = '| Aspek | uPVC |\n| --- | --- |\n| Bentuk | kaku |';
+    const writer = new ReplyWriter(ai({ text: table }), 'sys');
+    expect((await writer.write({ ...base, facts: table })).source).toBe('llm');
   });
 
   it('angka yang ada di DATA boleh', async () => {

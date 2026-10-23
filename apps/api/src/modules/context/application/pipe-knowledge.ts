@@ -438,13 +438,13 @@ export function describeMaterial(
   // batangan" dan "Soal ketahanan, …" terbaca seperti templat (audit keterbacaan 2026-10-08).
   if (locale === 'en') {
     return [
-      `**${m.label}** is ${m.form}. It is joined by ${m.joining}. ${capitalize(m.durability)}.`,
-      `It is **best suited to ${m.bestFor}**, and less suited to ${m.notFor}.`,
+      `${m.label} is ${m.form}. It is joined by ${m.joining}. ${capitalize(m.durability)}.`,
+      `It is best suited to ${m.bestFor}, and less suited to ${m.notFor}.`,
     ].join('\n\n');
   }
   return [
-    `**${m.label}** ${m.form}. Disambung dengan ${m.joining}. ${capitalize(m.durability)}.`,
-    `Paling **cocok untuk ${m.bestFor}**, dan kurang cocok untuk ${m.notFor}.`,
+    `${capitalize(m.label)} ${m.form}. Disambung dengan ${m.joining}. ${capitalize(m.durability)}.`,
+    `Paling cocok untuk ${m.bestFor}, dan kurang cocok untuk ${m.notFor}.`,
   ].join('\n\n');
 }
 
@@ -553,18 +553,22 @@ export function reformat(
   // nadanya pengingat anti-ulang, bukan jawaban atas permintaan "ringkas dong".
   const texts = materials.map((m) => textsOf(m, locale));
   if (locale === 'en') {
-    const gists = texts.map((t) => `**${t.label}** is ${t.gist}`).join(', while ');
+    const gists = texts.map((t) => `${t.label} is ${t.gist}`).join(', while ');
     const uses = texts.map((t) => `${t.label} for ${t.bestFor}`).join('; ');
     return `In short, ${gists}. ${uses}.`;
   }
-  const gists = texts.map((t) => `**${t.label}** ${t.gist}`).join(', sedangkan ');
+  const gists = texts.map((t) => `${t.label} ${t.gist}`).join(', sedangkan ');
   const uses = texts.map((t) => `${t.label} untuk ${t.bestFor}`).join('; ');
   return `Singkatnya, ${gists}. ${uses}.`;
 }
 
 /**
- * Ringkasan → tabel aspek berdampingan → simpulan: "bedanya" dijawab sebagai perbedaan. Tabel,
- * bukan blok per bahan, supaya aspek yang sama terbaca sejajar (pemilik 2026-10-20).
+ * "Bedanya apa" dijawab sebagai perbedaan — dalam PROSA, seperti teknisi yang menjelaskan di
+ * toko, bukan tabel aspek (pemilik 2026-10-23: "format deliver answer di snouty terlalu text
+ * book"; CLAUDE.md: struktur terstruktur milik layar solusi, bukan gelembung chat).
+ *
+ * Tabel yang sama tetap ada dan dipakai saat pengguna memang memintanya ("bikinin tabelnya") —
+ * lihat `reformat`, yang dipicu label `format` dari modul understanding, bukan dari pola kalimat.
  */
 export function compareMaterials(
   first: MaterialKnowledge,
@@ -573,19 +577,20 @@ export function compareMaterials(
 ): string {
   const a = textsOf(first, locale);
   const b = textsOf(second, locale);
-  const table = materialsTable([first, second], locale);
+  // Tiga paragraf pendek: apa bedanya, cara menyambungnya, lalu kapan memilih yang mana.
+  // Ketahanan dan pemakaian lazim tidak diborong ke sini — ia ada di tabel bila diminta.
   if (locale === 'en') {
     return [
-      `In short, **${a.label} is ${a.gist}**, while **${b.label} is ${b.gist}**.`,
-      table,
-      `So for **${a.bestFor}**, ${a.label} is usually more practical; for **${b.bestFor}**, ${b.label} is usually the better fit.`,
-    ].join('\n\n');
+      `${a.label} is ${a.gist}, while ${b.label} is ${b.gist}.`,
+      `${capitalize(a.label)} is joined by ${a.joining}. ${capitalize(b.label)} is joined by ${b.joining}.`,
+      `So for ${a.bestFor}, ${a.label} is usually the more practical choice; for ${b.bestFor}, ${b.label} fits better.`,
+    ].join(PARAGRAPH);
   }
   return [
-    `Singkatnya, **${a.label} ${a.gist}**, sedangkan **${b.label} ${b.gist}**.`,
-    table,
-    `Jadi untuk **${a.bestFor}**, ${a.label} biasanya lebih praktis; untuk **${b.bestFor}**, ${b.label} biasanya lebih cocok.`,
-  ].join('\n\n');
+    `${a.label} ${a.gist}, sedangkan ${b.label} ${b.gist}.`,
+    `${capitalize(a.label)} disambung dengan ${a.joining}. ${capitalize(b.label)} disambung dengan ${b.joining}.`,
+    `Jadi untuk ${a.bestFor}, ${a.label} biasanya lebih praktis; untuk ${b.bestFor}, ${b.label} lebih cocok.`,
+  ].join(PARAGRAPH);
 }
 
 /** Satu kalimat — untuk mengulang yang sudah dijelaskan tanpa mengulang seluruh perbandingan. */
@@ -594,10 +599,10 @@ export function briefComparison(
   locale: Locale = DEFAULT_LOCALE,
 ): string {
   if (locale === 'en') {
-    const parts = materials.map((m) => `**${m.en.label} is ${m.en.gist}**`);
+    const parts = materials.map((m) => `${m.en.label} is ${m.en.gist}`);
     return `As above: ${parts.join(', while ')}.`;
   }
-  const parts = materials.map((m) => `**${m.label} ${m.gist}**`);
+  const parts = materials.map((m) => `${m.label} ${m.gist}`);
   return `Seperti tadi: ${parts.join(', sedangkan ')}.`;
 }
 
@@ -728,8 +733,8 @@ export function explain(input: ExplainInput, locale: Locale = DEFAULT_LOCALE): s
     const m = materials[0]!;
     parts.push(
       locale === 'en'
-        ? `**${m.en.label}** is a pipe material, while a **fitting** is a connecting part — so they are not two options to choose between. ${m.en.label} fittings exist too; they are what joins ${m.en.label} pipe.`
-        : `**${m.label}** adalah bahan pipa, sedangkan **fitting** adalah komponen penyambungnya — jadi keduanya bukan dua pilihan yang dibandingkan. Fitting ${m.label} pun ada; itulah yang menyambung pipa ${m.label}.`,
+        ? `${m.en.label} is a pipe material, while a fitting is a connecting part — so they are not two options to choose between. ${m.en.label} fittings exist too; they are what joins ${m.en.label} pipe.`
+        : `${m.label} adalah bahan pipa, sedangkan fitting adalah komponen penyambungnya — jadi keduanya bukan dua pilihan yang dibandingkan. Fitting ${m.label} pun ada; itulah yang menyambung pipa ${m.label}.`,
     );
   }
   if (materials.length === 2) parts.push(compareMaterials(materials[0]!, materials[1]!, locale));

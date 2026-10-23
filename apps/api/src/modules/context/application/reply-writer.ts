@@ -100,7 +100,8 @@ export class ReplyWriter {
     const parsed = replySchema(input.maxLength ?? DEFAULT_MAX_LENGTH).safeParse(raw);
     if (!parsed.success) return fallback;
     const text = withoutOpener(parsed.data.text, input.facts);
-    return passesGuards(text, input.facts) ? { text, source: 'llm' } : fallback;
+    if (!passesGuards(text, input.facts)) return fallback;
+    return addsNoStructure(text, input.facts) ? { text, source: 'llm' } : fallback;
   }
 }
 
@@ -113,6 +114,26 @@ export function withoutOpener(text: string, facts: string | undefined): string {
   if (facts === undefined) return text;
   const stripped = text.replace(/^[^\s.!?,]{1,15}(?:\s+[^\s.!?,]{1,15}){0,2}!\s+/u, '');
   return stripped.trim().length > 0 ? stripped.charAt(0).toUpperCase() + stripped.slice(1) : text;
+}
+
+/**
+ * Model tidak boleh MENGARANG struktur (P27-03, pemilik 2026-10-23: "format deliver answer di
+ * snouty terlalu text book"). Judul Markdown, tabel, dan daftar butir hanya boleh ada bila DATA
+ * memang sudah berbentuk begitu — dan DATA berbentuk begitu hanya kalau pengguna memintanya.
+ *
+ * Aturannya hidup di sini, bukan di prompt: aturan yang hanya ada di prompt dianggap tidak ada
+ * (CLAUDE.md). Balasan yang tetap "seperti buku teks" jatuh ke teks deterministik.
+ */
+export function addsNoStructure(text: string, facts: string | undefined): boolean {
+  // Judul Markdown tidak pernah boleh — tidak ada DATA yang memakainya.
+  if (/^\s{0,3}#{1,6}\s/m.test(text)) return false;
+  const data = facts ?? '';
+  const hasTable = (s: string) => /^\s*\|.*\|\s*$/m.test(s);
+  if (hasTable(text) && !hasTable(data)) return false;
+  const hasList = (s: string) => /^\s*(?:[-*]|\d+\.)\s/m.test(s);
+  if (hasList(text) && !hasList(data)) return false;
+  // Baris yang seluruhnya tebal adalah judul bagian yang menyamar.
+  return !/^\s{0,3}\*\*[^*\n]{1,60}\*\*:?\s*$/m.test(text);
 }
 
 /**

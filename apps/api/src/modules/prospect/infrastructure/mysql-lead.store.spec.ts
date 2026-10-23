@@ -32,7 +32,9 @@ const asAdmin = { id: ADMIN, roles: ['admin'] };
 let fixture: TestDatabase;
 let leads: LeadService;
 const fakeAi = () => ({
-  writeProse: vi.fn(async (): Promise<unknown> => ({ text: 'Pelanggan membangun rumah 2 lantai.' })),
+  writeProse: vi.fn(async (): Promise<unknown> => ({
+    text: 'Pelanggan membangun rumah 2 lantai.',
+  })),
 });
 let ai: ReturnType<typeof fakeAi>;
 
