@@ -51,6 +51,14 @@ export function DashboardShell({
   // tautan dari dalam aplikasi — hanya bisa dibuka dengan mengetik alamatnya.
   const board = boardLinks(user, locale);
   const tools = toolLinks(user, locale);
+  /**
+   * Gerbang di cangkang, bukan hanya di panelnya (P29-03, ditemukan di produksi): layar yang
+   * tidak memanggil API sama sekali — validasi aturan dan peninjauan email — tidak punya 401
+   * yang bisa menolaknya, jadi alamatnya terbuka untuk siapa pun yang mengetiknya. Daftarnya
+   * sama dengan daftar menu, supaya "yang tidak boleh dibuka tidak ditampilkan" berlaku untuk
+   * alamat yang diketik juga. API tetap yang berwenang; ini lapis pertama, bukan satu-satunya.
+   */
+  const allowed = [...board, ...tools].some((item) => item.section === section);
   // Sebelum sesi terbaca, bagian yang sedang dibuka tetap tampil supaya menu tidak berkedip
   // kosong — kecuali bila ia memang alat internal, yang sudah punya daftarnya sendiri.
   const shown =
@@ -122,7 +130,16 @@ export function DashboardShell({
           <span>{open ? COPY.nav.close : COPY.nav.menu}</span>
         </button>
         <main className={styles.main}>
-          {ready ? children : <p className={styles.muted}>{COPY.loading}</p>}
+          {!ready && <p className={styles.muted}>{COPY.loading}</p>}
+          {ready && !allowed && (
+            <div className={styles.notice}>
+              <p>{COPY.forbidden}</p>
+              <a className={styles.primary} href="/login">
+                {COPY.signIn}
+              </a>
+            </div>
+          )}
+          {ready && allowed && children}
         </main>
       </div>
     </div>
