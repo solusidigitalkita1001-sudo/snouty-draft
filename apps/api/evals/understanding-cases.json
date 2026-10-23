@@ -1425,6 +1425,24 @@
       "text": "Gue butuh pipa buat jalur gas rumah. Rekomendasi Pralon yang cocok apa?",
       "topics": ["pipa gas"],
       "topicsOnly": true
+    },
+    {
+      "source": "P27-13 (uji produksi 2026-10-23): rangka kalimat yang sama tidak boleh menular",
+      "depth": null,
+      "format": null,
+      "companyTopic": null,
+      "text": "Gue butuh fitting elbow 90 derajat buat uPVC 3/4\". Ada rekomendasi Pralon?",
+      "topics": [],
+      "topicsOnly": true
+    },
+    {
+      "source": "P27-13 (uji produksi 2026-10-23): rangka kalimat yang sama tidak boleh menular",
+      "depth": null,
+      "format": null,
+      "companyTopic": null,
+      "text": "Gue mau pasang air bersih di rumah. Rekomendasi Pralon yang cocok apa?",
+      "topics": [],
+      "topicsOnly": true
     }
   ]
 }
