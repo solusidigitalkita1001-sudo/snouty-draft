@@ -1,6 +1,11 @@
-/** Back-office — **belum didesain (OQ-21)**. Lihat `internal-copy.ts`. */
-import { InternalShell } from '../../../components/internal/internal-shell';
+/** Katalog produk (P29-02). Akses diperiksa API per peran. */
+import { DashboardShell } from '../../../components/dashboard/dashboard-shell';
+import { CatalogPanel } from '../../../components/dashboard/catalog-panel';
 
 export default function Page() {
-  return <InternalShell section="catalog" />;
+  return (
+    <DashboardShell section="catalog">
+      <CatalogPanel />
+    </DashboardShell>
+  );
 }
