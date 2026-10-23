@@ -1443,6 +1443,36 @@
       "text": "Gue mau pasang air bersih di rumah. Rekomendasi Pralon yang cocok apa?",
       "topics": [],
       "topicsOnly": true
+    },
+    {
+      "text": "selain PVC dan HDPE ada bahan pipa apa lagi?",
+      "topics": ["bahan di luar katalog"],
+      "topicsOnly": true,
+      "source": "pemilik 2026-10-23: jawaban \"pipa terbaru\" mencampur katalog Pralon dengan industri (P28-06)"
+    },
+    {
+      "text": "pipa PPR itu apa bedanya sama PVC?",
+      "topics": ["bahan di luar katalog"],
+      "topicsOnly": true,
+      "source": "P28-06"
+    },
+    {
+      "text": "pipa galvanis masih dipakai buat air bersih?",
+      "topics": ["bahan di luar katalog"],
+      "topicsOnly": true,
+      "source": "P28-06"
+    },
+    {
+      "text": "pipa ductile iron dipakai buat apa?",
+      "topics": ["bahan di luar katalog"],
+      "topicsOnly": true,
+      "source": "P28-06"
+    },
+    {
+      "text": "what materials besides pvc and hdpe are used for water pipes?",
+      "topics": ["bahan di luar katalog"],
+      "topicsOnly": true,
+      "source": "P28-06"
     }
   ]
 }

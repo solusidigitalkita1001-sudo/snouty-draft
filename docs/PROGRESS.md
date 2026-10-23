@@ -2517,3 +2517,31 @@ diperbarui; yang kurang hanyalah catatannya.
 lulus. Yang SENGAJA tidak dikerjakan karena memang butuh orang lain, bukan karena terlewat:
 ahli domain (OQ-06), foto produk (OQ-62), daftar harga (OQ-04), kredensial n8n (OQ-08), dan
 peninjauan email yang belum punya satu pun email masuk untuk ditinjau.
+
+- [x] P28-06 Jawaban yang mencampur katalog Pralon dengan industri. Pemilik 2026-10-23 mengirim satu
+      jawaban produksi: untuk "adakah jenis pipa terbaru setelah HDPE dan uPVC untuk air bersih /
+      air minum?", SNOUTY menjawab "tidak tersedia jenis pipa terbaru ... karena keduanya merupakan
+      opsi utama" lalu melempar ke tim teknis. Dua kesalahan sekaligus — **tidak ada di katalog
+      Pralon disimpulkan sebagai tidak ada di industri**, dan **eskalasi dipakai sebagai pengganti
+      jawaban yang sebenarnya ada**. Sumbernya satu fakta tersimpan yang terlalu luas: "selain PVC
+      dan HDPE ada bahan pipa apa lagi?" mendapat kalimat yang persis sama, jadi satu fakta
+      menyambar seluruh kelompok pertanyaan tentang bahan. Sistem bahkan sudah tahu lebih baik di
+      tempat lain — fakta `air panas` menyebut PPR dan menandainya bukan produk Pralon.
+
+      Yang diubah, semuanya di data: (1) fakta `jenis pipa baru` ditulis ulang — menjawab langsung
+      bahwa tidak ada satu bahan "generasi berikutnya" yang menggantikan keduanya, menyebut PP-R
+      (ISO 15874), PE-X (ISO 15875), dan PE-RT (ISO 22391) beserta keunggulan dan batasnya,
+      menyebut HDPE mengikuti ISO 4427 yang diadopsi sebagai SNI 4829, dan menutup dengan
+      pemisahan tegas: yang dibuat Pralon uPVC dan HDPE, sisanya bukan produk Pralon. `gap`-nya
+      dihapus sehingga kartu "kirim ke tim teknis" tidak lagi muncul untuk pertanyaan yang sudah
+      terjawab. (2) Topik baru `bahan di luar katalog` untuk pertanyaan bahan secara umum — PP-R,
+      PE-X, PE-RT, tembaga, stainless, ductile iron, baja, GRP, galvanis — dengan penutup bahwa
+      yang direkomendasikan tetap produk Pralon dan bahan lain disebut sebagai konteks.
+      (3) Fakta `air minum` ditambah aturan yang diminta pemilik: bahan yang lazim dipakai
+      mengalirkan air belum tentu dinyatakan aman untuk kontak air minum — yang menentukan
+      sertifikat kontaknya (NSF/ANSI 61, WRAS/BS 6920, KTW–DVGW W270), dan skema-skema itu
+      nasional, tidak saling menggantikan. Tiap fakta membawa nomor standarnya sebagai sumber.
+  - [x] P28-06a Tes: knowledge-answer (2 baru) memaku jawaban menyebut PP-R/PE-X/PE-RT, menutup
+        dengan "bukan produk Pralon", dan **tidak lagi menghasilkan gap**; 5 kasus emas baru
+        (245 → 250). Contohnya membawa kata pembeda (nama bahan, "selain"), bukan rangka kalimat.
+        Evaluasi penyandi sungguhan tetap 99,4% intent dan seluruh topik lulus

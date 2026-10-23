@@ -318,9 +318,26 @@ describe('tes FAQ sales 2026-10-12', () => {
       catalog,
       'id',
     );
-    expect(n!.text).toContain('jenis yang lebih baru dari keduanya tidak ada di katalog Pralon');
+    // P28-06: dulu jawabannya "tidak ada jenis yang lebih baru" lalu melempar ke tim teknis —
+    // mencampur "tidak ada di katalog Pralon" dengan "tidak ada di industri", dan memakai
+    // eskalasi sebagai pengganti jawaban yang sebenarnya ada.
+    expect(n!.text).toMatch(/PP-R|PE-X|PE-RT/);
+    expect(n!.text).toContain('bukan produk Pralon');
+    expect(n!.text).toMatch(/lebih baru tidak otomatis lebih baik/i);
     expect(n!.text).not.toMatch(/data saya/i);
-    expect(n!.gaps).toHaveLength(1);
+    expect(n!.gaps).toHaveLength(0);
+  });
+
+  it('bahan di luar katalog dijawab sebagai konteks industri, bukan rekomendasi (P28-06)', async () => {
+    const b = await knowledgeAnswer(
+      ['bahan di luar katalog'],
+      'selain pvc dan hdpe ada bahan pipa apa lagi?',
+      catalog,
+      'id',
+    );
+    expect(b!.text).toMatch(/ductile iron|GRP|tembaga/);
+    expect(b!.text).toContain('Yang direkomendasikan di sini tetap produk Pralon');
+    expect(b!.gaps).toHaveLength(0);
   });
 });
 

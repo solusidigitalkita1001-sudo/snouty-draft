@@ -122,6 +122,9 @@ export const KNOWLEDGE_TOPICS = [
   'sambungan rumah',
   'aplikasi',
   'fungsi vs bahan',
+  // Bahan pipa yang ada di industri tetapi bukan produk Pralon (P28-06): dibahas sebagai konteks
+  // teknis, tidak pernah direkomendasikan sebagai produk.
+  'bahan di luar katalog',
   'jenis pipa baru',
   'sambungan hdpe',
   'sambungan transisi',
