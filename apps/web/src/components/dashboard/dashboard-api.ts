@@ -260,3 +260,52 @@ export interface MarketDashboard {
 }
 
 export const fetchMarket = (days: number) => get<MarketDashboard>(`${BASE}/market?days=${days}`);
+
+// ── Antrean teknis (P29-01) ─────────────────────────────────────────────────
+
+export type HandoffStatus = 'QUEUED' | 'IN_REVIEW' | 'RESOLVED' | 'CLOSED';
+
+export interface HandoffCase {
+  readonly id: string;
+  readonly reason: string;
+  readonly captured: readonly { readonly label: string; readonly value: string }[];
+  readonly status: HandoffStatus;
+  readonly submitter: {
+    readonly name: string;
+    readonly email: string;
+    readonly phone: string | null;
+  } | null;
+  readonly createdAt: string;
+  readonly dueAt: string;
+  readonly resolvedAt: string | null;
+  readonly overdue: boolean;
+}
+
+export interface HandoffQueue {
+  readonly open: readonly HandoffCase[];
+  readonly closed: readonly HandoffCase[];
+  readonly slaHours: number;
+}
+
+export const fetchHandoffQueue = () => get<HandoffQueue>(`${BASE}/handoff`);
+
+export const setHandoffStatus = (id: string, status: HandoffStatus) =>
+  send('POST', `${BASE}/handoff/${id}/status`, { status });
+
+// ── Katalog produk (P29-02) ─────────────────────────────────────────────────
+
+export interface CatalogVersionRow {
+  readonly id: string;
+  readonly label: string;
+  readonly sourceDocument: string;
+  readonly kind: 'pralon' | 'sample';
+  readonly status: 'draft' | 'active' | 'archived';
+  readonly effectiveFrom: string;
+  readonly importedBy: string;
+}
+
+export const fetchCatalogVersions = () =>
+  get<{ readonly items: readonly CatalogVersionRow[] }>(`${BASE}/catalog/versions`);
+
+export const promoteCatalogVersion = (id: string) =>
+  send('POST', `${BASE}/catalog/versions/${id}/promote`);

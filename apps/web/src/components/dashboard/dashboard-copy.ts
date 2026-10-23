@@ -140,6 +140,73 @@ export const DASHBOARD_COPY = {
     empty: 'Belum ada anggota tim sales.',
     adminOnly: 'Hanya admin yang bisa menambah atau mencabut anggota.',
   },
+  queue: {
+    title: 'Antrean teknis',
+    subtitle: 'Kasus yang diserahkan pengguna, terlama dulu.',
+    openTitle: 'Belum selesai',
+    closedTitle: 'Sudah ditutup',
+    empty: 'Belum ada kasus yang diserahkan ke tim teknis.',
+    emptyClosed: 'Belum ada kasus yang ditutup.',
+    pick: 'Pilih satu kasus untuk melihat isinya.',
+    captured: 'Yang sudah diceritakan pengguna',
+    assumption: 'Angka yang diasumsikan sistem',
+    attachment: 'Lampiran',
+    noCaptured: 'Pengguna belum menceritakan apa pun sebelum kasusnya diserahkan.',
+    guest: 'Dikirim tanpa akun — tidak ada alamat yang bisa dibalas.',
+    waiting: (span: string) => `Menunggu ${span}`,
+    dueIn: (span: string) => `sisa ${span}`,
+    overdue: (span: string) => `lewat ${span} dari janji 1×24 jam kerja`,
+    closedAfter: (span: string) => `Ditutup setelah ${span}`,
+    span: (minutes: number) =>
+      minutes < 60
+        ? `${minutes} menit`
+        : minutes < 1440
+          ? `${Math.floor(minutes / 60)} jam`
+          : `${Math.floor(minutes / 1440)} hari`,
+    take: 'Saya kerjakan',
+    resolve: 'Tandai selesai',
+    reopen: 'Buka lagi',
+    status: {
+      QUEUED: 'Mengantre',
+      IN_REVIEW: 'Sedang dikerjakan',
+      RESOLVED: 'Selesai',
+      CLOSED: 'Ditutup',
+    } as Record<string, string>,
+  },
+  catalog: {
+    title: 'Katalog produk',
+    subtitle: 'Versi katalog yang pernah dimuat, dan mana yang sedang dipakai menjawab.',
+    empty: 'Belum ada katalog yang dimuat.',
+    activeTitle: 'Sedang dipakai',
+    otherTitle: 'Versi lain',
+    source: (document: string) => `Dari ${document}`,
+    effective: (date: string) => `Berlaku ${date}`,
+    sample: 'Katalog contoh — bukan data Pralon',
+    sampleWarning:
+      'Yang sedang dipakai adalah katalog contoh, jadi jawaban produk belum boleh dipercaya sebagai data Pralon.',
+    status: {
+      draft: 'Draft',
+      active: 'Dipakai',
+      archived: 'Diarsipkan',
+    } as Record<string, string>,
+    promote: 'Pakai versi ini',
+    promoting: 'Mengganti…',
+    promoteHint: 'Mengganti versi mengubah jawaban yang diterima semua pengguna saat itu juga.',
+    olderHidden: (n: number) => `${n} versi lama tidak ditampilkan.`,
+    uploadTitle: 'Memuat katalog baru',
+    uploadBody:
+      'Berkas katalog masih dimuat lewat tim pengembang. Begitu bentuk berkasnya dipastikan, unggahannya pindah ke layar ini.',
+  },
+  rules: {
+    title: 'Validasi aturan teknik',
+    subtitle: 'Aturan hitung yang dipakai SNOUTY, dan siapa yang sudah menyetujuinya.',
+    body: 'Keempat belas aturan hitung masih menunggu persetujuan ahli pipa Pralon. Sampai ada yang menandatanganinya, setiap angka yang dihitung SNOUTY tampil sebagai asumsi — bukan sebagai angka yang sudah dipastikan. Begitu ahlinya ditunjuk, layar ini menampilkan aturannya satu per satu beserta tombol setujui.',
+  },
+  email: {
+    title: 'Peninjauan email',
+    body: 'Email yang masuk ke sales@pralon.com dibaca, dirangkum, dan dibuatkan draf balasan di sini — tidak pernah terkirim tanpa ditinjau orang. Kotak masuknya belum tersambung, jadi belum ada email yang bisa ditinjau.',
+    subtitle: 'Email masuk, rangkumannya, dan draf balasan yang menunggu ditinjau.',
+  },
   errors: {
     not_contactable: 'Pelanggan ini belum mengizinkan dihubungi.',
     not_sales: 'Akun itu bukan anggota tim sales.',
@@ -281,6 +348,73 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
     openLeads: (n: number) => `${n} open prospect${n === 1 ? '' : 's'}`,
     empty: 'No sales team members yet.',
     adminOnly: 'Only admins can add or remove members.',
+  },
+  queue: {
+    title: 'Technical queue',
+    subtitle: 'Cases handed over by users, oldest first.',
+    openTitle: 'Still open',
+    closedTitle: 'Closed',
+    empty: 'No case has been handed to the technical team yet.',
+    emptyClosed: 'No case has been closed yet.',
+    pick: 'Pick a case to see what is in it.',
+    captured: 'What the user already told us',
+    assumption: 'Figures the system assumed',
+    attachment: 'Attachments',
+    noCaptured: 'The user had told us nothing before handing the case over.',
+    guest: 'Sent without an account — there is no address to reply to.',
+    waiting: (span: string) => `Waiting ${span}`,
+    dueIn: (span: string) => `${span} left`,
+    overdue: (span: string) => `${span} past the 1×24 working-hour promise`,
+    closedAfter: (span: string) => `Closed after ${span}`,
+    span: (minutes: number) =>
+      minutes < 60
+        ? `${minutes} min`
+        : minutes < 1440
+          ? `${Math.floor(minutes / 60)} h`
+          : `${Math.floor(minutes / 1440)} d`,
+    take: "I'll take it",
+    resolve: 'Mark as done',
+    reopen: 'Reopen',
+    status: {
+      QUEUED: 'Queued',
+      IN_REVIEW: 'In progress',
+      RESOLVED: 'Done',
+      CLOSED: 'Closed',
+    },
+  },
+  catalog: {
+    title: 'Product catalog',
+    subtitle: 'Catalog versions that have been loaded, and which one is answering today.',
+    empty: 'No catalog has been loaded yet.',
+    activeTitle: 'In use',
+    otherTitle: 'Other versions',
+    source: (document: string) => `From ${document}`,
+    effective: (date: string) => `Effective ${date}`,
+    sample: 'Sample catalog — not Pralon data',
+    sampleWarning:
+      'The catalog in use is a sample one, so product answers cannot yet be trusted as Pralon data.',
+    status: {
+      draft: 'Draft',
+      active: 'In use',
+      archived: 'Archived',
+    },
+    promote: 'Use this version',
+    promoting: 'Switching…',
+    promoteHint: 'Switching the version changes the answers every user gets, immediately.',
+    olderHidden: (n: number) => `${n} older versions are not shown.`,
+    uploadTitle: 'Loading a new catalog',
+    uploadBody:
+      'Catalog files are still loaded by the development team. Once the file format is settled, uploading moves to this screen.',
+  },
+  rules: {
+    title: 'Engineering rule validation',
+    subtitle: 'The sizing rules SNOUTY uses, and who has signed off on them.',
+    body: 'All fourteen sizing rules are still waiting for a Pralon pipe expert to approve them. Until someone signs them off, every figure SNOUTY calculates is shown as an assumption rather than a settled number. Once the expert is named, this screen lists the rules one by one with an approve button.',
+  },
+  email: {
+    title: 'Email review',
+    subtitle: 'Incoming email, its summary, and the draft reply waiting to be reviewed.',
+    body: 'Email arriving at sales@pralon.com is read, summarised, and given a draft reply here — nothing is ever sent without a person reviewing it. The mailbox is not connected yet, so there is no email to review.',
   },
   errors: {
     not_contactable: 'This customer has not agreed to be contacted.',

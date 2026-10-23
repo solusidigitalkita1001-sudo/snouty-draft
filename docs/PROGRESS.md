@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-23 · Current phase: **27 — Masukan pemilik dan Leo atas SNOUTY yang berjalan** · dua belas item selesai dan live
+Last updated: 2026-10-23 · Current phase: **29 — Back-office yang akhirnya bisa dipakai** · empat item selesai
 
 ## Summary
 
@@ -2551,3 +2551,74 @@ dalam 180–390 ms tanpa kartu eskalasi. Seluruh 67 pertanyaan pemilik dijalanka
 perubahan data — tidak ada jawaban lain yang berubah, dan paragraf bahan umum tidak bocor ke satu
 pun dari 67 itu. Dua pertanyaan kasus (#65 90 s, #66 17 s) masih terkena kelambatan model di CPU;
 keduanya tetap terjawab benar, bukan jatuh ke "belum menangkap maksudnya" seperti sebelum P28-02.
+
+## Phase 29 — Back-office yang akhirnya bisa dipakai (23 Okt 2026)
+
+Lanjutan langsung dari P28-03 ("lihat layarnya sendiri"). P28-03 memotret layar yang sudah jadi;
+P28-04 memberi tautan ke empat layar alat internal yang sebelumnya hanya bisa dibuka dengan mengetik
+alamatnya. **Keempatnya belum pernah dibuka siapa pun** — dan begitu dibuka, isinya ternyata bukan
+layar kerja melainkan catatan pengembang: nomor item di sebelah tiap menu (`P1-10b`, `P6-09`),
+spanduk "MENUNGGU DESAIN (OQ-21)", dan satu kartu per layar yang menyebutkan nomor pertanyaan
+terbuka. Pemegang `catalog_admin` tidak tahu apa itu OQ-07, dan tidak perlu tahu.
+
+- [x] P29-04 Sesi yang terlempar sendiri. Ditemukan saat memotret: membuka beberapa layar
+      back-office berturut-turut membuat layar berikutnya berkata "Halaman ini untuk tim Pralon.
+      Masuk dengan akun yang punya akses" — padahal akunnya benar. Sebabnya `POST /auth/refresh`
+      berbagi kuota dengan login: **sepuluh per seperempat jam per alamat IP**, dan setiap muat
+      halaman menembaknya sekali untuk memulihkan sesi. Satu kantor Pralon duduk di balik SATU
+      alamat IP, jadi orang kesembilan hari itu terlempar tanpa pernah salah kata sandi. Kuotanya
+      kini terpisah: pemulihan 300 per seperempat jam, sedangkan pemulihan yang **gagal** tetap
+      ketat (20) — di situlah tebak-menebak cookie tinggal, dan cookie-nya sendiri rahasia 256-bit
+      yang dirotasi tiap pakai. Komentar lama di `rate-limits.ts` sudah menyebut yang dihambat
+      adalah credential stuffing; refresh memang tidak pernah termasuk di dalamnya.
+  - [x] P29-04a Tes (6): kuota refresh dipakai dan bukan kuota login, keberhasilan tidak menyentuh
+        kuota kegagalan, cookie salah dan tanpa cookie sama-sama dihitung gagal, kegagalan bertubi
+        berakhir 429 bukan 401, dan kuota refresh jauh lebih longgar daripada login
+
+- [x] P29-01 Antrean teknis yang bisa dilihat dan dikerjakan. Baris handoff tersimpan sejak P8-07
+      dan `HandoffService.queue()` sudah ada sejak itu, tetapi **tidak ada satu pun rute yang
+      membacanya selain rute worker** — layarnya hanya memuat kalimat "antrean dan isinya sudah
+      tersimpan dan bisa dibaca". Selama tujuan email belum diisi (OQ-08), layar inilah satu-satunya
+      jalan kasus pengguna sampai ke manusia, jadi sampai hari ini setiap kasus yang diserahkan
+      berhenti di tempat yang tidak dibuka siapa pun. Sekarang: `GET /internal/handoff` (daftar yang
+      belum selesai dan sepuluh yang terakhir ditutup) dan `POST /internal/handoff/:id/status`,
+      keduanya untuk `technical_team` dan `admin`. Layarnya menjawab tiga hal sekali pandang —
+      siapa yang menunggu, sudah berapa lama, dan apa yang sudah diceritakannya — dengan asumsi
+      sistem dipisah dari yang dinyatakan pengguna, persis seperti di email kasus. **Kontak
+      pengirim ikut**, karena menjawab kasus butuh alamat dan dasarnya permintaan pengguna sendiri,
+      bukan izin pemasaran (`docs/PRIVACY.md` §3); kasus dari tamu tetap muncul dan dikatakan apa
+      adanya. Tenggat "1×24 jam kerja" dihitung di server (`handoff-sla.ts`, fungsi murni): hanya
+      hari kerja yang memakan jam, batas harinya WIB tetap, hari libur nasional belum ikut (OQ-78).
+      Kasus yang sudah ditutup dinilai pada waktu penutupannya — "terlambat 40 hari" untuk kasus
+      yang selesai tepat waktu adalah angka yang benar secara aritmetika dan salah secara makna.
+  - [x] P29-01a Tes: SLA (6, termasuk batas hari WIB dan akhir pekan yang tidak memakan jam),
+        repository MySQL nyata (5: yang diambil tetap terbuka, penutupan mengisi stempel waktu,
+        membuka kembali menghapusnya, kontak terdaftar ikut, tamu tanpa kontak), service (5), dan
+        layar (8: kasus benar-benar tampil, kontak bisa dibalas, tamu dikatakan apa adanya,
+        keterlambatan ditandai, status berpindah lewat API, yang tertutup bisa dibuka lagi)
+
+- [x] P29-02 Layar katalog menampilkan katalognya. `GET /internal/catalog/versions` dan promosi
+      draft sudah ada sejak Fase 1; layarnya tidak menampilkan satu baris pun dan memberi tahu
+      pembacanya bahwa daftar versi "sudah tersedia lewat API" — kalimat yang tidak berarti apa pun
+      bagi pemegang `catalog_admin`. Sekarang: versi yang sedang dipakai, draft yang bisa
+      dipromosikan, dan beberapa arsip terakhir (sisanya cukup disebut jumlahnya — riwayat puluhan
+      versi menenggelamkan satu-satunya tindakan di layar itu). Yang disebut paling keras adalah
+      **katalog contoh**: selama versi aktifnya `sample`, jawaban produk bukan data Pralon, dan itu
+      harus terlihat sebelum ada yang mempercayainya.
+  - [x] P29-02a Tes (8): versi aktif beserta sumber dan tanggalnya, peringatan katalog contoh
+        muncul untuk versi aktif dan tidak muncul untuk katalog Pralon, draft bisa dipakai, arsip
+        tidak menawarkan tombol itu, riwayat dibatasi dan sisanya disebut jumlahnya, draft tidak
+        pernah tersembunyi di balik arsip
+
+- [x] P29-03 Satu cangkang, dan tanpa catatan pengembang di layar orang Pralon. P28-04 menyatukan
+      daftar navigasinya, tetapi cangkangnya masih dua: papan prospek punya gerbang peran, lonceng
+      pemberitahuan, menu layar sempit, dan nama akun — sedangkan cangkang alat internal tidak punya
+      satu pun dari itu, sehingga **layar alat terbuka untuk siapa saja yang mengetik alamatnya**
+      dan lonceng menghilang begitu seseorang pindah ke sana. `InternalShell` dihapus; keempat
+      layar alat kini memakai `DashboardShell`. Nomor item dan nomor pertanyaan terbuka hilang dari
+      layar: validasi aturan dan peninjauan email — yang memang menunggu orang, bukan menunggu kode
+      — mengatakannya dengan kalimat biasa ("menunggu persetujuan ahli pipa Pralon", "kotak masuknya
+      belum tersambung"). Peran antrean teknis di menu disamakan dengan yang dituntut API-nya:
+      `technical_team` tidak pernah disebut sama sekali sebelum ini.
+  - [x] P29-03a Tes: navigasi (8, termasuk `technical_team` melihat antrean teknis), dan tes
+        cangkang lama yang ikut terhapus bersama berkasnya

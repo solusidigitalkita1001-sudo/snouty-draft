@@ -21,9 +21,12 @@ describe('navigasi back-office', () => {
     expect(toolLinks(user('catalog_admin'), 'id').map((l) => l.section)).toContain('catalog');
   });
 
-  it('antrean teknis hanya untuk admin — API pun menolak yang lain', () => {
+  it('antrean teknis untuk tim teknis dan admin — API pun menolak yang lain', () => {
     expect(toolLinks(user('catalog_admin'), 'id').map((l) => l.section)).not.toContain('handoff');
     expect(toolLinks(user('admin'), 'id').map((l) => l.section)).toContain('handoff');
+    // P29-01: perannya memang `technical_team` (docs/BACKOFFICE.md §4.3); sebelum layarnya ada,
+    // menu ini tidak pernah menyebutkannya sama sekali.
+    expect(toolLinks(user('technical_team'), 'id').map((l) => l.section)).toContain('handoff');
   });
 
   it('sales hanya melihat prospeknya sendiri, bukan seluruh papan', () => {

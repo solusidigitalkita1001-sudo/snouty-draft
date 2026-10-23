@@ -13,11 +13,20 @@ import { useLocale } from '../locale';
 import { dashboardCopy } from './dashboard-copy';
 import { NotificationBell } from '../notification/notification-bell';
 import { BackIcon, MenuIcon, sectionIcon } from './dashboard-icons';
-import { boardLinks, toolLinks, type BoardSection } from '../internal/back-office-nav';
+import {
+  boardLinks,
+  isBoardSection,
+  toolLinks,
+  type BackOfficeSection,
+} from '../internal/back-office-nav';
 import styles from './dashboard.module.css';
 
-/** Tetap diekspor: dipakai halaman-halaman papan untuk menyebut bagiannya. */
-export type DashboardSection = BoardSection;
+/**
+ * Bagian yang bisa ditempati cangkang ini. Sejak P29-01 alat internal ikut — antrean teknis
+ * butuh gerbang peran, lonceng, dan menu layar sempit yang sama, dan membangun semua itu dua
+ * kali di dua cangkang adalah cara paling pasti membuat keduanya berbeda diam-diam.
+ */
+export type DashboardSection = BackOfficeSection;
 
 export function DashboardShell({
   section,
@@ -42,10 +51,12 @@ export function DashboardShell({
   // tautan dari dalam aplikasi — hanya bisa dibuka dengan mengetik alamatnya.
   const board = boardLinks(user, locale);
   const tools = toolLinks(user, locale);
-  // Sebelum sesi terbaca, bagian yang sedang dibuka tetap tampil supaya menu tidak berkedip kosong.
-  const shown = board.some((item) => item.section === section)
-    ? board
-    : [...board, { section, href: '#', label: COPY.nav[section] }];
+  // Sebelum sesi terbaca, bagian yang sedang dibuka tetap tampil supaya menu tidak berkedip
+  // kosong — kecuali bila ia memang alat internal, yang sudah punya daftarnya sendiri.
+  const shown =
+    board.some((item) => item.section === section) || !isBoardSection(section)
+      ? board
+      : [...board, { section, href: '#', label: COPY.nav[section] }];
 
   return (
     <div className={styles.shell}>
@@ -70,7 +81,14 @@ export function DashboardShell({
             <>
               <span className={styles.navGroup}>{COPY.nav.tools}</span>
               {tools.map((item) => (
-                <a key={item.section} href={item.href} className={styles.navItem}>
+                <a
+                  key={item.section}
+                  href={item.href}
+                  className={[styles.navItem, item.section === section ? styles.navOn : ''].join(
+                    ' ',
+                  )}
+                  aria-current={item.section === section ? 'page' : undefined}
+                >
                   {sectionIcon(item.section)}
                   <span>{item.label}</span>
                 </a>

@@ -1016,3 +1016,38 @@
   text-transform: uppercase;
   color: var(--snouty-caption);
 }
+
+/* Deretan tindakan di detail kasus antrean teknis (P29-01). */
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 0;
+}
+
+/* Daftar versi katalog (P29-02): nama, satu baris keterangan, lalu statusnya. */
+.versionList {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.versionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--snouty-hairline);
+}
+
+.versionRow:last-child {
+  border-bottom: 0;
+}
+
+.versionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}

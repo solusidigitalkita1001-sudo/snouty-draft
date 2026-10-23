@@ -38,7 +38,7 @@ const TOOL_ROLES: Readonly<Record<ToolSection, readonly string[]>> = {
   catalog: ['catalog_admin'],
   rules: ['domain_expert', 'admin'],
   email: ['sales_reviewer', 'admin'],
-  handoff: ['admin'],
+  handoff: ['technical_team', 'admin'],
 };
 
 export function boardLinks(user: CurrentUser | null, locale: Locale): readonly BackOfficeLink[] {
@@ -79,4 +79,9 @@ export function backOfficeLinks(
 function sectionOf(href: string): ToolSection | null {
   const tail = href.replace('/internal/', '');
   return tail in TOOL_ROLES ? (tail as ToolSection) : null;
+}
+
+/** Bagian papan prospek punya ikon dan label sendiri di `dashboardCopy.nav`; alat tidak. */
+export function isBoardSection(section: BackOfficeSection): section is BoardSection {
+  return !(section in TOOL_ROLES);
 }

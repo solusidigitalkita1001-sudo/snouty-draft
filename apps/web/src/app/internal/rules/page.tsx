@@ -1,6 +1,11 @@
-/** Back-office — **belum didesain (OQ-21)**. Lihat `internal-copy.ts`. */
-import { InternalShell } from '../../../components/internal/internal-shell';
+/** Validasi aturan teknik (P29-03). Akses diperiksa API per peran. */
+import { DashboardShell } from '../../../components/dashboard/dashboard-shell';
+import { ToolNote } from '../../../components/dashboard/tool-note';
 
 export default function Page() {
-  return <InternalShell section="rules" />;
+  return (
+    <DashboardShell section="rules">
+      <ToolNote section="rules" />
+    </DashboardShell>
+  );
 }
