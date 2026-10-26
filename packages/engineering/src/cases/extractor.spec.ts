@@ -258,3 +258,18 @@ describe('extractTechnicalContext — produksi 2026-10-26: unit per lantai dan t
     expect(read('tinggi per lantai 3,2 meter', 'building_height')).toBeUndefined();
   });
 });
+
+describe('produksi 2026-10-26: tiang toren bukan panjang jalur', () => {
+  it('"toren 10 kubik di atas tower 9 meter" → ketinggian tandon, bukan jalur', () => {
+    const read = facts(
+      'sumber airnya dari sumur dalam komunal, ada toren 10 kubik di atas tower 9 meter',
+      'residential_cluster',
+    );
+    expect(read['tank_elevation']).toBe(9);
+    expect(read['route_length']).toBeUndefined();
+  });
+
+  it('panjang jalur yang memang disebut tetap terbaca', () => {
+    expect(facts('jalan utamanya 1,2 km', 'residential_cluster')['route_length']).toBe(1200);
+  });
+});

@@ -3447,3 +3447,9 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       saluran gravitasi, mencatat "jenis cairan air limbah", lalu menanyakan debit rencana dan
       kemiringan saluran. Kasus teknis baru hanya dibuka oleh pernyataan bernilai — pertanyaan
       dijawab di atas kebutuhan dan solusi yang sudah ada.
+
+- [x] P31-47 Tiang toren di kasus teknis bukan panjang jalur
+
+      Di kasus jaringan cluster, "toren 10 kubik di atas tower 9 meter" tercatat sebagai panjang
+      jalur 9 m. Tiang dan menara toren tanpa kata "tinggi" sekarang terbaca sebagai ketinggian
+      tandon, dan panjang jalur yang memang disebut ("jalan utamanya 1,2 km" → 1.200 m) tetap.

@@ -224,6 +224,16 @@ export function extractTechnicalContext(
       add('tank_elevation', num(m[1]!), m[0], 'm');
     },
   );
+  // Tiang atau menara toren tanpa kata "tinggi": "toren 10 kubik di atas tower 9 meter" tercatat
+  // sebagai panjang jalur 9 m di produksi 2026-10-26 — itu ketinggian tandonnya.
+  take(
+    new RegExp(
+      String.raw`(?:tower|menara|tiang)(?:\s*(?:toren|tandon|tangki|air))?\s*${NUM}\s*${M}\b`,
+    ),
+    (m) => {
+      add('tank_elevation', num(m[1]!), m[0], 'm');
+    },
+  );
 
   // ── Timbunan / kedalaman tanam ──
   take(
