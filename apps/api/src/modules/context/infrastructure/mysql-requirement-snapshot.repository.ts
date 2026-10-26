@@ -61,6 +61,15 @@ export class MysqlRequirementSnapshotRepository implements RequirementSnapshotRe
     return rows[0] ? this.toRow(rows[0]) : null;
   }
 
+  async findById(id: string): Promise<RequirementSnapshotRow | null> {
+    const rows = await this.database.db
+      .select()
+      .from(requirementSnapshots)
+      .where(eq(requirementSnapshots.id, id))
+      .limit(1);
+    return rows[0] ? this.toRow(rows[0]) : null;
+  }
+
   private toRow(row: typeof requirementSnapshots.$inferSelect): RequirementSnapshotRow {
     return {
       id: row.id,

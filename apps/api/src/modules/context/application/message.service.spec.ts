@@ -10,6 +10,7 @@ import { MessageService, isSaneTitle, joinBlocks } from './message.service.js';
 import { scriptedUnderstanding } from '../../understanding/testing/understood.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import { mergeRequirement } from '../domain/context-merger.js';
+import { extractionToUpdates } from './extraction-to-updates.js';
 import { withCompleteness } from '../domain/completeness.js';
 
 // Ruas produk membaca satu saklar env (LLM_FAQ_REWRITE); tes ini tidak punya .env.
@@ -972,5 +973,98 @@ describe('MessageService — pertanyaan bersumber di tengah kasus teknis (P31-16
     });
     await service.handle('C'.repeat(26), ACTOR, 'bahannya pvc', 'T');
     expect(router.route).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Produksi 2026-10-26: satu pertanyaan produk di tengah percakapan menulis snapshot
+ * `subject_change`, dan sejak itu solusi yang baru dihitung dianggap basi — pertanyaan berikutnya
+ * dikirim ke model (12,6 s merencanakan + 48,0 s menulis) alih-alih dibaca dari angkanya.
+ */
+describe('solusi tetap terpakai setelah subjek percakapan berubah', () => {
+  const recommendation = {
+    snapshotId: 'S1',
+    headline: 'Air bersih rumah 2 lantai dari toren atap',
+    needs: [{ kind: 'rooftop_tank', count: 1 }],
+    systemLines: [{ role: 'main', name: 'Pipa utama', size: '1"', path: 'Toren ke riser' }],
+    bom: [
+      { item: 'Pipa PVC AW', purpose: 'Pipa utama', size: '1"', quantity: 2, unit: 'batang' },
+      { item: 'Elbow 90', purpose: 'Elbow', size: '1"', quantity: 6, unit: 'buah' },
+    ],
+  };
+
+  const T = '2026-10-26T00:00:00Z';
+  const computed = withCompleteness(
+    mergeRequirement(
+      emptyRequirementState(T),
+      extractionToUpdates({}, 'rumah 2 lantai, 3 kamar mandi, 1 dapur, air dari toren atap'),
+      T,
+    ).state,
+  );
+
+  const ask = async (current: RequirementState) => {
+    const { IntentRouter } = await import('./intent-router.js');
+    const assistant: string[] = [];
+    const conversations = {
+      find: vi.fn(async () => ({ title: 'Rumah 2 lantai' })),
+      messages: vi.fn(async () => []),
+      rename: vi.fn(async () => undefined),
+      appendUserMessage: vi.fn(async () => ({ id: 'MSG_USER' })),
+      tagIntent: vi.fn(async () => undefined),
+      projectContext: vi.fn(async () => null),
+      adoptLanguage: vi.fn(async () => undefined),
+      appendAssistantMessage: vi.fn(async (_id: string, text: string) => {
+        assistant.push(text);
+      }),
+    };
+    const store = {
+      current: vi.fn(async () => ({ id: 'S2', state: current })),
+      append: vi.fn(async () => ({})),
+      byId: vi.fn(async () => ({ id: 'S1', state: computed })),
+    };
+    const ai = { classifyIntent: vi.fn(), titleFor: vi.fn(async () => 'Rumah 2 lantai') };
+    const understanding = scriptedUnderstanding({
+      'fitting apa aja yang perlu dibeli': { intent: 'system_layout_question' },
+    });
+    const service = new MessageService(
+      conversations as never,
+      store as never,
+      new IntentRouter(ai as never),
+      {} as never,
+      {} as never,
+      null,
+      ai as never,
+      null,
+      null,
+      understanding as never,
+      null,
+      { latestFor: vi.fn(async () => recommendation) } as never,
+    );
+    await service.handle(
+      'C'.repeat(26),
+      ACTOR,
+      'fitting apa aja yang perlu dibeli',
+      '2026-10-26T01:00:00Z',
+    );
+    return { reply: assistant.at(-1) ?? '', store };
+  };
+
+  it('subjek baru dengan kebutuhan yang sama: angkanya tetap dibacakan', async () => {
+    const { reply, store } = await ask({
+      ...computed,
+      version: computed.version + 1,
+      subject: { kind: 'product', query: 'tee hdpe 63 mm' },
+    } as never);
+    expect(store.byId).toHaveBeenCalledWith('S1');
+    expect(reply).toContain('pipa utama 1" 2 batang');
+  });
+
+  it('kebutuhan yang berubah tetap membuat solusinya basi', async () => {
+    const changed = withCompleteness(
+      mergeRequirement(computed, extractionToUpdates({}, 'lantainya jadi 4'), T).state,
+    );
+    const { reply } = await ask(changed);
+    expect(reply).not.toContain('pipa utama 1" 2 batang');
+    expect(reply).toContain('Susun rekomendasi');
   });
 });

@@ -98,6 +98,7 @@ import { defaultUpdateFor } from '../domain/requirement-defaults.js';
 import { productQueryOf, runProductQuestion } from './product-question-pipeline.js';
 import { ReplyWriter, type ReplyTurn } from './reply-writer.js';
 import type { GeneralKnowledgeWriter } from './general-knowledge.js';
+import type { RequirementSnapshotRow } from '../domain/requirement-snapshot.repository.js';
 import { RequirementSnapshotStore } from './requirement-snapshot.store.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import type { ActiveSolution, ActiveSolutionRegistry } from '../domain/active-solution.port.js';
@@ -105,6 +106,15 @@ import { ulid } from '../../../shared/ulid.js';
 import { stageTimer, type StageTimer } from '../../../shared/logging/stage-timer.js';
 import type { EventSink } from '../../../shared/sse/event-stream.js';
 import type { Logger } from 'pino';
+
+/**
+ * Apakah dua snapshot memuat kebutuhan yang sama — subjek percakapan dan nomor versi tidak ikut
+ * dihitung, keduanya bukan bagian kebutuhan yang dihitung engine.
+ */
+function sameRequirement(a: RequirementState, b: RequirementState): boolean {
+  const requirement = ({ subject, version, ...rest }: RequirementState) => rest;
+  return JSON.stringify(requirement(a)) === JSON.stringify(requirement(b));
+}
 
 @Injectable()
 export class MessageService {
@@ -142,13 +152,20 @@ export class MessageService {
    */
   private async solutionFor(
     conversationId: string,
-    snapshotId: string | null,
+    snapshot: RequirementSnapshotRow | null,
   ): Promise<ActiveSolution | null> {
     const recommendation = await this.activeSolution?.latestFor(conversationId);
     if (!recommendation) return null;
+    if (snapshot === null || recommendation.snapshotId === snapshot.id) {
+      return { recommendation, stale: false };
+    }
+    // Snapshot baru belum tentu KEBUTUHAN baru: subjek percakapan juga menulis snapshot, sehingga
+    // satu pertanyaan produk membuat solusi yang baru dihitung dianggap basi — lalu "kenapa toren
+    // harus 0,3 bar" memakai 60 detik di model alih-alih membaca angkanya (produksi 2026-10-26).
+    const source = await this.store.byId(recommendation.snapshotId);
     return {
       recommendation,
-      stale: snapshotId !== null && recommendation.snapshotId !== snapshotId,
+      stale: source === null || !sameRequirement(source.state, snapshot.state),
     };
   }
 
@@ -244,7 +261,7 @@ export class MessageService {
     const snapshot = await this.store.current(conversationId);
     const state = snapshot?.state ?? emptyRequirementState(now);
     const hasExisting = (snapshot?.state.completeness.filled ?? 0) > 0;
-    const solution = await this.solutionFor(conversationId, snapshot?.id ?? null);
+    const solution = await this.solutionFor(conversationId, snapshot ?? null);
 
     // Satu pemahaman per giliran (P16-11): intent, kedalaman, format, topik, keluarga produk —
     // dari contoh (data) + penyandi teks, puluhan milidetik. Semua keputusan di bawah membacanya.

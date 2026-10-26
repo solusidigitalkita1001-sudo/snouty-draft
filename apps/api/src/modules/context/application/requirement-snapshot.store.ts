@@ -58,6 +58,11 @@ export class RequirementSnapshotStore {
   }
 
   /** Snapshot aktif: Redis dulu, lalu MySQL (dan isi ulang cache saat miss). */
+  /** Snapshot menurut id — tanpa cache, dipakai sesekali (perbandingan kebutuhan solusi). */
+  async byId(id: string): Promise<RequirementSnapshotRow | null> {
+    return this.repository.findById(id);
+  }
+
   async current(conversationId: string): Promise<RequirementSnapshotRow | null> {
     const cached = await this.readCache(conversationId);
     if (cached) return cached;

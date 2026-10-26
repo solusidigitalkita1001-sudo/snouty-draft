@@ -32,4 +32,6 @@ export interface RequirementSnapshotRepository {
   /** Snapshot ter-versi tertinggi, atau `null` bila percakapan belum punya. */
   findLatest(conversationId: string): Promise<RequirementSnapshotRow | null>;
   findByVersion(conversationId: string, version: number): Promise<RequirementSnapshotRow | null>;
+  /** Snapshot menurut id-nya — dipakai membandingkan kebutuhan saat solusi dibuat. */
+  findById(id: string): Promise<RequirementSnapshotRow | null>;
 }
