@@ -525,6 +525,27 @@ describe('runProductQuestion — KONSEP', () => {
     expect(text(events)).toBe(TABLE_REPLY);
   });
 
+  it('produk katalog tanpa deskripsi hanya muncul sebagai kartu, bukan prosa di bawah penjelasan', async () => {
+    const undescribed: Product = {
+      ...AW,
+      sku: 'HDPE-20',
+      name: 'Pipa HDPE PE 100 PN-12.5 20 mm x 270 Meter',
+      family: 'HDPE',
+      description: '',
+      material: { provenance: 'VERIFIED', value: 'HDPE' },
+    };
+    const events = await runProductQuestion(
+      ai({ productQuery: 'hdpe', aspect: null }),
+      catalog({ hdpe: [undescribed] }),
+      noQuestions,
+      input('pipa HDPE itu cocok diterapin dimana?', CONCEPT),
+    );
+    // Penjelasannya berdiri sendiri; "Nama. Material HDPE." di bawahnya hanya mengulang kartunya.
+    expect(text(events)).not.toContain('Contoh produknya di katalog Pralon');
+    expect(text(events)).not.toContain('Material HDPE.');
+    expect(cards(events).map((c) => c.kind)).toContain('product');
+  });
+
   it('tanpa aspek dan tanpa bahan yang dikenali: ikhtisar produk Pralon bila ada — tidak bertanya balik', async () => {
     const found = await runProductQuestion(
       ai({ productQuery: 'pvc aw', aspect: null }),

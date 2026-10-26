@@ -698,7 +698,11 @@
       "bikin jaringan air limbah ke ipal",
       "mau pasang spald-t",
       "i want to build a water supply scheme",
-      "we are building a sewer network"
+      "we are building a sewer network",
+      "mau bikin kolam ikan",
+      "pengen bikin kolam ikan",
+      "rencana buat kolam ikan di halaman belakang",
+      "i want to build a fish pond"
     ],
     "requirement_mutation": [
       "tambah satu kamar mandi",
@@ -850,7 +854,15 @@
       "ok go on",
       "lanjut aja",
       "ya, tolong",
-      "boleh, tolong"
+      "boleh, tolong",
+      "itungin dong",
+      "itungin aja",
+      "coba itungin",
+      "hitungin dong",
+      "gw bisa jawab parameter yang dibutuhin",
+      "parameternya gw bisa kasih",
+      "just calculate it",
+      "go ahead and work it out"
     ],
     "follow_up_more": [
       "lengkap dong",
@@ -886,7 +898,12 @@
       "secara lengkap",
       "secara detail",
       "komplit dong",
-      "jelasin selengkapnya"
+      "jelasin selengkapnya",
+      "apa aja barang2 nya",
+      "barangnya apa aja?",
+      "butuh barang apa aja?",
+      "material apa aja yang dibutuhin?",
+      "what items do i need?"
     ],
     "follow_up_brief": [
       "singkat aja",

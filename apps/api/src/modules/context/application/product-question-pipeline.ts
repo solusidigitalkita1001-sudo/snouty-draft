@@ -738,8 +738,16 @@ async function answerConcept(
   if (support.authoritative) {
     if (missing !== '' && !availabilityFirst) facts.push(COPY.notInCatalog(missing));
     if (support.products.length > 0) {
-      facts.push(COPY.catalogSupport);
-      facts.push(support.products.map((p) => overviewText(p, locale)).join('\n\n'));
+      // Prosa katalog hanya untuk produk yang DESKRIPSInya berisi — di situ katalog benar-benar
+      // menjelaskan sesuatu ("Pipa PVC AW: Pipa untuk air bersih…"). Produk tanpa deskripsi
+      // merosot jadi nama plus materialnya ("Pipa HDPE PE 100 PN-12.5 20 mm x 270 Meter. Material
+      // HDPE."), yang sudah ada di kartunya dan di bawah penjelasan penerapan HDPE terbaca
+      // seperti tempelan mesin (pemilik 2026-10-26).
+      const described = support.products.filter((p) => p.description.trim() !== '');
+      if (described.length > 0) {
+        facts.push(COPY.catalogSupport);
+        facts.push(described.map((p) => overviewText(p, locale)).join('\n\n'));
+      }
       cards.push({ kind: 'product', products: support.products.map(toCard) });
     }
     if (support.missing.length > 0) cards.push({ kind: 'cta', action: 'CONTACT_TECHNICAL' });

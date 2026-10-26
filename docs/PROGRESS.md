@@ -2950,3 +2950,30 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
 - [x] P31-02a Tes (4): tiga di ruas pertanyaan produk (terkecil, terbesar, daftar penuh bila tidak
       diminta ujung) dan satu yang memastikan perencana tidak dipanggil untuk pertanyaan fitting
       berukuran
+
+- [x] P31-03 Empat cacat dari percakapan pemilik di produksi (2026-10-26)
+
+      Pemilik mencoba SNOUTY sebagai pengguna dan mengirim hasilnya: "masih ngaco". Empat hal, dan
+      tiga di antaranya data.
+
+      **"gw mau bikin kolam ikan" dibuang dari domain setelah 34 detik.** Mesinnya punya kasus
+      `fish_pond` lengkap dengan asumsinya, dan "bikin kolam ikan ukuran 3x4 meter" memang sampai
+      ke situ — tetapi setiap contoh kolam di katalog membawa jenis ikan, jumlah petak, atau
+      ukuran. Niat polos tanpa angka tidak punya padanan, intent-nya ragu (0,755 lawan 0,747), dan
+      pesan ragu diserahkan ke model yang lalu menyebutnya di luar lingkup. Lima contoh niat polos
+      ditambahkan: sekarang 0,955 dan kasusnya `fish_pond`.
+
+      **"itungin gw bisa jawab beberapa parameter yang dibutuhin" 68 detik, lalu minta data.**
+      Peringkat teratasnya `complaint` 0,642 — permintaan menghitung terbaca keluhan. Delapan
+      contoh ajakan menghitung ditambahkan ke `follow_up_continue`: sekarang 0,933.
+
+      **"apa aja barang2 nya" dijawab serah-terima.** Ragu antara pertanyaan jalur dan ragam produk
+      (0,763 lawan 0,756, margin 0,015). Permintaan daftar barang masuk `follow_up_more`.
+
+      **Satu baris katalog ditempel sebagai prosa.** Di bawah penjelasan penerapan HDPE muncul
+      "Pipa HDPE PE 100 PN-12.5 20 mm x 270 Meter. Material HDPE." — satu produk yang dipilih
+      katalog, dengan deskripsi kosong sehingga prosanya merosot jadi nama plus materialnya, dan
+      keduanya sudah ada di kartu di bawahnya. Prosa katalog kini hanya untuk produk yang
+      deskripsinya berisi, tempat katalog memang menjelaskan sesuatu ("Pipa PVC AW: Pipa untuk air
+      bersih bertekanan"). Tes perbandingan yang memeriksa pilihan produk kini membacanya dari
+      kartu, bukan dari prosa yang tidak lagi ada.

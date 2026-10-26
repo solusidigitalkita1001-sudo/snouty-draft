@@ -1504,6 +1504,27 @@
       "text": "rumah dua lantai dengan tiga kamar mandi",
       "extreme": null,
       "source": "P31-01 katalog extreme — kebutuhan tidak membawa ujung"
+    },
+    {
+      "text": "gw mau bikin kolam ikan",
+      "intent": "requirement_technical",
+      "useCase": "fish_pond",
+      "source": "pemilik 2026-10-26 — niat polos, tanpa ukuran"
+    },
+    {
+      "text": "pengen bangun kolam ikan nih",
+      "useCase": "fish_pond",
+      "source": "pemilik 2026-10-26"
+    },
+    {
+      "text": "itungin gw bisa jawab beberapa parameter yang dibutuhin",
+      "intent": "follow_up_continue",
+      "source": "pemilik 2026-10-26 — dulu terbaca keluhan"
+    },
+    {
+      "text": "apa aja barang2 nya",
+      "intent": "follow_up_more",
+      "source": "pemilik 2026-10-26"
     }
   ]
 }

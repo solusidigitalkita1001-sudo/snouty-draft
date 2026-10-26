@@ -28,6 +28,14 @@ const text = (events: readonly AssistantStreamEvent[]) =>
     .map((e) => (e as { text: string }).text)
     .join('\n');
 
+const productCardNames = (events: readonly AssistantStreamEvent[]): string[] =>
+  events
+    .filter((e) => e.type === 'card')
+    .flatMap((e) => {
+      const card = (e as { card: { kind: string; products?: { name: string }[] } }).card;
+      return card.kind === 'product' ? (card.products ?? []).map((p) => p.name) : [];
+    });
+
 function product(over: Partial<Product> & Pick<Product, 'name' | 'family' | 'sizes'>): Product {
   return {
     id: over.name.padEnd(26, 'X').slice(0, 26),
@@ -159,18 +167,20 @@ describe('audit 2026-10-19 — contoh produk perbandingan', () => {
   it('"bedanya pipa hdpe sama pvc apa?": PVC diwakili PVC AW terkecil, bukan pipa SNI kelas B 355 mm', async () => {
     const pipe = (name: string, family: string, sizes: string[]) =>
       product({ name, family, sizes, category: 'PIPA' });
-    const reply = text(
-      await ask('bedanya pipa hdpe sama pvc apa?', { intent: 'product_comparison' }, [
-        pipe('Pipa (Bell End) Kelas B 355 mm x 6 Meter PVC', 'PVC SNI KELAS B', ['355 mm']),
-        pipe('Pipa PVC AW 2" x 4 Meter', 'PVC AW', ['2"']),
-        pipe('Pipa PVC AW 1/2" x 4 Meter', 'PVC AW', ['1/2"']),
-        pipe('Pipa HDPE PE 100 PN-8 160 mm x 9 Meter', 'HDPE', ['160 mm']),
-        pipe('Pipa HDPE PE 100 PN-16 20 mm x 100 Meter', 'HDPE', ['20 mm']),
-      ]),
-    );
-    expect(reply).toContain('Pipa PVC AW 1/2" x 4 Meter');
-    expect(reply).toContain('Pipa HDPE PE 100 PN-16 20 mm x 100 Meter');
-    expect(reply).not.toContain('Kelas B 355 mm');
+    const events = await ask('bedanya pipa hdpe sama pvc apa?', { intent: 'product_comparison' }, [
+      pipe('Pipa (Bell End) Kelas B 355 mm x 6 Meter PVC', 'PVC SNI KELAS B', ['355 mm']),
+      pipe('Pipa PVC AW 2" x 4 Meter', 'PVC AW', ['2"']),
+      pipe('Pipa PVC AW 1/2" x 4 Meter', 'PVC AW', ['1/2"']),
+      pipe('Pipa HDPE PE 100 PN-8 160 mm x 9 Meter', 'HDPE', ['160 mm']),
+      pipe('Pipa HDPE PE 100 PN-16 20 mm x 100 Meter', 'HDPE', ['20 mm']),
+    ]);
+    // Produk yang dipilih dibaca dari KARTUNYA: sejak P31-03 produk tanpa deskripsi tidak lagi
+    // ditempel sebagai prosa di bawah penjelasan — yang diuji di sini tetap pilihannya.
+    expect([...productCardNames(events)].sort()).toEqual([
+      'Pipa HDPE PE 100 PN-16 20 mm x 100 Meter',
+      'Pipa PVC AW 1/2" x 4 Meter',
+    ]);
+    expect(text(events)).not.toContain('Kelas B 355 mm');
   });
 });
 
