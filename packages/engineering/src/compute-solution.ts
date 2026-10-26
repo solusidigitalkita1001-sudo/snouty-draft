@@ -495,7 +495,8 @@ export function computeSolution(
   let boosterPumpNeeded = false;
   let gravityRemedy: HouseSupply['gravityRemedy'] = null;
   let tankStand: HouseSupply['tankStand'] = null;
-  if (gravity) {
+  const cleanWater = input.installationType !== 'drainage';
+  if (gravity && cleanWater) {
     const lossM = round2(main.frictionLossM + main.minorLossM);
     const check = run(ENG_703, {
       availableHeadM,
@@ -511,7 +512,10 @@ export function computeSolution(
     if (check.minimumStandM !== null) {
       gravityRemedy = { minimumStandM: check.minimumStandM, heightShort: check.heightShort };
     }
-    // Dak atau tiang toren: tekanan dari tiap dudukan dengan pipa yang sama (ENG-711).
+    // Dak atau tiang toren: tekanan dari tiap dudukan dengan pipa yang sama (ENG-711). Hanya
+    // instalasi yang memuat air bersih; pekerjaan pembuangan saja tidak punya dudukan toren,
+    // dan di produksi 2026-10-26 jawabannya menyebut "tidak ada dudukan toren yang mencapai
+    // 0,3 bar tanpa pompa pendorong" untuk rumah yang hanya memasang saluran buangan.
     const comfortBar = use('RESIDUAL_GRAVITY_COMFORT_0_7BAR');
     const options = run(ENG_711, {
       roofHeightM: round2(input.floors * floorHeightM),

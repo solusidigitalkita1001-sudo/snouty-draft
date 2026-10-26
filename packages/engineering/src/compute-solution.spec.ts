@@ -313,3 +313,19 @@ describe('pertanyaan yang tidak dijawab tercatat sebagai asumsi (review putaran 
     expect(result.appliedAssumptionIds).not.toContain('HOUSE_BASINS_0');
   });
 });
+
+/**
+ * Produksi 2026-10-26: rumah yang hanya memasang saluran pembuangan dijawab "tidak ada dudukan
+ * toren yang mencapai 0,3 bar tanpa pompa pendorong" dan ukuran pipa dari toren.
+ */
+describe('instalasi pembuangan saja: tanpa dudukan toren', () => {
+  it('pekerjaan pembuangan tidak punya pilihan dudukan toren maupun pompa pendorong', () => {
+    const drainage = computeSolution({ ...BOARD_EXAMPLE, installationType: 'drainage' });
+    expect(drainage.supply.tankStand).toBeNull();
+    expect(drainage.supply.boosterPumpNeeded).toBeFalsy();
+  });
+
+  it('instalasi air bersih tetap punya pilihan dudukannya', () => {
+    expect(computeSolution(BOARD_EXAMPLE).supply.tankStand).not.toBeNull();
+  });
+});

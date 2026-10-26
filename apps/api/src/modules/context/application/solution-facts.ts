@@ -217,6 +217,19 @@ export function rodsReply(solution: ActiveSolution, locale: Locale): string | nu
  * utama, pompa/tinggi toren bila ada — dari rekomendasi, tanpa model. Dipakai bila model tidak
  * dikonfigurasi, lambat, atau ditolak pagar; dulu teks generik "buka detail teknis".
  */
+/**
+ * "itung" pada kasus yang solusinya SUDAH dihitung dan masih sesuai: satu baris yang menyebut
+ * hasilnya dan di mana angkanya, bukan seluruh solusinya dituang ulang — yang membuat
+ * pertanyaan berikutnya ("pipa buangannya ukuran berapa") terbaca sebagai ulangan dan dijawab
+ * "itu yang saya jelaskan di jawaban sebelumnya" (produksi 2026-10-26).
+ */
+export function alreadyComputedReply(solution: ActiveSolution, locale: Locale): string {
+  const headline = solution.recommendation.headline.replace(/\.$/, '');
+  return locale === 'en'
+    ? `Already worked out — ${headline}. The sizes, lengths and product list are on the solution screen.`
+    : `Sudah saya hitung — ${headline}. Ukuran, jumlah batang, dan daftar produknya ada di layar solusi.`;
+}
+
 export function solutionReply(solution: ActiveSolution, locale: Locale): string {
   const en = locale === 'en';
   const r = solution.recommendation;
@@ -282,7 +295,11 @@ export function solutionReply(solution: ActiveSolution, locale: Locale): string 
       drainage.wasteVentSize === undefined
         ? null
         : `${en ? 'waste vent' : 'ventilasi air bekas'} ${drainage.wasteVentSize}`,
-    ].filter((line): line is string => line !== null);
+    ]
+      .filter((line): line is string => line !== null)
+      // Judul solusi pembuangan sudah menyebut air kotor dan air bekasnya; yang diulang kata
+      // demi kata dalam satu balasan terbaca seperti mesin (produksi 2026-10-26).
+      .filter((line) => !r.headline.includes(line));
     if (lines.length > 0) {
       parts.push(`${en ? 'Drainage' : 'Pembuangan'}: ${lines.join(', ')}.`);
     }

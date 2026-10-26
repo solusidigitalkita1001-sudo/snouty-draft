@@ -543,6 +543,81 @@ describe('ukuran jalur pembuangan di jawaban solusi', () => {
 });
 
 /**
+ * Produksi 2026-10-26: instalasi pembuangan saja, judulnya "Pembuangan: air kotor 4", air bekas
+ * 2½"" — lalu balasannya menyebut ukuran yang sama lagi di kalimat berikutnya.
+ */
+describe('ukuran yang sudah ada di judul tidak diulang', () => {
+  it('judul pembuangan: hanya ventilasinya yang ditambahkan', async () => {
+    const { solutionReply } = await import('./solution-facts.js');
+    const text = solutionReply(
+      {
+        recommendation: {
+          headline: 'Pembuangan: air kotor 4", air bekas 2½"',
+          systemLines: [],
+          needs: [
+            {
+              kind: 'drainage',
+              count: 1,
+              soilSize: '4"',
+              wasteSize: '2½"',
+              soilVentSize: '2"',
+              wasteVentSize: '1¼"',
+            },
+          ],
+          bom: [],
+        } as never,
+        stale: false,
+      },
+      'id',
+    );
+    expect(text.match(/air kotor 4"/g)).toHaveLength(1);
+    expect(text.match(/air bekas 2½"/g)).toHaveLength(1);
+    expect(text).toContain('ventilasi air kotor 2"');
+  });
+
+  // "udah itu aja, itung" atas solusi yang sudah ada dituang seluruh solusinya, sehingga
+  // pertanyaan berikutnya terbaca sebagai ulangan dan dijawab "itu yang saya jelaskan tadi".
+  it('permintaan menghitung atas solusi yang sudah ada dijawab satu baris, tanpa hitung ulang', async () => {
+    const house = mergeRequirement(
+      emptyRequirementState(T0),
+      extractionToUpdates(
+        {},
+        'rumah 2 lantai 8x15 meter, 3 kamar mandi, 1 dapur, mau saluran pembuangannya, air dari pdam',
+      ),
+      T0,
+    ).state;
+    const message = 'udah itu aja, itung';
+    const { events } = await runUnderstanding(
+      null,
+      {
+        ...input(message),
+        state: house,
+        understanding: understood(message, { intent: 'follow_up_continue' }),
+        solution: {
+          recommendation: {
+            headline: 'Pembuangan: air kotor 4", air bekas 2½"',
+            systemLines: [],
+            needs: [{ kind: 'drainage', count: 1, soilSize: '4"', wasteSize: '2½"' }],
+            bom: [],
+          },
+          stale: false,
+        } as never,
+      },
+      writer().reply,
+    );
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toContain('Sudah saya hitung');
+    expect(token.text.length).toBeLessThan(200);
+    const cards = events.filter((e) => e.type === 'card') as Array<{
+      card: { kind: string; action?: string; auto?: boolean };
+    }>;
+    expect(cards.map((c) => c.card)).not.toContainEqual(
+      expect.objectContaining({ action: 'ANALYZE', auto: true }),
+    );
+  });
+});
+
+/**
  * Produksi 2026-10-26: "septic tanknya di mana" di rumah yang solusinya sudah dihitung dijawab
  * ringkasan kebutuhan plus "Tekan Susun rekomendasi" — tombol untuk hitungan yang sudah ada.
  */

@@ -3500,3 +3500,13 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       buangannya dihitung dari jumlah alatnya. Satu angka tentang buangan, air hujan, pompa, atau
       sumur sekarang tetap ukuran pekerjaan bangunannya; kasusnya sendiri baru terbuka bila
       pesannya membawa dua angka parameter atau lebih ("40 meter, beda tinggi 1,5 m").
+
+- [x] P31-54 Pekerjaan pembuangan tidak bicara soal dudukan toren, dan "itung" tidak menuang ulang
+
+      Rumah yang hanya memasang saluran pembuangan dijawab "tidak ada dudukan toren yang mencapai
+      0,3 bar tanpa pompa pendorong" beserta ukuran pipa dari toren — dudukan toren sekarang hanya
+      ada pada instalasi yang memuat air bersih. Judul solusi pembuangan juga sudah menyebut air
+      kotor dan air bekasnya, jadi barisnya tidak diulang kata demi kata. Dan "udah itu aja, itung"
+      atas solusi yang sudah dihitung dijawab satu baris berisi hasil dan tempat angkanya, bukan
+      seluruh solusi dituang ulang — yang membuat pertanyaan sesudahnya dijawab "itu yang saya
+      jelaskan di jawaban sebelumnya".

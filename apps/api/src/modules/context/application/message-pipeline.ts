@@ -100,7 +100,7 @@ import {
   replyFor,
 } from './reply-copy.js';
 import { caseFacts } from './case-facts.js';
-import { layoutReply, rodsReply, solutionReply } from './solution-facts.js';
+import { alreadyComputedReply, layoutReply, rodsReply, solutionReply } from './solution-facts.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
 
@@ -640,10 +640,12 @@ export async function runUnderstanding(
 
   const next = followUpCard(merged, input.locale);
   // Rumah yang baru lengkap di giliran ini langsung dihitung — dengan atau tanpa anggapan.
+  // Solusi yang sudah dihitung dan masih sesuai tidak dihitung ulang hanya karena diminta lagi.
+  const alreadyComputed = input.solution != null && !input.solution.stale;
   const card: AssistantCard | null =
     next?.kind === 'cta' &&
     next.action === 'ANALYZE' &&
-    (changed || asksToCompute) &&
+    (changed || (asksToCompute && !alreadyComputed)) &&
     merged.useCase === undefined
       ? { ...next, auto: true }
       : next;
@@ -685,7 +687,9 @@ export async function runUnderstanding(
     // untuk hitungan yang sudah ada (produksi 2026-10-26: "septic tanknya di mana").
     const fromComputed =
       !changed && input.solution && !input.solution.stale
-        ? solutionReply(input.solution, locale)
+        ? asksToCompute
+          ? alreadyComputedReply(input.solution, locale)
+          : solutionReply(input.solution, locale)
         : null;
     const answer =
       fromComputed !== null && fromComputed.trim() !== said?.trim() ? fromComputed : text;
