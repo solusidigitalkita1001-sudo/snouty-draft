@@ -33,6 +33,8 @@ import { designationsOf } from '../../product-catalog/domain/product-identity.js
 import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from './catalog-scope.js';
 import { knowledgeAnswer, mentionsPressure, pressureRange } from './knowledge-answer.js';
 import { asksGeneralKnowledge } from './intent-router.js';
+import { runsReply } from './solution-facts.js';
+import type { ActiveSolution } from '../domain/active-solution.port.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import { repeatedTopicReply } from './reply-copy.js';
 import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
@@ -118,6 +120,8 @@ export interface ProductQuestionInput {
     'productFamilies' | 'isCatalogFamily' | 'isFittingFamily' | 'aliasesOf' | 'mentionsOwnBrand'
   > &
     Partial<Pick<EntityLexicon, 'representativeFamily'>>;
+  /** Solusi aktif percakapan: pertanyaan yang tidak tercakup data pengetahuan dijawab dari jalurnya. */
+  readonly solution?: ActiveSolution | null;
   /** Dipanggil untuk tiap data resmi yang belum ada di jawaban pengetahuan (log, bukan state). */
   readonly onGap?: (gap: { readonly topic: string; readonly gap: string }) => void;
 }
@@ -683,6 +687,10 @@ async function answerConcept(
   // PVC sembarang — keduanya bukan jawaban, dan keduanya terbaca seperti tidak menyimak.
   // Jalur umum sudah mendapat kesempatannya di `runProductQuestion` sebelum ini.
   if (asksGeneralKnowledge(u)) {
+    // Kasus yang solusinya sudah dihitung bukan "tanpa acuan": jalur solusinya sendiri acuan
+    // yang paling dekat dengan pertanyaannya (produksi 2026-10-26).
+    const runs = input.solution && !input.solution.stale ? runsReply(input.solution, locale) : null;
+    if (runs !== null) return { text: runs, cards: [] };
     return { text: COPY.noSourcedAnswer, cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }] };
   }
 

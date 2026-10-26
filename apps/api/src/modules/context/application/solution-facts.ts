@@ -171,6 +171,21 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
  * dan belasan baris fitting) adalah satu paragraf raksasa untuk pertanyaan sependek itu — layar
  * solusi yang memuat daftar lengkapnya (produksi 2026-10-26).
  */
+/**
+ * Jalur-jalur di solusi pengguna, satu kalimat. Dipakai untuk pertanyaan yang tidak tercakup data
+ * pengetahuan tetapi SUDAH terjawab solusinya: "air bekas cucian masuk ke mana" dijawab "belum
+ * punya acuan" di produksi 2026-10-26, padahal baris air bekas solusinya menyebut tujuannya.
+ */
+export function runsReply(solution: ActiveSolution, locale: Locale): string | null {
+  const lines = solution.recommendation.systemLines.map(
+    (l) => `${l.name.toLowerCase()} ${l.size} (${l.path.toLowerCase()})`,
+  );
+  if (lines.length === 0) return null;
+  return locale === 'en'
+    ? `The runs in your solution: ${lines.join('; ')}. The basis of every figure is under "Show technical details" on the solution screen.`
+    : `Jalur di solusi Anda: ${lines.join('; ')}. Dasar tiap angka ada di "Tampilkan detail teknis" pada layar solusi.`;
+}
+
 export function rodsReply(solution: ActiveSolution, locale: Locale): string | null {
   const en = locale === 'en';
   const r = solution.recommendation;

@@ -3466,3 +3466,11 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       plus "Tekan Susun rekomendasi" — tombol untuk hitungan yang sudah ada. Giliran yang tidak
       mengubah apa pun sekarang membacakan solusinya. Sekaligus: giliran yang memang tidak
       memanggil model tidak lagi ditandai "pemahaman tidak tersedia" ketika modelnya tidak ada.
+
+- [x] P31-50 Pertanyaan tanpa fakta pengetahuan pada kasus yang punya solusi dijawab dari solusinya
+
+      "air bekas cucian masuk ke mana" dijawab "belum punya acuan yang bisa saya pegang", padahal
+      baris air bekas di solusinya menyebut tujuannya (saluran atau sumur resapan). Kasus yang
+      solusinya sudah dihitung tidak lagi dianggap tanpa acuan: jalur-jalur solusinya yang
+      dibacakan. "butuh berapa batang pipa buat rumah ini" juga masuk contoh pertanyaan jumlah
+      batang, supaya jawabannya baris pipanya saja (P31-48).

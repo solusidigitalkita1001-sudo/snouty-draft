@@ -1303,3 +1303,30 @@ describe('topik yang baru saja dijawab (P31-17)', () => {
     );
   });
 });
+
+/**
+ * Produksi 2026-10-26: "air bekas cucian masuk ke mana" di rumah yang solusinya sudah dihitung
+ * dijawab "belum punya acuan", padahal baris air bekas di solusinya menyebut tujuannya.
+ */
+describe('pertanyaan tanpa fakta pengetahuan pada kasus yang punya solusi (P31-50)', () => {
+  it('dijawab dari jalur solusinya', async () => {
+    const { runsReply } = await import('./solution-facts.js');
+    const text = runsReply(
+      {
+        recommendation: {
+          systemLines: [
+            {
+              role: 'branch',
+              name: 'Pipa air bekas PVC D',
+              size: '2½"',
+              path: 'Floor drain, wastafel, dapur → saluran atau sumur resapan',
+            },
+          ],
+        } as never,
+        stale: false,
+      },
+      'id',
+    );
+    expect(text).toContain('sumur resapan');
+  });
+});
