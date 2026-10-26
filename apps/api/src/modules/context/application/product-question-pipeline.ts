@@ -34,6 +34,8 @@ import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from '
 import { knowledgeAnswer, mentionsPressure, pressureRange } from './knowledge-answer.js';
 import { asksGeneralKnowledge } from './intent-router.js';
 import { runsReply } from './solution-facts.js';
+/** Topik yang hanya tentang jalur buangan — jawabannya tidak perlu membacakan jalur air bersih. */
+const DRAINAGE_TOPICS: ReadonlySet<string> = new Set(['pipa pembuangan', 'kemiringan buangan']);
 import type { ActiveSolution } from '../domain/active-solution.port.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import { repeatedTopicReply } from './reply-copy.js';
@@ -689,7 +691,12 @@ async function answerConcept(
   if (asksGeneralKnowledge(u)) {
     // Kasus yang solusinya sudah dihitung bukan "tanpa acuan": jalur solusinya sendiri acuan
     // yang paling dekat dengan pertanyaannya (produksi 2026-10-26).
-    const runs = input.solution && !input.solution.stale ? runsReply(input.solution, locale) : null;
+    const drainageOnly =
+      u.knowledgeTopics.length > 0 && u.knowledgeTopics.every((t) => DRAINAGE_TOPICS.has(t));
+    const runs =
+      input.solution && !input.solution.stale
+        ? runsReply(input.solution, locale, drainageOnly)
+        : null;
     if (runs !== null) return { text: runs, cards: [] };
     return { text: COPY.noSourcedAnswer, cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }] };
   }

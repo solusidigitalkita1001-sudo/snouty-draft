@@ -176,8 +176,18 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
  * pengetahuan tetapi SUDAH terjawab solusinya: "air bekas cucian masuk ke mana" dijawab "belum
  * punya acuan" di produksi 2026-10-26, padahal baris air bekas solusinya menyebut tujuannya.
  */
-export function runsReply(solution: ActiveSolution, locale: Locale): string | null {
-  const lines = solution.recommendation.systemLines.map(
+/** Baris jalur buangan: air kotor, air bekas, dan ventilasinya. */
+const DRAINAGE_LINE = /kotor|bekas|ventilasi|buang|soil|waste|vent|drain/i;
+
+export function runsReply(
+  solution: ActiveSolution,
+  locale: Locale,
+  /** Pertanyaannya tentang pembuangan: jalur air bersih tidak ikut dibacakan. */
+  drainageOnly = false,
+): string | null {
+  const all = solution.recommendation.systemLines;
+  const chosen = drainageOnly ? all.filter((l) => DRAINAGE_LINE.test(`${l.name} ${l.path}`)) : all;
+  const lines = (chosen.length > 0 ? chosen : all).map(
     (l) => `${l.name.toLowerCase()} ${l.size} (${l.path.toLowerCase()})`,
   );
   if (lines.length === 0) return null;

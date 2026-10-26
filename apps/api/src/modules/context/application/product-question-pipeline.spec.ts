@@ -1330,3 +1330,27 @@ describe('pertanyaan tanpa fakta pengetahuan pada kasus yang punya solusi (P31-5
     expect(text).toContain('sumur resapan');
   });
 });
+
+/** Pertanyaan tentang pembuangan tidak perlu membacakan jalur air bersih (P31-50). */
+describe('jalur solusi yang dibacakan dipilih sesuai topiknya', () => {
+  it('topik pembuangan → baris buangan saja', async () => {
+    const { runsReply } = await import('./solution-facts.js');
+    const solution = {
+      recommendation: {
+        systemLines: [
+          { role: 'main', name: 'Pipa distribusi utama', size: '1¼"', path: 'Sumber → titik air' },
+          {
+            role: 'branch',
+            name: 'Pipa air bekas PVC D',
+            size: '2½"',
+            path: 'Floor drain, wastafel → sumur resapan',
+          },
+        ],
+      } as never,
+      stale: false,
+    };
+    const text = runsReply(solution, 'id', true)!;
+    expect(text).toContain('sumur resapan');
+    expect(text).not.toContain('distribusi utama');
+  });
+});
