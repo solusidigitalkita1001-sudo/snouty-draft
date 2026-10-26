@@ -1,5 +1,5 @@
 {
-  "$comment": "Fakta pengetahuan pipa sebagai DATA (permintaan pemilik 2026-10-09: jawaban dinamis, bukan statis). Satu entri = satu fakta bersumber untuk satu topik `knowledge-topic`. Teks hanya kualitatif atau angka yang dokumen sumbernya tandai konsisten — angka berstatus 'perlu validasi' tidak dimasukkan. `catalog` menyebut data katalog yang dihitung SAAT ITU dari produk aktif: `families` (ringkasan jumlah + ukuran), `lengths` (panjang per batang dari nama produk), `pressure` (kelas PN/SDR/S dari nama produk), `rods` (jumlah batang dari panjang jalur di pesan), `nameIncludes` (saring nama produk per keluarga, mis. HDPE → \"gas\"). Fakta baru ditambah di sini tanpa mengubah kode. Sejak tes FAQ 2026-10-12: `subject` = bahan yang dibicarakan fakta (keluarga kanonis kosakata; pesan yang menyebut bahan lain tidak memakainya), `leads` = kalimat pembuka yang menjawab langsung bila pesan menyebut bahan itu, `gap` = data resmi yang belum ada (jawaban menawarkan tim teknis dan tercatat di log).",
+  "$comment": "Fakta pengetahuan pipa sebagai DATA (permintaan pemilik 2026-10-09: jawaban dinamis, bukan statis). Satu entri = satu fakta bersumber untuk satu topik `knowledge-topic`. Teks hanya kualitatif atau angka yang dokumen sumbernya tandai konsisten — angka berstatus 'perlu validasi' tidak dimasukkan. `catalog` menyebut data katalog yang dihitung SAAT ITU dari produk aktif: `families` (ringkasan jumlah + ukuran), `lengths` (panjang per batang dari nama produk), `pressure` (kelas PN/SDR/S dari nama produk), `rods` (jumlah batang dari panjang jalur di pesan), `nameIncludes` (saring nama produk per keluarga, mis. HDPE → \"gas\"). Fakta baru ditambah di sini tanpa mengubah kode. Sejak tes FAQ 2026-10-12: `subject` = bahan yang dibicarakan fakta (keluarga kanonis kosakata; pesan yang menyebut bahan lain tidak memakainya), `leads` = kalimat pembuka yang menjawab langsung bila pesan menyebut bahan itu, `gap` = data resmi yang belum ada (jawaban menawarkan tim teknis dan tercatat di log). Sejak P30-05: `leadAnswersFully` = kalimat pembukanya sudah memuat seluruh jawaban untuk bahan itu, jadi paragraf utama dan `gap` fakta ini tidak ikut (dipakai fakta yang paragraf utamanya membicarakan bahan lain — pertanyaan SDR HDPE dulu disusul paragraf kelas PVC beserta kartu eskalasinya).",
   "facts": [
     {
       "topic": "vp vu",
@@ -139,7 +139,8 @@
           "text": "Pada pipa HDPE, angka PN adalah tekanan nominalnya dalam bar: PN 10 berarti 10 bar, PN 16 berarti 16 bar. Makin kecil angka SDR, makin tebal dindingnya dan makin tinggi kelas tekanannya. SDR sendiri adalah perbandingan diameter luar terhadap tebal dinding nominalnya: SDR 11 berarti diameter luarnya 11 kali tebal dinding, SDR 17 berarti 17 kali — jadi pada diameter yang sama, dinding SDR 11 lebih tebal daripada SDR 17 dan kelas tekanannya lebih tinggi.",
           "textEn": "On HDPE pipe the PN number is its nominal pressure in bar: PN 10 means 10 bar, PN 16 means 16 bar. The smaller the SDR number, the thicker the wall and the higher the pressure class. SDR itself is the ratio of the outside diameter to the nominal wall thickness: SDR 11 means the outside diameter is 11 times the wall, SDR 17 means 17 times — so at the same diameter an SDR 11 wall is thicker than SDR 17 and its pressure class is higher."
         }
-      ]
+      ],
+      "leadAnswersFully": true
     },
     {
       "topic": "pippo",
@@ -273,6 +274,13 @@
       }
     },
     {
+      "topic": "penimbunan",
+      "text": "Di bawah jalan atau tempat yang dilewati kendaraan, hitungan SNOUTY memakai timbunan minimum sekitar 1 m di atas pipa; untuk gorong-gorong, timbunan minimum sekitar 0,6 m dan sekurangnya satu kali diameter pipanya. Keduanya angka perencanaan yang dipakai hitungan — mengikuti kriteria perencanaan jaringan air limbah dan praktik umum pipa plastik — dan belum divalidasi tim teknis Pralon. Kedalaman saja juga belum menentukan: lapisan pasir di dasar galian, pemadatan di sisi pipa, dan kelas pipanya ikut menentukan apakah jalur itu tahan dilewati kendaraan.",
+      "textEn": "Under a road or anywhere vehicles pass, SNOUTY calculates with a minimum cover of about 1 m over the pipe; for a culvert, a minimum cover of about 0.6 m and at least one pipe diameter. Both are planning figures the calculation uses — following wastewater network planning criteria and common practice for plastic pipe — and neither is validated by the Pralon technical team. Depth alone does not settle it either: the sand bedding under the pipe, the compaction at its sides, and the pipe class all decide whether the run survives vehicle loads.",
+      "source": "Parameter asumsi engineering SEWER_START_DEPTH_1M (kriteria perencanaan SPALD-T, timbunan minimum ±1 m di bawah jalan) dan CULVERT_COVER_MIN_0_6 (praktik umum, ±0,6 m atau ≥ 1 × diameter); keduanya confirmationRequired — REQUIRES_DOMAIN_VALIDATION",
+      "gap": "kedalaman timbunan resmi Pralon per ukuran pipa dan kelas beban jalan"
+    },
+    {
       "topic": "sambungan rumah",
       "text": "Pipa sambungan rumah (dari pipa distribusi ke meteran) lazimnya HDPE — lentur, sedikit sambungan, dan tahan pergerakan tanah — atau uPVC kelas bertekanan; jenis dan ukurannya mengikuti ketentuan PDAM setempat.",
       "textEn": "House-connection pipe (from the distribution main to the meter) is usually HDPE — flexible, few joints and tolerant of ground movement — or pressure-class uPVC; type and size follow the local water utility rules.",
@@ -293,16 +301,16 @@
     {
       "topic": "aplikasi",
       "subject": ["pvc", "pvc aw", "pvc d", "pvc c"],
-      "text": "uPVC dipakai untuk air bersih dan air minum, air buangan dan drainase, saluran air hujan, pertanian dan irigasi, bangunan dan perumahan, pelindung kabel listrik dan telekomunikasi, serta industri.",
-      "textEn": "uPVC is used for clean and drinking water, wastewater and drainage, rainwater, agriculture and irrigation, buildings and housing, protecting electrical and telecom cables, and industry.",
-      "source": "Snouty Product Knowledge Master §25"
+      "text": "uPVC dipakai untuk air bersih dan air minum, air buangan dan drainase, saluran air hujan, pertanian dan irigasi, bangunan dan perumahan, pelindung kabel listrik dan telekomunikasi, serta industri. Yang bukan tempatnya: air panas — uPVC melunak dan sambungan lemnya melemah — dan jalur terbuka yang terus terkena matahari tanpa pelindung. Untuk pemakaian di luar daftar itu, yang menentukan kondisi jalurnya: bertekanan atau mengalir gravitasi, suhu airnya, terbuka atau ditanam, dan bila airnya mengandung bahan kimia, ketahanan kimia bahannya.",
+      "textEn": "uPVC is used for clean and drinking water, wastewater and drainage, rainwater, agriculture and irrigation, buildings and housing, protecting electrical and telecom cables, and industry. Where it does not belong: hot water — uPVC softens and its solvent-cemented joints weaken — and exposed runs under constant sunlight without protection. For a use outside that list, what decides is the condition of the run: pressurised or gravity flow, water temperature, exposed or buried, and, if the water carries chemicals, the chemical resistance of the material.",
+      "source": "Snouty Product Knowledge Master §25; batas pemakaian dari fakta `air panas` dan `sinar matahari`"
     },
     {
       "topic": "aplikasi",
       "subject": ["hdpe"],
-      "text": "Selain air minum dan air bersih, pipa HDPE Pralon dipakai untuk jalur gas (HDPE Gas SDR-11 dan SDR-13.6), pelindung kabel telekomunikasi (HDPE Telkom), pipa berlubang (perforated) untuk resapan dan drainase bawah tanah, serta jalur tanam dan jaringan jarak panjang yang perlu lentur.",
-      "textEn": "Besides drinking and clean water, Pralon HDPE pipe is used for gas lines (HDPE Gas SDR-11 and SDR-13.6), telecom cable protection (HDPE Telkom), perforated pipe for soakaways and underground drainage, and buried lines and long runs that need flexibility.",
-      "source": "Katalog Pralon aktif: jenis produk HDPE (Gas SDR-11/13.6, Telkom, PE 100 Perforated)",
+      "text": "Selain air minum dan air bersih, pipa HDPE Pralon dipakai untuk jalur gas (HDPE Gas SDR-11 dan SDR-13.6), pelindung kabel telekomunikasi (HDPE Telkom), pipa berlubang (perforated) untuk resapan dan drainase bawah tanah, serta jalur tanam dan jaringan jarak panjang yang perlu lentur. Jadi air limbah dan drainase termasuk pemakaiannya, baik mengalir gravitasi maupun dipompa — sambungan lasnya menyatu dengan pipanya sehingga kedap terhadap akar dan pergerakan tanah. Yang bukan tempatnya: air panas, karena HDPE dirancang untuk air dingin.",
+      "textEn": "Besides drinking and clean water, Pralon HDPE pipe is used for gas lines (HDPE Gas SDR-11 and SDR-13.6), telecom cable protection (HDPE Telkom), perforated pipe for soakaways and underground drainage, and buried lines and long runs that need flexibility. So wastewater and drainage are among its uses, whether gravity-fed or pumped — its fused joints become one with the pipe, so they stay tight against roots and ground movement. Where it does not belong: hot water, because HDPE is designed for cold water.",
+      "source": "Katalog Pralon aktif: jenis produk HDPE (Gas SDR-11/13.6, Telkom, PE 100 Perforated); batas pemakaian dari fakta `air panas`",
       "catalog": {
         "families": ["HDPE"],
         "types": true

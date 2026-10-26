@@ -364,6 +364,69 @@ describe('tes FAQ sales 2026-10-12', () => {
     expect(a!.text).toMatch(/SDR 11 lebih tebal daripada SDR 17/);
   });
 
+  it('pertanyaan tekanan HDPE tidak membawa paragraf kelas PVC maupun gap-nya (P30-05)', async () => {
+    const a = await knowledgeAnswer(
+      ['tekanan kerja'],
+      'beda sdr 11 dan sdr 17 di pipa hdpe apa?',
+      catalog,
+      'id',
+      ['hdpe'],
+    );
+    expect(a!.text).toContain('perbandingan diameter luar terhadap tebal dinding');
+    // Paragraf kelas PVC benar, tetapi tidak ditanya — dan eskalasinya milik paragraf itu.
+    expect(a!.text).not.toContain('AW untuk air bersih bertekanan');
+    expect(a!.gaps).toHaveLength(0);
+    // Kelas tekanan dari katalog tetap ikut: itu memang tentang HDPE.
+    expect(a!.text).toMatch(/PN-8|PN-16/);
+  });
+
+  it('pertanyaan tekanan PVC tetap mendapat paragrafnya beserta gap tekanan kerja (P30-05)', async () => {
+    const a = await knowledgeAnswer(
+      ['tekanan kerja'],
+      'tekanan kerja pipa aw berapa?',
+      catalog,
+      'id',
+      ['pvc aw'],
+    );
+    expect(a!.text).toContain('AW untuk air bersih bertekanan');
+    expect(a!.gaps.map((g) => g.gap)).toContain('tekanan kerja resmi tiap kelas PVC');
+  });
+
+  it('pemakaian menyebut batasnya, bukan hanya daftarnya (P30-05)', async () => {
+    const upvc = await knowledgeAnswer(
+      ['aplikasi'],
+      'pipa pvc bisa dipakai buat kolam renang?',
+      catalog,
+      'id',
+      ['pvc'],
+    );
+    expect(upvc!.text).toContain('Yang bukan tempatnya');
+    expect(upvc!.text).toContain('ketahanan kimia');
+
+    const pe = await knowledgeAnswer(
+      ['aplikasi'],
+      'pipa hdpe bisa dipakai buat air limbah ngga?',
+      catalog,
+      'id',
+      ['hdpe'],
+    );
+    expect(pe!.text).toContain('air limbah dan drainase termasuk pemakaiannya');
+    expect(pe!.text).toContain('bukan tempatnya: air panas');
+  });
+
+  it('kedalaman timbunan menyebut angka yang dipakai hitungan beserta statusnya (P30-05)', async () => {
+    const a = await knowledgeAnswer(
+      ['penimbunan'],
+      'kalau pipa dilewati kendaraan, kedalaman timbunannya berapa?',
+      catalog,
+      'id',
+    );
+    expect(a!.text).toContain('sekitar 1 m');
+    expect(a!.text).toContain('0,6 m');
+    expect(a!.text).toContain('belum divalidasi tim teknis Pralon');
+    expect(a!.gaps.map((g) => g.topic)).toContain('penimbunan');
+  });
+
   it('pertanyaan kemiringan dijawab angkanya sendiri, bukan dari topik tetangga (P30-03, PP-33)', async () => {
     const a = await knowledgeAnswer(
       ['kemiringan buangan'],

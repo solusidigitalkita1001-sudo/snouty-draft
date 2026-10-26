@@ -2809,3 +2809,32 @@ berarti menyentuh kalimat pembuka beberapa fakta sekaligus, jadi dicatat alih-al
 tanpa "ya" atau "tidak" yang tegas. (3) Angka kedalaman timbunan masih kualitatif. Ketiganya kecil
 dibandingkan yang sudah berubah, dan ketiganya lebih murah dikerjakan setelah jalur pengetahuan umum
 menyala — supaya yang ditulis tangan hanya yang memang perlu ditulis tangan.
+
+- [x] P30-05 Tiga sisa yang dicatat di penutup fase, dikerjakan. Semuanya data; satu mekanisme kecil
+      ikut ditambahkan karena memang kurang. - **Kalimat pembuka yang sudah menjawab tidak lagi menarik paragraf bahan lain.** "Beda SDR 11
+      dan SDR 17?" dijawab kalimat pembuka HDPE — lalu disusul paragraf kelas PVC, dan kartu
+      "kirim ke tim teknis" dari `gap` tekanan kerja PVC. Dua-duanya salah tempat untuk pertanyaan
+      yang sudah terjawab. Fakta kini bisa menandai `leadAnswersFully`: paragraf utamanya dan
+      `gap`-nya tidak ikut bila kalimat pembukanya yang menjawab. Data katalognya tetap ikut —
+      kelas PN dari katalog memang tentang HDPE. Pertanyaan PVC tidak berubah: tanpa kalimat
+      pembuka untuk PVC, paragraf dan `gap`-nya tetap muncul. - **"Bisa dipakai buat X?" dijawab batasnya, bukan daftar pemakaian saja.** Kedua fakta
+      `aplikasi` kini ditutup dengan apa yang BUKAN tempatnya dan dengan apa yang menentukan
+      pemakaian di luar daftar. uPVC: bukan air panas (melunak, sambungan lemnya melemah) dan
+      bukan jalur terbuka tanpa pelindung matahari; di luar daftar, yang menentukan bertekanan
+      atau gravitasi, suhu air, terbuka atau ditanam, dan — untuk air berbahan kimia seperti air
+      kolam — ketahanan kimia bahannya. HDPE: air limbah dan drainase memang termasuk, gravitasi
+      maupun dipompa, karena sambungan lasnya menyatu dengan pipanya; bukan untuk air panas.
+      Tidak ada klaim baru di sini — batasnya diambil dari fakta `air panas` dan `sinar matahari`
+      yang sudah bersumber. - **Kedalaman timbunan akhirnya menyebut angkanya.** Angkanya tidak dikarang dan tidak baru:
+      ia sudah dipakai hitungan SNOUTY sebagai parameter asumsi — ±1 m di bawah jalan
+      (`SEWER_START_DEPTH_1M`, kriteria perencanaan jaringan air limbah) dan ±0,6 m atau
+      sekurangnya satu kali diameter untuk gorong-gorong (`CULVERT_COVER_MIN_0_6`, praktik umum
+      pipa plastik). Keduanya `confirmationRequired`, jadi jawabannya menyebut bahwa angkanya
+      belum divalidasi tim teknis Pralon, dan menambahkan yang sama pentingnya: kedalaman saja
+      belum menentukan — lapisan pasir di dasar, pemadatan di sisi pipa, dan kelas pipanya ikut
+      menentukan apakah jalur itu tahan dilewati kendaraan. `gap`-nya tabel resmi Pralon per
+      ukuran pipa dan kelas beban jalan.
+  - [x] P30-05a Tes (4 baru, 1.760 lulus): pertanyaan tekanan HDPE tanpa paragraf PVC dan tanpa gap
+        tetapi tetap membawa kelas PN katalog, pertanyaan tekanan PVC tetap membawa keduanya,
+        kedua fakta pemakaian menyebut batasnya, dan kedalaman timbunan menyebut kedua angka
+        beserta statusnya

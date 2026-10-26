@@ -52,6 +52,15 @@ const FactSchema = z
     subject: z.array(z.string().min(1)).min(1).optional(),
     leads: z.array(LeadSchema).optional(),
     /**
+     * Kalimat pembukanya sudah memuat seluruh jawaban untuk bahan itu, jadi paragraf utama fakta
+     * ini tidak ikut (P30-05). Dipakai fakta yang paragraf utamanya membicarakan bahan LAIN:
+     * "beda SDR 11 dan SDR 17?" dijawab kalimat pembuka HDPE, lalu disusul paragraf kelas PVC —
+     * benar, tetapi tidak ditanya (produksi 2026-10-26). `gap`-nya pun tidak ikut: ia milik
+     * paragraf yang tidak dipakai, dan menawarkan tim teknis untuk pertanyaan yang sudah terjawab
+     * adalah eskalasi yang tidak perlu.
+     */
+    leadAnswersFully: z.boolean().optional(),
+    /**
      * Data resmi yang belum ada untuk topik ini (umur pakai, tabel kimia, tekanan kerja PVC). Jawaban
      * yang memakai fakta ini menawarkan tim teknis dan tercatat di log sebagai data yang dicari.
      */

@@ -106,10 +106,16 @@ export async function knowledgeAnswer(
     if (concepts.length === 0 && own.length === 0) continue;
     used.push(topic);
     // Jawaban langsung lebih dulu bila pesan menyebut bahan yang punya kalimat pembuka.
+    // Fakta yang kalimat pembukanya sudah lengkap tidak membawa paragraf utamanya maupun `gap`-nya
+    // (P30-05): paragraf itu membicarakan bahan lain, dan pertanyaannya sudah terjawab.
+    const answeredByLead = new Set<KnowledgeFact>();
     for (const f of own) {
       const lead = f.leads?.find((l) => l.families.some((x) => named.includes(x)));
-      if (lead) leads.push(en ? lead.textEn : lead.text);
-      if (f.gap) gaps.push({ topic, gap: f.gap });
+      if (lead) {
+        leads.push(en ? lead.textEn : lead.text);
+        if (f.leadAnswersFully) answeredByLead.add(f);
+      }
+      if (f.gap && !answeredByLead.has(f)) gaps.push({ topic, gap: f.gap });
     }
     // Dua kelas PVC disebut ("AW sama D") → satu tabel perbandingan kelas menggantikan paragraf
     // konsepnya, dan ukuran/panjang katalognya menjadi baris tabel itu, bukan daftar kedua di bawahnya
@@ -121,7 +127,9 @@ export async function knowledgeAnswer(
     if (classTable !== null) parts.push(classTable);
     else for (const c of concepts) parts.push(en ? c.textEn : c.text);
     for (const f of own) {
-      const sentence = en ? f.textEn : f.text;
+      // Data katalognya tetap ikut — kelas tekanan HDPE dari katalog memang menjawab pertanyaan
+      // tentang HDPE; yang tidak ikut hanya paragraf tentang bahan lain.
+      const sentence = answeredByLead.has(f) ? '' : en ? f.textEn : f.text;
       if (sentence) parts.push(sentence);
       const hook = f.catalog && classTable === null ? forNamed(f.catalog, scope) : null;
       if (hook) {
