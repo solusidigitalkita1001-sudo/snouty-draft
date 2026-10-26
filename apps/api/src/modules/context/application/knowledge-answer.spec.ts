@@ -339,6 +339,41 @@ describe('tes FAQ sales 2026-10-12', () => {
     expect(b!.text).toContain('Yang direkomendasikan di sini tetap produk Pralon');
     expect(b!.gaps).toHaveLength(0);
   });
+
+  it('PVC-O dijelaskan beserta standarnya dan dinyatakan bukan produk Pralon (P30-02)', async () => {
+    const a = await knowledgeAnswer(
+      ['bahan di luar katalog'],
+      'apa itu pipa pvc-o?',
+      catalog,
+      'id',
+    );
+    expect(a!.text).toContain('ISO 16422');
+    expect(a!.text).toMatch(/molekulnya diorientasikan/);
+    expect(a!.text).toContain('tidak dibuat Pralon');
+  });
+
+  it('arti SDR ikut dijawab, bukan hanya arahnya (P30-02)', async () => {
+    const a = await knowledgeAnswer(
+      ['tekanan kerja'],
+      'beda sdr 11 dan sdr 17 di pipa hdpe apa?',
+      catalog,
+      'id',
+      ['hdpe'],
+    );
+    expect(a!.text).toContain('perbandingan diameter luar terhadap tebal dinding');
+    expect(a!.text).toMatch(/SDR 11 lebih tebal daripada SDR 17/);
+  });
+
+  it('pertanyaan kemiringan dijawab angkanya sendiri, bukan dari topik tetangga (P30-03, PP-33)', async () => {
+    const a = await knowledgeAnswer(
+      ['kemiringan buangan'],
+      'kemiringan pipa air kotor berapa persen?',
+      catalog,
+      'id',
+    );
+    expect(a!.text).toContain('2 %');
+    expect(a!.text).toContain('belum divalidasi');
+  });
 });
 
 describe('isCaseStatement (MA-06 / MA-07)', () => {

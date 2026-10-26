@@ -127,7 +127,7 @@
       "topic": "tekanan kerja",
       "text": "Kelas pipa PVC menandai fungsinya: AW untuk air bersih bertekanan, D untuk aliran gravitasi, C tanpa tekanan kerja. Angka tekanan kerja resmi tiap kelas PVC ada di spesifikasi produk Pralon; untuk desain pada tekanan tertentu, tim teknis Pralon bisa memberikan angkanya. Pada pipa HDPE dan seri SNI, kelas tekanan tertulis di produknya: PN adalah tekanan nominal dalam bar, dan makin kecil angka SDR atau S, makin tebal dindingnya.",
       "textEn": "PVC pipe classes mark their use: AW for pressurised clean water, D for gravity flow, C with no working pressure. The official working pressure of each PVC class is in the Pralon product specification; for a design at a given pressure, the Pralon technical team can provide the figure. On HDPE and SNI series pipe the pressure class is written on the product: PN is the nominal pressure in bar, and the smaller the SDR or S number, the thicker the wall.",
-      "source": "Snouty Product Knowledge Master §6 (angka tekanan berstatus perlu validasi — tidak dibawa); katalog aktif",
+      "source": "Snouty Product Knowledge Master §6 (angka tekanan berstatus perlu validasi — tidak dibawa); katalog aktif; arti SDR menurut seri standar pipa PE (ISO 4427, diadopsi SNI 4829)",
       "catalog": {
         "families": ["HDPE", "MDPE"],
         "pressure": true
@@ -136,8 +136,8 @@
       "leads": [
         {
           "families": ["hdpe"],
-          "text": "Pada pipa HDPE, angka PN adalah tekanan nominalnya dalam bar: PN 10 berarti 10 bar, PN 16 berarti 16 bar. Makin kecil angka SDR, makin tebal dindingnya dan makin tinggi kelas tekanannya.",
-          "textEn": "On HDPE pipe the PN number is its nominal pressure in bar: PN 10 means 10 bar, PN 16 means 16 bar. The smaller the SDR number, the thicker the wall and the higher the pressure class."
+          "text": "Pada pipa HDPE, angka PN adalah tekanan nominalnya dalam bar: PN 10 berarti 10 bar, PN 16 berarti 16 bar. Makin kecil angka SDR, makin tebal dindingnya dan makin tinggi kelas tekanannya. SDR sendiri adalah perbandingan diameter luar terhadap tebal dinding nominalnya: SDR 11 berarti diameter luarnya 11 kali tebal dinding, SDR 17 berarti 17 kali — jadi pada diameter yang sama, dinding SDR 11 lebih tebal daripada SDR 17 dan kelas tekanannya lebih tinggi.",
+          "textEn": "On HDPE pipe the PN number is its nominal pressure in bar: PN 10 means 10 bar, PN 16 means 16 bar. The smaller the SDR number, the thicker the wall and the higher the pressure class. SDR itself is the ratio of the outside diameter to the nominal wall thickness: SDR 11 means the outside diameter is 11 times the wall, SDR 17 means 17 times — so at the same diameter an SDR 11 wall is thicker than SDR 17 and its pressure class is higher."
         }
       ]
     },
@@ -369,9 +369,9 @@
     },
     {
       "topic": "kemiringan buangan",
-      "text": "Pipa pembuangan mengalir karena gravitasi, jadi ia harus turun sepanjang jalurnya. Terlalu landai membuat air dan kotoran mengendap; terlalu curam membuat air mendahului kotorannya dan jalur tetap kotor. Kemiringan yang dipakai SNOUTY untuk menghitung ukuran pipa buangan ditulis di dasar perhitungan tiap solusi, bersama beban tiap alat — jadi angkanya bisa diperiksa, bukan dihafal.",
-      "textEn": "Drainage flows by gravity, so it must fall along its whole run. Too flat and water and solids settle; too steep and the water outruns the solids and the line still fouls. The slope SNOUTY uses to size a drain is printed in the calculation basis of each solution, together with each fixture load — so the figure can be checked rather than memorised.",
-      "source": "Dasar perhitungan solusi (ENG-602/ENG-604); angka kemiringan menunggu validasi ahli Pralon",
+      "text": "Pipa pembuangan mengalir karena gravitasi, jadi ia harus turun sepanjang jalurnya. Terlalu landai membuat air dan kotoran mengendap; terlalu curam membuat air mendahului kotorannya dan jalur tetap kotor. Hitungan saluran mendatar memakai kemiringan 2 %, sekitar 2 cm turun tiap meter; angka itu acuan International Plumbing Code yang dipakai hitungan pembuangan dan belum divalidasi tim teknis Pralon. Kemiringan yang dipakai SNOUTY untuk menghitung ukuran pipa buangan ditulis di dasar perhitungan tiap solusi, bersama beban tiap alat — jadi angkanya bisa diperiksa, bukan dihafal.",
+      "textEn": "Drainage flows by gravity, so it must fall along its whole run. Too flat and water and solids settle; too steep and the water outruns the solids and the line still fouls. Horizontal drains are calculated at a 2 % slope, about 2 cm of fall per metre; that figure is the International Plumbing Code reference used by the drainage calculation and is not yet validated by the Pralon technical team. The slope SNOUTY uses to size a drain is printed in the calculation basis of each solution, together with each fixture load — so the figure can be checked rather than memorised.",
+      "source": "Dasar perhitungan solusi (ENG-602/ENG-604); angka kemiringan menunggu validasi ahli Pralon; kemiringan 2 % dari ENG-602 (IPC Tabel 710.1(1)) — REQUIRES_DOMAIN_VALIDATION",
       "gap": "kemiringan minimum resmi per ukuran pipa"
     },
     {

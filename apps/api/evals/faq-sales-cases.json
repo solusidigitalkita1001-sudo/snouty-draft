@@ -105,11 +105,10 @@
     {
       "id": "DE-12",
       "q": "Adakah jenis pipa terbaru setelah pipa HDPE dan uPVC yang di rekomendasikan untuk air bersih atau air minum?",
-      "expect": "menjawab pertanyaannya: data jenis baru tidak ada → katakan dan tawarkan tim teknis; tanpa blok HDPE vs uPVC",
+      "expect": "menjawab pertanyaannya sendiri — PP-R/PE-X/PE-RT beserta standarnya, ditutup pemisahan produk Pralon; tanpa blok HDPE vs uPVC, dan TANPA kartu eskalasi karena pertanyaannya sudah terjawab (P28-06)",
       "checks": {
-        "all": ["belum|tidak ada"],
-        "none": ["lentur dan bisa digulung", "kaku dan dipasok batangan"],
-        "cards": ["cta"]
+        "all": ["PP-R", "bukan produk Pralon"],
+        "none": ["lentur dan bisa digulung", "kaku dan dipasok batangan"]
       }
     },
     {

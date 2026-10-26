@@ -2766,3 +2766,27 @@ boleh muncul asalkan menyebut standarnya dan dinyatakan bukan angka resmi Pralon
         teknis dan tanpa kartu produk, tanpa penjawab yang dikonfigurasi pun tidak ada ikhtisar
         katalog, dan ragam produk tetap dijawab ikhtisar katalog; satu tes lama disesuaikan pada
         perilaku yang berubah
+
+**Pemeriksaan regresi dengan suite yang sudah ada (produksi, 2026-10-26).** FAQ sales 18/19 dan
+pipa 47/48 — lalu dua kegagalannya ditelusuri satu per satu, karena pola yang lolos tidak berarti
+jawabannya masuk akal dan pola yang gagal belum tentu regresi.
+
+- **PP-33 regresi nyata, dan penyempitan window yang membukanya.** "Kemiringan pipa air kotor
+  berapa persen?" dijawab topik `kemiringan buangan` — yang justru tidak memuat angkanya; angka
+  2 % tinggal di fakta tetangga `pipa pembuangan`. Pada window 0,04 fakta tetangga ikut terbawa
+  dan angkanya kebetulan muncul; pada 0,02 ia tidak ikut lagi, dan pertanyaan "berapa persen"
+  kehilangan angkanya. Yang benar bukan melebarkan window kembali, melainkan menaruh angka itu di
+  fakta yang memang menjawabnya: 2 % (±2 cm tiap meter) beserta statusnya — acuan IPC Tabel
+  710.1(1) yang dipakai hitungan pembuangan dan belum divalidasi tim teknis Pralon. Angka tanpa
+  statusnya adalah angka yang menyesatkan, jadi kalimat statusnya ikut pindah.
+- **DE-12 bukan regresi, harapannya yang kedaluwarsa.** Kasusnya masih menuntut kartu eskalasi
+  untuk "adakah jenis pipa terbaru setelah HDPE dan uPVC" — padahal P28-06 justru menghapus `gap`
+  fakta itu supaya kartu "kirim ke tim teknis" tidak muncul untuk pertanyaan yang sudah terjawab.
+  Harapannya disesuaikan pada perilaku yang sudah diputuskan: jawabannya menyebut PP-R beserta
+  standarnya dan ditutup pemisahan produk Pralon, tanpa kartu.
+
+Satu perbaikan lain dari membaca jawabannya: "beda SDR 11 dan SDR 17" dijawab arahnya saja ("makin
+kecil SDR makin tebal") tanpa mengatakan SDR itu apa — benar, tetapi tidak menjawab. Kalimat
+pembuka fakta `tekanan kerja` kini memuat artinya: perbandingan diameter luar terhadap tebal
+dinding nominal (ISO 4427, diadopsi SNI 4829). Angka tekanan kerja per kelas tetap tidak dibawa —
+statusnya masih menunggu validasi.
