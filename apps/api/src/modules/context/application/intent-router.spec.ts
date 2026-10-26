@@ -540,3 +540,29 @@ describe('pagar DI LUAR TOPIK atas label model (P30-06)', () => {
     expect(d.intent).toBe('OUT_OF_SCOPE');
   });
 });
+
+describe('pertanyaan pengetahuan tak tercakup diputuskan tanpa model (P30-07)', () => {
+  it('peringkat contoh yang menunjuk pertanyaan pipa sudah cukup: nol panggilan model', async () => {
+    const { ai, calls } = countingAi({ intent: 'OUT_OF_SCOPE', confidence: 1 });
+    const d = await new IntentRouter(ai).route(
+      understood('apa itu thrust block dan kapan perlu dipasang?', {
+        intent: null,
+        intentRanking: [{ label: 'knowledge_question', score: 0.57, example: 'contoh' }],
+      }),
+      false,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+    expect(calls()).toBe(0);
+  });
+
+  it('pesan yang menyebut pesaing tetap diputuskan sebagai pertanyaan pesaing', async () => {
+    const d = await router({ intent: 'OUT_OF_SCOPE', confidence: 1 }).route(
+      understood('thrust block rucika gimana?', {
+        intent: null,
+        intentRanking: [{ label: 'knowledge_question', score: 0.8, example: 'contoh' }],
+      }),
+      false,
+    );
+    expect(d.intent).not.toBe('PRODUCT_LOOKUP');
+  });
+});

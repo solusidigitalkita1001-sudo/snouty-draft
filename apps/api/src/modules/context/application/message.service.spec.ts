@@ -661,6 +661,28 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     expect(events.some((e) => e.type === 'token')).toBe(true);
   });
 
+  it('pertanyaan pengetahuan tak tercakup tidak lewat perencana (P30-07)', async () => {
+    const { service, planner } = setup(
+      [{ role: 'user', text: 'apa itu thrust block dan kapan perlu dipasang?' }],
+      {
+        'apa itu thrust block dan kapan perlu dipasang?': {
+          intent: null,
+          intentRanking: [{ label: 'knowledge_question', score: 0.57, example: 'contoh' }],
+        },
+      },
+    );
+    await service.handle(
+      'C'.repeat(26),
+      ACTOR,
+      'apa itu thrust block dan kapan perlu dipasang?',
+      'T',
+    );
+    // Dulu: perencana 8,7 s memilih `case_question`, lalu balasannya ditulis model 54,2 s lagi —
+    // untuk pertanyaan yang jawabannya tidak bergantung pada konteks percakapan sama sekali.
+    // Bahwa routernya pun memutuskan tanpa model diuji di `intent-router.spec.ts`.
+    expect(planner.plan).not.toHaveBeenCalled();
+  });
+
   it('pesan berisi data bangunan tidak lewat perencana', async () => {
     const { service, planner, router } = setup(
       [

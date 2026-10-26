@@ -55,6 +55,7 @@ import {
   IntentRouter,
   type RoutingDecision,
   answersFromKnowledge,
+  asksGeneralKnowledge,
   subjectContinuation,
 } from './intent-router.js';
 import {
@@ -345,6 +346,12 @@ export class MessageService {
       // Topik dengan fakta bersumber dijawab dari pengetahuan, bukan direncanakan model ("apa itu pipa
       // jacking?" dulu jadi daftar jenis katalog; "maksimal suhu berapa?" 26 detik model).
       !answersFromKnowledge(u) &&
+      // Pertanyaan pengetahuan pipa yang TIDAK tercakup data juga tidak perlu direncanakan: ruas
+      // pertanyaan produk sudah punya jalurnya (P30-01). Dulu "apa itu thrust block dan kapan
+      // perlu dipasang?" direncanakan sebagai `case_question` lalu balasannya ditulis model di
+      // CPU — 8,7 detik merencanakan plus 54,2 detik menulis, untuk pertanyaan yang jawabannya
+      // tidak bergantung pada konteks percakapan sama sekali (produksi 2026-10-26).
+      !asksGeneralKnowledge(u) &&
       // Tebal/berat/diameter dalam: tabel standar menjawab langsung (router, P21-09).
       u.productAspect !== 'dimensions' &&
       !isConfidentStandalone(u) &&

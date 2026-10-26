@@ -32,6 +32,7 @@ import { parseSize } from '../domain/size-parser.js';
 import { designationsOf } from '../../product-catalog/domain/product-identity.js';
 import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from './catalog-scope.js';
 import { knowledgeAnswer, mentionsPressure, pressureRange } from './knowledge-answer.js';
+import { asksGeneralKnowledge } from './intent-router.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
 import {
@@ -221,45 +222,6 @@ export interface GeneralKnowledgeAnswerer {
   }): Promise<string | null>;
 }
 
-/**
- * Intent yang BOLEH dijawab pengetahuan umum. Daftar izin, bukan daftar larangan: pertanyaan
- * pengetahuan, spesifikasi, pemakaian, dan saran yang tidak tercakup data memang perlu jawaban,
- * sedangkan kebutuhan, jawaban klarifikasi, pertanyaan tentang solusi yang sudah dihitung,
- * perusahaan, harga, dan sapaan punya jalurnya masing-masing. Daftar izin juga tidak ikut melebar
- * sendiri saat label intent baru ditambahkan.
- */
-const MAY_ASK_GENERAL: ReadonlySet<string> = new Set([
-  'knowledge_question',
-  'product_spec',
-  'use_question',
-  'advice_request',
-  'product_concept',
-]);
-
-/**
- * Pertanyaan pengetahuan pipa yang TIDAK tercakup data (P30-01): tidak satu pun topik cocok,
- * tidak ada aspek spesifikasi yang ditanya, bukan permintaan penyajian ulang, bukan lanjutan atas
- * subjek, dan intent-nya ada di daftar izin.
- *
- * Tanpa pagar ini, jalur pengetahuan umum akan menyalip jawaban bersumber — dan jawaban bersumber
- * selalu lebih baik: ia terbukti, 200–400 ms, dan tidak memerlukan model.
- *
- * Yang SENGAJA tidak dipakai sebagai pagar: entitas kebutuhan yang disebut pesan. "Kenapa air
- * keran kecil padahal toren penuh?" menyebut toren, dan "kelas kekakuan SN di pipa saluran"
- * menyebut saluran — keduanya pertanyaan pengetahuan, bukan kebutuhan. Yang memutuskan ini
- * kebutuhan atau bukan adalah router sebelum ruas ini, dan ia sudah memutuskan: pesan yang
- * sampai ke sini berintent PRODUCT_LOOKUP.
- */
-export function asksGeneralKnowledge(input: ProductQuestionInput): boolean {
-  const u = input.understanding;
-  if (u.knowledgeTopics.length > 0 || u.productAspect !== null || u.format !== null) return false;
-  if (isFollowUp(u) || isFormatFollowUp(u) || isChoiceFollowUp(u)) return false;
-  const intent = u.intent?.label ?? u.intentRanking[0]?.label ?? null;
-  if (intent === null || !MAY_ASK_GENERAL.has(intent)) return false;
-  // Bahan yang dikenali punya penjelasan sendiri yang utuh ("apa itu pipa PVC?"); yang tidak
-  // dikenali ("apa itu thrust block?") tidak punya apa pun untuk dirakit kode.
-  return intent !== 'product_concept' || u.families.length === 0;
-}
 
 export async function runProductQuestion(
   ai: AiService,
@@ -529,7 +491,7 @@ export async function runProductQuestion(
   // tekan?" memanggil pemeta pertanyaan (19–31 detik di CPU) lalu dijawab ikhtisar seluruh
   // katalog — jawaban yang tidak ada hubungannya dengan yang ditanya (audit 2026-10-26).
   // Didahulukan dari pemeta itu justru supaya panggilan model yang sia-sia itu tidak terjadi.
-  if (knowledge !== null && asksGeneralKnowledge(input)) {
+  if (knowledge !== null && asksGeneralKnowledge(u)) {
     const general = await knowledge.answer({
       message: input.message,
       recentTurns: input.recentTurns ?? [],
@@ -567,7 +529,7 @@ export async function runProductQuestion(
     u.intent?.label === 'product_range' ||
     // Pertanyaan pengetahuan tak tercakup sudah diputuskan: memetakannya ke produk + aspek tidak
     // menambah apa pun selain 19–31 detik (audit 2026-10-26).
-    asksGeneralKnowledge(input);
+    asksGeneralKnowledge(u);
   let parsed: ProductQuestionParse | null = null;
   if (!settled) {
     try {
@@ -697,7 +659,7 @@ async function answerConcept(
   // seperti "jarak klem pipa tegak berapa?" dijawab ikhtisar seluruh katalog atau contoh produk
   // PVC sembarang — keduanya bukan jawaban, dan keduanya terbaca seperti tidak menyimak.
   // Jalur umum sudah mendapat kesempatannya di `runProductQuestion` sebelum ini.
-  if (asksGeneralKnowledge(input)) {
+  if (asksGeneralKnowledge(u)) {
     return { text: COPY.noSourcedAnswer, cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }] };
   }
 

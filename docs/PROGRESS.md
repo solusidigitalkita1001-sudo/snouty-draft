@@ -2865,3 +2865,31 @@ menyala — supaya yang ditulis tangan hanya yang memang perlu ditulis tangan.
   - [x] P30-06a Tes (4): pertanyaan pipa yang dilabeli di luar topik tetap dijawab, peringkat yang
         memang menunjuk di luar topik tidak diganggu, skor derau (0,42) tidak dianggap petunjuk,
         dan pertanyaan harga di luar pipa tidak ditarik ke jalur harga
+
+- [x] P30-07 Pagar P30-06 dipasang di tempat yang salah. Dibaca ulang dari log tahapnya: 63 detik
+      itu tidak lewat router sama sekali. Alurnya **perencana giliran** — ia dipanggil untuk pesan
+      yang intent-nya ragu walaupun percakapannya baru dimulai, memilih `case_question` (8,7 s),
+      lalu pelaksana rencana menulis balasannya dengan model (54,2 s). Router baru dikonsultasi
+      bila rencana tidak menjawab, jadi pagar P30-06 tidak pernah dijalankan untuk kasus ini.
+
+      Dua perbaikan di tempat yang benar: (1) perencana **tidak** dipanggil untuk pertanyaan
+      pengetahuan yang tidak tercakup data — jawabannya tidak bergantung pada konteks percakapan
+      sama sekali, dan ruas pertanyaan produk sudah punya jalurnya; (2) router memutuskannya
+      **tanpa model**: peringkat contoh yang menunjuk pertanyaan pipa (≥ 0,55) sudah cukup untuk
+      memilih jalur pengetahuan, dan menanyakannya ke model generatif di CPU hanya menambah
+      puluhan detik untuk sampai ke kesimpulan yang sama. Giliran thrust block: 63 detik → 0,3
+      detik, dan nol panggilan model.
+
+      Predikat `asksGeneralKnowledge` pindah dari ruas pertanyaan produk ke router — di situ ia
+      memang tinggal, bersama `answersFromKnowledge` dan pagar-pagar intent lainnya; menaruhnya di
+      ruas pertanyaan membuat impornya melingkar. Ia juga diperketat: untuk contoh yang RAGU,
+      peringkat teratasnya harus benar-benar menunjuk pertanyaan pipa beserta lantai skornya —
+      sebelumnya label apa pun dari daftar izin cukup, tanpa lantai, sehingga derau 0,4-an bisa
+      menarik pesan apa pun ke jalur ini.
+
+      **Satu lubang di P30-06 ditemukan tesnya sendiri:** pesan yang menyebut pesaing dan dilabeli
+      model di luar topik berakhir di jalur produk — Policy 1 dilangkahi. Pagarnya kini menolak
+      pesan yang menyebut pesaing.
+  - [x] P30-07a Tes (3): peringkat contoh yang menunjuk pertanyaan pipa diputuskan dengan nol
+        panggilan model, pesan yang menyebut pesaing tidak ikut ditarik ke jalur produk, dan
+        perencana giliran tidak dipanggil untuk pertanyaan pengetahuan tak tercakup

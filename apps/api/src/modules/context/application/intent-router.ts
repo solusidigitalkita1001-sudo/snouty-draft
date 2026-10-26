@@ -78,8 +78,13 @@ export function certainIntent(
   // cukup, intent yang ragu tidak perlu menunggu model (live 2026-10-14: "tebal pipa d 4 inch" 122 s).
   if (u.productAspect === 'dimensions' && !u.mentionsCompetitor) return sure('PRODUCT_LOOKUP');
   // Intent ragu tetapi topiknya punya fakta bersumber ("pipa VP sama VU tuh apa?"): pengetahuan.
+  // Dan sejak P30-07: intent ragu yang peringkat contohnya menunjuk pertanyaan pipa tanpa topik
+  // ("apa itu thrust block dan kapan perlu dipasang?", `knowledge_question` 0,570) juga pengetahuan
+  // — jalurnya sudah ada (P30-01), dan menanyakannya ke model generatif di CPU hanya menambah
+  // puluhan detik untuk sampai ke kesimpulan yang sama.
   if (fine === undefined) {
-    return !u.mentionsCompetitor && answersFromKnowledge(u) ? sure('PRODUCT_LOOKUP') : null;
+    if (u.mentionsCompetitor) return null;
+    return answersFromKnowledge(u) || asksGeneralKnowledge(u) ? sure('PRODUCT_LOOKUP') : null;
   }
 
   if (fine === 'greeting' || fine === 'out_of_scope' || isSocial(fine)) return sure('OUT_OF_SCOPE');
@@ -171,7 +176,9 @@ export function withRequirementPrecedence(
   // contoh yang RAGU pun sudah menunjukkannya: peringkat teratasnya pertanyaan pengetahuan
   // (0,570), bukan di luar topik. Label contoh yang ragu tidak cukup untuk MENJAWAB, tetapi
   // cukup untuk menolak dibuang dari domain.
-  if (classification.intent === 'OUT_OF_SCOPE' && pointsAtPiping(u)) {
+  // Policy 1 tetap di atas pagar ini: pesan yang menyebut pesaing tidak boleh berakhir di jalur
+  // produk hanya karena model menyebutnya di luar topik (ditemukan tes P30-07).
+  if (classification.intent === 'OUT_OF_SCOPE' && !u.mentionsCompetitor && pointsAtPiping(u)) {
     classification = { intent: 'PRODUCT_LOOKUP', confidence: classification.confidence };
   }
 
@@ -302,9 +309,52 @@ const PIPING_INTENTS: ReadonlySet<string> = new Set([
  */
 const PIPING_HINT_MIN = 0.55;
 
-function pointsAtPiping(u: MessageUnderstanding): boolean {
+export function pointsAtPiping(u: MessageUnderstanding): boolean {
   const top = u.intentRanking[0];
   return top !== undefined && top.score >= PIPING_HINT_MIN && PIPING_INTENTS.has(top.label);
+}
+
+/**
+ * Intent yang BOLEH dijawab pengetahuan umum. Daftar izin, bukan daftar larangan: pertanyaan
+ * pengetahuan, spesifikasi, pemakaian, dan saran yang tidak tercakup data memang perlu jawaban,
+ * sedangkan kebutuhan, jawaban klarifikasi, pertanyaan tentang solusi yang sudah dihitung,
+ * perusahaan, harga, dan sapaan punya jalurnya masing-masing. Daftar izin juga tidak ikut melebar
+ * sendiri saat label intent baru ditambahkan.
+ */
+const MAY_ASK_GENERAL: ReadonlySet<string> = new Set([
+  'knowledge_question',
+  'product_spec',
+  'use_question',
+  'advice_request',
+  'product_concept',
+]);
+
+/**
+ * Pertanyaan pengetahuan pipa yang TIDAK tercakup data (P30-01): tidak satu pun topik cocok,
+ * tidak ada aspek spesifikasi yang ditanya, bukan permintaan penyajian ulang, bukan lanjutan atas
+ * subjek, dan intent-nya ada di daftar izin.
+ *
+ * Tanpa pagar ini, jalur pengetahuan umum akan menyalip jawaban bersumber — dan jawaban bersumber
+ * selalu lebih baik: ia terbukti, 200–400 ms, dan tidak memerlukan model.
+ *
+ * Yang SENGAJA tidak dipakai sebagai pagar: entitas kebutuhan yang disebut pesan. "Kenapa air
+ * keran kecil padahal toren penuh?" menyebut toren, dan "kelas kekakuan SN di pipa saluran"
+ * menyebut saluran — keduanya pertanyaan pengetahuan, bukan kebutuhan. Yang memutuskan ini
+ * kebutuhan atau bukan adalah router sebelum ruas ini, dan ia sudah memutuskan: pesan yang
+ * sampai ke sini berintent PRODUCT_LOOKUP.
+ */
+export function asksGeneralKnowledge(u: MessageUnderstanding): boolean {
+  if (u.knowledgeTopics.length > 0 || u.productAspect !== null || u.format !== null) return false;
+  if (isFollowUp(u) || isFormatFollowUp(u) || isChoiceFollowUp(u)) return false;
+  // Contoh yang YAKIN: label itu sendiri yang menentukan. Contoh yang RAGU (`intent` null):
+  // peringkat teratasnya harus benar-benar menunjuk pertanyaan pipa, lengkap dengan lantai
+  // skornya — tanpa itu, derau 0,4-an akan menarik pesan apa pun ke jalur ini (P30-07).
+  const intent = u.intent?.label ?? null;
+  if (intent === null) return pointsAtPiping(u);
+  if (!MAY_ASK_GENERAL.has(intent)) return false;
+  // Bahan yang dikenali punya penjelasan sendiri yang utuh ("apa itu pipa PVC?"); yang tidak
+  // dikenali ("apa itu thrust block?") tidak punya apa pun untuk dirakit kode.
+  return intent !== 'product_concept' || u.families.length === 0;
 }
 
 /** Di bawah ini, sistem bertanya alih-alih menebak (docs/AI_BEHAVIOR.md). */
