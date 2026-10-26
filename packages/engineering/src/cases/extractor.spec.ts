@@ -233,3 +233,28 @@ describe('extractTechnicalContext — simulasi 2026-10-19: tinggi tandon tujuan'
     ).toBeUndefined();
   });
 });
+
+describe('extractTechnicalContext — produksi 2026-10-26: unit per lantai dan tinggi lantai', () => {
+  const read = (text: string, key: string, floors?: number) =>
+    extractTechnicalContext(text, 'multistorey_building_water', floors).find((f) => f.key === key)
+      ?.value;
+
+  it('titik air per unit dikali jumlah unit per lantai', () => {
+    const text = 'gedung apartemen 12 lantai, 4 unit per lantai, tiap unit 2 kamar mandi';
+    expect(read(text, 'bathrooms_per_floor')).toBe(8);
+    expect(read(text, 'building_floors')).toBe(12);
+    // "4 unit" sudah terpakai sebagai unit per lantai, bukan jumlah sambungan.
+    expect(read(text, 'number_of_connections')).toBeUndefined();
+  });
+
+  it('titik air per lantai tanpa unit tetap apa adanya', () => {
+    expect(read('gedung 8 lantai, 6 kamar mandi per lantai', 'bathrooms_per_floor')).toBe(6);
+  });
+
+  it('tinggi per lantai menjadi tinggi bangunan dengan lantai yang sudah tercatat', () => {
+    expect(read('tinggi per lantai 3,2 meter', 'building_height', 12)).toBe(38.4);
+    expect(read('tinggi per lantai 3,2 meter', 'route_length', 12)).toBeUndefined();
+    // Tanpa jumlah lantai di mana pun, tidak ada tinggi bangunan yang dikarang.
+    expect(read('tinggi per lantai 3,2 meter', 'building_height')).toBeUndefined();
+  });
+});

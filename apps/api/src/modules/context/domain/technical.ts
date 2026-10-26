@@ -88,7 +88,14 @@ export function applyTechnicalFacts(
   readonly changed: boolean;
   readonly captured: readonly ParameterKey[];
 } {
-  const facts = extractTechnicalContext(message, caseId);
+  const recordedFloors = parametersOf(state)['building_floors']?.value;
+  const facts = extractTechnicalContext(
+    message,
+    caseId,
+    typeof recordedFloors === 'number'
+      ? recordedFloors
+      : (state.building.floors.value ?? undefined),
+  );
   const next: Record<string, TechnicalParameter> = { ...parametersOf(state) };
   let changed = state.useCase?.kind !== 'technical' || state.useCase.caseId !== caseId;
   const captured: ParameterKey[] = [];

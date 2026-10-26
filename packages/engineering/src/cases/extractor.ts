@@ -23,6 +23,9 @@ export interface ExtractedParameter {
  * ribuan dicoba lebih dulu supaya "1.500" tidak terpotong jadi "1.500"→1,5 (audit PDAM 2026-10-16).
  */
 const NUM = String.raw`(\d{1,3}(?:\.\d{3})+(?!\d)|\d+(?:[.,]\d+)?)`;
+/** Tinggi dalam meter dengan dua desimal: 12 × 3,2 m adalah 38,4 m, bukan 38,400000000000006. */
+const metres = (value: number): number => Math.round(value * 100) / 100;
+
 /** Satuan panjang sebagai kelompok tangkap — posisinya sama dengan "(m|meter)" yang lama. */
 const M = String.raw`(m|meters?|metres?)`;
 
@@ -47,6 +50,11 @@ export function num(raw: string): number {
 export function extractTechnicalContext(
   message: string,
   caseId: CaseId | null = null,
+  /**
+   * Jumlah lantai yang SUDAH tercatat di kasus. Tanpa ini, "tinggi per lantai 3,2 meter" di giliran
+   * lanjutan dibaca lalu dibuang, dan pengguna tetap ditanya tinggi bangunan (produksi 2026-10-26).
+   */
+  knownFloors?: number,
 ): readonly ExtractedParameter[] {
   const out: ExtractedParameter[] = [];
   const seen = new Set<ParameterKey>();
@@ -424,7 +432,12 @@ export function extractTechnicalContext(
   take(/(\d+)\s*-?\s*(lantai|floors?|stor(?:eys?|ies|y))\b/, (m) => {
     add('building_floors', Number(m[1]), m[0], 'lantai');
     if (floorHeightM !== undefined) {
-      add('building_height', Number(m[1]) * floorHeightM, `${m[0]} × ${floorHeightM} m`, 'm');
+      add(
+        'building_height',
+        metres(Number(m[1]) * floorHeightM),
+        `${m[0]} × ${floorHeightM} m`,
+        'm',
+      );
     }
   });
   take(
@@ -438,6 +451,32 @@ export function extractTechnicalContext(
   const PER_FLOOR = String.raw`(?:per|tiap|setiap|each|per\s+)\s*(?:lantai|floor)`;
   const TOILET = String.raw`(?:kamar mandi|toilet|wc|bathrooms?|toilets?)`;
   const BASIN = String.raw`(?:wastafel|basins?|sinks?)`;
+  // Titik air PER UNIT dikali jumlah unit per lantai: "4 unit per lantai, tiap unit 2 kamar mandi"
+  // berarti 8 titik per lantai. Di produksi 2026-10-26 ia tercatat 2 titik per lantai — seperempat
+  // beban sebenarnya — dan "4 unit" jatuh ke jumlah sambungan.
+  const UNIT = String.raw`(?:unit|apartemen|apartment|flat|ruko|kios)`;
+  let unitsPerFloor: number | undefined;
+  let toiletsPerUnit: number | undefined;
+  take(new RegExp(String.raw`(\d+)\s*${UNIT}\s*${PER_FLOOR}`), (m) => {
+    unitsPerFloor = Number(m[1]);
+  });
+  take(
+    new RegExp(String.raw`(?:per|tiap|setiap|each)\s*${UNIT}\D{0,12}?(\d+)\s*${TOILET}`),
+    (m) => {
+      toiletsPerUnit = Number(m[1]);
+    },
+  );
+  take(new RegExp(String.raw`(\d+)\s*${TOILET}\s*(?:per|tiap|setiap|each)\s*${UNIT}`), (m) => {
+    toiletsPerUnit ??= Number(m[1]);
+  });
+  if (unitsPerFloor !== undefined && toiletsPerUnit !== undefined) {
+    add(
+      'bathrooms_per_floor',
+      unitsPerFloor * toiletsPerUnit,
+      `${unitsPerFloor} unit × ${toiletsPerUnit} kamar mandi`,
+      'titik',
+    );
+  }
   take(new RegExp(String.raw`(\d+)\s*${TOILET}\s*${PER_FLOOR}`), (m) =>
     add('bathrooms_per_floor', Number(m[1]), m[0], 'titik'),
   );
@@ -464,6 +503,16 @@ export function extractTechnicalContext(
       add('number_of_connections', num(m[1]!), m[0], 'sambungan');
     },
   );
+
+  // Tinggi lantai tanpa jumlah lantai di pesan yang sama: lantainya diambil dari kasus.
+  if (floorHeightM !== undefined && !seen.has('building_height') && knownFloors !== undefined) {
+    add(
+      'building_height',
+      metres(knownFloors * floorHeightM),
+      `${knownFloors} lantai × ${floorHeightM} m`,
+      'm',
+    );
+  }
 
   // ── Diameter nominal ──
   take(/(\d+(?:[.,]\d+)?|\d+\s*\d\/\d)\s*(inch(?:es)?|inci|")/, (m) =>
