@@ -3159,3 +3159,12 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       Sekarang pertanyaan yang punya fakta bersumber keluar dari lanjutan itu dan dijawab dari
       pengetahuan. Pesan yang membawa data ("bahannya pvc", "jaraknya 150 m") tetap lanjutan
       kebutuhan seperti sebelumnya — yang dialihkan hanya pertanyaannya.
+
+- [x] P31-17 Jawaban pengetahuan yang sama tidak dikirim dua kali
+
+      "pompanya apa" lalu "kenapa harus pakai pompa transfer?" mendapat blok empat paragraf yang
+      sama persis, dua giliran berurutan. Satu topik memang satu fakta, dan tidak ada yang lebih
+      menandai bot daripada mengirimnya ulang kata demi kata.
+
+      Topik yang baru saja dijawab sekarang dijawab satu kalimat: bagian mana yang mau diperjelas,
+      atau angka lapangan yang mau dipakai.

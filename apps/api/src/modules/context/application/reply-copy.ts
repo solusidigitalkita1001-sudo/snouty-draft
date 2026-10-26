@@ -106,6 +106,20 @@ export function capabilityReply(locale: Locale = DEFAULT_LOCALE): string {
   return locale === 'en' ? CAPABILITY_REPLY_EN : CAPABILITY_REPLY;
 }
 
+/**
+ * Topik yang baru saja dijawab ditanya lagi: jawabannya tidak dikirim ulang kata demi kata
+ * (produksi 2026-10-26, dua pertanyaan pompa berurutan).
+ */
+const REPEATED_TOPIC_REPLY =
+  'Itu yang saya jelaskan di jawaban sebelumnya. Bagian mana yang mau saya perjelas, atau ada angka dari lapangan yang mau dipakai?';
+
+const REPEATED_TOPIC_REPLY_EN =
+  'That is what the previous answer covers. Which part would you like me to go into, or is there a figure from site you want to use?';
+
+export function repeatedTopicReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en' ? REPEATED_TOPIC_REPLY_EN : REPEATED_TOPIC_REPLY;
+}
+
 const OUT_OF_TOPIC_REPLY =
   'Itu di luar yang bisa saya bantu di sini — saya khusus soal pipa dan instalasi air Pralon. Untuk pengiriman, harga, atau urusan pesanan, tim Pralon yang bisa membantu. Kalau ada kebutuhan pipa atau pertanyaan produk, tinggal tulis.';
 

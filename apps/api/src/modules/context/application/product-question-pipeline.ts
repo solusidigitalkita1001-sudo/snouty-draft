@@ -34,6 +34,7 @@ import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from '
 import { knowledgeAnswer, mentionsPressure, pressureRange } from './knowledge-answer.js';
 import { asksGeneralKnowledge } from './intent-router.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
+import { repeatedTopicReply } from './reply-copy.js';
 import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
 import {
   PipeSize,
@@ -326,6 +327,18 @@ export async function runProductQuestion(
           }
         : answer;
     if (known !== null) {
+      // Topik yang BARU SAJA dijawab tidak dikirim ulang kata demi kata: dua pertanyaan pompa
+      // berurutan mendapat blok empat paragraf yang sama persis (produksi 2026-10-26), dan tidak
+      // ada yang lebih menandai bot daripada itu. Yang dikatakan: bagian mana yang mau diperjelas.
+      const lastAssistant =
+        [...(input.recentTurns ?? [])].reverse().find((t) => t.role === 'assistant')?.text ?? '';
+      if (lastAssistant.trim() !== '' && lastAssistant.includes(known.text.trim())) {
+        return [
+          { type: 'message.start', messageId: input.messageId },
+          { type: 'token', text: repeatedTopicReply(locale) },
+          endEvent(input.messageId),
+        ];
+      }
       const text =
         reply && faqPrompt
           ? (

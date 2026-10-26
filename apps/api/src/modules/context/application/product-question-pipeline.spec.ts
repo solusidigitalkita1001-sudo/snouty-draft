@@ -1276,3 +1276,30 @@ describe('runProductQuestion — ukuran terkecil/terbesar dari katalog contoh (P
     expect(out).toContain('4"');
   });
 });
+
+describe('topik yang baru saja dijawab (P31-17)', () => {
+  it('fakta yang sama tidak dikirim ulang kata demi kata', async () => {
+    const first = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input('pompanya apa', { intent: 'explanation_request', knowledgeTopics: ['pompa'] }),
+    );
+    const fact = text(first);
+    expect(fact).toContain('Pompa bukan produk Pralon');
+
+    const again = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input(
+        'kenapa harus pakai pompa transfer?',
+        { intent: 'explanation_request', knowledgeTopics: ['pompa'] },
+        { recentTurns: [{ role: 'assistant', text: fact }] },
+      ),
+    );
+    expect(text(again)).toBe(
+      'Itu yang saya jelaskan di jawaban sebelumnya. Bagian mana yang mau saya perjelas, atau ada angka dari lapangan yang mau dipakai?',
+    );
+  });
+});
