@@ -565,4 +565,18 @@ describe('pertanyaan pengetahuan tak tercakup diputuskan tanpa model (P30-07)', 
     );
     expect(d.intent).not.toBe('PRODUCT_LOOKUP');
   });
+
+  it('kebutuhan dengan angka tetap dihitung, bukan ditarik ke jalur pengetahuan', async () => {
+    const { ai, calls } = countingAi({ intent: 'OUT_OF_SCOPE', confidence: 1 });
+    const d = await new IntentRouter(ai).route(
+      understood('sebaiknya pakai pipa apa buat rumah 2 lantai?', {
+        intent: null,
+        intentRanking: [{ label: 'advice_request', score: 0.7, example: 'contoh' }],
+        mentionsRequirement: true,
+      }),
+      false,
+    );
+    expect(d.intent).toBe('REQUIREMENT_STATEMENT');
+    expect(calls()).toBe(0);
+  });
 });
