@@ -285,6 +285,13 @@ export class MessageService {
     // lanjutan kebutuhan — tanpa menunggu model menebaknya. Bentuk yang PASTI lain (produk,
     // pesaing, sapaan) tetap lewat router, yang juga memotongnya tanpa model.
     const fine = u.intent?.label;
+    // Kasus yang sudah diserahkan ke tim teknis Pralon juga percakapan yang sedang berjalan:
+    // "panjang jalurnya 150 meter, dari bak penampung ke 4 mesin" di kasus pabrik lewat perencana
+    // ke obrolan umum dan dijawab 37,4 detik prosa ukuran pipa air bersih yang tidak ada
+    // hubungannya dengan pertanyaannya (produksi 2026-10-26).
+    const handedOff =
+      followUpCard(withCompleteness(state), locale)?.kind === 'unsupported' &&
+      state.useCase === undefined;
     // Pertanyaan tentang solusi yang SUDAH dihitung (P22-02/04: "toren setinggi apa", "fitting apa saja")
     // dijawab di atas solusinya — bukan diserahkan ke perencana yang bisa memilih jalur kebutuhan.
     const aboutSolution =
@@ -302,7 +309,7 @@ export class MessageService {
         // sumur dijawab 22,5 detik oleh model, yang balik menanyakan merek pompa dan menyelipkan
         // satu kata Rusia (produksi 2026-10-26). Pesan yang membawa DATA ("bahannya pvc",
         // "jaraknya 150 m") tetap lanjutan kebutuhan — yang dialihkan hanya pertanyaannya.
-        state.useCase?.kind === 'technical' &&
+        (state.useCase?.kind === 'technical' || handedOff) &&
           !(fine !== undefined && !isRequirement(fine) && answersFromKnowledge(u)) &&
           (fine === undefined ||
             isRequirement(fine) ||

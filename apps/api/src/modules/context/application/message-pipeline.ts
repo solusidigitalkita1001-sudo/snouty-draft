@@ -411,7 +411,11 @@ export async function runUnderstanding(
     extractionToUpdates({}, input.message).some(
       (u) => u.path === 'building.type' && u.value === 'residential',
     );
-  const skipModel = quickCore >= 2 || house || mutationOp !== null || adviceOnly;
+  // Kasus yang diserahkan ke tim teknis tidak dihitung di sini, jadi tebakan model atas kalimat
+  // lanjutannya tidak mengubah satu angka pun — hanya menambah belasan detik.
+  const handedOff =
+    followUpCard(withCompleteness(input.state), input.locale)?.kind === 'unsupported';
+  const skipModel = quickCore >= 2 || house || mutationOp !== null || adviceOnly || handedOff;
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
     extraction = skipModel ? {} : await ai.extract(input.message);
@@ -544,13 +548,16 @@ export async function runUnderstanding(
   // Giliran kebutuhan bangunan tidak pernah bisu (checkpoint Fase 15, S1/S11): satu kalimat
   // tentang apa yang tercatat, lalu kartunya. Jalur irigasi/teknis/kebijakan sudah menulis
   // teksnya sendiri; bahan yang dinasihati di atas pun sudah.
-  const policyCardShown = card?.kind === 'unsupported' || card?.kind === 'criteria';
+  // Kasus yang SUDAH diserahkan di giliran sebelumnya: kalimat besar penyerahannya tidak diulang
+  // kata per kata, tetapi data baru tetap disebut balik supaya terlihat ikut ke tim teknis.
+  const policyCardShown = (card?.kind === 'unsupported' && !handedOff) || card?.kind === 'criteria';
   // Kasus yang sudah diserahkan dan tidak berubah: kartu besar dan kalimatnya tidak diulang tiap
   // pesan — pesannya dijawab di atas DATA kasus di bawah (laporan pemilik 2026-10-09).
   const repeatedHandoff = card?.kind === 'unsupported' && !changed;
   if (
     card?.kind === 'unsupported' &&
     !repeatedHandoff &&
+    !handedOff &&
     materials.length === 0 &&
     merged.useCase === undefined
   ) {
@@ -742,6 +749,13 @@ export function understoodReply(
     : en
       ? `Okay, I have noted: ${summary}.`
       : `Oke, sudah saya catat: ${summary}.`;
+  // Kasus yang ditangani tim teknis: tidak ada hitungan yang ditunggu di sini, jadi data baru
+  // ditutup dengan ke mana ia pergi — bukan "beberapa hal lagi supaya hitungannya pas".
+  if (nextCard === 'unsupported') {
+    return en
+      ? `${opener} It goes to the Pralon technical team together with the case.`
+      : `${opener} Angkanya ikut ke tim teknis Pralon bersama kasusnya.`;
+  }
   if (nextCard === 'cta' && auto) {
     const guess =
       assumed.length === 0

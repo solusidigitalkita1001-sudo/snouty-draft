@@ -1084,3 +1084,45 @@ describe('label gedung bertingkat untuk bangunan rendah (P31-23)', () => {
     );
   });
 });
+
+describe('kasus yang sudah diserahkan ke tim teknis (P31-26)', () => {
+  const factory = mergeRequirement(
+    emptyRequirementState(T0),
+    [
+      { path: 'building.type', value: 'industrial', source: 'user_stated' },
+      { path: 'building.floors', value: 2, source: 'user_stated' },
+      { path: 'water.source', value: 'pump', source: 'user_stated' },
+      { path: 'water.installationType', value: 'clean_water', source: 'user_stated' },
+    ],
+    T0,
+  ).state;
+
+  it('data lanjutan dicatat tanpa model dan tanpa mengulang kalimat penyerahan', async () => {
+    const ai = aiExtracting({ building: { floors: 9 } });
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'panjang jalurnya 150 meter', state: factory }),
+    );
+
+    expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('150 m');
+    expect(text).toContain('tim teknis Pralon');
+    expect(text).not.toContain('Yang ini perlu dihitung');
+    expect(text).not.toContain('hitungannya pas');
+  });
+
+  it('giliran pertama tetap mengatakan kasusnya diserahkan', async () => {
+    const ai = aiExtracting({
+      building: { type: 'industrial', floors: 2 },
+      water: { source: 'pump', installationType: 'clean_water' },
+    });
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'pabrik 2 lantai, pompa, air bersih' }),
+    );
+
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('tim teknis Pralon');
+  });
+});

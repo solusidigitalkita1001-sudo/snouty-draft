@@ -3233,3 +3233,32 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
 
       Sekarang label itu tidak berlaku di bawah batas hitung rumah: jalur bangunan biasa yang
       menghitungnya, sama seperti kalimat Indonesianya. Kasus yang sudah berjalan tidak dibatalkan.
+
+- [x] P31-24 "6 kamar mandi per lantai" dihitung per lantai, dan pertanyaan ukuran pipa sendiri
+      tidak dijawab angka pembuangan
+
+      Kantor 3 lantai dengan 6 kamar mandi per lantai tercatat 6 kamar mandi, bukan 18 — bebannya
+      kurang dari sepertiga, dan ukuran pipanya bisa jatuh terlalu kecil. Pembacaan model memang
+      sudah boleh mengalikan jumlah lantai, tetapi untuk pesan rumah dan bangunan model dilewati,
+      dan parser nilai hanya membaca angka di depan kata bendanya. Sekarang satuan per lantai
+      ("per lantai", "tiap lantai", "per floor") mengalikan jumlah alat dengan jumlah lantai yang
+      tersurat; tanpa penanda itu angkanya tetap total.
+
+      "ukuran pipanya berapa" dan "what size pipe do i need" di tengah percakapan air bersih
+      dijawab aturan kemiringan dan ukuran pipa pembuangan. Keduanya sekarang bukan topik
+      pengetahuan, jadi jatuh ke kebutuhan atau solusi percakapannya sendiri.
+
+- [x] P31-25 Tawar-menawar harga dan permintaan nomor sales dikenali
+
+      "diskon dong kalo beli banyak" memakan 30,9 detik lewat perencana lalu dijawab ajakan
+      bertanya; "ada diskon ngga kalau beli banyak?" sudah dijawab kebijakan harga dalam 0,1 detik.
+      "nomor sales nya siapa?" dijawab "belum punya acuan", padahal kontak Pralon ada di profil
+      perusahaan. Keduanya ditambahkan sebagai contoh pertanyaan, bukan pola kalimat di kode.
+
+- [x] P31-26 Kasus yang sudah diserahkan ke tim teknis tidak diperlakukan sebagai obrolan baru
+
+      "panjang jalurnya 150 meter, dari bak penampung ke 4 mesin" di kasus air pendingin pabrik
+      memakan 37,4 detik: 9,3 detik perencana, sisanya menulis prosa ukuran pipa air bersih yang
+      tidak ada hubungannya dengan pertanyaannya. Kasus yang sudah diserahkan sekarang dibaca
+      sebagai percakapan yang sedang berjalan: datanya dicatat tanpa model, disebut balik, dan
+      ditutup dengan ke mana ia pergi — kalimat besar penyerahannya tidak diulang kata per kata.

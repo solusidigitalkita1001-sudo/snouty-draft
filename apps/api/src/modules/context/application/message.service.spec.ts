@@ -9,6 +9,7 @@ import type { AssistantStreamEvent, RequirementState } from '@snouty/shared-type
 import { MessageService, isSaneTitle, joinBlocks } from './message.service.js';
 import { scriptedUnderstanding } from '../../understanding/testing/understood.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
+import { mergeRequirement } from '../domain/context-merger.js';
 
 // Ruas produk membaca satu saklar env (LLM_FAQ_REWRITE); tes ini tidak punya .env.
 vi.mock('../../../config/env.js', () => ({
@@ -694,6 +695,31 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     await service.handle('C'.repeat(26), ACTOR, 'nanya nih', 'T');
     // Di produksi 2026-10-26 "nanya nih" memakai 8,7 detik di perencana lalu dijawab model:
     // "Nah, ini dia pertanyaan yang ada di kartu bawah tentang kebutuhan perencanaan pipa Anda."
+    expect(planner.plan).not.toHaveBeenCalled();
+  });
+
+  it('kasus yang sudah diserahkan ke tim teknis tidak lewat perencana (P31-26)', async () => {
+    const factory = mergeRequirement(
+      emptyRequirementState('T'),
+      [
+        { path: 'building.type', value: 'industrial', source: 'user_stated' },
+        { path: 'building.floors', value: 2, source: 'user_stated' },
+        { path: 'water.source', value: 'pump', source: 'user_stated' },
+        { path: 'water.installationType', value: 'clean_water', source: 'user_stated' },
+      ],
+      'T',
+    ).state;
+    const { service, planner } = setup(
+      [
+        { role: 'user', text: 'pabrik saya butuh jalur air pendingin mesin' },
+        { role: 'assistant', text: 'Yang ini perlu dihitung oleh tim teknis Pralon.' },
+      ],
+      { 'panjang jalurnya 150 meter': { intent: null } },
+      factory,
+    );
+    await service.handle('C'.repeat(26), ACTOR, 'panjang jalurnya 150 meter', 'T');
+    // Di produksi 2026-10-26 pesan ini memakai 9,3 detik di perencana lalu 27 detik menulis prosa
+    // ukuran pipa air bersih — untuk kasus pabrik yang sudah ada di tangan tim teknis.
     expect(planner.plan).not.toHaveBeenCalled();
   });
 
