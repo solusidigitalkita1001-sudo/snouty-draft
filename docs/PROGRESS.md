@@ -3168,3 +3168,23 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
 
       Topik yang baru saja dijawab sekarang dijawab satu kalimat: bagian mana yang mau diperjelas,
       atau angka lapangan yang mau dipakai.
+
+- [x] P31-18 Sapaan dan basa-basi tidak lewat perencana, tidak ditulis model
+
+      Percakapan pemilik 2026-10-26: "nanya nih" dijawab "Nah, ini dia pertanyaan yang ada di kartu
+      bawah tentang kebutuhan perencanaan pipa Anda." — kalimat yang tidak berarti apa pun, dan
+      kartu yang disebutnya tidak ada. Jalannya: 8,7 detik di perencana, tindakan `chat`, lalu 12
+      detik model menulis balasan.
+
+      Sapaan, terima kasih, pamit, keluhan, di luar topik, dan pertanyaan kemampuan tidak punya
+      apa pun untuk direncanakan — tidak ada keluarga produk yang dicari, tidak ada kasus yang
+      dihitung — dan teks tetapnya sudah pas. Keduanya sekarang dilewati: perencana dan model.
+
+- [x] P31-19 "Kalo PVC itu cocoknya dimana?" dijawab pemakaiannya
+
+      Pertanyaan itu dijawab kalimat bahwa pilihan bahan tidak bisa ditentukan dari satu hal saja,
+      lalu formulir empat pertanyaan kebutuhan — padahal yang ditanya pemakaian bahannya, dan
+      faktanya ada. Topik pemakaian kalah tipis dari "bukan topik" (0,807 vs 0,828) karena bentuk
+      "cocoknya dimana" mirip permintaan rekomendasi. Contohnya ditambahkan; permintaan
+      rekomendasi yang sesungguhnya ("mending pvc apa hdpe?") dipaku kasus emas supaya tidak
+      ikut terseret.

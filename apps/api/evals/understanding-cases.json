@@ -1605,6 +1605,22 @@
       "text": "itungin dong",
       "intent": "follow_up_continue",
       "source": "P31-15 — minta dihitung tetap permintaan, bukan pertanyaan kemampuan"
+    },
+    {
+      "text": "kalo PVC itu cocoknya dimana ?",
+      "topics": ["aplikasi"],
+      "source": "P31-19 — pertanyaan pemakaian bahan, bukan formulir kebutuhan"
+    },
+    {
+      "text": "nanya nih",
+      "intent": "greeting",
+      "source": "P31-19 — pembuka, bukan bahan perencana"
+    },
+    {
+      "text": "mending pvc apa hdpe?",
+      "topics": [],
+      "topicsOnly": true,
+      "source": "P31-19 — permintaan rekomendasi tidak ikut terseret ke topik pemakaian"
     }
   ]
 }

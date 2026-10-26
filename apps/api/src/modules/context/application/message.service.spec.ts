@@ -683,6 +683,20 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     expect(planner.plan).not.toHaveBeenCalled();
   });
 
+  it('sapaan di tengah percakapan tidak lewat perencana (P31-18)', async () => {
+    const { service, planner } = setup(
+      [
+        { role: 'user', text: 'oi' },
+        { role: 'assistant', text: 'Halo! Saya SNOUTY dari Pralon.' },
+      ],
+      { 'nanya nih': { intent: 'greeting' } },
+    );
+    await service.handle('C'.repeat(26), ACTOR, 'nanya nih', 'T');
+    // Di produksi 2026-10-26 "nanya nih" memakai 8,7 detik di perencana lalu dijawab model:
+    // "Nah, ini dia pertanyaan yang ada di kartu bawah tentang kebutuhan perencanaan pipa Anda."
+    expect(planner.plan).not.toHaveBeenCalled();
+  });
+
   it('pesan yang menyebut keluarga katalognya sendiri tidak lewat perencana (P31-02)', async () => {
     const { service, planner } = setup(
       [

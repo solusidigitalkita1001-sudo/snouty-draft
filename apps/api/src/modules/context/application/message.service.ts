@@ -74,6 +74,7 @@ import {
 import { irrigationGuidance } from './irrigation-guidance.js';
 import { executePlan } from './plan-executor.js';
 import {
+  hasFixedAnswer,
   isConfidentStandalone,
   isStructuredProductFollowUp,
   namesCatalogFamily,
@@ -361,6 +362,8 @@ export class MessageService {
       // Tebal/berat/diameter dalam: tabel standar menjawab langsung (router, P21-09).
       u.productAspect !== 'dimensions' &&
       !isConfidentStandalone(u) &&
+      // Sapaan, basa-basi, keluhan, dan di luar topik dijawab teks tetap (P31-18).
+      !hasFixedAnswer(u) &&
       !isStructuredProductFollowUp(u, state.subject, text, (f) =>
         this.lexicon().isFittingFamily(f),
       ) &&

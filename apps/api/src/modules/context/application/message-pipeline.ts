@@ -68,6 +68,7 @@ import { assumptionCard, houseAssumptionUpdates } from '../domain/requirement-de
 import { houseRefinementQuestions, planClarification } from '../domain/clarification.js';
 import { outlierQuestions, pendingOutliers } from '../domain/plausibility.js';
 import { mergeRequirement } from '../domain/context-merger.js';
+import { isSocial } from '../../understanding/domain/labels.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
 import { requirementFieldLabel, requirementValueLabel } from '../domain/requirement-labels.js';
@@ -203,6 +204,10 @@ export async function runUnderstanding(
       // persis jawaban giliran sebelumnya.
       const fixedIsEnough =
         firstGreeting ||
+        // Sapaan ulang dan basa-basi juga: teksnya sudah pas, dan model di CPU memakai 14 detik
+        // untuk menggantinya dengan kalimat yang lebih buruk (produksi 2026-10-26).
+        label === 'greeting' ||
+        isSocial(label) ||
         fallback === capabilityReply(input.locale) ||
         fallback === outOfTopicReply(input.locale);
       const written =

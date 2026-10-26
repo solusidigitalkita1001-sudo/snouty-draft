@@ -171,6 +171,27 @@ export function namesCatalogFamily(
   return !u.mentionsRequirement && u.families.some(isCatalogFamily);
 }
 
+/**
+ * Label yang jawabannya TEKS TETAP: sapaan, terima kasih, pamit, keluhan, di luar topik, dan
+ * pertanyaan kemampuan. Tidak ada yang bisa direncanakan — tidak ada keluarga produk yang dicari
+ * dan tidak ada kasus yang dihitung. Di produksi 2026-10-26 "nanya nih" melewati perencana
+ * (8,7 detik) lalu dijawab model: "Nah, ini dia pertanyaan yang ada di kartu bawah tentang
+ * kebutuhan perencanaan pipa Anda." — kalimat yang tidak berarti apa pun.
+ */
+const FIXED_ANSWER: ReadonlySet<string> = new Set([
+  'greeting',
+  'thanks',
+  'ack',
+  'bye',
+  'complaint',
+  'out_of_scope',
+  'capability_question',
+]);
+
+export function hasFixedAnswer(u: MessageUnderstanding): boolean {
+  return u.intent !== null && FIXED_ANSWER.has(u.intent.label);
+}
+
 export class TurnPlanner {
   constructor(
     private readonly ai: ReplyCapableAi,
