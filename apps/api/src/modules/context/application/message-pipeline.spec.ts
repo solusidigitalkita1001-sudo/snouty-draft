@@ -1021,3 +1021,28 @@ describe('isyarat irigasi di tengah kasus teknis berjalan (P31-13)', () => {
     expect((nextState.useCase as { kind: string }).kind).toBe('irrigation');
   });
 });
+
+describe('kalimat "sudah saya catat" — ukuran bangunan ikut disebut (P31-22)', () => {
+  it('"bangunan 10 × 12 m" dan ukuran tanah tercatat di kalimatnya', async () => {
+    const { understoodReply } = await import('./message-pipeline.js');
+    const now = '2026-10-26T00:00:00.000Z';
+    const state = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(now),
+        [
+          { path: 'building.type', value: 'residential', source: 'user_stated' },
+          { path: 'building.floors', value: 2, source: 'user_stated' },
+          {
+            path: 'building.dimensions',
+            value: { lengthM: 10, widthM: 12, landAreaM2: 200 },
+            source: 'user_stated',
+          },
+        ],
+        now,
+      ).state,
+    );
+    expect(understoodReply(state, 'cta', 'id')).toContain('bangunan 10 × 12 m');
+    expect(understoodReply(state, 'cta', 'id')).toContain('tanah 200 m²');
+    expect(understoodReply(state, 'cta', 'en')).toContain('10 × 12 m footprint');
+  });
+});

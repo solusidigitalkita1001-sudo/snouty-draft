@@ -3211,3 +3211,14 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
 
       Dan dua pertanyaan berbeda yang jatuh ke teks yang sama tidak lagi mengirimnya dua kali —
       pagar yang sama seperti P31-17, sekarang juga di jalur solusi dan teks tetap.
+
+- [x] P31-22 Ukuran bangunan yang disebut pengguna ikut disebut balik
+
+      "rumah 2 lantai 3 kamar mandi, toren atap, rumahnya 10 x 12 meter" dijawab "sudah saya catat:
+      rumah tinggal, 2 lantai, 3 kamar mandi, dan toren atap" — tanpa ukurannya, padahal angka itu
+      yang membuat jumlah batang pipa bisa dihitung dan memang dipakai di hitungannya. Dari
+      `building.dimensions` hanya panjang jalur utama yang pernah disebut balik; tapak bangunan,
+      luas bangunan, dan ukuran tanah tidak.
+
+      Semuanya sekarang disebut. Ukuran tanah juga, supaya jelas ia tercatat walau tidak dipakai
+      menghitung panjang pipa.

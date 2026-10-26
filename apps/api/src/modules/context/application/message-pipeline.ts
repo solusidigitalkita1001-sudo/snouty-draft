@@ -638,14 +638,49 @@ export function understoodReply(
   for (const [path, field] of fieldEntries(state)) {
     if (field.value === null || path === 'building.floorHeightM') continue;
     if (path === 'building.dimensions') {
-      const run = (field.value as { mainRunMeters?: number }).mainRunMeters;
-      if (
-        typeof run === 'number' &&
-        field.provenance !== 'ASSUMED' &&
-        (!only || only.includes(path))
-      ) {
-        const m = run.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
-        captured.push(en ? `a main run of about ${m} m` : `jalur utama ±${m} m`);
+      // Ukuran bangunan ikut disebut balik: ia yang menentukan panjang pipa, jadi "rumahnya 10 x 12
+      // meter" yang tidak pernah muncul di "sudah saya catat" membuat pengguna menyebutnya lagi —
+      // padahal angkanya sudah dipakai (produksi 2026-10-26). Ukuran TANAH juga, supaya jelas ia
+      // tercatat walau tidak dipakai menghitung pipa.
+      const d = field.value as {
+        mainRunMeters?: number;
+        lengthM?: number;
+        widthM?: number;
+        areaM2?: number;
+        landLengthM?: number;
+        landWidthM?: number;
+        landAreaM2?: number;
+      };
+      if (field.provenance !== 'ASSUMED' && (!only || only.includes(path))) {
+        const m = (v: number) =>
+          v.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
+        if (typeof d.mainRunMeters === 'number') {
+          captured.push(
+            en
+              ? `a main run of about ${m(d.mainRunMeters)} m`
+              : `jalur utama ±${m(d.mainRunMeters)} m`,
+          );
+        }
+        if (typeof d.lengthM === 'number' && typeof d.widthM === 'number') {
+          captured.push(
+            en
+              ? `a ${m(d.lengthM)} × ${m(d.widthM)} m footprint`
+              : `bangunan ${m(d.lengthM)} × ${m(d.widthM)} m`,
+          );
+        } else if (typeof d.areaM2 === 'number') {
+          captured.push(
+            en ? `a floor area of ${m(d.areaM2)} m²` : `luas bangunan ${m(d.areaM2)} m²`,
+          );
+        }
+        if (typeof d.landLengthM === 'number' && typeof d.landWidthM === 'number') {
+          captured.push(
+            en
+              ? `land ${m(d.landLengthM)} × ${m(d.landWidthM)} m`
+              : `tanah ${m(d.landLengthM)} × ${m(d.landWidthM)} m`,
+          );
+        } else if (typeof d.landAreaM2 === 'number') {
+          captured.push(en ? `land of ${m(d.landAreaM2)} m²` : `tanah ${m(d.landAreaM2)} m²`);
+        }
       }
       continue;
     }
