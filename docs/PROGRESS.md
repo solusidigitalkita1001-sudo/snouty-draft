@@ -3491,3 +3491,12 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       untuk semua jenis bangunan, bukan hanya rumah tinggal, lalu rekomendasinya disusun di
       giliran itu. Percakapan yang jenis bangunannya sudah tercatat juga tidak lagi memanggil
       model ekstraksi untuk pesan tanpa nilai.
+
+- [x] P31-53 Buangan, air hujan, pompa, dan sumur adalah bagian dari bangunannya
+
+      Instalasi pembuangan rumah 2 lantai, lalu "septic tanknya 8 meter dari rumah" membuka kasus
+      saluran gravitasi dan menanyakan debit rencana, kemiringan saluran, elevasi hulu, dan
+      elevasi hilir — empat angka yang tidak dipunyai pemilik rumah, padahal ukuran pipa
+      buangannya dihitung dari jumlah alatnya. Satu angka tentang buangan, air hujan, pompa, atau
+      sumur sekarang tetap ukuran pekerjaan bangunannya; kasusnya sendiri baru terbuka bila
+      pesannya membawa dua angka parameter atau lebih ("40 meter, beda tinggi 1,5 m").

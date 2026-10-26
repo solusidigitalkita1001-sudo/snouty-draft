@@ -42,6 +42,36 @@ export const UNKNOWN = 'Belum tahu';
 const OWN_TRACK: readonly CaseId[] = ['residential_clean_water', 'irrigation'];
 
 /**
+ * Kasus yang sebenarnya BAGIAN dari pekerjaan bangunan yang sedang dibahas: buangannya ke
+ * septic tank, air hujan dari atapnya, pompa pendorongnya, sumurnya. Di percakapan yang
+ * bangunannya sudah tercatat, menyebut salah satunya bukan proyek baru — jalur bangunan yang
+ * menghitungnya. Produksi 2026-10-26: "septic tanknya 8 meter dari rumah" pada instalasi
+ * pembuangan rumah 2 lantai membuka kasus saluran gravitasi, lalu menanyakan debit rencana,
+ * kemiringan saluran, dan elevasi hulu — empat angka yang tidak dipunyai pemilik rumah,
+ * padahal ukuran pipa buangannya dihitung dari jumlah alatnya.
+ */
+/**
+ * Pesan ini menyatakan kasusnya SENDIRI, bukan satu ukuran dari pekerjaan bangunan yang sedang
+ * dibahas: dua angka parameter atau lebih. "pipa buangan ke saluran kota 40 meter, beda tinggi
+ * 1,5 m" punya panjang dan beda tinggi — saluran gravitasi yang memang bisa dihitung sendiri.
+ * "septic tanknya 8 meter dari rumah" hanya punya satu angka; jenis cairannya terbaca dari kata,
+ * bukan dari angka, jadi ia tidak ikut dihitung.
+ */
+export function statesOwnCase(caseId: CaseId, message: string): boolean {
+  const figures = extractTechnicalContext(message, caseId).filter(
+    (fact) => typeof fact.value === 'number',
+  );
+  return figures.length >= 2;
+}
+
+export const BUILDING_ASPECTS: readonly CaseId[] = [
+  'gravity_drainage',
+  'stormwater',
+  'pump_transfer',
+  'well_distribution',
+];
+
+/**
  * Kasus teknis untuk giliran ini: lanjutan percakapan teknis yang sudah berjalan, atau jenis
  * kasus yang DIKENALI dari pesan (katalog data `use-case`, P16-14 — menggantikan pengklasifikasi
  * regex berbobot). `null` = bukan jalur ini.

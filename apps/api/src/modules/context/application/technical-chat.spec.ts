@@ -480,6 +480,26 @@ describe('pertanyaan tidak membajak percakapan rumah ke kasus teknis (P31-46)', 
     expect(nextState.useCase).toBeUndefined();
   });
 
+  // Produksi 2026-10-26: instalasi pembuangan rumah 2 lantai, lalu "septic tanknya 8 meter dari
+  // rumah" → kasus saluran gravitasi yang menanyakan debit rencana, kemiringan saluran, elevasi
+  // hulu, dan elevasi hilir. Satu angka adalah ukuran pekerjaan rumahnya, bukan kasus sendiri.
+  it('satu angka tentang buangan rumah tetap di jalur bangunan', async () => {
+    const message = 'septic tanknya 8 meter dari rumah';
+    const { nextState } = await runUnderstanding(
+      null,
+      {
+        ...input(message),
+        state: house,
+        understanding: understood(message, {
+          useCase: 'gravity_drainage',
+          mentionsRequirement: true,
+        }),
+      },
+      writer().reply,
+    );
+    expect(nextState.useCase).toBeUndefined();
+  });
+
   it('pernyataan bernilai tetap membuka kasusnya', async () => {
     const message = 'pipa buangan dari rumah ke saluran kota 40 meter, beda tinggi 1,5 m';
     const { nextState } = await runUnderstanding(

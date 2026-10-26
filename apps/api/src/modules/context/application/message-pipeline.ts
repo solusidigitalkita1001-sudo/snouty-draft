@@ -48,11 +48,13 @@ import {
 } from '../../policy/scope.js';
 import {
   applyTechnicalFacts,
+  BUILDING_ASPECTS,
   carryBuildingFloors,
   detectTechnicalCase,
   technicalNudge,
   isTechnicalComplete,
   planTechnicalClarification,
+  statesOwnCase,
   technicalCaptured,
   technicalGuidance,
 } from '../domain/technical.js';
@@ -349,15 +351,25 @@ export async function runUnderstanding(
   // sudah dihitung membuka kasus saluran gravitasi, mencatat "jenis cairan air limbah", dan
   // menanyakan debit rencana serta kemiringan saluran. Pernyataan bernilai ("pipa buangan ke
   // saluran kota 40 meter, beda tinggi 1,5 m") tetap membuka kasusnya.
+  // Bangunan yang sudah tercatat dengan jumlah lantainya: buangan, air hujan, pompa, dan sumur
+  // adalah bagian dari pekerjaan itu, bukan proyek teknis baru.
+  const aspectOfBuilding =
+    input.state.useCase === undefined &&
+    input.state.building.type.value !== null &&
+    input.state.building.floors.value !== null &&
+    detected !== null &&
+    BUILDING_ASPECTS.includes(detected) &&
+    !statesOwnCase(detected, input.message);
   const hijacksHouse =
     input.state.useCase === undefined &&
     input.state.building.type.value !== null &&
     input.understanding !== undefined &&
     !isCaseStatement(input.understanding);
-  const technicalCase = hijacksHouse
-    ? null
-    : ((lowRiseHint(detected, input.state, input.message) ? null : detected) ??
-      tallBuildingCase(input.state, input.message));
+  const technicalCase =
+    hijacksHouse || aspectOfBuilding
+      ? null
+      : ((lowRiseHint(detected, input.state, input.message) ? null : detected) ??
+        tallBuildingCase(input.state, input.message));
   if (technicalCase !== null) {
     const facts = applyTechnicalFacts(input.state, technicalCase, input.message);
     const applied = { ...facts, state: carryBuildingFloors(facts.state, technicalCase) };
