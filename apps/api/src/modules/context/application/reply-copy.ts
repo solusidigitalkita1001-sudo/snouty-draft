@@ -91,6 +91,21 @@ export function openerReply(locale: Locale = DEFAULT_LOCALE): string {
  * bukan sapaan, jadi pembuka "Halo! Saya SNOUTY…" terbaca seperti percakapan di-reset (audit live
  * 2026-10-08). Katakan batasnya, lalu tawarkan yang bisa dibantu.
  */
+/**
+ * "Lu bisa ngitung ga sih?", "kamu bisa apa aja?": ditanya apa yang bisa dikerjakan di sini.
+ * Dijawab teks tetap — di produksi 2026-10-26 pertanyaan ini memakan 24,8 detik lewat model, dan
+ * di tengah percakapan produk malah mendapat ulangan persis jawaban sebelumnya.
+ */
+const CAPABILITY_REPLY =
+  'Bisa. Yang saya kerjakan di sini: menghitung ukuran pipa dan kebutuhan materialnya untuk satu bangunan atau jalur — rumah, gedung, kolam, sumur, irigasi, sampai saluran pembuangan — lalu menyusunnya jadi daftar produk Pralon beserta gambar jalurnya. Soal produk dan pemakaiannya juga bisa saya jawab. Ceritakan bangunannya, atau tanya produknya langsung.';
+
+const CAPABILITY_REPLY_EN =
+  'Yes. What I do here: work out pipe sizes and the material needed for a building or a run — a house, a tall building, a pond, a well, irrigation, or a drainage line — and turn that into a list of Pralon products with a drawing of the route. Questions about the products and how they are used, I answer too. Tell me about the building, or ask about a product.';
+
+export function capabilityReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en' ? CAPABILITY_REPLY_EN : CAPABILITY_REPLY;
+}
+
 const OUT_OF_TOPIC_REPLY =
   'Itu di luar yang bisa saya bantu di sini — saya khusus soal pipa dan instalasi air Pralon. Untuk pengiriman, harga, atau urusan pesanan, tim Pralon yang bisa membantu. Kalau ada kebutuhan pipa atau pertanyaan produk, tinggal tulis.';
 

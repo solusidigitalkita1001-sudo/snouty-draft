@@ -1565,6 +1565,46 @@
       "text": "pompanya pakai apa",
       "useCase": null,
       "source": "P31-13 — pertanyaan pompa polos bukan kasus irigasi"
+    },
+    {
+      "text": "pipa pvs aw ukran 3/4 hrga brp",
+      "intent": "price_question",
+      "source": "P31-14 — harga yang ditulis singkat dan salah ketik tetap pertanyaan harga"
+    },
+    {
+      "text": "ganti ke pralon yg mana",
+      "intent": "advice_request",
+      "source": "P31-14 — pilihan produk di tengah renovasi, bukan pertanyaan perusahaan"
+    },
+    {
+      "text": "pipanya yang bagus apa",
+      "intent": "advice_request",
+      "source": "P31-14 — minta rekomendasi bahan"
+    },
+    {
+      "text": "pompanya apa",
+      "topics": ["pompa"],
+      "source": "P31-14 — pompa punya fakta bersumber; bukan kasus irigasi"
+    },
+    {
+      "text": "kenapa harus pakai pompa transfer?",
+      "topics": ["pompa"],
+      "source": "P31-14 — pertanyaan pompa dijawab dari fakta, bukan model"
+    },
+    {
+      "text": "lu bisa ngitung ga sih",
+      "intent": "capability_question",
+      "source": "P31-15 — ditanya apa yang bisa dikerjakan, bukan minta dihitung"
+    },
+    {
+      "text": "kamu bisa apa aja?",
+      "intent": "capability_question",
+      "source": "P31-15"
+    },
+    {
+      "text": "itungin dong",
+      "intent": "follow_up_continue",
+      "source": "P31-15 — minta dihitung tetap permintaan, bukan pertanyaan kemampuan"
     }
   ]
 }

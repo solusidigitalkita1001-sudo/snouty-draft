@@ -84,6 +84,7 @@ import {
   explanationHandedOff,
   modelBusyReply,
   openerReply,
+  capabilityReply,
   outOfTopicReply,
   replyFor,
 } from './reply-copy.js';
@@ -166,28 +167,30 @@ export async function runUnderstanding(
         : // Penjelasan atas solusi yang sudah dihitung (P22-04): teks tetap dari solusinya sendiri.
           input.decision.intent === 'EXPLANATION_REQUEST' && input.solution && !input.solution.stale
           ? solutionReply(input.solution, input.locale ?? DEFAULT_LOCALE)
-          : label === 'out_of_scope'
-            ? outOfTopicReply(input.locale)
-            : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
-              ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
-                // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
-                explanationHandedOff(caseCard.reasons, input.locale)
-              : input.decision.intent === 'EXPLANATION_REQUEST' &&
-                  withCompleteness(input.state).missingInformation.length > 0
-                ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
-                  explanationBeforeSolution(input.locale)
-                : input.decision.intent === 'OUT_OF_SCOPE' &&
-                    (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
-                  ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
-                    // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
-                    // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
-                    label === 'greeting'
-                    ? greetingAgain(input.recentTurns ?? [], input.locale)
-                    : outOfTopicReply(input.locale)
-                  : input.decision.modelUnavailable === true
-                    ? // Giliran yang kehabisan waktu, bukan pertanyaan yang tidak terbaca (P28-02).
-                      modelBusyReply(input.locale)
-                    : replyFor(input.decision.intent, input.locale);
+          : label === 'capability_question'
+            ? capabilityReply(input.locale)
+            : label === 'out_of_scope'
+              ? outOfTopicReply(input.locale)
+              : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
+                ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
+                  // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
+                  explanationHandedOff(caseCard.reasons, input.locale)
+                : input.decision.intent === 'EXPLANATION_REQUEST' &&
+                    withCompleteness(input.state).missingInformation.length > 0
+                  ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
+                    explanationBeforeSolution(input.locale)
+                  : input.decision.intent === 'OUT_OF_SCOPE' &&
+                      (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
+                    ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
+                      // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
+                      // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
+                      label === 'greeting'
+                      ? greetingAgain(input.recentTurns ?? [], input.locale)
+                      : outOfTopicReply(input.locale)
+                    : input.decision.modelUnavailable === true
+                      ? // Giliran yang kehabisan waktu, bukan pertanyaan yang tidak terbaca (P28-02).
+                        modelBusyReply(input.locale)
+                      : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Model merangkai balasan di atas DATA kasus (P16-28): yang sudah dicatat, status kasus, dan
       // cara SNOUTY menghitung — semuanya dari kode. Angka di luar DATA ditolak `ReplyWriter`, jadi
@@ -195,8 +198,15 @@ export async function runUnderstanding(
       // Salam pertama sudah pas sebagai teks tetap — tidak perlu menunggu model.
       const firstGreeting =
         label === 'greeting' && !(input.recentTurns ?? []).some((t) => t.role === 'assistant');
+      // Jawaban tetap yang sudah pas tidak perlu ditulis ulang model: "kamu bisa apa aja?" memakan
+      // 24,8 detik di produksi 2026-10-26, dan di tengah percakapan produk model malah mengulang
+      // persis jawaban giliran sebelumnya.
+      const fixedIsEnough =
+        firstGreeting ||
+        fallback === capabilityReply(input.locale) ||
+        fallback === outOfTopicReply(input.locale);
       const written =
-        reply && loadEnv().LLM_CHAT_REPLY && !firstGreeting
+        reply && loadEnv().LLM_CHAT_REPLY && !fixedIsEnough
           ? await reply.write({
               intent: input.decision.intent,
               userMessage: input.message,

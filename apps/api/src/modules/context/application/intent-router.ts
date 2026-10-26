@@ -94,7 +94,14 @@ export function certainIntent(
     return null;
   }
 
-  if (fine === 'greeting' || fine === 'out_of_scope' || isSocial(fine)) return sure('OUT_OF_SCOPE');
+  if (
+    fine === 'greeting' ||
+    fine === 'out_of_scope' ||
+    fine === 'capability_question' ||
+    isSocial(fine)
+  ) {
+    return sure('OUT_OF_SCOPE');
+  }
   // Policy 1 menang atas apa pun selain basa-basi: "rumah 2 lantai, lebih bagus Pralon atau
   // Rucika?" adalah pertanyaan pesaing walau bentuk kalimatnya kebutuhan — mereknya tidak boleh
   // diam-diam diekstrak lalu diabaikan (tinjauan 2026-10-08).

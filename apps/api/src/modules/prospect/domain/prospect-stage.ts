@@ -43,6 +43,8 @@ const INTENT_STAGE: Readonly<Record<FineIntent, Stage | null>> = {
   bye: null,
   complaint: null,
   out_of_scope: null,
+  // Bertanya apa yang bisa dikerjakan di sini belum menunjukkan minat pada produknya.
+  capability_question: null,
   company_question: 'aware',
   knowledge_question: 'aware',
   // Tertarik pada produk Pralon — termasuk yang membandingkannya dengan pesaing.

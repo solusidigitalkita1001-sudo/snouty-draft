@@ -219,3 +219,28 @@ describe('permintaan daftar barang di kasus yang datanya belum lengkap (P31-13)'
     expect(token.text).toContain('kamar mandi/toilet per lantai');
   });
 });
+
+describe('pertanyaan "bisa apa" (P31-15)', () => {
+  it('dijawab teks tetap tentang yang dikerjakan di sini, tanpa model', async () => {
+    const message = 'lu bisa ngitung ga sih';
+    const { reply, write } = writer();
+    const { events } = await runUnderstanding(
+      null,
+      {
+        ...input(message),
+        decision: {
+          intent: 'OUT_OF_SCOPE',
+          confidence: 1,
+          shouldExtract: false,
+          mutatesState: false,
+        },
+        understanding: understood(message, { intent: 'capability_question' }),
+      },
+      reply,
+    );
+    expect(write).not.toHaveBeenCalled();
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toMatch(/^Bisa\. Yang saya kerjakan di sini/);
+    expect(token.text).not.toContain('di luar yang bisa saya bantu');
+  });
+});

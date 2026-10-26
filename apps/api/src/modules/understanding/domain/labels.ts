@@ -17,6 +17,10 @@ export const FINE_INTENTS = [
   // keluhan atas jawaban sebelumnya ("dongo", "ga nyambung") — minta maaf, minta diperjelas
   'complaint',
   'out_of_scope',
+  // "lu bisa ngitung ga sih", "kamu bisa apa aja?": pertanyaan tentang APA YANG BISA dikerjakan
+  // SNOUTY. Di luar topik hanya mirip bentuknya — jawabannya kebalikannya, yaitu apa yang memang
+  // dikerjakan di sini (P31-15).
+  'capability_question',
   // perusahaan & pesaing
   'company_question',
   'competitor_question',
@@ -125,6 +129,9 @@ export const KNOWLEDGE_TOPICS = [
   // Bahan pipa yang ada di industri tetapi bukan produk Pralon (P28-06): dibahas sebagai konteks
   // teknis, tidak pernah direkomendasikan sebagai produk.
   'bahan di luar katalog',
+  // Pompa bukan produk Pralon, tetapi pertanyaannya datang terus di kasus sumur, transfer, dan
+  // gedung — dijawab dari fakta bersumber: yang keluar dari hitungan adalah debit dan head (P31-14).
+  'pompa',
   'jenis pipa baru',
   'sambungan hdpe',
   'sambungan transisi',

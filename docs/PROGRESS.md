@@ -3118,3 +3118,30 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       Sekalian: permintaan daftar barang di kasus yang datanya belum lengkap tidak lagi dijawab
       kalimat dorongan yang sama — daftar barangnya memang keluar dari hitungan, dan itu yang
       dikatakan, beserta apa yang masih kurang.
+
+- [x] P31-14 Harga yang disingkat, pilihan bahan, dan pertanyaan pompa
+
+      Ronde dari sisi pengguna lagi, tiga temuan dalam satu item.
+
+      "pipa pvs aw ukran 3/4 hrga brp" dijawab penjelasan kelas PVC beserta satu produk 4" —
+      bukan kalimat kebijakan harga. Ejaannya yang membuat harga (0,700) dan spesifikasi produk
+      (0,687) berdempet, jadi tidak ada label yang menang, dan nama keluarga di pesan membawanya
+      ke jalur katalog. Kalimat harga yang ditulis singkat sekarang ada di contohnya.
+
+      "pipanya yang bagus apa" dan "ganti ke pralon yg mana" dijawab daftar pertanyaan dan profil
+      perusahaan; keduanya permintaan rekomendasi, dan contohnya ditambahkan.
+
+      Pompa ditanya terus — di kasus sumur, transfer, dan gedung — dan tiap kali dijawab model:
+      25 detik, lalu balik bertanya merek dan daya pompa yang tidak pernah dicatat SNOUTY. Pompa
+      bukan produk Pralon, jadi jawabannya kini fakta bersumber: yang keluar dari hitungan adalah
+      debit dan head total, dan apa saja yang menyusun head itu.
+
+- [x] P31-15 "Lu bisa ngitung ga sih" dijawab apa yang memang dikerjakan
+
+      Di tengah percakapan produk, pertanyaan ini dijawab ulangan persis penjelasan kelas PVC
+      giliran sebelumnya — dua giliran, satu teks. Pertanyaan tentang kemampuan tidak pernah punya
+      labelnya sendiri: ia menumpang "di luar topik", padahal jawabannya justru kebalikannya.
+
+      Sekarang ada label `capability_question` dengan jawaban tetap tentang apa yang dikerjakan di
+      sini. Sekalian: pesan di luar topik dan pertanyaan kemampuan tidak lagi ditulis ulang model —
+      "kamu bisa apa aja?" memakan 24,8 detik untuk mengganti teks yang sudah pas.

@@ -175,13 +175,26 @@
       "kenapa hasilnya beda dari tadi",
       "saya bingung sama jawabannya"
     ],
+    "capability_question": [
+      "lu bisa ngitung ga sih",
+      "kamu bisa apa aja?",
+      "bisa bantu apa aja?",
+      "kamu bisa ngitung pipa ngga?",
+      "emang bisa ngitung sendiri?",
+      "lu bisa bantu apa",
+      "snouty bisa apa aja sih",
+      "bisa ngitung kebutuhan material ga?",
+      "memangnya bisa sampai keluar daftar barangnya?",
+      "what can you do?",
+      "can you size the pipes yourself?",
+      "are you able to do the calculation?"
+    ],
     "out_of_scope": [
       "cuaca hari ini gimana?",
       "bikinin puisi dong",
       "siapa presiden indonesia?",
       "resep nasi goreng",
       "tolong terjemahkan ke bahasa inggris",
-      "kamu bisa apa aja?",
       "ceritain lelucon",
       "what's the weather today?",
       "write me a poem",
@@ -424,6 +437,10 @@
       "which pvc pipe types are in the pralon catalogue?"
     ],
     "price_question": [
+      "pipa pvs aw ukran 3/4 hrga brp",
+      "hrga pipa hdpe brp",
+      "pipa 4 inci brp duit",
+      "harga nya brp ya",
       "harganya berapa?",
       "harga pvc aw berapa?",
       "berapa harga hdpe?",
@@ -566,6 +583,11 @@
       "why is the tap flow weak when the tank is full?"
     ],
     "advice_request": [
+      "pipanya yang bagus apa",
+      "pipa yang bagus yang mana",
+      "ganti ke pralon yg mana",
+      "pakai pralon yang mana",
+      "ganti pipanya ke yang mana",
       "lebih bagus pvc atau hdpe buat rumah 2 lantai?",
       "mending pvc apa hdpe?",
       "bagusan pvc atau ppr?",

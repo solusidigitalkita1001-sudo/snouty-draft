@@ -215,9 +215,9 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
 
 ## 4b. Pengetahuan pipa umum yang tidak tercakup data (P30-01)
 
-Pengetahuan pipa SNOUTY ditulis tangan: 42 fakta bersumber di `data/knowledge/pipe-facts.json`
+Pengetahuan pipa SNOUTY ditulis tangan: 44 fakta bersumber di `data/knowledge/pipe-facts.json`
 dan 18 konsep di `context/application/pipe-knowledge.ts`, dikenali dari contoh kalimat (§4a).
-Di luar 52 topik itu tidak ada jawaban — dan pertanyaan pengguna tidak terbatas.
+Di luar topik-topik itu tidak ada jawaban — dan pertanyaan pengguna tidak terbatas.
 
 **Yang terukur (audit 2026-10-26, 25 pertanyaan pipa wajar ke produksi):** 7 terjawab. Sembilan
 tidak punya topik sama sekali dan dijawab ikhtisar seluruh katalog ("Katalog Pralon memuat 7.664

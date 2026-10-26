@@ -413,6 +413,31 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-80 — Kasus lapangan yang ditanya seperti ke perencana, bukan ke pemilik rumah (P31-16, 2026-10-26)
+
+**Status:** open · **Blocks:** tidak ada; kasusnya tetap berjalan dengan pertanyaan yang sekarang
+**Konteks:** dua percakapan dari sisi pengguna 2026-10-26 memperlihatkan pertanyaan yang benar
+secara teknik tetapi tidak bisa dijawab orang yang bertanya.
+
+1. **Saluran pembuangan rumah.** "Septictank mampet terus, mau benerin saluran pembuangan" →
+   kasus saluran gravitasi, lalu yang diminta: debit rencana, kemiringan saluran, elevasi hulu,
+   dan elevasi hilir. Pemilik rumah tidak punya satu pun angka itu. Untuk rumah, keputusan
+   pemilik (OQ-75) sudah berbunyi "hitung dulu dengan anggapan": jumlah titik buangan dan jarak
+   jalur bisa ditanya, sisanya dianggap.
+2. **Kedalaman sumur di jalur pompa.** "Sumurnya 60 meter" di kasus transfer pompa tidak tercatat
+   sama sekali — parameter kasus itu tinggi statis, dan kedalaman sumur bukan tinggi statis
+   (yang menentukan adalah muka air, biasanya jauh di atas dasar sumur). Angkanya hilang diam-diam,
+   lalu pengguna ditanya tinggi statis yang ia tidak tahu.
+
+**Usul default (menunggu pilihan pemilik):** (1) saluran buangan berskala rumah memakai anggapan
+seperti rumah air bersih — titik buangan dan panjang jalur ditanya, kemiringan memakai kemiringan
+minimum yang sudah ada di registry aturan, elevasi dianggap dari panjang × kemiringan, dan semua
+anggapan itu tampil sebagai anggapan; (2) kedalaman sumur dicatat sebagai parameternya sendiri dan
+tinggi statis TIDAK diturunkan darinya tanpa muka air — yang ditanya berikutnya adalah muka air,
+bukan tinggi statis.
+**Yang perlu ahli:** apakah menurunkan tinggi statis dari muka air + tinggi toren boleh otomatis,
+dan kemiringan minimum mana yang dipakai untuk rumah.
+
 ### OQ-79 — Model dan kunci untuk jawaban pengetahuan pipa umum (P30-01, 2026-10-26)
 
 **Status:** open · **Blocks:** P30-01 menyala di produksi
