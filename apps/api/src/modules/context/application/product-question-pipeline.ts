@@ -212,6 +212,46 @@ function asksComparison(u: ProductQuestionInput['understanding']): boolean {
   return (u.intent?.label ?? u.intentRanking[0]?.label) === 'product_comparison';
 }
 
+/** Penjawab pengetahuan umum (P30-01); `null` bila belum dikonfigurasi. */
+export interface GeneralKnowledgeAnswerer {
+  answer(input: {
+    readonly message: string;
+    readonly recentTurns: readonly ReplyTurn[];
+    readonly locale: Locale;
+  }): Promise<string | null>;
+}
+
+/**
+ * Intent yang jawabannya sudah dirakit kode dari katalog dan pengetahuan bahan — ragam produk,
+ * perbandingan bahan, "apa itu PVC", harga, dan lanjutan atas subjek. Pengetahuan umum tidak
+ * menyentuh keenamnya: yang sudah terjawab tidak perlu model.
+ */
+const ANSWERED_BY_CODE: ReadonlySet<string> = new Set([
+  'product_range',
+  'product_comparison',
+  'product_concept',
+  'price_question',
+  'company_question',
+  'competitor_question',
+]);
+
+/**
+ * Pertanyaan pengetahuan pipa yang TIDAK tercakup data (P30-01): tidak satu pun topik cocok,
+ * tidak ada aspek spesifikasi yang ditanya, bukan intent yang sudah dijawab kode, dan bukan
+ * lanjutan atas subjek yang sedang dibahas.
+ *
+ * Tanpa pagar ini, jalur pengetahuan umum akan menyalip jawaban bersumber — dan jawaban
+ * bersumber selalu lebih baik: ia terbukti, 200–400 ms, dan tidak memerlukan model.
+ */
+export function asksGeneralKnowledge(input: ProductQuestionInput): boolean {
+  const u = input.understanding;
+  if (u.knowledgeTopics.length > 0 || u.productAspect !== null) return false;
+  if (u.format !== null || u.mentionsRequirement) return false;
+  if (isFollowUp(u) || isFormatFollowUp(u) || isChoiceFollowUp(u)) return false;
+  const intent = u.intent?.label ?? u.intentRanking[0]?.label ?? null;
+  return intent !== null && !ANSWERED_BY_CODE.has(intent);
+}
+
 export async function runProductQuestion(
   ai: AiService,
   catalog: ProductCatalog,
@@ -219,6 +259,8 @@ export async function runProductQuestion(
   input: ProductQuestionInput,
   reply: ReplyWriter | null = null,
   faqPrompt: string | null = null,
+  /** Pengetahuan umum pipa untuk pertanyaan yang tidak tercakup data (P30-01). */
+  knowledge: GeneralKnowledgeAnswerer | null = null,
 ): Promise<readonly AssistantStreamEvent[]> {
   const locale = input.locale ?? DEFAULT_LOCALE;
   const u = input.understanding;
@@ -471,6 +513,26 @@ export async function runProductQuestion(
       { type: 'token', text: asTable },
       endEvent(input.messageId),
     ];
+  }
+
+  // Pengetahuan umum pipa (P30-01): pertanyaan teknik pemipaan yang tidak punya topik di data.
+  // Sebelum ini, pertanyaan seperti "apa itu thrust block?" atau "apa bedanya pipa tekan dan non
+  // tekan?" memanggil pemeta pertanyaan (19–31 detik di CPU) lalu dijawab ikhtisar seluruh
+  // katalog — jawaban yang tidak ada hubungannya dengan yang ditanya (audit 2026-10-26).
+  // Didahulukan dari pemeta itu justru supaya panggilan model yang sia-sia itu tidak terjadi.
+  if (knowledge !== null && asksGeneralKnowledge(input)) {
+    const general = await knowledge.answer({
+      message: input.message,
+      recentTurns: input.recentTurns ?? [],
+      locale,
+    });
+    if (general !== null) {
+      return [
+        { type: 'message.start', messageId: input.messageId },
+        { type: 'token', text: general },
+        endEvent(input.messageId),
+      ];
+    }
   }
 
   // Model pemeta pertanyaan hanya dipanggil bila pemahaman dari contoh tidak cukup: lanjutan subjek

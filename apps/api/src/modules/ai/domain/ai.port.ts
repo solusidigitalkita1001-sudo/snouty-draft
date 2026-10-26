@@ -75,6 +75,6 @@ export interface AiService {
     /** Batas tunggu; lewat itu panggilan DIBATALKAN (bukan hanya ditinggal) dan melempar. */
     readonly timeoutMs?: number;
     /** Jenis tugas — menentukan tier model; baku `explanation_prose`. */
-    readonly task?: 'explanation_prose' | 'turn_planning' | 'lead_summary';
+    readonly task?: 'explanation_prose' | 'turn_planning' | 'lead_summary' | 'general_knowledge';
   }): Promise<unknown>;
 }

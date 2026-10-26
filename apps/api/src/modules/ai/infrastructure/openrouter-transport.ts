@@ -30,13 +30,17 @@ export class OpenRouterTransport implements LlmTransport {
     if (!env.OPENROUTER_API_KEY) {
       throw new Error('OPENROUTER_API_KEY tidak diset — transport live tidak boleh dipanggil');
     }
+    // Endpoint per panggilan (jalur pengetahuan umum): kuncinya milik endpoint itu, bukan kunci
+    // baku — mengirim kunci Ollama ke penyedia hosted hanya menghasilkan 401 yang membingungkan.
+    const baseUrl = request.endpoint?.baseUrl ?? env.OPENROUTER_BASE_URL;
+    const apiKey = request.endpoint ? request.endpoint.apiKey : env.OPENROUTER_API_KEY;
 
     let response: Response;
     try {
-      response = await fetch(`${env.OPENROUTER_BASE_URL}/chat/completions`, {
+      response = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
-          authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+          ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {}),
           'content-type': 'application/json',
         },
         body: JSON.stringify({

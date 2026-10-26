@@ -413,6 +413,29 @@ penimbunan, uji tekanan lapangan — semuanya kualitatif; angka yang dokumen tan
 masa berlaku); profil korporat resmi untuk tahun/urutan tonggak; Product Specification resmi
 (tekanan kerja, dimensi) supaya angka boleh ditampilkan.
 
+### OQ-79 — Model dan kunci untuk jawaban pengetahuan pipa umum (P30-01, 2026-10-26)
+
+**Status:** open · **Blocks:** P30-01 menyala di produksi
+**Konteks:** pemilik memilih (2026-10-26) menutup pertanyaan pengetahuan di luar 52 topik dengan
+model yang memang mampu, dipagari kode, dan membolehkan angka umum asalkan standarnya disebut dan
+dinyatakan bukan angka Pralon. Jalurnya sudah ada beserta pagarnya; yang belum ada adalah modelnya.
+`.env.production` di server memuat `OPENROUTER_API_KEY=ollama` — placeholder untuk Ollama lokal,
+bukan kunci penyedia berkredit — dan model lokalnya `qwen3.5:9b` di CPU. OQ-45 mencatat apa yang
+terjadi bila pengetahuan diambil dari model kecil: qwen2.5:7b menukar sifat PVC dan HDPE dua dari
+dua kali.
+**Yang dibutuhkan dari pemilik:** (1) kunci penyedia berkredit (`KNOWLEDGE_API_KEY` +
+`KNOWLEDGE_BASE_URL`) dan (2) model yang dipakai (`LLM_MODEL_KNOWLEDGE`). Hanya jalur pengetahuan
+yang memakainya; pemahaman, ekstraksi, dan embedding tetap lokal dan gratis.
+**Default selama belum diisi:** jalurnya **mati** — pertanyaan tak tercakup dijawab seperti sebelum
+P30-01 (tawaran tim teknis). Tidak ada jawaban pengetahuan dari model lokal: lebih baik mengakui
+batas daripada menjawab dengan model yang pernah membalik sifat bahan.
+**Yang tetap terbuka walau kuncinya terisi:** pengetahuan umum ini **tidak divalidasi tim teknis
+Pralon** (sama seperti OQ-45 untuk redaksi primer bahan). Pagarnya menjaga agar ia tidak pernah
+menjadi klaim tentang Pralon, tetapi kalimat teknik umumnya tetap tanggung jawab yang belum
+berpemilik. Usul default: tinjau 25 jawaban pertama yang keluar dari jalur ini, lalu naikkan yang
+benar menjadi fakta bersumber di `data/knowledge/pipe-facts.json` — dengan begitu jawaban yang
+sudah ditinjau pindah ke jalur yang tidak memerlukan model sama sekali.
+
 ### OQ-78 — Jam kerja dan hari libur untuk janji "1×24 jam kerja" (P29-01, 2026-10-23)
 
 **Status:** open, berjalan dengan default · **Blocks:** tidak ada

@@ -24,6 +24,11 @@ export interface LlmCompletionRequest {
    * untuk permintaan berikutnya.
    */
   readonly signal?: AbortSignal;
+  /**
+   * Endpoint lain untuk panggilan ini saja (P30-01): jalur pengetahuan umum boleh menunjuk
+   * penyedia hosted sementara sisanya tetap di Ollama lokal. Kosong = endpoint baku.
+   */
+  readonly endpoint?: { readonly baseUrl: string; readonly apiKey?: string };
 }
 
 /** Permintaan dibatalkan pemanggil (batas waktu balasan percakapan). */

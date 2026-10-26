@@ -19,6 +19,13 @@ gagal. Sumbernya SPEC §7, §24, §25.
 | merangkum                           | harga                     |
 | menjelaskan dengan bahasa sederhana | penetapan flag provenance |
 | membuat judul percakapan            |                           |
+| menjelaskan pengetahuan pipa umum*  |                           |
+
+*Satu pengecualian, dan dibatasi ketat (P30-01, keputusan pemilik 2026-10-26): pengetahuan teknik
+pemipaan yang berlaku umum — apa itu thrust block, arti SDR, mengapa saluran buangan perlu
+ventilasi — boleh dijawab dari pengetahuan model bila tidak ada fakta bersumber yang mencakupnya.
+Yang tidak ikut berubah: angka Pralon, ketersediaan produk, harga, dan perhitungan teknik tetap
+TIDAK PERNAH dari model. Pagarnya di §4b, dan semuanya di kode.
 
 Kolom kanan bukan imbauan. Modul `engineering` tidak punya `ai` pada grafik dependensinya, jadi
 memanggil LLM dari sana adalah galat kompilasi, bukan pelanggaran etiket.
@@ -49,12 +56,13 @@ dan menyimpan yang tidak diperlukan hanya menambah risiko.
 
 ## 3. Routing model
 
-| Tugas                                                                | Tingkat                 | Env                  |
-| -------------------------------------------------------------------- | ----------------------- | -------------------- |
-| FAQ produk, judul percakapan                                         | cepat                   | `LLM_MODEL_FAST`     |
-| Jawaban pengetahuan produk, ekstraksi kebutuhan, kalimat klarifikasi | seimbang                | `LLM_MODEL_BALANCED` |
-| Masukan ambigu atau kompleks; percobaan ulang setelah validasi gagal | kuat                    | `LLM_MODEL_STRONG`   |
-| **Perhitungan teknik**                                               | **tidak ada panggilan** | —                    |
+| Tugas                                                                | Tingkat                 | Env                   |
+| -------------------------------------------------------------------- | ----------------------- | --------------------- |
+| FAQ produk, judul percakapan                                         | cepat                   | `LLM_MODEL_FAST`      |
+| Jawaban pengetahuan produk, ekstraksi kebutuhan, kalimat klarifikasi | seimbang                | `LLM_MODEL_BALANCED`  |
+| Masukan ambigu atau kompleks; percobaan ulang setelah validasi gagal | kuat                    | `LLM_MODEL_STRONG`    |
+| Jawaban pengetahuan pipa umum (§4b)                                  | kuat, model sendiri     | `LLM_MODEL_KNOWLEDGE` |
+| **Perhitungan teknik**                                               | **tidak ada panggilan** | —                     |
 
 Routing adalah fungsi murni dari intent + satu sinyal kompleksitas (panjang masukan, jumlah entitas
 terdeteksi, apakah percobaan sebelumnya gagal validasi). Karena murni, ia bisa diuji, dan
@@ -181,6 +189,59 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
   `understanding.eval.spec.ts` terhadap `bge-m3` lokal (`UNDERSTANDING_EVAL=1`): akurasi intent
   harus ≥ 95%. Kalimat yang gagal di produksi masuk ke contoh (dan ke golden set bila mewakili
   bentuk baru).
+
+## 4b. Pengetahuan pipa umum yang tidak tercakup data (P30-01)
+
+Pengetahuan pipa SNOUTY ditulis tangan: 42 fakta bersumber di `data/knowledge/pipe-facts.json`
+dan 18 konsep di `context/application/pipe-knowledge.ts`, dikenali dari contoh kalimat (§4a).
+Di luar 52 topik itu tidak ada jawaban — dan pertanyaan pengguna tidak terbatas.
+
+**Yang terukur (audit 2026-10-26, 25 pertanyaan pipa wajar ke produksi):** 7 terjawab. Sembilan
+tidak punya topik sama sekali dan dijawab ikhtisar seluruh katalog ("Katalog Pralon memuat 7.664
+produk dalam 24 keluarga…") setelah 19–31 detik — karena jalur konsep yang tidak menemukan apa pun
+berakhir di ringkasan ragam produk. Keluhan pemiliknya satu kalimat: jawaban pengetahuannya dongo.
+
+Keputusan pemilik 2026-10-26 (lewat pilihan): tutup ekornya dengan model yang memang mampu, dipagari
+— dan angka umum boleh muncul asalkan menyebut standarnya dan dinyatakan bukan angka Pralon.
+
+### Kapan jalur ini dipakai
+
+`asksGeneralKnowledge()` — murni, dan sempit. Semuanya harus benar: tidak satu pun topik
+pengetahuan cocok, tidak ada aspek spesifikasi yang ditanya, bukan permintaan format, tidak
+menyebut kebutuhan, bukan lanjutan atas subjek, dan intent-nya bukan yang sudah dijawab kode
+(ragam, perbandingan, konsep bahan, harga, perusahaan, pesaing).
+
+Artinya **fakta bersumber selalu menang**: ia terbukti, 200–400 ms, dan tidak memerlukan model.
+Jalur ini hanya mengisi yang kosong — dan karena ia mendahului pemeta pertanyaan, panggilan model
+19–31 detik yang dulu berakhir di ikhtisar katalog tidak lagi terjadi.
+
+### Pagarnya, semuanya di kode
+
+Prompt meminta prosa, menyebut standar, dan melarang klaim Pralon; tetapi aturan yang hanya ada di
+prompt dianggap tidak ada. `passesKnowledgeGuards()` menolak jawaban yang:
+
+- menyebut **Pralon** — tanpa DATA tidak ada yang bisa membuktikan klaim tentang Pralon, jadi
+  kalimat Pralon-nya hanya boleh lahir dari katalog dan fakta bersumber;
+- menyebut **merek lain** (POLICY.md §1);
+- berbentuk **judul, tabel, daftar butir, atau label bagian tebal** — balasan chat adalah prosa.
+
+Lalu `acceptedAnswer()` menempelkan baris provenance pada setiap jawaban yang memuat angka atau
+penanda teknis: angkanya praktik dan standar umum, bukan spesifikasi Pralon. Baris itu ditempelkan
+KODE, bukan diminta dari prompt — provenance tidak boleh bergantung pada kepatuhan model.
+
+Yang tidak pernah lewat sini: harga (dicegat lebih dulu), ketersediaan produk (jalur katalog), dan
+perhitungan teknik (SPEC §25, nol panggilan model). Gagal, lewat batas waktu, atau tidak lolos
+pagar → `null`, dan giliran itu kembali ke jalur lama. Tanpa `LLM_MODEL_KNOWLEDGE` jalurnya mati:
+perilakunya sama persis dengan sebelum P30-01.
+
+### Modelnya dipilih sendiri
+
+`LLM_MODEL_KNOWLEDGE` plus `KNOWLEDGE_BASE_URL`/`KNOWLEDGE_API_KEY` (pola yang sama dengan
+`EMBEDDING_BASE_URL`): jalur ini boleh menunjuk penyedia hosted sementara pemahaman, ekstraksi, dan
+embedding tetap di Ollama lokal. Alasannya bukan kerapian — ini satu-satunya tugas yang memakai
+PENGETAHUAN model dan bukan hanya kemampuannya menyusun bahasa, dan OQ-45 sudah menunjukkan apa
+yang terjadi bila pengetahuan diambil dari model kecil: qwen2.5:7b menukar sifat PVC dan HDPE dua
+dari dua kali.
 
 ## 5. Ekstraksi terstruktur
 

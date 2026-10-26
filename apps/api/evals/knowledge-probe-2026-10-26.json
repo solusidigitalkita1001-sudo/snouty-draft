@@ -1,0 +1,30 @@
+{
+  "$comment": "Pertanyaan PENGETAHUAN pipa apa adanya (keluhan pemilik 2026-10-26: 'jawaban pengetahuan masih dongo'). Belum pernah dipakai menyetel data atau kode — sengaja, supaya yang terlihat adalah cakupan sebenarnya, bukan pertanyaan yang sudah dilatih. Dibaca satu per satu, bukan dicocokkan pola.",
+  "cases": [
+    { "q": "beda SDR 11 dan SDR 17 di pipa HDPE apa?" },
+    { "q": "apa itu PN 10 di pipa HDPE?" },
+    { "q": "jarak klem atau gantungan pipa pvc tegak sebaiknya berapa?" },
+    { "q": "pipa pvc kalau dipasang di luar kena matahari harus dicat ngga?" },
+    { "q": "pipa buat sumur bor pakai pipa apa?" },
+    { "q": "pipa hdpe bisa dipakai buat air limbah ngga?" },
+    { "q": "kenapa lem pipa pvc saya tetap bocor padahal sudah dilem?" },
+    { "q": "pipa pvc bisa dipakai buat saluran irigasi sawah?" },
+    { "q": "apa itu butt fusion dan electrofusion di pipa hdpe?" },
+    { "q": "pipa pvc boleh dibengkokkan dengan cara dipanaskan?" },
+    { "q": "kenapa pipa pembuangan harus ada ventilasi udaranya?" },
+    { "q": "apa itu pipa PVC-O?" },
+    { "q": "pipa pvc bisa dipakai buat kolam renang?" },
+    { "q": "pipa hdpe kalau kena panas matahari memanjang ngga?" },
+    { "q": "apa itu thrust block dan kapan perlu dipasang?" },
+    { "q": "pipa pvc ketanam bisa pecah kena akar pohon ngga?" },
+    { "q": "apa itu kelas kekakuan SN di pipa saluran?" },
+    { "q": "untuk pipa air bersih di dalam dinding sebaiknya pakai pipa apa?" },
+    { "q": "beda pipa SNI dan non SNI apa?" },
+    { "q": "pipa buat gas lpg rumah tangga pakai apa?" },
+    { "q": "pipa pvc tahan sampai suhu berapa?" },
+    { "q": "kalau pipa pvc dipasang di tempat yang dilewati kendaraan, kedalaman timbunannya berapa?" },
+    { "q": "apa bedanya pipa tekan dan pipa non tekan?" },
+    { "q": "kenapa air keran kecil padahal toren penuh?" },
+    { "q": "pipa hdpe bisa digulung sampai diameter berapa?" }
+  ]
+}

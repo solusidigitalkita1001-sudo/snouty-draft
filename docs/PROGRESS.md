@@ -2635,3 +2635,61 @@ Tes: API 1725 lulus (2 dilewati), web 273 lulus, engineering 521 lulus. Yang dip
 memeriksanya: Chromium Playwright milik worker, 13 layar × 2 lebar, lokal untuk yang perlu masuk
 akun dan produksi untuk yang tidak — cara yang sama dengan P28-03, dan sekali lagi yang menemukan
 cacatnya adalah membuka layarnya, bukan menjalankan tesnya.
+
+## Phase 30 — Jawaban pengetahuan pipa (26 Okt 2026)
+
+Keluhan pemilik 2026-10-26: "untuk jawab pertanyaan2 yang tentang pipa yang berupa pengetahuan
+masih dongo banget ai jawabnya". Diukur lebih dulu, bukan ditebak: 25 pertanyaan pipa yang wajar —
+belum pernah dipakai menyetel data atau kode — dikirim apa adanya ke produksi
+(`evals/knowledge-probe-2026-10-26.json`, `scripts/ask-eval.mjs`). **Tujuh terjawab.** Tiga pola
+kegagalannya berbeda, dan obatnya juga berbeda:
+
+1. **Topiknya tidak ada** (9): thrust block, kelas kekakuan SN, PVC-O, jarak klem, HDPE memanjang
+   kena panas, batas gulungan, kolam renang, akar pohon, pipa sumur bor. Semuanya jatuh ke ikhtisar
+   seluruh katalog ("Katalog Pralon memuat 7.664 produk dalam 24 keluarga…") setelah 19–31 detik.
+   "Kenapa air keran kecil padahal toren penuh?" dijawab 71 detik lalu "di luar urusan pemasangan
+   pipa yang bisa saya bantu".
+2. **Topiknya salah ditangkap** (6): "pipa pvc boleh dibengkokkan dengan cara **dipanaskan**?"
+   dijawab "Tidak — pipa PVC tidak bisa menggantikan PPR untuk air panas"; "**jarak** klem pipa
+   tegak?" dijawab tabel panjang batang; "beda SDR 11 dan SDR 17?" dijawab "Ukuran berapa?";
+   "apa itu PVC-O?" dijawab "Material untuk Pipa (Bell End) Kelas B 355 mm belum tercantum di
+   katalog"; dan "apa bedanya pipa tekan dan non tekan?" jatuh ke ikhtisar katalog padahal topik
+   `bertekanan vs gravitasi` sudah ada.
+3. **Jawaban nempel** (3): pertanyaan ventilasi saluran dijawab benar di paragraf pertama, lalu
+   disusul dua paragraf kelas AW/D dan tabel panjang batang yang tidak ditanya.
+
+Akarnya satu dan struktural: seluruh pengetahuan pipa SNOUTY adalah 52 topik tulisan tangan (42
+fakta + 18 konsep), sementara pertanyaan pengguna tidak terbatas. **Keputusan pemilik 2026-10-26
+(lewat pilihan):** tutup ekornya dengan model yang memang mampu, dipagari kode; dan angka umum
+boleh muncul asalkan menyebut standarnya dan dinyatakan bukan angka resmi Pralon.
+
+- [x] P30-01 Jalur pengetahuan pipa umum. Pertanyaan teknik pemipaan yang tidak punya topik di data
+      kini dijawab model yang ditunjuk sendiri (`LLM_MODEL_KNOWLEDGE` + `KNOWLEDGE_BASE_URL`, pola
+      yang sama dengan `EMBEDDING_BASE_URL`: jalur ini boleh ke penyedia hosted sementara
+      pemahaman, ekstraksi, dan embedding tetap di Ollama lokal). Gerbangnya sempit — fakta
+      bersumber selalu menang, dan jalur ini hanya jalan bila tidak satu pun topik cocok, tidak ada
+      aspek spesifikasi yang ditanya, bukan permintaan format, bukan lanjutan, dan intent-nya bukan
+      yang sudah dijawab kode (ragam, perbandingan, konsep bahan, harga, perusahaan, pesaing).
+      Karena ia **mendahului** pemeta pertanyaan, panggilan model 19–31 detik yang dulu berakhir di
+      ikhtisar katalog tidak lagi terjadi.
+
+      Pagarnya di kode, bukan di prompt: jawaban yang menyebut **Pralon** ditolak (tanpa DATA tidak
+      ada yang bisa membuktikan klaim tentang Pralon — kalimat Pralon-nya hanya boleh lahir dari
+      katalog dan fakta bersumber), merek lain ditolak, dan bentuk buku teks ditolak (judul, tabel,
+      daftar butir, label bagian tebal). Setiap jawaban yang memuat angka atau penanda teknis
+      ditempeli baris provenance "praktik dan standar umum, bukan spesifikasi Pralon" — ditempelkan
+      kode, karena provenance tidak boleh bergantung pada kepatuhan model. Gagal, lewat batas waktu
+      (20 detik), atau tidak lolos pagar → giliran itu kembali ke jalur lama.
+
+      **Belum menyala di produksi (OQ-79).** `.env.production` memuat `OPENROUTER_API_KEY=ollama` —
+      placeholder Ollama lokal, bukan kunci penyedia berkredit — dan modelnya `qwen3.5:9b` di CPU.
+      Jalur ini sengaja tidak memakai model lokal: OQ-45 mencatat qwen2.5:7b menukar sifat PVC dan
+      HDPE dua dari dua kali, dan pengetahuan yang membalik sifat bahan lebih buruk daripada
+      mengakui batas. Tanpa `LLM_MODEL_KNOWLEDGE` perilakunya sama persis dengan sebelum P30-01.
+  - [x] P30-01a Tes (24): pagar keluaran (12 — prosa diterima apa adanya, angka membawa provenance
+        dalam dua bahasa, Pralon/merek lain/judul/tabel/butir/kepanjangan/keluaran rusak ditolak,
+        model yang mati tidak menjatuhkan giliran), gerbang jalur (6 — pertanyaan tanpa topik
+        dijawab pengetahuan umum DAN pemeta pertanyaan tidak dipanggil, topik berfakta tidak pernah
+        menyentuh jalur ini, perbandingan/ragam/konsep/lanjutan tetap dijawab kode, jawaban yang
+        tidak lolos pagar jatuh ke jalur lama, tanpa konfigurasi perilakunya tidak berubah),
+        pemilihan model dan endpoint (3), dan transport (3)

@@ -150,7 +150,7 @@ export class OpenRouterAiService implements AiService {
       readonly systemPrompt: string;
       readonly userMessage: string;
       readonly timeoutMs?: number;
-      readonly task?: 'explanation_prose' | 'turn_planning' | 'lead_summary';
+      readonly task?: 'explanation_prose' | 'turn_planning' | 'lead_summary' | 'general_knowledge';
     },
     context: AiCallContext = { correlationId: null },
   ): Promise<unknown> {
@@ -301,7 +301,8 @@ export class OpenRouterAiService implements AiService {
     priorOutcome?: LlmCallOutcome,
     signal?: AbortSignal,
   ): Promise<{ content: string }> {
-    const model = this.modelFor(tier);
+    const model = this.modelFor(tier, task);
+    const endpoint = this.endpointFor(task);
     const messages: LlmMessage[] = [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userMessage },
@@ -314,6 +315,7 @@ export class OpenRouterAiService implements AiService {
         messages,
         jsonMode,
         ...(signal ? { signal } : {}),
+        ...(endpoint ? { endpoint } : {}),
       });
       await this.safeRecord({
         task,
@@ -343,14 +345,26 @@ export class OpenRouterAiService implements AiService {
     }
   }
 
-  private modelFor(tier: LlmTier): string {
+  private modelFor(tier: LlmTier, task?: LlmTask): string {
     const env = loadEnv();
+    // Jalur pengetahuan umum boleh memakai modelnya sendiri; tanpa itu ia ikut tingkatnya.
+    if (task === 'general_knowledge' && env.LLM_MODEL_KNOWLEDGE) return env.LLM_MODEL_KNOWLEDGE;
     const key = TIER_ENV_KEY[tier] as keyof typeof env;
     const model = env[key];
     if (!model || typeof model !== 'string') {
       throw new Error(`model untuk tingkat '${tier}' belum dikonfigurasi (${TIER_ENV_KEY[tier]})`);
     }
     return model;
+  }
+
+  /** Endpoint khusus tugas; kosong berarti endpoint baku (lihat `OpenRouterTransport`). */
+  private endpointFor(task: LlmTask): { baseUrl: string; apiKey?: string } | null {
+    const env = loadEnv();
+    if (task !== 'general_knowledge' || !env.KNOWLEDGE_BASE_URL) return null;
+    return {
+      baseUrl: env.KNOWLEDGE_BASE_URL,
+      ...(env.KNOWLEDGE_API_KEY ? { apiKey: env.KNOWLEDGE_API_KEY } : {}),
+    };
   }
 
   /** Audit biaya tidak boleh menjatuhkan permintaan yang berhasil. */

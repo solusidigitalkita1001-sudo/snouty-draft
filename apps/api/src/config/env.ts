@@ -123,6 +123,32 @@ const EnvSchema = z.object({
   EMBEDDING_BASE_URL: z.string().url().optional(),
   /** Kunci untuk `EMBEDDING_BASE_URL`; Ollama tidak memerlukannya. */
   EMBEDDING_API_KEY: z.string().min(1).optional(),
+  /**
+   * Model untuk JAWABAN PENGETAHUAN UMUM pipa (P30-01, keputusan pemilik 2026-10-26): pertanyaan
+   * teknik pemipaan yang tidak tercakup fakta bersumber dijawab dari pengetahuan model, dipagari
+   * kode. Tanpa ini jalurnya mati dan pertanyaan tak tercakup tetap ditawarkan ke tim teknis —
+   * jadi kualitas jawabannya ditentukan model yang diisi di sini, bukan ditebak sistem.
+   *
+   * Dipisah dari `LLM_MODEL_STRONG` karena jalur inilah satu-satunya yang menuntut pengetahuan
+   * teknik luas: ekstraksi dan pemahaman tetap cukup di model lokal yang gratis, sementara jalur
+   * ini boleh menunjuk model hosted sendiri lewat `KNOWLEDGE_BASE_URL`.
+   */
+  LLM_MODEL_KNOWLEDGE: z.string().min(1).optional(),
+  /**
+   * Basis URL KHUSUS jalur pengetahuan umum. Kosong = sama dengan `OPENROUTER_BASE_URL`. Diisi
+   * saat chat sehari-hari tetap di Ollama lokal sementara jalur ini memakai penyedia hosted —
+   * persis pola `EMBEDDING_BASE_URL`, dan alasannya sama: satu basis URL tidak bisa melayani
+   * keduanya.
+   */
+  KNOWLEDGE_BASE_URL: z.string().url().optional(),
+  /** Kunci untuk `KNOWLEDGE_BASE_URL`; Ollama tidak memerlukannya. */
+  KNOWLEDGE_API_KEY: z.string().min(1).optional(),
+  /**
+   * Batas tunggu jawaban pengetahuan umum. Lewat itu panggilan DIBATALKAN dan pertanyaannya
+   * jatuh ke jalur lama (tawaran tim teknis) — lebih baik daripada giliran 71 detik yang
+   * pernah terukur di audit 2026-10-26.
+   */
+  LLM_KNOWLEDGE_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(300_000).default(20_000),
   /** Folder berkas contoh pemahaman; baku: `data/understanding` di akar repo (dicari ke atas). */
   UNDERSTANDING_DATA_DIR: z.string().min(1).optional(),
   /**

@@ -93,6 +93,7 @@ import { mergeRequirement } from '../domain/context-merger.js';
 import { defaultUpdateFor } from '../domain/requirement-defaults.js';
 import { productQueryOf, runProductQuestion } from './product-question-pipeline.js';
 import { ReplyWriter, type ReplyTurn } from './reply-writer.js';
+import type { GeneralKnowledgeWriter } from './general-knowledge.js';
 import { RequirementSnapshotStore } from './requirement-snapshot.store.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import type { ActiveSolution, ActiveSolutionRegistry } from '../domain/active-solution.port.js';
@@ -124,6 +125,11 @@ export class MessageService {
     @Optional() private readonly planner: TurnPlanner | null = null,
     /** Solusi aktif percakapan (P22-04); tanpa ini pertanyaan tentang hasil dijawab dari kebutuhan saja. */
     @Optional() private readonly activeSolution: ActiveSolutionRegistry | null = null,
+    /**
+     * Pengetahuan umum pipa (P30-01); tanpa ini pertanyaan yang tidak tercakup data tetap
+     * ditawarkan ke tim teknis, persis seperti sebelumnya.
+     */
+    @Optional() private readonly knowledge: GeneralKnowledgeWriter | null = null,
   ) {}
 
   /**
@@ -457,6 +463,7 @@ export class MessageService {
         // Baku nonaktif: teks deterministiknya utuh; model 7B hampir selalu ditolak pagar
         // struktur — satu menit untuk hasil yang dibuang (env LLM_FAQ_REWRITE).
         mode === 'kualitas' || loadEnv().LLM_FAQ_REWRITE ? productFaqSystemPrompt(locale) : null,
+        this.knowledge,
       );
       timer.mark('answer');
       // Subjek berganti ke produk yang disebut — pergantian topik yang disengaja pengguna.

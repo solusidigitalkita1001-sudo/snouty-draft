@@ -329,3 +329,53 @@ describe('skema ikut dikirim ke model', () => {
     });
   });
 });
+
+describe('jalur pengetahuan umum (P30-01)', () => {
+  it('memakai LLM_MODEL_KNOWLEDGE dan endpointnya sendiri; tercatat sebagai general_knowledge', async () => {
+    await withEnv(async () => {
+      process.env.LLM_MODEL_KNOWLEDGE = 'knowledge-model';
+      process.env.KNOWLEDGE_BASE_URL = 'https://penyedia.contoh/v1';
+      process.env.KNOWLEDGE_API_KEY = 'sk-pengetahuan';
+      const { transport, calls } = transportReturning('{"text":"Thrust block adalah …"}');
+      const { recorder, records } = recorderCapturing();
+      const svc = new OpenRouterAiService(transport, recorder, () => 0);
+
+      await svc.writeProse({
+        systemPrompt: 'P',
+        userMessage: 'apa itu thrust block?',
+        task: 'general_knowledge',
+      });
+      expect(calls[0]!.model).toBe('knowledge-model');
+      expect(calls[0]!.endpoint).toEqual({
+        baseUrl: 'https://penyedia.contoh/v1',
+        apiKey: 'sk-pengetahuan',
+      });
+      expect(records[0]!.task).toBe('general_knowledge');
+      expect(records[0]!.tier).toBe('strong');
+    });
+  });
+
+  it('tanpa LLM_MODEL_KNOWLEDGE ia ikut tingkat strong, dan tanpa endpoint khusus', async () => {
+    await withEnv(async () => {
+      const { transport, calls } = transportReturning('{"text":"…"}');
+      const { recorder } = recorderCapturing();
+      const svc = new OpenRouterAiService(transport, recorder, () => 0);
+
+      await svc.writeProse({ systemPrompt: 'P', userMessage: 'x', task: 'general_knowledge' });
+      expect(calls[0]!.model).toBe('strong-model');
+      expect(calls[0]!.endpoint).toBeUndefined();
+    });
+  });
+
+  it('prosa penjelas biasa tidak pernah memakai model pengetahuan', async () => {
+    await withEnv(async () => {
+      process.env.LLM_MODEL_KNOWLEDGE = 'knowledge-model';
+      const { transport, calls } = transportReturning('{"headline":"a","body":"b"}');
+      const { recorder } = recorderCapturing();
+      const svc = new OpenRouterAiService(transport, recorder, () => 0);
+
+      await svc.writeProse({ systemPrompt: 'P', userMessage: 'x' });
+      expect(calls[0]!.model).toBe('balanced-model');
+    });
+  });
+});

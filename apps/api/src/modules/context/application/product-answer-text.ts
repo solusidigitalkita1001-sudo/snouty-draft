@@ -54,6 +54,13 @@ export const PRODUCT_ANSWER_COPY = {
   seeDocuments: (titles: readonly string[]) => `Lihat dokumen teknis: ${titles.join('; ')}.`,
   insufficient: (label: string, name: string) =>
     `${label} untuk ${name} belum tercantum di katalog; tim teknis Pralon bisa memastikannya.`,
+  /**
+   * Jawaban pengetahuan umum yang memuat angka (P30-01): angkanya praktik dan standar umum,
+   * bukan spesifikasi Pralon. Ditempelkan KODE, bukan diminta dari prompt — provenance tidak
+   * boleh bergantung pada kepatuhan model.
+   */
+  generalPractice:
+    'Angka di atas mengikuti praktik dan standar yang disebut, bukan spesifikasi Pralon; tim teknis Pralon bisa memastikan angka resminya.',
 } as const;
 
 export const ASPECT_LABEL_EN: Readonly<Record<ProductAspect, string>> = {
@@ -91,6 +98,7 @@ export interface ProductAnswerCopy {
   readonly source: string;
   readonly seeDocuments: (titles: readonly string[]) => string;
   readonly insufficient: (label: string, name: string) => string;
+  readonly generalPractice: string;
 }
 
 export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
@@ -121,6 +129,8 @@ export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
   seeDocuments: (titles) => `See the technical documents: ${titles.join('; ')}.`,
   insufficient: (label, name) =>
     `${label} for ${name} is not listed in the catalogue yet; Pralon's technical team can confirm it.`,
+  generalPractice:
+    'The figures above follow general practice and the standards named, not Pralon specifications; the Pralon technical team can confirm the official figures.',
 };
 
 export function productAnswerCopy(locale: Locale = DEFAULT_LOCALE): ProductAnswerCopy {

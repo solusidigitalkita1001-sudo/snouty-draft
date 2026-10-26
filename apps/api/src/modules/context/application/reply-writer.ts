@@ -55,7 +55,7 @@ const replySchema = (maxLength: number) =>
   z.object({ text: z.string().trim().min(1).max(maxLength) }).strict();
 
 /** Merek pesaing yang pernah muncul di percakapan uji; Policy 1 sudah menolak sebelum sampai sini. */
-const OTHER_BRANDS = /\b(rucika|wavin|maspion|vinilon|unilon|supralon|langgeng)\b/i;
+export const OTHER_BRANDS = /\b(rucika|wavin|maspion|vinilon|unilon|supralon|langgeng)\b/i;
 /** Angka yang lazim di prosa dan tidak membawa klaim teknik. */
 const HARMLESS = new Set(['0', '1', '2']);
 /**

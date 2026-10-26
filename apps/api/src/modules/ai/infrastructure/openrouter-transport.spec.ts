@@ -112,3 +112,37 @@ describe('OpenRouterTransport', () => {
     });
   });
 });
+
+describe('endpoint per panggilan (P30-01)', () => {
+  const ok = () =>
+    new Response(JSON.stringify({ choices: [{ message: { content: '{}' } }] }), { status: 200 });
+
+  it('memakai basis URL dan kunci endpoint itu, bukan yang baku', async () => {
+    fetchMock.mockResolvedValue(ok());
+    await new OpenRouterTransport().complete({
+      ...request,
+      endpoint: { baseUrl: 'https://penyedia.contoh/v1', apiKey: 'sk-pengetahuan' },
+    });
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe('https://penyedia.contoh/v1/chat/completions');
+    expect((init!.headers as Record<string, string>).authorization).toBe('Bearer sk-pengetahuan');
+  });
+
+  it('endpoint tanpa kunci (Ollama) dikirim tanpa header authorization', async () => {
+    fetchMock.mockResolvedValue(ok());
+    await new OpenRouterTransport().complete({
+      ...request,
+      endpoint: { baseUrl: 'http://ollama:11434/v1' },
+    });
+    const [, init] = fetchMock.mock.calls[0]!;
+    expect((init!.headers as Record<string, string>).authorization).toBeUndefined();
+  });
+
+  it('tanpa endpoint, panggilan tetap ke endpoint baku dengan kunci baku', async () => {
+    fetchMock.mockResolvedValue(ok());
+    await new OpenRouterTransport().complete(request);
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
+    expect((init!.headers as Record<string, string>).authorization).toBe('Bearer sk-or-uji');
+  });
+});

@@ -995,3 +995,117 @@ describe('runProductQuestion — ukuran satu keluarga (QA smoke 2026-10-14)', ()
     expect(out).toContain('4"');
   });
 });
+
+describe('runProductQuestion — pengetahuan umum pipa (P30-01)', () => {
+  /** Penjawab pengetahuan umum palsu; mencatat apa yang ditanyakan padanya. */
+  function general(answer: string | null) {
+    return {
+      asked: [] as string[],
+      async answer({ message }: { message: string }) {
+        this.asked.push(message);
+        return answer;
+      },
+    };
+  }
+  /** Pemeta pertanyaan yang GAGAL bila dipanggil — jalur ini tidak boleh membayar model dua kali. */
+  const mustNotParse = {
+    parseProductQuestion: async () => {
+      throw new Error('pemeta pertanyaan tidak boleh dipanggil untuk pengetahuan umum');
+    },
+  } as never;
+  const KNOWLEDGE: Labels = { intent: 'knowledge_question' };
+
+  it('pertanyaan tanpa topik dijawab pengetahuan umum — dan pemeta pertanyaan tidak dipanggil', async () => {
+    const knowledge = general('Thrust block adalah blok beton penahan dorongan di belokan.');
+    const events = await runProductQuestion(
+      mustNotParse,
+      catalog({}),
+      noQuestions,
+      input('apa itu thrust block?', KNOWLEDGE),
+      null,
+      null,
+      knowledge,
+    );
+    expect(text(events)).toContain('Thrust block adalah blok beton');
+    expect(knowledge.asked).toEqual(['apa itu thrust block?']);
+    // Jawaban pengetahuan umum berdiri sendiri: tanpa ikhtisar katalog yang tidak ditanya.
+    expect(text(events)).not.toContain('keluarga');
+  });
+
+  it('topik yang punya fakta bersumber tidak pernah menyentuh jalur ini', async () => {
+    const knowledge = general('jawaban model');
+    const events = await runProductQuestion(
+      failingAi,
+      catalog({}),
+      noQuestions,
+      input('pipa pvc buat air panas bisa?', {
+        intent: 'knowledge_question',
+        knowledgeTopics: ['air panas'],
+      }),
+      null,
+      null,
+      knowledge,
+    );
+    expect(knowledge.asked).toEqual([]);
+    expect(text(events)).not.toContain('jawaban model');
+  });
+
+  it('perbandingan, ragam, dan konsep bahan tetap dijawab kode', async () => {
+    for (const labels of [COMPARISON, CONCEPT, { intent: 'product_range' } as Labels]) {
+      const knowledge = general('jawaban model');
+      await runProductQuestion(
+        failingAi,
+        catalog({ 'pvc aw': [AW] }),
+        noQuestions,
+        input('pvc dibanding hdpe gimana?', labels),
+        null,
+        null,
+        knowledge,
+      );
+      expect(knowledge.asked).toEqual([]);
+    }
+  });
+
+  it('lanjutan atas subjek tidak dijawab pengetahuan umum', async () => {
+    const knowledge = general('jawaban model');
+    await runProductQuestion(
+      failingAi,
+      catalog({ 'pvc aw': [AW] }),
+      noQuestions,
+      input(
+        'lebih detail dong',
+        { intent: 'follow_up_more' },
+        {
+          subject: { kind: 'product', entity: 'pvc aw', topic: null },
+        },
+      ),
+      null,
+      null,
+      knowledge,
+    );
+    expect(knowledge.asked).toEqual([]);
+  });
+
+  it('jawaban yang tidak lolos pagar (atau model mati) jatuh ke jalur lama, bukan ke galat', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input('apa itu thrust block?', KNOWLEDGE),
+      null,
+      null,
+      general(null),
+    );
+    expect(text(events).length).toBeGreaterThan(0);
+  });
+
+  it('tanpa penjawab yang dikonfigurasi, perilakunya sama seperti sebelum P30-01', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input('apa itu thrust block?', KNOWLEDGE),
+    );
+    expect(text(events).length).toBeGreaterThan(0);
+  });
+});

@@ -279,6 +279,14 @@ merangkai DATA itu, angka di luar DATA dan merek lain ditolak kode, fakta katalo
 ditempel. Nilai spesifikasi produk yang tidak ada di katalog Pralon tetap dikatakan tidak ada, tidak
 dijawab dari ingatan model.
 
+_Tambahan 2026-10-26 (P30-01):_ pertanyaan PENGETAHUAN pipa yang tidak punya topik di data sama
+sekali — "apa itu thrust block?", "apa bedanya pipa tekan dan non tekan?" — dulu berakhir di
+ikhtisar ragam produk, yang bukan jawaban. Pertanyaan seperti itu kini dijawab jalur pengetahuan
+umum (`docs/AI_BEHAVIOR.md` §4b): model yang ditunjuk `LLM_MODEL_KNOWLEDGE`, dipagari kode —
+jawabannya tidak boleh menyebut Pralon maupun merek lain, berbentuk prosa, dan setiap angka
+membawa baris "praktik dan standar umum, bukan spesifikasi Pralon". Yang tidak berubah: nilai
+spesifikasi produk tetap hanya dari katalog, dan tidak satu pun jalur di §4 ini memanggil model.
+
 ## 5. RAG — kriteria adopsi
 
 **Belum diadopsi.** SPEC §10 mengatakan Qdrant dipakai "hanya bila retrieval semantik memang

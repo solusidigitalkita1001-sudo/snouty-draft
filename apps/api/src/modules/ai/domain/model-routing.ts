@@ -26,7 +26,13 @@ export type LlmTask =
   | 'extraction_retry'
   | 'turn_planning'
   /** Paragraf konteks ringkasan prospek untuk sales (P26-06) — merangkum data, bukan menghitung. */
-  | 'lead_summary';
+  | 'lead_summary'
+  /**
+   * Jawaban pengetahuan umum pipa yang tidak tercakup fakta bersumber (P30-01). Satu-satunya
+   * tugas yang memakai PENGETAHUAN model, bukan hanya kemampuannya menyusun bahasa — karena itu
+   * modelnya boleh ditunjuk sendiri lewat `LLM_MODEL_KNOWLEDGE`, dan pagarnya di kode pemanggil.
+   */
+  | 'general_knowledge';
 
 /**
  * Tabel routing (docs/AI_BEHAVIOR.md). Percobaan ulang setelah validasi gagal dan
@@ -47,6 +53,8 @@ const ROUTING: Readonly<Record<LlmTask, LlmTier>> = {
   /** Perencana giliran (P16-29): JSON pendek dengan daftar tertutup — model tercepat cukup. */
   turn_planning: 'fast',
   lead_summary: 'balanced',
+  /** Pengetahuan teknik luas: tingkat tertinggi yang ada, dan biasanya modelnya sendiri. */
+  general_knowledge: 'strong',
 };
 
 export function tierForTask(task: LlmTask): LlmTier {

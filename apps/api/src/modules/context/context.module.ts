@@ -23,9 +23,10 @@ import { CompanyKnowledgeModule } from '../company-knowledge/company-knowledge.m
 import { CompanyKnowledgeService } from '../company-knowledge/application/company-knowledge.service.js';
 import { UnderstandingModule } from '../understanding/understanding.module.js';
 import { UnderstandingService } from '../understanding/application/understanding.service.js';
-import { replySystemPrompt } from '../ai/application/prompts.js';
+import { generalKnowledgeSystemPrompt, replySystemPrompt } from '../ai/application/prompts.js';
 import { IntentRouter } from './application/intent-router.js';
 import { ReplyWriter } from './application/reply-writer.js';
+import { GeneralKnowledgeWriter } from './application/general-knowledge.js';
 import { MessageService } from './application/message.service.js';
 import { RequirementSnapshotStore } from './application/requirement-snapshot.store.js';
 import {
@@ -64,6 +65,24 @@ const replyWriterProvider = {
     ai ? new ReplyWriter(ai, replySystemPrompt, loadEnv().LLM_REPLY_TIMEOUT_MS) : null,
 };
 
+/**
+ * Jawaban pengetahuan umum pipa (P30-01). Digerbang `LLM_MODEL_KNOWLEDGE`: menyebut modelnya
+ * adalah cara pemilik menyalakan jalur ini. Tanpa itu jalurnya mati dan pertanyaan tak tercakup
+ * tetap ditawarkan ke tim teknis — sama seperti sebelum P30-01.
+ */
+const generalKnowledgeProvider = {
+  provide: GeneralKnowledgeWriter,
+  inject: [AI_SERVICE],
+  useFactory: (ai: AiService | null): GeneralKnowledgeWriter | null =>
+    ai && loadEnv().LLM_MODEL_KNOWLEDGE
+      ? new GeneralKnowledgeWriter(
+          ai,
+          generalKnowledgeSystemPrompt,
+          loadEnv().LLM_KNOWLEDGE_TIMEOUT_MS,
+        )
+      : null,
+};
+
 const messageServiceProvider = {
   provide: MessageService,
   inject: [
@@ -78,6 +97,7 @@ const messageServiceProvider = {
     CompanyKnowledgeService,
     UnderstandingService,
     ActiveSolutionRegistry,
+    GeneralKnowledgeWriter,
   ],
   useFactory: (
     conversations: ConversationService,
@@ -91,6 +111,7 @@ const messageServiceProvider = {
     company: CompanyKnowledgeService,
     understanding: UnderstandingService,
     activeSolution: ActiveSolutionRegistry,
+    knowledge: GeneralKnowledgeWriter | null,
   ) =>
     new MessageService(
       conversations,
@@ -106,6 +127,7 @@ const messageServiceProvider = {
       // Perencana giliran (P16-29): model memilih tindakan untuk pesan yang bergantung konteks.
       ai && loadEnv().LLM_TURN_PLANNER ? new TurnPlanner(ai, loadEnv().LLM_REPLY_TIMEOUT_MS) : null,
       activeSolution,
+      knowledge,
     ),
 };
 
@@ -128,6 +150,7 @@ const messageServiceProvider = {
     storeProvider,
     intentRouterProvider,
     replyWriterProvider,
+    generalKnowledgeProvider,
     // Diikat modul recommendation saat init (P22-04): context tidak mengimpor recommendation.
     ActiveSolutionRegistry,
     messageServiceProvider,
