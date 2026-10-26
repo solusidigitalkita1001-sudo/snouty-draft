@@ -109,6 +109,9 @@ export function parsePlan(raw: unknown, families: readonly string[]): TurnPlan |
  */
 const STANDALONE: ReadonlySet<string> = new Set([
   'company_question',
+  // "lu bisa ngitung ga sih" tidak perlu konteks: jawabannya apa yang dikerjakan di sini, dan
+  // lewat perencana pertanyaan itu memakan 38,6 detik lalu dijawab prosa model (produksi 2026-10-26).
+  'capability_question',
   'price_question',
   'competitor_question',
   'requirement_building',

@@ -3145,3 +3145,6 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       Sekarang ada label `capability_question` dengan jawaban tetap tentang apa yang dikerjakan di
       sini. Sekalian: pesan di luar topik dan pertanyaan kemampuan tidak lagi ditulis ulang model —
       "kamu bisa apa aja?" memakan 24,8 detik untuk mengganti teks yang sudah pas.
+
+      Perencana giliran juga dilewati untuk pertanyaan ini: lewat perencana "lu bisa ngitung ga
+      sih" memakan 38,6 detik dan dijawab prosa model, padahal maknanya utuh tanpa konteks.

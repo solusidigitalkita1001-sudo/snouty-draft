@@ -262,3 +262,16 @@ describe('nama keluarga katalog di pesan (laporan pemilik 2026-10-09)', () => {
     expect(await run('fitting hdpe untuk pipa 110 mm', ['hdpe'])).toMatchObject(route);
   });
 });
+
+describe('pertanyaan kemampuan tidak direncanakan (P31-15)', () => {
+  it('"lu bisa ngitung ga sih" berdiri sendiri', async () => {
+    const { understood } = await import('../../understanding/testing/understood.js');
+    const { isConfidentStandalone } = await import('./turn-planner.js');
+    expect(
+      isConfidentStandalone({
+        ...understood('lu bisa ngitung ga sih'),
+        intent: { label: 'capability_question' as never, score: 0.88 },
+      }),
+    ).toBe(true);
+  });
+});
