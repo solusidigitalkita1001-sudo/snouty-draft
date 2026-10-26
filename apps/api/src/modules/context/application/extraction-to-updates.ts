@@ -445,6 +445,39 @@ export function statedCounts(message: string, noun: string): number[] {
   return out;
 }
 
+/**
+ * Apakah angka `n` sebenarnya milik kata benda LAIN: "8 keran wudhu di 2 tempat wudhu" menyebut
+ * 8 keran dan 2 tempat, bukan 10 keran. Angka yang menempel di depan kata bendanya sendiri selalu
+ * miliknya.
+ */
+function belongsToOtherNoun(message: string, noun: string, n: number): boolean {
+  const text = message.toLowerCase();
+  const num = String.raw`(?<![\d.,])${n}(?![\d.,]*\d)`;
+  if (new RegExp(String.raw`${num}${GAP}(?:${noun})\b`).test(text)) return false;
+  return Object.values(COUNT_NOUNS).some(
+    (other) => other !== noun && new RegExp(String.raw`${num}${GAP}(?:${other})\b`).test(text),
+  );
+}
+
+/** Kata yang membetulkan angka sebelumnya — di kalimat begitu dua angka bukan dua bagian. */
+const CORRECTION =
+  /\bbukan\b|\bmaksud(?:nya)?\b|\bralat\b|\bkoreksi\b|\bsalah\b|\bnot\b|\binstead\b/i;
+
+/**
+ * Jumlah yang DIBAGI per posisi dalam satu kalimat ("atasnya ada 2 kamar mandi bawahnya 1"):
+ * totalnya adalah jumlah keduanya. Produksi 2026-10-26: pesan itu tercatat 2 kamar mandi dari 3,
+ * diam-diam, karena angka tersurat yang pertama dipakai apa adanya dan field-nya lalu dianggap
+ * terisi. Tidak dipakai bila kalimatnya memakai satuan "per lantai" (itu pengali, bukan pembagian)
+ * atau membetulkan angka sebelumnya — di situ totalnya memang tidak terbaca dari kalimatnya.
+ */
+function splitCount(message: string, noun: string): number | undefined {
+  if (message === '' || noun === '') return undefined;
+  if (mentionsPerFloor(message, noun) || CORRECTION.test(message)) return undefined;
+  const stated = statedCounts(message, noun).filter((n) => !belongsToOtherNoun(message, noun, n));
+  if (stated.length < 2) return undefined;
+  return stated.reduce((total, n) => total + n, 0);
+}
+
 /** Batas kewajaran jumlah alat dalam satu bangunan — di atas ini angka model tidak dipercaya. */
 const PLAUSIBLE_COUNT_MAX = 200;
 
@@ -572,16 +605,27 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     const marker = GROUNDING[path];
     if (marker && message !== '' && !marker.test(message)) return; // tidak pernah diucapkan
     const noun = COUNT_NOUNS[path];
-    if (message !== '' && noun !== undefined && typeof value === 'number') {
+    // Kalimat yang membagi jumlahnya per posisi ("atasnya ada 2 kamar mandi bawahnya 1")
+    // tercatat sebagai totalnya, bukan bagian pertamanya. Titik air dikecualikan: di kalimat
+    // renovasi angkanya milik titik LAMA dan titik TAMBAHAN, yang punya field sendiri.
+    const split =
+      noun !== undefined &&
+      path.startsWith('fixtures.') &&
+      path !== 'fixtures.outletCount' &&
+      typeof value === 'number'
+        ? splitCount(message, noun)
+        : undefined;
+    const recorded = split ?? value;
+    if (message !== '' && noun !== undefined && typeof recorded === 'number') {
       // Jumlah lantai sendiri tidak boleh "dikalikan lantai" — ia yang jadi pengalinya.
       const floors = path === 'building.floors' ? undefined : floorsStated;
-      if (confirmCount(message, noun, value, floors) === undefined) return;
+      if (confirmCount(message, noun, recorded, floors) === undefined) return;
     }
     if (message !== '' && path === 'building.type' && typeof value === 'string') {
       const typeMarker = TYPE_MARKERS[value as keyof typeof TYPE_MARKERS];
       if (typeMarker !== undefined && !typeMarker.test(message)) return; // bangunan tak disebut
     }
-    updates.push({ path, value, source: 'user_stated' });
+    updates.push({ path, value: recorded, source: 'user_stated' });
   };
 
   // Jenis yang tersurat di pesan menang atas tebakan model (model bisa memakai kelas lama, mis.

@@ -155,3 +155,43 @@ describe('perubahan tersurat dengan kata "jadi" (produksi 2026-10-26)', () => {
     expect(value('kamar mandi di lantai 2 bocor', 'building.floors')).toBeUndefined();
   });
 });
+
+describe('jumlah yang dibagi per posisi (produksi 2026-10-26)', () => {
+  const value = (message: string, path: string, extraction = {}) =>
+    extractionToUpdates(extraction, message).find((u) => u.path === path)?.value;
+
+  it('"atasnya 2 kamar mandi bawahnya 1" tercatat 3', () => {
+    const message =
+      'renov rumah ortu, 2 lantai, atasnya ada 2 kamar mandi bawahnya 1, dapur 1, cucian 1';
+    expect(value(message, 'fixtures.bathrooms')).toBe(3);
+    // Angka model yang hanya mengambil bagian pertamanya pun tidak lagi dipakai apa adanya.
+    expect(value(message, 'fixtures.bathrooms', { fixtures: { bathrooms: 2 } })).toBe(3);
+    expect(value(message, 'fixtures.kitchens')).toBe(1);
+  });
+
+  it('satu angka, satuan per lantai, dan pembetulan tidak dijumlahkan', () => {
+    expect(value('rumah 2 lantai, 3 kamar mandi', 'fixtures.bathrooms')).toBe(3);
+    expect(value('gedung 3 lantai, 6 kamar mandi per lantai', 'fixtures.bathrooms')).toBe(18);
+    // Kalimat pembetulan tidak dijumlahkan (angka mana yang berlaku urusan parser lain).
+    expect(value('bukan 3 kamar mandi, 2 kamar mandi aja', 'fixtures.bathrooms')).not.toBe(5);
+  });
+
+  it('titik air di kalimat renovasi tetap bukan jumlah baru', () => {
+    expect(
+      value('sudah ada 4 titik air, mau tambah 2 titik', 'fixtures.outletCount'),
+    ).toBeUndefined();
+  });
+});
+
+describe('angka milik kata benda lain (produksi 2026-10-26)', () => {
+  const value = (message: string, path: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === path)?.value;
+
+  it('"8 keran wudhu di 2 tempat wudhu" tetap 8 keran dan 2 tempat', () => {
+    const message =
+      'Masjid 2 lantai, 4 kamar mandi, 8 keran wudhu di 2 tempat wudhu, 3 urinoir, PDAM';
+    expect(value(message, 'fixtures.wudhuTaps')).toBe(8);
+    expect(value(message, 'fixtures.wudhuAreas')).toBe(2);
+    expect(value(message, 'fixtures.bathrooms')).toBe(4);
+  });
+});
