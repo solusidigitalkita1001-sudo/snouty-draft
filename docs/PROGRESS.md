@@ -3474,3 +3474,10 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       solusinya sudah dihitung tidak lagi dianggap tanpa acuan: jalur-jalur solusinya yang
       dibacakan. "butuh berapa batang pipa buat rumah ini" juga masuk contoh pertanyaan jumlah
       batang, supaya jawabannya baris pipanya saja (P31-48).
+
+- [x] P31-51 Pernyataan kasus bernilai menang atas topik pengetahuan
+
+      Satu contoh pertanyaan bentuk sistem ("which pipes do i need to buy") menarik pertanyaan FAQ
+      "Pipa yg cocok buat proyek perumahan 50 unit?" ke jawaban pengetahuan tentang sambungan
+      rumah — kasus clusternya hilang (FAQ MA-07, 18/19). Pesan yang menyatakan kasusnya sendiri
+      dengan angkanya sekarang selalu kebutuhan, apa pun bentuk kalimatnya.

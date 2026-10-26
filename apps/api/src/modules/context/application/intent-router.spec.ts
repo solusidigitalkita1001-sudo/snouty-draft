@@ -605,3 +605,26 @@ describe('pertanyaan pengetahuan tak tercakup diputuskan tanpa model (P30-07)', 
     expect(calls()).toBe(0);
   });
 });
+
+/**
+ * FAQ MA-07 ("Pipa yg cocok buat proyek perumahan 50 unit?") jatuh ke jawaban pengetahuan setelah
+ * satu contoh pertanyaan bentuk sistem ditambahkan: pesan yang menyatakan kasusnya sendiri dengan
+ * angkanya adalah kebutuhan, bukan pelajaran umum.
+ */
+describe('pernyataan kasus bernilai menang atas topik pengetahuan', () => {
+  it('"pipa yg cocok buat proyek perumahan 50 unit?" bukan jawaban pengetahuan', async () => {
+    const { answersFromKnowledge } = await import('./intent-router.js');
+    const { understood } = await import('../../understanding/testing/understood.js');
+    const message = 'Pipa yg cocok buat proyek perumahan 50 unit?';
+    expect(
+      answersFromKnowledge(
+        understood(message, {
+          intent: 'system_layout_question',
+          useCase: 'residential_cluster',
+          mentionsRequirement: true,
+          knowledgeTopics: ['sambungan rumah'],
+        }),
+      ),
+    ).toBe(false);
+  });
+});

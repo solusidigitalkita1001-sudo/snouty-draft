@@ -586,6 +586,10 @@ export function answersFromKnowledge(u: MessageUnderstanding): boolean {
     (v) => v.path !== 'building.dimensions',
   );
   if (calculation && statesValues) return false;
+  // Pesan yang menyatakan kasusnya sendiri dengan angkanya ("pipa yg cocok buat proyek perumahan
+  // 50 unit?") adalah kebutuhan, bukan pelajaran umum — apa pun bentuk kalimatnya. Tanpa aturan
+  // ini satu contoh pertanyaan bentuk sistem menariknya ke jawaban pengetahuan (FAQ MA-07).
+  if (isCaseStatement(u)) return false;
   if (u.intent?.label === 'system_layout_question' && !calculation) return false;
   const requirement = u.intent?.label.startsWith('requirement_') ?? false;
   return !requirement || calculation;
