@@ -84,7 +84,14 @@ export function certainIntent(
   // puluhan detik untuk sampai ke kesimpulan yang sama.
   if (fine === undefined) {
     if (u.mentionsCompetitor) return null;
-    return answersFromKnowledge(u) || asksGeneralKnowledge(u) ? sure('PRODUCT_LOOKUP') : null;
+    if (answersFromKnowledge(u) || asksGeneralKnowledge(u)) return sure('PRODUCT_LOOKUP');
+    // Ragu tetapi menyebut sendiri keluarga produknya dan tidak membawa kebutuhan: "Gue butuh
+    // fitting elbow 90 derajat buat uPVC 3/4". Ada rekomendasi Pralon?" dijawab ruas pertanyaan
+    // produk dari katalog, dan keluarganya datang dari kosakata — pencocokan nama, bukan tebakan.
+    // Menanyakannya ke model generatif di CPU hanya menambah waktu untuk kesimpulan yang sama:
+    // 15,8 detik di tahap routing, dari 16,2 detik seluruh giliran (produksi 2026-10-26).
+    if (u.families.length > 0 && !u.mentionsRequirement) return sure('PRODUCT_LOOKUP');
+    return null;
   }
 
   if (fine === 'greeting' || fine === 'out_of_scope' || isSocial(fine)) return sure('OUT_OF_SCOPE');

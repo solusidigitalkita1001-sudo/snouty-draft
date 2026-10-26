@@ -566,6 +566,31 @@ describe('pertanyaan pengetahuan tak tercakup diputuskan tanpa model (P30-07)', 
     expect(d.intent).not.toBe('PRODUCT_LOOKUP');
   });
 
+  it('ragu tetapi menyebut keluarga produknya sendiri: pencarian produk, nol panggilan model (P31-06)', async () => {
+    const { ai, calls } = countingAi({ intent: 'OUT_OF_SCOPE', confidence: 1 });
+    const d = await new IntentRouter(ai).route(
+      understood('Gue butuh fitting elbow 90 derajat buat uPVC 3/4". Ada rekomendasi Pralon?', {
+        intent: null,
+        families: ['PVC AW'],
+      }),
+      false,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+    expect(calls()).toBe(0);
+  });
+
+  it('ragu, menyebut keluarga, tetapi juga membawa kebutuhan: tetap kebutuhan', async () => {
+    const d = await router({ intent: 'OUT_OF_SCOPE', confidence: 1 }).route(
+      understood('rumah 2 lantai mau pakai pvc aw', {
+        intent: null,
+        families: ['PVC AW'],
+        mentionsRequirement: true,
+      }),
+      false,
+    );
+    expect(d.intent).toBe('REQUIREMENT_STATEMENT');
+  });
+
   it('kebutuhan dengan angka tetap dihitung, bukan ditarik ke jalur pengetahuan', async () => {
     const { ai, calls } = countingAi({ intent: 'OUT_OF_SCOPE', confidence: 1 });
     const d = await new IntentRouter(ai).route(

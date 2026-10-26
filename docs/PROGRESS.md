@@ -3006,3 +3006,18 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       tujuh belas pertanyaan daftar serta ketersediaan semuanya dipimpin `none`. Ambang 0,72 → 0,68.
       Empat kasus emas ditambahkan, termasuk kalimat PP-42 sendiri, supaya kelas kekeliruan ini
       tertangkap evaluasi dan bukan produksi.
+
+- [x] P31-06 Pesan ragu yang menyebut keluarga produknya tidak diklasifikasi model
+
+      P31-02 berhasil — perencana giliran benar-benar tidak dipanggil lagi untuk "Gue butuh fitting
+      elbow 90 derajat buat uPVC 3/4". Ada rekomendasi Pralon?" — tetapi gilirannya tetap 16,2
+      detik, dan log tahapnya menunjukkan di mana: `route` 15.793 ms. Waktunya bukan hilang,
+      hanya pindah. Intent pesan itu ragu, dan router menyerahkan pesan ragu ke klasifikasi model
+      di CPU.
+
+      Padahal pesan itu menyebut sendiri keluarga produknya, keluarganya datang dari kosakata
+      (pencocokan nama), dan ruas pertanyaan produk menjawabnya dari katalog tanpa model sama
+      sekali — jawaban yang muncul setelah 16 detik itu memang jawaban katalog. Jadi intent ragu
+      yang menyebut keluarga produk dan tidak membawa kebutuhan diputuskan di kode sebagai
+      pencarian produk. Pesan yang juga membawa kebutuhan tetap kebutuhan, dan pesan yang menyebut
+      pesaing tetap ditolak lebih dulu oleh Policy 1.
