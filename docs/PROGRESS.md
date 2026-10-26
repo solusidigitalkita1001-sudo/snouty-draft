@@ -2909,3 +2909,44 @@ Yang masih menunggu pemilik tetap satu: `LLM_MODEL_KNOWLEDGE` beserta kuncinya (
 pertanyaan yang sekarang dijawab terus terang itulah yang berubah menjadi jawaban sungguhan begitu
 baris itu terisi — dan sembilan-sembilannya sudah terbukti sampai ke jalur yang benar dalam waktu di
 bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
+
+## Fase 31 — panggilan model yang tidak perlu
+
+- [x] P31-01 Katalog pemahaman `extreme`: "paling kecil" / "paling besar" sebagai label sendiri
+
+      "pvc aw paling kecil berapa?" dan "ada ukuran apa saja?" sama-sama beraspek ukuran dan
+      sama-sama menyebut keluarganya — dari luar tidak terbedakan, sehingga ruas pertanyaan produk
+      selalu memanggil `familySizeAnswer` dengan `extreme: null` dan menjawab seluruh daftar.
+      Satu-satunya yang bisa membaca kata itu adalah perencana giliran, yang berarti satu panggilan
+      model untuk satu kata. Kini kata itu punya katalognya sendiri (`smallest` / `largest` /
+      `none`), disandikan seperti katalog lain, dan ruas pertanyaan produk meneruskan
+      `u.extreme`.
+
+      Dua kasus emas jatuh di evaluasi pertama — "ukuran paling mini" dan "ada yang lebih
+      mungil dari 1/2 inci" — karena kata pembedanya belum pernah muncul di contoh. Yang ditambah
+      adalah kata itu sendiri dalam kalimat lain ("yang paling mini ukurannya berapa?", "ada yang
+      lebih mungil dari ukuran itu?"), bukan rangka kalimat kasus emasnya, beserta pasangan
+      besarnya ("gede", "jumbo") supaya kedua sisi punya kosakata sehari-hari yang sama tebalnya.
+
+      Satu kasus tetap jatuh, dan penyebabnya ternyata lebih dalam: "pvc d ukuran paling mini"
+      dijawab `largest` karena "pvc d" hanya ada di contoh sisi besar. Nama keluarga adalah token
+      dominan di katalog ini, dan label yang memilikinya sendirian merebut setiap pesan yang
+      menyebutnya. Dicabut seluruhnya pun tidak selamat: tanpa nama keluarga katalognya tidak lagi
+      terpisah — kasus emas terendah 0,726 sementara "ada ukuran yang pas buat saluran kecil?"
+      justru 0,735 di sisi kecil, jadi tidak ada ambang yang memisahkan keduanya. Yang dipakai:
+      setiap nama keluarga muncul di **ketiga** label, sehingga tokennya saling menghapus dan yang
+      menentukan tinggal kata ujungnya. Ambang 0,74 → 0,72, sebab kasus terendah yang benar
+      ("fitting pvc ada yang lebih mungil dari 1/2 inci?") berhenti di 0,731 dengan jarak 0,065 ke
+      label berikutnya; lima belas pesan berisiko yang diuji semuanya tetap dipimpin `none`.
+
+- [x] P31-02 Perencana giliran dilewati untuk pesan yang menyebut keluarga katalognya sendiri
+
+      "Gue butuh fitting elbow 90 derajat buat uPVC 3/4". Ada rekomendasi Pralon?" memakan 10,6
+      detik di produksi, 10,2 detik di antaranya menunggu perencana — padahal keluarganya datang
+      dari kosakata (pencocokan nama) dan ukurannya dari parser nilai, dan ruas pertanyaan produk
+      menjawabnya dari katalog tanpa model sama sekali. Pesan yang juga menyebut kebutuhan tidak
+      ikut dilewati; itu jalur kebutuhan.
+
+- [x] P31-02a Tes (4): tiga di ruas pertanyaan produk (terkecil, terbesar, daftar penuh bila tidak
+      diminta ujung) dan satu yang memastikan perencana tidak dipanggil untuk pertanyaan fitting
+      berukuran

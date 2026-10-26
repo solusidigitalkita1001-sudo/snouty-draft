@@ -683,6 +683,19 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     expect(planner.plan).not.toHaveBeenCalled();
   });
 
+  it('pesan yang menyebut keluarga katalognya sendiri tidak lewat perencana (P31-02)', async () => {
+    const { service, planner } = setup(
+      [
+        { role: 'user', text: 'halo' },
+        { role: 'assistant', text: 'Halo! Saya SNOUTY.' },
+      ],
+      { 'fitting elbow 90 derajat buat uPVC 3/4 ada?': { intent: null } },
+    );
+    await service.handle('C'.repeat(26), ACTOR, 'fitting elbow 90 derajat buat uPVC 3/4 ada?', 'T');
+    // Di produksi 2026-10-26 pertanyaan ini memakan 10,6 detik; 10,2 detiknya menunggu perencana.
+    expect(planner.plan).not.toHaveBeenCalled();
+  });
+
   it('pesan berisi data bangunan tidak lewat perencana', async () => {
     const { service, planner, router } = setup(
       [

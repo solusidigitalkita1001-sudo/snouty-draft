@@ -16,6 +16,7 @@ import type {
   MutationOpLabel,
   ProductAspectLabel,
   UseCaseLabel,
+  ExtremeLabel,
 } from '../domain/labels.js';
 
 export interface Match<L extends string = string> {
@@ -37,6 +38,8 @@ export interface MessageUnderstanding {
   readonly mutationOp: MutationOpLabel | null;
   /** Jenis kasus instalasi yang diceritakan (P16-14); `null` = tidak menceritakan instalasi. */
   readonly useCase: UseCaseLabel | null;
+  /** Ukuran paling ujung yang diminta (P31-01): terkecil/terbesar; `null` = pertanyaan ukuran biasa. */
+  readonly extreme: ExtremeLabel | null;
   /** Menyebut fluida/kondisi di luar cakupan (air panas, uap, kimia — kosakata). */
   readonly mentionsOutOfScopeFluid: boolean;
   /** Keluarga produk yang disebut (kosakata), kanonis, urut kemunculan. */
@@ -73,6 +76,7 @@ export function unavailableUnderstanding(
     knowledgeTopics: [],
     mutationOp: null,
     useCase: null,
+    extreme: null,
     mentionsOutOfScopeFluid: lexicon?.mentionsOutOfScopeFluid(text) ?? false,
     families: lexicon?.productFamilies(text) ?? [],
     mentionsCompetitor: lexicon?.mentionsCompetitor(text) ?? false,

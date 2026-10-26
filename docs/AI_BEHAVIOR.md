@@ -158,7 +158,9 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
   klarifikasi, penjelasan, enam jenis lanjutan), `depth`, `format`, `company-topic`,
   `product-aspect`, `knowledge-topic` (multi-label), `mutation-op` (tambah/kurangi atas state, P16-12),
   `use-case` (jenis kasus instalasi = `CaseId` engineering, P16-14: menggantikan pengklasifikasi
-  regex berbobot; irigasi pun dikenali dari sini). Tiap label berisi kalimat contoh dua bahasa.
+  regex berbobot; irigasi pun dikenali dari sini), `extreme` (terkecil/terbesar, P31-01: sebelumnya
+  hanya perencana giliran yang bisa membacanya — satu panggilan model ±10 detik di CPU untuk satu
+  kata). Tiap label berisi kalimat contoh dua bahasa.
   Berkas memuat `threshold` (kemiripan minimum) dan `margin` (selisih minimum atas label kedua;
   di bawahnya "ragu"). Katalog faset (`depth`, `format`, `company-topic`, `product-aspect`,
   `knowledge-topic`) juga memuat label **`none`**: kalimat biasa yang TIDAK membawa faset itu
@@ -172,6 +174,15 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
   Window topik pengetahuan **0,02** sejak P30-02: pada 0,04 selisih 0,02–0,04 hampir selalu
   paragraf yang tidak ditanya — pertanyaan ventilasi saluran ikut dijawab kelas AW/D, pertanyaan
   irigasi menarik tiga topik (audit 2026-10-26). Yang memang dua topik selisihnya jauh lebih kecil.
+  **Nama keluarga produk harus seimbang di semua label satu katalog** (P31-01). Di katalog
+  `extreme` nama keluarga adalah token terkuat: selama "pvc d" hanya ada di sisi `largest`,
+  "pvc d ada ukuran apa saja?" terbaca `largest` 0,909 dan "pvc d ukuran paling mini" pun ikut.
+  Mencabut nama keluarga dari seluruh katalog tidak menyelamatkannya — tanpa nama itu kasus benar
+  terendah turun ke 0,726 sementara pesan yang bukan ujung ("ada ukuran yang pas buat saluran
+  kecil?") naik ke 0,735, dan dua angka itu tidak terpisah oleh ambang mana pun. Yang benar:
+  setiap nama keluarga muncul di ketiga label, sehingga tokennya saling menghapus dan keputusan
+  jatuh pada kata yang memang membedakan. Menambah satu contoh bernama keluarga hanya di satu
+  label adalah cara termudah merusak sebuah katalog.
 - **Kosakata entitas.** `vocabulary.json` (juga `outOfScopeFluids` untuk kebijakan cakupan; suhu ≥ 45 °C
   dibaca parser angka di `context`, batasnya aturan `policy/scope.ts`): keluarga produk kanonis beserta aliasnya, merek sendiri,
   merek dan rujukan pesaing, hal-hal kebutuhan. Dicocokkan pada batas kata — ini pengenalan NAMA,

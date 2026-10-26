@@ -76,6 +76,7 @@ import { executePlan } from './plan-executor.js';
 import {
   isConfidentStandalone,
   isStructuredProductFollowUp,
+  namesCatalogFamily,
   type TurnPlanner,
 } from './turn-planner.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
@@ -358,6 +359,8 @@ export class MessageService {
       !isStructuredProductFollowUp(u, state.subject, text, (f) =>
         this.lexicon().isFittingFamily(f),
       ) &&
+      // Pesan yang menyebut sendiri keluarga katalognya dijawab kode dari katalog (P31-02).
+      !namesCatalogFamily(u, (f) => this.lexicon().isCatalogFamily(f)) &&
       // Lanjutan atas subjek aktif ("boleh", "lebih detail dong") diputuskan kode dari subjeknya;
       // lewat perencana dulu ia 10–30 s dan dijawab karangan model (simulasi 2026-10-19).
       subjectContinuation(u, state.subject) === null &&

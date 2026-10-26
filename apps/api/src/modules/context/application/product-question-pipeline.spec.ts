@@ -1187,3 +1187,50 @@ describe('runProductQuestion — pengetahuan umum pipa (P30-01)', () => {
     }
   });
 });
+
+describe('runProductQuestion — ukuran terkecil/terbesar dari katalog contoh (P31-01)', () => {
+  const pipe = (id: string, size: string): Product => ({
+    ...AW,
+    id: id.padEnd(26, '0'),
+    sku: id,
+    name: `Pipa (TS End) Putih AW ${size} x 4 Meter`,
+    sizes: [size],
+  });
+  const items = [pipe('A1', '1/2"'), pipe('A2', '2"'), pipe('A3', '4"')];
+
+  it('"paling kecil" dijawab satu ukuran, bukan seluruh daftar — tanpa perencana', async () => {
+    const events = await runProductQuestion(
+      failingAi,
+      catalog({ 'pvc aw': items, semua: items }),
+      noQuestions,
+      input('pvc aw paling kecil berapa?', { ...SPEC('sizes'), extreme: 'smallest' }),
+    );
+    const out = text(events);
+    expect(out).toContain('1/2"');
+    expect(out).not.toContain('4"');
+  });
+
+  it('"paling besar" dijawab ukuran terbesarnya', async () => {
+    const events = await runProductQuestion(
+      failingAi,
+      catalog({ 'pvc aw': items, semua: items }),
+      noQuestions,
+      input('pvc aw paling besar berapa?', { ...SPEC('sizes'), extreme: 'largest' }),
+    );
+    const out = text(events);
+    expect(out).toContain('4"');
+    expect(out).not.toContain('1/2"');
+  });
+
+  it('tanpa penanda terkecil/terbesar, daftar ukurannya tetap utuh', async () => {
+    const events = await runProductQuestion(
+      failingAi,
+      catalog({ 'pvc aw': items, semua: items }),
+      noQuestions,
+      input('pvc aw ada ukuran apa saja?', SPEC('sizes')),
+    );
+    const out = text(events);
+    expect(out).toContain('1/2"');
+    expect(out).toContain('4"');
+  });
+});

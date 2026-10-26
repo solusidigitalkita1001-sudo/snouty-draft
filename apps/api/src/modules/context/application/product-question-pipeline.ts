@@ -567,10 +567,12 @@ export async function runProductQuestion(
 
   // "pipa pvc aw ada ukuran apa saja?" — ukuran seluruh keluarga dari katalog, bukan ukuran satu
   // produk teratas (QA smoke 2026-10-14: dijawab "…AW - Lon 4\" x 4 Meter: 4\"").
+  // "pvc aw paling kecil berapa?" dijawab satu ukuran, bukan seluruh daftar: terkecil/terbesar
+  // dibaca katalog contoh `extreme` (P31-01), bukan lagi perencana giliran yang memanggil model.
   if (aspect === 'sizes' && continued === null && u.families.length === 1) {
     const family = await catalogFamily(catalog, u.families[0]!);
     const sizes =
-      family === null ? null : await familySizeAnswer(catalog, family, null, null, locale);
+      family === null ? null : await familySizeAnswer(catalog, family, null, u.extreme, locale);
     if (sizes !== null) {
       return [
         { type: 'message.start', messageId: input.messageId },

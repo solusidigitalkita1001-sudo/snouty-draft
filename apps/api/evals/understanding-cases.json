@@ -1467,6 +1467,43 @@
       "topics": ["bahan di luar katalog"],
       "topicsOnly": true,
       "source": "P28-06"
+    },
+    {
+      "text": "pvc d ukuran paling mini yang ada berapa?",
+      "extreme": "smallest",
+      "productAspect": "sizes",
+      "source": "P31-01 katalog extreme"
+    },
+    {
+      "text": "hdpe yang gede banget ada sampai ukuran berapa?",
+      "extreme": "largest",
+      "source": "P31-01 katalog extreme"
+    },
+    {
+      "text": "fitting pvc ada yang lebih mungil dari 1/2 inci?",
+      "extreme": "smallest",
+      "source": "P31-01 katalog extreme"
+    },
+    {
+      "text": "show me the biggest HDPE size you make",
+      "extreme": "largest",
+      "source": "P31-01 katalog extreme"
+    },
+    {
+      "text": "pipa pvc aw tersedia ukuran berapa saja ya?",
+      "extreme": null,
+      "productAspect": "sizes",
+      "source": "P31-01 katalog extreme — daftar, bukan ujung"
+    },
+    {
+      "text": "apakah ukuran 110 mm tersedia untuk hdpe?",
+      "extreme": null,
+      "source": "P31-01 katalog extreme — ketersediaan, bukan ujung"
+    },
+    {
+      "text": "rumah dua lantai dengan tiga kamar mandi",
+      "extreme": null,
+      "source": "P31-01 katalog extreme — kebutuhan tidak membawa ujung"
     }
   ]
 }

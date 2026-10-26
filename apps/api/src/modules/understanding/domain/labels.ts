@@ -179,6 +179,15 @@ export const USE_CASES = [
 ] as const;
 export type UseCaseLabel = (typeof USE_CASES)[number];
 
+/**
+ * Ukuran paling ujung yang diminta pesan (P31-01): "paling kecil berapa?", "yang terbesar ada
+ * ukuran apa?". Sebelumnya hanya perencana giliran yang bisa membacanya — satu panggilan model
+ * ±10 detik di CPU untuk satu kata. Sebagai katalog contoh, ia dibaca dari data tanpa model
+ * generatif, dan bisa ditambah tanpa mengubah kode.
+ */
+export const EXTREMES = ['smallest', 'largest'] as const;
+export type ExtremeLabel = (typeof EXTREMES)[number];
+
 /** Nama katalog data → label yang sah di dalamnya. */
 export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   intent: FINE_INTENTS,
@@ -189,6 +198,7 @@ export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   'knowledge-topic': KNOWLEDGE_TOPICS,
   'mutation-op': MUTATION_OPS,
   'use-case': USE_CASES,
+  extreme: EXTREMES,
 };
 export type CatalogName = keyof typeof CATALOG_LABELS;
 

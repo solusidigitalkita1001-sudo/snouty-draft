@@ -144,6 +144,23 @@ export function isStructuredProductFollowUp(
   return u.families.length > 0 && u.families.every(isFittingFamily);
 }
 
+/**
+ * Pesan yang menyebut SENDIRI keluarga produk katalognya ("fitting elbow 90 derajat buat uPVC
+ * 3/4"") sudah membawa apa yang dicari: keluarganya dari kosakata — pencocokan nama, bukan
+ * tebakan model — dan ukurannya dari parser nilai. Ruas pertanyaan produk menjawabnya dari
+ * katalog, jadi perencana hanya menambah waktu: di produksi 2026-10-26 pertanyaan itu memakan
+ * 10,6 detik, 10,2 detik di antaranya menunggu perencana.
+ *
+ * Pesan yang juga menyebut kebutuhan ("pipa buat rumah 2 lantai") tidak termasuk — itu jalur
+ * kebutuhan, dan presedensinya sudah diputuskan di tempat lain.
+ */
+export function namesCatalogFamily(
+  u: MessageUnderstanding,
+  isCatalogFamily: (family: string) => boolean,
+): boolean {
+  return !u.mentionsRequirement && u.families.some(isCatalogFamily);
+}
+
 export class TurnPlanner {
   constructor(
     private readonly ai: ReplyCapableAi,

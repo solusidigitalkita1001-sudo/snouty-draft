@@ -25,6 +25,7 @@ import type {
   MutationOpLabel,
   ProductAspectLabel,
   UseCaseLabel,
+  ExtremeLabel,
 } from '../domain/labels.js';
 import type { EntityLexicon } from '../domain/vocabulary.js';
 import type { VectorCache } from '../infrastructure/file-vector.cache.js';
@@ -119,6 +120,9 @@ export class UnderstandingService {
       mentionsRequirement: this.lexicon.mentionsRequirementEntity(message),
       mentionsOutOfScopeFluid: this.lexicon.mentionsOutOfScopeFluid(message),
       useCase: (this.verdict('use-case', query).best?.label as UseCaseLabel | undefined) ?? null,
+      // Nilai di pesan ditutupi untuk aspek; untuk terkecil/terbesar justru angkanya yang tidak
+      // relevan, jadi kueri biasa yang dipakai.
+      extreme: (this.verdict('extreme', query).best?.label as ExtremeLabel | undefined) ?? null,
       intentRanking: intent.ranked,
       topicRanking: knowledge.ranked.slice(0, 5),
     };
