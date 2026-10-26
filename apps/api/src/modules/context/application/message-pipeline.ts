@@ -436,7 +436,14 @@ export async function runUnderstanding(
   // lanjutannya tidak mengubah satu angka pun — hanya menambah belasan detik.
   const handedOff =
     followUpCard(withCompleteness(input.state), input.locale)?.kind === 'unsupported';
-  const skipModel = quickCore >= 2 || house || mutationOp !== null || adviceOnly || handedOff;
+  // Percakapan yang jenis bangunannya sudah tercatat: nilai di pesan lanjutan dibaca parser nilai,
+  // dan yang tidak disebut ditanya kartu klarifikasi. Model ekstraksi hanya menambah puluhan detik
+  // di CPU — di produksi 2026-10-26 percakapan kos 4 lantai memakai 28,4 s lalu 90,5 s lalu 35,4 s
+  // untuk tiga pesan yang nilainya sudah terbaca kode ("torennya di atas", "tanahnya 15 x 25 m").
+  const onRecord =
+    input.state.building.type.value !== null && extractionToUpdates({}, input.message).length > 0;
+  const skipModel =
+    quickCore >= 2 || house || mutationOp !== null || adviceOnly || handedOff || onRecord;
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
     extraction = skipModel ? {} : await ai.extract(input.message);

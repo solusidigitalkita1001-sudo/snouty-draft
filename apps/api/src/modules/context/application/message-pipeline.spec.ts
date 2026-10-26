@@ -1222,3 +1222,28 @@ describe('kasus irigasi yang sudah berjalan (P31-31)', () => {
     });
   });
 });
+
+describe('jenis bangunan sudah tercatat (P31-34)', () => {
+  it('pesan lanjutan yang nilainya terbaca kode tidak memanggil model ekstraksi', async () => {
+    const kos = mergeRequirement(
+      emptyRequirementState(T0),
+      [
+        { path: 'building.type', value: 'boarding_house', source: 'user_stated' },
+        { path: 'building.floors', value: 4, source: 'user_stated' },
+        { path: 'fixtures.bathrooms', value: 32, source: 'user_stated' },
+      ],
+      T0,
+    ).state;
+    const ai = aiExtracting({ water: { source: 'rooftop_tank' } });
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'airnya dari sumur bor pakai pompa, torennya di atas', state: kos }),
+    );
+
+    // Di produksi 2026-10-26 pesan ini memakai 90,5 detik di model ekstraksi untuk nilai yang
+    // sudah dibaca parser nilai.
+    expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('toren atap');
+  });
+});
