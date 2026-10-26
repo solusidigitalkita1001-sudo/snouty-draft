@@ -299,7 +299,10 @@
       "kenapa pipa buangan beda sama pipa air bersih?",
       "pipa air buangan pakai apa?",
       "pipa buat air buangan kloset pakai apa?",
-      "pipa floor drain pakai kelas apa?"
+      "pipa floor drain pakai kelas apa?",
+      "apa bedanya pipa tekan dan pipa non tekan?",
+      "pipa non tekan dipakai untuk apa?",
+      "what is the difference between pressure and non-pressure pipe?"
     ],
     "kaku vs lentur": [
       "pipa kaku dan lentur bedanya?",
@@ -433,7 +436,24 @@
       "lagi ngerjain renovasi kamar mandi, pipa yang cocok buat pengerjaan ini apa",
       "lagi ngerjain proyek ruko, pipa yang cocok buat pengerjaan ini apa",
       "lagi renovasi rumah, pipanya pakai apa ya",
-      "mau renovasi kamar mandi, butuh pipa apa aja"
+      "mau renovasi kamar mandi, butuh pipa apa aja",
+      "pipa pvc boleh dibengkokkan dengan cara dipanaskan?",
+      "pipa pvc bisa ditekuk kalau dipanaskan?",
+      "can PVC pipe be bent by heating it?",
+      "pipa hdpe kalau kena panas matahari memanjang ngga?",
+      "pipa memuai berapa kalau kena panas?",
+      "does HDPE pipe expand lengthwise in the heat?",
+      "pipa pvc ketanam bisa pecah kena akar pohon ngga?",
+      "akar pohon bisa merusak pipa yang ditanam?",
+      "jarak klem atau gantungan pipa pvc tegak sebaiknya berapa?",
+      "jarak support pipa mendatar berapa meter sekali?",
+      "pipa pvc tahan sampai suhu berapa?",
+      "batas suhu pipa pvc berapa derajat?",
+      "kenapa air keran kecil padahal toren penuh?",
+      "air di keran lemah padahal tandon penuh kenapa?",
+      "pipa hdpe bisa digulung sampai diameter berapa?",
+      "ukuran hdpe paling besar yang masih digulung berapa?",
+      "up to what diameter does HDPE come in coils?"
     ],
     "vp vu": [
       "pipa vp itu apa?",
@@ -623,7 +643,10 @@
       "tekanan kerja masing-masing kelas pipa itu berapa?",
       "tiap kelas pipa tahan tekanan berapa bar?",
       "angka tekanan di spesifikasi pipa pengaruhnya ke pemilihan gimana?",
-      "what does the pressure rating on a pipe mean for choosing it?"
+      "what does the pressure rating on a pipe mean for choosing it?",
+      "beda SDR 11 dan SDR 17 di pipa HDPE apa?",
+      "sdr 17 dibanding sdr 11 bedanya apa?",
+      "what is the difference between SDR 11 and SDR 17?"
     ],
     "pippo": [
       "pippo itu apa?",
@@ -715,7 +738,10 @@
       "dipakai di gedung bertingkat bisa?",
       "uPVC SNI air bersih itu buat jalur apa aja",
       "pipa SNI air bersih dipakai untuk jalur apa saja",
-      "uPVC SNI dipakai di instalasi apa saja"
+      "uPVC SNI dipakai di instalasi apa saja",
+      "pipa hdpe bisa dipakai buat air limbah ngga?",
+      "pipa pvc bisa dipakai buat kolam renang?",
+      "can HDPE pipe be used for wastewater?"
     ],
     "standar pralon": [
       "pralon standard itu maksudnya apa?",
@@ -756,7 +782,10 @@
       "sambung hdpe ke pompa pakai apa?",
       "how do you join hdpe pipe?",
       "can hdpe pipe be glued?",
-      "what is butt fusion?"
+      "what is butt fusion?",
+      "apa itu butt fusion dan electrofusion di pipa hdpe?",
+      "butt fusion itu cara nyambung yang gimana?",
+      "what are butt fusion and electrofusion?"
     ],
     "pipa pembuangan": [
       "kemiringan pipa pembuangan berapa?",
@@ -890,7 +919,10 @@
       "instalasi airnya mau ditanam di tembok aman ngga",
       "pipa air di dalam dinding boleh ngga",
       "mau ditanam di tembok, nanti kalau bocor gimana",
-      "is it safe to bury water pipe inside a wall"
+      "is it safe to bury water pipe inside a wall",
+      "untuk pipa air bersih di dalam dinding sebaiknya pakai pipa apa?",
+      "pipa air di dalam dinding pakai pipa apa?",
+      "what pipe goes inside a wall for clean water?"
     ],
     "pukulan air": [
       "pipa bunyi gedebuk pas kran ditutup",
@@ -948,8 +980,11 @@
       "pipa besi vs pipa pvc buat air bersih",
       "what materials besides pvc and hdpe are used for water pipes?",
       "what is pex pipe used for?",
-      "are galvanised pipes still used for clean water?"
+      "are galvanised pipes still used for clean water?",
+      "apa itu pipa PVC-O?",
+      "pvc-o itu pipa apa?",
+      "what is PVC-O pipe?"
     ]
   },
-  "window": 0.04
+  "window": 0.02
 }

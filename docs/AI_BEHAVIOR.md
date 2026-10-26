@@ -169,6 +169,9 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
   Katalog multi-label memakai `window`: label lain ikut cocok hanya bila skornya tidak lebih rendah
   dari label teratas dikurangi `window` ("pipa buat air panas pake apa?" mirip 1,0 dengan air panas
   dan 0,75 dengan sambungan lem — yang kedua tidak ditanya).
+  Window topik pengetahuan **0,02** sejak P30-02: pada 0,04 selisih 0,02–0,04 hampir selalu
+  paragraf yang tidak ditanya — pertanyaan ventilasi saluran ikut dijawab kelas AW/D, pertanyaan
+  irigasi menarik tiga topik (audit 2026-10-26). Yang memang dua topik selisihnya jauh lebih kecil.
 - **Kosakata entitas.** `vocabulary.json` (juga `outOfScopeFluids` untuk kebijakan cakupan; suhu ≥ 45 °C
   dibaca parser angka di `context`, batasnya aturan `policy/scope.ts`): keluarga produk kanonis beserta aliasnya, merek sendiri,
   merek dan rujukan pesaing, hal-hal kebutuhan. Dicocokkan pada batas kata — ini pengenalan NAMA,

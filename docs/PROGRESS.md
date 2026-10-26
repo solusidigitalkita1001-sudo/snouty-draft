@@ -2693,3 +2693,57 @@ boleh muncul asalkan menyebut standarnya dan dinyatakan bukan angka resmi Pralon
         menyentuh jalur ini, perbandingan/ragam/konsep/lanjutan tetap dijawab kode, jawaban yang
         tidak lolos pagar jatuh ke jalur lama, tanpa konfigurasi perilakunya tidak berubah),
         pemilihan model dan endpoint (3), dan transport (3)
+
+- [x] P30-02 Topik yang salah ditangkap. Diagnosisnya memakai alat probe (`understanding.probe`,
+      penyandi bge-m3 sungguhan) atas 25 pertanyaan yang sama — ia mencetak contoh mana yang menang,
+      jadi perbaikannya di data, bukan di kode. Yang diperbaiki, semuanya contoh kalimat yang
+      membawa KATA PEMBEDA-nya: - **Pertanyaan arti penanda teknis bukan pertanyaan dimensi.** "Beda SDR 11 dan SDR 17" dan
+      "apa itu PN 10" terbaca aspek `dimensions`, jadi ruas dimensi menjawabnya lebih dulu dengan
+      "Ukuran berapa?" dan daftar ukuran. Keduanya kini aspek kosong dan topik `tekanan kerja` —
+      faktanya memang sudah menjelaskan PN dan SDR. - **"Jarak" bukan "panjang".** "Jarak klem atau gantungan pipa tegak berapa?" dijawab tabel
+      panjang batang (aspek `rod_length`, topik `panjang batang`). Kini tanpa aspek dan tanpa
+      topik — jalur pengetahuan umum yang menjawabnya. - **"Dipanaskan" bukan "air panas".** "Pipa PVC boleh dibengkokkan dengan cara dipanaskan?"
+      menarik lima topik sekaligus dengan `air panas` di puncak, lalu dijawab "Tidak — pipa PVC
+      tidak bisa menggantikan PPR untuk air panas". Kini tanpa topik. - **PVC-O punya jawabannya sendiri.** "Apa itu pipa PVC-O?" dijawab "Material untuk Pipa
+      (Bell End) Kelas B 355 mm belum tercantum di katalog" — kalimat katalog untuk pertanyaan
+      bahan, karena kosakata membaca "PVC" di dalam "PVC-O". Topiknya kini `bahan di luar katalog`,
+      dan faktanya diperluas: PVC-O adalah uPVC yang molekulnya diorientasikan (ISO 16422),
+      dindingnya lebih kuat menahan tekanan sehingga pada tekanan sama bisa lebih tipis dan
+      diameter dalamnya lebih besar, disambung rubber ring — dan bukan produk Pralon. - **Yang topiknya ada tetapi tidak pernah tercapai.** "Apa bedanya pipa tekan dan pipa non
+      tekan?" berhenti di 0,730 (ambang 0,74) lalu jatuh ke ikhtisar katalog, padahal topik
+      `bertekanan vs gravitasi` persis menjawabnya; "butt fusion dan electrofusion" berhenti di
+      0,716 padahal fakta `sambungan hdpe` menjelaskannya; "pipa air bersih di dalam dinding"
+      tidak pernah mencapai `pipa dicor`. Ketiganya kini tercapai. - **Pertanyaan pipa paling lazim di Indonesia.** "Kenapa air keran kecil padahal toren
+      penuh?" terbaca `clarification_answer` lalu dijawab "di luar urusan pemasangan pipa yang
+      bisa saya bantu" setelah 71 detik. Kini `knowledge_question`. - **Yang memang tidak punya topik** (akar pohon, HDPE memanjang kena panas, batas suhu PVC,
+      batas diameter gulungan) kini tanpa topik, bukan menarik topik terdekat yang kebetulan
+      menyebut panas atau daftar gangguan.
+
+      **Satu perubahan dicabut kembali.** Contoh "pipa buat sumur bor pakai pipa apa?" sempat
+      ditaruh di `none` use-case supaya tidak masuk mode hitung — dan itu merusak kasus emas "sumur
+      bor 50 meter pipanya pakai apa ya?" yang memang harus dihitung. Kalimatnya hampir identik;
+      yang membedakan hanya ada-tidaknya angka, dan penyandi tidak bisa diandalkan memisahkannya.
+      Jadi pertanyaan sumur bor tetap masuk jalur kasus seperti sebelumnya.
+
+      Dua cacat gerbang P30-01 ikut terlihat dari probe dan diperbaiki di sini: daftar larangan
+      intent diganti **daftar izin** (pengetahuan, spesifikasi, pemakaian, saran, dan konsep bahan
+      yang tidak dikenali kosakata) supaya label baru tidak otomatis ikut melebar; dan pagar
+      "menyebut entitas kebutuhan" dibuang — "toren penuh" dan "pipa saluran" membuat dua
+      pertanyaan pengetahuan tertolak, padahal yang memutuskan ini kebutuhan atau bukan adalah
+      router sebelum ruas ini.
+  - [x] P30-02a Evaluasi penyandi sungguhan: intent 171/172 (99,4%, ambang 95%) dan **tidak satu pun
+        kegagalan topik** atas 249 kasus emas; tiga kegagalan yang tersisa sudah ada sebelum fase ini
+        (`tes 123`, dua harapan `useCase`) dan tidak tersentuh perubahan ini. Tes ruas +3: pertanyaan
+        yang menyebut toren tetap pengetahuan, konsep bahan tak dikenali masuk jalur umum, intent di
+        luar daftar izin tidak pernah masuk
+
+- [x] P30-03 Jawaban yang nempel. Pertanyaan ventilasi saluran dijawab benar di paragraf pertama,
+      lalu disusul paragraf kelas AW/D dan tabel panjang batang yang tidak ditanya; pertanyaan
+      irigasi menarik tiga topik sekaligus. Sebabnya `window` katalog `knowledge-topic`: topik lain
+      ikut cocok bila skornya tidak lebih rendah dari 0,04 di bawah topik teratas — dan selisih
+      0,02–0,04 ternyata hampir selalu paragraf yang tidak ditanya, bukan topik kedua yang memang
+      ditanya. Window-nya kini 0,02. Yang benar-benar dua topik tetap dua ("kenapa lem pipa saya
+      tetap bocor" → gangguan lazim + perbaikan bocor, selisih 0,010).
+  - [x] P30-03a Dijaga kasus emas yang sudah ada: `topics` dan `topicsOnly` atas 249 kasus lulus
+        seluruhnya pada window baru — penyempitan ini tidak menghilangkan satu pun topik yang
+        memang diharapkan

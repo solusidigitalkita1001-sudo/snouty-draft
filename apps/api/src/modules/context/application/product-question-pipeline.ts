@@ -222,34 +222,43 @@ export interface GeneralKnowledgeAnswerer {
 }
 
 /**
- * Intent yang jawabannya sudah dirakit kode dari katalog dan pengetahuan bahan — ragam produk,
- * perbandingan bahan, "apa itu PVC", harga, dan lanjutan atas subjek. Pengetahuan umum tidak
- * menyentuh keenamnya: yang sudah terjawab tidak perlu model.
+ * Intent yang BOLEH dijawab pengetahuan umum. Daftar izin, bukan daftar larangan: pertanyaan
+ * pengetahuan, spesifikasi, pemakaian, dan saran yang tidak tercakup data memang perlu jawaban,
+ * sedangkan kebutuhan, jawaban klarifikasi, pertanyaan tentang solusi yang sudah dihitung,
+ * perusahaan, harga, dan sapaan punya jalurnya masing-masing. Daftar izin juga tidak ikut melebar
+ * sendiri saat label intent baru ditambahkan.
  */
-const ANSWERED_BY_CODE: ReadonlySet<string> = new Set([
-  'product_range',
-  'product_comparison',
+const MAY_ASK_GENERAL: ReadonlySet<string> = new Set([
+  'knowledge_question',
+  'product_spec',
+  'use_question',
+  'advice_request',
   'product_concept',
-  'price_question',
-  'company_question',
-  'competitor_question',
 ]);
 
 /**
  * Pertanyaan pengetahuan pipa yang TIDAK tercakup data (P30-01): tidak satu pun topik cocok,
- * tidak ada aspek spesifikasi yang ditanya, bukan intent yang sudah dijawab kode, dan bukan
- * lanjutan atas subjek yang sedang dibahas.
+ * tidak ada aspek spesifikasi yang ditanya, bukan permintaan penyajian ulang, bukan lanjutan atas
+ * subjek, dan intent-nya ada di daftar izin.
  *
- * Tanpa pagar ini, jalur pengetahuan umum akan menyalip jawaban bersumber — dan jawaban
- * bersumber selalu lebih baik: ia terbukti, 200–400 ms, dan tidak memerlukan model.
+ * Tanpa pagar ini, jalur pengetahuan umum akan menyalip jawaban bersumber — dan jawaban bersumber
+ * selalu lebih baik: ia terbukti, 200–400 ms, dan tidak memerlukan model.
+ *
+ * Yang SENGAJA tidak dipakai sebagai pagar: entitas kebutuhan yang disebut pesan. "Kenapa air
+ * keran kecil padahal toren penuh?" menyebut toren, dan "kelas kekakuan SN di pipa saluran"
+ * menyebut saluran — keduanya pertanyaan pengetahuan, bukan kebutuhan. Yang memutuskan ini
+ * kebutuhan atau bukan adalah router sebelum ruas ini, dan ia sudah memutuskan: pesan yang
+ * sampai ke sini berintent PRODUCT_LOOKUP.
  */
 export function asksGeneralKnowledge(input: ProductQuestionInput): boolean {
   const u = input.understanding;
-  if (u.knowledgeTopics.length > 0 || u.productAspect !== null) return false;
-  if (u.format !== null || u.mentionsRequirement) return false;
+  if (u.knowledgeTopics.length > 0 || u.productAspect !== null || u.format !== null) return false;
   if (isFollowUp(u) || isFormatFollowUp(u) || isChoiceFollowUp(u)) return false;
   const intent = u.intent?.label ?? u.intentRanking[0]?.label ?? null;
-  return intent !== null && !ANSWERED_BY_CODE.has(intent);
+  if (intent === null || !MAY_ASK_GENERAL.has(intent)) return false;
+  // Bahan yang dikenali punya penjelasan sendiri yang utuh ("apa itu pipa PVC?"); yang tidak
+  // dikenali ("apa itu thrust block?") tidak punya apa pun untuk dirakit kode.
+  return intent !== 'product_concept' || u.families.length === 0;
 }
 
 export async function runProductQuestion(

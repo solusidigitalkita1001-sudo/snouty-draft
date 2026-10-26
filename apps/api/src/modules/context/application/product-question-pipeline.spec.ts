@@ -1050,7 +1050,7 @@ describe('runProductQuestion — pengetahuan umum pipa (P30-01)', () => {
     expect(text(events)).not.toContain('jawaban model');
   });
 
-  it('perbandingan, ragam, dan konsep bahan tetap dijawab kode', async () => {
+  it('perbandingan, ragam, dan konsep bahan yang dikenali tetap dijawab kode', async () => {
     for (const labels of [COMPARISON, CONCEPT, { intent: 'product_range' } as Labels]) {
       const knowledge = general('jawaban model');
       await runProductQuestion(
@@ -1107,5 +1107,56 @@ describe('runProductQuestion — pengetahuan umum pipa (P30-01)', () => {
       input('apa itu thrust block?', KNOWLEDGE),
     );
     expect(text(events).length).toBeGreaterThan(0);
+  });
+
+  it('pertanyaan pengetahuan yang menyebut toren atau saluran tetap pengetahuan, bukan kebutuhan', async () => {
+    const knowledge = general(
+      'Aliran kecil walau tandon penuh biasanya soal ketinggian dan ukuran pipa.',
+    );
+    const events = await runProductQuestion(
+      mustNotParse,
+      catalog({}),
+      noQuestions,
+      input('kenapa air keran kecil padahal toren penuh?', KNOWLEDGE),
+      null,
+      null,
+      knowledge,
+    );
+    expect(knowledge.asked).toEqual(['kenapa air keran kecil padahal toren penuh?']);
+    expect(text(events)).toContain('Aliran kecil walau tandon penuh');
+  });
+
+  it('konsep bahan yang TIDAK dikenali kosakata dijawab pengetahuan umum', async () => {
+    const knowledge = general('Thrust block adalah blok beton penahan dorongan.');
+    await runProductQuestion(
+      mustNotParse,
+      catalog({}),
+      noQuestions,
+      input('apa itu thrust block?', CONCEPT),
+      null,
+      null,
+      knowledge,
+    );
+    expect(knowledge.asked).toEqual(['apa itu thrust block?']);
+  });
+
+  it('intent di luar daftar izin tidak pernah masuk jalur ini', async () => {
+    for (const intent of [
+      'clarification_answer',
+      'explanation_request',
+      'system_layout_question',
+    ] as const) {
+      const knowledge = general('jawaban model');
+      await runProductQuestion(
+        ai({ productQuery: null, aspect: null }),
+        catalog({}),
+        noQuestions,
+        input('yang tadi itu gimana?', { intent }),
+        null,
+        null,
+        knowledge,
+      );
+      expect(knowledge.asked).toEqual([]);
+    }
   });
 });
