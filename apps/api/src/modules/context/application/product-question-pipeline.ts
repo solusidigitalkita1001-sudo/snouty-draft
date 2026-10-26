@@ -564,7 +564,10 @@ export async function runProductQuestion(
     u.families.length > 0 ||
     knowledgeOnly ||
     fromSubject !== null ||
-    u.intent?.label === 'product_range';
+    u.intent?.label === 'product_range' ||
+    // Pertanyaan pengetahuan tak tercakup sudah diputuskan: memetakannya ke produk + aspek tidak
+    // menambah apa pun selain 19–31 detik (audit 2026-10-26).
+    asksGeneralKnowledge(input);
   let parsed: ProductQuestionParse | null = null;
   if (!settled) {
     try {
@@ -688,6 +691,16 @@ async function answerConcept(
   const locale = input.locale ?? DEFAULT_LOCALE;
   const COPY = productAnswerCopy(locale);
   const u = input.understanding;
+
+  // Pertanyaan pengetahuan yang tidak tercakup data dan tidak terjawab jalur pengetahuan umum
+  // (mati, gagal, atau tidak lolos pagar): katakan apa adanya (P30-04). Sampai di sini pertanyaan
+  // seperti "jarak klem pipa tegak berapa?" dijawab ikhtisar seluruh katalog atau contoh produk
+  // PVC sembarang — keduanya bukan jawaban, dan keduanya terbaca seperti tidak menyimak.
+  // Jalur umum sudah mendapat kesempatannya di `runProductQuestion` sebelum ini.
+  if (asksGeneralKnowledge(input)) {
+    return { text: COPY.noSourcedAnswer, cards: [{ kind: 'cta', action: 'CONTACT_TECHNICAL' }] };
+  }
+
   const asksRange = u.intent?.label === 'product_range';
   // "Produk Pralon yang terkenal apa?" — ragam, bukan satu bahan. Diputuskan dari pesannya,
   // SEBELUM parse model: 7B pernah menjawab pertanyaan ini dengan productQuery "PVC".

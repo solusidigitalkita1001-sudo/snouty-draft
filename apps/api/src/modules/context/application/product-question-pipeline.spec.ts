@@ -20,6 +20,7 @@ import { TEST_LEXICON, understood } from '../../understanding/testing/understood
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 import { FITTING_VS_MATERIAL } from '../domain/subject.js';
 import { explain } from './pipe-knowledge.js';
+import { PRODUCT_ANSWER_COPY } from './product-answer-text.js';
 import {
   bestMatch,
   runProductQuestion,
@@ -524,7 +525,7 @@ describe('runProductQuestion — KONSEP', () => {
     expect(text(events)).toBe(TABLE_REPLY);
   });
 
-  it('tanpa aspek dan tanpa bahan yang dikenali: ikhtisar produk Pralon bila ada, ragam produk bila tidak — tidak bertanya balik', async () => {
+  it('tanpa aspek dan tanpa bahan yang dikenali: ikhtisar produk Pralon bila ada — tidak bertanya balik', async () => {
     const found = await runProductQuestion(
       ai({ productQuery: 'pvc aw', aspect: null }),
       catalog({ 'pvc aw': [AW] }),
@@ -533,6 +534,9 @@ describe('runProductQuestion — KONSEP', () => {
     );
     expect(text(found)).toContain('Pipa PVC AW: Pipa untuk air bersih');
 
+    // Nama yang tidak dikenali kosakata maupun katalog: sejak P30-04 dikatakan apa adanya —
+    // dulu dijawab catatan "katalog Pralon belum terpasang" untuk pertanyaan yang bukan tentang
+    // katalog. Keduanya tidak bertanya balik, dan yang sekarang tidak menjanjikan apa pun.
     const unknown = await runProductQuestion(
       ai({ productQuery: 'xyz', aspect: null }),
       catalog({}, 'sample'),
@@ -540,7 +544,7 @@ describe('runProductQuestion — KONSEP', () => {
       input('apa itu xyz?', CONCEPT),
     );
     expect(text(unknown)).not.toContain('Produk mana yang Anda maksud?');
-    expect(text(unknown)).toContain('Katalog produk Pralon belum terpasang');
+    expect(text(unknown)).toBe(PRODUCT_ANSWER_COPY.noSourcedAnswer);
   });
 });
 
@@ -1076,7 +1080,12 @@ describe('runProductQuestion — pengetahuan umum pipa (P30-01)', () => {
         'lebih detail dong',
         { intent: 'follow_up_more' },
         {
-          subject: { kind: 'product', entity: 'pvc aw', topic: null },
+          subject: {
+            kind: 'product',
+            entity: 'pvc aw',
+            topic: 'product_overview',
+            depth: 'standard',
+          },
         },
       ),
       null,
@@ -1086,27 +1095,45 @@ describe('runProductQuestion — pengetahuan umum pipa (P30-01)', () => {
     expect(knowledge.asked).toEqual([]);
   });
 
-  it('jawaban yang tidak lolos pagar (atau model mati) jatuh ke jalur lama, bukan ke galat', async () => {
+  it('jawaban yang tidak lolos pagar (atau model mati) dikatakan apa adanya, bukan ikhtisar katalog', async () => {
     const events = await runProductQuestion(
-      ai({ productQuery: null, aspect: null }),
-      catalog({}),
+      mustNotParse,
+      catalog({ 'pvc aw': [AW] }),
       noQuestions,
       input('apa itu thrust block?', KNOWLEDGE),
       null,
       null,
       general(null),
     );
-    expect(text(events).length).toBeGreaterThan(0);
+    expect(text(events)).toBe(PRODUCT_ANSWER_COPY.noSourcedAnswer);
+    expect(cards(events)).toEqual([{ kind: 'cta', action: 'CONTACT_TECHNICAL' }]);
   });
 
-  it('tanpa penjawab yang dikonfigurasi, perilakunya sama seperti sebelum P30-01', async () => {
+  it('tanpa penjawab yang dikonfigurasi pun, pertanyaannya tidak dijawab ikhtisar katalog', async () => {
     const events = await runProductQuestion(
-      ai({ productQuery: null, aspect: null }),
-      catalog({}),
+      mustNotParse,
+      catalog({ 'pvc aw': [AW] }),
       noQuestions,
-      input('apa itu thrust block?', KNOWLEDGE),
+      input('jarak klem pipa pvc tegak sebaiknya berapa?', { intent: 'product_spec' }),
     );
-    expect(text(events).length).toBeGreaterThan(0);
+    const out = text(events);
+    expect(out).toBe(PRODUCT_ANSWER_COPY.noSourcedAnswer);
+    expect(out).not.toContain('keluarga');
+    expect(cards(events).some((c) => c.kind === 'product')).toBe(false);
+  });
+
+  it('ragam produk tetap dijawab ikhtisar katalog', async () => {
+    const events = await runProductQuestion(
+      failingAi,
+      catalog({ 'pvc aw': [AW] }),
+      noQuestions,
+      input('produk Pralon apa aja?', { intent: 'product_range' }),
+      null,
+      null,
+      general('jawaban model'),
+    );
+    expect(text(events)).not.toBe(PRODUCT_ANSWER_COPY.noSourcedAnswer);
+    expect(text(events)).toContain('PVC AW');
   });
 
   it('pertanyaan pengetahuan yang menyebut toren atau saluran tetap pengetahuan, bukan kebutuhan', async () => {

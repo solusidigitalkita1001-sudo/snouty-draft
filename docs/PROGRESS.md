@@ -2747,3 +2747,22 @@ boleh muncul asalkan menyebut standarnya dan dinyatakan bukan angka resmi Pralon
   - [x] P30-03a Dijaga kasus emas yang sudah ada: `topics` dan `topicsOnly` atas 249 kasus lulus
         seluruhnya pada window baru — penyempitan ini tidak menghilangkan satu pun topik yang
         memang diharapkan
+
+- [x] P30-04 Yang tidak terjawab dikatakan apa adanya. Selama kunci penyedia belum ada (OQ-79)
+      jalur pengetahuan umum mati, dan tanpa item ini pertanyaan seperti "jarak klem pipa tegak
+      berapa?" tetap dijawab ikhtisar seluruh katalog atau contoh produk PVC sembarang — keduanya
+      bukan jawaban, dan keduanya terbaca seperti tidak menyimak. Pertanyaan pengetahuan yang tidak
+      tercakup data dan tidak terjawab jalur umum (mati, gagal, lewat batas waktu, atau tidak lolos
+      pagar) kini dijawab satu kalimat: belum ada acuan yang bisa dipegang, jadi tidak ditebak, dan
+      tim teknis Pralon bisa menjawabnya — beserta tombolnya. Pemeta pertanyaan juga tidak lagi
+      dipanggil untuk pertanyaan itu: memetakannya ke produk + aspek tidak menambah apa pun selain
+      19–31 detik.
+
+      Satu perilaku lama ikut berubah dan itu disengaja: nama yang tidak dikenali kosakata maupun
+      katalog ("apa itu xyz?") dulu dijawab catatan "katalog Pralon belum terpasang di sistem ini"
+      — catatan tentang katalog untuk pertanyaan yang bukan tentang katalog. Sekarang kalimat yang
+      sama dengan di atas.
+  - [x] P30-04a Tes (3): jawaban yang tidak lolos pagar dikatakan apa adanya beserta kartu tim
+        teknis dan tanpa kartu produk, tanpa penjawab yang dikonfigurasi pun tidak ada ikhtisar
+        katalog, dan ragam produk tetap dijawab ikhtisar katalog; satu tes lama disesuaikan pada
+        perilaku yang berubah

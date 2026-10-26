@@ -59,6 +59,13 @@ export const PRODUCT_ANSWER_COPY = {
    * bukan spesifikasi Pralon. Ditempelkan KODE, bukan diminta dari prompt — provenance tidak
    * boleh bergantung pada kepatuhan model.
    */
+  /**
+   * Pertanyaan pengetahuan pipa yang tidak tercakup data dan jalur pengetahuan umum tidak
+   * menjawabnya (mati, gagal, atau tidak lolos pagar). Dulu dijawab ikhtisar seluruh katalog —
+   * jawaban yang tidak ada hubungannya dengan yang ditanya (P30-04).
+   */
+  noSourcedAnswer:
+    'Soal itu saya belum punya acuan yang bisa saya pegang, jadi saya tidak mau menebak. Tim teknis Pralon bisa menjawabnya.',
   generalPractice:
     'Angka di atas mengikuti praktik dan standar yang disebut, bukan spesifikasi Pralon; tim teknis Pralon bisa memastikan angka resminya.',
 } as const;
@@ -98,6 +105,7 @@ export interface ProductAnswerCopy {
   readonly source: string;
   readonly seeDocuments: (titles: readonly string[]) => string;
   readonly insufficient: (label: string, name: string) => string;
+  readonly noSourcedAnswer: string;
   readonly generalPractice: string;
 }
 
@@ -129,6 +137,8 @@ export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
   seeDocuments: (titles) => `See the technical documents: ${titles.join('; ')}.`,
   insufficient: (label, name) =>
     `${label} for ${name} is not listed in the catalogue yet; Pralon's technical team can confirm it.`,
+  noSourcedAnswer:
+    'I do not have a reference I can stand behind for that, so I will not guess. The Pralon technical team can answer it.',
   generalPractice:
     'The figures above follow general practice and the standards named, not Pralon specifications; the Pralon technical team can confirm the official figures.',
 };
