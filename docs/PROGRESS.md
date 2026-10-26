@@ -3481,3 +3481,13 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       "Pipa yg cocok buat proyek perumahan 50 unit?" ke jawaban pengetahuan tentang sambungan
       rumah — kasus clusternya hilang (FAQ MA-07, 18/19). Pesan yang menyatakan kasusnya sendiri
       dengan angkanya sekarang selalu kebutuhan, apa pun bentuk kalimatnya.
+
+- [x] P31-52 "udah, itung aja" di ruko: dihitung dengan anggapan, tanpa model
+
+      Percakapan ruko 3 lantai yang datanya lengkap kecuali jenis instalasi menjawab "udah, itung
+      aja" dengan ringkasan kebutuhan yang sama persis plus pertanyaan jenis instalasi yang sama
+      persis — 13,5 detik, untuk kalimat yang tidak punya satu angka pun. Sekarang permintaan
+      menghitung adalah izin memakai anggapan: data inti yang punya default diisi bertanda ASUMSI
+      untuk semua jenis bangunan, bukan hanya rumah tinggal, lalu rekomendasinya disusun di
+      giliran itu. Percakapan yang jenis bangunannya sudah tercatat juga tidak lagi memanggil
+      model ekstraksi untuk pesan tanpa nilai.

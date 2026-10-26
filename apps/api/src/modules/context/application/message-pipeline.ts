@@ -64,7 +64,11 @@ import {
   planIrrigationClarification,
 } from '../domain/irrigation.js';
 import { irrigationGuidance, irrigationNoted } from './irrigation-guidance.js';
-import { assumptionCard, houseAssumptionUpdates } from '../domain/requirement-defaults.js';
+import {
+  assumableUpdates,
+  assumptionCard,
+  houseAssumptionUpdates,
+} from '../domain/requirement-defaults.js';
 import { houseRefinementQuestions, planClarification } from '../domain/clarification.js';
 import { outlierQuestions, pendingOutliers } from '../domain/plausibility.js';
 import { mergeRequirement } from '../domain/context-merger.js';
@@ -437,6 +441,10 @@ export async function runUnderstanding(
   // kartu tidak terbit, pengguna menatap layar kosong).
   let extraction: Extraction = {};
   let extractionFailed = false;
+  // "udah, itung aja" dijawab "Tekan **Susun rekomendasi**" padahal pengguna baru saja memintanya
+  // menghitung (produksi 2026-10-26). Permintaan melanjutkan atas kebutuhan yang sudah bisa
+  // dihitung dijalankan di giliran ini, tanpa menunggu ada data yang berubah.
+  const asksToCompute = input.understanding?.intent?.label === 'follow_up_continue';
   // Diet panggilan model (produksi 2026-10-07: ekstraksi 7B rata-rata 103 s, dan 9 dari 16 kali
   // diulang). Bila fakta tersurat di teks sudah memberi minimal dua dari empat data inti (lantai,
   // kamar mandi, sumber air, jenis instalasi), model tidak dipanggil: sisanya ditanya kartu
@@ -473,8 +481,9 @@ export async function runUnderstanding(
   // dan yang tidak disebut ditanya kartu klarifikasi. Model ekstraksi hanya menambah puluhan detik
   // di CPU — di produksi 2026-10-26 percakapan kos 4 lantai memakai 28,4 s lalu 90,5 s lalu 35,4 s
   // untuk tiga pesan yang nilainya sudah terbaca kode ("torennya di atas", "tanahnya 15 x 25 m").
-  const onRecord =
-    input.state.building.type.value !== null && extractionToUpdates({}, input.message).length > 0;
+  // Pesan tanpa nilai pun ikut: di percakapan ruko 3 lantai "udah, itung aja" memakai 13,5 detik
+  // di model ekstraksi untuk kalimat yang tidak punya satu angka pun (produksi 2026-10-26).
+  const onRecord = input.state.building.type.value !== null;
   // Pesan PERTAMA yang menyebut jenis bangunannya ikut: parser nilai membaca lantai, kamar, alat,
   // sumber air, dan ukuran untuk semua jenis — bukan hanya rumah tinggal. Di produksi 2026-10-26
   // pesan pembuka kos memakai 16,4 detik di model ekstraksi dan tetap tidak menemukan kamar
@@ -569,7 +578,11 @@ export async function runUnderstanding(
     changed = result.changed.length > 0;
     changedPaths = result.changed;
     // Rumah yang lantainya sudah disebut: sisa data inti dianggap dulu, lalu langsung dihitung.
-    const assumptions = houseAssumptionUpdates(merged);
+    // Pengguna yang memintanya menghitung ikut, jenis bangunan apa pun: di percakapan ruko 3
+    // lantai "udah, itung aja" dijawab pertanyaan jenis instalasi yang sama persis dua kali,
+    // padahal jawabannya punya anggapan (air bersih) dan pengguna baru saja mengizinkannya
+    // (produksi 2026-10-26).
+    const assumptions = asksToCompute ? assumableUpdates(merged) : houseAssumptionUpdates(merged);
     if (assumptions.length > 0) {
       merged = withCompleteness(mergeRequirement(merged, assumptions, input.now).state);
       changed = true;
@@ -614,10 +627,6 @@ export async function runUnderstanding(
   }
 
   const next = followUpCard(merged, input.locale);
-  // "udah, itung aja" dijawab "Tekan **Susun rekomendasi**" padahal pengguna baru saja memintanya
-  // menghitung (produksi 2026-10-26). Permintaan melanjutkan atas kebutuhan yang sudah bisa
-  // dihitung dijalankan di giliran ini, tanpa menunggu ada data yang berubah.
-  const asksToCompute = input.understanding?.intent?.label === 'follow_up_continue';
   // Rumah yang baru lengkap di giliran ini langsung dihitung — dengan atau tanpa anggapan.
   const card: AssistantCard | null =
     next?.kind === 'cta' &&

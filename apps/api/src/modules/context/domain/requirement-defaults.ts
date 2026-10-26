@@ -122,8 +122,19 @@ const HOUSE_ASSUMABLE: readonly RequirementFieldPath[] = [
  * anggapan: yang kurang ditanyakan seperti biasa.
  */
 export function houseAssumptionUpdates(state: RequirementState): readonly FieldUpdate[] {
-  if (state.useCase !== undefined) return [];
   if (state.building.type.value !== 'residential') return [];
+  return assumableUpdates(state);
+}
+
+/**
+ * Data inti yang belum disebut tetapi punya anggapan, untuk SEMUA jenis bangunan. Dipakai saat
+ * pengguna sendiri meminta menghitung ("udah, itung aja" di percakapan ruko 3 lantai, produksi
+ * 2026-10-26): permintaan itu izin memakai anggapan, bukan alasan mengulang pertanyaan yang sama.
+ * Anggapannya tetap ditandai ASSUMED dengan alasannya, jadi tetap terlihat di jawaban. Tanpa
+ * jumlah lantai, atau dengan data lain yang tidak boleh dianggap, tidak ada anggapan.
+ */
+export function assumableUpdates(state: RequirementState): readonly FieldUpdate[] {
+  if (state.useCase !== undefined) return [];
   if (state.building.floors.value === null) return [];
   const missing = state.missingInformation;
   if (missing.length === 0 || !missing.every((p) => HOUSE_ASSUMABLE.includes(p))) return [];

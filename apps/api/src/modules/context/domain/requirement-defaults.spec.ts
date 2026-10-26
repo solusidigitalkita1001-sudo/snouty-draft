@@ -8,6 +8,7 @@ import { withCompleteness } from './completeness.js';
 import {
   assumptionCard,
   defaultUpdateFor,
+  assumableUpdates,
   houseAssumptionUpdates,
   REQUIREMENT_DEFAULTS,
 } from './requirement-defaults.js';
@@ -137,6 +138,33 @@ describe('hitung dulu + anggapan rumah (pemilik 2026-10-20)', () => {
 
   it('lantai belum disebut: tanpa anggapan — yang kurang ditanyakan', () => {
     expect(houseAssumptionUpdates(house(null, 2))).toEqual([]);
+  });
+
+  // Produksi 2026-10-26: ruko 3 lantai, 3 toilet, PDAM, toren atap — yang kurang hanya jenis
+  // instalasi, dan "udah, itung aja" mendapat pertanyaan yang sama persis dua kali.
+  it('ruko: anggapan sama tersedia untuk jenis bangunan selain rumah tinggal', () => {
+    const ruko = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [
+          {
+            path: 'building.type' as const,
+            value: 'light_commercial',
+            source: 'user_stated' as const,
+          },
+          { path: 'building.floors' as const, value: 3, source: 'user_stated' as const },
+          { path: 'fixtures.bathrooms' as const, value: 3, source: 'user_stated' as const },
+          { path: 'water.source' as const, value: 'rooftop_tank', source: 'user_stated' as const },
+        ],
+        T1,
+      ).state,
+    );
+
+    expect(houseAssumptionUpdates(ruko)).toEqual([]);
+    expect(assumableUpdates(ruko).map((u) => [u.path, u.value])).toEqual([
+      ['water.installationType', 'clean_water'],
+    ]);
+    for (const u of assumableUpdates(ruko)) expect(u.provenance).toBe('ASSUMED');
   });
 
   it('"Belum tahu" kamar mandi: jumlah lantai bila diketahui, tanpa lantai tetap kosong', () => {
