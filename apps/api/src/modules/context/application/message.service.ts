@@ -56,6 +56,7 @@ import {
   IntentRouter,
   type RoutingDecision,
   answersFromKnowledge,
+  asksSolutionQuantity,
   asksGeneralKnowledge,
   subjectContinuation,
 } from './intent-router.js';
@@ -315,7 +316,9 @@ export class MessageService {
     const aboutSolution =
       solution !== null &&
       !solution.stale &&
-      (fine === 'system_layout_question' || fine === 'explanation_request');
+      (fine === 'system_layout_question' ||
+        fine === 'explanation_request' ||
+        asksSolutionQuantity(u));
     // Kebutuhan yang sedang berjalan: pesan yang tidak dikenali DAN tidak membawa satu nilai pun
     // adalah pertanyaan tentang sistem pengguna sendiri. Dulu ia direncanakan ke obrolan umum lalu
     // ditulis model: "what size pipe do i need" di kantor 3 lantai memakan 49,6 detik dan balik

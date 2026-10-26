@@ -366,3 +366,157 @@ describe('daftar belanja solusi berbahasa Inggris (P31-37)', () => {
     expect(token.text).not.toContain('not counted yet');
   });
 });
+
+/**
+ * Produksi 2026-10-26: "how many lengths of pipe" di percakapan Inggris yang solusinya sudah
+ * dihitung dijawab pelajaran umum panjang batang standar, padahal daftar belanjanya memuat
+ * "main line 1¼" 4 rods".
+ */
+describe('pertanyaan jumlah batang atas solusi sendiri (P31-41)', () => {
+  const solution = {
+    recommendation: {
+      headline: 'Air bersih rumah 2 lantai dari toren atap',
+      needs: [{ kind: 'rooftop_tank', count: 1 }],
+      systemLines: [{ role: 'main', name: 'Pipa utama', size: '1"', path: 'Toren ke riser' }],
+      bom: [
+        { item: 'Pipa PVC AW', purpose: 'Pipa utama', size: '1"', quantity: 4, unit: 'batang' },
+        { item: 'Elbow 90', purpose: 'Elbow', size: '1"', quantity: 6, unit: 'buah' },
+      ],
+    } as never,
+    stale: false,
+  };
+
+  it('dijawab daftar belanjanya, tanpa model', async () => {
+    const message = 'butuh berapa batang pipa buat rumah ini';
+    const { reply, write } = writer();
+    const { events } = await runUnderstanding(
+      null,
+      {
+        ...input(message),
+        state: emptyRequirementState(T0),
+        decision: {
+          intent: 'EXPLANATION_REQUEST',
+          confidence: 1,
+          shouldExtract: false,
+          mutatesState: false,
+        },
+        understanding: understood(message, { knowledgeTopics: ['jumlah batang'] }),
+        solution: solution as never,
+      },
+      reply,
+    );
+    expect(write).not.toHaveBeenCalled();
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toContain('pipa utama 1" 4 batang');
+  });
+
+  it('pertanyaan yang membawa panjang jalurnya sendiri tetap pengetahuan umum', async () => {
+    const message = 'butuh berapa batang pipa untuk jalur 30 meter';
+    const { asksSolutionQuantity } = await import('./intent-router.js');
+    expect(asksSolutionQuantity(understood(message, { knowledgeTopics: ['jumlah batang'] }))).toBe(
+      false,
+    );
+  });
+});
+
+/**
+ * Produksi 2026-10-26: di kasus sumur ke tandon, "toren 2000 liter di atap" lalu "ukuran
+ * bangunannya 10 x 20 meter" mendapat kalimat "Yang masih saya perlukan: …" yang sama persis dua
+ * giliran berturut-turut, tanpa sepatah kata bahwa angkanya tidak dipakai.
+ */
+describe('angka yang tidak punya parameter di kasus teknis (P31-43)', () => {
+  it('kalimat panduan yang sama tidak diulang begitu saja', async () => {
+    const well = applyTechnicalFacts(
+      emptyRequirementState(T0),
+      'well_distribution',
+      'airnya dari sumur bor, kedalaman 30 meter',
+    ).state;
+    const message = 'ukuran bangunannya 10 x 20 meter';
+    const first = await runUnderstanding(null, { ...input(message), state: well }, writer().reply);
+    const said = (first.events.find((e) => e.type === 'token') as { text: string }).text;
+    const again = await runUnderstanding(
+      null,
+      {
+        ...input(message),
+        state: first.nextState,
+        recentTurns: [{ role: 'assistant', text: said }],
+      },
+      writer().reply,
+    );
+    const text = (again.events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).not.toBe(said);
+    expect(text).toContain('tidak punya tempat di hitungan kasus ini');
+  });
+});
+
+/**
+ * Produksi 2026-10-26: di rumah 2 lantai yang solusinya sudah dihitung, "septic tanknya di mana"
+ * membuka kasus saluran gravitasi, mencatat "jenis cairan air limbah", dan menanyakan debit
+ * rencana serta kemiringan saluran.
+ */
+describe('pertanyaan tidak membajak percakapan rumah ke kasus teknis (P31-46)', () => {
+  const house = mergeRequirement(
+    emptyRequirementState(T0),
+    [
+      { path: 'building.type', value: 'residential', source: 'user_stated' },
+      { path: 'building.floors', value: 2, source: 'user_stated' },
+      { path: 'fixtures.bathrooms', value: 3, source: 'user_stated' },
+    ],
+    T0,
+  ).state;
+
+  it('"septic tanknya di mana" tidak membuka kasus saluran gravitasi', async () => {
+    const message = 'septic tanknya di mana';
+    const { nextState } = await runUnderstanding(
+      null,
+      {
+        ...input(message),
+        state: house,
+        understanding: understood(message, { useCase: 'gravity_drainage' }),
+      },
+      writer().reply,
+    );
+    expect(nextState.useCase).toBeUndefined();
+  });
+
+  it('pernyataan bernilai tetap membuka kasusnya', async () => {
+    const message = 'pipa buangan dari rumah ke saluran kota 40 meter, beda tinggi 1,5 m';
+    const { nextState } = await runUnderstanding(
+      null,
+      {
+        ...input(message),
+        state: house,
+        understanding: understood(message, {
+          useCase: 'gravity_drainage',
+          mentionsRequirement: true,
+        }),
+      },
+      writer().reply,
+    );
+    expect(nextState.useCase?.kind).toBe('technical');
+  });
+});
+
+/** Solusi yang juga menghitung pembuangan menyebut ukuran jalurnya (P31-45). */
+describe('ukuran jalur pembuangan di jawaban solusi', () => {
+  it('air kotor, air bekas, dan ventilasinya ikut disebut', async () => {
+    const { solutionReply } = await import('./solution-facts.js');
+    const text = solutionReply(
+      {
+        recommendation: {
+          headline: 'Air bersih dan pembuangan rumah 2 lantai',
+          systemLines: [{ role: 'main', name: 'Pipa utama', size: '1"', path: 'Toren ke riser' }],
+          needs: [
+            { kind: 'drainage', count: 1, soilSize: '4"', wasteSize: '3"', soilVentSize: '2"' },
+          ],
+          bom: [],
+        } as never,
+        stale: false,
+      },
+      'id',
+    );
+    expect(text).toContain('air kotor 4"');
+    expect(text).toContain('air bekas 3"');
+    expect(text).toContain('ventilasi air kotor 2"');
+  });
+});

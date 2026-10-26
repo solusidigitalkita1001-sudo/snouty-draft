@@ -77,6 +77,7 @@ import type { MessageUnderstanding } from '../../understanding/application/messa
 import { applyRelativeCounts } from '../domain/relative-counts.js';
 import { parseTemperature } from '../domain/temperature-parser.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
+import { asksSolutionQuantity, isCaseStatement } from './intent-router.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsFor } from './pipe-knowledge.js';
 import { productAnswerCopy } from './product-answer-text.js';
@@ -84,6 +85,7 @@ import { competitorAnswer } from './competitor-answer.js';
 import {
   explanationBeforeSolution,
   requirementUnchangedReply,
+  valueWithoutPlaceReply,
   explanationHandedOff,
   modelBusyReply,
   openerReply,
@@ -163,7 +165,11 @@ export async function runUnderstanding(
     const caseCard = followUpCard(withCompleteness(input.state), input.locale);
     const handedOff = caseCard?.kind === 'unsupported';
     // Bentuk sistem pengguna sendiri (P22-02): teks tetap dari jalur dan BOQ solusinya, gambar menyusul.
-    const drawing = drawingCardFor(label, input.solution);
+    const drawing = drawingCardFor(
+      label,
+      input.solution,
+      input.understanding !== undefined && asksSolutionQuantity(input.understanding),
+    );
     // Pertanyaan atas solusi yang SUDAH dihitung dijawab dari solusinya sendiri, bukan ditulis
     // ulang model: di produksi 2026-10-26 "fitting apa aja yang perlu dibeli" memakan 55,7 detik,
     // "berapa batang pipanya" 42,6 detik, dan "kenapa ukurannya 1 inci" 48,1 detik — dan ketiga
@@ -335,9 +341,20 @@ export async function runUnderstanding(
   // kebutuhan bangunan; "sumur bor 60 m ke tandon" adalah kasus distribusi sumur; "gedung 8 lantai"
   // kasus gedung bertingkat — dibedakan dari contoh, bukan dari bobot kata.
   const detected = detectTechnicalCase(input.understanding?.useCase ?? null, input.state);
-  const technicalCase =
-    (lowRiseHint(detected, input.state, input.message) ? null : detected) ??
-    tallBuildingCase(input.state, input.message);
+  // Percakapan rumah yang kebutuhannya sudah tercatat tidak dibajak kasus teknis oleh sebuah
+  // PERTANYAAN: di produksi 2026-10-26 "septic tanknya di mana" di rumah 2 lantai yang solusinya
+  // sudah dihitung membuka kasus saluran gravitasi, mencatat "jenis cairan air limbah", dan
+  // menanyakan debit rencana serta kemiringan saluran. Pernyataan bernilai ("pipa buangan ke
+  // saluran kota 40 meter, beda tinggi 1,5 m") tetap membuka kasusnya.
+  const hijacksHouse =
+    input.state.useCase === undefined &&
+    input.state.building.type.value !== null &&
+    input.understanding !== undefined &&
+    !isCaseStatement(input.understanding);
+  const technicalCase = hijacksHouse
+    ? null
+    : ((lowRiseHint(detected, input.state, input.message) ? null : detected) ??
+      tallBuildingCase(input.state, input.message));
   if (technicalCase !== null) {
     const facts = applyTechnicalFacts(input.state, technicalCase, input.message);
     const applied = { ...facts, state: carryBuildingFloors(facts.state, technicalCase) };
@@ -383,7 +400,21 @@ export async function runUnderstanding(
                 })
               ).text
             : guidance;
-    events.push({ type: 'token', text });
+    // Pesan yang MEMBAWA angka tetapi tidak mengisi satu parameter kasus pun: kalimat panduan yang
+    // sama persis diulang terbaca seperti pesan yang hilang. Yang dikatakan adalah bahwa angkanya
+    // tidak punya tempat di hitungan ini (produksi 2026-10-26: "toren 2000 liter di atap", lalu
+    // "ukuran bangunannya 10 x 20 meter").
+    const lastSaid = [...(input.recentTurns ?? [])]
+      .reverse()
+      .find((turn) => turn.role === 'assistant')?.text;
+    const ignoredValue =
+      lastSaid?.trim() === text.trim() &&
+      facts.captured.length === 0 &&
+      extractionToUpdates({}, input.message).length > 0;
+    events.push({
+      type: 'token',
+      text: ignoredValue ? `${valueWithoutPlaceReply(locale)} ${text}` : text,
+    });
     if (questions) events.push({ type: 'card', card: questions });
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));
@@ -442,8 +473,19 @@ export async function runUnderstanding(
   // untuk tiga pesan yang nilainya sudah terbaca kode ("torennya di atas", "tanahnya 15 x 25 m").
   const onRecord =
     input.state.building.type.value !== null && extractionToUpdates({}, input.message).length > 0;
+  // Pesan PERTAMA yang menyebut jenis bangunannya ikut: parser nilai membaca lantai, kamar, alat,
+  // sumber air, dan ukuran untuk semua jenis — bukan hanya rumah tinggal. Di produksi 2026-10-26
+  // pesan pembuka kos memakai 16,4 detik di model ekstraksi dan tetap tidak menemukan kamar
+  // mandinya; parser yang menemukannya, dan sisanya memang ditanya kartu klarifikasi.
+  const typeStated = extractionToUpdates({}, input.message).some((u) => u.path === 'building.type');
   const skipModel =
-    quickCore >= 2 || house || mutationOp !== null || adviceOnly || handedOff || onRecord;
+    quickCore >= 2 ||
+    house ||
+    mutationOp !== null ||
+    adviceOnly ||
+    handedOff ||
+    onRecord ||
+    typeStated;
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
     extraction = skipModel ? {} : await ai.extract(input.message);
@@ -1049,8 +1091,11 @@ export function isEmptyExtraction(extraction: Extraction): boolean {
 export function drawingCardFor(
   label: string | undefined,
   solution: ActiveSolution | null | undefined,
+  /** Pertanyaan jumlah batang atas solusi sendiri juga dijawab daftar belanjanya (P31-41). */
+  quantityOfOwnSolution = false,
 ): AssistantCard | null {
-  if (label !== 'system_layout_question' || !solution || solution.stale) return null;
+  const wantsLayout = label === 'system_layout_question' || quantityOfOwnSolution;
+  if (!wantsLayout || !solution || solution.stale) return null;
   const needs = solution.recommendation.needs ?? [];
   return needs.length > 0 ? { kind: 'drawing', needs } : null;
 }

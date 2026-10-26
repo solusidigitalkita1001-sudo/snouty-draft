@@ -195,3 +195,42 @@ describe('angka milik kata benda lain (produksi 2026-10-26)', () => {
     expect(value(message, 'fixtures.bathrooms')).toBe(4);
   });
 });
+
+describe('kamar sewa dengan kamar mandi sendiri (produksi 2026-10-26)', () => {
+  const value = (message: string, path: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === path)?.value;
+
+  it('"4 lantai, tiap lantai 6 kamar, tiap kamar ada kamar mandi sendiri" tercatat 24', () => {
+    const message =
+      'mau bangun kos 4 lantai, tiap lantai 6 kamar, tiap kamar ada kamar mandi sendiri';
+    expect(value(message, 'fixtures.bathrooms')).toBe(24);
+    expect(value(message, 'building.floors')).toBe(4);
+    expect(value(message, 'building.type')).toBe('boarding_house');
+  });
+
+  it('tanpa penanda per lantai jumlah kamarnya tidak dikali', () => {
+    expect(value('kos 10 kamar, tiap kamar kamar mandi dalam', 'fixtures.bathrooms')).toBe(10);
+  });
+
+  it('jumlah kamar mandi yang tersurat tetap menang', () => {
+    expect(value('rumah 2 lantai, 3 kamar mandi dalam kamar', 'fixtures.bathrooms')).toBe(3);
+  });
+});
+
+describe('tinggi tower toren bukan panjang jalur (produksi 2026-10-26)', () => {
+  const value = (message: string, path: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === path)?.value;
+
+  it('"toren 10 kubik di atas tower 9 meter" tidak mengisi panjang jalur', () => {
+    const message =
+      'sumber airnya dari sumur dalam komunal, ada toren 10 kubik di atas tower 9 meter';
+    expect(value(message, 'building.dimensions')).toBeUndefined();
+    expect(value(message, 'water.source')).toBe('rooftop_tank');
+  });
+
+  it('panjang jalur yang memang disebut tetap terbaca', () => {
+    expect(value('jalur utamanya 18 meter', 'building.dimensions')).toEqual({
+      mainRunMeters: 18,
+    });
+  });
+});

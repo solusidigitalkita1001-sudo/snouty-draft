@@ -216,6 +216,29 @@ export function solutionReply(solution: ActiveSolution, locale: Locale): string 
         : `Perlu pompa pendorong${booster.residualBar === undefined ? '' : `: tanpa pompa hanya ${num(booster.residualBar)} bar di titik air tertinggi`}.`,
     );
   }
+  // Solusi yang juga menghitung pembuangan menyebut ukuran jalurnya: di produksi 2026-10-26
+  // "pipa buangannya ukuran berapa" dijawab ukuran pipa AIR BERSIH saja, padahal jalur air kotor,
+  // air bekas, dan ventilasinya sudah dihitung.
+  const drainage = (r.needs ?? []).find((n) => n.kind === 'drainage');
+  if (drainage) {
+    const lines = [
+      drainage.soilSize === undefined
+        ? null
+        : `${en ? 'soil line' : 'air kotor'} ${drainage.soilSize}`,
+      drainage.wasteSize === undefined
+        ? null
+        : `${en ? 'waste line' : 'air bekas'} ${drainage.wasteSize}`,
+      drainage.soilVentSize === undefined
+        ? null
+        : `${en ? 'soil vent' : 'ventilasi air kotor'} ${drainage.soilVentSize}`,
+      drainage.wasteVentSize === undefined
+        ? null
+        : `${en ? 'waste vent' : 'ventilasi air bekas'} ${drainage.wasteVentSize}`,
+    ].filter((line): line is string => line !== null);
+    if (lines.length > 0) {
+      parts.push(`${en ? 'Drainage' : 'Pembuangan'}: ${lines.join(', ')}.`);
+    }
+  }
   parts.push(
     solution.stale
       ? en

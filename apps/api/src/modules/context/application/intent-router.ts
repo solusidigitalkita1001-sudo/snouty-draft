@@ -552,6 +552,19 @@ export function isCaseStatement(u: MessageUnderstanding): boolean {
   return !u.knowledgeTopics.some((t) => CALCULATION_TOPICS.has(t));
 }
 
+/**
+ * Pertanyaan jumlah batang yang TIDAK membawa panjangnya sendiri: ia tentang jalur pengguna, bukan
+ * pelajaran umum "27 meter butuh berapa batang". Di produksi 2026-10-26 "how many lengths of pipe"
+ * di percakapan yang solusinya sudah dihitung dijawab pelajaran panjang batang standar, padahal
+ * daftar belanjanya sudah memuat "main line 1¼" 4 rods".
+ */
+const LENGTH_IN_MESSAGE = /\d+(?:[.,]\d+)?\s*(?:m|meter|metre|meters|metres|km)\b/i;
+
+export function asksSolutionQuantity(u: MessageUnderstanding): boolean {
+  if (!u.knowledgeTopics.some((t) => CALCULATION_TOPICS.has(t))) return false;
+  return !LENGTH_IN_MESSAGE.test(u.text);
+}
+
 export function answersFromKnowledge(u: MessageUnderstanding): boolean {
   const facts = factTopics();
   // Bahan + nilai tekanan ("HDPE atau uPVC untuk 8-12 bar?"): pertanyaan kelas tekanan.

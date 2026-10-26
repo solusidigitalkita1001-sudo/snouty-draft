@@ -73,10 +73,29 @@ describe('runUnderstanding — diet panggilan model (2026-10-07)', () => {
     expect(updated.state.water.source.value).toBe('rooftop_tank');
   });
 
-  it('< 2 data inti terbaca kode → model ekstraksi dipanggil', async () => {
+  it('< 2 data inti terbaca kode dan jenis bangunan tak disebut → model ekstraksi dipanggil', async () => {
     const ai = aiExtracting({ building: { floors: 2 } });
-    await runUnderstanding(ai, input({ message: 'mau bikin instalasi buat ruko saya' }));
+    await runUnderstanding(ai, input({ message: 'mau bikin instalasi airnya, bantu ya' }));
     expect(ai.extract).toHaveBeenCalledTimes(1);
+  });
+
+  // Produksi 2026-10-26: pesan pembuka kos memakai 16,4 detik di model ekstraksi dan tetap tidak
+  // menemukan kamar mandinya. Parser nilai yang menemukannya; sisanya ditanya kartu klarifikasi.
+  it('jenis bangunan yang tersurat di pesan pertama: tanpa model, kamar mandinya terbaca', async () => {
+    const ai = aiExtracting({ building: { floors: 9 } });
+    const { events } = await runUnderstanding(
+      ai,
+      input({
+        message: 'mau bangun kos 4 lantai, tiap lantai 6 kamar, tiap kamar ada kamar mandi sendiri',
+      }),
+    );
+    expect(ai.extract).not.toHaveBeenCalled();
+    const updated = events.find((e) => e.type === 'requirement.updated') as {
+      state: ReturnType<typeof emptyRequirementState>;
+    };
+    expect(updated.state.building.type.value).toBe('boarding_house');
+    expect(updated.state.building.floors.value).toBe(4);
+    expect(updated.state.fixtures.bathrooms.value).toBe(24);
   });
 
   it('rumah yang sudah tercatat: lanjutan satu angka pun tanpa model (P31-07)', async () => {

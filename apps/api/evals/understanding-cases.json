@@ -1684,6 +1684,27 @@
       "text": "boleh pakai pipa 1/2 inci aja biar murah",
       "intent": "explanation_request",
       "source": "P31-38 — pertanyaan atas angka solusi dijawab dari solusinya"
+    },
+    {
+      "text": "which pipes do i need to buy",
+      "intent": "system_layout_question",
+      "source": "P31-41 — pertanyaan jumlah batang atas solusi sendiri"
+    },
+    {
+      "text": "butuh berapa batang pipa buat rumah ini",
+      "intent": "system_layout_question",
+      "source": "P31-41 — pertanyaan jumlah batang atas solusi sendiri"
+    },
+    {
+      "text": "how many lengths of pipe do i need",
+      "topics": ["jumlah batang"],
+      "topicsOnly": true,
+      "source": "P31-41 — pertanyaan jumlah batang atas solusi sendiri"
+    },
+    {
+      "text": "mau bangun kos 4 lantai, tiap lantai 6 kamar, tiap kamar ada kamar mandi sendiri",
+      "intent": "requirement_building",
+      "source": "P31-42 — kamar sewa dengan kamar mandi sendiri"
     }
   ]
 }

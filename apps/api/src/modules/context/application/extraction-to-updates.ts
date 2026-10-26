@@ -108,6 +108,11 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
     /\b(air bersih|pembuangan|limbah|drainase|saluran|keduanya|clean water|potable|drinking water|supply|drainage|waste ?water|sewer|both)(?:nya)?\b/i,
 };
 
+/** Kamar sewa, dan pernyataan bahwa tiap kamar punya kamar mandinya sendiri. */
+const ROOM = 'kamar|kamar kos|kamar sewa|kamar tidur|rooms?|bedrooms?';
+const OWN_BATHROOM =
+  /kamar mandi (?:sendiri|dalam|pribadi|masing-masing)|kamar mandi di dalam|en-?suite|(?:own|private) bathroom/i;
+
 /**
  * Kebalikan dari pagar grounding: fakta yang **tersurat** di pesan tetapi dilewatkan model.
  * Model 7B mengembalikan `{}` untuk "lebih bagus PVC atau HDPE buat rumah 2 lantai?" — lalu
@@ -127,6 +132,17 @@ const OBVIOUS = {
     ) ??
     wordCountOf('lantai|tingkat|floors?|stor(?:e)?ys?|stories', m),
   bathrooms: (m: string) => countOf('kamar mandi|km|toilet|bathrooms?|toilets?|restrooms?', m),
+  /**
+   * Kamar sewa yang masing-masing punya kamar mandi: jumlah kamarnya adalah jumlah kamar mandinya.
+   * Produksi 2026-10-26: "kos 4 lantai, tiap lantai 6 kamar, tiap kamar ada kamar mandi sendiri"
+   * tercatat tanpa satu kamar mandi pun — 16,4 detik di model ekstraksi, dan tetap kosong.
+   */
+  roomBathrooms: (m: string, floors: number | undefined): number | undefined => {
+    if (!OWN_BATHROOM.test(m)) return undefined;
+    const rooms = countOf(ROOM, m, 3);
+    if (rooms === undefined) return undefined;
+    return mentionsPerFloor(m, ROOM) && floors !== undefined && floors > 1 ? rooms * floors : rooms;
+  },
   // Jumlah wastafel/dapur/titik air yang tersurat juga dibaca kode (diet panggilan model,
   // 2026-10-07): bila model dilewati, "4 wastafel, 1 dapur" tetap tercatat.
   basins: (m: string) =>
@@ -252,7 +268,9 @@ const OBVIOUS = {
       ),
     ].filter((match) => {
       const before = m.slice(Math.max(0, match.index - 24), match.index).toLowerCase();
-      return !/(dalam|kedalaman|tinggi|muka air|sumur|bor|batang|pipa\s*$|deep|depth|high|height)\s*[±~]?\s*(?:sekitar|kira-kira|kurang lebih)?\s*$/.test(
+      // "toren 10 kubik di atas tower 9 meter" tercatat sebagai jalur utama ±9 m di produksi
+      // 2026-10-26: tiang dan menara toren adalah KETINGGIAN, bukan panjang jalur.
+      return !/(dalam|kedalaman|tinggi|setinggi|muka air|sumur|bor|batang|tower|menara|tiang|pipa\s*$|deep|depth|high|height)\s*[±~]?\s*(?:sekitar|kira-kira|kurang lebih)?\s*$/.test(
         before,
       );
     });
@@ -678,7 +696,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
         COUNT_NOUNS['fixtures.bathrooms']!,
         OBVIOUS.bathrooms(message),
         floorsStated,
-      ),
+      ) ?? OBVIOUS.roomBathrooms(message, floorsStated),
     ),
   );
   // Peniadaan tersurat ("tidak ada dapur") yang dilewatkan model → 0 dari teks (produksi

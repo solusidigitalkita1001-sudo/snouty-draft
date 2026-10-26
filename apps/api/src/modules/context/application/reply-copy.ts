@@ -83,6 +83,18 @@ export function requirementUnchangedReply(locale: Locale = DEFAULT_LOCALE): stri
     : 'Kebutuhan Anda tetap tercatat seperti di panel. Bagian mana yang mau diubah atau ditanyakan?';
 }
 
+/**
+ * Angka yang terbaca tetapi tidak punya parameter di kasus ini. Produksi 2026-10-26: "toren 2000
+ * liter di atap" lalu "ukuran bangunannya 10 x 20 meter" di kasus sumur ke tandon mendapat kalimat
+ * "Yang masih saya perlukan: …" yang sama persis dua giliran berturut-turut, tanpa sepatah kata
+ * bahwa angkanya tidak dipakai.
+ */
+export function valueWithoutPlaceReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en'
+    ? 'That figure has no place in this calculation, so I have not used it.'
+    : 'Angka itu tidak punya tempat di hitungan kasus ini, jadi belum saya pakai.';
+}
+
 /** "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis — alasannya dari kartu kebijakan. */
 export function explanationHandedOff(
   reasons: readonly string[],
