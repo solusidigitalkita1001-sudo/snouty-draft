@@ -3324,3 +3324,10 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
 
       "oke hitung" di kasus irigasi yang berjalan memakai 41,5 detik dan dijawab karangan model;
       pesan di dalam kasus irigasi sekarang tetap di jalur irigasi.
+
+- [x] P31-32 Jawaban irigasi menyebut data yang baru masuk
+
+      Setelah arahan bahannya tidak lagi diulang, yang tersisa adalah kalimat penutup yang sama
+      empat giliran berturut-turut — dan pengguna tetap tidak tahu angkanya masuk atau tidak.
+      Giliran lanjutan sekarang menyebut nilai yang baru tercatat ("jarak 50–200 m"), dan kalimat
+      yang kebetulan sama persis dengan giliran sebelumnya diganti.

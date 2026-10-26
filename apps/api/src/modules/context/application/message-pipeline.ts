@@ -63,7 +63,7 @@ import {
   isIrrigationComplete,
   planIrrigationClarification,
 } from '../domain/irrigation.js';
-import { irrigationGuidance } from './irrigation-guidance.js';
+import { irrigationGuidance, irrigationNoted } from './irrigation-guidance.js';
 import { assumptionCard, houseAssumptionUpdates } from '../domain/requirement-defaults.js';
 import { houseRefinementQuestions, planClarification } from '../domain/clarification.js';
 import { outlierQuestions, pendingOutliers } from '../domain/plausibility.js';
@@ -289,10 +289,15 @@ export async function runUnderstanding(
     // persis keluar tiga giliran berturut-turut, dan data yang baru disebut pengguna tidak
     // disinggung sama sekali.
     const introduced = input.state.useCase?.kind === 'irrigation';
-    events.push({
-      type: 'token',
-      text: irrigationGuidance(applied.state, locale, { withIntro: !introduced }),
-    });
+    const noted = introduced ? irrigationNoted(input.state, applied.state, locale) : null;
+    const guidance = irrigationGuidance(applied.state, locale, { withIntro: !introduced });
+    const spoken = noted === null ? guidance : `${noted} ${guidance}`;
+    // Kalimat penutup yang sama persis dua giliran berturut-turut tidak dikirim ulang.
+    const previously = [...(input.recentTurns ?? [])]
+      .reverse()
+      .find((t) => t.role === 'assistant')?.text;
+    const echoed = previously !== undefined && previously.trim() === spoken.trim();
+    events.push({ type: 'token', text: echoed ? requirementUnchangedReply(locale) : spoken });
     const card = irrigationFollowUp(applied.state, locale);
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));

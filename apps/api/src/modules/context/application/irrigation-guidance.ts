@@ -5,7 +5,7 @@
  * sendiri dihitung tim teknis (OQ-47).
  */
 import { DEFAULT_LOCALE, type Locale, type RequirementState } from '@snouty/shared-types';
-import { irrigationMissing } from '../domain/irrigation.js';
+import { irrigationCaptured, irrigationMissing } from '../domain/irrigation.js';
 import { MATERIALS } from './pipe-knowledge.js';
 
 const byFamily = (family: string) => MATERIALS.find((m) => m.family === family)!;
@@ -87,4 +87,24 @@ function closingLine(state: RequirementState, locale: Locale): string {
   return missing
     ? 'Supaya saya bisa menghitung debit, ukuran pipa, dan daftar produknya, saya perlu beberapa hal di bawah ini.'
     : 'Tekan **Susun rekomendasi** dan saya hitung perkiraan awalnya — angka yang saya perkirakan sendiri saya tandai jelas, supaya tim teknis Pralon tinggal memeriksanya.';
+}
+
+/**
+ * Nilai irigasi yang BARU tercatat di giliran ini, sebagai satu kalimat.
+ *
+ * Tanpa ini, giliran lanjutan hanya mengulang kalimat penutup yang sama — empat kali berturut-turut
+ * di produksi 2026-10-26 — dan pengguna tidak pernah tahu angkanya masuk atau tidak.
+ */
+export function irrigationNoted(
+  before: RequirementState,
+  after: RequirementState,
+  locale: Locale = DEFAULT_LOCALE,
+): string | null {
+  const previous = before.useCase?.kind === 'irrigation' ? before.useCase.answers : {};
+  const fresh = irrigationCaptured(after, locale).filter(
+    (row) => !Object.values(previous).includes(row.value),
+  );
+  if (fresh.length === 0) return null;
+  const list = fresh.map((row) => `${row.label.toLowerCase()} ${row.value}`).join(', ');
+  return locale === 'en' ? `Noted: ${list}.` : `Oke, sudah saya catat: ${list}.`;
 }

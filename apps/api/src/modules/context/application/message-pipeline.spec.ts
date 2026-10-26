@@ -1213,6 +1213,9 @@ describe('kasus irigasi yang sudah berjalan (P31-31)', () => {
     // Di produksi 2026-10-26 blok empat paragraf yang sama persis keluar tiga giliran berturut-turut.
     expect(text).not.toContain('**Jalur utama dari sumber ke lahan**');
     expect(text).not.toBe(opening);
+    // Data yang baru masuk disebut balik, supaya jelas angkanya tercatat.
+    expect(text).toContain('sudah saya catat');
+    expect(text).toContain('50–200 m');
     expect(next.nextState.useCase).toMatchObject({
       kind: 'irrigation',
       answers: { 'irrigation.distance': '50–200 m' },
