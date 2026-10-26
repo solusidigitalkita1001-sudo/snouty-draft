@@ -76,6 +76,14 @@ export function mergeRequirement(
     // kuat. Nilai yang sama kuat: yang terbaru menang (pengguna menyebut ulang).
     if (current.value !== null && incomingRank < currentRank) continue;
 
+    // "Renovasi" tanpa jenis pekerjaan adalah penanda, bukan jawaban: ia tidak menghapus jenis
+    // yang sudah disebut. Produksi 2026-10-26: "ganti semua pipa" di pesan pertama berubah
+    // menjadi "renovasi (jenisnya belum disebut)" begitu pengguna menyebut "pipa lamanya 3/4
+    // inch" — kata "pipa lama" di kalimat itu menimpa jenis pekerjaannya, dan kebutuhan yang
+    // tadinya bisa dihitung kembali menunggu jawaban.
+    if (update.path === 'water.workType' && update.value === 'renovation' && current.value !== null)
+      continue;
+
     const merged: TrackedValue<unknown> = {
       value:
         update.path === 'building.dimensions'

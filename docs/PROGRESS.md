@@ -3517,3 +3517,12 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       ruko memakai 14,9 detik: 14,5 detik di pengklasifikasi maksud, untuk angka yang sudah dibaca
       parser nilai dan untuk jalur yang memang sudah pasti. Giliran yang membawa nilai kebutuhan
       pada percakapan yang maksudnya bukan sesuatu yang lain sekarang diputuskan kode.
+
+- [x] P31-56 Penanda renovasi tidak menghapus jenis pekerjaan yang sudah disebut
+
+      Proyek renovasi ruko yang dibuka dengan "pipa lama galvanis mau diganti semua" tercatat
+      "ganti semua pipa" — lalu "pipa lamanya 3/4 inch" mengubahnya menjadi "renovasi (jenisnya
+      belum disebut)", karena kata "pipa lama" di kalimat itu dibaca sebagai renovasi tanpa jenis.
+      Kebutuhan yang tadinya bisa dihitung kembali menunggu jawaban, dan "udah, itung" dijawab
+      "bagian mana yang mau diubah". Penanda tanpa jenis sekarang tidak menimpa jenis yang sudah
+      ada; pengguna tetap bisa menggantinya dengan jenis lain.

@@ -151,3 +151,36 @@ describe('ukuran digabung per kelompok (2026-10-12)', () => {
     });
   });
 });
+
+/**
+ * Produksi 2026-10-26: "ganti semua pipa" di pesan pertama berubah menjadi "renovasi (jenisnya
+ * belum disebut)" begitu pengguna menyebut "pipa lamanya 3/4 inch".
+ */
+describe('penanda renovasi tidak menimpa jenis pekerjaan', () => {
+  it('"renovasi" tanpa jenis dibiarkan bila jenisnya sudah disebut', () => {
+    const { state: withType } = mergeRequirement(
+      state(),
+      [{ path: 'water.workType', value: 'replace_all', source: 'user_stated' }],
+      T1,
+    );
+    const { state: after, changed } = mergeRequirement(
+      withType,
+      [{ path: 'water.workType', value: 'renovation', source: 'user_stated' }],
+      T1,
+    );
+    expect(after.water.workType?.value).toBe('replace_all');
+    expect(changed).not.toContain('water.workType');
+  });
+
+  it('jenis pekerjaan yang lebih spesifik tetap bisa diubah pengguna', () => {
+    const { state: after } = mergeRequirement(
+      state(),
+      [
+        { path: 'water.workType', value: 'renovation', source: 'user_stated' },
+        { path: 'water.workType', value: 'extend', source: 'user_stated' },
+      ],
+      T1,
+    );
+    expect(after.water.workType?.value).toBe('extend');
+  });
+});
