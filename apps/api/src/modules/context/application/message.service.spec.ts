@@ -32,7 +32,11 @@ function serviceWith(router: { route: () => Promise<unknown> }) {
     appendAssistantMessage: vi.fn(async () => undefined),
   };
   const store = { current: vi.fn(async () => null), append: vi.fn(async () => undefined) };
-  const ai = { classifyIntent: vi.fn(), titleFor: vi.fn(async () => 'Rumah 2 lantai') };
+  const ai = {
+    classifyIntent: vi.fn(),
+    extract: vi.fn(async () => ({})),
+    titleFor: vi.fn(async () => 'Rumah 2 lantai'),
+  };
   const service = new MessageService(
     conversations as never,
     store as never,
@@ -813,7 +817,9 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     );
     await service.handle('C'.repeat(26), ACTOR, 'airnya dari toren bawah, kamar mandinya 4', 'T');
     expect(planner.plan).not.toHaveBeenCalled();
-    expect(router.route).toHaveBeenCalled();
+    // Nilainya sudah terbaca parser nilai, jadi pengklasifikasi maksud pun tidak dipanggil
+    // (produksi 2026-10-26: 14,5 detik untuk pesan yang angkanya sudah ada di tangan).
+    expect(router.route).not.toHaveBeenCalled();
   });
 
   it('pertanyaan tentang kasus gedung yang berjalan dijawab di jalur kasus, tanpa perencana', async () => {
@@ -846,7 +852,7 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
 describe('MessageService — catatan proyek (P24-02)', () => {
   it('giliran pertama konsultasi di proyek: catatan ikut dipahami, pesan tersimpan tetap kalimat pengguna', async () => {
     const route = vi.fn(() => Promise.reject(new LlmUnavailableError(503)));
-    const { service, conversations } = serviceWith({ route });
+    const { service, conversations, store } = serviceWith({ route });
     conversations.projectContext.mockResolvedValueOnce({
       name: 'Rumah Bekasi',
       notes: 'sumber air PDAM, pakai pipa PVC',
@@ -857,7 +863,8 @@ describe('MessageService — catatan proyek (P24-02)', () => {
       ACTOR,
       'rumah 2 lantai 3 kamar mandi',
     );
-    expect(JSON.stringify(route.mock.calls)).toContain('sumber air PDAM, pakai pipa PVC');
+    // Catatan proyek ikut dipahami: sumber airnya tercatat dari catatan, bukan dari pesan.
+    expect(JSON.stringify(store.append.mock.calls)).toContain('municipal');
   });
 
   it('giliran berikutnya (sudah berjudul): catatan tidak dibaca ulang', async () => {

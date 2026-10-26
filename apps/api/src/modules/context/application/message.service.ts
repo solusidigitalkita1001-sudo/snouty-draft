@@ -475,9 +475,23 @@ export class MessageService {
       }
     }
 
+    // Pesan yang nilainya sudah terbaca parser nilai tidak perlu dikenali ulang pengklasifikasi
+    // maksud: di produksi 2026-10-26 "titik airnya ada 9, panjang pipa yang diganti kira-kira 35
+    // meter" di percakapan renovasi ruko memakai 14,5 detik di model untuk angka yang sudah ada
+    // di tangan — dan keluarannya jalur yang sama.
+    const valuesOnRecord: RoutingDecision | null =
+      statesValues && requirementTurn
+        ? {
+            intent: 'REQUIREMENT_STATEMENT',
+            confidence: 1,
+            shouldExtract: true,
+            mutatesState: false,
+          }
+        : null;
     const decision =
       continuation ??
       planned ??
+      valuesOnRecord ??
       (await this.router.route(u, hasExisting, recentTurns, state.subject));
     timer.mark('route');
 

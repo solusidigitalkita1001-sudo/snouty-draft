@@ -3510,3 +3510,10 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       atas solusi yang sudah dihitung dijawab satu baris berisi hasil dan tempat angkanya, bukan
       seluruh solusi dituang ulang — yang membuat pertanyaan sesudahnya dijawab "itu yang saya
       jelaskan di jawaban sebelumnya".
+
+- [x] P31-55 Pesan yang nilainya sudah terbaca tidak dikenali ulang model
+
+      "titik airnya ada 9, panjang pipa yang diganti kira-kira 35 meter" di percakapan renovasi
+      ruko memakai 14,9 detik: 14,5 detik di pengklasifikasi maksud, untuk angka yang sudah dibaca
+      parser nilai dan untuk jalur yang memang sudah pasti. Giliran yang membawa nilai kebutuhan
+      pada percakapan yang maksudnya bukan sesuatu yang lain sekarang diputuskan kode.
