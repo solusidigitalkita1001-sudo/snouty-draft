@@ -3083,3 +3083,13 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       keadaan apa pun (kebijakan OQ-03), jadi labelnya saja cukup. Katalog pemahaman tidak memberi
       label kecuali ambang dan marginnya terlampaui, dan harga yang keliru terbaca pun hanya
       menghasilkan kalimat kebijakan yang sama.
+
+- [x] P31-11 Subjek produk yang tidak ada tidak lagi dikarang jadi "Pralon"
+
+      Sisa dari P31-08: pangkalnya bukan di hilir, tapi di tempat subjek dibuat. Subjek produk
+      tanpa entitas apa pun jatuh ke string `'Pralon'` — benar untuk "produk Pralon apa aja?",
+      salah untuk pertanyaan harga di tengah percakapan rumah. Subjek yang tertinggal itu membuat
+      lanjutan berikutnya ("ada yang lebih murah ga") dijawab ikhtisar 7.664 produk.
+
+      Sekarang entitas hanya menjadi "Pralon" bila pesannya memang tentang ragam Pralon atau
+      menyebut mereknya; tanpa entitas dan tanpa ragam, subjek percakapan tidak berubah.

@@ -579,8 +579,10 @@ export class MessageService {
   private async rememberSubject(
     conversationId: string,
     state: RequirementState,
-    subject: ConversationSubject,
+    subject: ConversationSubject | null,
   ): Promise<void> {
+    // Subjek yang tidak bisa ditentukan tidak menimpa subjek yang sedang berjalan (P31-11).
+    if (subject === null) return;
     if (JSON.stringify(state.subject) === JSON.stringify(subject)) return;
     await this.store.append(conversationId, { ...state, subject }, 'subject_change');
   }

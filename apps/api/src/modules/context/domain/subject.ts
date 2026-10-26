@@ -120,7 +120,7 @@ export function productSubject(
   entity: string | null,
   u: MessageUnderstanding,
   previous: ConversationSubject | undefined,
-): ConversationSubject {
+): ConversationSubject | null {
   const requested = u.depth;
   if (entity === null && previous && previous.kind !== 'company' && isFollowUp(u)) {
     return { ...previous, depth: requested ?? deeper(previous.depth) };
@@ -148,11 +148,19 @@ export function productSubject(
     !previous.entity.split(/\s+dan\s+/).includes(entity)
       ? `${previous.entity} dan ${entity}`
       : entity;
+  // Hanya entitas PRODUK yang diwarisi: subjek kasus ("building") atau perusahaan bukan produk
+  // (judul riwayat sempat menjadi "Produk BUILDING", 2026-10-09).
+  const inherited = merged ?? (previous?.kind === 'product' ? previous.entity : null);
+  // Tanpa entitas apa pun, subjeknya adalah RAGAM Pralon — dan itu hanya benar bila pesannya
+  // memang tentang itu. Pertanyaan harga di tengah percakapan rumah bukan: subjek "Pralon" yang
+  // tertinggal membuat lanjutan berikutnya ("ada yang lebih murah ga") dijawab ikhtisar 7.664
+  // produk (produksi 2026-10-26). Tanpa entitas dan tanpa ragam, subjek tidak berubah.
+  const resolved =
+    inherited ?? (u.intent?.label === 'product_range' || u.mentionsOwnBrand ? 'Pralon' : null);
+  if (resolved === null) return null;
   return {
     kind: 'product',
-    // Hanya entitas PRODUK yang diwarisi: subjek kasus ("building") atau perusahaan bukan produk
-    // (judul riwayat sempat menjadi "Produk BUILDING", 2026-10-09).
-    entity: merged ?? (previous?.kind === 'product' ? previous.entity : null) ?? 'Pralon',
+    entity: resolved,
     topic: comparison ? 'comparison' : 'product_overview',
     depth: requested ?? 'standard',
   };

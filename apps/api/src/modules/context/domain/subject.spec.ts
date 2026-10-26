@@ -178,9 +178,9 @@ describe('productSubject & intentForSubject', () => {
       understood('produk HDPE nya gimana?', { intent: 'product_concept' }),
       company,
     );
-    expect(next.kind).toBe('product');
-    expect(next.entity).toBe('hdpe');
-    expect(next.topic).toBe('product_overview');
+    expect(next?.kind).toBe('product');
+    expect(next?.entity).toBe('hdpe');
+    expect(next?.topic).toBe('product_overview');
   });
 
   it('lanjutan atas subjek produk mewarisi entitasnya dan naik kedalaman', () => {
@@ -192,10 +192,10 @@ describe('productSubject & intentForSubject', () => {
     const more = productSubject(
       null,
       understood('lebih detail dong', { intent: 'follow_up_more', depth: 'detailed' }),
-      pvc,
+      pvc ?? undefined,
     );
-    expect(more.entity).toBe('pvc aw');
-    expect(more.depth).toBe('detailed');
+    expect(more?.entity).toBe('pvc aw');
+    expect(more?.depth).toBe('detailed');
   });
 
   it('perbandingan dengan subjek aktif menggabungkan entitas; fitting vs satu bahan disimpan sebagai topiknya', () => {
@@ -211,15 +211,37 @@ describe('productSubject & intentForSubject', () => {
     const both = productSubject(
       'pvc',
       understood('coba bandingin sama pipa PVC', { intent: 'product_comparison' }),
-      hdpe,
+      hdpe ?? undefined,
     );
-    expect(both.entity).toBe('hdpe dan pvc');
-    expect(both.topic).toBe('comparison');
+    expect(both?.entity).toBe('hdpe dan pvc');
+    expect(both?.topic).toBe('comparison');
   });
 
   it('intent lanjutan mengikuti jenis subjek', () => {
     expect(intentForSubject('company')).toBe('COMPANY_QUESTION');
     expect(intentForSubject('product')).toBe('PRODUCT_LOOKUP');
     expect(intentForSubject('case')).toBe('REQUIREMENT_STATEMENT');
+  });
+});
+
+describe('subjek produk tanpa entitas (P31-11)', () => {
+  it('pertanyaan harga di tengah percakapan rumah tidak meninggalkan subjek "Pralon"', () => {
+    expect(
+      productSubject(
+        null,
+        understood('berapa duit totalnya', { intent: 'price_question' }),
+        undefined,
+      ),
+    ).toBeNull();
+  });
+
+  it('pertanyaan tentang ragam Pralon tetap bersubjek Pralon', () => {
+    expect(
+      productSubject(
+        null,
+        understood('produk pralon apa aja?', { intent: 'product_range' }),
+        undefined,
+      ),
+    ).toMatchObject({ kind: 'product', entity: 'Pralon' });
   });
 });
