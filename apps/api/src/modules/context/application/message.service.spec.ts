@@ -812,3 +812,65 @@ describe('joinBlocks', () => {
     expect(joinBlocks(['satu saja'])).toBe('satu saja');
   });
 });
+
+describe('MessageService — pertanyaan bersumber di tengah kasus teknis (P31-16)', () => {
+  function setupCase(script: Record<string, object>) {
+    const state = {
+      ...emptyRequirementState('T'),
+      useCase: { kind: 'technical', caseId: 'pump_transfer', parameters: {} },
+    };
+    const conversations = {
+      find: vi.fn(async () => ({ title: 'x', language: 'id' })),
+      messages: vi.fn(async () => [{ role: 'user', text: 'pompanya apa' }]),
+      rename: vi.fn(async () => undefined),
+      appendUserMessage: vi.fn(async () => ({ id: 'MSG_USER' })),
+      tagIntent: vi.fn(async () => undefined),
+      projectContext: vi.fn(async () => null),
+      adoptLanguage: vi.fn(async () => undefined),
+      appendAssistantMessage: vi.fn(async () => undefined),
+    };
+    const store = { current: vi.fn(async () => ({ state })), append: vi.fn(async () => ({})) };
+    const router = {
+      route: vi.fn(async () => ({
+        intent: 'PRODUCT_LOOKUP',
+        confidence: 1,
+        shouldExtract: false,
+        mutatesState: false,
+      })),
+    };
+    const service = new MessageService(
+      conversations as never,
+      store as never,
+      router as never,
+      {
+        activeVersion: vi.fn(async () => ({ kind: 'pralon' })),
+        familyCounts: vi.fn(async () => []),
+        listProducts: vi.fn(async () => ({ items: [], nextCursor: null })),
+      } as never,
+      { answer: vi.fn() } as never,
+      null,
+      { writeProse: vi.fn(), extract: vi.fn(async () => ({})) } as never,
+      null,
+      null,
+      scriptedUnderstanding(script) as never,
+      { plan: vi.fn(async () => null) } as never,
+    );
+    return { service, router };
+  }
+
+  it('"pompanya apa" tidak diperlakukan sebagai jawaban kebutuhan — ia punya fakta bersumber', async () => {
+    const { service, router } = setupCase({
+      'pompanya apa': { intent: 'explanation_request', knowledgeTopics: ['pompa'] },
+    });
+    await service.handle('C'.repeat(26), ACTOR, 'pompanya apa', 'T');
+    expect(router.route).toHaveBeenCalled();
+  });
+
+  it('jawaban yang membawa DATA tetap lanjutan kebutuhan, tanpa router', async () => {
+    const { service, router } = setupCase({
+      'bahannya pvc': { intent: 'clarification_answer', knowledgeTopics: ['kelas pvc'] },
+    });
+    await service.handle('C'.repeat(26), ACTOR, 'bahannya pvc', 'T');
+    expect(router.route).not.toHaveBeenCalled();
+  });
+});

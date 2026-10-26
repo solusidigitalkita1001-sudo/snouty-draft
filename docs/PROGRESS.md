@@ -3148,3 +3148,14 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
 
       Perencana giliran juga dilewati untuk pertanyaan ini: lewat perencana "lu bisa ngitung ga
       sih" memakan 38,6 detik dan dijawab prosa model, padahal maknanya utuh tanpa konteks.
+
+- [x] P31-16 Pertanyaan bersumber di tengah kasus tidak lagi dibaca sebagai jawaban data
+
+      Fakta pompa P31-14 tidak pernah terpakai di tempat ia paling dibutuhkan: di dalam kasus
+      teknis yang berjalan, setiap pertanyaan dialihkan menjadi lanjutan kebutuhan — dijalankan
+      ekstraksi lebih dulu, lalu dijawab model. "pompanya apa" di kasus sumur memakan 22,5 detik
+      dan dijawab pertanyaan balik soal merek pompa, dengan satu kata Rusia menyelip di dalamnya.
+
+      Sekarang pertanyaan yang punya fakta bersumber keluar dari lanjutan itu dan dijawab dari
+      pengetahuan. Pesan yang membawa data ("bahannya pvc", "jaraknya 150 m") tetap lanjutan
+      kebutuhan seperti sebelumnya — yang dialihkan hanya pertanyaannya.

@@ -297,7 +297,12 @@ export class MessageService {
           shouldExtract: false,
           mutatesState: false,
         } satisfies RoutingDecision)
-      : state.useCase?.kind === 'technical' &&
+      : // Pertanyaan yang punya FAKTA BERSUMBER tidak ikut lanjutan kasus: "pompanya apa" di kasus
+        // sumur dijawab 22,5 detik oleh model, yang balik menanyakan merek pompa dan menyelipkan
+        // satu kata Rusia (produksi 2026-10-26). Pesan yang membawa DATA ("bahannya pvc",
+        // "jaraknya 150 m") tetap lanjutan kebutuhan — yang dialihkan hanya pertanyaannya.
+        state.useCase?.kind === 'technical' &&
+          !(fine !== undefined && !isRequirement(fine) && answersFromKnowledge(u)) &&
           (fine === undefined ||
             isRequirement(fine) ||
             isFollowUp(fine) ||
