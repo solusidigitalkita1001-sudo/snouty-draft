@@ -3050,3 +3050,23 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       menjawab "ya" untuk apa pun yang bukan keluarga khusus-pengetahuan, termasuk kata "Pralon".
       Yang dipakai `productFamilies` — entitas yang tidak memuat keluarga mana pun memang tidak
       punya yang bisa dicari. Tesnya memeriksa kalimatnya, dan sempat merah sebelum pagar kedua.
+
+- [x] P31-09 Dua blok teks yang menempel, dan lanjutan rumah yang ditulis model
+
+      **Dua kalimat tanpa spasi.** Giliran harga mengirim dua event teks: jawaban harga lalu
+      catatan kebutuhan. Keduanya blok utuh — tidak ada jalur yang menstream potongan kalimat —
+      tetapi web dan penyimpanan menggabungkannya mentah, jadi yang terbaca
+      "…yang Anda butuhkan.Oke, sudah saya catat…". Blok kedua kini dimulai sebagai paragraf baru,
+      di kedua tempat dengan aturan yang sama.
+
+      **"ada yang lebih murah ga" 18 detik, "oke lanjut" 14 detik.** Keduanya jatuh ke cabang
+      PEMBUKA: pernyataan kebutuhan yang ekstraksinya kosong dianggap orang yang baru hendak
+      bertanya, lalu balasannya ditulis model. Cabang itu memang hanya dimaksudkan untuk pesan
+      pembuka — komentarnya mengatakan begitu — tetapi syaratnya tidak pernah memeriksa apakah
+      kebutuhannya sudah tercatat. Dengan kebutuhan di tangan, keduanya sekarang dijawab jalur
+      biasa dari DATA kasus: yang sudah tercatat, lalu tombol hitungnya. Yang keluar dari model
+      sebelumnya memang berbunyi seperti bot — "Saya paham keinginan Anda mencari harga lebih
+      hemat…".
+
+      Penulis balasan di giliran yang tidak menghasilkan kalimat apa pun juga dipagari maksud yang
+      memang butuh penjelasan, sama seperti jalur kasus teknis sejak P16-40.

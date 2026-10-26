@@ -416,7 +416,12 @@ export async function runUnderstanding(
       isEmptyExtraction(extraction) &&
       updates.length === 0 &&
       // "mending pvc apa hdpe?" bukan pembuka: nasihat bahannya ditulis di bawah.
-      !adviceOnly
+      !adviceOnly &&
+      // Hanya pesan PEMBUKA. Dengan kebutuhan yang sudah tercatat, "oke lanjut" dan "ada yang
+      // lebih murah ga" bukan orang yang baru hendak bertanya — lewat sini keduanya ditulis model
+      // di CPU (14 dan 18 detik) dan berbunyi seperti bot (produksi 2026-10-26); jalur biasa di
+      // bawah menjawabnya dari DATA kasus.
+      capturedFrom(input.state).length === 0
     ) {
       events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'done', detail: '0 DATA' });
       const written =
@@ -525,8 +530,13 @@ export async function runUnderstanding(
       locale === 'en'
         ? 'Your requirements are still recorded as shown in the panel. Which part would you like to change or ask about?'
         : 'Kebutuhan Anda tetap tercatat seperti di panel. Bagian mana yang mau diubah atau ditanyakan?';
+    // Model hanya untuk maksud yang memang butuh penjelasan — sama seperti jalur kasus teknis
+    // (P16-40). Dorongan dan pilihan ("oke lanjut", "ada yang lebih murah ga") dijawab teks tetap:
+    // lewat model keduanya 14 dan 18 detik di CPU, dan yang keluar berbunyi seperti bot ("Saya
+    // paham keinginan Anda mencari harga lebih hemat…", produksi 2026-10-26).
+    const explains = EXPLAINING_INTENTS.has(input.understanding?.intent?.label ?? '');
     const written =
-      reply && loadEnv().LLM_CHAT_REPLY
+      reply && loadEnv().LLM_CHAT_REPLY && explains
         ? await reply.write({
             intent: input.decision.intent,
             userMessage: input.message,

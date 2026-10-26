@@ -475,7 +475,13 @@ export function ChatWorkspace() {
             // selama pesan berjalan yang tampil titik berpikir.
             break;
           case 'token':
-            assistantText += event.text;
+            // Satu event = satu blok teks utuh (tidak distream per kata), jadi blok kedua dalam
+            // giliran yang sama dimulai sebagai paragraf baru — digabung mentah, jawaban harga dan
+            // catatan kebutuhan menempel tanpa spasi (produksi 2026-10-26).
+            assistantText +=
+              assistantText === '' || assistantText.endsWith('\n')
+                ? event.text
+                : `\n\n${event.text}`;
             break;
           case 'card':
             assistantCards = [...assistantCards, event.card];

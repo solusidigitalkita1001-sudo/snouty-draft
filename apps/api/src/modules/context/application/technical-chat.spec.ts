@@ -11,6 +11,7 @@ vi.mock('../../../config/env.js', () => ({
 import type { RequirementState } from '@snouty/shared-types';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import { applyTechnicalFacts } from '../domain/technical.js';
+import { mergeRequirement } from '../domain/context-merger.js';
 import { runUnderstanding, type PipelineInput } from './message-pipeline.js';
 import type { ReplyWriter } from './reply-writer.js';
 import type { RoutingDecision } from './intent-router.js';
@@ -165,5 +166,40 @@ describe('data kasus yang saling bertentangan', () => {
       .filter((e) => e.type === 'card')
       .map((e) => (e as unknown as { card: { kind: string } }).card.kind);
     expect(kinds).not.toContain('cta');
+  });
+});
+
+describe('kasus rumah berjalan — pesan tanpa data baru (P31-09)', () => {
+  const house = mergeRequirement(
+    emptyRequirementState(T0),
+    [
+      { path: 'building.type', value: 'residential', source: 'user_stated' },
+      { path: 'building.floors', value: 2, source: 'user_stated' },
+      { path: 'fixtures.bathrooms', value: 3, source: 'user_stated' },
+      { path: 'water.source', value: 'municipal', source: 'user_stated' },
+    ],
+    T0,
+  ).state;
+  // Ekstraksi memang dilewati untuk rumah (P31-07); yang diuji di sini penulis BALASAN.
+  const quietAi = { extract: () => Promise.resolve({}) } as unknown as Parameters<
+    typeof runUnderstanding
+  >[0];
+
+  it('"oke lanjut" dan "ada yang lebih murah ga" dijawab teks tetap, tanpa model', async () => {
+    for (const [message, intent] of [
+      ['oke lanjut', 'follow_up_continue'],
+      ['ada yang lebih murah ga', 'follow_up_choice'],
+    ] as const) {
+      const { reply, write } = writer();
+      const { events } = await runUnderstanding(
+        quietAi,
+        { ...input(message), state: house, understanding: understood(message, { intent }) },
+        reply,
+      );
+      expect(write).not.toHaveBeenCalled();
+      const token = events.find((e) => e.type === 'token') as { text: string };
+      // Jalur biasa menjawabnya dari DATA kasus: yang sudah tercatat, lalu tombol hitungnya.
+      expect(token.text).toContain('sudah saya catat');
+    }
   });
 });

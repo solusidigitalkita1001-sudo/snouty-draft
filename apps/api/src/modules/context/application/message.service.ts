@@ -976,10 +976,23 @@ function cardsOf(events: readonly AssistantStreamEvent[]) {
 }
 
 function textOf(events: readonly AssistantStreamEvent[]): string {
-  return events
-    .filter((e): e is Extract<AssistantStreamEvent, { type: 'token' }> => e.type === 'token')
-    .map((e) => e.text)
-    .join('');
+  return joinBlocks(
+    events
+      .filter((e): e is Extract<AssistantStreamEvent, { type: 'token' }> => e.type === 'token')
+      .map((e) => e.text),
+  );
+}
+
+/**
+ * Tiap event `token` adalah satu blok teks utuh, bukan potongan kalimat yang distream — jadi dua
+ * blok dalam satu giliran dipisahkan baris kosong. Digabung mentah, jawaban harga dan catatan
+ * kebutuhan menempel jadi "…yang Anda butuhkan.Oke, sudah saya catat…" (produksi 2026-10-26).
+ */
+export function joinBlocks(blocks: readonly string[]): string {
+  return blocks.reduce(
+    (text, block) => (text === '' || /\n$/.test(text) ? text + block : `${text}\n\n${block}`),
+    '',
+  );
 }
 
 /** Maksud pertanyaan yang, di tengah kasus teknis, menanyakan kasus itu — bukan produk atau harga. */

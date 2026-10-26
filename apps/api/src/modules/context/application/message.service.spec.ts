@@ -6,7 +6,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { LlmUnavailableError } from '../../ai/domain/ai.errors.js';
 import type { AssistantStreamEvent, RequirementState } from '@snouty/shared-types';
-import { MessageService, isSaneTitle } from './message.service.js';
+import { MessageService, isSaneTitle, joinBlocks } from './message.service.js';
 import { scriptedUnderstanding } from '../../understanding/testing/understood.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 
@@ -792,5 +792,23 @@ describe('MessageService — bahasa balasan dari kalimat pengguna (P25-01)', () 
     conversations.find.mockResolvedValueOnce({ title: 'House', language: 'en' } as never);
     await service.handle('C'.repeat(26), ACTOR, 'can I use PVC for hot water?', 'x');
     expect(conversations.adoptLanguage).not.toHaveBeenCalled();
+  });
+});
+
+describe('joinBlocks', () => {
+  it('memisahkan dua blok teks satu giliran dengan baris kosong', () => {
+    const joined = joinBlocks([
+      'Harga tidak saya tampilkan di sini.',
+      'Oke, sudah saya catat: rumah tinggal.',
+    ]);
+    expect(joined).toBe(
+      'Harga tidak saya tampilkan di sini.\n\nOke, sudah saya catat: rumah tinggal.',
+    );
+  });
+
+  it('blok yang sudah berakhir baris baru tidak ditambahi apa pun', () => {
+    expect(joinBlocks(['Daftar:\n', '- satu'])).toBe('Daftar:\n- satu');
+    expect(joinBlocks([])).toBe('');
+    expect(joinBlocks(['satu saja'])).toBe('satu saja');
   });
 });
