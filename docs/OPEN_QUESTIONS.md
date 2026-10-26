@@ -463,6 +463,36 @@ anggapan yang tampil sebagai anggapan, dan daftar material mengikuti pilihan itu
 **Yang perlu ahli:** apakah ukuran pipa tiap jalur berubah bila jalurnya dipisah, atau hanya
 jumlah jalurnya.
 
+### OQ-83 — Bahan pilihan pengguna di jalur rumah (P31-38, 2026-10-26)
+
+**Status:** open · **Blocks:** tidak ada; hitungan tetap memakai bahan yang dipilih aturan
+**Konteks:** "ganti pipanya ke hdpe semua" atas solusi rumah yang sudah dihitung dijawab
+pengetahuan tentang cara menyambung HDPE — permintaannya sendiri tidak dijawab. Kebutuhan bangunan
+tidak punya field bahan (hanya kasus teknis punya parameter `material`), jadi tidak ada yang bisa
+diubah, dan mengubah bahan diam-diam bukan pilihan: ukuran dan fittingnya ikut berubah.
+
+**Usul default (menunggu pilihan pemilik):** jawab dengan bahan yang DIPAKAI solusi dan alasannya
+(uPVC untuk jalur di dalam bangunan, HDPE untuk jalur tertanam), lalu tawarkan tim teknis Pralon
+bila bahannya memang mau diganti seluruhnya — tanpa menghitung ulang dengan bahan lain sampai ada
+aturan sizing-nya.
+**Yang perlu ahli:** apakah jalur air bersih di dalam rumah boleh seluruhnya HDPE, dan bila boleh,
+ukuran serta fitting apa yang dipakai.
+
+### OQ-82 — Sertifikat kontak air minum untuk HDPE belum ada datanya (P31-37, 2026-10-26)
+
+**Status:** open · **Blocks:** tidak ada; jawabannya tetap benar, tetapi tidak menjawab bahannya
+**Konteks:** di percakapan yang subjeknya HDPE, "buat air minum aman ga?" dijawab fakta air minum
+yang menyebut uPVC SNI seri S — benar dan bersumber, tetapi bukan tentang bahan yang ditanyakan.
+Fakta untuk HDPE tidak ada, dan tidak boleh dikarang: pernyataan "aman untuk air minum" adalah
+klaim sertifikasi.
+
+**Usul default (menunggu pilihan pemilik):** jawabannya tetap prinsipnya (yang diperiksa adalah
+sertifikat kontak air minum produk, bukan jenis bahannya), ditambah satu kalimat bahwa angka dan
+sertifikat untuk HDPE Pralon diminta ke tim Pralon — tanpa menyebut uPVC lebih dulu bila yang
+ditanya HDPE.
+**Yang dibutuhkan dari Pralon:** apakah HDPE Pralon punya sertifikat kontak air minum (dan nomornya),
+supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
+
 ### OQ-79 — Model dan kunci untuk jawaban pengetahuan pipa umum (P30-01, 2026-10-26)
 
 **Status:** open · **Blocks:** P30-01 menyala di produksi

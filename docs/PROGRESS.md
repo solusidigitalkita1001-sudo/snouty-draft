@@ -3337,3 +3337,67 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       "pipa lamanya 3/4 inci, panjangnya sekitar 40 meter" memakai 10,0 detik di perencana untuk
       sampai ke jalur kebutuhan yang sama. Pesan yang nilainya terbaca parser nilai sekarang
       langsung dibaca sebagai giliran kebutuhan, walau kata bendanya bukan bangunan.
+
+- [x] P31-34 Percakapan yang bangunannya sudah tercatat tidak menunggu model ekstraksi
+
+      Percakapan kos 4 lantai memakai 28,4 detik lalu 90,5 detik lalu 35,4 detik untuk tiga pesan
+      yang nilainya sudah dibaca parser nilai ("torennya di atas", "tanahnya 15 x 25 meter").
+      Setelah jenis bangunannya tercatat, pesan lanjutan yang nilainya terbaca kode tidak lagi
+      menunggu model; yang tidak disebut tetap ditanya kartu klarifikasi.
+
+- [x] P31-35 Titik air per unit dan tinggi per lantai di gedung bertingkat
+
+      "4 unit per lantai, tiap unit 2 kamar mandi" tercatat 2 titik per lantai — seperempat beban
+      sebenarnya — dan "4 unit" jatuh ke jumlah sambungan. Sekarang jumlah unit per lantai dikali
+      titik air per unit (8 titik), dan angka unitnya tidak dipakai dua kali.
+
+      "tinggi per lantai 3,2 meter" dibaca lalu dibuang karena lantainya disebut di giliran
+      sebelumnya; pengguna tetap ditanya tinggi bangunan. Tinggi bangunan sekarang diturunkan dari
+      lantai yang sudah tercatat (12 × 3,2 m = 38,4 m), dibulatkan dua desimal — bukan
+      38,400000000000006 m.
+
+- [x] P31-36 "Oke itung" adalah permintaan menghitung, bukan basa-basi
+
+      "oke itung" dibaca basa-basi dan dijawab "Siap. Lanjutkan kapan saja" — padahal pengguna
+      meminta hitungannya. Contoh pertanyaannya ditambahkan; "itung aja" dan "hitung sekarang
+      dong" sudah benar sebelumnya.
+
+- [x] P31-37 Daftar belanja solusi berbahasa Inggris mengenali baris pipanya
+
+      Di percakapan Inggris, batang pipa tampil di bawah "Fittings" dan jawabannya tetap berbunyi
+      "jumlah batangnya belum dihitung" padahal batangnya ada di baris yang sama — satuan dan
+      peruntukan BOM solusi Inggris sudah diterjemahkan ("rods", "Main line"), jadi baris pipanya
+      tidak lagi dikenali. Sekarang dikenali dari satuannya dalam dua bahasa.
+
+      "what size is the riser" atas solusi yang sudah dihitung dijawab "tidak ada acuan yang bisa
+      saya pegang" — padahal ukuran pipa tegaknya ada di solusi. Pertanyaan ukuran riser sekarang
+      ada di contoh pertanyaan bentuk sistem. Pertanyaan air minum atas HDPE dicatat sebagai OQ-82,
+      karena faktanya memang belum ada dan tidak boleh dikarang.
+
+- [x] P31-38 Pertanyaan atas angka solusi dijawab dari solusinya, bukan 60 detik karangan
+
+      "kenapa toren harus 0,3 bar" memakai 60,7 detik — 12,6 detik merencanakan, 48,0 detik
+      menulis — lalu keluar kalimat tentang luas bangunan yang tidak ditanyakan. Pertanyaan kasus
+      yang sudah punya solusi sekarang dijawab dari solusinya, tanpa model. "boleh pakai pipa 1/2
+      inci aja biar murah" dijawab "tidak ada acuan"; kedua bentuk itu ditambahkan ke contoh
+      permintaan penjelasan, jadi jalurnya lewat solusi.
+
+      Permintaan mengganti bahan ("ganti pipanya ke hdpe semua") dicatat sebagai OQ-83: jalur rumah
+      tidak punya field bahan, dan mengubahnya diam-diam akan mengubah ukuran serta fittingnya.
+
+- [x] P31-39 Jumlah alat yang dibagi per posisi dalam satu kalimat terbaca totalnya
+
+      "atasnya ada 2 kamar mandi bawahnya 1" tercatat 2 kamar mandi dari 3 — diam-diam, dan
+      kartunya tidak menanyakannya lagi karena field-nya sudah terisi. Angka tersurat yang pertama
+      tidak lagi dipakai apa adanya: kalimat yang membagi jumlahnya per posisi tercatat sebagai
+      totalnya. Kalimat "per lantai" tetap pengali, kalimat pembetulan tidak dijumlahkan, dan
+      angka yang menempel di kata benda lain tetap miliknya ("8 keran wudhu di 2 tempat wudhu"
+      tetap 8 keran dan 2 tempat, bukan 10 keran).
+
+- [x] P31-40 Satu pertanyaan produk tidak lagi membuat solusi yang baru dihitung dianggap basi
+
+      Subjek percakapan ikut tersimpan sebagai snapshot kebutuhan, jadi satu pertanyaan produk di
+      tengah percakapan membuat solusi yang baru dihitung tampak basi — pertanyaan berikutnya pergi
+      ke model (12,6 detik merencanakan + 48,0 detik menulis) alih-alih dibaca dari angkanya.
+      Sekarang solusi hanya basi bila isi kebutuhannya memang berbeda, bukan karena nomor
+      snapshotnya berganti.
