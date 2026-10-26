@@ -3401,3 +3401,49 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       ke model (12,6 detik merencanakan + 48,0 detik menulis) alih-alih dibaca dari angkanya.
       Sekarang solusi hanya basi bila isi kebutuhannya memang berbeda, bukan karena nomor
       snapshotnya berganti.
+
+- [x] P31-41 Pertanyaan jumlah batang atas solusi sendiri dijawab dari daftar belanjanya
+
+      "how many lengths of pipe" di percakapan yang solusinya sudah dihitung dijawab pelajaran umum
+      panjang batang standar, padahal daftar belanjanya memuat "main line 1¼" 4 rods". Pertanyaan
+      jumlah batang yang tidak membawa panjang jalurnya sendiri sekarang dijawab dari solusinya;
+      yang membawa panjangnya ("butuh berapa batang untuk jalur 30 meter") tetap pengetahuan umum.
+      "which pipes do i need to buy" juga masuk contoh pertanyaan bentuk sistem.
+
+- [x] P31-42 Kamar sewa dengan kamar mandi sendiri terbaca, dan jenis bangunan apa pun melewati model
+
+      "kos 4 lantai, tiap lantai 6 kamar, tiap kamar ada kamar mandi sendiri" tercatat tanpa satu
+      kamar mandi pun — dan memakai 16,4 detik di model ekstraksi untuk itu. Jumlah kamar sewa kali
+      jumlah lantai sekarang terbaca parser nilai (24 titik), dan pesan yang menyebut jenis
+      bangunannya melewati model ekstraksi seperti pesan rumah: nilainya dibaca kode, sisanya
+      ditanya kartu klarifikasi.
+
+- [x] P31-43 Angka yang tidak punya parameter di kasus teknis dikatakan, bukan didiamkan
+
+      Di kasus sumur ke tandon, "toren 2000 liter di atap" lalu "ukuran bangunannya 10 x 20 meter"
+      mendapat kalimat "Yang masih saya perlukan: …" yang sama persis dua giliran berturut-turut.
+      Pesan yang membawa angka tetapi tidak mengisi satu parameter kasus pun sekarang dijawab
+      dengan menyebut bahwa angkanya belum punya tempat di hitungan itu; kebutuhan parameternya
+      sendiri dicatat sebagai OQ-84.
+
+- [x] P31-44 Perumahan dikenali sebagai jaringan cluster, tinggi tower bukan panjang jalur
+
+      "saya kontraktor, mau bangun perumahan 75 rumah tipe 45" tercatat hanya sebagai rumah
+      tinggal: 75 rumahnya hilang, dan pesan berikutnya ("jalan utamanya 1,2 km") dijawab "belum
+      punya acuan". Bentuk itu sekarang ada di contoh jaringan cluster, sehingga jumlah sambungan
+      dan panjang jalurnya masuk ke parameter kasusnya. "toren 10 kubik di atas tower 9 meter"
+      tercatat sebagai jalur utama ±9 m — tiang dan menara toren adalah ketinggian, bukan panjang
+      jalur.
+
+- [x] P31-45 Solusi yang menghitung pembuangan menyebut ukuran jalur buangannya
+
+      "pipa buangannya ukuran berapa" di rumah yang kebutuhannya air bersih + pembuangan dijawab
+      ukuran pipa air bersih saja, padahal jalur air kotor, air bekas, dan ventilasinya sudah
+      dihitung. Ketiganya sekarang ikut disebut.
+
+- [x] P31-46 Pertanyaan tidak membajak percakapan rumah ke kasus teknis
+
+      "septic tanknya di mana" di rumah 2 lantai yang solusinya sudah dihitung membuka kasus
+      saluran gravitasi, mencatat "jenis cairan air limbah", lalu menanyakan debit rencana dan
+      kemiringan saluran. Kasus teknis baru hanya dibuka oleh pernyataan bernilai — pertanyaan
+      dijawab di atas kebutuhan dan solusi yang sudah ada.

@@ -493,6 +493,20 @@ ditanya HDPE.
 **Yang dibutuhkan dari Pralon:** apakah HDPE Pralon punya sertifikat kontak air minum (dan nomornya),
 supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 
+### OQ-84 — Kapasitas toren dan ukuran bangunan di kasus sumur ke tandon (P31-43, 2026-10-26)
+
+**Status:** open · **Blocks:** tidak ada; angkanya sekarang dikatakan tidak terpakai, bukan didiamkan
+**Konteks:** di percakapan kos 4 lantai yang sumbernya sumur bor, "toren 2000 liter di atap" dan
+"ukuran bangunannya 10 x 20 meter" tidak punya parameter di kasus distribusi sumur — yang ditanya
+kasus itu adalah debit rencana, panjang jalur, tinggi toren, dan kapasitas sumber. Keduanya angka
+yang wajar disebut pengguna, dan keduanya hilang tanpa jejak sampai ronde ini.
+
+**Usul default (menunggu pilihan pemilik):** kapasitas toren menjadi parameter kasus (dipakai
+memeriksa kecukupan tandon), dan ukuran bangunan dipakai menurunkan panjang jalur dengan aturan
+yang sama seperti jalur rumah — keduanya sebagai anggapan yang tampil sebagai anggapan.
+**Yang perlu ahli:** apakah panjang jalur sumur ke tandon boleh diturunkan dari ukuran bangunan,
+dan kapasitas toren minimum per jumlah titik air.
+
 ### OQ-79 — Model dan kunci untuk jawaban pengetahuan pipa umum (P30-01, 2026-10-26)
 
 **Status:** open · **Blocks:** P30-01 menyala di produksi
