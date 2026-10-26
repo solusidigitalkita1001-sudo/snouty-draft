@@ -2790,3 +2790,22 @@ kecil SDR makin tebal") tanpa mengatakan SDR itu apa — benar, tetapi tidak men
 pembuka fakta `tekanan kerja` kini memuat artinya: perbandingan diameter luar terhadap tebal
 dinding nominal (ISO 4427, diadopsi SNI 4829). Angka tekanan kerja per kelas tetap tidak dibawa —
 statusnya masih menunggu validasi.
+
+**Penutup Fase 30.** Tiga item live di ai.pralon.co.id (tiga rilis, 2026-10-26, tanpa migration) dan
+satu item terbangun tetapi sengaja mati sampai pemilik mengisi satu baris env (P30-01, OQ-79). Tes:
+API 1756 lulus (2 dilewati), web 273 lulus, engineering 521 lulus; evaluasi penyandi intent 99,4%
+tanpa kegagalan topik; di produksi FAQ sales 19/19 dan pipa 48/48.
+
+**25 pertanyaan yang sama, dijalankan ulang ke produksi sesudahnya:** 15 terjawab (dari 7), 8 dijawab
+terus terang karena belum ada acuannya, 1 tetap masuk jalur hitung (sumur bor, disengaja), dan 1
+masih setengah menjawab (kolam renang dijawab daftar pemakaian uPVC). Giliran terlama 9,6 detik —
+sebelumnya ada yang 31 dan 71 detik. Delapan yang dijawab terus terang itulah yang berubah menjadi
+jawaban sungguhan begitu `LLM_MODEL_KNOWLEDGE` terisi.
+
+**Yang masih kurang dan diketahui.** (1) Fakta `tekanan kerja` tidak punya `subject`, jadi
+pertanyaan tentang HDPE ikut membawa paragraf kelas PVC — benar, tetapi tidak ditanya; memperbaikinya
+berarti menyentuh kalimat pembuka beberapa fakta sekaligus, jadi dicatat alih-alih ditambal di akhir.
+(2) "Pipa PVC bisa buat kolam renang?" dan "HDPE bisa buat air limbah?" dijawab daftar pemakaian
+tanpa "ya" atau "tidak" yang tegas. (3) Angka kedalaman timbunan masih kualitatif. Ketiganya kecil
+dibandingkan yang sudah berubah, dan ketiganya lebih murah dikerjakan setelah jalur pengetahuan umum
+menyala — supaya yang ditulis tangan hanya yang memang perlu ditulis tangan.
