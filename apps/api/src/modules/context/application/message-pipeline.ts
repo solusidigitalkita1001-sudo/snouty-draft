@@ -407,9 +407,12 @@ export async function runUnderstanding(
     const lastSaid = [...(input.recentTurns ?? [])]
       .reverse()
       .find((turn) => turn.role === 'assistant')?.text;
+    // Parameter yang BUKAN parameter kasus ini tidak dihitung terisi: "ukuran bangunannya
+    // 10 x 20 meter" di kasus sumur tercatat sebagai ukuran lahan, yang tidak dipakai dan tidak
+    // pernah disebut — dari sisi pengguna angkanya hilang begitu saja.
     const ignoredValue =
       lastSaid?.trim() === text.trim() &&
-      facts.captured.length === 0 &&
+      !facts.captured.some((key) => caseParameters.includes(key)) &&
       extractionToUpdates({}, input.message).length > 0;
     events.push({
       type: 'token',
