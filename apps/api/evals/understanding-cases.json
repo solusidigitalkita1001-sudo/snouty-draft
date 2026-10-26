@@ -1525,6 +1525,26 @@
       "text": "apa aja barang2 nya",
       "intent": "follow_up_more",
       "source": "pemilik 2026-10-26"
+    },
+    {
+      "text": "what sizes of hdpe pipe do you have?",
+      "extreme": null,
+      "source": "live PP-42 2026-10-26 — daftar, bukan ujung"
+    },
+    {
+      "text": "ukuran hdpe ada apa aja?",
+      "extreme": null,
+      "source": "P31-05 — daftar, bukan ujung"
+    },
+    {
+      "text": "what is the smallest hdpe size?",
+      "extreme": "smallest",
+      "source": "P31-05"
+    },
+    {
+      "text": "do you have anything bigger than 500 mm?",
+      "extreme": "largest",
+      "source": "P31-05"
     }
   ]
 }

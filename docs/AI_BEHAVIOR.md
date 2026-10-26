@@ -174,15 +174,16 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
   Window topik pengetahuan **0,02** sejak P30-02: pada 0,04 selisih 0,02–0,04 hampir selalu
   paragraf yang tidak ditanya — pertanyaan ventilasi saluran ikut dijawab kelas AW/D, pertanyaan
   irigasi menarik tiga topik (audit 2026-10-26). Yang memang dua topik selisihnya jauh lebih kecil.
-  **Nama keluarga produk harus seimbang di semua label satu katalog** (P31-01). Di katalog
-  `extreme` nama keluarga adalah token terkuat: selama "pvc d" hanya ada di sisi `largest`,
-  "pvc d ada ukuran apa saja?" terbaca `largest` 0,909 dan "pvc d ukuran paling mini" pun ikut.
-  Mencabut nama keluarga dari seluruh katalog tidak menyelamatkannya — tanpa nama itu kasus benar
-  terendah turun ke 0,726 sementara pesan yang bukan ujung ("ada ukuran yang pas buat saluran
-  kecil?") naik ke 0,735, dan dua angka itu tidak terpisah oleh ambang mana pun. Yang benar:
-  setiap nama keluarga muncul di ketiga label, sehingga tokennya saling menghapus dan keputusan
-  jatuh pada kata yang memang membedakan. Menambah satu contoh bernama keluarga hanya di satu
-  label adalah cara termudah merusak sebuah katalog.
+  **Nama keluarga produk tidak ikut ke dalam contoh katalog yang bukan tentang keluarga**
+  (P31-01, diperbaiki P31-05). Di katalog `extreme` nama keluarga adalah token terkuat dan
+  merebut label mana pun yang memilikinya: selama "pvc d" hanya ada di sisi `largest`,
+  "pvc d ada ukuran apa saja?" terbaca `largest` 0,909. Menyeimbangkannya di ketiga label
+  memperbaiki kasus itu tetapi menaikkan semua skor sampai berdempet — "what sizes of hdpe pipe
+  do you have?" dijawab satu ukuran terbesar di produksi (live PP-42), dan menambal itu membuat
+  kasus benar dan kasus daftar berjarak 0,003. Yang dipakai: contohnya bebas nama keluarga,
+  sebab `extreme` baru dibaca ketika aspek pesannya sudah ukuran — tugasnya tinggal memisahkan
+  permintaan ujung dari permintaan daftar, dan di situ ia terpisah lebar (ujung paling rendah
+  0,701, pertanyaan daftar selalu dipimpin `none`). Ambangnya 0,68.
 - **Kosakata entitas.** `vocabulary.json` (juga `outOfScopeFluids` untuk kebijakan cakupan; suhu ≥ 45 °C
   dibaca parser angka di `context`, batasnya aturan `policy/scope.ts`): keluarga produk kanonis beserta aliasnya, merek sendiri,
   merek dan rujukan pesaing, hal-hal kebutuhan. Dicocokkan pada batas kata — ini pengenalan NAMA,

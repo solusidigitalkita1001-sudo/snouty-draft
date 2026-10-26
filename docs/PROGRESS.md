@@ -2988,3 +2988,21 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       "4 x 3". Parser nilai sekarang juga membaca sisi yang disebut satu per satu, dan yang boleh
       berdiri di antara penanda dan angkanya hanya kata "kolam" — "panjang jalur 30 meter" tetap
       panjang jalur.
+
+- [x] P31-05 Suite pipa membatalkan keputusan P31-01
+
+      Setelah P31-04 rilis, suite 48 pertanyaan pipa jatuh satu: PP-42, "what sizes of hdpe pipe do
+      you have?", dijawab "The largest HDPE size in the Pralon catalogue is 900 mm" — satu ukuran
+      terbesar, bukan daftarnya. Penyebabnya keputusan P31-01 sendiri: nama keluarga diseimbangkan
+      di ketiga label, dan contoh `largest` "hdpe ukuran terbesar berapa?" menang 0,817 atas
+      contoh `none` terdekat hanya karena pertanyaannya menyebut HDPE. Ditambal dengan contoh
+      `none` bahasa Inggris, dua kasus emas justru berdempet — ujung dan daftar terpisah 0,003 dan
+      0,016, di bawah margin.
+
+      Yang dilewatkan di P31-01: `extreme` hanya dibaca ketika aspek pesannya sudah ukuran, jadi ia
+      tidak pernah perlu bersaing dengan pertanyaan harga, kebutuhan, atau sizing — tugasnya satu,
+      memisahkan permintaan ujung dari permintaan daftar. Dengan contoh bebas nama keluarga ia
+      terpisah lebar di tugas itu: ujung paling rendah 0,701 ("hdpe ukuran terbesar berapa?") dan
+      tujuh belas pertanyaan daftar serta ketersediaan semuanya dipimpin `none`. Ambang 0,72 → 0,68.
+      Empat kasus emas ditambahkan, termasuk kalimat PP-42 sendiri, supaya kelas kekeliruan ini
+      tertangkap evaluasi dan bukan produksi.
