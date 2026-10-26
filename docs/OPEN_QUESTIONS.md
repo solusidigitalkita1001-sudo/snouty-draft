@@ -438,6 +438,16 @@ bukan tinggi statis.
 **Yang perlu ahli:** apakah menurunkan tinggi statis dari muka air + tinggi toren boleh otomatis,
 dan kemiringan minimum mana yang dipakai untuk rumah.
 
+3. **Ganti kasus di tengah percakapan.** Di kasus transfer pompa yang berjalan, "rumah gw
+   septictanknya mampet terus, mau benerin saluran pembuangan" dijawab daftar pertanyaan kasus
+   pompa — kasus yang berjalan selalu menang, jadi pengguna tidak bisa berganti topik. Tetapi
+   menebaknya juga tidak aman: "sumurnya 60 meter" dikenali `requirement_technical` dengan kasus
+   `well_distribution`, bentuk yang sama persis dengan pernyataan kasus baru, padahal itu jawaban
+   di dalam kasus yang sedang berjalan. **Usul default:** bila pesan mengenali kasus LAIN dan tidak
+   membawa satu pun nilai untuk parameter kasus yang berjalan, SNOUTY bertanya sekali — "ini kasus
+   baru atau masih soal jalur yang tadi?" — dengan dua pilihan di kartu, bukan berganti sendiri
+   dan bukan mengabaikan.
+
 ### OQ-79 — Model dan kunci untuk jawaban pengetahuan pipa umum (P30-01, 2026-10-26)
 
 **Status:** open · **Blocks:** P30-01 menyala di produksi
