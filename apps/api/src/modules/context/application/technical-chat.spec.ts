@@ -283,3 +283,51 @@ describe('pertanyaan atas solusi yang sudah dihitung (P31-20)', () => {
     expect(token.text).toContain('pipa utama 1" 2 batang');
   });
 });
+
+describe('daftar belanja tanpa baris pipa dan balasan yang terulang (P31-21)', () => {
+  const fittingsOnly = {
+    recommendation: {
+      headline: 'Air bersih rumah 2 lantai',
+      needs: [{ kind: 'rooftop_tank', count: 1 }],
+      systemLines: [{ role: 'main', name: 'Pipa utama', size: '1"', path: 'Toren ke riser' }],
+      bom: [{ item: 'Elbow 90', purpose: 'Elbow', size: '1"', quantity: 6, unit: 'pcs' }],
+    } as never,
+    stale: false,
+  };
+  const layoutTurn = (
+    message: string,
+    recentTurns: { role: 'user' | 'assistant'; text: string }[],
+  ) => ({
+    ...input(message),
+    decision: {
+      intent: 'EXPLANATION_REQUEST' as const,
+      confidence: 1,
+      shouldExtract: false,
+      mutatesState: false,
+    },
+    understanding: understood(message, { intent: 'system_layout_question' }),
+    solution: fittingsOnly as never,
+    recentTurns,
+  });
+
+  it('jumlah batang yang belum dihitung dikatakan, bukan dibiarkan kosong', async () => {
+    const { events } = await runUnderstanding(null, layoutTurn('fitting apa aja', []));
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toContain('Jumlah batang pipanya belum dihitung');
+  });
+
+  it('pertanyaan kedua yang jatuh ke teks yang sama tidak mengulangnya', async () => {
+    const first = await runUnderstanding(null, layoutTurn('fitting apa aja', []));
+    const text = (first.events.find((e) => e.type === 'token') as { text: string }).text;
+    const second = await runUnderstanding(
+      null,
+      layoutTurn('berapa batang pipanya', [
+        { role: 'user', text: 'fitting apa aja' },
+        { role: 'assistant', text },
+      ]),
+    );
+    const token = second.events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toMatch(/^Itu yang saya jelaskan di jawaban sebelumnya/);
+    expect(second.events.some((e) => e.type === 'card')).toBe(true);
+  });
+});

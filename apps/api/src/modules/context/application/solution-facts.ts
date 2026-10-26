@@ -129,11 +129,22 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
       ? ' The requirement changed after this calculation; press Compose recommendation again for current figures.'
       : ' Kebutuhan sudah berubah setelah hitungan ini; tekan Susun rekomendasi lagi untuk angka terbaru.'
     : '';
+  // Jumlah batang pipa hanya dihitung bila ukuran bangunannya disebut (PIPE_RUN_DEFAULT_20M:
+  // jalur 20 m hanya untuk memilih UKURAN, tidak untuk jumlah batang). Tanpa itu daftar belanja
+  // berisi fitting saja — dan "berapa batang pipanya" dijawab daftar fitting tanpa sepatah kata
+  // tentang pipanya (produksi 2026-10-26).
+  const noPipeCount =
+    pipes.length === 0
+      ? en
+        ? ' The number of pipe lengths is not counted yet — that needs the size of the building (length × width); the size of each run is above.'
+        : ' Jumlah batang pipanya belum dihitung — itu perlu ukuran bangunannya (panjang × lebar); ukuran tiap jalurnya ada di atas.'
+      : '';
   if (en) {
     return (
       `The installation section is below. The runs: ${lines.join('; ')}.` +
       (pipes.length > 0 ? ` Pipes: ${list(pipes)}.` : '') +
       (fittings.length > 0 ? ` Fittings: ${list(fittings)}.` : '') +
+      noPipeCount +
       stale
     );
   }
@@ -141,6 +152,7 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
     `Potongan instalasinya di bawah. Jalurnya: ${lines.join('; ')}.` +
     (pipes.length > 0 ? ` Pipa: ${list(pipes)}.` : '') +
     (fittings.length > 0 ? ` Fitting: ${list(fittings)}.` : '') +
+    noPipeCount +
     stale
   );
 }

@@ -69,6 +69,7 @@ import { houseRefinementQuestions, planClarification } from '../domain/clarifica
 import { outlierQuestions, pendingOutliers } from '../domain/plausibility.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { isSocial } from '../../understanding/domain/labels.js';
+import { repeatedTopicReply } from './reply-copy.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
 import { requirementFieldLabel, requirementValueLabel } from '../domain/requirement-labels.js';
@@ -243,7 +244,17 @@ export async function runUnderstanding(
               fallback,
             })
           : { text: fallback };
-      events.push({ type: 'token', text: written.text });
+      // Dua pertanyaan berbeda yang jatuh ke teks yang sama ("fitting apa aja" lalu "berapa
+      // batang pipanya" → potongan instalasi yang sama persis) tidak dikirim ulang kata demi kata.
+      const previous = [...(input.recentTurns ?? [])]
+        .reverse()
+        .find((t) => t.role === 'assistant')?.text;
+      const repeated =
+        previous !== undefined && previous.trim() !== '' && previous.trim() === written.text.trim();
+      events.push({
+        type: 'token',
+        text: repeated ? repeatedTopicReply(input.locale) : written.text,
+      });
     }
     if (drawing !== null) events.push({ type: 'card', card: drawing });
     events.push(endEvent(input.messageId));

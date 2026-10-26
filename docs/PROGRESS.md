@@ -3200,3 +3200,14 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       Teks deterministiknya sudah ada sejak P22-02/P22-04 dan berisi angka yang pasti dari jalur
       dan daftar belanja — ia hanya dipakai bila model gagal. Sekarang ia yang dipakai: pertanyaan
       atas solusi yang sudah dihitung tidak lagi dilewatkan model sama sekali.
+
+- [x] P31-21 Jumlah batang yang belum dihitung dikatakan; balasan tidak terulang
+
+      Dua sisa dari P31-20. Daftar belanja rumah berisi fitting saja — jumlah batang pipa memang
+      tidak dihitung tanpa ukuran bangunan (jalur baku 20 m hanya untuk memilih ukuran, bukan untuk
+      jumlah), jadi "berapa batang pipanya" dijawab daftar fitting tanpa sepatah kata tentang
+      pipanya. Sekarang teks jalur mengatakannya: jumlah batang belum dihitung, dan itu perlu
+      ukuran bangunannya.
+
+      Dan dua pertanyaan berbeda yang jatuh ke teks yang sama tidak lagi mengirimnya dua kali —
+      pagar yang sama seperti P31-17, sekarang juga di jalur solusi dan teks tetap.
