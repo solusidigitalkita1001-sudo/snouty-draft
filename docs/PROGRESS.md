@@ -2893,3 +2893,19 @@ menyala — supaya yang ditulis tangan hanya yang memang perlu ditulis tangan.
   - [x] P30-07a Tes (3): peringkat contoh yang menunjuk pertanyaan pipa diputuskan dengan nol
         panggilan model, pesan yang menyebut pesaing tidak ikut ditarik ke jalur produk, dan
         perencana giliran tidak dipanggil untuk pertanyaan pengetahuan tak tercakup
+
+**Penutup putaran kedua Fase 30 (P30-05 … P30-07).** Enam rilis hari ini, tanpa migration. Tes:
+API 1.767 lulus (2 dilewati), web 273, engineering 521. Di produksi: FAQ sales 19/19, pipa 48/48,
+perhitungan 23/23 — suite perhitungan sengaja ikut dijalankan karena P30-07 menyentuh routing, dan
+di situlah kerusakan akan terlihat lebih dulu.
+
+**25 pertanyaan yang sama, dijalankan ulang untuk ketiga kalinya:** 15 terjawab, 9 dijawab terus
+terang, 1 masuk jalur hitung (sumur bor, disengaja). Yang bertambah satu di kolom "terus terang"
+justru perbaikan: thrust block dulu dijawab "ini di luar urusan pemasangan pipa" setelah 63 detik —
+sebuah jawaban yang salah — dan kini ditolak dengan jujur dalam 0,3 detik. Giliran terlama di
+seluruh set **1,8 detik**, dari 63 detik; tidak ada lagi giliran di atas 2 detik.
+
+Yang masih menunggu pemilik tetap satu: `LLM_MODEL_KNOWLEDGE` beserta kuncinya (OQ-79). Sembilan
+pertanyaan yang sekarang dijawab terus terang itulah yang berubah menjadi jawaban sungguhan begitu
+baris itu terisi — dan sembilan-sembilannya sudah terbukti sampai ke jalur yang benar dalam waktu di
+bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
