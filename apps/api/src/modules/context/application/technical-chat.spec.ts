@@ -244,3 +244,42 @@ describe('pertanyaan "bisa apa" (P31-15)', () => {
     expect(token.text).not.toContain('di luar yang bisa saya bantu');
   });
 });
+
+describe('pertanyaan atas solusi yang sudah dihitung (P31-20)', () => {
+  const solution = {
+    recommendation: {
+      headline: 'Air bersih rumah 2 lantai dari toren atap',
+      needs: [{ kind: 'rooftop_tank', count: 1 }],
+      systemLines: [{ role: 'main', name: 'Pipa utama', size: '1"', path: 'Toren ke riser' }],
+      bom: [
+        { item: 'Pipa PVC AW', purpose: 'Pipa utama', size: '1"', quantity: 2, unit: 'batang' },
+        { item: 'Elbow 90', purpose: 'Elbow', size: '1"', quantity: 6, unit: 'buah' },
+      ],
+    } as never,
+    stale: false,
+  };
+
+  it('"fitting apa aja yang perlu dibeli" dijawab dari daftar belanjanya, tanpa model', async () => {
+    const message = 'fitting apa aja yang perlu dibeli';
+    const { reply, write } = writer();
+    const { events } = await runUnderstanding(
+      null,
+      {
+        ...input(message),
+        decision: {
+          intent: 'EXPLANATION_REQUEST',
+          confidence: 1,
+          shouldExtract: false,
+          mutatesState: false,
+        },
+        understanding: understood(message, { intent: 'system_layout_question' }),
+        solution: solution as never,
+      },
+      reply,
+    );
+    expect(write).not.toHaveBeenCalled();
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toContain('elbow 1" 6 buah');
+    expect(token.text).toContain('pipa utama 1" 2 batang');
+  });
+});

@@ -3188,3 +3188,15 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       "cocoknya dimana" mirip permintaan rekomendasi. Contohnya ditambahkan; permintaan
       rekomendasi yang sesungguhnya ("mending pvc apa hdpe?") dipaku kasus emas supaya tidak
       ikut terseret.
+
+- [x] P31-20 Pertanyaan atas solusi dijawab dari solusinya, bukan ditulis ulang model
+
+      Rumah 2 lantai yang sudah dihitung, lalu tiga pertanyaan wajar: "fitting apa aja yang perlu
+      dibeli" 55,7 detik, "berapa batang pipanya" 42,6 detik, "kenapa ukurannya 1 inci" 48,1 detik.
+      Ketiganya dijawab kabur — fitting disebut tanpa jumlah lalu ditutup kalimat yang tidak berarti
+      apa pun, jumlah batang disebut "dua batang utama 1¼ inci ditambah empat batang cabang", dan
+      pertanyaan 1 inci dijawab dengan 1/2 inci. Ukurannya pun bertentangan antar jawaban.
+
+      Teks deterministiknya sudah ada sejak P22-02/P22-04 dan berisi angka yang pasti dari jalur
+      dan daftar belanja — ia hanya dipakai bila model gagal. Sekarang ia yang dipakai: pertanyaan
+      atas solusi yang sudah dihitung tidak lagi dilewatkan model sama sekali.

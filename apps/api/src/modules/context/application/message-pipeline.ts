@@ -162,6 +162,16 @@ export async function runUnderstanding(
     const handedOff = caseCard?.kind === 'unsupported';
     // Bentuk sistem pengguna sendiri (P22-02): teks tetap dari jalur dan BOQ solusinya, gambar menyusul.
     const drawing = drawingCardFor(label, input.solution);
+    // Pertanyaan atas solusi yang SUDAH dihitung dijawab dari solusinya sendiri, bukan ditulis
+    // ulang model: di produksi 2026-10-26 "fitting apa aja yang perlu dibeli" memakan 55,7 detik,
+    // "berapa batang pipanya" 42,6 detik, dan "kenapa ukurannya 1 inci" 48,1 detik — dan ketiga
+    // jawabannya kabur serta saling bertentangan soal ukuran, padahal daftar belanja dan jalurnya
+    // sudah berisi angka yang pasti.
+    const fromSolution =
+      (drawing !== null && !!input.solution) ||
+      (input.decision.intent === 'EXPLANATION_REQUEST' &&
+        !!input.solution &&
+        !input.solution.stale);
     const fallback =
       drawing !== null && input.solution
         ? layoutReply(input.solution, input.locale ?? DEFAULT_LOCALE)
@@ -204,6 +214,7 @@ export async function runUnderstanding(
       // persis jawaban giliran sebelumnya.
       const fixedIsEnough =
         firstGreeting ||
+        fromSolution ||
         // Sapaan ulang dan basa-basi juga: teksnya sudah pas, dan model di CPU memakai 14 detik
         // untuk menggantinya dengan kalimat yang lebih buruk (produksi 2026-10-26).
         label === 'greeting' ||
