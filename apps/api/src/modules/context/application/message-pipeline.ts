@@ -355,9 +355,15 @@ export async function runUnderstanding(
   // atau kata bilangan, sumber, pompa, panjang jalur, sumur, renovasi), dan yang tidak disebut
   // dianggap atau ditanya kartu. Model hanya menambah 15–50 detik (uji sales 2026-10-20; pemilik
   // 2026-10-21 memilih melewati model untuk semua pesan rumah).
-  const house = extractionToUpdates({}, input.message).some(
-    (u) => u.path === 'building.type' && u.value === 'residential',
-  );
+  // Rumah yang SUDAH tercatat ikut: keputusan itu tentang kasusnya, bukan tentang satu kalimat.
+  // Dulu gerbang ini hanya membaca pesannya sendiri, jadi "rumah gw 2 lantai" melewati model
+  // tetapi "kamar mandi 3" sesudahnya tidak — 90 detik untuk satu angka yang sudah dibaca parser
+  // nilai, di percakapan yang sudah jelas rumah tinggal (produksi 2026-10-26).
+  const house =
+    input.state.building.type.value === 'residential' ||
+    extractionToUpdates({}, input.message).some(
+      (u) => u.path === 'building.type' && u.value === 'residential',
+    );
   const skipModel = quickCore >= 2 || house || mutationOp !== null || adviceOnly;
   try {
     if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');

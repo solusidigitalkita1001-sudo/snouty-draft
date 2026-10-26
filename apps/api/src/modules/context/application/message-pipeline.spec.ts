@@ -78,6 +78,24 @@ describe('runUnderstanding — diet panggilan model (2026-10-07)', () => {
     expect(ai.extract).toHaveBeenCalledTimes(1);
   });
 
+  it('rumah yang sudah tercatat: lanjutan satu angka pun tanpa model (P31-07)', async () => {
+    const ai = aiExtracting({ building: { floors: 9 } });
+    const house = mergeRequirement(emptyRequirementState(T0), [
+      { path: 'building.type', value: 'residential', provenance: 'USER_PROVIDED' },
+      { path: 'building.floors', value: 2, provenance: 'USER_PROVIDED' },
+    ]).state;
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'kamar mandi 3', state: house }),
+    );
+    expect(ai.extract).not.toHaveBeenCalled();
+    const updated = events.find((e) => e.type === 'requirement.updated') as {
+      state: ReturnType<typeof emptyRequirementState>;
+    };
+    expect(updated.state.fixtures.bathrooms.value).toBe(3);
+    expect(updated.state.building.floors.value).toBe(2);
+  });
+
   it('rumah tinggal → model TIDAK dipanggil; pompa dan jalur dari teks (pemilik 2026-10-21, SC-04)', async () => {
     const ai = aiExtracting({ building: { floors: 2 } });
     const { events } = await runUnderstanding(

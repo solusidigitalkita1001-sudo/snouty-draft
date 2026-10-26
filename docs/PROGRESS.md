@@ -3021,3 +3021,15 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       yang menyebut keluarga produk dan tidak membawa kebutuhan diputuskan di kode sebagai
       pencarian produk. Pesan yang juga membawa kebutuhan tetap kebutuhan, dan pesan yang menyebut
       pesaing tetap ditolak lebih dulu oleh Policy 1.
+
+- [x] P31-07 Rumah yang sudah tercatat: lanjutannya tanpa model
+
+      Mencoba sebagai pengguna: "rumah gw 2 lantai mau pasang pipa air baru" dijawab 237 ms, lalu
+      "kamar mandi 3" memakan **90 detik** dan "airnya dari pdam" 16 detik. Log tahapnya menunjuk
+      `answer` — ekstraksi kebutuhan oleh model.
+
+      Pemilik sudah memutuskan 2026-10-21 bahwa pesan rumah melewati model sepenuhnya, tetapi
+      gerbangnya membaca pesannya sendiri, bukan state: "rumah gw 2 lantai" memuat kata rumah
+      sehingga lewat, "kamar mandi 3" tidak, padahal percakapannya sudah jelas rumah tinggal dan
+      angka itu memang dibaca parser nilai. Keputusan itu tentang kasusnya, bukan tentang satu
+      kalimat — rumah yang sudah tercatat di state kini ikut melewati model.
