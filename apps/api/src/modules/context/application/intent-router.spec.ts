@@ -622,7 +622,7 @@ describe('pernyataan kasus bernilai menang atas topik pengetahuan', () => {
           intent: 'system_layout_question',
           useCase: 'residential_cluster',
           mentionsRequirement: true,
-          knowledgeTopics: ['sambungan rumah'],
+          knowledgeTopics: ['sambungan rumah', 'pipa pembuangan', 'jumlah batang'],
         }),
       ),
     ).toBe(false);

@@ -30,6 +30,7 @@ import {
 import type { ReplyTurn } from './reply-writer.js';
 import { CORE_REQUIREMENT_FIELDS } from '@snouty/shared-types';
 import { extractionToUpdates } from './extraction-to-updates.js';
+import { extractTechnicalContext, isCaseId } from '@snouty/engineering';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import { mentionsPressure } from './knowledge-answer.js';
 
@@ -549,7 +550,18 @@ const CALCULATION_TOPICS: ReadonlySet<string> = new Set(['jumlah batang']);
  */
 export function isCaseStatement(u: MessageUnderstanding): boolean {
   if (u.useCase === null || !u.mentionsRequirement || !/\d/.test(u.text)) return false;
-  return !u.knowledgeTopics.some((t) => CALCULATION_TOPICS.has(t));
+  if (!u.knowledgeTopics.some((t) => CALCULATION_TOPICS.has(t))) return true;
+  // Topik hitungan hanya mengalahkan pernyataan kasus bila pesannya memang hanya menyebut panjang
+  // jalurnya ("27 meter butuh berapa batang?"). "Pipa yg cocok buat proyek perumahan 50 unit?"
+  // menyebut kasusnya sendiri — 50 sambungan — dan ia tertarik ke topik jumlah batang juga
+  // (FAQ MA-07, 18/19).
+  const caseValues = isCaseId(u.useCase)
+    ? extractTechnicalContext(u.text, u.useCase).filter((f) => f.key !== 'route_length')
+    : [];
+  return (
+    caseValues.length > 0 ||
+    extractionToUpdates({}, u.text).some((v) => v.path !== 'building.dimensions')
+  );
 }
 
 /**
