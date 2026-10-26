@@ -393,6 +393,37 @@ export function mentionsCount(message: string, n: number, noun: string): boolean
   );
 }
 
+/**
+ * Satuan "per lantai" pada jumlah alat: "6 kamar mandi per lantai" di gedung 3 lantai berarti 18,
+ * bukan 6. Pembacaan model sudah boleh mengalikannya (`confirmCount`), tetapi untuk pesan rumah
+ * dan bangunan model dilewati — dan parser teks membaca 6 saja, sehingga pipanya dihitung untuk
+ * sepertiga beban (produksi 2026-10-26).
+ */
+const PER_FLOOR =
+  'per\\s*lantai|/\\s*lantai|tiap\\s*lantai|setiap\\s*lantai|masing-masing\\s*lantai|per\\s*floor|each\\s*floor|every\\s*floor';
+// Penanda per-lantai boleh berdiri SEBELUM kata bendanya dengan angkanya di antara ("tiap lantai
+// ada 2 kamar mandi"), jadi celahnya juga menerima angka.
+const GAP_WITH_NUMBERS = '[\\s:=-]*(?:[a-z0-9]+[\\s:=-]+){0,3}';
+
+export function mentionsPerFloor(message: string, noun: string): boolean {
+  const text = message.toLowerCase();
+  return (
+    new RegExp(`(?:${noun})\\b${GAP}(?:${PER_FLOOR})`).test(text) ||
+    new RegExp(`(?:${PER_FLOOR})${GAP_WITH_NUMBERS}(?:${noun})\\b`).test(text)
+  );
+}
+
+/** Jumlah tersurat dikali lantai bila satuannya per lantai; tanpa penanda itu nilainya apa adanya. */
+function timesFloors(
+  message: string,
+  noun: string,
+  value: number | undefined,
+  floors: number | undefined,
+): number | undefined {
+  if (value === undefined || floors === undefined || floors <= 1) return value;
+  return mentionsPerFloor(message, noun) ? value * floors : value;
+}
+
 /** Berapa kali kata bendanya disebut di pesan, dengan atau tanpa angka. */
 function nounMentions(message: string, noun: string): number {
   return (message.toLowerCase().match(new RegExp(`\\b(?:${noun})\\b`, 'g')) ?? []).length;
@@ -588,7 +619,16 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
 
   add(
     'fixtures.bathrooms',
-    counted('fixtures.bathrooms', extraction.fixtures?.bathrooms, OBVIOUS.bathrooms(message)),
+    counted(
+      'fixtures.bathrooms',
+      extraction.fixtures?.bathrooms,
+      timesFloors(
+        message,
+        COUNT_NOUNS['fixtures.bathrooms']!,
+        OBVIOUS.bathrooms(message),
+        floorsStated,
+      ),
+    ),
   );
   // Peniadaan tersurat ("tidak ada dapur") yang dilewatkan model → 0 dari teks (produksi
   // 2026-10-07: model menghilangkan `kitchens` sama sekali, lalu sistem bertanya soal dapur).
@@ -597,7 +637,12 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     counted(
       'fixtures.basins',
       extraction.fixtures?.basins,
-      OBVIOUS.basins(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.basins']!),
+      timesFloors(
+        message,
+        COUNT_NOUNS['fixtures.basins']!,
+        OBVIOUS.basins(message),
+        floorsStated,
+      ) ?? negatedZero(message, COUNT_NOUNS['fixtures.basins']!),
     ),
   );
   // Keran wudhu tercatat sendiri — dihitung serentak oleh kelompok tempat ibadah.
@@ -608,14 +653,24 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   add('fixtures.wudhuAreas', OBVIOUS.wudhuAreas(message));
   add(
     'fixtures.urinals',
-    OBVIOUS.urinals(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.urinals']!),
+    timesFloors(
+      message,
+      COUNT_NOUNS['fixtures.urinals']!,
+      OBVIOUS.urinals(message),
+      floorsStated,
+    ) ?? negatedZero(message, COUNT_NOUNS['fixtures.urinals']!),
   );
   add(
     'fixtures.kitchens',
     counted(
       'fixtures.kitchens',
       extraction.fixtures?.kitchens,
-      OBVIOUS.kitchens(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.kitchens']!),
+      timesFloors(
+        message,
+        COUNT_NOUNS['fixtures.kitchens']!,
+        OBVIOUS.kitchens(message),
+        floorsStated,
+      ) ?? negatedZero(message, COUNT_NOUNS['fixtures.kitchens']!),
     ),
   );
   // "sudah ada 4 titik air" adalah titik air LAMA (P23-05): angka yang sama tidak boleh menjadi

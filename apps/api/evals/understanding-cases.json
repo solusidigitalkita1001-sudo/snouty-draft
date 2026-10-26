@@ -1621,6 +1621,29 @@
       "topics": [],
       "topicsOnly": true,
       "source": "P31-19 — permintaan rekomendasi tidak ikut terseret ke topik pemakaian"
+    },
+    {
+      "text": "ukuran pipanya berapa",
+      "topics": [],
+      "topicsOnly": true,
+      "source": "P31-24 — ukuran sistem sendiri bukan pengetahuan pembuangan"
+    },
+    {
+      "text": "what size pipe do i need",
+      "topics": [],
+      "topicsOnly": true,
+      "source": "P31-24 — ukuran sistem sendiri bukan pengetahuan pembuangan"
+    },
+    {
+      "text": "diskon dong kalo beli banyak",
+      "intent": "price_question",
+      "source": "P31-25 — tawar-menawar harga dan permintaan kontak sales"
+    },
+    {
+      "text": "nomor sales nya siapa?",
+      "intent": "company_question",
+      "companyTopic": "contact",
+      "source": "P31-25 — tawar-menawar harga dan permintaan kontak sales"
     }
   ]
 }

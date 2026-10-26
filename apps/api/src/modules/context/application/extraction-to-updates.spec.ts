@@ -120,3 +120,21 @@ describe('pesan rumah tanpa model (pemilik 2026-10-21)', () => {
     expect(value('Gue mau pasang air bersih di rumah', 'building.type')).toBe('residential');
   });
 });
+
+describe('jumlah per lantai (produksi 2026-10-26)', () => {
+  const value = (message: string, path: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === path)?.value;
+
+  it('satuan per lantai dikali jumlah lantai', () => {
+    expect(value('gedung 3 lantai, 6 kamar mandi per lantai', 'fixtures.bathrooms')).toBe(18);
+    expect(value('kantor 3 lantai, tiap lantai ada 2 kamar mandi', 'fixtures.bathrooms')).toBe(6);
+    expect(value('3 storey office, 6 bathrooms per floor', 'fixtures.bathrooms')).toBe(18);
+    expect(value('kantor 4 lantai, 2 wastafel setiap lantai', 'fixtures.basins')).toBe(8);
+  });
+
+  it('tanpa penanda per lantai angkanya tetap total', () => {
+    expect(value('gedung 3 lantai, 6 kamar mandi', 'fixtures.bathrooms')).toBe(6);
+    expect(value('rumah 2 lantai, 3 kamar mandi', 'fixtures.bathrooms')).toBe(3);
+    expect(value('rumah 1 lantai, 2 kamar mandi per lantai', 'fixtures.bathrooms')).toBe(2);
+  });
+});
