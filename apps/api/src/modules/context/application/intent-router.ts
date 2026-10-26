@@ -564,6 +564,15 @@ export function answersFromKnowledge(u: MessageUnderstanding): boolean {
   // ("butuh berapa batang pipa 4 meter untuk jalur 30 meter?", audit 2026-10-19: dijawab model
   // dengan meminta data bangunan).
   const calculation = topics.some((t) => CALCULATION_TOPICS.has(t));
+  // Pesan yang MEMBAWA nilai kebutuhan di luar panjang jalur tetap kebutuhan, walau topiknya topik
+  // hitungan: "pipa lamanya 3/4 inci, panjangnya sekitar 40 meter" di percakapan renovasi dijawab
+  // cara menghitung jumlah batang, dan ukuran pipa lama serta jenis pekerjaannya hilang tanpa jejak
+  // (produksi 2026-10-26). "butuh berapa batang pipa 4 meter untuk jalur 30 meter?" hanya menyebut
+  // panjang jalurnya, jadi ia tetap pertanyaan hitungan.
+  const statesValues = extractionToUpdates({}, u.text).some(
+    (v) => v.path !== 'building.dimensions',
+  );
+  if (calculation && statesValues) return false;
   if (u.intent?.label === 'system_layout_question' && !calculation) return false;
   const requirement = u.intent?.label.startsWith('requirement_') ?? false;
   return !requirement || calculation;

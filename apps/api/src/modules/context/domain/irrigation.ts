@@ -137,11 +137,11 @@ export function irrigationFactsFrom(message: string): Partial<Record<IrrigationF
   const area = /(\d+(?:[.,]\d+)?)\s*(?:ha|hektar|hektare|hectares?)\b/.exec(m);
   if (area) facts['irrigation.areaHa'] = `${area[1]!.replace('.', ',')} ha`;
 
-  if (/\b(sungai|kali|saluran|parit|river|creek|stream|canal|ditch)\b/.test(m))
+  if (/\b(sungai|kali|saluran|parit|river|creek|stream|canal|ditch)(?:nya)?\b/.test(m))
     facts['irrigation.source'] = 'Sungai / saluran';
-  else if (/\b(sumur|bor|air tanah|well|borehole|groundwater)\b/.test(m))
+  else if (/\b(sumur|bor|air tanah|well|borehole|groundwater)(?:nya)?\b/.test(m))
     facts['irrigation.source'] = 'Sumur / pompa';
-  else if (/\b(embung|kolam|waduk|danau|tandon|pond|reservoir|lake|dam)\b/.test(m))
+  else if (/\b(embung|kolam|waduk|danau|tandon|pond|reservoir|lake|dam)(?:nya)?\b/.test(m))
     facts['irrigation.source'] = 'Embung / kolam';
   else if (/\b(pdam|municipal|mains)\b/.test(m)) facts['irrigation.source'] = 'PDAM';
 
@@ -150,9 +150,15 @@ export function irrigationFactsFrom(message: string): Partial<Record<IrrigationF
   else if (/genang|gravitasi|alirkan|flood|furrow|gravity/.test(m))
     facts['irrigation.method'] = 'Genangan / gravitasi';
 
-  const distance = /(\d+(?:[.,]\d+)?)\s*(km|m|meter|meters|metres|kilometers?|kilometres?)\b/.exec(
-    m,
-  );
+  // Jarak hanya dibaca bila jaraknya memang disebut: "sumurnya 30 meter" adalah KEDALAMAN sumur,
+  // dan dulu ia tercatat sebagai jarak ke lahan "Di bawah 50 m" tanpa pengguna pernah tahu
+  // angkanya salah tempat (produksi 2026-10-26).
+  const UNIT = '(km|m|meter|meters|metres|kilometers?|kilometres?)';
+  const distance =
+    new RegExp(
+      `(?:jarak\\w*|sejauh|panjang jalur|distance|run of)[^0-9]{0,40}(\\d+(?:[.,]\\d+)?)\\s*${UNIT}\\b`,
+    ).exec(m) ??
+    new RegExp(`(\\d+(?:[.,]\\d+)?)\\s*${UNIT}\\s+(?:away|jauhnya|dari|ke|from|to)\\b`).exec(m);
   if (distance) {
     const unit = distance[2]!;
     const meters = Number(distance[1]!.replace(',', '.')) * (unit.startsWith('k') ? 1000 : 1);

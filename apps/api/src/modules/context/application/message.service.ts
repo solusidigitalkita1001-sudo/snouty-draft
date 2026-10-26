@@ -324,7 +324,9 @@ export class MessageService {
           // sumur dijawab 22,5 detik oleh model, yang balik menanyakan merek pompa dan menyelipkan
           // satu kata Rusia (produksi 2026-10-26). Pesan yang membawa DATA ("bahannya pvc",
           // "jaraknya 150 m") tetap lanjutan kebutuhan — yang dialihkan hanya pertanyaannya.
-          (state.useCase?.kind === 'technical' || handedOff) &&
+          (state.useCase?.kind === 'technical' ||
+              state.useCase?.kind === 'irrigation' ||
+              handedOff) &&
             !(fine !== undefined && !isRequirement(fine) && answersFromKnowledge(u)) &&
             (fine === undefined ||
               isRequirement(fine) ||

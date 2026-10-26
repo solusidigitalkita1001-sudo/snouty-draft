@@ -3287,3 +3287,40 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       di kebutuhan. Selama belum ada solusi yang bisa dibuka, jawabannya adalah kapan ukurannya
       dihitung, bukan karangan tentang angka yang belum ada. Pemisahan air kotor dan air bekas
       dicatat sebagai OQ-81, bukan dianggap diam-diam.
+
+- [x] P31-29 Data pipa lama tidak hilang di balik topik hitungan, dan makian dibaca sebagai keluhan
+
+      Di percakapan renovasi, "pipa lamanya 3/4 inci, panjangnya sekitar 40 meter" dijawab cara
+      menghitung jumlah batang — ukuran pipa lama dan jenis pekerjaannya hilang tanpa jejak.
+      Topik hitungan sekarang kalah terhadap pesan yang membawa nilai kebutuhan di luar panjang
+      jalur; pertanyaan yang hanya menyebut panjang jalurnya tetap dijawab cara menghitungnya.
+
+      "goblok ya lu, itu kan udah gw bilang" dijawab kalimat tentang kapan ukuran dihitung.
+      Makian tanpa pertanyaan sekarang dikenali sebagai keluhan: satu permintaan maaf dan
+      tawaran menjawab ulang.
+
+- [x] P31-30 "Lantainya jadi 3" benar-benar mengubah jumlah lantai, dan permintaan gambar dijawab
+      gambar
+
+      "kalau lantainya jadi 3 gimana" dijawab ringkasan kebutuhan yang masih berbunyi 2 lantai —
+      perubahannya hilang. Parser nilai hanya membaca arah "3 lantai"; arah terbalik sekarang
+      dibaca bila ada kata perubahan ("lantainya jadi 3", "kamar mandinya jadi 5"), sementara
+      "torennya di lantai 3" tetap bukan jumlah lantai.
+
+      "minta gambarnya dong" sesudah pertanyaan harga dijawab kalimat kebijakan harga lagi.
+      Permintaan gambar sekarang ada di contoh pertanyaan bentuk sistem, jadi yang keluar adalah
+      potongan instalasinya.
+
+- [x] P31-31 Kasus irigasi: arahan tidak diulang, kedalaman sumur bukan jarak, dan "oke hitung"
+      tidak lewat model
+
+      Blok empat paragraf tentang bahan irigasi keluar tiga giliran berturut-turut, sementara data
+      yang baru disebut pengguna tidak disinggung sama sekali. Arahannya sekarang diberikan sekali;
+      giliran berikutnya hanya kalimat penutupnya.
+
+      "sumurnya 30 meter" tercatat sebagai jarak ke lahan "Di bawah 50 m" — itu kedalaman sumur.
+      Jarak kini hanya dibaca bila jaraknya memang disebut, dan klitik "-nya" tidak lagi
+      menyembunyikan sumbernya ("sumurnya" tetap sumur).
+
+      "oke hitung" di kasus irigasi yang berjalan memakai 41,5 detik dan dijawab karangan model;
+      pesan di dalam kasus irigasi sekarang tetap di jalur irigasi.

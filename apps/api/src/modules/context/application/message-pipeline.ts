@@ -285,7 +285,14 @@ export async function runUnderstanding(
   if (irrigation || running === 'irrigation') {
     const applied = applyIrrigationAnswers(input.state, irrigationFactsFrom(input.message));
     events.push({ type: 'requirement.updated', state: applied.state });
-    events.push({ type: 'token', text: irrigationGuidance(applied.state, locale) });
+    // Arahan bahannya diberikan sekali: di produksi 2026-10-26 blok empat paragraf yang sama
+    // persis keluar tiga giliran berturut-turut, dan data yang baru disebut pengguna tidak
+    // disinggung sama sekali.
+    const introduced = input.state.useCase?.kind === 'irrigation';
+    events.push({
+      type: 'token',
+      text: irrigationGuidance(applied.state, locale, { withIntro: !introduced }),
+    });
     const card = irrigationFollowUp(applied.state, locale);
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));

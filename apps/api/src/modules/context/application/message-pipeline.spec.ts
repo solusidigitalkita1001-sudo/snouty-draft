@@ -1181,3 +1181,41 @@ describe('giliran yang tidak mengubah kebutuhan (P31-27)', () => {
     expect(text).not.toContain('Tekan');
   });
 });
+
+describe('kasus irigasi yang sudah berjalan (P31-31)', () => {
+  it('arahan bahan tidak diulang, dan jawaban berikutnya hanya kalimat penutupnya', async () => {
+    const first = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'sawah saya 2 hektar, mau irigasi tetes dari sumur bor',
+        understanding: understood('sawah saya 2 hektar, mau irigasi tetes dari sumur bor', {
+          intent: 'requirement_irrigation',
+          useCase: 'irrigation',
+        }),
+      }),
+    );
+    const opening = (first.events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(opening).toContain('**Jalur utama dari sumber ke lahan**');
+
+    const next = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'jaraknya dari sumur ke sawah 200 meter',
+        state: first.nextState,
+        recentTurns: [{ role: 'assistant', text: opening }],
+        understanding: understood('jaraknya dari sumur ke sawah 200 meter', {
+          intent: 'requirement_irrigation',
+          useCase: 'irrigation',
+        }),
+      }),
+    );
+    const text = (next.events.find((e) => e.type === 'token') as { text: string }).text;
+    // Di produksi 2026-10-26 blok empat paragraf yang sama persis keluar tiga giliran berturut-turut.
+    expect(text).not.toContain('**Jalur utama dari sumber ke lahan**');
+    expect(text).not.toBe(opening);
+    expect(next.nextState.useCase).toMatchObject({
+      kind: 'irrigation',
+      answers: { 'irrigation.distance': '50–200 m' },
+    });
+  });
+});

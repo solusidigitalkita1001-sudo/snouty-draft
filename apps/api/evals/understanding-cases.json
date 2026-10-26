@@ -1644,6 +1644,16 @@
       "intent": "company_question",
       "companyTopic": "contact",
       "source": "P31-25 — tawar-menawar harga dan permintaan kontak sales"
+    },
+    {
+      "text": "goblok ya lu, itu kan udah gw bilang",
+      "intent": "complaint",
+      "source": "P31-29 — makian dibaca keluhan"
+    },
+    {
+      "text": "minta gambarnya dong",
+      "intent": "system_layout_question",
+      "source": "P31-30 — permintaan gambar dijawab kebijakan harga"
     }
   ]
 }

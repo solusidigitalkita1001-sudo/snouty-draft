@@ -128,3 +128,23 @@ describe('irigasi dwibahasa', () => {
     expect(irrigationCaptured(state, 'en')).toEqual([{ label: 'Land area', value: '1–2 ha' }]);
   });
 });
+
+describe('jarak irigasi (produksi 2026-10-26)', () => {
+  it('kedalaman sumur bukan jarak ke lahan', () => {
+    const facts = irrigationFactsFrom('sumurnya 30 meter, pompanya 2 inci');
+    expect(facts['irrigation.source']).toBe('Sumur / pompa');
+    expect(facts['irrigation.distance']).toBeUndefined();
+  });
+
+  it('jarak yang memang disebut tetap terbaca', () => {
+    expect(irrigationFactsFrom('jaraknya dari sumur ke sawah 200 meter')).toMatchObject({
+      'irrigation.distance': '50–200 m',
+    });
+    expect(irrigationFactsFrom('sejauh 600 m dari sungai')).toMatchObject({
+      'irrigation.distance': 'Di atas 500 m',
+    });
+    expect(irrigationFactsFrom('from a river 150 m away')).toMatchObject({
+      'irrigation.distance': '50–200 m',
+    });
+  });
+});

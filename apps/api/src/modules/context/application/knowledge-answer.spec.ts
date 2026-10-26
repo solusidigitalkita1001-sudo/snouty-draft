@@ -221,6 +221,28 @@ describe('answersFromKnowledge', () => {
       answersFromKnowledge(understood('pipa pvc disimpan', { knowledgeTopics: ['penyimpanan'] })),
     ).toBe(false);
   });
+
+  it('data pipa lama menang atas topik hitungan (P31-29)', () => {
+    // Produksi 2026-10-26: di percakapan renovasi, pesan ini dijawab cara menghitung jumlah batang
+    // dan ukuran pipa lama (3/4") serta jenis pekerjaannya (renovasi) hilang tanpa jejak.
+    expect(
+      answersFromKnowledge(
+        understood('pipa lamanya 3/4 inci, panjangnya sekitar 40 meter', {
+          intent: 'requirement_building',
+          knowledgeTopics: ['jumlah batang', 'panjang batang'],
+        }),
+      ),
+    ).toBe(false);
+    // Pertanyaan hitungan yang hanya menyebut panjang jalurnya tetap pengetahuan.
+    expect(
+      answersFromKnowledge(
+        understood('butuh berapa batang pipa 4 meter untuk jalur 30 meter?', {
+          intent: 'requirement_building',
+          knowledgeTopics: ['jumlah batang'],
+        }),
+      ),
+    ).toBe(true);
+  });
 });
 
 describe('nilai tekanan di pesan', () => {

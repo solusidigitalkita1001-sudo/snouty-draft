@@ -138,3 +138,20 @@ describe('jumlah per lantai (produksi 2026-10-26)', () => {
     expect(value('rumah 1 lantai, 2 kamar mandi per lantai', 'fixtures.bathrooms')).toBe(2);
   });
 });
+
+describe('perubahan tersurat dengan kata "jadi" (produksi 2026-10-26)', () => {
+  const value = (message: string, path: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === path)?.value;
+
+  it('"lantainya jadi 3" dan "kamar mandinya jadi 5" terbaca', () => {
+    expect(value('kalau lantainya jadi 3 gimana', 'building.floors')).toBe(3);
+    expect(value('lantainya jadi 3', 'building.floors')).toBe(3);
+    expect(value('lantainya menjadi 4', 'building.floors')).toBe(4);
+    expect(value('kamar mandinya jadi 5', 'fixtures.bathrooms')).toBe(5);
+  });
+
+  it('"lantai 3" tanpa kata perubahan bukan tiga lantai', () => {
+    expect(value('torennya di lantai 3', 'building.floors')).toBeUndefined();
+    expect(value('kamar mandi di lantai 2 bocor', 'building.floors')).toBeUndefined();
+  });
+});

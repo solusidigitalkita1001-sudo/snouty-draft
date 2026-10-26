@@ -118,6 +118,13 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
 const OBVIOUS = {
   floors: (m: string) =>
     intAfter(/\b(\d{1,2})\s*-?\s*(?:lantai|lt|floors?|stor(?:e)?ys?|stories|levels?)\b/i, m) ??
+    // "lantainya jadi 3" (produksi 2026-10-26: perubahan ini hilang, jawabannya tetap 2 lantai).
+    // Arah terbalik hanya dipercaya dengan kata perubahan: "lantai 3" tanpa itu berarti lantai
+    // ketiga, bukan tiga lantai.
+    intAfter(
+      /\b(?:lantai|lt|tingkat|floors?|stor(?:e)?ys?|stories|levels?)(?:nya)?\s*(?:jadi|menjadi|diubah\s+jadi|berubah\s+jadi|to)\s*(\d{1,2})\b/i,
+      m,
+    ) ??
     wordCountOf('lantai|tingkat|floors?|stor(?:e)?ys?|stories', m),
   bathrooms: (m: string) => countOf('kamar mandi|km|toilet|bathrooms?|toilets?|restrooms?', m),
   // Jumlah wastafel/dapur/titik air yang tersurat juga dibaca kode (diet panggilan model,
@@ -519,7 +526,7 @@ function countOf(nouns: string, message: string, digits = 2): number | undefined
   return (
     intAfter(
       new RegExp(
-        `\\b(?:${nouns})(?:nya)?\\s*(?:ada|sebanyak|berjumlah|:|=)?\\s*(\\d{1,${digits}})(?!\\s*(?:x|×|m\\b|meter|cm|mm|lantai|lt\\b|[.,]\\d))`,
+        `\\b(?:${nouns})(?:nya)?\\s*(?:ada|sebanyak|berjumlah|jadi|menjadi|:|=)?\\s*(\\d{1,${digits}})(?!\\s*(?:x|×|m\\b|meter|cm|mm|lantai|lt\\b|[.,]\\d))`,
         'i',
       ),
       message,
