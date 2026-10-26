@@ -93,6 +93,7 @@ import {
   requirementUnchangedReply,
   valueWithoutPlaceReply,
   explanationHandedOff,
+  missingForCalculationReply,
   modelBusyReply,
   openerReply,
   capabilityReply,
@@ -677,7 +678,13 @@ export async function runUnderstanding(
     // Ubahan ("jadi 3 lantai") cukup menyebut yang berubah, bukan mengulang semua kebutuhan.
     const only = input.decision.mutatesState && changedPaths.length > 0 ? changedPaths : undefined;
     const auto = card?.kind === 'cta' && card.auto === true;
-    const text = understoodReply(merged, card?.kind ?? null, locale, only, auto);
+    // Permintaan menghitung yang masih menunggu data: yang ditunggu disebut namanya, bukan
+    // ringkasan kebutuhan yang sama lalu "bagian mana yang mau diubah".
+    const stillWaiting =
+      asksToCompute && card?.kind !== 'cta'
+        ? missingForCalculationReply(merged.missingInformation, locale)
+        : null;
+    const text = stillWaiting ?? understoodReply(merged, card?.kind ?? null, locale, only, auto);
     // Ringkasan yang sama persis dua giliran berturut-turut: pesannya tidak mengubah kebutuhan,
     // jadi yang dikatakan adalah itu — bukan daftar yang sama diulang kata demi kata.
     const said = [...(input.recentTurns ?? [])].reverse().find((t) => t.role === 'assistant')?.text;

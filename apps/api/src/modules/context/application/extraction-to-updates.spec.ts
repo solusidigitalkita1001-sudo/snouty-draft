@@ -114,6 +114,19 @@ describe('pesan rumah tanpa model (pemilik 2026-10-21)', () => {
     expect(value('rumah 2 lantai, jalur 15 meter', 'water.wellDepthM')).toBeUndefined();
   });
 
+  // Produksi 2026-10-26: "water comes from a deep well, about 30 m" tercatat sebagai jalur utama
+  // ±30 m, dan "water from a borehole, 30 metres deep" tidak tercatat sama sekali.
+  it('kedalaman di balik koma, di belakang angka, dan dari kata borehole', () => {
+    const deep = 'water comes from a deep well, about 30 m';
+    expect(value(deep, 'water.wellDepthM')).toBe(30);
+    expect(value(deep, 'building.dimensions')).toBeUndefined();
+    expect(value('water from a borehole, 30 metres deep', 'water.wellDepthM')).toBe(30);
+    expect(value('water from a borehole, 30 metres deep', 'water.source')).toBe('pump');
+    const id = 'sumber airnya sumur bor, dalamnya sekitar 30 m';
+    expect(value(id, 'water.wellDepthM')).toBe(30);
+    expect(value(id, 'building.dimensions')).toBeUndefined();
+  });
+
   it('rumah sakit dan rumah makan bukan rumah tinggal', () => {
     expect(value('rumah sakit 3 lantai', 'building.type')).not.toBe('residential');
     expect(value('rumah makan 2 lantai', 'building.type')).not.toBe('residential');

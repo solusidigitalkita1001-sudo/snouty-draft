@@ -493,6 +493,19 @@ ditanya HDPE.
 **Yang dibutuhkan dari Pralon:** apakah HDPE Pralon punya sertifikat kontak air minum (dan nomornya),
 supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 
+### OQ-85 — Titik air yang disebut pengguna versus titik air dari jumlah alat (P31-57, 2026-10-26)
+
+**Status:** open · **Blocks:** tidak ada; untuk sementara bauran alatnya ditanya, bukan dianggap
+**Konteks:** di proyek renovasi ruko 2 lantai pengguna menyebut "titik airnya ada 9". Hitungan
+bangunan menurunkan jumlah titik air dari jumlah alat (kamar mandi × 2 + wastafel + dapur), dan
+dengan anggapan 1 kamar mandi per lantai hasilnya 7 titik — angka yang kemudian dikatakan kembali
+kepada pengguna sebagai "penggantian pipa untuk 7 titik air", padahal ia menyebut 9.
+
+**Usul default (menunggu pilihan pemilik):** jumlah titik air yang disebut pengguna menjadi dasar
+beban, dengan bauran alat baku per titik yang ditetapkan tim teknis Pralon (mis. tiap 3 titik = 1
+kamar mandi + 1 wastafel), tampil sebagai anggapan. Sampai aturan itu ada, anggapan jumlah kamar
+mandi tidak dipakai bila titik airnya disebut: bauran alatnya ditanyakan.
+**Yang perlu ahli:** bauran alat baku per titik air untuk rumah, ruko, dan kos.
 ### OQ-84 — Kapasitas toren dan ukuran bangunan di kasus sumur ke tandon (P31-43, 2026-10-26)
 
 **Status:** open · **Blocks:** tidak ada; angkanya sekarang dikatakan tidak terpakai, bukan didiamkan

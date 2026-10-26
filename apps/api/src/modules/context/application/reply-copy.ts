@@ -8,7 +8,13 @@
  *
  * Dua bahasa (Fase 15): teks hidup di kode per bahasa, bukan diterjemahkan model.
  */
-import { DEFAULT_LOCALE, type Intent, type Locale } from '@snouty/shared-types';
+import {
+  DEFAULT_LOCALE,
+  type Intent,
+  type Locale,
+  type RequirementFieldPath,
+} from '@snouty/shared-types';
+import { FIELD_LABEL, FIELD_LABEL_EN } from '../domain/requirement-labels.js';
 
 export const REPLY_COPY = {
   /** Sapaan atau di luar topik perpipaan — arahkan, jangan diam. */
@@ -139,6 +145,31 @@ const REPEATED_TOPIC_REPLY =
 
 const REPEATED_TOPIC_REPLY_EN =
   'That is what the previous answer covers. Which part would you like me to go into, or is there a figure from site you want to use?';
+
+/**
+ * "udah, itung" sementara masih ada data yang ditunggu: yang ditunggu disebut namanya. Dulu
+ * balasannya "Kebutuhan Anda tetap tercatat seperti di panel. Bagian mana yang mau diubah atau
+ * ditanyakan?" — pertanyaan balik kepada orang yang baru saja meminta hitungannya (produksi
+ * 2026-10-26, proyek renovasi ruko).
+ */
+export function missingForCalculationReply(
+  missing: readonly RequirementFieldPath[],
+  locale: Locale = DEFAULT_LOCALE,
+): string | null {
+  if (missing.length === 0) return null;
+  const en = locale === 'en';
+  const labels = missing.map((path) =>
+    (en ? FIELD_LABEL_EN[path] : FIELD_LABEL[path]).toLowerCase(),
+  );
+  const and = en ? 'and' : 'dan';
+  const list =
+    labels.length === 1
+      ? labels[0]!
+      : `${labels.slice(0, -1).join(', ')} ${and} ${labels[labels.length - 1]}`;
+  return en
+    ? `To work it out I still need ${list}. The options are below, or type the numbers directly.`
+    : `Untuk menghitungnya saya masih perlu ${list}. Pilihannya ada di bawah, atau ketik angkanya langsung.`;
+}
 
 export function repeatedTopicReply(locale: Locale = DEFAULT_LOCALE): string {
   return locale === 'en' ? REPEATED_TOPIC_REPLY_EN : REPEATED_TOPIC_REPLY;

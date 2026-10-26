@@ -3526,3 +3526,21 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       Kebutuhan yang tadinya bisa dihitung kembali menunggu jawaban, dan "udah, itung" dijawab
       "bagian mana yang mau diubah". Penanda tanpa jenis sekarang tidak menimpa jenis yang sudah
       ada; pengguna tetap bisa menggantinya dengan jenis lain.
+
+- [x] P31-57 Titik air yang disebut tidak dilangkahi anggapan; permintaan hitung menyebut yang kurang
+
+      Renovasi ruko dengan "titik airnya ada 9" dihitung dengan anggapan 1 kamar mandi per lantai,
+      dan solusinya mengatakan "penggantian pipa untuk 7 titik air" — angka yang bukan angka
+      pengguna. Selama aturan bauran alat per titik belum ada (OQ-85), anggapan kamar mandi tidak
+      dipakai bila titik airnya disebut: bauran alatnya ditanyakan. Dan "udah, itung" yang masih
+      menunggu data menyebut data itu namanya, bukan "bagian mana yang mau diubah". "berapa batang"
+      pendek juga masuk contoh pertanyaan jumlah batang, supaya jawabannya baris pipanya.
+
+- [x] P31-58 Kedalaman sumur terbaca di balik koma dan di belakang angka
+
+      "water comes from a deep well, about 30 m" tercatat sebagai jalur utama ±30 m — kedalaman
+      sumur masuk ke kolom panjang jalur, dan hitungan pompanya memakai kedalaman anggapan.
+      "water from a borehole, 30 metres deep" tidak tercatat sama sekali. Sekarang kata kedalaman
+      boleh terpisah koma dan kata pengisi, boleh berdiri di belakang angkanya, "borehole" diakui
+      sebagai sumur, dan angka yang sudah terbaca sebagai kedalaman tidak pernah menjadi panjang
+      jalur.

@@ -91,7 +91,7 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
   // Penggantian pipa (P22-03) hanya dipercaya bila penggantiannya memang disebut.
   'water.replaceExisting': /\b(ganti|diganti|mengganti|renov|lama|existing|replac|re-?pip)/i,
   // Kedalaman sumur hanya dipercaya bila sumurnya memang disebut.
-  'water.wellDepthM': /\b(sumur|wells?|muka air|water level)/i,
+  'water.wellDepthM': /\b(sumur|wells?|boreholes?|muka air|water level)/i,
   // Renovasi (P23-03): jenis pekerjaan dan data pipa lama hanya bila pekerjaannya memang disebut.
   'water.workType':
     /\b(renov|rehab|ganti|diganti|mengganti|perluas|tambah|nambah|lama|existing|replac|extend|extension|expan|add(?:ing)?\b|bangun baru|new build)/i,
@@ -102,7 +102,7 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
   // Evaluasi 2026-10-06: dari "Instalasi air bersih untuk rumah baru 1 lantai" model menulis
   // `source: municipal`. Sumber air hanya dipercaya bila pengguna menyebut sumbernya.
   'water.source':
-    /\b(toren|tandon|tangki|pompa|pdam|sumur|ledeng|air tanah|sumber|tanks?|rooftop|roof|ground|municipal|mains|city water|wells?|pumps?|source)/i,
+    /\b(toren|tandon|tangki|pompa|pdam|sumur|ledeng|air tanah|sumber|tanks?|rooftop|roof|ground|municipal|mains|city water|wells?|boreholes?|pumps?|source)/i,
   // Klitik "-nya" ikut ("pembuangannya"), sama dengan pembaca nilainya.
   'water.installationType':
     /\b(air bersih|pembuangan|limbah|drainase|saluran|keduanya|clean water|potable|drinking water|supply|drainage|waste ?water|sewer|both)(?:nya)?\b/i,
@@ -162,12 +162,23 @@ const OBVIOUS = {
   /**
    * Kedalaman sumur / muka air tersurat ("sumur bor 25 m", "muka airnya 8 meter") — parser nilai
    * bersatuan, batas yang sama dengan skema model (0–60 m). Dulu hanya dari model.
+   *
+   * Tiga bentuk. Kata benda sumbernya tepat sebelum angka ("sumur bor 25 m"); kata KEDALAMAN yang
+   * boleh terpisah koma dan kata pengisi ("deep well, about 30 m" — di produksi 2026-10-26 angka
+   * itu tercatat sebagai panjang jalur utama); dan kata kedalaman di BELAKANG angkanya ("30
+   * metres deep", "30 m dalamnya"), yang dulu tidak terbaca sama sekali.
    */
   wellDepth: (m: string): number | undefined => {
+    const NUM = String.raw`(\d+(?:[.,]\d+)?)\s*(?:m|meter|metre|meters|metres)\b`;
+    const DEPTH_WORD = String.raw`kedalaman|dalamnya|dalam|sedalam|muka air(?:nya)?|water level|deep|depth`;
+    const FILLER = String.raw`[^\d;.]{0,20}?`;
     const match =
-      /\b(?:sumur(?:\s*bor)?|kedalaman|dalamnya|sedalam|muka air(?:nya)?|water level|wells?|depth)\b[^\d.,;]{0,20}?(\d+(?:[.,]\d+)?)\s*(?:m|meter|metre|meters|metres)\b/i.exec(
-        m,
-      );
+      new RegExp(
+        String.raw`\b(?:sumur(?:\s*bor)?|wells?|boreholes?)\b[^\d.,;]{0,20}?` + NUM,
+        'i',
+      ).exec(m) ??
+      new RegExp(String.raw`\b(?:${DEPTH_WORD})\b` + FILLER + NUM, 'i').exec(m) ??
+      new RegExp(NUM + String.raw`[\s,]*(?:${DEPTH_WORD})\b`, 'i').exec(m);
     if (!match) return undefined;
     const value = Number(match[1]!.replace(',', '.'));
     return value >= 0 && value <= 60 ? value : undefined;
@@ -270,7 +281,11 @@ const OBVIOUS = {
       const before = m.slice(Math.max(0, match.index - 24), match.index).toLowerCase();
       // "toren 10 kubik di atas tower 9 meter" tercatat sebagai jalur utama ±9 m di produksi
       // 2026-10-26: tiang dan menara toren adalah KETINGGIAN, bukan panjang jalur.
-      return !/(dalam|kedalaman|tinggi|setinggi|muka air|sumur|bor|batang|tower|menara|tiang|pipa\s*$|deep|depth|high|height)\s*[±~]?\s*(?:sekitar|kira-kira|kurang lebih)?\s*$/.test(
+      // Angka yang sudah terbaca sebagai kedalaman sumur bukan panjang jalur, di mana pun kata
+      // kedalamannya berdiri ("water comes from a deep well, about 30 m" tercatat jalur utama
+      // ±30 m di produksi 2026-10-26).
+      if (Number(match[1]!.replace(',', '.')) === OBVIOUS.wellDepth(m)) return false;
+      return !/(dalam|kedalaman|tinggi|setinggi|muka air|sumur|bor|batang|tower|menara|tiang|pipa\s*$|deep|depth|high|height)\s*,?\s*(?:sekitar|kira-kira|kurang lebih|about|approximately|roughly)?\s*[±~]?\s*$/.test(
         before,
       );
     });

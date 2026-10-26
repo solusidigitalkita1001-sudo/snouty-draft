@@ -173,3 +173,42 @@ describe('hitung dulu + anggapan rumah (pemilik 2026-10-20)', () => {
     expect(defaultUpdateFor('fixtures.bathrooms')).toBeNull();
   });
 });
+
+/**
+ * Produksi 2026-10-26: renovasi ruko dengan "titik airnya ada 9" dihitung dengan anggapan 1 kamar
+ * mandi per lantai, dan solusinya menyebut 7 titik air kembali kepada pengguna (OQ-85).
+ */
+describe('titik air yang disebut pengguna tidak dilangkahi anggapan', () => {
+  const ruko = (outlets: number | null) =>
+    withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [
+          {
+            path: 'building.type' as const,
+            value: 'light_commercial',
+            source: 'user_stated' as const,
+          },
+          { path: 'building.floors' as const, value: 2, source: 'user_stated' as const },
+          ...(outlets === null
+            ? []
+            : [
+                {
+                  path: 'fixtures.outletCount' as const,
+                  value: outlets,
+                  source: 'user_stated' as const,
+                },
+              ]),
+        ],
+        T1,
+      ).state,
+    );
+
+  it('titik air disebut: tanpa anggapan kamar mandi — bauran alatnya ditanya', () => {
+    expect(assumableUpdates(ruko(9))).toEqual([]);
+  });
+
+  it('titik air tidak disebut: anggapan tetap berlaku', () => {
+    expect(assumableUpdates(ruko(null)).map((u) => u.path)).toContain('fixtures.bathrooms');
+  });
+});

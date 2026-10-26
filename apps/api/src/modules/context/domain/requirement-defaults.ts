@@ -137,6 +137,12 @@ export function assumableUpdates(state: RequirementState): readonly FieldUpdate[
   if (state.useCase !== undefined) return [];
   if (state.building.floors.value === null) return [];
   const missing = state.missingInformation;
+  // Titik air yang disebut pengguna ("titik airnya ada 9") tidak boleh dilangkahi anggapan 1
+  // kamar mandi per lantai: anggapan itu menghasilkan 7 titik, dan solusinya memberi tahu
+  // pengguna angka yang bukan angkanya (produksi 2026-10-26). Bauran alatnya ditanya, bukan
+  // dikarang — aturan tetapnya OQ-85.
+  if (state.fixtures.outletCount.value !== null && missing.includes('fixtures.bathrooms'))
+    return [];
   if (missing.length === 0 || !missing.every((p) => HOUSE_ASSUMABLE.includes(p))) return [];
   return missing
     .map((path) => defaultUpdateFor(path, state))
