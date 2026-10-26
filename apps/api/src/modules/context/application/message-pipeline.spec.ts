@@ -600,7 +600,12 @@ describe('runUnderstanding — bentuk event SSE', () => {
       input({ message: 'kenapa pakai 1 inci?', decision, state: complete }),
     );
     const afterText = after.events.find((e) => e.type === 'token') as { text: string };
-    expect(afterText.text).toContain('Dasar setiap angka ada di solusi');
+    // Kebutuhan lengkap tetapi tombol hitungnya belum ditekan: tidak ada angka 1 inci di mana pun,
+    // jadi yang dikatakan adalah kapan ukurannya dihitung — bukan "dasarnya ada di solusi" yang
+    // menunjuk solusi yang belum ada, dan bukan 27 detik karangan model (produksi 2026-10-26).
+    expect(afterText.text).toContain(
+      'Ukurannya baru dihitung setelah Anda menekan **Susun rekomendasi**',
+    );
   });
 
   it('sapaan / di luar topik: dibalas sapaan yang mengarahkan, bukan formulir klarifikasi', async () => {

@@ -448,6 +448,21 @@ dan kemiringan minimum mana yang dipakai untuk rumah.
    baru atau masih soal jalur yang tadi?" — dengan dua pilihan di kartu, bukan berganti sendiri
    dan bukan mengabaikan.
 
+### OQ-81 — Pemisahan air kotor dan air bekas belum punya tempat di kebutuhan (P31-27, 2026-10-26)
+
+**Status:** open · **Blocks:** tidak ada; kasus pembuangan tetap dihitung seperti sekarang
+**Konteks:** di kasus pembuangan rumah, "air kotor dan air bekas dipisah" tidak tercatat — tidak
+ada field untuk itu, jadi kalimatnya hanya tidak mengubah apa pun. Pemisahan itu bukan detail
+kecil: dua jalur terpisah berarti dua jalur mendatar, dua pipa tegak, dan jumlah fitting yang lain.
+Sampai ada keputusan, SNOUTY tidak boleh mengaku mencatatnya (balasan model pernah berbunyi "sudah
+saya catat bahwa air kotor dan air bekas dipisahkan" padahal tidak ada yang tersimpan).
+
+**Usul default (menunggu pilihan pemilik):** satu pilihan di kartu klarifikasi kasus pembuangan —
+"satu jalur gabungan" atau "air kotor dan air bekas dipisah" — dengan jalur gabungan sebagai
+anggapan yang tampil sebagai anggapan, dan daftar material mengikuti pilihan itu.
+**Yang perlu ahli:** apakah ukuran pipa tiap jalur berubah bila jalurnya dipisah, atau hanya
+jumlah jalurnya.
+
 ### OQ-79 — Model dan kunci untuk jawaban pengetahuan pipa umum (P30-01, 2026-10-26)
 
 **Status:** open · **Blocks:** P30-01 menyala di produksi

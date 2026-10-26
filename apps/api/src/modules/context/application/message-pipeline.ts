@@ -189,8 +189,12 @@ export async function runUnderstanding(
                   // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
                   explanationHandedOff(caseCard.reasons, input.locale)
                 : input.decision.intent === 'EXPLANATION_REQUEST' &&
-                    withCompleteness(input.state).missingInformation.length > 0
-                  ? // Kebutuhan belum lengkap berarti belum ada solusi yang bisa dibuka detailnya.
+                    (!input.solution || input.solution.stale)
+                  ? // Belum ada solusi yang bisa dibuka detailnya — baik karena kebutuhannya belum
+                    // lengkap, maupun karena tombol hitungnya belum ditekan. Lewat model giliran ini
+                    // 27 detik dan jawabannya mengaku mencatat hal yang tidak punya tempat di
+                    // kebutuhan ("sudah saya catat bahwa air kotor dan air bekas dipisahkan",
+                    // produksi 2026-10-26).
                     explanationBeforeSolution(input.locale)
                   : input.decision.intent === 'OUT_OF_SCOPE' &&
                       (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')

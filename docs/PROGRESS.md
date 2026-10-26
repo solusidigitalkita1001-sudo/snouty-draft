@@ -3279,3 +3279,11 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       "udah, itung aja" dijawab "Tekan Susun rekomendasi" padahal pengguna baru saja memintanya
       menghitung. Permintaan melanjutkan atas kebutuhan yang sudah bisa dihitung sekarang
       dijalankan di giliran itu.
+
+- [x] P31-28 Pertanyaan atas angka yang belum dihitung dijawab teks tetap
+
+      "kenapa pakai 1 inci?" dan pesan lain yang masuk sebagai permintaan penjelasan dijawab model
+      selama 27 detik — termasuk satu balasan yang mengaku mencatat sesuatu yang tidak punya tempat
+      di kebutuhan. Selama belum ada solusi yang bisa dibuka, jawabannya adalah kapan ukurannya
+      dihitung, bukan karangan tentang angka yang belum ada. Pemisahan air kotor dan air bekas
+      dicatat sebagai OQ-81, bukan dianggap diam-diam.
