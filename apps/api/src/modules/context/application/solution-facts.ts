@@ -110,6 +110,9 @@ function tankStandLines(view: TankStandView, locale: Locale, num: (n: number) =>
  * Jawaban tetap untuk pertanyaan bentuk sistem (P22-02) — jalur per segmen dan materialnya dari
  * rekomendasi, tanpa model. Dipakai sebagai teks bila model tidak dikonfigurasi atau ditolak pagar.
  */
+/** Satuan yang menandai baris PIPA di daftar belanja, dua bahasa (P31-37). */
+const PIPE_UNITS = new Set(['batang', 'rods', 'meter', 'm']);
+
 export function layoutReply(solution: ActiveSolution, locale: Locale): string {
   const en = locale === 'en';
   const r = solution.recommendation;
@@ -122,7 +125,6 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
   // jadi baris pipa tidak dikenali dari kata "pipa" maupun satuan "batang": daftar belanja Inggris
   // menaruh batang pipa di bawah "Fittings", lalu kalimat "jumlah batangnya belum dihitung" ikut
   // muncul walau batangnya ada di baris yang sama (produksi 2026-10-26).
-  const PIPE_UNITS = new Set(['batang', 'rods', 'meter', 'm']);
   const pipes = rows.filter(
     (b) => /^pipa|^pipe/i.test(b.purpose ?? b.item) || PIPE_UNITS.has(b.unit),
   );
@@ -162,6 +164,27 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
     noPipeCount +
     stale
   );
+}
+
+/**
+ * Jawaban untuk "butuh berapa batang pipa": baris PIPA saja. Daftar belanja penuh (jalur, pipa,
+ * dan belasan baris fitting) adalah satu paragraf raksasa untuk pertanyaan sependek itu — layar
+ * solusi yang memuat daftar lengkapnya (produksi 2026-10-26).
+ */
+export function rodsReply(solution: ActiveSolution, locale: Locale): string | null {
+  const en = locale === 'en';
+  const r = solution.recommendation;
+  const num = (n: number) => n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
+  const pipes = r.bom.filter(
+    (b) => b.quantity > 0 && (/^pipa|^pipe/i.test(b.purpose ?? b.item) || PIPE_UNITS.has(b.unit)),
+  );
+  if (pipes.length === 0) return null;
+  const list = pipes
+    .map((b) => `${(b.purpose ?? b.item).toLowerCase()} ${b.size} ${num(b.quantity)} ${b.unit}`)
+    .join(', ');
+  return en
+    ? `Pipes: ${list}. The full product list, with fittings, is on the solution screen.`
+    : `Pipanya: ${list}. Daftar lengkapnya, fitting dan semuanya, ada di layar solusi.`;
 }
 
 /**

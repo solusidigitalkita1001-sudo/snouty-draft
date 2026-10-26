@@ -16,6 +16,7 @@ import { runUnderstanding, type PipelineInput } from './message-pipeline.js';
 import type { ReplyWriter } from './reply-writer.js';
 import type { RoutingDecision } from './intent-router.js';
 import { understood } from '../../understanding/testing/understood.js';
+import { extractionToUpdates } from './extraction-to-updates.js';
 
 const T0 = '2026-10-09T00:00:00.000Z';
 const decision: RoutingDecision = {
@@ -518,5 +519,43 @@ describe('ukuran jalur pembuangan di jawaban solusi', () => {
     expect(text).toContain('air kotor 4"');
     expect(text).toContain('air bekas 3"');
     expect(text).toContain('ventilasi air kotor 2"');
+  });
+});
+
+/**
+ * Produksi 2026-10-26: "septic tanknya di mana" di rumah yang solusinya sudah dihitung dijawab
+ * ringkasan kebutuhan plus "Tekan Susun rekomendasi" — tombol untuk hitungan yang sudah ada.
+ */
+describe('pesan tanpa perubahan atas solusi yang sudah dihitung (P31-49)', () => {
+  it('dijawab dari solusinya, bukan dengan tombol hitung', async () => {
+    const house = mergeRequirement(
+      emptyRequirementState(T0),
+      extractionToUpdates(
+        {},
+        'rumah 2 lantai 8x15 meter, 3 kamar mandi, 1 dapur, mau sekalian saluran pembuangannya, air dari pdam',
+      ),
+      T0,
+    ).state;
+    const message = 'septic tanknya di mana';
+    const { events } = await runUnderstanding(
+      null,
+      {
+        ...input(message),
+        state: house,
+        solution: {
+          recommendation: {
+            headline: 'Air bersih dan pembuangan rumah 2 lantai',
+            systemLines: [{ role: 'main', name: 'Pipa utama', size: '1"', path: 'PDAM ke riser' }],
+            needs: [{ kind: 'drainage', count: 1, soilSize: '4"', wasteSize: '3"' }],
+            bom: [],
+          },
+          stale: false,
+        } as never,
+      },
+      writer().reply,
+    );
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toContain('air kotor 4"');
+    expect(token.text).not.toContain('Susun rekomendasi');
   });
 });

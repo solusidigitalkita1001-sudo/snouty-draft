@@ -94,7 +94,7 @@ import {
   replyFor,
 } from './reply-copy.js';
 import { caseFacts } from './case-facts.js';
-import { layoutReply, solutionReply } from './solution-facts.js';
+import { layoutReply, rodsReply, solutionReply } from './solution-facts.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
 
@@ -165,11 +165,8 @@ export async function runUnderstanding(
     const caseCard = followUpCard(withCompleteness(input.state), input.locale);
     const handedOff = caseCard?.kind === 'unsupported';
     // Bentuk sistem pengguna sendiri (P22-02): teks tetap dari jalur dan BOQ solusinya, gambar menyusul.
-    const drawing = drawingCardFor(
-      label,
-      input.solution,
-      input.understanding !== undefined && asksSolutionQuantity(input.understanding),
-    );
+    const asksRods = input.understanding !== undefined && asksSolutionQuantity(input.understanding);
+    const drawing = drawingCardFor(label, input.solution, asksRods);
     // Pertanyaan atas solusi yang SUDAH dihitung dijawab dari solusinya sendiri, bukan ditulis
     // ulang model: di produksi 2026-10-26 "fitting apa aja yang perlu dibeli" memakan 55,7 detik,
     // "berapa batang pipanya" 42,6 detik, dan "kenapa ukurannya 1 inci" 48,1 detik — dan ketiga
@@ -182,7 +179,9 @@ export async function runUnderstanding(
         !input.solution.stale);
     const fallback =
       drawing !== null && input.solution
-        ? layoutReply(input.solution, input.locale ?? DEFAULT_LOCALE)
+        ? // "Butuh berapa batang" dijawab baris pipanya saja; daftar belanja penuh milik layar solusi.
+          ((asksRods ? rodsReply(input.solution, input.locale ?? DEFAULT_LOCALE) : null) ??
+          layoutReply(input.solution, input.locale ?? DEFAULT_LOCALE))
         : // Penjelasan atas solusi yang sudah dihitung (P22-04): teks tetap dari solusinya sendiri.
           input.decision.intent === 'EXPLANATION_REQUEST' && input.solution && !input.solution.stale
           ? solutionReply(input.solution, input.locale ?? DEFAULT_LOCALE)
@@ -490,8 +489,10 @@ export async function runUnderstanding(
     onRecord ||
     typeStated;
   try {
-    if (!ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
-    extraction = skipModel ? {} : await ai.extract(input.message);
+    // Giliran yang memang tidak memanggil model tidak boleh gagal karena modelnya tidak ada:
+    // nilainya dibaca parser, dan "pemahaman sedang tidak tersedia" tidak benar di jalur itu.
+    if (!skipModel && !ai) throw new AiOutputInvalidError('extraction', 'AI tidak tersedia');
+    extraction = skipModel || !ai ? {} : await ai.extract(input.message);
   } catch (error) {
     // Model tidak terjangkau atau kehabisan waktu (produksi 2026-10-07: pesan masjid 2 lantai yang
     // panjang → 7B lewat 180 s → "Pemahaman bahasa sedang tidak tersedia") diperlakukan sama
@@ -658,8 +659,20 @@ export async function runUnderstanding(
     // jadi yang dikatakan adalah itu — bukan daftar yang sama diulang kata demi kata.
     const said = [...(input.recentTurns ?? [])].reverse().find((t) => t.role === 'assistant')?.text;
     const same = text !== null && said !== undefined && said.trim() === text.trim();
-    if (text !== null) {
-      events.push({ type: 'token', text: same ? requirementUnchangedReply(locale) : text });
+    // Pesan yang tidak mengubah apa pun pada kasus yang solusinya SUDAH dihitung dijawab dari
+    // solusinya. Dulu ia mendapat ringkasan kebutuhan plus "Tekan Susun rekomendasi" — tombol
+    // untuk hitungan yang sudah ada (produksi 2026-10-26: "septic tanknya di mana").
+    const fromComputed =
+      !changed && input.solution && !input.solution.stale
+        ? solutionReply(input.solution, locale)
+        : null;
+    const answer =
+      fromComputed !== null && fromComputed.trim() !== said?.trim() ? fromComputed : text;
+    if (answer !== null) {
+      events.push({
+        type: 'token',
+        text: same && answer === text ? requirementUnchangedReply(locale) : answer,
+      });
     }
   }
   // Giliran yang tidak menghasilkan kalimat apa pun ("itung ulang, luasnya belum gw kasih" atas

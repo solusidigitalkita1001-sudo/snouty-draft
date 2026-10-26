@@ -3453,3 +3453,16 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       Di kasus jaringan cluster, "toren 10 kubik di atas tower 9 meter" tercatat sebagai panjang
       jalur 9 m. Tiang dan menara toren tanpa kata "tinggi" sekarang terbaca sebagai ketinggian
       tandon, dan panjang jalur yang memang disebut ("jalan utamanya 1,2 km" → 1.200 m) tetap.
+
+- [x] P31-48 "Butuh berapa batang" dijawab baris pipanya, bukan seluruh daftar belanja
+
+      Jawabannya memuat jalur, pipa, dan dua puluh baris fitting dalam satu paragraf — untuk
+      pertanyaan sependek itu. Sekarang baris pipanya saja, dengan satu kalimat bahwa daftar
+      lengkapnya ada di layar solusi.
+
+- [x] P31-49 Pesan tanpa perubahan atas solusi yang sudah dihitung dijawab dari solusinya
+
+      "septic tanknya di mana" di rumah yang solusinya sudah dihitung dijawab ringkasan kebutuhan
+      plus "Tekan Susun rekomendasi" — tombol untuk hitungan yang sudah ada. Giliran yang tidak
+      mengubah apa pun sekarang membacakan solusinya. Sekaligus: giliran yang memang tidak
+      memanggil model tidak lagi ditandai "pemahaman tidak tersedia" ketika modelnya tidak ada.
