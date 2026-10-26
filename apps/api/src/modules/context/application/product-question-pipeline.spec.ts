@@ -525,6 +525,27 @@ describe('runProductQuestion — KONSEP', () => {
     expect(text(events)).toBe(TABLE_REPLY);
   });
 
+  it('subjek produk tanpa entitas ("Pralon") tidak dicari ke katalog sebagai keluarga (P31-08)', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({ 'pvc aw': [AW] }),
+      noQuestions,
+      input(
+        'ada yang lebih murah ga',
+        { intent: 'follow_up_choice' },
+        {
+          subject: {
+            kind: 'product',
+            entity: 'Pralon',
+            topic: 'product_overview',
+            depth: 'standard',
+          },
+        },
+      ),
+    );
+    expect(text(events)).not.toContain('Pralon tidak ada di katalog Pralon');
+  });
+
   it('produk katalog tanpa deskripsi hanya muncul sebagai kartu, bukan prosa di bawah penjelasan', async () => {
     const undescribed: Product = {
       ...AW,

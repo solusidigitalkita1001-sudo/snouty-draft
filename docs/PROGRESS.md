@@ -3033,3 +3033,20 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       sehingga lewat, "kamar mandi 3" tidak, padahal percakapannya sudah jelas rumah tinggal dan
       angka itu memang dibaca parser nilai. Keputusan itu tentang kasusnya, bukan tentang satu
       kalimat — rumah yang sudah tercatat di state kini ikut melewati model.
+
+- [x] P31-08 "Pralon tidak ada di katalog Pralon"
+
+      Setelah P31-07 memotong model dari percakapan rumah, satu cacat yang selama ini tertutup
+      lambatnya model terlihat: "ada yang lebih murah ga" sesudah pertanyaan harga dijawab "Pralon
+      tidak ada di katalog Pralon", lalu ikhtisar 7.664 produk.
+
+      Subjek produk yang tidak punya entitas tercatat sebagai merek sendiri — `'Pralon'` sebagai
+      penanda "ragam Pralon". Lanjutan pilihan membawa entitas subjek sebagai query katalog, jadi
+      katalog dicari dengan kata "Pralon", tidak menemukan apa pun, dan melaporkannya apa adanya.
+      Entitas yang hanya menyebut merek sendiri dan tidak memuat satu pun keluarga produk kini
+      bukan query katalog.
+
+      Pagar pertama yang saya tulis memakai `isCatalogFamily`, dan itu mati sejak awal: fungsi itu
+      menjawab "ya" untuk apa pun yang bukan keluarga khusus-pengetahuan, termasuk kata "Pralon".
+      Yang dipakai `productFamilies` — entitas yang tidak memuat keluarga mana pun memang tidak
+      punya yang bisa dicari. Tesnya memeriksa kalimatnya, dan sempat merah sebelum pagar kedua.

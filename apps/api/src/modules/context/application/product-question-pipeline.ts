@@ -114,7 +114,7 @@ export interface ProductQuestionInput {
   /** Kosakata entitas, untuk membaca keluarga produk dari teks lain (subjek, jawaban sebelumnya). */
   readonly lexicon: Pick<
     EntityLexicon,
-    'productFamilies' | 'isCatalogFamily' | 'isFittingFamily' | 'aliasesOf'
+    'productFamilies' | 'isCatalogFamily' | 'isFittingFamily' | 'aliasesOf' | 'mentionsOwnBrand'
   > &
     Partial<Pick<EntityLexicon, 'representativeFamily'>>;
   /** Dipanggil untuk tiap data resmi yang belum ada di jawaban pengetahuan (log, bukan state). */
@@ -125,6 +125,15 @@ export interface ProductQuestionInput {
 function subjectQuery(input: ProductQuestionInput): string | null {
   const subject = input.subject;
   if (!subject || subject.kind === 'company' || subject.kind === 'case') return null;
+  // Subjek produk tanpa entitas tercatat sebagai merek sendiri ("Pralon") — itu penanda "ragam
+  // Pralon", bukan nama keluarga. Mencarinya ke katalog menghasilkan "Pralon tidak ada di katalog
+  // Pralon" lalu ikhtisar 7.664 produk untuk pertanyaan "ada yang lebih murah ga" (produksi
+  // 2026-10-26).
+  if (
+    input.lexicon.mentionsOwnBrand(subject.entity) &&
+    input.lexicon.productFamilies(subject.entity).length === 0
+  )
+    return null;
   const u = input.understanding;
   return isFollowUp(u) || isFormatFollowUp(u) || isChoiceFollowUp(u) ? subject.entity : null;
 }
@@ -221,7 +230,6 @@ export interface GeneralKnowledgeAnswerer {
     readonly locale: Locale;
   }): Promise<string | null>;
 }
-
 
 export async function runProductQuestion(
   ai: AiService,

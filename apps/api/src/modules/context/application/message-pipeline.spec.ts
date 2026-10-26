@@ -80,10 +80,14 @@ describe('runUnderstanding — diet panggilan model (2026-10-07)', () => {
 
   it('rumah yang sudah tercatat: lanjutan satu angka pun tanpa model (P31-07)', async () => {
     const ai = aiExtracting({ building: { floors: 9 } });
-    const house = mergeRequirement(emptyRequirementState(T0), [
-      { path: 'building.type', value: 'residential', provenance: 'USER_PROVIDED' },
-      { path: 'building.floors', value: 2, provenance: 'USER_PROVIDED' },
-    ]).state;
+    const house = mergeRequirement(
+      emptyRequirementState(T0),
+      [
+        { path: 'building.type', value: 'residential', source: 'user_stated' },
+        { path: 'building.floors', value: 2, source: 'user_stated' },
+      ],
+      T0,
+    ).state;
     const { events } = await runUnderstanding(
       ai,
       input({ message: 'kamar mandi 3', state: house }),
