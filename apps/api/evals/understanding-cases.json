@@ -1545,6 +1545,26 @@
       "text": "do you have anything bigger than 500 mm?",
       "extreme": "largest",
       "source": "P31-05"
+    },
+    {
+      "text": "kalo pake hdpe aja bisa?",
+      "intent": "advice_request",
+      "source": "P31-12 — pertanyaan kelayakan bahan, bukan permintaan data"
+    },
+    {
+      "text": "material listnya dong",
+      "intent": "follow_up_more",
+      "source": "P31-12 — daftar material, bukan format ulang"
+    },
+    {
+      "text": "pompanya apa",
+      "useCase": null,
+      "source": "P31-13 — pertanyaan pompa polos bukan kasus irigasi"
+    },
+    {
+      "text": "pompanya pakai apa",
+      "useCase": null,
+      "source": "P31-13 — pertanyaan pompa polos bukan kasus irigasi"
     }
   ]
 }

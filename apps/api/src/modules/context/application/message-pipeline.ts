@@ -228,10 +228,15 @@ export async function runUnderstanding(
   // diberikan, yang kurang ditanya lewat kartu — tetapi muaranya handoff terstruktur, bukan
   // sizing otomatis. Nol LLM: pertanyaannya tertutup, faktanya dari bentuk kalimat.
   // Irigasi dikenali dari pemahaman (katalog `use-case`/intent, P16-14), bukan daftar kata.
+  // Kasus teknis yang SEDANG BERJALAN tidak diambil alih oleh isyarat irigasi: "pompanya apa" di
+  // tengah kasus sumur bor dikenali `useCase: irrigation` (pompa memang sering irigasi), dan
+  // jawabannya jadi penjelasan irigasi yang bicara soal lahan — padahal yang dibahas sumur
+  // (produksi 2026-10-26). Hanya kebutuhan irigasi yang TERSURAT boleh berganti jalur.
+  const statesIrrigation = input.understanding?.intent?.label === 'requirement_irrigation';
+  const running = input.state.useCase?.kind;
   const irrigation =
-    input.understanding?.useCase === 'irrigation' ||
-    input.understanding?.intent?.label === 'requirement_irrigation';
-  if (irrigation || input.state.useCase?.kind === 'irrigation') {
+    statesIrrigation || (input.understanding?.useCase === 'irrigation' && running !== 'technical');
+  if (irrigation || running === 'irrigation') {
     const applied = applyIrrigationAnswers(input.state, irrigationFactsFrom(input.message));
     events.push({ type: 'requirement.updated', state: applied.state });
     events.push({ type: 'token', text: irrigationGuidance(applied.state, locale) });
@@ -302,7 +307,11 @@ export async function runUnderstanding(
       !chatOnly || issues.length > 0
         ? guidance
         : !explains
-          ? technicalNudge(applied.state, locale)
+          ? technicalNudge(
+              applied.state,
+              locale,
+              input.understanding?.intent?.label === 'follow_up_more',
+            )
           : reply && loadEnv().LLM_CHAT_REPLY
             ? (
                 await reply.write({

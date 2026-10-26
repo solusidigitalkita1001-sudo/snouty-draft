@@ -591,7 +591,12 @@
       "what would you suggest for my case",
       "kasih masukan dong",
       "kalau kamu di posisi saya pilih apa",
-      "yang paling hemat buat kasus saya apa"
+      "yang paling hemat buat kasus saya apa",
+      "pake hdpe aja bisa?",
+      "kalo pake pvc aja bisa ga?",
+      "cukup pakai hdpe saja?",
+      "boleh pakai pvc buat jalur induk?",
+      "can i just use hdpe?"
     ],
     "requirement_building": [
       "renovasi instalasi air rumah, tambah 1 kamar mandi",
@@ -903,7 +908,10 @@
       "barangnya apa aja?",
       "butuh barang apa aja?",
       "material apa aja yang dibutuhin?",
-      "what items do i need?"
+      "what items do i need?",
+      "material listnya dong",
+      "list materialnya dong",
+      "kebutuhan materialnya dong"
     ],
     "follow_up_brief": [
       "singkat aja",

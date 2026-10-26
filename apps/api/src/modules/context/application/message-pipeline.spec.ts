@@ -18,6 +18,7 @@ import type { Extraction } from '../../ai/domain/extraction-schema.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
+import { applyTechnicalFacts } from '../domain/technical.js';
 import { applyEdit, runUnderstanding, type PipelineInput } from './message-pipeline.js';
 import { understood } from '../../understanding/testing/understood.js';
 import type { RoutingDecision } from './intent-router.js';
@@ -976,5 +977,47 @@ describe('kalimat "sudah saya catat" — muka air sumur berlabel (review putaran
     );
     expect(understoodReply(state, 'cta', 'id')).toContain('muka air sumur ±10 m');
     expect(understoodReply(state, 'cta', 'en')).toContain('well water level of about 10 m');
+  });
+});
+
+describe('isyarat irigasi di tengah kasus teknis berjalan (P31-13)', () => {
+  const well = applyTechnicalFacts(
+    emptyRequirementState(T0),
+    'well_distribution',
+    'sumur bor kedalaman 60 meter, rumah 2 lantai',
+  ).state;
+
+  it('"pompanya apa" tidak membajak kasus sumur: jawabannya tetap soal sumur', async () => {
+    const { events, nextState } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'pompanya apa',
+        state: well,
+        // Pemahaman memang membaca "pompa" sebagai isyarat irigasi; kasus berjalan menang.
+        understanding: understood('pompanya apa', {
+          intent: 'explanation_request',
+          useCase: 'irrigation',
+        }),
+      }),
+    );
+    expect((nextState.useCase as { kind: string; caseId?: string }).kind).toBe('technical');
+    expect((nextState.useCase as { caseId: string }).caseId).toBe('well_distribution');
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).not.toContain('Untuk irigasi');
+  });
+
+  it('kebutuhan irigasi yang tersurat tetap boleh berganti jalur', async () => {
+    const { nextState } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'sekarang mau irigasi sawah 2 hektar',
+        state: well,
+        understanding: understood('sekarang mau irigasi sawah 2 hektar', {
+          intent: 'requirement_irrigation',
+          useCase: 'irrigation',
+        }),
+      }),
+    );
+    expect((nextState.useCase as { kind: string }).kind).toBe('irrigation');
   });
 });

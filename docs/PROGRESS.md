@@ -3093,3 +3093,28 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
 
       Sekarang entitas hanya menjadi "Pralon" bila pesannya memang tentang ragam Pralon atau
       menyebut mereknya; tanpa entitas dan tanpa ragam, subjek percakapan tidak berubah.
+
+- [x] P31-12 Pertanyaan kelayakan bahan dan permintaan daftar material dikenali
+
+      Percakapan kontraktor cluster: "material listnya dong" dan "kalo pake hdpe aja bisa?"
+      dijawab kalimat yang sama persis — "Yang masih saya perlukan: tinggi statis, pemakaian
+      serentak, kontur, dan tekanan yang dibutuhkan." Dua pertanyaan berbeda, satu teks.
+
+      Yang pertama terbaca sebagai permintaan format ulang, yang kedua ragu antara dua label
+      produk. Contohnya ditambah ke `advice_request` dan `follow_up_more`, sehingga pertanyaan
+      kelayakan bahan dijawab di atas data kasus dan permintaan daftar barang dikenali apa adanya.
+
+- [x] P31-13 Kasus teknis yang sedang berjalan tidak dibajak isyarat irigasi
+
+      "pompanya apa" di tengah kasus sumur bor dijawab penjelasan irigasi yang bicara soal lahan
+      dan jenis irigasi. Pompa memang sering irigasi, jadi katalog kasus memberinya label
+      `irrigation` — dan cabang irigasi di pipeline berjalan sebelum kasus teknis, tanpa melihat
+      bahwa kasus sumur sudah berjalan.
+
+      Sekarang hanya kebutuhan irigasi yang tersurat boleh berganti jalur; isyarat saja tidak
+      cukup selama kasus teknis masih berjalan. Pertanyaan pompa polos juga ditambahkan sebagai
+      contoh "bukan kasus" di katalog kasus.
+
+      Sekalian: permintaan daftar barang di kasus yang datanya belum lengkap tidak lagi dijawab
+      kalimat dorongan yang sama — daftar barangnya memang keluar dari hitungan, dan itu yang
+      dikatakan, beserta apa yang masih kurang.

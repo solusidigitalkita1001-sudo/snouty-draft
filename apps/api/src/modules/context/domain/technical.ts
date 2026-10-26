@@ -478,7 +478,12 @@ export function technicalGuidance(
  * kalimat pengguna — dan ke mana menjawabnya. Instan; model hanya dipakai untuk pertanyaan yang
  * butuh penjelasan (benchmark 2026-10-09: 9B 20–25 s, 4B 12–14 s dengan kesalahan teknis).
  */
-export function technicalNudge(state: RequirementState, locale: Locale = DEFAULT_LOCALE): string {
+export function technicalNudge(
+  state: RequirementState,
+  locale: Locale = DEFAULT_LOCALE,
+  /** Pesan meminta ISI lebih banyak (daftar barang, rincian) — bukan sekadar mendorong. */
+  askedForMore = false,
+): string {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return '';
   const en = locale === 'en';
   const asked = technicalMissing(state).map((m) => (en ? m.labelEn : m.label).toLowerCase());
@@ -499,6 +504,14 @@ export function technicalNudge(state: RequirementState, locale: Locale = DEFAULT
       ? '; to see the calculation right away, press **Compose recommendation**.'
       : '; kalau mau langsung lihat hitungannya, tekan **Susun rekomendasi**.'
     : '.';
+  // "material listnya dong" dijawab kalimat yang sama dengan dorongan biasa, jadi dua
+  // pertanyaan berbeda berturut-turut mendapat teks identik (produksi 2026-10-26). Daftar
+  // barangnya memang keluar dari hitungan, dan itu yang dikatakan.
+  if (askedForMore) {
+    return en
+      ? `The item list comes out of the calculation, and for that I still need ${list}. ${where}${proceed}`
+      : `Daftar barangnya keluar dari hitungannya, dan untuk itu saya masih perlu ${list}. ${where}${proceed}`;
+  }
   return en
     ? `Still to settle: ${list}. ${where}${proceed}`
     : `Yang masih saya perlukan: ${list}. ${where}${proceed}`;

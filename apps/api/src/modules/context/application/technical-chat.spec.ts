@@ -203,3 +203,19 @@ describe('kasus rumah berjalan — pesan tanpa data baru (P31-09)', () => {
     }
   });
 });
+
+describe('permintaan daftar barang di kasus yang datanya belum lengkap (P31-13)', () => {
+  it('"material listnya dong" tidak dijawab kalimat dorongan yang sama', async () => {
+    const message = 'material listnya dong';
+    const { reply, write } = writer();
+    const { events } = await runUnderstanding(
+      null,
+      { ...input(message), understanding: understood(message, { intent: 'follow_up_more' }) },
+      reply,
+    );
+    expect(write).not.toHaveBeenCalled();
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toContain('Daftar barangnya keluar dari hitungannya');
+    expect(token.text).toContain('kamar mandi/toilet per lantai');
+  });
+});
