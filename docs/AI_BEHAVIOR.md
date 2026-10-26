@@ -185,8 +185,16 @@ daftar frasa di kode yang menebak apa yang ditanya. Yang menggantikannya adalah 
   menerapkan pagar: label pesaing hanya sah bila pesan menyebut pesaing; pertanyaan perusahaan
   yang menyebut Pralon tetap perusahaan walau juga menyebut "pabrik"; lanjutan yang menyebut produk
   atau kebutuhan baru bukan lanjutan; mutasi mustahil tanpa kebutuhan yang sudah ada.
+  Sejak P30-06 ada satu pagar lagi: **label DI LUAR TOPIK dari model ditolak bila peringkat contoh
+  teratas justru menunjuk pertanyaan pipa** (≥ 0,55, label pengetahuan/produk/pemakaian/saran).
+  "Apa itu thrust block dan kapan perlu dipasang?" berhenti di 0,570 — tidak cukup untuk
+  MENJAWAB, tetapi cukup untuk menolak dibuang dari domain; sebelumnya ia dijawab "ini di luar
+  urusan pemasangan pipa" setelah 63 detik. Harga dan kebutuhan sengaja tidak ikut dipagari.
 - **Ragu → model generatif.** Pesan yang tidak mirip contoh mana pun (`intent: null`) diserahkan ke
-  model seperti sebelumnya. Tanpa penyandi (`LLM_MODEL_EMBEDDING` kosong) semua keputusan makna
+  model seperti sebelumnya — dan di CPU itu mahal: satu klasifikasi plus balasan yang ditulis model
+  terukur 63 detik (2026-10-26). Pagar di atas memotong kasus terburuknya; contoh berbentuk rangka
+  ("apa itu X dan kapan dipakai?") TIDAK memotongnya — diuji 2026-10-26, skornya 0,569 → 0,570,
+  karena penyandi menimbang istilahnya, bukan rangkanya. Tanpa penyandi (`LLM_MODEL_EMBEDDING` kosong) semua keputusan makna
   `null`: jujur tetapi lambat.
 - **Evaluasi.** `evals/understanding-cases.json` (kalimat yang sengaja bukan salinan contoh) diukur
   `understanding.eval.spec.ts` terhadap `bge-m3` lokal (`UNDERSTANDING_EVAL=1`): akurasi intent

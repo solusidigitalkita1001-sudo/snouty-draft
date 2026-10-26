@@ -491,3 +491,52 @@ describe('IntentRouter — model tidak menjawab (P28-02)', () => {
     expect(d.modelUnavailable).toBeUndefined();
   });
 });
+
+describe('pagar DI LUAR TOPIK atas label model (P30-06)', () => {
+  const at = (label: string, score: number) => [{ label, score, example: 'contoh' }];
+  const outOfScope: IntentClassification = { intent: 'OUT_OF_SCOPE', confidence: 1 };
+
+  it('pertanyaan pipa yang dilabeli model di luar topik tetap dijawab', async () => {
+    const d = await router(outOfScope).route(
+      understood('apa itu thrust block dan kapan perlu dipasang?', {
+        intent: null,
+        intentRanking: at('knowledge_question', 0.57),
+      }),
+      false,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+  });
+
+  it('peringkat yang memang menunjuk di luar topik tidak diganggu', async () => {
+    const d = await router(outOfScope).route(
+      understood('cuaca besok gimana?', {
+        intent: null,
+        intentRanking: at('out_of_scope', 0.7),
+      }),
+      false,
+    );
+    expect(d.intent).toBe('OUT_OF_SCOPE');
+  });
+
+  it('skor derau tidak dianggap petunjuk domain', async () => {
+    const d = await router(outOfScope).route(
+      understood('lagi makan apa?', {
+        intent: null,
+        intentRanking: at('knowledge_question', 0.42),
+      }),
+      false,
+    );
+    expect(d.intent).toBe('OUT_OF_SCOPE');
+  });
+
+  it('pertanyaan harga di luar pipa tidak ditarik ke jalur harga', async () => {
+    const d = await router(outOfScope).route(
+      understood('harga tiket pesawat ke jakarta berapa?', {
+        intent: null,
+        intentRanking: at('price_question', 0.62),
+      }),
+      false,
+    );
+    expect(d.intent).toBe('OUT_OF_SCOPE');
+  });
+});

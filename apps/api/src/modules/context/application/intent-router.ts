@@ -165,6 +165,15 @@ export function withRequirementPrecedence(
   ) {
     classification = { intent: 'OUT_OF_SCOPE', confidence: classification.confidence };
   }
+  // Dan pagar yang sama untuk DI LUAR TOPIK: "apa itu thrust block dan kapan perlu dipasang?"
+  // dilabeli model sebagai di luar topik, lalu dijawab "ini di luar urusan pemasangan pipa yang
+  // bisa saya bantu" setelah 63 detik (produksi 2026-10-26) — padahal itu pertanyaan pipa, dan
+  // contoh yang RAGU pun sudah menunjukkannya: peringkat teratasnya pertanyaan pengetahuan
+  // (0,570), bukan di luar topik. Label contoh yang ragu tidak cukup untuk MENJAWAB, tetapi
+  // cukup untuk menolak dibuang dari domain.
+  if (classification.intent === 'OUT_OF_SCOPE' && pointsAtPiping(u)) {
+    classification = { intent: 'PRODUCT_LOOKUP', confidence: classification.confidence };
+  }
 
   const yields =
     YIELDS_TO_REQUIREMENT.has(classification.intent) ||
@@ -264,6 +273,38 @@ export function fastPathIntent(
   }
   if (u.mentionsCompetitor) return null;
   return { intent: 'REQUIREMENT_STATEMENT', confidence: 0.9 };
+}
+
+/**
+ * Intent contoh yang berarti "ini pertanyaan tentang pipa dan instalasinya, jawab". Dipakai hanya
+ * untuk memagari label DI LUAR TOPIK dari model. Harga sengaja tidak termasuk: "harga tiket
+ * pesawat berapa?" memang mirip pertanyaan harga, dan menjawabnya dengan kalimat daftar harga
+ * distributor Pralon lebih buruk daripada mengatakan itu di luar topik. Kebutuhan juga tidak
+ * termasuk — rutenya sendiri, dan tidak boleh ditarik lewat pagar ini.
+ */
+const PIPING_INTENTS: ReadonlySet<string> = new Set([
+  'product_concept',
+  'product_comparison',
+  'product_spec',
+  'product_range',
+  'use_question',
+  'knowledge_question',
+  'advice_request',
+  'explanation_request',
+  'system_layout_question',
+]);
+
+/**
+ * Di bawah skor ini, label contoh teratas tidak berarti apa-apa: kalimat sedomain saling mirip
+ * 0,65–0,80 pada bge-m3, jadi 0,4-an adalah derau, bukan petunjuk (docs/AI_BEHAVIOR.md §4a).
+ * Di atasnya, label teratas belum cukup untuk MENJAWAB (ambangnya 0,65 di data) tetapi cukup
+ * untuk menolak membuang pesannya dari domain.
+ */
+const PIPING_HINT_MIN = 0.55;
+
+function pointsAtPiping(u: MessageUnderstanding): boolean {
+  const top = u.intentRanking[0];
+  return top !== undefined && top.score >= PIPING_HINT_MIN && PIPING_INTENTS.has(top.label);
 }
 
 /** Di bawah ini, sistem bertanya alih-alih menebak (docs/AI_BEHAVIOR.md). */

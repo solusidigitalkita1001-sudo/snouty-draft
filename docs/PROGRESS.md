@@ -2838,3 +2838,30 @@ menyala — supaya yang ditulis tangan hanya yang memang perlu ditulis tangan.
         tetapi tetap membawa kelas PN katalog, pertanyaan tekanan PVC tetap membawa keduanya,
         kedua fakta pemakaian menyebut batasnya, dan kedalaman timbunan menyebut kedua angka
         beserta statusnya
+
+- [x] P30-06 Pertanyaan pipa yang dibuang dari domain — dan 63 detik untuk membuangnya. Terlihat
+      saat menjalankan ulang 25 pertanyaan sesudah P30-05: "apa itu thrust block dan kapan perlu
+      dipasang?" memakan 63 detik. Dibaca dari stempel tahap di log, bukan ditebak: `plan` 8,7 s
+      lalu 54,2 s lagi — dan intent-nya **OUT_OF_SCOPE**. Jadi pertanyaan itu diklasifikasi model
+      generatif sebagai di luar topik, lalu balasan "di luar urusan pemasangan pipa" itu sendiri
+      ditulis model di CPU sampai hampir menyentuh batas 60 detik. Dua kesalahan sekaligus,
+      keduanya pada pertanyaan pipa yang sah.
+
+      Yang diubah satu pagar di router, bentuknya sama dengan pagar pesaing dan perusahaan yang
+      sudah ada: **label di luar topik dari model ditolak bila peringkat contoh teratas justru
+      menunjuk pertanyaan pipa** (skor ≥ 0,55 pada label pengetahuan, produk, pemakaian, saran,
+      penjelasan, atau bentuk sistem). Untuk thrust block peringkat teratasnya
+      `knowledge_question` 0,570 — tidak cukup untuk MENJAWAB (ambang data 0,65), tetapi cukup
+      untuk menolak membuang pesannya dari domain. Harga sengaja tidak ikut: "harga tiket pesawat
+      berapa?" memang mirip pertanyaan harga, dan menjawabnya dengan kalimat daftar harga
+      distributor Pralon lebih buruk daripada mengatakan itu di luar topik. Kebutuhan juga tidak
+      ikut — rutenya sendiri.
+
+      **Yang dicoba lebih dulu dan gagal, dicatat supaya tidak diulang:** menambah contoh intent
+      berbentuk dua bagian ("apa itu air valve dan kapan dipasang?") untuk menaikkan skornya di
+      atas ambang. Skornya bergerak 0,569 → 0,570. Penyandi menimbang istilahnya, bukan rangka
+      kalimatnya, jadi istilah yang tidak ada di kosakata tidak bisa diangkat dengan contoh
+      berangka sama. Contohnya dicabut kembali — data yang tidak memperbaiki apa pun hanya derau.
+  - [x] P30-06a Tes (4): pertanyaan pipa yang dilabeli di luar topik tetap dijawab, peringkat yang
+        memang menunjuk di luar topik tidak diganggu, skor derau (0,42) tidak dianggap petunjuk,
+        dan pertanyaan harga di luar pipa tidak ditarik ke jalur harga
