@@ -151,6 +151,23 @@ export function extractTechnicalContext(
     },
   );
   if (caseId === 'fish_pond') {
+    // Sisi kolam disebut satu per satu, bukan "4 x 3": "panjang 4 meter lebar 3 meter" (pemilik
+    // 2026-10-26 — "panjang" jatuh ke panjang jalur dan "lebar" hilang tanpa bekas). Yang boleh
+    // berdiri di antara penanda dan angka hanya kata "kolam", supaya "panjang jalur 4 m" tetap
+    // panjang jalur.
+    take(
+      new RegExp(
+        `(?:panjang(?:nya)?|length)\\s*(?:kolam(?:nya)?|pond)?\\s*[:=]?\\s*${NUM}\\s*${M}\\b`,
+      ),
+      (m) => add('pond_length', num(m[1]!), m[0], 'm'),
+    );
+    take(
+      new RegExp(
+        `(?:lebar(?:nya)?|width)\\s*(?:kolam(?:nya)?|pond)?\\s*[:=]?\\s*${NUM}\\s*${M}\\b`,
+      ),
+      (m) => add('pond_width', num(m[1]!), m[0], 'm'),
+    );
+    take(new RegExp(`${NUM}\\s*${M}\\s*wide\\b`), (m) => add('pond_width', num(m[1]!), m[0], 'm'));
     take(
       new RegExp(
         `(?:kedalaman|dalamnya|dalam|tinggi air|ketinggian air|depth|deep|water level)\\D{0,12}?${NUM}\\s*(m|meters?|metres?|cm)\\b`,

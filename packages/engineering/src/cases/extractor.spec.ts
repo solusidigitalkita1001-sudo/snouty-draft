@@ -34,6 +34,27 @@ describe('extractTechnicalContext — English', () => {
     });
   });
 
+  it('reads pond sides stated one by one, and leaves a stated route length alone', () => {
+    expect(
+      facts('panjang 4 meter lebar 3 meter dalam air 1 meter, 2 kolam', 'fish_pond'),
+    ).toMatchObject({
+      pond_length: 4,
+      pond_width: 3,
+      pond_depth: 1,
+      number_of_ponds: 2,
+    });
+    // "panjang jalur" tetap panjang jalur: hanya kata "kolam" boleh berdiri di antara penanda
+    // dan angkanya.
+    expect(facts('kolam 5 x 8 m, panjang jalur 30 meter', 'fish_pond')).toMatchObject({
+      pond_length: 5,
+      pond_width: 8,
+      route_length: 30,
+    });
+    expect(facts('a pond 4 m wide, lebar kolam tidak disebut', 'fish_pond')).toMatchObject({
+      pond_width: 4,
+    });
+  });
+
   it('reads catchment area and slope for stormwater', () => {
     expect(
       facts('rainwater drainage for a 2 hectare parking lot, slope 1%', 'stormwater'),

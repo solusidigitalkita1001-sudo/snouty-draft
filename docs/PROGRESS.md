@@ -2977,3 +2977,14 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       deskripsinya berisi, tempat katalog memang menjelaskan sesuatu ("Pipa PVC AW: Pipa untuk air
       bersih bertekanan"). Tes perbandingan yang memeriksa pilihan produk kini membacanya dari
       kartu, bukan dari prosa yang tidak lagi ada.
+
+- [x] P31-04 Sisi kolam yang disebut satu per satu
+
+      Lanjutan dari P31-03: kolam ikan kini masuk ke jalur hitung, dan di situ muncul cacat
+      berikutnya. "panjang 4 meter lebar 3 meter dalam air 1 meter, 2 kolam" tercatat sebagai
+      "panjang jalur 4 m" — kedalaman dan jumlah kolam masuk, tetapi panjang dibaca sebagai panjang
+      jalur pipa dan lebar hilang tanpa bekas, sehingga SNOUTY tetap meminta panjang dan lebar
+      kolam yang baru saja disebutkan. Penyebabnya: dimensi kolam hanya dikenali dari bentuk
+      "4 x 3". Parser nilai sekarang juga membaca sisi yang disebut satu per satu, dan yang boleh
+      berdiri di antara penanda dan angkanya hanya kata "kolam" — "panjang jalur 30 meter" tetap
+      panjang jalur.
