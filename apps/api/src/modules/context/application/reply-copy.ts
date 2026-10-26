@@ -71,6 +71,18 @@ export function explanationBeforeSolution(locale: Locale = DEFAULT_LOCALE): stri
     : 'Ukurannya baru dihitung setelah Anda menekan **Susun rekomendasi**; setiap angka nanti disertai dasar perhitungannya.';
 }
 
+/**
+ * Giliran yang tidak mengubah apa pun di kebutuhan: pesannya tidak punya tempat di hitungan
+ * (mis. "air kotor dan air bekas dipisah"), jadi ringkasan kebutuhan yang sama persis tidak
+ * dikirim ulang kata demi kata — balasan identik dua giliran berturut-turut adalah penanda bot
+ * yang paling kentara (produksi 2026-10-26).
+ */
+export function requirementUnchangedReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en'
+    ? 'Your requirement stands as shown in the panel. Which part would you like to change or ask about?'
+    : 'Kebutuhan Anda tetap tercatat seperti di panel. Bagian mana yang mau diubah atau ditanyakan?';
+}
+
 /** "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis — alasannya dari kartu kebijakan. */
 export function explanationHandedOff(
   reasons: readonly string[],

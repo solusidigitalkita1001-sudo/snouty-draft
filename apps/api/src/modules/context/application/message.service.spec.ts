@@ -10,6 +10,7 @@ import { MessageService, isSaneTitle, joinBlocks } from './message.service.js';
 import { scriptedUnderstanding } from '../../understanding/testing/understood.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import { mergeRequirement } from '../domain/context-merger.js';
+import { withCompleteness } from '../domain/completeness.js';
 
 // Ruas produk membaca satu saklar env (LLM_FAQ_REWRITE); tes ini tidak punya .env.
 vi.mock('../../../config/env.js', () => ({
@@ -696,6 +697,34 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     // Di produksi 2026-10-26 "nanya nih" memakai 8,7 detik di perencana lalu dijawab model:
     // "Nah, ini dia pertanyaan yang ada di kartu bawah tentang kebutuhan perencanaan pipa Anda."
     expect(planner.plan).not.toHaveBeenCalled();
+  });
+
+  it('pertanyaan atas kebutuhan yang sedang berjalan tidak lewat perencana (P31-27)', async () => {
+    const office = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState('T'),
+        [
+          { path: 'building.type', value: 'light_commercial', source: 'user_stated' },
+          { path: 'building.floors', value: 3, source: 'user_stated' },
+          { path: 'fixtures.bathrooms', value: 18, source: 'user_stated' },
+          { path: 'water.source', value: 'pdam', source: 'user_stated' },
+        ],
+        'T',
+      ).state,
+    );
+    const { service, planner, router } = setup(
+      [
+        { role: 'user', text: '3 storey office, 6 bathrooms per floor, water from the city main' },
+        { role: 'assistant', text: 'Okay, I have noted: light commercial, 3 floors.' },
+      ],
+      { 'what size pipe do i need': { intent: null } },
+      office,
+    );
+    await service.handle('C'.repeat(26), ACTOR, 'what size pipe do i need', 'T');
+    // Di produksi 2026-10-26 pertanyaan ini memakan 49,6 detik dan balik menanyakan sumber air
+    // yang baru saja disebut pengguna.
+    expect(planner.plan).not.toHaveBeenCalled();
+    expect(router.route).not.toHaveBeenCalled();
   });
 
   it('kasus yang sudah diserahkan ke tim teknis tidak lewat perencana (P31-26)', async () => {

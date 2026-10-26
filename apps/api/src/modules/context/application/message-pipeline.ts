@@ -83,6 +83,7 @@ import { productAnswerCopy } from './product-answer-text.js';
 import { competitorAnswer } from './competitor-answer.js';
 import {
   explanationBeforeSolution,
+  requirementUnchangedReply,
   explanationHandedOff,
   modelBusyReply,
   openerReply,
@@ -221,6 +222,10 @@ export async function runUnderstanding(
         label === 'greeting' ||
         isSocial(label) ||
         fallback === capabilityReply(input.locale) ||
+        // "Ukurannya baru dihitung setelah Anda menekan Susun rekomendasi" sudah menjawab
+        // pertanyaan ukuran atas kebutuhan yang belum lengkap; lewat model ia 49,6 detik dan
+        // balik menanyakan sumber air yang baru saja disebut pengguna (produksi 2026-10-26).
+        fallback === explanationBeforeSolution(input.locale) ||
         fallback === outOfTopicReply(input.locale);
       const written =
         reply && loadEnv().LLM_CHAT_REPLY && !fixedIsEnough
@@ -540,9 +545,16 @@ export async function runUnderstanding(
   }
 
   const next = followUpCard(merged, input.locale);
+  // "udah, itung aja" dijawab "Tekan **Susun rekomendasi**" padahal pengguna baru saja memintanya
+  // menghitung (produksi 2026-10-26). Permintaan melanjutkan atas kebutuhan yang sudah bisa
+  // dihitung dijalankan di giliran ini, tanpa menunggu ada data yang berubah.
+  const asksToCompute = input.understanding?.intent?.label === 'follow_up_continue';
   // Rumah yang baru lengkap di giliran ini langsung dihitung — dengan atau tanpa anggapan.
   const card: AssistantCard | null =
-    next?.kind === 'cta' && next.action === 'ANALYZE' && changed && merged.useCase === undefined
+    next?.kind === 'cta' &&
+    next.action === 'ANALYZE' &&
+    (changed || asksToCompute) &&
+    merged.useCase === undefined
       ? { ...next, auto: true }
       : next;
   // Giliran kebutuhan bangunan tidak pernah bisu (checkpoint Fase 15, S1/S11): satu kalimat
@@ -574,16 +586,19 @@ export async function runUnderstanding(
     const only = input.decision.mutatesState && changedPaths.length > 0 ? changedPaths : undefined;
     const auto = card?.kind === 'cta' && card.auto === true;
     const text = understoodReply(merged, card?.kind ?? null, locale, only, auto);
-    if (text !== null) events.push({ type: 'token', text });
+    // Ringkasan yang sama persis dua giliran berturut-turut: pesannya tidak mengubah kebutuhan,
+    // jadi yang dikatakan adalah itu — bukan daftar yang sama diulang kata demi kata.
+    const said = [...(input.recentTurns ?? [])].reverse().find((t) => t.role === 'assistant')?.text;
+    const same = text !== null && said !== undefined && said.trim() === text.trim();
+    if (text !== null) {
+      events.push({ type: 'token', text: same ? requirementUnchangedReply(locale) : text });
+    }
   }
   // Giliran yang tidak menghasilkan kalimat apa pun ("itung ulang, luasnya belum gw kasih" atas
   // kasus yang tidak berubah) dulu tampil sebagai "Saya belum bisa membaca pesan itu" di web
   // (laporan pemilik 2026-10-09). Sekarang dijawab di atas DATA kasus; model gagal → teks tetap.
   if (!events.some((e) => e.type === 'token')) {
-    const fallback =
-      locale === 'en'
-        ? 'Your requirements are still recorded as shown in the panel. Which part would you like to change or ask about?'
-        : 'Kebutuhan Anda tetap tercatat seperti di panel. Bagian mana yang mau diubah atau ditanyakan?';
+    const fallback = requirementUnchangedReply(locale);
     // Model hanya untuk maksud yang memang butuh penjelasan — sama seperti jalur kasus teknis
     // (P16-40). Dorongan dan pilihan ("oke lanjut", "ada yang lebih murah ga") dijawab teks tetap:
     // lewat model keduanya 14 dan 18 detik di CPU, dan yang keluar berbunyi seperti bot ("Saya

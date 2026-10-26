@@ -1126,3 +1126,53 @@ describe('kasus yang sudah diserahkan ke tim teknis (P31-26)', () => {
     expect(text).toContain('tim teknis Pralon');
   });
 });
+
+describe('giliran yang tidak mengubah kebutuhan (P31-27)', () => {
+  const house = mergeRequirement(
+    emptyRequirementState(T0),
+    [
+      { path: 'building.type', value: 'residential', source: 'user_stated' },
+      { path: 'building.floors', value: 2, source: 'user_stated' },
+      { path: 'fixtures.bathrooms', value: 3, source: 'user_stated' },
+      { path: 'water.source', value: 'rooftop_tank', source: 'user_stated' },
+      { path: 'water.installationType', value: 'clean_water', source: 'user_stated' },
+    ],
+    T0,
+  ).state;
+
+  it('ringkasan kebutuhan yang sama persis tidak dikirim dua kali', async () => {
+    const first = await runUnderstanding(aiExtracting({}), input({ message: 'oke', state: house }));
+    const said = (first.events.find((e) => e.type === 'token') as { text: string }).text;
+
+    const again = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'air kotor dan air bekas dipisah',
+        state: house,
+        recentTurns: [{ role: 'assistant', text: said }],
+      }),
+    );
+    const text = (again.events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).not.toBe(said);
+    expect(text).toContain('Bagian mana yang mau diubah');
+  });
+
+  it('"itungin aja" menghitung di giliran ini, bukan menunjuk tombolnya', async () => {
+    const { events } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'itungin aja',
+        state: house,
+        understanding: understood('itungin aja', { intent: 'follow_up_continue' }),
+      }),
+    );
+    const cards = events.filter((e) => e.type === 'card') as {
+      card: { kind: string; action?: string; auto?: boolean };
+    }[];
+    const cta = cards.find((e) => e.card.kind === 'cta');
+    expect(cta?.card.auto).toBe(true);
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('saya hitung sekarang');
+    expect(text).not.toContain('Tekan');
+  });
+});

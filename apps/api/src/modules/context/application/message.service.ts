@@ -40,6 +40,7 @@ import {
   productSubject,
 } from '../domain/subject.js';
 import { familiesInMessage, previousRange } from './product-range.js';
+import { extractionToUpdates } from './extraction-to-updates.js';
 import { conversationTitle } from '../domain/conversation-title.js';
 import { socialKind, socialReply } from '../domain/social.js';
 import { replyLanguageOf } from '../domain/reply-language.js';
@@ -298,30 +299,44 @@ export class MessageService {
       solution !== null &&
       !solution.stale &&
       (fine === 'system_layout_question' || fine === 'explanation_request');
-    const continuation = aboutSolution
-      ? ({
-          intent: 'EXPLANATION_REQUEST',
-          confidence: 1,
-          shouldExtract: false,
-          mutatesState: false,
-        } satisfies RoutingDecision)
-      : // Pertanyaan yang punya FAKTA BERSUMBER tidak ikut lanjutan kasus: "pompanya apa" di kasus
-        // sumur dijawab 22,5 detik oleh model, yang balik menanyakan merek pompa dan menyelipkan
-        // satu kata Rusia (produksi 2026-10-26). Pesan yang membawa DATA ("bahannya pvc",
-        // "jaraknya 150 m") tetap lanjutan kebutuhan — yang dialihkan hanya pertanyaannya.
-        (state.useCase?.kind === 'technical' || handedOff) &&
-          !(fine !== undefined && !isRequirement(fine) && answersFromKnowledge(u)) &&
-          (fine === undefined ||
-            isRequirement(fine) ||
-            isFollowUp(fine) ||
-            CASE_QUESTIONS.has(fine))
+    // Kebutuhan yang sedang berjalan: pesan yang tidak dikenali DAN tidak membawa satu nilai pun
+    // adalah pertanyaan tentang sistem pengguna sendiri. Dulu ia direncanakan ke obrolan umum lalu
+    // ditulis model: "what size pipe do i need" di kantor 3 lantai memakan 49,6 detik dan balik
+    // menanyakan sumber air yang baru saja disebut pengguna (produksi 2026-10-26).
+    const aboutRequirement =
+      !aboutSolution &&
+      hasExisting &&
+      state.useCase === undefined &&
+      fine === undefined &&
+      !answersFromKnowledge(u) &&
+      !asksGeneralKnowledge(u) &&
+      u.families.length === 0 &&
+      extractionToUpdates({}, text).length === 0;
+    const continuation =
+      aboutSolution || aboutRequirement
         ? ({
-            intent: 'REQUIREMENT_STATEMENT',
+            intent: 'EXPLANATION_REQUEST',
             confidence: 1,
-            shouldExtract: true,
-            mutatesState: true,
+            shouldExtract: false,
+            mutatesState: false,
           } satisfies RoutingDecision)
-        : null;
+        : // Pertanyaan yang punya FAKTA BERSUMBER tidak ikut lanjutan kasus: "pompanya apa" di kasus
+          // sumur dijawab 22,5 detik oleh model, yang balik menanyakan merek pompa dan menyelipkan
+          // satu kata Rusia (produksi 2026-10-26). Pesan yang membawa DATA ("bahannya pvc",
+          // "jaraknya 150 m") tetap lanjutan kebutuhan — yang dialihkan hanya pertanyaannya.
+          (state.useCase?.kind === 'technical' || handedOff) &&
+            !(fine !== undefined && !isRequirement(fine) && answersFromKnowledge(u)) &&
+            (fine === undefined ||
+              isRequirement(fine) ||
+              isFollowUp(fine) ||
+              CASE_QUESTIONS.has(fine))
+          ? ({
+              intent: 'REQUIREMENT_STATEMENT',
+              confidence: 1,
+              shouldExtract: true,
+              mutatesState: true,
+            } satisfies RoutingDecision)
+          : null;
     timer.mark('load');
 
     // Perencana giliran (P16-29): untuk pesan di tengah percakapan (atau yang tidak dikenali dari

@@ -3262,3 +3262,20 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       tidak ada hubungannya dengan pertanyaannya. Kasus yang sudah diserahkan sekarang dibaca
       sebagai percakapan yang sedang berjalan: datanya dicatat tanpa model, disebut balik, dan
       ditutup dengan ke mana ia pergi — kalimat besar penyerahannya tidak diulang kata per kata.
+
+- [x] P31-27 Pertanyaan atas kebutuhan sendiri dijawab dari kebutuhan itu, dan satu ringkasan tidak
+      dikirim dua kali
+
+      "what size pipe do i need" di kantor 3 lantai memakan 49,6 detik dan balik menanyakan sumber
+      air yang baru saja disebut pengguna. Pesan yang tidak dikenali dan tidak membawa satu nilai
+      pun — di percakapan yang kebutuhannya sudah tercatat — adalah pertanyaan tentang sistem
+      pengguna sendiri: dijawab dari solusinya bila sudah dihitung, atau dari kebutuhannya bila
+      belum, tanpa perencana dan tanpa model.
+
+      "air kotor dan air bekas dipisah" dijawab ringkasan kebutuhan yang sama persis dengan
+      giliran sebelumnya, lalu giliran berikutnya mengulangnya lagi. Ringkasan yang identik
+      sekarang diganti kalimat bahwa kebutuhannya tidak berubah.
+
+      "udah, itung aja" dijawab "Tekan Susun rekomendasi" padahal pengguna baru saja memintanya
+      menghitung. Permintaan melanjutkan atas kebutuhan yang sudah bisa dihitung sekarang
+      dijalankan di giliran itu.
