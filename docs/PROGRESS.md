@@ -3070,3 +3070,16 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
 
       Penulis balasan di giliran yang tidak menghasilkan kalimat apa pun juga dipagari maksud yang
       memang butuh penjelasan, sama seperti jalur kasus teknis sejak P16-40.
+
+- [x] P31-10 Pertanyaan harga tidak perlu direncanakan
+
+      "berapa duit totalnya" memakan 44,7 detik dan dijawab karangan model yang menjanjikan
+      estimasi biaya nanti serta "daftar produk per kamar" yang tidak ada. Pemahamannya sendiri
+      benar — `price_question` 0,790 — tetapi pagar "berdiri sendiri" menuntut 0,85, jadi pesan itu
+      diserahkan ke perencana giliran lebih dulu dan tidak pernah sampai ke cabang harga yang sudah
+      ada di kode.
+
+      Untuk harga, pagar skor itu tidak ada gunanya: jawabannya satu kalimat bersumber dalam
+      keadaan apa pun (kebijakan OQ-03), jadi labelnya saja cukup. Katalog pemahaman tidak memberi
+      label kecuali ambang dan marginnya terlampaui, dan harga yang keliru terbaca pun hanya
+      menghasilkan kalimat kebijakan yang sama.

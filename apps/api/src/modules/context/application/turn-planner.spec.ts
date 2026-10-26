@@ -209,6 +209,17 @@ describe('isConfidentStandalone — kapan perencana dilewati', () => {
     expect(isConfidentStandalone(sure('product_spec'))).toBe(false);
     expect(isConfidentStandalone(understood('x', { intent: null }))).toBe(false);
   });
+
+  it('harga dilewati pada skor berapa pun — jawabannya satu kalimat bersumber (P31-10)', async () => {
+    const { understood } = await import('../../understanding/testing/understood.js');
+    const { isConfidentStandalone } = await import('./turn-planner.js');
+    const priced = (score: number) => ({
+      ...understood('berapa duit totalnya'),
+      intent: { label: 'price_question' as never, score },
+    });
+    expect(isConfidentStandalone(priced(0.79))).toBe(true);
+    expect(isConfidentStandalone(priced(0.95))).toBe(true);
+  });
 });
 
 describe('nama keluarga katalog di pesan (laporan pemilik 2026-10-09)', () => {

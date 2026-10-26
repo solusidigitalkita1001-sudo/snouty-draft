@@ -120,7 +120,14 @@ export const CONFIDENT_SCORE = 0.85;
 
 export function isConfidentStandalone(u: MessageUnderstanding): boolean {
   const intent = u.intent;
-  if (intent === null || intent.score < CONFIDENT_SCORE) return false;
+  if (intent === null) return false;
+  // Harga dijawab satu kalimat bersumber dalam keadaan apa pun (kebijakan OQ-03), jadi tidak ada
+  // yang bisa direncanakan: labelnya saja cukup, tanpa menunggu lantai 0,85. "berapa duit
+  // totalnya" berhenti di 0,790 — cukup untuk diputuskan katalog pemahaman, tidak cukup untuk
+  // melewati perencana, dan akibatnya 44 detik lalu balasan karangan model yang menjanjikan
+  // estimasi biaya (produksi 2026-10-26).
+  if (intent.label === 'price_question') return true;
+  if (intent.score < CONFIDENT_SCORE) return false;
   if (STANDALONE.has(intent.label)) return true;
   // Ubahan kebutuhan yang menyebut bendanya ("tambah satu kamar mandi") juga utuh.
   return intent.label === 'requirement_mutation' && u.mentionsRequirement;
