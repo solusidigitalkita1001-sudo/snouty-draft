@@ -1654,6 +1654,36 @@
       "text": "minta gambarnya dong",
       "intent": "system_layout_question",
       "source": "P31-30 — permintaan gambar dijawab kebijakan harga"
+    },
+    {
+      "text": "oke itung",
+      "intent": "follow_up_continue",
+      "source": "P31-36 — permintaan menghitung bukan basa-basi"
+    },
+    {
+      "text": "oke hitung",
+      "intent": "follow_up_continue",
+      "source": "P31-36 — permintaan menghitung bukan basa-basi"
+    },
+    {
+      "text": "ukuran risernya berapa",
+      "intent": "system_layout_question",
+      "source": "P31-37 — ukuran riser dijawab dari solusi, bukan \"tidak ada acuan\""
+    },
+    {
+      "text": "what size is the riser",
+      "intent": "system_layout_question",
+      "source": "P31-37 — ukuran riser dijawab dari solusi, bukan \"tidak ada acuan\""
+    },
+    {
+      "text": "kenapa toren harus 0,3 bar",
+      "intent": "explanation_request",
+      "source": "P31-38 — pertanyaan atas angka solusi dijawab dari solusinya"
+    },
+    {
+      "text": "boleh pakai pipa 1/2 inci aja biar murah",
+      "intent": "explanation_request",
+      "source": "P31-38 — pertanyaan atas angka solusi dijawab dari solusinya"
     }
   ]
 }

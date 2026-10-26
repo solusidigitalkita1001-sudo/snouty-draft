@@ -331,3 +331,38 @@ describe('daftar belanja tanpa baris pipa dan balasan yang terulang (P31-21)', (
     expect(second.events.some((e) => e.type === 'card')).toBe(true);
   });
 });
+
+describe('daftar belanja solusi berbahasa Inggris (P31-37)', () => {
+  const withRods = {
+    recommendation: {
+      headline: 'Clean water for a 2 storey house',
+      needs: [{ kind: 'rooftop_tank', count: 1 }],
+      systemLines: [
+        { role: 'main', name: 'Main distribution pipe', size: '1"', path: 'Tank to riser' },
+      ],
+      bom: [
+        { item: 'PVC AW pipe', purpose: 'Main line', size: '1"', quantity: 4, unit: 'rods' },
+        { item: 'Elbow 90', purpose: 'Main line elbows', size: '1"', quantity: 3, unit: 'pcs' },
+      ],
+    } as never,
+    stale: false,
+  };
+
+  it('batang pipa masuk ke daftar pipa, bukan fitting, dan tidak disebut belum dihitung', async () => {
+    const { events } = await runUnderstanding(null, {
+      ...input('how many pipes do i need'),
+      locale: 'en' as const,
+      decision: {
+        intent: 'EXPLANATION_REQUEST' as const,
+        confidence: 1,
+        shouldExtract: false,
+        mutatesState: false,
+      },
+      understanding: understood('how many pipes do i need', { intent: 'system_layout_question' }),
+      solution: withRods as never,
+    });
+    const token = events.find((e) => e.type === 'token') as { text: string };
+    expect(token.text).toContain('Pipes: main line 1" 4 rods');
+    expect(token.text).not.toContain('not counted yet');
+  });
+});

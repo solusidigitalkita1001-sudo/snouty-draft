@@ -831,7 +831,12 @@
       "how high should the tank be to get strong flow without a pump?",
       "roof slab or a tank tower?",
       "what pipe size from the tank?",
-      "what size inside the house?"
+      "what size inside the house?",
+      "kenapa toren harus 0,3 bar",
+      "kenapa tekanannya harus 0,3 bar",
+      "boleh pakai pipa 1/2 inci aja biar murah",
+      "pakai ukuran lebih kecil boleh ngga biar hemat",
+      "kenapa tidak pakai yang lebih kecil saja"
     ],
     "system_layout_question": [
       "arah jalur pipanya gimana?",
@@ -863,7 +868,11 @@
       "gambarnya dong",
       "boleh lihat gambarnya",
       "kirim gambarnya ya",
-      "can i see the drawing?"
+      "can i see the drawing?",
+      "ukuran risernya berapa",
+      "pipa tegaknya ukuran berapa",
+      "what size is the riser",
+      "riser pipe size?"
     ],
     "follow_up_continue": [
       "boleh",
@@ -908,7 +917,11 @@
       "gw bisa jawab parameter yang dibutuhin",
       "parameternya gw bisa kasih",
       "just calculate it",
-      "go ahead and work it out"
+      "go ahead and work it out",
+      "oke itung",
+      "oke hitung",
+      "ok hitung sekarang",
+      "ya udah itung aja"
     ],
     "follow_up_more": [
       "lengkap dong",

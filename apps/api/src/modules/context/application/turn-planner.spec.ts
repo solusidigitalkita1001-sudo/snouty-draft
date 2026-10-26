@@ -275,3 +275,42 @@ describe('pertanyaan kemampuan tidak direncanakan (P31-15)', () => {
     ).toBe(true);
   });
 });
+
+describe('case_question atas solusi yang sudah dihitung (P31-38)', () => {
+  const solution = {
+    recommendation: {
+      headline: 'Air bersih rumah 2 lantai',
+      needs: [{ kind: 'rooftop_tank', count: 1 }],
+      systemLines: [{ role: 'main', name: 'Pipa utama', size: '1"', path: 'Toren ke riser' }],
+      bom: [{ item: 'Elbow 90', purpose: 'Elbow', size: '1"', quantity: 6, unit: 'pcs' }],
+      stats: { mainSize: '1"', outletCount: 10 },
+    } as never,
+    stale: false,
+  };
+
+  it('dijawab dari solusinya, tanpa penulis balasan', async () => {
+    const write = vi.fn();
+    const out = await executePlan(
+      { action: 'case_question', family: null, type: null, extreme: null },
+      ctx({
+        message: 'kenapa toren harus 0,3 bar',
+        solution: solution as never,
+        reply: { write } as never,
+      }),
+    );
+    // Di produksi 2026-10-26 pertanyaan ini memakai 12,6 detik merencanakan dan 48,0 detik menulis,
+    // lalu keluar kalimat tentang luas bangunan yang tidak ditanyakan.
+    expect(write).not.toHaveBeenCalled();
+    expect(textOf(out)).toContain('Pipa utama');
+  });
+
+  it('tanpa solusi tetap lewat penulis balasan', async () => {
+    const write = vi.fn(() => Promise.resolve({ text: 'jawaban model' }));
+    const out = await executePlan(
+      { action: 'case_question', family: null, type: null, extreme: null },
+      ctx({ message: 'kenapa pakai pompa', reply: { write } as never }),
+    );
+    expect(write).toHaveBeenCalled();
+    expect(textOf(out)).toBe('jawaban model');
+  });
+});

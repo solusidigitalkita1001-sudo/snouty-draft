@@ -118,7 +118,14 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
     (l) => `${l.name.toLowerCase()} ${l.size} (${l.path.toLowerCase()})`,
   );
   const rows = r.bom.filter((b) => b.quantity > 0);
-  const pipes = rows.filter((b) => /^pipa|^pipe/i.test(b.purpose ?? b.item) || b.unit === 'batang');
+  // Satuan BOM solusi Inggris sudah diterjemahkan ("rods"), dan peruntukannya pun ("Main line"),
+  // jadi baris pipa tidak dikenali dari kata "pipa" maupun satuan "batang": daftar belanja Inggris
+  // menaruh batang pipa di bawah "Fittings", lalu kalimat "jumlah batangnya belum dihitung" ikut
+  // muncul walau batangnya ada di baris yang sama (produksi 2026-10-26).
+  const PIPE_UNITS = new Set(['batang', 'rods', 'meter', 'm']);
+  const pipes = rows.filter(
+    (b) => /^pipa|^pipe/i.test(b.purpose ?? b.item) || PIPE_UNITS.has(b.unit),
+  );
   const fittings = rows.filter((b) => !pipes.includes(b));
   const list = (items: typeof rows) =>
     items

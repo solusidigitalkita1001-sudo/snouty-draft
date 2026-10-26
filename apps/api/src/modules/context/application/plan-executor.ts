@@ -25,6 +25,7 @@ import {
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
 import { openerReply } from './reply-copy.js';
+import { solutionReply } from './solution-facts.js';
 import type { TurnPlan } from './turn-planner.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { parseSize } from '../domain/size-parser.js';
@@ -149,6 +150,12 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
     }
     case 'case_question':
     case 'chat': {
+      // Pertanyaan tentang kasus yang SUDAH punya solusi dijawab dari solusinya: angka pasti, tanpa
+      // model. "kenapa toren harus 0,3 bar" memakai 12,6 detik merencanakan dan 48,0 detik menulis,
+      // lalu keluar kalimat tentang luas bangunan yang tidak ditanyakan (produksi 2026-10-26).
+      if (plan.action === 'case_question' && ctx.solution && !ctx.solution.stale) {
+        return answered(ctx, solutionReply(ctx.solution, ctx.locale), null);
+      }
       const state = withCompleteness(ctx.state);
       // Obrolan cukup identitas SNOUTY; DATA kasus lengkap hanya untuk pertanyaan tentang kasusnya —
       // setiap token prompt ±25 ms di CPU server (qwen3.5 tidak memakai ulang cache prompt).
