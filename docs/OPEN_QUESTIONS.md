@@ -423,6 +423,10 @@ dinyatakan bukan angka Pralon. Jalurnya sudah ada beserta pagarnya; yang belum a
 bukan kunci penyedia berkredit — dan model lokalnya `qwen3.5:9b` di CPU. OQ-45 mencatat apa yang
 terjadi bila pengetahuan diambil dari model kecil: qwen2.5:7b menukar sifat PVC dan HDPE dua dari
 dua kali.
+**Yang sudah dipastikan 2026-10-26, supaya tidak jadi kejutan nanti:** server dan kontainer API
+keduanya bisa keluar ke internet — `openrouter.ai/api/v1/models` menjawab 200 dalam 147 ms dari
+host dan 200 dari dalam `snouty-api-1`. Jadi yang kurang benar-benar hanya kuncinya.
+
 **Yang dibutuhkan dari pemilik:** (1) kunci penyedia berkredit (`KNOWLEDGE_API_KEY` +
 `KNOWLEDGE_BASE_URL`) dan (2) model yang dipakai (`LLM_MODEL_KNOWLEDGE`). Hanya jalur pengetahuan
 yang memakainya; pemahaman, ekstraksi, dan embedding tetap lokal dan gratis.
