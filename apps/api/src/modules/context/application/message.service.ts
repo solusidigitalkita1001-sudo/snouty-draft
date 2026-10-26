@@ -364,8 +364,12 @@ export class MessageService {
         mutatesState: false,
       };
     }
+    // Pesan yang membawa nilai kebutuhan terbaca parser nilai adalah giliran kebutuhan, walau kata
+    // bendanya bukan bangunan: "pipa lamanya 3/4 inci, panjangnya sekitar 40 meter" lewat perencana
+    // selama 10,0 detik untuk sampai ke jalur yang sama (produksi 2026-10-26).
+    const statesValues = extractionToUpdates({}, text).length > 0;
     const requirementTurn =
-      u.mentionsRequirement &&
+      (u.mentionsRequirement || statesValues) &&
       (u.intent === null ||
         isRequirement(u.intent.label) ||
         u.intent.label === 'clarification_answer');

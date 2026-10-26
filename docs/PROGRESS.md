@@ -3331,3 +3331,9 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       empat giliran berturut-turut — dan pengguna tetap tidak tahu angkanya masuk atau tidak.
       Giliran lanjutan sekarang menyebut nilai yang baru tercatat ("jarak 50–200 m"), dan kalimat
       yang kebetulan sama persis dengan giliran sebelumnya diganti.
+
+- [x] P31-33 Pesan yang membawa nilai kebutuhan tidak lewat perencana giliran
+
+      "pipa lamanya 3/4 inci, panjangnya sekitar 40 meter" memakai 10,0 detik di perencana untuk
+      sampai ke jalur kebutuhan yang sama. Pesan yang nilainya terbaca parser nilai sekarang
+      langsung dibaca sebagai giliran kebutuhan, walau kata bendanya bukan bangunan.

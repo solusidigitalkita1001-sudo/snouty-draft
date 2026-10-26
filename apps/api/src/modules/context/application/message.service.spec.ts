@@ -699,6 +699,37 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     expect(planner.plan).not.toHaveBeenCalled();
   });
 
+  it('pesan berisi data pipa lama tidak lewat perencana (P31-33)', async () => {
+    const house = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState('T'),
+        [
+          { path: 'building.type', value: 'residential', source: 'user_stated' },
+          { path: 'building.floors', value: 2, source: 'user_stated' },
+          { path: 'fixtures.bathrooms', value: 3, source: 'user_stated' },
+        ],
+        'T',
+      ).state,
+    );
+    const { service, planner } = setup(
+      [
+        { role: 'user', text: 'rumah lama mau direnovasi, pipa besinya karatan semua' },
+        { role: 'assistant', text: 'Oke, sudah saya catat: rumah tinggal, 2 lantai.' },
+      ],
+      { 'pipa lamanya 3/4 inci, panjangnya sekitar 40 meter': { intent: null } },
+      house,
+    );
+    await service.handle(
+      'C'.repeat(26),
+      ACTOR,
+      'pipa lamanya 3/4 inci, panjangnya sekitar 40 meter',
+      'T',
+    );
+    // Di produksi 2026-10-26 pesan ini memakai 10,0 detik di perencana untuk sampai ke jalur
+    // kebutuhan yang sama.
+    expect(planner.plan).not.toHaveBeenCalled();
+  });
+
   it('pertanyaan atas kebutuhan yang sedang berjalan tidak lewat perencana (P31-27)', async () => {
     const office = withCompleteness(
       mergeRequirement(
