@@ -1046,3 +1046,41 @@ describe('kalimat "sudah saya catat" — ukuran bangunan ikut disebut (P31-22)',
     expect(understoodReply(state, 'cta', 'en')).toContain('10 × 12 m footprint');
   });
 });
+
+describe('label gedung bertingkat untuk bangunan rendah (P31-23)', () => {
+  const message =
+    'i need pipes for a 3 storey office, 6 bathrooms per floor, water from the city main';
+
+  it('3 lantai tidak membuka kasus gedung bertingkat — dihitung jalur bangunan', async () => {
+    const { nextState } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message,
+        locale: 'en',
+        understanding: understood(message, {
+          intent: 'requirement_building',
+          useCase: 'multistorey_building_water',
+        }),
+      }),
+    );
+    expect(nextState.useCase).toBeUndefined();
+    expect(nextState.building.floors.value).toBe(3);
+  });
+
+  it('di atas batas hitung rumah kasusnya tetap terbuka', async () => {
+    const tall = 'gedung kantor 9 lantai, 6 kamar mandi per lantai';
+    const { nextState } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: tall,
+        understanding: understood(tall, {
+          intent: 'requirement_building',
+          useCase: 'multistorey_building_water',
+        }),
+      }),
+    );
+    expect((nextState.useCase as { kind: string; caseId: string }).caseId).toBe(
+      'multistorey_building_water',
+    );
+  });
+});

@@ -313,8 +313,9 @@ export async function runUnderstanding(
   // Jenis kasus dari katalog `use-case` (P16-14): "kos 3 lantai, 12 kamar mandi, air dari sumur" adalah
   // kebutuhan bangunan; "sumur bor 60 m ke tandon" adalah kasus distribusi sumur; "gedung 8 lantai"
   // kasus gedung bertingkat — dibedakan dari contoh, bukan dari bobot kata.
+  const detected = detectTechnicalCase(input.understanding?.useCase ?? null, input.state);
   const technicalCase =
-    detectTechnicalCase(input.understanding?.useCase ?? null, input.state) ??
+    (lowRiseHint(detected, input.state, input.message) ? null : detected) ??
     tallBuildingCase(input.state, input.message);
   if (technicalCase !== null) {
     const facts = applyTechnicalFacts(input.state, technicalCase, input.message);
@@ -1057,13 +1058,32 @@ const EXPLAINING_INTENTS: ReadonlySet<string> = new Set([
  * bawah, pompa transfer, zona tekanan, riser — bukan dihentikan di kartu "perlu tim teknis"
  * (keputusan pemilik 2026-10-09). Jumlah lantai dari parser nilai atau dari kebutuhan tercatat.
  */
-function tallBuildingCase(state: RequirementState, message: string): CaseId | null {
-  if (state.building.type.value === 'industrial') return null;
+function statedFloors(state: RequirementState, message: string): number | null {
   const said = extractTechnicalContext(message, 'multistorey_building_water').find(
     (f) => f.key === 'building_floors',
   )?.value;
-  const floors = typeof said === 'number' ? said : state.building.floors.value;
+  return typeof said === 'number' ? said : state.building.floors.value;
+}
+
+function tallBuildingCase(state: RequirementState, message: string): CaseId | null {
+  if (state.building.type.value === 'industrial') return null;
+  const floors = statedFloors(state, message);
   return floors !== null && exceedsAutomaticFloors(floors) ? 'multistorey_building_water' : null;
+}
+
+/**
+ * Kasus gedung bertingkat hanya berlaku DI ATAS batas hitung rumah (> 4 lantai, keputusan pemilik
+ * 2026-10-09) — di bawahnya jalur bangunan biasa menghitungnya utuh. Katalog kasus kadang memberi
+ * label gedung bertingkat untuk bangunan rendah: "i need pipes for a 3 storey office, 6 bathrooms
+ * per floor" ditanya jumlah penghuni, luas per lantai, wastafel per lantai, dan tinggi bangunan —
+ * tanpa tombol hitung — sedangkan kalimat Indonesia yang sama persis dihitung langsung (produksi
+ * 2026-10-26). Kasus yang sudah BERJALAN tidak dibatalkan aturan ini.
+ */
+function lowRiseHint(useCase: CaseId | null, state: RequirementState, message: string): boolean {
+  if (useCase !== 'multistorey_building_water') return false;
+  if (state.useCase?.kind === 'technical' && state.useCase.caseId === useCase) return false;
+  const floors = statedFloors(state, message);
+  return floors !== null && !exceedsAutomaticFloors(floors);
 }
 
 /** Field kebutuhan rumah yang sudah disebut pengguna (nilai default/asumsi tidak dihitung). */

@@ -3222,3 +3222,14 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
 
       Semuanya sekarang disebut. Ukuran tanah juga, supaya jelas ia tercatat walau tidak dipakai
       menghitung panjang pipa.
+
+- [x] P31-23 Kantor 3 lantai tidak lagi diperlakukan sebagai gedung bertingkat
+
+      "i need pipes for a 3 storey office, 6 bathrooms per floor, water from the city main" ditanya
+      jumlah penghuni, luas per lantai, wastafel per lantai, dan tinggi bangunan — tanpa tombol
+      hitung. Kalimat Indonesia yang isinya sama persis dihitung langsung sampai keluar daftar
+      belanjanya. Katalog kasus memberi label gedung bertingkat untuk kalimat Inggrisnya; batas
+      hitung rumah (> 4 lantai) hanya dipakai di cabang satunya.
+
+      Sekarang label itu tidak berlaku di bawah batas hitung rumah: jalur bangunan biasa yang
+      menghitungnya, sama seperti kalimat Indonesianya. Kasus yang sudah berjalan tidak dibatalkan.
