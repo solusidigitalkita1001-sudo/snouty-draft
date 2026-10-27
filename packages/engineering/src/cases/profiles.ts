@@ -287,13 +287,18 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
   },
   {
     id: 'stormwater',
-    unknownDefaults: { rainfall_intensity: 'RAINFALL_INTENSITY_150MMH' },
+    unknownDefaults: {
+      rainfall_intensity: 'RAINFALL_INTENSITY_150MMH',
+      downspouts: 'DOWNSPOUT_SPACING_15M',
+    },
     label: 'Drainase air hujan',
     labelEn: 'Stormwater drainage',
     description: 'Limpasan hujan dari tangkapan ke saluran/outfall.',
     descriptionEn: 'Rainfall runoff from the catchment to the channel/outfall.',
     critical: ['catchment_area', 'rainfall_intensity'],
     important: [
+      'catchment_surface',
+      'downspouts',
       'slope',
       'runoff_coefficient',
       'route_length',

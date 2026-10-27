@@ -55,6 +55,18 @@ describe('extractTechnicalContext — English', () => {
     });
   });
 
+  it('membaca jumlah turunan talang yang disebut pengguna', () => {
+    expect(facts('atap gudang 2 ha, talangnya turun di 6 titik', 'stormwater')).toMatchObject({
+      downspouts: 6,
+      catchment_surface: 'Atap bangunan',
+    });
+    expect(facts('air hujan atap 1 ha dengan 4 turunan talang', 'stormwater')).toMatchObject({
+      downspouts: 4,
+    });
+    // Bukan kasus air hujan: "4 turunan" tidak berarti apa pun di sini.
+    expect(facts('sawah 40 x 60 meter', 'irrigation')).not.toHaveProperty('downspouts');
+  });
+
   it('reads catchment area and slope for stormwater', () => {
     expect(
       facts('rainwater drainage for a 2 hectare parking lot, slope 1%', 'stormwater'),
@@ -73,6 +85,11 @@ describe('extractTechnicalContext — English', () => {
     expect(out).not.toHaveProperty('field_width');
     expect(facts('gorong-gorong di bawah tangkapan 50 x 50 m', 'culvert')).toMatchObject({
       catchment_area: 0.25,
+    });
+    // Atapnya disebut, jadi airnya turun lewat talang — bukan mengalir ke satu saluran (OQ-86).
+    expect(out).toMatchObject({ catchment_surface: 'Atap bangunan' });
+    expect(facts('air hujan dari halaman parkir 2 ha', 'stormwater')).toMatchObject({
+      catchment_surface: 'Permukaan tanah',
     });
     // Lahan irigasi tetap panjang × lebar lahan: luasnya dipakai lain.
     expect(facts('sawah 40 x 60 meter', 'irrigation')).toMatchObject({

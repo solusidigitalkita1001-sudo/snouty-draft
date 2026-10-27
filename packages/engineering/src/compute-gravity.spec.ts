@@ -46,6 +46,54 @@ describe('computeGravity', () => {
     );
   });
 
+  // Pilihan pemilik 2026-10-27 (OQ-86): atap gudang 40 × 60 m keluar sebagai satu pipa 12" untuk
+  // seluruh limpasan — di lapangan talangnya turun di beberapa titik dan tiap turunan memikul
+  // bagiannya sendiri.
+  it('air hujan atap: limpasan dibagi ke turunan talang, pipa dihitung per turunan', () => {
+    const whole = computeGravity({ kind: 'stormwater', catchmentHa: 0.24 });
+    expect(whole.designFlowLs).toBe(60.05);
+    expect(whole.recommendedSize).toBe('12"');
+    expect(whole.stormwater).toBeNull();
+
+    const roof = computeGravity({ kind: 'stormwater', catchmentHa: 0.24, catchmentIsRoof: true });
+    // Sisi atap ±49 m, satu turunan tiap 15 m di dua sisi → 8 turunan, 60,05 ÷ 8 = 7,51 l/s.
+    expect(roof.stormwater).toEqual({
+      totalFlowLs: 60.05,
+      downspouts: 8,
+      perDownspoutFlowLs: 7.51,
+      catchmentPerDownspoutHa: 0.03,
+      stated: false,
+    });
+    expect(roof.designFlowLs).toBe(7.51);
+    expect(roof.recommendedSize).toBe('6"'); // dari 12" untuk seluruh atap
+    expect(roof.traces.map((t) => t.ruleId)).toEqual([
+      'ENG-403',
+      'ENG-417',
+      'ENG-418',
+      'ENG-402',
+      'ENG-401',
+    ]);
+    expect(roof.appliedAssumptionIds).toContain('DOWNSPOUT_SPACING_15M');
+  });
+
+  it('jumlah turunan yang disebut pengguna dipakai apa adanya, tanpa asumsi jaraknya', () => {
+    const r = computeGravity({
+      kind: 'stormwater',
+      catchmentHa: 0.24,
+      catchmentIsRoof: true,
+      downspouts: 4,
+    });
+    expect(r.stormwater?.downspouts).toBe(4);
+    expect(r.stormwater?.stated).toBe(true);
+    expect(r.designFlowLs).toBe(15.01); // 60,05 ÷ 4
+    expect(r.appliedAssumptionIds).not.toContain('DOWNSPOUT_SPACING_15M');
+    expect(r.traces.map((t) => t.ruleId)).not.toContain('ENG-417');
+    // Satu turunan: tidak ada yang dibagi, hasilnya sama dengan satu jalur.
+    const one = computeGravity({ kind: 'stormwater', catchmentHa: 0.24, downspouts: 1 });
+    expect(one.stormwater).toBeNull();
+    expect(one.designFlowLs).toBe(60.05);
+  });
+
   it('gorong-gorong: timbunan 0,5 m dengan truk → struktur ditandai tidak memadai; kemiringan dari asumsi', () => {
     const r = computeGravity({
       kind: 'culvert',

@@ -277,6 +277,23 @@ export function extractTechnicalContext(
     add('road_width', num(m[1]!), m[0], 'm');
   });
 
+  // ── Air hujan: permukaan tangkapan dan turunan talang (OQ-86) ──
+  // Atap dialirkan beberapa turunan talang, permukaan tanah mengalir ke satu saluran — jadi
+  // kalimat yang menyebut atap atau talang menentukan cara pipanya dihitung, bukan hanya luasnya.
+  if (caseId === 'stormwater') {
+    take(/(\d{1,3})\s*(?:turunan|downspouts?|talang)\b/, (m) =>
+      add('downspouts', Number(m[1]), m[0], 'buah'),
+    );
+    take(
+      /talang(?:nya)?(?:\s*(?:ada|sebanyak|turun(?:nya)?|di|dari))*\s*(\d{1,3})\s*(?:titik|buah)?\b/,
+      (m) => add('downspouts', Number(m[1]), m[0], 'buah'),
+    );
+    const roof = /atap|talang|roof|gutter/.exec(whole);
+    const ground = /halaman|parkir|parking|jalan|lahan|tanah|yard|road|ground/.exec(whole);
+    if (roof) add('catchment_surface', 'Atap bangunan', roof[0]);
+    else if (ground) add('catchment_surface', 'Permukaan tanah', ground[0]);
+  }
+
   // ── Luas lantai gedung ──
   // Gedung bertingkat: "3000 m2" adalah luas PER LANTAI (m²), bukan luas lahan (ha); "100 x 30"
   // dibaca aturan dimensi di atas.

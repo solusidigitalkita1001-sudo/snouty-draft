@@ -3622,3 +3622,14 @@ puncak 3,64 l/s, gudang 40 × 60 m menjadi PVC D 12" untuk limpasan 60 l/s.
 
 Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta kuncinya
 (OQ-79) dan bauran alat per titik air (OQ-85).
+
+- [x] P31-65 Air hujan atap dibagi ke turunan talangnya, bukan satu pipa untuk seluruh atap
+
+      Pilihan pemilik atas OQ-86. Gudang 40 × 60 m keluar sebagai satu pipa PVC D 12" untuk
+      seluruh limpasan 60 l/s — padahal atap seluas itu tidak pernah dialirkan satu pipa.
+      Sekarang kalimat yang menyebut atap atau talang menandai tangkapannya sebagai atap, dan
+      airnya dibagi ke turunan talangnya: jumlah turunan boleh disebut pengguna, kalau tidak
+      disebut dianggap satu turunan tiap 15 m sisi atap di dua sisi (anggapan bertanda,
+      menunggu ahli Pralon). Gudang itu kini 8 turunan, 7,51 l/s per turunan, pipa 6" — dengan
+      jumlah pipa dan fitting mengikuti jumlah turunannya. Tangkapan dari halaman, jalan, atau
+      parkir tetap satu saluran seperti sebelumnya.

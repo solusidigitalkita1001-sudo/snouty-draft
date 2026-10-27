@@ -826,6 +826,26 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'Intensitas hujan diambil 150 mm/jam (hujan lebat) sampai intensitas rencana setempat diketahui; nilai ini cenderung membuat pipa tidak kekecilan.',
   },
   {
+    // Pilihan pemilik 2026-10-27 (OQ-86): atap seluas gudang tidak dialirkan satu pipa — talangnya
+    // turun di beberapa titik dan tiap turunan memikul bagiannya sendiri. Jarak bakunya masih
+    // menunggu tim teknis Pralon, jadi nilai ini rendah keyakinannya dan selalu ditandai.
+    id: 'DOWNSPOUT_SPACING_15M',
+    parameter: 'downspouts',
+    appliesTo: ['stormwater'],
+    condition: 'air hujan dari atap bangunan dan jumlah turunan talang tidak disebut',
+    value: 15,
+    unit: 'm',
+    conditionEn: 'rainwater from a building roof and the number of downspouts not stated',
+    descriptionEn:
+      'Without a stated number, the gutters are taken to come down every 15 m of roof side on two sides, and the catchment is split evenly between those downspouts.',
+    reference:
+      'Pilihan pemilik 2026-10-27 (OQ-86): satu turunan tiap 15 m sisi atap, dua sisi; jarak baku perlu dipastikan tim teknis Pralon',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Tanpa jumlah yang disebut, talang dianggap turun setiap 15 m sisi atap di dua sisi, dan tangkapannya dibagi rata ke turunan-turunan itu.',
+  },
+  {
     id: 'RUNOFF_C_RESIDENTIAL',
     parameter: 'runoff_coefficient',
     appliesTo: ['stormwater'],

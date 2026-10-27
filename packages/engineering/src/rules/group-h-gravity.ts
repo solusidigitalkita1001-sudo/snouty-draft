@@ -1476,6 +1476,128 @@ export const ENG_416: RuleVersion<SupplyModeInput, SupplyModeResult> = {
   },
 };
 
+// ── ENG-417 · Air hujan atap: jumlah turunan talang ────────────────────────
+
+export interface DownspoutCountInput {
+  readonly catchmentHa: number;
+  /** Jarak antar turunan di sepanjang sisi atap (m). */
+  readonly spacingM: number;
+}
+export interface DownspoutCountResult {
+  /** Sisi atap yang dipakai: akar luas tangkapan — atap dianggap persegi. */
+  readonly roofSideM: number;
+  readonly downspouts: number;
+}
+
+export const ENG_417: RuleVersion<DownspoutCountInput, DownspoutCountResult> = {
+  ruleId: 'ENG-417',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      catchmentHa: requireNumber('ENG-417', 'catchmentHa', o['catchmentHa'], {
+        min: 0.001,
+        max: 10_000,
+      }),
+      spacingM: requireNumber('ENG-417', 'spacingM', o['spacingM'], { min: 3, max: 60 }),
+    };
+  },
+  // Atap dianggap persegi (sisi = √luas) dan talangnya di dua sisi yang berhadapan: tiap sisi
+  // satu turunan setiap `spacingM`. Bentuk atap sebenarnya mengubah angka ini — karena itu
+  // jumlah turunan selalu boleh disebut pengguna dan menggantikan hitungan ini.
+  compute: (input) => {
+    const roofSideM = round1(Math.sqrt(input.catchmentHa * 10_000));
+    return { roofSideM, downspouts: 2 * Math.max(1, Math.ceil(roofSideM / input.spacingM)) };
+  },
+  sourceReference:
+    'Pilihan pemilik 2026-10-27 (OQ-86): satu turunan talang tiap 15 m sisi atap, dua sisi; jarak baku menunggu tim teknis Pralon',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'atap 0,24 ha (sisi ±49 m), turunan tiap 15 m → 8 turunan',
+      input: { catchmentHa: 0.24, spacingM: 15 },
+      expected: { roofSideM: 49, downspouts: 8 },
+    },
+    {
+      name: 'atap kecil 0,01 ha (sisi 10 m) → 2 turunan',
+      input: { catchmentHa: 0.01, spacingM: 15 },
+      expected: { roofSideM: 10, downspouts: 2 },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Atap ${i.catchmentHa} ha berarti sisi sekitar ${o.roofSideM} m; dengan satu turunan talang tiap ${i.spacingM} m di dua sisi, airnya turun di ${o.downspouts} titik.`,
+      en: `A ${i.catchmentHa} ha roof means a side of about ${o.roofSideM} m; with one downspout every ${i.spacingM} m on two sides, the water comes down at ${o.downspouts} points.`,
+    }),
+};
+
+// ── ENG-418 · Limpasan atap dibagi ke turunan talangnya ────────────────────
+
+export interface DownspoutFlowInput {
+  readonly totalFlowLs: number;
+  readonly downspouts: number;
+  /** Luas tangkapan, bila diketahui: hanya untuk menyebut bagian tiap turunan. */
+  readonly catchmentHa?: number;
+}
+export interface DownspoutFlowResult {
+  readonly perDownspoutFlowLs: number;
+  /** 0 bila luas tangkapannya tidak diketahui. */
+  readonly catchmentPerDownspoutHa: number;
+}
+
+export const ENG_418: RuleVersion<DownspoutFlowInput, DownspoutFlowResult> = {
+  ruleId: 'ENG-418',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      totalFlowLs: requireNumber('ENG-418', 'totalFlowLs', o['totalFlowLs'], {
+        min: 0.01,
+        max: 100_000,
+      }),
+      downspouts: requireInt('ENG-418', 'downspouts', o['downspouts'], { min: 1, max: 500 }),
+      ...(o['catchmentHa'] === undefined
+        ? {}
+        : {
+            catchmentHa: requireNumber('ENG-418', 'catchmentHa', o['catchmentHa'], {
+              min: 0.001,
+              max: 10_000,
+            }),
+          }),
+    };
+  },
+  // Tangkapan dibagi rata: tiap turunan memikul luas yang sama, jadi debitnya juga sama.
+  compute: (input) => ({
+    perDownspoutFlowLs: round2(input.totalFlowLs / input.downspouts),
+    catchmentPerDownspoutHa:
+      input.catchmentHa === undefined
+        ? 0
+        : Math.round((input.catchmentHa / input.downspouts) * 10_000) / 10_000,
+  }),
+  sourceReference:
+    'Pilihan pemilik 2026-10-27 (OQ-86): tangkapan atap dibagi rata ke turunan talangnya, ukuran pipa dihitung per turunan',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'limpasan 60,05 l/s dibagi 8 turunan → 7,51 l/s per turunan',
+      input: { totalFlowLs: 60.05, downspouts: 8, catchmentHa: 0.24 },
+      expected: { perDownspoutFlowLs: 7.51, catchmentPerDownspoutHa: 0.03 },
+    },
+    {
+      name: 'satu turunan: seluruh limpasan lewat satu pipa',
+      input: { totalFlowLs: 12.5, downspouts: 1 },
+      expected: { perDownspoutFlowLs: 12.5, catchmentPerDownspoutHa: 0 },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Limpasan ${i.totalFlowLs} l/s dibagi rata ke ${i.downspouts} turunan talang: ${o.perDownspoutFlowLs} l/s per turunan, dan ukuran pipa dihitung untuk angka itu.`,
+      en: `Runoff of ${i.totalFlowLs} l/s split evenly between ${i.downspouts} downspouts: ${o.perDownspoutFlowLs} l/s each, and the pipe is sized for that figure.`,
+    }),
+};
+
 export const GROUP_H = [
   ENG_401,
   ENG_402,
@@ -1493,4 +1615,6 @@ export const GROUP_H = [
   ENG_414,
   ENG_415,
   ENG_416,
+  ENG_417,
+  ENG_418,
 ] as const;

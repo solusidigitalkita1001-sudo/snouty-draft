@@ -26,6 +26,8 @@ import {
   ENG_408,
   ENG_412,
   ENG_413,
+  ENG_417,
+  ENG_418,
   culvertStructuralNote,
   type CulvertStructuralResult,
   type GravityCandidate,
@@ -43,6 +45,13 @@ export interface GravityInput {
   readonly catchmentHa?: number;
   readonly rainfallMmPerHour?: number;
   readonly runoffCoefficient?: number;
+  /**
+   * Air hujan atap (OQ-86): jumlah turunan talang. Disebut pengguna → dipakai apa adanya; tidak
+   * disebut tetapi tangkapannya atap (`catchmentIsRoof`) → dihitung ENG-417 dari sisi atapnya.
+   * Tangkapan permukaan tanah tidak dibagi: ia mengalir ke satu saluran.
+   */
+  readonly downspouts?: number;
+  readonly catchmentIsRoof?: boolean;
   /** Gorong-gorong: timbunan di atas pipa dan beban lalu lintas. */
   readonly coverDepthM?: number;
   readonly trafficLoad?: TrafficLoad;
@@ -51,6 +60,17 @@ export interface GravityInput {
   readonly population?: number;
   /** Air limbah: panjang jalur untuk profil galian dan manhole (ENG-413). */
   readonly routeLengthM?: number;
+}
+
+/** Air hujan atap (OQ-86): limpasan seluruh tangkapan dan bagian yang dipikul satu turunan. */
+export interface StormwaterSplit {
+  /** Limpasan seluruh tangkapan (l/s) — angka yang dihitung ENG-403. */
+  readonly totalFlowLs: number;
+  readonly downspouts: number;
+  readonly perDownspoutFlowLs: number;
+  readonly catchmentPerDownspoutHa: number;
+  /** `true` bila jumlah turunannya disebut pengguna, `false` bila dihitung dari sisi atap. */
+  readonly stated: boolean;
 }
 
 /** Air limbah: asal debit rencananya dan pemeriksaan jalurnya, untuk tampilan dan laporan. */
@@ -94,6 +114,8 @@ export interface GravityResult {
   readonly structural: CulvertStructuralResult | null;
   /** Hanya `kind: 'sewer'`. */
   readonly sewer: SewerDemand | null;
+  /** Hanya air hujan atap yang dibagi ke lebih dari satu turunan talang; `null` selain itu. */
+  readonly stormwater: StormwaterSplit | null;
   readonly appliedAssumptionIds: readonly string[];
   readonly traces: readonly CalculationTrace[];
   readonly overallProvenance: Provenance;
@@ -144,6 +166,37 @@ export function computeGravity(
       rainfallMmPerHour: rainfall,
       runoffCoefficient: runoff,
     }).designFlowLs;
+  }
+  // Air hujan atap (OQ-86, pilihan pemilik 2026-10-27): atap seluas gudang tidak dialirkan satu
+  // pipa. Talangnya turun di beberapa titik, tangkapannya dibagi rata, dan ukuran pipanya dihitung
+  // untuk satu turunan — hasilnya pipa yang jauh lebih kecil dan jumlahnya lebih banyak.
+  let stormwater: StormwaterSplit | null = null;
+  if (input.kind === 'stormwater' && designFlowLs !== undefined) {
+    const stated =
+      input.downspouts === undefined ? null : Math.max(1, Math.round(input.downspouts));
+    const derived =
+      stated === null && input.catchmentIsRoof === true && input.catchmentHa !== undefined
+        ? run(ENG_417, {
+            catchmentHa: input.catchmentHa,
+            spacingM: use('DOWNSPOUT_SPACING_15M'),
+          }).downspouts
+        : null;
+    const downspouts = stated ?? derived;
+    if (downspouts !== null && downspouts > 1) {
+      const share = run(ENG_418, {
+        totalFlowLs: designFlowLs,
+        downspouts,
+        ...(input.catchmentHa === undefined ? {} : { catchmentHa: input.catchmentHa }),
+      });
+      stormwater = {
+        totalFlowLs: designFlowLs,
+        downspouts,
+        perDownspoutFlowLs: share.perDownspoutFlowLs,
+        catchmentPerDownspoutHa: share.catchmentPerDownspoutHa,
+        stated: stated !== null,
+      };
+      designFlowLs = share.perDownspoutFlowLs;
+    }
   }
   // Air limbah: sambungan (atau jiwa → sambungan) → debit rata-rata dan puncak + infiltrasi.
   let sewerDemand: { connections: number; averageFlowLs: number; peakFlowLs: number } | null = null;
@@ -259,6 +312,7 @@ export function computeGravity(
     allCriteriaMet: sizing.allCriteriaMet && (sewer === null || sewer.partial.selfCleansing),
     structural,
     sewer,
+    stormwater,
     appliedAssumptionIds: [...new Set(applied)],
     traces,
     overallProvenance: traces.some((t) => t.provenance !== 'VERIFIED') ? 'ASSUMED' : 'VERIFIED',

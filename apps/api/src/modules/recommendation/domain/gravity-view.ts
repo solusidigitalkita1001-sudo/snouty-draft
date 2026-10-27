@@ -9,6 +9,7 @@ import {
   type GravityResult,
   type NetworkInput,
   type NetworkResult,
+  type StormwaterSplit,
   type TrafficLoad,
 } from '@snouty/engineering';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
@@ -51,6 +52,9 @@ const id = (n: number, locale: Locale = DEFAULT_LOCALE): string =>
     ? n.toLocaleString('en-US', { maximumFractionDigits: 2, useGrouping: false })
     : idNum(n);
 
+/** Pilihan `catchment_surface` yang berarti airnya turun lewat talang (OQ-86). */
+const ROOF_CATCHMENT = 'Atap bangunan';
+
 const TRAFFIC: Readonly<Record<string, TrafficLoad>> = {
   'Pejalan kaki / motor': 'light',
   Mobil: 'car',
@@ -86,6 +90,10 @@ export function gravityPlanFrom(state: RequirementState): GravityPlan | null {
     // Intensitas hujan yang belum diketahui diisi engine dari registry (RAINFALL_INTENSITY_150MMH).
     const rainfallMmPerHour = numberOf(p['rainfall_intensity']);
     if (catchmentHa === undefined) return null;
+    // Atap (OQ-86): jumlah turunan talang yang disebut dipakai apa adanya; tidak disebut →
+    // engine menghitungnya dari sisi atap. Tangkapan permukaan tanah tidak dibagi.
+    const downspouts = numberOf(p['downspouts']);
+    const roof = p['catchment_surface']?.value === ROOF_CATCHMENT;
     return {
       input: {
         kind: 'stormwater',
@@ -93,6 +101,8 @@ export function gravityPlanFrom(state: RequirementState): GravityPlan | null {
         ...opt('rainfallMmPerHour', rainfallMmPerHour),
         ...opt('runoffCoefficient', numberOf(p['runoff_coefficient'])),
         ...opt('slopePercent', slopePercent),
+        ...opt('downspouts', downspouts === undefined ? undefined : Math.round(downspouts)),
+        ...(roof ? { catchmentIsRoof: true } : {}),
       },
       pipeLengthM: routeLengthM ?? null,
     };
@@ -193,6 +203,16 @@ const KIND_LABEL: Readonly<Record<Locale, Record<GravityResult['kind'], string>>
   },
 };
 
+/** "8 titik (tangkapan 0,03 ha per turunan)"; luas per turunan disebut hanya bila diketahui. */
+function downspoutValue(split: StormwaterSplit, locale: Locale): string {
+  const en = locale === 'en';
+  const count = en ? `${split.downspouts} points` : `${split.downspouts} titik`;
+  if (split.catchmentPerDownspoutHa === 0) return count;
+  return en
+    ? `${count} (${id(split.catchmentPerDownspoutHa, locale)} ha of catchment each)`
+    : `${count} (tangkapan ${id(split.catchmentPerDownspoutHa, locale)} ha per turunan)`;
+}
+
 export function gravityHighlights(
   result: GravityResult,
   productCount: number,
@@ -215,8 +235,26 @@ export function gravityHighlights(
           },
         ]
       : []),
+    ...(result.stormwater
+      ? [
+          {
+            label: en ? 'Total runoff' : 'Limpasan total',
+            value: `${id(result.stormwater.totalFlowLs, locale)} l/s`,
+          },
+          {
+            label: en ? 'Downspouts' : 'Turunan talang',
+            value: downspoutValue(result.stormwater, locale),
+          },
+        ]
+      : []),
     {
-      label: en ? 'Design flow' : 'Debit rencana',
+      label: result.stormwater
+        ? en
+          ? 'Flow per downspout'
+          : 'Debit per turunan'
+        : en
+          ? 'Design flow'
+          : 'Debit rencana',
       value: `${id(result.designFlowLs, locale)} l/s`,
     },
     { label: en ? 'Pipe' : 'Pipa', value: `PVC D ${result.recommendedSize}` },
@@ -357,13 +395,24 @@ export function gravityBomItemsFrom(
     provenance,
     traceIds: ids,
   });
+  const runs = result.stormwater?.downspouts ?? 1;
   const lines: BomItem[] = [];
   if (pipeLengthM !== null) {
+    // Atap dengan beberapa turunan: panjang yang disebut berlaku untuk satu turunan, dan
+    // jumlah pipanya mengikuti jumlah turunannya (OQ-86).
     const pipe = pipePurchase(
-      pipeLengthM,
-      en ? `route ${pipeLengthM} m` : `jalur ${pipeLengthM} m`,
+      pipeLengthM * runs,
+      runs > 1
+        ? en
+          ? `${pipeLengthM} m per downspout × ${runs} downspouts`
+          : `${pipeLengthM} m per turunan × ${runs} turunan`
+        : en
+          ? `route ${pipeLengthM} m`
+          : `jalur ${pipeLengthM} m`,
       stock,
       locale,
+      0,
+      runs,
     );
     lines.push({
       ...row(en ? 'PVC D pipe' : 'Pipa PVC D', pipe.quantity, pipe.unit),
@@ -396,8 +445,10 @@ export function gravityBomItemsFrom(
       ),
     );
   } else {
-    lines.push(row('Elbow 45°', 2, 'pcs'));
-    lines.push(row(en ? 'Tee / junction inspection box' : 'Tee / bak kontrol sambungan', 1, 'pcs'));
+    lines.push(row('Elbow 45°', 2 * runs, 'pcs'));
+    lines.push(
+      row(en ? 'Tee / junction inspection box' : 'Tee / bak kontrol sambungan', runs, 'pcs'),
+    );
   }
   lines.push({ ...row(en ? 'PVC solvent cement' : 'Lem PVC', 1, 'kaleng', '-'), askPralon: true });
   return lines;
@@ -412,11 +463,13 @@ export function gravityAssumptionsFrom(
   const fieldFor = (parameter: string): string =>
     parameter === 'slope'
       ? 'slope'
-      : parameter === 'runoff_coefficient'
-        ? 'runoff_coefficient'
-        : parameter === 'burial_depth'
-          ? 'burial_depth'
-          : 'design_flow';
+      : parameter === 'downspouts'
+        ? 'downspouts'
+        : parameter === 'runoff_coefficient'
+          ? 'runoff_coefficient'
+          : parameter === 'burial_depth'
+            ? 'burial_depth'
+            : 'design_flow';
   const rows: Assumption[] = [
     {
       text: en
@@ -460,8 +513,10 @@ export function gravityProse(
       : ` Timbunan di atas pipa belum memenuhi minimum awal ${id(result.structural.minimumCoverM)} m — butuh selubung beton atau pipa kelas kekakuan tinggi, wajib validasi struktural.`
     : '';
   return {
-    headline: `${label}: pipa PVC D ${result.recommendedSize} untuk ${id(result.designFlowLs)} l/s pada kemiringan ${id(result.slopePercent)} %`,
-    body: `${sewerLead(result, 'id')}Pada kemiringan ${id(result.slopePercent)} %, pipa ${result.recommendedSize} mengalirkan ${id(result.fullFlowLs)} l/s saat penuh dengan kecepatan ${id(result.fullVelocityMs)} m/s; debit rencana ${id(result.designFlowLs)} l/s memakai ${id(result.utilisationPercent)} % kapasitasnya sehingga masih ada ruang udara.${structural} Perkiraan awal, bukan desain final.`,
+    headline: result.stormwater
+      ? `${label}: pipa PVC D ${result.recommendedSize} di tiap ${result.stormwater.downspouts} turunan talang untuk ${id(result.designFlowLs)} l/s per turunan`
+      : `${label}: pipa PVC D ${result.recommendedSize} untuk ${id(result.designFlowLs)} l/s pada kemiringan ${id(result.slopePercent)} %`,
+    body: `${stormwaterLead(result, 'id')}${sewerLead(result, 'id')}Pada kemiringan ${id(result.slopePercent)} %, pipa ${result.recommendedSize} mengalirkan ${id(result.fullFlowLs)} l/s saat penuh dengan kecepatan ${id(result.fullVelocityMs)} m/s; debit rencana ${id(result.designFlowLs)} l/s memakai ${id(result.utilisationPercent)} % kapasitasnya sehingga masih ada ruang udara.${structural} Perkiraan awal, bukan desain final.`,
   };
 }
 
@@ -521,9 +576,31 @@ function gravityProseEn(result: GravityResult): { headline: string; body: string
       : ` Cover above the pipe is below the initial minimum of ${id(result.structural.minimumCoverM, l)} m — a concrete encasement or a high-stiffness pipe class is needed, structural validation is required.`
     : '';
   return {
-    headline: `${label}: PVC D ${result.recommendedSize} pipe for ${id(result.designFlowLs, l)} l/s at a slope of ${id(result.slopePercent, l)} %`,
-    body: `${sewerLead(result, 'en')}At a slope of ${id(result.slopePercent, l)} %, the ${result.recommendedSize} pipe carries ${id(result.fullFlowLs, l)} l/s when full at a velocity of ${id(result.fullVelocityMs, l)} m/s; the design flow of ${id(result.designFlowLs, l)} l/s uses ${id(result.utilisationPercent, l)} % of its capacity, so there is still air space.${structural} Initial estimate, not a final design.`,
+    headline: result.stormwater
+      ? `${label}: PVC D ${result.recommendedSize} pipe at each of ${result.stormwater.downspouts} downspouts for ${id(result.designFlowLs, l)} l/s each`
+      : `${label}: PVC D ${result.recommendedSize} pipe for ${id(result.designFlowLs, l)} l/s at a slope of ${id(result.slopePercent, l)} %`,
+    body: `${stormwaterLead(result, 'en')}${sewerLead(result, 'en')}At a slope of ${id(result.slopePercent, l)} %, the ${result.recommendedSize} pipe carries ${id(result.fullFlowLs, l)} l/s when full at a velocity of ${id(result.fullVelocityMs, l)} m/s; the design flow of ${id(result.designFlowLs, l)} l/s uses ${id(result.utilisationPercent, l)} % of its capacity, so there is still air space.${structural} Initial estimate, not a final design.`,
   };
+}
+
+/**
+ * Air hujan atap (OQ-86): kalimat pembuka tentang limpasan seluruh tangkapan dan bagian yang
+ * dipikul satu turunan talang. Kosong bila airnya lewat satu jalur.
+ */
+function stormwaterLead(result: GravityResult, locale: Locale): string {
+  const split = result.stormwater;
+  if (!split) return '';
+  const en = locale === 'en';
+  const source = split.stated
+    ? en
+      ? `across the ${split.downspouts} downspouts you mentioned`
+      : `ke ${split.downspouts} turunan talang yang Anda sebut`
+    : en
+      ? `across ${split.downspouts} downspouts (one every 15 m of roof side, still to be confirmed)`
+      : `ke ${split.downspouts} turunan talang (satu tiap 15 m sisi atap, masih perlu dipastikan)`;
+  return en
+    ? `Runoff from the whole roof is ${id(split.totalFlowLs, locale)} l/s, split evenly ${source}, so each one carries ${id(split.perDownspoutFlowLs, locale)} l/s. `
+    : `Limpasan seluruh atap ${id(split.totalFlowLs)} l/s dibagi rata ${source}, jadi tiap turunan memikul ${id(split.perDownspoutFlowLs)} l/s. `;
 }
 
 /** Air limbah (P22-05): kalimat pembuka tentang asal debit dan ukuran minimum, kosong untuk kasus lain. */

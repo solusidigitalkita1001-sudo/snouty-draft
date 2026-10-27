@@ -54,6 +54,8 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-414': { id: 'Debit per segmen', en: 'Flow per segment' },
   'ENG-415': { id: 'Head di titik kritis', en: 'Head at the critical point' },
   'ENG-416': { id: 'Mode sistem', en: 'System mode' },
+  'ENG-417': { id: 'Jumlah turunan talang', en: 'Number of downspouts' },
+  'ENG-418': { id: 'Limpasan per turunan', en: 'Runoff per downspout' },
   'ENG-501': { id: 'Perkiraan penghuni', en: 'Estimated occupants' },
   'ENG-502': { id: 'Kebutuhan air harian dan puncak', en: 'Daily and peak water need' },
   'ENG-503': { id: 'Zona tekanan dan booster', en: 'Pressure zones and booster' },

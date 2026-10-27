@@ -428,6 +428,10 @@ ENG-414  SPAM (audit PDAM): pipa induk + N cabang seragam — Q_induk = Q_puncak
 ENG-415  head titik kritis = statis + Σ kehilangan (induk + satu cabang terjauh, diameter dalam aktual) + tekanan sisa
 ENG-416  mode sistem: reservoir & head ≤ 0 → gravitasi; PDAM ≥ head → suplai langsung; PDAM < head → booster sebesar
          kekurangan; sumber tanpa tekanan → pompa penuh. Titik kerja pompa (ENG-206) hanya sebesar kekurangan.
+ENG-417  air hujan atap: sisi atap = √luas tangkapan; turunan talang = 2 × ⌈sisi ÷ jarak antar turunan⌉
+         (jarak 15 m = asumsi pemilik, menunggu ahli Pralon); jumlah yang disebut pengguna menggantikannya
+ENG-418  limpasan dibagi rata ke turunan talangnya: Q_turunan = Q_total ÷ jumlah turunan — ukuran pipa,
+         jumlah pipa, dan fitting dihitung per turunan
 ENG-411 v2: PN ≥ (tekanan kerja maks + surja) × 1,10; surja Joukowsky Δh = a·v/g hanya pada mode berpompa
          (a PE 300 m/s, PVC 400 m/s — asumsi); katalog tanpa PN → produk "perlu dikonfirmasi", bukan dikarang
 ```
@@ -633,6 +637,8 @@ Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja
 | ENG-414 | Debit per segmen: induk + N cabang seragam               | audit PDAM     | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 | ENG-415 | Head jalur kritis per segmen                             | audit PDAM     | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 | ENG-416 | Mode sistem: gravitasi/PDAM/booster/pompa                | audit PDAM     | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-417 | Jumlah turunan talang dari sisi atap                     | OQ-86          | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-418 | Limpasan atap dibagi per turunan talang                  | OQ-86          | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 
 Bila waktu ahli terbatas, empat yang bertanda tinggi/tertinggi memberi hasil terbesar: ENG-002
 menentukan angka utama, ENG-001 dan ENG-012 memberinya masukan, ENG-011 menentukan apakah pompa perlu

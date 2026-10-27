@@ -495,20 +495,19 @@ supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 
 ### OQ-86 — Air hujan atap: satu jalur untuk seluruh tangkapan, atau dibagi per talang (P31-61, 2026-10-27)
 
-**Status:** open · **Blocks:** tidak ada; hitungannya jalan dengan satu jalur dan ditandai perkiraan awal
+**Status:** diputuskan 2026-10-27 (pemilik: dibagi per turunan talang) · **Dikerjakan:** P31-65
 **Konteks:** "gudang baru 40 x 60 meter, mau pasang pipa air hujan dari atap" kini terbaca sebagai
 luas tangkapan 2.400 m², dan hitungannya keluar: limpasan 60 l/s pada hujan 150 mm/jam dengan
 koefisien 0,6, dilayani satu pipa PVC D 12" pada kemiringan 0,5 %. Di lapangan atap seluas itu
 tidak dialirkan satu pipa: talangnya dibagi beberapa turunan, dan tiap turunan memikul bagiannya
 sendiri — sehingga ukuran pipa yang benar jauh lebih kecil dari 12", dan jumlahnya lebih banyak.
 
-**Usul default (menunggu pilihan pemilik):** jumlah turunan talang menjadi parameter kasus air
-hujan untuk bangunan (ditanyakan, dengan anggapan satu turunan tiap 15 m sisi atap bila tidak
-disebut), dan tangkapan dibagi rata ke turunannya — ukuran pipa dihitung per turunan, dengan
-jumlah pipa dan fitting mengikuti. Sampai itu ada, hasilnya tetap satu jalur untuk seluruh
-tangkapan dan kalimatnya menyebut bahwa itu perkiraan awal.
+**Keputusan pemilik:** dibagi per turunan talang. Jumlah turunan menjadi data kasus — ditanyakan,
+dan bila tidak disebut dianggap satu turunan tiap 15 m sisi atap di dua sisi. Tangkapannya dibagi
+rata, ukuran pipa dihitung per turunan, dan jumlah pipa serta fittingnya mengikuti. Pembagian ini
+hanya berlaku bila airnya dari atap: halaman, jalan, dan parkir tetap satu saluran.
 **Yang perlu ahli:** jarak baku antar turunan talang (atau luas tangkapan maksimum per turunan)
-untuk atap gudang, ruko, dan rumah.
+untuk atap gudang, ruko, dan rumah — nilai 15 m yang dipakai sekarang adalah anggapan bertanda.
 
 ### OQ-85 — Titik air yang disebut pengguna versus titik air dari jumlah alat (P31-57, 2026-10-26)
 

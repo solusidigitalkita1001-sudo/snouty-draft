@@ -73,7 +73,12 @@ describe('parameter kritis tanpa asumsi pengganti tetap ditanya', () => {
       'rainfall_intensity',
     ]);
     expect(isTechnicalComplete(state)).toBe(true);
-    expect(gravityPlanFrom(state)?.input).toEqual({ kind: 'stormwater', catchmentHa: 0.015 });
+    // "Talang atap" berarti airnya turun lewat talang, bukan ke satu saluran (OQ-86).
+    expect(gravityPlanFrom(state)?.input).toEqual({
+      kind: 'stormwater',
+      catchmentHa: 0.015,
+      catchmentIsRoof: true,
+    });
   });
 
   it('cluster 50 rumah: beda tinggi "Belum tahu" tetap ditanya — bukan "Datanya sudah cukup"', () => {

@@ -46,6 +46,41 @@ describe('gravityPlanFrom / networkInputFrom', () => {
     expect(plan.pipeLengthM).toBe(8);
   });
 
+  // Pilihan pemilik 2026-10-27 (OQ-86): atap dibagi ke turunan talangnya, permukaan tanah tidak.
+  it('air hujan dari atap: permukaan dan jumlah turunan ikut ke engine', () => {
+    expect(
+      gravityPlanFrom(
+        technical('stormwater', {
+          catchment_area: known('Luas tangkapan', 0.24),
+          catchment_surface: known('Air hujan dari', 'Atap bangunan'),
+        }),
+      )!.input,
+    ).toEqual({ kind: 'stormwater', catchmentHa: 0.24, catchmentIsRoof: true });
+    expect(
+      gravityPlanFrom(
+        technical('stormwater', {
+          catchment_area: known('Luas tangkapan', 0.24),
+          catchment_surface: known('Air hujan dari', 'Atap bangunan'),
+          downspouts: known('Turunan talang', 6),
+        }),
+      )!.input,
+    ).toEqual({
+      kind: 'stormwater',
+      catchmentHa: 0.24,
+      catchmentIsRoof: true,
+      downspouts: 6,
+    });
+    // Halaman dan jalan: satu saluran, tidak ada yang dibagi.
+    expect(
+      gravityPlanFrom(
+        technical('stormwater', {
+          catchment_area: known('Luas tangkapan', 0.24),
+          catchment_surface: known('Air hujan dari', 'Permukaan tanah'),
+        }),
+      )!.input,
+    ).toEqual({ kind: 'stormwater', catchmentHa: 0.24 });
+  });
+
   it('air hujan butuh tangkapan (intensitas dari registry bila tidak disebut); drainase butuh debit; cluster butuh sambungan + jalur + statis', () => {
     // Intensitas belum diketahui: engine memakai RAINFALL_INTENSITY_150MMH (keputusan pemilik 2026-10-19).
     expect(
@@ -126,6 +161,39 @@ describe('tampilan gravitasi', () => {
     const prose = gravityProse(result);
     expect(prose.headline).toContain('Gorong-gorong');
     expect(prose.body).toContain('validasi struktural');
+  });
+
+  it('air hujan atap: limpasan total, jumlah turunan, debit per turunan, pipa dan fitting per turunan', () => {
+    const roof = computeGravity({ kind: 'stormwater', catchmentHa: 0.24, catchmentIsRoof: true });
+    const roofTraces = roof.traces.map((t, i) => ({ ...t, id: `R${i}` }));
+    const h = gravityHighlights(roof, 3);
+    expect(h.slice(0, 3)).toEqual([
+      { label: 'Limpasan total', value: '60,05 l/s' },
+      { label: 'Turunan talang', value: '8 titik (tangkapan 0,03 ha per turunan)' },
+      { label: 'Debit per turunan', value: '7,51 l/s' },
+    ]);
+    const prose = gravityProse(roof);
+    expect(prose.headline).toBe(
+      'Drainase air hujan: pipa PVC D 6" di tiap 8 turunan talang untuk 7,51 l/s per turunan',
+    );
+    expect(prose.body).toContain('Limpasan seluruh atap 60,05 l/s dibagi rata ke 8 turunan talang');
+    // Panjang yang disebut berlaku untuk satu turunan; jumlah pipa dan fittingnya mengikuti.
+    const bom = gravityBomItemsFrom(roof, 10, roofTraces);
+    expect(bom[0]).toMatchObject({ item: 'Pipa PVC D', quantity: 80, unit: 'meter' });
+    expect(bom[0]!.basis).toContain('10 m per turunan × 8 turunan');
+    expect(bom.find((b) => b.item === 'Elbow 45°')).toMatchObject({ quantity: 16 });
+    const assumptions = gravityAssumptionsFrom(roof, roofTraces);
+    expect(assumptions.find((a) => a.assumptionId === 'DOWNSPOUT_SPACING_15M')?.fieldPath).toBe(
+      'downspouts',
+    );
+    // Inggris: angka yang sama, kalimat Inggris.
+    const en = gravityHighlights(roof, 3, 'en');
+    expect(en.slice(0, 3).map((x) => x.label)).toEqual([
+      'Total runoff',
+      'Downspouts',
+      'Flow per downspout',
+    ]);
+    expect(gravityProse(roof, 'en').body).toContain('Runoff from the whole roof is 60.05 l/s');
   });
 
   it('cluster: highlight sambungan + puncak di depan highlight bertekanan', () => {

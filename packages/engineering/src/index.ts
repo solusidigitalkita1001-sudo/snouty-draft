@@ -209,6 +209,7 @@ export type {
   GravityKind,
   GravityResult,
   SewerDemand,
+  StormwaterSplit,
   TrafficLoad,
 } from './compute-gravity.js';
 export { SEWER_MINIMUM_SIZE } from './compute-gravity.js';

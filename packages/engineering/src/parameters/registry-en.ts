@@ -391,6 +391,19 @@ export const PARAMETER_ENGLISH: Readonly<Record<ParameterKey, ParameterEnglish>>
     questionEn: 'How large is the area that drains into this channel?',
     reasonEn: 'Design rainfall flow (Q = C·I·A).',
   },
+  catchment_surface: {
+    labelEn: 'Rainwater from',
+    questionEn:
+      'Does the rainwater come off a building roof, or off the ground such as a yard or a road?',
+    reasonEn: 'A roof drains through several downspouts; ground runoff goes to one channel.',
+    optionLabelsEn: ['Building roof', 'Ground surface'],
+  },
+  downspouts: {
+    labelEn: 'Downspouts',
+    questionEn: 'At how many points do the roof gutters come down?',
+    reasonEn:
+      'Each downspout only carries its own share of the catchment, so the pipe is sized per downspout.',
+  },
   rainfall_intensity: {
     labelEn: 'Rainfall intensity',
     questionEn: 'Is there design rainfall intensity data for the site (mm/hour)?',

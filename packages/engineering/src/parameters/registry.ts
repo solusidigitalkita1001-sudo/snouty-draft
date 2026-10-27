@@ -143,6 +143,8 @@ export type ParameterKey =
   | 'pipe_fill_ratio'
   // stormwater
   | 'catchment_area'
+  | 'catchment_surface'
+  | 'downspouts'
   | 'rainfall_intensity'
   | 'runoff_coefficient'
   | 'return_period'
@@ -880,6 +882,26 @@ const BASE_PARAMETERS: readonly ParameterBase[] = [
     'Luas area yang airnya masuk ke saluran ini berapa?',
     'Debit hujan rencana (Q = C·I·A).',
     { unit: 'ha' },
+  ),
+  P(
+    'catchment_surface',
+    'stormwater',
+    'enum',
+    'Air hujan dari',
+    'important',
+    'Air hujannya dari atap bangunan, atau dari permukaan tanah seperti halaman dan jalan?',
+    'Atap dialirkan beberapa turunan talang; permukaan tanah mengalir ke satu saluran.',
+    { options: ['Atap bangunan', 'Permukaan tanah'] },
+  ),
+  P(
+    'downspouts',
+    'stormwater',
+    'number',
+    'Turunan talang',
+    'important',
+    'Talang atapnya turun di berapa titik?',
+    'Tiap turunan hanya memikul bagian tangkapannya sendiri, jadi pipanya dihitung per turunan.',
+    { unit: 'buah', suggestions: ['2', '4', '6', '8', '12'] },
   ),
   P(
     'rainfall_intensity',
