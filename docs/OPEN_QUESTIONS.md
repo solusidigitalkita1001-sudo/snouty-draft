@@ -493,6 +493,23 @@ ditanya HDPE.
 **Yang dibutuhkan dari Pralon:** apakah HDPE Pralon punya sertifikat kontak air minum (dan nomornya),
 supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 
+### OQ-86 — Air hujan atap: satu jalur untuk seluruh tangkapan, atau dibagi per talang (P31-61, 2026-10-27)
+
+**Status:** open · **Blocks:** tidak ada; hitungannya jalan dengan satu jalur dan ditandai perkiraan awal
+**Konteks:** "gudang baru 40 x 60 meter, mau pasang pipa air hujan dari atap" kini terbaca sebagai
+luas tangkapan 2.400 m², dan hitungannya keluar: limpasan 60 l/s pada hujan 150 mm/jam dengan
+koefisien 0,6, dilayani satu pipa PVC D 12" pada kemiringan 0,5 %. Di lapangan atap seluas itu
+tidak dialirkan satu pipa: talangnya dibagi beberapa turunan, dan tiap turunan memikul bagiannya
+sendiri — sehingga ukuran pipa yang benar jauh lebih kecil dari 12", dan jumlahnya lebih banyak.
+
+**Usul default (menunggu pilihan pemilik):** jumlah turunan talang menjadi parameter kasus air
+hujan untuk bangunan (ditanyakan, dengan anggapan satu turunan tiap 15 m sisi atap bila tidak
+disebut), dan tangkapan dibagi rata ke turunannya — ukuran pipa dihitung per turunan, dengan
+jumlah pipa dan fitting mengikuti. Sampai itu ada, hasilnya tetap satu jalur untuk seluruh
+tangkapan dan kalimatnya menyebut bahwa itu perkiraan awal.
+**Yang perlu ahli:** jarak baku antar turunan talang (atau luas tangkapan maksimum per turunan)
+untuk atap gudang, ruko, dan rumah.
+
 ### OQ-85 — Titik air yang disebut pengguna versus titik air dari jumlah alat (P31-57, 2026-10-26)
 
 **Status:** open · **Blocks:** tidak ada; untuk sementara bauran alatnya ditanya, bukan dianggap
@@ -506,6 +523,7 @@ beban, dengan bauran alat baku per titik yang ditetapkan tim teknis Pralon (mis.
 kamar mandi + 1 wastafel), tampil sebagai anggapan. Sampai aturan itu ada, anggapan jumlah kamar
 mandi tidak dipakai bila titik airnya disebut: bauran alatnya ditanyakan.
 **Yang perlu ahli:** bauran alat baku per titik air untuk rumah, ruko, dan kos.
+
 ### OQ-84 — Kapasitas toren dan ukuran bangunan di kasus sumur ke tandon (P31-43, 2026-10-26)
 
 **Status:** open · **Blocks:** tidak ada; angkanya sekarang dikatakan tidak terpakai, bukan didiamkan
