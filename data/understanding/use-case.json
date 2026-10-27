@@ -1,6 +1,6 @@
 {
   "name": "use-case",
-  "description": "Jenis KASUS instalasi yang diceritakan pesan — label = ID profil kasus di packages/engineering (CaseId). Menggantikan pengklasifikasi regex berbobot (P16-14). `residential_clean_water` dan `irrigation` punya jalurnya sendiri; sisanya kasus teknis umum. `none` = pesan yang tidak menceritakan instalasi apa pun.",
+  "description": "Jenis KASUS instalasi yang diceritakan pesan — label = ID profil kasus di packages/engineering (CaseId). Menggantikan pengklasifikasi regex berbobot (P16-14). `residential_clean_water` dan `irrigation` punya jalurnya sendiri; sisanya kasus teknis umum. `none` = pesan yang tidak menceritakan instalasi apa pun. Contoh harus membawa SUBJEKNYA sendiri: contoh kolam tidak menyebut rumah, contoh rumah tidak menyebut kolam. Kalimat yang hanya berbeda pada satu kata ('mau bikin kolam ikan' vs 'mau bikin rumah') membuat bingkainya yang menang, bukan subjeknya — dan tiap bentuk telanjang yang dipakai orang harus ada di labelnya sendiri (produksi 2026-10-27: 'gw mau bikin rumah' terbaca kolam, 'mau bikin sumur' terbaca jaringan air limbah).",
   "threshold": 0.66,
   "margin": 0.02,
   "labels": {
@@ -29,6 +29,13 @@
       "i need piping for my new house",
       "rumah 3 lantai 4 kamar mandi, toren di lantai 3",
       "mau bangun rumah, airnya dari pdam",
+      "gw mau bikin rumah",
+      "rencana bikin rumah",
+      "mau bikin rumah di belakang",
+      "pengen buat rumah tinggal",
+      "mau bikin ruko",
+      "mau bikin kos",
+      "i want to build a house",
       "rumah 2 lantai, wastafel 2, dapur 1",
       "proyek ruko 3 lantai, pipa yang cocok apa?",
       "ruko tiga lantai butuh pipa air"
@@ -236,6 +243,9 @@
       "sumur bor 35 meter ke toren atap rumah, jaraknya 20 meter",
       "pompa sumur dalam mengisi toren di atas rumah 2 lantai",
       "sumur bor 45 m naik ke tandon atap rumah",
+      "mau bikin sumur",
+      "mau bikin sumur bor",
+      "rencana bikin sumur buat rumah",
       "pump from a 40 m borehole to the roof tank of the house"
     ],
     "fish_pond": [
@@ -258,7 +268,7 @@
       "a catfish pond fill and drain line",
       "kolam budidaya 3 petak",
       "mau bikin kolam ikan",
-      "gw mau bikin kolam ikan di belakang rumah",
+      "gw mau bikin kolam ikan di halaman belakang",
       "rencana bikin kolam ikan",
       "pengen buat kolam ikan",
       "i want to build a fish pond"

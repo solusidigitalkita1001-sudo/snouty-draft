@@ -925,6 +925,46 @@
       "useCase": "fish_pond"
     },
     {
+      "text": "gw mau bikin rumah",
+      "useCase": "residential_clean_water",
+      "$comment": "produksi 2026-10-27: terbaca kolam/tambak karena contoh kolamnya sekalimat dengan rumah"
+    },
+    {
+      "text": "rencana bikin rumah",
+      "useCase": "residential_clean_water",
+      "$comment": "produksi 2026-10-27"
+    },
+    {
+      "text": "mau bikin rumah di belakang",
+      "useCase": "residential_clean_water",
+      "$comment": "produksi 2026-10-27"
+    },
+    {
+      "text": "mau bikin kolam ikan",
+      "useCase": "fish_pond",
+      "$comment": "sisi sebaliknya: bentuk telanjang kolam tetap kolam"
+    },
+    {
+      "text": "gw mau bikin kolam di belakang",
+      "useCase": "fish_pond",
+      "$comment": "sisi sebaliknya"
+    },
+    {
+      "text": "mau bikin sumur",
+      "useCase": "well_distribution",
+      "$comment": "2026-10-27: terbaca sewerage karena contoh \"mau bikin sewerage\" sebentuk"
+    },
+    {
+      "text": "mau bikin sewerage",
+      "useCase": "sewerage",
+      "$comment": "sisi sebaliknya"
+    },
+    {
+      "text": "mau bikin ruko",
+      "useCase": "residential_clean_water",
+      "$comment": "2026-10-27: sebelumnya tanpa kasus sama sekali"
+    },
+    {
       "text": "shrimp pond water inlet piping",
       "useCase": "fish_pond"
     },

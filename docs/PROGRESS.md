@@ -3763,3 +3763,22 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       mengutipnya menggagalkan suite, jadi sumber yang sudah tercatat tidak bisa berhenti di
       kode. Pagar itu langsung menemukan dua aturan yang terlewat, manhole SPALD-T dan
       perbandingan diameter pipa lama.
+
+- [x] P31-76 "Mau bikin rumah" tidak lagi terbaca kolam
+
+      Pemilik mengetik "gw mau bikin rumah" dan SNOUTY menjawab "Oke, kolam/tambak" lalu
+      menanyakan pipa masuk dan pipa kuras. Penyebabnya contoh pemahaman, bukan kode: label
+      kolam memuat "gw mau bikin kolam ikan di belakang rumah" dan "rencana bikin kolam
+      ikan", sedangkan label rumah tidak punya satu pun bentuk telanjangnya — jadi yang
+      menang bingkai kalimatnya, bukan subjeknya, dan kata "rumah" malah duduk di contoh
+      kolam. Tiga kalimat terbukti salah di produksi: "gw mau bikin rumah", "rencana bikin
+      rumah", "mau bikin rumah di belakang".
+
+      Contoh kolam tidak lagi menyebut rumah, dan label rumah, sumur, serta ruko mendapat
+      bentuk telanjang yang memang diketik orang. Pemeriksaan sekeliling menemukan jebakan
+      yang sama di tempat lain: "mau bikin sumur" terbaca jaringan air limbah karena ada
+      contoh "mau bikin sewerage" dan tidak ada "mau bikin sumur". Sembilan kalimat itu
+      masuk golden dataset, dua-duanya arah, supaya tidak bisa balik diam-diam; evaluasi
+      pemahaman tetap 99,5 % tanpa kemunduran. Aturannya sekarang tertulis di berkas
+      contohnya sendiri: contoh harus membawa subjeknya, dan tiap bentuk telanjang yang
+      dipakai orang harus ada di labelnya sendiri.
