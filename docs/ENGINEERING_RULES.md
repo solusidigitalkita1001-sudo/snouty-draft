@@ -36,7 +36,7 @@ interface RuleVersion<I, O> {
   outputSchema: ZodSchema<O>;
   compute: (input: I) => O; // murni: tanpa I/O, tanpa jam, tanpa acak
   sourceReference?: string; // standar / dokumen / hasil wawancara ahli
-  standard?: string; // kutipan kode plambing yang dibaca pengguna: "IPC 2021 Table 710.1(2)"
+  standard?: string; // sumber yang dibaca pengguna: "UPC Table 703.2", "Hazen-Williams (SI)"
   validationStatus: 'REQUIRES_DOMAIN_VALIDATION' | 'VALIDATED' | 'REJECTED';
   validatedBy?: string;
   validatedAt?: string;
@@ -59,15 +59,28 @@ berbeda karena keduanya keluar dari sumber yang sama.
 
 **Test case wajib.** Registry menolak aturan tanpa tes (invarian R-1).
 
-**Angka dari kode plambing menyebut kodenya.** Aturan yang mengambil nilai dari tabel sebuah
-kode mengisi `standard` dengan kutipan seperti tertulis di kodenya, dan kutipan itu ikut ke
-layar detail teknis dan ke tabel langkah hitung di laporan (permintaan pemilik 2026-10-27).
-Sebuah tes menjaganya: aturan yang `sourceReference`-nya menyebut IPC, UPC, atau SNI tetapi
-`standard`-nya kosong akan menggagalkan suite. Aturan yang dasarnya turunan rumus atau
-keputusan pemilik tidak mengutip kode — `sourceReference` yang menjelaskannya.
+**Hitungan menyebut sumbernya.** Aturan mengisi `standard` dengan sumber yang bisa diperiksa
+pengguna, dan kutipan itu ikut ke layar detail teknis dan ke tabel langkah hitung di laporan
+(permintaan pemilik 2026-10-27). Dua macam isinya: kode plambing yang memberi angka bakunya
+("UPC Table 703.2"), dan nama metode atau dokumen yang memberi rumusnya ("Hazen-Williams
+(SI)", "Rumus Manning", "Metode rasional", "Joukowsky (surja tekanan)", "Kriteria perencanaan
+SPAM", "KP-01 Kriteria Perencanaan Irigasi", "Noerbambang & Morimura, Perancangan dan
+Pemeliharaan Sistem Plambing", "Tabel dimensi PRALON PROD/STD-04 Rev. 11").
+
+Aritmetika dasar tidak diberi label — volume balok, debit = volume ÷ waktu, pembagian debit
+per riser: rumusnya sudah terbaca di langkahnya, dan memberinya kutipan hanya mengulang
+isinya (keputusan pemilik 2026-10-27). Begitu juga aturan yang dasarnya keputusan pemilik
+atau kebiasaan lapangan; `sourceReference` yang menjelaskannya.
+
+Sebuah tes menjaganya: aturan yang `sourceReference`-nya menyebut IPC, UPC, SNI, ISO,
+Hazen-Williams, Manning, Joukowsky, Noerbambang, KP-01, SPAM, SPALD-T, metode rasional,
+kontinuitas, atau koefisien kerugian — tetapi `standard`-nya kosong — menggagalkan suite.
+Jadi sumber yang sudah tercatat di kode tidak bisa berhenti di kode.
+
 Kode mana yang mengikat: keduanya dibaca, dan UPC menang bila berbeda (keputusan pemilik
-2026-10-27, OQ-88). Beban alat air bersih sudah memakai UPC Tabel A 103.1; beban dan
-kapasitas pembuangan masih IPC sampai tabel UPC-nya dipindahkan.
+2026-10-27, OQ-88). Beban alat air bersih memakai UPC Tabel A 103.1, beban dan kapasitas
+pembuangan UPC Tabel 702.1 dan 703.2. Yang belum terbaca di UPC — beban urinoir dan alat
+beraliran kontinu — masih mengutip IPC, dan aturannya menyebut kode yang dipakainya.
 
 ### Trace
 

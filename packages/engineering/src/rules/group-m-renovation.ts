@@ -69,6 +69,7 @@ export const ENG_901: RuleVersion<ExistingCapacityInput, ExistingCapacityResult>
   }),
   sourceReference:
     'Pipa lama dipakai bila diameternya ≥ ukuran yang dihitung untuk beban total; dibandingkan lewat diameter luar (PROD/STD-04 untuk PVC inci, ISO 4427 untuk PE mm)',
+  standard: 'Tabel dimensi PRALON PROD/STD-04 Rev. 11; ISO 4427 (PE 100)',
   validationStatus: PENDING,
   testCases: [
     {

@@ -69,6 +69,7 @@ export const ENG_401: RuleVersion<ManningInput, ManningResult> = {
   },
   compute: manningFullFlow,
   sourceReference: 'Manning: V = (1/n) · R^(2/3) · S^(1/2), R = D/4 untuk pipa penuh; Q = V · A',
+  standard: 'Rumus Manning',
   validationStatus: PENDING,
   testCases: [
     {
@@ -269,6 +270,7 @@ export const ENG_402: RuleVersion<GravitySizingInput, GravitySizingResult> = {
   },
   sourceReference:
     'Ukuran nominal terkecil dengan debit rencana ≤ rasio pengisian × kapasitas Manning penuh dan kecepatan ≥ batas pembersihan diri',
+  standard: 'Rumus Manning',
   validationStatus: PENDING,
   testCases: [
     {
@@ -337,6 +339,7 @@ export const ENG_403: RuleVersion<RationalInput, RationalResult> = {
   }),
   sourceReference:
     'Metode rasional Q = 0,278 · C · I · A (A km², I mm/jam) — I dari data hujan setempat, bukan dikarang',
+  standard: 'Metode rasional',
   validationStatus: PENDING,
   testCases: [
     {
@@ -569,6 +572,7 @@ export const ENG_406: RuleVersion<SewerFlowInput, SewerFlowResult> = {
   },
   sourceReference:
     'Q_limbah rata = sambungan × orang × l/orang/hari × faktor kembali ÷ 86 400; Q_puncak = Q_rata × faktor puncak + infiltrasi % × Q_rata (kriteria perencanaan SPALD-T: air limbah ±80 % pemakaian air, infiltrasi ±10 %)',
+  standard: 'Kriteria perencanaan SPALD-T',
   validationStatus: PENDING,
   testCases: [
     {
@@ -628,6 +632,7 @@ export const ENG_407: RuleVersion<SewerMinimumSizeInput, SewerMinimumSizeResult>
   },
   sourceReference:
     'Pipa air limbah jaringan tidak lebih kecil dari ukuran minimum (150 mm / 6") supaya tidak tersumbat padatan — kriteria umum perencanaan SPALD-T',
+  standard: 'Kriteria perencanaan SPALD-T',
   validationStatus: PENDING,
   testCases: [
     {
@@ -779,6 +784,7 @@ export const ENG_409: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
   },
   sourceReference:
     'Kriteria perencanaan SPAM: Q_rata = (domestik × (1 + non-domestik %)) ÷ (1 − NRW %); Q_hari maks = Q_rata × f_hari; Q_jam puncak = Q_rata × f_jam; pipa transmisi/reservoir pada Q_hari maks, distribusi pada Q_jam puncak',
+  standard: 'Kriteria perencanaan SPAM',
   validationStatus: PENDING,
   testCases: [
     {
@@ -844,6 +850,7 @@ export const ENG_410: RuleVersion<ReservoirInput, ReservoirResult> = {
   },
   sourceReference:
     'Kriteria perencanaan SPAM: volume reservoir distribusi ±15–20 % kebutuhan hari maksimum (penyeimbang jam puncak)',
+  standard: 'Kriteria perencanaan SPAM',
   validationStatus: PENDING,
   testCases: [
     {
@@ -909,6 +916,7 @@ export const ENG_411: RuleVersion<PressureClassInput, PressureClassResult> = {
   },
   sourceReference:
     'Kelas tekanan nominal (PN) ≥ (tekanan kerja maksimum + surja) × (1 + margin) — tekanan statis, tekanan sumber, atau head pompa; surja Joukowsky Δh = a·v/g; PE100: PN 6,3/8/10/12,5/16/20 ↔ SDR 26/21/17/13,6/11/9',
+  standard: 'Joukowsky (surja tekanan)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -1052,6 +1060,7 @@ export const ENG_412: RuleVersion<SewerPartialFlowInput, SewerPartialFlowResult>
   },
   sourceReference:
     'Manning pada segmen lingkaran: A = D²/8 (θ − sin θ), P = Dθ/2, θ = 2 arccos(1 − 2d/D); kecepatan pembersihan sendiri ≥ 0,6 m/s pada debit rencana, maksimum ≈ 3 m/s, d/D ≤ 0,8; S_min ≈ S × (v_min ÷ v)²',
+  standard: 'Rumus Manning',
   validationStatus: PENDING,
   testCases: [
     {
@@ -1155,6 +1164,7 @@ export const ENG_413: RuleVersion<SewerProfileInput, SewerProfileResult> = {
   },
   sourceReference:
     'Manhole tiap ≤ 50 m (pipa kecil) dan di tiap belokan/pertemuan; penurunan = panjang × kemiringan; galian lebih dalam dari ±4 m → stasiun pompa angkat (kriteria perencanaan SPALD-T)',
+  standard: 'Kriteria perencanaan SPALD-T',
   validationStatus: PENDING,
   testCases: [
     {

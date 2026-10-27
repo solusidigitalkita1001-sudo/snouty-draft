@@ -54,6 +54,7 @@ export const ENG_201: RuleVersion<VelocityInput, VelocityResult> = {
   },
   compute: (input) => velocityOf(input.designFlowLs, input.innerDiameterMm),
   sourceReference: 'Kontinuitas: A = πD²/4, V = Q/A',
+  standard: 'Persamaan kontinuitas',
   validationStatus: PENDING,
   testCases: [
     {
@@ -126,6 +127,7 @@ export const ENG_202: RuleVersion<FrictionInput, FrictionResult> = {
   compute: (input) =>
     frictionLossOf(input.designFlowLs, input.innerDiameterMm, input.lengthM, input.hazenWilliamsC),
   sourceReference: 'Hazen-Williams (SI): hf = 10,67 · L · Q^1,852 / (C^1,852 · D^4,8704)',
+  standard: 'Hazen-Williams (SI)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -454,6 +456,7 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
   },
   sourceReference:
     'Kriteria ganda: kecepatan dalam batas, gradien kerugian ≤ batas; kandidat dari tabel diameter nominal ENG-102',
+  standard: 'Persamaan kontinuitas; Hazen-Williams (SI)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -648,6 +651,7 @@ export const ENG_207: RuleVersion<FittingMinorLossInput, FittingMinorLossResult>
   },
   sourceReference:
     'Metode koefisien kerugian (K-factor): h = ΣK · v²/2g; nilai K per jenis fitting dari registry asumsi MINOR_K_*',
+  standard: 'Metode koefisien kerugian (K)',
   validationStatus: PENDING,
   testCases: [
     {

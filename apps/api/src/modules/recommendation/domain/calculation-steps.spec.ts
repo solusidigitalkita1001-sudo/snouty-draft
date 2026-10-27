@@ -43,10 +43,10 @@ describe('langkah hitung', () => {
   });
 });
 
-describe('langkah hitung menyebut kode sumbernya', () => {
-  // Permintaan pemilik 2026-10-27: angka teknis membawa sumbernya ke layar, bukan hanya
-  // tersimpan di definisi aturan.
-  it('beban alat pembuangan mengutip tabel kodenya; langkah turunan rumus tidak', () => {
+describe('langkah hitung menyebut sumbernya', () => {
+  // Permintaan pemilik 2026-10-27: angka dan rumus teknis membawa sumbernya ke layar, bukan
+  // hanya tersimpan di definisi aturan.
+  it('beban alat pembuangan mengutip tabel kodenya; aritmetika dasar tidak', () => {
     const traces: IdentifiedTrace[] = [
       {
         id: 'T0',
@@ -59,12 +59,12 @@ describe('langkah hitung menyebut kode sumbernya', () => {
       },
       {
         id: 'T1',
-        ruleId: 'ENG-101',
+        ruleId: 'ENG-301',
         ruleVersion: 1,
         inputs: {},
         output: {},
         provenance: 'ASSUMED',
-        explanation: 'Kebutuhan 1.2 l/s.',
+        explanation: 'Volume 48 m3.',
       },
     ];
     const steps = stepsFor(['T0', 'T1'], traces, 'id');

@@ -160,6 +160,7 @@ export const ENG_303: RuleVersion<DrainSizeInput, DrainSizeResult> = {
   },
   sourceReference:
     'Q = V / t_kuras ; D = √(4Q / πv) dengan v gravitasi ±1 m/s; ukuran nominal terdekat di atasnya',
+  standard: 'Persamaan kontinuitas',
   validationStatus: PENDING,
   testCases: [
     {

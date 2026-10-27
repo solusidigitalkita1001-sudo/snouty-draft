@@ -98,6 +98,7 @@ export const ENG_101: RuleVersion<DesignFlowInput, DesignFlowResult> = {
   },
   sourceReference:
     'KP-01 Kriteria Perencanaan Irigasi (padi ±1,2–1,5 l/s/ha); praktik umum sprinkler ±0,8 dan tetes ±0,5 l/s/ha',
+  standard: 'KP-01 Kriteria Perencanaan Irigasi',
   validationStatus: PENDING,
   testCases: [
     {
@@ -167,6 +168,7 @@ export const ENG_102: RuleVersion<MainSizeFromFlowInput, MainSizeFromFlowResult>
   },
   sourceReference:
     'Kontinuitas Q = v·A, D = √(4Q/πv); kecepatan rencana pipa plastik 1–2 m/s (praktik umum)',
+  standard: 'Persamaan kontinuitas',
   validationStatus: PENDING,
   testCases: [
     {

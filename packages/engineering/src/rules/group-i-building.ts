@@ -43,6 +43,7 @@ export const ENG_501: RuleVersion<OccupantsInput, { readonly occupants: number }
     occupants: Math.ceil((input.floorAreaM2 * input.floors) / input.areaPerPersonM2),
   }),
   sourceReference: 'Penghuni = luas lantai × jumlah lantai ÷ luas per orang',
+  standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
   validationStatus: PENDING,
   testCases: [
     {
@@ -115,6 +116,7 @@ export const ENG_502: RuleVersion<BuildingDemandInput, BuildingDemandResult> = {
   },
   sourceReference:
     'Qd = penghuni × l/orang/hari (m³/hari); Qh = Qd ÷ jam pemakaian (m³/jam); Qh-maks = c1 × Qh; Qm-maks = c2 × Qh ÷ 60 (m³/menit); keduanya dinyatakan dalam l/s (1 m³/jam = 1/3,6 l/s)',
+  standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
   validationStatus: PENDING,
   testCases: [
     {
@@ -268,6 +270,7 @@ export const ENG_503: RuleVersion<ZoningInput, ZoningResult> = {
   compute: pressureZones,
   sourceReference:
     'Tekanan statik lantai k = (tinggi gedung − elevasi lantai k) ÷ 10,197 m/bar dari muka air tangki atap; booster bila < tekanan sisa minimum, zona berkatup penurun tekanan bila > tekanan statik maksimum per zona',
+  standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
   validationStatus: PENDING,
   testCases: [
     {
@@ -532,6 +535,7 @@ export const ENG_506: RuleVersion<TankInput, TankResult> = {
   },
   sourceReference:
     'Tangki bawah = kebutuhan harian × hari cadangan (pasokan selama hari itu tidak dikurangkan); tangki atap VE = (Qp − Qpu) · Tp + Qpu · Tpu (Noerbambang & Morimura); volume efektif',
+  standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
   validationStatus: PENDING,
   testCases: [
     {

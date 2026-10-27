@@ -909,6 +909,7 @@ export const ENG_710: RuleVersion<TankFillPressureInput, TankFillPressureResult>
   },
   sourceReference:
     'Tekanan di meteran = (tinggi muka air toren + kehilangan gesek Hazen-Williams + kehilangan sambungan) ÷ 10,197 m/bar, pada debit pengisian',
+  standard: 'Hazen-Williams (SI)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -1216,6 +1217,7 @@ export const ENG_711: RuleVersion<TankStandOptionsInput, TankStandOptionsResult>
   },
   sourceReference:
     'Tekanan sisa tiap dudukan = (muka air − titik air tertinggi − kehilangan pipa utama) ÷ 10,197 m/bar; dudukan dak = pelat atap + TANK_STAND_1M, tiang toren = tinggi tiang + TANK_STAND_1M; ambang deras di shower 0,7 kg/cm² (Noerbambang & Morimura)',
+  standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
   validationStatus: PENDING,
   testCases: [
     {

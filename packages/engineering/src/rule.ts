@@ -47,11 +47,17 @@ export interface RuleVersion<I, O> {
   readonly compute: (input: I) => O;
   readonly sourceReference?: string;
   /**
-   * Kode plambing yang menjadi sumber angka bakunya, dikutip seperti tertulis di kodenya
-   * ("IPC 2021 Table 710.1(2)") — ini yang dibaca pengguna di bawah langkah hitungnya.
-   * Hanya untuk aturan yang mengambil nilai dari tabel kode; aturan yang dasarnya turunan
-   * rumus atau keputusan pemilik tidak mengutip kode, dan `sourceReference` sudah menjelaskannya.
-   * Kutipan tidak diterjemahkan: nama pasal dan tabelnya milik dokumen aslinya.
+   * Sumber yang bisa diperiksa pengguna di bawah langkah hitungnya: kode plambing yang
+   * memberi angka bakunya ("UPC Table 703.2"), atau nama metode dan dokumen yang memberi
+   * rumusnya ("Hazen-Williams (SI)", "Kriteria perencanaan SPAM").
+   *
+   * Hanya untuk yang benar-benar punya nama atau dokumen (keputusan pemilik 2026-10-27).
+   * Aritmetika dasar — volume balok, debit = volume ÷ waktu, pembagian debit per riser —
+   * tidak mengutip apa pun: rumusnya sudah terbaca di langkahnya, dan memberinya label
+   * hanya mengulang isinya. Begitu juga aturan yang dasarnya keputusan pemilik atau
+   * kebiasaan lapangan; `sourceReference` sudah menjelaskannya.
+   *
+   * Kutipan tidak diterjemahkan: nama pasal, tabel, dan metodenya milik dokumen aslinya.
    */
   readonly standard?: string;
   readonly validationStatus: RuleValidationStatus;

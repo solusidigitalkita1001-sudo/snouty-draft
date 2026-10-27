@@ -13,22 +13,45 @@ import {
   supplyLoadWsfu,
 } from './index.js';
 
-describe('kutipan kode plambing', () => {
-  // Permintaan pemilik 2026-10-27: hitungan teknis menyebut sumbernya, dan salah satu
-  // pedoman yang dipakai Pralon adalah UPC — jadi kode yang diikuti sebuah angka harus
-  // tertulis pada aturannya, bukan hanya di dokumen.
-  it('aturan yang membaca tabel kode mengutip kodenya; aturan turunan rumus tidak', () => {
+describe('kutipan sumber hitungan', () => {
+  // Permintaan pemilik 2026-10-27: hitungan teknis menyebut sumbernya — mula-mula kode
+  // plambing yang memberi angkanya, lalu rumusnya sendiri ("tolong sertakan sumber
+  // rumusnya biar valid"). Yang punya nama atau dokumen mengutipnya; aritmetika dasar tidak.
+  it('aturan yang membaca tabel kode mengutip kodenya', () => {
     expect(ruleStandard('ENG-601')).toBe('UPC Table 702.1');
     expect(ruleStandard('ENG-604')).toBe('UPC Table 703.2');
     // Beban alatnya dari UPC, konversinya ke debit dari kurva IPC — keduanya disebut.
     expect(ruleStandard('ENG-701')).toBe('UPC Table A 103.1; IPC Appendix E, Table E103.3(3)');
     expect(ruleStandard('ENG-801')).toContain('UPC Table A 103.1');
-    expect(ruleStandard('ENG-101')).toBeNull();
   });
 
-  it('angka dari kode plambing tidak pernah tanpa kutipan', () => {
+  it('aturan yang memakai rumus bernama mengutip rumusnya', () => {
+    expect(ruleStandard('ENG-202')).toBe('Hazen-Williams (SI)');
+    expect(ruleStandard('ENG-401')).toBe('Rumus Manning');
+    expect(ruleStandard('ENG-403')).toBe('Metode rasional');
+    expect(ruleStandard('ENG-411')).toBe('Joukowsky (surja tekanan)');
+    expect(ruleStandard('ENG-409')).toBe('Kriteria perencanaan SPAM');
+    expect(ruleStandard('ENG-101')).toBe('KP-01 Kriteria Perencanaan Irigasi');
+    expect(ruleStandard('ENG-502')).toContain('Noerbambang & Morimura');
+    // Ukuran dipilih dari kecepatan (kontinuitas) dan gradien kerugian (Hazen-Williams).
+    expect(ruleStandard('ENG-205')).toBe('Persamaan kontinuitas; Hazen-Williams (SI)');
+  });
+
+  it('aritmetika dasar tidak diberi label sumber', () => {
+    // Volume kolam = panjang × lebar × tinggi air, dan debit kuras = volume ÷ waktu.
+    expect(ruleStandard('ENG-301')).toBeNull();
+    expect(ruleStandard('ENG-302')).toBeNull();
+    // Debit per riser = debit menit puncak ÷ jumlah riser.
+    expect(ruleStandard('ENG-504')).toBeNull();
+  });
+
+  // Nama metode dan dokumen yang sudah tercatat di aturannya harus ikut sampai ke layar;
+  // aturan baru yang menyebutnya tetapi lupa mengutipnya gagal di sini.
+  it('sumber yang sudah tercatat tidak pernah berhenti di kode', () => {
+    const named =
+      /\b(IPC|UPC|SNI|ISO)\b|Hazen-Williams|Manning|Joukowsky|Noerbambang|KP-01|SPAM|SPALD-T|etode rasional|ontinuitas|koefisien kerugian/;
     const uncited = ALL_RULES.filter(
-      (rule) => /\b(IPC|UPC|SNI)\b/.test(rule.sourceReference ?? '') && rule.standard === undefined,
+      (rule) => named.test(rule.sourceReference ?? '') && rule.standard === undefined,
     ).map((rule) => rule.ruleId);
     expect(uncited).toEqual([]);
   });

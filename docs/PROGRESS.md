@@ -3745,3 +3745,21 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       bahwa ruangnya tipis dan perlu dipastikan tim teknis. Pembandingnya angka pengguna, bukan
       faktor lonjakan karangan: Pralon belum punya angka itu, dan ia masuk daftar kekurangan
       pengetahuan sebagai "ruang lonjakan minimum di atas tekanan kerja".
+
+- [x] P31-75 Rumus hitungan menyebut sumbernya
+
+      Sejak P31-70 angka dari kode plambing menyebut kodenya, tetapi rumusnya sendiri tidak:
+      dari 74 aturan hanya 7 yang membawa sumber ke layar, dan langkah seperti kehilangan
+      tekanan, kecepatan air, atau debit puncak gedung muncul tanpa keterangan apa pun —
+      padahal metodenya sudah tercatat di kode sejak awal (permintaan pemilik 2026-10-27).
+      Sekarang 31 aturan mengutip sumbernya: Hazen-Williams, rumus Manning, metode rasional,
+      Joukowsky, persamaan kontinuitas, metode koefisien kerugian, kriteria perencanaan SPAM
+      dan SPALD-T, KP-01 irigasi, Noerbambang & Morimura untuk gedung bertingkat, dan tabel
+      dimensi PRALON untuk perbandingan pipa lama.
+
+      Aritmetika dasar sengaja tidak diberi label (keputusan pemilik): volume kolam dan debit
+      kuras sudah terbaca di langkahnya, dan kutipan di situ hanya mengulang isinya. Satu tes
+      menjaga sisanya — aturan yang menyebut nama metode di dasarnya tetapi tidak
+      mengutipnya menggagalkan suite, jadi sumber yang sudah tercatat tidak bisa berhenti di
+      kode. Pagar itu langsung menemukan dua aturan yang terlewat, manhole SPALD-T dan
+      perbandingan diameter pipa lama.
