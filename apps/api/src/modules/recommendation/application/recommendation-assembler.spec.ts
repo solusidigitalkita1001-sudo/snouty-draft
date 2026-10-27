@@ -192,6 +192,26 @@ describe('templateProse', () => {
     expect(result.body).toContain('4 produk');
   });
 
+  // Produksi 2026-10-27: masjid dengan 20 keran wudhu dan 6 toilet berjudul "12 titik air" —
+  // benar untuk toiletnya, tetapi keran wudhu yang disebut pengguna tidak muncul sama sekali.
+  it('tempat ibadah: keran wudhu ikut disebut di judul dan kalimatnya', () => {
+    const stats = {
+      outletCount: 12,
+      mainSize: '2"',
+      branchCount: 4,
+      fixtureConnectionSize: '1/2"',
+      productCount: 9,
+    } as const;
+    const id = templateProse(stats, 'id', false, 20);
+    expect(id.headline).toBe('Sistem distribusi untuk 12 titik air dan 20 keran wudhu');
+    expect(id.body).toContain('ditambah 20 keran wudhu pada pipa deretnya sendiri');
+    const en = templateProse(stats, 'en', false, 20);
+    expect(en.headline).toBe('Distribution system for 12 water outlets and 20 ablution taps');
+    expect(en.body).toContain('plus 20 ablution taps on their own row pipe');
+    // Tanpa keran wudhu, kalimatnya tidak berubah sedikit pun.
+    expect(templateProse(stats, 'id').headline).toBe('Sistem distribusi untuk 12 titik air');
+  });
+
   it('en: kalimat Inggris, tunggal untuk satu cabang dan satu produk', () => {
     const result = templateProse(
       {

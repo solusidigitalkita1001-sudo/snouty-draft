@@ -100,6 +100,7 @@ export async function assembleRecommendation(
     allowedSizes,
     ...(input.locale ? { locale: input.locale } : {}),
     replaceExisting: input.replaceExisting ?? false,
+    wudhuTaps: input.solution.wudhu?.taps ?? 0,
   });
 
   return {
@@ -131,11 +132,18 @@ async function writeProse(
     allowedSizes: readonly string[];
     locale?: Locale;
     replaceExisting?: boolean;
+    /** Keran wudhu tempat ibadah: tidak termasuk titik air, tetapi tetap milik pengguna. */
+    wudhuTaps?: number;
   },
 ): Promise<{ headline: string; body: string; source: AssembleResult['proseSource'] }> {
   if (!prose) {
     return {
-      ...templateProse(context.stats, context.locale, context.replaceExisting ?? false),
+      ...templateProse(
+        context.stats,
+        context.locale,
+        context.replaceExisting ?? false,
+        context.wudhuTaps ?? 0,
+      ),
       source: 'template',
     };
   }
@@ -176,7 +184,12 @@ async function writeProse(
   // Tidak ada percobaan ketiga. Templat deterministik selalu lulus REC-1 karena ia
   // hanya menyusun ulang angka yang memang dihitung.
   return {
-    ...templateProse(context.stats, context.locale, context.replaceExisting ?? false),
+    ...templateProse(
+      context.stats,
+      context.locale,
+      context.replaceExisting ?? false,
+      context.wudhuTaps ?? 0,
+    ),
     source: 'template',
   };
 }
@@ -203,36 +216,50 @@ export function templateProse(
   locale: Locale = 'id',
   /** Pipa lama diganti ke Pralon (P22-03): jumlahnya sama dengan instalasi baru di jalur yang sama. */
   replaceExisting = false,
+  /**
+   * Keran wudhu (tempat ibadah): dihitung penuh di debit puncak dan punya pipa deretnya sendiri,
+   * tetapi tidak termasuk `outletCount` (ENG-001 menghitung kamar mandi, wastafel, dapur,
+   * urinoir). Tanpa disebut, masjid dengan 20 keran wudhu dan 6 toilet berjudul "12 titik air" —
+   * angka yang benar untuk toiletnya, tetapi bukan jawaban atas apa yang pengguna sebut
+   * (produksi 2026-10-27).
+   */
+  wudhuTaps = 0,
 ): {
   headline: string;
   body: string;
 } {
   if (locale === 'en') {
     const branches = stats.branchCount === 1 ? '1 branch' : `${stats.branchCount} branches`;
+    const taps = wudhuTaps > 0 ? ` and ${wudhuTaps} ablution taps` : '';
     const products =
       stats.productCount === 1 ? '1 Pralon product' : `${stats.productCount} Pralon products`;
     return {
       headline: replaceExisting
-        ? `Replacing the pipes with Pralon for ${stats.outletCount} water outlets`
-        : `Distribution system for ${stats.outletCount} water outlets`,
+        ? `Replacing the pipes with Pralon for ${stats.outletCount} water outlets${taps}`
+        : `Distribution system for ${stats.outletCount} water outlets${taps}`,
       body:
         (replaceExisting
           ? 'The existing pipes are replaced along the same runs, so the material list is the same as for a new installation; the old pipes are removed during the work. '
           : '') +
-        `Your requirements cover ${stats.outletCount} water outlets served by ${branches}. ` +
+        `Your requirements cover ${stats.outletCount} water outlets served by ${branches}${
+          wudhuTaps > 0 ? `, plus ${wudhuTaps} ablution taps on their own row pipe` : ''
+        }. ` +
         `The main line uses size ${stats.mainSize}, and each fixture connection uses ${stats.fixtureConnectionSize}. ` +
         `There ${stats.productCount === 1 ? 'is' : 'are'} ${products} suited to this system.`,
     };
   }
+  const keran = wudhuTaps > 0 ? ` dan ${wudhuTaps} keran wudhu` : '';
   return {
     headline: replaceExisting
-      ? `Penggantian pipa ke Pralon untuk ${stats.outletCount} titik air`
-      : `Sistem distribusi untuk ${stats.outletCount} titik air`,
+      ? `Penggantian pipa ke Pralon untuk ${stats.outletCount} titik air${keran}`
+      : `Sistem distribusi untuk ${stats.outletCount} titik air${keran}`,
     body:
       (replaceExisting
         ? 'Pipa lama diganti pada jalur yang sama, jadi daftar materialnya sama dengan instalasi baru; pipa lama dilepas saat pemasangan. '
         : '') +
-      `Kebutuhan Anda mencakup ${stats.outletCount} titik air yang dilayani ${stats.branchCount} cabang. ` +
+      `Kebutuhan Anda mencakup ${stats.outletCount} titik air yang dilayani ${stats.branchCount} cabang${
+        wudhuTaps > 0 ? `, ditambah ${wudhuTaps} keran wudhu pada pipa deretnya sendiri` : ''
+      }. ` +
       `Jalur utama memakai ukuran ${stats.mainSize}, dan sambungan ke setiap fixture memakai ${stats.fixtureConnectionSize}. ` +
       `Ada ${stats.productCount} produk Pralon yang sesuai untuk sistem ini.`,
   };

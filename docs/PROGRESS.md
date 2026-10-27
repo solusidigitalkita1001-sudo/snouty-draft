@@ -3601,3 +3601,12 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       melihatnya. Presedensinya sudah lama ada di `answersFromKnowledge` — pernyataan kasus
       bernilai dan topik hitungan yang membawa angkanya sendiri tetap kebutuhan — dan sekarang
       pagar itu juga berlaku di tempat giliran kebutuhan diputuskan.
+
+- [x] P31-64 Keran wudhu yang disebut pengguna ikut disebut di judul solusinya
+
+      Masjid 2 lantai dengan 20 keran wudhu dan 6 toilet dihitung benar — debit puncaknya
+      menjumlahkan toilet menurut kurva Hunter dan 20 keran wudhu penuh (2 l/s, dibuka
+      bersamaan menjelang salat), dan deret wudhunya punya pipa pembagi sendiri — tetapi
+      judulnya berbunyi "Sistem distribusi untuk 12 titik air". Dua belas adalah jumlah titik
+      toiletnya, dan angka itu benar; yang hilang justru angka yang pengguna sebut sendiri.
+      Judul dan kalimat pembukanya sekarang menyebut keran wudhunya di samping titik airnya.
