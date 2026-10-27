@@ -6,11 +6,32 @@ import { describe, expect, it } from 'vitest';
 import {
   ALL_RULES,
   HUNTER_TABLE_MAX_WSFU,
+  ruleStandard,
   RULE_REGISTRY,
   RuleRegistrationError,
   RuleRegistry,
   supplyLoadWsfu,
 } from './index.js';
+
+describe('kutipan kode plambing', () => {
+  // Permintaan pemilik 2026-10-27: hitungan teknis menyebut sumbernya, dan salah satu
+  // pedoman yang dipakai Pralon adalah UPC — jadi kode yang diikuti sebuah angka harus
+  // tertulis pada aturannya, bukan hanya di dokumen.
+  it('aturan yang membaca tabel kode mengutip kodenya; aturan turunan rumus tidak', () => {
+    expect(ruleStandard('ENG-601')).toBe('IPC Table 709.1');
+    expect(ruleStandard('ENG-604')).toBe('IPC 2021 Table 710.1(2)');
+    expect(ruleStandard('ENG-701')).toContain('E103.3(3)');
+    expect(ruleStandard('ENG-801')).toContain('E103.3(2)');
+    expect(ruleStandard('ENG-101')).toBeNull();
+  });
+
+  it('angka dari kode plambing tidak pernah tanpa kutipan', () => {
+    const uncited = ALL_RULES.filter(
+      (rule) => /\b(IPC|UPC|SNI)\b/.test(rule.sourceReference ?? '') && rule.standard === undefined,
+    ).map((rule) => rule.ruleId);
+    expect(uncited).toEqual([]);
+  });
+});
 
 describe('beban alat suplai dari kebutuhan (WSFU)', () => {
   // Produksi 2026-10-27: sekolah 3 lantai dengan 24 toilet. Debit puncaknya di luar kurva

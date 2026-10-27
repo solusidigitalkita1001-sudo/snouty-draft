@@ -98,6 +98,7 @@ export const ENG_801: RuleVersion<WorshipDemandInput, WorshipDemandResult> = {
   },
   sourceReference:
     'IPC Lampiran E, Tabel E103.3(2) pemakaian umum, air dingin: kloset tangki 5,0, lavatory 1,5 (keran kamar mandi disetarakan), urinal tangki 3,0; kurva Hunter kloset tangki Tabel E103.3(3); keran wudhu 0,1 l/s per keran, semua serentak (keputusan pemilik 2026-10-12, OQ-61)',
+  standard: 'IPC Appendix E, Table E103.3(2) + E103.3(3)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -289,6 +290,7 @@ export const ENG_803: RuleVersion<WudhuDrainInput, WudhuDrainResult> = {
   },
   sourceReference:
     'IPC 709.3: aliran kontinu = 2 DFU per gpm; talang tiap deret sebagai cabang mendatar, IPC 2021 Tabel 710.1(2): 1½" 3, 2" 6, 2½" 12, 3" 20, 4" 160 DFU',
+  standard: 'IPC 709.3, IPC 2021 Table 710.1(2)',
   validationStatus: PENDING,
   testCases: [
     {

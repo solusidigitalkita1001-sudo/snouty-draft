@@ -321,7 +321,7 @@ export { computeSolution } from './compute-solution.js';
 export type { CalculationTrace, SolutionInput, SolutionResult } from './compute-solution.js';
 
 /** Registry berisi seluruh 14 aturan, siap dipakai dan diperiksa. */
-export { RULE_REGISTRY, ALL_RULES } from './registry.js';
+export { RULE_REGISTRY, ALL_RULES, ruleStandard } from './registry.js';
 export { outdatedRules, rulesetStamp } from './ruleset.js';
 export type { RuleUse } from './ruleset.js';
 export { ASSUMPTION_CATEGORIES, assumptionCategory } from './parameters/assumption-category.js';

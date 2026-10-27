@@ -97,6 +97,7 @@ export const SOLUTION_COPY = {
   showTechnical: 'Tampilkan detail teknis',
   hideTechnical: 'Sembunyikan detail teknis',
   technicalKicker: 'DETAIL TEKNIS',
+  stepSource: 'Sumber',
   /** BOQ (DD-01 #8, #9): satu tabel per sistem; dasar perhitungan di tabel terpisah. */
   boq: {
     title: 'Daftar kebutuhan material',
@@ -365,6 +366,7 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
   showTechnical: 'Show technical details',
   hideTechnical: 'Hide technical details',
   technicalKicker: 'TECHNICAL DETAILS',
+  stepSource: 'Source',
   boq: {
     title: 'Bill of quantities',
     columns: {

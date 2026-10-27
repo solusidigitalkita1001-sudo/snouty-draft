@@ -43,6 +43,36 @@ describe('langkah hitung', () => {
   });
 });
 
+describe('langkah hitung menyebut kode sumbernya', () => {
+  // Permintaan pemilik 2026-10-27: angka teknis membawa sumbernya ke layar, bukan hanya
+  // tersimpan di definisi aturan.
+  it('beban alat pembuangan mengutip tabel kodenya; langkah turunan rumus tidak', () => {
+    const traces: IdentifiedTrace[] = [
+      {
+        id: 'T0',
+        ruleId: 'ENG-601',
+        ruleVersion: 1,
+        inputs: {},
+        output: {},
+        provenance: 'ASSUMED',
+        explanation: 'Beban 9 DFU.',
+      },
+      {
+        id: 'T1',
+        ruleId: 'ENG-101',
+        ruleVersion: 1,
+        inputs: {},
+        output: {},
+        provenance: 'ASSUMED',
+        explanation: 'Kebutuhan 1.2 l/s.',
+      },
+    ];
+    const steps = stepsFor(['T0', 'T1'], traces, 'id');
+    expect(steps[0]!.source).toBe('IPC Table 709.1');
+    expect(steps[1]!.source).toBeUndefined();
+  });
+});
+
 describe('readableNumbers: nomor pasal standar tidak menjadi desimal', () => {
   it('"IPC 710.1(2)" tetap, "1.38 m/s" menjadi koma', () => {
     expect(readableNumbers('Kecepatan 1.38 m/s (IPC 710.1(2), Tabel 709.1).', 'id')).toBe(

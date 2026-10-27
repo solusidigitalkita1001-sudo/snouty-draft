@@ -41,6 +41,8 @@ export type BomSystem = 'clean_water' | 'soil' | 'waste';
 export interface CalculationStep {
   readonly title: string;
   readonly text: string;
+  /** Kode plambing sumber angkanya, bila langkah itu mengambil nilai dari tabel kode. */
+  readonly source?: string;
 }
 
 export interface SystemLine {

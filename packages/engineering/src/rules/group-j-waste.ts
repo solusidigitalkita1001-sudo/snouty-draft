@@ -121,6 +121,7 @@ export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
   }),
   sourceReference:
     'Unit beban alat plambing pembuangan (DFU), IPC Tabel 709.1: kloset 4, shower 2, wastafel 1, bak cuci dapur 2',
+  standard: 'IPC Table 709.1',
   validationStatus: PENDING,
   testCases: [
     {
@@ -266,6 +267,7 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
   },
   sourceReference:
     'Kapasitas saluran mendatar pada kemiringan 2 %, IPC Tabel 710.1(1): 2" 21, 2½" 24, 3" 42, 4" 216, 5" 480, 6" 840 DFU; ukuran tidak di bawah alat terbesar dan tidak di bawah cabang mendatar / pipa tegak (ENG-604, IPC 710.1(2)); ventilasi ≥ ½ diameter jalur, minimal 1¼" (IPC 906.2)',
+  standard: 'IPC Table 710.1(1), IPC 906.2',
   validationStatus: PENDING,
   testCases: [
     {
@@ -391,6 +393,7 @@ export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
   },
   sourceReference:
     'IPC 2021 Tabel 710.1(2): cabang mendatar 1½" 3, 2" 6, 2½" 12, 3" 20, 4" 160, 5" 360, 6" 620 DFU; per interval cabang 2/6/9/20/90/200/350; stack ≤ 3 interval 4/10/20/48/240/540/960; > 3 interval 8/24/42/72/500/1100/1900',
+  standard: 'IPC 2021 Table 710.1(2)',
   validationStatus: PENDING,
   testCases: [
     {

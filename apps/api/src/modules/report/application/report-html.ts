@@ -21,7 +21,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { hasStepTitle, ruleStepTitle } from '@snouty/engineering';
+import { hasStepTitle, ruleStandard, ruleStepTitle } from '@snouty/engineering';
 import { isFlowSchematic, type Locale, type Provenance } from '@snouty/shared-types';
 import type { ReportPayload } from '../domain/report.types.js';
 import { renderSchematicSvg } from './report-schematic.js';
@@ -644,11 +644,15 @@ function closingSection(p: ReportPayload, t: ReportCopy, n: number): string {
         const title = esc(
           base !== '' && row.qualifier !== undefined ? `${base} — ${row.qualifier}` : base,
         );
+        // Kode plambing sumber angkanya, bila langkah itu membaca tabel kode (permintaan
+        // pemilik 2026-10-27: hitungan teknis menyebut sumbernya).
+        const standard = ruleStandard(row.ruleId);
+        const source = standard === null ? '' : `<span class="step-src">${esc(standard)}</span>`;
         // Rumus singkat bila ada; payload lama dan aturan tanpa rumus memakai penjelasannya.
         const body =
           row.formula !== undefined
-            ? `<td class="formula">${esc(row.formula)}</td>`
-            : `<td class="reason">${esc(row.explanation)}</td>`;
+            ? `<td class="formula">${esc(row.formula)}${source}</td>`
+            : `<td class="reason">${esc(row.explanation)}${source}</td>`;
         return `<tr><td class="step-no">${String(i + 1)}</td><th>${title}</th>${body}</tr>`;
       })
       .join('\n    ')}
@@ -845,6 +849,7 @@ tr, .r-need, .r-product { break-inside: avoid; }
 .grid.steps th { width: 42mm; color: ${C['snouty-ink']}; font-weight: 600; font-size: 8pt; }
 .grid.steps td, .grid.steps th { padding: 1mm 2mm; line-height: 1.35; }
 .step-no { width: 6mm; color: ${C['snouty-caption']}; font-size: 8pt; }
+.step-src { display: block; margin-top: 0.6mm; font-family: 'IBM Plex Mono', 'Liberation Mono', monospace; font-size: 6.6pt; color: ${C['snouty-caption']}; }
 .formula { font-family: 'IBM Plex Mono', 'Liberation Mono', monospace; font-size: 7.4pt; line-height: 1.35; color: ${C['snouty-ink']}; }
 .grid.compact td, .grid.compact th { padding: 1.5mm 2mm; }
 

@@ -493,6 +493,42 @@ ditanya HDPE.
 **Yang dibutuhkan dari Pralon:** apakah HDPE Pralon punya sertifikat kontak air minum (dan nomornya),
 supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 
+### OQ-88 — Kode plambing yang mengikat angka beban alat: IPC atau UPC (P31-70, 2026-10-27)
+
+**Status:** open · **Blocks:** angka beban alat di seluruh kasus air bersih (rumah, masjid,
+bangunan umum) dan ukuran saluran pembuangan — bukan menghalangi, tetapi menentukan angkanya
+**Konteks:** pemilik menyebut UPC (Uniform Plumbing Code) sebagai salah satu pedoman yang
+dipakai Pralon. Angka baku yang dipakai aturan sekarang diambil dari IPC: beban alat air
+bersih dari Lampiran E Tabel E103.3(2) dan kurva debit puncaknya dari E103.3(3), beban
+pembuangan dari Tabel 709.1, kapasitas saluran dari Tabel 710.1(1) dan 710.1(2). Sejak
+P31-70 setiap angka itu menyebut kodenya di layar dan di laporan, jadi perbedaannya
+sekarang terlihat pengguna.
+
+Kedua kode memberi angka yang berbeda untuk alat yang sama. Dari Tabel A 103.1 UPC
+(dibaca pada Hawaii Plumbing Code 2021, yang mengadopsi UPC):
+
+| Alat                   | IPC E103.3(2) pribadi / umum | UPC A 103.1 pribadi / umum |
+| ---------------------- | ---------------------------- | -------------------------- |
+| Kloset tangki 1,6 gpf  | 2,2 / 5,0                    | 2,5 / 2,5                  |
+| Lavatory (wastafel)    | 0,5 / 1,5                    | 1,0 / 1,0                  |
+| Shower per kepala      | 1,0 / 1,0                    | 2,0 / 2,0                  |
+| Bak cuci dapur         | 1,0 / —                      | 1,5 / 1,5                  |
+| Urinal tangki gelontor | — / 3,0                      | 2,0 / 2,0                  |
+
+UPC juga punya kolom ketiga, "assembly", untuk bangunan pertemuan (masjid, sekolah, aula):
+kloset tangki 3,5 dan urinal 3,0–6,0 — persis jenis bangunan yang paling sering ditanyakan
+tim penjualan.
+
+**Usul default (menunggu pilihan pemilik):** angka beban alat air bersih dipindahkan ke UPC
+Tabel A 103.1 (kolom pribadi untuk rumah, umum untuk ruko dan bangunan kantor, assembly
+untuk masjid, sekolah, dan aula), dan aturan pembuangan tetap di IPC Tabel 709.1/710.1
+sampai tabel pembuangan UPC dibaca juga — setiap aturan mengutip kode yang benar-benar
+dipakainya, tidak dicampur dalam satu angka. Setiap perpindahan menaikkan versi aturannya,
+jadi laporan lama tetap bisa dijelaskan dengan angka yang dipakai saat itu.
+**Yang perlu dipastikan:** apakah Pralon memang memakai UPC untuk beban alat (dan edisi
+mana), atau IPC yang dipakai sekarang tetap, atau keduanya dengan satu yang menang bila
+berbeda.
+
 ### OQ-87 — Beban alat di atas kurva debit puncak: diserahkan atau dihitung (P31-69, 2026-10-27)
 
 **Status:** diputuskan 2026-10-27 (pemilik: lanjutkan tabelnya) · **Menunggu:** daftar angka
@@ -511,6 +547,13 @@ seluruh aturan. Sampai daftar itu ada, kasusnya tetap diserahkan seperti sekaran
 **Yang diminta ke ahli:** pasangan angka beban alat → debit puncak di atas 100 unit (misalnya
 120, 150, 200, 300, 500, 750, 1.000 unit), untuk melanjutkan tabel yang sekarang berhenti di
 100 unit / 43,5 gpm. Satu daftar angka, satu tempat perubahannya.
+**Dari UPC (2026-10-27):** pedoman yang disebut pemilik juga memuat konversi beban alat →
+debit, tetapi sebagai grafik (Chart A 103.1(1) dan (2)), bukan tabel angka; yang tertulis
+sebagai teks hanya contoh IAPMO: 200 unit = 64 gpm untuk kloset tangki, 200 unit = 90 gpm
+untuk kloset flushometer, dan 1.500 unit = 270 gpm. Angka di antaranya harus dibaca dari
+grafiknya — dan kurvanya tidak lurus, jadi tidak boleh ditebak dengan interpolasi dari dua
+contoh itu. Jadi daftarnya tetap datang dari tim teknis Pralon, yang membaca grafik itu atau
+memakai cara yang biasa dipakai Pralon; lihat OQ-88 soal kode mana yang mengikat.
 
 ### OQ-86 — Air hujan atap: satu jalur untuk seluruh tangkapan, atau dibagi per talang (P31-61, 2026-10-27)
 

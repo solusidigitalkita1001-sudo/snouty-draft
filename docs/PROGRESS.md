@@ -3686,3 +3686,17 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       (OQ-87), dan sampai itu ada bangunan sebesar ini memang diserahkan. Pemilik memilih
       melanjutkan tabelnya begitu tim teknis Pralon mengesahkan daftar angkanya; yang diminta
       ke ahli sudah ditulis di OQ-87 sebagai satu daftar pasangan angka.
+
+- [x] P31-70 Angka teknis menyebut kode sumbernya
+
+      Permintaan pemilik: hitungan teknis harus bersumber, dan salah satu pedoman yang dipakai
+      Pralon adalah UPC. Sumber setiap aturan sudah tercatat sejak awal, tetapi tidak satu pun
+      sampai ke mata pengguna — angka tabel kode dan angka turunan rumus tampil sama saja.
+      Tujuh aturan yang membaca tabel kode (beban dan kapasitas pembuangan, beban air bersih
+      rumah dan bangunan umum, cabang, talang wudhu) sekarang mengutip kodenya, dan kutipan itu
+      tampil di bawah langkah hitungnya — di layar detail teknis dan di tabel langkah hitung
+      laporan PDF. Satu tes menjaga aturan baru: angka dari IPC, UPC, atau SNI tanpa kutipan
+      menggagalkan suite. Kode mana yang mengikat angka beban alat jadi pertanyaan tersendiri:
+      angka IPC yang dipakai sekarang berbeda dari UPC untuk alat yang sama, dan UPC punya
+      kolom bangunan pertemuan untuk masjid dan sekolah — selisihnya ditulis di OQ-88 dengan
+      usul memindahkannya, menunggu pilihan pemilik.

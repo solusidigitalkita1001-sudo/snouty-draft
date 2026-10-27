@@ -36,6 +36,7 @@ interface RuleVersion<I, O> {
   outputSchema: ZodSchema<O>;
   compute: (input: I) => O; // murni: tanpa I/O, tanpa jam, tanpa acak
   sourceReference?: string; // standar / dokumen / hasil wawancara ahli
+  standard?: string; // kutipan kode plambing yang dibaca pengguna: "IPC 2021 Table 710.1(2)"
   validationStatus: 'REQUIRES_DOMAIN_VALIDATION' | 'VALIDATED' | 'REJECTED';
   validatedBy?: string;
   validatedAt?: string;
@@ -57,6 +58,14 @@ dirender dari fungsi ini, bukan dari prosa LLM. Penjelasan dan perhitungan tidak
 berbeda karena keduanya keluar dari sumber yang sama.
 
 **Test case wajib.** Registry menolak aturan tanpa tes (invarian R-1).
+
+**Angka dari kode plambing menyebut kodenya.** Aturan yang mengambil nilai dari tabel sebuah
+kode mengisi `standard` dengan kutipan seperti tertulis di kodenya, dan kutipan itu ikut ke
+layar detail teknis dan ke tabel langkah hitung di laporan (permintaan pemilik 2026-10-27).
+Sebuah tes menjaganya: aturan yang `sourceReference`-nya menyebut IPC, UPC, atau SNI tetapi
+`standard`-nya kosong akan menggagalkan suite. Aturan yang dasarnya turunan rumus atau
+keputusan pemilik tidak mengutip kode — `sourceReference` yang menjelaskannya.
+Kode mana yang mengikat angka beban alat masih diputuskan: OQ-88.
 
 ### Trace
 

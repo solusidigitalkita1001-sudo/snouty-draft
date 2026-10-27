@@ -138,6 +138,7 @@ export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
   },
   sourceReference:
     'IPC Lampiran E: WSFU air dingin, pemakaian pribadi (Tabel E103.3(2)); debit puncak dari kurva Hunter untuk kloset tangki (Tabel E103.3(3)), interpolasi linear; 1 gpm = 0,0631 l/s',
+  standard: 'IPC Appendix E, Table E103.3(2) + E103.3(3)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -695,6 +696,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
   },
   sourceReference:
     'Pengelompokan tanpa denah: kamar mandi (tidak dipisah), lalu wastafel, urinoir, lalu bak cuci dapur, maks 4 titik per cabang, cabang per lantai; beban cabang = jumlah WSFU isinya (IPC Tabel E103.3(2))',
+  standard: 'IPC Appendix E, Table E103.3(2)',
   validationStatus: PENDING,
   testCases: [
     {

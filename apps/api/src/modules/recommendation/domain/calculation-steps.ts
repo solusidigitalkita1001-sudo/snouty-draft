@@ -4,7 +4,7 @@
  * itu diubah menjadi langkah bernomor — judul langkah dari engine + penjelasan aturan — tanpa
  * kode aturan, dengan angka berformat Indonesia. **Fungsi murni.**
  */
-import { ruleStepTitle } from '@snouty/engineering';
+import { ruleStandard, ruleStepTitle } from '@snouty/engineering';
 import type { CalculationStep, Locale, Recommendation } from '@snouty/shared-types';
 import type { IdentifiedTrace } from './solution-view.js';
 
@@ -34,9 +34,13 @@ export function stepsFor(
     const key = `${trace.ruleId}|${trace.explanation}`;
     if (seen.has(key)) continue;
     seen.add(key);
+    // Angka yang diambil dari tabel kode plambing menyebut kodenya; langkah yang dasarnya
+    // turunan rumus tidak mengutip apa pun (permintaan pemilik 2026-10-27).
+    const source = ruleStandard(trace.ruleId);
     steps.push({
       title: ruleStepTitle(trace.ruleId, locale),
       text: readableNumbers(trace.explanation, locale),
+      ...(source === null ? {} : { source }),
     });
   }
   return steps;

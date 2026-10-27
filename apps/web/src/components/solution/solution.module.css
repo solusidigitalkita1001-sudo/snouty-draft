@@ -252,6 +252,17 @@
   color: var(--snouty-ink);
 }
 
+/* Kutipan kode plambing di bawah langkahnya — terbaca kalau dicari, tidak menutupi angkanya. */
+.stepSource {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--snouty-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--snouty-muted);
+  opacity: 0.75;
+}
+
 /* ---------- tag provenance ---------- */
 
 .tag {

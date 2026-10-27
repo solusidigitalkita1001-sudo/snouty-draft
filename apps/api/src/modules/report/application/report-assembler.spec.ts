@@ -239,11 +239,16 @@ describe('renderReportHtml', () => {
     const steps = html.slice(html.indexOf('<table class="grid steps">'));
     const stepsTable = steps.slice(0, steps.indexOf('</table>'));
     for (const row of withFormula) {
-      expect(stepsTable).toContain(
-        `<td class="formula">${row.formula!.replace(/"/g, '&quot;')}</td>`,
-      );
+      expect(stepsTable).toContain(`<td class="formula">${row.formula!.replace(/"/g, '&quot;')}`);
       expect(stepsTable).not.toContain(row.explanation.replace(/"/g, '&quot;'));
     }
+  });
+
+  // Permintaan pemilik 2026-10-27: hitungan teknis menyebut sumbernya, juga di laporan.
+  it('langkah yang membaca tabel kode plambing mencetak kodenya', () => {
+    const steps = html.slice(html.indexOf('<table class="grid steps">'));
+    const stepsTable = steps.slice(0, steps.indexOf('</table>'));
+    expect(stepsTable).toContain('<span class="step-src">IPC');
   });
 
   it('memuat logo Pralon dan maskot SNOUTY sebagai gambar tersisip, footer bernomor halaman', () => {

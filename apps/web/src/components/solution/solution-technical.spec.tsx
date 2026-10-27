@@ -34,7 +34,11 @@ const RECOMMENDATION = {
       traceIds: ['T1', 'T2'],
       role: 'main',
       steps: [
-        { title: 'Kebutuhan air harian dan puncak', text: 'Kebutuhan harian 540 m³.' },
+        {
+          title: 'Kebutuhan air harian dan puncak',
+          text: 'Kebutuhan harian 540 m³.',
+          source: 'IPC Appendix E, Table E103.3(2)',
+        },
         { title: 'Pilih ukuran pipa', text: 'Dicoba 10 ukuran; 6" yang terkecil.' },
       ],
     },
@@ -56,6 +60,8 @@ describe('SolutionView — detail teknis', () => {
     expect(screen.getByText('Kebutuhan air harian dan puncak.')).toBeTruthy();
     expect(screen.getByText('Pilih ukuran pipa.')).toBeTruthy();
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    // Angka dari tabel kode plambing menyebut kodenya (permintaan pemilik 2026-10-27).
+    expect(document.body.textContent).toContain('Sumber: IPC Appendix E, Table E103.3(2)');
     expect(document.body.textContent).not.toMatch(/ENG-\d/);
   });
 

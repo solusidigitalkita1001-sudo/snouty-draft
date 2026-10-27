@@ -250,6 +250,11 @@ export function SolutionView({
                       {line.steps.map((step, index) => (
                         <li key={`${step.title}-${index}`} className={styles.stepItem}>
                           <span className={styles.stepTitle}>{step.title}.</span> {step.text}
+                          {step.source !== undefined && (
+                            <span className={styles.stepSource}>
+                              {COPY.stepSource}: {step.source}
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ol>

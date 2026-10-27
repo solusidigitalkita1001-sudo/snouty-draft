@@ -44,3 +44,12 @@ export const RULE_REGISTRY = new RuleRegistry();
 for (const rule of ALL_RULES) {
   RULE_REGISTRY.register(rule);
 }
+
+/**
+ * Kode plambing yang menjadi sumber angka sebuah aturan, atau null bila dasarnya turunan
+ * rumus dan bukan tabel kode (permintaan pemilik 2026-10-27: hitungan teknis menyebut
+ * sumbernya). Versi tertinggi: itu yang dipakai hitungan baru.
+ */
+export function ruleStandard(ruleId: string): string | null {
+  return RULE_REGISTRY.latest(ruleId)?.standard ?? null;
+}

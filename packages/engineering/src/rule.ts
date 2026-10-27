@@ -46,6 +46,14 @@ export interface RuleVersion<I, O> {
   /** Murni: tanpa I/O, tanpa jam, tanpa acak. */
   readonly compute: (input: I) => O;
   readonly sourceReference?: string;
+  /**
+   * Kode plambing yang menjadi sumber angka bakunya, dikutip seperti tertulis di kodenya
+   * ("IPC 2021 Table 710.1(2)") — ini yang dibaca pengguna di bawah langkah hitungnya.
+   * Hanya untuk aturan yang mengambil nilai dari tabel kode; aturan yang dasarnya turunan
+   * rumus atau keputusan pemilik tidak mengutip kode, dan `sourceReference` sudah menjelaskannya.
+   * Kutipan tidak diterjemahkan: nama pasal dan tabelnya milik dokumen aslinya.
+   */
+  readonly standard?: string;
   readonly validationStatus: RuleValidationStatus;
   readonly validatedBy?: string;
   readonly validatedAt?: string;
