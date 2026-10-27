@@ -283,15 +283,27 @@
       "id": "C-16",
       "category": "air hujan — tanpa intensitas",
       "messages": ["talang air hujan atap rumah luas 150 m2, pipa turun berapa inch?"],
-      "expect": "Keputusan pemilik: intensitas \"Belum tahu\" → 150 mm/jam (asumsi registry): 0,6 × 150 × 150 m² ÷ 3,6e6 = 3,75 l/s.",
+      "expect": "Keputusan pemilik: intensitas \"Belum tahu\" → 150 mm/jam (asumsi registry): 0,6 × 150 × 150 m² ÷ 3,6e6 = 3,75 l/s limpasan seluruh atap. Pilihan pemilik OQ-86 (P31-65): atap 150 m² (sisi ±12 m) turun di 2 talang, jadi 1,88 l/s per turunan dan ukuran pipanya dihitung untuk angka itu.",
       "checks": [
         {
           "path": "headline",
+          "matches": "turunan talang"
+        },
+        {
+          "path": "headline",
+          "matches": "1,8\\d? l/s"
+        },
+        {
+          "path": "body",
           "matches": "3,7\\d? l/s|3,8 l/s"
         },
         {
           "path": "assumptions[*].text",
           "matches": "150 mm/jam"
+        },
+        {
+          "path": "assumptions[*].text",
+          "matches": "15 m sisi atap"
         }
       ]
     },

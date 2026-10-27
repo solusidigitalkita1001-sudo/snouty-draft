@@ -3633,3 +3633,9 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       menunggu ahli Pralon). Gudang itu kini 8 turunan, 7,51 l/s per turunan, pipa 6" — dengan
       jumlah pipa dan fitting mengikuti jumlah turunannya. Tangkapan dari halaman, jalan, atau
       parkir tetap satu saluran seperti sebelumnya.
+
+      Di produksi: perhitungan 23/23 (kasus talang rumah 150 m² sekarang 2 turunan, 1,88 l/s
+      per turunan), pipa 48/48, FAQ sales 19/19. Simulasi campuran masih 13/16 — tiga
+      kegagalannya tidak menyentuh air hujan dan menjadi item berikutnya: ukuran HDPE dalam
+      bahasa Inggris tanpa satuan mm, jawaban renovasi yang tidak menyebut bahan, dan lanjutan
+      "yang terbesar" yang tidak dijawab.
