@@ -3683,4 +3683,6 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       percakapannya menyerahkan kasusnya ke tim teknis dengan alasan yang menyebut angkanya,
       dan Susun rekomendasi yang tetap dipanggil menjawab tidak sah — bukan gangguan layanan
       yang mengundang coba lagi. Angka di atas 100 unit tidak dikarang: perlu disahkan ahli
-      (OQ-87), dan sampai itu ada bangunan sebesar ini memang diserahkan.
+      (OQ-87), dan sampai itu ada bangunan sebesar ini memang diserahkan. Pemilik memilih
+      melanjutkan tabelnya begitu tim teknis Pralon mengesahkan daftar angkanya; yang diminta
+      ke ahli sudah ditulis di OQ-87 sebagai satu daftar pasangan angka.
