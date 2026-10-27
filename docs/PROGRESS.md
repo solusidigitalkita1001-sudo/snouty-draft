@@ -3544,3 +3544,47 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       boleh terpisah koma dan kata pengisi, boleh berdiri di belakang angkanya, "borehole" diakui
       sebagai sumur, dan angka yang sudah terbaca sebagai kedalaman tidak pernah menjadi panjang
       jalur.
+
+- [x] P31-59 Permintaan menghitung yang membawa nilai tetap permintaan menghitung
+
+      "mau bangun masjid, tempat wudhunya 20 kran" lalu "airnya dari toren di atas, itung aja"
+      dijawab ringkasan yang sama plus pertanyaan jenis instalasi — padahal jenis instalasi punya
+      anggapan dan pengguna baru saja mengizinkan memakainya. Penyebabnya: permintaan menghitung
+      hanya terbaca dari intent, dan pesan yang menyatakan nilai sekaligus memintanya berintent
+      pernyataan kebutuhan. Kini ia katalog contohnya sendiri (`compute-request`), dibaca dari
+      vektor pesan yang sudah disandikan — tanpa panggilan model tambahan — dengan sisi `none`
+      yang memuat pertanyaan tentang menghitung ("lu bisa ngitung ga sih", "gimana cara ngitung")
+      supaya kata yang sama tidak terbaca sebagai izin. Enam kasus baru di golden dataset lolos;
+      akurasi intent 196/197 (99,5%), dua kegagalan lama tidak berubah.
+
+- [x] P31-60 "Tempat wudhunya 20 kran" adalah 20 keran, bukan 20 tempat wudhu
+
+      Satu tempat wudhu adalah satu deret keran dengan satu talang; 20 di antaranya berarti 20
+      talang pembuangan. Pesan itu juga mencatat 20 titik air biasa, jadi masjidnya masuk hitungan
+      dengan dua angka yang tidak pernah disebut siapa pun. Dua pangkalnya: angka yang berdiri di
+      antara dua kata benda direbut kata benda di depannya — bahkan separuh angkanya, karena "20"
+      mundur menjadi "2" demi lolos pagar satuan — dan pagar titik air gugur di balik klitik
+      "-nya". Sekarang angka hanya dibaca utuh, kata benda di belakang angka ikut memagari, dan di
+      kalimat yang memang bicara wudhu keran telanjang adalah keran wudhu.
+
+- [x] P31-61 Dua sisi di kasus air hujan adalah luas tangkapannya
+
+      "gudang baru 40 x 60 meter, mau pasang pipa air hujan dari atap" tercatat sebagai
+      panjang/lebar lahan — parameter yang tidak dipakai kasus air hujan — lalu luas tangkapannya
+      ditanyakan dalam hektar kepada orang yang baru saja menyebut ukuran atapnya. Di kasus air
+      hujan dan gorong-gorong, pasangan sisi adalah bidang yang airnya masuk ke saluran ini:
+      40 × 60 m = 0,24 ha. Lahan irigasi tetap panjang × lebar lahan.
+
+- [x] P31-62 "Itung aja" di kasus teknis dihitung dengan anggapan, bukan daftar angka
+
+      Drainase air hujan yang luas tangkapannya sudah disebut menjawab "itung aja" dengan empat
+      angka yang masih diperlukan — intensitas hujan, panjang jalur, kemiringan, koefisien
+      limpasan — padahal keempatnya punya anggapan di registry dan dua di antaranya memang
+      keputusan pemilik (hujan 150 mm/jam, C 0,6). Permintaan menghitung di jalur teknis kini sama
+      dengan di jalur bangunan (P31-52): yang belum diketahui tetapi punya anggapan dicatat
+      sebagai anggapan bertanda, hitungannya jalan di giliran itu, dan parameter kritis tanpa
+      anggapan tetap ditanya dengan namanya.
+
+      Sekaligus: tiga pelanggaran lint dan satu kesalahan tipe di tes (`supply.boosterPumpNeeded`
+      yang tidak pernah ada, sehingga `toBeFalsy()` lulus atas `undefined`) dari putaran kemarin
+      dibereskan — `pnpm typecheck` dan `eslint` bersih lagi.

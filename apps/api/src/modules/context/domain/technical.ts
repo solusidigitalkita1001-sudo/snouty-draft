@@ -275,6 +275,29 @@ export function unresolvedUnknowns(
     .map(([key, p]) => (isParameterKey(key) ? parameterLabel(key, locale) : p.label).toLowerCase());
 }
 
+/**
+ * Permintaan menghitung ("udah, itung aja") di kasus teknis: parameter yang belum diketahui dan
+ * PUNYA anggapan — bukan kritis, atau kritis dengan asumsi registry — dicatat "Belum tahu"
+ * sehingga hitungannya jalan dengan anggapan bertanda, seperti permintaan menghitung di jalur
+ * bangunan (P31-52). Parameter kritis tanpa anggapan tetap ditanya: tanpa angkanya hitungannya
+ * memang tidak ada. Produksi 2026-10-27: "itung aja" pada drainase air hujan yang luas
+ * tangkapannya sudah disebut dijawab daftar empat angka — intensitas hujan, panjang jalur,
+ * kemiringan, koefisien limpasan — padahal keempatnya punya anggapan.
+ */
+export function assumeTechnicalUnknowns(state: RequirementState): {
+  readonly state: RequirementState;
+  readonly changed: boolean;
+} {
+  if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) {
+    return { state, changed: false };
+  }
+  const caseId = state.useCase.caseId;
+  const answers = technicalMissing(state)
+    .filter((p) => !isUnresolvedUnknown(caseId, p.key))
+    .map((p) => ({ key: p.key, value: UNKNOWN }));
+  return applyTechnicalAnswers(state, answers);
+}
+
 /** Parameter yang masih perlu ditanya, urut dampak — maksimum empat (brief §8). */
 export function technicalMissing(state: RequirementState): readonly MissingParameter[] {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return [];
@@ -466,7 +489,7 @@ export function technicalGuidance(
   state: RequirementState,
   locale: Locale = DEFAULT_LOCALE,
   /** `withIntro: false` untuk giliran lanjutan (jawaban kartu): kasusnya sudah disebut sebelumnya. */
-  options: { readonly withIntro?: boolean } = {},
+  options: { readonly withIntro?: boolean; readonly computing?: boolean } = {},
 ): string {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return '';
   const profile = caseProfile(state.useCase.caseId);
@@ -498,10 +521,12 @@ export function technicalGuidance(
     lines.push('', missing.length > 0 ? copy.askIntro : copy.pickIntro);
     for (const question of missing) lines.push(`- ${question}`);
     if (isTechnicalComplete(state) && profile.calculatorStatus === 'available') {
-      lines.push('', copy.proceedWithDefaults);
+      lines.push('', options.computing === true ? copy.computing : copy.proceedWithDefaults);
     }
   } else if (profile.calculatorStatus === 'available') {
-    lines.push('', copy.readyToCompute);
+    // Pengguna sendiri yang meminta menghitung: yang dikatakan hasilnya sedang dibuat, bukan
+    // tombol untuk membuatnya (P31-62).
+    lines.push('', options.computing === true ? copy.computing : copy.readyToCompute);
   } else {
     lines.push('', copy.readyForTeam);
   }
@@ -577,6 +602,7 @@ interface GuidanceCopy {
   readonly askIntro: string;
   readonly proceedWithDefaults: string;
   readonly readyToCompute: string;
+  readonly computing: string;
   readonly readyForTeam: string;
   readonly stillNeeded: (labels: string) => string;
 }
@@ -590,6 +616,8 @@ const GUIDANCE_COPY: Readonly<Record<Locale, GuidanceCopy>> = {
       'Kalau mau langsung lihat hasilnya, tekan **Susun rekomendasi** — yang belum disebut saya pakai angka perkiraan awal dan saya tandai jelas di hasilnya.',
     readyToCompute:
       'Datanya sudah cukup. Tekan **Susun rekomendasi** untuk melihat ukuran pipa dan daftar produknya.',
+    computing:
+      'Yang belum disebut saya pakai angka perkiraan awal dan saya tandai di hasilnya. Ukuran pipa dan daftar produknya saya hitung sekarang.',
     readyForTeam:
       'Datanya sudah cukup; saya teruskan ke tim teknis Pralon untuk dihitung, dan hasilnya dikirim ke Anda.',
     stillNeeded: (labels) =>
@@ -603,6 +631,8 @@ const GUIDANCE_COPY: Readonly<Record<Locale, GuidanceCopy>> = {
       'If you want to see the result right away, press **Compose recommendation** — anything not mentioned uses an initial estimate that I mark clearly in the result.',
     readyToCompute:
       'That is enough data. Press **Compose recommendation** to see the pipe sizes and the product list.',
+    computing:
+      'Anything not mentioned uses an initial estimate that I mark in the result. I am working out the pipe sizes and the product list now.',
     readyForTeam:
       'That is enough data; I will pass it to the Pralon technical team to calculate, and the result will be sent to you.',
     stillNeeded: (labels) =>

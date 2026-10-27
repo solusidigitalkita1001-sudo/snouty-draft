@@ -47,6 +47,11 @@ export function num(raw: string): number {
   return Number(text.replace(',', '.'));
 }
 
+/** Luas dalam hektar, empat angka di belakang koma (1 m² = 0,0001 ha). */
+function hectares(squareMetres: number): number {
+  return Math.round((squareMetres / 10_000) * 10_000) / 10_000;
+}
+
 export function extractTechnicalContext(
   message: string,
   caseId: CaseId | null = null,
@@ -150,6 +155,15 @@ export function extractTechnicalContext(
       // Gedung bertingkat: dua sisi adalah denah satu lantai → luas per lantai.
       if (caseId === 'multistorey_building_water') {
         add('floor_area', Math.round(num(m[1]!) * num(m[2]!) * 100) / 100, m[0], 'm²');
+        return;
+      }
+      // Air hujan dan gorong-gorong: dua sisi adalah bidang yang airnya masuk ke saluran ini —
+      // luas tangkapan, satu-satunya parameter kritis yang tidak punya anggapan. Di produksi
+      // 2026-10-27 "gudang baru 40 x 60 meter, mau pasang pipa air hujan dari atap" tercatat
+      // sebagai panjang/lebar lahan (yang tidak dipakai kasus ini), lalu luas tangkapannya
+      // ditanyakan dalam hektar kepada orang yang baru saja menyebut ukuran atapnya.
+      if (caseId === 'stormwater' || caseId === 'culvert') {
+        add('catchment_area', hectares(num(m[1]!) * num(m[2]!)), m[0], 'ha');
         return;
       }
       const pond = caseId === 'fish_pond';
@@ -282,7 +296,7 @@ export function extractTechnicalContext(
     );
   });
   take(new RegExp(`${NUM}\\s*(m2|m²|meter persegi|square meters?|square metres?|sqm)\\b`), (m) => {
-    const ha = Math.round((num(m[1]!) / 10_000) * 10_000) / 10_000;
+    const ha = hectares(num(m[1]!));
     add(
       caseId === 'stormwater' || caseId === 'culvert' ? 'catchment_area' : 'total_area',
       ha,

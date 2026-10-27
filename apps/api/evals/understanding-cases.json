@@ -1717,6 +1717,36 @@
       "topics": ["jumlah batang"],
       "topicsOnly": true,
       "source": "produksi 2026-10-26 (renovasi ruko)"
+    },
+    {
+      "text": "sumber airnya toren atap, langsung itung aja",
+      "computeRequest": "compute",
+      "source": "P31-59 katalog compute-request — nilai + permintaan hitung"
+    },
+    {
+      "text": "ya udah, hitungin sekarang ya",
+      "computeRequest": "compute",
+      "source": "P31-59 katalog compute-request"
+    },
+    {
+      "text": "water comes from a ground tank, please calculate it",
+      "computeRequest": "compute",
+      "source": "P31-59 katalog compute-request"
+    },
+    {
+      "text": "emang bisa ngitung sendiri?",
+      "computeRequest": null,
+      "source": "P31-59 katalog compute-request — kemampuan, bukan permintaan"
+    },
+    {
+      "text": "cara ngitung debit puncaknya gimana?",
+      "computeRequest": null,
+      "source": "P31-59 katalog compute-request — cara, bukan permintaan"
+    },
+    {
+      "text": "masjid 2 lantai, keran wudhunya 20 kran",
+      "computeRequest": null,
+      "source": "P31-59 katalog compute-request — pernyataan tanpa permintaan hitung"
     }
   ]
 }

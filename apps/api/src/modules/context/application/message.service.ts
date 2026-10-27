@@ -113,7 +113,7 @@ import type { Logger } from 'pino';
  * dihitung, keduanya bukan bagian kebutuhan yang dihitung engine.
  */
 function sameRequirement(a: RequirementState, b: RequirementState): boolean {
-  const requirement = ({ subject, version, ...rest }: RequirementState) => rest;
+  const requirement = ({ subject: _subject, version: _version, ...rest }: RequirementState) => rest;
   return JSON.stringify(requirement(a)) === JSON.stringify(requirement(b));
 }
 

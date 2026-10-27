@@ -26,6 +26,7 @@ import type {
   ProductAspectLabel,
   UseCaseLabel,
   ExtremeLabel,
+  ComputeRequestLabel,
 } from '../domain/labels.js';
 import type { EntityLexicon } from '../domain/vocabulary.js';
 import type { VectorCache } from '../infrastructure/file-vector.cache.js';
@@ -123,6 +124,9 @@ export class UnderstandingService {
       // Nilai di pesan ditutupi untuk aspek; untuk terkecil/terbesar justru angkanya yang tidak
       // relevan, jadi kueri biasa yang dipakai.
       extreme: (this.verdict('extreme', query).best?.label as ExtremeLabel | undefined) ?? null,
+      computeRequest:
+        (this.verdict('compute-request', query).best?.label as ComputeRequestLabel | undefined) ??
+        null,
       intentRanking: intent.ranked,
       topicRanking: knowledge.ranked.slice(0, 5),
     };

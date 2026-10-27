@@ -322,7 +322,7 @@ describe('instalasi pembuangan saja: tanpa dudukan toren', () => {
   it('pekerjaan pembuangan tidak punya pilihan dudukan toren maupun pompa pendorong', () => {
     const drainage = computeSolution({ ...BOARD_EXAMPLE, installationType: 'drainage' });
     expect(drainage.supply.tankStand).toBeNull();
-    expect(drainage.supply.boosterPumpNeeded).toBeFalsy();
+    expect(drainage.boosterPumpNeeded).toBe(false);
   });
 
   it('instalasi air bersih tetap punya pilihan dudukannya', () => {

@@ -1,0 +1,46 @@
+{
+  "name": "compute-request",
+  "description": "Pesan ini MEMINTA hitungannya dibuat sekarang ('udah, itung aja'). Berdiri sendiri di luar intent karena satu pesan bisa sekaligus menyatakan nilai dan meminta dihitung: 'airnya dari toren atas, itung aja' adalah pernyataan kebutuhan — intentnya requirement_building — sehingga permintaan menghitungnya hilang dan jawabannya kembali menanyakan data yang punya anggapan (produksi 2026-10-27, masjid 20 keran wudhu). Contohnya harus membawa kata permintaannya sendiri (hitung/itung/compute), dan sisi `none` memuat pertanyaan yang hanya BERBICARA tentang menghitung — kemampuan ('lu bisa ngitung ga sih') dan cara ('gimana cara ngitung kebutuhan pipanya') — karena keduanya memakai kata yang sama tetapi bukan izin memakai anggapan.",
+  "threshold": 0.7,
+  "margin": 0.03,
+  "labels": {
+    "compute": [
+      "udah, itung aja",
+      "itung aja ya",
+      "oke hitung sekarang",
+      "langsung dihitung aja",
+      "tolong hitung ukuran pipanya",
+      "ya udah dihitung aja dulu",
+      "itung aja pakai anggapan standar",
+      "gak tau detailnya, hitung aja kira-kira",
+      "airnya dari toren atas, itung aja",
+      "pompanya belum tau, tolong itung",
+      "lantainya 3, itung aja dulu",
+      "segitu dulu, hitungin ya",
+      "just compute it",
+      "please calculate it now",
+      "go ahead and size the pipes",
+      "just work it out with standard assumptions",
+      "water is from a rooftop tank, just calculate it"
+    ],
+    "none": [
+      "rumah 2 lantai, 3 kamar mandi",
+      "airnya dari toren atap",
+      "masjid 2 lantai, keran wudhunya 20",
+      "lu bisa ngitung ga sih?",
+      "kamu bisa menghitung ukuran pipa?",
+      "gimana cara ngitung kebutuhan pipanya?",
+      "ukuran pipanya berapa?",
+      "butuh berapa batang pipa?",
+      "harganya berapa?",
+      "ada ukuran apa saja?",
+      "septic tanknya di mana?",
+      "oke",
+      "makasih ya",
+      "boleh",
+      "can you calculate pipe sizes?",
+      "how do i calculate the peak flow?",
+      "what size pipe do i need?"
+    ]
+  }
+}

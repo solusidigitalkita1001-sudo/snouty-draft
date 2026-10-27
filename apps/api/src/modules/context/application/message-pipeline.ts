@@ -48,6 +48,7 @@ import {
 } from '../../policy/scope.js';
 import {
   applyTechnicalFacts,
+  assumeTechnicalUnknowns,
   BUILDING_ASPECTS,
   carryBuildingFloors,
   detectTechnicalCase,
@@ -290,6 +291,16 @@ export async function runUnderstanding(
   // tengah kasus sumur bor dikenali `useCase: irrigation` (pompa memang sering irigasi), dan
   // jawabannya jadi penjelasan irigasi yang bicara soal lahan — padahal yang dibahas sumur
   // (produksi 2026-10-26). Hanya kebutuhan irigasi yang TERSURAT boleh berganti jalur.
+  // "udah, itung aja" dijawab "Tekan **Susun rekomendasi**" padahal pengguna baru saja memintanya
+  // menghitung (produksi 2026-10-26). Permintaan melanjutkan atas kebutuhan yang sudah bisa
+  // dihitung dijalankan di giliran ini, tanpa menunggu ada data yang berubah.
+  // Pesan yang menyatakan nilai sekaligus memintanya ("airnya dari toren atas, itung aja")
+  // berintent pernyataan kebutuhan, jadi permintaan menghitungnya dibaca katalognya sendiri
+  // (produksi 2026-10-27: masjid dengan 20 keran wudhu ditanyai lagi data yang punya anggapan).
+  const asksToCompute =
+    input.understanding?.intent?.label === 'follow_up_continue' ||
+    input.understanding?.computeRequest === 'compute';
+
   const statesIrrigation = input.understanding?.intent?.label === 'requirement_irrigation';
   const running = input.state.useCase?.kind;
   const irrigation =
@@ -373,7 +384,15 @@ export async function runUnderstanding(
         tallBuildingCase(input.state, input.message));
   if (technicalCase !== null) {
     const facts = applyTechnicalFacts(input.state, technicalCase, input.message);
-    const applied = { ...facts, state: carryBuildingFloors(facts.state, technicalCase) };
+    const carried = carryBuildingFloors(facts.state, technicalCase);
+    // Pengguna meminta menghitung: yang belum diketahui tetapi punya anggapan diisi anggapan
+    // bertanda, lalu kasusnya dihitung di giliran ini (P31-62).
+    const assumed = asksToCompute ? assumeTechnicalUnknowns(carried) : null;
+    const applied = {
+      ...facts,
+      state: assumed?.state ?? carried,
+      changed: facts.changed || assumed?.changed === true,
+    };
     events.push({ type: 'requirement.updated', state: applied.state });
     // Kalimat pembuka kasus hanya di giliran pertama; giliran berikutnya langsung data + pertanyaan.
     const firstTurn = input.state.useCase?.kind !== 'technical';
@@ -381,10 +400,14 @@ export async function runUnderstanding(
     const questions = technicalQuestionCard(applied.state, locale);
     // Data yang saling bertentangan ditanyakan balik lebih dulu — sebelum panduan dan tombol hitung.
     const issues = technicalInputIssues(applied.state, locale);
+    // Permintaan menghitung yang memang membuat kasusnya lengkap: hitungannya dijalankan di
+    // giliran ini dan kalimatnya mengatakan itu. Bila masih ada parameter kritis tanpa anggapan,
+    // yang ditanya tetap ditanya — `technicalNudge` menyebut namanya.
+    const computing = assumed !== null && card?.kind === 'cta';
     const guidance =
       issues.length > 0
         ? issues.join(' ')
-        : technicalGuidance(applied.state, locale, { withIntro: firstTurn });
+        : technicalGuidance(applied.state, locale, { withIntro: firstTurn, computing });
     // Pesan lanjutan tanpa data baru ("lu belum nanya kamar mandi", "kasih gw pilihan") dijawab
     // sesuai isinya di atas DATA kasus — bukan template yang sama diulang (laporan pemilik
     // 2026-10-09). Model gagal → teks panduan seperti biasa.
@@ -396,7 +419,7 @@ export async function runUnderstanding(
     // langsung dari daftar parameter kasus — instan, tanpa model (benchmark P16-40).
     const explains = EXPLAINING_INTENTS.has(input.understanding?.intent?.label ?? '');
     const text =
-      !chatOnly || issues.length > 0
+      !chatOnly || issues.length > 0 || computing
         ? guidance
         : !explains
           ? technicalNudge(
@@ -435,7 +458,8 @@ export async function runUnderstanding(
       text: ignoredValue ? `${valueWithoutPlaceReply(locale)} ${text}` : text,
     });
     if (questions) events.push({ type: 'card', card: questions });
-    if (card) events.push({ type: 'card', card });
+    // Permintaan menghitung menjalankan hitungannya di giliran ini, seperti jalur bangunan.
+    if (card) events.push({ type: 'card', card: computing ? { ...card, auto: true } : card });
     events.push(endEvent(input.messageId));
     return {
       events,
@@ -454,10 +478,6 @@ export async function runUnderstanding(
   // kartu tidak terbit, pengguna menatap layar kosong).
   let extraction: Extraction = {};
   let extractionFailed = false;
-  // "udah, itung aja" dijawab "Tekan **Susun rekomendasi**" padahal pengguna baru saja memintanya
-  // menghitung (produksi 2026-10-26). Permintaan melanjutkan atas kebutuhan yang sudah bisa
-  // dihitung dijalankan di giliran ini, tanpa menunggu ada data yang berubah.
-  const asksToCompute = input.understanding?.intent?.label === 'follow_up_continue';
   // Diet panggilan model (produksi 2026-10-07: ekstraksi 7B rata-rata 103 s, dan 9 dari 16 kali
   // diulang). Bila fakta tersurat di teks sudah memberi minimal dua dari empat data inti (lantai,
   // kamar mandi, sumber air, jenis instalasi), model tidak dipanggil: sisanya ditanya kartu
@@ -642,7 +662,8 @@ export async function runUnderstanding(
   const next = followUpCard(merged, input.locale);
   // Rumah yang baru lengkap di giliran ini langsung dihitung — dengan atau tanpa anggapan.
   // Solusi yang sudah dihitung dan masih sesuai tidak dihitung ulang hanya karena diminta lagi.
-  const alreadyComputed = input.solution != null && !input.solution.stale;
+  const alreadyComputed =
+    input.solution !== null && input.solution !== undefined && !input.solution.stale;
   const card: AssistantCard | null =
     next?.kind === 'cta' &&
     next.action === 'ANALYZE' &&

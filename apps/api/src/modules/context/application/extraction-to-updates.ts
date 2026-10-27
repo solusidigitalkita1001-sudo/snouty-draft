@@ -147,18 +147,20 @@ const OBVIOUS = {
   // 2026-10-07): bila model dilewati, "4 wastafel, 1 dapur" tetap tercatat.
   basins: (m: string) =>
     countOf('wastafel|washtafel|westafel|bak cuci|basins?|sinks?|washbasins?', m, 3),
-  /** Keran wudhu — field sendiri (tempat ibadah, 2026-10-12), bukan wastafel. */
-  wudhuTaps: (m: string) => countOf(WUDHU, m, 3),
+  /**
+   * Keran wudhu — field sendiri (tempat ibadah, 2026-10-12), bukan wastafel. Di kalimat yang
+   * memang bicara wudhu, keran telanjang adalah keran wudhu: "tempat wudhunya 20 kran" tercatat
+   * 20 TEMPAT wudhu (20 talang pembuangan) dan 20 titik air biasa di produksi 2026-10-27.
+   */
+  wudhuTaps: (m: string) =>
+    countOf(WUDHU, m, 3) ?? (mentionsWudhu(m) ? countOf(TAP, m, 3) : undefined),
   wudhuAreas: (m: string) => countOf(WUDHU_AREA, m, 3),
   urinals: (m: string) => countOf(URINAL, m, 3),
   /**
    * Jumlah titik air tersurat ("10 titik air", "6 keran"). Keran wudhu punya field sendiri, jadi
    * pesan yang menyebutnya tidak dibaca di sini. Dulu hanya dari model (diet rumah, 2026-10-21).
    */
-  outlets: (m: string) =>
-    new RegExp(`\\b(?:${WUDHU}|${WUDHU_AREA})\\b`, 'i').test(m)
-      ? undefined
-      : countOf('titik(?: air)?|keran|kran|outlets?|taps?|faucets?', m, 3),
+  outlets: (m: string) => (mentionsWudhu(m) ? undefined : countOf(`titik(?: air)?|${TAP}`, m, 3)),
   /**
    * Kedalaman sumur / muka air tersurat ("sumur bor 25 m", "muka airnya 8 meter") — parser nilai
    * bersatuan, batas yang sama dengan skema model (0–60 m). Dulu hanya dari model.
@@ -389,9 +391,17 @@ const NUMBER_WORDS: Readonly<Record<number, string>> = {
  * (2026-10-12). Kamus kata benda, bukan pola pertanyaan pengguna.
  */
 const WUDHU = 'keran wudhu|kran wudhu|keran wudu|kran wudu|ablution taps?|wudu taps?|wudhu taps?';
+/** Keran tanpa keterangan. Di kalimat wudhu ia keran wudhu; di luar itu titik air biasa. */
+const TAP = 'keran|kran|outlets?|taps?|faucets?';
 /** Tempat wudhu = satu deret keran dengan satu pembuangan (pemilik 2026-10-12). */
 const WUDHU_AREA = 'tempat wudhu|tempat wudu|area wudhu|area wudu|ablution areas?';
 const URINAL = 'urinoir|urinoar|urinal|urinals|peturasan';
+/**
+ * Kata benda alat yang bisa dihitung — pagar untuk arah "kata benda lalu angka": angka yang
+ * ternyata milik kata benda SESUDAHNYA bukan jumlah kata benda sebelumnya. "tempat wudhunya 20
+ * kran" berarti 20 keran di tempat wudhu, bukan 20 tempat wudhu (produksi 2026-10-27).
+ */
+const COUNTED_NOUNS = `kamar mandi|toilets?|bathrooms?|restrooms?|wastafel|bak cuci|basins?|sinks?|dapur|kitchens?|titik(?: air)?|${TAP}|${WUDHU}|${WUDHU_AREA}|${URINAL}`;
 
 export const COUNT_NOUNS: Readonly<Record<string, string>> = {
   'building.floors': 'lantai|lt|tingkat|floors?|stor(?:e)?ys?|stories|levels?',
@@ -404,6 +414,17 @@ export const COUNT_NOUNS: Readonly<Record<string, string>> = {
   'fixtures.outletCount': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
   'water.existingOutlets': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
 };
+
+/**
+ * Kata benda yang harus ada di pesan supaya sebuah nilai dianggap tersurat (`confirmCount`). Di
+ * kalimat yang memang bicara wudhu, keran telanjang ikut menanggung jumlah keran wudhu: "tempat
+ * wudhunya 20 kran" tidak menyebut "keran wudhu" sama sekali (produksi 2026-10-27).
+ */
+function countNounFor(path: string, message: string): string | undefined {
+  const noun = COUNT_NOUNS[path];
+  if (noun === undefined) return undefined;
+  return path === 'fixtures.wudhuTaps' && mentionsWudhu(message) ? `${noun}|${TAP}` : noun;
+}
 
 const NEGATION =
   'tidak ada|tanpa|nggak ada|gak ada|ga ada|tidak punya|belum ada|tidak pakai|no|without|none|zero';
@@ -592,12 +613,17 @@ function countOf(nouns: string, message: string, digits = 2): number | undefined
   return (
     intAfter(
       new RegExp(
-        `\\b(?:${nouns})(?:nya)?\\s*(?:ada|sebanyak|berjumlah|jadi|menjadi|:|=)?\\s*(\\d{1,${digits}})(?!\\s*(?:x|×|m\\b|meter|cm|mm|lantai|lt\\b|[.,]\\d))`,
+        `\\b(?:${nouns})(?:nya)?\\s*(?:ada|sebanyak|berjumlah|jadi|menjadi|:|=)?\\s*(\\d{1,${digits}})\\b(?!\\s*(?:x|×|m\\b|meter|cm|mm|lantai|lt\\b|${COUNTED_NOUNS}|[.,]\\d))`,
         'i',
       ),
       message,
     ) ?? wordCountOf(nouns, message)
   );
+}
+
+/** Kalimat ini bicara tentang wudhu (klitik "-nya" ikut, seperti pembaca nilai lainnya). */
+function mentionsWudhu(message: string): boolean {
+  return new RegExp(`\\b(?:${WUDHU}|${WUDHU_AREA})(?:nya)?\\b`, 'i').test(message);
 }
 
 /**
@@ -637,7 +663,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     if (path === 'water.wellDepthM' && typeof value === 'number' && value < 0) return;
     const marker = GROUNDING[path];
     if (marker && message !== '' && !marker.test(message)) return; // tidak pernah diucapkan
-    const noun = COUNT_NOUNS[path];
+    const noun = countNounFor(path, message);
     // Kalimat yang membagi jumlahnya per posisi ("atasnya ada 2 kamar mandi bawahnya 1")
     // tercatat sebagai totalnya, bukan bagian pertamanya. Titik air dikecualikan: di kalimat
     // renovasi angkanya milik titik LAMA dan titik TAMBAHAN, yang punya field sendiri.
@@ -670,7 +696,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     model !== undefined &&
     confirmCount(
       message,
-      COUNT_NOUNS[path] ?? '',
+      countNounFor(path, message) ?? '',
       model,
       path === 'building.floors' ? undefined : floorsStated,
     ) !== undefined

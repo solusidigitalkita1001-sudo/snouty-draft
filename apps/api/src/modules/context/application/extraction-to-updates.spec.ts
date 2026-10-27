@@ -200,6 +200,21 @@ describe('angka milik kata benda lain (produksi 2026-10-26)', () => {
   const value = (message: string, path: string) =>
     extractionToUpdates({}, message).find((u) => u.path === path)?.value;
 
+  // Produksi 2026-10-27: "mau bangun masjid, tempat wudhunya 20 kran" tercatat 20 TEMPAT wudhu
+  // (20 talang pembuangan) dan 20 titik air biasa — padahal yang disebut 20 keran wudhu.
+  it('"tempat wudhunya 20 kran" adalah 20 keran wudhu, bukan 20 tempat', () => {
+    const message = 'mau bangun masjid 2 lantai, tempat wudhunya 20 kran, ada 6 toilet';
+    expect(value(message, 'fixtures.wudhuTaps')).toBe(20);
+    expect(value(message, 'fixtures.wudhuAreas')).toBeUndefined();
+    expect(value(message, 'fixtures.outletCount')).toBeUndefined();
+    expect(value(message, 'fixtures.bathrooms')).toBe(6);
+  });
+
+  it('tempat wudhu yang memang dihitung tetap terbaca', () => {
+    expect(value('musala dengan 3 tempat wudhu', 'fixtures.wudhuAreas')).toBe(3);
+    expect(value('masjid, tempat wudhunya ada 2', 'fixtures.wudhuAreas')).toBe(2);
+  });
+
   it('"8 keran wudhu di 2 tempat wudhu" tetap 8 keran dan 2 tempat', () => {
     const message =
       'Masjid 2 lantai, 4 kamar mandi, 8 keran wudhu di 2 tempat wudhu, 3 urinoir, PDAM';

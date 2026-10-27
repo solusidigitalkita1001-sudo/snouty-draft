@@ -17,6 +17,7 @@ import type {
   ProductAspectLabel,
   UseCaseLabel,
   ExtremeLabel,
+  ComputeRequestLabel,
 } from '../domain/labels.js';
 
 export interface Match<L extends string = string> {
@@ -40,6 +41,11 @@ export interface MessageUnderstanding {
   readonly useCase: UseCaseLabel | null;
   /** Ukuran paling ujung yang diminta (P31-01): terkecil/terbesar; `null` = pertanyaan ukuran biasa. */
   readonly extreme: ExtremeLabel | null;
+  /**
+   * Pesan meminta hitungannya dibuat sekarang (P31-59) — berdiri sendiri karena pesan yang
+   * menyatakan nilai sekaligus memintanya tetap berintent pernyataan kebutuhan.
+   */
+  readonly computeRequest: ComputeRequestLabel | null;
   /** Menyebut fluida/kondisi di luar cakupan (air panas, uap, kimia — kosakata). */
   readonly mentionsOutOfScopeFluid: boolean;
   /** Keluarga produk yang disebut (kosakata), kanonis, urut kemunculan. */
@@ -77,6 +83,7 @@ export function unavailableUnderstanding(
     mutationOp: null,
     useCase: null,
     extreme: null,
+    computeRequest: null,
     mentionsOutOfScopeFluid: lexicon?.mentionsOutOfScopeFluid(text) ?? false,
     families: lexicon?.productFamilies(text) ?? [],
     mentionsCompetitor: lexicon?.mentionsCompetitor(text) ?? false,

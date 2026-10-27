@@ -160,6 +160,97 @@ describe('runUnderstanding — diet panggilan model (2026-10-07)', () => {
     );
   });
 
+  // Produksi 2026-10-27: masjid dengan 20 keran wudhu dan 6 toilet menjawab "airnya dari toren
+  // di atas, itung aja" dengan pertanyaan jenis instalasi yang sama — pesannya membawa nilai,
+  // jadi intentnya pernyataan kebutuhan dan permintaan menghitungnya tidak terbaca.
+  it('pesan bernilai yang sekaligus meminta dihitung: dianggap, lalu dihitung di giliran itu', async () => {
+    const ai = aiExtracting({});
+    const mosque = mergeRequirement(
+      emptyRequirementState(T0),
+      [
+        { path: 'building.type', value: 'place_of_worship', source: 'user_stated' },
+        { path: 'building.floors', value: 2, source: 'user_stated' },
+        { path: 'fixtures.bathrooms', value: 6, source: 'user_stated' },
+        { path: 'fixtures.wudhuTaps', value: 20, source: 'user_stated' },
+      ],
+      T0,
+    ).state;
+    const { events } = await runUnderstanding(
+      ai,
+      input({
+        message: 'airnya dari toren di atas, itung aja',
+        state: withCompleteness(mosque),
+        understanding: understood('airnya dari toren di atas, itung aja', {
+          intent: 'requirement_building',
+          computeRequest: 'compute',
+        }),
+      }),
+    );
+
+    const updated = events.find((e) => e.type === 'requirement.updated') as {
+      state: ReturnType<typeof emptyRequirementState>;
+    };
+    expect(updated.state.water.source.value).toBe('rooftop_tank');
+    expect(updated.state.water.installationType.value).toBe('clean_water');
+    expect(updated.state.water.installationType.provenance).toBe('ASSUMED');
+    expect(updated.state.missingInformation).toEqual([]);
+    const cards = events.filter((e) => e.type === 'card') as Array<{
+      card: { kind: string; questions?: ReadonlyArray<{ id: string }> };
+    }>;
+    expect(cards.flatMap((c) => c.card.questions?.map((q) => q.id) ?? [])).not.toContain(
+      'water.installationType',
+    );
+    expect(cards.map((c) => c.card)).toContainEqual(
+      expect.objectContaining({ kind: 'cta', action: 'ANALYZE', auto: true }),
+    );
+  });
+
+  // Produksi 2026-10-27: drainase air hujan yang luas tangkapannya sudah disebut menjawab "itung
+  // aja" dengan daftar empat angka — intensitas hujan, panjang jalur, kemiringan, koefisien
+  // limpasan — padahal keempatnya punya anggapan di registry.
+  it('"itung aja" di kasus teknis: yang punya anggapan diisi, lalu dihitung di giliran itu', async () => {
+    const ai = aiExtracting({});
+    const opening = 'gudang baru 40 x 60 meter, mau pasang pipa air hujan dari atap';
+    const first = await runUnderstanding(
+      ai,
+      input({
+        message: opening,
+        understanding: understood(opening, {
+          intent: 'requirement_technical',
+          useCase: 'stormwater',
+        }),
+      }),
+    );
+    const opened = (first.nextState.useCase as { parameters: Record<string, { value: unknown }> })
+      .parameters;
+    expect(opened['catchment_area']?.value).toBe(0.24);
+
+    const next = await runUnderstanding(
+      ai,
+      input({
+        message: 'itung aja',
+        state: first.nextState,
+        understanding: understood('itung aja', { computeRequest: 'compute' }),
+      }),
+    );
+    const after = (
+      next.nextState.useCase as {
+        parameters: Record<string, { value: unknown; origin: string }>;
+      }
+    ).parameters;
+    expect(after['rainfall_intensity']).toMatchObject({ value: 'Belum tahu', origin: 'assumed' });
+    expect(after['catchment_area']?.value).toBe(0.24);
+    const text = (next.events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('saya hitung sekarang');
+    expect(text).not.toContain('Tekan **Susun rekomendasi**');
+    const cards = next.events.filter((e) => e.type === 'card') as {
+      card: { kind: string; action?: string; auto?: boolean };
+    }[];
+    expect(cards.map((c) => c.card)).toContainEqual(
+      expect.objectContaining({ kind: 'cta', action: 'ANALYZE', auto: true }),
+    );
+  });
+
   it('rumah tinggal → model TIDAK dipanggil; pompa dan jalur dari teks (pemilik 2026-10-21, SC-04)', async () => {
     const ai = aiExtracting({ building: { floors: 2 } });
     const { events } = await runUnderstanding(

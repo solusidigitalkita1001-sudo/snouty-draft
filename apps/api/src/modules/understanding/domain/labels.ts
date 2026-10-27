@@ -195,6 +195,15 @@ export type UseCaseLabel = (typeof USE_CASES)[number];
 export const EXTREMES = ['smallest', 'largest'] as const;
 export type ExtremeLabel = (typeof EXTREMES)[number];
 
+/**
+ * Pesan ini meminta hitungannya dibuat sekarang (P31-59). Katalognya sendiri, bukan satu intent:
+ * satu pesan bisa sekaligus menyatakan nilai DAN meminta dihitung ("airnya dari toren atas, itung
+ * aja"), dan intent pesan itu adalah pernyataan kebutuhan — sehingga permintaan menghitungnya
+ * hilang dan jawabannya menanyakan lagi data yang sudah punya anggapan (produksi 2026-10-27).
+ */
+export const COMPUTE_REQUESTS = ['compute'] as const;
+export type ComputeRequestLabel = (typeof COMPUTE_REQUESTS)[number];
+
 /** Nama katalog data → label yang sah di dalamnya. */
 export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   intent: FINE_INTENTS,
@@ -206,6 +215,7 @@ export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   'mutation-op': MUTATION_OPS,
   'use-case': USE_CASES,
   extreme: EXTREMES,
+  'compute-request': COMPUTE_REQUESTS,
 };
 export type CatalogName = keyof typeof CATALOG_LABELS;
 

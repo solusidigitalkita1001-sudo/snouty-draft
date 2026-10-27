@@ -61,6 +61,26 @@ describe('extractTechnicalContext — English', () => {
     ).toMatchObject({ catchment_area: 2, slope: 1, fluid_type: 'Air hujan' });
   });
 
+  // Produksi 2026-10-27: "gudang baru 40 x 60 meter, mau pasang pipa air hujan dari atap" tercatat
+  // panjang/lebar lahan, lalu luas tangkapannya ditanyakan dalam hektar.
+  it('two sides in a stormwater case are the catchment they drain', () => {
+    const out = facts(
+      'gudang baru 40 x 60 meter, mau pasang pipa air hujan dari atap',
+      'stormwater',
+    );
+    expect(out).toMatchObject({ catchment_area: 0.24, fluid_type: 'Air hujan' });
+    expect(out).not.toHaveProperty('field_length');
+    expect(out).not.toHaveProperty('field_width');
+    expect(facts('gorong-gorong di bawah tangkapan 50 x 50 m', 'culvert')).toMatchObject({
+      catchment_area: 0.25,
+    });
+    // Lahan irigasi tetap panjang × lebar lahan: luasnya dipakai lain.
+    expect(facts('sawah 40 x 60 meter', 'irrigation')).toMatchObject({
+      field_length: 40,
+      field_width: 60,
+    });
+  });
+
   it('Indonesian "jalan desa lebar 6 meter": the width belongs to the road, not the route length', () => {
     const out = facts('mau pasang gorong-gorong lewat jalan desa lebar 6 meter', 'culvert');
     expect(out).toMatchObject({ road_width: 6 });
