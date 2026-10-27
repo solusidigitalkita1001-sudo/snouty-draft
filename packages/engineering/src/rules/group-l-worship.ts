@@ -17,11 +17,10 @@
 import { localized, requireInt, requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
 import { round1, round3 } from '../units.js';
 import { branchSizeForDfu, type DrainSize } from './group-j-waste.js';
-import { hunterGpm } from './group-k-house-supply.js';
+import { HUNTER_TABLE_MAX_WSFU, hunterGpm } from './group-k-house-supply.js';
 
 const PENDING = 'REQUIRES_DOMAIN_VALIDATION' as const;
 const GPM_TO_LS = 0.0630902;
-const HUNTER_MAX_WSFU = 100;
 
 // ── ENG-801 · Kebutuhan puncak tempat ibadah ────────────────────────────────
 
@@ -46,6 +45,16 @@ export interface WorshipDemandResult {
   /** Keran wudhu, semua serentak. */
   readonly wudhuFlowLs: number;
   readonly peakFlowLs: number;
+}
+
+/** Beban alat toilet umum (WSFU) — satu aritmetika untuk aturannya dan untuk pemeriksa cakupan. */
+export function publicSupplyWsfu(i: WorshipDemandInput): number {
+  return (
+    i.waterClosets * i.wsfuWaterCloset +
+    (i.bathroomTaps + i.lavatories) * i.wsfuTap +
+    i.urinals * i.wsfuUrinal +
+    i.kitchenSinks * i.wsfuKitchenSink
+  );
 }
 
 export const ENG_801: RuleVersion<WorshipDemandInput, WorshipDemandResult> = {
@@ -74,13 +83,9 @@ export const ENG_801: RuleVersion<WorshipDemandInput, WorshipDemandResult> = {
     };
   },
   compute: (i) => {
-    const wsfu =
-      i.waterClosets * i.wsfuWaterCloset +
-      (i.bathroomTaps + i.lavatories) * i.wsfuTap +
-      i.urinals * i.wsfuUrinal +
-      i.kitchenSinks * i.wsfuKitchenSink;
-    if (wsfu > HUNTER_MAX_WSFU) {
-      throw new RuleInputError('ENG-801', `wsfu ${round1(wsfu)} > ${HUNTER_MAX_WSFU}`);
+    const wsfu = publicSupplyWsfu(i);
+    if (wsfu > HUNTER_TABLE_MAX_WSFU) {
+      throw new RuleInputError('ENG-801', `wsfu ${round1(wsfu)} > ${HUNTER_TABLE_MAX_WSFU}`);
     }
     const fixtureFlowLs = round3(hunterGpm(wsfu) * GPM_TO_LS);
     const wudhuFlowLs = round3(i.wudhuTaps * i.wudhuTapFlowLs);

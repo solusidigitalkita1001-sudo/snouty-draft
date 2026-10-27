@@ -60,7 +60,13 @@ const HUNTER_FLUSH_TANK: readonly (readonly [number, number])[] = [
   [90, 41.0],
   [100, 43.5],
 ];
-const HUNTER_MAX_WSFU = 100;
+/**
+ * Beban alat terbesar yang tercakup kurva Hunter yang dipakai di sini (IPC Tabel E103.3(3)).
+ * Di atas ini debit puncaknya tidak ada di tabel — dan tidak boleh dikarang, jadi kasusnya
+ * diteruskan ke tim teknis Pralon (produksi 2026-10-27: sekolah 3 lantai 24 toilet = 156 WSFU
+ * membuat analisisnya gagal tanpa penjelasan).
+ */
+export const HUNTER_TABLE_MAX_WSFU = 100;
 
 export function hunterGpm(wsfu: number): number {
   if (wsfu <= 0) return 0;
@@ -92,6 +98,16 @@ export interface SupplyDemandResult {
   readonly peakFlowLs: number;
 }
 
+/** Beban alat suplai rumah (WSFU) — satu aritmetika untuk aturannya dan untuk pemeriksa cakupan. */
+export function houseSupplyWsfu(i: SupplyDemandInput): number {
+  return (
+    i.waterClosets * i.wsfuWaterCloset +
+    i.showers * i.wsfuShower +
+    i.lavatories * i.wsfuLavatory +
+    i.kitchenSinks * i.wsfuKitchenSink
+  );
+}
+
 export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
   ruleId: 'ENG-701',
   version: 1,
@@ -112,14 +128,10 @@ export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
     };
   },
   compute: (i) => {
-    const wsfu =
-      i.waterClosets * i.wsfuWaterCloset +
-      i.showers * i.wsfuShower +
-      i.lavatories * i.wsfuLavatory +
-      i.kitchenSinks * i.wsfuKitchenSink;
-    if (wsfu > HUNTER_MAX_WSFU) {
+    const wsfu = houseSupplyWsfu(i);
+    if (wsfu > HUNTER_TABLE_MAX_WSFU) {
       // Di atas tabel bukan lagi rumah: kasus gedung bertingkat punya metodenya sendiri.
-      throw new RuleInputError('ENG-701', `wsfu ${round1(wsfu)} > ${HUNTER_MAX_WSFU}`);
+      throw new RuleInputError('ENG-701', `wsfu ${round1(wsfu)} > ${HUNTER_TABLE_MAX_WSFU}`);
     }
     const gpm = hunterGpm(wsfu);
     return { wsfu: round1(wsfu), peakFlowGpm: round1(gpm), peakFlowLs: round3(gpm * GPM_TO_LS) };

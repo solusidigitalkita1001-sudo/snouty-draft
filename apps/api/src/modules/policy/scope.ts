@@ -7,6 +7,7 @@
  * pun berbeda (`focus`, bukan `fail`).
  */
 
+import { HUNTER_TABLE_MAX_WSFU } from '@snouty/engineering';
 import {
   DEFAULT_LOCALE,
   type BuildingType,
@@ -177,6 +178,12 @@ export interface ScopeInput {
   readonly buildingType: BuildingType | null;
   readonly installationType: InstallationType | null;
   readonly floors: number | null;
+  /**
+   * Beban alat suplai (WSFU) dari kebutuhan yang sudah tercatat. Di atas kurva Hunter yang
+   * dipakai aturan (ENG-701/ENG-801) debit puncaknya tidak ada di tabel — kasusnya ke tim
+   * teknis, bukan dihitung dengan angka karangan.
+   */
+  readonly supplyLoadWsfu?: number | null;
 }
 
 /** Di atas ini bangunan dianggap besar dan butuh validasi teknis (SPEC §5 Policy 5). */
@@ -219,6 +226,22 @@ export function scopePolicy(input: ScopeInput, locale: Locale = DEFAULT_LOCALE):
         en
           ? `A ${input.floors}-storey building is outside the scope of automatic recommendations.`
           : `Bangunan ${input.floors} lantai berada di luar cakupan rekomendasi otomatis.`,
+      ],
+    };
+  }
+
+  // Produksi 2026-10-27: sekolah 3 lantai dengan 24 toilet (156 WSFU) membuat analisisnya
+  // gagal dengan "layanan tidak tersedia" — sesudah SNOUTY menjanjikan hitungannya.
+  const load = input.supplyLoadWsfu;
+  if (load !== null && load !== undefined && load > HUNTER_TABLE_MAX_WSFU) {
+    const wsfu = load.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
+    return {
+      kind: 'policy',
+      code: 'TECHNICAL_VALIDATION_REQUIRED',
+      reasons: [
+        en
+          ? `The plumbing fixture load adds up to ${wsfu} units, above the ${HUNTER_TABLE_MAX_WSFU} units the peak-flow curve covers, so the peak flow for a building this size is worked out by the Pralon technical team.`
+          : `Beban alat plambingnya ${wsfu} unit, di atas ${HUNTER_TABLE_MAX_WSFU} unit yang tercakup kurva debit puncak, jadi debit puncak bangunan sebesar ini dihitung tim teknis Pralon.`,
       ],
     };
   }

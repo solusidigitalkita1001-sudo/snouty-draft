@@ -37,6 +37,7 @@ import {
   caseProfileLabel,
   extractTechnicalContext,
   isCaseId,
+  supplyLoadWsfu,
   type CaseId,
 } from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
@@ -992,6 +993,15 @@ export function followUpCard(
       buildingType: merged.building.type.value,
       installationType: merged.water.installationType.value,
       floors: merged.building.floors.value,
+      // Beban alat dari alat yang sudah tercatat: di atas kurva debit puncak, bangunannya ke
+      // tim teknis — jadi yang muncul kartu penyerahan, bukan tombol yang gagal (P31-69).
+      supplyLoadWsfu: supplyLoadWsfu({
+        buildingType: merged.building.type.value,
+        bathrooms: merged.fixtures.bathrooms.value,
+        basins: merged.fixtures.basins.value,
+        kitchens: merged.fixtures.kitchens.value,
+        urinals: merged.fixtures.urinals?.value ?? null,
+      }),
     },
     locale,
   );

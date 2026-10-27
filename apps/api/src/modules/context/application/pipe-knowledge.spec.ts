@@ -165,12 +165,20 @@ describe('pipe knowledge', () => {
   // Bahan yang bukan produk Pralon tidak pernah disarankan — yang disebut penggantinya.
   it('adviseMaterials: bahan di luar katalog dijawab dengan penggantinya, bukan disarankan', () => {
     const galvanised = materialsFor(TEST_LEXICON.productFamilies('pipa galvanis'));
-    const out = adviseMaterials(galvanised, { needsMoreData: false });
+    const out = adviseMaterials(galvanised, {
+      buildingLabel: null,
+      floors: null,
+      needsMoreData: false,
+    });
     expect(out).toContain('- **pipa galvanis (GIP)** bukan untuk instalasi air bersih baru');
     expect(out).toContain('untuk jalur baru pipa Pralon-nya **PVC (uPVC)**');
     expect(out).toContain('**HDPE**');
     expect(out).not.toContain('galvanis (GIP)** biasanya lebih cocok');
-    const en = adviseMaterials(galvanised, { needsMoreData: false }, 'en');
+    const en = adviseMaterials(
+      galvanised,
+      { buildingLabel: null, floors: null, needsMoreData: false },
+      'en',
+    );
     expect(en).toContain('- **galvanized pipe (GIP)** is not for new clean water installations');
     expect(en).toContain("for a new line Pralon's pipe is **PVC (uPVC)**");
   });

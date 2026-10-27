@@ -493,6 +493,24 @@ ditanya HDPE.
 **Yang dibutuhkan dari Pralon:** apakah HDPE Pralon punya sertifikat kontak air minum (dan nomornya),
 supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 
+### OQ-87 — Beban alat di atas kurva debit puncak: diserahkan atau dihitung (P31-69, 2026-10-27)
+
+**Status:** open · **Blocks:** sekolah, klinik, masjid, dan ruko dengan banyak toilet tidak
+dihitung — sekarang diserahkan ke tim teknis dengan kalimat yang jelas
+**Konteks:** "sekolah 3 lantai, 24 toilet, airnya dari pdam" menghasilkan beban alat 156 unit.
+Kurva debit puncak yang dipakai aturan ENG-701 dan ENG-801 berhenti di 100 unit (43,5 gpm),
+jadi debit puncaknya tidak ada di tabel. Sampai P31-69 itu muncul sebagai "layanan tidak
+tersedia" sesudah SNOUTY menjanjikan hitungannya; sekarang kasusnya diserahkan ke tim teknis
+dengan alasan yang menyebut angkanya. Bangunan sebesar ini justru yang paling sering ditanya
+tim penjualan.
+
+**Usul default (menunggu pilihan pemilik):** tabel kurva debit puncaknya dilanjutkan memakai
+angka baku yang sama (IPC Tabel E103.3(3) di atas 100 unit) begitu tim teknis Pralon
+mengesahkan angkanya, sehingga bangunan seperti ini dihitung seperti yang lain — bertanda
+perlu validasi seperti seluruh aturan lain. Sebelum angka itu ada, kasusnya tetap diserahkan.
+**Yang perlu ahli:** nilai debit puncak di atas 100 unit beban alat (daftar unit → gpm/l/s),
+atau metode lain yang dipakai Pralon untuk bangunan umum besar.
+
 ### OQ-86 — Air hujan atap: satu jalur untuk seluruh tangkapan, atau dibagi per talang (P31-61, 2026-10-27)
 
 **Status:** diputuskan 2026-10-27 (pemilik: dibagi per turunan talang) · **Dikerjakan:** P31-65

@@ -3,7 +3,38 @@
  * docs/ENGINEERING_RULES.md §6 · invarian R-1, P-1.
  */
 import { describe, expect, it } from 'vitest';
-import { ALL_RULES, RULE_REGISTRY, RuleRegistrationError, RuleRegistry } from './index.js';
+import {
+  ALL_RULES,
+  HUNTER_TABLE_MAX_WSFU,
+  RULE_REGISTRY,
+  RuleRegistrationError,
+  RuleRegistry,
+  supplyLoadWsfu,
+} from './index.js';
+
+describe('beban alat suplai dari kebutuhan (WSFU)', () => {
+  // Produksi 2026-10-27: sekolah 3 lantai dengan 24 toilet. Debit puncaknya di luar kurva
+  // Hunter, dan sampai P31-69 itu muncul sebagai analisis yang gagal tanpa penjelasan.
+  it('toilet umum: 24 toilet = 156 WSFU, di atas tabel; rumah 3 kamar mandi masih di dalamnya', () => {
+    expect(supplyLoadWsfu({ buildingType: 'public_building', bathrooms: 24 })).toBe(156);
+    expect(supplyLoadWsfu({ buildingType: 'public_building', bathrooms: 24 })).toBeGreaterThan(
+      HUNTER_TABLE_MAX_WSFU,
+    );
+    // Rumah: 3 kamar mandi (kloset + shower), 3 wastafel (1 per kamar mandi), 1 dapur = 12,1.
+    expect(supplyLoadWsfu({ buildingType: 'residential', bathrooms: 3 })).toBe(12.1);
+    expect(supplyLoadWsfu({ buildingType: 'residential', bathrooms: null })).toBe(1);
+  });
+
+  it('urinoir dan wastafel yang disebut ikut dihitung', () => {
+    const base = supplyLoadWsfu({ buildingType: 'place_of_worship', bathrooms: 4 });
+    const withUrinals = supplyLoadWsfu({
+      buildingType: 'place_of_worship',
+      bathrooms: 4,
+      urinals: 2,
+    });
+    expect(withUrinals - base).toBe(6); // 2 × 3 WSFU urinoir umum
+  });
+});
 
 describe('registry aturan teknik', () => {
   it('memuat keempat belas aturan', () => {

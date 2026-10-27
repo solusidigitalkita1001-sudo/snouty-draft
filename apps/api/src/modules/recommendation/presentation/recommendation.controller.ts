@@ -11,6 +11,7 @@ import type { Response } from 'express';
 import type { AssistantStreamEvent } from '@snouty/shared-types';
 import { z } from 'zod';
 import { actorOf, type PublicRequest } from '../../../shared/http/actor.js';
+import { RuleInputError } from '@snouty/engineering';
 import { RequestValidationError } from '../../../shared/http/api-errors.js';
 import { ConversationService } from '../../conversation/application/conversation.service.js';
 import { RequirementSnapshotStore } from '../../context/application/requirement-snapshot.store.js';
@@ -102,9 +103,13 @@ export class RecommendationController {
         // pengguna harus memperbaiki datanya (pertanyaannya sudah diajukan di chat).
         // Kasus teknis tanpa angka wajib (dijawab "Belum tahu", tanpa asumsi pengganti) bukan gangguan
         // layanan: pengguna perlu melengkapi angkanya, dan chat sudah menyebut angka mana (P25-05).
+        // Angka yang di luar batas sebuah aturan (beban alat di atas kurva debit puncak,
+        // produksi 2026-10-27) bukan gangguan layanan: mengulang tidak menolong, dan
+        // percakapannya sudah menyerahkan kasusnya ke tim teknis.
         const invalid =
           error instanceof CaseInputInvalidError ||
-          error instanceof TechnicalCaseNotComputableError;
+          error instanceof TechnicalCaseNotComputableError ||
+          error instanceof RuleInputError;
         // Hasil hitung yang tidak seimbang (laporan 0015) adalah cacat, bukan gangguan sementara:
         // tidak ditawarkan coba lagi, dan dicatat lengkap supaya bisa ditelusuri.
         const inconsistent = error instanceof EngineConsistencyError;

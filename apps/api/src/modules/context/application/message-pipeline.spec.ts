@@ -934,6 +934,42 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
     expect(JSON.stringify(events)).not.toContain('"product"');
   });
 
+  // Produksi 2026-10-27: "sekolah 3 lantai, 24 toilet, airnya dari pdam" dijanjikan dihitung,
+  // lalu Susun rekomendasi berhenti dengan galat layanan — beban alatnya 156 unit, di luar
+  // kurva debit puncak. Yang benar: diserahkan ke tim teknis, dengan angkanya disebut.
+  it('beban alat di atas kurva debit puncak: tim teknis, bukan janji menghitung', async () => {
+    const ai = aiExtracting({
+      building: { type: 'public_building', floors: 3 },
+      fixtures: { bathrooms: 24 },
+      water: { source: 'municipal', installationType: 'clean_water' },
+    });
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'sekolah 3 lantai, 24 toilet, airnya dari pdam' }),
+    );
+    const card = events.find((e) => e.type === 'card') as {
+      card: { kind: string; reasons?: readonly string[] };
+    };
+    expect(card.card.kind).toBe('unsupported');
+    expect(card.card.reasons?.[0]).toContain('156 unit');
+    const text = events
+      .filter((e) => e.type === 'token')
+      .map((e) => (e as { text: string }).text)
+      .join('');
+    expect(text).not.toContain('saya hitung sekarang');
+    // Sekolah dengan toilet sedikit tetap dihitung seperti biasa.
+    const small = await runUnderstanding(
+      aiExtracting({
+        building: { type: 'public_building', floors: 3 },
+        fixtures: { bathrooms: 4 },
+        water: { source: 'municipal', installationType: 'clean_water' },
+      }),
+      input({ message: 'sekolah 3 lantai, 4 toilet, airnya dari pdam' }),
+    );
+    const smallCard = small.events.find((e) => e.type === 'card') as { card: { kind: string } };
+    expect(smallCard.card.kind).not.toBe('unsupported');
+  });
+
   it('industri: kartu unsupported dengan kebutuhan terkumpul, bukan CTA analisis', async () => {
     const ai = aiExtracting({
       building: { type: 'industrial', floors: 2 },

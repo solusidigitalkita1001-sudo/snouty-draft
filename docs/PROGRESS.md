@@ -3672,3 +3672,15 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       jawabannya menyebut untuk apa bahan itu tidak dipakai lalu pipa Pralon yang
       menggantikannya. Golden dataset bertambah dua kalimat (termasuk kembarannya yang memang
       kebutuhan, "semua pipanya mau diganti ke pralon"); pengenalan intent 200/201.
+
+- [x] P31-69 Bangunan dengan banyak toilet diserahkan ke tim teknis, bukan gagal
+
+      "Sekolah 3 lantai, 24 toilet, airnya dari pdam" dijanjikan dihitung, lalu Susun
+      rekomendasi berhenti dengan "layanan tidak tersedia" — yang terjadi sebenarnya: beban
+      alatnya 156 unit, di atas 100 unit yang tercakup kurva debit puncak aturan ENG-701 dan
+      ENG-801, dan aturannya menolak masukan itu di tengah hitungan. Beban alat sekarang
+      dihitung dari kebutuhan yang sudah tercatat sebelum apa pun dijanjikan: di atas tabel,
+      percakapannya menyerahkan kasusnya ke tim teknis dengan alasan yang menyebut angkanya,
+      dan Susun rekomendasi yang tetap dipanggil menjawab tidak sah — bukan gangguan layanan
+      yang mengundang coba lagi. Angka di atas 100 unit tidak dikarang: perlu disahkan ahli
+      (OQ-87), dan sampai itu ada bangunan sebesar ini memang diserahkan.

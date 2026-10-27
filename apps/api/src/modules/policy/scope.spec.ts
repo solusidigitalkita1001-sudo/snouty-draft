@@ -96,6 +96,20 @@ describe('Policy 5 — scope routing', () => {
     expect(scopePolicy({ ...base, floors: 4 }).kind).toBe('supported');
   });
 
+  // Produksi 2026-10-27: sekolah 3 lantai dengan 24 toilet — di bawah batas lantai, tetapi
+  // beban alatnya di luar kurva debit puncak, dan analisisnya gagal tanpa penjelasan.
+  it('beban alat di atas kurva debit puncak: validasi teknis, dengan angkanya disebut', () => {
+    const outcome = scopePolicy({ ...base, floors: 3, supplyLoadWsfu: 156 });
+    expect(outcome).toMatchObject({ code: 'TECHNICAL_VALIDATION_REQUIRED' });
+    expect(outcome.kind === 'policy' && outcome.reasons[0]).toContain('156 unit');
+    expect(outcome.kind === 'policy' && outcome.reasons[0]).toContain('tim teknis Pralon');
+    const en = scopePolicy({ ...base, floors: 3, supplyLoadWsfu: 156 }, 'en');
+    expect(en.kind === 'policy' && en.reasons[0]).toContain('156 units');
+    // Di dalam tabel: dihitung seperti biasa.
+    expect(scopePolicy({ ...base, supplyLoadWsfu: 100 }).kind).toBe('supported');
+    expect(scopePolicy({ ...base, supplyLoadWsfu: null }).kind).toBe('supported');
+  });
+
   it('pembuangan dan "keduanya" dihitung, tidak diteruskan ke tim teknis (laporan pemilik 2026-10-12)', () => {
     expect(scopePolicy({ ...base, installationType: 'drainage' }).kind).toBe('supported');
     expect(scopePolicy({ ...base, installationType: 'both' }).kind).toBe('supported');

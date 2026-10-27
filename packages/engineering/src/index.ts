@@ -213,6 +213,9 @@ export type {
   TrafficLoad,
 } from './compute-gravity.js';
 export { SEWER_MINIMUM_SIZE } from './compute-gravity.js';
+export { HUNTER_TABLE_MAX_WSFU } from './rules/group-k-house-supply.js';
+export { supplyLoadWsfu } from './supply-load.js';
+export type { SupplyLoadInput } from './supply-load.js';
 export { computeNetwork } from './compute-network.js';
 export { BuildingOccupancyUnknownError, computeBuildingWater } from './compute-building.js';
 export { computeHouseDrainage } from './compute-house-waste.js';

@@ -428,6 +428,8 @@ ENG-414  SPAM (audit PDAM): pipa induk + N cabang seragam — Q_induk = Q_puncak
 ENG-415  head titik kritis = statis + Σ kehilangan (induk + satu cabang terjauh, diameter dalam aktual) + tekanan sisa
 ENG-416  mode sistem: reservoir & head ≤ 0 → gravitasi; PDAM ≥ head → suplai langsung; PDAM < head → booster sebesar
          kekurangan; sumber tanpa tekanan → pompa penuh. Titik kerja pompa (ENG-206) hanya sebesar kekurangan.
+ENG-701/ENG-801 batas tabel: beban alat > 100 WSFU di luar kurva debit puncak yang dipakai — kasusnya
+         diserahkan ke tim teknis lewat kebijakan cakupan (OQ-87), bukan dihitung dengan angka karangan
 ENG-417  air hujan atap: sisi atap = √luas tangkapan; turunan talang = 2 × ⌈sisi ÷ jarak antar turunan⌉
          (jarak 15 m = asumsi pemilik, menunggu ahli Pralon); jumlah yang disebut pengguna menggantikannya
 ENG-418  limpasan dibagi rata ke turunan talangnya: Q_turunan = Q_total ÷ jumlah turunan — ukuran pipa,
