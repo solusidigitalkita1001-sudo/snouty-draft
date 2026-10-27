@@ -3659,3 +3659,16 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       sejak P31-01, tetapi hanya dipakai bila keluarganya disebut di pesan itu juga; pertanyaan
       lanjutan tidak menyebut apa pun. Keluarganya kini boleh datang dari subjek percakapan,
       seperti pada pertanyaan ketersediaan ukuran dan kelas tekanan yang sudah begitu.
+
+- [x] P31-68 "Pipa galvanis karatan, ganti pakai apa?" dijawab bahan penggantinya
+
+      Pertanyaannya tidak dijawab sama sekali: kebutuhan rumahnya dicatat lalu kartu
+      klarifikasi, sementara yang ditanya — mau ganti pakai apa — menguap. Dua sebabnya.
+      Pertama, tidak ada satu pun contoh permintaan saran yang menyebut pipa lama berbahan lain
+      yang mau diganti, jadi kalimatnya ragu antara minta saran dan menyebut kebutuhan rumah;
+      contohnya ditambahkan. Kedua, jalur nasihat bahan akan menyarankan galvanis itu sendiri
+      ("biasanya lebih cocok untuk instalasi lama") — menyarankan bahan yang bukan produk
+      Pralon. Bahan di luar katalog sekarang membawa penggantinya di tabel pengetahuan, dan
+      jawabannya menyebut untuk apa bahan itu tidak dipakai lalu pipa Pralon yang
+      menggantikannya. Golden dataset bertambah dua kalimat (termasuk kembarannya yang memang
+      kebutuhan, "semua pipanya mau diganti ke pralon"); pengenalan intent 200/201.

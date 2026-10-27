@@ -39,6 +39,14 @@ export interface MaterialKnowledge {
   readonly bestFor: string;
   /** Kondisi yang membuatnya kurang cocok — "ok nggak?" dijawab dua arah. */
   readonly notFor: string;
+  /**
+   * Bahan yang BUKAN produk Pralon: boleh dijelaskan, tidak pernah disarankan ("Hanya produk
+   * Pralon"). Isinya keluarga pengganti di tabel ini — yang disebut ketika pengguna bertanya
+   * mau ganti pakai apa. Di produksi 2026-10-27 "pipa galvanis di rumah udah karatan, mending
+   * ganti pakai apa?" tidak dijawab sama sekali, dan jalur nasihat bahan akan menyarankan
+   * galvanis itu sendiri ("lebih cocok untuk instalasi lama").
+   */
+  readonly replacedBy?: readonly string[];
   /** Kekakuan dan bentuk pasokan. */
   readonly form: string;
   readonly joining: string;
@@ -144,6 +152,7 @@ export const MATERIALS: readonly MaterialKnowledge[] = [
     family: 'Galvanis',
     label: 'pipa galvanis (GIP)',
     families: ['galvanis'],
+    replacedBy: ['pvc', 'hdpe'],
     gist: 'kaku, berat, dan berkarat seiring waktu',
     bestFor: 'instalasi lama yang mempertahankan sistem ulir atau las',
     notFor: 'instalasi air bersih baru — lama-kelamaan berkarat dari dalam',
@@ -646,7 +655,7 @@ export function adviseMaterials(
   const lines = [
     `${where}, pilihan bahan **${basis}** — yang menentukan adalah di mana jalurnya (di dalam bangunan, di luar, atau ditanam) dan bagaimana airnya dipasok.`,
     '',
-    ...materials.map((m) => `- **${m.label}** biasanya lebih cocok untuk ${m.bestFor}.`),
+    ...materials.map((m) => adviceLine(m, 'id')),
     '',
     materials.length > 1
       ? 'Keduanya bisa dipakai di bagian yang berbeda dalam satu instalasi.'
@@ -677,7 +686,7 @@ function adviseMaterialsEn(
   const lines = [
     `${where}, the choice of material **${basis}** — what decides it is where the line runs (inside the building, outside, or buried) and how the water is supplied.`,
     '',
-    ...materials.map((m) => `- **${m.en.label}** is usually better suited to ${m.en.bestFor}.`),
+    ...materials.map((m) => adviceLine(m, 'en')),
     '',
     materials.length > 1
       ? 'Both can be used in different parts of one installation.'
@@ -690,6 +699,30 @@ function adviseMaterialsEn(
     );
   }
   return lines.join('\n');
+}
+
+/**
+ * Satu baris nasihat per bahan. Bahan yang bukan produk Pralon tidak pernah disarankan: yang
+ * disebut adalah untuk apa ia tidak dipakai, lalu bahan Pralon yang menggantikannya.
+ */
+function adviceLine(m: MaterialKnowledge, locale: Locale): string {
+  const en = locale === 'en';
+  const t = textsOf(m, locale);
+  const replacements = (m.replacedBy ?? [])
+    .map((family) => MATERIALS.find((other) => other.families.includes(family)))
+    .filter((other): other is MaterialKnowledge => other !== undefined)
+    .map((other) => {
+      const o = textsOf(other, locale);
+      return `**${o.label}** (${o.bestFor})`;
+    });
+  if (replacements.length === 0) {
+    return en
+      ? `- **${t.label}** is usually better suited to ${t.bestFor}.`
+      : `- **${t.label}** biasanya lebih cocok untuk ${t.bestFor}.`;
+  }
+  return en
+    ? `- **${t.label}** is not for ${t.notFor}; for a new line Pralon's pipe is ${replacements.join(' or ')}.`
+    : `- **${t.label}** bukan untuk ${t.notFor}; untuk jalur baru pipa Pralon-nya ${replacements.join(' atau ')}.`;
 }
 
 /** Bahan Indonesia sudah memenuhi `MaterialTexts` apa adanya; Inggris ada di `en`. */

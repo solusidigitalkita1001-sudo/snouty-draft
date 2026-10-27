@@ -2,6 +2,28 @@
   "$comment": "Golden dataset pemahaman pertanyaan (P16-11). Kalimat di sini SENGAJA bukan salinan contoh di data/understanding — yang diukur adalah generalisasi penyandi + ambang, bukan hafalan. `intent: null` berarti kode harus ragu (lalu bertanya ke model generatif). Kasus dari laporan pemilik ditandai `source`.",
   "cases": [
     {
+      "text": "pipa galvanis di kamar mandi udah karatan, sebaiknya diganti pipa apa?",
+      "intent": "advice_request",
+      "source": "produksi 2026-10-27",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": [],
+      "useCase": "residential_clean_water"
+    },
+    {
+      "text": "rumah subsidi, semua pipanya mau diganti ke pralon",
+      "intent": "requirement_building",
+      "source": "produksi 2026-10-27",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": [],
+      "useCase": "residential_clean_water"
+    },
+    {
       "text": "what sizes can i get pralon hdpe pipe in?",
       "intent": "product_spec",
       "source": "produksi 2026-10-27",
