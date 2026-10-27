@@ -3734,3 +3734,14 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       "kloset + keran" sejak lama. Dua tempat menurunkan hal yang sama dengan caranya
       sendiri; sekarang satu fungsi yang menentukan bangunan mana berisi toilet umum, dan
       laporan, kartu serah terima, serta antrean tim teknis memakainya bersama.
+
+- [x] P31-74 Kelas pipa yang ruang lonjakannya tipis ditandai
+
+      Pertanyaan tekanan 8–12 bar dijawab "pilih kelas yang di atas 12 bar dan masih
+      menyisakan ruang untuk lonjakan", lalu daftarnya memuat PN-12.5 dengan selisih 0,5 bar —
+      kalimat pembukanya seolah sudah menyaring, padahal tidak, dan orang penjualan bisa
+      mengutip kelas yang terlalu mepet (keputusan pemilik 2026-10-27). Sekarang kelas yang
+      selisihnya lebih kecil dari ayunan tekanan yang disebut pengguna sendiri diberi catatan
+      bahwa ruangnya tipis dan perlu dipastikan tim teknis. Pembandingnya angka pengguna, bukan
+      faktor lonjakan karangan: Pralon belum punya angka itu, dan ia masuk daftar kekurangan
+      pengetahuan sebagai "ruang lonjakan minimum di atas tekanan kerja".

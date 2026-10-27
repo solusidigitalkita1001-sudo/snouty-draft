@@ -309,6 +309,42 @@ describe('tes FAQ sales 2026-10-12', () => {
     expect(a!.gaps.map((g) => g.gap)).toEqual(['tekanan kerja resmi tiap kelas PVC']);
   });
 
+  it('DE-01: kelas yang selisihnya lebih tipis dari ayunan tekanan ditandai', async () => {
+    // Katalog dengan PN-12.5: selisihnya 0,5 bar, lebih kecil dari ayunan 8–12 bar = 4 bar.
+    const withTight: KnowledgeCatalog = {
+      ...catalog,
+      productNamesInFamily: async (family) =>
+        family === 'HDPE'
+          ? [...NAMES['HDPE']!, 'Pipa HDPE PE 100 PN-12.5 160 mm x 6 Meter']
+          : (NAMES[family] ?? []),
+    };
+    const a = await knowledgeAnswer(
+      ['tekanan kerja'],
+      'HDPE untuk tekanan 8-12 bar?',
+      withTight,
+      'id',
+      ['hdpe'],
+    );
+    expect(a!.text).toContain('PN-12.5 (selisih 0,5 bar)');
+    expect(a!.text).toContain(
+      'Selisih PN-12.5 lebih kecil dari ayunan tekanan 4 bar yang Anda sebutkan',
+    );
+    expect(a!.gaps.map((g) => g.gap)).toContain('ruang lonjakan minimum di atas tekanan kerja');
+  });
+
+  it('DE-01: kelas dengan selisih selebar ayunan tekanan tidak ditandai', async () => {
+    const a = await knowledgeAnswer(
+      ['tekanan kerja'],
+      'HDPE untuk tekanan 8-12 bar?',
+      catalog,
+      'id',
+      ['hdpe'],
+    );
+    expect(a!.text).toContain('PN-16 (selisih 4 bar)');
+    expect(a!.text).not.toContain('ruangnya untuk lonjakan tipis');
+    expect(a!.gaps.map((g) => g.gap)).not.toContain('ruang lonjakan minimum di atas tekanan kerja');
+  });
+
   it('pressureRange membaca rentang dan nilai tunggal', async () => {
     const { pressureRange } = await import('./knowledge-answer.js');
     expect(pressureRange('antara 8-12 bar')).toEqual({ min: 8, max: 12 });

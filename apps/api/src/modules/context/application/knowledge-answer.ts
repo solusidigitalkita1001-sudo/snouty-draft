@@ -196,6 +196,28 @@ async function pressureFit(
           ? `- **HDPE** classes in the Pralon catalogue above ${num(range.max, locale)} bar: ${classes}.`
           : `- **HDPE** di katalog Pralon yang kelasnya di atas ${num(range.max, locale)} bar: ${classes}.`,
       );
+      // Kelas yang selisihnya lebih kecil dari ayunan tekanan yang disebut pengguna sendiri
+      // ruangnya tipis untuk lonjakan — kalimat pembuka di atas seolah sudah menyaringnya,
+      // padahal daftar ini memuat semuanya (pemilik 2026-10-27). Pembandingnya angka pengguna,
+      // bukan faktor lonjakan karangan: Pralon belum punya angka itu, dan ia tercatat sebagai
+      // kekurangan pengetahuan.
+      const swing = range.max - range.min;
+      const tight = above.filter((d) => d.pn - range.max < swing);
+      if (tight.length > 0) {
+        const list = joinLabels(
+          tight.map((d) => d.label),
+          locale,
+        );
+        lines.push(
+          en
+            ? `- The margin on ${list} is smaller than the ${num(swing, locale)} bar swing you described, so it leaves little room for a surge; whether it is enough is for the Pralon technical team to confirm.`
+            : `- Selisih ${list} lebih kecil dari ayunan tekanan ${num(swing, locale)} bar yang Anda sebutkan, jadi ruangnya untuk lonjakan tipis; cukup atau tidak, tim teknis Pralon yang memastikan.`,
+        );
+        gaps.push({
+          topic: 'tekanan kerja',
+          gap: 'ruang lonjakan minimum di atas tekanan kerja',
+        });
+      }
     } else if (names.length > 0) {
       lines.push(
         en
@@ -407,6 +429,14 @@ function catalogTable(entries: readonly CatalogEntry[], locale: Locale): string 
       (a) => `| ${labels[a]} | ${entries.map((e) => cell(e.aspects[a] ?? '—')).join(' | ')} |`,
     ),
   ].join('\n');
+}
+
+/** Label kelas dalam satu kalimat: "PN-12.5", "PN-12.5 dan PN-16", "PN-10, PN-12.5, dan PN-16". */
+function joinLabels(labels: readonly string[], locale: Locale): string {
+  const and = locale === 'en' ? 'and' : 'dan';
+  if (labels.length <= 1) return labels[0] ?? '';
+  if (labels.length === 2) return `${labels[0]} ${and} ${labels[1]}`;
+  return `${labels.slice(0, -1).join(', ')}, ${and} ${labels[labels.length - 1]}`;
 }
 
 /** Baris katalog (ukuran, panjang batang) per kelas PVC yang disebut, untuk tabel perbandingan kelas. */
