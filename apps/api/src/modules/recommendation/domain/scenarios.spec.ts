@@ -23,13 +23,13 @@ describe('compareScenarios — rumah 2 lantai, toren atap', () => {
 
   // Pipa utama 1¼" (tebal AW resmi) menggesek lebih sedikit dari 1" dulu. Sejak kerugian
   // sambungan dihitung per fitting (ENG-207, masukan Leo 2026-10-22) sisanya 0,15 bar, tetap < 0,3.
-  it('dasar: perlu pompa pendorong, sisa tekanan 0,15 bar', () => {
+  it('dasar: perlu pompa pendorong, sisa tekanan 0,11 bar', () => {
     expect(result.base).toMatchObject({
       outletCount: 11,
       mainSize: '1¼"',
       boosterPumpNeeded: true,
     });
-    expect(result.base.residualBar).toBeCloseTo(0.15, 2);
+    expect(result.base.residualBar).toBeCloseTo(0.11, 2);
   });
 
   it('skenario yang ditawarkan: toren naik, tambah kamar mandi, PDAM, toren bawah (toren atap sudah dipakai)', () => {

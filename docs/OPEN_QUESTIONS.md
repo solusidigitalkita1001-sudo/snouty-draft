@@ -495,8 +495,8 @@ supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 
 ### OQ-88 — Kode plambing yang mengikat angka beban alat: IPC atau UPC (P31-70, 2026-10-27)
 
-**Status:** open · **Blocks:** angka beban alat di seluruh kasus air bersih (rumah, masjid,
-bangunan umum) dan ukuran saluran pembuangan — bukan menghalangi, tetapi menentukan angkanya
+**Status:** diputuskan 2026-10-27 (pemilik: keduanya dibaca, UPC yang menang bila berbeda) ·
+**Menunggu:** tabel pembuangan UPC dibaca dan disahkan tim teknis Pralon
 **Konteks:** pemilik menyebut UPC (Uniform Plumbing Code) sebagai salah satu pedoman yang
 dipakai Pralon. Angka baku yang dipakai aturan sekarang diambil dari IPC: beban alat air
 bersih dari Lampiran E Tabel E103.3(2) dan kurva debit puncaknya dari E103.3(3), beban
@@ -519,15 +519,27 @@ UPC juga punya kolom ketiga, "assembly", untuk bangunan pertemuan (masjid, sekol
 kloset tangki 3,5 dan urinal 3,0–6,0 — persis jenis bangunan yang paling sering ditanyakan
 tim penjualan.
 
-**Usul default (menunggu pilihan pemilik):** angka beban alat air bersih dipindahkan ke UPC
-Tabel A 103.1 (kolom pribadi untuk rumah, umum untuk ruko dan bangunan kantor, assembly
-untuk masjid, sekolah, dan aula), dan aturan pembuangan tetap di IPC Tabel 709.1/710.1
-sampai tabel pembuangan UPC dibaca juga — setiap aturan mengutip kode yang benar-benar
-dipakainya, tidak dicampur dalam satu angka. Setiap perpindahan menaikkan versi aturannya,
-jadi laporan lama tetap bisa dijelaskan dengan angka yang dipakai saat itu.
-**Yang perlu dipastikan:** apakah Pralon memang memakai UPC untuk beban alat (dan edisi
-mana), atau IPC yang dipakai sekarang tetap, atau keduanya dengan satu yang menang bila
-berbeda.
+**Keputusan pemilik:** kedua kode dibaca, dan bila angkanya berbeda yang dipakai UPC.
+
+Yang sudah pindah (P31-71): beban alat air bersih memakai UPC Tabel A 103.1 — kolom pribadi
+untuk rumah, kolom umum untuk sekolah, klinik, dan ruko, kolom pertemuan (assembly) untuk
+rumah ibadah. Akibatnya terlihat: rumah contoh naik dari 12,6 ke 19 unit dan pipa utamanya
+dari 1" ke 1¼", sedangkan toilet umum justru turun (kloset 5,0 → 2,5), sehingga sekolah
+dengan 24 toilet yang sebelum ini diserahkan ke tim teknis sekarang dihitung — batas kurva
+debit puncak baru tercapai di 29 toilet.
+
+Yang belum: beban dan kapasitas pembuangan masih mengutip IPC Tabel 709.1 dan 710.1. Tabel
+UPC-nya sudah dibaca sebagian — Tabel 702.1 (kloset 1,6 gpf 3,0 DFU, bak cuci dapur 2,0,
+shower 2,0, wastafel 1,0) dari kutipan King County, dan Tabel 703.2 (kapasitas mendatar pada
+kemiringan ¼"/ft: 2" 8, 3" 35, 4" 216, 5" 428, 6" 720 DFU; tegak: 2" 16, 3" 48, 4" 256) dari
+cetakan CPC 2025 — tetapi bentuk tabelnya berbeda dari IPC (tidak ada kolom "per interval
+cabang", tidak ada kolom 2½" di cetakan CPC), jadi perpindahannya mengubah bentuk aturan,
+bukan hanya angkanya. Itu item tersendiri.
+
+**Catatan yang perlu ahli:** konversi beban alat → debit puncak tetap memakai kurva Hunter
+IPC, karena kurva UPC hanya terbit sebagai grafik. Memasukkan unit UPC ke kurva IPC
+menghasilkan debit yang lebih besar — aman, tetapi perlu disahkan tim teknis Pralon, bersama
+daftar angka di atas 100 unit yang diminta OQ-87.
 
 ### OQ-87 — Beban alat di atas kurva debit puncak: diserahkan atau dihitung (P31-69, 2026-10-27)
 

@@ -28,8 +28,8 @@ describe('fitting air bersih (ENG-708)', () => {
       endReducer: '1/2"',
       tankFillElbows: 2,
       branchElbows: [
-        { size: '1"', count: 1 },
-        { size: '3/4"', count: 1 },
+        // Beban alat UPC menaikkan cabang kamar mandi lantai 1 dari 3/4" ke 1".
+        { size: '1"', count: 2 },
         { size: '1/2"', count: 2 },
       ],
       outletElbows: 11,
@@ -51,7 +51,7 @@ describe('fitting air bersih (ENG-708)', () => {
 
   it('nilai asumsi bisa diganti pengguna', () => {
     const r = computeSolution(HOUSE, 'id', { FITTING_BRANCH_ELBOW_1: 2 });
-    expect(r.fittings.branchElbows.map((b) => b.count)).toEqual([2, 2, 4]);
+    expect(r.fittings.branchElbows.map((b) => b.count)).toEqual([4, 4]);
   });
 });
 

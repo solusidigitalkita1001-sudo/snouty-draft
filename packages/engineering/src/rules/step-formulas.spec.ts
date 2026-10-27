@@ -25,7 +25,7 @@ describe('rumus singkat langkah hitung', () => {
       'Titik air = 3 kamar mandi × 2 + 4 wastafel + 1 dapur = 11 titik',
     );
     expect(formula('ENG-701')).toBe(
-      'Beban = 3 × 2,2 + 3 × 1 + 4 × 0,5 + 1 × 1 = 12,6 unit → Q = 1,03 l/s (kurva Hunter)',
+      'Beban = 3 × 2,5 + 3 × 2 + 4 × 1 + 1 × 1,5 = 19 unit → Q = 1,21 l/s (kurva Hunter)',
     );
   });
 
@@ -38,7 +38,7 @@ describe('rumus singkat langkah hitung', () => {
       expect(en).not.toBeNull();
       expect(en).not.toMatch(/\d,\d/);
     }
-    expect(formula('ENG-701', 'en')).toContain('12.6 units');
+    expect(formula('ENG-701', 'en')).toContain('19 units');
   });
 
   it('aturan tanpa rumus atau trace yang tidak dikenali → null, bukan rumus setengah', () => {
@@ -66,12 +66,9 @@ describe('panjang jalur rumah dari ukuran rumah (P16-60)', () => {
     // 3 KM × 2 + 1 dapur = 7 titik; lantai 2: 4 titik, lantai 1: 3 titik → 2 cabang.
     // Review laporan 0015: cabang di ujung pipa utama disambung elbow → 2 cabang, 1 tee.
     expect(sized.branchLayout).toMatchObject({ branchNetM: 24, fixtureNetM: 10.5, teeCount: 1 });
-    // ENG-707: cabang lantai 2 (2 KM, 6,4 WSFU ≈ 0,7 l/s → 1") dan lantai 1 (1 KM + dapur, 4,2 WSFU
-    // → 3/4"), masing-masing sepanjang sisi terpanjang 12 m.
-    expect(sized.branchLayout!.bySize).toEqual([
-      { size: '1"', count: 1, netM: 12 },
-      { size: '3/4"', count: 1, netM: 12 },
-    ]);
+    // ENG-707 dengan beban alat UPC: cabang lantai 2 (2 KM, 9 WSFU) dan lantai 1 (1 KM +
+    // dapur, 6 WSFU) sama-sama 1", masing-masing sepanjang sisi terpanjang 12 m.
+    expect(sized.branchLayout!.bySize).toEqual([{ size: '1"', count: 2, netM: 24 }]);
     const trace = sized.traces.find((t) => t.ruleId === 'ENG-704')!;
     expect(stepFormula('ENG-704', trace.inputs, trace.output)).toBe(
       'Cabang = 2 × 12 m = 24 m · Sambungan = 7 × 1,5 m = 10,5 m · Tee = 1',

@@ -277,21 +277,26 @@ export function computeSolution(
   });
   const floorHeightM = input.floorHeightM ?? run(ENG_004, {}).floorHeightM;
   const floorPlan = run(ENG_008, { ...fixtures, floors: input.floors, floorHeightM });
-  // Beban per alat (IPC E103.3(2)) — sekali dibaca, dipakai debit total dan isi tiap cabang.
-  // Tempat ibadah memakai kolom pemakaian umum; keran kamar mandi menempati tempat shower.
+  // Beban per alat (UPC Tabel A 103.1) — sekali dibaca, dipakai debit total dan isi tiap
+  // cabang. Rumah memakai kolom pemakaian pribadi; sekolah, klinik, dan ruko kolom umum;
+  // rumah ibadah kolom pertemuan (assembly), tempat kloset dan urinoirnya lebih berat.
+  // Keran kamar mandi menempati tempat shower.
   const wsfu = publicRestroom
     ? {
-        waterCloset: use('WSFU_PUBLIC_WATER_CLOSET_5'),
-        shower: use('WSFU_PUBLIC_TAP_1_5'),
-        lavatory: use('WSFU_PUBLIC_TAP_1_5'),
-        kitchenSink: fixtures.kitchens > 0 ? use('WSFU_KITCHEN_SINK_1') : 1,
-        urinal: urinals > 0 ? use('WSFU_PUBLIC_URINAL_3') : 0,
+        waterCloset: worship
+          ? use('WSFU_ASSEMBLY_WATER_CLOSET_3_5')
+          : use('WSFU_PUBLIC_WATER_CLOSET_2_5'),
+        shower: use('WSFU_PUBLIC_TAP_1'),
+        lavatory: use('WSFU_PUBLIC_TAP_1'),
+        kitchenSink: fixtures.kitchens > 0 ? use('WSFU_KITCHEN_SINK_1_5') : 1.5,
+        urinal:
+          urinals > 0 ? (worship ? use('WSFU_ASSEMBLY_URINAL_3') : use('WSFU_PUBLIC_URINAL_2')) : 0,
       }
     : {
-        waterCloset: use('WSFU_WATER_CLOSET_2_2'),
-        shower: use('WSFU_SHOWER_1'),
-        lavatory: use('WSFU_LAVATORY_0_5'),
-        kitchenSink: use('WSFU_KITCHEN_SINK_1'),
+        waterCloset: use('WSFU_WATER_CLOSET_2_5'),
+        shower: use('WSFU_SHOWER_2'),
+        lavatory: use('WSFU_LAVATORY_1'),
+        kitchenSink: use('WSFU_KITCHEN_SINK_1_5'),
         urinal: 0,
       };
   // Isi tiap cabang per lantai (ENG-707, temuan laporan 0009): ukuran cabang dari isinya sendiri.

@@ -27,9 +27,10 @@ export function supplyLoadWsfu(
 ): number {
   const { use } = assumptionReader(overrides);
   const bathrooms = Math.max(0, input.bathrooms ?? 0);
-  // Toilet umum: sekolah, klinik, dan tempat ibadah memakai kolom pemakaian umum (ENG-801).
-  const publicRestroom =
-    input.buildingType === 'public_building' || input.buildingType === 'place_of_worship';
+  // Toilet umum: sekolah, klinik, dan ruko memakai kolom pemakaian umum UPC; rumah ibadah
+  // kolom pertemuan (assembly), seperti di compute-solution.
+  const worship = input.buildingType === 'place_of_worship';
+  const publicRestroom = worship || input.buildingType === 'public_building';
   const basins =
     input.basins ??
     (publicRestroom ? use('HOUSE_BASINS_0') : bathrooms * use('HOUSE_BASINS_PER_BATHROOM_1'));
@@ -46,10 +47,13 @@ export function supplyLoadWsfu(
         kitchenSinks: kitchens,
         urinals,
         wudhuTaps: 0,
-        wsfuWaterCloset: use('WSFU_PUBLIC_WATER_CLOSET_5'),
-        wsfuTap: use('WSFU_PUBLIC_TAP_1_5'),
-        wsfuUrinal: urinals > 0 ? use('WSFU_PUBLIC_URINAL_3') : 0,
-        wsfuKitchenSink: kitchens > 0 ? use('WSFU_KITCHEN_SINK_1') : 1,
+        wsfuWaterCloset: worship
+          ? use('WSFU_ASSEMBLY_WATER_CLOSET_3_5')
+          : use('WSFU_PUBLIC_WATER_CLOSET_2_5'),
+        wsfuTap: use('WSFU_PUBLIC_TAP_1'),
+        wsfuUrinal:
+          urinals > 0 ? (worship ? use('WSFU_ASSEMBLY_URINAL_3') : use('WSFU_PUBLIC_URINAL_2')) : 0,
+        wsfuKitchenSink: kitchens > 0 ? use('WSFU_KITCHEN_SINK_1_5') : 1.5,
         wudhuTapFlowLs: 0.1,
       }),
     );
@@ -60,10 +64,10 @@ export function supplyLoadWsfu(
       showers: bathrooms,
       lavatories: basins,
       kitchenSinks: kitchens,
-      wsfuWaterCloset: use('WSFU_WATER_CLOSET_2_2'),
-      wsfuShower: use('WSFU_SHOWER_1'),
-      wsfuLavatory: use('WSFU_LAVATORY_0_5'),
-      wsfuKitchenSink: use('WSFU_KITCHEN_SINK_1'),
+      wsfuWaterCloset: use('WSFU_WATER_CLOSET_2_5'),
+      wsfuShower: use('WSFU_SHOWER_2'),
+      wsfuLavatory: use('WSFU_LAVATORY_1'),
+      wsfuKitchenSink: use('WSFU_KITCHEN_SINK_1_5'),
     }),
   );
 }

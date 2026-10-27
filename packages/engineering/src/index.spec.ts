@@ -20,8 +20,9 @@ describe('kutipan kode plambing', () => {
   it('aturan yang membaca tabel kode mengutip kodenya; aturan turunan rumus tidak', () => {
     expect(ruleStandard('ENG-601')).toBe('IPC Table 709.1');
     expect(ruleStandard('ENG-604')).toBe('IPC 2021 Table 710.1(2)');
-    expect(ruleStandard('ENG-701')).toContain('E103.3(3)');
-    expect(ruleStandard('ENG-801')).toContain('E103.3(2)');
+    // Beban alatnya dari UPC, konversinya ke debit dari kurva IPC — keduanya disebut.
+    expect(ruleStandard('ENG-701')).toBe('UPC Table A 103.1; IPC Appendix E, Table E103.3(3)');
+    expect(ruleStandard('ENG-801')).toContain('UPC Table A 103.1');
     expect(ruleStandard('ENG-101')).toBeNull();
   });
 
@@ -36,14 +37,17 @@ describe('kutipan kode plambing', () => {
 describe('beban alat suplai dari kebutuhan (WSFU)', () => {
   // Produksi 2026-10-27: sekolah 3 lantai dengan 24 toilet. Debit puncaknya di luar kurva
   // Hunter, dan sampai P31-69 itu muncul sebagai analisis yang gagal tanpa penjelasan.
-  it('toilet umum: 24 toilet = 156 WSFU, di atas tabel; rumah 3 kamar mandi masih di dalamnya', () => {
-    expect(supplyLoadWsfu({ buildingType: 'public_building', bathrooms: 24 })).toBe(156);
-    expect(supplyLoadWsfu({ buildingType: 'public_building', bathrooms: 24 })).toBeGreaterThan(
+  // Dengan beban alat UPC (kolom umum: kloset 2,5 + keran 1,0 per toilet) batas itu
+  // tercapai di 29 toilet, bukan 20 — sekolah sedang kini dihitung, bukan diserahkan.
+  it('toilet umum: 30 toilet = 105 WSFU, di atas tabel; 24 toilet masih di dalamnya', () => {
+    expect(supplyLoadWsfu({ buildingType: 'public_building', bathrooms: 30 })).toBe(105);
+    expect(supplyLoadWsfu({ buildingType: 'public_building', bathrooms: 30 })).toBeGreaterThan(
       HUNTER_TABLE_MAX_WSFU,
     );
-    // Rumah: 3 kamar mandi (kloset + shower), 3 wastafel (1 per kamar mandi), 1 dapur = 12,1.
-    expect(supplyLoadWsfu({ buildingType: 'residential', bathrooms: 3 })).toBe(12.1);
-    expect(supplyLoadWsfu({ buildingType: 'residential', bathrooms: null })).toBe(1);
+    expect(supplyLoadWsfu({ buildingType: 'public_building', bathrooms: 24 })).toBe(84);
+    // Rumah: 3 kamar mandi (kloset 2,5 + shower 2,0), 3 wastafel 1,0, 1 dapur 1,5 = 18.
+    expect(supplyLoadWsfu({ buildingType: 'residential', bathrooms: 3 })).toBe(18);
+    expect(supplyLoadWsfu({ buildingType: 'residential', bathrooms: null })).toBe(1.5);
   });
 
   it('urinoir dan wastafel yang disebut ikut dihitung', () => {
@@ -53,7 +57,7 @@ describe('beban alat suplai dari kebutuhan (WSFU)', () => {
       bathrooms: 4,
       urinals: 2,
     });
-    expect(withUrinals - base).toBe(6); // 2 × 3 WSFU urinoir umum
+    expect(withUrinals - base).toBe(6); // 2 × 3 WSFU urinoir kolom pertemuan
   });
 });
 

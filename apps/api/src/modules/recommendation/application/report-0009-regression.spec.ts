@@ -86,7 +86,7 @@ describe('regresi laporan SNTY-2026-10-0009 — B: cabang air bersih dari isinya
     );
     expect(branches.map((l) => [l.name, l.size, l.path])).toEqual([
       ['Cabang 2 kamar mandi', '1"', 'Pipa utama → 2 kamar mandi (2 cabang)'],
-      ['Cabang 4 wastafel', '1/2"', 'Pipa utama → 4 wastafel (2 cabang)'],
+      ['Cabang 4 wastafel', '3/4"', 'Pipa utama → 4 wastafel (2 cabang)'],
     ]);
     expect(rec.stats.branchCount).toBe(4);
   });
@@ -148,10 +148,10 @@ describe('regresi laporan SNTY-2026-10-0009 — C: fitting', () => {
       .map((b) => `${b.item} ${b.size} ${b.quantity} ${nameOf(b.productId) ?? '-'}`);
     expect(rows).toEqual([
       // Tee sama sisi untuk tiga cabang; cabang keempat di ujung pipa utama memakai elbow + reducer
-      // (review laporan 0015), reducer-nya sama SKU dengan reducer cabang 1/2" lainnya (digabung).
+      // (review laporan 0015). Dengan beban alat UPC cabang wastafelnya 3/4", dan katalog
       `Tee cabang ${rec.stats.mainSize} 3 Tee Abu Ts 1 1/4"`,
       `Reducer cabang ${rec.stats.mainSize} × 1" 2 Bell Reducer - W 1 1/4" x 1"`,
-      `Reducer cabang ${rec.stats.mainSize} × 1/2" 2 Bell Reducer - W 1 1/4" x 1/2"`,
+      `Reducer cabang ${rec.stats.mainSize} × 3/4" 1 -`,
     ]);
   });
 });
@@ -226,7 +226,7 @@ describe('TC-H-01 · aturan lama tidak ikut di trace', () => {
     const text = traces.map((t) => t.explanation).join(' ');
     expect(text).not.toContain('Unit beban memakai bobot');
     expect(traces.find((t) => t.ruleId === 'ENG-001')!.explanation).toMatch(/= 16 titik\.$/);
-    expect(text).toContain('Beban suplai 16,8 unit');
+    expect(text).toContain('Beban suplai 26 unit');
     expect(traces.some((t) => t.ruleId === 'ENG-006')).toBe(false);
     expect(rec.stats.outletCount).toBe(16);
   });

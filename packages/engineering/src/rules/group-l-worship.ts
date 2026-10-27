@@ -97,8 +97,8 @@ export const ENG_801: RuleVersion<WorshipDemandInput, WorshipDemandResult> = {
     };
   },
   sourceReference:
-    'IPC Lampiran E, Tabel E103.3(2) pemakaian umum, air dingin: kloset tangki 5,0, lavatory 1,5 (keran kamar mandi disetarakan), urinal tangki 3,0; kurva Hunter kloset tangki Tabel E103.3(3); keran wudhu 0,1 l/s per keran, semua serentak (keputusan pemilik 2026-10-12, OQ-61)',
-  standard: 'IPC Appendix E, Table E103.3(2) + E103.3(3)',
+    'UPC Tabel A 103.1: kloset tangki 2,5 pemakaian umum dan 3,5 kolom pertemuan, lavatory 1,0 (keran kamar mandi disetarakan), urinoir tangki 2,0 umum dan 3,0 pertemuan; debit puncak dari kurva Hunter kloset tangki IPC Tabel E103.3(3); keran wudhu 0,1 l/s per keran, semua serentak (keputusan pemilik 2026-10-12, OQ-61)',
+  standard: 'UPC Table A 103.1; IPC Appendix E, Table E103.3(3)',
   validationStatus: PENDING,
   testCases: [
     {

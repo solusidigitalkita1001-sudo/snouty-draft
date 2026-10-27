@@ -29,15 +29,15 @@ describe('computeSolution — contoh kerja desain', () => {
     expect(result.maxOutletsPerBranch).toBe(4);
   });
 
-  it('debit puncak: 3 × (2,2 + 1,0) + 4 × 0,5 + 1,0 = 12,6 WSFU → 16,3 gpm (kurva Hunter) = 1,028 l/s', () => {
-    expect(result.supply.wsfu).toBe(12.6);
-    expect(result.supply.peakFlowLs).toBeCloseTo(16.3 * 0.0630902, 3);
+  it('debit puncak: 3 × (2,5 + 2,0) + 4 × 1,0 + 1,5 = 19 WSFU → 19,2 gpm (kurva Hunter) = 1,211 l/s', () => {
+    expect(result.supply.wsfu).toBe(19);
+    expect(result.supply.peakFlowLs).toBeCloseTo(19.2 * 0.0630902, 3);
   });
 
   // Tebal dinding AW resmi (PROD/STD-04): 1" dalam 27,9 mm, 1¼" dalam 37,3 mm. Dengan perkiraan
   // SDR 26,5 dulu 1" = 29,6 mm dan lolos — review putaran 4, poin 4.
-  it('pipa utama 1¼": di 1" AW (dalam 27,9 mm) kerugian gesek ±10,9 m/100 m melewati batas 10; di 1¼" (37,3 mm) jauh di bawahnya', () => {
-    const q = 1.028e-3;
+  it('pipa utama 1¼": di 1" AW (dalam 27,9 mm) kerugian gesek ±14,7 m/100 m melewati batas 10; di 1¼" (37,3 mm) jauh di bawahnya', () => {
+    const q = 1.211e-3;
     const v = (id: number) => q / ((Math.PI * (id / 1000) ** 2) / 4);
     // Hazen-Williams SI, C 150, m per 100 m.
     const gradient = (id: number) =>
@@ -203,7 +203,7 @@ describe('TC-H-01 · tanpa "unit beban" lama di trace', () => {
     expect(outlets.explanation).toBe(
       'Titik air dihitung 4 kamar mandi × 2 (shower dan kloset) + 8 wastafel + 0 dapur = 16 titik.',
     );
-    expect(masjid.supply.wsfu).toBe(16.8);
+    expect(masjid.supply.wsfu).toBe(26);
     // ENG-006 (cadangan lapangan tanpa efek) sudah dihapus.
     expect(masjid.traces.some((t) => t.ruleId === 'ENG-006')).toBe(false);
   });

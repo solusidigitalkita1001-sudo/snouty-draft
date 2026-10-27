@@ -65,7 +65,9 @@ layar detail teknis dan ke tabel langkah hitung di laporan (permintaan pemilik 2
 Sebuah tes menjaganya: aturan yang `sourceReference`-nya menyebut IPC, UPC, atau SNI tetapi
 `standard`-nya kosong akan menggagalkan suite. Aturan yang dasarnya turunan rumus atau
 keputusan pemilik tidak mengutip kode — `sourceReference` yang menjelaskannya.
-Kode mana yang mengikat angka beban alat masih diputuskan: OQ-88.
+Kode mana yang mengikat: keduanya dibaca, dan UPC menang bila berbeda (keputusan pemilik
+2026-10-27, OQ-88). Beban alat air bersih sudah memakai UPC Tabel A 103.1; beban dan
+kapasitas pembuangan masih IPC sampai tabel UPC-nya dipindahkan.
 
 ### Trace
 
@@ -531,8 +533,11 @@ ENG-009 ("2 + lantai batang", "3 × kamar mandi elbow") di `computeSolution`; ke
 dijalankan. ENG-001 v2: kamar mandi = dua titik air (shower + kloset).
 
 ```
-ENG-701  WSFU = kloset × 2,2 + shower × 1,0 + wastafel × 0,5 + bak cuci dapur × 1,0 (IPC E103.3(2),
-         air dingin, pribadi) → debit puncak dari kurva Hunter kloset tangki (IPC E103.3(3))
+ENG-701  WSFU = kloset × 2,5 + shower × 2,0 + wastafel × 1,0 + bak cuci dapur × 1,5 (UPC Tabel
+         A 103.1, kolom pribadi) → debit puncak dari kurva Hunter kloset tangki (IPC E103.3(3),
+         karena kurva UPC hanya terbit sebagai grafik — OQ-88)
+ENG-801  toilet umum: kloset × 2,5 + keran/wastafel × 1,0 + urinoir × 2,0 (UPC kolom umum);
+         rumah ibadah memakai kolom pertemuan: kloset × 3,5, urinoir × 3,0
 ENG-702  titik tertinggi = (lantai − 1) × tinggi lantai + 2 m (shower); toren atap = lantai × tinggi
          lantai + 1 m; jalur = beda tinggi + jalur datar (disebut / panjang + lebar rumah / 20 m)
 Kel. F   ukuran pipa utama dari kecepatan ≤ 2 m/s dan kehilangan ≤ batas; toren atap: batas

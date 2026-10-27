@@ -140,11 +140,12 @@ const U3 = stateOf([
 const rowsOf = (rec: Recommendation) => boqFrom(rec).sections.flatMap((s) => s.rows);
 
 describe('U1 — rumah 1 lantai, toren atap', () => {
-  it('pipa ¾" dibulatkan sekali per SKU: 48 m + 10% = 52,8 m ÷ 4 m → 14 batang (4a)', async () => {
+  it('pipa ¾" dibulatkan sekali per SKU: 19,5 m + 10% = 21,45 m ÷ 4 m → 6 batang (4a)', async () => {
     const rec = await analyse(U1);
+    // Beban alat UPC menaikkan pipa utama ke 1"; yang tersisa di ¾" adalah cabangnya.
     const pipe = rowsOf(rec).find((r) => r.kind === 'pipe' && r.size === '3/4"')!;
-    expect(pipe.netLengthM).toBe(48);
-    expect(pipe.quantity).toBe(14);
+    expect(pipe.netLengthM).toBe(19.5);
+    expect(pipe.quantity).toBe(6);
   });
 
   it('tanpa tee sisa (4b) dan tanpa fitting pipa tegak (4c)', async () => {
@@ -248,7 +249,7 @@ describe('tebal dinding AW resmi PROD/STD-04 (review putaran 4, poin 4)', () => 
 
   it('U1 dan U3: ukuran tidak berubah', async () => {
     const u1 = await analyse(U1);
-    expect(line(u1, 'Pipa distribusi utama')).toBe('3/4"');
+    expect(line(u1, 'Pipa distribusi utama')).toBe('1"');
     expect(line(u1, 'Sambungan fixture')).toBe('1/2"');
     expect(line(await analyse(U3), 'Pipa distribusi utama')).toBe('1¼"');
   });

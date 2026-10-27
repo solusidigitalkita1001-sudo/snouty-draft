@@ -177,7 +177,7 @@ describe('Tempat ibadah (pemilik 2026-10-12: "masih nganggep kran itu wastafel, 
     expect(rec.body.split(/(?<=[.!?])s+(?=[A-Z0-9"“(])/).length).toBeLessThanOrEqual(2);
     expect(rec.systemLines.find((l) => l.name === 'Talang wudhu PVC D')?.size).toBe('3"');
     expect(rec.body).not.toContain('urinoir dan floor drain');
-    expect(demand.explanation).toContain('4 keran × 1,5');
+    expect(demand.explanation).toContain('4 keran × 1');
     expect(rec.assumptions.some((a) => a.assumptionId === 'WUDHU_TAP_FLOW_0_1LS')).toBe(true);
     expect(rec.assumptions.some((a) => a.assumptionId === 'HOUSE_KITCHEN_1')).toBe(false);
   });

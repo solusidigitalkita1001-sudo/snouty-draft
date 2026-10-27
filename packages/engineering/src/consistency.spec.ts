@@ -42,17 +42,17 @@ describe.each([
   [
     'laporan 0015: 2 lantai, 2 KM, 1 wastafel, 1 dapur',
     base,
-    { basins: [0, 1], outlets: 6, wsfu: 7.9, wasteDfu: 7 },
+    { basins: [0, 1], outlets: 6, wsfu: 11.5, wasteDfu: 7 },
   ],
   [
     '2 wastafel eksplisit, 2 lantai',
     { ...base, basins: 2 },
-    { basins: [1, 1], outlets: 7, wsfu: 8.4, wasteDfu: 8 },
+    { basins: [1, 1], outlets: 7, wsfu: 12.5, wasteDfu: 8 },
   ],
   [
     '1 lantai, 2 KM, 1 wastafel, 1 dapur',
     { ...base, floors: 1 },
-    { basins: [1], outlets: 6, wsfu: 7.9, wasteDfu: 7 },
+    { basins: [1], outlets: 6, wsfu: 11.5, wasteDfu: 7 },
   ],
 ])('%s', (_name, input, expected) => {
   const { s, d, branches, sum } = layers(input);

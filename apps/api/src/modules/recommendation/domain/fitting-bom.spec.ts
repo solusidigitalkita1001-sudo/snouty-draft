@@ -35,8 +35,8 @@ describe('supplyFittingNeeds + fittingBomRows', () => {
       ['elbow', '1¼"', 1],
       ['reducer', '1¼"', 1],
       ['elbow', '3/4"', 2],
-      ['elbow', '1"', 1],
-      ['elbow', '3/4"', 1],
+      // Beban alat UPC: kedua cabang kamar mandi 1", jadi elbow cabangnya satu baris.
+      ['elbow', '1"', 2],
       ['elbow', '1/2"', 2],
       ['elbow', '1/2"', 11],
       ['faucet_elbow', '1/2"', 11],
@@ -58,8 +58,8 @@ describe('supplyFittingNeeds + fittingBomRows', () => {
       calc: { method: 'Elbow di pipa utama', working: '2 per pipa utama', result: '2 pcs' },
     });
     // Ukuran tanpa produk katalog: tetap berjumlah, tanpa nama produk.
-    expect(rows[8]).not.toHaveProperty('productId');
-    expect(rows[8]).toMatchObject({ item: 'Faucet elbow', purpose: 'Drat kran', quantity: 11 });
+    expect(rows[7]).not.toHaveProperty('productId');
+    expect(rows[7]).toMatchObject({ item: 'Faucet elbow', purpose: 'Drat kran', quantity: 11 });
     expect(rows[2]).toMatchObject({
       item: 'Reducer cabang',
       size: '1¼" × 1/2"',

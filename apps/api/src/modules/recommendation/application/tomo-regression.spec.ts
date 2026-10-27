@@ -125,23 +125,20 @@ describe('wastafel tidak disebut (review putaran 4, 6d)', () => {
 });
 
 describe('regresi laporan SNTY-2026-10-0002 (Tomo)', () => {
-  it('air bersih: pipa utama 1"; cabang per isi (ENG-707): lantai 2 (2 KM) 1", lantai 1 (1 KM + dapur) ¾"; sambungan ½"', async () => {
+  it('air bersih: pipa utama 1¼"; cabang per isi (ENG-707): dua-duanya 1"; sambungan ½"', async () => {
     const { rec } = await analyse();
-    // 3 kamar mandi × 2 titik + 1 dapur (asumsi) = 7 titik; WSFU 3 × 3,2 + 1 = 10,6 → ±0,95 l/s;
-    // ¾" (dalam 24 mm) 2,1 m/s > 2 m/s, 1" (29,6 mm) 1,38 m/s.
+    // 3 kamar mandi × 2 titik + 1 dapur (asumsi) = 7 titik; beban alat UPC
+    // 3 × (2,5 + 2,0) + 1 × 1,5 = 15 unit → 17,5 gpm = 1,10 l/s; di 1" (dalam 29,6 mm)
+    // kecepatannya 1,6 m/s tetapi kehilangan gesek lewat batas → 1¼".
     expect(rec.stats.outletCount).toBe(7);
-    expect(rec.stats.mainSize).toBe('1"');
+    expect(rec.stats.mainSize).toBe('1¼"');
     expect(rec.stats.branchCount).toBe(2);
     const line = (name: string) => rec.systemLines.find((l) => l.name === name)!;
-    expect(line('Pipa distribusi utama').size).toBe('1"');
-    // Temuan laporan 0009 (B): debit cabang dari isinya, bukan rata-rata 10,6 ÷ 2.
-    // 2 KM = 2 × (2,2 + 1) = 6,4 unit ≈ 0,7 l/s → dalam ≥ 24,2 mm pada 1,5 m/s → 1".
-    // 1 KM + dapur = 3,2 + 1 = 4,2 unit → ¾".
-    expect(line('Cabang 2 kamar mandi')).toMatchObject({
-      size: '1"',
-      path: 'Pipa utama → 2 kamar mandi (1 cabang)',
-    });
-    expect(line('Cabang 1 kamar mandi + 1 bak cuci dapur')).toMatchObject({ size: '3/4"' });
+    expect(line('Pipa distribusi utama').size).toBe('1¼"');
+    // Temuan laporan 0009 (B): debit cabang dari isinya, bukan rata-rata 15 ÷ 2.
+    // 2 KM = 2 × (2,5 + 2,0) = 9 unit; 1 KM + dapur = 4,5 + 1,5 = 6 unit — keduanya 1",
+    // jadi kedua cabang tampil sebagai satu baris sistem.
+    expect(line('Cabang')).toMatchObject({ size: '1"' });
     expect(line('Sambungan fixture').size).toBe('1/2"');
   });
 
@@ -160,7 +157,9 @@ describe('regresi laporan SNTY-2026-10-0002 (Tomo)', () => {
     // Baris yang belum dihitung (sok, dop, stop kran, lem — review 0015) tidak punya angka.
     const counted = rec.bom.filter((b) => !b.pending);
     expect(counted.some((b) => b.unit !== 'pcs')).toBe(false);
-    expect(rec.bom.some((b) => /tee|reducer/i.test(b.item))).toBe(false);
+    // Tee cabang dihitung dari panjang jalur, jadi tanpa ukuran rumah tidak ada; reducer di
+    // pangkal cabang datang dari jumlah cabang (ENG-708), bukan dari ukuran rumah.
+    expect(rec.bom.some((b) => /^Tee/.test(b.item))).toBe(false);
     // Fitting P18-01 (keputusan pemilik 2026-10-13): dari jumlah jalur dan titik, asumsi registry,
     // dengan dasar perhitungannya — bukan rumus prototipe ENG-009 yang dibuang.
     for (const row of counted) {
@@ -225,18 +224,19 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
       .filter((b) => !b.pending && (b.unit !== 'pcs' || /^Tee/.test(b.item)))
       .map((b) => `${b.item} ${b.size} ${b.quantity} ${b.unit}`);
     // Sisa potong 10% sebelum pembulatan (review laporan 0015).
-    // Air bersih: utama 1" 25,5 m → 28,05 m → 8 batang; cabang 1" dan ¾" 12 m → 13,2 m → 4;
-    // sambungan ½" 10,5 m → 11,55 m → 3; tee 1" 1 (cabang ujung pipa utama memakai elbow).
+    // Air bersih: utama 1¼" 25,5 m → 28,05 m (katalog contoh tidak punya 1¼" AW → meter);
+    // cabang 1" 2 × 12 m → 26,4 m → 7 batang; sambungan ½" 10,5 m → 11,55 m → 3;
+    // tee 1¼" × 1" 1 (cabang ujung pipa utama memakai elbow).
     // Pembuangan: air kotor 4" 15,5 m → 17,05 m → 5; air bekas 2" 15,5 m → 5; ventilasi 8 m → 8,8 m:
     // 2" ventilasi air kotor 3 batang — baris sendiri, tidak digabung dengan air bekas 2" (beda
     // sistem); 1¼" tanpa produk → 9 meter.
     expect(rows).toEqual([
-      // 1": utama 25,5 m + cabang lantai 2 12 m — satu produk, satu sistem, digabung lalu dibulatkan
-      // sekali (review putaran 3, 4a): 37,5 m + 10% = 41,25 m ÷ 4 m = 10,31 → 11 (dulu 8 + 4 = 12).
-      'Pipa PVC AW 1" 11 batang',
-      'Pipa PVC AW 3/4" 4 batang',
+      // Utama 1¼" sendiri; dua cabang 1" sama produk digabung lalu dibulatkan sekali
+      // (review putaran 3, 4a): 24 m + 10% = 26,4 m ÷ 4 m = 6,6 → 7 batang.
+      'Pipa PVC AW 1¼" 29 meter',
+      'Pipa PVC AW 1" 7 batang',
       'Pipa PVC AW 1/2" 3 batang',
-      'Tee cabang 1" 1 pcs',
+      'Tee cabang 1¼" × 1" 1 pcs',
       'Pipa PVC D 4" 5 batang',
       'Pipa PVC D 2" 5 batang',
       'Pipa PVC D 2" 3 batang',
@@ -244,7 +244,7 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
     ]);
     expect(
       rec.bom
-        .filter((b) => b.item !== 'Pipa PVC AW' || b.size !== '1"')
+        .filter((b) => b.item !== 'Pipa PVC AW' || b.size !== '1¼"')
         .every((b) => b.provenance === 'ASSUMED'),
     ).toBe(true);
   });
@@ -256,7 +256,8 @@ describe('ukuran rumah disebut (temuan laporan SNTY-2026-10-0007)', () => {
       .filter((p) => p.role === 'fitting')
       .map((p) => name(p.productId))
       .filter((n) => /\b(Tee|T?Y)\b/.test(n));
-    expect(fittings).toEqual(['Tee TS - W 1"', 'Bell Long TY - D 4" x 4"']);
+    // Tee cabangnya kini 1¼" × 1", yang tidak ada di katalog contoh — tinggal TY pembuangan.
+    expect(fittings).toEqual(['Bell Long TY - D 4" x 4"']);
   });
 });
 
@@ -267,6 +268,6 @@ describe('aturan A (laporan 0009) pada kasus rumah 0002', () => {
     const size = (name: string) => rec.systemLines.find((l) => l.name === name)?.size;
     expect(size('Pipa air bekas PVC D')).toBe('2"');
     expect(size('Pipa air kotor PVC D')).toBe('4"');
-    expect(size('Pipa distribusi utama')).toBe('1"');
+    expect(size('Pipa distribusi utama')).toBe('1¼"');
   });
 });

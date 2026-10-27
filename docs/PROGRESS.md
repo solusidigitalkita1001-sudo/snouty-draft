@@ -3700,3 +3700,17 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       angka IPC yang dipakai sekarang berbeda dari UPC untuk alat yang sama, dan UPC punya
       kolom bangunan pertemuan untuk masjid dan sekolah — selisihnya ditulis di OQ-88 dengan
       usul memindahkannya, menunggu pilihan pemilik.
+
+- [x] P31-71 Beban alat air bersih mengikuti UPC
+
+      Pemilik memilih kedua kode dibaca, dan UPC yang menang bila angkanya berbeda (OQ-88).
+      Beban alat air bersih sekarang dari UPC Tabel A 103.1: rumah memakai kolom pemakaian
+      pribadi (kloset 2,5, shower 2,0, wastafel 1,0, bak cuci dapur 1,5), sekolah, klinik, dan
+      ruko kolom umum (kloset 2,5, keran 1,0, urinoir 2,0), rumah ibadah kolom pertemuan
+      (kloset 3,5, urinoir 3,0) — tiga kolom, dipilih dari jenis bangunannya. Rumah contoh naik
+      dari 12,6 ke 19 unit dan pipa utamanya dari 1" ke 1¼"; toilet umum justru turun, sehingga
+      sekolah 24 toilet yang kemarin diserahkan ke tim teknis sekarang dihitung dan batas kurva
+      debit puncak baru tercapai di 29 toilet. Konversi beban → debit tetap kurva Hunter IPC
+      karena kurva UPC hanya terbit sebagai grafik; langkah hitungnya menyebut kedua kode itu.
+      Beban dan kapasitas pembuangan masih IPC — bentuk tabel UPC-nya berbeda, jadi itu item
+      tersendiri, dan OQ-88 mencatat angkanya yang sudah terbaca.

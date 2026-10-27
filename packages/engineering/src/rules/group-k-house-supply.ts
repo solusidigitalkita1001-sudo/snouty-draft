@@ -3,8 +3,8 @@
  * belom"). Menggantikan ambang prototipe ENG-002 ("unit beban ≥ 8 → 1", selain itu 3/4"") yang
  * tidak memperhitungkan debit, panjang jalur, tinggi, maupun sumber air.
  *
- *   ENG-701  kebutuhan puncak: unit beban suplai (WSFU) tiap alat → debit puncak lewat kurva
- *            Hunter untuk sistem kloset tangki (IPC Lampiran E, Tabel E103.3(2) dan E103.3(3));
+ *   ENG-701  kebutuhan puncak: unit beban suplai (WSFU) tiap alat dari UPC Tabel A 103.1 → debit
+ *            puncak lewat kurva Hunter untuk sistem kloset tangki (IPC Tabel E103.3(3));
  *   ENG-702  jalur dan elevasi: dari sumber ke titik air tertinggi, menurut ukuran rumah, jumlah
  *            lantai, dan jenis sumber;
  *   ENG-703  tekanan di titik tertinggi untuk toren atap (gravitasi): tinggi toren − kehilangan;
@@ -13,7 +13,8 @@
  *   ENG-710  tekanan di meteran / pompa supaya air sampai ke toren atap lewat pipa pengisi.
  *
  * Ukuran pipanya dipilih Kelompok F (kecepatan + kehilangan tekanan) dengan debit dan jalur ini.
- * Semua `REQUIRES_DOMAIN_VALIDATION`: nilai IPC menunggu padanan SNI 8153 dari tim teknis Pralon.
+ * Semua `REQUIRES_DOMAIN_VALIDATION`: nilai UPC dan IPC menunggu padanan SNI 8153 dari tim teknis
+ * Pralon (OQ-88: keduanya dibaca, UPC menang bila berbeda).
  */
 
 import { localized, requireInt, requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
@@ -137,8 +138,8 @@ export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
     return { wsfu: round1(wsfu), peakFlowGpm: round1(gpm), peakFlowLs: round3(gpm * GPM_TO_LS) };
   },
   sourceReference:
-    'IPC Lampiran E: WSFU air dingin, pemakaian pribadi (Tabel E103.3(2)); debit puncak dari kurva Hunter untuk kloset tangki (Tabel E103.3(3)), interpolasi linear; 1 gpm = 0,0631 l/s',
-  standard: 'IPC Appendix E, Table E103.3(2) + E103.3(3)',
+    'Beban alat dari UPC Tabel A 103.1 (kolom pemakaian pribadi); debit puncak dari kurva Hunter untuk kloset tangki (IPC Tabel E103.3(3)) karena kurva UPC hanya terbit sebagai grafik, interpolasi linear; 1 gpm = 0,0631 l/s',
+  standard: 'UPC Table A 103.1; IPC Appendix E, Table E103.3(3)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -695,8 +696,8 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
     return { branches, branchCount: branches.length, maxOutletsPerBranch: i.maxOutletsPerBranch };
   },
   sourceReference:
-    'Pengelompokan tanpa denah: kamar mandi (tidak dipisah), lalu wastafel, urinoir, lalu bak cuci dapur, maks 4 titik per cabang, cabang per lantai; beban cabang = jumlah WSFU isinya (IPC Tabel E103.3(2))',
-  standard: 'IPC Appendix E, Table E103.3(2)',
+    'Pengelompokan tanpa denah: kamar mandi (tidak dipisah), lalu wastafel, urinoir, lalu bak cuci dapur, maks 4 titik per cabang, cabang per lantai; beban cabang = jumlah WSFU isinya (UPC Tabel A 103.1)',
+  standard: 'UPC Table A 103.1',
   validationStatus: PENDING,
   testCases: [
     {

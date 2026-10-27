@@ -35,12 +35,11 @@ describe('baris sistem rumah', () => {
   it('pipa utama, cabang, sambungan, dan tekanan dari toren atap', () => {
     const lines = systemLinesFrom(solution, traces, 'id');
     // Cabang per ukuran menurut isinya (ENG-707): lantai 2 = 2 KM + 2 wastafel, lantai 1 = 1 KM +
-    // 2 wastafel + dapur → 2 KM (6,4 unit) 1", 1 KM + 2 wastafel (4,2) 3/4", 2 wastafel (1) dan
-    // dapur sendiri (1) 1/2".
+    // 2 wastafel + dapur. Dengan beban alat UPC: 2 KM (9 unit) dan 1 KM + 2 wastafel (6,5 unit)
+    // sama-sama 1"; 2 wastafel (2) dan dapur sendiri (1,5) 1/2".
     expect(lines.map((l) => [l.name, l.size])).toEqual([
       ['Pipa distribusi utama', solution.mainSize],
-      ['Cabang 2 kamar mandi', '1"'],
-      ['Cabang 1 kamar mandi + 2 wastafel', '3/4"'],
+      ['Cabang 2 kamar mandi / 1 kamar mandi + 2 wastafel', '1"'],
       ['Cabang 2 wastafel / 1 bak cuci dapur', '1/2"'],
       ['Sambungan fixture', '1/2"'],
       ['Tekanan dari toren atap', expect.stringMatching(/bar$/)],
@@ -176,7 +175,7 @@ describe('asumsi rumah', () => {
       'panjang × lebar',
     );
     expect(list.map((a) => a.assumptionId)).toEqual(
-      expect.arrayContaining(['WSFU_WATER_CLOSET_2_2', 'TANK_STAND_1M', 'HOUSE_RUN_20M']),
+      expect.arrayContaining(['WSFU_WATER_CLOSET_2_5', 'TANK_STAND_1M', 'HOUSE_RUN_20M']),
     );
     expect(list.some((a) => /tim teknis Pralon menghitungnya/.test(a.text))).toBe(false);
   });

@@ -248,7 +248,9 @@ describe('renderReportHtml', () => {
   it('langkah yang membaca tabel kode plambing mencetak kodenya', () => {
     const steps = html.slice(html.indexOf('<table class="grid steps">'));
     const stepsTable = steps.slice(0, steps.indexOf('</table>'));
-    expect(stepsTable).toContain('<span class="step-src">IPC');
+    // Beban alatnya dari UPC, kurva debit puncaknya dari IPC — keduanya tercetak.
+    expect(stepsTable).toContain('<span class="step-src">UPC Table A 103.1</span>');
+    expect(stepsTable).toContain('IPC Appendix E, Table E103.3(3)</span>');
   });
 
   it('memuat logo Pralon dan maskot SNOUTY sebagai gambar tersisip, footer bernomor halaman', () => {
