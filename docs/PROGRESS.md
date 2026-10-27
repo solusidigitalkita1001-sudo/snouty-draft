@@ -3752,8 +3752,8 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       dari 74 aturan hanya 7 yang membawa sumber ke layar, dan langkah seperti kehilangan
       tekanan, kecepatan air, atau debit puncak gedung muncul tanpa keterangan apa pun —
       padahal metodenya sudah tercatat di kode sejak awal (permintaan pemilik 2026-10-27).
-      Sekarang 31 aturan mengutip sumbernya: Hazen-Williams, rumus Manning, metode rasional,
-      Joukowsky, persamaan kontinuitas, metode koefisien kerugian, kriteria perencanaan SPAM
+      Sekarang 32 aturan mengutip sumbernya: Hazen-Williams, rumus Manning, metode rasional,
+      Joukowsky, persamaan kontinuitas, daya hidraulik, metode koefisien kerugian, kriteria SPAM
       dan SPALD-T, KP-01 irigasi, Noerbambang & Morimura untuk gedung bertingkat, dan tabel
       dimensi PRALON untuk perbandingan pipa lama.
 

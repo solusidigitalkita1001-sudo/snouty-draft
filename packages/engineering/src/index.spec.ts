@@ -35,6 +35,7 @@ describe('kutipan sumber hitungan', () => {
     expect(ruleStandard('ENG-502')).toContain('Noerbambang & Morimura');
     // Ukuran dipilih dari kecepatan (kontinuitas) dan gradien kerugian (Hazen-Williams).
     expect(ruleStandard('ENG-205')).toBe('Persamaan kontinuitas; Hazen-Williams (SI)');
+    expect(ruleStandard('ENG-206')).toBe('Daya hidraulik (P = ρ · g · Q · H)');
   });
 
   it('aritmetika dasar tidak diberi label sumber', () => {

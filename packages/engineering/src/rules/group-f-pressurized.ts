@@ -545,6 +545,7 @@ export const ENG_206: RuleVersion<PumpDutyInput, PumpDutyResult> = {
   },
   sourceReference:
     'Daya hidraulik P = ρ·g·Q·H; daya poros = P ÷ η pompa (η indikatif, tanpa kurva pompa); daya masuk motor tidak dihitung',
+  standard: 'Daya hidraulik (P = ρ · g · Q · H)',
   validationStatus: PENDING,
   testCases: [
     {
