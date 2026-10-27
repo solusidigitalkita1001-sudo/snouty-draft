@@ -1,6 +1,10 @@
 /** Label kebutuhan dwibahasa: Indonesia tetap seperti semula, Inggris dengan struktur sama. */
 import { describe, expect, it } from 'vitest';
-import { requirementFieldLabel, requirementValueLabel } from './requirement-labels.js';
+import {
+  hasPublicToilets,
+  requirementFieldLabel,
+  requirementValueLabel,
+} from './requirement-labels.js';
 
 describe('requirementValueLabel', () => {
   it('id tidak berubah', () => {
@@ -27,5 +31,15 @@ describe('requirementValueLabel', () => {
     expect(requirementValueLabel('water.source', 'rooftop_tank', 'en')).toBe('Rooftop tank');
     expect(requirementValueLabel('building.floorHeightM', 3.5, 'en')).toBe('3.5 m');
     expect(requirementFieldLabel('building.floors', 'en')).toBe('Number of floors');
+  });
+});
+
+describe('hasPublicToilets', () => {
+  it('hanya rumah ibadah dan bangunan umum berisi toilet umum', () => {
+    expect(hasPublicToilets('place_of_worship')).toBe(true);
+    expect(hasPublicToilets('public_building')).toBe(true);
+    expect(hasPublicToilets('residential')).toBe(false);
+    expect(hasPublicToilets('boarding_house')).toBe(false);
+    expect(hasPublicToilets(null)).toBe(false);
   });
 });

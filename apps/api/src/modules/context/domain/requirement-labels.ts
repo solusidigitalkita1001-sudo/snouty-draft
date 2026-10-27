@@ -5,6 +5,7 @@
  * bahasa pengguna. Redaksinya sama dengan laporan (`report-assembler.ts`) dan panel kanan.
  */
 import {
+  type BuildingType,
   DEFAULT_LOCALE,
   type Dimensions,
   type Locale,
@@ -122,6 +123,14 @@ const VALUE_LABEL_EN: Readonly<Record<string, string>> = {
 
 function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`;
+}
+
+/**
+ * Bangunan dengan toilet umum: kamar mandinya berisi kloset dan keran, bukan shower. Dipakai
+ * laporan, kartu serah terima, dan antrean tim teknis supaya ketiganya menyebut alat yang sama.
+ */
+export function hasPublicToilets(type: BuildingType | null): boolean {
+  return type === 'place_of_worship' || type === 'public_building';
 }
 
 export function requirementValueLabel(

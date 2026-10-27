@@ -80,7 +80,11 @@ import { isSocial } from '../../understanding/domain/labels.js';
 import { repeatedTopicReply } from './reply-copy.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
-import { requirementFieldLabel, requirementValueLabel } from '../domain/requirement-labels.js';
+import {
+  hasPublicToilets,
+  requirementFieldLabel,
+  requirementValueLabel,
+} from '../domain/requirement-labels.js';
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 import { applyRelativeCounts } from '../domain/relative-counts.js';
 import { parseTemperature } from '../domain/temperature-parser.js';
@@ -1121,11 +1125,12 @@ export function capturedFrom(
   locale: Locale = DEFAULT_LOCALE,
 ): readonly KeyValue[] {
   const rows: KeyValue[] = [];
+  const bathroomHasTap = hasPublicToilets(state.building.type.value);
   for (const [path, field] of fieldEntries(state)) {
     if (field.value !== null) {
       rows.push({
         label: requirementFieldLabel(path, locale),
-        value: requirementValueLabel(path, field.value, locale),
+        value: requirementValueLabel(path, field.value, locale, { bathroomHasTap }),
       });
     }
   }

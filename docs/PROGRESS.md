@@ -3726,3 +3726,11 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       masjid dua lantai naik dari 2½" ke 3" dan talang wudhunya justru turun ke 2½". Beban
       urinoir dan alat beraliran kontinu masih dari IPC karena barisnya belum terbaca di UPC,
       dan aturannya menyebut kode yang dipakainya, jadi perbedaannya terlihat di layar.
+
+- [x] P31-73 Kartu serah terima menyebut alat toilet umum, bukan shower
+
+      Sekolah 24 toilet yang diserahkan ke tim teknis membawa barisnya sebagai "48 titik:
+      shower + kloset" — toilet umum tidak berisi shower, dan laporannya sudah menulis
+      "kloset + keran" sejak lama. Dua tempat menurunkan hal yang sama dengan caranya
+      sendiri; sekarang satu fungsi yang menentukan bangunan mana berisi toilet umum, dan
+      laporan, kartu serah terima, serta antrean tim teknis memakainya bersama.

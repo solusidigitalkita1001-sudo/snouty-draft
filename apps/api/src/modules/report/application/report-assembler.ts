@@ -32,6 +32,7 @@ import {
 } from '@snouty/shared-types';
 import {
   requirementFieldLabel,
+  hasPublicToilets,
   requirementValueLabel,
 } from '../../context/domain/requirement-labels.js';
 import type { TraceToSave } from '../../recommendation/domain/recommendation.repository.js';
@@ -159,9 +160,7 @@ function requirementRows(state: RequirementState, locale: Locale): readonly Repo
     rows.push({
       label: requirementFieldLabel(path, locale),
       value: requirementValueLabel(path, field.value, locale, {
-        bathroomHasTap:
-          state.building.type.value === 'place_of_worship' ||
-          state.building.type.value === 'public_building',
+        bathroomHasTap: hasPublicToilets(state.building.type.value),
       }),
       provenance: field.provenance,
     });
