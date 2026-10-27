@@ -1264,6 +1264,31 @@ describe('runProductQuestion — ukuran terkecil/terbesar dari katalog contoh (P
     expect(out).not.toContain('1/2"');
   });
 
+  it('"yang paling besar berapa?" tanpa menyebut keluarganya: ujung keluarga yang dibahas', async () => {
+    const events = await runProductQuestion(
+      failingAi,
+      catalog({ 'pvc aw': items, semua: items }),
+      noQuestions,
+      input(
+        'yang paling besar berapa?',
+        { ...SPEC('sizes'), extreme: 'largest', families: [] },
+        {
+          subject: {
+            kind: 'product',
+            entity: 'pipa (ts end) putih aw 2" x 4 meter',
+            topic: 'spec',
+            depth: 'standard',
+          },
+        },
+      ),
+    );
+    const out = text(events);
+    expect(out).toContain('terbesar');
+    expect(out).toContain('4"');
+    // Bukan ukuran produk yang kebetulan menjadi subjek.
+    expect(out).not.toContain('2" x 4 Meter: 2"');
+  });
+
   it('tanpa penanda terkecil/terbesar, daftar ukurannya tetap utuh', async () => {
     const events = await runProductQuestion(
       failingAi,

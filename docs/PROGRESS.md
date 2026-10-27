@@ -3650,3 +3650,12 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       ditambahkan (ukuran, kelas tekanan, standar, panjang batang, bahan), jadi yang menentukan
       sekarang aspek yang ditanya, bukan nama perusahaannya. Golden dataset bertambah dua
       kalimat; pengenalan intent 198/199.
+
+- [x] P31-67 "Yang paling besar berapa?" dijawab ukuran terbesar keluarganya
+
+      Sesudah daftar ukuran per jenis HDPE, pertanyaan lanjutan itu dijawab "Ukuran tersedia
+      Pipa HDPE PE 100 PN-8 160 mm x 9 Meter: 160 mm" — ukuran satu produk yang kebetulan
+      menjadi subjek percakapan, padahal HDPE terbesar 900 mm. Jawaban ujung ukuran sudah ada
+      sejak P31-01, tetapi hanya dipakai bila keluarganya disebut di pesan itu juga; pertanyaan
+      lanjutan tidak menyebut apa pun. Keluarganya kini boleh datang dari subjek percakapan,
+      seperti pada pertanyaan ketersediaan ukuran dan kelas tekanan yang sudah begitu.

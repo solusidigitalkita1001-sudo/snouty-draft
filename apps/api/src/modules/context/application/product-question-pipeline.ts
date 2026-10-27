@@ -596,8 +596,11 @@ export async function runProductQuestion(
   // produk teratas (QA smoke 2026-10-14: dijawab "…AW - Lon 4\" x 4 Meter: 4\"").
   // "pvc aw paling kecil berapa?" dijawab satu ukuran, bukan seluruh daftar: terkecil/terbesar
   // dibaca katalog contoh `extreme` (P31-01), bukan lagi perencana giliran yang memanggil model.
-  if (aspect === 'sizes' && continued === null && u.families.length === 1) {
-    const family = await catalogFamily(catalog, u.families[0]!);
+  // Keluarganya boleh datang dari subjek percakapan: "yang paling besar berapa?" sesudah daftar
+  // ukuran HDPE dijawab "Pipa HDPE PE 100 PN-8 160 mm x 9 Meter: 160 mm" — ukuran produk yang
+  // kebetulan menjadi subjek, padahal HDPE terbesar 900 mm (produksi 2026-10-27).
+  if (aspect === 'sizes' && continued === null && oneFamily !== null) {
+    const family = await catalogFamily(catalog, oneFamily);
     const sizes =
       family === null ? null : await familySizeAnswer(catalog, family, null, u.extreme, locale);
     if (sizes !== null) {
