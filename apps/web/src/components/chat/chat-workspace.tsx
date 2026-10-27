@@ -37,6 +37,7 @@ import { reportCopy } from '../report/report-copy';
 import { ThemeToggle } from '../theme-toggle';
 import { LocaleToggle, useLocale } from '../locale';
 import { AssistantMarkdown } from './assistant-markdown';
+import { autoAnalysisStart } from './auto-analysis';
 import { ComposerField } from './composer-field';
 import { useRevealedText } from './assistant-reveal';
 import { useCaseRows } from './use-case-rows';
@@ -859,19 +860,20 @@ export function ChatWorkspace() {
    * pernah terlihat (laporan pemilik 2026-10-08: "Ubah" terasa tidak berefek).
    */
   const startAnalysis = useCallback(
-    (keepTab: boolean) => {
+    (keepTab: boolean, stayInChat = false) => {
       if (!conversationId || analyzing) return;
       setAnalyzing(true);
       // "Memahami kebutuhan" sudah selesai di giliran chat — `/analyze` tidak memancarkannya
       // lagi. Tanpa ini tahap pertama tetap kosong, judul tak pernah "Solusi siap!", dan bar
-      // berhenti di 80% (laporan pemilik 2026-10-06).
-      setStages({ UNDERSTANDING: 'done' });
+      // berhenti di 80% (laporan pemilik 2026-10-06). Hitungan yang berjalan sendiri tidak
+      // memakai overlay itu: pengguna sedang membaca pertanyaannya.
+      if (!stayInChat) setStages({ UNDERSTANDING: 'done' });
       setError(null);
       setSessionEnded(false);
 
       void runAnalysis(conversationId, (event) => {
         if (event.type === 'stage') {
-          setStages((previous) => ({ ...previous, [event.stage]: event.status }));
+          if (!stayInChat) setStages((previous) => ({ ...previous, [event.stage]: event.status }));
         } else if (event.type === 'error') {
           // Data kurang bukan gangguan layanan: pengguna diarahkan ke pertanyaan di chat (P25-05).
           setError(
@@ -886,9 +888,14 @@ export function ChatWorkspace() {
           }
           const recommendation = await fetchRecommendation(recommendationId);
           // "Solusi siap!" sempat terlihat sebentar, lalu overlay menutup dan solusi tampil.
-          await new Promise((resolve) => setTimeout(resolve, SOLUTION_READY_HOLD_MS));
+          if (!stayInChat)
+            await new Promise((resolve) => setTimeout(resolve, SOLUTION_READY_HOLD_MS));
           setSolution(recommendation);
           setStages({});
+          // Hitungan yang berjalan sendiri berhenti di sini: solusinya siap dan tombol
+          // "Lihat solusi" muncul, tetapi percakapan dan pertanyaannya tetap di layar
+          // (pemilik 2026-10-27).
+          if (stayInChat) return;
           // Prototipe: overlay menutup → `screen: 'solution'`, tab Ringkasan.
           if (!keepTab) setSolutionTab('ringkasan');
           setScreen('solution');
@@ -903,21 +910,20 @@ export function ChatWorkspace() {
     [analyzing, conversationId],
   );
   const analyze = useCallback(() => startAnalysis(false), [startAnalysis]);
+  const analyzeInChat = useCallback(() => startAnalysis(false, true), [startAnalysis]);
 
   // "Hitung dulu + asumsi" (pemilik 2026-10-20): kartu ANALYZE bertanda `auto` di giliran terbaru
   // langsung menjalankan analisis, sekali per giliran — tombolnya tetap ada untuk menghitung ulang.
+  // Layarnya tidak ikut berpindah (pemilik 2026-10-27): keputusannya di `auto-analysis.ts`.
   const autoAnalyzed = useRef<Set<string>>(new Set());
   useEffect(() => {
     const last = turns.at(-1);
     if (!last || last.role !== 'assistant' || !last.fresh) return;
     if (autoAnalyzed.current.has(last.id)) return;
-    const auto = last.cards.some(
-      (card) => card.kind === 'cta' && card.action === 'ANALYZE' && card.auto === true,
-    );
-    if (!auto) return;
+    if (autoAnalysisStart(last.cards) !== 'in-chat') return;
     autoAnalyzed.current.add(last.id);
-    analyze();
-  }, [turns, analyze]);
+    analyzeInChat();
+  }, [turns, analyzeInChat]);
 
   /**
    * "Simpan hasil konsultasi". Digerbang `SAVE_SOLUTION` di API: tamu menerima 403 dan

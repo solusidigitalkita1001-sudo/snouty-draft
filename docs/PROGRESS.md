@@ -3782,3 +3782,17 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       pemahaman tetap 99,5 % tanpa kemunduran. Aturannya sekarang tertulis di berkas
       contohnya sendiri: contoh harus membawa subjeknya, dan tiap bentuk telanjang yang
       dipakai orang harus ada di labelnya sendiri.
+
+- [x] P31-77 Hitungan yang berjalan sendiri tidak lagi melompat ke layar solusi
+
+      "pengen bikin rumah 2 lantai" langsung menampilkan solusi lengkap. Pertanyaannya
+      sebenarnya dikirim di giliran yang sama — kamar mandi, sumber air, ukuran bangunan,
+      dapur, wastafel — tetapi kartu ANALYZE bertanda auto membuat layar berpindah, jadi lima
+      pertanyaan itu tertinggal di balik tab Percakapan dan jawabannya berdiri di atas empat
+      hal yang tidak pernah disebut pengguna, sampai merekomendasikan pompa pendorong.
+
+      Keputusan pemilik 2026-10-20 (OQ-75, "hitung dulu + asumsi") tetap berlaku: hitungannya
+      jalan tanpa diminta. Yang berhenti hanya lompatan layarnya (pemilik 2026-10-27) —
+      overlay tahapan tidak muncul, percakapan tetap di layar bersama pertanyaannya, dan
+      solusinya dibuka lewat tombol "Lihat solusi" yang memang sudah ada begitu solusi ada.
+      Keputusan itu pindah dari komponen React ke  supaya bisa dites.
