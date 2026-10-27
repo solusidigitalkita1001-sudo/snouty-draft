@@ -3610,3 +3610,15 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       judulnya berbunyi "Sistem distribusi untuk 12 titik air". Dua belas adalah jumlah titik
       toiletnya, dan angka itu benar; yang hilang justru angka yang pengguna sebut sendiri.
       Judul dan kalimat pembukanya sekarang menyebut keran wudhunya di samping titik airnya.
+
+**Penutup putaran 2026-10-27 (P31-59 … P31-64).** Enam item, tiga rilis, tanpa migration. Dua
+percakapan baru yang dicoba di produksi — masjid dengan tempat wudhu, dan gudang dengan pipa air
+hujan dari atap — memunculkan empat cacat; memeriksa suite sesudahnya memunculkan yang kelima
+(FAQ 16/19, regresi dari putaran kemarin) dan membaca hasil hitungan masjidnya memunculkan yang
+keenam. Tes: API 1.858 lulus (2 dilewati), engineering 530, web 273; `typecheck` dan `eslint`
+bersih. Di produksi: pipa 48/48, perhitungan 23/23, FAQ sales 19/19, dan kedua percakapan baru
+itu kini dihitung — masjid 2 lantai 20 keran wudhu + 6 toilet menjadi pipa utama 2" dengan debit
+puncak 3,64 l/s, gudang 40 × 60 m menjadi PVC D 12" untuk limpasan 60 l/s.
+
+Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta kuncinya
+(OQ-79) dan bauran alat per titik air (OQ-85).
