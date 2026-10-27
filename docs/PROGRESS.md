@@ -3795,4 +3795,4 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       jalan tanpa diminta. Yang berhenti hanya lompatan layarnya (pemilik 2026-10-27) —
       overlay tahapan tidak muncul, percakapan tetap di layar bersama pertanyaannya, dan
       solusinya dibuka lewat tombol "Lihat solusi" yang memang sudah ada begitu solusi ada.
-      Keputusan itu pindah dari komponen React ke  supaya bisa dites.
+      Keputusan itu pindah dari komponen React ke modulnya sendiri supaya bisa dites.
