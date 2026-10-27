@@ -7,9 +7,11 @@
  * beban, beban dijumlah per jalur, lalu ukuran pipa dipilih dari kapasitas beban per diameter.
  * Dua jalur dipisah seperti lazimnya rumah di Indonesia: air kotor (kloset → septic tank) dan air
  * bekas (floor drain/shower, wastafel, bak cuci dapur → saluran atau sumur resapan). Nilai beban,
- * kapasitas, dan ukuran minimum adalah nilai acuan dari International Plumbing Code (IPC) —
- * bukan SNI yang sudah divalidasi tim teknis Pralon — jadi semuanya `REQUIRES_DOMAIN_VALIDATION`
- * dan nilai bebannya ada di registry asumsi supaya bisa diperbaiki.
+ * kapasitas, dan ukuran minimum mengikuti Uniform Plumbing Code (UPC) — keputusan pemilik
+ * 2026-10-27 (OQ-88): kedua kode dibaca, UPC yang menang bila berbeda. Nilai yang belum terbaca
+ * di UPC (beban urinoir) masih mengutip IPC, dan aturannya menyebut kode yang dipakainya. Belum
+ * ada padanan SNI dari tim teknis Pralon, jadi semuanya `REQUIRES_DOMAIN_VALIDATION` dan nilai
+ * bebannya ada di registry asumsi supaya bisa diperbaiki.
  */
 
 import { localized, requireInt, requireNumber, type RuleVersion } from '../rule.js';
@@ -23,39 +25,42 @@ export const DRAIN_SIZES = ['1¼"', '1½"', '2"', '2½"', '3"', '4"', '5"', '6"'
 export type DrainSize = (typeof DRAIN_SIZES)[number];
 
 /**
- * Beban maksimum per diameter untuk saluran bangunan mendatar pada kemiringan 2 % (¼ inci per
- * kaki) — IPC Tabel 710.1(1). 1¼" dan 1½" tidak dipakai sebagai saluran utama.
+ * Beban maksimum per diameter untuk saluran mendatar pada kemiringan ¼ inci per kaki (2,08 %)
+ * — UPC Tabel 703.2, kolom "drainage piping horizontal", dibaca pada cetakan CPC 2025. Pada
+ * kemiringan ⅛ inci per kaki angkanya dikali 0,8 (catatan 5); 1¼" dan 1½" tidak dipakai sebagai
+ * saluran utama. Angka 2½" tidak ada di cetakan CPC dan diambil dari kutipan UPC King County.
  */
 const DRAIN_CAPACITY_DFU_2PCT: Readonly<Partial<Record<DrainSize, number>>> = {
-  '2"': 21,
-  '2½"': 24,
-  '3"': 42,
+  '2"': 8,
+  '2½"': 14,
+  '3"': 35,
   '4"': 216,
-  '5"': 480,
-  '6"': 840,
+  '5"': 428,
+  '6"': 720,
 };
 
 /**
- * Cabang mendatar per lantai dan pipa tegak (stack) — IPC 2021 Tabel 710.1(2) "Horizontal fixture
- * branches and stacks" (tidak mencakup cabang saluran bangunan, yang ada di Tabel 710.1(1)).
- * Kolom: total cabang mendatar; total buangan ke satu interval cabang; total stack ≤ 3 interval;
- * total stack > 3 interval. Tabel dimulai dari 1½" — 1¼" tidak dipakai sebagai cabang atau stack.
- * Dicek 2026-10-12 terhadap salinan IPC 2021 (Connecticut State Building Code 2022, UpCodes).
+ * Cabang mendatar per lantai dan pipa tegak (stack) — UPC Tabel 703.2, kolom mendatar dan
+ * kolom tegak. UPC tidak memisahkan "per interval cabang" seperti IPC: satu angka untuk pipa
+ * tegak berapa pun lantainya, satu angka untuk jalur mendatar. Tabel dimulai dari 1½" — 1¼"
+ * tidak dipakai sebagai cabang atau stack. Angka 2½" tidak ada di cetakan CPC 2025 dan diambil
+ * dari kutipan UPC King County.
+ *
+ * Catatan 4 UPC membatasi 3" tegak pada enam kloset; di sini tidak perlu dicek terpisah karena
+ * jalur kloset sudah berukuran minimal 4" (asumsi TOILET_DRAIN_4IN).
  */
 interface BranchStackCapacity {
   readonly branch: number;
-  readonly interval: number;
-  readonly stack3: number;
-  readonly stackMore: number;
+  readonly stack: number;
 }
 const BRANCH_STACK_DFU: Readonly<Partial<Record<DrainSize, BranchStackCapacity>>> = {
-  '1½"': { branch: 3, interval: 2, stack3: 4, stackMore: 8 },
-  '2"': { branch: 6, interval: 6, stack3: 10, stackMore: 24 },
-  '2½"': { branch: 12, interval: 9, stack3: 20, stackMore: 42 },
-  '3"': { branch: 20, interval: 20, stack3: 48, stackMore: 72 },
-  '4"': { branch: 160, interval: 90, stack3: 240, stackMore: 500 },
-  '5"': { branch: 360, interval: 200, stack3: 540, stackMore: 1100 },
-  '6"': { branch: 620, interval: 350, stack3: 960, stackMore: 1900 },
+  '1½"': { branch: 1, stack: 2 },
+  '2"': { branch: 8, stack: 16 },
+  '2½"': { branch: 14, stack: 32 },
+  '3"': { branch: 35, stack: 48 },
+  '4"': { branch: 216, stack: 256 },
+  '5"': { branch: 428, stack: 600 },
+  '6"': { branch: 720, stack: 1380 },
 };
 
 const indexOf = (size: DrainSize) => DRAIN_SIZES.indexOf(size);
@@ -120,8 +125,8 @@ export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
       i.wudhuDfu,
   }),
   sourceReference:
-    'Unit beban alat plambing pembuangan (DFU), IPC Tabel 709.1: kloset 4, shower 2, wastafel 1, bak cuci dapur 2',
-  standard: 'IPC Table 709.1',
+    'Unit beban alat plambing pembuangan (DFU), UPC Tabel 702.1: kloset tangki 1,6 gpf 3, shower 2, wastafel 1, bak cuci dapur 2; beban urinoir masih dari IPC Tabel 709.1 karena baris urinoir UPC belum terbaca (OQ-88)',
+  standard: 'UPC Table 702.1',
   validationStatus: PENDING,
   testCases: [
     {
@@ -238,7 +243,8 @@ function inches(size: DrainSize): number {
 export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
   ruleId: 'ENG-602',
   // v2 (2026-10-12, temuan laporan 0009): ukuran juga tidak di bawah cabang/stack (ENG-604).
-  version: 2,
+  // v3 (OQ-88, 2026-10-27): kapasitas dari UPC Tabel 703.2, yang lebih ketat di 2" dan 3".
+  version: 3,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -266,24 +272,24 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
     return { capacitySize, size, capacityDfu: DRAIN_CAPACITY_DFU_2PCT[size] ?? 0, ventSize };
   },
   sourceReference:
-    'Kapasitas saluran mendatar pada kemiringan 2 %, IPC Tabel 710.1(1): 2" 21, 2½" 24, 3" 42, 4" 216, 5" 480, 6" 840 DFU; ukuran tidak di bawah alat terbesar dan tidak di bawah cabang mendatar / pipa tegak (ENG-604, IPC 710.1(2)); ventilasi ≥ ½ diameter jalur, minimal 1¼" (IPC 906.2)',
-  standard: 'IPC Table 710.1(1), IPC 906.2',
+    'Kapasitas saluran mendatar pada kemiringan ¼ inci per kaki (2,08 %), UPC Tabel 703.2: 2" 8, 2½" 14, 3" 35, 4" 216, 5" 428, 6" 720 DFU; ukuran tidak di bawah alat terbesar dan tidak di bawah cabang mendatar / pipa tegak (ENG-604); ventilasi ≥ ½ diameter jalur, minimal 1¼" (UPC 904.1)',
+  standard: 'UPC Table 703.2, UPC 904.1',
   validationStatus: PENDING,
   testCases: [
     {
-      name: 'air kotor 12 DFU, minimum kloset 4" → 4", ventilasi 2"',
+      name: 'air kotor 12 DFU muat di 2½", minimum kloset 4" → 4", ventilasi 2"',
       input: { dfu: 12, minimumSize: '4"', branchStackSize: null },
-      expected: { capacitySize: '2"', size: '4"', capacityDfu: 216, ventSize: '2"' },
+      expected: { capacitySize: '2½"', size: '4"', capacityDfu: 216, ventSize: '2"' },
     },
     {
-      name: 'air bekas 30 DFU, minimum 2" → 3" dari kapasitas, ventilasi 1½"',
+      name: 'air bekas 30 DFU, minimum 2" → 3" dari kapasitas (UPC 35), ventilasi 1½"',
       input: { dfu: 30, minimumSize: '2"', branchStackSize: null },
-      expected: { capacitySize: '3"', size: '3"', capacityDfu: 42, ventSize: '1½"' },
+      expected: { capacitySize: '3"', size: '3"', capacityDfu: 35, ventSize: '1½"' },
     },
     {
-      name: 'air bekas 16 DFU, cabang/stack menuntut 2½" → 2½", ventilasi 1¼"',
+      name: 'air bekas 16 DFU lewat kapasitas 2½" (14) → 3", ventilasi 1½"',
       input: { dfu: 16, minimumSize: '2"', branchStackSize: '2½"' },
-      expected: { capacitySize: '2"', size: '2½"', capacityDfu: 24, ventSize: '1¼"' },
+      expected: { capacitySize: '3"', size: '3"', capacityDfu: 35, ventSize: '1½"' },
     },
   ],
   explain: (i, o, locale) =>
@@ -309,7 +315,7 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
 
 const TABULATED = DRAIN_SIZES.filter((s) => BRANCH_STACK_DFU[s] !== undefined);
 
-/** Cabang mendatar terkecil untuk beban ini — IPC 710.1(2), kolom cabang (talang wudhu, ENG-803). */
+/** Cabang mendatar terkecil untuk beban ini — UPC Tabel 703.2, kolom mendatar (talang wudhu, ENG-803). */
 export function branchSizeForDfu(dfu: number): DrainSize {
   return (
     TABULATED.find((s) => BRANCH_STACK_DFU[s]!.branch >= dfu) ?? TABULATED[TABULATED.length - 1]!
@@ -347,7 +353,8 @@ export interface BranchStackResult {
 export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
   ruleId: 'ENG-604',
   // v2 (laporan 0015): ukuran minimum alat terbesar diterapkan di cabang dan pipa tegak.
-  version: 2,
+  // v3 (OQ-88, 2026-10-27): angka UPC — satu batas pipa tegak, tanpa kolom per interval cabang.
+  version: 3,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -373,14 +380,9 @@ export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
     const branchSize = atLeast(
       TABULATED.find((s) => BRANCH_STACK_DFU[s]!.branch >= heaviest) ?? last,
     );
-    const intervals = i.floorDfu.length;
     const stackTable =
-      intervals > 1
-        ? (TABULATED.find((s) => {
-            const t = BRANCH_STACK_DFU[s]!;
-            const stackCap = intervals <= 3 ? t.stack3 : t.stackMore;
-            return stackCap >= total && t.interval >= heaviest;
-          }) ?? last)
+      i.floorDfu.length > 1
+        ? (TABULATED.find((s) => BRANCH_STACK_DFU[s]!.stack >= total) ?? last)
         : null;
     const stackSize = stackTable === null ? null : atLeast(stackTable);
     return {
@@ -392,14 +394,14 @@ export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
     };
   },
   sourceReference:
-    'IPC 2021 Tabel 710.1(2): cabang mendatar 1½" 3, 2" 6, 2½" 12, 3" 20, 4" 160, 5" 360, 6" 620 DFU; per interval cabang 2/6/9/20/90/200/350; stack ≤ 3 interval 4/10/20/48/240/540/960; > 3 interval 8/24/42/72/500/1100/1900',
-  standard: 'IPC 2021 Table 710.1(2)',
+    'UPC Tabel 703.2: cabang mendatar 1½" 1, 2" 8, 2½" 14, 3" 35, 4" 216, 5" 428, 6" 720 DFU; pipa tegak 2, 16, 32, 48, 256, 600, 1380 DFU (2½" dari kutipan UPC King County, tidak ada di cetakan CPC 2025)',
+  standard: 'UPC Table 703.2',
   validationStatus: PENDING,
   testCases: [
     {
-      name: 'air bekas 2 lantai × 8 DFU (2 floor drain + 4 wastafel) → cabang 2½", stack 16 DFU → 2½"',
+      name: 'air bekas 2 lantai × 8 DFU (2 floor drain + 4 wastafel) → cabang 2", stack 16 DFU → 2"',
       input: { floorDfu: [8, 8] },
-      expected: { branchSize: '2½"', branchDfu: 8, stackSize: '2½"', stackDfu: 16, size: '2½"' },
+      expected: { branchSize: '2"', branchDfu: 8, stackSize: '2"', stackDfu: 16, size: '2"' },
     },
     {
       name: 'air bekas rumah 2 lantai 4 + 4 DFU → 2"',

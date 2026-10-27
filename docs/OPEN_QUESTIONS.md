@@ -496,7 +496,7 @@ supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 ### OQ-88 — Kode plambing yang mengikat angka beban alat: IPC atau UPC (P31-70, 2026-10-27)
 
 **Status:** diputuskan 2026-10-27 (pemilik: keduanya dibaca, UPC yang menang bila berbeda) ·
-**Menunggu:** tabel pembuangan UPC dibaca dan disahkan tim teknis Pralon
+**Menunggu:** angka UPC yang dipakai disahkan tim teknis Pralon (urinoir, aliran kontinu, 2½")
 **Konteks:** pemilik menyebut UPC (Uniform Plumbing Code) sebagai salah satu pedoman yang
 dipakai Pralon. Angka baku yang dipakai aturan sekarang diambil dari IPC: beban alat air
 bersih dari Lampiran E Tabel E103.3(2) dan kurva debit puncaknya dari E103.3(3), beban
@@ -528,13 +528,19 @@ dari 1" ke 1¼", sedangkan toilet umum justru turun (kloset 5,0 → 2,5), sehing
 dengan 24 toilet yang sebelum ini diserahkan ke tim teknis sekarang dihitung — batas kurva
 debit puncak baru tercapai di 29 toilet.
 
-Yang belum: beban dan kapasitas pembuangan masih mengutip IPC Tabel 709.1 dan 710.1. Tabel
-UPC-nya sudah dibaca sebagian — Tabel 702.1 (kloset 1,6 gpf 3,0 DFU, bak cuci dapur 2,0,
-shower 2,0, wastafel 1,0) dari kutipan King County, dan Tabel 703.2 (kapasitas mendatar pada
-kemiringan ¼"/ft: 2" 8, 3" 35, 4" 216, 5" 428, 6" 720 DFU; tegak: 2" 16, 3" 48, 4" 256) dari
-cetakan CPC 2025 — tetapi bentuk tabelnya berbeda dari IPC (tidak ada kolom "per interval
-cabang", tidak ada kolom 2½" di cetakan CPC), jadi perpindahannya mengubah bentuk aturan,
-bukan hanya angkanya. Itu item tersendiri.
+Yang sudah pindah (P31-72): beban dan kapasitas pembuangan memakai UPC Tabel 702.1 (kloset
+1,6 gpf 3,0 DFU, bukan 4,0; bak cuci dapur 2,0, shower 2,0, wastafel 1,0 — sama seperti IPC)
+dan UPC Tabel 703.2 (kapasitas mendatar pada kemiringan ¼"/ft: 2" 8, 2½" 14, 3" 35, 4" 216,
+5" 428, 6" 720 DFU; tegak 2, 16, 32, 48, 256, 600, 1.380). Bentuk aturannya berubah, bukan
+hanya angkanya: UPC tidak punya kolom "per interval cabang", jadi ENG-604 memakai satu batas
+pipa tegak berapa pun lantainya. Akibatnya dua arah — rumah tiga kamar mandi turun dari 12 ke
+9 DFU, sedangkan air bekas masjid contoh naik dari 2½" ke 3" karena 2" UPC hanya menampung 8
+beban mendatar, bukan 21 seperti IPC.
+
+Dua angka masih dari IPC karena barisnya tidak terbaca di UPC: beban urinoir (Tabel 709.1: 4
+DFU) dan alat beraliran kontinu seperti talang wudhu (IPC 709.3: 2 DFU per gpm). Angka 2½"
+Tabel 703.2 tidak ada di cetakan CPC 2025 dan diambil dari kutipan UPC King County — ketiganya
+perlu dicek tim teknis Pralon pada cetakan UPC yang dipakai Pralon.
 
 **Catatan yang perlu ahli:** konversi beban alat → debit puncak tetap memakai kurva Hunter
 IPC, karena kurva UPC hanya terbit sebagai grafik. Memasukkan unit UPC ke kurva IPC

@@ -499,21 +499,23 @@ batang utuh tanpa sisa potongan. Pipa tiap lantai tidak lagi dihitung jumlahnya 
 Instalasi "Pembuangan" atau "Keduanya" untuk rumah dan bangunan kecil dihitung, bukan diteruskan ke
 tim teknis (OQ-17). Dua jalur: air kotor (kloset → septic tank) dan air bekas (floor drain/shower,
 wastafel, bak cuci dapur → saluran atau resapan), pipa PVC D. Tanpa ukuran rumah tidak ada jumlah
-batang; dengan ukuran rumah panjangnya diperkirakan (ENG-603, OQ-60). Semua `REQUIRES_DOMAIN_VALIDATION`; nilai dari International Plumbing Code
-sampai padanan SNI 8153 dikonfirmasi tim teknis.
+batang; dengan ukuran rumah panjangnya diperkirakan (ENG-603, OQ-60). Semua `REQUIRES_DOMAIN_VALIDATION`; nilai dari Uniform Plumbing Code
+(keputusan pemilik 2026-10-27, OQ-88: kedua kode dibaca, UPC menang bila berbeda) sampai padanan
+SNI 8153 dikonfirmasi tim teknis. Yang belum terbaca di UPC — beban urinoir dan alat beraliran
+kontinu — masih mengutip IPC, dan aturannya menyebut kode yang dipakainya.
 
 ```
-ENG-601  beban air kotor = kloset × 4 DFU ; air bekas = shower/floor drain × 2 + wastafel × 1
-         + bak cuci dapur × 2                         (IPC Tabel 709.1; asumsi DFU_* di registry)
-ENG-602  ukuran = pipa terkecil dengan kapasitas ≥ beban pada kemiringan 2 % (IPC Tabel 710.1(1):
-         2" 21, 2½" 24, 3" 42, 4" 216, 5" 480, 6" 840), tidak lebih kecil dari alat terbesar
-         (kloset 4" — SOIL_LINE_MIN_4IN; floor drain 2", bak cuci 1½", wastafel 1¼")
-         ventilasi = ukuran terkecil ≥ ½ diameter jalur, minimal 1¼" (IPC 906.2)
-ENG-604  bangunan ≥ 2 lantai: cabang mendatar lantai terberat dan pipa tegak (total semua lantai,
-         per interval ≤ kolom "satu interval") menurut IPC 2021 Tabel 710.1(2) — cabang 1½" 3,
-         2" 6, 2½" 12, 3" 20, 4" 160 DFU; stack ≤ 3 interval 4/10/20/48/240, > 3 interval
-         8/24/42/72/500. ENG-602 v2: ukuran jalur = maks(saluran bangunan, alat terbesar, ENG-604);
-         ventilasi dari ukuran baru. Tiap lantai dianggap satu interval (konservatif).
+ENG-601  beban air kotor = kloset × 3 DFU ; air bekas = shower/floor drain × 2 + wastafel × 1
+         + bak cuci dapur × 2                         (UPC Tabel 702.1; asumsi DFU_* di registry)
+ENG-602  ukuran = pipa terkecil dengan kapasitas ≥ beban pada kemiringan ¼ inci per kaki (2,08 %)
+         menurut UPC Tabel 703.2 — 2" 8, 2½" 14, 3" 35, 4" 216, 5" 428, 6" 720 — tidak lebih
+         kecil dari alat terbesar (kloset 4" — SOIL_LINE_MIN_4IN; floor drain 2", bak cuci 1½",
+         wastafel 1¼"); ventilasi = ukuran terkecil ≥ ½ diameter jalur, minimal 1¼" (UPC 904.1)
+ENG-604  bangunan ≥ 2 lantai: cabang mendatar lantai terberat dan pipa tegak (total semua lantai)
+         menurut UPC Tabel 703.2 — mendatar 1½" 1, 2" 8, 2½" 14, 3" 35, 4" 216 DFU; tegak 2, 16,
+         32, 48, 256 DFU. UPC tidak memisahkan beban per interval cabang seperti IPC, jadi satu
+         batas berlaku untuk pipa tegak berapa pun lantainya. ENG-602 v2: ukuran jalur =
+         maks(saluran bangunan, alat terbesar, ENG-604); ventilasi dari ukuran baru.
 ENG-603  perkiraan panjang (hanya bila ukuran rumah diketahui, OQ-60): air kotor = sisi terpanjang
          + tinggi lantai × (lantai − 1); air bekas = sisi terpanjang; ventilasi = lantai × tinggi
          lantai + 1 m di atas atap (HOUSE_VENT_ABOVE_ROOF_1M)
@@ -554,6 +556,8 @@ ENG-704 v2 / ENG-708 v2 (review 0015): cabang terakhir di ujung pipa utama (terj
          untuk toren atap, lantai teratas untuk sumber di bawah) disambung elbow, ditambah reducer bila
          cabangnya lebih kecil; tee = jumlah cabang − 1. Skema menggambar EL-n di lantai ujung.
 ENG-604 v2 (review 0015): ukuran minimum alat terbesar berlaku juga untuk cabang dan pipa tegak.
+ENG-601 / ENG-602 v3 / ENG-604 v3 (OQ-88, 2026-10-27): beban dan kapasitas pembuangan dari UPC.
+         Angka 2½" tidak ada di cetakan CPC 2025 dan diambil dari kutipan UPC King County.
 ENG-702 v3 (review putaran 3): sumber sumur menambah kedalaman muka air (water.wellDepthM, default
          WELL_WATER_DEPTH_6M) ke beda tinggi dan jalur.
 ENG-703 v2 (review putaran 3): bila tekanan toren kurang, dudukan minimum = dudukan + (tinggi 0,3 bar +

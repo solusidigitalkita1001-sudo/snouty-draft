@@ -18,8 +18,8 @@ describe('kutipan kode plambing', () => {
   // pedoman yang dipakai Pralon adalah UPC — jadi kode yang diikuti sebuah angka harus
   // tertulis pada aturannya, bukan hanya di dokumen.
   it('aturan yang membaca tabel kode mengutip kodenya; aturan turunan rumus tidak', () => {
-    expect(ruleStandard('ENG-601')).toBe('IPC Table 709.1');
-    expect(ruleStandard('ENG-604')).toBe('IPC 2021 Table 710.1(2)');
+    expect(ruleStandard('ENG-601')).toBe('UPC Table 702.1');
+    expect(ruleStandard('ENG-604')).toBe('UPC Table 703.2');
     // Beban alatnya dari UPC, konversinya ke debit dari kurva IPC — keduanya disebut.
     expect(ruleStandard('ENG-701')).toBe('UPC Table A 103.1; IPC Appendix E, Table E103.3(3)');
     expect(ruleStandard('ENG-801')).toContain('UPC Table A 103.1');

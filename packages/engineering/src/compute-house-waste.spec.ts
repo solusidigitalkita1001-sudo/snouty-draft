@@ -8,10 +8,10 @@ import { computeHouseDrainage } from './compute-house-waste.js';
 import { RuleInputError } from './rule.js';
 
 describe('computeHouseDrainage', () => {
-  it('3 kamar mandi, 1 dapur: air kotor 3 × 4 = 12 DFU → 4" (minimum kloset); air bekas 3 × 2 + 1 × 2 = 8 DFU → 2"', () => {
+  it('3 kamar mandi, 1 dapur: air kotor 3 × 3 = 9 DFU → 4" (minimum kloset); air bekas 3 × 2 + 1 × 2 = 8 DFU → 2"', () => {
     const r = computeHouseDrainage({ bathrooms: 3, basins: 0, kitchens: 1 });
-    expect(r.load).toEqual({ soilDfu: 12, wasteDfu: 8 });
-    expect(r.soil).toMatchObject({ capacitySize: '2"', size: '4"', ventSize: '2"' });
+    expect(r.load).toEqual({ soilDfu: 9, wasteDfu: 8 });
+    expect(r.soil).toMatchObject({ capacitySize: '2½"', size: '4"', ventSize: '2"' });
     expect(r.waste).toMatchObject({ capacitySize: '2"', size: '2"', ventSize: '1¼"' });
     expect(r.fixtures).toEqual([
       { fixture: 'water_closet', count: 3, size: '4"' },
@@ -20,7 +20,7 @@ describe('computeHouseDrainage', () => {
     ]);
     expect(r.overallProvenance).toBe('ASSUMED');
     expect(r.appliedAssumptionIds).toEqual(
-      expect.arrayContaining(['DFU_WATER_CLOSET_4', 'DFU_SHOWER_2', 'SOIL_LINE_MIN_4IN']),
+      expect.arrayContaining(['DFU_WATER_CLOSET_3', 'DFU_SHOWER_2', 'SOIL_LINE_MIN_4IN']),
     );
   });
 
@@ -73,7 +73,7 @@ describe('panjang jalur pembuangan dari ukuran rumah (ENG-603, P16-60)', () => {
 });
 
 describe('cabang mendatar dan pipa tegak (ENG-604, temuan laporan 0009)', () => {
-  it('masjid 0009: 2 lantai × (2 KM + 4 wastafel) → air bekas 8 DFU per lantai, 16 stack → 2½"', () => {
+  it('masjid 0009: 2 lantai × (2 KM + 4 wastafel) → air bekas 8 DFU per lantai, 16 di saluran → 3"', () => {
     const floor = { bathrooms: 2, basins: 4, kitchens: 0 };
     const r = computeHouseDrainage({
       bathrooms: 4,
@@ -81,8 +81,9 @@ describe('cabang mendatar dan pipa tegak (ENG-604, temuan laporan 0009)', () => 
       kitchens: 0,
       floors: [floor, floor],
     });
-    // Saluran bangunan 2" (21) cukup, tetapi cabang 2" maks 6 dan stack 2" maks 10 (IPC 710.1(2)).
-    expect(r.waste).toMatchObject({ capacitySize: '2"', size: '2½"', ventSize: '1¼"' });
+    // UPC Tabel 703.2: cabang 2" maks 8 dan tegak 2" maks 16 keduanya pas, tetapi saluran
+    // bangunan membawa 16 dan 2½" hanya 14, jadi jalurnya 3".
+    expect(r.waste).toMatchObject({ capacitySize: '3"', size: '3"', ventSize: '1½"' });
     expect(r.soil?.size).toBe('4"');
     expect(r.traces.filter((t) => t.ruleId === 'ENG-604')).toHaveLength(2);
   });

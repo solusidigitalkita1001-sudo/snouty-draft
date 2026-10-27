@@ -64,7 +64,7 @@ describe('pembuangan rumah di solusi', () => {
     ]);
     expect(lines[0]!.traceIds).toEqual(['D0', 'D1']);
     expect(lines[2]!.traceIds).toEqual(['D0', 'D2']);
-    expect(lines[0]!.reason).toContain('Beban air kotor 12');
+    expect(lines[0]!.reason).toContain('Beban air kotor 9');
   });
 
   it('"Keduanya": air bersih tetap, pembuangan ditambahkan', () => {

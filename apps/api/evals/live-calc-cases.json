@@ -23,7 +23,7 @@
         },
         {
           "path": "systemLines[*].steps[*].text",
-          "matches": "12,6 unit"
+          "matches": "19 unit"
         }
       ],
       "answers": {
@@ -48,7 +48,7 @@
         },
         {
           "path": "systemLines[*].steps[*].text",
-          "matches": "4,7 unit"
+          "matches": "7 unit"
         }
       ]
     },
@@ -66,7 +66,7 @@
         },
         {
           "path": "systemLines[*].steps[*].text",
-          "matches": "15,3 unit"
+          "matches": "22,5 unit"
         }
       ]
     },
@@ -84,7 +84,7 @@
         },
         {
           "path": "systemLines[*].steps[*].text",
-          "matches": "34 unit"
+          "matches": "48,5 unit"
         }
       ]
     },

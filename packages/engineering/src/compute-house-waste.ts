@@ -133,7 +133,7 @@ export function computeHouseDrainage(
     kitchenSinks: input.kitchens,
   };
   const dfu = {
-    waterCloset: use('DFU_WATER_CLOSET_4'),
+    waterCloset: use('DFU_WATER_CLOSET_3'),
     shower: use('DFU_SHOWER_2'),
     lavatory: use('DFU_LAVATORY_1'),
     kitchenSink: use('DFU_KITCHEN_SINK_2'),

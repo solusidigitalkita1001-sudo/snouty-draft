@@ -68,7 +68,7 @@ describe('langkah hitung menyebut kode sumbernya', () => {
       },
     ];
     const steps = stepsFor(['T0', 'T1'], traces, 'id');
-    expect(steps[0]!.source).toBe('IPC Table 709.1');
+    expect(steps[0]!.source).toBe('UPC Table 702.1');
     expect(steps[1]!.source).toBeUndefined();
   });
 });

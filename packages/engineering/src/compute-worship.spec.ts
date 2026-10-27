@@ -94,8 +94,9 @@ describe('urinoir (pemilik 2026-10-12: "di toilet cowo ada urinoir juga")', () =
   });
 
   it('pembuangan: urinoir masuk air kotor (4 DFU), sambungannya 2"', () => {
+    // 4 kloset × 3 (UPC) + 3 urinoir × 4 (IPC, baris UPC belum terbaca) = 24 DFU.
     const r = computeHouseDrainage({ bathrooms: 4, basins: 0, kitchens: 0, urinals: 3 });
-    expect(r.load.soilDfu).toBe(28);
+    expect(r.load.soilDfu).toBe(24);
     expect(r.fixtures).toContainEqual({ fixture: 'urinal', count: 3, size: '2"' });
     expect(r.appliedAssumptionIds).toContain('DFU_URINAL_4');
   });
@@ -118,7 +119,7 @@ describe('sekolah / klinik (pemilik 2026-10-12: "pakai hitungan toilet umum")', 
 });
 
 describe('computeHouseDrainage · talang wudhu', () => {
-  it('satu talang per deret: 0,4 l/s = 6,3 gpm × 2 = 13 DFU → 3"; masuk air bekas', () => {
+  it('satu talang per deret: 0,4 l/s = 6,3 gpm × 2 = 13 DFU → 2½"; masuk air bekas', () => {
     const r = computeHouseDrainage({
       bathrooms: 4,
       basins: 0,
@@ -126,10 +127,10 @@ describe('computeHouseDrainage · talang wudhu', () => {
       wudhuRowFlowsLs: [0.4, 0.4],
     });
     expect(r.wudhuTroughs).toEqual([
-      { gpm: 6.3, dfu: 13, size: '3"' },
-      { gpm: 6.3, dfu: 13, size: '3"' },
+      { gpm: 6.3, dfu: 13, size: '2½"' },
+      { gpm: 6.3, dfu: 13, size: '2½"' },
     ]);
-    // 4 floor drain × 2 + 26 = 34 DFU → 3" (42) pada 2 %.
+    // 4 floor drain × 2 + 26 = 34 DFU → 3" (kapasitas UPC 35).
     expect(r.load.wasteDfu).toBe(34);
     expect(r.waste?.size).toBe('3"');
     expect(r.appliedAssumptionIds).toContain('DFU_CONTINUOUS_2_PER_GPM');

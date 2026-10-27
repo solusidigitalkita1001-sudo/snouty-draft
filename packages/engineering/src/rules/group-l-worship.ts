@@ -289,14 +289,14 @@ export const ENG_803: RuleVersion<WudhuDrainInput, WudhuDrainResult> = {
     return { rows, totalDfu: rows.reduce((sum, r) => sum + r.dfu, 0) };
   },
   sourceReference:
-    'IPC 709.3: aliran kontinu = 2 DFU per gpm; talang tiap deret sebagai cabang mendatar, IPC 2021 Tabel 710.1(2): 1½" 3, 2" 6, 2½" 12, 3" 20, 4" 160 DFU',
-  standard: 'IPC 709.3, IPC 2021 Table 710.1(2)',
+    'IPC 709.3: aliran kontinu = 2 DFU per gpm (UPC belum terbaca untuk alat beraliran kontinu — OQ-88); talang tiap deret sebagai cabang mendatar, UPC Tabel 703.2: 1½" 1, 2" 8, 2½" 14, 3" 35, 4" 216 DFU',
+  standard: 'IPC 709.3; UPC Table 703.2',
   validationStatus: PENDING,
   testCases: [
     {
-      name: 'deret 4 keran (0,4 l/s = 6,3 gpm) → 13 DFU → 3"',
+      name: 'deret 4 keran (0,4 l/s = 6,3 gpm) → 13 DFU → 2½"',
       input: { rowFlowsLs: [0.4], dfuPerGpm: 2 },
-      expected: { rows: [{ gpm: 6.3, dfu: 13, size: '3"' }], totalDfu: 13 },
+      expected: { rows: [{ gpm: 6.3, dfu: 13, size: '2½"' }], totalDfu: 13 },
     },
     {
       name: 'deret 1 keran (0,1 l/s = 1,6 gpm) → 4 DFU → 2"',

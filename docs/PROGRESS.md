@@ -3714,3 +3714,15 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       karena kurva UPC hanya terbit sebagai grafik; langkah hitungnya menyebut kedua kode itu.
       Beban dan kapasitas pembuangan masih IPC — bentuk tabel UPC-nya berbeda, jadi itu item
       tersendiri, dan OQ-88 mencatat angkanya yang sudah terbaca.
+
+- [x] P31-72 Beban dan kapasitas pembuangan mengikuti UPC
+
+      Lanjutan keputusan yang sama (OQ-88): beban alat pembuangan sekarang dari UPC Tabel
+      702.1 — kloset tangki 1,6 gpf 3 DFU, bukan 4 — dan kapasitas salurannya dari UPC Tabel
+      703.2, yang lebih ketat dari IPC di diameter kecil: 2" menampung 8 beban mendatar, bukan
+      21. Bentuk aturannya ikut berubah karena UPC tidak memisahkan beban per interval cabang
+      seperti IPC: satu batas untuk pipa tegak berapa pun lantainya, satu untuk jalur mendatar.
+      Akibatnya dua arah — rumah tiga kamar mandi turun dari 12 ke 9 DFU, sedangkan air bekas
+      masjid dua lantai naik dari 2½" ke 3" dan talang wudhunya justru turun ke 2½". Beban
+      urinoir dan alat beraliran kontinu masih dari IPC karena barisnya belum terbaca di UPC,
+      dan aturannya menyebut kode yang dipakainya, jadi perbedaannya terlihat di layar.

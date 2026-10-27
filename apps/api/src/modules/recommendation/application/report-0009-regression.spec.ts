@@ -65,15 +65,15 @@ export async function analyse0009(
 }
 
 describe('regresi laporan SNTY-2026-10-0009 — A: cabang per lantai dan pipa tegak', () => {
-  it('air bekas tidak lagi 2": per lantai 2 × 2 + 4 × 1 = 8 DFU (> 6 cabang 2"), stack 16 (> 10) → 2½"', async () => {
+  it('air bekas tidak lagi 2": 16 DFU di saluran, dan 2½" UPC hanya menampung 14 → 3"', async () => {
     const { rec, traces } = await analyse0009();
     const size = (name: string) => rec.systemLines.find((l) => l.name === name)?.size;
-    expect(size('Pipa air bekas PVC D')).toBe('2½"');
-    expect(size('Pipa ventilasi air bekas')).toBe('1¼"');
+    expect(size('Pipa air bekas PVC D')).toBe('3"');
+    expect(size('Pipa ventilasi air bekas')).toBe('1½"');
     expect(size('Pipa air kotor PVC D')).toBe('4"');
     expect(traces.filter((t) => t.ruleId === 'ENG-604')).toHaveLength(2);
     expect(rec.systemLines.find((l) => l.name === 'Pipa air bekas PVC D')!.reason).toContain(
-      'IPC 710.1(2)',
+      'kapasitas 35',
     );
   });
 });
@@ -161,7 +161,7 @@ describe('regresi laporan SNTY-2026-10-0009 — D: konsistensi angka dan teks', 
     const { rec } = await analyse0009();
     const drains = rec.bom.filter((b) => b.item === 'Pipa PVC D');
     expect(drains.find((b) => b.size === '4"')!.basis).toContain('Panjang bersih 18,5 m');
-    expect(drains.find((b) => b.size === '2½"')!.basis).toContain('Panjang bersih 18,5 m');
+    expect(drains.find((b) => b.size === '3"')!.basis).toContain('Panjang bersih 18,5 m');
   });
 
   it('tanpa produk katalog: "Ada N produk Pralon" tidak dicetak sebagai 0 (TC-D-03, TC-H-05)', async () => {
@@ -277,12 +277,10 @@ describe('TC-H-05 · satu daftar SKU untuk tab Produk, material, dan ringkasan',
     for (const id of bomIds) expect(productIds.has(id!)).toBe(true);
     const lines = skuLines(rec);
     const name = (id: string) => CATALOG.find((p) => p.id === id)!.name;
-    // Pipa ventilasi D 2" dan 1¼" ada di tab Produk.
+    // Pipa ventilasi D 2" ada di tab Produk; ventilasi air bekas kini 1½", yang tidak ada
+    // di katalog contoh.
     expect(lines.map((l) => name(l.productId))).toEqual(
-      expect.arrayContaining([
-        'Pipa (TS End) Abu D 2" x 4 Meter',
-        'Pipa (TS End) Abu D 1 1/4" x 4 Meter',
-      ]),
+      expect.arrayContaining(['Pipa (TS End) Abu D 2" x 4 Meter']),
     );
     // Bell Y 4" kini punya jumlah dari ENG-605 (P18-01): satu SKU, jenis fitting, terhitung.
     const y = lines.find((l) => name(l.productId) === 'Bell Y - D 4"')!;
@@ -306,22 +304,21 @@ describe('TC-H-05 · satu daftar SKU untuk tab Produk, material, dan ringkasan',
 });
 
 describe('TC-H-07 · penjelasan baris hanya untuk jalurnya sendiri', () => {
-  it('air kotor: hanya beban 16 DFU dan alasan 4" dari kloset; tanpa beban air bekas atau cabang 2½"', async () => {
+  it('air kotor: hanya beban 12 DFU dan alasan 4" dari kloset; tanpa beban air bekas', async () => {
     const { rec } = await analyse0009();
     const soil = rec.systemLines.find((l) => l.name === 'Pipa air kotor PVC D')!.reason;
-    expect(soil).toContain('Beban air kotor 16 = 4 kloset × 4.');
+    expect(soil).toContain('Beban air kotor 12 = 4 kloset × 3.');
     expect(soil).toContain('alat terbesar di jalur ini butuh minimal 4"');
     expect(soil).not.toContain('Beban air bekas');
     expect(soil).not.toContain('Cabang mendatar');
-    expect(soil).not.toContain('2½"');
   });
 
-  it('air bekas: beban air bekas sendiri, dan cabang/stack yang memang menentukan 2½"', async () => {
+  it('air bekas: beban air bekas sendiri, dan kapasitas jalurnya sendiri', async () => {
     const { rec } = await analyse0009();
     const waste = rec.systemLines.find((l) => l.name === 'Pipa air bekas PVC D')!.reason;
     expect(waste).toContain('Beban air bekas 16 =');
     expect(waste).not.toContain('Beban air kotor');
-    expect(waste).toContain('Cabang mendatar lantai terberat 8 beban');
+    expect(waste).toContain('kapasitas 35');
   });
 });
 
