@@ -3639,3 +3639,14 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       kegagalannya tidak menyentuh air hujan dan menjadi item berikutnya: ukuran HDPE dalam
       bahasa Inggris tanpa satuan mm, jawaban renovasi yang tidak menyebut bahan, dan lanjutan
       "yang terbesar" yang tidak dijawab.
+
+- [x] P31-66 Pertanyaan ukuran dalam bahasa Inggris yang menyebut Pralon dijawab ukurannya
+
+      "Which sizes are available for pralon hdpe pipe?" dijawab daftar jenis HDPE beserta
+      jumlah produknya — jawaban untuk "jenisnya apa saja", bukan untuk "ukurannya apa saja" —
+      sementara kalimat Indonesianya menjawab ukuran per jenis dengan benar. Nama Pralon di
+      kalimat Inggris menarik pertanyaannya ke ragam produk, dan tidak ada satu pun contoh
+      bahasa Inggris yang menyebut Pralon sekaligus menanyakan sebuah aspek. Contohnya
+      ditambahkan (ukuran, kelas tekanan, standar, panjang batang, bahan), jadi yang menentukan
+      sekarang aspek yang ditanya, bukan nama perusahaannya. Golden dataset bertambah dua
+      kalimat; pengenalan intent 198/199.
