@@ -3588,3 +3588,16 @@ bawah satu detik, jadi yang ditunggu benar-benar hanya modelnya.
       Sekaligus: tiga pelanggaran lint dan satu kesalahan tipe di tes (`supply.boosterPumpNeeded`
       yang tidak pernah ada, sehingga `toBeFalsy()` lulus atas `undefined`) dari putaran kemarin
       dibereskan — `pnpm typecheck` dan `eslint` bersih lagi.
+
+- [x] P31-63 Pertanyaan pengetahuan yang menyebut jenis jalur tetap dijawab dari pengetahuan
+
+      Suite FAQ sales jatuh dari 19/19 ke 16/19 setelah putaran kemarin, dan ketiga yang jatuh
+      bentuknya sama: pertanyaan pengetahuan yang kebetulan menyebut jenis jalur. "Apa bedanya
+      pipa drainase dan pipa uPVC?" dijawab "Oke, sudah saya catat: pembuangan" setelah 14,7
+      detik ekstraksi; "kegunaan pipa HDPE selain air minum dan air bersih" dijawab "Oke, sudah
+      saya catat: air bersih"; dan pertanyaan jenis pipa terbaru untuk air bersih membuka kasus
+      gedung bertingkat. Sebabnya: kosakata kebutuhan ("drainase", "air bersih") plus intent yang
+      ragu sudah cukup membuat sebuah pesan dibaca sebagai kebutuhan, sehingga router tidak pernah
+      melihatnya. Presedensinya sudah lama ada di `answersFromKnowledge` — pernyataan kasus
+      bernilai dan topik hitungan yang membawa angkanya sendiri tetap kebutuhan — dan sekarang
+      pagar itu juga berlaku di tempat giliran kebutuhan diputuskan.

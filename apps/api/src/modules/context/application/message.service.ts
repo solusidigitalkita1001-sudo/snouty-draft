@@ -388,8 +388,16 @@ export class MessageService {
     // bendanya bukan bangunan: "pipa lamanya 3/4 inci, panjangnya sekitar 40 meter" lewat perencana
     // selama 10,0 detik untuk sampai ke jalur yang sama (produksi 2026-10-26).
     const statesValues = extractionToUpdates({}, text).length > 0;
+    // Topik yang punya fakta bersumber tetap dijawab dari pengetahuan: "apa bedanya pipa drainase
+    // dan pipa uPVC?" menyebut jenis jalur (kosakata kebutuhan) dan "drainase" terbaca parser
+    // nilai, sehingga pertanyaannya berakhir di jalur kebutuhan — dijawab "Oke, sudah saya catat:
+    // pembuangan" setelah 14,7 detik ekstraksi (suite FAQ 16/19, 2026-10-27). Presedensinya sudah
+    // ada di answersFromKnowledge: pernyataan kasus bernilai dan topik hitungan yang membawa
+    // angkanya sendiri tetap kebutuhan.
     const requirementTurn =
       (u.mentionsRequirement || statesValues) &&
+      !answersFromKnowledge(u) &&
+      !asksGeneralKnowledge(u) &&
       (u.intent === null ||
         isRequirement(u.intent.label) ||
         u.intent.label === 'clarification_answer');

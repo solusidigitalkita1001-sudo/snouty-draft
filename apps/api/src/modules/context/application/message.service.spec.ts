@@ -690,6 +690,21 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     expect(planner.plan).not.toHaveBeenCalled();
   });
 
+  // Suite FAQ 16/19 di produksi 2026-10-27: tiga pertanyaan pengetahuan yang menyebut jenis
+  // jalur ("drainase", "air bersih") berakhir di jalur kebutuhan — "Oke, sudah saya catat:
+  // pembuangan" setelah 14,7 detik ekstraksi — karena kosakata kebutuhan plus intent yang ragu
+  // sudah cukup menjadikannya giliran kebutuhan.
+  it('pertanyaan pengetahuan yang menyebut jenis jalur tetap dijawab dari pengetahuan', async () => {
+    const question = 'Apa bedanya pipa drainase dan pipa uPVC?';
+    const { service, router } = setup([{ role: 'user', text: question }], {
+      [question]: { intent: null, knowledgeTopics: ['fungsi vs bahan'] },
+    });
+    await service.handle('C'.repeat(26), ACTOR, question, 'T');
+    // Routernya yang memutuskan (dan memilih jalur pengetahuan); yang tidak boleh terjadi adalah
+    // kode memutuskannya sebagai pernyataan kebutuhan sebelum router sempat melihatnya.
+    expect(router.route).toHaveBeenCalled();
+  });
+
   it('sapaan di tengah percakapan tidak lewat perencana (P31-18)', async () => {
     const { service, planner } = setup(
       [
