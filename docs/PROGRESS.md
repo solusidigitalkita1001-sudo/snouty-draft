@@ -3933,3 +3933,21 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
 
       Enam baris checkpoint di dokumen ini sekarang menunjuk ke langkah yang menguji fasenya,
       jadi yang menutup fase dan yang mencobanya tidak lagi dua daftar terpisah.
+
+- [x] P31-86 Model di server sendiri diukur lebih dulu, bukan dinyalakan lebih dulu
+
+      Pilihan pemilik 2026-10-28: pakai model di server sendiri untuk jawaban pengetahuan pipa.
+      Sebelum menyalakannya saya ukur dulu di produksi, karena yang menahan jalur ini sejak
+      awal bukan ketiadaan model melainkan ketidakpercayaan pada jawabannya.
+
+      Dua angka menutup pilihan itu untuk sekarang, dan keduanya tercatat di OQ-79. Kecepatan:
+      3,7–4,2 token per detik, jadi jawaban sepanjang tiga paragraf memakan hampir satu menit
+      sementara batas tunggunya dua puluh detik; model yang lebih besar di mesin yang sama lebih
+      lambat lagi dan mendesak keluar model kecil yang dipakai ekstraksi. Ketepatan: tiga dari
+      lima jawaban benar dan rapi, dua menyebut nomor standar yang keliru atau tidak ada —
+      termasuk satu nomor dan judul SNI yang dikarang utuh.
+
+      Pagar yang sudah ada memeriksa penyebutan Pralon, merek lain, dan baris provenance untuk
+      angka. Tidak ada yang memeriksa apakah sebuah nomor standar benar-benar ada, dan nomor
+      standar karangan justru yang paling sulit dibantah pembacanya. Jadi jalurnya tetap mati,
+      dan pilihan berikutnya diajukan ke pemilik dengan angka ini di tangan.
