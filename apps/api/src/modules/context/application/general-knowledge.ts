@@ -16,7 +16,9 @@
  *      katalog dan fakta bersumber, yang ditempelkan pemanggil;
  *   2. merek lain tidak boleh muncul (POLICY.md §1);
  *   3. jawaban yang memuat angka atau penanda teknis membawa baris provenance: angkanya
- *      praktik umum, bukan spesifikasi Pralon.
+ *      praktik umum, bukan spesifikasi Pralon;
+ *   4. nomor standar yang disebut harus ada di daftar yang dipegang SNOUTY
+ *      (`data/knowledge/standards.json`) — P31-88.
  *
  * Yang tidak pernah lewat sini: harga, ketersediaan produk, dan perhitungan teknik — ketiganya
  * punya jalurnya sendiri dan sudah dicegat sebelum pemanggil sampai ke mari (SPEC §25).
@@ -31,6 +33,8 @@ import {
   type ReplyTurn,
 } from './reply-writer.js';
 import { productAnswerCopy } from './product-answer-text.js';
+import { unknownStandardIn } from '../domain/standard-citations.js';
+import { knownStandards } from '../infrastructure/known-standards.js';
 
 export interface GeneralKnowledgeAi {
   writeProse(input: {
@@ -101,11 +105,17 @@ export function acceptedAnswer(raw: unknown, locale: Locale = DEFAULT_LOCALE): s
 }
 
 /**
- * Pagar atas keluaran model — tiga larangan, semuanya di kode: aturan yang hanya ada di prompt
+ * Pagar atas keluaran model — empat larangan, semuanya di kode: aturan yang hanya ada di prompt
  * dianggap tidak ada (CLAUDE.md).
  */
-export function passesKnowledgeGuards(text: string): boolean {
+export function passesKnowledgeGuards(
+  text: string,
+  known: ReadonlySet<string> = knownStandards(),
+): boolean {
   if (OTHER_BRANDS.test(text)) return false;
+  // Nomor standar yang tidak bisa dipertanggungjawabkan menjatuhkan seluruh jawaban, bukan
+  // hanya kalimatnya: pembaca memakai nomor itu untuk mempercayai sisanya.
+  if (unknownStandardIn(text, known) !== null) return false;
   // Tanpa DATA, tidak ada yang bisa membuktikan klaim tentang Pralon — jadi jalur ini tidak
   // pernah menyebutnya. Kalimat Pralon-nya ditempelkan pemanggil dari katalog.
   if (/\bpralon\b/i.test(text)) return false;

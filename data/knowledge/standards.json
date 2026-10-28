@@ -1,0 +1,125 @@
+{
+  "$comment": "Nomor standar yang boleh disebut jawaban pengetahuan pipa. Jawaban yang menyebut nomor di luar daftar ini dibuang utuh — nomor standar karangan paling sulit dibantah pembacanya. Nomor pokok saja sudah cukup: bagian dan tahun di belakangnya ikut diterima (SNI 4829 menerima SNI 4829-1:2015). Setiap baris menyebut dari mana SNOUTY mengenalnya; tanpa sumber, nomornya tidak masuk daftar.",
+  "standards": [
+    {
+      "id": "SNI 06-0084-2002",
+      "about": "Pipa PVC untuk air minum — dasar kelas seri S di tabel standar Pralon",
+      "knownFrom": "data/standards/2026-10-14-pralon-handbook/standards.json"
+    },
+    {
+      "id": "ISO 4065-1978",
+      "about": "Tabel tebal dinding pipa termoplastik — kelas S-20 di tabel standar Pralon",
+      "knownFrom": "data/standards/2026-10-14-pralon-handbook/standards.json"
+    },
+    {
+      "id": "SNI 4829",
+      "about": "Pipa PE untuk air minum (bagian 1/2/3:2015)",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "SNI 8153",
+      "about": "Sistem plambing pada bangunan gedung",
+      "knownFrom": "packages/engineering/src/rules — sumber aturan Kelompok G/H"
+    },
+    {
+      "id": "SNI 9362:2025",
+      "about": "Tata cara perencanaan plambing yang dipakai aturan hitung",
+      "knownFrom": "packages/engineering/src/rules"
+    },
+    {
+      "id": "ISO 4427",
+      "about": "Pipa PE untuk penyediaan air",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "ISO 15874",
+      "about": "Sistem perpipaan PP untuk air panas dan dingin",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "ISO 15875",
+      "about": "Sistem perpipaan PE-X untuk air panas dan dingin",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "ISO 16422",
+      "about": "Pipa PVC-O untuk penyediaan air bertekanan",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "ISO 22391",
+      "about": "Sistem perpipaan PE-RT untuk air panas dan dingin",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "BS 6920",
+      "about": "Uji kesesuaian bahan yang bersentuhan dengan air minum",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "NSF/ANSI 61",
+      "about": "Skema sertifikasi kontak air minum di Amerika — zat yang terlarut dari bahan",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "NSF/ANSI 372",
+      "about": "Batas kandungan timbal untuk komponen yang bersentuhan air minum",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "EN 16421",
+      "about": "Pengaruh bahan terhadap pertumbuhan mikroba pada air minum",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "JIS K 6739",
+      "about": "Fitting PVC untuk air buangan",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "JIS K 6741",
+      "about": "Pipa PVC keras",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "JIS K 6743",
+      "about": "Fitting PVC keras untuk pipa bertekanan",
+      "knownFrom": "data/knowledge/pipe-facts.json"
+    },
+    {
+      "id": "UPC 702.1",
+      "about": "Beban alat pembuangan (drainage fixture unit)",
+      "knownFrom": "packages/engineering/src/rules — Kelompok F"
+    },
+    {
+      "id": "UPC 703.2",
+      "about": "Kapasitas pipa pembuangan mendatar dan tegak",
+      "knownFrom": "packages/engineering/src/rules — Kelompok F"
+    },
+    {
+      "id": "UPC 904.1",
+      "about": "Ukuran pipa ven",
+      "knownFrom": "packages/engineering/src/rules"
+    },
+    {
+      "id": "IPC 709.1",
+      "about": "Beban alat pembuangan",
+      "knownFrom": "packages/engineering/src/rules"
+    },
+    {
+      "id": "IPC 709.3",
+      "about": "Beban pembuangan untuk alat yang tidak terdaftar",
+      "knownFrom": "packages/engineering/src/rules"
+    },
+    {
+      "id": "IPC 710.1",
+      "about": "Kapasitas saluran pembuangan gedung",
+      "knownFrom": "packages/engineering/src/rules"
+    },
+    {
+      "id": "IPC 906.2",
+      "about": "Panjang ven maksimum",
+      "knownFrom": "packages/engineering/src/rules"
+    }
+  ]
+}

@@ -662,6 +662,14 @@ ada**, dan mengarang nomor standar justru jenis karangan yang paling sulit diban
 (Satu jawaban juga memakai kata "pralon" sebagai kata umum untuk pipa PVC, yang membuat seluruh
 jawaban ditolak pagar — benar, tetapi berarti sebagian jawaban hilang begitu saja.)
 
+**Pagar keempat dipasang 2026-10-28** (pilihan pemilik "pagar nomor standar dulu", P31-88): nomor
+standar yang disebut jawaban diuji terhadap daftar yang memang dipegang SNOUTY
+(`data/knowledge/standards.json`, 24 nomor yang semuanya punya sumber di repositori ini). Nomor
+pokok yang tidak ada di daftar menjatuhkan seluruh jawaban — bukan hanya kalimatnya, karena
+pembaca memakai nomor itu untuk mempercayai sisanya. Daftar kosong menolak semua nomor. Standar
+baru ditambah di berkas data itu tanpa menyentuh kode. Pagar ini berlaku untuk model mana pun yang
+kelak dipakai, jadi ia tidak perlu menunggu keputusan model.
+
 **Yang tetap terbuka walau kuncinya terisi:** pengetahuan umum ini **tidak divalidasi tim teknis
 Pralon** (sama seperti OQ-45 untuk redaksi primer bahan). Pagarnya menjaga agar ia tidak pernah
 menjadi klaim tentang Pralon, tetapi kalimat teknik umumnya tetap tanggung jawab yang belum

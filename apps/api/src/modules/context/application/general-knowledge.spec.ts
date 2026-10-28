@@ -9,7 +9,11 @@
  *     memakai jalur lamanya, bukan menampilkan apa pun yang tidak lolos.
  */
 import { describe, expect, it } from 'vitest';
-import { GeneralKnowledgeWriter, acceptedAnswer } from './general-knowledge.js';
+import {
+  GeneralKnowledgeWriter,
+  acceptedAnswer,
+  passesKnowledgeGuards,
+} from './general-knowledge.js';
 import { PRODUCT_ANSWER_COPY, PRODUCT_ANSWER_COPY_EN } from './product-answer-text.js';
 
 const prompt = () => 'PROMPT';
@@ -116,5 +120,37 @@ describe('pengetahuan umum pipa — penulis', () => {
     await expect(
       writer.answer({ message: 'apa itu thrust block?', recentTurns: [], locale: 'id' }),
     ).resolves.toBeNull();
+  });
+});
+
+/**
+ * P31-88 — nomor standar karangan. Pengukuran 2026-10-28: dua dari lima jawaban model di server
+ * sendiri menyebut nomor standar yang keliru atau tidak ada, satu di antaranya lengkap dengan
+ * judul SNI yang dikarang utuh. Tiga pagar lama tidak satu pun bisa membantahnya.
+ */
+describe('pengetahuan umum pipa — nomor standar', () => {
+  const KNOWN = new Set(['SNI 8153', 'ISO 4427']);
+
+  it('nomor yang tidak dipegang menjatuhkan seluruh jawaban', () => {
+    const invented =
+      'Ukuran pipa air kotor mengikuti SNI 03-7065-2005 tentang tata cara perencanaan plambing.';
+    expect(passesKnowledgeGuards(invented, KNOWN)).toBe(false);
+  });
+
+  it('nomor yang dipegang lolos, beserta tahun dan bagiannya', () => {
+    expect(passesKnowledgeGuards('Acuannya SNI 8153:2015 untuk sistem plambing.', KNOWN)).toBe(
+      true,
+    );
+    expect(passesKnowledgeGuards('Pipa PE mengikuti ISO 4427.', KNOWN)).toBe(true);
+  });
+
+  it('jawaban tanpa nomor standar tidak tersentuh pagar ini', () => {
+    expect(passesKnowledgeGuards('Thrust block menahan dorongan pipa di belokan.', KNOWN)).toBe(
+      true,
+    );
+  });
+
+  it('daftar kosong menolak setiap nomor', () => {
+    expect(passesKnowledgeGuards('Acuannya SNI 8153.', new Set())).toBe(false);
   });
 });

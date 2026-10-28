@@ -3973,3 +3973,32 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Satu kesalahan tipe dari P31-83 ikut diperbaiki: `signed-rules.spec.ts` meneruskan
       `hasRealDimensions: undefined` secara eksplisit, yang ditolak `exactOptionalPropertyTypes` —
       lolos kemarin karena `typecheck` dijalankan sebelum baris itu ada.
+
+- [x] P31-88 Nomor standar yang tidak bisa dipertanggungjawabkan tidak pernah tampil
+
+      Pilihan pemilik 2026-10-28 atas OQ-79: pasang pagar nomor standar lebih dulu. Pengukuran
+      kemarin menemukan dua dari lima jawaban model menyebut nomor standar yang keliru atau
+      tidak ada — satu mengarang nomor sekaligus judul SNI-nya. Tiga pagar yang sudah ada
+      memeriksa penyebutan Pralon, merek lain, dan baris provenance untuk angka; tidak satu pun
+      bisa membantah sebuah nomor standar, padahal justru nomor standar yang paling sulit
+      dibantah pembacanya — ia terlihat seperti hal yang bisa dicek, sehingga tidak ada yang
+      mengeceknya.
+
+      Sekarang setiap nomor standar yang disebut jawaban pengetahuan diuji terhadap daftar yang
+      memang dipegang SNOUTY. Nomor pokok yang tidak ada di daftar menjatuhkan seluruh jawaban,
+      bukan hanya kalimatnya: pembaca memakai nomor itu untuk mempercayai sisanya. Nomor pokok
+      yang dikenal menerima bagian dan tahun di belakangnya (SNI 4829 menerima SNI 4829-1:2015)
+      karena itu dokumen yang sama, dan daftar kosong menolak semuanya — arah gagal yang benar
+      untuk sebuah pagar.
+
+      Daftarnya data, bukan kode: `data/knowledge/standards.json`, 24 nomor yang **semuanya**
+      punya sumber di repositori ini — tabel standar handbook Pralon, fakta bersumber, dan
+      sumber aturan hitung. Tiap baris menyebut dari mana SNOUTY mengenalnya; tanpa sumber,
+      nomornya tidak masuk daftar. Satu tes menjaga daftar itu tetap sejalan dengan teks kita
+      sendiri: nomor yang disebut `pipe-facts.json` tetapi tidak ada di daftar membuat suite
+      merah, dan yang salah dalam keadaan itu adalah daftarnya.
+
+      Jalur pengetahuan sendiri tetap mati sampai modelnya diputuskan. Pagar ini tidak menunggu
+      keputusan itu — ia berlaku untuk model mana pun yang kelak dipakai. Jalur prosa yang lain
+      tidak perlu pagar ini: semuanya membandingkan setiap penanda teknis dengan blok DATA, dan
+      nomor karangan tidak pernah ada di DATA.
