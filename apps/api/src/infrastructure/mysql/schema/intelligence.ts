@@ -120,7 +120,8 @@ export const marketEvents = mysqlTable(
     /** Dibulatkan 0,1° (±11 km): cukup untuk titik di peta, tidak cukup untuk menunjuk alamat. */
     lat: decimal('lat', { precision: 4, scale: 1 }),
     lng: decimal('lng', { precision: 5, scale: 1 }),
-    buildingType: varchar('building_type', { length: 24 }),
+    /** Jenis bangunan, atau id kasus bila jenisnya tidak disebut — yang terpanjang 26 huruf (0035). */
+    buildingType: varchar('building_type', { length: 64 }),
     projectScale: varchar('project_scale', { length: 8 }),
     installationType: varchar('installation_type', { length: 16 }),
     outletCount: int('outlet_count'),

@@ -109,6 +109,31 @@ describe('penulis event pasar (P26-07)', () => {
     ).resolves.toBeUndefined();
     expect(await fixture.db.select().from(marketEvents)).toHaveLength(0);
   });
+
+  /**
+   * P31-89 — kasus dengan nama terpanjang. Bila pengguna tidak menyebut jenis bangunan, yang
+   * tercatat adalah id kasusnya, dan `multistorey_building_water` (26 huruf) ditolak kolom
+   * varchar(24) di produksi: barisnya hilang dan galatnya ditelan sebagai peringatan.
+   */
+  it('kasus dengan nama terpanjang tetap tercatat', async () => {
+    const id = testId('MKTLONG');
+    await fixture.db
+      .insert(conversations)
+      .values({ id, ownerKind: 'guest', ownerId: testId('GUESTLONG'), language: 'id' });
+    await fixture.db.insert(requirementSnapshots).values({
+      id: testId('SMKTLONG'),
+      conversationId: id,
+      version: 1,
+      trigger: 'extraction',
+      state: { useCase: { kind: 'technical', caseId: 'multistorey_building_water' } },
+    });
+
+    await service.record(id, 'solution', '36.66.0.1');
+
+    const rows = await fixture.db.select().from(marketEvents);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.buildingType).toBe('multistorey_building_water');
+  });
 });
 
 describe('GeoIpLookup tanpa berkas', () => {

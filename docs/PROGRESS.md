@@ -4002,3 +4002,19 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       keputusan itu — ia berlaku untuk model mana pun yang kelak dipakai. Jalur prosa yang lain
       tidak perlu pagar ini: semuanya membandingkan setiap penanda teknis dengan blok DATA, dan
       nomor karangan tidak pernah ada di DATA.
+
+- [x] P31-89 Event pasar gedung bertingkat yang hilang tanpa terlihat
+
+      Ditemukan saat memeriksa log produksi sesudah rilis P31-88. Kolom `building_type` di
+      `market_events` selebar 24 huruf, sedangkan yang disimpan bukan hanya jenis bangunan:
+      bila pengguna tidak menyebut jenisnya, yang tercatat adalah id kasusnya — dan
+      `multistorey_building_water` 26 huruf. MySQL menolak barisnya, pencatat menelan galatnya
+      sebagai peringatan (memang tidak boleh menggagalkan permintaan pengguna), jadi setiap
+      konsultasi gedung bertingkat hilang dari data pasar tanpa satu pun layar menunjukkannya.
+
+      Kolomnya kini 64 (migration 0035), dan satu tes menyimpan kasus bernama terpanjang itu
+      lewat basis data sungguhan — yang gagal sebelum migrationnya ada.
+
+      Dua migration terakhir ternyata tidak pernah didaftarkan di harness tes basis data:
+      0034 (tanda tangan aturan, kemarin) dan 0035. Keduanya ditambahkan, jadi tes integrasi
+      berjalan di atas skema yang sama dengan produksi.
