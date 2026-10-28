@@ -1,6 +1,6 @@
 # SNOUTY — Progress
 
-Last updated: 2026-10-23 · Current phase: **29 — Back-office yang akhirnya bisa dipakai** · empat item selesai
+Last updated: 2026-10-28 · Current phase: **31 — Lebih sedikit panggilan model, dan cacat yang dilihat pengguna**
 
 ## Summary
 
