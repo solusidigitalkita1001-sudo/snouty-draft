@@ -3896,3 +3896,17 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       engine, jadi ia tetap berbunyi asumsi walau barisnya sudah estimasi. Ia tidak pernah
       mengaku lebih dari yang ada, dan membenahinya berarti menurunkan status aturan ke dalam
       tujuh pembentuk skema — pekerjaan sendiri, bukan sisa pekerjaan ini.
+
+- [x] P31-84 Tiga angka plambing dalam satu halaman yang bisa diteruskan
+
+      Pilihan pemilik 2026-10-28: minta tiga angka saja. Permintaan ke tim teknis Pralon selama
+      ini tersebar di catatan pertanyaan terbuka — panjang, bercampur alasan teknis, dan tidak
+      ada yang bisa diteruskan apa adanya. Orang yang menjawab tidak butuh seluruh riwayatnya.
+
+      `docs/TIGA_ANGKA_PLAMBING.md`: beban pembuangan urinoir, alat beraliran kontinu untuk
+      talang wudhu, dan kapasitas 2½" mendatar maupun tegak. Tiap pertanyaan membawa angka yang
+      dipakai sekarang, dari mana ia datang, dan ukuran pipa mana yang bergeser bila jawabannya
+      lain — jadi yang menjawab tahu apa yang dia pengaruhi. Satu angka per pertanyaan cukup.
+
+      Daftar debit puncak di atas 100 unit (OQ-87) sengaja tidak ikut: permintaan pertama tetap
+      sebesar tiga angka, yang besar menyusul setelah ini dijawab.

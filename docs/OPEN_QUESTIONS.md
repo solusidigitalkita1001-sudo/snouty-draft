@@ -542,6 +542,12 @@ DFU) dan alat beraliran kontinu seperti talang wudhu (IPC 709.3: 2 DFU per gpm).
 Tabel 703.2 tidak ada di cetakan CPC 2025 dan diambil dari kutipan UPC King County — ketiganya
 perlu dicek tim teknis Pralon pada cetakan UPC yang dipakai Pralon.
 
+**Ketiganya sudah jadi satu halaman siap diteruskan** (P31-84, pilihan pemilik 2026-10-28):
+`docs/TIGA_ANGKA_PLAMBING.md` — tiga pertanyaan, masing-masing dengan angka yang dipakai
+sekarang, dari mana angka itu datang, dan ukuran mana yang bergeser bila jawabannya lain. Daftar
+di atas 100 unit yang diminta OQ-87 menyusul terpisah, supaya permintaan pertama tetap sebesar
+tiga angka.
+
 **Catatan yang perlu ahli:** konversi beban alat → debit puncak tetap memakai kurva Hunter
 IPC, karena kurva UPC hanya terbit sebagai grafik. Memasukkan unit UPC ke kurva IPC
 menghasilkan debit yang lebih besar — aman, tetapi perlu disahkan tim teknis Pralon, bersama
@@ -550,7 +556,8 @@ daftar angka di atas 100 unit yang diminta OQ-87.
 ### OQ-87 — Beban alat di atas kurva debit puncak: diserahkan atau dihitung (P31-69, 2026-10-27)
 
 **Status:** diputuskan 2026-10-27 (pemilik: lanjutkan tabelnya) · **Menunggu:** daftar angka
-dari tim teknis Pralon; sampai itu ada, kasusnya diserahkan dengan kalimat yang jelas
+dari tim teknis Pralon, diminta sesudah tiga angka `docs/TIGA_ANGKA_PLAMBING.md` dijawab; sampai
+itu ada, kasusnya diserahkan dengan kalimat yang jelas
 **Konteks:** "sekolah 3 lantai, 24 toilet, airnya dari pdam" menghasilkan beban alat 156 unit.
 Kurva debit puncak yang dipakai aturan ENG-701 dan ENG-801 berhenti di 100 unit (43,5 gpm),
 jadi debit puncaknya tidak ada di tabel. Sampai P31-69 itu muncul sebagai "layanan tidak
