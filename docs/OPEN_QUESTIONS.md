@@ -644,6 +644,24 @@ yang memakainya; pemahaman, ekstraksi, dan embedding tetap lokal dan gratis.
 **Default selama belum diisi:** jalurnya **mati** — pertanyaan tak tercakup dijawab seperti sebelum
 P30-01 (tawaran tim teknis). Tidak ada jawaban pengetahuan dari model lokal: lebih baik mengakui
 batas daripada menjawab dengan model yang pernah membalik sifat bahan.
+**Diukur di produksi 2026-10-28** (pilihan pemilik "pakai model di server sendiri"): model lokal
+yang ada sekarang menjawab lima pertanyaan pipa umum dengan mode berpikirnya dimatikan. Hasilnya
+dua hal yang menutup pilihan itu untuk sementara.
+
+Kecepatan: 3,7–4,2 token per detik, jadi jawaban 200 token memakan 48–54 detik — sedangkan batas
+tunggu jalur ini 20 detik. Mesinnya empat inti tanpa kartu grafis, dan model yang lebih besar di
+mesin yang sama justru lebih lambat lagi (perkiraan 2,5 token/detik) sekaligus mendesak keluar
+model kecil yang dipakai ekstraksi, karena keduanya sekarang menetap di memori bersama-sama.
+
+Ketepatan: tiga dari lima jawaban benar dan rapi (PVC kaku versus HDPE lentur, batas 60 °C untuk
+air panas, fungsi thrust block). Dua sisanya menyebut nomor standar yang keliru atau tidak ada —
+satu mengarang nomor dan judul SNI untuk kemiringan pipa air kotor, satu menyebut standar pipa gas
+untuk pemasangan pipa air. Pagar yang ada memeriksa penyebutan Pralon, merek lain, dan baris
+provenance untuk angka; **tidak ada pagar yang memeriksa apakah sebuah nomor standar benar-benar
+ada**, dan mengarang nomor standar justru jenis karangan yang paling sulit dibantah pembaca.
+(Satu jawaban juga memakai kata "pralon" sebagai kata umum untuk pipa PVC, yang membuat seluruh
+jawaban ditolak pagar — benar, tetapi berarti sebagian jawaban hilang begitu saja.)
+
 **Yang tetap terbuka walau kuncinya terisi:** pengetahuan umum ini **tidak divalidasi tim teknis
 Pralon** (sama seperti OQ-45 untuk redaksi primer bahan). Pagarnya menjaga agar ia tidak pernah
 menjadi klaim tentang Pralon, tetapi kalimat teknik umumnya tetap tanggung jawab yang belum
