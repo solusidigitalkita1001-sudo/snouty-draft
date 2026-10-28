@@ -149,9 +149,12 @@ import type { CatalogQueryService } from '../../product-catalog/application/cata
 import { CatalogUnavailableError as CatalogReadUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import { ulid } from '../../../shared/ulid.js';
 import {
+  NO_SIGNATURES,
+  signedOverall,
   signedProvenance,
   signedStatusFrom,
   type RuleDecisionSource,
+  type SignedStatusLookup,
 } from '../domain/signed-rules.js';
 import {
   assembleRecommendation,
@@ -191,6 +194,7 @@ export function schematicFor(
   state: RequirementState,
   catalogVersionLabel: string,
   now: string,
+  signedStatus: SignedStatusLookup = NO_SIGNATURES,
 ): ReturnType<typeof buildSchematic> {
   // Hasil engine yang sama dengan layar solusi dan laporan: asumsi yang diganti pengguna ikut,
   // ukuran cabang dari engine (dulu tetap 3/4").
@@ -216,7 +220,12 @@ export function schematicFor(
       ? { wudhuRows: solution.wudhu.rows.map((r) => ({ taps: r.taps, size: r.size })) }
       : {}),
     ...(isPublicRestroom(state) ? { urinals: state.fixtures.urinals?.value ?? 0 } : {}),
-    provenance: solution.overallProvenance,
+    /**
+     * Status gambar setelah tanda tangan ahli dibaca (P31-87). Tanpa ini gambarnya
+     * mewarisi status yang tertulis di kode engine, jadi ia tetap berbunyi asumsi
+     * walau baris yang memakai aturan yang sama sudah naik ke estimasi.
+     */
+    provenance: signedOverall(solution, signedStatus),
     catalogVersionLabel,
     now,
   });
@@ -317,12 +326,17 @@ export class AnalysisService {
    * ditampilkan, jadi tidak ada jalur yang melewatinya (P31-83).
    */
   private async identify(traces: readonly CalculationTrace[]): Promise<readonly IdentifiedTrace[]> {
-    const signed = signedStatusFrom((await this.ruleDecisions?.decisions()) ?? []);
+    const signed = await this.signatures();
     return traces.map((trace) => ({
       ...trace,
       id: ulid(),
       provenance: signedProvenance(trace, signed),
     }));
+  }
+
+  /** Tanda tangan yang berlaku saat ini; tanpa sumbernya, tidak ada yang naik. */
+  private async signatures(): Promise<SignedStatusLookup> {
+    return signedStatusFrom((await this.ruleDecisions?.decisions()) ?? []);
   }
 
   /**
@@ -352,7 +366,10 @@ export class AnalysisService {
   ): Promise<ReturnType<typeof buildSchematic> | FlowSchematicShape> {
     const version = await this.catalog.findVersionById(catalogVersionId);
     const label = version?.label ?? 'TIDAK DIKETAHUI';
-    return flowSchematicFor(state, label, locale) ?? schematicFor(state, label, now);
+    const signed = await this.signatures();
+    return (
+      flowSchematicFor(state, label, locale, signed) ?? schematicFor(state, label, now, signed)
+    );
   }
 
   /**
@@ -806,7 +823,7 @@ export class AnalysisService {
     // --- Tahap 5: topologi skema ---
     // Dibentuk deterministik dari state + hasil engine (Fase 9). Karena sumbernya sama
     // dengan tabel sistem dan BOM, gambar tidak bisa bertentangan dengan keduanya.
-    const schematic = schematicFor(state, version.label, now);
+    const schematic = schematicFor(state, version.label, now, await this.signatures());
 
     events.push({
       type: 'stage',

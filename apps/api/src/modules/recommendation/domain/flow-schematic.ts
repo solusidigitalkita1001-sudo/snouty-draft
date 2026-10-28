@@ -22,6 +22,7 @@ import {
 } from '@snouty/engineering';
 import type { Locale, RequirementState } from '@snouty/shared-types';
 import { overridesOf } from './assumption-overrides.js';
+import { NO_SIGNATURES, withSignedOverall, type SignedStatusLookup } from './signed-rules.js';
 import { buildingWaterInputFrom } from './building-water-view.js';
 import { gravityPlanFrom, networkInputFrom } from './gravity-view.js';
 import { irrigationInputFrom } from './irrigation-input.js';
@@ -44,17 +45,24 @@ export function networkFamilyOf(network: NetworkInput): 'HDPE' | 'PVC AW' {
   return networkFamilyFor(network.routeLengthM);
 }
 
-/** `null` = state ini bukan kasus teknis/irigasi yang bisa dihitung (pakai skema bangunan). */
+/**
+ * `null` = state ini bukan kasus teknis/irigasi yang bisa dihitung (pakai skema bangunan).
+ *
+ * `signedStatus` membawa tanda tangan ahli masuk ke gambar (P31-87). Engine selalu memberi
+ * status yang tertulis di kodenya sendiri, dan gambar yang mewarisi status itu akan berbunyi
+ * asumsi selamanya — juga setelah setiap aturan di belakangnya ditandatangani.
+ */
 export function flowSchematicFor(
   state: RequirementState,
   catalogVersionLabel: string,
   locale: Locale,
+  signedStatus: SignedStatusLookup = NO_SIGNATURES,
 ): FlowSchematicShape | null {
   if (state.useCase?.kind === 'irrigation') {
     const { input } = irrigationInputFrom(state);
     return irrigationSchematic(
       input,
-      computeIrrigation(input, locale),
+      withSignedOverall(computeIrrigation(input, locale), signedStatus),
       catalogVersionLabel,
       locale,
     );
@@ -65,7 +73,7 @@ export function flowSchematicFor(
   if (pond !== null) {
     return pondSchematic(
       pond,
-      computePond(pond, locale, overridesOf(state)),
+      withSignedOverall(computePond(pond, locale, overridesOf(state)), signedStatus),
       catalogVersionLabel,
       locale,
     );
@@ -80,7 +88,7 @@ export function flowSchematicFor(
         staticHeadM: plan.input.staticHeadM,
         family: plan.family,
       },
-      computePressurized(plan.input, locale, overridesOf(state)),
+      withSignedOverall(computePressurized(plan.input, locale, overridesOf(state)), signedStatus),
       catalogVersionLabel,
       locale,
     );
@@ -94,7 +102,7 @@ export function flowSchematicFor(
           ? { catchmentHa: gravity.input.catchmentHa }
           : {}),
       },
-      computeGravity(gravity.input, locale, overridesOf(state)),
+      withSignedOverall(computeGravity(gravity.input, locale, overridesOf(state)), signedStatus),
       catalogVersionLabel,
       locale,
     );
@@ -109,7 +117,7 @@ export function flowSchematicFor(
     );
     return networkSchematic(
       { routeLengthM: network.routeLengthM, family },
-      result,
+      withSignedOverall(result, signedStatus),
       catalogVersionLabel,
       locale,
     );
@@ -118,7 +126,7 @@ export function flowSchematicFor(
   if (building !== null) {
     return buildingWaterSchematic(
       { floors: building.floors },
-      computeBuildingWater(building, locale, overridesOf(state)),
+      withSignedOverall(computeBuildingWater(building, locale, overridesOf(state)), signedStatus),
       catalogVersionLabel,
       locale,
     );

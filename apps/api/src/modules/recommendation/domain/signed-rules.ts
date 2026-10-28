@@ -72,3 +72,46 @@ export function signedStatusFrom(rows: readonly SignedDecisionRow[]): SignedStat
     return decision === 'approved' ? 'VALIDATED' : 'REJECTED';
   };
 }
+
+/**
+ * Hasil engine apa pun yang membawa jejaknya sendiri beserta satu status keseluruhan.
+ * Cukup sebanyak ini supaya modul ini tidak perlu tahu kasus mana yang dihitung.
+ */
+export interface TracedResult {
+  readonly traces: readonly SignedTraceInput[];
+  readonly overallProvenance: Provenance;
+}
+
+/** Urutan dari paling kuat ke paling lemah — sama dengan yang dipakai engine. */
+const STRENGTH: readonly Provenance[] = ['VERIFIED', 'ESTIMATED', 'ASSUMED', 'UNAVAILABLE'];
+
+/**
+ * Status keseluruhan sebuah hitungan setelah tanda tangan dibaca.
+ *
+ * Sebuah gambar bukan satu angka: ia berdiri di atas seluruh aturan yang membentuknya, jadi
+ * yang berlaku untuknya adalah yang paling lemah di antara semuanya — persis cara engine
+ * menghitungnya sendiri, hanya dengan status yang benar-benar berlaku hari ini.
+ */
+export function signedOverall(result: TracedResult, signedStatus: SignedStatusLookup): Provenance {
+  if (result.traces.length === 0) return result.overallProvenance;
+  let worst: Provenance = 'VERIFIED';
+  for (const trace of result.traces) {
+    const value = signedProvenance(trace, signedStatus);
+    if (STRENGTH.indexOf(value) > STRENGTH.indexOf(worst)) worst = value;
+  }
+  return worst;
+}
+
+/**
+ * Hasil engine yang sama dengan status keseluruhan yang sudah membaca tanda tangan. Dipakai
+ * pembentuk skema, yang mewariskan satu status itu ke seluruh simpul dan jalur gambarnya.
+ */
+export function withSignedOverall<T extends TracedResult>(
+  result: T,
+  signedStatus: SignedStatusLookup,
+): T {
+  return { ...result, overallProvenance: signedOverall(result, signedStatus) };
+}
+
+/** Tanpa sumber tanda tangan: apa pun yang sudah dihitung engine dibiarkan apa adanya. */
+export const NO_SIGNATURES: SignedStatusLookup = () => null;

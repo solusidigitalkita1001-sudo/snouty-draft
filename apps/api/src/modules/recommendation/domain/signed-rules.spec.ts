@@ -5,7 +5,7 @@
  * bisa dihidupkan lewat basis data.
  */
 import { describe, expect, it } from 'vitest';
-import { signedProvenance, signedStatusFrom } from './signed-rules.js';
+import { signedOverall, signedProvenance, signedStatusFrom } from './signed-rules.js';
 
 const trace = {
   ruleId: 'ENG-601',
@@ -28,7 +28,12 @@ describe('provenance setelah tanda tangan', () => {
     const signed = signedStatusFrom([{ ruleId: 'ENG-601', ruleVersion: 1, decision: 'approved' }]);
     expect(signedProvenance({ ...trace, hasRealDimensions: false }, signed)).toBe('ESTIMATED');
     // Jejak lama tidak membawa kolom itu sama sekali; itu bukan "dimensi diketahui".
-    expect(signedProvenance({ ...trace, hasRealDimensions: undefined }, signed)).toBe('ESTIMATED');
+    const old = {
+      ruleId: trace.ruleId,
+      ruleVersion: trace.ruleVersion,
+      provenance: trace.provenance,
+    };
+    expect(signedProvenance(old, signed)).toBe('ESTIMATED');
   });
 
   it('aturan yang ditolak ahli tidak menampilkan nilai', () => {
@@ -49,5 +54,52 @@ describe('provenance setelah tanda tangan', () => {
   it('aturan yang ditolak di dalam kode tidak bisa dihidupkan lewat basis data', () => {
     const signed = signedStatusFrom([{ ruleId: 'ENG-601', ruleVersion: 1, decision: 'approved' }]);
     expect(signedProvenance({ ...trace, provenance: 'UNAVAILABLE' }, signed)).toBe('UNAVAILABLE');
+  });
+});
+
+describe('status keseluruhan sebuah gambar', () => {
+  const result = {
+    overallProvenance: 'ASSUMED' as const,
+    traces: [
+      {
+        ruleId: 'ENG-601',
+        ruleVersion: 1,
+        provenance: 'ASSUMED' as const,
+        hasRealDimensions: true,
+      },
+      {
+        ruleId: 'ENG-701',
+        ruleVersion: 2,
+        provenance: 'ASSUMED' as const,
+        hasRealDimensions: true,
+      },
+    ],
+  };
+
+  it('tetap asumsi selama satu aturan pembentuknya belum ditandatangani', () => {
+    const signed = signedStatusFrom([{ ruleId: 'ENG-601', ruleVersion: 1, decision: 'approved' }]);
+    expect(signedOverall(result, signed)).toBe('ASSUMED');
+  });
+
+  it('naik begitu seluruh aturan pembentuknya ditandatangani', () => {
+    const signed = signedStatusFrom([
+      { ruleId: 'ENG-601', ruleVersion: 1, decision: 'approved' },
+      { ruleId: 'ENG-701', ruleVersion: 2, decision: 'approved' },
+    ]);
+    expect(signedOverall(result, signed)).toBe('VERIFIED');
+  });
+
+  it('satu aturan yang ditolak menjatuhkan seluruh gambar', () => {
+    const signed = signedStatusFrom([
+      { ruleId: 'ENG-601', ruleVersion: 1, decision: 'approved' },
+      { ruleId: 'ENG-701', ruleVersion: 2, decision: 'rejected' },
+    ]);
+    expect(signedOverall(result, signed)).toBe('UNAVAILABLE');
+  });
+
+  it('tanpa jejak, status engine dibiarkan apa adanya', () => {
+    expect(
+      signedOverall({ overallProvenance: 'ESTIMATED', traces: [] }, signedStatusFrom([])),
+    ).toBe('ESTIMATED');
   });
 });

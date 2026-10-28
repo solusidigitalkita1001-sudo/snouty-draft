@@ -11,8 +11,8 @@ import { mergeRequirement } from '../../context/domain/context-merger.js';
 import { withCompleteness } from '../../context/domain/completeness.js';
 import { emptyRequirementState } from '../../context/domain/requirement-state.factory.js';
 import type { TraceToSave } from '../domain/recommendation.repository.js';
-import type { SignedDecisionRow } from '../domain/signed-rules.js';
-import { AnalysisService } from './analysis.service.js';
+import { signedStatusFrom, type SignedDecisionRow } from '../domain/signed-rules.js';
+import { AnalysisService, schematicFor } from './analysis.service.js';
 
 const T0 = '2026-10-28T02:00:00.000Z';
 
@@ -120,5 +120,45 @@ describe('tanda tangan ahli pada angka yang ditampilkan', () => {
       used.map((t) => ({ ruleId: t.ruleId, ruleVersion: t.ruleVersion, decision: 'rejected' })),
     );
     expect(after.systemLines.find((l) => l.name === line.name)?.provenance).toBe('UNAVAILABLE');
+  });
+});
+
+/**
+ * P31-87 — gambar skema membaca tanda tangan yang sama. Tanpa ini ia mewarisi status yang
+ * tertulis di kode engine, jadi ia berbunyi asumsi selamanya.
+ */
+describe('tanda tangan ahli pada gambar skema', () => {
+  it('asumsi selama aturan pembentuknya belum ditandatangani', () => {
+    expect(schematicFor(STATE, 'erp-uji', T0).nodes.every((n) => n.provenance === 'ASSUMED')).toBe(
+      true,
+    );
+  });
+
+  it('naik begitu seluruh aturan di belakangnya ditandatangani', async () => {
+    const { traces } = await analyse([]);
+    const signed = signedStatusFrom(
+      traces.map((t) => ({
+        ruleId: t.ruleId,
+        ruleVersion: t.ruleVersion,
+        decision: 'approved' as const,
+      })),
+    );
+    const after = schematicFor(STATE, 'erp-uji', T0, signed);
+    // Tanpa ukuran rumah, dimensinya belum diketahui: estimasi, bukan terverifikasi — gerbang
+    // yang sama dengan baris sistem dan BOQ.
+    expect(after.nodes.every((n) => n.provenance === 'ESTIMATED')).toBe(true);
+    expect(after.segments.every((s) => s.provenance === 'ESTIMATED')).toBe(true);
+  });
+
+  it('satu aturan yang belum ditandatangani menahan seluruh gambar', async () => {
+    const { traces } = await analyse([]);
+    const signed = signedStatusFrom(
+      traces.slice(1).map((t) => ({
+        ruleId: t.ruleId,
+        ruleVersion: t.ruleVersion,
+        decision: 'approved' as const,
+      })),
+    );
+    expect(schematicFor(STATE, 'erp-uji', T0, signed).nodes[0]?.provenance).toBe('ASSUMED');
   });
 });

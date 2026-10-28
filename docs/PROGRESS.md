@@ -3951,3 +3951,25 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       angka. Tidak ada yang memeriksa apakah sebuah nomor standar benar-benar ada, dan nomor
       standar karangan justru yang paling sulit dibantah pembacanya. Jadi jalurnya tetap mati,
       dan pilihan berikutnya diajukan ke pemilik dengan angka ini di tangan.
+
+- [x] P31-87 Gambar skema ikut naik saat aturannya ditandatangani
+
+      Sisa yang sengaja ditinggalkan P31-83. Tanda tangan ahli menembus sampai ke baris sistem
+      dan BOQ, tetapi gambar skema masih mewarisi status yang tertulis di kode engine — dan
+      karena setiap aturan di sana `REQUIRES_DOMAIN_VALIDATION`, gambarnya berbunyi asumsi
+      selamanya, juga setelah seluruh aturan di belakangnya disetujui.
+
+      Sekarang gambar melewati gerbang yang sama dengan angka yang dibaca pengguna: status
+      keseluruhannya dihitung ulang dari jejaknya sendiri dengan tanda tangan yang benar-benar
+      berlaku. Sebuah gambar bukan satu angka — ia berdiri di atas semua aturan yang
+      membentuknya — jadi yang berlaku untuknya tetap yang paling lemah di antara semuanya:
+      satu aturan yang belum ditandatangani menahan seluruh gambar, satu yang ditolak
+      menjatuhkannya. Berlaku untuk kedua jenis gambar, skema bangunan lantai per lantai dan
+      skema aliran kasus teknis.
+
+      Paket engineering tetap tidak tahu siapa menandatangani apa: gerbangnya dihitung di tepi
+      aplikasi, di satu tempat yang sama dengan jejak hitung.
+
+      Satu kesalahan tipe dari P31-83 ikut diperbaiki: `signed-rules.spec.ts` meneruskan
+      `hasRealDimensions: undefined` secara eksplisit, yang ditolak `exactOptionalPropertyTypes` —
+      lolos kemarin karena `typecheck` dijalankan sebelum baris itu ada.
