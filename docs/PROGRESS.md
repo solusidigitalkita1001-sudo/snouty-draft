@@ -3796,3 +3796,16 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       overlay tahapan tidak muncul, percakapan tetap di layar bersama pertanyaannya, dan
       solusinya dibuka lewat tombol "Lihat solusi" yang memang sudah ada begitu solusi ada.
       Keputusan itu pindah dari komponen React ke modulnya sendiri supaya bisa dites.
+
+- [x] P31-78 Keadaan kosong back office akhirnya punya bentuk
+
+      Maskot dan kalimat "belum ada prospek" selama ini memanggil kelas gaya yang tidak
+      pernah ada di berkas CSS-nya, jadi keduanya jatuh mentah ke aliran teks — di "Prospek
+      saya" terjepit di kolom daftar selebar 320px, bersebelahan dengan panel yang menunggu
+      pilihan yang tidak mungkin dibuat. Sekarang keadaan kosong berdiri sendiri selebar
+      layar, dan panel keduanya tidak digambar sama sekali selama tidak ada yang bisa dipilih.
+
+      Di layar Pasar, kartu "Konsultasi per bulan" tampil sebagai kotak kosong tanpa satu kata
+      pun: garis tren butuh dua titik, dan dengan satu bulan data komponennya mengembalikan
+      null. Kartunya sekarang mengatakan apa yang kurang, sama seperti kartu peringkat di
+      sebelahnya.

@@ -116,6 +116,13 @@ describe('dashboard sales (P26-06)', () => {
     );
   });
 
+  it('tanpa prospek: tidak ada panel yang menunggu dipilih (P31-78)', async () => {
+    api.fetchMyLeads.mockResolvedValue({ kind: 'ok', value: { items: [] } });
+    render(<SalesDashboard />);
+    expect(await screen.findByText(/Belum ada prospek yang ditugaskan/)).toBeDefined();
+    expect(screen.queryByText(/Pilih prospek untuk melihat/)).toBeNull();
+  });
+
   it('nomor WhatsApp Indonesia dinormalkan', () => {
     expect(whatsappNumber('0812-3456-7890')).toBe('6281234567890');
     expect(whatsappNumber('+62 812 3456 7890')).toBe('6281234567890');

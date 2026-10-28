@@ -141,7 +141,7 @@ export function MarketPanel() {
                 <ChartIcon />
                 {COPY.market.trendTitle}
               </h2>
-              <TrendLine points={monthlyTrend(data.value.regional, month)} valueLabel={count} />
+              <TrendCard points={monthlyTrend(data.value.regional, month)} copy={COPY} />
             </section>
 
             <section className={styles.card}>
@@ -272,6 +272,22 @@ export function monthlyTrend(
     cursor = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 1));
   }
   return points;
+}
+
+/**
+ * Garis tren butuh dua titik — sebelum ada bulan kedua `TrendLine` mengembalikan null, dan
+ * kartunya tampil sebagai kotak kosong tanpa satu kata pun (P31-78). Sekarang kartunya
+ * mengatakan apa yang kurang, sama seperti kartu peringkat di sebelahnya.
+ */
+function TrendCard({
+  points,
+  copy,
+}: {
+  points: readonly { readonly label: string; readonly value: number }[];
+  copy: ReturnType<typeof dashboardCopy>;
+}) {
+  if (points.length < 2) return <p className={styles.muted}>{copy.market.trendThin}</p>;
+  return <TrendLine points={points} valueLabel={(n) => copy.market.consultations(n)} />;
 }
 
 function RankCard({

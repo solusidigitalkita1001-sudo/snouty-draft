@@ -1051,3 +1051,25 @@
   gap: 2px;
   min-width: 0;
 }
+
+/* Keadaan kosong (P31-78). `EmptyState` sejak P26-11 memanggil kelas yang tidak pernah ada di
+   berkas ini, jadi maskot dan kalimatnya jatuh mentah ke aliran teks: di "Prospek saya" ia
+   terjepit di kolom daftar selebar 320px, di samping panel rincian yang menunggu pilihan yang
+   tidak mungkin dibuat. Sekarang ia satu blok yang berdiri sendiri, di tengah ruang yang ada. */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 20px;
+  border: 1px dashed var(--snouty-border);
+  border-radius: var(--snouty-radius-card);
+  background: var(--snouty-surface);
+  text-align: center;
+}
+
+.emptyState .muted {
+  max-width: 44ch;
+  margin: 0;
+}

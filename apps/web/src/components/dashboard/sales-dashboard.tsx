@@ -97,59 +97,62 @@ export function SalesDashboard() {
             <h1 className={styles.title}>{COPY.title}</h1>
             <p className={styles.subtitle}>{COPY.subtitle}</p>
           </div>
-          <div className={styles.leadLayout}>
-            <ul className={styles.leadList} aria-label={COPY.title}>
-              {list.value.items.length === 0 && (
-                <li>
-                  <EmptyState mood="confused" text={COPY.empty} />
-                </li>
-              )}
-              {list.value.items.map((item) => (
-                <li key={item.userId}>
-                  <button
-                    type="button"
-                    className={[
-                      styles.leadItem,
-                      selected === item.userId ? styles.leadItemOn : '',
-                    ].join(' ')}
-                    aria-pressed={selected === item.userId}
-                    onClick={() => setSelected(item.userId)}
-                  >
-                    <span className={styles.name}>{item.name}</span>
-                    <span className={styles.leadTags}>
-                      <span
-                        className={[styles.priority, styles[`priority_${item.priority}`]].join(' ')}
-                      >
-                        {BOARD.priority[item.priority]}
-                      </span>
-                      <span className={styles.stageTag}>{BOARD.stages[item.stage].name}</span>
-                      {item.lead && (
-                        <span className={styles.meta}>{BOARD.leadStatus[item.lead.status]}</span>
-                      )}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+          {/* Tanpa satu pun prospek, dua panel tidak punya guna: kalimat "pilih prospek"
+              menunggu pilihan yang tidak ada. Satu blok kosong selebar layar (P31-78). */}
+          {list.value.items.length === 0 && <EmptyState mood="confused" text={COPY.empty} />}
 
-            <section className={styles.leadDetail} aria-live="polite">
-              {selected === null && <p className={styles.muted}>{COPY.pick}</p>}
-              {selected !== null && detail === null && (
-                <p className={styles.muted}>{BOARD.loading}</p>
-              )}
-              {selected !== null && detail !== null && detail.kind !== 'ok' && (
-                <p className={styles.muted}>{BOARD.failed}</p>
-              )}
-              {selected !== null && detail?.kind === 'ok' && (
-                <LeadView
-                  key={selected}
-                  userId={selected}
-                  detail={detail.value}
-                  onChanged={() => void Promise.all([loadList(), loadDetail(selected)])}
-                />
-              )}
-            </section>
-          </div>
+          {list.value.items.length > 0 && (
+            <div className={styles.leadLayout}>
+              <ul className={styles.leadList} aria-label={COPY.title}>
+                {list.value.items.map((item) => (
+                  <li key={item.userId}>
+                    <button
+                      type="button"
+                      className={[
+                        styles.leadItem,
+                        selected === item.userId ? styles.leadItemOn : '',
+                      ].join(' ')}
+                      aria-pressed={selected === item.userId}
+                      onClick={() => setSelected(item.userId)}
+                    >
+                      <span className={styles.name}>{item.name}</span>
+                      <span className={styles.leadTags}>
+                        <span
+                          className={[styles.priority, styles[`priority_${item.priority}`]].join(
+                            ' ',
+                          )}
+                        >
+                          {BOARD.priority[item.priority]}
+                        </span>
+                        <span className={styles.stageTag}>{BOARD.stages[item.stage].name}</span>
+                        {item.lead && (
+                          <span className={styles.meta}>{BOARD.leadStatus[item.lead.status]}</span>
+                        )}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
+              <section className={styles.leadDetail} aria-live="polite">
+                {selected === null && <p className={styles.muted}>{COPY.pick}</p>}
+                {selected !== null && detail === null && (
+                  <p className={styles.muted}>{BOARD.loading}</p>
+                )}
+                {selected !== null && detail !== null && detail.kind !== 'ok' && (
+                  <p className={styles.muted}>{BOARD.failed}</p>
+                )}
+                {selected !== null && detail?.kind === 'ok' && (
+                  <LeadView
+                    key={selected}
+                    userId={selected}
+                    detail={detail.value}
+                    onChanged={() => void Promise.all([loadList(), loadDetail(selected)])}
+                  />
+                )}
+              </section>
+            </div>
+          )}
         </>
       )}
     </>

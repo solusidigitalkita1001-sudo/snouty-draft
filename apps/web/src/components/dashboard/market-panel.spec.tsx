@@ -127,4 +127,27 @@ describe('kartu peringkat Pasar (P26-16)', () => {
     expect(screen.getByText('60%')).toBeDefined(); // 12 dari 20 sampai solusi
     expect(screen.getByText('20%')).toBeDefined(); // porsi ke tim teknis
   });
+
+  it('satu bulan data: kartu tren mengatakan kenapa garisnya belum ada (P31-78)', async () => {
+    api.fetchMarket.mockResolvedValue({
+      kind: 'ok',
+      value: {
+        fromDay: '2026-09-28',
+        total: 3,
+        regional: {
+          buckets: [{ key: 'Jawa Barat|2026-10', count: 3 }],
+          suppressedGroups: 0,
+          suppressedEvents: 0,
+        },
+        productInterest: { buckets: [], suppressedGroups: 0, suppressedEvents: 0 },
+        projects: { buckets: [], suppressedGroups: 0, suppressedEvents: 0 },
+        map: { provinces: [], points: [], withoutRegion: 0, suppressedPoints: 0 },
+        scope: { total: 3, routedToTechnical: 0, ratio: 0 },
+        drainage: 0,
+        funnel: { started: 3, reachedSolution: 1, routedToTechnical: 0, requestedQuotation: 0 },
+      },
+    });
+    render(<MarketPanel />);
+    expect(await screen.findByText(/Trennya tergambar setelah ada dua bulan/)).toBeDefined();
+  });
 });
