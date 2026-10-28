@@ -678,6 +678,10 @@
   color: inherit;
   font: inherit;
   text-align: left;
+}
+
+/* Hanya yang benar-benar bisa ditekan yang memakai kursor tangan. */
+button.stat {
   cursor: pointer;
 }
 

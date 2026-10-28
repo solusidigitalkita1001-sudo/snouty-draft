@@ -112,23 +112,28 @@ export function HandoffQueuePanel() {
       )}
 
       {/* Tiga angka yang ditanyakan lebih dulu: berapa yang menunggu, berapa yang sudah
-          lewat janji 1×24 jam kerja, dan berapa yang sudah ditutup. */}
-      <div className={[styles.statRow, styles.queueSummary].join(' ')}>
-        <div className={styles.stat}>
-          <span className={styles.statValue}>{open.length}</span>
-          <span className={styles.statLabel}>{COPY.openTitle}</span>
+          lewat janji 1×24 jam kerja, dan berapa yang sudah ditutup. Antrean yang belum
+          pernah terisi tidak perlu tiga nol di atas kalimat kosongnya. */}
+      {all.length > 0 && (
+        <div className={[styles.statRow, styles.queueSummary].join(' ')}>
+          <div className={styles.stat}>
+            <span className={styles.statValue}>{open.length}</span>
+            <span className={styles.statLabel}>{COPY.openTitle}</span>
+          </div>
+          <div className={styles.stat}>
+            <span
+              className={[styles.statValue, overdue.length > 0 ? styles.statLate : ''].join(' ')}
+            >
+              {overdue.length}
+            </span>
+            <span className={styles.statLabel}>{COPY.lateTitle}</span>
+          </div>
+          <div className={styles.stat}>
+            <span className={styles.statValue}>{closed.length}</span>
+            <span className={styles.statLabel}>{COPY.closedTitle}</span>
+          </div>
         </div>
-        <div className={styles.stat}>
-          <span className={[styles.statValue, overdue.length > 0 ? styles.statLate : ''].join(' ')}>
-            {overdue.length}
-          </span>
-          <span className={styles.statLabel}>{COPY.lateTitle}</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.statValue}>{closed.length}</span>
-          <span className={styles.statLabel}>{COPY.closedTitle}</span>
-        </div>
-      </div>
+      )}
 
       {all.length === 0 && <EmptyState mood="confused" text={COPY.empty} />}
 
