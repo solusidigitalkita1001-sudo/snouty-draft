@@ -22,6 +22,8 @@ import { CatalogQueryService } from '../product-catalog/application/catalog-quer
 import { CATALOG_REPOSITORY } from '../product-catalog/domain/catalog.repository.js';
 import type { CatalogRepository } from '../product-catalog/domain/catalog.repository.js';
 import { ConversationService } from '../conversation/application/conversation.service.js';
+import { RuleValidationModule } from '../rule-validation/rule-validation.module.js';
+import { RuleValidationService } from '../rule-validation/application/rule-validation.service.js';
 import { AnalysisService } from './application/analysis.service.js';
 import type { ProseWriter } from './application/recommendation-assembler.js';
 import {
@@ -52,6 +54,8 @@ const proseWriterProvider = {
     ai && loadEnv().LLM_SOLUTION_PROSE ? new LlmProseWriter(ai, PROSE_SYSTEM_PROMPT) : null,
 };
 
+// Tanda tangan ahli dibaca di sini, bukan di dalam engine: engine tetap bebas I/O supaya
+// laporan lama bisa dihitung ulang identik (P31-83).
 const analysisServiceProvider = {
   provide: AnalysisService,
   inject: [
@@ -60,6 +64,7 @@ const analysisServiceProvider = {
     ConversationService,
     PROSE_WRITER,
     CatalogQueryService,
+    RuleValidationService,
   ],
   useFactory: (
     catalog: CatalogRepository,
@@ -67,7 +72,8 @@ const analysisServiceProvider = {
     conversations: ConversationService,
     prose: ProseWriter | null,
     catalogQuery: CatalogQueryService,
-  ) => new AnalysisService(catalog, repository, conversations, prose, catalogQuery),
+    rules: RuleValidationService,
+  ) => new AnalysisService(catalog, repository, conversations, prose, catalogQuery, rules),
 };
 
 /** Tautan bagikan baca-saja (P24-03). */
@@ -96,7 +102,13 @@ const rateLimiterProvider = {
 };
 
 @Module({
-  imports: [AiModule, ContextModule, ConversationModule, ProductCatalogModule],
+  imports: [
+    AiModule,
+    ContextModule,
+    ConversationModule,
+    ProductCatalogModule,
+    RuleValidationModule,
+  ],
   controllers: [RecommendationController, ShareController],
   providers: [
     recommendationRepositoryProvider,

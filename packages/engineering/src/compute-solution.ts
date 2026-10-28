@@ -98,6 +98,16 @@ export interface CalculationTrace {
   readonly inputs: unknown;
   readonly output: unknown;
   readonly provenance: Provenance;
+  /**
+   * Apakah dimensi bangunan benar-benar diketahui saat jejak ini dibuat (P31-83).
+   *
+   * `provenance` di atas sudah memuat dua hal sekaligus: status aturannya dan kualitas
+   * datanya. Setelah ahli pipa Pralon menandatangani sebuah aturan, tepi aplikasi perlu
+   * menghitung ulang gerbang yang sama — dan untuk itu ia butuh bagian kedua secara
+   * terpisah. Opsional karena jejak yang tersimpan sebelum medan ini ada tidak memilikinya;
+   * yang tanpa nilai dibaca sebagai "tidak diketahui", yaitu bacaan yang paling hati-hati.
+   */
+  readonly hasRealDimensions?: boolean;
   readonly explanation: string;
 }
 
@@ -247,6 +257,7 @@ export function computeSolution(
         ruleStatus: rule.validationStatus,
         hasRealDimensions,
       }),
+      hasRealDimensions,
       explanation: rule.explain(parsed, output, locale),
     });
     return output;

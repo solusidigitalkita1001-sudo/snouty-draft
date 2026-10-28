@@ -160,7 +160,8 @@ context           → ai, understanding, policy, packages/engineering (hanya fun
                     parameter, klasifikasi kasus, ekstraksi konteks teknis — Fase 14; tetap tanpa I/O)
 understanding     → ai (hanya port penyandi teks)   TIDAK BOLEH ke context: ia memberi label,
                     bukan keputusan; aturan atas labelnya hidup di context
-recommendation    → context, engineering, product-catalog, material-estimator, schematic, policy
+recommendation    → context, engineering, product-catalog, material-estimator, schematic, policy,
+                    rule-validation (hanya daftar tanda tangan aturan; satu arah)
 material-estimator→ engineering, product-catalog
 schematic         → engineering
 report            → recommendation, product-catalog
@@ -180,6 +181,13 @@ calculation → NO LLM"). Bukan disiplin, tapi ketiadaan jalur.
 
 **`ai` tidak boleh menyentuh domain.** Supaya tidak ada godaan menaruh aturan bisnis di dalam prompt.
 Kalau sebuah aturan penting, ia hidup di `policy` atau `packages/engineering`, bukan di string.
+
+**`recommendation` membaca tanda tangan aturan, bukan sebaliknya.** Status validasi sebuah aturan
+hitung tidak bisa hidup di dalam `packages/engineering`: paket itu bebas I/O, dan justru itu yang
+membuat laporan lama bisa dihitung ulang identik. Jadi tanda tangan disimpan satu tabel sendiri, dan
+gerbang provenance yang sama dihitung ulang di tepi aplikasi dengan status yang sebenarnya berlaku
+(`recommendation/domain/signed-rules.ts`, fungsi murni). `rule-validation` tidak pernah tahu apa pun
+tentang rekomendasi.
 
 ---
 

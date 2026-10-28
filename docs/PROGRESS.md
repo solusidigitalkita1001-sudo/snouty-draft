@@ -3871,3 +3871,28 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
 
       `docs/KEPUTUSAN_DIBUTUHKAN.md` ikut diperbaiki: tabel prioritasnya masih menyebut ENG-002,
       ENG-009, dan ENG-011 — ketiganya tidak dijalankan lagi sejak Kelompok K menggantikannya.
+
+- [x] P31-83 Tanda tangan ahli menembus sampai ke angka yang dibaca pengguna
+
+      Layar tanda tangan tanpa ini hanya daftar centang: ahli menyetujui sebuah aturan, dan angka
+      di layar solusi tetap berkata asumsi. Sekarang tiap jejak hitung melewati satu tempat yang
+      membaca tanda tangan yang berlaku, lalu menghitung ulang gerbang provenance yang sama —
+      dan karena baris sistem serta baris BOQ mengambil provenance dari jejak yang mereka kutip,
+      yang ikut naik adalah angka yang benar-benar dibaca orang, bukan catatan di belakang layar.
+
+      Yang naik hanya yang memang layak. Aturan yang ditandatangani dan dimensi bangunan yang
+      benar-benar diketahui menghasilkan terverifikasi; tanpa ukuran rumah ia berhenti di
+      estimasi, persis aturan yang berlaku sejak Fase 6. Aturan yang ditolak ahli membuat
+      barisnya tidak menampilkan nilai sama sekali — itu arti menolak. Tanda tangan atas versi
+      lain, atau atas aturan lain, tidak menular.
+
+      Paket engineering tidak ikut tahu siapa menandatangani apa: ia tetap bebas I/O, dan itulah
+      yang membuat laporan lama bisa dihitung ulang identik. Yang ditambahkan ke jejak hanya satu
+      hal yang tidak bisa diketahui dari luar — apakah dimensi bangunan nyata saat jejak itu
+      dibuat — karena gerbangnya butuh dua bagian secara terpisah. Jejak lama yang tidak
+      memilikinya dibaca sebagai "tidak diketahui", bacaan yang paling hati-hati.
+
+      Yang belum ikut: tag di blok judul gambar skema masih mengambil angka keseluruhan dari
+      engine, jadi ia tetap berbunyi asumsi walau barisnya sudah estimasi. Ia tidak pernah
+      mengaku lebih dari yang ada, dan membenahinya berarti menurunkan status aturan ke dalam
+      tujuh pembentuk skema — pekerjaan sendiri, bukan sisa pekerjaan ini.

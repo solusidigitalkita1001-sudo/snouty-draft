@@ -67,9 +67,7 @@ const EXAMPLES_SHOWN = 2;
 
 @Injectable()
 export class RuleValidationService {
-  constructor(
-    @Inject(RULE_SIGN_OFF_REPOSITORY) private readonly signOffs: RuleSignOffRepository,
-  ) {}
+  constructor(@Inject(RULE_SIGN_OFF_REPOSITORY) private readonly signOffs: RuleSignOffRepository) {}
 
   async board(locale: EngineeringLocale): Promise<RuleBoard> {
     const decisions = indexDecisions(await this.signOffs.list());
@@ -113,6 +111,26 @@ export class RuleValidationService {
     return 'ok';
   }
 
+  /**
+   * Keputusan yang sudah diambil, sependek mungkin — dipakai tepi hitungan untuk menaikkan
+   * provenance nilai yang aturannya sudah ditandatangani (P31-83). Sengaja bukan `board()`:
+   * jalur hitung tidak perlu contoh kerja dan alasan prioritas.
+   */
+  async decisions(): Promise<
+    readonly {
+      readonly ruleId: string;
+      readonly ruleVersion: number;
+      readonly decision: 'approved' | 'rejected';
+    }[]
+  > {
+    const rows = await this.signOffs.list();
+    return rows.map((row) => ({
+      ruleId: row.ruleId,
+      ruleVersion: row.ruleVersion,
+      decision: row.decision,
+    }));
+  }
+
   async withdraw(ruleId: string, ruleVersion: number): Promise<void> {
     await this.signOffs.withdraw(ruleId, ruleVersion);
   }
@@ -146,7 +164,9 @@ function toCard(
     standard: rule.standard ?? null,
     status: statusOf(rule.validationStatus, signed),
     why: priority === null ? null : locale === 'en' ? priority.whyEn : priority.why,
-    examples: rule.testCases.slice(0, EXAMPLES_SHOWN).map((testCase) => example(rule, testCase, locale)),
+    examples: rule.testCases
+      .slice(0, EXAMPLES_SHOWN)
+      .map((testCase) => example(rule, testCase, locale)),
     decision:
       signed === null
         ? null

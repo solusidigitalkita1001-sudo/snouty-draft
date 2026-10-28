@@ -61,6 +61,7 @@ export function computePond(
         ruleStatus: rule.validationStatus,
         hasRealDimensions: false,
       }),
+      hasRealDimensions: false,
       explanation: rule.explain(parsed, output, locale),
     });
     return output;

@@ -41,6 +41,7 @@ import {
   computePressurized,
   computeSolution,
   type BuildingWaterInput,
+  type CalculationTrace,
   type FlowSchematicShape,
   type GravityInput,
   type HouseDrainageResult,
@@ -147,6 +148,11 @@ import { ConversationService } from '../../conversation/application/conversation
 import type { CatalogQueryService } from '../../product-catalog/application/catalog-query.service.js';
 import { CatalogUnavailableError as CatalogReadUnavailableError } from '../../product-catalog/domain/catalog.errors.js';
 import { ulid } from '../../../shared/ulid.js';
+import {
+  signedProvenance,
+  signedStatusFrom,
+  type RuleDecisionSource,
+} from '../domain/signed-rules.js';
 import {
   assembleRecommendation,
   withPrintedMaterialCount,
@@ -297,7 +303,27 @@ export class AnalysisService {
       CatalogQueryService,
       'activeVersion' | 'listProducts' | 'candidatesFor'
     >,
+    /**
+     * Tanda tangan ahli pipa Pralon atas aturan hitung (P31-83). Opsional supaya tes yang
+     * sudah ada tetap berjalan tanpanya; tanpa tanda tangan, provenance jatuh ke apa yang
+     * sudah diberikan engine — yaitu asumsi.
+     */
+    private readonly ruleDecisions: RuleDecisionSource | null = null,
   ) {}
+
+  /**
+   * Memberi tiap jejak hitung sebuah id, dan menaikkan provenance-nya bila aturannya sudah
+   * ditandatangani. Satu-satunya tempat jejak engine menjadi jejak yang disimpan dan
+   * ditampilkan, jadi tidak ada jalur yang melewatinya (P31-83).
+   */
+  private async identify(traces: readonly CalculationTrace[]): Promise<readonly IdentifiedTrace[]> {
+    const signed = signedStatusFrom((await this.ruleDecisions?.decisions()) ?? []);
+    return traces.map((trace) => ({
+      ...trace,
+      id: ulid(),
+      provenance: signedProvenance(trace, signed),
+    }));
+  }
 
   /**
    * Topologi skema untuk sebuah rekomendasi. Label versi katalog **dicari**, bukan
@@ -439,10 +465,7 @@ export class AnalysisService {
     // --- Tahap 2: aturan teknik ---
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const solution = computeSolution(solutionInputFrom(state), locale, overridesOf(state));
-    const traces: readonly IdentifiedTrace[] = solution.traces.map((trace) => ({
-      ...trace,
-      id: ulid(),
-    }));
+    const traces: readonly IdentifiedTrace[] = await this.identify(solution.traces);
     events.push({
       type: 'stage',
       stage: 'ANALYZING_INSTALLATION',
@@ -601,10 +624,7 @@ export class AnalysisService {
         locale,
         overridesOf(state),
       );
-      const drainageTraces: readonly IdentifiedTrace[] = drainage.traces.map((trace) => ({
-        ...trace,
-        id: ulid(),
-      }));
+      const drainageTraces: readonly IdentifiedTrace[] = await this.identify(drainage.traces);
       const drainageMatch = await this.matchRoles([
         ...(drainage.soil ? [pipeRequirement('main', drainage.soil.size, DRAINAGE_FAMILY)] : []),
         ...(drainage.waste
@@ -818,10 +838,7 @@ export class AnalysisService {
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const { input, assumptions: inputAssumptions } = irrigationInputFrom(state);
     const result = computeIrrigation(input, locale);
-    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
-      ...trace,
-      id: ulid(),
-    }));
+    let traces: readonly IdentifiedTrace[] = await this.identify(result.traces);
     events.push({
       type: 'stage',
       stage: 'ANALYZING_INSTALLATION',
@@ -927,10 +944,7 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computePressurized(plan.input, locale, overridesOf(state));
-    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
-      ...trace,
-      id: ulid(),
-    }));
+    let traces: readonly IdentifiedTrace[] = await this.identify(result.traces);
     events.push({
       type: 'stage',
       stage: 'ANALYZING_INSTALLATION',
@@ -1030,10 +1044,7 @@ export class AnalysisService {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computeGravity(plan.input, locale, overridesOf(state));
-    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
-      ...trace,
-      id: ulid(),
-    }));
+    let traces: readonly IdentifiedTrace[] = await this.identify(result.traces);
     events.push({
       type: 'stage',
       stage: 'ANALYZING_INSTALLATION',
@@ -1133,10 +1144,7 @@ export class AnalysisService {
       locale,
       overridesOf(state),
     );
-    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
-      ...trace,
-      id: ulid(),
-    }));
+    let traces: readonly IdentifiedTrace[] = await this.identify(result.traces);
     // Asumsi panjang jalur hanya bila keluarganya memang dipilih aturan itu, bukan oleh pengguna.
     const extra = family === 'HDPE' && input.material === undefined ? ['HDPE_MAIN_FROM_200M'] : [];
     events.push({
@@ -1301,10 +1309,7 @@ export class AnalysisService {
     const events = streamedEvents(emit);
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computeBuildingWater(input, locale, overridesOf(state));
-    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
-      ...trace,
-      id: ulid(),
-    }));
+    let traces: readonly IdentifiedTrace[] = await this.identify(result.traces);
     events.push({
       type: 'stage',
       stage: 'ANALYZING_INSTALLATION',
@@ -1605,10 +1610,7 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'ANALYZING_INSTALLATION', status: 'active' });
     const result = computePond(input, locale, overridesOf(state));
-    let traces: readonly IdentifiedTrace[] = result.traces.map((trace) => ({
-      ...trace,
-      id: ulid(),
-    }));
+    let traces: readonly IdentifiedTrace[] = await this.identify(result.traces);
     events.push({
       type: 'stage',
       stage: 'ANALYZING_INSTALLATION',
