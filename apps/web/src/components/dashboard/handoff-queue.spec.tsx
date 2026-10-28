@@ -45,6 +45,59 @@ beforeEach(() => {
 });
 
 describe('antrean teknis', () => {
+  it('kasus terlama langsung terbuka, bukan kotak kosong (P31-80)', async () => {
+    api.fetchHandoffQueue.mockResolvedValue(ok());
+    render(<HandoffQueuePanel />);
+
+    expect(await screen.findByText('Jumlah lantai')).toBeTruthy();
+    expect(screen.queryByText(/Pilih satu kasus/)).toBeNull();
+  });
+
+  it('kartu menyebut perkaranya, bukan cuma nama pengirimnya (P31-80)', async () => {
+    api.fetchHandoffQueue.mockResolvedValue(ok());
+    render(<HandoffQueuePanel />);
+
+    const card = await screen.findByRole('button', { name: /Budi Santoso/ });
+    expect(card.textContent).toContain('Instalasi industri perlu diperiksa tim teknis.');
+  });
+
+  it('ringkasan: berapa menunggu, berapa lewat janji, berapa ditutup (P31-80)', async () => {
+    api.fetchHandoffQueue.mockResolvedValue({
+      kind: 'ok',
+      value: {
+        open: [kasus(), kasus({ id: '01JHANDOFF00000000000000CD', overdue: true })],
+        closed: [
+          kasus({
+            id: '01JHANDOFF00000000000000EF',
+            status: 'RESOLVED',
+            resolvedAt: '2026-10-22T02:00:00Z',
+          }),
+        ],
+        slaHours: 24,
+      },
+    });
+    render(<HandoffQueuePanel />);
+
+    // "Sudah ditutup" juga menjadi judul kelompok di daftar; ringkasannya yang pertama di DOM.
+    const summary = (label: string) =>
+      screen.getAllByText(label)[0]?.parentElement?.textContent ?? '';
+    expect(await screen.findByText('Belum selesai')).toBeTruthy();
+    expect(summary('Belum selesai')).toContain('2');
+    expect(summary('Lewat janji')).toContain('1');
+    expect(summary('Sudah ditutup')).toContain('1');
+  });
+
+  it('antrean kosong: satu kalimat, tanpa panel yang menunggu dipilih (P31-80)', async () => {
+    api.fetchHandoffQueue.mockResolvedValue({
+      kind: 'ok',
+      value: { open: [], closed: [], slaHours: 24 },
+    });
+    render(<HandoffQueuePanel />);
+
+    expect(await screen.findByText(/Belum ada kasus yang diserahkan/)).toBeTruthy();
+    expect(screen.queryByText(/Pilih satu kasus/)).toBeNull();
+  });
+
   it('menampilkan kasus yang menunggu, bukan penjelasan tentang API', async () => {
     api.fetchHandoffQueue.mockResolvedValue(ok());
     render(<HandoffQueuePanel />);

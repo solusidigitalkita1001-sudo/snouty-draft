@@ -48,6 +48,15 @@ export function HandoffQueuePanel() {
     void load();
   }, [load]);
 
+  // Layar ini dulu terbuka sebagai dua kotak: daftar di kiri, dan di kanan satu kalimat
+  // "pilih satu kasus". Orang teknis yang membukanya hampir selalu mau kasus terlama,
+  // dan itu kasus pertama di daftar — jadi ia yang terbuka sendiri (P31-80).
+  useEffect(() => {
+    if (queue === null || queue.kind !== 'ok' || selected !== null) return;
+    const first = queue.value.open[0] ?? queue.value.closed[0];
+    if (first !== undefined) setSelected(first.id);
+  }, [queue, selected]);
+
   const move = async (id: string, status: HandoffStatus) => {
     if (busy) return;
     setBusy(true);
@@ -86,6 +95,7 @@ export function HandoffQueuePanel() {
   const all = [...queue.value.open, ...queue.value.closed];
   const open = queue.value.open;
   const closed = queue.value.closed;
+  const overdue = open.filter((item) => item.overdue);
   const current = all.find((item) => item.id === selected) ?? null;
 
   return (
@@ -101,54 +111,72 @@ export function HandoffQueuePanel() {
         </p>
       )}
 
-      <div className={styles.leadLayout}>
-        <ul className={styles.leadList} aria-label={COPY.title}>
-          {open.length === 0 && (
-            <li>
-              <EmptyState mood="confused" text={COPY.empty} />
-            </li>
-          )}
-          {open.map((item) => (
-            <li key={item.id}>
-              <CaseButton
-                item={item}
-                locale={locale}
-                selected={selected === item.id}
-                onPick={() => setSelected(item.id)}
-              />
-            </li>
-          ))}
-
-          {closed.length > 0 && (
-            <>
-              <li className={styles.navGroup}>{COPY.closedTitle}</li>
-              {closed.map((item) => (
-                <li key={item.id}>
-                  <CaseButton
-                    item={item}
-                    locale={locale}
-                    selected={selected === item.id}
-                    onPick={() => setSelected(item.id)}
-                  />
-                </li>
-              ))}
-            </>
-          )}
-        </ul>
-
-        <section className={styles.leadDetail} aria-live="polite">
-          {current === null ? (
-            <p className={styles.muted}>{COPY.pick}</p>
-          ) : (
-            <CaseDetail
-              item={current}
-              locale={locale}
-              busy={busy}
-              onMove={(status) => void move(current.id, status)}
-            />
-          )}
-        </section>
+      {/* Tiga angka yang ditanyakan lebih dulu: berapa yang menunggu, berapa yang sudah
+          lewat janji 1×24 jam kerja, dan berapa yang sudah ditutup. */}
+      <div className={[styles.statRow, styles.queueSummary].join(' ')}>
+        <div className={styles.stat}>
+          <span className={styles.statValue}>{open.length}</span>
+          <span className={styles.statLabel}>{COPY.openTitle}</span>
+        </div>
+        <div className={styles.stat}>
+          <span className={[styles.statValue, overdue.length > 0 ? styles.statLate : ''].join(' ')}>
+            {overdue.length}
+          </span>
+          <span className={styles.statLabel}>{COPY.lateTitle}</span>
+        </div>
+        <div className={styles.stat}>
+          <span className={styles.statValue}>{closed.length}</span>
+          <span className={styles.statLabel}>{COPY.closedTitle}</span>
+        </div>
       </div>
+
+      {all.length === 0 && <EmptyState mood="confused" text={COPY.empty} />}
+
+      {all.length > 0 && (
+        <div className={styles.leadLayout}>
+          <ul className={styles.leadList} aria-label={COPY.title}>
+            {open.map((item) => (
+              <li key={item.id}>
+                <CaseButton
+                  item={item}
+                  locale={locale}
+                  selected={selected === item.id}
+                  onPick={() => setSelected(item.id)}
+                />
+              </li>
+            ))}
+
+            {closed.length > 0 && (
+              <>
+                <li className={styles.navGroup}>{COPY.closedTitle}</li>
+                {closed.map((item) => (
+                  <li key={item.id}>
+                    <CaseButton
+                      item={item}
+                      locale={locale}
+                      selected={selected === item.id}
+                      onPick={() => setSelected(item.id)}
+                    />
+                  </li>
+                ))}
+              </>
+            )}
+          </ul>
+
+          <section className={styles.leadDetail} aria-live="polite">
+            {current === null ? (
+              <p className={styles.muted}>{COPY.pick}</p>
+            ) : (
+              <CaseDetail
+                item={current}
+                locale={locale}
+                busy={busy}
+                onMove={(status) => void move(current.id, status)}
+              />
+            )}
+          </section>
+        </div>
+      )}
     </>
   );
 }
@@ -172,7 +200,10 @@ function CaseButton({
       aria-pressed={selected}
       onClick={onPick}
     >
-      <span className={styles.name}>{item.submitter?.name ?? COPY.status[item.status]}</span>
+      <span className={styles.name}>{item.submitter?.name ?? COPY.anonymous}</span>
+      {/* Perkaranya, dalam kalimat pengguna sendiri: tanpa ini daftarnya hanya deretan
+          nama, dan tidak ada cara memilih mana yang dikerjakan lebih dulu. */}
+      <span className={styles.caseReason}>{item.reason}</span>
       <span className={styles.leadTags}>
         <span className={styles.stageTag}>{COPY.status[item.status]}</span>
         <span className={[styles.priority, overdueClass(item)].join(' ')}>{age(item, locale)}</span>

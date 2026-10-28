@@ -3821,3 +3821,17 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       yang bisa ditekan untuk membuka daftarnya, dan tombol cabut. Di atasnya satu kalimat
       yang menjawab pertanyaan pertama seorang kepala sales — berapa anggota, berapa prospek
       yang sedang dipegang. Nol berarti batang kosong.
+
+- [x] P31-80 Antrean teknis membuka kasus, bukan kotak kosong
+
+      Layar yang paling tipis di back office. Ia terbuka sebagai dua kotak: daftar kartu
+      berisi nama pengirim dan satu tanda keterlambatan di kiri, dan di kanan satu kalimat
+      "pilih satu kasus". Tidak ada cara memilih mana yang dikerjakan lebih dulu tanpa
+      membuka satu per satu, padahal rincian tiap kasus sudah lengkap di baliknya sejak
+      awal — yang hilang cuma jalan masuknya.
+
+      Sekarang tiga angka di atas daftar menjawab pertanyaan pertama orang teknis: berapa
+      yang menunggu, berapa yang sudah lewat janji 1×24 jam kerja, berapa yang ditutup.
+      Tiap kartu menyebut perkaranya dengan kalimat pengguna sendiri, dan kasus terlama
+      langsung terbuka begitu layarnya dimuat. Antrean yang benar-benar kosong tidak lagi
+      menggambar panel yang menunggu pilihan yang tidak ada.

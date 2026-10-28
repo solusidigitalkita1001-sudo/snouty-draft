@@ -1099,3 +1099,25 @@
     display: none;
   }
 }
+
+/* Antrean teknis (P31-80). Ringkasan tiga angka di atas daftar, dan perkara tiap kasus di
+   kartunya — sebelum ini daftarnya hanya deretan nama pengirim, jadi tidak ada cara memilih
+   mana yang dikerjakan lebih dulu tanpa membuka satu per satu. */
+.queueSummary {
+  margin-bottom: 12px;
+}
+
+.statLate {
+  color: var(--snouty-action-text);
+}
+
+/* Dua baris: kalimat pengguna boleh panjang, kartunya tidak boleh ikut memanjang. */
+.caseReason {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--snouty-ink-2);
+  font-size: 13px;
+  line-height: 1.4;
+}
