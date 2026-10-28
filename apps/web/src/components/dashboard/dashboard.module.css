@@ -1073,9 +1073,12 @@ button.stat {
   text-align: center;
 }
 
+/* Satu baris pendek tetap terlihat di tengah karena kotaknya menyusut seukuran isinya;
+   paragraf panjang — layar yang menunggu orang — dibaca rata kiri, bukan seperti puisi. */
 .emptyState .muted {
   max-width: 44ch;
   margin: 0;
+  text-align: left;
 }
 
 /* Beban prospek per anggota (P31-79). Dulu angka yang sama digambar dua kali: satu kartu grafik
