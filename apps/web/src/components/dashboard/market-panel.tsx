@@ -58,7 +58,6 @@ export function MarketPanel() {
     }).format(new Date(`${ym}-01T00:00:00Z`));
   const building = (key: string) => LABELS.buildingTypes[key] ?? LABELS.cases[key] ?? key;
   const region = (key: string) => (key === 'tidak_diketahui' ? COPY.market.unknownRegion : key);
-  const count = (n: number) => COPY.market.consultations(n);
   const percent = (ratio: number) =>
     new Intl.NumberFormat(locale === 'en' ? 'en-GB' : 'id-ID', {
       style: 'percent',
