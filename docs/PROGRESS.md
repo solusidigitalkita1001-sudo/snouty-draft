@@ -759,7 +759,8 @@ persist, total}` + intent. **Ekstraksi gabungan satu panggilan: dievaluasi dan D
       tercapai dengan itu — dicatat jujur di laporan checkpoint. Bilingual ID/EN penuh disetujui →
       P15
 - [ ] ✋ CHECKPOINT — reviewed by owner (12 skenario uji §39 + laporan akhir §45) — laporan siap:
-      `docs/PHASE14_CHECKPOINT.md` (2026-10-07), menunggu tinjauan pemilik
+      `docs/PHASE14_CHECKPOINT.md` (2026-10-07), menunggu tinjauan pemilik. Jalur coba sendiri:
+      `docs/COBA_SENDIRI.md` langkah 3–7 (P31-85).
 
 ## Phase 15 — Bilingual (ID + EN penuh)
 
@@ -864,7 +865,8 @@ berikutnya. Prinsip tetap: teks deterministik hidup di kode per bahasa, bukan di
       ukuran EN, pencarian katalog membaca keluarga ("pvc aw" menemukan pipa AW), label
       COMPANY_QUESTION model dipagari, Ollama keep-alive 24 jam. Tes: API +8
 - [ ] ✋ CHECKPOINT — reviewed by owner — laporan siap: `docs/PHASE15_CHECKPOINT.md` (12 skenario EN
-      di produksi, pengukuran latensi Ollama, tiga pilihan model untuk pemilik)
+      di produksi, pengukuran latensi Ollama, tiga pilihan model untuk pemilik). Jalur coba sendiri:
+      `docs/COBA_SENDIRI.md` langkah 12 (P31-85).
 
 ## Phase 16 — Routing percakapan: subjek aktif & pengetahuan perusahaan
 
@@ -1427,7 +1429,8 @@ jalan keluar ruas produk untuk pertanyaan tanpa produk.
       berubah (air bekas 2" → 2½").
 - [ ] P16-02b Sisa OQ-54: visi/misi/distribusi, Certificate Register, profil korporat resmi,
       Product Specification resmi (angka)
-- [ ] ✋ CHECKPOINT — reviewed by owner
+- [ ] ✋ CHECKPOINT — reviewed by owner. Jalur coba sendiri: `docs/COBA_SENDIRI.md` langkah 2
+      (P31-85).
 
 ## Phase 17 — Layar solusi & laporan v2 (DD-01)
 
@@ -1476,7 +1479,8 @@ Keputusan pemilik 2026-10-13: `design-input/DESIGN_DECISIONS.md` DD-01, mockup
       keputusan pemilik 2026-10-13); label versi katalog dan versi aturan tidak dicetak — PDF menulis "Data produk
       per 6 Oktober 2026", stempel aturan tetap di payload; sel "KATALOG <versi>" di blok judul skema dihapus;
       petunjuk opsi ukuran ditulis ulang tanpa metatext
-- [ ] ✋ CHECKPOINT Fase 17 — ditinjau pemilik
+- [ ] ✋ CHECKPOINT Fase 17 — ditinjau pemilik. Jalur coba sendiri: `docs/COBA_SENDIRI.md`
+      langkah 4–7 (P31-85).
 
 ## Phase 18 — Hitung fitting otomatis
 
@@ -1860,6 +1864,7 @@ sok drat dari katalog. Dicatat sebagai OQ-71.
       sebelumnya semua baris pipa dikali rasio dan sok bergabung menjadi "Sok + Sok …"), dan asumsi 1 WSFU/titik lama
       hanya tampil bila beban total memang dihitung.
 - [ ] ✋ CHECKPOINT Fase 23 — uji langsung di produksi tiga mode untuk rumah dan SPAM; pemilik menilai.
+      Jalur coba sendiri: `docs/COBA_SENDIRI.md` langkah 10–11 (P31-85).
 
 ## Phase 24 — Fitur akun: proyek, sematan, tautan bagikan (19 Okt 2026)
 
@@ -1898,6 +1903,7 @@ sidebar dengan halamannya sendiri. Belum ada desain — OQ-72.
       ayolah"): menu kini dirender lewat portal ke `document.body` dengan posisi tetap terhadap tombolnya, membuka ke
       atas bila ruang di bawah kurang, dan menutup saat digulir. Diverifikasi di produksi (mode gelap, baris terbawah).
 - [ ] ✋ CHECKPOINT Fase 24 — pemilik mencoba proyek, sematan, dan tautan bagikan di produksi.
+      Jalur coba sendiri: `docs/COBA_SENDIRI.md` langkah 1, 8, 9 (P31-85).
 
 ## Phase 25 — Bahasa balasan mengikuti kalimat pengguna (19 Okt 2026)
 
@@ -3910,3 +3916,20 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
 
       Daftar debit puncak di atas 100 unit (OQ-87) sengaja tidak ikut: permintaan pertama tetap
       sebesar tiga angka, yang besar menyusul setelah ini dijawab.
+
+- [x] P31-85 Satu jalur coba untuk lima fase yang menunggu penilaian pemilik
+
+      Pilihan pemilik 2026-10-28: satu jalur coba gabungan. Fase 15, 16, 17, 23, dan 24 menunggu
+      penilaian pemilik sejak masing-masing selesai, dan selama ini tiap fase punya laporannya
+      sendiri — mencobanya berarti lima kali mulai dari awal, dan tidak ada satu tempat yang
+      menyebut apa yang mesti terlihat.
+
+      `docs/COBA_SENDIRI.md`: dua belas langkah berurutan dalam satu sesi, sekitar dua puluh
+      menit, semuanya diketik pemilik sendiri di produksi. Tiap langkah menyebut apa yang
+      diketik atau ditekan, apa yang seharusnya terlihat, dan beberapa menyebut apa yang **tidak
+      boleh** terlihat — baris renovasi di rumah bangun baru, titik air lama yang dihitung
+      sebagai titik baru, menu yang terpotong di mode gelap, tautan bagikan yang masih hidup
+      setelah dicabut. Yang diminta kembali satu baris per langkah.
+
+      Enam baris checkpoint di dokumen ini sekarang menunjuk ke langkah yang menguji fasenya,
+      jadi yang menutup fase dan yang mencobanya tidak lagi dua daftar terpisah.
