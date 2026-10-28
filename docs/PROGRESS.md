@@ -3809,3 +3809,15 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       pun: garis tren butuh dua titik, dan dengan satu bulan data komponennya mengembalikan
       null. Kartunya sekarang mengatakan apa yang kurang, sama seperti kartu peringkat di
       sebelahnya.
+
+- [x] P31-79 Tim sales: satu daftar, bukan angka yang sama dua kali
+
+      Layar tim sales menggambar anggota yang sama dua kali bersebelahan: satu kartu grafik
+      batang "Beban prospek" dengan nama dan email, dan satu kartu "Anggota" dengan nama,
+      email, dan jumlah prospek yang sama. Batang bernilai nol tampil sebagai titik merah
+      selebar dua piksel yang terbaca seperti penanda, bukan seperti kosong.
+
+      Sekarang satu daftar: nama, email, batang beban di barisnya sendiri, jumlah prospek
+      yang bisa ditekan untuk membuka daftarnya, dan tombol cabut. Di atasnya satu kalimat
+      yang menjawab pertanyaan pertama seorang kepala sales — berapa anggota, berapa prospek
+      yang sedang dipegang. Nol berarti batang kosong.

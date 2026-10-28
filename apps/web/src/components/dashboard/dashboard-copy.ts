@@ -131,8 +131,9 @@ export const DASHBOARD_COPY = {
   team: {
     title: 'Tim sales',
     subtitle: 'Akun terdaftar yang menerima prospek.',
-    loadTitle: 'Beban prospek',
     membersTitle: 'Anggota',
+    spread: (members: number, leads: number) =>
+      `${members} anggota memegang ${leads} prospek berjalan.`,
     email: 'Email akun terdaftar',
     add: 'Tambahkan',
     adding: 'Menambahkan…',
@@ -341,8 +342,9 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
   team: {
     title: 'Sales team',
     subtitle: 'Registered accounts that receive prospects.',
-    loadTitle: 'Prospect load',
     membersTitle: 'Members',
+    spread: (members: number, leads: number) =>
+      `${members} members holding ${leads} open prospects.`,
     email: 'Registered account email',
     add: 'Add',
     adding: 'Adding…',

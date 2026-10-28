@@ -7,7 +7,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { getCurrentUser } from '../auth/session';
 import { useLocale } from '../locale';
-import { BarList } from './charts';
 import {
   addSalesMember,
   fetchSalesTeam,
@@ -98,46 +97,52 @@ export function TeamPanel() {
       {team !== null && team.length === 0 && <EmptyState mood="confused" text={COPY.team.empty} />}
 
       {team !== null && team.length > 0 && (
-        <div className={styles.cards}>
-          <section className={styles.card}>
-            <h2 className={styles.cardTitle}>{COPY.team.loadTitle}</h2>
-            <BarList
-              slices={team.map((member) => ({
-                key: member.id,
-                label: member.name,
-                detail: member.email,
-                value: member.openLeads,
-              }))}
-              valueLabel={(n) => COPY.team.openLeads(n)}
-            />
-          </section>
-          <section className={styles.card}>
-            <h2 className={styles.cardTitle}>{COPY.team.membersTitle}</h2>
-            <ul className={styles.teamList}>
-              {team.map((member) => (
-                <li key={member.id} className={styles.teamRow}>
-                  <div>
-                    <div className={styles.name}>{member.name}</div>
-                    <div className={styles.meta}>{member.email}</div>
-                  </div>
-                  <a className={styles.back} href={`/internal/prospects?sales=${member.id}`}>
-                    {COPY.team.openLeads(member.openLeads)}
-                  </a>
-                  {isAdmin && (
-                    <button
-                      type="button"
-                      className={styles.secondary}
-                      onClick={() => void remove(member.id)}
-                    >
-                      {COPY.team.remove}
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>{COPY.team.membersTitle}</h2>
+          <p className={styles.muted}>{COPY.team.spread(team.length, totalLeads(team))}</p>
+          <ul className={styles.teamList}>
+            {team.map((member) => (
+              <li key={member.id} className={styles.teamRow}>
+                <div>
+                  <div className={styles.name}>{member.name}</div>
+                  <div className={styles.meta}>{member.email}</div>
+                </div>
+                {/* Batangnya hiasan: angkanya ada di tautan sebelahnya, jadi tidak ada makna
+                    yang hanya dibawa panjang batang. */}
+                <span className={styles.loadTrack} aria-hidden="true">
+                  <span
+                    className={styles.loadFill}
+                    style={{ width: `${share(member.openLeads, team)}%` }}
+                  />
+                </span>
+                <a className={styles.back} href={`/internal/prospects?sales=${member.id}`}>
+                  {COPY.team.openLeads(member.openLeads)}
+                </a>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    className={styles.secondary}
+                    onClick={() => void remove(member.id)}
+                  >
+                    {COPY.team.remove}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </>
   );
+}
+
+/** Jumlah prospek yang sedang berjalan di seluruh tim. */
+function totalLeads(team: readonly SalesMember[]): number {
+  return team.reduce((sum, member) => sum + member.openLeads, 0);
+}
+
+/** Panjang batang beban, relatif terhadap anggota yang paling sibuk. */
+function share(openLeads: number, team: readonly SalesMember[]): number {
+  const busiest = Math.max(...team.map((member) => member.openLeads), 1);
+  return Math.round((openLeads / busiest) * 100);
 }
