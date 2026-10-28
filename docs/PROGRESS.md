@@ -3848,3 +3848,26 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       dengan keadaan kosong di layar lain, jadi bentuknya pun sama. Isi layarnya tetap
       menunggu orang, bukan menunggu kode: ahli pipa Pralon yang menandatangani aturan
       (P16-69), dan kotak masuk yang disambungkan (OQ-06).
+
+- [x] P31-82 Layar validasi aturan yang benar-benar berisi aturan
+
+      Pilihan pemilik 2026-10-28: delapan aturan dulu. Selama ini layar ini satu paragraf yang
+      mengatakan ia menunggu seseorang — dan yang ditunggu memang orang, tetapi tanpa aturannya
+      tampil, orang itu tidak punya apa pun untuk ditandatangani. Setiap angka SNOUTY berdiri
+      sebagai asumsi karena tidak ada jalan mengubahnya selain menyunting kode.
+
+      Sekarang tiap aturan tampil dengan versinya, kode plambing atau metode yang menjadi
+      sumbernya, dan contoh kerja yang diambil dari test case aturan itu sendiri — kalimat yang
+      sama persis dengan yang dibaca pengguna di layar solusi, jadi yang dinilai ahli memang apa
+      yang akan dilihat orang. Delapan aturan diminta dibaca lebih dulu (ENG-701, 205, 702, 703,
+      001, 601, 604, 602); sisanya ada di bawah, tidak disembunyikan.
+
+      Tanda tangan disimpan per aturan + VERSI: menaikkan versi berarti formulanya berubah, dan
+      tanda tangan atas formula lama tidak ikut pindah. Menandatangani versi yang sudah lewat
+      ditolak — yang dibaca penandatangan bukan yang berlaku sekarang. Menolak sebuah aturan
+      wajib berasalan, karena yang memperbaiki formulanya kelak perlu tahu apa yang salah.
+      Paket engineering tetap murni: tanda tangan fakta tentang orang dan waktu, jadi ia tinggal
+      di basis data, bukan di dalam aturan.
+
+      `docs/KEPUTUSAN_DIBUTUHKAN.md` ikut diperbaiki: tabel prioritasnya masih menyebut ENG-002,
+      ENG-009, dan ENG-011 — ketiganya tidak dijalankan lagi sejak Kelompok K menggantikannya.

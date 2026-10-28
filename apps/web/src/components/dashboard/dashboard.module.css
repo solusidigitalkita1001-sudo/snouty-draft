@@ -1128,3 +1128,83 @@ button.stat {
   font-size: 13px;
   line-height: 1.4;
 }
+
+/* Validasi aturan teknik (P31-82). Satu baris per aturan, dibuka untuk membaca contoh kerjanya
+   dan menandatanganinya — bukan tabel, karena yang dibaca di sini kalimat, bukan kolom. */
+.ruleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ruleCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--snouty-border);
+  border-radius: var(--snouty-radius-card);
+  background: var(--snouty-surface);
+}
+
+.ruleCardOn {
+  border-color: var(--snouty-action);
+}
+
+.ruleHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--snouty-tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ruleHead:focus-visible {
+  outline: none;
+  box-shadow: var(--snouty-focus-ring);
+}
+
+.ruleName {
+  font-family: var(--snouty-font-mono);
+  font-size: 14px;
+}
+
+.ruleBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--snouty-hairline);
+}
+
+/* Contoh kerja diambil dari test case aturannya sendiri — ini kalimat yang dibaca pengguna
+   di layar solusi, jadi ahlinya menilai persis apa yang akan dilihat orang. */
+.ruleExample {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ruleExampleName {
+  margin: 0;
+  color: var(--snouty-muted);
+  font-size: 12px;
+}
+
+.ruleExampleText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}

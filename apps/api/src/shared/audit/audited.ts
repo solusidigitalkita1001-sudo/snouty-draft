@@ -49,6 +49,8 @@ export const USER_AUDIT = {
   leadTranscript: { action: 'lead.transcript.view', entityType: 'user' },
   leadNote: { action: 'lead.note', entityType: 'user' },
   leadFollowUp: { action: 'lead.follow_up', entityType: 'user' },
+  /** Tanda tangan ahli domain atas satu versi aturan hitung (P31-82). */
+  ruleDecision: { action: 'rule.decision', entityType: 'rule' },
   reportCreate: { action: 'report.create', entityType: 'report' },
   reportRebuild: { action: 'report.rebuild', entityType: 'report' },
   uploadCreate: { action: 'upload.create', entityType: 'upload' },

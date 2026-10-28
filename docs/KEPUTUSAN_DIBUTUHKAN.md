@@ -43,16 +43,26 @@ dan tidak akan pernah ada sampai seseorang menandatanganinya. Itu perilaku yang 
 produk belum bisa mengatakan hal yang paling ingin dikatakannya.
 
 **Yang dibutuhkan:** satu nama. Seseorang di Pralon yang berwenang menilai apakah, misalnya, ambang
-"≥ 8 unit beban → pipa 1 inci" benar.
+tekanan 0,3 bar di titik tertinggi sebuah rumah benar.
 
-**Prioritas tertinggi untuk ditinjau**:
+Layarnya sudah ada sejak 2026-10-28: "Validasi aturan" di back-office menampilkan tiap aturan
+beserta sumbernya dan satu contoh kerja — kalimat yang sama persis dengan yang dibaca pengguna —
+lalu menyimpan tanda tangannya. **Delapan aturan diminta dibaca lebih dulu**, bukan ketujuh puluh
+empat sekaligus: memintanya sekaligus hanya melatih orang menekan setuju tanpa membaca.
 
-| Aturan                | Mengapa paling dulu                                                                                                              |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **ENG-002**           | Menentukan angka terbesar di layar. Ambang tunggal tanpa panjang jalur, elevasi, atau kerugian gesek hampir pasti penyederhanaan |
-| **ENG-011**           | Mengklaim toren atap cukup tanpa pompa — tanpa mengetahui tinggi toren maupun panjang jalur                                      |
-| **ENG-001 + ENG-012** | Bobot 2 per kamar mandi berasal dari "1 kamar mandi = shower + kloset"; keduanya harus dinilai bersama                           |
-| **ENG-009**           | Seluruh kuantitas BOM, dan tidak satu pun memakai panjang jalur sebenarnya                                                       |
+| Aturan      | Mengapa paling dulu                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------- |
+| **ENG-701** | Beban alat dan debit puncak sebuah rumah — setiap ukuran pipa air bersih berdiri di atas angka ini      |
+| **ENG-205** | Diameter yang akhirnya disebut ke pengguna; batas kecepatan 2 m/s dan kehilangan 10 m/100 m             |
+| **ENG-702** | Titik tertinggi dan panjang jalur — masukan bagi diameter sekaligus bagi kecukupan toren                |
+| **ENG-703** | Menyatakan toren atap cukup atau pengguna disuruh membeli pompa pendorong                               |
+| **ENG-001** | Unit beban fixture; bobot 2 per kamar mandi berasal dari "1 kamar mandi = shower + kloset" (ENG-012)    |
+| **ENG-601** | Beban alat pembuangan; baris urinoir UPC Tabel 702.1 belum terbaca dan masih memakai angka lama         |
+| **ENG-604** | Diameter pipa tegak dan cabang pembuangan; kolom 2½" UPC Tabel 703.2 belum disahkan siapa pun           |
+| **ENG-602** | Ukuran ventilasi UPC 904.1 — salah di sini berarti perangkap air tersedot dan bau masuk ke ruangan      |
+
+ENG-002, ENG-009, dan ENG-011 yang dulu tertulis di sini sudah tidak dijalankan sejak Kelompok K
+menggantikannya (2026-10-12); penggantinya ada di tabel di atas.
 
 Tiga pertanyaan menyusul dari ahli yang sama: **OQ-22** (dua prototipe memakai ambang berbeda — saya
 pakai yang cocok contoh board), **OQ-32** (nilai default "Belum tahu"), **OQ-33** (heuristik sebaran

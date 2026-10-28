@@ -204,6 +204,26 @@ export const DASHBOARD_COPY = {
   rules: {
     title: 'Validasi aturan teknik',
     subtitle: 'Aturan hitung yang dipakai SNOUTY, dan siapa yang sudah menyetujuinya.',
+    progress: (signed: number, total: number) =>
+      signed === 0
+        ? `Belum ada aturan yang ditandatangani. Selama itu setiap angka yang dihitung SNOUTY tampil sebagai asumsi, bukan sebagai angka yang sudah dipastikan.`
+        : `${signed} dari ${total} aturan sudah ditandatangani. Angka dari aturan yang belum ditandatangani tetap tampil sebagai asumsi.`,
+    priorityTitle: 'Diminta dibaca lebih dulu',
+    priorityHint: 'Delapan aturan yang menggerakkan angka terbesar di layar pengguna.',
+    showRest: (n: number) => `Lihat ${n} aturan lainnya`,
+    hideRest: 'Sembunyikan aturan lainnya',
+    note: 'Catatan (wajib bila menolak)',
+    approve: 'Saya setujui',
+    reject: 'Tolak',
+    withdraw: 'Cabut keputusan',
+    noteRequired:
+      'Menolak sebuah aturan perlu alasan — tanpa itu tidak ada yang tahu apa yang dianggap salah.',
+    decidedBy: (name: string, day: string) => `${name}, ${day}`,
+    status: {
+      REQUIRES_DOMAIN_VALIDATION: 'Menunggu',
+      VALIDATED: 'Ditandatangani',
+      REJECTED: 'Ditolak',
+    } as Record<string, string>,
     body: 'Aturan hitung yang dipakai SNOUTY masih menunggu persetujuan ahli pipa Pralon. Sampai ada yang menandatanganinya, setiap angka yang dihitung SNOUTY tampil sebagai asumsi — bukan sebagai angka yang sudah dipastikan. Begitu ahlinya ditunjuk, layar ini menampilkan aturannya satu per satu beserta tombol setujui.',
   },
   email: {
@@ -417,6 +437,26 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
   rules: {
     title: 'Engineering rule validation',
     subtitle: 'The sizing rules SNOUTY uses, and who has signed off on them.',
+    progress: (signed: number, total: number) =>
+      signed === 0
+        ? `No rule has been signed off yet. Until one is, every figure SNOUTY calculates is shown as an assumption rather than a settled number.`
+        : `${signed} of ${total} rules are signed off. Figures from rules still waiting are shown as assumptions.`,
+    priorityTitle: 'Read these first',
+    priorityHint: 'The eight rules that move the largest figures on the user’s screen.',
+    showRest: (n: number) => `Show ${n} more rules`,
+    hideRest: 'Hide the other rules',
+    note: 'Note (required when rejecting)',
+    approve: 'I approve',
+    reject: 'Reject',
+    withdraw: 'Withdraw decision',
+    noteRequired:
+      'Rejecting a rule needs a reason — without one, nobody knows what was considered wrong.',
+    decidedBy: (name: string, day: string) => `${name}, ${day}`,
+    status: {
+      REQUIRES_DOMAIN_VALIDATION: 'Waiting',
+      VALIDATED: 'Signed off',
+      REJECTED: 'Rejected',
+    } as Record<string, string>,
     body: 'The sizing rules SNOUTY uses are still waiting for a Pralon pipe expert to approve them. Until someone signs them off, every figure SNOUTY calculates is shown as an assumption rather than a settled number. Once the expert is named, this screen lists the rules one by one with an approve button.',
   },
   email: {

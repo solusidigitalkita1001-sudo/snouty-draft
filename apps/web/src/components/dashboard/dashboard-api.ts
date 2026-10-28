@@ -309,3 +309,54 @@ export const fetchCatalogVersions = () =>
 
 export const promoteCatalogVersion = (id: string) =>
   send('POST', `${BASE}/catalog/versions/${id}/promote`);
+
+// ── Validasi aturan teknik (P31-82) ─────────────────────────────────────────
+
+export type RuleStatus = 'REQUIRES_DOMAIN_VALIDATION' | 'VALIDATED' | 'REJECTED';
+
+export interface RuleExample {
+  readonly name: string;
+  readonly input: unknown;
+  readonly output: unknown;
+  readonly explanation: string;
+}
+
+export interface RuleCard {
+  readonly ruleId: string;
+  readonly version: number;
+  readonly category: string;
+  readonly standard: string | null;
+  readonly status: RuleStatus;
+  readonly why: string | null;
+  readonly examples: readonly RuleExample[];
+  readonly decision: {
+    readonly decision: 'approved' | 'rejected';
+    readonly by: string;
+    readonly at: string;
+    readonly note: string | null;
+  } | null;
+}
+
+export interface RuleBoard {
+  readonly priority: readonly RuleCard[];
+  readonly rest: readonly RuleCard[];
+  readonly signedOff: number;
+  readonly total: number;
+}
+
+export const fetchRuleBoard = (locale: string) =>
+  get<RuleBoard>(`${BASE}/rules?locale=${encodeURIComponent(locale)}`);
+
+export const decideRule = (
+  ruleId: string,
+  version: number,
+  decision: 'approved' | 'rejected',
+  note: string,
+) =>
+  send('POST', `${BASE}/rules/${ruleId}/${version}/decision`, {
+    decision,
+    ...(note === '' ? {} : { note }),
+  });
+
+export const withdrawRuleDecision = (ruleId: string, version: number) =>
+  send('DELETE', `${BASE}/rules/${ruleId}/${version}/decision`);

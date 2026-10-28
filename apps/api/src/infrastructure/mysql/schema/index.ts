@@ -1,5 +1,6 @@
 export * from './catalog.js';
 export * from './conversation.js';
+export * from './engineering.js';
 export * from './identity.js';
 export * from './intelligence.js';
 export * from './ops.js';

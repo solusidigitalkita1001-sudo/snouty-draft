@@ -1,11 +1,11 @@
-/** Validasi aturan teknik (P29-03). Akses diperiksa API per peran. */
+/** Validasi aturan teknik (P31-82). Akses diperiksa API per peran. */
 import { DashboardShell } from '../../../components/dashboard/dashboard-shell';
-import { ToolNote } from '../../../components/dashboard/tool-note';
+import { RuleBoardPanel } from '../../../components/dashboard/rule-board';
 
 export default function Page() {
   return (
     <DashboardShell section="rules">
-      <ToolNote section="rules" />
+      <RuleBoardPanel />
     </DashboardShell>
   );
 }

@@ -12,6 +12,7 @@ import { GuestSessionMiddleware } from './modules/auth/presentation/guest-sessio
 import { ContextModule } from './modules/context/context.module.js';
 import { ConversationModule } from './modules/conversation/conversation.module.js';
 import { HandoffModule } from './modules/handoff/handoff.module.js';
+import { RuleValidationModule } from './modules/rule-validation/rule-validation.module.js';
 import { ProspectModule } from './modules/prospect/prospect.module.js';
 import { MarketIntelligenceModule } from './modules/market-intelligence/market-intelligence.module.js';
 import { NotificationModule } from './modules/notification/notification.module.js';
@@ -48,6 +49,7 @@ import { UploadsModule } from './modules/uploads/uploads.module.js';
     RecommendationModule,
     ReportModule,
     HandoffModule,
+    RuleValidationModule,
     ProspectModule,
     MarketIntelligenceModule,
     UploadsModule,
