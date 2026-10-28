@@ -748,7 +748,7 @@ SPEC §25 benar secara struktural.
 | Gerbang provenance                | `src/provenance.ts`                 |
 | Orkestrator + trace               | `src/compute-solution.ts`           |
 
-**Keempat belas aturan berstatus `REQUIRES_DOMAIN_VALIDATION`**, dan konsekuensinya diuji: seluruh
+**Seluruh aturan berstatus `REQUIRES_DOMAIN_VALIDATION`**, dan konsekuensinya diuji: seluruh
 keluaran engine `ASSUMED`, tidak ada satu pun angka teknik yang tampil `VERIFIED`, dan dimensi bangunan
 yang nyata pun tidak menaikkannya. Itu perilaku yang benar sampai OQ-06 menunjuk ahli domain Pralon.
 

@@ -36,7 +36,7 @@ kerja — yang tertahan hanya deployment.
 
 ### OQ-06 — Ahli domain Pralon untuk memvalidasi aturan teknik
 
-Keempat belas aturan teknik (`docs/ENGINEERING_RULES.md`) berstatus `REQUIRES_DOMAIN_VALIDATION`, dan
+Seluruh aturan teknik (`docs/ENGINEERING_RULES.md`) berstatus `REQUIRES_DOMAIN_VALIDATION`, dan
 gerbang provenance menurunkan setiap keluarannya menjadi `ASSUMED`. Konsekuensinya **bukan
 administratif**: hari ini tidak ada satu pun angka teknik yang tampil "TERVERIFIKASI" kepada pengguna,
 dan tidak akan pernah ada sampai seseorang menandatanganinya. Itu perilaku yang benar — tetapi berarti
@@ -45,7 +45,7 @@ produk belum bisa mengatakan hal yang paling ingin dikatakannya.
 **Yang dibutuhkan:** satu nama. Seseorang di Pralon yang berwenang menilai apakah, misalnya, ambang
 "≥ 8 unit beban → pipa 1 inci" benar.
 
-**Prioritas tertinggi untuk ditinjau**, dari daftar 14:
+**Prioritas tertinggi untuk ditinjau**:
 
 | Aturan                | Mengapa paling dulu                                                                                                              |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
