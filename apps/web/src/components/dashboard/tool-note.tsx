@@ -9,6 +9,7 @@
  */
 import { useLocale } from '../locale';
 import { dashboardCopy } from './dashboard-copy';
+import { EmptyState } from './empty-state';
 import styles from './dashboard.module.css';
 
 export function ToolNote({ section }: { section: 'rules' | 'email' }) {
@@ -19,9 +20,10 @@ export function ToolNote({ section }: { section: 'rules' | 'email' }) {
         <h1 className={styles.title}>{COPY.title}</h1>
         <p className={styles.subtitle}>{COPY.subtitle}</p>
       </div>
-      <section className={styles.card}>
-        <p className={styles.contextText}>{COPY.body}</p>
-      </section>
+      {/* Kartu berisi satu paragraf terbaca seperti pengumuman yang lupa dihapus. Keadaan
+          layar ini sama dengan keadaan kosong di layar lain — jadi bentuknya pun sama,
+          dan maskot yang mengantuk menandai bahwa yang ditunggu bukan pekerjaan. */}
+      <EmptyState mood="sleep" text={COPY.body} />
     </>
   );
 }

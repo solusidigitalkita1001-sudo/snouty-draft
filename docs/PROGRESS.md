@@ -3835,3 +3835,16 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Tiap kartu menyebut perkaranya dengan kalimat pengguna sendiri, dan kasus terlama
       langsung terbuka begitu layarnya dimuat. Antrean yang benar-benar kosong tidak lagi
       menggambar panel yang menunggu pilihan yang tidak ada.
+
+- [x] P31-81 Dua layar yang menunggu orang berhenti mengaku jumlah
+
+      Layar validasi aturan membuka dengan kalimat "keempat belas aturan hitung masih
+      menunggu persetujuan" — angka yang benar saat ditulis dan sudah lama tidak benar:
+      mesin hitungnya tumbuh jauh melewati empat belas. Kalimatnya sekarang tidak
+      menyebut jumlah sama sekali, jadi ia tidak bisa basi lagi.
+
+      Keduanya — validasi aturan dan peninjauan email — juga berhenti tampil sebagai
+      kartu berisi satu paragraf menggantung di tengah layar kosong. Keadaannya sama
+      dengan keadaan kosong di layar lain, jadi bentuknya pun sama. Isi layarnya tetap
+      menunggu orang, bukan menunggu kode: ahli pipa Pralon yang menandatangani aturan
+      (P16-69), dan kotak masuk yang disambungkan (OQ-06).

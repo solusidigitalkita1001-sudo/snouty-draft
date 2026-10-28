@@ -204,7 +204,7 @@ export const DASHBOARD_COPY = {
   rules: {
     title: 'Validasi aturan teknik',
     subtitle: 'Aturan hitung yang dipakai SNOUTY, dan siapa yang sudah menyetujuinya.',
-    body: 'Keempat belas aturan hitung masih menunggu persetujuan ahli pipa Pralon. Sampai ada yang menandatanganinya, setiap angka yang dihitung SNOUTY tampil sebagai asumsi — bukan sebagai angka yang sudah dipastikan. Begitu ahlinya ditunjuk, layar ini menampilkan aturannya satu per satu beserta tombol setujui.',
+    body: 'Aturan hitung yang dipakai SNOUTY masih menunggu persetujuan ahli pipa Pralon. Sampai ada yang menandatanganinya, setiap angka yang dihitung SNOUTY tampil sebagai asumsi — bukan sebagai angka yang sudah dipastikan. Begitu ahlinya ditunjuk, layar ini menampilkan aturannya satu per satu beserta tombol setujui.',
   },
   email: {
     title: 'Peninjauan email',
@@ -417,7 +417,7 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
   rules: {
     title: 'Engineering rule validation',
     subtitle: 'The sizing rules SNOUTY uses, and who has signed off on them.',
-    body: 'All fourteen sizing rules are still waiting for a Pralon pipe expert to approve them. Until someone signs them off, every figure SNOUTY calculates is shown as an assumption rather than a settled number. Once the expert is named, this screen lists the rules one by one with an approve button.',
+    body: 'The sizing rules SNOUTY uses are still waiting for a Pralon pipe expert to approve them. Until someone signs them off, every figure SNOUTY calculates is shown as an assumption rather than a settled number. Once the expert is named, this screen lists the rules one by one with an approve button.',
   },
   email: {
     title: 'Email review',
