@@ -4522,3 +4522,11 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       buangan tidak pernah membaca sumber airnya, dan kebutuhan sumber pun dilewati di daftar
       produk. Untuk pekerjaan pembuangan saja, sumber air tidak ditanyakan dan tidak dianggap:
       data intinya tiga, dan meter di panel mengikuti angka itu.
+
+- [x] P32-51 Kata "pembuangan" tidak dipakai dua kali dalam satu balasan
+
+      Pertanyaan ukuran pipa buangan dijawab "Pembuangan: air kotor 4", air bekas 2½". Pipa air
+      kotor PVC D 4" (kloset → septic tank). Pembuangan: ventilasi air kotor 2", ventilasi air
+      bekas 1¼"." — label yang sama dua kali dalam tiga kalimat, dan yang sebenarnya didaftar di
+      kalimat kedua, ventilasinya, tidak kelihatan. Sekarang kalimat itu bernama "Ventilasinya"
+      dan kata ventilasi tidak diulang di tiap bagiannya.

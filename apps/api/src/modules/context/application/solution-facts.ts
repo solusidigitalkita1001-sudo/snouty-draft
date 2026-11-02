@@ -138,6 +138,9 @@ const PIPE_UNITS = new Set(['batang', 'rods', 'meter', 'm']);
 /** Baris solusi yang isinya tekanan, bukan diameter. */
 const PRESSURE_SIZE = /\bbar\b/i;
 
+/** Kata "ventilasi" di nama jalur buangan, dua bahasa — dipakai menamai kalimatnya sekali saja. */
+const VENT_WORD = /\bventilasi\s+|\s+vent\b/i;
+
 /**
  * Tekanan di sumber bukan "jalur": ia tidak punya diameter, dan di tengah daftar jalur ia terbaca
  * seperti ukuran pipa berikutnya. Produksi 2026-11-02, masjid 2 lantai dengan toren atap: "jadi
@@ -364,7 +367,15 @@ export function solutionReply(solution: ActiveSolution, locale: Locale): string 
       // demi kata dalam satu balasan terbaca seperti mesin (produksi 2026-10-26).
       .filter((line) => !r.headline.includes(line));
     if (lines.length > 0) {
-      parts.push(`${en ? 'Drainage' : 'Pembuangan'}: ${lines.join(', ')}.`);
+      // Judul pembuangan sudah berbunyi "Pembuangan: air kotor 4"…", jadi label kedua dengan kata
+      // yang sama membuat satu balasan tiga kalimat memakai kata "pembuangan" dua kali, dan apa
+      // yang sebenarnya didaftar — ventilasinya — tidak kelihatan (produksi 2026-11-02).
+      const vents = lines.every((line) => VENT_WORD.test(line));
+      parts.push(
+        vents
+          ? `${en ? 'Vents' : 'Ventilasinya'}: ${lines.map((line) => line.replace(VENT_WORD, '').trim()).join(', ')}.`
+          : `${en ? 'Drainage' : 'Pembuangan'}: ${lines.join(', ')}.`,
+      );
     }
   }
   parts.push(

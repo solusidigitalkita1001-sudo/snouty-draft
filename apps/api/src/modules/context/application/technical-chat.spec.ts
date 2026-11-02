@@ -572,7 +572,10 @@ describe('ukuran yang sudah ada di judul tidak diulang', () => {
     );
     expect(text.match(/air kotor 4"/g)).toHaveLength(1);
     expect(text.match(/air bekas 2½"/g)).toHaveLength(1);
-    expect(text).toContain('ventilasi air kotor 2"');
+    // P32-51: yang tersisa memang ventilasinya, jadi kata itu menamai kalimatnya sekali saja —
+    // bukan label "Pembuangan" kedua di balasan yang judulnya sudah berbunyi begitu.
+    expect(text).toContain('Ventilasinya: air kotor 2", air bekas 1¼"');
+    expect(text.match(/Pembuangan/g)).toHaveLength(1);
   });
 
   // "udah itu aja, itung" atas solusi yang sudah ada dituang seluruh solusinya, sehingga
