@@ -79,3 +79,38 @@ describe('MysqlRecommendationRepository — asal prosa (OQ-44)', () => {
     expect(found?.headline).toBe('Judul');
   });
 });
+
+/**
+ * P32-52 — pemeriksaan pipa lama ikut tersimpan. Tanpa kolomnya, jawaban "pipa lama saya masih
+ * bisa dipakai?" selalu berbunyi "belum saya cek": hasilnya hilang saat solusinya dibaca kembali.
+ */
+describe('MysqlRecommendationRepository — pipa lama (P32-52)', () => {
+  it('hasil cek kapasitas pipa lama dibaca kembali apa adanya', async () => {
+    const recommendation = {
+      ...recommendationFor(await seedConversation()),
+      existingPipe: {
+        mode: 'extend' as const,
+        size: '3"',
+        sufficient: true,
+        requiredSize: '2"',
+      },
+    };
+
+    await repository.save(recommendation, [], { proseSource: 'template' });
+    const found = await repository.findById(recommendation.id);
+
+    expect(found?.existingPipe).toEqual({
+      mode: 'extend',
+      size: '3"',
+      sufficient: true,
+      requiredSize: '2"',
+    });
+  });
+
+  it('bangun baru: kolomnya kosong dan tidak muncul di hasil baca', async () => {
+    const recommendation = recommendationFor(await seedConversation());
+    await repository.save(recommendation, [], { proseSource: 'template' });
+    const found = await repository.findById(recommendation.id);
+    expect(found).not.toHaveProperty('existingPipe');
+  });
+});

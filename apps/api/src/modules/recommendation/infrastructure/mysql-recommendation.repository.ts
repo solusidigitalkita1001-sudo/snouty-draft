@@ -46,6 +46,7 @@ export class MysqlRecommendationRepository implements RecommendationRepository {
         systemLines: recommendation.systemLines,
         needs: recommendation.needs ?? null,
         tankStand: recommendation.tankStand ?? null,
+        existingPipe: recommendation.existingPipe ?? null,
         products: recommendation.products,
         bom: recommendation.bom,
         assumptions: recommendation.assumptions,
@@ -133,6 +134,9 @@ function toRecommendation(row: typeof recommendations.$inferSelect): Recommendat
     ...(row.needs ? { needs: row.needs as NonNullable<Recommendation['needs']> } : {}),
     ...(row.tankStand
       ? { tankStand: row.tankStand as NonNullable<Recommendation['tankStand']> }
+      : {}),
+    ...(row.existingPipe
+      ? { existingPipe: row.existingPipe as NonNullable<Recommendation['existingPipe']> }
       : {}),
     products: row.products as Recommendation['products'],
     bom: row.bom as Recommendation['bom'],

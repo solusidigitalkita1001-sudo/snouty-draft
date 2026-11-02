@@ -67,6 +67,8 @@ export const recommendations = mysqlTable(
     needs: json('needs'),
     /** Pilihan dudukan toren (P22-04, migration 0024); NULL selain toren atap dan baris lama. */
     tankStand: json('tank_stand'),
+    /** Pipa lama + hasil cek kapasitasnya (P32-52, migration 0036); NULL untuk bangun baru. */
+    existingPipe: json('existing_pipe'),
     products: json('products').notNull(),
     bom: json('bom').notNull(),
     assumptions: json('assumptions').notNull(),

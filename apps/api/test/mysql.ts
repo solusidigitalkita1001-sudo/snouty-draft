@@ -90,8 +90,10 @@ const UP = [
   '0033_follow_up_reminder.sql',
   '0034_rule_sign_offs.sql',
   '0035_market_event_building_type.sql',
+  '0036_recommendation_existing_pipe.sql',
 ];
 const DOWN = [
+  '0036_recommendation_existing_pipe.down.sql',
   '0035_market_event_building_type.down.sql',
   '0034_rule_sign_offs.down.sql',
   '0033_follow_up_reminder.down.sql',

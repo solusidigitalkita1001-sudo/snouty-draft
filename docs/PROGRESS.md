@@ -4547,3 +4547,9 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       yang bisa dihemat — kalimat yang benar untuk pertanyaan yang lain. Sisi negatif contoh
       permintaan hemat sekarang memuat kalimat pemakaian pipa lama, dan pertanyaan pipa lama
       mendahului kalimat hemat maupun ikhtisar solusi, jadi satu giliran menjawab satu hal.
+
+- [x] P32-54 Hasil cek pipa lama ikut tersimpan bersama solusinya
+
+      Jawaban pipa lama selalu berbunyi "belum saya cek" walau hitungannya sudah memeriksa:
+      hasilnya tidak punya kolom, jadi hilang saat solusi dibaca kembali. Migration 0036 menambah
+      kolomnya, dan solusi yang dibaca kembali membawa hasil pemeriksaan yang sama dengan layar.
