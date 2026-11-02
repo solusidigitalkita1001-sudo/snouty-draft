@@ -4429,3 +4429,10 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Pertanyaan tekanan yang berlabel pertanyaan pengetahuan dijawab dengan membacakan seluruh
       jalur solusinya — lima baris, tanpa menyebut angka barnya. Di jalur itu pun baris tekanan
       solusinya kini yang menjawab.
+
+- [x] P32-38 Lanjutan ukuran tidak menunggu perencana
+
+      "what sizes do you have in that class?" dan "ukurannya ada apa aja?" memakai 12,5 detik di
+      perencana giliran, lalu rencananya "ragam produk" — dijawab ikhtisar seluruh katalog.
+      Aspek produk yang dikenali dengan yakin atas subjek produk aktif tidak lagi lewat perencana:
+      aspeknya dari contoh, produknya dari subjek, dan ukurannya dibaca dari katalog.

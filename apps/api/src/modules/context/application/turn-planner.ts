@@ -151,6 +151,11 @@ export function isStructuredProductFollowUp(
 ): boolean {
   if (subject?.kind !== 'product' || u.mentionsRequirement) return false;
   if (u.productAspect !== null && parseSize(message) !== null) return true;
+  // Aspek produk yang dikenali dengan yakin atas subjek produk aktif ("what sizes do you have in
+  // that class?", skor 1,000) tidak perlu ukuran di pesannya: ruas produk membaca aspeknya dari
+  // contoh dan produknya dari subjek. Lewat perencana pertanyaan itu 12,5 detik, dan rencananya
+  // "ragam produk" — dijawab ikhtisar seluruh katalog (produksi 2026-11-02).
+  if (u.productAspect !== null && (u.intent?.score ?? 0) >= CONFIDENT_SCORE) return true;
   return u.families.length > 0 && u.families.every(isFittingFamily);
 }
 

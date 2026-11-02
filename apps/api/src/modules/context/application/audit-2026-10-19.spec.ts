@@ -624,11 +624,20 @@ describe('audit campuran 2026-10-20 — lanjutan produk bersubjek', () => {
     expect(isStructuredProductFollowUp(pressure, undefined, pressure.text, fittingKind)).toBe(
       false,
     );
+    // Aspek yang dikenali yakin atas subjek produk juga dilewatkan (P32-38): terkecil/terbesar
+    // dibaca katalog contoh `extreme` dan dijawab dari katalog, jadi perencana hanya menambah
+    // 12 detik — dan rencananya "ragam produk", yang dijawab ikhtisar seluruh katalog.
     const largest = understood('yang paling besar berapa?', {
       intent: 'product_spec',
       productAspect: 'sizes',
     });
-    expect(isStructuredProductFollowUp(largest, hdpe, largest.text, fittingKind)).toBe(false);
+    expect(isStructuredProductFollowUp(largest, hdpe, largest.text, fittingKind)).toBe(true);
+    // Aspek yang labelnya ragu tetap dibaca perencana.
+    const unsure = {
+      ...understood('kalau yang itu?', { intent: 'product_spec', productAspect: 'sizes' }),
+      intent: { label: 'product_spec' as const, score: 0.6 },
+    };
+    expect(isStructuredProductFollowUp(unsure, hdpe, unsure.text, fittingKind)).toBe(false);
   });
 
   it('"and a tee in the same size?" setelah elbow 2": tee 2" dari katalog, ukuran dari pesan sebelumnya', async () => {
