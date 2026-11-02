@@ -27,3 +27,20 @@ describe('parseSize — ukuran pipa dari teks', () => {
     expect(parseSize('pe 100 ada?')).toBeNull();
   });
 });
+
+/**
+ * P32-34 — nomor lantai bukan ukuran. Produksi 2026-11-02: "tekanannya cukup ga buat shower lantai
+ * 3?" dijawab "Ukuran 3" ada di beberapa jenis pipa: … Yang mana yang dimaksud?".
+ */
+describe('nomor lantai', () => {
+  it('"lantai 3" bukan pipa 3 inci', () => {
+    expect(parseSize('tekanannya cukup ga buat shower lantai 3?')).toBeNull();
+    expect(parseSize('is the pressure enough for the shower on floor 3?')).toBeNull();
+    expect(parseSize('kamar mandi lt 2 pakai pipa apa?')).toBeNull();
+  });
+
+  it('ukuran yang disebut di kalimat bernomor lantai tetap terbaca', () => {
+    expect(parseSize('pipa 3/4 buat lantai 3 cukup?')).toBe('3/4');
+    expect(parseSize('lantai 3 pakai pipa 1 1/2 inch')).toBe('1 1/2');
+  });
+});

@@ -13,6 +13,13 @@ const NOT_A_SIZE = /\b(?:pe|pn|sdr|s|kelas|class)\s*-?\s*\d+(?:[.,]\d+)?\b/gi;
 const COUNT_NOUN =
   /\b\d{1,3}\s*-?\s*(?:lantai|lt|tingkat|kamar mandi|km|toilet|wastafel|dapur|titik|keran|floors?|stor(?:e)?ys?|bathrooms?|sinks?|kitchens?|taps?)\b/gi;
 
+/**
+ * Nomor lantai di belakang katanya ("lantai 3", "floor 2") — urutan, bukan ukuran. Tanpa ini
+ * "tekanannya cukup ga buat shower lantai 3?" dibaca sebagai pipa 3 inci dan dijawab daftar jenis
+ * pipa berukuran 3" (produksi 2026-11-02).
+ */
+const FLOOR_ORDINAL = /\b(?:lantai|lt|tingkat|floors?|stor(?:e)?ys?|levels?)\s*-?\s*\d{1,3}\b/gi;
+
 const NUMBER = String.raw`(\d+\s+\d+\s*\/\s*\d+|\d+\s*\/\s*\d+|\d+(?:[.,]\d+)?)`;
 /** Angka diikuti satuan ukuran; satuan ditangkap supaya milimeter tidak dibaca sebagai inci. */
 const SIZED = new RegExp(`(?<![\\w/])${NUMBER}\\s*(inch|inci|in\\b|"|mm\\b)`, 'i');
@@ -24,7 +31,10 @@ const MAX_BARE_INCH = 12;
 const BARE = /(?<![\w/.,])(\d+(?:[.,]\d+)?)(?![\w/])/;
 
 export function parseSize(text: string): string | null {
-  const cleaned = text.replace(NOT_A_SIZE, ' ').replace(COUNT_NOUN, ' ');
+  const cleaned = text
+    .replace(NOT_A_SIZE, ' ')
+    .replace(COUNT_NOUN, ' ')
+    .replace(FLOOR_ORDINAL, ' ');
   const sized = SIZED.exec(cleaned);
   if (sized) {
     const unit = sized[2]!.toLowerCase() === 'mm' ? ' mm' : '';

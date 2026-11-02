@@ -110,6 +110,16 @@ function tankStandLines(view: TankStandView, locale: Locale, num: (n: number) =>
  * Jawaban tetap untuk pertanyaan bentuk sistem (P22-02) — jalur per segmen dan materialnya dari
  * rekomendasi, tanpa model. Dipakai sebagai teks bila model tidak dikonfigurasi atau ditolak pagar.
  */
+/**
+ * Nama baris atau jalur yang dipakai di tengah kalimat: huruf awalnya kecil, akronim dan merek
+ * tetap utuh. Dulu seluruh nama dikecilkan, jadi "meteran PDAM" terbaca "meteran pdam" dan
+ * "Pipa PVC AW" jadi "pipa pvc aw" (produksi 2026-11-02).
+ */
+function inSentence(text: string): string {
+  const first = text.split(/\s+/)[0] ?? '';
+  if (first.length > 1 && first === first.toUpperCase()) return text;
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
 /** Satuan yang menandai baris PIPA di daftar belanja, dua bahasa (P31-37). */
 const PIPE_UNITS = new Set(['batang', 'rods', 'meter', 'm']);
 
@@ -117,9 +127,7 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
   const en = locale === 'en';
   const r = solution.recommendation;
   const num = (n: number) => n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
-  const lines = r.systemLines.map(
-    (l) => `${l.name.toLowerCase()} ${l.size} (${l.path.toLowerCase()})`,
-  );
+  const lines = r.systemLines.map((l) => `${inSentence(l.name)} ${l.size} (${inSentence(l.path)})`);
   const rows = r.bom.filter((b) => b.quantity > 0);
   // Satuan BOM solusi Inggris sudah diterjemahkan ("rods"), dan peruntukannya pun ("Main line"),
   // jadi baris pipa tidak dikenali dari kata "pipa" maupun satuan "batang": daftar belanja Inggris
@@ -131,7 +139,7 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
   const fittings = rows.filter((b) => !pipes.includes(b));
   const list = (items: typeof rows) =>
     items
-      .map((b) => `${(b.purpose ?? b.item).toLowerCase()} ${b.size} ${num(b.quantity)} ${b.unit}`)
+      .map((b) => `${inSentence(b.purpose ?? b.item)} ${b.size} ${num(b.quantity)} ${b.unit}`)
       .join(', ');
   const stale = solution.stale
     ? en
@@ -188,7 +196,7 @@ export function runsReply(
   const all = solution.recommendation.systemLines;
   const chosen = drainageOnly ? all.filter((l) => DRAINAGE_LINE.test(`${l.name} ${l.path}`)) : all;
   const lines = (chosen.length > 0 ? chosen : all).map(
-    (l) => `${l.name.toLowerCase()} ${l.size} (${l.path.toLowerCase()})`,
+    (l) => `${inSentence(l.name)} ${l.size} (${inSentence(l.path)})`,
   );
   if (lines.length === 0) return null;
   return locale === 'en'
@@ -205,7 +213,7 @@ export function rodsReply(solution: ActiveSolution, locale: Locale): string | nu
   );
   if (pipes.length === 0) return null;
   const list = pipes
-    .map((b) => `${(b.purpose ?? b.item).toLowerCase()} ${b.size} ${num(b.quantity)} ${b.unit}`)
+    .map((b) => `${inSentence(b.purpose ?? b.item)} ${b.size} ${num(b.quantity)} ${b.unit}`)
     .join(', ');
   return en
     ? `Pipes: ${list}. The full product list, with fittings, is on the solution screen.`
@@ -239,8 +247,8 @@ export function solutionReply(solution: ActiveSolution, locale: Locale): string 
   if (main) {
     parts.push(
       en
-        ? `${main.name} ${main.size} (${main.path.toLowerCase()}).`
-        : `${main.name} ${main.size} (${main.path.toLowerCase()}).`,
+        ? `${main.name} ${main.size} (${inSentence(main.path)}).`
+        : `${main.name} ${main.size} (${inSentence(main.path)}).`,
     );
   }
   const booster = (r.needs ?? []).find((n) => n.kind === 'booster_pump');
@@ -350,7 +358,7 @@ export function pressureReply(solution: ActiveSolution, locale: Locale): string 
   const lines = solution.recommendation.systemLines.filter((l) => /\bbar\b/i.test(l.size));
   if (lines.length === 0) return null;
   const en = locale === 'en';
-  const said = lines.map((l) => `${l.name.toLowerCase()} ${l.size}`).join('; ');
+  const said = lines.map((l) => `${inSentence(l.name)} ${l.size}`).join('; ');
   const detail = lines.map((l) => l.reason.trim()).find((r) => r !== '') ?? '';
   const head = en ? `In your solution: ${said}.` : `Di solusi Anda: ${said}.`;
   return detail === '' ? head : `${head} ${detail}`;

@@ -4404,3 +4404,22 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       "what sizes do you have in that class?" menghabiskan 40 detik lalu berakhir sebagai
       permintaan maaf: labelnya tidak yakin dan penggolong model kehabisan waktu. Contohnya
       ditambahkan ke data pemahaman, jadi pertanyaannya dikenali tanpa memanggil model.
+
+- [x] P32-34 Nomor lantai bukan ukuran pipa
+
+      "tekanannya cukup ga buat shower lantai 3?" dijawab "Ukuran 3" ada di beberapa jenis pipa:
+      pipa PRALON uPVC, pipa uPVC JIS VP, pipa uPVC JIS VU. Yang mana yang dimaksud?" — nomor
+      lantai di belakang katanya dibaca sebagai 3 inci. Parser ukuran kini menyingkirkannya, dan
+      ukuran yang memang disebut di kalimat yang sama tetap terbaca.
+
+- [x] P32-35 Pertanyaan tekanan tidak dijawab dengan seluruh jalur
+
+      "tekanannya cukup ga buat shower di atas?" dibacakan semua jalur solusinya, dan angka bar
+      yang sudah dihitung tidak disebut. Pertanyaan yang menyebut tekanan sebagai besaran kini
+      dijawab baris tekanannya lebih dulu, baik di jalur penjelasan maupun jalur bentuk sistem.
+
+- [x] P32-36 Akronim dan merek tidak dikecilkan
+
+      Nama baris solusi dikecilkan seluruhnya saat dipakai di tengah kalimat, jadi "meteran PDAM"
+      terbaca "meteran pdam" dan "Pipa PVC AW" jadi "pipa pvc aw". Sekarang hanya huruf awalnya
+      yang mengecil.

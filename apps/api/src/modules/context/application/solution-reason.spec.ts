@@ -19,7 +19,7 @@ import { withCompleteness } from '../domain/completeness.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
 import { runUnderstanding } from './message-pipeline.js';
-import { pressureReply, solutionReasonReply } from './solution-facts.js';
+import { layoutReply, pressureReply, solutionReasonReply } from './solution-facts.js';
 
 const T0 = '2026-11-02T00:00:00.000Z';
 const REASON =
@@ -195,5 +195,57 @@ describe('pertanyaan tekanan', () => {
     });
     const text = spoken(events);
     expect(text).toContain('2,03 bar');
+  });
+});
+
+/**
+ * P32-35 — pertanyaan tekanan yang terbaca pertanyaan bentuk sistem. Produksi 2026-11-02:
+ * "tekanannya cukup ga buat shower di atas?" dibacakan seluruh jalur solusinya, dan angka barnya
+ * yang sudah dihitung tidak disebut sama sekali.
+ *
+ * P32-36 — nama baris dikecilkan seluruhnya, jadi "meteran PDAM" terbaca "meteran pdam".
+ */
+describe('pertanyaan tekanan atas bentuk sistem', () => {
+  const pressureLine = {
+    name: 'Tekanan yang dibutuhkan di meteran PDAM',
+    path: 'Sumber air',
+    size: '2,03 bar',
+    reason: 'Tinggi angkat total 20,67 m = beda tinggi 9 m + sisa tekanan di ujung 10,2 m (1 bar).',
+    role: 'fitting',
+    provenance: 'ASSUMED',
+    traceIds: [],
+  };
+  const withNeeds = {
+    recommendation: {
+      ...solution.recommendation,
+      systemLines: [...solution.recommendation.systemLines, pressureLine],
+      needs: [{ kind: 'booster_pump' }],
+    } as unknown as ActiveSolution['recommendation'],
+    stale: false,
+  } satisfies ActiveSolution;
+
+  it('dijawab angka barnya, bukan seluruh jalur dibacakan', async () => {
+    const message = 'tekanannya cukup ga buat shower di atas?';
+    const { events } = await ask(message, {
+      solution: withNeeds,
+      understanding: understood(message, { intent: 'system_layout_question' }),
+    });
+    const text = spoken(events);
+    expect(text).toContain('2,03 bar');
+    expect(text).not.toContain('Jalurnya:');
+  });
+
+  it('pertanyaan bentuk sistem tanpa tekanan tetap dijawab jalurnya', async () => {
+    const message = 'bentuk instalasinya seperti apa?';
+    const { events } = await ask(message, {
+      solution: withNeeds,
+      understanding: understood(message, { intent: 'system_layout_question' }),
+    });
+    expect(spoken(events)).toContain('Jalurnya:');
+  });
+
+  it('akronim di nama baris tidak dikecilkan', () => {
+    expect(layoutReply(withNeeds, 'id')).toContain('meteran PDAM');
+    expect(pressureReply(withNeeds, 'id')).toContain('meteran PDAM');
   });
 });

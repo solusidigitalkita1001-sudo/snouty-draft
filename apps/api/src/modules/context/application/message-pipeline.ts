@@ -228,7 +228,13 @@ export async function runUnderstanding(
         ? reasoned
         : drawing !== null && input.solution
           ? // "Butuh berapa batang" dijawab baris pipanya saja; daftar belanja penuh milik layar solusi.
+            // Tekanan yang ditanya sebagai besaran ("tekanannya cukup ga buat shower di atas?")
+            // dijawab baris tekanannya, bukan seluruh jalur dibacakan tanpa menyebut angka barnya
+            // (produksi 2026-11-02).
             ((asksRods ? rodsReply(input.solution, input.locale ?? DEFAULT_LOCALE) : null) ??
+            (mentionsPressureQuantity(input.message)
+              ? pressureReply(input.solution, input.locale ?? DEFAULT_LOCALE)
+              : null) ??
             layoutReply(input.solution, input.locale ?? DEFAULT_LOCALE))
           : // Penjelasan atas solusi yang sudah dihitung (P22-04): teks tetap dari solusinya sendiri.
             input.decision.intent === 'EXPLANATION_REQUEST' &&
