@@ -646,6 +646,26 @@ export async function runProductQuestion(
     }
   }
 
+  // Pertanyaan UKURAN yang tidak menyebut produk apa pun, di percakapan yang solusinya sudah
+  // dihitung: yang ditanya ukuran DIA, bukan daftar isi katalog. Di produksi 2026-11-02 "sekarang
+  // ukurannya jadi apa?" dijawab "7.664 produk dalam 24 keluarga" setelah 13,8 detik, padahal
+  // jalur solusinya sudah berisi ukuran tiap pipanya.
+  const ownSizes =
+    (aspect === 'sizes' || aspect === 'size_availability') &&
+    query === null &&
+    askedFamilies.length === 0 &&
+    input.solution &&
+    !input.solution.stale
+      ? runsReply(input.solution, locale)
+      : null;
+  if (ownSizes !== null) {
+    return [
+      { type: 'message.start', messageId: input.messageId },
+      { type: 'token', text: ownSizes },
+      endEvent(input.messageId),
+    ];
+  }
+
   const outcome =
     aspect === null
       ? await answerConcept(catalog, input, query, reply, faqPrompt)

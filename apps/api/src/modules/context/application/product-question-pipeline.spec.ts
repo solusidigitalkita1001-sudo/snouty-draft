@@ -1394,3 +1394,63 @@ describe('jalur solusi yang dibacakan dipilih sesuai topiknya', () => {
     expect(text).not.toContain('distribusi utama');
   });
 });
+
+/**
+ * P32-27 — pertanyaan ukuran tanpa menyebut produk apa pun, atas solusi yang sudah dihitung.
+ * Produksi 2026-11-02: "sekarang ukurannya jadi apa?" dijawab ikhtisar seluruh katalog Pralon
+ * (7.664 produk dalam 24 keluarga) setelah 13,8 detik, padahal jalur solusinya sudah berisi
+ * ukuran tiap pipanya.
+ */
+describe('runProductQuestion — ukuran milik solusi sendiri', () => {
+  const solution = {
+    recommendation: {
+      systemLines: [
+        {
+          name: 'Pipa distribusi utama',
+          path: 'Sumber → titik air tertinggi',
+          size: '1¼"',
+          reason: '',
+          role: 'main',
+          provenance: 'ASSUMED',
+          traceIds: [],
+        },
+      ],
+      bom: [],
+    } as unknown as NonNullable<ProductQuestionInput['solution']>['recommendation'],
+    stale: false,
+  };
+
+  it('dijawab jalur solusinya, bukan ikhtisar katalog', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: 'sizes' }),
+      catalog({ 'pvc aw': [AW] }),
+      noQuestions,
+      input('sekarang ukurannya jadi apa?', SPEC('sizes'), { solution }),
+    );
+    const out = text(events);
+    expect(out).toContain('pipa distribusi utama 1¼"');
+    expect(out).not.toContain('keluarga');
+  });
+
+  it('solusi usang atau belum ada: ikhtisar katalog seperti sebelumnya', async () => {
+    const stale = await runProductQuestion(
+      ai({ productQuery: null, aspect: 'sizes' }),
+      catalog({ 'pvc aw': [AW] }),
+      noQuestions,
+      input('sekarang ukurannya jadi apa?', SPEC('sizes'), {
+        solution: { ...solution, stale: true },
+      }),
+    );
+    expect(text(stale)).not.toContain('pipa distribusi utama');
+  });
+
+  it('keluarga yang disebut tetap dijawab dari katalog', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc aw', aspect: 'sizes' }),
+      catalog({ 'pvc aw': [AW] }),
+      noQuestions,
+      input('pipa pvc aw ukurannya apa aja?', SPEC('sizes'), { solution }),
+    );
+    expect(text(events)).not.toContain('pipa distribusi utama');
+  });
+});

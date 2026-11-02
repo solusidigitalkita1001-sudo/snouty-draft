@@ -4353,3 +4353,12 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       kehilangan tekanannya masih dalam batas, dengan sumber standarnya. Pertanyaan dasar sekarang
       dikenali katalognya sendiri (`reason-request`) dan dijawab dari jejak hitungan itu — tanpa
       model, dan tidak pernah dari solusi yang belum ada.
+
+- [x] P32-27 Pertanyaan ukuran tanpa menyebut produk dijawab ukuran sendiri
+
+      "sekarang ukurannya jadi apa?" di percakapan rumah yang solusinya sudah dihitung dijawab
+      ikhtisar seluruh katalog Pralon — 7.664 produk dalam 24 keluarga, 13,8 detik — padahal yang
+      ditanya ukuran pipa rumahnya, dan jalur solusinya sudah berisi semuanya. Pertanyaan ukuran
+      yang tidak menyebut satu pun bahan, atas solusi yang masih berlaku, kini dijawab jalur
+      solusinya. Pertanyaan yang menyebut bahannya tetap dijawab dari katalog, dan solusi yang
+      usang atau belum ada tetap jatuh ke ikhtisar seperti sebelumnya.
