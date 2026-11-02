@@ -123,6 +123,14 @@ export function fittingTypeLabel(category: string): string {
     .join(' ');
 }
 
+/** "PVC", "HDPE", "FRP" → "PVC, HDPE, dan FRP"; dua → "PVC dan HDPE". */
+function listOf(items: readonly string[], locale: Locale): string {
+  const and = locale === 'en' ? 'and' : 'dan';
+  if (items.length <= 1) return items[0] ?? '';
+  if (items.length === 2) return `${items[0]} ${and} ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, ${and} ${items[items.length - 1]}`;
+}
+
 function materialOf(family: string) {
   return MATERIALS.find((m) => family.toUpperCase().split(/\s+/).includes(m.family.toUpperCase()));
 }
@@ -200,7 +208,10 @@ async function fittingSizes(
   // Urut per satuan (inci dulu, lalu mm): fitting PVC mencampur keduanya, dan membandingkan
   // inci dengan mm melempar galat yang dulu ditelan — jawabannya jatuh ke jalur lain.
   const sizes = PipeSize.sort([...found.values()]);
-  const materials = fittings.map((f) => f.replace(/^fitting\s+/i, '')).join(en ? ' and ' : ' dan ');
+  const materials = listOf(
+    fittings.map((f) => f.replace(/^fitting\s+/i, '')),
+    query.locale,
+  );
   const what = `${matchedKind} ${materials}`;
   const list = sizes.map((s) => s.toString()).join(', ');
   return {
@@ -243,7 +254,10 @@ async function fittingLookup(
 
   // Ditulis seperti orang menyebut barangnya — "tee PVC 2\"" — bukan label katalog
   // ("FITTING PVC, jenis tee, ukuran 2", audit 2026-10-19).
-  const materials = fittings.map((f) => f.replace(/^fitting\s+/i, '')).join(en ? ' and ' : ' dan ');
+  const materials = listOf(
+    fittings.map((f) => f.replace(/^fitting\s+/i, '')),
+    query.locale,
+  );
   const what = [query.kindTerms[0] ?? 'fitting', materials, size?.toString() ?? query.size]
     .filter(Boolean)
     .join(' ');

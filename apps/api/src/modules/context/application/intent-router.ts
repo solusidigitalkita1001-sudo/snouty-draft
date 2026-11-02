@@ -71,6 +71,11 @@ export function certainIntent(
     intent,
     confidence: UNDERSTOOD_CONFIDENCE,
   });
+  // Permintaan penawaran membawa produk dan jumlahnya ("500 batang aw 4 inci, kirim ke proyek
+  // cikarang"), jadi ia lolos sebagai pernyataan kasus dan berakhir di ekstraksi yang tidak
+  // menemukan apa pun — 42,5 detik lalu ajakan bertanya (produksi 2026-11-02). Yang diminta
+  // penawaran, bukan hitungan, jadi labelnya menang atas bentuk kalimatnya.
+  if (fine === 'commercial_question') return sure('OUT_OF_SCOPE');
   // Kasus teknis yang dikenali dari contoh DENGAN angkanya ("proyek perumahan 50 unit") adalah
   // kebutuhan yang dihitung, bukan pertanyaan pengetahuan — tes FAQ 2026-10-12: dulu dijawab
   // paragraf sambungan rumah, atau jatuh ke model lalu "Silakan, tanyakan saja".
@@ -99,9 +104,6 @@ export function certainIntent(
     fine === 'greeting' ||
     fine === 'out_of_scope' ||
     fine === 'capability_question' ||
-    // Sebelum topik pengetahuan: "garansi pipa pecah 2 tahun gimana" paling dekat ke topik umur
-    // pakai, dan kuliah umur pakai bukan jawaban atas pertanyaan garansi (produksi 2026-11-02).
-    fine === 'commercial_question' ||
     isSocial(fine)
   ) {
     return sure('OUT_OF_SCOPE');

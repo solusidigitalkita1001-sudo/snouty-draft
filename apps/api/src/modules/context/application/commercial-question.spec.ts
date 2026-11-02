@@ -55,8 +55,7 @@ describe('pertanyaan komersial dan purna jual', () => {
       expect(token?.text).toContain('tim Pralon');
       expect(token?.text).toContain('garansi');
       const card = events.find((e) => e.type === 'card') as
-        | { card: { kind: string; action?: string } }
-        | undefined;
+        { card: { kind: string; action?: string } } | undefined;
       expect(card?.card).toEqual({ kind: 'cta', action: 'CONTACT_SALES' });
       expect(changed).toBe(false);
     }

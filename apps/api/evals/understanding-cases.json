@@ -1836,57 +1836,53 @@
     {
       "text": "pipa pralon gw pecah baru 2 taun, garansi gimana",
       "intent": "commercial_question",
-      "source": "produksi 2026-11-02",
-      "companyTopic": null,
-      "depth": null,
-      "format": null,
-      "productAspect": null,
-      "topics": [],
-      "useCase": null
+      "source": "produksi 2026-11-02"
     },
     {
       "text": "garansi pipa pralon berapa lama",
       "intent": "commercial_question",
-      "source": "produksi 2026-11-02",
-      "companyTopic": null,
-      "depth": null,
-      "format": null,
-      "productAspect": null,
-      "topics": [],
-      "useCase": null
+      "source": "produksi 2026-11-02"
     },
     {
       "text": "minta penawaran harga 500 batang aw 4 inci, kirim ke proyek cikarang",
       "intent": "commercial_question",
-      "source": "produksi 2026-11-02",
-      "companyTopic": null,
-      "depth": null,
-      "format": null,
-      "productAspect": null,
-      "topics": [],
-      "useCase": null
+      "source": "produksi 2026-11-02"
     },
     {
       "text": "minimum ordernya berapa batang ya",
       "intent": "commercial_question",
-      "source": "produksi 2026-11-02",
-      "companyTopic": null,
-      "depth": null,
-      "format": null,
-      "productAspect": null,
-      "topics": [],
-      "useCase": null
+      "source": "produksi 2026-11-02"
     },
     {
       "text": "can i get a quotation for 500 lengths of 4 inch aw?",
       "intent": "commercial_question",
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "pipa pralon tahan berapa tahun kalau ketanam di tanah",
+      "intent": "knowledge_question",
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "septic tank biofil ada?",
+      "intent": "out_of_scope",
       "source": "produksi 2026-11-02",
+      "topics": [],
       "companyTopic": null,
       "depth": null,
       "format": null,
       "productAspect": null,
-      "topics": [],
       "useCase": null
+    },
+    {
+      "text": "pompa booster merek apa yang cocok",
+      "intent": "out_of_scope",
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "mau pasang sprinkler kebakaran, pipanya pralon ada?",
+      "intent": "out_of_scope",
+      "source": "produksi 2026-11-02"
     }
   ]
 }

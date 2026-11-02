@@ -216,7 +216,17 @@
       "rekomendasi film dong",
       "kamu bisa masak?",
       "what should I eat for lunch?",
-      "tell me a joke"
+      "tell me a joke",
+      "septic tank biofil ada?",
+      "pralon jual septic tank ga?",
+      "pipa sprinkler kebakaran ada?",
+      "mau pasang sprinkler kebakaran, pipanya pralon ada?",
+      "pompa booster merek apa yang cocok",
+      "pompa air merek apa yang bagus",
+      "toren merek apa yang bagus",
+      "kran dan shower ada ga?",
+      "do you sell water tanks?",
+      "do you sell booster pumps?"
     ],
     "company_question": [
       "pralon itu apa?",
@@ -600,7 +610,11 @@
       "kenapa air keran kecil padahal toren penuh?",
       "air di keran lemah padahal tandon penuh kenapa?",
       "kenapa tekanan air di lantai atas kecil?",
-      "why is the tap flow weak when the tank is full?"
+      "why is the tap flow weak when the tank is full?",
+      "pipa pralon tahan berapa tahun kalau ketanam di tanah",
+      "pipa pralon umurnya berapa tahun",
+      "pipa pvc tahan berapa lama kalau kena matahari",
+      "how long does pralon pipe last underground?"
     ],
     "advice_request": [
       "pipanya yang bagus apa",

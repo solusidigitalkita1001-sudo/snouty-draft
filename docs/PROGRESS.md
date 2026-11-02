@@ -4097,3 +4097,34 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Sekarang bahan yang tidak disebut berarti seluruh keluarga fitting di katalog, dan
       jawabannya menyebut yang ketemu. Bahan yang DISEBUT tetap mengikat: "fitting hdpe tee"
       tidak pernah dijawab fitting PVC.
+
+- [x] P32-05 Barang yang bukan buatan Pralon dijawab, bukan ditanya balik
+
+      "septic tank biofil ada?", "pompa booster merek apa yang cocok", "mau pasang sprinkler
+      kebakaran, pipanya pralon ada?" — ketiganya dibaca sebagai pernyataan kebutuhan, masuk ke
+      model ekstraksi yang tidak menemukan apa pun, lalu dijawab ajakan bertanya setelah 16–17
+      detik. Pertanyaannya sederhana dan jawabannya ada: itu bukan yang dibuat Pralon.
+
+      Sepuluh contoh ditambahkan ke label di luar lingkup — barang yang memang bukan produk
+      Pralon dan merek alat yang bukan pipa (pompa, toren, water heater, kran). Jawabannya teks
+      yang sudah ada sejak lama dan memang untuk ini: apa yang bisa dibantu di sini, dan ke
+      siapa urusan lain pergi. Seketika, tanpa model.
+
+      Satu regresi ikut tertangkap dan diperbaiki sebelum naik: "pipa pralon tahan berapa tahun
+      kalau ketanam di tanah" sempat tertarik ke label komersial, karena rangka kalimatnya sama
+      dengan "garansi pipa pralon berapa lama". Keduanya kini punya rangka itu — empat contoh
+      umur pakai ditambahkan ke pertanyaan pengetahuan — jadi yang menentukan kata ujungnya,
+      bukan rangkanya (pelajaran P31-01). Umur pakai 1,000 lawan komersial 0,808.
+
+      Evaluasi pemahaman 209/210 (99,5%), dengan empat kasus produksi baru ikut di dalamnya.
+
+- [x] P32-06 Permintaan penawaran kalah dari bentuk kalimatnya
+
+      Sisa P32-03 yang baru terlihat di produksi: "minta penawaran harga 500 batang aw 4 inci,
+      kirim ke proyek cikarang" tetap dijawab ajakan bertanya walau labelnya sudah benar. Ia
+      membawa produk, jumlah, dan tujuan kirim — cukup untuk lolos sebagai pernyataan kasus,
+      dan pernyataan kasus diputuskan lebih dulu daripada label. Sekarang permintaan penawaran
+      menang atas bentuk kalimatnya: yang diminta penawaran, bukan hitungan.
+
+      Sekaligus tata bahasa daftar bahan yang muncul setelah P32-04: "Tee PVC dan HDPE dan FRP"
+      menjadi "Tee PVC, HDPE, dan FRP".
