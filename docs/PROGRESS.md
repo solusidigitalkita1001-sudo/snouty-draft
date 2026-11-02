@@ -4436,3 +4436,11 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       perencana giliran, lalu rencananya "ragam produk" — dijawab ikhtisar seluruh katalog.
       Aspek produk yang dikenali dengan yakin atas subjek produk aktif tidak lagi lewat perencana:
       aspeknya dari contoh, produknya dari subjek, dan ukurannya dibaca dari katalog.
+
+- [x] P32-39 Ukuran kelas yang sedang dibicarakan
+
+      Sesudah PVC AW dan PVC D dibahas, "ukurannya ada apa aja?" dijawab ikhtisar seluruh katalog
+      dan "what sizes do you have in that class?" dijawab ukuran dua produk contoh yang kebetulan
+      sama-sama 4". Sekarang daftar ukuran tiap kelasnya dibacakan dari katalog; kelasnya boleh
+      datang dari pesan pengguna beberapa giliran sebelumnya, karena subjek percakapan bisa sudah
+      berpindah ke kasusnya.

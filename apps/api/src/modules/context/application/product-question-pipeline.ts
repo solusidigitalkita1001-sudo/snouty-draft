@@ -78,6 +78,7 @@ import {
   previousRange,
   rangeOverview,
   familySizeAnswer,
+  familySizesAnswer,
 } from './product-range.js';
 
 /** Alias kosakata sebuah keluarga kanonis — untuk mencari katalog dengan nama yang dipakai katalog. */
@@ -206,6 +207,21 @@ function lastAssistantTextWithMaterial(input: ProductQuestionInput): string {
   return (
     assistant.find((t) => input.lexicon.productFamilies(t.text).length > 0)?.text ??
     lastAssistantText(input)
+  );
+}
+
+/**
+ * Keluarga produk yang DISEBUT pengguna di giliran terakhirnya yang menyebut keluarga — kosakata
+ * yang mencocokkan nama, bukan tebakan. Dipakai bila subjek percakapan sudah berpindah ke kasus
+ * sementara pertanyaannya masih tentang produk yang tadi dibicarakan.
+ */
+function familiesInRecentTurns(input: ProductQuestionInput): readonly string[] {
+  return (
+    [...(input.recentTurns ?? [])]
+      .reverse()
+      .filter((t) => t.role === 'user')
+      .map((t) => input.lexicon.productFamilies(t.text))
+      .find((families) => families.length > 0) ?? []
   );
 }
 
@@ -608,6 +624,28 @@ export async function runProductQuestion(
     const family = await catalogFamily(catalog, oneFamily);
     const sizes =
       family === null ? null : await familySizeAnswer(catalog, family, null, u.extreme, locale);
+    if (sizes !== null) {
+      return [
+        { type: 'message.start', messageId: input.messageId },
+        { type: 'token', text: sizes.text },
+        ...sizes.cards.map((card) => ({ type: 'card', card }) as AssistantStreamEvent),
+        endEvent(input.messageId),
+      ];
+    }
+  }
+
+  // Beberapa kelas yang sedang dibicarakan ("what sizes do you have in that class?" sesudah PVC AW
+  // dan PVC D): daftar ukuran tiap kelasnya dari katalog. Keluarganya boleh datang dari pesan
+  // pengguna beberapa giliran sebelumnya — pencocokan nama kosakata, bukan tebakan — karena subjek
+  // percakapan bisa sudah berpindah ke kasusnya (produksi 2026-11-02: dijawab ikhtisar seluruh
+  // katalog setelah 12 detik).
+  if (aspect === 'sizes' && continued === null && u.families.length === 0) {
+    const spoken = askedFamilies.length > 0 ? askedFamilies : familiesInRecentTurns(input);
+    const matched = (await Promise.all(spoken.map((f) => catalogFamily(catalog, f)))).filter(
+      (f): f is string => f !== null,
+    );
+    const sizes =
+      matched.length > 0 ? await familySizesAnswer(catalog, matched, u.extreme, locale) : null;
     if (sizes !== null) {
       return [
         { type: 'message.start', messageId: input.messageId },

@@ -527,6 +527,32 @@ export async function familySizeAnswer(
   };
 }
 
+/**
+ * Ukuran BEBERAPA keluarga yang sedang dibicarakan: "what sizes do you have in that class?"
+ * sesudah PVC AW dan PVC D dibahas. Satu bagian per keluarga, ajakan lanjutnya sekali di akhir.
+ * Di produksi 2026-11-02 pertanyaan itu dijawab ukuran dua produk contoh ("… AW - Lon 4" x 4
+ * Meter: 4\""), padahal tiap kelasnya punya daftar ukuran sendiri di katalog.
+ */
+export async function familySizesAnswer(
+  catalog: RangeCatalog,
+  families: readonly string[],
+  extreme: 'smallest' | 'largest' | null,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<RangeOutcome | null> {
+  const COPY = productAnswerCopy(locale);
+  const tails = [COPY.sizeNext, COPY.typeNext];
+  const bodies: string[] = [];
+  for (const family of families) {
+    const answer = await familySizeAnswer(catalog, family, null, extreme, locale);
+    if (answer === null) continue;
+    const parts = answer.text.split(`${NL}${NL}`);
+    const body = tails.includes(parts.at(-1) ?? '') ? parts.slice(0, -1) : parts;
+    bodies.push(body.join(`${NL}${NL}`));
+  }
+  if (bodies.length === 0) return null;
+  return { text: [bodies.join(`${NL}${NL}`), '', COPY.sizeNext].join(NL), cards: [] };
+}
+
 /** Katalog Pralon belum terpasang: jujur, lalu ragam bahan umum dari pengetahuan milik kode. */
 function notInstalled(locale: Locale): RangeOutcome {
   const COPY = productAnswerCopy(locale);

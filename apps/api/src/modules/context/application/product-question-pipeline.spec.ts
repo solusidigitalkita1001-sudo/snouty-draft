@@ -1511,3 +1511,75 @@ describe('runProductQuestion — tekanan milik solusi sendiri', () => {
     expect(text(events)).toContain('distribusi utama');
   });
 });
+
+/**
+ * P32-39 — "ukurannya ada apa aja?" / "what sizes do you have in that class?" sesudah dua kelas
+ * dibicarakan. Produksi 2026-11-02: yang pertama dijawab ikhtisar seluruh katalog (7.664 produk
+ * dalam 24 keluarga), yang kedua ukuran dua produk contoh yang kebetulan sama-sama 4".
+ */
+describe('runProductQuestion — ukuran kelas yang sedang dibicarakan', () => {
+  const pipe = (family: string, label: string, id: string, size: string): Product => ({
+    ...AW,
+    family,
+    id: id.padEnd(26, '0'),
+    sku: id,
+    name: `Pipa (TS End) ${label} ${size} x 4 Meter`,
+    sizes: [size],
+  });
+  const items = [
+    pipe('PVC AW', 'Abu AW', 'A1', '1/2"'),
+    pipe('PVC AW', 'Abu AW', 'A2', '4"'),
+    pipe('PVC D', 'Abu D', 'D1', '3"'),
+    pipe('PVC D', 'Abu D', 'D2', '4"'),
+  ];
+  const subject = {
+    kind: 'product',
+    entity: 'pvc aw dan pvc d',
+    topic: 'product_overview',
+    depth: 'standard',
+  } as const;
+
+  it('ukuran tiap kelasnya dari katalog, bukan ukuran dua produk contoh', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: 'sizes' }),
+      catalog({ semua: items }),
+      noQuestions,
+      input('what sizes do you have in that class?', SPEC('sizes'), { subject, locale: 'en' }),
+    );
+    const out = text(events);
+    expect(out).toContain('1/2"');
+    expect(out).toContain('3"');
+    expect(out).not.toContain('x 4 Meter: 4"');
+  });
+
+  it('subjeknya sudah berpindah ke kasus: kelasnya dari pesan pengguna sebelumnya', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: 'sizes' }),
+      catalog({ semua: items }),
+      noQuestions,
+      input('ukurannya ada apa aja?', SPEC('sizes'), {
+        recentTurns: [
+          { role: 'user', text: 'apa bedanya pvc aw sama pvc d?' },
+          { role: 'assistant', text: 'PVC AW dindingnya lebih tebal.' },
+          { role: 'user', text: 'yang mana buat saluran septic tank?' },
+          { role: 'assistant', text: 'Oke, saluran gravitasi.' },
+        ],
+      }),
+    );
+    const out = text(events);
+    expect(out).toContain('1/2"');
+    expect(out).not.toContain('keluarga');
+  });
+
+  it('kelas yang disebut sendiri di pesannya tetap jalur katalog seperti sebelumnya', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: 'pvc aw', aspect: 'sizes' }),
+      catalog({ 'pvc aw': items.slice(0, 2), semua: items }),
+      noQuestions,
+      input('pipa pvc aw ukurannya apa aja?', SPEC('sizes')),
+    );
+    const out = text(events);
+    expect(out).toContain('1/2"');
+    expect(out).not.toContain('3"');
+  });
+});
