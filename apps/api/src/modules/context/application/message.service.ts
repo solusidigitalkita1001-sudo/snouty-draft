@@ -76,6 +76,7 @@ import {
 import { irrigationGuidance } from './irrigation-guidance.js';
 import { executePlan } from './plan-executor.js';
 import {
+  aspectOfSpokenFamily,
   hasFixedAnswer,
   isConfidentStandalone,
   isStructuredProductFollowUp,
@@ -426,6 +427,15 @@ export class MessageService {
       ) &&
       // Pesan yang menyebut sendiri keluarga katalognya dijawab kode dari katalog (P31-02).
       !namesCatalogFamily(u, (f) => this.lexicon().isCatalogFamily(f)) &&
+      // Dan aspek produk atas keluarga yang pengguna sendiri sebut beberapa giliran sebelumnya
+      // (P32-40): keluarganya dari kosakata, ukurannya dari katalog.
+      !aspectOfSpokenFamily(
+        u,
+        recentTurns
+          .filter((t) => t.role === 'user')
+          .flatMap((t) => this.lexicon().productFamilies(t.text))
+          .filter((f) => this.lexicon().isCatalogFamily(f)),
+      ) &&
       // Lanjutan atas subjek aktif ("boleh", "lebih detail dong") diputuskan kode dari subjeknya;
       // lewat perencana dulu ia 10–30 s dan dijawab karangan model (simulasi 2026-10-19).
       subjectContinuation(u, state.subject) === null &&

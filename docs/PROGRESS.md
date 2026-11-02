@@ -4444,3 +4444,10 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       sama-sama 4". Sekarang daftar ukuran tiap kelasnya dibacakan dari katalog; kelasnya boleh
       datang dari pesan pengguna beberapa giliran sebelumnya, karena subjek percakapan bisa sudah
       berpindah ke kasusnya.
+
+- [x] P32-40 Kelas yang sudah disebut tidak ditebak lagi
+
+      "ukurannya ada apa aja?" sesudah PVC AW dan PVC D dibicarakan memakai 4,2 detik di perencana
+      giliran, lalu kelasnya ditebak model: jawabannya ukuran PVC SNI Kelas B — kelas yang tidak
+      pernah disebut siapa pun. Aspek produk yang yakin atas keluarga yang pengguna sendiri sebut
+      kini dijawab langsung dari katalog.

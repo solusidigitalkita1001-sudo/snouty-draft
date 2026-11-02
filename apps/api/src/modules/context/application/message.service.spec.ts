@@ -750,6 +750,22 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     expect(planner.plan).not.toHaveBeenCalled();
   });
 
+  // Produksi 2026-11-02: "ukurannya ada apa aja?" sesudah PVC AW dan PVC D dibicarakan memakai
+  // 4,2 detik di perencana, lalu keluarganya ditebak model — jawabannya ukuran PVC SNI Kelas B,
+  // kelas yang tidak pernah disebut siapa pun.
+  it('pertanyaan ukuran atas kelas yang sudah disebut pengguna tidak lewat perencana (P32-40)', async () => {
+    const { service, planner } = setup(
+      [
+        { role: 'user', text: 'apa bedanya pvc aw sama pvc d?' },
+        { role: 'assistant', text: 'AW dindingnya paling tebal; D untuk pembuangan.' },
+        { role: 'user', text: 'ukurannya ada apa aja?' },
+      ],
+      { 'ukurannya ada apa aja?': { intent: 'product_spec', productAspect: 'sizes' } },
+    );
+    await service.handle('C'.repeat(26), ACTOR, 'ukurannya ada apa aja?', 'T');
+    expect(planner.plan).not.toHaveBeenCalled();
+  });
+
   it('pertanyaan atas kebutuhan yang sedang berjalan tidak lewat perencana (P31-27)', async () => {
     const office = withCompleteness(
       mergeRequirement(

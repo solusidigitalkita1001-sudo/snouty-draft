@@ -160,6 +160,21 @@ export function isStructuredProductFollowUp(
 }
 
 /**
+ * Aspek produk yang dikenali YAKIN sementara keluarga katalognya sudah disebut pengguna sendiri di
+ * percakapan ini ("ukurannya ada apa aja?" sesudah "apa bedanya pvc aw sama pvc d?"): ruas produk
+ * membacanya dari katalog, keluarganya dari kosakata — pencocokan nama, bukan tebakan. Lewat
+ * perencana pertanyaan itu 4–12 detik dan keluarganya ditebak model: di produksi 2026-11-02
+ * jawabannya ukuran PVC SNI Kelas B, kelas yang tidak pernah disebut siapa pun.
+ */
+export function aspectOfSpokenFamily(
+  u: MessageUnderstanding,
+  spokenFamilies: readonly string[],
+): boolean {
+  if (u.mentionsRequirement || u.productAspect === null) return false;
+  return (u.intent?.score ?? 0) >= CONFIDENT_SCORE && spokenFamilies.length > 0;
+}
+
+/**
  * Pesan yang menyebut SENDIRI keluarga produk katalognya ("fitting elbow 90 derajat buat uPVC
  * 3/4"") sudah membawa apa yang dicari: keluarganya dari kosakata — pencocokan nama, bukan
  * tebakan model — dan ukurannya dari parser nilai. Ruas pertanyaan produk menjawabnya dari
