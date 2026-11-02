@@ -185,6 +185,43 @@ describe('knowledgeAnswer', () => {
     expect(a!.text).not.toContain('27 batang');
   });
 
+  // Produksi 2026-11-02: "how many 4 metre lengths do i need?" dijawab "for 4 m: 4 m pipe → 1
+  // pipes" — panjang batang yang disebut dipakai sebagai panjang jalur, dan jamaknya pun salah.
+  it('panjang batang yang disebut bukan panjang jalur; jalurnya ditanyakan', async () => {
+    const en = await knowledgeAnswer(
+      ['jumlah batang'],
+      'how many 4 metre lengths do i need?',
+      catalog,
+      'en',
+    );
+    expect(en!.text).toContain('How long is the route in metres?');
+    expect(en!.text).not.toContain('1 pipes');
+    const id = await knowledgeAnswer(
+      ['jumlah batang'],
+      'butuh berapa batang pipa 4 meter?',
+      catalog,
+      'id',
+    );
+    expect(id!.text).toContain('Jalurnya berapa meter?');
+  });
+
+  it('panjang batang bersama panjang jalur tetap dihitung, dan satu batang bukan "1 pipes"', async () => {
+    const a = await knowledgeAnswer(
+      ['jumlah batang'],
+      'pipa 4 meter untuk jalur 30 meter butuh berapa?',
+      catalog,
+      'id',
+    );
+    expect(a!.text).toContain('**PVC AW** untuk 30 m: batang 4 m → 8 batang');
+    const one = await knowledgeAnswer(
+      ['jumlah batang'],
+      'route is 3 m, how many pipes?',
+      catalog,
+      'en',
+    );
+    expect(one!.text).toContain('→ 1 pipe;');
+  });
+
   it('topik tanpa fakta maupun konsep → null', async () => {
     expect(await knowledgeAnswer([], 'halo', catalog, 'id')).toBeNull();
   });

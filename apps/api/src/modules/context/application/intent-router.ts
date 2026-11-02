@@ -34,6 +34,24 @@ import { extractTechnicalContext, isCaseId } from '@snouty/engineering';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import { mentionsPressure } from './knowledge-answer.js';
 
+/**
+ * Nilai pekerjaan RENOVASI yang tersurat: jenis pekerjaan, ukuran dan bahan pipa lama, titik air
+ * lama, panjang yang diganti. Hanya muncul dari kosakata renovasi yang tersurat, jadi ia penanda
+ * kebutuhan yang jauh lebih sempit daripada data inti.
+ */
+const RENOVATION_FIELDS: ReadonlySet<string> = new Set([
+  'water.workType',
+  'water.existingMainSize',
+  'water.existingPipeMaterial',
+  'water.existingOutlets',
+  'water.addedOutlets',
+  'water.replacementLengthM',
+]);
+
+function statesRenovation(message: string): boolean {
+  return extractionToUpdates({}, message).some((u) => RENOVATION_FIELDS.has(u.path));
+}
+
 /** Data inti kebutuhan yang tersurat di teks (parser nilai), tanpa model. */
 function coreFactsInText(message: string): number {
   return extractionToUpdates({}, message).filter((u) =>
@@ -258,10 +276,19 @@ export function withRequirementPrecedence(
     classification.intent === 'OUT_OF_SCOPE' &&
     TERMINAL_FINE_INTENTS.has(u.intent?.label ?? '') &&
     coreFactsInText(u.text) < 2;
+  // Pesan RENOVASI yang labelnya ragu ("pipa lamanya galvanis 1/2 inci"): nilainya tersurat dan
+  // sudah terbaca parser — ukuran pipa lama, bahannya, jenis pekerjaannya — tetapi kosakata entitas
+  // tidak menandainya sebagai kebutuhan, jadi ia berakhir di jalur produk dan dijawab "belum punya
+  // acuan" (produksi 2026-11-02), padahal yang terjadi hanyalah pengguna menyebut pipa lamanya.
+  // Hanya untuk label yang RAGU: pertanyaan produk yang menyinggung pipa lama ("fitting buat
+  // nyambung pipa lama galvanis ke pvc apa?") punya labelnya sendiri dan tetap dijawab di sana.
+  const renovationStated = u.intent === null && statesRenovation(u.text);
   if (
     knowledge ||
     ownTerminalAnswer ||
-    (!recommendationAsLookup && (!yields || !u.mentionsRequirement || productOnly))
+    (!recommendationAsLookup &&
+      !renovationStated &&
+      (!yields || !u.mentionsRequirement || productOnly))
   ) {
     return classification;
   }

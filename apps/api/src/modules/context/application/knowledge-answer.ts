@@ -238,6 +238,20 @@ async function pressureFit(
   return { text: lines.join('\n'), gaps };
 }
 
+/** Kata benda batang pipa di sekitar nilai meter — penanda bahwa angkanya panjang satu batang. */
+const ROD_AFTER = /^\s*(?:lengths?|rods?|batang|pipes?|pipa)\b/i;
+const ROD_BEFORE = /(?:batang|pipa|pipes?|rods?|lengths? of)\s*$/i;
+const ASK_ROUTE = 'Jalurnya berapa meter? Dari situ jumlah batangnya saya hitung.';
+const ASK_ROUTE_EN = 'How long is the route in metres? With that I can work out the number.';
+
+/** Nilai meter ini panjang satu batang, bukan panjang jalur. */
+function isRodLength(message: string, match: RegExpExecArray | RegExpMatchArray): boolean {
+  const at = match.index ?? 0;
+  return (
+    ROD_AFTER.test(message.slice(at + match[0].length)) || ROD_BEFORE.test(message.slice(0, at))
+  );
+}
+
 async function catalogLines(
   hook: CatalogHook,
   message: string,
@@ -257,19 +271,29 @@ async function catalogLines(
   // Panjang jalur = nilai meter TERBESAR di pesan; nilai lain yang lebih kecil adalah panjang batang
   // yang diminta ("pipa 4 meter untuk jalur 30 meter" → jalur 30 m, batang 4 m). Dulu nilai pertama
   // dipakai sebagai jalur dan jawabannya "untuk 4 m: 1 batang" (audit 2026-10-19).
-  const metres = [...message.matchAll(ROUTE)].map((m) => decimal(m[1]!));
-  if (metres.length === 0) return [];
-  const routeM = Math.max(...metres);
-  const askedRods = metres.filter((m) => m !== routeM);
+  // Nilai meter yang menempel kata BATANG ("pipa 4 meter", "4 metre lengths") adalah panjang satu
+  // batang, bukan jalurnya. "how many 4 metre lengths do i need?" tidak menyebut jalurnya sama
+  // sekali, dan dulu 4 m dipakai sebagai jalur: "for 4 m: 4 m pipe → 1 pipes" (produksi
+  // 2026-11-02). Tanpa panjang jalur tidak ada jumlah yang bisa dihitung — itu yang ditanyakan.
+  const stated = [...message.matchAll(ROUTE)].map((m) => ({
+    value: decimal(m[1]!),
+    rod: isRodLength(message, m),
+  }));
+  if (stated.length === 0) return [];
+  const route = stated.filter((s) => !s.rod).map((s) => s.value);
+  if (route.length === 0) return [en ? ASK_ROUTE_EN : ASK_ROUTE];
+  const routeM = Math.max(...route);
+  const askedRods = stated.map((s) => s.value).filter((m) => m !== routeM);
   const lines = [header];
   for (const { family, names } of await familyNames(hook, catalog)) {
     const usable = commonLengths(names).filter((l) => l > 0 && l < 50);
     const asked = usable.filter((l) => askedRods.includes(l));
-    const options = (asked.length > 0 ? asked : usable).map((l) =>
-      en
-        ? `${num(l, locale)} m pipe → ${Math.ceil(routeM / l)} pipes`
-        : `batang ${num(l, locale)} m → ${Math.ceil(routeM / l)} batang`,
-    );
+    const options = (asked.length > 0 ? asked : usable).map((l) => {
+      const rods = Math.ceil(routeM / l);
+      return en
+        ? `${num(l, locale)} m pipe → ${rods} ${rods === 1 ? 'pipe' : 'pipes'}`
+        : `batang ${num(l, locale)} m → ${rods} batang`;
+    });
     if (options.length === 0) continue;
     lines.push(
       en

@@ -2208,6 +2208,11 @@
     {
       "text": "kenapa pipa pvc gampang pecah?",
       "reasonRequest": null
+    },
+    {
+      "text": "fittingnya ada juga?",
+      "intent": "product_range",
+      "source": "produksi 2026-11-02"
     }
   ]
 }

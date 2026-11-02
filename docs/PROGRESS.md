@@ -4362,3 +4362,25 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       yang tidak menyebut satu pun bahan, atas solusi yang masih berlaku, kini dijawab jalur
       solusinya. Pertanyaan yang menyebut bahannya tetap dijawab dari katalog, dan solusi yang
       usang atau belum ada tetap jatuh ke ikhtisar seperti sebelumnya.
+
+- [x] P32-28 "Fittingnya ada juga?" dijawab fittingnya
+
+      Di percakapan produk HDPE, pertanyaan itu dikenali sebagai pertanyaan bentuk sistem — jalur
+      yang butuh solusi — lalu, karena belum ada solusi, dijawab ajakan bertanya setelah 28 detik.
+      Yang ditanya ketersediaan: contohnya masuk ke sisi ragam produk, tempat "do you sell
+      fittings?" sudah berada.
+
+- [x] P32-29 Panjang batang yang disebut bukan panjang jalur
+
+      "how many 4 metre lengths do i need?" dijawab "for 4 m: 4 m pipe → 1 pipes": 4 meter yang
+      disebut sebagai panjang satu batang dipakai sebagai panjang jalur, lalu jumlahnya satu untuk
+      semua pilihan — dan jamaknya pun salah. Nilai meter yang menempel kata batang sekarang dibaca
+      sebagai panjang batang; tanpa panjang jalur, jalurnya yang ditanyakan.
+
+- [x] P32-30 Pipa lama yang disebut tercatat, bukan diserahkan
+
+      Di percakapan renovasi, "pipa lamanya galvanis 1/2 inci" dijawab "Soal itu saya belum punya
+      acuan yang bisa saya pegang" lalu diserahkan ke tim teknis — padahal ukuran pipa lama,
+      bahannya, dan jenis pekerjaannya sudah terbaca parser nilai. Pesan berlabel ragu yang
+      menyatakan nilai renovasi kini pernyataan kebutuhan; pertanyaan produk yang menyinggung pipa
+      lama tetap dijawab jalur produk.

@@ -628,3 +628,31 @@ describe('pernyataan kasus bernilai menang atas topik pengetahuan', () => {
     ).toBe(false);
   });
 });
+
+/**
+ * P32-30 — pesan renovasi yang labelnya ragu. Produksi 2026-11-02: di percakapan "mau ganti pipa
+ * rumah lama", pesan "pipa lamanya galvanis 1/2 inci" dijawab "Soal itu saya belum punya acuan
+ * yang bisa saya pegang" dan diserahkan ke tim teknis — padahal ukuran pipa lama, bahannya, dan
+ * jenis pekerjaannya sudah terbaca parser nilai.
+ */
+describe('nilai renovasi yang tersurat menang atas label yang ragu', () => {
+  it('"pipa lamanya galvanis 1/2 inci" → pernyataan kebutuhan, bukan lookup produk', async () => {
+    const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.8 }).route(
+      understood('pipa lamanya galvanis 1/2 inci', { intent: null }),
+      true,
+    );
+    expect(d.intent).toBe('REQUIREMENT_STATEMENT');
+    expect(d.shouldExtract).toBe(true);
+  });
+
+  it('pertanyaan produk yang menyinggung pipa lama tetap pertanyaan produk', async () => {
+    const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.8 }).route(
+      understood('fitting buat nyambung pipa lama galvanis ke pvc apa?', {
+        intent: 'product_spec',
+        productAspect: 'compatible_fittings',
+      }),
+      true,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+  });
+});
