@@ -4158,3 +4158,25 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Di produksi setelahnya: septic tank 334 ms, pompa booster 233 ms, toren 485 ms, penawaran
       di bawah satu detik — dari 13–17 detik dan jawaban yang salah sasaran. Rumah 2 lantai 3
       kamar mandi tetap dicatat seperti biasa (424 ms), dan umur pakai tetap jawaban umur pakai.
+
+- [x] P32-09 Tiga pertanyaan pendek yang tidak punya jawaban
+
+      Sisa ronde yang sama, ketiganya kecil dan ketiganya terasa seperti tidak menyimak.
+
+      "lem pipa 1 kaleng cukup buat berapa sambungan" dijawab ikhtisar seluruh katalog setelah
+      9,2 detik: pemahamannya membacanya sebagai pertanyaan bentuk sistem, dan topik solvent
+      cement berhenti sedikit di bawah ambang. Tiga contoh ditambahkan ke pertanyaan pengetahuan
+      dan tiga ke topik solvent cement — jawabannya memang sudah ada dan memang mengaku: ukuran
+      kemasan dan lembar datanya ada di tim teknis Pralon.
+
+      "4 inci" dijawab "belum punya acuan yang bisa saya pegang". Itu buntu untuk pesan yang
+      kurang lengkap, bukan pesan yang tidak bisa dijawab; pertanyaan baliknya jelas. Tabel
+      standar yang menjawab "110 mm itu berapa inci" juga tahu jenis pipa mana yang dibuat dalam
+      ukuran itu, jadi pesan yang isinya hanya ukuran ditanya balik jenisnya.
+
+      "ok lanjut" di percakapan kosong memakai 25,9 detik di model, lalu menanyakan sumber air
+      dan jumlah lantai — hal yang sama dengan perkenalan yang sudah ditulis. Kalimat pertama
+      apa pun di percakapan, bila bukan ruas kebutuhan, kini dijawab teks tetap: belum ada yang
+      bisa dilanjutkan.
+
+      Evaluasi pemahaman 210/211 (99,5%).

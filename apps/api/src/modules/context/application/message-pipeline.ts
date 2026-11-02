@@ -236,11 +236,19 @@ export async function runUnderstanding(
       // Salam pertama sudah pas sebagai teks tetap — tidak perlu menunggu model.
       const firstGreeting =
         label === 'greeting' && !(input.recentTurns ?? []).some((t) => t.role === 'assistant');
+      // Dan kalimat PERTAMA apa pun di percakapan yang di luar ruas kebutuhan: belum ada yang bisa
+      // dilanjutkan, jadi perkenalannya yang menjawab. "ok lanjut" di percakapan kosong memakai
+      // 25,9 detik di model untuk sampai ke kalimat yang menanyakan hal yang sama (produksi
+      // 2026-11-02).
+      const firstTurnIntro =
+        input.decision.intent === 'OUT_OF_SCOPE' &&
+        !(input.recentTurns ?? []).some((t) => t.role === 'assistant');
       // Jawaban tetap yang sudah pas tidak perlu ditulis ulang model: "kamu bisa apa aja?" memakan
       // 24,8 detik di produksi 2026-10-26, dan di tengah percakapan produk model malah mengulang
       // persis jawaban giliran sebelumnya.
       const fixedIsEnough =
         firstGreeting ||
+        firstTurnIntro ||
         fromSolution ||
         // Sapaan ulang dan basa-basi juga: teksnya sudah pas, dan model di CPU memakai 14 detik
         // untuk menggantinya dengan kalimat yang lebih buruk (produksi 2026-10-26).

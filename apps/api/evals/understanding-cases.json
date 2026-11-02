@@ -1883,6 +1883,12 @@
       "text": "mau pasang sprinkler kebakaran, pipanya pralon ada?",
       "intent": "out_of_scope",
       "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "lem pipa 1 kaleng cukup buat berapa sambungan",
+      "intent": "knowledge_question",
+      "source": "produksi 2026-11-02",
+      "topics": ["solvent cement"]
     }
   ]
 }

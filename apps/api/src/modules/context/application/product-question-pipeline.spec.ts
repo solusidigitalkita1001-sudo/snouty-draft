@@ -1164,6 +1164,21 @@ describe('runProductQuestion — pengetahuan umum pipa (P30-01)', () => {
     expect(cards(events).some((c) => c.kind === 'product')).toBe(false);
   });
 
+  // Produksi 2026-11-02: "4 inci" dijawab "belum punya acuan" — buntu untuk pesan yang jelas
+  // kurang lengkap, bukan pesan yang tidak bisa dijawab.
+  it('pesan yang isinya hanya ukuran ditanya balik jenis pipanya', async () => {
+    const events = await runProductQuestion(
+      mustNotParse,
+      catalog({ 'pvc aw': [AW] }),
+      noQuestions,
+      input('4 inci', { intent: 'product_spec' }),
+    );
+    const out = text(events);
+    expect(out).not.toBe(PRODUCT_ANSWER_COPY.noSourcedAnswer);
+    expect(out).toMatch(/jenis pipa/i);
+    expect(out).toContain('4"');
+  });
+
   it('ragam produk tetap dijawab ikhtisar katalog', async () => {
     const events = await runProductQuestion(
       failingAi,

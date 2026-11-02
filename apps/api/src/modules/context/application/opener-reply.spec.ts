@@ -15,6 +15,7 @@ import type { AiService } from '../../ai/domain/ai.port.js';
 import type { ReplyWriter } from './reply-writer.js';
 import type { RoutingDecision } from './intent-router.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
+import { understood } from '../../understanding/testing/understood.js';
 import { runUnderstanding, type PipelineInput } from './message-pipeline.js';
 
 const T0 = '2026-11-02T00:00:00.000Z';
@@ -62,6 +63,29 @@ describe('pembuka tanpa DATA (P32-01)', () => {
       const token = events.find((e) => e.type === 'token') as { text: string } | undefined;
       expect(token?.text).toContain('Silakan, tanyakan saja');
     }
+  });
+
+  // Produksi 2026-11-02: "ok lanjut" di percakapan kosong 25,9 detik, jawabannya menanyakan hal
+  // yang sama dengan perkenalan yang sudah ada.
+  it('lanjutan di percakapan kosong dijawab perkenalan tanpa model', async () => {
+    const { reply, write } = writer();
+    const { events } = await runUnderstanding(
+      aiWithoutFacts(),
+      {
+        ...input('ok lanjut'),
+        decision: {
+          intent: 'OUT_OF_SCOPE',
+          confidence: 1,
+          shouldExtract: false,
+          mutatesState: false,
+        },
+        understanding: understood('ok lanjut', { intent: 'follow_up_continue' }),
+      },
+      reply,
+    );
+    expect(write).not.toHaveBeenCalled();
+    const token = events.find((e) => e.type === 'token') as { text: string } | undefined;
+    expect(token?.text).toContain('SNOUTY');
   });
 
   it('bahasa Inggris memakai ajakan bertanya bahasa Inggris, juga tanpa model', async () => {

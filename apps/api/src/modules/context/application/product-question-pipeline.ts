@@ -691,6 +691,13 @@ async function answerConcept(
   // seperti "jarak klem pipa tegak berapa?" dijawab ikhtisar seluruh katalog atau contoh produk
   // PVC sembarang — keduanya bukan jawaban, dan keduanya terbaca seperti tidak menyimak.
   // Jalur umum sudah mendapat kesempatannya di `runProductQuestion` sebelum ini.
+  // Pesan yang isinya HANYA ukuran ("4 inci", tanpa keluarga dan tanpa aspek) tidak punya apa pun
+  // untuk dicari di katalog, dan "belum punya acuan" membuatnya buntu — padahal pertanyaan baliknya
+  // jelas: jenis pipa yang mana. Tabel standar yang sama menjawab "110 mm itu berapa inci" juga tahu
+  // jenis mana yang dibuat dalam ukuran itu (produksi 2026-11-02).
+  if (u.families.length === 0 && u.productAspect === null && parseSize(input.message) !== null) {
+    return { text: dimensionAnswer(input.message, [], pipeStandardRows(), locale).text, cards: [] };
+  }
   if (asksGeneralKnowledge(u)) {
     // Kasus yang solusinya sudah dihitung bukan "tanpa acuan": jalur solusinya sendiri acuan
     // yang paling dekat dengan pertanyaannya (produksi 2026-10-26).
