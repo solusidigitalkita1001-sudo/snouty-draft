@@ -4245,3 +4245,41 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       "kolam renang hotel 25 meter, dalamnya 1,5 meter" dicatat sebagai panjang jalur 25 m: angka
       tanpa pasangan "a x b" jatuh ke aturan jalur. Tim teknis akan membaca ukuran yang bukan
       ukuran kolamnya. Angka yang menempel pada kata kolamnya kini panjang kolam.
+
+- [x] P32-16 Jumlah kamar kos jadi datanya sendiri, lalu ditanya sekali
+
+      "aku mau pipa yang murah aja buat kos 10 kamar" dicatat sebagai rumah kos saja — angka 10
+      hilang tanpa bekas, karena "kamar" bukan "kamar mandi". Keputusan pemilik 2026-11-02: catat
+      kamarnya, lalu tanya sekali dengan dua pilihan, tanpa menganggap.
+
+      Jumlah kamar sewa kini field sendiri (`building.rooms`), dibaca dari teks hanya untuk
+      bangunan yang memang punya kamar sewa — "rumah 3 kamar tidur" tidak memunculkan pertanyaan
+      itu, dan "10 kamar mandi" tetap kamar mandi. Selama jumlah kamarnya diketahui tetapi kamar
+      mandinya belum, satu pertanyaan muncul: kamar mandi di dalam tiap kamar, atau bersama.
+      Pertanyaan itu menahan hitungan, dan anggapan 1 kamar mandi per lantai tidak melangkahinya —
+      untuk 10 kamar di 2 lantai anggapan itu menghasilkan 2 kamar mandi, yang jelas bukan angkanya.
+      Jawaban "di dalam tiap kamar" menjadikan jumlah kamar jumlah kamar mandinya; "bersama"
+      membuat jumlahnya ditanya seperti biasa.
+
+- [x] P32-17 Permintaan yang murah dijawab, bukan dilewati
+
+      Di pesan yang sama, "mau pipa yang murah aja" tidak dijawab sama sekali. Keputusan pemilik
+      2026-11-02: jawab apa adanya tanpa angka. Yang dikatakan: ukuran pipa justru bukan tempat
+      menghemat — ukuran di bawah hasil hitungan itulah yang membuat air di lantai atas kecil; yang
+      bisa dihemat kelas pipa sesuai fungsi jalurnya dan jalur utama yang pendek serta lurus, karena
+      tiap tikungan satu fitting lagi; harga dan penawarannya dari tim Pralon.
+
+      Permintaan hemat dikenali lewat katalog pemahaman sendiri (`saving-request`), seperti
+      permintaan menghitung dan penilaian klaim: pesannya sekaligus menyatakan kebutuhan, jadi
+      intentnya pernyataan kebutuhan dan permintaan hematnya hilang. Kalimat harga tidak lagi ikut
+      terkirim bersamanya — kalimat hemat sudah menyebut harganya sendiri.
+
+      Evaluasi pemahaman 213/214 (99,5%).
+
+- [x] P32-18 Batas tunggu balasan model di server kembali 15 detik
+
+      Server berjalan dengan `LLM_REPLY_TIMEOUT_MS=60000`; di mesin ini jalur prosa model tidak
+      pernah selesai di bawah 16 detik, jadi angka itu hanya menahan pengguna sampai satu menit
+      untuk jawaban yang akhirnya tetap teks tetap. Keputusan pemilik 2026-11-02: 15 detik —
+      klasifikasi maksud (±12 detik) masih selesai, prosa model tidak. `.env.production` diubah
+      (salinan lama disimpan), contoh env dan `docs/DEPLOYMENT.md` menyusul.

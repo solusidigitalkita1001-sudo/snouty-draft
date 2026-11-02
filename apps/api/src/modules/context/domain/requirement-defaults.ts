@@ -143,6 +143,14 @@ export function assumableUpdates(state: RequirementState): readonly FieldUpdate[
   // dikarang — aturan tetapnya OQ-85.
   if (state.fixtures.outletCount.value !== null && missing.includes('fixtures.bathrooms'))
     return [];
+  // Kos yang jumlah kamarnya disebut: anggapan 1 kamar mandi per LANTAI jelas bukan angkanya —
+  // 10 kamar di 2 lantai akan menjadi 2 kamar mandi. Yang menentukan jawaban pengguna sendiri.
+  if (
+    state.building.rooms?.value !== null &&
+    state.building.rooms?.value !== undefined &&
+    missing.includes('fixtures.bathrooms')
+  )
+    return [];
   if (missing.length === 0 || !missing.every((p) => HOUSE_ASSUMABLE.includes(p))) return [];
   return missing
     .map((path) => defaultUpdateFor(path, state))

@@ -15,6 +15,7 @@ import type {
   KnowledgeTopicLabel,
   MutationOpLabel,
   ProductAspectLabel,
+  SavingRequestLabel,
   UseCaseLabel,
   ExtremeLabel,
   ClaimCheckLabel,
@@ -49,6 +50,8 @@ export interface MessageUnderstanding {
   readonly computeRequest: ComputeRequestLabel | null;
   /** Klaim ukuran yang diminta dinilai ("bener ga?") — dijawab dengan angka hitungan (P32-10). */
   readonly claimCheck: ClaimCheckLabel | null;
+  /** Pesan ini meminta yang murah atau hemat — dijawab apa adanya, tanpa angka (P32-17). */
+  readonly savingRequest: SavingRequestLabel | null;
   /** Menyebut fluida/kondisi di luar cakupan (air panas, uap, kimia — kosakata). */
   readonly mentionsOutOfScopeFluid: boolean;
   /** Keluarga produk yang disebut (kosakata), kanonis, urut kemunculan. */
@@ -88,6 +91,7 @@ export function unavailableUnderstanding(
     extreme: null,
     computeRequest: null,
     claimCheck: null,
+    savingRequest: null,
     mentionsOutOfScopeFluid: lexicon?.mentionsOutOfScopeFluid(text) ?? false,
     families: lexicon?.productFamilies(text) ?? [],
     mentionsCompetitor: lexicon?.mentionsCompetitor(text) ?? false,

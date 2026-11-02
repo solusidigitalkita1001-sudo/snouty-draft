@@ -1,0 +1,42 @@
+{
+  "name": "saving-request",
+  "description": "Pesan ini meminta yang MURAH atau HEMAT ('aku mau pipa yang murah aja buat kos 10 kamar', 'biar hemat pakai 1/2 inci aja boleh?'). Katalognya sendiri di luar intent karena pesannya sekaligus menyatakan kebutuhan: di produksi 2026-11-02 permintaan murah itu tidak dijawab sama sekali, yang terjadi hanya kebutuhannya dicatat. Keputusan pemilik hari itu: jawab apa adanya tanpa angka — ukuran tidak diturunkan dari hasil hitungan, yang bisa dihemat kelas pipa sesuai fungsinya dan jalur yang pendek, harga tetap di tim Pralon. Contoh harus membawa kata hematnya sendiri (murah/hemat/budget/cheap); sisi `none` memuat pertanyaan harga biasa, yang hanya menanyakan angkanya.",
+  "threshold": 0.7,
+  "margin": 0.03,
+  "labels": {
+    "cheaper": [
+      "aku mau pipa yang murah aja buat kos 10 kamar",
+      "mau yang murah aja buat rumah 2 lantai",
+      "pipa yang paling murah apa?",
+      "biar hemat pakai pipa 1/2 inci aja boleh?",
+      "ada cara hemat buat instalasi rumah saya?",
+      "yang paling hemat buat kasus saya apa",
+      "budget saya kecil, pipanya pakai apa?",
+      "pengen irit, ukurannya diturunin aja bisa?",
+      "gimana caranya nekan biaya pipa rumah 3 lantai",
+      "mau ngirit, pipa kelas paling rendah aja gimana?",
+      "i want the cheapest pipe for a 10 room boarding house",
+      "how do i keep the piping cost down for a 2 storey house?",
+      "can i use a smaller size to save money?",
+      "my budget is tight, what pipe should i use?",
+      "what is the most economical option for my house?"
+    ],
+    "none": [
+      "harga pipa pvc aw 4 inci berapa?",
+      "harganya berapa?",
+      "minta penawaran 500 batang aw 4 inci",
+      "rumah 2 lantai, 3 kamar mandi",
+      "kos 10 kamar, 2 lantai",
+      "ukuran pipanya berapa buat rumah 3 lantai?",
+      "bedanya pvc aw dan d apa?",
+      "pipa mana yang lebih kuat, pvc atau hdpe?",
+      "diskon dong kalo beli banyak",
+      "udah, itung aja",
+      "how much is pvc aw 4 inch?",
+      "what is the difference between aw and d?",
+      "can i get a quotation for 500 rods?",
+      "which pipe is stronger, pvc or hdpe?",
+      "please calculate it now"
+    ]
+  }
+}

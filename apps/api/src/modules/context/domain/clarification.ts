@@ -16,7 +16,12 @@
  */
 
 import { MAX_QUESTIONS as MAX_TECHNICAL_QUESTIONS } from '@snouty/engineering';
-import type { ClarificationQuestion, Dimensions, RequirementFieldPath } from '@snouty/shared-types';
+import type {
+  ClarificationQuestion,
+  Dimensions,
+  RequirementFieldPath,
+  RequirementState,
+} from '@snouty/shared-types';
 import { DEFAULT_LOCALE, type Locale } from '@snouty/shared-types';
 import type { FieldUpdate } from './context-merger.js';
 import {
@@ -43,6 +48,7 @@ export const CLARIFICATION_PRIORITY: readonly RequirementFieldPath[] = [
   'water.source',
   'water.installationType',
   'building.floors',
+  'fixtures.bathroomsPerRoom',
   'fixtures.bathrooms',
 ];
 
@@ -162,6 +168,12 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
   'building.floors': {
     question: 'Bangunannya berapa lantai?',
     options: ['1', '2', '3', '4'],
+  },
+  // Kos yang jumlah kamarnya disebut: satu pertanyaan, dua pilihan. "Di dalam tiap kamar" membuat
+  // jumlah kamar mandinya sama dengan jumlah kamarnya; "bersama" membuat jumlahnya tetap ditanya.
+  'fixtures.bathroomsPerRoom': {
+    question: 'Kamar mandinya di dalam tiap kamar, atau kamar mandi bersama?',
+    options: ['Di dalam tiap kamar', 'Kamar mandi bersama'],
   },
   'fixtures.bathrooms': {
     question: 'Ada berapa kamar mandi?',
@@ -286,6 +298,7 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.installationType': 'What is this installation for?',
   'building.floors': 'How many floors does the building have?',
   'fixtures.bathrooms': 'How many bathrooms are there?',
+  'fixtures.bathroomsPerRoom': 'Does each room have its own bathroom, or are they shared?',
   'building.dimensions': 'What are the building and land sizes (length × width)?',
   'fixtures.kitchens': 'How many kitchens are there?',
   'fixtures.basins': 'How many wash basins in total, including those in the bathrooms?',
@@ -316,6 +329,8 @@ const OPTION_LABEL_EN: Readonly<Record<string, string>> = {
   'Ganti sebagian': 'Partial replacement',
   'Tambah titik air (perluasan)': 'Add water points (extension)',
   'Galvanis / besi': 'Galvanized / steel',
+  'Di dalam tiap kamar': 'One in every room',
+  'Kamar mandi bersama': 'Shared bathrooms',
 };
 
 export function optionLabel(option: string, locale: Locale): string {
@@ -438,6 +453,7 @@ const OPTION_VALUES: Readonly<
     'Ganti sebagian': 'replace_partial',
     'Tambah titik air (perluasan)': 'extend',
   },
+  'fixtures.bathroomsPerRoom': { 'Di dalam tiap kamar': true, 'Kamar mandi bersama': false },
   'water.existingMainSize': { '1/2"': '1/2"', '3/4"': '3/4"', '1"': '1"', '1 1/4"': '1 1/4"' },
   'water.existingPipeMaterial': {
     PVC: 'pvc',
@@ -518,6 +534,21 @@ export function answerToUpdate(
   const value = mapped ?? (/^\d+$/.test(answer.option) ? Number(answer.option) : null);
   if (value === null) return null;
   return { path, value, source: 'user_stated' };
+}
+
+/**
+ * Jawaban "di dalam tiap kamar" pada kos yang jumlah kamarnya diketahui: jumlah kamar mandinya
+ * adalah jumlah kamarnya. Turunan dari dua hal yang pengguna sendiri sebutkan, jadi ia nilai yang
+ * disebut — bukan anggapan (keputusan pemilik 2026-11-02).
+ */
+export function bathroomsFromRooms(
+  state: RequirementState,
+  updates: readonly FieldUpdate[],
+): readonly FieldUpdate[] {
+  const perRoom = updates.find((u) => u.path === 'fixtures.bathroomsPerRoom');
+  const rooms = state.building.rooms?.value ?? null;
+  if (perRoom?.value !== true || rooms === null) return updates;
+  return [...updates, { path: 'fixtures.bathrooms', value: rooms, source: 'user_stated' }];
 }
 
 /**

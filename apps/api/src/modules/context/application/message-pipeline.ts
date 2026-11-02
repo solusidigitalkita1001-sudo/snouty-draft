@@ -107,6 +107,7 @@ import {
   commercialReply,
   outOfTopicReply,
   replyFor,
+  savingReply,
 } from './reply-copy.js';
 import { caseFacts } from './case-facts.js';
 import { claimVerdict } from './claim-verdict.js';
@@ -666,9 +667,15 @@ export async function runUnderstanding(
   // formulir, dan bukan mengulang penjelasan bahan. Teks dari pengetahuan milik kode.
   // "harga pipa buat rumah 2 lantai berapa?": kebutuhannya dicatat, tetapi pertanyaan harganya
   // tetap dijawab (kebijakan OQ-03) — bukan dibiarkan menguap di balik kartu (audit live 2026-10-08).
+  // Permintaan yang murah atau hemat dijawab apa adanya: ukuran tidak diturunkan dari hitungan,
+  // dan yang memang bisa dihemat disebut. Di produksi 2026-11-02 permintaan itu tidak dijawab sama
+  // sekali — yang terjadi hanya kebutuhannya dicatat.
+  const asksCheaper = input.understanding?.savingRequest === 'cheaper';
+  if (asksCheaper) events.push({ type: 'token', text: savingReply(locale) });
   // Klaim ukuran kerap terbaca pertanyaan harga ("masuk akal ga?" dekat dengan "berapa biayanya"),
-  // dan kalimat harga di depan penilaian ukuran menjawab pertanyaan yang tidak diajukan.
-  if (input.understanding?.intent?.label === 'price_question' && !checksClaim) {
+  // dan kalimat harga di depan penilaian ukuran menjawab pertanyaan yang tidak diajukan. Permintaan
+  // hemat sudah menyebut harganya sendiri di kalimat di atas.
+  if (input.understanding?.intent?.label === 'price_question' && !checksClaim && !asksCheaper) {
     events.push({ type: 'token', text: productAnswerCopy(locale).priceNotShown });
     events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_SALES' } });
   }

@@ -85,6 +85,7 @@ import {
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
 import {
   answerToUpdate,
+  bathroomsFromRooms,
   summarizeAnswers,
   type ClarificationAnswer,
 } from '../domain/clarification.js';
@@ -883,7 +884,7 @@ export class MessageService {
     const outliers = answers
       .map((answer) => outlierAnswer(answer))
       .filter((a): a is NonNullable<typeof a> => a !== null);
-    const updates = [
+    const updates = bathroomsFromRooms(base, [
       ...answers
         .filter((answer) => !isIrrigationField(answer.id))
         .filter((answer) => !isOutlierAnswerId(answer.id))
@@ -891,7 +892,7 @@ export class MessageService {
         .map((answer) => answerToUpdate(answer, (path) => defaultUpdateFor(path, state)))
         .filter((update): update is NonNullable<typeof update> => update !== null),
       ...outliers.flatMap((a) => ('update' in a ? [a.update] : [])),
-    ];
+    ]);
     const result = mergeRequirement(base, updates, now);
     const confirmed = confirmOutliers(
       result.state,

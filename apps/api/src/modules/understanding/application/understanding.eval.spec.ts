@@ -31,6 +31,7 @@ interface GoldenCase {
   readonly extreme?: string | null;
   readonly computeRequest?: string | null;
   readonly claimCheck?: string | null;
+  readonly savingRequest?: string | null;
   readonly topics?: readonly string[];
   /** Topik yang dikenali harus PERSIS `topics` — tidak ada topik lain yang ikut terseret. */
   readonly topicsOnly?: boolean;
@@ -164,6 +165,11 @@ function compare(c: GoldenCase, u: MessageUnderstanding): string[] {
   }
   if (c.claimCheck !== undefined && u.claimCheck !== c.claimCheck) {
     problems.push(`claimCheck: diharapkan ${c.claimCheck}, dapat ${u.claimCheck ?? 'null'}`);
+  }
+  if (c.savingRequest !== undefined && u.savingRequest !== c.savingRequest) {
+    problems.push(
+      `savingRequest: diharapkan ${c.savingRequest}, dapat ${u.savingRequest ?? 'null'}`,
+    );
   }
   if (c.companyTopic !== undefined && u.companyTopic !== c.companyTopic) {
     problems.push(`companyTopic: diharapkan ${c.companyTopic}, dapat ${u.companyTopic ?? 'null'}`);

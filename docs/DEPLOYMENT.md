@@ -100,6 +100,11 @@ penalaran ±5 menit per kalimat di CPU ini). Terukur di server: ekstraksi 2,3 s,
 6 s. `qwen3.5:9b` ada di disk sebagai alternatif (±2× lebih lambat). Timeout: `LLM_CALL_TIMEOUT_MS=60000`,
 `LLM_REPLY_TIMEOUT_MS=15000`.
 
+Batas tunggu balasan dikembalikan ke 15 detik pada 2026-11-02 (keputusan pemilik): server sempat
+berjalan dengan 60000, dan di mesin ini jalur prosa model tidak pernah selesai di bawah 16 detik —
+jadi angka itu hanya menahan pengguna sampai satu menit untuk jawaban yang akhirnya teks tetap.
+Klasifikasi maksud (±12 detik di beban penuh) masih selesai di dalam 15 detik.
+
 ### 4b. Model chat di penyedia hosted (2026-10-08)
 
 qwen2.5 7B di CPU server (4 core, tanpa GPU) butuh 25–60 detik per panggilan, jadi model hampir

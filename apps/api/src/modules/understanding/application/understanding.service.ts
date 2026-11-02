@@ -24,6 +24,7 @@ import type {
   KnowledgeTopicLabel,
   MutationOpLabel,
   ProductAspectLabel,
+  SavingRequestLabel,
   UseCaseLabel,
   ExtremeLabel,
   ClaimCheckLabel,
@@ -130,6 +131,9 @@ export class UnderstandingService {
         null,
       claimCheck:
         (this.verdict('claim-check', query).best?.label as ClaimCheckLabel | undefined) ?? null,
+      savingRequest:
+        (this.verdict('saving-request', query).best?.label as SavingRequestLabel | undefined) ??
+        null,
       intentRanking: intent.ranked,
       topicRanking: knowledge.ranked.slice(0, 5),
     };

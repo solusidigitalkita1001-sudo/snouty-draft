@@ -21,6 +21,7 @@ export function emptyRequirementState(now: string): RequirementState {
       floors: empty(now),
       floorHeightM: empty(now),
       dimensions: empty(now),
+      rooms: empty(now),
     },
     fixtures: {
       bathrooms: empty(now),
@@ -30,6 +31,7 @@ export function emptyRequirementState(now: string): RequirementState {
       wudhuTaps: empty(now),
       wudhuAreas: empty(now),
       urinals: empty(now),
+      bathroomsPerRoom: empty(now),
     },
     water: {
       source: empty(now),

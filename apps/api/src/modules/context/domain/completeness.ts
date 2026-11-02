@@ -46,6 +46,14 @@ export function evaluateCompleteness(state: RequirementState): CompletenessResul
     ...(floorHeightOutOfRange(state) !== null ? (['building.floorHeightM'] as const) : []),
     // Renovasi yang jenisnya belum disebut (P23-03): ditanya, bukan ditebak bangun baru.
     ...(state.water.workType?.value === 'renovation' ? (['water.workType'] as const) : []),
+    // Kos yang jumlah kamarnya disebut: kamar mandi di dalam tiap kamar atau bersama ditanya
+    // sekali, dan sampai itu dijawab tidak ada yang dihitung (keputusan pemilik 2026-11-02).
+    ...(state.building.rooms?.value !== null &&
+    state.building.rooms?.value !== undefined &&
+    !isFilled(readField(state, 'fixtures.bathrooms')) &&
+    !isFilled(readField(state, 'fixtures.bathroomsPerRoom'))
+      ? (['fixtures.bathroomsPerRoom'] as const)
+      : []),
   ];
 
   return {

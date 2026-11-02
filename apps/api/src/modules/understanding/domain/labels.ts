@@ -219,6 +219,14 @@ export type ComputeRequestLabel = (typeof COMPUTE_REQUESTS)[number];
 export const CLAIM_CHECKS = ['check'] as const;
 export type ClaimCheckLabel = (typeof CLAIM_CHECKS)[number];
 
+/**
+ * Pesan ini meminta yang murah atau hemat (P32-17). Katalognya sendiri karena pesannya sekaligus
+ * menyatakan kebutuhan — di produksi 2026-11-02 "aku mau pipa yang murah aja buat kos 10 kamar"
+ * hanya dicatat sebagai kos, dan permintaan murahnya tidak dijawab sama sekali.
+ */
+export const SAVING_REQUESTS = ['cheaper'] as const;
+export type SavingRequestLabel = (typeof SAVING_REQUESTS)[number];
+
 /** Nama katalog data → label yang sah di dalamnya. */
 export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   intent: FINE_INTENTS,
@@ -232,6 +240,7 @@ export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   extreme: EXTREMES,
   'compute-request': COMPUTE_REQUESTS,
   'claim-check': CLAIM_CHECKS,
+  'saving-request': SAVING_REQUESTS,
 };
 export type CatalogName = keyof typeof CATALOG_LABELS;
 

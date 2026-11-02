@@ -196,3 +196,15 @@ export function commercialReply(locale: Locale = DEFAULT_LOCALE): string {
     ? 'Quotations, stock, delivery, and warranty sit with the Pralon team — I do not hold those figures. What I can do here is work out pipe sizes and the material a building needs, and answer product questions.'
     : 'Penawaran, stok, pengiriman, dan garansi ada di tim Pralon — angkanya tidak saya pegang. Yang bisa saya kerjakan di sini: menghitung ukuran pipa dan kebutuhan materialnya, serta menjawab pertanyaan produk.';
 }
+
+/**
+ * Permintaan yang murah atau hemat (P32-17, keputusan pemilik 2026-11-02): dijawab apa adanya,
+ * tanpa angka. Ukuran tidak diturunkan dari hasil hitungan — itu yang membuat airnya kecil; yang
+ * bisa dihemat kelas pipa sesuai fungsinya (ENG-013: AW di jalur bertekanan, D di buangan) dan
+ * jalur yang pendek. Harga sendiri tidak ditampilkan di sini (OQ-03).
+ */
+export function savingReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en'
+    ? 'On cost: the pipe size itself is not where to save — a size below the calculation is what makes the water weak at the top floor. What does save money is using the right class for each line (pressure class only where the water is pushed, drainage class on the waste side) and keeping the main run short and straight, since every bend is another fitting. The prices and the offer come from the Pralon team.'
+    : 'Soal hemat: yang tidak bisa dihemat justru ukuran pipanya — ukuran di bawah hasil hitungan itulah yang membuat air di lantai atas kecil. Yang bisa dihemat: kelas pipa sesuai fungsi jalurnya (kelas bertekanan hanya di jalur yang airnya didorong, kelas buangan di sisi pembuangan) dan jalur utama yang pendek serta lurus, karena setiap tikungan berarti satu fitting lagi. Harga dan penawarannya dari tim Pralon.';
+}

@@ -97,6 +97,13 @@ export interface BuildingState {
   readonly floorHeightM: TrackedValue<number>;
   /** Kosong → BOM menjadi `ESTIMATED`, bukan `VERIFIED`. */
   readonly dimensions: TrackedValue<Dimensions>;
+  /**
+   * Jumlah kamar sewa (kos) — bukan kamar mandi. "kos 10 kamar" tidak berarti 10 kamar mandi:
+   * kamar mandinya bisa di dalam tiap kamar atau bersama, dan itu yang ditanyakan sekali
+   * (`fixtures.bathroomsPerRoom`, keputusan pemilik 2026-11-02). Opsional: state yang tersimpan
+   * sebelum field ini ada dibaca sebagai kosong.
+   */
+  readonly rooms?: TrackedValue<number>;
 }
 
 export interface FixtureState {
@@ -117,6 +124,12 @@ export interface FixtureState {
   readonly wudhuAreas?: TrackedValue<number>;
   /** Urinoir di toilet pria (tempat ibadah, 2026-10-12). Opsional seperti `wudhuTaps`. */
   readonly urinals?: TrackedValue<number>;
+  /**
+   * Kos: tiap kamar punya kamar mandi sendiri (true) atau kamar mandinya bersama (false). Jawaban
+   * "sendiri" menjadikan jumlah kamar jumlah kamar mandinya; "bersama" membuat jumlah kamar
+   * mandinya tetap ditanya, bukan dianggap. Opsional seperti `urinals`.
+   */
+  readonly bathroomsPerRoom?: TrackedValue<boolean>;
 }
 
 export interface WaterState {
@@ -164,6 +177,7 @@ export type RequirementFieldPath =
   | 'building.floors'
   | 'building.floorHeightM'
   | 'building.dimensions'
+  | 'building.rooms'
   | 'fixtures.bathrooms'
   | 'fixtures.basins'
   | 'fixtures.kitchens'
@@ -171,6 +185,7 @@ export type RequirementFieldPath =
   | 'fixtures.wudhuTaps'
   | 'fixtures.wudhuAreas'
   | 'fixtures.urinals'
+  | 'fixtures.bathroomsPerRoom'
   | 'water.source'
   | 'water.installationType'
   | 'water.boosterPump'

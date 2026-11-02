@@ -110,6 +110,8 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
 
 /** Kamar sewa, dan pernyataan bahwa tiap kamar punya kamar mandinya sendiri. */
 const ROOM = 'kamar|kamar kos|kamar sewa|kamar tidur|rooms?|bedrooms?';
+// Kamar sewa TANPA ikut menangkap "kamar mandi": "10 kamar mandi" bukan 10 kamar.
+const ROOM_ONLY = 'kamar kos|kamar sewa|kamar tidur|kamar(?![ ]*mandi)|rooms?|bedrooms?';
 const OWN_BATHROOM =
   /kamar mandi (?:sendiri|dalam|pribadi|masing-masing)|kamar mandi di dalam|en-?suite|(?:own|private) bathroom/i;
 
@@ -132,6 +134,12 @@ const OBVIOUS = {
     ) ??
     wordCountOf('lantai|tingkat|floors?|stor(?:e)?ys?|stories', m),
   bathrooms: (m: string) => countOf('kamar mandi|km|toilet|bathrooms?|toilets?|restrooms?', m),
+  /**
+   * Jumlah kamar sewa, berdiri sendiri: "kos 10 kamar" tidak mengatakan apa pun tentang kamar
+   * mandinya. Di produksi 2026-11-02 angka 10 hilang tanpa bekas; keputusan pemilik hari itu
+   * adalah mencatatnya lalu bertanya sekali, bukan menganggap satu kamar mandi per kamar.
+   */
+  rooms: (m: string) => countOf(ROOM_ONLY, m, 3),
   /**
    * Kamar sewa yang masing-masing punya kamar mandi: jumlah kamarnya adalah jumlah kamar mandinya.
    * Produksi 2026-10-26: "kos 4 lantai, tiap lantai 6 kamar, tiap kamar ada kamar mandi sendiri"
@@ -740,6 +748,12 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
       ) ?? OBVIOUS.roomBathrooms(message, floorsStated),
     ),
   );
+  // Kamar sewa hanya dicatat untuk bangunan yang memang punya kamar sewa: "rumah 3 kamar tidur"
+  // tidak memunculkan pertanyaan kamar mandi per kamar.
+  const rental =
+    (OBVIOUS.type(message) ?? extraction.building?.type) === 'boarding_house' ||
+    /kamar (?:kos|sewa)/i.test(message);
+  if (rental) add('building.rooms', OBVIOUS.rooms(message));
   // Peniadaan tersurat ("tidak ada dapur") yang dilewatkan model → 0 dari teks (produksi
   // 2026-10-07: model menghilangkan `kitchens` sama sekali, lalu sistem bertanya soal dapur).
   add(
