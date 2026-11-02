@@ -217,6 +217,19 @@ export async function runUnderstanding(
       !isProductQuestion(label)
         ? solutionReasonReply(input.solution, input.locale ?? DEFAULT_LOCALE)
         : null;
+    // Pertanyaan ukuran sebelum ada solusi: bila kebutuhannya yang belum lengkap, yang ditunggu
+    // disebut namanya. Menyuruh menekan Susun rekomendasi saat tombolnya belum ada adalah jalan
+    // buntu — di produksi 2026-11-02 "jadi pipa utamanya berapa?" di kasus masjid dijawab begitu,
+    // padahal yang kurang hanya satu hal (jenis instalasinya).
+    // Solusi yang sudah pernah dihitung lalu menjadi usang tetap diarahkan ke tombolnya: datanya
+    // dulu cukup, yang berubah tinggal dihitung ulang.
+    const beforeSolution =
+      (input.solution
+        ? null
+        : missingForCalculationReply(
+            askableMissing(withCompleteness(input.state).missingInformation),
+            input.locale ?? DEFAULT_LOCALE,
+          )) ?? explanationBeforeSolution(input.locale);
     const fromSolution =
       reasoned !== null ||
       (drawing !== null && !!input.solution) ||
@@ -260,7 +273,11 @@ export async function runUnderstanding(
                         // 27 detik dan jawabannya mengaku mencatat hal yang tidak punya tempat di
                         // kebutuhan ("sudah saya catat bahwa air kotor dan air bekas dipisahkan",
                         // produksi 2026-10-26).
-                        explanationBeforeSolution(input.locale)
+                        // Kebutuhannya yang belum lengkap: yang ditunggu disebut namanya. Menyuruh
+                        // menekan Susun rekomendasi saat tombolnya belum ada adalah jalan buntu —
+                        // di produksi 2026-11-02 "jadi pipa utamanya berapa?" di kasus masjid
+                        // dijawab begitu, dan yang kurang hanya satu hal (jenis instalasinya).
+                        beforeSolution
                       : input.decision.intent === 'OUT_OF_SCOPE' &&
                           (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
                         ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
@@ -302,7 +319,7 @@ export async function runUnderstanding(
         // "Ukurannya baru dihitung setelah Anda menekan Susun rekomendasi" sudah menjawab
         // pertanyaan ukuran atas kebutuhan yang belum lengkap; lewat model ia 49,6 detik dan
         // balik menanyakan sumber air yang baru saja disebut pengguna (produksi 2026-10-26).
-        fallback === explanationBeforeSolution(input.locale) ||
+        fallback === beforeSolution ||
         fallback === outOfTopicReply(input.locale) ||
         fallback === commercialReply(input.locale);
       const written =

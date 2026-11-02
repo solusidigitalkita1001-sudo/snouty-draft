@@ -192,6 +192,23 @@ export function namesCatalogFamily(
 }
 
 /**
+ * Pertanyaan atas solusi yang BELUM ada (atau sudah usang) pada kasus yang kebutuhannya sudah
+ * tercatat: jawabannya teks tetap yang menyebut data yang masih ditunggu. Tidak ada yang bisa
+ * direncanakan — di produksi 2026-11-02 "jadi pipa utamanya berapa?" pada kasus masjid memakai
+ * 10,7 detik di perencana untuk sampai ke kalimat tetap itu.
+ */
+export function asksBeforeSolution(
+  u: MessageUnderstanding,
+  hasCase: boolean,
+  hasFreshSolution: boolean,
+): boolean {
+  if (!hasCase || hasFreshSolution) return false;
+  const label = u.intent?.label;
+  if (label !== 'explanation_request' && label !== 'system_layout_question') return false;
+  return u.intent !== null && u.intent.score >= CONFIDENT_SCORE;
+}
+
+/**
  * Label yang jawabannya TEKS TETAP: sapaan, terima kasih, pamit, keluhan, di luar topik, dan
  * pertanyaan kemampuan. Tidak ada yang bisa direncanakan — tidak ada keluarga produk yang dicari
  * dan tidak ada kasus yang dihitung. Di produksi 2026-10-26 "nanya nih" melewati perencana

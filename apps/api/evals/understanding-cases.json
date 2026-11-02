@@ -2213,6 +2213,16 @@
       "text": "fittingnya ada juga?",
       "intent": "product_range",
       "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "butuh berapa batang pipa 4 meter?",
+      "topics": ["jumlah batang"],
+      "useCase": null,
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "satu batang pipa panjangnya berapa?",
+      "topics": ["panjang batang"]
     }
   ]
 }

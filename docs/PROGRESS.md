@@ -4457,3 +4457,17 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Jawaban yang benar tadi masih memakan 9,1 detik: pemeta pertanyaan model tetap dipanggil
       walau keluarganya sudah tersurat di pesan pengguna sendiri. Pertanyaan ukuran atas keluarga
       itu kini dijawab langsung dari katalog.
+
+- [x] P32-42 Panjang batang yang disebut tidak menghapus pertanyaan jumlahnya
+
+      "butuh berapa batang pipa 4 meter?" dijawab seluruh jalur plus daftar belanja dalam satu
+      paragraf raksasa: "4 meter" membuat pertanyaannya terbaca sebagai panjang batang, bukan
+      jumlah batang. Contohnya ditambahkan ke data pemahaman, termasuk sebagai bukan-kasus supaya
+      ia tidak membuka kasus kolam.
+
+- [x] P32-43 Pertanyaan ukuran sebelum ada solusi menyebut yang ditunggu
+
+      Di kasus masjid, "jadi pipa utamanya berapa?" memakai 10,7 detik di perencana giliran lalu
+      dijawab "Ukurannya baru dihitung setelah Anda menekan Susun rekomendasi" — tombol yang belum
+      ada, karena satu data inti masih ditunggu. Sekarang yang ditunggu disebut namanya, tanpa
+      perencana. Solusi yang sudah pernah dihitung lalu usang tetap diarahkan ke tombolnya.

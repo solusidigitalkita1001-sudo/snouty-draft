@@ -77,6 +77,7 @@ import { irrigationGuidance } from './irrigation-guidance.js';
 import { executePlan } from './plan-executor.js';
 import {
   aspectOfSpokenFamily,
+  asksBeforeSolution,
   hasFixedAnswer,
   isConfidentStandalone,
   isStructuredProductFollowUp,
@@ -427,6 +428,13 @@ export class MessageService {
       ) &&
       // Pesan yang menyebut sendiri keluarga katalognya dijawab kode dari katalog (P31-02).
       !namesCatalogFamily(u, (f) => this.lexicon().isCatalogFamily(f)) &&
+      // Pertanyaan atas solusi yang belum ada dijawab teks tetap yang menyebut data yang ditunggu
+      // (P32-43): tidak ada yang bisa direncanakan, dan lewat perencana ia 10,7 detik.
+      !asksBeforeSolution(
+        u,
+        hasExisting,
+        solution !== null && solution !== undefined && !solution.stale,
+      ) &&
       // Dan aspek produk atas keluarga yang pengguna sendiri sebut beberapa giliran sebelumnya
       // (P32-40): keluarganya dari kosakata, ukurannya dari katalog.
       !aspectOfSpokenFamily(

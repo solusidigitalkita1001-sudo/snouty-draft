@@ -794,6 +794,35 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     expect(router.route).not.toHaveBeenCalled();
   });
 
+  // Produksi 2026-11-02, kasus masjid: "jadi pipa utamanya berapa?" memakai 10,7 detik di
+  // perencana, lalu dijawab "Ukurannya baru dihitung setelah Anda menekan Susun rekomendasi" —
+  // tombol yang belum ada, karena satu data inti masih ditunggu.
+  it('pertanyaan ukuran sebelum ada solusi tidak lewat perencana (P32-43)', async () => {
+    const mosque = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState('T'),
+        [
+          { path: 'building.type', value: 'place_of_worship', source: 'user_stated' },
+          { path: 'building.floors', value: 2, source: 'user_stated' },
+          { path: 'fixtures.bathrooms', value: 4, source: 'user_stated' },
+          { path: 'water.source', value: 'rooftop_tank', source: 'user_stated' },
+        ],
+        'T',
+      ).state,
+    );
+    const { service, planner } = setup(
+      [
+        { role: 'user', text: 'masjid 2 lantai, 4 toilet' },
+        { role: 'assistant', text: 'Oke, sudah saya catat: tempat ibadah, 2 lantai.' },
+      ],
+      { 'jadi pipa utamanya berapa?': { intent: 'explanation_request' } },
+      mosque,
+    );
+    await service.handle('C'.repeat(26), ACTOR, 'jadi pipa utamanya berapa?', 'T');
+    // Kalimat jawabannya sendiri diuji di `message-pipeline.spec.ts`: di sini routernya ganda.
+    expect(planner.plan).not.toHaveBeenCalled();
+  });
+
   it('kasus yang sudah diserahkan ke tim teknis tidak lewat perencana (P31-26)', async () => {
     const factory = mergeRequirement(
       emptyRequirementState('T'),

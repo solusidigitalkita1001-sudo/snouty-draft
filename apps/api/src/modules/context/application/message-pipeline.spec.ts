@@ -727,10 +727,32 @@ describe('runUnderstanding — bentuk event SSE', () => {
     );
     const text = events.find((e) => e.type === 'token') as { text: string } | undefined;
     expect(writerCalls).toBe(0);
-    // Kebutuhan masih kosong: belum ada solusi untuk dibuka — katakan kapan ukurannya dihitung.
-    expect(text?.text).toContain(
-      'Ukurannya baru dihitung setelah Anda menekan **Susun rekomendasi**',
+    // Kebutuhan masih kosong: belum ada solusi untuk dibuka, dan yang ditunggu disebut namanya —
+    // menyuruh menekan tombol yang belum ada adalah jalan buntu (P32-43).
+    expect(text?.text).toContain('Untuk menghitungnya saya masih perlu');
+    expect(text?.text).toContain('jumlah lantai');
+
+    // Satu data inti yang masih ditunggu: itu yang disebut, bukan tombol yang belum ada (P32-43,
+    // kasus masjid di produksi 2026-11-02).
+    const mosque = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [
+          { path: 'building.type', value: 'place_of_worship', source: 'user_stated' },
+          { path: 'building.floors', value: 2, source: 'user_stated' },
+          { path: 'fixtures.bathrooms', value: 4, source: 'user_stated' },
+          { path: 'water.source', value: 'rooftop_tank', source: 'user_stated' },
+        ],
+        T0,
+      ).state,
     );
+    const mosqueTurn = await runUnderstanding(
+      aiExtracting({}),
+      input({ message: 'jadi pipa utamanya berapa?', decision, state: mosque }),
+    );
+    const mosqueText = mosqueTurn.events.find((e) => e.type === 'token') as { text: string };
+    expect(mosqueText.text).toContain('jenis instalasi');
+    expect(mosqueText.text).not.toContain('Susun rekomendasi');
 
     const complete = withCompleteness(
       mergeRequirement(
