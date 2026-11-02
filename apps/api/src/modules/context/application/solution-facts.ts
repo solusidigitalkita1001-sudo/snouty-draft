@@ -126,8 +126,9 @@ function inSentence(text: string): string {
  * kalimat titik tengah itu terbaca keluaran mesin (produksi 2026-11-02).
  */
 function spokenPurpose(text: string, en: boolean): string {
-  return inSentence(text)
+  return text
     .split(' · ')
+    .map(inSentence)
     .join(en ? ' and ' : ' dan ');
 }
 

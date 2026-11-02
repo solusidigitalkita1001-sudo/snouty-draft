@@ -19,7 +19,7 @@ import { withCompleteness } from '../domain/completeness.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
 import { runUnderstanding } from './message-pipeline.js';
-import { layoutReply, pressureReply, solutionReasonReply } from './solution-facts.js';
+import { layoutReply, pressureReply, rodsReply, solutionReasonReply } from './solution-facts.js';
 
 const T0 = '2026-11-02T00:00:00.000Z';
 const REASON =
@@ -247,5 +247,37 @@ describe('pertanyaan tekanan atas bentuk sistem', () => {
   it('akronim di nama baris tidak dikecilkan', () => {
     expect(layoutReply(withNeeds, 'id')).toContain('meteran PDAM');
     expect(pressureReply(withNeeds, 'id')).toContain('meteran PDAM');
+  });
+});
+
+/**
+ * P32-47 — dua peruntukan satu SKU ("Cabang · Sambungan ke alat") diucapkan dengan kata "dan",
+ * dan huruf awal keduanya kecil di tengah kalimat (produksi 2026-11-02).
+ */
+describe('peruntukan ganda di daftar belanja', () => {
+  const withBom = {
+    recommendation: {
+      ...solution.recommendation,
+      bom: [
+        {
+          item: 'Pipa PVC AW',
+          purpose: 'Cabang · Sambungan ke alat',
+          size: '1/2"',
+          quantity: 13,
+          unit: 'batang',
+        },
+      ],
+    } as unknown as ActiveSolution['recommendation'],
+    stale: false,
+  } satisfies ActiveSolution;
+
+  it('diucapkan dengan "dan", tanpa titik tengah dan tanpa huruf besar di tengah kalimat', () => {
+    const text = rodsReply(withBom, 'id')!;
+    expect(text).toContain('cabang dan sambungan ke alat 1/2" 13 batang');
+    expect(text).not.toContain(' · ');
+  });
+
+  it('bahasa Inggris memakai "and"', () => {
+    expect(rodsReply(withBom, 'en')!).toContain('cabang and sambungan ke alat');
   });
 });
