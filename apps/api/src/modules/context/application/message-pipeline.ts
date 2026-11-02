@@ -94,8 +94,9 @@ import {
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 import { applyRelativeCounts } from '../domain/relative-counts.js';
 import { parseTemperature } from '../domain/temperature-parser.js';
-import { extractionToUpdates } from './extraction-to-updates.js';
+import { extractionToUpdates, mentionsTankWithoutLocation } from './extraction-to-updates.js';
 import { asksSolutionQuantity, isCaseStatement } from './intent-router.js';
+import { mentionsPressureQuantity } from './knowledge-answer.js';
 import type { RoutingDecision } from './intent-router.js';
 import { adviseMaterials, materialsFor } from './pipe-knowledge.js';
 import { productAnswerCopy } from './product-answer-text.js';
@@ -113,6 +114,7 @@ import {
   outOfTopicReply,
   replyFor,
   savingReply,
+  tankLocationQuestion,
 } from './reply-copy.js';
 import { caseFacts } from './case-facts.js';
 import { claimVerdict } from './claim-verdict.js';
@@ -121,6 +123,7 @@ import {
   alreadyComputedReply,
   layoutReply,
   rodsReply,
+  pressureReply,
   solutionReasonReply,
   solutionReply,
 } from './solution-facts.js';
@@ -231,7 +234,9 @@ export async function runUnderstanding(
             input.decision.intent === 'EXPLANATION_REQUEST' &&
               input.solution &&
               !input.solution.stale
-            ? solutionReply(input.solution, input.locale ?? DEFAULT_LOCALE)
+            ? ((mentionsPressureQuantity(input.message)
+                ? pressureReply(input.solution, input.locale ?? DEFAULT_LOCALE)
+                : null) ?? solutionReply(input.solution, input.locale ?? DEFAULT_LOCALE))
             : label === 'capability_question'
               ? capabilityReply(input.locale)
               : label === 'commercial_question'
@@ -787,11 +792,15 @@ export async function runUnderstanding(
     // Pesan yang tidak mengubah apa pun pada kasus yang solusinya SUDAH dihitung dijawab dari
     // solusinya. Dulu ia mendapat ringkasan kebutuhan plus "Tekan Susun rekomendasi" — tombol
     // untuk hitungan yang sudah ada (produksi 2026-10-26: "septic tanknya di mana").
+    // Pertanyaan tekanan dijawab baris tekanan solusinya, bukan ringkasan ukuran pipa: angka
+    // barnya sudah dihitung, termasuk sisa tekanan di titik air tertinggi (produksi 2026-11-02).
     const fromComputed =
       !changed && input.solution && !input.solution.stale
         ? asksToCompute
           ? alreadyComputedReply(input.solution, locale)
-          : solutionReply(input.solution, locale)
+          : ((mentionsPressureQuantity(input.message)
+              ? pressureReply(input.solution, locale)
+              : null) ?? solutionReply(input.solution, locale))
         : null;
     const answer =
       fromComputed !== null && fromComputed.trim() !== said?.trim() ? fromComputed : text;
@@ -800,8 +809,15 @@ export async function runUnderstanding(
       checksClaim && card?.kind === 'cta'
         ? claimVerdict(merged, parseSize(input.message), locale)
         : null;
+    // Toren tanpa letaknya: pengguna baru saja menyebut sumber airnya, jadi yang diucapkan
+    // pertanyaan letak torennya — bukan "kebutuhan Anda tetap tercatat" (produksi 2026-11-02).
+    const tankAsked =
+      merged.water.source.value === null && mentionsTankWithoutLocation(input.message)
+        ? tankLocationQuestion(locale)
+        : null;
     if (answer !== null || verdict !== null) {
-      const spoken = same && answer === text ? requirementUnchangedReply(locale) : answer;
+      const spoken =
+        same && answer === text ? (tankAsked ?? requirementUnchangedReply(locale)) : answer;
       const sentences = [spoken, verdict].filter((part) => part !== null && part !== '').join(' ');
       // Kalimat harga atau nasihat bahan di atas sudah mengirim teksnya sendiri; tanpa pemisah
       // keduanya menempel jadi satu kata ("…Anda butuhkan.Oke, sudah saya catat").

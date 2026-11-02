@@ -690,6 +690,18 @@ function intAfter(pattern: RegExp, message: string): number | undefined {
   return Number.isInteger(n) && n > 0 ? n : undefined;
 }
 
+/**
+ * Pesan menyebut toren tetapi tidak letaknya ("airnya dari sumur bor pakai toren"). Letak toren
+ * menentukan tekanan, jadi ia ditanyakan, bukan ditebak — dan pertanyaannya yang diucapkan, bukan
+ * "kebutuhan Anda tetap tercatat" (produksi 2026-11-02: jawaban pengguna seolah tidak terbaca).
+ */
+export function mentionsTankWithoutLocation(message: string): boolean {
+  return (
+    /\b(toren|tandon|tangki|tanks?)(?:nya)?\b/i.test(message) &&
+    OBVIOUS.source(message) === undefined
+  );
+}
+
 export function extractionToUpdates(extraction: Extraction, message = ''): FieldUpdate[] {
   const updates: FieldUpdate[] = [];
   // Jumlah lantai dipakai memeriksa kalimat yang membagi per lantai ("tiap lantai 2 kamar mandi").
@@ -845,9 +857,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   // Toren disebut tanpa letaknya ("mau pasang 2 toren", produksi 2026-10-07): model menebak
   // `ground_tank` dan lolos. Letak toren adalah pertanyaan yang pantas ditanyakan, bukan ditebak —
   // nilai model dibuang, sumber air masuk klarifikasi.
-  const tankWithoutLocation =
-    /\b(toren|tandon|tangki|tanks?)(?:nya)?\b/i.test(message) &&
-    OBVIOUS.source(message) === undefined;
+  const tankWithoutLocation = mentionsTankWithoutLocation(message);
   add(
     'water.source',
     OBVIOUS.source(message) ??

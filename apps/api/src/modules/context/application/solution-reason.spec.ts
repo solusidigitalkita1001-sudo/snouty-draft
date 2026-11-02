@@ -19,7 +19,7 @@ import { withCompleteness } from '../domain/completeness.js';
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
 import { runUnderstanding } from './message-pipeline.js';
-import { solutionReasonReply } from './solution-facts.js';
+import { pressureReply, solutionReasonReply } from './solution-facts.js';
 
 const T0 = '2026-11-02T00:00:00.000Z';
 const REASON =
@@ -149,5 +149,51 @@ describe('runUnderstanding — pertanyaan dasar ukuran', () => {
   it('solusi yang belum ada: dasarnya tidak dikarang', async () => {
     const { events } = await ask('kenapa segitu?', { solution: null });
     expect(spoken(events)).not.toContain('Beban suplai');
+  });
+});
+
+/**
+ * P32-32 — pertanyaan tekanan atas solusi yang sudah dihitung. Produksi 2026-11-02: "berapa bar di
+ * keran paling atas?" dijawab ringkasan ukuran pipa, dan angka barnya tidak disebut sama sekali.
+ */
+describe('pertanyaan tekanan', () => {
+  const withPressure = {
+    recommendation: {
+      ...solution.recommendation,
+      systemLines: [
+        ...solution.recommendation.systemLines,
+        {
+          name: 'Tekanan yang dibutuhkan di meteran PDAM',
+          path: 'Sumber air',
+          size: '2,03 bar',
+          reason:
+            'Tinggi angkat total 20,67 m = beda tinggi 9 m + kehilangan di pipa 1 m + di sambungan 0,47 m + sisa tekanan di ujung 10,2 m (1 bar).',
+          role: 'fitting',
+          provenance: 'ASSUMED',
+          traceIds: [],
+        },
+      ],
+    } as unknown as ActiveSolution['recommendation'],
+    stale: false,
+  } satisfies ActiveSolution;
+
+  it('dijawab angka barnya beserta rinciannya', () => {
+    const text = pressureReply(withPressure, 'id')!;
+    expect(text).toContain('2,03 bar');
+    expect(text).toContain('sisa tekanan di ujung');
+  });
+
+  it('solusi tanpa baris tekanan tidak dijawab kalimat kosong', () => {
+    expect(pressureReply(solution, 'id')).toBeNull();
+  });
+
+  it('"berapa bar di keran paling atas?" dijawab tekanannya, bukan ringkasan ukuran', async () => {
+    const message = 'berapa bar di keran paling atas?';
+    const { events } = await ask(message, {
+      solution: withPressure,
+      understanding: understood(message, { intent: 'explanation_request' }),
+    });
+    const text = spoken(events);
+    expect(text).toContain('2,03 bar');
   });
 });

@@ -338,3 +338,20 @@ export function solutionReasonReply(solution: ActiveSolution, locale: Locale): s
     : '';
   return `${head} ${reason}${tail}`;
 }
+
+/**
+ * Pertanyaan TEKANAN atas solusi yang sudah dihitung ("berapa bar di keran paling atas?"): baris
+ * tekanan solusinya beserta rinciannya — beda tinggi, kehilangan di pipa dan sambungan, sisa
+ * tekanan di ujung. Di produksi 2026-11-02 pertanyaan itu dijawab ringkasan ukuran pipa, dan angka
+ * barnya tidak disebut sama sekali meski sudah dihitung. `null` bila solusinya tidak punya baris
+ * tekanan (ukuran bernilai bar).
+ */
+export function pressureReply(solution: ActiveSolution, locale: Locale): string | null {
+  const lines = solution.recommendation.systemLines.filter((l) => /\bbar\b/i.test(l.size));
+  if (lines.length === 0) return null;
+  const en = locale === 'en';
+  const said = lines.map((l) => `${l.name.toLowerCase()} ${l.size}`).join('; ');
+  const detail = lines.map((l) => l.reason.trim()).find((r) => r !== '') ?? '';
+  const head = en ? `In your solution: ${said}.` : `Di solusi Anda: ${said}.`;
+  return detail === '' ? head : `${head} ${detail}`;
+}

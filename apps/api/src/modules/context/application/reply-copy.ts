@@ -208,3 +208,14 @@ export function savingReply(locale: Locale = DEFAULT_LOCALE): string {
     ? 'On cost: the pipe size itself is not where to save — a size below the calculation is what makes the water weak at the top floor. What does save money is using the right class for each line (pressure class only where the water is pushed, drainage class on the waste side) and keeping the main run short and straight, since every bend is another fitting. The prices and the offer come from the Pralon team.'
     : 'Soal hemat: yang tidak bisa dihemat justru ukuran pipanya — ukuran di bawah hasil hitungan itulah yang membuat air di lantai atas kecil. Yang bisa dihemat: kelas pipa sesuai fungsi jalurnya (kelas bertekanan hanya di jalur yang airnya didorong, kelas buangan di sisi pembuangan) dan jalur utama yang pendek serta lurus, karena setiap tikungan berarti satu fitting lagi. Harga dan penawarannya dari tim Pralon.';
 }
+
+/**
+ * Toren yang disebut tanpa letaknya: letak toren menentukan tekanan, jadi ia ditanyakan. Di
+ * produksi 2026-11-02 "airnya dari sumur bor pakai toren" dijawab "Kebutuhan Anda tetap tercatat
+ * seperti di panel" — jawaban pengguna seolah tidak terbaca.
+ */
+export function tankLocationQuestion(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en'
+    ? 'Is the tank on the roof or on the ground? That decides the pressure at the outlets.'
+    : 'Torennya di atap atau di bawah? Dari situ tekanan di titik airnya saya hitung.';
+}

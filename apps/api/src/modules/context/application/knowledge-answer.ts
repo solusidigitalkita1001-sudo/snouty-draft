@@ -490,6 +490,16 @@ async function classCatalogRows(
 export function mentionsPressure(message: string): boolean {
   return PRESSURE_VALUE.test(message);
 }
+/**
+ * Pesan menyebut TEKANAN sebagai besaran ("berapa bar di keran paling atas?", "tekanannya
+ * kurang") — satuan dan nama besaran, bukan pola pertanyaan. Angka tidak wajib: yang ditanya
+ * justru angkanya.
+ */
+export function mentionsPressureQuantity(message: string): boolean {
+  return PRESSURE_WORD.test(message);
+}
+const PRESSURE_WORD = /\bbar\b|\btekanan(?:nya)?\b|\bpressure\b/i;
+
 const PRESSURE_VALUE =
   /(\d+(?:[.,]\d+)?)\s*(?:(?:-|–|sampai|s\/d|hingga)\s*(\d+(?:[.,]\d+)?)\s*)?bar\b/i;
 

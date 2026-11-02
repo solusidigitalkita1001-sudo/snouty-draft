@@ -4384,3 +4384,23 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       bahannya, dan jenis pekerjaannya sudah terbaca parser nilai. Pesan berlabel ragu yang
       menyatakan nilai renovasi kini pernyataan kebutuhan; pertanyaan produk yang menyinggung pipa
       lama tetap dijawab jalur produk.
+
+- [x] P32-31 Toren tanpa letaknya ditanyakan, bukan dianggap tidak terbaca
+
+      Di kasus masjid, "airnya dari sumur bor pakai toren" dijawab "Kebutuhan Anda tetap tercatat
+      seperti di panel" — jawaban pengguna seolah tidak terbaca. Letak toren memang tidak ditebak
+      karena ia menentukan tekanan; sekarang yang terucap pertanyaannya: torennya di atap atau di
+      bawah.
+
+- [x] P32-32 Pertanyaan tekanan dijawab angka barnya
+
+      "berapa bar di keran paling atas?" dijawab ringkasan ukuran pipa, dan angka barnya tidak
+      disebut sama sekali — padahal tekanan yang dibutuhkan beserta sisa tekanan di ujung sudah
+      dihitung engine. Pertanyaan yang menyebut tekanan sebagai besaran kini dijawab baris tekanan
+      di solusinya beserta rinciannya.
+
+- [x] P32-33 Pertanyaan ukuran lanjutan dalam bahasa Inggris
+
+      "what sizes do you have in that class?" menghabiskan 40 detik lalu berakhir sebagai
+      permintaan maaf: labelnya tidak yakin dan penggolong model kehabisan waktu. Contohnya
+      ditambahkan ke data pemahaman, jadi pertanyaannya dikenali tanpa memanggil model.
