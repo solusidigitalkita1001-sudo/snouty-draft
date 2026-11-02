@@ -61,6 +61,29 @@ describe('pertanyaan komersial dan purna jual', () => {
     }
   });
 
+  // Produksi 2026-11-02: "septic tank biofil ada?" menyebut tank, "pompa air merek apa yang bagus"
+  // menyebut pompa — keduanya naik menjadi pernyataan kebutuhan dan memakan 16 detik di ekstraksi.
+  it('di luar topik dari contoh sendiri tidak naik menjadi kebutuhan karena menyebut tank atau pompa', async () => {
+    const ai = { classifyIntent: vi.fn() } as unknown as AiService;
+    const router = new IntentRouter(ai);
+    for (const message of [
+      'septic tank biofil ada?',
+      'pompa air merek apa yang bagus',
+      'toren merek apa yang bagus',
+    ]) {
+      const routed = await router.route(understood(message, { intent: 'out_of_scope' }), false);
+      expect(routed.intent).toBe('OUT_OF_SCOPE');
+      expect(routed.shouldExtract).toBe(false);
+    }
+    // Yang membawa data inti tetap kebutuhan, apa pun label contohnya.
+    const house = await router.route(
+      understood('rumah 2 lantai, 3 kamar mandi, air dari toren', { intent: 'out_of_scope' }),
+      false,
+    );
+    expect(house.intent).toBe('REQUIREMENT_STATEMENT');
+    expect(ai.classifyIntent).not.toHaveBeenCalled();
+  });
+
   it('dirutekan tanpa model, dan lebih dulu daripada topik pengetahuan', async () => {
     const ai = { classifyIntent: vi.fn() } as unknown as AiService;
     const router = new IntentRouter(ai);

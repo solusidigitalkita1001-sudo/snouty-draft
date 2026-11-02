@@ -4128,3 +4128,20 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
 
       Sekaligus tata bahasa daftar bahan yang muncul setelah P32-04: "Tee PVC dan HDPE dan FRP"
       menjadi "Tee PVC, HDPE, dan FRP".
+
+- [x] P32-07 Di luar topik yang menyerah karena satu kata
+
+      P32-05 menambahkan contohnya, tetapi di produksi "septic tank biofil ada?" tetap 16 detik
+      dan tetap dijawab ajakan bertanya — padahal pemahamannya mengenalinya 1,000. Yang
+      membatalkannya aturan presedensi: label di luar topik **menyerah** kepada pesan yang
+      menyebut hal kebutuhan, dan "tank" adalah hal kebutuhan. Begitu juga "pompa" dan "toren",
+      jadi tiga dari sepuluh contoh baru tidak pernah berbuah.
+
+      Aturan itu ada untuk alasan yang benar: model generatif pernah membuang "rumah 2 lantai"
+      dari domain, dan pesan pertama yang menyebut hal kebutuhan memang kebutuhan. Tetapi itu
+      berlaku untuk label dari MODEL — bukan untuk label yang contohnya kami tulis sendiri.
+      Sekarang di luar topik dari contoh sendiri tidak menyerah; yang membawa dua data inti atau
+      lebih tetap kebutuhan, ambang yang sama dengan diet ekstraksi.
+
+      Satu kata di parser nilai ikut terbaca di sini: "toren merek apa yang bagus" tercatat
+      sebagai sumber air toren — satu data inti, jadi ambang dua itu yang menyelamatkannya.

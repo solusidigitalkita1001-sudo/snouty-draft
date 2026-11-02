@@ -225,8 +225,23 @@ export function withRequirementPrecedence(
   // Pertanyaan bertopik fakta ("pipa conduit buat kabel listrik rumah", "jalur gas rumah") tetap
   // dijawab dari pengetahuan walau menyebut tempat — "rumah" di sini bukan kebutuhan bangunan.
   const knowledge = classification.intent === 'PRODUCT_LOOKUP' && answersFromKnowledge(u);
+  // Di luar topik yang dikenali dari CONTOH kita sendiri tidak menyerah kepada kata kebutuhan yang
+  // kebetulan ada di pesan. "septic tank biofil ada?" menyebut tank dan "pompa air merek apa yang
+  // bagus" menyebut pompa, jadi keduanya terbaca pernyataan kebutuhan, masuk ke model ekstraksi,
+  // dan dijawab ajakan bertanya setelah 16 detik (produksi 2026-11-02). Aturan menyerah ini memang
+  // untuk label di luar topik dari MODEL generatif, yang pernah membuang "rumah 2 lantai" dari
+  // domain — bukan untuk label yang contohnya kita tulis sendiri. Pesan yang membawa data inti
+  // tetap kebutuhan, sama seperti pagar pertanyaan produk di atas.
+  // Satu data inti tidak cukup untuk membatalkannya: "toren merek apa yang bagus" terbaca sebagai
+  // sumber air toren oleh parser nilai, padahal yang ditanya merek toren. Dua data inti atau lebih
+  // berarti pesannya memang bercerita tentang bangunan — ambang yang sama dipakai diet ekstraksi.
+  const ownOutOfScope =
+    classification.intent === 'OUT_OF_SCOPE' &&
+    u.intent?.label === 'out_of_scope' &&
+    coreFactsInText(u.text) < 2;
   if (
     knowledge ||
+    ownOutOfScope ||
     (!recommendationAsLookup && (!yields || !u.mentionsRequirement || productOnly))
   ) {
     return classification;
