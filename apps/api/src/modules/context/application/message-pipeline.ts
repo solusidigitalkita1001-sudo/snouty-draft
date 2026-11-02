@@ -95,6 +95,7 @@ import type { MessageUnderstanding } from '../../understanding/application/messa
 import { applyRelativeCounts } from '../domain/relative-counts.js';
 import { parseTemperature } from '../domain/temperature-parser.js';
 import { extractionToUpdates, mentionsTankWithoutLocation } from './extraction-to-updates.js';
+import { existingPipeReply } from './existing-pipe-answer.js';
 import { asksSolutionQuantity, isCaseStatement } from './intent-router.js';
 import { mentionsPressureQuantity } from './knowledge-answer.js';
 import type { RoutingDecision } from './intent-router.js';
@@ -743,7 +744,15 @@ export async function runUnderstanding(
   // Permintaan yang murah atau hemat dijawab apa adanya: ukuran tidak diturunkan dari hitungan,
   // dan yang memang bisa dihemat disebut. Di produksi 2026-11-02 permintaan itu tidak dijawab sama
   // sekali — yang terjadi hanya kebutuhannya dicatat.
-  const asksCheaper = input.understanding?.savingRequest === 'cheaper';
+  // Pertanyaan tentang pipa yang SUDAH terpasang dijawab dari kasusnya, dan ia mendahului kalimat
+  // hemat: "pipa lama saya masih bisa dipakai ngga?" terbaca permintaan hemat dan dijawab apa yang
+  // bisa dihemat, padahal yang ditanya kapasitas pipa lamanya (produksi 2026-11-02).
+  const asksExistingPipe =
+    input.understanding?.knowledgeTopics.includes('pipa lama cukup') === true;
+  if (asksExistingPipe) {
+    events.push({ type: 'token', text: existingPipeReply(merged, input.solution ?? null, locale) });
+  }
+  const asksCheaper = !asksExistingPipe && input.understanding?.savingRequest === 'cheaper';
   if (asksCheaper) events.push({ type: 'token', text: savingReply(locale) });
   // Klaim ukuran kerap terbaca pertanyaan harga ("masuk akal ga?" dekat dengan "berapa biayanya"),
   // dan kalimat harga di depan penilaian ukuran menjawab pertanyaan yang tidak diajukan. Permintaan
@@ -808,7 +817,14 @@ export async function runUnderstanding(
           : 'Yang ini perlu dihitung oleh tim teknis Pralon.',
     });
   }
-  if (materials.length === 0 && merged.useCase === undefined && !policyCardShown) {
+  // Pipa lamanya sudah dijawab di atas: ringkasan kebutuhan atau ikhtisar solusi di bawahnya
+  // membuat satu giliran menjawab dua hal, dan yang ditanya tenggelam di antaranya.
+  if (
+    materials.length === 0 &&
+    merged.useCase === undefined &&
+    !policyCardShown &&
+    !asksExistingPipe
+  ) {
     // Ubahan ("jadi 3 lantai") cukup menyebut yang berubah, bukan mengulang semua kebutuhan.
     const only = input.decision.mutatesState && changedPaths.length > 0 ? changedPaths : undefined;
     const auto = card?.kind === 'cta' && card.auto === true;

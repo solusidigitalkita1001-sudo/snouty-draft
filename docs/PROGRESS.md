@@ -4540,3 +4540,10 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       menyebut cukup atau kurang beserta ukuran yang dibutuhkan bebannya. Yang belum bisa diperiksa
       dikatakan belum diperiksa, dengan data yang masih kurang; kondisi fisik pipa lama tetap
       dikembalikan ke lapangan, bukan dinilai dari jauh.
+
+- [x] P32-53 Pertanyaan pipa lama tidak lagi terbaca permintaan hemat
+
+      "Pipa lama saya masih bisa dipakai ngga?" terbaca permintaan yang murah, lalu dijawab apa
+      yang bisa dihemat — kalimat yang benar untuk pertanyaan yang lain. Sisi negatif contoh
+      permintaan hemat sekarang memuat kalimat pemakaian pipa lama, dan pertanyaan pipa lama
+      mendahului kalimat hemat maupun ikhtisar solusi, jadi satu giliran menjawab satu hal.

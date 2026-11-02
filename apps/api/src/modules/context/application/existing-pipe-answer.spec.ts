@@ -24,7 +24,13 @@ const stateWithOldPipe = mergeRequirement(
 
 const solutionWith = (existingPipe: ExistingPipeCheck): ActiveSolution =>
   ({
-    recommendation: { systemLines: [], bom: [], existingPipe } as never,
+    recommendation: {
+      headline: 'Perluasan: sistem distribusi untuk 8 titik air',
+      body: 'Kalimat solusi.',
+      systemLines: [],
+      bom: [],
+      existingPipe,
+    } as never,
     stale: false,
   }) satisfies ActiveSolution;
 
@@ -96,5 +102,47 @@ describe('pertanyaan pipa lama', () => {
     );
     expect(text).toContain('existing 3" main is big enough');
     expect(text).toContain('seen on site');
+  });
+});
+
+/**
+ * P32-53 — pertanyaan yang sama terbaca permintaan hemat ("savingRequest: cheaper") di produksi
+ * 2026-11-02, dan dijawab apa yang bisa dihemat. Pipa lamanya yang ditanya, jadi ia yang dijawab.
+ */
+describe('permintaan hemat tidak mendahului pertanyaan pipa lama', () => {
+  it('pesan bertopik pipa lama dijawab kapasitasnya, bukan kalimat hemat', async () => {
+    const { runUnderstanding } = await import('./message-pipeline.js');
+    const { understood } = await import('../../understanding/testing/understood.js');
+    const { withCompleteness } = await import('../domain/completeness.js');
+    const message = 'pipa lama saya masih bisa dipakai ngga?';
+    const { events } = await runUnderstanding(null, {
+      messageId: 'M'.repeat(26),
+      message,
+      decision: {
+        intent: 'REQUIREMENT_STATEMENT',
+        confidence: 0.9,
+        shouldExtract: true,
+        mutatesState: false,
+      },
+      state: withCompleteness(stateWithOldPipe),
+      now: T0,
+      understanding: {
+        ...understood(message, { intent: 'requirement_building' }),
+        knowledgeTopics: ['pipa lama cukup'],
+        savingRequest: 'cheaper',
+      },
+      solution: solutionWith({
+        mode: 'extend',
+        size: '3"',
+        sufficient: true,
+        requiredSize: '2"',
+      }),
+    });
+    const text = events
+      .filter((e) => e.type === 'token')
+      .map((e) => (e as { text: string }).text)
+      .join(' ');
+    expect(text).toContain('Pipa utama lama 3" cukup');
+    expect(text).not.toContain('Soal hemat');
   });
 });
