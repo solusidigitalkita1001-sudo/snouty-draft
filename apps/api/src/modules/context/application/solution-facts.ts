@@ -120,6 +120,17 @@ function inSentence(text: string): string {
   if (first.length > 1 && first === first.toUpperCase()) return text;
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
+/**
+ * Peruntukan baris daftar belanja yang diucapkan di kalimat: dua peruntukan satu SKU ditulis
+ * berdampingan dengan titik tengah di layar solusi ("Cabang · Sambungan ke alat"), dan di dalam
+ * kalimat titik tengah itu terbaca keluaran mesin (produksi 2026-11-02).
+ */
+function spokenPurpose(text: string, en: boolean): string {
+  return inSentence(text)
+    .split(' · ')
+    .join(en ? ' and ' : ' dan ');
+}
+
 /** Satuan yang menandai baris PIPA di daftar belanja, dua bahasa (P31-37). */
 const PIPE_UNITS = new Set(['batang', 'rods', 'meter', 'm']);
 
@@ -139,7 +150,9 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
   const fittings = rows.filter((b) => !pipes.includes(b));
   const list = (items: typeof rows) =>
     items
-      .map((b) => `${inSentence(b.purpose ?? b.item)} ${b.size} ${num(b.quantity)} ${b.unit}`)
+      .map(
+        (b) => `${spokenPurpose(b.purpose ?? b.item, en)} ${b.size} ${num(b.quantity)} ${b.unit}`,
+      )
       .join(', ');
   const stale = solution.stale
     ? en
@@ -213,7 +226,7 @@ export function rodsReply(solution: ActiveSolution, locale: Locale): string | nu
   );
   if (pipes.length === 0) return null;
   const list = pipes
-    .map((b) => `${inSentence(b.purpose ?? b.item)} ${b.size} ${num(b.quantity)} ${b.unit}`)
+    .map((b) => `${spokenPurpose(b.purpose ?? b.item, en)} ${b.size} ${num(b.quantity)} ${b.unit}`)
     .join(', ');
   return en
     ? `Pipes: ${list}. The full product list, with fittings, is on the solution screen.`

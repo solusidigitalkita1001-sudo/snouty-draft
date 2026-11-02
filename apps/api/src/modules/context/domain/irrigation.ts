@@ -162,14 +162,10 @@ export function irrigationFactsFrom(message: string): Partial<Record<IrrigationF
   if (distance) {
     const unit = distance[2]!;
     const meters = Number(distance[1]!.replace(',', '.')) * (unit.startsWith('k') ? 1000 : 1);
-    facts['irrigation.distance'] =
-      meters < 50
-        ? 'Di bawah 50 m'
-        : meters <= 200
-          ? '50–200 m'
-          : meters <= 500
-            ? '200–500 m'
-            : 'Di atas 500 m';
+    // Angkanya yang dicatat, bukan rentangnya — seperti luas lahan. Rentang hanya untuk jawaban
+    // chip; "jaraknya 300 meter" dicatat lalu disebut balik sebagai "200–500 m" dan dihitung
+    // 350 m, tanpa pengguna pernah tahu angkanya diganti (produksi 2026-11-02).
+    facts['irrigation.distance'] = `${String(meters).replace('.', ',')} m`;
   }
 
   if (

@@ -49,3 +49,28 @@ describe('irrigationInputFrom', () => {
     ]);
   });
 });
+
+/**
+ * P32-46 — jarak yang disebut pengguna sendiri. Produksi 2026-11-02: "jaraknya 300 meter" dicatat
+ * sebagai rentang "200–500 m", disebut balik sebagai rentang, lalu dihitung 350 m.
+ */
+describe('jarak yang disebut sendiri', () => {
+  it('dipakai apa adanya, tanpa asumsi jarak', () => {
+    const { input, assumptions } = irrigationInputFrom(
+      withAnswers({
+        'irrigation.areaHa': '2 ha',
+        'irrigation.source': 'Sungai / saluran',
+        'irrigation.method': 'Sprinkler',
+        'irrigation.distance': '300 m',
+        'irrigation.elevation': 'Sejajar',
+      }),
+    );
+    expect(input.mainRunMeters).toBe(300);
+    expect(assumptions.map((a) => a.fieldPath)).not.toContain('irrigation.distance');
+  });
+
+  it('jawaban chip tetap memakai titik tengah rentangnya', () => {
+    const { input } = irrigationInputFrom(withAnswers({ 'irrigation.distance': '200–500 m' }));
+    expect(input.mainRunMeters).toBe(350);
+  });
+});

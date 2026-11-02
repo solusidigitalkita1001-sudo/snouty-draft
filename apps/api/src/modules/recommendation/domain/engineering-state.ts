@@ -186,7 +186,10 @@ function fromIrrigation(state: RequirementState): EngineeringState {
   if (source && source !== UNKNOWN) known('source_type', 'irrigation.source', source);
 
   const distance = answers['irrigation.distance'];
-  if (distance && DISTANCE_BUCKET[distance] !== undefined) {
+  const explicitM = distance ? /^(\d+(?:[.,]\d+)?)\s*m$/.exec(distance) : null;
+  if (explicitM)
+    known('route_length', 'irrigation.distance', Number(explicitM[1]!.replace(',', '.')));
+  else if (distance && DISTANCE_BUCKET[distance] !== undefined) {
     assumed(
       'route_length',
       'irrigation.distance',

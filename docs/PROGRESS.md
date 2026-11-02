@@ -4484,3 +4484,15 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       cukup yakin untuk melewati perencana, jadi ia tetap 4,5 detik di sana dan jawabannya ditulis
       model. Bila dua label teratas sama-sama tentang kasus pengguna sendiri, yang diperdebatkan
       hanya bentuk pertanyaannya: jawabannya dari kode.
+
+- [x] P32-46 Jarak irigasi yang disebut dipakai apa adanya
+
+      "jaraknya 300 meter" dicatat sebagai rentang "200–500 m", disebut balik sebagai rentang, lalu
+      dihitung 350 m — angka pengguna diganti tanpa ia pernah tahu. Sekarang angkanya yang dicatat,
+      disebut balik, dan dihitung; titik tengah rentang hanya untuk jawaban chip.
+
+- [x] P32-47 Peruntukan ganda tidak diucapkan dengan titik tengah
+
+      Jawaban jumlah batang berbunyi "cabang · Sambungan ke alat 1/2" 13 batang": dua peruntukan
+      satu SKU ditulis berdampingan dengan titik tengah, yang pas di layar solusi tetapi terbaca
+      keluaran mesin di dalam kalimat. Di kalimat keduanya dirangkai dengan "dan".

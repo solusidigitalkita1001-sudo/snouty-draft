@@ -25,7 +25,7 @@ describe('irigasi', () => {
       'irrigation.areaHa': '1 ha',
       'irrigation.source': 'Sungai / saluran',
       'irrigation.method': 'Tetes',
-      'irrigation.distance': '200–500 m',
+      'irrigation.distance': '300 m',
       'irrigation.pump': 'Ya',
     });
     expect(irrigationFactsFrom('irigasi kebun 2,5 ha')).toEqual({ 'irrigation.areaHa': '2,5 ha' });
@@ -40,14 +40,14 @@ describe('irigasi', () => {
       'irrigation.areaHa': '2 ha',
       'irrigation.source': 'Sungai / saluran',
       'irrigation.method': 'Tetes',
-      'irrigation.distance': '50–200 m',
+      'irrigation.distance': '150 m',
       'irrigation.pump': 'Ya',
     });
     expect(
       irrigationFactsFrom('from a borehole 1.2 km away, the field is lower than the source'),
     ).toMatchObject({
       'irrigation.source': 'Sumur / pompa',
-      'irrigation.distance': 'Di atas 500 m',
+      'irrigation.distance': '1200 m',
     });
   });
 
@@ -76,7 +76,7 @@ describe('irigasi', () => {
       'irrigation.source': 'Sungai / saluran',
       'irrigation.areaHa': '1–2 ha',
       'irrigation.method': 'Sprinkler',
-      'irrigation.distance': 'Di atas 500 m',
+      'irrigation.distance': '1200 m',
       'irrigation.elevation': 'Lebih rendah',
     });
     expect(isIrrigationComplete(state)).toBe(true);
@@ -138,13 +138,13 @@ describe('jarak irigasi (produksi 2026-10-26)', () => {
 
   it('jarak yang memang disebut tetap terbaca', () => {
     expect(irrigationFactsFrom('jaraknya dari sumur ke sawah 200 meter')).toMatchObject({
-      'irrigation.distance': '50–200 m',
+      'irrigation.distance': '200 m',
     });
     expect(irrigationFactsFrom('sejauh 600 m dari sungai')).toMatchObject({
-      'irrigation.distance': 'Di atas 500 m',
+      'irrigation.distance': '600 m',
     });
     expect(irrigationFactsFrom('from a river 150 m away')).toMatchObject({
-      'irrigation.distance': '50–200 m',
+      'irrigation.distance': '150 m',
     });
   });
 });

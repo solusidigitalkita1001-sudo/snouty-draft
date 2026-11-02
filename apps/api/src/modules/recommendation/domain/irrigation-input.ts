@@ -75,8 +75,14 @@ export function irrigationInputFrom(state: RequirementState): IrrigationInputRes
   }
 
   const distanceRaw = answers['irrigation.distance'];
+  // Jarak yang disebut pengguna sendiri ("jaraknya 300 meter") dipakai apa adanya, seperti luas
+  // lahan: titik tengah rentang hanya untuk jawaban chip (produksi 2026-11-02 — 300 m dicatat lalu
+  // disebut balik sebagai "200–500 m", dan dihitung 350 m).
+  const explicitM = distanceRaw ? /^(\d+(?:[.,]\d+)?)\s*m$/.exec(distanceRaw) : null;
   let mainRunMeters: number;
-  if (distanceRaw && DISTANCE_BUCKET[distanceRaw] !== undefined) {
+  if (explicitM) {
+    mainRunMeters = Number(explicitM[1]!.replace(',', '.'));
+  } else if (distanceRaw && DISTANCE_BUCKET[distanceRaw] !== undefined) {
     mainRunMeters = DISTANCE_BUCKET[distanceRaw]!;
     assume(
       'irrigation.distance',

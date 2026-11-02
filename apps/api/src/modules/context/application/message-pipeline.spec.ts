@@ -1443,10 +1443,10 @@ describe('kasus irigasi yang sudah berjalan (P31-31)', () => {
     expect(text).not.toBe(opening);
     // Data yang baru masuk disebut balik, supaya jelas angkanya tercatat.
     expect(text).toContain('sudah saya catat');
-    expect(text).toContain('50–200 m');
+    expect(text).toContain('200 m');
     expect(next.nextState.useCase).toMatchObject({
       kind: 'irrigation',
-      answers: { 'irrigation.distance': '50–200 m' },
+      answers: { 'irrigation.distance': '200 m' },
     });
   });
 });
