@@ -4043,3 +4043,19 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
 
       Permintaan penawaran dengan jumlah dan tujuan kirim tetap belum dijawab sebagaimana
       mestinya — itu item sendiri, bukan sisa item ini.
+
+- [x] P32-02 "Ready stok" bukan bahasa Inggris
+
+      "ready stok pvc aw 4 inci ga? butuh 300 batang" dijawab dalam bahasa Inggris di produksi.
+      Bahasa Indonesia perdagangan memungut kata Inggris — ready, order, cancel — dan setelah
+      nilai dan nama produk disisihkan, yang tersisa dari kalimat itu hanya lima kata; dua di
+      antaranya pungutan. Pengenal pertama membacanya Inggris 0,52 lawan Indonesia 0,48.
+
+      Menang 0,04 bukan keputusan. Pada jarak sedekat itu pengenal kedua yang memutuskan — ia
+      tegas Indonesia di kalimat yang sama — dan bila ia pun tidak tegas, gilirannya tetap di
+      bahasa percakapan. Syaratnya bahasa kedua memang muncul: tanpa pesaing, nilai kecil pun
+      tetap keputusan ("2 bathrooms, 3 sinks, 1 kitchen" bernilai 0,095 tanpa pesaing, dan
+      pengenal kedua salah membacanya Indonesia — ia tidak boleh ikut memutuskan di situ).
+
+      Dua kalimat produksi masuk ke daftar kasus bahasa; 110 kasus berlabel tetap hijau,
+      termasuk pagar "paling sedikit 90% diputuskan".

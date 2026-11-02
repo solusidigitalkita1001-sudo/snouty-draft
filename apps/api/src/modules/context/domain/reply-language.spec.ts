@@ -43,6 +43,12 @@ describe('replyLanguageOf', () => {
     expect(replyLanguageOf('tee pvc 2 inch ready?')).not.toBe('id');
   });
 
+  // Produksi 2026-11-02: dijawab dalam bahasa Inggris, padahal penanya menulis Indonesia.
+  it('English loanwords in Indonesian trade talk ("ready stok") do not make it English', () => {
+    expect(replyLanguageOf('ready stok pvc aw 4 inci ga? butuh 300 batang')).toBe('id');
+    expect(replyLanguageOf('order pipa aw 4 inci dong, 300 batang')).not.toBe('en');
+  });
+
   it('leaves messages without language signal undecided', () => {
     expect(replyLanguageOf('ok')).toBeNull();
     expect(replyLanguageOf('4"')).toBeNull();

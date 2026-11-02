@@ -32,6 +32,17 @@ export function replyLanguageOf(
   const [best, second] = detectAll(signal, { only: ['id', 'en'] });
   if (!best || !isLocale(best.lang)) return null;
   if (second && second.accuracy >= best.accuracy) return null;
+  // Dua bahasa yang nilainya hampir sama bukan keputusan. Bahasa Indonesia perdagangan memungut
+  // kata Inggris ("ready stok", "order", "cancel"), dan pada kalimat pendek kata pungutan itu
+  // cukup membalik tinyld: "ready stok pvc aw 4" ga? butuh 300 batang" terbaca Inggris 0,52 lawan
+  // 0,48 dan dijawab dalam bahasa Inggris di produksi (2026-11-02). Pada jarak sedekat itu franc
+  // yang memutuskan — ia tegas Indonesia di kalimat yang sama (1 lawan 0,45) — dan bila franc pun
+  // tidak tegas, gilirannya tetap di bahasa percakapan.
+  //
+  // Hanya bila bahasa kedua MEMANG muncul. Tanpa pesaing, tinyld tidak melihat jejak bahasa lain
+  // sama sekali, dan itu keputusan walau nilainya kecil ("bathrooms, sinks, kitchen" 0,095 tanpa
+  // pesaing — franc membacanya Indonesia, dan franc yang salah tidak boleh ikut memutuskan).
+  if (second && best.accuracy - second.accuracy < TIED_MARGIN) return francLocale(signal);
   // franc hanya andal di kalimat panjang; di kalimat pendek ia sendiri sering salah ("how do you join
   // pipe?" terbaca Indonesia), jadi pembatalannya hanya berlaku dari VETO_MIN_WORDS kata.
   if (wordsIn(signal) < VETO_MIN_WORDS) return best.lang;
@@ -39,6 +50,8 @@ export function replyLanguageOf(
   return veto !== null && veto !== best.lang ? null : best.lang;
 }
 
+/** Jarak akurasi tinyld yang sudah terhitung seri; di bawah ini franc yang memutuskan. */
+const TIED_MARGIN = 0.1;
 /** Kata (dua huruf atau lebih) setelah nilai dan nama disisihkan — batas pembatalan franc. */
 const VETO_MIN_WORDS = 8;
 const wordsIn = (signal: string) => signal.split(/\s+/).filter((w) => /\p{L}{2,}/u.test(w)).length;
