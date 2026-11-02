@@ -4342,3 +4342,14 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       kalimat "sudah saya catat", sehingga balasannya berbunyi sama persis seperti giliran
       sebelumnya dan ikut dinilai "tidak ada yang berubah". Sekarang jawabannya disebut dengan
       kata-katanya.
+
+- [x] P32-26 "Kenapa ukurannya segitu?" dijawab dasarnya
+
+      Atas solusi yang sudah dihitung, pertanyaan dasar ukuran ("kenapa segitu?", "kalau saya pakai
+      yang lebih kecil kenapa?") mendapat ringkasan ukuran yang sama persis dengan giliran
+      sebelumnya — lalu dinilai ulangan dan dijawab "itu yang saya jelaskan di jawaban sebelumnya",
+      42 dan 29 detik. Padahal engine sudah menuliskan dasarnya lengkap: beban alat, debit puncak
+      menurut kurva Hunter, jalur dan beda tinggi, lalu ukuran terkecil yang kecepatan air dan
+      kehilangan tekanannya masih dalam batas, dengan sumber standarnya. Pertanyaan dasar sekarang
+      dikenali katalognya sendiri (`reason-request`) dan dijawab dari jejak hitungan itu — tanpa
+      model, dan tidak pernah dari solusi yang belum ada.

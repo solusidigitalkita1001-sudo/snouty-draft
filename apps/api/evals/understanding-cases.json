@@ -2186,6 +2186,28 @@
       "text": "septic tank di belakang, 8 meter dari rumah",
       "useCase": "gravity_drainage",
       "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "kenapa segitu?",
+      "reasonRequest": "reason",
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "kalau saya pakai yang lebih kecil kenapa?",
+      "reasonRequest": "reason",
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "why is the main pipe that size?",
+      "reasonRequest": "reason"
+    },
+    {
+      "text": "pipa utamanya ukuran berapa?",
+      "reasonRequest": null
+    },
+    {
+      "text": "kenapa pipa pvc gampang pecah?",
+      "reasonRequest": null
     }
   ]
 }

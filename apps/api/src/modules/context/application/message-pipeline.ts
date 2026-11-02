@@ -82,7 +82,7 @@ import {
 } from '../domain/clarification.js';
 import { outlierQuestions, pendingOutliers } from '../domain/plausibility.js';
 import { mergeRequirement } from '../domain/context-merger.js';
-import { isSocial } from '../../understanding/domain/labels.js';
+import { isProductQuestion, isSocial } from '../../understanding/domain/labels.js';
 import { repeatedTopicReply } from './reply-copy.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
@@ -117,7 +117,13 @@ import {
 import { caseFacts } from './case-facts.js';
 import { claimVerdict } from './claim-verdict.js';
 import { parseSize } from '../domain/size-parser.js';
-import { alreadyComputedReply, layoutReply, rodsReply, solutionReply } from './solution-facts.js';
+import {
+  alreadyComputedReply,
+  layoutReply,
+  rodsReply,
+  solutionReasonReply,
+  solutionReply,
+} from './solution-facts.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
 
@@ -195,49 +201,67 @@ export async function runUnderstanding(
     // "berapa batang pipanya" 42,6 detik, dan "kenapa ukurannya 1 inci" 48,1 detik — dan ketiga
     // jawabannya kabur serta saling bertentangan soal ukuran, padahal daftar belanja dan jalurnya
     // sudah berisi angka yang pasti.
+    // DASAR angkanya ("kenapa segitu?", "kenapa nggak yang lebih kecil?") dijawab dari jejak
+    // hitungan engine — beban alat, debit puncak, jalur, lalu ukuran terkecil yang kecepatan dan
+    // kehilangan tekanannya masih dalam batas. Tanpa pembeda ini pertanyaan itu mendapat ringkasan
+    // yang sama persis dengan "ukurannya berapa", lalu dinilai ulangan dan dijawab "itu yang saya
+    // jelaskan di jawaban sebelumnya" (produksi 2026-11-02) — dasar yang sudah dihitung tidak
+    // pernah sampai ke pengguna. Pertanyaan produk dan pengetahuan punya jalurnya sendiri.
+    const reasoned =
+      input.understanding?.reasonRequest === 'reason' &&
+      !!input.solution &&
+      !input.solution.stale &&
+      !isProductQuestion(label)
+        ? solutionReasonReply(input.solution, input.locale ?? DEFAULT_LOCALE)
+        : null;
     const fromSolution =
+      reasoned !== null ||
       (drawing !== null && !!input.solution) ||
       (input.decision.intent === 'EXPLANATION_REQUEST' &&
         !!input.solution &&
         !input.solution.stale);
     const fallback =
-      drawing !== null && input.solution
-        ? // "Butuh berapa batang" dijawab baris pipanya saja; daftar belanja penuh milik layar solusi.
-          ((asksRods ? rodsReply(input.solution, input.locale ?? DEFAULT_LOCALE) : null) ??
-          layoutReply(input.solution, input.locale ?? DEFAULT_LOCALE))
-        : // Penjelasan atas solusi yang sudah dihitung (P22-04): teks tetap dari solusinya sendiri.
-          input.decision.intent === 'EXPLANATION_REQUEST' && input.solution && !input.solution.stale
-          ? solutionReply(input.solution, input.locale ?? DEFAULT_LOCALE)
-          : label === 'capability_question'
-            ? capabilityReply(input.locale)
-            : label === 'commercial_question'
-              ? commercialReply(input.locale)
-              : label === 'out_of_scope'
-                ? outOfTopicReply(input.locale)
-                : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
-                  ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
-                    // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
-                    explanationHandedOff(caseCard.reasons, input.locale)
-                  : input.decision.intent === 'EXPLANATION_REQUEST' &&
-                      (!input.solution || input.solution.stale)
-                    ? // Belum ada solusi yang bisa dibuka detailnya — baik karena kebutuhannya belum
-                      // lengkap, maupun karena tombol hitungnya belum ditekan. Lewat model giliran ini
-                      // 27 detik dan jawabannya mengaku mencatat hal yang tidak punya tempat di
-                      // kebutuhan ("sudah saya catat bahwa air kotor dan air bekas dipisahkan",
-                      // produksi 2026-10-26).
-                      explanationBeforeSolution(input.locale)
-                    : input.decision.intent === 'OUT_OF_SCOPE' &&
-                        (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
-                      ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
-                        // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
-                        // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
-                        label === 'greeting'
-                        ? greetingAgain(input.recentTurns ?? [], input.locale)
-                        : outOfTopicReply(input.locale)
-                      : input.decision.modelUnavailable === true
-                        ? // Giliran yang kehabisan waktu, bukan pertanyaan yang tidak terbaca (P28-02).
-                          modelBusyReply(input.locale)
-                        : replyFor(input.decision.intent, input.locale);
+      reasoned !== null
+        ? reasoned
+        : drawing !== null && input.solution
+          ? // "Butuh berapa batang" dijawab baris pipanya saja; daftar belanja penuh milik layar solusi.
+            ((asksRods ? rodsReply(input.solution, input.locale ?? DEFAULT_LOCALE) : null) ??
+            layoutReply(input.solution, input.locale ?? DEFAULT_LOCALE))
+          : // Penjelasan atas solusi yang sudah dihitung (P22-04): teks tetap dari solusinya sendiri.
+            input.decision.intent === 'EXPLANATION_REQUEST' &&
+              input.solution &&
+              !input.solution.stale
+            ? solutionReply(input.solution, input.locale ?? DEFAULT_LOCALE)
+            : label === 'capability_question'
+              ? capabilityReply(input.locale)
+              : label === 'commercial_question'
+                ? commercialReply(input.locale)
+                : label === 'out_of_scope'
+                  ? outOfTopicReply(input.locale)
+                  : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
+                    ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
+                      // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
+                      explanationHandedOff(caseCard.reasons, input.locale)
+                    : input.decision.intent === 'EXPLANATION_REQUEST' &&
+                        (!input.solution || input.solution.stale)
+                      ? // Belum ada solusi yang bisa dibuka detailnya — baik karena kebutuhannya belum
+                        // lengkap, maupun karena tombol hitungnya belum ditekan. Lewat model giliran ini
+                        // 27 detik dan jawabannya mengaku mencatat hal yang tidak punya tempat di
+                        // kebutuhan ("sudah saya catat bahwa air kotor dan air bekas dipisahkan",
+                        // produksi 2026-10-26).
+                        explanationBeforeSolution(input.locale)
+                      : input.decision.intent === 'OUT_OF_SCOPE' &&
+                          (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
+                        ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
+                          // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
+                          // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
+                          label === 'greeting'
+                          ? greetingAgain(input.recentTurns ?? [], input.locale)
+                          : outOfTopicReply(input.locale)
+                        : input.decision.modelUnavailable === true
+                          ? // Giliran yang kehabisan waktu, bukan pertanyaan yang tidak terbaca (P28-02).
+                            modelBusyReply(input.locale)
+                          : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Model merangkai balasan di atas DATA kasus (P16-28): yang sudah dicatat, status kasus, dan
       // cara SNOUTY menghitung — semuanya dari kode. Angka di luar DATA ditolak `ReplyWriter`, jadi

@@ -227,6 +227,15 @@ export type ClaimCheckLabel = (typeof CLAIM_CHECKS)[number];
 export const SAVING_REQUESTS = ['cheaper'] as const;
 export type SavingRequestLabel = (typeof SAVING_REQUESTS)[number];
 
+/**
+ * Pesan ini menanyakan DASAR angka yang sudah dihitung (P32-26): "kenapa ukurannya segitu?".
+ * Katalognya sendiri karena intentnya tetap permintaan penjelasan, dan tanpa pembeda ini
+ * jawabannya sama persis dengan pertanyaan "ukurannya berapa" — lalu dinilai ulangan dan
+ * dijawab "itu yang saya jelaskan di jawaban sebelumnya" (produksi 2026-11-02).
+ */
+export const REASON_REQUESTS = ['reason'] as const;
+export type ReasonRequestLabel = (typeof REASON_REQUESTS)[number];
+
 /** Nama katalog data → label yang sah di dalamnya. */
 export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   intent: FINE_INTENTS,
@@ -241,6 +250,7 @@ export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   'compute-request': COMPUTE_REQUESTS,
   'claim-check': CLAIM_CHECKS,
   'saving-request': SAVING_REQUESTS,
+  'reason-request': REASON_REQUESTS,
 };
 export type CatalogName = keyof typeof CATALOG_LABELS;
 

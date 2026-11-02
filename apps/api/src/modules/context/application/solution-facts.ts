@@ -315,3 +315,26 @@ export function solutionReply(solution: ActiveSolution, locale: Locale): string 
   );
   return parts.join(' ');
 }
+
+/**
+ * "Kenapa ukurannya segitu?" atas solusi yang sudah dihitung: dasarnya dari jejak hitungan engine
+ * sendiri — beban alat, debit puncak, jalur dan beda tinggi, lalu ukuran terkecil yang kecepatan
+ * air dan kehilangan tekanannya masih dalam batas. Di produksi 2026-11-02 pertanyaan ini mendapat
+ * jawaban yang sama persis dengan "ukurannya berapa", lalu dinilai ulangan dan dijawab "itu yang
+ * saya jelaskan di jawaban sebelumnya" — dasar yang sudah dihitung tidak pernah sampai ke
+ * pengguna. `null` bila solusinya tidak punya jejak (rekomendasi lama).
+ */
+export function solutionReasonReply(solution: ActiveSolution, locale: Locale): string | null {
+  const r = solution.recommendation;
+  const line = r.systemLines.find((l) => l.role === 'main') ?? r.systemLines[0];
+  const reason = line?.reason.trim() ?? '';
+  if (!line || reason === '') return null;
+  const en = locale === 'en';
+  const head = en ? `${line.name} is ${line.size}.` : `${line.name} ${line.size}.`;
+  const tail = solution.stale
+    ? en
+      ? ' The requirement changed after this calculation; press Compose recommendation again for current figures.'
+      : ' Kebutuhan sudah berubah setelah hitungan ini; tekan Susun rekomendasi lagi untuk angka terbaru.'
+    : '';
+  return `${head} ${reason}${tail}`;
+}

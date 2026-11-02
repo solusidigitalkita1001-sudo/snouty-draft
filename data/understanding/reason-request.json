@@ -1,0 +1,46 @@
+{
+  "name": "reason-request",
+  "description": "Pesan ini menanyakan DASAR angka yang sudah dihitung — kenapa ukurannya segitu, dari mana angkanya, kenapa tidak yang lebih kecil. Katalognya sendiri di luar intent: intentnya tetap permintaan penjelasan, dan tanpa pembeda ini pertanyaan 'kenapa segitu' mendapat jawaban yang sama persis dengan 'ukurannya berapa' — lalu dinilai ulangan dan dijawab 'itu yang saya jelaskan di jawaban sebelumnya' (produksi 2026-11-02). Jawabannya dari jejak hitungan engine, bukan model. Contoh harus membawa kata penanyaan dasarnya sendiri (kenapa/mengapa/kok/dasarnya/dari mana/alasannya/why/how did you get); sisi `none` memuat pertanyaan yang hanya menanyakan angka atau jumlahnya, dan pertanyaan kenapa yang subjeknya bukan hitungan ini (sifat bahan, kerusakan di lapangan).",
+  "threshold": 0.7,
+  "margin": 0.03,
+  "labels": {
+    "reason": [
+      "kenapa ukurannya segitu?",
+      "kenapa segitu?",
+      "kok ukurannya 1 1/4 inci?",
+      "kenapa pipa utamanya 1 1/4, bukan 1 inci?",
+      "dasar hitungannya apa?",
+      "dari mana angka itu?",
+      "alasannya apa ukuran pipanya segitu?",
+      "kenapa nggak pakai yang lebih kecil?",
+      "kalau saya pakai yang lebih kecil kenapa?",
+      "kenapa harus sebesar itu ukurannya",
+      "jelasin dong dasar ukurannya",
+      "itu dihitung dari apa ukurannya?",
+      "why is the main pipe that size?",
+      "why not a smaller size?",
+      "how did you get that size?",
+      "what is the basis for that pipe size?",
+      "explain how you worked out the size",
+      "why is it 1 1/4 inch and not 1 inch?"
+    ],
+    "none": [
+      "pipa utamanya ukuran berapa?",
+      "ukurannya berapa?",
+      "sekarang ukurannya jadi apa?",
+      "butuh berapa batang pipanya?",
+      "fitting apa aja yang perlu dibeli?",
+      "harganya berapa?",
+      "kenapa pipa pvc gampang pecah?",
+      "kenapa air di lantai atas kecil?",
+      "kenapa sambungan saya bocor terus?",
+      "bedanya pvc aw dan d apa?",
+      "rumah 2 lantai, 3 kamar mandi",
+      "udah, itung aja",
+      "what size is the main pipe?",
+      "how many rods do i need?",
+      "why does pvc crack so easily?",
+      "why is the water pressure low upstairs?"
+    ]
+  }
+}
