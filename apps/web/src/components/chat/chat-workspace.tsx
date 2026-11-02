@@ -952,6 +952,8 @@ export function ChatWorkspace() {
   const useCase = state ? useCaseRows(state) : null;
   const useCaseFilled = useCase?.filter((row) => row.value !== null).length ?? 0;
   const filled = state?.completeness.filled ?? 0;
+  // Pekerjaan pembuangan saja tidak punya sumber air: data intinya tiga, bukan empat (P32-50).
+  const required = state?.completeness.required ?? 4;
   // Kartu "Yang sudah saya pahami" dan rail menghitung hal yang sama: baris yang terisi — dulu
   // kartu memakai empat field inti sehingga tertulis 4 sementara rail 5 (verifikasi 2026-10-08).
   const rowsRead = rows.filter((row) => row.display !== 'Belum diisi').length;
@@ -1953,14 +1955,14 @@ export function ChatWorkspace() {
             <section className={styles.panelSection}>
               <div className={styles.panelKicker}>{COPY.completenessLabel}</div>
               <div className={styles.meter}>
-                {[0, 1, 2, 3].map((index) => (
+                {Array.from({ length: required }, (_, index) => index).map((index) => (
                   <div
                     key={index}
                     className={[styles.meterBar, index < filled ? styles.meterBarOn : ''].join(' ')}
                   />
                 ))}
               </div>
-              <p className={styles.meterNote}>{completenessNote(filled, COPY)}</p>
+              <p className={styles.meterNote}>{completenessNote(filled, required, COPY)}</p>
             </section>
 
             {/* Layar solusi: empat saran lanjutan, masing-masing dikirim sebagai pesan. */}
@@ -1998,8 +2000,12 @@ export function ChatWorkspace() {
  * Teks di bawah meter — salinan desain. Dihitung dari jumlah terisi, sama seperti
  * `completenessCaption` di server; keduanya mengikuti kalimat yang sama.
  */
-function completenessNote(filled: number, copy: ReturnType<typeof chatCopy>): string {
-  const missing = 4 - filled;
+function completenessNote(
+  filled: number,
+  required: number,
+  copy: ReturnType<typeof chatCopy>,
+): string {
+  const missing = required - filled;
   return missing <= 0 ? copy.meterNote.complete : copy.meterNote.remaining(missing);
 }
 

@@ -212,7 +212,8 @@ export const CORE_REQUIREMENT_FIELDS = [
 
 export interface RequirementCompleteness {
   readonly filled: number;
-  readonly required: 4;
+  /** Data inti pekerjaan ini: 4, atau 3 untuk pekerjaan pembuangan saja (tanpa sumber air). */
+  readonly required: 3 | 4;
 }
 
 /**

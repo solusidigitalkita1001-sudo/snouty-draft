@@ -4514,3 +4514,11 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       ukuran pipa berikutnya, padahal 0,11 bar di bawah kebutuhan dan solusi yang sama sudah
       meminta pompa pendorong. Sekarang tekanan punya kalimatnya sendiri, dengan akibatnya: perlu
       pompa pendorong, atau dudukan toren dinaikkan sampai setinggi yang dihitung.
+
+- [x] P32-50 Pekerjaan pembuangan tidak lagi dianggap punya sumber air
+
+      "Mau bikin saluran air kotor rumah 2 lantai" dijawab "yang belum disebut saya anggap dulu
+      1 kamar mandi per lantai dan air dari toren atap tanpa pompa pendorong" — padahal hitungan
+      buangan tidak pernah membaca sumber airnya, dan kebutuhan sumber pun dilewati di daftar
+      produk. Untuk pekerjaan pembuangan saja, sumber air tidak ditanyakan dan tidak dianggap:
+      data intinya tiga, dan meter di panel mengikuti angka itu.

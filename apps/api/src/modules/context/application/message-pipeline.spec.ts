@@ -1519,3 +1519,41 @@ describe('jenis bangunan sudah tercatat (P31-34)', () => {
     expect(text).toContain('toren atap');
   });
 });
+
+/**
+ * P32-50 — pekerjaan pembuangan saja tidak punya sumber air (produksi 2026-11-02: "mau bikin
+ * saluran air kotor rumah 2 lantai" dijawab dengan anggapan toren atap tanpa pompa pendorong).
+ */
+describe('pembuangan saja: sumber air tidak dianggap', () => {
+  it('anggapannya kamar mandi saja, dan hitungannya tetap jalan', async () => {
+    const ai = aiExtracting({});
+    const state = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [
+          { path: 'building.type', value: 'residential', source: 'user_stated' },
+          { path: 'water.installationType', value: 'drainage', source: 'user_stated' },
+        ],
+        T0,
+      ).state,
+    );
+    const { events } = await runUnderstanding(
+      ai,
+      input({
+        message: '2 lantai',
+        state,
+        understanding: understood('2 lantai', { intent: 'requirement_building' }),
+      }),
+    );
+    const updated = events.find((e) => e.type === 'requirement.updated') as {
+      state: ReturnType<typeof emptyRequirementState>;
+    };
+    expect(updated.state.building.floors.value).toBe(2);
+    expect(updated.state.water.source.value).toBeNull();
+    expect(updated.state.fixtures.bathrooms).toMatchObject({ value: 2, provenance: 'ASSUMED' });
+    expect(updated.state.missingInformation).toEqual([]);
+    const text = (events.find((e) => e.type === 'token') as { text: string } | undefined)?.text;
+    expect(text).toContain('kamar mandi');
+    expect(text).not.toContain('toren');
+  });
+});

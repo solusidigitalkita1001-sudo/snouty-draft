@@ -75,3 +75,35 @@ describe('CompletenessEvaluator', () => {
     );
   });
 });
+
+/**
+ * P32-50 — pekerjaan pembuangan saja tidak punya sumber air. Produksi 2026-11-02: "mau bikin
+ * saluran air kotor rumah 2 lantai" dijawab "yang belum disebut saya anggap dulu … air dari toren
+ * atap tanpa pompa pendorong" — anggapan yang tidak dipakai hitungan buangan sama sekali.
+ */
+describe('pekerjaan pembuangan saja', () => {
+  it('sumber air tidak termasuk data inti, dan tiga data sudah lengkap', () => {
+    const drainage = fill([
+      ['water.installationType', 'drainage'],
+      ['building.floors', 2],
+      ['fixtures.bathrooms', 3],
+    ]);
+    const r = evaluateCompleteness(drainage);
+    expect(r.completeness).toEqual({ filled: 3, required: 3 });
+    expect(r.missingInformation).toEqual([]);
+    expect(r.isComplete).toBe(true);
+  });
+
+  it('air bersih dan gabungan tetap menunggu sumber airnya', () => {
+    for (const type of ['clean_water', 'both']) {
+      const state = fill([
+        ['water.installationType', type],
+        ['building.floors', 2],
+        ['fixtures.bathrooms', 3],
+      ]);
+      const r = evaluateCompleteness(state);
+      expect(r.completeness).toEqual({ filled: 3, required: 4 });
+      expect(r.missingInformation).toEqual(['water.source']);
+    }
+  });
+});

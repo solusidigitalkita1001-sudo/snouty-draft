@@ -38,9 +38,24 @@ export function floorHeightOutOfRange(state: RequirementState): number | null {
     : null;
 }
 
+/**
+ * Data inti pekerjaan ini. Pekerjaan PEMBUANGAN saja tidak punya sumber air: buangan mengalir
+ * karena gravitasi, kebutuhan sumbernya pun dilewati saat menyusun daftar (`solution-needs`), dan
+ * hitungannya tidak berubah seujung pun karena airnya datang dari toren atau PDAM. Jadi sumber air
+ * tidak ditanyakan dan tidak dianggap di situ — di produksi 2026-11-02 pekerjaan saluran air kotor
+ * dijawab "yang belum disebut saya anggap dulu air dari toren atap tanpa pompa pendorong", kalimat
+ * yang tidak ada hubungannya dengan pekerjaan yang diminta.
+ */
+function coreFieldsFor(state: RequirementState): readonly RequirementFieldPath[] {
+  return state.water.installationType.value === 'drainage'
+    ? CORE_REQUIREMENT_FIELDS.filter((path) => path !== 'water.source')
+    : CORE_REQUIREMENT_FIELDS;
+}
+
 export function evaluateCompleteness(state: RequirementState): CompletenessResult {
-  const missing = CORE_REQUIREMENT_FIELDS.filter((path) => !isFilled(readField(state, path)));
-  const filled = CORE_REQUIREMENT_FIELDS.length - missing.length;
+  const core = coreFieldsFor(state);
+  const missing = core.filter((path) => !isFilled(readField(state, path)));
+  const filled = core.length - missing.length;
   // Tinggi lantai di luar rentang menahan rekomendasi sampai dikoreksi.
   const blocked: RequirementFieldPath[] = [
     ...(floorHeightOutOfRange(state) !== null ? (['building.floorHeightM'] as const) : []),
@@ -57,7 +72,7 @@ export function evaluateCompleteness(state: RequirementState): CompletenessResul
   ];
 
   return {
-    completeness: { filled, required: 4 },
+    completeness: { filled, required: core.length as 3 | 4 },
     missingInformation: [...missing, ...blocked],
     isComplete: missing.length + blocked.length === 0,
   };
