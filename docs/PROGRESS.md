@@ -4283,3 +4283,9 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       untuk jawaban yang akhirnya tetap teks tetap. Keputusan pemilik 2026-11-02: 15 detik —
       klasifikasi maksud (±12 detik) masih selesai, prosa model tidak. `.env.production` diubah
       (salinan lama disimpan), contoh env dan `docs/DEPLOYMENT.md` menyusul.
+
+- [x] P32-19 Jumlah kamar disebut balik dengan namanya
+
+      Setelah P32-16 angkanya tercatat, tetapi kalimatnya berbunyi "Oke, sudah saya catat: rumah kos
+      dan 10." — angka telanjang, karena yang membawa nama field hanya jumlah alat. Sekarang "12
+      kamar".

@@ -90,6 +90,19 @@ describe('kos yang jumlah kamarnya disebut', () => {
     expect(assumableUpdates(state)).toHaveLength(0);
   });
 
+  // Produksi 2026-11-02: kalimatnya berbunyi "Oke, sudah saya catat: rumah kos dan 10."
+  it('jumlah kamarnya disebut balik dengan namanya, dan pertanyaannya ikut', async () => {
+    const { events } = await runUnderstanding(null, input('kos 3 lantai, 12 kamar'));
+    const text = events
+      .filter((e) => e.type === 'token')
+      .map((e) => (e as { text: string }).text)
+      .join(' ');
+    expect(text).toContain('12 kamar');
+    const card = events.findLast((e) => e.type === 'card') as
+      { card: { kind: string; questions?: readonly { id: string }[] } } | undefined;
+    expect(card?.card.questions?.map((q) => q.id)).toContain('fixtures.bathroomsPerRoom');
+  });
+
   it('jawaban "di dalam tiap kamar" menjadikan jumlah kamar jumlah kamar mandinya', () => {
     const state = kosWithRooms();
     const derived = bathroomsFromRooms(state, [

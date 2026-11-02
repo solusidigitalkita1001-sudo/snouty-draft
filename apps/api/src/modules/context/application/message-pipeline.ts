@@ -906,6 +906,12 @@ export function understoodReply(
       );
       continue;
     }
+    // Jumlah kamar sewa membawa namanya: tanpa ini kalimatnya berbunyi "rumah kos dan 10"
+    // (produksi 2026-11-02).
+    if (path === 'building.rooms' && typeof field.value === 'number') {
+      captured.push(en ? `${field.value} rooms` : `${field.value} kamar`);
+      continue;
+    }
     // Angka meter tanpa nama terbaca janggal di kalimat ("…, dan 10 m") — review putaran 4, 6a.
     if (path === 'water.wellDepthM' && typeof field.value === 'number') {
       const m = field.value.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 });
