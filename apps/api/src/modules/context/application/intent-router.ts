@@ -99,6 +99,9 @@ export function certainIntent(
     fine === 'greeting' ||
     fine === 'out_of_scope' ||
     fine === 'capability_question' ||
+    // Sebelum topik pengetahuan: "garansi pipa pecah 2 tahun gimana" paling dekat ke topik umur
+    // pakai, dan kuliah umur pakai bukan jawaban atas pertanyaan garansi (produksi 2026-11-02).
+    fine === 'commercial_question' ||
     isSocial(fine)
   ) {
     return sure('OUT_OF_SCOPE');

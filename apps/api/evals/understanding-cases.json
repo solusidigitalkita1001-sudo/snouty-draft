@@ -763,7 +763,8 @@
     },
     {
       "text": "pengiriman ke luar kota bisa?",
-      "intent": null
+      "intent": "commercial_question",
+      "source": "produksi 2026-11-02"
     },
     {
       "text": "apa bedanya pvc dan hdpe?",
@@ -1831,6 +1832,61 @@
       "text": "masjid 2 lantai, keran wudhunya 20 kran",
       "computeRequest": null,
       "source": "P31-59 katalog compute-request — pernyataan tanpa permintaan hitung"
+    },
+    {
+      "text": "pipa pralon gw pecah baru 2 taun, garansi gimana",
+      "intent": "commercial_question",
+      "source": "produksi 2026-11-02",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": [],
+      "useCase": null
+    },
+    {
+      "text": "garansi pipa pralon berapa lama",
+      "intent": "commercial_question",
+      "source": "produksi 2026-11-02",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": [],
+      "useCase": null
+    },
+    {
+      "text": "minta penawaran harga 500 batang aw 4 inci, kirim ke proyek cikarang",
+      "intent": "commercial_question",
+      "source": "produksi 2026-11-02",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": [],
+      "useCase": null
+    },
+    {
+      "text": "minimum ordernya berapa batang ya",
+      "intent": "commercial_question",
+      "source": "produksi 2026-11-02",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": [],
+      "useCase": null
+    },
+    {
+      "text": "can i get a quotation for 500 lengths of 4 inch aw?",
+      "intent": "commercial_question",
+      "source": "produksi 2026-11-02",
+      "companyTopic": null,
+      "depth": null,
+      "format": null,
+      "productAspect": null,
+      "topics": [],
+      "useCase": null
     }
   ]
 }

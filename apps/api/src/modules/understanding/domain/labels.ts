@@ -30,6 +30,11 @@ export const FINE_INTENTS = [
   'product_spec',
   'product_range',
   'price_question',
+  // Penawaran, stok, pengiriman, minimum order, garansi, klaim: urusan tim Pralon, dan angkanya
+  // tidak ada di sini. Dulu pertanyaan garansi jatuh ke umur pakai ("pipa pralon gw pecah baru 2
+  // taun, garansi gimana" dijawab kuliah umur pakai) atau ke harga ("garansi pipa pralon berapa
+  // lama" dijawab bahwa harga tidak ditampilkan) — keduanya bukan jawaban (produksi 2026-11-02).
+  'commercial_question',
   'use_question',
   'knowledge_question',
   'advice_request',

@@ -4059,3 +4059,41 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
 
       Dua kalimat produksi masuk ke daftar kasus bahasa; 110 kasus berlabel tetap hijau,
       termasuk pagar "paling sedikit 90% diputuskan".
+
+- [x] P32-03 Penawaran, pengiriman, dan garansi punya jawabannya sendiri
+
+      Tiga pertanyaan produksi yang tidak satu pun dijawab: "garansi pipa pralon berapa lama"
+      dijawab bahwa harga tidak ditampilkan; "pipa pralon gw pecah baru 2 taun, garansi gimana"
+      dijawab kuliah umur pakai; "minta penawaran harga 500 batang aw 4 inci, kirim ke proyek
+      cikarang" dijawab ajakan bertanya setelah 42,5 detik.
+
+      Yang kedua akarnya di data kami sendiri: contoh "garansi pipa berapa lama?" tertulis di
+      topik **umur pakai**, jadi sistem memang percaya garansi sama dengan umur pakai. Contoh
+      itu dicabut, dan lima kalimat garansi masuk ke daftar negatif topik pengetahuan.
+
+      Label pemahaman baru `commercial_question` — penawaran, stok, pengiriman, minimum order,
+      cara pesan, garansi, klaim — dengan dua puluh contoh dalam dua bahasa. Perilakunya di
+      kode: dirutekan sebelum topik pengetahuan (pertanyaan garansi tidak boleh direbut topik
+      umur pakai), dijawab teks tetap yang menyebut apa yang ada di tim Pralon dan apa yang
+      memang dikerjakan di sini, lalu kartu hubungi sales. Tanpa model, jadi seketika.
+
+      Di papan prospek 5A label ini masuk **Act**: orang yang minta penawaran sudah hendak
+      bertransaksi, dan klaim garansi pun perlu sampai ke orang. Peta label→tahap wajib lengkap,
+      jadi label baru gagal typecheck sampai tahapnya diputuskan — itu gunanya.
+
+      Evaluasi pemahaman 205/206 (99,5%), naik dari 204/206: satu kasus lama ("pengiriman ke
+      luar kota bisa?") yang dulu sengaja dibiarkan ragu sekarang punya label yang benar.
+
+- [x] P32-04 Fitting yang disebut tanpa bahannya
+
+      "fitting tee 4 inci x 2 inci ada?" dijawab "belum punya acuan yang bisa saya pegang, jadi
+      saya tidak mau menebak" — padahal katalog memuat 4.095 fitting PVC. Yang hilang bukan
+      acuan, melainkan bahan: pesan itu tidak menyebut PVC atau HDPE, dan lingkup pencarian
+      disusun dengan menyaring keluarga fitting menurut bahan yang disebut. Tidak ada bahan
+      yang disebut berarti lingkupnya kosong, dan lingkup kosong jatuh ke jalur pengetahuan.
+      Dengan satu kata "pvc" di kalimat yang sama, jawabannya benar — jadi cacatnya sempit dan
+      tidak terlihat dari tes yang selalu menyebut bahan.
+
+      Sekarang bahan yang tidak disebut berarti seluruh keluarga fitting di katalog, dan
+      jawabannya menyebut yang ketemu. Bahan yang DISEBUT tetap mengikat: "fitting hdpe tee"
+      tidak pernah dijawab fitting PVC.

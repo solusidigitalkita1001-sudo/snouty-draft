@@ -103,6 +103,7 @@ import {
   modelBusyReply,
   openerReply,
   capabilityReply,
+  commercialReply,
   outOfTopicReply,
   replyFor,
 } from './reply-copy.js';
@@ -200,32 +201,34 @@ export async function runUnderstanding(
           ? solutionReply(input.solution, input.locale ?? DEFAULT_LOCALE)
           : label === 'capability_question'
             ? capabilityReply(input.locale)
-            : label === 'out_of_scope'
-              ? outOfTopicReply(input.locale)
-              : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
-                ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
-                  // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
-                  explanationHandedOff(caseCard.reasons, input.locale)
-                : input.decision.intent === 'EXPLANATION_REQUEST' &&
-                    (!input.solution || input.solution.stale)
-                  ? // Belum ada solusi yang bisa dibuka detailnya — baik karena kebutuhannya belum
-                    // lengkap, maupun karena tombol hitungnya belum ditekan. Lewat model giliran ini
-                    // 27 detik dan jawabannya mengaku mencatat hal yang tidak punya tempat di
-                    // kebutuhan ("sudah saya catat bahwa air kotor dan air bekas dipisahkan",
-                    // produksi 2026-10-26).
-                    explanationBeforeSolution(input.locale)
-                  : input.decision.intent === 'OUT_OF_SCOPE' &&
-                      (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
-                    ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
-                      // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
-                      // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
-                      label === 'greeting'
-                      ? greetingAgain(input.recentTurns ?? [], input.locale)
-                      : outOfTopicReply(input.locale)
-                    : input.decision.modelUnavailable === true
-                      ? // Giliran yang kehabisan waktu, bukan pertanyaan yang tidak terbaca (P28-02).
-                        modelBusyReply(input.locale)
-                      : replyFor(input.decision.intent, input.locale);
+            : label === 'commercial_question'
+              ? commercialReply(input.locale)
+              : label === 'out_of_scope'
+                ? outOfTopicReply(input.locale)
+                : input.decision.intent === 'EXPLANATION_REQUEST' && handedOff
+                  ? // "Mana perhitungannya?" atas kasus yang diserahkan ke tim teknis: tidak ada solusi untuk
+                    // dibuka — katakan alasannya (laporan pemilik 2026-10-09).
+                    explanationHandedOff(caseCard.reasons, input.locale)
+                  : input.decision.intent === 'EXPLANATION_REQUEST' &&
+                      (!input.solution || input.solution.stale)
+                    ? // Belum ada solusi yang bisa dibuka detailnya — baik karena kebutuhannya belum
+                      // lengkap, maupun karena tombol hitungnya belum ditekan. Lewat model giliran ini
+                      // 27 detik dan jawabannya mengaku mencatat hal yang tidak punya tempat di
+                      // kebutuhan ("sudah saya catat bahwa air kotor dan air bekas dipisahkan",
+                      // produksi 2026-10-26).
+                      explanationBeforeSolution(input.locale)
+                    : input.decision.intent === 'OUT_OF_SCOPE' &&
+                        (input.recentTurns ?? []).some((turn) => turn.role === 'assistant')
+                      ? // Perkenalan hanya untuk giliran pertama. Sapaan ulang dijawab ajakan bertanya;
+                        // pesan lain yang di luar topik ("enaknya makan apa?") dijawab di luar topik —
+                        // dulu keduanya mendapat ajakan bertanya (laporan pemilik 2026-10-09).
+                        label === 'greeting'
+                        ? greetingAgain(input.recentTurns ?? [], input.locale)
+                        : outOfTopicReply(input.locale)
+                      : input.decision.modelUnavailable === true
+                        ? // Giliran yang kehabisan waktu, bukan pertanyaan yang tidak terbaca (P28-02).
+                          modelBusyReply(input.locale)
+                        : replyFor(input.decision.intent, input.locale);
     if (fallback !== null) {
       // Model merangkai balasan di atas DATA kasus (P16-28): yang sudah dicatat, status kasus, dan
       // cara SNOUTY menghitung — semuanya dari kode. Angka di luar DATA ditolak `ReplyWriter`, jadi
@@ -248,7 +251,8 @@ export async function runUnderstanding(
         // pertanyaan ukuran atas kebutuhan yang belum lengkap; lewat model ia 49,6 detik dan
         // balik menanyakan sumber air yang baru saja disebut pengguna (produksi 2026-10-26).
         fallback === explanationBeforeSolution(input.locale) ||
-        fallback === outOfTopicReply(input.locale);
+        fallback === outOfTopicReply(input.locale) ||
+        fallback === commercialReply(input.locale);
       const written =
         reply && loadEnv().LLM_CHAT_REPLY && !fixedIsEnough
           ? await reply.write({
@@ -284,6 +288,9 @@ export async function runUnderstanding(
       });
     }
     if (drawing !== null) events.push({ type: 'card', card: drawing });
+    // Penawaran milik tim sales (P26-04) — kartunya yang menghubungkan, bukan kalimat yang menyuruh.
+    if (label === 'commercial_question')
+      events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_SALES' } });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
   }

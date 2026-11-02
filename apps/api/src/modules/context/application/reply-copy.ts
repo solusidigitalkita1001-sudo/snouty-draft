@@ -184,3 +184,15 @@ const OUT_OF_TOPIC_REPLY_EN =
 export function outOfTopicReply(locale: Locale = DEFAULT_LOCALE): string {
   return locale === 'en' ? OUT_OF_TOPIC_REPLY_EN : OUT_OF_TOPIC_REPLY;
 }
+
+/**
+ * Penawaran, stok, pengiriman, minimum order, garansi, dan klaim: tim Pralon yang memegangnya.
+ * Dikatakan apa adanya, lalu disebut apa yang memang bisa dikerjakan di sini — pertanyaan garansi
+ * yang dijawab kuliah umur pakai, dan permintaan penawaran yang dijawab ajakan bertanya, membuat
+ * penanyanya mengulang pertanyaan yang sama (produksi 2026-11-02).
+ */
+export function commercialReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en'
+    ? 'Quotations, stock, delivery, and warranty sit with the Pralon team — I do not hold those figures. What I can do here is work out pipe sizes and the material a building needs, and answer product questions.'
+    : 'Penawaran, stok, pengiriman, dan garansi ada di tim Pralon — angkanya tidak saya pegang. Yang bisa saya kerjakan di sini: menghitung ukuran pipa dan kebutuhan materialnya, serta menjawab pertanyaan produk.';
+}

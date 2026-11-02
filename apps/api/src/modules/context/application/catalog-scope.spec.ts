@@ -193,4 +193,11 @@ describe('fittingScope', () => {
     expect(fittingScope([], [], ['pvc'], FAMILIES)).toEqual([]);
     expect(fittingScope(['FITTING HDPE'], ['elbow'], ['pvc'], FAMILIES)).toEqual(['FITTING HDPE']);
   });
+
+  // Produksi 2026-11-02: "fitting tee 4 inci x 2 inci ada?" dijawab "belum punya acuan".
+  it('jenis fitting tanpa bahan: seluruh keluarga fitting di katalog, bukan lingkup kosong', () => {
+    expect(fittingScope([], ['tee'], [], FAMILIES)).toEqual(
+      FAMILIES.filter((f) => /^FITTING\b/i.test(f)),
+    );
+  });
 });

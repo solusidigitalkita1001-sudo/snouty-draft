@@ -101,9 +101,17 @@ export function fittingScope(
   families: readonly string[],
 ): string[] {
   if (named.length > 0 || kinds.length === 0) return [...named];
-  return families.filter((family) =>
-    materials.some((m) => family.toUpperCase() === `FITTING ${m.toUpperCase()}`),
-  );
+  // Bahan yang DISEBUT menentukan: "fitting hdpe tee" tidak boleh dijawab fitting PVC.
+  if (materials.length > 0) {
+    return families.filter((family) =>
+      materials.some((m) => family.toUpperCase() === `FITTING ${m.toUpperCase()}`),
+    );
+  }
+  // Bahan tidak disebut sama sekali ("fitting tee 4 inci x 2 inci ada?"): itu bukan alasan untuk
+  // berhenti. Lingkupnya seluruh keluarga fitting di katalog, dan jawabannya menyebut yang
+  // ketemu — sebelum ini lingkupnya kosong dan pertanyaannya dijawab "belum punya acuan yang bisa
+  // saya pegang", padahal katalog memuat ribuan fitting (produksi 2026-11-02).
+  return families.filter((family) => FITTING.test(family));
 }
 
 /** "FITTING · ELBOW 45°" → "Elbow 45°"; singkatan pendek ("TY") tetap kapital. */

@@ -54,6 +54,10 @@ const INTENT_STAGE: Readonly<Record<FineIntent, Stage | null>> = {
   product_spec: 'appeal',
   product_range: 'appeal',
   use_question: 'appeal',
+  // Minta penawaran, tanya minimum order, tanya cara pesan: orang yang hendak bertransaksi, bukan
+  // lagi menimbang — setara dengan menekan "hubungi tim" (Act). Pertanyaan garansi dan klaim ikut
+  // label yang sama; keduanya juga perlu sampai ke orang, bukan mengendap di papan.
+  commercial_question: 'act',
   // Menimbang pembelian untuk kebutuhan nyata.
   price_question: 'ask',
   advice_request: 'ask',
