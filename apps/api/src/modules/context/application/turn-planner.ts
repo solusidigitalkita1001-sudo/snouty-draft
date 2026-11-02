@@ -203,10 +203,22 @@ export function asksBeforeSolution(
   hasFreshSolution: boolean,
 ): boolean {
   if (!hasCase || hasFreshSolution) return false;
-  const label = u.intent?.label;
-  if (label !== 'explanation_request' && label !== 'system_layout_question') return false;
-  return u.intent !== null && u.intent.score >= CONFIDENT_SCORE;
+  if (u.intent !== null && ABOUT_OWN_CASE.has(u.intent.label) && u.intent.score >= CONFIDENT_SCORE)
+    return true;
+  const ranked = u.intentRanking.slice(0, 2);
+  const top = ranked[0];
+  if (top === undefined || !ABOUT_OWN_CASE.has(top.label)) return false;
+  // Dua label teratas sama-sama tentang kasus pengguna sendiri ("jadi pipa utamanya berapa?":
+  // bentuk sistem 0,836 lalu minta penjelasan 0,809): yang diperdebatkan hanya bentuk
+  // pertanyaannya, bukan apakah ia tentang kasusnya.
+  return (
+    ranked.length === 2 && ranked.every((r) => ABOUT_OWN_CASE.has(r.label)) && top.score >= 0.65
+  );
 }
+const ABOUT_OWN_CASE: ReadonlySet<string> = new Set([
+  'explanation_request',
+  'system_layout_question',
+]);
 
 /**
  * Label yang jawabannya TEKS TETAP: sapaan, terima kasih, pamit, keluhan, di luar topik, dan

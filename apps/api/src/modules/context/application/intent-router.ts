@@ -32,7 +32,7 @@ import { CORE_REQUIREMENT_FIELDS } from '@snouty/shared-types';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import { extractTechnicalContext, isCaseId } from '@snouty/engineering';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
-import { mentionsPressure } from './knowledge-answer.js';
+import { mentionsPressure, statesRouteLength } from './knowledge-answer.js';
 
 /**
  * Nilai pekerjaan RENOVASI yang tersurat: jenis pekerjaan, ukuran dan bahan pipa lama, titik air
@@ -636,11 +636,12 @@ export function isCaseStatement(u: MessageUnderstanding): boolean {
  * di percakapan yang solusinya sudah dihitung dijawab pelajaran panjang batang standar, padahal
  * daftar belanjanya sudah memuat "main line 1¼" 4 rods".
  */
-const LENGTH_IN_MESSAGE = /\d+(?:[.,]\d+)?\s*(?:m|meter|metre|meters|metres|km)\b/i;
 
 export function asksSolutionQuantity(u: MessageUnderstanding): boolean {
   if (!u.knowledgeTopics.some((t) => CALCULATION_TOPICS.has(t))) return false;
-  return !LENGTH_IN_MESSAGE.test(u.text);
+  // Panjang BATANG yang disebut ("butuh berapa batang pipa 4 meter?") bukan panjang jalur: yang
+  // ditanya tetap jumlah batang untuk jalur pengguna sendiri (produksi 2026-11-02).
+  return !statesRouteLength(u.text);
 }
 
 export function answersFromKnowledge(u: MessageUnderstanding): boolean {

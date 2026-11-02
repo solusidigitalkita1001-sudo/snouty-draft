@@ -821,6 +821,27 @@ describe('MessageService — kode yang terbukti didahulukan dari perencana (uji 
     await service.handle('C'.repeat(26), ACTOR, 'jadi pipa utamanya berapa?', 'T');
     // Kalimat jawabannya sendiri diuji di `message-pipeline.spec.ts`: di sini routernya ganda.
     expect(planner.plan).not.toHaveBeenCalled();
+
+    // Dan dengan label yang berimbang seperti di produksi (bentuk sistem 0,836 lalu minta
+    // penjelasan 0,809): dua label teratas sama-sama tentang kasusnya sendiri.
+    const near = setup(
+      [
+        { role: 'user', text: 'masjid 2 lantai, 4 toilet' },
+        { role: 'assistant', text: 'Oke, sudah saya catat: tempat ibadah, 2 lantai.' },
+      ],
+      {
+        'jadi pipa utamanya berapa?': {
+          intent: null,
+          intentRanking: [
+            { label: 'system_layout_question', score: 0.836, example: 'contoh' },
+            { label: 'explanation_request', score: 0.809, example: 'contoh' },
+          ],
+        },
+      },
+      mosque,
+    );
+    await near.service.handle('C'.repeat(26), ACTOR, 'jadi pipa utamanya berapa?', 'T');
+    expect(near.planner.plan).not.toHaveBeenCalled();
   });
 
   it('kasus yang sudah diserahkan ke tim teknis tidak lewat perencana (P31-26)', async () => {

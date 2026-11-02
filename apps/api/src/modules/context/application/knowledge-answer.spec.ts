@@ -6,8 +6,8 @@
 import { describe, expect, it } from 'vitest';
 import { understood } from '../../understanding/testing/understood.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
-import { answersFromKnowledge } from './intent-router.js';
-import { knowledgeAnswer, type KnowledgeCatalog } from './knowledge-answer.js';
+import { answersFromKnowledge, asksSolutionQuantity } from './intent-router.js';
+import { knowledgeAnswer, statesRouteLength, type KnowledgeCatalog } from './knowledge-answer.js';
 
 const NAMES: Record<string, string[]> = {
   'PVC AW': ['Pipa (TS End) Putih AW 1/2" x 4 Meter', 'Pipa (Bell End ) Abu AW 3 " x 5.8 Meter'],
@@ -613,5 +613,37 @@ describe('cakupan topik FAQ', () => {
     ] as const) {
       expect(factTopics().has(topic), topic).toBe(true);
     }
+  });
+});
+
+/**
+ * P32-44 — panjang batang yang disebut bukan panjang jalur. Produksi 2026-11-02: "butuh berapa
+ * batang pipa 4 meter?" atas solusi yang sudah dihitung dijawab seluruh jalur plus daftar belanja
+ * dalam satu paragraf, karena "4 meter" membuatnya terbaca pelajaran umum.
+ */
+describe('statesRouteLength', () => {
+  it('panjang batang tidak terbaca panjang jalur', () => {
+    expect(statesRouteLength('butuh berapa batang pipa 4 meter?')).toBe(false);
+    expect(statesRouteLength('how many 4 metre lengths do i need?')).toBe(false);
+    expect(statesRouteLength('berapa batang kalau pipanya 6 meteran?')).toBe(false);
+  });
+
+  it('panjang jalur tetap terbaca', () => {
+    expect(statesRouteLength('jalur 30 meter butuh berapa batang?')).toBe(true);
+    expect(statesRouteLength('jaraknya 300 meter')).toBe(true);
+    expect(statesRouteLength('butuh berapa batang pipa 4 meter untuk jalur 30 meter?')).toBe(true);
+  });
+
+  it('pertanyaan jumlah batang atas solusi sendiri tidak hilang karena panjang batangnya', () => {
+    const own = understood('butuh berapa batang pipa 4 meter?', {
+      intent: 'system_layout_question',
+      knowledgeTopics: ['jumlah batang'],
+    });
+    expect(asksSolutionQuantity(own)).toBe(true);
+    const lesson = understood('jalur 30 meter butuh berapa batang?', {
+      intent: 'system_layout_question',
+      knowledgeTopics: ['jumlah batang'],
+    });
+    expect(asksSolutionQuantity(lesson)).toBe(false);
   });
 });

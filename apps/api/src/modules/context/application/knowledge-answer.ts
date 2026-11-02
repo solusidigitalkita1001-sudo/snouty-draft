@@ -244,6 +244,17 @@ const ROD_BEFORE = /(?:batang|pipa|pipes?|rods?|lengths? of)\s*$/i;
 const ASK_ROUTE = 'Jalurnya berapa meter? Dari situ jumlah batangnya saya hitung.';
 const ASK_ROUTE_EN = 'How long is the route in metres? With that I can work out the number.';
 
+/**
+ * Pesan menyebut panjang JALUR dalam meter — nilai yang menempel kata batang atau pipa ("pipa 4
+ * meter") tidak dihitung, karena itu panjang satu batang. Parser nilai: panjang mana yang disebut,
+ * bukan apa yang ditanyakan. Tanpa pembeda ini "butuh berapa batang pipa 4 meter?" terbaca
+ * pelajaran umum, lalu dijawab seluruh jalur plus daftar belanja (produksi 2026-11-02).
+ */
+export function statesRouteLength(message: string): boolean {
+  return [...message.matchAll(METRES_GLOBAL)].some((m) => !isRodLength(message, m));
+}
+const METRES_GLOBAL = /\d+(?:[.,]\d+)?\s*(?:m|meter|metre|meters|metres|km)\b/gi;
+
 /** Nilai meter ini panjang satu batang, bukan panjang jalur. */
 function isRodLength(message: string, match: RegExpExecArray | RegExpMatchArray): boolean {
   const at = match.index ?? 0;

@@ -4471,3 +4471,16 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       dijawab "Ukurannya baru dihitung setelah Anda menekan Susun rekomendasi" — tombol yang belum
       ada, karena satu data inti masih ditunggu. Sekarang yang ditunggu disebut namanya, tanpa
       perencana. Solusi yang sudah pernah dihitung lalu usang tetap diarahkan ke tombolnya.
+
+- [x] P32-44 Jumlah batang tetap ditanya walau panjang batangnya disebut
+
+      Jawaban "butuh berapa batang pipa 4 meter?" masih seluruh jalur plus daftar belanja: nilai
+      meter apa pun di pesan dianggap panjang jalur, jadi pertanyaannya terbaca pelajaran umum.
+      Sekarang nilai yang menempel kata batang atau pipa tidak dihitung sebagai panjang jalur.
+
+- [x] P32-45 Label yang berimbang soal kasus sendiri tidak lewat perencana
+
+      "jadi pipa utamanya berapa?" berlabel bentuk sistem 0,836 lalu minta penjelasan 0,809 — tidak
+      cukup yakin untuk melewati perencana, jadi ia tetap 4,5 detik di sana dan jawabannya ditulis
+      model. Bila dua label teratas sama-sama tentang kasus pengguna sendiri, yang diperdebatkan
+      hanya bentuk pertanyaannya: jawabannya dari kode.
