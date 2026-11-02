@@ -188,3 +188,21 @@ describe('jawaban kamar mandi per kamar yang diketik di chat', () => {
     expect(text).not.toMatch(/kamar mandi dan kamar mandi per kamar/);
   });
 });
+
+describe('jawaban kamar mandi bersama disebut balik', () => {
+  it('kalimatnya menyebut "kamar mandi bersama", bukan ringkasan yang sama seperti giliran lalu', async () => {
+    const message = 'kamar mandinya bersama';
+    const { events } = await runUnderstanding(
+      null,
+      input(message, {
+        state: kosWithRooms(12),
+        understanding: understood(message, { intent: 'requirement_building' }),
+      }),
+    );
+    const text = events
+      .filter((e) => e.type === 'token')
+      .map((e) => (e as { text: string }).text)
+      .join(' ');
+    expect(text).toContain('kamar mandi bersama');
+  });
+});

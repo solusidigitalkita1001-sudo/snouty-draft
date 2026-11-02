@@ -928,6 +928,20 @@ export function understoodReply(
       captured.push(en ? `a well water level of about ${m} m` : `muka air sumur ±${m} m`);
       continue;
     }
+    // Kos yang kamar mandinya bersama: tanpa ini jawabannya tidak disebut balik sama sekali, dan
+    // kalimatnya berbunyi sama persis seperti giliran sebelumnya (produksi 2026-11-02).
+    if (path === 'fixtures.bathroomsPerRoom' && typeof field.value === 'boolean') {
+      captured.push(
+        field.value
+          ? en
+            ? 'a bathroom in each room'
+            : 'kamar mandi di dalam tiap kamar'
+          : en
+            ? 'shared bathrooms'
+            : 'kamar mandi bersama',
+      );
+      continue;
+    }
     if (typeof field.value === 'boolean') continue;
     // Data pipa lama (P23-03) dibaca sebagai frasa, bukan nilai telanjang ("…, 3/4"").
     if (path === 'water.existingMainSize') {

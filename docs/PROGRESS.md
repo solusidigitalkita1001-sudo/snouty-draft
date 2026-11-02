@@ -4335,3 +4335,10 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       ikut menjadi jumlah kamarnya. Kalimat yang menyebut data yang masih ditunggu memakai saringan
       yang sama dengan kartunya, jadi ia tidak lagi menagih "kamar mandi dan kamar mandi per
       kamar" sekaligus.
+
+- [x] P32-25 "Kamar mandinya bersama" disebut balik
+
+      Sisi sebaliknya dari P32-24 tercatat, tetapi tidak terucap: nilai benar/salah dilewati
+      kalimat "sudah saya catat", sehingga balasannya berbunyi sama persis seperti giliran
+      sebelumnya dan ikut dinilai "tidak ada yang berubah". Sekarang jawabannya disebut dengan
+      kata-katanya.
