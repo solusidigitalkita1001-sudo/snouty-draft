@@ -87,6 +87,14 @@ export function certainIntent(
   // menemukan apa pun — 42,5 detik lalu ajakan bertanya (produksi 2026-11-02). Yang diminta
   // penawaran, bukan hitungan, jadi labelnya menang atas bentuk kalimatnya.
   if (fine === 'commercial_question') return sure('OUT_OF_SCOPE');
+  // Klaim ukuran yang diminta dinilai ("tukang saya bilang pipa 1/2 inci cukup buat 3 lantai,
+  // bener ga?"): intentnya memang ragu, karena kalimatnya sekaligus berbunyi seperti pertanyaan
+  // harga dan permintaan saran. Menilainya butuh hitungan, jadi ia pernyataan kebutuhan — dan
+  // tanpa model: di produksi 2026-11-02 pesan ini 14,2 detik lalu klaimnya tidak dijawab.
+  // Klaim yang tidak membawa satu pun data inti tidak bisa dihitung, jadi ia lewat jalur biasa.
+  if (u.claimCheck === 'check' && !u.mentionsCompetitor && coreFactsInText(u.text) > 0) {
+    return sure('REQUIREMENT_STATEMENT');
+  }
   // Kasus teknis yang dikenali dari contoh DENGAN angkanya ("proyek perumahan 50 unit") adalah
   // kebutuhan yang dihitung, bukan pertanyaan pengetahuan — tes FAQ 2026-10-12: dulu dijawab
   // paragraf sambungan rumah, atau jatuh ke model lalu "Silakan, tanyakan saja".

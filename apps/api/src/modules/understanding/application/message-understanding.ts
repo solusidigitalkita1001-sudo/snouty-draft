@@ -17,6 +17,7 @@ import type {
   ProductAspectLabel,
   UseCaseLabel,
   ExtremeLabel,
+  ClaimCheckLabel,
   ComputeRequestLabel,
 } from '../domain/labels.js';
 
@@ -46,6 +47,8 @@ export interface MessageUnderstanding {
    * menyatakan nilai sekaligus memintanya tetap berintent pernyataan kebutuhan.
    */
   readonly computeRequest: ComputeRequestLabel | null;
+  /** Klaim ukuran yang diminta dinilai ("bener ga?") — dijawab dengan angka hitungan (P32-10). */
+  readonly claimCheck: ClaimCheckLabel | null;
   /** Menyebut fluida/kondisi di luar cakupan (air panas, uap, kimia — kosakata). */
   readonly mentionsOutOfScopeFluid: boolean;
   /** Keluarga produk yang disebut (kosakata), kanonis, urut kemunculan. */
@@ -84,6 +87,7 @@ export function unavailableUnderstanding(
     useCase: null,
     extreme: null,
     computeRequest: null,
+    claimCheck: null,
     mentionsOutOfScopeFluid: lexicon?.mentionsOutOfScopeFluid(text) ?? false,
     families: lexicon?.productFamilies(text) ?? [],
     mentionsCompetitor: lexicon?.mentionsCompetitor(text) ?? false,

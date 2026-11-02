@@ -186,6 +186,7 @@ export const USE_CASES = [
   'culvert',
   'well_distribution',
   'fish_pond',
+  'swimming_pool',
   'water_supply_network',
   'sewerage',
 ] as const;
@@ -209,6 +210,15 @@ export type ExtremeLabel = (typeof EXTREMES)[number];
 export const COMPUTE_REQUESTS = ['compute'] as const;
 export type ComputeRequestLabel = (typeof COMPUTE_REQUESTS)[number];
 
+/**
+ * Pesan ini meminta klaim ukuran yang sudah ada DINILAI (P32-10): "tukang saya bilang pipa 1/2
+ * inci cukup buat 3 lantai, bener ga?". Katalognya sendiri karena pesannya sekaligus menyatakan
+ * kebutuhan — intentnya pernyataan kebutuhan, sehingga permintaan menilainya hilang dan yang
+ * keluar formulir data (produksi 2026-11-02).
+ */
+export const CLAIM_CHECKS = ['check'] as const;
+export type ClaimCheckLabel = (typeof CLAIM_CHECKS)[number];
+
 /** Nama katalog data → label yang sah di dalamnya. */
 export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   intent: FINE_INTENTS,
@@ -221,6 +231,7 @@ export const CATALOG_LABELS: Readonly<Record<string, readonly string[]>> = {
   'use-case': USE_CASES,
   extreme: EXTREMES,
   'compute-request': COMPUTE_REQUESTS,
+  'claim-check': CLAIM_CHECKS,
 };
 export type CatalogName = keyof typeof CATALOG_LABELS;
 

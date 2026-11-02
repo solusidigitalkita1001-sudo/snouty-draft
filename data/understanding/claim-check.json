@@ -1,0 +1,42 @@
+{
+  "name": "claim-check",
+  "description": "Pesan ini meminta SNOUTY menilai klaim ukuran yang sudah ada — dari tukang, kontraktor, tetangga, atau dugaan pengguna sendiri ('tukang saya bilang pipa 1/2 inci cukup buat 3 lantai, bener ga?'). Katalognya sendiri, di luar intent: pesannya sekaligus menyatakan kebutuhan (3 lantai), jadi intentnya pernyataan kebutuhan dan permintaan penilaiannya hilang — di produksi 2026-11-02 klaimnya tidak pernah dijawab, yang keluar formulir data setelah 14 detik. Keputusan pemilik 2026-11-02: hitung dengan anggapan wajar, lalu jawab klaimnya. Contoh harus membawa kata penilaiannya sendiri (bener/benar/cukup/salah/masuk akal/right/enough), dan sisi `none` memuat pertanyaan ukuran biasa yang hanya MENANYAKAN angka tanpa klaim yang perlu dinilai.",
+  "threshold": 0.7,
+  "margin": 0.03,
+  "labels": {
+    "check": [
+      "tukang saya bilang pipa 1/2 inci cukup buat 3 lantai, bener ga?",
+      "kata tukang 3/4 inci udah cukup buat rumah 2 lantai, benar begitu?",
+      "kontraktor saya pakai pipa 1 inci buat rumah 3 lantai, masuk akal ga?",
+      "tetangga bilang pipa 1/2 cukup, bener?",
+      "menurut lu bener ga pipa 3/4 buat 4 lantai?",
+      "pipa 1/2 inci cukup ga buat rumah 2 lantai?",
+      "apa benar pipa 1 inci kebesaran buat rumah saya?",
+      "tukangnya ngotot pipa 1/2 aja, salah ga tuh?",
+      "desain lama pakai 3/4 inci, masih cukup ga kalau nambah lantai?",
+      "bener ga sih rumah 2 lantai cukup pipa 1/2?",
+      "my plumber says 1/2 inch is enough for a 3 storey house, is that right?",
+      "contractor used 1 inch for a two storey house, does that make sense?",
+      "is 3/4 inch really enough for 3 floors?",
+      "they told me half inch pipe is fine, is that correct?",
+      "is my builder right that 1 inch is oversized for my house?"
+    ],
+    "none": [
+      "rumah 2 lantai, 3 kamar mandi",
+      "ukuran pipanya berapa buat rumah 3 lantai?",
+      "pipa 1/2 inci ada stoknya?",
+      "pipa 3/4 inci buat apa biasanya?",
+      "bedanya pipa 1/2 dan 3/4 apa?",
+      "pipa aw 4 inci harganya berapa?",
+      "4 inci",
+      "udah, itung aja",
+      "boleh",
+      "pralon ada ukuran apa saja?",
+      "what size pipe do i need for a 3 storey house?",
+      "what is the difference between 1/2 and 3/4 inch pipe?",
+      "do you have 1/2 inch pipe in stock?",
+      "how do i calculate the pipe size?",
+      "please calculate it now"
+    ]
+  }
+}

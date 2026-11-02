@@ -34,6 +34,7 @@ import {
   activeParameters,
   caseInputIssues,
   caseProfile,
+  caseProfileDescription,
   caseProfileLabel,
   extractTechnicalContext,
   isCaseId,
@@ -42,9 +43,9 @@ import {
 } from '@snouty/engineering';
 import { policyCard } from '../../policy/policy-cards.js';
 import {
+  caseWithoutCalculatorPolicy,
   exceedsAutomaticFloors,
   scopePolicy,
-  technicalHandoffPolicy,
   useCasePolicy,
 } from '../../policy/scope.js';
 import {
@@ -108,6 +109,8 @@ import {
   replyFor,
 } from './reply-copy.js';
 import { caseFacts } from './case-facts.js';
+import { claimVerdict } from './claim-verdict.js';
+import { parseSize } from '../domain/size-parser.js';
 import { alreadyComputedReply, layoutReply, rodsReply, solutionReply } from './solution-facts.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
@@ -317,9 +320,14 @@ export async function runUnderstanding(
   // Pesan yang menyatakan nilai sekaligus memintanya ("airnya dari toren atas, itung aja")
   // berintent pernyataan kebutuhan, jadi permintaan menghitungnya dibaca katalognya sendiri
   // (produksi 2026-10-27: masjid dengan 20 keran wudhu ditanyai lagi data yang punya anggapan).
+  // Klaim ukuran yang diminta dinilai ("tukang bilang 1/2 inci cukup buat 3 lantai, bener ga?")
+  // adalah izin memakai anggapan juga: penilaiannya butuh hitungan, dan menagih data dulu membuat
+  // klaimnya tidak pernah dijawab (produksi 2026-11-02, 14 detik lalu formulir).
+  const checksClaim = input.understanding?.claimCheck === 'check';
   const asksToCompute =
     input.understanding?.intent?.label === 'follow_up_continue' ||
-    input.understanding?.computeRequest === 'compute';
+    input.understanding?.computeRequest === 'compute' ||
+    checksClaim;
 
   const statesIrrigation = input.understanding?.intent?.label === 'requirement_irrigation';
   const running = input.state.useCase?.kind;
@@ -739,10 +747,16 @@ export async function runUnderstanding(
         : null;
     const answer =
       fromComputed !== null && fromComputed.trim() !== said?.trim() ? fromComputed : text;
-    if (answer !== null) {
+    // Klaim ukurannya dijawab dengan angka hitungan, bukan dibiarkan menguap di balik kartu.
+    const verdict =
+      checksClaim && card?.kind === 'cta'
+        ? claimVerdict(merged, parseSize(input.message), locale)
+        : null;
+    if (answer !== null || verdict !== null) {
+      const spoken = same && answer === text ? requirementUnchangedReply(locale) : answer;
       events.push({
         type: 'token',
-        text: same && answer === text ? requirementUnchangedReply(locale) : answer,
+        text: [spoken, verdict].filter((part) => part !== null && part !== '').join(' '),
       });
     }
   }
@@ -1112,21 +1126,26 @@ export function technicalInputIssues(state: RequirementState, locale: Locale): r
 
 function technicalFollowUp(state: RequirementState, locale: Locale): AssistantCard | null {
   if (state.useCase?.kind !== 'technical' || !isCaseId(state.useCase.caseId)) return null;
+  const profile = caseProfile(state.useCase.caseId);
+  // Kalkulatornya belum ada: menagih seluruh parameter lebih dulu hanya menunda kalimat yang sama,
+  // dan untuk kolam renang 8 × 4 m yang terjadi di produksi 2026-11-02 justru ukurannya tercatat
+  // sebagai ukuran bangunan lalu ditanya jumlah lantainya. Yang sudah disebut diteruskan sekarang.
+  if (profile.calculatorStatus !== 'available') {
+    return policyCard(
+      caseWithoutCalculatorPolicy(
+        caseProfileLabel(state.useCase.caseId, locale),
+        caseProfileDescription(state.useCase.caseId, locale),
+        locale,
+      ),
+      capturedFrom(state, locale),
+      locale,
+    );
+  }
   if (!isTechnicalComplete(state)) {
     const { card } = planTechnicalClarification(state, locale);
     return card.length > 0 ? { kind: 'clarification', questions: card } : null;
   }
-  const profile = caseProfile(state.useCase.caseId);
-  if (profile.calculatorStatus === 'available') {
-    return technicalInputIssues(state, locale).length > 0
-      ? null
-      : { kind: 'cta', action: 'ANALYZE' };
-  }
-  return policyCard(
-    technicalHandoffPolicy(caseProfileLabel(state.useCase.caseId, locale), locale),
-    capturedFrom(state, locale),
-    locale,
-  );
+  return technicalInputIssues(state, locale).length > 0 ? null : { kind: 'cta', action: 'ANALYZE' };
 }
 
 /**

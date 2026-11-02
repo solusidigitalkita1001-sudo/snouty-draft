@@ -83,11 +83,13 @@ export function irrigationHandoffPolicy(locale: Locale = DEFAULT_LOCALE): Policy
 }
 
 /**
- * Muara kasus teknis umum yang kalkulatornya belum tersedia (Fase 14): data sudah terstruktur
- * dalam parameter universal, perhitungannya diteruskan ke tim teknis. Bukan penolakan.
+ * Kasus yang kalkulatornya belum ada (P32-11): dikatakan sekarang, bukan setelah semua parameter
+ * ditagih untuk hitungan yang tidak akan dijalankan di sini. Keputusan pemilik 2026-11-02 untuk
+ * kolam renang: katakan apa adanya, lalu tawarkan diteruskan dengan ukuran yang sudah disebut.
  */
-export function technicalHandoffPolicy(
+export function caseWithoutCalculatorPolicy(
   caseLabel: string,
+  caseDescription: string,
   locale: Locale = DEFAULT_LOCALE,
 ): PolicyOutcome {
   if (locale === 'en') {
@@ -95,8 +97,9 @@ export function technicalHandoffPolicy(
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
       reasons: [
-        `Your ${caseLabel.toLowerCase()} data is complete and recorded with its technical parameters.`,
-        'The automatic calculator for this case is being prepared — the Pralon technical team does the calculation from this data, then sends you the product list and sizes.',
+        `Sizing a ${caseLabel.toLowerCase()} is not something I do here.`,
+        caseDescription,
+        'What you have told me goes to the Pralon technical team — they do the calculation, then send you the sizes and the product list.',
       ],
     };
   }
@@ -104,8 +107,9 @@ export function technicalHandoffPolicy(
     kind: 'policy',
     code: 'TECHNICAL_VALIDATION_REQUIRED',
     reasons: [
-      `Data ${caseLabel.toLowerCase()} Anda sudah lengkap dan tercatat dengan parameter teknisnya.`,
-      'Kalkulator otomatis untuk kasus ini sedang disiapkan — perhitungan dilakukan tim teknis Pralon dari data ini, lalu daftar produk dan ukurannya dikirim ke Anda.',
+      `Hitungan ${caseLabel.toLowerCase()} belum ada di sini.`,
+      caseDescription,
+      'Yang sudah Anda sebutkan saya teruskan ke tim teknis Pralon — mereka yang menghitung, lalu mengirim ukuran dan daftar produknya.',
     ],
   };
 }

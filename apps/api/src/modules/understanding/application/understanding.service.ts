@@ -26,6 +26,7 @@ import type {
   ProductAspectLabel,
   UseCaseLabel,
   ExtremeLabel,
+  ClaimCheckLabel,
   ComputeRequestLabel,
 } from '../domain/labels.js';
 import type { EntityLexicon } from '../domain/vocabulary.js';
@@ -127,6 +128,8 @@ export class UnderstandingService {
       computeRequest:
         (this.verdict('compute-request', query).best?.label as ComputeRequestLabel | undefined) ??
         null,
+      claimCheck:
+        (this.verdict('claim-check', query).best?.label as ClaimCheckLabel | undefined) ?? null,
       intentRanking: intent.ranked,
       topicRanking: knowledge.ranked.slice(0, 5),
     };

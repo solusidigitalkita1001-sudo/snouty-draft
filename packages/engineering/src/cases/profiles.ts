@@ -25,6 +25,8 @@ export type CaseId =
   | 'culvert'
   | 'well_distribution'
   | 'fish_pond'
+  // P32-11: kolam renang — sirkulasi dan filter, bukan isi-kuras seperti kolam ikan.
+  | 'swimming_pool'
   // P22-05: proyek jaringan air minum (SPAM) dan jaringan air limbah (sewerage).
   | 'water_supply_network'
   | 'sewerage';
@@ -362,6 +364,24 @@ export const CASE_PROFILES: readonly CaseProfile[] = [
       },
     ],
     calculatorStatus: 'available',
+  },
+  {
+    id: 'swimming_pool',
+    label: 'Kolam renang',
+    labelEn: 'Swimming pool',
+    description:
+      'Jalur sirkulasi, filter, dan pengurasan kolam renang: debitnya dari waktu putar air, bukan dari waktu pengisian.',
+    descriptionEn:
+      'Circulation, filtration, and drain lines for a swimming pool: the flow comes from the turnover period, not from a fill time.',
+    critical: ['pond_length', 'pond_width', 'pond_depth'],
+    important: ['route_length', 'source_type', 'static_head'],
+    optional: ['material', 'pump_required'],
+    outputs: ['material_selection', 'pipe_sizing', 'bom', 'product_matching'],
+    calculations: ['design_flow_calc', 'pipe_diameter', 'material_quantity'],
+    // Waktu putar, filter, dan skimmer belum ada aturannya di registry — sampai ada, hitungannya
+    // milik tim teknis Pralon (keputusan pemilik 2026-11-02). Isi-kuras kolam ikan bukan
+    // penggantinya: yang menentukan ukuran kolam renang justru sirkulasinya.
+    calculatorStatus: 'pending',
   },
   {
     id: 'well_distribution',

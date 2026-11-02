@@ -48,6 +48,15 @@ export function num(raw: string): number {
 }
 
 /** Luas dalam hektar, empat angka di belakang koma (1 m² = 0,0001 ha). */
+/**
+ * Kasus yang sisi-sisinya adalah sisi KOLAM, bukan panjang jalur atau lahan: kolam ikan dan kolam
+ * renang. "8 x 4 meter" di keduanya panjang × lebar kolam, dan "dari sumur 15 m" jarak, bukan
+ * kedalaman sumur.
+ */
+function isPondLike(caseId: CaseId | null | undefined): boolean {
+  return caseId === 'fish_pond' || caseId === 'swimming_pool';
+}
+
 function hectares(squareMetres: number): number {
   return Math.round((squareMetres / 10_000) * 10_000) / 10_000;
 }
@@ -166,13 +175,13 @@ export function extractTechnicalContext(
         add('catchment_area', hectares(num(m[1]!) * num(m[2]!)), m[0], 'ha');
         return;
       }
-      const pond = caseId === 'fish_pond';
+      const pond = isPondLike(caseId);
       add(pond ? 'pond_length' : 'field_length', num(m[1]!), m[0], 'm');
       add(pond ? 'pond_width' : 'field_width', num(m[2]!), m[0], 'm');
       if (m[3] && pond) add('pond_depth', num(m[3]), m[0], 'm');
     },
   );
-  if (caseId === 'fish_pond') {
+  if (isPondLike(caseId)) {
     // Sisi kolam disebut satu per satu, bukan "4 x 3": "panjang 4 meter lebar 3 meter" (pemilik
     // 2026-10-26 — "panjang" jatuh ke panjang jalur dan "lebar" hilang tanpa bekas). Yang boleh
     // berdiri di antara penanda dan angka hanya kata "kolam", supaya "panjang jalur 4 m" tetap
@@ -211,7 +220,7 @@ export function extractTechnicalContext(
   }
 
   // ── Kedalaman sumur (bukan untuk kolam: "dari sumur 15 m" di sana adalah jarak) ──
-  if (caseId !== 'fish_pond') {
+  if (!isPondLike(caseId)) {
     take(
       new RegExp(
         `(?:sumur|kedalaman|dalamnya|well depth|borehole depth)\\D{0,20}?${NUM}\\s*${M}\\b`,

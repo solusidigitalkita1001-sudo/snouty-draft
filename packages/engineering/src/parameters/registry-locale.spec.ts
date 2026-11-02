@@ -81,7 +81,7 @@ describe('registry parameter berbahasa ganda', () => {
 
 describe('profil kasus berbahasa ganda', () => {
   it('setiap profil punya label dan deskripsi Inggris', () => {
-    expect(CASE_PROFILES).toHaveLength(12);
+    expect(CASE_PROFILES).toHaveLength(13);
     for (const p of CASE_PROFILES) {
       expect(p.labelEn.trim(), p.id).not.toBe('');
       expect(p.descriptionEn.trim(), p.id).not.toBe('');

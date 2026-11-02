@@ -10,7 +10,7 @@ import {
   irrigationHandoffPolicy,
   neutralCriteria,
   NEUTRAL_CRITERIA_EN,
-  technicalHandoffPolicy,
+  caseWithoutCalculatorPolicy,
   NEUTRAL_CRITERIA,
   scopePolicy,
   useCasePolicy,
@@ -158,8 +158,14 @@ describe('Policy teks dwibahasa (Fase 15)', () => {
       code: 'TECHNICAL_VALIDATION_REQUIRED',
       reasons: [expect.stringContaining('irrigation'), expect.stringContaining('technical team')],
     });
-    expect(technicalHandoffPolicy('Fish Pond', 'en')).toMatchObject({
-      reasons: [expect.stringContaining('fish pond data'), expect.any(String)],
+    expect(
+      caseWithoutCalculatorPolicy('Swimming pool', 'Circulation and filter lines.', 'en'),
+    ).toMatchObject({
+      reasons: [
+        expect.stringContaining('swimming pool'),
+        'Circulation and filter lines.',
+        expect.stringContaining('technical team'),
+      ],
     });
     expect(useCasePolicy({ outOfScopeFluid: true, temperatureC: null }, 'en')).toMatchObject({
       code: 'TECHNICAL_VALIDATION_REQUIRED',

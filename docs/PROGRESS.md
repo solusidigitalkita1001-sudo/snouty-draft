@@ -4180,3 +4180,37 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       bisa dilanjutkan.
 
       Evaluasi pemahaman 210/211 (99,5%).
+
+- [x] P32-10 Klaim ukuran dari orang lain dijawab, bukan dicatat
+
+      "tukang saya bilang pipa 1/2 inci cukup buat 3 lantai, bener ga?" dijawab "Oke, sudah saya
+      catat: 3 lantai" dan sebuah formulir, setelah 14,2 detik. Yang ditanya tidak pernah
+      disinggung. Keputusan pemilik 2026-11-02: hitung dengan anggapan wajar, lalu jawab klaimnya.
+
+      Permintaan menilai itu katalognya sendiri (`claim-check`), seperti permintaan menghitung:
+      pesannya sekaligus menyatakan kebutuhan, jadi intentnya pernyataan kebutuhan dan permintaan
+      menilainya hilang. Intent pesan ini memang berdekatan dengan pertanyaan harga dan permintaan
+      saran — karena itu yang mengarahkannya label klaim, bukan intent, dan tanpa model.
+
+      Klaim yang membawa data inti dihitung di giliran itu: anggapan rumah dipakai seperti ketika
+      pengguna sendiri meminta menghitung, lalu klaimnya dijawab dengan ukuran yang keluar dari
+      mesin hitung — untuk 3 lantai dengan 1 kamar mandi per lantai pipa utamanya 1¼", jadi 1/2"
+      tidak cukup, dan 1/2" tempatnya di sambungan ke keran dan shower. Angkanya dari engine lewat
+      masukan yang sama dengan layar solusi, jadi chat dan layar tidak bisa berbeda; pemetaan state
+      → masukan engine pindah ke `context/domain/solution-input.ts` supaya keduanya memakai satu
+      sumber. Klaim tanpa data inti tidak dinilai: yang kurang ditanyakan.
+
+- [x] P32-11 Kolam renang: dikatakan apa adanya, bukan dicatat sebagai bangunan
+
+      "mau bikin kolam renang 8x4 meter, pipanya apa aja" dijawab "Oke, sudah saya catat: bangunan
+      8 × 4 m" lalu ditanya jumlah lantainya, setelah 17,3 detik. Keputusan pemilik 2026-11-02:
+      katakan apa adanya, lalu tawarkan diteruskan ke tim teknis dengan ukuran yang sudah disebut.
+
+      Kolam renang kini kasusnya sendiri — bukan kolam ikan, karena yang menentukan ukuran pipanya
+      sirkulasi dan filter, bukan waktu pengisian. Kalkulatornya berstatus belum ada, dan kasus yang
+      kalkulatornya belum ada diserahkan sekarang, bukan setelah semua parameternya ditagih untuk
+      hitungan yang tidak dijalankan di sini. Sisi "8 x 4 meter" dibaca sebagai sisi kolam seperti
+      pada kolam ikan, jadi ukurannya ikut ke tim teknis. Yang tetap dikatakan: jalur bertekanan
+      kelas AW, jalur pengurasan kelas D — ukurannya yang dihitung tim teknis.
+
+      Evaluasi pemahaman 210/211 (99,5%) dengan dua katalog yang bertambah.

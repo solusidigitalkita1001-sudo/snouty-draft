@@ -657,6 +657,10 @@ const INTRO: Readonly<Record<CaseId, string>> = {
     'Oke, gorong-gorong. Saya hitung diameter dan kelas pipanya dari debit, kemiringan, dan beban jalan.',
   well_distribution: 'Oke, sumur ke tandon. Saya hitung pipa dan kebutuhan pompanya.',
   fish_pond: 'Oke, kolam/tambak. Saya hitung pipa masuk, pipa kuras, dan fitting-nya.',
+  // Kelas pipanya sendiri sudah pasti (ENG-013): jalur bertekanan AW, jalur buangan D. Yang
+  // belum ada aturannya ukurannya — itu yang dihitung tim teknis.
+  swimming_pool:
+    'Oke, kolam renang. Hitungan sirkulasi dan filternya belum saya pegang, jadi ukuran kolam yang Anda sebut saya teruskan ke tim teknis Pralon. Jalur bertekanannya kelas AW dan jalur pengurasan kelas D — ukurannya yang mereka hitung.',
   water_supply_network:
     'Oke, jaringan air minum. Saya hitung kebutuhan puncak dari sambungan atau jiwa yang dilayani, lalu ukuran pipa transmisi/distribusinya.',
   sewerage:
@@ -680,6 +684,8 @@ const INTRO_EN: Readonly<Record<CaseId, string>> = {
     "Okay, a culvert. I'll work out the diameter and pipe class from the flow, slope, and road load.",
   well_distribution: "Okay, well to storage tank. I'll work out the pipe and the pump needs.",
   fish_pond: "Okay, a fish pond. I'll work out the inlet pipe, the drain pipe, and the fittings.",
+  swimming_pool:
+    'Okay, a swimming pool. The circulation and filter sizing is not something I hold, so the pool dimensions you gave go to the Pralon technical team. The pressurised line is class AW and the drain is class D — the sizes are what they work out.',
   water_supply_network:
     "Okay, a drinking-water network. I'll work out the peak demand from the connections or people served, then the transmission/distribution pipe size.",
   sewerage:

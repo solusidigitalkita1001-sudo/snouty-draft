@@ -1889,6 +1889,41 @@
       "intent": "knowledge_question",
       "source": "produksi 2026-11-02",
       "topics": ["solvent cement"]
+    },
+    {
+      "text": "tukang saya bilang pipa 1/2 inci cukup buat 3 lantai, bener ga?",
+      "claimCheck": "check",
+      "source": "produksi 2026-11-02",
+      "$comment": "intentnya memang ragu (harga/saran/penjelasan berdekatan); yang mengarahkannya label claim-check, lihat intent-router"
+    },
+    {
+      "text": "kontraktor pakai pipa 1 inci buat rumah 3 lantai, masuk akal ga?",
+      "claimCheck": "check",
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "ukuran pipanya berapa buat rumah 3 lantai?",
+      "claimCheck": null,
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "udah, itung aja",
+      "claimCheck": null,
+      "computeRequest": "compute"
+    },
+    {
+      "text": "mau bikin kolam renang 8x4 meter, pipanya apa aja",
+      "useCase": "swimming_pool",
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "pipa sirkulasi kolam renang pakai apa",
+      "useCase": "swimming_pool",
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "mau bikin kolam ikan di halaman belakang",
+      "useCase": "fish_pond"
     }
   ]
 }
