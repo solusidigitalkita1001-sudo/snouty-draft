@@ -26,9 +26,20 @@ export function applyRelativeCounts(
   const sign = op === 'add' ? 1 : -1;
   const out: FieldUpdate[] = [];
   const handled = new Set<RequirementFieldPath>();
+  // Yang diubah adalah yang jumlahnya terbaca dari pesan ini. "mau nambah 1 kamar mandi di lantai
+  // 2" menambah kamar mandi — "lantai" di situ letaknya, bukan yang ditambah — tetapi dulu setiap
+  // kata benda jumlah yang DISEBUT ikut naik satu, sehingga rumah 2 lantai menjadi 3 lantai
+  // (produksi 2026-11-02). Bila pesan tidak memuat satu jumlah pun ("kurangi kamar mandinya"),
+  // semua yang disebut tetap dihitung relatif seperti sebelumnya.
+  const stated = new Set(
+    updates
+      .filter((u) => typeof u.value === 'number' && u.path in COUNT_NOUNS)
+      .map((u) => u.path as RequirementFieldPath),
+  );
 
   for (const [path, noun] of Object.entries(COUNT_NOUNS) as [RequirementFieldPath, string][]) {
     if (!mentionsNoun(message, noun)) continue;
+    if (stated.size > 0 && !stated.has(path)) continue;
     const absolute = updates.find((u) => u.path === path);
     // Angka di pesan adalah DELTA ("tambah 2 titik air"); tanpa angka, satu. `mentionsCount`
     // memastikan angkanya memang berdekatan dengan kata bendanya.

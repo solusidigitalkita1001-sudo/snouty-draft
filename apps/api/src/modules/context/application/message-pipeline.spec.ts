@@ -1129,6 +1129,26 @@ describe('runUnderstanding — mutasi relatif (P16-12)', () => {
     expect(nextState.fixtures.bathrooms.value).toBe(4);
     expect(nextState.building.floors.value).toBe(2);
   });
+
+  // Produksi 2026-11-02: rumah 2 lantai 2 kamar mandi, lalu "mau nambah 1 kamar mandi di lantai
+  // 2" — kamar mandinya benar jadi 3, tetapi lantainya ikut naik jadi 3, karena setiap kata benda
+  // jumlah yang disebut dihitung relatif. Lantai di kalimat itu letaknya.
+  it('"nambah 1 kamar mandi di lantai 2" tidak menambah lantai', async () => {
+    const { nextState } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'mau nambah 1 kamar mandi di lantai 2',
+        decision: mutation,
+        state: withBathrooms(2),
+        understanding: understood('mau nambah 1 kamar mandi di lantai 2', {
+          intent: 'requirement_mutation',
+          mutationOp: 'add',
+        }),
+      }),
+    );
+    expect(nextState.fixtures.bathrooms.value).toBe(3);
+    expect(nextState.building.floors.value).toBe(2);
+  });
 });
 
 describe('kalimat "sudah saya catat" (review putaran 3, 3e)', () => {

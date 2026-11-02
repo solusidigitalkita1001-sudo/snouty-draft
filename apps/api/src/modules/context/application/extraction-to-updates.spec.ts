@@ -262,3 +262,20 @@ describe('tinggi tower toren bukan panjang jalur (produksi 2026-10-26)', () => {
     });
   });
 });
+
+describe('nomor lantai bukan jumlah alat (produksi 2026-11-02)', () => {
+  const value = (message: string, path: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === path)?.value;
+
+  it('"1 kamar mandi di lantai 2" satu kamar mandi, bukan tiga', () => {
+    expect(value('1 kamar mandi di lantai 2', 'fixtures.bathrooms')).toBe(1);
+    expect(value('mau nambah 1 kamar mandi di lantai 2', 'fixtures.bathrooms')).toBe(1);
+  });
+
+  it('jumlah yang dibagi per lantai tetap dijumlahkan', () => {
+    expect(
+      value('lantai 1 ada 1 kamar mandi, lantai 2 ada 2 kamar mandi', 'fixtures.bathrooms'),
+    ).toBe(3);
+    expect(value('atasnya ada 2 kamar mandi bawahnya 1', 'fixtures.bathrooms')).toBe(3);
+  });
+});

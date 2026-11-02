@@ -4298,3 +4298,14 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       jawabannya sendiri ditolak endpoint dengan 400: id pertanyaan baru belum masuk daftar id yang
       boleh dijawab, daftar yang justru ada supaya setiap kartu yang dikirim API bisa dijawab lewat
       API.
+
+- [x] P32-21 "Nambah satu kamar mandi di lantai 2" tidak menambah lantai
+
+      Percakapan berlanjut yang baru diprobe di produksi: rumah 2 lantai 2 kamar mandi, lalu "mau
+      nambah 1 kamar mandi di lantai 2" — kamar mandinya benar jadi 3, tetapi jumlah lantainya ikut
+      naik jadi 3, dan seluruh ukuran pipanya dihitung untuk rumah yang tidak ada. Dua sebabnya
+      diperbaiki: mutasi relatif dulu menaikkan setiap kata benda jumlah yang DISEBUT di pesan
+      (lantai di kalimat itu letaknya, bukan yang ditambah), dan angka yang menempel sesudah kata
+      benda lain ("di lantai 2") terbaca sebagai jumlah kamar mandi kedua, sehingga "1 kamar mandi
+      di lantai 2" tercatat tiga. Angka yang dibagi per posisi ("atasnya 2, bawahnya 1") tetap
+      dijumlahkan seperti sebelumnya.

@@ -507,6 +507,20 @@ export function statedCounts(message: string, noun: string): number[] {
   return out;
 }
 
+/** Setiap kemunculan angka `n` menempel persis sesudah kata benda jumlah yang lain. */
+function ownedByOtherNounEverywhere(text: string, noun: string, n: number): boolean {
+  const num = String.raw`(?<![\d.,])${n}(?![\d.,]*\d)`;
+  const others = Object.values(COUNT_NOUNS).filter((other) => other !== noun);
+  const places = [...text.matchAll(new RegExp(num, 'g'))];
+  if (places.length === 0) return false;
+  return places.every((place) => {
+    const upTo = text.slice(0, (place.index ?? 0) + place[0].length);
+    return others.some((other) =>
+      new RegExp(String.raw`(?:${other})\s*(?:ke-?\s*)?${num}$`).test(upTo),
+    );
+  });
+}
+
 /**
  * Apakah angka `n` sebenarnya milik kata benda LAIN: "8 keran wudhu di 2 tempat wudhu" menyebut
  * 8 keran dan 2 tempat, bukan 10 keran. Angka yang menempel di depan kata bendanya sendiri selalu
@@ -516,6 +530,12 @@ function belongsToOtherNoun(message: string, noun: string, n: number): boolean {
   const text = message.toLowerCase();
   const num = String.raw`(?<![\d.,])${n}(?![\d.,]*\d)`;
   if (new RegExp(String.raw`${num}${GAP}(?:${noun})\b`).test(text)) return false;
+  // Angka yang menempel SESUDAH kata benda lain adalah letaknya, bukan jumlah: "1 kamar mandi di
+  // lantai 2" menyebut satu kamar mandi di lantai kedua, bukan tiga kamar mandi (produksi
+  // 2026-11-02: jumlah lantai rumahnya pun ikut naik). Hanya bila SETIAP kemunculan angkanya
+  // begitu — di "atasnya 2 kamar mandi bawahnya 1, dapur 1" angka 1 yang terakhir milik dapur,
+  // yang sebelumnya tetap milik kamar mandi.
+  if (ownedByOtherNounEverywhere(text, noun, n)) return true;
   return Object.values(COUNT_NOUNS).some(
     (other) => other !== noun && new RegExp(String.raw`${num}${GAP}(?:${other})\b`).test(text),
   );
