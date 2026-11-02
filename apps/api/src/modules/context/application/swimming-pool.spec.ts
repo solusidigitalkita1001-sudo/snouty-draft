@@ -60,6 +60,18 @@ describe('kasus kolam renang', () => {
 
   // Produksi 2026-11-02: teksnya menutup dengan "pilih jawabannya di bawah" padahal kartunya
   // penyerahan — tidak ada pilihan apa pun di bawahnya.
+  // Produksi 2026-11-02: "kolam renang hotel 25 meter" tercatat sebagai panjang JALUR.
+  it('satu sisi yang menempel pada kata kolam adalah panjang kolam', () => {
+    const captured = extractTechnicalContext(
+      'kolam renang hotel 25 meter, dalamnya 1,5 meter',
+      'swimming_pool',
+    );
+    const by = (key: string) => captured.find((p) => p.key === key)?.value;
+    expect(by('pond_length')).toBe(25);
+    expect(by('pond_depth')).toBe(1.5);
+    expect(by('route_length')).toBeUndefined();
+  });
+
   it('tidak menunjuk pilihan yang tidak ada', async () => {
     const { events } = await runUnderstanding(null, input());
     const text = events

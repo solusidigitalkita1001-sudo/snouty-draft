@@ -199,6 +199,12 @@ export function extractTechnicalContext(
       (m) => add('pond_width', num(m[1]!), m[0], 'm'),
     );
     take(new RegExp(`${NUM}\\s*${M}\\s*wide\\b`), (m) => add('pond_width', num(m[1]!), m[0], 'm'));
+    // Satu sisi saja, menempel pada kata kolamnya: "kolam renang hotel 25 meter" adalah panjang
+    // kolam, bukan panjang jalur — di produksi 2026-11-02 angka itu tercatat sebagai panjang jalur,
+    // dan tim teknis membaca ukuran yang bukan ukuran kolamnya.
+    take(new RegExp(`(?:kolam(?: renang)?|pool)\\D{0,12}?${NUM}\\s*${M}\\b`), (m) =>
+      add('pond_length', num(m[1]!), m[0], 'm'),
+    );
     take(
       new RegExp(
         `(?:kedalaman|dalamnya|dalam|tinggi air|ketinggian air|depth|deep|water level)\\D{0,12}?${NUM}\\s*(m|meters?|metres?|cm)\\b`,

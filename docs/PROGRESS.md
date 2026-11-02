@@ -4239,3 +4239,9 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       angkanya langsung" — padahal kartu gilirannya penyerahan, dan tidak ada satu pilihan pun di
       bawahnya. Kasus yang kalkulatornya belum ada sekarang mengatakan bahwa angka lain boleh
       ditulis saja, dan daftar pertanyaan berpilihannya tidak dikirim.
+
+- [x] P32-14 Satu sisi kolam bukan panjang jalur
+
+      "kolam renang hotel 25 meter, dalamnya 1,5 meter" dicatat sebagai panjang jalur 25 m: angka
+      tanpa pasangan "a x b" jatuh ke aturan jalur. Tim teknis akan membaca ukuran yang bukan
+      ukuran kolamnya. Angka yang menempel pada kata kolamnya kini panjang kolam.
