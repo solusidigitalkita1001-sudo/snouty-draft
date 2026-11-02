@@ -74,7 +74,12 @@ import {
   assumptionCard,
   houseAssumptionUpdates,
 } from '../domain/requirement-defaults.js';
-import { houseRefinementQuestions, planClarification } from '../domain/clarification.js';
+import {
+  askableMissing,
+  bathroomsFromRooms,
+  houseRefinementQuestions,
+  planClarification,
+} from '../domain/clarification.js';
 import { outlierQuestions, pendingOutliers } from '../domain/plausibility.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { isSocial } from '../../understanding/domain/labels.js';
@@ -593,11 +598,16 @@ export async function runUnderstanding(
     // (produksi 2026-10-07 — sempat dijawab "silakan tanyakan saja").
     // "tambah satu kamar mandi" atas 3 kamar mandi = 4, bukan 1 (P16-12): jumlah dihitung relatif
     // terhadap state bila arah mutasinya dikenali; field lain tetap absolut.
-    const updates = applyRelativeCounts(
-      extractionToUpdates(extraction, input.message),
-      input.message,
+    // Jawaban "kamar mandinya di dalam tiap kamar" yang DIKETIK di chat berlaku sama seperti
+    // dipilih di kartunya: jumlah kamar mandinya adalah jumlah kamarnya (P32-16).
+    const updates = bathroomsFromRooms(
       input.state,
-      mutationOp,
+      applyRelativeCounts(
+        extractionToUpdates(extraction, input.message),
+        input.message,
+        input.state,
+        mutationOp,
+      ),
     );
     if (extractionFailed && updates.length === 0) {
       // Model gagal dan teksnya tidak memuat fakta yang bisa dibaca kode: tanya yang kurang.
@@ -743,7 +753,7 @@ export async function runUnderstanding(
     // ringkasan kebutuhan yang sama lalu "bagian mana yang mau diubah".
     const stillWaiting =
       asksToCompute && card?.kind !== 'cta'
-        ? missingForCalculationReply(merged.missingInformation, locale)
+        ? missingForCalculationReply(askableMissing(merged.missingInformation), locale)
         : null;
     const text = stillWaiting ?? understoodReply(merged, card?.kind ?? null, locale, only, auto);
     // Ringkasan yang sama persis dua giliran berturut-turut: pesannya tidak mengubah kebutuhan,

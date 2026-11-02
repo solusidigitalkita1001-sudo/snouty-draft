@@ -113,7 +113,10 @@ const ROOM = 'kamar|kamar kos|kamar sewa|kamar tidur|rooms?|bedrooms?';
 // Kamar sewa TANPA ikut menangkap "kamar mandi": "10 kamar mandi" bukan 10 kamar.
 const ROOM_ONLY = 'kamar kos|kamar sewa|kamar tidur|kamar(?![ ]*mandi)|rooms?|bedrooms?';
 const OWN_BATHROOM =
-  /kamar mandi (?:sendiri|dalam|pribadi|masing-masing)|kamar mandi di dalam|en-?suite|(?:own|private) bathroom/i;
+  /kamar mandi(?:nya)? (?:sendiri|dalam|pribadi|masing-masing)|kamar mandi(?:nya)? di dalam|en-?suite|(?:own|private) bathroom/i;
+/** Kamar mandi bersama — jawaban sebaliknya, diketik di chat alih-alih dipilih di kartu. */
+const SHARED_BATHROOM =
+  /kamar mandi(?:nya)? (?:bersama|bareng|umum|luar|di luar|sharing)|shared bathroom|common bathroom/i;
 
 /**
  * Kebalikan dari pagar grounding: fakta yang **tersurat** di pesan tetapi dilewatkan model.
@@ -151,6 +154,13 @@ const OBVIOUS = {
     if (rooms === undefined) return undefined;
     return mentionsPerFloor(m, ROOM) && floors !== undefined && floors > 1 ? rooms * floors : rooms;
   },
+  /**
+   * Kamar mandi di dalam tiap kamar, atau bersama — pertanyaan kos yang jawabannya kerap DIKETIK
+   * di chat, bukan dipilih di kartunya ("kamar mandinya di dalam tiap kamar"). Di produksi
+   * 2026-11-02 jawaban itu tidak terbaca sama sekali, dan pertanyaannya ditanyakan lagi.
+   */
+  bathroomsPerRoom: (m: string): boolean | undefined =>
+    OWN_BATHROOM.test(m) ? true : SHARED_BATHROOM.test(m) ? false : undefined,
   // Jumlah wastafel/dapur/titik air yang tersurat juga dibaca kode (diet panggilan model,
   // 2026-10-07): bila model dilewati, "4 wastafel, 1 dapur" tetap tercatat.
   basins: (m: string) =>
@@ -774,6 +784,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     (OBVIOUS.type(message) ?? extraction.building?.type) === 'boarding_house' ||
     /kamar (?:kos|sewa)/i.test(message);
   if (rental) add('building.rooms', OBVIOUS.rooms(message));
+  add('fixtures.bathroomsPerRoom', OBVIOUS.bathroomsPerRoom(message));
   // Peniadaan tersurat ("tidak ada dapur") yang dilewatkan model → 0 dari teks (produksi
   // 2026-10-07: model menghilangkan `kitchens` sama sekali, lalu sistem bertanya soal dapur).
   add(

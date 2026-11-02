@@ -393,18 +393,27 @@ export function isClarificationAnswerId(id: string): boolean {
   return CORE_CLARIFICATION_IDS.has(id) || isIrrigationField(id) || isParameterKey(id);
 }
 
+/**
+ * Yang benar-benar DITANYAKAN dari daftar yang kurang. Kos: selama "di dalam tiap kamar atau
+ * bersama" belum dijawab, "ada berapa kamar mandi?" tidak ikut — jawaban pertama sudah menentukan
+ * jumlahnya, dan dua pertanyaan kamar mandi berdampingan saling membantah (produksi 2026-11-02).
+ * Dipakai kartunya dan kalimat yang menyebut apa yang masih ditunggu, supaya keduanya sama.
+ */
+export function askableMissing(
+  missing: readonly RequirementFieldPath[],
+): readonly RequirementFieldPath[] {
+  return missing.includes('fixtures.bathroomsPerRoom')
+    ? missing.filter((path) => path !== 'fixtures.bathrooms')
+    : missing;
+}
+
 export function planClarification(
   missing: readonly RequirementFieldPath[],
   locale: Locale = DEFAULT_LOCALE,
 ): ClarificationPlan | null {
   if (missing.length === 0) return null;
 
-  // Kos: selama "di dalam tiap kamar atau bersama" belum dijawab, "ada berapa kamar mandi?" tidak
-  // ikut ditanya — jawaban pertama sudah menentukan jumlahnya, dan dua pertanyaan kamar mandi dalam
-  // satu kartu saling membantah (produksi 2026-11-02).
-  const asked = missing.includes('fixtures.bathroomsPerRoom')
-    ? missing.filter((path) => path !== 'fixtures.bathrooms')
-    : missing;
+  const asked = askableMissing(missing);
 
   const ordered = orderByPriority(asked);
   const form: ClarificationForm = asked.length >= CARD_THRESHOLD ? 'card' : 'single';

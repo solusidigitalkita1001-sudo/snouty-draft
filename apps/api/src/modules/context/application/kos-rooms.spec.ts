@@ -18,7 +18,8 @@ vi.mock('../../../config/env.js', () => ({
 import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { withCompleteness } from '../domain/completeness.js';
-import { bathroomsFromRooms } from '../domain/clarification.js';
+import { askableMissing, bathroomsFromRooms } from '../domain/clarification.js';
+import { missingForCalculationReply } from './reply-copy.js';
 import { assumableUpdates } from '../domain/requirement-defaults.js';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import { understood } from '../../understanding/testing/understood.js';
@@ -145,5 +146,45 @@ describe('permintaan yang murah', () => {
     expect(text).toContain('tim Pralon');
     // Tanpa angka karangan: tidak ada ukuran yang disebut sebagai "yang murah".
     expect(text).not.toMatch(/1\/2"/);
+  });
+});
+
+/**
+ * Produksi 2026-11-02: pertanyaannya dijawab dengan DIKETIK di chat ("kamar mandinya di dalam tiap
+ * kamar") dan jawabannya tidak terbaca sama sekali — balasannya "Kebutuhan Anda tetap tercatat
+ * seperti di panel", lalu pertanyaan yang sama muncul lagi, dan "udah itung aja" menyebut dua
+ * pertanyaan kamar mandi sekaligus sebagai yang masih ditunggu.
+ */
+describe('jawaban kamar mandi per kamar yang diketik di chat', () => {
+  it('"kamar mandinya di dalam tiap kamar" terbaca sebagai jawabannya', () => {
+    const updates = extractionToUpdates({}, 'kamar mandinya di dalam tiap kamar');
+    expect(updates.find((u) => u.path === 'fixtures.bathroomsPerRoom')?.value).toBe(true);
+    expect(
+      extractionToUpdates({}, 'kamar mandinya bersama').find(
+        (u) => u.path === 'fixtures.bathroomsPerRoom',
+      )?.value,
+    ).toBe(false);
+  });
+
+  it('di chat pun jumlah kamar mandinya menjadi jumlah kamarnya', async () => {
+    const message = 'kamar mandinya di dalam tiap kamar';
+    const { nextState } = await runUnderstanding(
+      null,
+      input(message, {
+        state: kosWithRooms(8),
+        understanding: understood(message, { intent: 'requirement_building' }),
+      }),
+    );
+    expect(nextState.fixtures.bathrooms.value).toBe(8);
+    expect(nextState.fixtures.bathroomsPerRoom?.value).toBe(true);
+  });
+
+  it('yang masih ditunggu tidak menyebut dua pertanyaan kamar mandi sekaligus', () => {
+    const text = missingForCalculationReply(
+      askableMissing(kosWithRooms().missingInformation),
+      'id',
+    )!;
+    expect(text).toContain('kamar mandi per kamar');
+    expect(text).not.toMatch(/kamar mandi dan kamar mandi per kamar/);
   });
 });

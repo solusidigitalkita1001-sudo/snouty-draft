@@ -4325,3 +4325,13 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       yang tidak ditanyakan — karena contoh hematnya sendiri berbentuk "mau yang murah aja buat
       rumah 2 lantai" dan yang dikenali kemiripannya bentuk kalimatnya, bukan kata hematnya. Sisi
       `none` sekarang memuat kalimat pemasangan yang sama bentuknya.
+
+- [x] P32-24 Pertanyaan kamar kos boleh dijawab dengan diketik
+
+      Alur kos di produksi: pertanyaannya dijawab dengan mengetik "kamar mandinya di dalam tiap
+      kamar" — dan jawabannya tidak terbaca sama sekali ("Kebutuhan Anda tetap tercatat seperti di
+      panel"), lalu pertanyaan yang sama muncul lagi. Jawaban yang diketik kini berlaku sama
+      seperti dipilih di kartunya, termasuk sisi "kamar mandi bersama", dan jumlah kamar mandinya
+      ikut menjadi jumlah kamarnya. Kalimat yang menyebut data yang masih ditunggu memakai saringan
+      yang sama dengan kartunya, jadi ia tidak lagi menagih "kamar mandi dan kamar mandi per
+      kamar" sekaligus.
