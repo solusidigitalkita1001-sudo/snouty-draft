@@ -1904,7 +1904,8 @@
     {
       "text": "ukuran pipanya berapa buat rumah 3 lantai?",
       "claimCheck": null,
-      "source": "produksi 2026-11-02"
+      "source": "produksi 2026-11-02",
+      "intent": "requirement_building"
     },
     {
       "text": "udah, itung aja",
@@ -1924,6 +1925,15 @@
     {
       "text": "mau bikin kolam ikan di halaman belakang",
       "useCase": "fish_pond"
+    },
+    {
+      "text": "kontraktor pakai pipa 1 inci buat rumah 3 lantai, masuk akal ga?",
+      "claimCheck": "check",
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "harga pipa buat rumah 2 lantai berapa?",
+      "intent": "price_question"
     }
   ]
 }

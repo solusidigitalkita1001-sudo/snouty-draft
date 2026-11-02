@@ -550,6 +550,10 @@ export async function runUnderstanding(
   // pesan pembuka kos memakai 16,4 detik di model ekstraksi dan tetap tidak menemukan kamar
   // mandinya; parser yang menemukannya, dan sisanya memang ditanya kartu klarifikasi.
   const typeStated = extractionToUpdates({}, input.message).some((u) => u.path === 'building.type');
+  // Klaim ukuran yang diminta dinilai: jawabannya hitungan atas satu data inti yang sudah dibaca
+  // parser plus anggapan rumah, jadi tebakan model tidak mengubah angkanya — ia hanya menambah
+  // 16,9 detik (produksi 2026-11-02, setelah penilaiannya sendiri jalan).
+  const claimWithFacts = checksClaim && quickCore >= 1;
   const skipModel =
     quickCore >= 2 ||
     house ||
@@ -557,7 +561,8 @@ export async function runUnderstanding(
     adviceOnly ||
     handedOff ||
     onRecord ||
-    typeStated;
+    typeStated ||
+    claimWithFacts;
   try {
     // Giliran yang memang tidak memanggil model tidak boleh gagal karena modelnya tidak ada:
     // nilainya dibaca parser, dan "pemahaman sedang tidak tersedia" tidak benar di jalur itu.
@@ -661,7 +666,9 @@ export async function runUnderstanding(
   // formulir, dan bukan mengulang penjelasan bahan. Teks dari pengetahuan milik kode.
   // "harga pipa buat rumah 2 lantai berapa?": kebutuhannya dicatat, tetapi pertanyaan harganya
   // tetap dijawab (kebijakan OQ-03) — bukan dibiarkan menguap di balik kartu (audit live 2026-10-08).
-  if (input.understanding?.intent?.label === 'price_question') {
+  // Klaim ukuran kerap terbaca pertanyaan harga ("masuk akal ga?" dekat dengan "berapa biayanya"),
+  // dan kalimat harga di depan penilaian ukuran menjawab pertanyaan yang tidak diajukan.
+  if (input.understanding?.intent?.label === 'price_question' && !checksClaim) {
     events.push({ type: 'token', text: productAnswerCopy(locale).priceNotShown });
     events.push({ type: 'card', card: { kind: 'cta', action: 'CONTACT_SALES' } });
   }
@@ -754,10 +761,15 @@ export async function runUnderstanding(
         : null;
     if (answer !== null || verdict !== null) {
       const spoken = same && answer === text ? requirementUnchangedReply(locale) : answer;
-      events.push({
-        type: 'token',
-        text: [spoken, verdict].filter((part) => part !== null && part !== '').join(' '),
-      });
+      const sentences = [spoken, verdict].filter((part) => part !== null && part !== '').join(' ');
+      // Kalimat harga atau nasihat bahan di atas sudah mengirim teksnya sendiri; tanpa pemisah
+      // keduanya menempel jadi satu kata ("…Anda butuhkan.Oke, sudah saya catat").
+      const separated = events.some((e) => e.type === 'token')
+        ? `
+
+${sentences}`
+        : sentences;
+      events.push({ type: 'token', text: separated });
     }
   }
   // Giliran yang tidak menghasilkan kalimat apa pun ("itung ulang, luasnya belum gw kasih" atas

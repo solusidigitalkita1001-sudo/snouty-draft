@@ -10,6 +10,9 @@ import { computeSolution, PVC_INCH_SIZES } from '@snouty/engineering';
 import { DEFAULT_LOCALE, type Locale, type RequirementState } from '@snouty/shared-types';
 import { solutionInputFrom } from '../domain/solution-input.js';
 
+/** Ukuran sambungan ke alat (ENG-005) — satu-satunya tempat 1/2" di jalur air bersih rumah. */
+const FIXTURE_CONNECTION_SIZE = '1/2"';
+
 /**
  * Jawaban atas klaim ukuran, atau `null` bila kebutuhannya belum bisa dihitung — penilaian tanpa
  * hitungan hanya akan jadi pendapat.
@@ -44,9 +47,15 @@ export function claimVerdict(
   }
   const difference = claimedValue - mainValue;
   if (difference < 0) {
+    // Peran "sambungan ke alat" hanya milik ukuran sambungan itu sendiri (ENG-005, 1/2"): untuk
+    // klaim 1" kalimat itu salah, dan di produksi 2026-11-02 ia memang terkirim begitu.
+    const fixture = inchValue(FIXTURE_CONNECTION_SIZE) === claimedValue;
+    const role = en
+      ? ` ${claimed} is the size for the connection to a tap or a shower, not for the line coming up from the source.`
+      : ` Ukuran ${claimed} tempatnya di sambungan ke keran dan shower, bukan di pipa yang naik dari sumber air.`;
     return en
-      ? `That works out to a ${main} main line, so ${claimed} is not enough — ${claimed} is the size for the connection to a tap or a shower, not for the line coming up from the source.`
-      : `Hitungannya, pipa utamanya ${main} — jadi ${claimed} tidak cukup. Ukuran ${claimed} tempatnya di sambungan ke keran dan shower, bukan di pipa yang naik dari sumber air.`;
+      ? `That works out to a ${main} main line, so ${claimed} is not enough.${fixture ? role : ''}`
+      : `Hitungannya, pipa utamanya ${main} — jadi ${claimed} tidak cukup.${fixture ? role : ''}`;
   }
   if (difference === 0) {
     return en

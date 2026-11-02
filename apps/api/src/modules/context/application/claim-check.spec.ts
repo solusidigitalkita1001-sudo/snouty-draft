@@ -138,6 +138,38 @@ describe('klaim ukuran yang diminta dinilai', () => {
     expect(classifyIntent).not.toHaveBeenCalled();
   });
 
+  // Produksi 2026-11-02: penilaiannya benar, tetapi gilirannya 16,9 detik — model ekstraksi
+  // dipanggil untuk satu data inti yang sudah dibaca parser.
+  it('tidak memanggil model ekstraksi: datanya sudah dibaca parser, sisanya anggapan', async () => {
+    const service = ai();
+    const { events } = await runUnderstanding(service, input());
+    expect(service.extract).not.toHaveBeenCalled();
+    const text = events
+      .filter((e) => e.type === 'token')
+      .map((e) => (e as { text: string }).text)
+      .join(' ');
+    expect(text).toContain('tidak cukup');
+  });
+
+  // Produksi 2026-11-02: "masuk akal ga?" terbaca pertanyaan harga, jadi penilaian ukurannya
+  // didahului kalimat harga — dan keduanya menempel tanpa jarak.
+  it('kalimat harga tidak mendahului penilaian ukuran', async () => {
+    const message = 'kontraktor pakai pipa 1 inci buat rumah 3 lantai, masuk akal ga?';
+    const { events } = await runUnderstanding(ai(), {
+      ...input(message),
+      message,
+      understanding: understood(message, { intent: 'price_question', claimCheck: 'check' }),
+    });
+    const text = events
+      .filter((e) => e.type === 'token')
+      .map((e) => (e as { text: string }).text)
+      .join('');
+    expect(text).not.toContain('Harga tidak saya tampilkan');
+    expect(text).toContain('tidak cukup');
+    // Peran 1/2" bukan peran 1": kalimat itu hanya untuk ukuran sambungan ke alat.
+    expect(text).not.toContain('Ukuran 1" tempatnya');
+  });
+
   it('tanpa jumlah lantai tidak ada penilaian: yang kurang ditanyakan', async () => {
     const message = 'kata tukang pipa 1/2 inci cukup, bener ga?';
     const { events } = await runUnderstanding(

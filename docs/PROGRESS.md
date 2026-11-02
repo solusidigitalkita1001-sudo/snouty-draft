@@ -4214,3 +4214,21 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       kelas AW, jalur pengurasan kelas D — ukurannya yang dihitung tim teknis.
 
       Evaluasi pemahaman 210/211 (99,5%) dengan dua katalog yang bertambah.
+
+- [x] P32-12 Tiga hal yang baru terlihat setelah penilaian klaim jalan
+
+      Penilaiannya benar di produksi, tetapi gilirannya 16,9 detik: model ekstraksi dipanggil untuk
+      satu data inti yang sudah dibaca parser, dan apa pun yang ia temukan tetap tertimpa anggapan.
+      Klaim dengan data inti kini tidak memanggilnya.
+
+      "kontraktor pakai pipa 1 inci buat rumah 3 lantai, masuk akal ga?" didahului kalimat harga —
+      "masuk akal ga" memang berdekatan dengan "berapa biayanya". Kalimat harga tidak ikut menjawab
+      klaim ukuran, dan dua teks berurutan sekarang punya jarak (sebelumnya "…Anda butuhkan.Oke").
+      Pertanyaan ukuran yang bukan klaim ikut dibetulkan di data: "ukuran pipanya berapa buat rumah
+      3 lantai?" dijawab harga, karena contoh harga memuat kalimat yang bentuknya sama.
+
+      Dan penilaiannya sendiri: untuk klaim 1" kalimatnya berbunyi "ukuran 1" tempatnya di sambungan
+      ke keran dan shower" — itu peran 1/2", bukan 1". Peran itu kini hanya disebut untuk ukuran
+      sambungan ke alat.
+
+      Evaluasi pemahaman 212/213 (99,5%).
