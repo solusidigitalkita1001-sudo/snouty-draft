@@ -4423,3 +4423,9 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Nama baris solusi dikecilkan seluruhnya saat dipakai di tengah kalimat, jadi "meteran PDAM"
       terbaca "meteran pdam" dan "Pipa PVC AW" jadi "pipa pvc aw". Sekarang hanya huruf awalnya
       yang mengecil.
+
+- [x] P32-37 Pertanyaan tekanan di jalur pengetahuan
+
+      Pertanyaan tekanan yang berlabel pertanyaan pengetahuan dijawab dengan membacakan seluruh
+      jalur solusinya — lima baris, tanpa menyebut angka barnya. Di jalur itu pun baris tekanan
+      solusinya kini yang menjawab.

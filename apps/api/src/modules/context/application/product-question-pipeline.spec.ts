@@ -1454,3 +1454,60 @@ describe('runProductQuestion — ukuran milik solusi sendiri', () => {
     expect(text(events)).not.toContain('pipa distribusi utama');
   });
 });
+
+/**
+ * P32-37 — pertanyaan tekanan atas solusi sendiri sampai ke jalur pengetahuan dan dijawab seluruh
+ * jalur solusinya. Produksi 2026-11-02: "tekanannya cukup ga buat shower lantai 3?" dibacakan
+ * lima baris jalur, dan angka bar yang sudah dihitung tidak disebut sama sekali.
+ */
+describe('runProductQuestion — tekanan milik solusi sendiri', () => {
+  const solution = {
+    recommendation: {
+      systemLines: [
+        {
+          name: 'Pipa distribusi utama',
+          path: 'Sumber → titik air tertinggi',
+          size: '1¼"',
+          reason: '',
+          role: 'main',
+          provenance: 'ASSUMED',
+          traceIds: [],
+        },
+        {
+          name: 'Tekanan yang dibutuhkan di meteran PDAM',
+          path: 'Sumber air',
+          size: '2,01 bar',
+          reason: 'Tinggi angkat total 20,54 m = beda tinggi 9 m + sisa tekanan di ujung 10,2 m.',
+          role: 'fitting',
+          provenance: 'ASSUMED',
+          traceIds: [],
+        },
+      ],
+      bom: [],
+    } as unknown as NonNullable<ProductQuestionInput['solution']>['recommendation'],
+    stale: false,
+  };
+  const KNOWLEDGE: Labels = { intent: 'knowledge_question' };
+
+  it('dijawab baris tekanannya, bukan semua jalur', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input('tekanannya cukup ga buat shower lantai 3?', KNOWLEDGE, { solution }),
+    );
+    const out = text(events);
+    expect(out).toContain('2,01 bar');
+    expect(out).not.toContain('distribusi utama');
+  });
+
+  it('pertanyaan lain atas solusi yang sama tetap dijawab jalurnya', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input('air bekas cucian masuk ke mana?', KNOWLEDGE, { solution }),
+    );
+    expect(text(events)).toContain('distribusi utama');
+  });
+});

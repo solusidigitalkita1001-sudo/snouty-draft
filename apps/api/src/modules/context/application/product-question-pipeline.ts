@@ -31,9 +31,14 @@ import { isConceptual } from '../../understanding/domain/labels.js';
 import { parseSize } from '../domain/size-parser.js';
 import { designationsOf } from '../../product-catalog/domain/product-identity.js';
 import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from './catalog-scope.js';
-import { knowledgeAnswer, mentionsPressure, pressureRange } from './knowledge-answer.js';
+import {
+  knowledgeAnswer,
+  mentionsPressure,
+  mentionsPressureQuantity,
+  pressureRange,
+} from './knowledge-answer.js';
 import { asksGeneralKnowledge } from './intent-router.js';
-import { runsReply } from './solution-facts.js';
+import { pressureReply, runsReply } from './solution-facts.js';
 /** Topik yang hanya tentang jalur buangan — jawabannya tidak perlu membacakan jalur air bersih. */
 const DRAINAGE_TOPICS: ReadonlySet<string> = new Set(['pipa pembuangan', 'kemiringan buangan']);
 import type { ActiveSolution } from '../domain/active-solution.port.js';
@@ -723,6 +728,13 @@ async function answerConcept(
     // yang paling dekat dengan pertanyaannya (produksi 2026-10-26).
     const drainageOnly =
       u.knowledgeTopics.length > 0 && u.knowledgeTopics.every((t) => DRAINAGE_TOPICS.has(t));
+    // Tekanan yang ditanya sebagai besaran ("tekanannya cukup ga buat shower lantai 3?"): baris
+    // tekanan solusinya menyebut angka barnya; semua jalur dibacakan tidak (produksi 2026-11-02).
+    const pressured =
+      input.solution && !input.solution.stale && mentionsPressureQuantity(input.message)
+        ? pressureReply(input.solution, locale)
+        : null;
+    if (pressured !== null) return { text: pressured, cards: [] };
     const runs =
       input.solution && !input.solution.stale
         ? runsReply(input.solution, locale, drainageOnly)
