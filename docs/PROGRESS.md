@@ -4451,3 +4451,9 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       giliran, lalu kelasnya ditebak model: jawabannya ukuran PVC SNI Kelas B — kelas yang tidak
       pernah disebut siapa pun. Aspek produk yang yakin atas keluarga yang pengguna sendiri sebut
       kini dijawab langsung dari katalog.
+
+- [x] P32-41 Pemeta pertanyaan tidak dipanggil untuk kelas yang sudah disebut
+
+      Jawaban yang benar tadi masih memakan 9,1 detik: pemeta pertanyaan model tetap dipanggil
+      walau keluarganya sudah tersurat di pesan pengguna sendiri. Pertanyaan ukuran atas keluarga
+      itu kini dijawab langsung dari katalog.

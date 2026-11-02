@@ -568,9 +568,17 @@ export async function runProductQuestion(
     u.productAspect !== null && input.subject?.kind === 'product' ? input.subject.entity : null;
   // Keluarga yang disebut tetapi bukan produk katalog (galvanis) juga sudah menjawab "produk apa" —
   // pengetahuannya dijawab kode; model pemeta hanya menambah 40 detik (audit live 2026-10-08).
+  // Pertanyaan UKURAN atas keluarga yang pengguna sendiri sebut beberapa giliran sebelumnya sudah
+  // menjawab "produk apa": keluarganya dari kosakata, ukurannya dibacakan dari katalog di bawah.
+  // Pemeta pertanyaan hanya menambah 9,1 detik (produksi 2026-11-02).
+  const spokenSizeFamilies =
+    u.productAspect === 'sizes' || u.productAspect === 'size_availability'
+      ? familiesInRecentTurns(input)
+      : [];
   const settled =
     continued !== null ||
     named !== null ||
+    spokenSizeFamilies.length > 0 ||
     u.families.length > 0 ||
     knowledgeOnly ||
     fromSubject !== null ||

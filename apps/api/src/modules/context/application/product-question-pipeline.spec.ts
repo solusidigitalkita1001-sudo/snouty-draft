@@ -1552,9 +1552,15 @@ describe('runProductQuestion — ukuran kelas yang sedang dibicarakan', () => {
     expect(out).not.toContain('x 4 Meter: 4"');
   });
 
+  // P32-41: dan pemeta pertanyaan tidak dipanggil — di produksi 2026-11-02 ia 9,1 detik untuk
+  // pertanyaan yang keluarganya sudah tersurat di pesan pengguna sendiri.
   it('subjeknya sudah berpindah ke kasus: kelasnya dari pesan pengguna sebelumnya', async () => {
     const events = await runProductQuestion(
-      ai({ productQuery: null, aspect: 'sizes' }),
+      {
+        parseProductQuestion: async () => {
+          throw new Error('pemeta pertanyaan tidak boleh dipanggil');
+        },
+      } as never,
       catalog({ semua: items }),
       noQuestions,
       input('ukurannya ada apa aja?', SPEC('sizes'), {
