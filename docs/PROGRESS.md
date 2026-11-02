@@ -4232,3 +4232,10 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       sambungan ke alat.
 
       Evaluasi pemahaman 212/213 (99,5%).
+
+- [x] P32-13 Kasus tanpa kalkulator tidak menunjuk pilihan yang tidak ada
+
+      Jawaban kolam renang di produksi menutup dengan "pilih jawabannya di bawah, atau ketik
+      angkanya langsung" — padahal kartu gilirannya penyerahan, dan tidak ada satu pilihan pun di
+      bawahnya. Kasus yang kalkulatornya belum ada sekarang mengatakan bahwa angka lain boleh
+      ditulis saja, dan daftar pertanyaan berpilihannya tidak dikirim.

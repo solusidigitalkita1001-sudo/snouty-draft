@@ -58,6 +58,18 @@ describe('kasus kolam renang', () => {
     expect(by('field_length')).toBeUndefined();
   });
 
+  // Produksi 2026-11-02: teksnya menutup dengan "pilih jawabannya di bawah" padahal kartunya
+  // penyerahan — tidak ada pilihan apa pun di bawahnya.
+  it('tidak menunjuk pilihan yang tidak ada', async () => {
+    const { events } = await runUnderstanding(null, input());
+    const text = events
+      .filter((e) => e.type === 'token')
+      .map((e) => (e as { text: string }).text)
+      .join(' ');
+    expect(text).not.toContain('pilih jawabannya di bawah');
+    expect(text).toContain('tulis saja');
+  });
+
   it('dijawab apa adanya plus kartu penyerahan, tanpa menanyakan jumlah lantai', async () => {
     const { events } = await runUnderstanding(null, input());
     const text = events

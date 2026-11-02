@@ -510,9 +510,16 @@ export function technicalGuidance(
       ),
     );
   }
-  const { text, card } = planTechnicalClarification(state, locale);
   const stillNeeded = unresolvedUnknowns(state, locale);
   if (stillNeeded.length > 0) lines.push('', copy.stillNeeded(joinNatural(stillNeeded, locale)));
+  // Kasus yang kalkulatornya belum ada: kartu gilirannya penyerahan, jadi pertanyaan berpilihan
+  // tidak pernah tampil — dan kalimat "pilih jawabannya di bawah" menunjuk tombol yang tidak ada
+  // (produksi 2026-11-02, kolam renang 8 × 4 m). Angka tambahan tetap diterima sebagai tulisan.
+  if (profile.calculatorStatus !== 'available') {
+    lines.push('', isTechnicalComplete(state) ? copy.readyForTeam : copy.moreForTeam);
+    return lines.join('\n').replace(/^\n+/, '');
+  }
+  const { text, card } = planTechnicalClarification(state, locale);
   // Pertanyaan pilihan tampil sebagai kartu di bawah teks; mengulangnya di sini membuat
   // pengguna membaca pertanyaan yang sama dua kali (audit keterbacaan 2026-10-08).
   const missing = text.map((m) => (locale === 'en' ? m.questionEn : m.question));
@@ -604,6 +611,8 @@ interface GuidanceCopy {
   readonly readyToCompute: string;
   readonly computing: string;
   readonly readyForTeam: string;
+  /** Kasus tanpa kalkulator yang datanya belum lengkap: angka tambahan diterima, tanpa formulir. */
+  readonly moreForTeam: string;
   readonly stillNeeded: (labels: string) => string;
 }
 
@@ -620,6 +629,8 @@ const GUIDANCE_COPY: Readonly<Record<Locale, GuidanceCopy>> = {
       'Yang belum disebut saya pakai angka perkiraan awal dan saya tandai di hasilnya. Ukuran pipa dan daftar produknya saya hitung sekarang.',
     readyForTeam:
       'Datanya sudah cukup; saya teruskan ke tim teknis Pralon untuk dihitung, dan hasilnya dikirim ke Anda.',
+    moreForTeam:
+      'Kalau ada ukuran atau angka lain yang Anda tahu, tulis saja — ikut saya teruskan.',
     stillNeeded: (labels) =>
       `Ukuran pipanya baru bisa dihitung kalau ${labels} diketahui. Perkiraan kasar pun cukup, nanti saya tandai di hasilnya.`,
   },
@@ -635,6 +646,8 @@ const GUIDANCE_COPY: Readonly<Record<Locale, GuidanceCopy>> = {
       'Anything not mentioned uses an initial estimate that I mark in the result. I am working out the pipe sizes and the product list now.',
     readyForTeam:
       'That is enough data; I will pass it to the Pralon technical team to calculate, and the result will be sent to you.',
+    moreForTeam:
+      'If you know any other dimensions or figures, just write them — they go along too.',
     stillNeeded: (labels) =>
       `The pipe size can only be worked out once the ${labels} is known. A rough estimate is enough; I will mark it in the result.`,
   },
