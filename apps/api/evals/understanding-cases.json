@@ -2223,6 +2223,20 @@
     {
       "text": "satu batang pipa panjangnya berapa?",
       "topics": ["panjang batang"]
+    },
+    {
+      "text": "pipa lama saya masih bisa dipakai ngga?",
+      "topics": ["pipa lama cukup"],
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "pipa lamanya masih kepake ga",
+      "topics": ["pipa lama cukup"],
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "pipa pvc awet berapa lama?",
+      "topics": ["umur pakai"]
     }
   ]
 }

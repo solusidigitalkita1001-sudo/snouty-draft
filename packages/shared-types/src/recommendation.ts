@@ -57,6 +57,23 @@ export interface SystemLine {
   readonly steps?: readonly CalculationStep[];
 }
 
+/**
+ * Pipa lama yang sudah terpasang dan hasil pemeriksaan kapasitasnya (ENG-901), sebagai DATA —
+ * supaya "pipa lama saya masih bisa dipakai?" dijawab dari hitungan, bukan diparse dari nama baris
+ * sistem (produksi 2026-11-02: pertanyaan itu dijawab umur pakai pipa pada umumnya).
+ */
+export interface ExistingPipeCheck {
+  readonly mode: 'replace_all' | 'replace_partial' | 'extend';
+  /** Ukuran pipa lama seperti tercatat; `null` = belum disebut. */
+  readonly size: string | null;
+  /** `true`/`false` = hasil ENG-901; `null` = tidak diperiksa, alasannya di `uncheckedReason`. */
+  readonly sufficient: boolean | null;
+  /** Ukuran yang dibutuhkan beban total, bila kapasitasnya diperiksa. */
+  readonly requiredSize?: string;
+  /** Mengapa kapasitasnya tidak diperiksa — kalimat bahasa pengguna, sudah dipilih pemanggil. */
+  readonly uncheckedReason?: string;
+}
+
 export interface SelectedProduct {
   readonly productId: string;
   readonly size: string;
@@ -358,6 +375,8 @@ export interface Recommendation {
   /** Bagian tetap jawaban teknis (Fase 14 §28); hanya `kind: 'technical'`. */
   readonly composition?: ComposedResponse;
   readonly systemLines: readonly SystemLine[];
+  /** Pekerjaan di instalasi yang sudah terpasang (P32-52); `undefined` = bangun baru. */
+  readonly existingPipe?: ExistingPipeCheck;
   /** Kebutuhan bergambar di Ringkasan (DD-01 #1); hanya solusi bangunan yang dihitung sejak P17-04. */
   readonly needs?: readonly SolutionNeed[];
   /** Pilihan dudukan toren (P22-04); hanya solusi bangunan bersumber toren atap. */

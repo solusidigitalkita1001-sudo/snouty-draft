@@ -108,6 +108,7 @@ export type {
   ScenarioId,
   ScenarioMetrics,
   SolutionNeed,
+  ExistingPipeCheck,
   TankStandOption,
   TankStandView,
 } from './recommendation.js';

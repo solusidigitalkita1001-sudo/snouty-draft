@@ -155,6 +155,14 @@ describe('withRenovation', () => {
     expect(out.traces.every((t) => t.id.length > 0)).toBe(true);
     // Judul rumah tidak kehilangan huruf; highlight hanya untuk kasus teknis.
     expect(r.highlights).toBeUndefined();
+    // P32-52: hasil pemeriksaan pipa lama ikut sebagai DATA, supaya pertanyaan "pipa lama saya
+    // masih bisa dipakai?" dijawab dari hitungan, bukan diparse dari nama baris.
+    expect(r.existingPipe).toEqual({
+      mode: 'extend',
+      size: '3/4"',
+      sufficient: false,
+      requiredSize: '1"',
+    });
   });
 
   it('perluasan tanpa ukuran pipa lama: kapasitas tidak dicek dan DITULIS; tanpa fitting sambungan', () => {
@@ -177,6 +185,12 @@ describe('withRenovation', () => {
     expect(r.highlights?.[2]!.value).toContain('belum dicek');
     expect(r.bom).toHaveLength(2);
     expect(r.assumptions.some((a) => a.ruleId === 'ENG-901' && a.fieldPath === '')).toBe(true);
+    expect(r.existingPipe).toEqual({
+      mode: 'extend',
+      size: null,
+      sufficient: null,
+      uncheckedReason: 'ukuran pipa lama belum disebut',
+    });
   });
 
   it('ganti sebagian 12 m dari 30 m: hanya pipa utama 40 % (dibulatkan ke atas) + 2 sok; cabang dan fitting lain tidak ikut', () => {

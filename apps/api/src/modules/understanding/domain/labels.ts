@@ -153,8 +153,18 @@ export const KNOWLEDGE_TOPICS = [
   'pukulan air',
   'kemiringan buangan',
   'bau saluran',
+  // Pipa yang SUDAH terpasang di kasus pengguna: muat atau tidak untuk bebannya, bukan umur
+  // pakai pipa pada umumnya — dijawab dari hitungan renovasi, bukan dari pengetahuan (P32-52).
+  'pipa lama cukup',
 ] as const;
 export type KnowledgeTopicLabel = (typeof KNOWLEDGE_TOPICS)[number];
+
+/**
+ * Topik yang dijawab dari KASUS pengguna, bukan dari pengetahuan umum pipa: pipa yang sudah
+ * terpasang diperiksa hitungan renovasi (ENG-901), jadi fakta umum untuknya menjawab pertanyaan
+ * yang lain — umur pakai pipa, bukan 'pipa saya muat atau tidak' (P32-52).
+ */
+export const OWN_CASE_TOPICS: readonly KnowledgeTopicLabel[] = ['pipa lama cukup'];
 
 /**
  * Label CONTOH NEGATIF yang boleh ada di katalog mana pun: kalimat yang TIDAK membawa keputusan

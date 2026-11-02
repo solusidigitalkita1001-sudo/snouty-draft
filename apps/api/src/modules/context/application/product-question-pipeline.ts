@@ -39,6 +39,7 @@ import {
 } from './knowledge-answer.js';
 import { asksGeneralKnowledge } from './intent-router.js';
 import { pressureReply, runsReply } from './solution-facts.js';
+import { existingPipeReply } from './existing-pipe-answer.js';
 /** Topik yang hanya tentang jalur buangan — jawabannya tidak perlu membacakan jalur air bersih. */
 const DRAINAGE_TOPICS: ReadonlySet<string> = new Set(['pipa pembuangan', 'kemiringan buangan']);
 import type { ActiveSolution } from '../domain/active-solution.port.js';
@@ -52,6 +53,7 @@ import {
   type AssistantStreamEvent,
   type Product,
   type ProductCardDto,
+  type RequirementState,
 } from '@snouty/shared-types';
 import type { AiService } from '../../ai/domain/ai.port.js';
 import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
@@ -130,6 +132,8 @@ export interface ProductQuestionInput {
     Partial<Pick<EntityLexicon, 'representativeFamily'>>;
   /** Solusi aktif percakapan: pertanyaan yang tidak tercakup data pengetahuan dijawab dari jalurnya. */
   readonly solution?: ActiveSolution | null;
+  /** Kebutuhan percakapan — pertanyaan tentang pipa yang sudah terpasang dijawab dari kasusnya. */
+  readonly state?: RequirementState;
   /** Dipanggil untuk tiap data resmi yang belum ada di jawaban pengetahuan (log, bukan state). */
   readonly onGap?: (gap: { readonly topic: string; readonly gap: string }) => void;
 }
@@ -282,6 +286,17 @@ export async function runProductQuestion(
       { type: 'message.start', messageId: input.messageId },
       { type: 'token', text: outcome.text },
       ...outcome.cards.map((card) => ({ type: 'card', card }) as AssistantStreamEvent),
+      endEvent(input.messageId),
+    ];
+  }
+
+  // Pipa yang SUDAH terpasang di kasus pengguna: dijawab dari hitungannya, bukan dari pengetahuan
+  // umum. "Pipa lama saya masih bisa dipakai ngga?" di percakapan renovasi yang sudah mencatat
+  // pipa utama lama 3" dijawab umur pakai pipa pada umumnya (produksi 2026-11-02).
+  if (u.knowledgeTopics.includes('pipa lama cukup') && input.state !== undefined) {
+    return [
+      { type: 'message.start', messageId: input.messageId },
+      { type: 'token', text: existingPipeReply(input.state, input.solution ?? null, locale) },
       endEvent(input.messageId),
     ];
   }

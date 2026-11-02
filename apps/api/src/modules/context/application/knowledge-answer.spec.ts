@@ -578,11 +578,15 @@ describe('answersFromKnowledge — pertanyaan bentuk sistem sendiri (P22-02)', (
  */
 describe('cakupan topik FAQ', () => {
   it('tiap topik yang dikenali punya fakta atau konsep', async () => {
-    const { KNOWLEDGE_TOPICS } = await import('../../understanding/domain/labels.js');
+    const { KNOWLEDGE_TOPICS, OWN_CASE_TOPICS } =
+      await import('../../understanding/domain/labels.js');
     const { CONCEPTS } = await import('./pipe-knowledge.js');
     const facts = factTopics();
     const concepts = new Set(CONCEPTS.map((c) => c.topic));
-    const orphan = KNOWLEDGE_TOPICS.filter((t) => !facts.has(t) && !concepts.has(t));
+    // Topik yang dijawab dari kasus pengguna sendiri tidak punya — dan tidak boleh punya — fakta
+    // umum: jawabannya hitungan kasusnya (P32-52).
+    const own = new Set<string>(OWN_CASE_TOPICS);
+    const orphan = KNOWLEDGE_TOPICS.filter((t) => !facts.has(t) && !concepts.has(t) && !own.has(t));
     expect(orphan).toEqual([]);
   });
 

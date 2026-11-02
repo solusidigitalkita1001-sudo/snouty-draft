@@ -4530,3 +4530,13 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       bekas 1¼"." — label yang sama dua kali dalam tiga kalimat, dan yang sebenarnya didaftar di
       kalimat kedua, ventilasinya, tidak kelihatan. Sekarang kalimat itu bernama "Ventilasinya"
       dan kata ventilasi tidak diulang di tiap bagiannya.
+
+- [x] P32-52 "Pipa lama saya masih bisa dipakai?" dijawab dari kasusnya
+
+      Di percakapan renovasi ruko yang sudah mencatat pipa utama lama 3", pertanyaan itu dijawab
+      umur pakai pipa pada umumnya lalu dilempar ke tim teknis — padahal hitungan renovasi memang
+      memeriksa kapasitas pipa lama. Hasil pemeriksaan itu sekarang ikut sebagai data di solusi,
+      pertanyaannya dikenali dari contoh kalimat (bukan daftar frasa di kode), dan jawabannya
+      menyebut cukup atau kurang beserta ukuran yang dibutuhkan bebannya. Yang belum bisa diperiksa
+      dikatakan belum diperiksa, dengan data yang masih kurang; kondisi fisik pipa lama tetap
+      dikembalikan ke lapangan, bukan dinilai dari jauh.

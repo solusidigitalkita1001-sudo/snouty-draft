@@ -28,6 +28,7 @@ import {
   DEFAULT_LOCALE,
   type Assumption,
   type BomItem,
+  type ExistingPipeCheck,
   type KeyValue,
   type Locale,
   type Recommendation,
@@ -202,6 +203,13 @@ export function withRenovation(
     renovationTraces.find((t) => t.ruleId === ruleId)?.explanation ?? '';
 
   const label = workTypeLabel(facts.mode, locale);
+  // Pipa lama sebagai DATA, bukan hanya prosa baris sistem: pertanyaan "pipa lama saya masih bisa
+  // dipakai?" dijawab dari sini (P32-52).
+  let existingPipe: ExistingPipeCheck = {
+    mode: facts.mode,
+    size: facts.existingSize,
+    sufficient: null,
+  };
   const systemLines: SystemLine[] = [];
   const highlights: KeyValue[] = [{ label: en ? 'Work' : 'Pekerjaan', value: label }];
   let bom: BomItem[] = [...recommendation.bom];
@@ -222,6 +230,12 @@ export function withRenovation(
         label: en ? 'Existing pipe' : 'Pipa lama',
         value: `${c.existingSize} · ${verdict}`,
       });
+      existingPipe = {
+        mode: facts.mode,
+        size: c.existingSize,
+        sufficient: c.sufficient,
+        requiredSize: c.requiredSize,
+      };
       systemLines.push({
         name: en ? 'Existing main pipe' : 'Pipa utama lama',
         path: en ? 'Source → tie-in' : 'Sumber → titik sambung',
@@ -257,6 +271,12 @@ export function withRenovation(
         label: en ? 'Existing pipe' : 'Pipa lama',
         value: en ? `not checked — ${reason}` : `belum dicek — ${reason}`,
       });
+      existingPipe = {
+        mode: facts.mode,
+        size: facts.existingSize,
+        sufficient: null,
+        uncheckedReason: reason,
+      };
       sentences.push(
         en
           ? `${label}: the new part is sized on its own; whether the existing main still copes was not checked because ${reason}.`
@@ -437,6 +457,7 @@ export function withRenovation(
         ? { highlights: [...recommendation.highlights, ...highlights] }
         : {}),
       systemLines: [...recommendation.systemLines, ...systemLines],
+      existingPipe,
       bom,
       assumptions,
     },

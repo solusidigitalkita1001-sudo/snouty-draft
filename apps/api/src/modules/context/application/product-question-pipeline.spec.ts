@@ -19,6 +19,8 @@ import type { ProductAnswer } from '../../product-knowledge/domain/product-answe
 import { TEST_LEXICON, understood } from '../../understanding/testing/understood.js';
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 import { FITTING_VS_MATERIAL } from '../domain/subject.js';
+import { mergeRequirement } from '../domain/context-merger.js';
+import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 import { explain } from './pipe-knowledge.js';
 import { PRODUCT_ANSWER_COPY } from './product-answer-text.js';
 import {
@@ -1587,5 +1589,64 @@ describe('runProductQuestion — ukuran kelas yang sedang dibicarakan', () => {
     const out = text(events);
     expect(out).toContain('1/2"');
     expect(out).not.toContain('3"');
+  });
+});
+
+/**
+ * P32-52 — pertanyaan tentang pipa yang SUDAH terpasang di kasus pengguna dijawab dari hitungannya.
+ * Produksi 2026-11-02: "pipa lama saya masih bisa dipakai ngga?" di percakapan renovasi ruko
+ * dijawab umur pakai pipa pada umumnya, lalu dilempar ke tim teknis.
+ */
+describe('runProductQuestion — PIPA LAMA', () => {
+  const renovation = mergeRequirement(
+    emptyRequirementState('2026-11-02T00:00:00.000Z'),
+    [
+      { path: 'building.type', value: 'light_commercial', source: 'user_stated' },
+      { path: 'water.workType', value: 'extend', source: 'user_stated' },
+      { path: 'water.existingMainSize', value: '3"', source: 'user_stated' },
+    ],
+    '2026-11-02T00:00:00.000Z',
+  ).state;
+
+  it('dijawab hasil pemeriksaan kapasitasnya, bukan umur pakai pipa', async () => {
+    const events = await runProductQuestion(
+      {
+        parseProductQuestion: async () => {
+          throw new Error('pemeta pertanyaan tidak boleh dipanggil');
+        },
+      } as never,
+      brokenCatalog,
+      noQuestions,
+      input('pipa lama saya masih bisa dipakai ngga?', { knowledgeTopics: ['pipa lama cukup'] }, {
+        state: renovation,
+        solution: {
+          recommendation: {
+            systemLines: [],
+            bom: [],
+            existingPipe: {
+              mode: 'extend',
+              size: '3"',
+              sufficient: true,
+              requiredSize: '2"',
+            },
+          },
+          stale: false,
+        },
+      } as never),
+    );
+    const out = text(events);
+    expect(out).toContain('Pipa utama lama 3" cukup');
+    expect(out).not.toContain('Umur pakai');
+    expect(cards(events)).toEqual([]);
+  });
+
+  it('tanpa kebutuhan tercatat, jalur pengetahuan tetap seperti sebelumnya', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      input('pipa pvc awet berapa lama?', { knowledgeTopics: ['umur pakai'] }),
+    );
+    expect(text(events)).toContain('Umur pakai pipa');
   });
 });
