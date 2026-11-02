@@ -135,11 +135,46 @@ function spokenPurpose(text: string, en: boolean): string {
 /** Satuan yang menandai baris PIPA di daftar belanja, dua bahasa (P31-37). */
 const PIPE_UNITS = new Set(['batang', 'rods', 'meter', 'm']);
 
+/** Baris solusi yang isinya tekanan, bukan diameter. */
+const PRESSURE_SIZE = /\bbar\b/i;
+
+/**
+ * Tekanan di sumber bukan "jalur": ia tidak punya diameter, dan di tengah daftar jalur ia terbaca
+ * seperti ukuran pipa berikutnya. Produksi 2026-11-02, masjid 2 lantai dengan toren atap: "jadi
+ * pipa utamanya berapa?" dijawab "… pipa deret wudhu 1½"; tekanan dari toren atap 0,11 bar (sumber
+ * air)" — padahal 0,11 bar itu KURANG dan solusinya sendiri sudah meminta pompa pendorong. Jadi
+ * tekanannya diucapkan di kalimatnya sendiri, dengan akibatnya.
+ */
+function pressureNote(solution: ActiveSolution, locale: Locale): string {
+  const line = solution.recommendation.systemLines.find((l) => PRESSURE_SIZE.test(l.size));
+  if (line === undefined) return '';
+  const en = locale === 'en';
+  const figure = `${line.name} ${line.size}`;
+  const booster = (solution.recommendation.needs ?? []).find((n) => n.kind === 'booster_pump');
+  if (booster === undefined) return ` ${figure}.`;
+  const stand =
+    booster.minimumStandM === undefined
+      ? ''
+      : en
+        ? ` (or the tank stand raised to ${fmt(booster.minimumStandM, en)} m above the roof)`
+        : ` (atau dudukan toren dinaikkan ke ${fmt(booster.minimumStandM, en)} m di atas atap)`;
+  return en
+    ? ` ${figure} at the highest outlet — below what the fixtures need, so the line needs a booster pump${stand}.`
+    : ` ${figure} di titik air tertinggi — di bawah kebutuhannya, jadi jalurnya perlu pompa pendorong${stand}.`;
+}
+
+function fmt(n: number, en: boolean): string {
+  return n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
+}
+
 export function layoutReply(solution: ActiveSolution, locale: Locale): string {
   const en = locale === 'en';
   const r = solution.recommendation;
   const num = (n: number) => n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
-  const lines = r.systemLines.map((l) => `${inSentence(l.name)} ${l.size} (${inSentence(l.path)})`);
+  const lines = r.systemLines
+    .filter((l) => !PRESSURE_SIZE.test(l.size))
+    .map((l) => `${inSentence(l.name)} ${l.size} (${inSentence(l.path)})`);
+  const pressure = pressureNote(solution, locale);
   const rows = r.bom.filter((b) => b.quantity > 0);
   // Satuan BOM solusi Inggris sudah diterjemahkan ("rods"), dan peruntukannya pun ("Main line"),
   // jadi baris pipa tidak dikenali dari kata "pipa" maupun satuan "batang": daftar belanja Inggris
@@ -172,7 +207,9 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
       : '';
   if (en) {
     return (
-      `The installation section is below. The runs: ${lines.join('; ')}.` +
+      'The installation section is below.' +
+      (lines.length > 0 ? ` The runs: ${lines.join('; ')}.` : '') +
+      pressure +
       (pipes.length > 0 ? ` Pipes: ${list(pipes)}.` : '') +
       (fittings.length > 0 ? ` Fittings: ${list(fittings)}.` : '') +
       noPipeCount +
@@ -180,7 +217,9 @@ export function layoutReply(solution: ActiveSolution, locale: Locale): string {
     );
   }
   return (
-    `Potongan instalasinya di bawah. Jalurnya: ${lines.join('; ')}.` +
+    'Potongan instalasinya di bawah.' +
+    (lines.length > 0 ? ` Jalurnya: ${lines.join('; ')}.` : '') +
+    pressure +
     (pipes.length > 0 ? ` Pipa: ${list(pipes)}.` : '') +
     (fittings.length > 0 ? ` Fitting: ${list(fittings)}.` : '') +
     noPipeCount +
@@ -207,15 +246,17 @@ export function runsReply(
   /** Pertanyaannya tentang pembuangan: jalur air bersih tidak ikut dibacakan. */
   drainageOnly = false,
 ): string | null {
-  const all = solution.recommendation.systemLines;
+  const all = solution.recommendation.systemLines.filter((l) => !PRESSURE_SIZE.test(l.size));
   const chosen = drainageOnly ? all.filter((l) => DRAINAGE_LINE.test(`${l.name} ${l.path}`)) : all;
   const lines = (chosen.length > 0 ? chosen : all).map(
     (l) => `${inSentence(l.name)} ${l.size} (${inSentence(l.path)})`,
   );
   if (lines.length === 0) return null;
+  // Jalur pembuangan tidak punya tekanan sumber; tekanan diucapkan hanya di jawaban air bersih.
+  const pressure = drainageOnly ? '' : pressureNote(solution, locale);
   return locale === 'en'
-    ? `The runs in your solution: ${lines.join('; ')}. The basis of every figure is under "Show technical details" on the solution screen.`
-    : `Jalur di solusi Anda: ${lines.join('; ')}. Dasar tiap angka ada di "Tampilkan detail teknis" pada layar solusi.`;
+    ? `The runs in your solution: ${lines.join('; ')}.${pressure} The basis of every figure is under "Show technical details" on the solution screen.`
+    : `Jalur di solusi Anda: ${lines.join('; ')}.${pressure} Dasar tiap angka ada di "Tampilkan detail teknis" pada layar solusi.`;
 }
 
 export function rodsReply(solution: ActiveSolution, locale: Locale): string | null {

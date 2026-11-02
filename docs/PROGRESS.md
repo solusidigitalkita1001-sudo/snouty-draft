@@ -4506,3 +4506,11 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       lantai dan data intinya sudah disebut, hitungannya jalan dengan anggapan bertanda yang
       tertulis di jawaban, jadi pengguna bisa mengoreksi. Industri tetap lewat tim teknis. Letak
       toren yang baru disebut tetap ditanyakan, tidak dianggap di atap.
+
+- [x] P32-49 Tekanan yang kurang tidak lagi hanyut di daftar jalur
+
+      Di masjid 2 lantai dengan toren atap, "jadi pipa utamanya berapa?" dijawab "… pipa deret
+      wudhu 1½"; tekanan dari toren atap 0,11 bar (sumber air)" — angka tekanan dibacakan seperti
+      ukuran pipa berikutnya, padahal 0,11 bar di bawah kebutuhan dan solusi yang sama sudah
+      meminta pompa pendorong. Sekarang tekanan punya kalimatnya sendiri, dengan akibatnya: perlu
+      pompa pendorong, atau dudukan toren dinaikkan sampai setinggi yang dihitung.

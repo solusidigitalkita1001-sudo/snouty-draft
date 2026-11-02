@@ -251,6 +251,53 @@ describe('pertanyaan tekanan atas bentuk sistem', () => {
 });
 
 /**
+ * P32-49 — baris tekanan hanyut di daftar jalur. Produksi 2026-11-02, masjid 2 lantai dengan toren
+ * atap: "jadi pipa utamanya berapa?" dijawab "… pipa deret wudhu 1½"; tekanan dari toren atap 0,11
+ * bar (sumber air)" — angka itu kurang, dan solusinya sendiri sudah meminta pompa pendorong, tetapi
+ * jawabannya tidak menyebutnya sama sekali.
+ */
+describe('tekanan yang kurang di jawaban bentuk sistem', () => {
+  const tankLine = {
+    name: 'Tekanan dari toren atap',
+    path: 'Sumber air',
+    size: '0,11 bar',
+    reason: 'Dari toren atap, titik air tertinggi mendapat 0,11 bar. Itu di bawah 0,3 bar.',
+    role: 'fitting',
+    provenance: 'ASSUMED',
+    traceIds: [],
+  };
+  const short = (needs: unknown[]) =>
+    ({
+      recommendation: {
+        ...solution.recommendation,
+        systemLines: [...solution.recommendation.systemLines, tankLine],
+        needs,
+      } as unknown as ActiveSolution['recommendation'],
+      stale: false,
+    }) satisfies ActiveSolution;
+
+  it('tekanan tidak ikut dibacakan sebagai jalur, dan pompa pendorongnya disebut', () => {
+    const text = layoutReply(short([{ kind: 'booster_pump', minimumStandM: 3.5 }]), 'id');
+    expect(text).not.toContain('toren atap 0,11 bar (sumber air)');
+    expect(text).toContain('Tekanan dari toren atap 0,11 bar di titik air tertinggi');
+    expect(text).toContain('perlu pompa pendorong');
+    expect(text).toContain('dinaikkan ke 3,5 m di atas atap');
+  });
+
+  it('tekanan yang cukup disebut apa adanya, tanpa pompa', () => {
+    const text = layoutReply(short([{ kind: 'rooftop_tank' }]), 'id');
+    expect(text).toContain('Tekanan dari toren atap 0,11 bar.');
+    expect(text).not.toContain('pompa pendorong');
+  });
+
+  it('bahasa Inggris: kalimat tekanannya ikut', () => {
+    const text = layoutReply(short([{ kind: 'booster_pump', minimumStandM: 3.5 }]), 'en');
+    expect(text).toContain('needs a booster pump');
+    expect(text).toContain('3.5 m above the roof');
+  });
+});
+
+/**
  * P32-47 — dua peruntukan satu SKU ("Cabang · Sambungan ke alat") diucapkan dengan kata "dan",
  * dan huruf awal keduanya kecil di tengah kalimat (produksi 2026-11-02).
  */
