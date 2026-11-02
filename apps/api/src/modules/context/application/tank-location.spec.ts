@@ -79,6 +79,16 @@ describe('toren tanpa letaknya', () => {
     const text = spoken(events);
     expect(text).toContain('di atap atau di bawah');
     expect(text).not.toContain('tetap tercatat');
+    // Masjid ikut aturan "hitung dulu + anggapan" (pemilik 2026-11-02), tetapi letak toren yang
+    // baru disebut tetap tidak ikut dianggap — pertanyaannya ini.
+    const updated = first.events.find((e) => e.type === 'requirement.updated') as {
+      state: typeof state;
+    };
+    expect(updated.state.water.source.value).toBeNull();
+    expect(updated.state.water.installationType).toMatchObject({
+      value: 'clean_water',
+      provenance: 'ASSUMED',
+    });
   });
 
   it('pesan lain yang tidak mengubah apa pun tetap dijawab seperti biasa', async () => {

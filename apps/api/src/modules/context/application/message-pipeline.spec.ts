@@ -205,6 +205,50 @@ describe('runUnderstanding — diet panggilan model (2026-10-07)', () => {
     );
   });
 
+  // Produksi 2026-11-02: "masjid 2 lantai, tempat wudhu 20 kran, 4 toilet" lalu "torennya di atap"
+  // — tanpa kata "itung aja" — masih dijawab pertanyaan jenis instalasi, padahal jawabannya punya
+  // anggapan. Pemilik 2026-11-02: tempat ibadah, gedung publik, ruko, dan kos ikut aturan rumah.
+  it('bangunan selain rumah: lantai disebut, anggapan jalan tanpa harus diminta menghitung', async () => {
+    const ai = aiExtracting({});
+    const mosque = mergeRequirement(
+      emptyRequirementState(T0),
+      [
+        { path: 'building.type', value: 'place_of_worship', source: 'user_stated' },
+        { path: 'building.floors', value: 2, source: 'user_stated' },
+        { path: 'fixtures.bathrooms', value: 4, source: 'user_stated' },
+        { path: 'fixtures.wudhuTaps', value: 20, source: 'user_stated' },
+      ],
+      T0,
+    ).state;
+    const { events } = await runUnderstanding(
+      ai,
+      input({
+        message: 'torennya di atap',
+        state: withCompleteness(mosque),
+        understanding: understood('torennya di atap', { intent: 'requirement_building' }),
+      }),
+    );
+
+    const updated = events.find((e) => e.type === 'requirement.updated') as {
+      state: ReturnType<typeof emptyRequirementState>;
+    };
+    expect(updated.state.water.source.value).toBe('rooftop_tank');
+    expect(updated.state.water.installationType).toMatchObject({
+      value: 'clean_water',
+      provenance: 'ASSUMED',
+    });
+    expect(updated.state.missingInformation).toEqual([]);
+    const cards = events.filter((e) => e.type === 'card') as Array<{
+      card: { kind: string; questions?: ReadonlyArray<{ id: string }> };
+    }>;
+    expect(cards.flatMap((c) => c.card.questions?.map((q) => q.id) ?? [])).not.toContain(
+      'water.installationType',
+    );
+    expect(cards.map((c) => c.card)).toContainEqual(
+      expect.objectContaining({ kind: 'cta', action: 'ANALYZE' }),
+    );
+  });
+
   // Produksi 2026-10-27: drainase air hujan yang luas tangkapannya sudah disebut menjawab "itung
   // aja" dengan daftar empat angka — intensitas hujan, panjang jalur, kemiringan, koefisien
   // limpasan — padahal keempatnya punya anggapan di registry.

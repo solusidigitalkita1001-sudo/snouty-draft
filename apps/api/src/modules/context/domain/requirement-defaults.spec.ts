@@ -9,7 +9,7 @@ import {
   assumptionCard,
   defaultUpdateFor,
   assumableUpdates,
-  houseAssumptionUpdates,
+  computeFirstAssumptionUpdates,
   REQUIREMENT_DEFAULTS,
 } from './requirement-defaults.js';
 import { fieldEntries, readField } from './requirement-field.js';
@@ -119,7 +119,7 @@ describe('hitung dulu + anggapan rumah (pemilik 2026-10-20)', () => {
   };
 
   it('lantai disebut: kamar mandi 1 per lantai, toren atap, air bersih — semuanya ASSUMED ber-reason', () => {
-    const updates = houseAssumptionUpdates(house(3, null));
+    const updates = computeFirstAssumptionUpdates(house(3, null));
     expect(updates.map((u) => [u.path, u.value])).toEqual(
       [
         ['water.source', 'rooftop_tank'],
@@ -137,7 +137,7 @@ describe('hitung dulu + anggapan rumah (pemilik 2026-10-20)', () => {
   });
 
   it('lantai belum disebut: tanpa anggapan — yang kurang ditanyakan', () => {
-    expect(houseAssumptionUpdates(house(null, 2))).toEqual([]);
+    expect(computeFirstAssumptionUpdates(house(null, 2))).toEqual([]);
   });
 
   // Produksi 2026-10-26: ruko 3 lantai, 3 toilet, PDAM, toren atap — yang kurang hanya jenis
@@ -160,11 +160,59 @@ describe('hitung dulu + anggapan rumah (pemilik 2026-10-20)', () => {
       ).state,
     );
 
-    expect(houseAssumptionUpdates(ruko)).toEqual([]);
     expect(assumableUpdates(ruko).map((u) => [u.path, u.value])).toEqual([
       ['water.installationType', 'clean_water'],
     ]);
     for (const u of assumableUpdates(ruko)) expect(u.provenance).toBe('ASSUMED');
+    // Pemilik 2026-11-02: ruko tidak perlu lagi diminta "itung aja" — anggapannya jalan sendiri.
+    expect(computeFirstAssumptionUpdates(ruko).map((u) => [u.path, u.value])).toEqual([
+      ['water.installationType', 'clean_water'],
+    ]);
+  });
+
+  /**
+   * Produksi 2026-11-02: "masjid 2 lantai, tempat wudhu 20 kran, 4 toilet" lalu "torennya di atap"
+   * dijawab "saya masih perlu jenis instalasi" — padahal jenis instalasi punya anggapan. Pemilik:
+   * tempat ibadah, gedung publik, ruko, dan kos ikut aturan rumah; industri tetap ke tim teknis.
+   */
+  const stated = (type: string, floors: number) =>
+    withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [
+          { path: 'building.type' as const, value: type, source: 'user_stated' as const },
+          { path: 'building.floors' as const, value: floors, source: 'user_stated' as const },
+          { path: 'fixtures.bathrooms' as const, value: 4, source: 'user_stated' as const },
+          { path: 'water.source' as const, value: 'rooftop_tank', source: 'user_stated' as const },
+        ],
+        T1,
+      ).state,
+    );
+
+  it('masjid, gedung publik, dan kos: anggapan jalan seperti rumah', () => {
+    for (const type of ['place_of_worship', 'public_building', 'boarding_house']) {
+      const updates = computeFirstAssumptionUpdates(stated(type, 2));
+      expect(updates.map((u) => [u.path, u.value])).toEqual([
+        ['water.installationType', 'clean_water'],
+      ]);
+      for (const u of updates)
+        expect(u).toMatchObject({ provenance: 'ASSUMED', ruleId: 'ENG-014' });
+    }
+  });
+
+  it('industri: tanpa anggapan — jalurnya tetap tim teknis', () => {
+    expect(computeFirstAssumptionUpdates(stated('industrial', 2))).toEqual([]);
+  });
+
+  it('jenis bangunan belum disebut: tanpa anggapan', () => {
+    const floorsOnly = withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [{ path: 'building.floors' as const, value: 2, source: 'user_stated' as const }],
+        T1,
+      ).state,
+    );
+    expect(computeFirstAssumptionUpdates(floorsOnly)).toEqual([]);
   });
 
   it('"Belum tahu" kamar mandi: jumlah lantai bila diketahui, tanpa lantai tetap kosong', () => {

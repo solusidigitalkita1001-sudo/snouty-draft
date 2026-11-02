@@ -72,7 +72,7 @@ import { irrigationGuidance, irrigationNoted } from './irrigation-guidance.js';
 import {
   assumableUpdates,
   assumptionCard,
-  houseAssumptionUpdates,
+  computeFirstAssumptionUpdates,
 } from '../domain/requirement-defaults.js';
 import {
   askableMissing,
@@ -704,12 +704,23 @@ export async function runUnderstanding(
     merged = withCompleteness(result.state);
     changed = result.changed.length > 0;
     changedPaths = result.changed;
-    // Rumah yang lantainya sudah disebut: sisa data inti dianggap dulu, lalu langsung dihitung.
-    // Pengguna yang memintanya menghitung ikut, jenis bangunan apa pun: di percakapan ruko 3
-    // lantai "udah, itung aja" dijawab pertanyaan jenis instalasi yang sama persis dua kali,
-    // padahal jawabannya punya anggapan (air bersih) dan pengguna baru saja mengizinkannya
-    // (produksi 2026-10-26).
-    const assumptions = asksToCompute ? assumableUpdates(merged) : houseAssumptionUpdates(merged);
+    // Bangunan yang lantainya sudah disebut: sisa data inti dianggap dulu, lalu langsung dihitung.
+    // Industri saja yang tidak ikut. Pengguna yang memintanya menghitung ikut, jenis bangunan apa
+    // pun: di percakapan ruko 3 lantai "udah, itung aja" dijawab pertanyaan jenis instalasi yang
+    // sama persis dua kali, padahal jawabannya punya anggapan (air bersih) dan pengguna baru saja
+    // mengizinkannya (produksi 2026-10-26).
+    const assumable = asksToCompute
+      ? assumableUpdates(merged)
+      : computeFirstAssumptionUpdates(merged);
+    // Pesan yang isinya HANYA toren tanpa letaknya ("airnya dari sumur bor pakai toren", tidak
+    // mengubah apa pun): letaknya ditanyakan, bukan dianggap di atap — itu menjawab penggunanya
+    // dengan tebakan atas kalimatnya sendiri (P32-31). Anggapan lain tetap jalan, jadi yang
+    // tersisa satu pertanyaan. Pesan yang membawa fakta lain, dan permintaan menghitung yang
+    // tersurat, tetap memakai semua anggapan.
+    const assumptions =
+      !asksToCompute && !changed && mentionsTankWithoutLocation(input.message)
+        ? assumable.filter((u) => u.path !== 'water.source')
+        : assumable;
     if (assumptions.length > 0) {
       merged = withCompleteness(mergeRequirement(merged, assumptions, input.now).state);
       changed = true;

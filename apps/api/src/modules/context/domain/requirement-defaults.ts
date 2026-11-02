@@ -14,6 +14,7 @@
 
 import {
   DEFAULT_LOCALE,
+  type BuildingType,
   type FieldSource,
   type Locale,
   type RequirementFieldPath,
@@ -116,13 +117,29 @@ const HOUSE_ASSUMABLE: readonly RequirementFieldPath[] = [
 ];
 
 /**
- * "Hitung dulu + asumsi" (pemilik 2026-10-20): rumah tinggal yang jumlah lantainya disebut dihitung
- * langsung — data inti lain yang belum disebut diisi anggapan bertanda (`ASSUMED`, ENG-014) dan
- * tertulis di jawaban. Tanpa jumlah lantai, atau dengan data lain yang belum lengkap, tidak ada
+ * Jenis bangunan yang dihitung langsung begitu lantainya disebut. Industri tidak termasuk: ia
+ * tetap lewat tim teknis, karena fluida dan bebannya bukan air bersih bangunan.
+ */
+const COMPUTE_FIRST_TYPES: ReadonlySet<BuildingType> = new Set<BuildingType>([
+  'residential',
+  'boarding_house',
+  'light_commercial',
+  'place_of_worship',
+  'public_building',
+]);
+
+/**
+ * "Hitung dulu + asumsi" (pemilik 2026-10-20, diperluas 2026-11-02): bangunan yang jumlah
+ * lantainya disebut dihitung langsung — data inti lain yang belum disebut diisi anggapan bertanda
+ * (`ASSUMED`, ENG-014) dan tertulis di jawaban, jadi pengguna bisa mengoreksinya. Masjid, gedung
+ * publik, ruko, dan kos ikut aturan rumah (produksi 2026-11-02: masjid 2 lantai dengan 20 keran
+ * wudhu, 4 toilet, dan toren atap masih dijawab "saya masih perlu jenis instalasi"). Tanpa jumlah
+ * lantai, dengan data lain yang belum lengkap, atau tanpa jenis bangunan yang disebut, tidak ada
  * anggapan: yang kurang ditanyakan seperti biasa.
  */
-export function houseAssumptionUpdates(state: RequirementState): readonly FieldUpdate[] {
-  if (state.building.type.value !== 'residential') return [];
+export function computeFirstAssumptionUpdates(state: RequirementState): readonly FieldUpdate[] {
+  const type = state.building.type.value;
+  if (type === null || type === undefined || !COMPUTE_FIRST_TYPES.has(type)) return [];
   return assumableUpdates(state);
 }
 

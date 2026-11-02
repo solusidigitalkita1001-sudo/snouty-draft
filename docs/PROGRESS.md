@@ -4496,3 +4496,13 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Jawaban jumlah batang berbunyi "cabang · Sambungan ke alat 1/2" 13 batang": dua peruntukan
       satu SKU ditulis berdampingan dengan titik tengah, yang pas di layar solusi tetapi terbaca
       keluaran mesin di dalam kalimat. Di kalimat keduanya dirangkai dengan "dan".
+
+- [x] P32-48 Masjid, gedung publik, ruko, dan kos ikut dihitung langsung
+
+      "Masjid 2 lantai, tempat wudhu 20 kran, 4 toilet" lalu "torennya di atap" masih dijawab
+      "untuk menghitungnya saya masih perlu jenis instalasi", padahal jenis instalasi punya
+      anggapan air bersih dan rumah tinggal sudah dihitung langsung sejak 2026-10-20. Keputusan
+      pemilik 2026-11-02: tempat ibadah, gedung publik, ruko, dan kos ikut aturan rumah — kalau
+      lantai dan data intinya sudah disebut, hitungannya jalan dengan anggapan bertanda yang
+      tertulis di jawaban, jadi pengguna bisa mengoreksi. Industri tetap lewat tim teknis. Letak
+      toren yang baru disebut tetap ditanyakan, tidak dianggap di atap.
