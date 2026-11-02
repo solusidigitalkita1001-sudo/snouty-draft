@@ -103,6 +103,17 @@ describe('kos yang jumlah kamarnya disebut', () => {
     expect(card?.card.questions?.map((q) => q.id)).toContain('fixtures.bathroomsPerRoom');
   });
 
+  // Produksi 2026-11-02: satu kartu memuat "di dalam tiap kamar atau bersama?" DAN "ada berapa
+  // kamar mandi?" — dua pertanyaan yang saling membantah.
+  it('pertanyaan jumlah kamar mandi tidak ikut sebelum yang per kamar dijawab', async () => {
+    const { events } = await runUnderstanding(null, input('kos 3 lantai, 12 kamar'));
+    const card = events.findLast((e) => e.type === 'card') as
+      { card: { questions?: readonly { id: string }[] } } | undefined;
+    const ids = card?.card.questions?.map((q) => q.id) ?? [];
+    expect(ids).toContain('fixtures.bathroomsPerRoom');
+    expect(ids).not.toContain('fixtures.bathrooms');
+  });
+
   it('jawaban "di dalam tiap kamar" menjadikan jumlah kamar jumlah kamar mandinya', () => {
     const state = kosWithRooms();
     const derived = bathroomsFromRooms(state, [

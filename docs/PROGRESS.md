@@ -4289,3 +4289,12 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Setelah P32-16 angkanya tercatat, tetapi kalimatnya berbunyi "Oke, sudah saya catat: rumah kos
       dan 10." — angka telanjang, karena yang membawa nama field hanya jumlah alat. Sekarang "12
       kamar".
+
+- [x] P32-20 Pertanyaan kamar kos bisa dijawab, dan tidak berdampingan dengan pertanyaan yang membantahnya
+
+      Dua hal yang baru terlihat saat alurnya dicoba utuh di produksi. Satu kartu memuat "kamar
+      mandinya di dalam tiap kamar, atau bersama?" bersama "ada berapa kamar mandi?" — dua
+      pertanyaan yang saling membantah; yang kedua kini tidak ikut sampai yang pertama dijawab. Dan
+      jawabannya sendiri ditolak endpoint dengan 400: id pertanyaan baru belum masuk daftar id yang
+      boleh dijawab, daftar yang justru ada supaya setiap kartu yang dikirim API bisa dijawab lewat
+      API.

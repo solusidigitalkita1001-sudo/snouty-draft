@@ -372,6 +372,7 @@ const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath
   'water.installationType',
   'building.floors',
   'fixtures.bathrooms',
+  'fixtures.bathroomsPerRoom',
   'building.floorHeightM',
   ...HOUSE_REFINEMENT_FIELDS,
   ...WORSHIP_REFINEMENT_FIELDS,
@@ -398,8 +399,15 @@ export function planClarification(
 ): ClarificationPlan | null {
   if (missing.length === 0) return null;
 
-  const ordered = orderByPriority(missing);
-  const form: ClarificationForm = missing.length >= CARD_THRESHOLD ? 'card' : 'single';
+  // Kos: selama "di dalam tiap kamar atau bersama" belum dijawab, "ada berapa kamar mandi?" tidak
+  // ikut ditanya — jawaban pertama sudah menentukan jumlahnya, dan dua pertanyaan kamar mandi dalam
+  // satu kartu saling membantah (produksi 2026-11-02).
+  const asked = missing.includes('fixtures.bathroomsPerRoom')
+    ? missing.filter((path) => path !== 'fixtures.bathrooms')
+    : missing;
+
+  const ordered = orderByPriority(asked);
+  const form: ClarificationForm = asked.length >= CARD_THRESHOLD ? 'card' : 'single';
   const selected =
     form === 'single' ? ordered.slice(0, 1) : ordered.slice(0, MAX_CLARIFICATION_QUESTIONS);
 
