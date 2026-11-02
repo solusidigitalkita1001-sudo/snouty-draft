@@ -2176,6 +2176,16 @@
     {
       "text": "kos 10 kamar, 2 lantai",
       "savingRequest": null
+    },
+    {
+      "text": "rumah 2 lantai mau pasang pipa pembuangan",
+      "savingRequest": null,
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "septic tank di belakang, 8 meter dari rumah",
+      "useCase": "gravity_drainage",
+      "source": "produksi 2026-11-02"
     }
   ]
 }

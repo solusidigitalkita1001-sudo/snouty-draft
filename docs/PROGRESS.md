@@ -4309,3 +4309,19 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       benda lain ("di lantai 2") terbaca sebagai jumlah kamar mandi kedua, sehingga "1 kamar mandi
       di lantai 2" tercatat tiga. Angka yang dibagi per posisi ("atasnya 2, bawahnya 1") tetap
       dijumlahkan seperti sebelumnya.
+
+- [x] P32-22 Letak septic tank bukan kolam renang
+
+      Di percakapan rumah 2 lantai yang sedang dibahas, "septic tank di belakang, 8 meter dari
+      rumah" dijawab "Oke, kolam renang." — kasus kolam terbuka, panjang 8 m tercatat sebagai
+      ukuran kolam, dan rumahnya ditinggalkan. Contoh kolam yang terdekat memang berbunyi serupa
+      ("kolam renang ukuran 8 x 4 m di belakang rumah") sementara sisi saluran gravitasi tidak
+      punya satu pun kalimat jarak septic tank. Empat contoh ditambahkan di sana; pagar "bagian
+      dari pekerjaan bangunan" lalu menahan kasusnya seperti seharusnya.
+
+- [x] P32-23 "Mau pasang pipa pembuangan" bukan permintaan hemat
+
+      "rumah 2 lantai mau pasang pipa pembuangan" dijawab lebih dulu dengan jawaban hemat — soal
+      yang tidak ditanyakan — karena contoh hematnya sendiri berbentuk "mau yang murah aja buat
+      rumah 2 lantai" dan yang dikenali kemiripannya bentuk kalimatnya, bukan kata hematnya. Sisi
+      `none` sekarang memuat kalimat pemasangan yang sama bentuknya.
