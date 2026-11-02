@@ -596,17 +596,15 @@ export async function runUnderstanding(
       capturedFrom(input.state).length === 0
     ) {
       events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'done', detail: '0 DATA' });
-      const written =
-        reply && loadEnv().LLM_CHAT_REPLY
-          ? await reply.write({
-              intent: 'OUT_OF_SCOPE',
-              userMessage: input.message,
-              recentTurns: input.recentTurns ?? [],
-              ...(input.locale ? { locale: input.locale } : {}),
-              fallback: openerReply(input.locale),
-            })
-          : { text: openerReply(input.locale) };
-      events.push({ type: 'token', text: written.text });
+      // Tanpa satu pun fakta, tidak ada DATA yang bisa dirangkai model — dan pagar prosa hanya
+      // memeriksa angka, merek, dan struktur, jadi kalimat tanpa angka lolos apa pun isinya.
+      // Diukur di produksi 2026-11-02: "mau pasang sprinkler kebakaran, pipanya pralon ada?"
+      // 77,5 detik dan jawabannya menceritakan penggunanya sendiri ("Pengguna bertanya
+      // tentang…") sekaligus mengarang batas Pralon ("khusus untuk sistem pembuangan air
+      // kotor/limbah"); "septic tank biofil ada?" 40,4 detik dan berbunyi seperti bot;
+      // "minta penawaran harga 500 batang" 42,5 detik lalu berakhir di kalimat tetap ini juga.
+      // Ajakan bertanya tidak punya fakta untuk dirangkai — jadi ia ditulis kode, seketika.
+      events.push({ type: 'token', text: openerReply(input.locale) });
       events.push(endEvent(input.messageId));
       return { events, nextState: input.state, changed: false, trigger: 'extraction' };
     }

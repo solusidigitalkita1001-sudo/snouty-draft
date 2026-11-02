@@ -4018,3 +4018,28 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Dua migration terakhir ternyata tidak pernah didaftarkan di harness tes basis data:
       0034 (tanda tangan aturan, kemarin) dan 0035. Keduanya ditambahkan, jadi tes integrasi
       berjalan di atas skema yang sama dengan produksi.
+
+## Fase 32 — jawaban yang tidak punya sumber
+
+- [x] P32-01 Ajakan bertanya tidak lagi dikarang model
+
+      Ronde cacat baru, cara yang sama seperti Fase 31: 32 pesan yang belum pernah diuji
+      dikirim ke produksi sebagai pengguna, lalu seluruh jawabannya dibaca. Enam jawaban di
+      atas 16 detik, dan keenamnya ditulis model — yang lambat dan yang buruk ternyata jalur
+      yang sama.
+
+      Yang paling parah ada di satu tempat: pesan pembuka tanpa satu pun fakta. Di situ model
+      dipanggil **tanpa DATA**, dan pagar prosa yang ada hanya memeriksa angka, merek, dan
+      struktur — kalimat tanpa angka lolos apa pun isinya. Hasilnya di produksi: "mau pasang
+      sprinkler kebakaran, pipanya pralon ada?" 77,5 detik, jawabannya menceritakan
+      penggunanya sendiri ("Pengguna bertanya tentang…") sekaligus mengarang batas Pralon
+      ("khusus untuk sistem pembuangan air kotor/limbah" — tidak benar); "septic tank biofil
+      ada?" 40,4 detik dan berbunyi seperti bot; "minta penawaran harga 500 batang" 42,5 detik
+      lalu berakhir di kalimat tetap yang sudah ada di kode sejak awal.
+
+      Ajakan bertanya memang tidak punya fakta untuk dirangkai, jadi sekarang ia ditulis kode,
+      seketika, dalam dua bahasa. Yang hilang hanya variasi kalimatnya; yang didapat adalah
+      tidak ada lagi klaim tentang Pralon yang tidak punya sumber di giliran ini.
+
+      Permintaan penawaran dengan jumlah dan tujuan kirim tetap belum dijawab sebagaimana
+      mestinya — itu item sendiri, bukan sisa item ini.
