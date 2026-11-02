@@ -32,7 +32,9 @@ class FakeSignOffs implements RuleSignOffRepository {
   }
 
   async withdraw(ruleId: string, ruleVersion: number): Promise<void> {
-    this.rows = this.rows.filter((row) => !(row.ruleId === ruleId && row.ruleVersion === ruleVersion));
+    this.rows = this.rows.filter(
+      (row) => !(row.ruleId === ruleId && row.ruleVersion === ruleVersion),
+    );
   }
 }
 

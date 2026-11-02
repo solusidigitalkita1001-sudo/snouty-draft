@@ -83,9 +83,7 @@ const LINES: Readonly<Record<NotificationKind, Line>> = {
     const who = name === '' ? (locale === 'en' ? 'a prospect' : 'prospek') : name;
     return {
       text:
-        locale === 'en'
-          ? `Time to check back in with ${who}.`
-          : `Waktunya menengok ${who} lagi.`,
+        locale === 'en' ? `Time to check back in with ${who}.` : `Waktunya menengok ${who} lagi.`,
       href: item.subjectId ? `/internal/leads?prospect=${item.subjectId}` : '/internal/leads',
     };
   },

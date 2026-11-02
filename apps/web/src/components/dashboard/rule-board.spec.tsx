@@ -68,7 +68,9 @@ describe('validasi aturan teknik', () => {
 
   it('mengatakan akibat dari belum ada tanda tangan', async () => {
     render(<RuleBoardPanel />);
-    expect(await screen.findByText(/setiap angka yang dihitung SNOUTY tampil sebagai asumsi/)).toBeDefined();
+    expect(
+      await screen.findByText(/setiap angka yang dihitung SNOUTY tampil sebagai asumsi/),
+    ).toBeDefined();
   });
 
   it('membuka satu aturan menampilkan contoh kerjanya', async () => {
@@ -83,9 +85,7 @@ describe('validasi aturan teknik', () => {
     fireEvent.click(await screen.findByRole('button', { name: /ENG-601/ }));
     fireEvent.click(await screen.findByRole('button', { name: 'Saya setujui' }));
 
-    await waitFor(() =>
-      expect(api.decideRule).toHaveBeenCalledWith('ENG-601', 2, 'approved', ''),
-    );
+    await waitFor(() => expect(api.decideRule).toHaveBeenCalledWith('ENG-601', 2, 'approved', ''));
   });
 
   it('menolak tanpa alasan ditolak, dan alasannya dikatakan', async () => {

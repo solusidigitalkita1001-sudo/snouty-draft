@@ -50,16 +50,16 @@ beserta sumbernya dan satu contoh kerja — kalimat yang sama persis dengan yang
 lalu menyimpan tanda tangannya. **Delapan aturan diminta dibaca lebih dulu**, bukan ketujuh puluh
 empat sekaligus: memintanya sekaligus hanya melatih orang menekan setuju tanpa membaca.
 
-| Aturan      | Mengapa paling dulu                                                                                     |
-| ----------- | ------------------------------------------------------------------------------------------------------- |
-| **ENG-701** | Beban alat dan debit puncak sebuah rumah — setiap ukuran pipa air bersih berdiri di atas angka ini      |
-| **ENG-205** | Diameter yang akhirnya disebut ke pengguna; batas kecepatan 2 m/s dan kehilangan 10 m/100 m             |
-| **ENG-702** | Titik tertinggi dan panjang jalur — masukan bagi diameter sekaligus bagi kecukupan toren                |
-| **ENG-703** | Menyatakan toren atap cukup atau pengguna disuruh membeli pompa pendorong                               |
-| **ENG-001** | Unit beban fixture; bobot 2 per kamar mandi berasal dari "1 kamar mandi = shower + kloset" (ENG-012)    |
-| **ENG-601** | Beban alat pembuangan; baris urinoir UPC Tabel 702.1 belum terbaca dan masih memakai angka lama         |
-| **ENG-604** | Diameter pipa tegak dan cabang pembuangan; kolom 2½" UPC Tabel 703.2 belum disahkan siapa pun           |
-| **ENG-602** | Ukuran ventilasi UPC 904.1 — salah di sini berarti perangkap air tersedot dan bau masuk ke ruangan      |
+| Aturan      | Mengapa paling dulu                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------------------------- |
+| **ENG-701** | Beban alat dan debit puncak sebuah rumah — setiap ukuran pipa air bersih berdiri di atas angka ini   |
+| **ENG-205** | Diameter yang akhirnya disebut ke pengguna; batas kecepatan 2 m/s dan kehilangan 10 m/100 m          |
+| **ENG-702** | Titik tertinggi dan panjang jalur — masukan bagi diameter sekaligus bagi kecukupan toren             |
+| **ENG-703** | Menyatakan toren atap cukup atau pengguna disuruh membeli pompa pendorong                            |
+| **ENG-001** | Unit beban fixture; bobot 2 per kamar mandi berasal dari "1 kamar mandi = shower + kloset" (ENG-012) |
+| **ENG-601** | Beban alat pembuangan; baris urinoir UPC Tabel 702.1 belum terbaca dan masih memakai angka lama      |
+| **ENG-604** | Diameter pipa tegak dan cabang pembuangan; kolom 2½" UPC Tabel 703.2 belum disahkan siapa pun        |
+| **ENG-602** | Ukuran ventilasi UPC 904.1 — salah di sini berarti perangkap air tersedot dan bau masuk ke ruangan   |
 
 ENG-002, ENG-009, dan ENG-011 yang dulu tertulis di sini sudah tidak dijalankan sejak Kelompok K
 menggantikannya (2026-10-12); penggantinya ada di tabel di atas.

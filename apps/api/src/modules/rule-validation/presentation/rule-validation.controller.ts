@@ -24,10 +24,7 @@ import type { Request } from 'express';
 import { z } from 'zod';
 import { Audited, USER_AUDIT } from '../../../shared/audit/audited.js';
 import { INTERNAL_ROLES } from '../../../shared/auth/roles.js';
-import {
-  RequestValidationError,
-  UnauthenticatedError,
-} from '../../../shared/http/api-errors.js';
+import { RequestValidationError, UnauthenticatedError } from '../../../shared/http/api-errors.js';
 import {
   InternalRoleGuard,
   RequiresRole,
