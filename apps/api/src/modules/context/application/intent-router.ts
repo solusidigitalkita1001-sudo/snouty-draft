@@ -41,6 +41,17 @@ function coreFactsInText(message: string): number {
   ).length;
 }
 
+/**
+ * Label CONTOH yang jawabannya menutup giliran: di luar topik, urusan komersial, dan pertanyaan
+ * tentang apa yang bisa dikerjakan di sini. Ketiganya dijawab teks tetap, dan isyarat kebutuhan di
+ * pesan tidak boleh membatalkannya — lihat `withRequirementPrecedence`.
+ */
+const TERMINAL_FINE_INTENTS: ReadonlySet<string> = new Set([
+  'out_of_scope',
+  'commercial_question',
+  'capability_question',
+]);
+
 /** Label model yang kalah oleh isyarat kebutuhan di teks — lihat `withRequirementPrecedence`. */
 const YIELDS_TO_REQUIREMENT: ReadonlySet<Intent> = new Set<Intent>([
   'PRODUCT_LOOKUP',
@@ -235,13 +246,13 @@ export function withRequirementPrecedence(
   // Satu data inti tidak cukup untuk membatalkannya: "toren merek apa yang bagus" terbaca sebagai
   // sumber air toren oleh parser nilai, padahal yang ditanya merek toren. Dua data inti atau lebih
   // berarti pesannya memang bercerita tentang bangunan — ambang yang sama dipakai diet ekstraksi.
-  const ownOutOfScope =
+  const ownTerminalAnswer =
     classification.intent === 'OUT_OF_SCOPE' &&
-    u.intent?.label === 'out_of_scope' &&
+    TERMINAL_FINE_INTENTS.has(u.intent?.label ?? '') &&
     coreFactsInText(u.text) < 2;
   if (
     knowledge ||
-    ownOutOfScope ||
+    ownTerminalAnswer ||
     (!recommendationAsLookup && (!yields || !u.mentionsRequirement || productOnly))
   ) {
     return classification;

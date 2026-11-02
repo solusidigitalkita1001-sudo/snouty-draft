@@ -84,6 +84,20 @@ describe('pertanyaan komersial dan purna jual', () => {
     expect(ai.classifyIntent).not.toHaveBeenCalled();
   });
 
+  // Permintaan penawaran menyebut proyek dan tujuan kirim: isyarat kebutuhan juga.
+  it('permintaan penawaran tidak naik menjadi kebutuhan karena menyebut proyek', async () => {
+    const ai = { classifyIntent: vi.fn() } as unknown as AiService;
+    const routed = await new IntentRouter(ai).route(
+      understood('minta penawaran harga 500 batang aw 4 inci, kirim ke proyek cikarang', {
+        intent: 'commercial_question',
+      }),
+      false,
+    );
+    expect(routed.intent).toBe('OUT_OF_SCOPE');
+    expect(routed.shouldExtract).toBe(false);
+    expect(ai.classifyIntent).not.toHaveBeenCalled();
+  });
+
   it('dirutekan tanpa model, dan lebih dulu daripada topik pengetahuan', async () => {
     const ai = { classifyIntent: vi.fn() } as unknown as AiService;
     const router = new IntentRouter(ai);

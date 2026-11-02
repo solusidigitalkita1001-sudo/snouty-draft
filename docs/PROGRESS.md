@@ -4145,3 +4145,16 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
 
       Satu kata di parser nilai ikut terbaca di sini: "toren merek apa yang bagus" tercatat
       sebagai sumber air toren — satu data inti, jadi ambang dua itu yang menyelamatkannya.
+
+- [x] P32-08 Tiga label yang jawabannya menutup giliran
+
+      Sisa P32-07 yang langsung terlihat di produksi: permintaan penawaran masih 15 detik,
+      karena aturan menyerah itu membatalkan label komersial dengan cara yang sama — "proyek"
+      dan "kirim" adalah isyarat kebutuhan. Yang dibenahi sekarang bukan satu label, melainkan
+      golongannya: tiga label yang jawabannya memang menutup giliran — di luar topik, urusan
+      komersial, dan pertanyaan tentang apa yang bisa dikerjakan di sini — tidak menyerah kepada
+      isyarat kebutuhan, karena ketiganya dijawab teks tetap dan tidak ada yang bisa diekstrak.
+
+      Di produksi setelahnya: septic tank 334 ms, pompa booster 233 ms, toren 485 ms, penawaran
+      di bawah satu detik — dari 13–17 detik dan jawaban yang salah sasaran. Rumah 2 lantai 3
+      kamar mandi tetap dicatat seperti biasa (424 ms), dan umur pakai tetap jawaban umur pakai.
