@@ -626,7 +626,16 @@ dan kapasitas toren minimum per jumlah titik air.
 
 ### OQ-79 — Model dan kunci untuk jawaban pengetahuan pipa umum (P30-01, 2026-10-26)
 
-**Status:** open · **Blocks:** P30-01 menyala di produksi
+**Status:** diputuskan 2026-11-03 — tetap lokal, tanpa penyedia berbayar · **Blocks:** —
+
+**Keputusan pemilik 2026-11-03:** "jangan pake openrouter, tetep lokal aja". Tidak ada kunci
+penyedia berkredit yang akan diisi, jadi jalur pengetahuan umum tetap mati dan pertanyaan di luar
+topik yang dipegang SNOUTY tetap dijawab seperti sebelum P30-01 — tawaran tim teknis, bukan
+jawaban model. Yang tumbuh adalah fakta bersumber di `data/knowledge/pipe-facts.json`: tiap
+pertanyaan produksi yang pantas dijawab dinaikkan ke sana, dan sejak itu ia tidak memerlukan model
+sama sekali. `deploy/use-openrouter.sh` tidak dijalankan.
+
+Catatan di bawah tetap disimpan sebagai pengukuran, bukan rencana.
 **Konteks:** pemilik memilih (2026-10-26) menutup pertanyaan pengetahuan di luar 52 topik dengan
 model yang memang mampu, dipagari kode, dan membolehkan angka umum asalkan standarnya disebut dan
 dinyatakan bukan angka Pralon. Jalurnya sudah ada beserta pagarnya; yang belum ada adalah modelnya.
