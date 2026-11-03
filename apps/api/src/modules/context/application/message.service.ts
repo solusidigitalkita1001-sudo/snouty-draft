@@ -331,7 +331,7 @@ export class MessageService {
       hasExisting &&
       state.useCase === undefined &&
       fine === undefined &&
-      !answersFromKnowledge(u) &&
+      !answersFromKnowledge(u, hasExisting) &&
       !asksGeneralKnowledge(u) &&
       u.families.length === 0 &&
       extractionToUpdates({}, text).length === 0;
@@ -350,7 +350,7 @@ export class MessageService {
           (state.useCase?.kind === 'technical' ||
               state.useCase?.kind === 'irrigation' ||
               handedOff) &&
-            !(fine !== undefined && !isRequirement(fine) && answersFromKnowledge(u)) &&
+            !(fine !== undefined && !isRequirement(fine) && answersFromKnowledge(u, hasExisting)) &&
             (fine === undefined ||
               isRequirement(fine) ||
               isFollowUp(fine) ||
@@ -399,7 +399,7 @@ export class MessageService {
     // angkanya sendiri tetap kebutuhan.
     const requirementTurn =
       (u.mentionsRequirement || statesValues) &&
-      !answersFromKnowledge(u) &&
+      !answersFromKnowledge(u, hasExisting) &&
       !asksGeneralKnowledge(u) &&
       (u.intent === null ||
         isRequirement(u.intent.label) ||
@@ -411,7 +411,7 @@ export class MessageService {
       !requirementTurn &&
       // Topik dengan fakta bersumber dijawab dari pengetahuan, bukan direncanakan model ("apa itu pipa
       // jacking?" dulu jadi daftar jenis katalog; "maksimal suhu berapa?" 26 detik model).
-      !answersFromKnowledge(u) &&
+      !answersFromKnowledge(u, hasExisting) &&
       // Pertanyaan pengetahuan pipa yang TIDAK tercakup data juga tidak perlu direncanakan: ruas
       // pertanyaan produk sudah punya jalurnya (P30-01). Dulu "apa itu thrust block dan kapan
       // perlu dipasang?" direncanakan sebagai `case_question` lalu balasannya ditulis model di

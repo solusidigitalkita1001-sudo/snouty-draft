@@ -127,7 +127,8 @@ export function certainIntent(
   // puluhan detik untuk sampai ke kesimpulan yang sama.
   if (fine === undefined) {
     if (u.mentionsCompetitor) return null;
-    if (answersFromKnowledge(u) || asksGeneralKnowledge(u)) return sure('PRODUCT_LOOKUP');
+    if (answersFromKnowledge(u, hasExistingRequirements) || asksGeneralKnowledge(u))
+      return sure('PRODUCT_LOOKUP');
     // Ragu tetapi menyebut sendiri keluarga produknya dan tidak membawa kebutuhan: "Gue butuh
     // fitting elbow 90 derajat buat uPVC 3/4". Ada rekomendasi Pralon?" dijawab ruas pertanyaan
     // produk dari katalog, dan keluarganya datang dari kosakata — pencocokan nama, bukan tebakan.
@@ -153,7 +154,7 @@ export function certainIntent(
   // intent-nya ragu atau terbaca daftar katalog ("pipa pralon bisa buat cairan kimia?" → dulu
   // ikhtisar seluruh katalog; daftar FAQ pemilik 2026-10-09). Pernyataan kebutuhan bangunan tetap
   // kebutuhan — kecuali pertanyaan hitung atas panjang jalur ("27 meter butuh berapa batang?").
-  if (answersFromKnowledge(u)) return sure('PRODUCT_LOOKUP');
+  if (answersFromKnowledge(u, hasExistingRequirements)) return sure('PRODUCT_LOOKUP');
   if (fine === 'company_question') {
     // "pabrik Pralon di mana?" menyebut Pralon → perusahaan, walau "pabrik" juga kata kebutuhan;
     // bentuk perusahaan tanpa menyebut Pralon tetapi dengan kebutuhan → biar presedensi memutuskan.
@@ -208,6 +209,7 @@ export function certainIntent(
 export function withRequirementPrecedence(
   u: MessageUnderstanding,
   classified: IntentClassification,
+  hasCase = false,
 ): IntentClassification {
   let classification = classified;
   // Policy 1 hanya untuk pesaing: pesan yang cuma menyebut Pralon ("produk Pralon yang
@@ -261,7 +263,7 @@ export function withRequirementPrecedence(
     coreFactsInText(u.text) === 0;
   // Pertanyaan bertopik fakta ("pipa conduit buat kabel listrik rumah", "jalur gas rumah") tetap
   // dijawab dari pengetahuan walau menyebut tempat — "rumah" di sini bukan kebutuhan bangunan.
-  const knowledge = classification.intent === 'PRODUCT_LOOKUP' && answersFromKnowledge(u);
+  const knowledge = classification.intent === 'PRODUCT_LOOKUP' && answersFromKnowledge(u, hasCase);
   // Di luar topik yang dikenali dari CONTOH kita sendiri tidak menyerah kepada kata kebutuhan yang
   // kebetulan ada di pesan. "septic tank biofil ada?" menyebut tank dan "pompa air merek apa yang
   // bagus" menyebut pompa, jadi keduanya terbaca pernyataan kebutuhan, masuk ke model ekstraksi,
@@ -556,7 +558,7 @@ export class IntentRouter {
     const classification = withSubjectPrecedence(
       u,
       subject,
-      withRequirementPrecedence(u, fallback ?? UNSURE),
+      withRequirementPrecedence(u, fallback ?? UNSURE, hasExistingRequirements),
     );
 
     // Ragu → bertanya. Mengubah kebutuhan tanpa diminta jauh lebih mahal daripada
@@ -644,7 +646,11 @@ export function asksSolutionQuantity(u: MessageUnderstanding): boolean {
   return !statesRouteLength(u.text);
 }
 
-export function answersFromKnowledge(u: MessageUnderstanding): boolean {
+export function answersFromKnowledge(
+  u: MessageUnderstanding,
+  /** Ada kebutuhan atau kasus yang tercatat — hanya dengan itu "bentuk sistem" punya acuan. */
+  hasCase = false,
+): boolean {
   const facts = answerableTopics();
   // Bahan + nilai tekanan ("HDPE atau uPVC untuk 8-12 bar?"): pertanyaan kelas tekanan.
   const pressure = mentionsPressure(u.text) && u.families.length > 0 ? ['tekanan kerja'] : [];
@@ -669,7 +675,11 @@ export function answersFromKnowledge(u: MessageUnderstanding): boolean {
   // 50 unit?") adalah kebutuhan, bukan pelajaran umum — apa pun bentuk kalimatnya. Tanpa aturan
   // ini satu contoh pertanyaan bentuk sistem menariknya ke jawaban pengetahuan (FAQ MA-07).
   if (isCaseStatement(u)) return false;
-  if (u.intent?.label === 'system_layout_question' && !calculation) return false;
+  // Pertanyaan bentuk sistem dijawab dari kasus pengguna — tetapi hanya bila kasusnya ada.
+  // Tanpa kebutuhan yang tercatat tidak ada sistem untuk diceritakan, dan "nyambungnya gimana?"
+  // (bentuk sistem 0,807, topik sambungan lem 1,000) berakhir sebagai ikhtisar seluruh katalog
+  // setelah 12,9 detik — padahal yang ditanya cara menyambung pipa (produksi 2026-11-03).
+  if (u.intent?.label === 'system_layout_question' && !calculation && hasCase) return false;
   const requirement = u.intent?.label.startsWith('requirement_') ?? false;
   return !requirement || calculation;
 }

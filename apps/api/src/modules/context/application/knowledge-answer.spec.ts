@@ -577,14 +577,26 @@ describe('isCaseStatement (MA-06 / MA-07)', () => {
 
 describe('answersFromKnowledge — pertanyaan bentuk sistem sendiri (P22-02)', () => {
   it('topik fitting di pertanyaan tentang sistem pengguna tidak dijawab pengetahuan umum', () => {
+    // Hanya bila sistemnya ada: kebutuhan yang tercatat adalah acuan jawabannya (P32-59).
     expect(
       answersFromKnowledge(
         understood('fitting apa saja yang perlu dibeli?', {
           intent: 'system_layout_question',
           knowledgeTopics: ['kesalahan umum'],
         }),
+        true,
       ),
     ).toBe(false);
+    // Tanpa kebutuhan apa pun tidak ada sistem untuk diceritakan — jawabannya pengetahuan, bukan
+    // ikhtisar katalog setelah 12,9 detik ("nyambungnya gimana?", produksi 2026-11-03).
+    expect(
+      answersFromKnowledge(
+        understood('nyambungnya gimana?', {
+          intent: 'system_layout_question',
+          knowledgeTopics: ['sambungan lem'],
+        }),
+      ),
+    ).toBe(true);
     expect(
       answersFromKnowledge(
         understood('fitting apa saja?', {

@@ -4594,3 +4594,13 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       membuat gilirannya jatuh ke model. Gerbangnya kini bertanya "apakah topik ini punya
       jawaban", bukan "apakah ia punya fakta data"; pemilihan jawabannya tidak berubah — fakta
       data tetap lebih dulu, konsep menjawab topik yang tidak punya fakta.
+
+- [x] P32-59 Pertanyaan bentuk sistem hanya milik kasus yang memang ada
+
+      "nyambungnya gimana?" tanpa kebutuhan apa pun yang tercatat memakai 12,9 detik lalu dijawab
+      ikhtisar seluruh katalog: kalimatnya berlabel bentuk sistem (0,807) karena contoh bentuk
+      sistem memuat "pipanya nyambung dari mana ke mana" dan "urutan pemasangannya gimana", dan
+      pertanyaan bentuk sistem memang tidak dijawab pengetahuan umum — jawabannya kasus pengguna.
+      Tetapi di sini tidak ada kasus: tidak ada sistem untuk diceritakan, dan topiknya sendiri
+      dikenali penuh (sambungan lem 1,000). Pagarnya kini bersyarat: pertanyaan bentuk sistem
+      menyingkir dari pengetahuan hanya bila kebutuhannya sudah tercatat.
