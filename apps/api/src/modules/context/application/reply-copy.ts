@@ -171,7 +171,20 @@ export function missingForCalculationReply(
     : `Untuk menghitungnya saya masih perlu ${list}. Pilihannya ada di bawah, atau ketik angkanya langsung.`;
 }
 
-export function repeatedTopicReply(locale: Locale = DEFAULT_LOCALE): string {
+export function repeatedTopicReply(
+  locale: Locale = DEFAULT_LOCALE,
+  /**
+   * Ada kebutuhan atau solusi yang tercatat. Tanpa itu, "ada angka dari lapangan yang mau
+   * dipakai?" menawarkan sesuatu yang tidak punya tempat: di produksi 2026-11-03 pertanyaan
+   * ketahanan kimia yang diulang dijawab begitu, di percakapan yang tidak punya hitungan apa pun.
+   */
+  hasCase = false,
+): string {
+  if (!hasCase) {
+    return locale === 'en'
+      ? 'That is what the previous answer covers. Which part would you like me to go into?'
+      : 'Itu yang saya jelaskan di jawaban sebelumnya. Bagian mana yang mau saya perjelas?';
+  }
   return locale === 'en' ? REPEATED_TOPIC_REPLY_EN : REPEATED_TOPIC_REPLY;
 }
 

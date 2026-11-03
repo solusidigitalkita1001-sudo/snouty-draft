@@ -4630,3 +4630,19 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       dalam jendela 0,02 yang memperbolehkan satu pesan menyinggung dua topik. Jendelanya
       dipersempit ke 0,015, dan kalimat itu masuk ke daftar kasus dengan penanda "tidak boleh ada
       topik lain yang ikut terseret".
+
+- [x] P32-63 Aspek produk tanpa produk apa pun dijawab topiknya
+
+      "nyambungnya gimana?" dijawab ikhtisar 7.664 produk dalam 24 keluarga — daftar isi katalog
+      untuk pertanyaan cara memasang. Kalimatnya memang membawa aspek produk (jenis sambungan),
+      dan aspek tanpa produk yang disebut memang dijawab ragam katalog dulu — tetapi di sini
+      topiknya dikenali penuh dan punya jawaban. Aspek tanpa produk dan tanpa keluarga, dengan
+      topik yang punya jawaban, kini dijawab topiknya.
+
+- [x] P32-64 Kalimat ulang tidak menawarkan angka lapangan yang tidak ada
+
+      Pertanyaan ketahanan kimia yang diulang dijawab "Itu yang saya jelaskan di jawaban
+      sebelumnya. Bagian mana yang mau saya perjelas, atau ada angka dari lapangan yang mau
+      dipakai?" di percakapan yang tidak punya hitungan apa pun. Tawaran angka lapangan hanya
+      masuk akal bila ada kebutuhan atau solusi yang tercatat; tanpa itu kalimatnya berhenti di
+      "bagian mana yang mau saya perjelas?".

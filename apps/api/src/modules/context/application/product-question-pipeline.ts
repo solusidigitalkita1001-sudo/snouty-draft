@@ -32,6 +32,7 @@ import { parseSize } from '../domain/size-parser.js';
 import { designationsOf } from '../../product-catalog/domain/product-identity.js';
 import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from './catalog-scope.js';
 import {
+  answerableTopics,
   knowledgeAnswer,
   mentionsPressure,
   mentionsPressureQuantity,
@@ -43,6 +44,7 @@ import { existingPipeReply } from './existing-pipe-answer.js';
 /** Topik yang hanya tentang jalur buangan — jawabannya tidak perlu membacakan jalur air bersih. */
 const DRAINAGE_TOPICS: ReadonlySet<string> = new Set(['pipa pembuangan', 'kemiringan buangan']);
 import type { ActiveSolution } from '../domain/active-solution.port.js';
+import { withCompleteness } from '../domain/completeness.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import { repeatedTopicReply } from './reply-copy.js';
 import type { ProductQuestionParse } from '../../ai/domain/extraction-schema.js';
@@ -379,7 +381,7 @@ export async function runProductQuestion(
       if (lastAssistant.trim() !== '' && lastAssistant.includes(known.text.trim())) {
         return [
           { type: 'message.start', messageId: input.messageId },
-          { type: 'token', text: repeatedTopicReply(locale) },
+          { type: 'token', text: repeatedTopicReply(locale, hasRecordedCase(input)) },
           endEvent(input.messageId),
         ];
       }
@@ -734,8 +736,15 @@ export async function runProductQuestion(
     ];
   }
 
+  // Aspek produk tanpa produk apa pun, tetapi dengan topik yang punya jawaban: yang ditanya
+  // pengetahuannya, bukan daftar isi katalog. "nyambungnya gimana?" membawa aspek jenis sambungan
+  // dan topik sambungan lem, dan dijawab ikhtisar 7.664 produk (produksi 2026-11-03).
+  const topicNotSpec =
+    query === null &&
+    askedFamilies.length === 0 &&
+    u.knowledgeTopics.some((t) => answerableTopics().has(t));
   const outcome =
-    aspect === null
+    aspect === null || topicNotSpec
       ? await answerConcept(catalog, input, query, reply, faqPrompt)
       : await answerSpec(
           catalog,
@@ -754,6 +763,12 @@ export async function runProductQuestion(
     ...outcome.cards.map((card) => ({ type: 'card', card }) as AssistantStreamEvent),
     endEvent(input.messageId),
   ];
+}
+
+/** Percakapan ini punya kebutuhan atau solusi yang tercatat. */
+function hasRecordedCase(input: ProductQuestionInput): boolean {
+  if (input.solution) return true;
+  return input.state !== undefined && withCompleteness(input.state).completeness.filled > 0;
 }
 
 interface Outcome {

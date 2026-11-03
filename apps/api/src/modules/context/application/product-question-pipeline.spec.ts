@@ -1340,9 +1340,36 @@ describe('topik yang baru saja dijawab (P31-17)', () => {
         { recentTurns: [{ role: 'assistant', text: fact }] },
       ),
     );
+    // Tanpa kebutuhan yang tercatat, tawaran "angka dari lapangan" tidak punya tempat (P32-64).
     expect(text(again)).toBe(
-      'Itu yang saya jelaskan di jawaban sebelumnya. Bagian mana yang mau saya perjelas, atau ada angka dari lapangan yang mau dipakai?',
+      'Itu yang saya jelaskan di jawaban sebelumnya. Bagian mana yang mau saya perjelas?',
     );
+  });
+
+  it('di percakapan yang kebutuhannya tercatat, angka lapangan tetap ditawarkan', async () => {
+    const first = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input('pompanya apa', { intent: 'explanation_request', knowledgeTopics: ['pompa'] }),
+    );
+    const fact = text(first);
+    const again = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input(
+        'kenapa harus pakai pompa transfer?',
+        { intent: 'explanation_request', knowledgeTopics: ['pompa'] },
+        {
+          recentTurns: [{ role: 'assistant', text: fact }],
+          state: mergeRequirement(emptyRequirementState('2026-01-01T00:00:00.000Z'), [
+            { path: 'building.floors', value: 2, source: 'user_stated' },
+          ]).state,
+        },
+      ),
+    );
+    expect(text(again)).toContain('angka dari lapangan');
   });
 });
 
@@ -1681,5 +1708,28 @@ describe('topik konsep tanpa fakta data (P32-58)', () => {
     expect(out).toContain('Let it cure before pressurising');
     // Topiknya saja: tanpa ikhtisar bahan dan tanpa ikhtisar katalog.
     expect(out).not.toContain('products');
+  });
+});
+
+/**
+ * P32-63 — aspek produk tanpa produk apa pun. Produksi 2026-11-03: "nyambungnya gimana?" membawa
+ * aspek jenis sambungan dan topik sambungan lem, lalu dijawab ikhtisar 7.664 produk dalam 24
+ * keluarga — daftar isi katalog untuk pertanyaan cara memasang.
+ */
+describe('aspek tanpa produk tetapi bertopik (P32-63)', () => {
+  it('"nyambungnya gimana?" dijawab cara menyambungnya, bukan ragam katalog', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input('nyambungnya gimana?', {
+        intent: 'system_layout_question',
+        productAspect: 'joint_type',
+        knowledgeTopics: ['sambungan lem'],
+      }),
+    );
+    const out = text(events);
+    expect(out).toContain('Oleskan solvent cement');
+    expect(out).not.toContain('keluarga');
   });
 });
