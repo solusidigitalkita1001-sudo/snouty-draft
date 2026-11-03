@@ -1,6 +1,6 @@
 {
   "name": "saving-request",
-  "description": "Pesan ini meminta yang MURAH atau HEMAT ('aku mau pipa yang murah aja buat kos 10 kamar', 'biar hemat pakai 1/2 inci aja boleh?'). Katalognya sendiri di luar intent karena pesannya sekaligus menyatakan kebutuhan: di produksi 2026-11-02 permintaan murah itu tidak dijawab sama sekali, yang terjadi hanya kebutuhannya dicatat. Keputusan pemilik hari itu: jawab apa adanya tanpa angka — ukuran tidak diturunkan dari hasil hitungan, yang bisa dihemat kelas pipa sesuai fungsinya dan jalur yang pendek, harga tetap di tim Pralon. Contoh harus membawa kata hematnya sendiri (murah/hemat/budget/cheap); sisi `none` memuat pertanyaan harga biasa, yang hanya menanyakan angkanya.",
+  "description": "Pesan ini meminta yang MURAH atau HEMAT ('aku mau pipa yang murah aja buat kos 10 kamar', 'biar hemat pakai 1/2 inci aja boleh?'). Katalognya sendiri di luar intent karena pesannya sekaligus menyatakan kebutuhan: di produksi 2026-11-02 permintaan murah itu tidak dijawab sama sekali, yang terjadi hanya kebutuhannya dicatat. Keputusan pemilik hari itu: jawab apa adanya tanpa angka — ukuran tidak diturunkan dari hasil hitungan, yang bisa dihemat kelas pipa sesuai fungsinya dan jalur yang pendek, harga tetap di tim Pralon. Contoh harus membawa kata hematnya sendiri (murah/hemat/budget/cheap); sisi `none` memuat pertanyaan harga biasa, yang hanya menanyakan angkanya, dan pernyataan kebutuhan biasa ('mau bikin rumah 2 lantai'): di produksi 2026-11-03 kalimat itu terbaca permintaan hemat, jadi setiap bangunan baru dibuka dengan kalimat hemat yang tidak diminta.",
   "threshold": 0.7,
   "margin": 0.03,
   "labels": {
@@ -26,6 +26,12 @@
       "harganya berapa?",
       "minta penawaran 500 batang aw 4 inci",
       "rumah 2 lantai, 3 kamar mandi",
+      "mau bikin rumah 2 lantai",
+      "mau bikin masjid 2 lantai",
+      "mau bangun ruko 3 lantai",
+      "rencananya mau bikin rumah 2 lantai 3 kamar mandi",
+      "mau bikin kos 10 kamar",
+      "i want to build a two storey house",
       "kos 10 kamar, 2 lantai",
       "rumah 2 lantai mau pasang pipa pembuangan",
       "mau pasang pipa air bersih rumah 3 lantai",

@@ -67,6 +67,7 @@ it.skipIf(!process.env['PROBE'])(
           u.useCase ?? '-',
           JSON.stringify(u.families),
           `req=${u.mentionsRequirement}`,
+          `hemat=${u.savingRequest ?? '-'}`,
         ].join(' | '),
       );
     }

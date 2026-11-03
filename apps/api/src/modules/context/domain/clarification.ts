@@ -371,21 +371,6 @@ export interface ClarificationPlan {
  * menurut prioritas (yang di luar prioritas ikut di belakang, stabil), lalu
  * dipotong maksimum empat. Bentuk tunggal hanya memakai field pertama.
  */
-/**
- * Jumlah jawaban terbanyak dalam satu kartu yang bisa dikirim API: kartu inti, kartu penyempurna
- * rumah/tempat ibadah/sekolah, atau kartu kasus teknis. Batas endpoint jawaban diturunkan dari sini
- * — dulu literal 4 sementara kartu tempat ibadah berisi 5 pertanyaan, jadi jawabannya 400
- * (laporan pemilik 2026-10-12).
- */
-export const MAX_ANSWERS_PER_CARD = Math.max(
-  MAX_CLARIFICATION_QUESTIONS,
-  // +1: kedalaman sumur ikut kartu penyempurna bila sumbernya sumur.
-  HOUSE_REFINEMENT_FIELDS.length + 1,
-  WORSHIP_REFINEMENT_FIELDS.length + 1,
-  PUBLIC_REFINEMENT_FIELDS.length + 1,
-  MAX_TECHNICAL_QUESTIONS,
-);
-
 /** Field inti yang kartunya bisa dijawab — sama dengan yang ditanyakan `planClarification`. */
 const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath>([
   'water.source',
@@ -744,6 +729,48 @@ export function renovationRefinementFields(
       return [];
   }
 }
+
+/**
+ * Field inti yang ikut kartu penyempurna sebagai konfirmasi: nilainya sedang berupa anggapan, jadi
+ * ia ditanya di depan pertanyaan penyempurna (`technicalQuestionCard`). Satu daftar, dipakai
+ * penyusun kartunya dan perhitungan batas jawaban di bawah.
+ */
+export const CONFIRMABLE_CORE_FIELDS = ['fixtures.bathrooms', 'water.source'] as const;
+
+/** Setiap jenis bangunan dan jenis pekerjaan yang punya kartu penyempurnanya sendiri. */
+const CARD_SHAPES = [null, 'place_of_worship', 'public_building'].flatMap((buildingType) =>
+  [null, 'replace_all', 'replace_partial', 'extend'].map((workType) => ({
+    buildingType,
+    workType,
+  })),
+);
+
+/**
+ * Jumlah jawaban terbanyak dalam satu kartu yang bisa dikirim API: kartu inti, kartu penyempurna
+ * (rumah, tempat ibadah, sekolah — dengan atau tanpa data pipa lama dan kedalaman sumur), atau
+ * kartu kasus teknis. Batas endpoint jawaban diturunkan dari sini.
+ *
+ * Dihitung dengan MEMANGGIL penyusun kartunya, bukan dijumlah tangan: dua kali angka tangan di
+ * sini tertinggal dari kartunya dan jawabannya ditolak 400 — kartu tempat ibadah 5 pertanyaan
+ * (laporan pemilik 2026-10-12), lalu kartu rumah 7 pertanyaan setelah dua keran tambahan masuk
+ * (P33-04) sementara batasnya masih 6 (produksi 2026-11-03: masjid 2 lantai).
+ */
+export const MAX_ANSWERS_PER_CARD = Math.max(
+  MAX_CLARIFICATION_QUESTIONS,
+  MAX_TECHNICAL_QUESTIONS,
+  ...CARD_SHAPES.map(
+    (shape) =>
+      CONFIRMABLE_CORE_FIELDS.length +
+      // Belum ada satu pun yang diketahui, sumbernya pompa: kartu terpanjang yang mungkin.
+      houseRefinementQuestions(
+        () => false,
+        DEFAULT_LOCALE,
+        shape.buildingType,
+        'pump',
+        shape.workType,
+      ).length,
+  ),
+);
 
 /** Isian ukuran bangunan/tanah untuk kartu lain (pertanyaan kewajaran, review putaran 3). */
 export function dimensionQuestionInputs(

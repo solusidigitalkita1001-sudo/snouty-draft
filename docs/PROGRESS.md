@@ -4886,3 +4886,29 @@ menurut ukuran pipanya.
       Kalimat pertamanya sekarang menyebutnya: pipa gas ada di katalog Pralon, polietilen khusus
       gas berwarna kuning, disambung las panas. Sisanya tidak berubah, termasuk bahwa instalasi gas
       mengikuti ketentuan setempat dan dikerjakan pemasang berwenang.
+
+- [x] P33-18 Jawaban kartu pertanyaan tidak lagi ditolak sendiri
+
+      Laporan pemilik 2026-11-03: "mau bikin masjid 2 lantai" lalu jawaban kartunya dikirim →
+      error, empat kali. Kartunya memuat tujuh pertanyaan — dua data inti yang masih anggapan
+      (kamar mandi, sumber air) di depan lima pertanyaan penyempurna tempat ibadah — sementara
+      endpoint jawabannya hanya menerima enam. Setiap rumah ikut kena sejak dua keran tambahan
+      masuk (P33-04): kartunya juga tujuh.
+
+      Batas jawaban tidak lagi dijumlah tangan. Ia dihitung dengan memanggil penyusun kartunya
+      sendiri untuk setiap bentuk yang mungkin — rumah, tempat ibadah, sekolah, masing-masing
+      dengan dan tanpa data pipa lama dan kedalaman sumur — jadi menambah satu pertanyaan tidak
+      bisa lagi melampaui batasnya tanpa ikut menaikkannya. Daftar field inti yang dikonfirmasi
+      ulang kini satu, dipakai penyusun kartu dan perhitungan batas itu. Tesnya memeriksa setiap
+      bentuk kartu, bukan satu angka.
+
+- [x] P33-19 Bangunan baru tidak dibuka dengan kalimat hemat
+
+      Dari laporan yang sama: "mau bikin masjid 2 lantai" dijawab paragraf tentang apa yang bisa
+      dihemat lebih dulu, baru kebutuhannya dicatat. Tidak ada kata hemat, murah, atau budget di
+      pesan itu — kalimatnya hanya mirip contoh permintaan hemat yang juga menyebut jumlah lantai.
+      Setiap rumah dan ruko baru mengalami hal yang sama.
+
+      Contoh sisi bukan-hemat kini memuat pernyataan kebutuhan biasa ("mau bikin rumah 2 lantai",
+      "mau bangun ruko 3 lantai", "mau bikin kos 10 kamar"). Permintaan hematnya sendiri tidak
+      bergeser: yang membawa kata hematnya tetap dijawab kalimat itu.

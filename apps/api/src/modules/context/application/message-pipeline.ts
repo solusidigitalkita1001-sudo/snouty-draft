@@ -77,6 +77,7 @@ import {
 import {
   askableMissing,
   bathroomsFromRooms,
+  CONFIRMABLE_CORE_FIELDS,
   houseRefinementQuestions,
   planClarification,
 } from '../domain/clarification.js';
@@ -1257,7 +1258,7 @@ export function technicalQuestionCard(
   if (state.useCase === undefined) {
     if (followUpCard(state, locale)?.kind !== 'cta') return null;
     // Data inti yang baru dianggap ditanya lebih dulu — jawabannya menimpa anggapan.
-    const assumedCore = (['fixtures.bathrooms', 'water.source'] as const).filter(
+    const assumedCore = CONFIRMABLE_CORE_FIELDS.filter(
       (path) =>
         (path === 'fixtures.bathrooms' ? state.fixtures.bathrooms : state.water.source).source ===
         'default_applied',

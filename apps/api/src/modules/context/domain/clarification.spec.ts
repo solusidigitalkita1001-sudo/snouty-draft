@@ -4,6 +4,8 @@
 import { describe, expect, it } from 'vitest';
 import type { RequirementFieldPath } from '@snouty/shared-types';
 import {
+  CONFIRMABLE_CORE_FIELDS,
+  MAX_ANSWERS_PER_CARD,
   MAX_CLARIFICATION_QUESTIONS,
   answerToUpdate,
   houseRefinementQuestions,
@@ -267,5 +269,39 @@ describe('kedalaman sumur — setiap pilihan memetakan nilainya sendiri (review 
       path: 'water.wellDepthM',
       value: metres,
     });
+  });
+});
+
+/**
+ * P33-18 — setiap kartu yang API kirim harus bisa dijawab lewat API. Produksi 2026-11-03: "mau
+ * bikin masjid 2 lantai" (dan setiap rumah yang kamar mandi serta sumber airnya masih anggapan)
+ * mendapat kartu 7 pertanyaan, sementara endpoint jawabannya menolak lebih dari 6 — jawabannya
+ * 400 dan kartunya tidak bisa diselesaikan sama sekali.
+ */
+describe('batas jawaban satu kartu (produksi 2026-11-03)', () => {
+  it.each([
+    ['rumah', null],
+    ['tempat ibadah', 'place_of_worship'],
+    ['sekolah / klinik', 'public_building'],
+  ])('kartu %s terpanjang masih di bawah batas endpoint', (_label, buildingType) => {
+    for (const workType of [null, 'replace_all', 'replace_partial', 'extend']) {
+      const refinements = houseRefinementQuestions(
+        () => false,
+        'id',
+        buildingType,
+        'pump',
+        workType,
+      );
+      expect(CONFIRMABLE_CORE_FIELDS.length + refinements.length).toBeLessThanOrEqual(
+        MAX_ANSWERS_PER_CARD,
+      );
+    }
+  });
+
+  it('dua field inti yang dikonfirmasi tidak ditanya dua kali di kartu yang sama', () => {
+    const refinements = houseRefinementQuestions(() => false, 'id', null, 'pump', null);
+    for (const path of CONFIRMABLE_CORE_FIELDS) {
+      expect(refinements.map((q) => q.id)).not.toContain(path);
+    }
   });
 });
