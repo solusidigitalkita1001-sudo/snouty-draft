@@ -9,6 +9,7 @@ import { overrideAssumption } from '../application/analysis.service.js';
 import {
   AssumptionValueRejectedError,
   overridesOf,
+  withAssumptionSources,
   withAssumptionOverride,
   withEditableAssumptions,
 } from './assumption-overrides.js';
@@ -88,5 +89,37 @@ describe('nilai pengganti asumsi', () => {
       userSet: true,
       text: 'Kebutuhan air 150 liter per orang per hari — Anda ubah menjadi 200 l/orang/hari.',
     });
+  });
+});
+
+/**
+ * P33-20 — angka asumsi adalah yang paling sering digugat orang teknis, jadi dokumennya ikut
+ * tampil. Yang dasarnya praktik umum atau keputusan pemilik tetap tanpa kutipan: menampilkan
+ * `reference` apa adanya memunculkan catatan internal di layar.
+ */
+describe('acuan tiap baris asumsi (laporan pemilik 2026-11-03)', () => {
+  const of = (rows: readonly { text: string; fieldPath: string; assumptionId?: string }[]) =>
+    withAssumptionSources({ assumptions: rows } as never).assumptions;
+
+  it('asumsi yang angkanya dari kode plambing membawa kutipannya', () => {
+    const [closet, dfu] = of([
+      { text: 'Kloset 2,5 unit.', fieldPath: 'design_flow', assumptionId: 'WSFU_WATER_CLOSET_2_5' },
+      { text: 'Urinoir 4 DFU.', fieldPath: 'design_flow', assumptionId: 'DFU_URINAL_4' },
+    ]);
+    expect(closet!.source).toBe('UPC Table A 103.1');
+    expect(dfu!.source).toBe('IPC Table 709.1');
+  });
+
+  it('asumsi praktik umum dan baris tanpa id tidak mengutip apa pun', () => {
+    const [practice, plain] = of([
+      {
+        text: 'Tinggi kepala shower 2 m.',
+        fieldPath: 'building_height',
+        assumptionId: 'OUTLET_HEIGHT_2M',
+      },
+      { text: 'Cara hitungnya: tiap alat menambah beban.', fieldPath: '' },
+    ]);
+    expect(practice!.source).toBeUndefined();
+    expect(plain!.source).toBeUndefined();
   });
 });

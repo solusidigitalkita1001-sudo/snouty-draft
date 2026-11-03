@@ -54,15 +54,24 @@ const RECOMMENDATION = {
 } as unknown as Recommendation;
 
 describe('SolutionView — detail teknis', () => {
-  it('langkah bernomor dengan judul langkah, tanpa kode aturan', () => {
+  it('langkah bernomor terbuka sejak awal, dengan judul langkah dan tanpa kode aturan', () => {
     render(<SolutionView recommendation={RECOMMENDATION} tab="ringkasan" />);
-    fireEvent.click(screen.getByRole('button', { name: /Tampilkan detail teknis/ }));
+    // Terbuka tanpa diklik (laporan pemilik 2026-11-03): acuan hitungan hanya ada di dalamnya.
     expect(screen.getByText('Kebutuhan air harian dan puncak.')).toBeTruthy();
     expect(screen.getByText('Pilih ukuran pipa.')).toBeTruthy();
-    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(document.querySelectorAll('ol li')).toHaveLength(2);
     // Angka dari tabel kode plambing menyebut kodenya (permintaan pemilik 2026-10-27).
     expect(document.body.textContent).toContain('Sumber: IPC Appendix E, Table E103.3(2)');
     expect(document.body.textContent).not.toMatch(/ENG-\d/);
+    // Dan tombolnya kini menyembunyikan, bukan menampilkan.
+    fireEvent.click(screen.getByRole('button', { name: /Sembunyikan detail teknis/ }));
+    expect(screen.queryByText('Pilih ukuran pipa.')).toBeNull();
+  });
+
+  it('pedoman yang dipakai hitungan disebut satu daftar di bawah rekomendasi', () => {
+    render(<SolutionView recommendation={RECOMMENDATION} tab="ringkasan" />);
+    expect(screen.getByText('DASAR & ACUAN')).toBeTruthy();
+    expect(screen.getByText('IPC Appendix E, Table E103.3(2)')).toBeTruthy();
   });
 
   it('baris penjelasan cara hitung tanpa tombol Perbaiki; asumsi biasa tetap punya', () => {

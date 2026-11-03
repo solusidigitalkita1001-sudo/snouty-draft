@@ -8,6 +8,7 @@ import {
   ASSUMPTIONS,
   assumption,
   assumptionDescription,
+  assumptionStandard,
   unitLabel,
   type AssumptionOverrides,
 } from '@snouty/engineering';
@@ -115,6 +116,24 @@ export function withEditableAssumptions(
   // Baris baku asumsi yang sudah diganti tidak ditampilkan dua kali — baris "Anda ubah" menggantikannya.
   const shown = rows.filter((row) => !(row.assumptionId && row.assumptionId in overridden));
   return { ...recommendation, assumptions: [...shown, ...own] };
+}
+
+/**
+ * Kutipan acuan tiap baris asumsi yang berasal dari registry. Angka asumsi adalah yang paling
+ * sering digugat orang teknis — "kloset 2,5 unit beban" tanpa acuan hanya bisa dipercaya atau
+ * tidak — jadi dokumennya ikut tampil, persis seperti sumber di tiap langkah hitungan. Asumsi
+ * yang dasarnya praktik umum atau keputusan pemilik tidak mengutip apa pun (laporan pemilik
+ * 2026-11-03: "pedoman itungannya bersumber dari mana").
+ */
+export function withAssumptionSources(recommendation: Recommendation): Recommendation {
+  return {
+    ...recommendation,
+    assumptions: recommendation.assumptions.map((row): Assumption => {
+      if (row.assumptionId === undefined || row.source !== undefined) return row;
+      const standard = assumptionStandard(row.assumptionId);
+      return standard === null ? row : { ...row, source: standard };
+    }),
+  };
 }
 
 /** Nilai baku registry — untuk "kembalikan ke nilai awal". */

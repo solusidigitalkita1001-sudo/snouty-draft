@@ -177,6 +177,7 @@ import {
   AssumptionValueRejectedError,
   overridesOf,
   withAssumptionOverride,
+  withAssumptionSources,
   withEditableAssumptions,
 } from '../domain/assumption-overrides.js';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
@@ -1792,5 +1793,7 @@ function saveReady(
     body: firstSentences(recommendation.body),
     bom: mergeBomBySku(recommendation.bom, locale),
   };
-  return withEditableAssumptions(withCalculationSteps(merged, traces, locale), state, locale);
+  return withAssumptionSources(
+    withEditableAssumptions(withCalculationSteps(merged, traces, locale), state, locale),
+  );
 }

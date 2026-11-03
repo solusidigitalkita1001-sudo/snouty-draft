@@ -4912,3 +4912,36 @@ menurut ukuran pipanya.
       Contoh sisi bukan-hemat kini memuat pernyataan kebutuhan biasa ("mau bikin rumah 2 lantai",
       "mau bangun ruko 3 lantai", "mau bikin kos 10 kamar"). Permintaan hematnya sendiri tidak
       bergeser: yang membawa kata hematnya tetap dijawab kalimat itu.
+
+- [x] P33-20 Tiap angka asumsi menyebut dokumennya
+
+      Pertanyaan pemilik 2026-11-03: "pedoman itungannya bersumber dari mana". Langkah hitungan
+      memang menyebut acuannya — 10 dari 18 langkah pada rumah 2 lantai — tetapi daftar asumsinya
+      tidak menyebut apa pun, padahal justru angka di situ yang pertama digugat orang teknis:
+      kloset 2,5 unit beban, kecepatan 0,6–2 m/s, 0,3 bar di titik tertinggi.
+
+      Acuannya sebenarnya sudah tersimpan: tiap asumsi punya kolom rujukan di registry. Yang
+      kurang jalurnya — rujukan itu tidak ikut sampai ke layar. Kolom itu tidak bisa ditampilkan
+      apa adanya karena sebagian berisi catatan internal, jadi registry asumsi kini punya kutipan
+      terpisah yang memang untuk dilihat pengguna, persis seperti yang sudah berlaku di aturan: 44
+      asumsi yang angkanya berasal dari dokumen bernama membawa kutipannya (UPC Tabel A 103.1 dan
+      702.1, IPC 709.1/709.3/710.1 dan Lampiran E, Hazen-Williams, Noerbambang & Morimura,
+      kriteria SPAM dan SPALD-T, SNI 9362:2025), sedangkan angka yang dasarnya praktik lapangan
+      atau keputusan pemilik tetap tidak mengutip apa-apa. Kutipan itu dipasang di satu pintu yang
+      dilewati semua jenis kasus, jadi kasus gedung, irigasi, dan kolam ikut tanpa perubahan
+      masing-masing.
+
+- [x] P33-21 Detail teknis terbuka sejak awal
+
+      Panel berisi langkah hitungan dan acuannya tertutup secara baku, dan tautannya tidak
+      memberi tanda bahwa ada rujukan di dalamnya — orang teknis yang membuka layar solusi tidak
+      punya petunjuk bahwa hitungannya bersumber sama sekali. Sekarang terbuka, dan tombolnya
+      menyembunyikan.
+
+- [x] P33-22 Satu daftar pedoman di bawah rekomendasi
+
+      Sumber per langkah menjawab "angka ini dari mana", bukan "hitungan ini memakai pedoman apa
+      saja". Di bawah rekomendasi kini ada daftar ringkas semua dokumen yang dipakai hitungan itu,
+      dikumpulkan dari langkah dan asumsinya, tanpa duplikat — bentuk yang sama dengan blok acuan
+      pada gambar kerja. Spanduk "panduan perencanaan, bukan sertifikasi teknis" tetap di
+      tempatnya.

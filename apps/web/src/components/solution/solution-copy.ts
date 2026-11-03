@@ -162,6 +162,7 @@ export const SOLUTION_COPY = {
 
   // Janji produk — jangan diparafrase.
   planningDisclaimer: 'PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS',
+  sourcesKicker: 'DASAR & ACUAN',
   outdated: 'Hasil ini dihitung dengan versi aturan lama.',
   recompute: 'Hitung ulang dengan aturan terbaru',
   schematicDisclaimer: 'SKEMATIK · BUKAN GAMBAR KERJA',
@@ -427,6 +428,7 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
   productPending: 'Quantity to follow',
 
   planningDisclaimer: 'PLANNING GUIDANCE — NOT A TECHNICAL CERTIFICATION',
+  sourcesKicker: 'BASIS & REFERENCES',
   outdated: 'This result was calculated with an older version of the rules.',
   recompute: 'Recalculate with the latest rules',
   schematicDisclaimer: 'SCHEMATIC · NOT A WORKING DRAWING',

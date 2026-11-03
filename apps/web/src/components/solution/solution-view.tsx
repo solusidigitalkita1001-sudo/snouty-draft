@@ -35,6 +35,7 @@ import { SchematicTab } from './schematic-tab';
 import { solutionCopy } from './solution-copy';
 import { useLocale } from '../locale';
 import { ProvenanceTag } from './provenance-tag';
+import { citedSources } from './solution-sources';
 import styles from './solution.module.css';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */
@@ -70,7 +71,10 @@ export function SolutionView({
   tab?: SolutionTab;
 }) {
   const COPY = useSolutionCopy();
-  const [showTechnical, setShowTechnical] = useState(false);
+  // Terbuka sejak awal: acuan tiap langkah hanya ada di dalamnya, dan tertutup ia tidak
+  // memberi tanda bahwa hitungannya punya rujukan sama sekali (laporan pemilik 2026-11-03).
+  const [showTechnical, setShowTechnical] = useState(true);
+  const sources = citedSources(recommendation);
   const [openProduct, setOpenProduct] = useState<DrawerSelection | null>(null);
   // Satu daftar untuk tab Produk dan material (TC-H-05, DD-01 #4).
   const boq = boqFrom(recommendation);
@@ -234,6 +238,19 @@ export function SolutionView({
               <ProvenanceTag provenance={line.provenance} />
             </div>
           ))}
+
+          {sources.length > 0 && (
+            <div className={styles.sourcesBlock}>
+              <div className={styles.kicker}>{COPY.sourcesKicker}</div>
+              <ul className={styles.sourceList}>
+                {sources.map((source) => (
+                  <li key={source} className={styles.sourceItem}>
+                    {source}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {showTechnical && (
             <div className={styles.technicalBlock}>
@@ -817,6 +834,13 @@ function AssumptionRow({
     <tr>
       <td className={styles.assumptionMain}>
         <span className={styles.assumptionText}>{assumption.text}</span>
+        {/* Acuan angkanya, bila ia berasal dari dokumen bernama — sama bentuknya dengan sumber
+            di tiap langkah hitungan. */}
+        {assumption.source !== undefined && (
+          <span className={styles.stepSource}>
+            {COPY.stepSource}: {assumption.source}
+          </span>
+        )}
         {editing && (
           <form
             className={styles.assumptionEditor}

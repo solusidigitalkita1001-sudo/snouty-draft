@@ -26,6 +26,19 @@ export interface AssumptionDefinition {
   readonly value: number | string | boolean;
   readonly unit?: string;
   readonly reference: string;
+  /**
+   * Kutipan yang BISA DIPERIKSA pengguna, muncul di bawah baris asumsinya di layar solusi:
+   * kode plambing atau dokumen yang memberi angkanya ("UPC Table A 103.1"), atau nama metodenya
+   * ("Hazen-Williams (SI)").
+   *
+   * Hanya untuk angka yang benar-benar berasal dari dokumen bernama — sama seperti `standard`
+   * pada aturan (keputusan pemilik 2026-10-27). Angka yang dasarnya praktik umum, keputusan
+   * pemilik, atau kebiasaan lapangan tidak mengutip apa pun: `reference` sudah menjelaskannya,
+   * dan menampilkannya kepada pengguna hanya memunculkan catatan internal di layar.
+   *
+   * Tidak diterjemahkan: nama pasal, tabel, dan metodenya milik dokumen aslinya.
+   */
+  readonly standard?: string;
   readonly confidence: AssumptionConfidence;
   readonly confirmationRequired: boolean;
   /** Kalimat yang dilihat pengguna di "Asumsi sementara". */
@@ -294,6 +307,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'Flood irrigation water demand is assumed at 1.5 liters/second per hectare (initial).',
     reference: 'KP-01 Kriteria Perencanaan Irigasi — kebutuhan air padi ±1,2–1,5 l/s/ha',
+    standard: 'KP-01 Kriteria Perencanaan Irigasi',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Kebutuhan air irigasi genangan diasumsikan 1,5 liter/detik per hektar (awal).',
@@ -458,6 +472,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'The inside of plastic pipe is taken as smooth (roughness value 150), so it loses little pressure.',
     reference: 'Koefisien Hazen-Williams pipa plastik halus C ≈ 140–150',
+    standard: 'Hazen-Williams (SI)',
     confidence: 'high',
     confirmationRequired: true,
     description:
@@ -474,6 +489,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'The inside of galvanized pipe is taken as rougher (roughness value 100), so it loses more pressure.',
     reference: 'Koefisien Hazen-Williams pipa baja galvanis terpakai C ≈ 100',
+    standard: 'Hazen-Williams (SI)',
     confidence: 'medium',
     confirmationRequired: true,
     description:
@@ -784,6 +800,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'HDPE is taken as PE100 PN 10 (SDR 17); the wall thickness per size follows the Pralon PE100 standard. Another class changes the inner diameter.',
     reference:
       'Pralon PROD/STD/014 Rev. 04 (PE100, SNI 9362:2025): SDR 17 = PN 10; tebal dinding per OD dari tabelnya',
+    standard: 'SNI 9362:2025; Pralon PROD/STD/014 Rev. 04',
     confidence: 'medium',
     confirmationRequired: true,
     description:
@@ -904,6 +921,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'flush-tank toilet supply load',
     descriptionEn: 'Each flush-tank toilet counts as 2.5 supply units.',
     reference: 'UPC Tabel A 103.1, pemakaian pribadi: kloset tangki 1,6 gpf 2,5',
+    standard: 'UPC Table A 103.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap kloset tangki dihitung 2,5 unit beban suplai.',
@@ -918,6 +936,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'shower supply load',
     descriptionEn: 'Each shower counts as 2 supply units.',
     reference: 'UPC Tabel A 103.1: shower per kepala 2,0 (pribadi dan umum)',
+    standard: 'UPC Table A 103.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap shower dihitung 2 unit beban suplai.',
@@ -932,6 +951,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'wash basin supply load',
     descriptionEn: 'Each wash basin counts as 1 supply unit.',
     reference: 'UPC Tabel A 103.1: lavatory 1,0 (pribadi, umum, dan pertemuan)',
+    standard: 'UPC Table A 103.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap wastafel dihitung 1 unit beban suplai.',
@@ -946,6 +966,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'kitchen sink supply load',
     descriptionEn: 'Each kitchen sink counts as 1.5 supply units.',
     reference: 'UPC Tabel A 103.1: bak cuci dapur rumah 1,5 (pribadi dan umum)',
+    standard: 'UPC Table A 103.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap bak cuci dapur dihitung 1,5 unit beban suplai.',
@@ -961,6 +982,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn: 'Each extra tap counts as 2.5 supply units, the value for a hose bibb.',
     reference:
       'UPC Tabel A 103.1, pemakaian pribadi: keran selang (hose bibb) 2,5 — dipakai juga untuk keran cuci di lantai atas, nilai yang lebih besar dari keran wastafel',
+    standard: 'UPC Table A 103.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap keran tambahan dihitung 2,5 unit beban suplai, nilai keran selang.',
@@ -1054,6 +1076,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'flush-tank toilet supply load in a place of worship',
     descriptionEn: 'Each toilet in a place of worship counts as 3.5 supply units.',
     reference: 'UPC Tabel A 103.1, kolom pertemuan (assembly): kloset tangki 1,6 gpf 3,5',
+    standard: 'UPC Table A 103.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap kloset di toilet rumah ibadah dihitung 3,5 unit beban suplai.',
@@ -1068,6 +1091,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'urinal supply load in a place of worship',
     descriptionEn: 'Each urinal in a place of worship counts as 3 supply units.',
     reference: 'UPC Tabel A 103.1, kolom pertemuan (assembly): urinoir tangki gelontor 3,0',
+    standard: 'UPC Table A 103.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap urinoir di rumah ibadah dihitung 3 unit beban suplai.',
@@ -1082,6 +1106,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'flush-tank toilet supply load in a public restroom',
     descriptionEn: 'Each toilet in a public restroom counts as 2.5 supply units.',
     reference: 'UPC Tabel A 103.1, pemakaian umum: kloset tangki 1,6 gpf 2,5',
+    standard: 'UPC Table A 103.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap kloset di toilet umum dihitung 2,5 unit beban suplai.',
@@ -1096,6 +1121,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'supply load of a bathroom tap or basin in a public building',
     descriptionEn: 'Each bathroom tap and each basin in a public building counts as 1 supply unit.',
     reference: 'UPC Tabel A 103.1: lavatory 1,0; keran kamar mandi disetarakan lavatory',
+    standard: 'UPC Table A 103.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap keran kamar mandi dan wastafel di tempat umum dihitung 1 unit beban suplai.',
@@ -1110,6 +1136,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'urinal supply load in a public restroom',
     descriptionEn: 'Each urinal counts as 2 supply units.',
     reference: 'UPC Tabel A 103.1, pemakaian umum: urinoir tangki gelontor 2,0',
+    standard: 'UPC Table A 103.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap urinoir dihitung 2 unit beban suplai.',
@@ -1125,6 +1152,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn: 'Each urinal counts as 4 drainage units and drains with the toilets.',
     reference:
       'IPC Tabel 709.1: urinal 4 DFU (baris urinoir UPC Tabel 702.1 belum terbaca — OQ-88)',
+    standard: 'IPC Table 709.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap urinoir dihitung 4 unit beban pembuangan dan dibuang bersama kloset.',
@@ -1206,6 +1234,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'The ablution trough drain counts 2 drainage units for every gallon per minute flowing into it.',
     reference: 'IPC 709.3: alat beraliran kontinu atau semi-kontinu = 2 DFU per gpm',
+    standard: 'IPC 709.3',
     confidence: 'medium',
     confirmationRequired: true,
     description:
@@ -1313,6 +1342,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'The highest outlet fed from the roof tank needs at least 0.3 bar; below that a booster pump or a higher tank is suggested. The threshold is lower than for a pump or mains water (1 bar) because the tank relies on height alone: 0.3 bar still serves ordinary taps and showers, whereas 1 bar would need the tank 10 m above the shower.',
     reference: 'Noerbambang & Morimura: tekanan minimum alat plambing biasa ±0,3 kg/cm²',
+    standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
     confidence: 'low',
     confirmationRequired: true,
     description:
@@ -1329,6 +1359,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'A shower feels strong from about 0.7 bar (7 m of water above the shower head). The tank stand options (ENG-711) mark which support reaches it without a booster pump; 0.3 bar remains the minimum for taps to work.',
     reference: 'Noerbambang & Morimura: tekanan minimum shower 0,7 kg/cm²',
+    standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
     confidence: 'low',
     confirmationRequired: true,
     description:
@@ -1345,6 +1376,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'toilet drainage load',
     descriptionEn: 'Each toilet counts as 3 drainage units.',
     reference: 'UPC Tabel 702.1 (kloset tangki gravitasi 1,6 gpf: 3 DFU)',
+    standard: 'UPC Table 702.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap kloset dihitung 3 unit beban pembuangan.',
@@ -1359,6 +1391,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'shower/bathroom floor drain drainage load',
     descriptionEn: 'Each bathroom shower or floor drain counts as 2 drainage units.',
     reference: 'UPC Tabel 702.1 (shower: 2 DFU, sama seperti IPC)',
+    standard: 'UPC Table 702.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap shower atau floor drain kamar mandi dihitung 2 unit beban pembuangan.',
@@ -1373,6 +1406,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'wash basin drainage load',
     descriptionEn: 'Each wash basin counts as 1 drainage unit.',
     reference: 'UPC Tabel 702.1 (lavatory: 1 DFU, sama seperti IPC)',
+    standard: 'UPC Table 702.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap wastafel dihitung 1 unit beban pembuangan.',
@@ -1387,6 +1421,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'kitchen sink drainage load',
     descriptionEn: 'Each kitchen sink counts as 2 drainage units.',
     reference: 'UPC Tabel 702.1 (bak cuci dapur rumah: 2 DFU, sama seperti IPC)',
+    standard: 'UPC Table 702.1',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap bak cuci dapur dihitung 2 unit beban pembuangan.',
@@ -1402,6 +1437,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'The toilet line to the septic tank is at least 4 inches, as is usual in Indonesian houses (the IPC minimum is 3 inches).',
     reference: 'Praktik umum rumah di Indonesia: pipa kloset 4"; IPC 710.1 minimum 3" untuk kloset',
+    standard: 'IPC 710.1',
     confidence: 'medium',
     confirmationRequired: true,
     description:
@@ -1467,6 +1503,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'Domestic demand of 100 litres per person per day — the usual planning figure for small towns and villages served by a piped network.',
     reference:
       'Kriteria perencanaan SPAM (Permen PUPR 27/2016): domestik 60–150 l/orang/hari menurut kategori kota',
+    standard: 'Kriteria perencanaan SPAM (Permen PUPR 27/2016)',
     confidence: 'medium',
     confirmationRequired: true,
     description:
@@ -1482,6 +1519,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'persons per house connection not given',
     descriptionEn: 'One house connection (SR) serves 5 people.',
     reference: 'Kriteria perencanaan SPAM: 1 sambungan rumah ≈ 5 jiwa',
+    standard: 'Kriteria perencanaan SPAM (Permen PUPR 27/2016)',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Satu sambungan rumah (SR) melayani 5 jiwa.',
@@ -1497,6 +1535,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'Distribution pipes are sized for the peak hour: 1.75 × the average day (planning range 1.5–1.75).',
     reference: 'Kriteria perencanaan SPAM: faktor jam puncak 1,5–1,75 × kebutuhan rata-rata',
+    standard: 'Kriteria perencanaan SPAM (Permen PUPR 27/2016)',
     confidence: 'medium',
     confirmationRequired: true,
     description:
@@ -1512,6 +1551,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'share of water use returned as wastewater not given',
     descriptionEn: 'About 80 % of the water used returns as domestic wastewater.',
     reference: 'Kriteria perencanaan SPALD-T: air limbah domestik ±80 % pemakaian air bersih',
+    standard: 'Kriteria perencanaan SPALD-T',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Sekitar 80 % air yang dipakai kembali sebagai air limbah domestik.',
@@ -1527,6 +1567,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'Sewer pipes are sized for the peak flow: 2.5 × the average for small networks; larger networks peak less.',
     reference: 'Kriteria perencanaan SPALD-T: faktor puncak 2–3 untuk jaringan kecil',
+    standard: 'Kriteria perencanaan SPALD-T',
     confidence: 'low',
     confirmationRequired: true,
     description:
@@ -1544,6 +1585,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'Non-domestic demand (schools, mosques, public hydrants, small businesses) at 15 % of domestic.',
     reference:
       'Kriteria perencanaan SPAM: non-domestik 15–30 % dari domestik menurut kategori kota',
+    standard: 'Kriteria perencanaan SPAM (Permen PUPR 27/2016)',
     confidence: 'medium',
     confirmationRequired: true,
     description:
@@ -1560,6 +1602,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'Non-revenue water (leakage) at 20 % of production — the planning figure for a new network.',
     reference: 'Kriteria perencanaan SPAM: kebocoran 20 % untuk sistem baru',
+    standard: 'Kriteria perencanaan SPAM (Permen PUPR 27/2016)',
     confidence: 'medium',
     confirmationRequired: true,
     description:
@@ -1576,6 +1619,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'Maximum-day demand at 1.15 × average — the basis for the transmission pipe and the reservoir.',
     reference: 'Kriteria perencanaan SPAM: faktor hari maksimum 1,1–1,2',
+    standard: 'Kriteria perencanaan SPAM (Permen PUPR 27/2016)',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Kebutuhan hari maksimum 1,15 × rata-rata — dasar pipa transmisi dan reservoir.',
@@ -1590,6 +1634,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'distribution reservoir volume not given',
     descriptionEn: 'Distribution reservoir at 20 % of maximum-day demand, balancing the peak hour.',
     reference: 'Kriteria perencanaan SPAM: reservoir 15–20 % kebutuhan hari maksimum',
+    standard: 'Kriteria perencanaan SPAM (Permen PUPR 27/2016)',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Reservoir distribusi 20 % dari kebutuhan hari maksimum, penyeimbang jam puncak.',
@@ -1622,6 +1667,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'Groundwater and rainwater infiltration into the pipe at 10 % of the average flow.',
     reference:
       'Kriteria perencanaan SPALD-T: infiltrasi 10–20 % untuk pipa plastik bersambungan rapat',
+    standard: 'Kriteria perencanaan SPALD-T',
     confidence: 'low',
     confirmationRequired: true,
     description: 'Infiltrasi air tanah dan air hujan ke pipa 10 % dari debit rata-rata.',
@@ -1636,6 +1682,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'maximum sewer velocity not given',
     descriptionEn: 'Maximum velocity 3 m/s so solids do not scour the pipe.',
     reference: 'Kriteria perencanaan SPALD-T: v ≤ 3 m/s',
+    standard: 'Kriteria perencanaan SPALD-T',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Kecepatan maksimum 3 m/s supaya pipa tidak tergerus padatan.',
@@ -1650,6 +1697,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'manhole spacing not given',
     descriptionEn: 'A manhole every 50 m on pipes ≤ 300 mm, plus at every bend and junction.',
     reference: 'Kriteria perencanaan SPALD-T: jarak manhole 50–75 m untuk pipa kecil',
+    standard: 'Kriteria perencanaan SPALD-T',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Manhole tiap 50 m pada pipa ≤ 300 mm, ditambah di tiap belokan dan pertemuan.',
@@ -1665,6 +1713,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'Pipe invert 1 m below ground at the start of the run (minimum cover under roads).',
     reference: 'Kriteria perencanaan SPALD-T: timbunan minimum ±1 m di bawah jalan',
+    standard: 'Kriteria perencanaan SPALD-T',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Dasar pipa di awal jalur 1 m di bawah tanah (timbunan minimum di bawah jalan).',
@@ -1770,6 +1819,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn: 'One person per 10 m² of gross floor area.',
     reference:
       'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing: perkiraan penghuni dari luas lantai (kepadatan hunian)',
+    standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
     confidence: 'low',
     confirmationRequired: true,
     description: 'Satu orang per 10 m² luas lantai kotor.',
@@ -1785,6 +1835,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn: 'Water is used over 10 hours a day.',
     reference:
       'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing: jangka waktu pemakaian rata-rata 8–10 jam/hari',
+    standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Air dipakai selama 10 jam per hari.',
@@ -1800,6 +1851,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn: 'Peak-minute factor of 3.0 relative to the average hourly use.',
     reference:
       'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing: faktor menit puncak 3,0–4,0',
+    standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Faktor menit puncak 3,0 terhadap pemakaian rata-rata per jam.',
@@ -1816,6 +1868,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'Static pressure in each zone is limited to 4 bar; lower floors are split into zones with pressure-reducing valves.',
     reference:
       'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing: tekanan statik maksimum per zona ±3–5 kg/cm² sesuai jenis gedung',
+    standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
     confidence: 'medium',
     confirmationRequired: true,
     description:
@@ -1847,6 +1900,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn: 'The busiest period of water use lasts 30 minutes.',
     reference:
       'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing: jangka waktu kebutuhan puncak ±30 menit',
+    standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Periode pemakaian air tersibuk berlangsung 30 menit.',
@@ -1863,6 +1917,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
       'The roof tank also holds 10 minutes of pump flow so the filling pump does not start and stop too often.',
     reference:
       'Noerbambang & Morimura: VE = (Qp − Qmax) · Tp + Qpu · Tpu; Tpu jangka waktu kerja pompa pengisi',
+    standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
     confidence: 'low',
     confirmationRequired: true,
     description:
@@ -1927,6 +1982,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'Each added water point counts as 1 WSFU (a basin) when checking the existing main pipe against the total load.',
     reference: 'Rata-rata beban titik air rumah (IPC E103.3(2): wastafel 0,5 – kloset 2,2)',
+    standard: 'IPC Appendix E, Table E103.3(2)',
     confidence: 'low',
     confirmationRequired: true,
     description:
@@ -1943,6 +1999,7 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     descriptionEn:
       'Each existing water point counts as 1 WSFU (a basin) when checking the existing main pipe against the total load.',
     reference: 'Rata-rata beban titik air rumah (IPC E103.3(2): wastafel 0,5 – kloset 2,2)',
+    standard: 'IPC Appendix E, Table E103.3(2)',
     confidence: 'low',
     confirmationRequired: true,
     description:
@@ -1977,6 +2034,14 @@ export function assumption(id: string): AssumptionDefinition {
 export function assumptionDescription(id: string, locale: EngineeringLocale): string {
   const a = assumption(id);
   return locale === 'en' ? a.descriptionEn : a.description;
+}
+
+/**
+ * Kutipan yang boleh dilihat pengguna, atau `null` bila angka itu tidak berasal dari dokumen
+ * bernama. Dipakai layar solusi di bawah baris asumsinya.
+ */
+export function assumptionStandard(id: string): string | null {
+  return assumption(id).standard ?? null;
 }
 
 export function assumptionCondition(id: string, locale: EngineeringLocale): string {

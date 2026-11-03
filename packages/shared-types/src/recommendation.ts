@@ -227,6 +227,12 @@ export interface Assumption {
   readonly fieldPath: string;
   readonly ruleId?: string;
   /**
+   * Kode atau dokumen yang memberi angka ini, bila ada — dirender di bawah baris asumsinya,
+   * sama seperti `source` pada langkah hitungan. Angka yang dasarnya praktik umum atau
+   * keputusan pemilik tidak punya ini.
+   */
+  readonly source?: string;
+  /**
    * ID di registry asumsi terpusat (`packages/engineering/src/parameters/assumptions.ts`)
    * bila nilai ini lahir dari sana — supaya asumsi yang sama tampil dengan identitas yang
    * sama di setiap kasus dan bisa diganti nilainya di satu tempat.

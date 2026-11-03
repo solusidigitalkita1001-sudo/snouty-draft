@@ -91,6 +91,7 @@ export {
   assumption,
   assumptionCondition,
   assumptionDescription,
+  assumptionStandard,
   assumptionReader,
   assumptionsFor,
 } from './parameters/assumptions.js';
