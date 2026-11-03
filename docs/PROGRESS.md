@@ -4604,3 +4604,29 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Tetapi di sini tidak ada kasus: tidak ada sistem untuk diceritakan, dan topiknya sendiri
       dikenali penuh (sambungan lem 1,000). Pagarnya kini bersyarat: pertanyaan bentuk sistem
       menyingkir dari pengetahuan hanya bila kebutuhannya sudah tercatat.
+
+- [x] P32-60 Pertanyaan yang menyebut beberapa istilah sekaligus
+
+      "istilah DN, OD, SDR itu apa?" dijawab "Soal itu saya belum punya acuan yang bisa saya
+      pegang" lalu dilempar ke tim teknis — padahal ketiga istilah itu ada di pengetahuan, dan
+      "DN itu apa?" dijawab dengan benar. Contoh topiknya semuanya bertanya satu istilah, jadi
+      kalimat yang menyebut tiga sekaligus berhenti di 0,734, tepat di bawah ambang. Tiga contoh
+      yang memang menyebut beberapa istilah sekaligus ditambahkan, dalam dua bahasa.
+
+- [x] P32-61 Pertanyaan dagang kedua tidak dijawab kalimat topik
+
+      "ada stok di surabaya?" lalu "minimal order berapa?" dijawab "Itu yang saya jelaskan di
+      jawaban sebelumnya. Bagian mana yang mau saya perjelas, atau ada angka dari lapangan yang
+      mau dipakai?" — jawaban dagangnya memang sama persis dua kali, jadi pagar pengulangan
+      menyalakan kalimat topik, yang menutup dengan tawaran angka lapangan: kalimat milik jawaban
+      teknik. Pertanyaan dagang kini punya kalimat ulangnya sendiri — yang diulang hanya kenyataan
+      bahwa angkanya ada di tim Pralon, disusul tawaran menghitung kebutuhan pipanya.
+
+- [x] P32-62 Topik kedua yang tidak ditanya tidak ikut menjawab
+
+      Di percakapan limbah asam, "pipanya pralon ada yang tahan?" dijawab ketahanan kimia — benar —
+      lalu disusul paragraf conduit beserta daftar PVC HIC dari katalog, yang tidak ada
+      hubungannya. Topik kedua ikut karena skornya 0,848 lawan 0,867: selisih 0,019, masih di
+      dalam jendela 0,02 yang memperbolehkan satu pesan menyinggung dua topik. Jendelanya
+      dipersempit ke 0,015, dan kalimat itu masuk ke daftar kasus dengan penanda "tidak boleh ada
+      topik lain yang ikut terseret".

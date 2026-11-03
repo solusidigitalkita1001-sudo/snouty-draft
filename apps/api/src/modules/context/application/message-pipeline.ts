@@ -83,7 +83,7 @@ import {
 import { outlierQuestions, pendingOutliers } from '../domain/plausibility.js';
 import { mergeRequirement } from '../domain/context-merger.js';
 import { isProductQuestion, isSocial } from '../../understanding/domain/labels.js';
-import { repeatedTopicReply } from './reply-copy.js';
+import { commercialAgainReply, repeatedTopicReply } from './reply-copy.js';
 import { withCompleteness } from '../domain/completeness.js';
 import { fieldEntries } from '../domain/requirement-field.js';
 import {
@@ -352,10 +352,13 @@ export async function runUnderstanding(
         .find((t) => t.role === 'assistant')?.text;
       const repeated =
         previous !== undefined && previous.trim() !== '' && previous.trim() === written.text.trim();
-      events.push({
-        type: 'token',
-        text: repeated ? repeatedTopicReply(input.locale) : written.text,
-      });
+      // Pertanyaan dagang punya kalimat ulangnya sendiri: kalimat topik menutup dengan tawaran
+      // angka dari lapangan, yang tidak punya arti untuk pertanyaan stok atau minimum order.
+      const again =
+        label === 'commercial_question'
+          ? commercialAgainReply(input.locale)
+          : repeatedTopicReply(input.locale);
+      events.push({ type: 'token', text: repeated ? again : written.text });
     }
     if (drawing !== null) events.push({ type: 'card', card: drawing });
     // Penawaran milik tim sales (P26-04) — kartunya yang menghubungkan, bukan kalimat yang menyuruh.

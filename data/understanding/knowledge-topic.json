@@ -52,7 +52,10 @@
       "is the inch size the actual diameter?",
       "wall thickness meaning?",
       "what is pn?",
-      "inci itu ukuran apa?"
+      "inci itu ukuran apa?",
+      "istilah DN, OD, SDR itu apa?",
+      "arti DN, PN, dan SDR di pipa?",
+      "what do DN, OD and SDR mean?"
     ],
     "sambungan lem": [
       "cara nyambung pipa pvc pakai lem gimana?",
@@ -1049,5 +1052,5 @@
       "pipa lama ukurannya cukup ngga buat beban baru"
     ]
   },
-  "window": 0.02
+  "window": 0.015
 }

@@ -1604,3 +1604,47 @@ describe('kasus irigasi yang belum lengkap (P32-56)', () => {
     expect(text).not.toContain('jarak sumber ke lahan');
   });
 });
+
+/**
+ * P32-61 — pertanyaan dagang kedua berturut-turut. Produksi 2026-11-03: "ada stok di surabaya?"
+ * lalu "minimal order berapa?" dijawab "Itu yang saya jelaskan di jawaban sebelumnya. … ada angka
+ * dari lapangan yang mau dipakai?" — kalimat milik jawaban teknik, untuk pertanyaan pesanan.
+ */
+const FIXED_ANSWER_DECISION: RoutingDecision = {
+  intent: 'OUT_OF_SCOPE',
+  confidence: 1,
+  shouldExtract: false,
+  mutatesState: false,
+};
+
+describe('pertanyaan dagang berturut-turut (P32-61)', () => {
+  it('jawaban kedua tetap tentang pesanan, bukan tawaran angka lapangan', async () => {
+    const commercial = understood('ada stok di surabaya?', { intent: 'commercial_question' });
+    const first = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'ada stok di surabaya?',
+        understanding: commercial,
+        decision: FIXED_ANSWER_DECISION,
+      }),
+    );
+    const said = (first.events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(said).toContain('tim Pralon');
+
+    const second = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'minimal order berapa?',
+        understanding: understood('minimal order berapa?', { intent: 'commercial_question' }),
+        decision: FIXED_ANSWER_DECISION,
+        recentTurns: [{ role: 'assistant', text: said }],
+      }),
+    );
+    const text = (second.events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).not.toBe(said);
+    expect(text).not.toContain('angka dari lapangan');
+    expect(text).toContain('tim Pralon');
+    // Kartunya tetap: yang menghubungkan ke tim sales adalah kartu, bukan kalimat.
+    expect(second.events.some((e) => e.type === 'card' && e.card.kind === 'cta')).toBe(true);
+  });
+});

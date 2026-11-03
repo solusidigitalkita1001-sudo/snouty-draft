@@ -175,6 +175,18 @@ export function repeatedTopicReply(locale: Locale = DEFAULT_LOCALE): string {
   return locale === 'en' ? REPEATED_TOPIC_REPLY_EN : REPEATED_TOPIC_REPLY;
 }
 
+/**
+ * Pertanyaan dagang KEDUA berturut-turut ("ada stok di surabaya?" lalu "minimal order berapa?"):
+ * jawabannya sama persis, jadi pagar pengulangan menyalakan kalimat topik — yang menutup dengan
+ * "ada angka dari lapangan yang mau dipakai?", kalimat milik jawaban teknik (produksi 2026-11-03).
+ * Pertanyaannya memang baru; yang diulang hanya kenyataan bahwa angkanya bukan di sini.
+ */
+export function commercialAgainReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en'
+    ? 'That sits with the Pralon team as well — I do not hold those figures. Tell me about the building and I can work out the pipe it needs right now.'
+    : 'Itu juga ada di tim Pralon, sama seperti tadi — angkanya tidak saya pegang. Kalau bangunannya Anda sebutkan, kebutuhan pipanya bisa saya hitung sekarang.';
+}
+
 const OUT_OF_TOPIC_REPLY =
   'Itu di luar yang bisa saya bantu di sini — saya khusus soal pipa dan instalasi air Pralon. Untuk pengiriman, harga, atau urusan pesanan, tim Pralon yang bisa membantu. Kalau ada kebutuhan pipa atau pertanyaan produk, tinggal tulis.';
 

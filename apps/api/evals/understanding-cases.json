@@ -2257,6 +2257,24 @@
       "text": "ada stok di surabaya?",
       "intent": "commercial_question",
       "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "pipanya pralon ada yang tahan?",
+      "topics": ["ketahanan kimia"],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "istilah DN, OD, SDR itu apa?",
+      "topics": ["istilah dimensi"],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-03"
+    },
+    {
+      "text": "nyambungnya gimana?",
+      "topics": ["sambungan lem"],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-03"
     }
   ]
 }
