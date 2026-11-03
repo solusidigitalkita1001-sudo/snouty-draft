@@ -58,6 +58,7 @@ import {
   answersFromKnowledge,
   asksSolutionQuantity,
   asksGeneralKnowledge,
+  sourcedQuestionOverCase,
   subjectContinuation,
 } from './intent-router.js';
 import {
@@ -350,7 +351,7 @@ export class MessageService {
           (state.useCase?.kind === 'technical' ||
               state.useCase?.kind === 'irrigation' ||
               handedOff) &&
-            !(fine !== undefined && !isRequirement(fine) && answersFromKnowledge(u, hasExisting)) &&
+            !sourcedQuestionOverCase(u, hasExisting) &&
             (fine === undefined ||
               isRequirement(fine) ||
               isFollowUp(fine) ||

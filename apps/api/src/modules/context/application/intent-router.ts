@@ -20,7 +20,12 @@ import { AiOutputInvalidError } from '../../ai/domain/ai.errors.js';
 import { AI_SERVICE, type AiService } from '../../ai/domain/ai.port.js';
 import type { IntentClassification } from '../../ai/domain/extraction-schema.js';
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
-import { isProductQuestion, isSocial, type FineIntent } from '../../understanding/domain/labels.js';
+import {
+  isProductQuestion,
+  isRequirement,
+  isSocial,
+  type FineIntent,
+} from '../../understanding/domain/labels.js';
 import {
   intentForSubject,
   isChoiceFollowUp,
@@ -679,6 +684,21 @@ export function asksSolutionQuantity(u: MessageUnderstanding): boolean {
   // Panjang BATANG yang disebut ("butuh berapa batang pipa 4 meter?") bukan panjang jalur: yang
   // ditanya tetap jumlah batang untuk jalur pengguna sendiri (produksi 2026-11-02).
   return !statesRouteLength(u.text);
+}
+
+/**
+ * Pertanyaan yang punya FAKTA BERSUMBER dan tidak menyatakan satu nilai pun: ia tidak ikut
+ * lanjutan kasus teknis, walau label intentnya tidak dikenali. Produksi 2026-11-03: "pompa
+ * boosternya perlu ngga?" di kasus apartemen 12 lantai dijawab daftar data yang masih kurang,
+ * padahal fakta pompanya ada dan yang ditanya kapan pompa dorong diperlukan.
+ *
+ * Pesan yang membawa DATA ("bahannya pvc", "jaraknya 150 m") tetap lanjutan kebutuhan — itu
+ * syaratnya: pesan ini tidak menyatakan nilai apa pun.
+ */
+export function sourcedQuestionOverCase(u: MessageUnderstanding, hasCase: boolean): boolean {
+  if (isRequirement(u.intent?.label)) return false;
+  if (!answersFromKnowledge(u, hasCase)) return false;
+  return extractionToUpdates({}, u.text).length === 0;
 }
 
 export function answersFromKnowledge(

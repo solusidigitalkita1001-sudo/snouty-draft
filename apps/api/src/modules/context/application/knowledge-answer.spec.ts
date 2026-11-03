@@ -724,3 +724,40 @@ describe('statesRouteLength', () => {
     expect(asksSolutionQuantity(lesson)).toBe(false);
   });
 });
+
+// Produksi 2026-11-03: "pompa boosternya perlu ngga?" di kasus apartemen 12 lantai dijawab daftar
+// data yang masih kurang — label intentnya tidak dikenali, jadi ia ikut lanjutan kasus.
+describe('sourcedQuestionOverCase (P33-12)', () => {
+  it('pertanyaan bertopik bersumber tanpa nilai: bukan lanjutan kasus, walau intentnya ragu', async () => {
+    const { sourcedQuestionOverCase } = await import('./intent-router.js');
+    expect(
+      sourcedQuestionOverCase(
+        understood('pompa boosternya perlu ngga?', { intent: null, knowledgeTopics: ['pompa'] }),
+        true,
+      ),
+    ).toBe(true);
+  });
+
+  it('pesan yang membawa nilai tetap lanjutan kebutuhan', async () => {
+    const { sourcedQuestionOverCase } = await import('./intent-router.js');
+    expect(
+      sourcedQuestionOverCase(
+        understood('pompanya di sumur, kedalaman muka airnya 12 meter', {
+          intent: null,
+          knowledgeTopics: ['pompa'],
+        }),
+        true,
+      ),
+    ).toBe(false);
+  });
+
+  it('jawaban klarifikasi tetap lanjutan kebutuhan', async () => {
+    const { sourcedQuestionOverCase } = await import('./intent-router.js');
+    expect(
+      sourcedQuestionOverCase(
+        understood('pompanya ada', { intent: 'clarification_answer', knowledgeTopics: ['pompa'] }),
+        true,
+      ),
+    ).toBe(false);
+  });
+});

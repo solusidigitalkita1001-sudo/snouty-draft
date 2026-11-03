@@ -4805,3 +4805,37 @@ menurut ukuran pipanya.
       yang ditanya tanpa produk, tanpa keluarga — termasuk keluarga yang pengguna sebut beberapa
       giliran sebelumnya — dan tanpa topik yang bisa menjawab, dibalas satu pertanyaan: jenis dan
       ukuran pipanya yang mana. Daftar isi katalog bukan jawaban untuk pertanyaan apa pun.
+
+- [x] P33-11 "Oke lanjut" menjalankan dan mengatakan bahwa hitungannya berjalan
+
+      Probe produksi 2026-11-03: rumah yang kebutuhannya sudah lengkap, kartunya sudah menghitung
+      sendiri, lalu "oke lanjut" dijawab "Kebutuhan Anda tetap tercatat seperti di panel. Bagian
+      mana yang mau diubah atau ditanyakan?" Pengguna menyuruh maju dan dijawab seolah ia tidak
+      mengatakan apa-apa — penyebabnya pagar anti-ulang: karena tidak ada data yang berubah,
+      ringkasan yang sama persis ditahan, dan yang tersisa kalimat "tetap tercatat".
+
+      Permintaan melanjutkan atas kebutuhan yang hitungannya memang berjalan giliran itu sekarang
+      dijawab satu kalimat: ukuran pipa dan daftar produknya dihitung sekarang. Ringkasan yang
+      sama tetap tidak diulang kata demi kata.
+
+- [x] P33-12 Pertanyaan bersumber di tengah kasus tidak dijawab daftar data yang kurang
+
+      Probe produksi 2026-11-03: di kasus apartemen 12 lantai, "pompa boosternya perlu ngga?"
+      dijawab "Yang masih saya perlukan: jumlah penghuni, luas per lantai, …". Fakta pompanya ada
+      — kapan pompa dorong dipakai, dan dua angka yang keluar dari hitungan untuk memilihnya —
+      tetapi pengecualian jawaban bersumber hanya berlaku untuk pesan yang label intentnya
+      dikenali, dan "pompa boosternya perlu ngga?" tidak dikenali satu pun contoh.
+
+      Sekarang yang memutuskan bukan label intentnya, melainkan dua hal yang bisa diperiksa:
+      topiknya punya fakta bersumber, dan pesannya tidak menyatakan satu nilai pun. Pesan yang
+      membawa data ("bahannya pvc", "jaraknya 150 m") tetap lanjutan kebutuhan, dan jawaban
+      klarifikasi tetap milik kartunya.
+
+- [x] P33-13 Klaim tentang kelas pipa dijawab tentang kelas pipa
+
+      Probe produksi 2026-11-03: "kata tukang pvc d bisa buat air bersih, bener?" dijawab
+      penjelasan pipa air panas. Kalimatnya tertarik ke topik air panas karena bentuknya "bisa
+      buat …", dan topik kelas PVC — yang justru memuat jawabannya: AW untuk air bersih
+      bertekanan, D untuk aliran gravitasi — tidak pernah ikut terbaca.
+
+      Klaim tentang kelas pipa, di dua bahasa, kini menemukan topik kelas PVC.

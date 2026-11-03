@@ -90,6 +90,18 @@ export function requirementUnchangedReply(locale: Locale = DEFAULT_LOCALE): stri
 }
 
 /**
+ * Pengguna meminta dilanjutkan atas kebutuhan yang memang sudah dihitung giliran ini ("oke
+ * lanjut", "udah, itung aja"). Produksi 2026-11-03: karena tidak ada data yang berubah, giliran
+ * itu dijawab "kebutuhan Anda tetap tercatat" — pengguna menyuruh maju, dan dijawab seolah ia
+ * tidak mengatakan apa-apa.
+ */
+export function computingNowReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en'
+    ? 'Working out the pipe sizes and the product list now.'
+    : 'Oke, ukuran pipa dan daftar produknya saya hitung sekarang.';
+}
+
+/**
  * Keterangan satu lantai yang tidak menurunkan totalnya (P33-05). Giliran ini memang tidak mengubah
  * kebutuhan, tetapi "kebutuhan Anda tetap tercatat" menyembunyikan alasannya — dan di produksi
  * 2026-11-03 angka yang sama justru turun diam-diam. Yang diucapkan: totalnya utuh, bagian yang

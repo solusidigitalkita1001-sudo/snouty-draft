@@ -110,6 +110,7 @@ import { productAnswerCopy } from './product-answer-text.js';
 import { competitorAnswer } from './competitor-answer.js';
 import {
   explanationBeforeSolution,
+  computingNowReply,
   perFloorTotalReply,
   requirementUnchangedReply,
   valueWithoutPlaceReply,
@@ -893,9 +894,17 @@ export async function runUnderstanding(
         ? tankLocationQuestion(locale)
         : null;
     if (answer !== null || verdict !== null) {
+      // Permintaan melanjutkan atas kebutuhan yang hitungannya memang berjalan giliran ini:
+      // yang diucapkan bahwa ia berjalan, bukan ringkasan yang sama atau "tetap tercatat".
+      const computing =
+        asksToCompute && card?.kind === 'cta' && card.auto === true
+          ? computingNowReply(locale)
+          : null;
       const spoken =
         keptTotalSaid ??
-        (same && answer === text ? (tankAsked ?? requirementUnchangedReply(locale)) : answer);
+        (same && answer === text
+          ? (computing ?? tankAsked ?? requirementUnchangedReply(locale))
+          : answer);
       const sentences = [spoken, verdict].filter((part) => part !== null && part !== '').join(' ');
       // Kalimat harga atau nasihat bahan di atas sudah mengirim teksnya sendiri; tanpa pemisah
       // keduanya menempel jadi satu kata ("…Anda butuhkan.Oke, sudah saya catat").

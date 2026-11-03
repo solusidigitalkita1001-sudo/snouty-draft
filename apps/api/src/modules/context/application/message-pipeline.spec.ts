@@ -1691,3 +1691,47 @@ describe('keterangan satu lantai (P33-05)', () => {
     expect(said).not.toContain('tetap tercatat');
   });
 });
+
+// Produksi 2026-11-03: "oke lanjut" atas rumah yang hitungannya memang berjalan dijawab
+// "Kebutuhan Anda tetap tercatat" — pengguna menyuruh maju, dijawab seolah tidak berkata apa-apa.
+describe('permintaan melanjutkan (P33-11)', () => {
+  const house = () =>
+    withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [
+          { path: 'building.type', value: 'residential', source: 'user_stated' },
+          { path: 'building.floors', value: 2, source: 'user_stated' },
+          { path: 'fixtures.bathrooms', value: 3, source: 'user_stated' },
+          { path: 'water.source', value: 'municipal', source: 'user_stated' },
+        ],
+        T0,
+      ).state,
+    );
+  const spokenFor = async (
+    recentTurns: readonly { role: 'user' | 'assistant'; text: string }[],
+  ) => {
+    const { events } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message: 'oke lanjut',
+        state: house(),
+        recentTurns,
+        understanding: understood('oke lanjut', { intent: 'follow_up_continue' }),
+      }),
+    );
+    return events
+      .filter((e): e is { type: 'token'; text: string } => e.type === 'token')
+      .map((e) => e.text)
+      .join(' ');
+  };
+
+  it('ringkasan yang sama persis tidak diulang, dan hitungan yang berjalan diucapkan', async () => {
+    const first = await spokenFor([]);
+    expect(first).toContain('hitung sekarang');
+    const again = await spokenFor([{ role: 'assistant', text: first.trim() }]);
+    expect(again).not.toContain('tetap tercatat');
+    expect(again).toContain('hitung sekarang');
+    expect(again.trim().length).toBeLessThan(first.trim().length);
+  });
+});
