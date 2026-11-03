@@ -31,7 +31,7 @@ import type { ReplyTurn } from './reply-writer.js';
 import { CORE_REQUIREMENT_FIELDS } from '@snouty/shared-types';
 import { extractionToUpdates } from './extraction-to-updates.js';
 import { extractTechnicalContext, isCaseId } from '@snouty/engineering';
-import { factTopics } from '../infrastructure/knowledge-facts.js';
+import { answerableTopics } from './knowledge-answer.js';
 import { mentionsPressure, statesRouteLength } from './knowledge-answer.js';
 
 /**
@@ -645,7 +645,7 @@ export function asksSolutionQuantity(u: MessageUnderstanding): boolean {
 }
 
 export function answersFromKnowledge(u: MessageUnderstanding): boolean {
-  const facts = factTopics();
+  const facts = answerableTopics();
   // Bahan + nilai tekanan ("HDPE atau uPVC untuk 8-12 bar?"): pertanyaan kelas tekanan.
   const pressure = mentionsPressure(u.text) && u.families.length > 0 ? ['tekanan kerja'] : [];
   const topics = [...u.knowledgeTopics, ...pressure].filter((t) => facts.has(t));

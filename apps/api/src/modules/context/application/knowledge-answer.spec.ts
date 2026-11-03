@@ -7,7 +7,12 @@ import { describe, expect, it } from 'vitest';
 import { understood } from '../../understanding/testing/understood.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import { answersFromKnowledge, asksSolutionQuantity } from './intent-router.js';
-import { knowledgeAnswer, statesRouteLength, type KnowledgeCatalog } from './knowledge-answer.js';
+import {
+  answerableTopics,
+  knowledgeAnswer,
+  statesRouteLength,
+  type KnowledgeCatalog,
+} from './knowledge-answer.js';
 
 const NAMES: Record<string, string[]> = {
   'PVC AW': ['Pipa (TS End) Putih AW 1/2" x 4 Meter', 'Pipa (Bell End ) Abu AW 3 " x 5.8 Meter'],
@@ -254,9 +259,31 @@ describe('answersFromKnowledge', () => {
         }),
       ),
     ).toBe(true);
+    // Topik yang jawabannya konsep di kode (penyimpanan, cara menyambung, istilah dimensi) ikut
+    // lewat jalur pengetahuan sejak P32-58: dulu hanya fakta data yang dihitung, jadi sepuluh topik
+    // yang punya jawaban tetap jatuh ke model ketika intent-nya ragu.
     expect(
       answersFromKnowledge(understood('pipa pvc disimpan', { knowledgeTopics: ['penyimpanan'] })),
-    ).toBe(false);
+    ).toBe(true);
+  });
+
+  /**
+   * P32-58 — "how do i join them?" sesudah PVC AW dan PVC D dibandingkan: topiknya dikenali penuh
+   * (sambungan lem 1,000) tetapi intent-nya ragu, dan karena topik itu tidak punya fakta di
+   * `data/knowledge`, gilirannya jatuh ke model: 26,8 detik lalu kalimat di luar topik, padahal
+   * urutan menyambung TS End ada lengkap di konsep (produksi 2026-11-02).
+   */
+  it('topik yang jawabannya konsep ikut dijawab dari pengetahuan walau intent ragu (P32-58)', async () => {
+    const { CONCEPTS } = await import('./pipe-knowledge.js');
+    const conceptOnly = CONCEPTS.map((c) => c.topic).filter((t) => !factTopics().has(t));
+    expect(conceptOnly).toContain('sambungan lem');
+    for (const topic of conceptOnly) {
+      expect(answerableTopics().has(topic), topic).toBe(true);
+      expect(
+        answersFromKnowledge(understood('how do i join them?', { knowledgeTopics: [topic] })),
+        topic,
+      ).toBe(true);
+    }
   });
 
   it('data pipa lama menang atas topik hitungan (P31-29)', () => {

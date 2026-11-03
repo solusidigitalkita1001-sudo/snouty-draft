@@ -1650,3 +1650,36 @@ describe('runProductQuestion — PIPA LAMA', () => {
     expect(text(events)).toContain('Umur pakai pipa');
   });
 });
+
+/**
+ * P32-58 — topik yang jawabannya konsep di kode. Produksi 2026-11-02: "how do i join them?"
+ * sesudah PVC AW dan PVC D dibandingkan memakai 26,8 detik lalu dijawab kalimat di luar topik,
+ * padahal urutan menyambung TS End dengan solvent cement ada lengkap di konsep.
+ */
+describe('topik konsep tanpa fakta data (P32-58)', () => {
+  it('"how do i join them?" dijawab urutan menyambungnya, bukan katalog atau di luar topik', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      input(
+        'how do i join them?',
+        { knowledgeTopics: ['sambungan lem'] },
+        {
+          locale: 'en',
+          subject: {
+            kind: 'product',
+            entity: 'pvc aw dan pvc d',
+            topic: 'comparison',
+            depth: 'standard',
+          },
+        },
+      ),
+    );
+    const out = text(events);
+    expect(out).toContain('Apply solvent cement');
+    expect(out).toContain('Let it cure before pressurising');
+    // Topiknya saja: tanpa ikhtisar bahan dan tanpa ikhtisar katalog.
+    expect(out).not.toContain('products');
+  });
+});

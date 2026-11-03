@@ -327,6 +327,8 @@ export async function runProductQuestion(
     input.subject?.kind === 'product' &&
     u.productAspect === 'size_availability' &&
     parseSize(input.message) !== null;
+  // Fakta data lebih dulu; topik yang jawabannya konsep dijawab `explain` di bawah — "apa bedanya
+  // fitting sama hdpe?" harus tetap dibuka dengan "komponen, bukan bahan", bukan paragraf fitting.
   if (!sizeOfSubject && knowledgeTopics.some((t) => factTopics().has(t))) {
     // Lanjutan tanpa bahan ("panjang per batangnya?" setelah ukuran HDPE) membicarakan bahan
     // subjeknya, bukan semua keluarga di fakta (audit campuran 2026-10-20).

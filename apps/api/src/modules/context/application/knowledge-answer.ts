@@ -10,11 +10,29 @@ import { designationsOf } from '../../product-catalog/domain/product-identity.js
 import { productSizeOf, productTypesOf } from '../../product-catalog/domain/product-types.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
 import {
+  factTopics,
   knowledgeFacts,
   type CatalogHook,
   type KnowledgeFact,
 } from '../infrastructure/knowledge-facts.js';
-import { compareClasses, conceptsFor, type ClassTableRow } from './pipe-knowledge.js';
+import {
+  compareClasses,
+  conceptTopics,
+  conceptsFor,
+  type ClassTableRow,
+} from './pipe-knowledge.js';
+
+/**
+ * Topik yang PUNYA jawaban di sini: fakta data atau konsep di kode. Jalur pengetahuan dulu hanya
+ * melihat fakta data, jadi sepuluh topik yang jawabannya ada di konsep — cara menyambung dengan
+ * lem, istilah dimensi, jenis fitting, kaku vs lentur, dan seterusnya — tidak pernah lewat jalur
+ * itu: intent yang ragu membuat gilirannya jatuh ke model. Di produksi 2026-11-02 "how do i join
+ * them?" sesudah PVC AW dan PVC D dibandingkan dijawab kalimat di luar topik setelah 26,8 detik,
+ * padahal urutan menyambung TS End ada lengkap di konsep (P32-58).
+ */
+export function answerableTopics(): ReadonlySet<string> {
+  return new Set([...factTopics(), ...conceptTopics()]);
+}
 
 export interface KnowledgeCatalog {
   familyCounts(): Promise<readonly FamilyCount[]>;

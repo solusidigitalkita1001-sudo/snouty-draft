@@ -424,6 +424,11 @@ export function materialsFor(families: readonly string[]): readonly MaterialKnow
  * Konsep yang disinggung sekumpulan topik pengetahuan (label katalog `knowledge-topic`) atau
  * keluarga produk yang terikat konsep ("pvc aw" menyinggung kelas PVC).
  */
+/** Topik yang punya konsep di kode — jawabannya ada walau `data/knowledge` tidak memuatnya. */
+export function conceptTopics(): ReadonlySet<string> {
+  return new Set(CONCEPTS.map((c) => c.topic));
+}
+
 export function conceptsFor(
   topics: readonly string[],
   families: readonly string[] = [],

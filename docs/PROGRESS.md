@@ -4581,3 +4581,16 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Kalimat pendek tanpa kata kunci topiknya ("join them", "buried water line") tidak cukup dekat
       dengan contoh yang ada; keduanya ditambahkan sebagai contoh, masing-masing dengan kembaran
       Indonesianya, dan masuk ke daftar kasus evaluasi.
+
+- [x] P32-58 Topik yang jawabannya ada di konsep ikut lewat jalur pengetahuan
+
+      "how do i join them?" sesudah PVC AW dan PVC D dibandingkan memakai 26,8 detik lalu dijawab
+      "itu di luar yang bisa saya bantu di sini" — padahal topiknya dikenali penuh dan urutan
+      menyambung TS End dengan solvent cement ada lengkap di pengetahuan. Penyebabnya gerbang
+      jalurnya: ia hanya melihat topik yang punya fakta di `data/knowledge`, sementara sepuluh
+      topik dijawab konsep di kode (cara menyambung dengan lem, istilah dimensi, jenis fitting,
+      kaku vs lentur, penyimpanan, perawatan, proses produksi, uji mutu, uji tekanan lapangan,
+      fitting). Topik-topik itu tidak pernah melewati jalur pengetahuan, jadi intent yang ragu
+      membuat gilirannya jatuh ke model. Gerbangnya kini bertanya "apakah topik ini punya
+      jawaban", bukan "apakah ia punya fakta data"; pemilihan jawabannya tidak berubah — fakta
+      data tetap lebih dulu, konsep menjawab topik yang tidak punya fakta.
