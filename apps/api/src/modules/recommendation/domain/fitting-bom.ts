@@ -6,7 +6,7 @@
  */
 
 import type { HouseDrainageResult, SolutionResult } from '@snouty/engineering';
-import type { BomItem, BomSystem, Locale } from '@snouty/shared-types';
+import { PipeSize, type BomItem, type BomSystem, type Locale } from '@snouty/shared-types';
 import type { FittingKind } from '../../product-catalog/domain/product-types.js';
 import { provenanceFor, traceIdsFor, type IdentifiedTrace } from './solution-view.js';
 
@@ -239,6 +239,30 @@ export interface PendingNeed {
  * dihitung dari sambungan antar batang (`socketNeeds`). Baris pipa tanpa panjang batang katalog
  * tetap tidak punya sambungan yang bisa dihitung, jadi soknya tetap menyusul.
  */
+/** Batas dua jenis solvent cement Pralon: sampai 3" quick dry, di atasnya slow dry. */
+const QUICK_DRY_MAX = PipeSize.parse('3"')!;
+
+/**
+ * Jenis solvent cement yang dipakai jalur seukuran ini (masukan sales Pralon 2026-11-03: "bisa
+ * dimasukin saran penggunaan Solvent cement Pralon berdasarkan ukuran pipa … yang ada di simulasi
+ * AI nya"). Quick dry 1/2"–3", slow dry 4"–12" — sambungan besar perlu waktu lebih lama untuk
+ * diluruskan dan ditahan. Ukuran yang tidak terbaca, atau yang bukan inci, tetap "Lem PVC" tanpa
+ * jenis: menebak jenisnya sama saja mengarang.
+ */
+export function solventCement(size: string): Text {
+  const parsed = PipeSize.parse(size);
+  if (parsed === null || parsed.unit !== 'in') return { id: 'Lem PVC', en: 'PVC solvent cement' };
+  return parsed.isLargerThan(QUICK_DRY_MAX)
+    ? { id: 'Lem PVC slow dry', en: 'PVC solvent cement (slow dry)' }
+    : { id: 'Lem PVC quick dry', en: 'PVC solvent cement (quick dry)' };
+}
+
+/** Nama barisnya dalam bahasa balasan. */
+export function solventCementLabel(size: string, locale: Locale): string {
+  const item = solventCement(size);
+  return locale === 'en' ? item.en : item.id;
+}
+
 export function pendingNeeds(
   lines: readonly { readonly system: BomSystem; readonly size: string }[],
   /** Sistem yang soknya sudah dihitung dari sambungan batang — barisnya tidak diulang di sini. */
@@ -272,7 +296,7 @@ export function pendingNeeds(
       system,
       kind: null,
       size: '—',
-      item: { id: 'Lem PVC', en: 'PVC solvent cement' },
+      item: solventCement(size),
       unit: 'kaleng' as const,
       // Solvent Cement adalah lini Pralon (materi perusahaan), hanya belum ada di export ERP.
       askPralon: true as const,

@@ -4671,3 +4671,34 @@ menurut ukuran pipanya.
       disebut untuk ada. Dan sisi buangan yang disebut di tengah kasus air bersih MENAMBAH, bukan
       mengganti: "air kotor dan air bekas dipisah" pada rumah yang air bersihnya sudah tercatat
       berarti keduanya dihitung, bukan air bersihnya hilang tanpa pemberitahuan.
+
+- [x] P33-02 Pertanyaan bahan untuk jalur buangan dijawab soal air panas
+
+      "pipa air kotor boleh pakai ppr ngga?" dijawab "Untuk air panas, bahan yang lazim adalah
+      PPR…" — yang ditanya jalur buangannya, yang dijawab kegunaan PPR yang paling terkenal.
+      "kalau pex buat air buangan gimana?" malah tidak punya acuan sama sekali. Contoh PPR dan
+      PEX memang semuanya duduk di topik air panas dan bahan di luar katalog, jadi kalimat yang
+      menyebut keduanya bersama jalur buangan tertarik ke sana.
+
+      Enam contoh "bahan X untuk jalur buangan, boleh?" ditambahkan ke topik pipa pembuangan,
+      dalam dua bahasa, dan jawabannya kini menyebut bahannya: jalur buangan memakai uPVC, PP-R
+      dan PE-X dibuat untuk jalur bertekanan di dalam bangunan, bukan saluran gravitasi. Ini
+      sekaligus menjawab masukan sales "udah pasti pake pipa AWD, gak mungkin digantiin pake pipa
+      PPR ataupun pex" — hitungannya memang sudah selalu PVC D, yang salah hanya jawabannya.
+
+- [x] P33-03 Solvent cement disarankan menurut ukuran pipanya
+
+      "Solvent cement Pralon itu ada 2 pilihan, ada yang cepat kering sama yang lambat kering.
+      Yang cepat kering itu untuk diameter 1/2" - 3", dan yang lambat kering buat diameter 4" -
+      12". Buat input di AI, mungkin bisa dimasukin saran penggunaan Solvent cement Pralon
+      berdasarkan ukuran pipa … yang ada di simulasi AI nya."
+
+      Daftar materialnya sudah punya baris lem, tetapi tanpa jenis: "Lem PVC — 0 kaleng". Kini
+      jenisnya mengikuti ukuran jalur yang dilayaninya — air kotor 4" mendapat slow dry, air
+      bekas 2½" mendapat quick dry — di rumah, pembuangan rumah, dan saluran gravitasi. Ukuran
+      milimeter atau yang tidak terbaca tetap "Lem PVC" tanpa jenis, karena batas yang diberikan
+      sales adalah batas inci dan menebak sisanya sama saja mengarang.
+
+      Batas ukurannya juga masuk ke jawaban pengetahuan: "lem pipa yang cocok buat pipa 4 inch
+      apa?" dulu dijawab "quick dry untuk ukuran kecil dan slow dry untuk ukuran besar" tanpa
+      satu angka pun, sekarang menyebut 1/2"–3" dan 4"–12".

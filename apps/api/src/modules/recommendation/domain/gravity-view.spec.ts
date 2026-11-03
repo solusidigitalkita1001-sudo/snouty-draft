@@ -247,7 +247,9 @@ describe('tampilan gravitasi: dua bahasa', () => {
     expect(enB.map((b) => b.quantity)).toEqual(idB.map((b) => b.quantity));
     expect(enB[0]!.item).toBe('PVC D pipe');
     expect(idB[0]!.item).toBe('Pipa PVC D');
-    expect(enB.at(-1)!.item).toBe('PVC solvent cement');
+    // P33-03: jenisnya ikut ukuran jalurnya, di kedua bahasa.
+    expect(enB.at(-1)!.item).toBe('PVC solvent cement (slow dry)');
+    expect(idB.at(-1)!.item).toBe('Lem PVC slow dry');
 
     const idA = gravityAssumptionsFrom(result, traces);
     const enA = gravityAssumptionsFrom(result, traces, 'en');

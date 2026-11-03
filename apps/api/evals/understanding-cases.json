@@ -2275,6 +2275,24 @@
       "topics": ["sambungan lem"],
       "topicsOnly": true,
       "source": "produksi 2026-11-03"
+    },
+    {
+      "text": "pipa air kotor boleh pakai ppr ngga?",
+      "topics": ["pipa pembuangan"],
+      "topicsOnly": true,
+      "source": "masukan sales 2026-11-03"
+    },
+    {
+      "text": "buat jalur limbah boleh pakai pex?",
+      "topics": ["pipa pembuangan"],
+      "topicsOnly": true,
+      "source": "masukan sales 2026-11-03"
+    },
+    {
+      "text": "lem buat pipa 4 inch pakai yang mana?",
+      "topics": ["solvent cement"],
+      "topicsOnly": true,
+      "source": "masukan sales 2026-11-03"
     }
   ]
 }

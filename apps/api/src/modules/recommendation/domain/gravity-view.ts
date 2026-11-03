@@ -26,6 +26,7 @@ import type {
 import type { IdentifiedTrace } from './solution-view.js';
 import { pipePurchase, type StockLength } from './pipe-quantity.js';
 import { MATERIAL } from './pressurized-view.js';
+import { solventCementLabel } from './fitting-bom.js';
 
 function traceIdsFor(traces: readonly IdentifiedTrace[], ...ruleIds: string[]): readonly string[] {
   return traces.filter((trace) => ruleIds.includes(trace.ruleId)).map((trace) => trace.id);
@@ -450,7 +451,11 @@ export function gravityBomItemsFrom(
       row(en ? 'Tee / junction inspection box' : 'Tee / bak kontrol sambungan', runs, 'pcs'),
     );
   }
-  lines.push({ ...row(en ? 'PVC solvent cement' : 'Lem PVC', 1, 'kaleng', '-'), askPralon: true });
+  // Jenis solvent cement mengikuti ukuran jalurnya (masukan sales 2026-11-03).
+  lines.push({
+    ...row(solventCementLabel(result.recommendedSize, locale), 1, 'kaleng', '-'),
+    askPralon: true,
+  });
   return lines;
 }
 

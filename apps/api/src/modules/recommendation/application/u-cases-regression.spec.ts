@@ -164,7 +164,8 @@ describe('U1 — rumah 1 lantai, toren atap', () => {
     expect(sok.pending).toBeUndefined();
     expect(sok.quantity).toBeGreaterThan(0);
     expect(sok.basis).toContain('satu sok tiap sambungan');
-    expect(soil.filter((r) => r.pending).map((r) => r.item)).toEqual(['Dop', 'Lem PVC']);
+    // P33-03: jenis lemnya mengikuti ukuran jalur — air kotor 4" memakai slow dry.
+    expect(soil.filter((r) => r.pending).map((r) => r.item)).toEqual(['Dop', 'Lem PVC slow dry']);
   });
 
   it('toren atap 1 lantai kurang tekanan: pompa pendorong dengan pilihan dudukan toren (1d)', async () => {

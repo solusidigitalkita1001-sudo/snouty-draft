@@ -5,6 +5,8 @@ import {
   drainFittingNeeds,
   fittingBomRows,
   fittingKey,
+  pendingNeeds,
+  solventCement,
   supplyFittingNeeds,
 } from './fitting-bom.js';
 import type { IdentifiedTrace } from './solution-view.js';
@@ -92,5 +94,31 @@ describe('drainFittingNeeds', () => {
       ['waste', 'branch_y', drainage.waste!.size, 1],
       ['waste', 'vent_cap', drainage.waste!.ventSize, 1],
     ]);
+  });
+});
+
+/**
+ * Masukan sales Pralon 2026-11-03: "Solvent cement Pralon itu ada 2 pilihan … yang cepat kering
+ * itu untuk diameter 1/2" - 3", dan yang lambat kering buat diameter 4" - 12"".
+ */
+describe('solvent cement menurut ukuran jalur (P33-03)', () => {
+  it('sampai 3" quick dry, di atasnya slow dry', () => {
+    expect(solventCement('½"').id).toBe('Lem PVC quick dry');
+    expect(solventCement('3"').id).toBe('Lem PVC quick dry');
+    expect(solventCement('4"').id).toBe('Lem PVC slow dry');
+    expect(solventCement('12"').en).toBe('PVC solvent cement (slow dry)');
+  });
+
+  it('ukuran yang bukan inci atau tidak terbaca tetap tanpa jenis', () => {
+    expect(solventCement('110 mm').id).toBe('Lem PVC');
+    expect(solventCement('—').id).toBe('Lem PVC');
+  });
+
+  it('baris materialnya ikut: air kotor 4" slow dry, air bekas 2½" quick dry', () => {
+    const items = pendingNeeds([
+      { system: 'soil', size: '4"' },
+      { system: 'waste', size: '2½"' },
+    ]).filter((n) => n.unit === 'kaleng');
+    expect(items.map((n) => n.item.id)).toEqual(['Lem PVC slow dry', 'Lem PVC quick dry']);
   });
 });
