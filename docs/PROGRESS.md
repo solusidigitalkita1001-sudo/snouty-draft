@@ -4876,3 +4876,13 @@ menurut ukuran pipanya.
       2", acuan IPC Tabel 709.1 yang sama dengan alat lain di daftar itu dan dengan tanda yang
       sama — belum divalidasi tim teknis Pralon. Sisi air bersihnya disebut apa adanya: satu titik
       air seperti keran, dan kerannya bisa dicatat lewat keran tambahan (P33-04).
+
+- [x] P33-17 Pertanyaan "pipa gas ada?" dijawab ada atau tidak lebih dulu
+
+      Probe produksi 2026-11-03: "pipa buat gas elpiji ada?" dijawab paragraf tentang jalur gas
+      pada umumnya, lalu tabel ukuran MDPE dan HDPE gas di katalog. Isinya benar dan bersumber,
+      tetapi yang ditanya ada atau tidak — dan empat kata pertama jawabannya tidak menjawab itu.
+
+      Kalimat pertamanya sekarang menyebutnya: pipa gas ada di katalog Pralon, polietilen khusus
+      gas berwarna kuning, disambung las panas. Sisanya tidak berubah, termasuk bahwa instalasi gas
+      mengikuti ketentuan setempat dan dikerjakan pemasang berwenang.
