@@ -112,7 +112,7 @@ export type {
   TankStandOption,
   TankStandView,
 } from './recommendation.js';
-export { skuLines } from './recommendation.js';
+export { citedSources, skuLines } from './recommendation.js';
 export { boqFrom } from './boq.js';
 export type { Boq, BoqProduct, BoqRow, BoqSection } from './boq.js';
 export { isFlowSchematic } from './schematic.js';

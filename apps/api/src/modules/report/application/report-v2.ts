@@ -9,9 +9,10 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { ASSUMPTION_CATEGORIES, assumptionCategory } from '@snouty/engineering';
+import { ASSUMPTION_CATEGORIES, assumptionCategory, ruleStandard } from '@snouty/engineering';
 import {
   boqFrom,
+  citedSources,
   type Boq,
   type BoqRow,
   type Locale,
@@ -92,6 +93,7 @@ export interface ReportV2Copy {
     readonly status: string;
   };
   readonly assumptionsTitle: string;
+  readonly sourcesTitle: string;
   readonly assumptionCategories: Readonly<Record<(typeof ASSUMPTION_CATEGORIES)[number], string>>;
   readonly assumptionColumns: {
     readonly text: string;
@@ -289,6 +291,7 @@ export const REPORT_V2_COPY: Readonly<Record<Locale, ReportV2Copy>> = {
       status: 'STATUS',
     },
     assumptionsTitle: 'Asumsi',
+    sourcesTitle: 'Dasar &amp; Acuan',
     assumptionCategories: {
       building: 'Bangunan',
       fixtures: 'Isi ruangan',
@@ -387,6 +390,7 @@ export const REPORT_V2_COPY: Readonly<Record<Locale, ReportV2Copy>> = {
       status: 'STATUS',
     },
     assumptionsTitle: 'Assumptions',
+    sourcesTitle: 'Basis &amp; References',
     assumptionCategories: {
       building: 'Building',
       fixtures: 'Fixtures',
@@ -685,7 +689,9 @@ export function basisAssumptionsSection(
         rows
           .map(
             (a) =>
-              `<tr><td>${esc(a.text)}</td>` +
+              `<tr><td>${esc(a.text)}${
+                a.source === undefined ? '' : `<span class="step-src">${esc(a.source)}</span>`
+              }</td>` +
               `<td class="mono">${
                 a.value !== undefined
                   ? esc(`${decimal(a.value, p.locale)}${a.unit ? ` ${a.unit}` : ''}`)
@@ -698,11 +704,23 @@ export function basisAssumptionsSection(
     }).join('\n    ')}
   </table>`
       : '';
+  // Seluruh pedoman yang dipakai hitungan ini, sekali daftar — termasuk `standard` tiap aturan
+  // yang sudah dicetak per langkah di halaman penutup (permintaan pemilik 2026-11-03).
+  const cited = citedSources(
+    p,
+    p.basis.map((row) => ruleStandard(row.ruleId)),
+  );
+  const sources =
+    cited.length > 0
+      ? `<h3 class="subhead">${v.sourcesTitle}</h3>
+  <p class="sources">${cited.map((one) => esc(one)).join(' · ')}</p>`
+      : '';
   return `<section class="page">
   ${parts.sectionHead(n, v.basisAssumptionsTitle)}
   ${quantities}
   ${sizes}
   ${assumptions}
+  ${sources}
   ${legend}
 </section>`;
 }

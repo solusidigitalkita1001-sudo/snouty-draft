@@ -113,6 +113,36 @@ export interface SkuLine {
   readonly kind: 'pipe' | 'fitting';
 }
 
+/**
+ * Acuan yang dipakai sebuah hitungan, tanpa duplikat, urut kemunculan — dikumpulkan dari sumber
+ * tiap langkah dan tiap baris asumsi, ditambah kutipan lain yang sudah dipegang pemanggil (laporan
+ * memberi `standard` tiap aturan di halaman dasar perhitungan).
+ *
+ * Satu daftar menjawab pertanyaan yang tidak terjawab sumber per langkah: pedoman apa saja yang
+ * dipakai seluruh hitungan ini (pertanyaan pemilik 2026-11-03). Satu langkah boleh menyebut lebih
+ * dari satu dokumen, dipisah titik koma.
+ */
+export function citedSources(
+  of: {
+    readonly systemLines: readonly SystemLine[];
+    readonly assumptions: readonly Assumption[];
+  },
+  extra: readonly (string | null | undefined)[] = [],
+): readonly string[] {
+  const out: string[] = [];
+  const add = (value: string | null | undefined): void => {
+    if (value === null || value === undefined) return;
+    for (const part of value.split(';')) {
+      const one = part.trim();
+      if (one !== '' && !out.includes(one)) out.push(one);
+    }
+  };
+  for (const line of of.systemLines) for (const step of line.steps ?? []) add(step.source);
+  for (const assumption of of.assumptions) add(assumption.source);
+  for (const one of extra) add(one);
+  return out;
+}
+
 export function skuLines(recommendation: {
   readonly products: readonly SelectedProduct[];
   readonly bom: readonly { readonly productId?: string }[];

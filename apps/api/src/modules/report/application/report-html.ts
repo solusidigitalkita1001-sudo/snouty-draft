@@ -850,6 +850,7 @@ tr, .r-need, .r-product { break-inside: avoid; }
 .grid.steps td, .grid.steps th { padding: 1mm 2mm; line-height: 1.35; }
 .step-no { width: 6mm; color: ${C['snouty-caption']}; font-size: 8pt; }
 .step-src { display: block; margin-top: 0.6mm; font-family: 'IBM Plex Mono', 'Liberation Mono', monospace; font-size: 6.6pt; color: ${C['snouty-caption']}; }
+.sources { margin: 1mm 0 0; font-family: 'IBM Plex Mono', 'Liberation Mono', monospace; font-size: 7pt; line-height: 1.5; color: ${C['snouty-caption']}; }
 .formula { font-family: 'IBM Plex Mono', 'Liberation Mono', monospace; font-size: 7.4pt; line-height: 1.35; color: ${C['snouty-ink']}; }
 .grid.compact td, .grid.compact th { padding: 1.5mm 2mm; }
 

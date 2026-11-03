@@ -1,7 +1,7 @@
-/** P33-22: satu daftar pedoman di bawah rekomendasi, dikumpulkan dari langkah dan asumsi. */
+/** P33-22/P33-24: satu daftar pedoman di bawah rekomendasi, dikumpulkan dari langkah dan asumsi. */
 import { describe, expect, it } from 'vitest';
-import type { Recommendation } from '@snouty/shared-types';
-import { citedSources } from './solution-sources';
+import type { Recommendation } from './recommendation.js';
+import { citedSources } from './recommendation.js';
 
 const recommendation = (over: Partial<Recommendation>): Recommendation =>
   ({ systemLines: [], assumptions: [], ...over }) as unknown as Recommendation;

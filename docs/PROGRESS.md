@@ -4945,3 +4945,17 @@ menurut ukuran pipanya.
       dikumpulkan dari langkah dan asumsinya, tanpa duplikat — bentuk yang sama dengan blok acuan
       pada gambar kerja. Spanduk "panduan perencanaan, bukan sertifikasi teknis" tetap di
       tempatnya.
+
+- [x] P33-24 Acuan ikut tercetak di laporan
+
+      Permintaan pemilik 2026-11-03, menyusul P33-20..22: acuan jangan hanya di layar. Halaman
+      dasar perhitungan laporan sebenarnya sudah mencetak kode plambing tiap langkah sejak
+      27 Okt, yang belum ikut dua yang baru — kutipan tiap baris asumsi, dan daftar pedomannya.
+
+      Keduanya sekarang tercetak: tiap asumsi yang angkanya dari dokumen bernama membawa
+      kutipannya di bawah kalimatnya, bentuk yang sama dengan sumber per langkah, dan di bawah
+      tabel asumsi ada blok "Dasar & Acuan" berisi seluruh dokumen yang dipakai hitungan itu,
+      sekali saja walau dipakai banyak langkah. Pengumpul daftarnya pindah ke paket bersama supaya
+      layar dan laporan memakai satu fungsi, bukan dua salinan yang bisa berbeda — di laporan ia
+      juga membaca kutipan tiap aturan dari halaman langkah, jadi daftarnya tidak kurang dari apa
+      yang sudah tercetak di halaman itu.

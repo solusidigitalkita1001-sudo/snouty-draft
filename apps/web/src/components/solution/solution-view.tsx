@@ -1,6 +1,7 @@
 'use client';
 
 import type { AnySchematic } from '@snouty/shared-types';
+import { citedSources } from '@snouty/shared-types';
 
 /**
  * Layar 06 — workspace solusi, dan kartu produk layar 07.
@@ -35,7 +36,6 @@ import { SchematicTab } from './schematic-tab';
 import { solutionCopy } from './solution-copy';
 import { useLocale } from '../locale';
 import { ProvenanceTag } from './provenance-tag';
-import { citedSources } from './solution-sources';
 import styles from './solution.module.css';
 
 /** Teks UI mengikuti bahasa yang dipilih (Fase 15). */

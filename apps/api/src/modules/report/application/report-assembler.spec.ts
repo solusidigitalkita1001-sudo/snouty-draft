@@ -253,6 +253,21 @@ describe('renderReportHtml', () => {
     expect(stepsTable).toContain('IPC Appendix E, Table E103.3(3)</span>');
   });
 
+  // Permintaan pemilik 2026-11-03: acuan ikut ke laporan, bukan hanya di layar.
+  it('tiap asumsi yang angkanya dari dokumen bernama mencetak kutipannya', () => {
+    const assumptions = html.slice(html.indexOf('>Asumsi<'));
+    expect(assumptions).toContain('<span class="step-src">UPC Table A 103.1</span>');
+  });
+
+  it('seluruh pedoman yang dipakai hitungan disebut sekali, di halaman dasar perhitungan', () => {
+    const block = html.slice(html.indexOf('>Dasar &amp; Acuan<'));
+    const list = block.slice(0, block.indexOf('</p>'));
+    expect(list).toContain('UPC Table A 103.1');
+    expect(list).toContain('Hazen-Williams (SI)');
+    // Sekali saja, walau dipakai beberapa langkah dan beberapa asumsi.
+    expect(list.split('UPC Table A 103.1').length - 1).toBe(1);
+  });
+
   it('memuat logo Pralon dan maskot SNOUTY sebagai gambar tersisip, footer bernomor halaman', () => {
     expect(html.split("url('data:image/png;base64,").length - 1).toBe(2);
     expect(html).toContain('<script type="text/plain" id="snouty-pdf-footer">');
