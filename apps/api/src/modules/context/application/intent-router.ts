@@ -60,6 +60,20 @@ function coreFactsInText(message: string): number {
 }
 
 /**
+ * Data inti yang bercerita tentang BANGUNAN. Jenis instalasi tidak ikut dihitung: di sebuah
+ * pertanyaan produk ia tujuan pipanya ("for sewer", "buat pembuangan"), bukan cerita tentang
+ * bangunan — dan produksi 2026-11-03 menjawab "do you have 6 inch pipe for sewer?" dengan
+ * "sudah saya catat: pembuangan" berikut formulir.
+ */
+function buildingFactsInText(message: string): number {
+  return extractionToUpdates({}, message).filter(
+    (u) =>
+      (CORE_REQUIREMENT_FIELDS as readonly string[]).includes(u.path) &&
+      u.path !== 'water.installationType',
+  ).length;
+}
+
+/**
  * Label CONTOH yang jawabannya menutup giliran: di luar topik, urusan komersial, dan pertanyaan
  * tentang apa yang bisa dikerjakan di sini. Ketiganya dijawab teks tetap, dan isyarat kebutuhan di
  * pesan tidak boleh membatalkannya — lihat `withRequirementPrecedence`.
@@ -250,17 +264,17 @@ export function withRequirementPrecedence(
   const recommendationAsLookup =
     classification.intent === 'PRODUCT_LOOKUP' && u.intent?.label === 'advice_request';
   // Pertanyaan produk/pengetahuan yang cuma menyebut tempat ("bedanya pvc aw dan pvc d buat
-  // rumah saya?") tanpa satu pun data inti (lantai, kamar mandi, sumber, jenis instalasi) tetap
-  // pertanyaan produk — ditarik ke ekstraksi hanya memberi formulir, bukan jawaban (audit live
-  // 2026-10-08). Permintaan rekomendasi tetap jalur kebutuhan: nasihatnya memang butuh kebutuhan.
-  // Kecuali bila tempatnya disebut bersama fluida di luar cakupan ("pipa jalur air panas boiler
-  // hotel"): itu kebutuhan yang harus kena kebijakan cakupan, bukan pertanyaan produk yang berakhir
-  // "Produk mana…" (verifikasi live P16-14).
+  // rumah saya?") tanpa cerita tentang bangunan — nol atau satu data inti saja (lantai, kamar
+  // mandi, sumber, jenis instalasi) — tetap pertanyaan produk: ditarik ke ekstraksi ia hanya
+  // memberi formulir, bukan jawaban (audit live 2026-10-08). Permintaan rekomendasi tetap jalur
+  // kebutuhan: nasihatnya memang butuh kebutuhan. Kecuali bila tempatnya disebut bersama fluida
+  // di luar cakupan ("pipa jalur air panas boiler hotel"): itu kebutuhan yang harus kena kebijakan
+  // cakupan, bukan pertanyaan produk yang berakhir "Produk mana…" (verifikasi live P16-14).
   const productOnly =
     isProductQuestion(u.intent?.label) &&
     u.intent?.label !== 'advice_request' &&
     !u.mentionsOutOfScopeFluid &&
-    coreFactsInText(u.text) === 0;
+    buildingFactsInText(u.text) === 0;
   // Pertanyaan bertopik fakta ("pipa conduit buat kabel listrik rumah", "jalur gas rumah") tetap
   // dijawab dari pengetahuan walau menyebut tempat — "rumah" di sini bukan kebutuhan bangunan.
   const knowledge = classification.intent === 'PRODUCT_LOOKUP' && answersFromKnowledge(u, hasCase);
@@ -354,6 +368,11 @@ export function fastPathIntent(
   hasExistingRequirements: boolean,
 ): IntentClassification | null {
   if (hasExistingRequirements) return null;
+  // Pertanyaan tentang produk punya jalurnya sendiri. "do you have 6 inch pipe for sewer?"
+  // menyebut sisi buangan sebagai TUJUAN, dan tanpa pagar ini jalan cepat menjadikannya
+  // pernyataan kebutuhan: produksi 2026-11-03 menjawabnya "sudah saya catat: pembuangan"
+  // berikut formulir, bukan ketersediaan ukuran yang ditanya.
+  if (PRODUCT_QUESTION_INTENTS.has(u.intent?.label ?? '')) return null;
   if (
     !u.mentionsRequirement ||
     u.intent?.label === 'explanation_request' ||

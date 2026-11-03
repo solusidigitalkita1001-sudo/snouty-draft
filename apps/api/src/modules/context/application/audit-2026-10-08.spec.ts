@@ -141,6 +141,28 @@ describe('router — Policy 1, subjek perusahaan, pertanyaan produk ber-"rumah"'
     );
     expect(need.intent).toBe('REQUIREMENT_STATEMENT');
   });
+
+  // Produksi 2026-11-03: "do you have 6 inch pipe for sewer?" dijawab "sudah saya catat:
+  // pembuangan" berikut formulir — tujuan pipanya dihitung sebagai cerita tentang bangunan.
+  it('tujuan pipa di pertanyaan ketersediaan bukan kebutuhan bangunan', async () => {
+    const { ai, calls } = aiFor();
+    const d = await new IntentRouter(ai).route(
+      understood('do you have 6 inch pipe for sewer?', { intent: 'product_spec' }),
+      false,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+    expect(calls.classify).toBe(0);
+  });
+
+  it('ketersediaan di bangunan yang diceritakan tetap kebutuhan', async () => {
+    const d = await new IntentRouter(aiFor().ai).route(
+      understood('ada pipa 4 inch buat pembuangan rumah 2 lantai 3 kamar mandi?', {
+        intent: 'product_spec',
+      }),
+      false,
+    );
+    expect(d.intent).toBe('REQUIREMENT_STATEMENT');
+  });
 });
 
 describe('ruas produk — pemeta model, subjek, istilah katalog', () => {

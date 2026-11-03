@@ -4779,3 +4779,16 @@ menurut ukuran pipanya.
       Kalimat lapangan yang membawa kata pembedanya (pasir, dilewatin mobil, dilindas kendaraan)
       kini menemukan topik penimbunan, di dua bahasa. Jawabannya bersumber, dengan angka
       perencanaan yang tetap bertanda belum divalidasi tim teknis Pralon.
+
+- [x] P33-09 Tujuan pipa di pertanyaan ketersediaan bukan cerita tentang bangunan
+
+      Setelah P33-07, "do you have 6 inch pipe for sewer?" tidak lagi membuka kasus gedung —
+      tetapi dijawab "sudah saya catat: pembuangan" berikut formulir kebutuhan. Sebabnya kata
+      "sewer" terbaca sebagai jenis instalasi, dan satu data inti sudah cukup membuat jalan cepat
+      memperlakukan pesannya sebagai pernyataan kebutuhan.
+
+      Di pertanyaan produk, jenis instalasi adalah tujuan pipanya, bukan cerita tentang bangunan,
+      jadi ia tidak lagi ikut dihitung sebagai data inti di sana. Pertanyaan produk juga tidak
+      lagi lewat jalan cepat kebutuhan; jalurnya sendiri yang menjawab. Ketersediaan yang memang
+      menyertakan bangunannya ("ada pipa 4 inch buat pembuangan rumah 2 lantai 3 kamar mandi?")
+      tetap kebutuhan.
