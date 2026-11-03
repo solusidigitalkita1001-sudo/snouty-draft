@@ -2293,6 +2293,34 @@
       "topics": ["solvent cement"],
       "topicsOnly": true,
       "source": "masukan sales 2026-11-03"
+    },
+    {
+      "text": "do you have 6 inch pipe for sewer?",
+      "intent": "product_spec",
+      "useCase": null,
+      "source": "produksi 2026-11-03 — membuka kasus gedung bertingkat"
+    },
+    {
+      "text": "ada pipa 6 inci buat saluran air kotor?",
+      "intent": "product_spec",
+      "useCase": null,
+      "source": "produksi 2026-11-03"
+    },
+    {
+      "text": "harus dikasih pasir ngga?",
+      "topics": [
+        "penimbunan"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-03 — dijawab model 18,6 detik"
+    },
+    {
+      "text": "kalau dilewatin mobil gimana?",
+      "topics": [
+        "penimbunan"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-03 — dijawab kalimat pembuka 27 detik"
     }
   ]
 }

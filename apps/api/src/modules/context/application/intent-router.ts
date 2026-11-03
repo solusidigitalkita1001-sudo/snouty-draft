@@ -606,6 +606,17 @@ export class IntentRouter {
   }
 }
 
+/**
+ * Intent yang menanyakan PRODUK: ketersediaan, ukuran, jenis, perbandingan. Pesan seperti ini
+ * tidak pernah membuka kasus teknis, meskipun ia membawa angka dan menyebut hal kebutuhan.
+ */
+const PRODUCT_QUESTION_INTENTS: ReadonlySet<string> = new Set([
+  'product_spec',
+  'product_range',
+  'product_concept',
+  'product_comparison',
+]);
+
 /** Topik pertanyaan hitung yang menang atas bentuk kalimat kebutuhan. */
 const CALCULATION_TOPICS: ReadonlySet<string> = new Set(['jumlah batang']);
 
@@ -618,6 +629,11 @@ const CALCULATION_TOPICS: ReadonlySet<string> = new Set(['jumlah batang']);
  */
 export function isCaseStatement(u: MessageUnderstanding): boolean {
   if (u.useCase === null || !u.mentionsRequirement || !/\d/.test(u.text)) return false;
+  // Pertanyaan tentang produk bukan pernyataan kasus, sebesar apa pun kemiripannya dengan contoh
+  // kasus. Produksi 2026-11-03: "do you have 6 inch pipe for sewer?" membuka kasus gedung
+  // bertingkat lalu menanyakan jumlah lantai dan tinggi antar lantai — yang ditanya ketersediaan
+  // satu ukuran pipa.
+  if (u.intent !== null && PRODUCT_QUESTION_INTENTS.has(u.intent.label)) return false;
   if (!u.knowledgeTopics.some((t) => CALCULATION_TOPICS.has(t))) return true;
   // Topik hitungan hanya mengalahkan pernyataan kasus bila pesannya memang hanya menyebut panjang
   // jalurnya ("27 meter butuh berapa batang?"). "Pipa yg cocok buat proyek perumahan 50 unit?"

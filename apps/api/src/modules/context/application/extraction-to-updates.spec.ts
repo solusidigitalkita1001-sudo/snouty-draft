@@ -290,7 +290,7 @@ describe('angka satu lantai tidak menurunkan totalnya (produksi 2026-11-03)', ()
         { path: 'building.floors', value: 2, source: 'user_stated' },
         { path: 'fixtures.bathrooms', value: 3, source: 'user_stated' },
       ],
-      new Date('2026-11-03T00:00:00.000Z'),
+      '2026-11-03T00:00:00.000Z',
     ).state;
 
   const run = (message: string) =>

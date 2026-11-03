@@ -1668,7 +1668,7 @@ describe('keterangan satu lantai (P33-05)', () => {
           { path: 'fixtures.bathrooms', value: 3, source: 'user_stated' },
           { path: 'water.source', value: 'municipal', source: 'user_stated' },
         ],
-        new Date(T0),
+        T0,
       ).state,
     );
 

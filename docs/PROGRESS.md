@@ -4752,3 +4752,30 @@ menurut ukuran pipanya.
       Kosakata kamar sewa yang tersurat di pesan sekarang cukup: kos, kosan, kontrakan, indekos,
       asrama, boarding house. Jenis bangunannya tidak diubah — ruko tetap ruko, kamarnya yang
       dibaca. Kamar tidur rumah tetap bukan kamar sewa, dan "lantai 2 masih kosong" bukan kos.
+
+- [x] P33-07 Pertanyaan ketersediaan produk tidak membuka kasus bangunan
+
+      Probe produksi 2026-11-03: "do you have 6 inch pipe for sewer?" dijawab dengan membuka kasus
+      gedung bertingkat — jumlah lantai, tinggi antar lantai, jumlah toilet — lalu dua pertanyaan
+      berikutnya di percakapan yang sama ("what pressure class?", "and the length per stick?")
+      ikut terseret ke kasus itu dan dijawab kalimat yang tidak berhubungan setelah 27 detik.
+      Sebabnya kalimat itu mirip contoh kasus gedung ("water pipes for a six floor building"),
+      membawa angka, dan menyebut hal kebutuhan — tiga syarat yang membuatnya dibaca sebagai
+      pernyataan kasus.
+
+      Ketersediaan dengan tujuan sekarang dikenali sebagai pertanyaan produk, di dua bahasa, dan
+      tujuannya ("for sewer", "buat saluran air kotor") tidak lagi menarik kasus apa pun. Di atas
+      data itu ada pagar: pertanyaan tentang produk — ketersediaan, ukuran, jenis, perbandingan —
+      tidak pernah membuka kasus teknis, sebesar apa pun kemiripannya dengan contoh kasus.
+
+- [x] P33-08 Pertanyaan lapangan dijawab fakta penimbunan yang sudah ada
+
+      Probe produksi 2026-11-03: "harus dikasih pasir ngga?" dijawab model 18,6 detik dengan
+      ikhtisar katalog, dan "kalau dilewatin mobil gimana?" 27 detik dengan kalimat pembuka. Fakta
+      penimbunan sudah memuat keduanya — lapisan pasir di dasar galian, pemadatan di sisi pipa,
+      dan timbunan minimum di bawah jalan yang dilewati kendaraan — tetapi tak satu pun kalimat
+      pendek itu sampai ke topiknya.
+
+      Kalimat lapangan yang membawa kata pembedanya (pasir, dilewatin mobil, dilindas kendaraan)
+      kini menemukan topik penimbunan, di dua bahasa. Jawabannya bersumber, dengan angka
+      perencanaan yang tetap bertanda belum divalidasi tim teknis Pralon.

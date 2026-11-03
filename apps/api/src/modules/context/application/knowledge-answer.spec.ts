@@ -573,6 +573,40 @@ describe('isCaseStatement (MA-06 / MA-07)', () => {
       ),
     ).toBe(false);
   });
+
+  // Produksi 2026-11-03: "do you have 6 inch pipe for sewer?" membuka kasus gedung bertingkat dan
+  // menanyakan jumlah lantai — yang ditanya ketersediaan satu ukuran pipa.
+  it('pertanyaan produk tidak membuka kasus walau membawa angka dan hal kebutuhan', async () => {
+    const { isCaseStatement } = await import('./intent-router.js');
+    expect(
+      isCaseStatement(
+        understood('do you have 6 inch pipe for sewer?', {
+          intent: 'product_spec',
+          useCase: 'multistorey_building_water',
+          mentionsRequirement: true,
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isCaseStatement(
+        understood('ada pipa 6 inci buat saluran air kotor?', {
+          intent: 'product_spec',
+          useCase: 'sewerage',
+          mentionsRequirement: true,
+        }),
+      ),
+    ).toBe(false);
+    // Kebutuhan yang memang menyatakan kasusnya tetap kasus.
+    expect(
+      isCaseStatement(
+        understood('gedung 8 lantai, pipa air utama 4 inch', {
+          intent: 'requirement_technical',
+          useCase: 'multistorey_building_water',
+          mentionsRequirement: true,
+        }),
+      ),
+    ).toBe(true);
+  });
 });
 
 describe('answersFromKnowledge — pertanyaan bentuk sistem sendiri (P22-02)', () => {
