@@ -74,6 +74,48 @@ describe('extractionToUpdates — fakta tersurat yang dilewatkan model', () => {
   });
 });
 
+/**
+ * Masukan sales 2026-11-03: "bisa ditambahin pilihan titik air tambahan, kayak keran di luar,
+ * atau keran di lantai atas". Keran yang letaknya tersurat punya fieldnya sendiri.
+ */
+describe('keran tambahan yang letaknya disebut (P33-04)', () => {
+  it('disebut tanpa angka berarti satu, dengan angka berarti angkanya', () => {
+    expect(
+      extractionToUpdates({}, 'rumah 1 lantai 2 kamar mandi, ada keran taman di luar juga'),
+    ).toContainEqual({ path: 'fixtures.outdoorTaps', value: 1, source: 'user_stated' });
+    expect(extractionToUpdates({}, 'ada 2 keran di lantai atas buat cuci baju')).toContainEqual({
+      path: 'fixtures.upperFloorTaps',
+      value: 2,
+      source: 'user_stated',
+    });
+    expect(extractionToUpdates({}, 'there is an outdoor tap for the garden')).toContainEqual({
+      path: 'fixtures.outdoorTaps',
+      value: 1,
+      source: 'user_stated',
+    });
+  });
+
+  it('peniadaan tetap nol, dan keran berletak bukan jumlah titik air rumah', () => {
+    expect(extractionToUpdates({}, 'tidak ada keran di luar')).toContainEqual({
+      path: 'fixtures.outdoorTaps',
+      value: 0,
+      source: 'user_stated',
+    });
+    const outlets = extractionToUpdates({}, '2 keran taman di luar').filter(
+      (u) => u.path === 'fixtures.outletCount',
+    );
+    expect(outlets).toEqual([]);
+  });
+
+  it('keran telanjang tetap titik air biasa', () => {
+    expect(extractionToUpdates({}, 'rumahnya ada 6 keran')).toContainEqual({
+      path: 'fixtures.outletCount',
+      value: 6,
+      source: 'user_stated',
+    });
+  });
+});
+
 describe('sisi buangan yang disebut di tengah kasus air bersih (P33-01)', () => {
   const T0 = '2026-11-03T00:00:00.000Z';
   const cleanWaterHouse = mergeRequirement(

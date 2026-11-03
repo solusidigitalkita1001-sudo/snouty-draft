@@ -33,6 +33,10 @@ export interface FloorPlanInput {
   readonly bathrooms: number;
   readonly basins: number;
   readonly kitchens: number;
+  /** Keran di luar rumah (taman, cuci kendaraan) — di lantai dasar. */
+  readonly outdoorTaps?: number;
+  /** Keran tambahan di dalam rumah (ruang cuci, dapur atas) — di lantai teratas. */
+  readonly upperFloorTaps?: number;
   readonly floorHeightM: number;
 }
 
@@ -41,6 +45,8 @@ export interface FloorNode {
   readonly bathrooms: number;
   readonly basins: number;
   readonly kitchens: number;
+  /** Keran tambahan di lantai ini: keran luar di lantai dasar, keran tambahan di lantai teratas. */
+  readonly taps: number;
   /** Meter dari lantai dasar. */
   readonly elevationM: number;
 }
@@ -81,10 +87,12 @@ export function distributeAcrossFloors(
 
 export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
   ruleId: 'ENG-008',
+  // v3 (P33-04, masukan sales 2026-11-03): keran tambahan ikut sebarannya — keran luar di lantai
+  // dasar, keran tambahan di lantai teratas.
   // v2 (2026-10-13, laporan SNTY-2026-10-0015): jumlah per lantai selalu sama dengan masukan —
   // v1 memberi setiap lantai minimal 1 wastafel dan membulatkan per lantai. Sisa kamar mandi ke
   // lantai teratas, sisa wastafel ke lantai 1, dapur di lantai 1 (keputusan pemilik 2026-10-13).
-  version: 2,
+  version: 3,
   category: 'geometry',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -93,6 +101,16 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
       bathrooms: requireInt('ENG-008', 'bathrooms', o['bathrooms'], { max: 200 }),
       basins: requireInt('ENG-008', 'basins', o['basins'], { max: 200 }),
       kitchens: requireInt('ENG-008', 'kitchens', o['kitchens'], { max: 100 }),
+      ...(o['outdoorTaps'] === undefined
+        ? {}
+        : { outdoorTaps: requireInt('ENG-008', 'outdoorTaps', o['outdoorTaps'], { max: 50 }) }),
+      ...(o['upperFloorTaps'] === undefined
+        ? {}
+        : {
+            upperFloorTaps: requireInt('ENG-008', 'upperFloorTaps', o['upperFloorTaps'], {
+              max: 50,
+            }),
+          }),
       floorHeightM: requireNumber('ENG-008', 'floorHeightM', o['floorHeightM'], {
         min: 2,
         max: 10,
@@ -102,6 +120,11 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
   compute: (input) => {
     const bathrooms = distributeAcrossFloors(input.bathrooms, input.floors, 'top');
     const basins = distributeAcrossFloors(input.basins, input.floors, 'bottom');
+    // Keran tambahan duduk di lantai yang disebut namanya: keran luar di lantai dasar bersama
+    // dapur, keran tambahan di lantai teratas — di rumah satu lantai keduanya di lantai yang sama
+    // (masukan sales 2026-11-03: "pilihan titik air tambahan, kayak keran di luar, atau keran di
+    // lantai atas").
+    const top = input.floors;
     const plan: FloorNode[] = bathrooms.map((count, k) => {
       const floor = input.floors - k;
       return {
@@ -109,6 +132,9 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
         bathrooms: count,
         basins: basins[k]!,
         kitchens: floor === 1 ? input.kitchens : 0,
+        taps:
+          (floor === 1 ? (input.outdoorTaps ?? 0) : 0) +
+          (floor === top ? (input.upperFloorTaps ?? 0) : 0),
         elevationM: (floor - 1) * input.floorHeightM,
       };
     });
@@ -123,8 +149,8 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
       input: { floors: 2, bathrooms: 3, basins: 4, kitchens: 1, floorHeightM: 3.5 },
       expected: {
         floorsPlan: [
-          { floor: 2, bathrooms: 2, basins: 2, kitchens: 0, elevationM: 3.5 },
-          { floor: 1, bathrooms: 1, basins: 2, kitchens: 1, elevationM: 0 },
+          { floor: 2, bathrooms: 2, basins: 2, kitchens: 0, taps: 0, elevationM: 3.5 },
+          { floor: 1, bathrooms: 1, basins: 2, kitchens: 1, taps: 0, elevationM: 0 },
         ],
       },
     },
@@ -133,8 +159,8 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
       input: { floors: 2, bathrooms: 2, basins: 1, kitchens: 1, floorHeightM: 3.5 },
       expected: {
         floorsPlan: [
-          { floor: 2, bathrooms: 1, basins: 0, kitchens: 0, elevationM: 3.5 },
-          { floor: 1, bathrooms: 1, basins: 1, kitchens: 1, elevationM: 0 },
+          { floor: 2, bathrooms: 1, basins: 0, kitchens: 0, taps: 0, elevationM: 3.5 },
+          { floor: 1, bathrooms: 1, basins: 1, kitchens: 1, taps: 0, elevationM: 0 },
         ],
       },
     },
@@ -143,9 +169,9 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
       input: { floors: 3, bathrooms: 5, basins: 4, kitchens: 1, floorHeightM: 3.5 },
       expected: {
         floorsPlan: [
-          { floor: 3, bathrooms: 2, basins: 1, kitchens: 0, elevationM: 7 },
-          { floor: 2, bathrooms: 2, basins: 1, kitchens: 0, elevationM: 3.5 },
-          { floor: 1, bathrooms: 1, basins: 2, kitchens: 1, elevationM: 0 },
+          { floor: 3, bathrooms: 2, basins: 1, kitchens: 0, taps: 0, elevationM: 7 },
+          { floor: 2, bathrooms: 2, basins: 1, kitchens: 0, taps: 0, elevationM: 3.5 },
+          { floor: 1, bathrooms: 1, basins: 2, kitchens: 1, taps: 0, elevationM: 0 },
         ],
       },
     },
@@ -153,7 +179,40 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
       name: 'satu lantai: semuanya di lantai dasar, elevasi nol',
       input: { floors: 1, bathrooms: 2, basins: 1, kitchens: 1, floorHeightM: 3.5 },
       expected: {
-        floorsPlan: [{ floor: 1, bathrooms: 2, basins: 1, kitchens: 1, elevationM: 0 }],
+        floorsPlan: [{ floor: 1, bathrooms: 2, basins: 1, kitchens: 1, taps: 0, elevationM: 0 }],
+      },
+    },
+    {
+      name: 'keran tambahan: keran luar di lantai 1, keran lantai atas di lantai teratas',
+      input: {
+        floors: 2,
+        bathrooms: 2,
+        basins: 2,
+        kitchens: 1,
+        outdoorTaps: 1,
+        upperFloorTaps: 2,
+        floorHeightM: 3.5,
+      },
+      expected: {
+        floorsPlan: [
+          { floor: 2, bathrooms: 1, basins: 1, kitchens: 0, taps: 2, elevationM: 3.5 },
+          { floor: 1, bathrooms: 1, basins: 1, kitchens: 1, taps: 1, elevationM: 0 },
+        ],
+      },
+    },
+    {
+      name: 'rumah satu lantai: keran luar dan keran tambahan duduk di lantai yang sama',
+      input: {
+        floors: 1,
+        bathrooms: 1,
+        basins: 1,
+        kitchens: 1,
+        outdoorTaps: 1,
+        upperFloorTaps: 1,
+        floorHeightM: 3,
+      },
+      expected: {
+        floorsPlan: [{ floor: 1, bathrooms: 1, basins: 1, kitchens: 1, taps: 2, elevationM: 0 }],
       },
     },
   ],

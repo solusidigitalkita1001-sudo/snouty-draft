@@ -32,6 +32,8 @@ export function emptyRequirementState(now: string): RequirementState {
       wudhuAreas: empty(now),
       urinals: empty(now),
       bathroomsPerRoom: empty(now),
+      outdoorTaps: empty(now),
+      upperFloorTaps: empty(now),
     },
     water: {
       source: empty(now),

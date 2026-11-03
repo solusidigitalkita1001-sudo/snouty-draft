@@ -233,6 +233,28 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
             max: 100,
           }),
         ]),
+    // Keran tambahan (P33-04, masukan sales 2026-11-03): barisnya tampil hanya bila memang
+    // disebut — state lama tidak punya fieldnya, dan rumah tanpa keran taman tidak perlu barisnya.
+    ...(state.fixtures.outdoorTaps?.value === null || state.fixtures.outdoorTaps === undefined
+      ? []
+      : [
+          row('fixtures.outdoorTaps', 'Keran luar', state.fixtures.outdoorTaps, String, {
+            kind: 'number',
+            min: 0,
+            max: 50,
+          }),
+        ]),
+    ...(state.fixtures.upperFloorTaps?.value === null || state.fixtures.upperFloorTaps === undefined
+      ? []
+      : [
+          row(
+            'fixtures.upperFloorTaps',
+            'Keran lantai atas',
+            state.fixtures.upperFloorTaps,
+            String,
+            { kind: 'number', min: 0, max: 50 },
+          ),
+        ]),
     row('water.source', 'Sumber air', state.water.source, labelOf(SOURCE), {
       kind: 'select',
       options: SOURCE,

@@ -62,6 +62,8 @@ export const ALL_FIELD_PATHS: readonly RequirementFieldPath[] = [
   'fixtures.wudhuAreas',
   'fixtures.urinals',
   'fixtures.bathroomsPerRoom',
+  'fixtures.outdoorTaps',
+  'fixtures.upperFloorTaps',
   'water.source',
   'water.installationType',
   'water.boosterPump',

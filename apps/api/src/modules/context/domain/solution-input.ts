@@ -48,6 +48,9 @@ export function solutionInputFrom(state: RequirementState): SolutionInput {
     wudhuTaps: state.fixtures.wudhuTaps?.value ?? null,
     wudhuAreas: state.fixtures.wudhuAreas?.value ?? null,
     urinals: state.fixtures.urinals?.value ?? null,
+    // Keran tambahan di luar kamar mandi dan dapur (P33-04).
+    outdoorTaps: state.fixtures.outdoorTaps?.value ?? null,
+    upperFloorTaps: state.fixtures.upperFloorTaps?.value ?? null,
     waterSource: (state.water.source.value ?? 'rooftop_tank') as SolutionInput['waterSource'],
     installationType: (state.water.installationType.value ??
       'clean_water') as SolutionInput['installationType'],

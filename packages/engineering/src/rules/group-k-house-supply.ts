@@ -88,10 +88,13 @@ export interface SupplyDemandInput {
   readonly showers: number;
   readonly lavatories: number;
   readonly kitchenSinks: number;
+  /** Keran tambahan di luar kamar mandi dan dapur (P33-04); tanpa keran tambahan 0. */
+  readonly taps?: number;
   readonly wsfuWaterCloset: number;
   readonly wsfuShower: number;
   readonly wsfuLavatory: number;
   readonly wsfuKitchenSink: number;
+  readonly wsfuTap?: number;
 }
 export interface SupplyDemandResult {
   readonly wsfu: number;
@@ -105,13 +108,15 @@ export function houseSupplyWsfu(i: SupplyDemandInput): number {
     i.waterClosets * i.wsfuWaterCloset +
     i.showers * i.wsfuShower +
     i.lavatories * i.wsfuLavatory +
-    i.kitchenSinks * i.wsfuKitchenSink
+    i.kitchenSinks * i.wsfuKitchenSink +
+    (i.taps ?? 0) * (i.wsfuTap ?? 0)
   );
 }
 
 export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
   ruleId: 'ENG-701',
-  version: 1,
+  // v2 (P33-04): keran tambahan ikut beban suplai.
+  version: 2,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -122,10 +127,12 @@ export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
       showers: count('showers'),
       lavatories: count('lavatories'),
       kitchenSinks: count('kitchenSinks'),
+      ...(o['taps'] === undefined ? {} : { taps: count('taps') }),
       wsfuWaterCloset: unit('wsfuWaterCloset'),
       wsfuShower: unit('wsfuShower'),
       wsfuLavatory: unit('wsfuLavatory'),
       wsfuKitchenSink: unit('wsfuKitchenSink'),
+      ...(o['wsfuTap'] === undefined ? {} : { wsfuTap: unit('wsfuTap') }),
     };
   },
   compute: (i) => {
@@ -156,6 +163,22 @@ export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
       },
       expected: { wsfu: 10.6, peakFlowGpm: 15.1, peakFlowLs: 0.951 },
     },
+    {
+      name: '2 keran tambahan × 2,5 menambah 5 unit beban',
+      input: {
+        waterClosets: 1,
+        showers: 1,
+        lavatories: 1,
+        kitchenSinks: 1,
+        taps: 2,
+        wsfuWaterCloset: 2.5,
+        wsfuShower: 2,
+        wsfuLavatory: 1,
+        wsfuKitchenSink: 1.5,
+        wsfuTap: 2.5,
+      },
+      expected: { wsfu: 12, peakFlowGpm: 16, peakFlowLs: 1.009 },
+    },
   ],
   explain: (i, o, locale) => {
     const parts = (
@@ -164,6 +187,7 @@ export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
         [i.showers, i.wsfuShower, 'shower', 'showers'],
         [i.lavatories, i.wsfuLavatory, 'wastafel', 'basins'],
         [i.kitchenSinks, i.wsfuKitchenSink, 'bak cuci dapur', 'kitchen sinks'],
+        [i.taps ?? 0, i.wsfuTap ?? 0, 'keran tambahan', 'extra taps'],
       ] as const
     ).filter(([n]) => n > 0);
     return localized(locale, {
@@ -579,6 +603,8 @@ export interface BranchFillInput {
     readonly kitchens: number;
     /** Urinoir toilet umum (tempat ibadah); 0 untuk rumah. */
     readonly urinals: number;
+    /** Keran tambahan di lantai ini (P33-04); 0 bila tidak ada. */
+    readonly taps?: number;
   }[];
   readonly maxOutletsPerBranch: number;
   readonly wsfuWaterCloset: number;
@@ -586,6 +612,7 @@ export interface BranchFillInput {
   readonly wsfuLavatory: number;
   readonly wsfuKitchenSink: number;
   readonly wsfuUrinal: number;
+  readonly wsfuTap?: number;
 }
 export interface FilledBranch {
   readonly floor: number;
@@ -593,6 +620,7 @@ export interface FilledBranch {
   readonly basins: number;
   readonly kitchens: number;
   readonly urinals: number;
+  readonly taps: number;
   readonly outlets: number;
   readonly wsfu: number;
 }
@@ -610,8 +638,9 @@ export interface BranchFillResult {
  */
 export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
   ruleId: 'ENG-707',
+  // v3 (P33-04): keran tambahan mengisi cabang setelah bak cuci dapur.
   // v2 (2026-10-12, tempat ibadah): urinoir ikut mengisi cabang setelah wastafel.
-  version: 2,
+  version: 3,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -631,6 +660,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
           basins: c('basins'),
           kitchens: c('kitchens'),
           urinals: f['urinals'] === undefined ? 0 : c('urinals'),
+          taps: f['taps'] === undefined ? 0 : c('taps'),
         };
       }),
       maxOutletsPerBranch: requireInt('ENG-707', 'maxOutletsPerBranch', o['maxOutletsPerBranch'], {
@@ -642,6 +672,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
       wsfuLavatory: n('wsfuLavatory'),
       wsfuKitchenSink: n('wsfuKitchenSink'),
       wsfuUrinal: o['wsfuUrinal'] === undefined ? 0 : n('wsfuUrinal'),
+      wsfuTap: o['wsfuTap'] === undefined ? 0 : n('wsfuTap'),
     };
   },
   compute: (i) => {
@@ -668,12 +699,19 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
           outlets: 1,
           wsfu: i.wsfuKitchenSink,
         })),
+        // Keran tambahan mengisi cabang paling belakang: ia titik air terjauh di lantainya.
+        ...Array.from({ length: floor.taps ?? 0 }, () => ({
+          kind: 'taps' as const,
+          outlets: 1,
+          wsfu: i.wsfuTap ?? 0,
+        })),
       ];
       let open: {
         bathrooms: number;
         basins: number;
         kitchens: number;
         urinals: number;
+        taps: number;
         outlets: number;
         wsfu: number;
       } | null = null;
@@ -685,7 +723,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
       for (const item of items) {
         if (open === null || open.outlets + item.outlets > i.maxOutletsPerBranch) {
           close();
-          open = { bathrooms: 0, basins: 0, kitchens: 0, urinals: 0, outlets: 0, wsfu: 0 };
+          open = { bathrooms: 0, basins: 0, kitchens: 0, urinals: 0, taps: 0, outlets: 0, wsfu: 0 };
         }
         open[item.kind] += 1;
         open.outlets += item.outlets;
@@ -716,10 +754,46 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
       },
       expected: {
         branches: [
-          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0, urinals: 0, outlets: 4, wsfu: 6.4 },
-          { floor: 2, bathrooms: 0, basins: 4, kitchens: 0, urinals: 0, outlets: 4, wsfu: 2 },
-          { floor: 1, bathrooms: 2, basins: 0, kitchens: 0, urinals: 0, outlets: 4, wsfu: 6.4 },
-          { floor: 1, bathrooms: 0, basins: 4, kitchens: 0, urinals: 0, outlets: 4, wsfu: 2 },
+          {
+            floor: 2,
+            bathrooms: 2,
+            basins: 0,
+            kitchens: 0,
+            urinals: 0,
+            taps: 0,
+            outlets: 4,
+            wsfu: 6.4,
+          },
+          {
+            floor: 2,
+            bathrooms: 0,
+            basins: 4,
+            kitchens: 0,
+            urinals: 0,
+            taps: 0,
+            outlets: 4,
+            wsfu: 2,
+          },
+          {
+            floor: 1,
+            bathrooms: 2,
+            basins: 0,
+            kitchens: 0,
+            urinals: 0,
+            taps: 0,
+            outlets: 4,
+            wsfu: 6.4,
+          },
+          {
+            floor: 1,
+            bathrooms: 0,
+            basins: 4,
+            kitchens: 0,
+            urinals: 0,
+            taps: 0,
+            outlets: 4,
+            wsfu: 2,
+          },
         ],
         branchCount: 4,
         maxOutletsPerBranch: 4,
@@ -741,8 +815,26 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
       },
       expected: {
         branches: [
-          { floor: 2, bathrooms: 2, basins: 0, kitchens: 0, urinals: 0, outlets: 4, wsfu: 6.4 },
-          { floor: 1, bathrooms: 1, basins: 0, kitchens: 1, urinals: 0, outlets: 3, wsfu: 4.2 },
+          {
+            floor: 2,
+            bathrooms: 2,
+            basins: 0,
+            kitchens: 0,
+            urinals: 0,
+            taps: 0,
+            outlets: 4,
+            wsfu: 6.4,
+          },
+          {
+            floor: 1,
+            bathrooms: 1,
+            basins: 0,
+            kitchens: 1,
+            urinals: 0,
+            taps: 0,
+            outlets: 3,
+            wsfu: 4.2,
+          },
         ],
         branchCount: 2,
         maxOutletsPerBranch: 4,

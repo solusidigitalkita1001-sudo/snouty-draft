@@ -143,7 +143,20 @@ describe('ClarificationEngine', () => {
 describe('pertanyaan penyempurna rumah (2026-10-12)', () => {
   it('ukuran rumah, dapur, wastafel yang belum disebut; jawaban ukuran jadi panjang × lebar', () => {
     const questions = houseRefinementQuestions((path) => path === 'fixtures.basins');
-    expect(questions.map((q) => q.id)).toEqual(['building.dimensions', 'fixtures.kitchens']);
+    // P33-04: keran luar dan keran lantai atas ikut kartu penyempurna (masukan sales).
+    expect(questions.map((q) => q.id)).toEqual([
+      'building.dimensions',
+      'fixtures.kitchens',
+      'fixtures.outdoorTaps',
+      'fixtures.upperFloorTaps',
+    ]);
+    expect(answerToUpdate({ id: 'fixtures.outdoorTaps', option: 'Tidak ada' }, () => null)).toEqual(
+      {
+        path: 'fixtures.outdoorTaps',
+        value: 0,
+        source: 'user_stated',
+      },
+    );
     expect(
       answerToUpdate({ id: 'building.dimensions', option: 'lengthM=8;widthM=15' }, () => null),
     ).toEqual({

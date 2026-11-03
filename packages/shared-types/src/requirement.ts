@@ -130,6 +130,14 @@ export interface FixtureState {
    * mandinya tetap ditanya, bukan dianggap. Opsional seperti `urinals`.
    */
   readonly bathroomsPerRoom?: TrackedValue<boolean>;
+  /**
+   * Keran di luar bangunan — keran taman, cuci kendaraan (masukan sales 2026-11-03). Titik air
+   * yang nyata tetapi tidak ikut terhitung dari kamar mandi dan dapur. Opsional seperti
+   * `urinals`: state yang tersimpan sebelum field ini ada dibaca sebagai kosong.
+   */
+  readonly outdoorTaps?: TrackedValue<number>;
+  /** Keran tambahan di dalam bangunan, mis. ruang cuci di lantai atas. Opsional seperti di atas. */
+  readonly upperFloorTaps?: TrackedValue<number>;
 }
 
 export interface WaterState {
@@ -186,6 +194,8 @@ export type RequirementFieldPath =
   | 'fixtures.wudhuAreas'
   | 'fixtures.urinals'
   | 'fixtures.bathroomsPerRoom'
+  | 'fixtures.outdoorTaps'
+  | 'fixtures.upperFloorTaps'
   | 'water.source'
   | 'water.installationType'
   | 'water.boosterPump'

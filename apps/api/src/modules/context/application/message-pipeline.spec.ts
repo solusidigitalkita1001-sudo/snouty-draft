@@ -657,12 +657,15 @@ describe('runUnderstanding — bentuk event SSE', () => {
             }
           ).card,
       );
-    // Pertanyaan penyempurna (ukuran rumah, dapur, wastafel) di samping tombol, lalu CTA.
+    // Pertanyaan penyempurna (ukuran rumah, dapur, wastafel, keran tambahan) di samping tombol,
+    // lalu CTA. P33-04: keran luar dan keran lantai atas ikut sejak masukan sales 2026-11-03.
     expect(cards.map((c) => c.kind)).toEqual(['clarification', 'cta']);
     expect(cards[0]!.questions!.map((q) => q.id)).toEqual([
       'building.dimensions',
       'fixtures.kitchens',
       'fixtures.basins',
+      'fixtures.outdoorTaps',
+      'fixtures.upperFloorTaps',
     ]);
     expect(cards[1]!.action).toBe('ANALYZE');
     expect(nextState.missingInformation).toEqual([]);

@@ -951,6 +951,21 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description: 'Tiap bak cuci dapur dihitung 1,5 unit beban suplai.',
   },
   {
+    id: 'WSFU_TAP_2_5',
+    parameter: 'design_flow',
+    appliesTo: [],
+    condition: 'beban suplai keran tambahan',
+    value: 2.5,
+    unit: 'WSFU',
+    conditionEn: 'extra tap supply load',
+    descriptionEn: 'Each extra tap counts as 2.5 supply units, the value for a hose bibb.',
+    reference:
+      'UPC Tabel A 103.1, pemakaian pribadi: keran selang (hose bibb) 2,5 — dipakai juga untuk keran cuci di lantai atas, nilai yang lebih besar dari keran wastafel',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description: 'Tiap keran tambahan dihitung 2,5 unit beban suplai, nilai keran selang.',
+  },
+  {
     id: 'HOUSE_BASINS_0',
     parameter: 'basins',
     appliesTo: [],

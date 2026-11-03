@@ -185,6 +185,13 @@ const OBVIOUS = {
    */
   outlets: (m: string) => (mentionsWudhu(m) ? undefined : countOf(`titik(?: air)?|${TAP}`, m, 3)),
   /**
+   * Keran luar dan keran lantai atas (P33-04). Disebut tanpa angka berarti satu: "ada keran taman
+   * di luar juga" menyebut keberadaannya, dan nol bukan bacaan yang jujur untuk kalimat itu.
+   * Peniadaan ("tidak ada keran di luar") tetap dibaca nol oleh pembaca peniadaan di bawah.
+   */
+  outdoorTaps: (m: string) => tapCount(OUTDOOR_TAP, m),
+  upperFloorTaps: (m: string) => tapCount(UPPER_TAP, m),
+  /**
    * Kedalaman sumur / muka air tersurat ("sumur bor 25 m", "muka airnya 8 meter") — parser nilai
    * bersatuan, batas yang sama dengan skema model (0–60 m). Dulu hanya dari model.
    *
@@ -423,6 +430,14 @@ const TAP = 'keran|kran|outlets?|taps?|faucets?';
 const WUDHU_AREA = 'tempat wudhu|tempat wudu|area wudhu|area wudu|ablution areas?';
 const URINAL = 'urinoir|urinoar|urinal|urinals|peturasan';
 /**
+ * Keran di luar bangunan dan keran tambahan di lantai atas (P33-04). Keduanya keran yang
+ * TERSURAT letaknya — keran telanjang tetap titik air biasa.
+ */
+const OUTDOOR_TAP =
+  'keran (?:di )?luar|kran (?:di )?luar|keran taman|kran taman|keran halaman|kran halaman|keran kebun|kran kebun|outdoor taps?|garden taps?|outside taps?|hose ?bibbs?|yard taps?';
+const UPPER_TAP =
+  'keran (?:di )?(?:lantai )?atas|kran (?:di )?(?:lantai )?atas|keran lantai (?:2|dua|3|tiga)|kran lantai (?:2|dua|3|tiga)|upstairs taps?|upper[- ]floor taps?';
+/**
  * Kata benda alat yang bisa dihitung — pagar untuk arah "kata benda lalu angka": angka yang
  * ternyata milik kata benda SESUDAHNYA bukan jumlah kata benda sebelumnya. "tempat wudhunya 20
  * kran" berarti 20 keran di tempat wudhu, bukan 20 tempat wudhu (produksi 2026-10-27).
@@ -436,6 +451,8 @@ export const COUNT_NOUNS: Readonly<Record<string, string>> = {
   'fixtures.wudhuTaps': WUDHU,
   'fixtures.wudhuAreas': WUDHU_AREA,
   'fixtures.urinals': URINAL,
+  'fixtures.outdoorTaps': OUTDOOR_TAP,
+  'fixtures.upperFloorTaps': UPPER_TAP,
   'fixtures.kitchens': 'dapur|kitchens?|pantry',
   'fixtures.outletCount': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
   'water.existingOutlets': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
@@ -667,6 +684,15 @@ function countOf(nouns: string, message: string, digits = 2): number | undefined
   );
 }
 
+/** Keran berletak: angkanya bila ditulis, satu bila hanya disebut. */
+function tapCount(nouns: string, message: string): number | undefined {
+  const counted = countOf(nouns, message);
+  if (counted !== undefined) return counted;
+  // "tidak ada keran di luar" adalah peniadaan, bukan keberadaan: nolnya dibaca `negatedZero`.
+  if (mentionsCount(message, 0, nouns)) return undefined;
+  return new RegExp(String.raw`\b(?:${nouns})(?:nya)?\b`, 'i').test(message) ? 1 : undefined;
+}
+
 /** Kalimat ini bicara tentang wudhu (klitik "-nya" ikut, seperti pembaca nilai lainnya). */
 function mentionsWudhu(message: string): boolean {
   return new RegExp(`\\b(?:${WUDHU}|${WUDHU_AREA})(?:nya)?\\b`, 'i').test(message);
@@ -865,12 +891,26 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
       ) ?? negatedZero(message, COUNT_NOUNS['fixtures.kitchens']!),
     ),
   );
+  // Keran yang letaknya tersurat (P33-04): keran taman dan keran lantai atas punya fieldnya
+  // sendiri karena letaknya menentukan lantai dan jalurnya.
+  const outdoorTaps =
+    OBVIOUS.outdoorTaps(message) ?? negatedZero(message, COUNT_NOUNS['fixtures.outdoorTaps']!);
+  const upperFloorTaps =
+    OBVIOUS.upperFloorTaps(message) ??
+    negatedZero(message, COUNT_NOUNS['fixtures.upperFloorTaps']!);
+  add('fixtures.outdoorTaps', outdoorTaps);
+  add('fixtures.upperFloorTaps', upperFloorTaps);
   // "sudah ada 4 titik air" adalah titik air LAMA (P23-05): angka yang sama tidak boleh menjadi
   // jumlah titik air baru.
   const renovation = obviousRenovation(message);
   // "tambah 2 titik air" juga bukan jumlah titik air rumah: ia beban baru perluasan (P25-06).
   const added = addedOutletsOf(message);
-  const outlets = extraction.fixtures?.outletCount ?? OBVIOUS.outlets(message);
+  // Keran yang sudah tercatat sebagai keran taman atau keran lantai atas bukan jumlah titik air
+  // rumah: "2 keran taman di luar" berarti dua keran itu, bukan rumah dengan dua titik air.
+  const placedTaps = outdoorTaps !== undefined || upperFloorTaps !== undefined;
+  const outlets = placedTaps
+    ? undefined
+    : (extraction.fixtures?.outletCount ?? OBVIOUS.outlets(message));
   add(
     'fixtures.outletCount',
     (renovation.existingOutlets !== undefined && outlets === renovation.existingOutlets) ||

@@ -90,6 +90,10 @@ export interface SolutionInput {
   readonly landWidthM?: number | null;
   /** Sumur (`waterSource: 'pump'`): kedalaman muka air; kosong → WELL_WATER_DEPTH_6M. */
   readonly wellDepthM?: number | null;
+  /** Keran di luar rumah (taman, cuci kendaraan), di lantai dasar — P33-04. */
+  readonly outdoorTaps?: number | null;
+  /** Keran tambahan di dalam rumah (ruang cuci, dapur atas), di lantai teratas — P33-04. */
+  readonly upperFloorTaps?: number | null;
 }
 
 export interface CalculationTrace {
@@ -279,15 +283,32 @@ export function computeSolution(
     kitchens:
       input.kitchens ?? (publicRestroom ? use('WORSHIP_KITCHEN_0') : use('HOUSE_KITCHEN_1')),
   };
+  // Keran tambahan hanya untuk rumah: toilet umum punya keran kamar mandinya sendiri, dan
+  // kartunya pun hanya menanyakan ini pada rumah (P33-04).
+  const taps = publicRestroom
+    ? 0
+    : Math.max(0, input.outdoorTaps ?? 0) + Math.max(0, input.upperFloorTaps ?? 0);
+  const wsfuTap = taps > 0 ? use('WSFU_TAP_2_5') : 0;
   if (publicRestroom && input.bathrooms > 0) use('WORSHIP_BATHROOM_WC_TAP');
   const urinals = publicRestroom ? Math.max(0, input.urinals ?? 0) : 0;
   const load = run(ENG_001, {
     ...fixtures,
     ...(publicRestroom ? { bathroomHasTap: true } : {}),
     ...(urinals > 0 ? { urinals } : {}),
+    ...(taps > 0 ? { taps } : {}),
   });
   const floorHeightM = input.floorHeightM ?? run(ENG_004, {}).floorHeightM;
-  const floorPlan = run(ENG_008, { ...fixtures, floors: input.floors, floorHeightM });
+  const floorPlan = run(ENG_008, {
+    ...fixtures,
+    floors: input.floors,
+    floorHeightM,
+    ...(taps > 0
+      ? {
+          outdoorTaps: Math.max(0, input.outdoorTaps ?? 0),
+          upperFloorTaps: Math.max(0, input.upperFloorTaps ?? 0),
+        }
+      : {}),
+  });
   // Beban per alat (UPC Tabel A 103.1) — sekali dibaca, dipakai debit total dan isi tiap
   // cabang. Rumah memakai kolom pemakaian pribadi; sekolah, klinik, dan ruko kolom umum;
   // rumah ibadah kolom pertemuan (assembly), tempat kloset dan urinoirnya lebih berat.
@@ -319,6 +340,7 @@ export function computeSolution(
       kitchens: f.kitchens,
       // Urinoir di toilet pria lantai dasar.
       urinals: f.floor === 1 ? urinals : 0,
+      taps: f.taps,
     })),
     maxOutletsPerBranch: 4,
     wsfuWaterCloset: wsfu.waterCloset,
@@ -326,6 +348,7 @@ export function computeSolution(
     wsfuLavatory: wsfu.lavatory,
     wsfuKitchenSink: wsfu.kitchenSink,
     wsfuUrinal: wsfu.urinal,
+    wsfuTap,
   });
   // Satu sumber jumlah alat (laporan 0015): sebaran per lantai dan isi cabang wajib sama dengan total.
   const perFloor = floorPlan.floorsPlan;
@@ -343,6 +366,11 @@ export function computeSolution(
     'dapur per lantai',
     fixtures.kitchens,
     perFloor.map((f) => f.kitchens),
+  );
+  assertBalanced(
+    'keran tambahan per lantai',
+    taps,
+    perFloor.map((f) => f.taps),
   );
   assertBalanced(
     'titik air per cabang',
@@ -379,6 +407,7 @@ export function computeSolution(
         showers: input.bathrooms,
         lavatories: fixtures.basins,
         kitchenSinks: fixtures.kitchens,
+        ...(taps > 0 ? { taps, wsfuTap } : {}),
         wsfuWaterCloset: wsfu.waterCloset,
         wsfuShower: wsfu.shower,
         wsfuLavatory: wsfu.lavatory,

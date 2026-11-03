@@ -203,6 +203,20 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
     inputs: FLOOR_HEIGHT_INPUTS,
     inputValue: 'number',
   },
+  // Titik air yang tidak ikut terhitung dari kamar mandi dan dapur (masukan sales 2026-11-03:
+  // "bisa ditambahin pilihan titik air tambahan, kayak keran di luar, atau keran di lantai atas").
+  'fixtures.outdoorTaps': {
+    question: 'Ada keran di luar rumah (keran taman, cuci kendaraan)?',
+    options: ['Tidak ada', '1', '2'],
+    inputs: countInputs({ id: 'Jumlah lain', en: 'Other number' }),
+    inputValue: 'number',
+  },
+  'fixtures.upperFloorTaps': {
+    question: 'Ada keran tambahan di lantai atas (ruang cuci, dapur atas)?',
+    options: ['Tidak ada', '1', '2'],
+    inputs: countInputs({ id: 'Jumlah lain', en: 'Other number' }),
+    inputValue: 'number',
+  },
   // Tempat ibadah (2026-10-12): keran wudhu dihitung serentak, satu talang per tempat wudhu.
   'fixtures.wudhuTaps': {
     question: 'Ada berapa keran wudhu (semua tempat wudhu)?',
@@ -270,6 +284,8 @@ export const HOUSE_REFINEMENT_FIELDS: readonly RequirementFieldPath[] = [
   'building.dimensions',
   'fixtures.kitchens',
   'fixtures.basins',
+  'fixtures.outdoorTaps',
+  'fixtures.upperFloorTaps',
 ];
 
 /** Sekolah / klinik: toilet umum tanpa wudhu (pemilik 2026-10-12). */
@@ -303,6 +319,9 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'fixtures.kitchens': 'How many kitchens are there?',
   'fixtures.basins': 'How many wash basins in total, including those in the bathrooms?',
   'building.floorHeightM': 'What is the height of each floor (between 2 and 10 m)?',
+  'fixtures.outdoorTaps': 'Are there taps outside the house (garden, vehicle washing)?',
+  'fixtures.upperFloorTaps':
+    'Are there extra taps on the upper floor (laundry area, upstairs kitchen)?',
   'fixtures.wudhuTaps': 'How many ablution taps are there (all ablution areas)?',
   'fixtures.wudhuAreas': 'How many ablution areas are the taps split over?',
   'fixtures.urinals': 'How many urinals are in the men’s restroom?',
@@ -331,6 +350,7 @@ const OPTION_LABEL_EN: Readonly<Record<string, string>> = {
   'Galvanis / besi': 'Galvanized / steel',
   'Di dalam tiap kamar': 'One in every room',
   'Kamar mandi bersama': 'Shared bathrooms',
+  'Tidak ada': 'None',
 };
 
 export function optionLabel(option: string, locale: Locale): string {
@@ -471,6 +491,8 @@ const OPTION_VALUES: Readonly<
     'Tambah titik air (perluasan)': 'extend',
   },
   'fixtures.bathroomsPerRoom': { 'Di dalam tiap kamar': true, 'Kamar mandi bersama': false },
+  'fixtures.outdoorTaps': { 'Tidak ada': 0 },
+  'fixtures.upperFloorTaps': { 'Tidak ada': 0 },
   'water.existingMainSize': { '1/2"': '1/2"', '3/4"': '3/4"', '1"': '1"', '1 1/4"': '1 1/4"' },
   'water.existingPipeMaterial': {
     PVC: 'pvc',

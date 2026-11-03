@@ -83,9 +83,35 @@ describe('computeSolution — contoh kerja desain', () => {
 
   it('menyebar titik air ke dua lantai dengan elevasi dari tinggi lantai', () => {
     expect(result.floorsPlan).toEqual([
-      { floor: 2, bathrooms: 2, basins: 2, kitchens: 0, elevationM: 3.5 },
-      { floor: 1, bathrooms: 1, basins: 2, kitchens: 1, elevationM: 0 },
+      { floor: 2, bathrooms: 2, basins: 2, kitchens: 0, taps: 0, elevationM: 3.5 },
+      { floor: 1, bathrooms: 1, basins: 2, kitchens: 1, taps: 0, elevationM: 0 },
     ]);
+  });
+});
+
+/**
+ * Keran tambahan (P33-04, masukan sales 2026-11-03): "pilihan titik air tambahan, kayak keran
+ * di luar, atau keran di lantai atas".
+ */
+describe('computeSolution — keran tambahan', () => {
+  const withTaps = computeSolution({ ...BOARD_EXAMPLE, outdoorTaps: 1, upperFloorTaps: 1 });
+
+  it('dua keran menambah dua titik air dan 5 WSFU (2 × 2,5 keran selang)', () => {
+    expect(withTaps.outletCount).toBe(13);
+    expect(withTaps.supply.wsfu).toBe(24);
+  });
+
+  it('keran luar di lantai dasar, keran tambahan di lantai teratas', () => {
+    expect(withTaps.floorsPlan.map((f) => [f.floor, f.taps])).toEqual([
+      [2, 1],
+      [1, 1],
+    ]);
+  });
+
+  it('tanpa keran tambahan hasilnya persis seperti sebelumnya', () => {
+    const plain = computeSolution(BOARD_EXAMPLE);
+    expect(plain.outletCount).toBe(11);
+    expect(plain.supply.wsfu).toBe(19);
   });
 });
 

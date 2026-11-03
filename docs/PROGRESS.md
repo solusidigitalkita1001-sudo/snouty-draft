@@ -4702,3 +4702,25 @@ menurut ukuran pipanya.
       Batas ukurannya juga masuk ke jawaban pengetahuan: "lem pipa yang cocok buat pipa 4 inch
       apa?" dulu dijawab "quick dry untuk ukuran kecil dan slow dry untuk ukuran besar" tanpa
       satu angka pun, sekarang menyebut 1/2"–3" dan 4"–12".
+
+- [x] P33-04 Titik air tambahan: keran luar dan keran lantai atas
+
+      "Paling bisa ditambahin pilihan titik air tambahan, kayak keran di luar, atau keran di
+      lantai atas." Dibuktikan di produksi: "rumah 1 lantai 2 kamar mandi 1 dapur, ada keran
+      taman di luar juga" mencatat rumah, lantai, kamar mandi, dapur — kerannya hilang — dan
+      "sama keran di lantai atas buat cuci baju" dijawab "Ukurannya baru dihitung setelah Anda
+      menekan Susun rekomendasi". Titik air rumah memang hanya pernah dihitung dari kamar mandi,
+      wastafel, dan dapur.
+
+      Keduanya kini kebutuhan tersendiri, dua isian di kartu penyempurna (keputusan pemilik
+      2026-11-03), dan terbaca juga bila diketik di chat — disebut tanpa angka berarti satu,
+      "tidak ada keran di luar" berarti nol. Letaknya yang membuat keduanya dipisah: keran luar
+      duduk di lantai dasar, keran lantai atas di lantai teratas, sehingga beda tinggi dan isi
+      cabang tiap lantai ikut benar. Beban suplainya 2,5 unit per keran — nilai keran selang UPC
+      Tabel A 103.1, dan seperti semua beban alat ia menunggu validasi tim teknis Pralon.
+
+      Lima aturan ikut berubah versi: titik air (ENG-001 v5), sebaran per lantai (ENG-008 v3),
+      beban suplai (ENG-701 v2), isi cabang (ENG-707 v3), dan asumsi baru WSFU_TAP_2_5. Keran
+      tambahan hanya untuk rumah: toilet umum dan tempat ibadah punya keran kamar mandi dan keran
+      wudhunya sendiri. Sisi buangannya tidak ditambah — keran taman tidak punya saluran buangan,
+      dan menambahkan beban buangan tanpa alat yang disebut pengguna sama saja mengarang.

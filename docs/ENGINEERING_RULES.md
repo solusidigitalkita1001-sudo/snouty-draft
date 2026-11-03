@@ -560,7 +560,12 @@ Kel. F   ukuran pipa utama dari kecepatan ≤ 2 m/s dan kehilangan ≤ batas; to
 ENG-703  tekanan dari toren di titik tertinggi; < 0,3 bar → pompa pendorong / toren lebih tinggi
          PDAM: tekanan yang dibutuhkan di meteran = TDH; toren bawah/pompa: titik kerja pompa
 ENG-707  isi tiap cabang (laporan 0009): titik tiap lantai diisi ke cabang berurutan — kamar mandi
-         (tidak dipisah), wastafel, bak cuci dapur — maks 4 titik; beban cabang = jumlah WSFU isinya
+         (tidak dipisah), wastafel, bak cuci dapur, keran tambahan — maks 4 titik; beban cabang =
+         jumlah WSFU isinya
+P33-04   keran tambahan (masukan sales 2026-11-03): keran di luar rumah dan keran di lantai atas
+         ikut titik air (ENG-001 v5), beban suplainya 2,5 WSFU per keran (WSFU_TAP_2_5, nilai keran
+         selang UPC), dan letaknya menentukan lantainya (ENG-008 v3: keran luar di lantai 1, keran
+         tambahan di lantai teratas). Hanya rumah; toilet umum punya keran kamar mandinya sendiri.
 ENG-008 v2 (laporan 0015): sebaran alat per lantai dibagi rata dan jumlahnya selalu sama dengan masukan;
          sisa kamar mandi ke lantai teratas, sisa wastafel ke lantai 1, dapur di lantai 1. Engine
          memeriksa keseimbangan (per lantai, Σ titik dan WSFU cabang, Σ DFU per lantai) dan melempar
