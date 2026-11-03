@@ -94,7 +94,11 @@ import {
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 import { applyRelativeCounts } from '../domain/relative-counts.js';
 import { parseTemperature } from '../domain/temperature-parser.js';
-import { extractionToUpdates, mentionsTankWithoutLocation } from './extraction-to-updates.js';
+import {
+  drainageJoinsCleanWater,
+  extractionToUpdates,
+  mentionsTankWithoutLocation,
+} from './extraction-to-updates.js';
 import { existingPipeReply } from './existing-pipe-answer.js';
 import { asksSolutionQuantity, isCaseStatement } from './intent-router.js';
 import { mentionsPressureQuantity } from './knowledge-answer.js';
@@ -656,13 +660,16 @@ export async function runUnderstanding(
     // terhadap state bila arah mutasinya dikenali; field lain tetap absolut.
     // Jawaban "kamar mandinya di dalam tiap kamar" yang DIKETIK di chat berlaku sama seperti
     // dipilih di kartunya: jumlah kamar mandinya adalah jumlah kamarnya (P32-16).
-    const updates = bathroomsFromRooms(
+    const updates = drainageJoinsCleanWater(
       input.state,
-      applyRelativeCounts(
-        extractionToUpdates(extraction, input.message),
-        input.message,
+      bathroomsFromRooms(
         input.state,
-        mutationOp,
+        applyRelativeCounts(
+          extractionToUpdates(extraction, input.message),
+          input.message,
+          input.state,
+          mutationOp,
+        ),
       ),
     );
     if (extractionFailed && updates.length === 0) {

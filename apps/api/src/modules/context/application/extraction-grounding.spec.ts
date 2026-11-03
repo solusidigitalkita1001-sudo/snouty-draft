@@ -4,7 +4,9 @@
  * "Rumah 2 lantai, 3 kamar mandi, …" → model menulis floorHeightM 3 dan mainRunMeters 0.
  */
 import { describe, expect, it } from 'vitest';
-import { extractionToUpdates } from './extraction-to-updates.js';
+import { drainageJoinsCleanWater, extractionToUpdates } from './extraction-to-updates.js';
+import { mergeRequirement } from '../domain/context-merger.js';
+import { emptyRequirementState } from '../domain/requirement-state.factory.js';
 
 const MESSAGE = 'Rumah 2 lantai, 3 kamar mandi, 4 wastafel, 1 dapur, toren di atap, air bersih';
 
@@ -45,6 +47,58 @@ describe('extractionToUpdates — fakta tersurat yang dilewatkan model', () => {
     expect(extractionToUpdates({}, 'air bersih dan pembuangan ruko')).toContainEqual({
       path: 'water.installationType',
       value: 'both',
+      source: 'user_stated',
+    });
+  });
+
+  // Masukan sales 2026-11-03: 'gua coba suru dia itung kebutuhan air buangan, dia tetep itung air
+  // bersih'. Sisi buangan disebut dengan nama lain, dan nama yang tersurat menang atas nilai model.
+  it('nama lain sisi buangan terbaca, dan menang atas tebakan model', () => {
+    for (const message of [
+      'rumah 2 lantai 3 kamar mandi, saya mau hitung kebutuhan air buangan aja',
+      'tolong itungin pipa air kotor rumah saya, 2 lantai 3 kamar mandi',
+      'hitung air bekas rumah 1 lantai',
+    ]) {
+      expect(extractionToUpdates({}, message)).toContainEqual({
+        path: 'water.installationType',
+        value: 'drainage',
+        source: 'user_stated',
+      });
+    }
+    expect(
+      extractionToUpdates(
+        { water: { installationType: 'clean_water' } },
+        'mau hitung kebutuhan air buangan rumah 2 lantai',
+      ),
+    ).toContainEqual({ path: 'water.installationType', value: 'drainage', source: 'user_stated' });
+  });
+});
+
+describe('sisi buangan yang disebut di tengah kasus air bersih (P33-01)', () => {
+  const T0 = '2026-11-03T00:00:00.000Z';
+  const cleanWaterHouse = mergeRequirement(
+    emptyRequirementState(T0),
+    [
+      { path: 'building.type', value: 'residential', source: 'user_stated' },
+      { path: 'water.installationType', value: 'clean_water', source: 'user_stated' },
+    ],
+    T0,
+  ).state;
+
+  it('menambah, bukan mengganti: air bersih yang sudah tercatat tidak hilang', () => {
+    const updates = extractionToUpdates({}, 'air kotor dan air bekas dipisah');
+    expect(drainageJoinsCleanWater(cleanWaterHouse, updates)).toContainEqual({
+      path: 'water.installationType',
+      value: 'both',
+      source: 'user_stated',
+    });
+  });
+
+  it('pesan pembuka yang hanya menyebut buangan tetap kasus buangan', () => {
+    const updates = extractionToUpdates({}, 'mau hitung kebutuhan air buangan rumah 2 lantai');
+    expect(drainageJoinsCleanWater(emptyRequirementState(T0), updates)).toContainEqual({
+      path: 'water.installationType',
+      value: 'drainage',
       source: 'user_stated',
     });
   });

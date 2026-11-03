@@ -14,7 +14,12 @@
 
 import type { Extraction } from '../../ai/domain/extraction-schema.js';
 import type { FieldUpdate } from '../domain/context-merger.js';
-import { PipeSize, type Dimensions, type WorkType } from '@snouty/shared-types';
+import {
+  PipeSize,
+  type Dimensions,
+  type RequirementState,
+  type WorkType,
+} from '@snouty/shared-types';
 import { extractTechnicalContext, WORK_TYPE_MODE, workTypeOf } from '@snouty/engineering';
 
 /** Kosakata renovasi yang tersurat (satu parser dengan kasus teknis) → field rumah. */
@@ -105,7 +110,7 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
     /\b(toren|tandon|tangki|pompa|pdam|sumur|ledeng|air tanah|sumber|tanks?|rooftop|roof|ground|municipal|mains|city water|wells?|boreholes?|pumps?|source)/i,
   // Klitik "-nya" ikut ("pembuangannya"), sama dengan pembaca nilainya.
   'water.installationType':
-    /\b(air bersih|pembuangan|limbah|drainase|saluran|keduanya|clean water|potable|drinking water|supply|drainage|waste ?water|sewer|both)(?:nya)?\b/i,
+    /\b(air bersih|pembuangan|buangan|air kotor|air bekas|limbah|drainase|saluran|keduanya|clean water|potable|drinking water|supply|drainage|waste ?water|grey ?water|sewer|sewage|both)(?:nya)?\b/i,
 };
 
 /** Kamar sewa, dan pernyataan bahwa tiap kamar punya kamar mandinya sendiri. */
@@ -227,8 +232,11 @@ const OBVIOUS = {
     // Irigasi/pertanian BUKAN "drainage": ia di luar cakupan dan ditangani kebijakan guna
     // (policy/scope.ts `useCasePolicy`, isyarat dari pemahaman) sebelum ekstraksi.
     // Klitik "-nya" ikut ("hitung pipa pembuangannya juga" dulu tidak terbaca — simulasi 2026-10-19).
+    // Sisi buangan punya banyak nama di lapangan — "air buangan", "air kotor", "air bekas" —
+    // dan sales memakainya sesering "pembuangan" (masukan 2026-11-03: permintaan menghitung
+    // kebutuhan air buangan tetap dihitung sebagai air bersih).
     const drainage =
-      /\b(drainase|pembuangan|limbah|saluran air kotor|drainage|waste ?water|sewer|sewage)(?:nya)?\b/i.test(
+      /\b(drainase|pembuangan|buangan|air kotor|air bekas|septic ?tank|limbah|drainage|waste ?water|grey ?water|black ?water|foul water|sewer|sewage|soil pipe)(?:nya)?\b/i.test(
         m,
       );
     // Sumber air (PDAM, toren, sumur) hanya bermakna untuk air bersih: pembuangan yang disebut bersama
@@ -702,6 +710,23 @@ export function mentionsTankWithoutLocation(message: string): boolean {
   );
 }
 
+/**
+ * Sisi buangan yang disebut di tengah kasus air bersih MENAMBAH, bukan mengganti. "air kotor dan
+ * air bekas dipisah" pada rumah yang air bersihnya sudah tercatat berarti keduanya dihitung —
+ * tanpa ini pengguna kehilangan sisi yang sudah ia sebutkan tanpa pernah diberi tahu. Pesan
+ * pembuka yang hanya menyebut buangan tetap kasus buangan.
+ */
+export function drainageJoinsCleanWater(
+  state: RequirementState,
+  updates: readonly FieldUpdate[],
+): readonly FieldUpdate[] {
+  const stated = updates.find((u) => u.path === 'water.installationType');
+  if (stated?.value !== 'drainage') return updates;
+  const recorded = state.water.installationType;
+  if (recorded.value !== 'clean_water' || recorded.source === 'default_applied') return updates;
+  return updates.map((u) => (u === stated ? { ...u, value: 'both' } : u));
+}
+
 export function extractionToUpdates(extraction: Extraction, message = ''): FieldUpdate[] {
   const updates: FieldUpdate[] = [];
   // Jumlah lantai dipakai memeriksa kalimat yang membagi per lantai ("tiap lantai 2 kamar mandi").
@@ -864,9 +889,14 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
       (tankWithoutLocation ? undefined : extraction.water?.source) ??
       OBVIOUS.pumpSource(message),
   );
+  // Air bersih adalah anggapan bawaan: hanya sisi buangan yang perlu disebut supaya ada. Karena itu
+  // sisi buangan yang tersurat menang atas tebakan model, sama seperti letak toren.
+  const statedInstallation = OBVIOUS.installationType(message);
   add(
     'water.installationType',
-    extraction.water?.installationType ?? OBVIOUS.installationType(message),
+    statedInstallation === 'drainage' || statedInstallation === 'both'
+      ? statedInstallation
+      : (extraction.water?.installationType ?? statedInstallation),
   );
   add('water.boosterPump', extraction.water?.boosterPump ?? OBVIOUS.boosterPump(message));
   add('water.wellDepthM', extraction.water?.wellDepthM ?? OBVIOUS.wellDepth(message));

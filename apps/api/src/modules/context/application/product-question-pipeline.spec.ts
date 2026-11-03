@@ -1363,9 +1363,11 @@ describe('topik yang baru saja dijawab (P31-17)', () => {
         { intent: 'explanation_request', knowledgeTopics: ['pompa'] },
         {
           recentTurns: [{ role: 'assistant', text: fact }],
-          state: mergeRequirement(emptyRequirementState('2026-01-01T00:00:00.000Z'), [
-            { path: 'building.floors', value: 2, source: 'user_stated' },
-          ]).state,
+          state: mergeRequirement(
+            emptyRequirementState('2026-01-01T00:00:00.000Z'),
+            [{ path: 'building.floors', value: 2, source: 'user_stated' }],
+            '2026-01-01T00:00:00.000Z',
+          ).state,
         },
       ),
     );

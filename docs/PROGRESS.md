@@ -4646,3 +4646,28 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       dipakai?" di percakapan yang tidak punya hitungan apa pun. Tawaran angka lapangan hanya
       masuk akal bila ada kebutuhan atau solusi yang tercatat; tanpa itu kalimatnya berhenti di
       "bagian mana yang mau saya perjelas?".
+
+## Fase 33 — masukan sales dari uji perhitungan teknis (3 Nov 2026)
+
+Sales Pralon mencoba sendiri perhitungan teknisnya dan menuliskan empat hal: hitungan air
+buangan yang tetap dihitung sebagai air bersih, pembuangan yang tidak mungkin memakai PPR atau
+PEX, pilihan titik air tambahan (keran luar, keran lantai atas), dan saran solvent cement Pralon
+menurut ukuran pipanya.
+
+- [x] P33-01 Permintaan menghitung air buangan dihitung air bersih
+
+      "Tadi gua coba buat suru dia itung kebutuhan air buangan, dia tetep itung air bersih."
+      Dibuktikan di produksi: "rumah 2 lantai, 3 kamar mandi, saya mau hitung kebutuhan air
+      buangan aja" dijawab "Yang belum disebut saya anggap dulu … air bersih saja" — jenis
+      instalasinya tidak tercatat sama sekali, jadi anggapan bawaan yang dipakai.
+
+      Pembacanya memang ada, kosakatanya yang kurang: ia mengenali "pembuangan", "limbah",
+      "drainase", dan "saluran air kotor", tetapi bukan "air buangan", "air kotor", atau
+      "air bekas" — tiga nama yang justru dipakai sales dan tukang. Ketiganya ditambahkan di
+      kedua tempat: pembaca nilainya dan pagar yang menilai nilai model.
+
+      Dua hal lain ikut dibereskan. Sisi buangan yang tersurat kini menang atas tebakan model,
+      seperti letak toren — air bersih adalah anggapan bawaan, jadi hanya sisi buangan yang perlu
+      disebut untuk ada. Dan sisi buangan yang disebut di tengah kasus air bersih MENAMBAH, bukan
+      mengganti: "air kotor dan air bekas dipisah" pada rumah yang air bersihnya sudah tercatat
+      berarti keduanya dihitung, bukan air bersihnya hilang tanpa pemberitahuan.

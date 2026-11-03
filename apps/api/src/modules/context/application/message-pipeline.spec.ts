@@ -1424,7 +1424,10 @@ describe('giliran yang tidak mengubah kebutuhan (P31-27)', () => {
     const again = await runUnderstanding(
       aiExtracting({}),
       input({
-        message: 'air kotor dan air bekas dipisah',
+        // P33-01: 'air kotor dan air bekas dipisah' kini MENGUBAH kebutuhan — sisi buangan
+        // yang disebut ikut tercatat. Giliran yang benar-benar tidak mengubah apa pun dipakai
+        // di sini supaya yang diuji tetap pengulangan ringkasannya.
+        message: 'nanti saya kirim denahnya ya',
         state: house,
         recentTurns: [{ role: 'assistant', text: said }],
       }),
