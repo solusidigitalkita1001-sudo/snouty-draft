@@ -4792,3 +4792,16 @@ menurut ukuran pipanya.
       lagi lewat jalan cepat kebutuhan; jalurnya sendiri yang menjawab. Ketersediaan yang memang
       menyertakan bangunannya ("ada pipa 4 inch buat pembuangan rumah 2 lantai 3 kamar mandi?")
       tetap kebutuhan.
+
+- [x] P33-10 Aspek yang ditanya tanpa produk tidak lagi dijawab daftar isi katalog
+
+      Dua pertanyaan lanjutan di percakapan Inggris yang sama: "what pressure class?" dan "and the
+      length per stick?" masing-masing dijawab ikhtisar 7.664 produk dalam 24 keluarga, setelah 25
+      dan 23 detik. Keduanya aspek spesifikasi tanpa produk, tanpa keluarga, dan tanpa topik yang
+      cocok — dan pencarian spesifikasi tanpa kueri berakhir di ikhtisar katalog.
+
+      Keduanya sekarang menemukan topiknya sendiri: tekanan kerja dan panjang batang, di dua
+      bahasa, jadi jawabannya bersumber dan di bawah satu detik. Di belakangnya ada pagar: aspek
+      yang ditanya tanpa produk, tanpa keluarga — termasuk keluarga yang pengguna sebut beberapa
+      giliran sebelumnya — dan tanpa topik yang bisa menjawab, dibalas satu pertanyaan: jenis dan
+      ukuran pipanya yang mana. Daftar isi katalog bukan jawaban untuk pertanyaan apa pun.

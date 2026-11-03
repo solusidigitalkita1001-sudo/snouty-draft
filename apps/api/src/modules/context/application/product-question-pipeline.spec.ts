@@ -1735,3 +1735,30 @@ describe('aspek tanpa produk tetapi bertopik (P32-63)', () => {
     expect(out).not.toContain('keluarga');
   });
 });
+
+// Produksi 2026-11-03: "what pressure class?" dan "and the length per stick?" di percakapan yang
+// belum menyebut satu pun jenis pipa dijawab ikhtisar 7.664 produk, 23 dan 25 detik.
+describe('runProductQuestion — aspek tanpa produk apa pun', () => {
+  it('tanpa produk, keluarga, dan topik: satu pertanyaan balik, bukan daftar isi katalog', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      brokenCatalog,
+      noQuestions,
+      input('kelas tekanannya apa?', SPEC('pressure_class')),
+    );
+    const out = text(events);
+    expect(out).toBe(PRODUCT_ANSWER_COPY.aspectNeedsProduct('Kelas tekanan'));
+  });
+
+  it('keluarga yang disebut pengguna beberapa giliran lalu tetap dipakai', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: 'pressure_class' }),
+      brokenCatalog,
+      noQuestions,
+      input('kelas tekanannya apa?', SPEC('pressure_class'), {
+        recentTurns: [{ role: 'user', text: 'pipa hdpe 110 mm ada?' }],
+      }),
+    );
+    expect(text(events)).not.toBe(PRODUCT_ANSWER_COPY.aspectNeedsProduct('Kelas tekanan'));
+  });
+});

@@ -2321,6 +2321,22 @@
       ],
       "topicsOnly": true,
       "source": "produksi 2026-11-03 — dijawab kalimat pembuka 27 detik"
+    },
+    {
+      "text": "what pressure class?",
+      "topics": [
+        "tekanan kerja"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-03 — dijawab ikhtisar katalog 25 detik"
+    },
+    {
+      "text": "and the length per stick?",
+      "topics": [
+        "panjang batang"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-03 — dijawab ikhtisar katalog 23 detik"
     }
   ]
 }

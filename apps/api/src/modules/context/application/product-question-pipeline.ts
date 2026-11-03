@@ -74,7 +74,7 @@ import {
   reformat,
 } from './pipe-knowledge.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
-import { answerText, overviewText, productAnswerCopy } from './product-answer-text.js';
+import { answerText, aspectLabel, overviewText, productAnswerCopy } from './product-answer-text.js';
 import {
   familyRange,
   familySizes,
@@ -743,6 +743,27 @@ export async function runProductQuestion(
     query === null &&
     askedFamilies.length === 0 &&
     u.knowledgeTopics.some((t) => answerableTopics().has(t));
+  // Aspek yang ditanya tanpa produk, tanpa keluarga, dan tanpa topik yang bisa menjawab: tidak ada
+  // yang bisa dicari di katalog, dan "spesifikasi produk mana" tidak terjawab oleh daftar isinya.
+  // Produksi 2026-11-03: "what pressure class?" dan "and the length per stick?" masing-masing
+  // dijawab ikhtisar 7.664 produk setelah 23 dan 25 detik. Yang benar satu pertanyaan balik.
+  if (
+    aspect !== null &&
+    !topicNotSpec &&
+    query === null &&
+    askedFamilies.length === 0 &&
+    familiesInRecentTurns(input).length === 0
+  ) {
+    return [
+      { type: 'message.start', messageId: input.messageId },
+      {
+        type: 'token',
+        text: productAnswerCopy(locale).aspectNeedsProduct(aspectLabel(aspect, locale)),
+      },
+      endEvent(input.messageId),
+    ];
+  }
+
   const outcome =
     aspect === null || topicNotSpec
       ? await answerConcept(catalog, input, query, reply, faqPrompt)

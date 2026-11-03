@@ -37,6 +37,12 @@ export const PRODUCT_ANSWER_COPY = {
   familyNext: 'Mau saya rinci ukuran untuk salah satu jenisnya?',
   typeNext: 'Sebutkan jenisnya kalau mau saya tampilkan semua ukurannya.',
   sizeNext: 'Mau dicek ketersediaan ukuran tertentu, atau dibandingkan dengan jenis lain?',
+  /**
+   * Aspek yang ditanya tanpa satu pun produk, keluarga, atau topik — tidak ada yang bisa dicari.
+   * Produksi 2026-11-03: "what pressure class?" dijawab ikhtisar 7.664 produk setelah 25 detik.
+   */
+  aspectNeedsProduct: (aspect: string) =>
+    `${aspect} berbeda per jenis pipa. Sebutkan jenis dan ukurannya — misalnya PVC AW 3 inci atau HDPE 110 mm — nanti saya sebutkan angkanya.`,
   rangeNext:
     'Mau saya jelaskan salah satunya, atau ceritakan bangunannya supaya saya bisa memilihkan?',
   /** Pengguna menyebut Pralon ("HDPE di Pralon ok nggak?") tetapi katalognya belum terpasang. */
@@ -96,6 +102,7 @@ export interface ProductAnswerCopy {
   readonly familyNext: string;
   readonly typeNext: string;
   readonly sizeNext: string;
+  readonly aspectNeedsProduct: (aspect: string) => string;
   readonly rangeNext: string;
   readonly notPralonProduct: (material: string) => string;
   readonly catalogNotInstalledShort: string;
@@ -122,6 +129,8 @@ export const PRODUCT_ANSWER_COPY_EN: ProductAnswerCopy = {
   familyNext: 'Shall I list the sizes for one of these types?',
   typeNext: 'Name a type and I will list all of its sizes.',
   sizeNext: 'Want me to check a specific size, or compare it with another type?',
+  aspectNeedsProduct: (aspect) =>
+    `${aspect} differs per pipe type. Name the type and size — PVC AW 3 inch or HDPE 110 mm, for example — and I will give you the figure.`,
   rangeNext:
     'Would you like me to explain one of them, or tell me about the building so I can pick for you?',
   notPralonProduct: (material) =>
