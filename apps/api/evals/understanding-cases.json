@@ -2237,6 +2237,26 @@
     {
       "text": "pipa pvc awet berapa lama?",
       "topics": ["umur pakai"]
+    },
+    {
+      "text": "how do i join them?",
+      "topics": ["sambungan lem"],
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "which one for a buried water line?",
+      "topics": ["pipa tanam"],
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "minimal order berapa?",
+      "intent": "commercial_question",
+      "source": "produksi 2026-11-02"
+    },
+    {
+      "text": "ada stok di surabaya?",
+      "intent": "commercial_question",
+      "source": "produksi 2026-11-02"
     }
   ]
 }

@@ -71,7 +71,10 @@
       "menyambung pipa pvc",
       "nyambung pipa pakai apa?",
       "cara nyambung pipa",
-      "pilih sambungan lem atau cincin karet?"
+      "pilih sambungan lem atau cincin karet?",
+      "how do i join them?",
+      "nyambungnya gimana?",
+      "disambung pakai apa?"
     ],
     "sambungan rubber ring": [
       "cara pasang rubber ring?",
@@ -280,7 +283,10 @@
       "pipa distribusi spam pedesaan pakai apa?",
       "jaringan pipa air bersih antar kampung pakai bahan apa?",
       "which pipe suits a long rural water network?",
-      "best pipe for a village distribution main?"
+      "best pipe for a village distribution main?",
+      "which one for a buried water line?",
+      "yang mana buat jalur tanam?",
+      "buat pipa yang ditanam pilih yang mana?"
     ],
     "bertekanan vs gravitasi": [
       "pipa bertekanan sama gravitasi bedanya apa?",

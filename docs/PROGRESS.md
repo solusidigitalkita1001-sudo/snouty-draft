@@ -4553,3 +4553,31 @@ Yang masih menunggu pemilik di fase ini tetap dua: `LLM_MODEL_KNOWLEDGE` beserta
       Jawaban pipa lama selalu berbunyi "belum saya cek" walau hitungannya sudah memeriksa:
       hasilnya tidak punya kolom, jadi hilang saat solusi dibaca kembali. Migration 0036 menambah
       kolomnya, dan solusi yang dibaca kembali membawa hasil pemeriksaan yang sama dengan layar.
+
+- [x] P32-55 Pertanyaan dagang tidak lewat perencana giliran
+
+      "minimal order berapa?" memakai 9 detik di perencana giliran lalu balasannya ditulis model
+      15 detik, dan yang keluar penjelasan ukuran pipa air bersih — pesanannya tidak disebut sama
+      sekali, dan kartu ke tim sales hilang. Pertanyaan dagang yang dikenali dengan yakin kini
+      punya jawaban tetap seperti sapaan dan keluhan: tidak ada keluarga produk yang dicari dan
+      tidak ada kasus yang dihitung. "ada stok di surabaya?" terbaca pertanyaan spesifikasi lalu
+      dilempar ke tim teknis; enam kalimat stok dan tempat beli masuk ke contoh pertanyaan dagang,
+      jadi jawabannya tim sales beserta kartunya.
+
+- [x] P32-56 Kasus irigasi yang belum lengkap menyebut data yang ditunggu
+
+      Di kebun sawit 5 ha yang sumber, jarak, dan pompanya sudah tercatat, "pipa utamanya ukuran
+      berapa dan butuh berapa batang?" dijawab "Supaya saya bisa menghitung debit, ukuran pipa, dan
+      daftar produknya, saya perlu beberapa hal di bawah ini" — kalimat yang sama untuk giliran
+      ketiga berturut-turut, padahal yang tersisa hanya beda tinggi sumber terhadap lahan. Seperti
+      di jalur bangunan (P32-43), yang ditunggu sekarang disebut namanya, sebanyak yang ditanyakan
+      kartunya.
+
+- [x] P32-57 Pertanyaan sambungan dan pipa tanam dalam bahasa Inggris
+
+      "how do i join them?" sesudah PVC AW dan PVC D dibandingkan memakai 39,1 detik lalu dijawab
+      ikhtisar seluruh katalog, dan "which one for a buried water line?" dijawab "Soal itu saya
+      belum punya acuan yang bisa saya pegang" — padahal kedua topiknya ada di pengetahuan pipa.
+      Kalimat pendek tanpa kata kunci topiknya ("join them", "buried water line") tidak cukup dekat
+      dengan contoh yang ada; keduanya ditambahkan sebagai contoh, masing-masing dengan kembaran
+      Indonesianya, dan masuk ke daftar kasus evaluasi.

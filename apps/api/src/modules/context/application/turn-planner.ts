@@ -235,6 +235,11 @@ const FIXED_ANSWER: ReadonlySet<string> = new Set([
   'complaint',
   'out_of_scope',
   'capability_question',
+  // Penawaran, stok, pengiriman, garansi, cara pesan: jawabannya kalimat tetap plus kartu ke tim
+  // sales — tidak ada keluarga produk yang dicari dan tidak ada kasus yang dihitung. Di produksi
+  // 2026-11-02 "minimal order berapa?" lewat perencana (9 detik) lalu ditulis model (15 detik),
+  // dan yang keluar penjelasan ukuran pipa air bersih — tanpa sepatah kata soal pesanan (P32-55).
+  'commercial_question',
 ]);
 
 export function hasFixedAnswer(u: MessageUnderstanding): boolean {

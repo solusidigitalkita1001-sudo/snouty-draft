@@ -314,3 +314,23 @@ describe('case_question atas solusi yang sudah dihitung (P31-38)', () => {
     expect(textOf(out)).toBe('jawaban model');
   });
 });
+
+/**
+ * P32-55 — pertanyaan dagang tidak direncanakan. Produksi 2026-11-02: "minimal order berapa?"
+ * lewat perencana 9 detik lalu balasannya ditulis model 15 detik, dan yang keluar penjelasan
+ * ukuran pipa air bersih — pesanannya tidak disebut sama sekali, dan kartu ke tim sales hilang.
+ */
+describe('pertanyaan dagang tidak direncanakan (P32-55)', () => {
+  it('label dagang yang percaya diri punya jawaban tetap', async () => {
+    const { understood } = await import('../../understanding/testing/understood.js');
+    const { hasFixedAnswer } = await import('./turn-planner.js');
+    for (const message of ['minimal order berapa?', 'ada stok di surabaya?']) {
+      expect(
+        hasFixedAnswer({
+          ...understood(message),
+          intent: { label: 'commercial_question' as never, score: 0.86 },
+        }),
+      ).toBe(true);
+    }
+  });
+});

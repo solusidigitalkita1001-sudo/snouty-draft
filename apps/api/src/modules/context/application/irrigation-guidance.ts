@@ -5,7 +5,12 @@
  * sendiri dihitung tim teknis (OQ-47).
  */
 import { DEFAULT_LOCALE, type Locale, type RequirementState } from '@snouty/shared-types';
-import { irrigationCaptured, irrigationMissing } from '../domain/irrigation.js';
+import {
+  irrigationCaptured,
+  irrigationFieldLabel,
+  isIrrigationField,
+  planIrrigationClarification,
+} from '../domain/irrigation.js';
 import { MATERIALS } from './pipe-knowledge.js';
 
 const byFamily = (family: string) => MATERIALS.find((m) => m.family === family)!;
@@ -78,15 +83,29 @@ function irrigationGuidanceEn(state: RequirementState): string {
 }
 
 function closingLine(state: RequirementState, locale: Locale): string {
-  const missing = irrigationMissing(state).length > 0;
+  // Yang ditunggu disebut namanya, seperti di jalur bangunan (P32-43). "Saya perlu beberapa hal di
+  // bawah ini" adalah kalimat yang sama untuk empat data yang kurang dan untuk satu: di produksi
+  // 2026-11-02 "pipa utamanya ukuran berapa dan butuh berapa batang?" dijawab kalimat itu saja —
+  // giliran ketiga berturut-turut — padahal yang tersisa hanya posisi sumber air terhadap lahan.
+  const asked = planIrrigationClarification(state, locale)
+    .map((question) => question.id)
+    .filter(isIrrigationField)
+    .map((field) => irrigationFieldLabel(field, locale).toLowerCase());
   if (locale === 'en') {
-    return missing
-      ? 'So I can work out the flow, pipe sizes, and product list, I need a few details below.'
+    return asked.length > 0
+      ? `So I can work out the flow, pipe sizes, and product list, I still need ${joinLabels(asked, 'en')}. The options are below, or type the answer directly.`
       : 'Press **Compose recommendation** and I will work out an initial estimate — figures I estimate myself are marked clearly, so the Pralon technical team only has to check them.';
   }
-  return missing
-    ? 'Supaya saya bisa menghitung debit, ukuran pipa, dan daftar produknya, saya perlu beberapa hal di bawah ini.'
+  return asked.length > 0
+    ? `Supaya saya bisa menghitung debit, ukuran pipa, dan daftar produknya, saya masih perlu ${joinLabels(asked, 'id')}. Pilihannya ada di bawah, atau ketik jawabannya langsung.`
     : 'Tekan **Susun rekomendasi** dan saya hitung perkiraan awalnya — angka yang saya perkirakan sendiri saya tandai jelas, supaya tim teknis Pralon tinggal memeriksanya.';
+}
+
+/** Daftar label sebagai frasa: "a, b dan c". */
+function joinLabels(labels: readonly string[], locale: Locale): string {
+  const and = locale === 'en' ? 'and' : 'dan';
+  if (labels.length === 1) return labels[0]!;
+  return `${labels.slice(0, -1).join(', ')} ${and} ${labels[labels.length - 1]}`;
 }
 
 /**

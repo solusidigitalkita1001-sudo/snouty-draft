@@ -1557,3 +1557,50 @@ describe('pembuangan saja: sumber air tidak dianggap', () => {
     expect(text).not.toContain('toren');
   });
 });
+
+/**
+ * P32-56 — pertanyaan di kasus irigasi yang belum lengkap menyebut data yang ditunggu. Produksi
+ * 2026-11-02: "pipa utamanya ukuran berapa dan butuh berapa batang?" dijawab "Supaya saya bisa
+ * menghitung debit, ukuran pipa, dan daftar produknya, saya perlu beberapa hal di bawah ini" —
+ * kalimat yang sama untuk giliran ketiga berturut-turut, padahal yang tersisa hanya satu data.
+ */
+describe('kasus irigasi yang belum lengkap (P32-56)', () => {
+  const askIrrigation = (message: string, over: Partial<PipelineInput> = {}) =>
+    runUnderstanding(
+      aiExtracting({}),
+      input({
+        message,
+        understanding: understood(message, {
+          intent: 'requirement_irrigation',
+          useCase: 'irrigation',
+        }),
+        ...over,
+      }),
+    );
+
+  it('kalimat penutupnya menyebut data yang masih ditunggu, bukan "beberapa hal di bawah ini"', async () => {
+    const first = await askIrrigation('mau pasang irigasi sprinkler buat kebun sawit 5 hektar');
+    const opening = (first.events.find((e) => e.type === 'token') as { text: string }).text;
+    // Empat yang kurang disebut namanya, dan jumlahnya sama dengan pertanyaan di kartunya.
+    expect(opening).toContain('saya masih perlu sumber air');
+    expect(opening).toContain('dan beda tinggi');
+    expect(opening).not.toContain('beberapa hal di bawah ini');
+
+    const second = await askIrrigation('sumbernya dari sungai, jaraknya 400 meter, pakai pompa', {
+      state: first.nextState,
+      recentTurns: [{ role: 'assistant', text: opening }],
+    });
+    const noted = (second.events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(noted).toContain('400 m');
+
+    const third = await askIrrigation('pipa utamanya ukuran berapa dan butuh berapa batang?', {
+      state: second.nextState,
+      recentTurns: [{ role: 'assistant', text: noted }],
+    });
+    const text = (third.events.find((e) => e.type === 'token') as { text: string }).text;
+    // Tinggal beda tingginya; yang sudah dijawab tidak ditagih lagi.
+    expect(text).toContain('saya masih perlu beda tinggi');
+    expect(text).not.toContain('sumber air');
+    expect(text).not.toContain('jarak sumber ke lahan');
+  });
+});
