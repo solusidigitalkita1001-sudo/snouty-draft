@@ -152,6 +152,9 @@ export const KNOWLEDGE_TOPICS = [
   'pipa dicor',
   'pukulan air',
   'kemiringan buangan',
+  // Intensitas hujan yang dipakai hitungan air hujan (P33-15): pertanyaan "kalau hujannya deras
+  // banget" punya angkanya sendiri — 150 mm/jam, asumsi bertanda.
+  'intensitas hujan',
   'bau saluran',
   // Pipa yang SUDAH terpasang di kasus pengguna: muat atau tidak untuk bebannya, bukan umur
   // pakai pipa pada umumnya — dijawab dari hitungan renovasi, bukan dari pengetahuan (P32-52).

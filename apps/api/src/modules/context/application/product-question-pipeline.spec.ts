@@ -955,7 +955,7 @@ describe('runProductQuestion — batas klaim (audit anti-halusinasi 2026-10-09)'
       },
     );
     const out = text(events);
-    expect(out.startsWith('Tidak — pipa PVC tidak bisa menggantikan PPR')).toBe(true);
+    expect(out.startsWith('Pipa PVC tidak dipakai untuk jalur air panas')).toBe(true);
     expect(out).not.toContain('Singkatnya');
     expect(cards(events)).toContainEqual({ kind: 'cta', action: 'CONTACT_TECHNICAL' });
     expect(gaps).toEqual([{ topic: 'air panas', gap: 'batas suhu operasi resmi' }]);

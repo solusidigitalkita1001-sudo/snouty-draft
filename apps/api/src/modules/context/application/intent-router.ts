@@ -89,6 +89,15 @@ const TERMINAL_FINE_INTENTS: ReadonlySet<string> = new Set([
   'capability_question',
 ]);
 
+/**
+ * Label CONTOH yang tetap di luar topik walau pesannya menyinggung topik berfakta: urusan
+ * komersial (garansi, pengiriman, pesanan) dan pertanyaan tentang kemampuan sistem ini.
+ */
+const KEEPS_OUT_OF_SCOPE: ReadonlySet<string> = new Set([
+  'commercial_question',
+  'capability_question',
+]);
+
 /** Label model yang kalah oleh isyarat kebutuhan di teks — lihat `withRequirementPrecedence`. */
 const YIELDS_TO_REQUIREMENT: ReadonlySet<Intent> = new Set<Intent>([
   'PRODUCT_LOOKUP',
@@ -256,7 +265,19 @@ export function withRequirementPrecedence(
   // cukup untuk menolak dibuang dari domain.
   // Policy 1 tetap di atas pagar ini: pesan yang menyebut pesaing tidak boleh berakhir di jalur
   // produk hanya karena model menyebutnya di luar topik (ditemukan tes P30-07).
-  if (classification.intent === 'OUT_OF_SCOPE' && !u.mentionsCompetitor && pointsAtPiping(u)) {
+  // Topik yang punya FAKTA BERSUMBER juga menolak label di luar topik: "kalau hujannya deras
+  // banget gimana?" di kasus air hujan dijawab "itu di luar yang bisa saya bantu … untuk
+  // pengiriman, harga, atau urusan pesanan" (produksi 2026-11-03), padahal intensitas hujan yang
+  // dipakai hitungan ada angkanya.
+  // Urusan komersial dan pertanyaan "apa yang bisa kamu kerjakan" tetap jawaban penutupnya:
+  // "pipa saya pecah baru 2 tahun, garansi gimana" menyinggung umur pakai, tetapi yang ditanya
+  // garansi — dan itu urusan tim Pralon, bukan pelajaran umur pakai pipa.
+  const keepsOutOfScope = KEEPS_OUT_OF_SCOPE.has(u.intent?.label ?? '');
+  if (
+    classification.intent === 'OUT_OF_SCOPE' &&
+    !u.mentionsCompetitor &&
+    (pointsAtPiping(u) || (!keepsOutOfScope && answersFromKnowledge(u, hasCase)))
+  ) {
     classification = { intent: 'PRODUCT_LOOKUP', confidence: classification.confidence };
   }
 

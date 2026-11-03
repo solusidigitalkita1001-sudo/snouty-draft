@@ -3,7 +3,8 @@
  * katalog yang dihitung saat itu. Angka katalog berubah bila katalognya berubah — tidak ada
  * jawaban per pertanyaan.
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import type { AiService } from '../../ai/domain/ai.port.js';
 import { understood } from '../../understanding/testing/understood.js';
 import { factTopics } from '../infrastructure/knowledge-facts.js';
 import { answersFromKnowledge, asksSolutionQuantity } from './intent-router.js';
@@ -347,8 +348,10 @@ describe('tes FAQ sales 2026-10-12', () => {
       'id',
       ['pvc', 'ppr'],
     );
+    // Pembukanya menjawab "boleh?" maupun "kenapa?" — tanpa verdict "Tidak —" yang menjawab
+    // pertanyaan yang tidak diajukan (P33-14).
     expect(a!.text.split('\n')[0]).toBe(
-      'Tidak — pipa PVC tidak bisa menggantikan PPR untuk air panas.',
+      'Pipa PVC tidak dipakai untuk jalur air panas: panas membuat pipanya melunak dan sambungan lemnya melemah.',
     );
     expect(a!.gaps).toEqual([{ topic: 'air panas', gap: 'batas suhu operasi resmi' }]);
   });
@@ -759,5 +762,35 @@ describe('sourcedQuestionOverCase (P33-12)', () => {
         true,
       ),
     ).toBe(false);
+  });
+});
+
+// Produksi 2026-11-03: "kalau hujannya deras banget gimana?" di kasus air hujan dijawab "itu di
+// luar yang bisa saya bantu … untuk pengiriman, harga, atau urusan pesanan".
+describe('label di luar topik vs topik berfakta (P33-15)', () => {
+  it('topik yang punya fakta menolak label di luar topik', async () => {
+    const { IntentRouter } = await import('./intent-router.js');
+    const ai = { classifyIntent: vi.fn() } as unknown as AiService;
+    const routed = await new IntentRouter(ai).route(
+      understood('kalau hujannya deras banget gimana?', {
+        intent: 'out_of_scope',
+        knowledgeTopics: ['intensitas hujan'],
+      }),
+      true,
+    );
+    expect(routed.intent).toBe('PRODUCT_LOOKUP');
+  });
+
+  it('urusan komersial tetap di luar topik walau menyinggung topik berfakta', async () => {
+    const { IntentRouter } = await import('./intent-router.js');
+    const ai = { classifyIntent: vi.fn() } as unknown as AiService;
+    const routed = await new IntentRouter(ai).route(
+      understood('pipa pralon saya pecah baru 2 tahun, garansi gimana', {
+        intent: 'commercial_question',
+        knowledgeTopics: ['umur pakai'],
+      }),
+      false,
+    );
+    expect(routed.intent).toBe('OUT_OF_SCOPE');
   });
 });

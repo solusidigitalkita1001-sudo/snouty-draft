@@ -875,7 +875,11 @@
       "which pipe for a housing estate sewer?",
       "butuh pipa buat air buangan kamar mandi, kloset dan floor drain",
       "pipa buangan kloset dan floor drain pakai apa",
-      "air kotor kamar mandi pakai pipa apa"
+      "air kotor kamar mandi pakai pipa apa",
+      "ukuran pipa buat mesin cuci berapa?",
+      "mesin cuci pakai pipa ukuran apa?",
+      "pipa buangan mesin cuci berapa inci?",
+      "what size drain for a washing machine?"
     ],
     "air minum": [
       "pipa pralon aman buat air minum?",
@@ -1083,6 +1087,16 @@
       "do I have to replace the old main pipe?",
       "does the old pipe still carry the extra bathrooms?",
       "pipa lama ukurannya cukup ngga buat beban baru"
+    ],
+    "intensitas hujan": [
+      "kalau hujannya deras banget gimana?",
+      "kalau hujan deras pipanya cukup?",
+      "intensitas hujan yang dipakai berapa?",
+      "hujan lebat ukurannya masih aman?",
+      "pakai curah hujan berapa hitungannya?",
+      "what if the rain is very heavy?",
+      "what rainfall intensity do you use?",
+      "is the size still safe in a downpour?"
     ]
   },
   "window": 0.015

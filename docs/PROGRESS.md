@@ -4839,3 +4839,40 @@ menurut ukuran pipanya.
       bertekanan, D untuk aliran gravitasi — tidak pernah ikut terbaca.
 
       Klaim tentang kelas pipa, di dua bahasa, kini menemukan topik kelas PVC.
+
+- [x] P33-14 Pertanyaan "kenapa" tidak dibuka dengan putusan "Tidak —"
+
+      Probe produksi 2026-11-03: "kenapa pipa air panas ga boleh pvc?" dibuka "Tidak — pipa PVC
+      tidak bisa menggantikan PPR untuk air panas." Kalimat pembuka itu ditulis untuk pertanyaan
+      izin ("boleh pakai PVC buat air panas?"), dan di depan pertanyaan "kenapa" ia menjawab
+      pertanyaan yang tidak diajukan.
+
+      Pembukanya ditulis ulang supaya menjawab keduanya: PVC tidak dipakai untuk jalur air panas,
+      dan alasannya ikut dalam satu kalimat — panasnya membuat pipa melunak dan sambungan lemnya
+      melemah. Pertanyaan izin tetap mendapat jawaban yang jelas tidaknya.
+
+- [x] P33-15 Hujan deras dijawab angka hujan yang dipakai hitungan
+
+      Probe produksi 2026-11-03: di kasus talang air hujan yang baru dibuka, "kalau hujannya deras
+      banget gimana?" dijawab "Itu di luar yang bisa saya bantu — saya khusus soal pipa dan
+      instalasi air Pralon. Untuk pengiriman, harga, atau urusan pesanan…". Dua hal salah: hujan
+      deras justru masukan hitungan air hujan, dan jawaban penutup itu menyinggung urusan yang
+      tidak ditanya siapa pun.
+
+      Hitungan air hujan memang memakai intensitas 150 mm/jam — hujan lebat, keputusan 19 Okt 2026
+      — jadi pertanyaannya sekarang dijawab angka itu, berikut keterangan bahwa ia nilai awal yang
+      belum divalidasi dan bisa diganti intensitas rencana setempat. Topiknya baru: intensitas
+      hujan. Di atas data itu satu pagar: topik yang punya fakta bersumber menolak label di luar
+      topik — kecuali urusan komersial dan pertanyaan tentang kemampuan sistem, yang tetap punya
+      jawaban penutupnya sendiri.
+
+- [x] P33-16 Mesin cuci disebut jawabannya
+
+      Probe produksi 2026-11-03: "ukuran pipa buat mesin cuci berapa?" dijawab daftar ukuran
+      sambungan minimum tiap alat — kloset, shower, bak cuci, wastafel — tanpa sekali pun menyebut
+      mesin cuci. Alatnya memang tidak ada di daftar itu.
+
+      Daftarnya kini memuat mesin cuci rumah tangga: standpipe dengan perangkap sendiri, minimum
+      2", acuan IPC Tabel 709.1 yang sama dengan alat lain di daftar itu dan dengan tanda yang
+      sama — belum divalidasi tim teknis Pralon. Sisi air bersihnya disebut apa adanya: satu titik
+      air seperti keran, dan kerannya bisa dicatat lewat keran tambahan (P33-04).

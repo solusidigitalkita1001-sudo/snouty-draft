@@ -2353,6 +2353,28 @@
       ],
       "topicsOnly": true,
       "source": "produksi 2026-11-03"
+    },
+    {
+      "text": "kalau hujannya deras banget gimana?",
+      "topics": [
+        "intensitas hujan"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-03 — dijawab di luar cakupan"
+    },
+    {
+      "text": "cuaca hari ini gimana?",
+      "intent": "out_of_scope",
+      "topics": [],
+      "source": "pagar: cuaca tetap di luar cakupan"
+    },
+    {
+      "text": "ukuran pipa buat mesin cuci berapa?",
+      "topics": [
+        "pipa pembuangan"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-03 — mesin cucinya tidak pernah disebut jawabannya"
     }
   ]
 }
