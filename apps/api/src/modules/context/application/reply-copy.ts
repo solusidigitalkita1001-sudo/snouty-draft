@@ -90,6 +90,25 @@ export function requirementUnchangedReply(locale: Locale = DEFAULT_LOCALE): stri
 }
 
 /**
+ * Keterangan satu lantai yang tidak menurunkan totalnya (P33-05). Giliran ini memang tidak mengubah
+ * kebutuhan, tetapi "kebutuhan Anda tetap tercatat" menyembunyikan alasannya — dan di produksi
+ * 2026-11-03 angka yang sama justru turun diam-diam. Yang diucapkan: totalnya utuh, bagian yang
+ * disebut itu bagian darinya, dan kalau totalnya memang berubah tinggal disebut.
+ */
+export function perFloorTotalReply(
+  kept: { readonly path: RequirementFieldPath; readonly total: number; readonly perFloor: number },
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  const rest = kept.total - kept.perFloor;
+  const label = locale === 'en' ? FIELD_LABEL_EN[kept.path] : FIELD_LABEL[kept.path];
+  // Label kartu ditulis berawalan huruf besar ("Kamar mandi"); di tengah kalimat ia huruf kecil.
+  const noun = label.charAt(0).toLowerCase() + label.slice(1);
+  return locale === 'en'
+    ? `On record there are ${kept.total} ${noun} for the whole building, so ${kept.perFloor} on that floor means ${rest} on the other floors. If the total itself changed, just say the number.`
+    : `Yang tercatat ${kept.total} ${noun} untuk seluruh bangunan, jadi ${kept.perFloor} di lantai itu berarti ${rest} lagi di lantai lain. Kalau totalnya yang berubah, sebutkan saja angkanya.`;
+}
+
+/**
  * Angka yang terbaca tetapi tidak punya parameter di kasus ini. Produksi 2026-10-26: "toren 2000
  * liter di atap" lalu "ukuran bangunannya 10 x 20 meter" di kasus sumur ke tandon mendapat kalimat
  * "Yang masih saya perlukan: …" yang sama persis dua giliran berturut-turut, tanpa sepatah kata

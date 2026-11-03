@@ -4724,3 +4724,31 @@ menurut ukuran pipanya.
       tambahan hanya untuk rumah: toilet umum dan tempat ibadah punya keran kamar mandi dan keran
       wudhunya sendiri. Sisi buangannya tidak ditambah — keran taman tidak punya saluran buangan,
       dan menambahkan beban buangan tanpa alat yang disebut pengguna sama saja mengarang.
+
+- [x] P33-05 Angka satu lantai tidak menurunkan total yang sudah tercatat
+
+      Probe produksi 2026-11-03: rumah 2 lantai dengan 3 kamar mandi, lalu "yang lantai 2 ada 2
+      kamar mandi" — kamar mandinya menjadi 2, dan yang diucapkan "Kebutuhan Anda tetap tercatat".
+      Dua kesalahan sekaligus: angka pengguna turun tanpa sepatah kata, dan kalimatnya berbunyi
+      seolah pesannya tidak terbaca.
+
+      Keterangan satu lantai sekarang dibaca sebagai bagian dari totalnya, bukan penggantinya.
+      Lantainya harus disebut dengan penandanya ("yang lantai 2 ada…", "di lantai 3…", "on the
+      second floor") supaya "rumah 2 lantai 3 kamar mandi" tidak ikut terbaca; dua lantai atau
+      lebih yang dirinci satu per satu tetap dijumlahkan seperti sebelumnya, karena itu rincian
+      seluruh bangunan. Bagian yang lebih besar dari total tetap menaikkan angkanya — orang yang
+      menyebut 4 kamar mandi di lantai 2 memang sedang mengoreksi totalnya.
+
+      Giliran itu kini mengucapkan alasannya: total yang tercatat, bagian yang disebut, sisanya di
+      lantai lain, dan cara mengubah totalnya kalau memang itu yang dimaksud.
+
+- [x] P33-06 Kamar kos di bangunan campuran ikut tercatat
+
+      Probe produksi 2026-11-03: pada renovasi ruko 3 lantai, "lantai 1 buat jualan, lantai 2 sama
+      3 kosan 6 kamar" tidak mencatat apa pun. Jumlah kamar hanya dibaca untuk bangunan yang jenis
+      tercatatnya kos, dan ruko bukan kos — padahal enam kamar sewa di dalamnya menentukan kamar
+      mandi, titik air, dan beban suplainya.
+
+      Kosakata kamar sewa yang tersurat di pesan sekarang cukup: kos, kosan, kontrakan, indekos,
+      asrama, boarding house. Jenis bangunannya tidak diubah — ruko tetap ruko, kamarnya yang
+      dibaca. Kamar tidur rumah tetap bukan kamar sewa, dan "lantai 2 masih kosong" bukan kos.

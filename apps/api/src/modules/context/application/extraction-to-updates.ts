@@ -17,9 +17,11 @@ import type { FieldUpdate } from '../domain/context-merger.js';
 import {
   PipeSize,
   type Dimensions,
+  type RequirementFieldPath,
   type RequirementState,
   type WorkType,
 } from '@snouty/shared-types';
+import { readField } from '../domain/requirement-field.js';
 import { extractTechnicalContext, WORK_TYPE_MODE, workTypeOf } from '@snouty/engineering';
 
 /** Kosakata renovasi yang tersurat (satu parser dengan kasus teknis) → field rumah. */
@@ -112,6 +114,9 @@ const GROUNDING: Readonly<Record<string, RegExp>> = {
   'water.installationType':
     /\b(air bersih|pembuangan|buangan|air kotor|air bekas|limbah|drainase|saluran|keduanya|clean water|potable|drinking water|supply|drainage|waste ?water|grey ?water|sewer|sewage|both)(?:nya)?\b/i,
 };
+
+/** Kosakata kamar sewa yang berdiri sendiri ("kosan", "kontrakan") — bukan jenis bangunannya. */
+const RENTAL_WORD = /\b(kos|kost|kosan|kos-kosan|indekos|kontrakan|asrama|boarding house)\b/i;
 
 /** Kamar sewa, dan pernyataan bahwa tiap kamar punya kamar mandinya sendiri. */
 const ROOM = 'kamar|kamar kos|kamar sewa|kamar tidur|rooms?|bedrooms?';
@@ -509,6 +514,38 @@ const PER_FLOOR =
 // ada 2 kamar mandi"), jadi celahnya juga menerima angka.
 const GAP_WITH_NUMBERS = '[\\s:=-]*(?:[a-z0-9]+[\\s:=-]+){0,3}';
 
+/**
+ * Satu lantai yang DISEBUT namanya, dengan penanda letak: "yang lantai 2 ada 2 kamar mandi",
+ * "di lantai 3 ada 1 dapur", "on the second floor". Penandanya wajib — tanpa itu "rumah 2 lantai 3
+ * kamar mandi" akan terbaca sebagai keterangan per lantai, dan kamar mandinya hilang.
+ */
+const ONE_FLOOR = [
+  '(?:yang|di|pada|untuk|khusus|buat)' + String.raw`\s+lantai\s*\d{1,2}\b`,
+  String.raw`lantai\s*\d{1,2}\s*(?:-?nya)?\s*(?:ada|punya|terdapat|berisi)\b`,
+  String.raw`on\s+(?:the\s+)?(?:\d{1,2}(?:st|nd|rd|th)|first|second|third|fourth|ground|top|upper)\s+floor\b`,
+  String.raw`floor\s*\d{1,2}\s+has\b`,
+].join('|');
+
+/** Pesan ini menerangkan SATU lantai, bukan seluruh bangunan dan bukan "per lantai". */
+export function mentionsOneFloor(message: string, noun: string): boolean {
+  const text = message.toLowerCase();
+  if (mentionsPerFloor(message, noun)) return false;
+  if (!new RegExp(ONE_FLOOR, 'i').test(text)) return false;
+  // Dua lantai atau lebih yang disebut satu per satu ("lantai 1 ada 1 kamar mandi, lantai 2 ada
+  // 2") adalah rincian SELURUH bangunan: jumlahnya dijumlahkan, bukan dibandingkan dengan total.
+  if (floorsNamed(text).size > 1) return false;
+  return new RegExp(String.raw`\b(?:${noun})\b`, 'i').test(text);
+}
+
+/** Nomor lantai yang disebut namanya di dalam pesan. */
+function floorsNamed(text: string): ReadonlySet<number> {
+  const named = new Set<number>();
+  for (const match of text.matchAll(/(?:lantai|floor)\s*(\d{1,2})\b/gi)) {
+    named.add(Number(match[1]));
+  }
+  return named;
+}
+
 export function mentionsPerFloor(message: string, noun: string): boolean {
   const text = message.toLowerCase();
   return (
@@ -736,6 +773,43 @@ export function mentionsTankWithoutLocation(message: string): boolean {
   );
 }
 
+/** Jumlah yang dipertahankan karena pesannya hanya menerangkan satu lantai. */
+export interface KeptTotal {
+  readonly path: RequirementFieldPath;
+  /** Jumlah yang sudah tercatat untuk seluruh bangunan. */
+  readonly total: number;
+  /** Jumlah yang disebut untuk lantai itu saja. */
+  readonly perFloor: number;
+}
+
+/**
+ * Keterangan SATU lantai tidak menurunkan total yang sudah tercatat (produksi 2026-11-03): rumah
+ * 2 lantai dengan 3 kamar mandi lalu "yang lantai 2 ada 2 kamar mandi" menjadi 2 kamar mandi —
+ * angka pengguna sendiri turun, tanpa sepatah kata pun. Yang disebut itu bagian dari totalnya,
+ * bukan penggantinya; total hanya naik bila bagiannya lebih besar dari yang tercatat.
+ */
+export function perFloorKeepsTotal(
+  state: RequirementState,
+  updates: readonly FieldUpdate[],
+  message: string,
+): { readonly updates: readonly FieldUpdate[]; readonly kept: readonly KeptTotal[] } {
+  const kept: KeptTotal[] = [];
+  const out = updates.filter((update) => {
+    const noun = COUNT_NOUNS[update.path];
+    if (noun === undefined || typeof update.value !== 'number') return true;
+    if (!mentionsOneFloor(message, noun)) return true;
+    const recorded = readField(state, update.path as RequirementFieldPath).value;
+    if (typeof recorded !== 'number' || recorded <= update.value) return true;
+    kept.push({
+      path: update.path as RequirementFieldPath,
+      total: recorded,
+      perFloor: update.value,
+    });
+    return false;
+  });
+  return { updates: out, kept };
+}
+
 /**
  * Sisi buangan yang disebut di tengah kasus air bersih MENAMBAH, bukan mengganti. "air kotor dan
  * air bekas dipisah" pada rumah yang air bersihnya sudah tercatat berarti keduanya dihitung —
@@ -843,9 +917,14 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   );
   // Kamar sewa hanya dicatat untuk bangunan yang memang punya kamar sewa: "rumah 3 kamar tidur"
   // tidak memunculkan pertanyaan kamar mandi per kamar.
+  // Produksi 2026-11-03: "lantai 1 buat jualan, lantai 2 sama 3 kosan 6 kamar" di ruko 3 lantai
+  // tidak mencatat apa pun — enam kamarnya hilang karena jenis bangunan yang tercatat komersial
+  // ringan dan kalimatnya tidak menulis "kamar kos" persis. Kosakata kos yang tersurat sudah cukup:
+  // bangunannya tetap seperti yang tercatat, kamarnya yang dibaca.
   const rental =
     (OBVIOUS.type(message) ?? extraction.building?.type) === 'boarding_house' ||
-    /kamar (?:kos|sewa)/i.test(message);
+    /kamar (?:kos|sewa)/i.test(message) ||
+    RENTAL_WORD.test(message);
   if (rental) add('building.rooms', OBVIOUS.rooms(message));
   add('fixtures.bathroomsPerRoom', OBVIOUS.bathroomsPerRoom(message));
   // Peniadaan tersurat ("tidak ada dapur") yang dilewatkan model → 0 dari teks (produksi

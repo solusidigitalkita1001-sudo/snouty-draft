@@ -1654,3 +1654,40 @@ describe('pertanyaan dagang berturut-turut (P32-61)', () => {
     expect(second.events.some((e) => e.type === 'card' && e.card.kind === 'cta')).toBe(true);
   });
 });
+
+// Produksi 2026-11-03: rumah 2 lantai dengan 3 kamar mandi, lalu "yang lantai 2 ada 2 kamar
+// mandi" — angkanya turun jadi 2 dan yang diucapkan "Kebutuhan Anda tetap tercatat".
+describe('keterangan satu lantai (P33-05)', () => {
+  const house = () =>
+    withCompleteness(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [
+          { path: 'building.type', value: 'residential', source: 'user_stated' },
+          { path: 'building.floors', value: 2, source: 'user_stated' },
+          { path: 'fixtures.bathrooms', value: 3, source: 'user_stated' },
+          { path: 'water.source', value: 'municipal', source: 'user_stated' },
+        ],
+        new Date(T0),
+      ).state,
+    );
+
+  it('totalnya utuh dan alasannya diucapkan', async () => {
+    const ai = aiExtracting({});
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'yang lantai 2 ada 2 kamar mandi', state: house() }),
+    );
+    const updated = events.find((e) => e.type === 'requirement.updated') as {
+      state: ReturnType<typeof emptyRequirementState>;
+    };
+    expect(updated.state.fixtures.bathrooms.value).toBe(3);
+    const said = events
+      .filter((e): e is { type: 'token'; text: string } => e.type === 'token')
+      .map((e) => e.text)
+      .join(' ');
+    expect(said).toContain('3 kamar mandi untuk seluruh bangunan');
+    expect(said).toContain('2 di lantai itu');
+    expect(said).not.toContain('tetap tercatat');
+  });
+});

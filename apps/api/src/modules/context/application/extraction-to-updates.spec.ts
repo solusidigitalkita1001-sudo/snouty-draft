@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { extractionToUpdates } from './extraction-to-updates.js';
+import { extractionToUpdates, perFloorKeepsTotal } from './extraction-to-updates.js';
+import { emptyRequirementState } from '../domain/requirement-state.factory.js';
+import { mergeRequirement } from '../domain/context-merger.js';
 
 describe('ukuran rumah dari teks (laporan pemilik 2026-10-12: "kurang parameter luas")', () => {
   const dims = (message: string) =>
@@ -277,5 +279,68 @@ describe('nomor lantai bukan jumlah alat (produksi 2026-11-02)', () => {
       value('lantai 1 ada 1 kamar mandi, lantai 2 ada 2 kamar mandi', 'fixtures.bathrooms'),
     ).toBe(3);
     expect(value('atasnya ada 2 kamar mandi bawahnya 1', 'fixtures.bathrooms')).toBe(3);
+  });
+});
+
+describe('angka satu lantai tidak menurunkan totalnya (produksi 2026-11-03)', () => {
+  const state = () =>
+    mergeRequirement(
+      emptyRequirementState('2026-11-03T00:00:00.000Z'),
+      [
+        { path: 'building.floors', value: 2, source: 'user_stated' },
+        { path: 'fixtures.bathrooms', value: 3, source: 'user_stated' },
+      ],
+      new Date('2026-11-03T00:00:00.000Z'),
+    ).state;
+
+  const run = (message: string) =>
+    perFloorKeepsTotal(state(), extractionToUpdates({}, message), message);
+
+  it('"yang lantai 2 ada 2 kamar mandi" menahan 3 yang sudah tercatat', () => {
+    const { updates, kept } = run('yang lantai 2 ada 2 kamar mandi');
+    expect(updates.some((u) => u.path === 'fixtures.bathrooms')).toBe(false);
+    expect(kept).toEqual([{ path: 'fixtures.bathrooms', total: 3, perFloor: 2 }]);
+  });
+
+  it('bagian yang lebih besar dari totalnya tetap menaikkan angkanya', () => {
+    const { updates, kept } = run('yang lantai 2 ada 4 kamar mandi');
+    expect(updates.find((u) => u.path === 'fixtures.bathrooms')?.value).toBe(4);
+    expect(kept).toEqual([]);
+  });
+
+  it('rincian semua lantai adalah total baru, bukan bagian', () => {
+    const message = 'lantai 1 ada 1 kamar mandi, lantai 2 ada 2 kamar mandi';
+    const { updates, kept } = perFloorKeepsTotal(
+      state(),
+      extractionToUpdates({}, message),
+      message,
+    );
+    expect(updates.find((u) => u.path === 'fixtures.bathrooms')?.value).toBe(3);
+    expect(kept).toEqual([]);
+  });
+
+  it('kalimat tanpa lantai yang disebut tidak tersentuh', () => {
+    const { updates, kept } = run('jadi 2 kamar mandi aja');
+    expect(updates.find((u) => u.path === 'fixtures.bathrooms')?.value).toBe(2);
+    expect(kept).toEqual([]);
+  });
+});
+
+describe('kamar kos di bangunan campuran (produksi 2026-11-03)', () => {
+  const value = (message: string, path: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === path)?.value;
+
+  it('"lantai 2 sama 3 kosan 6 kamar" mencatat enam kamarnya', () => {
+    expect(value('lantai 1 buat jualan, lantai 2 sama 3 kosan 6 kamar', 'building.rooms')).toBe(6);
+  });
+
+  it('kontrakan dan asrama juga kamar sewa', () => {
+    expect(value('kontrakan 8 kamar', 'building.rooms')).toBe(8);
+    expect(value('asrama 20 kamar', 'building.rooms')).toBe(20);
+  });
+
+  it('kamar tidur rumah bukan kamar sewa, dan "kosong" bukan kos', () => {
+    expect(value('rumah 3 kamar tidur', 'building.rooms')).toBeUndefined();
+    expect(value('lantai 2 masih kosong, 4 kamar', 'building.rooms')).toBeUndefined();
   });
 });

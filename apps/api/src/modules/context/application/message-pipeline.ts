@@ -98,6 +98,8 @@ import {
   drainageJoinsCleanWater,
   extractionToUpdates,
   mentionsTankWithoutLocation,
+  perFloorKeepsTotal,
+  type KeptTotal,
 } from './extraction-to-updates.js';
 import { existingPipeReply } from './existing-pipe-answer.js';
 import { asksSolutionQuantity, isCaseStatement } from './intent-router.js';
@@ -108,6 +110,7 @@ import { productAnswerCopy } from './product-answer-text.js';
 import { competitorAnswer } from './competitor-answer.js';
 import {
   explanationBeforeSolution,
+  perFloorTotalReply,
   requirementUnchangedReply,
   valueWithoutPlaceReply,
   explanationHandedOff,
@@ -647,6 +650,7 @@ export async function runUnderstanding(
   let merged: RequirementState;
   let changed: boolean;
   let changedPaths: readonly RequirementFieldPath[];
+  let keptTotals: readonly KeptTotal[] = [];
   {
     // Pesan pembuka tanpa satu pun fakta ("mau nanya2 dong", "boleh tanya?"): model kecil kerap
     // memberinya label REQUIREMENT_STATEMENT, dan formulir klarifikasi adalah jawaban yang salah
@@ -660,18 +664,26 @@ export async function runUnderstanding(
     // terhadap state bila arah mutasinya dikenali; field lain tetap absolut.
     // Jawaban "kamar mandinya di dalam tiap kamar" yang DIKETIK di chat berlaku sama seperti
     // dipilih di kartunya: jumlah kamar mandinya adalah jumlah kamarnya (P32-16).
-    const updates = drainageJoinsCleanWater(
+    // Keterangan satu lantai tidak menurunkan total yang sudah tercatat (P33-05); yang
+    // dipertahankan diucapkan di bawah, supaya giliran ini tidak berakhir "tetap tercatat".
+    const perFloor = perFloorKeepsTotal(
       input.state,
-      bathroomsFromRooms(
+      drainageJoinsCleanWater(
         input.state,
-        applyRelativeCounts(
-          extractionToUpdates(extraction, input.message),
-          input.message,
+        bathroomsFromRooms(
           input.state,
-          mutationOp,
+          applyRelativeCounts(
+            extractionToUpdates(extraction, input.message),
+            input.message,
+            input.state,
+            mutationOp,
+          ),
         ),
       ),
+      input.message,
     );
+    keptTotals = perFloor.kept;
+    const updates = perFloor.updates;
     if (extractionFailed && updates.length === 0) {
       // Model gagal dan teksnya tidak memuat fakta yang bisa dibaca kode: tanya yang kurang.
       events.push({ type: 'stage', stage: 'UNDERSTANDING', status: 'failed' });
@@ -737,6 +749,11 @@ export async function runUnderstanding(
       changed = true;
     }
   }
+
+  // Angka satu lantai yang tidak menurunkan totalnya: yang diucapkan alasannya, bukan ringkasan
+  // kebutuhan yang terdengar seolah pesannya tidak terbaca (P33-05).
+  const [keptTotal] = keptTotals;
+  const keptTotalSaid = keptTotal === undefined ? null : perFloorTotalReply(keptTotal, locale);
 
   events.push({ type: 'requirement.updated', state: merged });
   events.push({
@@ -877,7 +894,8 @@ export async function runUnderstanding(
         : null;
     if (answer !== null || verdict !== null) {
       const spoken =
-        same && answer === text ? (tankAsked ?? requirementUnchangedReply(locale)) : answer;
+        keptTotalSaid ??
+        (same && answer === text ? (tankAsked ?? requirementUnchangedReply(locale)) : answer);
       const sentences = [spoken, verdict].filter((part) => part !== null && part !== '').join(' ');
       // Kalimat harga atau nasihat bahan di atas sudah mengirim teksnya sendiri; tanpa pemisah
       // keduanya menempel jadi satu kata ("…Anda butuhkan.Oke, sudah saya catat").
@@ -893,7 +911,7 @@ ${sentences}`
   // kasus yang tidak berubah) dulu tampil sebagai "Saya belum bisa membaca pesan itu" di web
   // (laporan pemilik 2026-10-09). Sekarang dijawab di atas DATA kasus; model gagal → teks tetap.
   if (!events.some((e) => e.type === 'token')) {
-    const fallback = requirementUnchangedReply(locale);
+    const fallback = keptTotalSaid ?? requirementUnchangedReply(locale);
     // Model hanya untuk maksud yang memang butuh penjelasan — sama seperti jalur kasus teknis
     // (P16-40). Dorongan dan pilihan ("oke lanjut", "ada yang lebih murah ga") dijawab teks tetap:
     // lewat model keduanya 14 dan 18 detik di CPU, dan yang keluar berbunyi seperti bot ("Saya
