@@ -6,6 +6,7 @@
  * berubah mengikuti pesan adalah topik, keluarga, dan angkanya.
  */
 import type { Locale } from '@snouty/shared-types';
+import { parseSize } from '../domain/size-parser.js';
 import { sizeEquivalence } from '../domain/size-equivalence.js';
 import { designationsOf } from '../../product-catalog/domain/product-identity.js';
 import { productSizeOf, productTypesOf } from '../../product-catalog/domain/product-types.js';
@@ -321,7 +322,7 @@ async function catalogLines(
   const en = locale === 'en';
   const header = en ? 'In the active Pralon catalogue:' : 'Di katalog Pralon yang aktif:';
   if (!hook.rods) {
-    const entries = await catalogEntries(hook, catalog, locale);
+    const entries = await catalogEntries(hook, catalog, locale, message);
     if (entries.length === 0) return [];
     return entries.length >= 2
       ? // Baris kosong: tabel Markdown tidak boleh menempel pada kalimat sebelumnya.
@@ -405,14 +406,37 @@ function lengthsOf(names: readonly string[]): number[] {
   ].sort((a, b) => a - b);
 }
 
+/** Ukuran yang tersurat di pesan dalam milimeter; `null` bila pesan tidak menyebut ukuran. */
+function statedSizeMm(message: string): number | null {
+  const label = parseSize(message);
+  if (label === null) return null;
+  // Pembaca ukuran produk menuntut spasi di depan angkanya (nama produk selalu punya); label
+  // dari parser tidak, jadi spasinya ditambahkan di sini.
+  const size = productSizeOf(/mm$/i.test(label) ? ` ${label}` : ` ${label}"`);
+  return size?.mm ?? null;
+}
+
+/** Ukuran produk sama dengan yang ditanya; toleransi 0,6 mm untuk pembulatan inci. */
+function sizeMatches(size: { readonly mm: number } | null, askedMm: number): boolean {
+  return size !== null && Math.abs(size.mm - askedMm) < 0.6;
+}
+
 /** Ukuran, panjang, kelas, dan jenis per keluarga — dihitung dari nama produk katalog aktif. */
 async function catalogEntries(
   hook: CatalogHook,
   catalog: KnowledgeCatalog,
   locale: Locale,
+  /** Pesan: ukuran yang tersurat di dalamnya mempersempit baris kelas tekanannya (P34-18). */
+  message = '',
 ): Promise<CatalogEntry[]> {
   const entries: CatalogEntry[] = [];
-  for (const { family, names } of await familyNames(hook, catalog)) {
+  // "what pressure class for 110 mm?" dijawab kelas SELURUH keluarga HDPE di produksi 2026-11-04 —
+  // 110 mm tidak disebut sama sekali. Kelas yang ada di ukuran itu yang ditanya.
+  const askedMm = hook.pressure ? statedSizeMm(message) : null;
+  for (const { family, names: all } of await familyNames(hook, catalog)) {
+    const scoped =
+      askedMm === null ? all : all.filter((n) => sizeMatches(productSizeOf(n), askedMm));
+    const names = scoped.length > 0 ? scoped : all;
     const sizes = names
       .map((n) => productSizeOf(n))
       .filter((s): s is NonNullable<typeof s> => s !== null)

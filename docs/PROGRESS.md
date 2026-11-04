@@ -5133,6 +5133,14 @@ untuk dikarang. Ketiganya diputuskan pemilik lewat pilihan, dan ketiga rekomenda
       tidak sama, atau yang terdekat — dihitung dari tabel resmi itu, bukan dari kalimat
       pengguna; tabelnya tetap menyusul sebagai dasarnya.
 
+- [x] P34-18 Kelas tekanan untuk satu ukuran dijawab untuk ukuran itu
+
+      Pemeriksaan regresi campuran menemukan "what pressure class for 110 mm?" dijawab kelas
+      SELURUH keluarga HDPE — PN-4 sampai SDR-13.6 — tanpa menyebut 110 mm sekali pun. Ukuran yang
+      ditanya sekarang mempersempit barisnya: kelas yang muncul hanya kelas yang ada di ukuran itu,
+      dihitung dari nama produk katalog aktif. Ukuran yang tidak ada produknya tetap dijawab daftar
+      keluarganya, bukan kekosongan.
+
 Satu temuan lain tidak jadi perbaikan: "saya hitung sekarang" yang dibalas bersamaan dengan kartu
 "Susun rekomendasi" hanya terjadi pada pengujian lewat API. Di layar, kartu itu dijalankan sendiri
 oleh aplikasinya begitu tiba, jadi pengguna tidak pernah membaca dua kalimat yang bertentangan.

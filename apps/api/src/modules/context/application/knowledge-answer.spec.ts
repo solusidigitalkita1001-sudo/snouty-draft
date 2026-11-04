@@ -72,6 +72,18 @@ describe('knowledgeAnswer', () => {
     expect(a!.text).toContain('| Kelas | PN-8, PN-16, SDR-11 |');
   });
 
+  it('tekanan kerja untuk satu ukuran: kelas yang ada di ukuran itu (produksi 2026-11-04)', async () => {
+    const a = await knowledgeAnswer(
+      ['tekanan kerja'],
+      'kelas tekanan buat 110 mm apa?',
+      catalog,
+      'id',
+    );
+    expect(a!.text).toContain('110 mm');
+    // Kelas PN-8 ada di 63 mm, bukan di 110 mm: baris kelasnya ikut ukuran yang ditanya.
+    expect(a!.text).not.toContain('PN-8');
+  });
+
   it('conduit: fakta + HIC dengan panjang batang dari katalog', async () => {
     const a = await knowledgeAnswer(['conduit'], 'conduit itu apa?', catalog, 'id');
     expect(a!.text).toContain('bukan pipa air');
