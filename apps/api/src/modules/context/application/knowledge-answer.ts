@@ -6,6 +6,7 @@
  * berubah mengikuti pesan adalah topik, keluarga, dan angkanya.
  */
 import type { Locale } from '@snouty/shared-types';
+import { sizeEquivalence } from '../domain/size-equivalence.js';
 import { designationsOf } from '../../product-catalog/domain/product-identity.js';
 import { productSizeOf, productTypesOf } from '../../product-catalog/domain/product-types.js';
 import type { FamilyCount } from '../../product-catalog/domain/catalog.repository.js';
@@ -89,6 +90,12 @@ export async function knowledgeAnswer(
    * "HDPE vs PVC" tidak boleh membuka "air panas pakai apa?" dengan "Tidak — PVC …".
    */
   subjectFamilies: readonly string[] = [],
+  /**
+   * Pertanyaan KETERSEDIAAN ("pipa air panas pralon ada?"): kenyataan katalog dijawab lebih dulu,
+   * baru pelajaran bahannya. Tanpa ini jawabannya dibuka paragraf PPR dan baru di kalimat terakhir
+   * mengatakan PPR bukan produk Pralon (produksi 2026-11-04).
+   */
+  catalogFirst = false,
 ): Promise<KnowledgeAnswer | null> {
   const en = locale === 'en';
   const named = families.map((f) => f.toLowerCase());
@@ -102,6 +109,10 @@ export async function knowledgeAnswer(
   const used: string[] = [];
   const gaps: { topic: string; gap: string }[] = [];
   const leads: string[] = [];
+  // Ukuran yang tersurat di pertanyaan kesetaraan ("160 mm itu 6 inch ya?"): jawabannya dari
+  // tabel ukuran resmi, di depan paragraf tabelnya (P34-17).
+  const equivalence = topics.includes('ukuran inci') ? sizeEquivalence(message, locale) : null;
+  if (equivalence !== null) leads.push(equivalence);
   // Angka tekanan di pesan ("8-12 bar"): kelas tekanan dipilih dari angkanya, bukan paragraf umum.
   const pressure = topics.includes('tekanan kerja') ? pressureRange(message) : null;
   if (pressure !== null) {
@@ -146,23 +157,30 @@ export async function knowledgeAnswer(
       topic === 'kelas pvc'
         ? compareClasses(named, locale, await classCatalogRows(own, scope, catalog, locale))
         : null;
-    if (classTable !== null) parts.push(classTable);
+    const conceptParts: string[] = [];
+    const factParts: string[] = [];
+    if (classTable !== null) conceptParts.push(classTable);
     else
       for (const c of concepts) {
         const copy = led && c.whenLed ? c.whenLed : c;
-        parts.push(en ? copy.textEn : copy.text);
+        conceptParts.push(en ? copy.textEn : copy.text);
       }
     for (const f of own) {
       // Data katalognya tetap ikut — kelas tekanan HDPE dari katalog memang menjawab pertanyaan
       // tentang HDPE; yang tidak ikut hanya paragraf tentang bahan lain.
       const sentence = answeredByLead.has(f) ? '' : en ? f.textEn : f.text;
-      if (sentence) parts.push(sentence);
+      if (sentence) factParts.push(sentence);
       const hook = f.catalog && classTable === null ? forNamed(f.catalog, scope) : null;
       if (hook) {
         const lines = await catalogLines(hook, message, catalog, locale).catch(() => []);
-        if (lines.length > 0) parts.push(lines.join('\n'));
+        if (lines.length > 0) factParts.push(lines.join('\n'));
       }
     }
+    // Fakta bersumber lebih dulu bila yang ditanya isi katalognya; selain itu pelajaran bahannya
+    // dulu, lalu faktanya.
+    parts.push(
+      ...(catalogFirst ? [...factParts, ...conceptParts] : [...conceptParts, ...factParts]),
+    );
   }
   if (parts.length === 0 && leads.length === 0) return null;
   return { text: [...leads, ...parts].join('\n\n'), topics: used, gaps };

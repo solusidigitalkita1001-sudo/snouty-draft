@@ -5114,6 +5114,23 @@ untuk dikarang. Ketiganya diputuskan pemilik lewat pilihan, dan ketiga rekomenda
       pesannya memang tentang bangunan, sehingga "sawah 10000 m2 mau diairi" tidak menjadi luas
       bangunan. Sisi bangunan tetap menang atas luasnya bila keduanya disebut.
 
+- [x] P34-16 Pertanyaan ketersediaan dijawab katalognya lebih dulu
+
+      "pipa air panas buat water heater pralon ada?" dibuka paragraf PPR — bahan yang lazim, las
+      panas, PVC melunak — dan baru di kalimat terakhir mengatakan PPR bukan produk Pralon. Yang
+      ditanya ada atau tidak; jawabannya ada di kalimat terakhir. Untuk pertanyaan tentang isi
+      katalog, fakta katalognya sekarang dijawab lebih dulu, baru pelajaran bahannya. Pertanyaan
+      pelajaran ("air panas pakai pipa apa?") tetap dibuka bahannya.
+
+- [x] P34-17 "160 mm itu 6 inci ya?" dijawab angkanya
+
+      Pertanyaan kesetaraan ukuran tidak lagi dibalas pertanyaan (P34-04), tetapi jawabannya
+      berupa seluruh tabel diameter luar — pembacanya sendiri yang harus membandingkan. Angkanya
+      ada di tabel ukuran resmi: 6 inci berdiameter luar 165 mm, sedangkan 160 mm adalah ukuran
+      diameter luar pipa HDPE. Sekarang perbandingannya yang dikatakan lebih dulu — sama,
+      tidak sama, atau yang terdekat — dihitung dari tabel resmi itu, bukan dari kalimat
+      pengguna; tabelnya tetap menyusul sebagai dasarnya.
+
 Satu temuan lain tidak jadi perbaikan: "saya hitung sekarang" yang dibalas bersamaan dengan kartu
 "Susun rekomendasi" hanya terjadi pada pengujian lewat API. Di layar, kartu itu dijalankan sendiri
 oleh aplikasinya begitu tiba, jadi pengguna tidak pernah membaca dua kalimat yang bertentangan.

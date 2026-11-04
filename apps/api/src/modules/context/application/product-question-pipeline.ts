@@ -345,6 +345,8 @@ export async function runProductQuestion(
       locale,
       u.families,
       subjectFamilies,
+      // Pertanyaan tentang isi katalog: kenyataan katalognya dijawab lebih dulu (P34-16).
+      u.intent?.label === 'product_range',
     );
     // Perbandingan umum bahan HANYA bila pertanyaannya memang perbandingan ("dasar memilih HDPE
     // dibanding uPVC?"): tes FAQ 2026-10-12 — blok "HDPE lentur dan bisa digulung" membuka jawaban

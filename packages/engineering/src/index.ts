@@ -157,6 +157,7 @@ export { HDPE_FROM_METERS, irrigationDutyAssumptionId } from './rules/group-e-ir
 export {
   HDPE_MM_SIZES,
   PVC_INCH_SIZES,
+  PVC_LARGE_SIZES,
   pralonPipeMadeIn,
   sizeTable,
   sizeTableFor,

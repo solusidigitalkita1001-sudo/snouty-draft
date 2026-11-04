@@ -340,6 +340,39 @@ describe('tes FAQ sales 2026-10-12', () => {
     expect(a!.text).not.toContain('uPVC dipakai untuk');
   });
 
+  it('pertanyaan kesetaraan ukuran: jawabannya di depan tabelnya (produksi 2026-11-04)', async () => {
+    const a = await knowledgeAnswer(
+      ['ukuran inci'],
+      'pipa 160 mm itu sama dengan 6 inch ya?',
+      catalog,
+      'id',
+    );
+    expect(a!.text.startsWith('Tidak persis: pipa 6 inci berdiameter luar 165 mm')).toBe(true);
+    // Tabel diameter luarnya tetap ikut sebagai dasarnya.
+    expect(a!.text).toContain('Ukuran inci pada pipa PVC adalah ukuran nominal');
+  });
+
+  it('pertanyaan ketersediaan: kenyataan katalog dijawab lebih dulu (produksi 2026-11-04)', async () => {
+    const asked = await knowledgeAnswer(
+      ['air panas'],
+      'pipa air panas buat water heater pralon ada?',
+      catalog,
+      'id',
+      [],
+      [],
+      true,
+    );
+    expect(asked!.text.split('\n')[0]).toContain('tidak termasuk produk Pralon');
+    // Pertanyaan pelajaran tetap dibuka bahannya, bukan katalognya.
+    const learned = await knowledgeAnswer(
+      ['air panas'],
+      'air panas pakai pipa apa?',
+      catalog,
+      'id',
+    );
+    expect(learned!.text.split('\n')[0]).toContain('PPR');
+  });
+
   it('nama produk yang tidak ada di katalog: dikatakan tidak ada, lalu jalur sumurnya ditawarkan (pemilik 2026-11-04)', async () => {
     const a = await knowledgeAnswer(['pipa casing'], 'pralon ada pipa casing?', catalog, 'id', []);
     expect(a!.text).toContain('tidak ada produk yang bernama pipa casing');
