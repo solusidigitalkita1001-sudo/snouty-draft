@@ -371,6 +371,33 @@ const OBVIOUS = {
       // Luas bangunan hanya bila sisi bangunan tidak disebut — sisi lebih tepat.
       if (out[key] === undefined && (land || out['lengthM'] === undefined)) out[key] = areaM2;
     }
+    // Luas tanpa kata "luas": satuan m² tidak bisa jadi apa pun selain luas. "gudang 1 lantai
+    // 2000 m2 cuma ada 2 toilet" dijawab dengan menanyakan panjang × lebar bangunannya (produksi
+    // 2026-11-04) — ukuran yang baru saja disebut. Ukuran RUANGAN tetap tidak ikut.
+    // Luas bangunan tanpa kata "luas" hanya dari pesan yang memang tentang bangunan:
+    // "sawah 10000 m2 mau diairi" bukan luas bangunan. Luas TANAH tetap dari kata bendanya.
+    const aboutBuilding =
+      OBVIOUS.type(m) !== undefined || /\b(?:lantai|tingkat|floors?|stor(?:e)?y)\b/i.test(m);
+    const bareArea = /(\d+(?:[.,]\d+)?)\s*(?:m2|m²|meter persegi|square met(?:er|re)s?|sqm)\b/gi;
+    for (const match of m.matchAll(bareArea)) {
+      const areaM2 = decimal(match[1]!);
+      if (areaM2 < 10 || areaM2 > 100_000) continue;
+      const clause = (
+        m
+          .slice(0, match.index)
+          .split(/[,;\n]|\.\s/)
+          .at(-1) ?? ''
+      ).trim();
+      const last = [...clause.matchAll(owner)].at(-1);
+      if (last?.[2] !== undefined) continue;
+      const key = last?.[1] !== undefined ? 'landAreaM2' : 'areaM2';
+      if (
+        out[key] === undefined &&
+        (key === 'landAreaM2' || (aboutBuilding && out['lengthM'] === undefined))
+      ) {
+        out[key] = areaM2;
+      }
+    }
     return Object.keys(out).length > 0 ? (out as Dimensions) : undefined;
   },
   type: (m: string): NonNullable<Extraction['building']>['type'] => {

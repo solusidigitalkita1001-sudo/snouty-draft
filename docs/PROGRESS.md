@@ -5103,6 +5103,17 @@ untuk dikarang. Ketiganya diputuskan pemilik lewat pilihan, dan ketiga rekomenda
       sudah dipakai hitungan cluster, bukan angka baru; mesin hitungnya tidak disentuh. Angkanya
       disebut sekali saja — daftar catatan yang menyebutnya tidak diulang kalimat berikutnya.
 
+- [x] P34-15 Luas yang disebut tanpa kata "luas" tetap tercatat
+
+      Pemeriksaan ulang P34-12 di produksi menemukan yang berikutnya: "gudang 1 lantai 2000 m2
+      cuma ada 2 toilet" kini dihitung, tetapi giliran berikutnya menanyakan panjang × lebar
+      bangunannya — ukuran yang baru saja disebut. Luas hanya terbaca bila didahului kata "luas",
+      "LB", atau "LT"; satuan m² sendiri tidak dibaca sama sekali. Sekarang dibaca, karena m²
+      tidak bisa berarti apa pun selain luas — dengan dua pagar: ukuran ruangan tidak ikut
+      ("kamar mandinya 6 m2"), dan luas tanpa kata "luas" hanya dibaca sebagai luas bangunan bila
+      pesannya memang tentang bangunan, sehingga "sawah 10000 m2 mau diairi" tidak menjadi luas
+      bangunan. Sisi bangunan tetap menang atas luasnya bila keduanya disebut.
+
 Satu temuan lain tidak jadi perbaikan: "saya hitung sekarang" yang dibalas bersamaan dengan kartu
 "Susun rekomendasi" hanya terjadi pada pengujian lewat API. Di layar, kartu itu dijalankan sendiri
 oleh aplikasinya begitu tiba, jadi pengguna tidak pernah membaca dua kalimat yang bertentangan.

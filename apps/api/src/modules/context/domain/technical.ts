@@ -493,7 +493,10 @@ function clusterFixtureBasis(state: RequirementState, locale: Locale): string | 
   if (state.useCase?.kind !== 'technical' || state.useCase.caseId !== 'residential_cluster') {
     return null;
   }
-  const bathrooms = state.fixtures.bathrooms.value;
+  // Di jalur kasus teknis jumlah kamar mandi tinggal sebagai parameter kasus, bukan di
+  // `fixtures` — keduanya dibaca supaya kalimatnya muncul dari mana pun angkanya datang.
+  const parameter = parametersOf(state)['bathrooms']?.value;
+  const bathrooms = typeof parameter === 'number' ? parameter : state.fixtures.bathrooms.value;
   if (typeof bathrooms !== 'number') return null;
   return locale === 'en'
     ? `The ${bathrooms} bathrooms do not size this network, though: the flow comes from the number of house connections — without occupancy data I start from 4 people per house, 150 litres per person per day, and a peak-hour factor of 2, and I mark those three in the result.`

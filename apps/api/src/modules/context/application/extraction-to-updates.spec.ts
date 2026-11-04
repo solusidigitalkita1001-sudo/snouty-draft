@@ -73,6 +73,21 @@ describe('ukuran tanah dan bangunan dari teks (2026-10-12)', () => {
     });
     expect(dims('LT 150 m2 LB 90 m2')).toEqual({ landAreaM2: 150, areaM2: 90 });
   });
+
+  // Produksi 2026-11-04: "gudang 1 lantai 2000 m2 cuma ada 2 toilet" dijawab dengan menanyakan
+  // panjang × lebar bangunannya — ukuran yang baru saja disebut.
+  it('m² tanpa kata "luas" di pesan tentang bangunan adalah luas bangunan', () => {
+    expect(dims('gudang 1 lantai 2000 m2 cuma ada 2 toilet')).toEqual({ areaM2: 2000 });
+    expect(dims('rumah 2 lantai 120 m2, 3 kamar mandi')).toEqual({ areaM2: 120 });
+    expect(dims('tanah 2000 m2 mau dibangun rumah 2 lantai')).toEqual({ landAreaM2: 2000 });
+  });
+
+  it('m² di luar bangunan tidak menjadi luas bangunan', () => {
+    expect(dims('sawah 10000 m2 mau diairi')).toBeUndefined();
+    expect(dims('kamar mandinya 6 m2, rumah 2 lantai')).toBeUndefined();
+    // Sisi bangunan lebih tepat daripada luasnya.
+    expect(dims('rumah 2 lantai 10 x 9 m, 120 m2')).toEqual({ lengthM: 10, widthM: 9 });
+  });
 });
 
 describe('pompa pendorong dari teks (uji sales 2026-10-20, SC-04)', () => {

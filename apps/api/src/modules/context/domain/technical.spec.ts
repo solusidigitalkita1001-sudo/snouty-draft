@@ -42,14 +42,11 @@ describe('detectTechnicalCase', () => {
 });
 
 describe('jaringan cluster — kamar mandi yang disebut pengguna (pemilik 2026-11-04)', () => {
+  // Angkanya datang lewat parameter kasus, seperti di produksi — bukan lewat `fixtures`.
   const cluster = applyTechnicalFacts(
-    mergeRequirement(
-      emptyRequirementState(T0),
-      [{ path: 'fixtures.bathrooms', value: 2, source: 'user_stated' }],
-      T0,
-    ).state,
+    emptyRequirementState(T0),
     'residential_cluster',
-    'cluster 60 unit, tiap rumah 2 kamar mandi, jaraknya 900 m, bedanya 8 m',
+    'cluster 60 unit, tiap rumah 2 kamar mandi, jaraknya 900 m',
   ).state;
 
   it('angkanya disebut balik, dan dasar hitungannya per sambungan rumah', () => {
@@ -68,7 +65,7 @@ describe('jaringan cluster — kamar mandi yang disebut pengguna (pemilik 2026-1
         T0,
       ).state,
       'pump_transfer',
-      'transfer air dari sungai ke tandon, jaraknya 800 m',
+      'transfer air dari sungai ke tandon, jaraknya 800 m, 2 kamar mandi',
     ).state;
     expect(technicalGuidance(pump, 'id')).not.toContain('sambungan rumah');
   });
