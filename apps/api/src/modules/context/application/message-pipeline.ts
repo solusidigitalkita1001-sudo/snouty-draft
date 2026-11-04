@@ -859,11 +859,20 @@ export async function runUnderstanding(
     const auto = card?.kind === 'cta' && card.auto === true;
     // Permintaan menghitung yang masih menunggu data: yang ditunggu disebut namanya, bukan
     // ringkasan kebutuhan yang sama lalu "bagian mana yang mau diubah".
-    const stillWaiting =
+    const pumpAsked = input.understanding?.knowledgeTopics.includes('pompa') === true;
+    const waiting =
       asksToCompute && card?.kind !== 'cta'
         ? missingForCalculationReply(askableMissing(merged.missingInformation), locale)
         : null;
-    const text = stillWaiting ?? understoodReply(merged, card?.kind ?? null, locale, only, auto);
+    // Nilai yang baru tercatat di giliran ini tetap disebut balik lebih dulu. Di produksi
+    // 2026-11-04 "rumah lama mau ganti pipa yang lama 1/2 inch, sekarang 2 kamar mandi tambah 1"
+    // dijawab hanya "saya masih perlu sumber air, jenis instalasi dan jumlah lantai" — pipa lama
+    // dan kamar mandinya seolah tidak terbaca, dan pengguna menyebutnya lagi.
+    const notedBefore = waiting !== null && changed ? notedSummary(merged, locale, only) : null;
+    const stillWaiting =
+      waiting === null ? null : notedBefore === null ? waiting : `${notedBefore.opener} ${waiting}`;
+    const text =
+      stillWaiting ?? understoodReply(merged, card?.kind ?? null, locale, only, auto, pumpAsked);
     // Ringkasan yang sama persis dua giliran berturut-turut: pesannya tidak mengubah kebutuhan,
     // jadi yang dikatakan adalah itu — bukan daftar yang sama diulang kata demi kata.
     const said = [...(input.recentTurns ?? [])].reverse().find((t) => t.role === 'assistant')?.text;
@@ -964,17 +973,21 @@ function greetingAgain(recentTurns: readonly ReplyTurn[], locale: Locale | undef
 }
 
 /**
- * "Oke, rumah 2 lantai, 3 kamar mandi, toren atap, air bersih." + apa yang terjadi berikutnya:
- * lengkap → ajakan menyusun rekomendasi; belum → pengantar kartu klarifikasi. Tanpa model.
+ * "Oke, rumah 2 lantai, 3 kamar mandi, toren atap, air bersih." — nilai yang tercatat sebagai satu
+ * kalimat, beserta anggapan yang dipakai. Tanpa model.
  */
-export function understoodReply(
+export function notedSummary(
   state: RequirementState,
-  nextCard: AssistantCard['kind'] | null,
   locale: Locale,
   only?: readonly RequirementFieldPath[],
-  /** Kartu ANALYZE langsung dijalankan (rumah dihitung di giliran ini). */
-  auto = false,
-): string | null {
+  /**
+   * Pesannya menanyakan pompa ("rumah 3 lantai perlu pompa dorong ngga?"): anggapan sumber air
+   * tidak boleh ikut memutuskannya. Di produksi 2026-11-04 pertanyaan itu dijawab "saya anggap
+   * dulu air dari toren atap TANPA POMPA PENDORONG" — anggapan yang menjawab sendiri pertanyaan
+   * yang baru saja diajukan. Perlu-tidaknya pompa adalah keluaran hitungan, bukan anggapan.
+   */
+  pumpAsked = false,
+): { readonly opener: string; readonly assumed: readonly string[] } | null {
   // Kalimat, bukan tabel: jumlah fixture membawa NAMA field-nya ("3 kamar mandi", bukan "3 titik"
   // seperti di panel yang sudah berlabel); lantai dan nilai bernama memakai label nilainya.
   const en = locale === 'en';
@@ -1031,7 +1044,7 @@ export function understoodReply(
       continue;
     }
     if (field.provenance === 'ASSUMED' && field.source === 'default_applied') {
-      const phrase = assumedPhrase(path, field.value, locale);
+      const phrase = assumedPhrase(path, field.value, locale, pumpAsked);
       if (phrase !== null) assumed.push(phrase);
       continue;
     }
@@ -1107,6 +1120,26 @@ export function understoodReply(
     : en
       ? `Okay, I have noted: ${summary}.`
       : `Oke, sudah saya catat: ${summary}.`;
+  return { opener, assumed };
+}
+
+/**
+ * Kalimat "sudah saya catat" + apa yang terjadi berikutnya. Ringkasannya sendiri disusun
+ * `notedSummary`, supaya jalur lain (mis. permintaan hitung yang masih menunggu data) bisa
+ * menyebut balik nilai yang baru tercatat tanpa menyalin penyusunnya.
+ */
+export function understoodReply(
+  state: RequirementState,
+  nextCard: AssistantCard['kind'] | null,
+  locale: Locale,
+  only?: readonly RequirementFieldPath[],
+  auto = false,
+  pumpAsked = false,
+): string | null {
+  const en = locale === 'en';
+  const noted = notedSummary(state, locale, only, pumpAsked);
+  if (noted === null) return null;
+  const { opener, assumed } = noted;
   // Kasus yang ditangani tim teknis: tidak ada hitungan yang ditunggu di sini, jadi data baru
   // ditutup dengan ke mana ia pergi — bukan "beberapa hal lagi supaya hitungannya pas".
   if (nextCard === 'unsupported') {
@@ -1147,7 +1180,12 @@ export function understoodReply(
 }
 
 /** Anggapan rumah sebagai frasa ("1 kamar mandi per lantai", "air dari toren atap"). */
-function assumedPhrase(path: RequirementFieldPath, value: unknown, locale: Locale): string | null {
+function assumedPhrase(
+  path: RequirementFieldPath,
+  value: unknown,
+  locale: Locale,
+  pumpAsked = false,
+): string | null {
   const en = locale === 'en';
   switch (path) {
     case 'fixtures.bathrooms':
@@ -1155,6 +1193,13 @@ function assumedPhrase(path: RequirementFieldPath, value: unknown, locale: Local
         ? `1 bathroom per floor (${String(value)} in total)`
         : `1 kamar mandi per lantai (${String(value)} kamar mandi)`;
     case 'water.source':
+      // Pompanya yang ditanya: anggapannya berhenti di letak torennya, dan hitungannya yang
+      // menjawab perlu-tidaknya pompa pendorong.
+      if (pumpAsked) {
+        return en
+          ? 'water from a rooftop tank — whether a booster pump is needed comes out of the calculation'
+          : 'air dari toren atap — perlu-tidaknya pompa pendorong keluar dari hitungannya';
+      }
       return en
         ? 'water from a rooftop tank without a booster pump'
         : 'air dari toren atap tanpa pompa pendorong';

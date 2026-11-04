@@ -192,7 +192,13 @@
       "memangnya bisa sampai keluar daftar barangnya?",
       "what can you do?",
       "can you size the pipes yourself?",
-      "are you able to do the calculation?"
+      "are you able to do the calculation?",
+      "bisa kirim laporan pdf-nya?",
+      "hasilnya bisa diunduh jadi pdf ngga?",
+      "laporannya bisa dicetak?",
+      "bisa dapat file hitungannya?",
+      "can i download the report as a pdf?",
+      "is there a printable report?"
     ],
     "out_of_scope": [
       "cuaca hari ini gimana?",
@@ -269,7 +275,11 @@
       "nomor sales nya siapa?",
       "minta nomor sales dong",
       "nomor yang bisa dihubungi buat beli",
-      "who do i talk to if i want to buy?"
+      "who do i talk to if i want to buy?",
+      "pipa pralon udah sni belum?",
+      "pipanya bersertifikat sni ngga?",
+      "produk pralon ada sni-nya?",
+      "is pralon pipe sni certified?"
     ],
     "competitor_question": [
       "pralon vs rucika bagusan mana?",

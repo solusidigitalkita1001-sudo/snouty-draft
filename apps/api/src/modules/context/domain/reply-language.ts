@@ -44,8 +44,23 @@ export function replyLanguageOf(
   // pesaing — franc membacanya Indonesia, dan franc yang salah tidak boleh ikut memutuskan).
   if (second && best.accuracy - second.accuracy < TIED_MARGIN) return francLocale(signal);
   // franc hanya andal di kalimat panjang; di kalimat pendek ia sendiri sering salah ("how do you join
-  // pipe?" terbaca Indonesia), jadi pembatalannya hanya berlaku dari VETO_MIN_WORDS kata.
-  if (wordsIn(signal) < VETO_MIN_WORDS) return best.lang;
+  // pipe?" terbaca Indonesia dengan pesaing 0,74), jadi pembatalannya hanya berlaku dari
+  // VETO_MIN_WORDS kata — KECUALI bila franc tegas: satu bahasa penuh dan pesaingnya jauh di bawah.
+  // "ready stock ngga di jakarta?" terbaca Inggris penuh oleh tinyld karena dua kata pungutan di
+  // depan, dan dijawab bahasa Inggris di produksi (2026-11-04); franc membacanya Indonesia 1 lawan
+  // 0,43 — jarak yang tidak pernah terjadi pada kalimat Inggris pendek yang dicoba.
+  const words = wordsIn(signal);
+  if (words < VETO_MIN_WORDS) {
+    // Satu-dua kata ("great", "thanks") tidak punya bahan untuk n-gram mana pun: tinyld yang
+    // memutuskan, seperti sebelumnya.
+    if (words < FRANC_MIN_WORDS) return best.lang;
+    const emphatic = francLocale(signal, FRANC_EMPHATIC);
+    // Dua pengenal yang sama-sama yakin dan tidak sepakat bukan keputusan: gilirannya tetap di
+    // bahasa percakapan. Pada kalimat berlabel, bacaan franc yang SALAH selalu punya pesaing
+    // 0,79 ke atas — jadi di bawah 0,7 ia tegas, dan ketegasan yang bertabrakan menahan pindah
+    // bahasa alih-alih membalikkannya.
+    return emphatic === null || emphatic === best.lang ? best.lang : null;
+  }
   const veto = francLocale(signal);
   return veto !== null && veto !== best.lang ? null : best.lang;
 }
@@ -55,9 +70,13 @@ const TIED_MARGIN = 0.1;
 /** Kata (dua huruf atau lebih) setelah nilai dan nama disisihkan — batas pembatalan franc. */
 const VETO_MIN_WORDS = 8;
 const wordsIn = (signal: string) => signal.split(/\s+/).filter((w) => /\p{L}{2,}/u.test(w)).length;
+/** Pesaing franc di bawah ini = bacaan franc tegas; di kalimat pendek hanya yang tegas didengar. */
+const FRANC_EMPHATIC = 0.7;
+/** Kalimat di bawah ini terlalu pendek untuk n-gram franc ('great'): tinyld yang memutuskan. */
+const FRANC_MIN_WORDS = 3;
 
-function francLocale(signal: string): Locale | null {
+function francLocale(signal: string, runnerUpCeiling = FRANC_AMBIGUOUS): Locale | null {
   const [top, runnerUp] = francAll(signal, { only: Object.keys(FRANC_LOCALE), minLength: 1 });
-  if (!top || top[1] <= 0 || (runnerUp && runnerUp[1] > FRANC_AMBIGUOUS)) return null;
+  if (!top || top[1] <= 0 || (runnerUp && runnerUp[1] > runnerUpCeiling)) return null;
   return FRANC_LOCALE[top[0]] ?? null;
 }

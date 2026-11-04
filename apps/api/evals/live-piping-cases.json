@@ -339,9 +339,12 @@
       "turns": [
         {
           "q": "pipa pvc boleh buat air panas?",
-          "expect": "Tidak; PPR lazim untuk air panas, dan PPR bukan produk Pralon.",
+          "expect": "Dibuka dengan PVC tidak dipakai untuk air panas, alasannya sekali saja; PPR bukan produk Pralon.",
           "checks": {
-            "all": ["^Tidak", "PPR tidak termasuk produk Pralon"],
+            "all": [
+              "^Pipa PVC tidak dipakai untuk jalur air panas",
+              "PPR tidak termasuk produk Pralon"
+            ],
             "cards": ["cta"]
           }
         }

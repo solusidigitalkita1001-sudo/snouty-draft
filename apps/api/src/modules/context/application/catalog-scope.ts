@@ -282,8 +282,13 @@ async function fittingLookup(
       : '';
     return `- ${p.name}${pn}`;
   });
+  // Catatan nama katalog hanya untuk SINONIM ("keni" → elbow). Bila pesannya menyebut jenis yang
+  // dicocokkan itu sendiri sebagai jenis lain ("butuh berapa elbow sama tee?"), catatan itu
+  // berbunyi "Elbow … (di katalog tercatat sebagai tee)" — keliru (produksi 2026-11-04).
   const kindNote =
-    matchedKind !== null && matchedKind !== query.kindTerms[0]
+    matchedKind !== null &&
+    matchedKind !== query.kindTerms[0] &&
+    !query.kindTerms.some((term) => term.toLowerCase() === matchedKind.toLowerCase())
       ? en
         ? ` (listed in the catalogue as ${matchedKind})`
         : ` (di katalog tercatat sebagai ${matchedKind})`

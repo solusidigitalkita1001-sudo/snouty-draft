@@ -24,7 +24,7 @@ import {
 } from './product-range.js';
 import type { ReplyTurn, ReplyWriter } from './reply-writer.js';
 import type { ActiveSolution } from '../domain/active-solution.port.js';
-import { openerReply } from './reply-copy.js';
+import { explanationBeforeSolution, openerReply } from './reply-copy.js';
 import { solutionReply } from './solution-facts.js';
 import type { TurnPlan } from './turn-planner.js';
 import { withCompleteness } from '../domain/completeness.js';
@@ -167,12 +167,18 @@ export async function executePlan(plan: TurnPlan, ctx: PlanContext): Promise<Pla
               identity,
               caseFacts(state, ctx.locale, followUpCard(state, ctx.locale), ctx.solution ?? null),
             ].join('\n');
+      // Kalimat cadangan harus menjawab pertanyaan yang diajukan. Tanpa solusi tidak ada satu
+      // angka pun yang bisa disebut, dan dasar ukuran sendiri tidak menjawab pertanyaan tentang
+      // angka lain: "tekanan di lantai paling atas berapa bar?" dijawab paragraf tentang luas
+      // bangunan (produksi 2026-11-04). Jadi dikatakan dulu bahwa angkanya menyusul.
       const fallback =
-        plan.action === 'case_question'
-          ? en
-            ? BASIS_FALLBACK_EN
-            : BASIS_FALLBACK_ID
-          : openerReply(ctx.locale);
+        plan.action !== 'case_question'
+          ? openerReply(ctx.locale)
+          : ctx.solution
+            ? en
+              ? BASIS_FALLBACK_EN
+              : BASIS_FALLBACK_ID
+            : `${explanationBeforeSolution(ctx.locale)} ${en ? BASIS_FALLBACK_EN : BASIS_FALLBACK_ID}`;
       const written = ctx.reply
         ? await ctx.reply.write({
             intent: plan.action === 'chat' ? 'OUT_OF_SCOPE' : 'EXPLANATION_REQUEST',

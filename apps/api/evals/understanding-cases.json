@@ -2375,6 +2375,40 @@
       ],
       "topicsOnly": true,
       "source": "produksi 2026-11-03 — mesin cucinya tidak pernah disebut jawabannya"
+    },
+    {
+      "text": "pralon ada pipa buat air panas ngga?",
+      "topics": [
+        "air panas"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-04 — dijawab conduit lalu pipa gas"
+    },
+    {
+      "text": "pipanya udah ada sni belum?",
+      "intent": "company_question",
+      "source": "produksi 2026-11-04 — dijawab arti PRALON Standard, bukan sertifikasinya"
+    },
+    {
+      "text": "pipa 90 mm itu sama dengan 3 inci ya?",
+      "topics": [
+        "ukuran inci"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-04 — dibalas pertanyaan, bukan kesetaraannya"
+    },
+    {
+      "text": "ruko 3 lantai perlu pompa dorong ngga?",
+      "topics": [
+        "pompa"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-04 — dijawab anggapan tanpa pompa pendorong"
+    },
+    {
+      "text": "hasil hitungannya bisa saya unduh pdf?",
+      "intent": "capability_question",
+      "source": "produksi 2026-11-04 — dibalas ringkasan kebutuhan"
     }
   ]
 }

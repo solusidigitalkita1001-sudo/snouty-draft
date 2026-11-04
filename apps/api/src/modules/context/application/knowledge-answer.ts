@@ -127,10 +127,14 @@ export async function knowledgeAnswer(
     // Fakta yang kalimat pembukanya sudah lengkap tidak membawa paragraf utamanya maupun `gap`-nya
     // (P30-05): paragraf itu membicarakan bahan lain, dan pertanyaannya sudah terjawab.
     const answeredByLead = new Set<KnowledgeFact>();
+    // Kalimat pembuka sudah menyebut bahan yang ditanya → paragraf konsepnya memakai versi tanpa
+    // sisi negatif per bahan, supaya satu jawaban tidak mengulang kalimat yang sama.
+    let led = false;
     for (const f of own) {
       const lead = f.leads?.find((l) => l.families.some((x) => named.includes(x)));
       if (lead) {
         leads.push(en ? lead.textEn : lead.text);
+        led = true;
         if (f.leadAnswersFully) answeredByLead.add(f);
       }
       if (f.gap && !answeredByLead.has(f)) gaps.push({ topic, gap: f.gap });
@@ -143,7 +147,11 @@ export async function knowledgeAnswer(
         ? compareClasses(named, locale, await classCatalogRows(own, scope, catalog, locale))
         : null;
     if (classTable !== null) parts.push(classTable);
-    else for (const c of concepts) parts.push(en ? c.textEn : c.text);
+    else
+      for (const c of concepts) {
+        const copy = led && c.whenLed ? c.whenLed : c;
+        parts.push(en ? copy.textEn : copy.text);
+      }
     for (const f of own) {
       // Data katalognya tetap ikut — kelas tekanan HDPE dari katalog memang menjawab pertanyaan
       // tentang HDPE; yang tidak ikut hanya paragraf tentang bahan lain.

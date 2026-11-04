@@ -170,6 +170,17 @@ describe('executePlan', () => {
     expect(textOf(out)).toContain('luas bangunan tidak menentukan ukuran pipa');
   });
 
+  // Produksi 2026-11-04: "tekanan di lantai paling atas berapa bar?" di kasus yang belum dihitung
+  // dijawab paragraf tentang luas bangunan. Tanpa solusi, kalimat cadangannya mengatakan dulu
+  // bahwa angkanya menyusul.
+  it('pertanyaan kasus sebelum ada solusi → angkanya menyusul lebih dulu', async () => {
+    const out = await executePlan(
+      { action: 'case_question', family: null, type: null, extreme: null },
+      ctx({ message: 'tekanan di lantai paling atas berapa bar?' }),
+    );
+    expect(textOf(out)).toContain('baru dihitung setelah');
+  });
+
   it('kebutuhan / spesifikasi / perusahaan → dikembalikan ke jalurnya sendiri', async () => {
     const plan = (action: 'requirement' | 'product_question' | 'company') =>
       executePlan({ action, family: null, type: null, extreme: null }, ctx({ hasExisting: true }));

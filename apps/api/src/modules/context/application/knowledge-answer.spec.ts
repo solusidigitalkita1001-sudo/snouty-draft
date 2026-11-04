@@ -354,6 +354,16 @@ describe('tes FAQ sales 2026-10-12', () => {
       'Pipa PVC tidak dipakai untuk jalur air panas: panas membuat pipanya melunak dan sambungan lemnya melemah.',
     );
     expect(a!.gaps).toEqual([{ topic: 'air panas', gap: 'batas suhu operasi resmi' }]);
+    // Paragraf konsepnya tidak mengulang kalimat pembukanya (2026-11-04): alasan "melunak dan
+    // sambungan lemnya melemah" muncul sekali saja dalam satu jawaban.
+    expect(a!.text.match(/sambungan lemnya melemah/g)).toHaveLength(1);
+    expect(a!.text).toContain('bahan yang lazim adalah **PPR**');
+  });
+
+  it('DE-11b: tanpa bahan yang disebut, paragraf air panas tetap menyebut PVC dan HDPE', async () => {
+    const a = await knowledgeAnswer(['air panas'], 'air panas pakai pipa apa?', catalog, 'id');
+    expect(a!.text).toContain('PVC tidak untuk air panas');
+    expect(a!.text).toContain('HDPE pun dirancang untuk air dingin');
   });
 
   it('DE-01: 8–12 bar — kelas HDPE di atas 12 bar dengan selisihnya; PVC tanpa angka → tim teknis', async () => {

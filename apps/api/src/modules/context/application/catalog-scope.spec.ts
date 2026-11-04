@@ -201,3 +201,25 @@ describe('fittingScope', () => {
     );
   });
 });
+
+// Produksi 2026-11-04: "butuh berapa elbow sama tee?" dijawab "Elbow PVC, HDPE, dan FRP di katalog
+// Pralon (di katalog tercatat sebagai tee)" — catatan nama katalog itu untuk SINONIM, bukan untuk
+// jenis kedua yang memang disebut pesannya.
+describe('catatan nama katalog', () => {
+  it('jenis yang disebut sendiri di pesan tidak dicatat sebagai nama lain', async () => {
+    // Keluarga terakhir hanya punya tee — di situ jenis yang cocok bergeser dari elbow ke tee.
+    const products = [
+      ...PRODUCTS,
+      product('R1', 'TEE FRP 4"', 'FITTING FRP', 'FITTING · TEE', ['4"']),
+    ];
+    const families = [...new Set(products.map((p) => p.family))];
+    const message = 'butuh berapa elbow sama tee?';
+    const out = await fittingAnswer(
+      catalog(products),
+      families.filter((f) => /^FITTING\b/i.test(f)),
+      ask(message, ['elbow', 'tee']),
+    );
+    expect(out.text).toContain('Elbow');
+    expect(out.text).not.toContain('tercatat sebagai');
+  });
+});

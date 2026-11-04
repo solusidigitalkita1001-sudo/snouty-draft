@@ -41,12 +41,21 @@ export function applyRelativeCounts(
     if (!mentionsNoun(message, noun)) continue;
     if (stated.size > 0 && !stated.has(path)) continue;
     const absolute = updates.find((u) => u.path === path);
+    const literal =
+      absolute !== undefined &&
+      typeof absolute.value === 'number' &&
+      mentionsCount(message, absolute.value, noun);
+    // Angka yang TIDAK tersurat berarti parser nilai menghitung totalnya dari kalimat itu sendiri:
+    // "sekarang 2 kamar mandi tambah 1" sudah berarti 3. Menjadikannya delta membuang angka yang
+    // disebut pengguna — di produksi 2026-11-04 kalimat itu tercatat 1 kamar mandi, bukan 3.
+    if (absolute !== undefined && typeof absolute.value === 'number' && !literal) {
+      out.push(absolute);
+      handled.add(path);
+      continue;
+    }
     // Angka di pesan adalah DELTA ("tambah 2 titik air"); tanpa angka, satu. `mentionsCount`
     // memastikan angkanya memang berdekatan dengan kata bendanya.
-    const delta =
-      absolute && typeof absolute.value === 'number' && mentionsCount(message, absolute.value, noun)
-        ? absolute.value
-        : 1;
+    const delta = literal && typeof absolute.value === 'number' ? absolute.value : 1;
     const current = readField(state, path).value;
     const base = typeof current === 'number' ? current : 0;
     out.push({ path, value: Math.max(0, base + sign * delta), source: 'user_stated' });

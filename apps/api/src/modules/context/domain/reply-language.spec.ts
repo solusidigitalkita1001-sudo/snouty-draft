@@ -49,6 +49,18 @@ describe('replyLanguageOf', () => {
     expect(replyLanguageOf('order pipa aw 4 inci dong, 300 batang')).not.toBe('en');
   });
 
+  // Produksi 2026-11-04: "ready stock ngga di jakarta?" dijawab bahasa Inggris di percakapan
+  // Indonesia. Kalimat sependek itu tidak lagi dibalikkan ke Inggris ketika franc tegas Indonesia.
+  it('a short trade question with loanwords up front is never answered in English', () => {
+    expect(replyLanguageOf('ready stock ngga di jakarta?')).not.toBe('en');
+    expect(replyLanguageOf('stock ready di bandung ngga ya?')).not.toBe('en');
+    expect(replyLanguageOf('ready stock di bandung ada?')).not.toBe('en');
+    // Yang MEMANG Inggris dan pendek tidak pernah dibaca Indonesia.
+    expect(replyLanguageOf('any stock in jakarta?')).toBe('en');
+    expect(replyLanguageOf('what can you do?')).not.toBe('id');
+    expect(replyLanguageOf('how do you join pipe?')).toBe('en');
+  });
+
   it('leaves messages without language signal undecided', () => {
     expect(replyLanguageOf('ok')).toBeNull();
     expect(replyLanguageOf('4"')).toBeNull();

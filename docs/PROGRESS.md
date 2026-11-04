@@ -4959,3 +4959,107 @@ menurut ukuran pipanya.
       layar dan laporan memakai satu fungsi, bukan dua salinan yang bisa berbeda — di laporan ia
       juga membaca kutipan tiap aturan dari halaman langkah, jadi daftarnya tidak kurang dari apa
       yang sudah tercetak di halaman itu.
+
+## Fase 34 — uji mandiri di produksi, putaran keenam (4 Nov 2026)
+
+Fase 33 ditutup lengkap dan hidup di produksi. Putaran ini tidak datang dari laporan orang:
+48 kasus regresi dijalankan ulang (47 lolos) dan 24 pertanyaan baru dikirim ke produksi — harga,
+perumahan banyak unit, irigasi, kolam, sumur bor, kompetitor, standar, umur pakai, satuan, edit
+kebutuhan, laporan, kemiringan, air hujan, pompa, gedung dalam bahasa Inggris, fitting, stok,
+septic, sekolah, conduit, air panas, renovasi, gudang, dan tekanan. Semuanya "lolos" pemeriksaan
+pola; tiga belas jawabannya salah ketika dibaca satu per satu.
+
+- [x] P34-01 Jawaban air panas tidak mengatakan hal yang sama dua kali
+
+      Satu-satunya kasus regresi yang jatuh: "pipa pvc boleh buat air panas?" dibuka dengan
+      "Pipa PVC tidak dipakai untuk jalur air panas: panas membuat pipanya melunak dan sambungan
+      lemnya melemah", lalu paragraf berikutnya mengulang kalimat itu hampir kata per kata
+      ("PVC tidak untuk air panas — melunak dan sambungan lemnya melemah"). Kalimat pembuka
+      memang milik bahan yang disebut pesan, sedangkan paragraf konsepnya menyebut PVC dan HDPE
+      sekaligus untuk pertanyaan yang tidak menyebut bahan apa pun.
+
+      Paragraf konsep sekarang punya versi untuk dipakai ketika kalimat pembukanya sudah menyebut
+      bahannya: rekomendasi PPR-nya tetap, sisi negatif per bahan dibuang. Pertanyaan tanpa bahan
+      ("air panas pakai pipa apa?") tetap mendapat paragraf penuhnya. Pemeriksaan regresinya juga
+      ikut diperbarui — ia masih menuntut pembuka "Tidak" yang sudah diganti di P33-14.
+
+- [x] P34-02 "Pipa air panas pralon ada?" dijawab air panas, bukan conduit
+
+      "pipa air panas buat water heater pralon ada?" dijawab paragraf conduit pelindung kabel,
+      lalu pipa gas kuning beserta tabel MDPE dan HDPE. Topiknya memang terbaca conduit 0,815 dan
+      pipa gas 0,811, sementara air panas 0,793: contoh "pipa listrik pralon ada?" dan "pipa gas
+      pralon ada?" membawa bentuk "pipa X pralon ada?", dan air panas tidak punya satu pun contoh
+      berbentuk itu. Enam contoh ketersediaan ditambahkan ke air panas, dalam dua bahasa.
+
+- [x] P34-03 "Pipa pralon udah SNI belum?" dijawab sertifikasinya
+
+      Dijawab arti "PRALON Standard" plus tabel kelas AW/D/C, disusul paragraf conduit yang tidak
+      ada hubungannya. Pertanyaannya tentang sertifikat, dan jawabannya sudah ada di profil
+      perusahaan (ISO 9001/14001/45001, SNI, TKDN, Green Label, SJPH) — yang keliru arahnya:
+      kalimat itu terbaca pertanyaan produk karena diawali kata "pipa". Empat contoh pertanyaan
+      sertifikat yang menyebut pipanya ditambahkan ke pertanyaan perusahaan.
+
+- [x] P34-04 Kesetaraan milimeter dan inci dijawab, bukan ditanya balik
+
+      "pipa 110 mm itu sama dengan 4 inch ya?" dibalas "Ukuran 110 mm ada di beberapa jenis pipa…
+      Yang mana yang dimaksud?" — pertanyaan balik untuk pertanyaan yang jawabannya ada. Contoh
+      ukuran inci semuanya bertanya satu arah ("1/2 inci berapa mm?"); lima contoh kesetaraan dua
+      arah ditambahkan.
+
+- [x] P34-05 Pertanyaan pompa pendorong tidak dijawab anggapan "tanpa pompa"
+
+      "rumah 3 lantai perlu pompa dorong ngga?" dijawab "Yang belum disebut saya anggap dulu
+      1 kamar mandi per lantai, air dari toren atap tanpa pompa pendorong, dan air bersih saja" —
+      anggapan yang memutuskan sendiri pertanyaan yang baru diajukan. Perlu-tidaknya pompa adalah
+      keluaran hitungan: ia dihitung dari sisa tekanan di titik air tertinggi. Lima contoh
+      pertanyaan pompa pendorong ditambahkan supaya topiknya terbaca, dan ketika topik itu ada di
+      pesannya, anggapan sumber air berhenti di letak torennya.
+
+- [x] P34-06 Pertanyaan laporan PDF dijawab laporannya
+
+      "bisa kirim laporan pdf-nya?" di tengah kasus rumah dibalas ringkasan kebutuhan yang sama
+      ditambah "Tekan Susun rekomendasi" — laporannya tidak disebut sama sekali, padahal ada.
+      Enam contoh pertanyaan laporan ditambahkan ke pertanyaan kemampuan, dan jawaban kemampuan
+      kini menyebut bahwa hasilnya bisa diunduh sebagai laporan PDF dari layar solusi, lengkap
+      dengan dasar perhitungan dan acuannya.
+
+- [x] P34-07 Kalimat dagang pendek tidak dijawab bahasa Inggris
+
+      "ready stock ngga di jakarta?" dijawab dalam bahasa Inggris di percakapan Indonesia. Dua
+      kata pungutan di depan membuat pengenal n-gram pertama membacanya Inggris penuh, dan pada
+      kalimat sependek itu pengenal kedua tidak didengar sama sekali. Sekarang didengar bila ia
+      tegas: pada kalimat berlabel, bacaannya yang salah selalu punya pesaing 0,79 ke atas, jadi
+      di bawah 0,7 ia tegas — dan dua ketegasan yang bertabrakan menahan pindah bahasa alih-alih
+      membalikkannya. Kalimat Inggris pendek tetap dijawab Inggris.
+
+- [x] P34-08 Pertanyaan kasus sebelum ada hitungan: angkanya menyusul
+
+      "tekanan di lantai paling atas berapa bar?" di kasus ruko yang belum dihitung memakai
+      28 detik lalu dijawab "Ukuran pipa air bersih dihitung dari jumlah titik air… luas bangunan
+      tidak menentukan ukuran pipa" — kalimat cadangan untuk pertanyaan tentang luas, dipakai
+      untuk pertanyaan tentang tekanan. Tanpa solusi, tidak ada satu angka pun yang bisa disebut:
+      kalimat cadangannya kini mengatakan itu lebih dulu, baru dasar ukurannya.
+
+- [x] P34-09 "2 kamar mandi tambah 1" tercatat 3, bukan 1
+
+      "rumah lama mau ganti pipa yang lama 1/2 inch, sekarang 2 kamar mandi tambah 1" tercatat
+      **1 kamar mandi**. Parser nilai sudah membaca totalnya dengan benar — 2 + 1 = 3 — lalu
+      mutasi relatif membuangnya: angka 3 tidak tersurat di pesan, jadi deltanya dianggap satu dan
+      dihitung atas state yang masih kosong. Angka yang tidak tersurat berarti totalnya memang
+      dihitung dari kalimat itu sendiri; ia tidak lagi diubah menjadi delta. "tambah satu kamar
+      mandi" atas 3 kamar mandi tetap 4.
+
+- [x] P34-10 Permintaan hitung yang masih kurang data tetap menyebut yang tercatat
+
+      Pesan yang sama dijawab hanya "Untuk menghitungnya saya masih perlu sumber air, jenis
+      instalasi dan jumlah lantai" — pipa lama 1/2 inci dan kamar mandinya seolah tidak terbaca,
+      jadi pengguna menyebutnya lagi. Nilai yang baru tercatat di giliran itu kini disebut balik
+      lebih dulu. Penyusun kalimat "sudah saya catat" dipecah jadi fungsi sendiri supaya kedua
+      jalur memakai satu penyusun, bukan dua salinan.
+
+- [x] P34-11 Elbow tidak dicatat sebagai tee
+
+      "butuh berapa elbow sama tee?" dijawab "Elbow PVC, HDPE, dan FRP di katalog Pralon (di
+      katalog tercatat sebagai tee), contohnya:" — catatan nama katalog itu untuk sinonim ("keni"
+      → elbow), bukan untuk jenis kedua yang memang disebut pesannya. Jenis yang ada di pesan
+      tidak lagi dicatat sebagai nama lain.

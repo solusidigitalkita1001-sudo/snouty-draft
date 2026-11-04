@@ -618,6 +618,25 @@ describe('runUnderstanding — bentuk event SSE', () => {
     );
   });
 
+  // Produksi 2026-11-04: "rumah 3 lantai perlu pompa dorong ngga?" dijawab anggapan "air dari
+  // toren atap TANPA POMPA PENDORONG" — anggapan yang memutuskan sendiri pertanyaannya.
+  it('pompanya yang ditanya: anggapan sumber air tidak ikut memutuskan pompanya', async () => {
+    const ai = aiExtracting({ building: { floors: 3 } });
+    const { events } = await runUnderstanding(
+      ai,
+      input({
+        message: 'rumah 3 lantai perlu pompa dorong ngga?',
+        understanding: understood('rumah 3 lantai perlu pompa dorong ngga?', {
+          intent: 'requirement_building',
+          knowledgeTopics: ['pompa'],
+        }),
+      }),
+    );
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).not.toContain('tanpa pompa pendorong');
+    expect(text).toContain('perlu-tidaknya pompa pendorong keluar dari hitungannya');
+  });
+
   it('en: pengantar yang sama dalam bahasa Inggris; lengkap → langsung dihitung', async () => {
     const ai = aiExtracting({
       building: { floors: 2 },
@@ -1135,6 +1154,50 @@ describe('runUnderstanding — mutasi relatif (P16-12)', () => {
     );
     expect(nextState.fixtures.bathrooms.value).toBe(4);
     expect(ai.extract).not.toHaveBeenCalled();
+  });
+
+  // Produksi 2026-11-04: "rumah lama mau ganti pipa yang lama 1/2 inch, sekarang 2 kamar mandi
+  // tambah 1" tercatat 1 kamar mandi. Totalnya sudah terbaca dari kalimatnya sendiri (2 + 1 = 3);
+  // angka yang tidak tersurat bukan delta.
+  it('jumlah yang totalnya dihitung dari kalimat itu sendiri tidak diubah menjadi delta', async () => {
+    const message = 'rumah lama mau ganti pipa yang lama 1/2 inch, sekarang 2 kamar mandi tambah 1';
+    const { nextState } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message,
+        decision: mutation,
+        state: emptyRequirementState(T0),
+        understanding: understood(message, {
+          intent: 'requirement_building',
+          mutationOp: 'add',
+        }),
+      }),
+    );
+    expect(nextState.fixtures.bathrooms.value).toBe(3);
+    expect(nextState.water.existingMainSize?.value).toBe('1/2"');
+  });
+
+  // Produksi 2026-11-04, pesan yang sama: balasannya hanya "saya masih perlu sumber air, jenis
+  // instalasi dan jumlah lantai" — pipa lama 1/2" dan kamar mandinya seolah tidak terbaca.
+  it('permintaan hitung yang masih menunggu data tetap menyebut yang baru tercatat', async () => {
+    const message = 'rumah lama mau ganti pipa yang lama 1/2 inch, sekarang 2 kamar mandi tambah 1';
+    const { events } = await runUnderstanding(
+      aiExtracting({}),
+      input({
+        message,
+        decision: mutation,
+        state: emptyRequirementState(T0),
+        understanding: understood(message, {
+          intent: 'requirement_building',
+          mutationOp: 'add',
+          computeRequest: 'compute',
+        }),
+      }),
+    );
+    const text = (events.find((e) => e.type === 'token') as { text: string }).text;
+    expect(text).toContain('pipa utama lama 1/2"');
+    expect(text).toContain('3 kamar mandi');
+    expect(text).toContain('masih perlu');
   });
 
   it('balasan ubahan hanya menyebut yang berubah, bukan mengulang semua kebutuhan', async () => {

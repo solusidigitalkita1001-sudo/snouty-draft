@@ -63,6 +63,12 @@ export interface ConceptKnowledge {
   readonly families?: readonly string[];
   readonly text: string;
   readonly textEn: string;
+  /**
+   * Paragraf pengganti ketika kalimat pembuka bahan (`leads` di `pipe-facts.json`) sudah menyebut
+   * bahan yang ditanya: sisi negatif per bahan dibuang supaya satu jawaban tidak mengatakan hal
+   * yang sama dua kali ("pipa pvc boleh buat air panas?" 2026-11-04).
+   */
+  readonly whenLed?: { readonly text: string; readonly textEn: string };
 }
 
 export const MATERIALS: readonly MaterialKnowledge[] = [
@@ -257,6 +263,11 @@ export const CONCEPTS: readonly ConceptKnowledge[] = [
     text: 'Untuk air panas, bahan yang lazim adalah **PPR**: tahan suhu tinggi dan sambungannya dilas panas sehingga menyatu. PVC tidak untuk air panas — melunak dan sambungan lemnya melemah; HDPE pun dirancang untuk air dingin. Jalur air panas di dalam bangunan: PPR untuk pipa dan fitting-nya.',
     textEn:
       'For hot water the usual material is **PPR**: it withstands high temperature and its joints are heat-fused into one piece. PVC is not for hot water — it softens and its glued joints weaken; HDPE is designed for cold water too. Hot-water runs inside a building: PPR for both pipe and fittings.',
+    whenLed: {
+      text: 'Untuk air panas, bahan yang lazim adalah **PPR**: tahan suhu tinggi dan sambungannya dilas panas sehingga menyatu. Jalur air panas di dalam bangunan: PPR untuk pipa dan fitting-nya.',
+      textEn:
+        'For hot water the usual material is **PPR**: it withstands high temperature and its joints are heat-fused into one piece. Hot-water runs inside a building: PPR for both pipe and fittings.',
+    },
   },
   {
     topic: 'kelas pvc',
