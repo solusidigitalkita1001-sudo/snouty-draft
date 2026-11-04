@@ -61,6 +61,13 @@ const FactSchema = z
      */
     leadAnswersFully: z.boolean().optional(),
     /**
+     * Fakta ini menjawab "ada di katalog Pralon atau tidak". Pertanyaan yang menyebut Pralon
+     * dibuka dengannya, bukan dengan paragraf pelajaran bahannya: "pipa air panas pralon ada?"
+     * dulu dibuka paragraf PPR dan baru kalimat terakhirnya mengatakan PPR bukan produk Pralon
+     * (produksi 2026-11-04).
+     */
+    catalogAnswer: z.boolean().optional(),
+    /**
      * Data resmi yang belum ada untuk topik ini (umur pakai, tabel kimia, tekanan kerja PVC). Jawaban
      * yang memakai fakta ini menawarkan tim teknis dan tercatat di log sebagai data yang dicari.
      */

@@ -193,6 +193,7 @@
       "text": "Pipa PPR tidak termasuk produk Pralon, jadi pipa khusus air panas tidak ada di katalognya. Batas suhu operasi resmi pipa Pralon bisa ditanyakan ke tim teknis Pralon.",
       "textEn": "PPR pipe is not part of the Pralon range, so there is no dedicated hot-water pipe in its catalogue. The official operating-temperature limit of Pralon pipe can be requested from the Pralon technical team.",
       "source": "Snouty Product Knowledge Master §32.6 (rentang suhu operasi belum tersedia)",
+      "catalogAnswer": true,
       "leads": [
         {
           "families": ["pvc", "pvc aw", "pvc d", "pvc c"],
@@ -411,6 +412,7 @@
       "text": "Di katalog Pralon tidak ada produk yang bernama pipa casing. Casing adalah sebutan fungsi, bukan jenis pipa: pipa yang menahan dinding lubang bor supaya tidak runtuh dan menjaga airnya tetap bersih. Yang dipakai untuk fungsi itu dipilih dari kedalaman sumur, cara pengeborannya, dan kondisi tanahnya, jadi kontraktor pengeboran dan tim teknis yang menentukannya — bukan saya, dan tidak ada ukuran Pralon yang bisa saya sebut untuk itu.\n\nYang bisa saya hitung dari sumur adalah jalur airnya: pipa dari pompa ke tandon, ukuran pipa distribusinya di dalam rumah atau jaringan, dan debit serta head yang dibutuhkan pompanya. Sebut kedalaman sumur, jarak ke tandon, dan tinggi tandonnya, lalu jalur itu saya hitung.",
       "textEn": "The Pralon catalogue has no product called casing pipe. Casing names a function, not a pipe type: the pipe that holds the borehole wall open and keeps the water clean. What serves that function is chosen from the well depth, the drilling method, and the ground conditions, so the drilling contractor and the technical team decide it — not me, and there is no Pralon size I can name for it.\n\nWhat I can work out from a well is the water line: the pipe from the pump to the tank, the distribution pipe sizes in the house or network, and the flow and head the pump needs. Give me the well depth, the distance to the tank, and the tank height, and I will calculate that line.",
       "source": "Katalog produk Pralon aktif (tidak ada keluarga atau produk bernama casing); keputusan pemilik 2026-11-04 — katakan nama itu tidak ada, lalu tawarkan hitungan jalur sumurnya",
+      "catalogAnswer": true,
       "gap": "pernyataan resmi Pralon tentang pemakaian pipanya sebagai casing sumur dan batas kedalamannya"
     }
   ]

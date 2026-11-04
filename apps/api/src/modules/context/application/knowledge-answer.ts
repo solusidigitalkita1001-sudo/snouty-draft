@@ -91,11 +91,12 @@ export async function knowledgeAnswer(
    */
   subjectFamilies: readonly string[] = [],
   /**
-   * Pertanyaan KETERSEDIAAN ("pipa air panas pralon ada?"): kenyataan katalog dijawab lebih dulu,
-   * baru pelajaran bahannya. Tanpa ini jawabannya dibuka paragraf PPR dan baru di kalimat terakhir
-   * mengatakan PPR bukan produk Pralon (produksi 2026-11-04).
+   * Pesan menyebut Pralon sendiri ("pipa air panas pralon ada?"): fakta yang menjawab isi katalog
+   * (`catalogAnswer`) dijawab lebih dulu, baru pelajaran bahannya. Tanpa ini jawabannya dibuka
+   * paragraf PPR dan baru di kalimat terakhir mengatakan PPR bukan produk Pralon (produksi
+   * 2026-11-04).
    */
-  catalogFirst = false,
+  brandAsked = false,
 ): Promise<KnowledgeAnswer | null> {
   const en = locale === 'en';
   const named = families.map((f) => f.toLowerCase());
@@ -169,15 +170,19 @@ export async function knowledgeAnswer(
       // Data katalognya tetap ikut — kelas tekanan HDPE dari katalog memang menjawab pertanyaan
       // tentang HDPE; yang tidak ikut hanya paragraf tentang bahan lain.
       const sentence = answeredByLead.has(f) ? '' : en ? f.textEn : f.text;
-      if (sentence) factParts.push(sentence);
+      if (sentence) {
+        if (brandAsked && f.catalogAnswer === true) factParts.unshift(sentence);
+        else factParts.push(sentence);
+      }
       const hook = f.catalog && classTable === null ? forNamed(f.catalog, scope) : null;
       if (hook) {
         const lines = await catalogLines(hook, message, catalog, locale).catch(() => []);
         if (lines.length > 0) factParts.push(lines.join('\n'));
       }
     }
-    // Fakta bersumber lebih dulu bila yang ditanya isi katalognya; selain itu pelajaran bahannya
-    // dulu, lalu faktanya.
+    // Jawaban isi katalog memimpin bila itu yang ditanya; selain itu pelajaran bahannya dulu,
+    // lalu faktanya.
+    const catalogFirst = brandAsked && own.some((f) => f.catalogAnswer === true);
     parts.push(
       ...(catalogFirst ? [...factParts, ...conceptParts] : [...conceptParts, ...factParts]),
     );

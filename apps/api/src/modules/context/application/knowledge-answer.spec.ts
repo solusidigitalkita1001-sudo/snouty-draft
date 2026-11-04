@@ -352,7 +352,7 @@ describe('tes FAQ sales 2026-10-12', () => {
     expect(a!.text).toContain('Ukuran inci pada pipa PVC adalah ukuran nominal');
   });
 
-  it('pertanyaan ketersediaan: kenyataan katalog dijawab lebih dulu (produksi 2026-11-04)', async () => {
+  it('pesan menyebut Pralon: jawaban isi katalog dijawab lebih dulu (produksi 2026-11-04)', async () => {
     const asked = await knowledgeAnswer(
       ['air panas'],
       'pipa air panas buat water heater pralon ada?',
@@ -371,6 +371,17 @@ describe('tes FAQ sales 2026-10-12', () => {
       'id',
     );
     expect(learned!.text.split('\n')[0]).toContain('PPR');
+    // Topik yang faktanya bukan jawaban isi katalog tidak ikut berubah urutan.
+    const dimensions = await knowledgeAnswer(
+      ['istilah dimensi'],
+      'od dan id pipa pralon itu apa?',
+      catalog,
+      'id',
+      [],
+      [],
+      true,
+    );
+    expect(dimensions!.text.split('\n')[0]).not.toContain('tidak termasuk produk Pralon');
   });
 
   it('nama produk yang tidak ada di katalog: dikatakan tidak ada, lalu jalur sumurnya ditawarkan (pemilik 2026-11-04)', async () => {

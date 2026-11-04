@@ -5118,9 +5118,11 @@ untuk dikarang. Ketiganya diputuskan pemilik lewat pilihan, dan ketiga rekomenda
 
       "pipa air panas buat water heater pralon ada?" dibuka paragraf PPR — bahan yang lazim, las
       panas, PVC melunak — dan baru di kalimat terakhir mengatakan PPR bukan produk Pralon. Yang
-      ditanya ada atau tidak; jawabannya ada di kalimat terakhir. Untuk pertanyaan tentang isi
-      katalog, fakta katalognya sekarang dijawab lebih dulu, baru pelajaran bahannya. Pertanyaan
-      pelajaran ("air panas pakai pipa apa?") tetap dibuka bahannya.
+      ditanya ada atau tidak; jawabannya ada di kalimat terakhir. Fakta yang memang menjawab isi
+      katalog sekarang ditandai begitu di datanya, dan pesan yang menyebut Pralon dibuka dengan
+      fakta itu, baru pelajaran bahannya. Pertanyaan pelajaran ("air panas pakai pipa apa?") tetap
+      dibuka bahannya, dan topik lain tidak ikut berubah urutan — yang menentukan bendera di
+      faktanya, bukan satu label intent.
 
 - [x] P34-17 "160 mm itu 6 inci ya?" dijawab angkanya
 
