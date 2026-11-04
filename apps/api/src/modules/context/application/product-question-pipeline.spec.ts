@@ -241,6 +241,96 @@ describe('runProductQuestion — KONSEP', () => {
     expect(productCard?.products[0]?.name).toBe('Pipa HDPE PE100 63 mm');
   });
 
+  it('"bedanya pipa HDPE sama fitting apaan?" bukan permintaan isi keluarga FITTING HDPE (produksi 2026-11-04)', async () => {
+    const pipe: Product = {
+      ...AW,
+      id: 'H'.repeat(26),
+      sku: 'HDPE-63',
+      name: 'Pipa HDPE PE100 63 mm',
+      family: 'HDPE',
+      category: 'PIPA AIR BERSIH · HDPE',
+    };
+    const fitting: Product = {
+      ...AW,
+      id: 'F'.repeat(26),
+      sku: 'FH-315',
+      name: 'Tee (Segmented) PE 315 x 160 mm',
+      family: 'FITTING HDPE',
+      category: 'FITTING · TEE',
+    };
+    const events = await runProductQuestion(
+      ai({ productQuery: 'HDPE', aspect: null }),
+      catalog({ '': [pipe, fitting], hdpe: [pipe] }),
+      noQuestions,
+      input('bedanya pipa HDPE sama Fitting apaan ?', {
+        ...COMPARISON,
+        knowledgeTopics: ['fitting'],
+      }),
+    );
+    const out = text(events);
+    expect(out).toContain(
+      'HDPE adalah bahan pipa, sedangkan fitting adalah komponen penyambungnya',
+    );
+    // Kata FITTING dan HDPE di satu kalimat sempat terbaca nama keluarga katalog, dan jawabannya
+    // jumlah SKU per kategori keluarga itu.
+    expect(out).not.toContain('SKU aktif');
+    expect(out).not.toContain('kategori katalog');
+  });
+
+  it('"bedanya pipa pvc sama fitting pvc apa?": komponen vs bahan, bukan fakta "fungsi vs bahan" soal pipa drainase', async () => {
+    const pipe: Product = { ...AW, family: 'PVC AW', category: 'PIPA AIR BERSIH · PVC' };
+    const fitting: Product = {
+      ...AW,
+      id: 'G'.repeat(26),
+      sku: 'FP-4',
+      name: 'Tee PVC 4"',
+      family: 'FITTING PVC',
+      category: 'FITTING · TEE',
+    };
+    const events = await runProductQuestion(
+      ai({ productQuery: 'PVC', aspect: null }),
+      catalog({ '': [pipe, fitting], pvc: [pipe] }),
+      noQuestions,
+      // Kedua topik ikut terbaca: yang menentukan jawabannya adalah konsep fitting.
+      input('bedanya pipa pvc sama fitting pvc apa?', {
+        ...COMPARISON,
+        knowledgeTopics: ['fungsi vs bahan', 'fitting'],
+      }),
+    );
+    const out = text(events);
+    expect(out).toMatch(/adalah bahan pipa, sedangkan fitting adalah komponen penyambungnya/);
+    expect(out).not.toContain('drainase');
+    expect(out).not.toContain('SKU aktif');
+  });
+
+  it('"apa bedanya fitting pvc dan fitting hdpe?" tetap dijawab dari katalog: dua keluarga fitting', async () => {
+    const fittingPvc: Product = {
+      ...AW,
+      id: 'G'.repeat(26),
+      sku: 'FP-4',
+      name: 'Tee PVC 4"',
+      family: 'FITTING PVC',
+      category: 'FITTING · TEE',
+    };
+    const fittingHdpe: Product = {
+      ...AW,
+      id: 'F'.repeat(26),
+      sku: 'FH-315',
+      name: 'Tee (Segmented) PE 315 x 160 mm',
+      family: 'FITTING HDPE',
+      category: 'FITTING · TEE',
+    };
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({ '': [fittingPvc, fittingHdpe] }),
+      noQuestions,
+      input('apa bedanya fitting pvc dan fitting hdpe?', COMPARISON),
+    );
+    const out = text(events);
+    expect(out).toContain('cara penyambungannya');
+    expect(out).toContain('SKU aktif');
+  });
+
   it('bestMatch: keluarga sama menang atas nama yang kebetulan memuat istilah; pipa menang atas fitting', () => {
     const fitting: Product = {
       ...AW,

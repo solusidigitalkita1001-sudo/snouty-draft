@@ -256,6 +256,18 @@ function asksComparison(u: ProductQuestionInput['understanding']): boolean {
   return (u.intent?.label ?? u.intentRanking[0]?.label) === 'product_comparison';
 }
 
+/**
+ * Pertanyaan yang membandingkan KOMPONEN dengan BAHANNYA — "bedanya pipa HDPE sama fitting apaan?":
+ * satu bahan disebut, topiknya konsep fitting, dan yang dibandingkan bukan dua isi katalog.
+ * Jawabannya "yang satu bahan, yang satu komponen" (`explain`), jadi jalur fakta dan jalur katalog
+ * sama-sama menyingkir. Pesannya dikenali dari pemahaman — intent dan topik — bukan dari pola
+ * kalimat: kata FITTING dan HDPE yang berserakan di satu kalimat sempat terbaca nama keluarga
+ * katalog "FITTING HDPE" dan dijawab 564 SKU dalam 43 kategori (produksi 2026-11-04).
+ */
+function comparesComponentWithMaterial(u: ProductQuestionInput['understanding']): boolean {
+  return asksComparison(u) && u.knowledgeTopics.includes('fitting') && u.families.length === 1;
+}
+
 /** Penjawab pengetahuan umum (P30-01); `null` bila belum dikonfigurasi. */
 export interface GeneralKnowledgeAnswerer {
   answer(input: {
@@ -331,7 +343,11 @@ export async function runProductQuestion(
     parseSize(input.message) !== null;
   // Fakta data lebih dulu; topik yang jawabannya konsep dijawab `explain` di bawah — "apa bedanya
   // fitting sama hdpe?" harus tetap dibuka dengan "komponen, bukan bahan", bukan paragraf fitting.
-  if (!sizeOfSubject && knowledgeTopics.some((t) => factTopics().has(t))) {
+  if (
+    !sizeOfSubject &&
+    !comparesComponentWithMaterial(u) &&
+    knowledgeTopics.some((t) => factTopics().has(t))
+  ) {
     // Lanjutan tanpa bahan ("panjang per batangnya?" setelah ukuran HDPE) membicarakan bahan
     // subjeknya, bukan semua keluarga di fakta (audit campuran 2026-10-20).
     const subjectFamilies =
@@ -1409,6 +1425,11 @@ async function fittingTurn(
     materials,
     families,
   );
+  // Nama keluarga katalog dibaca dari kata-kata pesan di mana pun letaknya, jadi "bedanya pipa HDPE
+  // sama fitting apaan?" terbaca keluarga "FITTING HDPE" dan dijawab isi keluarganya. Pertanyaan
+  // yang membandingkan komponen dengan bahannya bukan permintaan katalog — kecuali jenis fitting
+  // atau ukurannya memang disebut, yang berarti pengguna menanyakan barangnya.
+  if (comparesComponentWithMaterial(u) && ownKinds.length === 0 && size === null) return null;
   if (scope.length === 0) return null;
   const kindTerms = kinds.flatMap((k) => [k, ...input.lexicon.aliasesOf(k)]);
   return fittingAnswer(catalog, scope, {

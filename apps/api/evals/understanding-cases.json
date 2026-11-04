@@ -2425,6 +2425,36 @@
       ],
       "topicsOnly": true,
       "source": "produksi 2026-11-04 — nama yang tidak ada di katalog"
+    },
+    {
+      "text": "bedanya pipa hdpe dan fitting hdpe apa?",
+      "families": [
+        "hdpe"
+      ],
+      "topics": [
+        "fitting"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-04 (parafrase) — komponen dibandingkan dengan bahannya; intent tetap ragu, peringkat teratasnya perbandingan"
+    },
+    {
+      "text": "pipa dan fitting bedanya di mana?",
+      "topics": [
+        "fitting"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-04 (parafrase) — tanpa menyebut bahan"
+    },
+    {
+      "text": "fitting buat hdpe ada apa aja?",
+      "families": [
+        "hdpe"
+      ],
+      "topics": [
+        "jenis fitting"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-04 (parafrase) — ragam fitting, bukan pemakaian pipanya"
     }
   ]
 }

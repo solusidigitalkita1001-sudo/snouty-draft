@@ -5156,3 +5156,27 @@ oleh aplikasinya begitu tiba, jadi pengguna tidak pernah membaca dua kalimat yan
       sah (`/ready` gateway ok, `/livekit/` 200); https://ai.pralon.co.id/ tetap 200. Prosedur dan
       dua jebakannya — dry-run selalu gagal karena endpoint staging tidak terjangkau, dan nginx
       perlu dimuat ulang sesudah pembaruan — ada di `docs/DEPLOYMENT.md` §7a.
+
+- [x] P34-20 "Bedanya pipa HDPE sama fitting apaan?" dijawab bedanya, bukan isi katalognya
+
+      Laporan pemilik dari percakapan produksi: pertanyaan itu dibalas "FITTING HDPE di katalog
+      Pralon yang aktif ada 564 SKU aktif dalam 43 kategori katalog" beserta sepuluh baris
+      kategori — tidak satu kalimat pun menjawab apa bedanya. Sebabnya nama keluarga katalog
+      dibaca dari kata-kata pesan di mana pun letaknya, sehingga kata "fitting" dan "HDPE" yang
+      berdiri di dua sisi perbandingan terbaca satu nama keluarga, lalu jalur katalog menjawab isi
+      keluarga itu. Jawaban yang benar sudah ada sejak audit 2026-10-08 ("HDPE adalah bahan pipa,
+      sedangkan fitting adalah komponen penyambungnya") tetapi tidak pernah kebagian giliran —
+      tesnya lolos karena katalog tiruan di tes tidak memuat keluarga FITTING HDPE. Sekarang
+      pertanyaan yang membandingkan komponen dengan bahannya tidak dijawab katalog maupun fakta,
+      kecuali jenis fitting atau ukurannya memang disebut, yang berarti yang ditanya barangnya.
+      Varian PVC-nya ikut diperbaiki: "bedanya pipa pvc sama fitting pvc apa?" dulu dijawab
+      paragraf pipa DRAINASE karena kalimatnya paling mirip contoh topik "fungsi vs bahan";
+      contoh pipa-lawan-fitting ditambahkan ke topik fitting, dan kedua kalimat sekarang dikenali
+      sebagai konsep fitting.
+
+      Pemeriksaan sekitarnya menemukan kebalikannya: "fitting hdpe ada apa aja?" — yang memang
+      menanyakan isi keluarga itu — dijawab pemakaian pipa HDPE (gas, telkom, perforated) selama
+      29 detik, karena kalimatnya paling mirip contoh topik fakta "aplikasi". Contohnya dipindahkan
+      ke topik "jenis fitting", dan pertanyaan itu kini dijawab ragam fitting HDPE dari katalog.
+      Jadi kedua pertanyaan bertukar jawaban yang benar: yang menanyakan bedanya mendapat konsepnya,
+      yang menanyakan ragamnya mendapat katalognya.
