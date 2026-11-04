@@ -55,7 +55,8 @@ tunggal dan menunggu bertumpuk: 5,3 s · 8,8 s · 12,6 s · 15,1 s. Yang keempat
 `LLM_REPLY_TIMEOUT_MS=15000` lalu memakai teks tetap — teks yang sama dengan yang dikirim giliran
 47 ms di baris pertama tabel. Jadi di perangkat keras sekarang panggilan model pada jalur chat
 tidak memperbaiki jawaban, hanya menambah 5–15 detik menunggu, dan makin banyak sesi makin
-panjang antreannya. Keputusan pemilik soal flag ini ada di `docs/OPEN_QUESTIONS.md` (OQ-94).
+panjang antreannya. Pemilik memilih membiarkan jalur itu hidup (OQ-94), jadi angka di atas
+adalah dasar pembanding untuk pengukuran ulang setelah mesin ber-GPU datang.
 
 Dugaan berikutnya yang akan diuji: setelah jalur itu, yang menyerah lebih dulu bukan Laravel dan
 bukan MySQL, tetapi **penyandi embedding** — satu permintaan 159–225 ms di CPU, satu antrean,

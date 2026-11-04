@@ -5196,5 +5196,6 @@ oleh aplikasinya begitu tiba, jadi pengguna tidak pernah membaca dua kalimat yan
       10,4 detik, dan yang akhirnya dikirim teks deterministik yang sama dengan jawaban 47 ms untuk
       pertanyaan sejenis. Empat giliran serupa serentak: 5,3 · 8,8 · 12,6 · 15,1 detik — antrean
       tunggal, yang terakhir berhenti di batas lalu memakai teks tetap. Jadi jalur itu hanya
-      menambah waktu menunggu di perangkat keras sekarang; usulan mematikannya sampai ada GPU
-      menjadi OQ-94, keputusan pemilik karena mengubah konfigurasi produksi.
+      menambah waktu menunggu di perangkat keras sekarang. Pemilik memilih membiarkannya hidup
+      (OQ-94); angka 5,3-8,8-12,6-15,1 detik itu menjadi dasar pembanding saat mesin ber-GPU
+      datang.

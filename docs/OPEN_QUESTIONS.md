@@ -495,7 +495,7 @@ supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 
 ### OQ-94 — Balasan prosa model di jalur chat: menunggu 5–15 detik untuk teks yang sama (uji kapasitas 2026-11-04)
 
-**Status:** terbuka · **Blocks:** tidak ada; yang berjalan sekarang aman, hanya lambat
+**Status:** diputuskan 2026-11-04 (pemilik: biarkan hidup) · **Blocks:** —
 
 OQ-93 menurunkan `LLM_REPLY_TIMEOUT_MS` ke 15 detik dengan catatan "jalur prosa model praktis tidak
 dipakai lagi". Kalibrasi uji kapasitas menemukan jalur itu masih terpakai di satu tempat:
@@ -510,11 +510,13 @@ dipakai lagi". Kalibrasi uji kapasitas menemukan jalur itu masih terpakai di sat
 Jadi di perangkat keras sekarang panggilan itu tidak memperbaiki jawaban, hanya menambah waktu
 menunggu, dan menumpuk begitu beberapa orang bertanya bersamaan.
 
-**Usulan default:** `LLM_CHAT_REPLY=false` di server sampai ada GPU — giliran yang sama dijawab
-sekitar 100 ms dengan teks yang persis sama. Dinyalakan kembali saat mesin baru datang, karena di
-situlah prosa model memang menambah sesuatu. **Keputusan pemilik** karena ini mengubah konfigurasi
-produksi, dan karena mungkin pemilik justru ingin jalur itu tetap hidup untuk menilai kualitasnya
-sesekali.
+**Usulan default** (tidak diambil): `LLM_CHAT_REPLY=false` sampai ada GPU.
+
+**Keputusan pemilik 2026-11-04: biarkan hidup.** Jalur prosa model tetap menyala apa adanya,
+dengan konsekuensi yang sudah diukur di atas — sebagian giliran lanjutan menunggu 5–15 detik untuk
+teks yang sama, dan waktunya memanjang bila beberapa orang bertanya bersamaan. Angka itu menjadi
+dasar pembanding: begitu mesin ber-GPU datang, giliran yang sama diukur ulang untuk melihat berapa
+yang benar-benar dibeli oleh perangkat kerasnya.
 
 ### OQ-89 — Tiga jawaban yang bukan milik SNOUTY untuk dikarang (P34-12..P34-14, 2026-11-04)
 
@@ -1550,6 +1552,7 @@ These are tracked in the Domain Validation Tracker in `docs/PROGRESS.md`. Listed
 
 | ID    | Decision                                                                                                                                                                                                                                                                  | Decided by | Date       |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| OQ-94 | Balasan prosa model di jalur chat dibiarkan hidup walau sebagian giliran lanjutan menunggu 5–15 detik untuk teks yang sama; angkanya menjadi dasar pembanding saat mesin ber-GPU datang.                                                                                  | owner      | 2026-11-04 |
 | OQ-91 | Kos yang jumlah kamarnya disebut: kamarnya dicatat sebagai datanya sendiri, lalu satu pertanyaan berpilihan — kamar mandi di dalam tiap kamar atau bersama. Tidak ada hitungan dan tidak ada anggapan sebelum itu dijawab.                                                | owner      | 2026-11-02 |
 | OQ-92 | Permintaan yang murah dijawab apa adanya tanpa angka: ukuran tidak diturunkan dari hasil hitungan, yang bisa dihemat kelas pipa sesuai fungsi jalurnya dan jalur yang pendek, harga tetap di tim Pralon.                                                                  | owner      | 2026-11-02 |
 | OQ-93 | `LLM_REPLY_TIMEOUT_MS` di server menjadi 15 detik: pengguna tidak menunggu lebih dari itu, klasifikasi maksud masih selesai, jalur prosa model praktis tidak dipakai lagi.                                                                                                | owner      | 2026-11-02 |
