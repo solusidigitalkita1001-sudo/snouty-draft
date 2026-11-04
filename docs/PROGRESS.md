@@ -5144,3 +5144,15 @@ untuk dikarang. Ketiganya diputuskan pemilik lewat pilihan, dan ketiga rekomenda
 Satu temuan lain tidak jadi perbaikan: "saya hitung sekarang" yang dibalas bersamaan dengan kartu
 "Susun rekomendasi" hanya terjadi pada pengujian lewat API. Di layar, kartu itu dijalankan sendiri
 oleh aplikasinya begitu tiba, jadi pengguna tidak pernah membaca dua kalimat yang bertentangan.
+
+- [x] P34-19 Sertifikat bagspace.pralon.co.id hidup lagi, jalur pembaruannya dicatat
+
+      Permintaan pemilik di luar SNOUTY: bagspace di server yang sama harus bisa diakses untuk
+      diaudit. Keenam kontainernya sehat, yang mati adalah TLS-nya — sertifikat
+      `bagspace.pralon.co.id` kedaluwarsa 20 September 2026 karena lineage-nya memakai
+      `authenticator = standalone`, sedangkan port 80 dipegang nginx, jadi setiap pembaruan gagal.
+      Diterbitkan ulang lewat webroot `/var/www/certbot` (berlaku sampai 2 Februari 2027), kedua
+      lineage sekarang webroot, dan https://bagspace.pralon.co.id/ menjawab 200 dengan rantai yang
+      sah (`/ready` gateway ok, `/livekit/` 200); https://ai.pralon.co.id/ tetap 200. Prosedur dan
+      dua jebakannya — dry-run selalu gagal karena endpoint staging tidak terjangkau, dan nginx
+      perlu dimuat ulang sesudah pembaruan — ada di `docs/DEPLOYMENT.md` §7a.

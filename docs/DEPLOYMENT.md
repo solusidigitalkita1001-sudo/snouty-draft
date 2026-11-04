@@ -177,10 +177,32 @@ curl -I https://bagspace.pralon.co.id/
 docker stop snouty_backend snouty_frontend snouty_db snouty_redis   # proyek lama, setelah yakin
 ```
 
-Sertifikat: `sudo certbot renew` (butuh sudo — pemilik) setelah cut-over memperbarui bagspace yang
-kedaluwarsa, karena nginx baru melayani `/.well-known/acme-challenge/` untuk kedua domain; setelah
-pembaruan: `docker compose --env-file .env.production -f deploy/docker-compose.prod.yml --profile edge restart nginx`.
 Varian nginx host (`deploy/nginx/ai.pralon.co.id.conf`) tetap tersedia bila suatu saat nginx host dipakai.
+
+### 7a. Sertifikat TLS kedua domain (dibaca 2026-11-04)
+
+`/etc/letsencrypt` dan `/var/www/certbot` terpasang **read-only** di kontainer nginx; certbot ada di
+host dengan timer dua kali sehari. Pembaruan `bagspace.pralon.co.id` gagal berbulan-bulan dan
+sertifikatnya kedaluwarsa 20 September 2026 karena lineage-nya memakai `authenticator = standalone`,
+sedangkan port 80 dipegang nginx. Diterbitkan ulang lewat webroot (berlaku sampai 2 Februari 2027):
+
+```bash
+docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt \
+  -v /var/www/certbot:/var/www/certbot certbot/certbot certonly --webroot -w /var/www/certbot \
+  -d bagspace.pralon.co.id --cert-name bagspace.pralon.co.id --non-interactive --agree-tos
+docker restart snouty-nginx-1        # reload saja TIDAK cukup: nginx tetap memegang berkas lama
+```
+
+Kedua lineage (`ai.pralon.co.id`, `bagspace.pralon.co.id`) kini `authenticator = webroot`, jadi
+timer host memperbaruinya sendiri. Dua hal yang perlu diingat:
+
+- **`certbot renew --dry-run` selalu gagal di server ini** (`Connection reset by peer`): endpoint
+  staging Let's Encrypt tidak bisa dihubungi dari jaringan itu, sementara endpoint produksi 200.
+  Kegagalan dry-run bukan tanda konfigurasinya salah.
+- **Tidak ada deploy hook** di `/etc/letsencrypt/renewal-hooks/deploy/` (butuh root), sehingga setelah
+  pembaruan otomatis nginx masih menyajikan sertifikat lama sampai ada yang memuat ulang. `deploy.sh
+  release` melakukannya untuk ai.pralon.co.id; bagspace ikut terbantu. Usulan untuk pemilik:
+  satu baris cron mingguan `docker exec snouty-nginx-1 nginx -s reload`, atau deploy hook bila ada sudo.
 
 ## 8. Release berikutnya
 
