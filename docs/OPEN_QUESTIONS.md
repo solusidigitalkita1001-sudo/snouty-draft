@@ -493,6 +493,28 @@ ditanya HDPE.
 **Yang dibutuhkan dari Pralon:** apakah HDPE Pralon punya sertifikat kontak air minum (dan nomornya),
 supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 
+### OQ-89 — Tiga jawaban yang bukan milik SNOUTY untuk dikarang (P34-12..P34-14, 2026-11-04)
+
+**Status:** diputuskan 2026-11-04 (ketiganya pilihan pemilik, rekomendasi diambil) · **Blocks:** —
+
+Uji mandiri keenam di produksi menemukan tiga jawaban yang salah bukan karena rutenya, melainkan
+karena jawaban yang benar bukan keputusan saya.
+
+1. **Gudang, bengkel, dan pabrik dengan alat saniter biasa** — "gudang 1 lantai 2000 m2 cuma ada
+   2 toilet" dulu selalu diserahkan ke tim teknis karena jenis bangunannya. **Keputusan:** dihitung
+   seperti bangunan lain; yang tetap ke tim teknis cairan proses, limbah industri, dan jalur
+   produksi — dikenali dari fluida dan suhunya. Batas lantai (> 4) dan batas beban alat
+   (> 100 unit) tidak berubah dan berlaku untuk semua jenis bangunan. Tercatat di
+   `docs/POLICY.md` §7 dan `docs/SPEC.md` Policy 3.
+2. **Nama produk yang tidak ada di katalog** ("pralon ada pipa casing?") — **Keputusan:** katakan
+   nama itu tidak ada, lalu tawarkan hitungan jalur sumurnya; jangan sekali pun menyebut pipa
+   Pralon mana yang berfungsi sebagai casing. **Yang dibutuhkan dari Pralon:** pernyataan resmi
+   apakah ada pipanya yang dipakai sebagai casing sumur dan sampai kedalaman berapa — tercatat
+   sebagai lubang data (`gap`) pada topik `pipa casing`.
+3. **Kamar mandi per rumah di jaringan cluster** — **Keputusan:** sebut balik angkanya dan jelaskan
+   dasarnya (debit dari jumlah sambungan rumah, 4 jiwa per rumah, 150 liter per jiwa per hari,
+   faktor jam puncak 2 sebagai perkiraan awal bertanda). Mesin hitungnya tidak diubah.
+
 ### OQ-88 — Kode plambing yang mengikat angka beban alat: IPC atau UPC (P31-70, 2026-10-27)
 
 **Status:** diputuskan 2026-10-27 (pemilik: keduanya dibaca, UPC yang menang bila berbeda) ·
