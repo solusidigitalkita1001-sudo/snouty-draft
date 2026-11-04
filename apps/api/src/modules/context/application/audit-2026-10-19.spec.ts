@@ -244,7 +244,7 @@ describe('audit 2026-10-19 — pengetahuan bersumber', () => {
       'id',
       ['pvc'],
     );
-    expect(a!.text).toContain('Pipa PPR tidak termasuk produk Pralon.');
+    expect(a!.text).toContain('Pipa PPR tidak termasuk produk Pralon');
     expect(a!.text).not.toMatch(/data saya/);
   });
 });

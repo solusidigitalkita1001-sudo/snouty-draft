@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { CASE_PROFILES } from '@snouty/engineering';
 import { USE_CASES } from '../../understanding/domain/labels.js';
+import { mergeRequirement } from './context-merger.js';
 import { emptyRequirementState } from './requirement-state.factory.js';
 import {
   applyTechnicalAnswers,
@@ -37,6 +38,45 @@ describe('detectTechnicalCase', () => {
   it('label katalog use-case sama persis dengan CaseId engineering', () => {
     const profiles = CASE_PROFILES.map((p) => p.id).sort();
     expect([...USE_CASES].sort()).toEqual(profiles);
+  });
+});
+
+describe('jaringan cluster — kamar mandi yang disebut pengguna (pemilik 2026-11-04)', () => {
+  const cluster = applyTechnicalFacts(
+    mergeRequirement(
+      emptyRequirementState(T0),
+      [{ path: 'fixtures.bathrooms', value: 2, source: 'user_stated' }],
+      T0,
+    ).state,
+    'residential_cluster',
+    'cluster 60 unit, tiap rumah 2 kamar mandi, jaraknya 900 m, bedanya 8 m',
+  ).state;
+
+  it('angkanya disebut balik, dan dasar hitungannya per sambungan rumah', () => {
+    const text = technicalGuidance(cluster, 'id');
+    expect(text).toContain('2 kamar mandi itu bukan yang menentukan');
+    expect(text).toContain('jumlah sambungan rumah');
+    expect(text).toContain('4 jiwa per rumah');
+    expect(text).toContain('150 liter per jiwa per hari');
+  });
+
+  it('kasus lain tidak ikut membawa kalimat itu', () => {
+    const pump = applyTechnicalFacts(
+      mergeRequirement(
+        emptyRequirementState(T0),
+        [{ path: 'fixtures.bathrooms', value: 2, source: 'user_stated' }],
+        T0,
+      ).state,
+      'pump_transfer',
+      'transfer air dari sungai ke tandon, jaraknya 800 m',
+    ).state;
+    expect(technicalGuidance(pump, 'id')).not.toContain('sambungan rumah');
+  });
+
+  it('bahasa Inggris memakai angka yang sama', () => {
+    const text = technicalGuidance(cluster, 'en');
+    expect(text).toContain('The 2 bathrooms do not size this network');
+    expect(text).toContain('4 people per house');
   });
 });
 

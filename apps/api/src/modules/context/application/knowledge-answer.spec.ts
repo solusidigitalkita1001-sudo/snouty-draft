@@ -340,6 +340,14 @@ describe('tes FAQ sales 2026-10-12', () => {
     expect(a!.text).not.toContain('uPVC dipakai untuk');
   });
 
+  it('nama produk yang tidak ada di katalog: dikatakan tidak ada, lalu jalur sumurnya ditawarkan (pemilik 2026-11-04)', async () => {
+    const a = await knowledgeAnswer(['pipa casing'], 'pralon ada pipa casing?', catalog, 'id', []);
+    expect(a!.text).toContain('tidak ada produk yang bernama pipa casing');
+    expect(a!.text).toContain('pipa dari pompa ke tandon');
+    // Tidak pernah menyebut pipa Pralon mana yang jadi casing — itu belum ada pernyataan resminya.
+    expect(a!.gaps.map((g) => g.topic)).toContain('pipa casing');
+  });
+
   it('DE-11: kalimat pertama menjawab langsung bila bahannya disebut; batas suhu → data belum ada', async () => {
     const a = await knowledgeAnswer(
       ['air panas'],

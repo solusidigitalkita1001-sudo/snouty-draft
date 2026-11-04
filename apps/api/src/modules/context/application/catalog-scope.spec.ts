@@ -219,7 +219,7 @@ describe('catatan nama katalog', () => {
       families.filter((f) => /^FITTING\b/i.test(f)),
       ask(message, ['elbow', 'tee']),
     );
-    expect(out.text).toContain('Elbow');
-    expect(out.text).not.toContain('tercatat sebagai');
+    expect(out!.text).toContain('Elbow');
+    expect(out!.text).not.toContain('tercatat sebagai');
   });
 });

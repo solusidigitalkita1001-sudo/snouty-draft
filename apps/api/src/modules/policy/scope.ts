@@ -179,6 +179,11 @@ export function neutralCriteria(locale: Locale = DEFAULT_LOCALE): readonly Crite
 }
 
 export interface ScopeInput {
+  /**
+   * Jenis bangunan dan jenis instalasi TIDAK lagi memutuskan penyerahan — keduanya tetap di
+   * bentuk masukan supaya tes bisa menyatakan itu (pembuangan sejak 2026-10-12, industri sejak
+   * 2026-11-04). Yang memutuskan: jumlah lantai dan beban alat.
+   */
   readonly buildingType: BuildingType | null;
   readonly installationType: InstallationType | null;
   readonly floors: number | null;
@@ -202,26 +207,18 @@ export function exceedsAutomaticFloors(floors: number): boolean {
  * Policy 5 — scope routing.
  *
  * Air bersih dan pembuangan rumah tinggal / komersial kecil dihitung (pembuangan sejak
- * 2026-10-12, Kelompok J — laporan pemilik "kok ngga mau ngitung"). Industri tetap ke
- * validasi teknis (layar 11).
+ * 2026-10-12, Kelompok J — laporan pemilik "kok ngga mau ngitung").
  *
- * Urutannya penting: industri diperiksa lebih dulu karena ia menang atas apa pun
- * jenis instalasinya.
+ * Bangunan industri IKUT dihitung selama yang diminta air bersih dan pembuangan alat saniter
+ * biasa (keputusan pemilik 2026-11-04): "gudang 1 lantai 2000 m2 cuma ada 2 toilet, pipa
+ * utamanya berapa?" dijawab "Yang ini perlu dihitung oleh tim teknis Pralon" — dua toilet, dan
+ * hitungannya persis hitungan bangunan lain. Yang tetap ke tim teknis: cairan proses, limbah
+ * industri, dan jalur produksi — dikenali `useCasePolicy` dari fluida dan suhunya, bukan dari
+ * jenis bangunannya — ditambah bangunan di atas batas lantai dan beban alat di atas kurva
+ * debit puncak, yang berlaku untuk semua jenis bangunan.
  */
 export function scopePolicy(input: ScopeInput, locale: Locale = DEFAULT_LOCALE): PolicyOutcome {
   const en = locale === 'en';
-  if (input.buildingType === 'industrial') {
-    return {
-      kind: 'policy',
-      code: 'TECHNICAL_VALIDATION_REQUIRED',
-      reasons: [
-        en
-          ? 'Industrial installations require review by the Pralon technical team.'
-          : 'Instalasi industri memerlukan pemeriksaan tim teknis Pralon.',
-      ],
-    };
-  }
-
   if (input.floors !== null && input.floors > LARGE_BUILDING_FLOORS) {
     return {
       kind: 'policy',

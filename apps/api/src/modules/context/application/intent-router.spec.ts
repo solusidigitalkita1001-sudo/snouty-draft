@@ -656,3 +656,70 @@ describe('nilai renovasi yang tersurat menang atas label yang ragu', () => {
     expect(d.intent).toBe('PRODUCT_LOOKUP');
   });
 });
+
+/**
+ * Putaran keenam uji mandiri (2026-11-04) — tiga pagar presedensi yang ketahuan dari jawaban yang
+ * salah arah di produksi.
+ */
+describe('presedensi putaran keenam', () => {
+  it('"pipa pralon udah SNI belum?" → pertanyaan perusahaan, bukan topik standar pralon', async () => {
+    const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.8 }).route(
+      understood('pipa pralon udah SNI belum?', {
+        intent: 'company_question',
+        knowledgeTopics: ['standar pralon', 'conduit'],
+      }),
+      false,
+    );
+    expect(d.intent).toBe('COMPANY_QUESTION');
+  });
+
+  it('pertanyaan tekanan tanpa produk di kasus yang tercatat → pertanyaan kasus', async () => {
+    const asked = understood('tekanan di lantai paling atas berapa bar?', {
+      intent: 'knowledge_question',
+      productAspect: 'pressure_class',
+    });
+    expect(
+      (await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.8 }).route(asked, true)).intent,
+    ).toBe('EXPLANATION_REQUEST');
+    // Tanpa kasus, pelajaran kelas tekanannya tetap jawaban yang pantas.
+    expect(
+      (await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.8 }).route(asked, false)).intent,
+    ).toBe('PRODUCT_LOOKUP');
+  });
+
+  it('"rumah 3 lantai perlu pompa dorong ngga?" → kebutuhan yang dihitung, bukan paragraf pompa', async () => {
+    const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.8 }).route(
+      understood('rumah 3 lantai perlu pompa dorong ngga?', {
+        intent: 'explanation_request',
+        knowledgeTopics: ['pompa'],
+      }),
+      false,
+    );
+    expect(d.intent).toBe('REQUIREMENT_STATEMENT');
+    expect(d.shouldExtract).toBe(true);
+  });
+
+  it('"pralon ada pipa casing?" tidak membuka kasus sumur', async () => {
+    const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.8 }).route(
+      understood('pralon ada pipa casing sumur bor 50 meter?', {
+        intent: 'product_range',
+        knowledgeTopics: ['pipa casing'],
+        useCase: 'well_distribution',
+        mentionsRequirement: true,
+      }),
+      false,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+  });
+
+  it('pertanyaan pompa tanpa satu nilai pun tetap dijawab dari pengetahuan', async () => {
+    const d = await router({ intent: 'PRODUCT_LOOKUP', confidence: 0.8 }).route(
+      understood('pompa boosternya perlu ngga?', {
+        intent: 'explanation_request',
+        knowledgeTopics: ['pompa'],
+      }),
+      true,
+    );
+    expect(d.intent).toBe('PRODUCT_LOOKUP');
+  });
+});

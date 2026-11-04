@@ -2409,6 +2409,22 @@
       "text": "hasil hitungannya bisa saya unduh pdf?",
       "intent": "capability_question",
       "source": "produksi 2026-11-04 — dibalas ringkasan kebutuhan"
+    },
+    {
+      "text": "pralon punya pipa casing ngga ya?",
+      "topics": [
+        "pipa casing"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-04 — membuka kasus sumur dan menagih kedalamannya"
+    },
+    {
+      "text": "pipa buat casing sumur dalam ada?",
+      "topics": [
+        "pipa casing"
+      ],
+      "topicsOnly": true,
+      "source": "produksi 2026-11-04 — nama yang tidak ada di katalog"
     }
   ]
 }

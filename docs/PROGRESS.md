@@ -5063,3 +5063,46 @@ pola; tiga belas jawabannya salah ketika dibaca satu per satu.
       katalog tercatat sebagai tee), contohnya:" — catatan nama katalog itu untuk sinonim ("keni"
       → elbow), bukan untuk jenis kedua yang memang disebut pesannya. Jenis yang ada di pesan
       tidak lagi dicatat sebagai nama lain.
+
+Tiga jawaban lain salah bukan karena rutenya, melainkan karena jawaban yang benar bukan milik saya
+untuk dikarang. Ketiganya diputuskan pemilik lewat pilihan, dan ketiga rekomendasinya diambil.
+
+- [x] P34-12 Gudang dan pabrik dengan toilet biasa dihitung, tidak diserahkan
+
+      "gudang 1 lantai 2000 m2 cuma ada 2 toilet, pipa utamanya berapa?" dijawab "Yang ini perlu
+      dihitung oleh tim teknis Pralon" — dua toilet, dan hitungannya persis hitungan bangunan
+      lain. Penyerahan itu dulu dipicu jenis bangunannya: industri selalu keluar dari cakupan,
+      apa pun yang diminta. Keputusan pemilik 4 Nov 2026: bangunan industri dengan alat saniter
+      biasa dihitung seperti bangunan lain; yang tetap ke tim teknis adalah cairan proses, limbah
+      industri, dan jalur produksi — dikenali dari fluida dan suhunya, bukan dari kata "pabrik".
+
+      Batas lantai dan batas beban alat tidak berubah dan berlaku untuk semua jenis bangunan,
+      jadi pabrik enam lantai tetap diserahkan — dan pabrik lima lantai ke atas kini masuk jalur
+      gedung bertingkat seperti gedung lain. Tes yang memakai "industri" sebagai contoh kasus
+      yang diserahkan dipindah ke pemicu yang masih berlaku; dasar hitungan yang disebut SNOUTY
+      tidak lagi memuat kalimat "industri diteruskan ke tim teknis".
+
+- [x] P34-13 "Pralon ada pipa casing?" dijawab tidak ada, lalu jalur sumurnya ditawarkan
+
+      Pertanyaannya membuka kasus sumur dan menagih kedalaman serta jarak ke tandon — padahal
+      yang ditanya ketersediaan satu nama produk, dan nama itu tidak ada di katalog. Keputusan
+      pemilik: katakan nama itu tidak ada, lalu tawarkan hitungannya; jangan sekali pun menyebut
+      pipa Pralon mana yang jadi casing, karena pernyataan resminya belum ada. Casing adalah
+      sebutan fungsi, dan pemilihannya mengikuti kedalaman sumur, cara pengeboran, serta kondisi
+      tanah. Topik dan faktanya ditambahkan sebagai data, pertanyaannya terbaca pertanyaan produk
+      sehingga tidak membuka kasus, dan pertanyaan yang belum terjawab resmi tercatat sebagai
+      lubang data beserta tombol ke tim teknis.
+
+- [x] P34-14 Kamar mandi per rumah di jaringan cluster disebut balik
+
+      "cluster 60 unit, tiap rumah 2 kamar mandi" membalas daftar catatan yang memuat kamar
+      mandinya, lalu diam soal perannya — padahal jaringan cluster tidak dihitung dari jumlah alat
+      di dalam rumah, dan pengguna wajar mengira sebaliknya. Perannya kini dikatakan: debitnya
+      dari jumlah sambungan rumah, dengan 4 jiwa per rumah, 150 liter per jiwa per hari, dan
+      faktor jam puncak 2 sebagai perkiraan awal yang ditandai di hasilnya. Ketiganya asumsi yang
+      sudah dipakai hitungan cluster, bukan angka baru; mesin hitungnya tidak disentuh. Angkanya
+      disebut sekali saja — daftar catatan yang menyebutnya tidak diulang kalimat berikutnya.
+
+Satu temuan lain tidak jadi perbaikan: "saya hitung sekarang" yang dibalas bersamaan dengan kartu
+"Susun rekomendasi" hanya terjadi pada pengujian lewat API. Di layar, kartu itu dijalankan sendiri
+oleh aplikasinya begitu tiba, jadi pengguna tidak pernah membaca dua kalimat yang bertentangan.

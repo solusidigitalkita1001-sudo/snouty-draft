@@ -109,7 +109,7 @@ di panel kanan, dan mengikat perilaku:
 
 | Kondisi                                                       | Hasil                                                         |
 | ------------------------------------------------------------- | ------------------------------------------------------------- |
-| Skenario industri, pabrik, bangunan besar                     | `TECHNICAL_VALIDATION_REQUIRED` → layar 11                    |
+| Bangunan di atas 4 lantai, beban alat di atas kurva debit     | `TECHNICAL_VALIDATION_REQUIRED` → layar 11                    |
 | Kondisi kerja di luar rentang material (mis. 70 °C untuk PVC) | `TECHNICAL_VALIDATION_REQUIRED`                               |
 | Data tidak cukup dan tidak bisa diasumsikan dengan aman       | `TECHNICAL_VALIDATION_REQUIRED`                               |
 | Aturan teknik belum divalidasi ahli                           | tetap jalan, tetapi output `ASSUMED`, tidak pernah `VERIFIED` |
@@ -153,11 +153,13 @@ ahli domain menandatangani aturannya.
 
 ## 7. Policy 5 — Scope routing
 
-| Cakupan                               | Perilaku                                                                                      |
-| ------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Air bersih, hunian & komersial ringan | didukung penuh                                                                                |
-| Pembuangan / air kotor                | **dicatat**, dinyatakan belum didukung untuk rekomendasi penuh, ditawarkan tim teknis (OQ-17) |
-| Industri / pabrik / bangunan besar    | `TECHNICAL_VALIDATION_REQUIRED`                                                               |
+| Cakupan                                              | Perilaku                                                                                      |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Air bersih, hunian & komersial ringan                | didukung penuh                                                                                |
+| Pembuangan / air kotor                               | **dicatat**, dinyatakan belum didukung untuk rekomendasi penuh, ditawarkan tim teknis (OQ-17) |
+| Industri dengan alat saniter biasa                   | dihitung seperti bangunan lain (keputusan pemilik 2026-11-04)                                 |
+| Cairan proses, limbah industri, suhu ≥ 45 °C         | `TECHNICAL_VALIDATION_REQUIRED` — dari fluidanya, bukan dari jenis bangunannya                |
+| Bangunan > 4 lantai, beban alat > kurva debit puncak | `TECHNICAL_VALIDATION_REQUIRED`, berlaku untuk semua jenis bangunan                           |
 
 Penanganan air kotor perlu penjelasan, karena UI justru menawarkannya: chip klarifikasi memuat "Air
 bersih + pembuangan", riwayat memuat "Saluran pembuangan ruko", dan layar 07 menampilkan kartu
@@ -255,17 +257,17 @@ Angka pastinya dikonfigurasi, bukan literal. Pelanggaran mengembalikan `RATE_LIM
 
 Tiga pertama adalah **release blocker** (SPEC §31).
 
-| #   | Tes                                                                        | Berkas                               |
-| --- | -------------------------------------------------------------------------- | ------------------------------------ |
-| 1   | Pertanyaan kompetitor tidak pernah menghasilkan kartu produk kompetitor    | `policy/competitor.spec.ts`          |
-| 2   | Aturan `REQUIRES_DOMAIN_VALIDATION` tidak pernah menghasilkan `VERIFIED`   | `policy/provenance-gate.spec.ts`     |
-| 3   | Tamu tidak bisa mengakses kapabilitas lanjutan lewat API meski UI dilewati | `policy/entitlement.spec.ts`         |
-| 4   | Skenario industri selalu ter-route ke `TECHNICAL_VALIDATION_REQUIRED`      | `policy/scope-routing.spec.ts`       |
-| 5   | Kebutuhan pembuangan tercatat, tidak ditolak, dan ditandai belum didukung  | `policy/scope-routing.spec.ts`       |
-| 6   | Setiap `ASSUMED` punya `reason` yang muncul di kartu asumsi                | `policy/assumption.spec.ts`          |
-| 7   | Daftar manfaat onboarding sama persis dengan `ENTITLEMENTS`                | `policy/entitlement-ui-sync.spec.ts` |
-| 8   | Field spesifikasi null tidak pernah merender nilai                         | `ui/provenance-tag.spec.tsx`         |
-| 9   | Laporan hanya dapat diunduh pemilik dan peran berwenang                    | `policy/report-access.spec.ts`       |
+| #   | Tes                                                                                   | Berkas                               |
+| --- | ------------------------------------------------------------------------------------- | ------------------------------------ |
+| 1   | Pertanyaan kompetitor tidak pernah menghasilkan kartu produk kompetitor               | `policy/competitor.spec.ts`          |
+| 2   | Aturan `REQUIRES_DOMAIN_VALIDATION` tidak pernah menghasilkan `VERIFIED`              | `policy/provenance-gate.spec.ts`     |
+| 3   | Tamu tidak bisa mengakses kapabilitas lanjutan lewat API meski UI dilewati            | `policy/entitlement.spec.ts`         |
+| 4   | Cairan proses dan bangunan di luar batas ter-route ke `TECHNICAL_VALIDATION_REQUIRED` | `policy/scope-routing.spec.ts`       |
+| 5   | Kebutuhan pembuangan tercatat, tidak ditolak, dan ditandai belum didukung             | `policy/scope-routing.spec.ts`       |
+| 6   | Setiap `ASSUMED` punya `reason` yang muncul di kartu asumsi                           | `policy/assumption.spec.ts`          |
+| 7   | Daftar manfaat onboarding sama persis dengan `ENTITLEMENTS`                           | `policy/entitlement-ui-sync.spec.ts` |
+| 8   | Field spesifikasi null tidak pernah merender nilai                                    | `ui/provenance-tag.spec.tsx`         |
+| 9   | Laporan hanya dapat diunduh pemilik dan peran berwenang                               | `policy/report-access.spec.ts`       |
 
 Tes nomor 7 layak diperhatikan: ia mencegah kelas bug yang tidak terlihat sampai pengguna mengeluh —
 UI menjanjikan sesuatu yang API tolak.
@@ -277,14 +279,14 @@ UI menjanjikan sesuatu yang API tolak.
 Policy Engine terbangun sebagai modul leaf `apps/api/src/modules/policy` — tanpa I/O, setiap
 pemeriksaan fungsi murni, dijaga pagar lint. Pemetaan ke berkasnya:
 
-| Kebijakan                    | Berkas                         | Catatan                                                                                           |
-| ---------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
-| Policy 1 — hanya Pralon      | `scope.ts`                     | Hasilnya tidak punya field produk untuk diisi; `NEUTRAL_CRITERIA` tanpa satu pun nama merek       |
-| Policy 2 — tanpa halusinasi  | `product-filter.ts`            | `filterToCatalog` lapis 3 dari 5; SKU yang dibuang dilaporkan; spesifikasi kosong → `UNAVAILABLE` |
-| Policy 3 — batas rekomendasi | `scope.ts` + `policy-cards.ts` | Keputusan dan permukaannya dipisah; SLA 24 jam satu tempat                                        |
-| Policy 4 — provenance        | `provenance-gate.ts`           | **Satu-satunya** jalan nilai hitungan jadi `VERIFIED`; `REJECTED` → `UNAVAILABLE`                 |
-| Policy 5 — scope routing     | `scope.ts`                     | Industri menang atas jenis instalasi; > 4 lantai → validasi teknis; pembuangan diakui & dicatat   |
-| Entitlement (§8)             | `entitlements.ts`              | Sudah ada sejak Fase 3; sumber tunggal untuk guard **dan** manfaat onboarding                     |
+| Kebijakan                    | Berkas                         | Catatan                                                                                                              |
+| ---------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| Policy 1 — hanya Pralon      | `scope.ts`                     | Hasilnya tidak punya field produk untuk diisi; `NEUTRAL_CRITERIA` tanpa satu pun nama merek                          |
+| Policy 2 — tanpa halusinasi  | `product-filter.ts`            | `filterToCatalog` lapis 3 dari 5; SKU yang dibuang dilaporkan; spesifikasi kosong → `UNAVAILABLE`                    |
+| Policy 3 — batas rekomendasi | `scope.ts` + `policy-cards.ts` | Keputusan dan permukaannya dipisah; SLA 24 jam satu tempat                                                           |
+| Policy 4 — provenance        | `provenance-gate.ts`           | **Satu-satunya** jalan nilai hitungan jadi `VERIFIED`; `REJECTED` → `UNAVAILABLE`                                    |
+| Policy 5 — scope routing     | `scope.ts`                     | Fluida & suhu menentukan penyerahan, bukan jenis bangunan; > 4 lantai → validasi teknis; pembuangan diakui & dicatat |
+| Entitlement (§8)             | `entitlements.ts`              | Sudah ada sejak Fase 3; sumber tunggal untuk guard **dan** manfaat onboarding                                        |
 
 Titik penegakan di pipeline (`context/application/message-pipeline.ts`): **Policy 1 diperiksa sebelum
 ekstraksi** — pertanyaan kompetitor tidak pernah menyentuh jalur rekomendasi — dan **Policy 5 diperiksa

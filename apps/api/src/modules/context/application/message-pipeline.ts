@@ -1501,7 +1501,6 @@ function statedFloors(state: RequirementState, message: string): number | null {
 }
 
 function tallBuildingCase(state: RequirementState, message: string): CaseId | null {
-  if (state.building.type.value === 'industrial') return null;
   const floors = statedFloors(state, message);
   return floors !== null && exceedsAutomaticFloors(floors) ? 'multistorey_building_water' : null;
 }

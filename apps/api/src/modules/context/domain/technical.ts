@@ -482,6 +482,25 @@ export function technicalCaptured(
 }
 
 /**
+ * Jaringan cluster: jumlah kamar mandi ikut tercatat, tetapi tidak masuk hitungan — debitnya dari
+ * jumlah sambungan rumah. Menyebutnya di daftar catatan lalu diam soal perannya membuat pengguna
+ * mengira alat di dalam rumah yang menentukan ukuran pipanya (keputusan pemilik 2026-11-04:
+ * sebut balik angkanya, lalu jelaskan dasarnya). Angka di kalimat ini asumsi yang memang dipakai
+ * `compute-network` untuk kasus cluster (PERSONS_PER_UNIT_4, DEMAND_LPCD_150, PEAK_HOUR_FACTOR_2),
+ * bukan angka baru.
+ */
+function clusterFixtureBasis(state: RequirementState, locale: Locale): string | null {
+  if (state.useCase?.kind !== 'technical' || state.useCase.caseId !== 'residential_cluster') {
+    return null;
+  }
+  const bathrooms = state.fixtures.bathrooms.value;
+  if (typeof bathrooms !== 'number') return null;
+  return locale === 'en'
+    ? `The ${bathrooms} bathrooms do not size this network, though: the flow comes from the number of house connections — without occupancy data I start from 4 people per house, 150 litres per person per day, and a peak-hour factor of 2, and I mark those three in the result.`
+    : `${bathrooms} kamar mandi itu bukan yang menentukan ukuran pipa jaringannya: debitnya dari jumlah sambungan rumah — tanpa data penghuni saya mulai dari 4 jiwa per rumah, 150 liter per jiwa per hari, dan faktor jam puncak 2, dan ketiganya saya tandai di hasilnya.`;
+}
+
+/**
  * Balasan giliran: nama kasus, data yang diketahui, dan — bila masih kurang — pertanyaan dalam
  * bahasa pengguna. Tanpa angka teknik: belum ada yang dihitung di tahap ini.
  */
@@ -510,6 +529,8 @@ export function technicalGuidance(
       ),
     );
   }
+  const fixtureBasis = clusterFixtureBasis(state, locale);
+  if (fixtureBasis !== null) lines.push('', fixtureBasis);
   const stillNeeded = unresolvedUnknowns(state, locale);
   if (stillNeeded.length > 0) lines.push('', copy.stillNeeded(joinNatural(stillNeeded, locale)));
   // Kasus yang kalkulatornya belum ada: kartu gilirannya penyerahan, jadi pertanyaan berpilihan

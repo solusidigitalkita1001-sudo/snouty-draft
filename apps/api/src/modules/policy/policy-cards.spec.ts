@@ -23,14 +23,11 @@ describe('policyCard', () => {
   });
 
   it("'en': kartu unsupported membawa alasan Inggris, captured, dan SLA yang sama", () => {
-    const outcome = scopePolicy(
-      { buildingType: 'industrial', installationType: null, floors: null },
-      'en',
-    );
-    const captured = [{ label: 'Floors', value: '2' }];
+    const outcome = scopePolicy({ buildingType: null, installationType: null, floors: 6 }, 'en');
+    const captured = [{ label: 'Floors', value: '6' }];
     expect(policyCard(outcome, captured, 'en')).toEqual({
       kind: 'unsupported',
-      reasons: ['Industrial installations require review by the Pralon technical team.'],
+      reasons: ['A 6-storey building is outside the scope of automatic recommendations.'],
       captured,
       slaHours: TECHNICAL_SLA_HOURS,
     });

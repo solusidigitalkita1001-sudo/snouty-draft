@@ -160,7 +160,8 @@ If information is missing: ask clarification, return insufficient information ("
 
 ## Policy 3 — Recommendation Boundary
 SNOUTY is planning assistance, not engineering certification ("PANDUAN PERENCANAAN — BUKAN SERTIFIKASI TEKNIS").
-- Unsupported / unusual / industrial / insufficient scenarios → `TECHNICAL_VALIDATION_REQUIRED`
+- Unsupported / unusual / insufficient scenarios → `TECHNICAL_VALIDATION_REQUIRED`
+- Industrial buildings with ordinary sanitary fixtures are calculated like any other building (owner decision 2026-11-04); process fluids, industrial waste, and temperatures ≥ 45 °C are what go to the technical team
 - Engineering rules not yet validated → `REQUIRES_DOMAIN_VALIDATION`
 
 ## Policy 4 — Value Provenance

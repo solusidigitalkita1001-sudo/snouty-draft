@@ -20,10 +20,12 @@ const handedOff = withCompleteness(
   mergeRequirement(
     emptyRequirementState(T0),
     [
-      // Industri tetap diserahkan ke tim teknis; pembuangan rumah kini dihitung (2026-10-12).
-      { path: 'building.type', value: 'industrial', source: 'user_stated' },
+      // Beban alat di atas kurva debit puncak diserahkan ke tim teknis; pembuangan rumah kini
+      // dihitung (2026-10-12), dan bangunan industri dengan alat saniter biasa ikut dihitung
+      // (keputusan pemilik 2026-11-04).
+      { path: 'building.type', value: 'light_commercial', source: 'user_stated' },
       { path: 'building.floors', value: 3, source: 'user_stated' },
-      { path: 'fixtures.bathrooms', value: 4, source: 'user_stated' },
+      { path: 'fixtures.bathrooms', value: 30, source: 'user_stated' },
       { path: 'water.source', value: 'ground_tank', source: 'user_stated' },
       { path: 'water.installationType', value: 'both', source: 'user_stated' },
     ],

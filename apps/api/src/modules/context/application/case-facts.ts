@@ -21,14 +21,14 @@ const BASIS_ID = [
   'Ukuran pipa air bersih dihitung dari debit puncak (beban kamar mandi, wastafel, dapur), panjang jalur dari sumber ke titik air tertinggi, beda tinggi, dan jenis sumber air; untuk toren atap sisa tekanan di titik tertinggi ikut dicek.',
   'Pipa pembuangan rumah dihitung dari unit beban buangan tiap alat (kloset, floor drain, wastafel, bak cuci dapur): jalur air kotor ke septic tank dan air bekas ke saluran atau resapan, masing-masing dengan ventilasi.',
   'Ukuran rumah (panjang × lebar atau luas) dipakai untuk panjang jalur dan jumlah pipa; tanpa itu jalur diperkirakan dan jumlah pipanya tidak dihitung.',
-  'Gedung bertingkat, kolam/tambak, drainase, air hujan, gorong-gorong, irigasi, cluster perumahan, transfer pompa, dan sumur masing-masing punya rumus sendiri dan dihitung saat Susun rekomendasi; industri diteruskan ke tim teknis Pralon.',
+  'Gedung bertingkat, kolam/tambak, drainase, air hujan, gorong-gorong, irigasi, cluster perumahan, transfer pompa, dan sumur masing-masing punya rumus sendiri dan dihitung saat Susun rekomendasi.',
   'Hitungan disusun saat pengguna menekan Susun rekomendasi; setiap angka di solusi membawa dasar perhitungannya.',
 ];
 const BASIS_EN = [
   'Clean-water pipe sizes are calculated from the peak flow (the load of bathrooms, basins, kitchens), the run from the source to the highest outlet, the height difference, and the water source; for a roof tank the pressure left at the highest outlet is checked too.',
   'House drainage pipes are calculated from the drainage load of each fixture (toilet, floor drain, basin, kitchen sink): a soil line to the septic tank and a waste line to the drain or soakaway, each with a vent.',
   'The house size (length × width or area) gives the run length and the pipe quantity; without it the run is estimated and the pipe quantity is not counted.',
-  'Multi-storey buildings, fish ponds, drainage, stormwater, culverts, irrigation, housing clusters, pump transfer, and wells each have their own formulas and are calculated when Compose recommendation is pressed; industrial work goes to the Pralon technical team.',
+  'Multi-storey buildings, fish ponds, drainage, stormwater, culverts, irrigation, housing clusters, pump transfer, and wells each have their own formulas and are calculated when Compose recommendation is pressed.',
   'The calculation runs when the user presses Compose recommendation; every figure in the solution carries its basis.',
 ];
 

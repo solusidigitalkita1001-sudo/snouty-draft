@@ -75,18 +75,23 @@ describe('Policy 5 — scope routing', () => {
     expect(scopePolicy(base).kind).toBe('supported');
   });
 
-  it('industri: selalu validasi teknis', () => {
-    const outcome = scopePolicy({ ...base, buildingType: 'industrial' });
-    expect(outcome).toMatchObject({ kind: 'policy', code: 'TECHNICAL_VALIDATION_REQUIRED' });
+  // Keputusan pemilik 2026-11-04: gudang, bengkel, dan pabrik dengan alat saniter biasa dihitung
+  // seperti bangunan lain. Produksi hari itu: "gudang 1 lantai 2000 m2 cuma ada 2 toilet, pipa
+  // utamanya berapa?" dijawab "Yang ini perlu dihitung oleh tim teknis Pralon".
+  it('industri dengan alat saniter biasa: dihitung', () => {
+    expect(scopePolicy({ ...base, buildingType: 'industrial' }).kind).toBe('supported');
+    expect(
+      scopePolicy({ buildingType: 'industrial', installationType: 'drainage', floors: 1 }).kind,
+    ).toBe('supported');
   });
 
-  it('industri menang atas jenis instalasi apa pun', () => {
-    const outcome = scopePolicy({
-      buildingType: 'industrial',
-      installationType: 'drainage',
-      floors: 1,
+  it('industri tetap kena batas lantai dan batas beban alat seperti bangunan lain', () => {
+    expect(scopePolicy({ ...base, buildingType: 'industrial', floors: 6 })).toMatchObject({
+      code: 'TECHNICAL_VALIDATION_REQUIRED',
     });
-    expect(outcome).toMatchObject({ code: 'TECHNICAL_VALIDATION_REQUIRED' });
+    expect(
+      scopePolicy({ ...base, buildingType: 'industrial', supplyLoadWsfu: 100_000 }),
+    ).toMatchObject({ code: 'TECHNICAL_VALIDATION_REQUIRED' });
   });
 
   it('bangunan lebih dari 4 lantai: validasi teknis', () => {
@@ -124,12 +129,10 @@ describe('Policy 5 — scope routing', () => {
 
 describe('Policy teks dwibahasa (Fase 15)', () => {
   it("'id' tidak berubah dan menjadi bawaan", () => {
-    expect(
-      scopePolicy({ buildingType: 'industrial', installationType: null, floors: null }),
-    ).toEqual({
+    expect(scopePolicy({ buildingType: null, installationType: null, floors: 6 })).toEqual({
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
-      reasons: ['Instalasi industri memerlukan pemeriksaan tim teknis Pralon.'],
+      reasons: ['Bangunan 6 lantai berada di luar cakupan rekomendasi otomatis.'],
     });
     expect(competitorPolicy('id')).toEqual(competitorPolicy());
     expect(competitorPolicy('id')).toMatchObject({
@@ -138,15 +141,6 @@ describe('Policy teks dwibahasa (Fase 15)', () => {
   });
 
   it("'en' memberi teks Inggris dengan struktur dan kode yang sama", () => {
-    const industrial = scopePolicy(
-      { buildingType: 'industrial', installationType: null, floors: null },
-      'en',
-    );
-    expect(industrial).toEqual({
-      kind: 'policy',
-      code: 'TECHNICAL_VALIDATION_REQUIRED',
-      reasons: ['Industrial installations require review by the Pralon technical team.'],
-    });
     const floors = scopePolicy({ buildingType: null, installationType: null, floors: 6 }, 'en');
     expect(floors).toMatchObject({ reasons: [expect.stringContaining('6-storey')] });
     const drainage = scopePolicy(

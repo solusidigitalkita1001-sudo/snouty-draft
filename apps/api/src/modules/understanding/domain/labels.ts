@@ -159,6 +159,9 @@ export const KNOWLEDGE_TOPICS = [
   // Pipa yang SUDAH terpasang di kasus pengguna: muat atau tidak untuk bebannya, bukan umur
   // pakai pipa pada umumnya — dijawab dari hitungan renovasi, bukan dari pengetahuan (P32-52).
   'pipa lama cukup',
+  // Nama yang dipakai di lapangan tetapi bukan produk Pralon (keputusan pemilik 2026-11-04):
+  // dikatakan tidak ada di katalog, lalu jalur sumurnya ditawarkan untuk dihitung.
+  'pipa casing',
 ] as const;
 export type KnowledgeTopicLabel = (typeof KNOWLEDGE_TOPICS)[number];
 

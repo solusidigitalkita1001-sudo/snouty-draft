@@ -145,6 +145,24 @@ export function certainIntent(
   // kebutuhan yang dihitung, bukan pertanyaan pengetahuan — tes FAQ 2026-10-12: dulu dijawab
   // paragraf sambungan rumah, atau jatuh ke model lalu "Silakan, tanyakan saja".
   if (!u.mentionsCompetitor && isCaseStatement(u)) return sure('REQUIREMENT_STATEMENT');
+  // Pertanyaan perusahaan yang menyebut mereknya sendiri menang atas topik pengetahuan. Di
+  // produksi 2026-11-04 "pipa pralon udah SNI belum?" dijawab arti "PRALON Standard" plus paragraf
+  // conduit — yang ditanya sertifikatnya, dan daftar sertifikasinya ada di profil perusahaan.
+  if (fine === 'company_question' && u.mentionsOwnBrand && !u.mentionsRequirement) {
+    return sure('COMPANY_QUESTION');
+  }
+  // Pertanyaan tekanan yang tidak menyebut produk apa pun, di percakapan yang sudah punya kasus,
+  // adalah pertanyaan tentang kasus itu. "tekanan di lantai paling atas berapa bar?" di kasus ruko
+  // 3 lantai dijawab "Kelas tekanan berbeda per jenis pipa. Sebutkan jenis dan ukurannya" setelah
+  // 12 detik (produksi 2026-11-04) — jawaban untuk pertanyaan tentang produk, bukan bangunannya.
+  if (
+    u.productAspect === 'pressure_class' &&
+    u.families.length === 0 &&
+    hasExistingRequirements &&
+    !u.mentionsCompetitor
+  ) {
+    return sure('EXPLANATION_REQUEST');
+  }
   // Tebal dinding / berat / diameter dalam dijawab tabel standar Pralon — aspeknya dari contoh sudah
   // cukup, intent yang ragu tidak perlu menunggu model (live 2026-10-14: "tebal pipa d 4 inch" 122 s).
   if (u.productAspect === 'dimensions' && !u.mentionsCompetitor) return sure('PRODUCT_LOOKUP');
@@ -747,6 +765,16 @@ export function answersFromKnowledge(
     (v) => v.path !== 'building.dimensions',
   );
   if (calculation && statesValues) return false;
+  // Pesan yang MENYATAKAN kebutuhan bangunannya sendiri adalah kasus yang dihitung, bukan
+  // pelajaran umum — apa pun label intentnya. "rumah 3 lantai perlu pompa dorong ngga?" dijawab
+  // paragraf umum tentang pompa, dan rumah 3 lantainya tidak tercatat (produksi 2026-11-04);
+  // perlu-tidaknya pompa dorong justru keluaran hitungan tekanannya. Syaratnya sama dengan
+  // `sourcedQuestionOverCase`: topik bersumber menang hanya selama pesannya tidak membawa nilai.
+  // Pertanyaan produk tidak ikut — ia tidak pernah membuka kasus (P33-09) — dan yang dihitung
+  // adalah DATA INTI bangunan: jenis instalasi tidak termasuk, supaya "apa bedanya pipa drainase
+  // dan pipa uPVC?" tetap pertanyaan pengetahuan (pagar yang sama seperti P33-09).
+  const productQuestion = u.intent !== null && PRODUCT_QUESTION_INTENTS.has(u.intent.label);
+  if (!calculation && buildingFactsInText(u.text) > 0 && !productQuestion) return false;
   // Pesan yang menyatakan kasusnya sendiri dengan angkanya ("pipa yg cocok buat proyek perumahan
   // 50 unit?") adalah kebutuhan, bukan pelajaran umum — apa pun bentuk kalimatnya. Tanpa aturan
   // ini satu contoh pertanyaan bentuk sistem menariknya ke jawaban pengetahuan (FAQ MA-07).

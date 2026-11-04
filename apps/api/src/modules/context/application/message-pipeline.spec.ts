@@ -1058,15 +1058,15 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
     expect(smallCard.card.kind).not.toBe('unsupported');
   });
 
-  it('industri: kartu unsupported dengan kebutuhan terkumpul, bukan CTA analisis', async () => {
+  it('di luar jangkauan hitungan: kartu unsupported dengan kebutuhan terkumpul, bukan CTA analisis', async () => {
     const ai = aiExtracting({
       building: { type: 'industrial', floors: 2 },
-      fixtures: { bathrooms: 3 },
+      fixtures: { bathrooms: 30 },
       water: { source: 'pump', installationType: 'clean_water' },
     });
     const { events } = await runUnderstanding(
       ai,
-      input({ message: 'pabrik 2 lantai, 3 kamar mandi, pompa, air bersih' }),
+      input({ message: 'pabrik 2 lantai, 30 kamar mandi, pompa, air bersih' }),
     );
 
     const card = events.find((e) => e.type === 'card') as {
@@ -1080,6 +1080,22 @@ describe('gerbang kebijakan di pipeline (P5-05)', () => {
     expect(card.card.captured).toContainEqual({ label: 'Tipe bangunan', value: 'Industri' });
     expect(card.card.captured).toContainEqual({ label: 'Jumlah lantai', value: '2 lantai' });
     expect(card.card.captured).toContainEqual({ label: 'Sumber air', value: 'Pompa' });
+  });
+
+  it('industri dengan alat saniter biasa: dihitung seperti bangunan lain (pemilik 2026-11-04)', async () => {
+    const ai = aiExtracting({
+      building: { type: 'industrial', floors: 1 },
+      fixtures: { bathrooms: 2 },
+      water: { source: 'municipal', installationType: 'clean_water' },
+    });
+    const { events } = await runUnderstanding(
+      ai,
+      input({ message: 'gudang 1 lantai cuma ada 2 toilet, air bersih dari pdam' }),
+    );
+
+    const cards = events.filter((e) => e.type === 'card') as { card: { kind: string } }[];
+    expect(cards.map((c) => c.card.kind)).not.toContain('unsupported');
+    expect(cards[cards.length - 1]!.card).toMatchObject({ kind: 'cta', action: 'ANALYZE' });
   });
 
   it('pembuangan dengan data inti lengkap: CTA analisis, bukan kartu tim teknis (laporan pemilik 2026-10-12)', async () => {
@@ -1434,6 +1450,7 @@ describe('kasus yang sudah diserahkan ke tim teknis (P31-26)', () => {
     [
       { path: 'building.type', value: 'industrial', source: 'user_stated' },
       { path: 'building.floors', value: 2, source: 'user_stated' },
+      { path: 'fixtures.bathrooms', value: 30, source: 'user_stated' },
       { path: 'water.source', value: 'pump', source: 'user_stated' },
       { path: 'water.installationType', value: 'clean_water', source: 'user_stated' },
     ],
@@ -1458,11 +1475,12 @@ describe('kasus yang sudah diserahkan ke tim teknis (P31-26)', () => {
   it('giliran pertama tetap mengatakan kasusnya diserahkan', async () => {
     const ai = aiExtracting({
       building: { type: 'industrial', floors: 2 },
+      fixtures: { bathrooms: 30 },
       water: { source: 'pump', installationType: 'clean_water' },
     });
     const { events } = await runUnderstanding(
       ai,
-      input({ message: 'pabrik 2 lantai, pompa, air bersih' }),
+      input({ message: 'pabrik 2 lantai, 30 kamar mandi, pompa, air bersih' }),
     );
 
     const text = (events.find((e) => e.type === 'token') as { text: string }).text;
