@@ -1,0 +1,55 @@
+{
+  "$comment": "Kalimat nyata dari audit produksi, dikelompokkan menurut jalur yang dilaluinya. Waktu di `expectedMs` diukur di produksi 2026-11-04, bukan ditebak. Sebelum menambah kalimat, ukur dulu jalurnya (docs/LOAD_TEST.md §4).",
+  "pools": {
+    "fast": {
+      "label": "giliran deterministik — katalog, pengetahuan, tabel ukuran; nol panggilan model",
+      "expectedMs": 400,
+      "questions": [
+        "pipa pvc aw ada ukuran apa aja?",
+        "bedanya pipa HDPE sama fitting apaan?",
+        "160 mm itu 6 inci ya?",
+        "fitting hdpe ada apa aja?",
+        "panjang per batang pipa pvc berapa?",
+        "sdr 11 itu apa?",
+        "pipa pralon udah SNI belum?",
+        "cara nyambung pipa pvc pakai lem gimana?",
+        "kelas tekanan untuk 110 mm apa aja?",
+        "pipa air panas pralon ada?",
+        "tee pvc 2 inch ada?",
+        "warna pipa pvc pralon apa aja?",
+        "pipa hdpe boleh kena matahari langsung?",
+        "harga pipa 4 inci berapa?",
+        "pipa drainase sama upvc bedanya apa?"
+      ]
+    },
+    "case": {
+      "label": "kasus teknis utuh — kebutuhan dicatat, mesin hitung dijalankan, lalu ditanyai dan diubah",
+      "expectedMs": 1500,
+      "requirement": [
+        "rumah 3 lantai, 4 kamar mandi, sumbernya PDAM, pipa utamanya berapa?",
+        "ruko 2 lantai 2 kamar mandi pakai toren di atas, pipa induknya ukuran apa?",
+        "gudang 1 lantai 2000 m2 cuma ada 2 toilet, pipa utamanya berapa?",
+        "perumahan 30 unit, tiap unit 2 kamar mandi, butuh pipa apa aja?",
+        "rumah 2 lantai sumur bor 20 meter, perlu pompa dorong ngga?",
+        "kos 3 lantai 12 kamar mandi, pipa utama dan pembuangannya berapa?"
+      ],
+      "followUp": [
+        "kenapa pipa utamanya ukuran itu?",
+        "tekanan di lantai paling atas berapa?",
+        "butuh berapa elbow sama tee?",
+        "pembuangannya ukuran berapa?"
+      ],
+      "mutation": [
+        "tambah 1 kamar mandi",
+        "kalau pakai toren di atas gimana?",
+        "jadi 4 lantai",
+        "sumbernya ganti sumur bor"
+      ]
+    },
+    "web": {
+      "label": "muat halaman dan katalog aktif — nginx dan SPA",
+      "expectedMs": 800,
+      "paths": ["/", "/api/v1/catalog/version"]
+    }
+  }
+}

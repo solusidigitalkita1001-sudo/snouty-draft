@@ -493,6 +493,29 @@ ditanya HDPE.
 **Yang dibutuhkan dari Pralon:** apakah HDPE Pralon punya sertifikat kontak air minum (dan nomornya),
 supaya faktanya bisa masuk ke data pengetahuan seperti fakta uPVC.
 
+### OQ-94 — Balasan prosa model di jalur chat: menunggu 5–15 detik untuk teks yang sama (uji kapasitas 2026-11-04)
+
+**Status:** terbuka · **Blocks:** tidak ada; yang berjalan sekarang aman, hanya lambat
+
+OQ-93 menurunkan `LLM_REPLY_TIMEOUT_MS` ke 15 detik dengan catatan "jalur prosa model praktis tidak
+dipakai lagi". Kalibrasi uji kapasitas menemukan jalur itu masih terpakai di satu tempat:
+**pertanyaan lanjutan atas kasus yang sudah dihitung**. Terukur di produksi:
+
+- "tekanan di lantai paling atas berapa?" atas kasus yang sudah dihitung: **10,4 detik**, dan yang
+  akhirnya dikirim adalah teks deterministik yang sama dengan jawaban 47 ms untuk pertanyaan
+  sejenis di percakapan lain;
+- empat giliran serupa yang dikirim serentak: **5,3 s · 8,8 s · 12,6 s · 15,1 s** — antrean model
+  tunggal, yang terakhir berhenti di batas 15 detik lalu memakai teks tetap.
+
+Jadi di perangkat keras sekarang panggilan itu tidak memperbaiki jawaban, hanya menambah waktu
+menunggu, dan menumpuk begitu beberapa orang bertanya bersamaan.
+
+**Usulan default:** `LLM_CHAT_REPLY=false` di server sampai ada GPU — giliran yang sama dijawab
+sekitar 100 ms dengan teks yang persis sama. Dinyalakan kembali saat mesin baru datang, karena di
+situlah prosa model memang menambah sesuatu. **Keputusan pemilik** karena ini mengubah konfigurasi
+produksi, dan karena mungkin pemilik justru ingin jalur itu tetap hidup untuk menilai kualitasnya
+sesekali.
+
 ### OQ-89 — Tiga jawaban yang bukan milik SNOUTY untuk dikarang (P34-12..P34-14, 2026-11-04)
 
 **Status:** diputuskan 2026-11-04 (ketiganya pilihan pemilik, rekomendasi diambil) · **Blocks:** —

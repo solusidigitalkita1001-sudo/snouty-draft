@@ -5180,3 +5180,21 @@ oleh aplikasinya begitu tiba, jadi pengguna tidak pernah membaca dua kalimat yan
       ke topik "jenis fitting", dan pertanyaan itu kini dijawab ragam fitting HDPE dari katalog.
       Jadi kedua pertanyaan bertukar jawaban yang benar: yang menanyakan bedanya mendapat konsepnya,
       yang menanyakan ragamnya mendapat katalognya.
+
+- [x] P34-21 Alat uji kapasitas, dan satu jalur yang menunggu 15 detik untuk teks yang sama
+
+      Permintaan pemilik: skenario beban untuk 1000 pengguna. Alatnya ada di
+      `scripts/load-test/` — tahapan 1 → 200 sesi, satu sesi tamu per pengguna virtual, jeda baca
+      50 detik ±30%, tiga jalur diukur terpisah (deterministik, kasus teknis utuh lewat
+      `/analyze`, muat halaman), pengawas yang menghentikan pengujian sendiri pada ambang pertama
+      yang terlewati, dan pembersihan percakapan uji. Prosedur, jendela waktu, dan batasnya di
+      `docs/LOAD_TEST.md`; batas pesan tamu 20/jam dihormati, bukan ditembus.
+
+      Kalibrasi 90 detik pada 10 sesi sudah menemukan satu hal yang tidak terlihat dari satu
+      percakapan: pertanyaan lanjutan atas kasus yang sudah dihitung masih memanggil model, dan di
+      CPU panggilan itu tidak pernah selesai tepat waktu. "Tekanan di lantai paling atas berapa?"
+      10,4 detik, dan yang akhirnya dikirim teks deterministik yang sama dengan jawaban 47 ms untuk
+      pertanyaan sejenis. Empat giliran serupa serentak: 5,3 · 8,8 · 12,6 · 15,1 detik — antrean
+      tunggal, yang terakhir berhenti di batas lalu memakai teks tetap. Jadi jalur itu hanya
+      menambah waktu menunggu di perangkat keras sekarang; usulan mematikannya sampai ada GPU
+      menjadi OQ-94, keputusan pemilik karena mengubah konfigurasi produksi.
