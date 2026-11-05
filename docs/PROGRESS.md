@@ -5295,3 +5295,27 @@ pertanyaannya, dan keempatnya punya sebab yang berbeda.
 Dua kesalahan CI yang sudah ada sebelum fase ini ikut diperbaiki karena berada di jalur yang
 sama: `apps/api/evals/understanding-cases.json` tidak pernah diformat prettier, satu penugasan
 mati di `message-pipeline.ts`, dan satu impor tak terpakai di `analysis.service.ts`.
+
+- [x] P35-06 Penyandian contoh pemahaman tidak lagi dikirim dalam batch besar
+
+      Rilis P35 membuat produksi pincang: tiga giliran berturut-turut dijawab "giliran ini
+      kehabisan waktu di saya". Bukan karena jawabannya, melainkan karena pemahaman tidak pernah
+      siap — penyandian contoh gagal, lalu setiap pesan jatuh ke model generatif dan berhenti di
+      batas 15 detik tiga kali berturut-turut.
+
+      Cache vektor di berkas membuat hanya contoh BARU yang perlu disandikan, dan contoh baru itu
+      dikirim sebagai satu batch. Diukur dari dalam kontainer api ke ollama-embed: 1 kalimat
+      0,33 detik, 2 kalimat 0,44 detik, lalu 4 kalimat 45 detik, 8 kalimat 120 detik, 32 kalimat
+      146 detik. Tebingnya persis di `OLLAMA_NUM_PARALLEL=4` milik kontainer itu. Batch sebesar
+      itu menembus `LLM_CALL_TIMEOUT_MS`, jadi setiap penambahan contoh akan mematikan pemahaman
+      sampai batch itu berhasil — yang tidak pernah terjadi.
+
+      Ukuran batch penyandi turun dari 32 ke 2. Itu tidak mengorbankan apa pun: diukur pada
+      bge-m3 lokal, biaya per kalimat rata ~40 ms pada ukuran 2, 4, 8, 16, dan 32 — penyandi
+      mengerjakannya satu per satu di balik layar, jadi batch hanya menumpuk risiko tanpa
+      keuntungan.
+
+      Yang belum disentuh: `OLLAMA_NUM_PARALLEL=4` pada ollama-embed, yang tampaknya sumber
+      tebing itu. Menurunkannya ke 1 mungkin mengembalikan batch besar, tetapi tidak bisa diuji
+      tanpa menjalankan kontainer uji di server, jadi dibiarkan apa adanya — dengan batch 2
+      permintaan terlama yang terukur 0,44 detik, dan masalahnya hilang dari jalur mana pun.

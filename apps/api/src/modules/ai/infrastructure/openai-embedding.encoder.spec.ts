@@ -62,4 +62,33 @@ describe('OpenAiEmbeddingEncoder', () => {
     expect(url).toBe('http://ollama:11434/v1/embeddings');
     expect((init!.headers as Record<string, string>)['authorization']).toBeUndefined();
   });
+
+  /**
+   * Produksi 2026-11-05: batch besar menembus `LLM_CALL_TIMEOUT_MS` di ollama-embed server
+   * (lihat alasan ukurannya di encoder). Permintaan tetap kecil — berapa pun yang diminta.
+   */
+  it('memecah permintaan menjadi dua kalimat per panggilan', async () => {
+    useEnv({ EMBEDDING_BASE_URL: 'http://ollama:11434/v1' });
+    const pair = () =>
+      new Response(
+        JSON.stringify({
+          data: [
+            { index: 0, embedding: [3, 4] },
+            { index: 1, embedding: [3, 4] },
+          ],
+        }),
+        { status: 200 },
+      );
+    fetchMock
+      .mockResolvedValueOnce(pair())
+      .mockResolvedValueOnce(pair())
+      .mockResolvedValueOnce(ok());
+    const vectors = await new OpenAiEmbeddingEncoder('bge-m3').encode(['a', 'b', 'c', 'd', 'e']);
+    expect(vectors).toHaveLength(5);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    for (const [, init] of fetchMock.mock.calls) {
+      const sent = JSON.parse(init!.body as string) as { input: string[] };
+      expect(sent.input.length).toBeLessThanOrEqual(2);
+    }
+  });
 });

@@ -14,7 +14,22 @@ interface EmbeddingResponse {
   data?: { index?: number; embedding?: number[] }[];
 }
 
-const BATCH = 32;
+/**
+ * Dua, bukan tiga puluh dua.
+ *
+ * Batch TIDAK memberi keuntungan apa pun di sini: diukur pada bge-m3 lokal, biaya per kalimat
+ * rata ~40 ms untuk ukuran 2, 4, 8, 16, dan 32 — penyandi ini mengerjakannya satu per satu di
+ * balik layar. Yang ada hanyalah risikonya. Di server produksi (ollama-embed, `cpus: 1.5`,
+ * `OLLAMA_NUM_PARALLEL=4`) biaya per kalimat melonjak tepat di ukuran 4: 1 → 0,33 s, 2 → 0,44 s,
+ * lalu 4 → 45 s, 8 → 120 s, 32 → 146 s. Satu permintaan sebesar itu menembus
+ * `LLM_CALL_TIMEOUT_MS`, dan karena pemanasan menyandikan contoh BARU dalam satu batch, setiap
+ * penambahan contoh membuat pemahaman mati total sampai batch itu berhasil — yang tidak pernah
+ * terjadi (produksi 2026-11-05, rilis P35: tiga giliran berturut-turut dijawab "giliran ini
+ * kehabisan waktu").
+ *
+ * Dengan dua, permintaan terlama yang pernah diukur di server itu 0,44 detik.
+ */
+const BATCH = 2;
 
 export class OpenAiEmbeddingEncoder implements TextEncoder {
   constructor(readonly id: string) {}
