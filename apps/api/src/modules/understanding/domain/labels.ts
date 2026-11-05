@@ -162,6 +162,11 @@ export const KNOWLEDGE_TOPICS = [
   // Nama yang dipakai di lapangan tetapi bukan produk Pralon (keputusan pemilik 2026-11-04):
   // dikatakan tidak ada di katalog, lalu jalur sumurnya ditawarkan untuk dihitung.
   'pipa casing',
+  // Produk Pralon yang tidak punya keluarga di katalog aktif (produksi 2026-11-05: "apakah pipa
+  // Subduct bisa digunakan untuk mengaliri air" dijawab "belum punya acuan"). Topiknya sendiri
+  // karena jawabannya bukan jawaban conduit: subduct saluran kabel telekomunikasi, dan yang
+  // ditanya orang justru apakah ia boleh dipakai air.
+  'subduct',
 ] as const;
 export type KnowledgeTopicLabel = (typeof KNOWLEDGE_TOPICS)[number];
 

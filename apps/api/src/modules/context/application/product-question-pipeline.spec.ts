@@ -1463,6 +1463,96 @@ describe('topik yang baru saja dijawab (P31-17)', () => {
     );
     expect(text(again)).toContain('angka dari lapangan');
   });
+
+  /**
+   * Produksi 2026-11-05: pertanyaan pipa tertimbun diketik ulang kata demi kata dan dibalas
+   * "Itu yang saya jelaskan di jawaban sebelumnya" — menolak menjawab untuk kedua kalinya,
+   * lalu "Masih belum menjawab". Pagar ini milik dua pertanyaan BERBEDA.
+   */
+  it('pertanyaan yang diulang penanyanya mendapat jawabannya, bukan pertanyaan balik', async () => {
+    const first = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input('pompanya apa', { intent: 'explanation_request', knowledgeTopics: ['pompa'] }),
+    );
+    const fact = text(first);
+    const again = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input(
+        'pompanya apa',
+        { intent: 'explanation_request', knowledgeTopics: ['pompa'] },
+        {
+          recentTurns: [
+            { role: 'user', text: 'pompanya apa' },
+            { role: 'assistant', text: fact },
+          ],
+        },
+      ),
+    );
+    expect(text(again)).toContain('Pompa bukan produk Pralon');
+    expect(text(again)).not.toContain('jawaban sebelumnya');
+  });
+});
+
+/**
+ * Produksi 2026-11-05: "Apakah pipa Subduct bisa digunakan untuk mengaliri air" dijawab "belum
+ * punya acuan yang bisa saya pegang" — padahal subduct produk Pralon sendiri, dan yang ditanya
+ * justru kegunaannya.
+ */
+describe('subduct (P35-01)', () => {
+  it('ditanya apakah bisa mengaliri air: dijawab saluran kabel, bukan "belum punya acuan"', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input('Apakah pipa Subduct bisa digunakan untuk mengaliri air', {
+        intent: 'use_question',
+        knowledgeTopics: ['subduct'],
+      }),
+    );
+    const out = text(events);
+    expect(out).toContain('kabel');
+    expect(out).toMatch(/AW|PE100/);
+    expect(out).not.toContain('belum punya acuan');
+  });
+});
+
+/**
+ * Produksi 2026-11-05: pipa PN 16 tertimbun 2 m yang dilewati mobil 15 ton dijawab paragraf umum
+ * umur pakai — timbunannya, yang justru ditanyakan, tidak disinggung sama sekali.
+ */
+describe('pipa tertimbun yang dilewati kendaraan (P35-02)', () => {
+  it('dijawab timbunan dan apa yang menentukannya', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input(
+        'Kalau pipa pn 16 dia 315 mm, di timbun di tanah sedalam 2 meter, dan di lewati mobil dengan berat 15 ton apakah masih aman dan apakah mempengaruhi umur si pipa?',
+        { knowledgeTopics: ['penimbunan'] },
+      ),
+    );
+    const out = text(events);
+    // Kedalaman yang DISEBUT pengguna dibandingkan dengan minimumnya, bukan paragraf umum saja.
+    expect(out).toContain('Timbunan 2 m');
+    expect(out).toContain('sudah di atas minimum 1 m');
+    expect(out).toMatch(/pemadatan|pasir/i);
+  });
+
+  it('timbunan di bawah minimum dikatakan di bawah minimum', async () => {
+    const events = await runProductQuestion(
+      ai({ productQuery: null, aspect: null }),
+      catalog({}),
+      noQuestions,
+      input('pipa ditimbun 0,5 meter di bawah jalan aman ngga?', {
+        knowledgeTopics: ['penimbunan'],
+      }),
+    );
+    expect(text(events)).toContain('masih di bawah minimum 1 m');
+  });
 });
 
 /**

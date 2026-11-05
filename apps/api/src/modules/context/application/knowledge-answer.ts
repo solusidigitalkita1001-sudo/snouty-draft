@@ -123,6 +123,12 @@ export async function knowledgeAnswer(
     used.push('tekanan kerja');
     gaps.push(...fit.gaps);
   }
+  // Kedalaman timbunan yang DISEBUT pengguna dibandingkan dengan timbunan minimum yang dipakai
+  // hitungan, bukan dibiarkan dijawab paragraf umum: "ditimbun di tanah sedalam 2 meter, dilewati
+  // mobil 15 ton" dijawab paragraf umur pakai yang tidak menyinggung timbunan sama sekali
+  // (produksi 2026-11-05).
+  const cover = topics.includes('penimbunan') ? coverDepthM(message) : null;
+  if (cover !== null) leads.push(coverFit(cover, locale));
   // Topik dengan fakta bersumber dulu (urutan terdekat tetap terjaga di dalamnya), lalu konsep
   // saja; paling banyak dua topik — topik ketiga hampir selalu tempelan.
   const withFacts: ReadonlySet<string> = new Set(facts.map((f) => f.topic));
@@ -199,6 +205,41 @@ export function pressureRange(message: string): { min: number; max: number } | n
   const a = decimal(m[1]!);
   const b = m[2] !== undefined ? decimal(m[2]) : a;
   return { min: Math.min(a, b), max: Math.max(a, b) };
+}
+
+/**
+ * Kedalaman timbunan di pesan ("ditimbun sedalam 2 meter", "cover 0,8 m") — parser nilai bersatuan
+ * meter, bukan pola pertanyaan. Dipakai HANYA saat topiknya penimbunan, jadi angka bersatuan meter
+ * di kalimat itu adalah kedalamannya; satuan lain di kalimat yang sama ("315 mm", "15 ton") tidak
+ * ikut terbaca.
+ */
+export function coverDepthM(message: string): number | null {
+  const m = COVER_DEPTH_VALUE.exec(message);
+  return m ? decimal(m[1]!) : null;
+}
+
+/** Timbunan minimum yang dipakai hitungan di bawah jalan (SEWER_START_DEPTH_1M, REQUIRES_DOMAIN_VALIDATION). */
+const ROAD_COVER_MIN_M = 1;
+
+/**
+ * Kedalaman yang disebut pengguna diukur terhadap timbunan minimum itu. Yang dikatakan hanya
+ * perbandingannya; berapa berat kendaraan yang ditahan pipa pada kedalaman itu tidak dikarang —
+ * `gap` fakta penimbunan yang membawanya ke tim teknis Pralon.
+ */
+function coverFit(depthM: number, locale: Locale): string {
+  const en = locale === 'en';
+  const stated = num(depthM, locale);
+  const min = num(ROAD_COVER_MIN_M, locale);
+  // Angkanya disebut sekali di sini; dari mana ia datang dan apa lagi yang menentukan ada di
+  // paragraf penimbunan yang menyusul.
+  if (depthM >= ROAD_COVER_MIN_M) {
+    return en
+      ? `The ${stated} m cover you mention is above the ${min} m minimum for routes vehicles drive over.`
+      : `Timbunan ${stated} m yang Anda sebutkan sudah di atas minimum ${min} m untuk jalur yang dilewati kendaraan.`;
+  }
+  return en
+    ? `The ${stated} m cover you mention is below the ${min} m minimum for routes vehicles drive over.`
+    : `Timbunan ${stated} m yang Anda sebutkan masih di bawah minimum ${min} m untuk jalur yang dilewati kendaraan.`;
 }
 
 /**
@@ -586,6 +627,9 @@ const PRESSURE_WORD = /\bbar\b|\btekanan(?:nya)?\b|\bpressure\b/i;
 
 const PRESSURE_VALUE =
   /(\d+(?:[.,]\d+)?)\s*(?:(?:-|–|sampai|s\/d|hingga)\s*(\d+(?:[.,]\d+)?)\s*)?bar\b/i;
+
+/** Angka bersatuan meter ("2 meter", "0,8 m", "1.2 metres"); mm dan cm tidak ikut. */
+const COVER_DEPTH_VALUE = /(\d+(?:[.,]\d+)?)\s*(?:m|meter|metre|metres|meters)\b/i;
 
 /**
  * Data katalog sebuah fakta hanya untuk bahan yang ditanyakan: "pipa pvc aw tahan berapa bar?"

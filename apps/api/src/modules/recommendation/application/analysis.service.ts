@@ -47,7 +47,6 @@ import {
   type HouseDrainageResult,
   type NetworkInput,
   type PondInput,
-  type SolutionInput,
   CaseInputInvalidError,
 } from '@snouty/engineering';
 import { floorHeightOutOfRange } from '../../context/domain/completeness.js';

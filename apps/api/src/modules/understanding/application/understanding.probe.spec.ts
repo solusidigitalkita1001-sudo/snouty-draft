@@ -9,6 +9,7 @@
 import { appendFileSync, readFileSync } from 'node:fs';
 import { it } from 'vitest';
 import type { TextEncoder } from '../../ai/domain/text-encoder.port.js';
+import { rank } from '../domain/classifier.js';
 import { EntityLexicon } from '../domain/vocabulary.js';
 import { findDataDir, loadUnderstandingData } from '../infrastructure/catalog-files.js';
 import { UnderstandingService } from './understanding.service.js';
@@ -43,14 +44,41 @@ class OllamaEncoder implements TextEncoder {
 const top = (ranking: readonly { label: string; score: number }[] | undefined) =>
   JSON.stringify((ranking ?? []).slice(0, 3).map((r) => `${r.label}=${r.score.toFixed(3)}`));
 
+/**
+ * Peringkat `use-case` tidak ada di `MessageUnderstanding` — yang keluar hanya labelnya. Tanpa
+ * peringkat itu, kasus kolam/rumah/kolam ikan hanya bisa ditebak lalu diukur ulang lewat eval
+ * penuh, empat menit sekali putaran (P35-04). Di sini ia dihitung sendiri dari katalognya, dan
+ * yang penting bukan hanya skornya: CONTOH MANA yang menang — itu yang menunjukkan bahwa ekor
+ * kalimat ("…, butuh pipa apa") bisa mengalahkan subjeknya ("kolam ikan").
+ */
+async function useCaseRanking(
+  data: ReturnType<typeof loadUnderstandingData>,
+  encoder: TextEncoder,
+  message: string,
+): Promise<string> {
+  const catalog = data.catalogs.find((c) => c.name === 'use-case');
+  if (!catalog) return '-';
+  const examples = Object.entries(catalog.labels).flatMap(([label, texts]) =>
+    (texts as readonly string[]).map((text) => ({ label, text: text.trim().toLowerCase() })),
+  );
+  const vectors = await encoder.encode(examples.map((e) => e.text));
+  const [query] = await encoder.encode([message.trim().toLowerCase()]);
+  const embedded = examples.map((e, i) => ({ ...e, vector: vectors[i]! }));
+  return rank(query!, embedded)
+    .slice(0, 3)
+    .map((r) => `${r.label}=${r.score.toFixed(3)} ("${r.example}")`)
+    .join(', ');
+}
+
 it.skipIf(!process.env['PROBE'])(
   'probe pemahaman',
   async () => {
     const data = loadUnderstandingData(findDataDir()!);
+    const encoder = new OllamaEncoder();
     const service = new UnderstandingService(
       data.catalogs,
       new EntityLexicon(data.vocabulary),
-      new OllamaEncoder(),
+      encoder,
     );
     await service.whenReady();
     const lines: string[] = [];
@@ -65,6 +93,7 @@ it.skipIf(!process.env['PROBE'])(
           JSON.stringify(u.knowledgeTopics),
           top(u.topicRanking),
           u.useCase ?? '-',
+          await useCaseRanking(data, encoder, t),
           JSON.stringify(u.families),
           `req=${u.mentionsRequirement}`,
           `hemat=${u.savingRequest ?? '-'}`,

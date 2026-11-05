@@ -5199,3 +5199,99 @@ oleh aplikasinya begitu tiba, jadi pengguna tidak pernah membaca dua kalimat yan
       menambah waktu menunggu di perangkat keras sekarang. Pemilik memilih membiarkannya hidup
       (OQ-94); angka 5,3-8,8-12,6-15,1 detik itu menjadi dasar pembanding saat mesin ber-GPU
       datang.
+
+---
+
+## Fase 35 — empat jawaban yang dilaporkan pemilik dari produksi (5 Nov 2026)
+
+Empat tangkapan layar dari percakapan produksi, dua kalimat pengantar: "benahin, masih dongo" dan
+"ini masi ngaco, user nanya apa ai jawabnya apa". Keempatnya jawaban yang tidak nyambung dengan
+pertanyaannya, dan keempatnya punya sebab yang berbeda.
+
+- [x] P35-01 "Apakah pipa Subduct bisa digunakan untuk mengaliri air" dijawab subduct, bukan
+      "belum punya acuan"
+
+      Dibalas "Soal itu saya belum punya acuan yang bisa saya pegang, jadi saya tidak mau
+      menebak" dalam 0,2 detik — padahal subduct produk Pralon sendiri, dan yang ditanya justru
+      kegunaannya. Sebabnya tidak ada topik subduct sama sekali: topik terdekat `pipa tanam`
+      (0,719) dan `conduit` (0,662), keduanya di bawah ambang 0,74, jadi tidak satu pun terpilih.
+      Topik `subduct` ditambahkan dengan contohnya sendiri yang membawa kata itu, dan faktanya
+      bersumber: subduct saluran kabel telekomunikasi, bukan pipa air; air mengalir di pipa yang
+      kelas tekanannya tertulis (uPVC AW atau HDPE PE100); kelas tekanan subduct sendiri tidak
+      ada di data yang dipegang, dan subduct tidak punya keluarga di katalog aktif, jadi ukuran
+      dan spesifikasinya dari tim Pralon.
+
+- [x] P35-02 Pipa tertimbun yang dilewati kendaraan dijawab timbunannya, dengan angka penanyanya
+
+      "Pipa pn 16 dia 315 mm, ditimbun 2 meter, dilewati mobil 15 ton, aman?" dibalas paragraf
+      umum umur pakai yang tidak menyinggung timbunan satu kata pun. Topik `umur pakai` menang
+      0,769 lawan `penimbunan` 0,667 karena kalimatnya ditutup "apakah mempengaruhi umur si
+      pipa". Contoh penimbunan yang membawa kedalaman DAN beban kendaraan ditambahkan;
+      penimbunan kini 0,844.
+
+      Sekalian kedalaman yang DISEBUT penanya dibandingkan dengan minimumnya, bukan dibiarkan
+      dijawab paragraf umum: "Timbunan 2 m yang Anda sebutkan sudah di atas minimum 1 m untuk
+      jalur yang dilewati kendaraan", lalu paragraf penimbunan menjelaskan dari mana angka itu
+      dan apa lagi yang menentukan — pasir alas, pemadatan sisi, kelas pipa. Berapa berat
+      kendaraan yang ditahan pipa pada kedalaman itu tidak dikarang; `gap`-nya yang membawanya ke
+      tim teknis Pralon.
+
+      Topik kedua tidak ikut terjawab: jendela topik 0,015 hanya memuat satu topik di sini.
+      Melebarkannya ke 0,08 diuji dan ditolak — satu pertanyaan air panas menyeret lima topik,
+      satu pertanyaan "pipanya pralon ada yang tahan?" menyeret tujuh.
+
+- [x] P35-03 Pertanyaan yang diulang penanyanya mendapat jawabannya, bukan pertanyaan balik
+
+      Pertanyaan yang sama diketik ulang kata demi kata dibalas "Itu yang saya jelaskan di
+      jawaban sebelumnya. Bagian mana yang mau saya perjelas?" — menolak menjawab untuk kedua
+      kalinya. Pengguna lalu menulis "Masih belum menjawab" dan menunggu 45 detik untuk teks
+      pembuka "Silakan, tanyakan saja…", karena kalimat itu dipahami `clarification_answer`
+      (0,807) alih-alih `complaint` (0,782) — "belum tahu" dan "nggak tahu" ada di sisi jawaban
+      klarifikasi.
+
+      Dua perbaikan. Kalimat keluhan bentuk itu masuk ke contoh `complaint`. Dan pagar
+      pengulangan — yang lahir untuk DUA pertanyaan berbeda yang jatuh ke teks sama (P31-17) —
+      tidak berlaku bila penanyanya sendiri yang mengulang pertanyaannya (`asksAgain`,
+      perbandingan struktural huruf dan angka, bukan daftar frasa). Jalur jawab-ulang setelah
+      keluhan ikut terbuka olehnya: pesan yang dijalankan di situ memang pertanyaan sebelumnya.
+
+      Ketiga giliran sekarang 0,1–0,4 detik, bukan 45.
+
+- [x] P35-04 Rumah berukuran 10x12 tidak lagi dipahami sebagai kolam renang
+
+      "Saya mau bangun rumah dengan ukuran luas 10x12 dengan kamar mandinya ukuran 2x2 berapa
+      pipa yang saya akan gunakan untuk kamar mandinya" dijawab "Oke, kolam renang. … Yang sudah
+      saya catat: panjang kolam 10 m dan lebar kolam 12 m" — diteruskan ke tim teknis sebagai
+      kolam. Terjadi di percakapan BARU, jadi bukan sisa konteks.
+
+      Sebabnya bentuk kalimat, bukan katanya: setiap contoh kolam renang membawa kata "kolam
+      renang", tetapi hanya kolam yang punya bentuk "mau bangun X ukuran AxB, pipanya apa".
+      Rumah tidak pernah disebut dengan ukuran luasnya di contoh mana pun, jadi bentuk itu milik
+      kolam. Contoh rumah dengan ukuran luas dan ukuran kamar mandi ditambahkan.
+
+      Penambahan itu membuka cacat tetangganya, dan di situ pelajarannya: EKOR kalimat bisa
+      mengalahkan subjeknya. "Kolam ikan ukuran 7x3 meter di halaman rumah, butuh pipa apa"
+      terbaca kolam renang — bukan karena contoh baru, melainkan karena contoh lama "kolam renang
+      rumah, butuh pipa apa" (0,839) berbagi ekor "…, butuh pipa apa" dengan pertanyaan itu,
+      sementara contoh kolam ikan terdekat berakhir "…, pipanya apa" (0,802). Diukur pada data
+      SEBELUM fase ini, kalimat itu memang sudah salah — jadi ia cacat lama yang baru terlihat,
+      bukan akibat P35-04. Kolam ikan mendapat bentuk telanjang yang setara ("kolam ikan di
+      rumah, butuh pipa apa", 0,890) dan kolam renang mendapat bentuk "mau bikin … di belakang
+      rumah" yang sebelumnya tidak dimilikinya. Ketiganya kini terpisah dengan selisih di atas
+      ambang, dijaga kasus eval yang kalimatnya BUKAN salinan contohnya.
+
+      Satu kalimat masih di tepi dan dibiarkan begitu: "mau bikin kolam renang 10x12 di belakang
+      rumah" — kolam renang 0,833 lawan rumah 0,813, selisihnya persis di ambang 0,02, jadi
+      hasilnya ragu dan SNOUTY bertanya alih-alih menebak. Itu perilakunya sebelum fase ini juga.
+
+      Mengejar ini tiga putaran buta sebelum ketahuan sebabnya, karena peringkat `use-case` tidak
+      pernah dicetak di mana pun — hanya labelnya. `understanding.probe` sekarang mencetak
+      peringkat itu beserta CONTOH MANA yang memenangkannya; satu putaran diagnosis turun dari
+      empat menit (eval penuh) menjadi delapan belas detik.
+
+      Jawabannya kini: "rumah tinggal dan bangunan 10 × 12 m" tercatat, lalu kartu klarifikasi
+      menanyakan sumber air, jenis instalasi, jumlah lantai, dan jumlah kamar mandi.
+
+Dua kesalahan CI yang sudah ada sebelum fase ini ikut diperbaiki karena berada di jalur yang
+sama: `apps/api/evals/understanding-cases.json` tidak pernah diformat prettier, satu penugasan
+mati di `message-pipeline.ts`, dan satu impor tak terpakai di `analysis.service.ts`.

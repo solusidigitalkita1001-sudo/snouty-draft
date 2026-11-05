@@ -39,6 +39,13 @@
       }
     },
     {
+      "topic": "subduct",
+      "text": "Subduct adalah pipa pelindung kabel yang Pralon buat untuk jaringan telekomunikasi — saluran tempat kabel, termasuk serat optik, ditarik dan terlindung dari benturan dan lembap. Ia bukan pipa air: untuk mengalirkan air dipakai pipa yang kelas tekanannya tertulis, uPVC kelas AW atau HDPE PE100. Kelas tekanan subduct sendiri tidak ada di data yang saya pegang, dan subduct tidak punya keluarga di katalog aktifnya, jadi ukuran dan spesifikasinya diminta ke tim Pralon.",
+      "textEn": "A subduct is the cable-protection pipe Pralon makes for telecom networks — the duct a cable, fibre optic included, is pulled through and kept safe from impact and damp. It is not a water pipe: water runs in a pipe with a stated pressure class, uPVC class AW or HDPE PE100. The subduct’s own pressure class is not in the data I hold, and subduct has no family in the active catalogue, so its sizes and specifications come from the Pralon team.",
+      "source": "Snouty Product Knowledge Master §5, §25, §29.2 (conduit dan subduct sebagai pipa telekomunikasi/listrik); halaman produk Pralon Subduct di pralon.com — tidak ada keluarga subduct di katalog aktif (impor ERP 2026-10-06)",
+      "gap": "kelas tekanan, ukuran, dan spesifikasi resmi pipa subduct Pralon"
+    },
+    {
       "topic": "pipa gas",
       "text": "Pipa gas ada di katalog Pralon: pipa polietilen khusus gas berwarna kuning — MDPE atau HDPE gas — yang disambung dengan las panas sehingga sambungannya menyatu; pipa PVC untuk air tidak dipakai untuk gas. MDPE (medium density) lebih lentur daripada HDPE dan lazim untuk jaringan distribusi gas serta sambungan rumah — tetapi MDPE bukan khusus gas: bahan yang sama dipakai juga untuk jaringan air. Yang membedakan pipa gas adalah warna kuningnya dan penandaan pada pipanya, bukan bahannya. Instalasi gas mengikuti ketentuan jaringan gas setempat dan dikerjakan pemasang yang berwenang.",
       "textEn": "The Pralon catalogue does carry gas pipe: yellow polyethylene gas pipe — MDPE or HDPE gas grade — joined by heat fusion so the joints become one piece; PVC water pipe is not used for gas. MDPE (medium density) is more flexible than HDPE and common on gas distribution networks and house connections — but MDPE is not gas-only: the same material is used for water networks too. What marks a gas pipe is its yellow colour and the marking on it, not the material. Gas installations follow the local gas network rules and are done by an authorised installer.",

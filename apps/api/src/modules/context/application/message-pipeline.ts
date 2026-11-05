@@ -74,6 +74,7 @@ import {
   assumptionCard,
   computeFirstAssumptionUpdates,
 } from '../domain/requirement-defaults.js';
+import { asksAgain } from '../domain/asked-again.js';
 import {
   askableMissing,
   bathroomsFromRooms,
@@ -354,13 +355,17 @@ export async function runUnderstanding(
               fallback,
             })
           : { text: fallback };
-      // Dua pertanyaan berbeda yang jatuh ke teks yang sama ("fitting apa aja" lalu "berapa
+      // Dua pertanyaan BERBEDA yang jatuh ke teks yang sama ("fitting apa aja" lalu "berapa
       // batang pipanya" → potongan instalasi yang sama persis) tidak dikirim ulang kata demi kata.
+      // Pertanyaan yang diulang sendiri oleh penanyanya justru meminta jawabannya (`asksAgain`).
       const previous = [...(input.recentTurns ?? [])]
         .reverse()
         .find((t) => t.role === 'assistant')?.text;
       const repeated =
-        previous !== undefined && previous.trim() !== '' && previous.trim() === written.text.trim();
+        !asksAgain(input.message, input.recentTurns ?? []) &&
+        previous !== undefined &&
+        previous.trim() !== '' &&
+        previous.trim() === written.text.trim();
       // Pertanyaan dagang punya kalimat ulangnya sendiri: kalimat topik menutup dengan tawaran
       // angka dari lapangan, yang tidak punya arti untuk pertanyaan stok atau minimum order.
       const again =
@@ -652,7 +657,7 @@ export async function runUnderstanding(
   let merged: RequirementState;
   let changed: boolean;
   let changedPaths: readonly RequirementFieldPath[];
-  let keptTotals: readonly KeptTotal[] = [];
+  let keptTotals: readonly KeptTotal[];
   {
     // Pesan pembuka tanpa satu pun fakta ("mau nanya2 dong", "boleh tanya?"): model kecil kerap
     // memberinya label REQUIREMENT_STATEMENT, dan formulir klarifikasi adalah jawaban yang salah

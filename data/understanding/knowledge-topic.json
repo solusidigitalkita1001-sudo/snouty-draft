@@ -220,7 +220,14 @@
       "pipanya kuat ngga kalau dilewatin mobil?",
       "tahan ngga kalau dilindas kendaraan?",
       "what if cars drive over it?",
-      "kalau dilewatin truk aman?"
+      "kalau dilewatin truk aman?",
+      "pipa ditimbun tanah 2 meter lalu dilewati mobil 15 ton aman ngga?",
+      "pipa yang ditimbun sedalam 2 meter dilindas truk berat masih aman?",
+      "timbunan 2 m di atas pipa cukup buat kendaraan 15 ton?",
+      "kalau pipanya ketimbun 2 meter dan di atasnya lewat mobil berat, aman?",
+      "pipa tertanam 2 meter dilewati kendaraan 15 ton kuat ngga",
+      "buried 2 metres deep with a 15 ton truck driving over it, still safe?",
+      "is a 2 m cover enough for heavy vehicles over the pipe?"
     ],
     "uji tekanan lapangan": [
       "cara tes tekanan setelah pasang?",
@@ -1140,6 +1147,30 @@
       "which pipe is used for well casing?",
       "what is a well casing pipe?",
       "is there a casing pipe for a borehole?"
+    ],
+    "subduct": [
+      "pipa subduct itu apa?",
+      "subduct itu apa sih?",
+      "pipa subduct buat apa?",
+      "fungsi pipa subduct apa?",
+      "apakah pipa subduct bisa digunakan untuk mengaliri air",
+      "pipa subduct bisa buat air ngga?",
+      "subduct boleh dipakai buat air bersih?",
+      "pipa subduct kuat nahan tekanan air ngga?",
+      "subduct bisa dipakai jadi pipa air?",
+      "bedanya subduct sama conduit apa?",
+      "bedanya pipa subduct sama pipa hdpe biasa apa?",
+      "pralon bikin pipa subduct ngga?",
+      "pipa subduct pralon ada?",
+      "subduct pralon ukurannya berapa aja?",
+      "pipa subduct buat kabel fiber optik ya?",
+      "subduct buat kabel telkom itu ya?",
+      "what is a subduct pipe?",
+      "can a subduct pipe be used to carry water?",
+      "is subduct suitable for water?",
+      "what is subduct used for?",
+      "does pralon make subduct pipe?",
+      "subduct for fibre optic cable?"
     ]
   },
   "window": 0.015

@@ -38,7 +38,15 @@
       "i want to build a house",
       "rumah 2 lantai, wastafel 2, dapur 1",
       "proyek ruko 3 lantai, pipa yang cocok apa?",
-      "ruko tiga lantai butuh pipa air"
+      "ruko tiga lantai butuh pipa air",
+      "saya mau bangun rumah dengan ukuran luas 10x12 dengan kamar mandinya ukuran 2x2",
+      "mau bangun rumah ukuran 10x12, kamar mandinya 2x2, pipanya apa",
+      "rumah luas 8x15 meter, berapa pipa buat kamar mandinya",
+      "bangun rumah ukuran 6x10 meter, instalasi airnya pakai pipa apa",
+      "rumah 7x9 meter dua kamar mandi, pipanya apa aja",
+      "mau bikin rumah 10 x 12 m, kamar mandi 2 x 2 m",
+      "i want to build a 10 by 12 house with a 2x2 bathroom, what pipe do i need",
+      "house 8 x 15 metres, what pipe for the bathrooms"
     ],
     "multistorey_building_water": [
       "renovasi gedung 6 lantai, riser lama diganti",
@@ -275,7 +283,14 @@
       "gw mau bikin kolam ikan di halaman belakang",
       "rencana bikin kolam ikan",
       "pengen buat kolam ikan",
-      "i want to build a fish pond"
+      "i want to build a fish pond",
+      "kolam ikan 3x2 meter di belakang rumah",
+      "mau bikin kolam ikan ukuran 4x3 di pekarangan rumah",
+      "kolam ikan ukuran 5x4 meter di rumah, pipanya apa",
+      "bikin kolam ikan 6x2 m di samping rumah saya",
+      "kolam ikan 5x2 meter di halaman rumah, pipanya apa saja",
+      "kolam ikan ukuran 8x4 m di halaman rumah",
+      "kolam ikan di rumah, butuh pipa apa"
     ],
     "none": [
       "butuh berapa batang pipa 4 meter?",
@@ -331,7 +346,11 @@
       "swimming pool 8 x 4 m, what pipe do i need",
       "pool circulation and filter piping",
       "i want to build a swimming pool in my yard",
-      "swimming pool drain line"
+      "swimming pool drain line",
+      "mau bangun kolam renang ukuran 6x3 di rumah",
+      "swimming pool 10 x 12 m at my house, what pipe do i need",
+      "kolam renang 10 x 12 meter di halaman rumah, pipanya apa saja",
+      "mau bikin kolam renang 8x4 di belakang rumah"
     ]
   }
 }

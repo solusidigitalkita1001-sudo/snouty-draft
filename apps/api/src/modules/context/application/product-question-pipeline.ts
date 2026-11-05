@@ -28,6 +28,7 @@ import {
 import type { MessageUnderstanding } from '../../understanding/application/message-understanding.js';
 import type { EntityLexicon } from '../../understanding/domain/vocabulary.js';
 import { isConceptual } from '../../understanding/domain/labels.js';
+import { asksAgain } from '../domain/asked-again.js';
 import { parseSize } from '../domain/size-parser.js';
 import { designationsOf } from '../../product-catalog/domain/product-identity.js';
 import { catalogScope, fittingAnswer, fittingScope, type FittingOutcome } from './catalog-scope.js';
@@ -394,9 +395,14 @@ export async function runProductQuestion(
       // Topik yang BARU SAJA dijawab tidak dikirim ulang kata demi kata: dua pertanyaan pompa
       // berurutan mendapat blok empat paragraf yang sama persis (produksi 2026-10-26), dan tidak
       // ada yang lebih menandai bot daripada itu. Yang dikatakan: bagian mana yang mau diperjelas.
+      // Kecuali pertanyaannya memang diulang — lihat `asksAgain`.
       const lastAssistant =
         [...(input.recentTurns ?? [])].reverse().find((t) => t.role === 'assistant')?.text ?? '';
-      if (lastAssistant.trim() !== '' && lastAssistant.includes(known.text.trim())) {
+      if (
+        !asksAgain(input.message, input.recentTurns ?? []) &&
+        lastAssistant.trim() !== '' &&
+        lastAssistant.includes(known.text.trim())
+      ) {
         return [
           { type: 'message.start', messageId: input.messageId },
           { type: 'token', text: repeatedTopicReply(locale, hasRecordedCase(input)) },
