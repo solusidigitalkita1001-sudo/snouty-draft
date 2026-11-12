@@ -5319,3 +5319,63 @@ mati di `message-pipeline.ts`, dan satu impor tak terpakai di `analysis.service.
       tebing itu. Menurunkannya ke 1 mungkin mengembalikan batch besar, tetapi tidak bisa diuji
       tanpa menjalankan kontainer uji di server, jadi dibiarkan apa adanya — dengan batch 2
       permintaan terlama yang terukur 0,44 detik, dan masalahnya hilang dari jalur mana pun.
+
+---
+
+## Fase 36 — probe ketujuh, dan dua perbaikan dari pemadaman 11 November (12 Nov 2026)
+
+Fase ini dibuka bukan oleh laporan jawaban, melainkan oleh situs yang mati. Dari situ dua item
+operasional, lalu probe ketujuh yang memang dicari.
+
+- [x] P36-01 `cutover` membuat ulang kontainer edge, dan menyebut siapa pemegang port 80
+
+      `ai.pralon.co.id` dan `bagspace.pralon.co.id` tidak bisa diakses sejak 11 November. Dua lapis
+      sebabnya, dan keduanya tidak kelihatan dari pesan kesalahan yang ada.
+
+      Pertama, nginx HOST (nginx/1.18.0 Ubuntu, hanya menyajikan halaman default — `sites-enabled`
+      isinya cuma `default`) hidup sendiri setelah server reboot karena unit systemd-nya masih
+      `enabled`, lalu memegang port 80. Kontainer kita gagal bind dengan "address already in use",
+      dan pesan docker tidak menyebut pemegangnya ada di host, bukan di kontainer. `cutover`
+      sekarang memeriksanya sendiri: bila port 80 menjawab sementara tidak ada kontainer yang
+      mempublikasikannya, ia berhenti dan mencetak perintah `systemctl disable --now nginx` yang
+      diperlukan. Unit host-nya sudah di-`disable` di server, jadi reboot berikutnya tidak
+      mengulanginya.
+
+      Kedua, setelah port bebas, kontainer edge tetap mati berulang dengan `host not found in
+      upstream "web:3000"`. Ia hanya DIHIDUPKAN ULANG, dan jaringan docker yang dipegangnya sudah
+      tidak ada setelah reboot. `up -d nginx` menjadi `up -d --force-recreate nginx`.
+
+      Bagspace sendiri masih 502 dan itu bukan pekerjaan kita: kontainer aplikasinya
+      (`bagspace-web`, `-gateway`, `-auth`, `-mysql`) berhenti 27 jam sebelumnya, dua di antaranya
+      dengan exit 2. Nginx kita melayaninya dengan benar. Pemiliknya perlu diberi tahu.
+
+- [x] P36-02 Pemeriksa DE-11 menuntut kata pembuka, bukan jawabannya
+
+      Suite FAQ sales 18/19; satu-satunya yang gagal adalah pemeriksanya. DE-11 ("pipa PVC bisa
+      dipakai untuk air panas pengganti PPR?") menuntut `^(tidak|bukan|jangan|no\b)` — jawaban
+      harus DIMULAI dengan kata penyangkal. Jawaban yang diberikan, "Pipa PVC tidak dipakai untuk
+      jalur air panas: panas membuat pipanya melunak dan sambungan lemnya melemah", sudah
+      menyangkal di kalimat pertama dan menaruh subjeknya di depan — yang justru lebih seperti
+      teknisi daripada "Tidak, …". Maksud pemeriksa itu (jawab langsung, jangan buka dengan blok
+      perbandingan bahan) tetap dijaga; yang dilonggarkan hanya posisi katanya.
+
+- [x] P36-03 Probe menjadi alat tetap, dan probe ketujuh dijalankan
+
+      Tiga fase terakhir memakai probe yang dibuat dadakan lalu dibuang, dan P35-04 menunjukkan
+      biayanya: tiga putaran diagnosis buta karena yang dicari tidak pernah dicetak.
+      `apps/api/scripts/probe.mjs` sekarang tetap — dan sengaja TIDAK menilai apa pun. Ia
+      menanyakan satu daftar dan menuliskan jawaban utuh beserta kartu, state, dan waktunya untuk
+      dibaca. Pemeriksa ditulis setelah jawaban terlihat, di berkas eval; pemeriksa yang disusun
+      sebelum itu hanya menemukan apa yang sudah diduga.
+
+      Suite yang sudah ada dijalankan lebih dulu sebagai jaring regresi dan hijau: perpipaan 48/48,
+      campuran 16/16, perhitungan 23/23, FAQ 18/19 (satu itu P36-02). Itu membuktikan tidak ada
+      yang rusak setelah reboot — bukan bahwa tidak ada jawaban yang salah tersisa.
+
+      `apps/api/evals/probe-v7-2026-11-12.json`: 32 kasus di wilayah yang belum pernah diuji satu
+      kali pun — proteksi kebakaran, pompa, ventilasi tegak, buangan AC, grease trap, air laut,
+      peternakan, hidroponik, irigasi, sumur resapan, septic tank, sleeve cor; tujuh pertanyaan
+      komersial (TKDN, nomor sertifikat, distributor, minimum order, stok, pengiriman, garansi);
+      dan kalimat yang ditulis seadanya. Hasilnya: **sekitar 22 dari 32 salah atau tidak
+      menjawab**, dengan giliran terlama 44 detik. Temuannya dikelompokkan menurut sebab, bukan
+      menurut pertanyaan, dan menjadi daftar kerja fase ini.

@@ -139,7 +139,18 @@ SQL
     # konfigurasi kita memuat blok bagspace, jadi aplikasi itu tetap jalan. Kontainer lama hanya
     # dihentikan, tidak dihapus: `deploy/deploy.sh rollback-edge` mengembalikannya.
     docker stop snouty_nginx >/dev/null 2>&1 || true
-    "${COMPOSE[@]}" --profile edge up -d nginx
+    # Port 80 harus benar-benar bebas. Nginx HOST pernah hidup sendiri setelah server reboot
+    # (unitnya masih `enabled`) dan merebut 80 — kontainer kita lalu gagal bind, dan pesan
+    # dockernya tidak menyebut siapa pemegangnya.
+    if curl -sf -o /dev/null --max-time 3 http://127.0.0.1/ && [ -z "$(docker ps --filter publish=80 -q)" ]; then
+      echo "✖ port 80 dipegang proses di HOST, bukan kontainer — matikan nginx host dulu:"
+      echo "    sudo systemctl disable --now nginx"
+      exit 1
+    fi
+    # `--force-recreate`: kontainer edge yang hanya dihidupkan ulang setelah reboot masih memegang
+    # jaringan docker yang sudah tidak ada, dan nginx mati dengan `host not found in upstream
+    # "web:3000"`. Dibuat ulang, ia ikut jaringan yang berlaku sekarang.
+    "${COMPOSE[@]}" --profile edge up -d --force-recreate nginx
     sleep 2
     "${COMPOSE[@]}" --profile edge exec -T nginx nginx -t
     curl -sk -o /dev/null -w "ai.pralon.co.id → %{http_code}\n" https://ai.pralon.co.id/health --resolve ai.pralon.co.id:443:127.0.0.1

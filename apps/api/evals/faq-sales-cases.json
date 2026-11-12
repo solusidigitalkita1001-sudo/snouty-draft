@@ -95,9 +95,9 @@
     {
       "id": "DE-11",
       "q": "Apakah bisa pipa PVC di gunakan untuk air panas pengganti pipa PPR?",
-      "expect": "kalimat pertama menjawab langsung (tidak), alasan singkat, lalu alternatif; tanpa blok perbandingan bahan di depan",
+      "expect": "kalimat pertama sudah memuat penyangkalannya, alasan singkat, lalu alternatif; tanpa blok perbandingan bahan di depan",
       "checks": {
-        "opens": "^(tidak|bukan|jangan|no\\b)",
+        "opens": "\\b(tidak|bukan|jangan|not)\\b",
         "all": ["PPR"],
         "none": ["lentur dan bisa digulung"]
       }

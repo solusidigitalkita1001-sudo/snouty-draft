@@ -1,0 +1,133 @@
+{
+  "$comment": "Probe ketujuh (Fase 36, 12 Nov 2026). Pertanyaan yang BELUM pernah diuji di suite mana pun — dipilih justru di wilayah yang jarang tersentuh: proteksi kebakaran, pompa, ventilasi, air laut, peternakan dan pertanian, pertanyaan komersial (TKDN, sertifikat, stok, distributor), dan kalimat yang ditulis seadanya. Tidak ada pemeriksa di berkas ini dengan sengaja: jawabannya dibaca satu per satu lebih dulu, pemeriksanya ditulis setelah terlihat. Jangan dipakai menyetel data sebelum dibaca.",
+  "cases": [
+    {
+      "id": "P7-01",
+      "note": "proteksi kebakaran — PVC tidak boleh, dan Pralon tidak membuatnya",
+      "q": "pipa buat sprinkler pemadam kebakaran pakai pralon yang mana?"
+    },
+    {
+      "id": "P7-02",
+      "note": "hidran gedung",
+      "turns": ["pipa hidran gedung boleh pakai pvc?", "kalau hidran halaman yang ditanam?"]
+    },
+    {
+      "id": "P7-03",
+      "note": "pipa hisap vs pipa tekan pompa",
+      "q": "pipa hisap pompa ukurannya sama dengan pipa keluarnya?"
+    },
+    {
+      "id": "P7-04",
+      "note": "pompa jet pump sumur dalam",
+      "q": "jet pump sumur 30 meter pipa hisapnya ukuran berapa?"
+    },
+    {
+      "id": "P7-05",
+      "note": "buangan AC — ukuran kecil, kondensat",
+      "q": "pipa pembuangan ac yang netes mau diganti, pakai pipa apa ukuran berapa?"
+    },
+    {
+      "id": "P7-06",
+      "note": "air laut / tambak — korosi justru keunggulan plastik",
+      "q": "pipa buat air laut di tambak udang tahan ngga?"
+    },
+    {
+      "id": "P7-07",
+      "note": "peternakan",
+      "q": "kandang ayam 3000 ekor pakai nipple minum, pipa airnya ukuran berapa?"
+    },
+    {
+      "id": "P7-08",
+      "note": "hidroponik — kontak tanaman dan pangan",
+      "q": "hidroponik pakai pipa pvc 3 inch aman ngga buat sayurnya?"
+    },
+    {
+      "id": "P7-09",
+      "note": "irigasi tetes dengan luas lahan",
+      "q": "irigasi tetes lahan 1 hektar pipa induknya berapa inch?"
+    },
+    {
+      "id": "P7-10",
+      "note": "septic tank inlet/outlet",
+      "q": "pipa masuk dan keluar septic tank ukurannya berapa?"
+    },
+    {
+      "id": "P7-11",
+      "note": "sumur resapan",
+      "q": "sumur resapan di halaman rumah pipa masuknya pakai apa?"
+    },
+    {
+      "id": "P7-12",
+      "note": "sambungan PDAM ke rumah",
+      "q": "dari meteran pdam ke rumah pipanya ukuran berapa?"
+    },
+    {
+      "id": "P7-13",
+      "note": "ventilasi tegak gedung",
+      "q": "pipa ventilasi wc gedung 3 lantai ukurannya berapa?"
+    },
+    {
+      "id": "P7-14",
+      "note": "grease trap dapur komersial",
+      "q": "dapur restoran ada grease trap, pipa keluarnya pakai apa?"
+    },
+    {
+      "id": "P7-15",
+      "note": "tekanan tinggi di luar kelas pipa",
+      "q": "cuci steam mobil tekanannya tinggi, pipa pvc kuat ngga?"
+    },
+    {
+      "id": "P7-16",
+      "note": "sleeve yang dicor",
+      "q": "pipa sleeve yang dicor di plat beton pakai pipa apa?"
+    },
+    {
+      "id": "P7-17",
+      "note": "limbah kimia industri — ketahanan bahan",
+      "q": "limbah pabrik tekstil panas dan asam, pipa pralon tahan?"
+    },
+    {
+      "id": "P7-18",
+      "note": "TKDN — angka yang tidak boleh dikarang",
+      "q": "pipa pralon tkdn nya berapa persen?"
+    },
+    {
+      "id": "P7-19",
+      "note": "nomor sertifikat SNI",
+      "q": "sertifikat sni pipa pralon nomornya berapa?"
+    },
+    {
+      "id": "P7-20",
+      "note": "distributor dan lokasi",
+      "q": "beli pipa pralon di mana? ada distributor di surabaya?"
+    },
+    { "id": "P7-21", "note": "minimum order", "q": "minimum order pipa pralon berapa batang?" },
+    {
+      "id": "P7-22",
+      "note": "stok dan tenggat",
+      "q": "stok pipa hdpe 160 mm ready ngga? butuh minggu depan"
+    },
+    { "id": "P7-23", "note": "pengiriman luar pulau", "q": "bisa kirim ke jayapura?" },
+    { "id": "P7-24", "note": "garansi", "q": "pipa pralon ada garansi berapa tahun?" },
+    {
+      "id": "P7-25",
+      "note": "ingin jadi mitra",
+      "q": "mau jadi distributor pralon syaratnya apa?"
+    },
+    { "id": "P7-26", "note": "kalimat singkat dan salah tulis", "q": "pipa 4 in brp duit" },
+    { "id": "P7-27", "note": "satu kata tanpa konteks", "q": "aw" },
+    {
+      "id": "P7-28",
+      "note": "typo berat, tetap sebuah kasus hitung",
+      "q": "gw mau psg pipa air rmh bru 3 lntai brp inch"
+    },
+    { "id": "P7-29", "note": "pertanyaan tanpa subjek", "q": "yg tahan lama yg mana" },
+    { "id": "P7-30", "note": "di luar domain — barang lain", "q": "harga semen sekarang berapa?" },
+    { "id": "P7-31", "note": "di luar domain — rekrutmen", "q": "pralon ada lowongan kerja?" },
+    {
+      "id": "P7-32",
+      "note": "lanjutan yang mengubah pokok soal",
+      "turns": ["pipa buat sumur bor 20 meter pakai apa?", "kalau airnya buat kolam ikan koi?"]
+    }
+  ]
+}
