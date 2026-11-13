@@ -5609,3 +5609,20 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       Dan sebelum semua itu: 50 lantai untuk bangunan yang disebut rumah tinggal sekarang
       menimbulkan kartu kewajaran, dengan isian jumlah lantai untuk membetulkannya — batas 4 lantai
       sesuai permintaan pemilik, menunggu validasi di OQ-97.
+
+- [x] P37-05 Zona waktu sesi MySQL UTC, dan proses menolak jalan di atas sesi yang bukan UTC
+
+      Temuan 5. `timezone: 'Z'` di pool hanya mengatur driver; `created_at DEFAULT
+      CURRENT_TIMESTAMP` dihitung server, jadi di MySQL ber-WIB ia lahir 7 jam di depan
+      `expires_at` yang ditulis aplikasi dan batasan `ck_refresh_tokens_expiry` menolak baris
+      refresh token — register dan login gagal, bukan sekadar salah tampil.
+
+      Setiap koneksi baru pool sekarang menyetel `SET time_zone = '+00:00'` (level sesi; zona
+      waktu global server bersama tidak disentuh), boot membaca `@@session.time_zone` dan berhenti
+      dengan sebabnya bila bukan UTC — database yang belum terjangkau tetap bukan alasan berhenti —
+      dan helper tes menyetel sesi yang sama supaya tes menguji kodenya, bukan zona waktu mesin
+      yang menjalankannya. Aturannya di `docs/DATABASE.md` §4b.
+
+      Tidak bisa diverifikasi terhadap MySQL yang hidup di mesin ini (Docker Desktop mati), jadi
+      yang diuji otomatis baru nilai sesi yang diterima sebagai UTC. Verifikasi register + login di
+      server ber-WIB masuk daftar yang harus dijalankan pemilik.

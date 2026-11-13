@@ -6,6 +6,7 @@ import { AppModule } from './app.module.js';
 import { loadEnv } from './config/env.js';
 import { ApiErrorFilter } from './shared/http/api-error.filter.js';
 import { trustReverseProxy } from './shared/http/trust-proxy.js';
+import { DatabaseService } from './shared/database/database.service.js';
 
 const log = pino({ name: 'snouty-api' });
 
@@ -27,6 +28,21 @@ async function bootstrap(): Promise<void> {
   // controller yang bisa mengarang bentuknya sendiri.
   app.useGlobalFilters(new ApiErrorFilter());
 
+  // Zona waktu sesi MySQL harus UTC sebelum permintaan pertama (smoke test 13 Nov 2026, temuan 5).
+  // Database yang belum bisa dihubungi bukan alasan menolak start — `/health` yang melaporkannya —
+  // tetapi database yang bisa dihubungi dengan sesi bukan UTC adalah alasan berhenti: di atasnya
+  // register dan login gagal satu per satu dengan sebab yang tidak terlihat.
+  const database = app.get(DatabaseService);
+  try {
+    await database.assertUtcSession();
+  } catch (err: unknown) {
+    if (await database.ping().catch(() => false)) {
+      log.error({ err }, 'zona waktu sesi MySQL bukan UTC');
+      await app.close();
+      process.exit(1);
+    }
+    log.warn({ err }, 'zona waktu sesi MySQL belum bisa diperiksa: database belum terjangkau');
+  }
   app.enableShutdownHooks();
   await app.listen(env.PORT);
 

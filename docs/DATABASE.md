@@ -166,6 +166,33 @@ terjawab. Sampai saat itu, tidak ada jalur di repositori ini yang mengarah ke sa
 
 ---
 
+## 4b. Zona waktu: UTC di level sesi, bukan global
+
+Semua kolom waktu disimpan UTC. Itu bukan hanya soal driver.
+
+`timezone: 'Z'` di pool mysql2 hanya mengatur bagaimana driver menerjemahkan `Date` ke string dan
+sebaliknya. Nilai yang dihitung **server** — `created_at DATETIME DEFAULT CURRENT_TIMESTAMP` —
+memakai zona waktu server. Di MySQL ber-WIB, `created_at` lahir 7 jam di depan `expires_at` yang
+ditulis aplikasi, dan batasan `ck_refresh_tokens_expiry` (`expires_at > created_at`) menolak
+barisnya: **register dan login gagal**, bukan hanya salah tampil. Smoke test 13 Nov 2026 (temuan 5)
+menemukannya di instance lokal, dan empat tes gagal karena hal yang sama.
+
+Yang berlaku di repo ini:
+
+- `DatabaseService` menyetel `SET time_zone = '+00:00'` **pada setiap koneksi baru** pool, lewat
+  event `connection`. Level sesi, bukan global.
+- Boot memeriksa `@@session.time_zone`. Bukan UTC → proses berhenti dengan sebabnya. Database yang
+  belum terjangkau bukan alasan berhenti (itu urusan `/health`), tetapi database yang terjangkau
+  dengan sesi bukan UTC adalah: di atasnya login gagal satu per satu tanpa sebab yang terlihat.
+- Helper tes (`apps/api/test/mysql.ts`) menyetel sesi yang sama, supaya tes menguji kodenya dan
+  bukan zona waktu mesin yang menjalankannya.
+
+**Yang tidak pernah dilakukan:** mengubah `time_zone` global di 192.168.1.136. Server itu memuat
+tujuh database aplikasi lain, dan zona waktu globalnya bukan milik kami. Kalau sesi UTC ditolak di
+sana, yang diperiksa hak akses pengguna database — bukan setelan global.
+
+---
+
 ## 4. Prosedur migration
 
 Berlaku untuk host **non-lokal**. Untuk pengembangan sehari-hari, lihat §4a.
