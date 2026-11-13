@@ -95,6 +95,13 @@ export interface RenovationResult {
     readonly ratio: number;
     readonly couplings: number;
     readonly lengthM: number;
+    /**
+     * Ukuran segmen pengganti = ukuran pipa LAMA; `null` bila ukuran lama tidak diketahui, dan
+     * pemanggil memakai ukuran hitungannya sambil menyebut bahwa ukuran lama belum ada.
+     * Sebelum smoke test 13 Nov 2026 segmen selalu memakai ukuran hitungan, jadi potongan 25 mm
+     * pada pipa HDPE dijawab "1 inci" beserta sok PVC AW.
+     */
+    readonly segmentSize: string | null;
   } | null;
   readonly traces: readonly CalculationTrace[];
   readonly appliedAssumptionIds: readonly string[];
@@ -160,6 +167,7 @@ export function computeRenovation(
         existingMaterial: existingMaterialOf(input.existingMaterial),
         existingSize,
         branchSize,
+        junction: 'branch',
       });
       tieIn = { ...out, existingSize, branchSize };
     }
@@ -172,12 +180,38 @@ export function computeRenovation(
       use('RENOV_REPLACE_WHOLE_ROUTE');
       lengthM = input.routeLengthM ?? null;
     }
+    const existingSize = input.existingSize ?? null;
     if (lengthM !== null) {
-      partial = run(ENG_903, {
+      const out = run(ENG_903, {
         replacementLengthM: lengthM,
         routeLengthM: input.routeLengthM ?? null,
         couplingsPerSegment: couplings,
       });
+      // Segmen pengganti mengikuti pipa lama: ia disambung ke pipa lama di kedua ujungnya, jadi
+      // ukuran lain di tengah jalur yang sama bukan pekerjaan yang bisa dipasang.
+      partial = { ...out, segmentSize: existingSize };
+    }
+    // Kapasitas pipa lama tetap DICEK terhadap ukuran yang dibutuhkan beban — tetapi ukuran
+    // segmennya tidak diganti diam-diam. Pipa lama yang kurang menghasilkan peringatan, dan
+    // keputusan memperbesar jalur adalah pekerjaan lain (ganti semua), bukan efek samping.
+    const requiredSize = input.requiredSizeForTotal ?? input.newMainSize;
+    if (existingSize === null) capacityUnchecked = 'no_existing_size';
+    else {
+      const existingOuterMm = outerDiameterMmOf(existingSize);
+      const requiredOuterMm = outerDiameterMmOf(requiredSize);
+      if (existingOuterMm === null || requiredOuterMm === null) capacityUnchecked = 'unknown_size';
+      else {
+        const out = run(ENG_901, { existingSize, existingOuterMm, requiredSize, requiredOuterMm });
+        capacity = { existingSize, requiredSize, ...out };
+      }
+      // Sambungan kedua ujung segmen mengikuti bahan pipa lama (ENG-902 `rejoin`).
+      const out = run(ENG_902, {
+        existingMaterial: existingMaterialOf(input.existingMaterial),
+        existingSize,
+        branchSize: existingSize,
+        junction: 'rejoin',
+      });
+      tieIn = { ...out, existingSize, branchSize: existingSize };
     }
   }
 

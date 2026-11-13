@@ -37,6 +37,7 @@ import {
   computeHouseDrainage,
   computeBuildingWater,
   computeNetwork,
+  computeRenovation,
   computePond,
   computePressurized,
   computeSolution,
@@ -74,6 +75,7 @@ import { mergeBomBySku } from '../domain/bom-merge.js';
 import { needsFrom } from '../domain/solution-needs.js';
 import { tankStandViewFrom } from '../domain/tank-stand-view.js';
 import {
+  existingPipeFamilyOf,
   renovationFactsFrom,
   withRenovation,
   type RenovationContext,
@@ -1541,8 +1543,11 @@ export class AnalysisService {
     const products = new Map<string, string>();
     const keyOf = (kind: string, size: string, branch?: string) =>
       `${kind}|${size}|${branch ?? ''}`;
-    const wanted: { kind: 'tee' | 'faucet_socket' | 'socket'; size: string; branch?: string }[] =
-      [];
+    const wanted: {
+      kind: 'tee' | 'faucet_socket' | 'socket' | 'transition_coupling' | 'reducer' | 'pipe';
+      size: string;
+      branch?: string;
+    }[] = [];
     if (facts.mode === 'extend' && facts.existingSize !== null) {
       const branch = ctx.branchSize ?? ctx.newMainSize;
       wanted.push({
@@ -1552,10 +1557,39 @@ export class AnalysisService {
       });
       wanted.push({ kind: 'faucet_socket', size: facts.existingSize });
     }
-    if (facts.mode === 'replace_partial') wanted.push({ kind: 'socket', size: ctx.newMainSize });
+    // Penggantian sebagian: segmen dan penyambungnya mengikuti pipa LAMA, bukan ukuran hitungan.
+    // Sebelum smoke test 13 Nov 2026 jalur ini hanya mencari sok di ukuran baru, jadi potongan
+    // pada pipa HDPE 25 mm menghasilkan "Sok PVC AW 1 inci".
+    //
+    // Fitting mana yang dibutuhkan DITANYAKAN ke engine (ENG-902), tidak ditebak ulang di sini:
+    // memetakan bahan → fitting di dua tempat adalah cara pemetaan itu mulai berbeda.
+    const segmentSize = facts.mode === 'replace_partial' ? facts.existingSize : null;
+    if (facts.mode === 'replace_partial') {
+      const planned = computeRenovation({
+        mode: 'replace_partial',
+        newMainSize: ctx.newMainSize,
+        existingSize: facts.existingSize,
+        existingMaterial: facts.existingMaterial,
+        replacementLengthM: facts.replacementLengthM,
+        routeLengthM: ctx.routeLengthM ?? null,
+      });
+      for (const joint of planned.tieIn?.fittings ?? [{ kind: 'socket', size: ctx.newMainSize }]) {
+        wanted.push({ kind: joint.kind, size: joint.size });
+      }
+      if (segmentSize !== null) wanted.push({ kind: 'pipe', size: segmentSize });
+    }
+    // Keluarga pipa lama dari bahannya: segmen dan penyambungnya dicari di sana, bukan di
+    // keluarga sistem yang baru dihitung.
+    const existingFamily = existingPipeFamilyOf(facts.existingMaterial, ctx.family);
     for (const w of wanted) {
+      // Kopling transisi PE tidak punya jenis fitting di katalog: tidak dicari, barisnya memang
+      // tampil tanpa SKU sebagai produk setara.
+      if (w.kind === 'transition_coupling') continue;
+      const family = existingFamily ?? ctx.family;
       const found = await this.matchRoles([
-        fittingRequirement(w.size, ctx.family, w.kind, w.branch),
+        w.kind === 'pipe'
+          ? pipeRequirement('main', w.size, family)
+          : fittingRequirement(w.size, family, w.kind, w.branch),
       ]);
       const product = found.products[0];
       if (product && product.matchState === 'VERIFIED_SELECTED') {
@@ -1568,6 +1602,7 @@ export class AnalysisService {
       traces,
       {
         ...ctx,
+        ...(existingFamily !== null ? { existingFamily } : {}),
         productFor: (kind, size, branch) =>
           products.get(keyOf(kind, size, branch)) ?? products.get(keyOf(kind, size)),
       },

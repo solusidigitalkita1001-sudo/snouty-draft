@@ -63,6 +63,26 @@ const HOUSE_MATERIAL: Readonly<Record<string, string>> = {
   ppr: 'PPR',
 };
 
+/**
+ * Keluarga pipa untuk sambungan ke pipa LAMA, dari bahannya. HDPE punya keluarganya sendiri;
+ * PVC lama disambung dengan keluarga pipa baru yang dipakai kasus ini. Galvanis, PPR, dan bahan
+ * yang tidak disebut tidak punya keluarga Pralon — penyambungnya bukan produk katalog, jadi
+ * `null` supaya barisnya tampil sebagai produk setara, bukan sok PVC AW (smoke test 13 Nov 2026).
+ */
+export function existingPipeFamilyOf(
+  existingMaterial: string | null,
+  fallbackFamily: string,
+): string | null {
+  switch (existingMaterial) {
+    case 'HDPE':
+      return 'HDPE';
+    case 'PVC':
+      return fallbackFamily;
+    default:
+      return null;
+  }
+}
+
 /** Fakta renovasi dari state; `null` = bangun baru (tidak ada lapisan renovasi). */
 export function renovationFactsFrom(state: RequirementState): RenovationFacts | null {
   if (state.useCase?.kind === 'technical') {
@@ -95,9 +115,13 @@ export function renovationFactsFrom(state: RequirementState): RenovationFacts | 
         : 'new';
   if (mode === 'new') return null;
   const material = state.water.existingPipeMaterial?.value ?? null;
+  // `unknown` adalah jawaban: pengguna sudah ditanya dan tidak tahu. Nilainya tetap "belum ada"
+  // bagi hitungan, jadi kapasitas pipa lama disebut belum dicek alih-alih dibandingkan dengan
+  // label yang tidak punya diameter.
+  const size = state.water.existingMainSize?.value ?? null;
   return {
     mode,
-    existingSize: state.water.existingMainSize?.value ?? null,
+    existingSize: size === 'unknown' ? null : size,
     existingMaterial: material === null ? null : (HOUSE_MATERIAL[material] ?? null),
     existingLoad: state.water.existingOutlets?.value ?? null,
     replacementLengthM: state.water.replacementLengthM?.value ?? null,
@@ -122,9 +146,20 @@ export interface RenovationContext {
   readonly extraAssumptionIds?: readonly string[];
   /** Keluarga pipa untuk nama baris BOM fitting sambungan. */
   readonly family: string;
+  /**
+   * Keluarga pipa LAMA, dari bahannya — penyambung ujung segmen yang diganti memakai nama ini,
+   * bukan keluarga pipa baru: potongan pada pipa HDPE tidak disambung dengan sok PVC AW
+   * (smoke test 13 Nov 2026). Kosong = bahan lama tidak diketahui, pakai keluarga baru.
+   */
+  readonly existingFamily?: string | null;
+  /**
+   * Bagian BOQ untuk baris penyambung. Kosong = air bersih. Pekerjaan pembuangan tidak boleh
+   * menghasilkan baris air bersih (smoke test 13 Nov 2026, temuan 2).
+   */
+  readonly system?: BomItem['system'];
   /** Produk katalog untuk fitting sambungan; `undefined` = tidak ada di katalog. */
   readonly productFor?: (
-    kind: TieInFittingKind | 'socket',
+    kind: TieInFittingKind | 'socket' | 'pipe',
     size: string,
     branchSize?: string,
   ) => string | undefined;
@@ -152,6 +187,33 @@ export function workTypeLabel(mode: Exclude<RenovationMode, 'new'>, locale: Loca
 /** Nilai protokol `work_type` dari mode — untuk tampilan yang memakai label registry. */
 export function workTypeProtocolOf(mode: RenovationMode): string {
   return Object.entries(WORK_TYPE_MODE).find(([, m]) => m === mode)?.[0] ?? 'Bangun baru';
+}
+
+/**
+ * Nama baris penyambung menurut jenisnya (ENG-902). Kopling transisi PE tidak menyebut keluarga
+ * Pralon mana pun: ia memang bukan produk katalog, dan menuliskan "Sok PVC AW" di sana adalah
+ * yang membuat gambar kerja menyuruh menyambung HDPE dengan lem (smoke test 13 Nov 2026).
+ */
+function jointNameOf(kind: TieInFittingKind, family: string, locale: Locale): string {
+  const en = locale === 'en';
+  switch (kind) {
+    case 'transition_coupling':
+      return en
+        ? 'Transition/compression coupling (rejoin to the existing pipe)'
+        : 'Kopling transisi / kompresi (sambung ke pipa lama)';
+    case 'faucet_socket':
+      return en
+        ? `Threaded socket ${family} (rejoin to the existing pipe)`
+        : `Sok drat ${family} (sambung ke pipa lama)`;
+    case 'tee':
+      return en ? `Tee ${family} (tie-in)` : `Tee ${family} (titik sambung)`;
+    case 'reducer':
+      return en ? `Reducer ${family}` : `Reducer ${family}`;
+    default:
+      return en
+        ? `Socket ${family} (rejoin to the existing pipe)`
+        : `Sok ${family} (sambung ke pipa lama)`;
+  }
 }
 
 const isPipeRow = (row: BomItem): boolean =>
@@ -355,10 +417,20 @@ export function withRenovation(
   if (facts.mode === 'replace_partial') {
     if (result.partial) {
       const p = result.partial;
-      // Material segmen saja: pipa jalur utama sepanjang segmen + sok penyambung. Cabang, sambungan
-      // alat, dan fitting per titik air tidak diganti; baris tertunda ("dihitung saat pemasangan")
-      // tetap, kecuali sok yang kini dihitung.
-      const productId = ctx.productFor?.('socket', ctx.newMainSize);
+      // Material segmen saja: pipa jalur utama sepanjang segmen + penyambung di kedua ujungnya.
+      // Cabang, sambungan alat, dan fitting per titik air tidak diganti; baris tertunda
+      // ("dihitung saat pemasangan") tetap, kecuali penyambung yang kini dihitung.
+      //
+      // Ukuran segmen = ukuran pipa LAMA (ENG-903 `segmentSize`). Segmen ini disambung ke pipa
+      // lama di kedua ujungnya, jadi ukuran lain di tengah jalur yang sama bukan pekerjaan yang
+      // bisa dipasang: smoke test 13 Nov 2026 menemukan potongan pada pipa HDPE 25 mm dijawab
+      // "1 inci" beserta "Sok PVC AW 1 inci", sementara tabel kebutuhan di PDF yang sama menulis
+      // "Ukuran pipa lama 25 mm · Bahan HDPE".
+      const segmentSize = p.segmentSize ?? ctx.newMainSize;
+      // Penyambung ujung dari ENG-902 (`rejoin`): sok lem untuk PVC, sok drat untuk galvanis,
+      // kopling transisi untuk HDPE. Tanpa fitting (PPR) hanya kalimat aturannya yang tampil.
+      const joints = result.tieIn?.fittings ?? [];
+      const productId = ctx.productFor?.('socket', segmentSize);
       const firstPipe = bom.findIndex(isPipeRow);
       const isMainPipe = (row: BomItem, index: number): boolean =>
         isPipeRow(row) &&
@@ -368,13 +440,23 @@ export function withRenovation(
       bom = bom.flatMap((row, index) => {
         if (isMainPipe(row, index)) {
           const quantity = p.ratio >= 1 ? row.quantity : Math.ceil(row.quantity * p.ratio);
+          // Segmen berukuran pipa lama: produk hitungan (ukuran baru) tidak boleh ikut, karena
+          // SKU-nya ukuran lain. Barisnya tinggal tanpa SKU → "pakai produk setara" di BOQ.
+          const resized = p.segmentSize !== null && p.segmentSize !== row.size;
+          const segmentProduct = resized
+            ? ctx.productFor?.('pipe', p.segmentSize!)
+            : row.productId;
+          const { productId: _dropped, ...withoutProduct } = row;
           return [
             {
-              ...row,
+              ...withoutProduct,
+              size: segmentSize,
               quantity,
               ...(row.netLengthM !== undefined
                 ? { netLengthM: Math.round(row.netLengthM * p.ratio * 10) / 10 }
                 : {}),
+              ...(resized && ctx.existingFamily ? { item: `Pipa ${ctx.existingFamily}` } : {}),
+              ...(segmentProduct !== undefined ? { productId: segmentProduct } : {}),
               basis: `${explain('ENG-903')} ${row.basis}`.trim(),
               traceIds: [...row.traceIds, ...idsOf('ENG-903')],
             },
@@ -385,19 +467,29 @@ export function withRenovation(
         }
         return [];
       });
-      bom.push({
-        item: en
-          ? `Socket ${ctx.family} (rejoin to the existing pipe)`
-          : `Sok ${ctx.family} (sambung ke pipa lama)`,
-        system: 'clean_water',
-        size: ctx.newMainSize,
-        quantity: p.couplings,
-        unit: bomUnitLabel('pcs', locale),
-        basis: explain('ENG-903'),
-        provenance: provenanceFor(allTraces, idsOf('ENG-903')),
-        traceIds: idsOf('ENG-903'),
-        ...(productId ? { productId } : {}),
-      });
+      // Tanpa fakta bahan pipa lama tidak ada ENG-902, dan penyambungnya tetap sok keluarga baru.
+      const jointRows =
+        joints.length > 0
+          ? joints
+          : [{ kind: 'socket' as const, size: segmentSize, quantity: p.couplings }];
+      for (const joint of jointRows) {
+        const jointProduct = ctx.productFor?.(joint.kind, joint.size);
+        bom.push({
+          item: jointNameOf(joint.kind, ctx.existingFamily ?? ctx.family, locale),
+          system: ctx.system ?? 'clean_water',
+          size: joint.size,
+          quantity: joint.quantity,
+          unit: bomUnitLabel('pcs', locale),
+          basis: `${explain('ENG-902')} ${explain('ENG-903')}`.trim(),
+          provenance: provenanceFor(allTraces, [...idsOf('ENG-902'), ...idsOf('ENG-903')]),
+          traceIds: [...idsOf('ENG-902'), ...idsOf('ENG-903')],
+          // Kopling transisi PE belum punya keluarga di katalog Pralon aktif. Barisnya tetap ada
+          // TANPA SKU — dan baris tanpa SKU sudah ditandai `not_in_catalog` ("pakai produk
+          // setara") oleh `boqFrom`. Menghapusnya membuat gambar kerjanya menyuruh menyambung
+          // HDPE dengan sok lem.
+          ...(jointProduct ? { productId: jointProduct } : {}),
+        });
+      }
       highlights.push({
         label: en ? 'Replaced' : 'Yang diganti',
         value: `${String(p.lengthM).replace('.', en ? '.' : ',')} m`,
@@ -405,17 +497,48 @@ export function withRenovation(
       systemLines.push({
         name: en ? 'Replaced segment' : 'Segmen yang diganti',
         path: en ? 'Cut → rejoin' : 'Potong → sambung kembali',
-        size: ctx.newMainSize,
-        reason: explain('ENG-903'),
-        provenance: provenanceFor(allTraces, idsOf('ENG-903')),
-        traceIds: idsOf('ENG-903'),
+        size: segmentSize,
+        reason: `${explain('ENG-903')} ${explain('ENG-902')}`.trim(),
+        provenance: provenanceFor(allTraces, [...idsOf('ENG-903'), ...idsOf('ENG-902')]),
+        traceIds: [...idsOf('ENG-903'), ...idsOf('ENG-902')],
         role: 'main',
       });
+      const sized =
+        p.segmentSize === null
+          ? ''
+          : en
+            ? ` The segment keeps the existing ${p.segmentSize} size.`
+            : ` Segmennya mengikuti ukuran pipa lama, ${p.segmentSize}.`;
       sentences.push(
         en
-          ? `${label}: only the ${p.lengthM} m segment is replaced and rejoined to the existing pipe with ${p.couplings} couplings; the sizes below are for that segment.`
-          : `${label}: hanya segmen ${String(p.lengthM).replace('.', ',')} m yang diganti dan disambung kembali ke pipa lama dengan ${p.couplings} sok; ukuran di bawah untuk segmen itu.`,
+          ? `${label}: only the ${p.lengthM} m segment is replaced and rejoined to the existing pipe with ${p.couplings} couplings.${sized}`
+          : `${label}: hanya segmen ${String(p.lengthM).replace('.', ',')} m yang diganti dan disambung kembali ke pipa lama dengan ${p.couplings} sambungan.${sized}`,
       );
+      // Pipa lama yang lebih kecil dari kebutuhan beban: dikatakan, tidak diganti diam-diam.
+      // Memperbesar jalur adalah pekerjaan lain (ganti semua), bukan efek samping penggantian
+      // sebagian — dan di segmen 3 m pun pembatasnya tetap pipa lama di kedua sisinya.
+      if (result.capacity) {
+        const c = result.capacity;
+        existingPipe = {
+          mode: facts.mode,
+          size: c.existingSize,
+          sufficient: c.sufficient,
+          requiredSize: c.requiredSize,
+        };
+        if (!c.sufficient) {
+          sentences.push(
+            en
+              ? `The existing ${c.existingSize} pipe is smaller than the ${c.requiredSize} this load needs, so the flow stays limited by the pipe on either side of the segment; enlarging the line means replacing the whole run.`
+              : `Pipa lama ${c.existingSize} lebih kecil daripada ${c.requiredSize} yang dibutuhkan beban ini, jadi debitnya tetap dibatasi pipa lama di kedua sisi segmen; memperbesar jalurnya berarti mengganti seluruh jalur.`,
+          );
+        }
+        highlights.push({
+          label: en ? 'Existing pipe' : 'Pipa lama',
+          value: c.sufficient
+            ? `${c.existingSize} · ${en ? `sufficient for ${c.requiredSize}` : `cukup (butuh ${c.requiredSize})`}`
+            : `${c.existingSize} · ${en ? `smaller than ${c.requiredSize}` : `lebih kecil dari ${c.requiredSize}`}`,
+        });
+      }
     }
   }
 

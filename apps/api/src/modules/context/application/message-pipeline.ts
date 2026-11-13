@@ -754,7 +754,7 @@ export async function runUnderstanding(
     // sama persis dua kali, padahal jawabannya punya anggapan (air bersih) dan pengguna baru saja
     // mengizinkannya (produksi 2026-10-26).
     const assumable = asksToCompute
-      ? assumableUpdates(merged)
+      ? assumableUpdates(merged, true)
       : computeFirstAssumptionUpdates(merged);
     // Pesan yang isinya HANYA toren tanpa letaknya ("airnya dari sumur bor pakai toren", tidak
     // mengubah apa pun): letaknya ditanyakan, bukan dianggap di atap — itu menjawab penggunanya

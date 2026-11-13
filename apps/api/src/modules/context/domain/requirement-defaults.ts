@@ -62,6 +62,22 @@ export const REQUIREMENT_DEFAULTS: readonly RequirementDefault[] = [
     reason: 'Jumlah kamar mandi diasumsikan 1 per lantai.',
     ruleId: 'ENG-014',
   },
+  // Ganti sebagian (smoke test 13 Nov 2026, temuan 1): pipa lamanya ditanya lebih dulu karena
+  // segmen pengganti mengikuti ukurannya. "Belum tahu" tetap bukan jalan buntu — ukuran yang tidak
+  // diketahui membuat kapasitas pipa lama disebut belum dicek, dan bahan yang tidak diketahui
+  // memakai kopling transisi (ENG-902 `unknown`), bukan sok lem yang belum pasti pas.
+  {
+    path: 'water.existingMainSize',
+    value: 'unknown',
+    reason: 'Ukuran pipa lama belum diketahui, jadi kapasitasnya tidak dicek.',
+    ruleId: 'ENG-014',
+  },
+  {
+    path: 'water.existingPipeMaterial',
+    value: 'unknown',
+    reason: 'Bahan pipa lama belum diketahui, jadi sambungannya memakai kopling transisi.',
+    ruleId: 'ENG-014',
+  },
 ];
 
 /** Kembaran Inggris `reason` tiap default — kunci sama dengan path di `REQUIREMENT_DEFAULTS`. */
@@ -72,6 +88,9 @@ export const REQUIREMENT_DEFAULT_REASONS_EN: Readonly<
   'water.installationType': 'The installation is assumed to be for clean water only.',
   'building.floorHeightM': 'Floor-to-floor height is assumed to be 3.5 metres.',
   'fixtures.bathrooms': 'The number of bathrooms is assumed to be 1 per floor.',
+  'water.existingMainSize': 'The existing pipe size is not known, so its capacity is not checked.',
+  'water.existingPipeMaterial':
+    'The existing pipe material is not known, so the joint uses a transition coupling.',
 };
 
 /** Kalimat alasan default menurut bahasa; Indonesia = `reason` tabel apa adanya. */
@@ -117,6 +136,19 @@ const HOUSE_ASSUMABLE: readonly RequirementFieldPath[] = [
 ];
 
 /**
+ * Tambahannya saat pengguna SENDIRI meminta menghitung: data pipa lama pada penggantian sebagian.
+ * Ia tidak ikut anggapan otomatis — tanpa diminta, ukuran dan bahan pipa yang sedang dipotong
+ * ditanya lebih dulu (smoke test 13 Nov 2026, temuan 1). Tetapi "udah, itung aja" adalah izin:
+ * keduanya menjadi `unknown`, dihitung dengan peringatan "ukuran pipa lama belum disebut", bukan
+ * pertanyaan yang sama untuk kedua kalinya.
+ */
+const ASSUMABLE_ON_REQUEST: readonly RequirementFieldPath[] = [
+  ...HOUSE_ASSUMABLE,
+  'water.existingMainSize',
+  'water.existingPipeMaterial',
+];
+
+/**
  * Jenis bangunan yang dihitung langsung begitu lantainya disebut. Industri tidak termasuk: ia
  * tetap lewat tim teknis, karena fluida dan bebannya bukan air bersih bangunan.
  */
@@ -150,7 +182,11 @@ export function computeFirstAssumptionUpdates(state: RequirementState): readonly
  * Anggapannya tetap ditandai ASSUMED dengan alasannya, jadi tetap terlihat di jawaban. Tanpa
  * jumlah lantai, atau dengan data lain yang tidak boleh dianggap, tidak ada anggapan.
  */
-export function assumableUpdates(state: RequirementState): readonly FieldUpdate[] {
+export function assumableUpdates(
+  state: RequirementState,
+  /** Diminta pengguna sendiri — anggapan yang lebih luas berlaku (`ASSUMABLE_ON_REQUEST`). */
+  onRequest = false,
+): readonly FieldUpdate[] {
   if (state.useCase !== undefined) return [];
   if (state.building.floors.value === null) return [];
   const missing = state.missingInformation;
@@ -168,7 +204,8 @@ export function assumableUpdates(state: RequirementState): readonly FieldUpdate[
     missing.includes('fixtures.bathrooms')
   )
     return [];
-  if (missing.length === 0 || !missing.every((p) => HOUSE_ASSUMABLE.includes(p))) return [];
+  const allowed = onRequest ? ASSUMABLE_ON_REQUEST : HOUSE_ASSUMABLE;
+  if (missing.length === 0 || !missing.every((p) => allowed.includes(p))) return [];
   return missing
     .map((path) => defaultUpdateFor(path, state))
     .filter((u): u is FieldUpdate => u !== null);

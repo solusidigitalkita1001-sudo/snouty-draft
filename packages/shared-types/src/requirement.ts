@@ -177,7 +177,12 @@ export interface WaterState {
 }
 
 export type WorkType = 'new' | 'replace_all' | 'replace_partial' | 'extend' | 'renovation';
-export type ExistingPipeMaterial = 'pvc' | 'galvanized' | 'hdpe' | 'ppr';
+/**
+ * Bahan pipa lama. `unknown` adalah jawaban yang sah, bukan ketiadaan data: pengguna yang tidak
+ * tahu bahan pipa rumahnya tetap bisa dihitung, dan sambungannya memakai kopling yang cocok untuk
+ * bahan apa pun (ENG-902 `unknown`) alih-alih sok lem yang belum pasti pas.
+ */
+export type ExistingPipeMaterial = 'pvc' | 'galvanized' | 'hdpe' | 'ppr' | 'unknown';
 
 /** Jalur bidang yang bisa dirujuk klarifikasi dan daftar informasi kurang. */
 export type RequirementFieldPath =

@@ -220,6 +220,34 @@ describe('withRenovation', () => {
     expect(r.assumptions.map((a) => a.assumptionId)).toEqual(['RENOV_COUPLINGS_PER_SEGMENT_2']);
   });
 
+  it('ganti sebagian pipa lama HDPE 25 mm: segmen 25 mm dan kopling transisi, bukan 1" dengan sok PVC (smoke test 13 Nov 2026)', () => {
+    const out = withRenovation(
+      base('technical'),
+      {
+        mode: 'replace_partial',
+        existingSize: '25 mm',
+        existingMaterial: 'HDPE',
+        existingLoad: null,
+        replacementLengthM: 3,
+      },
+      [],
+      { newMainSize: '1"', family: 'PVC AW', routeLengthM: 22.5 },
+      'id',
+    );
+    const r = out.recommendation;
+    // Baris sistem menyebut ukuran pipa LAMA, bukan ukuran hitungan seluruh rumah.
+    const segment = r.systemLines?.find((l) => l.name === 'Segmen yang diganti');
+    expect(segment?.size).toBe('25 mm');
+    // Sambungannya kopling transisi HDPE, dan barisnya tetap ada walau tanpa SKU katalog.
+    const joint = r.bom.find((b) => /kopling|coupling/i.test(b.item));
+    expect(joint).toMatchObject({ size: '25 mm', quantity: 2 });
+    expect(joint?.productId).toBeUndefined();
+    expect(r.bom.some((b) => /Sok PVC AW/.test(b.item))).toBe(false);
+    // Pipa lama 25 mm lebih kecil dari 1" yang dibutuhkan beban: peringatan, bukan diam.
+    expect(r.body).toMatch(/25 mm/);
+    expect(r.existingPipe).toMatchObject({ size: '25 mm', sufficient: false });
+  });
+
   it('ganti semua: kasus teknis mendapat judul + kalimat; rumah memakai judul templatnya sendiri', () => {
     const facts = {
       mode: 'replace_all' as const,

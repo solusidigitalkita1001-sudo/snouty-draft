@@ -107,3 +107,56 @@ describe('pekerjaan pembuangan saja', () => {
     }
   });
 });
+
+describe('ganti sebagian: data pipa lama', () => {
+  // Smoke test 13 Nov 2026, temuan 1: "ganti pipa bocor 3 meter" dijawab 4/4 lengkap dengan
+  // missingInformation kosong, lalu segmennya dihitung di ukuran rumah baru — bukan ukuran pipa
+  // yang sedang dipotong. Potongan di tengah jalur tidak bisa dispesifikasi tanpa pipa lamanya.
+  it('ganti sebagian tanpa data pipa lama: ukuran dan bahan pipa lama ikut yang kurang', () => {
+    const state = fill([
+      ['water.source', 'rooftop_tank'],
+      ['water.installationType', 'clean_water'],
+      ['building.floors', 2],
+      ['fixtures.bathrooms', 3],
+      ['water.workType', 'replace_partial'],
+      ['water.replacementLengthM', 3],
+    ]);
+    const r = evaluateCompleteness(state);
+    expect(r.missingInformation).toEqual([
+      'water.existingMainSize',
+      'water.existingPipeMaterial',
+    ]);
+    expect(r.isComplete).toBe(false);
+  });
+
+  it('ganti sebagian dengan data pipa lama (termasuk bahan yang pengguna sendiri tidak tahu): lengkap', () => {
+    const base: Array<[string, unknown]> = [
+      ['water.source', 'rooftop_tank'],
+      ['water.installationType', 'clean_water'],
+      ['building.floors', 2],
+      ['fixtures.bathrooms', 3],
+      ['water.workType', 'replace_partial'],
+    ];
+    for (const material of ['pvc', 'unknown']) {
+      const state = fill([
+        ...base,
+        ['water.existingMainSize', '1/2"'],
+        ['water.existingPipeMaterial', material],
+      ]);
+      expect(evaluateCompleteness(state).isComplete).toBe(true);
+    }
+  });
+
+  it('perluasan dan ganti semua tidak menahan rekomendasi karena data pipa lama', () => {
+    for (const workType of ['extend', 'replace_all']) {
+      const state = fill([
+        ['water.source', 'rooftop_tank'],
+        ['water.installationType', 'clean_water'],
+        ['building.floors', 2],
+        ['fixtures.bathrooms', 3],
+        ['water.workType', workType],
+      ]);
+      expect(evaluateCompleteness(state).isComplete).toBe(true);
+    }
+  });
+});

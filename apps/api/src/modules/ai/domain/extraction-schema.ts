@@ -64,7 +64,7 @@ export const ExtractionSchema = z
           .optional(),
         /** Ukuran pipa utama lama persis seperti disebut (`3/4"`, `1 inch`, `110 mm`). */
         existingMainSize: z.string().min(1).max(20).optional(),
-        existingPipeMaterial: z.enum(['pvc', 'galvanized', 'hdpe', 'ppr']).optional(),
+        existingPipeMaterial: z.enum(['pvc', 'galvanized', 'hdpe', 'ppr', 'unknown']).optional(),
         /** Titik air yang sudah terpasang, hanya bila disebut sebagai yang lama. */
         existingOutlets: z.number().int().min(0).max(1_000).optional(),
         /** Panjang pipa yang diganti (m), hanya bila disebut. */

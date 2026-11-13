@@ -145,7 +145,10 @@ describe('renovasi rumah (P23-03): jenis pekerjaan dan data pipa lama', () => {
         (q) => q.id,
       ),
     ).not.toContain('water.existingMainSize');
+    // Ganti sebagian menanyakan ukuran pipa lama lebih dulu: segmen penggantinya seukuran pipa
+    // itu, bukan seukuran hitungan seluruh rumah (smoke test 13 Nov 2026, temuan 1).
     expect(renovationRefinementFields('replace_partial')).toEqual([
+      'water.existingMainSize',
       'water.replacementLengthM',
       'water.existingPipeMaterial',
     ]);

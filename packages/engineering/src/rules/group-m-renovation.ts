@@ -113,13 +113,39 @@ export const ENG_901: RuleVersion<ExistingCapacityInput, ExistingCapacityResult>
 // ── ENG-902 · Sambungan ke pipa lama ─────────────────────────────────────────
 
 export type ExistingMaterial = 'PVC' | 'Galvanis / besi' | 'HDPE' | 'PPR' | 'unknown';
-export type TieInMethod = 'solvent_tee' | 'threaded_adaptor' | 'hdpe_tee' | 'specialist';
-export type TieInFittingKind = 'tee' | 'faucet_socket' | 'reducer';
+export type TieInMethod =
+  | 'solvent_tee'
+  | 'threaded_adaptor'
+  | 'hdpe_tee'
+  | 'specialist'
+  /** Potong-sambung kembali: sok lem di kedua ujung (PVC). */
+  | 'solvent_socket'
+  /** Potong-sambung kembali pada pipa PE: kopling kompresi/transisi, bukan sok lem. */
+  | 'compression_coupling';
+export type TieInFittingKind =
+  | 'tee'
+  | 'faucet_socket'
+  | 'reducer'
+  | 'socket'
+  /**
+   * Kopling transisi/kompresi untuk menyambung pipa PE yang dipotong. Belum ada keluarganya di
+   * katalog Pralon aktif, jadi barisnya tampil sebagai produk setara tanpa SKU — dihapus berarti
+   * gambar kerjanya menyuruh menyambung HDPE dengan sok lem (smoke test 13 Nov 2026).
+   */
+  | 'transition_coupling';
+
+/**
+ * `branch` — jalur baru menyadap pipa lama yang tetap terpasang (perluasan): sambungannya tee.
+ * `rejoin` — pipa lama DIPOTONG dan disambung kembali di kedua ujung segmen yang diganti
+ * (penggantian sebagian): sambungannya dua kopling, dan jenisnya mengikuti bahan pipa lama.
+ */
+export type TieInJunction = 'branch' | 'rejoin';
 
 export interface TieInInput {
   readonly existingMaterial: ExistingMaterial;
   readonly existingSize: string;
   readonly branchSize: string;
+  readonly junction: TieInJunction;
 }
 export interface TieInResult {
   readonly method: TieInMethod;
@@ -137,7 +163,11 @@ const MATERIALS: readonly ExistingMaterial[] = ['PVC', 'Galvanis / besi', 'HDPE'
 
 export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
   ruleId: 'ENG-902',
-  version: 1,
+  // v2 (smoke test 13 Nov 2026): jenis sambungan ikut masuk masukan. Penggantian sebagian
+  // memotong pipa lama dan menyambungnya kembali — itu dua kopling, bukan tee, dan jenis
+  // koplingnya mengikuti bahan pipa lama. Sebelumnya jalur itu tidak memanggil aturan ini sama
+  // sekali dan selalu memakai sok PVC AW, termasuk pada pipa lama HDPE.
+  version: 2,
   category: 'material',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -145,10 +175,15 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
     if (typeof material !== 'string' || !MATERIALS.includes(material as ExistingMaterial)) {
       throw new RuleInputError('ENG-902', `existingMaterial tidak dikenal: ${String(material)}`);
     }
+    const junction = o['junction'];
+    if (junction !== 'branch' && junction !== 'rejoin') {
+      throw new RuleInputError('ENG-902', `junction harus branch atau rejoin, bukan ${String(junction)}`);
+    }
     return {
       existingMaterial: material as ExistingMaterial,
       existingSize: requireLabel('ENG-902', 'existingSize', o['existingSize']),
       branchSize: requireLabel('ENG-902', 'branchSize', o['branchSize']),
+      junction,
     };
   },
   compute: (i) => {
@@ -158,6 +193,37 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
       ...(i.branchSize !== i.existingSize ? { branchSize: i.branchSize } : {}),
       quantity: 1,
     };
+    // Potong lalu sambung kembali: dua kopling di ujung segmen, jenisnya menurut bahan pipa lama.
+    if (i.junction === 'rejoin') {
+      switch (i.existingMaterial) {
+        case 'Galvanis / besi':
+          return {
+            method: 'threaded_adaptor',
+            fittings: [{ kind: 'faucet_socket', size: i.existingSize, quantity: 2 }],
+            materialAssumed: false,
+          };
+        case 'HDPE':
+          return {
+            method: 'compression_coupling',
+            fittings: [{ kind: 'transition_coupling', size: i.existingSize, quantity: 2 }],
+            materialAssumed: false,
+          };
+        case 'PPR':
+          return { method: 'specialist', fittings: [], materialAssumed: false };
+        case 'unknown':
+          return {
+            method: 'solvent_socket',
+            fittings: [{ kind: 'socket', size: i.existingSize, quantity: 2 }],
+            materialAssumed: true,
+          };
+        default:
+          return {
+            method: 'solvent_socket',
+            fittings: [{ kind: 'socket', size: i.existingSize, quantity: 2 }],
+            materialAssumed: false,
+          };
+      }
+    }
     switch (i.existingMaterial) {
       case 'Galvanis / besi':
         // Pipa besi dipotong, kedua ujungnya diberi sok drat, lalu tee PVC di antaranya.
@@ -177,12 +243,12 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
     }
   },
   sourceReference:
-    'Praktik sambung lapangan: PVC–PVC lem (solvent cement); besi/galvanis–PVC lewat sok drat (faucet socket) di ujung potongan; PE lewat fitting PE; PPR lewat fusi panas (bukan lini Pralon)',
+    'Praktik sambung lapangan: PVC–PVC lem (solvent cement); besi/galvanis–PVC lewat sok drat (faucet socket) di ujung potongan; PE lewat fitting PE (menyadap) atau kopling kompresi/transisi (potong-sambung); PPR lewat fusi panas (bukan lini Pralon)',
   validationStatus: PENDING,
   testCases: [
     {
       name: 'pipa lama PVC 1" cabang baru 3/4" → tee reduksi 1" × 3/4" dilem',
-      input: { existingMaterial: 'PVC', existingSize: '1"', branchSize: '3/4"' },
+      input: { existingMaterial: 'PVC', existingSize: '1"', branchSize: '3/4"', junction: 'branch' },
       expected: {
         method: 'solvent_tee',
         fittings: [{ kind: 'tee', size: '1"', branchSize: '3/4"', quantity: 1 }],
@@ -191,7 +257,12 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
     },
     {
       name: 'pipa lama galvanis 3/4" cabang 3/4" → 2 sok drat 3/4" + tee 3/4"',
-      input: { existingMaterial: 'Galvanis / besi', existingSize: '3/4"', branchSize: '3/4"' },
+      input: {
+        existingMaterial: 'Galvanis / besi',
+        existingSize: '3/4"',
+        branchSize: '3/4"',
+        junction: 'branch',
+      },
       expected: {
         method: 'threaded_adaptor',
         fittings: [
@@ -203,7 +274,7 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
     },
     {
       name: 'bahan tidak disebut → tee, ditandai perlu dipastikan',
-      input: { existingMaterial: 'unknown', existingSize: '110 mm', branchSize: '63 mm' },
+      input: { existingMaterial: 'unknown', existingSize: '110 mm', branchSize: '63 mm', junction: 'branch' },
       expected: {
         method: 'solvent_tee',
         fittings: [{ kind: 'tee', size: '110 mm', branchSize: '63 mm', quantity: 1 }],
@@ -212,8 +283,45 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
     },
     {
       name: 'PPR → fitting fusi, bukan lini Pralon',
-      input: { existingMaterial: 'PPR', existingSize: '3/4"', branchSize: '1/2"' },
+      input: { existingMaterial: 'PPR', existingSize: '3/4"', branchSize: '1/2"', junction: 'branch' },
       expected: { method: 'specialist', fittings: [], materialAssumed: false },
+    },
+    {
+      name: 'potong-sambung pipa lama HDPE 25 mm → 2 kopling transisi 25 mm, bukan sok lem',
+      input: {
+        existingMaterial: 'HDPE',
+        existingSize: '25 mm',
+        branchSize: '25 mm',
+        junction: 'rejoin',
+      },
+      expected: {
+        method: 'compression_coupling',
+        fittings: [{ kind: 'transition_coupling', size: '25 mm', quantity: 2 }],
+        materialAssumed: false,
+      },
+    },
+    {
+      name: 'potong-sambung pipa lama PVC 3" → 2 sok lem 3"',
+      input: { existingMaterial: 'PVC', existingSize: '3"', branchSize: '3"', junction: 'rejoin' },
+      expected: {
+        method: 'solvent_socket',
+        fittings: [{ kind: 'socket', size: '3"', quantity: 2 }],
+        materialAssumed: false,
+      },
+    },
+    {
+      name: 'potong-sambung pipa lama galvanis 1" → 2 sok drat, tanpa tee',
+      input: {
+        existingMaterial: 'Galvanis / besi',
+        existingSize: '1"',
+        branchSize: '1"',
+        junction: 'rejoin',
+      },
+      expected: {
+        method: 'threaded_adaptor',
+        fittings: [{ kind: 'faucet_socket', size: '1"', quantity: 2 }],
+        materialAssumed: false,
+      },
     },
   ],
   explain: (i, o, locale) => {
@@ -225,6 +333,31 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
     const unknownEn = o.materialAssumed
       ? ' The existing pipe material was not given, so the joining method is confirmed on site.'
       : '';
+    // Potong-sambung kembali: yang dijelaskan dua ujung segmen, bukan sebuah cabang baru.
+    if (i.junction === 'rejoin') {
+      switch (o.method) {
+        case 'threaded_adaptor':
+          return localized(locale, {
+            id: `Segmen pipa lama ${i.existingMaterial} ${i.existingSize} dipotong, dan kedua ujung yang tersisa disambung ke pipa baru lewat sok drat ${i.existingSize} (2 pcs).`,
+            en: `The ${i.existingMaterial} ${i.existingSize} segment is cut out, and the two remaining ends join the new pipe through ${i.existingSize} threaded sockets (2 pcs).`,
+          });
+        case 'compression_coupling':
+          return localized(locale, {
+            id: `Pipa lama HDPE ${i.existingSize} tidak bisa dilem: kedua ujung potongan disambung dengan kopling kompresi atau adaptor transisi ${i.existingSize} (2 pcs). Koplingnya belum ada di katalog Pralon aktif, jadi barisnya tampil sebagai produk setara.`,
+            en: `An existing HDPE ${i.existingSize} pipe cannot be solvent-cemented: both cut ends are joined with ${i.existingSize} compression couplings or transition adaptors (2 pcs). The coupling has no family in the active Pralon catalogue, so the line shows as an equivalent product.`,
+          });
+        case 'specialist':
+          return localized(locale, {
+            id: `Pipa lama PPR ${i.existingSize} disambung dengan fitting fusi PPR yang bukan lini Pralon; segmen penggantinya diteruskan ke tim teknis.`,
+            en: `The existing PPR ${i.existingSize} pipe needs PPR fusion fittings outside the Pralon range; the replacement segment goes to the technical team.`,
+          });
+        default:
+          return localized(locale, {
+            id: `Segmen pipa lama ${i.existingSize} dipotong, dan kedua ujungnya disambung kembali ke pipa baru dengan sok lem ${i.existingSize} (2 pcs).${unknownId}`,
+            en: `The existing ${i.existingSize} segment is cut out and both ends are rejoined to the new pipe with solvent-cemented ${i.existingSize} sockets (2 pcs).${unknownEn}`,
+          });
+      }
+    }
     switch (o.method) {
       case 'threaded_adaptor':
         return localized(locale, {

@@ -52,6 +52,18 @@ function coreFieldsFor(state: RequirementState): readonly RequirementFieldPath[]
     : CORE_REQUIREMENT_FIELDS;
 }
 
+/**
+ * Data pipa lama yang menahan penggantian sebagian (smoke test 13 Nov 2026, temuan 1). Hanya jalur
+ * rumah: kasus teknis punya parameternya sendiri. Perluasan dan ganti semua tidak ikut — pipa lama
+ * di sana memperkaya hitungan, tidak menentukan ukuran pekerjaan yang dipasang.
+ */
+function existingPipeFieldsNeeded(state: RequirementState): readonly RequirementFieldPath[] {
+  if (state.useCase !== undefined) return [];
+  if (state.water.workType?.value !== 'replace_partial') return [];
+  const paths = ['water.existingMainSize', 'water.existingPipeMaterial'] as const;
+  return paths.some((path) => !isFilled(readField(state, path))) ? paths : [];
+}
+
 export function evaluateCompleteness(state: RequirementState): CompletenessResult {
   const core = coreFieldsFor(state);
   const missing = core.filter((path) => !isFilled(readField(state, path)));
@@ -69,6 +81,11 @@ export function evaluateCompleteness(state: RequirementState): CompletenessResul
     !isFilled(readField(state, 'fixtures.bathroomsPerRoom'))
       ? (['fixtures.bathroomsPerRoom'] as const)
       : []),
+    // Ganti sebagian: pipa yang sedang dipotong adalah ukuran dan bahan segmen penggantinya, jadi
+    // tanpa keduanya tidak ada yang bisa dispesifikasi — potongan 3 m pada pipa 1/2" dijawab
+    // "1 inci" beserta sok PVC (smoke test 13 Nov 2026, temuan 1). "Belum tahu" tetap menjawab:
+    // keduanya punya default `unknown` yang dihitung dengan peringatannya sendiri.
+    ...existingPipeFieldsNeeded(state),
   ];
 
   return {

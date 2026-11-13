@@ -92,15 +92,69 @@ describe('computeRenovation', () => {
       replacementLengthM: 12,
       routeLengthM: 30,
     });
-    expect(r.partial).toEqual({ ratio: 0.4, couplings: 2, lengthM: 12 });
+    expect(r.partial).toEqual({ ratio: 0.4, couplings: 2, lengthM: 12, segmentSize: null });
     expect(r.appliedAssumptionIds).toEqual(['RENOV_COUPLINGS_PER_SEGMENT_2']);
     const whole = computeRenovation({
       mode: 'replace_partial',
       newMainSize: '3/4"',
       routeLengthM: 30,
     });
-    expect(whole.partial).toEqual({ ratio: 1, couplings: 2, lengthM: 30 });
+    expect(whole.partial).toEqual({ ratio: 1, couplings: 2, lengthM: 30, segmentSize: null });
     expect(whole.appliedAssumptionIds).toContain('RENOV_REPLACE_WHOLE_ROUTE');
+  });
+
+  it('ganti sebagian: segmennya mengikuti pipa LAMA, dan sambungannya mengikuti bahannya (smoke test 13 Nov 2026)', () => {
+    // Repro: pipa lama HDPE 25 mm, segmen 3 m dari jalur 22,5 m, hitungan rumah menghasilkan 1".
+    // Sebelum ini jawabannya "segmen 1\"" dengan "Sok PVC AW 1\"" — ukuran dan bahan pipa lama
+    // tidak muncul sama sekali, dan PDF-nya bertentangan dengan tabel kebutuhannya sendiri.
+    const r = computeRenovation({
+      mode: 'replace_partial',
+      newMainSize: '1"',
+      existingSize: '25 mm',
+      existingMaterial: 'HDPE',
+      replacementLengthM: 3,
+      routeLengthM: 22.5,
+    });
+    // Segmen yang dipotong dan disambung kembali adalah pipa lama itu sendiri.
+    expect(r.partial?.segmentSize).toBe('25 mm');
+    // Sambungan ujung mengikuti bahan pipa lama: HDPE tidak bisa dilem ke sok PVC.
+    expect(r.tieIn?.method).toBe('compression_coupling');
+    expect(r.tieIn?.fittings).toEqual([
+      { kind: 'transition_coupling', size: '25 mm', quantity: 2 },
+    ]);
+    // Kapasitas tetap DICEK terhadap hitungan beban, tetapi ukurannya tidak diganti diam-diam:
+    // 25 mm (OD 25) lebih kecil dari 1" (OD 33,4), jadi peringatannya yang muncul.
+    expect(r.capacity).toMatchObject({
+      existingSize: '25 mm',
+      requiredSize: '1"',
+      sufficient: false,
+    });
+  });
+
+  it('ganti sebagian PVC: sambungannya sok lem, bukan adaptor transisi', () => {
+    const r = computeRenovation({
+      mode: 'replace_partial',
+      newMainSize: '3"',
+      existingSize: '3"',
+      existingMaterial: 'PVC',
+      replacementLengthM: 3,
+      routeLengthM: 12,
+    });
+    expect(r.tieIn?.method).toBe('solvent_socket');
+    expect(r.tieIn?.fittings).toEqual([{ kind: 'socket', size: '3"', quantity: 2 }]);
+    expect(r.capacity?.sufficient).toBe(true);
+  });
+
+  it('ganti sebagian tanpa ukuran pipa lama: segmen memakai ukuran hitungan, dan alasannya tercatat', () => {
+    const r = computeRenovation({
+      mode: 'replace_partial',
+      newMainSize: '1"',
+      replacementLengthM: 3,
+      routeLengthM: 22.5,
+    });
+    expect(r.partial?.segmentSize).toBeNull();
+    expect(r.tieIn).toBeNull();
+    expect(r.capacityUnchecked).toBe('no_existing_size');
   });
 
   it('ganti semua: tidak ada hitungan tambahan, hanya mode', () => {

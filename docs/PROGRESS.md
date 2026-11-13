@@ -5517,3 +5517,32 @@ operasional, lalu probe ketujuh yang memang dicari.
 
       Sisanya ditunda oleh daftar smoke test 13 Nov (P37): BOQ yang bertentangan dengan hitungannya
       dan pipa lama yang diabaikan menyentuh angka yang dibaca orang di PDF.
+
+## Fase 37 — empat belas temuan smoke test pemilik (13 Nov 2026)
+
+Daftar temuan pemilik, dikerjakan urut kerugian: angka yang dibaca orang di PDF lebih dulu,
+lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
+
+- [x] P37-01 Ganti sebagian mengikuti pipa lama: ukuran segmen, sambungan, dan data yang ditanya
+
+      Temuan 1. Potongan 3 m pada pipa lama 1/2" dijawab "pipa 1 inci" dengan dua sok PVC AW —
+      ukuran hitungan seluruh rumah, bukan ukuran pipa yang sedang dipotong, dan sok lem untuk
+      pipa yang mungkin HDPE atau galvanis. Tiga hal diperbaiki sekaligus:
+
+      ENG-902 sekarang punya dua jenis titik sambung. `branch` seperti sebelumnya (perluasan:
+      tee + sok drat), dan `rejoin` yang baru: dua ujung segmen pengganti disambung kembali ke
+      pipa lama, jadi bahan lama yang menentukan — galvanis dua sok drat, HDPE dua kopling
+      transisi plus kopling kompresi, PPR lewat tukang las PPR (tanpa fitting katalog), PVC dan
+      bahan yang tidak diketahui dua sok. `compute-renovation` memanggilnya untuk
+      `replace_partial` dan membawa `segmentSize` = ukuran pipa LAMA, bukan ukuran hitungan.
+
+      Baris BOM penyambung memakai keluarga pipa lama, dan baris tanpa SKU tidak dihapus: ia
+      tampil sebagai "gunakan produk setara" seperti baris non-katalog lain. Kapasitas pipa lama
+      tetap dicek terhadap kebutuhan beban — pipa 1/2" untuk rumah yang butuh 1" diberi
+      peringatan, bukan diperbesar diam-diam, karena memperbesar jalur adalah pekerjaan lain.
+
+      Dan yang membuat semuanya mungkin: ganti sebagian tanpa ukuran atau bahan pipa lama
+      sekarang menahan analisis. Keduanya masuk `missingInformation` dan kartu klarifikasi —
+      sebelumnya kelengkapan 4/4 dengan daftar kurang kosong. "Belum tahu" tetap menjawab:
+      keduanya punya default `unknown` yang dihitung dengan peringatannya sendiri, dan "itung
+      aja" dari pengguna memakai default itu tanpa mengulang pertanyaan yang sama.

@@ -722,7 +722,13 @@ export function renovationRefinementFields(
     case 'extend':
       return ['water.existingMainSize', 'water.existingOutlets', 'water.existingPipeMaterial'];
     case 'replace_partial':
-      return ['water.replacementLengthM', 'water.existingPipeMaterial'];
+      // Ukuran pipa lama ikut: segmen penggantinya mengikuti ukuran itu, bukan ukuran hitungan
+      // seluruh rumah (smoke test 13 Nov 2026, temuan 1).
+      return [
+        'water.existingMainSize',
+        'water.replacementLengthM',
+        'water.existingPipeMaterial',
+      ];
     case 'replace_all':
       return ['water.existingPipeMaterial'];
     default:
