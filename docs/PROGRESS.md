@@ -5808,3 +5808,14 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
 
       Kasusnya masuk eval live (`PP-49`) supaya bacaan ini diperiksa di instance berjalan, bukan
       hanya di tes unit.
+
+- [x] P37-16 Tujuh skenario smoke test jadi regresi, dan tabel sebelum vs sesudah
+
+      Satu dari tujuh skenario wajib belum punya tes: pipa lama yang bahannya disebut tetapi
+      ukurannya tidak. Sekarang ada, dan yang diperiksa bukan ukuran segmennya saja — melainkan
+      bahwa alasan di balik ukuran itu tidak mengaku "seukuran pipa lama" ketika ukuran lamanya
+      belum pernah diketahui, dan bahwa ukuran lama itu ditanyakan.
+
+      `docs/SMOKE_13NOV_RESULTS.md` memuat jawaban atas permintaan penutup: tabel sebelum vs
+      sesudah untuk ketujuh skenario (ukuran segmen, sambungan, BOM, error), sembilan temuan
+      lainnya, dan tujuh pertanyaan terbuka yang dibuka — OQ-96 sampai OQ-102.

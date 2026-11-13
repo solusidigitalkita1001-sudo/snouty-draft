@@ -18,6 +18,7 @@ import { RuleInputError } from '@snouty/engineering';
 import { mergeRequirement, type FieldUpdate } from '../../context/domain/context-merger.js';
 import { extractionToUpdates } from '../../context/application/extraction-to-updates.js';
 import { houseRefinementQuestions } from '../../context/domain/clarification.js';
+import { isFilled, readField } from '../../context/domain/requirement-field.js';
 import { bomQuantityMismatches, quantityInResult } from '../../report/domain/boq-consistency.js';
 import { withCompleteness } from '../../context/domain/completeness.js';
 import { understoodReply } from '../../context/application/message-pipeline.js';
@@ -143,6 +144,43 @@ describe('ganti-sebagian-hdpe-25mm (temuan 1)', () => {
     // Pipa segmennya seukuran pipa lama, dan panjangnya 3 m — bukan seluruh jalur.
     const pipe = rec.bom.find((b) => /^Pipa /.test(b.item));
     expect(pipe).toMatchObject({ item: 'Pipa HDPE', size: '25 mm', netLengthM: 3 });
+  });
+});
+
+describe('ganti-sebagian-tanpa-ukuran-lama (temuan 1)', () => {
+  const NO_SIZE = stateOf([
+    ...HOUSE,
+    ['water.source', 'municipal'],
+    ['water.installationType', 'clean_water'],
+    ['water.workType', 'replace_partial'],
+    ['water.existingPipeMaterial', 'pvc'],
+    ['water.replacementLengthM', 3],
+  ]);
+
+  it('ukuran pipa lama ditanyakan, bukan ditebak', () => {
+    expect(
+      houseRefinementQuestions(
+        (path) => isFilled(readField(NO_SIZE, path)),
+        'id',
+        'residential',
+        'municipal',
+        'replace_partial',
+        'clean_water',
+      ).map((q) => q.id),
+    ).toContain('water.existingMainSize');
+  });
+
+  it('segmennya tidak mengaku seukuran pipa lama yang belum diketahui', async () => {
+    const { rec } = await analyse(NO_SIZE);
+    const segment = rec.systemLines.find((l) => l.name === 'Segmen yang diganti');
+    // Ada ukurannya — dari hitungan rumah ini — dan kalimatnya tidak menyebut pipa lama seukuran.
+    expect(segment?.size).toBeDefined();
+    expect(segment?.reason ?? '').not.toMatch(/seukuran pipa lama/i);
+    // Dan yang bisa diperbaiki pengguna ditunjuk: ukuran pipa lama.
+    expect(
+      rec.assumptions.some((a) => a.fieldPath === 'water.existingMainSize') ||
+        NO_SIZE.missingInformation?.includes('water.existingMainSize') === true,
+    ).toBe(true);
   });
 });
 
