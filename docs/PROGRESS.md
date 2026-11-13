@@ -5779,3 +5779,16 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       Angkanya dari tabel ukuran PRALON yang sudah dipakai menghitung, bukan konversi di tempat.
       Label yang sudah dalam milimeter (HDPE) tidak diulang, dan ukuran yang tidak ada di tabel
       tampil apa adanya: milimeter karangan lebih buruk daripada tidak ada milimeter.
+
+- [x] P37-14 Jalur pembuangan yang mepet mengatakannya
+
+      Temuan 13. Jalur air bekas 2" dengan beban 7 dari kapasitas 8 DFU lolos UPC, tetapi tanpa
+      cadangan — dan tidak ada apa pun di layar yang mengatakannya.
+
+      Pemakaian kapasitas sekarang dihitung dan dikatakan: di atas 75 % kapasitas, penjelasan
+      jalurnya menyebut angkanya dan akibatnya ("88 % kapasitas jalurnya: masih lolos, tetapi
+      tanpa banyak cadangan — satu alat tambahan di jalur ini melewatinya").
+
+      Ukurannya tidak dinaikkan sendiri. Menaikkan ukuran berarti mengubah material yang dibeli
+      orang, dan itu keputusan teknik Pralon, bukan keputusan tampilan — pertanyaannya di OQ-102
+      dengan usulan defaultnya.

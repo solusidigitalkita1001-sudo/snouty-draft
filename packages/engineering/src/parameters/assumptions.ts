@@ -100,6 +100,24 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description:
       'Toren atap diisi dengan debit 0,25 l/s (15 l/menit, sambungan rumah biasa) untuk menghitung tekanan yang dibutuhkan di meteran.',
   },
+  // ── Cadangan kapasitas jalur pembuangan (smoke test 13 Nov 2026, temuan 13) ──
+  {
+    id: 'DRAIN_NEAR_CAPACITY_75PCT',
+    parameter: 'design_flow',
+    appliesTo: [],
+    condition: 'pemakaian kapasitas jalur pembuangan yang masih dianggap longgar',
+    value: 75,
+    unit: '%',
+    conditionEn: 'drain capacity use still considered comfortable',
+    descriptionEn:
+      'A drain line loaded above 75 % of its tabulated capacity is within the code but has little margin, so it is said out loud. Whether to go up a size there is the Pralon team decision (OQ-102).',
+    reference:
+      'Usulan pemilik 13 Nov 2026 (smoke test, temuan 13); naik-tidaknya ukuran perlu validasi Pralon (OQ-102)',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Jalur pembuangan yang bebannya di atas 75 % kapasitas tabel masih lolos kode tetapi tanpa banyak cadangan, jadi hal itu dikatakan. Naik-tidaknya ukuran di situ keputusan Pralon (OQ-102).',
+  },
   // ── Tujuan air bekas dan grease trap (smoke test 13 Nov 2026, temuan 10) ──
   {
     id: 'GREY_WATER_TO_DRAIN',

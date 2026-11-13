@@ -1754,3 +1754,29 @@ dan tiap dapur mendapat satu grease trap. Yang masih belum ada aturannya:
 
 Yang ditanyakan ke Pralon: volume grease trap per dapur (atau per debit), jarak antar bak kontrol,
 dan apakah kapasitas IPAL perlu dikeluarkan SNOUTY.
+
+### OQ-102 — Naik satu ukuran di atas 75 % kapasitas jalur pembuangan? (P37, 2026-11-13)
+
+**Status:** open · **Blocks:** tidak · _non-blocking_
+
+Smoke test 13 Nov 2026 (temuan 13): jalur air bekas 2" dengan beban 7 DFU dari kapasitas 8 DFU
+(UPC Tabel 703.2) lolos kode, tetapi tanpa cadangan — satu alat tambahan melewatinya. Pemilik
+mengusulkan naik satu ukuran di atas 75 % kapasitas, dan menandainya sendiri sebagai pertanyaan
+domain.
+
+Yang sudah dikerjakan sekarang (ENG-602 v4, `REQUIRES_DOMAIN_VALIDATION`): pemakaian kapasitas
+dihitung dan **dikatakan**. Jalur yang bebannya di atas 75 % kapasitas menjelaskan dirinya sendiri:
+"beban itu 88 % kapasitas jalurnya: masih lolos, tetapi tanpa banyak cadangan — satu alat tambahan
+di jalur ini melewatinya". Ukurannya **tidak** dinaikkan: menaikkan ukuran berarti mengubah
+material yang dibeli orang, dan itu keputusan teknik, bukan keputusan tampilan.
+
+**Usulan default** (menunggu persetujuan):
+
+- Batas longgar 75 % (DRAIN_NEAR_CAPACITY_75PCT), dipakai hanya untuk mengatakan tipisnya cadangan.
+- Bila Pralon setuju ukuran dinaikkan: jalur yang bebannya di atas batas memakai satu ukuran di
+  atas ukuran kapasitasnya, dan penjelasannya menyebut alasan itu apa adanya ("dinaikkan satu
+  ukuran karena bebannya 88 % kapasitas 2"").
+
+Yang ditanyakan ke Pralon: apakah ukuran dinaikkan otomatis di atas 75 %, dan kalau ya, apakah
+batasnya 75 % atau angka lain (dan apakah berlaku untuk jalur air kotor juga, yang biasanya sudah
+ditentukan ukuran minimum kloset 4").

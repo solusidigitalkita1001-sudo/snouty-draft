@@ -229,6 +229,7 @@ export function computeHouseDrainage(
           dfu: load.soilDfu,
           minimumSize: soilMin,
           branchStackSize: branchStack(soilFloors, soilMin),
+          nearCapacityPct: use('DRAIN_NEAR_CAPACITY_75PCT'),
         })
       : null;
 
@@ -258,6 +259,7 @@ export function computeHouseDrainage(
           dfu: load.wasteDfu,
           minimumSize: wasteMin,
           branchStackSize: branchStack(wasteFloors, wasteMin),
+          nearCapacityPct: use('DRAIN_NEAR_CAPACITY_75PCT'),
         })
       : null;
 

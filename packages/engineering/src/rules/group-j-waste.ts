@@ -267,6 +267,12 @@ export interface DrainLineInput {
   readonly minimumSize: DrainSize;
   /** Ukuran minimum dari cabang mendatar per lantai dan pipa tegak (ENG-604); `null` = tidak dicek. */
   readonly branchStackSize: DrainSize | null;
+  /**
+   * Batas pemakaian kapasitas yang masih dianggap longgar (%, DRAIN_NEAR_CAPACITY_75PCT). Di atas
+   * ini jalurnya TETAP lolos kode, tetapi tipis — dan itu dikatakan, bukan didiamkan (smoke test
+   * 13 Nov 2026, temuan 13). Menaikkan ukurannya sendiri menunggu validasi Pralon (OQ-102).
+   */
+  readonly nearCapacityPct: number;
 }
 export interface DrainLineResult {
   /** Ukuran terkecil yang kapasitasnya cukup untuk beban ini. */
@@ -275,6 +281,10 @@ export interface DrainLineResult {
   readonly capacityDfu: number;
   /** Pipa ventilasi: minimal setengah diameter jalur, tidak kurang dari 1¼" (IPC 906.2). */
   readonly ventSize: DrainSize;
+  /** Beban ini berapa persen kapasitas jalur yang dipilih. */
+  readonly capacityUsedPct: number;
+  /** Pemakaian kapasitas di atas batas longgar: lolos, tetapi tanpa banyak cadangan. */
+  readonly nearCapacity: boolean;
 }
 
 function inches(size: DrainSize): number {
@@ -284,8 +294,10 @@ function inches(size: DrainSize): number {
 export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
   ruleId: 'ENG-602',
   // v2 (2026-10-12, temuan laporan 0009): ukuran juga tidak di bawah cabang/stack (ENG-604).
+  // v4 (smoke test 13 Nov 2026, temuan 13): pemakaian kapasitas dihitung, dan jalur yang lolos
+  // tetapi tipis mengatakannya. Ukurannya belum dinaikkan — itu keputusan Pralon (OQ-102).
   // v3 (OQ-88, 2026-10-27): kapasitas dari UPC Tabel 703.2, yang lebih ketat di 2" dan 3".
-  version: 3,
+  version: 4,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -301,6 +313,10 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
       dfu: requireNumber('ENG-602', 'dfu', o['dfu'], { min: 0, max: 840 }),
       minimumSize: minimumSize as DrainSize,
       branchStackSize: branchStack as DrainSize | null,
+      nearCapacityPct: requireNumber('ENG-602', 'nearCapacityPct', o['nearCapacityPct'], {
+        min: 1,
+        max: 100,
+      }),
     };
   },
   compute: (i) => {
@@ -310,7 +326,16 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
     const size = larger(larger(capacitySize, i.minimumSize), i.branchStackSize ?? capacitySize);
     const half = inches(size) / 2;
     const ventSize = DRAIN_SIZES.find((s) => inches(s) >= Math.max(1.25, half))!;
-    return { capacitySize, size, capacityDfu: DRAIN_CAPACITY_DFU_2PCT[size] ?? 0, ventSize };
+    const capacityDfu = DRAIN_CAPACITY_DFU_2PCT[size] ?? 0;
+    const capacityUsedPct = capacityDfu > 0 ? Math.round((i.dfu / capacityDfu) * 100) : 0;
+    return {
+      capacitySize,
+      size,
+      capacityDfu,
+      ventSize,
+      capacityUsedPct,
+      nearCapacity: capacityUsedPct >= i.nearCapacityPct,
+    };
   },
   sourceReference:
     'Kapasitas saluran mendatar pada kemiringan ¼ inci per kaki (2,08 %), UPC Tabel 703.2: 2" 8, 2½" 14, 3" 35, 4" 216, 5" 428, 6" 720 DFU; ukuran tidak di bawah alat terbesar dan tidak di bawah cabang mendatar / pipa tegak (ENG-604); ventilasi ≥ ½ diameter jalur, minimal 1¼" (UPC 904.1)',
@@ -319,18 +344,51 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
   testCases: [
     {
       name: 'air kotor 12 DFU muat di 2½", minimum kloset 4" → 4", ventilasi 2"',
-      input: { dfu: 12, minimumSize: '4"', branchStackSize: null },
-      expected: { capacitySize: '2½"', size: '4"', capacityDfu: 216, ventSize: '2"' },
+      input: { dfu: 12, minimumSize: '4"', branchStackSize: null, nearCapacityPct: 75 },
+      expected: {
+        capacitySize: '2½"',
+        size: '4"',
+        capacityDfu: 216,
+        ventSize: '2"',
+        capacityUsedPct: 6,
+        nearCapacity: false,
+      },
     },
     {
       name: 'air bekas 30 DFU, minimum 2" → 3" dari kapasitas (UPC 35), ventilasi 1½"',
-      input: { dfu: 30, minimumSize: '2"', branchStackSize: null },
-      expected: { capacitySize: '3"', size: '3"', capacityDfu: 35, ventSize: '1½"' },
+      input: { dfu: 30, minimumSize: '2"', branchStackSize: null, nearCapacityPct: 75 },
+      expected: {
+        capacitySize: '3"',
+        size: '3"',
+        capacityDfu: 35,
+        ventSize: '1½"',
+        capacityUsedPct: 86,
+        nearCapacity: true,
+      },
     },
     {
       name: 'air bekas 16 DFU lewat kapasitas 2½" (14) → 3", ventilasi 1½"',
-      input: { dfu: 16, minimumSize: '2"', branchStackSize: '2½"' },
-      expected: { capacitySize: '3"', size: '3"', capacityDfu: 35, ventSize: '1½"' },
+      input: { dfu: 16, minimumSize: '2"', branchStackSize: '2½"', nearCapacityPct: 75 },
+      expected: {
+        capacitySize: '3"',
+        size: '3"',
+        capacityDfu: 35,
+        ventSize: '1½"',
+        capacityUsedPct: 46,
+        nearCapacity: false,
+      },
+    },
+    {
+      name: 'air bekas 7 DFU di 2" (kapasitas 8): lolos, tetapi 88 % kapasitas',
+      input: { dfu: 7, minimumSize: '2"', branchStackSize: null, nearCapacityPct: 75 },
+      expected: {
+        capacitySize: '2"',
+        size: '2"',
+        capacityDfu: 8,
+        ventSize: '1¼"',
+        capacityUsedPct: 88,
+        nearCapacity: true,
+      },
     },
   ],
   explain: (i, o, locale) =>
@@ -342,7 +400,10 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
           : o.size === i.branchStackSize && o.size !== i.minimumSize
             ? `, tetapi cabang per lantai dan pipa tegaknya butuh minimal ${o.size}, jadi jalurnya ${o.size}`
             : `, tetapi alat terbesar di jalur ini butuh minimal ${i.minimumSize}, jadi jalurnya ${o.size}`) +
-        ` (kapasitas ${o.capacityDfu}). Pipa ventilasinya ${o.ventSize}, setengah diameter jalur dan tidak kurang dari 1¼".`,
+        ` (kapasitas ${o.capacityDfu}). Pipa ventilasinya ${o.ventSize}, setengah diameter jalur dan tidak kurang dari 1¼".` +
+        (o.nearCapacity
+          ? ` Beban itu ${o.capacityUsedPct} % kapasitas jalurnya: masih lolos, tetapi tanpa banyak cadangan — satu alat tambahan di jalur ini melewatinya, dan di situ ukurannya naik satu tingkat.`
+          : ''),
       en:
         `A load of ${i.dfu} fits a ${o.capacitySize} pipe at 2 % slope` +
         (o.size === o.capacitySize
@@ -350,7 +411,10 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
           : o.size === i.branchStackSize && o.size !== i.minimumSize
             ? `, but the branch per floor and the stack need at least ${o.size}, so the line is ${o.size}`
             : `, but the largest fixture on this line needs at least ${i.minimumSize}, so the line is ${o.size}`) +
-        ` (capacity ${o.capacityDfu}). Its vent pipe is ${o.ventSize}, half the line diameter and not under 1¼".`,
+        ` (capacity ${o.capacityDfu}). Its vent pipe is ${o.ventSize}, half the line diameter and not under 1¼".` +
+        (o.nearCapacity
+          ? ` That load is ${o.capacityUsedPct} % of the line capacity: within the code, but with little margin — one more fixture on this line passes it, and then the size goes up a step.`
+          : ''),
     }),
 };
 
