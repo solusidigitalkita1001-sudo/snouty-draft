@@ -211,7 +211,7 @@ export function systemLinesFrom(
     'ENG-703',
   );
   const fixtureTraces = traceIdsFor(traces, 'ENG-005');
-  const sourceTraces = traceIdsFor(traces, 'ENG-702', 'ENG-204', 'ENG-206', 'ENG-703');
+  const sourceTraces = traceIdsFor(traces, 'ENG-702', 'ENG-204', 'ENG-206', 'ENG-703', 'ENG-712');
   const supply = solution.supply;
   const num = (n: number) => n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
 
@@ -289,9 +289,14 @@ export function systemLinesFrom(
               ? 'Pressure needed at the water meter'
               : 'Tekanan yang dibutuhkan di meteran PDAM',
             size: `${num(supply.requiredSourcePressureBar)} bar`,
-            reason: en
-              ? `${explanationFor(traces, 'ENG-204')} If the mains pressure is lower, feed a tank first and pump from it.`
-              : `${explanationFor(traces, 'ENG-204')} Kalau tekanan PDAM di bawah itu, tampung dulu di toren lalu pakai pompa.`,
+            // Tekanan yang di atas batas statik per zona DISEBUT di baris yang mencetak angkanya
+            // (ENG-712): 18,76 bar di meteran PDAM dicetak tanpa catatan apa pun sebelum smoke
+            // test 13 Nov 2026, padahal jaringan PDAM mana pun jauh di bawahnya.
+            reason: supply.sourcePressure?.exceedsZoneLimit
+              ? explanationFor(traces, 'ENG-712')
+              : en
+                ? `${explanationFor(traces, 'ENG-204')} If the mains pressure is lower, feed a tank first and pump from it.`
+                : `${explanationFor(traces, 'ENG-204')} Kalau tekanan PDAM di bawah itu, tampung dulu di toren lalu pakai pompa.`,
           }
         : pump
           ? {

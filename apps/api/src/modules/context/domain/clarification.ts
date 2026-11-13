@@ -802,7 +802,45 @@ export function dimensionQuestionInputs(
   return toQuestion('building.dimensions', locale)!.inputs!;
 }
 
+/**
+ * Isian jumlah lantai untuk kartu kewajaran "rumah tinggal 50 lantai" (smoke test 13 Nov 2026):
+ * yang perlu dibetulkan di sana angka lantainya, bukan ukuran bangunannya.
+ */
+export function floorCountQuestionInputs(
+  locale: Locale = DEFAULT_LOCALE,
+): NonNullable<ClarificationQuestion['inputs']> {
+  const en = locale === 'en';
+  return [
+    {
+      key: 'value',
+      unit: '',
+      group: en ? 'Number of floors' : 'Jumlah lantai',
+      label: en ? 'Floors' : 'Lantai',
+      required: true,
+      min: 1,
+      max: 200,
+    },
+  ];
+}
 /** `"lengthM=8;widthM=12;…"` → ukuran, dengan pagar yang sama seperti kartu ukuran; selain itu `null`. */
 export function parseDimensionAnswer(option: string): Dimensions | null {
   return option.includes('=') ? (inputValues(option, DIMENSION_INPUTS) as Dimensions | null) : null;
+}
+
+/** `"value=50"` → jumlah lantai dari kartu kewajaran; selain itu `null`. */
+export function parseFloorCountAnswer(option: string): number | null {
+  const value = option.includes('=')
+    ? inputValues(option, [
+        {
+          key: 'value',
+          unit: '',
+          group: { id: 'Jumlah lantai', en: 'Number of floors' },
+          label: { id: 'Lantai', en: 'Floors' },
+          required: true,
+          min: 1,
+          max: 200,
+        },
+      ])?.['value']
+    : undefined;
+  return value ?? null;
 }

@@ -5587,3 +5587,25 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       NaN, teks di tempat angka, field yang hilang — dan penolakannya harus `RuleInputError`.
       Empat aturan (ENG-013, ENG-404, ENG-602, ENG-604) masih melempar `Error` biasa, yang di
       lapisan API berarti 503; keempatnya diperbaiki.
+
+- [x] P37-04 Tekanan 18 bar di meteran PDAM dibawa dengan jalan keluarnya, dan 50 lantai ditanya
+
+      Temuan 4. Rumah tinggal 50 lantai dengan PDAM langsung dijawab "tekanan yang dibutuhkan di
+      meteran PDAM 18,76 bar" dengan satu pipa utama 1", tanpa sepatah kata pun bahwa angka itu
+      tidak ada di jaringan PDAM mana pun.
+
+      Aturan baru ENG-712 membandingkan tekanan yang dibutuhkan di sumber dengan batas tekanan
+      statik per zona (asumsi `ZONE_MAX_STATIC_4BAR`, Noerbambang & Morimura — lingkupnya
+      diperluas ke jalur rumah) dan dengan tekanan kerja pipa. Di atas batas itu, barisnya sendiri
+      yang mencetak angkanya menjelaskan jalan keluarnya: air ditampung di tangki bawah lalu
+      dipompa, dan jalurnya dibagi sejumlah zona dengan katup penurun tekanan.
+
+      Tekanan kerja pipa tidak dikarang. Katalog ERP hanya menyimpan nama kelas (`AW`, `D`), dan
+      standar produk uPVC Pralon memberi tebal dinding tanpa tekanan kerja — jadi masukannya `null`
+      dan jawabannya menyebut "tekanan kerja pipanya belum tercatat, jadi belum dibandingkan".
+      Permintaan datanya ke Pralon: OQ-96. Untuk HDPE angkanya sebetulnya ada (pemetaan SDR → PN di
+      data handbook) dan bisa dihubungkan menyusul.
+
+      Dan sebelum semua itu: 50 lantai untuk bangunan yang disebut rumah tinggal sekarang
+      menimbulkan kartu kewajaran, dengan isian jumlah lantai untuk membetulkannya — batas 4 lantai
+      sesuai permintaan pemilik, menunggu validasi di OQ-97.

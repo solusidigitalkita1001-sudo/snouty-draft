@@ -1859,7 +1859,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
   {
     id: 'ZONE_MAX_STATIC_4BAR',
     parameter: 'required_pressure',
-    appliesTo: ['multistorey_building_water'],
+    // Juga dipakai jalur rumah: cek tekanan di sumber (ENG-712) memakai batas yang sama, dan
+    // rumah 50 lantai dengan PDAM langsung menghasilkan 18,76 bar (smoke test 13 Nov 2026).
+    appliesTo: [],
     condition: 'batas tekanan statik per zona tidak ditentukan',
     value: 4,
     unit: 'bar',

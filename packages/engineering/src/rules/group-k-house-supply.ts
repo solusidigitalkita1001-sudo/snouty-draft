@@ -1480,6 +1480,93 @@ export const ENG_711: RuleVersion<TankStandOptionsInput, TankStandOptionsResult>
   },
 };
 
+// ── ENG-712 · Tekanan yang dibutuhkan di sumber vs batas yang masuk akal ────────
+
+export interface SourcePressureCheckInput {
+  /** Tekanan yang harus ada di meteran atau pompa supaya titik tertinggi terlayani. */
+  readonly requiredBar: number;
+  /** Batas tekanan statik per zona (asumsi registry) — di atasnya jalur dibagi zona. */
+  readonly zoneMaxStaticBar: number;
+  /** Tekanan kerja pipa yang dipakai; `null` = tidak tercatat, jadi tidak dibandingkan. */
+  readonly pipeRatingBar: number | null;
+}
+export interface SourcePressureCheckResult {
+  /** Satu jalur tanpa zona tidak cukup: tekanannya di atas batas statik per zona. */
+  readonly exceedsZoneLimit: boolean;
+  /** Di atas tekanan kerja pipa; `null` = tekanan kerjanya tidak tercatat. */
+  readonly exceedsRating: boolean | null;
+  /** Jumlah zona bila dibagi pada batas statik itu. */
+  readonly zones: number;
+}
+
+/**
+ * Smoke test 13 Nov 2026 (temuan 4): rumah 50 lantai dengan PDAM langsung dijawab "tekanan yang
+ * dibutuhkan di meteran PDAM 18,76 bar" tanpa sepatah kata pun bahwa angka itu tidak ada di
+ * jaringan PDAM mana pun dan di atas tekanan kerja pipa yang sama disebut di baris atasnya.
+ *
+ * Aturannya hanya membandingkan — batas statik per zona datang dari asumsi registry
+ * (`ZONE_MAX_STATIC_4BAR`, Noerbambang & Morimura), dan tekanan kerja pipa dari data standar.
+ * Tekanan kerja pipa PVC AW belum ada di data mana pun yang dimiliki repo ini, jadi ia `null` dan
+ * disebut belum bisa dicek, bukan dikarang (OQ-96).
+ */
+export const ENG_712: RuleVersion<SourcePressureCheckInput, SourcePressureCheckResult> = {
+  ruleId: 'ENG-712',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const rating = o['pipeRatingBar'];
+    if (rating !== null && rating !== undefined && typeof rating !== 'number') {
+      throw new RuleInputError('ENG-712', 'pipeRatingBar harus angka bar atau null');
+    }
+    if (typeof rating === 'number' && !(rating > 0 && rating <= 100)) {
+      throw new RuleInputError('ENG-712', `pipeRatingBar di luar 0–100 bar: ${rating}`);
+    }
+    return {
+      requiredBar: requireNumber('ENG-712', 'requiredBar', o['requiredBar'], { min: 0, max: 1000 }),
+      zoneMaxStaticBar: requireNumber('ENG-712', 'zoneMaxStaticBar', o['zoneMaxStaticBar'], {
+        min: 0.5,
+        max: 20,
+      }),
+      pipeRatingBar: typeof rating === 'number' ? rating : null,
+    };
+  },
+  compute: (i) => ({
+    exceedsZoneLimit: i.requiredBar > i.zoneMaxStaticBar,
+    exceedsRating: i.pipeRatingBar === null ? null : i.requiredBar > i.pipeRatingBar,
+    zones: Math.max(1, Math.ceil(i.requiredBar / i.zoneMaxStaticBar)),
+  }),
+  sourceReference:
+    'Perbandingan tekanan: tekanan yang dibutuhkan di sumber vs batas tekanan statik per zona (Noerbambang & Morimura) dan tekanan kerja pipa menurut data standarnya',
+  standard: 'Noerbambang & Morimura, Perancangan dan Pemeliharaan Sistem Plambing',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'rumah 50 lantai, 18,76 bar, batas zona 4 bar, kelas pipa tidak tercatat',
+      input: { requiredBar: 18.76, zoneMaxStaticBar: 4, pipeRatingBar: null },
+      expected: { exceedsZoneLimit: true, exceedsRating: null, zones: 5 },
+    },
+    {
+      name: 'rumah 2 lantai, 0,8 bar: satu zona, di bawah tekanan kerja 10 bar',
+      input: { requiredBar: 0.8, zoneMaxStaticBar: 4, pipeRatingBar: 10 },
+      expected: { exceedsZoneLimit: false, exceedsRating: false, zones: 1 },
+    },
+    {
+      name: 'tekanan di atas tekanan kerja pipa yang tercatat',
+      input: { requiredBar: 12, zoneMaxStaticBar: 4, pipeRatingBar: 10 },
+      expected: { exceedsZoneLimit: true, exceedsRating: true, zones: 3 },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: o.exceedsZoneLimit
+        ? `Tekanan ${i.requiredBar} bar di sumber melebihi batas tekanan statik ${i.zoneMaxStaticBar} bar per zona${o.exceedsRating === true ? ` dan tekanan kerja pipa ${i.pipeRatingBar} bar` : o.exceedsRating === null ? '; tekanan kerja pipanya belum tercatat, jadi belum dibandingkan' : ''}. Satu jalur dari meteran tidak bisa melayani seluruh bangunan: air ditampung di tangki bawah lalu dipompa, dan jalurnya dibagi ${o.zones} zona dengan katup penurun tekanan.`
+        : `Tekanan ${i.requiredBar} bar di sumber masih di bawah batas tekanan statik ${i.zoneMaxStaticBar} bar per zona, jadi satu zona cukup${o.exceedsRating === null ? '; tekanan kerja pipanya belum tercatat' : ''}.`,
+      en: o.exceedsZoneLimit
+        ? `The ${i.requiredBar} bar needed at the source is above the ${i.zoneMaxStaticBar} bar static limit per zone${o.exceedsRating === true ? ` and above the ${i.pipeRatingBar} bar working pressure of the pipe` : o.exceedsRating === null ? '; the pipe working pressure is not recorded, so it was not compared' : ''}. One run from the meter cannot serve the whole building: store the water in a ground tank and pump it, splitting the run into ${o.zones} zones with pressure-reducing valves.`
+        : `The ${i.requiredBar} bar needed at the source is below the ${i.zoneMaxStaticBar} bar static limit per zone, so one zone is enough${o.exceedsRating === null ? '; the pipe working pressure is not recorded' : ''}.`,
+    }),
+};
 export const GROUP_K = [
   ENG_701,
   ENG_702,
@@ -1492,4 +1579,5 @@ export const GROUP_K = [
   ENG_709,
   ENG_710,
   ENG_711,
+  ENG_712,
 ] as const;

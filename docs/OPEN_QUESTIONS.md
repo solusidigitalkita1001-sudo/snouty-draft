@@ -1589,3 +1589,44 @@ disentuh, kasus salinannya di topik itu ikut diubah menjadi parafrase. Tanpa put
 mengubah 145 kalimat sekaligus berarti satu putaran eval yang tidak bisa dibaca penyebabnya bila
 turun. Akurasi akan TURUN saat ini dikerjakan, dan penurunannya adalah hal yang benar — ia angka
 yang sebelumnya terlalu tinggi.
+
+### OQ-96 — Tekanan kerja pipa per kelas tidak ada di data mana pun (P37, 2026-11-13)
+
+**Status:** open · **Blocks:** cek tekanan vs kelas pipa (ENG-712) hanya setengah jalan ·
+_non-blocking_
+
+Smoke test 13 Nov 2026 (temuan 4) meminta tekanan kerja sistem dibandingkan dengan rating pipa
+yang dipilih, "diambil dari katalog atau data standar, jangan hardcode". Keduanya diperiksa:
+
+- Katalog ERP 2026-10-06 punya kolom `pressure_class`, tetapi isinya nama kelas (`AW`, `D`), bukan
+  tekanan kerja dalam bar.
+- `data/standards/2026-10-14-prod-std-004/pralon-upvc.json` memberi tebal dinding dan berat per
+  ukuran untuk kelas AW, D, dan C — tanpa tekanan kerja.
+- `data/standards/2026-10-14-pralon-handbook/standards.json` memberi pemetaan SDR → PN untuk HDPE
+  (PN = bar), jadi untuk HDPE angkanya ADA. Untuk uPVC tidak.
+
+ENG-712 karena itu membandingkan tekanan yang dibutuhkan dengan batas tekanan statik per zona
+(`ZONE_MAX_STATIC_4BAR`, Noerbambang & Morimura) dan menerima tekanan kerja pipa sebagai masukan
+yang boleh `null`. Dengan `null` jawabannya menyebut "tekanan kerja pipanya belum tercatat, jadi
+belum dibandingkan" — bukan angka yang dikarang.
+
+**Usulan default:** minta Pralon memberi tekanan kerja (bar) tiap kelas uPVC — AW, D, C — beserta
+dokumen sumbernya, lalu masukkan sebagai data standar seperti tabel tebal dinding. Sampai itu ada,
+pembandingnya tetap batas statik per zona. HDPE bisa dihubungkan lebih dulu dari pemetaan SDR → PN
+yang sudah ada.
+
+### OQ-97 — Batas jumlah lantai yang masih dibaca rumah tinggal (P37, 2026-11-13)
+
+**Status:** open · **Blocks:** tidak ada · _non-blocking_
+
+Smoke test 13 Nov 2026 (temuan 4): rumah tinggal 50 lantai dihitung tanpa pertanyaan apa pun.
+Permintaannya "pertimbangkan batas wajar `building.floors` untuk `residential` (minta konfirmasi di
+atas ±4 lantai)", dan angka ±4 itu yang dipakai: `MAX_RESIDENTIAL_FLOORS = 4` menimbulkan kartu
+kewajaran "50 lantai untuk bangunan yang disebut rumah tinggal lebih dari 4 lantai — jumlah lantai
+dan jenis bangunannya sudah benar?", dengan isian jumlah lantai untuk membetulkannya.
+
+Bangunan yang jenisnya memang bertingkat (ruko, gedung publik, tempat ibadah) tidak ikut: yang
+ditanya hanya `residential` dan `boarding_house`.
+
+**Usulan default:** pertahankan 4 sampai Pralon menyebut angka lain. Rumah tinggal 5 lantai ada,
+tetapi ia layak satu pertanyaan; dan kos bertingkat tinggi biasanya bukan rumah tinggal lagi.

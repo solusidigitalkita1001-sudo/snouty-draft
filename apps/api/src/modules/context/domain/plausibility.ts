@@ -15,14 +15,23 @@ import type {
   RequirementState,
 } from '@snouty/shared-types';
 import type { FieldUpdate } from './context-merger.js';
-import { dimensionQuestionInputs, parseDimensionAnswer } from './clarification.js';
+import {
+  dimensionQuestionInputs,
+  floorCountQuestionInputs,
+  parseDimensionAnswer,
+  parseFloorCountAnswer,
+} from './clarification.js';
 
 /** Awalan `id` jawaban kartu kewajaran: `outlier.area_per_bathroom`. */
 export const OUTLIER_ANSWER_PREFIX = 'outlier.';
 /** Pilihan penegasan — protokol (label Indonesia kanonik). */
 export const OUTLIER_CONFIRM = 'Sudah benar';
 
-const CODES: readonly HouseOutlierCode[] = ['area_per_bathroom', 'land_smaller_than_building'];
+const CODES: readonly HouseOutlierCode[] = [
+  'area_per_bathroom',
+  'land_smaller_than_building',
+  'floors_for_residential',
+];
 
 /** Masalah kewajaran dari state jalur bangunan; jalur irigasi/teknis punya pagarnya sendiri. */
 export function stateInputIssues(state: RequirementState): readonly HouseInputIssue[] {
@@ -30,6 +39,7 @@ export function stateInputIssues(state: RequirementState): readonly HouseInputIs
   const d = state.building.dimensions.value;
   return houseInputIssues({
     floors: state.building.floors.value,
+    buildingType: state.building.type.value,
     bathrooms: state.fixtures.bathrooms.value,
     ...(d?.lengthM !== undefined ? { lengthM: d.lengthM } : {}),
     ...(d?.widthM !== undefined ? { widthM: d.widthM } : {}),
@@ -56,7 +66,12 @@ export function outlierQuestions(
     question: en ? issue.questionEn : issue.question,
     options: [OUTLIER_CONFIRM],
     ...(en ? { optionLabels: ['Yes, that is right'] } : {}),
-    inputs: dimensionQuestionInputs(locale),
+    // Yang dibetulkan di kartu ini: angka lantainya pada masalah lantai, ukuran bangunan pada
+    // masalah ukuran. Isian ukuran untuk pertanyaan jumlah lantai tidak bisa menjawabnya.
+    inputs:
+      issue.code === 'floors_for_residential'
+        ? floorCountQuestionInputs(locale)
+        : dimensionQuestionInputs(locale),
     allowUnknown: false,
   }));
 }
@@ -76,6 +91,12 @@ export function outlierAnswer(answer: {
   if (!isOutlierAnswerId(answer.id)) return null;
   const code = answer.id.slice(OUTLIER_ANSWER_PREFIX.length) as HouseOutlierCode;
   if (answer.option === OUTLIER_CONFIRM) return { confirm: code };
+  if (code === 'floors_for_residential') {
+    const floors = parseFloorCountAnswer(answer.option);
+    return floors === null
+      ? null
+      : { update: { path: 'building.floors', value: floors, source: 'user_stated' } };
+  }
   const dimensions = parseDimensionAnswer(answer.option);
   return dimensions === null
     ? null

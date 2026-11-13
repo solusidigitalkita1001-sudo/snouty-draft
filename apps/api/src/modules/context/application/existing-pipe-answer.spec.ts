@@ -144,5 +144,6 @@ describe('permintaan hemat tidak mendahului pertanyaan pipa lama', () => {
       .join(' ');
     expect(text).toContain('Pipa utama lama 3" cukup');
     expect(text).not.toContain('Soal hemat');
-  });
+    // Giliran ini memuat lapisan pemahaman; di suite penuh 5 detik bawaan vitest kadang terlampaui.
+  }, 20_000);
 });

@@ -41,6 +41,7 @@ import {
   ENG_709,
   ENG_710,
   ENG_711,
+  ENG_712,
   ENG_705,
   ENG_706,
   ENG_707,
@@ -94,6 +95,11 @@ export interface SolutionInput {
   readonly outdoorTaps?: number | null;
   /** Keran tambahan di dalam rumah (ruang cuci, dapur atas), di lantai teratas — P33-04. */
   readonly upperFloorTaps?: number | null;
+  /**
+   * Tekanan kerja pipa yang dipakai (bar) untuk cek tekanan di sumber (ENG-712); kosong = tidak
+   * tercatat di katalog maupun data standar, jadi tidak dibandingkan (OQ-96).
+   */
+  readonly pipeRatingBar?: number | null;
 }
 
 export interface CalculationTrace {
@@ -143,6 +149,17 @@ export interface HouseSupply {
   } | null;
   /** PDAM: tekanan yang harus tersedia di meteran; selain itu `null`. */
   readonly requiredSourcePressureBar: number | null;
+  /**
+   * Cek tekanan di sumber (ENG-712) — hanya PDAM langsung. 18,76 bar di meteran bukan angka yang
+   * ada di jaringan mana pun, dan sebelum smoke test 13 Nov 2026 ia dicetak tanpa catatan apa pun.
+   */
+  readonly sourcePressure: {
+    readonly requiredBar: number;
+    readonly zoneMaxStaticBar: number;
+    readonly exceedsZoneLimit: boolean;
+    readonly exceedsRating: boolean | null;
+    readonly zones: number;
+  } | null;
 }
 
 export interface SolutionResult {
@@ -581,6 +598,22 @@ export function computeSolution(
   }
   const requiredSourcePressureBar =
     input.waterSource === 'municipal' ? round2(main.totalDynamicHeadM / 10.197) : null;
+  // Tekanan di sumber dibandingkan dengan batas statik per zona dan tekanan kerja pipa (ENG-712):
+  // 18,76 bar di meteran PDAM bukan angka yang ada di jaringan mana pun, jadi ia tidak boleh
+  // dicetak tanpa catatan. Tekanan kerja pipa PVC AW belum ada di data standar yang dimiliki
+  // repo ini, jadi pembandingnya `null` dan jawabannya menyebut itu (OQ-96).
+  const sourcePressure =
+    requiredSourcePressureBar === null
+      ? null
+      : (() => {
+          const zoneMaxStaticBar = use('ZONE_MAX_STATIC_4BAR');
+          const out = run(ENG_712, {
+            requiredBar: requiredSourcePressureBar,
+            zoneMaxStaticBar,
+            pipeRatingBar: input.pipeRatingBar ?? null,
+          });
+          return { requiredBar: requiredSourcePressureBar, zoneMaxStaticBar, ...out };
+        })();
 
   // 5 · cabang: debit tiap cabang dari bebannya sendiri pada kecepatan rencana; cabang berbeban
   // sama dihitung sekali. Cabang dikelompokkan per ukuran untuk tabel sistem dan material.
@@ -737,6 +770,7 @@ export function computeSolution(
       tankStand,
       well,
       requiredSourcePressureBar,
+      sourcePressure,
     },
     mainRunNetM: hasRealDimensions ? route.routeLengthM : null,
     yardM: yard,

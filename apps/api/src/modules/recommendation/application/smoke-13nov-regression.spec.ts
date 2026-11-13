@@ -17,6 +17,11 @@ import { describe, expect, it } from 'vitest';
 import { RuleInputError } from '@snouty/engineering';
 import { mergeRequirement, type FieldUpdate } from '../../context/domain/context-merger.js';
 import { withCompleteness } from '../../context/domain/completeness.js';
+import {
+  outlierAnswer,
+  outlierQuestions,
+  pendingOutliers,
+} from '../../context/domain/plausibility.js';
 import { emptyRequirementState } from '../../context/domain/requirement-state.factory.js';
 import type { TraceToSave } from '../domain/recommendation.repository.js';
 import { AnalysisService } from './analysis.service.js';
@@ -186,5 +191,44 @@ describe('nol-titik-air (temuan 3)', () => {
     await expect(analyse(ZERO)).rejects.toSatisfy(
       (error: unknown) => error instanceof RuleInputError,
     );
+  });
+});
+
+describe('50-lantai-pdam (temuan 4)', () => {
+  const TALL: ReadonlyArray<readonly [string, unknown]> = [
+    ['building.type', 'residential'],
+    ['building.floors', 50],
+    ['fixtures.bathrooms', 1],
+    ['fixtures.basins', 1],
+    ['fixtures.kitchens', 1],
+    ['water.source', 'municipal'],
+    ['water.installationType', 'clean_water'],
+  ];
+
+  it('rumah tinggal 50 lantai ditanya dulu: itu bukan rumah tinggal, atau angkanya salah', () => {
+    const issues = pendingOutliers(stateOf(TALL));
+    expect(issues.map((i) => i.code)).toContain('floors_for_residential');
+    // Kartunya bisa membetulkan jumlah lantainya, bukan ukuran bangunan.
+    const card = outlierQuestions(issues, 'id').find(
+      (q) => q.id === 'outlier.floors_for_residential',
+    );
+    expect(card?.inputs?.map((i) => i.key)).toEqual(['value']);
+    expect(outlierAnswer({ id: 'outlier.floors_for_residential', option: 'value=3' })).toEqual({
+      update: { path: 'building.floors', value: 3, source: 'user_stated' },
+    });
+  });
+
+  it('tekanan 18 bar di meteran PDAM dibawa dengan peringatan dan jalan keluarnya', async () => {
+    const { rec } = await analyse(
+      stateOf([...TALL, ['building.dimensions', { lengthM: 12, widthM: 5 }]]),
+    );
+    const line = rec.systemLines.find((l) => /meteran PDAM|water meter/.test(l.name));
+    expect(line?.size).toMatch(/bar$/);
+    // Angka yang tidak ada di jaringan PDAM mana pun tidak dicetak tanpa catatan.
+    expect(line?.reason).toMatch(/melebihi batas tekanan statik/);
+    expect(line?.reason).toMatch(/tangki bawah|dipompa/);
+    expect(line?.reason).toMatch(/zona/);
+    // Tekanan kerja pipanya belum tercatat di data mana pun — itu disebut, bukan dikarang.
+    expect(line?.reason).toMatch(/belum tercatat/);
   });
 });

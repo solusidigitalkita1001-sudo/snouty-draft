@@ -8,10 +8,13 @@
  */
 
 /** Kode masalah — disimpan di state saat pengguna menegaskan angkanya. */
-export type HouseOutlierCode = 'area_per_bathroom' | 'land_smaller_than_building';
+export type HouseOutlierCode =
+  'area_per_bathroom' | 'land_smaller_than_building' | 'floors_for_residential';
 
 export interface HouseInputFacts {
   readonly floors: number | null;
+  /** Jenis bangunan — rumah tinggal 50 lantai bukan rumah tinggal (smoke test 13 Nov 2026). */
+  readonly buildingType?: string | null;
   readonly bathrooms: number | null;
   readonly lengthM?: number;
   readonly widthM?: number;
@@ -38,6 +41,13 @@ export interface HouseInputIssue {
  * kamar mandi saja.
  */
 export const MIN_FLOOR_AREA_PER_BATHROOM_M2 = 2;
+
+/**
+ * Jumlah lantai terbanyak yang masih dibaca sebagai rumah tinggal tanpa ditanya (permintaan
+ * pemilik di smoke test 13 Nov 2026: "minta konfirmasi di atas ±4 lantai"). Di atasnya bukan
+ * ditolak — ditanya sekali, lalu dihitung dengan jawabannya. Angkanya menunggu validasi: OQ-97.
+ */
+export const MAX_RESIDENTIAL_FLOORS = 4;
 
 const fmt = (n: number, en: boolean) =>
   n.toLocaleString(en ? 'en-US' : 'id-ID', { maximumFractionDigits: 2 });
@@ -85,6 +95,24 @@ export function houseInputIssues(f: HouseInputFacts): readonly HouseInputIssue[]
     }
   }
 
+  // Rumah tinggal yang lantainya belasan atau puluhan: entah jenis bangunannya bukan rumah
+  // tinggal, entah angkanya salah tulis. Dihitung tanpa ditanya, rumah 50 lantai menghasilkan
+  // "tekanan di meteran PDAM 18,76 bar" dengan satu pipa 1 inci (smoke test 13 Nov 2026).
+  if (
+    floors !== null &&
+    floors > MAX_RESIDENTIAL_FLOORS &&
+    (f.buildingType === 'residential' || f.buildingType === 'boarding_house')
+  ) {
+    const id = `${floors} lantai untuk bangunan yang disebut rumah tinggal lebih dari ${MAX_RESIDENTIAL_FLOORS} lantai.`;
+    const en = `${floors} floors is more than the ${MAX_RESIDENTIAL_FLOORS} floors a house is taken to have.`;
+    issues.push({
+      code: 'floors_for_residential',
+      question: `${id} Jumlah lantai dan jenis bangunannya sudah benar?`,
+      questionEn: `${en} Are the number of floors and the building type right?`,
+      note: id,
+      noteEn: en,
+    });
+  }
   const land = landArea(f);
   if (building !== null && land !== null && land < building) {
     const b = (en: boolean) => sizeText(f.lengthM, f.widthM, building, en);
