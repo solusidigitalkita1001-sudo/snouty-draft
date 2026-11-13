@@ -5492,3 +5492,28 @@ operasional, lalu probe ketujuh yang memang dicari.
       septic tank, sumur resapan, pipa minum ternak, irigasi tetes dengan luas lahan, ventilasi
       tegak (44 detik), kata tunggal tanpa konteks ("aw"), dan lanjutan yang menggeser pokok soal
       ("kalau airnya buat kolam ikan koi?").
+
+- [x] P36-11 Probe v7 diukur ulang setelah rilis: dua belas benar, tiga belas belum
+
+      Dua belas jawaban pindah ke benar — sprinkler kebakaran, buangan AC, air laut (gelembung
+      kosong hilang), hidroponik (dijawab dari sisi air minum), grease trap, tekanan cuci steam,
+      sleeve cor, minimum order, harga semen, dan pertanyaan stok yang tidak lagi dijawab "Ada"
+      dari isi katalog.
+
+      Tiga belas belum, dan sebabnya bergeser dari data ke rute. Yang paling jelas: "pipa hisap
+      pompa ukurannya sama dengan pipa keluarnya?" tetap dibelokkan ke kartu hitung (12,5 detik)
+      walau pemahamannya sudah `use_question` + topik `pompa` 1,000 — karena kata "pompa" dibaca
+      parser nilai sebagai SUMBER AIR, jadi pesannya dihitung membawa data inti dan ditarik ke
+      jalur kebutuhan. Contoh tidak bisa memperbaiki itu; pagar pertanyaan produk di
+      `intent-router.ts` yang perlu membedakan nilai yang disebut dari nilai yang ditanyakan.
+
+      TKDN berhenti dijawab paragraf harga, tetapi sekarang dijawab daftar keluarga katalog —
+      jawaban sertifikasinya ada (pertanyaan nomor SNI memakainya) dan menyebut TKDN di dalamnya,
+      tetapi tidak ada topik yang menunjuk ke situ. Pertanyaan lowongan kerja berhenti dirutekan ke
+      tim teknis dan sekarang dijawab profil perusahaan — lebih baik, belum menjawab.
+
+      Giliran terlama turun dari 44,5 ke 24,9 detik, dan yang lambat tetap yang salah rute:
+      ventilasi tegak 24,9 s, kandang ayam 19,3 s, rumah typo 17,1 s, irigasi tetes 14,1 s.
+
+      Sisanya ditunda oleh daftar smoke test 13 Nov (P37): BOQ yang bertentangan dengan hitungannya
+      dan pipa lama yang diabaikan menyentuh angka yang dibaca orang di PDF.
