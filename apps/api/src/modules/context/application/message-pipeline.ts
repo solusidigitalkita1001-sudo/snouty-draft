@@ -31,6 +31,7 @@ import { CORE_REQUIREMENT_FIELDS, DEFAULT_LOCALE, type Locale } from '@snouty/sh
 import { loadEnv } from '../../../config/env.js';
 import { streamedEvents, type EventSink } from '../../../shared/sse/event-stream.js';
 import {
+  applyAssumption,
   activeParameters,
   caseInputIssues,
   caseProfile,
@@ -1124,6 +1125,12 @@ export function notedSummary(
     }
     captured.push(inSentence(requirementValueLabel(path, field.value, locale)));
   }
+  // Jumlah alat yang tidak pernah ditanya tetapi tetap dipakai hitungan (smoke test 13 Nov 2026,
+  // temuan 8: "needs berisi basin: 2, sedangkan completeness 4/4 tanpa pertanyaan"). Anggapannya
+  // ada di registry aturan, bukan di state, jadi ia tidak ikut putaran di atas — dan pengguna
+  // tidak pernah diberi tahu angka itu dipakai. Angkanya dibaca dari registry, bukan ditulis
+  // ulang di sini.
+  assumed.push(...ruleFixtureAssumptions(state, locale));
   if (captured.length === 0) return null;
   const summary = joinList(captured, locale);
   const opener = only
@@ -1171,8 +1178,10 @@ export function understoodReply(
       assumed.length === 0
         ? ''
         : en
-          ? ' If any of that is different, answer the questions below and I will recompute.'
-          : ' Kalau ada yang berbeda, jawab pertanyaan di bawah dan hitungannya saya ulang.';
+          ? // Yang di bawah kalimat ini tombol susun rekomendasi, bukan pertanyaan: koreksinya
+            // disebut saja di percakapan (smoke test 13 Nov 2026, temuan 8).
+            ' If any of that is different, tell me and I will recompute.'
+          : ' Kalau ada yang berbeda, sebut saja, hitungannya saya ulang.';
     return en
       ? `${opener}${guess} I am working out the pipe sizes and the product list now.${change}`
       : `${opener}${guess} Ukuran pipa dan daftar produknya saya hitung sekarang.${change}`;
@@ -1190,6 +1199,33 @@ export function understoodReply(
   return en
     ? `${opener} A few more things so the sizing is right:`
     : `${opener} Beberapa hal lagi supaya hitungannya pas:`;
+}
+
+/**
+ * Anggapan jumlah alat yang hidup di registry aturan, bukan di state: wastafel dan dapur dipakai
+ * hitungan begitu kamar mandinya diketahui, tanpa pernah ditanya. Kalimatnya menyebutnya supaya
+ * pengguna bisa membetulkan — dan angkanya dibaca dari registry supaya satu angka saja yang ada.
+ *
+ * Toilet umum (tempat ibadah, sekolah, klinik) tidak ikut: di sana wastafel dan dapur tetap nol
+ * sampai disebut, jadi tidak ada angka yang dipakai dan tidak ada yang perlu disebut.
+ */
+function ruleFixtureAssumptions(state: RequirementState, locale: Locale): readonly string[] {
+  if (state.useCase !== undefined) return [];
+  const type = state.building.type.value;
+  if (type === null || hasPublicToilets(type)) return [];
+  const en = locale === 'en';
+  const out: string[] = [];
+  if (state.fixtures.basins.value === null && (state.fixtures.bathrooms.value ?? 0) > 0) {
+    const perBathroom = applyAssumption('HOUSE_BASINS_PER_BATHROOM_1').value;
+    out.push(
+      en ? `${perBathroom} wash basin per bathroom` : `${perBathroom} wastafel per kamar mandi`,
+    );
+  }
+  if (state.fixtures.kitchens.value === null) {
+    const kitchens = applyAssumption('HOUSE_KITCHEN_1').value;
+    out.push(en ? `${kitchens} kitchen` : `${kitchens} dapur`);
+  }
+  return out;
 }
 
 /** Anggapan rumah sebagai frasa ("1 kamar mandi per lantai", "air dari toren atap"). */

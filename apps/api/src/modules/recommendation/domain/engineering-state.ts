@@ -255,6 +255,36 @@ export function appliedAssumptionsToView(
   }));
 }
 
+/**
+ * Parameter asumsi registry → field kebutuhan rumah yang dibuka tombol "Perbaiki asumsi ini".
+ *
+ * Asumsi yang menggantikan data pengguna harus bisa diperbaiki di tempat data itu tinggal
+ * (smoke test 13 Nov 2026, temuan 8: jumlah wastafel diisi 1 per kamar mandi tanpa pernah
+ * ditanya, dan barisnya menunjuk `basins` — bukan field mana pun yang ada di panel). Parameter
+ * yang bukan data pengguna, melainkan angka rencana (debit, kecepatan, kelas pipa), tetap
+ * memakai namanya sendiri: ia diubah lewat nilai asumsinya, bukan lewat field kebutuhan.
+ */
+export function houseFieldFor(parameter: ParameterKey): string {
+  switch (parameter) {
+    case 'basins':
+      return 'fixtures.basins';
+    case 'kitchens':
+      return 'fixtures.kitchens';
+    case 'bathrooms':
+      return 'fixtures.bathrooms';
+    case 'well_depth':
+      return 'water.wellDepthM';
+    case 'source_type':
+      return 'water.source';
+    case 'existing_outlets':
+      return 'water.existingOutlets';
+    case 'replacement_length':
+      return 'water.replacementLengthM';
+    default:
+      return parameter;
+  }
+}
+
 /** Parameter universal → field irigasi yang dibuka tombol "Perbaiki asumsi ini". */
 export function irrigationFieldFor(parameter: ParameterKey): IrrigationField {
   switch (parameter) {

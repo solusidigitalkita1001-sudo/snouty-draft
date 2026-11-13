@@ -27,6 +27,7 @@ import {
 } from '@snouty/shared-types';
 import { pipePurchase, type StockLength } from './pipe-quantity.js';
 import type { IdentifiedTrace } from './solution-view.js';
+import { houseFieldFor } from './engineering-state.js';
 
 /** Pipa buangan memakai kelas gravitasi. */
 export const DRAINAGE_FAMILY = 'PVC D';
@@ -259,7 +260,7 @@ export function drainageAssumptions(
     },
     ...result.appliedAssumptionIds.map((aid) => ({
       text: assumptionDescription(aid, locale),
-      fieldPath: applyAssumption(aid).parameter,
+      fieldPath: houseFieldFor(applyAssumption(aid).parameter),
       ruleId: 'ENG-601',
       assumptionId: aid,
     })),

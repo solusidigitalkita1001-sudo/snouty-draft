@@ -24,6 +24,7 @@ import {
   type SolutionResult,
 } from '@snouty/engineering';
 import { pipePurchase, type StockLength } from './pipe-quantity.js';
+import { houseFieldFor } from './engineering-state.js';
 
 /** Trace yang sudah punya id basis data — pemanggil memberi id sebelum memakai ini. */
 export interface IdentifiedTrace extends CalculationTrace {
@@ -605,7 +606,7 @@ export function assumptionsFrom(
   for (const id of solution.appliedAssumptionIds) {
     fromRules.push({
       text: assumptionDescription(id, locale),
-      fieldPath: applyAssumption(id).parameter,
+      fieldPath: houseFieldFor(applyAssumption(id).parameter),
       ruleId: 'ENG-701',
       assumptionId: id,
     });

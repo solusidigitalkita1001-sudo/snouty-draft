@@ -5668,3 +5668,23 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
 
       Tawarannya ada di kalimat pertama karena ringkasan yang disimpan hanya dua kalimat; kalimat
       ketiga tidak akan pernah terbaca.
+
+- [x] P37-08 Anggapan jumlah alat terlihat di panel dan disebut di balasan
+
+      Temuan 8. Rumah dengan 2 kamar mandi dan 1 dapur dihitung dengan 2 wastafel — angka yang
+      tidak pernah ditanya dan tidak pernah disebut, sementara meter kelengkapan 4/4. Anggapannya
+      memang ada di tabel asumsi, tetapi barisnya menunjuk `basins`: bukan field mana pun yang bisa
+      dibuka, jadi tombol "Perbaiki asumsi ini" tidak punya layar di baliknya.
+
+      Parameter asumsi registry sekarang dipetakan ke field kebutuhan yang menampungnya — wastafel,
+      dapur, kamar mandi, kedalaman sumur, sumber air, titik air lama, panjang yang diganti — jadi
+      baris asumsinya membuka field yang tepat di panel dan di laporan. Angka rencana (debit,
+      kecepatan, sisa potong) tetap memakai namanya sendiri: ia diubah lewat nilai asumsinya.
+
+      Dan balasan chat menyebutnya: "Yang belum disebut saya anggap dulu … 1 wastafel per kamar
+      mandi, dan 1 dapur." Angkanya dibaca dari registry aturan, bukan ditulis ulang di lapisan
+      percakapan. Toilet umum tidak ikut — di sana keduanya tetap nol sampai disebut, jadi tidak
+      ada angka yang dipakai.
+
+      Satu kalimat ikut diperbaiki: "jawab pertanyaan di bawah" padahal yang di bawah tombol susun
+      rekomendasi. Sekarang "sebut saja, hitungannya saya ulang".

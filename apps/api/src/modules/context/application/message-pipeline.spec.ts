@@ -635,8 +635,10 @@ describe('runUnderstanding — bentuk event SSE', () => {
     // Pesannya hanya menyebut lantai; kamar mandi dari model dibuang pagar grounding.
     expect(tokens[0]!.text).toMatch(/^Oke, sudah saya catat: .*2 lantai/);
     expect(tokens[0]!.text).not.toMatch(/sudah saya catat:[^.]*kamar mandi/);
+    // Wastafel dan dapur ikut disebut: keduanya dipakai hitungan tanpa pernah ditanya (smoke
+    // test 13 Nov 2026, temuan 8).
     expect(tokens[0]!.text).toContain(
-      'Yang belum disebut saya anggap dulu 1 kamar mandi per lantai (2 kamar mandi), air dari toren atap tanpa pompa pendorong, dan air bersih saja.',
+      'Yang belum disebut saya anggap dulu 1 kamar mandi per lantai (2 kamar mandi), air dari toren atap tanpa pompa pendorong, air bersih saja, 1 wastafel per kamar mandi, dan 1 dapur.',
     );
     expect(tokens[0]!.text).toContain('saya hitung sekarang');
     // Teks sebelum kartu — pengantar, bukan penutup.
@@ -680,7 +682,11 @@ describe('runUnderstanding — bentuk event SSE', () => {
     const token = events.find((e) => e.type === 'token') as { text: string };
     expect(token.text).toMatch(/^Okay, I have noted: .*rooftop tank/);
     expect(token.text).toContain('I am working out the pipe sizes and the product list now.');
-    expect(token.text).not.toContain('Until you tell me otherwise');
+    // Jumlah wastafel dan dapur tidak disebut pengguna, dan hitungan memakai anggapannya —
+    // kalimatnya menyebut keduanya, tidak lebih (smoke test 13 Nov 2026, temuan 8).
+    expect(token.text).toContain(
+      'Until you tell me otherwise I am taking 1 wash basin per bathroom and 1 kitchen.',
+    );
   });
 
   it('data inti lengkap: kartu CTA ANALYZE, bukan klarifikasi', async () => {

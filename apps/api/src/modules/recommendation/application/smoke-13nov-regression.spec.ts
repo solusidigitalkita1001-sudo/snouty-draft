@@ -18,6 +18,7 @@ import { RuleInputError } from '@snouty/engineering';
 import { mergeRequirement, type FieldUpdate } from '../../context/domain/context-merger.js';
 import { bomQuantityMismatches, quantityInResult } from '../../report/domain/boq-consistency.js';
 import { withCompleteness } from '../../context/domain/completeness.js';
+import { understoodReply } from '../../context/application/message-pipeline.js';
 import {
   outlierAnswer,
   outlierQuestions,
@@ -284,5 +285,24 @@ describe('panjang-ganti-melebihi-jalur (temuan 7)', () => {
     expect(rec.body).toMatch(/ganti semua pipa/i);
     // Yang bisa diubah pengguna ditunjuk: panjang yang diganti.
     expect(rec.assumptions.some((a) => a.fieldPath === 'water.replacementLengthM')).toBe(true);
+  });
+});
+
+describe('wastafel-diisi-diam-diam (temuan 8)', () => {
+  const NO_BASINS = stateOf([
+    ...HOUSE.filter(([path]) => path !== 'fixtures.basins'),
+    ['water.source', 'municipal'],
+    ['water.installationType', 'clean_water'],
+  ]);
+
+  it('2 kamar mandi tanpa jumlah wastafel: anggapannya terlihat, bisa diperbaiki, dan disebut', async () => {
+    const { rec } = await analyse(NO_BASINS);
+    const basin = rec.assumptions.find((a) => a.assumptionId === 'HOUSE_BASINS_PER_BATHROOM_1');
+    expect(basin?.fieldPath).toBe('fixtures.basins');
+    // Dan balasan chat menyebutnya, bukan mengisinya diam-diam.
+    const reply = understoodReply(NO_BASINS, 'cta', 'id', undefined, true)!;
+    expect(reply).toContain('1 wastafel per kamar mandi');
+    // Yang di bawah balasan itu tombol susun rekomendasi, bukan pertanyaan.
+    expect(reply).not.toContain('pertanyaan di bawah');
   });
 });

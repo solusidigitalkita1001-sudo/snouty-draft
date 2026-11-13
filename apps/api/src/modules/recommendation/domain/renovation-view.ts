@@ -39,6 +39,7 @@ import {
 import { ulid } from '../../../shared/ulid.js';
 import { pipePurchase, type StockLength } from './pipe-quantity.js';
 import { bomUnitLabel, provenanceFor, type IdentifiedTrace } from './solution-view.js';
+import { houseFieldFor } from './engineering-state.js';
 
 export interface RenovationFacts {
   readonly mode: Exclude<RenovationMode, 'new'>;
@@ -643,7 +644,8 @@ export function withRenovation(
     const a = applyAssumption(aid);
     assumptions.push({
       text: assumptionDescription(aid, locale),
-      fieldPath: a.parameter,
+      // Kasus rumah: asumsi yang menggantikan data pengguna dibuka di field kebutuhannya.
+      fieldPath: houseCase ? houseFieldFor(a.parameter) : a.parameter,
       ruleId: facts.mode === 'replace_partial' ? 'ENG-903' : 'ENG-901',
       assumptionId: a.id,
     });
