@@ -5819,3 +5819,19 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       `docs/SMOKE_13NOV_RESULTS.md` memuat jawaban atas permintaan penutup: tabel sebelum vs
       sesudah untuk ketujuh skenario (ukuran segmen, sambungan, BOM, error), sembilan temuan
       lainnya, dan tujuh pertanyaan terbuka yang dibuka — OQ-96 sampai OQ-102.
+
+- [x] P37-17 Sesi UTC disetel tanpa membuat setiap permintaan menggantung
+
+      Perbaikan temuan 5 menyetel `SET time_zone` pada tiap koneksi baru lewat event `connection`
+      sebuah pool. Tipe mysql2 menjanjikan koneksi versi promise di sana; yang datang saat berjalan
+      adalah koneksi gaya callback. Memanggil `.catch()` di atas hasil `query()`-nya melempar di
+      dalam emitter, pengambilan koneksi tidak pernah selesai, dan setiap permintaan menggantung
+      tanpa satu pun pesan kesalahan.
+
+      Tidak terlihat sampai hari ini karena dua puluh tiga spec yang memakai MySQL gagal lebih dulu
+      dengan koneksi ditolak — kontainer ujinya mati. Begitu kontainer hidup, suite-nya berhenti
+      selama 56 menit tanpa keluaran: bukan tesnya yang lambat, melainkan kode ini.
+
+      Perintahnya sekarang dikirim dalam bentuk callback, dari satu fungsi (`useUtcSessions`) yang
+      dipakai aplikasi dan fixture tes sekaligus. Tesnya memberi listener itu koneksi yang `query()`
+      -nya bukan promise — persis seperti driver sungguhan — dan menuntut ia tidak melempar.

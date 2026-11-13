@@ -14,7 +14,11 @@ import { drizzle } from 'drizzle-orm/mysql2';
 import type { Logger } from 'drizzle-orm/logger';
 import mysql, { type Pool } from 'mysql2/promise';
 import * as schema from '../src/infrastructure/mysql/schema/index.js';
-import { UTC_OFFSET, type SnoutyDatabase } from '../src/shared/database/database.service.js';
+import {
+  UTC_OFFSET,
+  useUtcSessions,
+  type SnoutyDatabase,
+} from '../src/shared/database/database.service.js';
 
 const SHARED_HOST = '192.168.1.136';
 
@@ -258,9 +262,7 @@ async function connectPool(options: ConnectOptions): Promise<Pool> {
     connectionLimit: 5,
     waitForConnections: true,
   });
-  pool.on('connection', (connection) => {
-    void connection.query(`SET time_zone = '${UTC_OFFSET}'`).catch(() => {});
-  });
+  useUtcSessions(pool);
   try {
     // Pool malas membuka koneksi; satu ping membuat kegagalan koneksi muncul di
     // sini dengan pesan yang jelas, bukan di tengah tes pertama.

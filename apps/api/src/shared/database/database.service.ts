@@ -22,6 +22,39 @@ export function isUtcSessionTimeZone(value: string): boolean {
 }
 
 /**
+ * Koneksi yang dibawa event `connection` sebuah pool.
+ *
+ * Tipe mysql2 menjanjikan koneksi versi promise di sini; yang datang saat berjalan adalah
+ * koneksi gaya callback. `await` atau `.catch()` di atas hasil `query()`-nya melempar DI DALAM
+ * emitter, dan pengambilan koneksi tidak pernah selesai: setiap permintaan menggantung tanpa
+ * satu pun pesan kesalahan. Bentuk callback tidak punya jebakan itu.
+ */
+interface ConnectingConnection {
+  query(sql: string, done: (error: unknown) => void): unknown;
+}
+
+/**
+ * Menyetel sesi UTC pada setiap koneksi baru sebuah pool.
+ *
+ * `timezone: 'Z'` hanya mengatur cara driver menerjemahkan Date; nilai yang dihitung SERVER
+ * (`created_at DEFAULT CURRENT_TIMESTAMP`) tetap memakai zona waktu server. Di server ber-WIB itu
+ * berarti `created_at` 7 jam di depan `expires_at` yang ditulis aplikasi, dan batasan
+ * `ck_refresh_tokens_expiry` menolak baris refresh token — yaitu register dan login gagal (smoke
+ * test 13 Nov 2026, temuan 5).
+ *
+ * Hanya LEVEL SESI: server 192.168.1.136 memuat tujuh database aplikasi lain, dan zona waktu
+ * globalnya bukan milik kami.
+ */
+export function useUtcSessions(pool: Pool): void {
+  pool.on('connection', (connection) => {
+    (connection as unknown as ConnectingConnection).query(`SET time_zone = '${UTC_OFFSET}'`, () => {
+      // Koneksi yang menolak perintah ini tidak dipakai diam-diam: `assertUtcSession` yang
+      // memutuskan proses boleh jalan atau tidak.
+    });
+  });
+}
+
+/**
  * Yang sebenarnya dibutuhkan sebuah repository: query builder, bukan pool mentah.
  *
  * Repository bergantung pada interface ini, bukan pada `DatabaseService`, supaya
@@ -58,20 +91,8 @@ export class DatabaseService implements OnModuleDestroy, QueryRunner {
       // Driver menulis dan membaca DATETIME sebagai UTC.
       timezone: 'Z',
     });
-    // …dan SESINYA juga UTC. `timezone: 'Z'` hanya mengatur cara driver menerjemahkan Date; nilai
-    // yang dihitung SERVER (`created_at DEFAULT CURRENT_TIMESTAMP`) tetap memakai zona waktu
-    // server. Di server ber-WIB itu berarti `created_at` 7 jam di depan `expires_at` yang ditulis
-    // aplikasi, dan batasan `ck_refresh_tokens_expiry` menolak baris refresh token — yaitu
-    // register dan login gagal (smoke test 13 Nov 2026, temuan 5).
-    //
-    // Hanya LEVEL SESI: server 192.168.1.136 memuat tujuh database aplikasi lain, dan zona waktu
-    // globalnya bukan milik kami.
-    this.pool.on('connection', (connection) => {
-      void connection.query(`SET time_zone = '${UTC_OFFSET}'`).catch(() => {
-        // Koneksi yang menolak perintah ini tidak dipakai diam-diam: pemeriksaan di bawah
-        // (`assertUtcSession`) yang memutuskan proses boleh jalan atau tidak.
-      });
-    });
+    // …dan SESINYA juga UTC.
+    useUtcSessions(this.pool);
     this.db = drizzle(this.pool, { schema, mode: 'default' });
   }
 
