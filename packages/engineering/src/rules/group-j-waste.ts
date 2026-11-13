@@ -82,6 +82,14 @@ export interface DrainageLoadInput {
   /** Urinoir toilet umum — masuk jalur air kotor bersama kloset. */
   readonly urinals: number;
   readonly dfuUrinal: number;
+  /**
+   * Mesin cuci dan floor drain di luar kamar mandi (balkon, ruang cuci) — keduanya masuk jalur
+   * air bekas (smoke test 13 Nov 2026, temuan 9). 0 bila alatnya tidak ada.
+   */
+  readonly washingMachines?: number;
+  readonly dfuWashingMachine?: number;
+  readonly floorDrains?: number;
+  readonly dfuFloorDrain?: number;
 }
 export interface DrainageLoadResult {
   /** Beban jalur air kotor (kloset). */
@@ -92,8 +100,9 @@ export interface DrainageLoadResult {
 
 export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
   ruleId: 'ENG-601',
+  // v3 (smoke test 13 Nov 2026, temuan 9): mesin cuci dan floor drain balkon ikut air bekas.
   // v2 (2026-10-12, tempat ibadah): talang wudhu ikut beban air bekas, urinoir ikut air kotor.
-  version: 2,
+  version: 3,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -114,6 +123,10 @@ export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
           : requireNumber('ENG-601', 'wudhuDfu', o['wudhuDfu'], { min: 0, max: 1000 }),
       urinals: o['urinals'] === undefined ? 0 : count('urinals'),
       dfuUrinal: o['dfuUrinal'] === undefined ? 0 : dfu('dfuUrinal'),
+      washingMachines: o['washingMachines'] === undefined ? 0 : count('washingMachines'),
+      dfuWashingMachine: o['dfuWashingMachine'] === undefined ? 0 : dfu('dfuWashingMachine'),
+      floorDrains: o['floorDrains'] === undefined ? 0 : count('floorDrains'),
+      dfuFloorDrain: o['dfuFloorDrain'] === undefined ? 0 : dfu('dfuFloorDrain'),
     };
   },
   compute: (i) => ({
@@ -122,6 +135,8 @@ export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
       i.showers * i.dfuShower +
       i.lavatories * i.dfuLavatory +
       i.kitchenSinks * i.dfuKitchenSink +
+      (i.washingMachines ?? 0) * (i.dfuWashingMachine ?? 0) +
+      (i.floorDrains ?? 0) * (i.dfuFloorDrain ?? 0) +
       i.wudhuDfu,
   }),
   sourceReference:
@@ -145,6 +160,27 @@ export const ENG_601: RuleVersion<DrainageLoadInput, DrainageLoadResult> = {
         dfuUrinal: 4,
       },
       expected: { soilDfu: 12, wasteDfu: 10 },
+    },
+    {
+      name: 'mesin cuci dan floor drain balkon masuk air bekas: 2 KM, 1 dapur, 1 mesin cuci, 2 floor drain',
+      input: {
+        waterClosets: 2,
+        showers: 2,
+        lavatories: 1,
+        kitchenSinks: 1,
+        dfuWaterCloset: 3,
+        dfuShower: 2,
+        dfuLavatory: 1,
+        dfuKitchenSink: 2,
+        wudhuDfu: 0,
+        urinals: 0,
+        dfuUrinal: 0,
+        washingMachines: 1,
+        dfuWashingMachine: 3,
+        floorDrains: 2,
+        dfuFloorDrain: 2,
+      },
+      expected: { soilDfu: 6, wasteDfu: 14 },
     },
     {
       name: 'masjid: 4 KM (floor drain), 3 urinoir, 2 talang wudhu 13 + 13 → air kotor 28, air bekas 34',
@@ -190,24 +226,29 @@ export function drainLoadSentence(
     });
   }
   // Hanya alat yang ada disebut — "0 wastafel × 1" bukan informasi.
-  const terms = (labels: readonly [string, string, string]) =>
+  const terms = (labels: readonly [string, string, string, string, string]) =>
     (
       [
         [i.showers, labels[0], i.dfuShower],
         [i.lavatories, labels[1], i.dfuLavatory],
         [i.kitchenSinks, labels[2], i.dfuKitchenSink],
+        [i.washingMachines ?? 0, labels[3], i.dfuWashingMachine ?? 0],
+        [i.floorDrains ?? 0, labels[4], i.dfuFloorDrain ?? 0],
       ] as const
     )
       .filter(([n]) => n > 0)
       .map(([n, label, dfu]) => `${n} ${label} × ${dfu}`)
       .join(' + ');
   const wudhu = (label: string) => ((i.wudhuDfu ?? 0) > 0 ? [`${label} ${i.wudhuDfu}`] : []);
-  const id = [terms(['shower/floor drain', 'wastafel', 'bak cuci dapur']), ...wudhu('talang wudhu')]
+  const id = [
+    terms(['shower/floor drain', 'wastafel', 'bak cuci dapur', 'mesin cuci', 'floor drain']),
+    ...wudhu('talang wudhu'),
+  ]
     .filter(Boolean)
     .join(' + ');
   if (!id) return '';
   const en = [
-    terms(['showers/floor drains', 'basins', 'kitchen sinks']),
+    terms(['showers/floor drains', 'basins', 'kitchen sinks', 'washing machines', 'floor drains']),
     ...wudhu('ablution troughs'),
   ]
     .filter(Boolean)

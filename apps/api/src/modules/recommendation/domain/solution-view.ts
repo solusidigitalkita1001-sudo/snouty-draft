@@ -603,6 +603,17 @@ export function assumptionsFrom(
     });
   }
 
+  // Water heater yang disebut tidak boleh hilang tanpa kabar (smoke test 13 Nov 2026, temuan 9):
+  // ia tercatat, tetapi jalur air panasnya belum ikut dihitung — itu dikatakan, bukan didiamkan.
+  if (solution.waterHeaters > 0) {
+    fromRules.push({
+      text: en
+        ? `${solution.waterHeaters} water heater${solution.waterHeaters > 1 ? 's' : ''} recorded. The cold-water side is sized here; the hot-water run itself is not sized yet, so size it with the heater's own requirement.`
+        : `${solution.waterHeaters} water heater tercatat. Sisi air dinginnya ikut terhitung di sini; jalur air panasnya sendiri belum dihitung, jadi ukurannya mengikuti ketentuan pemanasnya.`,
+      fieldPath: 'fixtures.waterHeaters',
+    });
+  }
+
   for (const id of solution.appliedAssumptionIds) {
     fromRules.push({
       text: assumptionDescription(id, locale),

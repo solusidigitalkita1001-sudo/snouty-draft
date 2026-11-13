@@ -43,6 +43,14 @@ export const ExtractionSchema = z
         basins: z.number().int().min(0).max(200).optional(),
         kitchens: z.number().int().min(0).max(100).optional(),
         outletCount: z.number().int().min(0).max(1_000).optional(),
+        /**
+         * Alat yang punya bebannya sendiri (smoke test 13 Nov 2026, temuan 9). Mesin cuci menarik
+         * air bersih dan membuang lewat standpipe; floor drain balkon hanya membuang. Tulis hanya
+         * floor drain yang disebut di luar kamar mandi — yang di dalam sudah terhitung.
+         */
+        washingMachines: z.number().int().min(0).max(100).optional(),
+        waterHeaters: z.number().int().min(0).max(100).optional(),
+        balconyFloorDrains: z.number().int().min(0).max(100).optional(),
       })
       .strict()
       .optional(),

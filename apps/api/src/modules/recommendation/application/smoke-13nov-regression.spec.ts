@@ -16,6 +16,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import { RuleInputError } from '@snouty/engineering';
 import { mergeRequirement, type FieldUpdate } from '../../context/domain/context-merger.js';
+import { extractionToUpdates } from '../../context/application/extraction-to-updates.js';
 import { bomQuantityMismatches, quantityInResult } from '../../report/domain/boq-consistency.js';
 import { withCompleteness } from '../../context/domain/completeness.js';
 import { understoodReply } from '../../context/application/message-pipeline.js';
@@ -304,5 +305,63 @@ describe('wastafel-diisi-diam-diam (temuan 8)', () => {
     expect(reply).toContain('1 wastafel per kamar mandi');
     // Yang di bawah balasan itu tombol susun rekomendasi, bukan pertanyaan.
     expect(reply).not.toContain('pertanyaan di bawah');
+  });
+});
+
+describe('alat-yang-disebut-hilang (temuan 9)', () => {
+  it('"ada mesin cuci dan keran taman" tercatat sebagai dua field, bukan hilang', () => {
+    const updates = extractionToUpdates({}, 'ada mesin cuci dan keran taman');
+    const of = (path: string) => updates.find((u) => u.path === path)?.value;
+    expect(of('fixtures.washingMachines')).toBe(1);
+    expect(of('fixtures.outdoorTaps')).toBe(1);
+    // Keran taman bukan jumlah titik air rumah, dan mesin cuci bukan kamar mandi.
+    expect(of('fixtures.outletCount')).toBeUndefined();
+  });
+
+  it('water heater dan floor drain balkon juga terbaca', () => {
+    const updates = extractionToUpdates({}, 'pakai 2 water heater dan floor drain di balkon');
+    const of = (path: string) => updates.find((u) => u.path === path)?.value;
+    expect(of('fixtures.waterHeaters')).toBe(2);
+    expect(of('fixtures.balconyFloorDrains')).toBe(1);
+  });
+
+  const WITH_APPLIANCES = stateOf([
+    ...HOUSE,
+    ['water.source', 'municipal'],
+    ['water.installationType', 'both'],
+    ['fixtures.washingMachines', 1],
+    ['fixtures.outdoorTaps', 1],
+    ['fixtures.waterHeaters', 1],
+    ['fixtures.balconyFloorDrains', 1],
+  ]);
+
+  it('mesin cuci menambah beban suplai dan beban air bekas, bukan diabaikan', async () => {
+    const { rec, traces } = await analyse(WITH_APPLIANCES);
+    const plain = stateOf([
+      ...HOUSE,
+      ['water.source', 'municipal'],
+      ['water.installationType', 'both'],
+    ]);
+    const base = await analyse(plain);
+    const wsfu = (list: readonly TraceToSave[]) =>
+      list.find((t) => t.ruleId === 'ENG-701')?.output as { wsfu?: number } | undefined;
+    // UPC Tabel A 103.1: mesin cuci 4 WSFU; keran taman punya angkanya sendiri.
+    expect(wsfu(traces)?.wsfu).toBeGreaterThan(wsfu(base.traces)?.wsfu ?? 0);
+    // UPC 702.1: mesin cuci 3 DFU + floor drain 2 DFU di jalur air bekas.
+    const dfu = (list: readonly TraceToSave[]) =>
+      list.find((t) => t.ruleId === 'ENG-601')?.output as { wasteDfu?: number } | undefined;
+    expect(dfu(traces)?.wasteDfu).toBe((dfu(base.traces)?.wasteDfu ?? 0) + 5);
+    // Water heater tercatat, dan jalur air panasnya dikatakan belum dihitung.
+    expect(
+      rec.assumptions.some(
+        (a) => a.fieldPath === 'fixtures.waterHeaters' && /air panas/.test(a.text),
+      ),
+    ).toBe(true);
+  });
+
+  it('alat yang disebut ikut disebut balik di balasan chat', () => {
+    const reply = understoodReply(WITH_APPLIANCES, 'cta', 'id', undefined, true)!;
+    expect(reply).toContain('mesin cuci');
+    expect(reply).toContain('keran luar');
   });
 });

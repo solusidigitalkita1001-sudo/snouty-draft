@@ -138,6 +138,18 @@ export interface FixtureState {
   readonly outdoorTaps?: TrackedValue<number>;
   /** Keran tambahan di dalam bangunan, mis. ruang cuci di lantai atas. Opsional seperti di atas. */
   readonly upperFloorTaps?: TrackedValue<number>;
+  /**
+   * Mesin cuci — titik air bersih sekaligus beban air bekas lewat standpipe (smoke test
+   * 13 Nov 2026, temuan 9). Opsional seperti di atas.
+   */
+  readonly washingMachines?: TrackedValue<number>;
+  /**
+   * Water heater. Dicatat, tetapi jalur air panasnya belum dihitung: sizing air panas menunggu
+   * aturan teknik dari Pralon (OQ-99). Opsional seperti di atas.
+   */
+  readonly waterHeaters?: TrackedValue<number>;
+  /** Floor drain di luar kamar mandi — balkon, ruang cuci. Beban air bekas. Opsional. */
+  readonly balconyFloorDrains?: TrackedValue<number>;
 }
 
 export interface WaterState {
@@ -208,6 +220,9 @@ export type RequirementFieldPath =
   | 'fixtures.bathroomsPerRoom'
   | 'fixtures.outdoorTaps'
   | 'fixtures.upperFloorTaps'
+  | 'fixtures.washingMachines'
+  | 'fixtures.waterHeaters'
+  | 'fixtures.balconyFloorDrains'
   | 'water.source'
   | 'water.installationType'
   | 'water.boosterPump'

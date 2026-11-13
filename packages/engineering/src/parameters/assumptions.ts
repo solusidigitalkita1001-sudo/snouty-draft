@@ -972,6 +972,24 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description: 'Tiap bak cuci dapur dihitung 1,5 unit beban suplai.',
   },
   {
+    // Mesin cuci baru bisa diinput sejak smoke test 13 Nov 2026 (temuan 9). Beban suplainya jauh
+    // di atas keran biasa: ia mengisi bak sendiri dengan keran terbuka penuh. Menunggu konfirmasi
+    // tim teknis Pralon — OQ-99.
+    id: 'WSFU_CLOTHES_WASHER_4',
+    parameter: 'design_flow',
+    appliesTo: [],
+    condition: 'beban suplai mesin cuci rumah',
+    value: 4,
+    unit: 'WSFU',
+    conditionEn: 'domestic clothes washer supply load',
+    descriptionEn: 'Each washing machine counts as 4 supply units.',
+    reference: 'UPC Tabel A 103.1, pemakaian pribadi: mesin cuci (clothes washer) 4,0',
+    standard: 'UPC Table A 103.1',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Tiap mesin cuci dihitung 4 unit beban suplai.',
+  },
+  {
     id: 'WSFU_TAP_2_5',
     parameter: 'design_flow',
     appliesTo: [],
@@ -1425,6 +1443,40 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     confidence: 'medium',
     confirmationRequired: true,
     description: 'Tiap bak cuci dapur dihitung 2 unit beban pembuangan.',
+  },
+  // Alat yang baru bisa diinput (smoke test 13 Nov 2026, temuan 9). Angkanya dikutip dari UPC
+  // seperti beban alat lain di atas; dokumen UPC-nya sendiri tidak ada di repositori ini, jadi
+  // ketiganya `confidence: 'low'` dan menunggu konfirmasi tim teknis Pralon — OQ-99.
+  {
+    id: 'DFU_CLOTHES_WASHER_3',
+    parameter: 'design_flow',
+    appliesTo: [],
+    condition: 'beban pembuangan mesin cuci rumah',
+    value: 3,
+    unit: 'DFU',
+    conditionEn: 'domestic clothes washer drainage load',
+    descriptionEn: 'Each washing machine counts as 3 drainage units through its 2" standpipe.',
+    reference: 'UPC Tabel 702.1 (mesin cuci rumah dengan standpipe 2": 3 DFU)',
+    standard: 'UPC Table 702.1',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Tiap mesin cuci dihitung 3 unit beban pembuangan lewat standpipe 2".',
+  },
+  {
+    id: 'DFU_FLOOR_DRAIN_2',
+    parameter: 'design_flow',
+    appliesTo: [],
+    condition: 'beban pembuangan floor drain di luar kamar mandi (balkon, ruang cuci)',
+    value: 2,
+    unit: 'DFU',
+    conditionEn: 'drainage load of a floor drain outside the bathroom (balcony, laundry)',
+    descriptionEn: 'Each balcony or laundry floor drain counts as 2 drainage units (2" outlet).',
+    reference: 'UPC Tabel 702.1 (floor drain dengan keluaran 2": 2 DFU)',
+    standard: 'UPC Table 702.1',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Tiap floor drain balkon atau ruang cuci dihitung 2 unit beban pembuangan (keluaran 2").',
   },
   {
     id: 'SOIL_LINE_MIN_4IN',

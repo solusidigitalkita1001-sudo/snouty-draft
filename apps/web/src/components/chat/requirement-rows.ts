@@ -5,7 +5,12 @@
  * ekstraksi dan `PATCH /requirement`; UI tidak menambah pilihan sendiri.
  */
 
-import type { Provenance, RequirementFieldPath, RequirementState } from '@snouty/shared-types';
+import type {
+  Provenance,
+  RequirementFieldPath,
+  RequirementState,
+  TrackedValue,
+} from '@snouty/shared-types';
 
 export interface SelectOption {
   readonly value: string;
@@ -197,6 +202,27 @@ function worshipRows(state: RequirementState): readonly RequirementRow[] {
   ];
 }
 
+/**
+ * Mesin cuci, water heater, floor drain balkon (temuan 9, smoke test 13 Nov 2026). Barisnya
+ * tampil begitu alatnya disebut: state lama tidak punya fieldnya, dan rumah tanpa mesin cuci
+ * tidak perlu barisnya.
+ */
+function applianceRows(state: RequirementState): readonly RequirementRow[] {
+  const count: RowEditor = { kind: 'number', min: 0, max: 100 };
+  const named: readonly (readonly [
+    RequirementFieldPath,
+    string,
+    TrackedValue<number> | undefined,
+  ])[] = [
+    ['fixtures.washingMachines', 'Mesin cuci', state.fixtures.washingMachines],
+    ['fixtures.waterHeaters', 'Water heater', state.fixtures.waterHeaters],
+    ['fixtures.balconyFloorDrains', 'Floor drain balkon', state.fixtures.balconyFloorDrains],
+  ];
+  return named.flatMap(([path, label, field]) =>
+    field === undefined || field.value === null ? [] : [row(path, label, field, String, count)],
+  );
+}
+
 export function requirementRows(state: RequirementState): readonly RequirementRow[] {
   const worship =
     state.building.type.value === 'place_of_worship' ||
@@ -255,6 +281,9 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
             { kind: 'number', min: 0, max: 50 },
           ),
         ]),
+    // Alat yang bebannya dihitung sendiri (temuan 9, smoke test 13 Nov 2026): barisnya tampil
+    // begitu alatnya disebut, dan angkanya bisa dikoreksi di sini.
+    ...applianceRows(state),
     row('water.source', 'Sumber air', state.water.source, labelOf(SOURCE), {
       kind: 'select',
       options: SOURCE,

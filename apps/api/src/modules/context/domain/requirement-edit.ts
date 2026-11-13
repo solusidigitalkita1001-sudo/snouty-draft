@@ -5,8 +5,7 @@
 import { z } from 'zod';
 
 /**
- * Edit inline panel kanan — hanya tujuh field yang tampil di panel, dengan nilai yang
- * persis sama batasnya dengan skema ekstraksi. Tidak ada field bebas: path di luar
+ * Edit inline panel kanan: nilainya persis sama batasnya dengan skema ekstraksi. Tidak ada field bebas: path di luar
  * daftar ini ditolak, bukan diteruskan ke merger.
  */
 const count = (max: number) => z.number().int().min(0).max(max);
@@ -35,6 +34,20 @@ export const RequirementEditSchema = z.union([
   z.object({ path: z.literal('fixtures.wudhuTaps'), value: count(500) }).strict(),
   z.object({ path: z.literal('fixtures.wudhuAreas'), value: count(50) }).strict(),
   z.object({ path: z.literal('fixtures.urinals'), value: count(200) }).strict(),
+  // Keran yang letaknya tersurat dan alat rumah tangga (temuan 9, smoke test 13 Nov 2026): semua
+  // yang bisa disebut di chat juga bisa dikoreksi di panel.
+  z
+    .object({
+      path: z.enum([
+        'fixtures.outdoorTaps',
+        'fixtures.upperFloorTaps',
+        'fixtures.washingMachines',
+        'fixtures.waterHeaters',
+        'fixtures.balconyFloorDrains',
+      ]),
+      value: count(100),
+    })
+    .strict(),
   z
     .object({
       path: z.literal('building.dimensions'),

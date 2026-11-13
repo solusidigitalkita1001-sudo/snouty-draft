@@ -37,6 +37,10 @@ export interface FloorPlanInput {
   readonly outdoorTaps?: number;
   /** Keran tambahan di dalam rumah (ruang cuci, dapur atas) — di lantai teratas. */
   readonly upperFloorTaps?: number;
+  /** Mesin cuci — di lantai dasar bersama ruang servis (smoke test 13 Nov 2026, temuan 9). */
+  readonly washingMachines?: number;
+  /** Floor drain balkon — di lantai teratas, tempat balkon biasanya berada. */
+  readonly balconyFloorDrains?: number;
   readonly floorHeightM: number;
 }
 
@@ -47,6 +51,12 @@ export interface FloorNode {
   readonly kitchens: number;
   /** Keran tambahan di lantai ini: keran luar di lantai dasar, keran tambahan di lantai teratas. */
   readonly taps: number;
+  /**
+   * Mesin cuci dan floor drain balkon di lantai ini — ditulis hanya bila ada, supaya rencana
+   * lantai rumah tanpa keduanya tetap berbentuk sama seperti sebelum keduanya bisa diinput.
+   */
+  readonly washingMachines?: number;
+  readonly balconyFloorDrains?: number;
   /** Meter dari lantai dasar. */
   readonly elevationM: number;
 }
@@ -87,12 +97,14 @@ export function distributeAcrossFloors(
 
 export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
   ruleId: 'ENG-008',
+  // v4 (smoke test 13 Nov 2026, temuan 9): mesin cuci di lantai dasar, floor drain balkon di
+  // lantai teratas — keduanya hanya ditulis bila ada.
   // v3 (P33-04, masukan sales 2026-11-03): keran tambahan ikut sebarannya — keran luar di lantai
   // dasar, keran tambahan di lantai teratas.
   // v2 (2026-10-13, laporan SNTY-2026-10-0015): jumlah per lantai selalu sama dengan masukan —
   // v1 memberi setiap lantai minimal 1 wastafel dan membulatkan per lantai. Sisa kamar mandi ke
   // lantai teratas, sisa wastafel ke lantai 1, dapur di lantai 1 (keputusan pemilik 2026-10-13).
-  version: 3,
+  version: 4,
   category: 'geometry',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -110,6 +122,23 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
             upperFloorTaps: requireInt('ENG-008', 'upperFloorTaps', o['upperFloorTaps'], {
               max: 50,
             }),
+          }),
+      ...(o['washingMachines'] === undefined
+        ? {}
+        : {
+            washingMachines: requireInt('ENG-008', 'washingMachines', o['washingMachines'], {
+              max: 50,
+            }),
+          }),
+      ...(o['balconyFloorDrains'] === undefined
+        ? {}
+        : {
+            balconyFloorDrains: requireInt(
+              'ENG-008',
+              'balconyFloorDrains',
+              o['balconyFloorDrains'],
+              { max: 50 },
+            ),
           }),
       floorHeightM: requireNumber('ENG-008', 'floorHeightM', o['floorHeightM'], {
         min: 2,
@@ -135,13 +164,21 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
         taps:
           (floor === 1 ? (input.outdoorTaps ?? 0) : 0) +
           (floor === top ? (input.upperFloorTaps ?? 0) : 0),
+        // Mesin cuci di lantai dasar (ruang servis), floor drain balkon di lantai teratas.
+        // Keduanya ditulis hanya bila ada.
+        ...(floor === 1 && (input.washingMachines ?? 0) > 0
+          ? { washingMachines: input.washingMachines }
+          : {}),
+        ...(floor === top && (input.balconyFloorDrains ?? 0) > 0
+          ? { balconyFloorDrains: input.balconyFloorDrains }
+          : {}),
         elevationM: (floor - 1) * input.floorHeightM,
       };
     });
     return { floorsPlan: plan };
   },
   sourceReference:
-    'Sebaran perkiraan tanpa denah: dibagi rata per lantai; sisa kamar mandi ke lantai teratas, sisa wastafel ke lantai 1, dapur di lantai 1 (keputusan pemilik 2026-10-13)',
+    'Sebaran perkiraan tanpa denah: dibagi rata per lantai; sisa kamar mandi ke lantai teratas, sisa wastafel ke lantai 1, dapur di lantai 1 (keputusan pemilik 2026-10-13); mesin cuci di lantai dasar dan floor drain balkon di lantai teratas (menunggu validasi, OQ-99)',
   validationStatus: PENDING,
   testCases: [
     {
@@ -197,6 +234,40 @@ export const ENG_008: RuleVersion<FloorPlanInput, FloorPlanResult> = {
         floorsPlan: [
           { floor: 2, bathrooms: 1, basins: 1, kitchens: 0, taps: 2, elevationM: 3.5 },
           { floor: 1, bathrooms: 1, basins: 1, kitchens: 1, taps: 1, elevationM: 0 },
+        ],
+      },
+    },
+    {
+      name: 'mesin cuci di lantai dasar, floor drain balkon di lantai teratas',
+      input: {
+        floors: 2,
+        bathrooms: 2,
+        basins: 2,
+        kitchens: 1,
+        washingMachines: 1,
+        balconyFloorDrains: 2,
+        floorHeightM: 3.5,
+      },
+      expected: {
+        floorsPlan: [
+          {
+            floor: 2,
+            bathrooms: 1,
+            basins: 1,
+            kitchens: 0,
+            taps: 0,
+            balconyFloorDrains: 2,
+            elevationM: 3.5,
+          },
+          {
+            floor: 1,
+            bathrooms: 1,
+            basins: 1,
+            kitchens: 1,
+            taps: 0,
+            washingMachines: 1,
+            elevationM: 0,
+          },
         ],
       },
     },

@@ -35,6 +35,12 @@ export interface HouseDrainageInput {
   /** Urinoir toilet umum — dibuang bersama kloset ke jalur air kotor. */
   readonly urinals?: number;
   /**
+   * Mesin cuci dan floor drain di luar kamar mandi (balkon, ruang cuci) — keduanya ke jalur air
+   * bekas (smoke test 13 Nov 2026, temuan 9). Totalnya; sebarannya di `floors`.
+   */
+  readonly washingMachines?: number;
+  readonly balconyFloorDrains?: number;
+  /**
    * Alat per lantai (sebaran yang sama dengan air bersih, ENG-008). Ada → cabang mendatar per
    * lantai dan pipa tegak ikut dicek (ENG-604); tidak ada → dianggap satu lantai.
    */
@@ -42,6 +48,9 @@ export interface HouseDrainageInput {
     readonly bathrooms: number;
     readonly basins: number;
     readonly kitchens: number;
+    /** Mesin cuci dan floor drain balkon di lantai ini (smoke test 13 Nov 2026, temuan 9). */
+    readonly washingMachines?: number;
+    readonly balconyFloorDrains?: number;
   }[];
   /**
    * Tempat ibadah: debit tiap deret wudhu (ENG-802). Ada → satu talang per deret (ENG-803) yang
@@ -149,6 +158,12 @@ export function computeHouseDrainage(
       : null;
   const urinals = Math.max(0, input.urinals ?? 0);
   const dfuUrinal = urinals > 0 ? use('DFU_URINAL_4') : 0;
+  // Mesin cuci dan floor drain di luar kamar mandi: beban air bekas dengan angkanya sendiri —
+  // mesin cuci membuang lewat standpipe 2", floor drain balkon lewat keluaran 2".
+  const washingMachines = Math.max(0, input.washingMachines ?? 0);
+  const dfuWashingMachine = washingMachines > 0 ? use('DFU_CLOTHES_WASHER_3') : 0;
+  const floorDrains = Math.max(0, input.balconyFloorDrains ?? 0);
+  const dfuFloorDrain = floorDrains > 0 ? use('DFU_FLOOR_DRAIN_2') : 0;
   const load = run(ENG_601, {
     ...counts,
     wudhuDfu: wudhuRows?.totalDfu ?? 0,
@@ -158,6 +173,8 @@ export function computeHouseDrainage(
     dfuShower: dfu.shower,
     dfuLavatory: dfu.lavatory,
     dfuKitchenSink: dfu.kitchenSink,
+    ...(washingMachines > 0 ? { washingMachines, dfuWashingMachine } : {}),
+    ...(floorDrains > 0 ? { floorDrains, dfuFloorDrain } : {}),
   });
 
   // Beban per lantai tiap jalur — untuk cabang mendatar dan pipa tegak (ENG-604, laporan 0009).
@@ -169,7 +186,14 @@ export function computeHouseDrainage(
     )
     .filter((d) => d > 0);
   const wasteFloors = floors
-    .map((f) => f.bathrooms * dfu.shower + f.basins * dfu.lavatory + f.kitchens * dfu.kitchenSink)
+    .map(
+      (f) =>
+        f.bathrooms * dfu.shower +
+        f.basins * dfu.lavatory +
+        f.kitchens * dfu.kitchenSink +
+        (f.washingMachines ?? 0) * dfuWashingMachine +
+        (f.balconyFloorDrains ?? 0) * dfuFloorDrain,
+    )
     .filter((d) => d > 0);
   // Beban per lantai wajib sama dengan beban total (laporan 0015); talang wudhu di luar lantai.
   assertBalanced('beban air kotor (DFU) per lantai', load.soilDfu, soilFloors);

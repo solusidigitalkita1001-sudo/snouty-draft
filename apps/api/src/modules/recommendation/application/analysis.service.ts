@@ -632,6 +632,13 @@ export class AnalysisService {
                 wudhuRowFlowsLs: solution.wudhu?.rows.map((r) => r.flowLs) ?? [],
               }
             : {}),
+          // Mesin cuci dan floor drain balkon: beban air bekas, sebarannya sama dengan sisi air
+          // bersih (smoke test 13 Nov 2026, temuan 9).
+          washingMachines: solution.floorsPlan.reduce((n, f) => n + (f.washingMachines ?? 0), 0),
+          balconyFloorDrains: solution.floorsPlan.reduce(
+            (n, f) => n + (f.balconyFloorDrains ?? 0),
+            0,
+          ),
           // Ukuran rumah → perkiraan panjang tiap jalur (ENG-603, P16-60); sisi terpanjang.
           layout: houseLayout(state, solution),
           // Sebaran lantai yang sama dengan air bersih — cabang per lantai dan pipa tegak (ENG-604).
@@ -639,6 +646,10 @@ export class AnalysisService {
             bathrooms: f.bathrooms,
             basins: f.basins,
             kitchens: f.kitchens,
+            ...(f.washingMachines !== undefined ? { washingMachines: f.washingMachines } : {}),
+            ...(f.balconyFloorDrains !== undefined
+              ? { balconyFloorDrains: f.balconyFloorDrains }
+              : {}),
           })),
         },
         locale,

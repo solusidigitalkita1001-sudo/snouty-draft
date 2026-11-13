@@ -91,6 +91,7 @@ function hasNoWaterPoint(state: RequirementState): boolean {
     f.urinals?.value ?? null,
     f.outdoorTaps?.value ?? null,
     f.upperFloorTaps?.value ?? null,
+    f.washingMachines?.value ?? null,
   ];
   // Semua angkanya disebut (tidak ada yang kosong) dan semuanya nol. Satu angka yang belum
   // disebut berarti datanya memang belum lengkap, bukan nol.

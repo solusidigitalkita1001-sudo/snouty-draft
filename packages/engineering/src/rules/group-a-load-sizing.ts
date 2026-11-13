@@ -20,6 +20,11 @@ export interface FixtureCounts {
   readonly bathroomHasTap?: boolean;
   /** Keran tambahan di luar kamar mandi dan dapur: keran taman, keran ruang cuci (P33-04). */
   readonly taps?: number;
+  /**
+   * Mesin cuci — titik air sendiri dengan beban suplainya sendiri, bukan keran biasa (smoke test
+   * 13 Nov 2026, temuan 9: "tidak ada field untuk mesin cuci … hilang tanpa disebut").
+   */
+  readonly washingMachines?: number;
 }
 
 export interface LoadResult {
@@ -42,6 +47,13 @@ function parseFixtures(ruleId: string) {
       ...(o['taps'] !== undefined
         ? { taps: requireInt(ruleId, 'taps', o['taps'], { max: 100 }) }
         : {}),
+      ...(o['washingMachines'] !== undefined
+        ? {
+            washingMachines: requireInt(ruleId, 'washingMachines', o['washingMachines'], {
+              max: 100,
+            }),
+          }
+        : {}),
     };
   };
 }
@@ -60,7 +72,8 @@ export const ENG_001: RuleVersion<FixtureCounts, LoadResult> = {
   // v5 (P33-04, masukan sales 2026-11-03): keran tambahan di luar kamar mandi dan dapur —
   // keran taman atau keran ruang cuci — ikut dihitung satu titik air.
   // v4 (2026-10-12, tempat ibadah): urinoir ikut dihitung satu titik air.
-  version: 5,
+  // v6 (smoke test 13 Nov 2026, temuan 9): mesin cuci ikut dihitung satu titik air.
+  version: 6,
   category: 'load_sizing',
   parseInput: parseFixtures('ENG-001'),
   compute: (input) => ({
@@ -70,7 +83,8 @@ export const ENG_001: RuleVersion<FixtureCounts, LoadResult> = {
       input.basins +
       input.kitchens +
       (input.urinals ?? 0) +
-      (input.taps ?? 0),
+      (input.taps ?? 0) +
+      (input.washingMachines ?? 0),
   }),
   sourceReference:
     'Kamar mandi = kloset + shower (ENG-012): 2 titik; wastafel dan bak cuci dapur 1 titik',
@@ -91,11 +105,16 @@ export const ENG_001: RuleVersion<FixtureCounts, LoadResult> = {
       input: { bathrooms: 2, basins: 2, kitchens: 1, taps: 2 },
       expected: { outletCount: 9 },
     },
+    {
+      name: 'mesin cuci ikut satu titik air: 2 kamar mandi, 1 dapur, 1 mesin cuci',
+      input: { bathrooms: 2, basins: 1, kitchens: 1, washingMachines: 1 },
+      expected: { outletCount: 7 },
+    },
   ],
   explain: (input, output, locale) =>
     localized(locale, {
-      id: `Titik air dihitung ${input.bathrooms} kamar mandi × 2 (${input.bathroomHasTap ? 'kloset dan keran' : 'shower dan kloset'}) + ${input.basins} wastafel${(input.urinals ?? 0) > 0 ? ` + ${input.urinals} urinoir` : ''} + ${input.kitchens} dapur${(input.taps ?? 0) > 0 ? ` + ${input.taps} keran tambahan` : ''} = ${output.outletCount} titik.`,
-      en: `Water outlets counted as ${input.bathrooms} bathrooms × 2 (${input.bathroomHasTap ? 'toilet and tap' : 'shower and toilet'}) + ${input.basins} basins${(input.urinals ?? 0) > 0 ? ` + ${input.urinals} urinals` : ''} + ${input.kitchens} kitchens${(input.taps ?? 0) > 0 ? ` + ${input.taps} extra taps` : ''} = ${output.outletCount} outlets.`,
+      id: `Titik air dihitung ${input.bathrooms} kamar mandi × 2 (${input.bathroomHasTap ? 'kloset dan keran' : 'shower dan kloset'}) + ${input.basins} wastafel${(input.urinals ?? 0) > 0 ? ` + ${input.urinals} urinoir` : ''} + ${input.kitchens} dapur${(input.taps ?? 0) > 0 ? ` + ${input.taps} keran tambahan` : ''}${(input.washingMachines ?? 0) > 0 ? ` + ${input.washingMachines} mesin cuci` : ''} = ${output.outletCount} titik.`,
+      en: `Water outlets counted as ${input.bathrooms} bathrooms × 2 (${input.bathroomHasTap ? 'toilet and tap' : 'shower and toilet'}) + ${input.basins} basins${(input.urinals ?? 0) > 0 ? ` + ${input.urinals} urinals` : ''} + ${input.kitchens} kitchens${(input.taps ?? 0) > 0 ? ` + ${input.taps} extra taps` : ''}${(input.washingMachines ?? 0) > 0 ? ` + ${input.washingMachines} washing machines` : ''} = ${output.outletCount} outlets.`,
     }),
 };
 

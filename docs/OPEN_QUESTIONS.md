@@ -1662,3 +1662,36 @@ Catatan tampilan yang ikut menunggu: produk terpilih yang belum punya baris juml
 keterangan "Menunggu ukuran bangunan", dan keterangan itu salah bila ukurannya memang sudah
 disebut. Setelah aturan di atas ada, baris-baris itu punya angka dan keterangannya tidak terpakai
 lagi.
+
+### OQ-99 — Beban mesin cuci, floor drain, dan jalur air panas (P37, 2026-11-13)
+
+**Status:** open · **Blocks:** tidak · _non-blocking_
+
+Smoke test 13 Nov 2026 (temuan 9): mesin cuci, keran taman, water heater, dan floor drain balkon
+tidak bisa diinput sama sekali, dan "ada mesin cuci dan keran taman" di chat hilang tanpa disebut.
+Keempatnya sekarang bisa diinput, terbaca dari chat, dan bisa dikoreksi di panel. Tiga angka
+bebannya yang perlu tanda tangan Pralon:
+
+| Angka | Nilai yang dipakai | Acuan |
+| --- | --- | --- |
+| Beban suplai mesin cuci | 4 WSFU | UPC Tabel A 103.1, *clothes washer* |
+| Beban buangan mesin cuci | 3 DFU | UPC 702.1, *standpipe* 2" |
+| Beban buangan floor drain | 2 DFU | UPC 702.1, *floor drain* 2" |
+
+Ketiganya masuk registry asumsi dengan `confidence: 'low'` dan `confirmationRequired: true`, dan
+aturan yang memakainya (ENG-001 v6, ENG-008 v4, ENG-601 v3, ENG-701 v3, ENG-707 v4) tetap
+`REQUIRES_DOMAIN_VALIDATION` — nilai yang keluar dari jalur ini tidak pernah `VERIFIED`.
+
+**Usulan default** (dipakai sekarang, menunggu persetujuan):
+
+- Angka WSFU/DFU di tabel di atas dipakai apa adanya dari UPC.
+- Letak alat tanpa denah: mesin cuci di lantai satu (ruang servis lazimnya di bawah), floor drain
+  balkon di lantai teratas. Keduanya anggapan sebaran yang sama bentuknya dengan ENG-008.
+- Mesin cuci mengisi cabang paling belakang bersama keran tambahan — ia titik air terjauh di
+  lantainya.
+- Water heater **dicatat saja**: sisi air dinginnya ikut terhitung, jalur air panasnya tidak
+  dihitung. Ukuran dan bahan jalur air panas (PPR? jarak maksimum? kehilangan panas?) belum ada
+  aturannya, dan di balasan hal itu dikatakan, bukan didiamkan.
+
+Yang ditanyakan ke Pralon: ketiga angka beban di atas, dan apakah jalur air panas perlu dihitung
+SNOUTY atau selalu mengikuti ketentuan pemanasnya.

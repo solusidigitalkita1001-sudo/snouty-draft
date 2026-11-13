@@ -96,6 +96,18 @@ export interface SolutionInput {
   /** Keran tambahan di dalam rumah (ruang cuci, dapur atas), di lantai teratas — P33-04. */
   readonly upperFloorTaps?: number | null;
   /**
+   * Mesin cuci — titik air dengan bebannya sendiri (WSFU_CLOTHES_WASHER_4), di lantai dasar
+   * (smoke test 13 Nov 2026, temuan 9).
+   */
+  readonly washingMachines?: number | null;
+  /**
+   * Pemanas air — DICATAT, tidak ikut beban: ia dilayani pipa air dingin yang sudah dihitung dari
+   * alat-alat di atas, dan jalur air panasnya belum dihitung di sini (OQ-99).
+   */
+  readonly waterHeaters?: number | null;
+  /** Floor drain balkon — hanya beban pembuangan, di lantai teratas. */
+  readonly balconyFloorDrains?: number | null;
+  /**
    * Tekanan kerja pipa yang dipakai (bar) untuk cek tekanan di sumber (ENG-712); kosong = tidak
    * tercatat di katalog maupun data standar, jadi tidak dibandingkan (OQ-96).
    */
@@ -240,6 +252,12 @@ export interface SolutionResult {
   readonly cuttingAllowancePct: number;
   /** Ukuran cabang di ujung pipa utama — disambung elbow, bukan tee (ENG-704 v2). */
   readonly mainEndBranchSize: string | null;
+  /**
+   * Water heater yang tercatat (temuan 9, smoke test 13 Nov 2026). Jumlahnya dipakai untuk
+   * MENGATAKAN bahwa jalur air panasnya belum dihitung — sizing air panas menunggu aturan teknik
+   * dari Pralon (OQ-99), jadi angka ini tidak masuk beban mana pun.
+   */
+  readonly waterHeaters: number;
   readonly appliedAssumptionIds: readonly string[];
   /** Satu trace per aturan yang dieksekusi, urut eksekusi. */
   readonly traces: readonly CalculationTrace[];
@@ -306,6 +324,12 @@ export function computeSolution(
     ? 0
     : Math.max(0, input.outdoorTaps ?? 0) + Math.max(0, input.upperFloorTaps ?? 0);
   const wsfuTap = taps > 0 ? use('WSFU_TAP_2_5') : 0;
+  // Mesin cuci: titik air sendiri dengan beban sendiri, bukan keran biasa. Toilet umum tidak
+  // punya mesin cuci rumah — angkanya diabaikan di sana, seperti keran tambahan.
+  const washingMachines = publicRestroom ? 0 : Math.max(0, input.washingMachines ?? 0);
+  const wsfuWashingMachine = washingMachines > 0 ? use('WSFU_CLOTHES_WASHER_4') : 0;
+  // Floor drain balkon hanya beban pembuangan; di sisi air bersih ia cuma menentukan lantainya.
+  const balconyFloorDrains = Math.max(0, input.balconyFloorDrains ?? 0);
   if (publicRestroom && input.bathrooms > 0) use('WORSHIP_BATHROOM_WC_TAP');
   const urinals = publicRestroom ? Math.max(0, input.urinals ?? 0) : 0;
   const load = run(ENG_001, {
@@ -313,6 +337,7 @@ export function computeSolution(
     ...(publicRestroom ? { bathroomHasTap: true } : {}),
     ...(urinals > 0 ? { urinals } : {}),
     ...(taps > 0 ? { taps } : {}),
+    ...(washingMachines > 0 ? { washingMachines } : {}),
   });
   const floorHeightM = input.floorHeightM ?? run(ENG_004, {}).floorHeightM;
   const floorPlan = run(ENG_008, {
@@ -325,6 +350,8 @@ export function computeSolution(
           upperFloorTaps: Math.max(0, input.upperFloorTaps ?? 0),
         }
       : {}),
+    ...(washingMachines > 0 ? { washingMachines } : {}),
+    ...(balconyFloorDrains > 0 ? { balconyFloorDrains } : {}),
   });
   // Beban per alat (UPC Tabel A 103.1) — sekali dibaca, dipakai debit total dan isi tiap
   // cabang. Rumah memakai kolom pemakaian pribadi; sekolah, klinik, dan ruko kolom umum;
@@ -358,6 +385,7 @@ export function computeSolution(
       // Urinoir di toilet pria lantai dasar.
       urinals: f.floor === 1 ? urinals : 0,
       taps: f.taps,
+      ...(f.washingMachines !== undefined ? { washingMachines: f.washingMachines } : {}),
     })),
     maxOutletsPerBranch: 4,
     wsfuWaterCloset: wsfu.waterCloset,
@@ -366,6 +394,7 @@ export function computeSolution(
     wsfuKitchenSink: wsfu.kitchenSink,
     wsfuUrinal: wsfu.urinal,
     wsfuTap,
+    wsfuWashingMachine,
   });
   // Satu sumber jumlah alat (laporan 0015): sebaran per lantai dan isi cabang wajib sama dengan total.
   const perFloor = floorPlan.floorsPlan;
@@ -388,6 +417,11 @@ export function computeSolution(
     'keran tambahan per lantai',
     taps,
     perFloor.map((f) => f.taps),
+  );
+  assertBalanced(
+    'mesin cuci per lantai',
+    washingMachines,
+    perFloor.map((f) => f.washingMachines ?? 0),
   );
   assertBalanced(
     'titik air per cabang',
@@ -425,6 +459,7 @@ export function computeSolution(
         lavatories: fixtures.basins,
         kitchenSinks: fixtures.kitchens,
         ...(taps > 0 ? { taps, wsfuTap } : {}),
+        ...(washingMachines > 0 ? { washingMachines, wsfuWashingMachine } : {}),
         wsfuWaterCloset: wsfu.waterCloset,
         wsfuShower: wsfu.shower,
         wsfuLavatory: wsfu.lavatory,
@@ -785,6 +820,7 @@ export function computeSolution(
     mainEndBranchSize: endBranchSize ?? null,
     wudhu,
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },
+    waterHeaters: Math.max(0, input.waterHeaters ?? 0),
     appliedAssumptionIds: [...new Set([...applied, ...main.appliedAssumptionIds])],
     traces: allTraces,
     overallProvenance: weakest(allTraces.map((t) => t.provenance)),

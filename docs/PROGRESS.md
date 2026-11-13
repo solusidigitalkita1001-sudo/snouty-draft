@@ -5688,3 +5688,27 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
 
       Satu kalimat ikut diperbaiki: "jawab pertanyaan di bawah" padahal yang di bawah tombol susun
       rekomendasi. Sekarang "sebut saja, hitungannya saya ulang".
+
+- [x] P37-09 Mesin cuci, water heater, keran taman, dan floor drain balkon bisa diinput
+
+      Temuan 9. Tidak ada field untuk mesin cuci, keran taman, water heater, atau floor drain
+      balkon, dan "ada mesin cuci dan keran taman" di chat hilang tanpa disebut sama sekali.
+
+      Keempatnya sekarang field kebutuhan penuh: terbaca dari pesan, masuk skema ekstraksi model,
+      bisa dikoreksi di panel kanan, dan ikut disebut balik di balasan ("sudah saya catat … 1 mesin
+      cuci, 1 keran luar"). Keran taman dan keran lantai atas sudah ada sejak P33-04 tetapi belum
+      bisa diedit di panel; sekarang bisa.
+
+      Bebannya dihitung, bukan sekadar dicatat. Mesin cuci menambah 4 WSFU di sisi suplai (UPC
+      Tabel A 103.1) dan 3 DFU di jalur air bekas lewat standpipe 2" (UPC 702.1); floor drain
+      balkon 2 DFU. Keduanya ikut sebaran lantai, cabang, dan pipa tegak seperti alat lain —
+      invarian "beban per lantai sama dengan beban total" berlaku untuk keduanya. Water heater
+      dicatat: sisi air dinginnya terhitung, dan baris asumsi mengatakan jalur air panasnya belum
+      dihitung alih-alih mendiamkannya.
+
+      Floor drain yang disebut tanpa letak tidak dibaca: floor drain kamar mandi sudah terhitung
+      bersama kamar mandinya, jadi hanya "floor drain di balkon" atau "di ruang cuci" yang menjadi
+      beban tambahan. Fieldnya tetap bisa diisi langsung di panel.
+
+      Ketiga angka beban baru menunggu tanda tangan Pralon (OQ-99) — `confidence: 'low'`,
+      `confirmationRequired: true`, dan aturan yang memakainya tetap `REQUIRES_DOMAIN_VALIDATION`.

@@ -90,11 +90,14 @@ export interface SupplyDemandInput {
   readonly kitchenSinks: number;
   /** Keran tambahan di luar kamar mandi dan dapur (P33-04); tanpa keran tambahan 0. */
   readonly taps?: number;
+  /** Mesin cuci — bebannya sendiri, bukan beban keran (smoke test 13 Nov 2026, temuan 9). */
+  readonly washingMachines?: number;
   readonly wsfuWaterCloset: number;
   readonly wsfuShower: number;
   readonly wsfuLavatory: number;
   readonly wsfuKitchenSink: number;
   readonly wsfuTap?: number;
+  readonly wsfuWashingMachine?: number;
 }
 export interface SupplyDemandResult {
   readonly wsfu: number;
@@ -109,14 +112,16 @@ export function houseSupplyWsfu(i: SupplyDemandInput): number {
     i.showers * i.wsfuShower +
     i.lavatories * i.wsfuLavatory +
     i.kitchenSinks * i.wsfuKitchenSink +
-    (i.taps ?? 0) * (i.wsfuTap ?? 0)
+    (i.taps ?? 0) * (i.wsfuTap ?? 0) +
+    (i.washingMachines ?? 0) * (i.wsfuWashingMachine ?? 0)
   );
 }
 
 export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
   ruleId: 'ENG-701',
   // v2 (P33-04): keran tambahan ikut beban suplai.
-  version: 2,
+  // v3 (smoke test 13 Nov 2026, temuan 9): mesin cuci ikut dengan bebannya sendiri.
+  version: 3,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -128,11 +133,15 @@ export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
       lavatories: count('lavatories'),
       kitchenSinks: count('kitchenSinks'),
       ...(o['taps'] === undefined ? {} : { taps: count('taps') }),
+      ...(o['washingMachines'] === undefined ? {} : { washingMachines: count('washingMachines') }),
       wsfuWaterCloset: unit('wsfuWaterCloset'),
       wsfuShower: unit('wsfuShower'),
       wsfuLavatory: unit('wsfuLavatory'),
       wsfuKitchenSink: unit('wsfuKitchenSink'),
       ...(o['wsfuTap'] === undefined ? {} : { wsfuTap: unit('wsfuTap') }),
+      ...(o['wsfuWashingMachine'] === undefined
+        ? {}
+        : { wsfuWashingMachine: unit('wsfuWashingMachine') }),
     };
   },
   compute: (i) => {
@@ -164,6 +173,22 @@ export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
       expected: { wsfu: 10.6, peakFlowGpm: 15.1, peakFlowLs: 0.951 },
     },
     {
+      name: '1 mesin cuci × 4 menambah 4 unit beban',
+      input: {
+        waterClosets: 1,
+        showers: 1,
+        lavatories: 1,
+        kitchenSinks: 1,
+        washingMachines: 1,
+        wsfuWaterCloset: 2.5,
+        wsfuShower: 2,
+        wsfuLavatory: 1,
+        wsfuKitchenSink: 1.5,
+        wsfuWashingMachine: 4,
+      },
+      expected: { wsfu: 11, peakFlowGpm: 15.4, peakFlowLs: 0.972 },
+    },
+    {
       name: '2 keran tambahan × 2,5 menambah 5 unit beban',
       input: {
         waterClosets: 1,
@@ -188,6 +213,7 @@ export const ENG_701: RuleVersion<SupplyDemandInput, SupplyDemandResult> = {
         [i.lavatories, i.wsfuLavatory, 'wastafel', 'basins'],
         [i.kitchenSinks, i.wsfuKitchenSink, 'bak cuci dapur', 'kitchen sinks'],
         [i.taps ?? 0, i.wsfuTap ?? 0, 'keran tambahan', 'extra taps'],
+        [i.washingMachines ?? 0, i.wsfuWashingMachine ?? 0, 'mesin cuci', 'washing machines'],
       ] as const
     ).filter(([n]) => n > 0);
     return localized(locale, {
@@ -605,6 +631,8 @@ export interface BranchFillInput {
     readonly urinals: number;
     /** Keran tambahan di lantai ini (P33-04); 0 bila tidak ada. */
     readonly taps?: number;
+    /** Mesin cuci di lantai ini (temuan 9); 0 bila tidak ada. */
+    readonly washingMachines?: number;
   }[];
   readonly maxOutletsPerBranch: number;
   readonly wsfuWaterCloset: number;
@@ -613,6 +641,7 @@ export interface BranchFillInput {
   readonly wsfuKitchenSink: number;
   readonly wsfuUrinal: number;
   readonly wsfuTap?: number;
+  readonly wsfuWashingMachine?: number;
 }
 export interface FilledBranch {
   readonly floor: number;
@@ -621,6 +650,8 @@ export interface FilledBranch {
   readonly kitchens: number;
   readonly urinals: number;
   readonly taps: number;
+  /** Mesin cuci di cabang ini — ditulis hanya bila ada (smoke test 13 Nov 2026, temuan 9). */
+  readonly washingMachines?: number;
   readonly outlets: number;
   readonly wsfu: number;
 }
@@ -638,9 +669,10 @@ export interface BranchFillResult {
  */
 export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
   ruleId: 'ENG-707',
+  // v4 (smoke test 13 Nov 2026, temuan 9): mesin cuci mengisi cabang bersama keran tambahan.
   // v3 (P33-04): keran tambahan mengisi cabang setelah bak cuci dapur.
   // v2 (2026-10-12, tempat ibadah): urinoir ikut mengisi cabang setelah wastafel.
-  version: 3,
+  version: 4,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -661,6 +693,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
           kitchens: c('kitchens'),
           urinals: f['urinals'] === undefined ? 0 : c('urinals'),
           taps: f['taps'] === undefined ? 0 : c('taps'),
+          washingMachines: f['washingMachines'] === undefined ? 0 : c('washingMachines'),
         };
       }),
       maxOutletsPerBranch: requireInt('ENG-707', 'maxOutletsPerBranch', o['maxOutletsPerBranch'], {
@@ -673,6 +706,7 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
       wsfuKitchenSink: n('wsfuKitchenSink'),
       wsfuUrinal: o['wsfuUrinal'] === undefined ? 0 : n('wsfuUrinal'),
       wsfuTap: o['wsfuTap'] === undefined ? 0 : n('wsfuTap'),
+      wsfuWashingMachine: o['wsfuWashingMachine'] === undefined ? 0 : n('wsfuWashingMachine'),
     };
   },
   compute: (i) => {
@@ -705,6 +739,12 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
           outlets: 1,
           wsfu: i.wsfuTap ?? 0,
         })),
+        // Mesin cuci paling belakang bersama keran: ia juga titik air di ruang servis.
+        ...Array.from({ length: floor.washingMachines ?? 0 }, () => ({
+          kind: 'washingMachines' as const,
+          outlets: 1,
+          wsfu: i.wsfuWashingMachine ?? 0,
+        })),
       ];
       let open: {
         bathrooms: number;
@@ -712,18 +752,37 @@ export const ENG_707: RuleVersion<BranchFillInput, BranchFillResult> = {
         kitchens: number;
         urinals: number;
         taps: number;
+        washingMachines: number;
         outlets: number;
         wsfu: number;
       } | null = null;
       const close = () => {
-        if (open !== null && open.outlets > 0)
-          branches.push({ floor: floor.floor, ...open, wsfu: round2(open.wsfu) });
+        if (open !== null && open.outlets > 0) {
+          // Mesin cuci ditulis hanya bila ada: cabang rumah tanpa mesin cuci tetap berbentuk
+          // sama seperti sebelum alat ini bisa diinput.
+          const { washingMachines, ...rest } = open;
+          branches.push({
+            floor: floor.floor,
+            ...rest,
+            ...(washingMachines > 0 ? { washingMachines } : {}),
+            wsfu: round2(open.wsfu),
+          });
+        }
         open = null;
       };
       for (const item of items) {
         if (open === null || open.outlets + item.outlets > i.maxOutletsPerBranch) {
           close();
-          open = { bathrooms: 0, basins: 0, kitchens: 0, urinals: 0, taps: 0, outlets: 0, wsfu: 0 };
+          open = {
+            bathrooms: 0,
+            basins: 0,
+            kitchens: 0,
+            urinals: 0,
+            taps: 0,
+            washingMachines: 0,
+            outlets: 0,
+            wsfu: 0,
+          };
         }
         open[item.kind] += 1;
         open.outlets += item.outlets;

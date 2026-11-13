@@ -196,6 +196,10 @@ const OBVIOUS = {
    */
   outdoorTaps: (m: string) => tapCount(OUTDOOR_TAP, m),
   upperFloorTaps: (m: string) => tapCount(UPPER_TAP, m),
+  /** Alat rumah tangga: disebut tanpa angka berarti satu, sama seperti keran yang letaknya tersurat. */
+  washingMachines: (m: string) => tapCount(WASHER, m),
+  waterHeaters: (m: string) => tapCount(WATER_HEATER, m),
+  balconyFloorDrains: (m: string) => tapCount(BALCONY_DRAIN, m),
   /**
    * Kedalaman sumur / muka air tersurat ("sumur bor 25 m", "muka airnya 8 meter") — parser nilai
    * bersatuan, batas yang sama dengan skema model (0–60 m). Dulu hanya dari model.
@@ -470,6 +474,19 @@ const OUTDOOR_TAP =
 const UPPER_TAP =
   'keran (?:di )?(?:lantai )?atas|kran (?:di )?(?:lantai )?atas|keran lantai (?:2|dua|3|tiga)|kran lantai (?:2|dua|3|tiga)|upstairs taps?|upper[- ]floor taps?';
 /**
+ * Alat yang punya beban sendiri di dua jalur sekaligus (smoke test 13 Nov 2026, temuan 9): mesin
+ * cuci menarik air bersih dan membuang lewat standpipe, water heater menarik air bersih.
+ */
+const WASHER = 'mesin cuci|washing machines?|clothes washers?';
+const WATER_HEATER = 'water heaters?|pemanas air';
+/**
+ * Floor drain yang disebut LETAKNYA di luar kamar mandi. Floor drain kamar mandi sudah terhitung
+ * bersama kamar mandinya, jadi "floor drain" telanjang tidak dibaca di sini — fieldnya tetap bisa
+ * diisi di panel.
+ */
+const BALCONY_DRAIN =
+  'floor drain (?:di )?balkon|floor drain (?:di )?ruang cuci|afur balkon|balcony floor drains?|balcony drains?';
+/**
  * Kata benda alat yang bisa dihitung — pagar untuk arah "kata benda lalu angka": angka yang
  * ternyata milik kata benda SESUDAHNYA bukan jumlah kata benda sebelumnya. "tempat wudhunya 20
  * kran" berarti 20 keran di tempat wudhu, bukan 20 tempat wudhu (produksi 2026-10-27).
@@ -485,6 +502,9 @@ export const COUNT_NOUNS: Readonly<Record<string, string>> = {
   'fixtures.urinals': URINAL,
   'fixtures.outdoorTaps': OUTDOOR_TAP,
   'fixtures.upperFloorTaps': UPPER_TAP,
+  'fixtures.washingMachines': WASHER,
+  'fixtures.waterHeaters': WATER_HEATER,
+  'fixtures.balconyFloorDrains': BALCONY_DRAIN,
   'fixtures.kitchens': 'dapur|kitchens?|pantry',
   'fixtures.outletCount': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
   'water.existingOutlets': 'titik|outlet|keran|kran|outlets?|taps?|faucets?|points?',
@@ -1006,6 +1026,26 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     negatedZero(message, COUNT_NOUNS['fixtures.upperFloorTaps']!);
   add('fixtures.outdoorTaps', outdoorTaps);
   add('fixtures.upperFloorTaps', upperFloorTaps);
+  // Mesin cuci, water heater, floor drain balkon (temuan 9): alat yang disebut tidak boleh hilang
+  // dari kebutuhan — mesin cuci dan floor drain membawa beban air bekasnya sendiri.
+  add(
+    'fixtures.washingMachines',
+    extraction.fixtures?.washingMachines ??
+      OBVIOUS.washingMachines(message) ??
+      negatedZero(message, COUNT_NOUNS['fixtures.washingMachines']!),
+  );
+  add(
+    'fixtures.waterHeaters',
+    extraction.fixtures?.waterHeaters ??
+      OBVIOUS.waterHeaters(message) ??
+      negatedZero(message, COUNT_NOUNS['fixtures.waterHeaters']!),
+  );
+  add(
+    'fixtures.balconyFloorDrains',
+    extraction.fixtures?.balconyFloorDrains ??
+      OBVIOUS.balconyFloorDrains(message) ??
+      negatedZero(message, COUNT_NOUNS['fixtures.balconyFloorDrains']!),
+  );
   // "sudah ada 4 titik air" adalah titik air LAMA (P23-05): angka yang sama tidak boleh menjadi
   // jumlah titik air baru.
   const renovation = obviousRenovation(message);
