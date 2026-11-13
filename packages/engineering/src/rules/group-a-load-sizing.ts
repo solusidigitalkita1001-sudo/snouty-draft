@@ -249,7 +249,7 @@ export const ENG_013: RuleVersion<
   parseInput: (raw) => {
     const value = (raw as Record<string, unknown>)?.['installationType'];
     if (value !== 'clean_water' && value !== 'drainage' && value !== 'both') {
-      throw new Error(`ENG-013: installationType tidak dikenal: ${String(value)}`);
+      throw new RuleInputError('ENG-013', `installationType tidak dikenal: ${String(value)}`);
     }
     return { installationType: value };
   },

@@ -8,6 +8,7 @@ import {
   HUNTER_TABLE_MAX_WSFU,
   ruleStandard,
   RULE_REGISTRY,
+  RuleInputError,
   RuleRegistrationError,
   RuleRegistry,
   supplyLoadWsfu,
@@ -191,4 +192,51 @@ describe('judul langkah hitung', () => {
       expect(ruleStepTitle(rule.ruleId, 'id')).not.toMatch(/ENG-/);
     }
   });
+});
+
+/**
+ * Masukan di luar domain adalah GALAT MASUKAN, bukan gangguan layanan (smoke test 13 Nov 2026,
+ * temuan 3: nol titik air membuat ENG-704 melempar dan API menjawab "layanan sedang tidak
+ * tersedia, coba lagi" — pengguna disuruh mengulang selamanya atas data yang tidak akan berubah).
+ * Setiap aturan diuji dengan masukan rusak: ia boleh menolak, tetapi penolakannya harus
+ * `RuleInputError` supaya lapisan API bisa memetakannya ke galat validasi.
+ */
+describe('masukan di luar domain ditolak sebagai RuleInputError', () => {
+  const hostile = (input: unknown): readonly unknown[] => {
+    const cases: unknown[] = [{}, null, undefined, [], 'x', 0, -1];
+    if (input !== null && typeof input === 'object') {
+      const entries = Object.entries(input as Record<string, unknown>);
+      for (const [key, value] of entries) {
+        for (const broken of typeof value === 'number'
+          ? [0, -1, Number.NaN, Number.POSITIVE_INFINITY, 1e12]
+          : typeof value === 'string'
+            ? ['', 'tidak ada', '???']
+            : typeof value === 'boolean'
+              ? [null]
+              : [null]) {
+          cases.push({ ...(input as Record<string, unknown>), [key]: broken });
+        }
+        // Field yang hilang sama sekali.
+        cases.push(Object.fromEntries(entries.filter(([k]) => k !== key)));
+      }
+    }
+    return cases;
+  };
+
+  for (const rule of ALL_RULES) {
+    it(`${rule.ruleId} v${rule.version}`, () => {
+      for (const input of hostile(rule.testCases[0]!.input)) {
+        try {
+          const parsed = rule.parseInput(input);
+          const output = rule.compute(parsed);
+          rule.explain(parsed, output);
+        } catch (error) {
+          expect(
+            error,
+            `${rule.ruleId} menolak ${JSON.stringify(input)} dengan ${String(error)}`,
+          ).toBeInstanceOf(RuleInputError);
+        }
+      }
+    });
+  }
 });

@@ -19,6 +19,7 @@ import { isClarificationAnswerId, MAX_ANSWERS_PER_CARD } from '../domain/clarifi
 import { isOutlierAnswerId } from '../domain/plausibility.js';
 import { EditDto } from '../domain/requirement-edit.js';
 import { sseWriter } from '../../../shared/sse/event-stream.js';
+import { errorEventFor } from '../../../shared/sse/engine-error.js';
 
 const IdParam = z.object({ id: z.string().length(26) }).strict();
 /**
@@ -156,7 +157,9 @@ export class MessageController {
       events = await this.messages.handle(id, actor, text, now, writer.emit, mode ?? 'hemat');
     } catch (error) {
       if (!writer.started()) throw error;
-      writer.emit({ type: 'error', code: 'SERVICE_UNAVAILABLE', retryable: true });
+      // Masukan di luar domain sebuah aturan bukan gangguan layanan: "coba lagi" atas data yang
+      // tidak akan berubah hanya membuat pengguna mengulang (temuan 3 smoke test 13 Nov 2026).
+      writer.emit(errorEventFor(error));
       res.end();
       return;
     }

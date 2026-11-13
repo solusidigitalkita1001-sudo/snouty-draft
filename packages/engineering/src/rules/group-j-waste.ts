@@ -14,7 +14,7 @@
  * bebannya ada di registry asumsi supaya bisa diperbaiki.
  */
 
-import { localized, requireInt, requireNumber, type RuleVersion } from '../rule.js';
+import { localized, requireInt, requireNumber, RuleInputError, type RuleVersion } from '../rule.js';
 import { round1 } from '../units.js';
 import type { EngineeringLocale } from '../parameters/locale.js';
 
@@ -250,11 +250,11 @@ export const ENG_602: RuleVersion<DrainLineInput, DrainLineResult> = {
     const o = (raw ?? {}) as Record<string, unknown>;
     const minimumSize = o['minimumSize'];
     if (!DRAIN_SIZES.includes(minimumSize as DrainSize)) {
-      throw new Error(`ENG-602: minimumSize tidak dikenal: ${String(minimumSize)}`);
+      throw new RuleInputError('ENG-602', `minimumSize tidak dikenal: ${String(minimumSize)}`);
     }
     const branchStack = o['branchStackSize'] ?? null;
     if (branchStack !== null && !DRAIN_SIZES.includes(branchStack as DrainSize)) {
-      throw new Error(`ENG-602: branchStackSize tidak dikenal: ${String(branchStack)}`);
+      throw new RuleInputError('ENG-602', `branchStackSize tidak dikenal: ${String(branchStack)}`);
     }
     return {
       dfu: requireNumber('ENG-602', 'dfu', o['dfu'], { min: 0, max: 840 }),
@@ -360,7 +360,7 @@ export const ENG_604: RuleVersion<BranchStackInput, BranchStackResult> = {
     const o = (raw ?? {}) as Record<string, unknown>;
     const floors = o['floorDfu'];
     if (!Array.isArray(floors) || floors.length === 0 || floors.length > 50) {
-      throw new Error('ENG-604: floorDfu harus berisi 1–50 lantai');
+      throw new RuleInputError('ENG-604', 'floorDfu harus berisi 1–50 lantai');
     }
     const minimum = o['minimumSize'];
     return {

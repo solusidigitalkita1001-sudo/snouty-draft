@@ -73,6 +73,29 @@ function existingPipeFieldsNeeded(state: RequirementState): readonly Requirement
   return paths.some((path) => !isFilled(readField(state, path))) ? paths : [];
 }
 
+/**
+ * Nol titik air (smoke test 13 Nov 2026, temuan 3): rumah yang semua jumlah alatnya 0 tidak punya
+ * apa pun untuk diukur. Sebelumnya kelengkapannya 4/4 — `0` adalah nilai yang terisi — lalu
+ * ENG-704 melempar dan API menjawab "layanan sedang tidak tersedia, coba lagi" atas data yang
+ * tidak akan berubah sampai penggunanya mengubahnya. Jadi ia ditanya, bukan dihitung.
+ */
+function hasNoWaterPoint(state: RequirementState): boolean {
+  if (state.useCase !== undefined) return false;
+  const f = state.fixtures;
+  const counts = [
+    f.bathrooms.value,
+    f.basins.value,
+    f.kitchens.value,
+    f.outletCount.value,
+    f.wudhuTaps?.value ?? null,
+    f.urinals?.value ?? null,
+    f.outdoorTaps?.value ?? null,
+    f.upperFloorTaps?.value ?? null,
+  ];
+  // Semua angkanya disebut (tidak ada yang kosong) dan semuanya nol. Satu angka yang belum
+  // disebut berarti datanya memang belum lengkap, bukan nol.
+  return counts.some((n) => n === 0) && counts.every((n) => n === null || n === 0);
+}
 export function evaluateCompleteness(state: RequirementState): CompletenessResult {
   const core = coreFieldsFor(state);
   const missing = core.filter((path) => !isFilled(readField(state, path)));
@@ -95,6 +118,8 @@ export function evaluateCompleteness(state: RequirementState): CompletenessResul
     // "1 inci" beserta sok PVC (smoke test 13 Nov 2026, temuan 1). "Belum tahu" tetap menjawab:
     // keduanya punya default `unknown` yang dihitung dengan peringatannya sendiri.
     ...existingPipeFieldsNeeded(state),
+    // Nol titik air: tidak ada yang bisa diukur, jadi jumlah kamar mandinya ditanya ulang.
+    ...(hasNoWaterPoint(state) ? (['fixtures.bathrooms'] as const) : []),
   ];
 
   return {

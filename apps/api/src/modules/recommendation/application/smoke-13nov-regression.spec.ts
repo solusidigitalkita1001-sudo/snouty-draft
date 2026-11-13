@@ -14,6 +14,7 @@ import {
   type SpecValue,
 } from '@snouty/shared-types';
 import { describe, expect, it } from 'vitest';
+import { RuleInputError } from '@snouty/engineering';
 import { mergeRequirement, type FieldUpdate } from '../../context/domain/context-merger.js';
 import { withCompleteness } from '../../context/domain/completeness.js';
 import { emptyRequirementState } from '../../context/domain/requirement-state.factory.js';
@@ -162,5 +163,28 @@ describe('ganti-sebagian-pembuangan (temuan 2)', () => {
       expect(row.system).toBe('soil');
     }
     expect(rec.bom.some((b) => /AW \(sambung|Sok PVC AW/.test(b.item))).toBe(false);
+  });
+});
+
+describe('nol-titik-air (temuan 3)', () => {
+  const ZERO = stateOf([
+    ...HOUSE.filter(([path]) => !path.startsWith('fixtures.')),
+    ['fixtures.bathrooms', 0],
+    ['fixtures.basins', 0],
+    ['fixtures.kitchens', 0],
+    ['water.source', 'municipal'],
+    ['water.installationType', 'clean_water'],
+  ]);
+
+  it('rumah tanpa satu pun titik air: ditanya, bukan dihitung', () => {
+    // Tidak ada yang bisa diukur untuk nol titik air: itu data yang kurang, bukan gangguan layanan.
+    expect(ZERO.missingInformation.length).toBeGreaterThan(0);
+    expect(ZERO.missingInformation).toContain('fixtures.bathrooms');
+  });
+
+  it('kalau tetap dihitung, galatnya galat masukan — bukan layanan tidak tersedia', async () => {
+    await expect(analyse(ZERO)).rejects.toSatisfy(
+      (error: unknown) => error instanceof RuleInputError,
+    );
   });
 });

@@ -376,7 +376,7 @@ export const ENG_404: RuleVersion<CulvertStructuralInput, CulvertStructuralResul
     const o = (raw ?? {}) as Record<string, unknown>;
     const load = o['trafficLoad'];
     if (load !== 'light' && load !== 'car' && load !== 'heavy') {
-      throw new Error(`masukan tidak sah untuk ENG-404: trafficLoad ${String(load)}`);
+      throw new RuleInputError('ENG-404', `trafficLoad ${String(load)}`);
     }
     return {
       innerDiameterMm: requireNumber('ENG-404', 'innerDiameterMm', o['innerDiameterMm'], {

@@ -5567,3 +5567,23 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
 
       Sumber air memang sudah tidak diminta untuk pekerjaan pembuangan saja; itu dipastikan lewat
       tes regresi, bukan diubah.
+
+- [x] P37-03 Nol titik air ditanya, dan masukan di luar domain bukan gangguan layanan
+
+      Temuan 3. Rumah yang semua jumlah alatnya 0 dihitung sampai ENG-704 menolak
+      ("branchCount harus 1–200, bukan 0"), dan API menjawab `SERVICE_UNAVAILABLE` dengan
+      `retryable: true` — "coba lagi" untuk data yang tidak akan berubah sampai penggunanya
+      mengubahnya. Dua lapis diperbaiki.
+
+      Kelengkapan: semua angka alat disebut dan semuanya nol berarti tidak ada yang bisa diukur,
+      jadi jumlah kamar mandinya masuk daftar yang kurang dan ditanya. `0` memang nilai yang
+      terisi — itu sebabnya meternya dulu 4/4.
+
+      Pemetaan galat: galat masukan aturan sekarang dikenali di satu tempat
+      (`shared/sse/engine-error.ts`) dan dipakai jalur analisis maupun jalur chat, yang sebelumnya
+      melaporkan apa pun sebagai gangguan layanan yang bisa diulang.
+
+      Dan satu tes untuk seluruh registry: 74 aturan diberi masukan rusak — kosong, nol, negatif,
+      NaN, teks di tempat angka, field yang hilang — dan penolakannya harus `RuleInputError`.
+      Empat aturan (ENG-013, ENG-404, ENG-602, ENG-604) masih melempar `Error` biasa, yang di
+      lapisan API berarti 503; keempatnya diperbaiki.
