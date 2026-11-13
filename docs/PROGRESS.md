@@ -5768,3 +5768,14 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
 
       Dan READY tidak lagi bisa berarti "tidak ada berkasnya": tanpa penyimpanan, laporan ditandai
       GAGAL dengan sebab yang tertulis, dan pemiliknya tidak diberi kabar laporan selesai.
+
+- [x] P37-13 Ukuran pipa membawa milimeternya
+
+      Temuan 12. Ukuran tampil hanya dalam inci, sementara pipa di rak toko bertanda milimeter:
+      pembeli berdiri di depan rak menebak `1"` itu yang mana.
+
+      Setiap ukuran yang dilihat pengguna sekarang membawa diameter luarnya — `1" (Ø32 mm)` — di
+      baris jalur, langkah teknis, tabel BOQ, dan kartu produk, baik di layar maupun di PDF.
+      Angkanya dari tabel ukuran PRALON yang sudah dipakai menghitung, bukan konversi di tempat.
+      Label yang sudah dalam milimeter (HDPE) tidak diulang, dan ukuran yang tidak ada di tabel
+      tampil apa adanya: milimeter karangan lebih buruk daripada tidak ada milimeter.

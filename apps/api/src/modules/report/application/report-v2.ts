@@ -9,7 +9,12 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { ASSUMPTION_CATEGORIES, assumptionCategory, ruleStandard } from '@snouty/engineering';
+import {
+  ASSUMPTION_CATEGORIES,
+  assumptionCategory,
+  ruleStandard,
+  sizeWithMm,
+} from '@snouty/engineering';
 import {
   boqFrom,
   citedSources,
@@ -623,7 +628,7 @@ export function boqSection(
                     (r.availability
                       ? `<span class="sub">${esc(v.availability[r.availability])}</span>`
                       : '') +
-                    `</td><td class="mono">${esc(r.size)}</td>` +
+                    `</td><td class="mono">${esc(sizeWithMm(r.size))}</td>` +
                     `<td class="num">${r.quantity === null ? '—' : String(r.quantity)}</td>` +
                     `<td>${r.unit === null ? '—' : esc(r.unit)}</td><td>${esc(note(r))}</td></tr>`,
                 )
@@ -698,7 +703,7 @@ export function basisAssumptionsSection(
       .map(
         (line) =>
           `<tr><td class="strong">${esc(line.name)}<span class="sub">${esc(line.path)}</span></td>` +
-          `<td class="mono size">${esc(line.size)}</td><td class="reason">${esc(line.reason)}</td>` +
+          `<td class="mono size">${esc(sizeWithMm(line.size))}</td><td class="reason">${esc(line.reason)}</td>` +
           `<td class="status">${pill(line.provenance)}</td></tr>`,
       )
       .join('\n    ')}
@@ -774,7 +779,7 @@ export function productsSection(
       const purposes = [...new Set(product.selections.map((s) => s.purpose).filter(Boolean))].join(
         ' · ',
       );
-      const sizes = [...new Set(product.selections.map((s) => s.size))].join(' · ');
+      const sizes = [...new Set(product.selections.map((s) => sizeWithMm(s.size)))].join(' · ');
       const need =
         product.quantity !== null
           ? `<span>${v.productNeeded} <span class="sub-inline">(${v.productRows(product.rowNos.join(', '))})</span></span><b>${String(product.quantity)} ${esc(product.unit ?? '')}</b>`

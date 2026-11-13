@@ -23,7 +23,7 @@ import {
   type SelectedProduct,
   type SystemLine,
 } from '@snouty/shared-types';
-import { ASSUMPTION_CATEGORIES, assumptionCategory } from '@snouty/engineering';
+import { ASSUMPTION_CATEGORIES, assumptionCategory, sizeWithMm } from '@snouty/engineering';
 import { Fragment, useState } from 'react';
 import { ProductDrawer, type DrawerSelection } from '../product/product-drawer';
 import { InstallationDrawingCard } from './installation-drawing-card';
@@ -233,7 +233,8 @@ export function SolutionView({
                 <span className={styles.systemNameText}>{line.name}</span>
                 <span className={styles.systemPath}>{line.path}</span>
               </div>
-              <span className={styles.systemSize}>{line.size}</span>
+              {/* Inci + milimeter (temuan 9 smoke test 13 Nov 2026): pipa di rak toko bertanda mm. */}
+              <span className={styles.systemSize}>{sizeWithMm(line.size)}</span>
               <span className={styles.systemReason}>{line.reason}</span>
               <ProvenanceTag provenance={line.provenance} />
             </div>
@@ -260,7 +261,8 @@ export function SolutionView({
               {recommendation.systemLines.map((line) => (
                 <div key={line.name} className={styles.technicalGroup}>
                   <div className={styles.technicalGroupTitle}>
-                    {line.name} · <span className={styles.technicalGroupSize}>{line.size}</span>
+                    {line.name} ·{' '}
+                    <span className={styles.technicalGroupSize}>{sizeWithMm(line.size)}</span>
                   </div>
                   {line.steps && line.steps.length > 0 ? (
                     <ol className={styles.stepList}>
@@ -705,7 +707,7 @@ function BoqTables({ boq, lines }: { boq: Boq; lines: readonly SystemLine[] }) {
                     {lines.map((line) => (
                       <tr key={line.name}>
                         <td>{line.name}</td>
-                        <td className={styles.mono}>{line.size}</td>
+                        <td className={styles.mono}>{sizeWithMm(line.size)}</td>
                         <td>{line.reason}</td>
                         <td>
                           <ProvenanceTag provenance={line.provenance} />
@@ -762,7 +764,7 @@ function BoqSectionRows({
                     </span>
                   )}
                 </td>
-                <td className={styles.mono}>{row.size}</td>
+                <td className={styles.mono}>{sizeWithMm(row.size)}</td>
                 <td className={styles.num}>{row.quantity ?? '—'}</td>
                 <td>{row.unit ?? '—'}</td>
                 <td>{note(row)}</td>

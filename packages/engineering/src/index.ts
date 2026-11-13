@@ -252,6 +252,7 @@ export type {
   TieInMethod,
   TieInResult,
 } from './rules/group-m-renovation.js';
+export { sizeWithMm } from './size-label.js';
 export {
   computeRenovation,
   existingMaterialOf,
