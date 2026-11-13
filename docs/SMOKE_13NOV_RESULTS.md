@@ -49,9 +49,22 @@ angka baru tetap menunggu validasi ahli.
 | OQ-101 | Ukuran grease trap, jarak bak kontrol, kapasitas IPAL                      | Ketiga angka                                                            |
 | OQ-102 | Naik satu ukuran di atas 75 % kapasitas jalur pembuangan?                  | Keputusan naik-tidaknya, dan batasnya                                   |
 
-## 4 · Yang tidak dirusak
+## 4 · Satu cacat yang ditemukan saat menjalankan ulang
 
-Dijalankan ulang setelah seluruh perbaikan: `packages/engineering` 677 tes, `apps/api` 1.938 tes,
+Perbaikan temuan 5 menyetel sesi UTC pada tiap koneksi baru lewat event `connection` sebuah pool.
+Koneksi yang dibawa event itu bergaya callback, bukan versi promise-nya seperti yang dijanjikan
+tipe `mysql2`. Memperlakukannya sebagai promise melempar di dalam emitter: pengambilan koneksi
+tidak pernah selesai, dan **setiap permintaan menggantung tanpa satu pun pesan kesalahan**.
+
+Dua puluh tiga spec yang memakai MySQL gagal lebih dulu dengan koneksi ditolak — kontainer ujinya
+mati — sehingga cacat ini tidak terlihat. Begitu kontainernya hidup, suite-nya diam 56 menit.
+Perintahnya sekarang dikirim dalam bentuk callback dari satu fungsi yang dipakai aplikasi dan
+fixture tes sekaligus, dan tesnya memberi listener itu koneksi yang `query()`-nya bukan promise.
+Dua puluh tiga spec itu kini selesai dalam 15 detik (P37-17).
+
+## 5 · Yang tidak dirusak
+
+Dijalankan ulang setelah seluruh perbaikan: `packages/engineering` 677 tes, `apps/api` 2.149 tes,
 `apps/web` 294 tes, `packages/ui` 14, `packages/shared-types` 45 — semuanya lulus, dengan MySQL
 sesi UTC. Cabang toren atap, sizing 4" air kotor dan 2" ventilasi, dan alur
 akun → percakapan → analisis → laporan → PDF tidak berubah perilakunya.
