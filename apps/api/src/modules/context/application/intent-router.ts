@@ -51,6 +51,7 @@ const RENOVATION_FIELDS: ReadonlySet<string> = new Set([
   'water.existingOutlets',
   'water.addedOutlets',
   'water.replacementLengthM',
+  'water.replacedLine',
 ]);
 
 function statesRenovation(message: string): boolean {

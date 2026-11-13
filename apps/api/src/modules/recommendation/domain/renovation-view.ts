@@ -216,6 +216,13 @@ function jointNameOf(kind: TieInFittingKind, family: string, locale: Locale): st
   }
 }
 
+/**
+ * Baris tanpa SKU katalog. `exactOptionalPropertyTypes` tidak menerima `productId: undefined`,
+ * jadi kuncinya dibuang, bukan dikosongkan.
+ */
+function withoutProductId({ productId: _productId, ...rest }: BomItem): Omit<BomItem, 'productId'> {
+  return rest;
+}
 const isPipeRow = (row: BomItem): boolean =>
   row.unit === 'batang' ||
   row.unit === 'meter' ||
@@ -392,7 +399,7 @@ export function withRenovation(
         const productId = ctx.productFor?.(f.kind, f.size, f.branchSize);
         bom.push({
           item: name,
-          system: 'clean_water',
+          system: ctx.system ?? 'clean_water',
           size: f.branchSize ? `${f.size} × ${f.branchSize}` : f.size,
           quantity: f.quantity,
           unit: bomUnitLabel('pcs', locale),
@@ -431,10 +438,17 @@ export function withRenovation(
       // kopling transisi untuk HDPE. Tanpa fitting (PPR) hanya kalimat aturannya yang tampil.
       const joints = result.tieIn?.fittings ?? [];
       const productId = ctx.productFor?.('socket', segmentSize);
-      const firstPipe = bom.findIndex(isPipeRow);
+      // Baris pipa yang DIGANTI: pekerjaan pembuangan memotong jalur air kotor atau air bekas,
+      // jadi barisnya dicari di bagian itu. Sebelum temuan 2 smoke test 13 Nov 2026 jalur
+      // pembuangan tidak punya baris "pipa utama" sama sekali, jadi seluruh material pipanya
+      // hilang dan yang tersisa hanya sok kelas AW — barang air bersih untuk air kotor.
+      const inSystem = (row: BomItem): boolean =>
+        ctx.system === undefined || row.system === ctx.system;
+      const firstPipe = bom.findIndex((row) => isPipeRow(row) && inSystem(row));
       const isMainPipe = (row: BomItem, index: number): boolean =>
         isPipeRow(row) &&
-        (row.purpose === undefined
+        inSystem(row) &&
+        (ctx.system !== undefined || row.purpose === undefined
           ? index === firstPipe
           : /^(Pipa utama|Main line)$/.test(row.purpose));
       bom = bom.flatMap((row, index) => {
@@ -443,18 +457,17 @@ export function withRenovation(
           // Segmen berukuran pipa lama: produk hitungan (ukuran baru) tidak boleh ikut, karena
           // SKU-nya ukuran lain. Barisnya tinggal tanpa SKU → "pakai produk setara" di BOQ.
           const resized = p.segmentSize !== null && p.segmentSize !== row.size;
-          const segmentProduct = resized
-            ? ctx.productFor?.('pipe', p.segmentSize!)
-            : row.productId;
-          const { productId: _dropped, ...withoutProduct } = row;
+          const segmentProduct = resized ? ctx.productFor?.('pipe', p.segmentSize!) : row.productId;
+          const withoutProduct = withoutProductId(row);
           return [
             {
               ...withoutProduct,
               size: segmentSize,
               quantity,
-              ...(row.netLengthM !== undefined
-                ? { netLengthM: Math.round(row.netLengthM * p.ratio * 10) / 10 }
-                : {}),
+              // Panjang segmen adalah panjang yang diganti itu sendiri (ENG-903), bukan panjang
+              // jalur dikali porsi yang dibulatkan: porsi 0,12 × 25,5 m menuliskan "3,1 m" di
+              // tabel material sementara langkah hitung di halaman yang sama menulis "3 m".
+              ...(row.netLengthM !== undefined ? { netLengthM: p.lengthM } : {}),
               ...(resized && ctx.existingFamily ? { item: `Pipa ${ctx.existingFamily}` } : {}),
               ...(segmentProduct !== undefined ? { productId: segmentProduct } : {}),
               basis: `${explain('ENG-903')} ${row.basis}`.trim(),

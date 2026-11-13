@@ -86,7 +86,7 @@ export const RequirementEditSchema = z.union([
   z
     .object({
       path: z.literal('water.existingPipeMaterial'),
-      value: z.enum(['pvc', 'galvanized', 'hdpe', 'ppr']),
+      value: z.enum(['pvc', 'galvanized', 'hdpe', 'ppr', 'unknown']),
     })
     .strict(),
   z.object({ path: z.literal('water.existingOutlets'), value: count(1000) }).strict(),
@@ -95,6 +95,12 @@ export const RequirementEditSchema = z.union([
     .object({
       path: z.literal('water.replacementLengthM'),
       value: z.number().min(0.1).max(100_000),
+    })
+    .strict(),
+  z
+    .object({
+      path: z.literal('water.replacedLine'),
+      value: z.enum(['clean_water_main', 'clean_water_branch', 'soil', 'waste']),
     })
     .strict(),
 ]);

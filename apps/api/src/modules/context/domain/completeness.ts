@@ -60,7 +60,16 @@ function coreFieldsFor(state: RequirementState): readonly RequirementFieldPath[]
 function existingPipeFieldsNeeded(state: RequirementState): readonly RequirementFieldPath[] {
   if (state.useCase !== undefined) return [];
   if (state.water.workType?.value !== 'replace_partial') return [];
-  const paths = ['water.existingMainSize', 'water.existingPipeMaterial'] as const;
+  // Jalur mana yang dipotong hanya ditanya bila pekerjaannya menyentuh pembuangan: di sana kelas
+  // pipanya berbeda, dan sok kelas AW pada jalur air kotor adalah barang yang salah (temuan 2).
+  const installation = state.water.installationType.value;
+  const paths = [
+    ...(installation === 'drainage' || installation === 'both'
+      ? (['water.replacedLine'] as const)
+      : []),
+    'water.existingMainSize',
+    'water.existingPipeMaterial',
+  ] as const;
   return paths.some((path) => !isFilled(readField(state, path))) ? paths : [];
 }
 

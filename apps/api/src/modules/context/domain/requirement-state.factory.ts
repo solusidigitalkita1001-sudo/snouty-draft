@@ -47,6 +47,7 @@ export function emptyRequirementState(now: string): RequirementState {
       existingOutlets: empty(now),
       addedOutlets: empty(now),
       replacementLengthM: empty(now),
+      replacedLine: empty(now),
     },
     missingInformation: [],
     completeness: { filled: 0, required: 4 },

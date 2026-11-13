@@ -5546,3 +5546,24 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       sebelumnya kelengkapan 4/4 dengan daftar kurang kosong. "Belum tahu" tetap menjawab:
       keduanya punya default `unknown` yang dihitung dengan peringatannya sendiri, dan "itung
       aja" dari pengguna memakai default itu tanpa mengulang pertanyaan yang sama.
+
+- [x] P37-02 Pekerjaan pembuangan memakai pipa pembuangan, dan jalur yang diganti ditanya
+
+      Temuan 2. Ganti sebagian pada instalasi pembuangan menjawab "Segmen yang diganti 1 inci"
+      dengan "Sok PVC AW 1 inci" — pipa air bersih kelas AW untuk jalur air kotor — dan seluruh
+      material pipa pembuangannya hilang dari daftar. Sebabnya satu: lapisan renovasi mencari
+      baris "pipa utama" dan jalur pembuangan tidak punya baris bernama begitu, jadi semua
+      barisnya dibuang dan yang tersisa penyambung dari keluarga air bersih.
+
+      Sekarang ada field baru, jalur yang diganti: pipa utama air bersih, cabang air bersih, air
+      kotor, atau air bekas. Pekerjaan yang menyentuh pembuangan menanyakannya sebelum menghitung
+      (kartu klarifikasi, panel kebutuhan, dan ekstraksi), dan jalur itu yang menentukan keluarga
+      pipa, bagian BOQ, ukuran pembanding kapasitas, serta panjang jalur yang menjadi dasar porsi
+      segmen. "Belum tahu" memakai jalur utama sistem itu sebagai anggapan yang terlihat.
+
+      Panjang segmen juga berhenti dihitung sebagai porsi dikali panjang jalur: ia panjang yang
+      diganti itu sendiri, karena 0,12 × 25,5 m menuliskan "3,1 m" di tabel material sementara
+      langkah hitung di halaman yang sama menulis "3 m".
+
+      Sumber air memang sudah tidak diminta untuk pekerjaan pembuangan saja; itu dipastikan lewat
+      tes regresi, bukan diubah.

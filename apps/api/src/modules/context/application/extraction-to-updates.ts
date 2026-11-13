@@ -1071,6 +1071,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     'water.replacementLengthM',
     extraction.water?.replacementLengthM ?? renovation.replacementLengthM,
   );
+  add('water.replacedLine', extraction.water?.replacedLine);
 
   return updates;
 }

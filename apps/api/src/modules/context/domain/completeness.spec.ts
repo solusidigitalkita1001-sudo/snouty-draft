@@ -122,10 +122,7 @@ describe('ganti sebagian: data pipa lama', () => {
       ['water.replacementLengthM', 3],
     ]);
     const r = evaluateCompleteness(state);
-    expect(r.missingInformation).toEqual([
-      'water.existingMainSize',
-      'water.existingPipeMaterial',
-    ]);
+    expect(r.missingInformation).toEqual(['water.existingMainSize', 'water.existingPipeMaterial']);
     expect(r.isComplete).toBe(false);
   });
 

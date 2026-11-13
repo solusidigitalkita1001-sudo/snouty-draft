@@ -174,8 +174,15 @@ export interface WaterState {
   readonly addedOutlets?: TrackedValue<number>;
   /** Panjang pipa yang diganti (m) — penggantian sebagian. */
   readonly replacementLengthM?: TrackedValue<number>;
+  /**
+   * Jalur mana yang dikerjakan pada penggantian sebagian (smoke test 13 Nov 2026, temuan 2). Satu
+   * pekerjaan memotong satu jalur: segmen pengganti, keluarga pipa, dan bagian BOQ-nya mengikuti
+   * jalur itu — pekerjaan air kotor tidak boleh menghasilkan sok kelas AW.
+   */
+  readonly replacedLine?: TrackedValue<ReplacedLine>;
 }
 
+export type ReplacedLine = 'clean_water_main' | 'clean_water_branch' | 'soil' | 'waste';
 export type WorkType = 'new' | 'replace_all' | 'replace_partial' | 'extend' | 'renovation';
 /**
  * Bahan pipa lama. `unknown` adalah jawaban yang sah, bukan ketiadaan data: pengguna yang tidak
@@ -211,7 +218,8 @@ export type RequirementFieldPath =
   | 'water.existingPipeMaterial'
   | 'water.existingOutlets'
   | 'water.addedOutlets'
-  | 'water.replacementLengthM';
+  | 'water.replacementLengthM'
+  | 'water.replacedLine';
 
 /**
  * Empat field inti yang menggerakkan meter "KELENGKAPAN DATA" dan menahan

@@ -39,6 +39,7 @@ export const FIELD_LABEL: Readonly<Record<RequirementFieldPath, string>> = {
   'water.existingOutlets': 'Titik air yang sudah ada',
   'water.addedOutlets': 'Titik air tambahan',
   'water.replacementLengthM': 'Panjang yang diganti',
+  'water.replacedLine': 'Jalur yang diganti',
 };
 
 export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
@@ -68,6 +69,7 @@ export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
   'water.existingOutlets': 'Existing water points',
   'water.addedOutlets': 'Added water points',
   'water.replacementLengthM': 'Length replaced',
+  'water.replacedLine': 'Line being replaced',
 };
 
 /** Label field menurut bahasa percakapan. */
@@ -102,6 +104,12 @@ const VALUE_LABEL: Readonly<Record<string, string>> = {
   galvanized: 'Galvanis / besi',
   hdpe: 'HDPE',
   ppr: 'PPR',
+  unknown: 'Belum diketahui',
+  // Jalur yang diganti (temuan 2 smoke test 13 Nov 2026).
+  clean_water_main: 'Pipa utama air bersih',
+  clean_water_branch: 'Cabang air bersih',
+  soil: 'Air kotor',
+  waste: 'Air bekas',
 };
 
 const VALUE_LABEL_EN: Readonly<Record<string, string>> = {
@@ -127,6 +135,11 @@ const VALUE_LABEL_EN: Readonly<Record<string, string>> = {
   galvanized: 'Galvanized / steel',
   hdpe: 'HDPE',
   ppr: 'PPR',
+  unknown: 'Not known yet',
+  clean_water_main: 'Clean water main',
+  clean_water_branch: 'Clean water branch',
+  soil: 'Soil line',
+  waste: 'Waste line',
 };
 
 function plural(n: number, one: string, many: string): string {

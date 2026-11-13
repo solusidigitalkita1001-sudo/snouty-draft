@@ -789,14 +789,44 @@ export class AnalysisService {
           },
         }
       : state;
+    // Jalur yang dikerjakan menentukan konteks renovasinya (temuan 2 smoke test 13 Nov 2026):
+    // potongan pada jalur air kotor memakai pipa pembuangan dan masuk bagian air kotor di BOQ,
+    // bukan kelas AW di bagian air bersih. Tanpa jalur yang disebut, pekerjaan air bersih.
+    const replacedLine = state.water.replacedLine?.value ?? null;
+    const drainLine =
+      replacedLine === 'soil'
+        ? drainageResult?.soil
+        : replacedLine === 'waste'
+          ? drainageResult?.waste
+          : null;
+    const renovationLine =
+      drainLine && (replacedLine === 'soil' || replacedLine === 'waste')
+        ? {
+            newMainSize: drainLine.size,
+            branchSize: drainLine.size,
+            family: DRAINAGE_FAMILY,
+            system: replacedLine,
+          }
+        : {
+            newMainSize: solution.mainSize,
+            // Titik tambahan disambung lewat cabang seukuran sambungan alat (1/2"), bukan cabang
+            // terbesar rumah.
+            branchSize: extension ? solution.fixtureConnectionSize : solution.branchSize,
+            family: PIPE_FAMILY,
+            system: 'clean_water' as const,
+          };
     // Renovasi (P23-02): perluasan mengecek pipa utama lama terhadap beban total — titik air lama
     // (atau tambahan) dihitung 1 WSFU (setara wastafel) karena jenisnya tidak ditanya.
     const renovated = await this.renovate(renovationState, recommendation, allTraces, locale, {
-      newMainSize: solution.mainSize,
-      // Titik tambahan disambung lewat cabang seukuran sambungan alat (1/2"), bukan cabang terbesar rumah.
-      branchSize: extension ? solution.fixtureConnectionSize : solution.branchSize,
-      routeLengthM: solution.mainRunNetM,
-      family: PIPE_FAMILY,
+      ...renovationLine,
+      // Porsi segmen dihitung terhadap panjang jalur YANG DIGANTI: 3 m dari jalur air kotor,
+      // bukan dari jalur air bersih yang panjangnya lain.
+      routeLengthM:
+        replacedLine === 'soil'
+          ? (drainageResult?.lengths?.soilNetM ?? null)
+          : replacedLine === 'waste'
+            ? (drainageResult?.lengths?.wasteNetM ?? null)
+            : solution.mainRunNetM,
       newLoad: extension ? added : solution.outletCount,
       loadUnit: 'titik',
       sizeForTotal: (existing) =>

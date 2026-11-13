@@ -261,6 +261,12 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
     inputs: countInputs({ id: 'Jumlah lain', en: 'Other number' }),
     inputValue: 'number',
   },
+  // Temuan 2 smoke test 13 Nov 2026: satu pekerjaan memotong satu jalur, dan jalur itu menentukan
+  // kelas pipanya — sok kelas AW pada jalur air kotor adalah barang yang salah.
+  'water.replacedLine': {
+    question: 'Jalur mana yang diganti?',
+    options: ['Pipa utama air bersih', 'Cabang air bersih', 'Air kotor', 'Air bekas'],
+  },
   'water.replacementLengthM': {
     question: 'Berapa meter pipa yang diganti?',
     options: [],
@@ -329,6 +335,7 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.workType': 'What kind of renovation is it?',
   'water.existingMainSize': 'What size is the existing main pipe?',
   'water.existingPipeMaterial': 'What is the existing pipe made of?',
+  'water.replacedLine': 'Which line is being replaced?',
   'water.existingOutlets': 'How many water points are already installed (besides the new ones)?',
   'water.replacementLengthM': 'How many metres of pipe are being replaced?',
 };
@@ -387,6 +394,7 @@ const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath
   'water.existingPipeMaterial',
   'water.existingOutlets',
   'water.replacementLengthM',
+  'water.replacedLine',
 ]);
 
 /**
@@ -485,6 +493,12 @@ const OPTION_VALUES: Readonly<
     HDPE: 'hdpe',
     PPR: 'ppr',
   },
+  'water.replacedLine': {
+    'Pipa utama air bersih': 'clean_water_main',
+    'Cabang air bersih': 'clean_water_branch',
+    'Air kotor': 'soil',
+    'Air bekas': 'waste',
+  },
 };
 
 /** Label singkat untuk ringkasan jawaban di gelembung pengguna. */
@@ -504,6 +518,7 @@ const ANSWER_LABEL: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.workType': 'Pekerjaan',
   'water.existingMainSize': 'Pipa lama',
   'water.existingPipeMaterial': 'Bahan pipa lama',
+  'water.replacedLine': 'Jalur yang diganti',
   'water.existingOutlets': 'Titik air lama',
   'water.replacementLengthM': 'Yang diganti',
 };
@@ -523,6 +538,7 @@ const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> =
   'water.workType': 'Work',
   'water.existingMainSize': 'Existing pipe',
   'water.existingPipeMaterial': 'Existing material',
+  'water.replacedLine': 'Line replaced',
   'water.existingOutlets': 'Existing points',
   'water.replacementLengthM': 'Replaced',
 };
@@ -725,6 +741,7 @@ export function renovationRefinementFields(
       // Ukuran pipa lama ikut: segmen penggantinya mengikuti ukuran itu, bukan ukuran hitungan
       // seluruh rumah (smoke test 13 Nov 2026, temuan 1).
       return [
+        'water.replacedLine',
         'water.existingMainSize',
         'water.replacementLengthM',
         'water.existingPipeMaterial',

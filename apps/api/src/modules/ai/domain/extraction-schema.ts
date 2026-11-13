@@ -69,6 +69,10 @@ export const ExtractionSchema = z
         existingOutlets: z.number().int().min(0).max(1_000).optional(),
         /** Panjang pipa yang diganti (m), hanya bila disebut. */
         replacementLengthM: z.number().min(0).max(100_000).optional(),
+        /** Jalur yang diganti, hanya bila pengguna menyebut jalur mana (air kotor, cabang, …). */
+        replacedLine: z
+          .enum(['clean_water_main', 'clean_water_branch', 'soil', 'waste'])
+          .optional(),
       })
       .strict()
       .optional(),

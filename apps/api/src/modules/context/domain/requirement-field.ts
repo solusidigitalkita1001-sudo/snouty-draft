@@ -75,6 +75,7 @@ export const ALL_FIELD_PATHS: readonly RequirementFieldPath[] = [
   'water.existingOutlets',
   'water.addedOutlets',
   'water.replacementLengthM',
+  'water.replacedLine',
 ];
 
 /** Field yang nilainya belum ada — dipakai kelengkapan dan klarifikasi. */

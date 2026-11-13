@@ -78,6 +78,14 @@ export const REQUIREMENT_DEFAULTS: readonly RequirementDefault[] = [
     reason: 'Bahan pipa lama belum diketahui, jadi sambungannya memakai kopling transisi.',
     ruleId: 'ENG-014',
   },
+  {
+    path: 'water.replacedLine',
+    // Nilainya dari jenis instalasi (`defaultUpdateFor` dengan state): pekerjaan pembuangan saja
+    // berarti jalur air kotor, pekerjaan lain berarti pipa utama air bersih.
+    value: null,
+    reason: 'Jalur yang diganti dianggap jalur utamanya.',
+    ruleId: 'ENG-014',
+  },
 ];
 
 /** Kembaran Inggris `reason` tiap default — kunci sama dengan path di `REQUIREMENT_DEFAULTS`. */
@@ -91,6 +99,7 @@ export const REQUIREMENT_DEFAULT_REASONS_EN: Readonly<
   'water.existingMainSize': 'The existing pipe size is not known, so its capacity is not checked.',
   'water.existingPipeMaterial':
     'The existing pipe material is not known, so the joint uses a transition coupling.',
+  'water.replacedLine': 'The line being replaced is taken to be the main one.',
 };
 
 /** Kalimat alasan default menurut bahasa; Indonesia = `reason` tabel apa adanya. */
@@ -116,7 +125,14 @@ export function defaultUpdateFor(
 ): FieldUpdate | null {
   const def = BY_PATH.get(path);
   if (!def) return null;
-  const value = path === 'fixtures.bathrooms' ? (state?.building.floors.value ?? null) : def.value;
+  const value =
+    path === 'fixtures.bathrooms'
+      ? (state?.building.floors.value ?? null)
+      : path === 'water.replacedLine'
+        ? state?.water.installationType.value === 'drainage'
+          ? 'soil'
+          : 'clean_water_main'
+        : def.value;
   if (value === null) return null;
   return {
     path: def.path,
@@ -146,6 +162,7 @@ const ASSUMABLE_ON_REQUEST: readonly RequirementFieldPath[] = [
   ...HOUSE_ASSUMABLE,
   'water.existingMainSize',
   'water.existingPipeMaterial',
+  'water.replacedLine',
 ];
 
 /**
