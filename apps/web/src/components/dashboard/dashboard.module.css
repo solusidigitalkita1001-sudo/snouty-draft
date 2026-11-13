@@ -348,6 +348,11 @@
   align-items: start;
 }
 
+/* Satu ringkasan tanpa daftar di sampingnya: admin yang datang dari papan prospek. */
+.leadSolo {
+  display: block;
+}
+
 .leadList {
   display: flex;
   flex-direction: column;
@@ -466,6 +471,14 @@
   padding: 12px;
   border: 1px solid var(--snouty-border-soft);
   border-radius: var(--snouty-radius-card);
+}
+
+/* Judul dan tanggal satu baris: tanpa tanggalnya, dua konsultasi serupa tidak bisa dibedakan. */
+.projectHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .factGrid {

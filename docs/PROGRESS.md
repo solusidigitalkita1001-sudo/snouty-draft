@@ -5835,3 +5835,55 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       Perintahnya sekarang dikirim dalam bentuk callback, dari satu fungsi (`useUtcSessions`) yang
       dipakai aplikasi dan fixture tes sekaligus. Tesnya memberi listener itu koneksi yang `query()`
       -nya bukan promise — persis seperti driver sungguhan — dan menuntut ia tidak melempar.
+
+---
+
+## Fase 38 — sisi internal: papan prospek dan layar sales (13 Nov 2026)
+
+Permintaan pemilik: selesaikan dulu yang di sisi internal soal CRM dan prospek. Layarnya dibuka
+satu per satu dengan akun lokal — admin dan sales — dengan prospek yang datang dari jalur
+sungguhnya: daftar, mengobrol, analisis, laporan, minta dihubungi. Lima cacat, semuanya lolos dari
+suite yang hijau karena tidak satu pun bisa dilihat dari kode saja.
+
+- [x] P38-01 Warna corong 5A mengikuti jumlah orangnya, bukan urutan kolomnya
+
+      Kepekatan kartu tahap diambil dari posisinya: tahap paling kanan selalu paling pekat. Di
+      papan yang dibuka hari ini, kartu **Advocate bertuliskan 0 adalah benda paling mencolok di
+      layar**, sementara Act yang berisi tiga orang nyaris putih. Warna yang terbaca sebagai
+      "banyak" tidak boleh berarti "paling kanan".
+
+      Sekarang kepekatannya dihitung dari jumlahnya terhadap tahap teramai (`funnel-tone.ts`):
+      nol tidak diwarnai sama sekali, yang teramai mendapat tingkat tertinggi, dan yang lebih
+      banyak tidak pernah lebih pucat daripada yang lebih sedikit.
+
+- [x] P38-02 Prospek teratas terbuka sendiri di layar sales
+
+      Sales yang punya satu prospek mendapat panel kosong bertuliskan "pilih prospek untuk melihat
+      ringkasannya" — satu klik yang jawabannya sudah pasti. Daftarnya memang urut prioritas, jadi
+      yang teratas kini terbuka begitu layarnya dimuat. Cacat yang sama pernah diperbaiki di
+      antrean teknis (P31-81); layar ini terlewat.
+
+- [x] P38-03 Konsultasi lama terlipat, dan tanggalnya terbaca
+
+      Pelanggan yang kembali dengan proyek serupa menghasilkan kartu konsultasi yang nyaris sama
+      persis, dan kedelapan-delapannya tergelar penuh **tanpa satu pun tanggal**: tiga blok
+      identik yang tidak bisa dibedakan mana yang terakhir. Yang terbaru sekarang tergelar, yang
+      lebih lama menyisakan judul dan tanggalnya dengan rincian satu klik. Tidak ada yang hilang —
+      yang hilang hanya pengulangannya.
+
+- [x] P38-04 Kalimat pelanggan yang diulang hanya muncul sekali
+
+      Kutipan diambil dari lima pesan terakhir pengguna di seluruh percakapannya, tanpa
+      penyaringan. Orang yang kembali mengetik kalimat pembuka yang sama, jadi layar sales memuat
+      lima baris yang isinya dua kalimat — terlihat seperti data, padahal pengulangan.
+      `distinctQuotes` menyaringnya di `prospect/domain` (beda huruf besar-kecil dan spasi
+      diabaikan), menyimpan kemunculan terbaru, dan storenya membaca lebih banyak baris supaya
+      lima kutipan tetap lima.
+
+- [x] P38-05 Ringkasan yang dibuka admin dari papan prospek tampil
+
+      Papan prospek punya tautan "Ringkasan" ke `/internal/leads?u=<pengguna>`. Daftar "prospek
+      saya" milik admin memang kosong — dan layar itu menampilkan blok kosong "belum ada prospek
+      yang ditugaskan ke Anda" alih-alih ringkasan yang baru saja diklik, karena panel rinciannya
+      hanya dirender bila daftarnya berisi. Jalur admin → ringkasan percakapan, yang justru inti
+      penugasan (`PROSPECT_5A.md` §4), putus di langkah terakhir.

@@ -21,6 +21,7 @@ import {
 } from '../../../infrastructure/mysql/schema/recommendation.js';
 import { DatabaseService } from '../../../shared/database/database.service.js';
 import {
+  distinctQuotes,
   LEAD_STORE,
   type DueFollowUp,
   type LeadContext,
@@ -38,6 +39,8 @@ import { LEAD_STATUSES, type LeadStatus } from '../domain/prospect-board.js';
 const MAX_PROJECTS = 8;
 const MAX_PRODUCTS = 6;
 const MAX_QUOTES = 5;
+/** Berapa kali MAX_QUOTES yang dibaca sebelum pengulangan disaring. */
+const QUOTE_SCAN = 6;
 const MAX_QUOTE_CHARS = 200;
 /** Jejak yang dibawa sekali tarik — layar sales butuh riwayat, bukan arsip. */
 const MAX_ACTIVITY = 50;
@@ -284,14 +287,21 @@ export class MysqlLeadStore implements LeadStore {
       .innerJoin(conversations, eq(messages.conversationId, conversations.id))
       .where(and(this.owned(userId), eq(messages.role, 'user')))
       .orderBy(desc(messages.createdAt))
-      .limit(MAX_QUOTES);
+      // Lebih banyak daripada yang ditampilkan: pengulangan disaring SETELAH diambil, dan tanpa
+      // cadangan ini lima kalimat yang sama menyisakan satu baris di layar.
+      .limit(MAX_QUOTES * QUOTE_SCAN);
 
     return {
       projects,
       reports: reportRow?.n ?? 0,
       shares: shareRow?.n ?? 0,
       salesRequest: request ? { source: request.source, at: request.at } : null,
-      quotes: quotes.map((q) => ({ text: q.text.slice(0, MAX_QUOTE_CHARS), at: q.at })).reverse(),
+      quotes: distinctQuotes(
+        quotes.map((q) => ({ text: q.text.slice(0, MAX_QUOTE_CHARS), at: q.at })),
+        MAX_QUOTES,
+      )
+        .slice()
+        .reverse(),
     };
   }
 

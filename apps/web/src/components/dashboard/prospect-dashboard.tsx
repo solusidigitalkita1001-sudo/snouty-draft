@@ -22,6 +22,7 @@ import {
 import { dashboardCopy } from './dashboard-copy';
 import { ContactIcon, ScaleIcon, SearchIcon, StageIcon } from './dashboard-icons';
 import { EmptyState } from './empty-state';
+import { funnelTone } from './funnel-tone';
 import styles from './dashboard.module.css';
 
 const STAGES: readonly Stage[] = ['aware', 'appeal', 'ask', 'act', 'advocate'];
@@ -111,6 +112,8 @@ export function ProspectBoard() {
     value: board.value.funnel[stage],
   }));
   const byPriority = (priority: Priority) => items.filter((i) => i.priority === priority).length;
+  // Warna kartu mengikuti jumlahnya, bukan urutan kolomnya (`funnel-tone.ts`).
+  const busiest = Math.max(...stageSlices.map((slice) => slice.value));
 
   return (
     <>
@@ -125,16 +128,17 @@ export function ProspectBoard() {
           {COPY.prospects.funnelTitle}
         </h2>
         <div className={[styles.statRow, styles.statRow5].join(' ')}>
-          {stageSlices.map((slice, index) => {
+          {stageSlices.map((slice) => {
             const stage = slice.key as Stage;
             const on = filter.stage === stage;
+            const tone = funnelTone(slice.value, busiest);
             return (
               <button
                 key={stage}
                 type="button"
                 className={[
                   styles.stat,
-                  styles[`statTone${index + 1}`] ?? '',
+                  tone === 0 ? '' : (styles[`statTone${tone}`] ?? ''),
                   on ? styles.statOn : '',
                 ].join(' ')}
                 aria-pressed={on}

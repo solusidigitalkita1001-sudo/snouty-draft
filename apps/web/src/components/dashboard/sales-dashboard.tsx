@@ -71,6 +71,20 @@ export function SalesDashboard() {
     if (selected !== null) void loadDetail(selected);
   }, [selected, loadDetail]);
 
+  /**
+   * Prospek teratas terbuka sendiri.
+   *
+   * Daftarnya sudah urut prioritas, jadi "pilih prospek untuk melihat ringkasannya" di sebelah
+   * satu-satunya prospek yang ada hanyalah satu klik yang jawabannya sudah pasti — dan sales yang
+   * membuka layar ini pagi-pagi memang mau melihat yang teratas (P38; cacat yang sama pernah
+   * diperbaiki di antrean teknis, P31-81).
+   */
+  useEffect(() => {
+    if (selected !== null || list?.kind !== 'ok') return;
+    const first = list.value.items[0];
+    if (first !== undefined) setSelected(first.userId);
+  }, [list, selected]);
+
   return (
     <>
       {list === null && <p className={styles.muted}>{BOARD.loading}</p>}
@@ -98,41 +112,50 @@ export function SalesDashboard() {
             <p className={styles.subtitle}>{COPY.subtitle}</p>
           </div>
           {/* Tanpa satu pun prospek, dua panel tidak punya guna: kalimat "pilih prospek"
-              menunggu pilihan yang tidak ada. Satu blok kosong selebar layar (P31-78). */}
-          {list.value.items.length === 0 && <EmptyState mood="confused" text={COPY.empty} />}
+              menunggu pilihan yang tidak ada. Satu blok kosong selebar layar (P31-78).
+              Kecuali satu ringkasan memang sedang dibuka: admin datang ke sini dari papan
+              prospek lewat `?u=`, dan daftar "prospek saya" miliknya memang kosong — dulu ia
+              mendapat "belum ada prospek yang ditugaskan" alih-alih ringkasan yang diklik (P38). */}
+          {list.value.items.length === 0 && selected === null && (
+            <EmptyState mood="confused" text={COPY.empty} />
+          )}
 
-          {list.value.items.length > 0 && (
-            <div className={styles.leadLayout}>
-              <ul className={styles.leadList} aria-label={COPY.title}>
-                {list.value.items.map((item) => (
-                  <li key={item.userId}>
-                    <button
-                      type="button"
-                      className={[
-                        styles.leadItem,
-                        selected === item.userId ? styles.leadItemOn : '',
-                      ].join(' ')}
-                      aria-pressed={selected === item.userId}
-                      onClick={() => setSelected(item.userId)}
-                    >
-                      <span className={styles.name}>{item.name}</span>
-                      <span className={styles.leadTags}>
-                        <span
-                          className={[styles.priority, styles[`priority_${item.priority}`]].join(
-                            ' ',
+          {(list.value.items.length > 0 || selected !== null) && (
+            <div className={list.value.items.length > 0 ? styles.leadLayout : styles.leadSolo}>
+              {list.value.items.length > 0 && (
+                <ul className={styles.leadList} aria-label={COPY.title}>
+                  {list.value.items.map((item) => (
+                    <li key={item.userId}>
+                      <button
+                        type="button"
+                        className={[
+                          styles.leadItem,
+                          selected === item.userId ? styles.leadItemOn : '',
+                        ].join(' ')}
+                        aria-pressed={selected === item.userId}
+                        onClick={() => setSelected(item.userId)}
+                      >
+                        <span className={styles.name}>{item.name}</span>
+                        <span className={styles.leadTags}>
+                          <span
+                            className={[styles.priority, styles[`priority_${item.priority}`]].join(
+                              ' ',
+                            )}
+                          >
+                            {BOARD.priority[item.priority]}
+                          </span>
+                          <span className={styles.stageTag}>{BOARD.stages[item.stage].name}</span>
+                          {item.lead && (
+                            <span className={styles.meta}>
+                              {BOARD.leadStatus[item.lead.status]}
+                            </span>
                           )}
-                        >
-                          {BOARD.priority[item.priority]}
                         </span>
-                        <span className={styles.stageTag}>{BOARD.stages[item.stage].name}</span>
-                        {item.lead && (
-                          <span className={styles.meta}>{BOARD.leadStatus[item.lead.status]}</span>
-                        )}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               <section className={styles.leadDetail} aria-live="polite">
                 {selected === null && <p className={styles.muted}>{COPY.pick}</p>}
@@ -319,8 +342,13 @@ function LeadView({
 
       <div className={styles.block}>
         <span className={styles.blockTitle}>{COPY.projects}</span>
-        {detail.facts.projects.map((project) => (
-          <ProjectCard key={project.conversationId} userId={userId} project={project} />
+        {detail.facts.projects.map((project, index) => (
+          <ProjectCard
+            key={project.conversationId}
+            userId={userId}
+            project={project}
+            latest={index === 0}
+          />
         ))}
       </div>
 
@@ -338,11 +366,33 @@ function LeadView({
   );
 }
 
-function ProjectCard({ userId, project }: { userId: string; project: LeadProject }) {
+/**
+ * Satu konsultasi.
+ *
+ * `latest` dibuka utuh; yang lebih lama mulai terlipat. Pelanggan yang kembali dengan proyek
+ * serupa menghasilkan kartu yang nyaris sama persis, dan sebelumnya kedelapan-delapannya tergelar
+ * penuh tanpa satu pun tanggal — tiga blok identik yang tidak bisa dibedakan mana yang terakhir
+ * (P38). Tanggalnya sekarang selalu terbaca, dan tidak ada yang hilang: rinciannya satu klik.
+ */
+function ProjectCard({
+  userId,
+  project,
+  latest,
+}: {
+  userId: string;
+  project: LeadProject;
+  latest: boolean;
+}) {
   const { locale } = useLocale();
   const COPY = salesCopy(locale);
   const [lines, setLines] = useState<readonly TranscriptLine[] | null>(null);
   const [open, setOpen] = useState(false);
+  const [shown, setShown] = useState(latest);
+  const day = new Date(project.updatedAt).toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 
   const toggle = async () => {
     if (open) {
@@ -374,44 +424,58 @@ function ProjectCard({ userId, project }: { userId: string; project: LeadProject
 
   return (
     <div className={styles.projectCard}>
-      <div className={styles.name}>{project.title ?? COPY.untitled}</div>
-      <dl className={styles.factGrid}>
-        {rows
-          .filter((row): row is [string, string] => row[1] !== null)
-          .map(([label, value]) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
-            </div>
-          ))}
-      </dl>
-      {project.products.length > 0 && (
-        <div>
-          <span className={styles.meta}>{COPY.fields.products}</span>
-          <ul className={styles.factList}>
-            {project.products.map((product, index) => (
-              <li key={index}>{product.name}</li>
-            ))}
-          </ul>
-        </div>
+      <div className={styles.projectHead}>
+        <span className={styles.name}>{project.title ?? COPY.untitled}</span>
+        <span className={styles.meta}>{day}</span>
+      </div>
+      {!shown && (
+        <button type="button" className={styles.linkButton} onClick={() => setShown(true)}>
+          {COPY.showDetail}
+        </button>
       )}
-      <button
-        type="button"
-        className={styles.linkButton}
-        aria-expanded={open}
-        onClick={() => void toggle()}
-      >
-        {open ? COPY.hideTranscript : COPY.showTranscript}
-      </button>
-      {open && lines !== null && (
-        <ol className={styles.transcript}>
-          {lines.map((line, index) => (
-            <li key={index} className={line.role === 'user' ? styles.lineUser : styles.lineBot}>
-              <span className={styles.meta}>{line.role === 'user' ? COPY.you : COPY.snouty}</span>
-              <p>{line.text}</p>
-            </li>
-          ))}
-        </ol>
+      {shown && (
+        <>
+          <dl className={styles.factGrid}>
+            {rows
+              .filter((row): row is [string, string] => row[1] !== null)
+              .map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+          </dl>
+          {project.products.length > 0 && (
+            <div>
+              <span className={styles.meta}>{COPY.fields.products}</span>
+              <ul className={styles.factList}>
+                {project.products.map((product, index) => (
+                  <li key={index}>{product.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <button
+            type="button"
+            className={styles.linkButton}
+            aria-expanded={open}
+            onClick={() => void toggle()}
+          >
+            {open ? COPY.hideTranscript : COPY.showTranscript}
+          </button>
+          {open && lines !== null && (
+            <ol className={styles.transcript}>
+              {lines.map((line, index) => (
+                <li key={index} className={line.role === 'user' ? styles.lineUser : styles.lineBot}>
+                  <span className={styles.meta}>
+                    {line.role === 'user' ? COPY.you : COPY.snouty}
+                  </span>
+                  <p>{line.text}</p>
+                </li>
+              ))}
+            </ol>
+          )}
+        </>
       )}
     </div>
   );

@@ -102,6 +102,31 @@ export interface LeadFacts {
   readonly quotes: readonly { readonly text: string; readonly at: Date }[];
 }
 
+/**
+ * Kalimat yang sama, dikatakan dua kali, tetap satu kalimat.
+ *
+ * Kutipan diambil dari pesan terakhir pengguna di SELURUH percakapannya, dan orang yang kembali
+ * dengan proyek serupa mengetik kalimat pembuka yang sama lagi. Tanpa penyaringan ini layar sales
+ * memuat lima baris yang isinya dua kalimat — terlihat seperti data, padahal pengulangan.
+ * Perbandingannya mengabaikan beda huruf besar-kecil dan spasi; yang disimpan kemunculan terbaru,
+ * karena itu yang paling dekat dengan keadaan pelanggan sekarang.
+ */
+export function distinctQuotes<T extends { readonly text: string }>(
+  newestFirst: readonly T[],
+  limit: number,
+): readonly T[] {
+  const seen = new Set<string>();
+  const kept: T[] = [];
+  for (const quote of newestFirst) {
+    const key = quote.text.trim().toLowerCase().replace(/\s+/g, ' ');
+    if (key === '' || seen.has(key)) continue;
+    seen.add(key);
+    kept.push(quote);
+    if (kept.length === limit) break;
+  }
+  return kept;
+}
+
 export interface InternalViewer {
   readonly id: string;
   readonly roles: readonly string[];

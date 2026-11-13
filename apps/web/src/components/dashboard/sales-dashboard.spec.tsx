@@ -123,6 +123,63 @@ describe('dashboard sales (P26-06)', () => {
     expect(screen.queryByText(/Pilih prospek untuk melihat/)).toBeNull();
   });
 
+  /**
+   * Daftarnya urut prioritas, jadi kalimat "pilih prospek" di sebelah prospek yang sudah ada hanya
+   * satu klik yang jawabannya sudah pasti (P38).
+   */
+  it('prospek teratas terbuka sendiri', async () => {
+    render(<SalesDashboard />);
+    expect(await screen.findByText('Pelanggan membangun rumah 2 lantai.')).toBeDefined();
+    expect(screen.queryByText(/Pilih prospek untuk melihat/)).toBeNull();
+  });
+
+  it('konsultasi lama terlipat dengan tanggalnya, dan rinciannya tetap bisa dibuka', async () => {
+    api.fetchLead.mockResolvedValue({
+      kind: 'ok',
+      value: {
+        ...DETAIL,
+        facts: {
+          ...DETAIL.facts,
+          projects: [
+            DETAIL.facts.projects[0]!,
+            {
+              ...DETAIL.facts.projects[0]!,
+              conversationId: '01JCONV00000000000000000002',
+              updatedAt: '2026-09-02T00:00:00Z',
+              headline: 'Sistem distribusi untuk 4 titik air',
+            },
+          ],
+        },
+      },
+    });
+
+    render(<SalesDashboard />);
+    // Yang terbaru tergelar; yang lama baru judul dan tanggalnya.
+    expect(await screen.findByText('Sistem distribusi untuk 9 titik air')).toBeDefined();
+    expect(screen.queryByText('Sistem distribusi untuk 4 titik air')).toBeNull();
+    expect(screen.getByText('2 Sep 2026')).toBeDefined();
+    expect(screen.getByText('20 Okt 2026')).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Lihat rinciannya' }));
+    expect(await screen.findByText('Sistem distribusi untuk 4 titik air')).toBeDefined();
+  });
+
+  /**
+   * Admin membuka ringkasan dari papan prospek lewat `?u=`. Daftar "prospek saya" miliknya memang
+   * kosong — dan dulu layarnya menjawab "belum ada prospek yang ditugaskan ke Anda", bukan
+   * ringkasan yang baru saja diklik (P38).
+   */
+  it('ringkasan yang dibuka dari papan tetap tampil walau daftar sendiri kosong', async () => {
+    api.fetchMyLeads.mockResolvedValue({ kind: 'ok', value: { items: [] } });
+    window.history.replaceState({}, '', '/internal/leads?u=01JQRSTVWX0000000000000001');
+
+    render(<SalesDashboard />);
+
+    expect(await screen.findByText('Pelanggan membangun rumah 2 lantai.')).toBeDefined();
+    expect(screen.queryByText(/Belum ada prospek yang ditugaskan/)).toBeNull();
+    window.history.replaceState({}, '', '/internal/leads');
+  });
+
   it('nomor WhatsApp Indonesia dinormalkan', () => {
     expect(whatsappNumber('0812-3456-7890')).toBe('6281234567890');
     expect(whatsappNumber('+62 812 3456 7890')).toBe('6281234567890');

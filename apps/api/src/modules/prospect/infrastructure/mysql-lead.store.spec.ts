@@ -120,6 +120,33 @@ describe('dashboard sales (P26-06)', () => {
     expect(prospect?.stage).toBe('act');
   });
 
+  /**
+   * Orang yang kembali dengan proyek serupa mengetik kalimat pembuka yang sama lagi, dan layar
+   * sales memuat lima baris yang isinya dua kalimat (ditemukan saat layarnya dibuka, P38).
+   */
+  it('kalimat yang diulang pelanggan hanya muncul sekali', async () => {
+    for (const text of [
+      'harga pipa buat rumah 2 lantai berapa?',
+      'HARGA pipa buat rumah 2 lantai  berapa?',
+      'kalau pakai pompa gimana?',
+    ]) {
+      await fixture.db.insert(messages).values({
+        id: testId(`LQ${text.length}`),
+        conversationId: CONV,
+        role: 'user',
+        text,
+        cards: [],
+      });
+    }
+
+    // Yang disimpan kemunculan terbarunya — itu yang paling dekat dengan keadaan pelanggan.
+    const { facts } = await leads.detail(BUYER, asSales);
+    expect(facts.quotes.map((q) => q.text)).toEqual([
+      'HARGA pipa buat rumah 2 lantai  berapa?',
+      'kalau pakai pompa gimana?',
+    ]);
+  });
+
   it('paragraf konteks tersusun di latar setelah penugasan', async () => {
     await vi.waitFor(async () => {
       const { lead } = await leads.detail(BUYER, asSales);
