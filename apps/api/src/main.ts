@@ -4,6 +4,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import pino from 'pino';
 import { AppModule } from './app.module.js';
 import { loadEnv } from './config/env.js';
+import { configProblems } from './config/startup-config.js';
 import { ApiErrorFilter } from './shared/http/api-error.filter.js';
 import { trustReverseProxy } from './shared/http/trust-proxy.js';
 import { DatabaseService } from './shared/database/database.service.js';
@@ -13,6 +14,17 @@ const log = pino({ name: 'snouty-api' });
 async function bootstrap(): Promise<void> {
   // Gagal keras di sini bila konfigurasi kurang, bukan nanti saat permintaan pertama.
   const env = loadEnv();
+
+  // Konfigurasi yang membuat fitur tampil selesai tetapi gagal dipakai (smoke test 13 Nov 2026,
+  // temuan 11): di produksi itu alasan berhenti, bukan alasan mencatat peringatan.
+  const problems = configProblems(env);
+  if (problems.length > 0) {
+    if (env.NODE_ENV === 'production') {
+      log.error({ problems }, 'konfigurasi kurang');
+      process.exit(1);
+    }
+    log.warn({ problems }, 'konfigurasi kurang');
+  }
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: false });
 

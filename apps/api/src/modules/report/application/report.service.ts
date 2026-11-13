@@ -323,6 +323,15 @@ export class ReportService {
   async markReady(reportId: string, fileRef: string): Promise<void> {
     const report = await this.reports.findById(reportId);
     if (!report) throw new ReportNotFoundError();
+    // READY berarti bisa diunduh (smoke test 13 Nov 2026, temuan 11). Tanpa penyimpanan berkas,
+    // unduhannya menjawab 503 — jadi laporannya GAGAL dengan sebabnya, bukan "selesai" yang
+    // menipu. Pemiliknya pun tidak diberi kabar laporan selesai.
+    if (loadEnv().STORAGE_PATH === undefined) {
+      await this.reports.markStatus(reportId, 'FAILED', {
+        failureReason: 'penyimpanan berkas laporan belum dikonfigurasi (STORAGE_PATH)',
+      });
+      return;
+    }
     await this.reports.markStatus(reportId, 'READY', { fileRef });
     await this.notifyOwner(report);
   }

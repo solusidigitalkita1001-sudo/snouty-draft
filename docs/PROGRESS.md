@@ -5755,3 +5755,16 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       Tiap dapur mendapat satu grease trap (ENG-606), jumlahnya dari jumlah dapur dan letaknya
       sebelum lemak dapur bertemu jalur bersama. Ukurannya tidak dikarang: volume grease trap,
       jarak bak kontrol, dan kapasitas IPAL menunggu Pralon (OQ-101).
+
+- [x] P37-12 READY berarti bisa diunduh
+
+      Temuan 11. API bisa jalan tanpa `STORAGE_PATH`; laporan tetap ditandai READY, lalu
+      unduhannya menjawab 503. Pengguna melihat laporan selesai yang tidak pernah bisa diambil.
+
+      Dua pagar. Saat start, konfigurasi yang membuat fitur tampil selesai tetapi gagal dipakai
+      diperiksa: di produksi itu alasan berhenti dengan sebabnya di log, bukan alasan mencatat
+      peringatan lalu melayani permintaan. Di pengembangan tetap peringatan — di sana memang sering
+      tidak ada penyimpanan berkas.
+
+      Dan READY tidak lagi bisa berarti "tidak ada berkasnya": tanpa penyimpanan, laporan ditandai
+      GAGAL dengan sebab yang tertulis, dan pemiliknya tidak diberi kabar laporan selesai.
