@@ -100,6 +100,38 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description:
       'Toren atap diisi dengan debit 0,25 l/s (15 l/menit, sambungan rumah biasa) untuk menghitung tekanan yang dibutuhkan di meteran.',
   },
+  // ── Tujuan air bekas dan grease trap (smoke test 13 Nov 2026, temuan 10) ──
+  {
+    id: 'GREY_WATER_TO_DRAIN',
+    parameter: 'destination_type',
+    appliesTo: [],
+    condition: 'tujuan air bekas belum dipilih pengguna',
+    value: 'municipal_drain',
+    conditionEn: 'grey water destination not chosen by the user',
+    descriptionEn:
+      'Grey water is taken to go to the municipal drain. A soakaway is for rainwater, so grey water only goes there if the user chooses it, and then with a warning.',
+    reference: 'Keputusan pemilik 13 Nov 2026 (smoke test, temuan 10)',
+    confidence: 'medium',
+    confirmationRequired: true,
+    description:
+      'Air bekas dianggap dibuang ke saluran kota. Sumur resapan adalah tujuan air hujan, jadi air bekas ke sana hanya atas pilihan pengguna, dan dengan peringatan.',
+  },
+  {
+    id: 'GREASE_TRAP_PER_KITCHEN_1',
+    parameter: 'number_of_connections',
+    appliesTo: [],
+    condition: 'dapur membuang ke jalur air bekas bersama',
+    value: 1,
+    unit: 'pcs',
+    conditionEn: 'a kitchen discharges into the shared grey-water line',
+    descriptionEn:
+      'One grease trap per kitchen, before the kitchen waste meets the shared line. Its size and volume are not worked out here (OQ-101).',
+    reference: 'Praktik umum pemasangan; ukuran dan volumenya perlu validasi Pralon (OQ-101)',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Satu grease trap per dapur, sebelum buangan dapur bertemu jalur bersama. Ukuran dan volumenya tidak dihitung di sini (OQ-101).',
+  },
   // ── Pompa transfer tandon bawah → toren atap (smoke test 13 Nov 2026, temuan 9) ──
   {
     id: 'ROOF_TANK_FILL_TIME_1H',

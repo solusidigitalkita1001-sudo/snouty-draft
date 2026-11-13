@@ -118,6 +118,13 @@ export const RequirementEditSchema = z.union([
       value: z.number().int().min(100).max(100_000),
     })
     .strict(),
+  // Tujuan air bekas (temuan 10): saluran kota, IPAL, atau resapan.
+  z
+    .object({
+      path: z.literal('water.greyWaterDestination'),
+      value: z.enum(['municipal_drain', 'treatment_plant', 'soakaway']),
+    })
+    .strict(),
   z
     .object({
       path: z.literal('water.replacedLine'),

@@ -23,7 +23,7 @@ describe('needsFrom — rumah 2 lantai, 3 KM, 4 wastafel, 1 dapur, toren atap', 
   const needs = needsFrom(INPUT, solution, drainage);
   const of = (kind: string) => needs.find((n) => n.kind === kind);
 
-  it('urutan: bangunan, alat, sumber air, pompa, pembuangan', () => {
+  it('urutan: bangunan, alat, sumber air, pompa, pembuangan, grease trap', () => {
     expect(needs.map((n) => n.kind)).toEqual([
       'building',
       'bathroom',
@@ -33,7 +33,17 @@ describe('needsFrom — rumah 2 lantai, 3 KM, 4 wastafel, 1 dapur, toren atap', 
       'rooftop_tank',
       'booster_pump',
       'drainage',
+      // Dapur membuang lemak ke jalur air bekas, jadi ia punya grease trap (temuan 10).
+      'grease_trap',
     ]);
+  });
+
+  it('tujuan air bekas ikut butir pembuangan, dan tandanya masih anggapan', () => {
+    expect(of('drainage')).toMatchObject({
+      greyWaterDestination: 'municipal_drain',
+      greyWaterAssumed: true,
+    });
+    expect(of('grease_trap')).toMatchObject({ count: 1 });
   });
 
   it('bangunan membawa lantai, tinggi lantai, dan ukuran', () => {

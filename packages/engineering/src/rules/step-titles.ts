@@ -66,6 +66,7 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-602': { id: 'Ukuran pipa buangan dan ventilasi', en: 'Drain and vent size' },
   'ENG-603': { id: 'Panjang jalur pembuangan', en: 'Drain line lengths' },
   'ENG-604': { id: 'Cabang per lantai dan pipa tegak', en: 'Branch per floor and stack' },
+  'ENG-606': { id: 'Tujuan air bekas dan grease trap', en: 'Grey water outlet and grease trap' },
   'ENG-605': { id: 'Fitting pembuangan', en: 'Drainage fittings' },
   'ENG-701': { id: 'Debit puncak air bersih', en: 'Peak water demand' },
   'ENG-702': { id: 'Jalur dan beda tinggi', en: 'Route and height' },

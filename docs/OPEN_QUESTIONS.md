@@ -1727,3 +1727,30 @@ angka masukannya yang perlu tanda tangan Pralon:
 
 Yang ditanyakan ke Pralon: kedua angka di atas, dan apakah pompa transfer perlu ditampilkan dengan
 daya (kW/HP) — itu butuh efisiensi pompa, yang belum ada acuannya.
+
+### OQ-101 — Ukuran grease trap, bak kontrol, dan spesifikasi IPAL (P37, 2026-11-13)
+
+**Status:** open · **Blocks:** tiga komponen pembuangan tampil tanpa ukuran · _non-blocking_
+
+Smoke test 13 Nov 2026 (temuan 10): rekomendasi pembuangan tidak pernah menyebut grease trap,
+IPAL/STP, maupun bak kontrol. Tujuan air bekas dan grease trap sudah masuk hitungan (ENG-606):
+air bekas default ke saluran kota, sumur resapan hanya atas pilihan pengguna dan dengan peringatan,
+dan tiap dapur mendapat satu grease trap. Yang masih belum ada aturannya:
+
+- **Volume dan ukuran grease trap.** Jumlahnya dihitung (satu per dapur), ukurannya tidak: volume
+  bergantung debit puncak dapur dan waktu tinggal, dan angka itu belum ada. Tanpa aturannya, baris
+  grease trap tampil dengan jumlah tanpa ukuran — bukan ukuran karangan.
+- **Bak kontrol (inspection chamber).** Jumlahnya bukan turunan panjang jalur saja: ia dipasang di
+  tiap perubahan arah dan tiap jarak tertentu. Jaraknya angka lapangan yang belum ada.
+- **IPAL/STP.** Kapasitas (orang atau l/hari) dan jenisnya adalah produk pihak lain; SNOUTY hanya
+  perlu tahu jalur air bekas berakhir di sana. Pertanyaannya: apakah Pralon ingin SNOUTY
+  mengeluarkan kapasitas IPAL, atau cukup menyebut tujuannya.
+
+**Usulan default** (dipakai sekarang):
+
+- Satu grease trap per dapur (GREASE_TRAP_PER_KITCHEN_1), tanpa ukuran sampai aturannya ada.
+- Bak kontrol belum ditampilkan sama sekali — lebih baik tidak ada baris daripada jumlah karangan.
+- IPAL/STP hanya sebagai tujuan air bekas, tanpa kapasitas.
+
+Yang ditanyakan ke Pralon: volume grease trap per dapur (atau per debit), jarak antar bak kontrol,
+dan apakah kapasitas IPAL perlu dikeluarkan SNOUTY.

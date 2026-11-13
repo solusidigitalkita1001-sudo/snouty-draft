@@ -753,4 +753,161 @@ export const ENG_605: RuleVersion<DrainFittingInput, DrainFittingResult> = {
   },
 };
 
-export const GROUP_J = [ENG_601, ENG_602, ENG_603, ENG_604, ENG_605] as const;
+// ── ENG-606 · Tujuan air bekas dan grease trap dapur ───────────────────────
+
+/**
+ * Ke mana air bekas dibuang, dan apa yang harus ada sebelum ia pergi (smoke test 13 Nov 2026,
+ * temuan 10). Dua hal yang sampai saat itu tidak pernah dinyatakan:
+ *
+ *   - Tujuannya tidak pernah ditanya, dan teksnya selalu berbunyi "saluran atau sumur resapan".
+ *     Sumur resapan adalah tujuan AIR HUJAN; air bekas yang masuk ke sana membawa sabun dan lemak.
+ *     Jadi default-nya saluran kota atau IPAL, dan resapan hanya bila pengguna memang memilihnya —
+ *     dengan peringatan, bukan diam-diam (keputusan pemilik 13 Nov 2026).
+ *   - Dapur tidak pernah mendapat grease trap, padahal lemak dapur yang masuk langsung ke jalur
+ *     air bekas menyumbat jalur itu.
+ *
+ * Jumlah grease trap dari jumlah dapur, bukan dari panjang jalur: satu per dapur, sebelum lemaknya
+ * bertemu jalur bersama. Ukuran dan volumenya bukan keluaran aturan ini (OQ-101).
+ */
+export type GreyWaterDestination = 'municipal_drain' | 'treatment_plant' | 'soakaway';
+
+export interface GreyWaterOutletInput {
+  /** Tujuan yang dipilih pengguna; `null` = belum dipilih, dipakai `defaultDestination`. */
+  readonly destination: GreyWaterDestination | null;
+  readonly defaultDestination: GreyWaterDestination;
+  readonly kitchens: number;
+  readonly greaseTrapsPerKitchen: number;
+}
+export interface GreyWaterOutletResult {
+  readonly destination: GreyWaterDestination;
+  /** Tujuannya belum dipilih pengguna, jadi ia anggapan yang harus terlihat. */
+  readonly assumed: boolean;
+  /** Air bekas diarahkan ke sumur resapan — perlu peringatan, bukan diam-diam. */
+  readonly soakawayWarned: boolean;
+  readonly greaseTraps: number;
+}
+
+const DESTINATIONS: readonly GreyWaterDestination[] = [
+  'municipal_drain',
+  'treatment_plant',
+  'soakaway',
+];
+
+export const ENG_606: RuleVersion<GreyWaterOutletInput, GreyWaterOutletResult> = {
+  ruleId: 'ENG-606',
+  version: 1,
+  category: 'material',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const destination = o['destination'] ?? null;
+    if (destination !== null && !DESTINATIONS.includes(destination as GreyWaterDestination)) {
+      throw new RuleInputError('ENG-606', 'destination');
+    }
+    const fallback = o['defaultDestination'];
+    if (!DESTINATIONS.includes(fallback as GreyWaterDestination)) {
+      throw new RuleInputError('ENG-606', 'defaultDestination');
+    }
+    return {
+      destination: destination as GreyWaterDestination | null,
+      defaultDestination: fallback as GreyWaterDestination,
+      kitchens: requireInt('ENG-606', 'kitchens', o['kitchens'], { min: 0, max: 500 }),
+      greaseTrapsPerKitchen: requireInt(
+        'ENG-606',
+        'greaseTrapsPerKitchen',
+        o['greaseTrapsPerKitchen'],
+        { min: 0, max: 5 },
+      ),
+    };
+  },
+  compute: (i) => {
+    const destination = i.destination ?? i.defaultDestination;
+    return {
+      destination,
+      assumed: i.destination === null,
+      soakawayWarned: destination === 'soakaway',
+      greaseTraps: i.kitchens * i.greaseTrapsPerKitchen,
+    };
+  },
+  sourceReference:
+    'Air bekas ke saluran kota atau IPAL; sumur resapan adalah tujuan air hujan, jadi air bekas ke resapan hanya atas pilihan pengguna dan dengan peringatan (keputusan pemilik 13 Nov 2026). Grease trap satu per dapur sebelum lemaknya bertemu jalur bersama (GREASE_TRAP_PER_KITCHEN_1)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'belum dipilih, 1 dapur: saluran kota sebagai anggapan + 1 grease trap',
+      input: {
+        destination: null,
+        defaultDestination: 'municipal_drain',
+        kitchens: 1,
+        greaseTrapsPerKitchen: 1,
+      },
+      expected: {
+        destination: 'municipal_drain',
+        assumed: true,
+        soakawayWarned: false,
+        greaseTraps: 1,
+      },
+    },
+    {
+      name: 'pengguna memilih sumur resapan: diperingatkan, bukan ditolak',
+      input: {
+        destination: 'soakaway',
+        defaultDestination: 'municipal_drain',
+        kitchens: 2,
+        greaseTrapsPerKitchen: 1,
+      },
+      expected: {
+        destination: 'soakaway',
+        assumed: false,
+        soakawayWarned: true,
+        greaseTraps: 2,
+      },
+    },
+    {
+      name: 'IPAL, tanpa dapur: tanpa grease trap',
+      input: {
+        destination: 'treatment_plant',
+        defaultDestination: 'municipal_drain',
+        kitchens: 0,
+        greaseTrapsPerKitchen: 1,
+      },
+      expected: {
+        destination: 'treatment_plant',
+        assumed: false,
+        soakawayWarned: false,
+        greaseTraps: 0,
+      },
+    },
+  ],
+  explain: (i, o, locale) => {
+    const where = {
+      municipal_drain: { id: 'saluran kota', en: 'the municipal drain' },
+      treatment_plant: { id: 'IPAL', en: 'a treatment plant' },
+      soakaway: { id: 'sumur resapan', en: 'a soakaway' },
+    }[o.destination];
+    const grease =
+      o.greaseTraps > 0
+        ? {
+            id: ` Lemak dapur ditahan ${o.greaseTraps} grease trap sebelum masuk jalur bersama.`,
+            en: ` Kitchen grease is held back by ${o.greaseTraps} grease trap${o.greaseTraps > 1 ? 's' : ''} before the shared line.`,
+          }
+        : { id: '', en: '' };
+    const warning = o.soakawayWarned
+      ? {
+          id: ' Sumur resapan adalah tujuan air hujan: air bekas membawa sabun dan lemak, jadi resapannya mudah tersumbat dan air tanah di sekitarnya ikut terkena.',
+          en: ' A soakaway is meant for rainwater: grey water carries soap and grease, so it clogs and the groundwater around it is affected.',
+        }
+      : { id: '', en: '' };
+    const assumed = o.assumed
+      ? {
+          id: ' Tujuannya belum disebut, jadi dipakai yang paling lazim.',
+          en: ' The destination was not stated, so the commonest one is used.',
+        }
+      : { id: '', en: '' };
+    return localized(locale, {
+      id: `Air bekas dibuang ke ${where.id}.${assumed.id}${grease.id}${warning.id}`,
+      en: `Grey water goes to ${where.en}.${assumed.en}${grease.en}${warning.en}`,
+    });
+  },
+};
+
+export const GROUP_J = [ENG_601, ENG_602, ENG_603, ENG_604, ENG_605, ENG_606] as const;

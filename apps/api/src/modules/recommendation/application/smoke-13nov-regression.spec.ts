@@ -17,6 +17,7 @@ import { describe, expect, it } from 'vitest';
 import { RuleInputError } from '@snouty/engineering';
 import { mergeRequirement, type FieldUpdate } from '../../context/domain/context-merger.js';
 import { extractionToUpdates } from '../../context/application/extraction-to-updates.js';
+import { houseRefinementQuestions } from '../../context/domain/clarification.js';
 import { bomQuantityMismatches, quantityInResult } from '../../report/domain/boq-consistency.js';
 import { withCompleteness } from '../../context/domain/completeness.js';
 import { understoodReply } from '../../context/application/message-pipeline.js';
@@ -408,5 +409,57 @@ describe('pdam-tandon-bawah-pompa-toren (temuan 9b)', () => {
       ]),
     );
     expect((rec.needs ?? []).some((n) => n.kind === 'transfer_pump')).toBe(false);
+  });
+});
+
+describe('tujuan-air-bekas-dan-grease-trap (temuan 10)', () => {
+  const DRAINAGE: ReadonlyArray<readonly [string, unknown]> = [
+    ...HOUSE,
+    ['water.source', 'municipal'],
+    ['water.installationType', 'drainage'],
+  ];
+
+  it('tanpa pilihan: air bekas ke saluran kota, bukan "saluran atau sumur resapan"', async () => {
+    const { rec } = await analyse(stateOf(DRAINAGE));
+    expect(rec.body).toContain('saluran kota');
+    expect(rec.body).not.toMatch(/sumur resapan/);
+    // Anggapannya terlihat dan menunjuk field yang bisa diubah.
+    const row = rec.assumptions.find((a) => a.ruleId === 'ENG-606');
+    expect(row?.fieldPath).toBe('water.greyWaterDestination');
+    expect(row?.text).toMatch(/saluran kota/);
+    // Dapur mendapat grease trap, satu untuk satu dapur.
+    expect((rec.needs ?? []).find((n) => n.kind === 'grease_trap')?.count).toBe(1);
+  });
+
+  it('pengguna memilih resapan: tetap dihitung, tetapi diperingatkan', async () => {
+    const { rec } = await analyse(
+      stateOf([...DRAINAGE, ['water.greyWaterDestination', 'soakaway']]),
+    );
+    expect(rec.body).toContain('sumur resapan');
+    const row = rec.assumptions.find((a) => a.ruleId === 'ENG-606');
+    expect(row?.text).toMatch(/air hujan/);
+    expect(row?.text).toMatch(/sabun dan lemak/);
+  });
+
+  it('"buangnya ke IPAL" terbaca sebagai tujuan, bukan hilang', () => {
+    const updates = extractionToUpdates({}, 'air bekasnya dibuang ke IPAL perumahan');
+    expect(updates.find((u) => u.path === 'water.greyWaterDestination')?.value).toBe(
+      'treatment_plant',
+    );
+  });
+
+  it('pekerjaan pembuangan menanyakan tujuan air bekas; air bersih saja tidak', () => {
+    const asked = (installationType: string) =>
+      houseRefinementQuestions(
+        () => false,
+        'id',
+        'residential',
+        'municipal',
+        null,
+        installationType,
+      ).some((q) => q.id === 'water.greyWaterDestination');
+    expect(asked('drainage')).toBe(true);
+    expect(asked('both')).toBe(true);
+    expect(asked('clean_water')).toBe(false);
   });
 });

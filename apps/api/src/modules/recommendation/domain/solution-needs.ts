@@ -111,6 +111,14 @@ export function needsFrom(
     needs.push({
       kind: 'drainage',
       count: 1,
+      // Ke mana air bekasnya pergi (temuan 10): sumur resapan tidak lagi disebut bersamaan dengan
+      // saluran seolah keduanya sama.
+      ...(drainage.greyWater !== null
+        ? {
+            greyWaterDestination: drainage.greyWater.destination,
+            greyWaterAssumed: drainage.greyWater.assumed,
+          }
+        : {}),
       ...(drainage.soil
         ? { soilSize: drainage.soil.size, soilVentSize: drainage.soil.ventSize }
         : {}),
@@ -118,6 +126,10 @@ export function needsFrom(
         ? { wasteSize: drainage.waste.size, wasteVentSize: drainage.waste.ventSize }
         : {}),
     });
+  }
+  // Grease trap dapur (temuan 10): jumlahnya dari jumlah dapur, ukurannya menunggu Pralon (OQ-101).
+  if (drainage !== null && (drainage.greyWater?.greaseTraps ?? 0) > 0) {
+    needs.push({ kind: 'grease_trap', count: drainage.greyWater!.greaseTraps });
   }
   return needs;
 }

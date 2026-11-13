@@ -632,6 +632,9 @@ export class AnalysisService {
                 wudhuRowFlowsLs: solution.wudhu?.rows.map((r) => r.flowLs) ?? [],
               }
             : {}),
+          // Tujuan air bekas yang dipilih pengguna (temuan 10); kosong = yang paling lazim, dan itu
+          // tampil sebagai anggapan, bukan diam-diam.
+          greyWaterDestination: state.water.greyWaterDestination?.value ?? null,
           // Mesin cuci dan floor drain balkon: beban air bekas, sebarannya sama dengan sisi air
           // bersih (smoke test 13 Nov 2026, temuan 9).
           washingMachines: solution.floorsPlan.reduce((n, f) => n + (f.washingMachines ?? 0), 0),

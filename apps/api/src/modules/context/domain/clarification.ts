@@ -263,6 +263,12 @@ const TEMPLATES: Readonly<Partial<Record<RequirementFieldPath, QuestionTemplate>
   },
   // Temuan 2 smoke test 13 Nov 2026: satu pekerjaan memotong satu jalur, dan jalur itu menentukan
   // kelas pipanya — sok kelas AW pada jalur air kotor adalah barang yang salah.
+  // Tujuan air bekas (smoke test 13 Nov 2026, temuan 10): dulu tidak pernah ditanya, dan teksnya
+  // selalu "saluran atau sumur resapan" — padahal resapan adalah tujuan air hujan.
+  'water.greyWaterDestination': {
+    question: 'Air bekas (kamar mandi, wastafel, dapur) dibuang ke mana?',
+    options: ['Saluran kota', 'IPAL / STP', 'Sumur resapan'],
+  },
   'water.replacedLine': {
     question: 'Jalur mana yang diganti?',
     options: ['Pipa utama air bersih', 'Cabang air bersih', 'Air kotor', 'Air bekas'],
@@ -336,6 +342,7 @@ const QUESTION_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.existingMainSize': 'What size is the existing main pipe?',
   'water.existingPipeMaterial': 'What is the existing pipe made of?',
   'water.replacedLine': 'Which line is being replaced?',
+  'water.greyWaterDestination': 'Where does the grey water go (bathrooms, basins, kitchen)?',
   'water.existingOutlets': 'How many water points are already installed (besides the new ones)?',
   'water.replacementLengthM': 'How many metres of pipe are being replaced?',
 };
@@ -493,6 +500,11 @@ const OPTION_VALUES: Readonly<
     HDPE: 'hdpe',
     PPR: 'ppr',
   },
+  'water.greyWaterDestination': {
+    'Saluran kota': 'municipal_drain',
+    'IPAL / STP': 'treatment_plant',
+    'Sumur resapan': 'soakaway',
+  },
   'water.replacedLine': {
     'Pipa utama air bersih': 'clean_water_main',
     'Cabang air bersih': 'clean_water_branch',
@@ -521,6 +533,7 @@ const ANSWER_LABEL: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.replacedLine': 'Jalur yang diganti',
   'water.existingOutlets': 'Titik air lama',
   'water.replacementLengthM': 'Yang diganti',
+  'water.greyWaterDestination': 'Tujuan air bekas',
 };
 const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> = {
   'water.source': 'Water source',
@@ -541,6 +554,7 @@ const ANSWER_LABEL_EN: Readonly<Partial<Record<RequirementFieldPath, string>>> =
   'water.replacedLine': 'Line replaced',
   'water.existingOutlets': 'Existing points',
   'water.replacementLengthM': 'Replaced',
+  'water.greyWaterDestination': 'Grey water to',
 };
 
 export interface ClarificationAnswer {
@@ -707,6 +721,11 @@ export function houseRefinementQuestions(
   waterSource: string | null = null,
   /** Jenis pekerjaan renovasi (P23-03): menentukan data pipa lama mana yang ditanya. */
   workType: string | null = null,
+  /**
+   * Jenis instalasi: tujuan air bekas hanya ditanya bila pekerjaannya memang menyentuh
+   * pembuangan (smoke test 13 Nov 2026, temuan 10).
+   */
+  installationType: string | null = null,
 ): readonly ClarificationQuestion[] {
   const base =
     buildingType === 'place_of_worship'
@@ -719,6 +738,9 @@ export function houseRefinementQuestions(
     ...renovationRefinementFields(workType),
     ...base,
     ...(waterSource === 'pump' ? (['water.wellDepthM'] as const) : []),
+    ...(installationType === 'drainage' || installationType === 'both'
+      ? (['water.greyWaterDestination'] as const)
+      : []),
   ];
   return fields
     .filter((path) => !isKnown(path))
@@ -791,6 +813,8 @@ export const MAX_ANSWERS_PER_CARD = Math.max(
         shape.buildingType,
         'pump',
         shape.workType,
+        // Kartu terpanjang yang mungkin: pembuangan ikut, jadi tujuan air bekas ikut ditanya.
+        'both',
       ).length,
   ),
 );

@@ -32,6 +32,23 @@ import { houseFieldFor } from './engineering-state.js';
 /** Pipa buangan memakai kelas gravitasi. */
 export const DRAINAGE_FAMILY = 'PVC D';
 
+/**
+ * Tujuan air bekas dalam bahasa pengguna (ENG-606, temuan 10). Dulu setiap baris berbunyi
+ * "saluran atau sumur resapan" — dua tujuan sekaligus, salah satunya untuk air hujan.
+ */
+const DESTINATION_LABEL: Readonly<
+  Record<'municipal_drain' | 'treatment_plant' | 'soakaway', { id: string; en: string }>
+> = {
+  municipal_drain: { id: 'saluran kota', en: 'the municipal drain' },
+  treatment_plant: { id: 'IPAL', en: 'a treatment plant' },
+  soakaway: { id: 'sumur resapan', en: 'a soakaway' },
+};
+
+function destinationLabel(result: HouseDrainageResult, lang: 'id' | 'en'): string {
+  const chosen = result.greyWater?.destination ?? 'municipal_drain';
+  return DESTINATION_LABEL[chosen][lang];
+}
+
 function worst(traces: readonly IdentifiedTrace[]): Provenance {
   const order: readonly Provenance[] = ['VERIFIED', 'ESTIMATED', 'ASSUMED', 'UNAVAILABLE'];
   return traces.reduce<Provenance>(
@@ -181,11 +198,11 @@ export function drainageSystemLines(
         en ? `${DRAINAGE_FAMILY} waste pipe` : `Pipa air bekas ${DRAINAGE_FAMILY}`,
         result.wudhuTroughs.length > 0
           ? en
-            ? 'Floor drains, basins, ablution troughs → drain or soakaway'
-            : 'Floor drain, wastafel, talang wudhu → saluran atau sumur resapan'
+            ? `Floor drains, basins, ablution troughs → ${destinationLabel(result, 'en')}`
+            : `Floor drain, wastafel, talang wudhu → ${destinationLabel(result, 'id')}`
           : en
-            ? 'Floor drains, basins, kitchen → drain or soakaway'
-            : 'Floor drain, wastafel, dapur → saluran atau sumur resapan',
+            ? `Floor drains, basins, kitchen → ${destinationLabel(result, 'en')}`
+            : `Floor drain, wastafel, dapur → ${destinationLabel(result, 'id')}`,
         result.waste.size,
         p.waste,
         'branch',
@@ -242,22 +259,39 @@ export function drainageSystemLines(
 export function drainageAssumptions(
   result: HouseDrainageResult,
   locale: Locale = DEFAULT_LOCALE,
+  /** Jejak hitungan: baris tujuan air bekas memakai penjelasan ENG-606 apa adanya (temuan 10). */
+  traces: readonly IdentifiedTrace[] = [],
 ): readonly Assumption[] {
   const en = locale === 'en';
   return [
     {
       text: en
-        ? 'How the drainage is worked out: each fixture carries a drainage load, the loads are added per line, and each line takes the smallest pipe that can carry that load at a 2 % fall, never smaller than its largest fixture. Toilets drain to the septic tank, the rest to the drain or soakaway, each line with its own vent. ' +
+        ? 'How the drainage is worked out: each fixture carries a drainage load, the loads are added per line, and each line takes the smallest pipe that can carry that load at a 2 % fall, never smaller than its largest fixture. Toilets drain to the septic tank, the rest to ' +
+          destinationLabel(result, 'en') +
+          ', each line with its own vent. ' +
           (result.lengths
             ? 'Each route length is estimated from the building size until the floor plan is known.'
             : 'The route length is not known yet, so the number of pipes is counted once the building size is given.')
-        : 'Cara hitung pembuangannya: tiap alat punya beban buangan, bebannya dijumlah per jalur, lalu tiap jalur memakai pipa terkecil yang sanggup mengalirkan beban itu pada kemiringan 2 %, dan tidak lebih kecil dari alat terbesarnya. Kloset ke septic tank, sisanya ke saluran atau sumur resapan, masing-masing dengan ventilasi. ' +
+        : 'Cara hitung pembuangannya: tiap alat punya beban buangan, bebannya dijumlah per jalur, lalu tiap jalur memakai pipa terkecil yang sanggup mengalirkan beban itu pada kemiringan 2 %, dan tidak lebih kecil dari alat terbesarnya. Kloset ke septic tank, sisanya ke ' +
+          destinationLabel(result, 'id') +
+          ', masing-masing dengan ventilasi. ' +
           (result.lengths
             ? 'Panjang tiap jalur diperkirakan dari ukuran bangunan sampai denahnya ada.'
             : 'Panjang jalurnya belum diketahui, jadi jumlah batang dihitung setelah ukuran bangunannya disebut.'),
       fieldPath: '',
       ruleId: 'ENG-602',
     },
+    // Tujuan air bekas dan grease trap (temuan 10): barisnya menunjuk field tujuannya, jadi
+    // pengguna bisa mengubahnya — termasuk ketika yang dipakai baru anggapan.
+    ...(result.greyWater !== null
+      ? [
+          {
+            text: traces.find((tr) => tr.ruleId === 'ENG-606')?.explanation ?? '',
+            fieldPath: 'water.greyWaterDestination',
+            ruleId: 'ENG-606',
+          },
+        ]
+      : []),
     ...result.appliedAssumptionIds.map((aid) => ({
       text: assumptionDescription(aid, locale),
       fieldPath: houseFieldFor(applyAssumption(aid).parameter),
@@ -293,8 +327,8 @@ export function drainageSentence(result: HouseDrainageResult, locale: Locale): s
   if (result.waste) {
     parts.push(
       en
-        ? `${wasteFixtures(result, 'en')} through ${result.waste.size} (vent ${result.waste.ventSize})`
-        : `${wasteFixtures(result, 'id')} lewat ${result.waste.size} (ventilasi ${result.waste.ventSize})`,
+        ? `${wasteFixtures(result, 'en')} through ${result.waste.size} (vent ${result.waste.ventSize}) to ${destinationLabel(result, 'en')}`
+        : `${wasteFixtures(result, 'id')} lewat ${result.waste.size} (ventilasi ${result.waste.ventSize}) ke ${destinationLabel(result, 'id')}`,
     );
   }
   let troughs = '';
@@ -478,7 +512,7 @@ export function withHouseDrainage(
       systemLines: lines,
       products,
       bom,
-      assumptions: drainageAssumptions(result, locale),
+      assumptions: drainageAssumptions(result, locale, traces),
       overallProvenance: worstOf(base.overallProvenance, result.overallProvenance),
     };
   }
@@ -494,7 +528,7 @@ export function withHouseDrainage(
         (p) => !base.products.some((b) => b.productId === p.productId && b.purpose === p.purpose),
       ),
     ],
-    assumptions: [...base.assumptions, ...drainageAssumptions(result, locale)],
+    assumptions: [...base.assumptions, ...drainageAssumptions(result, locale, traces)],
     overallProvenance: worstOf(base.overallProvenance, result.overallProvenance),
   };
 }

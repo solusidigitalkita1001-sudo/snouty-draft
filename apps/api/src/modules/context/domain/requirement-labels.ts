@@ -46,6 +46,7 @@ export const FIELD_LABEL: Readonly<Record<RequirementFieldPath, string>> = {
   'water.transferPump': 'Pompa transfer ke toren',
   'water.groundTankL': 'Volume tandon bawah',
   'water.roofTankL': 'Volume toren atap',
+  'water.greyWaterDestination': 'Tujuan air bekas',
 };
 
 export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
@@ -82,6 +83,7 @@ export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
   'water.transferPump': 'Transfer pump to the roof tank',
   'water.groundTankL': 'Ground tank volume',
   'water.roofTankL': 'Roof tank volume',
+  'water.greyWaterDestination': 'Grey water destination',
 };
 
 /** Label field menurut bahasa percakapan. */

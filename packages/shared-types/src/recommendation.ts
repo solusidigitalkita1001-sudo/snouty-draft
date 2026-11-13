@@ -350,6 +350,8 @@ export type NeedKind =
   | 'booster_pump'
   /** Pompa antara tandon bawah dan toren atap (ENG-713, temuan 9). */
   | 'transfer_pump'
+  /** Grease trap dapur sebelum jalur air bekas bersama (ENG-606, temuan 10). */
+  | 'grease_trap'
   | 'drainage';
 
 export interface SolutionNeed {
@@ -384,6 +386,12 @@ export interface SolutionNeed {
    */
   readonly pumpFlowLpm?: number;
   readonly pumpHeadM?: number;
+  /**
+   * `drainage`: ke mana air bekas dibuang (ENG-606, temuan 10). `greyWaterAssumed` berarti
+   * tujuannya belum dipilih pengguna, jadi yang dipakai anggapan.
+   */
+  readonly greyWaterDestination?: 'municipal_drain' | 'treatment_plant' | 'soakaway';
+  readonly greyWaterAssumed?: boolean;
   /** `drainage`: ukuran jalur air kotor dan air bekas, dan ventilasinya. */
   readonly soilSize?: string;
   readonly wasteSize?: string;

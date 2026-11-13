@@ -5735,3 +5735,23 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       Di layar solusi pompa itu berdiri di antara sumber dan bangunan, dengan debit l/menit dan
       head m di keterangannya. Lama pengisian satu jam dan muka air tandon 1,5 m menunggu tanda
       tangan Pralon (OQ-100); ENG-713 `REQUIRES_DOMAIN_VALIDATION`.
+
+- [x] P37-11 Air bekas punya tujuan, dan dapur punya grease trap
+
+      Temuan 10. Setiap baris pembuangan berbunyi "saluran atau sumur resapan" — dua tujuan
+      sekaligus, dan salah satunya tujuan air hujan. Tujuannya sendiri tidak pernah ditanya, dan
+      grease trap dapur tidak pernah ada.
+
+      Sekarang tujuan air bekas adalah data: ditanya pada pekerjaan yang menyentuh pembuangan,
+      terbaca dari chat ("dibuang ke IPAL perumahan"), bisa dikoreksi di panel, dan dipakai di
+      setiap baris yang menyebut ke mana air bekas pergi. Belum dipilih berarti saluran kota,
+      dan itu tampil sebagai anggapan dengan tombol yang membuka field tujuannya — bukan diisi
+      diam-diam.
+
+      Sumur resapan tidak lagi muncul berdampingan dengan saluran seolah keduanya sama. Ia tetap
+      bisa dipilih — hitungannya jalan — tetapi dengan peringatan: resapan adalah tujuan air hujan,
+      dan air bekas membawa sabun dan lemak.
+
+      Tiap dapur mendapat satu grease trap (ENG-606), jumlahnya dari jumlah dapur dan letaknya
+      sebelum lemak dapur bertemu jalur bersama. Ukurannya tidak dikarang: volume grease trap,
+      jarak bak kontrol, dan kapasitas IPAL menunggu Pralon (OQ-101).

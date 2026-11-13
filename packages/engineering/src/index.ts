@@ -233,6 +233,7 @@ export {
   ENG_602,
   ENG_603,
   ENG_604,
+  ENG_606,
   GROUP_J,
 } from './rules/group-j-waste.js';
 export type {
@@ -240,6 +241,8 @@ export type {
   DrainSize,
   DrainageLoadInput,
   DrainageLoadResult,
+  GreyWaterDestination,
+  GreyWaterOutletResult,
 } from './rules/group-j-waste.js';
 export { ENG_801, ENG_802, ENG_803, GROUP_L } from './rules/group-l-worship.js';
 export { ENG_901, ENG_902, ENG_903, ENG_904, GROUP_M } from './rules/group-m-renovation.js';

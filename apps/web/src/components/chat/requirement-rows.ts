@@ -53,6 +53,13 @@ const INSTALLATION: readonly SelectOption[] = [
   { value: 'both', label: 'Air bersih + pembuangan' },
 ];
 
+/** Tujuan air bekas (temuan 10): resapan hanya bila pengguna memilihnya. */
+const GREY_WATER: readonly SelectOption[] = [
+  { value: 'municipal_drain', label: 'Saluran kota' },
+  { value: 'treatment_plant', label: 'IPAL / STP' },
+  { value: 'soakaway', label: 'Sumur resapan' },
+];
+
 /** Pompa transfer tandon bawah → toren atap: ada atau tidak (temuan 9). */
 const YES_NO: readonly SelectOption[] = [
   { value: 'true', label: 'Ada' },
@@ -319,6 +326,19 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
       kind: 'select',
       options: SOURCE,
     }),
+    // Tujuan air bekas (temuan 10): barisnya tampil begitu tujuannya dipilih atau disebut.
+    ...(state.water.greyWaterDestination === undefined ||
+    state.water.greyWaterDestination.value === null
+      ? []
+      : [
+          row(
+            'water.greyWaterDestination',
+            'Tujuan air bekas',
+            state.water.greyWaterDestination,
+            labelOf(GREY_WATER),
+            { kind: 'select', options: GREY_WATER },
+          ),
+        ]),
     // Tandon bawah + pompa transfer ke toren atap (temuan 9): barisnya tampil begitu susunan itu
     // disebut, dan volume tangkinya bisa dikoreksi di sini.
     ...tankChainRows(state),

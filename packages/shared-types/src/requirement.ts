@@ -205,7 +205,16 @@ export interface WaterState {
   readonly groundTankL?: TrackedValue<number>;
   /** Volume toren atap (liter) bila disebut — menentukan debit pompa transfernya. */
   readonly roofTankL?: TrackedValue<number>;
+  /**
+   * Ke mana air bekas dibuang (smoke test 13 Nov 2026, temuan 10). Sumur resapan adalah tujuan
+   * air hujan, jadi air bekas ke sana hanya atas pilihan pengguna — dan dengan peringatan.
+   * Kosong = belum dipilih; dipakai yang paling lazim dan itu tampil sebagai anggapan.
+   */
+  readonly greyWaterDestination?: TrackedValue<GreyWaterDestination>;
 }
+
+/** Tujuan air bekas: saluran kota, IPAL/STP, atau sumur resapan (temuan 10). */
+export type GreyWaterDestination = 'municipal_drain' | 'treatment_plant' | 'soakaway';
 
 export type ReplacedLine = 'clean_water_main' | 'clean_water_branch' | 'soil' | 'waste';
 export type WorkType = 'new' | 'replace_all' | 'replace_partial' | 'extend' | 'renovation';
@@ -250,7 +259,8 @@ export type RequirementFieldPath =
   | 'water.replacedLine'
   | 'water.transferPump'
   | 'water.groundTankL'
-  | 'water.roofTankL';
+  | 'water.roofTankL'
+  | 'water.greyWaterDestination';
 
 /**
  * Empat field inti yang menggerakkan meter "KELENGKAPAN DATA" dan menahan

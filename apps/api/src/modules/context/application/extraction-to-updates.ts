@@ -296,6 +296,24 @@ const OBVIOUS = {
       ? true
       : undefined;
   },
+  /**
+   * Tujuan air bekas yang tersurat (temuan 10) — nilai enum, bukan tebakan: resapan hanya bila
+   * pengguna memang menyebutnya, dan IPAL/STP terpisah dari saluran kota.
+   */
+  greyWaterDestination: (
+    m: string,
+  ): NonNullable<Extraction['water']>['greyWaterDestination'] | undefined => {
+    if (/\b(sumur resapan|resapan|soak ?away|soak pit|infiltration)\b/i.test(m)) return 'soakaway';
+    if (/\b(ipal|stp\b|sewage treatment|water treatment|pengolahan air limbah)\b/i.test(m))
+      return 'treatment_plant';
+    if (
+      /\b(saluran kota|saluran umum|riol|gorong-gorong|drainase kota|sewer|municipal drain)\b/i.test(
+        m,
+      )
+    )
+      return 'municipal_drain';
+    return undefined;
+  },
   groundTankL: (m: string) => litresFor(GROUND_TANK, m),
   roofTankL: (m: string) => litresFor(ROOF_TANK, m),
   // Cadangan bila model dilewati (diet 2026-10-07): sumur atau pompa yang disebut sebagai sumber,
@@ -1068,6 +1086,11 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   add('water.transferPump', extraction.water?.transferPump ?? OBVIOUS.transferPump(message));
   add('water.groundTankL', extraction.water?.groundTankL ?? OBVIOUS.groundTankL(message));
   add('water.roofTankL', extraction.water?.roofTankL ?? OBVIOUS.roofTankL(message));
+  // Tujuan air bekas (temuan 10): yang tersurat menang atas tebakan model, seperti letak toren.
+  add(
+    'water.greyWaterDestination',
+    OBVIOUS.greyWaterDestination(message) ?? extraction.water?.greyWaterDestination,
+  );
   // Mesin cuci, water heater, floor drain balkon (temuan 9): alat yang disebut tidak boleh hilang
   // dari kebutuhan — mesin cuci dan floor drain membawa beban air bekasnya sendiri.
   add(

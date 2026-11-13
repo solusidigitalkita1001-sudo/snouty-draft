@@ -82,6 +82,7 @@ export const ALL_FIELD_PATHS: readonly RequirementFieldPath[] = [
   'water.transferPump',
   'water.groundTankL',
   'water.roofTankL',
+  'water.greyWaterDestination',
 ];
 
 /** Field yang nilainya belum ada — dipakai kelengkapan dan klarifikasi. */

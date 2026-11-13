@@ -20,11 +20,14 @@ import {
   ENG_603,
   ENG_604,
   ENG_605,
+  ENG_606,
   type DrainFittingResult,
   type DrainageLoadResult,
   type DrainLengthResult,
   type DrainLineResult,
   type DrainSize,
+  type GreyWaterDestination,
+  type GreyWaterOutletResult,
 } from './rules/group-j-waste.js';
 import { ENG_803, type WudhuDrainRow } from './rules/group-l-worship.js';
 
@@ -34,6 +37,11 @@ export interface HouseDrainageInput {
   readonly kitchens: number;
   /** Urinoir toilet umum — dibuang bersama kloset ke jalur air kotor. */
   readonly urinals?: number;
+  /**
+   * Tujuan air bekas yang DIPILIH pengguna (temuan 10); kosong = belum dipilih, dipakai yang
+   * paling lazim (GREY_WATER_TO_DRAIN) dan itu tampil sebagai anggapan.
+   */
+  readonly greyWaterDestination?: GreyWaterDestination | null;
   /**
    * Mesin cuci dan floor drain di luar kamar mandi (balkon, ruang cuci) — keduanya ke jalur air
    * bekas (smoke test 13 Nov 2026, temuan 9). Totalnya; sebarannya di `floors`.
@@ -86,6 +94,11 @@ export interface HouseDrainageResult {
   readonly lengths: DrainLengthResult | null;
   /** Fitting pembuangan (ENG-605): Y, elbow 45°, clean out per jalur. */
   readonly fittings: DrainFittingResult;
+  /**
+   * Tujuan air bekas dan grease trap dapur (ENG-606, temuan 9/10); `null` bila tidak ada jalur air
+   * bekas sama sekali — tidak ada yang perlu tujuan.
+   */
+  readonly greyWater: GreyWaterOutletResult | null;
   readonly appliedAssumptionIds: readonly string[];
   readonly traces: readonly CalculationTrace[];
   readonly overallProvenance: Provenance;
@@ -301,12 +314,24 @@ export function computeHouseDrainage(
     ventCapsPerLine: use('FITTING_VENT_CAP_1'),
   });
 
+  // Tujuan air bekas dan grease trap dapur (ENG-606, temuan 10): hanya bila ada jalur air bekas.
+  const greyWater =
+    waste !== null
+      ? run(ENG_606, {
+          destination: input.greyWaterDestination ?? null,
+          defaultDestination: use('GREY_WATER_TO_DRAIN'),
+          kitchens: counts.kitchenSinks,
+          greaseTrapsPerKitchen: use('GREASE_TRAP_PER_KITCHEN_1'),
+        })
+      : null;
+
   return {
     load,
     soil,
     waste,
     fixtures,
     fittings,
+    greyWater,
     wudhuTroughs: wudhuRows?.rows ?? [],
     lengths,
     appliedAssumptionIds: [...new Set(applied)],

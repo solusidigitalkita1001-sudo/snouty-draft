@@ -33,6 +33,12 @@ export interface NeedsCopy {
   readonly transferPumpDuty: (flowLpm: string, headM: string) => string;
   readonly boosterFlow: string;
   readonly drainageSizes: (soil: string, waste: string) => string;
+  /** Ke mana air bekas dibuang, dan apakah tujuannya baru anggapan (temuan 10). */
+  readonly greyWaterTo: (destination: string, assumed: boolean) => string;
+  readonly greyWaterNames: Readonly<
+    Record<'municipal_drain' | 'treatment_plant' | 'soakaway', string>
+  >;
+  readonly greaseTrap: string;
   readonly outlets: (count: number) => string;
   readonly vent: string;
   readonly ventCaption: string;
@@ -78,6 +84,7 @@ const NEED_IMAGE: Readonly<Record<Exclude<SolutionNeed['kind'], 'building'>, Sce
   booster_pump: 'pump',
   // Pompa transfer tandon bawah → toren atap: gambarnya pompa yang sama.
   transfer_pump: 'pump',
+  grease_trap: 'septic',
   drainage: 'septic',
 };
 
@@ -137,8 +144,17 @@ function caption(need: SolutionNeed, copy: NeedsCopy, locale: string): string {
       return need.pumpFlowLpm !== undefined && need.pumpHeadM !== undefined
         ? copy.transferPumpDuty(decimal(need.pumpFlowLpm, locale), decimal(need.pumpHeadM, locale))
         : '';
-    case 'drainage':
-      return copy.drainageSizes(need.soilSize ?? '–', need.wasteSize ?? '–');
+    case 'grease_trap':
+      return copy.greaseTrap;
+    case 'drainage': {
+      const sizes = copy.drainageSizes(need.soilSize ?? '–', need.wasteSize ?? '–');
+      return need.greyWaterDestination === undefined
+        ? sizes
+        : `${sizes} · ${copy.greyWaterTo(
+            copy.greyWaterNames[need.greyWaterDestination],
+            need.greyWaterAssumed === true,
+          )}`;
+    }
     default:
       return perFloor;
   }

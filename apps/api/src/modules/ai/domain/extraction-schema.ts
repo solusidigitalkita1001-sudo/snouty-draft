@@ -80,6 +80,8 @@ export const ExtractionSchema = z
          * air ditampung di bawah lalu dipompa ke toren atas; volume tangki hanya bila disebut.
          */
         transferPump: z.boolean().optional(),
+        /** Tujuan air bekas bila pengguna menyebutnya (saluran, IPAL/STP, sumur resapan). */
+        greyWaterDestination: z.enum(['municipal_drain', 'treatment_plant', 'soakaway']).optional(),
         groundTankL: z.number().int().min(100).max(100_000).optional(),
         roofTankL: z.number().int().min(100).max(100_000).optional(),
         /** Panjang pipa yang diganti (m), hanya bila disebut. */

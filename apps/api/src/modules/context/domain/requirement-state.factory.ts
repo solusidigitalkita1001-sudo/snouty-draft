@@ -54,6 +54,7 @@ export function emptyRequirementState(now: string): RequirementState {
       transferPump: empty(now),
       groundTankL: empty(now),
       roofTankL: empty(now),
+      greyWaterDestination: empty(now),
     },
     missingInformation: [],
     completeness: { filled: 0, required: 4 },

@@ -1388,6 +1388,7 @@ export function technicalQuestionCard(
       state.building.type.value,
       state.water.source.value,
       state.water.workType?.value ?? (state.water.replaceExisting?.value ? 'replace_all' : null),
+      state.water.installationType.value,
     );
     const questions = [...confirm, ...refinements];
     return questions.length > 0 ? { kind: 'clarification', questions } : null;
