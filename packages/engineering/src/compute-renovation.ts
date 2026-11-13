@@ -95,6 +95,8 @@ export interface RenovationResult {
     readonly ratio: number;
     readonly couplings: number;
     readonly lengthM: number;
+    /** Panjang yang diganti mencakup seluruh jalur (ENG-903) — bukan penggantian sebagian lagi. */
+    readonly coversWholeRoute: boolean;
     /**
      * Ukuran segmen pengganti = ukuran pipa LAMA; `null` bila ukuran lama tidak diketahui, dan
      * pemanggil memakai ukuran hitungannya sambil menyebut bahwa ukuran lama belum ada.

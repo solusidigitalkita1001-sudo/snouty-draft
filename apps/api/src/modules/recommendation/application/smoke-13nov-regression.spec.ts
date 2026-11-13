@@ -263,3 +263,26 @@ describe('boq-konsisten-dengan-hitungan (temuan 6)', () => {
     expect(bomQuantityMismatches(rec.bom)).toEqual([]);
   });
 });
+
+describe('panjang-ganti-melebihi-jalur (temuan 7)', () => {
+  it('100 m pada jalur 22,5 m: dikatakan mencakup seluruh jalur, dengan tawaran ganti semua', async () => {
+    const { rec } = await analyse(
+      stateOf([
+        ...HOUSE,
+        ['water.source', 'municipal'],
+        ['water.installationType', 'clean_water'],
+        ['water.workType', 'replace_partial'],
+        ['water.existingPipeMaterial', 'pvc'],
+        ['water.existingMainSize', '1"'],
+        ['water.replacementLengthM', 100],
+      ]),
+    );
+    // "Ganti sebagian 100 %" bukan penggantian sebagian.
+    expect(rec.body).not.toMatch(/100 %/);
+    expect(rec.body).not.toMatch(/hanya segmen/i);
+    expect(rec.body).toMatch(/seluruh jalur/);
+    expect(rec.body).toMatch(/ganti semua pipa/i);
+    // Yang bisa diubah pengguna ditunjuk: panjang yang diganti.
+    expect(rec.assumptions.some((a) => a.fieldPath === 'water.replacementLengthM')).toBe(true);
+  });
+});

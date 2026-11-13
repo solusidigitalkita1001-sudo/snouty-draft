@@ -177,7 +177,10 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
     }
     const junction = o['junction'];
     if (junction !== 'branch' && junction !== 'rejoin') {
-      throw new RuleInputError('ENG-902', `junction harus branch atau rejoin, bukan ${String(junction)}`);
+      throw new RuleInputError(
+        'ENG-902',
+        `junction harus branch atau rejoin, bukan ${String(junction)}`,
+      );
     }
     return {
       existingMaterial: material as ExistingMaterial,
@@ -248,7 +251,12 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
   testCases: [
     {
       name: 'pipa lama PVC 1" cabang baru 3/4" → tee reduksi 1" × 3/4" dilem',
-      input: { existingMaterial: 'PVC', existingSize: '1"', branchSize: '3/4"', junction: 'branch' },
+      input: {
+        existingMaterial: 'PVC',
+        existingSize: '1"',
+        branchSize: '3/4"',
+        junction: 'branch',
+      },
       expected: {
         method: 'solvent_tee',
         fittings: [{ kind: 'tee', size: '1"', branchSize: '3/4"', quantity: 1 }],
@@ -274,7 +282,12 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
     },
     {
       name: 'bahan tidak disebut → tee, ditandai perlu dipastikan',
-      input: { existingMaterial: 'unknown', existingSize: '110 mm', branchSize: '63 mm', junction: 'branch' },
+      input: {
+        existingMaterial: 'unknown',
+        existingSize: '110 mm',
+        branchSize: '63 mm',
+        junction: 'branch',
+      },
       expected: {
         method: 'solvent_tee',
         fittings: [{ kind: 'tee', size: '110 mm', branchSize: '63 mm', quantity: 1 }],
@@ -283,7 +296,12 @@ export const ENG_902: RuleVersion<TieInInput, TieInResult> = {
     },
     {
       name: 'PPR → fitting fusi, bukan lini Pralon',
-      input: { existingMaterial: 'PPR', existingSize: '3/4"', branchSize: '1/2"', junction: 'branch' },
+      input: {
+        existingMaterial: 'PPR',
+        existingSize: '3/4"',
+        branchSize: '1/2"',
+        junction: 'branch',
+      },
       expected: { method: 'specialist', fittings: [], materialAssumed: false },
     },
     {
@@ -396,11 +414,19 @@ export interface PartialReplacementResult {
   readonly ratio: number;
   readonly couplings: number;
   readonly lengthM: number;
+  /**
+   * Panjang yang diganti mencapai atau melewati panjang jalurnya (smoke test 13 Nov 2026, temuan
+   * 7: "100 m" pada jalur 22,5 m dipotong diam-diam lalu disebut "ganti sebagian 100 %"). Yang
+   * dihitung bukan segmen di tengah jalur lagi, melainkan jalur penuh — dan itu dikatakan, supaya
+   * pemiliknya bisa memilih pekerjaan yang memang dia maksud. `false` juga bila panjang jalurnya
+   * tidak diketahui: yang tidak diketahui tidak dibandingkan.
+   */
+  readonly coversWholeRoute: boolean;
 }
 
 export const ENG_903: RuleVersion<PartialReplacementInput, PartialReplacementResult> = {
   ruleId: 'ENG-903',
-  version: 1,
+  version: 2,
   category: 'geometry',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -429,6 +455,7 @@ export const ENG_903: RuleVersion<PartialReplacementInput, PartialReplacementRes
       ratio: i.routeLengthM === null ? 1 : round2(lengthM / i.routeLengthM),
       couplings: i.couplingsPerSegment,
       lengthM: round2(lengthM),
+      coversWholeRoute: i.routeLengthM !== null && i.replacementLengthM >= i.routeLengthM,
     };
   },
   sourceReference:
@@ -438,24 +465,36 @@ export const ENG_903: RuleVersion<PartialReplacementInput, PartialReplacementRes
     {
       name: '12 m diganti dari jalur 30 m → 40 %, 2 sok',
       input: { replacementLengthM: 12, routeLengthM: 30, couplingsPerSegment: 2 },
-      expected: { ratio: 0.4, couplings: 2, lengthM: 12 },
+      expected: { ratio: 0.4, couplings: 2, lengthM: 12, coversWholeRoute: false },
     },
     {
       name: 'panjang jalur tidak diketahui → seluruh panjang yang diganti, rasio 1',
       input: { replacementLengthM: 300, routeLengthM: null, couplingsPerSegment: 2 },
-      expected: { ratio: 1, couplings: 2, lengthM: 300 },
+      expected: { ratio: 1, couplings: 2, lengthM: 300, coversWholeRoute: false },
     },
     {
-      name: 'yang diganti lebih panjang dari jalur → dibatasi panjang jalur',
+      name: 'yang diganti lebih panjang dari jalur → dibatasi panjang jalur, dan itu dikatakan',
       input: { replacementLengthM: 50, routeLengthM: 30, couplingsPerSegment: 2 },
-      expected: { ratio: 1, couplings: 2, lengthM: 30 },
+      expected: { ratio: 1, couplings: 2, lengthM: 30, coversWholeRoute: true },
+    },
+    {
+      name: 'sama panjang dengan jalurnya: seluruh jalur, bukan sebagian',
+      input: { replacementLengthM: 30, routeLengthM: 30, couplingsPerSegment: 2 },
+      expected: { ratio: 1, couplings: 2, lengthM: 30, coversWholeRoute: true },
     },
   ],
+  // Panjang yang melewati jalurnya tidak dipotong diam-diam: kalimatnya menyebut angka yang
+  // disebut pengguna, panjang jalur yang dihitung, dan pekerjaan mana yang sebenarnya diminta.
   explain: (i, o, locale) =>
-    localized(locale, {
-      id: `Hanya ${o.lengthM} m yang diganti${i.routeLengthM !== null ? ` dari jalur ${i.routeLengthM} m (${Math.round(o.ratio * 100)} %)` : ''}; segmen itu dipotong di kedua ujung dan disambung kembali dengan ${o.couplings} sok.`,
-      en: `Only ${o.lengthM} m is replaced${i.routeLengthM !== null ? ` out of the ${i.routeLengthM} m run (${Math.round(o.ratio * 100)} %)` : ''}; the segment is cut at both ends and rejoined with ${o.couplings} couplings.`,
-    }),
+    o.coversWholeRoute
+      ? localized(locale, {
+          id: `Panjang yang diganti ${i.replacementLengthM} m mencakup seluruh jalur ${i.routeLengthM} m, jadi yang dihitung panjang jalur penuh — bila memang seluruh jalurnya yang diganti, pekerjaannya ganti semua pipa, bukan sebagian.`,
+          en: `The ${i.replacementLengthM} m being replaced covers the whole ${i.routeLengthM} m run, so the full run length is used — if the whole line is being replaced, the work is a full replacement, not a partial one.`,
+        })
+      : localized(locale, {
+          id: `Hanya ${o.lengthM} m yang diganti${i.routeLengthM !== null ? ` dari jalur ${i.routeLengthM} m (${Math.round(o.ratio * 100)} %)` : ''}; segmen itu dipotong di kedua ujung dan disambung kembali dengan ${o.couplings} sok.`,
+          en: `Only ${o.lengthM} m is replaced${i.routeLengthM !== null ? ` out of the ${i.routeLengthM} m run (${Math.round(o.ratio * 100)} %)` : ''}; the segment is cut at both ends and rejoined with ${o.couplings} couplings.`,
+        }),
 };
 
 // ── ENG-904 · Beban total perluasan ──────────────────────────────────────────

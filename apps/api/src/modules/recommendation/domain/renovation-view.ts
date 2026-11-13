@@ -254,6 +254,9 @@ export function withRenovation(
   overrides: Readonly<Record<string, number>> = {},
 ): RenovatedRecommendation {
   const en = locale === 'en';
+  // Kasus rumah (termasuk rekomendasi lama tanpa jenis): field kebutuhannya `water.*`, bukan
+  // parameter kasus teknis — yang menentukan field mana yang dibuka tombol "perbaiki asumsi".
+  const houseCase = recommendation.kind === undefined || recommendation.kind === 'building';
   const newLoad = ctx.newLoad ?? null;
   const totalLoad =
     facts.mode === 'extend' && facts.existingLoad !== null && newLoad !== null
@@ -542,12 +545,24 @@ export function withRenovation(
           ...(jointProduct ? { productId: jointProduct } : {}),
         });
       }
+      const metres = (value: number) => String(value).replace('.', en ? '.' : ',');
       highlights.push({
         label: en ? 'Replaced' : 'Yang diganti',
-        value: `${String(p.lengthM).replace('.', en ? '.' : ',')} m`,
+        // Seluruh jalur bukan "22,5 m dari 22,5 m": panjangnya disebut sebagai jalur penuh.
+        value: p.coversWholeRoute
+          ? en
+            ? `the whole ${metres(p.lengthM)} m run`
+            : `seluruh jalur ${metres(p.lengthM)} m`
+          : `${metres(p.lengthM)} m`,
       });
       systemLines.push({
-        name: en ? 'Replaced segment' : 'Segmen yang diganti',
+        name: p.coversWholeRoute
+          ? en
+            ? 'Replaced line'
+            : 'Jalur yang diganti'
+          : en
+            ? 'Replaced segment'
+            : 'Segmen yang diganti',
         path: en ? 'Cut → rejoin' : 'Potong → sambung kembali',
         size: segmentSize,
         reason: `${explain('ENG-903')} ${explain('ENG-902')}`.trim(),
@@ -559,13 +574,33 @@ export function withRenovation(
         p.segmentSize === null
           ? ''
           : en
-            ? ` The segment keeps the existing ${p.segmentSize} size.`
-            : ` Segmennya mengikuti ukuran pipa lama, ${p.segmentSize}.`;
+            ? ` The replaced pipe keeps the existing ${p.segmentSize} size.`
+            : ` Pipa penggantinya mengikuti ukuran pipa lama, ${p.segmentSize}.`;
+      // Panjang yang menutupi seluruh jalur tidak disebut "ganti sebagian 100 %" (smoke test
+      // 13 Nov 2026, temuan 7): yang dihitung jalur penuh, dan pekerjaan yang memang begitu
+      // adalah ganti semua pipa. Pilihannya ditawarkan, bukan diputuskan di belakang pengguna —
+      // ganti semua menghitung cabang dan fitting seluruh rumah, bukan hanya pipa jalurnya.
+      //
+      // Tawarannya ikut di kalimat pertama: ringkasan yang disimpan hanya dua kalimat
+      // (`firstSentences`), jadi kalimat ketiga tidak akan pernah terbaca pengguna.
       sentences.push(
-        en
-          ? `${label}: only the ${p.lengthM} m segment is replaced and rejoined to the existing pipe with ${p.couplings} couplings.${sized}`
-          : `${label}: hanya segmen ${String(p.lengthM).replace('.', ',')} m yang diganti dan disambung kembali ke pipa lama dengan ${p.couplings} sambungan.${sized}`,
+        p.coversWholeRoute
+          ? en
+            ? `${label}: the ${metres(p.lengthM)} m being replaced covers the whole run, so the full run is priced here — if the whole line is being replaced, say so and it is calculated as a full replacement, branches and fittings included, without the two couplings to the existing pipe.${sized}`
+            : `${label}: panjang yang diganti ${metres(p.lengthM)} m mencakup seluruh jalur, jadi yang dihitung jalur penuh — kalau memang seluruh jalurnya yang diganti, sebut saja, saya hitung sebagai ganti semua pipa, lengkap dengan cabang dan fittingnya, tanpa dua sambungan ke pipa lama.${sized}`
+          : en
+            ? `${label}: only the ${metres(p.lengthM)} m segment is replaced and rejoined to the existing pipe with ${p.couplings} couplings.${sized}`
+            : `${label}: hanya segmen ${metres(p.lengthM)} m yang diganti dan disambung kembali ke pipa lama dengan ${p.couplings} sambungan.${sized}`,
       );
+      if (p.coversWholeRoute) {
+        assumptions.push({
+          text: en
+            ? `The length being replaced covers the whole ${metres(p.lengthM)} m run; it is calculated as a partial replacement of that full length. Change the length, or ask for a full replacement, if that is not the work.`
+            : `Panjang yang diganti mencakup seluruh jalur ${metres(p.lengthM)} m dan dihitung sebagai penggantian sepanjang jalur itu. Ubah panjangnya, atau minta ganti semua pipa, bila bukan itu pekerjaannya.`,
+          fieldPath: houseCase ? 'water.replacementLengthM' : 'replacement_length',
+          ruleId: 'ENG-903',
+        });
+      }
       // Pipa lama yang lebih kecil dari kebutuhan beban: dikatakan, tidak diganti diam-diam.
       // Memperbesar jalur adalah pekerjaan lain (ganti semua), bukan efek samping penggantian
       // sebagian — dan di segmen 3 m pun pembatasnya tetap pipa lama di kedua sisinya.
@@ -594,8 +629,7 @@ export function withRenovation(
     }
   }
 
-  const house = recommendation.kind === undefined || recommendation.kind === 'building';
-  if (facts.mode === 'replace_all' && !house) {
+  if (facts.mode === 'replace_all' && !houseCase) {
     sentences.push(
       en
         ? `${label}: the existing pipes are replaced along the same runs, so the material list equals a new installation; the old pipes are removed during the work.`
@@ -617,7 +651,7 @@ export function withRenovation(
 
   // Judul: jenis pekerjaan di depan, kecuali rumah ganti-semua yang judulnya sudah menyebutnya.
   const prefixed =
-    facts.mode === 'replace_all' && house
+    facts.mode === 'replace_all' && houseCase
       ? recommendation.headline
       : `${label}: ${recommendation.headline.charAt(0).toLowerCase()}${recommendation.headline.slice(1)}`;
   const body =

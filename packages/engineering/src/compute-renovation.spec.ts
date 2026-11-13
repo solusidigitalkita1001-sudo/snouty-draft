@@ -92,14 +92,27 @@ describe('computeRenovation', () => {
       replacementLengthM: 12,
       routeLengthM: 30,
     });
-    expect(r.partial).toEqual({ ratio: 0.4, couplings: 2, lengthM: 12, segmentSize: null });
+    expect(r.partial).toEqual({
+      ratio: 0.4,
+      couplings: 2,
+      lengthM: 12,
+      segmentSize: null,
+      coversWholeRoute: false,
+    });
     expect(r.appliedAssumptionIds).toEqual(['RENOV_COUPLINGS_PER_SEGMENT_2']);
     const whole = computeRenovation({
       mode: 'replace_partial',
       newMainSize: '3/4"',
       routeLengthM: 30,
     });
-    expect(whole.partial).toEqual({ ratio: 1, couplings: 2, lengthM: 30, segmentSize: null });
+    // Tanpa panjang yang disebut, yang dihitung memang seluruh jalur — dan itu dikatakan.
+    expect(whole.partial).toEqual({
+      ratio: 1,
+      couplings: 2,
+      lengthM: 30,
+      segmentSize: null,
+      coversWholeRoute: true,
+    });
     expect(whole.appliedAssumptionIds).toContain('RENOV_REPLACE_WHOLE_ROUTE');
   });
 

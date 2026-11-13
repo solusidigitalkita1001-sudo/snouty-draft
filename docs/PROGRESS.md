@@ -5652,3 +5652,19 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       Dop, stop kran, dan lem tetap tanpa angka: ketiganya tidak punya aturan jumlah, dan
       menebaknya berarti mengarang kuantitas material yang dibeli orang. Usulan aturannya beserta
       catatan keterangan "Menunggu ukuran bangunan" yang salah muncul: OQ-98.
+
+- [x] P37-07 Panjang yang melewati jalurnya dikatakan, dengan tawaran ganti semua
+
+      Temuan 7. `replacementLengthM=100` pada rumah 12×5 dipotong diam-diam menjadi panjang
+      jalurnya lalu disebut "hanya 22,5 m yang diganti dari jalur 22,5 m (100 %) … disambung
+      kembali dengan 2 sok". Penggantian 100 % bukan penggantian sebagian.
+
+      ENG-903 naik ke versi 2 dan mengembalikan satu fakta baru: panjang yang diganti mencakup
+      seluruh jalur. Penjelasan aturannya lalu menyebut angka yang disebut pengguna dan panjang
+      jalur yang dihitung, bukan persentase; baris sistemnya bernama "Jalur yang diganti", bukan
+      "Segmen"; dan kalimatnya menawarkan pekerjaan yang memang dimaksud — ganti semua pipa,
+      lengkap dengan cabang dan fittingnya, tanpa dua sambungan ke pipa lama. Tawaran, bukan
+      keputusan: panjangnya juga muncul di tabel asumsi dengan field yang bisa diperbaiki.
+
+      Tawarannya ada di kalimat pertama karena ringkasan yang disimpan hanya dua kalimat; kalimat
+      ketiga tidak akan pernah terbaca.
