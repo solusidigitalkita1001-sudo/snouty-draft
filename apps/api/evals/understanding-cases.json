@@ -1880,9 +1880,65 @@
       "source": "produksi 2026-11-02"
     },
     {
-      "text": "mau pasang sprinkler kebakaran, pipanya pralon ada?",
+      "text": "mau pasang sprinkler pemadam, pralon ada pipanya?",
+      "intent": "use_question",
+      "topics": ["proteksi kebakaran"],
+      "source": "produksi 2026-11-02; harapannya berubah di P36-05 — sprinkler kebakaran punya jawabannya sendiri sekarang (topik `proteksi kebakaran`), dan di luar topik ia hanya mendapat ajakan bertanya"
+    },
+    {
+      "text": "hidran di gedung boleh pakai pipa pvc ngga?",
+      "intent": "use_question",
+      "topics": ["proteksi kebakaran"],
+      "source": "probe v7 2026-11-12 — dijawab \"belum punya acuan\""
+    },
+    {
+      "text": "pipa buat air asin di tambak tahan ngga?",
+      "intent": "use_question",
+      "topics": ["air laut"],
+      "source": "probe v7 2026-11-12 — dijawab kartu penyerahan dengan gelembung KOSONG"
+    },
+    {
+      "text": "pipa keluar dari bak penangkap lemak dapur pakai apa?",
+      "intent": "use_question",
+      "topics": ["grease trap"],
+      "source": "probe v7 2026-11-12 — dijawab \"belum punya acuan\""
+    },
+    {
+      "text": "drain ac di plafon bocor, mau ganti pipanya, ukuran berapa?",
+      "intent": "use_question",
+      "topics": ["buangan ac"],
+      "source": "probe v7 2026-11-12 — dijawab kartu klarifikasi rumah setelah 14,2 detik"
+    },
+    {
+      "text": "stok pipa pvc aw 3 inch ready ngga? butuh pekan depan",
+      "intent": "commercial_question",
+      "source": "probe v7 2026-11-12 — dijawab \"Ada\" dari isi katalog, seolah pertanyaan stok"
+    },
+    {
+      "text": "tkdn pipa pralon berapa persen ya?",
+      "intent": "company_question",
+      "source": "probe v7 2026-11-12 — dijawab paragraf harga"
+    },
+    {
+      "text": "ada rekrutmen karyawan baru di pralon?",
+      "intent": "company_question",
+      "source": "probe v7 2026-11-12 — dirutekan ke tim TEKNIS"
+    },
+    {
+      "text": "harga keramik 60x60 sekarang berapa?",
       "intent": "out_of_scope",
-      "source": "produksi 2026-11-02"
+      "source": "probe v7 2026-11-12 — dijawab paragraf harga pipa Pralon"
+    },
+    {
+      "text": "mo psg instalasi air di rmh baru 2 lantai, brp dim?",
+      "intent": "requirement_building",
+      "source": "probe v7 2026-11-12 — kalimat typo berat dijawab paragraf harga"
+    },
+    {
+      "text": "ukuran pipa sebelum pompa dan sesudah pompa sama ngga?",
+      "intent": "use_question",
+      "topics": ["pompa"],
+      "source": "probe v7 2026-11-12 — dibelokkan ke kartu hitung, 33,5 detik"
     },
     {
       "text": "lem pipa 1 kaleng cukup buat berapa sambungan",

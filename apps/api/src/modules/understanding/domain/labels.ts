@@ -167,6 +167,17 @@ export const KNOWLEDGE_TOPICS = [
   // karena jawabannya bukan jawaban conduit: subduct saluran kabel telekomunikasi, dan yang
   // ditanya orang justru apakah ia boleh dipakai air.
   'subduct',
+  // Probe 12 Nov 2026 — empat pemakaian yang ditanyakan orang dan tidak punya topiknya sendiri,
+  // jadi pertanyaannya ditarik topik tetangga yang kebetulan dekat:
+  // "pipa buat sprinkler pemadam kebakaran pakai pralon yang mana?" dijawab paragraf ketahanan
+  // kimia, dan "pipa hidran gedung boleh pvc?" dijawab "belum punya acuan".
+  'proteksi kebakaran',
+  // "pipa buat air laut di tambak udang tahan ngga?" — kebijakan fluida menyerahkannya ke tim
+  // teknis dengan gelembung KOSONG, padahal yang ditanya kecocokan bahan.
+  'air laut',
+  'grease trap',
+  // Kondensat AC: aliran gravitasi berdiameter kecil. Dijawab kartu klarifikasi rumah (14,2 detik).
+  'buangan ac',
 ] as const;
 export type KnowledgeTopicLabel = (typeof KNOWLEDGE_TOPICS)[number];
 

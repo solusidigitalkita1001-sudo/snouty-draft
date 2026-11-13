@@ -234,14 +234,22 @@
       "tell me a joke",
       "septic tank biofil ada?",
       "pralon jual septic tank ga?",
-      "pipa sprinkler kebakaran ada?",
-      "mau pasang sprinkler kebakaran, pipanya pralon ada?",
       "pompa booster merek apa yang cocok",
       "pompa air merek apa yang bagus",
       "toren merek apa yang bagus",
       "kran dan shower ada ga?",
       "do you sell water tanks?",
-      "do you sell booster pumps?"
+      "do you sell booster pumps?",
+      "harga semen sekarang berapa?",
+      "besi beton 10 mm harganya berapa?",
+      "bata ringan sebuah berapa?",
+      "harga pasir per kubik berapa?",
+      "cat tembok yang bagus apa?",
+      "how much is cement these days?",
+      "harga keramik per dus berapa sekarang?",
+      "genteng harganya berapa sebiji?",
+      "harga baja ringan per batang berapa?",
+      "borongan plafon gypsum berapa per meter?"
     ],
     "company_question": [
       "pralon itu apa?",
@@ -288,7 +296,18 @@
       "pipa pralon udah sni belum?",
       "pipanya bersertifikat sni ngga?",
       "produk pralon ada sni-nya?",
-      "is pralon pipe sni certified?"
+      "is pralon pipe sni certified?",
+      "pipa pralon tkdn nya berapa persen?",
+      "tkdn pralon berapa?",
+      "pralon sudah punya tkdn belum?",
+      "sertifikat sni pipa pralon nomornya berapa?",
+      "nomor sertifikat sni pralon apa?",
+      "sertifikasi apa saja yang dipunya pralon?",
+      "pralon ada lowongan kerja?",
+      "pralon buka rekrutmen ngga?",
+      "mau melamar kerja di pralon lewat mana?",
+      "what is pralon local content percentage?",
+      "does pralon have job openings?"
     ],
     "competitor_question": [
       "pralon vs rucika bagusan mana?",
@@ -564,7 +583,20 @@
       "buat ventilasi pakai pipa apa",
       "pipa buat air sumur bor apa ya",
       "yang cocok buat saluran irigasi apa",
-      "buat jalur pompa pakai pipa jenis apa"
+      "buat jalur pompa pakai pipa jenis apa",
+      "pipa sprinkler kebakaran ada?",
+      "mau pasang sprinkler kebakaran, pipanya pralon ada?",
+      "hidroponik pakai pipa pvc 3 inch aman ngga buat sayurnya?",
+      "pipa pvc buat hidroponik aman buat tanaman?",
+      "pipa hisap pompa ukurannya sama dengan pipa keluarnya?",
+      "pipa isap dan pipa dorong pompa beda ukuran ngga?",
+      "cuci steam mobil tekanannya tinggi, pipa pvc kuat ngga?",
+      "pipa pvc kuat buat pompa tekanan tinggi?",
+      "pipa buangan ac netes, mau diganti pakai pipa apa dan ukuran berapa?",
+      "buangan ac mau diganti, pipanya apa dan ukurannya berapa?",
+      "boleh pakai pipa pvc untuk hidran gedung?",
+      "pakai pipa pvc untuk jalur hidran boleh ngga?",
+      "untuk sprinkler kebakaran pakai pipa pvc boleh?"
     ],
     "knowledge_question": [
       "cara nyambung pipa pvc pakai lem gimana?",
@@ -741,7 +773,12 @@
       "pipa ukuran apa buat rumah 3 lantai 4 kamar mandi?",
       "rumah 2 lantai pakai pipa ukuran berapa?",
       "what pipe size do i need for a 3 storey house?",
-      "what size should the main pipe be for a two storey house?"
+      "what size should the main pipe be for a two storey house?",
+      "gw mau psg pipa air rmh bru 3 lntai brp inch",
+      "mau psg pipa air rumah baru 2 lantai, ukuran brp?",
+      "rmh 2 lntai pipa air nya brp inch",
+      "bikin rmh br 3 lantai, pipa air brp dim?",
+      "psg instalasi air rumah 3 lantai pake pipa ukuran apa"
     ],
     "requirement_irrigation": [
       "mau pasang pipa buat irigasi sawah 2 hektar",
@@ -1174,7 +1211,19 @@
       "belinya di mana ya?",
       "distributor pralon terdekat di mana?",
       "do you have stock in surabaya?",
-      "where can i buy pralon pipe?"
+      "where can i buy pralon pipe?",
+      "stok pipa hdpe 160 mm ready ngga? butuh minggu depan",
+      "stok pipa pvc 4 inch ada ngga sekarang?",
+      "barangnya ready stock atau indent?",
+      "pipa aw 3 inch ready ngga?",
+      "minimum order pipa pralon berapa batang?",
+      "minimum pembelian berapa batang?",
+      "order minimal berapa pcs?",
+      "kalau pesan 500 batang berapa lama sampai?",
+      "lead time pengiriman berapa hari?",
+      "is hdpe 160 mm in stock? i need it next week",
+      "what is the minimum order quantity?",
+      "how long is the delivery lead time?"
     ]
   }
 }

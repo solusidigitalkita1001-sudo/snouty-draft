@@ -421,6 +421,35 @@
       "source": "Katalog produk Pralon aktif (tidak ada keluarga atau produk bernama casing); keputusan pemilik 2026-11-04 — katakan nama itu tidak ada, lalu tawarkan hitungan jalur sumurnya",
       "catalogAnswer": true,
       "gap": "pernyataan resmi Pralon tentang pemakaian pipanya sebagai casing sumur dan batas kedalamannya"
+    },
+    {
+      "topic": "proteksi kebakaran",
+      "text": "Pipa uPVC dan HDPE bukan pipa proteksi kebakaran. Jaringan sprinkler dan pipa tegak hidran dirancang menurut standar proteksi kebakarannya sendiri, dan jalur pemadamnya memakai pipa logam atau pipa yang khusus terdaftar untuk sistem itu — ia harus bertahan pada tekanan tetap bertahun-tahun, tahan panas kebakaran di sekitarnya, dan tersambung dengan cara yang teruji untuk pekerjaan itu.\n\nPralon tidak membuat pipa proteksi kebakaran, jadi di katalognya tidak ada keluarga untuk pekerjaan itu. Di proyek yang sama pipa Pralon tetap dipakai untuk jalur air bersih dan jalur pembuangannya, dan jalur itu bisa saya hitung.",
+      "textEn": "uPVC and HDPE are not fire-protection pipe. Sprinkler networks and hydrant standpipes are designed to fire-protection standards of their own, and the firefighting line runs in metal pipe or pipe specifically listed for that system — it has to hold a standing pressure for years, survive the heat of a fire around it, and be joined in a way tested for the job.\n\nPralon does not make fire-protection pipe, so its catalogue has no family for that work. On the same project Pralon pipe still carries the clean-water and the drainage lines, and those I can size.",
+      "source": "Katalog produk Pralon aktif (tidak ada keluarga proteksi kebakaran); sistem sprinkler dan pipa tegak-slang punya standar perencanaannya sendiri di luar materi Pralon. Bahan non-Pralon dibahas sebagai konteks, bukan rekomendasi produk (CLAUDE.md, kebijakan kompetitor)",
+      "catalogAnswer": true,
+      "gap": "acuan standar proteksi kebakaran yang dipakai Pralon sebagai rujukan resmi"
+    },
+    {
+      "topic": "air laut",
+      "text": "uPVC dan HDPE tidak berkarat, jadi air asin tidak mengikis pipanya seperti pada pipa logam — itu yang membuat pipa plastik banyak dipakai di lingkungan pantai dan tambak.\n\nYang menentukan pilihannya bukan air lautnya, melainkan tekanan di jalur itu: jalur bertekanan memakai pipa yang kelas tekanannya tertulis (uPVC kelas AW atau HDPE PE100 dengan PN-nya), dan saluran yang mengalir karena gravitasi memakai kelas non-tekan. Pipa yang terpasang di tempat terbuka juga perlu dilindungi dari sinar matahari langsung.\n\nPanduan tertulis Pralon untuk air laut belum ada di data yang saya pegang, jadi rancangan jalurnya dipastikan tim teknis Pralon.",
+      "textEn": "uPVC and HDPE do not rust, so salt water does not eat the pipe the way it eats metal — that is why plastic pipe is common on the coast and in aquaculture ponds.\n\nWhat decides the choice is not the sea water but the pressure in the line: a pressurised run uses pipe with a stated pressure class (uPVC class AW, or HDPE PE100 with its PN), and a line that flows by gravity uses a non-pressure class. Pipe out in the open also needs shielding from direct sunlight.\n\nPralon has no written guidance for sea water in the data I hold, so the Pralon technical team confirms the design.",
+      "source": "Snouty Product Knowledge Master §3.1 (tahan karat, tidak terpengaruh korosi), §sinar matahari; kelas tekanan dari tabel standar Pralon. Panduan air laut belum tersedia",
+      "gap": "panduan resmi Pralon untuk air laut dan tambak"
+    },
+    {
+      "topic": "grease trap",
+      "text": "Pipa keluar dari grease trap adalah saluran pembuangan biasa: mengalir karena gravitasi, tanpa tekanan, jadi yang dipakai pipa kelas non-tekan — uPVC kelas D atau pipa SNI air buangan. Ukurannya ditentukan beban alat yang masuk ke jalur itu, dan jalur mendatarnya harus turun sepanjang lintasannya.\n\nYang membuat jalur dapur berbeda dari jalur kamar mandi adalah lemaknya: ia mengeras di dinding pipa dan mempersempitnya. Itu pekerjaan bak penangkapnya — dipasang sebelum pipa keluar dan dikuras berkala — bukan pekerjaan pipa yang diperbesar untuk mengakalinya.",
+      "textEn": "The outlet of a grease trap is an ordinary waste line: it flows by gravity, carries no pressure, so it runs in a non-pressure class — uPVC class D or the SNI waste-water pipe. Its size follows the fixture load on that line, and the horizontal run has to fall along its whole length.\n\nWhat makes a kitchen line different from a bathroom line is the grease: it hardens on the pipe wall and narrows it. That is the trap's job — fitted ahead of the outlet and emptied on a schedule — not the job of a pipe made oversize to get around it.",
+      "source": "Snouty Product Knowledge Master (kelas D dan pipa SNI air buangan untuk saluran tak bertekanan); beban alat dan kemiringan dari dasar perhitungan solusi (ENG-601/ENG-602) — REQUIRES_DOMAIN_VALIDATION",
+      "gap": "panduan Pralon untuk jalur dapur komersial dan grease trap"
+    },
+    {
+      "topic": "buangan ac",
+      "text": "Buangan AC mengalirkan air kondensat: aliran gravitasi berdiameter kecil, tanpa tekanan, jadi yang dipakai pipa kelas non-tekan seperti uPVC kelas D. Ukurannya mengikuti lubang buang unit AC-nya — pipa yang lebih besar dari itu tidak membuat airnya lebih lancar.\n\nDua hal yang membuatnya tetap menetes meski pipanya baru: jalurnya tidak turun terus-menerus, sehingga air menggenang di lengkungan dan mencari jalan keluar di sambungan; dan ujung buangnya tersumbat lumut atau kotoran. Jalur kondensat juga tidak disambungkan ke jalur air bersih.",
+      "textEn": "An air-conditioner drain carries condensate: a small-diameter gravity flow with no pressure, so it runs in a non-pressure class such as uPVC class D. Its size follows the drain outlet of the unit itself — a larger pipe does not make the water run better.\n\nTwo things keep it dripping even with new pipe: the run does not fall continuously, so water stands in a dip and finds its way out at a joint; and the outlet end is blocked by algae or dirt. A condensate line is also never joined into a clean-water line.",
+      "source": "Snouty Product Knowledge Master (kelas D untuk saluran tak bertekanan); kemiringan dari dasar perhitungan solusi (ENG-602) — REQUIRES_DOMAIN_VALIDATION",
+      "gap": "ukuran pipa kondensat yang disarankan Pralon per kapasitas unit AC"
     }
   ]
 }

@@ -50,24 +50,29 @@ const top = (ranking: readonly { label: string; score: number }[] | undefined) =
  * penuh, empat menit sekali putaran (P35-04). Di sini ia dihitung sendiri dari katalognya, dan
  * yang penting bukan hanya skornya: CONTOH MANA yang menang — itu yang menunjukkan bahwa ekor
  * kalimat ("…, butuh pipa apa") bisa mengalahkan subjeknya ("kolam ikan").
+ *
+ * Contohnya disandikan SEKALI untuk seluruh daftar, bukan sekali per kalimat: yang pertama
+ * membuat probe dua belas kalimat menembus batas sepuluh menit dan mati tanpa hasil (12 Nov
+ * 2026), karena setiap kalimat mengulang penyandian seluruh katalog use-case.
  */
-async function useCaseRanking(
+async function useCaseRanker(
   data: ReturnType<typeof loadUnderstandingData>,
   encoder: TextEncoder,
-  message: string,
-): Promise<string> {
+): Promise<(message: string) => Promise<string>> {
   const catalog = data.catalogs.find((c) => c.name === 'use-case');
-  if (!catalog) return '-';
+  if (!catalog) return async () => '-';
   const examples = Object.entries(catalog.labels).flatMap(([label, texts]) =>
     (texts as readonly string[]).map((text) => ({ label, text: text.trim().toLowerCase() })),
   );
   const vectors = await encoder.encode(examples.map((e) => e.text));
-  const [query] = await encoder.encode([message.trim().toLowerCase()]);
   const embedded = examples.map((e, i) => ({ ...e, vector: vectors[i]! }));
-  return rank(query!, embedded)
-    .slice(0, 3)
-    .map((r) => `${r.label}=${r.score.toFixed(3)} ("${r.example}")`)
-    .join(', ');
+  return async (message: string) => {
+    const [query] = await encoder.encode([message.trim().toLowerCase()]);
+    return rank(query!, embedded)
+      .slice(0, 3)
+      .map((r) => `${r.label}=${r.score.toFixed(3)} ("${r.example}")`)
+      .join(', ');
+  };
 }
 
 it.skipIf(!process.env['PROBE'])(
@@ -81,6 +86,7 @@ it.skipIf(!process.env['PROBE'])(
       encoder,
     );
     await service.whenReady();
+    const rankUseCase = await useCaseRanker(data, encoder);
     const lines: string[] = [];
     for (const t of readFileSync(process.env['PROBE']!, 'utf8').split(/\r?\n/).filter(Boolean)) {
       const u = await service.understand(t);
@@ -93,7 +99,7 @@ it.skipIf(!process.env['PROBE'])(
           JSON.stringify(u.knowledgeTopics),
           top(u.topicRanking),
           u.useCase ?? '-',
-          await useCaseRanking(data, encoder, t),
+          await rankUseCase(t),
           JSON.stringify(u.families),
           `req=${u.mentionsRequirement}`,
           `hemat=${u.savingRequest ?? '-'}`,

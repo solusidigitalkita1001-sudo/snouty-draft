@@ -90,6 +90,17 @@ export function requirementUnchangedReply(locale: Locale = DEFAULT_LOCALE): stri
 }
 
 /**
+ * Kasus yang hitungannya milik tim teknis Pralon. Satu kalimat di gelembung, lalu kartunya —
+ * kartu sendirian tanpa sepatah kata terbaca sebagai balasan hampa (produksi 12 Nov 2026:
+ * pertanyaan air laut dijawab kartu saja).
+ */
+export function handedToTechnicalReply(locale: Locale = DEFAULT_LOCALE): string {
+  return locale === 'en'
+    ? 'This one needs to be worked out by the Pralon technical team.'
+    : 'Yang ini perlu dihitung oleh tim teknis Pralon.';
+}
+
+/**
  * Pengguna meminta dilanjutkan atas kebutuhan yang memang sudah dihitung giliran ini ("oke
  * lanjut", "udah, itung aja"). Produksi 2026-11-03: karena tidak ada data yang berubah, giliran
  * itu dijawab "kebutuhan Anda tetap tercatat" — pengguna menyuruh maju, dan dijawab seolah ia

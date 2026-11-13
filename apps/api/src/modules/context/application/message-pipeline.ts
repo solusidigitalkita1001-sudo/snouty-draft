@@ -113,6 +113,7 @@ import { competitorAnswer } from './competitor-answer.js';
 import {
   explanationBeforeSolution,
   computingNowReply,
+  handedToTechnicalReply,
   perFloorTotalReply,
   requirementUnchangedReply,
   valueWithoutPlaceReply,
@@ -440,15 +441,28 @@ export async function runUnderstanding(
   // tidak ada field yang mewakilinya, dan kartu klarifikasi "berapa kamar mandi?" adalah
   // jawaban yang salah untuknya. Kebijakan menang atas klasifikasi kasus — "air panas boiler
   // hotel" bukan kasus gedung bertingkat. State tidak disentuh.
-  const useCase = useCasePolicy(
-    {
-      outOfScopeFluid: input.understanding?.mentionsOutOfScopeFluid ?? false,
-      temperatureC: parseTemperature(input.message),
-    },
-    locale,
-  );
+  // Kebijakan ini milik KEBUTUHAN, bukan pertanyaan. Fluida di luar cakupan yang hanya DITANYAKAN
+  // ("pipa buat air laut di tambak udang tahan ngga?") dijawab dari pengetahuan: menyerahkannya ke
+  // tim teknis berarti pertanyaan kecocokan bahan tidak pernah dijawab, padahal jawabannya ada.
+  // Kebutuhan yang menyebut fluida itu tetap kena kebijakan ("jalur air panas boiler hotel").
+  const asksAboutFluid =
+    isProductQuestion(input.understanding?.intent?.label) &&
+    input.understanding?.intent?.label !== 'advice_request';
+  const useCase = asksAboutFluid
+    ? ({ kind: 'supported' } as const)
+    : useCasePolicy(
+        {
+          outOfScopeFluid: input.understanding?.mentionsOutOfScopeFluid ?? false,
+          temperatureC: parseTemperature(input.message),
+        },
+        locale,
+      );
   if (useCase.kind === 'policy') {
     const card = policyCard(useCase, capturedFrom(input.state, locale), locale);
+    // Kartu tanpa satu kata pun di gelembungnya terbaca sebagai balasan hampa: di produksi
+    // 12 Nov 2026 pertanyaan air laut dijawab kartu saja, prosanya kosong. Kalimatnya sama
+    // dengan jalur penyerahan yang lain.
+    events.push({ type: 'token', text: handedToTechnicalReply(locale) });
     if (card) events.push({ type: 'card', card });
     events.push(endEvent(input.messageId));
     return { events, nextState: input.state, changed: false, trigger: 'extraction' };
@@ -843,13 +857,7 @@ export async function runUnderstanding(
     materials.length === 0 &&
     merged.useCase === undefined
   ) {
-    events.push({
-      type: 'token',
-      text:
-        locale === 'en'
-          ? 'This one needs to be worked out by the Pralon technical team.'
-          : 'Yang ini perlu dihitung oleh tim teknis Pralon.',
-    });
+    events.push({ type: 'token', text: handedToTechnicalReply(locale) });
   }
   // Pipa lamanya sudah dijawab di atas: ringkasan kebutuhan atau ikhtisar solusi di bawahnya
   // membuat satu giliran menjawab dua hal, dan yang ditanya tenggelam di antaranya.

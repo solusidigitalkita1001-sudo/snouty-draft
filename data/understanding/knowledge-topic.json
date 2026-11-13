@@ -736,7 +736,11 @@
       "kelas tekanannya apa?",
       "what pressure class?",
       "kelas tekanan yang mana?",
-      "which pressure class is it?"
+      "which pressure class is it?",
+      "cuci steam mobil tekanannya tinggi, pipa pvc kuat ngga?",
+      "pipa pvc kuat ngga buat pompa tekanan tinggi?",
+      "jalur pompa tekanan tinggi pipanya tahan berapa bar?",
+      "can pvc pipe take a high pressure washer line?"
     ],
     "pippo": [
       "pippo itu apa?",
@@ -926,7 +930,11 @@
       "pipanya bebas timbal?",
       "is there any lead in it?",
       "is the pipe lead free?",
-      "does pralon pipe use lead stabiliser?"
+      "does pralon pipe use lead stabiliser?",
+      "pipa pvc buat hidroponik aman ngga buat sayurnya?",
+      "hidroponik pakai pipa pvc aman buat tanaman konsumsi?",
+      "pipa pvc aman ngga kalau airnya buat tanaman yang dimakan?",
+      "is pvc pipe safe for hydroponic vegetables?"
     ],
     "sinar matahari": [
       "pipa pvc boleh kena matahari?",
@@ -1027,7 +1035,10 @@
       "is it safe to bury water pipe inside a wall",
       "untuk pipa air bersih di dalam dinding sebaiknya pakai pipa apa?",
       "pipa air di dalam dinding pakai pipa apa?",
-      "what pipe goes inside a wall for clean water?"
+      "what pipe goes inside a wall for clean water?",
+      "pipa sleeve yang dicor di plat beton pakai pipa apa?",
+      "sleeve pipa di cor beton pakai apa?",
+      "lubang sleeve buat pipa lewat dak pakai pipa apa?"
     ],
     "pukulan air": [
       "pipa bunyi gedebuk pas kran ditutup",
@@ -1090,7 +1101,11 @@
       "rumah 2 lantai butuh pompa pendorong nggak?",
       "toren atap doang cukup atau mesti pakai booster?",
       "ruko 4 lantai perlu booster pump ga?",
-      "do i need a booster pump for a 3 storey house?"
+      "do i need a booster pump for a 3 storey house?",
+      "pipa hisap pompa ukurannya sama dengan pipa keluarnya?",
+      "pipa isap pompa harus lebih besar ya?",
+      "beda pipa hisap dan pipa dorong pompa apa?",
+      "is the pump suction pipe the same size as the discharge?"
     ],
     "bahan di luar katalog": [
       "selain pvc dan hdpe ada bahan pipa apa lagi?",
@@ -1171,6 +1186,50 @@
       "what is subduct used for?",
       "does pralon make subduct pipe?",
       "subduct for fibre optic cable?"
+    ],
+    "proteksi kebakaran": [
+      "pipa sprinkler kebakaran pakai apa?",
+      "mau pasang sprinkler kebakaran, pipanya pralon ada?",
+      "pipa buat sprinkler pemadam kebakaran yang mana?",
+      "pipa hidran gedung boleh pakai pvc?",
+      "hidran halaman yang ditanam pipanya apa?",
+      "jaringan pemadam kebakaran gedung pipanya apa?",
+      "pvc kuat ngga buat jaringan sprinkler kebakaran?",
+      "pipa tegak hidran pakai pipa apa?",
+      "pralon ada pipa proteksi kebakaran?",
+      "fire sprinkler pipe, does pralon have one?",
+      "can pvc be used for a fire hydrant line?",
+      "what pipe is used for a fire protection system?"
+    ],
+    "air laut": [
+      "pipa buat air laut tahan ngga?",
+      "pipa untuk tambak udang pakai apa?",
+      "air laut bikin pipa pvc rusak ngga?",
+      "pipa hdpe buat air laut aman?",
+      "jalur air laut ke tambak pipanya apa?",
+      "pipa plastik di pinggir laut awet ngga?",
+      "pipa buat air asin pakai apa?",
+      "is pvc pipe ok for sea water?",
+      "what pipe for a shrimp pond pumping sea water?",
+      "does salt water damage hdpe pipe?"
+    ],
+    "grease trap": [
+      "pipa keluar grease trap pakai apa?",
+      "grease trap dapur pipanya apa?",
+      "penangkap lemak dapur restoran pipa keluarnya apa?",
+      "pipa buangan dapur yang banyak lemak pakai apa?",
+      "bak penangkap lemak pipa keluarnya ukuran berapa?",
+      "what pipe goes out of a grease trap?",
+      "grease trap outlet pipe for a restaurant kitchen?"
+    ],
+    "buangan ac": [
+      "pipa buangan ac pakai apa?",
+      "pipa pembuangan ac yang netes mau diganti pakai apa?",
+      "pipa kondensat ac pakai pipa apa?",
+      "buangan air ac bocor di plafon, pipanya apa?",
+      "drain ac pakai pipa ukuran berapa?",
+      "what pipe for an air conditioner drain?",
+      "ac condensate drain, which pipe?"
     ]
   },
   "window": 0.015

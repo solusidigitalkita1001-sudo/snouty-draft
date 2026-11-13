@@ -506,11 +506,38 @@ describe('runUnderstanding — bentuk event SSE', () => {
       }),
     );
     expect((ai.extract as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
-    expect(events.map((e) => e.type)).toEqual(['message.start', 'card', 'message.end']);
-    const card = (events[1] as { card: { kind: string; reasons?: string[] } }).card;
+    // Kartunya didahului satu kalimat: kartu sendirian tanpa sepatah kata di gelembungnya terbaca
+    // sebagai balasan hampa (produksi 12 Nov 2026, pertanyaan air laut).
+    expect(events.map((e) => e.type)).toEqual(['message.start', 'token', 'card', 'message.end']);
+    expect((events[1] as { text: string }).text).toContain('tim teknis Pralon');
+    const card = (events[2] as { card: { kind: string; reasons?: string[] } }).card;
     expect(card.kind).toBe('unsupported');
     expect(card.reasons?.[0]).toContain('perlu pilihan pipa dan perhitungan tersendiri');
     expect(changed).toBe(false);
+  });
+
+  it('fluida di luar cakupan yang hanya DITANYAKAN ("pipa buat air laut tahan ngga?") tidak diserahkan: ia pertanyaan bahan, bukan kebutuhan', async () => {
+    const ai = aiExtracting({});
+    const { events } = await runUnderstanding(
+      ai,
+      input({
+        message: 'pipa buat air laut di tambak udang tahan ngga?',
+        understanding: understood('pipa buat air laut di tambak udang tahan ngga?', {
+          intent: 'use_question',
+          knowledgeTopics: ['air laut'],
+        }),
+      }),
+    );
+    // Yang tidak boleh terjadi: kartu penyerahan sebagai SATU-SATUNYA isi giliran — di produksi
+    // 12 Nov 2026 pertanyaan ini dijawab kartu `unsupported` dengan prosa kosong.
+    const kinds = events.map((e) => e.type);
+    expect(kinds).not.toEqual(['message.start', 'card', 'message.end']);
+    expect(kinds).toContain('token');
+    const spoken = events
+      .filter((e): e is { type: 'token'; text: string } => e.type === 'token')
+      .map((e) => e.text)
+      .join('');
+    expect(spoken.trim()).not.toBe('');
   });
 
   it('kasus pemilik "tambak lele 4 x 4 meter, produknya apa aja": jalur kolam, dimensi tercatat, CTA analisis — bukan kartu di luar cakupan', async () => {

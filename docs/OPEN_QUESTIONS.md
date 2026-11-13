@@ -1570,3 +1570,22 @@ These are tracked in the Domain Validation Tracker in `docs/PROGRESS.md`. Listed
 | OQ-43 | Default diterima: `--snouty-caption` digelapkan. Diterapkan `#6B7376` (bukan `#6E7679`, yang masih 4,35:1 di `canvas`); mode gelap tetap.                                                                                                                                 | owner      | 2026-10-05 |
 | OQ-15 | Default diterima: ikuti janji onboarding. Tamu mendapat tanya-jawab, rekomendasi, klarifikasi; BOM, skema, simpan, laporan butuh akun. `ENTITLEMENTS` sudah begitu — tidak ada perubahan kode. Panel register-gate tetap menunggu desain (OQ-27).                         | owner      | 2026-10-05 |
 | OQ-44 | Default diterima: `recommendations.prose_source` (migration 0012) tetap; laju prosa yang ditolak REC-1 dihitung dari kolom itu, `ai` dan `llm_calls` tidak disentuh.                                                                                                      | owner      | 2026-10-05 |
+
+### OQ-95 — 145 dari 402 kasus eval pemahaman adalah salinan contohnya sendiri (P36, 2026-11-13)
+
+**Status:** open · **Blocks:** tidak ada · _non-blocking_
+
+Diaudit saat menambah kasus di P36: 145 dari 402 kasus di `apps/api/evals/understanding-cases.json`
+berisi kalimat yang PERSIS sama dengan salah satu contoh di `data/understanding/*.json`. Kasus
+semacam itu dijamin lolos — kemiripan kalimat dengan dirinya sendiri 1,000 — jadi ia tidak menguji
+apa pun, dan akurasi 99,1% dihitung dengan 36% kasus yang tidak bisa gagal.
+
+Penyebabnya wajar: kalimat produksi yang salah dipahami ditambahkan ke contoh (supaya benar) DAN ke
+kasus eval (supaya tercatat). Keduanya memang perlu, tetapi kasusnya harus parafrase — itu aturan
+yang sudah dipakai sejak `feedback-no-frame-examples`, hanya belum pernah diterapkan ke belakang.
+
+**Usulan default:** biarkan kasus yang ada, dan parafrasekan bertahap — setiap kali sebuah topik
+disentuh, kasus salinannya di topik itu ikut diubah menjadi parafrase. Tanpa putaran khusus:
+mengubah 145 kalimat sekaligus berarti satu putaran eval yang tidak bisa dibaca penyebabnya bila
+turun. Akurasi akan TURUN saat ini dikerjakan, dan penurunannya adalah hal yang benar — ia angka
+yang sebelumnya terlalu tinggi.

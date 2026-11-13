@@ -5379,3 +5379,116 @@ operasional, lalu probe ketujuh yang memang dicari.
       dan kalimat yang ditulis seadanya. Hasilnya: **sekitar 22 dari 32 salah atau tidak
       menjawab**, dengan giliran terlama 44 detik. Temuannya dikelompokkan menurut sebab, bukan
       menurut pertanyaan, dan menjadi daftar kerja fase ini.
+
+- [x] P36-04 Kebijakan fluida tidak lagi menelan pertanyaan, dan tidak pernah bisu
+
+      "Pipa buat air laut di tambak udang tahan ngga?" dijawab **tanpa satu kata pun** — kartu
+      `unsupported` terbit, prosanya kosong. Dua kesalahan di satu jalur.
+
+      Yang pertama: jalur kebijakan fluida mengirim kartu lalu menutup giliran, tanpa token. Setiap
+      pertanyaan yang menyentuh fluida di luar cakupan berakhir sebagai gelembung hampa. Kalimat
+      penyerahannya sekarang selalu diucapkan, dan kalimatnya sama dengan jalur penyerahan yang
+      lain (`handedToTechnicalReply`, dipakai dua tempat yang sebelumnya menulisnya sendiri).
+
+      Yang kedua lebih dalam: kebijakan itu milik KEBUTUHAN, bukan pertanyaan. Ia lahir supaya
+      "pipa buat jalur air panas boiler hotel" tidak dihitung sebagai kasus gedung — benar. Tetapi
+      ia juga menangkap pertanyaan kecocokan bahan, dan menyerahkan pertanyaan ke tim teknis
+      berarti pertanyaan itu tidak pernah dijawab padahal jawabannya ada. Sekarang pertanyaan
+      produk/pemakaian lewat; permintaan nasihat dan pernyataan kebutuhan tetap kena kebijakan.
+
+- [x] P36-05 Empat pemakaian yang ditanyakan orang dan tidak punya topiknya sendiri
+
+      Tanpa topik, pertanyaan ditarik topik tetangga yang kebetulan dekat — dan itu sebab enam
+      jawaban salah di probe, bukan enam sebab.
+
+      `proteksi kebakaran`: "pipa buat sprinkler pemadam kebakaran pakai pralon yang mana?"
+      dijawab paragraf ketahanan kimia; "pipa hidran gedung boleh pvc?" dijawab "belum punya
+      acuan". Faktanya sekarang menjawab tegas: uPVC dan HDPE bukan pipa proteksi kebakaran,
+      jalur pemadam memakai pipa logam atau pipa yang terdaftar untuk sistem itu, Pralon tidak
+      membuatnya — dan di proyek yang sama pipa Pralon tetap memegang jalur air bersih dan
+      pembuangan, yang memang bisa dihitung. Dua contoh sprinkler ikut dipindahkan dari
+      `out_of_scope` ke pertanyaan pemakaian: di luar topik hanya menghasilkan ajakan bertanya,
+      dan sekarang pertanyaan itu punya jawaban.
+
+      `air laut`: bahan plastik tidak berkarat — itu justru alasan ia dipakai di pantai dan
+      tambak; yang menentukan pilihannya tekanan di jalurnya, bukan air lautnya. Panduan tertulis
+      Pralon untuk air laut belum ada, dan itu `gap`-nya.
+
+      `grease trap`: pipa keluarnya saluran gravitasi biasa (kelas non-tekan), ukurannya dari
+      beban alat, dan lemaknya pekerjaan bak penangkap — bukan pipa yang diperbesar.
+
+      `buangan ac`: kondensat, gravitasi, diameter kecil; ukurannya mengikuti lubang buang unitnya,
+      dan dua sebab umum ia tetap menetes (jalur tidak turun terus-menerus, ujungnya tersumbat).
+
+      Sleeve yang dicor masuk ke topik `pipa dicor` yang sudah ada, bukan topik baru: faktanya
+      sudah menyatakan panduan pipa dicor belum ada, dan sleeve ikut di situ.
+
+- [x] P36-06 Pertanyaan dagang tidak dijawab dari isi katalog
+
+      "Stok pipa HDPE 160 mm ready ngga? butuh minggu depan" dijawab "**Ada.** HDPE 160 mm di
+      katalog Pralon…" beserta lima produknya. Ada di katalog bukan berarti ada stoknya, dan
+      tenggat minggu depan tidak disinggung. Pertanyaan stok, pengiriman, dan garansi yang lain
+      dijawab benar — yang ini lolos karena "ready" membuatnya terbaca pertanyaan ketersediaan
+      katalog. Stok, tenggat, dan minimum order kini contoh `commercial_question`; diukur setelah
+      penambahan, ketiganya 1,000.
+
+      "Minimum order pipa pralon berapa batang?" dijawab panjang per batang beserta tabelnya —
+      "berapa batang" dibaca sebagai panjang sebatang. Intent-nya sekarang dagang, walau topik
+      `panjang batang` masih cocok 0,821; verifikasinya di produksi.
+
+- [x] P36-07 TKDN, nomor sertifikat, dan lowongan kerja bukan pertanyaan harga atau teknis
+
+      "Pipa pralon TKDN nya berapa persen?" dijawab paragraf harga. TKDN justru ADA di jawaban
+      sertifikasi — pertanyaan nomor sertifikat SNI dijawab benar, dan menyebut TKDN di dalamnya.
+      Keduanya kini `company_question`.
+
+      "Pralon ada lowongan kerja?" dijawab "belum punya acuan… **tim teknis** Pralon bisa
+      menjawabnya" — merutekan pertanyaan rekrutmen ke tim teknik. Juga `company_question`, yang
+      jalurnya menjawab dengan kontak resmi perusahaan.
+
+- [x] P36-08 Paragraf harga berhenti menjadi jawaban serba-bisa
+
+      Satu rute menghasilkan empat jawaban salah: pertanyaan keamanan pipa untuk sayuran
+      hidroponik, TKDN, rumah tiga lantai yang diketik "gw mau psg pipa air rmh bru 3 lntai brp
+      inch", dan harga semen — semuanya dijawab paragraf harga. Yang terakhir paling tajam:
+      pertanyaan tentang bahan bangunan LAIN dijawab seolah yang ditanya pipa Pralon.
+
+      Hidroponik ternyata pertanyaan yang sama dengan air minum — bahan yang kontak dengan yang
+      dikonsumsi — dan faktanya sudah ada (Calcium-Zinc, bebas timbal); ia hanya tidak punya
+      contoh. Rumah yang ditulis seadanya dapat contohnya sendiri, dan bahan bangunan lain masuk
+      ke luar topik. Diukur setelah penambahan: hidroponik `use_question` + topik `air minum`
+      0,922, rumah typo `requirement_building` 1,000, semen `out_of_scope` 1,000.
+
+- [x] P36-09 Pipa hisap pompa dan tekanan cuci steam pulang ke topiknya
+
+      "Pipa hisap pompa ukurannya sama dengan pipa keluarnya?" — pertanyaan konsep — dibelokkan ke
+      kartu hitung dan memakan **33,5 detik**. "Cuci steam mobil tekanannya tinggi, pipa pvc kuat
+      ngga?" dijawab paragraf ketahanan kimia, padahal yang ditanya kekuatan tekanannya. Keduanya
+      kini 1,000 di `use_question`, dengan topik `pompa` dan `tekanan kerja`.
+
+- [x] P36-10 Alat probe pemahaman yang tidak bisa dipakai
+
+      Probe dua belas kalimat mati di batas sepuluh menit tanpa menulis satu baris. Sebabnya ada di
+      alatnya: `useCaseRanking` menyandikan ULANG seluruh contoh katalog use-case untuk SETIAP
+      kalimat. Penyandian contohnya dinaikkan keluar dari loop — sekali untuk seluruh daftar. Probe
+      yang sama sekarang 3 menit dan memang menghasilkan peringkatnya, dan dari situ sebelas dari
+      dua belas kalimat terbukti pindah ke rute yang benar sebelum rilis.
+
+      Ini yang membuat perbedaan di fase ini: diagnosis tidak lagi menunggu jawaban produksi.
+
+      Eval pemahaman setelah seluruh penambahan data fase ini: **234/235 (99,6%)**, dengan sebelas
+      kasus baru dari probe v7 — semuanya parafrase, bukan salinan contohnya. Dua kasus yang masih
+      gagal keduanya mendahului fase ini: "tes 123" (ragu lawan sapaan) dan satu `useCase` pada
+      pertanyaan pipa di dalam tembok.
+
+      Dua kasus baru sempat "ragu" dan itu menunjukkan cara contoh bersaing: "hidran di gedung
+      boleh pakai pipa pvc ngga?" kalah 0,758 lawan 0,752 oleh BENTUK "pakai pipa pvc untuk rumah
+      2 lantai" — bukan oleh kata hidran, yang tidak ada di sisi mana pun. Hidran mendapat bentuk
+      yang sama dengan kata pembedanya ("boleh pakai pipa pvc untuk hidran gedung?"), dan
+      selisihnya terbuka. Pertanyaan harga keramik kalah 0,641 lawan 0,635 karena di luar topik
+      hanya punya satu contoh harga bahan lain (semen); tiga bahan lagi ditambahkan.
+
+      Sisa temuan probe v7 belum dikerjakan dan tercatat untuk batch berikutnya: inlet/outlet
+      septic tank, sumur resapan, pipa minum ternak, irigasi tetes dengan luas lahan, ventilasi
+      tegak (44 detik), kata tunggal tanpa konteks ("aw"), dan lanjutan yang menggeser pokok soal
+      ("kalau airnya buat kolam ikan koi?").
