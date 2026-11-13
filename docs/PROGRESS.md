@@ -5792,3 +5792,19 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       Ukurannya tidak dinaikkan sendiri. Menaikkan ukuran berarti mengubah material yang dibeli
       orang, dan itu keputusan teknik Pralon, bukan keputusan tampilan — pertanyaannya di OQ-102
       dengan usulan defaultnya.
+
+- [x] P37-15 Panjang yang diganti bukan panjang jalur utama
+
+      Temuan 14. "Ganti pipa sepanjang 3 meter" tercatat sebagai panjang yang diganti DAN panjang
+      jalur utama rumah sekaligus — dan 3 m jalur utama untuk sebuah rumah adalah angka yang
+      mustahil. Kalimat yang kata-katanya lebih panjang ("ganti pipa yang bocor kurang lebih 3
+      meter") malah hanya terbaca sebagai jalur utama: angkanya masuk field yang salah.
+
+      Dua perbaikan. Pembaca panjang yang diganti tidak lagi putus karena ada kata di antara
+      "ganti" dan angkanya; polanya tetap tidak bisa melewati angka lain, jadi panjang itu tetap
+      milik kata gantinya. Dan satu panjang tidak bisa menjadi dua hal: panjang yang sudah terbaca
+      sebagai panjang yang diganti tidak ikut tercatat sebagai panjang jalur. Panjang yang memang
+      disebut sebagai jalur ("jalur utama dari toren ke kamar mandi 15 meter") tetap jalur.
+
+      Kasusnya masuk eval live (`PP-49`) supaya bacaan ini diperiksa di instance berjalan, bukan
+      hanya di tes unit.

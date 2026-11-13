@@ -430,9 +430,13 @@ export function extractTechnicalContext(
   take(new RegExp(`(?:existing|old)\\s+${SIZE}\\s*(?:\\w+\\s+)?(?:pipe|main)\\b`), (m) =>
     add('existing_pipe_size', sizeLabel(m[1]!), m[0]),
   );
+  // Jarak antara kata "ganti" dan panjangnya longgar (smoke test 13 Nov 2026, temuan 14): "ganti
+  // pipa yang bocor kurang lebih 3 meter" dulu tidak terbaca sama sekali, dan 3 m itu malah
+  // tercatat sebagai panjang jalur utama rumah. Pola D tidak bisa melewati angka lain, jadi
+  // panjang ini tetap milik kata gantinya.
   take(
     new RegExp(
-      `(?:diganti|ganti|mengganti|replac(?:e|ing))\\D{0,24}?(?:sepanjang|sekitar|about|of)?\\s*${NUM}\\s*${M}\\b`,
+      `(?:diganti|ganti|mengganti|replac(?:e|ing))\\D{0,40}?(?:sepanjang|sekitar|about|of)?\\s*${NUM}\\s*${M}\\b`,
     ),
     (m) => add('replacement_length', num(m[1]!), m[0], 'm'),
   );

@@ -463,3 +463,34 @@ describe('tujuan-air-bekas-dan-grease-trap (temuan 10)', () => {
     expect(asked('clean_water')).toBe(false);
   });
 });
+
+describe('panjang-yang-diganti-bukan-jalur-utama (temuan 14)', () => {
+  const lengths = (message: string) => {
+    const updates = extractionToUpdates({}, message);
+    return {
+      replaced: updates.find((u) => u.path === 'water.replacementLengthM')?.value,
+      run: (
+        updates.find((u) => u.path === 'building.dimensions')?.value as
+          { mainRunMeters?: number } | undefined
+      )?.mainRunMeters,
+    };
+  };
+
+  it('"ganti pipa sepanjang 3 meter": 3 m hanya panjang yang diganti', () => {
+    expect(lengths('mau ganti pipa sepanjang 3 meter')).toEqual({ replaced: 3, run: undefined });
+  });
+
+  it('kata di antaranya tidak memutus bacaannya', () => {
+    expect(lengths('ganti pipa yang bocor kurang lebih 3 meter')).toEqual({
+      replaced: 3,
+      run: undefined,
+    });
+  });
+
+  it('panjang jalur yang memang disebut jalur tetap jalur', () => {
+    expect(lengths('rumah 2 lantai, jalur utama dari toren ke kamar mandi 15 meter')).toEqual({
+      replaced: undefined,
+      run: 15,
+    });
+  });
+});

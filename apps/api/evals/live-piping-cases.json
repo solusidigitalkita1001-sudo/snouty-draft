@@ -693,6 +693,20 @@
           }
         }
       ]
+    },
+    {
+      "id": "PP-49",
+      "category": "renovasi",
+      "turns": [
+        {
+          "q": "rumah 2 lantai, 3 kamar mandi, airnya dari PDAM, mau ganti pipa yang bocor kurang lebih 3 meter",
+          "expect": "3 m tercatat sebagai panjang pipa yang diganti, bukan panjang jalur utama rumah (smoke test 13 Nov 2026, temuan 14).",
+          "checks": {
+            "all": ["3 m pipa yang diganti"],
+            "none": ["jalur utama ±3", "jalur utama 3 m", "jalur utama ±3 m"]
+          }
+        }
+      ]
     }
   ]
 }

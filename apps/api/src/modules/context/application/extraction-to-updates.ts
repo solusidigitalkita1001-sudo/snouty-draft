@@ -989,7 +989,14 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
   // Ukuran rumah dari teks lebih dulu (nilai tersurat); panjang jalur dari model hanya bila
   // ukuran rumah tidak disebut. Keduanya disimpan bersama bila keduanya ada.
   const plan = OBVIOUS.plan(message);
-  const run = extraction.building?.mainRunMeters ?? OBVIOUS.mainRun(message);
+  const renovation = obviousRenovation(message);
+  // Satu panjang tidak bisa menjadi dua hal (smoke test 13 Nov 2026, temuan 14): "ganti pipa
+  // sepanjang 3 meter" tercatat sebagai panjang yang diganti DAN panjang jalur utama rumah
+  // sekaligus — dan 3 m jalur utama untuk sebuah rumah adalah angka yang mustahil. Panjang yang
+  // sudah terbaca sebagai panjang yang diganti bukan panjang jalur.
+  const replacementLengthM = extraction.water?.replacementLengthM ?? renovation.replacementLengthM;
+  const statedRun = extraction.building?.mainRunMeters ?? OBVIOUS.mainRun(message);
+  const run = statedRun === replacementLengthM ? undefined : statedRun;
   if (plan !== undefined) {
     updates.push({
       path: 'building.dimensions',
@@ -1112,8 +1119,7 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
       negatedZero(message, COUNT_NOUNS['fixtures.balconyFloorDrains']!),
   );
   // "sudah ada 4 titik air" adalah titik air LAMA (P23-05): angka yang sama tidak boleh menjadi
-  // jumlah titik air baru.
-  const renovation = obviousRenovation(message);
+  // jumlah titik air baru (`renovation` dibaca di atas).
   // "tambah 2 titik air" juga bukan jumlah titik air rumah: ia beban baru perluasan (P25-06).
   const added = addedOutletsOf(message);
   // Keran yang sudah tercatat sebagai keran taman atau keran lantai atas bukan jumlah titik air
