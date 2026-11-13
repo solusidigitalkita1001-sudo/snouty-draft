@@ -44,6 +44,7 @@ import type {
   ReportPricing,
   ReportRequirementRow,
 } from '../domain/report.types.js';
+import { assertBomQuantitiesMatchCalc } from '../domain/boq-consistency.js';
 
 export interface AssembleReportInput {
   readonly reportNumber: string;
@@ -72,6 +73,10 @@ export interface AssembleReportInput {
 
 export function assembleReportPayload(input: AssembleReportInput): ReportPayload {
   const locale = input.locale ?? DEFAULT_LOCALE;
+  // Pagar terakhir sebelum dirender (temuan 6 smoke test 13 Nov 2026): jumlah di BOQ dan angka di
+  // tabel dasar perhitungan berasal dari baris material yang sama, jadi laporan tidak dicetak
+  // kalau keduanya berbeda — pembaca tidak bisa tahu mana yang dipakai memesan barang.
+  assertBomQuantitiesMatchCalc(input.recommendation.bom);
   // Pagar terakhir (laporan 0015): sebaran per lantai di kebutuhan harus sama dengan totalnya.
   for (const need of input.recommendation.needs ?? []) {
     if (need.perFloor) {

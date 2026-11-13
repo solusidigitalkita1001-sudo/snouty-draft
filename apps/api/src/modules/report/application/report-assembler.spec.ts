@@ -799,3 +799,54 @@ describe('renderReportHtml — Tinggi toren (P22-04)', () => {
     expect(html).toContain('(0,7 bar)');
   });
 });
+
+/** Temuan 6 smoke test 13 Nov 2026: BOQ dan tabel hitungan mencetak angka yang berbeda. */
+describe('BOQ: satu sumber kuantitas', () => {
+  const two: Recommendation = {
+    ...RECOMMENDATION,
+    bom: [
+      {
+        ...RECOMMENDATION.bom[0]!,
+        calc: { method: 'Jalur utama', working: '25,5 m ÷ 4 m = 6,38', result: '7 batang' },
+      },
+      {
+        item: 'Tee cabang',
+        size: '1"',
+        quantity: 2,
+        unit: 'pcs',
+        basis: 'Satu per cabang di pipa utama: 2 cabang 1".',
+        provenance: 'ASSUMED',
+        traceIds: [],
+        calc: { method: 'Satu per cabang', working: '2 cabang 1"', result: '2 pcs' },
+      },
+    ],
+  };
+
+  it('total dihitung per satuan: batang dan pcs tidak dijumlah menjadi satu angka', () => {
+    const html = renderReportHtml(assembleReportPayload({ ...INPUT, recommendation: two }));
+    const totals = html.match(/<tr class="r-total">.*?<\/tr>/g) ?? [];
+    expect(totals).toHaveLength(2);
+    expect(totals[0]).toContain('Total batang');
+    expect(totals[0]).toContain('>7<');
+    expect(totals[1]).toContain('Total pcs');
+    expect(totals[1]).toContain('>2<');
+    // 7 batang + 2 pcs bukan 9 apa pun.
+    expect(totals.join('')).not.toContain('>9<');
+  });
+
+  it('jumlah yang tidak sama dengan hasil hitungnya tidak dicetak sama sekali', () => {
+    const contradictory: Recommendation = {
+      ...two,
+      bom: [
+        {
+          ...two.bom[0]!,
+          quantity: 1,
+          calc: { method: 'Jalur utama', working: '25,5 m ÷ 4 m = 6,38', result: '7 batang' },
+        },
+      ],
+    };
+    expect(() => assembleReportPayload({ ...INPUT, recommendation: contradictory })).toThrow(
+      /tidak sama dengan hasil hitungnya/,
+    );
+  });
+});

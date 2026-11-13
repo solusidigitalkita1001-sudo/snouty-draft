@@ -36,6 +36,9 @@ function base(kind: Recommendation['kind']): Recommendation {
         provenance: 'ASSUMED',
         traceIds: [],
         netLengthM: 30,
+        // Panjang batang produknya ikut, seperti baris pipa sungguhan: jumlah beli segmen
+        // dihitung dari panjang segmen ÷ batang, bukan dari jumlah batang seluruh jalur.
+        rod: { meters: 3, productName: 'Pipa PVC AW 3/4" x 3 Meter' },
       },
       {
         item: 'Elbow',
@@ -209,7 +212,10 @@ describe('withRenovation', () => {
     );
     const r = out.recommendation;
     expect(r.bom).toHaveLength(2);
+    // Satu sumber kuantitas: 12 m ÷ batang 3 m = 4 batang, dan hitungan di barisnya menyebut
+    // angka yang sama — bukan "10 batang" milik seluruh jalur (temuan 6 smoke test 13 Nov 2026).
     expect(r.bom[0]).toMatchObject({ item: 'Pipa PVC AW', quantity: 4, netLengthM: 12 });
+    expect(r.bom[0]!.calc).toMatchObject({ working: '12 m ÷ 3 m = 4', result: '4 batang' });
     expect(r.bom[1]).toMatchObject({
       item: 'Sok PVC AW (sambung ke pipa lama)',
       quantity: 2,

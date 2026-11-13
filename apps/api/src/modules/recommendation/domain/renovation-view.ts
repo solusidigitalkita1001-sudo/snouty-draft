@@ -37,6 +37,7 @@ import {
   type WorkType,
 } from '@snouty/shared-types';
 import { ulid } from '../../../shared/ulid.js';
+import { pipePurchase, type StockLength } from './pipe-quantity.js';
 import { bomUnitLabel, provenanceFor, type IdentifiedTrace } from './solution-view.js';
 
 export interface RenovationFacts {
@@ -157,6 +158,11 @@ export interface RenovationContext {
    * menghasilkan baris air bersih (smoke test 13 Nov 2026, temuan 2).
    */
   readonly system?: BomItem['system'];
+  /**
+   * Panjang batang produk pipa SEGMEN (ukuran pipa lama) — sumber jumlah beli baris segmen yang
+   * diganti. `null`/kosong = ukuran itu tidak ada di katalog, jumlahnya dinyatakan dalam meter.
+   */
+  readonly segmentStock?: StockLength | null;
   /** Produk katalog untuk fitting sambungan; `undefined` = tidak ada di katalog. */
   readonly productFor?: (
     kind: TieInFittingKind | 'socket' | 'pipe',
@@ -220,7 +226,17 @@ function jointNameOf(kind: TieInFittingKind, family: string, locale: Locale): st
  * Baris tanpa SKU katalog. `exactOptionalPropertyTypes` tidak menerima `productId: undefined`,
  * jadi kuncinya dibuang, bukan dikosongkan.
  */
-function withoutProductId({ productId: _productId, ...rest }: BomItem): Omit<BomItem, 'productId'> {
+/**
+ * Baris pipa jalur utama tanpa hal-hal yang milik SELURUH jalur: SKU ukuran hitungan, panjang
+ * batang produknya, dan sambungan antar batangnya. Ketiganya dihitung ulang untuk segmen, dan
+ * yang tidak dihitung ulang tidak boleh tertinggal (temuan 6 smoke test 13 Nov 2026).
+ */
+function segmentBase({
+  productId: _productId,
+  rod: _rod,
+  joints: _joints,
+  ...rest
+}: BomItem): Omit<BomItem, 'productId' | 'rod' | 'joints'> {
   return rest;
 }
 const isPipeRow = (row: BomItem): boolean =>
@@ -453,24 +469,47 @@ export function withRenovation(
           : /^(Pipa utama|Main line)$/.test(row.purpose));
       bom = bom.flatMap((row, index) => {
         if (isMainPipe(row, index)) {
-          const quantity = p.ratio >= 1 ? row.quantity : Math.ceil(row.quantity * p.ratio);
           // Segmen berukuran pipa lama: produk hitungan (ukuran baru) tidak boleh ikut, karena
           // SKU-nya ukuran lain. Barisnya tinggal tanpa SKU → "pakai produk setara" di BOQ.
           const resized = p.segmentSize !== null && p.segmentSize !== row.size;
           const segmentProduct = resized ? ctx.productFor?.('pipe', p.segmentSize!) : row.productId;
-          const withoutProduct = withoutProductId(row);
+          // Satu sumber kuantitas (smoke test 13 Nov 2026, temuan 6): jumlah beli, hitungan, dan
+          // panjang bersih baris ini sama-sama dihitung dari panjang segmen (ENG-903). Sebelumnya
+          // jumlahnya adalah batang seluruh jalur dikali porsi, sementara `calc` tetap milik
+          // seluruh jalur — jadi tabel hitungan menulis "8 batang" di halaman yang sama dengan
+          // BOQ yang menulis 1.
+          //
+          // Batangnya dari produk SEGMEN: potongan pipa HDPE 25 mm tidak dibagi panjang batang
+          // PVC AW 1". Tanpa produk segmen di katalog → jumlahnya dalam meter, dengan alasannya.
+          const stock = resized
+            ? (ctx.segmentStock ?? null)
+            : row.rod !== undefined
+              ? { meters: row.rod.meters, productName: row.rod.productName }
+              : null;
+          const purchase = pipePurchase(
+            p.lengthM,
+            en ? 'the replaced segment' : 'segmen yang diganti',
+            stock,
+            locale,
+            row.allowancePct ?? 0,
+          );
           return [
             {
-              ...withoutProduct,
+              ...segmentBase(row),
               size: segmentSize,
-              quantity,
+              quantity: purchase.quantity,
+              unit: bomUnitLabel(purchase.unit, locale),
               // Panjang segmen adalah panjang yang diganti itu sendiri (ENG-903), bukan panjang
               // jalur dikali porsi yang dibulatkan: porsi 0,12 × 25,5 m menuliskan "3,1 m" di
               // tabel material sementara langkah hitung di halaman yang sama menulis "3 m".
-              ...(row.netLengthM !== undefined ? { netLengthM: p.lengthM } : {}),
+              netLengthM: p.lengthM,
+              calc: purchase.calc,
+              ...(stock !== null
+                ? { rod: { meters: stock.meters, productName: stock.productName } }
+                : {}),
               ...(resized && ctx.existingFamily ? { item: `Pipa ${ctx.existingFamily}` } : {}),
               ...(segmentProduct !== undefined ? { productId: segmentProduct } : {}),
-              basis: `${explain('ENG-903')} ${row.basis}`.trim(),
+              basis: `${explain('ENG-903')} ${purchase.basis}`.trim(),
               traceIds: [...row.traceIds, ...idsOf('ENG-903')],
             },
           ];

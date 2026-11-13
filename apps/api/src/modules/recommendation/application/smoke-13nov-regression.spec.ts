@@ -16,6 +16,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import { RuleInputError } from '@snouty/engineering';
 import { mergeRequirement, type FieldUpdate } from '../../context/domain/context-merger.js';
+import { bomQuantityMismatches, quantityInResult } from '../../report/domain/boq-consistency.js';
 import { withCompleteness } from '../../context/domain/completeness.js';
 import {
   outlierAnswer,
@@ -230,5 +231,35 @@ describe('50-lantai-pdam (temuan 4)', () => {
     expect(line?.reason).toMatch(/zona/);
     // Tekanan kerja pipanya belum tercatat di data mana pun — itu disebut, bukan dikarang.
     expect(line?.reason).toMatch(/belum tercatat/);
+  });
+});
+
+describe('boq-konsisten-dengan-hitungan (temuan 6)', () => {
+  it('segmen yang diganti: hitungan dan jumlah belinya satu angka, sepanjang segmen', async () => {
+    const { rec } = await analyse(
+      stateOf([
+        ...HOUSE,
+        ['water.source', 'municipal'],
+        ['water.installationType', 'clean_water'],
+        ['water.workType', 'replace_partial'],
+        ['water.existingPipeMaterial', 'hdpe'],
+        ['water.existingMainSize', '25 mm'],
+        ['water.replacementLengthM', 3],
+      ]),
+    );
+    const pipe = rec.bom.find((b) => /^Pipa /.test(b.item))!;
+    // Hitungannya menjelaskan segmen 3 m, bukan seluruh jalur: pipa HDPE 25 mm belum ada di
+    // katalog uji, jadi jumlahnya dalam meter — 3 m, angka yang sama dengan panjang segmennya.
+    expect(pipe.calc?.working).toContain('3 m');
+    expect(quantityInResult(pipe.calc!.result)).toBe(pipe.quantity);
+    expect(pipe.quantity).toBe(3);
+    expect(pipe.netLengthM).toBe(3);
+  });
+
+  it('rumah air bersih + pembuangan: tidak ada baris yang jumlahnya beda dengan hitungannya', async () => {
+    const { rec } = await analyse(
+      stateOf([...HOUSE, ['water.source', 'municipal'], ['water.installationType', 'both']]),
+    );
+    expect(bomQuantityMismatches(rec.bom)).toEqual([]);
   });
 });

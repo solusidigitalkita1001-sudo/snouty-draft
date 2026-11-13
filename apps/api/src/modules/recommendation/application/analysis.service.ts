@@ -1594,6 +1594,7 @@ export class AnalysisService {
     // Fitting mana yang dibutuhkan DITANYAKAN ke engine (ENG-902), tidak ditebak ulang di sini:
     // memetakan bahan → fitting di dua tempat adalah cara pemetaan itu mulai berbeda.
     const segmentSize = facts.mode === 'replace_partial' ? facts.existingSize : null;
+    let segmentStock: StockLength | null = null;
     if (facts.mode === 'replace_partial') {
       const planned = computeRenovation({
         mode: 'replace_partial',
@@ -1625,6 +1626,9 @@ export class AnalysisService {
       if (product && product.matchState === 'VERIFIED_SELECTED') {
         products.set(keyOf(w.kind, w.size, w.branch), product.productId);
       }
+      // Panjang batang produk segmen: jumlah beli segmen dibagi batang PRODUKNYA sendiri, bukan
+      // batang produk ukuran hitungan (temuan 6 smoke test 13 Nov 2026).
+      if (w.kind === 'pipe') segmentStock = found.stockFor('main');
     }
     const renovated = withRenovation(
       recommendation,
@@ -1633,6 +1637,7 @@ export class AnalysisService {
       {
         ...ctx,
         ...(existingFamily !== null ? { existingFamily } : {}),
+        segmentStock,
         productFor: (kind, size, branch) =>
           products.get(keyOf(kind, size, branch)) ?? products.get(keyOf(kind, size)),
       },

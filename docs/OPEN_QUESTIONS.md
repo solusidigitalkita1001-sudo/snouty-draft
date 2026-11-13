@@ -1630,3 +1630,35 @@ ditanya hanya `residential` dan `boarding_house`.
 
 **Usulan default:** pertahankan 4 sampai Pralon menyebut angka lain. Rumah tinggal 5 lantai ada,
 tetapi ia layak satu pertanyaan; dan kos bertingkat tinggi biasanya bukan rumah tinggal lagi.
+
+### OQ-98 — Jumlah dop, stop kran, dan lem tidak pernah dihitung (P37, 2026-11-13)
+
+**Status:** open · **Blocks:** empat baris BOQ tetap tanpa angka · _non-blocking_
+
+Smoke test 13 Nov 2026 (temuan 6): "banyak baris BOM `quantity: 0` (Dop, Stop kran, Lem, Sok
+4"/2") tercetak '—' … padahal ukuran bangunan sudah ada". Yang diperiksa setelah itu:
+
+- Sok sudah punya angka: sejak masukan Leo 2026-10-22 jumlahnya dihitung dari sambungan antar
+  batang (ENG-015) untuk air bersih, air kotor, dan air bekas. Baris "Sok" tanpa angka hanya
+  muncul bila baris pipanya tidak punya panjang batang katalog — di situ tidak ada sambungan yang
+  bisa dihitung.
+- Dop, stop kran, dan lem memang tidak punya aturan jumlah sama sekali (keputusan pemilik
+  2026-10-13: "dihitung saat pemasangan, tanpa angka karangan"). Jumlahnya bukan turunan panjang
+  jalur: dop menutup ujung mati, stop kran berada di tempat yang dipilih pemasang, dan satu kaleng
+  lem menutup sejumlah sambungan yang hanya Pralon tahu.
+
+Mengarang ketiganya adalah mengarang kuantitas material yang dibeli orang, jadi barisnya tetap
+tanpa angka sampai aturannya datang.
+
+**Usulan default** (ketiganya `REQUIRES_DOMAIN_VALIDATION` sampai Pralon menyetujui):
+
+- Dop: satu per ujung mati jalur — jumlah ujung mati diambil dari topologi skema (jalur utama,
+  tiap cabang, tiap ventilasi), bukan dari jumlah titik air.
+- Stop kran: satu di pipa utama setelah sumber, ditambah satu per lantai di atas lantai satu.
+- Lem: satu kaleng per sejumlah sambungan (angkanya dari Pralon, per ukuran kaleng yang dijual),
+  dibulatkan ke atas, memakai jumlah sambungan yang sudah dihitung baris sok dan fitting.
+
+Catatan tampilan yang ikut menunggu: produk terpilih yang belum punya baris jumlah diberi
+keterangan "Menunggu ukuran bangunan", dan keterangan itu salah bila ukurannya memang sudah
+disebut. Setelah aturan di atas ada, baris-baris itu punya angka dan keterangannya tidak terpakai
+lagi.

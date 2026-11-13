@@ -609,12 +609,16 @@ export function boqSection(
       );
     })
     .join('');
-  const total =
-    totals.size > 0
-      ? `<tr class="r-total"><td></td><td></td><td colspan="2">${v.total}</td>` +
-        `<td class="num">${[...totals.values()].map(String).join('<br>')}</td>` +
-        `<td>${[...totals.keys()].map(esc).join('<br>')}</td><td></td></tr>`
-      : '';
+  // Satu baris total per satuan, dengan satuannya di namanya (temuan 6 smoke test 13 Nov 2026):
+  // satu baris "Total" berisi "1" dan "2" bertumpuk terbaca sebagai batang dijumlah dengan pcs.
+  const total = [...totals.entries()]
+    .map(
+      ([unit, sum]) =>
+        `<tr class="r-total"><td></td><td></td><td colspan="2">${v.total} ${esc(unit)}</td>` +
+        `<td class="num">${String(Math.round(sum * 100) / 100)}</td>` +
+        `<td>${esc(unit)}</td><td></td></tr>`,
+    )
+    .join('');
   return `<section class="page">
   ${parts.sectionHead(n, v.boqTitle)}
   <div class="banner">${banner}</div>

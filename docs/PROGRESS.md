@@ -5626,3 +5626,29 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
       Tidak bisa diverifikasi terhadap MySQL yang hidup di mesin ini (Docker Desktop mati), jadi
       yang diuji otomatis baru nilai sesi yang diterima sebagai UTC. Verifikasi register + login di
       server ber-WIB masuk daftar yang harus dijalankan pemilik.
+
+- [x] P37-06 Satu sumber kuantitas: BOQ, tabel hitungan, dan total per satuan
+
+      Temuan 6. Baris pipa utama penggantian sebagian mencetak "8 batang" di tabel dasar
+      perhitungan dan 1 di BOQ — dua angka untuk satu baris, di halaman yang sama. Sebabnya
+      jumlahnya dihitung ulang (batang seluruh jalur dikali porsi segmen) sementara hitungannya
+      tidak: teks "8 batang" tetap milik seluruh jalur.
+
+      Sekarang jumlah beli, hitungan, panjang bersih, dan panjang batang baris segmen semuanya
+      dihitung sekali dari panjang segmen (ENG-903) lewat jalur jumlah beli pipa yang sama dengan
+      baris pipa lain. Batangnya dari produk SEGMEN, bukan produk ukuran hitungan: potongan pipa
+      HDPE 25 mm tidak dibagi panjang batang PVC AW 1", dan tanpa produk segmen di katalog
+      jumlahnya dinyatakan dalam meter dengan alasannya. Panjang batang dan sambungan antar batang
+      milik seluruh jalur tidak lagi tertinggal di baris segmen.
+
+      Baris total dipisah per satuan ("Total batang", "Total pcs"), masing-masing satu baris:
+      sebelumnya satu baris Total memuat kedua angka bertumpuk dan terbaca sebagai batang yang
+      dijumlah dengan pcs.
+
+      Dan pagar terakhirnya: laporan tidak dirakit bila ada baris material yang jumlahnya berbeda
+      dengan angka di hitungannya. Pembaca tidak bisa tahu mana yang dipakai memesan barang, jadi
+      lebih baik gagal dengan sebabnya daripada mencetak keduanya.
+
+      Dop, stop kran, dan lem tetap tanpa angka: ketiganya tidak punya aturan jumlah, dan
+      menebaknya berarti mengarang kuantitas material yang dibeli orang. Usulan aturannya beserta
+      catatan keterangan "Menunggu ukuran bangunan" yang salah muncul: OQ-98.
