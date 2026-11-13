@@ -43,6 +43,9 @@ export const FIELD_LABEL: Readonly<Record<RequirementFieldPath, string>> = {
   'water.addedOutlets': 'Titik air tambahan',
   'water.replacementLengthM': 'Panjang yang diganti',
   'water.replacedLine': 'Jalur yang diganti',
+  'water.transferPump': 'Pompa transfer ke toren',
+  'water.groundTankL': 'Volume tandon bawah',
+  'water.roofTankL': 'Volume toren atap',
 };
 
 export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
@@ -76,6 +79,9 @@ export const FIELD_LABEL_EN: Readonly<Record<RequirementFieldPath, string>> = {
   'water.addedOutlets': 'Added water points',
   'water.replacementLengthM': 'Length replaced',
   'water.replacedLine': 'Line being replaced',
+  'water.transferPump': 'Transfer pump to the roof tank',
+  'water.groundTankL': 'Ground tank volume',
+  'water.roofTankL': 'Roof tank volume',
 };
 
 /** Label field menurut bahasa percakapan. */
@@ -176,6 +182,20 @@ export function requirementValueLabel(
       : value
         ? 'Ganti pipa lama'
         : 'Instalasi baru';
+  }
+  // Pompa transfer bukan "Ya": barisnya menyebut susunannya, supaya panel dan laporan terbaca
+  // sebagai PDAM → tandon bawah → pompa → toren atap (smoke test 13 Nov 2026, temuan 9).
+  if (path === 'water.transferPump' && typeof value === 'boolean') {
+    return en
+      ? value
+        ? 'Ground tank with a transfer pump to the roof tank'
+        : 'No transfer pump'
+      : value
+        ? 'Tandon bawah dengan pompa transfer ke toren atap'
+        : 'Tanpa pompa transfer';
+  }
+  if ((path === 'water.groundTankL' || path === 'water.roofTankL') && typeof value === 'number') {
+    return `${value.toLocaleString(en ? 'en-US' : 'id-ID')} liter`;
   }
   if (typeof value === 'boolean') return en ? (value ? 'Yes' : 'No') : value ? 'Ya' : 'Tidak';
   if (typeof value === 'number') {

@@ -100,6 +100,37 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description:
       'Toren atap diisi dengan debit 0,25 l/s (15 l/menit, sambungan rumah biasa) untuk menghitung tekanan yang dibutuhkan di meteran.',
   },
+  // ── Pompa transfer tandon bawah → toren atap (smoke test 13 Nov 2026, temuan 9) ──
+  {
+    id: 'ROOF_TANK_FILL_TIME_1H',
+    parameter: 'fill_time_hours',
+    appliesTo: [],
+    condition: 'lama pengisian toren atap oleh pompa transfer tidak ditentukan',
+    value: 1,
+    unit: 'jam',
+    conditionEn: 'time for the transfer pump to fill the roof tank not specified',
+    descriptionEn: 'The transfer pump is taken to fill the roof tank in one hour.',
+    reference: 'Praktik umum pemasangan rumah; perlu validasi tim teknis Pralon (OQ-100)',
+    confidence: 'low',
+    confirmationRequired: true,
+    description: 'Pompa transfer dianggap mengisi toren atap dalam satu jam.',
+  },
+  {
+    id: 'GROUND_TANK_SUCTION_LIFT_1_5M',
+    parameter: 'static_head',
+    appliesTo: [],
+    condition: 'muka air tandon bawah di bawah pompa transfer tidak diketahui',
+    value: 1.5,
+    unit: 'm',
+    conditionEn: 'water level in the ground tank below the transfer pump not known',
+    descriptionEn:
+      'The water level in the ground tank is taken to sit 1.5 m below the transfer pump, so the pump lifts that much before it starts pushing.',
+    reference: 'Perkiraan tandon bawah tanam rumah; perlu validasi tim teknis Pralon (OQ-100)',
+    confidence: 'low',
+    confirmationRequired: true,
+    description:
+      'Muka air tandon bawah dianggap 1,5 m di bawah pompa transfer, jadi pompa mengangkat sejauh itu sebelum mendorong ke atas.',
+  },
   // ── Sisa potong pipa (review laporan 0015, P19-04) ──
   {
     id: 'PIPE_CUTTING_ALLOWANCE_10PCT',

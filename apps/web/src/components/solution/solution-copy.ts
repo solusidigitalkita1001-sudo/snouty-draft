@@ -35,6 +35,7 @@ export const SOLUTION_COPY = {
       municipal: 'PDAM',
       well_pump: 'Sumur + pompa',
       booster_pump: 'Pompa pendorong',
+      transfer_pump: 'Pompa transfer',
       drainage: 'Pembuangan',
     },
     buildingSize: (length: string, width: string) => `${length} × ${width} m`,
@@ -52,6 +53,8 @@ export const SOLUTION_COPY = {
     boosterNeeded: (bar: string) => `Perlu: tekanan di titik tertinggi hanya ${bar} bar`,
     raiseTank: (stand: string) => `atau naikkan toren ke ${stand} m di atas atap`,
     boosterNeededPlain: 'Perlu untuk tekanan di titik air tertinggi',
+    transferPumpDuty: (flow: string, head: string) =>
+      `Dari tandon bawah ke toren atap: ${flow} l/menit, head minimal ${head} m`,
     boosterFlow: 'Menambah tekanan ke titik air',
     drainageSizes: (soil: string, waste: string) => `Air kotor ${soil} · air bekas ${waste}`,
     flowTitle: 'Alur air',
@@ -307,6 +310,7 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
       municipal: 'Mains water',
       well_pump: 'Well + pump',
       booster_pump: 'Booster pump',
+      transfer_pump: 'Transfer pump',
       drainage: 'Drainage',
     },
     buildingSize: (length: string, width: string) => `${length} × ${width} m`,
@@ -324,6 +328,8 @@ export const SOLUTION_COPY_EN: CopyShape<typeof SOLUTION_COPY> = {
     boosterNeeded: (bar: string) => `Needed: only ${bar} bar at the highest outlet`,
     raiseTank: (stand: string) => `or raise the tank to ${stand} m above the roof`,
     boosterNeededPlain: 'Needed for pressure at the highest outlet',
+    transferPumpDuty: (flow: string, head: string) =>
+      `Ground tank to roof tank: ${flow} l/min, minimum head ${head} m`,
     boosterFlow: 'Adds pressure at the outlets',
     drainageSizes: (soil: string, waste: string) => `Soil ${soil} · waste ${waste}`,
     flowTitle: 'How the water runs',

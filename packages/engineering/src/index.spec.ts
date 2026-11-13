@@ -88,8 +88,8 @@ describe('beban alat suplai dari kebutuhan (WSFU)', () => {
 
 describe('registry aturan teknik', () => {
   it('memuat keempat belas aturan', () => {
-    expect(ALL_RULES).toHaveLength(75);
-    expect(RULE_REGISTRY.all()).toHaveLength(75);
+    expect(ALL_RULES).toHaveLength(76);
+    expect(RULE_REGISTRY.all()).toHaveLength(76);
   });
 
   it('memakai ID + versi yang unik', () => {
@@ -126,8 +126,8 @@ describe('registry aturan teknik', () => {
     expect(() => registry.register(rule)).toThrow(/sudah terdaftar/);
   });
 
-  it('semua 75 aturan (12 bangunan + 5 irigasi + 7 bertekanan + 4 kolam + 18 gravitasi/jaringan + 6 gedung bertingkat + 5 pembuangan rumah + 12 air bersih rumah + 3 tempat ibadah + 4 renovasi) masih menunggu validasi ahli domain (OQ-06)', () => {
-    expect(RULE_REGISTRY.awaitingValidation()).toHaveLength(75);
+  it('semua 76 aturan (12 bangunan + 5 irigasi + 7 bertekanan + 4 kolam + 18 gravitasi/jaringan + 6 gedung bertingkat + 5 pembuangan rumah + 13 air bersih rumah + 3 tempat ibadah + 4 renovasi) masih menunggu validasi ahli domain (OQ-06)', () => {
+    expect(RULE_REGISTRY.awaitingValidation()).toHaveLength(76);
   });
 
   it('tidak ada aturan VALIDATED tanpa jejak sumber (invarian P-1)', () => {

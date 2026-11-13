@@ -192,6 +192,19 @@ export interface WaterState {
    * jalur itu — pekerjaan air kotor tidak boleh menghasilkan sok kelas AW.
    */
   readonly replacedLine?: TrackedValue<ReplacedLine>;
+  /**
+   * PDAM → tandon bawah → pompa transfer → toren atap (smoke test 13 Nov 2026, temuan 9): susunan
+   * perumahan yang paling lazim, dan `source` sendiri tidak bisa menyatakannya karena ia hanya
+   * memuat satu dari keempatnya. Pembagian airnya tetap gravitasi dari toren atap (`source` =
+   * `rooftop_tank`); ketiga field ini yang menambahkan tandon bawah dan pompa di antaranya.
+   *
+   * Opsional seperti field air lainnya: state yang tersimpan sebelum ada field ini dibaca kosong.
+   */
+  readonly transferPump?: TrackedValue<boolean>;
+  /** Volume tandon bawah (liter) bila disebut. */
+  readonly groundTankL?: TrackedValue<number>;
+  /** Volume toren atap (liter) bila disebut — menentukan debit pompa transfernya. */
+  readonly roofTankL?: TrackedValue<number>;
 }
 
 export type ReplacedLine = 'clean_water_main' | 'clean_water_branch' | 'soil' | 'waste';
@@ -234,7 +247,10 @@ export type RequirementFieldPath =
   | 'water.existingOutlets'
   | 'water.addedOutlets'
   | 'water.replacementLengthM'
-  | 'water.replacedLine';
+  | 'water.replacedLine'
+  | 'water.transferPump'
+  | 'water.groundTankL'
+  | 'water.roofTankL';
 
 /**
  * Empat field inti yang menggerakkan meter "KELENGKAPAN DATA" dan menahan

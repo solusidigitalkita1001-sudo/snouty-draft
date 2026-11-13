@@ -53,6 +53,12 @@ const INSTALLATION: readonly SelectOption[] = [
   { value: 'both', label: 'Air bersih + pembuangan' },
 ];
 
+/** Pompa transfer tandon bawah → toren atap: ada atau tidak (temuan 9). */
+const YES_NO: readonly SelectOption[] = [
+  { value: 'true', label: 'Ada' },
+  { value: 'false', label: 'Tidak ada' },
+];
+
 /** Pekerjaan (P22-03): instalasi baru, atau pipa lama diganti ke Pralon. */
 const WORK: readonly SelectOption[] = [
   { value: 'false', label: 'Instalasi baru' },
@@ -223,6 +229,31 @@ function applianceRows(state: RequirementState): readonly RequirementRow[] {
   );
 }
 
+/**
+ * PDAM → tandon bawah → pompa transfer → toren atap (temuan 9, smoke test 13 Nov 2026). Pompanya
+ * tampil sebagai pilihan ya/tidak; volume tangki hanya bila disebut, karena ia yang menentukan
+ * debit pompanya.
+ */
+function tankChainRows(state: RequirementState): readonly RequirementRow[] {
+  const w = state.water;
+  if (w.transferPump === undefined || w.transferPump.value === null) return [];
+  const volume: RowEditor = { kind: 'number', min: 100, max: 100_000 };
+  const litres = (v: unknown) => `${Number(v).toLocaleString('id-ID')} liter`;
+  return [
+    row('water.transferPump', 'Pompa transfer ke toren', w.transferPump, labelOf(YES_NO), {
+      kind: 'select',
+      options: YES_NO,
+      boolean: true,
+    }),
+    ...(w.groundTankL === undefined || w.groundTankL.value === null
+      ? []
+      : [row('water.groundTankL', 'Volume tandon bawah', w.groundTankL, litres, volume)]),
+    ...(w.roofTankL === undefined || w.roofTankL.value === null
+      ? []
+      : [row('water.roofTankL', 'Volume toren atap', w.roofTankL, litres, volume)]),
+  ];
+}
+
 export function requirementRows(state: RequirementState): readonly RequirementRow[] {
   const worship =
     state.building.type.value === 'place_of_worship' ||
@@ -288,6 +319,9 @@ export function requirementRows(state: RequirementState): readonly RequirementRo
       kind: 'select',
       options: SOURCE,
     }),
+    // Tandon bawah + pompa transfer ke toren atap (temuan 9): barisnya tampil begitu susunan itu
+    // disebut, dan volume tangkinya bisa dikoreksi di sini.
+    ...tankChainRows(state),
     row(
       'water.installationType',
       'Jenis instalasi',

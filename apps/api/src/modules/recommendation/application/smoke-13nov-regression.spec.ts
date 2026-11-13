@@ -365,3 +365,48 @@ describe('alat-yang-disebut-hilang (temuan 9)', () => {
     expect(reply).toContain('keran luar');
   });
 });
+
+describe('pdam-tandon-bawah-pompa-toren (temuan 9b)', () => {
+  it('susunannya terbaca utuh dari satu pesan, bukan hanya salah satu tangkinya', () => {
+    const updates = extractionToUpdates(
+      {},
+      'air PDAM masuk tandon bawah 2000 liter, lalu dipompa ke toren atap 1000 liter',
+    );
+    const of = (path: string) => updates.find((u) => u.path === path)?.value;
+    expect(of('water.transferPump')).toBe(true);
+    expect(of('water.groundTankL')).toBe(2000);
+    expect(of('water.roofTankL')).toBe(1000);
+    // Pembagian airnya tetap gravitasi dari toren atap.
+    expect(of('water.source')).toBe('rooftop_tank');
+  });
+
+  it('pompa transfernya keluar dengan debit dan head, bukan hanya namanya', async () => {
+    const { rec } = await analyse(
+      stateOf([
+        ...HOUSE,
+        ['water.source', 'rooftop_tank'],
+        ['water.installationType', 'clean_water'],
+        ['water.transferPump', true],
+        ['water.groundTankL', 2000],
+        ['water.roofTankL', 1000],
+      ]),
+    );
+    const pump = (rec.needs ?? []).find((n) => n.kind === 'transfer_pump');
+    expect(pump).toBeDefined();
+    // Toren 1000 l dalam satu jam = 0,28 l/s = 16,8 l/menit (ROOF_TANK_FILL_TIME_1H).
+    expect(pump?.pumpFlowLpm).toBe(16.8);
+    // Head minimal: angkat isap + tinggi muka air toren + kehilangan di pipa pengisi.
+    expect(pump?.pumpHeadM).toBeGreaterThan(0);
+  });
+
+  it('tanpa tandon bawah tidak ada pompa transfer yang dikarang', async () => {
+    const { rec } = await analyse(
+      stateOf([
+        ...HOUSE,
+        ['water.source', 'rooftop_tank'],
+        ['water.installationType', 'clean_water'],
+      ]),
+    );
+    expect((rec.needs ?? []).some((n) => n.kind === 'transfer_pump')).toBe(false);
+  });
+});

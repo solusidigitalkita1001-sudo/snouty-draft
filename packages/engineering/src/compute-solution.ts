@@ -40,6 +40,7 @@ import {
   ENG_708,
   ENG_709,
   ENG_710,
+  ENG_713,
   ENG_711,
   ENG_712,
   ENG_705,
@@ -107,6 +108,15 @@ export interface SolutionInput {
   readonly waterHeaters?: number | null;
   /** Floor drain balkon — hanya beban pembuangan, di lantai teratas. */
   readonly balconyFloorDrains?: number | null;
+  /**
+   * PDAM → tandon bawah → pompa transfer → toren atap (smoke test 13 Nov 2026, temuan 9).
+   * Pembagian airnya tetap gravitasi dari toren atap (`waterSource: 'rooftop_tank'`); yang baru
+   * adalah pompa di antara kedua tangki. `groundTankL` ada berarti ada tandon bawah; volume toren
+   * atas menentukan debit pompanya, dan tanpa volume dipakai debit pengisian umum.
+   */
+  readonly groundTankL?: number | null;
+  readonly roofTankL?: number | null;
+  readonly transferPump?: boolean | null;
   /**
    * Tekanan kerja pipa yang dipakai (bar) untuk cek tekanan di sumber (ENG-712); kosong = tidak
    * tercatat di katalog maupun data standar, jadi tidak dibandingkan (OQ-96).
@@ -252,6 +262,16 @@ export interface SolutionResult {
   readonly cuttingAllowancePct: number;
   /** Ukuran cabang di ujung pipa utama — disambung elbow, bukan tee (ENG-704 v2). */
   readonly mainEndBranchSize: string | null;
+  /**
+   * Pompa transfer tandon bawah → toren atap (ENG-713); `null` bila tidak ada tandon bawah, atau
+   * bila geometri pengisinya belum diketahui (tanpa ukuran bangunan tidak ada panjang pipa
+   * pengisi, jadi head-nya tidak dihitung — bukan dikarang).
+   */
+  readonly transferPump: {
+    readonly flowLs: number;
+    readonly flowLpm: number;
+    readonly headM: number;
+  } | null;
   /**
    * Water heater yang tercatat (temuan 9, smoke test 13 Nov 2026). Jumlahnya dipakai untuk
    * MENGATAKAN bahwa jalur air panasnya belum dihitung — sizing air panas menunggu aturan teknik
@@ -700,6 +720,25 @@ export function computeSolution(
         })
       : null;
 
+  // 5d · pompa transfer tandon bawah → toren atap (ENG-713, temuan 9). Susunan PDAM → tandon
+  // bawah → pompa → toren atap: pembagiannya tetap gravitasi, pompanya punya debit dan head.
+  const hasGroundTank = (input.groundTankL ?? 0) > 0 || input.transferPump === true;
+  const roofTankL = input.roofTankL ?? null;
+  const transfer =
+    gravity && hasGroundTank && tankFill !== null && route.tankLevelM !== null
+      ? run(ENG_713, {
+          roofTankLevelM: route.tankLevelM,
+          suctionLiftM: use('GROUND_TANK_SUCTION_LIFT_1_5M'),
+          fillNetM: tankFill.fillNetM,
+          innerDiameterMm: sizeTable('pvc_inch').find((n) => n.size === tankFill.size)!.innerMm,
+          hazenWilliamsC: use('HAZEN_WILLIAMS_C_PLASTIC'),
+          minorLossFraction: use('MINOR_LOSS_FRACTION'),
+          ...(roofTankL !== null && roofTankL > 0 ? { roofTankL } : {}),
+          fillTimeH: use('ROOF_TANK_FILL_TIME_1H'),
+          defaultFlowLs: use('TANK_FILL_FLOW_0_25LS'),
+        })
+      : null;
+
   // 6 · panjang cabang dan sambungan, hanya dari ukuran rumah (P16-60).
   const layoutRun =
     plan !== null
@@ -820,6 +859,10 @@ export function computeSolution(
     mainEndBranchSize: endBranchSize ?? null,
     wudhu,
     targetVelocityMs: { min: velocity.minMs, max: velocity.maxMs },
+    transferPump:
+      transfer === null
+        ? null
+        : { flowLs: transfer.flowLs, flowLpm: transfer.flowLpm, headM: transfer.totalHeadM },
     waterHeaters: Math.max(0, input.waterHeaters ?? 0),
     appliedAssumptionIds: [...new Set([...applied, ...main.appliedAssumptionIds])],
     traces: allTraces,

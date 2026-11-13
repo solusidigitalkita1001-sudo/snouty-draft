@@ -1626,6 +1626,145 @@ export const ENG_712: RuleVersion<SourcePressureCheckInput, SourcePressureCheckR
         : `The ${i.requiredBar} bar needed at the source is below the ${i.zoneMaxStaticBar} bar static limit per zone, so one zone is enough${o.exceedsRating === null ? '; the pipe working pressure is not recorded' : ''}.`,
     }),
 };
+// ── ENG-713 · Pompa transfer tandon bawah → toren atap ─────────────────────
+
+/**
+ * PDAM → tandon bawah → pompa transfer → toren atap adalah susunan rumah yang lazim, dan sampai
+ * smoke test 13 Nov 2026 (temuan 9) tidak bisa dinyatakan sama sekali: `water.source` hanya
+ * memuat salah satunya. Pembagian air di rumah ini tetap gravitasi dari toren atap — yang baru
+ * adalah pompa di antara kedua tangki, dan pompa itu punya dua angka: debit dan head.
+ *
+ * Debitnya dari lama pengisian toren (volume ÷ waktu); bila volumenya belum disebut, dipakai
+ * debit pengisian yang sama dengan ENG-710. Head-nya angkat isap dari tandon bawah + tinggi muka
+ * air toren + kehilangan di pipa pengisi pada debit itu. Tanpa margin: yang keluar dari sini head
+ * MINIMAL, dan margin pompa adalah pilihan pemasang, bukan angka yang boleh dikarang.
+ */
+export interface TransferPumpInput {
+  /** Tinggi muka air toren atap di atas pompa (lantai dasar). */
+  readonly roofTankLevelM: number;
+  /** Muka air tandon bawah di bawah pompa — pompa mengangkat sejauh ini sebelum mendorong. */
+  readonly suctionLiftM: number;
+  readonly fillNetM: number;
+  readonly innerDiameterMm: number;
+  readonly hazenWilliamsC: number;
+  readonly minorLossFraction: number;
+  /** Volume toren atap (liter) bila disebut; tanpa ini debit memakai `defaultFlowLs`. */
+  readonly roofTankL?: number;
+  readonly fillTimeH: number;
+  readonly defaultFlowLs: number;
+}
+export interface TransferPumpResult {
+  readonly flowLs: number;
+  readonly flowLpm: number;
+  readonly staticHeadM: number;
+  readonly frictionLossM: number;
+  readonly minorLossM: number;
+  readonly totalHeadM: number;
+  /** Debitnya dari volume toren, bukan dari debit pengisian umum. */
+  readonly flowFromTankVolume: boolean;
+}
+
+export const ENG_713: RuleVersion<TransferPumpInput, TransferPumpResult> = {
+  ruleId: 'ENG-713',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const n = (f: string, min: number, max: number) =>
+      requireNumber('ENG-713', f, o[f], { min, max });
+    return {
+      roofTankLevelM: n('roofTankLevelM', 1, 200),
+      suctionLiftM: n('suctionLiftM', 0, 9),
+      fillNetM: n('fillNetM', 1, 2000),
+      innerDiameterMm: n('innerDiameterMm', 5, 200),
+      hazenWilliamsC: n('hazenWilliamsC', 60, 160),
+      minorLossFraction: n('minorLossFraction', 0, 1),
+      ...(o['roofTankL'] === undefined ? {} : { roofTankL: n('roofTankL', 100, 100_000) }),
+      fillTimeH: n('fillTimeH', 0.25, 24),
+      defaultFlowLs: n('defaultFlowLs', 0.01, 10),
+    };
+  },
+  compute: (i) => {
+    const flowFromTankVolume = i.roofTankL !== undefined;
+    const flowLs = flowFromTankVolume
+      ? Math.max(0.01, round2(i.roofTankL! / (i.fillTimeH * 3600)))
+      : i.defaultFlowLs;
+    const { frictionLossM } = frictionLossOf(
+      flowLs,
+      i.innerDiameterMm,
+      i.fillNetM,
+      i.hazenWilliamsC,
+    );
+    const minorLossM = round2(frictionLossM * i.minorLossFraction);
+    const staticHeadM = round2(i.roofTankLevelM + i.suctionLiftM);
+    return {
+      flowLs,
+      flowLpm: round2(flowLs * 60),
+      staticHeadM,
+      frictionLossM,
+      minorLossM,
+      totalHeadM: round2(staticHeadM + frictionLossM + minorLossM),
+      flowFromTankVolume,
+    };
+  },
+  sourceReference:
+    'Head pompa transfer = angkat isap tandon bawah + tinggi muka air toren + kehilangan gesek Hazen-Williams + kehilangan sambungan, pada debit pengisian toren (volume ÷ lama pengisian)',
+  standard: 'Hazen-Williams (SI)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'toren 1000 l pada 4,5 m, isap 1,5 m, pipa ¾" (dalam 24 mm) 29,5 m, 1 jam',
+      input: {
+        roofTankLevelM: 4.5,
+        suctionLiftM: 1.5,
+        fillNetM: 29.5,
+        innerDiameterMm: 24,
+        hazenWilliamsC: 150,
+        minorLossFraction: 0.1,
+        roofTankL: 1000,
+        fillTimeH: 1,
+        defaultFlowLs: 0.25,
+      },
+      expected: {
+        flowLs: 0.28,
+        flowLpm: 16.8,
+        staticHeadM: 6,
+        frictionLossM: 0.6,
+        minorLossM: 0.06,
+        totalHeadM: 6.66,
+        flowFromTankVolume: true,
+      },
+    },
+    {
+      name: 'volume toren belum disebut: debit pengisian umum',
+      input: {
+        roofTankLevelM: 4.5,
+        suctionLiftM: 1.5,
+        fillNetM: 29.5,
+        innerDiameterMm: 24,
+        hazenWilliamsC: 150,
+        minorLossFraction: 0.1,
+        fillTimeH: 1,
+        defaultFlowLs: 0.25,
+      },
+      expected: {
+        flowLs: 0.25,
+        flowLpm: 15,
+        staticHeadM: 6,
+        frictionLossM: 0.49,
+        minorLossM: 0.05,
+        totalHeadM: 6.54,
+        flowFromTankVolume: false,
+      },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Pompa transfer dari tandon bawah ke toren atap: debit ${o.flowLs} l/s (${o.flowLpm} l/menit)${o.flowFromTankVolume ? ` — toren ${i.roofTankL} liter terisi dalam ${i.fillTimeH} jam` : ''}, head minimal ${o.totalHeadM} m: angkat ${i.suctionLiftM} m dari muka air tandon + ${i.roofTankLevelM} m ke muka air toren + ${o.frictionLossM} m gesek di pipa pengisi ${i.fillNetM} m + ${o.minorLossM} m sambungan.`,
+      en: `Transfer pump from the ground tank to the roof tank: ${o.flowLs} l/s (${o.flowLpm} l/min)${o.flowFromTankVolume ? ` — a ${i.roofTankL} litre tank filled in ${i.fillTimeH} hour(s)` : ''}, minimum head ${o.totalHeadM} m: ${i.suctionLiftM} m lift from the tank water level + ${i.roofTankLevelM} m up to the roof tank level + ${o.frictionLossM} m friction in the ${i.fillNetM} m fill pipe + ${o.minorLossM} m in fittings.`,
+    }),
+};
+
 export const GROUP_K = [
   ENG_701,
   ENG_702,
@@ -1639,4 +1778,5 @@ export const GROUP_K = [
   ENG_710,
   ENG_711,
   ENG_712,
+  ENG_713,
 ] as const;

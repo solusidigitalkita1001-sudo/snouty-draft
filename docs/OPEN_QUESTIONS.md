@@ -1695,3 +1695,35 @@ aturan yang memakainya (ENG-001 v6, ENG-008 v4, ENG-601 v3, ENG-701 v3, ENG-707 
 
 Yang ditanyakan ke Pralon: ketiga angka beban di atas, dan apakah jalur air panas perlu dihitung
 SNOUTY atau selalu mengikuti ketentuan pemanasnya.
+
+### OQ-100 — Debit dan head pompa transfer tandon bawah → toren atap (P37, 2026-11-13)
+
+**Status:** open · **Blocks:** tidak · _non-blocking_
+
+Smoke test 13 Nov 2026 (temuan 9): susunan perumahan yang paling lazim, PDAM → tandon bawah →
+pompa transfer → toren atap, tidak bisa dinyatakan sama sekali. Sekarang bisa, dan pompanya keluar
+dengan dua angka (ENG-713, `REQUIRES_DOMAIN_VALIDATION`): debit dan head minimal.
+
+Head-nya fisika yang bisa diperiksa: angkat isap dari muka air tandon bawah + tinggi muka air toren
++ kehilangan gesek Hazen-Williams di pipa pengisi + kehilangan sambungan, pada debit pengisiannya.
+Tanpa margin — margin pompa adalah pilihan pemasang, bukan angka yang boleh dikarang di sini. Dua
+angka masukannya yang perlu tanda tangan Pralon:
+
+| Angka | Nilai yang dipakai | Dasar |
+| --- | --- | --- |
+| Lama pengisian toren atap oleh pompa transfer | 1 jam | Praktik umum pemasangan rumah |
+| Muka air tandon bawah di bawah pompa | 1,5 m | Perkiraan tandon tanam rumah |
+
+**Usulan default** (dipakai sekarang, menunggu persetujuan):
+
+- Toren terisi dalam satu jam → debit = volume toren ÷ 3600 s. Tanpa volume toren, dipakai debit
+  pengisian yang sama dengan ENG-710 (0,25 l/s).
+- Muka air tandon bawah 1,5 m di bawah pompa.
+- Pipa transfernya dianggap pipa pengisi yang sama dengan ENG-706 (dari depan tanah, sepanjang
+  bangunan, naik ke toren): geometrinya identik, jadi panjang dan kehilangannya tidak dihitung dua
+  kali dengan angka berbeda.
+- Head yang ditampilkan adalah head **minimal**; pemilihan pompa (margin, kurva, daya) di luar
+  SNOUTY sampai Pralon memberi aturannya.
+
+Yang ditanyakan ke Pralon: kedua angka di atas, dan apakah pompa transfer perlu ditampilkan dengan
+daya (kW/HP) — itu butuh efisiensi pompa, yang belum ada acuannya.

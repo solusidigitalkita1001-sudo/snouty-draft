@@ -51,6 +51,10 @@ export function solutionInputFrom(state: RequirementState): SolutionInput {
     // Keran tambahan di luar kamar mandi dan dapur (P33-04).
     outdoorTaps: state.fixtures.outdoorTaps?.value ?? null,
     upperFloorTaps: state.fixtures.upperFloorTaps?.value ?? null,
+    // Tandon bawah + pompa transfer ke toren atap (temuan 9).
+    transferPump: state.water.transferPump?.value ?? null,
+    groundTankL: state.water.groundTankL?.value ?? null,
+    roofTankL: state.water.roofTankL?.value ?? null,
     // Alat dengan bebannya sendiri (temuan 9): mesin cuci di dua jalur, floor drain balkon di air
     // bekas, water heater baru dicatat.
     washingMachines: state.fixtures.washingMachines?.value ?? null,

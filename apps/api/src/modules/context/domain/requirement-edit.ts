@@ -110,6 +110,14 @@ export const RequirementEditSchema = z.union([
       value: z.number().min(0.1).max(100_000),
     })
     .strict(),
+  // PDAM → tandon bawah → pompa transfer → toren atap (temuan 9).
+  z.object({ path: z.literal('water.transferPump'), value: z.boolean() }).strict(),
+  z
+    .object({
+      path: z.enum(['water.groundTankL', 'water.roofTankL']),
+      value: z.number().int().min(100).max(100_000),
+    })
+    .strict(),
   z
     .object({
       path: z.literal('water.replacedLine'),

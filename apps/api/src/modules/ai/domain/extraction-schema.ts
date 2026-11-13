@@ -75,6 +75,13 @@ export const ExtractionSchema = z
         existingPipeMaterial: z.enum(['pvc', 'galvanized', 'hdpe', 'ppr', 'unknown']).optional(),
         /** Titik air yang sudah terpasang, hanya bila disebut sebagai yang lama. */
         existingOutlets: z.number().int().min(0).max(1_000).optional(),
+        /**
+         * PDAM → tandon bawah → pompa transfer → toren atap (temuan 9). `transferPump` true bila
+         * air ditampung di bawah lalu dipompa ke toren atas; volume tangki hanya bila disebut.
+         */
+        transferPump: z.boolean().optional(),
+        groundTankL: z.number().int().min(100).max(100_000).optional(),
+        roofTankL: z.number().int().min(100).max(100_000).optional(),
         /** Panjang pipa yang diganti (m), hanya bila disebut. */
         replacementLengthM: z.number().min(0).max(100_000).optional(),
         /** Jalur yang diganti, hanya bila pengguna menyebut jalur mana (air kotor, cabang, …). */

@@ -348,6 +348,8 @@ export type NeedKind =
   | 'municipal'
   | 'well_pump'
   | 'booster_pump'
+  /** Pompa antara tandon bawah dan toren atap (ENG-713, temuan 9). */
+  | 'transfer_pump'
   | 'drainage';
 
 export interface SolutionNeed {
@@ -376,6 +378,12 @@ export interface SolutionNeed {
   readonly wellDepthAssumed?: boolean;
   /** `well_pump`: muka air di luar batas sedot pompa biasa → pompa jet / submersible. */
   readonly deepWell?: boolean;
+  /**
+   * `transfer_pump`: debit dan head minimal pompa tandon bawah → toren atap (ENG-713). Head
+   * MINIMAL: margin pompa adalah pilihan pemasang, bukan angka yang dikarang di sini.
+   */
+  readonly pumpFlowLpm?: number;
+  readonly pumpHeadM?: number;
   /** `drainage`: ukuran jalur air kotor dan air bekas, dan ventilasinya. */
   readonly soilSize?: string;
   readonly wasteSize?: string;

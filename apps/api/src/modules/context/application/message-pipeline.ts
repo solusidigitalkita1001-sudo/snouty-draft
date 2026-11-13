@@ -1071,6 +1071,24 @@ export function notedSummary(
       );
       continue;
     }
+    // Volume tangki membawa nama tangkinya: "1.000 liter" sendirian tidak mengatakan tangki mana
+    // (temuan 9).
+    if (
+      (path === 'water.groundTankL' || path === 'water.roofTankL') &&
+      typeof field.value === 'number'
+    ) {
+      const litres = field.value.toLocaleString(en ? 'en-US' : 'id-ID');
+      const tank =
+        path === 'water.groundTankL'
+          ? en
+            ? 'a ground tank of'
+            : 'tandon bawah'
+          : en
+            ? 'a roof tank of'
+            : 'toren atap';
+      captured.push(`${tank} ${litres} liter${en ? 's' : ''}`);
+      continue;
+    }
     // Jumlah kamar sewa membawa namanya: tanpa ini kalimatnya berbunyi "rumah kos dan 10"
     // (produksi 2026-11-02).
     if (path === 'building.rooms' && typeof field.value === 'number') {

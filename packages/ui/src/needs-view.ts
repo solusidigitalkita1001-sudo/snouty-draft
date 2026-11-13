@@ -29,6 +29,8 @@ export interface NeedsCopy {
   /** Pilihan selain pompa pendorong: dudukan toren dinaikkan. */
   readonly raiseTank: (stand: string) => string;
   readonly boosterNeededPlain: string;
+  /** Pompa transfer tandon bawah → toren atap: debit dan head minimalnya. */
+  readonly transferPumpDuty: (flowLpm: string, headM: string) => string;
   readonly boosterFlow: string;
   readonly drainageSizes: (soil: string, waste: string) => string;
   readonly outlets: (count: number) => string;
@@ -74,6 +76,8 @@ const NEED_IMAGE: Readonly<Record<Exclude<SolutionNeed['kind'], 'building'>, Sce
   municipal: 'meter',
   well_pump: 'well',
   booster_pump: 'pump',
+  // Pompa transfer tandon bawah → toren atap: gambarnya pompa yang sama.
+  transfer_pump: 'pump',
   drainage: 'septic',
 };
 
@@ -129,6 +133,10 @@ function caption(need: SolutionNeed, copy: NeedsCopy, locale: string): string {
         ? `${why} · ${copy.raiseTank(decimal(need.minimumStandM, locale))}`
         : why;
     }
+    case 'transfer_pump':
+      return need.pumpFlowLpm !== undefined && need.pumpHeadM !== undefined
+        ? copy.transferPumpDuty(decimal(need.pumpFlowLpm, locale), decimal(need.pumpHeadM, locale))
+        : '';
     case 'drainage':
       return copy.drainageSizes(need.soilSize ?? '–', need.wasteSize ?? '–');
     default:
@@ -171,6 +179,16 @@ export function flowSteps(
     if (card)
       steps.push({ key: kind, image: card.image, label: card.label, caption: card.caption });
   }
+  // Pompa transfer berdiri di antara tandon bawah dan toren atap, jadi langkahnya setelah sumber
+  // dan sebelum pompa pendorong jalur (temuan 9).
+  const transfer = cards.get('transfer_pump');
+  if (transfer)
+    steps.push({
+      key: 'transfer_pump',
+      image: transfer.image,
+      label: transfer.label,
+      caption: transfer.caption,
+    });
   const pump = cards.get('booster_pump');
   if (pump)
     steps.push({ key: 'pump', image: pump.image, label: pump.label, caption: copy.boosterFlow });

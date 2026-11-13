@@ -130,6 +130,7 @@ const NEEDS_ID: NeedsCopy = {
     municipal: 'PDAM',
     well_pump: 'Sumur + pompa',
     booster_pump: 'Pompa pendorong',
+    transfer_pump: 'Pompa transfer',
     drainage: 'Pembuangan',
   },
   buildingSize: (length, width) => `${length} × ${width} m`,
@@ -147,6 +148,8 @@ const NEEDS_ID: NeedsCopy = {
   boosterNeeded: (bar) => `Perlu: tekanan di titik tertinggi hanya ${bar} bar`,
   raiseTank: (stand) => `atau naikkan toren ke ${stand} m di atas atap`,
   boosterNeededPlain: 'Perlu untuk tekanan di titik air tertinggi',
+  transferPumpDuty: (flow, head) =>
+    `Dari tandon bawah ke toren atap: ${flow} l/menit, head minimal ${head} m`,
   boosterFlow: 'Menambah tekanan ke titik air',
   drainageSizes: (soil, waste) => `Air kotor ${soil} · air bekas ${waste}`,
   outlets: (count) => `${count} titik air`,
@@ -177,6 +180,7 @@ const NEEDS_EN: NeedsCopy = {
     municipal: 'Mains water',
     well_pump: 'Well + pump',
     booster_pump: 'Booster pump',
+    transfer_pump: 'Transfer pump',
     drainage: 'Drainage',
   },
   buildingSize: (length, width) => `${length} × ${width} m`,
@@ -194,6 +198,8 @@ const NEEDS_EN: NeedsCopy = {
   boosterNeeded: (bar) => `Needed: only ${bar} bar at the highest outlet`,
   raiseTank: (stand) => `or raise the tank to ${stand} m above the roof`,
   boosterNeededPlain: 'Needed for pressure at the highest outlet',
+  transferPumpDuty: (flow, head) =>
+    `Ground tank to roof tank: ${flow} l/min, minimum head ${head} m`,
   boosterFlow: 'Adds pressure at the outlets',
   drainageSizes: (soil, waste) => `Soil ${soil} · waste ${waste}`,
   outlets: (count) => `${count} outlets`,

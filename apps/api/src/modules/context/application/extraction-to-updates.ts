@@ -283,6 +283,21 @@ const OBVIOUS = {
     if (/\b(pdam|ledeng|pam\b|municipal|mains|city water|town water)/i.test(m)) return 'municipal';
     return undefined;
   },
+  /**
+   * PDAM → tandon bawah → pompa transfer → toren atap (smoke test 13 Nov 2026, temuan 9): pompa
+   * DI ANTARA kedua tangki, bukan pompa pendorong jalur (`boosterPump`) dan bukan pompa sumur
+   * (`pumpSource`). Yang dibaca: namanya ("pompa transfer"), atau air yang dipompa ke toren atas.
+   */
+  transferPump: (m: string): boolean | undefined => {
+    if (/\b(pompa transfer|transfer pump)\b/i.test(m)) return true;
+    return /\b(?:di)?pompa\w*\b[^.;]{0,40}\b(?:toren|tandon|tangki|tank)\w*\b[^.;]{0,20}\b(?:atas|atap|rooftop|roof)\b/i.test(
+      m,
+    )
+      ? true
+      : undefined;
+  },
+  groundTankL: (m: string) => litresFor(GROUND_TANK, m),
+  roofTankL: (m: string) => litresFor(ROOF_TANK, m),
   // Cadangan bila model dilewati (diet 2026-10-07): sumur atau pompa yang disebut sebagai sumber,
   // bukan pompa pendorong ("pompa booster/pendorong/dorong" adalah `boosterPump`).
   pumpSource: (m: string): NonNullable<Extraction['water']>['source'] => {
@@ -769,6 +784,27 @@ function countOf(nouns: string, message: string, digits = 2): number | undefined
 }
 
 /** Keran berletak: angkanya bila ditulis, satu bila hanya disebut. */
+/** Tangki bawah dan toren atas — dua tangki yang volumenya punya artinya masing-masing. */
+const GROUND_TANK = 'tandon bawah|tangki bawah|toren bawah|tandon tanam|ground tanks?';
+const ROOF_TANK = 'toren atap|toren atas|tandon atas|tangki atas|roof tanks?|toren';
+
+/**
+ * Volume tangki yang tersurat ("toren 1000 liter", "tandon bawah 2 kubik") — parser nilai
+ * bersatuan, bukan tebakan: angkanya harus berdekatan dengan nama tangkinya, di depan atau di
+ * belakang. Kubik dan m³ dibaca 1000 liter.
+ */
+function litresFor(nouns: string, message: string): number | undefined {
+  const VOL = String.raw`(\d+(?:[.,]\d+)?)\s*(liters?|litres?|ltr|l|kubik|m3|m³)\b`;
+  const after = new RegExp(String.raw`\b(?:${nouns})\w*\b[^.;]{0,15}?${VOL}`, 'i').exec(message);
+  const before = new RegExp(String.raw`${VOL}[^.;]{0,15}?\b(?:${nouns})\w*\b`, 'i').exec(message);
+  const hit = after ?? before;
+  if (hit === null) return undefined;
+  const amount = Number(hit[1]!.replace(',', '.'));
+  if (!Number.isFinite(amount)) return undefined;
+  const litres = /kubik|m3|m³/i.test(hit[2]!) ? amount * 1000 : amount;
+  return litres >= 100 && litres <= 100_000 ? Math.round(litres) : undefined;
+}
+
 function tapCount(nouns: string, message: string): number | undefined {
   const counted = countOf(nouns, message);
   if (counted !== undefined) return counted;
@@ -1026,6 +1062,12 @@ export function extractionToUpdates(extraction: Extraction, message = ''): Field
     negatedZero(message, COUNT_NOUNS['fixtures.upperFloorTaps']!);
   add('fixtures.outdoorTaps', outdoorTaps);
   add('fixtures.upperFloorTaps', upperFloorTaps);
+  // PDAM → tandon bawah → pompa transfer → toren atap (temuan 9): susunan yang dulu tidak bisa
+  // dinyatakan sama sekali. Pembagiannya tetap gravitasi dari toren atap; ketiga nilai ini yang
+  // menambahkan tandon bawah dan pompa di antaranya.
+  add('water.transferPump', extraction.water?.transferPump ?? OBVIOUS.transferPump(message));
+  add('water.groundTankL', extraction.water?.groundTankL ?? OBVIOUS.groundTankL(message));
+  add('water.roofTankL', extraction.water?.roofTankL ?? OBVIOUS.roofTankL(message));
   // Mesin cuci, water heater, floor drain balkon (temuan 9): alat yang disebut tidak boleh hilang
   // dari kebutuhan — mesin cuci dan floor drain membawa beban air bekasnya sendiri.
   add(

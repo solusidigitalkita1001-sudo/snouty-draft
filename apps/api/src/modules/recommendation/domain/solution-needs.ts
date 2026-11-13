@@ -87,6 +87,15 @@ export function needsFrom(
           }
         : {}),
     });
+    // Pompa transfer tandon bawah → toren atap (temuan 9): dua angkanya ikut, bukan hanya namanya.
+    if (solution.transferPump !== null) {
+      needs.push({
+        kind: 'transfer_pump',
+        count: 1,
+        pumpFlowLpm: solution.transferPump.flowLpm,
+        pumpHeadM: solution.transferPump.headM,
+      });
+    }
     if (solution.boosterPumpNeeded) {
       const residual = solution.supply.gravityResidualBar;
       const remedy = solution.supply.gravityRemedy;

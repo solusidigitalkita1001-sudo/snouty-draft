@@ -5712,3 +5712,26 @@ lalu yang membuat layanan gagal, lalu kelengkapan data lapangan.
 
       Ketiga angka beban baru menunggu tanda tangan Pralon (OQ-99) — `confidence: 'low'`,
       `confirmationRequired: true`, dan aturan yang memakainya tetap `REQUIRES_DOMAIN_VALIDATION`.
+
+- [x] P37-10 PDAM → tandon bawah → pompa transfer → toren atap bisa dinyatakan
+
+      Temuan 9, bagian kedua. `water.source` hanya memuat salah satu dari keempatnya, jadi susunan
+      perumahan yang paling lazim tidak bisa dinyatakan sama sekali: pengguna yang menyebutnya
+      kehilangan tandon bawah, atau kehilangan torennya.
+
+      Tiga field baru menambahkannya di atas sumber yang sudah ada: pompa transfer, volume tandon
+      bawah, volume toren atap. Pembagian air di rumahnya tetap gravitasi dari toren atap — cabang
+      air bersih dan cek tekanan di titik tertinggi tidak berubah sama sekali. Yang baru hanya
+      pompa di antara kedua tangki, dan satu pesan seperti "PDAM masuk tandon bawah 2000 liter,
+      lalu dipompa ke toren atap 1000 liter" sekarang terbaca utuh: ketiganya tercatat, dan
+      sumbernya tetap toren atap.
+
+      Pompanya keluar dengan angkanya (ENG-713): debit dari volume toren dibagi lama pengisian, dan
+      head minimal = angkat isap dari muka air tandon + tinggi muka air toren + gesek Hazen-Williams
+      di pipa pengisi + kehilangan sambungan. Tanpa margin, dan dikatakan "minimal": margin pompa
+      pilihan pemasang. Tanpa ukuran bangunan tidak ada panjang pipa pengisi, jadi head-nya tidak
+      ditampilkan — bukan dikarang.
+
+      Di layar solusi pompa itu berdiri di antara sumber dan bangunan, dengan debit l/menit dan
+      head m di keterangannya. Lama pengisian satu jam dan muka air tandon 1,5 m menunggu tanda
+      tangan Pralon (OQ-100); ENG-713 `REQUIRES_DOMAIN_VALIDATION`.
