@@ -699,4 +699,102 @@ export const ENG_207: RuleVersion<FittingMinorLossInput, FittingMinorLossResult>
   },
 };
 
-export const GROUP_F = [ENG_201, ENG_202, ENG_203, ENG_204, ENG_205, ENG_206, ENG_207] as const;
+// ── ENG-714 · Tekanan kerja jalur vs kelas tekanan pipanya ──────────────────
+
+/**
+ * Jalur bertekanan dihitung head-nya sejak fase 3, tetapi head itu tidak pernah dibandingkan
+ * dengan kekuatan pipa yang dipakai — padahal pompa yang mendorong 130 m kolom air (12,7 bar)
+ * memecahkan pipa PN 10 (OQ-96, temuan 4 smoke test 13 Nov 2026).
+ *
+ * Yang bisa dibandingkan hari ini hanya HDPE: kelas SDR pipanya punya padanan PN dalam bar
+ * (PE100 SDR 17 = PN 10, `PN_CLASSES`), dan PN adalah tekanan kerja. uPVC Pralon menyimpan nama
+ * kelas (AW, D, C) tanpa tekanan kerja di katalog maupun data standar, jadi untuk uPVC pembanding
+ * ini `null`: aturannya mengatakan "belum tercatat", bukan mengarang bar (keputusan pemilik
+ * 2026-11-24, OQ-96).
+ *
+ * Tanpa margin surja: surja dihitung terpisah (ENG-411) dan hanya ada bila pompanya bisa berhenti
+ * mendadak. Di sini yang dibandingkan tekanan kerja jalur apa adanya.
+ */
+export interface PipeRatingCheckInput {
+  /** Tekanan kerja jalur (bar) = head total dinamis jalur itu. */
+  readonly requiredBar: number;
+  /** Tekanan kerja pipa yang dipakai (bar); `null` = tidak tercatat di data mana pun. */
+  readonly ratingBar: number | null;
+}
+export interface PipeRatingCheckResult {
+  /** `null` = tekanan kerja pipanya tidak tercatat, jadi tidak dibandingkan. */
+  readonly exceedsRating: boolean | null;
+  /** Sisa tekanan sampai batas kelas pipa; `null` bila tidak tercatat. */
+  readonly headroomBar: number | null;
+}
+
+export const ENG_714: RuleVersion<PipeRatingCheckInput, PipeRatingCheckResult> = {
+  ruleId: 'ENG-714',
+  version: 1,
+  category: 'material',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const rating = o['ratingBar'];
+    if (rating !== null && rating !== undefined && typeof rating !== 'number') {
+      throw new RuleInputError('ENG-714', 'ratingBar harus angka bar atau null');
+    }
+    if (typeof rating === 'number' && !(rating > 0 && rating <= 100)) {
+      throw new RuleInputError('ENG-714', `ratingBar di luar 0–100 bar: ${rating}`);
+    }
+    return {
+      requiredBar: requireNumber('ENG-714', 'requiredBar', o['requiredBar'], { min: 0, max: 1000 }),
+      ratingBar: typeof rating === 'number' ? rating : null,
+    };
+  },
+  compute: (i) => ({
+    exceedsRating: i.ratingBar === null ? null : i.requiredBar > i.ratingBar,
+    headroomBar: i.ratingBar === null ? null : round2(i.ratingBar - i.requiredBar),
+  }),
+  sourceReference:
+    'Tekanan kerja jalur dibandingkan dengan tekanan kerja pipanya: PE100 SDR → PN (PN = bar) menurut standar PE100 Pralon; uPVC belum punya tekanan kerja per kelas di data mana pun, jadi tidak dibandingkan (OQ-96)',
+  standard: 'SNI 9362:2025; Pralon PROD/STD/014 Rev. 04',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'jalur 12,7 bar di pipa PN 10: melebihi kelasnya',
+      input: { requiredBar: 12.7, ratingBar: 10 },
+      expected: { exceedsRating: true, headroomBar: -2.7 },
+    },
+    {
+      name: 'jalur 4,5 bar di pipa PN 10: masih di dalam kelasnya',
+      input: { requiredBar: 4.5, ratingBar: 10 },
+      expected: { exceedsRating: false, headroomBar: 5.5 },
+    },
+    {
+      name: 'pipa uPVC: tekanan kerjanya tidak tercatat, jadi tidak dibandingkan',
+      input: { requiredBar: 4.5, ratingBar: null },
+      expected: { exceedsRating: null, headroomBar: null },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id:
+        o.exceedsRating === null
+          ? `Tekanan kerja jalur ini ${i.requiredBar} bar. Tekanan kerja pipanya belum tercatat di katalog maupun data standar, jadi keduanya belum dibandingkan — kelas pipa yang dipakai perlu dipastikan tim teknis.`
+          : o.exceedsRating
+            ? `Tekanan kerja jalur ini ${i.requiredBar} bar, di atas tekanan kerja pipanya ${i.ratingBar} bar: perlu kelas pipa yang lebih tinggi atau jalurnya dibagi zona.`
+            : `Tekanan kerja jalur ini ${i.requiredBar} bar, masih di bawah tekanan kerja pipanya ${i.ratingBar} bar (sisa ${o.headroomBar} bar).`,
+      en:
+        o.exceedsRating === null
+          ? `This route works at ${i.requiredBar} bar. The working pressure of the pipe is not recorded in the catalogue or the standards data, so the two were not compared — the pipe class needs to be confirmed by the technical team.`
+          : o.exceedsRating
+            ? `This route works at ${i.requiredBar} bar, above the ${i.ratingBar} bar working pressure of the pipe: a higher pipe class is needed, or the route must be split into zones.`
+            : `This route works at ${i.requiredBar} bar, still below the ${i.ratingBar} bar working pressure of the pipe (${o.headroomBar} bar to spare).`,
+    }),
+};
+
+export const GROUP_F = [
+  ENG_201,
+  ENG_202,
+  ENG_203,
+  ENG_204,
+  ENG_205,
+  ENG_206,
+  ENG_207,
+  ENG_714,
+] as const;

@@ -32,6 +32,7 @@ describe('computePressurized', () => {
       'ENG-202',
       'ENG-203',
       'ENG-204',
+      'ENG-714',
       'ENG-206',
     ]);
     expect(result.overallProvenance).toBe('ASSUMED');
@@ -46,6 +47,37 @@ describe('computePressurized', () => {
       ]),
     );
     for (const t of result.traces) expect(t.explanation.length).toBeGreaterThan(20);
+  });
+
+  // OQ-96 (keputusan pemilik 2026-11-24): HDPE punya tekanan kerja nyata lewat padanan SDR → PN,
+  // uPVC belum punya angkanya di data mana pun — dan jawabannya mengatakan itu, bukan mengarang.
+  it('pipa uPVC: tekanan kerja pipanya belum tercatat, jadi tidak dibandingkan', () => {
+    expect(result.pressureRating.ratingBar).toBeNull();
+    expect(result.pressureRating.exceedsRating).toBeNull();
+    expect(result.pressureRating.requiredBar).toBe(3.55);
+    const trace = result.traces.find((t) => t.ruleId === 'ENG-714')!;
+    expect(trace.explanation).toContain('belum tercatat');
+  });
+
+  it('pipa HDPE: tekanan kerjanya PN 10 dari kelas SDR 17, dan jalur di atasnya dikatakan melebihi', () => {
+    const easy = computePressurized({
+      designFlowLs: 5,
+      routeLengthM: 800,
+      staticHeadM: 12,
+      material: 'HDPE',
+    });
+    expect(easy.pressureRating.ratingBar).toBe(10);
+    expect(easy.pressureRating.exceedsRating).toBe(false);
+    expect(easy.pressureRating.headroomBar).toBeGreaterThan(0);
+
+    const tall = computePressurized({
+      designFlowLs: 5,
+      routeLengthM: 800,
+      staticHeadM: 120,
+      material: 'HDPE',
+    });
+    expect(tall.pressureRating.exceedsRating).toBe(true);
+    expect(tall.traces.find((t) => t.ruleId === 'ENG-714')!.explanation).toContain('10 bar');
   });
 
   it('tekanan sisa yang diberikan tidak diganti asumsi; galvanis memakai C = 100; gravitasi tanpa pompa', () => {

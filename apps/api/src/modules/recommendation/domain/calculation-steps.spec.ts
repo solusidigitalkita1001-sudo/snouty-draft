@@ -25,6 +25,7 @@ describe('langkah hitung', () => {
       'Kehilangan tekanan di pipa',
       'Kehilangan di sambungan',
       'Tinggi angkat total',
+      'Tekanan kerja vs kelas pipa',
       'Pompa yang dibutuhkan',
     ]);
     for (const step of steps) {
@@ -33,6 +34,9 @@ describe('langkah hitung', () => {
     }
     expect(steps[3]!.text).toContain('Tangki atap 45 m³');
     expect(steps[4]!.text).toContain('Dicoba 10 ukuran; 6" yang terkecil');
+    // uPVC: tekanan kerja per kelas belum ada di data mana pun, jadi langkahnya mengatakan itu
+    // alih-alih mengarang bar (OQ-96, keputusan pemilik 2026-11-24).
+    expect(steps[9]!.text).toContain('belum tercatat');
   });
 
   it('desimal Indonesia memakai koma; Inggris tetap titik', () => {

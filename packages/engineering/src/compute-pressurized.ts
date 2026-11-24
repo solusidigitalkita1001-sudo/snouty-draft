@@ -21,11 +21,15 @@ import {
   ENG_205,
   ENG_206,
   ENG_207,
+  ENG_714,
   type FittingMinorLossResult,
   type MinorFitting,
+  type PipeRatingCheckResult,
   type PumpDutyResult,
   type SizeCandidate,
 } from './rules/group-f-pressurized.js';
+import { PN_CLASSES } from './rules/group-h-gravity.js';
+import { headMToBar, round2 } from './units.js';
 
 export type PipeMaterial = 'PVC' | 'HDPE' | 'PPR' | 'Galvanis';
 
@@ -61,6 +65,14 @@ export interface PressurizedResult {
   readonly totalDynamicHeadM: number;
   readonly hazenWilliamsC: number;
   readonly pumpDuty: PumpDutyResult | null;
+  /**
+   * Tekanan kerja jalur dibandingkan dengan tekanan kerja pipanya (ENG-714, OQ-96). `ratingBar`
+   * `null` = bahannya belum punya tekanan kerja di data mana pun (uPVC), jadi tidak dibandingkan.
+   */
+  readonly pressureRating: {
+    readonly requiredBar: number;
+    readonly ratingBar: number | null;
+  } & PipeRatingCheckResult;
   readonly appliedAssumptionIds: readonly string[];
   readonly traces: readonly CalculationTrace[];
   readonly overallProvenance: Provenance;
@@ -155,6 +167,14 @@ export function computePressurized(
     residualPressureBar,
   });
 
+  // Tekanan kerja pipa: HDPE punya padanan PN dari kelas SDR-nya (PN = bar), uPVC menyimpan nama
+  // kelas tanpa tekanan kerja di katalog maupun data standar. Di situ pembandingnya `null` dan
+  // aturannya mengatakan hal itu, bukan mengarang bar (keputusan pemilik 2026-11-24, OQ-96).
+  const ratingBar =
+    wallSdr === undefined ? null : (PN_CLASSES.find((c) => c.sdr === wallSdr)?.pn ?? null);
+  const requiredBar = round2(headMToBar(tdh.totalDynamicHeadM));
+  const rating = run(ENG_714, { requiredBar, ratingBar });
+
   const pumpRequired = input.pumpRequired ?? input.staticHeadM >= 0;
   let pumpDuty: PumpDutyResult | null = null;
   if (pumpRequired) {
@@ -178,6 +198,7 @@ export function computePressurized(
     totalDynamicHeadM: tdh.totalDynamicHeadM,
     hazenWilliamsC: hw.c,
     pumpDuty,
+    pressureRating: { requiredBar, ratingBar, ...rating },
     appliedAssumptionIds: [...new Set(applied)],
     traces,
     overallProvenance: traces.some((t) => t.provenance !== 'VERIFIED') ? 'ASSUMED' : 'VERIFIED',
