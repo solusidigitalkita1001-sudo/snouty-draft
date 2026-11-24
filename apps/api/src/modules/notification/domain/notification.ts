@@ -11,6 +11,8 @@ export interface NotificationRow {
   readonly id: string;
   readonly kind: NotificationKind;
   readonly subjectId: string | null;
+  /** Nama akun yang dirujuk `subjectId`, bila yang dirujuk memang akun (P39-01). */
+  readonly subjectName: string | null;
   readonly data: Readonly<Record<string, string | number | null>>;
   readonly readAt: Date | null;
   readonly createdAt: Date;

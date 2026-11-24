@@ -103,7 +103,7 @@ describe('kalimat pemberitahuan', () => {
       'id',
     );
     expect(line.text).toBe('Waktunya menengok Pak Dedi lagi.');
-    expect(line.href).toBe(`/internal/leads?prospect=${subjectId}`);
+    expect(line.href).toBe(`/internal/leads?u=${subjectId}`);
   });
 
   it('prospek tanpa nama tetap jadi kalimat yang utuh', () => {
@@ -114,6 +114,37 @@ describe('kalimat pemberitahuan', () => {
   it('Inggris setara, tanpa kata Indonesia yang tertinggal', () => {
     const line = notificationLine(item({ kind: 'lead_assigned' }), 'en');
     expect(line.text).toBe('A prospect was assigned to you.');
+  });
+
+  /**
+   * P39-01 — tiga penugasan berturut-turut dulu menghasilkan tiga baris yang sama persis, dan
+   * sales tidak bisa tahu prospek mana yang dimaksud tanpa membuka ketiganya.
+   */
+  it('penugasan menyebut nama prospeknya', () => {
+    const subjectId = 'P'.repeat(26);
+    const line = notificationLine(
+      item({ kind: 'lead_assigned', subjectId, subjectName: 'Rina Kusuma' }),
+      'id',
+    );
+    expect(line.text).toBe('Rina Kusuma ditugaskan kepada Anda.');
+    expect(line.href).toBe(`/internal/leads?u=${subjectId}`);
+  });
+
+  it('penugasan tanpa nama tetap kalimat yang utuh', () => {
+    const line = notificationLine(item({ kind: 'lead_assigned', subjectName: null }), 'id');
+    expect(line.text).toBe('Ada prospek yang ditugaskan kepada Anda.');
+  });
+
+  it('permintaan dihubungi menyebut siapa yang meminta', () => {
+    const line = notificationLine(
+      item({
+        kind: 'contact_requested',
+        subjectName: 'Hendra Wijaya',
+        data: { source: 'solution' },
+      }),
+      'id',
+    );
+    expect(line.text).toBe('Hendra Wijaya minta dihubungi tim Pralon dari layar solusinya.');
   });
 
   it('umurnya dalam bahasa biasa, bukan stempel waktu', () => {

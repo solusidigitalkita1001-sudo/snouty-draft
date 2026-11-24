@@ -50,6 +50,22 @@ describe('pemberitahuan', () => {
     expect(items[0]).toMatchObject({ subjectId: OTHER, data: { source: 'price' }, readAt: null });
   });
 
+  /**
+   * P39-01 — tiga penugasan berturut-turut terbaca sebagai tiga kalimat yang sama persis selama
+   * namanya tidak ikut. Nama itu diambil di sini, bukan dititipkan pemancar kejadiannya.
+   */
+  it('nama orang yang dirujuk ikut terbaca', async () => {
+    await service.notify({ userId: SALES, kind: 'lead_assigned', subjectId: OTHER });
+    const [item] = await service.list(SALES);
+    expect(item).toMatchObject({ subjectId: OTHER, subjectName: 'Lain' });
+  });
+
+  it('kejadian yang subjeknya bukan akun tetap lewat tanpa nama', async () => {
+    await service.notify({ userId: SALES, kind: 'report_ready', subjectId: testId('RPT') });
+    const [item] = await service.list(SALES);
+    expect(item?.subjectName).toBeNull();
+  });
+
   it('hitungan belum dibaca hanya menghitung miliknya', async () => {
     await service.notify({ userId: SALES, kind: 'lead_assigned' });
     await service.notify({ userId: OTHER, kind: 'lead_assigned' });

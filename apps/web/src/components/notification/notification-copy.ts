@@ -60,31 +60,59 @@ const SOURCE: Readonly<Record<'id' | 'en', Readonly<Record<string, string>>>> = 
 
 type Line = (item: NotificationItem, locale: 'id' | 'en') => NotificationLine;
 
+/** Nama orang yang dirujuk kejadian itu; `null` bila server tidak mengirimkannya. */
+function subjectName(item: NotificationItem): string | null {
+  const name = (item.subjectName ?? '').trim();
+  return name === '' ? null : name;
+}
+
+/**
+ * Layar prospek sales memilih prospeknya dari `?u=` (sales-dashboard.tsx). Pemberitahuan dulu
+ * menautkan `?prospect=`, yang diabaikan diam-diam — sehingga "buka" membuka prospek teratas,
+ * bukan yang diberitahukan (P39-02).
+ */
+function leadHref(item: NotificationItem): string {
+  return item.subjectId ? `/internal/leads?u=${item.subjectId}` : '/internal/leads';
+}
+
 const LINES: Readonly<Record<NotificationKind, Line>> = {
-  lead_assigned: (item, locale) => ({
-    text:
-      locale === 'en'
-        ? 'A prospect was assigned to you.'
-        : 'Ada prospek yang ditugaskan kepada Anda.',
-    href: item.subjectId ? `/internal/leads?prospect=${item.subjectId}` : '/internal/leads',
-  }),
-  contact_requested: (item, locale) => {
-    const where = SOURCE[locale][String(item.data['source'] ?? '')] ?? '';
+  lead_assigned: (item, locale) => {
+    const who = subjectName(item);
     return {
       text:
-        locale === 'en'
-          ? `Someone asked to be contacted by the Pralon team${where ? ` ${where}` : ''}.`
-          : `Ada yang minta dihubungi tim Pralon${where ? ` ${where}` : ''}.`,
+        who === null
+          ? locale === 'en'
+            ? 'A prospect was assigned to you.'
+            : 'Ada prospek yang ditugaskan kepada Anda.'
+          : locale === 'en'
+            ? `${who} was assigned to you.`
+            : `${who} ditugaskan kepada Anda.`,
+      href: leadHref(item),
+    };
+  },
+  contact_requested: (item, locale) => {
+    const where = SOURCE[locale][String(item.data['source'] ?? '')] ?? '';
+    const who = subjectName(item);
+    const tail = where ? ` ${where}` : '';
+    return {
+      text:
+        who === null
+          ? locale === 'en'
+            ? `Someone asked to be contacted by the Pralon team${tail}.`
+            : `Ada yang minta dihubungi tim Pralon${tail}.`
+          : locale === 'en'
+            ? `${who} asked to be contacted by the Pralon team${tail}.`
+            : `${who} minta dihubungi tim Pralon${tail}.`,
       href: '/internal/prospects',
     };
   },
   follow_up_due: (item, locale) => {
-    const name = String(item.data['name'] ?? '').trim();
+    const name = subjectName(item) ?? String(item.data['name'] ?? '').trim();
     const who = name === '' ? (locale === 'en' ? 'a prospect' : 'prospek') : name;
     return {
       text:
         locale === 'en' ? `Time to check back in with ${who}.` : `Waktunya menengok ${who} lagi.`,
-      href: item.subjectId ? `/internal/leads?prospect=${item.subjectId}` : '/internal/leads',
+      href: leadHref(item),
     };
   },
   report_ready: (item, locale) => {

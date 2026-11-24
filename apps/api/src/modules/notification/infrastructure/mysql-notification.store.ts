@@ -7,7 +7,7 @@
 import { Injectable } from '@nestjs/common';
 import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { notifications } from '../../../infrastructure/mysql/schema/intelligence.js';
-import { userRoles } from '../../../infrastructure/mysql/schema/identity.js';
+import { userRoles, users } from '../../../infrastructure/mysql/schema/identity.js';
 import { DatabaseService, type QueryRunner } from '../../../shared/database/database.service.js';
 import {
   NOTIFICATION_STORE,
@@ -38,17 +38,25 @@ export class MysqlNotificationStore implements NotificationStore {
     );
   }
 
+  /**
+   * Nama subjeknya diambil di sini, bukan dititipkan pemancar kejadiannya: `subject_id` yang
+   * menunjuk sebuah akun selalu punya nama di tabel yang sama, dan join kiri membuat kejadian
+   * yang subjeknya bukan orang tetap lewat tanpa nama. Tanpa ini, tiga penugasan berturut-turut
+   * terbaca sebagai tiga kalimat yang sama persis (P39-01).
+   */
   async list(userId: string, limit: number): Promise<readonly NotificationRow[]> {
     const rows = await this.db
       .select({
         id: notifications.id,
         kind: notifications.kind,
         subjectId: notifications.subjectId,
+        subjectName: users.name,
         data: notifications.data,
         readAt: notifications.readAt,
         createdAt: notifications.createdAt,
       })
       .from(notifications)
+      .leftJoin(users, eq(users.id, notifications.subjectId))
       .where(eq(notifications.userId, userId))
       .orderBy(desc(notifications.id))
       .limit(limit);
@@ -56,6 +64,7 @@ export class MysqlNotificationStore implements NotificationStore {
       id: row.id,
       kind: row.kind as NotificationKind,
       subjectId: row.subjectId,
+      subjectName: row.subjectName ?? null,
       data: (row.data ?? {}) as Readonly<Record<string, string | number | null>>,
       readAt: row.readAt,
       createdAt: row.createdAt,

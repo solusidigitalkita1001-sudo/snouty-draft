@@ -16,6 +16,8 @@ export interface NotificationItem {
   readonly id: string;
   readonly kind: NotificationKind;
   readonly subjectId: string | null;
+  /** Nama orang yang dirujuk kejadian itu; `null` bila yang dirujuk bukan akun. */
+  readonly subjectName?: string | null;
   readonly data: Readonly<Record<string, string | number | null>>;
   readonly read: boolean;
   readonly createdAt: string;

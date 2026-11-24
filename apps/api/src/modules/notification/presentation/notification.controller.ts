@@ -32,6 +32,7 @@ export class NotificationController {
         id: row.id,
         kind: row.kind,
         subjectId: row.subjectId,
+        subjectName: row.subjectName,
         data: row.data,
         read: row.readAt !== null,
         createdAt: row.createdAt.toISOString(),
