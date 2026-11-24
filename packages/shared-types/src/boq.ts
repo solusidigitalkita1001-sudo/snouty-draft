@@ -38,9 +38,10 @@ export interface BoqRow {
    * Baris tanpa SKU katalog Pralon (review putaran 4, 5a — dulu "LIHAT DOKUMEN TEKNIS" juga menempel
    * di fitting ber-SKU yang kelasnya belum terverifikasi, sehingga labelnya kehilangan arti):
    * `not_in_catalog` = Pralon tidak punya barangnya di katalog, pakai produk setara;
-   * `ask_pralon` = lini produk Pralon yang belum ada di data katalog (Solvent Cement).
+   * `ask_pralon` = lini produk Pralon yang belum ada di data katalog (Solvent Cement);
+   * `built_on_site` = dikerjakan di lapangan (bak kontrol), tidak ada produk yang menggantikannya.
    */
-  readonly availability?: 'not_in_catalog' | 'ask_pralon';
+  readonly availability?: 'not_in_catalog' | 'ask_pralon' | 'built_on_site';
 }
 
 export interface BoqSection {
@@ -105,7 +106,13 @@ export function boqFrom(recommendation: {
     // Status hanya untuk baris TANPA SKU; kelas fitting yang belum terverifikasi dicatat di tab Produk.
     const availability =
       productName === undefined
-        ? { availability: item.askPralon ? ('ask_pralon' as const) : ('not_in_catalog' as const) }
+        ? {
+            availability: item.onSite
+              ? ('built_on_site' as const)
+              : item.askPralon
+                ? ('ask_pralon' as const)
+                : ('not_in_catalog' as const),
+          }
         : {};
     if (item.pending) {
       return {

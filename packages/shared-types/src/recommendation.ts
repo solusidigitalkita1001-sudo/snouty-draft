@@ -234,6 +234,11 @@ export interface BomItem {
    */
   readonly askPralon?: true;
   /**
+   * Dikerjakan di lapangan, bukan barang yang dibeli (bak kontrol): BOQ tidak menyuruh mencari
+   * produk setara, karena tidak ada produk apa pun yang menggantikannya.
+   */
+  readonly onSite?: true;
+  /**
    * Panjang batang dan sisa potong yang dipakai menghitung baris pipa ini — supaya baris ber-SKU
    * sama bisa digabung lalu dibulatkan SEKALI (review putaran 3, 4a), bukan dijumlah per peran.
    */

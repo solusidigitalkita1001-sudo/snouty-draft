@@ -123,6 +123,8 @@ describe('inspectionChamberRows', () => {
       ['waste', 'Bak kontrol', 3, 'pcs'],
     ]);
     expect(rows[0]).not.toHaveProperty('productId');
+    // Bukan "pakai produk setara": tidak ada produk yang menggantikan pasangan bata di lapangan.
+    expect(rows.every((r) => r.onSite === true)).toBe(true);
     // Alasan sama seperti stop kran: tanpa produk, yang tampil di BOQ hanya peruntukannya.
     expect(rows.map((r) => r.purpose)).toEqual([
       'Bak kontrol jalur air kotor',

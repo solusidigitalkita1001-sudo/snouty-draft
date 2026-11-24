@@ -305,6 +305,7 @@ export const REPORT_V2_COPY: Readonly<Record<Locale, ReportV2Copy>> = {
     availability: {
       not_in_catalog: 'Tidak tersedia di katalog Pralon, gunakan produk setara',
       ask_pralon: 'Solvent Cement Pralon, tanyakan ketersediaannya ke tim Pralon',
+      built_on_site: 'Pekerjaan pasangan di lapangan, bukan barang katalog',
     },
     pendingPipe: 'Menunggu ukuran bangunan',
     pendingFitting: 'Dihitung saat pemasangan',
@@ -404,6 +405,7 @@ export const REPORT_V2_COPY: Readonly<Record<Locale, ReportV2Copy>> = {
     availability: {
       not_in_catalog: 'Not in the Pralon catalogue, use an equivalent product',
       ask_pralon: 'Pralon Solvent Cement, ask the Pralon team about availability',
+      built_on_site: 'Built on site in masonry, not a catalogue item',
     },
     pendingPipe: 'Needs the building size',
     pendingFitting: 'Counted at installation',

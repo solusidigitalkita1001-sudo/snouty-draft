@@ -299,6 +299,9 @@ export function inspectionChamberRows(
       size: '—',
       quantity,
       unit: 'pcs',
+      // Pasangan bata di lapangan: tidak ada produk katalog yang menggantikannya, jadi barisnya
+      // tidak boleh menyuruh mencari produk setara.
+      onSite: true,
       basis: `${method}: ${working}.`,
       calc: { method, working, result: working },
       provenance: provenanceFor(traces, ids),
