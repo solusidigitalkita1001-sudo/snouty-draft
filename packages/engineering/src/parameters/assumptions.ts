@@ -143,13 +143,13 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     unit: 'pcs',
     conditionEn: 'a kitchen discharges into the shared grey-water line',
     descriptionEn:
-      'One grease trap per kitchen, before the kitchen waste meets the shared line. Its volume is worked out from the kitchen discharge flow and the retention time, and both numbers are still with Pralon (OQ-101).',
+      'One grease trap per kitchen, before the kitchen waste meets the shared line. Its volume follows the kitchen discharge flow and the retention time, and neither number has been settled yet.',
     reference:
       'Praktik umum pemasangan, jumlahnya disetujui pemilik 2026-11-24; volumenya menunggu debit buangan dapur dan waktu tinggal dari Pralon (OQ-101)',
     confidence: 'low',
     confirmationRequired: true,
     description:
-      'Satu grease trap per dapur, sebelum buangan dapur bertemu jalur bersama. Ukuran dan volumenya tidak dihitung di sini (OQ-101).',
+      'Satu grease trap per dapur, sebelum buangan dapur bertemu jalur bersama. Volumenya mengikuti debit buangan dapur dan waktu tinggalnya, dan kedua angka itu belum ada.',
   },
   {
     id: 'INSPECTION_CHAMBER_SPACING_10M',
