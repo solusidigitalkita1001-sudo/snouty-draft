@@ -29,6 +29,20 @@ describe('ParameterRegistry', () => {
   });
 });
 
+/**
+ * Nilai yang sudah disetujui pemilik (24 Nov 2026, OQ-99/OQ-100/OQ-102): kartu konfirmasinya
+ * berhenti muncul, tetapi aturan yang memakainya tetap REQUIRES_DOMAIN_VALIDATION — jadi nilai
+ * yang keluar dari jalur itu tetap bukan VERIFIED.
+ */
+const OWNER_APPROVED = [
+  'WSFU_CLOTHES_WASHER_4',
+  'DFU_CLOTHES_WASHER_3',
+  'DFU_FLOOR_DRAIN_2',
+  'ROOF_TANK_FILL_TIME_1H',
+  'GROUND_TANK_SUCTION_LIFT_1_5M',
+  'DRAIN_NEAR_CAPACITY_75PCT',
+];
+
 describe('EngineeringAssumptionRegistry', () => {
   it('ID unik, setiap asumsi punya rujukan dan deskripsi, parameter terdaftar', () => {
     const ids = ASSUMPTIONS.map((a) => a.id);
@@ -37,7 +51,17 @@ describe('EngineeringAssumptionRegistry', () => {
       expect(a.reference.length).toBeGreaterThan(5);
       expect(a.description.length).toBeGreaterThan(10);
       expect(isParameterKey(a.parameter)).toBe(true);
-      expect(a.confirmationRequired).toBe(true); // belum ada yang divalidasi
+      // Yang belum disetujui pemilik tetap menunggu konfirmasi.
+      expect(a.confirmationRequired).toBe(!OWNER_APPROVED.includes(a.id));
+    }
+  });
+
+  it('nilai yang disetujui pemilik menyebut persetujuannya di rujukannya', () => {
+    for (const id of OWNER_APPROVED) {
+      const found = ASSUMPTIONS.find((a) => a.id === id)!;
+      expect(found, id).toBeDefined();
+      expect(found.reference, id).toContain('2026-11-24');
+      expect(found.confidence, id).not.toBe('low');
     }
   });
 

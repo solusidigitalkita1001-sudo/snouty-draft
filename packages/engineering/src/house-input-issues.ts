@@ -45,7 +45,8 @@ export const MIN_FLOOR_AREA_PER_BATHROOM_M2 = 2;
 /**
  * Jumlah lantai terbanyak yang masih dibaca sebagai rumah tinggal tanpa ditanya (permintaan
  * pemilik di smoke test 13 Nov 2026: "minta konfirmasi di atas ±4 lantai"). Di atasnya bukan
- * ditolak — ditanya sekali, lalu dihitung dengan jawabannya. Angkanya menunggu validasi: OQ-97.
+ * ditolak — ditanya sekali, lalu dihitung dengan jawabannya. Angkanya tetap 4 atas keputusan
+ * pemilik 2026-11-24 (OQ-97 ditutup): rumah 5 lantai ada, tetapi ia layak satu pertanyaan.
  */
 export const MAX_RESIDENTIAL_FLOORS = 4;
 

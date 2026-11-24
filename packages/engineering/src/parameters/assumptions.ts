@@ -110,13 +110,13 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     unit: '%',
     conditionEn: 'drain capacity use still considered comfortable',
     descriptionEn:
-      'A drain line loaded above 75 % of its tabulated capacity is within the code but has little margin, so it is said out loud. Whether to go up a size there is the Pralon team decision (OQ-102).',
+      'A drain line loaded above 75 % of its tabulated capacity is within the code but has little margin, so it is said out loud. The size is not raised: that would change the material someone buys, and it is an engineering decision (owner decision 2026-11-24).',
     reference:
-      'Usulan pemilik 13 Nov 2026 (smoke test, temuan 13); naik-tidaknya ukuran perlu validasi Pralon (OQ-102)',
-    confidence: 'low',
-    confirmationRequired: true,
+      'Keputusan pemilik 2026-11-24 (OQ-102): batas 75 % dipakai untuk mengatakan tipisnya cadangan, ukurannya tidak dinaikkan otomatis',
+    confidence: 'medium',
+    confirmationRequired: false,
     description:
-      'Jalur pembuangan yang bebannya di atas 75 % kapasitas tabel masih lolos kode tetapi tanpa banyak cadangan, jadi hal itu dikatakan. Naik-tidaknya ukuran di situ keputusan Pralon (OQ-102).',
+      'Jalur pembuangan yang bebannya di atas 75 % kapasitas tabel masih lolos kode tetapi tanpa banyak cadangan, jadi hal itu dikatakan. Ukurannya tidak dinaikkan: itu mengubah material yang dibeli orang, dan itu keputusan teknik (keputusan pemilik 2026-11-24).',
   },
   // ── Tujuan air bekas dan grease trap (smoke test 13 Nov 2026, temuan 10) ──
   {
@@ -160,9 +160,10 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     unit: 'jam',
     conditionEn: 'time for the transfer pump to fill the roof tank not specified',
     descriptionEn: 'The transfer pump is taken to fill the roof tank in one hour.',
-    reference: 'Praktik umum pemasangan rumah; perlu validasi tim teknis Pralon (OQ-100)',
-    confidence: 'low',
-    confirmationRequired: true,
+    reference:
+      'Praktik umum pemasangan rumah, disetujui pemilik 2026-11-24 (OQ-100); aturan yang memakainya tetap menunggu validasi ahli domain',
+    confidence: 'medium',
+    confirmationRequired: false,
     description: 'Pompa transfer dianggap mengisi toren atap dalam satu jam.',
   },
   {
@@ -175,9 +176,10 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     conditionEn: 'water level in the ground tank below the transfer pump not known',
     descriptionEn:
       'The water level in the ground tank is taken to sit 1.5 m below the transfer pump, so the pump lifts that much before it starts pushing.',
-    reference: 'Perkiraan tandon bawah tanam rumah; perlu validasi tim teknis Pralon (OQ-100)',
-    confidence: 'low',
-    confirmationRequired: true,
+    reference:
+      'Perkiraan tandon bawah tanam rumah, disetujui pemilik 2026-11-24 (OQ-100); aturan yang memakainya tetap menunggu validasi ahli domain',
+    confidence: 'medium',
+    confirmationRequired: false,
     description:
       'Muka air tandon bawah dianggap 1,5 m di bawah pompa transfer, jadi pompa mengangkat sejauh itu sebelum mendorong ke atas.',
   },
@@ -1054,8 +1056,9 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
   },
   {
     // Mesin cuci baru bisa diinput sejak smoke test 13 Nov 2026 (temuan 9). Beban suplainya jauh
-    // di atas keran biasa: ia mengisi bak sendiri dengan keran terbuka penuh. Menunggu konfirmasi
-    // tim teknis Pralon — OQ-99.
+    // di atas keran biasa: ia mengisi bak sendiri dengan keran terbuka penuh. Angka UPC-nya
+    // disetujui pemilik 2026-11-24 (OQ-99 ditutup); aturannya tetap REQUIRES_DOMAIN_VALIDATION,
+    // jadi nilai yang keluar dari jalur ini tetap bukan VERIFIED.
     id: 'WSFU_CLOTHES_WASHER_4',
     parameter: 'design_flow',
     appliesTo: [],
@@ -1064,10 +1067,11 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     unit: 'WSFU',
     conditionEn: 'domestic clothes washer supply load',
     descriptionEn: 'Each washing machine counts as 4 supply units.',
-    reference: 'UPC Tabel A 103.1, pemakaian pribadi: mesin cuci (clothes washer) 4,0',
+    reference:
+      'UPC Tabel A 103.1, pemakaian pribadi: mesin cuci (clothes washer) 4,0; disetujui pemilik 2026-11-24 (OQ-99)',
     standard: 'UPC Table A 103.1',
-    confidence: 'low',
-    confirmationRequired: true,
+    confidence: 'medium',
+    confirmationRequired: false,
     description: 'Tiap mesin cuci dihitung 4 unit beban suplai.',
   },
   {
@@ -1526,8 +1530,8 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     description: 'Tiap bak cuci dapur dihitung 2 unit beban pembuangan.',
   },
   // Alat yang baru bisa diinput (smoke test 13 Nov 2026, temuan 9). Angkanya dikutip dari UPC
-  // seperti beban alat lain di atas; dokumen UPC-nya sendiri tidak ada di repositori ini, jadi
-  // ketiganya `confidence: 'low'` dan menunggu konfirmasi tim teknis Pralon — OQ-99.
+  // seperti beban alat lain di atas, dan dipakai apa adanya atas persetujuan pemilik 2026-11-24
+  // (OQ-99). Aturan yang memakainya tetap REQUIRES_DOMAIN_VALIDATION.
   {
     id: 'DFU_CLOTHES_WASHER_3',
     parameter: 'design_flow',
@@ -1537,10 +1541,11 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     unit: 'DFU',
     conditionEn: 'domestic clothes washer drainage load',
     descriptionEn: 'Each washing machine counts as 3 drainage units through its 2" standpipe.',
-    reference: 'UPC Tabel 702.1 (mesin cuci rumah dengan standpipe 2": 3 DFU)',
+    reference:
+      'UPC Tabel 702.1 (mesin cuci rumah dengan standpipe 2": 3 DFU); disetujui pemilik 2026-11-24 (OQ-99)',
     standard: 'UPC Table 702.1',
-    confidence: 'low',
-    confirmationRequired: true,
+    confidence: 'medium',
+    confirmationRequired: false,
     description: 'Tiap mesin cuci dihitung 3 unit beban pembuangan lewat standpipe 2".',
   },
   {
@@ -1552,10 +1557,11 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     unit: 'DFU',
     conditionEn: 'drainage load of a floor drain outside the bathroom (balcony, laundry)',
     descriptionEn: 'Each balcony or laundry floor drain counts as 2 drainage units (2" outlet).',
-    reference: 'UPC Tabel 702.1 (floor drain dengan keluaran 2": 2 DFU)',
+    reference:
+      'UPC Tabel 702.1 (floor drain dengan keluaran 2": 2 DFU); disetujui pemilik 2026-11-24 (OQ-99)',
     standard: 'UPC Table 702.1',
-    confidence: 'low',
-    confirmationRequired: true,
+    confidence: 'medium',
+    confirmationRequired: false,
     description:
       'Tiap floor drain balkon atau ruang cuci dihitung 2 unit beban pembuangan (keluaran 2").',
   },
