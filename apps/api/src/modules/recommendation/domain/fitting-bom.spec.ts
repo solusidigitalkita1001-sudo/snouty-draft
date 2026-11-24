@@ -65,6 +65,9 @@ describe('supplyFittingNeeds + fittingBomRows', () => {
     expect(valves.traceIds.length).toBeGreaterThan(0);
     // Tanpa SKU: Pralon tidak menjual stop kran, jadi barisnya berjumlah tanpa produk.
     expect(valves).not.toHaveProperty('productId');
+    // BOQ menampilkan peruntukan, bukan nama barang, untuk baris tanpa produk — jadi namanya
+    // harus ada di peruntukannya, kalau tidak pembaca tidak tahu apa yang dibeli.
+    expect(valves.purpose).toContain('Stop kran');
   });
 
   it('baris tanpa angka yang tersisa untuk air bersih hanya lem', () => {
@@ -120,6 +123,11 @@ describe('inspectionChamberRows', () => {
       ['waste', 'Bak kontrol', 3, 'pcs'],
     ]);
     expect(rows[0]).not.toHaveProperty('productId');
+    // Alasan sama seperti stop kran: tanpa produk, yang tampil di BOQ hanya peruntukannya.
+    expect(rows.map((r) => r.purpose)).toEqual([
+      'Bak kontrol jalur air kotor',
+      'Bak kontrol jalur air bekas',
+    ]);
     expect(rows[0]!.basis).toContain('setiap 10 m jalur mendatar');
     expect(rows[0]!.traceIds.length).toBeGreaterThan(0);
   });

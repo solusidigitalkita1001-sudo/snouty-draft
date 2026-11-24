@@ -174,7 +174,9 @@ export function stopValveRow(
   return {
     item: en ? 'Stop valve' : 'Stop kran',
     system: 'clean_water',
-    purpose: en ? 'Shutting off the house and each floor' : 'Mematikan air rumah dan tiap lantai',
+    // Peruntukan ikut menyebut barangnya: baris tanpa SKU hanya menampilkan peruntukan di BOQ,
+    // jadi tanpa namanya pembaca tidak tahu apa yang harus dibeli.
+    purpose: en ? 'Stop valve for the house and each floor' : 'Stop kran rumah dan tiap lantai',
     size: solution.mainSize,
     quantity,
     unit: 'pcs',
@@ -292,9 +294,8 @@ export function inspectionChamberRows(
     return {
       item: en ? 'Inspection chamber' : 'Bak kontrol',
       system,
-      purpose: en
-        ? `Reaching a blockage on the ${name.en} line`
-        : `Menjangkau sumbatan jalur ${name.id}`,
+      // Namanya ikut di peruntukan: baris ini tanpa SKU, dan di BOQ yang tampil peruntukannya.
+      purpose: en ? `Inspection chamber on the ${name.en} line` : `Bak kontrol jalur ${name.id}`,
       size: '—',
       quantity,
       unit: 'pcs',
