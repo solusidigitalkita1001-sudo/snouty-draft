@@ -1592,8 +1592,8 @@ yang sebelumnya terlalu tinggi.
 
 ### OQ-96 — Tekanan kerja pipa per kelas tidak ada di data mana pun (P37, 2026-11-13)
 
-**Status:** open · **Blocks:** cek tekanan vs kelas pipa (ENG-712) hanya setengah jalan ·
-_non-blocking_
+**Status:** diputuskan 2026-11-24 (pemilik: batas statik dulu, HDPE disambungkan) ·
+**Dikerjakan:** P40-01 · **Menunggu:** tekanan kerja (bar) tiap kelas uPVC dari Pralon
 
 Smoke test 13 Nov 2026 (temuan 4) meminta tekanan kerja sistem dibandingkan dengan rating pipa
 yang dipilih, "diambil dari katalog atau data standar, jangan hardcode". Keduanya diperiksa:
@@ -1615,9 +1615,18 @@ dokumen sumbernya, lalu masukkan sebagai data standar seperti tabel tebal dindin
 pembandingnya tetap batas statik per zona. HDPE bisa dihubungkan lebih dulu dari pemetaan SDR → PN
 yang sudah ada.
 
+**Keputusan pemilik 2026-11-24: batas statik dulu, HDPE disambungkan sekarang.** Dikerjakan di
+P40-01. ENG-714 membandingkan tekanan kerja jalur bertekanan dengan tekanan kerja pipanya: untuk
+HDPE angkanya nyata (PE100 SDR 17 = PN 10 menurut standar PE100 Pralon), jadi jalur yang head-nya
+di atas kelas pipanya dikatakan melebihi. Untuk uPVC pembandingnya tetap `null` dan kalimatnya
+berbunyi "tekanan kerja pipanya belum tercatat" — di jalur rumah pembandingnya tetap batas statik
+per zona (ENG-712, tidak berubah). Yang masih ditunggu dari Pralon: tekanan kerja (bar) tiap kelas
+uPVC (AW, D, C) beserta dokumen sumbernya; begitu ada, ia masuk sebagai data standar dan kedua
+jalur memakai angka itu.
+
 ### OQ-97 — Batas jumlah lantai yang masih dibaca rumah tinggal (P37, 2026-11-13)
 
-**Status:** open · **Blocks:** tidak ada · _non-blocking_
+**Status:** diputuskan 2026-11-24 (pemilik: tetap 4 lantai) · **Blocks:** —
 
 Smoke test 13 Nov 2026 (temuan 4): rumah tinggal 50 lantai dihitung tanpa pertanyaan apa pun.
 Permintaannya "pertimbangkan batas wajar `building.floors` untuk `residential` (minta konfirmasi di
@@ -1631,9 +1640,13 @@ ditanya hanya `residential` dan `boarding_house`.
 **Usulan default:** pertahankan 4 sampai Pralon menyebut angka lain. Rumah tinggal 5 lantai ada,
 tetapi ia layak satu pertanyaan; dan kos bertingkat tinggi biasanya bukan rumah tinggal lagi.
 
+**Keputusan pemilik 2026-11-24: tetap 4 lantai.** Tidak ada perubahan perilaku; angkanya tidak
+lagi menunggu validasi, dan alasannya dicatat di `MAX_RESIDENTIAL_FLOORS`.
+
 ### OQ-98 — Jumlah dop, stop kran, dan lem tidak pernah dihitung (P37, 2026-11-13)
 
-**Status:** open · **Blocks:** empat baris BOQ tetap tanpa angka · _non-blocking_
+**Status:** diputuskan 2026-11-24 (pemilik: dop & stop kran dihitung, lem menunggu) ·
+**Dikerjakan:** P40-02 · **Menunggu:** jumlah sambungan per kaleng lem dari Pralon
 
 Smoke test 13 Nov 2026 (temuan 6): "banyak baris BOM `quantity: 0` (Dop, Stop kran, Lem, Sok
 4"/2") tercetak '—' … padahal ukuran bangunan sudah ada". Yang diperiksa setelah itu:
@@ -1663,20 +1676,35 @@ keterangan "Menunggu ukuran bangunan", dan keterangan itu salah bila ukurannya m
 disebut. Setelah aturan di atas ada, baris-baris itu punya angka dan keterangannya tidak terpakai
 lagi.
 
+**Keputusan pemilik 2026-11-24: dop dan stop kran dihitung, lem tetap menunggu.** Dikerjakan di
+P40-02. ENG-715 menghitung dop dari ujung mati jalur — satu per cabang, ditambah ujung pipa utama
+bila ia tidak masuk ke cabang terakhir lewat elbow (ENG-708 v2) — dan stop kran satu di pipa utama
+setelah sumber ditambah satu per lantai di atas lantai satu. Keduanya dari susunan jalur, bukan
+dari jumlah titik air, jadi angkanya ada bahkan sebelum ukuran bangunan disebut. Dop dikelompokkan
+per ukuran (satu ukuran = satu SKU); stop kran berjumlah tanpa SKU karena Pralon tidak menjualnya.
+Dop jalur pembuangan tetap tanpa angka: ujung matinya ditutup clean out dan topi ventilasi yang
+sudah dihitung. Yang masih ditunggu dari Pralon: berapa sambungan yang ditutup satu kaleng lem,
+per ukuran kaleng yang dijual.
+
+Catatan tampilannya ikut dibetulkan: baris yang belum berangka sekarang menyebut apa yang kurang.
+Baris "Pipa cabang" pada penambahan titik air dulu berbunyi "Menunggu ukuran bangunan" padahal
+ukuran bangunannya sudah disebut dan yang kurang adalah jarak titik baru dari pipa lama.
+
 ### OQ-99 — Beban mesin cuci, floor drain, dan jalur air panas (P37, 2026-11-13)
 
-**Status:** open · **Blocks:** tidak · _non-blocking_
+**Status:** diputuskan 2026-11-24 (pemilik: angka UPC disetujui, air panas dicatat saja) ·
+**Dikerjakan:** P40-03 · **Blocks:** —
 
 Smoke test 13 Nov 2026 (temuan 9): mesin cuci, keran taman, water heater, dan floor drain balkon
 tidak bisa diinput sama sekali, dan "ada mesin cuci dan keran taman" di chat hilang tanpa disebut.
 Keempatnya sekarang bisa diinput, terbaca dari chat, dan bisa dikoreksi di panel. Tiga angka
 bebannya yang perlu tanda tangan Pralon:
 
-| Angka | Nilai yang dipakai | Acuan |
-| --- | --- | --- |
-| Beban suplai mesin cuci | 4 WSFU | UPC Tabel A 103.1, *clothes washer* |
-| Beban buangan mesin cuci | 3 DFU | UPC 702.1, *standpipe* 2" |
-| Beban buangan floor drain | 2 DFU | UPC 702.1, *floor drain* 2" |
+| Angka                     | Nilai yang dipakai | Acuan                               |
+| ------------------------- | ------------------ | ----------------------------------- |
+| Beban suplai mesin cuci   | 4 WSFU             | UPC Tabel A 103.1, _clothes washer_ |
+| Beban buangan mesin cuci  | 3 DFU              | UPC 702.1, _standpipe_ 2"           |
+| Beban buangan floor drain | 2 DFU              | UPC 702.1, _floor drain_ 2"         |
 
 Ketiganya masuk registry asumsi dengan `confidence: 'low'` dan `confirmationRequired: true`, dan
 aturan yang memakainya (ENG-001 v6, ENG-008 v4, ENG-601 v3, ENG-701 v3, ENG-707 v4) tetap
@@ -1696,23 +1724,32 @@ aturan yang memakainya (ENG-001 v6, ENG-008 v4, ENG-601 v3, ENG-701 v3, ENG-707 
 Yang ditanyakan ke Pralon: ketiga angka beban di atas, dan apakah jalur air panas perlu dihitung
 SNOUTY atau selalu mengikuti ketentuan pemanasnya.
 
+**Keputusan pemilik 2026-11-24: angka UPC disetujui apa adanya, jalur air panas tetap dicatat
+saja.** Dikerjakan di P40-03. Ketiga nilai (4 WSFU, 3 DFU, 2 DFU) tidak lagi `confirmationRequired`
+dan rujukannya menyebut persetujuan itu; aturan yang memakainya tetap
+`REQUIRES_DOMAIN_VALIDATION`, jadi nilai yang keluar dari jalur ini tetap bukan `VERIFIED`. Sisi
+air dingin water heater tetap terhitung, jalur air panasnya tidak dihitung, dan hal itu dikatakan
+di balasan.
+
 ### OQ-100 — Debit dan head pompa transfer tandon bawah → toren atap (P37, 2026-11-13)
 
-**Status:** open · **Blocks:** tidak · _non-blocking_
+**Status:** diputuskan 2026-11-24 (pemilik: 1 jam & 1,5 m disetujui, tanpa daya pompa) ·
+**Dikerjakan:** P40-03 · **Blocks:** —
 
 Smoke test 13 Nov 2026 (temuan 9): susunan perumahan yang paling lazim, PDAM → tandon bawah →
 pompa transfer → toren atap, tidak bisa dinyatakan sama sekali. Sekarang bisa, dan pompanya keluar
 dengan dua angka (ENG-713, `REQUIRES_DOMAIN_VALIDATION`): debit dan head minimal.
 
 Head-nya fisika yang bisa diperiksa: angkat isap dari muka air tandon bawah + tinggi muka air toren
-+ kehilangan gesek Hazen-Williams di pipa pengisi + kehilangan sambungan, pada debit pengisiannya.
-Tanpa margin — margin pompa adalah pilihan pemasang, bukan angka yang boleh dikarang di sini. Dua
-angka masukannya yang perlu tanda tangan Pralon:
 
-| Angka | Nilai yang dipakai | Dasar |
-| --- | --- | --- |
-| Lama pengisian toren atap oleh pompa transfer | 1 jam | Praktik umum pemasangan rumah |
-| Muka air tandon bawah di bawah pompa | 1,5 m | Perkiraan tandon tanam rumah |
+- kehilangan gesek Hazen-Williams di pipa pengisi + kehilangan sambungan, pada debit pengisiannya.
+  Tanpa margin — margin pompa adalah pilihan pemasang, bukan angka yang boleh dikarang di sini. Dua
+  angka masukannya yang perlu tanda tangan Pralon:
+
+| Angka                                         | Nilai yang dipakai | Dasar                         |
+| --------------------------------------------- | ------------------ | ----------------------------- |
+| Lama pengisian toren atap oleh pompa transfer | 1 jam              | Praktik umum pemasangan rumah |
+| Muka air tandon bawah di bawah pompa          | 1,5 m              | Perkiraan tandon tanam rumah  |
 
 **Usulan default** (dipakai sekarang, menunggu persetujuan):
 
@@ -1728,9 +1765,15 @@ angka masukannya yang perlu tanda tangan Pralon:
 Yang ditanyakan ke Pralon: kedua angka di atas, dan apakah pompa transfer perlu ditampilkan dengan
 daya (kW/HP) — itu butuh efisiensi pompa, yang belum ada acuannya.
 
+**Keputusan pemilik 2026-11-24: 1 jam dan 1,5 m disetujui, tanpa daya pompa.** Dikerjakan di
+P40-03. Kedua angka tidak lagi menunggu konfirmasi. Yang ditampilkan tetap debit dan head
+minimal; pemilihan pompa (margin, kurva, daya) di luar SNOUTY sampai ada acuan efisiensi pompa.
+
 ### OQ-101 — Ukuran grease trap, bak kontrol, dan spesifikasi IPAL (P37, 2026-11-13)
 
-**Status:** open · **Blocks:** tiga komponen pembuangan tampil tanpa ukuran · _non-blocking_
+**Status:** diputuskan 2026-11-24 (pemilik: bak kontrol + kapasitas IPAL dihitung, volume grease
+trap menunggu) · **Dikerjakan:** P40-04 · **Menunggu:** debit buangan dapur dan waktu tinggal
+grease trap dari Pralon
 
 Smoke test 13 Nov 2026 (temuan 10): rekomendasi pembuangan tidak pernah menyebut grease trap,
 IPAL/STP, maupun bak kontrol. Tujuan air bekas dan grease trap sudah masuk hitungan (ENG-606):
@@ -1755,9 +1798,27 @@ dan tiap dapur mendapat satu grease trap. Yang masih belum ada aturannya:
 Yang ditanyakan ke Pralon: volume grease trap per dapur (atau per debit), jarak antar bak kontrol,
 dan apakah kapasitas IPAL perlu dikeluarkan SNOUTY.
 
+**Keputusan pemilik 2026-11-24: bak kontrol dan kapasitas IPAL dihitung, volume grease trap
+menunggu.** Dikerjakan di P40-04.
+
+- **Bak kontrol** (ENG-607): satu di kaki pipa tegak — tempat jalur berubah arah dan paling mudah
+  tersumbat — lalu satu setiap 10 m sepanjang jalur mendatarnya (panjang bangunan + halaman).
+  Barisnya berjumlah tanpa SKU: bak kontrol pekerjaan pasangan di lapangan. Tanpa ukuran bangunan
+  tidak ada panjang jalur, jadi tidak ada barisnya sama sekali.
+- **Kapasitas IPAL** (ENG-419): dikeluarkan untuk jaringan air limbah, tempat jumlah jiwa memang
+  diketahui — volume harian dari debit rata-rata yang sudah dihitung (jiwa × pemakaian air ×
+  bagian yang kembali sebagai limbah). Jenis, proses, dan mereknya tetap di luar. Di jalur rumah
+  tunggal jumlah penghuninya tidak diketahui dan tidak ditebak, jadi IPAL di sana tetap hanya
+  tujuan air bekas.
+- **Volume grease trap**: dasarnya disepakati (debit buangan dapur × waktu tinggal), tetapi kedua
+  angkanya belum ada di data mana pun. ENG-606 v2 karena itu menyebut keduanya apa adanya:
+  grease trap-nya berjumlah, tanpa ukuran. Yang ditunggu dari Pralon: debit buangan dapur yang
+  dipakai untuk sizing dan waktu tinggalnya (menit).
+
 ### OQ-102 — Naik satu ukuran di atas 75 % kapasitas jalur pembuangan? (P37, 2026-11-13)
 
-**Status:** open · **Blocks:** tidak · _non-blocking_
+**Status:** diputuskan 2026-11-24 (pemilik: cukup dikatakan, ukuran tidak dinaikkan) ·
+**Blocks:** —
 
 Smoke test 13 Nov 2026 (temuan 13): jalur air bekas 2" dengan beban 7 DFU dari kapasitas 8 DFU
 (UPC Tabel 703.2) lolos kode, tetapi tanpa cadangan — satu alat tambahan melewatinya. Pemilik
@@ -1780,3 +1841,8 @@ material yang dibeli orang, dan itu keputusan teknik, bukan keputusan tampilan.
 Yang ditanyakan ke Pralon: apakah ukuran dinaikkan otomatis di atas 75 %, dan kalau ya, apakah
 batasnya 75 % atau angka lain (dan apakah berlaku untuk jalur air kotor juga, yang biasanya sudah
 ditentukan ukuran minimum kloset 4").
+
+**Keputusan pemilik 2026-11-24: cukup dikatakan, ukurannya tidak dinaikkan.** Batas 75 %
+(`DRAIN_NEAR_CAPACITY_75PCT`) tetap dipakai hanya untuk mengatakan tipisnya cadangan, dan nilainya
+tidak lagi menunggu konfirmasi. Menaikkan ukuran mengubah material yang dibeli orang, jadi itu
+keputusan teknik Pralon, bukan keputusan tampilan.

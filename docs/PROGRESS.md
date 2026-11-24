@@ -5964,3 +5964,75 @@ tetap hijau selama semuanya ada.
       pelanggan yang ditugaskan ke Anda, urut prioritas" yang memuat prospek milik sales lain,
       tanpa satu pun jalan kembali ke papan yang baru ditinggalkan. Judulnya kini mengikuti
       isinya, dan ada tautan kembali ke papan.
+
+## Fase 40 — tujuh keputusan pemilik dari ronde smoke 13 Nov dijawab (24 Nov 2026)
+
+OQ-96 sampai OQ-102 diajukan satu per satu sebagai pilihan dan diputuskan pemilik pada 24 Nov 2026.
+Empat di antaranya menambah atau mengubah perhitungan; tiga sisanya mengesahkan nilai yang sudah
+dipakai. Yang tidak berubah: aturan yang memakai nilai-nilai itu tetap
+`REQUIRES_DOMAIN_VALIDATION`, jadi tidak ada hasil baru yang menjadi `VERIFIED`.
+
+- [x] P40-01 Tekanan kerja jalur dibandingkan dengan kelas pipanya (OQ-96)
+
+      Head jalur bertekanan dihitung sejak fase 3, tetapi tidak pernah dibandingkan dengan kekuatan
+      pipa yang dipakai — pompa yang mendorong 130 m kolom air (12,7 bar) memecahkan pipa PN 10 dan
+      tidak ada satu kalimat pun tentang itu.
+
+      ENG-714 membandingkan keduanya. Untuk HDPE angkanya nyata: kelas SDR pipanya punya padanan PN
+      dalam bar (PE100 SDR 17 = PN 10, standar PE100 Pralon), jadi jalur yang di atas kelasnya
+      dikatakan melebihi, beserta sisa tekanannya bila masih aman. Untuk uPVC pembandingnya `null`:
+      katalog menyimpan nama kelas (AW, D, C) tanpa tekanan kerja, dan data standarnya memberi tebal
+      dinding saja — jadi kalimatnya berbunyi "tekanan kerja pipanya belum tercatat", bukan angka
+      karangan. Jalur rumah tetap memakai batas tekanan statik per zona (ENG-712, tidak berubah).
+
+- [x] P40-02 Dop dan stop kran dihitung; baris yang belum berangka menyebut apa yang kurang (OQ-98)
+
+      Empat baris BOQ tercetak '—' sejak 13 Okt 2026 karena "dihitung saat pemasangan". Sok sudah
+      dapat angka dari masukan Leo; dop dan stop kran belum.
+
+      ENG-715 menghitung keduanya dari susunan jalur, bukan dari jumlah titik air: dop satu per
+      ujung mati cabang, ditambah ujung pipa utama bila ia tidak masuk ke cabang terakhir lewat
+      elbow (ENG-708 v2), dikelompokkan per ukuran karena satu ukuran dipesan sebagai satu SKU;
+      stop kran satu di pipa utama setelah sumber ditambah satu per lantai di atas lantai satu.
+      Karena keduanya dari susunan jalur, angkanya ada bahkan sebelum ukuran bangunan disebut. Stop
+      kran berjumlah tanpa SKU — Pralon tidak menjualnya. Dop jalur pembuangan tetap tanpa angka:
+      ujung matinya ditutup clean out dan topi ventilasi yang sudah dihitung. Lem tetap menunggu
+      satu angka dari Pralon: berapa sambungan per kaleng.
+
+      Ikutannya: baris yang belum berangka kini menyebut apa yang kurang. "Pipa cabang" pada
+      penambahan titik air dulu berbunyi "Menunggu ukuran bangunan" padahal ukurannya sudah
+      disebut — yang kurang jarak titik baru dari pipa lama.
+
+- [x] P40-03 Beban alat, pompa transfer, dan batas 75 % disahkan (OQ-99, OQ-100, OQ-102, OQ-97)
+
+      Enam nilai yang dipakai sambil menunggu tanda tangan sekarang punya tanda tangan itu: mesin
+      cuci 4 WSFU (UPC Tabel A 103.1), mesin cuci 3 DFU dan floor drain 2 DFU (UPC Tabel 702.1),
+      lama pengisian toren 1 jam, muka air tandon bawah 1,5 m di bawah pompa, dan batas longgar
+      kapasitas pembuangan 75 %. Rujukan tiap nilai menyebut persetujuan 24 Nov 2026 dan kartu
+      konfirmasinya berhenti muncul; aturan yang memakainya tetap `REQUIRES_DOMAIN_VALIDATION`.
+
+      Tiga hal yang sengaja TIDAK berubah: jalur air panas tetap dicatat saja (sisi air dinginnya
+      terhitung, ukurannya tidak dihitung, dan itu dikatakan), pompa transfer tetap tanpa daya
+      (butuh efisiensi pompa yang belum ada acuannya), dan jalur pembuangan di atas 75 % kapasitas
+      tetap hanya dikatakan — menaikkan ukuran mengubah material yang dibeli orang. Batas lantai
+      rumah tinggal tetap 4.
+
+- [x] P40-04 Bak kontrol, kapasitas IPAL, dan apa yang kurang untuk volume grease trap (OQ-101)
+
+      Sisi pembuangan kehilangan tiga komponen. Dua di antaranya kini ada:
+
+      **Bak kontrol** (ENG-607): satu di kaki pipa tegak — tempat jalur berubah arah dari tegak ke
+      mendatar dan paling mudah tersumbat — lalu satu setiap 10 m sepanjang jalur mendatarnya
+      (panjang bangunan + halaman). Barisnya berjumlah tanpa SKU: bak kontrol pekerjaan pasangan di
+      lapangan, bukan barang katalog. Tanpa ukuran bangunan tidak ada panjang jalur, jadi tidak ada
+      barisnya sama sekali — bukan baris tanpa angka.
+
+      **Kapasitas IPAL** (ENG-419): jaringan air limbah tidak lagi berakhir di "IPAL" tanpa angka.
+      Volume harian yang harus bisa diolah diambil dari debit rata-rata yang sudah dihitung dari
+      jumlah jiwa, pemakaian air per orang, dan bagian yang kembali sebagai air limbah; jenis,
+      proses, dan mereknya tetap di luar. Di rumah tunggal jumlah penghuninya tidak diketahui dan
+      tidak ditebak, jadi IPAL di sana tetap hanya tujuan air bekas.
+
+      **Volume grease trap** tetap tidak dihitung, tetapi tidak lagi didiamkan: ENG-606 v2 menyebut
+      dua angka yang kurang — debit buangan dapur yang dipakai untuk sizing dan waktu tinggalnya.
+      Jumlah grease trap-nya tetap satu per dapur.

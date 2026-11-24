@@ -376,6 +376,8 @@ ENG-205  kandidat dari tabel nominal; status ok / too_fast (> 2 m/s) / high_loss
 ENG-206  P_hidraulik = ρ·g·Q·H ; daya poros = P ÷ η_pompa (η 0,6) ; beda tekanan = H ÷ 10,197
          daya masuk motor TIDAK dihitung (efisiensi motor dan cadangan dari pabrikan) — v2, audit C3
 ENG-207  kerugian minor = ΣK · v²/2g dari DAFTAR fitting di jalur kritis (Fase 27)
+ENG-714  tekanan kerja jalur (TDH dalam bar) vs tekanan kerja pipanya; HDPE: PN dari kelas SDR
+         (PE100 SDR 17 = PN 10), uPVC: `null` → "belum tercatat", tidak dibandingkan (OQ-96)
 ```
 
 #### ENG-207 · Kerugian minor dari daftar fitting (Fase 27, masukan Leo 2026-10-22)
@@ -447,6 +449,9 @@ ENG-412  air limbah, aliran sebagian (Manning segmen lingkaran): d/D dan v pada 
          d/D ≤ 0,8; S_min ≈ S × (0,6 ÷ v)²
 ENG-413  profil air limbah: manhole = ⌈L ÷ 50 m⌉ + 1; penurunan = L × S; galian akhir = 1 m + penurunan; > 4 m →
          stasiun pompa angkat / jalur dipecah
+ENG-419  kapasitas IPAL (OQ-101): volume harian = Q_limbah rata-rata × 86 400 ÷ 1000, disebut
+         bersama jumlah jiwa yang dilayani; jenis/proses/merek IPAL di luar perhitungan.
+         Debit diberikan langsung tanpa jumlah jiwa → `null`
 ENG-414  SPAM (audit PDAM): pipa induk + N cabang seragam — Q_induk = Q_puncak, Q_cabang = Q_puncak ÷ N, SR/cabang =
          ⌈SR ÷ N⌉, panjang cabang = 50 % induk (asumsi); N tidak disebut → satu pipa bertanda "topologi diasumsikan"
 ENG-415  head titik kritis = statis + Σ kehilangan (induk + satu cabang terjauh, diameter dalam aktual) + tekanan sisa
@@ -532,6 +537,8 @@ ENG-604  bangunan ≥ 2 lantai: cabang mendatar lantai terberat dan pipa tegak (
 ENG-603  perkiraan panjang (hanya bila ukuran rumah diketahui, OQ-60): air kotor = sisi terpanjang
          + tinggi lantai × (lantai − 1); air bekas = sisi terpanjang; ventilasi = lantai × tinggi
          lantai + 1 m di atas atap (HOUSE_VENT_ABOVE_ROOF_1M)
+ENG-607  bak kontrol: 1 di kaki pipa tegak + 1 setiap INSPECTION_CHAMBER_SPACING_10M sepanjang
+         jalur mendatar (bangunan + halaman); tanpa panjang jalur → `null`, tidak ada baris (OQ-101)
 ENG-605  fitting pembuangan (P18-01, keputusan pemilik 2026-10-13, OQ-63): per jalur di ukuran
          jalurnya — Y-branch = alat × FITTING_DRAIN_Y_PER_FIXTURE_1 + (lantai − 1) ×
          FITTING_STACK_Y_PER_UPPER_FLOOR_1; elbow 45° = FITTING_STACK_BASE_ELBOW45_2 per pipa tegak;
@@ -559,6 +566,10 @@ Kel. F   ukuran pipa utama dari kecepatan ≤ 2 m/s dan kehilangan ≤ batas; to
          kehilangan = (beda tinggi − 0,3 bar) ÷ jalur, supaya titik tertinggi tetap ≥ 0,3 bar
 ENG-703  tekanan dari toren di titik tertinggi; < 0,3 bar → pompa pendorong / toren lebih tinggi
          PDAM: tekanan yang dibutuhkan di meteran = TDH; toren bawah/pompa: titik kerja pompa
+ENG-715  dop dan stop kran (OQ-98, keputusan pemilik 2026-11-24): dop = 1 per ujung mati cabang
+         (+ ujung pipa utama bila ia tidak masuk ke cabang terakhir lewat elbow), dikelompokkan per
+         ukuran; stop kran = 1 di pipa utama setelah sumber + 1 per lantai di atas lantai satu.
+         Dari susunan jalur, bukan dari jumlah titik air — jadi berangka tanpa ukuran bangunan
 ENG-707  isi tiap cabang (laporan 0009): titik tiap lantai diisi ke cabang berurutan — kamar mandi
          (tidak dipisah), wastafel, bak cuci dapur, keran tambahan — maks 4 titik; beban cabang =
          jumlah WSFU isinya
@@ -581,6 +592,9 @@ ENG-702 v3 (review putaran 3): sumber sumur menambah kedalaman muka air (water.w
 ENG-703 v2 (review putaran 3): bila tekanan toren kurang, dudukan minimum = dudukan + (tinggi 0,3 bar +
          kehilangan − beda tinggi), dibulatkan ke atas per 0,5 m; heightShort bila beda tinggi < tinggi 0,3 bar.
          boosterPumpNeeded hanya dari aturan ini; pompa sumber (sumur, toren bawah) = sourcePumped.
+ENG-606 v2 (OQ-101, keputusan pemilik 2026-11-24): jumlah grease trap tetap satu per dapur, dan
+kalimatnya menyebut dua angka yang kurang untuk volumenya — debit buangan dapur dan waktu tinggal.
+
 ENG-605 v2 (review putaran 3): Y = jumlah alat (cabang lantai atas masuk pipa tegak lewat Y alatnya);
          elbow 45° kaki pipa tegak hanya bila > 1 lantai; + sambungan ventilasi dan topi ventilasi per jalur.
 ENG-710  tekanan di meteran untuk mengisi toren atap = muka air toren + gesek pipa pengisi + 10% sambungan pada
@@ -677,6 +691,10 @@ Cerminan dari tabel di `PROGRESS.md`; yang di `PROGRESS.md` adalah salinan kerja
 | ENG-416 | Mode sistem: gravitasi/PDAM/booster/pompa                | audit PDAM     | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 | ENG-417 | Jumlah turunan talang dari sisi atap                     | OQ-86          | REQUIRES_DOMAIN_VALIDATION | tinggi             |
 | ENG-418 | Limpasan atap dibagi per turunan talang                  | OQ-86          | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-419 | Kapasitas IPAL dari jiwa yang dilayani                   | OQ-101         | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-607 | Bak kontrol: kaki pipa tegak + tiap 10 m                 | OQ-101         | REQUIRES_DOMAIN_VALIDATION | sedang             |
+| ENG-714 | Tekanan kerja jalur vs kelas pipa                        | OQ-96          | REQUIRES_DOMAIN_VALIDATION | tinggi             |
+| ENG-715 | Dop per ujung mati, stop kran per lantai                 | OQ-98          | REQUIRES_DOMAIN_VALIDATION | sedang             |
 
 Bila waktu ahli terbatas, empat yang bertanda tinggi/tertinggi memberi hasil terbesar: ENG-002
 menentukan angka utama, ENG-001 dan ENG-012 memberinya masukan, ENG-011 menentukan apakah pompa perlu
