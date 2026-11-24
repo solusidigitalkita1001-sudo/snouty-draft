@@ -6,6 +6,7 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDatabase } from '../../../../test/mysql.js';
 import {
   conversations,
+  messages,
   technicalHandoffs,
   users,
 } from '../../../infrastructure/mysql/schema/index.js';
@@ -184,6 +185,44 @@ describe('antrean teknis di back-office', () => {
       email: 'teknis@example.test',
       phone: '+6281234567890',
     });
+  });
+
+  /**
+   * P39-03 — nama pengerjanya sudah tersimpan sejak kasusnya diambil, hanya tidak pernah ikut
+   * ke layar, sehingga "sedang dikerjakan" tidak memberi tahu siapa pun siapa yang memegangnya.
+   */
+  it('kasus yang diambil membawa nama pengerjanya', async () => {
+    const workerId = ulid();
+    await mysql.db
+      .insert(users)
+      .values({ id: workerId, email: 'teknik@example.test', passwordHash: 'x', name: 'Sari Dewi' });
+    const row = await repository.enqueue({
+      id: ulid(),
+      conversationId: await newConversation(),
+      reason: 'diambil',
+      captured: [],
+    });
+    await repository.setStatus(row.id, 'IN_REVIEW', workerId);
+
+    const [open] = await repository.listOpen();
+    expect(open?.assignee).toEqual({ name: 'Sari Dewi' });
+  });
+
+  /**
+   * P39-04 — kasus tanpa satu pun fakta terstruktur dulu tampil sebagai "pengguna belum
+   * menceritakan apa pun", padahal kalimatnya tersimpan utuh di percakapannya.
+   */
+  it('kalimat pelanggan ikut, urut waktu, dan jawaban SNOUTY tidak ikut', async () => {
+    const conversationId = await newConversation();
+    await mysql.db.insert(messages).values([
+      { id: ulid(), conversationId, role: 'user', text: 'limbah kimia dari bengkel' },
+      { id: ulid(), conversationId, role: 'assistant', text: 'Ini perlu tim teknis.' },
+      { id: ulid(), conversationId, role: 'user', text: 'pH asam, 5 kubik per hari' },
+    ]);
+    await repository.enqueue({ id: ulid(), conversationId, reason: 'limbah', captured: [] });
+
+    const [row] = await repository.listOpen();
+    expect(row?.said).toEqual(['limbah kimia dari bengkel', 'pH asam, 5 kubik per hari']);
   });
 
   it('kasus dari tamu tetap muncul, tanpa kontak', async () => {

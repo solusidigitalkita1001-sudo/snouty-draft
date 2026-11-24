@@ -60,7 +60,12 @@ function repo(): HandoffRepository {
   };
 }
 
-const withSubmitter = (row: HandoffRow): HandoffQueueRow => ({ ...row, submitter: null });
+const withSubmitter = (row: HandoffRow): HandoffQueueRow => ({
+  ...row,
+  submitter: null,
+  assignee: null,
+  said: [],
+});
 
 const conversations = { find: vi.fn(() => Promise.resolve({})) } as never;
 const snapshots = { current: vi.fn(() => Promise.resolve(null)) } as never;

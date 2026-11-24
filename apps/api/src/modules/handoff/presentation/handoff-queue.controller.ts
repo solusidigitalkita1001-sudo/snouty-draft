@@ -66,6 +66,8 @@ function itemDto(item: HandoffBoardItem) {
     captured: item.captured,
     status: item.status,
     submitter: item.submitter,
+    assignee: item.assignee,
+    said: item.said,
     createdAt: item.createdAt.toISOString(),
     dueAt: item.dueAt.toISOString(),
     resolvedAt: item.resolvedAt?.toISOString() ?? null,

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { KeyValue } from '@snouty/shared-types';
-import { and, asc, desc, eq, inArray, notInArray, type SQL } from 'drizzle-orm';
-import { conversations } from '../../../infrastructure/mysql/schema/conversation.js';
+import { aliasedTable, and, asc, desc, eq, inArray, notInArray, type SQL } from 'drizzle-orm';
+import { conversations, messages } from '../../../infrastructure/mysql/schema/conversation.js';
 import { users } from '../../../infrastructure/mysql/schema/identity.js';
 import { technicalHandoffs } from '../../../infrastructure/mysql/schema/recommendation.js';
 import { DatabaseService } from '../../../shared/database/database.service.js';
@@ -16,6 +16,12 @@ import {
 } from '../domain/handoff.repository.js';
 
 const DEFAULT_LIMIT = 50;
+
+/** Berapa kalimat pelanggan yang ikut dibawa satu kasus — cukup untuk mengerti perkaranya. */
+const SAID_PER_CASE = 4;
+
+/** Alias kedua atas `users`: yang satu pengirim kasusnya, yang satu lagi yang mengerjakannya. */
+const assignees = aliasedTable(users, 'assignees');
 
 @Injectable()
 export class MysqlHandoffRepository implements HandoffRepository {
@@ -79,23 +85,50 @@ export class MysqlHandoffRepository implements HandoffRepository {
     limit: number,
   ): Promise<readonly HandoffQueueRow[]> {
     const rows = await this.database.db
-      .select({ handoff: technicalHandoffs, user: users })
+      .select({ handoff: technicalHandoffs, user: users, assignee: assignees })
       .from(technicalHandoffs)
       .innerJoin(conversations, eq(conversations.id, technicalHandoffs.conversationId))
       .leftJoin(
         users,
         and(eq(conversations.ownerKind, 'user'), eq(users.id, conversations.ownerId)),
       )
+      .leftJoin(assignees, eq(assignees.id, technicalHandoffs.assignedTo))
       .where(where)
       .orderBy(order)
       .limit(limit);
+
+    const said = await this.saidBy(rows.map((row) => row.handoff.conversationId));
 
     return rows.map((row) => ({
       ...toRow(row.handoff),
       submitter: row.user
         ? { name: row.user.name, email: row.user.email, phone: row.user.phone }
         : null,
+      assignee: row.assignee ? { name: row.assignee.name } : null,
+      said: said.get(row.handoff.conversationId) ?? [],
     }));
+  }
+
+  /**
+   * Kalimat pelanggan untuk sekumpulan percakapan sekaligus — satu query, bukan satu per kasus.
+   * Yang diambil kalimat terakhirnya, lalu dibalik ke urutan waktu supaya terbaca sebagai cerita.
+   */
+  private async saidBy(conversationIds: readonly string[]): Promise<Map<string, string[]>> {
+    const byConversation = new Map<string, string[]>();
+    if (conversationIds.length === 0) return byConversation;
+    const rows = await this.database.db
+      .select({ conversationId: messages.conversationId, text: messages.text })
+      .from(messages)
+      .where(and(inArray(messages.conversationId, [...conversationIds]), eq(messages.role, 'user')))
+      .orderBy(desc(messages.id));
+    for (const row of rows) {
+      const lines = byConversation.get(row.conversationId) ?? [];
+      if (lines.length >= SAID_PER_CASE) continue;
+      lines.push(row.text.trim());
+      byConversation.set(row.conversationId, lines);
+    }
+    for (const [id, lines] of byConversation) byConversation.set(id, lines.reverse());
+    return byConversation;
   }
 
   async setStatus(

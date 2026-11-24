@@ -210,7 +210,9 @@ function CaseButton({
           nama, dan tidak ada cara memilih mana yang dikerjakan lebih dulu. */}
       <span className={styles.caseReason}>{item.reason}</span>
       <span className={styles.leadTags}>
-        <span className={styles.stageTag}>{COPY.status[item.status]}</span>
+        {/* Status saja tidak cukup: "sedang dikerjakan" tanpa nama membuat orang kedua tidak
+            tahu apakah kasus ini sudah ada yang pegang (P39-03). */}
+        <span className={styles.stageTag}>{statusLabel(item, locale)}</span>
         <span className={[styles.priority, overdueClass(item)].join(' ')}>{age(item, locale)}</span>
       </span>
     </button>
@@ -239,6 +241,9 @@ function CaseDetail({
     <div className={styles.leadBody}>
       <div className={styles.leadHead}>
         <span className={styles.leadName}>{item.submitter?.name ?? COPY.guest}</span>
+        {item.assignee !== null && (
+          <span className={styles.stageTag}>{COPY.workedBy(item.assignee.name)}</span>
+        )}
         {/* Dibungkus baris sendiri: di kolom flex, tag yang berdiri sendiri melar selebar panel. */}
         <span className={styles.leadTags}>
           <span className={[styles.priority, overdueClass(item)].join(' ')}>
@@ -258,10 +263,24 @@ function CaseDetail({
 
       <p className={styles.contextText}>{item.reason}</p>
 
+      {/* Kalimat pelanggan sendiri, sebelum apa pun yang dibaca sistem: kasus yang tidak
+          menghasilkan satu pun fakta terstruktur dulu mengaku "belum menceritakan apa pun",
+          padahal yang diketiknya tersimpan utuh (P39-04). */}
+      {item.said.length > 0 && (
+        <section className={styles.block}>
+          <h2 className={styles.blockTitle}>{COPY.said}</h2>
+          <ul className={styles.quoteList}>
+            {item.said.map((line, index) => (
+              <li key={index}>“{line}”</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className={styles.block}>
         <h2 className={styles.blockTitle}>{COPY.captured}</h2>
         {stated.length === 0 ? (
-          <p className={styles.muted}>{COPY.noCaptured}</p>
+          <p className={styles.muted}>{item.said.length > 0 ? COPY.noValues : COPY.noCaptured}</p>
         ) : (
           <dl className={styles.factGrid}>
             {stated.map((kv) => (
@@ -332,6 +351,14 @@ function CaseDetail({
   );
 }
 
+/** Status kasus, dengan nama pengerjanya bila sudah ada yang mengambilnya. */
+function statusLabel(item: HandoffCase, locale: ReturnType<typeof useLocale>['locale']): string {
+  const COPY = dashboardCopy(locale).queue;
+  if (item.status === 'IN_REVIEW' && item.assignee !== null)
+    return COPY.workedBy(item.assignee.name);
+  return COPY.status[item.status] ?? item.status;
+}
+
 /** Merah hanya untuk yang benar-benar lewat janji; selebihnya netral. */
 function overdueClass(item: HandoffCase): string {
   return item.overdue ? (styles['priority_hot'] ?? '') : (styles['priority_cold'] ?? '');
@@ -352,5 +379,7 @@ function age(item: HandoffCase, locale: ReturnType<typeof useLocale>['locale']):
     const late = Math.floor((Date.now() - new Date(item.dueAt).getTime()) / 60_000);
     return COPY.overdue(COPY.span(Math.max(0, late)));
   }
+  // Kasus yang sudah diambil tidak lagi "menunggu": yang ditunggu pengirimnya, bukan antreannya.
+  if (item.status === 'IN_REVIEW') return COPY.inReview(span);
   return COPY.waiting(span);
 }

@@ -49,6 +49,14 @@ export interface HandoffQueueRow extends HandoffRow {
     readonly email: string;
     readonly phone: string | null;
   } | null;
+  /** Orang teknis yang sedang mengerjakannya; `null` bila belum diambil siapa pun (P39-03). */
+  readonly assignee: { readonly name: string } | null;
+  /**
+   * Kalimat pelanggan sendiri, urut waktu (P39-04). Kasus yang tidak menghasilkan satu pun
+   * fakta terstruktur dulu tampil sebagai "belum menceritakan apa pun" — padahal yang
+   * diketiknya ada, hanya tidak terbaca sebagai nilai.
+   */
+  readonly said: readonly string[];
 }
 
 export interface HandoffRepository {

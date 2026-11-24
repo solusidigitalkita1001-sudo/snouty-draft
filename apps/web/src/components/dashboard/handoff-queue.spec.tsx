@@ -26,6 +26,8 @@ function kasus(over: Partial<HandoffCase> = {}): HandoffCase {
     ],
     status: 'QUEUED',
     submitter: { name: 'Budi Santoso', email: 'budi@example.test', phone: '+628123' },
+    assignee: null,
+    said: [],
     createdAt: '2026-10-20T02:00:00Z',
     dueAt: '2026-10-21T02:00:00Z',
     resolvedAt: null,
@@ -45,6 +47,59 @@ beforeEach(() => {
 });
 
 describe('antrean teknis', () => {
+  /**
+   * P39-03 — "sedang dikerjakan" tanpa nama membuat orang kedua tidak tahu apakah kasus itu
+   * sudah ada yang pegang; namanya tersimpan sejak kasusnya diambil, hanya tidak pernah tampil.
+   */
+  it('kasus yang sedang dikerjakan menyebut siapa yang mengerjakannya', async () => {
+    api.fetchHandoffQueue.mockResolvedValue(
+      ok({ status: 'IN_REVIEW', assignee: { name: 'Sari Dewi' } }),
+    );
+    render(<HandoffQueuePanel />);
+
+    await waitFor(() => expect(screen.getAllByText(/Dikerjakan Sari Dewi/)).toHaveLength(2));
+    expect(screen.queryByText(/^Menunggu /)).toBeNull();
+  });
+
+  /**
+   * P39-04 — kasus tanpa satu pun fakta terstruktur mengaku "pengguna belum menceritakan apa
+   * pun", padahal kalimat yang diketiknya tersimpan utuh.
+   */
+  it('kalimat pelanggan tampil, dan layar tidak lagi bilang ia tidak bercerita', async () => {
+    api.fetchHandoffQueue.mockResolvedValue(
+      ok({
+        captured: [],
+        said: ['limbah kimia dari bengkel pelapisan', 'pH asam, 5 kubik per hari'],
+      }),
+    );
+    render(<HandoffQueuePanel />);
+
+    expect(await screen.findByText(/limbah kimia dari bengkel pelapisan/)).toBeTruthy();
+    expect(screen.queryByText(/belum menceritakan apa pun/)).toBeNull();
+  });
+
+  it('kasus yang ditutup dalam hitungan detik tidak ditulis 0 menit (P39-05)', async () => {
+    api.fetchHandoffQueue.mockResolvedValue({
+      kind: 'ok' as const,
+      value: {
+        open: [],
+        closed: [
+          kasus({
+            status: 'RESOLVED',
+            createdAt: '2026-10-20T02:00:00Z',
+            resolvedAt: '2026-10-20T02:00:24Z',
+          }),
+        ],
+        slaHours: 24,
+      },
+    });
+    render(<HandoffQueuePanel />);
+
+    await waitFor(() =>
+      expect(screen.getAllByText('Ditutup setelah kurang dari semenit')).toHaveLength(2),
+    );
+  });
+
   it('kasus terlama langsung terbuka, bukan kotak kosong (P31-80)', async () => {
     api.fetchHandoffQueue.mockResolvedValue(ok());
     render(<HandoffQueuePanel />);
