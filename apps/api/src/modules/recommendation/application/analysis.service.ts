@@ -96,6 +96,7 @@ import {
   fittingKey,
   pendingNeeds,
   pendingRows,
+  stopValveRow,
   socketNeeds,
   socketRows,
   type SocketNeed,
@@ -593,9 +594,12 @@ export class AnalysisService {
       // jadi barisnya tidak lagi "dihitung saat pemasangan".
       const sockets = socketNeeds(recommendation.bom);
       const socketFitted = await this.matchSockets(sockets, PIPE_FAMILY, locale);
+      // Dop dan stop kran air bersih punya angka sejak keputusan pemilik 2026-11-24 (ENG-715),
+      // jadi barisnya tidak diulang tanpa angka. Yang tetap menyusul hanya lem.
       const pending = pendingNeeds(
         [{ system: 'clean_water', size: solution.mainSize }],
         sockets.map((need) => need.system),
+        ['clean_water'],
       );
       const pendingFitted = await this.matchPending(pending, PIPE_FAMILY, locale);
       recommendation = {
@@ -604,6 +608,7 @@ export class AnalysisService {
           ...recommendation.bom,
           ...fittingBomRows(needs, traces, locale, (n) => fitted.get(fittingKey(n))?.productId),
           ...socketRows(sockets, locale, (n) => socketFitted.get(socketKey(n))?.productId),
+          stopValveRow(solution, traces, locale),
           ...pendingRows(pending, locale, (n) => pendingFitted.get(pendingKey(n))?.productId),
         ],
         products: [

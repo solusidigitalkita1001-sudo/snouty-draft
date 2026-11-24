@@ -38,6 +38,7 @@ import {
   ENG_703,
   ENG_704,
   ENG_708,
+  ENG_715,
   ENG_709,
   ENG_710,
   ENG_713,
@@ -48,6 +49,7 @@ import {
   ENG_707,
   hunterGpm,
   type FilledBranch,
+  type HouseClosureResult,
   type HouseSupplyFittingResult,
   minimumHeadM,
   type RouteBasis,
@@ -255,6 +257,11 @@ export interface SolutionResult {
   } | null;
   /** Fitting air bersih (ENG-708): elbow per jalur, cabang, dan titik air. */
   readonly fittings: HouseSupplyFittingResult;
+  /**
+   * Dop dan stop kran (ENG-715, keputusan pemilik 2026-11-24): dari ujung mati jalur dan jumlah
+   * lantai, bukan dari panjang pipa — jadi keduanya punya angka meski ukuran rumah belum disebut.
+   */
+  readonly closures: HouseClosureResult;
   /**
    * Sisa potong pipa (%, PIPE_CUTTING_ALLOWANCE_10PCT) — ditambahkan ke panjang bersih sebelum
    * dibulatkan ke batang; `0` bila panjang pipa belum dihitung (tanpa ukuran rumah).
@@ -786,6 +793,15 @@ export function computeSolution(
     faucetElbowsPerOutlet: use('FITTING_OUTLET_FAUCET_ELBOW_1'),
   });
 
+  // 6c · dop dan stop kran (ENG-715, OQ-98): ujung mati jalur dan jumlah lantai. Ujung pipa
+  // utama buntu hanya bila ia tidak masuk ke cabang terakhir lewat elbow (ENG-708 v2).
+  const closures = run(ENG_715, {
+    branchesBySize: branchGroups.map((g) => ({ size: g.size, count: g.count })),
+    mainSize: main.recommendedSize,
+    mainEndsBlind: endBranchSize === undefined,
+    floors: input.floors,
+  });
+
   // 7 · deret wudhu: keran berjejer per tempat wudhu, satu pipa pembagi per deret (ENG-802).
   let wudhu: SolutionResult['wudhu'] = null;
   if (wudhuTaps > 0) {
@@ -854,6 +870,7 @@ export function computeSolution(
         : null,
     branchLayout,
     fittings,
+    closures,
     // Hanya dibaca bila panjang pipa memang dihitung — selain itu bukan asumsi yang dipakai.
     cuttingAllowancePct: plan !== null ? use('PIPE_CUTTING_ALLOWANCE_10PCT') : 0,
     mainEndBranchSize: endBranchSize ?? null,

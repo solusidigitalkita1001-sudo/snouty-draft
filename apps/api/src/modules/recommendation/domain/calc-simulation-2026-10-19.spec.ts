@@ -194,7 +194,13 @@ describe('perluasan: rumah yang disebut = beban lama, "tambah N titik" = beban b
     });
     expect(row('Elbow ke alat')).toMatchObject({ quantity: 2, productId: 'E1' });
     expect(row('Drat kran')).toMatchObject({ quantity: 2, productId: 'F1' });
-    expect(row('Dari pipa lama ke titik baru')).toMatchObject({ pending: true, quantity: 0 });
+    // Yang kurang di baris ini jarak titik baru, bukan ukuran bangunan: keterangannya menyebut
+    // hal itu, bukan kalimat baku pipa (OQ-98, keputusan pemilik 2026-11-24).
+    expect(row('Dari pipa lama ke titik baru')).toMatchObject({
+      pending: true,
+      quantity: 0,
+      pendingNote: 'Menunggu jarak dari pipa lama',
+    });
     // Pipa utama rumah lama tidak dibeli ulang.
     expect(r.bom.some((b) => b.size === '1¼"')).toBe(false);
   });

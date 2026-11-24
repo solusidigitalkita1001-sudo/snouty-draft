@@ -82,6 +82,7 @@ const TITLES: Readonly<Record<string, { readonly id: string; readonly en: string
   'ENG-712': { id: 'Cek tekanan di sumber', en: 'Source pressure check' },
   'ENG-713': { id: 'Pompa transfer ke toren', en: 'Transfer pump to the roof tank' },
   'ENG-714': { id: 'Tekanan kerja vs kelas pipa', en: 'Working pressure vs pipe class' },
+  'ENG-715': { id: 'Dop dan stop kran', en: 'Caps and stop valves' },
   'ENG-801': { id: 'Debit puncak toilet umum', en: 'Peak demand, public restrooms' },
   'ENG-802': { id: 'Deret keran wudhu', en: 'Ablution tap rows' },
   'ENG-803': { id: 'Talang wudhu', en: 'Ablution trough drain' },

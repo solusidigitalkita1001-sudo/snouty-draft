@@ -592,9 +592,8 @@ function BoqTables({ boq, lines }: { boq: Boq; lines: readonly SystemLine[] }) {
   }
   const note = (row: BoqRow) =>
     row.pending
-      ? row.kind === 'fitting'
-        ? COPY.boq.pendingFitting
-        : COPY.boq.pendingPipe
+      ? (row.pendingNote ??
+        (row.kind === 'fitting' ? COPY.boq.pendingFitting : COPY.boq.pendingPipe))
       : row.netLengthM !== undefined
         ? formatMeters(row.netLengthM, locale)
         : '';

@@ -73,6 +73,19 @@ const RECOMMENDATION = {
       provenance: 'ASSUMED',
       traceIds: [],
     },
+    // Baris pipa tanpa angka yang alasannya bukan ukuran bangunan (OQ-98).
+    {
+      item: 'Pipa cabang',
+      purpose: 'Dari pipa lama ke titik baru',
+      size: '1/2"',
+      quantity: 0,
+      unit: 'batang',
+      basis: 'Bergantung letak titik baru.',
+      provenance: 'ASSUMED',
+      traceIds: [],
+      pending: true,
+      pendingNote: 'Menunggu jarak dari pipa lama',
+    },
   ],
   assumptions: [],
   overallProvenance: 'ASSUMED',
@@ -98,6 +111,13 @@ describe('SolutionView — satu daftar SKU', () => {
     const row = screen.getByText('Bell Y - D 4"').closest('tr')!;
     expect(row.textContent).toContain('Dihitung saat pemasangan');
     expect(row.textContent).not.toMatch(/batang|pcs/);
+  });
+
+  it('baris tanpa angka menyebut apa yang kurang, bukan "menunggu ukuran bangunan"', () => {
+    render(<SolutionView recommendation={RECOMMENDATION} tab="material" />);
+    const row = screen.getByText('Dari pipa lama ke titik baru').closest('tr')!;
+    expect(row.textContent).toContain('Menunggu jarak dari pipa lama');
+    expect(row.textContent).not.toContain('Menunggu ukuran bangunan');
   });
 
   it('P17-01: tab Produk menyebut jumlah dan nomor baris BOQ yang sama dengan tab Material', () => {

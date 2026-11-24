@@ -23,7 +23,7 @@ export interface FittingNeed {
   /** Cara hitung dan hitungannya — kolom tabel dasar perhitungan. */
   readonly method: Text;
   readonly working: Text;
-  readonly ruleId: 'ENG-708' | 'ENG-605';
+  readonly ruleId: 'ENG-708' | 'ENG-605' | 'ENG-715';
 }
 
 const ITEM: Readonly<Partial<Record<FittingKind, Text>>> = {
@@ -33,6 +33,7 @@ const ITEM: Readonly<Partial<Record<FittingKind, Text>>> = {
   branch_y: { id: 'Y-branch', en: 'Y-branch' },
   clean_out: { id: 'Clean out', en: 'Clean-out' },
   reducer: { id: 'Reducer cabang', en: 'Branch reducer' },
+  cap: { id: 'Dop', en: 'Cap' },
   vent_cap: { id: 'Topi ventilasi', en: 'Vent cap' },
 };
 
@@ -133,7 +134,55 @@ export function supplyFittingNeeds(solution: SolutionResult): readonly FittingNe
       ruleId: 'ENG-708',
     },
   );
+  // Dop penutup ujung mati jalur (ENG-715, keputusan pemilik 2026-11-24): per ukuran, karena satu
+  // ukuran dipesan sebagai satu SKU. Sampai 24 Nov 2026 barisnya tercetak tanpa angka.
+  for (const cap of solution.closures.caps) {
+    needs.push({
+      system: 'clean_water',
+      kind: 'cap',
+      size: cap.size,
+      quantity: cap.count,
+      purpose: { id: 'Dop ujung jalur', en: 'Cap at the end of a run' },
+      method: { id: 'Satu dop per ujung mati jalur', en: 'One cap per blind end of a run' },
+      working: {
+        id: `${cap.count} ujung mati ${cap.size}`,
+        en: `${cap.count} blind ends of ${cap.size}`,
+      },
+      ruleId: 'ENG-715',
+    });
+  }
   return needs.filter((n) => n.quantity > 0);
+}
+
+/**
+ * Stop kran (ENG-715, keputusan pemilik 2026-11-24): dihitung, tetapi tidak ada di katalog Pralon,
+ * jadi barisnya punya angka tanpa SKU — bukan baris tanpa angka seperti sebelumnya.
+ */
+export function stopValveRow(
+  solution: SolutionResult,
+  traces: readonly IdentifiedTrace[],
+  locale: Locale,
+): BomItem {
+  const en = locale === 'en';
+  const quantity = solution.closures.stopValves;
+  const ids = traceIdsFor(traces, 'ENG-715');
+  const method = en
+    ? 'One on the main after the source, plus one per floor above the first'
+    : 'Satu di pipa utama setelah sumber, ditambah satu per lantai di atas lantai satu';
+  const floors = solution.floorsPlan.length;
+  const working = en ? `${floors} floors` : `${floors} lantai`;
+  return {
+    item: en ? 'Stop valve' : 'Stop kran',
+    system: 'clean_water',
+    purpose: en ? 'Shutting off the house and each floor' : 'Mematikan air rumah dan tiap lantai',
+    size: solution.mainSize,
+    quantity,
+    unit: 'pcs',
+    basis: `${method}: ${working} = ${quantity} pcs.`,
+    calc: { method, working, result: `${quantity} pcs` },
+    provenance: provenanceFor(traces, ids),
+    traceIds: ids,
+  };
 }
 
 /** Fitting pembuangan dari ENG-605, per jalur di ukuran jalurnya. */
@@ -267,6 +316,12 @@ export function pendingNeeds(
   lines: readonly { readonly system: BomSystem; readonly size: string }[],
   /** Sistem yang soknya sudah dihitung dari sambungan batang — barisnya tidak diulang di sini. */
   socketsCountedFor: readonly BomSystem[] = [],
+  /**
+   * Sistem yang dop dan stop krannya sudah dihitung (ENG-715, air bersih): barisnya tidak diulang
+   * tanpa angka di sini. Jalur pembuangan belum punya aturan ujung matinya, jadi dop-nya tetap
+   * menyusul (OQ-98).
+   */
+  closuresCountedFor: readonly BomSystem[] = [],
 ): readonly PendingNeed[] {
   return lines.flatMap(({ system, size }) => [
     ...(socketsCountedFor.includes(system)
@@ -280,8 +335,18 @@ export function pendingNeeds(
             unit: 'pcs' as const,
           },
         ]),
-    { system, kind: 'cap' as const, size, item: { id: 'Dop', en: 'Cap' }, unit: 'pcs' as const },
-    ...(system === 'clean_water'
+    ...(closuresCountedFor.includes(system)
+      ? []
+      : [
+          {
+            system,
+            kind: 'cap' as const,
+            size,
+            item: { id: 'Dop', en: 'Cap' },
+            unit: 'pcs' as const,
+          },
+        ]),
+    ...(system === 'clean_water' && !closuresCountedFor.includes(system)
       ? [
           {
             system,

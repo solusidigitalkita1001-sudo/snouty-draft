@@ -7,6 +7,7 @@ import {
   fittingKey,
   pendingNeeds,
   solventCement,
+  stopValveRow,
   supplyFittingNeeds,
 } from './fitting-bom.js';
 import type { IdentifiedTrace } from './solution-view.js';
@@ -42,7 +43,36 @@ describe('supplyFittingNeeds + fittingBomRows', () => {
       ['elbow', '1/2"', 2],
       ['elbow', '1/2"', 11],
       ['faucet_elbow', '1/2"', 11],
+      // Dop ujung mati tiap cabang (ENG-715, keputusan pemilik 2026-11-24): pipa utama masuk ke
+      // cabang terakhir lewat elbow, jadi ujungnya tidak perlu dop.
+      ['cap', '1"', 2],
+      ['cap', '1/2"', 2],
     ]);
+  });
+
+  it('dop dan stop kran punya angka, bukan lagi "dihitung saat pemasangan"', () => {
+    const caps = needs.filter((n) => n.kind === 'cap');
+    expect(caps.map((n) => n.quantity).reduce((a, b) => a + b, 0)).toBe(4);
+    expect(caps[0]).toMatchObject({
+      ruleId: 'ENG-715',
+      purpose: { id: 'Dop ujung jalur', en: 'Cap at the end of a run' },
+    });
+
+    const valves = stopValveRow(solution, traces, 'id');
+    expect(valves).toMatchObject({ item: 'Stop kran', quantity: 2, unit: 'pcs', size: '1¼"' });
+    expect(valves.basis).toContain('satu per lantai di atas lantai satu');
+    expect(valves.traceIds.length).toBeGreaterThan(0);
+    // Tanpa SKU: Pralon tidak menjual stop kran, jadi barisnya berjumlah tanpa produk.
+    expect(valves).not.toHaveProperty('productId');
+  });
+
+  it('baris tanpa angka yang tersisa untuk air bersih hanya lem', () => {
+    const items = pendingNeeds(
+      [{ system: 'clean_water', size: solution.mainSize }],
+      ['clean_water'],
+      ['clean_water'],
+    ).map((n) => n.item.id);
+    expect(items).toEqual(['Lem PVC quick dry']);
   });
 
   it('baris BOQ: fitting, pcs, sistem air bersih, dasar perhitungan dari engine, status asumsi', () => {

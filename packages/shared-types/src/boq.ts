@@ -32,6 +32,8 @@ export interface BoqRow {
   readonly provenance?: Provenance;
   /** Produk terpilih yang jumlahnya belum bisa dihitung. */
   readonly pending?: true;
+  /** Apa yang kurang supaya baris ini punya angka; kosong = kalimat baku per jenis baris. */
+  readonly pendingNote?: string;
   /**
    * Baris tanpa SKU katalog Pralon (review putaran 4, 5a — dulu "LIHAT DOKUMEN TEKNIS" juga menempel
    * di fitting ber-SKU yang kelasnya belum terverifikasi, sehingga labelnya kehilangan arti):
@@ -109,6 +111,7 @@ export function boqFrom(recommendation: {
       return {
         system: item.system ?? null,
         kind: kindOfUnit(item.unit),
+        ...(item.pendingNote !== undefined ? { pendingNote: item.pendingNote } : {}),
         ...(item.purpose !== undefined ? { purpose: item.purpose } : {}),
         item: item.item,
         ...(item.productId !== undefined && selections.length > 0

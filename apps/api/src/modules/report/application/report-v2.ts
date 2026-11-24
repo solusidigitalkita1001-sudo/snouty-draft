@@ -580,9 +580,7 @@ export function boqSection(
   }
   const note = (row: BoqRow): string =>
     row.pending
-      ? row.kind === 'fitting'
-        ? v.pendingFitting
-        : v.pendingPipe
+      ? (row.pendingNote ?? (row.kind === 'fitting' ? v.pendingFitting : v.pendingPipe))
       : row.netLengthM !== undefined
         ? `${decimal(row.netLengthM, p.locale)} m`
         : '';

@@ -1765,6 +1765,141 @@ export const ENG_713: RuleVersion<TransferPumpInput, TransferPumpResult> = {
     }),
 };
 
+// ── ENG-715 · Dop dan stop kran jalur air bersih ───────────────────────────
+
+export interface HouseClosureInput {
+  /** Cabang mendatar per ukuran; tiap cabang berakhir buntu setelah tee terakhirnya. */
+  readonly branchesBySize: readonly { readonly size: string; readonly count: number }[];
+  readonly mainSize: string;
+  /** Pipa utama berakhir buntu (tidak masuk ke cabang terakhir lewat elbow, ENG-708 v2). */
+  readonly mainEndsBlind: boolean;
+  readonly floors: number;
+}
+export interface HouseClosureResult {
+  /** Dop per ukuran pipa — satu ukuran dipesan sebagai satu SKU. */
+  readonly caps: readonly { readonly size: string; readonly count: number }[];
+  readonly capsTotal: number;
+  /** Stop kran, semuanya di pipa utama. */
+  readonly stopValves: number;
+}
+
+/**
+ * Dop dan stop kran (keputusan pemilik 2026-11-24, OQ-98). Sejak 13 Okt 2026 kedua baris itu
+ * tercetak tanpa angka karena "dihitung saat pemasangan" — dan di BOQ ia muncul sebagai '—' di
+ * sebelah baris pipa yang jumlahnya ada, tanpa satu pun angka yang bisa dipesan.
+ *
+ * Jumlahnya bukan turunan panjang jalur, jadi ia dihitung dari topologi:
+ *
+ *   - **Dop** menutup ujung mati. Tiap cabang mendatar berakhir buntu setelah tee terakhirnya;
+ *     pipa utama hanya berakhir buntu bila ia tidak masuk ke cabang terakhir lewat elbow
+ *     (ENG-708 v2). Jumlah titik air tidak dipakai — titik air bukan ujung mati.
+ *   - **Stop kran** satu di pipa utama setelah sumber supaya seluruh rumah bisa dimatikan,
+ *     ditambah satu per lantai di atas lantai satu supaya satu lantai bisa dimatikan sendiri.
+ *
+ * Lem TIDAK di sini: satu kaleng menutup sejumlah sambungan yang hanya Pralon tahu, jadi barisnya
+ * tetap tanpa angka sampai angka itu datang.
+ */
+export const ENG_715: RuleVersion<HouseClosureInput, HouseClosureResult> = {
+  ruleId: 'ENG-715',
+  version: 1,
+  category: 'material',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const groups = o['branchesBySize'];
+    if (!Array.isArray(groups)) throw new RuleInputError('ENG-715', 'branchesBySize harus daftar');
+    if (typeof o['mainSize'] !== 'string') throw new RuleInputError('ENG-715', 'mainSize');
+    return {
+      branchesBySize: groups.map((g: { size?: unknown; count?: unknown }, n) => {
+        if (typeof g.size !== 'string')
+          throw new RuleInputError('ENG-715', `branchesBySize[${n}].size`);
+        return {
+          size: g.size,
+          count: requireInt('ENG-715', `branchesBySize[${n}].count`, g.count, { min: 0, max: 200 }),
+        };
+      }),
+      mainSize: o['mainSize'],
+      mainEndsBlind: o['mainEndsBlind'] === true,
+      floors: requireInt('ENG-715', 'floors', o['floors'], { min: 1, max: 100 }),
+    };
+  },
+  compute: (i) => {
+    const perSize = new Map<string, number>();
+    for (const group of i.branchesBySize) {
+      perSize.set(group.size, (perSize.get(group.size) ?? 0) + group.count);
+    }
+    if (i.mainEndsBlind) perSize.set(i.mainSize, (perSize.get(i.mainSize) ?? 0) + 1);
+    const caps = [...perSize.entries()]
+      .filter(([, count]) => count > 0)
+      .map(([size, count]) => ({ size, count }));
+    return {
+      caps,
+      capsTotal: caps.reduce((sum, c) => sum + c.count, 0),
+      stopValves: 1 + (i.floors - 1),
+    };
+  },
+  sourceReference:
+    'Dop satu per ujung mati jalur (tiap cabang, ditambah pipa utama bila ia berakhir buntu); stop kran satu di pipa utama setelah sumber + satu per lantai di atas lantai satu (keputusan pemilik 2026-11-24, OQ-98)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'rumah 2 lantai, 4 cabang dua ukuran, pipa utama masuk ke cabang terakhir: 4 dop, 2 stop kran',
+      input: {
+        branchesBySize: [
+          { size: '3/4"', count: 1 },
+          { size: '1/2"', count: 3 },
+        ],
+        mainSize: '1"',
+        mainEndsBlind: false,
+        floors: 2,
+      },
+      expected: {
+        caps: [
+          { size: '3/4"', count: 1 },
+          { size: '1/2"', count: 3 },
+        ],
+        capsTotal: 4,
+        stopValves: 2,
+      },
+    },
+    {
+      name: 'pipa utama berakhir buntu: satu dop tambahan di ukuran pipa utama',
+      input: {
+        branchesBySize: [{ size: '1/2"', count: 2 }],
+        mainSize: '3/4"',
+        mainEndsBlind: true,
+        floors: 1,
+      },
+      expected: {
+        caps: [
+          { size: '1/2"', count: 2 },
+          { size: '3/4"', count: 1 },
+        ],
+        capsTotal: 3,
+        stopValves: 1,
+      },
+    },
+    {
+      name: 'rumah 4 lantai: satu stop kran per lantai di atas lantai satu',
+      input: {
+        branchesBySize: [{ size: '3/4"', count: 8 }],
+        mainSize: '1"',
+        mainEndsBlind: false,
+        floors: 4,
+      },
+      expected: {
+        caps: [{ size: '3/4"', count: 8 }],
+        capsTotal: 8,
+        stopValves: 4,
+      },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `Dop menutup ujung mati jalur: ${i.branchesBySize.reduce((n, g) => n + g.count, 0)} cabang${i.mainEndsBlind ? ` + ujung pipa utama ${i.mainSize}` : ''} = ${o.capsTotal} dop (${o.caps.map((c) => `${c.count} × ${c.size}`).join(', ')}). Stop kran ${o.stopValves} di pipa utama ${i.mainSize}: satu setelah sumber${i.floors > 1 ? `, ditambah satu per lantai di atas lantai satu (${i.floors - 1} lantai)` : ''}. Jumlahnya dari susunan jalur, bukan dari jumlah titik air.`,
+      en: `Caps close the blind ends of the runs: ${i.branchesBySize.reduce((n, g) => n + g.count, 0)} branches${i.mainEndsBlind ? ` + the end of the ${i.mainSize} main` : ''} = ${o.capsTotal} caps (${o.caps.map((c) => `${c.count} × ${c.size}`).join(', ')}). Stop valves ${o.stopValves} on the ${i.mainSize} main: one after the source${i.floors > 1 ? `, plus one per floor above the first (${i.floors - 1} floors)` : ''}. The count comes from the layout of the runs, not from the number of outlets.`,
+    }),
+};
+
 export const GROUP_K = [
   ENG_701,
   ENG_702,
@@ -1779,4 +1914,5 @@ export const GROUP_K = [
   ENG_711,
   ENG_712,
   ENG_713,
+  ENG_715,
 ] as const;

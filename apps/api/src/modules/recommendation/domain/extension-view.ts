@@ -93,6 +93,12 @@ export function extensionOnly(
       system: 'clean_water',
       traceIds: [],
       pending: true,
+      // Yang kurang di sini bukan ukuran bangunan — ukurannya boleh sudah disebut — melainkan
+      // jarak titik baru dari pipa lama. Keterangan baku "menunggu ukuran bangunan" keliru di
+      // baris ini (OQ-98, keputusan pemilik 2026-11-24).
+      pendingNote: en
+        ? 'Needs the distance from the existing pipe'
+        : 'Menunggu jarak dari pipa lama',
     },
   ];
   const assumed = (id: string): Assumption => ({

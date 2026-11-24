@@ -218,10 +218,16 @@ export interface BomItem {
   /** Hitungan baris ini dalam tiga bagian — tabel "Dasar perhitungan" (DD-01 #9). */
   readonly calc?: BomCalc;
   /**
-   * Barang yang dibutuhkan tetapi jumlahnya belum dihitung (sok, stop kran, dop, lem — review
-   * laporan 0015): tampil di BOQ tanpa angka, `quantity` diabaikan.
+   * Barang yang dibutuhkan tetapi jumlahnya belum dihitung (sok, dop, lem — review laporan 0015):
+   * tampil di BOQ tanpa angka, `quantity` diabaikan.
    */
   readonly pending?: true;
+  /**
+   * Apa yang kurang supaya baris ini punya angka, dalam bahasa pengguna. Tanpa ini keterangannya
+   * memakai kalimat baku per jenis baris — dan untuk pipa kalimat itu "menunggu ukuran bangunan",
+   * yang keliru bila ukurannya sudah disebut dan yang hilang justru hal lain (OQ-98).
+   */
+  readonly pendingNote?: string;
   /**
    * Lini produk Pralon yang belum ada di data katalog (Solvent Cement — materi perusahaan, keputusan
    * pemilik 2026-10-14): BOQ menyuruh menanyakannya ke Pralon, bukan memakai produk setara.
