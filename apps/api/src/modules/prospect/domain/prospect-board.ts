@@ -124,7 +124,12 @@ export interface ProspectStore {
   salesTeam(): Promise<readonly SalesMember[]>;
   /** `null` bila email tidak terdaftar. */
   grantSales(email: string, grantedBy: string): Promise<{ readonly userId: string } | null>;
-  revokeSales(userId: string): Promise<void>;
+  /**
+   * Mencabut peran sales DAN melepas prospek yang masih berjalan miliknya, supaya prospek itu
+   * kembali terlihat di papan (OQ: keputusan pemilik 2026-11-24). Mengembalikan pemiliknya yang
+   * dilepas, untuk dicatat di jejak masing-masing.
+   */
+  revokeSales(userId: string): Promise<readonly string[]>;
 }
 
 export const PROSPECT_STORE = Symbol('PROSPECT_STORE');

@@ -24,6 +24,8 @@ export function TeamPanel() {
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Anggota yang pencabutannya sedang ditanyakan — pencabutan memindahkan prospek orang lain. */
+  const [confirming, setConfirming] = useState<string | null>(null);
   const isAdmin = getCurrentUser()?.roles?.includes('admin') ?? false;
 
   const load = useCallback(async () => {
@@ -54,6 +56,7 @@ export function TeamPanel() {
 
   const remove = async (id: string) => {
     setError(null);
+    setConfirming(null);
     const problem = await removeSalesMember(id);
     if (problem !== null) {
       setError(errorText(problem));
@@ -115,17 +118,48 @@ export function TeamPanel() {
                     style={{ width: `${share(member.openLeads, team)}%` }}
                   />
                 </span>
-                <a className={styles.back} href={`/internal/prospects?sales=${member.id}`}>
-                  {COPY.team.openLeads(member.openLeads)}
-                </a>
+                {/* Nol prospek bukan tautan: di balik saringan itu tidak ada apa-apa untuk
+                    dibuka, dan tautan yang membuka layar kosong adalah janji yang tidak ditepati
+                    (P39-06). */}
+                {member.openLeads === 0 ? (
+                  <span className={styles.meta}>{COPY.team.noLeads}</span>
+                ) : (
+                  <a className={styles.back} href={`/internal/prospects?sales=${member.id}`}>
+                    {COPY.team.openLeads(member.openLeads)}
+                  </a>
+                )}
                 {isAdmin && (
                   <button
                     type="button"
                     className={styles.secondary}
-                    onClick={() => void remove(member.id)}
+                    onClick={() => setConfirming(member.id)}
                   >
                     {COPY.team.remove}
                   </button>
+                )}
+                {/* Pencabutan menyentuh prospek yang sedang dikerjakan orang, jadi ia
+                    mengatakan akibatnya lebih dulu — di layar, bukan di dialog peramban. */}
+                {confirming === member.id && (
+                  <p className={styles.confirmRow} role="group">
+                    <span>
+                      {COPY.team.confirmRemove(member.name)}{' '}
+                      {COPY.team.confirmReturn(member.openLeads)}
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.primary}
+                      onClick={() => void remove(member.id)}
+                    >
+                      {COPY.team.confirmYes}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.secondary}
+                      onClick={() => setConfirming(null)}
+                    >
+                      {COPY.team.confirmNo}
+                    </button>
+                  </p>
                 )}
               </li>
             ))}

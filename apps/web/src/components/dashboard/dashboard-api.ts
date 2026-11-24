@@ -275,6 +275,10 @@ export interface HandoffCase {
     readonly email: string;
     readonly phone: string | null;
   } | null;
+  /** Orang teknis yang sedang mengerjakannya (P39-03). */
+  readonly assignee: { readonly name: string } | null;
+  /** Kalimat pelanggan sendiri, urut waktu (P39-04). */
+  readonly said: readonly string[];
   readonly createdAt: string;
   readonly dueAt: string;
   readonly resolvedAt: string | null;

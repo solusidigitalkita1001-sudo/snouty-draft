@@ -5887,3 +5887,80 @@ suite yang hijau karena tidak satu pun bisa dilihat dari kode saja.
       yang ditugaskan ke Anda" alih-alih ringkasan yang baru saja diklik, karena panel rinciannya
       hanya dirender bila daftarnya berisi. Jalur admin → ringkasan percakapan, yang justru inti
       penugasan (`PROSPECT_5A.md` §4), putus di langkah terakhir.
+
+---
+
+## Fase 39 — sisi internal, putaran kedua: antrean teknis, tim sales, lonceng (24 Nov 2026)
+
+Lanjutan Fase 38 dengan cara yang sama: ketiga layar internal yang belum pernah dibuka —
+tim sales, antrean teknis, peninjauan email — dibuka dengan akun admin dan sales lokal, dengan
+prospek dan kasus teknis yang masuk lewat jalur sungguhnya (daftar, mengobrol, minta dihubungi,
+serahkan ke tim teknis). Delapan cacat; tidak satu pun bisa dilihat dari kode saja, dan suite
+tetap hijau selama semuanya ada.
+
+- [x] P39-01 Pemberitahuan menyebut siapa yang dimaksud
+
+      Sales yang menerima tiga prospek pagi itu mendapat tiga baris yang sama persis — "Ada
+      prospek yang ditugaskan kepada Anda." — yang hanya bisa dibedakan dari "8 menit lalu" dan
+      "9 menit lalu". Admin yang menerima tiga permintaan dihubungi mendapat hal yang sama.
+
+      Namanya sekarang ikut, dan diambil di tempat yang benar: `subject_id` yang menunjuk sebuah
+      akun selalu punya nama di tabel yang sama, jadi daftarnya mengambilnya lewat join kiri —
+      bukan dititipkan ke setiap pemancar kejadian, yang akan membekukan kalimat Indonesia di
+      dalam baris database. Kejadian yang subjeknya bukan orang tetap lewat tanpa nama.
+
+- [x] P39-02 "Buka" di pemberitahuan membuka prospek yang dimaksud
+
+      Tautannya memakai `?prospect=`, layarnya membaca `?u=`. Parameter yang tidak dikenal
+      diabaikan diam-diam, lalu prospek teratas terbuka sendiri (P38-02) — sehingga notifikasi
+      tentang Rina Hartono membuka Agus Santoso, dan tidak ada apa pun di layar yang mengaku
+      salah. Kedua jalur sekarang memakai nama parameter yang sama.
+
+- [x] P39-03 Kasus yang sedang dikerjakan menyebut siapa yang mengerjakannya
+
+      "Saya kerjakan" menyimpan nama pengambilnya sejak P29-01, tetapi tidak satu pun layar
+      menampilkannya: orang teknis kedua melihat "Sedang dikerjakan" tanpa nama, dan tidak bisa
+      tahu apakah kasus itu sudah ada yang pegang. Kartunya kini menyebut namanya, panel
+      rinciannya juga, dan umurnya tidak lagi berkata "Menunggu" untuk kasus yang justru sudah
+      diambil.
+
+- [x] P39-04 Kalimat pelanggan ada di antrean teknis
+
+      Kasus yang tidak menghasilkan satu pun fakta terstruktur — limbah kimia dari bengkel
+      pelapisan logam — tampil sebagai "Pengguna belum menceritakan apa pun sebelum kasusnya
+      diserahkan". Pengguna sudah menceritakan dua kalimat; keduanya tersimpan utuh, dan layar
+      sales malah mengutipnya. Janji "tidak perlu menjelaskan ulang" putus persis di layar yang
+      seharusnya menepatinya.
+
+      Kasusnya kini membawa kalimat pelanggan sendiri (empat terakhir, urut waktu, satu query
+      untuk seluruh antrean). Bila tidak ada angka yang terbaca, yang dikatakan adalah itu —
+      bukan bahwa pengguna diam saja.
+
+- [x] P39-05 Rentang di bawah semenit tidak ditulis "0 menit"
+
+      Kasus yang ditutup 24 detik setelah dibuka tampil sebagai "Ditutup setelah 0 menit".
+      Angkanya benar secara aritmetika dan konyol sebagai kalimat; sekarang "kurang dari semenit".
+
+- [x] P39-06 Beban nol bukan tautan
+
+      Lima dari tujuh anggota tim sales memegang nol prospek, dan kelimanya menampilkan tautan
+      "0 prospek berjalan" ke papan yang disaring atas namanya — layar yang pasti kosong. Nol kini
+      kalimat biasa; yang memegang prospek tetap bisa diklik.
+
+- [x] P39-07 Mencabut anggota mengembalikan prospeknya ke papan
+
+      "Cabut" mencabut peran seketika. Prospek yang masih dipegangnya tetap tercatat atas namanya,
+      padahal ia tidak bisa lagi membuka layar prospek — tiga prospek berjalan hilang dari
+      pandangan semua orang sekaligus.
+
+      Keputusan pemilik (2026-11-24): prospek berjalan miliknya kembali ke papan sebagai belum
+      ditugaskan, dan layarnya menyebut berapa yang akan kembali sebelum pencabutan terjadi.
+      Yang sudah menang atau kalah tidak disentuh — itu riwayat. Setiap prospek yang dilepas
+      mendapat satu baris jejak, supaya sales berikutnya tahu mengapa ia tiba-tiba kosong.
+
+- [x] P39-08 Ringkasan yang dibuka admin tidak lagi berjudul "Prospek saya"
+
+      Admin menekan "Ringkasan" di papan prospek dan tiba di layar berjudul "Prospek saya —
+      pelanggan yang ditugaskan ke Anda, urut prioritas" yang memuat prospek milik sales lain,
+      tanpa satu pun jalan kembali ke papan yang baru ditinggalkan. Judulnya kini mengikuti
+      isinya, dan ada tautan kembali ke papan.

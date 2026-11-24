@@ -139,8 +139,16 @@ export const DASHBOARD_COPY = {
     adding: 'Menambahkan…',
     remove: 'Cabut',
     openLeads: (n: number) => `${n} prospek berjalan`,
+    noLeads: 'Belum memegang prospek',
     empty: 'Belum ada anggota tim sales.',
     adminOnly: 'Hanya admin yang bisa menambah atau mencabut anggota.',
+    confirmRemove: (name: string) => `Cabut ${name} dari tim sales?`,
+    confirmReturn: (n: number) =>
+      n === 0
+        ? 'Ia tidak sedang memegang prospek.'
+        : `${n} prospek yang dipegangnya kembali ke papan untuk ditugaskan lagi.`,
+    confirmYes: 'Cabut',
+    confirmNo: 'Batal',
   },
   queue: {
     title: 'Antrean teknis',
@@ -156,17 +164,24 @@ export const DASHBOARD_COPY = {
     assumption: 'Angka yang diasumsikan sistem',
     attachment: 'Lampiran',
     noCaptured: 'Pengguna belum menceritakan apa pun sebelum kasusnya diserahkan.',
+    noValues: 'Tidak ada angka yang terbaca dari percakapannya.',
+    said: 'Kalimat pelanggan',
     guest: 'Dikirim tanpa akun — tidak ada alamat yang bisa dibalas.',
     waiting: (span: string) => `Menunggu ${span}`,
+    inReview: (span: string) => `Dikerjakan, masuk ${span} lalu`,
+    workedBy: (name: string) => `Dikerjakan ${name}`,
     dueIn: (span: string) => `sisa ${span}`,
     overdue: (span: string) => `lewat ${span} dari janji 1×24 jam kerja`,
     closedAfter: (span: string) => `Ditutup setelah ${span}`,
+    // Di bawah semenit, "0 menit" adalah angka yang benar dan kalimat yang konyol (P39-05).
     span: (minutes: number) =>
-      minutes < 60
-        ? `${minutes} menit`
-        : minutes < 1440
-          ? `${Math.floor(minutes / 60)} jam`
-          : `${Math.floor(minutes / 1440)} hari`,
+      minutes < 1
+        ? 'kurang dari semenit'
+        : minutes < 60
+          ? `${minutes} menit`
+          : minutes < 1440
+            ? `${Math.floor(minutes / 60)} jam`
+            : `${Math.floor(minutes / 1440)} hari`,
     take: 'Saya kerjakan',
     resolve: 'Tandai selesai',
     reopen: 'Buka lagi',
@@ -372,8 +387,16 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
     adding: 'Adding…',
     remove: 'Remove',
     openLeads: (n: number) => `${n} open prospect${n === 1 ? '' : 's'}`,
+    noLeads: 'No prospects yet',
     empty: 'No sales team members yet.',
     adminOnly: 'Only admins can add or remove members.',
+    confirmRemove: (name: string) => `Remove ${name} from the sales team?`,
+    confirmReturn: (n: number) =>
+      n === 0
+        ? 'They are not holding any prospect.'
+        : `${n} prospect${n === 1 ? '' : 's'} they hold go back to the board to be assigned again.`,
+    confirmYes: 'Remove',
+    confirmNo: 'Cancel',
   },
   queue: {
     title: 'Technical queue',
@@ -389,17 +412,23 @@ export const DASHBOARD_COPY_EN: CopyShape<typeof DASHBOARD_COPY> = {
     assumption: 'Figures the system assumed',
     attachment: 'Attachments',
     noCaptured: 'The user had told us nothing before handing the case over.',
+    noValues: 'No figures were read from the conversation.',
+    said: 'In the customer’s own words',
     guest: 'Sent without an account — there is no address to reply to.',
     waiting: (span: string) => `Waiting ${span}`,
+    inReview: (span: string) => `In progress, came in ${span} ago`,
+    workedBy: (name: string) => `${name} is on it`,
     dueIn: (span: string) => `${span} left`,
     overdue: (span: string) => `${span} past the 1×24 working-hour promise`,
     closedAfter: (span: string) => `Closed after ${span}`,
     span: (minutes: number) =>
-      minutes < 60
-        ? `${minutes} min`
-        : minutes < 1440
-          ? `${Math.floor(minutes / 60)} h`
-          : `${Math.floor(minutes / 1440)} d`,
+      minutes < 1
+        ? 'less than a minute'
+        : minutes < 60
+          ? `${minutes} min`
+          : minutes < 1440
+            ? `${Math.floor(minutes / 60)} h`
+            : `${Math.floor(minutes / 1440)} d`,
     take: "I'll take it",
     resolve: 'Mark as done',
     reopen: 'Reopen',

@@ -180,6 +180,30 @@ describe('dashboard sales (P26-06)', () => {
     window.history.replaceState({}, '', '/internal/leads');
   });
 
+  /**
+   * P39-08 — judul "Prospek saya · ditugaskan ke Anda" di atas prospek milik sales lain adalah
+   * judul yang berbohong, dan papan yang baru saja ditinggalkan tidak punya jalan kembali.
+   */
+  it('ringkasan dari papan berjudul sesuai isinya dan punya jalan kembali', async () => {
+    api.fetchMyLeads.mockResolvedValue({ kind: 'ok', value: { items: [] } });
+    window.history.replaceState({}, '', '/internal/leads?u=01JQRSTVWX0000000000000001');
+
+    render(<SalesDashboard />);
+
+    expect(await screen.findByText('Ringkasan prospek')).toBeDefined();
+    expect(screen.queryByText('Pelanggan yang ditugaskan ke Anda, urut prioritas.')).toBeNull();
+    expect(
+      screen.getByRole('link', { name: 'Kembali ke papan prospek' }).getAttribute('href'),
+    ).toBe('/internal/prospects');
+    window.history.replaceState({}, '', '/internal/leads');
+  });
+
+  it('daftar sendiri tetap berjudul Prospek saya', async () => {
+    render(<SalesDashboard />);
+    expect(await screen.findByText('Prospek saya')).toBeDefined();
+    expect(screen.queryByRole('link', { name: 'Kembali ke papan prospek' })).toBeNull();
+  });
+
   it('nomor WhatsApp Indonesia dinormalkan', () => {
     expect(whatsappNumber('0812-3456-7890')).toBe('6281234567890');
     expect(whatsappNumber('+62 812 3456 7890')).toBe('6281234567890');

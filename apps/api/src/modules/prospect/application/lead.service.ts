@@ -21,6 +21,9 @@ import type { Notifier } from '../../../shared/notification/notifier.port.js';
 import type { LeadContextWriter } from './lead-context.writer.js';
 import type { ProspectBoardService } from './prospect-board.service.js';
 
+/** Jejak yang ditulis saat penugasan dilepas karena anggotanya dicabut dari tim sales. */
+const RELEASED_NOTE = 'Penugasan dilepas: anggota sales dicabut, prospek kembali ke papan.';
+
 export interface LeadDetail {
   readonly lead: LeadRecord;
   readonly prospect: ProspectRow | null;
@@ -138,6 +141,19 @@ export class LeadService {
     void this.writeContext(userId).catch((error: unknown) => {
       this.log?.warn({ err: error, userId }, 'ringkasan prospek tidak tersusun');
     });
+  }
+
+  /**
+   * Pencabutan anggota sales lewat layar tim: prospek berjalannya kembali ke papan, dan setiap
+   * prospek yang dilepas mendapat satu baris jejak — perpindahan tanpa jejak membuat sales
+   * berikutnya tidak tahu mengapa prospeknya tiba-tiba kosong (P39-07).
+   */
+  async revokeSales(salesUserId: string, actorId: string): Promise<number> {
+    const released = await this.board.removeSales(salesUserId);
+    for (const userId of released) {
+      await this.record(userId, { id: actorId, roles: [] }, { kind: 'note', note: RELEASED_NOTE });
+    }
+    return released.length;
   }
 
   async transcript(

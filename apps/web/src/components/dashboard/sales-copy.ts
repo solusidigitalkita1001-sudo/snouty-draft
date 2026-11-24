@@ -5,6 +5,10 @@ import { pickCopy, type CopyShape } from '../copy';
 export const SALES_COPY = {
   title: 'Prospek saya',
   subtitle: 'Pelanggan yang ditugaskan ke Anda, urut prioritas.',
+  /** Judul saat ringkasan satu orang dibuka dari papan prospek, bukan dari daftar sendiri. */
+  summaryTitle: 'Ringkasan prospek',
+  summarySubtitle: 'Dibuka dari papan prospek.',
+  backToBoard: 'Kembali ke papan prospek',
   empty: 'Belum ada prospek yang ditugaskan ke Anda.',
   pick: 'Pilih prospek untuk melihat ringkasannya.',
   contact: { email: 'Email', whatsapp: 'WhatsApp', phone: 'Telepon' },
@@ -103,6 +107,9 @@ export const SALES_COPY = {
 export const SALES_COPY_EN: CopyShape<typeof SALES_COPY> = {
   title: 'My prospects',
   subtitle: 'Customers assigned to you, by priority.',
+  summaryTitle: 'Prospect summary',
+  summarySubtitle: 'Opened from the prospect board.',
+  backToBoard: 'Back to the prospect board',
   empty: 'No prospects are assigned to you yet.',
   pick: 'Pick a prospect to see the summary.',
   contact: { email: 'Email', whatsapp: 'WhatsApp', phone: 'Phone' },

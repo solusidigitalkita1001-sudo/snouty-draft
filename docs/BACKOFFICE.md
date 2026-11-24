@@ -132,6 +132,11 @@ ditampilkan.
 
 Akun internal **dinonaktifkan**, tidak dihapus — audit log harus tetap bisa merujuk pelakunya.
 
+Mencabut seseorang dari **tim sales** (layar Tim sales) melepas prospek berjalan yang dipegangnya:
+prospek itu kembali ke papan sebagai belum ditugaskan, dan setiap pelepasan tercatat di jejak
+prospeknya (keputusan pemilik 2026-11-24). Prospek yang sudah menang atau kalah tidak disentuh.
+Layarnya menyebut berapa prospek yang akan kembali ke papan sebelum pencabutan dijalankan.
+
 ---
 
 ## 5. Navigasi dan tampilan

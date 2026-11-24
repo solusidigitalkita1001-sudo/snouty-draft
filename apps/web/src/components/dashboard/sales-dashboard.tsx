@@ -47,11 +47,20 @@ export function SalesDashboard() {
   );
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<Loaded<LeadDetail> | null>(null);
+  /**
+   * Ringkasan yang dibuka dari papan prospek. Judul "Prospek saya — ditugaskan ke Anda" di atas
+   * prospek milik sales lain adalah judul yang berbohong, dan tidak ada jalan kembali ke papan
+   * yang baru saja ditinggalkan (P39-08).
+   */
+  const [openedFromBoard, setOpenedFromBoard] = useState(false);
 
   useEffect(() => {
     // Admin membuka ringkasan dari papan prospek: `?u=<id pengguna>`.
     const fromBoard = new URLSearchParams(window.location.search).get('u');
-    if (fromBoard !== null && ULID.test(fromBoard)) setSelected(fromBoard);
+    if (fromBoard !== null && ULID.test(fromBoard)) {
+      setSelected(fromBoard);
+      setOpenedFromBoard(true);
+    }
   }, []);
 
   const loadList = useCallback(async () => {
@@ -85,6 +94,12 @@ export function SalesDashboard() {
     if (first !== undefined) setSelected(first.userId);
   }, [list, selected]);
 
+  /** Ringkasan satu orang dari papan: bukan daftar prospek sendiri, jadi judulnya pun bukan itu. */
+  const summaryOnly =
+    openedFromBoard &&
+    list?.kind === 'ok' &&
+    !list.value.items.some((item) => item.userId === selected);
+
   return (
     <>
       {list === null && <p className={styles.muted}>{BOARD.loading}</p>}
@@ -108,8 +123,13 @@ export function SalesDashboard() {
       {list?.kind === 'ok' && (
         <>
           <div className={styles.titleRow}>
-            <h1 className={styles.title}>{COPY.title}</h1>
-            <p className={styles.subtitle}>{COPY.subtitle}</p>
+            <h1 className={styles.title}>{summaryOnly ? COPY.summaryTitle : COPY.title}</h1>
+            <p className={styles.subtitle}>{summaryOnly ? COPY.summarySubtitle : COPY.subtitle}</p>
+            {summaryOnly && (
+              <a className={styles.back} href="/internal/prospects">
+                {COPY.backToBoard}
+              </a>
+            )}
           </div>
           {/* Tanpa satu pun prospek, dua panel tidak punya guna: kalimat "pilih prospek"
               menunggu pilihan yang tidak ada. Satu blok kosong selebar layar (P31-78).

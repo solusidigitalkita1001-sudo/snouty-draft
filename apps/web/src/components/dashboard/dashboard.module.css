@@ -269,10 +269,26 @@
 
 .teamRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 16px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--snouty-border-soft);
+}
+
+/*
+ * Pertanyaan pencabutan (P39-07) duduk di baris sendiri di bawah anggotanya: ia menyebut
+ * berapa prospek yang kembali ke papan, dan kalimat sepanjang itu tidak muat di sela kolom.
+ */
+.confirmRow {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--snouty-muted);
 }
 
 .teamRow:last-child {

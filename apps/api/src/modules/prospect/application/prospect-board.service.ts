@@ -90,8 +90,13 @@ export class ProspectBoardService {
     if (granted === null) throw new AccountNotFoundError();
   }
 
-  /** Penugasan yang ada tetap tercatat; admin memindahkannya ke sales lain. */
-  removeSales(userId: string): Promise<void> {
+  /**
+   * Mencabut anggota sales. Prospek berjalan yang dipegangnya dilepas supaya muncul lagi di
+   * papan sebagai belum ditugaskan (keputusan pemilik 2026-11-24): sebelumnya penugasannya tetap
+   * atas namanya padahal ia tidak bisa lagi membuka layar prospek, sehingga prospek itu hilang
+   * dari pandangan semua orang. Yang sudah menang atau kalah tidak disentuh — itu riwayat.
+   */
+  removeSales(userId: string): Promise<readonly string[]> {
     return this.store.revokeSales(userId);
   }
 }

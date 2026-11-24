@@ -453,10 +453,29 @@ export class MysqlProspectStore implements ProspectStore {
     return { userId: person.id };
   }
 
-  async revokeSales(userId: string): Promise<void> {
+  async revokeSales(userId: string): Promise<readonly string[]> {
     await this.db
       .delete(userRoles)
       .where(and(eq(userRoles.userId, userId), eq(userRoles.role, INTERNAL_ROLES.sales)));
+    // Prospek yang sudah menang atau kalah adalah riwayat; yang dilepas hanya yang berjalan.
+    const running = await this.db
+      .select({ userId: salesLeads.userId })
+      .from(salesLeads)
+      .where(
+        and(
+          eq(salesLeads.assignedTo, userId),
+          ne(salesLeads.status, 'won'),
+          ne(salesLeads.status, 'lost'),
+        ),
+      );
+    if (running.length === 0) return [];
+    await this.db.delete(salesLeads).where(
+      inArray(
+        salesLeads.userId,
+        running.map((row) => row.userId),
+      ),
+    );
+    return running.map((row) => row.userId);
   }
 }
 

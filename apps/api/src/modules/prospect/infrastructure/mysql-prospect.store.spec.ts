@@ -130,6 +130,25 @@ describe('papan prospek (P26-05)', () => {
     expect(await board.salesTeam()).toEqual([]);
   });
 
+  /**
+   * P39-07 (keputusan pemilik 2026-11-24): prospek yang masih berjalan milik anggota yang dicabut
+   * kembali ke papan. Sebelumnya penugasannya tetap atas namanya padahal ia tidak bisa lagi
+   * membuka layar prospek — prospeknya hilang dari pandangan semua orang.
+   */
+  it('mencabut anggota melepas prospek berjalannya kembali ke papan', async () => {
+    await fixture.db
+      .insert(salesRequests)
+      .values({ id: testId('SR3'), userId: BUYER, conversationId: CONV, source: 'solution' });
+    await board.addSales('sales@example.test', ADMIN);
+    await board.assign(BUYER, SALES, ADMIN);
+
+    expect(await board.removeSales(SALES)).toEqual([BUYER]);
+
+    const after = await board.board({});
+    expect(after.items.find((row) => row.user.id === BUYER)?.lead ?? null).toBeNull();
+    expect(await fixture.db.select().from(salesLeads)).toHaveLength(0);
+  });
+
   it('email yang tidak terdaftar ditolak', async () => {
     await expect(board.addSales('tidak.ada@example.test', ADMIN)).rejects.toMatchObject({
       code: 'NOT_FOUND',

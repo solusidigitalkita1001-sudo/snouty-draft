@@ -92,9 +92,9 @@ export class InternalProspectController {
   @Delete('sales-team/:id')
   @HttpCode(204)
   @RequiresRole(INTERNAL_ROLES.admin)
-  async revoke(@Param() params: unknown): Promise<void> {
+  async revoke(@Param() params: unknown, @Req() req: WithInternalActor): Promise<void> {
     const { id } = parse(IdParam, params);
-    await this.board.removeSales(id);
+    await this.leads.revokeSales(id, actorId(req));
   }
 }
 
