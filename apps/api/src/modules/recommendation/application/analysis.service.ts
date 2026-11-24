@@ -93,6 +93,7 @@ import { firstSentences } from '../domain/summary-length.js';
 import {
   drainFittingNeeds,
   fittingBomRows,
+  inspectionChamberRows,
   fittingKey,
   pendingNeeds,
   pendingRows,
@@ -758,6 +759,9 @@ export class AnalysisService {
             locale,
             (n) => drainSocketFitted.get(socketKey(n))?.productId,
           ),
+          // Bak kontrol (ENG-607, keputusan pemilik 2026-11-24): berjumlah, tanpa SKU — pekerjaan
+          // pasangan di lapangan, bukan barang katalog.
+          ...inspectionChamberRows(drainage, drainageTraces, locale),
           ...pendingRows(
             drainPending,
             locale,

@@ -28,6 +28,7 @@ import {
   ENG_413,
   ENG_417,
   ENG_418,
+  ENG_419,
   culvertStructuralNote,
   type CulvertStructuralResult,
   type GravityCandidate,
@@ -78,6 +79,15 @@ export interface SewerDemand {
   readonly connections: number;
   readonly averageFlowLs: number;
   readonly peakFlowLs: number;
+  /**
+   * Kapasitas IPAL di ujung jalur (ENG-419, keputusan pemilik 2026-11-24): volume harian yang
+   * harus bisa diolah, dari jumlah jiwa yang dilayani. Jenis dan merek IPAL-nya di luar ini.
+   * `null` bila debitnya diberikan langsung tanpa jumlah jiwa — kapasitas per jiwa tidak dikarang.
+   */
+  readonly treatment: {
+    readonly servedPersons: number;
+    readonly dailyVolumeM3: number;
+  } | null;
   /** Ukuran hidraulik sebelum dinaikkan ke minimum pipa air limbah; sama bila tidak dinaikkan. */
   readonly hydraulicSize: string;
   readonly minimumSize: string;
@@ -200,7 +210,10 @@ export function computeGravity(
     }
   }
   // Air limbah: sambungan (atau jiwa → sambungan) → debit rata-rata dan puncak + infiltrasi.
-  let sewerDemand: { connections: number; averageFlowLs: number; peakFlowLs: number } | null = null;
+  let sewerDemand: Omit<
+    SewerDemand,
+    'hydraulicSize' | 'minimumSize' | 'partial' | 'profile'
+  > | null = null;
   if (input.kind === 'sewer' && designFlowLs === undefined) {
     const personsPerConnection = use('SPAM_PERSONS_PER_CONNECTION_5');
     const connections =
@@ -222,7 +235,15 @@ export function computeGravity(
       infiltrationPercent: use('SEWER_INFILTRATION_10PCT'),
     });
     designFlowLs = demand.peakFlowLs;
-    sewerDemand = { connections, ...demand };
+    // Kapasitas IPAL dari air limbah yang masuk (ENG-419, OQ-101): bukan angka baru, hanya debit
+    // rata-rata yang sudah dihitung dinyatakan sebagai volume harian.
+    const servedPersons = Math.round(connections * personsPerConnection);
+    const treatment = run(ENG_419, { averageFlowLs: demand.averageFlowLs, servedPersons });
+    sewerDemand = {
+      connections,
+      ...demand,
+      treatment: { servedPersons, dailyVolumeM3: treatment.dailyVolumeM3 },
+    };
   }
   if (designFlowLs === undefined) throw new GravityInputError('debit rencana tidak diketahui');
 
@@ -266,10 +287,12 @@ export function computeGravity(
           })
         : null;
     const demand = sewerDemand ?? {
-      // Debit diberikan langsung: tidak ada sambungan yang diketahui.
+      // Debit diberikan langsung: tidak ada sambungan maupun jiwa yang diketahui, jadi kapasitas
+      // IPAL-nya tidak dihitung (ENG-419 butuh jumlah jiwa).
       connections: input.connections ?? 0,
       averageFlowLs: designFlowLs,
       peakFlowLs: designFlowLs,
+      treatment: null,
     };
     sewer = {
       ...demand,

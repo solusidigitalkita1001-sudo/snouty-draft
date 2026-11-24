@@ -267,6 +267,48 @@ export function fittingKey(need: Pick<FittingNeed, 'kind' | 'size' | 'branchSize
   return `${need.kind}|${need.size}|${need.branchSize ?? ''}`;
 }
 
+/**
+ * Bak kontrol (ENG-607, keputusan pemilik 2026-11-24): dihitung, tetapi pekerjaan pasangan di
+ * lapangan — bukan barang katalog Pralon, jadi barisnya berjumlah tanpa SKU. `null` bila panjang
+ * jalurnya belum diketahui: di situ tidak ada baris sama sekali, bukan baris tanpa angka.
+ */
+export function inspectionChamberRows(
+  drainage: HouseDrainageResult,
+  traces: readonly IdentifiedTrace[],
+  locale: Locale,
+): readonly BomItem[] {
+  const chambers = drainage.inspectionChambers;
+  if (chambers === null) return [];
+  const en = locale === 'en';
+  const ids = traceIdsFor(traces, 'ENG-607');
+  const row = (system: 'soil' | 'waste', quantity: number | null): BomItem | null => {
+    if (quantity === null || quantity === 0) return null;
+    const name =
+      system === 'soil' ? { id: 'air kotor', en: 'soil' } : { id: 'air bekas', en: 'waste' };
+    const method = en
+      ? 'One at the stack foot, then one every 10 m of horizontal run'
+      : 'Satu di kaki pipa tegak, lalu satu setiap 10 m jalur mendatar';
+    const working = en ? `${quantity} chambers` : `${quantity} bak`;
+    return {
+      item: en ? 'Inspection chamber' : 'Bak kontrol',
+      system,
+      purpose: en
+        ? `Reaching a blockage on the ${name.en} line`
+        : `Menjangkau sumbatan jalur ${name.id}`,
+      size: '—',
+      quantity,
+      unit: 'pcs',
+      basis: `${method}: ${working}.`,
+      calc: { method, working, result: working },
+      provenance: provenanceFor(traces, ids),
+      traceIds: ids,
+    };
+  };
+  return [row('soil', chambers.soil), row('waste', chambers.waste)].filter(
+    (item): item is BomItem => item !== null,
+  );
+}
+
 /** Barang yang dibutuhkan tetapi jumlahnya baru dihitung saat pemasangan, per jalur. */
 export interface PendingNeed {
   readonly system: BomSystem;

@@ -10,6 +10,7 @@
 import { assumptionReader, type AssumptionOverrides } from './parameters/assumptions.js';
 import { DEFAULT_ENGINEERING_LOCALE, type EngineeringLocale } from './parameters/locale.js';
 import { gateEngineProvenance, type Provenance } from './provenance.js';
+import { round1 } from './units.js';
 import type { CalculationTrace } from './compute-solution.js';
 import { RuleInputError, type RuleVersion } from './rule.js';
 import { assertBalanced } from './consistency.js';
@@ -18,6 +19,7 @@ import {
   ENG_601,
   ENG_602,
   ENG_603,
+  ENG_607,
   ENG_604,
   ENG_605,
   ENG_606,
@@ -27,6 +29,7 @@ import {
   type DrainLineResult,
   type DrainSize,
   type GreyWaterDestination,
+  type InspectionChamberResult,
   type GreyWaterOutletResult,
 } from './rules/group-j-waste.js';
 import { ENG_803, type WudhuDrainRow } from './rules/group-l-worship.js';
@@ -94,6 +97,11 @@ export interface HouseDrainageResult {
   readonly lengths: DrainLengthResult | null;
   /** Fitting pembuangan (ENG-605): Y, elbow 45°, clean out per jalur. */
   readonly fittings: DrainFittingResult;
+  /**
+   * Bak kontrol di jalur mendatar tiap jalur (ENG-607, keputusan pemilik 2026-11-24); `null`
+   * tanpa ukuran bangunan — tanpa panjang jalur tidak ada jumlah yang bisa dihitung.
+   */
+  readonly inspectionChambers: InspectionChamberResult | null;
   /**
    * Tujuan air bekas dan grease trap dapur (ENG-606, temuan 9/10); `null` bila tidak ada jalur air
    * bekas sama sekali — tidak ada yang perlu tujuan.
@@ -297,6 +305,21 @@ export function computeHouseDrainage(
       })
     : null;
 
+  // Bak kontrol (ENG-607, OQ-101): jalur MENDATAR tiap jalur = panjang bangunan + halaman;
+  // bagian tegaknya tidak dihitung karena bak kontrol ada di tanah, bukan di dinding.
+  const horizontalRunM =
+    input.layout === null || input.layout === undefined
+      ? null
+      : round1(input.layout.planLengthM + (input.layout.yardM ?? 0));
+  const inspectionChambers =
+    horizontalRunM === null
+      ? null
+      : run(ENG_607, {
+          soilRunM: soil !== null ? horizontalRunM : null,
+          wasteRunM: waste !== null ? horizontalRunM : null,
+          spacingM: use('INSPECTION_CHAMBER_SPACING_10M'),
+        });
+
   // Fitting pembuangan (ENG-605, P18-01) — dari jumlah alat dan lantai, tanpa butuh ukuran rumah.
   const fittings = run(ENG_605, {
     soilFixtures: counts.waterClosets + urinals,
@@ -336,6 +359,7 @@ export function computeHouseDrainage(
     greyWater,
     wudhuTroughs: wudhuRows?.rows ?? [],
     lengths,
+    inspectionChambers,
     appliedAssumptionIds: [...new Set(applied)],
     traces,
     overallProvenance: traces.every((t) => t.provenance === 'VERIFIED') ? 'VERIFIED' : 'ASSUMED',

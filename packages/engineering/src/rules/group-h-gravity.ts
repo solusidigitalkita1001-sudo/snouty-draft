@@ -1608,6 +1608,70 @@ export const ENG_418: RuleVersion<DownspoutFlowInput, DownspoutFlowResult> = {
     }),
 };
 
+// ── ENG-419 · Kapasitas IPAL dari air limbah yang masuk ────────────────────
+
+export interface TreatmentCapacityInput {
+  /** Debit air limbah rata-rata yang masuk IPAL (ENG-406). */
+  readonly averageFlowLs: number;
+  readonly servedPersons: number;
+}
+export interface TreatmentCapacityResult {
+  readonly dailyVolumeM3: number;
+  readonly litresPerDay: number;
+}
+
+/**
+ * Kapasitas IPAL (keputusan pemilik 2026-11-24, OQ-101): sampai saat itu jalur air limbah berakhir
+ * di "IPAL" tanpa satu angka pun, sehingga pembacanya tidak tahu IPAL sebesar apa yang harus
+ * disediakan.
+ *
+ * Angkanya bukan nilai baru: ia debit rata-rata yang sudah dihitung dari jumlah jiwa, pemakaian
+ * air per orang, dan bagian yang kembali sebagai air limbah (ENG-406), dinyatakan sebagai volume
+ * harian. Yang TIDAK keluar dari sini: jenis, proses, dan merek IPAL-nya — itu produk pihak lain.
+ */
+export const ENG_419: RuleVersion<TreatmentCapacityInput, TreatmentCapacityResult> = {
+  ruleId: 'ENG-419',
+  version: 1,
+  category: 'load_sizing',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    return {
+      averageFlowLs: requireNumber('ENG-419', 'averageFlowLs', o['averageFlowLs'], {
+        min: 0,
+        max: 10_000,
+      }),
+      servedPersons: requireInt('ENG-419', 'servedPersons', o['servedPersons'], {
+        min: 1,
+        max: 1_000_000,
+      }),
+    };
+  },
+  compute: (i) => ({
+    dailyVolumeM3: round1((i.averageFlowLs * 86_400) / 1000),
+    litresPerDay: Math.round(i.averageFlowLs * 86_400),
+  }),
+  sourceReference:
+    'Kapasitas olahan = debit air limbah rata-rata × 86 400 s (ENG-406: jiwa × pemakaian air per orang × bagian yang kembali sebagai air limbah)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: '0,93 l/s dari 1000 jiwa → 80,4 m³/hari',
+      input: { averageFlowLs: 0.93, servedPersons: 1000 },
+      expected: { dailyVolumeM3: 80.4, litresPerDay: 80_352 },
+    },
+    {
+      name: 'kampung kecil: 0,05 l/s dari 60 jiwa → 4,3 m³/hari',
+      input: { averageFlowLs: 0.05, servedPersons: 60 },
+      expected: { dailyVolumeM3: 4.3, litresPerDay: 4320 },
+    },
+  ],
+  explain: (i, o, locale) =>
+    localized(locale, {
+      id: `IPAL menerima air limbah rata-rata ${i.averageFlowLs} l/s dari ${i.servedPersons} jiwa = ${o.dailyVolumeM3} m³ per hari; itu kapasitas olahan yang harus tersedia. Jenis, proses, dan merek IPAL-nya di luar perhitungan ini.`,
+      en: `The treatment plant receives ${i.averageFlowLs} l/s of wastewater on average from ${i.servedPersons} people = ${o.dailyVolumeM3} m³ per day; that is the treatment capacity it must have. Its type, process and make are outside this calculation.`,
+    }),
+};
+
 export const GROUP_H = [
   ENG_401,
   ENG_402,
@@ -1627,4 +1691,5 @@ export const GROUP_H = [
   ENG_416,
   ENG_417,
   ENG_418,
+  ENG_419,
 ] as const;

@@ -41,6 +41,7 @@ const OWNER_APPROVED = [
   'ROOF_TANK_FILL_TIME_1H',
   'GROUND_TANK_SUCTION_LIFT_1_5M',
   'DRAIN_NEAR_CAPACITY_75PCT',
+  'INSPECTION_CHAMBER_SPACING_10M',
 ];
 
 describe('EngineeringAssumptionRegistry', () => {

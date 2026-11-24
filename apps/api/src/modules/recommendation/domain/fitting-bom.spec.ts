@@ -5,6 +5,7 @@ import {
   drainFittingNeeds,
   fittingBomRows,
   fittingKey,
+  inspectionChamberRows,
   pendingNeeds,
   solventCement,
   stopValveRow,
@@ -98,6 +99,34 @@ describe('supplyFittingNeeds + fittingBomRows', () => {
       purpose: 'Reducer ujung pipa utama',
     });
     expect(rows.every((r) => r.traceIds.length > 0)).toBe(true);
+  });
+});
+
+// Bak kontrol (ENG-607, keputusan pemilik 2026-11-24, OQ-101): berjumlah, tanpa SKU — pekerjaan
+// pasangan di lapangan.
+describe('inspectionChamberRows', () => {
+  const withYard = computeHouseDrainage({
+    bathrooms: 2,
+    basins: 1,
+    kitchens: 1,
+    layout: { planLengthM: 12, floors: 2, floorHeightM: 3.5, yardM: 6 },
+  });
+  const drainTraces = withYard.traces.map((t, i) => ({ ...t, id: `D${i}` })) as IdentifiedTrace[];
+
+  it('satu baris per jalur, berjumlah, tanpa produk katalog', () => {
+    const rows = inspectionChamberRows(withYard, drainTraces, 'id');
+    expect(rows.map((r) => [r.system, r.item, r.quantity, r.unit])).toEqual([
+      ['soil', 'Bak kontrol', 3, 'pcs'],
+      ['waste', 'Bak kontrol', 3, 'pcs'],
+    ]);
+    expect(rows[0]).not.toHaveProperty('productId');
+    expect(rows[0]!.basis).toContain('setiap 10 m jalur mendatar');
+    expect(rows[0]!.traceIds.length).toBeGreaterThan(0);
+  });
+
+  it('tanpa ukuran bangunan tidak ada barisnya sama sekali', () => {
+    const noLayout = computeHouseDrainage({ bathrooms: 2, basins: 1, kitchens: 1 });
+    expect(inspectionChamberRows(noLayout, [], 'id')).toEqual([]);
   });
 });
 

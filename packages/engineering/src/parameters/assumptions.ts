@@ -143,12 +143,29 @@ export const ASSUMPTIONS: readonly AssumptionDefinition[] = [
     unit: 'pcs',
     conditionEn: 'a kitchen discharges into the shared grey-water line',
     descriptionEn:
-      'One grease trap per kitchen, before the kitchen waste meets the shared line. Its size and volume are not worked out here (OQ-101).',
-    reference: 'Praktik umum pemasangan; ukuran dan volumenya perlu validasi Pralon (OQ-101)',
+      'One grease trap per kitchen, before the kitchen waste meets the shared line. Its volume is worked out from the kitchen discharge flow and the retention time, and both numbers are still with Pralon (OQ-101).',
+    reference:
+      'Praktik umum pemasangan, jumlahnya disetujui pemilik 2026-11-24; volumenya menunggu debit buangan dapur dan waktu tinggal dari Pralon (OQ-101)',
     confidence: 'low',
     confirmationRequired: true,
     description:
       'Satu grease trap per dapur, sebelum buangan dapur bertemu jalur bersama. Ukuran dan volumenya tidak dihitung di sini (OQ-101).',
+  },
+  {
+    id: 'INSPECTION_CHAMBER_SPACING_10M',
+    parameter: 'route_length',
+    appliesTo: [],
+    condition: 'jarak antar bak kontrol di jalur pembuangan mendatar',
+    value: 10,
+    unit: 'm',
+    conditionEn: 'spacing between inspection chambers on a horizontal drain run',
+    descriptionEn:
+      'An inspection chamber sits at the stack foot and then every 10 m along the horizontal run, so a blockage can be reached.',
+    reference: 'Keputusan pemilik 2026-11-24 (OQ-101): satu bak tiap 10 m dan tiap perubahan arah',
+    confidence: 'medium',
+    confirmationRequired: false,
+    description:
+      'Bak kontrol dipasang di kaki pipa tegak, lalu setiap 10 m sepanjang jalur mendatarnya, supaya sumbatan bisa dijangkau.',
   },
   // ── Pompa transfer tandon bawah → toren atap (smoke test 13 Nov 2026, temuan 9) ──
   {

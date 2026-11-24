@@ -16,6 +16,8 @@ describe('computeGravity — jaringan air limbah', () => {
       minimumSize: SEWER_MINIMUM_SIZE,
     });
     expect(result.designFlowLs).toBe(2.41);
+    // 200 SR × 5 jiwa = 1000 jiwa; 0,93 l/s rata-rata = 80,4 m³ per hari yang harus bisa diolah.
+    expect(result.sewer?.treatment).toEqual({ servedPersons: 1000, dailyVolumeM3: 80.4 });
     // Aliran sebagian pada 6" dan 0,5 %: terisi sebagian, kecepatan di bawah 0,6 → kemiringan minimum disebut.
     expect(result.sewer?.partial.depthRatio).toBeGreaterThan(0.2);
     expect(result.sewer?.partial.depthRatio).toBeLessThan(0.4);
@@ -24,6 +26,8 @@ describe('computeGravity — jaringan air limbah', () => {
     expect(result.recommendedSize).toBe('6"');
     expect(result.traces.map((t) => t.ruleId)).toEqual([
       'ENG-406',
+      // Kapasitas IPAL dari jiwa yang dilayani (ENG-419, keputusan pemilik 2026-11-24).
+      'ENG-419',
       'ENG-402',
       'ENG-407',
       'ENG-401',

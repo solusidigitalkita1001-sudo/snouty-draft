@@ -72,6 +72,49 @@ describe('panjang jalur pembuangan dari ukuran rumah (ENG-603, P16-60)', () => {
   });
 });
 
+// Bak kontrol (ENG-607, keputusan pemilik 2026-11-24, OQ-101): sebelumnya tidak pernah disebut,
+// jadi jalur pembuangan menyeberangi halaman tanpa satu titik pun yang bisa dibuka.
+describe('bak kontrol (ENG-607, OQ-101)', () => {
+  it('satu di kaki pipa tegak + satu tiap 10 m jalur mendatar (bangunan + halaman)', () => {
+    const result = computeHouseDrainage({
+      bathrooms: 3,
+      basins: 0,
+      kitchens: 1,
+      layout: { planLengthM: 12, floors: 2, floorHeightM: 3.5, yardM: 6 },
+    });
+    // Mendatar 12 + 6 = 18 m → 1 + ⌈18 ÷ 10⌉ = 3 bak tiap jalur.
+    expect(result.inspectionChambers).toEqual({ soil: 3, waste: 3, total: 6 });
+    expect(result.appliedAssumptionIds).toContain('INSPECTION_CHAMBER_SPACING_10M');
+    const trace = result.traces.find((t) => t.ruleId === 'ENG-607')!;
+    expect(trace.explanation).toContain('kaki pipa tegak');
+  });
+
+  it('tanpa jalur air kotor hanya jalur air bekas yang dapat bak', () => {
+    const result = computeHouseDrainage({
+      bathrooms: 0,
+      basins: 1,
+      kitchens: 1,
+      layout: { planLengthM: 8, floors: 1, floorHeightM: 3.5 },
+    });
+    expect(result.inspectionChambers).toEqual({ soil: null, waste: 2, total: 2 });
+  });
+
+  it('tanpa ukuran bangunan tidak ada bak kontrol sama sekali — bukan baris tanpa angka', () => {
+    const result = computeHouseDrainage({ bathrooms: 1, basins: 0, kitchens: 1 });
+    expect(result.inspectionChambers).toBeNull();
+    expect(result.traces.some((t) => t.ruleId === 'ENG-607')).toBe(false);
+  });
+
+  it('grease trap: jumlahnya ada, dan kalimatnya menyebut dua angka yang kurang untuk volumenya', () => {
+    const result = computeHouseDrainage({ bathrooms: 1, basins: 0, kitchens: 2 });
+    expect(result.greyWater?.greaseTraps).toBe(2);
+    const trace = result.traces.find((t) => t.ruleId === 'ENG-606')!;
+    expect(trace.ruleVersion).toBe(2);
+    expect(trace.explanation).toContain('debit buangan dapur');
+    expect(trace.explanation).toContain('waktu tinggal');
+  });
+});
+
 describe('cabang mendatar dan pipa tegak (ENG-604, temuan laporan 0009)', () => {
   it('masjid 0009: 2 lantai × (2 KM + 4 wastafel) → air bekas 8 DFU per lantai, 16 di saluran → 3"', () => {
     const floor = { bathrooms: 2, basins: 4, kitchens: 0 };

@@ -54,6 +54,13 @@ describe('sewerage', () => {
     const schematic = gravitySchematic({ pipeLengthM: 1500 }, result, 'erp-2026-10-06', 'id');
     expect(JSON.stringify(schematic)).toContain('SK-08 AIR LIMBAH');
     expect(JSON.stringify(schematic)).toContain('IPAL / PENGOLAHAN');
+    // Kapasitas IPAL (ENG-419, keputusan pemilik 2026-11-24): jalurnya tidak lagi berakhir di
+    // "IPAL" tanpa angka — 1000 jiwa, 80,4 m³ per hari.
+    expect(highlights.some((h) => h.label === 'Kapasitas IPAL' && h.value === '80,4 m³/hari')).toBe(
+      true,
+    );
+    expect(prose.body).toContain('IPAL di ujung jalur harus mengolah 80,4 m³ per hari');
+    expect(prose.body).toContain('1000 jiwa');
   });
 });
 

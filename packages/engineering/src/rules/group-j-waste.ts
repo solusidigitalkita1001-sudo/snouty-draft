@@ -831,7 +831,10 @@ export const ENG_605: RuleVersion<DrainFittingInput, DrainFittingResult> = {
  *     air bekas menyumbat jalur itu.
  *
  * Jumlah grease trap dari jumlah dapur, bukan dari panjang jalur: satu per dapur, sebelum lemaknya
- * bertemu jalur bersama. Ukuran dan volumenya bukan keluaran aturan ini (OQ-101).
+ * bertemu jalur bersama. Volumenya bukan keluaran aturan ini: dasarnya sudah disepakati (debit
+ * buangan dapur × waktu tinggal, keputusan pemilik 2026-11-24) tetapi kedua angkanya belum ada di
+ * data mana pun, jadi v2 MENGATAKAN apa yang kurang alih-alih membiarkan barisnya tanpa ukuran dan
+ * tanpa keterangan (OQ-101).
  */
 export type GreyWaterDestination = 'municipal_drain' | 'treatment_plant' | 'soakaway';
 
@@ -859,7 +862,9 @@ const DESTINATIONS: readonly GreyWaterDestination[] = [
 
 export const ENG_606: RuleVersion<GreyWaterOutletInput, GreyWaterOutletResult> = {
   ruleId: 'ENG-606',
-  version: 1,
+  // v2 (OQ-101, keputusan pemilik 2026-11-24): kalimatnya menyebut apa yang kurang supaya volume
+  // grease trap bisa dihitung — debit buangan dapur dan waktu tinggal.
+  version: 2,
   category: 'material',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -951,8 +956,8 @@ export const ENG_606: RuleVersion<GreyWaterOutletInput, GreyWaterOutletResult> =
     const grease =
       o.greaseTraps > 0
         ? {
-            id: ` Lemak dapur ditahan ${o.greaseTraps} grease trap sebelum masuk jalur bersama.`,
-            en: ` Kitchen grease is held back by ${o.greaseTraps} grease trap${o.greaseTraps > 1 ? 's' : ''} before the shared line.`,
+            id: ` Lemak dapur ditahan ${o.greaseTraps} grease trap sebelum masuk jalur bersama; volumenya dihitung dari debit buangan dapur dan waktu tinggalnya, dan kedua angka itu belum ada — jadi di sini grease trap-nya berjumlah, tanpa ukuran.`,
+            en: ` Kitchen grease is held back by ${o.greaseTraps} grease trap${o.greaseTraps > 1 ? 's' : ''} before the shared line; the volume follows from the kitchen discharge flow and the retention time, and neither number exists yet — so the traps have a count here, not a size.`,
           }
         : { id: '', en: '' };
     const warning = o.soakawayWarned
@@ -974,4 +979,97 @@ export const ENG_606: RuleVersion<GreyWaterOutletInput, GreyWaterOutletResult> =
   },
 };
 
-export const GROUP_J = [ENG_601, ENG_602, ENG_603, ENG_604, ENG_605, ENG_606] as const;
+// ── ENG-607 · Bak kontrol di jalur pembuangan luar ─────────────────────────
+
+export interface InspectionChamberInput {
+  /** Panjang jalur mendatar air kotor (bangunan + halaman); `null` bila belum diketahui. */
+  readonly soilRunM: number | null;
+  readonly wasteRunM: number | null;
+  /** Jarak terjauh antar bak kontrol. */
+  readonly spacingM: number;
+}
+export interface InspectionChamberResult {
+  readonly soil: number | null;
+  readonly waste: number | null;
+  readonly total: number;
+}
+
+/**
+ * Bak kontrol (keputusan pemilik 2026-11-24, OQ-101). Sampai smoke test 13 Nov 2026 (temuan 10)
+ * ia tidak pernah disebut sama sekali: jalur pembuangan keluar dari bangunan, menyeberangi
+ * halaman, dan berakhir di saluran atau septic tank tanpa satu pun titik yang bisa dibuka bila
+ * tersumbat.
+ *
+ * Jumlahnya bukan turunan panjang jalur saja: satu bak di kaki pipa tegak — tempat jalur berubah
+ * arah dari tegak ke mendatar, titik yang paling mudah tersumbat — lalu satu lagi setiap
+ * `INSPECTION_CHAMBER_SPACING_10M` sepanjang jalur mendatarnya. Tanpa panjang jalur (ukuran
+ * bangunan belum disebut) jumlahnya `null`: tidak ada baris, bukan angka karangan.
+ */
+export const ENG_607: RuleVersion<InspectionChamberInput, InspectionChamberResult> = {
+  ruleId: 'ENG-607',
+  version: 1,
+  category: 'material',
+  parseInput: (raw) => {
+    const o = (raw ?? {}) as Record<string, unknown>;
+    const runM = (field: string): number | null => {
+      const value = o[field];
+      if (value === null || value === undefined) return null;
+      return requireNumber('ENG-607', field, value, { min: 0, max: 1000 });
+    };
+    return {
+      soilRunM: runM('soilRunM'),
+      wasteRunM: runM('wasteRunM'),
+      spacingM: requireNumber('ENG-607', 'spacingM', o['spacingM'], { min: 1, max: 100 }),
+    };
+  },
+  compute: (i) => {
+    const chambers = (run: number | null): number | null =>
+      run === null ? null : 1 + Math.ceil(run / i.spacingM);
+    const soil = chambers(i.soilRunM);
+    const waste = chambers(i.wasteRunM);
+    return { soil, waste, total: (soil ?? 0) + (waste ?? 0) };
+  },
+  sourceReference:
+    'Satu bak kontrol di kaki pipa tegak (tempat jalur berubah arah) + satu setiap jarak baku sepanjang jalur mendatar (keputusan pemilik 2026-11-24, OQ-101)',
+  validationStatus: PENDING,
+  testCases: [
+    {
+      name: 'air kotor 23 m, air bekas 23 m, jarak 10 m: 4 bak tiap jalur (kaki pipa tegak, 10 m, 20 m, ujung)',
+      input: { soilRunM: 23, wasteRunM: 23, spacingM: 10 },
+      expected: { soil: 4, waste: 4, total: 8 },
+    },
+    {
+      name: 'hanya air bekas, 8 m: satu di kaki pipa tegak + satu di jalur mendatarnya',
+      input: { soilRunM: null, wasteRunM: 8, spacingM: 10 },
+      expected: { soil: null, waste: 2, total: 2 },
+    },
+    {
+      name: 'panjang jalur belum diketahui: tidak ada angka',
+      input: { soilRunM: null, wasteRunM: null, spacingM: 10 },
+      expected: { soil: null, waste: null, total: 0 },
+    },
+  ],
+  explain: (i, o, locale) => {
+    const lines = (lang: 'id' | 'en'): string =>
+      [
+        o.soil === null
+          ? null
+          : lang === 'id'
+            ? `air kotor ${i.soilRunM} m mendatar → ${o.soil} bak`
+            : `soil: ${i.soilRunM} m horizontal → ${o.soil} chambers`,
+        o.waste === null
+          ? null
+          : lang === 'id'
+            ? `air bekas ${i.wasteRunM} m mendatar → ${o.waste} bak`
+            : `waste: ${i.wasteRunM} m horizontal → ${o.waste} chambers`,
+      ]
+        .filter((text): text is string => text !== null)
+        .join('; ');
+    return localized(locale, {
+      id: `Bak kontrol: satu di kaki pipa tegak tempat jalur berubah arah, lalu satu setiap ${i.spacingM} m sepanjang jalur mendatarnya — ${lines('id')}, ${o.total} seluruhnya. Bak kontrol pekerjaan pasangan di lapangan, bukan barang katalog.`,
+      en: `Inspection chambers: one at the stack foot where the line turns, then one every ${i.spacingM} m along the horizontal run — ${lines('en')}, ${o.total} in all. A chamber is masonry work on site, not a catalogue item.`,
+    });
+  },
+};
+
+export const GROUP_J = [ENG_601, ENG_602, ENG_603, ENG_604, ENG_605, ENG_606, ENG_607] as const;

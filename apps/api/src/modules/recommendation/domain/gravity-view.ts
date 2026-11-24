@@ -234,6 +234,16 @@ export function gravityHighlights(
             label: en ? 'Average wastewater' : 'Air limbah rata-rata',
             value: `${id(result.sewer.averageFlowLs, locale)} l/s`,
           },
+          // Kapasitas IPAL di ujung jalur (ENG-419, keputusan pemilik 2026-11-24): jalurnya tidak
+          // lagi berakhir di "IPAL" tanpa angka.
+          ...(result.sewer.treatment
+            ? [
+                {
+                  label: en ? 'Treatment capacity' : 'Kapasitas IPAL',
+                  value: `${id(result.sewer.treatment.dailyVolumeM3, locale)} m³/${en ? 'day' : 'hari'}`,
+                },
+              ]
+            : []),
         ]
       : []),
     ...(result.stormwater
@@ -625,6 +635,11 @@ function sewerLead(result: GravityResult, locale: Locale): string {
         ? `Hydraulically ${sewer.hydraulicSize} would do, but a network sewer is at least ${sewer.minimumSize} so solids do not block it. `
         : `Secara hidraulik ${sewer.hydraulicSize} sudah cukup, tetapi pipa air limbah jaringan dipakai minimal ${sewer.minimumSize} supaya padatan tidak menyumbat. `
       : '';
+  const treatment = sewer.treatment
+    ? en
+      ? `The plant at the end of the line must treat ${id(sewer.treatment.dailyVolumeM3, locale)} m³ per day, the wastewater of ${sewer.treatment.servedPersons} people; its type and make are chosen separately. `
+      : `IPAL di ujung jalur harus mengolah ${id(sewer.treatment.dailyVolumeM3)} m³ per hari, air limbah ${sewer.treatment.servedPersons} jiwa; jenis dan mereknya dipilih terpisah. `
+    : '';
   const pf = sewer.partial;
   const flow = en
     ? `At the design flow the pipe runs ${Math.round(pf.depthRatio * 100)} % full at ${id(pf.velocityMs, locale)} m/s${pf.selfCleansing ? ', self-cleansing' : `, below the 0.6 m/s self-cleansing velocity — lay it at least ${id(pf.minimumSlopePercent, locale)} %`}${pf.tooFast ? ', and too fast (scour)' : ''}. `
@@ -635,5 +650,5 @@ function sewerLead(result: GravityResult, locale: Locale): string {
       ? `Over ${id(pr.routeLengthM, locale)} m the invert drops ${id(pr.fallM, locale)} m to ${id(pr.endDepthM, locale)} m deep${pr.liftNeeded ? ' — beyond a practical trench, so a lift station or a split route is needed' : ''}; about ${pr.manholes} manholes. `
       : `Sepanjang ${id(pr.routeLengthM)} m dasar pipa turun ${id(pr.fallM)} m sampai kedalaman ${id(pr.endDepthM)} m${pr.liftNeeded ? ' — melampaui galian praktis, perlu stasiun pompa angkat atau jalur dipecah' : ''}; manhole sekitar ${pr.manholes} buah. `
     : '';
-  return demand + minimum + flow + profile;
+  return demand + minimum + flow + profile + treatment;
 }
