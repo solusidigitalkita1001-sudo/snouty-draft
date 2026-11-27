@@ -455,6 +455,15 @@ export function formatTechnicalValue(
     // Luas di bawah satu hektar (atap, halaman) dibaca dalam m²: "150 m²", bukan "0,02 ha" yang
     // sudah terbulatkan (audit 2026-10-19: talang atap 150 m2 tercatat 0,02 ha).
     if (p.unit === 'ha' && p.value < 1) return `${format(p.value * 10_000)} m²`;
+    // Beda tinggi negatif berarti sumbernya di atas — airnya turun sendiri. Angka bertanda minus
+    // adalah cara kode menyimpannya, bukan cara orang membacanya: "tinggi statis -40 m" terbaca
+    // di layar sebagai salah ketik (produksi 2026-11-27). Barisnya menyebut arahnya; jejak
+    // perhitungan tetap memakai tanda, karena di sana ia memang suku penjumlahan.
+    if (key === 'static_head' && p.value < 0) {
+      return locale === 'en'
+        ? `${format(-p.value)} m downhill from the source`
+        : `${format(-p.value)} m turun dari sumber`;
+    }
     const n = format(p.value);
     if (!p.unit) return n;
     return p.unit === '%' ? `${n}%` : `${n} ${unitLabel(p.unit, locale)}`;

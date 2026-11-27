@@ -6167,3 +6167,10 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       Arah itu kini dibaca: penanda netral yang diikuti kata turun — "turun ke permukiman",
       "menurun ke desa", "dropping to the village" — berarti gravitasi. Tanpa kata arah,
       bacaannya tetap seperti dulu: air dinaikkan.
+
+- [x] P40-17 Beda tinggi yang menurun terbaca sebagai arah, bukan tanda minus
+
+      Setelah P40-16 angkanya benar, barisnya di layar berbunyi "tinggi statis -40 m". Tanda minus
+      adalah cara kode menyimpan arah, bukan cara orang membacanya. Barisnya kini "40 m turun
+      dari sumber"; air yang memang dinaikkan tetap "40 m". Jejak perhitungan tetap memakai
+      tandanya, karena di sana ia suku penjumlahan yang harus bisa dijumlahkan pembacanya.

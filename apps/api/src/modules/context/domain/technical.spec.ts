@@ -314,3 +314,26 @@ describe('isyarat renovasi (P23-02)', () => {
     expect(technicalMissing(start.state).map((m) => m.key)).not.toContain('work_type');
   });
 });
+
+/**
+ * Produksi 2026-11-27: mata air di atas desa tercatat benar sebagai -40 m, lalu barisnya di layar
+ * berbunyi "tinggi statis -40 m" — angka bertanda minus adalah cara kode menyimpannya.
+ */
+describe('beda tinggi negatif terbaca sebagai arah, bukan tanda minus', () => {
+  const head = (value: number, locale: 'id' | 'en' = 'id') =>
+    formatTechnicalValue(
+      { label: 'Tinggi statis', value, unit: 'm', origin: 'known' as const },
+      locale,
+      'static_head',
+    );
+
+  it('sumber di atas: arahnya disebut, minusnya tidak', () => {
+    expect(head(-40)).toBe('40 m turun dari sumber');
+    expect(head(-40, 'en')).toBe('40 m downhill from the source');
+  });
+
+  it('air yang dinaikkan tetap seperti dulu', () => {
+    expect(head(40)).toBe('40 m');
+    expect(head(12.5)).toBe('12,5 m');
+  });
+});
