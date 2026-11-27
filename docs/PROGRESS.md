@@ -6241,3 +6241,20 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       Seluruh pola satuan di pembaca nilai ikut diperiksa sekalian: hanya persen yang bereja
       Inggris saja. Satuan lain (hektar, meter, inci, bar, jam, sambungan rumah) sudah punya
       kedua ejaan.
+
+- [x] P40-23 Debit yang melebihi pipa terbesar dikatakan apa adanya
+
+      Gorong-gorong dengan debit banjir 0,8 m³/s (800 l/s), setelah P40-21 angkanya terbaca:
+      judulnya berbunyi "Gorong-gorong: pipa PVC D 12" untuk 800 l/s pada kemiringan 0,5 %" dan
+      kalimatnya "debit rencana 800 l/s memakai 938,6 % kapasitasnya sehingga masih ada ruang
+      udara". Pipa 12" pada 0,5 % mengalirkan 85 l/s; sepuluh kali lebih kecil dari yang diminta.
+
+      Hitungannya sendiri benar dan jujur — jejaknya menyebut 938,6 % kapasitas, batas 80 % — dan
+      mesinnya sudah menandai bahwa tidak ada ukuran yang lolos. Tanda itu tidak pernah dibaca di
+      sisi jawaban, jadi pipa terbesar disajikan seperti pipa yang muat, dengan klausa ruang udara
+      yang ditulis untuk kasus normal ikut tertempel.
+
+      Sekarang judulnya menyebut debitnya melebihi pipa PVC D terbesar beserta kemampuan pipa itu,
+      dan kalimatnya mengatakan satu pipa tidak cukup — berapa jalur sejajar, atau apakah
+      salurannya bukan pipa, ditentukan tim teknis Pralon. Debit yang muat berbunyi seperti
+      semula.

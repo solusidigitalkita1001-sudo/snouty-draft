@@ -295,3 +295,51 @@ describe('tampilan gravitasi: penjelasan trace dan catatan struktur dua bahasa (
     expect(id[1]!.reason).toContain('wajib validasi struktural');
   });
 });
+
+/**
+ * Gorong-gorong 0,8 m³/s (produksi 2026-11-27): hitungannya benar — pipa terbesar 12" hanya
+ * mengalirkan 85 l/s pada 0,5 %, dan jejaknya menyebut 938,6 % kapasitas — tetapi judulnya
+ * menawarkan 12" sebagai jawabannya dan kalimatnya berbunyi "sehingga masih ada ruang udara".
+ */
+describe('debit yang melebihi pipa terbesar dikatakan apa adanya', () => {
+  const over = computeGravity({
+    kind: 'culvert',
+    designFlowLs: 800,
+    slopePercent: 0.5,
+    coverDepthM: 0.5,
+    trafficLoad: 'heavy',
+  });
+
+  it('kapasitasnya memang terlampaui', () => {
+    expect(over.allCriteriaMet).toBe(false);
+    expect(over.utilisationPercent).toBeGreaterThan(100);
+  });
+
+  it('judulnya tidak menawarkan pipa itu sebagai jawaban', () => {
+    const prose = gravityProse(over);
+    expect(prose.headline).toContain('melebihi pipa PVC D terbesar');
+    expect(prose.headline).toContain('800 l/s');
+  });
+
+  it('kalimatnya tidak pernah menyebut ruang udara', () => {
+    expect(gravityProse(over).body).not.toContain('ruang udara');
+    expect(gravityProse(over).body).toContain('satu pipa tidak cukup');
+    expect(gravityProse(over, 'en').body).not.toContain('air space');
+    expect(gravityProse(over, 'en').body).toContain('one pipe is not enough');
+    expect(gravityProse(over, 'en').headline).toContain('beyond the largest');
+  });
+
+  it('debit yang muat tetap berbunyi seperti semula', () => {
+    const fits = computeGravity({
+      kind: 'culvert',
+      designFlowLs: 20,
+      slopePercent: 1,
+      coverDepthM: 0.5,
+      trafficLoad: 'heavy',
+    });
+    const prose = gravityProse(fits);
+    expect(prose.headline).not.toContain('melebihi');
+    expect(prose.body).toContain('ruang udara');
+    expect(gravityProse(fits, 'en').body).toContain('air space');
+  });
+});

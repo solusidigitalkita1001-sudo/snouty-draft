@@ -516,22 +516,35 @@ export function gravityAssumptionsFrom(
   return rows;
 }
 
+/**
+ * Debit yang melebihi pipa terbesar yang ada. Pilihannya jatuh ke ukuran terbesar, dan teksnya
+ * dulu tetap berbunyi "debit rencana 800 l/s memakai 938,6 % kapasitasnya sehingga masih ada
+ * ruang udara" (produksi 2026-11-27, gorong-gorong 0,8 m³/s). Satu pipa tidak cukup; jumlah jalur
+ * sejajar atau bentuk salurannya keputusan tim teknis, bukan angka yang boleh dikarang di sini.
+ */
+function overCapacity(result: GravityResult): boolean {
+  return !result.allCriteriaMet && result.candidates.every((c) => c.status === 'too_small');
+}
+
 export function gravityProse(
   result: GravityResult,
   locale: Locale = DEFAULT_LOCALE,
 ): { headline: string; body: string } {
   if (locale === 'en') return gravityProseEn(result);
   const label = KIND_LABEL.id[result.kind];
+  const over = overCapacity(result);
   const structural = result.structural
     ? result.structural.coverAdequate
       ? ` Timbunan di atas pipa memenuhi minimum awal ${id(result.structural.minimumCoverM)} m; struktur tetap diperiksa tim teknis.`
       : ` Timbunan di atas pipa belum memenuhi minimum awal ${id(result.structural.minimumCoverM)} m — butuh selubung beton atau pipa kelas kekakuan tinggi, wajib validasi struktural.`
     : '';
   return {
-    headline: result.stormwater
-      ? `${label}: pipa PVC D ${result.recommendedSize} di tiap ${result.stormwater.downspouts} turunan talang untuk ${id(result.designFlowLs)} l/s per turunan`
-      : `${label}: pipa PVC D ${result.recommendedSize} untuk ${id(result.designFlowLs)} l/s pada kemiringan ${id(result.slopePercent)} %`,
-    body: `${stormwaterLead(result, 'id')}${sewerLead(result, 'id')}Pada kemiringan ${id(result.slopePercent)} %, pipa ${result.recommendedSize} mengalirkan ${id(result.fullFlowLs)} l/s saat penuh dengan kecepatan ${id(result.fullVelocityMs)} m/s; debit rencana ${id(result.designFlowLs)} l/s memakai ${id(result.utilisationPercent)} % kapasitasnya sehingga masih ada ruang udara.${structural} Perkiraan awal, bukan desain final.`,
+    headline: over
+      ? `${label}: ${id(result.designFlowLs)} l/s melebihi pipa PVC D terbesar — ${result.recommendedSize} mengalirkan ${id(result.fullFlowLs)} l/s pada kemiringan ${id(result.slopePercent)} %`
+      : result.stormwater
+        ? `${label}: pipa PVC D ${result.recommendedSize} di tiap ${result.stormwater.downspouts} turunan talang untuk ${id(result.designFlowLs)} l/s per turunan`
+        : `${label}: pipa PVC D ${result.recommendedSize} untuk ${id(result.designFlowLs)} l/s pada kemiringan ${id(result.slopePercent)} %`,
+    body: `${stormwaterLead(result, 'id')}${sewerLead(result, 'id')}Pada kemiringan ${id(result.slopePercent)} %, pipa ${result.recommendedSize} mengalirkan ${id(result.fullFlowLs)} l/s saat penuh dengan kecepatan ${id(result.fullVelocityMs)} m/s; debit rencana ${id(result.designFlowLs)} l/s ${over ? `jauh di atas itu (${id(result.utilisationPercent)} % kapasitasnya), jadi satu pipa tidak cukup — berapa jalur sejajar yang dipakai, atau apakah salurannya bukan pipa, ditentukan tim teknis Pralon.` : `memakai ${id(result.utilisationPercent)} % kapasitasnya sehingga masih ada ruang udara.`}${structural} Perkiraan awal, bukan desain final.`,
   };
 }
 
@@ -585,16 +598,19 @@ export function networkHighlightsPrefix(
 function gravityProseEn(result: GravityResult): { headline: string; body: string } {
   const l: Locale = 'en';
   const label = KIND_LABEL.en[result.kind];
+  const over = overCapacity(result);
   const structural = result.structural
     ? result.structural.coverAdequate
       ? ` Cover above the pipe meets the initial minimum of ${id(result.structural.minimumCoverM, l)} m; the technical team still checks the structure.`
       : ` Cover above the pipe is below the initial minimum of ${id(result.structural.minimumCoverM, l)} m — a concrete encasement or a high-stiffness pipe class is needed, structural validation is required.`
     : '';
   return {
-    headline: result.stormwater
-      ? `${label}: PVC D ${result.recommendedSize} pipe at each of ${result.stormwater.downspouts} downspouts for ${id(result.designFlowLs, l)} l/s each`
-      : `${label}: PVC D ${result.recommendedSize} pipe for ${id(result.designFlowLs, l)} l/s at a slope of ${id(result.slopePercent, l)} %`,
-    body: `${stormwaterLead(result, 'en')}${sewerLead(result, 'en')}At a slope of ${id(result.slopePercent, l)} %, the ${result.recommendedSize} pipe carries ${id(result.fullFlowLs, l)} l/s when full at a velocity of ${id(result.fullVelocityMs, l)} m/s; the design flow of ${id(result.designFlowLs, l)} l/s uses ${id(result.utilisationPercent, l)} % of its capacity, so there is still air space.${structural} Initial estimate, not a final design.`,
+    headline: over
+      ? `${label}: ${id(result.designFlowLs, l)} l/s is beyond the largest PVC D pipe — ${result.recommendedSize} carries ${id(result.fullFlowLs, l)} l/s at a slope of ${id(result.slopePercent, l)} %`
+      : result.stormwater
+        ? `${label}: PVC D ${result.recommendedSize} pipe at each of ${result.stormwater.downspouts} downspouts for ${id(result.designFlowLs, l)} l/s each`
+        : `${label}: PVC D ${result.recommendedSize} pipe for ${id(result.designFlowLs, l)} l/s at a slope of ${id(result.slopePercent, l)} %`,
+    body: `${stormwaterLead(result, 'en')}${sewerLead(result, 'en')}At a slope of ${id(result.slopePercent, l)} %, the ${result.recommendedSize} pipe carries ${id(result.fullFlowLs, l)} l/s when full at a velocity of ${id(result.fullVelocityMs, l)} m/s; the design flow of ${id(result.designFlowLs, l)} l/s ${over ? `is far beyond that (${id(result.utilisationPercent, l)} % of its capacity), so one pipe is not enough — how many parallel lines, or whether the channel should be a pipe at all, is for the Pralon technical team to decide.` : `uses ${id(result.utilisationPercent, l)} % of its capacity, so there is still air space.`}${structural} Initial estimate, not a final design.`,
   };
 }
 
