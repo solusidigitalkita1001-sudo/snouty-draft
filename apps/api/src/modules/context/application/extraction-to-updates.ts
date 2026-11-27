@@ -137,12 +137,20 @@ const SHARED_BATHROOM =
  */
 const OBVIOUS = {
   floors: (m: string) =>
-    intAfter(/\b(\d{1,2})\s*-?\s*(?:lantai|lt|floors?|stor(?:e)?ys?|stories|levels?)\b/i, m) ??
+    // Jumlah lantai tidak pernah pecahan. "rumah 1,5 lantai" dibaca 5 lantai dan rumahnya
+    // dihitung sebagai gedung bertingkat dengan riser dan zonasi tekanan (produksi 2026-11-27):
+    // batas kata di belakang koma membuat "5" terlihat seperti angka yang berdiri sendiri. Angka
+    // yang menempel pada pemisah desimal tidak diambil, jadi lantainya ditanyakan — bukan
+    // ditebak dua, bukan dibaca lima.
+    intAfter(
+      /(?<![\d.,])(\d{1,2})(?![.,]\d)\s*-?\s*(?:lantai|lt|floors?|stor(?:e)?ys?|stories|levels?)\b/i,
+      m,
+    ) ??
     // "lantainya jadi 3" (produksi 2026-10-26: perubahan ini hilang, jawabannya tetap 2 lantai).
     // Arah terbalik hanya dipercaya dengan kata perubahan: "lantai 3" tanpa itu berarti lantai
     // ketiga, bukan tiga lantai.
     intAfter(
-      /\b(?:lantai|lt|tingkat|floors?|stor(?:e)?ys?|stories|levels?)(?:nya)?\s*(?:jadi|menjadi|diubah\s+jadi|berubah\s+jadi|to)\s*(\d{1,2})\b/i,
+      /\b(?:lantai|lt|tingkat|floors?|stor(?:e)?ys?|stories|levels?)(?:nya)?\s*(?:jadi|menjadi|diubah\s+jadi|berubah\s+jadi|to)\s*(\d{1,2})(?![.,]\d)\b/i,
       m,
     ) ??
     wordCountOf('lantai|tingkat|floors?|stor(?:e)?ys?|stories', m),

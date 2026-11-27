@@ -328,3 +328,36 @@ describe('extractionToUpdates — jumlah sesudah kata benda (uji pemilik 2026-10
     expect(valueOf('kamar mandi 2 lantai atas', 'fixtures.bathrooms')).toBeUndefined();
   });
 });
+
+/**
+ * "rumah 1,5 lantai, 2 kamar mandi, 1 dapur, air dari PDAM" (produksi 2026-11-27) dicatat
+ * sebagai "5 lantai" dan dijawab "Oke, gedung bertingkat. Saya hitung riser, zonasi tekanan, dan
+ * kebutuhan pompanya" — rumah satu setengah lantai dihitung seperti gedung lima lantai. Batas
+ * kata di belakang koma membuat "5" terlihat berdiri sendiri.
+ */
+describe('jumlah lantai tidak pernah pecahan', () => {
+  const floorsFrom = (message: string) =>
+    extractionToUpdates({}, message).find((u) => u.path === 'building.floors')?.value;
+
+  it('"1,5 lantai" tidak dibaca lima, dan tidak ditebak dua', () => {
+    expect(floorsFrom('rumah 1,5 lantai, 2 kamar mandi, 1 dapur, air dari PDAM')).toBeUndefined();
+    expect(floorsFrom('rumah 1.5 lantai')).toBeUndefined();
+    expect(floorsFrom('rumah 2,5 lantai')).toBeUndefined();
+  });
+
+  it('angka bulat tetap terbaca', () => {
+    expect(floorsFrom('rumah 2 lantai, 3 kamar mandi')).toBe(2);
+    expect(floorsFrom('gedung 12 lantai')).toBe(12);
+    expect(floorsFrom('ruko 3-lantai')).toBe(3);
+    expect(floorsFrom('office tower, 18 floors')).toBe(18);
+  });
+
+  it('angka desimal lain di kalimat yang sama tidak mengganggu', () => {
+    expect(floorsFrom('rumah 2 lantai, tinggi tiap lantai 3,5 m')).toBe(2);
+  });
+
+  it('perubahan ke angka pecahan juga tidak diambil', () => {
+    expect(floorsFrom('lantainya jadi 1,5')).toBeUndefined();
+    expect(floorsFrom('lantainya jadi 3')).toBe(3);
+  });
+});

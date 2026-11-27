@@ -6297,3 +6297,17 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       penulisan ("pipa sprinkler…", "instalasi hidran…") masih lolos sebelum ini diperbaiki.
       Irigasi sprinkler pertanian tetap dihitung seperti biasa; itu diuji agar tidak ikut
       terjaring.
+
+- [x] P40-27 "Rumah 1,5 lantai" bukan gedung lima lantai
+
+      "rumah 1,5 lantai, 2 kamar mandi, 1 dapur, air dari PDAM" dicatat sebagai 5 lantai, lalu
+      dijawab "Oke, gedung bertingkat. Saya hitung riser, zonasi tekanan, dan kebutuhan pompanya"
+      — rumah satu setengah lantai diperlakukan sebagai gedung lima lantai, dengan riser dan
+      zonasi tekanan yang tidak pernah relevan untuknya.
+
+      Sebabnya bentuk angkanya: batas kata di belakang koma membuat "5" pada "1,5" terlihat
+      seperti angka yang berdiri sendiri tepat di depan kata "lantai". Jumlah lantai tidak pernah
+      pecahan, jadi angka yang menempel pada pemisah desimal tidak lagi diambil — lantainya
+      ditanyakan lewat kartu, bukan ditebak dua dan bukan dibaca lima. Angka bulat, bentuk
+      bertanda hubung ("3-lantai"), bahasa Inggris, dan desimal lain di kalimat yang sama
+      ("tinggi tiap lantai 3,5 m") ikut diuji.
