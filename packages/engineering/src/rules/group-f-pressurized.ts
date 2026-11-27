@@ -290,6 +290,15 @@ export interface SizingResult {
   /** Satu ukuran di atasnya bila ada: kerugian lebih rendah, biaya pipa lebih tinggi. */
   readonly alternative: string | null;
   readonly allCriteriaMet: boolean;
+  /**
+   * Sumber di atas tujuan (tinggi statis negatif): ukuran terkecil yang kehilangan tekanannya
+   * masih MUAT di dalam beda tinggi yang tersedia, sehingga pompanya tidak diperlukan sama
+   * sekali. `null` bila sumbernya tidak di atas, atau tidak ada ukuran yang muat.
+   *
+   * Hanya DISEBUT, tidak dipilih sendiri (keputusan pemilik 2026-11-27, OQ-103): memperbesar
+   * pipa induk sepanjang kilometer mengubah material yang dibeli orang, jadi yang memilih orang.
+   */
+  readonly gravityFitSize: string | null;
 }
 
 /** Hasil kandidat kasus uji ENG-205 (5 l/s, 800 m, statis 12 m, C 150, sisa 0,5 bar, tebal AW PROD/STD-04) — dari probe; diameter dalam diperiksa ulang di spec dengan hitungan acuan. */
@@ -388,7 +397,7 @@ const PROBE_CANDIDATES: readonly SizeCandidate[] = [
 
 export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
   ruleId: 'ENG-205',
-  version: 3,
+  version: 4,
   category: 'load_sizing',
   parseInput: (raw) => {
     const o = (raw ?? {}) as Record<string, unknown>;
@@ -438,6 +447,16 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
         };
       },
     );
+    // Tinggi yang disediakan gravitasi, setelah tekanan sisa yang diminta di titik kritis.
+    const gravityAvailableM = -input.staticHeadM - barToHeadM(input.residualPressureBar);
+    const gravityFitSize =
+      gravityAvailableM > 0
+        ? (candidates.find(
+            (c) =>
+              c.status !== 'too_fast' &&
+              c.frictionLossM * (1 + input.minorLossFraction) <= gravityAvailableM,
+          )?.size ?? null)
+        : null;
     const okIndex = candidates.findIndex((c) => c.status === 'ok');
     if (okIndex >= 0) {
       const next = candidates[okIndex + 1];
@@ -446,13 +465,20 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
         recommended: candidates[okIndex]!.size,
         alternative: next && next.status !== 'too_slow' ? next.size : null,
         allCriteriaMet: true,
+        gravityFitSize,
       };
     }
     // Tidak ada yang memenuhi semua: ambil yang tidak terlalu cepat dan tidak terlalu rugi
     // (ukuran terkecil yang lolos dua kriteria itu), lalu yang terbesar sebagai cadangan.
     const nearest =
       candidates.find((c) => c.status === 'too_slow') ?? candidates[candidates.length - 1]!;
-    return { candidates, recommended: nearest.size, alternative: null, allCriteriaMet: false };
+    return {
+      candidates,
+      recommended: nearest.size,
+      alternative: null,
+      allCriteriaMet: false,
+      gravityFitSize,
+    };
   },
   sourceReference:
     'Kriteria ganda: kecepatan dalam batas, gradien kerugian ≤ batas; kandidat dari tabel diameter nominal ENG-102',
@@ -478,14 +504,23 @@ export const ENG_205: RuleVersion<SizingInput, SizingResult> = {
         recommended: '2½"',
         alternative: '3"',
         allCriteriaMet: true,
+        // Statis +12 m: air dinaikkan, jadi tidak ada beda tinggi yang bisa menggantikan pompa.
+        gravityFitSize: null,
       },
     },
   ],
   explain: (input, output, locale) => {
     const pick = output.candidates.find((c) => c.size === output.recommended)!;
+    // Sumber di atas tujuan: ukuran yang membuat pompanya tidak perlu disebut di samping ukuran
+    // terpilih, hanya bila yang terpilih memang tidak muat di dalam beda tingginya. Dua-duanya
+    // disebut supaya yang memilih orang (OQ-103).
+    const gravity =
+      output.gravityFitSize !== null && output.gravityFitSize !== output.recommended
+        ? { size: output.gravityFitSize, availableM: round2(-input.staticHeadM) }
+        : null;
     return localized(locale, {
-      id: `Dicoba ${output.candidates.length} ukuran; ${output.recommended} yang terkecil dengan kecepatan air ${input.velocityMinMs}–${input.velocityMaxMs} m/s dan kehilangan tekanan paling banyak ${input.gradientMaxMPer100m} m tiap 100 m pipa. Di ukuran ini air mengalir ${pick.velocityMs} m/s dan kehilangan ${pick.frictionLossM} m sepanjang ${input.lengthM} m${output.alternative ? `; ${output.alternative} satu ukuran di atasnya lebih hemat tekanan, tetapi pipanya lebih mahal` : ''}.`,
-      en: `${output.candidates.length} sizes were tried; ${output.recommended} is the smallest with a water speed of ${input.velocityMinMs}–${input.velocityMaxMs} m/s and a pressure loss of at most ${input.gradientMaxMPer100m} m per 100 m of pipe. At this size the water flows at ${pick.velocityMs} m/s and loses ${pick.frictionLossM} m over ${input.lengthM} m${output.alternative ? `; ${output.alternative}, one size up, saves pressure but the pipe costs more` : ''}.`,
+      id: `Dicoba ${output.candidates.length} ukuran; ${output.recommended} yang terkecil dengan kecepatan air ${input.velocityMinMs}–${input.velocityMaxMs} m/s dan kehilangan tekanan paling banyak ${input.gradientMaxMPer100m} m tiap 100 m pipa. Di ukuran ini air mengalir ${pick.velocityMs} m/s dan kehilangan ${pick.frictionLossM} m sepanjang ${input.lengthM} m${output.alternative ? `; ${output.alternative} satu ukuran di atasnya lebih hemat tekanan, tetapi pipanya lebih mahal` : ''}.${gravity ? ` Sumbernya ${gravity.availableM} m di atas tujuan: di ukuran ${gravity.size} kehilangannya muat di dalam beda tinggi itu, jadi airnya mengalir sendiri tanpa pompa — pipanya lebih besar dan lebih mahal, pompanya hilang.` : ''}`,
+      en: `${output.candidates.length} sizes were tried; ${output.recommended} is the smallest with a water speed of ${input.velocityMinMs}–${input.velocityMaxMs} m/s and a pressure loss of at most ${input.gradientMaxMPer100m} m per 100 m of pipe. At this size the water flows at ${pick.velocityMs} m/s and loses ${pick.frictionLossM} m over ${input.lengthM} m${output.alternative ? `; ${output.alternative}, one size up, saves pressure but the pipe costs more` : ''}.${gravity ? ` The source sits ${gravity.availableM} m above the destination: at ${gravity.size} the loss fits inside that head, so the water flows on its own without a pump — a bigger, costlier pipe, and no pump.` : ''}`,
     });
   },
 };

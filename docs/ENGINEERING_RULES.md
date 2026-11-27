@@ -373,6 +373,10 @@ ENG-203  kerugian minor = fraksi × hf                        fraksi 0,1 (MINOR_
 ENG-204  TDH = statis + hf + minor + tekanan sisa (1 bar ≈ 10,2 m)
 ENG-205  kandidat dari tabel nominal; status ok / too_fast (> 2 m/s) / high_loss (> 10 m/100 m) /
          too_slow (< 0,6 m/s); rekomendasi = ukuran ok terkecil; alternatif = satu ukuran di atasnya
+         v4 (OQ-103, keputusan pemilik 2026-11-27): bila tinggi statis negatif (sumber di atas),
+         `gravityFitSize` = ukuran terkecil yang hf+minor-nya muat di dalam beda tinggi dikurangi
+         tekanan sisa — DISEBUT di penjelasannya, tidak dipilih sendiri; ukurannya tetap dari
+         kriteria kecepatan dan gradien
 ENG-206  P_hidraulik = ρ·g·Q·H ; daya poros = P ÷ η_pompa (η 0,6) ; beda tekanan = H ÷ 10,197
          daya masuk motor TIDAK dihitung (efisiensi motor dan cadangan dari pabrikan) — v2, audit C3
 ENG-207  kerugian minor = ΣK · v²/2g dari DAFTAR fitting di jalur kritis (Fase 27)

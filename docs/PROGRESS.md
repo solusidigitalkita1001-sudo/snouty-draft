@@ -6192,3 +6192,17 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       Inggris. Kasus evalnya parafrasa, bukan salinan contohnya, ditambah satu kasus kontrol air
       limbah supaya sisi sebelah tidak ikut tertarik. Eval pemahaman tetap 234/235 (99,6 %) dengan
       dua penyimpangan yang sama persis seperti sebelum perubahan.
+
+- [x] P40-19 Ukuran yang membuat pompanya tidak perlu ikut disebut (OQ-103)
+
+      Jaringan desa dengan mata air 40 m di atas permukiman: hitungannya memilih pipa induk 2" —
+      ukuran terkecil yang lolos batas kecepatan dan batas 10 m kehilangan tiap 100 m — lalu
+      kehilangan 93 m sepanjang 1,5 km dan menyarankan pompa 63 m. Beda tinggi yang tersedia tidak
+      pernah ikut memilih ukuran, padahal pada jaringan gravitasi justru itu inti desainnya.
+
+      Keputusan pemilik 2026-11-27: sebutkan dua-duanya, orang yang memilih. Ukurannya tetap
+      dipilih seperti sekarang — tidak ada material yang diam-diam membesar, alasan yang sama
+      dengan OQ-102. Yang bertambah di ENG-205 v4: bila sumbernya di atas tujuan, penjelasannya
+      menyebut ukuran yang kehilangan tekanannya muat di dalam beda tinggi itu, berikut harganya
+      yang lebih mahal dan pompanya yang hilang. Air yang memang dinaikkan tidak menyebut apa pun
+      soal ini.

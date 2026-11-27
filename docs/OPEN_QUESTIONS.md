@@ -1846,3 +1846,39 @@ ditentukan ukuran minimum kloset 4").
 (`DRAIN_NEAR_CAPACITY_75PCT`) tetap dipakai hanya untuk mengatakan tipisnya cadangan, dan nilainya
 tidak lagi menunggu konfirmasi. Menaikkan ukuran mengubah material yang dibeli orang, jadi itu
 keputusan teknik Pralon, bukan keputusan tampilan.
+
+### OQ-103 — Beda tinggi yang tersedia tidak ikut menentukan ukuran pipa jaringan (P40, 2026-11-27)
+
+**Status:** diputuskan 2026-11-27 (pemilik: sebutkan dua-duanya, orang yang memilih) ·
+**Dikerjakan:** P40-19
+
+Dicoba di produksi 27 Nov 2026: "jaringan air bersih desa, 300 rumah, sumber mata air di atas
+permukiman, jarak 1,5 km, beda tinggi 40 meter turun ke permukiman". Setelah P40-16 tanda beda
+tingginya benar (−40 m, gravitasi), dan hasilnya:
+
+- jam puncak 4,37 l/s, pipa induk **2"** — ukuran terkecil yang lolos batas kecepatan 0,6–2 m/s
+  dan kehilangan maksimum 10 m tiap 100 m pipa (di sini 5,64 m per 100 m);
+- kehilangan sepanjang 1.500 m: **93,14 m**;
+- gravitasi menyediakan 40 m, sisa tekanan diminta 1 bar → **pompa 63,34 m**.
+
+Hitungannya konsisten dan jejaknya terbaca. Yang tidak dilakukan: beda tinggi yang tersedia tidak
+pernah ikut memilih ukuran. Pada jaringan gravitasi desa justru itu inti desainnya — pipa dipilih
+supaya kehilangan tekanannya **muat** di dalam beda tinggi yang ada, sehingga pompanya tidak
+diperlukan sama sekali. Dengan aturan sekarang, batas 10 m per 100 m membolehkan sampai 150 m
+kehilangan pada jalur 1,5 km, hampir empat kali tinggi yang tersedia.
+
+**Usulan default (menunggu persetujuan Pralon):** bila beda tingginya negatif (sumber di atas),
+ukuran pipa induk dipilih sebagai ukuran terkecil yang kehilangan tekanannya masih muat di dalam
+beda tinggi dikurangi tekanan sisa yang diminta. Bila tidak ada ukuran yang muat, barulah pompa
+disebut — dan kalimatnya menyebut dua-duanya: ukuran yang menghilangkan pompa, dan pompa pada
+ukuran yang lebih kecil, supaya pemilihnya orang.
+
+**Mengapa tidak dikerjakan sendiri:** menaikkan ukuran pipa induk 1,5 km mengubah material yang
+dibeli orang secara besar — alasan yang sama dengan keputusan OQ-102 (batas 75 % jalur pembuangan:
+cukup dikatakan, ukuran tidak dinaikkan sendiri).
+
+**Keputusan pemilik 2026-11-27: sebutkan dua-duanya, orang yang memilih.** Ukuran tetap dipilih
+dari batas kecepatan dan kemiringan kehilangan seperti sekarang — tidak ada material yang diam-diam
+membesar. Yang bertambah: bila sumbernya di atas tujuan, jawabannya ikut menyebut ukuran yang
+kehilangan tekanannya muat di dalam beda tinggi itu, sehingga pompanya tidak diperlukan, beserta
+harganya yang lebih mahal. Dikerjakan di ENG-205 v4 (keluaran `gravityFitSize`).
