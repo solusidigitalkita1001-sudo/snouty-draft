@@ -509,7 +509,10 @@ export function extractTechnicalContext(
   );
 
   // ── Bangunan ──
-  take(/(\d+)\s*-?\s*(lantai|floors?|stor(?:eys?|ies|y))\b/, (m) => {
+  // Jumlah lantai tidak pernah pecahan: "rumah 1,5 lantai" dibaca 5 lantai dan rumahnya
+  // dihitung sebagai gedung bertingkat (produksi 2026-11-27). Angka yang menempel pada pemisah
+  // desimal tidak diambil, jadi lantainya ditanyakan.
+  take(/(?<![\d.,])(\d+)(?![.,]\d)\s*-?\s*(lantai|floors?|stor(?:eys?|ies|y))\b/, (m) => {
     add('building_floors', Number(m[1]), m[0], 'lantai');
     if (floorHeightM !== undefined) {
       add(

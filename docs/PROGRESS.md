@@ -6311,3 +6311,8 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       ditanyakan lewat kartu, bukan ditebak dua dan bukan dibaca lima. Angka bulat, bentuk
       bertanda hubung ("3-lantai"), bahasa Inggris, dan desimal lain di kalimat yang sama
       ("tinggi tiap lantai 3,5 m") ikut diuji.
+
+      Pembaca angkanya ada dua, dan keduanya punya pola sendiri: satu untuk kebutuhan bangunan,
+      satu untuk kasus teknis. Perbaikan di satu tempat tidak terlihat di produksi sampai yang
+      kedua ikut diperbaiki — kalimat yang sama masih dijawab "gedung bertingkat" sesudah rilis
+      pertama.

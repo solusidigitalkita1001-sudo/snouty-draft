@@ -397,17 +397,43 @@ describe('debit dalam meter kubik per detik', () => {
 describe('kemiringan dengan "persen" ditulis penuh', () => {
   it('kemiringan 0,3 persen', () => {
     expect(
-      facts('saluran drainase, debit 50 l/s, kemiringan 0,3 persen', 'gravity_drain'),
+      facts('saluran drainase, debit 50 l/s, kemiringan 0,3 persen', 'gravity_drainage'),
     ).toMatchObject({ slope: 0.3 });
   });
 
   it('1,5 persen slope dalam urutan terbalik', () => {
-    expect(facts('a 1.5 percent slope along the drain', 'gravity_drain')).toMatchObject({
+    expect(facts('a 1.5 percent slope along the drain', 'gravity_drainage')).toMatchObject({
       slope: 1.5,
     });
   });
 
   it('tanda % tetap terbaca', () => {
-    expect(facts('kemiringan 2%', 'gravity_drain')).toMatchObject({ slope: 2 });
+    expect(facts('kemiringan 2%', 'gravity_drainage')).toMatchObject({ slope: 2 });
+  });
+});
+
+/** Jumlah lantai tidak pernah pecahan (produksi 2026-11-27: "rumah 1,5 lantai" → 5 lantai). */
+describe('jumlah lantai dan pecahan', () => {
+  it('"1,5 lantai" tidak diambil', () => {
+    expect(
+      facts('rumah 1,5 lantai, 2 kamar mandi', 'multistorey_building_water')['building_floors'],
+    ).toBeUndefined();
+  });
+
+  it('angka bulat tetap terbaca', () => {
+    expect(facts('gedung 12 lantai', 'multistorey_building_water')).toMatchObject({
+      building_floors: 12,
+    });
+    expect(facts('office tower, 18 floors', 'multistorey_building_water')).toMatchObject({
+      building_floors: 18,
+    });
+  });
+
+  it('desimal lain di kalimat yang sama tidak mengganggu', () => {
+    expect(
+      facts('gedung 8 lantai, tinggi tiap lantai 3,5 m', 'multistorey_building_water'),
+    ).toMatchObject({
+      building_floors: 8,
+    });
   });
 });
