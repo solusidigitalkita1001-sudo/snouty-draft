@@ -329,6 +329,24 @@ describe('debit yang melebihi pipa terbesar dikatakan apa adanya', () => {
     expect(gravityProse(over, 'en').headline).toContain('beyond the largest');
   });
 
+  it('daftar materialnya tidak disusun (OQ-104)', () => {
+    expect(gravityBomItemsFrom(over, 8, [], 'id', null)).toEqual([]);
+    const fitsRows = gravityBomItemsFrom(
+      computeGravity({
+        kind: 'culvert',
+        designFlowLs: 20,
+        slopePercent: 1,
+        coverDepthM: 0.5,
+        trafficLoad: 'heavy',
+      }),
+      8,
+      [],
+      'id',
+      null,
+    );
+    expect(fitsRows.length).toBeGreaterThan(0);
+  });
+
   it('debit yang muat tetap berbunyi seperti semula', () => {
     const fits = computeGravity({
       kind: 'culvert',

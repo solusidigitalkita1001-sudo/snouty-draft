@@ -108,6 +108,7 @@ import {
 import {
   gravityAssumptionsFrom,
   gravityBomItemsFrom,
+  gravityOverCapacity,
   gravityHighlights,
   gravityLegacyStats,
   gravityPlanFrom,
@@ -1139,6 +1140,10 @@ export class AnalysisService {
 
     events.push({ type: 'stage', stage: 'COMPOSING', status: 'active' });
     const prose = gravityProse(result, locale);
+    // Daftar materialnya dikosongkan di `gravityBomItemsFrom` bila tidak ada ukuran yang lolos
+    // (OQ-104); daftar produk dan hitungannya ikut, supaya tab produk tidak menawarkan pipa yang
+    // judulnya sendiri sudah menyatakan tidak cukup.
+    const sizedProducts = gravityOverCapacity(result) ? [] : match.products;
     let recommendation: Recommendation = {
       id: ulid(),
       conversationId,
@@ -1147,8 +1152,8 @@ export class AnalysisService {
       kind: 'technical',
       headline: prose.headline,
       body: prose.body,
-      stats: gravityLegacyStats(result, match.products.length),
-      highlights: gravityHighlights(result, match.products.length, locale),
+      stats: gravityLegacyStats(result, sizedProducts.length),
+      highlights: gravityHighlights(result, sizedProducts.length, locale),
       composition: composeResponse({
         state,
         traces,
@@ -1157,7 +1162,7 @@ export class AnalysisService {
         locale,
       }),
       systemLines: gravitySystemLinesFrom(result, traces, locale),
-      products: match.products,
+      products: sizedProducts,
       bom: gravityBomItemsFrom(result, plan.pipeLengthM, traces, locale, match.stockFor('main')),
       assumptions: gravityAssumptionsFrom(result, traces, locale),
       overallProvenance: result.overallProvenance,

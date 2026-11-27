@@ -380,6 +380,10 @@ export function gravityBomItemsFrom(
   /** Panjang batang produk pipa terpilih; `null` → jumlah dalam meter. */
   stock: StockLength | null = null,
 ): readonly BomItem[] {
+  // Tidak ada ukuran yang lolos → tidak ada daftar material (keputusan pemilik 2026-11-27,
+  // OQ-104): tidak ada yang membeli dari daftar yang judulnya sendiri sudah menyatakan pipanya
+  // tidak cukup. Hitungan dan kemampuan pipa terbesar tetap ditampilkan.
+  if (gravityOverCapacity(result)) return [];
   const en = locale === 'en';
   const ids = traceIdsFor(traces, 'ENG-402');
   const provenance = provenanceFor(traces, ids);
@@ -522,7 +526,7 @@ export function gravityAssumptionsFrom(
  * ruang udara" (produksi 2026-11-27, gorong-gorong 0,8 m³/s). Satu pipa tidak cukup; jumlah jalur
  * sejajar atau bentuk salurannya keputusan tim teknis, bukan angka yang boleh dikarang di sini.
  */
-function overCapacity(result: GravityResult): boolean {
+export function gravityOverCapacity(result: GravityResult): boolean {
   return !result.allCriteriaMet && result.candidates.every((c) => c.status === 'too_small');
 }
 
@@ -532,7 +536,7 @@ export function gravityProse(
 ): { headline: string; body: string } {
   if (locale === 'en') return gravityProseEn(result);
   const label = KIND_LABEL.id[result.kind];
-  const over = overCapacity(result);
+  const over = gravityOverCapacity(result);
   const structural = result.structural
     ? result.structural.coverAdequate
       ? ` Timbunan di atas pipa memenuhi minimum awal ${id(result.structural.minimumCoverM)} m; struktur tetap diperiksa tim teknis.`
@@ -598,7 +602,7 @@ export function networkHighlightsPrefix(
 function gravityProseEn(result: GravityResult): { headline: string; body: string } {
   const l: Locale = 'en';
   const label = KIND_LABEL.en[result.kind];
-  const over = overCapacity(result);
+  const over = gravityOverCapacity(result);
   const structural = result.structural
     ? result.structural.coverAdequate
       ? ` Cover above the pipe meets the initial minimum of ${id(result.structural.minimumCoverM, l)} m; the technical team still checks the structure.`

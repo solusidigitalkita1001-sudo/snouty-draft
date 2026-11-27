@@ -6258,3 +6258,13 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       dan kalimatnya mengatakan satu pipa tidak cukup — berapa jalur sejajar, atau apakah
       salurannya bukan pipa, ditentukan tim teknis Pralon. Debit yang muat berbunyi seperti
       semula.
+
+- [x] P40-24 Tanpa ukuran yang lolos, daftar materialnya tidak disusun (OQ-104)
+
+      Setelah P40-23 judulnya sudah berkata jujur, tetapi daftar materialnya tetap memuat dua
+      batang pipa 12" itu beserta kepala gorong-gorong dan lemnya — material untuk pipa yang di
+      judulnya sendiri sudah dinyatakan tidak cukup.
+
+      Keputusan pemilik 2026-11-27: jangan disusun. Bila tidak ada ukuran yang lolos, daftar
+      material dan daftar produknya kosong; hitungan, kemampuan pipa terbesar, dan rute validasi
+      teknis tetap ditampilkan. Aturannya tinggal di `gravityBomItemsFrom`, bukan di layanan.
