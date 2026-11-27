@@ -6078,3 +6078,16 @@ dipakai. Yang tidak berubah: aturan yang memakai nilai-nilai itu tetap
       sumber air × jenis instalasi, persis seluas kartunya sendiri. Ini kambuhan ketiga dari pola
       yang sama (kartu teknis 2026-10-07, kartu tempat ibadah 2026-10-12) — kali ini penyebabnya
       yang dihapus, bukan satu entri yang ditambahkan.
+
+- [x] P40-10 Tujuan air bekas terbaca sebagai tempat, bukan nilai enum (produksi 2026-11-27)
+
+      Begitu kartu P40-09 bisa dijawab, kalimat konfirmasinya terbaca: "Oke, sudah saya catat:
+      rumah tinggal, 3 lantai, bangunan 12 × 8 m, 4 kamar mandi, 2 wastafel, 1 dapur, pembuangan,
+      dan municipal_drain." Nilai enum telanjang di layar — pertanyaannya baru, label nilainya
+      belum pernah ditulis, dan laporan memakai daftar label yang sama.
+
+      Ketiga tujuannya kini punya label dua bahasa, dan kalimatnya menyebut apa yang ke sana
+      ("air bekas ke saluran kota") seperti volume tangki yang membawa nama tangkinya. Pagar
+      tesnya berlaku untuk setiap pilihan kartu, bukan hanya yang baru: tiap nilai berbentuk
+      identifier kode yang bisa lahir dari sebuah jawaban kartu harus punya label yang berbeda
+      dari nilainya, dalam kedua bahasa.

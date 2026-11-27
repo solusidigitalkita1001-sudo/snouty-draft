@@ -1141,6 +1141,13 @@ export function notedSummary(
       captured.push(en ? `${m} m of pipe to replace` : `${m} m pipa yang diganti`);
       continue;
     }
+    // Tujuan air bekas membawa apa yang ke sana: "…, dan saluran kota" tidak mengatakan saluran
+    // untuk apa, sama seperti "1.000 liter" yang tidak mengatakan tangki mana (produksi 2026-11-27).
+    if (path === 'water.greyWaterDestination') {
+      const destination = inSentence(requirementValueLabel(path, field.value, locale));
+      captured.push(en ? `grey water to ${destination}` : `air bekas ke ${destination}`);
+      continue;
+    }
     captured.push(inSentence(requirementValueLabel(path, field.value, locale)));
   }
   // Jumlah alat yang tidak pernah ditanya tetapi tetap dipakai hitungan (smoke test 13 Nov 2026,

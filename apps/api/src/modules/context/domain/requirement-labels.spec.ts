@@ -1,5 +1,7 @@
 /** Label kebutuhan dwibahasa: Indonesia tetap seperti semula, Inggris dengan struktur sama. */
+import type { RequirementFieldPath } from '@snouty/shared-types';
 import { describe, expect, it } from 'vitest';
+import { OPTION_VALUES } from './clarification.js';
 import {
   hasPublicToilets,
   requirementFieldLabel,
@@ -41,5 +43,40 @@ describe('hasPublicToilets', () => {
     expect(hasPublicToilets('residential')).toBe(false);
     expect(hasPublicToilets('boarding_house')).toBe(false);
     expect(hasPublicToilets(null)).toBe(false);
+  });
+});
+
+/**
+ * Produksi 2026-11-27: kalimat konfirmasi kartu berbunyi "…, dan municipal_drain" — nilai enum
+ * telanjang di layar, karena tujuan air bekas masuk kartu tanpa pernah masuk daftar label. Pagar
+ * ini berlaku untuk SETIAP pilihan kartu, bukan hanya yang baru itu.
+ */
+describe('setiap nilai yang bisa lahir dari jawaban kartu punya label manusiawi', () => {
+  const enumValues = Object.entries(OPTION_VALUES).flatMap(([path, options]) =>
+    Object.values(options ?? {})
+      .filter((value): value is string => typeof value === 'string')
+      .map((value) => [path as RequirementFieldPath, value] as const),
+  );
+
+  // Hanya nilai yang berbentuk identifier kode diperiksa: ukuran pipa ('3/4"') memang sudah
+  // bahasa manusia, jadi labelnya boleh sama dengan nilainya.
+  for (const [path, value] of enumValues.filter(([, value]) => /^[a-z][a-z_]*$/.test(value))) {
+    it(`${path} = ${value}`, () => {
+      for (const locale of ['id', 'en'] as const) {
+        expect(requirementValueLabel(path, value, locale), `${path}=${value} (${locale})`).not.toBe(
+          value,
+        );
+      }
+    });
+  }
+
+  it('tujuan air bekas terbaca sebagai tempat, bukan enum', () => {
+    expect(requirementValueLabel('water.greyWaterDestination', 'municipal_drain')).toBe(
+      'Saluran kota',
+    );
+    expect(requirementValueLabel('water.greyWaterDestination', 'treatment_plant')).toBe(
+      'IPAL / STP',
+    );
+    expect(requirementValueLabel('water.greyWaterDestination', 'soakaway', 'en')).toBe('Soakaway');
   });
 });

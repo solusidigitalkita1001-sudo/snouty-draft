@@ -459,8 +459,12 @@ export const UNKNOWN_OPTION = 'Belum tahu';
 /**
  * Nilai di balik tiap label chip — klien hanya tahu labelnya, nilainya urusan domain.
  * Pertanyaan berangka (lantai, kamar mandi) memetakan labelnya sebagai bilangan bulat.
+ *
+ * Diekspor supaya satu tes bisa memeriksa bahwa setiap nilai enum yang bisa lahir dari sebuah
+ * jawaban kartu punya label manusiawi (`requirementValueLabel`) — `municipal_drain` pernah tampil
+ * apa adanya di kalimat konfirmasi (produksi 2026-11-27).
  */
-const OPTION_VALUES: Readonly<
+export const OPTION_VALUES: Readonly<
   Partial<Record<RequirementFieldPath, Readonly<Record<string, unknown>>>>
 > = {
   'water.source': {

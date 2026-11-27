@@ -124,6 +124,11 @@ const VALUE_LABEL: Readonly<Record<string, string>> = {
   clean_water_branch: 'Cabang air bersih',
   soil: 'Air kotor',
   waste: 'Air bekas',
+  // Tujuan air bekas (produksi 2026-11-27): tanpa ini kalimat konfirmasinya berbunyi "…, dan
+  // municipal_drain" — nilai enum telanjang di layar, dan laporan memakai label yang sama.
+  municipal_drain: 'Saluran kota',
+  treatment_plant: 'IPAL / STP',
+  soakaway: 'Sumur resapan',
 };
 
 const VALUE_LABEL_EN: Readonly<Record<string, string>> = {
@@ -154,6 +159,9 @@ const VALUE_LABEL_EN: Readonly<Record<string, string>> = {
   clean_water_branch: 'Clean water branch',
   soil: 'Soil line',
   waste: 'Waste line',
+  municipal_drain: 'Municipal drain',
+  treatment_plant: 'Treatment plant',
+  soakaway: 'Soakaway',
 };
 
 function plural(n: number, one: string, many: string): string {
