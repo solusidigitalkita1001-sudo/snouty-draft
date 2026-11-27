@@ -31,6 +31,7 @@ import {
   parameterOptionLabels,
 } from '@snouty/engineering';
 import { irrigationFieldLabel, isIrrigationField } from './irrigation.js';
+import { requirementFieldLabel } from './requirement-labels.js';
 import { FLOOR_HEIGHT_RANGE_M } from './completeness.js';
 
 export const MAX_CLARIFICATION_QUESTIONS = 4;
@@ -394,7 +395,10 @@ export interface ClarificationPlan {
  * (produksi 2026-11-27). `toQuestion` hanya bisa membuat pertanyaan untuk field bertemplat, jadi
  * kartu dan daftar ini kini mustahil berbeda.
  */
-const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<string>(Object.keys(TEMPLATES));
+export const CLARIFICATION_FIELD_IDS: readonly RequirementFieldPath[] = Object.keys(
+  TEMPLATES,
+) as RequirementFieldPath[];
+const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<string>(CLARIFICATION_FIELD_IDS);
 
 /**
  * `id` jawaban kartu klarifikasi yang dikenal: field inti bangunan, field irigasi (OQ-47), atau
@@ -667,9 +671,12 @@ export function summarizeAnswers(
       const id = (
         a.id.startsWith('outlier.') ? 'building.dimensions' : a.id
       ) as RequirementFieldPath;
-      const label = isIrrigationField(a.id)
-        ? irrigationFieldLabel(a.id, locale)
-        : (labels[id] ?? a.id);
+      // Label pendek bila ada; bila tidak, label field biasa — tidak pernah path-nya. Gelembung
+      // pengguna pernah berbunyi "fixtures.outdoorTaps: Tidak ada" (produksi 2026-11-27): dua
+      // pertanyaan keran tambahan (P33-04) masuk kartu tanpa pernah diberi label pendek, dan
+      // cadangannya adalah id mentah. `FIELD_LABEL` lengkap untuk setiap field kebutuhan.
+      const named = (labels[id] ?? requirementFieldLabel(id, locale)) as string | undefined;
+      const label = isIrrigationField(a.id) ? irrigationFieldLabel(a.id, locale) : (named ?? a.id);
       const template = TEMPLATES[id];
       if (template?.inputs && a.option.includes('='))
         return `${label}: ${inputSummary(template, a.option, locale)}`;

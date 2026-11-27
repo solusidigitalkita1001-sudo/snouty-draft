@@ -6091,3 +6091,16 @@ dipakai. Yang tidak berubah: aturan yang memakai nilai-nilai itu tetap
       tesnya berlaku untuk setiap pilihan kartu, bukan hanya yang baru: tiap nilai berbentuk
       identifier kode yang bisa lahir dari sebuah jawaban kartu harus punya label yang berbeda
       dari nilainya, dalam kedua bahasa.
+
+- [x] P40-11 Gelembung jawaban menyebut nama pertanyaan, bukan path kodenya (produksi 2026-11-27)
+
+      Dilihat di layar, bukan di JSON: setelah kartu dikirim, gelembung pengguna berbunyi
+      "Ukuran: bangunan 12 × 8 m · fixtures.outdoorTaps: Tidak ada · fixtures.upperFloorTaps:
+      Tidak ada · Tujuan air bekas: Saluran kota". Dua path kode di layar. Daftar label pendek
+      untuk ringkasan itu ditulis tangan dan cadangannya adalah id mentah, jadi dua pertanyaan
+      keran tambahan yang masuk kartu di P33-04 tidak pernah punya nama.
+
+      Cadangannya sekarang label field biasa — daftar yang lengkap untuk setiap field kebutuhan —
+      jadi pertanyaan baru paling buruk tampil dengan nama panjangnya, tidak pernah dengan
+      path-nya. Label pendek tetap jadi penimpa bagi yang punya. Pagar tesnya menyapu setiap field
+      yang punya templat pertanyaan, dalam dua bahasa.

@@ -14,6 +14,8 @@ import {
   houseRefinementQuestions,
   isClarificationAnswerId,
   MAX_ANSWERS_PER_CARD,
+  CLARIFICATION_FIELD_IDS,
+  summarizeAnswers,
 } from './clarification.js';
 
 const BUILDING_TYPES = [null, 'residential', 'place_of_worship', 'public_building'];
@@ -59,4 +61,21 @@ describe('kartu klarifikasi yang dikirim API bisa dijawab lewat API', () => {
     }
     expect(isClarificationAnswerId('water.greyWaterDestination')).toBe(true);
   });
+});
+
+/**
+ * Produksi 2026-11-27: gelembung pengguna setelah kartu berbunyi "Ukuran: bangunan 12 × 8 m ·
+ * fixtures.outdoorTaps: Tidak ada · fixtures.upperFloorTaps: Tidak ada · Tujuan air bekas:
+ * Saluran kota". Dua path kode di layar, karena dua pertanyaan P33-04 tidak pernah diberi label.
+ * Pagarnya berlaku untuk setiap pertanyaan yang punya templat, bukan hanya dua itu.
+ */
+describe('ringkasan jawaban tidak pernah menampilkan path field', () => {
+  for (const id of CLARIFICATION_FIELD_IDS) {
+    it(`${id} punya label manusiawi di ringkasan`, () => {
+      for (const locale of ['id', 'en'] as const) {
+        const summary = summarizeAnswers([{ id, option: 'Belum tahu' }], locale);
+        expect(summary, `${id} (${locale})`).not.toContain(id);
+      }
+    });
+  }
 });
