@@ -40,8 +40,12 @@ export const VocabularySchema = z.object({
   outOfScopeFluids: z.array(z.string().trim().min(1)).default([]),
   /**
    * Sistem yang memakai pipa dan fitting bersertifikat tersendiri, bukan pipa air bersih:
-   * pemadam kebakaran (sprinkler, hidran), gas. Kebutuhan yang menyebutnya keluar dari
-   * rekomendasi otomatis dengan kalimatnya sendiri (`policy/scope.ts`).
+   * pemadam kebakaran (sprinkler, hidran, proteksi kebakaran). Pesan yang menyebutnya keluar
+   * dari rekomendasi otomatis dengan kalimatnya sendiri (`policy/scope.ts`).
+   *
+   * Pipa gas TIDAK di sini: Pralon memang membuatnya (polietilen gas kuning, MDPE/HDPE), dan
+   * pertanyaannya dijawab jalur pengetahuan dari katalog. Yang tidak ada produknya di sini
+   * hanyalah jalur kebakaran.
    */
   outOfScopeSystems: z.array(z.string().trim().min(1)).default([]),
   /** Nama merek pesaing. */
@@ -179,7 +183,7 @@ export class EntityLexicon {
     return this.outOfScope.test(text);
   }
 
-  /** Sistem di luar cakupan (pemadam kebakaran, gas) yang disebut di pesannya. */
+  /** Sistem di luar cakupan (jalur pemadam kebakaran) yang disebut di pesannya. */
   mentionsOutOfScopeSystem(text: string): boolean {
     return this.outOfScopeSystem.test(text);
   }

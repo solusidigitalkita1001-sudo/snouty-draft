@@ -54,9 +54,9 @@ export const MAX_SUPPORTED_TEMPERATURE_C = 45;
 export interface UseCaseSignals {
   readonly outOfScopeFluid: boolean;
   /**
-   * Sistem yang memakai pipa dan fitting bersertifikat tersendiri — pemadam kebakaran (sprinkler,
-   * hidran), gas. "pipa sprinkler pemadam kebakaran untuk gedung 8 lantai" dijawab sebagai gedung
-   * air bersih biasa (produksi 2026-11-27), lengkap dengan riser dan zonasi tekanan.
+   * Sistem yang memakai pipa dan fitting bersertifikat tersendiri — jalur pemadam kebakaran
+   * (sprinkler, hidran). "pipa sprinkler pemadam kebakaran untuk gedung 8 lantai" dijawab sebagai
+   * gedung air bersih biasa (produksi 2026-11-27), lengkap dengan riser dan zonasi tekanan.
    */
   readonly outOfScopeSystem: boolean;
   /** Suhu fluida yang tersurat, °C; `null` bila tidak disebut. */
@@ -146,8 +146,8 @@ export function useCasePolicy(
       code: 'TECHNICAL_VALIDATION_REQUIRED',
       reasons: [
         locale === 'en'
-          ? 'A fire-fighting line — sprinklers, hydrants — and a gas line use certified pipe and fittings with their own pressure class and standard, not clean-water pipe, so the Pralon technical team decides what goes in.'
-          : 'Jalur pemadam kebakaran — sprinkler, hidran — dan jalur gas memakai pipa dan fitting bersertifikat dengan kelas tekanan dan standarnya sendiri, bukan pipa air bersih, jadi yang menentukannya tim teknis Pralon.',
+          ? 'A fire-fighting line — sprinklers, hydrants — uses certified pipe and fittings with their own pressure class and standard, not clean-water pipe, so the Pralon technical team decides what goes in.'
+          : 'Jalur pemadam kebakaran — sprinkler, hidran — memakai pipa dan fitting bersertifikat dengan kelas tekanan dan standarnya sendiri, bukan pipa air bersih, jadi yang menentukannya tim teknis Pralon.',
         handoff,
       ],
     };

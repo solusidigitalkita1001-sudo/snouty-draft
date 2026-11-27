@@ -169,8 +169,6 @@ describe('pemahaman Inggris — pola kode', () => {
       'instalasi hidran gedung perkantoran',
       'fire sprinkler piping for an 8-storey building',
       'fire protection main for a warehouse',
-      'ada pipa buat gas LPG rumah tangga?',
-      'gas pipe for a kitchen',
     ]) {
       const outcome = useCasePolicy(signals(text));
       expect(outcome.kind, text).toBe('policy');
@@ -184,6 +182,11 @@ describe('pemahaman Inggris — pola kode', () => {
     ]) {
       expect(useCasePolicy(signals(text)).kind, text).toBe('supported');
     }
+    // Pipa gas bukan sistem di luar cakupan: Pralon membuatnya (polietilen gas kuning), dan
+    // pertanyaannya dijawab jalur pengetahuan dari katalog — bukan kalimat kebakaran ini.
+    expect(TEST_LEXICON.mentionsOutOfScopeSystem('ada pipa buat gas LPG rumah tangga?')).toBe(
+      false,
+    );
   });
 
   /** Kartu tidak menjanjikan isi yang tidak dibawanya (produksi 2026-11-27). */

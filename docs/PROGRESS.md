@@ -6285,7 +6285,15 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       standarnya sendiri; menawarkan pipa air bersih untuknya bukan jawaban yang kurang teliti,
       itu jawaban yang salah.
 
-      Sistem di luar cakupan sekarang punya daftarnya sendiri di kosakata — kebakaran (sprinkler,
-      hidran, proteksi kebakaran) dan gas — dengan kalimat kebijakannya sendiri yang menyebut
-      alasannya, lalu rute ke tim teknis. Irigasi sprinkler pertanian tetap dihitung seperti
-      biasa; itu diuji agar tidak ikut terjaring.
+      Sistem di luar cakupan sekarang punya daftarnya sendiri di kosakata — kebakaran saja
+      (sprinkler, hidran, proteksi kebakaran) — dengan kalimat kebijakannya sendiri yang menyebut
+      alasannya, lalu rute ke tim teknis. Pipa gas sengaja TIDAK ikut: Pralon memang membuatnya
+      (polietilen gas kuning, MDPE/HDPE), dan pertanyaannya sudah dijawab jalur pengetahuan dari
+      katalog — menjaringnya akan menghapus jawaban yang benar.
+
+      Satu hal lagi: pengecualian "ditanyakan, bukan dibutuhkan" — yang membuat pertanyaan
+      kecocokan bahan dijawab dari pengetahuan alih-alih diserahkan — tidak berlaku untuk jalur
+      kebakaran, karena tidak ada produk pipa air bersih yang menjawabnya. Dua dari tiga
+      penulisan ("pipa sprinkler…", "instalasi hidran…") masih lolos sebelum ini diperbaiki.
+      Irigasi sprinkler pertanian tetap dihitung seperti biasa; itu diuji agar tidak ikut
+      terjaring.

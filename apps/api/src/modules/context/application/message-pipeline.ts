@@ -449,18 +449,25 @@ export async function runUnderstanding(
   const asksAboutFluid =
     isProductQuestion(input.understanding?.intent?.label) &&
     input.understanding?.intent?.label !== 'advice_request';
+  // Pengecualian "ditanyakan, bukan dibutuhkan" berlaku untuk FLUIDA: kecocokan bahan air laut
+  // atau air panas punya jawaban bersumber. Jalur kebakaran tidak punya: tidak ada produk pipa
+  // air bersih yang menjawab "pipa sprinkler pemadam kebakaran, pakai Pralon bisa?" selain
+  // mengatakan itu kelas produk yang lain. Jadi isyarat sistem menang atas pengecualian ini
+  // (produksi 2026-11-27: dua dari tiga penulisannya tetap dijawab sebagai gedung air bersih).
+  const outOfScopeSystem = input.understanding?.mentionsOutOfScopeSystem ?? false;
   const captured = capturedFrom(input.state, locale);
-  const useCase = asksAboutFluid
-    ? ({ kind: 'supported' } as const)
-    : useCasePolicy(
-        {
-          outOfScopeFluid: input.understanding?.mentionsOutOfScopeFluid ?? false,
-          outOfScopeSystem: input.understanding?.mentionsOutOfScopeSystem ?? false,
-          temperatureC: parseTemperature(input.message),
-        },
-        locale,
-        captured.length > 0,
-      );
+  const useCase =
+    asksAboutFluid && !outOfScopeSystem
+      ? ({ kind: 'supported' } as const)
+      : useCasePolicy(
+          {
+            outOfScopeFluid: input.understanding?.mentionsOutOfScopeFluid ?? false,
+            outOfScopeSystem,
+            temperatureC: parseTemperature(input.message),
+          },
+          locale,
+          captured.length > 0,
+        );
   if (useCase.kind === 'policy') {
     const card = policyCard(useCase, captured, locale);
     // Kartu tanpa satu kata pun di gelembungnya terbaca sebagai balasan hampa: di produksi
