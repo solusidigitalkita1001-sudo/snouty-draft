@@ -6143,3 +6143,15 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       validasi teknis yang memang sudah ada — bukan ke hitungan saniter. Air limbah domestik tidak
       ikut terjaring: rumah, jaringan air limbah desa, dan septic tank tetap dihitung di sini, dan
       itu yang dijaga tesnya.
+
+- [x] P40-15 Satu "tiap lantai" menaungi semua angka di kalimatnya
+
+      "Gedung 12 lantai, tiap lantai 4 kamar mandi dan 2 wastafel": kamar mandinya terbaca empat
+      per lantai, tetapi wastafelnya jatuh ke jumlah TOTAL gedung — dua wastafel untuk dua belas
+      lantai — dan kartu lanjutannya lalu menanyakan "wastafelnya per lantai ada berapa?", yang
+      baru saja disebut pengguna. Penandanya hanya menaungi pasangan angka pertama; sisanya
+      dibaca sebagai jumlah keseluruhan.
+
+      Satu penanda per lantai kini menaungi klausanya, jadi setiap angka di dalamnya per lantai.
+      "Total" dan "seluruh" mengakhiri naungan itu — "tiap lantai 4 kamar mandi, wastafel 20
+      total" tetap dibaca dua angka yang berbeda.

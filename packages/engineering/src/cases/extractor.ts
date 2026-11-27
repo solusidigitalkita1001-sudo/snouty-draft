@@ -537,6 +537,24 @@ export function extractTechnicalContext(
       'titik',
     );
   }
+  // Satu penanda "per lantai" bisa menaungi beberapa angka sekaligus: "tiap lantai 4 kamar mandi
+  // dan 2 wastafel". Dulu hanya pasangan pertama yang terbaca per lantai; wastafelnya jatuh ke
+  // jumlah TOTAL gedung — 2 wastafel untuk 12 lantai — lalu ditanyakan lagi lewat kartu, padahal
+  // pengguna sudah menyebutnya (produksi 2026-11-27).
+  const governed = new RegExp(String.raw`${PER_FLOOR}\s*([^.;!?]{0,60})`).exec(text);
+  if (governed) {
+    // "total"/"seluruh" mengakhiri naungannya: angka setelahnya milik seluruh gedung.
+    const clause = (governed[1] ?? '').split(/\b(?:total|seluruh|semua|keseluruhan|overall)\b/)[0]!;
+    for (const [entity, key] of [
+      [TOILET, 'bathrooms_per_floor'],
+      [BASIN, 'basins_per_floor'],
+    ] as const) {
+      const found = new RegExp(String.raw`(\d+)\s*${entity}`).exec(clause);
+      if (!found) continue;
+      add(key, Number(found[1]), found[0], 'titik');
+      text = text.replace(found[0], ' ');
+    }
+  }
   take(new RegExp(String.raw`(\d+)\s*${TOILET}\s*${PER_FLOOR}`), (m) =>
     add('bathrooms_per_floor', Number(m[1]), m[0], 'titik'),
   );

@@ -288,6 +288,31 @@ describe('extractTechnicalContext — produksi 2026-10-26: unit per lantai dan t
     expect(read('gedung 8 lantai, 6 kamar mandi per lantai', 'bathrooms_per_floor')).toBe(6);
   });
 
+  /**
+   * Produksi 2026-11-27: "gedung 12 lantai, tiap lantai 4 kamar mandi dan 2 wastafel" — kamar
+   * mandinya terbaca per lantai, wastafelnya jatuh ke jumlah TOTAL gedung dan kartu menanyakan
+   * wastafel per lantai yang baru saja disebut pengguna.
+   */
+  it('satu penanda per lantai menaungi semua angka di klausanya', () => {
+    const text = 'gedung 12 lantai, tiap lantai 4 kamar mandi dan 2 wastafel';
+    expect(read(text, 'bathrooms_per_floor')).toBe(4);
+    expect(read(text, 'basins_per_floor')).toBe(2);
+    expect(read(text, 'basins')).toBeUndefined();
+  });
+
+  it('urutan terbalik dan bahasa Inggris ikut', () => {
+    expect(read('8 kamar mandi per lantai', 'bathrooms_per_floor')).toBe(8);
+    const en = 'office tower, 10 floors, each floor 6 toilets and 3 basins';
+    expect(read(en, 'bathrooms_per_floor')).toBe(6);
+    expect(read(en, 'basins_per_floor')).toBe(3);
+  });
+
+  it('"total" mengakhiri naungan per lantai', () => {
+    const text = 'gedung 10 lantai, tiap lantai 4 kamar mandi, wastafel 20 total';
+    expect(read(text, 'bathrooms_per_floor')).toBe(4);
+    expect(read(text, 'basins_per_floor')).toBeUndefined();
+  });
+
   it('tinggi per lantai menjadi tinggi bangunan dengan lantai yang sudah tercatat', () => {
     expect(read('tinggi per lantai 3,2 meter', 'building_height', 12)).toBe(38.4);
     expect(read('tinggi per lantai 3,2 meter', 'route_length', 12)).toBeUndefined();
