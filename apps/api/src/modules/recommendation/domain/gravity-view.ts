@@ -315,7 +315,10 @@ export function gravityHighlights(
       });
     }
   }
-  rows.push({ label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` });
+  // Baris "0 item" tidak pernah berguna: bila tidak ada produk yang dihitung (mis. tidak ada
+  // ukuran yang lolos, OQ-104), barisnya tidak ditampilkan sama sekali.
+  if (productCount > 0)
+    rows.push({ label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` });
   return rows;
 }
 

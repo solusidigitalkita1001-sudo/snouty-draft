@@ -6268,3 +6268,10 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       Keputusan pemilik 2026-11-27: jangan disusun. Bila tidak ada ukuran yang lolos, daftar
       material dan daftar produknya kosong; hitungan, kemampuan pipa terbesar, dan rute validasi
       teknis tetap ditampilkan. Aturannya tinggal di `gravityBomItemsFrom`, bukan di layanan.
+
+- [x] P40-25 Baris "Produk Pralon: 0 item" tidak ditampilkan
+
+      Setelah P40-24 daftar produknya kosong, dan layar solusi gorong-gorong itu menampilkan baris
+      "Produk Pralon: 0 item" — kalimat bot, bukan kalimat teknisi. Barisnya sekarang tidak
+      ditampilkan sama sekali bila tidak ada produk yang dihitung; keempat jalur (gravitasi,
+      jaringan air minum, kolam, bertekanan) ikut diperbaiki sekalian karena bentuk cacatnya sama.

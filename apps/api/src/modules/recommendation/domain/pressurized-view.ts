@@ -163,7 +163,9 @@ export function pressurizedHighlights(
     },
     { label: en ? 'Total head' : 'Head total', value: `${id(result.totalDynamicHeadM, locale)} m` },
     { label: en ? 'Pump duty point' : 'Titik kerja pompa', value: pump },
-    { label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` },
+    ...(productCount > 0
+      ? [{ label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` }]
+      : []),
   ];
 }
 

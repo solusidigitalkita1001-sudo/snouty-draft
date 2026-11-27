@@ -347,6 +347,12 @@ describe('debit yang melebihi pipa terbesar dikatakan apa adanya', () => {
     expect(fitsRows.length).toBeGreaterThan(0);
   });
 
+  it('tidak ada baris "Produk Pralon: 0 item"', () => {
+    const h = gravityHighlights(over, 0);
+    expect(h.some((r) => r.label === 'Produk Pralon')).toBe(false);
+    expect(gravityHighlights(over, 2).some((r) => r.label === 'Produk Pralon')).toBe(true);
+  });
+
   it('debit yang muat tetap berbunyi seperti semula', () => {
     const fits = computeGravity({
       kind: 'culvert',

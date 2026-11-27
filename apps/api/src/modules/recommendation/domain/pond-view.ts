@@ -90,7 +90,9 @@ export function pondHighlights(
       label: en ? 'Drain pipe' : 'Pipa kuras',
       value: `${result.drainFamily} ${result.drainSize}`,
     },
-    { label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` },
+    ...(productCount > 0
+      ? [{ label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` }]
+      : []),
   ];
 }
 

@@ -108,7 +108,10 @@ export function waterSupplyHighlights(
           : `${id(sp.maxPressureBar)} bar + surja ${id(sp.surgeBar)} bar — kajian tim teknis`
         : `PN ${id(sp.pressureClass.pn, locale)} (${id(sp.maxPressureBar, locale)} bar${sp.surgeBar > 0 ? ` + ${en ? 'surge' : 'surja'} ${id(sp.surgeBar, locale)} bar` : ''})`,
   });
-  rows.push({ label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` });
+  // Baris "0 item" tidak pernah berguna: bila tidak ada produk yang dihitung (mis. tidak ada
+  // ukuran yang lolos, OQ-104), barisnya tidak ditampilkan sama sekali.
+  if (productCount > 0)
+    rows.push({ label: en ? 'Pralon products' : 'Produk Pralon', value: `${productCount} item` });
   return rows;
 }
 
