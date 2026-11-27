@@ -170,6 +170,31 @@ describe('extractTechnicalContext — beda tinggi (laporan pemilik 2026-10-08)',
     expect(facts('sungainya 4 m lebih rendah', 'pump_transfer')).toMatchObject({ static_head: 4 });
     expect(facts('sumbernya 6 m lebih tinggi', 'pump_transfer')).toMatchObject({ static_head: -6 });
   });
+
+  /**
+   * Produksi 2026-11-27: "jaringan air bersih desa, 300 rumah, sumber mata air di atas
+   * permukiman, beda tinggi 40 meter turun ke permukiman" dibaca sebagai angkat 40 m, dan
+   * jawabannya pompa 143 m untuk desa yang airnya justru mengalir sendiri.
+   */
+  it('penanda netral dengan arah menurun berarti gravitasi', () => {
+    expect(facts('beda tinggi 40 meter turun ke permukiman', 'water_supply_network')).toMatchObject(
+      { static_head: -40 },
+    );
+    expect(facts('elevasi 25 m menurun ke desa', 'water_supply_network')).toMatchObject({
+      static_head: -25,
+    });
+    expect(
+      facts('elevation difference 30 m dropping to the village', 'water_supply_network'),
+    ).toMatchObject({ static_head: -30 });
+  });
+
+  it('penanda netral tanpa arah tetap berarti dinaikkan', () => {
+    expect(facts('beda tinggi 12,5 meter', 'pump_transfer')).toMatchObject({ static_head: 12.5 });
+    expect(facts('beda tinggi 20 meter ke tandon atas', 'pump_transfer')).toMatchObject({
+      static_head: 20,
+    });
+    expect(facts('naik 15 m', 'pump_transfer')).toMatchObject({ static_head: 15 });
+  });
 });
 
 describe('extractTechnicalContext — temuan smoke 2026-10-16', () => {

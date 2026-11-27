@@ -144,7 +144,14 @@ export function extractTechnicalContext(
         const before = text.slice(Math.max(0, m.index - 30), m.index);
         add('static_head', staticHead(num(m[2]!), term === 'lebih rendah', before), m[0], 'm');
       } else {
-        add('static_head', num(m[2]!), m[0], 'm');
+        // Penanda netral berarti air dinaikkan — KECUALI kalimatnya menyebut arahnya tepat
+        // setelah angkanya. "Beda tinggi 40 meter turun ke permukiman" adalah jaringan gravitasi;
+        // dibaca sebagai angkat 40 m, jawabannya pompa 143 m untuk desa yang airnya justru
+        // mengalir sendiri (produksi 2026-11-27).
+        const after = text.slice(m.index + m[0].length, m.index + m[0].length + 30);
+        const downhill =
+          /\b(turun\w*|menurun\w*|ke bawah|downhill|drop(?:s|ping)?|descend\w*)/.test(after);
+        add('static_head', downhill ? -num(m[2]!) : num(m[2]!), m[0], 'm');
       }
     },
   );

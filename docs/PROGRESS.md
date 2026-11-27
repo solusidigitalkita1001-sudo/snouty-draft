@@ -6155,3 +6155,15 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       Satu penanda per lantai kini menaungi klausanya, jadi setiap angka di dalamnya per lantai.
       "Total" dan "seluruh" mengakhiri naungan itu — "tiap lantai 4 kamar mandi, wastafel 20
       total" tetap dibaca dua angka yang berbeda.
+
+- [x] P40-16 Mata air di atas desa bukan 40 meter yang harus dipompa
+
+      "Jaringan air bersih desa, 300 rumah, sumber mata air di atas permukiman, jarak 1,5 km,
+      beda tinggi 40 meter turun ke permukiman" dijawab "dipompa dari sumber", lengkap dengan
+      katup searah dan adaptor pompa di daftar materialnya, dan pompa setinggi 143 m untuk desa
+      yang airnya justru mengalir sendiri. Penanda netral "beda tinggi" selalu dibaca sebagai
+      air yang dinaikkan; arah yang disebut pengguna tepat setelah angkanya tidak pernah dibaca.
+
+      Arah itu kini dibaca: penanda netral yang diikuti kata turun — "turun ke permukiman",
+      "menurun ke desa", "dropping to the village" — berarti gravitasi. Tanpa kata arah,
+      bacaannya tetap seperti dulu: air dinaikkan.
