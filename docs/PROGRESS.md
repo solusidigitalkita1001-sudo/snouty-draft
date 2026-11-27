@@ -6275,3 +6275,17 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       "Produk Pralon: 0 item" — kalimat bot, bukan kalimat teknisi. Barisnya sekarang tidak
       ditampilkan sama sekali bila tidak ada produk yang dihitung; keempat jalur (gravitasi,
       jaringan air minum, kolam, bertekanan) ikut diperbaiki sekalian karena bentuk cacatnya sama.
+
+- [x] P40-26 Jalur pemadam kebakaran dan jalur gas tidak dihitung sebagai air bersih
+
+      "pipa sprinkler pemadam kebakaran untuk gedung 8 lantai, pakai Pralon bisa?" dijawab "Oke,
+      gedung bertingkat. Saya hitung riser, zonasi tekanan, dan kebutuhan pompanya" — lengkap
+      dengan ukuran riser dan daftar produk. Kata "sprinkler" bahkan tercatat sebagai jenis
+      irigasi. Jalur kebakaran memakai pipa dan fitting bersertifikat dengan kelas tekanan dan
+      standarnya sendiri; menawarkan pipa air bersih untuknya bukan jawaban yang kurang teliti,
+      itu jawaban yang salah.
+
+      Sistem di luar cakupan sekarang punya daftarnya sendiri di kosakata — kebakaran (sprinkler,
+      hidran, proteksi kebakaran) dan gas — dengan kalimat kebijakannya sendiri yang menyebut
+      alasannya, lalu rute ke tim teknis. Irigasi sprinkler pertanian tetap dihitung seperti
+      biasa; itu diuji agar tidak ikut terjaring.

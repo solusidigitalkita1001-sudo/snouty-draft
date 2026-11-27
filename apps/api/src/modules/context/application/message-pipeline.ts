@@ -455,6 +455,7 @@ export async function runUnderstanding(
     : useCasePolicy(
         {
           outOfScopeFluid: input.understanding?.mentionsOutOfScopeFluid ?? false,
+          outOfScopeSystem: input.understanding?.mentionsOutOfScopeSystem ?? false,
           temperatureC: parseTemperature(input.message),
         },
         locale,

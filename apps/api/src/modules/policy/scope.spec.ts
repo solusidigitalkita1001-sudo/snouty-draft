@@ -55,16 +55,26 @@ describe('Policy 5 — scope routing', () => {
   it('fluida di luar cakupan atau suhu ≥ 45 °C → validasi teknis; selain itu bukan urusan kebijakan ini', () => {
     // Kebijakan leaf menerima isyarat yang sudah dibaca (P16-14): nama fluida dari kosakata data,
     // suhu dari parser angka — pembacaannya diuji di context (english-understanding.spec).
-    expect(useCasePolicy({ outOfScopeFluid: true, temperatureC: null })).toMatchObject({
+    expect(
+      useCasePolicy({ outOfScopeFluid: true, outOfScopeSystem: false, temperatureC: null }),
+    ).toMatchObject({
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
     });
     // Skenario uji §39: air proses pabrik bersuhu tinggi.
-    expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: 70 }).kind).toBe('policy');
-    expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: 45 }).kind).toBe('policy');
-    expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: 30 }).kind).toBe('supported');
+    expect(
+      useCasePolicy({ outOfScopeFluid: false, outOfScopeSystem: false, temperatureC: 70 }).kind,
+    ).toBe('policy');
+    expect(
+      useCasePolicy({ outOfScopeFluid: false, outOfScopeSystem: false, temperatureC: 45 }).kind,
+    ).toBe('policy');
+    expect(
+      useCasePolicy({ outOfScopeFluid: false, outOfScopeSystem: false, temperatureC: 30 }).kind,
+    ).toBe('supported');
     // Tambak, rumah, irigasi: tidak ada fluida/suhu di luar cakupan — bukan ditolak di sini.
-    expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: null }).kind).toBe('supported');
+    expect(
+      useCasePolicy({ outOfScopeFluid: false, outOfScopeSystem: false, temperatureC: null }).kind,
+    ).toBe('supported');
     expect(irrigationHandoffPolicy()).toMatchObject({
       kind: 'policy',
       code: 'TECHNICAL_VALIDATION_REQUIRED',
@@ -161,14 +171,18 @@ describe('Policy teks dwibahasa (Fase 15)', () => {
         expect.stringContaining('technical team'),
       ],
     });
-    expect(useCasePolicy({ outOfScopeFluid: true, temperatureC: null }, 'en')).toMatchObject({
+    expect(
+      useCasePolicy({ outOfScopeFluid: true, outOfScopeSystem: false, temperatureC: null }, 'en'),
+    ).toMatchObject({
       code: 'TECHNICAL_VALIDATION_REQUIRED',
       reasons: [
         expect.stringContaining('special fluids need a different pipe choice'),
         expect.any(String),
       ],
     });
-    expect(useCasePolicy({ outOfScopeFluid: false, temperatureC: null }, 'en')).toEqual({
+    expect(
+      useCasePolicy({ outOfScopeFluid: false, outOfScopeSystem: false, temperatureC: null }, 'en'),
+    ).toEqual({
       kind: 'supported',
     });
     const competitor = competitorPolicy('en');

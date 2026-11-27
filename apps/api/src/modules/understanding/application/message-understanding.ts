@@ -57,6 +57,7 @@ export interface MessageUnderstanding {
   readonly reasonRequest: ReasonRequestLabel | null;
   /** Menyebut fluida/kondisi di luar cakupan (air panas, uap, kimia — kosakata). */
   readonly mentionsOutOfScopeFluid: boolean;
+  readonly mentionsOutOfScopeSystem: boolean;
   /** Keluarga produk yang disebut (kosakata), kanonis, urut kemunculan. */
   readonly families: readonly string[];
   readonly mentionsCompetitor: boolean;
@@ -78,6 +79,7 @@ export function unavailableUnderstanding(
     mentionsOwnBrand(text: string): boolean;
     mentionsRequirementEntity(text: string): boolean;
     mentionsOutOfScopeFluid(text: string): boolean;
+    mentionsOutOfScopeSystem(text: string): boolean;
   } | null = null,
 ): MessageUnderstanding {
   return {
@@ -97,6 +99,7 @@ export function unavailableUnderstanding(
     savingRequest: null,
     reasonRequest: null,
     mentionsOutOfScopeFluid: lexicon?.mentionsOutOfScopeFluid(text) ?? false,
+    mentionsOutOfScopeSystem: lexicon?.mentionsOutOfScopeSystem(text) ?? false,
     families: lexicon?.productFamilies(text) ?? [],
     mentionsCompetitor: lexicon?.mentionsCompetitor(text) ?? false,
     mentionsOwnBrand: lexicon?.mentionsOwnBrand(text) ?? false,

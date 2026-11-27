@@ -53,6 +53,12 @@ export const MAX_SUPPORTED_TEMPERATURE_C = 45;
  */
 export interface UseCaseSignals {
   readonly outOfScopeFluid: boolean;
+  /**
+   * Sistem yang memakai pipa dan fitting bersertifikat tersendiri — pemadam kebakaran (sprinkler,
+   * hidran), gas. "pipa sprinkler pemadam kebakaran untuk gedung 8 lantai" dijawab sebagai gedung
+   * air bersih biasa (produksi 2026-11-27), lengkap dengan riser dan zonasi tekanan.
+   */
+  readonly outOfScopeSystem: boolean;
   /** Suhu fluida yang tersurat, °C; `null` bila tidak disebut. */
   readonly temperatureC: number | null;
 }
@@ -126,6 +132,26 @@ export function useCasePolicy(
   hasCaptured = true,
 ): PolicyOutcome {
   const hot = signals.temperatureC !== null && signals.temperatureC >= MAX_SUPPORTED_TEMPERATURE_C;
+  if (signals.outOfScopeSystem) {
+    const handoff =
+      locale === 'en'
+        ? hasCaptured
+          ? 'Press “Send to the Pralon technical team” and your requirements go to them as they are recorded here.'
+          : 'Press “Send to the Pralon technical team” and what you have written goes to them as it is — you will not have to tell it again.'
+        : hasCaptured
+          ? 'Tekan “Kirim ke tim teknis Pralon” supaya kebutuhan yang sudah tercatat di sini langsung diteruskan ke mereka.'
+          : 'Tekan “Kirim ke tim teknis Pralon” supaya yang Anda tulis diteruskan apa adanya — Anda tidak perlu menceritakannya lagi.';
+    return {
+      kind: 'policy',
+      code: 'TECHNICAL_VALIDATION_REQUIRED',
+      reasons: [
+        locale === 'en'
+          ? 'A fire-fighting line — sprinklers, hydrants — and a gas line use certified pipe and fittings with their own pressure class and standard, not clean-water pipe, so the Pralon technical team decides what goes in.'
+          : 'Jalur pemadam kebakaran — sprinkler, hidran — dan jalur gas memakai pipa dan fitting bersertifikat dengan kelas tekanan dan standarnya sendiri, bukan pipa air bersih, jadi yang menentukannya tim teknis Pralon.',
+        handoff,
+      ],
+    };
+  }
   if (!signals.outOfScopeFluid && !hot) return { kind: 'supported' };
   if (locale === 'en') {
     return {

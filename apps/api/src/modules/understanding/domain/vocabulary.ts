@@ -38,6 +38,12 @@ export const VocabularySchema = z.object({
    * yang menyebutnya keluar dari rekomendasi otomatis (kebijakan cakupan, `policy/scope.ts`).
    */
   outOfScopeFluids: z.array(z.string().trim().min(1)).default([]),
+  /**
+   * Sistem yang memakai pipa dan fitting bersertifikat tersendiri, bukan pipa air bersih:
+   * pemadam kebakaran (sprinkler, hidran), gas. Kebutuhan yang menyebutnya keluar dari
+   * rekomendasi otomatis dengan kalimatnya sendiri (`policy/scope.ts`).
+   */
+  outOfScopeSystems: z.array(z.string().trim().min(1)).default([]),
   /** Nama merek pesaing. */
   competitorBrands: z.array(z.string().trim().min(1)),
   /** Rujukan umum ke merek lain ("merek lain", "kompetitor"). */
@@ -74,6 +80,7 @@ export class EntityLexicon {
   private readonly own: RegExp;
   private readonly requirements: RegExp;
   private readonly outOfScope: RegExp;
+  private readonly outOfScopeSystem: RegExp;
   private readonly knowledgeOnly: ReadonlySet<string>;
   private readonly fittings: ReadonlySet<string>;
   private readonly aliases: ReadonlyMap<string, readonly string[]>;
@@ -113,6 +120,7 @@ export class EntityLexicon {
     this.own = anyOf(vocabulary.ownBrand);
     this.requirements = anyOf(vocabulary.requirementEntities);
     this.outOfScope = anyOf(vocabulary.outOfScopeFluids);
+    this.outOfScopeSystem = anyOf(vocabulary.outOfScopeSystems);
   }
 
   /** Keluarga produk yang disebut, kanonis, urut kemunculan, tanpa duplikat. */
@@ -169,6 +177,11 @@ export class EntityLexicon {
   /** Menyebut fluida/kondisi di luar cakupan rekomendasi otomatis. */
   mentionsOutOfScopeFluid(text: string): boolean {
     return this.outOfScope.test(text);
+  }
+
+  /** Sistem di luar cakupan (pemadam kebakaran, gas) yang disebut di pesannya. */
+  mentionsOutOfScopeSystem(text: string): boolean {
+    return this.outOfScopeSystem.test(text);
   }
 
   /** Keluarga yang dicari ke katalog Pralon (bukan keluarga yang hanya pengetahuan, mis. galvanis). */

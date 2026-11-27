@@ -37,6 +37,7 @@ export function understood(text: string, over: Over = {}): MessageUnderstanding 
     mentionsOwnBrand: TEST_LEXICON.mentionsOwnBrand(text),
     mentionsRequirement: TEST_LEXICON.mentionsRequirementEntity(text),
     mentionsOutOfScopeFluid: TEST_LEXICON.mentionsOutOfScopeFluid(text),
+    mentionsOutOfScopeSystem: TEST_LEXICON.mentionsOutOfScopeSystem(text),
     ...over,
   });
 }

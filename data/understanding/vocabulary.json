@@ -264,5 +264,26 @@
     "industrial waste",
     "electroplating",
     "tannery"
+  ],
+  "outOfScopeSystems": [
+    "sprinkler pemadam",
+    "sprinkler kebakaran",
+    "pemadam kebakaran",
+    "proteksi kebakaran",
+    "hidran",
+    "hydrant",
+    "fire sprinkler",
+    "fire fighting",
+    "firefighting",
+    "fire protection",
+    "fire hose",
+    "fire main",
+    "pipa gas",
+    "jalur gas",
+    "gas lpg",
+    "lpg",
+    "gas line",
+    "gas pipe",
+    "gas piping"
   ]
 }

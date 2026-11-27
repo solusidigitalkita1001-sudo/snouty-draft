@@ -123,6 +123,7 @@ export class UnderstandingService {
       mentionsOwnBrand: this.lexicon.mentionsOwnBrand(message),
       mentionsRequirement: this.lexicon.mentionsRequirementEntity(message),
       mentionsOutOfScopeFluid: this.lexicon.mentionsOutOfScopeFluid(message),
+      mentionsOutOfScopeSystem: this.lexicon.mentionsOutOfScopeSystem(message),
       useCase: (this.verdict('use-case', query).best?.label as UseCaseLabel | undefined) ?? null,
       // Nilai di pesan ditutupi untuk aspek; untuk terkecil/terbesar justru angkanya yang tidak
       // relevan, jadi kueri biasa yang dipakai.

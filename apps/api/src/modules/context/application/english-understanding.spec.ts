@@ -107,6 +107,7 @@ describe('pemahaman Inggris — pola kode', () => {
   it('kebijakan cakupan membaca kondisi fluida dua bahasa (kosakata + parser suhu)', () => {
     const signals = (text: string) => ({
       outOfScopeFluid: TEST_LEXICON.mentionsOutOfScopeFluid(text),
+      outOfScopeSystem: TEST_LEXICON.mentionsOutOfScopeSystem(text),
       temperatureC: parseTemperature(text),
     });
     expect(useCasePolicy(signals('hot water line for a hotel boiler')).kind).toBe('policy');
@@ -128,6 +129,7 @@ describe('pemahaman Inggris — pola kode', () => {
   it('limbah proses industri butuh validasi teknis; air limbah rumah dan desa tidak', () => {
     const signals = (text: string) => ({
       outOfScopeFluid: TEST_LEXICON.mentionsOutOfScopeFluid(text),
+      outOfScopeSystem: TEST_LEXICON.mentionsOutOfScopeSystem(text),
       temperatureC: parseTemperature(text),
     });
     for (const text of [
@@ -150,9 +152,43 @@ describe('pemahaman Inggris — pola kode', () => {
     }
   });
 
+  /**
+   * "pipa sprinkler pemadam kebakaran untuk gedung 8 lantai, pakai Pralon bisa?" dijawab sebagai
+   * gedung air bersih biasa — riser, zonasi tekanan, dan daftar produk — dan kata "sprinkler"
+   * malah tercatat sebagai jenis irigasi (produksi 2026-11-27). Jalur kebakaran dan jalur gas
+   * memakai pipa bersertifikat tersendiri.
+   */
+  it('jalur pemadam kebakaran dan jalur gas keluar dari rekomendasi otomatis', () => {
+    const signals = (text: string) => ({
+      outOfScopeFluid: TEST_LEXICON.mentionsOutOfScopeFluid(text),
+      outOfScopeSystem: TEST_LEXICON.mentionsOutOfScopeSystem(text),
+      temperatureC: parseTemperature(text),
+    });
+    for (const text of [
+      'pipa sprinkler pemadam kebakaran untuk gedung 8 lantai',
+      'instalasi hidran gedung perkantoran',
+      'fire sprinkler piping for an 8-storey building',
+      'fire protection main for a warehouse',
+      'ada pipa buat gas LPG rumah tangga?',
+      'gas pipe for a kitchen',
+    ]) {
+      const outcome = useCasePolicy(signals(text));
+      expect(outcome.kind, text).toBe('policy');
+      expect(outcome.kind === 'policy' && outcome.reasons[0]).toMatch(/kebakaran|fire-fighting/);
+    }
+    // Irigasi sprinkler pertanian bukan jalur kebakaran — jangan ikut terjaring.
+    for (const text of [
+      'irigasi sprinkler untuk 5 hektar jagung',
+      'sprinkler irrigation for 5 hectares of maize',
+      'rumah 2 lantai, 3 kamar mandi',
+    ]) {
+      expect(useCasePolicy(signals(text)).kind, text).toBe('supported');
+    }
+  });
+
   /** Kartu tidak menjanjikan isi yang tidak dibawanya (produksi 2026-11-27). */
   it('janji kartu mengikuti ada-tidaknya kebutuhan yang tercatat', () => {
-    const hot = { outOfScopeFluid: true, temperatureC: null };
+    const hot = { outOfScopeFluid: true, outOfScopeSystem: false, temperatureC: null };
     const withRows = useCasePolicy(hot, 'id', true);
     const without = useCasePolicy(hot, 'id', false);
     expect(withRows.kind === 'policy' && withRows.reasons[1]).toContain('sudah tercatat');
