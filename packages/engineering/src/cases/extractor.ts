@@ -353,6 +353,17 @@ export function extractTechnicalContext(
       add('design_flow', num(m[1]!), m[0], 'l/s');
     },
   );
+  // Debit banjir dan debit saluran besar disebut dalam meter kubik per detik, bukan liter per
+  // detik ("gorong-gorong, debit banjir 0,8 m3 per detik" — produksi 2026-11-27: angkanya hilang
+  // dan debitnya ditanya ulang sebagai pertanyaan pertama).
+  take(
+    new RegExp(
+      `${NUM}\\s*(m3/s|m³/s|m3/dtk|m³/dtk|m3/detik|m³/detik|m3 per detik|m³ per detik|kubik/detik|kubik per detik|cubic meters? per second|cubic metres? per second)`,
+    ),
+    (m) => {
+      add('design_flow', Math.round(num(m[1]!) * 1000 * 100) / 100, m[0], 'l/s');
+    },
+  );
   take(
     new RegExp(
       `${NUM}\\s*(m3/jam|m³/jam|kubik/jam|m3/h|m³/h|cubic meters? per hour|cubic metres? per hour)`,

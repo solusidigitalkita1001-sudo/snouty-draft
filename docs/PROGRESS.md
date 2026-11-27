@@ -6219,3 +6219,15 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       kebutuhan rumah, tetapi cabang parameter teknis berhenti lebih dulu dan mencetak jawabannya
       apa adanya. Sekarang angkanya dibaca dan ditampilkan dengan satuannya: "Intensitas hujan:
       200 mm". Pilihan biasa dan "Belum tahu" tidak berubah.
+
+- [x] P40-21 Debit yang disebut dalam meter kubik per detik ikut terbaca
+
+      "gorong-gorong di bawah jalan desa, lebar jalan 6 m, debit banjir 0,8 m3 per detik": lebar
+      jalannya tercatat, debitnya hilang — lalu ditanya ulang sebagai pertanyaan pertama, padahal
+      sudah disebut di kalimat yang sama. Debit banjir dan debit saluran besar memang disebut
+      dalam meter kubik per detik, bukan liter per detik, dan satuan itu belum terdaftar: yang ada
+      baru l/s, m³/jam, dan l/menit.
+
+      Satuannya ditambahkan dengan sebelas penulisan (m3/s, m³/detik, m3 per detik, kubik per
+      detik, cubic metres per second), dikonversi ke l/s. Dibaca lebih dulu daripada m³/jam
+      supaya "m3/s" tidak dikira per jam.

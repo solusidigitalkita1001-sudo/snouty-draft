@@ -360,3 +360,31 @@ describe('produksi 2026-10-26: tiang toren bukan panjang jalur', () => {
     expect(facts('jalan utamanya 1,2 km', 'residential_cluster')['route_length']).toBe(1200);
   });
 });
+
+/**
+ * Debit banjir dan debit saluran besar disebut dalam meter kubik per detik. "gorong-gorong di
+ * bawah jalan desa, lebar jalan 6 m, debit banjir 0,8 m3 per detik" (produksi 2026-11-27): lebar
+ * jalannya tercatat, debitnya hilang — lalu ditanya ulang sebagai pertanyaan pertama.
+ */
+describe('debit dalam meter kubik per detik', () => {
+  const cases: readonly (readonly [string, number])[] = [
+    ['gorong-gorong, debit banjir 0,8 m3 per detik', 800],
+    ['saluran dengan debit 1,2 m³/s', 1200],
+    ['debit rencana 0,05 m3/detik', 50],
+    ['culvert with a design flow of 2 cubic meters per second', 2000],
+    ['debit 0,35 kubik per detik', 350],
+  ];
+  for (const [text, lps] of cases) {
+    it(text, () => {
+      expect(facts(text, 'culvert')).toMatchObject({ design_flow: lps });
+    });
+  }
+
+  it('meter kubik per jam tetap dibaca sebagai per jam', () => {
+    expect(facts('pompa 18 m3/jam', 'pump_transfer')).toMatchObject({ design_flow: 5 });
+  });
+
+  it('liter per detik tidak terpengaruh', () => {
+    expect(facts('debit 8 l/s', 'culvert')).toMatchObject({ design_flow: 8 });
+  });
+});
