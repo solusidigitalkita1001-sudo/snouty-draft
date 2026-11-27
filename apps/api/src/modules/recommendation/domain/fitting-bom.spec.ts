@@ -7,6 +7,7 @@ import {
   fittingKey,
   inspectionChamberRows,
   pendingNeeds,
+  pendingRows,
   solventCement,
   stopValveRow,
   supplyFittingNeeds,
@@ -189,5 +190,27 @@ describe('solvent cement menurut ukuran jalur (P33-03)', () => {
       { system: 'waste', size: '2½"' },
     ]).filter((n) => n.unit === 'kaleng');
     expect(items.map((n) => n.item.id)).toEqual(['Lem PVC slow dry', 'Lem PVC quick dry']);
+  });
+});
+
+/**
+ * Produksi 2026-11-27, dibaca dari layar Estimasi Material: baris lem berbunyi "Dihitung saat
+ * pemasangan". Jumlah kalengnya tidak ditentukan di lapangan melainkan oleh berapa sambungan yang
+ * bisa dilem satu kaleng — angka yang masih di Pralon. Dop memang dihitung saat pemasangan.
+ */
+describe('baris lem menyebut angka yang ditunggu, bukan "saat pemasangan"', () => {
+  const rowsOf = (locale: 'id' | 'en') =>
+    pendingRows(pendingNeeds([{ system: 'soil', size: '4"' }]), locale, () => undefined);
+
+  it('id: lem menunggu jumlah sambungan per kaleng; dop tanpa catatan', () => {
+    const rows = rowsOf('id');
+    const cement = rows.find((r) => r.item.startsWith('Lem PVC'));
+    expect(cement?.pendingNote).toBe('Menunggu jumlah sambungan per kaleng');
+    expect(rows.find((r) => r.item === 'Dop')?.pendingNote).toBeUndefined();
+  });
+
+  it('en: catatannya ikut bahasa percakapan', () => {
+    const cement = rowsOf('en').find((r) => r.item.startsWith('PVC solvent cement'));
+    expect(cement?.pendingNote).toBe('Needs the joints per tin');
   });
 });

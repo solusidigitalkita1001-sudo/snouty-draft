@@ -6104,3 +6104,11 @@ dipakai. Yang tidak berubah: aturan yang memakai nilai-nilai itu tetap
       jadi pertanyaan baru paling buruk tampil dengan nama panjangnya, tidak pernah dengan
       path-nya. Label pendek tetap jadi penimpa bagi yang punya. Pagar tesnya menyapu setiap field
       yang punya templat pertanyaan, dalam dua bahasa.
+
+- [x] P40-12 Baris lem menyebut angka yang ditunggu, bukan "saat pemasangan"
+
+      Terbaca di layar Estimasi Material pada kasus yang sama: baris Lem PVC berbunyi "Dihitung
+      saat pemasangan". Jumlah kalengnya tidak ditentukan di lapangan melainkan oleh berapa
+      sambungan yang bisa dilem satu kaleng — angka yang masih ditunggu dari Pralon sejak OQ-98.
+      Barisnya kini berkata itu, dalam dua bahasa; dop tetap "dihitung saat pemasangan", karena
+      di sana memang begitu.

@@ -323,6 +323,12 @@ export interface PendingNeed {
   readonly unit: BomItem['unit'];
   /** Lini Pralon yang belum ada di data katalog — lihat `BomItem.askPralon`. */
   readonly askPralon?: true;
+  /**
+   * Apa yang ditunggu, bila bukan pemasangan. Tanpa ini barisnya berbunyi "Dihitung saat
+   * pemasangan" — benar untuk dop, salah untuk lem, yang menunggu satu angka dari Pralon
+   * (produksi 2026-11-27).
+   */
+  readonly pendingNote?: Text;
 }
 
 /**
@@ -411,6 +417,12 @@ export function pendingNeeds(
       unit: 'kaleng' as const,
       // Solvent Cement adalah lini Pralon (materi perusahaan), hanya belum ada di export ERP.
       askPralon: true as const,
+      // Jumlah kalengnya tidak ditentukan di lapangan melainkan oleh berapa sambungan yang bisa
+      // dilem satu kaleng — angka yang belum diberikan Pralon (OQ-98, keputusan 2026-11-24).
+      pendingNote: {
+        id: 'Menunggu jumlah sambungan per kaleng',
+        en: 'Needs the joints per tin',
+      },
     },
   ]);
 }
@@ -435,6 +447,7 @@ export function pendingRows(
       traceIds: [],
       pending: true,
       ...(need.askPralon ? { askPralon: true as const } : {}),
+      ...(need.pendingNote ? { pendingNote: en ? need.pendingNote.en : need.pendingNote.id } : {}),
     };
   });
 }
