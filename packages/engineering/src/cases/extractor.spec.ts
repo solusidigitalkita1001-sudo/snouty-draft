@@ -388,3 +388,26 @@ describe('debit dalam meter kubik per detik', () => {
     expect(facts('debit 8 l/s', 'culvert')).toMatchObject({ design_flow: 8 });
   });
 });
+
+/**
+ * "saluran drainase perumahan, debit 1,2 m³/s, kemiringan 0,3 persen" (produksi 2026-11-27):
+ * debitnya tercatat, kemiringannya hilang — "persen" ditulis penuh hanya terdaftar dalam bahasa
+ * Inggris ("percent"), padahal kalimatnya Indonesia.
+ */
+describe('kemiringan dengan "persen" ditulis penuh', () => {
+  it('kemiringan 0,3 persen', () => {
+    expect(
+      facts('saluran drainase, debit 50 l/s, kemiringan 0,3 persen', 'gravity_drain'),
+    ).toMatchObject({ slope: 0.3 });
+  });
+
+  it('1,5 persen slope dalam urutan terbalik', () => {
+    expect(facts('a 1.5 percent slope along the drain', 'gravity_drain')).toMatchObject({
+      slope: 1.5,
+    });
+  });
+
+  it('tanda % tetap terbaca', () => {
+    expect(facts('kemiringan 2%', 'gravity_drain')).toMatchObject({ slope: 2 });
+  });
+});

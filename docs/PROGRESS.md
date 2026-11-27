@@ -6231,3 +6231,13 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       Satuannya ditambahkan dengan sebelas penulisan (m3/s, m³/detik, m3 per detik, kubik per
       detik, cubic metres per second), dikonversi ke l/s. Dibaca lebih dulu daripada m³/jam
       supaya "m3/s" tidak dikira per jam.
+
+- [x] P40-22 Kemiringan dengan kata "persen" ikut terbaca
+
+      "saluran drainase perumahan, debit 1,2 m³/s, kemiringan 0,3 persen": debitnya tercatat
+      (P40-21), kemiringannya hilang. Kata "persen" yang ditulis penuh hanya terdaftar dalam
+      ejaan Inggris — "percent" — padahal kalimatnya Indonesia; yang terbaca baru tanda "%".
+
+      Seluruh pola satuan di pembaca nilai ikut diperiksa sekalian: hanya persen yang bereja
+      Inggris saja. Satuan lain (hektar, meter, inci, bar, jam, sambungan rumah) sudah punya
+      kedua ejaan.

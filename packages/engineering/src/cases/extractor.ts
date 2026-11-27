@@ -386,10 +386,12 @@ export function extractTechnicalContext(
     add('rainfall_intensity', num(m[1]!), m[0], 'mm/jam'),
   );
   take(
-    new RegExp(`(?:kemiringan|slope|miring|gradient|incline)\\D{0,12}?${NUM}\\s*(?:%|percent)`),
+    new RegExp(
+      `(?:kemiringan|slope|miring|gradient|incline)\\D{0,12}?${NUM}\\s*(?:%|persen|percent)`,
+    ),
     (m) => add('slope', num(m[1]!), m[0], '%'),
   );
-  take(new RegExp(`${NUM}\\s*(?:%|percent)\\s*(?:slope|gradient|fall|incline)`), (m) =>
+  take(new RegExp(`${NUM}\\s*(?:%|persen|percent)\\s*(?:slope|gradient|fall|incline)`), (m) =>
     add('slope', num(m[1]!), m[0], '%'),
   );
   // Tekanan SUMBER ("tekanan pdam 1,5 bar", "mains pressure 2 bar") diambil lebih dulu; "N bar" sisanya adalah
