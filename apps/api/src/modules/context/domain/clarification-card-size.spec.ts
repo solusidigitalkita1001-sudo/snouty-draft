@@ -79,3 +79,38 @@ describe('ringkasan jawaban tidak pernah menampilkan path field', () => {
     });
   }
 });
+
+/**
+ * Angka inti kasus teknis ditanya sebagai isian di kartu, jadi jawabannya datang berbentuk
+ * "<kunci>=<angka>". Gelembung pengguna pernah berbunyi "Intensitas hujan:
+ * rainfall_intensity=200" (produksi 2026-11-27, sapuan kasus air hujan atap, gorong-gorong,
+ * tambak, dan sumur) — kunci kodenya, bukan angkanya.
+ */
+describe('angka yang diketik di kartu parameter tampil sebagai angka, bukan kunci', () => {
+  const typed: readonly (readonly [string, string, string])[] = [
+    ['rainfall_intensity', '200', 'mm'],
+    ['design_flow', '0,8', 'l/s'],
+    ['pond_length', '50', 'm'],
+  ];
+  for (const [key, value, unit] of typed) {
+    for (const locale of ['id', 'en'] as const) {
+      it(`${key} (${locale})`, () => {
+        const summary = summarizeAnswers([{ id: key, option: `${key}=${value}` }], locale);
+        expect(summary).not.toContain(key);
+        expect(summary).not.toContain('=');
+        expect(summary).toContain(unit);
+      });
+    }
+  }
+
+  it('pilihan biasa tetap tampil sebagai pilihannya', () => {
+    const summary = summarizeAnswers([{ id: 'fluid_type', option: 'Air limbah' }], 'id');
+    expect(summary).toBe('Jenis cairan: Air limbah');
+  });
+
+  it('"Belum tahu" di parameter angka tidak tampil sebagai kunci', () => {
+    const summary = summarizeAnswers([{ id: 'design_flow', option: 'Belum tahu' }], 'id');
+    expect(summary).not.toContain('design_flow');
+    expect(summary).not.toContain('=');
+  });
+});

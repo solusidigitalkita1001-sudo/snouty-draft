@@ -29,6 +29,7 @@ import {
   parameterDefinition,
   parameterLabel,
   parameterOptionLabels,
+  unitLabel,
 } from '@snouty/engineering';
 import { irrigationFieldLabel, isIrrigationField } from './irrigation.js';
 import { requirementFieldLabel } from './requirement-labels.js';
@@ -650,6 +651,17 @@ function inputSummary(template: QuestionTemplate, option: string, locale: Locale
   return parts.join(', ');
 }
 
+/**
+ * Angka yang diketik pengguna di kartu parameter teknis, dari bentuk "<kunci>=<angka>" yang
+ * dikirim klien. `null` bila jawabannya bukan isian angka (pilihan, atau "Belum tahu").
+ */
+function parameterInputValue(key: string, option: string): number | null {
+  const pair = option.split(';').find((part) => part.startsWith(`${key}=`));
+  if (pair === undefined) return null;
+  const value = Number(pair.slice(key.length + 1).replace(',', '.'));
+  return Number.isFinite(value) ? value : null;
+}
+
 /** "Sumber air: Toren atap · Instalasi: Keduanya · Kamar mandi: 3" — gelembung pengguna. */
 export function summarizeAnswers(
   answers: readonly ClarificationAnswer[],
@@ -661,10 +673,19 @@ export function summarizeAnswers(
       // Kunci parameter kasus teknis → label dan pilihan dari registry (bug "fluid_type: Air
       // limbah" di gelembung pengguna, 2026-10-07); field irigasi → templat per bahasa.
       if (isParameterKey(a.id)) {
-        const options = parameterDefinition(a.id).options ?? [];
+        const def = parameterDefinition(a.id);
+        const options = def.options ?? [];
         const index = options.indexOf(a.option);
+        // Angka inti kasus teknis ditanya sebagai isian, jadi jawabannya datang berbentuk
+        // "rainfall_intensity=200" — kunci kodenya, bukan angkanya. Gelembung pengguna pernah
+        // berbunyi "Intensitas hujan: rainfall_intensity=200" (produksi 2026-11-27).
+        const typed = parameterInputValue(a.id, a.option);
         const display =
-          index >= 0 ? (parameterOptionLabels(a.id, locale)?.[index] ?? a.option) : a.option;
+          typed !== null
+            ? `${typed.toLocaleString(locale === 'en' ? 'en-US' : 'id-ID', { maximumFractionDigits: 1 })}${def.unit ? ` ${unitLabel(def.unit, locale)}` : ''}`
+            : index >= 0
+              ? (parameterOptionLabels(a.id, locale)?.[index] ?? a.option)
+              : a.option;
         return `${parameterLabel(a.id, locale)}: ${optionLabel(display, locale)}`;
       }
       // Kartu kewajaran ukuran (`outlier.*`, review putaran 3) menjawab soal ukuran bangunan.

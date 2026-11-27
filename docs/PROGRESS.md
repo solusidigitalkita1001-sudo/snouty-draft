@@ -6206,3 +6206,16 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       menyebut ukuran yang kehilangan tekanannya muat di dalam beda tinggi itu, berikut harganya
       yang lebih mahal dan pompanya yang hilang. Air yang memang dinaikkan tidak menyebut apa pun
       soal ini.
+
+- [x] P40-20 Angka yang diketik di kartu teknis tampil sebagai angka, bukan kunci kodenya
+
+      Sapuan delapan belas kasus baru di produksi: empat kasus teknis menampilkan kunci kodenya di
+      gelembung pengguna — "Intensitas hujan: rainfall_intensity=200", "Debit rencana:
+      design_flow=0,8", "Panjang kolam: pond_length=50". Terlihat di air hujan atap gudang,
+      gorong-gorong jalan, tambak, dan sumur ke tandon.
+
+      Sebabnya: angka inti kasus teknis ditanya sebagai isian di kartu (P16), jadi jawabannya
+      datang berbentuk "<kunci>=<angka>". Ringkasan jawaban mengurus bentuk itu untuk field
+      kebutuhan rumah, tetapi cabang parameter teknis berhenti lebih dulu dan mencetak jawabannya
+      apa adanya. Sekarang angkanya dibaca dan ditampilkan dengan satuannya: "Intensitas hujan:
+      200 mm". Pilihan biasa dan "Belum tahu" tidak berubah.
