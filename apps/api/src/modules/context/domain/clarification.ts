@@ -385,24 +385,16 @@ export interface ClarificationPlan {
  * menurut prioritas (yang di luar prioritas ikut di belakang, stabil), lalu
  * dipotong maksimum empat. Bentuk tunggal hanya memakai field pertama.
  */
-/** Field inti yang kartunya bisa dijawab — sama dengan yang ditanyakan `planClarification`. */
-const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<RequirementFieldPath>([
-  'water.source',
-  'water.installationType',
-  'building.floors',
-  'fixtures.bathrooms',
-  'fixtures.bathroomsPerRoom',
-  'building.floorHeightM',
-  ...HOUSE_REFINEMENT_FIELDS,
-  ...WORSHIP_REFINEMENT_FIELDS,
-  'water.wellDepthM',
-  'water.workType',
-  'water.existingMainSize',
-  'water.existingPipeMaterial',
-  'water.existingOutlets',
-  'water.replacementLengthM',
-  'water.replacedLine',
-]);
+/**
+ * Field inti yang kartunya bisa dijawab = tepat field yang punya templat pertanyaan. Diturunkan
+ * dari `TEMPLATES`, bukan didaftar ulang: daftar kedua yang ditulis tangan selalu tertinggal dari
+ * kartunya, dan selisihnya menjadi 400. Tujuan air bekas masuk kartu pembuangan (smoke test
+ * 13 Nov 2026, temuan 10) tetapi tidak pernah masuk daftar ini, sehingga SELURUH kartu ditolak —
+ * ukuran bangunan di baris yang sama ikut hilang dan bak kontrol tidak pernah terhitung
+ * (produksi 2026-11-27). `toQuestion` hanya bisa membuat pertanyaan untuk field bertemplat, jadi
+ * kartu dan daftar ini kini mustahil berbeda.
+ */
+const CORE_CLARIFICATION_IDS: ReadonlySet<string> = new Set<string>(Object.keys(TEMPLATES));
 
 /**
  * `id` jawaban kartu klarifikasi yang dikenal: field inti bangunan, field irigasi (OQ-47), atau

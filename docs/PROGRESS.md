@@ -6036,3 +6036,45 @@ dipakai. Yang tidak berubah: aturan yang memakai nilai-nilai itu tetap
       **Volume grease trap** tetap tidak dihitung, tetapi tidak lagi didiamkan: ENG-606 v2 menyebut
       dua angka yang kurang — debit buangan dapur yang dipakai untuk sizing dan waktu tinggalnya.
       Jumlah grease trap-nya tetap satu per dapur.
+
+- [x] P40-06 Kalimat grease trap menyebut angka yang kurang, bukan ID pertanyaan
+
+      Di layar material kalimatnya masih "Ukuran dan volumenya tidak dihitung di sini (OQ-101)" —
+      sebuah ID pertanyaan internal yang pembaca tidak pernah lihat, dan bukan lagi apa yang
+      terjadi. Volumenya mengikuti debit buangan dapur dan waktu tinggalnya, dan dua angka itulah
+      yang belum ada. Kalimat Indonesia dan Inggris sekarang berkata begitu, tanpa label internal.
+
+- [x] P40-07 Dua baris tanpa produk menyebut nama barangnya
+
+      Daftar material menampilkan peruntukan baris, dan nama produk di bawahnya. Dua baris baru
+      dari P40-02 dan P40-04 dikerjakan di lapangan dan tidak punya SKU, jadi yang terbaca hanya
+      "Mematikan air rumah dan tiap lantai" dan "Menjangkau sumbatan jalur air kotor" — sebuah
+      pekerjaan, bukan barang yang harus dibeli. Peruntukannya kini dimulai dengan namanya,
+      seperti baris pembuangan yang sudah lebih dulu begitu ("Clean out air kotor").
+
+- [x] P40-08 Bak kontrol bukan produk yang harus dicari di tempat lain
+
+      Baris tanpa SKU berbunyi "Tidak tersedia di katalog Pralon, gunakan produk setara". Benar
+      untuk stop kran; salah untuk bak kontrol, yang pekerjaan pasangan di lapangan dan tidak ada
+      padanannya untuk dibeli. Baris sekarang bisa berkata "Pekerjaan pasangan di lapangan, bukan
+      barang katalog", dan baris bak kontrol memakainya.
+
+- [x] P40-09 Kartu lanjutan kasus pembuangan bisa dijawab (produksi 2026-11-27)
+
+      Dicoba di produksi: rumah 3 lantai dengan air kotor dan air bekas menerima kartu lanjutan
+      empat pertanyaan — ukuran bangunan, keran luar, keran lantai atas, tujuan air bekas — dan
+      mengirim jawabannya selalu gagal. `water.greyWaterDestination` masuk kartu sejak smoke test
+      13 Nov (temuan 10) tetapi tidak pernah masuk daftar id yang boleh dijawab endpoint, dan
+      karena validasinya memeriksa seluruh larik jawaban sekaligus, satu id yang tidak dikenal
+      menggagalkan juga ukuran bangunan di baris yang sama. Akibatnya berantai: tanpa ukuran
+      bangunan tidak ada panjang jalur, jadi bak kontrol P40-04 tidak pernah muncul di kasus
+      nyata, dan tujuan air bekas tidak pernah tercatat. Di layar yang terlihat hanya pesan galat
+      umum setelah menekan kirim.
+
+      Daftar id yang boleh dijawab tidak lagi ditulis tangan: ia diturunkan dari templat
+      pertanyaan, dan hanya field bertemplat yang bisa menjadi pertanyaan di kartu — jadi kartu
+      dan daftarnya mustahil berbeda lagi. Pagar tesnya ikut diperluas: dulu hanya empat bentuk
+      kartu (jenis bangunan saja) yang diperiksa, sekarang jenis bangunan × jenis pekerjaan ×
+      sumber air × jenis instalasi, persis seluas kartunya sendiri. Ini kambuhan ketiga dari pola
+      yang sama (kartu teknis 2026-10-07, kartu tempat ibadah 2026-10-12) — kali ini penyebabnya
+      yang dihapus, bukan satu entri yang ditambahkan.
