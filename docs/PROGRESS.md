@@ -6316,3 +6316,20 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       satu untuk kasus teknis. Perbaikan di satu tempat tidak terlihat di produksi sampai yang
       kedua ikut diperbaiki — kalimat yang sama masih dijawab "gedung bertingkat" sesudah rilis
       pertama.
+
+- [x] P40-28 Satu gedung bukan jaringan kota, dan jalur pendingin pabrik bukan kebutuhan bangunan
+
+      Dua kalimat salah rute, keduanya dijawab dengan yakin. "air limbah rumah sakit 4 lantai mau
+      dialirkan ke IPAL sendiri" dijawab "jaringan air limbah — saya hitung debit air limbah dari
+      sambungan rumah": satu gedung dihitung sebagai jaringan kota yang satuannya sambungan rumah,
+      dan hasilnya 0,05 l/s untuk sebuah rumah sakit. "pabrik butuh jalur air pendingin, air
+      bersih biasa, 25 l/s, jarak 300 meter" dicatat jaraknya tetapi debit 25 l/s-nya hilang, lalu
+      ditanya "bangunannya berapa lantai?" — jalur 300 meter diperlakukan sebagai instalasi
+      bangunan, dan debitnya tidak punya tempat untuk disimpan.
+
+      Contoh pembuangan gravitasi sebelumnya seluruhnya tentang rumah dan septic tank, sementara
+      contoh jaringan air limbah penuh "sambungan rumah" dan "IPAL komunal" — kalimat rumah sakit
+      dengan IPAL sendiri lebih dekat ke yang kedua. Lima contoh pembuangan satu gedung ke IPAL
+      sendiri ditambahkan, dan empat contoh jalur bertekanan pabrik yang membawa debit dan
+      jaraknya. Kasus evalnya parafrasa, ditambah satu kontrol jaringan supaya sisi sebelah tidak
+      ikut tertarik. Eval tetap 234/235 (99,6 %).

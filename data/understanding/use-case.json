@@ -163,7 +163,11 @@
       "pompa dari sumur ke tandon atas",
       "mindahin air antar tangki",
       "pumping water from a reservoir to a tank",
-      "jalur pompa 200 meter ke atas bukit"
+      "jalur pompa 200 meter ke atas bukit",
+      "jalur air pendingin pabrik, air bersih, 25 l/s, jarak 300 meter",
+      "pipa air bersih dari pompa ke mesin pabrik, 20 l/s, 250 meter",
+      "cooling water line in a factory, 25 l/s over 300 m",
+      "jalur air proses pendingin, debit 30 l/s, panjang 400 m"
     ],
     "gravity_drainage": [
       "ganti saluran drainase lama yang sudah pecah, 100 m",
@@ -185,7 +189,12 @@
       "air limbah ngalir sendiri tanpa pompa",
       "drainase kawasan dengan kemiringan alami",
       "gravity drain from the building to the ditch",
-      "buangan dialirkan ke selokan depan"
+      "buangan dialirkan ke selokan depan",
+      "air limbah rumah sakit 4 lantai ke ipal sendiri",
+      "pembuangan air limbah hotel 6 lantai ke ipal di belakang gedung",
+      "air kotor gedung sekolah dialirkan ke ipal sendiri",
+      "wastewater from a four-storey hospital to its own treatment plant",
+      "buangan air limbah satu gedung kantor ke ipal milik sendiri"
     ],
     "sewerage": [
       "perluasan jaringan air limbah, tambah 100 sambungan ke pipa induk lama",

@@ -2326,6 +2326,26 @@
       "text": "buang air limbah 180 rumah ke ipal komunal",
       "useCase": "sewerage",
       "source": "kontrol 2026-11-27"
+    },
+    {
+      "text": "air limbah rumah sakit lima lantai mau dibuang ke ipal milik rumah sakit",
+      "useCase": "gravity_drainage",
+      "source": "produksi 2026-11-27"
+    },
+    {
+      "text": "buangan air kotor hotel kami dialirkan ke pengolahan sendiri di halaman",
+      "useCase": "gravity_drainage",
+      "source": "produksi 2026-11-27"
+    },
+    {
+      "text": "jalur pendingin mesin di pabrik, air bersih 18 liter per detik, panjangnya 220 m",
+      "useCase": "pump_transfer",
+      "source": "produksi 2026-11-27"
+    },
+    {
+      "text": "jaringan air limbah kawasan 250 sambungan rumah ke ipal komunal",
+      "useCase": "sewerage",
+      "source": "kontrol 2026-11-27"
     }
   ]
 }
