@@ -6174,3 +6174,21 @@ bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
       adalah cara kode menyimpan arah, bukan cara orang membacanya. Barisnya kini "40 m turun
       dari sumber"; air yang memang dinaikkan tetap "40 m". Jejak perhitungan tetap memakai
       tandanya, karena di sana ia suku penjumlahan yang harus bisa dijumlahkan pembacanya.
+
+- [x] P40-18 "Jaringan air bersih desa untuk 300 rumah" bukan jaringan air limbah
+
+      Kalimat yang menyebut "air bersih" dijawab "Oke, jaringan air limbah. Saya hitung debit air
+      limbah dari sambungan rumah" — kebalikan dari yang diminta, di kalimat pertama. Kalimat
+      versi panjangnya ("sumber mata air, jarak reservoir ke permukiman, beda tinggi") mendarat
+      benar, jadi cacatnya tidak terlihat sampai kalimatnya dipendekkan.
+
+      Sebabnya ada di contohnya, bukan di kodenya: dua puluh tiga contoh jaringan air minum
+      seluruhnya memakai "spam", "pdam", "air minum", "transmisi", "sr", atau "jiwa" — tidak satu
+      pun memakai frasa "air bersih" atau menghitung dalam "rumah". Contoh air limbah justru penuh
+      "jaringan … untuk N sambungan rumah" dan "150 rumah". Kalimatnya cocok ke bentuk kalimat
+      yang salah karena kata pembedanya tidak pernah ada di sisi yang benar.
+
+      Enam contoh ditambahkan yang membawa kata pembedanya dan menghitung rumah, dua di antaranya
+      Inggris. Kasus evalnya parafrasa, bukan salinan contohnya, ditambah satu kasus kontrol air
+      limbah supaya sisi sebelah tidak ikut tertarik. Eval pemahaman tetap 234/235 (99,6 %) dengan
+      dua penyimpangan yang sama persis seperti sebelum perubahan.

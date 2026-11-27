@@ -2306,6 +2306,26 @@
       "text": "kolam ikan ukuran 7x3 meter di halaman rumah, butuh pipa apa",
       "source": "produksi 2026-11-05",
       "useCase": "fish_pond"
+    },
+    {
+      "text": "mau bangun saluran air bersih sedesa, kira-kira 450 rumah",
+      "useCase": "water_supply_network",
+      "source": "produksi 2026-11-27"
+    },
+    {
+      "text": "air bersih buat kampung kami, rumahnya ada 180",
+      "useCase": "water_supply_network",
+      "source": "produksi 2026-11-27"
+    },
+    {
+      "text": "clean water supply for a hamlet of 220 houses",
+      "useCase": "water_supply_network",
+      "source": "produksi 2026-11-27"
+    },
+    {
+      "text": "buang air limbah 180 rumah ke ipal komunal",
+      "useCase": "sewerage",
+      "source": "kontrol 2026-11-27"
     }
   ]
 }
