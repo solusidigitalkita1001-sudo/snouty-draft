@@ -117,6 +117,13 @@ export function caseWithoutCalculatorPolicy(
 export function useCasePolicy(
   signals: UseCaseSignals,
   locale: Locale = DEFAULT_LOCALE,
+  /**
+   * Apakah ada kebutuhan yang memang sudah tercatat. Kebijakan ini diputuskan SEBELUM ekstraksi
+   * (lihat pemanggilnya), jadi pada pesan pertama belum ada satu baris pun — dan kalimat "kebutuhan
+   * yang sudah tercatat di sini langsung diteruskan" menjanjikan kartu kosong (produksi
+   * 2026-11-27). Yang tetap benar: antrean teknis membawa kalimat pelanggannya sendiri (P39-04).
+   */
+  hasCaptured = true,
 ): PolicyOutcome {
   const hot = signals.temperatureC !== null && signals.temperatureC >= MAX_SUPPORTED_TEMPERATURE_C;
   if (!signals.outOfScopeFluid && !hot) return { kind: 'supported' };
@@ -126,7 +133,9 @@ export function useCasePolicy(
       code: 'TECHNICAL_VALIDATION_REQUIRED',
       reasons: [
         `Hot water above ${MAX_SUPPORTED_TEMPERATURE_C}°C, steam, or special fluids need a different pipe choice and their own calculation, so the Pralon technical team works them out.`,
-        'Press “Send to the Pralon technical team” and your requirements go to them as they are recorded here.',
+        hasCaptured
+          ? 'Press “Send to the Pralon technical team” and your requirements go to them as they are recorded here.'
+          : 'Press “Send to the Pralon technical team” and what you have written goes to them as it is — you will not have to tell it again.',
       ],
     };
   }
@@ -135,7 +144,9 @@ export function useCasePolicy(
     code: 'TECHNICAL_VALIDATION_REQUIRED',
     reasons: [
       `Air panas di atas ${MAX_SUPPORTED_TEMPERATURE_C}°C, uap, atau cairan khusus perlu pilihan pipa dan perhitungan tersendiri, jadi yang menghitung tim teknis Pralon.`,
-      'Tekan “Kirim ke tim teknis Pralon” supaya kebutuhan yang sudah tercatat di sini langsung diteruskan ke mereka.',
+      hasCaptured
+        ? 'Tekan “Kirim ke tim teknis Pralon” supaya kebutuhan yang sudah tercatat di sini langsung diteruskan ke mereka.'
+        : 'Tekan “Kirim ke tim teknis Pralon” supaya yang Anda tulis diteruskan apa adanya — Anda tidak perlu menceritakannya lagi.',
     ],
   };
 }

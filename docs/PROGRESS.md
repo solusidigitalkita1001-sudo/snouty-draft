@@ -6112,3 +6112,34 @@ dipakai. Yang tidak berubah: aturan yang memakai nilai-nilai itu tetap
       sambungan yang bisa dilem satu kaleng — angka yang masih ditunggu dari Pralon sejak OQ-98.
       Barisnya kini berkata itu, dalam dua bahasa; dop tetap "dihitung saat pemasangan", karena
       di sana memang begitu.
+
+## Fase 40 lanjutan — sapuan kasus nyata di produksi (27 Nov 2026)
+
+Enam belas kasus digiring ke produksi lewat API, lalu layarnya dipotret dan dibaca. Yang mekanis
+bersih; yang salah justru terbaca saat jawabannya dibaca satu per satu.
+
+- [x] P40-13 Kartu penyerahan tidak menjanjikan isi yang tidak dibawanya
+
+      "Tekan Kirim ke tim teknis Pralon supaya kebutuhan yang sudah tercatat di sini langsung
+      diteruskan" — padahal daftar yang dibawanya kosong. Kebijakan cakupan diputuskan sebelum
+      ekstraksi (memang disengaja: menanyakan "berapa kamar mandi?" untuk jalur uap adalah
+      jawaban yang salah), jadi pada pesan pertama belum ada satu baris pun yang tercatat, bahkan
+      ketika pengguna menyebut rumah 2 lantai, 3 kamar mandi, dan toren atap dalam kalimat itu.
+
+      Yang tetap benar: antrean teknis membawa kalimat pelanggannya sendiri sejak P39-04. Jadi
+      kalimatnya kini mengikuti isinya — ada yang tercatat, janjinya seperti dulu; tidak ada, yang
+      dijanjikan adalah yang memang terjadi: tulisannya diteruskan apa adanya.
+
+- [x] P40-14 Limbah proses pabrik bukan jalur air kotor rumah
+
+      "Pabrik butuh pipa untuk air limbah proses pelapisan logam, debit 8 liter per detik, jarak
+      150 m" dijawab "Pembuangan: air kotor 4", air bekas 2"" — jalur saniter rumah, disusun dari
+      satu kamar mandi yang ditanyakan sendiri oleh sistem, sementara debit 8 l/s yang disebut
+      pengguna tidak dipakai sama sekali. Kosakata fluida di luar cakupan memuat "kimia" dan "air
+      proses", tetapi kalimat itu tidak memakai keduanya.
+
+      Limbah proses industri kini ada di kosakata itu (limbah industri/pabrik/proses, pelapisan
+      logam, elektroplating, penyamakan, dan padanan Inggrisnya), jadi kasusnya berjalan ke rute
+      validasi teknis yang memang sudah ada — bukan ke hitungan saniter. Air limbah domestik tidak
+      ikut terjaring: rumah, jaringan air limbah desa, dan septic tank tetap dihitung di sini, dan
+      itu yang dijaga tesnya.

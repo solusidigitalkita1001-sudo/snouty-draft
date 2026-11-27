@@ -449,6 +449,7 @@ export async function runUnderstanding(
   const asksAboutFluid =
     isProductQuestion(input.understanding?.intent?.label) &&
     input.understanding?.intent?.label !== 'advice_request';
+  const captured = capturedFrom(input.state, locale);
   const useCase = asksAboutFluid
     ? ({ kind: 'supported' } as const)
     : useCasePolicy(
@@ -457,9 +458,10 @@ export async function runUnderstanding(
           temperatureC: parseTemperature(input.message),
         },
         locale,
+        captured.length > 0,
       );
   if (useCase.kind === 'policy') {
-    const card = policyCard(useCase, capturedFrom(input.state, locale), locale);
+    const card = policyCard(useCase, captured, locale);
     // Kartu tanpa satu kata pun di gelembungnya terbaca sebagai balasan hampa: di produksi
     // 12 Nov 2026 pertanyaan air laut dijawab kartu saja, prosanya kosong. Kalimatnya sama
     // dengan jalur penyerahan yang lain.

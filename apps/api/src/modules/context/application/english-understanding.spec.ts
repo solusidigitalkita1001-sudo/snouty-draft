@@ -119,6 +119,49 @@ describe('pemahaman Inggris — pola kode', () => {
     expect(useCasePolicy(signals('irigasi sawah 1 hektar')).kind).toBe('supported');
   });
 
+  /**
+   * Produksi 2026-11-27: "pabrik butuh pipa untuk air limbah proses pelapisan logam, debit 8
+   * liter per detik, jarak 150 m" dijawab jalur air kotor rumah 4 inci, disusun dari 1 kamar
+   * mandi — debit yang disebut pengguna tidak dipakai sama sekali. Limbah proses pabrik adalah
+   * fluida yang butuh validasi bahan, bukan buangan saniter.
+   */
+  it('limbah proses industri butuh validasi teknis; air limbah rumah dan desa tidak', () => {
+    const signals = (text: string) => ({
+      outOfScopeFluid: TEST_LEXICON.mentionsOutOfScopeFluid(text),
+      temperatureC: parseTemperature(text),
+    });
+    for (const text of [
+      'pabrik butuh pipa untuk air limbah proses pelapisan logam, debit 8 liter per detik',
+      'jalur limbah pabrik tekstil 150 m',
+      'pipa untuk limbah industri elektroplating',
+      'piping for industrial effluent, 8 l/s',
+      'drain line for a tannery',
+    ]) {
+      expect(useCasePolicy(signals(text)).kind, text).toBe('policy');
+    }
+    // Air limbah domestik tetap dihitung di sini — jangan sampai ikut terjaring.
+    for (const text of [
+      'rumah 2 lantai, instalasi air kotor dan air bekas',
+      'jaringan air limbah desa 300 sambungan rumah',
+      'air limbah rumah tangga ke septic tank',
+      'sewerage network for 300 house connections',
+    ]) {
+      expect(useCasePolicy(signals(text)).kind, text).toBe('supported');
+    }
+  });
+
+  /** Kartu tidak menjanjikan isi yang tidak dibawanya (produksi 2026-11-27). */
+  it('janji kartu mengikuti ada-tidaknya kebutuhan yang tercatat', () => {
+    const hot = { outOfScopeFluid: true, temperatureC: null };
+    const withRows = useCasePolicy(hot, 'id', true);
+    const without = useCasePolicy(hot, 'id', false);
+    expect(withRows.kind === 'policy' && withRows.reasons[1]).toContain('sudah tercatat');
+    expect(without.kind === 'policy' && without.reasons[1]).not.toContain('sudah tercatat');
+    expect(without.kind === 'policy' && without.reasons[1]).toContain('apa adanya');
+    const en = useCasePolicy(hot, 'en', false);
+    expect(en.kind === 'policy' && en.reasons[1]).toContain('as it is');
+  });
+
   it('templat dua bahasa: balasan tetap, pembuka, pertanyaan klarifikasi, ringkasan jawaban', () => {
     expect(replyFor('OUT_OF_SCOPE', 'en')).toContain('SNOUTY');
     expect(replyFor('OUT_OF_SCOPE', 'en')).not.toBe(replyFor('OUT_OF_SCOPE', 'id'));
