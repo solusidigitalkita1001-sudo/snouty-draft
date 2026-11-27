@@ -1882,3 +1882,21 @@ dari batas kecepatan dan kemiringan kehilangan seperti sekarang — tidak ada ma
 membesar. Yang bertambah: bila sumbernya di atas tujuan, jawabannya ikut menyebut ukuran yang
 kehilangan tekanannya muat di dalam beda tinggi itu, sehingga pompanya tidak diperlukan, beserta
 harganya yang lebih mahal. Dikerjakan di ENG-205 v4 (keluaran `gravityFitSize`).
+
+### OQ-104 — Daftar material untuk pipa yang sudah dinyatakan tidak cukup (P40, 2026-11-27)
+
+**Status:** open · **Blocks:** tidak ada angka yang salah; yang terbuka apakah materialnya tetap
+ditampilkan · **Usulan default di bawah**
+
+Setelah P40-23, gorong-gorong dengan debit 800 l/s mengatakan apa adanya: "800 l/s melebihi pipa
+PVC D terbesar — 12" mengalirkan 85,23 l/s pada kemiringan 0,5 %", dan kalimatnya menyerahkan
+jumlah jalur ke tim teknis. Tetapi daftar materialnya tetap berisi dua batang pipa 12", kepala
+gorong-gorong, dan lem — material untuk pipa yang baru saja dikatakan tidak cukup.
+
+**Usulan default (menunggu keputusan pemilik):** bila tidak ada ukuran yang lolos, daftar
+materialnya tidak disusun. Layar solusinya berisi hitungan dan kemampuan pipa terbesar, lalu
+rute validasi teknis — seperti kasus industri yang tidak pernah menghasilkan daftar.
+
+Pilihan lain yang masuk akal: daftarnya tetap ditampilkan untuk **satu** jalur dengan catatan
+jelas "untuk satu jalur; jumlah jalurnya belum ditentukan", supaya pembacanya tetap punya harga
+satuan. Yang tidak boleh: daftar tanpa catatan apa pun, seperti sekarang.
